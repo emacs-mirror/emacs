@@ -130,7 +130,9 @@ THINGS TO DO
 ** Something with (maybe) multi-keyboard support broke function keys
    and arrows on ttys during X+tty combo sessions.  Debug this.
 
-** Fix faces on tty frames during X-tty combo sessions.
+** Fix faces on tty frames during X-tty combo sessions.  There is an
+   init_frame_faces call in init_sys_modes, see if there is a problem
+   with it.
 
 ** During an X-tty combo session, a (message "Hello") from a tty frame
    goes to the X frame.  Fix this.
@@ -186,7 +188,8 @@ THINGS TO DO
 	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
 	gettimeofday({1072842297, 748245}, NULL) = 0
 
-   I have not been able to reproduce this.
+   I have seen something similar with a single X frame, but have not
+   been able to reproduce it for debugging.
 
 ** Define a output_initial value for output_method for the initial
    frame that is dumped with Emacs.  Checking for this frame (e.g. in
@@ -195,6 +198,12 @@ THINGS TO DO
 ** emacsclient -t from an Emacs term buffer does not work, complains
    about face problems.  This can even lock up Emacs (if the recursive
    frame sets single_kboard).
+
+** Clean up the source of emacsclient.  It is a mess.
+
+** C-x 5 2, C-x 5 o, C-x 5 0 on an emacsclient frame unexpectedly
+   exits emacsclient.  This is a result of trying to be clever with
+   delete-frame-functions.
 
 DIARY OF CHANGES
 ----------------

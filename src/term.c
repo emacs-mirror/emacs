@@ -100,6 +100,9 @@ static void delete_tty_1 P_ ((struct tty_display_info *));
 
 Lisp_Object Vring_bell_function;
 
+/* Functions to call after a tty was deleted. */
+Lisp_Object Vdelete_tty_after_functions;
+
 /* Terminal characteristics that higher levels want to look at. */
 
 struct tty_display_info *tty_list;
@@ -2751,8 +2754,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
 
-  tty_set_terminal_modes (tty);
-
   return tty;
 #endif /* not WINDOWSNT */
 }
@@ -2772,7 +2773,11 @@ fatal (str, arg1, arg2)
 
 
 DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
-       doc: /* Delete all frames on the terminal named TTY, and close the device. */)
+       doc: /* Delete all frames on the terminal named TTY, and close the device.
+If omitted, TTY defaults to the controlling terminal.
+
+This function runs `delete-tty-after-functions' after closing the
+tty.  The functions are run with one arg, the frame to be deleted.  */)
   (tty)
      Lisp_Object tty;
 {
@@ -2802,7 +2807,8 @@ void
 delete_tty (struct tty_display_info *tty)
 {
   Lisp_Object tail, frame;
-
+  char *tty_name;
+  
   if (deleting_tty)
     /* We get a recursive call when we delete the last frame on this
        tty. */
@@ -2838,8 +2844,7 @@ delete_tty (struct tty_display_info *tty)
 
   reset_sys_modes (tty);
 
-  if (tty->name)
-    xfree (tty->name);
+  tty_name = tty->name;
   if (tty->type)
     xfree (tty->type);
 
@@ -2873,6 +2878,21 @@ delete_tty (struct tty_display_info *tty)
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
   deleting_tty = 0;
+
+  /* Run `delete-tty-after-functions'.  */
+  if (!NILP (Vrun_hooks))
+    {
+      Lisp_Object args[2];
+      args[0] = intern ("delete-tty-after-functions");
+      if (tty_name)
+        {
+          args[1] = build_string (tty_name);
+          xfree (tty_name);
+        }
+      else
+        args[1] = Qnil;
+      Frun_hook_with_args (2, args);
+    }
 }
 
 
@@ -2910,6 +2930,12 @@ This variable can be used by terminal emulator packages.  */);
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
+
+  DEFVAR_LISP ("delete-tty-after-functions", &Vdelete_tty_after_functions,
+    doc: /* Functions to be run after deleting a tty.
+The functions are run with one argument, the name of the tty to be deleted.
+See `delete-tty'.  */);
+  Vdelete_tty_after_functions = Qnil;
 
   Qframe_tty_name = intern ("frame-tty-name");
   staticpro (&Qframe_tty_name);

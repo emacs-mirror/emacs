@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
    indicate that SIGIO doesn't work by #undef-ing SIGIO.  If this file
    #includes <signal.h>, then that will re-#define SIGIO and confuse
    things.  */
+/* XXX This is not correct anymore, there is a BROKEN_SIGIO macro. */
 
 #define SIGMASKTYPE sigset_t
 

@@ -194,6 +194,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>              /* This needs to be before termchar.h */
 
 #include "lisp.h"
 #include "charset.h"
@@ -241,7 +242,6 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "window.h"
 #include "intervals.h"
-#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -263,7 +263,6 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* HAVE_X_WINDOWS */
 
-#include <stdio.h>
 #include <ctype.h>
 
 #define abs(X)		((X) < 0 ? -(X) : (X))

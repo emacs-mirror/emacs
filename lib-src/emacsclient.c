@@ -41,54 +41,10 @@ Boston, MA 02111-1307, USA.  */
 # include <pwd.h>
 #endif /* not VMS */
 
-
-/****************************************/
-
-#include <errno.h>
 #include <signal.h>
-
-#ifndef INCLUDED_FCNTL
-#define INCLUDED_FCNTL
-#include <fcntl.h>
-#endif
-
-#ifdef HAVE_TERMIOS
-#ifndef NO_TERMIO
-#include <termio.h>
-#endif
-#include <termios.h>
-#endif /* not HAVE_TERMIOS */
-
-#ifdef __GNU_LIBRARY__
-#include <sys/ioctl.h>
-#include <termios.h>
-#endif
-
-#if (defined (POSIX) || defined (NEED_UNISTD_H)) && defined (HAVE_UNISTD_H)
-#include <unistd.h>
-#endif
-
+#include <errno.h>
 
 
-/* Try to establish the correct character to disable terminal functions
-   in a system-independent manner.  Note that USG (at least) define
-   _POSIX_VDISABLE as 0!  */
-
-#ifdef _POSIX_VDISABLE
-#define CDISABLE _POSIX_VDISABLE
-#else /* not _POSIX_VDISABLE */
-#ifdef CDEL
-#undef CDISABLE
-#define CDISABLE CDEL
-#else /* not CDEL */
-#define CDISABLE 255
-#endif /* not CDEL */
-#endif /* not _POSIX_VDISABLE */
-
-
-
-/****************************************/
-
 char *getenv (), *getwd ();
 char *getcwd ();
 
@@ -314,531 +270,36 @@ fail (void)
     }
 }
 
-
-#ifdef HAVE_TERMIOS
-
-/* Adapted from emacs_get_tty() in sysdep.c. */
-int
-ec_get_tty (int fd, struct termios *settings)
-{
-  bzero (settings, sizeof (struct termios));
-  if (tcgetattr (fd, settings) < 0)
-    return -1;
-  return 0;
-}
-
-/* Adapted from emacs_set_tty() in sysdep.c. */
-int
-ec_set_tty (int fd, struct termios *settings, int flushp)
-{
-  /* Set the primary parameters - baud rate, character size, etcetera.  */
-
-  int i;
-  /* We have those nifty POSIX tcmumbleattr functions.
-     William J. Smith <wjs@wiis.wang.com> writes:
-     "POSIX 1003.1 defines tcsetattr to return success if it was
-     able to perform any of the requested actions, even if some
-     of the requested actions could not be performed.
-     We must read settings back to ensure tty setup properly.
-     AIX requires this to keep tty from hanging occasionally."  */
-  /* This make sure that we don't loop indefinitely in here.  */
-  for (i = 0 ; i < 10 ; i++)
-    if (tcsetattr (fd, flushp ? TCSAFLUSH : TCSADRAIN, settings) < 0)
-      {
-	if (errno == EINTR)
-	  continue;
-	else
-	  return -1;
-      }
-    else
-      {
-	struct termios new;
-        
-	bzero (&new, sizeof (new));
-	/* Get the current settings, and see if they're what we asked for.  */
-	tcgetattr (fd, &new);
-	/* We cannot use memcmp on the whole structure here because under
-	 * aix386 the termios structure has some reserved field that may
-	 * not be filled in.
-	 */
-	if (   new.c_iflag == settings->c_iflag
-	    && new.c_oflag == settings->c_oflag
-	    && new.c_cflag == settings->c_cflag
-	    && new.c_lflag == settings->c_lflag
-	    && memcmp (new.c_cc, settings->c_cc, NCCS) == 0)
-	  break;
-	else
-	  continue;
-      }
-  return 0;
-}
-
-int master;
-char *pty_name;
-
-struct termios old_tty;
-struct termios tty;
-int old_tty_valid;
-
-int tty_erase_char;
-int quit_char = 'g' & 037;
-int flow_control = 0;
-int meta_key = 0;
-char _sobuf[BUFSIZ];
 int emacs_pid;
 
-/* Adapted from init_sys_modes() in sysdep.c. */
-int
-init_tty ()
-{
-  if (! isatty (0))
-    {
-      fprintf (stderr, "%s: Input is not a terminal", "init_tty");
-      return 0;
-    }
-  
-  ec_get_tty (0, &old_tty);
-  old_tty_valid = 1;
-  tty = old_tty;
-  
-  tty_erase_char = old_tty.c_cc[VERASE];
-  
-  tty.c_iflag |= (IGNBRK);	/* Ignore break condition */
-  tty.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
-#ifdef INLCR
-  tty.c_iflag &= ~INLCR;	/* Disable map of NL to CR on input */
-#endif
-#ifdef ISTRIP
-  tty.c_iflag &= ~ISTRIP;	/* don't strip 8th bit on input */
-#endif
-  tty.c_lflag &= ~ECHO;         /* Disable echo */
-  tty.c_lflag &= ~ICANON;	/* Disable erase/kill processing */
-#ifdef IEXTEN
-  tty.c_lflag &= ~IEXTEN;	/* Disable other editing characters.  */
-#endif
-  tty.c_lflag |= ISIG;          /* Enable signals */
-  if (flow_control)
-    {
-      tty.c_iflag |= IXON;	/* Enable start/stop output control */
-#ifdef IXANY
-      tty.c_iflag &= ~IXANY;
-#endif /* IXANY */
-    }
-  else
-    tty.c_iflag &= ~IXON;	/* Disable start/stop output control */
-  tty.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL
-                                   on output */
-  tty.c_oflag &= ~TAB3;         /* Disable tab expansion */
-#ifdef CS8
-  if (meta_key)
-    {
-      tty.c_cflag |= CS8;	/* allow 8th bit on input */
-      tty.c_cflag &= ~PARENB;   /* Don't check parity */
-    }
-#endif
-  tty.c_cc[VINTR] = quit_char;	/* C-g (usually) gives SIGINT */
-  /* Set up C-g for both SIGQUIT and SIGINT.
-     We don't know which we will get, but we handle both alike
-     so which one it really gives us does not matter.  */
-  tty.c_cc[VQUIT] = quit_char;
-  tty.c_cc[VMIN] = 1;      /* Input should wait for at least 1 char */
-  tty.c_cc[VTIME] = 0;          /* no matter how long that takes.  */
-#ifdef VSWTCH
-  tty.c_cc[VSWTCH] = CDISABLE;	/* Turn off shell layering use of C-z */
-#endif
-
-#ifdef VSUSP
-  tty.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
-#endif /* VSUSP */
-#ifdef V_DSUSP
-  tty.c_cc[V_DSUSP] = CDISABLE; /* Turn off mips handling of C-y.  */
-#endif /* V_DSUSP */
-#ifdef VDSUSP /* Some systems have VDSUSP, some have V_DSUSP.  */
-  tty.c_cc[VDSUSP] = CDISABLE;
-#endif /* VDSUSP */
-#ifdef VLNEXT
-  tty.c_cc[VLNEXT] = CDISABLE;
-#endif /* VLNEXT */
-#ifdef VREPRINT
-  tty.c_cc[VREPRINT] = CDISABLE;
-#endif /* VREPRINT */
-#ifdef VWERASE
-  tty.c_cc[VWERASE] = CDISABLE;
-#endif /* VWERASE */
-#ifdef VDISCARD
-  tty.c_cc[VDISCARD] = CDISABLE;
-#endif /* VDISCARD */
-
-  if (flow_control)
-    {
-#ifdef VSTART
-      tty.c_cc[VSTART] = '\021';
-#endif /* VSTART */
-#ifdef VSTOP
-      tty.c_cc[VSTOP] = '\023';
-#endif /* VSTOP */
-    }
-  else
-    {
-#ifdef VSTART
-      tty.c_cc[VSTART] = CDISABLE;
-#endif /* VSTART */
-#ifdef VSTOP
-      tty.c_cc[VSTOP] = CDISABLE;
-#endif /* VSTOP */
-    }
-  
-#ifdef SET_LINE_DISCIPLINE
-  /* Need to explicitly request TERMIODISC line discipline or
-     Ultrix's termios does not work correctly.  */
-  tty.c_line = SET_LINE_DISCIPLINE;
-#endif
-  
-#ifdef AIX
-#ifndef IBMR2AIX
-  /* AIX enhanced edit loses NULs, so disable it.  */
-  tty.c_line = 0;
-  tty.c_iflag &= ~ASCEDIT;
+#ifdef nec_ews_svr4
+extern char *_sobuf ;
 #else
-  tty.c_cc[VSTRT] = 255;
-  tty.c_cc[VSTOP] = 255;
-  tty.c_cc[VSUSP] = 255;
-  tty.c_cc[VDSUSP] = 255;
-#endif /* IBMR2AIX */
-  if (flow_control)
-    {
-#ifdef VSTART
-      tty.c_cc[VSTART] = '\021';
-#endif /* VSTART */
-#ifdef VSTOP
-      tty.c_cc[VSTOP] = '\023';
-#endif /* VSTOP */
-    }
-  /* Also, PTY overloads NUL and BREAK.
-     don't ignore break, but don't signal either, so it looks like NUL.
-     This really serves a purpose only if running in an XTERM window
-     or via TELNET or the like, but does no harm elsewhere.  */
-  tty.c_iflag &= ~IGNBRK;
-  tty.c_iflag &= ~BRKINT;
-#endif /* AIX */
-  
-  ec_set_tty (0, &tty, 0);
-
-      /* This code added to insure that, if flow-control is not to be used,
-	 we have an unlocked terminal at the start. */
-
-#ifdef TCXONC
-  if (!flow_control) ioctl (0, TCXONC, 1);
-#endif
-#ifndef APOLLO
-#ifdef TIOCSTART
-  if (!flow_control) ioctl (0, TIOCSTART, 0);
-#endif
-#endif
-
-#if defined (HAVE_TERMIOS) || defined (HPUX9)
-#ifdef TCOON
-  if (!flow_control) tcflow (0, TCOON);
-#endif
-#endif
-  
-#ifdef _IOFBF
-  /* This symbol is defined on recent USG systems.
-     Someone says without this call USG won't really buffer the file
-     even with a call to setbuf. */
-  setvbuf (stdout, (char *) _sobuf, _IOFBF, sizeof _sobuf);
+#if defined (USG) || defined (DGUX)
+unsigned char _sobuf[BUFSIZ+8];
 #else
-  setbuf (stdout, (char *) _sobuf);
+char _sobuf[BUFSIZ];
 #endif
-
-  return 1;
-}
-
-void
-window_change ()
-{
-  int width = 0, height = 0;
-
-#ifdef TIOCGWINSZ
-  {
-    /* BSD-style.  */
-    struct winsize size;
-    
-    if (ioctl (0, TIOCGWINSZ, &size) == -1)
-      width = height = 0;
-    else
-      {
-        width = size.ws_col;
-        height = size.ws_row;
-      }
-  }
-#else
-#ifdef TIOCGSIZE
-  {
-    /* SunOS - style.  */
-    struct ttysize size;
-    
-    if (ioctl (0, TIOCGSIZE, &size) == -1)
-      width = height = 0;
-    else
-      {
-        width = size.ts_cols;
-        height = size.ts_lines;
-      }
-  }
-#endif /* not SunOS-style */
-#endif /* not BSD-style */
-
-#ifdef TIOCSWINSZ
-  {
-    /* BSD-style.  */
-    struct winsize size;
-    size.ws_row = height;
-    size.ws_col = width;
-    
-    ioctl (master, TIOCSWINSZ, &size);
-  }
-#else
-#ifdef TIOCSSIZE
-  {
-    /* SunOS - style.  */
-    struct ttysize size;
-    size.ts_lines = height;
-    size.ts_cols = width;
-    
-    ioctl (master, TIOCGSIZE, &size);
-  }
-#endif /* not SunOS-style */
-#endif /* not BSD-style */
-
-  if (emacs_pid && width && height)
-    kill (emacs_pid, SIGWINCH);
-}
-
-int in_conversation = 0;
-int quit_conversation = 0;
-
-SIGTYPE
-hang_up_signal (int signalnum)
-{
-  int old_errno = errno;
-  
-  if (! in_conversation)
-    return;
-
-  quit_conversation = 1;
-  
-  errno = old_errno;
-}
+#endif
 
 SIGTYPE
 window_change_signal (int signalnum)
 {
   int old_errno = errno;
 
-  if (! in_conversation)
-    goto end;
+  if (emacs_pid)
+    kill (emacs_pid, SIGWINCH);
 
-  window_change();
-
- end:
   signal (SIGWINCH, window_change_signal);
   errno = old_errno;
 }
 
-SIGTYPE
-interrupt_signal (int signalnum)
-{
-  int old_errno = errno;
-  
-  /* Forward it to Emacs. */
-  if (emacs_pid)
-    kill (emacs_pid, SIGINT);
-
-  errno = old_errno;
-}
-
-int
-init_signals ()
+void
+init_signals (void)
 {
   /* Set up signal handlers. */
   signal (SIGWINCH, window_change_signal);
-  signal (SIGHUP, hang_up_signal);
-  signal (SIGINT, interrupt_signal);
-  return 1;
 }
-
-
-
-/* Adapted from reset_sys_modes in sysdep.c. */
-int
-reset_tty ()
-{
-  fflush (stdout);
-#ifdef BSD_SYSTEM
-#ifndef BSD4_1
-  /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (fileno (stdout));
-#endif
-#endif
-
-#ifdef F_SETFL
-#ifdef O_NDELAY
-  fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~O_NDELAY);
-#endif
-#endif /* F_SETFL */
-
-  if (old_tty_valid)
-    while (ec_set_tty (0, &old_tty, 0) < 0 && errno == EINTR)
-      ;
-
-  return 1;
-}
-
-
-int
-init_pty ()
-{
-  master = getpt ();
-  if (master < 0)
-    return 0;
-
-  if (grantpt (master) < 0 || unlockpt (master) < 0)
-    goto close_master;
-  pty_name = strdup (ptsname (master));
-  if (! pty_name)
-    goto close_master;
-
-  /* Propagate window size. */
-  window_change ();
-  
-  return 1;
-  
- close_master:
-  close (master);
-  return 0;
-}
-
-int
-copy_from_to (int in, int out, int sigio)
-{
-  static char buf[BUFSIZ];
-  int nread = read (in, &buf, BUFSIZ);
-  if (nread == 0)
-    return 1;                   /* EOF */
-  else if (nread < 0 && errno != EAGAIN)
-    return 0;
-  else if (nread > 0)
-    {
-      int r = 0;
-      int written = 0;
-
-      do {
-        r = write (out, &buf, nread);
-      } while ((r < 0 && errno == EINTR)
-               || (r > 0 && (written += r) && written != nread));
-      
-      if (r < 0)
-        return 0;
-
-      if (sigio && emacs_pid)
-        kill (emacs_pid, SIGIO);
-    }
-  return 1;
-}
-
-int
-pty_conversation (FILE *in)
-{
-  char *str;
-  char string[BUFSIZ];              
-  fd_set set, rset;
-  int res;
-
-  FD_ZERO (&set);
-  FD_SET (master, &set);
-  FD_SET (1, &set);
-  FD_SET (fileno (in), &set);
-
-  in_conversation = 1;
-  
-  while (! quit_conversation) {
-    rset = set;
-    res = select (FD_SETSIZE, &rset, NULL, NULL, NULL);
-    if (res < 0 && errno != EINTR)
-      {
-          reset_tty ();
-          fprintf (stderr, "%s: ", progname);
-          perror ("select");
-          return 0;             /* Error */
-      }
-    else if (res > 0)
-      {
-        if (FD_ISSET (master, &rset))
-          {
-            /* Copy Emacs output to stdout. */
-            if (! copy_from_to (master, 0, 0))
-              {
-                FD_CLR (master, &set);
-              }
-          }
-        if (FD_ISSET (1, &rset))
-          {
-            /* Forward user input to Emacs. */
-            if (! copy_from_to (1, master, 1))
-              {
-                FD_CLR (master, &set);
-              }
-          }
-        if (FD_ISSET (fileno (in), &rset))
-          {
-            do {
-              res = read (fileno (in), string, BUFSIZ-1);
-            } while (res < 0 && errno == EINTR);
-            if (res < 0)
-              {
-                reset_tty ();
-                fprintf (stderr, "%s: ", progname);
-                perror ("read");
-                return 0;
-              }
-            if (!res)
-              {
-                return 1;
-              }
-            
-            string[res] = 0;
-            if (string[res-1] == '\n')
-              string[res-1] = 0;
-            
-            if (! emacs_pid)
-              {
-                /* Get the pid of the Emacs process.
-                   XXX Is there some nifty libc/kernel feature for doing this?
-                */
-                if (! string[0])
-                  {
-                    reset_tty ();
-                    fprintf (stderr, "%s: could not get Emacs process id\n"
-                             "Maybe this Emacs does not support multiple terminals.\n", progname);
-                    return 0;
-                  }
-                emacs_pid = strtol (string, NULL, 10);
-              }
-            
-            if (! emacs_pid)    /* emacs_pid should be set above */
-              {
-                reset_tty ();
-                fprintf (stderr, "%s: %s\n", progname, string);
-                return 0;
-              }
-          }
-      }
-  }
-  return 1;
-}
-
-#endif /* HAVE_TERMIOS */
 
 
 #if !defined (HAVE_SOCKETS) || defined (NO_SOCKETS_IN_FILE_SYSTEM)
@@ -884,6 +345,23 @@ socket_status (socket_name)
     return 1;
 
   return 0;
+}
+
+/* Returns 1 if PREFIX is a prefix of STRING. */
+static int
+strprefix (char *prefix, char *string)
+{
+  int i;
+  if (! prefix)
+    return 1;
+
+  if (!string)
+    return 0;
+  
+  for (i = 0; prefix[i]; i++)
+    if (!string[i] || string[i] != prefix[i])
+      return 0;
+  return 1;
 }
 
 int
@@ -1086,31 +564,14 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
   if (frame)
     {
-      if (! init_signals ())
-        {
-          fprintf (stderr, "%s: ", argv[0]);
-          perror ("fdopen");
-          fail ();
-        }
-        
-      if (! init_tty ())
-        {
-          reset_tty ();
-          fprintf (stderr, "%s: ", argv[0]);
-          perror ("fdopen");
-          fail ();
-        }
+      char *tty_name = ttyname (fileno (stdin));
+      if (! tty_name)
+        fail ();
       
-      if (! init_pty ())
-        {
-          reset_tty ();
-          fprintf (stderr, "%s: ", argv[0]);
-          perror ("fdopen");
-          fail ();
-        }
+      init_signals ();
       
       fprintf (out, "-tty ");
-      quote_file_name (pty_name, out);
+      quote_file_name (tty_name, out);
       fprintf (out, " ");
       quote_file_name (getenv("TERM"), out);
       fprintf (out, " ");
@@ -1160,22 +621,10 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   /* Maybe wait for an answer.   */
   if (nowait)
     {
-      reset_tty ();
       return 0;
     }
 
-  if (frame)
-    {
-      if (! pty_conversation (out))
-        {
-          reset_tty ();
-          fail ();
-        }
-      reset_tty ();
-      return 0;
-    }
-  
-  if (!eval)
+  if (!eval && !frame)
     {
       printf ("Waiting for Emacs...");
       needlf = 2;
@@ -1185,17 +634,26 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   /* Now, wait for an answer and print any messages.  */
   while ((str = fgets (string, BUFSIZ, in)))
     {
-      if (needlf == 2)
-	printf ("\n");
-      printf ("%s", str);
-      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+      if (frame)
+        {
+          if (strprefix ("emacs-pid ", str))
+            {
+              emacs_pid = strtol (string + strlen ("emacs-pid"), NULL, 10);
+            }
+        }
+      else
+        {
+          if (needlf == 2)
+            printf ("\n");
+          printf ("%s", str);
+          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+        }
     }
 
   if (needlf)
     printf ("\n");
   fflush (stdout);
 
-  reset_tty ();
   return 0;
 }
 

@@ -70,8 +70,7 @@ cmputc (c)
 {
   if (TTY_TERMSCRIPT (current_tty))
     putc (c & 0177, TTY_TERMSCRIPT (current_tty));
-  if (putc (c & 0177, TTY_OUTPUT (current_tty)) == EOF)
-      abort ();                 /* XXX For testing only! */
+  putc (c & 0177, TTY_OUTPUT (current_tty));
   return c;
 }
 

@@ -913,6 +913,29 @@ restore_signal_handlers (saved_handlers)
     }
 }
 
+#ifndef SIGIO
+/* If SIGIO is broken, don't do anything. */
+void
+init_sigio (int fd)
+{
+}
+
+void
+reset_sigio (int fd)
+{
+}
+
+void
+request_sigio (void)
+{
+}
+
+void
+unrequest_sigio (void)
+{
+}
+
+#else
 #ifdef F_SETFL
 
 int old_fcntl_flags[MAXDESC];
@@ -932,10 +955,13 @@ void
 reset_sigio (fd)
      int fd;
 {
+#ifdef FASYNC
   fcntl (fd, F_SETFL, old_fcntl_flags[fd]);
+#endif
 }
 
 #ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
+/* XXX Uhm, this FASYNC is not used anymore here. */
 
 void
 request_sigio ()
@@ -1053,6 +1079,7 @@ unrequest_sigio ()
 #endif /* STRIDE */
 #endif /* FASYNC */
 #endif /* F_SETFL */
+#endif /* SIGIO */
 
 /* Saving and restoring the process group of Emacs's terminal.  */
 
@@ -1368,6 +1395,7 @@ nil means don't delete them until `list-processes' is run.  */);
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
+  /* XXX This need to be revised for X+tty session support. */
   if (tty_out->input != stdin || (!read_socket_hook && EQ (Vwindow_system, Qnil)))
 #endif
     {
@@ -1641,6 +1669,8 @@ nil means don't delete them until `list-processes' is run.  */);
 #else
   setbuf (TTY_OUTPUT (tty_out), (char *) _sobuf);
 #endif
+
+#if 0                /* We always need this with multi-tty support. */
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
@@ -1652,6 +1682,8 @@ nil means don't delete them until `list-processes' is run.  */);
 #endif
       )
 #endif
+#endif
+    tty_set_terminal_modes (tty_out);
 
   if (!tty_out->term_initted)
     {
@@ -1750,7 +1782,6 @@ get_tty_size (int fd, int *widthp, int *heightp)
   *widthp = 0;
   *heightp = 0;
 #endif
-
 #endif /* not VMS */
 #endif /* not SunOS-style */
 #endif /* not BSD-style */
@@ -1815,6 +1846,7 @@ reset_sys_modes (tty_out)
     }
   if (!tty_out->term_initted)
     return;
+#if 0                           /* We always need to do this with multi-tty support. */
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the clean-up code below.  */
@@ -1828,7 +1860,8 @@ reset_sys_modes (tty_out)
           ))
     return;
 #endif
-
+#endif
+  
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   tty_clear_end_of_line (tty_out, FrameCols (tty_out));
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);

@@ -1142,7 +1142,7 @@ xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h co
    msdos.h composite.h fontset.h blockinput.h atimer.h systime.h keymap.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h dosfns.h composite.h atimer.h systime.h \
-   systty.h termchar.h $(config_h)
+   termchar.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    charset.h gtkutil.h systty.h termchar.h $(config_h)

@@ -106,10 +106,11 @@ Each element is (CLIENTID BUFFERS...) where CLIENTID is a string
 that can be given to the server process to identify a client.
 When a buffer is marked as \"done\", it is removed from this list.")
 
-(defvar server-frames nil
-  "List of current server frames.
-Each element is (CLIENTID FRAME) where CLIENTID is a string
+(defvar server-ttys nil
+  "List of current terminal devices used by the server.
+Each element is (CLIENTID TTY) where CLIENTID is a string
 that can be given to the server process to identify a client.
+TTY is the name of the tty device.
 When all the buffers of the client are marked as \"done\", 
 the frame is deleted.")
 
@@ -180,6 +181,14 @@ are done with it in the server.")
 		string)
 	(or (bolp) (newline)))))
 
+(defun server-tty-live-p (tty)
+  "Return non-nil if the tty device named TTY has a live frame."
+  (let (result)
+    (dolist (frame (frame-list) result)
+      (when (and (eq (frame-live-p frame) t)
+		 (equal (frame-tty-name frame) tty))
+	(setq result t)))))
+
 (defun server-sentinel (proc msg)
   (let ((client (assq proc server-clients)))
     ;; Remove PROC from the list of clients.
@@ -195,22 +204,21 @@ are done with it in the server.")
 			      (not server-existing-buffer))
 			 (server-temp-file-p)))
 	    (kill-buffer (current-buffer)))))
-      (let ((frame (assq (car client) server-frames)))
-	(when frame
-	  (setq server-frames (delq frame server-frames))
-	  (when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force))))))
+      (let ((tty (assq (car client) server-ttys)))
+	(when tty
+	  (setq server-ttys (delq tty server-ttys))
+	  (when (server-tty-live-p (cadr tty))
+	    (delete-tty (cadr tty)))))))
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
-(defun server-handle-delete-frame (frame)
-  (dolist (entry server-frames)
+(defun server-handle-delete-tty (tty)
+  (dolist (entry server-ttys)
     (let ((proc (nth 0 entry))
-	  (f (nth 1 entry)))
-      (when (eq f frame)
+	  (term (nth 1 entry)))
+      (when (equal term tty)
 	(let ((client (assq proc server-clients)))
-	  (if (and (cdr client) (not (yes-or-no-p "Frame has pending buffers; close anyway? ")))
-	      (error "Frame deletion cancelled")
-	    (setq server-frames (delq entry server-frames))
-	    (delete-process (car client))))))))
+	  (setq server-ttys (delq entry server-ttys))
+	  (delete-process (car client)))))))
 
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
@@ -280,15 +288,15 @@ Prefix arg means just kill any existing server communications subprocess."
     (let ((buffer (nth 1 (car server-clients))))
       (server-buffer-done buffer)))
   ;; Delete any remaining opened frames of the previous server.
-  (while server-frames
-    (let ((frame (cadar server-frames)))
-      (setq server-frames (cdr server-frames))
-      (when (frame-live-p frame) (delete-frame frame 'force))))
+  (while server-ttys
+    (let ((tty (cadar server-ttys)))
+      (setq server-ttys (cdr server-ttys))
+      (when (server-tty-live-p tty) (delete-tty tty))))
   (unless leave-dead
     (if server-process
 	(server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
-      (add-to-list 'delete-frame-functions 'server-handle-delete-frame)
+      (add-to-list 'delete-tty-after-functions 'server-handle-delete-tty)
       (setq server-process
 	    (make-network-process
 	     :name "server" :family 'local :server t :noquery t
@@ -354,9 +362,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
 		  (let ((frame (make-frame-on-tty tty type)))
-		    (setq server-frames (cons (list (car client) frame) server-frames))
+		    (setq server-ttys (cons (list (car client) (frame-tty-name frame)) server-ttys))
 		    (sit-for 0)
-		    (process-send-string proc (concat (number-to-string (emacs-pid)) "\n"))
+		    (process-send-string proc (concat "emacs-pid " (number-to-string (emacs-pid)) "\n"))
 		    (select-frame frame)
 		    (setq newframe t))
 		(error (ignore-errors (process-send-string proc (concat (nth 1 err) "\n")))
@@ -488,9 +496,15 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	;; If client now has no pending buffers,
 	;; tell it that it is done, and forget it entirely.
 	(unless (cdr client)
-	  (delete-process (car client))
-	  (server-log "Close" (car client))
-	  (setq server-clients (delq client server-clients))))
+	  (let ((tty (assq (car client) server-ttys)))
+	    (if tty
+		;; Be careful, if we delete the process before the
+		;; tty, then the terminal modes will not be restored
+		;; correctly.
+		(delete-tty (cadr tty))
+	      (delete-process (car client))
+	      (server-log "Close" (car client))
+	      (setq server-clients (delq client server-clients))))))
       (setq old-clients (cdr old-clients)))
     (if (and (bufferp buffer) (buffer-name buffer))
 	;; We may or may not kill this buffer;

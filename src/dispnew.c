@@ -5925,7 +5925,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
   int old_errno = errno;
 
   struct tty_display_info *tty;
-  
+
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
      Therefore, we resize the frames corresponding to each tty.
@@ -5934,22 +5934,18 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 
     if (! tty->term_initted)
       continue;
-    
+
     get_tty_size (fileno (TTY_INPUT (tty)), &width, &height);
     
     {
       Lisp_Object tail, frame;
       
       FOR_EACH_FRAME (tail, frame)
-        {
-          if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
-            {
-              /* Record the new sizes, but don't reallocate the data structures
-                 now.  Let that be done later outside of the signal handler.  */
-              change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
-              break;
-            }
-        }
+        if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
+          /* Record the new sizes, but don't reallocate the data
+             structures now.  Let that be done later outside of the
+             signal handler.  */
+          change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
     }
   }
   
