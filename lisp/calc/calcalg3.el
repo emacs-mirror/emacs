@@ -328,7 +328,8 @@
     (while (and (> n 0) names)
       (setq var (math-build-var-name (if (consp names)
 					 (car names)
-				       (concat base (setq nn (1+ nn))))))
+				       (concat base (int-to-string
+						     (setq nn (1+ nn)))))))
       (or (math-expr-contains (cons 'vec but) var)
 	  (setq vars (cons var vars)
 		n (1- n)))
