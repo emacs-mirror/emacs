@@ -8,6 +8,14 @@
 /* This appears on 3.0, presumably as part of what SunSoft call X2. */
 #undef NO_X_DESTROY_DATABASE
 
+#ifdef __GNUC__  /* Currently we use -lcposix only with gcc */
+#define POSIX_SIGNALS
+
+/* We don't need the definition from usg5-3.h with POSIX_SIGNALS.  */
+#undef sigsetmask
+#undef HAVE_SYSV_SIGPAUSE
+#endif
+
 /* People say that using -traditional causes lossage with `const',
    so we might as well try getting rid of -traditional.  */
 #undef C_SWITCH_SYSTEM
@@ -17,20 +25,21 @@
    has no libX11_s, and that linking with libc_s causes sbrk not to work.  */
 #undef LIB_X11_LIB
 #undef LIBX11_SYSTEM
-#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc
+#define LIBX11_SYSTEM -lpt -lnls -lnsl_s
 
 /* TIOCGWINSZ isn't broken; you just have to know where to find it.  */
 #undef BROKEN_TIOCGWINSZ
 #define NEED_SIOCTL
 
-/* This does no harm, and is necessary for some ANSI compilers.  */
-#define C_SWITCH_SYSTEM -D_SYSV3
+/* We need either _XOPEN_SOURCE or _POSIX_SOURCE to import the posix
+   signal symbols; might as well use _XOPEN_SOURCE.  Defining _SYSV3
+   ensures that we don't lose the traditional symbols as a side effect
+   from this or __STDC__ being defined.  */
+#define C_SWITCH_SYSTEM -D_XOPEN_SOURCE -D_SYSV3
 
+#ifdef __GNUC__  /* Currently we use -lcposix only with gcc */
 /* This works around a bug in ISC 4.0 and 3.0; it fails
    to clear the "POSIX process" flag on an exec.
    It won't be needed for 4.1.  */
-/* neg@brooktrout.com reported that he did not have this function
-   on ISC 3.0.1.  I don't know who to believe or what to do,
-   so I am leaving it alone until someone tells me
-   precisely when this function is needed -- rms.  */
 #define EXTRA_INITIALIZE __setostype (0)
+#endif
