@@ -46,6 +46,8 @@
 ;; June 20, 1986
 ;;
 
+(provide 'float)
+
 ;; fundamental implementation constants
 (defconst exp-base 2
   "Base of exponent in this floating point representation.")
