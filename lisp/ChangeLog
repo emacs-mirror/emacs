@@ -1,3 +1,7 @@
+2000-07-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mouse.el (mouse-drag-region): Use functionp rather than fboundp.
+
 2000-07-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* bindings.el: Bind ´[delete]' to delete-char.
@@ -32,6 +36,15 @@
 	* rmail.el (mail-unsent-separator): Changed "the" to "\\w+", as
 	exim can use "your message" instead of "the message".
 	
+2000-07-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* facemenu.el: Docstrings fixes.
+	(facemenu-get-face): Don't use internal-find-face.
+	(facemenu-iterate): Rename arg to match the docstring.
+
+	* newcomment.el (uncomment-region): Be more careful when skipping
+	backwards over `=' not to bump into BOBP.
+
 2000-07-05  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el (ediff-wordify): Use syntax table.
