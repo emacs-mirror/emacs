@@ -1252,6 +1252,7 @@ $(BLD)/xdisp.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
@@ -1269,6 +1270,7 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/macros.h \
 	$(SRC)/process.h \
 	$(SRC)/region-cache.h \
+	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
