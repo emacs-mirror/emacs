@@ -1,6 +1,6 @@
 /* impl.h.meter: METER INTERFACE
  *
- * $HopeName: MMsrc!meter.h(trunk.3) $
+ * $HopeName: MMsrc!meter.h(trunk.4) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .sources: mps.design.metrics.
@@ -40,7 +40,8 @@ extern void MeterEmit(Meter meter);
 
 #define METER_DECL(meter) STATISTIC_DECL(struct MeterStruct meter)
 #define METER_INIT(meter, init, owner) \
-  STATISTIC(MeterInit(&(meter), init, owner))
+  BEGIN STATISTIC(MeterInit(&(meter), init, owner)); UNUSED(owner); END
+/* Hack: owner is typically only used for MeterInit */
 #define METER_ACC(meter, delta) \
   STATISTIC(MeterAccumulate(&(meter), delta))
 #define METER_WRITE(meter, stream) MeterWrite(&(meter), stream)
