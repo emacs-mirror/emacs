@@ -477,6 +477,9 @@ set_frame_size (ew)
   }
 }
 
+/* Nonzero tells update_wm_hints not to do anything
+   (the caller should call update_wm_hints explicitly later.)  */
+int update_hints_inhibit;
 
 static void
 update_wm_hints (ew)
@@ -493,7 +496,12 @@ update_wm_hints (ew)
   int base_height;
   int min_rows = 0, min_cols = 0;
 
+  if (update_hints_inhibit)
+    return;
+
+#if 0
   check_frame_size (ew->emacs_frame.frame, &min_rows, &min_cols);
+#endif
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height,
 		      &char_width, &char_height);
@@ -901,15 +909,22 @@ EmacsFrameSetCharSize (widget, columns, rows)
 
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 
-  /* Recompute the entire geometry management.  */
+  /* Manually change the height and width of all our widgets,
+     adjusting each widget by the same increments.  */
   if (ew->core.width != pixel_width || ew->core.height != pixel_height)
     {
       int hdelta = pixel_height - ew->core.height;
+      int wdelta = pixel_width - ew->core.width;
       int column_widget_height = f->display.x->column_widget->core.height;
+      int column_widget_width = f->display.x->column_widget->core.width;
+      int outer_widget_height = f->display.x->widget->core.height;
+      int outer_widget_width = f->display.x->widget->core.width;
       int old_left = f->display.x->widget->core.x;
       int old_top = f->display.x->widget->core.y;
 
       lw_refigure_widget (f->display.x->column_widget, False);
+      update_hints_inhibit = 1;
+
       ac = 0;
       XtSetArg (al[ac], XtNheight, pixel_height); ac++;
       XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
@@ -917,9 +932,18 @@ EmacsFrameSetCharSize (widget, columns, rows)
  
       ac = 0;
       XtSetArg (al[ac], XtNheight, column_widget_height + hdelta); ac++;
-      XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
+      XtSetArg (al[ac], XtNwidth, column_widget_width + wdelta); ac++;
       XtSetValues (f->display.x->column_widget, al, ac);
+
+      ac = 0;
+      XtSetArg (al[ac], XtNheight, outer_widget_height + hdelta); ac++;
+      XtSetArg (al[ac], XtNwidth, outer_widget_width + wdelta); ac++;
+      XtSetValues (f->display.x->widget, al, ac);
+
       lw_refigure_widget (f->display.x->column_widget, True);
+
+      update_hints_inhibit = 0;
+      update_wm_hints (ew);
 
       /* These seem to get clobbered.  I don't know why. - rms.  */
       f->display.x->widget->core.x = old_left;
