@@ -2795,7 +2795,7 @@ sys_select (n, rfds, wfds, efds, timeout)
 
       do
 	{
-	  EMACS_TIME select_timeout
+	  EMACS_TIME select_timeout;
 	  SELECT_TYPE orfds = *rfds;
 	  int r;
 	  OSErr err;
