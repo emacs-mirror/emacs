@@ -52,6 +52,7 @@
 (load "custom")
 (autoload '\` "emacs-lisp/backquote" nil nil 'macro)
 (load "map-ynp")
+(load "env")
 (load "cus-start")
 (load "international/mule")
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
