@@ -1445,9 +1445,33 @@ make_buffer_string (start, end, props)
      int start, end;
      int props;
 {
-  Lisp_Object result, tem, tem1;
   int start_byte = CHAR_TO_BYTE (start);
   int end_byte = CHAR_TO_BYTE (end);
+
+  return make_buffer_string_both (start, start_byte, end, end_byte, props);
+}
+
+/* Return a Lisp_String containing the text of the current buffer from
+   START / START_BYTE to END / END_BYTE.
+
+   If text properties are in use and the current buffer
+   has properties in the range specified, the resulting string will also
+   have them, if PROPS is nonzero.
+
+   We don't want to use plain old make_string here, because it calls
+   make_uninit_string, which can cause the buffer arena to be
+   compacted.  make_string has no way of knowing that the data has
+   been moved, and thus copies the wrong data into the string.  This
+   doesn't effect most of the other users of make_string, so it should
+   be left as is.  But we should use this function when conjuring
+   buffer substrings.  */
+
+Lisp_Object
+make_buffer_string_both (start, start_byte, end, end_byte, props)
+     int start, start_byte, end, end_byte;
+     int props;
+{
+  Lisp_Object result, tem, tem1;
 
   if (start < GPT && GPT < end)
     move_gap (start);
