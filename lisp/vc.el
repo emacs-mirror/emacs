@@ -214,8 +214,8 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	  (print (cons command squeezed))
 	  (next-line 1)
 	  (pop-to-buffer "*vc*")
-	  (vc-shrink-to-fit)
 	  (goto-char (point-min))
+	  (shrink-window-if-larger-than-buffer)
 	  (error "Running %s...FAILED (%s)" command
 		 (if (integerp status)
 		     (format "status %d" status)
@@ -762,9 +762,8 @@ and two version designators specifying which versions to compare."
 	    (progn
 	      (setq unchanged t)
 	      (message "No changes to %s since latest version." file))
-	  (vc-shrink-to-fit)
-	  (goto-char (point-min)))
-
+	  (goto-char (point-min))
+	  (shrink-window-if-larger-than-buffer)
 	)
       (not unchanged)
       )
@@ -951,8 +950,8 @@ on a buffer attached to the file named in the current Dired buffer line."
     (if nonempty
 	(progn
 	  (pop-to-buffer "*vc-status*" t)
-	  (vc-shrink-to-fit)
-	  (goto-char (point-min)))
+	  (goto-char (point-min))
+	  (shrink-window-if-larger-than-buffer)))
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
     ))
@@ -1052,8 +1051,8 @@ levels in the snapshot."
       (progn
 	(vc-backend-print-log buffer-file-name)
 	(pop-to-buffer (get-buffer-create "*vc*"))
-	(vc-shrink-to-fit)
 	(goto-char (point-min))
+	(shrink-window-if-larger-than-buffer)
 	)
     (vc-registration-error buffer-file-name)
     )
@@ -1643,13 +1642,6 @@ Global user options:
   )
 
 ;;; These things should probably be generally available
-
-(defun vc-shrink-to-fit ()
-  "Shrink window vertically until it's just large enough to contain its text."
-  (let ((minsize (1+ (count-lines (point-min) (point-max)))))
-    (if (< minsize (window-height))
-	(let ((window-min-height 2))
-	  (shrink-window (- (window-height) minsize))))))
 
 (defun vc-file-tree-walk (func &rest args)
   "Walk recursively through default directory.
