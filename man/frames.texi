@@ -1323,6 +1323,15 @@ cursor.  For example, if the cursor is on a TAB character, it is drawn
 as wide as that TAB is on the display.  To turn on this feature, set the
 variable @code{x-stretch-cursor} to a non-nil value.
 
+@vindex indicate-empty-lines
+@vindex default-indicate-empty-lines
+@cindex empty lines
+  Empty display lines at the end of the buffer can be optionally marked
+with a pecial bitmap in the left fringe of the window.  This is
+activated by setting the buffer-local variable
+@code{indicate-empty-lines} to a non-nil value.  The default value of
+this variable is found in @code{default-indicate-empty-lines}.
+
 @node Non-Window Terminals
 @section Non-Window Terminals
 @cindex non-window terminals
