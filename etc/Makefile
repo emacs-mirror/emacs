@@ -6,11 +6,11 @@ MANEXT=1
 
 all:
 
-distclean:
-	-rm -f *~ \#* DOC* core
-
-clean:
+mostlyclean clean:
 	-rm -f core
+
+distclean realclean:
+	-rm -f DOC* core
 
 SOURCES = [0-9A-QS-Z]* README *.[ch16] emacs.* etags.* ledit.l ms-* \
 	news.texi rc2log refcard.tex spook-lines termcap.* ulimit.hack \
