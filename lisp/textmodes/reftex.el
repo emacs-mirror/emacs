@@ -282,12 +282,6 @@
 (defvar reftex-tables-dirty t
   "Flag showing if tables need to be re-computed.")
 
-(eval-and-compile
-  (defun reftex-set-dirty (symbol value)
-    (setq reftex-tables-dirty t)
-    (set symbol value)))
-
-
 ;;; =========================================================================
 ;;;
 ;;; Configuration variables
