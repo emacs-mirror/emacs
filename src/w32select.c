@@ -134,7 +134,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	    || !STRING_MULTIBYTE (string)
 	    || nbytes == XSTRING (string)->size)
 	   ? 0
-	   : find_charset_in_str (src, nbytes, charsets, Qnil, 0, 1));
+	   : find_charset_in_str (src, nbytes, charsets, Qnil, 1));
 
     if (!num || (num == 1 && charsets[CHARSET_ASCII]))
       {
