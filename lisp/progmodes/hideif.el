@@ -914,7 +914,7 @@ Assume that defined symbols have been added to `hide-ifdef-env'.
 The text hidden is the text that would not be included by the C
 preprocessor if it were given the file with those symbols defined.
 
-Turn off hiding by calling `show-ifdef'."
+Turn off hiding by calling `show-ifdefs'."
 
   (interactive)
   (message "Hiding...")
