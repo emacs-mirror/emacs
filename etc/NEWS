@@ -41,6 +41,7 @@ lacks unexec, asynchronous processes, and networking support.
 
 * Changes in Emacs 21.1
 
++++
 ** The default for user-option `next-line-add-newlines' has been
 changed to nil, i.e. C-n will no longer add newlines at the end of a
 buffer by default.

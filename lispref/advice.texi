@@ -44,7 +44,8 @@ function (or a new command) which uses the existing function.
   The command @code{next-line} moves point down vertically one or more
 lines; it is the standard binding of @kbd{C-n}.  When used on the last
 line of the buffer, this command inserts a newline to create a line to
-move to (if @code{next-line-add-newlines} is non-@code{nil}).
+move to if @code{next-line-add-newlines} is non-@code{nil} (its default
+is @code{nil}.)
 
   Suppose you wanted to add a similar feature to @code{previous-line},
 which would insert a new line at the beginning of the buffer for the

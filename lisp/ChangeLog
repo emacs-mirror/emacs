@@ -1,3 +1,7 @@
+2000-12-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (next-line-add-newlines): Change default to nil.
+
 2000-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (revert-buffer, recover-file): Bind
