@@ -690,6 +690,7 @@ IT_set_menu_bar_lines (window, n)
   struct window *w = XWINDOW (window);
 
   XSETFASTINT (w->last_modified, 0);
+  XSETFASTINT (w->last_overlay_modified, 0);
   XSETFASTINT (w->top, XFASTINT (w->top) + n);
   XSETFASTINT (w->height, XFASTINT (w->height) - n);
 
