@@ -20,7 +20,8 @@
 
 (defun forward-page (&optional count)
   "Move forward to page boundary.  With arg, repeat, or go back if negative.
-A page boundary is any line whose beginning matches the regexp  page-delimiter."
+A page boundary is any line whose beginning matches the regexp
+`page-delimiter'."
   (interactive "p")
   (or count (setq count 1))
   (while (and (> count 0) (not (eobp)))
@@ -37,7 +38,8 @@ A page boundary is any line whose beginning matches the regexp  page-delimiter."
 
 (defun backward-page (&optional count)
   "Move backward to page boundary.  With arg, repeat, or go fwd if negative.
-A page boundary is any line whose beginning matches the regexp  page-delimiter."
+A page boundary is any line whose beginning matches the regexp
+`page-delimiter'."
   (interactive "p")
   (or count (setq count 1))
   (forward-page (- count)))
