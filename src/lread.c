@@ -49,6 +49,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #ifdef MSDOS
+#include "msdos.h"
 /* These are redefined (correctly, but differently) in values.h.  */
 #undef INTBITS
 #undef LONGBITS
