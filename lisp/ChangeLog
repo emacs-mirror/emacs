@@ -1,5 +1,10 @@
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* master.el (master-mode): Use define-minor-mode instead of
+	easy-mmode-define-minor-mode.  Add autload cookie.
+	(Coomentary): Remove the line showing how to autoload master-mode,
+	since it's always autoloaded.
+
 	* master.el: New file.
 
 2001-10-11  Dave Love  <fx@gnu.org>
