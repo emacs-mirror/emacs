@@ -1148,6 +1148,10 @@ See `comint-prompt-regexp'."
     (substitute-in-file-name
      (buffer-substring (match-beginning 0) (match-end 0)))))
 
+(defvar comint-filename-prefix nil
+  "Prefix prepended to all absolute file names taken from process input.
+This is used by the completion functions, and by directory tracking in shell
+mode.")
 
 (defun comint-replace-by-expanded-filename ()
   "Expand the filename at point.
@@ -1162,8 +1166,18 @@ See functions `expand-file-name' and `substitute-in-file-name'.  See also
   (let* ((pathname (comint-match-partial-pathname))
 	 (pathdir (file-name-directory pathname))
 	 (pathnondir (file-name-nondirectory pathname))
-	 (completion (file-name-completion pathnondir
-					   (or pathdir default-directory))))
+	 (completion (file-name-completion
+		      pathnondir
+		      (if pathdir
+			  ;; It is important to expand PATHDIR because
+			  ;; default-directory might be a handled name, and
+			  ;; the unexpanded PATHDIR won't necessarily match
+			  ;; the handler regexp.
+			  (expand-file-name (concat
+					     (if (file-name-absolute-p pathdir)
+						 comint-filename-prefix)
+					     pathdir))
+			default-directory))))
     (cond ((null completion)
 	   (message "No completions of %s" pathname)
 	   (ding))
@@ -1189,12 +1203,15 @@ it just adds completion characters to the end of the filename."
 	   (pathnondir (file-name-nondirectory pathname))
 	   (completion (file-name-completion
 			pathnondir
-			;; It is important to expand PATHDIR because
-			;; default-directory might be a handled name, and the
-			;; unexpanded PATHDIR won't necessarily match the
-			;; handler regexp.
 			(if pathdir
-			    (expand-file-name pathdir)
+			    ;; It is important to expand PATHDIR because
+			    ;; default-directory might be a handled name, and
+			    ;; the unexpanded PATHDIR won't necessarily match
+			    ;; the handler regexp.
+			    (expand-file-name
+			     (concat (if (file-name-absolute-p pathdir)
+					 comint-filename-prefix)
+				     pathdir))
 			  default-directory))))
       (cond ((null completion)
 	     (message "No completions of %s" pathname)
@@ -1212,10 +1229,18 @@ it just adds completion characters to the end of the filename."
 	 (pathdir (file-name-directory pathname))
 	 (pathnondir (file-name-nondirectory pathname))
 	 (completions
-	  (file-name-all-completions pathnondir
-				     (if pathdir
-					 (expand-file-name pathdir)
-				       default-directory))))
+	  (file-name-all-completions 
+	   pathnondir
+	   (if pathdir
+	       ;; It is important to expand PATHDIR because
+	       ;; default-directory might be a handled name, and
+	       ;; the unexpanded PATHDIR won't necessarily match
+	       ;; the handler regexp.
+	       (expand-file-name
+		(concat (if (file-name-absolute-p pathdir)
+			    comint-filename-prefix)
+			pathdir))
+	     default-directory))))
     (cond ((null completions)
 	   (message "No completions of %s" pathname)
 	   (ding))
