@@ -39,7 +39,7 @@
   tilde      |    ~    | a~ -> ,Ac(B
   cedilla    |    ,    | c, -> ,Ag(B
   nordic     |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
-  others     |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B
+  others     |    /    | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B   // -> ,A0(B
              | various | << -> ,A+(B   >> -> ,A;(B   o_ -> ,A:(B   a_ -> ,A*(B
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
@@ -114,6 +114,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  (">>" ?,A;(B)
  ("o_" ?,A:(B)
  ("a_" ?,A*(B)
+ ("//" ?,A0(B)
 
  ("A``" ["A`"])
  ("A''" ["A'"])
@@ -183,6 +184,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  (">>>" [">>"])
  ("o__" ["o_"])
  ("a__" ["a_"])
+ ("///" ["//"])
  )
 
 (quail-define-package
@@ -910,7 +912,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  "Esperanto input method with postfix modifiers
 
 A following ^ or x will produce an accented character,
-e.g. c^ -> ,Cf(B, gx -> ,Cx(B, u^ -> ,C}(B.
+e.g. c^ -> ,Cf(B   gx -> ,Cx(B   u^ -> ,C}(B.
 
 Doubling the postfix separates the letter and postfix,
 e.g. a'' -> a'.
@@ -996,7 +998,7 @@ OEE -> OE
  "French (Fran,Ag(Bais) input method with postfix modifiers
 
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
-Par exemple: a` -> ,A`(B, e' -> ,Ai(B.
+Par exemple: a` -> ,A`(B   e' -> ,Ai(B.
 
 ,AG(B, ,A+(B, et ,A;(B sont produits par C,, <<, et >>.
 
@@ -1214,7 +1216,7 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
 
 (quail-define-package
  "norwegian-postfix" "Latin-1" "NO<" t
- "Norwegian (Norsk) input method (rule: AE->,AF(B, OE->,AX(B, AA->,AE(B, E'->,AI(B)
+ "Norwegian (Norsk) input method (rule: AE->,AF(B   OE->,AX(B   AA->,AE(B   E'->,AI(B)
 
 Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 "
@@ -1253,7 +1255,7 @@ o\" -> ,Av(B
 e' -> ,Ai(B
 
 Doubling the postfix separates the letter and postfix:
-aee -> ae, o\"\" -> o\", etc.
+aee -> ae   o\"\" -> o\"   etc.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1298,7 +1300,7 @@ N~ -> ,AQ(B
 ?/ -> ,A?(B
 
 Doubling the postfix separates the letter and postfix:
-a'' -> a', n~~ -> n~, etc.
+a'' -> a'   n~~ -> n~, etc.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1335,7 +1337,7 @@ a'' -> a', n~~ -> n~, etc.
 
 (quail-define-package
  "swedish-postfix" "Latin-1" "SV<" t
- "Swedish (Svenska) input method (rule: AA -> ,AE(B, AE -> ,AD(B, OE -> ,AV(B, E' -> ,AI(B)
+ "Swedish (Svenska) input method (rule: AA -> ,AE(B   AE -> ,AD(B   OE -> ,AV(B   E' -> ,AI(B)
 
 Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 " nil t nil nil nil nil nil nil nil nil t)
