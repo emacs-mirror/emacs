@@ -1,5 +1,9 @@
 2001-03-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (Fframe_parameters): In the `buffer-list' frame
+	parameter, store the buffer list of FRAME, not the list of the
+	selected frame.
+
 	* xterm.c (x_draw_glyph_string_box): Don't draw a full-width
 	box just because the glyph row's full_width_p flag is set.
 

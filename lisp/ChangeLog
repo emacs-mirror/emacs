@@ -1,3 +1,9 @@
+2001-03-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* scroll-bar.el (toplevel): Test if `x-toolkit-scroll-bars' is
+	bound before using it.  It's not bound when configured without X,
+	for instance.
+
 2001-03-13  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el: Update copyright.
