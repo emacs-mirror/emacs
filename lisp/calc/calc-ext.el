@@ -1318,7 +1318,14 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-inverse (&optional n)
   (interactive "P")
-  (calc-fancy-prefix 'calc-inverse-flag "Inverse..." n))
+  (let* ((hyp-flag (if (eq major-mode 'calc-keypad-mode)
+                       (with-current-buffer calc-main-buffer
+                         calc-hyperbolic-flag)
+                     calc-hyperbolic-flag))
+         (msg (if hyp-flag 
+                 "Inverse Hyperbolic..."
+               "Inverse...")))
+    (calc-fancy-prefix 'calc-inverse-flag msg n)))
 
 (defconst calc-fancy-prefix-map
   (let ((map (make-sparse-keymap)))
@@ -1386,7 +1393,14 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-hyperbolic (&optional n)
   (interactive "P")
-  (calc-fancy-prefix 'calc-hyperbolic-flag "Hyperbolic..." n))
+  (let* ((inv-flag (if (eq major-mode 'calc-keypad-mode)
+                       (with-current-buffer calc-main-buffer
+                         calc-inverse-flag)
+                     calc-inverse-flag))
+         (msg (if inv-flag 
+                  "Inverse Hyperbolic..."
+                "Hyperbolic...")))
+    (calc-fancy-prefix 'calc-hyperbolic-flag msg n)))
 
 (defun calc-hyperbolic-func ()
   (save-excursion
