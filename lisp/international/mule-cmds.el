@@ -489,6 +489,29 @@ Please select one from the following safe coding systems:\n"
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
+(defun select-message-coding-system ()
+  "Return a coding system to encode the outgoing message of the current buffer.
+It at first tries the first coding system found in these variables
+in this order:
+  (1) local value of `buffer-file-coding-system'
+  (2) value of `sendmail-coding-system'
+  (3) value of `default-buffer-file-coding-system'
+  (4) value of `default-sendmail-coding-system'
+If the found coding system can't encode the current buffer,
+or none of them are bound to a coding system,
+it asks a user to select a proper coding system."
+  (let ((coding (or (and (local-variable-p 'buffer-file-coding-system)
+			 buffer-file-coding-system)
+		    sendmail-coding-system
+		    default-buffer-file-coding-system
+		    default-sendmail-coding-system)))
+    (if (eq coding 'no-conversion)
+	;; We should never use no-conversion for outgoing mails.
+	(setq coding nil))
+    (if (fboundp select-safe-coding-system-function)
+	(funcall select-safe-coding-system-function
+		 (point-min) (point-max) coding)
+      coding)))
 
 ;;; Language support staffs.
 
@@ -1189,6 +1212,7 @@ specifies the character set for the major languages of Western Europe."
     (if priority
 	(let ((categories (mapcar 'coding-system-category priority)))
 	  (set-default-coding-systems default-coding)
+	  (setq default-sendmail-coding-system default-coding)
 	  (set-coding-priority categories)
 	  (while priority
 	    (set (car categories) (car priority))
