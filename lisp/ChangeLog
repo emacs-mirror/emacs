@@ -12,8 +12,8 @@
 	(display-time-mail-check-directory): New function.
 	(display-time-update): Use it.
 
-	* menu-bar.el (menu-bar-showhide-scroll-bar-menu): Quote
-	`window-system'.
+	* menu-bar.el (menu-bar-showhide-scroll-bar-menu):
+	Quote `window-system'.
 
 	* tmm.el (tmm-get-keymap): Honour :visible in `menu-item'.
 	Add Keywords header.  Update Commentary section.
@@ -65,8 +65,13 @@
 
 2002-01-25  Jason Rumney  <jasonr@gnu.org>
 
-	* faces.el (face-font-registry-alternatives) [windows-nt]: Add
-	ms-oemlatin as an alternative for iso8859-1.
+	* faces.el (face-font-registry-alternatives) [windows-nt]:
+	Add ms-oemlatin as an alternative for iso8859-1.
+
+2002-01-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-reread-cvsrc): Distinguish between an empty list of
+	args and the absence of an entry.  Don't add -f each time.
 
 2002-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -89,8 +94,7 @@
 	show more colors that the number returned by display-color-cells.
 
 	* term/pc-win.el (msdos-color-values): Reverse the order of the
-	colors, since tty-color-define now preserves the registration
-	order.
+	colors, since tty-color-define now preserves the registration order.
 
 	* w32-fns.el (w32-tty-standard-colors): Reverse the order.
 
@@ -116,7 +120,7 @@
 
 	* subr.el (substring-no-properties): New function.
 	(copy-without-properties): Function deleted.
-	
+
 	* term/x-win.el (x-handle-geometry): Put sizes on both
 	initial-frame-alist and default-frame-alist.
 
