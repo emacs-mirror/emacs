@@ -1,3 +1,39 @@
+2002-08-27  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (x_set_cursor_type): Set FRAME_BLINK_OFF_CURSOR and
+	FRAME_BLINK_OFF_CURSOR_WIDTH using defaults and Vblink_cursor_alist.
+	(Vblink_cursor_alist): New variable.
+	(syms_of_xfns): Initialize and defvar it.
+	(x_specified_cursor_type): Recognize Qbox for filled box.
+	Exceptions are hollow boxes.
+	(Qbox, Qhollow): New variables.
+	(syms_of_xfns): Initialize and staticpro them.
+
+	* xterm.h (FRAME_BLINK_OFF_CURSOR, FRAME_BLINK_OFF_CURSOR_WIDTH):
+	New macros.
+	(struct x_output): New fields blink_off_cursor, blink_off_cursor_width.
+	
+	* xterm.c (x_display_and_set_cursor): Use FRAME_BLINK_OFF_CURSOR
+	and FRAME_BLINK_OFF_CURSOR_WIDTH for blinking cursor off.
+
+	* emacs.c (main): Handle --script.
+	(USAGE1): Mention --script.
+	(standard_args): Define sort order for --script.
+
+2002-08-27  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xdisp.c (redisplay_updating_p): Variable removed.
+	(inhibit_free_realized_faces, Qinhibit_free_realized_faces): New
+	variables.
+	(init_iterator): Don't free realized faces if
+	inhibit_free_realized_faces is set.
+	(redisplay_internal): Bind Qinhibit_free_realized_faces to nil.
+	(syms_of_xdisp): DEFVAR_BOOL inhibit-free-realized-faces,
+	initialize Qinhibit_free_realized_faces.
+
+	* dispextern.h (PRODUCE_GLYPHS): Set inhibit_free_realized_faces
+	when iterator is adding glyphs to a glyph matrix.
+
 2002-08-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (get_next_display_element): In unibyte case, don't use
