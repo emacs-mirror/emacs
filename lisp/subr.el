@@ -740,6 +740,13 @@ Wildcards and redirection are handled as usual in the shell."
     (start-process name buffer shell-file-name shell-command-switch
 		   (mapconcat 'identity args " ")))))
 
+(defmacro with-current-buffer (buffer &rest body)
+  "Execute the forms in BODY with BUFFER as the current buffer.
+The value returned is the value of the last form in BODY."
+  `(save-current-buffer
+    (set-buffer ,buffer)
+    . ,body))
+
 (defvar save-match-data-internal)
 
 ;; We use save-match-data-internal as the local variable because
