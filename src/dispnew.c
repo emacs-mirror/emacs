@@ -186,7 +186,7 @@ redraw_frame (f)
      FRAME_PTR f;
 {
   Lisp_Object frame;
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
   Fredraw_frame (frame);
 }
 
@@ -2163,7 +2163,7 @@ Emacs was built without floating point support.\n\
   int sec, usec;
 
   if (NILP (milliseconds))
-    XSET (milliseconds, Lisp_Int, 0);
+    XSETINT (milliseconds, 0);
   else
     CHECK_NUMBER (milliseconds, 1);
   usec = XINT (milliseconds) * 1000;
@@ -2269,7 +2269,7 @@ sit_for (sec, usec, reading, display)
   gobble_input (0);
 #endif
 
-  XSET (read_kbd, Lisp_Int, reading ? -1 : 1);
+  XSETINT (read_kbd, reading ? -1 : 1);
   wait_reading_process_input (sec, usec, read_kbd, display);
 
 
@@ -2318,7 +2318,7 @@ Value is t if waited the full time with no input arriving.")
   int sec, usec;
 
   if (NILP (milliseconds))
-    XSET (milliseconds, Lisp_Int, 0);
+    XSETINT (milliseconds, 0);
   else
     CHECK_NUMBER (milliseconds, 1);
   usec = XINT (milliseconds) * 1000;
