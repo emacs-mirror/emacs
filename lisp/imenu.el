@@ -646,7 +646,13 @@ as a way for the user to ask to recalculate the buffer's index alist."
 				    (imenu--menubar-select ',item))
 		      (cons '(nil) item))))
 	   (cons (car item)
-		 (list 'menu-item (car item) end :key-sequence nil))))))
+		 (cons (car item) end)
+		 ;; Fixme: Using this (to speded up menus), instead of
+		 ;; the line above, breaks the case where `imenu' is
+		 ;; bound to a mouse key.  The code in imenu needs
+		 ;; fixing somehow to cope.
+		 ;; (list 'menu-item (car item) end :key-sequence nil)
+		 )))))
      alist)))
 
 ;; If COMMANDS is non-nil, make a real keymap
@@ -1075,6 +1081,8 @@ for more information."
   (and index-item
        (progn
 	 (push-mark)
+	 ;; Fixme: sort this out so that we can use menu-item with
+	 ;; :key-sequence in imenu--create-keymap-2.
 	 (let* ((is-special-item (listp (cdr index-item)))
 		(function
 		 (if is-special-item
