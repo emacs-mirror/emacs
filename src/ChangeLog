@@ -1,3 +1,8 @@
+2001-11-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.c (Fset_window_vscroll): Doc fix.  From Kalle Olavi
+	Niemitalo <kon@iki.fi>.
+
 2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_clear_screen): If the frame's faces are not yet
