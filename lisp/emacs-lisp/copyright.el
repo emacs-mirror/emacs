@@ -1,6 +1,6 @@
 ;;; upd-copyr.el --- update the copyright notice in a GNU Emacs Lisp file
 
-;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -48,7 +48,7 @@ If `replace-copying-with' is set, the copying permissions following the
 copyright are replaced as well.
 
 If optional third argument ASK is non-nil, the user is prompted for whether
-or not to update the copyright.  If optional third argument ASK-YEAR is
+or not to update the copyright.  If optional fourth argument ASK-YEAR is
 non-nil, the user is prompted for whether or not to replace the year rather
 than adding to it."
   (interactive "*P")
