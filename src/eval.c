@@ -1,5 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -551,6 +551,7 @@ In byte compilation, `function' causes its argument to be compiled.\n\
   return Fcar (args);
 }
 
+
 DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
   "Return t if function in which this appears was called interactively.\n\
 This means that the function was called with call-interactively (which\n\
@@ -558,16 +559,33 @@ includes being called as the binding of a key)\n\
 and input is currently coming from the keyboard (not in keyboard macro).")
   ()
 {
-  register struct backtrace *btp;
-  register Lisp_Object fun;
+  return interactive_p (1) ? Qt : Qnil;
+}
+
+
+/*  Return 1 if function in which this appears was called
+    interactively.  This means that the function was called with
+    call-interactively (which includes being called as the binding of
+    a key) and input is currently coming from the keyboard (not in
+    keyboard macro).
+
+    EXCLUDE_SUBRS_P non-zero means always return 0 if the function
+    called is a built-in.  */
+
+int
+interactive_p (exclude_subrs_p)
+     int exclude_subrs_p;
+{
+  struct backtrace *btp;
+  Lisp_Object fun;
 
   if (!INTERACTIVE)
-    return Qnil;
+    return 0;
 
   btp = backtrace_list;
 
   /* If this isn't a byte-compiled function, there may be a frame at
-     the top for Finteractive_p itself.  If so, skip it.  */
+     the top for Finteractive_p.  If so, skip it.  */
   fun = Findirect_function (*btp->function);
   if (SUBRP (fun) && XSUBR (fun) == &Sinteractive_p)
     btp = btp->next;
@@ -591,14 +609,16 @@ and input is currently coming from the keyboard (not in keyboard macro).")
      Fbytecode at the top.  If this frame is for a built-in function
      (such as load or eval-region) return nil.  */
   fun = Findirect_function (*btp->function);
-  if (SUBRP (fun))
-    return Qnil;
+  if (exclude_subrs_p && SUBRP (fun))
+    return 0;
+  
   /* btp points to the frame of a Lisp function that called interactive-p.
      Return t if that function was called interactively.  */
   if (btp && btp->next && EQ (*btp->next->function, Qcall_interactively))
-    return Qt;
-  return Qnil;
+    return 1;
+  return 0;
 }
+
 
 DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
   "Define NAME as a function.\n\
