@@ -562,6 +562,7 @@ all: emacs OTHER_FILES
 
 emacs: temacs ${etc}DOC ${lisp}
 #ifdef CANNOT_DUMP
+	rm -f emacs
 	ln temacs emacs
 #else
 #ifdef HAVE_SHM
