@@ -1,5 +1,8 @@
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (sweep_weak_hash_tables): Fix the code taking unmarked
+	tables out of the list of all weak hash tables.
+
 	* xdisp.c (ensure_echo_area_buffers): If a buffer was killed, and
 	a new buffer is created, make sure echo_area_buffer[] references
 	the new buffer.
