@@ -737,4 +737,7 @@ This is in addition to the primary selection.")
 ;;; that this is only annoying.
 (setq split-window-keep-point t)
 
+;; Don't show the frame name; that's redundant with X.
+(setq mode-line-buffer-identification '("Emacs: %12b"))
+
 ;;; x-win.el ends here
