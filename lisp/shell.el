@@ -153,6 +153,14 @@ on lines which don't start with a prompt.
 
 This is a fine thing to set in your `.emacs' file.")
 
+(defvar shell-completion-fignore nil
+  "*List of suffixes to be disregarded during file/command completion.
+This variable is used to initialize `comint-completion-fignore' in the shell
+buffer.  The default is nil, for compatibility with most shells.
+Some people like (\"~\" \"#\" \"%\").
+
+This is a fine thing to set in your `.emacs' file.")  
+
 (defvar shell-delimiter-argument-list '(?\| ?& ?< ?> ?\( ?\) ?\;)
   "List of characters to recognise as separate arguments.
 This variable is used to initialize `comint-delimiter-argument-list' in the
@@ -300,16 +308,18 @@ are used to match their respective commands, while `shell-pushd-tohome',
 `shell-pushd-dextract' and `shell-pushd-dunique' control the behavior of the
 relevant command.
 
-Variables `comint-completion-autolist', `comint-completion-addsuffix' and
-`comint-completion-recexact' control the behavior of file name, command name
-and variable name completion.  Variable `shell-completion-execonly' controls
-the behavior of command name completion.
+Variables `comint-completion-autolist', `comint-completion-addsuffix',
+`comint-completion-recexact' and `comint-completion-fignore' control the
+behavior of file name, command name and variable name completion.  Variable
+`shell-completion-execonly' controls the behavior of command name completion.
+Variable `shell-completion-fignore' is used to initialise the value of
+`comint-completion-fignore'.
 
 Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
 the initialisation of the input ring history, and history expansion.
 
 Variables `comint-output-filter-functions', a hook, and
-`comint-scroll-to-bottom-on-input',and `comint-scroll-to-bottom-on-output'
+`comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
 control whether input and output cause the window to scroll to the end of the
 buffer."
   (interactive)
@@ -318,6 +328,7 @@ buffer."
   (setq mode-name "Shell")
   (use-local-map shell-mode-map)
   (setq comint-prompt-regexp shell-prompt-pattern)
+  (setq comint-completion-fignore shell-completion-fignore)
   (setq comint-delimiter-argument-list shell-delimiter-argument-list)
   (setq comint-dynamic-complete-functions shell-dynamic-complete-functions)
   (make-local-variable 'paragraph-start)
@@ -678,7 +689,7 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
 	  (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
-		     completion-ignored-extensions "\\|"))
+		     comint-completion-fignore "\\|"))
 	 (path "") (comps-in-path ()) (file "") (filepath "") (completions ()))
     ;; Go thru each path in the search path, finding completions.
     (while paths
