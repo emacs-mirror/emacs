@@ -34,7 +34,6 @@
   (setq primary-language "Ethiopic")
 
   (setq default-input-method "ethiopic")
-  (setq-default default-input-method "ethiopic")
 
   ;;
   ;;  key bindings
