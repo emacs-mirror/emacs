@@ -247,15 +247,6 @@
     (and (= (length ss1) (length ss2))
 	 (string-equal (upcase ss1) (upcase ss2)))))
 
-;;; This should be moved into simple.el, and the functions there modified
-;;; to call it rather than doing it themselves.
-(defun put-string-on-kill-ring (string)
-  "Make STRING be the first element of the kill ring."
-  (setq kill-ring (cons string kill-ring))
-  (if (> (length kill-ring) kill-ring-max)
-      (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
-  (setq kill-ring-yank-pointer kill-ring))
-
 
 
 
@@ -587,7 +578,7 @@ Suggested binding is ^C-k."
 		    (format "\\cite{%s}" key)
 		    key)))
       (if kill
-	  (put-string-on-kill-ring val))
+	  (kill-new val))
       val)))
 
 ;;; bibtex mode:
