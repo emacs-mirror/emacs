@@ -1328,7 +1328,7 @@ as an argument limits undo to changes within the current region."
   "Make BUFFER stop keeping undo information.
 No argument or nil as argument means do this for the current buffer."
   (interactive)
-  (with-current-buffer (get-buffer buffer)
+  (with-current-buffer (if buffer (get-buffer buffer) (current-buffer))
     (setq buffer-undo-list t
 	  undo-list-saved nil)))
 
