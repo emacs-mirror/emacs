@@ -235,7 +235,7 @@
 ;; rearranged, so that the pertinent info will show in 40 columns
 (defvar tc-mode-line-format
 	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
-	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
+	  minor-mode-alist  mode-line-process  "%n"  ")%]%-")
   "*Value of mode-line-format for a buffer in two-column minor mode.")
 
 (defvar tc-separator ""
