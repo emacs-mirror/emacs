@@ -487,7 +487,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #ifdef HAVE_X_WINDOWS
 #define MSDOS_OBJ dosfns.o msdos.o
 #else
-#define MSDOS_OBJ dosfns.o msdos.o xfaces.o
+#define MSDOS_OBJ dosfns.o msdos.o xfaces.o w16select.o
 #endif
 #else
 #define MSDOS_OBJ
@@ -1040,6 +1040,7 @@ undo.o: undo.c buffer.h commands.h $(config_h)
    of UNEXEC when substituting it in.  */
 UNEXEC_ALIAS=UNEXEC
 $(UNEXEC_ALIAS): UNEXEC_SRC $(config_h)
+w16select.o: w16select.c lisp.h dispextern.h frame.h blockinput.h
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
    ../lwlib/lwlib.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
