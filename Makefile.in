@@ -693,8 +693,8 @@ dvi:
 
 maybe_bootstrap:
 	@if [ ! -f $(srcdir)/lisp/abbrev.elc ]; then \
-	  echo "Essential Lisp files seem to be missing.  You should either" \
-	  echo "do `make bootstrap' or create `lisp/abbrev.elc' somehow."    \
+	  echo "Essential Lisp files seem to be missing.  You should either"; \
+	  echo "do \`make bootstrap' or create \`lisp/abbrev.elc' somehow.";    \
 	fi
 
 bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
