@@ -164,7 +164,8 @@ Uses the shell command coming from variables `lpr-command' and
   (let* ((file-list (dired-get-marked-files t arg))
 	 (command (dired-mark-read-string
 		   "Print %s with: "
-		   (apply 'concat lpr-command " " lpr-switches)
+ 		   (mapconcat 'concat (append (list lpr-command)
+ 					      lpr-switches) " ")
 		   'print arg file-list)))
     (dired-run-shell-command (dired-shell-stuff-it command file-list nil))))
 
