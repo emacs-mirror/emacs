@@ -168,7 +168,7 @@ Windows-1255, Welsh, Latin-7, Lithuanian, Latvian.
 ukrainian-computer, belarusian, bulgarian-bds, russian-computer,
 vietnamese-telex, lithuanian-numeric, lithuanian-keyboard,
 latvian-keyboard, welsh, georgian, rfc1345, ucs, sgml,
-bulgarian-phonetic, dutch.
+bulgarian-phonetic, dutch, slovenian.
 
 ---
 ** A new coding system `euc-tw' has been added for traditional Chinese
@@ -178,31 +178,42 @@ Big 5 is then converted to CNS.
 ---
 ** Many new coding systems are available by loading the `code-pages'
 library.  These include complete versions of most of those in
-codepage.el, based Unicode mappings.
+codepage.el, based on Unicode mappings.
 
 ** The utf-8 coding system has been enhanced.  Untranslatable utf-8
 sequences (mostly representing CJK characters) are composed into
-single quasi-characters.  By loading the library utf-8-subst, you can
-arrange to translate many utf-8 CJK character sequences into real
-Emacs characters in a similar way to the Mule-UCS system.  The utf-8
-coding system will now encode characters from most of Emacs's
-one-dimensional internal charsets, specifically the ISO-8859 ones.
+single quasi-characters.  User option `utf-translate-cjk' arranges to
+translate many utf-8 CJK character sequences into real Emacs
+characters in a similar way to the Mule-UCS system.  The utf-8 coding
+system will now encode characters from most of Emacs's one-dimensional
+internal charsets, specifically the ISO-8859 ones.
+
+** iso-10646-1 (`Unicode') fonts can be used to display any range of
+characters encodable by the utf-8 coding system.  Just specify the
+fontset appropriately.
 
 ** New command `ucs-insert' inserts a character specified by its
-Unicode.
+unicode.
 
 +++
-** Limited support for character unification has been added.
-Emacs now knows how to translate Latin-N chars between their charset
-and some other Latin-N charset or Unicode.  By default this
-translation will happen automatically on encoding.  Quail input
-methods use the translations to make the input conformant with the
-encoding of the buffer in which it's being used where possible.
+** Limited support for character `unification' has been added.
+Emacs now knows how to translate between different representations of
+the same characters in various Emacs charsets according to standard
+Unicode mappings.  This applies mainly to characters in the ISO 8859
+sets plus some other 8-bit sets, but can be extended.  For instance,
+translation works amongst the Emacs ...-iso8859-... charsets and the
+mule-unicode-... ones.
+
+By default this translation will happen automatically on encoding.
+Self-inserting characters are translated to make the input conformant
+with the encoding of the buffer in which it's being used, where
+possible.
 
 You can force a more complete unification with the user option
 unify-8859-on-decoding-mode.  That maps all the Latin-N character sets
 into Unicode characters (from the latin-iso8859-1 and
-mule-unicode-0100-24ff charsets) on decoding.
+mule-unicode-0100-24ff charsets) on decoding.  Note that this mode
+will often effectively clobber data with an iso-2022 encoding.
 
 ** There is support for decoding Greek and Cyrillic characters into
 either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
@@ -250,12 +261,12 @@ it blinks off by setting the variable `blink-cursor-alist'.
 
 Some versions of X, notably XFree86, use Extended Segments to encode
 in X selections characters that belong to character sets which are not
-part of the list of approved standard encodings defined by the ICCCM
-spec.  Examples of such non-standard encodings include ISO 8859-14, ISO
-8859-15, KOI8-R, and BIG5.  The new coding system
-`compound-text-with-extensions' supports these extensions, and is now
-used by default for encoding and decoding X selections.  If you don't
-want this support, set `selection-coding-system' to `compound-text'.
+part of the list of approved standard encodings defined by the
+compound text spec.  An example of such non-standard encodings is
+BIG5.  The new coding system `compound-text-with-extensions' supports
+these extensions, and is now used by default for encoding and decoding
+X selections.  If you don't want this support, set
+`selection-coding-system' to `compound-text'.
 
 +++
 ** The parameters of automatic hscrolling can now be customized.
@@ -1105,9 +1116,11 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** New translation table `translation-table-for-input'.
+
 +++
 ** `load-history' can now have elements of the form (t . FUNNAME),
-which means FUNNAME was previously defined an autoload (before the
+which means FUNNAME was previously defined as an autoload (before the
 current file redefined it).
 
 ** New Lisp library testcover.el works with edebug to help you determine

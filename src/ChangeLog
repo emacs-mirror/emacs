@@ -1,3 +1,7 @@
+2002-12-09  Dave Love  <fx@gnu.org>
+
+	* s/sol2-8: Removed.  (Not necessary.)
+
 2002-12-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* editfns.c (Fformat): Handle precision in string conversion

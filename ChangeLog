@@ -1,3 +1,7 @@
+2002-12-09  Dave Love  <fx@gnu.org>
+
+	* configure.in: Delete sunos5.8 configuration.
+
 2002-12-08  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep): Revert last change.
