@@ -1,6 +1,15 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* `Pid xxx killed due to text modification or page I/O error'
+
+On HP/UX, you can get that error when the Emacs executable is on an NFS
+file system.  HP/UX responds this way if it tries to swap in a page and
+does not get a response from the server within a timeout whose default
+value is just ten seconds.
+
+If this happens to you, extend the timeout period.
+
 * `expand-file-name' fails to work on any but the machine you dumped Emacs on.
 
 On some systems, if you use any of the functions which look up
