@@ -243,6 +243,7 @@ int x_toolkit_scroll_bars_p;
    (The display is done in read_char.)  */
    
 static Lisp_Object help_echo;
+static Lisp_Object help_echo_window;
 static Lisp_Object help_echo_object;
 static int help_echo_pos;
 
@@ -6356,6 +6357,7 @@ note_mode_line_highlight (w, x, mode_line_p)
 	  if (!NILP (help))
 	    {
 	      help_echo = help;
+	      XSETWINDOW (help_echo_window, w);
 	      help_echo_object = glyph->object;
 	      help_echo_pos = glyph->charpos;
 	    }
@@ -6627,6 +6629,7 @@ note_mouse_highlight (f, x, y)
 	  if (!NILP (help))
 	    {
 	      help_echo = help;
+	      help_echo_window = window;
 	      help_echo_object = w->buffer;
 	      help_echo_pos = pos;
 	    }
@@ -6645,6 +6648,7 @@ note_mouse_highlight (f, x, y)
 	      if (!NILP (help))
 		{
 		  help_echo = help;
+		  help_echo_window = window;
 		  help_echo_object = glyph->object;
 		  help_echo_pos = glyph->charpos;
 		}
@@ -6880,7 +6884,7 @@ note_tool_bar_highlight (f, x, y)
   
   /* Set help_echo to a help string.to display for this tool-bar item.
      XTread_socket does the rest.  */
-  help_echo_object = Qnil;
+  help_echo_object = help_echo_window = Qnil;
   help_echo_pos = -1;
   help_echo = (XVECTOR (f->current_tool_bar_items)
 	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
@@ -9800,7 +9804,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      int n;
 
 		      XSETFRAME (frame, f);
-		      n = gen_help_event (bufp, Qnil, frame, Qnil, 0);
+		      n = gen_help_event (bufp, Qnil, frame, Qnil, Qnil, 0);
 		      bufp += n, count += n, numchars -= n;
 		    }
 
@@ -9848,7 +9852,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	    case MotionNotify:
 	      {
 		previous_help_echo = help_echo;
-		help_echo = help_echo_object = Qnil;
+		help_echo = help_echo_object = help_echo_window = Qnil;
 		help_echo_pos = -1;
 		
 		if (dpyinfo->grabbed && last_mouse_frame
@@ -9889,7 +9893,8 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		    any_help_event_p = 1;
 		    n = gen_help_event (bufp, help_echo, frame,
-					help_echo_object, help_echo_pos);
+					help_echo_window, help_echo_object,
+					help_echo_pos);
 		    bufp += n, count += n, numchars -= n;
 		  }
 		
@@ -13597,6 +13602,8 @@ syms_of_xterm ()
   staticpro (&help_echo);
   help_echo_object = Qnil;
   staticpro (&help_echo_object);
+  help_echo_window = Qnil;
+  staticpro (&help_echo_window);
   previous_help_echo = Qnil;
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
