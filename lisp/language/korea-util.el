@@ -57,8 +57,34 @@
 	 (activate-input-method (concat "korean-hanja"
 					default-korean-keyboard)))))
 
-;; Information for exiting Korean environment.
-(defvar exit-korean-environment-data nil)
+;; The following three commands are set in isearch-mode-map.
+
+(defun isearch-toggle-korean-input-method ()
+  (interactive)
+  (let ((overriding-terminal-local-map nil))
+    (toggle-korean-input-method))
+  (isearch-update))
+
+(defun isearch-hangul-switch-symbol-ksc ()
+  (interactive)
+  (let ((overriding-terminal-local-map nil))
+    (quail-hangul-switch-symbol-ksc))
+  (isearch-update))
+
+(defun isearch-hangul-switch-hanja ()
+  (interactive)
+  (let ((overriding-terminal-local-map nil))
+    (quail-hangul-switch-hanja))
+  (isearch-update))
+
+;; Information for setting and exiting Korean environment.
+(defvar korean-key-bindings
+  `((global [?\S- ] toggle-korean-input-method nil)
+    (global [C-f9] quail-hangul-switch-symbol-ksc nil)
+    (global [f9]  quail-hangul-switch-hanja nil)
+    (,isearch-mode-map [?\S- ] isearch-toggle-korean-input-method nil)
+    (,isearch-mode-map [C-f9] isearch-hangul-switch-symbol-ksc nil)
+    (,isearch-mode-map [f9] isearch-hangul-switch-hanja nil)))
 
 ;;;###autoload
 (defun setup-korean-environment ()
@@ -69,24 +95,35 @@
 
   (setq default-input-method "korean-hangul")
 
-  (let ((key-bindings '(([?\S- ] . toggle-korean-input-method)
-			([C-f9] . quail-hangul-switch-symbol-ksc)
-			([f9] . quail-hangul-switch-hanja))))
+  (let ((key-bindings korean-key-bindings))
     (while key-bindings
-      (let ((prev-binding (global-key-binding (car (car key-bindings)))))
-	(setq exit-korean-environment-data
-	      (cons (cons (car (car key-bindings)) prev-binding)
-		    exit-korean-environment-data)))
-      (global-set-key (car (car key-bindings)) (cdr (car key-bindings)))
+      (let* ((this (car key-bindings))
+	     (key (nth 1 this))
+	     (new-def (nth 2 this))
+	     old-def)
+	(if (eq (car this) 'global)
+	    (progn
+	      (setq old-def (global-key-binding key))
+	      (global-set-key key new-def))
+	  (setq old-def (lookup-key (car this) key))
+	  (define-key (car this) key new-def))
+	(setcar (nthcdr 3 this) old-def))
       (setq key-bindings (cdr key-bindings)))))
 
 (defun exit-korean-environment ()
   "Exit Korean language environment."
-  (while exit-korean-environment-data
-    (global-set-key (car (car exit-korean-environment-data))
-		    (cdr (car exit-korean-environment-data)))
-    (setq exit-korean-environment-data
-	  (cdr exit-korean-environment-data))))
+  (let ((key-bindings korean-key-bindings))
+    (while key-bindings
+      (let* ((this (car key-bindings))
+	     (key (nth 1 this))
+	     (new-def (nth 2 this))
+	     (old-def (nth 3 this)))
+	(if (eq (car this) 'global)
+	    (if (eq (global-key-binding key) new-def)
+		(global-set-key key old-def))
+	  (if (eq (lookup-key (car this) key) new-def)
+	      (define-key (car this) key old-def))))
+      (setq key-bindings (cdr key-bindings)))))
 
 ;;
 (provide 'korea-util)
