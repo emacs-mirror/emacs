@@ -865,20 +865,23 @@ make_uninit_string (length)
 }
 
 /* Return a newly created vector or string with specified arguments as
-   elements.  If all the arguments are characters, make a string;
-   otherwise, make a vector.  Any number of arguments, even zero
-   arguments, are allowed.  */
+   elements.  If all the arguments are characters that can fit
+   in a string of events, make a string; otherwise, make a vector.
+
+   Any number of arguments, even zero arguments, are allowed.  */
 
 Lisp_Object
-make_array (nargs, args)
+make_event_array (nargs, args)
      register int nargs;
      Lisp_Object *args;
 {
   int i;
 
   for (i = 0; i < nargs; i++)
+    /* The things that fit in a string
+       are characters that are in 0...127 after discarding the meta bit.  */
     if (XTYPE (args[i]) != Lisp_Int
-	|| (unsigned) XINT (args[i]) >= 0400)
+	|| (XUINT (args[i]) & ~CHAR_META) >= 0200)
       return Fvector (nargs, args);
 
   /* Since the loop exited, we know that all the things in it are
@@ -887,61 +890,15 @@ make_array (nargs, args)
     Lisp_Object result = Fmake_string (nargs, make_number (0));
     
     for (i = 0; i < nargs; i++)
-      XSTRING (result)->data[i] = XINT (args[i]);
+      {
+	XSTRING (result)->data[i] = XINT (args[i]);
+	/* Move the meta bit to the right place for a string char.  */
+	if (XINT (args[i]) & CHAR_META)
+	  XSTRING (result)->data[i] |= 0x80;
+      }
     
     return result;
   }
-}
-
-/* Allocation of ropes.  */
-
-/* Note: the user cannot manipulate ropes portably by referring
-   to the chars of the string, because combining two chars to make a GLYPH
-   depends on endianness.  */
-
-DEFUN ("make-rope", Fmake_rope, Smake_rope, 0, MANY, 0,
-  "Return a newly created rope containing the arguments of this function.\n\
-A rope is a string, except that its contents will be treated as an\n\
-array of glyphs, where a glyph is an integer type that may be larger\n\
-than a character.  Emacs is normally configured to use 8-bit glyphs,\n\
-so ropes are normally no different from strings.  But Emacs may be\n\
-configured to use 16-bit glyphs, to allow the use of larger fonts.\n\
-\n\
-Each argument (which must be an integer) specifies one glyph, whatever\n\
-size glyphs may be.\n\
-\n\
-See variable `buffer-display-table' for the uses of ropes.")
-  (nargs, args)
-     register int nargs;
-     Lisp_Object *args;
-{
-  register int i;
-  register Lisp_Object val;
-  register GLYPH *p;
-
-  val = make_uninit_string (nargs * sizeof (GLYPH));
-
-  p = (GLYPH *) XSTRING (val)->data;
-  for (i = 0; i < nargs; i++)
-    {
-      CHECK_NUMBER (args[i], i);
-      p[i] = XFASTINT (args[i]);
-    }
-  return val;
-}
-
-DEFUN ("rope-elt", Frope_elt, Srope_elt, 2, 2, 0,
-  "Return an element of rope R at index N.\n\
-A rope is a string in which each pair of bytes is considered an element.\n\
-See variable `buffer-display-table' for the uses of ropes.")
-  (r, n)
-    Lisp_Object r, n;
-{
-  CHECK_STRING (r, 0);
-  CHECK_NUMBER (n, 1);
-  if ((XSTRING (r)->size / sizeof (GLYPH)) <= XINT (n) || XINT (n) < 0)
-    args_out_of_range (r, n);
-  return ((GLYPH *) XSTRING (r)->data)[XFASTINT (n)];
 }
 
 /* Pure storage management.  */
@@ -2146,8 +2103,6 @@ which includes both saved text and other data.");
   defsubr (&Smake_list);
   defsubr (&Smake_vector);
   defsubr (&Smake_string);
-  defsubr (&Smake_rope);
-  defsubr (&Srope_elt);
   defsubr (&Smake_symbol);
   defsubr (&Smake_marker);
   defsubr (&Spurecopy);
