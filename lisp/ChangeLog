@@ -1,3 +1,8 @@
+2001-10-09  Miles Bader  <miles@gnu.org>
+
+	* apropos.el (apropos-next-label-button): Use the presence of a
+	`apropos-label' property to detect label buttons.
+
 2001-10-08  Miles Bader  <miles@gnu.org>
 
 	* button.el (next-button, previous-button): Remove N and WRAP
