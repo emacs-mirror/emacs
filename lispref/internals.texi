@@ -747,7 +747,7 @@ Here is a list of the @code{struct buffer_text} fields:
 @item beg
 This field contains the actual address of the buffer contents.
 
-@item got
+@item gpt
 This holds the character position of the gap in the buffer.
 
 @item z
