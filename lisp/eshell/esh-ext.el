@@ -98,7 +98,7 @@ since nothing else but Eshell will be able to understand
   "*The name of the shell command to use for DOS/Windows batch files.
 This defaults to nil on non-Windows systems, where this variable is
 wholly ignored."
-  :type 'file
+  :type '(choice file (const nil))
   :group 'eshell-ext)
 
 (defsubst eshell-invoke-batch-file (&rest args)
