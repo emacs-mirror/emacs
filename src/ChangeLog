@@ -1,3 +1,10 @@
+2003-06-26  Kenichi Handa  <handa@etlken2>
+
+	* fileio.c (choose_write_coding_system): Return a decided coding
+	system.
+	(Fwrite_region): Set Vlast_coding_system_used to the return value
+	of choose_write_coding_system.
+
 2003-06-06  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fset_charset_priority): Pay attention to duplicated
