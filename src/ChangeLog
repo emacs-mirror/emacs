@@ -5,6 +5,12 @@
 	(string_char_with_unification): Fix prototype.
 	(Vscript_alist): Extern it.
 
+	* character.c (Vscript_alist): New variable.
+	(string_char_with_unification): Add `const' to local variables.
+	(str_as_unibyte): Likewise.
+	(string_escape_byte8): Likewise.
+	(syms_of_character): Declare script-alist as a Lisp variable.
+
 	* charset.h (Vcharset_ordered_list): Extern it.
 	(charset_ordered_list_tick): Extern it.
 	(EMACS_MULE_LEADING_CODE_PRIVATE_11,
