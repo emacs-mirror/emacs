@@ -1,3 +1,7 @@
+2002-04-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* termcap.src: New version from ftp://invisible-island.net.
+
 2002-03-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.translators: New file, list of tutorial translators.
