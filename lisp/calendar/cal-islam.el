@@ -1,6 +1,6 @@
 ;;; cal-islam.el --- calendar functions for the Islamic calendar.
 
-;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -137,6 +137,7 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
+;;;###autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is t."
   (interactive
