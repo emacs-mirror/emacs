@@ -2886,6 +2886,7 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
      (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
 	   (in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers))))
        (or (mail continue to subject in-reply-to cc yank-action send-actions)
+	   continue
 	   (error "Message aborted"))))
   'mail-send-and-exit)
 
