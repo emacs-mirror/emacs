@@ -58,7 +58,7 @@
 (defconst eudc-bob-sound-menu
   `("EUDC Sound Menu"
     ["---" nil nil]
-    ["Play sound" eudc-bob-play-sound-at-point 
+    ["Play sound" eudc-bob-play-sound-at-point
      (fboundp 'play-sound)]
     ,@(cdr (cdr eudc-bob-generic-menu))))
  
@@ -87,18 +87,18 @@
   (if eudc-xemacs-p
       (and (memq (console-type) '(x mswindows))
 	   (fboundp 'make-glyph))
-    (and (boundp 'image-types)
-	 (not (null images-types)))))
+    (and (boundp 'display-graphic-p)
+	 (display-graphic-p))))
 
 (defun eudc-bob-make-button (label keymap &optional menu plist)
   "Create a button with LABEL.
-Attach KEYMAP, MENU and properties from PLIST to a new overlay covering 
+Attach KEYMAP, MENU and properties from PLIST to a new overlay covering
 LABEL."
   (let (overlay
 	(p (point))
 	prop val)
     (insert label)
-    (put-text-property p (point) 'face 'bold)    
+    (put-text-property p (point) 'face 'bold)
     (setq overlay (make-overlay p (point)))
     (overlay-put overlay 'mouse-face 'highlight)
     (overlay-put overlay 'keymap keymap)
@@ -113,11 +113,11 @@ LABEL."
 
 (defun eudc-bob-display-jpeg (data inline)
   "Display the JPEG DATA at point.
-If INLINE is non-nil, try to inline the image otherwise simply 
+If INLINE is non-nil, try to inline the image otherwise simply
 display a button."
   (cond (eudc-xemacs-p
 	 (let ((glyph (if (eudc-bob-can-display-inline-images)
-			  (make-glyph (list (vector 'jpeg :data data) 
+			  (make-glyph (list (vector 'jpeg :data data)
 					    [string :data "[JPEG Picture]"])))))
 	   (eudc-bob-make-button "[JPEG Picture]"
 				 eudc-bob-image-keymap
@@ -129,10 +129,10 @@ display a button."
 				       'start-open t
 				       'end-open t
 				       'object-data data))))
-	(t
+	((boundp 'create-image)
 	 (let* ((image (create-image data nil t))
 		(props (list 'object-data data 'eudc-image image)))
-	   (when inline
+	   (when (and inline (image-type-available-p 'jpeg))
 	     (setq props (nconc (list 'display image) props)))
 	   (eudc-bob-make-button "[Picture]"
 				 eudc-bob-image-keymap
@@ -167,7 +167,7 @@ display a button."
 	     ;; Search overlay with an image.
 	     (while (and overlays (null image))
 	       (let ((prop (overlay-get (car overlays) 'eudc-image)))
-		 (if (imagep prop)
+		 (if (eq 'image (car-safe prop))
 		     (setq image prop)
 		   (setq overlays (cdr overlays)))))
 
@@ -208,13 +208,13 @@ display a button."
 	     (if (not (and (boundp 'sound-alist)
 			   sound-alist))
 		 (error "Don't know how to play sound on this Emacs version")
-	       (setq sound-alist 
-		     (cons (list 'eudc-sound 
+	       (setq sound-alist
+		     (cons (list 'eudc-sound
 				 :sound sound)
 			   sound-alist))
 	       (condition-case nil
 		   (play-sound 'eudc-sound)
-		 (t 
+		 (t
 		  (setq sound-alist (cdr sound-alist))))))
 	    (t
 	     (unless (fboundp 'play-sound)
@@ -258,8 +258,8 @@ display a button."
 	  (insert data)
 	  (setq program (completing-read "Viewer: " eudc-external-viewers))
 	  (if (setq viewer (assoc program eudc-external-viewers))
-	      (call-process-region (point-min) (point-max) 
-				   (car (cdr viewer)) 
+	      (call-process-region (point-min) (point-max)
+				   (car (cdr viewer))
 				   (cdr (cdr viewer)))
 	    (call-process-region (point-min) (point-max) program)))
       (t
@@ -275,7 +275,7 @@ display a button."
   (run-hooks 'activate-menubar-hook)
   (eudc-jump-to-event event)
   (if eudc-xemacs-p
-      (progn 
+      (progn
 	(run-hooks 'activate-popup-menu-hook)
 	(popup-menu (eudc-bob-menu)))
     (let ((result (x-popup-menu t (eudc-bob-menu)))
@@ -321,15 +321,15 @@ display a button."
     
 (if eudc-emacs-p
     (progn
-      (easy-menu-define eudc-bob-generic-menu 
+      (easy-menu-define eudc-bob-generic-menu
 			eudc-bob-generic-keymap
 			""
 			eudc-bob-generic-menu)
-      (easy-menu-define eudc-bob-image-menu 
+      (easy-menu-define eudc-bob-image-menu
 			eudc-bob-image-keymap
 			""
 			eudc-bob-image-menu)
-      (easy-menu-define eudc-bob-sound-menu 
+      (easy-menu-define eudc-bob-sound-menu
 			eudc-bob-sound-keymap
 			""
 			eudc-bob-sound-menu)))
