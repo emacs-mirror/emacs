@@ -33,7 +33,7 @@
 ;;; Code:
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
-
+(require 'help-fns)			;for help-add-fundoc-usage.
 
 (defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
@@ -90,8 +90,14 @@ or macro definition or a defcustom)."
 		   define-minor-mode defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
+	     (args (if (memq car '(defun defmacro defun* defmacro*))
+		       (nth 2 form) t))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
+	(when (listp args)
+	  ;; Add the usage form at the end where describe-function-1
+	  ;; can recover it.
+	  (setq doc (help-add-fundoc-usage doc args)))
 	;; `define-generic-mode' quotes the name, so take care of that
 	(list 'autoload (if (listp name) name (list 'quote name)) file doc
 	      (or (and (memq car '(define-skeleton define-derived-mode
@@ -121,10 +127,10 @@ or macro definition or a defcustom)."
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))
 
-;;; Forms which have doc-strings which should be printed specially.
-;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
-;;; the doc-string in FORM.
-;;; Those properties are now set in lisp-mode.el.
+;; Forms which have doc-strings which should be printed specially.
+;; A doc-string-elt property of ELT says that (nth ELT FORM) is
+;; the doc-string in FORM.
+;; Those properties are now set in lisp-mode.el.
 
 
 (defun autoload-trim-file-name (file)
@@ -191,7 +197,7 @@ markers before we call `read'."
 	      ;; the doc string.
 	      (with-current-buffer outbuf
 		(save-excursion
-		  (while (search-backward "\n(" begin t)
+		  (while (re-search-backward "\n[[(]" begin t)
 		    (forward-char 1)
 		    (insert "\\"))))
 	      (if (null (cdr elt))
