@@ -2486,7 +2486,6 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
 
-  fprintf (stderr, "Unwind: %p\n", menu);
   record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
   /* Set this to one.  popup_widget_loop increases it by one, so it becomes
