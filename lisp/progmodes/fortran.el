@@ -1,10 +1,10 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;;; Copyright (c) 1991 Free Software Foundation, Inc.
+;;; Copyright (c) 1992 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.28.3
+;; Version 1.28.3a
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -102,10 +102,19 @@
 
 ;;;###autoload
 (defvar fortran-tab-mode-default nil
-  "*Default tabbing/carriage control style for empty files in fortran mode.
-t indicates that tab-digit style of continuation control will be used.
-nil indicates that continuation lines are marked with a character in
-column 6.")
+  "*Default tabbing/carriage control style for empty files in Fortran mode.
+A value of t specifies tab-digit style of continuation control.
+A value of nil specifies that continuation lines are marked
+with a character in column 6.")
+
+(defvar fortran-tab-mode nil
+  "*tabbing/carriage control style for Fortran mode.
+A value of t specifies tab-digit style of continuation control.
+A value of nil specifies that continuation lines are marked
+with a character in column 6.")
+
+;; Buffer local, used to display mode line.
+(defvar fortran-tab-mode-string)
 
 (defvar fortran-do-indent 3
   "*Extra indentation applied to `do' blocks.")
@@ -476,8 +485,18 @@ Any other key combination is executed normally."
   (interactive)
   (message "Listing abbrev table...")
   (require 'abbrevlist)
-  (list-one-abbrev-table fortran-mode-abbrev-table "*Help*")
+  (display-buffer (fortran-prepare-abbrev-list-buffer))
   (message "Listing abbrev table...done"))
+
+(defun fortran-prepare-abbrev-list-buffer ()
+  (save-excursion
+    (set-buffer (get-buffer-create "*Abbrevs*"))
+    (erase-buffer)
+    (insert-abbrev-table-description fortran-mode-abbrev-table t)
+    (goto-char (point-min))
+    (set-buffer-modified-p nil)
+    (edit-abbrevs-mode))
+  (get-buffer-create "*Abbrevs*"))
 
 (defun fortran-column-ruler ()
   "Inserts a column ruler momentarily above current line, till next keystroke.
@@ -939,21 +958,21 @@ Otherwise return a nil."
   "Return 0 if Fixed format is used, 1 if Tab formatting is used.
 Use `fortran-tab-mode-default' if no non-comment statements are found in the
 file before the end or the first `fortran-analyze-depth' lines."
-  (save-excursion
-    (goto-char (point-min))
-    (setq i 0)
-    (while (not (or
-		 (eobp)
-		 (looking-at "\t")
-		 (looking-at "      ")
-		 (> i fortran-analyze-depth)))
-      (forward-line)
-      (setq i (1+ i)))
-    (cond
-     ((looking-at "\t") 1)
-     ((looking-at "      ") 0)
-     (fortran-tab-mode-default 1)
-     (t 0))))
+  (let ((i 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (or
+		   (eobp)
+		   (looking-at "\t")
+		   (looking-at "      ")
+		   (> i fortran-analyze-depth)))
+	(forward-line)
+	(setq i (1+ i)))
+      (cond
+       ((looking-at "\t") 1)
+       ((looking-at "      ") 0)
+       (fortran-tab-mode-default 1)
+       (t 0)))))
 
 (defun fortran-tab-mode (arg)
   "Toggle `fortran-tab-mode' which indicates style of continuation lines.
@@ -965,7 +984,7 @@ If argument is a positive number, or non-nil if not a number,
 	(if (null arg) (not fortran-tab-mode)
 	  (if (numberp arg)
 	      (> (prefix-numeric-value arg) 0)
-	    (arg))))
+	    arg)))
   (if fortran-tab-mode
       (fortran-setup-tab-format-style)
     (fortran-setup-fixed-format-style))
