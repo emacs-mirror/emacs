@@ -1,3 +1,9 @@
+2000-01-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_delete_display): Update next_noop_dpyinfo to ensure
+	that XTread_socket does not crash by trying to call XNoOp on a
+	closed display.
+	
 2000-01-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32inevt.c (get_frame, w32_console_mouse_position, mouse_moved_to):

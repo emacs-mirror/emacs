@@ -1,3 +1,15 @@
+2000-01-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cl-specs.el (cl-lambda-list, cl-macro-list)
+	(cl-macro-list1): Recognize `&allow-other-keys' instead of
+	`&allow-other-keywords'.
+
+	* mail/mh-utils.el (mh-find-progs): Add directory `etc' to
+	the list of directories scanned heuristically.
+
+	* Makefile (DONTCOMPILE): Remove term-nasty.el; doesn't seem to
+	exist.
+
 2000-01-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el: Define w32-tty-standard-colors.
