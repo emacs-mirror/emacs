@@ -5138,7 +5138,7 @@ mode_line_string (w, x, y, mode_line_p, charpos)
 	 and bitmap area width.  */
       if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
 	x += FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
-      x += FRAME_FLAGS_AREA_WIDTH (f);
+      x += FRAME_LEFT_FLAGS_AREA_WIDTH (f);
 
       /* Find the glyph under X.  If we find one with a string object,
          it's the one we were looking for.  */
