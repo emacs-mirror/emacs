@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.311.4.5 2002/03/05 13:41:05 spiegel Exp $
+;; $Id: vc.el,v 1.311.4.6 2002/07/20 17:37:45 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1022,21 +1022,6 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	  (save-buffer)
 	(unless not-urgent
 	  (error "Aborted")))))
-
-(defun vc-workfile-unchanged-p (file)
-  "Return non-nil if FILE has not changed since the last checkout."
-  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
-        (lastmod (nth 5 (file-attributes file))))
-    (if checkout-time
-        (equal checkout-time lastmod)
-      (let ((unchanged (vc-call workfile-unchanged-p file)))
-        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
-        unchanged))))
-
-(defun vc-default-workfile-unchanged-p (backend file)
-  "Check if FILE is unchanged by diffing against the master version.
-Return non-nil if FILE is unchanged."
-  (zerop (vc-call diff file (vc-workfile-version file))))
 
 (defun vc-default-latest-on-branch-p (backend file)
   "Return non-nil if FILE is the latest on its branch.
