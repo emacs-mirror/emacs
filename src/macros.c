@@ -177,27 +177,25 @@ void
 store_kbd_macro_char (c)
      Lisp_Object c;
 {
-  if (!NILP (current_kboard->defining_kbd_macro))
+  struct kboard *kb = current_kboard;
+
+  if (!NILP (kb->defining_kbd_macro))
     {
-      if ((current_kboard->kbd_macro_ptr
-	   - current_kboard->kbd_macro_buffer)
-	  == current_kboard->kbd_macro_bufsize)
+      if (kb->kbd_macro_ptr - kb->kbd_macro_buffer == kb->kbd_macro_bufsize)
 	{
-	  int offset = (current_kboard->kbd_macro_ptr
-			- current_kboard->kbd_macro_buffer);
-	  current_kboard->kbd_macro_bufsize *= 2;
-	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       (current_kboard->kbd_macro_bufsize
-					* sizeof (Lisp_Object)));
-	  current_kboard->kbd_macro_ptr
-	    = current_kboard->kbd_macro_buffer + offset;
-	  current_kboard->kbd_macro_end
-	    = (current_kboard->kbd_macro_buffer
-	       + current_kboard->kbd_macro_bufsize);
+	  int ptr_offset, end_offset, nbytes;
+	  
+	  ptr_offset = kb->kbd_macro_ptr - kb->kbd_macro_buffer;
+	  end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
+	  kb->kbd_macro_bufsize *= 2;
+	  nbytes = kb->kbd_macro_bufsize * sizeof *kb->kbd_macro_buffer;
+	  kb->kbd_macro_buffer
+	    = (Lisp_Object *) xrealloc (kb->kbd_macro_buffer, nbytes);
+	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
+	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
 	}
       
-      *current_kboard->kbd_macro_ptr++ = c;
+      *kb->kbd_macro_ptr++ = c;
     }
 }
 
