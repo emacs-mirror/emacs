@@ -199,7 +199,7 @@ Do \\[command-apropos] `picture-movement' to see those commands."
     (setq arg (1- arg))
     (move-to-column-force (1+ (current-column)))
     (delete-char -1)
-    (insert last-input-char)
+    (insert last-command-event)		; Always a character in this case.
     (forward-char -1)
     (picture-move)))
 
@@ -478,12 +478,9 @@ Leaves the region surrounding the rectangle."
   (substitute-key-definition oldfun newfun picture-mode-map global-map))
 
 (if (not picture-mode-map)
-    (let ((i ?\ ))
-      (setq picture-mode-map (make-keymap))
-      (while (< i ?\177)
-	(define-key picture-mode-map (make-string 1 i) 'picture-self-insert)
-	(setq i (1+ i)))
-
+    (progn
+      (setq picture-mode-map (list 'keymap (make-vector 256 nil)))
+      (picture-substitute 'self-insert-command 'picture-self-insert)
       (picture-substitute 'forward-char 'picture-forward-column)
       (picture-substitute 'backward-char 'picture-backward-column)
       (picture-substitute 'delete-char 'picture-clear-column)
@@ -493,7 +490,7 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'kill-line 'picture-clear-line)
       (picture-substitute 'open-line 'picture-open-line)
       (picture-substitute 'newline 'picture-newline)
-      (picture-substitute 'newline-andindent 'picture-duplicate-line)
+      (picture-substitute 'newline-and-indent 'picture-duplicate-line)
       (picture-substitute 'next-line 'picture-move-down)
       (picture-substitute 'previous-line 'picture-move-up)
       (picture-substitute 'beginning-of-line 'picture-beginning-of-line)
