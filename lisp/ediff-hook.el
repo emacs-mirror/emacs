@@ -52,6 +52,7 @@
 ;; In this case, the macro will expand into the form that is appropriate to the
 ;; compiler at hand.
 ;; Suggested by rms.
+;;;###autoload
 (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
   (if (string-match "XEmacs" emacs-version)
       xemacs-form emacs-form))

@@ -1,3 +1,7 @@
+2002-01-08  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-hook.el: added an autoload cookie.
+	
 2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/eudcb-ph.el, net/ldap.el: New maintainer.  New e-mail
