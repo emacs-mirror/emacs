@@ -233,11 +233,10 @@ Use the former if the menu bar is showing, otherwise the latter."
 
 (defun mouse-delete-window (click)
   "Delete the window you click on.
-If the frame has just one window, bury the current buffer instead.
+Do nothing if the frame has just one window.
 This command must be bound to a mouse click."
   (interactive "e")
-  (if (one-window-p t)
-      (bury-buffer)
+  (unless (one-window-p t)
     (mouse-minibuffer-check click)
     (delete-window (posn-window (event-start click)))))
 
