@@ -2320,8 +2320,7 @@ automatically breaks the line at a previous space."
 		       (> (prefix-numeric-value arg) 0))
 		   'do-auto-fill
 		   nil))
-    ;; update mode-line
-    (set-buffer-modified-p (buffer-modified-p))))
+    (force-mode-line-update)))
 
 ;; This holds a document string used to document auto-fill-mode.
 (defun auto-fill-function ()
