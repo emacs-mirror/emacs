@@ -1982,30 +1982,29 @@ re_iswctype (ch, cc)
      int ch;
      re_wctype_t cc;
 {
-  boolean ret = false;
-
   switch (cc)
     {
-    case RECC_ALNUM: ret = ISALNUM (ch);
-    case RECC_ALPHA: ret = ISALPHA (ch);
-    case RECC_BLANK: ret = ISBLANK (ch);
-    case RECC_CNTRL: ret = ISCNTRL (ch);
-    case RECC_DIGIT: ret = ISDIGIT (ch);
-    case RECC_GRAPH: ret = ISGRAPH (ch);
-    case RECC_LOWER: ret = ISLOWER (ch);
-    case RECC_PRINT: ret = ISPRINT (ch);
-    case RECC_PUNCT: ret = ISPUNCT (ch);
-    case RECC_SPACE: ret = ISSPACE (ch);
-    case RECC_UPPER: ret = ISUPPER (ch);
-    case RECC_XDIGIT: ret = ISXDIGIT (ch);
-    case RECC_ASCII: ret = IS_REAL_ASCII (ch);
-    case RECC_NONASCII: ret = !IS_REAL_ASCII (ch);
-    case RECC_UNIBYTE: ret = ISUNIBYTE (ch);
-    case RECC_MULTIBYTE: ret = !ISUNIBYTE (ch);
-    case RECC_WORD: ret = ISWORD (ch);
-    case RECC_ERROR: ret = false;
+    case RECC_ALNUM: return ISALNUM (ch);
+    case RECC_ALPHA: return ISALPHA (ch);
+    case RECC_BLANK: return ISBLANK (ch);
+    case RECC_CNTRL: return ISCNTRL (ch);
+    case RECC_DIGIT: return ISDIGIT (ch);
+    case RECC_GRAPH: return ISGRAPH (ch);
+    case RECC_LOWER: return ISLOWER (ch);
+    case RECC_PRINT: return ISPRINT (ch);
+    case RECC_PUNCT: return ISPUNCT (ch);
+    case RECC_SPACE: return ISSPACE (ch);
+    case RECC_UPPER: return ISUPPER (ch);
+    case RECC_XDIGIT: return ISXDIGIT (ch);
+    case RECC_ASCII: return IS_REAL_ASCII (ch);
+    case RECC_NONASCII: return !IS_REAL_ASCII (ch);
+    case RECC_UNIBYTE: return ISUNIBYTE (ch);
+    case RECC_MULTIBYTE: return !ISUNIBYTE (ch);
+    case RECC_WORD: return ISWORD (ch);
+    case RECC_ERROR: return false;
+    default:
+      abort();
     }
-  return ret;
 }
 
 /* Return a bit-pattern to use in the range-table bits to match multibyte
@@ -2014,21 +2013,20 @@ static int
 re_wctype_to_bit (cc)
      re_wctype_t cc;
 {
-  int ret = 0;
-
   switch (cc)
     {
     case RECC_NONASCII: case RECC_PRINT: case RECC_GRAPH:
-    case RECC_MULTIBYTE: ret = BIT_MULTIBYTE;
-    case RECC_ALPHA: case RECC_ALNUM: case RECC_WORD: ret = BIT_WORD;
-    case RECC_LOWER: ret = BIT_LOWER;
-    case RECC_UPPER: ret = BIT_UPPER;
-    case RECC_PUNCT: ret = BIT_PUNCT;
-    case RECC_SPACE: ret = BIT_SPACE;
+    case RECC_MULTIBYTE: return BIT_MULTIBYTE;
+    case RECC_ALPHA: case RECC_ALNUM: case RECC_WORD: return BIT_WORD;
+    case RECC_LOWER: return BIT_LOWER;
+    case RECC_UPPER: return BIT_UPPER;
+    case RECC_PUNCT: return BIT_PUNCT;
+    case RECC_SPACE: return BIT_SPACE;
     case RECC_ASCII: case RECC_DIGIT: case RECC_XDIGIT: case RECC_CNTRL:
-    case RECC_BLANK: case RECC_UNIBYTE: case RECC_ERROR: ret = 0;
+    case RECC_BLANK: case RECC_UNIBYTE: case RECC_ERROR: return 0;
+    default:
+      abort();
     }
-  return ret;
 }
 #endif
 
@@ -3150,20 +3148,21 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
-	      if (syntax & RE_NO_BK_REFS)
-		goto normal_char;
+	      {
+		regnum_t reg;
 
-	      c1 = c - '0';
+		if (syntax & RE_NO_BK_REFS)
+		  goto normal_backslash;
 
-	      if (c1 > regnum)
-		FREE_STACK_RETURN (REG_ESUBREG);
+		reg = c - '0';
 
-	      /* Can't back reference to a subexpression if inside of it.  */
-	      if (group_in_compile_stack (compile_stack, (regnum_t) c1))
-		goto normal_char;
+		/* Can't back reference to a subexpression before its end.  */
+		if (reg > regnum || group_in_compile_stack (compile_stack, reg))
+		  FREE_STACK_RETURN (REG_ESUBREG);
 
-	      laststart = b;
-	      BUF_PUSH_2 (duplicate, c1);
+		laststart = b;
+		BUF_PUSH_2 (duplicate, reg);
+	      }
 	      break;
 
 
