@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.16) $
+ * $HopeName: MMsrc!poolawl.c(trunk.17) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.16) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.17) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -91,7 +91,7 @@ static void AWLGroupDestroy(AWLGroup group)
   
  
 static Res AWLGroupCreate(AWLGroup *groupReturn,
-                          Buffer buffer, Pool pool, Size size)
+                          RankSet rankSet, Pool pool, Size size)
 {
   AWL awl;
   Seg seg;
@@ -103,7 +103,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   Arena arena;
 
   AVER(groupReturn != NULL);
-  AVERT(Buffer, buffer);
+  AVER(RankSetCheck(rankSet));
   AVERT(Pool, pool);
   AVER(size > 0);
 
@@ -143,7 +143,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   BTResRange(group->mark, 0, bits);
   BTResRange(group->scanned, 0, bits);
   BTResRange(group->alloc, 0, bits);
-  SegSetRankSet(seg, BufferRankSet(buffer));
+  SegSetRankSet(seg, rankSet);
   SegSetSummary(seg, RefSetUNIV);
   SegSetP(seg, group);
   group->seg = seg;
@@ -287,7 +287,7 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
 
   /* No free space in existing groups, so create new group */
 
-  res = AWLGroupCreate(&group, buffer, pool, size);
+  res = AWLGroupCreate(&group, BufferRankSet(buffer), pool, size);
   if(res != ResOK) {
     return res;
   }
@@ -300,6 +300,9 @@ found:
     i = AddrOffset(SegBase(arena, group->seg), base) >> awl->alignShift;
     j = AddrOffset(SegBase(arena, group->seg), limit) >> awl->alignShift;
     BTSetRange(group->alloc, i, j);
+    /* Objects are allocated black */
+    BTSetRange(group->mark, i, j);
+    BTSetRange(group->scanned, i, j);
   }
   *segReturn = group->seg;
   *baseReturn = base;
@@ -336,10 +339,6 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 
 static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
 {
-  AWL awl;
-  AWLGroup group;
-
-  /* all parameters checked by generic PoolCondemn */
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -349,17 +348,24 @@ static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
   /* see design.mps.poolawl.fun.condemn */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  awl = PoolPoolAWL(pool);
-  AVERT(AWL, awl);
-  AVER(awl == ActionAWL(action));
+  /* We don't condemn buffered segments so that we avoid */
+  /* allocating white objects */
+  if(SegBuffer(seg) == NULL) {
+    AWL awl;
+    AWLGroup group;
 
-  group = (AWLGroup)SegP(seg);
-  AVERT(AWLGroup, group);
-  
-  BTResRange(group->mark, 0, group->grains);
-  BTResRange(group->scanned, 0, group->grains);
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
-  
+    awl = PoolPoolAWL(pool);
+    AVERT(AWL, awl);
+    AVER(awl == ActionAWL(action));
+
+    group = (AWLGroup)SegP(seg);
+    AVERT(AWLGroup, group);
+    
+    BTResRange(group->mark, 0, group->grains);
+    BTResRange(group->scanned, 0, group->grains);
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  }
+
   return ResOK;
 }
 
@@ -437,17 +443,119 @@ static Bool AWLDependentObject(Addr *objReturn, Addr parent)
   return TRUE;
 }
 
+static Res awlScanObject(Arena arena, ScanState ss,
+                         FormatScanMethod scan, Addr base, Addr limit)
+{
+  Res res;
+  Bool dependent;       /* is there a dependent object? */
+  Addr dependentObject; /* base address of dependent object */
+  Seg dependentSeg;     /* segment of dependent object */
 
-static Res AWLScan(ScanState ss, Pool pool, Seg seg)
+  AVERT(Arena, arena);
+  AVERT(ScanState, ss);
+  AVER(FUNCHECK(scan));
+  AVER(base != 0);
+  AVER(base < limit);
+
+  if(AWLDependentObject(&dependentObject, base) &&
+     SegOfAddr(&dependentSeg, arena, dependentObject)) {
+    dependent = TRUE;
+  } else {
+    dependent = FALSE;
+  }
+
+  if(dependent) {
+    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependant.expose */
+    ShieldExpose(arena, dependentSeg);
+    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependant.summary */
+    SegSetSummary(dependentSeg, RefSetUNIV);
+  }
+
+  res = (*scan)(ss, base, limit);
+
+  if(dependent) {
+    ShieldCover(arena, dependentSeg);
+  }
+
+  return res;
+}
+
+static Res awlScanSinglePass(Bool *anyScannedReturn,
+                             ScanState ss, Pool pool,
+                             Seg seg, Bool scanAllObjects)
 {
   Addr base, limit;
   Addr p;
+  Arena arena;
   AWL awl;
   AWLGroup group;
-  Bool finished;
-  Arena arena;
 
-  /* parameters checked by generic PoolScan */
+  AVERT(ScanState, ss);
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVERT(Bool, scanAllObjects);
+
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
+
+  group = SegP(seg);
+  AVERT(AWLGroup, group);
+  *anyScannedReturn = FALSE;
+  base = SegBase(arena, seg);
+  limit = SegLimit(arena, seg);
+  p = base;
+  while(p < limit) {
+    Index i;	/* the index into the bit tables corresponding to p */
+    Addr objectLimit;
+    /* design.mps.poolawl.fun.scan.buffer */
+    if(SegBuffer(seg)) {
+      Buffer buffer = SegBuffer(seg);
+
+      if(p == BufferScanLimit(buffer) &&
+	 BufferScanLimit(buffer) != BufferLimit(buffer)) {
+	p = BufferLimit(buffer);
+	continue;
+      }
+    }
+    i = AddrOffset(base, p) >> awl->alignShift;
+    /* design.mps.poolawl.fun.scan.free */
+    if(!BTGet(group->alloc, i)) {
+      p = AddrAdd(p, pool->alignment);
+      continue;
+    }
+    /* design.mps.poolawl.fun.scan.object-end */
+    objectLimit = (*awl->format->skip)(p);
+    /* design.mps.poolawl.fun.scan.scan */
+    if(scanAllObjects ||
+         (BTGet(group->mark, i) && !BTGet(group->scanned, i))) {
+      Res res = awlScanObject(arena, ss, awl->format->scan,
+                              p, objectLimit);
+      if(res != ResOK) {
+	return res;
+      }
+      *anyScannedReturn = TRUE;
+      BTSet(group->scanned, i);
+    }
+    AVER(p < objectLimit);
+    p = AddrAlignUp(objectLimit, pool->alignment);
+  }
+  AVER(p == limit);
+
+  return ResOK;
+}
+
+
+static Res AWLScan(ScanState ss, Pool pool, Seg seg)
+{
+  Arena arena;
+  AWL awl;
+  AWLGroup group;
+  Bool anyScanned;
+  Bool scanAllObjects;
+  Res res;
+
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -459,72 +567,29 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   AVERT(AWL, awl);
 
   arena = PoolArena(pool);
-  base = SegBase(arena, seg);
-  limit = SegLimit(arena, seg);
 
   /* If the scanner isn't going to scan all the objects then the */
   /* summary of the unscanned objects must be added into the scan */
   /* state summary, so that it's a valid summary of the entire */
-  /* segment on return. */
-  if(SegWhite(seg) != RefSetEMPTY)
+  /* segment on return.
+  /* Additionally the white set must be added to the fixed set */
+  /* because we are not scanning all the R(white) objects */
+  scanAllObjects =
+    (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
+  if(!scanAllObjects) {
     ScanStateSetSummary(ss, RefSetUnion(ScanStateSummary(ss),
                                         SegSummary(seg)));
-
-notFinished:
-  finished = TRUE;
-  p = base;
-  while(p < limit) {
-    Index i;	/* the index into the bit tables corresponding to p */
-    Addr objectEnd;
-    /* design.mps.poolawl.fun.scan.buffer */
-    if(SegBuffer(seg)) {
-      if(p == BufferScanLimit(SegBuffer(seg))) {
-	p = BufferLimit(SegBuffer(seg));
-	continue;
-      }
-    }
-    i = AddrOffset(base, p) >> awl->alignShift;
-    /* design.mps.poolawl.fun.scan.free */
-    if(!BTGet(group->alloc, i)) {
-      p = AddrAdd(p, pool->alignment);
-      continue;
-    }
-    /* design.mps.poolawl.fun.scan.object-end */
-    objectEnd = awl->format->skip(p);
-    /* design.mps.poolawl.fun.scan.scan */
-    if(BTGet(group->mark, i) && !BTGet(group->scanned, i)) {
-      Addr dependentObj;
-      Seg dependentSeg;
-      Bool dependent;
-      Res res;
-
-      finished = FALSE;
-      /* is there a dependent object that needs exposing? */
-      dependent = AWLDependentObject(&dependentObj, p);
-      if(dependent) {
-	Bool b;
-
-	b = SegOfAddr(&dependentSeg, arena, dependentObj);
-	if(b == TRUE) {
-	  ShieldExpose(arena, dependentSeg);
-          SegSetSummary(dependentSeg, RefSetUNIV);
-	} else {
-	  dependent = FALSE;
-	}
-      }
-      res = awl->format->scan(ss, p, objectEnd);
-      if(dependent) {
-        ShieldCover(arena, dependentSeg);
-      }
-      if(res != ResOK) {
-        return res;
-      }
-      BTSet(group->scanned, i);
-    }
-    p = AddrAlignUp(objectEnd, pool->alignment);
   }
-  if(!finished)
-    goto notFinished;
+
+  do {
+    res = awlScanSinglePass(&anyScanned, ss, pool, seg, scanAllObjects);
+    if(res != ResOK) {
+      return res;
+    }
+  /* we are done if we scanned all the objects or if we did a pass */
+  /* and didn't scan any objects (since then, no new object can have */
+  /* gotten fixed) */
+  } while(!scanAllObjects && anyScanned);
 
   return ResOK;
 }
@@ -622,8 +687,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     if(SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
 
-      if(p >= BufferScanLimit(buffer)) {
-        AVER(p == BufferScanLimit(buffer));
+      if(p == BufferScanLimit(buffer) &&
+	 BufferScanLimit(buffer) != BufferLimit(buffer)) {
 	i = AddrOffset(base, BufferLimit(buffer)) >> awl->alignShift;
 	continue;
       }
@@ -631,14 +696,19 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     j = AddrOffset(base, awl->format->skip(p)) >>
         awl->alignShift;
     AVER(j <= group->grains);
-    if(!BTGet(group->mark, i)) {
+    if(BTGet(group->mark, i)) {
+      AVER(BTGet(group->scanned, i));
+      BTSetRange(group->mark, i, j);
+      BTSetRange(group->scanned, i, j);
+    } else {
+      BTResRange(group->mark, i, j);
+      BTSetRange(group->scanned, i, j);
       BTResRange(group->alloc, i, j);
     }
     i = j;
   }
   AVER(i == group->grains);
 
-  BTResRange(group->mark, 0, group->grains);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
 }
 
