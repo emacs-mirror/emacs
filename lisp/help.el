@@ -847,13 +847,16 @@ Returns the documentation as a string, also."
 	    (set-buffer standard-output)
 	    (if (> (count-lines (point-min) (point-max)) 10)
 		(progn
+		  ;; Note that setting the syntax table like below
+		  ;; makes forward-sexp move over a `'s' at the end
+		  ;; of a symbol.
 		  (set-syntax-table emacs-lisp-mode-syntax-table)
 		  (goto-char (point-min))
 		  (if valvoid
 		      (forward-line 1)
 		    (forward-sexp 1)
 		    (delete-region (point) (progn (end-of-line) (point)))
-		    (insert "'s value is shown below.\n\n")
+		    (insert " value is shown below.\n\n")
 		    (save-excursion
 		      (insert "\n\nValue:"))))))
 	  (princ "Documentation:")
