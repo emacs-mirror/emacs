@@ -41,17 +41,28 @@ On reaching end of buffer, stop and signal error.")
   else
     CHECK_NUMBER (n, 0);
 
-  SET_PT (point + XINT (n));
-  if (point < BEGV)
-    {
-      SET_PT (BEGV);
-      Fsignal (Qbeginning_of_buffer, Qnil);
-    }
-  if (point > ZV)
-    {
-      SET_PT (ZV);
-      Fsignal (Qend_of_buffer, Qnil);
-    }
+  /* This used to just set point to point + XINT (n), and then check
+     to see if it was within boundaries.  But now that SET_PT can
+     potentially do a lot of stuff (calling entering and exiting
+     hooks, etcetera), that's not a good approach.  So we validate the
+     proposed position, then set point.  */
+  {
+    int new_point = point + XINT (n);
+
+    if (new_point < BEGV)
+      {
+	SET_PT (BEGV);
+	Fsignal (Qbeginning_of_buffer, Qnil);
+      }
+    if (new_point > ZV)
+      {
+	SET_PT (ZV);
+	Fsignal (Qend_of_buffer, Qnil);
+      }
+
+    SET_PT (new_point);
+  }
+
   return Qnil;
 }
 
