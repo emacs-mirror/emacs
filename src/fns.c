@@ -49,27 +49,27 @@ On most systems all integers representable in Lisp are equally likely.\n\
   This is 24 bits' worth.\n\
 With argument N, return random number in interval [0,N).\n\
 With argument t, set the random number seed from the current time and pid.")
-  (arg)
-     Lisp_Object arg;
+  (limit)
+     Lisp_Object limit;
 {
   int val;
   extern long random ();
   extern srandom ();
   extern long time ();
 
-  if (EQ (arg, Qt))
+  if (EQ (limit, Qt))
     srandom (getpid () + time (0));
   val = random ();
-  if (XTYPE (arg) == Lisp_Int && XINT (arg) != 0)
+  if (XTYPE (limit) == Lisp_Int && XINT (limit) != 0)
     {
       /* Try to take our random number from the higher bits of VAL,
 	 not the lower, since (says Gentzel) the low bits of `random'
 	 are less random than the higher ones.  */
       val &= 0xfffffff;		/* Ensure positive.  */
       val >>= 5;
-      if (XINT (arg) < 10000)
+      if (XINT (limit) < 10000)
 	val >>= 6;
-      val %= XINT (arg);
+      val %= XINT (limit);
     }
   return make_number (val);
 }
