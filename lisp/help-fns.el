@@ -448,7 +448,7 @@ it is displayed along with the global value."
               (when obsolete
                 (princ "This variable is obsolete")
                 (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
-                (princ "; ") (terpri)
+                (princ ";") (terpri)
                 (princ (if (stringp (car obsolete)) (car obsolete)
                          (format "use `%s' instead." (car obsolete))))
                 (terpri)
