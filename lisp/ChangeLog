@@ -2,8 +2,8 @@
 
         * play/tetris.el: (tetris): New defgroup.
         (tetris-use-glyphs, tetris-use-color, tetris-draw-border-with-glyphs)
-        (tetris-default-tick-period): Convert to defcustom.  Added * in
-        docstring to indicate user variable.
+        (tetris-default-tick-period): Convert to defcustom.
+	Added * in docstring to indicate user variable.
         (tetris-update-speed-function, tetris-mode-hook, tetris-tty-colors)
         (tetris-x-colors, tetris-buffer-name, tetris-buffer-width)
         (tetris-buffer-height, tetris-width, tetris-height)
