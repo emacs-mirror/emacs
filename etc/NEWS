@@ -7311,7 +7311,7 @@ printer system has this behavior, set variable
 
 If variable `ps-banner-page-when-duplexing' is non-nil, it prints a
 blank page as the very first printed page.  So, it behaves as if the
-very first character of buffer (or region) where a form feed ^L (\014).
+very first character of buffer (or region) were a form feed ^L (\014).
 
 The variable `ps-spool-config' specifies who is responsible for
 setting duplex mode and page size.  Valid values are:
