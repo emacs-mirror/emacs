@@ -34,8 +34,9 @@
 ;; Makefile|zaphod, respectively (instead of Makefile and Makefile<2>).
 ;; Other buffer name styles are also available.
 
-;; To use this file, just load it; or add (require 'uniquify) to your .emacs.
-;; To disable it after loading, set variable uniquify-buffer-name-style to nil.
+;; To use this file, do (require 'uniquify)
+;; and set uniquify-buffer-name-style to one of its non-nil alternative values.
+
 ;; For other options, see "User-visible variables", below.
 
 ;; A version of uniquify.el that works under Emacs 18, Emacs 19, XEmacs,
@@ -89,7 +90,7 @@
   :group 'applications)
 
 
-(defcustom uniquify-buffer-name-style 'post-forward
+(defcustom uniquify-buffer-name-style nil
   "*If non-nil, buffer names are uniquified with parts of directory name.
 The value determines the buffer name style and is one of `forward',
 `reverse', `post-forward' (the default), or `post-forward-angle-brackets'.
@@ -104,7 +105,7 @@ would have the following buffer names in the various styles:
 		(const reverse)
 		(const post-forward)
 		(const podt-forward-angle-brackets)
-		(const nil))
+		(const :tag "standard Emacs behavior (nil)" nil))
   :group 'uniquify)
 
 (defcustom uniquify-after-kill-buffer-p nil
@@ -412,7 +413,9 @@ For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
   (if (and uniquify-buffer-name-style
 	   uniquify-after-kill-buffer-p)
       (add-hook 'post-command-hook
-		'delayed-uniquify-rationalize-file-buffer-names)))
+		'delayed-uniquify-rationalize-file-buffer-names)
+    (remove-hook 'kill-buffer-hook
+		 'delay-uniquify-rationalize-file-buffer-names)))
 
 (defun delayed-uniquify-rationalize-file-buffer-names ()
   "Rerationalize buffer names and remove self from `post-command-hook'.
