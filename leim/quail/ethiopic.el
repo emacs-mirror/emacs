@@ -546,18 +546,17 @@ C-' or `M-x ethio-gemination'
  ("NWee" ["$(3"`%q(B"])
  ("NW'" ["$(3"`%r(B"])
 
- ("e" ?$(3"c(B)
+ ; ("e" ?$(3"c(B) ; old style
  ("u" ?$(3"d(B)
  ("U" ?$(3"d(B)
  ("i" ?$(3"e(B)
  ("a" ?$(3"f(B)
  ("A" ?$(3"f(B)
  ("E" ?$(3"g(B)
- ; ("ee" ?$(3"g(B) ; Alef-E is rare vs Aynu-e, so ee = Aynu-e
+ ; ("ee" ?$(3"g(B) ; Alef-E is rare vs Aynu-I, so ee = Aynu-I
  ("I" ?$(3"h(B)
- ; ("e" ?$(3"h(B)  ; some people prefer this.  Which is fine but
-                       ; then how is Alef-e reached in Tigirgna mode
-					   ; even though it would be rare?
+ ("e" ?$(3"h(B)    ; This is the premise to "new style" for vowels
+
  ("o" ?$(3"i(B)
  ("O" ?$(3"i(B)
  ("ea" ?$(3"j(B)
@@ -665,16 +664,17 @@ C-' or `M-x ethio-gemination'
  ("o2" ?$(3#;(B)
  ("O2" ?$(3#;(B)
 
- ("ee" ?$(3#5(B)
- ; ("ae" ?$(3#5(B)  ; Uncomment this if you want ee = Alef-E, comment above
+ ; ("ee" ?$(3#5(B) ; old style
+ ("ae" ?$(3#5(B)   ; new style
+ ("aaa" ?$(3#5(B)  ; new style
  ("uu" ?$(3#6(B)
  ("UU" ?$(3#6(B)
  ("ii" ?$(3#7(B)
  ("aa" ?$(3#8(B)
  ("AA" ?$(3#8(B)
  ("EE" ?$(3#9(B)
- ("eee" ?$(3#9(B)
  ("II" ?$(3#:(B)
+ ("ee" ?$(3#:(B)   ; new style
  ("oo" ?$(3#;(B)
  ("OO" ?$(3#;(B)
 
