@@ -11,3 +11,7 @@
 
 /* mt00@etherm.co.uk says this is needed for process.c.  */
 #define HAVE_TIMEVAL
+
+/* People say that using -traditional causes lossage with `const',
+   so we might as well try getting rid of -traditional.  */
+#undef C_SWITCH_SYSTEM
