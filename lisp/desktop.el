@@ -576,9 +576,17 @@ This is a no-op when Emacs is running in batch mode."
 	(setq dirs (cdr dirs)))
       (setq desktop-dirname (and dirs (expand-file-name (car dirs))))
       (if desktop-dirname
-	  (progn
+	  (let ((desktop-last-buffer nil))
+	    ;; `load-with-code-conversion' calls `eval-buffer' which
+	    ;; contains a `save-excursion', so we end up with the same
+	    ;; buffer before and after the load.  This is a problem
+	    ;; when the desktop is read initially when Emacs starts up
+	    ;; because, if we still are in *scratch* after running
+	    ;; `after-init-hook', the splash screen will be displayed.
 	    (load (expand-file-name desktop-basefilename desktop-dirname)
 		  t t t)
+	    (when desktop-last-buffer
+	      (switch-to-buffer desktop-last-buffer))
 	    (run-hooks 'desktop-delay-hook)
 	    (setq desktop-delay-hook nil)
 	    (message "Desktop loaded."))
@@ -666,6 +674,10 @@ to provide correct modes for autoloaded files."
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
 ;; only.
+
+(defvar desktop-last-buffer nil
+  "Last buffer read.  Dynamically bound in `desktop-read'.")
+
 (defun desktop-create-buffer (ver desktop-buffer-file-name desktop-buffer-name
 				  desktop-buffer-major-mode
 				  mim pt mk ro desktop-buffer-misc
@@ -678,6 +690,7 @@ to provide correct modes for autoloaded files."
       (setq result (funcall handler))
       (setq hlist (cdr hlist)))
     (when (bufferp result)
+      (setq desktop-last-buffer result)
       (set-buffer result)
       (if (not (equal (buffer-name) desktop-buffer-name))
 	  (rename-buffer desktop-buffer-name))
