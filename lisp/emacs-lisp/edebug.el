@@ -1984,16 +1984,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   def-body))
 (def-edebug-spec defmacro
   (&define name lambda-list def-body))
-(def-edebug-spec define-derived-mode
-  (&define name symbolp stringp [&optional stringp] def-body))
-(def-edebug-spec define-minor-mode
-  (&define name stringp
-	   [&optional sexp sexp &or consp symbolp]
-	   [&rest [keywordp sexp]]
-	   def-body))
-;; This plain doesn't work ;-(   -sm
-;; (def-edebug-spec define-skeleton
-;;   (&define name stringp def-body))
 
 (def-edebug-spec arglist lambda-list)  ;; deprecated - use lambda-list.
 
@@ -2102,21 +2092,12 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 (def-edebug-spec save-selected-window t)
 (def-edebug-spec save-current-buffer t)
-(def-edebug-spec save-match-data t)
-(def-edebug-spec with-output-to-string t)
-(def-edebug-spec with-current-buffer t)
-(def-edebug-spec combine-after-change-calls t)
 (def-edebug-spec delay-mode-hooks t)
 (def-edebug-spec with-temp-file t)
-(def-edebug-spec with-temp-buffer t)
 (def-edebug-spec with-temp-message t)
 (def-edebug-spec with-syntax-table t)
-(def-edebug-spec dolist ((symbolp form &rest form) &rest form))
-(def-edebug-spec dotimes ((symbolp form &rest form) &rest form))
 (def-edebug-spec push (form sexp))
 (def-edebug-spec pop (sexp))
-(def-edebug-spec unless t)
-(def-edebug-spec when t)
 
 ;; Anything else?
 
