@@ -1522,10 +1522,8 @@ With argument, insert value in current buffer after the form."
 (defun byte-compile-fix-header (filename inbuffer outbuffer)
   (save-excursion
     (set-buffer outbuffer)
-    (goto-char (point-min))
     ;; See if the buffer has any multibyte characters.
-    (skip-chars-forward "\0-\377")
-    (when (not (eobp))
+    (when (< (point-max) (position-bytes (point-max)))
       (when (byte-compile-version-cond byte-compile-compatibility)
 	(error "Version-18 compatibility not valid with multibyte characters"))
       (goto-char (point-min))
