@@ -77,8 +77,8 @@
   "Toggle incremental minibuffer completion.
 As text is typed into the minibuffer, prospective completions are indicated 
 in the minibuffer.
-This variable should be set only with \\[customize], which is equivalent
-to using the function `icomplete-mode'."
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `icomplete-mode'."
   :set (lambda (symbol value)
 	 (icomplete-mode (if value 1 -1)))
   :initialize 'custom-initialize-default
