@@ -300,8 +300,10 @@ or error messages, and inform user.
 Otherwise any failure is reported in a message back to
 the user from the mailer."
   (interactive)
-  (if (or (buffer-modified-p)
-          (y-or-n-p "Message already sent; resend? "))
+  (if (if buffer-file-name
+	  (y-or-n-p "Send buffer contents as mail message? ")
+	(or (buffer-modified-p)
+	    (y-or-n-p "Message already sent; resend? ")))
       (progn
 	(message "Sending...")
 	(run-hooks 'mail-send-hook)
