@@ -1,3 +1,8 @@
+1999-10-19  Sam Steingold  <sds@ksp.com>
+
+	* map-ynp.el (map-y-or-n-p): Remove extraneous `not' to
+	comply with the comment.
+
 1999-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* autorevert.el (auto-revert-mode): Make auto-revert-mode
