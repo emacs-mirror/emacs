@@ -794,7 +794,7 @@ Has a preference of looking backwards."
 		((eq major-mode 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
-		((eq major-mode 'perl-mode)
+		((memq major-mode '(perl-mode cperl-mode))
 		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
 		;; Emacs's autoconf-mode installs its own
