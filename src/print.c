@@ -592,12 +592,13 @@ temp_output_buffer_setup (bufname)
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 
   Fkill_all_local_variables ();
+  delete_all_overlays (current_buffer);
   current_buffer->directory = old->directory;
   current_buffer->read_only = Qnil;
   current_buffer->filename = Qnil;
   current_buffer->undo_list = Qt;
-  current_buffer->overlays_before = NULL;
-  current_buffer->overlays_after = NULL;
+  eassert (current_buffer->overlays_before = NULL);
+  eassert (current_buffer->overlays_after = NULL);
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
   Ferase_buffer ();
