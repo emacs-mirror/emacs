@@ -91,12 +91,12 @@ To save places automatically in all files, put this in your `.emacs' file:
 \(setq-default save-place t\)"
   (interactive "P")
   (if (not buffer-file-name)
-      (message "Buffer \"%s\" not visiting a file." (buffer-name))
+      (message "Buffer `%s' not visiting a file" (buffer-name))
     (if (and save-place (or (not parg) (<= parg 0)))
 	(progn
-	  (message "No place will be saved in this file.")
+	  (message "No place will be saved in this file")
 	  (setq save-place nil))
-      (message "Place will be saved.")
+      (message "Place will be saved")
       (setq save-place t))))
 
 (defun save-place-to-alist ()
