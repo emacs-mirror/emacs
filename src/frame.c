@@ -2000,6 +2000,16 @@ DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
   return Qnil;
 }
 
+DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
+  (frame)
+     Lisp_Object frame;
+{
+  return Qt;
+}
+
 syms_of_frame ()
 {
   Qheight = intern ("height");
@@ -2039,6 +2049,7 @@ syms_of_frame ()
   defsubr (&Smouse_position);
   defsubr (&Sframe_parameters);
   defsubr (&Smodify_frame_parameters);
+  defsubr (&Sframe_live_p);
 }
 
 keys_of_frame ()
