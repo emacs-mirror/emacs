@@ -1,3 +1,8 @@
+2002-12-02  Noah Friedman  <friedman@splode.com>
+
+	* complete.el (PC-do-completion): Do not add wildcards to pattern
+	unless filename is non-nil.
+
 2002-12-02  Andreas Schwab  <schwab@suse.de>
 
 	* mwheel.el (mouse-wheel-scroll-amount): Fix customize type.
@@ -61,13 +66,13 @@
 	(mwheel-inhibit-click-timeout,mwheel-filter-click-events): New defuns.
 	(mwheel-scroll): Add mwheel-filter-click-events as pre-command-hook.
 	Start mwheel-inhibit-click-event-timer with timeout handler
-	mwheel-inhibit-click-timeout.   
-	
+	mwheel-inhibit-click-timeout.
+
 2002-11-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* tooltip.el (tooltip-gud-tips-setup): Remove.
 	(tooltip-gud-debugger): Remove.
-	(tooltip-gud-print-command): Use gud-minor mode instead of	
+	(tooltip-gud-print-command): Use gud-minor mode instead of
 	tooltip-gud-tips-setup and tooltip-gud-debugger.
 
 	* gdb-ui.el (gdb-starting): Set gdb-running to t.
