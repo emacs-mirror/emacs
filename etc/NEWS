@@ -832,6 +832,10 @@ other properties than `face'.
 *** font-lock-extra-managed-props can be set to make sure those extra
 properties are automatically cleaned up by font-lock.
 
+** The special treatment of faces whose names are of the form `fg:COLOR'
+or `bg:COLOR' has been removed.  Lisp programs should use the
+`defface' facility for defining faces with specific colors.
+
 ** The new function `run-mode-hooks' and the new macro `delay-mode-hooks'
 are used by define-derived-mode to make sure the mode hook for the
 parent mode is run at the end of the child mode.
