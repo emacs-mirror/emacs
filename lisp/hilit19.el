@@ -29,7 +29,7 @@
 ;; WHERE TO GET THE LATEST VERSIONS OF HILIT19.EL (beta and release), 
 ;; PLUS LOTS OF OTHER *WAY COOL* STUFF VIA ANONYMOUS FTP:
 ;;
-;;      netcom.com:/pub/stig/src/{Beta,Release}/hilit19.el.gz
+;;      ftp.hackvan.com:/pub/stig/src/elisp/hilit19.el.gz
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -440,9 +440,9 @@ your init file.")
 	  "  [ ] a PATCH. (output of 'diff -uw old.el new.el' or 'diff -cw')\n"
 	  "  [ ] a SERIOUS AND REPRODUCABLE BUG that is not an EMACS bug\n"
 	  "     - I *swear* that it's not already mentioned in the KNOWN BUGS\n"
-	  "     - I HAVE CHECKED netcom.com:/pub/stig/src/Beta/hilit19.el.gz\n"
+	  "     - I HAVE CHECKED ftp.hackvan.com:/pub/stig/src/elisp/hilit19.el.gz\n"
 	  "       for a newer release that fixes the problem.\n"
-	  "    >> I HAVE ALSO CHECKED netcom.com:/pub/stig/src/Beta/hl319.el.gz\n"
+	  "    >> I HAVE ALSO CHECKED ftp.hackvan.com:/pub/stig/src/elisp/hl319.el.gz\n"
 	  "       This is the alpha version...what will become hilit19 (Beta 3.0).\n"
 	  "\n"
 	  "Hey Stig, I *know* you're busy but...\n"))))
