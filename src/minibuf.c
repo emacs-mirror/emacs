@@ -1272,7 +1272,7 @@ Then the print names of all symbols in the obarray are the possible matches.\n\
 \n\
 ALIST can also be a function to do the completion itself.\n\
 It receives three arguments: the values STRING, PREDICATE and t.\n\
-Whatever it returns becomes the value of `all-completion'.\n\
+Whatever it returns becomes the value of `all-completions'.\n\
 \n\
 If optional third argument PREDICATE is non-nil,\n\
 it is used to test each possible match.\n\
