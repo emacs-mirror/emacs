@@ -950,7 +950,7 @@ x_set_frame_parameters (f, alist)
 
 	  old_value = get_frame_param (f, prop);
 
-	  if (NILP (Fequal (val, old_value)))
+	  //if (NILP (Fequal (val, old_value)))
 	    {
 	      store_frame_param (f, prop, val);
 
@@ -4400,7 +4400,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       int margin, relief, bar_height;
       
-      relief = (tool_bar_button_relief > 0
+      relief = (tool_bar_button_relief >= 0
 		? tool_bar_button_relief
 		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
 
