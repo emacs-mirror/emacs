@@ -772,10 +772,10 @@ with other packages.  For instance:
   \(add-hook 'ido-minibuffer-setup-hook 
 	    \(function
 	     \(lambda ()
-	       \(make-local-variable 'resize-minibuffer-window-max-height)
-	       \(setq resize-minibuffer-window-max-height 3))))
+	       \(make-local-variable 'max-mini-window-height)
+	       \(setq max-mini-window-height 3))))
 
-will constrain rsz-mini to a maximum minibuffer height of 3 lines when
+will constrain Emacs to a maximum minibuffer height of 3 lines when
 ido is running.  Copied from `icomplete-minibuffer-setup-hook'."
   :type 'hook
   :group 'ido)
