@@ -810,9 +810,6 @@ Command Line Options and Arguments
 * Command Example::     Examples of using command line arguments.
 * Resume Arguments::	Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
-
-X Resources
-
 * Display X::           Changing the default display and using remote login.
 * Font X::	        Choosing a font for text, under X.
 * Colors X::	        Choosing colors, under X.
@@ -820,7 +817,12 @@ X Resources
 * Borders X::	        Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
 * Icons X::             Choosing what sort of icon to use, under X.
-* Resources X::         Advanced use of classes and resources, under X.
+
+X Resources
+
+* Resources::           Using X resources with Emacs (in general).
+* Table of Resources::  Table of specific X resources that affect Emacs.
+* Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
 
