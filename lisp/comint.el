@@ -627,7 +627,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	       (save-restriction
 		 (widen)
 		 (goto-char (point-min))
-		 (while (re-search-forward "^\\s *\\([^#].*\\)\\s *$" nil t)
+		 (while (re-search-forward "^[ \t]*\\([^#\n].*\\)[ \t]*$" nil t)
 		   (let ((history (buffer-substring (match-beginning 1)
 						    (match-end 1))))
 		     (if (or (null comint-input-ignoredups)
