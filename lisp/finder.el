@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -103,8 +103,8 @@
 
 (defun finder-compile-keywords (&rest dirs)
   "Regenerate the keywords association list into the file `finder-inf.el'.
-Optional arguments are a list of Emacs Lisp directories to compile from; no
-arguments compiles from `load-path'."
+Optional arguments DIRS are a list of Emacs Lisp directories to compile from;
+no arguments compiles from `load-path'."
   (save-excursion
     (let ((processed nil))
       (find-file "finder-inf.el")
@@ -120,7 +120,7 @@ arguments compiles from `load-path'."
 	 (when (file-exists-p (directory-file-name d))
 	   (message "Directory %s" d)
 	   (mapcar
-	    (lambda (f) 
+	    (lambda (f)
 	      (if (and (or (string-match "^[^=].*\\.el$" f)
 			   ;; Allow compressed files also.  Fixme:
 			   ;; generalize this, especially for
@@ -143,7 +143,7 @@ arguments compiles from `load-path'."
 		    (insert
 		     (format "    (\"%s\"\n        "
 			     (if (string-match "\\.\\(gz\\|Z\\)$" f)
-				 (file-name-sans-extension f) 
+				 (file-name-sans-extension f)
 			       f)))
 		    (prin1 summary (current-buffer))
 		    (insert
@@ -229,9 +229,9 @@ arguments compiles from `load-path'."
     (shrink-window-if-larger-than-buffer)
     (finder-summary)))
 
-;; Search for a file named FILE on `load-path', also trying compressed
-;; versions if jka-compr is in use.
 (defun finder-find-library (library)
+  "Search for file LIBRARY on `load-path'.
+Try compressed versions if jka-compr is in use."
   (or (locate-library library t)
       (if (rassq 'jka-compr-handler file-name-handler-alist)
         (or (locate-library (concat library ".gz") t)
@@ -240,9 +240,12 @@ arguments compiles from `load-path'."
             (locate-library (concat library "z"))))))
 
 (defun finder-commentary (file)
-  "Display FILE's commentary section."
-  (interactive)
-  (let* ((str (lm-commentary (finder-find-library file))))
+  "Display FILE's commentary section.
+FILE should be in a form suitable for passing to `locate-library'."
+  (interactive "sLibrary name: ")
+  (let* ((str (lm-commentary (or (finder-find-library file)
+				 (finder-find-library (concat file ".el"))
+				 (error "Can't find library %s" file)))))
     (if (null str)
 	(error "Can't find any Commentary section"))
     (pop-to-buffer "*Finder*")
@@ -294,8 +297,7 @@ arguments compiles from `load-path'."
   "Major mode for browsing package documentation.
 \\<finder-mode-map>
 \\[finder-select]	more help for the item on the current line
-\\[finder-exit]	exit Finder mode and kill the Finder buffer.
-"
+\\[finder-exit]	exit Finder mode and kill the Finder buffer."
   (interactive)
   (use-local-map finder-mode-map)
   (set-syntax-table emacs-lisp-mode-syntax-table)
