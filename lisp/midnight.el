@@ -36,6 +36,8 @@
 ;; keeping `clean-buffer-list-kill-never-buffer-names' and
 ;; `clean-buffer-list-kill-never-regexps'.
 
+;;; Code:
+
 (eval-when-compile
  (require 'cl)
  (require 'timer))
@@ -110,7 +112,7 @@ See also `clean-buffer-list-kill-buffer-names',
 
 (defcustom clean-buffer-list-kill-buffer-names
     '("*Help*" "*Apropos*" "*Man " "*Buffer List*" "*Compile-Log*" "*info*"
-      "*vc*" "*vc-diff*")
+      "*vc*" "*vc-diff*" "*diff*")
   "*List of strings saying which buffers will be killed at midnight.
 Buffers with names in this list, which were not displayed in the last
 `clean-buffer-list-delay-special' seconds, are killed by `clean-buffer-list'
@@ -146,11 +148,9 @@ two lists will NOT be killed if it also matches anything in this list."
 
 (defun midnight-find (el ls test &optional key)
   "A stopgap solution to the absence of `find' in ELisp."
-  (if (fboundp 'find)
-      (find el ls :test test :key (or key 'eql))
-      (dolist (rr ls)
-        (when (funcall test el (if key (funcall key rr) rr))
-          (return rr)))))
+  (dolist (rr ls)
+    (when (funcall test el (if key (funcall key rr) rr))
+      (return rr))))
 
 (defun clean-buffer-list-delay (name)
   "Return the delay, in seconds, before killing a buffer named NAME.
@@ -165,21 +165,28 @@ Autokilling is done by `clean-buffer-list'."
 
 (defun clean-buffer-list ()
   "Kill old buffers that have not been displayed recently.
-The relevant vartiables are `clean-buffer-list-delay-general',
+The relevant variables are `clean-buffer-list-delay-general',
 `clean-buffer-list-delay-special', `clean-buffer-list-kill-buffer-names',
 `clean-buffer-list-kill-never-buffer-names',
-`clean-buffer-list-kill-regexps' and `clean-buffer-list-kill-never-regexps'."
+`clean-buffer-list-kill-regexps' and
+`clean-buffer-list-kill-never-regexps'.
+While processing buffers, this procedure displays messages containing
+the current date/time, buffer name, how many seconds ago it was
+displayed (can be NIL if the buffer was never displayed) and its
+lifetime, i.e., its `age' when it will be purged."
   (interactive)
-  (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T")) bn)
-    (dolist (buf (buffer-list))
-      (message "[%s] processing `%s'..." ts buf)
-      (setq bts (buffer-display-time buf) bn (buffer-name buf))
+  (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T")) bn
+        (bufs (buffer-list)) buf delay cbld)
+    (while (setq buf (pop bufs))
+      (setq bts (buffer-display-time buf) bn (buffer-name buf)
+            delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
+      (message "[%s] `%s' [%s %d]" ts bn (if bts (round delay)) cbld)
       (unless (or (midnight-find bn clean-buffer-list-kill-never-regexps
                                  'string-match)
                   (midnight-find bn clean-buffer-list-kill-never-buffer-names
                                  'string-equal)
-                  (buffer-modified-p buf) (get-buffer-window buf 'visible)
-                  (null bts) (< (- tm bts) (clean-buffer-list-delay bn)))
+                  (and (buffer-file-name buf) (buffer-modified-p buf))
+                  (get-buffer-window buf 'visible) (< delay cbld))
         (message "[%s] killing `%s'" ts bn)
         (kill-buffer buf)))))
 
@@ -207,10 +214,10 @@ the time when it is run.")
 ;;;###autoload
 (defun midnight-delay-set (symb tm)
   "Modify `midnight-timer' according to `midnight-delay'.
-Sets the first argument (which must be symbol `midnight-delay')
-to its second argument."
-  (unless (eq symb 'midnight-delay)
-    (error "Illegal argument to `midnight-delay-set': `%s'" symb))
+Sets the first argument SYMB (which must be symbol `midnight-delay')
+to its second argument TM."
+  (assert (eq symb 'midnight-delay) t
+          "Illegal argument to `midnight-delay-set': `%s'" symb)
   (set symb tm)
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer
