@@ -1,3 +1,9 @@
+2004-05-09  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-highlight-arguments): Don't try to highlight
+	missing or autoloaded arglists.  Accept structured arguments, like
+	the first ones of `do' and `flet'.
+
 2004-05-08  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Doc fix.
