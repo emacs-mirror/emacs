@@ -276,6 +276,8 @@ if exist ..\leim\makefile.w32-in copy /b config.settings+%MAKECMD%.defs+..\leim\
 if not exist ..\leim\makefile.w32-in copy /b config.settings+%MAKECMD%.defs+..\leim\Makefile.in ..\leim\makefile
 del config.settings
 
+Rem Some people use WinZip which doesn't create empty directories!
+if not exist ..\site-lisp\nul mkdir ..\site-lisp\
 if not exist ..\site-lisp\subdirs.el copy subdirs.el ..\site-lisp\subdirs.el
 
 echo.
