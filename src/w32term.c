@@ -161,6 +161,8 @@ int x_toolkit_scroll_bars_p;
    (The display is done in read_char.)  */
    
 static Lisp_Object help_echo;
+static Lisp_Object help_echo_object;
+static int help_echo_pos;
 
 /* Temporary variable for w32_read_socket.  */
 
@@ -593,6 +595,13 @@ x_update_window_begin (w)
       if (FRAME_GARBAGED_P (f))
 	display_info->mouse_face_window = Qnil;
 
+#if 0 /* Rows in a current matrix containing glyphs in mouse-face have
+	 their mouse_face_p flag set, which means that they are always
+	 unequal to rows in a desired matrix which never have that
+	 flag set.  So, rows containing mouse-face glyphs are never
+	 scrolled, and we don't have to switch the mouse highlight off
+	 here to prevent it from being scrolled.  */
+      
       /* Can we tell that this update does not affect the window
 	 where the mouse highlight is?  If so, no need to turn off.
 	 Likewise, don't do anything if the frame is garbaged;
@@ -610,6 +619,7 @@ x_update_window_begin (w)
 	  if (i < w->desired_matrix->nrows)
 	    clear_mouse_face (display_info);
 	}
+#endif /* 0 */
     }
 
   UNBLOCK_INPUT;
@@ -647,20 +657,40 @@ x_draw_vertical_border (w)
 }
 
    
-/* End update of window W (which is equal to updated_window).  Draw
-   vertical borders between horizontally adjacent windows, and display
-   W's cursor if CURSOR_ON_P is non-zero.  W may be a menu bar
-   pseudo-window in case we don't have X toolkit support.  Such
-   windows don't have a cursor, so don't display it here.  */
+/* End update of window W (which is equal to updated_window).
+
+   Draw vertical borders between horizontally adjacent windows, and
+   display W's cursor if CURSOR_ON_P is non-zero.
+
+   MOUSE_FACE_OVERWRITTEN_P non-zero means that some row containing
+   glyphs in mouse-face were overwritten.  In that case we have to
+   make sure that the mouse-highlight is properly redrawn.
+
+   W may be a menu bar pseudo-window in case we don't have X toolkit
+   support. Such windows don't have a cursor, so don't display it
+   here. */
 
 static void
-x_update_window_end (w, cursor_on_p)
+x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
      struct window *w;
-     int cursor_on_p;
+     int cursor_on_p, mouse_face_overwritten_p;
 {
   if (!w->pseudo_window_p)
     {
+      struct w32_display_info *dpyinfo
+        = FRAME_W32_DISPLAY_INFO (XFRAME (w->frame));
+
       BLOCK_INPUT;
+
+      /* If a row with mouse-face was overwritten, arrange for
+	 XTframe_up_to_date to redisplay the mouse highlight.  */
+      if (mouse_face_overwritten_p)
+	{
+	  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+	  dpyinfo->mouse_face_window = Qnil;
+	}
+
       if (cursor_on_p)
 	x_display_and_set_cursor (w, 1, output_cursor.hpos,
 				  output_cursor.vpos,
@@ -1428,24 +1458,21 @@ x_append_glyph (it)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
-      /* Play it safe.  If sub-structures of the glyph are not all the
-	 same size, it otherwise be that some bits stay set.  This
-	 would prevent a comparison with GLYPH_EQUAL_P.  */
-      glyph->u.val = 0;
-      
-      glyph->type = CHAR_GLYPH;
-      glyph->pixel_width = it->pixel_width;
-      glyph->u.ch = it->char_to_display;
-      glyph->face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->voffset = it->voffset;
+      glyph->type = CHAR_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->voffset = it->voffset;
-      glyph->multibyte_p = it->multibyte_p;
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
       glyph->glyph_not_available_p = it->glyph_not_available_p;
+      glyph->face_id = it->face_id;
+      glyph->u.ch = it->char_to_display;
+      glyph->w32_font_type = UNKNOWN_FONT;
       ++it->glyph_row->used[area];
     }
 }
@@ -1465,23 +1492,21 @@ x_append_composite_glyph (it)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
-      /* Play it safe.  If sub-structures of the glyph are not all the
-	 same size, it otherwise be that some bits stay set.  This
-	 would prevent a comparison with GLYPH_EQUAL_P.  */
-      glyph->u.val = 0;
-      
-      glyph->type = COMPOSITE_GLYPH;
-      glyph->pixel_width = it->pixel_width;
-      glyph->u.cmp_id = it->cmp_id;
-      glyph->face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->voffset = it->voffset;
+      glyph->type = COMPOSITE_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->voffset = it->voffset;
-      glyph->multibyte_p = it->multibyte_p;
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = it->face_id;
+      glyph->u.cmp_id = it->cmp_id;
+      glyph->w32_font_type = UNKNOWN_FONT;
       ++it->glyph_row->used[area];
     }
 }
@@ -1556,16 +1581,20 @@ x_produce_image_glyph (it)
       glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
       if (glyph < it->glyph_row->glyphs[area + 1])
 	{
-	  glyph->type = IMAGE_GLYPH;
-	  glyph->u.img_id = img->id;
-	  glyph->face_id = it->face_id;
-	  glyph->pixel_width = it->pixel_width;
 	  glyph->charpos = CHARPOS (it->position);
 	  glyph->object = it->object;
+	  glyph->pixel_width = it->pixel_width;
+	  glyph->voffset = it->voffset;
+	  glyph->type = IMAGE_GLYPH;
+	  glyph->multibyte_p = it->multibyte_p;
 	  glyph->left_box_line_p = it->start_of_box_run_p;
 	  glyph->right_box_line_p = it->end_of_box_run_p;
-	  glyph->voffset = it->voffset;
-	  glyph->multibyte_p = it->multibyte_p;
+	  glyph->overlaps_vertically_p = 0;
+          glyph->padding_p = 0;
+	  glyph->glyph_not_available_p = 0;
+	  glyph->face_id = it->face_id;
+	  glyph->u.img_id = img->id;
+          glyph->w32_font_type = UNKNOWN_FONT;
 	  ++it->glyph_row->used[area];
 	}
     }
@@ -1592,17 +1621,21 @@ x_append_stretch_glyph (it, object, width, height, ascent)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
-      glyph->type = STRETCH_GLYPH;
-      glyph->u.stretch.ascent = height * ascent;
-      glyph->u.stretch.height = height;
-      glyph->face_id = it->face_id;
-      glyph->pixel_width = width;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = object;
+      glyph->pixel_width = width;
+      glyph->voffset = it->voffset;
+      glyph->type = STRETCH_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->voffset = it->voffset;
-      glyph->multibyte_p = it->multibyte_p;
+      glyph->overlaps_vertically_p = 0;
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = it->face_id;
+      glyph->u.stretch.ascent = height * ascent;
+      glyph->u.stretch.height = height;
+      glyph->w32_font_type = UNKNOWN_FONT;
       ++it->glyph_row->used[area];
     }
 }
@@ -2474,7 +2507,6 @@ x_set_mode_line_face_gc (s)
      struct glyph_string *s;
 {     
   s->gc = s->face->gc;
-  xassert (s->gc != 0);
 }
 
 
@@ -2486,6 +2518,8 @@ static INLINE void
 x_set_glyph_string_gc (s)
      struct glyph_string *s;
 {
+  PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
+  
   if (s->hl == DRAW_NORMAL_TEXT)
     {
       s->gc = s->face->gc;
@@ -3996,19 +4030,48 @@ x_fill_image_glyph_string (s)
 }
 
 
-/* Fill glyph string S from stretch glyph S->first_glyph.  */
+/* Fill glyph string S from a sequence of stretch glyphs.
 
-static void
-x_fill_stretch_glyph_string (s)
+   ROW is the glyph row in which the glyphs are found, AREA is the
+   area within the row.  START is the index of the first glyph to
+   consider, END is the index of the last + 1.
+
+   Value is the index of the first glyph not in S.  */
+
+static int
+x_fill_stretch_glyph_string (s, row, area, start, end)
      struct glyph_string *s;
+     struct glyph_row *row;
+     enum glyph_row_area area;
+     int start, end;
 {
+  struct glyph *glyph, *last;
+  int voffset, face_id;
+  
   xassert (s->first_glyph->type == STRETCH_GLYPH);
-  s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+  
+  glyph = s->row->glyphs[s->area] + start;
+  last = s->row->glyphs[s->area] + end;
+  face_id = glyph->face_id;
+  s->face = FACE_FROM_ID (s->f, face_id);
   s->font = s->face->font;
-  s->width = s->first_glyph->pixel_width;
+  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+  s->width = glyph->pixel_width;
+  voffset = glyph->voffset;
+
+  for (++glyph;
+       (glyph < last
+	&& glyph->type == STRETCH_GLYPH
+	&& glyph->voffset == voffset
+	&& glyph->face_id == face_id);
+       ++glyph)
+    s->width += glyph->pixel_width;
   
   /* Adjust base line for subscript/superscript text.  */
-  s->ybase += s->first_glyph->voffset;
+  s->ybase += voffset;
+
+  xassert (s->face && s->face->gc);
+  return glyph - s->row->glyphs[s->area];
 }
 
 
@@ -4096,9 +4159,8 @@ x_set_glyph_string_background_width (s, start, last_x)
        {								    \
 	 s = (struct glyph_string *) alloca (sizeof *s);		    \
 	 w32_init_glyph_string (s, hdc, NULL, W, ROW, AREA, START, HL);	    \
-	 x_fill_stretch_glyph_string (s);				    \
+	 START = x_fill_stretch_glyph_string (s, ROW, AREA, START, END);	    \
 	 x_append_glyph_string (&HEAD, &TAIL, s);			    \
-	 ++START;							    \
          s->x = (X);							    \
        }								    \
      while (0)
@@ -4137,7 +4199,7 @@ x_set_glyph_string_background_width (s, start, last_x)
 #define BUILD_CHAR_GLYPH_STRINGS(hdc, W, ROW, AREA, START, END, HEAD, TAIL, HL, X, LAST_X, OVERLAPS_P)			   \
      do									   \
        {								   \
-	 int c, charset, face_id;					   \
+	 int c, face_id;					   \
 	 wchar_t *char2b;						   \
 									   \
 	 c = (ROW)->glyphs[AREA][START].u.ch;				   \
@@ -4315,10 +4377,9 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
      end of the drawing area.  */
   if (row->full_width_p)
     {
-      struct frame *f = XFRAME (WINDOW_FRAME (w));
-
       /* X is relative to the left edge of W, without scroll bars
 	 or flag areas.  */
+      struct frame *f = XFRAME (WINDOW_FRAME (w));
       /* int width = FRAME_FLAGS_AREA_WIDTH (f); */
       int window_left_x = WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f);
 
@@ -5352,7 +5413,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
   /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to round down
      even for negative values.  */
   if (pix_x < 0)
-    pix_x -= FONT_WIDTH ((f)->output_data.w32->font) - 1;
+    pix_x -= FONT_WIDTH (FRAME_FONT(f)) - 1;
   if (pix_y < 0)
     pix_y -= (f)->output_data.w32->line_height - 1;
 
@@ -5363,7 +5424,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
     {
       bounds->left = CHAR_TO_PIXEL_COL (f, pix_x);
       bounds->top = CHAR_TO_PIXEL_ROW (f, pix_y);
-      bounds->right  = bounds->left + FONT_WIDTH  (f->output_data.w32->font) - 1;
+      bounds->right  = bounds->left + FONT_WIDTH  (FRAME_FONT(f)) - 1;
       bounds->bottom = bounds->top + f->output_data.w32->line_height - 1;
     }
 
@@ -5371,8 +5432,8 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
     {
       if (pix_x < 0)
 	pix_x = 0;
-      else if (pix_x > f->width)
-	pix_x = f->width;
+      else if (pix_x > FRAME_WINDOW_WIDTH (f))
+	pix_x = FRAME_WINDOW_WIDTH (f);
 
       if (pix_y < 0)
 	pix_y = 0;
@@ -5491,7 +5552,7 @@ parse_button (message, pbutton, pup)
    If the event is a button press, then note that we have grabbed
    the mouse.  */
 
-static void
+static Lisp_Object
 construct_mouse_click (result, msg, f)
      struct input_event *result;
      W32Msg *msg;
@@ -5512,17 +5573,14 @@ construct_mouse_click (result, msg, f)
 			  ? up_modifier
 			  : down_modifier));
 
-  {
-    int row, column;
-
-    XSETINT (result->x, LOWORD (msg->msg.lParam));
-    XSETINT (result->y, HIWORD (msg->msg.lParam));
-    XSETFRAME (result->frame_or_window, f);
-    result->arg = Qnil;
-  }
+  XSETINT (result->x, LOWORD (msg->msg.lParam));
+  XSETINT (result->y, HIWORD (msg->msg.lParam));
+  XSETFRAME (result->frame_or_window, f);
+  result->arg = Qnil;
+  return Qnil;
 }
 
-static void
+static Lisp_Object
 construct_mouse_wheel (result, msg, f)
      struct input_event *result;
      W32Msg *msg;
@@ -5540,9 +5598,10 @@ construct_mouse_wheel (result, msg, f)
   XSETINT (result->y, p.y);
   XSETFRAME (result->frame_or_window, f);
   result->arg = Qnil;
+  return Qnil;
 }
 
-static void
+static Lisp_Object
 construct_drag_n_drop (result, msg, f)
      struct input_event *result;
      W32Msg *msg;
@@ -5591,6 +5650,7 @@ construct_drag_n_drop (result, msg, f)
   XSETFRAME (frame, f);
   result->frame_or_window = Fcons (frame, files);
   result->arg = Qnil;
+  return Qnil;
 }
 
 
@@ -5659,7 +5719,7 @@ x_y_to_hpos_vpos (w, x, y, hpos, vpos, area)
      int *hpos, *vpos, *area;
 {
   struct glyph *glyph, *end;
-  struct glyph_row *row;
+  struct glyph_row *row = NULL;
   int x0, i, left_area_width;
 
   /* Find row containing Y.  Give up if some row is not enabled.  */
@@ -5805,7 +5865,11 @@ note_mode_line_highlight (w, x, mode_line_p)
 	  help = Fget_text_property (make_number (glyph->charpos),
 				     Qhelp_echo, glyph->object);
 	  if (!NILP (help))
-	    help_echo = help;
+            {
+              help_echo = help;
+              help_echo_object = glyph->object;
+              help_echo_pos = glyph->charpos;
+            }
 
 	  /* Change the mouse pointer according to what is under X/Y.  */
 	  map = Fget_text_property (make_number (glyph->charpos),
@@ -6065,20 +6129,32 @@ note_mouse_highlight (f, x, y)
 	  help = Qnil;
 	  for (i = 0; i < noverlays && NILP (help); ++i)
 	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
-	    
-	  /* Try text properties.  */
-	  if (NILP (help)
-	      && ((STRINGP (glyph->object)
+
+          if (!NILP (help))
+            {
+              help_echo = help;
+              help_echo_object = w->buffer;
+              help_echo_pos = pos;
+            }
+          else
+            {
+              /* Try text properties.  */
+              if ((STRINGP (glyph->object)
 		   && glyph->charpos >= 0
 		   && glyph->charpos < XSTRING (glyph->object)->size)
 		  || (BUFFERP (glyph->object)
 		      && glyph->charpos >= BEGV
-		      && glyph->charpos < ZV)))
-	    help = Fget_text_property (make_number (glyph->charpos),
-				       Qhelp_echo, glyph->object);
+		      && glyph->charpos < ZV))
+                help = Fget_text_property (make_number (glyph->charpos),
+                                           Qhelp_echo, glyph->object);
 	    
-	  if (!NILP (help))
-	    help_echo = help;
+              if (!NILP (help))
+                {
+                  help_echo = help;
+                  help_echo_object = glyph->object;
+                  help_echo_pos = glyph->charpos;
+                }
+            }
         }
         
         BEGV = obegv;
@@ -6309,6 +6385,8 @@ note_tool_bar_highlight (f, x, y)
   
   /* Set help_echo to a help string.to display for this tool-bar item.
      w32_read_socket does the rest.  */
+  help_echo_object = Qnil;
+  help_echo_pos = -1;
   help_echo = (XVECTOR (f->current_tool_bar_items)
 	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
   if (NILP (help_echo))
@@ -6483,8 +6561,11 @@ show_mouse_face (dpyinfo, draw)
 	}
 
       if (end_hpos > start_hpos)
-	x_draw_glyphs (w, start_x, row, TEXT_AREA,
-		       start_hpos, end_hpos, draw, NULL, NULL, 0);
+        {
+          row->mouse_face_p = draw == DRAW_MOUSE_FACE;
+          x_draw_glyphs (w, start_x, row, TEXT_AREA,
+                         start_hpos, end_hpos, draw, NULL, NULL, 0);
+        }
     }
 
   /* If we turned the cursor off, turn it back on.  */
@@ -6528,6 +6609,25 @@ clear_mouse_face (dpyinfo)
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
   dpyinfo->mouse_face_window = Qnil;
 }
+
+
+/* Clear any mouse-face on window W.  This function is part of the
+   redisplay interface, and is called from try_window_id and similar
+   functions to ensure the mouse-highlight is off.  */
+
+static void
+x_clear_mouse_face (w)
+     struct window *w;
+{
+  struct w32_display_info *dpyinfo
+    = FRAME_W32_DISPLAY_INFO (XFRAME (w->frame));
+  Lisp_Object window;
+
+  XSETWINDOW (window, w);
+  if (EQ (window, dpyinfo->mouse_face_window))
+    clear_mouse_face (dpyinfo);
+}
+
 
 /* Just discard the mouse face information for frame F, if any.
    This is used when the size of F is changed.  */
@@ -6687,7 +6787,7 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 
 /* Scroll bar support.  */
 
-/* Given an window ID, find the struct scroll_bar which manages it.
+/* Given a window ID, find the struct scroll_bar which manages it.
    This can be called in GC, so we have to make sure to strip off mark
    bits.  */
 
@@ -6831,7 +6931,7 @@ my_set_window_pos (HWND hwnd, HWND hwndAfter,
 #endif
 }
 
-BOOL
+void
 my_set_focus (f, hwnd)
      struct frame * f;
      HWND hwnd;
@@ -6840,7 +6940,7 @@ my_set_focus (f, hwnd)
 	       (WPARAM) hwnd, 0);
 }
 
-BOOL
+void
 my_set_foreground_window (hwnd)
      HWND hwnd;
 {
@@ -7624,6 +7724,7 @@ w32_read_socket (sd, bufp, numchars, expected)
               || !NILP (previous_help_echo))
             {
               Lisp_Object frame;
+              int n;
 
               if (f)
                 XSETFRAME (frame, f);
@@ -7631,10 +7732,9 @@ w32_read_socket (sd, bufp, numchars, expected)
                 frame = Qnil;
 
               any_help_event_p = 1;
-              bufp->kind = HELP_EVENT;
-              bufp->frame_or_window = frame;
-              bufp->arg = help_echo;
-              ++bufp, ++count, --numchars;
+              n = gen_help_event (bufp, help_echo, frame,
+                                  help_echo_object, help_echo_pos);
+              bufp += n, count += n, numchars -= n;
             }
           break;
 
@@ -7745,14 +7845,7 @@ w32_read_socket (sd, bufp, numchars, expected)
             UINT menu_item = (UINT) LOWORD (msg.msg.wParam);
             UINT flags = (UINT) HIWORD (msg.msg.wParam);
 
-            /* NTEMACS_TODO: Can't call the below with input blocked,
-               as it may result in hooks being called if the window
-               layout needs to change to display the message, and
-               Feval will abort if input is blocked. But unblocking
-               temporarily is not the best solution. */
-            UNBLOCK_INPUT;
             w32_menu_display_help (menu, menu_item, flags);
-            BLOCK_INPUT;
           }
           break;
 
@@ -7963,11 +8056,11 @@ w32_read_socket (sd, bufp, numchars, expected)
                  the mouse leaves the frame.  */
               if (any_help_event_p)
                 {
+                  int n;
+
                   XSETFRAME (frame, f);
-                  bufp->kind = HELP_EVENT;
-                  bufp->frame_or_window = frame;
-                  bufp->arg = Qnil;
-                  ++bufp, ++count, --numchars;
+                  n = gen_help_event (bufp, Qnil, frame, Qnil, 0);
+                  bufp += n, count += n, numchars -=n;
                 }
             }
 
@@ -8715,11 +8808,14 @@ x_new_font (f, fontname)
   /* Compute the scroll bar width in character columns.  */
   if (f->scroll_bar_pixel_width > 0)
     {
-      int wid = FONT_WIDTH (f->output_data.w32->font);
+      int wid = FONT_WIDTH (FRAME_FONT (f));
       f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
     }
   else
-    f->scroll_bar_cols = 2;
+    {
+      int wid = FONT_WIDTH (FRAME_FONT (f));
+      f->scroll_bar_cols = (14 + wid - 1) / wid;
+    }
 
   /* Now make the frame display the given font.  */
   if (FRAME_W32_WINDOW (f) != 0)
@@ -8730,7 +8826,7 @@ x_new_font (f, fontname)
   else
     /* If we are setting a new frame's font for the first time,
        there are no faces yet, so this font's height is the line height.  */
-    f->output_data.w32->line_height = FONT_HEIGHT (f->output_data.w32->font);
+    f->output_data.w32->line_height = FONT_HEIGHT (FRAME_FONT (f));
 
   return build_string (fontp->full_name);
 }
@@ -8948,18 +9044,8 @@ x_set_offset (f, xoff, yoff, change_gravity)
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  /* It is a mystery why we need to add the border_width here
-     when the frame is already visible, but experiment says we do.  */
   modified_left = f->output_data.w32->left_pos;
   modified_top = f->output_data.w32->top_pos;
-#ifndef HAVE_NTGUI
-  /* Do not add in border widths under W32.  */
-  if (change_gravity != 0)
-    {
-      modified_left += f->output_data.w32->border_width;
-      modified_top += f->output_data.w32->border_width;
-    }
-#endif
 
   my_set_window_pos (FRAME_W32_WINDOW (f),
 		     NULL,
@@ -9021,7 +9107,7 @@ x_set_window_size (f, change_gravity, cols, rows)
      
      We could just not bother storing any of this information here,
      and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the lisp code, since size changes
+     might be kind of confusing to the Lisp code, since size changes
      wouldn't be reported in the frame parameters until some random
      point in the future when the ConfigureNotify event arrives.
 
@@ -9051,6 +9137,27 @@ x_set_window_size (f, change_gravity, cols, rows)
 
 /* Mouse warping.  */
 
+void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+
+void
+x_set_mouse_position (f, x, y)
+     struct frame *f;
+     int x, y;
+{
+  int pix_x, pix_y;
+
+  pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->output_data.w32->font) / 2;
+  pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->output_data.w32->line_height / 2;
+
+  if (pix_x < 0) pix_x = 0;
+  if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
+
+  if (pix_y < 0) pix_y = 0;
+  if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
+
+  x_set_mouse_pixel_position (f, pix_x, pix_y);
+}
+
 void
 x_set_mouse_pixel_position (f, pix_x, pix_y)
      struct frame *f;
@@ -9071,27 +9178,10 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
   UNBLOCK_INPUT;
 }
 
-void
-x_set_mouse_position (f, x, y)
-     struct frame *f;
-     int x, y;
-{
-  int pix_x, pix_y;
-
-  pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->output_data.w32->font) / 2;
-  pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->output_data.w32->line_height / 2;
-
-  if (pix_x < 0) pix_x = 0;
-  if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
-
-  if (pix_y < 0) pix_y = 0;
-  if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
-
-  x_set_mouse_pixel_position (f, pix_x, pix_y);
-}
 
 /* focus shifting, raising and lowering.  */
 
+void
 x_focus_on_frame (f)
      struct frame *f;
 {
@@ -9109,6 +9199,7 @@ x_focus_on_frame (f)
   UNBLOCK_INPUT;
 }
 
+void
 x_unfocus_frame (f)
      struct frame *f;
 {
@@ -9188,11 +9279,11 @@ x_lower_frame (f)
 }
 
 static void
-w32_frame_raise_lower (f, raise)
+w32_frame_raise_lower (f, raise_flag)
      FRAME_PTR f;
-     int raise;
+     int raise_flag;
 {
-  if (raise)
+  if (raise_flag)
     x_raise_frame (f);
   else
     x_lower_frame (f);
@@ -9207,6 +9298,7 @@ w32_frame_raise_lower (f, raise)
    but it will become visible later when the window manager
    finishes with it.  */
 
+void
 x_make_frame_visible (f)
      struct frame *f;
 {
@@ -9617,6 +9709,7 @@ static struct redisplay_interface w32_redisplay_interface =
   x_update_window_end,
   w32_cursor_to,
   x_flush,
+  x_clear_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area
 };
@@ -9780,10 +9873,12 @@ NT uses Unicode internally anyway, so this flag will probably have no\n\
 affect on NT machines.");
   w32_enable_unicode_output = 1;
 
-  staticpro (&help_echo);
   help_echo = Qnil;
-  staticpro (&previous_help_echo);
+  staticpro (&help_echo);
+  help_echo_object = Qnil;
+  staticpro (&help_echo_object);
   previous_help_echo = Qnil;
+  staticpro (&previous_help_echo);
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
     "*Non-nil means draw block cursor as wide as the glyph under it.\n\
