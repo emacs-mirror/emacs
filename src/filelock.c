@@ -515,7 +515,7 @@ lock_if_free (clasher, lfname)
       else if (locker == 1)
         return 1;  /* Someone else has it.  */
       else if (locker == -1)
-	return -1;   /* current_lock_owner() returned strange error */
+	return -1;   /* current_lock_owner returned strange error.  */
 
       /* We deleted a stale lock; try again to lock the file.  */
     }
