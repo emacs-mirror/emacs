@@ -1,3 +1,8 @@
+2001-12-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* select.el (xselect-convert-to-class, xselect-convert-to-name):
+	Documented.
+
 2001-12-14  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-checkout-model, vc-state, vc-workfile-version):
