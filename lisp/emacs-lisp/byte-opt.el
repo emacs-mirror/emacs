@@ -269,7 +269,7 @@
 	(setq fn (or (and (fboundp name) (symbol-function name))
 		     (cdr (assq name byte-compile-function-environment)))))
       (if (and (consp fn) (eq (car fn) 'autoload))
-	  (error "File `%s' didn't define `%s'" (nth 2 fn) name))
+	  (error "File `%s' didn't define `%s'" (nth 1 fn) name))
       (if (symbolp fn)
 	  (byte-compile-inline-expand (cons fn (cdr form)))
 	(if (byte-code-function-p fn)
