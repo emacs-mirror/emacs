@@ -176,6 +176,9 @@ INSTALL_DATA = @INSTALL_DATA@
 
 # ============================= Targets ==============================
 
+# What emacs should be called when installed.
+EMACS = emacs
+
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
@@ -250,7 +253,7 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## On AIX, use tar xBf.
 ## On Xenix, use tar xpf.
 
-.PHONY: install do-install mkdir
+.PHONY: install mkdir
 
 ## We delete each directory in ${COPYDESTS} before we copy into it;
 ## that way, we can reinstall over directories that have been put in
@@ -259,7 +262,7 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
 ## ever modify src/paths.h.
-install: ${SUBDIR} do-install install-arch-dep install-arch-indep;
+install: ${SUBDIR} install-arch-dep install-arch-indep;
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
@@ -270,8 +273,8 @@ install-arch-dep: mkdir
 	    archlibdir=${archlibdir})
 	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
 	-chmod 1755  ${bindir}/emacs-${version}
-	rm -f ${bindir}/emacs
-	-ln ${bindir}/emacs-${version} ${bindir}/emacs
+	rm -f ${bindir}/$(EMACS)
+	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
