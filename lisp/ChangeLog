@@ -1,3 +1,8 @@
+2004-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Checking of quail activation
+	fixed.
+
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (run-mode-hooks): Run `after-change-major-mode-hook'

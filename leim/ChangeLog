@@ -1,3 +1,15 @@
+2004-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* quail/uni-input.el: Move the call of register-input-method to
+	leim-ext.el.
+	(ucs-input-insert-char): New function.
+	(ucs-input-method): Use ucs-input-insert-char.
+	(ucs-input-activate): Call quail-hide-guidance instead of
+	quail-hide-guidance-buf.
+
+	* leim-ext.el: Add autoload for 'ucs-input-activate and
+	register-input-method for "ucs".
+
 2004-08-21  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el ("greek-babel"): Add accent/breathing/uppercase
