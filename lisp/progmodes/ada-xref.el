@@ -7,7 +7,7 @@
 ;;      Rolf Ebert <ebert@inf.enst.fr>
 ;;      Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.150 $
+;; Ada Core Technologies's version:   $Revision: 1.9 $
 ;; Keywords: languages ada xref
 
 ;; This file is part of GNU Emacs.
@@ -620,11 +620,11 @@ name as was passed to `ada-create-menu'."
 	)
     
     ;; for Emacs
-    (let* ((menu         (lookup-key ada-mode-map [menu-bar Ada]))
-	   (edit-menu    (lookup-key ada-mode-map [menu-bar Ada Edit]))
-	   (help-menu    (lookup-key ada-mode-map [menu-bar Ada Help]))
-	   (goto-menu    (lookup-key ada-mode-map [menu-bar Ada Goto]))
-	   (options-menu (lookup-key ada-mode-map [menu-bar Ada Options])))
+    (let* ((menu         (lookup-key ada-mode-map [menu-bar ada]))
+	   (edit-menu    (lookup-key ada-mode-map [menu-bar ada edit]))
+	   (help-menu    (lookup-key ada-mode-map [menu-bar ada help]))
+	   (goto-menu    (lookup-key ada-mode-map [menu-bar ada goto]))
+	   (options-menu (lookup-key ada-mode-map [menu-bar ada options])))
 
       (define-key-after menu [Check] '("Check file" . ada-check-current)
 	'Customize)
