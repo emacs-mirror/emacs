@@ -337,6 +337,7 @@ subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
   "Define the keys that we want defined both in TeX mode and in the TeX shell."
   (define-key keymap "\C-c\C-k" 'tex-kill-job)
   (define-key keymap "\C-c\C-l" 'tex-recenter-output-buffer)
+  (define-key keymap "\C-c\C-m" 'tex-feed-input)
   (define-key keymap "\C-c\C-q" 'tex-show-print-queue)
   (define-key keymap "\C-c\C-p" 'tex-print)
   (define-key keymap "\C-c\C-v" 'tex-view)
@@ -989,6 +990,15 @@ Mark is left at original location."
       (setq comint-input-filter-functions 'shell-directory-tracker)
       (while (zerop (buffer-size))
 	(sleep-for 1)))))
+
+(defun tex-feed-input ()
+  "Send input to the tex shell process.
+In the tex buffer this can be used to continue an interactive tex run.
+In the tex shell buffer this command behaves like `comint-send-input'." 
+  (interactive)
+  (set-buffer (process-buffer (get-process "tex-shell")))
+  (comint-send-input)
+  (tex-recenter-output-buffer nil))
 
 (defun tex-display-shell ()
   "Make the TeX shell buffer visible in a window."
