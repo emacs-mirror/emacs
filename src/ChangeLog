@@ -1,3 +1,11 @@
+2001-11-18  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (message_dolog_marker1, message_dolog_marker2)
+	(message_dolog_marker3): New static variables hold three markers.
+	(syms_of_xdisp): Initialize and staticpro them.
+	(message_dolog): Use message_dolog_marker1..3 instead of
+	allocating markers each time.  Unchain them when done.
+
 2001-11-17  Richard M. Stallman  <rms@gnu.org>
 
 	* doc.c (Fsnarf_documentation): Doc fix.

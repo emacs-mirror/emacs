@@ -1,3 +1,26 @@
+2001-11-18  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/fortran.el (fortran-mode-syntax-table): Specify
+	punctuation syntax for backslash.
+
+	* progmodes/sh-script.el (sh-must-be-shell-mode): Function deleted.
+	All calls deleted.
+
+	* international/mule-util.el (string-to-sequence): Make it obsolete.
+	(string-to-list, string-to-vector): Implement them directly
+	using append and vconcat, not with string-to-sequence.
+
+	* startup.el (command-line): Set abbrevs-changed to nil after
+	reading the init file and the abbrevs file.
+
+	* isearch.el (isearch): Use magenta2 as bg for (background light)
+
+2001-11-17  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-update-buffers-1): Don't pad the buffer name.
+
+	* simple.el (minibuffer-history-sexp-flag): Doc fix.
+
 2001-11-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (font-lock-compile-keywords): New arg `regexp'.
@@ -34,6 +57,7 @@
 
 	* emacs-lisp/checkdoc.el (princ-list, checkdoc-read-event)
 	(add-to-list): Delete compatibility code.
+	(checkdoc-next-message-error): Doc fix.
 
 2001-11-17  Stephen Eglen  <stephen@gnu.org>
 
