@@ -49,16 +49,20 @@ want this support, set `selection-coding-system' to `compound-text'.
 
 +++
 ** The parameters of automatic hscrolling can now be customized.
-The variable `automatic-hscroll-margin' determines how many columns
-away from the window edge point is allowed to get before automatic
-hscrolling will horizontally scroll the window.  The default value is 5.
+The variable `hscroll-margin' determines how many columns away from
+the window edge point is allowed to get before automatic hscrolling
+will horizontally scroll the window.  The default value is 5.
 
-The variable `automatic-hscroll-step' determines how many columns
-automatic hscrolling will scroll the window when point gets too close
-to the window edge.  If its value is zero, the default, Emacs scrolls
-the window so as to center point.  If its value is an integer, it says
-how many columns to scroll.  If the value is a floating-point number,
-it gives the fraction of the window's width to scroll the window.
+The variable `hscroll-step' determines how many columns automatic
+hscrolling will scroll the window when point gets too close to the
+window edge.  If its value is zero, the default, Emacs scrolls the
+window so as to center point.  If its value is an integer, it says how
+many columns to scroll.  If the value is a floating-point number, it
+gives the fraction of the window's width to scroll the window.
+
++++
+** The variable `automatic-hscrolling' was renamed to `auto-hscroll-mode'.
+The old name is still available as an alias.
 
 ** New display feature: focus follows mouse.  If you set the variable
 x-autoselect-window to non-nil value, moving the mouse to a different
