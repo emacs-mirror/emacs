@@ -478,8 +478,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (setq major-mode 'compilation-mode
 	mode-name "Compilation")
   (compilation-setup)
-  (set (make-local-variable 'font-lock-keywords)
-       compilation-mode-font-lock-keywords)
+  (set (make-local-variable 'font-lock-defaults)
+       '(compilation-mode-font-lock-keywords t))
   (run-hooks 'compilation-mode-hook))
 
 ;; Prepare the buffer for the compilation parsing commands to work.
