@@ -191,7 +191,9 @@ This does not delete the region; it acts like \\[kill-ring-save]."
     (call-interactively 'kill-ring-save)))
 
 (defun mouse-buffer-menu (event)
-  "Pop up a menu of buffers for selection with the mouse."
+  "Pop up a menu of buffers for selection with the mouse.
+This switches buffers in the window that you clicked on,
+and selects that window."
   (interactive "e")
   (let ((menu
 	 (list "Buffer Menu"
@@ -212,7 +214,12 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 					   head))))
 			 (setq tail (cdr tail)))
 		       (reverse head))))))
-    (switch-to-buffer (or (x-popup-menu event menu) (current-buffer)))))
+    (let ((buf (x-popup-menu event menu))
+	  (window (posn-window (event-start event))))
+      (if buf
+	  (progn
+	    (select-window window)
+	    (switch-to-buffer buf))))))
 
 ;; Commands for the scroll bar.
 
