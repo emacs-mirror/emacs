@@ -4,4 +4,7 @@ backup ^(test-distrib|make-docfile|profile|digest-doc|movemail|cvtmail|fakemail|
 # Building actually makes a copy/link of the source file
 precious ^(ctags\.c)$
 
+# Windows generates this
+backup ^(DOC)$
+
 # arch-tag: da33b3d6-170d-4fe5-9eb8-ed2753bc9b4f
