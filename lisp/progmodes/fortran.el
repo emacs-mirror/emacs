@@ -784,8 +784,9 @@ Any other key combination is executed normally."
   (interactive)
   (let (c)
     (insert last-command-char)
-    (if (or (eq (setq c (read-event)) ??)    ;insert char if not equal to `?'
-	    (eq c help-char))
+    (if (and abbrev-mode
+             (or (eq (setq c (read-event)) ??) ;insert char if not equal to `?'
+                 (eq c help-char)))
 	(fortran-abbrev-help)
       (setq unread-command-events (list c)))))
 
