@@ -1,3 +1,8 @@
+1999-11-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTread_socket) <ClientMessage, Xatom_Scrollbar>: 
+	Switch off busy-cursor by setting inhibit_busy_cursor to 2.
+
 1999-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* charset.c (Fmake_char_internal): Print the charset ID when
