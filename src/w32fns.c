@@ -2359,9 +2359,8 @@ x_set_cursor_type (f, arg, oldval)
 {
   set_frame_cursor_types (f, arg);
 
-  /* Make sure the cursor gets redrawn.  This is overkill, but how
-     often do people change cursor types?  */
-  update_mode_lines++;
+  /* Make sure the cursor gets redrawn.  */
+  cursor_type_changed = 1;  
 }
 
 void
