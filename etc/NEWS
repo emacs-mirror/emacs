@@ -583,6 +583,12 @@ specified in those directives.  This is useful when dealing with code
 created from Cweb source files.  When Etags tags the generated file, it
 writes tags pointing to the source file.
 
+*** New option --parse-stdin=FILE
+This is mostly useful for automatic call of etags from programs.  The
+option may be given (only once) in place of a file name.  Etags will
+read from standard input and produce tags marking them as belonging to
+the file FILE.
+
 +++
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
