@@ -1,3 +1,8 @@
+2003-03-09  David Kastrup  <dak@gnu.org>
+
+	* process.c (read_process_output): We have allocated enough space
+	for readmax and carryover, so actually use the alloted space.
+
 2003-03-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (make_lispy_event): Extend mouse_syms if needed for
