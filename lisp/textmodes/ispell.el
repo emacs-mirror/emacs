@@ -830,7 +830,7 @@ and added as a submenu of the \"Edit\" menu.")
 ;;;###autoload
 (if ispell-menu-map-needed
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
-	  (dir ispell-library-directory)
+	  (dir (if (boundp 'ispell-library-directory) ispell-library-directory))
 	  name load-dict)
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       ;; add the dictionaries to the bottom of the list.
@@ -839,12 +839,11 @@ and added as a submenu of the \"Edit\" menu.")
 	      load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
 	      dicts (cdr dicts))
 	(cond ((not (stringp name))
-	       (define-key ispell-menu-map (vector 'default)
-		 (cons "Select Default Dict"
-		       (cons "Dictionary for which Ispell was configured"
-			     (list 'lambda () '(interactive)
-				   (list
-				     'ispell-change-dictionary "default"))))))
+	       (define-key ispell-menu-map [default]
+		 '("Select Default Dict"
+		   "Dictionary for which Ispell was configured"
+		   . (lambda () (interactive)
+		       (ispell-change-dictionary "default")))))
 	      ((or (not dir)		; load all if library dir not defined
 		   (file-exists-p (concat dir "/" name ".hash"))
 		   (file-exists-p (concat dir "/" name ".has"))
@@ -853,8 +852,8 @@ and added as a submenu of the \"Edit\" menu.")
 			    (file-exists-p (concat dir "/" load-dict ".has")))))
 	       (define-key ispell-menu-map (vector (intern name))
 		 (cons (concat "Select " (capitalize name) " Dict")
-		       (list 'lambda () '(interactive)
-			     (list 'ispell-change-dictionary name)))))))))
+		       `(lambda () (interactive)
+			  (ispell-change-dictionary ,name)))))))))
 
 
 ;;; define commands in menu in opposite order you want them to appear.
