@@ -1952,7 +1952,7 @@ Control characters turn into C-whatever, etc.")
 	}
       else
 	{
-	  char tem[20];
+	  char tem[30];
 
 	  *push_key_description (XUINT (key), tem) = 0;
 	  return build_string (tem);
@@ -2423,7 +2423,7 @@ You type        Translation\n\
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
 	  {
-	    char buf[20];
+	    char buf[30];
 	    char *bufend;
 
 	    if (alternate_heading)
