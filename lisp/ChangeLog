@@ -1,3 +1,11 @@
+2000-10-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Use registry "MuleTibetan-2" for
+	Tibetan.
+	(ccl-encode-mule-unicode-0100-24ff): New CCL program.  Register it
+	for ISO10646-1 fonts.
+	(x-font-name-charset-alist): Add an entry for "iso10646-1".
+
 2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (frame-set-background-mode): If a tty frame defines a
@@ -10,6 +18,7 @@
 	(comint-mode-map): Add it to the menu.
 	Bind `C-c C-s' to comint-write-output.
 
+>>>>>>> 1.1299
 2000-10-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-screens): Set buffer-undo-list to t.
