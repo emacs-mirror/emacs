@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -206,6 +206,10 @@ int column_number_displayed;
 
 /* Maximum buffer size for which to display line numbers.  */
 int line_number_display_limit;
+
+/* Number of lines to keep in the message log buffer.
+   t means infinite.  nil means don't log at all.  */
+Lisp_Object Vmessage_log_max;
 
 /* Display an echo area message M with a specified length of LEN chars.
    The string may include null characters.  If m is 0, clear out any
@@ -214,6 +218,49 @@ int line_number_display_limit;
 
 void
 message2 (m, len)
+     char *m;
+     int len;
+{
+  if (m && !NILP (Vmessage_log_max))
+    {
+      struct buffer *oldbuf;
+      int oldpoint, oldbegv, oldzv;
+
+      oldbuf = current_buffer;
+      Fset_buffer (Fget_buffer_create (build_string (" *Messages*")));
+      oldpoint = PT;
+      oldbegv = BEGV;
+      oldzv = ZV;
+      if (oldpoint == Z)
+	oldpoint += len + 1;
+      if (oldzv == Z)
+	oldzv += len + 1;
+      TEMP_SET_PT (Z);
+      insert_1 (m, len, 1, 0);
+      insert_1 ("\n", 1, 1, 0);
+      if (NATNUMP (Vmessage_log_max))
+	{
+	  Lisp_Object n;
+	  XSETINT (n, -XFASTINT (Vmessage_log_max));
+	  Fforward_line (n);
+	  oldpoint -= min (PT, oldpoint) - BEG;
+	  oldbegv -= min (PT, oldbegv) - BEG;
+	  oldzv -= min (PT, oldzv) - BEG;
+	  del_range (BEG, PT);
+	}
+      BEGV = oldbegv;
+      ZV = oldzv;
+      TEMP_SET_PT (oldpoint);
+      set_buffer_internal (oldbuf);
+    }
+  message2_nolog (m, len);
+}
+
+
+/* The non-logging part of that function.  */
+
+void
+message2_nolog (m, len)
      char *m;
      int len;
 {
@@ -3668,6 +3715,12 @@ and is used only on frames for which no explicit name has been set\n\
 						Fcons (intern ("system-name"),
 							       Qnil)))),
 			   Qnil)));
+
+  DEFVAR_LISP ("message-log-max", &Vmessage_log_max,
+    "Maximum number of lines to keep in the message log buffer.\n\
+If nil, disable message logging.  If t, log messages but don't truncate\n\
+the buffer when it becomes large.");
+  XSETFASTINT (Vmessage_log_max, 50);
 }
 
 /* initialize the window system */
