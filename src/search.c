@@ -1106,7 +1106,12 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
       unsigned char *base_pat = XSTRING (string)->data;
-      int charset_base = -1;
+      /* High bits of char, calculated by (CHAR & 0x3F).  Characters
+	 of the same high bits have the same sequence of bytes but
+	 last.  To do the BM search, all characters in STRING must
+	 have the same high bits (including their case
+	 translations).  */
+      int char_high_bits = -1;
       int boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
@@ -1147,16 +1152,15 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       /* Copy and optionally translate the pattern.  */
       len = raw_pattern_size;
       len_byte = raw_pattern_size_byte;
-      patbuf = (unsigned char *) alloca (len_byte);
+      patbuf = (unsigned char *) alloca (len * MAX_MULTIBYTE_LENGTH);
       pat = patbuf;
       base_pat = raw_pattern;
       if (multibyte)
 	{
 	  while (--len >= 0)
 	    {
-	      unsigned char str[MAX_MULTIBYTE_LENGTH];
 	      int c, translated, inverse;
-	      int in_charlen, charlen;
+	      int in_charlen;
 
 	      /* If we got here and the RE flag is set, it's because we're
 		 dealing with a regexp known to be trivial, so the backslash
@@ -1172,23 +1176,6 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
 	      /* Translate the character, if requested.  */
 	      TRANSLATE (translated, trt, c);
-	      /* If translation changed the byte-length, go back
-		 to the original character.  */
-	      charlen = CHAR_STRING (translated, str);
-	      if (in_charlen != charlen)
-		{
-		  translated = c;
-		  charlen = CHAR_STRING (c, str);
-		}
-
-	      /* If we are searching for something strange,
-		 an invalid multibyte code, don't use boyer-moore.  */
-	      if (! ASCII_BYTE_P (translated)
-		  && (charlen == 1 /* 8bit code */
-		      || charlen != in_charlen /* invalid multibyte code */
-		      ))
-		boyer_moore_ok = 0;
-
 	      TRANSLATE (inverse, inverse_trt, c);
 
 	      /* Did this char actually get translated?
@@ -1197,18 +1184,22 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		{
 		  /* Keep track of which character set row
 		     contains the characters that need translation.  */
-		  int charset_base_code = c & ~0x3F;
-		  if (charset_base == -1)
-		    charset_base = charset_base_code;
-		  else if (charset_base != charset_base_code)
+		  int this_high_bit = c & ~0x3F;
+		  int trt_high_bit = ((inverse != c ? inverse : translated)
+				      & ~0x3F);
+		  
+		  if (this_high_bit != trt_high_bit)
+		    boyer_moore_ok = 0;
+		  else if (char_high_bits == -1)
+		    char_high_bits = this_high_bit;
+		  else if (char_high_bits != this_high_bit)
 		    /* If two different rows appear, needing translation,
 		       then we cannot use boyer_moore search.  */
 		    boyer_moore_ok = 0;
 		}
 
 	      /* Store this character into the translated pattern.  */
-	      bcopy (str, pat, charlen);
-	      pat += charlen;
+	      CHAR_STRING_ADVANCE (translated, pat);
 	      base_pat += in_charlen;
 	      len_byte -= in_charlen;
 	    }
@@ -1216,7 +1207,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       else
 	{
 	  /* Unibyte buffer.  */
-	  charset_base = 0;
+	  char_high_bits = 0;
 	  while (--len >= 0)
 	    {
 	      int c, translated;
@@ -1242,7 +1233,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       if (boyer_moore_ok)
 	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
 			    pos, pos_byte, lim, lim_byte,
-			    charset_base);
+			    char_high_bits);
       else
 	return simple_search (n, pat, len, len_byte, trt,
 			      pos, pos_byte, lim, lim_byte);
@@ -1475,7 +1466,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 static int
 boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
-	     pos, pos_byte, lim, lim_byte, charset_base)
+	     pos, pos_byte, lim, lim_byte, char_high_bits)
      int n;
      unsigned char *base_pat;
      int len, len_byte;
@@ -1483,7 +1474,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
      Lisp_Object inverse_trt;
      int pos, pos_byte;
      int lim, lim_byte;
-     int charset_base;
+     int char_high_bits;
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
@@ -1584,7 +1575,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (! CHAR_HEAD_P (*charstart))
 		charstart--;
 	      untranslated = STRING_CHAR (charstart, ptr - charstart + 1);
-	      if (charset_base == (untranslated & ~0x3F))
+	      if (char_high_bits == (untranslated & ~0x3F))
 		{
 		  TRANSLATE (ch, trt, untranslated);
 		  if (! CHAR_HEAD_P (*ptr))
