@@ -1755,7 +1755,7 @@ does not work with this version of ncurses.
 
 The fix is to install a newer version of ncurses, such as version 4.2.
 
-* Emacs does not start complaining that it cannot open termcap database file.
+* Emacs does not start, complaining that it cannot open termcap database file.
 
 If your system uses Terminfo rather than termcap (most modern
 systems do), this could happen if the proper version of
