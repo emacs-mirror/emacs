@@ -28,10 +28,11 @@
 ;; This mode acts as a graphical user interface to GDB. You can interact with
 ;; GDB through the GUD buffer in the usual way, but there are also further
 ;; buffers which control the execution and describe the state of your program.
-;; It separates the input/output of your program from that of GDB and displays
-;; expressions and their current values in their own buffers. It also uses
-;; features of Emacs 21 such as the display margin for breakpoints, and the
-;; toolbar (see the GDB Graphical Interface section in the Emacs info manual).
+;; It separates the input/output of your program from that of GDB, if
+;; required, and displays expressions and their current values in their own
+;; buffers. It also uses features of Emacs 21 such as the display margin for
+;; breakpoints, and the toolbar (see the GDB Graphical Interface section in
+;; the Emacs info manual).
 
 ;; Start the debugger with M-x gdba.
 
@@ -131,6 +132,11 @@ The following interactive lisp functions help control operation :
   :type 'boolean
   :group 'gud)
 
+(defcustom gdb-use-inferior-io-buffer nil
+ "Non-nil means display output from the inferior in a separate buffer."
+  :type 'boolean
+  :group 'gud)
+
 (defun gdb-ann3 ()
   (setq gdb-debug-log nil)
   (set (make-local-variable 'gud-minor-mode) 'gdba)
@@ -181,7 +187,7 @@ The following interactive lisp functions help control operation :
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
   ;;
-  (gdb-clear-inferior-io)
+  (if gdb-use-inferior-io-buffer (gdb-clear-inferior-io))
   ;;
   (if (eq window-system 'w32)
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
@@ -604,7 +610,9 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue output for a later time."
-  (gdb-enqueue-input (concat string "\n")))
+  (if gud-running
+      (process-send-string proc (concat string "\n"))
+    (gdb-enqueue-input (concat string "\n"))))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -742,17 +750,19 @@ subprocess is now the program being debugged, not GDB."
      ((eq sink 'user)
       (progn
 	(setq gud-running t)
-	(gdb-set-output-sink 'inferior)))
+	(if gdb-use-inferior-io-buffer
+	    (gdb-set-output-sink 'inferior))))
      (t (error "Unexpected `starting' annotation")))))
 
 (defun gdb-stopping (ignored)
   "An annotation handler for `exited' and other annotations which say that I/O
 for the subprocess is now GDB, not the program being debugged."
-  (let ((sink (gdb-get-output-sink)))
-    (cond
-     ((eq sink 'inferior)
-      (gdb-set-output-sink 'user))
-     (t (error "Unexpected stopping annotation")))))
+  (if gdb-use-inferior-io-buffer
+      (let ((sink (gdb-get-output-sink)))
+	(cond
+	 ((eq sink 'inferior)
+	  (gdb-set-output-sink 'user))
+	 (t (error "Unexpected stopping annotation"))))))
 
 (defun gdb-frame-begin (ignored)
   (let ((sink (gdb-get-output-sink)))
@@ -1657,9 +1667,10 @@ the source buffer."
 	 (gud-find-file gdb-main-file))
      (gdb-get-create-buffer 'gdb-assembler-buffer)))
   (setq gdb-source-window (get-buffer-window (current-buffer)))
-  (split-window-horizontally)
-  (other-window 1)
-  (switch-to-buffer (gdb-inferior-io-name))
+  (when gdb-use-inferior-io-buffer
+    (split-window-horizontally)
+    (other-window 1)
+    (switch-to-buffer (gdb-inferior-io-name)))
   (other-window 1)
   (switch-to-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
