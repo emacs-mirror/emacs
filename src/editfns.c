@@ -272,23 +272,9 @@ If you set the marker not to point anywhere, the buffer will have no mark.")
   return current_buffer->mark;
 }
 
-/* Returns the position before POS in the current buffer.  POS must not
-   be at the beginning of the buffer.  */
-static Lisp_Object
-preceding_pos (int pos)
-{
-  int pos_byte = CHAR_TO_BYTE (pos);
-	  
-  /* Decrement POS_BYTE (is all this cruft really necessary?).  */
-  if (NILP (current_buffer->enable_multibyte_characters))
-    pos_byte--;
-  else
-    DEC_POS (pos_byte);
+/* Return nonzero if POS1 and POS2 have the same value
+   for the text property PROP.  */
 
-  return make_number (BYTE_TO_CHAR (pos_byte));
-}
-
-/* Returns true if POS1 and POS2 have the same value for text property PROP. */
 static int
 text_property_eq (prop, pos1, pos2)
      Lisp_Object prop;
@@ -302,9 +288,11 @@ text_property_eq (prop, pos1, pos2)
   return EQ (pval1, pval2);
 }
 
-/* Returns the direction that the text-property PROP would be inherited
-   by any new text inserted at POS: 1 if it would be inherited from POS,
-   -1 if it would be inherited from POS-1, and 0 if from neither.  */
+/* Return the direction from which the text-property PROP would be
+   inherited by any new text inserted at POS: 1 if it would be
+   inherited from the char after POS, -1 if it would be inherited from
+   the char before POS, and 0 if from neither.  */
+
 static int
 text_property_stickiness (prop, pos)
      Lisp_Object prop;
@@ -312,58 +300,60 @@ text_property_stickiness (prop, pos)
 {
   Lisp_Object front_sticky;
 
-  if (PT > BEGV)
-    /* Consider previous position.  */
+  if (XINT (pos) > BEGV)
+    /* Consider previous character.  */
     {
       Lisp_Object prev_pos, rear_non_sticky;
 
-      prev_pos = preceding_pos (pos);
+      prev_pos = make_number (XINT (pos) - 1);
       rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
 
       if (EQ (rear_non_sticky, Qnil)
 	  || (CONSP (rear_non_sticky)
 	      && !Fmemq (prop, rear_non_sticky)))
 	/* PROP is not rear-non-sticky, and since this takes precedence over
-	   any front-stickiness, that must be the answer.  */
+	   any front-stickiness, PROP is inherited from before.  */
 	return -1;
     }
 
-  /* Consider current position.  */
+  /* Consider following character.  */
   front_sticky = Fget_text_property (pos, Qfront_sticky, Qnil);
 
   if (EQ (front_sticky, Qt)
       || (CONSP (front_sticky)
 	  && Fmemq (prop, front_sticky)))
-    /* PROP is front-sticky.  */
+    /* PROP is inherited from after.  */
     return 1;
 
-  /* PROP is not sticky at all.  */
+  /* PROP is not inherited from either side.  */
   return 0;
 }
 
-/* Name for the text property we use to distinguish fields. */
+/* Symbol for the text property used to mark fields.  */
 Lisp_Object Qfield;
 
-/* Returns the field surrounding POS in *BEG and *END; an
-   `field' is a region of text with the same `field' property.
-   If POS is nil, the position of the current buffer's point is used.
-   If MERGE_AT_BOUNDARY is true, then if POS is at the very first
+/* Find the field surrounding POS in *BEG and *END.  If POS is nil,
+   the value of point is used instead.
+
+   If MERGE_AT_BOUNDARY is nonzero, then if POS is at the very first
    position of a field, then the beginning of the previous field
    is returned instead of the beginning of POS's field (since the end of
    a field is actually also the beginning of the next input
-   field, this behavior is sometimes useful).  BEG or END may be 0, in
-   which case the corresponding value is not returned.  */
+   field, this behavior is sometimes useful).
+
+   Either BEG or END may be 0, in which case the corresponding value
+   is not stored.  */
+
 void
 find_field (pos, merge_at_boundary, beg, end)
      Lisp_Object pos;
      Lisp_Object merge_at_boundary;
      int *beg, *end;
 {
-  /* If POS is at the edge of a field, then -1 or 1 depending on
-     whether it should be considered as the beginning of the following
-     field, or the end of the previous field, respectively.  If POS is
-     not at a field-boundary, then STICKINESS is 0.  */
-  int stickiness = 0;
+  /* 1 if POS counts as the start of a field.  */
+  int at_field_start = 0;
+  /* 1 if POS counts as the end of a field.  */
+  int at_field_end = 0;
   
   if (NILP (pos))
     XSETFASTINT (pos, PT);
@@ -382,30 +372,35 @@ find_field (pos, merge_at_boundary, beg, end)
       Lisp_Object after_field, before_field;
 
       after_field = Fget_text_property (pos, Qfield, Qnil);
-      before_field = Fget_text_property (preceding_pos (pos), Qfield, Qnil);
+      before_field = Fget_text_property (make_number (XINT (pos) - 1),
+					 Qfield, Qnil);
 
       if (! EQ (after_field, before_field))
 	/* We are at a boundary, see which direction is inclusive.  */
 	{
-	  stickiness = text_property_stickiness (Qfield, pos);
+	  int stickiness = text_property_stickiness (Qfield, pos);
 
-	  if (stickiness == 0)
+	  if (stickiness > 0)
+	    at_field_start = 1;
+	  else if (stickiness < 0)
+	    at_field_end = 1;
+	  else
 	    /* STICKINESS == 0 means that any inserted text will get a
 	       `field' text-property of nil, so check to see if that
 	       matches either of the adjacent characters (this being a
-	       kind of `stickiness by default').  */
+	       kind of "stickiness by default").  */
 	    {
 	      if (NILP (before_field))
-		stickiness = -1; /* Sticks to the left.  */
+		at_field_end = 1; /* Sticks to the left.  */
 	      else if (NILP (after_field))
-		stickiness = 1;	/* Sticks to the right.  */
+		at_field_start = 1; /* Sticks to the right.  */
 	    }
 	}
     }
 
   if (beg)
     {
-      if (stickiness > 0)
+      if (at_field_start)
 	/* POS is at the edge of a field, and we should consider it as
 	   the beginning of the following field.  */
 	*beg = XFASTINT (pos);
@@ -414,13 +409,13 @@ find_field (pos, merge_at_boundary, beg, end)
 	{
 	  Lisp_Object prev;
 	  prev = Fprevious_single_property_change (pos, Qfield, Qnil, Qnil);
-	  *beg = NILP(prev) ? BEGV : XFASTINT (prev);
+	  *beg = NILP (prev) ? BEGV : XFASTINT (prev);
 	}
     }
 
   if (end)
     {
-      if (stickiness < 0)
+      if (at_field_end)
 	/* POS is at the edge of a field, and we should consider it as
 	   the end of the previous field.  */
 	*end = XFASTINT (pos);
@@ -429,7 +424,7 @@ find_field (pos, merge_at_boundary, beg, end)
 	{
 	  Lisp_Object next;
 	  next = Fnext_single_property_change (pos, Qfield, Qnil, Qnil);
-	  *end = NILP(next) ? ZV : XFASTINT (next);
+	  *end = NILP (next) ? ZV : XFASTINT (next);
 	}
     }
 }
@@ -437,7 +432,7 @@ find_field (pos, merge_at_boundary, beg, end)
 DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, "d",
   "Delete the field surrounding POS.\n\
 A field is a region of text with the same `field' property.\n\
-If POS is nil, the position of the current buffer's point is used.")
+If POS is nil, the value of point is used for POS.")
   (pos)
      Lisp_Object pos;
 {
@@ -450,7 +445,7 @@ If POS is nil, the position of the current buffer's point is used.")
 DEFUN ("field-string", Ffield_string, Sfield_string, 0, 1, 0,
   "Return the contents of the field surrounding POS as a string.\n\
 A field is a region of text with the same `field' property.\n\
-If POS is nil, the position of the current buffer's point is used.")
+If POS is nil, the value of point is used for POS.")
   (pos)
      Lisp_Object pos;
 {
@@ -462,7 +457,7 @@ If POS is nil, the position of the current buffer's point is used.")
 DEFUN ("field-string-no-properties", Ffield_string_no_properties, Sfield_string_no_properties, 0, 1, 0,
   "Return the contents of the field around POS, without text-properties.\n\
 A field is a region of text with the same `field' property.\n\
-If POS is nil, the position of the current buffer's point is used.")
+If POS is nil, the value of point is used for POS.")
   (pos)
      Lisp_Object pos;
 {
@@ -474,8 +469,8 @@ If POS is nil, the position of the current buffer's point is used.")
 DEFUN ("field-beginning", Ffield_beginning, Sfield_beginning, 0, 2, 0,
   "Return the beginning of the field surrounding POS.\n\
 A field is a region of text with the same `field' property.\n\
-If POS is nil, the position of the current buffer's point is used.\n\
-If ESCAPE-FROM-EDGE is non-nil and POS is already at beginning of an\n\
+If POS is nil, the value of point is used for POS.\n\
+If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its\n\
 field, then the beginning of the *previous* field is returned.")
   (pos, escape_from_edge)
      Lisp_Object pos, escape_from_edge;
@@ -488,8 +483,8 @@ field, then the beginning of the *previous* field is returned.")
 DEFUN ("field-end", Ffield_end, Sfield_end, 0, 2, 0,
   "Return the end of the field surrounding POS.\n\
 A field is a region of text with the same `field' property.\n\
-If POS is nil, the position of the current buffer's point is used.\n\
-If ESCAPE-FROM-EDGE is non-nil and POS is already at end of a field,\n\
+If POS is nil, the value of point is used for POS.\n\
+If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,\n\
 then the end of the *following* field is returned.")
   (pos, escape_from_edge)
      Lisp_Object pos, escape_from_edge;
@@ -578,10 +573,10 @@ DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_posi
   "Return the character position of the first character on the current line.\n\
 With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, return that position.\n\
-This function does not move point.\n\n\
-In the minibuffer, if point is not within the prompt,\n\
-the return value is never within the prompt either.")
-
+The scan does not cross a field boundary unless it would move\n\
+beyond there to a different line.  And if N is nil or 1,\n\
+and scan starts at a field boundary, the scan stops as soon as it starts.\n\n\
+This function does not move point.")
   (n)
      Lisp_Object n;
 {
@@ -600,7 +595,9 @@ the return value is never within the prompt either.")
   SET_PT_BOTH (orig, orig_byte);
 
   /* Return END constrained to the current input field.  */
-  return Fconstrain_to_field (make_number (end), make_number (orig), Qnil, Qt);
+  return Fconstrain_to_field (make_number (end), make_number (orig),
+			      XINT (n) != 1 ? Qt : Qnil,
+			      Qt);
 }
 
 DEFUN ("line-end-position", Fline_end_position, Sline_end_position,
