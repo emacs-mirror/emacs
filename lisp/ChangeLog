@@ -1,3 +1,51 @@
+1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Version 1.2 is released.
+	(antlr): This package has a web page.
+
+1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Menu/keymap additions for commenting/uncommenting
+ 	regions.  Suggested by Dale Davis <Dale_Davis@securify.com>.
+ 	(antlr-mode-map): New binding [C-c C-c].
+	(antlr-mode-menu): New entries.
+
+1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Respect Emacs conventions.
+	((require 'cl)): Only use during compilation.
+	(antlr-language-for-option): New function to avoid using `find'.
+	(antlr-mode): Use it.
+	(antlr-with-syntax-table): Define new instead using XEmacs' one.
+	(antlr-imenu-create-index-function): Change accordingly.
+	(antlr-inside-rule-p): Ditto.
+	(antlr-end-of-rule): Ditto.
+	(antlr-end-of-body): Ditto.
+	(antlr-beginning-of-rule): Ditto.
+	(antlr-indent-line): Ditto.
+
+1999-11-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Really use `antlr-tab-offset-alist'.
+	(antlr-set-tabs): Don't use hard-coded values.
+
+	* antlr-mode.el: Minor navigation changes.  Not perfect, but this
+ 	won't be possible without a huge time penalty.
+	(antlr-skip-exception-part): Be more specific.
+	(antlr-skip-file-prelude): Don't skip action prelude of next rule.
+  	Renamed from `antlr-skip-grammar-header'.
+	(antlr-next-rule): Change accordingly.
+	(antlr-end-of-body): Ditto.  Better error message.
+	(antlr-beginning-of-body): Better error message.
+	(antlr-imenu-create-index-function): Skip rule action prelude.
+
+	* antlr-mode.el: Minor syntax highlighting changes.
+	(antlr-font-lock-default-face): Deletia.
+	(antlr-font-lock-tokendef-face): Changed color.
+	(antlr-font-lock-tokenref-face): Changed color.
+	(antlr-font-lock-literal-face): Changed color.
+	(antlr-font-lock-additional-keywords): Minor changes.
+
 1999-12-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/cwarn.el: New file.
