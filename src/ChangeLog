@@ -1,3 +1,8 @@
+2001-09-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* process.c (sigchld_handler) [LINUX]: Don't return from
+	the signal handler at the end of the loop.
+
 2001-09-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* sysdep.c (wait_for_termination) [POSIX_SIGNALS]: Terminate
