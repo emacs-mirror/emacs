@@ -80,8 +80,12 @@ extern int lk_open (), lk_close ();
 #undef write
 #undef close
 
+char *malloc ();
 char *concat ();
+char *xmalloc ();
+#ifndef errno
 extern int errno;
+#endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
 char *delete_lockname;
@@ -284,9 +288,12 @@ main (argc, argv)
 
 #ifndef MAIL_USE_FLOCK
   /* Delete the input file; if we can't, at least get rid of its contents.  */
-  if (unlink (inname) < 0)
-    if (errno != ENOENT)
-      creat (inname, 0666);
+#ifdef MAIL_UNLINK_SPOOL
+  /* This is generally bad to do, because it destroys the permissions
+     that were set on the file.  Better to just empty the file.  */
+  if (unlink (inname) < 0 && errno != ENOENT)
+#endif /* MAIL_UNLINK_SPOOL */
+    creat (inname, 0600);
 #ifndef MAIL_USE_MMDF
   unlink (lockname);
 #endif /* not MAIL_USE_MMDF */
@@ -364,11 +371,11 @@ concat (s1, s2, s3)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-int
+char *
 xmalloc (size)
-     int size;
+     unsigned size;
 {
-  int result = malloc (size);
+  char *result = malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
