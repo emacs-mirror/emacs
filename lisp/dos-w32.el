@@ -64,25 +64,67 @@
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
 against the file name, and TYPE is nil for text, t for binary.")
 
+;; Return the pair matching filename on file-name-buffer-file-type-alist,
+;; or nil otherwise.
+(defun find-buffer-file-type-match (filename)
+  (let ((alist file-name-buffer-file-type-alist)
+	(found nil))
+    (let ((case-fold-search t))
+      (setq filename (file-name-sans-versions filename))
+      (while (and (not found) alist)
+	(if (string-match (car (car alist)) filename)
+	    (setq found (car alist)))
+	(setq alist (cdr alist)))
+      found)))
+
 (defun find-buffer-file-type (filename)
   ;; First check if file is on an untranslated filesystem, then on the alist.
   (if (untranslated-file-p filename)
       t ; for binary
-    (let ((alist file-name-buffer-file-type-alist)
-	  (found nil)
-	  (code nil))
-      (let ((case-fold-search t))
-	(setq filename (file-name-sans-versions filename))
-	(while (and (not found) alist)
-	  (if (string-match (car (car alist)) filename)
-	      (setq code (cdr (car alist))
-		    found t))
-	  (setq alist (cdr alist))))
-      (if found
-	  (cond ((memq code '(nil t)) code)
-		((and (symbolp code) (fboundp code))
-		 (funcall code filename)))
-	default-buffer-file-type))))
+    (let ((match (find-buffer-file-type-match filename))
+	  (code))
+      (if (not match)
+	  default-buffer-file-type
+	(setq code (cdr match))
+	(cond ((memq code '(nil t)) code)
+	      ((and (symbolp code) (fboundp code))
+	       (funcall code filename)))))))
+
+(defun find-buffer-file-type-coding-system (command args)
+  "Choose a coding system for a file operation.
+If COMMAND is 'insert-file-contents', the coding system is chosen based
+upon the filename, the contents of 'untranslated-filesystem-list' and
+'file-name-buffer-file-type-alist', and whether the file exists:
+
+  If it matches in 'untranslated-filesystem-list':	'no-conversion'
+  If it matches in 'file-name-buffer-file-type-alist':
+    If the match is t (for binary):			'no-conversion'
+    If the match is nil (for text):			'emacs-mule-dos'
+  Otherwise:
+    If the file exists:					'undecided'
+    If the file does not exist:				'emacs-mule-dos'
+
+If COMMAND is 'write-region', the coding system is chosen based
+upon the value of 'buffer-file-type': If t, the coding system is
+'no-conversion', otherwise it is 'emacs-mule-dos'."
+  (let ((op (nth 0 command))
+	(target)
+	(binary)
+	(undecided nil))
+    (cond ((eq op 'insert-file-contents) 
+	   (setq target (nth 1 command))
+	   (setq binary (find-buffer-file-type target))
+	   (if (not binary)
+	       (setq undecided 
+		     (and (file-exists-p target)
+			  (not (find-buffer-file-type-match target))))))
+	  ((eq op 'write-region) 
+	   (setq binary buffer-file-type)))
+    (cond (binary '(no-conversion . no-conversion))
+	  (undecided '(undecided . undecided))
+	  (t '(emacs-mule-dos . emacs-mule-dos)))))
+
+(modify-coding-system-alist 'file "" 'find-buffer-file-type-coding-system)
 
 (defun find-file-binary (filename) 
   "Visit file FILENAME and treat it as binary."
@@ -165,6 +207,25 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
   (setq untranslated-filesystem-list 
 	(delete (untranslated-canonical-name filesystem)
 		untranslated-filesystem-list)))
+
+;; Process I/O decoding and encoding.
+
+(defun find-binary-process-coding-system (op args)
+  "Choose a coding system for process I/O.
+The coding system for decode is 'no-conversion' if 'binary-process-output'
+is non-nil, and 'emacs-mule-dos' otherwise.  Similarly, the coding system 
+for encode is 'no-conversion' if 'binary-process-input' is non-nil,
+and 'emacs-mule-dos' otherwise."
+  (let ((decode 'emacs-mule-dos)
+	(encode 'emacs-mule-dos))
+    (if binary-process-output
+	(setq decode 'no-conversion))
+    (if binary-process-input
+	(setq encode 'no-conversion))
+    (cons decode encode)))
+
+(modify-coding-system-alist 'process "" 'find-binary-process-coding-system)
+
 
 (provide 'dos-w32)
 
