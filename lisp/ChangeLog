@@ -1,5 +1,12 @@
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* shell.el (shell-unquote-argument): If the shell is one of the
+	mentioned in shell-dumb-shell-regexp, don't treat a backslash as a
+	quote character.
+	(shell-dumb-shell-regexp): Document that the shells which match
+	this regexp are supposed to not treat a backslash as a quote
+	character.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Undo the change
 	from 2001-01-12.  It is not needed, since backspace is mapped into
 	DEL.
