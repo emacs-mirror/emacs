@@ -1,11 +1,15 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.2) $
+ * $HopeName: MMsrc!bt.c(trunk.3) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
+ *
+ * READERSHIP
+ *
+ * .readership: Any MPS developer
  *
  * DESIGN
  *
- * design.mps.bt
+ * .design: see design.mps.bt
  *
  * PURPOSE
  *
@@ -18,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.2) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.3) $");
 
 
 Size BTSize(unsigned long n)
@@ -55,7 +59,7 @@ void (BTRes)(BT t, Index i)
 void BTSetRange(BT t, Index i, Index j)
 {
   AVER(t != NULL);
-  AVER(i <= j);
+  AVER(i < j);
 
   for( ; i < j; ++i) {
     BTSet(t, i);
@@ -65,20 +69,20 @@ void BTSetRange(BT t, Index i, Index j)
 void BTResRange(BT t, Index i, Index j)
 {
   AVER(t != NULL);
-  AVER(i <= j);
+  AVER(i < j);
 
   for( ; i < j; ++i) {
     BTRes(t, i);
   }
 }
 
-Bool BTFindResRange(Index *iReturn, unsigned long *lReturn,
+Bool BTFindResRange(Index *iReturn, Index *jReturn,
                     BT t, unsigned long s, unsigned long n)
 {
   unsigned long i = 0;
 
   AVER(iReturn != NULL);
-  AVER(lReturn != NULL);
+  AVER(jReturn != NULL);
   AVER(t != NULL);
   AVER(n <= s);
   AVER(n > 0);
@@ -92,7 +96,7 @@ Bool BTFindResRange(Index *iReturn, unsigned long *lReturn,
       } while(j < s && !BTGet(t, j));
       if(j - i >= n) {
         /* found sufficiently long run */
-        *lReturn = j-i;
+        *jReturn = j;
         *iReturn = i;
         return TRUE;
       }
