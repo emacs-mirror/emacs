@@ -1,3 +1,8 @@
+2001-11-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
+	Handle :box so that it is possible to specify sexprs.
+
 2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfaces.c (Finternal_merge_in_global_face): Reindent.
