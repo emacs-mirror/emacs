@@ -370,6 +370,12 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 \\([a-zA-Z]?:?[^:( \t\n]+\\)\
  \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 4 5)
 
+    ;; Valgrind (memory debugger for x86 GNU/Linux):
+    ;;  ==1332==    at 0x8008621: main (vtest.c:180)
+    ;; Currently this regexp only matches the first error.
+    ;; Thanks to Hans Petter Jansson <hpj@ximian.com> for his regexp wisdom.
+    ("^==[0-9]+==[^(]+\(([^:]+):([0-9]+)" 1 2)
+
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
     (".*[ \t:]\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$"
@@ -2001,6 +2007,34 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 	      (overlays-in (point-min) (point-max)))
       buffer)))
 
+(defun compilation-normalize-filename (filename)
+  "Convert a filename string found in an error message to make it usable."
+
+  ;; Check for a comint-file-name-prefix and prepend it if
+  ;; appropriate.  (This is very useful for
+  ;; compilation-minor-mode in an rlogin-mode buffer.)
+  (and (boundp 'comint-file-name-prefix)
+       ;; If file name is relative, default-directory will
+       ;; already contain the comint-file-name-prefix (done
+       ;; by compile-abbreviate-directory).
+       (file-name-absolute-p filename)
+       (setq filename
+	     (concat comint-file-name-prefix filename)))
+
+  ;; If compilation-parse-errors-filename-function is
+  ;; defined, use it to process the filename.
+  (when compilation-parse-errors-filename-function
+    (setq filename
+	  (funcall compilation-parse-errors-filename-function
+		   filename)))
+
+  ;; Some compilers (e.g. Sun's java compiler, reportedly)
+  ;; produce bogus file names like "./bar//foo.c" for file
+  ;; "bar/foo.c"; expand-file-name will collapse these into
+  ;; "/foo.c" and fail to find the appropriate file.  So we
+  ;; look for doubled slashes in the file name and fix them
+  ;; up in the buffer.
+  (setq filename (command-line-normalize-file-name filename)))
 
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.
@@ -2145,31 +2179,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			(error "\
 An error message with no file name and no file name has been seen earlier"))
 
-		    ;; Check for a comint-file-name-prefix and prepend it if
-		    ;; appropriate.  (This is very useful for
-		    ;; compilation-minor-mode in an rlogin-mode buffer.)
-		    (and (boundp 'comint-file-name-prefix)
-			 ;; If file name is relative, default-directory will
-			 ;; already contain the comint-file-name-prefix (done
-			 ;; by compile-abbreviate-directory).
-			 (file-name-absolute-p filename)
-			 (setq filename
-			       (concat comint-file-name-prefix filename)))
-
-		    ;; If compilation-parse-errors-filename-function is
-		    ;; defined, use it to process the filename.
-		    (when compilation-parse-errors-filename-function
-		      (setq filename
-			    (funcall compilation-parse-errors-filename-function
-				     filename)))
-
-		    ;; Some compilers (e.g. Sun's java compiler, reportedly)
-		    ;; produce bogus file names like "./bar//foo.c" for file
-		    ;; "bar/foo.c"; expand-file-name will collapse these into
-		    ;; "/foo.c" and fail to find the appropriate file.  So we
-		    ;; look for doubled slashes in the file name and fix them
-		    ;; up in the buffer.
-		    (setq filename (command-line-normalize-file-name filename))
+		    ;; Clean up the file name string in several ways.
+		    (setq filename (compilation-normalize-filename filename))
 
 		    (setq filename
 			  (cons filename (cons default-directory (cdr alist))))
@@ -2240,27 +2251,37 @@ An error message with no file name and no file name has been seen earlier"))
 
 		;; Not an error message.
 		(if (eq type `file)	; Change current file.
-		    (and filename (setq compilation-current-file filename))
+		    (when filename
+		      (setq compilation-current-file
+			    ;; Clean up the file name string in several ways.
+			    (compilation-normalize-filename filename)))
 		  ;; Enter or leave directory.
 		  (setq stack compilation-directory-stack)
-		  (and filename
-		       (file-directory-p
-			(setq filename
-			      ;; The directory name in the message
-			      ;; is a truename.  Try to convert it to a form
-			      ;; like what the user typed in.
-			      (compile-abbreviate-directory
-			       (file-name-as-directory
-				(expand-file-name filename))
-			       orig orig-expanded parent-expanded)))
-		       (if (eq type 'leave)
-			   (while (and stack
-				       (not (string-equal (car stack)
-							  filename)))
-			     (setq stack (cdr stack)))
-			 (setq compilation-directory-stack
-			       (cons filename compilation-directory-stack)
-			       default-directory filename)))
+		  ;; Don't check if it is really a directory.
+		  ;; Let the code to search and clean up file names
+		  ;; try to use it in any case.
+		  (when filename
+		    ;; Clean up the directory name string in several ways.
+		    (setq filename (compilation-normalize-filename filename))
+		    (setq filename
+			  ;; The directory name in the message
+			  ;; is a truename.  Try to convert it to a form
+			  ;; like what the user typed in.
+			  (compile-abbreviate-directory
+			   (file-name-as-directory
+			    (expand-file-name filename))
+			   orig orig-expanded parent-expanded))
+		    (if (eq type 'leave)
+			;; If we are leaving a specific directory,
+			;; as preparation, pop out of all other directories
+			;; that we entered nested within it.
+			(while (and stack
+				    (not (string-equal (car stack)
+						       filename)))
+			  (setq stack (cdr stack)))
+		      (setq compilation-directory-stack
+			    (cons filename compilation-directory-stack)
+			    default-directory filename)))
 		  (and (eq type 'leave)
 		       stack
 		       (setq compilation-directory-stack (cdr stack))
