@@ -652,6 +652,15 @@ as returned by the `event-start' and `event-end' functions."
 (make-obsolete 'sref 'aref "20.4")
 (make-obsolete 'char-bytes "Now this function always returns 1" "20.4")
 
+(defun insert-string (&rest args)
+  "Mocklisp-compatibility insert function.
+Like the function `insert' except that any argument that is a number
+is converted into a string by expressing it in decimal."
+  (dolist (el args)
+    (insert (if (integerp el) (number-to-string el) el))))
+
+(make-obsolete 'insert-string 'insert "21.3")
+
 ;; Some programs still use this as a function.
 (defun baud-rate ()
   "Obsolete function returning the value of the `baud-rate' variable.
