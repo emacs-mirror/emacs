@@ -102,7 +102,7 @@ void lw_set_keyboard_focus (/* Widget parent, Widget w */);
 void lw_show_busy (/* Widget w, Boolean busy */);
 
 /* Silly hack to assist with Lucid/Athena geometry management. */
-void lw_refigure_widget (/* Widget w, Boolan doit */);
+void lw_refigure_widget (/* Widget w, Boolean doit */);
 
 /* Toolkit independent way of determining if an event occurred on a
    menubar. */

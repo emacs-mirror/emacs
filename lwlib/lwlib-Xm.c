@@ -726,7 +726,7 @@ xm_update_one_value (instance, widget, val)
 /* This function is for activating a button from a program.  It's wrong because
    we pass a NULL argument in the call_data which is not Motif compatible.
    This is used from the XmNdefaultAction callback of the List widgets to
-   have a dble-click put down a dialog box like the button woudl do. 
+   have a double-click put down a dialog box like the button would do. 
    I could not find a way to do that with accelerators.
  */
 static void
@@ -841,7 +841,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       n_children++;
     }
 
-  /* invisible seperator button */
+  /* invisible separator button */
   ac = 0;
   XtSetArg (al[ac], XmNmappedWhenManaged, FALSE); ac++;
   children [n_children] = XmCreateLabel (row, "separator_button", al, ac);

@@ -42,7 +42,7 @@ typedef struct _widget_creation_entry
 } widget_creation_entry;
 
 /* update all other instances of a widget.  Can be used in a callback when
-   a wiget has been used by the user */
+   a widget has been used by the user */
 void
 lw_internal_update_other_instances ();
 

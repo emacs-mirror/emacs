@@ -225,14 +225,14 @@ update_one_menu_entry (widget_instance* instance, Widget widget,
     {
       if (contents)
 	{
-	  /* in OLIT this woudl have to be a structural change on the
+	  /* in OLIT this would have to be a structural change on the
 	     button. */
 	  abort ();
 	}
     }
   else if (!contents)
     {
-      /* in OLIT this woudl have to be a structural change on the button. */
+      /* in OLIT this would have to be a structural change on the button. */
       abort ();
     }
   else if (contents->change != NO_CHANGE)

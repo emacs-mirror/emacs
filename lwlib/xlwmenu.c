@@ -848,7 +848,7 @@ remap_menubar (mw)
     old_stack [i] = new_stack [i];
   mw->menu.old_depth = new_depth;
 
-  /* refresh the last seletion */
+  /* refresh the last selection */
   selection_position.x = 0;
   selection_position.y = 0;
   display_menu (mw, last_same, new_selection == old_selection,

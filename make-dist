@@ -370,7 +370,7 @@ done
 #### created these files by linking them in from the original tree,
 #### they'll have exactly two links normally.)
 ####
-#### Commented out since it's not stricly necessary; it should suffice
+#### Commented out since it's not strictly necessary; it should suffice
 #### to just break the link on alloca.c.
 #echo "Breaking intra-tree links."
 #find ${tempdir} ! -type d -links +2 \

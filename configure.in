@@ -235,7 +235,7 @@ case "${canonical}" in
   ## Convex
   *-convex-bsd* | *-convex-convexos* )
     machine=convex opsys=bsd4-3
-    ## Prevents suprious white space in makefiles - d.m.cooke@larc.nasa.gov
+    ## Prevents spurious white space in makefiles - d.m.cooke@larc.nasa.gov
     NON_GNU_CPP="cc -E -P"
   ;;
 
@@ -998,7 +998,7 @@ fi
 if test x"${x_includes}" = x; then
   bitmapdir=/usr/include/X11/bitmaps
 else
-  # accumulate include directories that have X11 bitmap sudirectories
+  # accumulate include directories that have X11 bitmap subdirectories
   bmd_acc="dummyval"
   for bmd in `echo ${x_includes} | sed -e "s/:/ /g"`; do
     if test -d "${bmd}/X11/bitmaps"; then
