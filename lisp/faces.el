@@ -238,8 +238,9 @@ If the face already exists, it is unmodified."
   (cond ((null frame)
 	 (let ((frames (frame-list)))
 	   (while frames
-	     (make-face-x-resource-internal (face-name face)
-					    (car frames) set-anyway)
+	     (if (eq (framep (car frames)) 'x)
+		 (make-face-x-resource-internal (face-name face)
+						(car frames) set-anyway))
 	     (setq frames (cdr frames)))))
 	(t
 	 (setq face (internal-get-face (face-name face) frame))
