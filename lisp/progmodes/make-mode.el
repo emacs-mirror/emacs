@@ -1028,7 +1028,7 @@ definition and conveniently use this command."
   (save-excursion
     (beginning-of-line)
     (cond
-     ((looking-at "^#+ ")
+     ((looking-at "^#+")
       ;; Found a comment.  Set the fill prefix, and find the paragraph
       ;; boundaries by searching for lines that look like comment-only
       ;; lines.
