@@ -1,3 +1,7 @@
+1999-12-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* dired-aux.el (dired-insert-subdir): Add autoload cookie.
+
 1999-12-07  Dave Love  <fx@gnu.org>
 
 	* help.el (view-emacs-problems): New command, bound to C-h P.
@@ -130,7 +134,6 @@
 	tags-recognize-empty-tags-table.
 	(complete-tag): Call tags-complete-tag bypassing try-completion.
 	
->>>>>>> 1.221
 1999-12-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): Docstring
@@ -232,6 +235,7 @@
 
 	* delsel.el: Grok skeleton-pair-insert-maybe.
 
+>>>>>>> 1.224
 1999-11-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* progmodes/cperl-mode.el (cperl-under-as-char):
