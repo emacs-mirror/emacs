@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Author: Espen Skoglund (espensk@stud.cs.uit.no)
+;; Author: Espen Skoglund <espensk@stud.cs.uit.no>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
