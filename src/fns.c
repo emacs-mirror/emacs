@@ -845,7 +845,7 @@ string_char_to_byte (string, char_index)
 	  while (best_above_byte > 0
 		 && !CHAR_HEAD_P (XSTRING (string)->data[best_above_byte]))
 	    best_above_byte--;
-	  if (XSTRING (string)->data[best_above_byte] < 0x80)
+	  if (!BASE_LEADING_CODE_P (XSTRING (string)->data[best_above_byte]))
 	    best_above_byte = best_above_byte_saved;
 	  best_above--;
 	}
@@ -911,7 +911,7 @@ string_byte_to_char (string, byte_index)
 	  while (best_above_byte > 0
 		 && !CHAR_HEAD_P (XSTRING (string)->data[best_above_byte]))
 	    best_above_byte--;
-	  if (XSTRING (string)->data[best_above_byte] < 0x80)
+	  if (!BASE_LEADING_CODE_P (XSTRING (string)->data[best_above_byte]))
 	    best_above_byte = best_above_byte_saved;
 	  best_above--;
 	}
