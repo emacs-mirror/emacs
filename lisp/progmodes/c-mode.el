@@ -718,11 +718,17 @@ Returns nil if line starts inside a string, t if in a comment."
 				     (looking-at "[^\"\n=(]*(")
 				     (progn
 				       (goto-char (1- (match-end 0)))
-				       (setq lim (point))
-				       (condition-case nil
-					   (forward-sexp 1)
-					 (error))
-				       (skip-chars-forward " \t\f")
+				       ;; Skip any number of paren-groups.
+				       ;; Consider typedef int (*fcn) (int);
+				       (while (= (following-char) ?\()
+					 (setq lim (point))
+					 (condition-case nil
+					     (forward-sexp 1)
+					   (error))
+					 (skip-chars-forward " \t\f"))
+				       ;; Have we reached something
+				       ;; that shows this isn't a function
+				       ;; definition?
 				       (and (< (point) indent-point)
 					    (not (memq (following-char)
 						       '(?\, ?\;)))))
