@@ -1981,6 +1981,8 @@ buffer is new and therefore empty), the value of
 non-@code{nil} for tab format) is used.  You can tell which style is
 presently in effect by the presence or absence of the string specified
 by @code{fortran-tab-mode-string} (default @samp{/t}) in the mode line.
+Fortran mode sets the value of @code{indent-tabs-mode} accordingly
+(@pxref{Just Spaces}).
 
 @vindex fortran-continuation-string
   If the text on a line starts with the Fortran continuation marker
