@@ -409,9 +409,7 @@ static char *vga_colors[16] = {
   "lightred", "lightmagenta", "yellow", "white"
 };
 
-static char *unspecified_colors[] = {
-  "unspecified-fg", "unspecified-bg", "unspecified"
-};
+extern char unspecified_fg[], unspecified_bg[];
 
 /* Given a color name, return its index, or -1 if not found.  Note
    that this only performs case-insensitive comparison against the
@@ -429,8 +427,8 @@ msdos_stdcolor_idx (const char *name)
       return i;
 
   return
-    strcmp (name, unspecified_colors[0]) == 0 ? FACE_TTY_DEFAULT_FG_COLOR
-    : strcmp (name, unspecified_colors[1]) == 0 ? FACE_TTY_DEFAULT_BG_COLOR
+    strcmp (name, unspecified_fg) == 0 ? FACE_TTY_DEFAULT_FG_COLOR
+    : strcmp (name, unspecified_bg) == 0 ? FACE_TTY_DEFAULT_BG_COLOR
     : FACE_TTY_DEFAULT_COLOR;
 }
 
@@ -438,16 +436,16 @@ msdos_stdcolor_idx (const char *name)
 Lisp_Object
 msdos_stdcolor_name (int idx)
 {
-  extern Lisp_Object Qunspecified, Qunspecified_fg, Qunspecified_bg;
+  extern Lisp_Object Qunspecified;
 
-  if (idx < 0 || idx >= sizeof (vga_colors) / sizeof (vga_colors[0]))
-    {
-      return
-	idx == FACE_TTY_DEFAULT_FG_COLOR ? Qunspecified_fg
-	: idx == FACE_TTY_DEFAULT_BG_COLOR ? Qunspecified_bg
-	: Qunspecified;	/* meaning the default */
-    }
-  return build_string (vga_colors[idx]);
+  if (idx == FACE_TTY_DEFAULT_FG_COLOR)
+    return build_string (unspecified_fg);
+  else if (idx == FACE_TTY_DEFAULT_BG_COLOR)
+    return build_string (unspecified_bg);
+  else if (idx >= 0 && idx < sizeof (vga_colors) / sizeof (vga_colors[0]))
+    return build_string (vga_colors[idx]);
+  else
+    return Qunspecified;	/* meaning the default */
 }
 
 /* Support for features that are available when we run in a DOS box
