@@ -110,17 +110,23 @@
 
 ;;;  Customization variables
 
-(defconst tpu-top-scroll-margin 0
+(defcustom tpu-top-scroll-margin 0
   "*Scroll margin at the top of the screen.
-Interpreted as a percent of the current window size.")
-(defconst tpu-bottom-scroll-margin 0
+Interpreted as a percent of the current window size."
+  :type 'integer
+  :group 'tpu)
+(defcustom tpu-bottom-scroll-margin 0
   "*Scroll margin at the bottom of the screen.
-Interpreted as a percent of the current window size.")
+Interpreted as a percent of the current window size."
+  :type 'integer
+  :group 'tpu)
 
-(defvar tpu-backward-char-like-tpu t
+(defcustom tpu-backward-char-like-tpu t
   "*If non-nil, in free cursor mode backward-char (left-arrow) works
 just like TPU/edt.  Otherwise, backward-char will move to the end of
-the previous line when starting from a line beginning.")
+the previous line when starting from a line beginning."
+  :type 'boolean
+  :group 'tpu)
 
 
 ;;;  Global variables

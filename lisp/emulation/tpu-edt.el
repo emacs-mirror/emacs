@@ -266,6 +266,11 @@
 
 ;;; Code:
 
+(defgroup tpu nil
+  "Emacs emulating TPU emulating EDT."
+  :prefix "tpu-"
+  :group 'emulations)
+
 
 ;;;
 ;;;  Version Information
@@ -276,17 +281,25 @@
 ;;;
 ;;;  User Configurable Variables
 ;;;
-(defconst tpu-have-ispell t
-  "*If non-nil (default), TPU-edt uses ispell for spell checking.")
+(defcustom tpu-have-ispell t
+  "*If non-nil (default), TPU-edt uses ispell for spell checking."
+  :type 'boolean
+  :group 'tpu)
 
-(defconst tpu-kill-buffers-silently nil
-  "*If non-nil, TPU-edt kills modified buffers without asking.")
+(defcustom tpu-kill-buffers-silently nil
+  "*If non-nil, TPU-edt kills modified buffers without asking."
+  :type 'boolean
+  :group 'tpu)
 
-(defvar tpu-percent-scroll 75
-  "*Percentage of the screen to scroll for next/previous screen commands.")
+(defcustom tpu-percent-scroll 75
+  "*Percentage of the screen to scroll for next/previous screen commands."
+  :type 'integer
+  :group 'tpu)
 
-(defvar tpu-pan-columns 16
-  "*Number of columns the tpu-pan functions scroll left or right.")
+(defcustom tpu-pan-columns 16
+  "*Number of columns the tpu-pan functions scroll left or right."
+  :type 'integer
+  :group 'tpu)
 
 
 ;;;

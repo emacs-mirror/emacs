@@ -35,6 +35,11 @@
 
 ;;; Code:
 
+(defgroup vip nil
+  "A VI Package for GNU Emacs."
+  :prefix "vip-"
+  :group 'emulations)
+
 ;; external variables
 
 (defvar vip-emacs-local-map nil
@@ -85,11 +90,15 @@
 (defvar vip-d-com nil
   "How to reexecute last destructive command.  Value is list (M-COM VAL COM).")
 
-(defconst vip-shift-width 8
-  "*The number of columns shifted by > and < command.")
+(defcustom vip-shift-width 8
+  "*The number of columns shifted by > and < command."
+  :type 'integer
+  :group 'vip)
 
-(defconst vip-re-replace nil
-  "*If t then do regexp replace, if nil then do string replace.")
+(defcustom vip-re-replace nil
+  "*If t then do regexp replace, if nil then do string replace."
+  :type 'boolean
+  :group 'vip)
 
 (defvar vip-d-char nil
   "The character remembered by the vi \"r\" command.")
@@ -106,11 +115,15 @@
 (defvar vip-f-offset nil
   "For use by \";\" command.")
 
-(defconst vip-search-wrap-around t
-  "*if t, search wraps around.")
+(defcustom vip-search-wrap-around t
+  "*If t, search wraps around."
+  :type 'boolean
+  :group 'vip)
 
-(defconst vip-re-search nil
-  "*if t, search is reg-exp search, otherwise vanilla search.")
+(defcustom vip-re-search nil
+  "*If t, search is reg-exp search, otherwise vanilla search."
+  :type 'boolean
+  :group 'vip)
 
 (defvar vip-s-string nil
   "Last vip search string.")
@@ -118,18 +131,26 @@
 (defvar vip-s-forward nil
   "If t, search is forward.")
 
-(defconst vip-case-fold-search nil
-  "*If t, search ignores cases.")
+(defcustom vip-case-fold-search nil
+  "*If t, search ignores cases."
+  :type 'boolean
+  :group 'vip)
 
-(defconst vip-re-query-replace nil
-  "*If t then do regexp replace, if nil then do string replace.")
+(defcustom vip-re-query-replace nil
+  "*If t then do regexp replace, if nil then do string replace."
+  :type 'boolean
+  :group 'vip)
 
-(defconst vip-open-with-indent nil
-  "*If t, indent when open a new line.")
+(defcustom vip-open-with-indent nil
+  "*If t, indent when open a new line."
+  :type 'boolean
+  :group 'vip)
 
-(defconst vip-help-in-insert-mode nil
+(defcustom vip-help-in-insert-mode nil
   "*If t then C-h is bound to help-command in insert mode.
-If nil then it is bound to `delete-backward-char'.")
+If nil then it is bound to `delete-backward-char'."
+  :type 'boolean
+  :group 'vip)
 
 (defvar vip-quote-string "> "
   "String inserted at the beginning of region.")
