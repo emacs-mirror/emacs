@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.24) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -20,13 +20,23 @@
  * rank (a guardian for RankEXACT would tell you if the object was
  * ambiguously referenced, for example).  The code that would need to be
  * modified bears this tag.
+ * 
+ * TRANSGRESSIONS
+ *
+ * .addr.void-star: Breaks design.mps.type.addr.use all over the place,
+ * accessing the segments acquired from SegAlloc with C pointers.  It
+ * would not be practical to use ArenaPeek/Poke everywhere.  Blocks
+ * acquired from ArenaAlloc must be directly accessible from C, or else
+ * none of the pools would work.  Therefore, if we implement a variant
+ * where Addr != void*, we just use the same magic for the control pool
+ * and MRG pools, whatever that might be.
  */
 
 
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.24) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.25) $");
 
 
 /* Types */
