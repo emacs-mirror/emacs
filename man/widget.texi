@@ -65,13 +65,12 @@ Software Foundation raise funds for GNU development.''
 @comment  node-name,  next,  previous,  up
 @section Introduction
 
-Most graphical user interface toolkits, such as Motif and XView, provide
-a number of standard user interface controls (sometimes known as
-`widgets' or `gadgets').  Emacs doesn't really support anything like
-this, except for an incredibly powerful text ``widget''.  On the other
-hand, Emacs does provide the necessary primitives to implement many
-other widgets within a text buffer.  The @code{widget} package
-simplifies this task.
+Most graphical user interface toolkits provide a number of standard
+user interface controls (sometimes known as `widgets' or `gadgets').
+Emacs doesn't really support anything like this, except for an
+incredibly powerful text ``widget.''  On the other hand, Emacs does
+provide the necessary primitives to implement many other widgets
+within a text buffer.  The @code{widget} package simplifies this task.
 
 @cindex basic widgets
 @cindex widgets, basic types
@@ -240,8 +239,8 @@ If point is not located on a button, invoke the binding in
 @code{widget-global-map} (by default the global map).
 @end deffn
 
-@kindex mouse-2, on button widgets
-@item mouse-2
+@kindex Mouse-2 @r{(on button widgets})
+@item Mouse-2
 @deffn Command widget-button-click @var{event}
 Invoke the button at the location of the mouse pointer.  If the mouse
 pointer is located in an editable text field, invoke the binding in
@@ -450,7 +449,7 @@ There is a standard widget keymap which you might find useful.
 @defvr Const widget-keymap
 A keymap with the global keymap as its parent.@*
 @key{TAB} and @kbd{C-@key{TAB}} are bound to @code{widget-forward} and
-@code{widget-backward}, respectively.  @kbd{@key{RET}} and @kbd{mouse-2}
+@code{widget-backward}, respectively.  @key{RET} and @kbd{Mouse-2}
 are bound to @code{widget-button-press} and
 @code{widget-button-click}.@refill
 @end defvr
