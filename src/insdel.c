@@ -556,6 +556,7 @@ del_range_1 (from, to, prepare)
   if (Z - GPT < end_unchanged)
     end_unchanged = Z - GPT;
 
+  evaporate_overlays (from);
   signal_after_change (from, numdel, 0);
 }
 
