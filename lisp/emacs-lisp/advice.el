@@ -90,7 +90,7 @@
 ;; =====================================
 ;; Advice has enough features now to justify an info file, however, I
 ;; didn't have the time yet to do all the necessary formatting. So,
-;; until I do have the time or some kind soul does it for me I cramped
+;; until I do have the time or some kind soul does it for me I crammed
 ;; everything into the source file. Because about 50% of this file is
 ;; documentation it should be in outline-mode by default, but it is not.
 ;; If you choose to use outline-mode set `outline-regexp' to `";; @+"'
