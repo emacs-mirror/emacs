@@ -2229,10 +2229,14 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif
     }
 
+#ifdef TERMINFO
+  area = (char *) xmalloc (buffer_size);
+#else
   if (strlen (buffer) >= buffer_size)
     abort ();
   
   area = (char *) xmalloc (strlen (buffer));
+#endif
 
   TS_ins_line = tgetstr ("al", address);
   TS_ins_multi_lines = tgetstr ("AL", address);
