@@ -1438,11 +1438,8 @@ Control characters turn into C-whatever, etc.")
     case Lisp_Symbol:		/* Function key or event-symbol */
       return Fsymbol_name (key);
 
-    case Lisp_String:
-      return key;
-
     default:
-      error ("KEY must be an integer, cons, string, or symbol.");
+      error ("KEY must be an integer, cons, or symbol.");
     }
 }
 
@@ -2076,6 +2073,9 @@ describe_map (map, keys, elt_describer, partial, shadow, seen)
       else if (CONSP (XCONS (tail)->car))
 	{
 	  event = XCONS (XCONS (tail)->car)->car;
+	  /* Don't show individual items in the Buffers menu.  */
+	  if (STRINGP (event))
+	    continue;
 	  definition = get_keyelt (XCONS (XCONS (tail)->car)->cdr, 0);
 
 	  /* Don't show undefined commands or suppressed commands.  */
