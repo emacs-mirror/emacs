@@ -323,11 +323,13 @@ nil for FUNCTION means all messages."
 
 (defun rmail-summary-next-all (&optional number)
   (interactive "p")
-  (forward-line (if number number 1)))
+  (forward-line (if number number 1))
+  (display-buffer rmail-buffer))
 
 (defun rmail-summary-previous-all (&optional number)
   (interactive "p")
-  (forward-line (- (if number number 1))))
+  (forward-line (- (if number number 1)))
+  (display-buffer rmail-buffer))
 
 (defun rmail-summary-next-msg (&optional number)
   "Display next non-deleted msg from rmail file.
@@ -342,7 +344,8 @@ messages, or backward if NUMBER is negative."
     (while (and (> count 0) (setq non-del-msg-found
 				  (or (funcall search "^.....[^D]" nil t)
 				      non-del-msg-found)))
-      (setq count (1- count)))))
+      (setq count (1- count))))
+  (display-buffer rmail-buffer))
 
 (defun rmail-summary-previous-msg (&optional number)
   (interactive "p")
@@ -478,29 +481,31 @@ Instead, all of the Rmail Mode commands are available, plus:
   (add-hook 'post-command-hook 'rmail-summary-rmail-update)
   (run-hooks 'rmail-summary-mode-hook))
 
-;; Show in Rmail the message described by the summary line that point is on.
+;; Show in Rmail the message described by the summary line that point is on,
+;; but only if the Rmail buffer is already visible.
 ;; This is a post-command-hook in summary buffers.
 (defun rmail-summary-rmail-update ()
-  (let (buffer-read-only)
-    (save-excursion
-      (beginning-of-line)
-      (skip-chars-forward " ")
-      (let ((beg (point))
-	    msg-num
-	    (buf rmail-buffer))
-	(skip-chars-forward "0-9")
-	(setq msg-num (string-to-int (buffer-substring beg (point))))
-	(or (eq rmail-current-message msg-num)
-	    (progn
-	      (setq rmail-current-message msg-num)
-	      (if (= (following-char) ?-)
-		  (progn
-		    (delete-char 1)
-		    (insert " ")))
-	      (setq window (display-buffer rmail-buffer))
-	      (save-window-excursion
-		(select-window window)
-		(rmail-show-message msg-num))))))))
+  (if (get-buffer-window rmail-buffer)
+      (let (buffer-read-only)
+	(save-excursion
+	  (beginning-of-line)
+	  (skip-chars-forward " ")
+	  (let ((beg (point))
+		msg-num
+		(buf rmail-buffer))
+	    (skip-chars-forward "0-9")
+	    (setq msg-num (string-to-int (buffer-substring beg (point))))
+	    (or (eq rmail-current-message msg-num)
+		(progn
+		  (setq rmail-current-message msg-num)
+		  (if (= (following-char) ?-)
+		      (progn
+			(delete-char 1)
+			(insert " ")))
+		  (setq window (display-buffer rmail-buffer))
+		  (save-window-excursion
+		    (select-window window)
+		    (rmail-show-message msg-num)))))))))
 
 (defvar rmail-summary-mode-map nil)
 
@@ -528,13 +533,11 @@ Instead, all of the Rmail Mode commands are available, plus:
   (define-key rmail-summary-mode-map "m"      'rmail-summary-mail)
   (define-key rmail-summary-mode-map "\M-m"   'rmail-summary-retry-failure)
   (define-key rmail-summary-mode-map "n"      'rmail-summary-next-msg)
-  (define-key rmail-summary-mode-map "\C-n"   'rmail-summary-next-all)
   (define-key rmail-summary-mode-map "\en"    'rmail-summary-next-all)
   (define-key rmail-summary-mode-map "\e\C-n" 'rmail-summary-next-labeled-message)
   (define-key rmail-summary-mode-map "o"      'rmail-summary-output-to-rmail-file)
   (define-key rmail-summary-mode-map "\C-o"   'rmail-summary-output)
   (define-key rmail-summary-mode-map "p"      'rmail-summary-previous-msg)
-  (define-key rmail-summary-mode-map "\C-p"   'rmail-summary-previous-all)
   (define-key rmail-summary-mode-map "\ep"    'rmail-summary-previous-all)
   (define-key rmail-summary-mode-map "\e\C-p" 'rmail-summary-previous-labeled-message)
   (define-key rmail-summary-mode-map "q"      'rmail-summary-quit)
