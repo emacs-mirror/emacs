@@ -748,8 +748,8 @@ echo_char (c)
 	}
       else if (SYMBOLP (c))
 	{
-	  struct Lisp_String *name = XSTRING (SYMBOL_NAME (c));
-	  int nbytes = STRING_BYTES (name);
+	  Lisp_Object name = SYMBOL_NAME (c);
+	  int nbytes = SBYTES (name);
 	  
 	  if (size - (ptr - buffer) < nbytes)
 	    {
@@ -759,8 +759,8 @@ echo_char (c)
 	      ptr = buffer + offset;
 	    }
 
-	  ptr += copy_text (name->data, ptr, nbytes,
-			    name->size_byte >= 0, 1);
+	  ptr += copy_text (SDATA (name), ptr, nbytes,
+			    STRING_MULTIBYTE (name), 1);
 	}
 
       if ((NILP (echo_string) || SCHARS (echo_string) == 0)
@@ -5583,16 +5583,16 @@ parse_modifiers_uncached (symbol, modifier_end)
      Lisp_Object symbol;
      int *modifier_end;
 {
-  struct Lisp_String *name;
+  Lisp_Object name;
   int i;
   int modifiers;
 
   CHECK_SYMBOL (symbol);
 
   modifiers = 0;
-  name = XSTRING (SYMBOL_NAME (symbol));
+  name = SYMBOL_NAME (symbol);
 
-  for (i = 0; i+2 <= STRING_BYTES (name); )
+  for (i = 0; i+2 <= SBYTES (name); )
     {
       int this_mod_end = 0;
       int this_mod = 0;
@@ -5601,7 +5601,7 @@ parse_modifiers_uncached (symbol, modifier_end)
 	 Check that the word appears, but don't check what follows it.
 	 Set this_mod and this_mod_end to record what we find.  */
 
-      switch (name->data[i])
+      switch (SREF (name, i))
 	{
 #define SINGLE_LETTER_MOD(BIT)				\
 	  (this_mod_end = i + 1, this_mod = BIT)
@@ -5639,8 +5639,8 @@ parse_modifiers_uncached (symbol, modifier_end)
 
       /* Check there is a dash after the modifier, so that it
 	 really is a modifier.  */
-      if (this_mod_end >= STRING_BYTES (name)
-	  || name->data[this_mod_end] != '-')
+      if (this_mod_end >= SBYTES (name)
+	  || SREF (name, this_mod_end) != '-')
 	break;
 
       /* This modifier is real; look for another.  */
@@ -5651,9 +5651,9 @@ parse_modifiers_uncached (symbol, modifier_end)
   /* Should we include the `click' modifier?  */
   if (! (modifiers & (down_modifier | drag_modifier
 		      | double_modifier | triple_modifier))
-      && i + 7 == STRING_BYTES (name)
-      && strncmp (name->data + i, "mouse-", 6) == 0
-      && ('0' <= name->data[i + 6] && name->data[i + 6] <= '9'))
+      && i + 7 == SBYTES (name)
+      && strncmp (SDATA (name) + i, "mouse-", 6) == 0
+      && ('0' <= SREF (name, i + 6) && SREF (name, i + 6) <= '9'))
     modifiers |= click_modifier;
 
   if (modifier_end)
@@ -6080,17 +6080,17 @@ static int
 parse_solitary_modifier (symbol)
      Lisp_Object symbol;
 {
-  struct Lisp_String *name = XSTRING (SYMBOL_NAME (symbol));
+  Lisp_Object name = SYMBOL_NAME (symbol);
 
-  switch (name->data[0])
+  switch (SREF (name, 0))
     {
 #define SINGLE_LETTER_MOD(BIT)				\
-      if (STRING_BYTES (name) == 1)			\
+      if (SBYTES (name) == 1)				\
 	return BIT;
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
-      if (LEN == STRING_BYTES (name)			\
-	  && ! strncmp (name->data, NAME, LEN))		\
+      if (LEN == SBYTES (name)				\
+	  && ! strncmp (SDATA (name), NAME, LEN))	\
 	return BIT;
 
     case 'A':
@@ -9473,7 +9473,6 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   /* Set this_command_keys to the concatenation of saved_keys and
      function, followed by a RET.  */
   {
-    struct Lisp_String *str;
     Lisp_Object *keys;
     int i;
 
@@ -9484,8 +9483,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     for (i = 0; i < XVECTOR (saved_keys)->size; i++)
       add_command_key (keys[i]);
 
-    str = XSTRING (function);
-    for (i = 0; i < str->size; i++)
+    for (i = 0; i < SCHARS (function); i++)
       add_command_key (Faref (function, make_number (i)));
 
     add_command_key (make_number ('\015'));
