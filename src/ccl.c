@@ -702,7 +702,7 @@ static tr_stack *mapping_stack_pointer;
     else if (ccl->last_block)			\
       {						\
         ic = ccl->eof_ic;			\
-        goto ccl_finish;			\
+        goto ccl_repeat;			\
       }						\
     else					\
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);	\
@@ -757,6 +757,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
   for (;;)
     {
+    ccl_repeat:
 #ifdef CCL_DEBUG
       ccl_backtrace_table[ccl_backtrace_idx++] = ic;
       if (ccl_backtrace_idx >= CCL_DEBUG_BACKTRACE_LEN)
