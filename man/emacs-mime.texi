@@ -574,8 +574,11 @@ string.  It is defined in RFC 2045.
 The following functions are defined by the library:
 
 @deffn Command quoted-printable-decode-region @var{from} @var{to} &optional @var{coding-system}
-QP-decode all the encoded text in the region.  If @var{coding-system} is
-non-nil, decode bytes into characters with that coding-system.
+QP-decode all the encoded text in the region.  If @var{coding-system}
+is non-nil, decode bytes into characters with that coding-system.  It
+is probably better not to use @var{coding-system}; instead decode into
+a unibyte buffer, decode that appropriately and then interpret it as
+multibyte.
 @end deffn
 
 @defun quoted-printable-decode-string @var{string} &optional @var{coding-system}
@@ -584,12 +587,16 @@ non-nil, decode bytes into characters with that coding-system.
 @end defun
 
 @deffn Command quoted-printable-encode-region @var{from} @var{to} &optional @var{fold} @var{class}
-QP-encode all the region.  If @var{fold} is non-@var{nil}, fold lines at
-76 characters, as required by the RFC.  If @var{class} is
-non-@code{nil}, translate the characters matched by that class in the
-form expected by @var{skip-chars-forward}.  If variable
-@var{mm-use-ultra-safe-encoding} is defined and non-@code{nil}, fold
-lines unconditionally and encode lines starting with @samp{From }.
+QP-encode all the region.  If @var{fold} is non-@var{nil}, fold lines
+at 76 characters, as required by the RFC.  If @var{class} is
+non-@code{nil}, translate the characters matched by that class, which
+should be in the form expected by @var{skip-chars-forward} and should
+probably not contain literal eight-bit characters.  Specifying
+@var{class} makes sense to do extra encoding in header fields.
+
+If variable @var{mm-use-ultra-safe-encoding} is defined and
+non-@code{nil}, fold lines unconditionally and encode @samp{From } and
+@samp{-} at the start of lines..
 @end deffn
 
 @defun quoted-printable-encode-string string
