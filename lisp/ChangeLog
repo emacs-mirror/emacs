@@ -1,5 +1,26 @@
 2004-11-11  Jay Belanger  <belanger@truman.edu>
 
+	* calc/calc-comb.el (math-prime-factors-finished):  Declared it as
+	a variable. 
+	(calcFunc-dfac):  Replaced unbound max by n.
+	(math-stirling-local-cache):  New variable.
+	(math-stirling-number, math-stirling-1, math-stirling-2):
+	Replaced the variable `cache' by the declared variable
+	math-stirling-local-cache.  
+	(var-RandSeed):  Declared it as a variable.
+	(math-init-random-base, math-random-digit):  Don't check to see if
+	var-RandSeed is bound. 
+	(math-random-cache, math-gaussian-cache, calc-verbose-nextprime):
+	Declared them instead of just setting them.
+	(math-init-random-base):  Made i a local variable.
+	(math-random-digit):  Made math-random-last a local variable.
+	(math-prime-test-cache):  Moved declaration to before it is used.
+	(math-prime-test-cache-k, math-prime-test-cache-q)
+	(math-prime-test-cache-nm1, math-prime-factors-finished):
+	Declared them as variables. 
+
+2004-11-11  Jay Belanger  <belanger@truman.edu>	
+
 	* calc/calc-ext.el (math-defcache):  Use defvar for the new
 	variables it creates. 
 
