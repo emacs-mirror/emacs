@@ -23,7 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;; This mode uses the Keywords library header to provide code-finding
 ;; services by keyword.
@@ -70,6 +70,16 @@
     (vms	. "support code for vms")
     (wp		. "word processing")
     ))
+
+(defvar finder-mode-map nil)
+;(if finder-mode-map
+;    nil
+  (setq finder-mode-map (make-sparse-keymap))
+  (define-key finder-mode-map " "	'finder-select)
+  (define-key finder-mode-map "?"	'finder-summary)
+  (define-key finder-mode-map "x"	'finder-exit)
+  (define-key finder-mode-map "f"	'finder-list-keywords)
+;  )
 
 ;;; Code for regenerating the keyword list.
 
@@ -129,45 +139,121 @@ arguments compiles from `load-path'."
 
 ;;; Now the retrieval code
 
+(defun finder-list-keywords ()
+  "Display descriptions of the keywords in the Finder buffer."
+  (interactive)
+  (setq buffer-read-only nil)
+  (erase-buffer)
+  (mapcar
+   (function (lambda (assoc)
+	       (let ((keyword (car assoc)))
+		 (insert (symbol-name keyword))
+		 (insert-at-column 14 (concat (cdr assoc) "\n"))
+		 (cons (symbol-name keyword) keyword))))
+   finder-known-keywords)
+  (goto-char (point-min))
+  (setq headmark (point))
+  (setq buffer-read-only t)
+  (set-buffer-modified-p nil)
+  (balance-windows)
+  (finder-summary))
+
+(defun finder-list-matches (key)
+  (setq buffer-read-only nil)
+  (erase-buffer)
+  (let ((id (intern key)))
+    (insert
+     "The following packages match the keyword `" key "':\n\n")
+    (setq headmark (point))
+    (mapcar
+     (function (lambda (x)
+		 (if (memq id (car (cdr (cdr x))))
+		     (progn
+		       (insert (car x))
+		       (insert-at-column 16
+					 (concat (car (cdr x)) "\n"))
+		       ))
+		 ))
+     finder-package-info)
+    (goto-char (point-min))
+    (forward-line)
+    (setq buffer-read-only t)
+    (set-buffer-modified-p nil)
+    (shrink-window-if-larger-than-buffer)
+    (finder-summary)))
+
+(defun finder-commentary (file)
+  (interactive)
+  (let* ((str (lm-commentary file)))
+    (if (null str)
+	(error "Can't find any Commentary section."))
+    (pop-to-buffer "*Finder*")
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (insert str)
+    (goto-char (point-min))
+    (delete-blank-lines)
+    (goto-char (point-max))
+    (delete-blank-lines)
+    (goto-char (point-min))
+    (while (re-search-forward "^;+ ?" nil t)
+      (replace-match "" nil nil))
+    (goto-char (point-min))
+    (setq buffer-read-only t)
+    (set-buffer-modified-p nil)
+    (shrink-window-if-larger-than-buffer)
+    (finder-summary)
+    ))
+
+(defun finder-current-item ()
+  (if (and headmark (< (point) headmark))
+      (error "No keyword or filename on this line")
+    (save-excursion
+      (beginning-of-line)
+      (current-word))))
+
+(defun finder-select ()
+  (interactive)
+  (let ((key (finder-current-item)))
+    (if (string-match "\\.el$" key)
+	(finder-commentary key)
+      (finder-list-matches key))))
+
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
   (interactive)
-  (set-buffer (get-buffer-create "*Help*"))
-  (erase-buffer)
+  (finder-mode)
+  (finder-list-keywords))
 
-  ;; Display descriptions of the keywords in the help buffer, and
-  ;; build an assoc list mapping the names of known keywords to their
-  ;; symbols.
-  (let ((keyword-names
-	 (mapcar (lambda (assoc)
-		   (let ((keyword (car assoc)))
-		     (insert (symbol-name keyword))
-		     (insert-at-column 14 (cdr assoc) "\n")
-		     (cons (symbol-name keyword) keyword)))
-		 finder-known-keywords)))
-    (let ((key 
-	   (save-window-excursion
-	     (pop-to-buffer "*Help*")
-	     (goto-char (point-min))
-	     (completing-read "Package keyword: " keyword-names nil t)))
-	  id)
-      (or (equal key "")
-	  (progn
-	    (erase-buffer)
-	    (pop-to-buffer "*Help*")
-	    (setq id (intern key))
-	    (insert
-	     "The following packages match the keyword `" key "':\n\n")
-	    (mapcar
-	     (function (lambda (x)
-			 (if (memq id (car (cdr (cdr x))))
-			     (progn
-			       (insert (car x))
-			       (insert-at-column 16 (car (cdr x)) "\n")
-			       ))
-			 ))
-	     finder-package-info)
-	    (goto-char (point-min)))))))
+(defun finder-mode ()
+  "Major mode for browsing package documentation.
+
+\\[finder-select]	more help for the item on the current line
+\\[finder-exit]	exit Finder mode and fill the Finder buffer.
+"
+  (interactive)
+  (pop-to-buffer "*Finder*")
+  (setq buffer-read-only nil)
+  (erase-buffer)
+  (use-local-map finder-mode-map)
+  (set-syntax-table emacs-lisp-mode-syntax-table)
+  (setq mode-name "Finder")
+  (setq major-mode 'finder-mode)
+  (make-local-variable 'headmark)
+  (setq headmark nil)
+)
+
+(defun finder-summary ()
+  "Summarize basic Finder commands."
+  (interactive)
+  (message
+   "SPC = select, f = back to Finder, x = eXit, ? = help"))
+
+(defun finder-exit ()
+  "Exit Finder mode and kill the buffer"
+  (interactive)
+  (delete-window)
+  (kill-buffer "*Finder*"))
 
 (provide 'finder)
 
