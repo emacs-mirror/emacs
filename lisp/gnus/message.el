@@ -1382,12 +1382,17 @@ Point is left at the beginning of the narrowed-to region."
    ["Kill To Signature" message-kill-to-signature t]
    ["Newline and Reformat" message-newline-and-reformat t]
    ["Rename buffer" message-rename-buffer t]
-   ["Spellcheck" ispell-message t]
-   ["Attach file as MIME" mml-attach-file t]
+   ["Spellcheck" ispell-message
+    :help "Spellcheck this message"]
+   ["Attach file as MIME" mml-attach-file
+    :help "Attach a file at point"]
    "----"
-   ["Send Message" message-send-and-exit t]
-   ["Abort Message" message-dont-send t]
-   ["Kill Message" message-kill-buffer t]))
+   ["Send Message" message-send-and-exit
+    :help "Send this message"]
+   ["Abort Message" message-dont-send
+    :help "File this draft message and exit"]
+   ["Kill Message" message-kill-buffer
+    :help "Delete this message without sending"]))
 
 (easy-menu-define
  message-mode-field-menu message-mode-map ""
@@ -1490,7 +1495,9 @@ M-RET    message-newline-and-reformat (break the line and reformat)."
   (if (featurep 'xemacs)
       (message-setup-toolbar)
     (set (make-local-variable 'font-lock-defaults)
-	 '(message-font-lock-keywords t)))
+	 '(message-font-lock-keywords t))
+    (if (boundp 'message-tool-bar-map)
+	(set (make-local-variable 'tool-bar-map) message-tool-bar-map)))
   (easy-menu-add message-mode-menu message-mode-map)
   (easy-menu-add message-mode-field-menu message-mode-map)
   ;; Allow mail alias things.
@@ -4309,8 +4316,28 @@ which specify the range to operate on."
 (defalias 'message-exchange-point-and-mark 'exchange-point-and-mark)
 
 ;; Support for toolbar
-(when (string-match "XEmacs\\|Lucid" emacs-version)
-  (require 'messagexmas))
+(if (featurep 'xemacs)
+    (require 'messagexmas)
+  (when (and (fboundp 'tool-bar-add-item-from-menu)
+ 	     tool-bar-mode)
+    (defvar message-tool-bar-map
+      (let ((tool-bar-map (copy-keymap tool-bar-map)))
+ 	;; Zap some items which aren't so relevant and take up space.
+ 	(dolist (key '(print-buffer kill-buffer save-buffer write-file
+ 				    dired open-file))
+ 	  (define-key tool-bar-map (vector key) nil))
+ 
+ 	(tool-bar-add-item-from-menu
+ 	 'message-send-and-exit "mail_send" message-mode-map)
+ 	(tool-bar-add-item-from-menu
+ 	 'message-kill-buffer "close" message-mode-map)
+ 	(tool-bar-add-item-from-menu
+ 	 'message-dont-send "cancel" message-mode-map)
+ 	(tool-bar-add-item-from-menu
+ 	 'mml-attach-file "attach" message-mode-map)
+ 	(tool-bar-add-item-from-menu
+ 	 'ispell-message "spell" message-mode-map)
+ 	tool-bar-map))))
 
 ;;; Group name completion.
 
