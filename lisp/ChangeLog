@@ -1,3 +1,12 @@
+2003-03-15  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-ucs-to-string): New function to convert Unicode
+	codepoints to strings.  Uses decode-char (mule.el) if available.
+	(xml-parse-tag, xml-parse-attlist, xml-skip-dtd, xml-parse-dtd)
+	(xml-parse-elem-type): Use ' \t\n\r' instead of '[:space:]'.
+	(xml-parse-attlist): Added attribute normalization.
+	(xml-parse-tag): Replace "\r\n" and "\r" with "\n".
+
 2003-03-14  John Paul Wallington  <jpw@gnu.org>
 
 	* files.el (recover-session): Error if there are no previous
