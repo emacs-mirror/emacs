@@ -1541,18 +1541,18 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 These bytes should include at least the first 1k of the file
 and the last 3k of the file, but the middle may be omitted.
 
-It checks FILENAME against the variable `auto-coding-alist'.  If
-FILENAME doesn't match any entries in the variable, it checks the
+The function checks FILENAME against the variable `auto-coding-alist'.
+If FILENAME doesn't match any entries in the variable, it checks the
 contents of the current buffer following point against
 `auto-coding-regexp-alist'.  If no match is found, it checks for a
 `coding:' tag in the first one or two lines following point.  If no
-`coding:' tag is found, it checks for local variables list in the last
+`coding:' tag is found, it checks any local variables list in the last
 3K bytes out of the SIZE bytes.  Finally, if none of these methods
-succeed, then it checks to see if any function in
-`auto-coding-functions' gives a match.
+succeed, it checks to see if any function in `auto-coding-functions'
+gives a match.
 
-The return value is the specified coding system,
-or nil if nothing specified.
+The return value is the specified coding system, or nil if nothing is
+specified.
 
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
