@@ -11,6 +11,28 @@ are implemented by general-purpose libraries that always handle
 customization this way.  This appendix describes the X resources
 that Emacs recognizes and what they mean.
 
+  One way to experiment with the effect of different resource settings
+is to use the @code{editres} program.  Select @samp{Get Tree} from the
+@samp{Commands} menu, then click on an Emacs frame.  This will display
+a tree showing the structure of X toolkit widgets used in an Emacs
+frame.  Select one of them, such as @samp{menubar}, then select
+@samp{Show Resource Box form the @samp{Commands} menu.  This displays
+a list of all the meaningful X resources and allows you to edit them.
+Changes take effect immediately if you click on the @samp{Apply} button.
+
+@menu
+* Display X::           Changing the default display and using remote login.
+* Font X::	        Choosing a font for text, under X.
+* Colors X::	        Choosing colors, under X.
+* Window Size X::       Start-up window size, under X.
+* Borders X::	        Internal and external borders, under X.
+* Title X::             Specifying the initial frame's title.
+* Icons X::             Choosing what sort of icon to use, under X.
+* Resources X::         Advanced use of classes and resources, under X.
+* Lucid Resources::     X resources for Lucid menus.
+* LessTif Resources::   X resources for LessTif and Motif menus.
+@end menu
+
 @node Display X
 @appendixsec Specifying the Display Name 
 @cindex display name (X Window System)
