@@ -4,18 +4,19 @@
 @node M-x, Help, Minibuffer, Top
 @chapter Running Commands by Name
 
-  The Emacs commands that are used often or that must be quick to type are
-bound to keys---short sequences of characters---for convenient use.  Other
-Emacs commands that do not need to be brief are not bound to keys; to run
-them, you must refer to them by name.  (Command bound to keys can also
-be invoked by their name.)  @xref{Key Bindings}, for the description of
+  Every Emacs command has a name that you can use to run it.  Commands
+that are used often, or that must be quick to type, are also bound to
+keys---short sequences of characters---for convenient use.  You can
+run them by name if you don't remember the keys.  Other Emacs commands
+that do not need to be quick are not bound to keys; the only way to
+run them is by name.  @xref{Key Bindings}, for the description of
 how to bind commands to keys.
 
-  A command name is, by convention, made up of one or more words,
+  By convention, a command name consists of one or more words,
 separated by hyphens; for example, @code{auto-fill-mode} or
 @code{manual-entry}.  The use of English words makes the command name
-easier to remember than a key made up of obscure characters, even though
-it is more characters to type.
+easier to remember than a key made up of obscure characters, even
+though it is more characters to type.
 
 @kindex M-x
   The way to run a command by name is to start with @kbd{M-x}, type the
@@ -26,8 +27,8 @@ minibuffer as a @dfn{prompt} to remind you to enter the name of a
 command to be run.  @xref{Minibuffer}, for full information on the
 features of the minibuffer.
 
-  You can use completion to enter the command name.  For example, the
-command @code{forward-char} can be invoked by name by typing
+  You can use completion to enter the command name.  For example, you
+can invoke the command @code{forward-char} by name by typing either
 
 @example
 M-x forward-char @key{RET}
