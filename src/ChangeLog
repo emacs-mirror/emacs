@@ -1,3 +1,8 @@
+2001-01-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_figure_window_size): Do not allow new_height and
+	new_width of frame to override specified values.
+
 2000-12-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.c (find_composition): Fix a code for searching
