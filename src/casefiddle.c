@@ -55,12 +55,13 @@ casify_object (flag, obj)
 	  for (i = 0; i < len; i++)
 	    {
 	      c = XSTRING (obj)->data[i];
-	      if (inword)
+	      if (inword && flag != CASE_CAPITALIZE_UP)
 		c = DOWNCASE (c);
-	      else if (!UPPERCASEP (c))
+	      else if (!UPPERCASEP (c)
+		       && (!inword || flag != CASE_CAPITALIZE_UP))
 		c = UPCASE1 (c);
 	      XSTRING (obj)->data[i] = c;
-	      if (flag == CASE_CAPITALIZE)
+	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;
 	    }
 	  return obj;
@@ -99,6 +100,15 @@ The argument object is not altered.")
      Lisp_Object obj;
 {
   return casify_object (CASE_CAPITALIZE, obj);
+}
+
+/* Like Fcapitalize but change only the initials.  */
+
+Lisp_Object
+upcase_initials (obj)
+     Lisp_Object obj;
+{
+  return casify_object (CASE_CAPITALIZE_UP, obj);
 }
 
 /* flag is CASE_UP, CASE_DOWN or CASE_CAPITALIZE or CASE_CAPITALIZE_UP.
@@ -176,7 +186,7 @@ character positions to operate on.")
   return Qnil;
 }
 
-/* Like Fcapitalize but change only the initials.  */
+/* Like Fcapitalize_region but change only the initials.  */
 
 Lisp_Object
 upcase_initials_region (b, e)
