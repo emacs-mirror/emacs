@@ -1,6 +1,6 @@
 ;;; paren.el --- highlight matching paren
 
-;; Copyright (C) 1993, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.org
 ;; Maintainer: FSF
@@ -72,8 +72,14 @@ otherwise)."
   :version "20.3")
   
 (defface show-paren-match-face
-  '((((class color)) (:background "turquoise"))
-    (t (:background "gray")))
+  '((((class color) (background light))
+     :background "turquoise")		; looks OK on tty (becomes cyan)
+    (((class color) (background dark))
+     :background "steelblue3")		; looks OK on tty (becomes blue)
+    (((background dark))
+     :background "grey50")
+    (t
+     :background "gray"))
   "Show Paren mode face used for a matching paren."
   :group 'faces
   :group 'paren-showing)
