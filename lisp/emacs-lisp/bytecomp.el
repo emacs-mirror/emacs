@@ -2689,13 +2689,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-out 'byte-unbind 1))
 
 (defun byte-compile-track-mouse (form)
-  (byte-compile-form
-   (list
-    'funcall
-    (list 'quote
-	  (list 'lambda nil
-		(list 'track-mouse
-		      (byte-compile-top-level (nth 1 form))))))))
+  (let ((byte-compile-bound-variables byte-compile-bound-variables))
+    (byte-compile-push-constant t)
+    (byte-compile-variable-ref 'byte-varbind 'track-mouse)
+    (byte-compile-body-do-effect (cdr form))
+    (byte-compile-out 'byte-unbind 1)))
 
 (defun byte-compile-condition-case (form)
   (let* ((var (nth 1 form))
