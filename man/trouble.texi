@@ -139,28 +139,32 @@ normally, and how to recognize them and correct them.
 @subsection If @key{DEL} Fails to Delete
 @cindex @key{DEL} vs @key{BACKSPACE}
 @cindex @key{BACKSPACE} vs @key{DEL}
+@cindex usual erasure key
 
-  Every keyboard has a large key, a little ways above the @key{RET}
-or @key{ENTER} key, which you normally use outside Emacs to erase
-the last character that you typed.  We call this key @key{DEL}.
+  Every keyboard has a large key, a little ways above the @key{RET} or
+@key{ENTER} key, which you normally use outside Emacs to erase the
+last character that you typed.  We call this key @dfn{the usual
+erasure key}.  In Emacs, it is supposed to be equivalent to @key{DEL}.
 
   When Emacs starts up using a window system, it determines
 automatically which key should be @key{DEL}.  In some unusual cases
-Emacs gets the wrong information from the system.  If the @key{DEL}
-key deletes forwards instead of backwards, that is probably what
-happened---Emacs ought to be treating the @key{DELETE} key as
+Emacs gets the wrong information from the system.  If the usual
+erasure key deletes forwards instead of backwards, that is probably
+what happened---Emacs ought to be treating the @key{DELETE} key as
 @key{DEL}, but it isn't.
 
-  With a window system, if the @key{DEL} key says @key{BACKSPACE} and
-there is a @key{DELETE} key elsewhere, but the @key{DELETE} key
-deletes backward instead of forward, that too suggests Emacs got the
-wrong information---but in the opposite sense.  It ought to be
-treating the @key{BACKSPACE} key as @key{DEL}, but it isn't.
+  With a window system, if the usual erasure key is labeled
+@key{BACKSPACE} and there is a @key{DELETE} key elsewhere, but the
+@key{DELETE} key deletes backward instead of forward, that too
+suggests Emacs got the wrong information---but in the opposite sense.
+It ought to be treating the @key{BACKSPACE} key as @key{DEL}, but it
+isn't.
 
-  On a text-only terminal, if you find the @key{DEL} key prompts for a
-Help command like @kbd{Control-h}, instead of deleting a character, it
-means that key is actually sending the @key{BS} character.  Emacs
-ought to be treating @key{BS} as @key{DEL}, but it isn't.
+  On a text-only terminal, if you find the usual erasure key prompts
+for a Help command, like @kbd{Control-h}, instead of deleting a
+character, it means that key is actually sending the @key{BS}
+character.  Emacs ought to be treating @key{BS} as @key{DEL}, but it
+isn't.
 
   In all of those cases, the immediate remedy is the same: use the
 command @kbd{M-x normal-erase-is-backspace-mode}.  That should make
