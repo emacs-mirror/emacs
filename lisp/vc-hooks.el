@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.103 1998/03/20 15:38:48 spiegel Exp rms $
+;; $Id: vc-hooks.el,v 1.104 1998/04/04 05:21:44 rms Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1147,6 +1147,7 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "h" 'vc-insert-headers)
       (define-key vc-prefix-map "i" 'vc-register)
       (define-key vc-prefix-map "l" 'vc-print-log)
+      (define-key vc-prefix-map "m" 'vc-merge)
       (define-key vc-prefix-map "r" 'vc-retrieve-snapshot)
       (define-key vc-prefix-map "s" 'vc-create-snapshot)
       (define-key vc-prefix-map "u" 'vc-revert-buffer)
