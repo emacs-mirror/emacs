@@ -2739,7 +2739,7 @@ int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstricmp P_ ((const unsigned char *, const unsigned char *));
 int lookup_face P_ ((struct frame *, Lisp_Object *, int, struct face *));
-int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
+int lookup_named_face P_ ((struct frame *, Lisp_Object, int, int));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
 int lookup_derived_face P_ ((struct frame *, Lisp_Object, int, int));
