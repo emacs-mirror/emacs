@@ -712,7 +712,6 @@ main (argc, argv, envp)
   int skip_args = 0;
 #ifndef USE_CRT_DLL
   extern int errno;
-  extern int sys_nerr;
 #endif
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
