@@ -1,3 +1,14 @@
+2001-10-15  John Wiegley  <johnw@gnu.org>
+
+	* eshell/em-unix.el (eshell/cat): Do a quick test if something is
+	a regular file, before checking if it is a directory or symlink.
+	This avoids a call to eshell-file-attributes, which can be
+	expensive in some situations.
+
+	* eshell/em-ls.el (eshell-ls-dired-initial-args): Added an extra
+	customization variable, to differentiate ls-in-dired from regular
+	uses of ls.
+
 2001-10-15  Miles Bader  <miles@gnu.org>
 
 	* simple.el (display-message-or-buffer): Pass the correct buffer
