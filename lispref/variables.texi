@@ -904,6 +904,7 @@ the others.
 @cindex scope
 @cindex extent
 @cindex dynamic scoping
+@cindex lexical scoping
   Local bindings in Emacs Lisp have @dfn{indefinite scope} and
 @dfn{dynamic extent}.  @dfn{Scope} refers to @emph{where} textually in
 the source code the binding can be accessed.  ``Indefinite scope'' means
