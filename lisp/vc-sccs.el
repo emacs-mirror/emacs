@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.5 2000/11/16 18:14:41 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.6 2001/01/08 16:26:44 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -46,7 +46,7 @@ A string or list of strings passed to the checkin program by
 
 (defcustom vc-sccs-header (or (cdr (assoc 'SCCS vc-header-alist)) '("%W%"))
   "*Header keywords to be inserted by `vc-insert-headers'."
-  :type 'string
+  :type '(repeat string)
   :group 'vc)
 
 ;;;###autoload
