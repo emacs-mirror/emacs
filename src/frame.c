@@ -1165,6 +1165,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     free (FRAME_INSERTN_COST (f));
   if (FRAME_DELETE_COST (f))
     free (FRAME_DELETE_COST (f));
+  if (FRAME_MESSAGE_BUF (f))
+    free (FRAME_MESSAGE_BUF (f));
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Free all fontset data.  */
