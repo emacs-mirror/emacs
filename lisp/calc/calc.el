@@ -2997,8 +2997,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 				  c)))
     (when calc-line-numbering
       (setq c (math-comp-concat (if (eq calc-language 'big)
-				    (when math-comp-selected
-				      '(tag t "1:  ") "1:  ")
+				    (if math-comp-selected
+					'(tag t "1:  ")
+				      "1:  ")
 				  "    ")
 				c)))
     (unless (or (equal calc-right-label "")
