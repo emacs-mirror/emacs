@@ -249,7 +249,7 @@
   "GBK Chinese simplified."
   :short-name "GBK"
   :code-space [#x40 #xFE #x81 #xFE]
-  :code-offset #x150000
+  :code-offset #x160000
   :unify-map "gbk")
 (define-charset-alias 'cp936 'chinese-gbk)
 
@@ -904,6 +904,53 @@
   :code-space [0 255]
   :map "ibm850")
 (define-charset-alias 'cp850 'ibm850)
+
+(define-charset 'gb18030-2-byte
+  "GB18030 2-byte (0x814E..0xFEFE)"
+  :code-space [#x40 #xFE #x81 #xFE]
+  :supplementary-p t
+  :map "gb18030-2")
+
+(define-charset 'gb18030-4-byte-bmp
+  "GB18030 4-byte for BMP (0x81308130-0x8431A439)"
+  :code-space [#x30 #x39 #x81 #xFE #x30 #x39 #x81 #x84]
+  :supplementary-p t
+  :map "gb18030-4")
+
+(define-charset 'gb18030-4-byte-smp
+  "GB18030 4-byte for SMP (0x90308130-0xE3329A35)"
+  :code-space [#x30 #x39 #x81 #xFE #x30 #x39 #x90 #xE3]
+  :min-code '(#x9030 . #x8130)
+  :max-code '(#xE332 . #x9A35)
+  :supplementary-p t
+  :code-offset #x10000)
+
+(define-charset 'gb18030-4-byte-ext-1
+  "GB18030 4-byte (0x8431A530-0x8F39FE39)"
+  :code-space [#x30 #x39 #x81 #xFE #x30 #x39 #x84 #x8F]
+  :min-code '(#x8431 . #xA530)
+  :max-code '(#x8F39 . #xFE39)
+  :supplementary-p t
+  :code-offset #x200000			; ... #x22484B
+  )
+
+(define-charset 'gb18030-4-byte-ext-2
+  "GB18030 4-byte (0xE3329A36-0xFE39FE39)"
+  :code-space [#x30 #x39 #x81 #xFE #x30 #x39 #xE3 #xFE]
+  :min-code '(#xE332 . #x9A36)
+  :max-code '(#xFE39 . #xFE39)
+  :supplementary-p t
+  :code-offset #X22484C			; ... #x279f93
+  )
+
+(define-charset 'gb18030
+  "GB18030"
+  :code-space [#x00 #xFF #x00 #xFE #x00 #xFE #x00 #xFE]
+  :min-code 0
+  :max-code '(#xFE39 . #xFE39)
+  :parents '(ascii gb18030-2-byte
+		   gb18030-4-byte-bmp gb18030-4-byte-smp
+		   gb18030-4-byte-ext-1 gb18030-4-byte-ext-2))
 
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
