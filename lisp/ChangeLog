@@ -1,3 +1,24 @@
+2003-04-08  Kenichi Handa  <handa@etlken2>
+
+	* international/utf-16.el (utf-16-le-decode-loop)
+	(utf-16-be-decode-loop): New temporary variables.
+	(ccl-decode-mule-utf-16-le): Use utf-16-le-decode-loop.
+	(ccl-decode-mule-utf-16-be): Use utf-16-be-decode-loop
+	(ccl-decode-mule-utf-16-le-with-signature)
+	(ccl-decode-mule-utf-16-be-with-signature)
+	(ccl-decode-mule-utf-16): New CCL programs.
+	(utf-16-le-encode-loop, utf-16-be-encode-loop): New temporary
+	variables.
+	(ccl-encode-mule-utf-16-le): Use utf-16-le-encode-loop.
+	(ccl-encode-mule-utf-16-be): Use utf-16-be-encode-loop
+	(ccl-encode-mule-utf-16-le-with-signature)
+	(ccl-encode-mule-utf-16-be-with-signature): New CCL programs.
+	(mule-utf-16-post-read-conversion): New function.
+	(mule-utf-16-le-with-signature, mule-utf-16-be-with-signature),
+	(mule-utf-16): New coding systems.
+	(utf-16-le-with-signature, utf-16-be-with-signature),
+	(utf-16): Aliases of the above coding systems.
+	
 2003-04-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-langs.el (c-symbol-key): Use POSIX char classes

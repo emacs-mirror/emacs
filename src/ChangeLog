@@ -1,3 +1,12 @@
+2003-04-08  Kenichi Handa  <handa@etlken2>
+
+	* coding.c (code_convert_region_unwind): Set
+	Vlast_coding_system_used to the argument.
+	(code_convert_region): If post-read-conversion function changed
+	the value of last-coding-sytem, keep the new value in
+	coding->symbol so that it won't be overridden.
+	(run_pre_post_conversion_on_str): Likewise.
+
 2003-04-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* Makefile.in (md5.o): Add missing dependency info.
