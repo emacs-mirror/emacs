@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.11 1997/09/15 19:45:16 rms Exp rms $
+;; $Id: mh-comp.el,v 1.12 1997/09/19 04:27:56 rms Exp $
 
 ;;; Code:
 
@@ -100,7 +100,9 @@ If non-nil, include the entire message.  If the symbol `body', then yank the
 message minus the header.  If nil, yank only the portion of the message
 following the point.  If the show buffer has a region, this variable is
 ignored."
-  :type '(choice (const t) (const nil) (const body))
+  :type '(choice (const :tag "Below point" nil)
+		 (const :tag "Without header" body)
+		 (other :tag "Entire message" t))
   :group 'mh-compose)
 
 (defcustom mh-ins-buf-prefix "> "
