@@ -487,6 +487,28 @@ struct coding_system
       s2 = c2 + 0x7E;					\
   } while (0)
 
+/* Encode the file name NAME using the specified coding system
+   for file names, if any.  */
+#define ENCODE_FILE(name)						   \
+  (! NILP (Vfile_name_coding_system)					   \
+   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   ? Fencode_coding_string (name, Vfile_name_coding_system, Qt)		   \
+   : (! NILP (Vdefault_file_name_coding_system)				   \
+      && XFASTINT (Vdefault_file_name_coding_system)			   \
+      ? Fencode_coding_string (name, Vdefault_file_name_coding_system, Qt) \
+      : name))
+
+/* Decode the file name NAME using the specified coding system
+   for file names, if any.  */
+#define DECODE_FILE(name)						   \
+  (! NILP (Vfile_name_coding_system)					   \
+   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   ? Fdecode_coding_string (name, Vfile_name_coding_system, Qt)		   \
+   : (! NILP (Vdefault_file_name_coding_system)				   \
+      && XFASTINT (Vdefault_file_name_coding_system)			   \
+      ? Fdecode_coding_string (name, Vdefault_file_name_coding_system, Qt) \
+      : name))
+
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, unsigned char *,
 			      unsigned char *, int, int));
