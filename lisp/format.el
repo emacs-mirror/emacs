@@ -86,9 +86,9 @@
     (gtex  "German TeX (encoding)"
 	   nil
 	   iso-gtex2iso iso-iso2gtex t nil)
-    (html  "HTML (encoding)"
+    (html  "HTML/SGML \"ISO 8879:1986//ENTITIES Added Latin 1//EN\" (encoding)"
 	   nil
-	   "recode -f html:latin1" "recode -f latin1:html" t nil)
+	   iso-sgml2iso iso-iso2sgml t nil)
     (rot13 "rot13"
 	   nil
 	   "tr a-mn-z n-za-m" "tr a-mn-z n-za-m" t nil)
