@@ -216,8 +216,6 @@ requested in `facemenu-keybindings'.")
   "Alist of colors, used for completion.
 If null, `facemenu-read-color' will set it.")
 
-(defvar facemenu-loc nil)
-
 (defun facemenu-update ()
   "Add or update the \"Face\" menu in the menu bar.
 You can call this to update things if you change any of the menu configuration
@@ -302,7 +300,11 @@ typing a character cancels the request."
     (facemenu-self-insert-face face)))
 
 (defun facemenu-self-insert-face (face)
-  (setq self-insert-face face
+  (setq self-insert-face (if (eq last-command self-insert-face-command)
+			     (cons face (if (listp self-insert-face)
+					    self-insert-face
+					  (list self-insert-face)))
+			   face)
 	self-insert-face-command this-command))
 
 (defun facemenu-set-invisible (start end)
