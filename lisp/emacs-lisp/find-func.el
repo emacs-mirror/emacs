@@ -297,6 +297,7 @@ See `find-function' for more details."
   (interactive (find-function-read))
   (find-function-do-it function nil 'switch-to-buffer-other-frame))
 
+;;;###autoload
 (defun find-variable-noselect (variable)
   "Returns a pair `(buffer . point)' pointing to the definition of SYMBOL.
 
