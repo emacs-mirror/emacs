@@ -760,6 +760,10 @@ in place of `..':
      )))
 
 ;; Print symbol name and mnemonic letter of CODING-SYSTEM with `princ'.
+;; If DOC-STRING is non-nil, print also the docstring of CODING-SYSTEM.
+;; If DOC-STRING is `tightly', don't print an empty line before the
+;; docstring, and print only the first line of the docstring.
+
 (defun print-coding-system-briefly (coding-system &optional doc-string)
   (if (not coding-system)
       (princ "nil\n")
@@ -780,10 +784,16 @@ in place of `..':
 			(not (eq coding-system (aref base-eol-type eol-type))))
 		   (princ (format " (alias of %s)"
 				  (aref base-eol-type eol-type))))))))
-    (princ "\n\n")
-    (if (and doc-string
-	     (setq doc-string (coding-system-doc-string coding-system)))
-	(princ (format "%s\n" doc-string)))))
+    (princ "\n")
+    (or (eq doc-string 'tightly)
+	(princ "\n"))
+    (if doc-string
+	(let ((doc (or (coding-system-doc-string coding-system) "")))
+	  (when (eq doc-string 'tightly)
+	    (if (string-match "\n" doc)
+		(setq doc (substring doc 0 (match-beginning 0))))
+	    (setq doc (concat "  " doc)))
+	  (princ (format "%s\n" doc))))))
 
 ;;;###autoload
 (defun describe-current-coding-system ()
@@ -976,7 +986,7 @@ but still contains full information about each coding system."
 ###############################################
 # List of coding systems in the following format:
 # MNEMONIC-LETTER -- CODING-SYSTEM-NAME
-#	DOC-STRING
+#   DOC-STRING
 ")
     (princ "\
 #########################
@@ -1003,14 +1013,10 @@ but still contains full information about each coding system."
 ##  POST-READ-CONVERSION, PRE-WRITE-CONVERSION = function name to be called
 ##
 "))
-  (let ((bases (coding-system-list 'base-only))
-	coding-system)
-    (while bases
-      (setq coding-system (car bases))
-      (if (null arg)
-	  (print-coding-system-briefly coding-system 'doc-string)
-	(print-coding-system coding-system))
-      (setq bases (cdr bases)))))
+  (dolist (coding-system (sort-coding-systems (coding-system-list 'base-only)))
+    (if (null arg)
+	(print-coding-system-briefly coding-system 'tightly)
+      (print-coding-system coding-system))))
 
 ;;;###autoload
 (defun list-coding-categories ()
