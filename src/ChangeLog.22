@@ -1,5 +1,8 @@
 2003-11-18  Kenichi Handa  <handa@m17n.org>
 
+	* composite.c (update_compositions): Bind inhibit-read-only, etc
+	to t before calling remove-list-of-text-properties.
+
 	* print.c (print_object): Always print ASCII chars as is.
 
 2003-11-17  Kenichi Handa  <handa@m17n.org>
