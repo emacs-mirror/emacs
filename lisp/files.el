@@ -881,6 +881,7 @@ run `normal-mode' explicitly."
 				  ("\\.awk\\'" . awk-mode)
 				  ("\\.prolog\\'" . prolog-mode)
 				  ("\\.tar\\'" . tar-mode)
+				  ("\\.\\(arc\\|zip\\|lzh\\|zoo\\)\\'" . archive-mode)
 				  ;; Mailer puts message to be edited in
 				  ;; /tmp/Re.... or Message
 				  ("^/tmp/Re" . text-mode)
