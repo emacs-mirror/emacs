@@ -43,6 +43,7 @@
 (defvar debugger-outer-match-data)
 (defvar debugger-outer-load-read-function)
 (defvar debugger-outer-overriding-local-map)
+(defvar debugger-outer-overriding-terminal-local-map)
 (defvar debugger-outer-track-mouse)
 (defvar debugger-outer-last-command)
 (defvar debugger-outer-this-command)
@@ -83,6 +84,8 @@ first will be printed into the backtrace buffer."
 	(debugger-outer-match-data (match-data))
 	(debugger-outer-load-read-function load-read-function)
 	(debugger-outer-overriding-local-map overriding-local-map)
+	(debugger-outer-overriding-terminal-local-map
+	 overriding-terminal-local-map)
 	(debugger-outer-track-mouse track-mouse)
 	(debugger-outer-last-command last-command)
 	(debugger-outer-this-command this-command)
@@ -101,6 +104,7 @@ first will be printed into the backtrace buffer."
 	  last-input-event last-command-event last-nonmenu-event
 	  last-event-frame
 	  overriding-local-map
+	  overriding-terminal-local-map
 	  load-read-function
 	  (standard-input t) (standard-output t)
 	  (cursor-in-echo-area nil))
@@ -181,6 +185,8 @@ first will be printed into the backtrace buffer."
     ;; in case the user set them with the `e' command.
     (setq load-read-function debugger-outer-load-read-function)
     (setq overriding-local-map debugger-outer-overriding-local-map)
+    (setq overriding-terminal-local-map
+	  debugger-outer-overriding-terminal-local-map)
     (setq track-mouse debugger-outer-track-mouse)
     (setq last-command debugger-outer-last-command)
     (setq this-command debugger-outer-this-command)
@@ -328,12 +334,16 @@ Applies to the frame whose line point is on in the backtrace."
 	  (standard-output debugger-outer-standard-output)
 	  (cursor-in-echo-area debugger-outer-cursor-in-echo-area)
 	  (overriding-local-map debugger-outer-overriding-local-map)
+	  (overriding-terminal-local-map
+	   debugger-outer-overriding-terminal-local-map)
 	  (load-read-function debugger-outer-load-read-function))
       (store-match-data debugger-outer-match-data)
       (prog1 (eval-expression exp)
 	(setq debugger-outer-match-data (match-data))
 	(setq debugger-outer-load-read-function load-read-function)
 	(setq debugger-outer-overriding-local-map overriding-local-map)
+	(setq debugger-outer-overriding-terminal-local-map
+	      overriding-terminal-local-map)
 	(setq debugger-outer-track-mouse track-mouse)
 	(setq debugger-outer-last-command last-command)
 	(setq debugger-outer-this-command this-command)
