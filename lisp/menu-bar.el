@@ -550,7 +550,8 @@ Do the same for the keys of the same name."
 		   case-fold-search truncate-lines show-paren-mode
 		   transient-mark-mode global-font-lock-mode
 		   current-language-environment default-input-method
-		   default-frame-alist display-time-mode))
+		   default-frame-alist display-time-mode
+		   line-number-mode column-number-mode))
       (when (customize-mark-to-save elt)
 	(setq need-save t)))
     ;; We only want to save text-mode-hook after adding or removing auto fill.
@@ -563,9 +564,9 @@ Do the same for the keys of the same name."
     (and (featurep 'saveplace)
 	 (customize-mark-to-save 'save-place)
 	 (setq need-save t))
-    (and(featurep 'uniquify)
-	(customize-mark-to-save 'uniquify-buffer-name-style)
-	(setq need-save t))
+    (and (featurep 'uniquify)
+	 (customize-mark-to-save 'uniquify-buffer-name-style)
+	 (setq need-save t))
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))
@@ -580,6 +581,19 @@ Do the same for the keys of the same name."
 ;; The "Show/Hide" submenu of menu "Options"
 
 (defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
+
+(define-key menu-bar-showhide-menu [column-number-mode]
+  (menu-bar-make-toggle column-number-mode column-number-mode
+			"Show Column Number" "Column number mode %s"
+			"Show the current column number in the mode-line"))
+
+(define-key menu-bar-showhide-menu [line-number-mode]
+  (menu-bar-make-toggle line-number-mode line-number-mode
+			"Show Line Number" "Line number mode %s"
+			"Show the current line number in the mode-line"))
+
+(define-key menu-bar-showhide-menu [linecolumn-separator]
+  '("--"))
 
 (defun showhide-date-time ()
   "Toggle whether to show date and time in the mode-line."
