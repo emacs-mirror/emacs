@@ -1,3 +1,7 @@
+2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (transient-mark-mode): Mention C-g in the doc string.
+
 2001-03-30  Miles Bader  <miles@gnu.org>
 
 	* subr.el (interactive-form): Fix paren typo.

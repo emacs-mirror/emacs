@@ -1,3 +1,8 @@
+2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sedleim.inp: Adapt to changes in leim/Makefile.in's $(TIT)
+	target.
+
 2001-03-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* README: New file.
