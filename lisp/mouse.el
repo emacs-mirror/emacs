@@ -162,6 +162,8 @@ Upon exit, point is at the far edge of the newly visible text."
 (defvar mouse-drag-overlay (make-overlay 1 1))
 (overlay-put mouse-drag-overlay 'face 'region)
 
+(defvar mouse-selection-click-count nil)
+
 (defun mouse-drag-region (start-event)
   "Set the region to the text that the mouse is dragged over.
 Highlight the drag area as you move the mouse.
@@ -180,6 +182,7 @@ release the mouse button.  Otherwise, it does not."
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds))))
 	 (click-count (1- (event-click-count start-event))))
+    (setq mouse-selection-click-count click-count)
     (mouse-set-point start-event)
     (let ((range (mouse-start-end start-point start-point click-count)))
       (move-overlay mouse-drag-overlay (car range) (nth 1 range)
@@ -269,8 +272,7 @@ If DIR is positive skip forward; if negative, skip backward."
 ;; If MODE is 1 then set point to start of word at (min START END),
 ;; mark to end of word at (max START END).
 ;; If MODE is 2 then do the same for lines.
-;; Optional KEEP-END if non-nil means do not change end.
-(defun mouse-start-end (start end mode &optional keep-end)
+(defun mouse-start-end (start end mode)
   (if (> start end)
       (let ((temp start))
         (setq start end
@@ -367,47 +369,78 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 ;;; invocation of mouse-save-then-kill.
 (defvar mouse-save-then-kill-posn nil)
 
+(defun mouse-save-then-kill-delete-region ()
+  ;; Delete just one char, so in case buffer is being modified
+  ;; for the first time, the undo list records that fact.
+  (delete-region (point)
+		 (+ (point) (if (> (mark) (point)) 1 -1)))
+  ;; Now delete the rest of the specified region,
+  ;; but don't record it.
+  (let ((buffer-undo-list t))
+    (delete-region (point) (mark)))
+  (if (not (eq buffer-undo-list t))
+      (let ((tail buffer-undo-list))
+	;; Search back in buffer-undo-list for the string
+	;; that came from the first delete-region.
+	(while (and tail (not (stringp (car (car tail)))))
+	  (setq tail (cdr tail)))
+	;; Replace it with an entry for the entire deleted text.
+	(and tail
+	     (setcar tail (cons (car kill-ring) (point)))))))
+
 (defun mouse-save-then-kill (click)
   "Save text to point in kill ring; the second time, kill the text.
 If the text between point and the mouse is the same as what's
 at the front of the kill ring, this deletes the text.
 Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
-which prepares for a second click to delete the text."
+which prepares for a second click to delete the text.
+
+If you have selected words or lines, this command extends the
+selection through the word or line clicked on.  If you do this
+again in a different position, it extends the selection again.
+If you do this twice in the same position, the selection is killed." 
   (interactive "e")
   (let ((click-posn (posn-point (event-start click)))
 	;; Don't let a subsequent kill command append to this one:
 	;; prevent setting this-command to kill-region.
 	(this-command this-command))
-    (if (and (eq last-command 'mouse-save-then-kill)
-	     mouse-save-then-kill-posn
-	     (eq (car mouse-save-then-kill-posn) (car kill-ring))
-	     (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
-	;; If this is the second time we've called
-	;; mouse-save-then-kill, delete the text from the buffer.
-	(progn
-	  ;; Delete just one char, so in case buffer is being modified
-	  ;; for the first time, the undo list records that fact.
-	  (delete-region (point)
-			 (+ (point) (if (> (mark) (point)) 1 -1)))
-	  ;; Now delete the rest of the specified region,
-	  ;; but don't record it.
-	  (let ((buffer-undo-list t))
-	    (delete-region (point) (mark)))
-	  (if (not (eq buffer-undo-list t))
-	      (let ((tail buffer-undo-list))
-		;; Search back in buffer-undo-list for the string
-		;; that came from the first delete-region.
-		(while (and tail (not (stringp (car (car tail)))))
-		  (setq tail (cdr tail)))
-		;; Replace it with an entry for the entire deleted text.
-		(and tail
-		     (setcar tail (cons (car kill-ring) (point)))))))
-      ;; Otherwise, save this region.
-      (mouse-set-mark-fast click)
-      (kill-ring-save (point) (mark t))
-      (mouse-show-mark)
-      (setq mouse-save-then-kill-posn
-	    (list (car kill-ring) (point) click-posn)))))
+    (if (> mouse-selection-click-count 0)
+	(if (not (and (eq last-command 'mouse-save-then-kill)
+		      (equal click-posn
+			     (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
+	    (let* ((obeg (min (point) (mark t)))
+		   (oend (max (point) (mark t)))
+		   (beg (min obeg click-posn))
+		   (end (if (< click-posn obeg) oend click-posn))
+		   (range
+		    (mouse-start-end beg end mouse-selection-click-count))
+		   (nbeg (if (= beg obeg) obeg (car range)))
+		   (nend (if (= end oend) oend (nth 1 range))))
+	      (setq mouse-save-then-kill-posn
+		    (list (car kill-ring) (point) click-posn))
+	      (set-mark nbeg)
+	      (goto-char nend)
+	      ;; We have already put the old region in the kill ring.
+	      ;; Replace it with the extended region.
+	      ;; (It would be annoying to make a separate entry.)
+	      (setcar kill-ring (buffer-substring (point) (mark t)))
+	      (mouse-show-mark))
+	  ;; If we click this button again without moving it,
+	  ;; that time kill.
+	  (mouse-save-then-kill-delete-region))
+      (if (and (eq last-command 'mouse-save-then-kill)
+	       mouse-save-then-kill-posn
+	       (eq (car mouse-save-then-kill-posn) (car kill-ring))
+	       (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
+	  ;; If this is the second time we've called
+	  ;; mouse-save-then-kill, delete the text from the buffer.
+	  (mouse-save-then-kill-delete-region)
+	;; Otherwise, save this region.
+	(mouse-set-mark-fast click)
+	(kill-ring-save (point) (mark t))
+	(mouse-show-mark)
+	(setq mouse-save-then-kill-posn
+	      (list (car kill-ring) (point) click-posn))))))
 
 (global-set-key [M-mouse-1] 'mouse-start-secondary)
 (global-set-key [M-drag-mouse-1] 'mouse-set-secondary)
