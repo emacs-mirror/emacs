@@ -1,3 +1,7 @@
+2004-04-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* window.c (Fget_lru_window): Doc fix.
+
 2004-04-14  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Fix allocation size of precision array.
