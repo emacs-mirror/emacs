@@ -540,7 +540,7 @@ extern Lisp_Object make_number ();
 #define SREF(string, index)	XSTRING (string)->data[index]
 #define SDATA(string)		XSTRING (string)->data
 #define SCHARS(string)		XSTRING (string)->size
-#define SBYTES(string)		XSTRING (string)->size_bytes
+#define SBYTES(string)		STRING_BYTES (XSTRING (string))
 #define SMBP(string)		STRING_MULTIBYTE (string)
 
 
