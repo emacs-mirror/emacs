@@ -141,6 +141,9 @@ VPATH=@srcdir@
 # Where to find the application default.
 x_default_search_path=@x_default_search_path@
 
+# Location to install Emacs.app on Mac OS X
+carbon_appdir=@carbon_appdir@
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
@@ -365,6 +368,12 @@ install-arch-dep: mkdir
 	    ${INSTALL_DATA} lib-src/$$f ${archlibdir}/$$f; \
 	  else true; fi ; \
 	done
+	if test "${carbon_appdir}" != ""; then \
+	  umask 022; mkdir -p ${carbon_appdir}/Emacs.app; \
+	  (cd mac/Emacs.app; tar -chf - . ) | \
+		(cd ${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
+			&& cat > /dev/null) || exit 1; \
+	fi
 
 ### Install the files that are machine-independent.
 ### Most of them come straight from the distribution;
