@@ -15,7 +15,7 @@ horizontally into smaller windows.
 @cindex terminal frame
 @cindex X window frame
   When Emacs runs on a text-only terminal, it starts with one
-@dfn{terminal frames}.  If you create additional ones, Emacs displays
+@dfn{terminal frame}.  If you create additional ones, Emacs displays
 one and only one at any given time---on the terminal screen, of course.
 
   When Emacs communicates directly with an X server, it does not have a
@@ -581,7 +581,7 @@ The function @code{frame-live-p} returns non-@code{nil} if the frame
 @end defun
 
   Some window managers provide a command to delete a window.  These work
-by sending a special message to the program than operates the window.
+by sending a special message to the program that operates the window.
 When Emacs gets one of these commands, it generates a
 @code{delete-frame} event, whose normal definition is a command that
 calls the function @code{delete-frame}.  @xref{Misc Events}.

@@ -991,7 +991,7 @@ This function returns the position of the start of text matched by the
 last regular expression searched for, or a subexpression of it.
 
 If @var{count} is zero, then the value is the position of the start of
-the entire match.  Otherwise, @var{count}, specifies a subexpression in
+the entire match.  Otherwise, @var{count} specifies a subexpression in
 the regular expresion, and the value of the function is the starting
 position of the match for that subexpression.
 

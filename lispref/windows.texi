@@ -286,7 +286,7 @@ part of the documentation string):
 This function returns non-@code{nil} if there is only one window.  The
 argument @var{no-mini}, if non-@code{nil}, means don't count the
 minibuffer even if it is active; otherwise, the minibuffer window is
-included, if active, in the total number of windows,  which is compared
+included, if active, in the total number of windows, which is compared
 against one.
 
 The argument @var{all-frames} specifies which frames to consider.  Here

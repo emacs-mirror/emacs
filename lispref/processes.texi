@@ -887,7 +887,7 @@ filter function, bind @code{inhibit-quit} to @code{nil}.
 
   If an error happens during execution of a filter function, it is
 caught automatically, so that it doesn't stop the execution of whatever
-programs was running when the filter function was started.  However, if
+program was running when the filter function was started.  However, if
 @code{debug-on-error} is non-@code{nil}, the error-catching is turned
 off.  This makes it possible to use the Lisp debugger to debug the
 filter function.  @xref{Debugger}.

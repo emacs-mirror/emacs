@@ -1488,7 +1488,7 @@ item strings in a mouse menu, since that is redundant.
 
 If an alias command has no keyboard equivalent itself, menus show the
 keyboard equivalent of its underlying command.  In the example above,
-menus items defined to run @code{make-read-only} or @code{make-writable}
+menu items defined to run @code{make-read-only} or @code{make-writable}
 would show the keyboard equivalents of @code{toggle-read-only}.
 
 @node Mouse Menus
