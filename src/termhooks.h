@@ -505,7 +505,7 @@ struct display
   /* Called after the last frame on this display is deleted, or when
      the display device was closed (hangup).
      
-     If this is NULL, then the generic delete_frame() is called
+     If this is NULL, then the generic delete_display() is called
      instead.
 
      The hook must check for and close any live frames that are still
