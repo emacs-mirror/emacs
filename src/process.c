@@ -2318,12 +2318,12 @@ static struct socket_options {
   int optlevel;
   /* Option number SO_... */
   int optnum;
-  enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_STR, SOPT_LINGER } opttype;
+  enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_IFNAME, SOPT_LINGER } opttype;
   enum { OPIX_NONE=0, OPIX_MISC=1, OPIX_REUSEADDR=2 } optbit;
 } socket_options[] =
   {
 #ifdef SO_BINDTODEVICE
-    { ":bindtodevice", SOL_SOCKET, SO_BINDTODEVICE, SOPT_STR, OPIX_MISC },
+    { ":bindtodevice", SOL_SOCKET, SO_BINDTODEVICE, SOPT_IFNAME, OPIX_MISC },
 #endif
 #ifdef SO_BROADCAST
     { ":broadcast", SOL_SOCKET, SO_BROADCAST, SOPT_BOOL, OPIX_MISC },
@@ -2394,21 +2394,28 @@ set_socket_option (s, opt, val)
 	break;
       }
 
-    case SOPT_STR:
+#ifdef SO_BINDTODEVICE
+    case SOPT_IFNAME:
       {
-	char *arg;
+	char devname[IFNAMSIZ+1];
 
-	if (NILP (val))
-	  arg = "";
-	else if (STRINGP (val))
-	  arg = (char *) SDATA (val);
-	else if (XSYMBOL (val))
-	  arg = (char *) SDATA (SYMBOL_NAME (val));
-	else
+	/* This is broken, at least in the Linux 2.4 kernel.
+	   To unbind, the arg must be a zero integer, not the empty string.
+	   This should work on all systems.   KFS. 2003-09-23.  */
+	bzero (devname, sizeof devname);
+	if (STRINGP (val))
+	  {
+	    char *arg = (char *) SDATA (val);
+	    int len = min (strlen (arg), IFNAMSIZ);
+	    bcopy (arg, devname, len);
+	  }
+	else if (!NILP (val))
 	  error ("Bad option value for %s", name);
 	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			  arg, strlen (arg));
+			  devname, IFNAMSIZ);
+	break;
       }
+#endif
 
 #ifdef SO_LINGER
     case SOPT_LINGER:
@@ -2450,15 +2457,22 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
      Lisp_Object no_error;
 {
   int s;
+  struct Lisp_Process *p;
 
   CHECK_PROCESS (process);
+  p = XPROCESS (process);
+  if (!NETCONN1_P (p))
+    error ("Process is not a network process");
 
-  s = XINT (XPROCESS (process)->infd);
+  s = XINT (p->infd);
   if (s < 0)
     error ("Process is not running");
 
   if (set_socket_option (s, option, value))
-    return Qt;
+    {
+      p->childp = Fplist_put (p->childp, option, value);
+      return Qt;
+    }
 
   if (NILP (no_error))
     error ("Unknown or unsupported option");
@@ -2590,7 +2604,6 @@ queue length is 5.  Default is to create a client process.
 
 The following network options can be specified for this connection:
 
-:bindtodevice NAME -- bind to interface NAME.
 :broadcast BOOL    -- Allow send and receive of datagram broadcasts.
 :dontroute BOOL    -- Only send to directly connected hosts.
 :keepalive BOOL    -- Send keep-alive messages on network stream.
@@ -2599,6 +2612,8 @@ The following network options can be specified for this connection:
 :priority INT      -- Set protocol defined priority for sent packets.
 :reuseaddr BOOL    -- Allow reusing a recently used local address
                       (this is allowed by default for a server process).
+:bindtodevice NAME -- bind to interface NAME.  Using this may require
+                      special privileges on some systems.
 
 Consult the relevant system programmer's manual pages for more
 information on using these options.
