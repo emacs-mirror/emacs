@@ -244,12 +244,9 @@ converted to Info is stored in a temporary buffer."
             (goto-char (point-min))
             ;; Remove `@setfilename' line from included file, if any,
             ;; so @setfilename command not duplicated.
-            (if (re-search-forward
-                 "^@setfilename" (save-excursion (forward-line 100) (point)) t)
-                (progn
-                  (beginning-of-line)
-                  (delete-region
-                   (point) (save-excursion (forward-line 1) (point)))))))))
+            (if (re-search-forward "^@setfilename" (line-end-position 100) t)
+		(delete-region (line-beginning-position 1)
+			       (line-beginning-position 2)))))))
 
     ;; Raise or lower level of each section, if necessary.
     (goto-char (point-min))
@@ -271,7 +268,7 @@ converted to Info is stored in a temporary buffer."
 
     (goto-char (point-min))
     (if (looking-at "\\\\input[ \t]+texinfo")
-        (delete-region (point) (save-excursion (forward-line 1) (point))))
+        (delete-region (point) (line-beginning-position 2)))
 
     ;; Insert Info region title text.
     (goto-char (point-min))
@@ -395,7 +392,7 @@ if large.  You can use Info-split to do this manually."
       (let ((filename (concat input-directory
                               (texinfo-parse-line-arg))))
         (re-search-backward "^@include")
-        (delete-region (point) (save-excursion (forward-line 1) (point)))
+        (delete-region (point) (line-beginning-position 2))
         (message "Reading included file: %s" filename)
         (save-excursion
           (save-restriction
@@ -405,13 +402,9 @@ if large.  You can use Info-split to do this manually."
             (goto-char (point-min))
             ;; Remove `@setfilename' line from included file, if any,
             ;; so @setfilename command not duplicated.
-            (if (re-search-forward
-                 "^@setfilename"
-                 (save-excursion (forward-line 100) (point)) t)
-                (progn
-                  (beginning-of-line)
-                  (delete-region
-                   (point) (save-excursion (forward-line 1) (point)))))))))
+            (if (re-search-forward "^@setfilename" (line-end-position 100) t)
+		(delete-region (line-beginning-position 1)
+			       (line-beginning-position 2)))))))
     ;; Raise or lower level of each section, if necessary.
     (goto-char (point-min))
     (texinfo-raise-lower-sections)
@@ -469,8 +462,7 @@ if large.  You can use Info-split to do this manually."
   ;; Convert three hyphens in a row to two.
   (goto-char min)
   (while (re-search-forward "\\( \\|\\w\\)\\(---\\)\\( \\|\\w\\)" max t)
-    (delete-region (1+ (match-beginning 2)) (+ 2 (match-beginning
-    2)))))
+    (delete-region (1+ (match-beginning 2)) (+ 2 (match-beginning 2)))))
 
 
 ;;; Handle paragraph filling
@@ -612,21 +604,17 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
         (forward-line 1))
       ;; 2. Skip over @example and similar no-refill environments.
       (if (looking-at texinfo-no-refill-regexp)
-          (let ((environment
-                 (buffer-substring-no-properties (match-beginning 1) (match-end 1))))
+          (let ((environment (match-string-no-properties 1)))
             (progn (re-search-forward (concat "^@end " environment) nil t)
                    (forward-line 1)))
         ;; Else
         ;; 3. Do not refill a paragraph containing @w or @*, or ending
         ;;    with @<newline> followed by a newline.
-        (if  (or
-              (>= (point) (point-max))
-              (re-search-forward
-               "@w{\\|@\\*\\|@\n\n"
-               (save-excursion
-                 (forward-paragraph)
-                 (forward-line 1)
-                 (point)) t))
+        (if  (or (>= (point) (point-max))
+		 (re-search-forward
+		  "@w{\\|@\\*\\|@\n\n"
+		  (save-excursion (forward-paragraph) (forward-line 1) (point))
+		  t))
             ;; Go to end of paragraph and do nothing.
             (forward-paragraph)
           ;; 4. Else go to end of paragraph and insert @refill
@@ -2234,20 +2222,17 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (put 'iftex 'texinfo-format 'texinfo-format-iftex)
 (defun texinfo-format-iftex ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end iftex[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end iftex[ \t]*\n")))
 
 (put 'ifhtml 'texinfo-format 'texinfo-format-ifhtml)
 (defun texinfo-format-ifhtml ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end ifhtml[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end ifhtml[ \t]*\n")))
 
 (put 'ifplaintext 'texinfo-format 'texinfo-format-ifplaintext)
 (defun texinfo-format-ifplaintext ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end ifplaintext[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end ifplaintext[ \t]*\n")))
 
 (put 'ifxml 'texinfo-format 'texinfo-format-ifxml)
 (defun texinfo-format-ifxml ()
@@ -2258,14 +2243,12 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (put 'tex 'texinfo-format 'texinfo-format-tex)
 (defun texinfo-format-tex ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end tex[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end tex[ \t]*\n")))
 
 (put 'html 'texinfo-format 'texinfo-format-html)
 (defun texinfo-format-html ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end html[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end html[ \t]*\n")))
 
 (put 'xml 'texinfo-format 'texinfo-format-xml)
 (defun texinfo-format-xml ()
@@ -2276,8 +2259,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (put 'ifnotinfo 'texinfo-format 'texinfo-format-ifnotinfo)
 (defun texinfo-format-ifnotinfo ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end ifnotinfo[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end ifnotinfo[ \t]*\n")))
 
 (put 'ifnotplaintext 'texinfo-format 'texinfo-discard-line)
 (put 'ifnotplaintext 'texinfo-end 'texinfo-discard-command)
@@ -2297,8 +2279,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (put 'titlepage 'texinfo-format 'texinfo-format-titlepage)
 (defun texinfo-format-titlepage ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end titlepage[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end titlepage[ \t]*\n")))
 
 (put 'endtitlepage 'texinfo-format 'texinfo-discard-line)
 
@@ -2307,8 +2288,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (put 'titlespec 'texinfo-format 'texinfo-format-titlespec)
 (defun texinfo-format-titlespec ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end titlespec[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end titlespec[ \t]*\n")))
 
 (put 'endtitlespec 'texinfo-format 'texinfo-discard-line)
 
@@ -2343,8 +2323,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (put 'ignore 'texinfo-format 'texinfo-format-ignore)
 (defun texinfo-format-ignore ()
   (delete-region texinfo-command-start
-                 (progn (re-search-forward "@end ignore[ \t]*\n")
-                        (point))))
+                 (re-search-forward "@end ignore[ \t]*\n")))
 
 (put 'endignore 'texinfo-format 'texinfo-discard-line)
 
@@ -2439,8 +2418,8 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
       (setq texinfo-alias-list
 	    (cons
 	     (cons
-	      (buffer-substring-no-properties (match-beginning 1) (match-end 1))
-	      (buffer-substring-no-properties (match-beginning 2) (match-end 2)))
+	      (match-string-no-properties 1)
+	      (match-string-no-properties 2))
 	     texinfo-alias-list))
       (texinfo-discard-command))
     )
@@ -3007,13 +2986,12 @@ Default is to leave paragraph indentation as is."
 ;; Subroutine for sorting an index.
 ;; At start of a line, return a string to sort the line under.
 (defun texinfo-sort-startkeyfun ()
-  (let ((line
-         (buffer-substring-no-properties (point) (save-excursion (end-of-line) (point)))))
+  (let ((line (buffer-substring-no-properties (point) (line-end-position))))
     ;; Canonicalize whitespace and eliminate funny chars.
     (while (string-match "[ \t][ \t]+\\|[^a-z0-9 ]+" line)
       (setq line (concat (substring line 0 (match-beginning 0))
                          " "
-                         (substring line (match-end 0) (length line)))))
+                         (substring line (match-end 0)))))
     line))
 
 
@@ -4036,8 +4014,7 @@ The command  `@value{foo}'  expands to the value."
           'flag-cleared)
       ;; Clear region (i.e., cause the text to be ignored).
       (delete-region texinfo-command-start
-                       (progn (re-search-forward "@end ifset[ \t]*\n")
-                              (point))))
+		     (re-search-forward "@end ifset[ \t]*\n")))
      ((eq (get (car (read-from-string arg)) 'texinfo-whether-setp)
           nil)
       ;; In this case flag is neither set nor cleared.
@@ -4054,8 +4031,7 @@ The command  `@value{foo}'  expands to the value."
           'flag-set)
       ;; Clear region (i.e., cause the text to be ignored).
       (delete-region texinfo-command-start
-                       (progn (re-search-forward "@end ifclear[ \t]*\n")
-                              (point))))
+		     (re-search-forward "@end ifclear[ \t]*\n")))
      ((eq (get (car (read-from-string arg)) 'texinfo-whether-setp)
           'flag-cleared)
       ;; Format the text (i.e., do not remove it); do nothing here.
@@ -4341,8 +4317,8 @@ For example, invoke
            (message ">> Error: %s" (prin1-to-string err))
            (message ">>  point at")
            (let ((s (buffer-substring-no-properties (point)
-                                      (min (+ (point) 100)
-                                           (point-max))))
+						    (min (+ (point) 100)
+							 (point-max))))
                  (tem 0))
              (while (setq tem (string-match "\n+" s tem))
                (setq s (concat (substring s 0 (match-beginning 0))
