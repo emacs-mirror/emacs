@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2005 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -377,7 +377,7 @@ it defaults to `insert'."
     target)
 
    (t
-    (error "Illegal redirection target: %s"
+    (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
 
 (eval-when-compile
