@@ -2387,66 +2387,66 @@ setpriority (x,y,z) int x,y,z; { return 0; }
 sigsetmask (x) int x; { return 0; }
 unrequest_sigio () {}
 
-int run_dos_timer_hooks = 0;
-
 #ifndef HAVE_SELECT
 #include "sysselect.h"
 
-static int last_ti_sec = -1;
-static int dos_menubar_clock_displayed = 0;
+static struct time last_time  = {120, 120, 120, 120};
+static int modeline_time_displayed = 0;
+
+Lisp_Object Vdos_display_time;
 
 static void
 check_timer (t)
   struct time *t;
 {
+  int sec, min, hour, hund;
+
   gettime (t);
-  
-  if (t->ti_sec == last_ti_sec)
+  sec  = t->ti_sec;
+  hund = t->ti_hund;
+  hour = t->ti_hour;
+  min  = t->ti_min;
+
+  /* Any chance of not getting here 24 hours or more since last time? */
+  if (hour == last_time.ti_hour
+      && min == last_time.ti_min
+      && sec == last_time.ti_sec)
     return;
-  last_ti_sec = t->ti_sec;
 
-  if (!NILP (Vdos_menubar_clock))
+  if (!NILP (Vdos_display_time))
     {
-      char clock_str[16];
-      int len;
-      int min = t->ti_min;
-      int hour = t->ti_hour;
+      int interval;
+      Lisp_Object dti = XSYMBOL (Fintern_soft (build_string ("display-time-interval"), Qnil))->value;
+      int delta_time  = ((hour - last_time.ti_hour) * 3600
+			 + (min  - last_time.ti_min) * 60
+			 + (sec  - last_time.ti_sec));
 
-      if (dos_timezone_offset)
-	{
-	  int tz = dos_timezone_offset;
-	  min -= tz % 60;
-	  if (min < 0)
-	    min += 60, hour--;
-	  else
-	    if (min >= 60)
-	      min -= 60, hour++;
-	  
-	  if ((hour -= (tz / 60)) < 0)
-	    hour += 24;
-	  else
-	    hour %= 24;
-	}
-      
-      if ((dos_country_info[0x11] & 0x01) == 0) /* 12 hour clock */
-	{
-	  hour %= 12;
-	  if (hour == 0) hour = 12;
-	}
+      /* Who knows what the user may put into `display-time-interval'?  */
+      if (!INTEGERP (dti) || (interval = XINT (dti)) <= 0)
+	interval = 60;
 
-      len = sprintf (clock_str, "%2d.%02d.%02d", hour, min, t->ti_sec);
-      dos_direct_output (0, screen_size_X - len - 1, clock_str, len);
-      dos_menubar_clock_displayed = 1;
+      /* When it's time to renew the display, fake a `wakeup' call.  */
+      if (!modeline_time_displayed	/* first time */
+	  || delta_time >= interval	/* or if we were busy for a long time */
+	  || interval == 1		/* and every `interval' seconds hence */
+	  || interval == 60 && sec == 0	/* (usual cases first) */
+	  || (hour * 3600 + min * 60 + sec) % interval == 0)
+	call2 (intern ("display-time-filter"), Qnil,
+	       build_string ("Wake up!\n"));
+
+      modeline_time_displayed = 1;
     }
-  else if (dos_menubar_clock_displayed)
+  else if (modeline_time_displayed)
     {
-      /* Erase last displayed time.  */
-      dos_direct_output (0, screen_size_X - 9, "        ", 8);
-      dos_menubar_clock_displayed = 0;
+      modeline_time_displayed = 0;
+      Fset (intern ("display-time-string"), build_string (""));
+
+      /* Force immediate redisplay of modelines.  */
+      update_mode_lines++;
+      redisplay_preserve_echo_area ();
     }
   
-  if (!NILP (Vdos_timer_hooks))
-    run_dos_timer_hooks++;
+  last_time  = *t;
 }
 
 /* Only event queue is checked.  */
@@ -2584,6 +2584,15 @@ dos_abort (file, line)
   ScreenSetCursor (2, 0);
   abort ();
 }
+#else
+void
+abort ()
+{
+  dos_ttcooked ();
+  ScreenSetCursor (10, 0);
+  cputs ("\r\n\nEmacs aborted!\r\n");
+  exit (2);
+}
 #endif
 
 syms_of_msdos ()
@@ -2592,6 +2601,10 @@ syms_of_msdos ()
   staticpro (&recent_doskeys);
 
   defsubr (&Srecent_doskeys);
+
+  DEFVAR_LISP ("dos-display-time", &Vdos_display_time,
+    "*When non-nil, `display-time' is in effect on DOS systems.");
+  Vdos_display_time = Qnil;
 }
 
 #endif /* MSDOS */
