@@ -51,6 +51,11 @@
 
 #else  /* not emacs */
 
+/* If we are not linking with Emacs proper,
+   we can't use the relocating allocator
+   even if config.h says that we can.  */
+#undef REL_ALLOC
+
 #ifdef STDC_HEADERS
 #include <stdlib.h>
 #else
