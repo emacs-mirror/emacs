@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99,2000,01,02,03,04
-     Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997,
+     1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -10531,6 +10531,9 @@ The `posn-' functions access elements of such lists.  */)
   (x, y, frame_or_window, whole)
      Lisp_Object x, y, frame_or_window, whole;
 {
+  CHECK_NATNUM (x);
+  CHECK_NATNUM (y);
+
   if (NILP (frame_or_window))
     frame_or_window = selected_window;
 
