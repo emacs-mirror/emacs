@@ -107,6 +107,22 @@ Boston, MA 02111-1307, USA.  */
 
 #define HAVE_PTYS
 
+
+/*
+ * PTYs only work correctly on Darwin 7 or higher.  So make PTY_ITERATION
+ * Test the operating system release and only allow PTYs if it is greater
+ * than 7.
+ */
+#define MIN_PTY_KERNEL_VERSION '7' 
+#define PTY_ITERATION  \
+  char *release = get_operating_system_release();	\
+  if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION \
+				  && release[1] == '.'))	      \
+    return -1; \
+  for (c = FIRST_PTY_LETTER; c <= 'z'; c++)	\
+    for (i = 0; i < 16; i++)
+
+
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
  *      The 4.2 opendir, etc., library functions.

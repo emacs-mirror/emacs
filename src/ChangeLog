@@ -1,3 +1,18 @@
+2005-01-20  Steven Tamm  <steventamm@mac.com>
+
+	* editfns.c (Voperating_system_release): Added.
+	(init_editfns): Assign new variable operating-system-release
+	based on call to uname if available.
+	(get_operating_system_release): Added function to
+	allow c-level access to operating system release.	
+
+	* config.h: Regenerated.
+
+	* s/darwin.h (PTY_ITERATION): Don't allow PTYs on darwin 6 or
+	less.
+	(MIN_PTY_KERNEL_VERSION): Defined minimum kernel version for
+	using ptys as '7'.
+
 2005-01-20  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (STRING_MARKED_P, VECTOR_MARKED_P): Return boolean.

@@ -1364,6 +1364,15 @@ get_system_name ()
     return "";
 }
 
+char *
+get_operating_system_release()
+{
+  if (STRINGP (Voperating_system_release))
+    return (char *) SDATA (Voperating_system_release);
+  else
+    return "";
+}
+
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
        doc: /* Return the process ID of Emacs, as an integer.  */)
      ()
