@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.13 2002/02/12 19:29:41 monnier Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.14 2002/02/13 22:30:34 monnier Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001  Free Software Foundation, Inc.
@@ -657,8 +657,8 @@ unless temporary flags are set which override them.
 
 Perhaps an example or two is in order.  Say you are about to add a
 binary file to the repository, and want to specify the flags @samp{-kb}
-to @samp{cvs add}.  You can type @kbd{C-u a -kb @key{RET}}, enter the
-description, and the file will be added.  Subsequent @samp{cvs add}
+to @samp{cvs add}.  You can type @kbd{C-u a -kb @key{RET}},
+and the file will be added.  Subsequent @samp{cvs add}
 commands will use the previously prevailing flags.
 
 As a second example, say you are about to perform a diff and want to see
