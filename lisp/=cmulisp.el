@@ -135,8 +135,8 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 (defvar cmulisp-mode-map nil)
 (cond ((not cmulisp-mode-map)
        (setq cmulisp-mode-map
-	     (full-copy-sparse-keymap comint-mode-map))
-       (lisp-mode-commands cmulisp-mode-map)
+	     (nconc (full-copy-sparse-keymap comint-mode-map)
+		    shared-lisp-mode-map))
        (define-key cmulisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
        (define-key cmulisp-mode-map "\C-c\C-l" 'lisp-load-file)
        (define-key cmulisp-mode-map "\C-c\C-k" 'lisp-compile-file)
@@ -160,6 +160,7 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 (define-key lisp-mode-map "\C-c\C-f" 'lisp-show-function-documentation)
 (define-key lisp-mode-map "\C-c\C-v" 'lisp-show-variable-documentation)
 
+(defvar cmulisp-buffer)
 
 ;;; This function exists for backwards compatibility.
 ;;; Previous versions of this package bound commands to C-c <letter>
@@ -266,9 +267,7 @@ to continue it."
   (setq major-mode 'cmulisp-mode)
   (setq mode-name "CMU Lisp")
   (setq mode-line-process '(": %s"))
-  (if (string-match "^18.4" emacs-version) ; hack.
-      (lisp-mode-variables)    ; This is right for 18.49  
-      (lisp-mode-variables t)) ; This is right for 18.50
+  (lisp-mode-variables t)
   (use-local-map cmulisp-mode-map)    ;c-c c-k for "kompile" file
   (setq comint-get-old-input (function lisp-get-old-input))
   (setq comint-input-filter (function lisp-input-filter))
@@ -317,7 +316,7 @@ comint-mode-hook is run).
 	  (t (let ((pos (string-match "[^ \t]" string)))
 	       (if (null pos)
 		   nil
-		 (cmulsip-args-to-list (substring string pos
+		 (cmulisp-args-to-list (substring string pos
 						  (length string)))))))))
 
 (defun lisp-eval-region (start end &optional and-go)
