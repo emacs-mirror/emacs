@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the MPS telemetry mechanism</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+               THE DESIGN OF THE MPS TELEMETRY MECHANISM
+                          design.mps.telemetry
+                           incomplete design
+                           richard 1997-07-07
+
+
+INTRODUCTION:
+
+This documents the design of the telemetry mechanism within the MPS.
+
+<a id="readership" name="readership">.readership</a>: This document is intended for any MPS developer.
+
+<a id="source" name="source">.source</a>: Various meetings and brainstorms, including 
+meeting.general.1997-03-04(0), mail.richard.1997-07-03.17-01(0), 
+mail.gavinm.1997-05-01.12-40(0).
+
+
+Document History
+
+<a id="hist.0" name="hist.0">.hist.0</a>: 1997-04-11  GavinM  Rewritten
+
+<a id="hist.1" name="hist.1">.hist.1</a>: 1997-07-07  GavinM  Rewritten again after discussion in Pool Hall.
+
+
+OVERVIEW:
+
+Telemetry permits the emission of events from the MPS.  These can be used to 
+drive a graphical tool, or to debug, or whatever.  The system is flexible and 
+robust, but doesn't require heavy support from the client.
+
+
+REQUIREMENTS:
+
+<a id="req.simple" name="req.simple">.req.simple</a>: It must be possible to generate code both for the MPS and any tool 
+without using complicated build tools.
+
+<a id="req.open" name="req.open">.req.open</a>: We must not constrain the nature of events before we are certain of 
+what we want them to be.
+
+<a id="req.multi" name="req.multi">.req.multi</a>: We must be able to send events to multiple streams.
+
+<a id="req.share" name="req.share">.req.share</a>: It must be possible to share event descriptions between the MPS and 
+any tool.
+
+<a id="req.version" name="req.version">.req.version</a>: It must be possible to version the set of events so that any tool 
+can detect whether it can understand the MPS.
+
+<a id="req.back" name="req.back">.req.back</a>: Tools should be able to understand older and newer version of the 
+MPS, so far as is appropriate.
+
+<a id="req.type" name="req.type">.req.type</a>: It must be possible to transmit a rich variety of types to the tool, 
+including doubles, and strings.
+
+<a id="req.port" name="req.port">.req.port</a>: It must be possible to transmit and receive events between different 
+platforms.
+
+<a id="req.control" name="req.control">.req.control</a>: It must be possible to control whether and what events are 
+transmitted at least at a coarse level.
+
+<a id="req.examine" name="req.examine">.req.examine</a>: There should be a cheap means to examine the contents of logs.
+
+<a id="req.pm" name="req.pm">.req.pm</a>: The event mechanism should provide for post mortem to detect what 
+significant events led up to death.
+
+<a id="req.perf" name="req.perf">.req.perf</a>: Events should not have a significant effect on performance when 
+unwanted.
+
+<a id="req.small" name="req.small">.req.small</a>: Telemetry streams should be small.
+
+<a id="req.avail" name="req.avail">.req.avail</a>: Events should be available in all varieties, subject to performance 
+requirements.
+
+<a id="req.impl" name="req.impl">.req.impl</a>: The plinth support for telemetry should be easy to write and 
+flexible.
+
+<a id="req.robust" name="req.robust">.req.robust</a>: The telemetry protocol should be robust against some forms of 
+corruption, e.g. packet loss.
+
+<a id="req.intern" name="req.intern">.req.intern</a>: It should be possible to support string-interning.
+
+
+ARCHITECTURE:
+
+<a id="arch" name="arch">.arch</a>: Event annotations are scattered throughout the code, but there is a 
+central registration of event types and properties.  Events are written to a 
+buffer via a specialist structure, and are optionally written to the plinth.  
+Events can take any number of parameters of a range of types, indicated as a 
+format both in the annotation and the the registry.
+
+
+ANALYSIS:
+
+<a id="anal" name="anal">.anal</a>: The proposed order of development, with summary of requirements impact 
+is as follows:
+
+                        v      c e 
+               s        e      o x             r  i
+               i   m  s r      n a      s  a   o  n
+               m o u  h s t  p t m    p m  v i b  t b
+               p p l  a i y  o r i    e a  a m u  e a
+               l e t  r o p  r o n  p r l  i p s  r c
+               e n i  e n e  t l e  m f l  l l t  n k
+
+.sol.format    0 0 0  0 0 +  0 0 0  0 0 0  0 0 0  0 0  Merged.
+.sol.struct    0 0 0  0 0 +  0 0 0  0 + -  0 0 0  0 0  Merged.
+.sol.string    0 0 0  0 0 +  0 0 0  0 0 0  0 0 0  + 0  Merged.
+.sol.relation  + 0 0  + 0 0  0 0 +  0 0 +  0 0 0  0 0  Merged.
+.sol.dumper    0 0 0  0 0 0  0 0 +  0 0 0  0 0 0  0 0  Merged.
+.sol.kind      0 - 0  0 0 0  0 + 0  + 0 0  0 0 0  0 0  Merged.
+.sol.control   0 0 0  0 0 0  0 + 0  0 + 0  0 0 0  0 0  Merged.
+
+.sol.variety   0 0 0  0 0 0  0 0 0  + + 0  + 0 0  0 0
+
+[ Not yet ordered. ]
+
+.sol.buffer    0 0 0  0 0 0  0 + 0  + + 0  0 0 0  0 0
+.sol.traceback 0 0 0  0 0 0  0 0 0  + 0 0  0 0 0  0 0
+.sol.client    0 0 0  0 0 0  0 0 0  0 0 0  0 0 0  + 0
+.sol.head      0 0 0  0 0 0  + 0 0  0 0 0  0 0 0  0 0
+.sol.version   0 0 0  0 + 0  0 0 0  0 0 0  0 0 0  0 +
+.sol.exit      0 0 0  0 0 0  0 0 0  + 0 0  0 0 0  0 0
+.sol.block     0 0 0  0 0 0  0 0 0  0 + -  0 0 +  0 0 
+.sol.code      0 0 0  0 0 0  0 0 0  0 0 +  0 0 0  0 +
+.sol.msg       0 0 +  0 0 0  + 0 0  0 0 0  0 + +  0 0
+
+<a id="file-format" name="file-format">.file-format</a>: One of the objectives of this plan is to minimise the impact of 
+the changes to the log file format.  This is to be achieved firstly by 
+completing all necessary support before changes are initiated, and secondly by 
+performing all changes at the same time.
+
+
+IDEAS:
+
+<a id="sol.format" name="sol.format">.sol.format</a>: Event annotations indicate the types of their arguments, e.g. 
+EVENT_WD for a Word, and a double.  (.req.type)
+
+<a id="sol.struct" name="sol.struct">.sol.struct</a>: Copy event data into a structure of the appropriate type, e.g. 
+EventWDStruct.  (.req.type, .req.perf, but not .req.small because of padding)
+
+<a id="sol.string" name="sol.string">.sol.string</a>: Permit at most one string per event, at the end, and use the char 
+[1] hack, and specialised code; deduce the string length from the event length 
+and also NUL-terminate  (.req.type, .req.intern)
+
+<a id="sol.buffer" name="sol.buffer">.sol.buffer</a>: Enter all events initially into internal buffers, and 
+conditionally send them to the message stream. (.req.pm, .req.control, 
+.req.perf)
+
+<a id="sol.variety" name="sol.variety">.sol.variety</a>: In optimized varieties, have internal events (see .sol.buffer) 
+for a subset of events and no external events; in normal varieties have all 
+internal events, and the potential for external events.  (.req.avail, .req.pm, 
+.req.perf)
+
+<a id="sol.kind" name="sol.kind">.sol.kind</a>: Divide events by some coarse type into around 6 groups, probably 
+related to frequency.  (.req.control, .req.pm, but not .req.open)
+
+<a id="sol.control" name="sol.control">.sol.control</a>: Hold flags to determine which events are emitted externally.  
+(.req.control, .req.perf)
+
+<a id="sol.dumper" name="sol.dumper">.sol.dumper</a>: Write a simple tool to dump event logs as text.  (.req.examine)
+
+<a id="sol.msg" name="sol.msg">.sol.msg</a>: Redesign the plinth interface to send and receive messages, based on 
+any underlying IPC mechanism, e.g. append to file, TCP/IP, messages, shared 
+memory.  (.req.robust, .req.impl, .req.port, .req.multi)
+
+<a id="sol.block" name="sol.block">.sol.block</a>: Buffer the events and send them as fixed size blocks, commencing 
+with a timestamp, and ending with padding.  (.req.robust, .req.perf, but not 
+.req.small)
+
+<a id="sol.code" name="sol.code">.sol.code</a>: Commence each event with two bytes of event code, and two bytes of 
+length.  (.req.small, .req.back)
+
+<a id="sol.head" name="sol.head">.sol.head</a>: Commence each event stream with a platform-independent header block 
+giving information about the session, version (see .sol.version), and file 
+format; file format will be sufficient to decode the (platform-dependent) rest 
+of the file.  (.req.port)
+
+<a id="sol.exit" name="sol.exit">.sol.exit</a>: Provide a mechanism to flush events in the event of graceful sudden 
+death.  (.req.pm)
+
+<a id="sol.version" name="sol.version">.sol.version</a>: Maintain a three part version number for the file comprising 
+major (incremented when the format of the entire file changes (other than 
+platform differences)), median (incremented when an existing event changes its 
+form or semantics), and minor (incremented when a new event type is added); 
+tools should normally fail when the median or major is unsupported.  
+(.req.version, .req.back)
+
+<a id="sol.relation" name="sol.relation">.sol.relation</a>: Event types will be defined in terms of a relation specifying 
+their name, code, optimised behaviour (see .sol.variety), kind (see .sol.kind), 
+and format (see .sol.format); both the MPS and tool can use this by suitable 
+#define hacks.  (.req.simple. .req.share, .req.examine, .req.small (no format 
+information in messages))
+
+<a id="sol.traceback" name="sol.traceback">.sol.traceback</a>: Provide a mechanism to output recent events (see .sol.buffer) 
+as a form of backtrace when AVERs fire or from a debugger, or whatever. 
+(.req.pm)
+
+<a id="sol.client" name="sol.client">.sol.client</a>: Provide a mechanism for user events.  (.req.intern)
+
+
+
+IMPLEMENTATION:
+
+Annotation
+
+<a id="annot" name="annot">.annot</a>: An event annotation is of the form:
+  EVENT_PAW(FooCreate, pointer, address, word);
+
+<a id="annot.format" name="annot.format">.annot.format</a>: Note that the format is indicated in the macro name.  See 
+.format.
+
+<a id="annot.string" name="annot.string">.annot.string</a>: If there is a string in the format, it must be the last 
+parameter (and hence there can be only one).  There is currrently a maximum 
+string length, defined by EventMaxStringLength in impl.h.eventcom.
+
+<a id="annot.type" name="annot.type">.annot.type</a>: The event type should be given as the first parameter to the event 
+macro, as registered in impl.h.eventdef.
+
+<a id="annot.param" name="annot.param">.annot.param</a>: The parameters of the event should be given as the remaining 
+parameters of the event macro, in order as indicated in the format.
+
+
+Registration
+
+<a id="reg" name="reg">.reg</a>: All event types should be registered in impl.h.eventdef, in the form of a 
+relation. 
+
+<a id="reg.just" name="reg.just">.reg.just</a>: This use of a relation macro enables great flexibility in the use of 
+this file.
+
+<a id="reg.rel" name="reg.rel">.reg.rel</a>: The relation is of the form:
+  RELATION(FooCreate, 0x1234, TRUE, Arena, PAW)
+
+<a id="reg.type" name="reg.type">.reg.type</a>: The first parameter of the relation is the event type.  This needs 
+no prefix, and should correspond to that used in the annotation.
+
+<a id="reg.code" name="reg.code">.reg.code</a>: The second parameter is the event code, a 16-bit value used to 
+represent this event type.  [Not yet used.  GavinM 1997-07-18]
+
+<a id="reg.code.temp" name="reg.code.temp">.reg.code.temp</a>: On an interim basis, new events also have to be registered in 
+impl.h.eventcom.  This will no longer be required when the event file format is 
+revised. 
+
+<a id="reg.always" name="reg.always">.reg.always</a>: The third parameter is a boolean value indicating whether this 
+event type should be implemented in all varieties.  See .control.buffer.  
+Unless your event is on the critical path (typically per reference or per 
+object), you will want this to be TRUE.
+
+<a id="reg.kind" name="reg.kind">.reg.kind</a>: The fourth parameter is a kind keyword indicating what category this 
+event falls into.  See .control.  The possible values are:
+  Arena -- per space or arena or global
+  Pool -- pool-related
+  Trace -- per trace or scan
+  Seg -- per segment
+  Ref -- per reference or fix
+  Object -- per object or allocation
+This list can be seen in impl.h.event.
+
+<a id="reg.format" name="reg.format">.reg.format</a>: The fifth parameter is the format (see .format) and should 
+correspond to the annotation (see .annot.format).
+
+<a id="reg.dup" name="reg.dup">.reg.dup</a>: It is permissible for the one event type to be used for more than one 
+annotation.  There are generally two reasons for this:
+  - Variable control flow for successful function completion;
+  - Platform/Otherwise-dependent implementations of a function.
+Note that all annotations for one event type must have the same format (as 
+implied by .reg.format).
+
+
+Format
+
+<a id="format" name="format">.format</a>: Where a format is used to indicate the type, it is a sequence of 
+letters from the following list:
+  P -- void *
+  A -- Addr
+  W -- Word
+  U -- unsigned int
+  S -- char *
+  D -- double
+The corresponding event parameters must be assignment compatible with these 
+types.
+
+<a id="format.zero" name="format.zero">.format.zero</a>: If there are no parameters for an event, then the special format 
+"0" should be used.
+
+<a id="format.types" name="format.types">.format.types</a>: When an event has parameters whose type is not in the above 
+list, use the following guidelines: All C pointer types not representing 
+strings use P; Size and Count use W; *Set use U; others should be obvious.
+
+<a id="format.support" name="format.support">.format.support</a>: Every format used needs bespoke support in impl.h.eventgen.  
+It has not been possible to provide support for all possible formats, so such 
+support is added when required.  <a id="format.support.auto" name="format.support.auto">.format.support.auto</a>: There is a tool in 
+impl.pl.eventgen that will generate impl.h.eventgen automatically.  It is used 
+as follows:
+  1. Claim the file eventgen.h.
+  2. Invoke eventgen.pl.
+  3. Check it compiles correctly in all varieties.
+  4. Check in eventgen.h.
+
+
+Control
+
+<a id="control" name="control">.control</a>: There are two types of event control, buffer and output.
+
+<a id="control.buffer" name="control.buffer">.control.buffer</a>: Buffer control affects whether particular events implemented 
+at all, and is controlled statically by variety using the always value (see 
+.reg.always) for the event type.  This is only relevant to release varieties.  
+[Not yet implemented.  GavinM 1997-07-18]
+
+<a id="control.output" name="control.output">.control.output</a>: Output control affects whether events written to the internal 
+buffer are output via the plinth.  This is set on a per-kind basis (see 
+.reg.kind), using a control bit table stored in EventKindControl.  By default, 
+all event kinds are on (in variety.ti).  You may switch some kinds off using a 
+debugger.
+
+For example, to disable Ref events using gdb (see impl.h.event for numeric 
+codes):
+
+  break ArenaCreate
+  run
+  delete 1
+  call BTRes(EventKindControl, 4)
+  continue
+
+<a id="control.just" name="control.just">.control.just</a>: These controls are coarse, but very cheap.
+
+<a id="control.external" name="control.external">.control.external</a>: There will be an MPS interface function to control 
+EventKindControl.
+
+<a id="control.tool" name="control.tool">.control.tool</a>: The tools will be able to control EventKindControl.
+
+
+Dumper Tool
+
+<a id="dumper" name="dumper">.dumper</a>: A primitive dumper tool is available in impl.c.eventcnv.  For details, 
+see guide.mps.telemetry.
+
+
+Allocation Replayer Tool
+
+<a id="replayer" name="replayer">.replayer</a>: A tool for replaying an allocation sequence from a log is available 
+in impl.c.replay.  For details, see design.mps.telemetry.replayer.
+
+
+
+TEXT:
+
+<a id="notes" name="notes">.notes</a>:
+  - Set always to FALSE for all Ref and Object events;
+  - Fix use of BT for size in bytes, guess then check, BTInit;
+  - Resolve protection transgression in impl.h.eventdef;
+  - Make EventKind* enum members so they can be used from the debugger.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

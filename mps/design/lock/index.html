@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the lock module</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                     THE DESIGN OF THE LOCK MODULE
+                            design.mps.lock
+                              draft design
+                             dsm 1995-11-21
+
+PURPOSE
+
+<a id="purpose" name="purpose">.purpose</a>: Support the locking needs of the thread-safe design. In particular:
+- Recursive locks
+- Binary locks
+- Recursive "global" lock that need not be allocated or initialized by the 
+client
+- Binary "global" lock that need not be allocated or initialized by the client
+
+<a id="context" name="context">.context</a>: The MPS has to be able to operate in a multi-threaded environment.  
+The thread-safe design (design.mps.thread-safety) requires client-allocatable 
+binary locks, a global binary lock and a global recursive lock.  An interface 
+to client-allocatable recursive locks is also present to support any potential 
+use, because of historic requirements, and because the implementation will 
+presumably be necessary anyway for the global recursive lock. 
+
+
+BACKGROUND
+
+<a id="need" name="need">.need</a>: In an environment where multiple threads are accessing shared data.  The 
+threads which access data which is shared with other threads need to cooperate 
+with those threads to maintain consistency.  Locks provide a simple mechanism 
+for doing this.
+
+<a id="ownership" name="ownership">.ownership</a>: A lock is an object which may be "owned" by a single thread at a 
+time.  By claiming ownership of a lock before executing some piece of code a 
+thread can guarantee that no other thread owns the lock during execution of 
+that code.  If some other thread holds a claim on a lock, the thread trying to 
+claim the lock will suspend until the lock is released by the owning thread.
+
+<a id="data" name="data">.data</a>: A simple way of using this behaviour is to associate a lock with a 
+shared data structure.  By claiming that lock around accesses to the data, a 
+consistent view of the structure can be seen by the accessing thread.  More 
+generally any set of operations which are required to be mutally exclusive may 
+be performed so by using locks.
+
+
+OVERVIEW
+
+<a id="adt" name="adt">.adt</a>: There is an ADT "Lock" which points to a locking structure "LockStruct".  
+This structure is opaque to any client, although an interface is provided to 
+supply the size of the structure for any client wishing to make a new lock.  
+The lock is not allocated by the module as allocation itself may require 
+locking.  LockStruct is implementation specific.
+
+<a id="simple-lock" name="simple-lock">.simple-lock</a>: There are facilities for claiming and releasing locks.  "Lock" is 
+used for both binary and recursive locking.
+
+<a id="global-locks" name="global-locks">.global-locks</a>: "Global" locks are so called because they are used to protect 
+data in a global location (such as a global variable). The lock module provides 
+2 global locks; one recursive and one binary.  There are facilities for 
+claiming and releasing both of these locks. These global locks have the 
+advantage that they need not be allocated or atomically initialized by the 
+client, so they may be used for locking the initialization of the allocator 
+itself.  The binary global lock is intended to protect mutable data, possibly 
+in conjunction with other local locking strategies.  The recursive global lock 
+is intended to protect static read-only data during one-off initialization.  
+See design.mps.thread-safety.
+
+<a id="deadlock" name="deadlock">.deadlock</a>: This module does not provide any deadlock protection.  Clients are 
+responsible for avoiding deadlock by using traditional strategies such as 
+ordering of locks.  (See design.mps.thread-safety.deadlock.)
+
+<a id="single-thread" name="single-thread">.single-thread</a>: In the single-threaded configuration, locks are not needed and 
+the claim/release interfaces defined to be no-ops.
+
+
+DETAILED DESIGN
+
+<a id="interface" name="interface">.interface</a>: The interface comprises the following functions:
+
+- LockSize
+  Return the size of a LockStruct for allocation purposes.
+
+- LockInit / LockFinish
+  After initialisation the lock is not owned by any thread.  This must also be 
+the case before finalisation.
+[ref convention?]
+
+- LockClaim / LockRelease
+  LockClaim: claims ownership of a lock that was previously not held by current 
+thread.
+  LockRelease: releases ownership of a lock that is currently owned.
+
+- LockClaimRecursive / LockReleaseRecursive
+  LockClaimRecursive: remembers the previous state of the lock with respect to 
+the current thread and claims the lock (if not already held).
+  LockReleaseRecursive: restores the previous state of the lock stored by 
+corresponding LockClaimRecursive call.
+
+- LockClaimGlobal / LockReleaseGlobal
+  LockClaimGlobal: claims ownership of the binary global lock which was 
+previously not held by current thread.
+  LockReleaseGlobal: releases ownership of the binary global lock that is 
+currently owned.
+
+- LockClaimGlobalRecursive / LockReleaseGlobalRecursive
+  LockClaimGlobalRecursive: remembers the previous state of the recursive 
+global lock with respect to the current thread and claims the lock (if not 
+already held).
+  LockReleaseGlobalRecursive: restores the previous state of the recursive 
+global lock stored by corresponding LockClaimGlobalRecursive call.
+
+<a id="impl.recursive" name="impl.recursive">.impl.recursive</a>: For recursive claims, the list of previous states can be 
+simply implemented by keeping a count of the number of claims made by the 
+current thread so far.  In multi-threaded implementation below this is handled 
+by the operating system.  A count is still kept and used to check correctness.
+
+<a id="impl.global" name="impl.global">.impl.global</a>: The binary and recursive global locks may actually be implemented 
+using the same mechanism as normal locks.
+
+<a id="impl.ansi" name="impl.ansi">.impl.ansi</a>: Single-Threaded Generic Implementation
+- single-thread
+- no need for locking
+- locking structure contains count
+- provides checking in debug version
+- otherwise does nothing except keep count of claims
+
+<a id="impl.win32" name="impl.win32">.impl.win32</a>: Win32 Implementation
+- supports Win32's threads
+- uses Critical Sections [ref?]
+- locking structure contains a Critical Section
+- both recursive and non-recursive calls use same Windows function
+- also performs checking
+
+<a id="impl.linux" name="impl.linux">.impl.linux</a>: LinuxThreads Implementation (possibly suitable for all PThreads 
+implementations)
+- supports LinuxThreads threads, which are an implementation of PThreads. (see 
+&lt;URL:http://pauillac.inria.fr/~xleroy/linuxthreads/&gt;)
+- locking structure contains a mutex, initialized to check for recursive locking
+- locking structure contains a count of the number of active claims
+- non-recursive locking calls pthread_mutex_lock and expects success
+- recursive locking calls pthread_mutex_lock and expects either success or 
+EDEADLK (indicating a recursive claim).
+- also performs checking
+
+
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design for the locus manager</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                    THE DESIGN FOR THE LOCUS MANAGER
+                            design.mps.locus
+                           incomplete design
+                           gavinm 1998-02-27
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: The locus manager coordinates between the pools and takes the burden of 
+having to be clever about tract/group placement away from the pools, preserving 
+trace differentiability and contiguity where appropriate.
+
+<a id="source" name="source">.source</a>: mail.gavinm.1998-02-05.17-52(0), mail.ptw.1998-02-05.19-53(0), 
+mail.pekka.1998-02-09.13-58(0), and mail.gavinm.1998-02-09.14-05(0).
+
+
+Document History
+
+<a id="hist.0" name="hist.0">.hist.0</a>: Originally written as part of change.dylan.box-turtle.170569.  Much 
+developed since.  gavinm 1998-02-27
+
+<a id="hist.1" name="hist.1">.hist.1</a>: Pekka wrote the real requirements after some discussion.  pekka 
+1998-10-28
+
+<a id="hist.2" name="hist.2">.hist.2</a>: Pekka deleted Gavin's design and wrote a new one.  pekka 1998-12-15
+
+
+DEFINITIONS
+
+<a id="note.cohort" name="note.cohort">.note.cohort</a>: We use the word "cohort" in its usual sense here, but we're 
+particularly interested in cohorts that have properties relevant to tract 
+placement.  It is such cohorts that the pools will try to organize using the 
+services of the locus manager.  Typical properties would be trace 
+differentiability or (en masse) death-time
+predictability.  Typical cohorts would be instances of a non-generational pool, 
+or generations of a collection strategy.
+
+<a id="def.trace.differentiability" name="def.trace.differentiability">.def.trace.differentiability</a>: Objects (and hence tracts) that are collected, 
+may or may not have "trace differentiability" from each other, depending on 
+their placement in the different zones.  Objects (or pointers to them) can also 
+have trace differentiability (or not) from non-pointers in ambiguous 
+references; in practice, we will be worried about low integers, that may appear 
+to be in zones 0 or -1.
+
+
+REQUIREMENTS
+
+<a id="req.cohort" name="req.cohort">.req.cohort</a>: Tract allocations must specify the cohort they allocate in.  These 
+kind of cohorts will be called loci, and they will have such attributes as are 
+implied by the other requirements.  Critical.
+
+<a id="req.counter.objects" name="req.counter.objects">.req.counter.objects</a>: As a counter-requirement, pools are expected to manage 
+objects.  Objects the size of a tract allocation request (segment-sized) are 
+exceptional.  Critical.  <a id="req.counter.objects.just" name="req.counter.objects.just">.req.counter.objects.just</a>: This means the locus 
+manager is not meant to solve the problems of allocating large objects, and it 
+isn't required to know what goes on in pools.
+
+<a id="req.contiguity" name="req.contiguity">.req.contiguity</a>: Must support a high level of contiguity within cohorts when 
+requested.  This means minimizing the number of times a cohort is made aware of 
+discontiguity.  Essential (as we've effectively renegotiated this in SW, down 
+to a vague hope that certain critical cohorts are not too badly fragmented).  
+<a id="req.contiguity.just" name="req.contiguity.just">.req.contiguity.just</a>: TSBA.
+
+<a id="req.contiguity.specific" name="req.contiguity.specific">.req.contiguity.specific</a>: It should be possible to request another allocation 
+next to a specific tract on either side (or an extension in that direction, as 
+the case may be).  Such a request can fail, if there's no space there.  Nice.  
+[IWBN to have one for "next to the largest free block".]
+
+<a id="req.differentiable" name="req.differentiable">.req.differentiable</a>: Must support the trace differentiability of segments that 
+may be condemned separately.  Due to the limited number of zones, it must be 
+possible to place several cohorts into the same zone.  Essential.
+
+<a id="req.differentiable.integer" name="req.differentiable.integer">.req.differentiable.integer</a>: It must be possible to place collectable 
+allocations so that they are trace-differentiable from small integers.  
+Essential.
+
+<a id="req.disjoint" name="req.disjoint">.req.disjoint</a>: Must support the disjointness of pages that have different VM 
+properties (such as mutable/immutable, read-only/read-write, and different 
+lifetimes).  Optional.  [I expect the implementation will simply work at page 
+or larger granularity, so the problem will not arise, but Tucker insisted on 
+stating this as a requirement.  pekka 1998-10-28]
+
+<a id="req.low-memory" name="req.low-memory">.req.low-memory</a>: The architecture of the locus manager must not prevent the 
+design of efficient applications that often use all available memory.  
+Critical.  <a id="req.low-memory.expl" name="req.low-memory.expl">.req.low-memory.expl</a>: This basically says it must be designed to 
+perform well in low-memory conditions, but that there can be configurations 
+where it doesn't do as well, as long as this is documented for the application 
+programmer.  Note that it doesn't say all applications are efficient, only that 
+if you manage to design an otherwise efficient application, the locus manager 
+will not sink it.
+
+<a id="req.address" name="req.address">.req.address</a>: Must conserve address space in VM arenas to a reasonable extent.  
+Critical.
+
+<a id="req.inter-pool" name="req.inter-pool">.req.inter-pool</a>: Must support the association of sets of tracts in different 
+pools into one cohort.  Nice.
+
+<a id="req.ep-style" name="req.ep-style">.req.ep-style</a>: Must support the existing EP-style of allocation whereby 
+allocation is from one end of address space either upwards or downwards (or a 
+close approximation thereto with the same behavior).  <a id="req.ep-style.just" name="req.ep-style.just">.req.ep-style.just</a>: We 
+cannot risk disrupting a policy with well-known properties when this technology 
+is introduced.
+
+<a id="req.attributes" name="req.attributes">.req.attributes</a>: There should be a way to inform the locus manager about 
+various attributes of cohorts that might be useful for placement: deathtime, 
+expected total size, [more in the future].  Optional.  [It's a given that the 
+cohorts must then have these attributes, within the limits set in the contract 
+of the appropriate interface.]  <a id="req.attributes.action" name="req.attributes.action">.req.attributes.action</a>: The locus manager 
+should use the attributes to guide its placement decisions.  Nice.
+
+<a id="req.blacklisting" name="req.blacklisting">.req.blacklisting</a>: There should be a way of maintaining at least one blacklist 
+for pages (or some other small unit), that can not/should not be allocated to 
+collectable pools.  [How to do blacklist breaking for ambiguous refs?]  
+Optional.
+
+<a id="req.hysteresis" name="req.hysteresis">.req.hysteresis</a>: There should be a way to indicate which cohorts fluctuate in 
+size and by how much, to guide the arena hysteresis to hold on to suitable 
+pages.  Optional.
+
+
+ANALYSIS
+
+<a id="anal.sw" name="anal.sw">.anal.sw</a>: Almost any placement policy would be an improvement on the current SW 
+one.
+
+<a id="anal.cause-and-effect" name="anal.cause-and-effect">.anal.cause-and-effect</a>: The locus manager doesn't usually need to know _why_ 
+things need to be differentiable, disjoint, contiguous, etc.  Abstracting the 
+reason away from the interface makes it more generic, more likely to have 
+serendipitous new uses.  Attributes described by a quantity (deathtime, size, 
+etc.) are an exception to this, because we can't devise a common measure.
+
+<a id="anal.stable" name="anal.stable">.anal.stable</a>: The strategy must be stable: it must avoid repeated 
+recomputation, especially the kind that switches between alternatives with a 
+short period (repeated "bites" out the same region or flip-flopping between two 
+regions).
+
+<a id="anal.fragmentation" name="anal.fragmentation">.anal.fragmentation</a>: There's some call to avoid fragmentation in cohorts that 
+don't need strict contiguity, but this is not a separate requirement, since 
+fragmentation is a global condition, and can only be ameliorated if there's a 
+global strategy that clumps allocations together.  <a id="anal.deathtime" name="anal.deathtime">.anal.deathtime</a>: Cohorts 
+with good death-time clumping of their objects could use some locality of tract 
+allocation, because it increases the chances of creating large holes in the 
+address space (for other allocation to use).  OTOH. many cohorts will not do 
+multiple frees in short succession, or at least cannot reasonably be predicted 
+to do so.  This locality is not contiguity, nor is it low fragmentation, it's 
+just the requirement to place the new tracts next to the tract where the last 
+object was allocated in the cohort.  Note that the placement of objects is 
+under the control of the pool, and the locus manager will not know it, 
+therefore this requirement should be pursued by requesting allocation next to a 
+particular tract (which we already have a requirement for).
+
+<a id="anal.asymmetrical" name="anal.asymmetrical">.anal.asymmetrical</a>: The strategy has to be asymmetrical with respect to cohorts 
+growing and shrinking.  The reason of this asymmetry is that it can choose 
+where to grow, but it cannot choose where to shrink (except in a small way by 
+growing with good locality).
+
+
+INTERFACE
+
+<a id="interface.locus" name="interface.locus">.interface.locus</a>: A cohort will typically reside on multiple tracts (and the 
+pools will avoid putting objects of other cohorts on them), so there should be 
+an interface to describe the properties of the cohort, and associate each 
+allocation request with the cohort.  We shall call such an object, created to 
+represent a cohort, a locus (pl. loci).
+
+<a id="interface.locus.pool" name="interface.locus.pool">.interface.locus.pool</a>: Loci will usually be created by the pool that uses it.  
+Some of the locus attributes will be inherited from client-specified pool 
+attributes [this means there will be additional pool attributes].
+
+<a id="interface.detail" name="interface.detail">.interface.detail</a>: This describes interface in overview; for details, see 
+implementation section and code, or user doc.
+
+
+Loci
+
+<a id="function.create" name="function.create">.function.create</a>: A function to create a locus:
+  Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg, 
+LocusAllocDesc adesc)
+where adesc contains the information about the allocation sequences in the 
+locus, zg is used for zone differentiability, and attrs encodes the following:
+  <a id="locus.contiguity" name="locus.contiguity">.locus.contiguity</a>: A locus can be contiguous.  This means performing as 
+required in .req.contiguity, non-contiguous allocations can be freely placed 
+anywhere (but efficiency dictates that similar allocations are placed close 
+together and apart from others).
+  <a id="locus.blacklist" name="locus.blacklist">.locus.blacklist</a>: Allocations in the locus will avoid blacklisted pages (for 
+collectable segments).
+  <a id="locus.zero" name="locus.zero">.locus.zero</a>: Allocations in the locus are zero-filled.
+  [Other attributes will be added, I'm sure.]
+
+<a id="interface.zone-group" name="interface.zone-group">.interface.zone-group</a>: The locus can be made a member of a zone group.  Passing 
+ZoneGroupNONE means it's not a member of any group (allocations will be placed 
+without regard to zone, except to keep them out of stripes likely to be needed 
+for some group).  [I propose no mechanism for managing zone groups at this 
+time, since it's only used internally for one purpose.  pekka 2000-01-17]
+
+<a id="interface.size" name="interface.size">.interface.size</a>: An allocation descriptor (LocusAllocDesc) contains various 
+descriptions of how the locus will develop over time (inconsistent 
+specifications are forbidden, of course):
+  <a id="interface.size.typical-alloc" name="interface.size.typical-alloc">.interface.size.typical-alloc</a>: Size of a typical allocation in this locus, in 
+bytes.  This will mainly affect the grouping of non-contiguous loci.
+  <a id="interface.size.large-alloc" name="interface.size.large-alloc">.interface.size.large-alloc</a>: Typical large allocation that the manager should 
+try to allow for (this allows some relief from .req.counter.objects), in 
+bytes.  This will mainly affect the size of gaps that will be allotted 
+adjoining this locus.
+  <a id="interface.size.direction" name="interface.size.direction">.interface.size.direction</a>: Direction of growth: up/down/none.  Only useful if 
+the locus is contiguous.
+  <a id="interface.size.lifetime" name="interface.size.lifetime">.interface.size.lifetime</a>: Some measure of the lifetime of tracts (not 
+objects) in the cohort.  [Don't know the details yet, probably only useful for 
+placing similar cohorts next to each other, so the details don't actually 
+matter.  pekka 2000-01-17]
+  <a id="interface.size.deathtime" name="interface.size.deathtime">.interface.size.deathtime</a>: Some measure of the deathtime of tracts (not 
+objects) in the cohort.  [Ditto.  pekka 2000-01-17]
+
+<a id="function.init" name="function.init">.function.init</a>: LocusInit is like LocusCreate, but without the allocation.  
+This is the usual i/f, since most loci are embedded in a pool or something.
+
+<a id="function.alloc" name="function.alloc">.function.alloc</a>: ArenaAlloc to take a locus arg.  ArenaAllocHere is like it, 
+plus it takes a tract and a specification to place the new allocation 
+immediately above/below a given tract; if that is not possible, it returns 
+ResFAIL (this will make it useful for realloc functionality).
+
+<a id="function.set-total" name="function.set-total">.function.set-total</a>: A function to tell the arena the expected number of 
+(non-miscible client) loci, and of zone groups:
+  ArenaSetTotalLoci(Arena arena, Size nLoci, Size nZoneGroups)
+
+
+Peaks
+
+<a id="function.peak.create" name="function.peak.create">.function.peak.create</a>: A function to create a peak:
+ mps_res_t mps_peak_create(mps_peak_t*, mps_arena_t)
+A newly-created peak is open, and will not be used to guide the strategy of the 
+locus manager.
+
+<a id="function.peak.add" name="function.peak.add">.function.peak.add</a>: A function to add a description of the state of one pool 
+into the peak:
+  mps_res_t mps_peak_describe_pool(mps_peak_t, mps_pool_t, mps_size_desc_t)
+Calling this function again for the same peak and pool instance will replace 
+the earlier description.  <a id="function.peak.add.size" name="function.peak.add.size">.function.peak.add.size</a>: The size descriptor contains 
+a total size in bytes or % of arena size [@@@@is this right?].  
+<a id="function.peak.add.remove" name="function.peak.add.remove">.function.peak.add.remove</a>: Specifying a NULL size will remove the pool from the 
+peak.  The client is not allowed to destroy a pool that is mentioned in any 
+peak; it must be first removed from the peak, or the peak must be destroyed.  
+This is to ensure that the client adjusts the peaks in a manner that makes 
+sense to the application; the locus manager can't know how to do that.
+
+<a id="function.peak.close" name="function.peak.close">.function.peak.close</a>: A function to indicate that all the significant pools 
+have been added to the peak, and it can now be used to guide the locus manager:
+ mps_res_t mps_peak_close(mps_peak_t)
+For any pool not described in the peak, the locus manager will take its current 
+size at any given moment as the best prediction of its size at the peak.  
+<a id="function.peak.close.after" name="function.peak.close.after">.function.peak.close.after</a>: It is legal to add more descriptions to the peak 
+after closing, but this will reopen the peak, and it will have to be closed 
+before the locus manager will use it again.  The locus manager uses the 
+previous closed state of the peak, while this is going on.
+
+<a id="function.peak.destroy" name="function.peak.destroy">.function.peak.destroy</a>: A function to destroy a peak:
+ void mps_peak_destroy(mps_peak_t)
+
+<a id="interface.ep-style" name="interface.ep-style">.interface.ep-style</a>: This satisfies .req.ep-style by allowing SW to specify 
+zero size for most pools (which will cause them to be place next to other loci 
+with the same growth direction).  [Not sure this is good enough, but we'll try 
+it first.  pekka 2000-01-17]
+
+
+ARCHITECTURE
+
+Data Objects
+
+<a id="arch.locus" name="arch.locus">.arch.locus</a>: To represent the cohorts, we have locus objects.  Usually a locus 
+is embedded in a pool instance, but generations are separate loci.
+
+<a id="arch.locus.attr" name="arch.locus.attr">.arch.locus.attr</a>: contiguity, blacklist, zg, current region, @@@@
+
+<a id="arch.locus.attr.exceptional" name="arch.locus.attr.exceptional">.arch.locus.attr.exceptional</a>: The client can define a typical large allocation 
+for the locus.  Requests substantially larger than that are deemed exceptional.
+
+<a id="arch.zone-group" name="arch.zone-group">.arch.zone-group</a>: To satisfy .req.condemn, we offer zone groups.  Each locus 
+can be a member of a zone group, and the locus manager will attempt to place 
+allocations in this locus in different zones from all the other zone groups.  A 
+zone-group is represented as @@@@.
+
+<a id="arch.page-table" name="arch.page-table">.arch.page-table</a>: A page table is maintained by the arena, as usual to track 
+association between tracts, pools and segments, and mapping status for VM 
+arenas.
+
+<a id="arch.region" name="arch.region">.arch.region</a>: All of the address space is divided into disjoint regions, 
+represented by region objects.  These objects store their current limits, and 
+high and low watermarks of currently allocated tracts (we hope there's usually 
+a gap of empty space between regions).  The limits are actually quite porous 
+and flexible.
+
+<a id="arch.region.assoc" name="arch.region.assoc">.arch.region.assoc</a>: Each region is associated with one contiguous locus or any 
+number of non-contiguous loci (or none).  We call the first kind of region 
+"contiguous".  <a id="arch.locus.assoc" name="arch.locus.assoc">.arch.locus.assoc</a>: Each locus remembers all regions where it has 
+tracts currently, excepting the badly-placed allocations (see below).  It is 
+not our intention that any locus would have very many, or that loci that share 
+regions would have any reason to stop doing do.
+
+<a id="arch.region.more" name="arch.region.more">.arch.region.more</a>: Various quantities used by the placement computation are 
+also stored in the regions and the loci.  Regions are created (and destroyed) 
+by the placement recomputation.  Regions are located in stripes (if it's a 
+zoned region), but they can extend into neighboring stripes if an exceptionally 
+large tract allocation is requested (to allow for large objects).
+
+<a id="arch.chunk" name="arch.chunk">.arch.chunk</a>: Arenas may allocate more address space in additional chunks, which 
+may be disjoint from the existing chunks.  Inter-chunk space will be 
+represented by dummy regions.  There are also sentinel regions at both ends of 
+the address space.
+
+
+Overview of Strategy
+
+<a id="arch.strategy.delay" name="arch.strategy.delay">.arch.strategy.delay</a>: The general strategy is to delay placement decisions 
+until they have to be made, but no later.
+
+<a id="arch.strategy.delay.until" name="arch.strategy.delay.until">.arch.strategy.delay.until</a>: Hence, the locus manager only makes placement 
+decisions when an allocation is requested (frees and other operations might set 
+a flag to cause the next allocation to redecide).  This also allows the client 
+to change the peak and pool configuration in complicated ways without causing a 
+lot of recomputation, by doing all the changes without allocating in the middle 
+(unless the control pool needs more space because of the changes).
+
+<a id="arch.strategy.normal" name="arch.strategy.normal">.arch.strategy.normal</a>: While we want the placement to be sophisticated, we do 
+not believe it is worth the effort to consider all the data at each 
+allocation.  Hence, allocations are usually just placed in one of the regions 
+used previously (see .arch.alloc) without reconsidering the issues.
+
+<a id="arch.strategy.normal.limit" name="arch.strategy.normal.limit">.arch.strategy.normal.limit</a>: However, the manager sets precautionary limits on 
+the regions to ensure that the placement decisions are revisited when an 
+irrevocable placement is about to be made.
+
+<a id="arch.strategy.create" name="arch.strategy.create">.arch.strategy.create</a>: The manager doesn't create new regions until they are 
+needed for allocation (but it might compute where they could be placed to 
+accommodate a peak).
+
+
+Allocation
+
+<a id="arch.alloc" name="arch.alloc">.arch.alloc</a>: Normally, each allocation to a locus is placed in its current 
+region.  New regions are only sought when necessary to fulfill an allocation 
+request or when there is reason to think the situation has changed 
+significantly (see .arch.significant).
+
+<a id="arch.alloc.same" name="arch.alloc.same">.arch.alloc.same</a>: An allocation is first attempted next to the previous 
+allocation in the same locus, respecting growth direction.  If that is not 
+possible, a good place in the current region is sought.  <a id="arch.alloc.same.hole" name="arch.alloc.same.hole">.arch.alloc.same.hole</a>: 
+ATM, for finding a good place within a region, we just use the current 
+algorithm, limited to the region.  In future, the placement within regions will 
+be more clever.
+
+<a id="arch.alloc.extend" name="arch.alloc.extend">.arch.alloc.extend</a>: If there's no adequate hole in the current region and the 
+request is not exceptional, the neighboring regions are examined to see if the 
+region could be extended at one border.  (This will basically only be done if 
+the neighbor has shrunk since the last placement recomputation, because the 
+limit was set on sophisticated criteria, and should not be changed without 
+justification.)   <a id="arch.alloc.extend.here" name="arch.alloc.extend.here">.arch.alloc.extend.here</a>: When an allocation is requested next 
+to a specific tract (ArenaAllocHere), we try to extend a little harder [at 
+least for change_size, perhaps not for locality].
+
+<a id="arch.alloc.other" name="arch.alloc.other">.arch.alloc.other</a>: If no way can be found to allocate in the current region, 
+other regions used for this locus are considered in the same way, to see if 
+space can be found there.  [Or probably look at other regions before trying to 
+extend anything?]
+
+<a id="arch.alloc.recompute" name="arch.alloc.recompute">.arch.alloc.recompute</a>: When no region of this locus has enough space for the 
+request, or when otherwise required, region placement is recomputed to find a 
+new region for the request (which might be the same region, after extension).
+
+<a id="arch.alloc.current" name="arch.alloc.current">.arch.alloc.current</a>: This region where the allocation was placed then becomes 
+the current region for this locus, except when the request was exceptional, or 
+when the region chosen was "bad" (see @@@@).
+
+<a id="arch.significant" name="arch.significant">.arch.significant</a>: Significant changes to the parameters affecting placement 
+are deemed to have happened at certain client calls and when the total 
+allocation has changed substantially since the last recomputation.  Such 
+conditions set a flag that causes the next allocation to recompute even if its 
+current region is not full [possibly second-guess the decision to recompute 
+after some investigation of the current state?].
+
+
+Deallocation
+
+<a id="arch.free" name="arch.free">.arch.free</a>: Deallocation simply updates the counters in the region and the 
+locus.  For some loci, it will make the region of the deallocation the current 
+region.
+<a id="arch.free.remove" name="arch.free.remove">.arch.free.remove</a>: If a region becomes entirely empty, it is deleted (and the 
+neighbors limits might be adjusted [quite tricky to get right, this]).
+
+
+Region Placement Recomputation
+
+<a id="arch.gap" name="arch.gap">.arch.gap</a>: When doing placement computations, we view the arena as a sequence 
+of alternating region cores and gaps (which can be small, even zero-sized).  
+Initially, we'll take the core of a region to be the area between the high and 
+low watermark, but in the future we might be more flexible about that.  [Edge 
+determination is actually a worthwhile direction to explore.]
+
+<a id="arch.reach" name="arch.reach">.arch.reach</a>: The gap between two cores could potentially end up being allocated 
+to either region, if they grow in that direction, or one or neither, if they 
+don't.  The set of states that the region assignment could reach by assigning 
+the gaps to their neighbors is called the reach of the current configuration.
+
+<a id="arch.placement.object" name="arch.placement.object">.arch.placement.object</a>: The object of the recomputation is to find a 
+configuration of regions that is not too far from the current configuration and 
+that keeps all the peaks inside its reach; if that is not possible, keep the 
+nearest ones in the reach and then minimize the total distance from the rest.
+
+<a id="arch.placement.hypothetical" name="arch.placement.hypothetical">.arch.placement.hypothetical</a>: The configurations that are considered will 
+include hypothetical placements for new regions for loci that cannot fit in 
+their existing regions at the peak.  This is necessary to avoid choosing a bad 
+alternative.
+
+<a id="arch.placement.interesting" name="arch.placement.interesting">.arch.placement.interesting</a>: The computation will only consider new regions of 
+loci that are deemed interesting, i.e., far from their peak state.  This will 
+reduce the computational burden and avoid jittering near a peak.
+
+[details missing]
+
+
+IMPLEMENTATION
+
+[missing]
+
+
+NOTES
+
+<a id="idea.change" name="idea.change">.idea.change</a>: Even after the first segment, be prepared to change your mind, if 
+by the second segment a lot of new loci have been created.
+
+<a id="distance" name="distance">.distance</a>: If the current state is far from a peak, there's time to reassign 
+regions and for free space to appear (in fact, under the steady arena 
+assumption, enough free space _will_ appear).
+
+<a id="clear-pool" name="clear-pool">.clear-pool</a>: Need to have a function to deallocate all objects in a pool, so 
+that PoolDestroy won't have to be used for that purpose.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Virtual memory arena</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                          VIRTUAL MEMORY ARENA
+                          design.mps.arena.vm
+                             incomplete doc
+                             drj 1996-07-16
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This document describes the detailed design of the Virtual Memory Arena 
+Class of the Memory Pool System.  The VM Arena Class is just one class 
+available in the MPS.  The generic arena part is described in design.mps.arena.
+
+
+OVERVIEW
+
+<a id="overview" name="overview">.overview</a>: VM arenas provide blocks of memory to all other parts of the MPS in 
+the form of "tracts" using the virtual mapping interface (design.mps.vm) to the 
+operating system.  The VM Arena Class is not expected to be provided on 
+platforms that do not have virtual memory (like MacOS, os.s7(1)).
+
+<a id="overview.gc" name="overview.gc">.overview.gc</a>: The VM Arena Class provides some special services on these blocks 
+in order to facilitate garbage collection:
+
+<a id="overview.gc.zone" name="overview.gc.zone">.overview.gc.zone</a>: Allocation of blocks with specific zones.  This means that 
+the generic fix function (design.mps.fix) can use a fast refset test to 
+eliminate references to addresses that are not in the condemned set.  This 
+assumes that a pool class that uses this placement appropriately is being used 
+(such as the generation placement policy used by AMC, see design.mps.poolamc(1)
+) and that the pool selects the condemned sets to coincide with zone stripes.
+
+<a id="overview.gc.tract" name="overview.gc.tract">.overview.gc.tract</a>: A fast translation from addresses to tract. (See 
+design.mps.arena.req.fun.trans)
+
+
+NOTES
+
+<a id="note.refset" name="note.refset">.note.refset</a>: Some of this document simply assumes that RefSets (see the 
+horribly incomplete design.mps.refset) have been chosen as the solution for 
+design.mps.arena.req.fun.set.  It's a lot simpler that way.  Both to write and 
+understand.
+
+
+REQUIREMENTS
+
+
+Most of the requirements are in fact on the generic arena (See design.mps.arena
+.req.*).  However, many of those requirements can only be met by a suitable 
+arena class design.
+
+Requirements particular to this arena class:
+
+Placement
+
+<a id="req.fun.place" name="req.fun.place">.req.fun.place</a>: It must be possible for pools to obtain tracts at particular 
+addresses.  Such addresses shall be declared by the pool specifying what refset 
+zones the tracts should lie in and what refset zones the tracts should not lie 
+in.  It is acceptable for the arena to not always honour the request in terms 
+of placement if it has run out of suitable addresses.
+
+Arena Partition
+
+<a id="req.fun.set" name="req.fun.set">.req.fun.set</a>: See design.mps.arena.req.fun.set.  The approximation to sets of 
+address must cooperate with the placement mechanism in the way required by 
+.req.fun.place (above).
+
+
+ARCHITECTURE
+
+<a id="arch.memory" name="arch.memory">.arch.memory</a>: The underlying memory is obtained from whatever Virtual Memory 
+interface (see design.mps.vm).  Explain why this is used ###
+
+
+SOLUTION IDEAS
+
+<a id="idea.grain" name="idea.grain">.idea.grain</a>: Set the arena granularity to the grain provided by the virtual 
+mapping module.
+
+<a id="idea.mem" name="idea.mem">.idea.mem</a>: Get a single large contiguous address area from the virtual mapping 
+interface and divide that up.
+
+<a id="idea.table" name="idea.table">.idea.table</a>: Maintain a table with one entry per grain in order to provide fast 
+mapping (shift and add) between addresses and table entries.
+
+<a id="idea.table.figure" name="idea.table.figure">.idea.table.figure</a>:
+  
+
+<a id="idea.map" name="idea.map">.idea.map</a>: Store the pointers (.req.fun.trans) in the table directly for every 
+grain.
+
+<a id="idea.zones" name="idea.zones">.idea.zones</a>: Partition the managed address space into zones (see idea.zones) 
+and provide the set approximation as a reference signature.
+
+<a id="idea.first-fit" name="idea.first-fit">.idea.first-fit</a>: Use a simple first-fit allocation policy for tracts within 
+each zone (.idea.zones).  Store the freelist in the table (.idea.table).
+
+<a id="idea.base" name="idea.base">.idea.base</a>: Store information about each contiguous area (allocated of free) in 
+the table entry (.idea.table) corresponding to the base address of the area.
+
+<a id="idea.shadow" name="idea.shadow">.idea.shadow</a>: Use the table (.idea.table) as a "shadow" of the operating 
+system's page table.  Keep information such as last access, protection, etc. in 
+this table, since we can't get at this information otherwise.
+
+<a id="idea.barrier" name="idea.barrier">.idea.barrier</a>: Use the table (.idea.table) to implement the software barrier.  
+Each segment can have a read and/or write barrier placed on it by each 
+process.  (<a id="idea.barrier.bits" name="idea.barrier.bits">.idea.barrier.bits</a>: Store a bit-pattern which remembers which 
+process protected what.)  This will give a fast translation from a 
+barrier-protected address to the barrier handler via the process table.
+
+<a id="idea.demand-table" name="idea.demand-table">.idea.demand-table</a>: For a 1Gb managed address space with a 4Kb page size, the 
+table will have 256K-entries.  At (say) four words per entry, this is 4Mb of 
+table.  Although this is only an 0.4%, the table shouldn't be preallocated or 
+initially it is an infinite overhead, and with 1Mb active, it is a 300% 
+overhead!  The address space for the table should be reserved, but the pages 
+for it mapped and unmapped on demand.  By storing the table in a tract, the 
+status of the table's pages can be determined by looking at it's own entries in 
+itself, and thus the translation lookup (.req.fun.trans) is slowed to two 
+lookups rather than one.
+
+<a id="idea.pool" name="idea.pool">.idea.pool</a>: Make the Arena Manager a pool class.  Arena intialization becomes 
+pool creation.  Tract allocation becomes PoolAlloc.  Other operations become 
+class-specific operations on the "arena pool".
+
+
+DATA STRUCTURES
+
+<a id="tables" name="tables">.tables</a>: There are two table data structures: a page table, and an alloc table.
+
+<a id="table.page.map" name="table.page.map">.table.page.map</a>: Each page in the VM has a corresponding page table entry.
+
+<a id="table.page.linear" name="table.page.linear">.table.page.linear</a>: The table is a linear array of PageStruct entries; there is 
+a simple mapping between the index in the table and the base address in the VM 
+(viz. base-address = arena-base + (index * page-size), one way, index = 
+(base-address - arena-base) / page-size, the other).
+
+<a id="table.page.partial" name="table.page.partial">.table.page.partial</a>: The table is partially mapped on an "as-needed" basis.  
+The function unusedTablePages identifies entirely unused pages occupied by the 
+page table itself (ie those pages of the page table which are occupied by 
+PageStructs which all describe free pages).  Tract allocation and freeing use 
+this function to map and unmap the page table with no hysteresis.  (there is 
+restriction on the parameters you may pass to unusedTablePages)
+
+<a id="table.page.tract" name="table.page.tract">.table.page.tract</a>: Each page table entry contains a tract, which is only valid 
+if it is allocated to a pool. If it is not allocated to a pool, the fields of 
+the tract are used for other purposes. (See design.mps.arena.tract.field.pool)
+
+<a id="table.alloc" name="table.alloc">.table.alloc</a>: The alloc table is a simple bit table (implemented using the BT 
+module, design.mps.bt).
+
+<a id="table.alloc.map" name="table.alloc.map">.table.alloc.map</a>: Each page in the VM has a corresponding alloc table entry.
+
+<a id="table.alloc.semantics" name="table.alloc.semantics">.table.alloc.semantics</a>: The bit in the alloc table is set iff the corresponding 
+page is allocated (to a pool).  
+
+
+
+NOTES
+
+
+<a id="fig.page" name="fig.page">.fig.page</a>: How the pages in the arena area are represented in the tables.
+
+<a id="fig.count" name="fig.count">.fig.count</a>: How a count table can be used to partially map the page table, as 
+proposed in request.dylan.170049.sol.map.
+
+ - arenavm diagrams 
+
+ATTACHMENT
+   "arenavm diagrams"
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

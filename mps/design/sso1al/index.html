@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Stack scanner for Digital Unix / Alpha systems</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+             STACK SCANNER FOR DIGITAL UNIX / ALPHA SYSTEMS
+                           design.mps.sso1al
+                               draft doc
+                             drj 1997-03-27
+
+INTRODUCTION
+
+<a id="readership" name="readership">.readership</a>: Any MPS developer.
+
+<a id="intro" name="intro">.intro</a>: This is the design for Stack Scanner module that runs on DIGITAL UNIX / 
+Alpha systems (See os.o1 and arch.al).  The design adheres to the general 
+design and interface described (probably not described actually) in 
+design.mps.ss.
+
+<a id="source.alpha" name="source.alpha">.source.alpha</a>: book.digital96 (Alpha Architecture Handbook) describes the Alpha 
+Architecture independently of any particular implementation.  The instruction 
+mnemonics and the semantics for each instruction are specified in that document.
+<a id="source.as" name="source.as">.source.as</a>: 
+&lt;URL:http://www.partner.digital.com/www-swdev/pages/Home/TECH/documents/Digital_
+UNIX/V4.0/AA-PS31D-TET1_html/TITLE.html&gt; (Assembly Language Programmer's Guide) 
+describes the assembler syntax and assembler directives.  It also summarises 
+the calling conventions used.  Chapters 1 and 6 were especially useful, 
+especially chapter 6.
+<a id="source.convention" name="source.convention">.source.convention</a>: 
+&lt;URL:http://www.partner.digital.com/www-swdev/pages/Home/TECH/documents/Digital_
+UNIX/V4.0/AA-PY8AC-TET1_html/TITLE.html&gt; (Calling Standard for Alpha Systems) 
+describes the calling convetions used for Digital Alpha systems.  Chapter 2 was 
+useful.  But the whole document was not used as much as the previous 2 
+documents.
+
+
+DEFINITIONS
+
+<a id="def.saved" name="def.saved">.def.saved</a>: Saved Register.  A saved register is one whose value is defined to 
+be preserved across a procedure call according to the Calling Standard.  They 
+are $9-$15, $26, and $30.  $30 is the stack pointer.
+<a id="def.non-saved" name="def.non-saved">.def.non-saved</a>: Non-Saved Register.  A non-save register is a register that is 
+assumed to be modified across a procedure call according to the Calling 
+Standard.
+<a id="def.tos" name="def.tos">.def.tos</a>: Top of Stack.  The top of stack is the youngest portion of the stack.
+<a id="def.bos" name="def.bos">.def.bos</a>: Bottom of Stack.  The bottom of stack is the oldest portion of the 
+stack.
+<a id="def.base" name="def.base">.def.base</a>: Base.  Of a range of addresses, the base is the lowest address in 
+the range.
+<a id="def.limit" name="def.limit">.def.limit</a>: Limit.  Of a range of addresses, the limit is "one past" the 
+highest address in the range.
+
+
+OVERVIEW
+
+<a id="overview" name="overview">.overview</a>: The registers and the stack need to be scanned.  This is achieved by 
+storing the contents of the registers into a frame at the top of the stack and 
+then passing the base and limit of the stack region, including the newly 
+created frame, to the function TraceScanAreaTagged.  TraceScanAreaTagged 
+performs the actual scanning and fixing.
+
+
+DETAIL DESIGN
+
+Functions
+
+<a id="fun.stackscan" name="fun.stackscan">.fun.stackscan</a>:
+
+Res StackScan(ScanState ss, Addr *StackBot);
+
+<a id="fun.stackscan.asm" name="fun.stackscan.asm">.fun.stackscan.asm</a>: The function is written in assembler.  
+<a id="fun.stackscan.asm.justify" name="fun.stackscan.asm.justify">.fun.stackscan.asm.justify</a>: This is because the machine registers need to be 
+examined, and it is only possible to access the machine registers using 
+assembler.
+<a id="fun.stackscan.entry" name="fun.stackscan.entry">.fun.stackscan.entry</a>: On entry to this procedure all the non-saved (temporary) 
+registers that contain live pointers must have been saved in some root (usually 
+the stack) by the mutator (otherwise it would lose the values).  Therefore only 
+the saved registers need to be stored by this procedure.
+<a id="fun.stackscan.assume.saved" name="fun.stackscan.assume.saved">.fun.stackscan.assume.saved</a>: We assume that all the saved registers are roots.  
+This is conservative since some of the saved registers might not be used.
+<a id="fun.stackscan.frame" name="fun.stackscan.frame">.fun.stackscan.frame</a>: A frame is be created on the top of the stack.  
+<a id="fun.stackscan.frame.justify" name="fun.stackscan.frame.justify">.fun.stackscan.frame.justify</a>: This frame is used to store the saved registers 
+into so that they can be scanned.
+<a id="fun.stackscan.save" name="fun.stackscan.save">.fun.stackscan.save</a>: All the saved registers, apart from $30 the stack pointer, 
+are to be stored in the frame.  <a id="fun.stackscan.save.justify" name="fun.stackscan.save.justify">.fun.stackscan.save.justify</a>: This is so that 
+they can be scanned.  The stack pointer itself is not scanned as the stack is 
+assumed to be a root (and therefore a priori alive).
+<a id="fun.stackscan.call" name="fun.stackscan.call">.fun.stackscan.call</a>: TraceScanAreaTagged is called with the current stack 
+pointer as the base and the (passed in) StackBot as the limit of the region to 
+be scanned.   <a id="fun.stackscan.call.justify" name="fun.stackscan.call.justify">.fun.stackscan.call.justify</a>: This function does the actual 
+scanning.  The Stack on Alpha systems grows down so the stack pointer (which 
+points to the top of the stack) is lower in memory than the bottom of the stack.
+<a id="fun.stackscan.return" name="fun.stackscan.return">.fun.stackscan.return</a>: The return value from TraceScanAreaTagged is used as the 
+return value for StackScan.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Leaf object pool class</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                         LEAF OBJECT POOL CLASS
+                           design.mps.poollo
+                             incomplete doc
+                             drj 1997-03-07
+
+INTRODUCTION
+
+<a id="readership" name="readership">.readership</a>: Any MPS developer.
+
+<a id="intro" name="intro">.intro</a>: The Leaf Object Pool Class (LO for short) is a pool class developed for 
+DylanWorks.  It is designed to manage objects that have no references (leaf 
+objects) such as strings, bit tables, etc.  It is a garbage collected pool (in 
+that objects allocated in the pool are automatically reclaimed when they are 
+discovered to be unreachable.
+
+[Need to sort out issue of alignment.  Currently lo grabs alignment from 
+format, almost certainly "ought" to use the greater of the format alignment and 
+the MPS_ALIGN value -- @@ drj 1997-07-02]
+
+DEFINITIONS
+
+<a id="def.leaf" name="def.leaf">.def.leaf</a>: A "leaf" object is an object that contains no references, or an 
+object all of whose references refer to roots.  That is, any references that 
+the object has must refer to a priori alive objects that are guaranteed not to 
+move, hence the references do not need fixing.
+
+<a id="def.grain" name="def.grain">.def.grain</a>: A grain (of some alignment) is a contiguous aligned area of memory 
+of the smallest size possible (which is the same size as the alignment).
+
+
+REQUIREMENTS
+
+<a id="req.source" name="req.source">.req.source</a>: See req.dylan.fun.obj.alloc and req.dylan.prot.ffi.access.
+
+<a id="req.leaf" name="req.leaf">.req.leaf</a>: The pool must manage formatted leaf objects (see .def.leaf above for 
+a defintion).  This is intended to encompass Dylan and C leaf objects.  Dylan 
+leaf objects have a reference to their wrapper, but are still leaf objects (in 
+the sense of .def.leaf) because the wrapper will be a root.
+
+<a id="req.nofault" name="req.nofault">.req.nofault</a>: The memory caontaining objects managed by the pool must not be 
+protected.  The client must be allowed to access these objects without using 
+the MPS trampoline (the exception mechanism, q.v.).
+
+
+OVERVIEW
+
+<a id="overview" name="overview">.overview</a>:
+<a id="overview.ms" name="overview.ms">.overview.ms</a>: The LO Pool is a non-moving mark-and-sweep collector.  
+<a id="overview.ms.justify" name="overview.ms.justify">.overview.ms.justify</a>: mark-and-sweep pools are simpler than moving pools.  
+<a id="overview.alloc" name="overview.alloc">.overview.alloc</a>: Objects are allocated in the pool using the reserve commit 
+protocol on allocation points.  <a id="overview.format" name="overview.format">.overview.format</a>: The pool is formatted.  The 
+format of the objects in the pool is specified at instantiation time, using an 
+format object derived from a format A variant (using variant A is overkill, see 
+.if.init below) (see design.mps.format for excuse about calling the variant 
+'variant A').
+
+
+INTERFACE
+
+<a id="if.init" name="if.init">.if.init</a>:
+<a id="if.init.args" name="if.init.args">.if.init.args</a>: The init method for this class takes one extra parameter in the 
+vararg parameter list.  <a id="if.init.format" name="if.init.format">.if.init.format</a>: The extra parameter should be an 
+object of type Format and should describe the format of the objects that are to 
+be allocated in the pool.  <a id="if.init.format.use" name="if.init.format.use">.if.init.format.use</a>: The pool uses the skip and 
+alignment slots of the format.  The skip method is used to determine the length 
+of objects (during reclaim).  The alignment field is used to determine the 
+granularity at which memory should be managed.  <a id="if.init.format.a" name="if.init.format.a">.if.init.format.a</a>: Currently 
+only format variant A is supported though clearley that is overkill as only 
+skip and alignment are used.
+
+
+DATASTRUCTURES
+
+<a id="sig" name="sig">.sig</a>:  The signature for the LO Pool Class is 0x51970b07 (SIGLOPOoL).
+
+<a id="poolstruct" name="poolstruct">.poolstruct</a>: The class specific pool structure is:
+typedef struct LOStruct {
+  PoolStruct poolStruct;        /* generic pool structure */
+  Format format;                /* format for allocated objects */
+  Shift alignShift;
+  Sig sig;                      /* impl.h.misc.sig */
+} LOStruct;
+
+<a id="poolstruct.format" name="poolstruct.format">.poolstruct.format</a>: This is the format of the objects that are allocated in the 
+pool.
+
+<a id="poolstruct.alignShift" name="poolstruct.alignShift">.poolstruct.alignShift</a>: This is shift used in alignment computations.  It is 
+SizeLog2(pool-&gt;alignment).  It can be used on the right of a shift operator (&lt;&lt; 
+or &gt;&gt;) to convert between a number of bytes and a number of grains.
+
+<a id="loseg" name="loseg">.loseg</a>: Every segment is an instance of segment class LOSegClass, a subclass of 
+GCSegClass, and is an object of type LOSegStruct.  
+
+<a id="loseg.purpose" name="loseg.purpose">.loseg.purpose</a>: The purpose of the LOSeg structure is to associate the bit 
+tables used for recording allocation and mark information with the segment.
+
+<a id="loseg.decl" name="loseg.decl">.loseg.decl</a>:  The declaration of the structure is as follows:
+
+typedef struct LOSegStruct {
+  GCSegStruct gcSegStruct;  /* superclass fields must come first */
+  LO lo;                    /* owning LO */
+  BT mark;                  /* mark bit table */
+  BT alloc;                 /* alloc bit table */
+  Count free;               /* number of free grains */
+  Sig sig;                  /* impl.h.misc.sig */
+} LOSegStruct;
+
+<a id="loseg.sig" name="loseg.sig">.loseg.sig</a>: The signature for a loseg is 0x519705E9 (SIGLOSEG).
+
+<a id="loseg.lo" name="loseg.lo">.loseg.lo</a>: The lo field points to the LO structure that owns this segment.
+
+<a id="loseg.bit" name="loseg.bit">.loseg.bit</a>:  Bit Tables (see design.mps.bt) are used to record allocation and 
+mark information.  This is relatively straightforward, but might be inefficient 
+in terms of space in some circumstances.
+
+<a id="loseg.mark" name="loseg.mark">.loseg.mark</a>: This is a Bit Table that is used to mark objects during a trace.  
+Each grain in the segment is associated with 1 bit in this table.  When LOFix 
+(see .fun.fix below) is called the address is converted to a grain within the 
+segment and the corresponding bit in this table is set.
+
+<a id="loseg.alloc" name="loseg.alloc">.loseg.alloc</a>: This is a Bit Table that is used to record which addresses are 
+allocated.  Addresses that are allocated and are not buffered have their 
+corresponding bit in this table set.  If a bit in this table is reset then 
+either the address is free or is being buffered.
+
+<a id="loseg.diagram" name="loseg.diagram">.loseg.diagram</a>: The following diagram is now obsolete. It's also not very 
+interesting - but I've left the sources in case anyone ever gets around to 
+updating it. tony 1999-12-16
+
+
+
+
+FUNCTIONS
+
+
+External
+
+<a id="fun.init" name="fun.init">.fun.init</a>:
+
+<a id="fun.destroy" name="fun.destroy">.fun.destroy</a>:
+
+<a id="fun.buffer-fill" name="fun.buffer-fill">.fun.buffer-fill</a>:
+
+[explain way in which buffers interact with the alloc table and how it could be 
+improved]
+
+<a id="fun.buffer-empty" name="fun.buffer-empty">.fun.buffer-empty</a>:
+
+<a id="fun.condemn" name="fun.condemn">.fun.condemn</a>:
+
+<a id="fun.fix" name="fun.fix">.fun.fix</a>:
+
+static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+
+[sketch]
+Fix treats references of most ranks much the same.  There is one mark table 
+that records all marks.  A reference of rank RankAMBIG is first checked to see 
+if it is aligned to the pool alignment and discarded if not.  The reference is 
+converted to a grain number within the segment (by subtracting the segments' 
+base from the refrence and then dividing by the grain size).  The bit (the one 
+corresponding to the grain number) is set in the mark table.  Exception, for a 
+weak reference (rank is RankWEAK) the mark table is checked and the reference 
+is fixed to 0 if this address has not been marked otherwise nothing happens.  
+Note that there is no check that the reference refers to a valid object 
+boundary (which wouldn't be a valid check in the case of ambiguous references 
+anyway).
+
+<a id="fun.reclaim" name="fun.reclaim">.fun.reclaim</a>:
+
+static void LOReclaim(Pool pool, Trace trace, Seg seg)
+
+LOReclaim derives the loseg from the seg, and calls loSegReclaim (see 
+.fun.segreclaim below).
+
+
+Internal
+
+<a id="fun.segreclaim" name="fun.segreclaim">.fun.segreclaim</a>:
+
+static void loSegReclaim(LOSeg loseg, Trace trace)
+
+[sketch]
+for all the contiguous allocated regions in the segment it locates the 
+boundaries of all the objects in that region by repeatedly skipping (calling 
+format-&gt;skip) from the beginning of the region (the beginning of the region is 
+guaranteed to coincide with the beginning of an object).  For each object it 
+examines the bit in the mark bit table that corresponds to the beginning of the 
+object.  If that bit is set then the object has been marked as a result of a 
+previous call to LOFix, the object is preserved by doing nothing.  If that bit 
+is not set then the object has not been marked and should be reclaimed; the 
+object is reclaimed by resetting the appropriate range of bits in the segment's 
+free bit table.
+
+[special things happen for buffered segments]
+
+[explain how the marked variable is used to free segments]
+
+ATTACHMENT
+   "LOGROUP.CWK"
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the MPS i/o subsystem</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                  THE DESIGN OF THE MPS I/O SUBSYSTEM
+                             design.mps.io
+                           incomplete design
+                           richard 1996-08-30
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This document is the design of the MPS I/O Subsystem, a part of the 
+plinth.
+
+<a id="readership" name="readership">.readership</a>: This document is intended for MPS developers.
+
+
+History
+
+<a id="hist.1" name="hist.1">.hist.1</a>: Document created from paper notes by Richard Brooksby, 1996-08-30.
+
+<a id="hist.2" name="hist.2">.hist.2</a>: Updated with mail.richard.1997-05-30.16-13 and subsequent discussion 
+in the Pool Hall at Longstanton.  (See also mail.drj.1997-06-05.15-20.)  
+richard 1997-06-10
+
+
+Background
+
+<a id="bg" name="bg">.bg</a>: This design is partly based on the design of the Internet User Datagram 
+Protocol (UDP).  Mainly I used this to make sure I hadn't left out anything 
+which we might need.
+
+
+PURPOSE
+
+<a id="purpose" name="purpose">.purpose</a>: The purpose of the MPS I/O Subsystem is to provide a means to 
+measure, debug, control, and test a memory manager build using the MPS.
+
+<a id="purpose.measure" name="purpose.measure">.purpose.measure</a>: Measurement consists of emitting data which can be collected 
+and analysed in order to improve the attributes of application program, quite 
+possibly by adjusting parameters of the memory manager (see overview.mps.usage).
+
+<a id="purpose.control" name="purpose.control">.purpose.control</a>: Control means adjusting the behaviour of the MM dynamically.  
+For example, one might want to adjust a parameter in order to observe the 
+effect, then transfer that adjustment to the client application later.
+
+<a id="purpose.test" name="purpose.test">.purpose.test</a>: Test output can be used to ensure that the memory manager is 
+behaving as expected in response to certain inputs.
+
+
+REQUIREMENTS
+
+
+General
+
+<a id="req.fun.non-hosted" name="req.fun.non-hosted">.req.fun.non-hosted</a>: The MPM must be a host-independent system.
+
+<a id="req.attr.host" name="req.attr.host">.req.attr.host</a>: It should be easy for the client to set up the MPM for a 
+particular host (such as a washing machine).
+
+
+Functional
+
+<a id="req.fun.measure" name="req.fun.measure">.req.fun.measure</a>: The subsystem must allow the MPS to transmit quantitative 
+measurement data to an external tool so that the system can be tuned.
+
+<a id="req.fun.debug" name="req.fun.debug">.req.fun.debug</a>: The subsystem must allow the MPS to transmit qualitative 
+information about its operation to an external tool so that the system can be 
+debugged.
+
+<a id="req.fun.control" name="req.fun.control">.req.fun.control</a>: The subsystem must allow the MPS to receive control 
+information from an external tool so that the system can be adjusted while it 
+is running.
+
+<a id="req.dc.env.no-net" name="req.dc.env.no-net">.req.dc.env.no-net</a>: The subsystem sould operate in environments where there is 
+no networking available.
+
+<a id="req.dc.env.no-fs" name="req.dc.env.no-fs">.req.dc.env.no-fs</a>: The subsystem should operate in environments where there is 
+no filesystem available.
+
+
+ARCHITECTURE
+
+<a id="arch.diagram" name="arch.diagram">.arch.diagram</a>:
+
+ - I/O Architecture Diagram 
+
+<a id="arch.int" name="arch.int">.arch.int</a>: The I/O Interface is a C function call interface by which the MPM 
+sends and receives "messages" to and from the hosted I/O module.
+
+<a id="arch.module" name="arch.module">.arch.module</a>: The modules are part of the MPS but not part of the freestanding 
+core system (see design.mps.exec-env).  The I/O module is responsible for 
+transmitting those messages to the external tools, and for receiving messages 
+from external tools and passing them to the MPM.
+
+<a id="arch.module.example" name="arch.module.example">.arch.module.example</a>: For example, the "file implementation" might just 
+send/write telemetry messages into a file so that they can be received/read 
+later by an off-line measurement tool.
+
+<a id="arch.external" name="arch.external">.arch.external</a>: The I/O Interface is part of interface to the freestanding core 
+system (see design.mps.exec-env).  This is so that the MPS can be deployed in a 
+freestanding environment, with a special I/O module.  For example, if the MPS 
+is used in a washing machine the I/O module could communicate by writing output 
+to the seven-segment display.
+
+
+Example Configurations
+
+<a id="example.telnet" name="example.telnet">.example.telnet</a>: This shows the I/O Subsystem communicating with a telnet 
+client over a TCP/IP connection.  In this case, the I/O Subsystem is 
+translating the I/O Interface into an interactive text protocol so that the 
+user of the telnet client can talk to the MM.
+
+
+
+<a id="example.file" name="example.file">.example.file</a>: This shows the I/O Subsystem dumping measurement data into a 
+file which is later read and analysed.  In this case the I/O Subsystem is 
+simply writing out binary in a format which can be decoded.
+
+
+
+<a id="example.serial" name="example.serial">.example.serial</a>: This shows the I/O Subsystem communicating with a graphical 
+analysis tool over a serial link.  This could be useful for a developer who has 
+two machines in close proximity and no networking support.
+
+<a id="example.local" name="example.local">.example.local</a>: In this example the application is talking directly to the I/O 
+Subsystem.  This is useful when the application is a reflective development 
+environment (such as MLWorks) which wants to observe its own behaviour.
+
+
+ - MPS I/O Configuration Diagrams 
+
+
+
+INTERFACE
+
+<a id="if.msg" name="if.msg">.if.msg</a>: The I/O interface is oriented around opaque binary "messages" which 
+the I/O module must pass between the MPM and external tools.  The I/O module 
+need not understand or interpret the contents of those messages.
+
+<a id="if.msg.opaque" name="if.msg.opaque">.if.msg.opaque</a>: The messages are opaque in order to minimize the dependency of 
+the I/O module on the message internals.  It should be possible for clients to 
+implement their own I/O modules for unusual environments.  We do not want to 
+reveal the internal structure of our data to the clients.  Nor do we want to 
+burden them with the details of our protocols.  We'd also like their code to be 
+independent of ours, so that we can expand or change the protocols without 
+requiring them to modify their modules.
+
+<a id="if.msg.dgram" name="if.msg.dgram">.if.msg.dgram</a>: Neither the MPM nor the external tools should assume that the 
+messages will be delivered in finite time, exactly once, or in order.  This 
+will allow the I/O modules to be implemented using unreliable transport layers 
+such as the Internet User Datagram Protocl (UDP).  It will also give the I/O 
+module the freedom to drop information rather than block on a congested 
+network, or stop the memory manager when the disk is full, or similar events 
+which really shouldn't cause the memory manager to stop working.  The protocols 
+we need to implement at the high level can be design to be robust againt 
+lossage without much difficulty.
+
+
+I/O Module State
+
+<a id="if.state" name="if.state">.if.state</a>: The I/O module may have some internal state to preserve.  The I/O 
+Interface defines a type for this state, "mps_io_t", a pointer to an incomplete 
+structure "mps_io_s".  The I/O module is at liberty to define this structure.
+
+  typedef struct mps_io_s *mps_io_t;
+
+
+Message Types
+
+<a id="if.type" name="if.type">.if.type</a>: The I/O module must be able to deliver messages of several different 
+types.  It will probably choose to send them to different destinations based on 
+their type: telemetry to the measurement tool, debugging output to the 
+debugger, etc.
+
+  typedef int mps_io_type_t;
+  enum {
+    MPS_IO_TYPE_TELEMETRY,
+    MPS_IO_TYPE_DEBUG
+  };
+
+
+Limits
+
+<a id="if.message-max" name="if.message-max">.if.message-max</a>: The interface will define an unsigned integral constant 
+"MPS_IO_MESSAGE_MAX" which will be the maximum size of messages that the MPM 
+will pass to "mps_io_send" (.if.send) and the maximum size it will expect to 
+receive from "mps_io_receive".
+
+
+Interface Set-up and Tear-down
+
+<a id="if.create" name="if.create">.if.create</a>: The MPM will call "mps_io_create" to set up the I/O module.  On 
+success, this function should return "MPS_RES_OK".  It may also initialize 
+"*mps_io_r" to a "state" value which will be passed to subsequent calls through 
+the interface.
+
+  extern mps_res_t mps_io_create(mps_io_t *mps_io_r);
+
+<a id="if.destroy" name="if.destroy">.if.destroy</a>: The MPM will call "mps_io_destroy" to tear down the I/O module, 
+after which it guarantees that the state value "mps_io" will not be used 
+again.  The "state" parameter is the state previously returned by 
+"mps_io_create" (.if.create).
+
+  extern void mps_io_destroy(mps_io_t mps_io);
+
+
+Message Send and Receive
+
+<a id="if.send" name="if.send">.if.send</a>: The MPM will call "mps_io_send" when it wishes to send a message to a 
+destination.  The "state" parameter is the state previously returned by 
+"mps_io_create" (.if.create).  The "type" parameter is the type (.if.type) of 
+the message.  The "message" parameter is a pointer to a buffer containing the 
+message, and "size" is the length of that message, in bytes.  The I/O module 
+must make an effort to deliver the message to the destination, but is not 
+expected to guarantee delivery.  The function should return "MPS_RES_IO" only 
+if a serious error occurs that should cause the MPM to return with an error to 
+the client application.  Failure to deliver the message does not count.  
+[Should there be a timeout parameter?  What are the timing constraints?  
+mps_io_send shouldn't block.]
+
+  extern mps_res_t mps_io_send(mps_io_t state,
+                               mps_io_type_t type,
+                               void *message,
+                               size_t size);
+
+<a id="if.receive" name="if.receive">.if.receive</a>: The MPM will call "mps_io_receive" when it wants to see if a 
+message has been sent to it.  The "state" parameter is the state previously 
+returned by "mps_io_create" (.if.create).  The "buffer_o" parameter is a 
+pointer to a value which should be updated with a pointer to a buffer 
+containing the message received.  The "size_o" parameter is a pointer to a 
+value which should be updated with the length of the message received.  If 
+there is no message ready for receipt, the length returned should be zero.  
+(Should we be able to receive truncated messages?  How can this be done neatly?)
+
+  extern mps_res_t mps_io_receive(mps_io_t state,
+                                  void **buffer_o,
+                                  size_t *size_o);
+
+
+I/O MODULE IMPLEMENTATIONS
+
+
+Routeing
+
+The I/O module must decide where to send the various messages.  A file-based 
+implementation could put them in different files based on their types.  A 
+network-based implementation must decide how to address the messages.  In 
+either case, any configuration must either be statically compiled into the 
+module, or else read from some external source such as a configuration file.
+
+
+NOTES
+
+The external tools should be able to reconstruct stuff from partial info.  For 
+example, you come across a fragment of an old log containing just a few old 
+messages.  What can you do with it?
+
+Here's some completely untested code which might do the job for UDP.
+
+---
+
+#include "mpsio.h"
+
+#include &lt;sys/types.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;arpa/inet.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;errno.h&gt;
+
+typedef struct mps_io_s {
+  int sock;
+  struct sockaddr_in mine;
+  struct sockaddr_in telemetry;
+  struct sockaddr_in debugging;
+} mps_io_s;
+
+static mps_bool_t inited = 0;
+static mps_io_s state;
+
+
+mps_res_t mps_io_create(mps_io_t *mps_io_o)
+{
+  int sock, r;
+  
+  if(inited)
+    return MPS_RES_LIMIT;
+
+  state.mine = /* setup somehow from config */;
+  state.telemetry = /* setup something from config */;
+  state.debugging = /* setup something from config */;
+
+  /* Make a socket through which to communicate. */  
+  sock = socket(AF_INET, SOCK_DGRAM, 0);
+  if(sock == -1) return MPS_RES_IO;
+
+  /* Set socket to non-blocking mode. */
+  r = fcntl(sock, F_SETFL, O_NDELAY);
+  if(r == -1) return MPS_RES_IO;
+
+  /* Bind the socket to some UDP port so that we can receive messages. */
+  r = bind(sock, (struct sockaddr *)&amp;state.mine, sizeof(state.mine));
+  if(r == -1) return MPS_RES_IO;
+
+  state.sock = sock;
+  
+  inited = 1;
+
+  *mps_io_o = &amp;state;
+  return MPS_RES_OK;
+}
+
+
+void mps_io_destroy(mps_io_t mps_io)
+{
+  assert(mps_io == &amp;state);
+  assert(inited);
+  
+  (void)close(state.sock);
+
+  inited = 0;
+}
+
+
+mps_res_t mps_io_send(mps_io_t mps_io, mps_type_t type,
+                      void *message, size_t size)
+{
+  struct sockaddr *toaddr;
+
+  assert(mps_io == &amp;state);
+  assert(inited);
+
+  switch(type) {
+    MPS_IO_TYPE_TELEMETRY:
+    toaddr = (struct sockaddr *)&amp;state.telemetry;
+    break;
+    
+    MPS_IO_TYPE_DEBUGGING:
+    toaddr = (struct sockaddr *)&amp;state.debugging;
+    break;
+    
+    default:
+    assert(0);
+    return MPS_RES_UNIMPL;
+  }
+
+  (void)sendto(state.sock, message, size, 0, toaddr, sizeof(*toaddr));
+
+  return MPS_RES_OK;
+}
+
+
+mps_res_t mps_io_receive(mps_io_t mps_io,
+                         void **message_o, size_t **size_o)
+{
+  int r;
+  static char buffer[MPS_IO_MESSAGE_MAX];
+
+  assert(mps_io == &amp;state);
+  assert(inited);
+  
+  r = recvfrom(state.sock, buffer, sizeof(buffer), 0, NULL, NULL);
+  if(r == -1)
+    switch(errno) {
+      /* Ignore interrupted system calls, and failures due to lack */
+      /* of resources (they might go away.) */
+      case EINTR: case ENOMEM: case ENOSR:
+      r = 0;
+      break;
+      
+      default:
+      return MPS_RES_IO;
+    }
+
+  *message_o = buffer;
+  *size_o = r;
+  return MPS_RES_OK;
+}
+
+
+ATTACHMENTS
+   "O Architecture Diagram"
+   "O Configuration Diagrams"
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
