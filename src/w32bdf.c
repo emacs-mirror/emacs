@@ -64,7 +64,7 @@ search_file_line(char *key, char *start, int len, char **val, char **next)
     {
       if ((*start != ' ') && (*start != '\t')) break;
     }
-  linelen = p - start + 1;
+  linelen = (char *) p - start + 1;
   *next = p + 1;
   if (strncmp(start, key, min(strlen(key), linelen)) == 0)
     {
@@ -717,12 +717,15 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
   if (!bdf_font) return NULL;
 
   font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
+  bzero (font, sizeof (*font));
 
   font->bdf = bdf_font;
   font->hfont = 0;
 
   /* NTEMACS_TODO: Recognize DBCS fonts. */
   font->double_byte_p = 0;
+
+  w32_cache_char_metrics (font);
 
   /* Do we need to create the table?  */
   if (dpyinfo->font_table_size == 0)
