@@ -1717,7 +1717,7 @@ NUM may be an integer or a floating point number.")
   (num)
      Lisp_Object num;
 {
-  char buffer[20];
+  char buffer[VALBITS];
 
 #ifndef LISP_FLOAT_TYPE
   CHECK_NUMBER (num, 0);
