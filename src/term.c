@@ -29,7 +29,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 
 #include <unistd.h>             /* For isatty. */
-#include <termio.h>		/* For TIOCNOTTY. */
+
+#if HAVE_TERMIOS_H
+#include <termios.h>		/* For TIOCNOTTY. */
+#endif
 
 #include <signal.h>
 
