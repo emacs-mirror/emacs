@@ -1915,7 +1915,8 @@ is added with\n\
   Vminibuffer_history_position = Qnil;
 
   DEFVAR_BOOL ("minibuffer-auto-raise", &minibuffer_auto_raise,
-    "*Non-nil means entering the minibuffer raises the minibuffer's frame.");
+    "*Non-nil means entering the minibuffer raises the minibuffer's frame.\n\
+Some uses of the echo area also raise that frame (since they use it too).");
   minibuffer_auto_raise = 0;
 
   DEFVAR_LISP ("completion-regexp-list", &Vcompletion_regexp_list,
