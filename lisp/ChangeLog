@@ -1,3 +1,8 @@
+2001-01-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-lazy-highlight-initial-delay): Set default
+	to 0.25.
+
 2001-01-20  Miles Bader  <miles@gnu.org>
 
 	* cus-edit.el (custom-face-save): Do post-processing on the face's
