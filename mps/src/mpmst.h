@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.10) $
+ * $HopeName: MMsrc!mpmst.h(trunk.11) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -415,6 +415,7 @@ typedef struct ThreadStruct {   /* ANSI fake thread structure */
  * See impl.c.root.
  *
  * .root: The discriminator for the union is of type RootVar.
+ * Synchonize with impl.c.root.
  */
 
 #define RootSig         ((Sig)0x51940022)
@@ -441,6 +442,7 @@ typedef struct RootStruct {
       RootScanRegMethod scan;
       Thread thread;
       void *p;
+      size_t s;
     } reg;
     struct {
       FormatScanMethod scan;

@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.4) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -227,7 +227,7 @@ int main(void)
 
   die(mps_root_create_reg(&reg_root, space,
                           MPS_RANK_AMBIG, (mps_rm_t)0,
-                          thread, &mps_stack_scan_ambig, marker),
+                          thread, &mps_stack_scan_ambig, marker, (size_t)0),
                           "root_create_reg");
 
   (mps_tramp)(&r, test, space, 0);  /* non-inlined trampoline */

@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.14) $
+ * $HopeName: MMsrc!buffer.c(trunk.15) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.14) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.15) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -42,7 +42,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   Res res;
   Buffer buffer;
   Space space;
-  Addr a;
+  void *p;
 
   AVER(bufferReturn != NULL);
   AVERT(Pool, pool);
@@ -53,9 +53,9 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   space = PoolSpace(pool);
 
   /* Allocate the buffer structure. */  
-  res = SpaceAlloc(&a, space, sizeof(BufferStruct));
+  res = SpaceAlloc(&p, space, sizeof(BufferStruct));
   if(res != ResOK) return res;
-  buffer = (Buffer)a;
+  buffer = (Buffer)p;
 
   /* Initialize the buffer.  See impl.h.mpmst for a definition of the
    * structure */

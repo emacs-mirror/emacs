@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.12) $
+ *  $HopeName: MMsrc!mps.h(trunk.13) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -154,7 +154,8 @@ typedef mps_res_t  (*mps_fmt_scan_t)   (mps_ss_t mps_ss,
                                         mps_addr_t limit);
 typedef mps_res_t  (*mps_reg_scan_t)   (mps_ss_t mps_ss,
                                         mps_reg_t mps_reg,
-                                        void *p);
+                                        void *p,
+                                        size_t s);
 typedef mps_addr_t (*mps_fmt_skip_t)   (mps_addr_t object);
 typedef void       (*mps_fmt_copy_t)   (mps_addr_t old, mps_addr_t new);
 typedef void       (*mps_fmt_fwd_t)    (mps_addr_t old, mps_addr_t new);
@@ -343,11 +344,12 @@ extern mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
                                      mps_rm_t mps_rm,
                                      mps_thr_t mps_thr,
                                      mps_reg_scan_t mps_reg_scan,
-                                     void *reg_scan_p);
+                                     void *reg_scan_p,
+                                     size_t mps_size);
 extern void mps_root_destroy(mps_root_t root);
 
 extern mps_res_t mps_stack_scan_ambig(mps_ss_t ss, mps_reg_t reg,
-                                      void *p);
+                                      void *p, size_t s);
 
 
 /* Protection Trampoline and Thread Registration */
