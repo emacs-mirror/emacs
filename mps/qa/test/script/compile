@@ -1,0 +1,49 @@
+#!/usr/local/perl
+#
+# provides subroutines to compile or compile and link
+# tests and test libraries.
+#
+# In future, this will probably do some clever stuff
+# depending on the platform &c, but for now it's just
+# what works on SunOS.
+#
+
+1;
+
+sub compiler_settings {
+ $cc_command = "gcc";
+ $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes \\
+  -Winline -Waggregate-return -Wnested-externs -Wcast-qual \\
+  -Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align \\
+  -O -g -ggdb3 -D$MMQA_VERSION";
+ $cc_link = "$obj_dir/platform.o";
+ $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
+}
+
+sub compile {
+ local($srcfile, $objfile) = @_;
+ 
+ &compiler_settings;
+ $command = "$cc_command -c $cc_opts -o $objfile $srcfile $cc_include";
+
+ if (system($command)) {
+  return 0;
+ } else {
+  return 1;
+ }
+}
+
+sub compile_and_link {
+ local($srcfile, $exefile, $linkfiles) = @_;
+
+ &compiler_settings;
+ $command = "$cc_command $cc_opts -o $exefile $srcfile \\
+  $linkfiles $MPS_LINK_OBJ $cc_link $cc_include";
+
+ if (system($command)) {
+  return 0;
+ } else {
+  return 1;
+ }
+}
+

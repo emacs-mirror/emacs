@@ -1,0 +1,87 @@
+#!/usr/local/bin/perl -w
+#
+# First, we'll set up @INC so we can find the other
+# perl scripts we require. This program will be in the
+# test directory, and all the other scripts will be
+# in the script subdirectory.
+#
+# $0 contains the name of this program, as it was run
+# this means it may not be the full path, but should be
+# enough of the path for us to use it to locate other
+# perl scripts.
+# We assume the separator is / and the program name is
+# made only of A-Za-z0-9 and _.
+
+$test_dir = $0;
+
+$0 = "qa testing"; # this will show up in ps
+
+$test_dir =~ s/\/\w+$//;
+
+$script_dir = $test_dir."/script";
+$testlib_dir = $test_dir."/testlib"; &use($testlib_dir);
+
+$platform_class = `class`;
+chop($platform_class);
+$obj_dir = $test_dir."/obj/".$platform_class;
+unless (-e $obj_dir) {
+ mkdir($obj_dir,0777)
+  || die "Couldn't find or create obj dir: $obj_dir.";
+}
+$report_dir = $test_dir."/report"; &use($report_dir);
+
+foreach (@INC) {
+ if ($_ ne '.') { push(@newINC, $_) }
+}
+push(@newINC, $script_dir);
+@INC = @newINC;
+
+# Now we must process the command-line arguments
+# to qa. These specify:
+# 0: which qa command to run
+# 1,2,3.. it's parameters
+# except that -V, -I, -L (or lower-case) can be used to
+# define $MMQA_VERSION, $MPS_LINK_OBJ and $MPS_INCLUDE_DIR
+# which otherwise will be taken from environment variables.
+#
+# we'll set the relevant vars and pass the rest on in @qa_args
+
+@qa_args = ();
+
+%qa_options = ();
+$qa_options{"v"} = "MMQA_VERSION";
+$MMQA_VERSION = "MMQA_VERS_MO"; &use($MMQA_VERSION);
+$qa_options{"i"} = "MPS_INCLUDE_DIR";
+$qa_options{"l"} = "MPS_LINK_OBJ";
+
+while ($_ = shift(@ARGV)) {
+ if (/^\-(.*)$/i) {
+  unless ($qa_options{$1}) {
+   die "Unrecognised option: $1.\n";
+  }
+  $val = shift(@ARGV); &use($val);
+  $tetete="$".$qa_options{$1}." = \$val";
+  eval $tetete;
+ } else {
+  push(@qa_args, $_);
+ }
+}
+
+$qa_command = shift(@qa_args);
+
+foreach (keys %qa_options) {
+ unless (eval("$".$qa_options{$_})) {
+  die "Error: you must specify $qa_options{$_} (use the -$_ option).\n";
+ }
+}
+
+unless (-e "$script_dir/commands/".$qa_command) {
+ die "MM QA: unknown command '".$qa_command."'";
+}
+do "commands/".$qa_command;
+if ($@) {print $@};
+
+#################
+
+sub use {}
+
