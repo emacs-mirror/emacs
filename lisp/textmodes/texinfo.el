@@ -546,7 +546,7 @@ value of `texinfo-mode-hook'."
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
   (make-local-variable 'fill-column)
-  (setq fill-column 72)
+  (setq fill-column 70)
   (make-local-variable 'comment-start)
   (setq comment-start "@c ")
   (make-local-variable 'comment-start-skip)
