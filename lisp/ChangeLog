@@ -1,5 +1,11 @@
 2002-11-12   Markus Rost  <rost@math.ohio-state.edu>
 
+	* vc-rcs.el (vc-rcs-registered): Handle the autoload cookie so
+	that the definition is found by `find-function-search-for-symbol'
+	and etags.
+
+	* vc-sccs.el (vc-sccs-registered): Ditto.
+
 	* emulation/edt.el (defgroup edt): Arrange that definition starts
 	at beginning of line.
 
