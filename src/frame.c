@@ -1853,6 +1853,7 @@ and nil for X and Y.")
   Lisp_Object lispy_dummy;
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
+  int col, row;
   unsigned long long_dummy;
 
   f = selected_frame;
@@ -1864,7 +1865,6 @@ and nil for X and Y.")
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
-
   col = XINT (x);
   row = XINT (y);
   glyph_to_pixel_coords (f, col, row, &col, &row);
