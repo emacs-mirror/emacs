@@ -180,7 +180,7 @@ without invoking the usual minibuffer commands.")
 
 /* Actual minibuffer invocation. */
 
-static void read_minibuf_unwind ();
+static Lisp_Object read_minibuf_unwind ();
 Lisp_Object get_minibuffer ();
 static Lisp_Object read_minibuf ();
 
@@ -525,7 +525,7 @@ get_minibuffer (depth)
 /* This function is called on exiting minibuffer, whether normally or not,
  and it restores the current window, buffer, etc. */
 
-static void
+static Lisp_Object
 read_minibuf_unwind (data)
      Lisp_Object data;
 {
@@ -584,6 +584,8 @@ read_minibuf_unwind (data)
   windows_or_buffers_changed++;
   XSETFASTINT (XWINDOW (window)->last_modified, 0);
   XSETFASTINT (XWINDOW (window)->last_overlay_modified, 0);
+
+  return Qnil;
 }
 
 
@@ -1881,6 +1883,7 @@ DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
    that has no possible completions, and other quick, unobtrusive
    messages.  */
 
+void
 temp_echo_area_glyphs (m)
      char *m;
 {
@@ -1919,12 +1922,14 @@ or until the next input event arrives, whichever comes first.")
   return Qnil;
 }
 
+void
 init_minibuf_once ()
 {
   Vminibuffer_list = Qnil;
   staticpro (&Vminibuffer_list);
 }
 
+void
 syms_of_minibuf ()
 {
   minibuf_level = 0;
@@ -2088,6 +2093,7 @@ with completion; they always discard text properties.");
   defsubr (&Sminibuffer_message);
 }
 
+void
 keys_of_minibuf ()
 {
   initial_define_key (Vminibuffer_local_map, Ctl ('g'),
