@@ -2549,11 +2549,16 @@ On reaching beginning of line, stop and signal error."
 	    (progn
 	      (forward-char)
 	      (viper-skip-all-separators-forward  'within-line))))
+    ;; check for eob and white space before it. move off of eob
+    (if (and (eobp) (save-excursion
+		      (viper-backward-char-carefully)
+		      (viper-looking-at-separator)))
+	(viper-backward-char-carefully))
     (viper-skip-all-separators-backward 'within-line)
     (viper-backward-char-carefully)
     (if (looking-at "\n")
 	(viper-skip-all-separators-backward 'within-line)
-      (forward-char))))
+      (or (bobp) (forward-char)))))
       
 (defun viper-forward-word-kernel (val)
   (while (> val 0)
@@ -3737,24 +3742,20 @@ Null string will repeat previous search."
 (defun viper-switch-to-buffer ()
   "Switch to buffer in the current window."
   (interactive)
-  (let (buffer)
+  (let ((other-buffer (other-buffer (current-buffer)))
+	buffer)
     (setq buffer
-	  (read-buffer
-	   (format "Switch to buffer in this window \(%s\): "
-		   (buffer-name (other-buffer (current-buffer))))))
-    (switch-to-buffer buffer)
-    ))
+	  (read-buffer "Switch to buffer in this window: " other-buffer))
+    (switch-to-buffer buffer)))
 
 (defun viper-switch-to-buffer-other-window ()
   "Switch to buffer in another window."
   (interactive)
-  (let (buffer)
+  (let ((other-buffer (other-buffer (current-buffer)))
+	buffer)
     (setq buffer
-	  (read-buffer
-	   (format "Switch to buffer in another window \(%s\): "
-		   (buffer-name (other-buffer (current-buffer))))))
-    (switch-to-buffer-other-window buffer)
-    ))
+	  (read-buffer "Switch to buffer in another window: " other-buffer))
+    (switch-to-buffer-other-window buffer)))
 
 (defun viper-kill-buffer ()
   "Kill a buffer."
