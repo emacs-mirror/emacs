@@ -1,5 +1,6 @@
 /* Implements a lightweight menubar widget.
    Copyright (C) 1992 Lucid, Inc.
+   Copyright (C) 2002 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -114,9 +115,20 @@ xlwMenuTranslations [] =
 <KeyUp>Alt_R:     nothing()\n\
 <KeyUp>Caps_Lock: nothing()\n\
 <KeyUp>Shift_Lock:nothing()\n\
+<Key>Return:      select()\n\
+<Key>Down:        down()\n\
+<Key>Up:          up()\n\
+<Key>Left:        left()\n\
+<Key>Right:       right()\n\
 <Key>:            key()\n\
 <KeyUp>:          key()\n\
 ";
+
+/* FIXME: Space should toggle toggleable menu item but not remove the menu
+   so you can toggle the next one without entering the menu again.  */
+
+/* FIXME: Should ESC close one level of menu structure or the complete menu?  */
+
 
 #define offset(field) XtOffset(XlwMenuWidget, field)
 static XtResource
@@ -174,6 +186,10 @@ static void XlwMenuDestroy();
 static void XlwMenuClassInitialize();
 static void Start();
 static void Drag();
+static void Down();
+static void Up();
+static void Left();
+static void Right();
 static void Select();
 static void Key();
 static void Nothing();
@@ -184,6 +200,10 @@ xlwMenuActionsList [] =
 {
   {"start",		Start},
   {"drag",		Drag},
+  {"down",		Down},
+  {"up",		Up},
+  {"left",		Left},
+  {"right",		Right},
   {"select",		Select},
   {"key",		Key},
   {"nothing",		Nothing},
@@ -1982,6 +2002,146 @@ Nothing (w, ev, params, num_params)
      String *params;
      Cardinal *num_params;
 {
+}
+
+widget_value *
+find_next_selectable (mw, item)
+     XlwMenuWidget mw;
+     widget_value *item;
+{
+  widget_value *current = item;
+  enum menu_separator separator;
+
+  while (current->next && (current=current->next) &&
+	 (lw_separator_p (current->name, &separator, 0) || !current->enabled))
+    ;
+
+  if (current == item)
+    {
+      current = mw->menu.old_stack [mw->menu.old_depth - 2]->contents;
+
+      while (lw_separator_p (current->name, &separator, 0) || !current->enabled)
+	if (current->next)
+	  current=current->next;
+    }
+
+  return current;
+}
+
+widget_value *
+find_prev_selectable (mw, item)
+     XlwMenuWidget mw;
+     widget_value *item;
+{
+  widget_value *current = item;
+  widget_value *prev = item;
+
+  while ((current=find_next_selectable (mw, current)) != item)
+      prev=current;
+
+  return prev;
+}
+
+static void
+Down (w, ev, params, num_params)
+     Widget w;
+     XEvent *ev;
+     String *params;
+     Cardinal *num_params;
+{
+  XlwMenuWidget mw = (XlwMenuWidget) w;
+  widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+
+  /* Inside top-level menu-bar?  */
+  if (mw->menu.old_depth == 2)
+    /* When <down> in the menu-bar is pressed, display the corresponding
+       sub-menu and select the first menu item there.  */
+    set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+  else
+    /* Highlight next possible (enabled and not separator) menu item.  */
+    set_new_state (mw, find_next_selectable (mw, selected_item), mw->menu.old_depth - 1);
+
+  remap_menubar (mw);
+}
+
+static void
+Up (w, ev, params, num_params)
+     Widget w;
+     XEvent *ev;
+     String *params;
+     Cardinal *num_params;
+{
+  XlwMenuWidget mw = (XlwMenuWidget) w;
+  widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+
+  /* Inside top-level menu-bar?  */
+  if (mw->menu.old_depth == 2)
+    {
+      /* FIXME: this is tricky.  <up> in the menu-bar should select the
+	 last selectable item in the list.  So we select the first one and
+	 find the previous selectable item.  Is there a better way?  */
+      set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+      remap_menubar (mw);
+      selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+      set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    }
+  else
+    /* Highlight previous (enabled and not separator) menu item.  */
+    set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+
+  remap_menubar (mw);
+}
+
+static void
+Left (w, ev, params, num_params)
+     Widget w;
+     XEvent *ev;
+     String *params;
+     Cardinal *num_params;
+{
+  XlwMenuWidget mw = (XlwMenuWidget) w;
+  widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+
+  /* Inside top-level menu-bar?  */
+  if (mw->menu.old_depth == 2)
+    /* When <left> in the menu-bar is pressed, display the previous item on
+       the menu-bar. If the current item is the first one, highlight the
+       last item in the menubar (probably Help).  */
+    set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+  else
+    {
+      pop_new_stack_if_no_contents (mw);
+      set_new_state (mw, mw->menu.old_stack [mw->menu.old_depth - 2], mw->menu.old_depth - 2);
+    }
+
+  remap_menubar (mw);
+}
+
+static void
+Right (w, ev, params, num_params)
+     Widget w;
+     XEvent *ev;
+     String *params;
+     Cardinal *num_params;
+{
+  XlwMenuWidget mw = (XlwMenuWidget) w;
+  widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+
+  /* Inside top-level menu-bar?  */
+  if (mw->menu.old_depth == 2)
+    /* When <right> in the menu-bar is pressed, display the next item on
+       the menu-bar. If the current item is the last one, highlight the
+       first item (probably File).  */
+    set_new_state (mw, find_next_selectable (mw, selected_item), mw->menu.old_depth - 1);
+  else if (selected_item->contents)     /* Is this menu item expandable?  */
+    set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+  else
+    {
+      pop_new_stack_if_no_contents (mw);
+      set_new_state (mw, mw->menu.old_stack [mw->menu.old_depth - 2], mw->menu.old_depth - 2);
+    }
+
+  remap_menubar (mw);
 }
 
 /* Handle key press and release events while menu is popped up.
