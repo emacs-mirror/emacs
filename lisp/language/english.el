@@ -36,7 +36,7 @@ The default status is as follows.
 
   The default value of enable-multibyte-characters is t.
 
-  The default value of buffer-file-coding-system is iso-8859-1.
+  The default value of buffer-file-coding-system is nil.
   The coding system for terminal output is nil.
   The coding system for keyboard input is nil.
 
@@ -47,7 +47,7 @@ The default status is as follows.
 	coding-category-iso-7		iso-2022-7
 	coding-category-iso-8-2		iso-8859-1
 	coding-category-iso-8-1		iso-8859-1
-	coding-category-iso-else	iso-8859-1
+	coding-category-iso-else	iso-2022-lock
 	coding-category-emacs-mule 	emacs-mule
 	coding-category-binary		no-conversion
 	coding-category-sjis		sjis
@@ -55,14 +55,12 @@ The default status is as follows.
 "
   (interactive)
   (setq-default enable-multibyte-characters t)
-  (if (local-variable-p 'enable-multibyte-characters)
-      (setq enable-multibyte-characters t))
 
-  (setq coding-category-emacs-mule	'emacs-mule
-	coding-category-iso-7		'iso-2022-7
+  (setq coding-category-iso-7		'iso-2022-7
 	coding-category-iso-8-1		'iso-8859-1
 	coding-category-iso-8-2		'iso-8859-1
-	coding-category-iso-else	'iso-8859-1
+	coding-category-iso-else	'iso-2022-lock
+	coding-category-emacs-mule	'emacs-mule
 	coding-category-sjis		'sjis
 	coding-category-big5		'big5
 	coding-category-binary		'no-conversion)
@@ -73,16 +71,18 @@ The default status is as follows.
      coding-category-iso-8-1
      coding-category-iso-else
      coding-category-emacs-mule 
-     coding-category-binary
      coding-category-sjis
-     coding-category-big5))
+     coding-category-big5
+     coding-category-binary))
 
-  (setq-default buffer-file-coding-system 'iso-8859-1)
-  (set-terminal-coding-system nil)
-  (set-keyboard-coding-system nil)
+  (setq-default buffer-file-coding-system nil)
+  (set-terminal-coding-system-internal nil)
+  (set-keyboard-coding-system-internal nil)
 
   (setq sendmail-coding-system nil
 	rmail-file-coding-system nil)
+
+  (setq nonascii-insert-offset 0)
   )
 
 (set-language-info-alist
@@ -90,9 +90,9 @@ The default status is as follows.
 	     (tutorial . "TUTORIAL")
 	     (charset . (ascii))
 	     (sample-text . "Hello!, Hi!, How are you?")
-	     (documentation . ("\
+	     (documentation . "\
 There's nothing special you should care to handle English in Emacs.
-You can use English both with enable-multibyte-characters t and nil."))
+You can use English both with enable-multibyte-characters t and nil.")
 	     ))
 
 (register-input-method "English"
