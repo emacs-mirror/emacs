@@ -1,6 +1,22 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* On systems with shared libraries you might encounter run-time errors
+from the dynamic linker telling you that it is unable to find some
+shared libraries, for instance those for Xaw3d or image support.
+These errors mean Emacs has been linked with a library whose shared
+library is not in the default search path of the dynamic linker.
+
+On many systems, it is possible to set LD_LIBRARY_PATH in your
+environment to specify additional directories where shared libraries
+can be found.
+
+Other systems allow to set LD_RUN_PATH in a similar way, but before
+Emacs is linked.  With LD_RUN_PATH set, the linker will include a
+specified run-time search path in the executable.
+
+Please refer to the documentation of your dynamic linker for details.
+
 * On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
 C 5.0 is known to fail, most probably due to compiler bugs. Using
 Sun Solaris 2.7 Sun WorkShop 6 update 1 C release was reported
