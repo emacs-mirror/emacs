@@ -79,7 +79,6 @@ lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${statedir}/emacs/lock'
 archlibdir='${libdir}/emacs/${version}/${configuration}'
-CC=
 
 # On Sun systems, people sometimes set up the variable CPP
 # with a value that is a directory, not an executable at all.
@@ -580,7 +579,14 @@ case "${canonical}" in
   ## Motorola Delta machines
   m68k-motorola-sysv* | m68000-motorola-sysv* )
     machine=delta opsys=usg5-3
-    CC=gnucc
+    if [ -z "`type gnucc | grep 'not found'`" ]
+    then CC=gnucc
+    else
+      if [ -z "`type gcc | grep 'not found'`" ]
+      then CC=gcc
+      else CC=cc
+      fi
+    fi
   ;;
   m88k-motorola-sysv4* )
     machine=delta88k opsys=usg5-4
@@ -1097,6 +1103,14 @@ dnl checks for header files
 AC_HAVE_HEADERS(sys/timeb.h sys/time.h unistd.h)
 AC_STDC_HEADERS
 AC_TIME_WITH_SYS_TIME
+dnl In Autoconf 1.8 use AC_SYS_SIGLIST_DECLARED instead of this.
+AC_COMPILE_CHECK(sys_siglist declaration in signal.h or unistd.h,
+		 [#include <signal.h>
+/* NetBSD declares sys_siglist in <unistd.h>.  */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif], [char *msg = *(sys_siglist + 1);],
+		 AC_DEFINE(SYS_SIGLIST_DECLARED))
 
 dnl checks for typedefs
 AC_RETSIGTYPE
@@ -1509,12 +1523,13 @@ AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile lwlib/Makefile src/Makefil
 # after src/config.h is built, since we rely on that file.
 
 changequote(,)dnl The horror, the horror.
-# Now get this: Some word that is part of the ${srcdir} directory name might,
-# just might, happen to be an identifier like `sun4' or `i386' or something,
-# and be predefined by the C preprocessor to some helpful value like 1, or
-# maybe the empty string.  Needless to say consequent macro substitutions are
-# less than conducive to the makefile finding the correct directory.
-srcdir_undefs="`echo $top_srcdir | 
+# Now get this: Some word that is part of the ${srcdir} directory name
+# or the ${configuration} value might, just might, happen to be an
+# identifier like `sun4' or `i386' or something, and be predefined by
+# the C preprocessor to some helpful value like 1, or maybe the empty
+# string.  Needless to say consequent macro substitutions are less
+# than conducive to the makefile finding the correct directory.
+undefs="`echo $top_srcdir $configuration | 
 sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/  */ -U/g'  \
     -e 's/ -U$//' -e 's/^[^ ]/-U/' \
     -e 's/-U[0-9][^ ]*//g' \
@@ -1527,8 +1542,8 @@ echo creating src/Makefile
   sed -e 's@^# \(Generated.*\)$@/* \1 */@' \
       -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
       < Makefile.in > junk.c
-  $CPP $srcdir_undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c |
-  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	][ 	]*$/d' > Makefile.new
+  $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c |
+  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
   rm -f junk.c
   chmod 444 Makefile.new;
   mv -f Makefile.new Makefile;
