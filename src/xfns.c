@@ -3274,19 +3274,8 @@ This function is an internal primitive--use `make-frame' instead.")
   {
     Lisp_Object font;
 
-    /* Determine font by the following priority.
-       1. `font' parameter in parms.
-       2. `font' parameter in Vdefault_frame_alist.
-       3. X resource "font" ("Font").
-       4. Select a plausible font be heuristics at least for ASCII.  */
-    tem = Fassq (Qfont, parms);
-    if (NILP (tem))
-      tem = Fassq (Qfont, Vdefault_frame_alist);
-    if (!NILP (tem))
-      font = Fcdr (tem);
     if (! STRINGP (font))
       font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", string);
-
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
