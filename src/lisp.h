@@ -1292,7 +1292,8 @@ extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
 extern void debugger ();
 
-extern char *malloc (), *realloc (), *getenv (), *ctime (), *getwd ();
+extern void *malloc (), *realloc ();
+extern char *getenv (), *ctime (), *getwd ();
 extern long *xmalloc (), *xrealloc ();
 extern void xfree ();
 
