@@ -894,6 +894,9 @@ EmacsFrameSetCharSize (widget, columns, rows)
     {
       int hdelta = pixel_height - ew->core.height;
       int column_widget_height = f->display.x->column_widget->core.height;
+      int old_left = f->display.x->widget->core.x;
+      int old_top = f->display.x->widget->core.y;
+
       XawPanedSetRefigureMode (f->display.x->column_widget, False);
 
       ac = 0;
@@ -907,6 +910,10 @@ EmacsFrameSetCharSize (widget, columns, rows)
       XtSetValues (f->display.x->column_widget, al, ac);
 
       XawPanedSetRefigureMode (f->display.x->column_widget, True);
+
+      /* These seem to get clobbered.  I don't know why. - rms.  */
+      f->display.x->widget->core.x = old_left;
+      f->display.x->widget->core.y = old_top;
     }
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
