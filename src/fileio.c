@@ -183,6 +183,10 @@ int vms_stmlf_recfm;
    expanding file names.  This can be bound to / or \. */
 Lisp_Object Vdirectory_sep_char;
 
+extern Lisp_Object Vuser_login_name;
+
+extern int minibuf_level;
+
 /* These variables describe handlers that have "already" had a chance
    to handle the current operation.
 
@@ -3515,7 +3519,14 @@ to the file, instead of any buffer contents, and END is ignored.")
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
-    lock_file (lockname);
+    {
+      /* If we've locked this file for some other buffer,
+	 query before proceeding.  */
+      if (!visiting && EQ (Ffile_locked_p (lockname), Qt))
+	call2 (intern ("ask-user-about-lock"), fn, Vuser_login_name);
+
+      lock_file (lockname);
+    }
 #endif /* CLASH_DETECTION */
 
   fn = XSTRING (filename)->data;
@@ -4064,7 +4075,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   int auto_saved = 0;
   char *omessage = echo_area_glyphs;
   int omessage_length = echo_area_glyphs_length;
-  extern int minibuf_level;
   int do_handled_files;
   Lisp_Object oquit;
   int listdesc;
