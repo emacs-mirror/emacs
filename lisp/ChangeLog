@@ -1,3 +1,18 @@
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs-lisp/rx.el (rx-check, rx-check-any, rx-check-not)
+	(rx-repeat, rx-check-backref, rx-syntax, rx-to-string): Use
+	lower-case "rx" in all error message.
+
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/rx.el (rx-or): Put group around result.
+	(rx-constituents): Add backref.
+	(rx-syntax): Add string-delimiter, comment-delimiter.
+	(rx-categories): Add combining-diacritic.
+	(rx-check-not, rx-greedy, rx): Doc fix.
+	(rx-backref, rx-check-backref): New.
+
 2004-02-16  Jesper Harder  <harder@ifa.au.dk>
 
 	* newcomment.el (uncomment-region): Allow eob as comment end.
