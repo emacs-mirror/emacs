@@ -2741,11 +2741,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		      if (nbytes == 1)
 			{
-			  if (modifiers & x_meta_mod_mask)
-			    *copy_buffer |= METABIT;
 			  bufp->kind = ascii_keystroke;
 			  XSET (bufp->code, Lisp_Int, *copy_buffer);
 			  XSET (bufp->frame_or_window, Lisp_Frame, f);
+			  bufp->modifiers = x_convert_modifiers (modifiers);
 			  bufp->timestamp = event.xkey.time;
 			  bufp++;
 			}
@@ -2755,6 +2754,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			    bufp->kind = ascii_keystroke;
 			    XSET (bufp->code, Lisp_Int, copy_buffer[i]);
 			    XSET (bufp->frame_or_window, Lisp_Frame, f);
+			    bufp->modifiers = x_convert_modifiers (modifiers);
 			    bufp->timestamp = event.xkey.time;
 			    bufp++;
 			  }
