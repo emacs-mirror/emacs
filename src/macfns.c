@@ -324,19 +324,21 @@ x_real_positions (f, xptr, yptr)
   Point pt;
   GrafPtr oldport;
 
-#ifdef TARGET_API_MAC_CARBON
+  GetPort (&oldport);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
+
+#if TARGET_API_MAC_CARBON
   {
     Rect r;
 
-    GetWindowPortBounds (f->output_data.mac->mWP, &r);
+    GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
     SetPt (&pt, r.left, r.top);
   }
 #else /* not TARGET_API_MAC_CARBON */
   SetPt (&pt,
-	 f->output_data.mac->mWP->portRect.left,
-	 f->output_data.mac->mWP->portRect.top);
+	 FRAME_MAC_WINDOW (f)->portRect.left,
+	 FRAME_MAC_WINDOW (f)->portRect.top);
 #endif /* not TARGET_API_MAC_CARBON */
-  GetPort (&oldport);
   LocalToGlobal (&pt);
   SetPort (oldport);
 
@@ -1934,8 +1936,8 @@ x_set_name (f, name, explicit)
   if (FRAME_MAC_WINDOW (f))
     {
       if (STRING_MULTIBYTE (name))
-#if 0 /* MAC_TODO: encoding title string */
-	name = ENCODE_SYSTEM (name);
+#if TARGET_API_MAC_CARBON
+	name = ENCODE_UTF_8 (name);
 #else
         return;
 #endif
@@ -1943,6 +1945,14 @@ x_set_name (f, name, explicit)
       BLOCK_INPUT;
 
       {
+#if TARGET_API_MAC_CARBON
+	CFStringRef windowTitle =
+	  CFStringCreateWithCString (NULL, SDATA (name),
+				     kCFStringEncodingUTF8);
+
+	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
+	CFRelease (windowTitle);
+#else
 	Str255 windowTitle;
 	if (strlen (SDATA (name)) < 255)
 	  {
@@ -1950,6 +1960,7 @@ x_set_name (f, name, explicit)
 	    c2pstr (windowTitle);
 	    SetWTitle (FRAME_MAC_WINDOW (f), windowTitle);
 	  }
+#endif
       }
 
       UNBLOCK_INPUT;
@@ -2008,8 +2019,8 @@ x_set_title (f, name, old_name)
   if (FRAME_MAC_WINDOW (f))
     {
       if (STRING_MULTIBYTE (name))
-#if 0 /* MAC_TODO: encoding title string */
-	name = ENCODE_SYSTEM (name);
+#if TARGET_API_MAC_CARBON
+	name = ENCODE_UTF_8 (name);
 #else
         return;
 #endif
@@ -2017,6 +2028,14 @@ x_set_title (f, name, old_name)
       BLOCK_INPUT;
 
       {
+#if TARGET_API_MAC_CARBON
+	CFStringRef windowTitle =
+	  CFStringCreateWithCString (NULL, SDATA (name),
+				     kCFStringEncodingUTF8);
+
+	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
+	CFRelease (windowTitle);
+#else
 	Str255 windowTitle;
 	if (strlen (SDATA (name)) < 255)
 	  {
@@ -2024,6 +2043,7 @@ x_set_title (f, name, old_name)
 	    c2pstr (windowTitle);
 	    SetWTitle (FRAME_MAC_WINDOW (f), windowTitle);
 	  }
+#endif
       }
 
       UNBLOCK_INPUT;
@@ -2981,17 +3001,20 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (display)
      Lisp_Object display;
 {
-  int mac_major_version, mac_minor_version;
+  int mac_major_version;
   SInt32 response;
 
   if (Gestalt (gestaltSystemVersion, &response) != noErr)
     error ("Cannot get Mac OS version");
 
-  mac_major_version = (response >> 8) & 0xf;
-  mac_minor_version = (response >> 4) & 0xf;
+  mac_major_version = (response >> 8) & 0xff;
+  /* convert BCD to int */
+  mac_major_version -= (mac_major_version >> 4) * 6;
 
   return Fcons (make_number (mac_major_version),
-		Fcons (make_number (mac_minor_version), Qnil));
+		Fcons (make_number ((response >> 4) & 0xf),
+		       Fcons (make_number (response & 0xf),
+			      Qnil)));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,

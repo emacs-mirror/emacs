@@ -1,3 +1,7 @@
+2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib.h (_widget_value): Added lname and lkey.
+
 2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xlwmenuP.h (_XlwMenu_part): Added top_depth.

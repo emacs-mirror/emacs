@@ -6217,7 +6217,7 @@ and `read-file-name-function'.  */)
 
   GCPRO2 (insdef, default_filename);
 
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined(TARGET_API_MAC_CARBON)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog

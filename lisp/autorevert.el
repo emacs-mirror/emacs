@@ -421,7 +421,8 @@ This is an internal function used by Auto-Revert Mode."
 	   'no-mini t))
 	(if auto-revert-tail-mode
 	    (auto-revert-tail-handler)
-	  (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes))
+	  (let ((buffer-read-only buffer-read-only))
+	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
 	(when buffer-file-name
 	  (when eob (goto-char (point-max)))
 	  (dolist (window eoblist)

@@ -1145,9 +1145,10 @@ on the line for the invalidity you want to see."
 	  (if no-matches
 	      (insert "None!\n"))
 	  (if (interactive-p)
-	      (message "%s mismatch%s found"
-		       (if no-matches "No" num-matches)
-		       (if (> num-matches 1) "es" ""))))))))
+	      (message (cond (no-matches "No mismatches found")
+			     ((= num-matches 1) "1 mismatch found")
+			     (t "%d mismatches found"))
+		       num-matches)))))))
 
 (defun tex-validate-region (start end)
   "Check for mismatched braces or $'s in region.

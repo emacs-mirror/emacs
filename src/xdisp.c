@@ -307,6 +307,7 @@ Lisp_Object Qline_height, Qtotal;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
+extern Lisp_Object Qcursor;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -10747,6 +10748,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 {
   struct glyph *glyph = row->glyphs[TEXT_AREA];
   struct glyph *end = glyph + row->used[TEXT_AREA];
+  struct glyph *cursor = NULL;
   /* The first glyph that starts a sequence of glyphs from string.  */
   struct glyph *string_start;
   /* The X coordinate of string_start.  */
@@ -10756,6 +10758,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* The last known character position before string_start.  */
   int string_before_pos;
   int x = row->x;
+  int cursor_x = x;
   int pt_old = PT - delta;
 
   /* Skip over glyphs not having an object at the start of the row.
@@ -10788,12 +10791,29 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  string_start = glyph;
 	  string_start_x = x;
 	  /* Skip all glyphs from string.  */
-	  SKIP_GLYPHS (glyph, end, x, STRINGP (glyph->object));
+	  do
+	    {
+	      if ((cursor == NULL || glyph > cursor)
+		  && !NILP (Fget_char_property (make_number ((glyph)->charpos),
+						Qcursor, (glyph)->object)))
+		{
+		  cursor = glyph;
+		  cursor_x = x;
+		}
+	      x += glyph->pixel_width;
+	      ++glyph;
+	    }
+	  while (glyph < end && STRINGP (glyph->object));
 	}
     }
 
-  if (string_start
-      && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
+  if (cursor != NULL)
+    {
+      glyph = cursor;
+      x = cursor_x;
+    }
+  else if (string_start
+	   && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
     {
       /* We may have skipped over point because the previous glyphs
 	 are from string.  As there's no easy way to know the
@@ -11185,8 +11205,8 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  start_display (&it, w, startp);
 
 	  if (scroll_conservatively)
-	    amount_to_scroll =
-	      max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
+	    amount_to_scroll
+	      = max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
 	    amount_to_scroll = scroll_max;
 	  else
@@ -11465,8 +11485,7 @@ try_cursor_movement (window, startp, scroll_step)
 	  else if (PT < XFASTINT (w->last_point))
 	    {
 	      /* Cursor has to be moved backward.  Note that PT >=
-		 CHARPOS (startp) because of the outer
-		 if-statement.  */
+		 CHARPOS (startp) because of the outer if-statement.  */
 	      while (!row->mode_line_p
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
@@ -11978,8 +11997,8 @@ redisplay_window (window, just_this_one_p)
 	     buffer.  */
 	  || !NILP (Vwindow_scroll_functions)
 	  || MINI_WINDOW_P (w)
-	  || !(used_current_matrix_p =
-	       try_window_reusing_current_matrix (w)))
+	  || !(used_current_matrix_p
+	       = try_window_reusing_current_matrix (w)))
 	{
 	  IF_DEBUG (debug_method_add (w, "1"));
 	  try_window (window, startp);
@@ -12108,8 +12127,8 @@ redisplay_window (window, just_this_one_p)
       || !NILP (Vwindow_scroll_functions)
       || !just_this_one_p
       || MINI_WINDOW_P (w)
-      || !(used_current_matrix_p =
-	   try_window_reusing_current_matrix (w)))
+      || !(used_current_matrix_p
+	   = try_window_reusing_current_matrix (w)))
     try_window (window, startp);
 
   /* If new fonts have been loaded (due to fontsets), give up.  We
@@ -15774,7 +15793,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
    The mode_line_string_face face property is always added to the string.
  */
 
-static int store_mode_line_string (string, lisp_string, copy_string, field_width, precision, props)
+static int
+store_mode_line_string (string, lisp_string, copy_string, field_width, precision, props)
      char *string;
      Lisp_Object lisp_string;
      int copy_string;
@@ -15886,32 +15906,32 @@ If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
 
   if (NILP (format) || EQ (format, Qt))
     {
-      face_id = NILP (format)
-	? CURRENT_MODE_LINE_FACE_ID (w) :
-	HEADER_LINE_FACE_ID;
-      format = NILP (format)
-	? current_buffer->mode_line_format
-	: current_buffer->header_line_format;
+      face_id = (NILP (format)
+		 ? CURRENT_MODE_LINE_FACE_ID (w)
+		 : HEADER_LINE_FACE_ID);
+      format = (NILP (format)
+		? current_buffer->mode_line_format
+		: current_buffer->header_line_format);
     }
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
   if (NILP (no_props))
     {
-      mode_line_string_face =
-	(face_id == MODE_LINE_FACE_ID ? Qmode_line :
-	 face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive :
-	 face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
+      mode_line_string_face
+	= (face_id == MODE_LINE_FACE_ID ? Qmode_line
+	   : face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive
+	   : face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
 
-      mode_line_string_face_prop =
-	NILP (mode_line_string_face) ? Qnil :
-	Fcons (Qface, Fcons (mode_line_string_face, Qnil));
+      mode_line_string_face_prop
+	= (NILP (mode_line_string_face) ? Qnil
+	   : Fcons (Qface, Fcons (mode_line_string_face, Qnil)));
 
       /* We need a dummy last element in mode_line_string_list to
 	 indicate we are building the propertized mode-line string.
 	 Using mode_line_string_face_prop here GC protects it.  */
-      mode_line_string_list =
-	Fcons (mode_line_string_face_prop, Qnil);
+      mode_line_string_list
+	= Fcons (mode_line_string_face_prop, Qnil);
       frame_title_ptr = NULL;
     }
   else
@@ -21038,7 +21058,8 @@ note_mouse_highlight (f, x, y)
 
   if (part == ON_VERTICAL_BORDER)
     cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
-  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
+	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else
     cursor = FRAME_X_OUTPUT (f)->text_cursor;

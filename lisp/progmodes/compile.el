@@ -458,9 +458,9 @@ starting the compilation process.")
   :version "21.4")
 
 (defface compilation-info-face
-  '((((class color) (min-colors 16) (background light)) 
+  '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
-    (((class color) (min-colors 16) (background dark)) 
+    (((class color) (min-colors 16) (background dark))
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
@@ -579,12 +579,17 @@ Faces `compilation-error-face', `compilation-warning-face',
     (and end-line
 	 (setq end-line (match-string-no-properties end-line))
 	 (setq end-line (string-to-number end-line)))
-    (and col
-	 (setq col (match-string-no-properties col))
-	 (setq col (- (string-to-number col) compilation-first-column)))
-    (if (and end-col (setq end-col (match-string-no-properties end-col)))
-	(setq end-col (- (string-to-number end-col) compilation-first-column -1))
-      (if end-line (setq end-col -1)))
+    (if col
+        (if (functionp col)
+            (setq col (funcall col))
+          (and
+           (setq col (match-string-no-properties col))
+           (setq col (- (string-to-number col) compilation-first-column)))))
+    (if (and end-col (functionp end-col))
+        (setq end-col (funcall end-col))
+      (if (and end-col (setq end-col (match-string-no-properties end-col)))
+          (setq end-col (- (string-to-number end-col) compilation-first-column -1))
+        (if end-line (setq end-col -1))))
     (if (consp type)			; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
@@ -726,9 +731,9 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	      ,@(when end-line
 		  `((,end-line compilation-line-face nil t)))
 
-	      ,@(when col
+	      ,@(when (integerp col)
 		  `((,col compilation-column-face nil t)))
-	      ,@(when end-col
+	      ,@(when (integerp end-col)
 		  `((,end-col compilation-column-face nil t)))
 
 	      ,@(nthcdr 6 item)
@@ -789,7 +794,10 @@ If this is run in a Compilation mode buffer, re-use the arguments from the
 original use.  Otherwise, recompile using `compile-command'."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (let ((default-directory (or compilation-directory default-directory)))
+  (let ((default-directory
+          (or (and (not (eq major-mode (nth 1 compilation-arguments)))
+                   compilation-directory)
+              default-directory)))
     (apply 'compilation-start (or compilation-arguments
 				  `(,(eval compile-command))))))
 
@@ -816,8 +824,7 @@ Otherwise, construct a buffer name from MODE-NAME."
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((and (eq major-mode 'compilation-mode)
-	      (equal mode-name (nth 2 compilation-arguments)))
+	((eq major-mode (nth 1 compilation-arguments))
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -1522,7 +1529,8 @@ If nil, don't scroll the compilation output window."
 
 (defun compilation-goto-locus (msg mk end-mk)
   "Jump to an error corresponding to MSG at MK.
-All arguments are markers.  If END-MK is non nil, mark is set there."
+All arguments are markers.  If END-MK is non-nil, mark is set there
+and overlay is highlighted between MK and END-MK."
   (if (eq (window-buffer (selected-window))
 	  (marker-buffer msg))
       ;; If the compilation buffer window is selected,
@@ -1538,7 +1546,7 @@ All arguments are markers.  If END-MK is non nil, mark is set there."
     (widen)
     (goto-char mk))
   (if end-mk
-      (push-mark end-mk nil t)
+      (push-mark end-mk t)
     (if mark-active (setq mark-active)))
   ;; If hideshow got in the way of
   ;; seeing the right place, open permanently.
@@ -1559,26 +1567,32 @@ All arguments are markers.  If END-MK is non nil, mark is set there."
 			     compilation-highlight-regexp)))
     (compilation-set-window-height w)
 
-    (when (and highlight-regexp
-	       (not (and end-mk transient-mark-mode)))
+    (when highlight-regexp
       (unless compilation-highlight-overlay
 	(setq compilation-highlight-overlay
 	      (make-overlay (point-min) (point-min)))
-	(overlay-put compilation-highlight-overlay 'face 'region))
+	(overlay-put compilation-highlight-overlay 'face 'next-error))
       (with-current-buffer (marker-buffer mk)
 	(save-excursion
-	  (end-of-line)
+	  (if end-mk (goto-char end-mk) (end-of-line))
 	  (let ((end (point)))
-	    (beginning-of-line)
+	    (if mk (goto-char mk) (beginning-of-line))
 	    (if (and (stringp highlight-regexp)
 		     (re-search-forward highlight-regexp end t))
 		(progn
 		  (goto-char (match-beginning 0))
-		  (move-overlay compilation-highlight-overlay (match-beginning 0) (match-end 0)))
-	      (move-overlay compilation-highlight-overlay (point) end))
-	    (sit-for 0.5)
-	    (delete-overlay compilation-highlight-overlay)))))))
-
+		  (move-overlay compilation-highlight-overlay
+				(match-beginning 0) (match-end 0)
+				(current-buffer)))
+	      (move-overlay compilation-highlight-overlay
+			    (point) end (current-buffer)))
+	    (if (numberp next-error-highlight)
+		(sit-for next-error-highlight))
+	    (if (not (eq next-error-highlight t))
+		(delete-overlay compilation-highlight-overlay))))))
+    (when (and (eq next-error-highlight 'fringe-arrow))
+      (set (make-local-variable 'overlay-arrow-position)
+	   (copy-marker (line-beginning-position))))))
 
 (defun compilation-find-file (marker filename dir &rest formats)
   "Find a buffer for file FILENAME.

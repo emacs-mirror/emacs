@@ -141,6 +141,9 @@
 	   (if clipboard
 	       (decode-coding-string clipboard selection-coding-system t)))))
 
+;; Don't show the frame name; that's redundant.
+(setq-default mode-line-frame-identification "  ")
+
 (defun mac-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop event.\n\
 Switch to a buffer editing the last file dropped."
@@ -253,6 +256,9 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 
 ;; Tell read-char how to convert special chars to ASCII
 (put 'return 'ascii-character 13)
+(put 'tab 'ascii-character ?\t)
+(put 'backspace 'ascii-character 127)
+(put 'escape 'ascii-character ?\e)
 
 ;;
 ;; Available colors

@@ -173,6 +173,10 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
++++
+** `apply-macro-to-region-lines' now operates on all lines that begin
+in the region, rather than on all complete lines in the region.
+
 ** global-whitespace-mode is a new alias for whitespace-global-mode.
 
 +++
@@ -590,6 +594,13 @@ mode toggling function instead.
 *** A numeric prefix argument of `info' selects an Info buffer
 with the number appended to the *info* buffer name.
 
+*** Regexp isearch (C-M-s and C-M-r) can search through multiple nodes.
+Failed isearch wraps to the top/final node.
+
+*** New search commands: `Info-search-case-sensitively' (bound to S),
+`Info-search-backward', and `Info-search-next' which repeats the last
+search without prompting for a new search string.
+
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
 *** New command `Info-toc' (bound to T) creates a node with table of contents
@@ -602,11 +613,6 @@ possible matches.
 *** New command `Info-copy-current-node-name' (bound to w) copies
 the current Info node name into the kill ring.  With a zero prefix
 arg, puts the node name inside the `info' function call.
-
-*** New command `Info-search-case-sensitively' (bound to S).
-
-*** New command `Info-search-next' (unbound) repeats the last search
-without prompting for a new search string.
 
 *** New face `info-xref-visited' distinguishes visited nodes from unvisited
 and a new option `Info-fontify-visited-nodes' to control this.
@@ -1184,9 +1190,9 @@ Another method to grab a character is to enter the minibuffer by `M-e'
 and to type `C-f' at the end of the search string in the minibuffer.
 
 +++
-** M-% and C-M-% typed in isearch mode invoke `query-replace' and
-`query-replace-regexp' with the current search string inserted
-in the minibuffer as initial input for the string to replace.
+** M-% typed in isearch mode invokes `query-replace' or
+`query-replace-regexp' (depending on search mode) with the current
+search string used as the string to replace.
 
 +++
 ** Yanking text now discards certain text properties that can
@@ -1933,7 +1939,9 @@ This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
 
-*** `next-error' now temporarily highlights the corresponding source line.
+*** New options `next-error-highlight' and `next-error-highlight-no-select'
+specify the method of highlighting of the corresponding source line
+in new face `next-error'.
 
 ** Grep has been decoupled from compilation mode setup.
 
@@ -1945,7 +1953,12 @@ subprocesses inherit.
 `grep-scroll-output' can be used to override the corresponding
 compilation mode settings for grep commands.
 
-*** Source line is temporarily highlighted when going to next match.
+*** New option `grep-highlight-matches' highlightes matches in *grep*
+buffer.  It uses a special feature of some grep programs which accept
+--color option to output markers around matches.  When going to the next
+match with `next-error' the exact match is highlighted in the source
+buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
+source line is highlighted.
 
 *** New key bindings in grep output window:
 SPC and DEL scrolls window up and down.  C-n and C-p moves to next and

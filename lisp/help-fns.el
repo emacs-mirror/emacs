@@ -461,18 +461,21 @@ face (according to `face-differs-from-default-p')."
 (defun variable-at-point ()
   "Return the bound variable symbol found around point.
 Return 0 if there is no such symbol."
-  (condition-case ()
-      (with-syntax-table emacs-lisp-mode-syntax-table
-	(save-excursion
-	  (or (not (zerop (skip-syntax-backward "_w")))
-	      (eq (char-syntax (following-char)) ?w)
-	      (eq (char-syntax (following-char)) ?_)
-	      (forward-sexp -1))
-	  (skip-chars-forward "'")
-	  (let ((obj (read (current-buffer))))
-	    (or (and (symbolp obj) (boundp obj) obj)
-		0))))
-    (error 0)))
+  (or (condition-case ()
+	  (with-syntax-table emacs-lisp-mode-syntax-table
+	    (save-excursion
+	      (or (not (zerop (skip-syntax-backward "_w")))
+		  (eq (char-syntax (following-char)) ?w)
+		  (eq (char-syntax (following-char)) ?_)
+		  (forward-sexp -1))
+	      (skip-chars-forward "'")
+	      (let ((obj (read (current-buffer))))
+		(and (symbolp obj) (boundp obj) obj))))
+	(error nil))
+      (let* ((str (find-tag-default))
+	     (obj (if str (read str))))
+	(and (symbolp obj) (boundp obj) obj))
+      0))
 
 ;;;###autoload
 (defun describe-variable (variable &optional buffer)
