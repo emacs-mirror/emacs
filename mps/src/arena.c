@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.17) $
+ * $HopeName: MMsrc!arena.c(trunk.18) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.17) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.18) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -367,8 +367,11 @@ void ArenaDestroy(Arena arena)
     arena->enabledMessageTypes = NULL;
   }
 
-  /* Empty the queue of messages before proceeding to finish */
-  /* the arena */
+  /* .message.queue.empty: Empty the queue of messages before */
+  /* proceeding to finish the arena.  It is important that this */
+  /* is done before destroying the finalization pool as otherwise */
+  /* the message queue would have dangling pointers to messages */
+  /* whose memory has been unmapped. */
   MessageEmpty(arena);
 
   /* destroy the final pool (see design.mps.finalize) */
