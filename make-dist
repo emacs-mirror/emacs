@@ -167,12 +167,10 @@ echo "Updating version number in README."
 
 
 echo "Creating subdirectories."
-# I think we're not going to distribute anything in external-lisp, so
-# I've removed it from this list.
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/src \
-	      etc lock cpp info man msdos shortnames vms; do
+	      etc etc/e lock cpp info man msdos shortnames vms; do
   mkdir ${tempdir}/${subdir}
 done
 
@@ -208,14 +206,6 @@ echo "Making links to \`lisp/term'."
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
  ln README ../../${tempdir}/lisp/term
  rm -f =* TAGS)
-
-### echo "Making links to \`external-lisp'."
-### ### Don't distribute =*.el files or TAGS.
-### (cd external-lisp
-###  ln [a-zA-Z]*.el ../${tempdir}/external-lisp
-###  ln [a-zA-Z]*.elc ../${tempdir}/external-lisp
-###  ln ChangeLog README ../${tempdir}/external-lisp
-###  rm -f =* TAGS)
 
 echo "Making links to \`src'."
 ### Don't distribute =*.[ch] files, or the configured versions of
@@ -300,6 +290,12 @@ echo "Making links to \`etc'."
  rm -f DOC* *~ \#*\# *.dvi *.log *,v =* core
  rm -f TAGS)
 
+echo "Making links to \`etc/e'."
+(cd etc/e
+ ln `ls -d * | grep -v 'RCS' ../${tempdir}/etc/e
+ cd ../${tempdir}/etc
+ rm -f DOC* *~ \#*\# *,v =* core)
+
 echo "Making links to \`cpp'."
 (cd cpp
  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
@@ -317,7 +313,7 @@ echo "Making links to \`man'."
 (cd man
  ln *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
  test -f README && ln README ../${tempdir}/man
- test -f Makefile && ln Makefile ../${tempdir}/man
+ test -f Makefile.in && ln Makefile.in ../${tempdir}/man
  ln ChangeLog split-man ../${tempdir}/man
  cp texinfo.tex texindex.c getopt.c ../${tempdir}/man
  cd ../${tempdir}/man
