@@ -1,8 +1,47 @@
+2001-10-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/refill.el (refill-mode):
+	Bind DEL to backward-delete-char-untabify.
+	Set backward-delete-char-untabify-method to `hungry'.
+
+	* textmodes/bib-mode.el (bib-mode):
+	* play/gomoku.el (gomoku-mode):
+	* textmodes/page-ext.el (pages-directory-mode):
+	* textmodes/scribe.el (scribe-mode): Use define-derived-mode.
+
+	* textmodes/two-column.el (2C-mode): Don't use make-local-hook.
+
+	* emacs-lisp/syntax.el (syntax-ppss): Autoload.
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords):
+	Handle here-docs differently.
+	(sh-font-lock-heredoc): Remove.
+	(sh-here-doc-open-re, sh-here-doc-markers, sh-here-doc-re): New vars.
+	(sh-font-lock-here-doc, sh-font-lock-close-heredoc)
+	(sh-font-lock-open-heredoc): New functions.
+	(sh-mode): Don't copy sh-font-lock-syntactic-keywords any more.
+	(sh-font-lock-keywords-1): Use regexp-opt.
+	(sh-in-comment-or-string): Use syntax-ppss.
+	(sh-case, sh-for, sh-indexed-loop, sh-function, sh-if, sh-repeat)
+	(sh-select, sh-tmp-file): Add explicit terminating \n.
+
+	* net/ange-ftp.el (ange-ftp-raw-send-cmd, ange-ftp-wait-not-busy):
+	Use with-current-buffer.
+	(ange-ftp-cd): New arg `noerror' to prevent signalling an error.
+	(ange-ftp-send-cmd): If a `cd' is used (because of a space in the
+	filename), catch any error that occurs in `ange-ftp-cd'.
+	If an error happened, don't bother sending `cmd' at all.
+	Fix a parenthesis typo.
+	(ange-ftp-write-region): Don't blindly use binary if the remote host
+	is unix-like.
+
+	* play/pong.el (pong-init): Don't use make-local-hook.
+
 2001-10-13  Michael Kifer  <kifer@cs.sunysb.edu>
-	
-	* viper-ex.el (ex-edit): make checks for modified buffer/file.
-	(viper-get-ex-address-subr): more precise addr for the $ marker
-	
+
+	* viper-ex.el (ex-edit): Make checks for modified buffer/file.
+	(viper-get-ex-address-subr): More precise addr for the $ marker
+
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* version.el (emacs-version): Bump to 21.1.50.
