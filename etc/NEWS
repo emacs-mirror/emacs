@@ -1077,6 +1077,11 @@ accurate or inaccurate as it is.
 *** Dired now properly handles undo changes of adding/removing `-R'
 from ls switches.
 
+*** Dired commands that prompt for a destination file now allow the use
+of the `M-n' command in the minibuffer to insert the source filename,
+which the user can then edit.  This only works if there is a single
+source file, not when operating on multiple marked files.
+
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.
 
