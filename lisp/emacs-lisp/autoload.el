@@ -257,7 +257,7 @@ are used."
   (let ((outbuf (current-buffer))
 	(autoloads-done '())
 	(load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?$" name)
+		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(print-length nil)
@@ -360,7 +360,7 @@ are used."
 Return FILE if there was no autoload cookie in it."
   (interactive "fUpdate autoloads for file: ")
   (let ((load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?$" name)
+		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(found nil)
@@ -480,11 +480,14 @@ Autoload section for %s is up to date."
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
 This uses `update-file-autoloads' (which see) do its work."
   (interactive "DUpdate autoloads from directory: ")
-  (let* ((files (apply 'nconc
+  (let* ((files-re (let ((tmp nil))
+		     (dolist (suf load-suffixes
+				  (concat "^[^=.].*" (regexp-opt tmp t) "\\'"))
+		       (unless (string-match "\\.elc" suf) (push suf tmp)))))
+	 (files (apply 'nconc
 		       (mapcar (lambda (dir)
 				 (directory-files (expand-file-name dir)
-						  ;; FIXME: add .gz etc...
-						  t "^[^=.].*\\.el\\'"))
+						  t files-re))
 			       dirs)))
 	 (this-time (current-time))
 	 (no-autoloads nil)		;files with no autoload cookies.
