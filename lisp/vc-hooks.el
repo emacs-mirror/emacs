@@ -289,7 +289,7 @@ See also variable `vc-consult-headers'.")
       (vc-parse-buffer 
        (list '("^\001d D \\([^ ]+\\)" 1)
 	     (list (concat "^\001d D \\([^ ]+\\) .* " 
-			   (regexp-quote (user-login-name)) " ") 1))
+			   (regexp-quote (vc-user-login-name)) " ") 1))
        file
        '(vc-latest-version vc-your-latest-version)))
 
@@ -564,12 +564,22 @@ For CVS, the full name of CVS/Entries is returned."
 	       (vc-file-setprop file 'vc-locking-user 'none))
 	      ((and (= (nth 2 attributes) (user-uid))
 		    (string-match ".rw..-..-." (nth 8 attributes)))
-	       (vc-file-setprop file 'vc-locking-user (user-login-name)))
+	       (vc-file-setprop file 'vc-locking-user (vc-user-login-name)))
 	      (nil)))))
+
+(defun vc-user-login-name (&optional uid)
+  ;; Return the name under which the user is logged in, as a string.
+  ;; (With optional argument UID, return the name of that user.)
+  ;; This function does the same as `user-login-name', but unlike
+  ;; that, it never returns nil.  If a UID cannot be resolved, that
+  ;; UID is returned as a string.
+  (or (user-login-name uid)
+      (and uid (number-to-string uid))
+      (number-to-string (user-uid))))
 
 (defun vc-file-owner (file)
   ;; Return who owns FILE (user name, as a string).
-  (user-login-name (nth 2 (file-attributes file))))
+  (vc-user-login-name (nth 2 (file-attributes file))))
 
 (defun vc-rcs-lock-from-diff (file)
   ;; Diff the file against the master version.  If differences are found,
@@ -686,7 +696,7 @@ For CVS, the full name of CVS/Entries is returned."
 	     (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
 			   "date[ \t]+\\([0-9.]+\\);[ \t]+"
 			   "author[ \t]+"
-			   (regexp-quote (user-login-name)) ";") 1 2))
+			   (regexp-quote (vc-user-login-name)) ";") 1 2))
        file
        '(vc-latest-version vc-your-latest-version))
       (if (get-buffer "*vc-info*")
@@ -853,7 +863,7 @@ of the buffer.  With prefix argument, ask for version number."
 	     t)
 	 (not (vc-locking-user file))
 	 (eq (vc-checkout-model file) 'implicit)
-	 (vc-file-setprop file 'vc-locking-user (user-login-name))
+	 (vc-file-setprop file 'vc-locking-user (vc-user-login-name))
 	 (or (and (eq (vc-backend file) 'CVS) 
 		  (vc-file-setprop file 'vc-cvs-status nil))
 	     t)
@@ -876,7 +886,7 @@ control system name."
     (and vc-type 
 	 (equal file (buffer-file-name))
 	 (vc-locking-user file)
-	 (not (string= (user-login-name) (vc-locking-user file)))
+	 (not (string= (vc-user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
     ;; If the user is root, and the file is not owner-writable,
     ;; then pretend that we can't write it
@@ -914,7 +924,7 @@ control system name."
 	   " @@")
 	  ((not locker)
 	   (concat "-" rev))
-	  ((string= locker (user-login-name))
+	  ((string= locker (vc-user-login-name))
 	   (concat ":" rev))
 	  (t 
 	   (concat ":" locker ":" rev)))))
