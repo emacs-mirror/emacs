@@ -307,7 +307,9 @@ These hooks have the following distinct roles:
                              (subst-char-in-region date-start
                                 (point) ?\^M ?\n t)
                              (add-to-diary-list
-                               date (buffer-substring entry-start (point)))))))
+                               date
+                               (buffer-substring-no-properties
+                                entry-start (point)))))))
                      (setq d (cdr d)))
                    (or entry-found
                        (not diary-list-include-blanks)
@@ -346,7 +348,8 @@ changing the variable `diary-include-string'."
            " \"\\([^\"]*\\)\"")
           nil t)
     (let ((diary-file (substitute-in-file-name
-                       (buffer-substring (match-beginning 2) (match-end 2))))
+                       (buffer-substring-no-properties
+                        (match-beginning 2) (match-end 2))))
           (diary-list-include-blanks nil)
           (list-diary-entries-hook 'include-other-diary-files)
           (diary-display-hook 'ignore)
@@ -639,28 +642,28 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                     (while (re-search-forward regexp nil t)
                       (let* ((dd-name
                               (if d-name-pos
-                                  (buffer-substring
+                                  (buffer-substring-no-properties
                                    (match-beginning d-name-pos)
                                    (match-end d-name-pos))))
                              (mm-name
                               (if m-name-pos
-                                  (buffer-substring
+                                  (buffer-substring-no-properties
                                    (match-beginning m-name-pos)
                                    (match-end m-name-pos))))
                              (mm (string-to-int
                                   (if m-pos
-                                      (buffer-substring
+                                      (buffer-substring-no-properties
                                        (match-beginning m-pos)
                                        (match-end m-pos))
                                     "")))
                              (dd (string-to-int
                                   (if d-pos
-                                      (buffer-substring
+                                      (buffer-substring-no-properties
                                        (match-beginning d-pos)
                                        (match-end d-pos))
                                     "")))
                              (y-str (if y-pos
-                                        (buffer-substring
+                                        (buffer-substring-no-properties
                                          (match-beginning y-pos)
                                          (match-end y-pos))))
                              (yy (if (not y-str)
@@ -744,7 +747,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
             (entry-start)
             (line-start))
         (forward-sexp)
-        (setq sexp (buffer-substring sexp-start (point)))
+        (setq sexp (buffer-substring-no-properties sexp-start (point)))
         (save-excursion
           (re-search-backward "\^M\\|\n\\|\\`")
           (setq line-start (point)))
@@ -760,7 +763,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
           (while (looking-at " \\|\^I")
             (re-search-forward "\^M\\|\n" nil t))
           (backward-char 1)
-          (setq entry (buffer-substring entry-start (point)))
+          (setq entry (buffer-substring-no-properties entry-start (point)))
           (while (string-match "[\^M]" entry)
             (aset entry (match-beginning 0) ?\n )))
         (calendar-for-loop date from first-date to last-date do
@@ -786,7 +789,8 @@ changing the variable `diary-include-string'."
            " \"\\([^\"]*\\)\"")
           nil t)
     (let ((diary-file (substitute-in-file-name
-                       (buffer-substring (match-beginning 2) (match-end 2))))
+                       (buffer-substring-no-properties
+                        (match-beginning 2) (match-end 2))))
           (mark-diary-entries-hook 'mark-included-diary-files))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
@@ -1051,7 +1055,7 @@ best if they are nonmarking."
             (entry-start)
             (line-start))
         (forward-sexp)
-        (setq sexp (buffer-substring sexp-start (point)))
+        (setq sexp (buffer-substring-no-properties sexp-start (point)))
         (save-excursion
           (re-search-backward "\^M\\|\n\\|\\`")
           (setq line-start (point)))
@@ -1067,7 +1071,7 @@ best if they are nonmarking."
           (while (looking-at " \\|\^I")
             (re-search-forward "\^M\\|\n" nil t))
           (backward-char 1)
-          (setq entry (buffer-substring entry-start (point)))
+          (setq entry (buffer-substring-no-properties entry-start (point)))
           (while (string-match "[\^M]" entry)
             (aset entry (match-beginning 0) ?\n )))
         (let ((diary-entry (diary-sexp-entry sexp entry date)))
