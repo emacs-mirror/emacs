@@ -1134,6 +1134,7 @@ run `normal-mode' explicitly."
     ("\\.java\\'" . java-mode)
     ("\\.mk\\'" . makefile-mode)
     ("\\(M\\|m\\|GNUm\\)akefile\\(.in\\)?\\'" . makefile-mode)
+    ("\\.am\\'" . makefile-mode)	;For Automake.
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
     ("\\.texinfo\\'" . texinfo-mode)
