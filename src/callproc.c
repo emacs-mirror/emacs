@@ -676,7 +676,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    else
 	      {			/* We have to decode the input.  */
 		int size = decoding_buffer_size (&process_coding, nread);
-		char *decoding_buf = get_conversion_buffer (size);
+		char *decoding_buf = (char *) alloca (size);
 
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
