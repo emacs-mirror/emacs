@@ -1,3 +1,13 @@
+2002-10-11  Simon Josefsson  <jas@extundo.com>
+
+	* mail/sendmail.el (mail-envelope-from): New option `header' to
+	use RFC 2822 From: header as the envelope address.
+	(mail-envelope-from): New function, this should be used instead of
+	looking at the `mail-envelope-from' variable.
+	(sendmail-send-it): Use it.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Use it.
+
 2002-10-11  Andre Spiegel  <spiegel@gnu.org>
 
 	* dired.el (dired-insert-directory): Fix check for indentation
