@@ -14,6 +14,11 @@
 /* Cause the compilation of oldxmenu to use the right -I option.  */
 #define OLDXMENU_OPTIONS CFLAGS=C_SWITCH_SYSTEM
 
+#if 0 /* This isn't right.  Apparently some sites do have -lresolv
+	 but don't use that.  On those systems, the code below loses.
+	 There's no way to win automatically unless someone
+	 figures out a way of determining automatically which way is right
+	 on any given system.  */
 /* Some systems do not run the Network Information Service, but have
    modified the shared C library to include resolver support without
    also changing the C archive library (/usr/lib/libc.a).  If we
@@ -28,6 +33,7 @@
 #define LIBS_SYSTEM -lresolv
 #endif
 /* #endif */
+#endif
 
 #if 0 /* Not necessary, since SYSTEM_MALLOC is defined in sunos4-0.h.  */
 /* Tell GNU malloc to compensate for a bug in localtime.  */
