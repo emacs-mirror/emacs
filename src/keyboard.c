@@ -6248,10 +6248,10 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	  char *buf = (char *) alloca (len + 50);
 	  if (sizeof (int) == sizeof (EMACS_INT))
 	    sprintf (buf, "%s-%d", SDATA (name_alist_or_stem),
-		     XINT (symbol_int) + 1);
+		     (int)XINT (symbol_int) + 1);
 	  else if (sizeof (long) == sizeof (EMACS_INT))
 	    sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
-		     XINT (symbol_int) + 1);
+		     (long)XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])

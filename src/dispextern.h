@@ -2815,6 +2815,7 @@ extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
 extern void tty_setup_colors P_ ((struct tty_display_info *, int));
 extern struct display *get_named_tty_display P_ ((char *));
+extern Lisp_Object Fframe_tty_type P_ ((Lisp_Object));
 extern struct display *init_initial_display P_ ((void));
 extern struct display *term_init P_ ((char *, char *, int));
 extern void delete_tty P_ ((struct display *));

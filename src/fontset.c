@@ -1085,7 +1085,6 @@ name of a font, REGISTRY is a registry name of a font.  */)
   Lisp_Object realized;
   int from, to;
   int id;
-  Lisp_Object family, registry;
 
   fontset = check_fontset_name (name);
 

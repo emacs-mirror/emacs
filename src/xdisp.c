@@ -20213,7 +20213,6 @@ Returns the alist element for the first matching AREA in MAP.  */)
      Lisp_Object map;
      Lisp_Object x, y;
 {
-  int ix, iy;
   if (NILP (map))
     return Qnil;
 
@@ -20279,7 +20278,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Lisp_Object pointer = Qnil;
   int charpos, dx, dy, width, height;
   Lisp_Object string, object = Qnil;
-  Lisp_Object pos, help, image;
+  Lisp_Object pos, help;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
     string = mode_line_string (w, area, &x, &y, &charpos,

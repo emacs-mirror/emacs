@@ -63,14 +63,14 @@ extern void die P_((const char *, const char *, int));
 
 #ifdef ENABLE_CHECKING
 
-#define CHECK(check,msg) (((check) || suppress_checking		\
-			   ? (void) 0				\
-			   : die ((msg), __FILE__, __LINE__)),	\
+#define CHECK(check,msg) ((void)((check) || suppress_checking           \
+                                 ? (void) 0                             \
+                                 : die ((msg), __FILE__, __LINE__)),	\
 			  0)
 #else
 
 /* Produce same side effects and result, but don't complain.  */
-#define CHECK(check,msg) ((check),0)
+#define CHECK(check,msg) ((void)(check),0)
 
 #endif
 
