@@ -158,8 +158,6 @@ NOTE-END  */
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
-#define XSETINT(a, b)  XSET(a, XTYPE(a), b)
-
 #define XUNMARK(a)							\
   ((a) =								\
    (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
