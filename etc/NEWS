@@ -919,8 +919,27 @@ kill, copy, yank, and undo.  If you want to use cua mode, but don't
 want the C-x, C-c, C-v, and C-z bindings, you may customize the
 `cua-enable-cua-keys' variable.
 
-*** The new keypad setup package provides simplified configuration
-of the numeric keypad which is available on most keyboards.
+*** The new keypad setup package provides several common bindings for
+the numeric keypad which is available on most keyboards.  The numeric
+keypad typically has the digits 0 to 9, a decimal point, keys marked
++, -, /, and *, an Enter key, and a NumLock toggle key.  The keypad
+package only controls the use of the digit and decimal keys.
+
+By customizing the variables `keypad-setup', `keypad-shifted-setup',
+`keypad-numlock-setup', and `keypad-numlock-shifted-setup', or by
+using the function `keypad-setup', you can rebind all digit keys and
+the decimal key of the keypad in one step for each of the four
+possible combinations of the Shift key state (not pressed/pressed) and
+the NumLock toggle state (off/on).
+
+The choices for the keypad keys in each of the above states are:
+`Plain numeric keypad' where the keys generates plain digits,
+`Numeric keypad with decimal key' where the character produced by the
+decimal key can be customized individually (for internationalization),
+`Numeric Prefix Arg' where the keypad keys produce numeric prefix args
+for emacs editing commands, `Cursor keys' and `Shifted Cursor keys'
+where the keys work like (shifted) arrow keys, home/end, etc., and
+`Remove Bindings' where all bindings for the keypad keys are removed.
 
 *** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
