@@ -875,27 +875,28 @@ Extra commands should be added to `cua-user-movement-commands'")
 	      (setq deactivate-mark t)))
 
 	  ;; Handle delete-selection property on other commands
-	  (let* ((ds (or (get this-command 'delete-selection)
-			 (get this-command 'pending-delete)))
-		 (nc (cond
-		      ((eq ds 'yank) 
-		       'cua-paste)
-		      ((eq ds 'kill)
-		       (if cua--rectangle
-			   'cua-copy-rectangle
-			 'cua-copy-region))
-		      ((eq ds 'supersede)
-		       (if cua--rectangle
-			   'cua-delete-rectangle ;; replace?
-			 'cua-replace-region))
-		      (ds
-		       (if cua--rectangle
-			   'cua-delete-rectangle
-			 'cua-delete-region))
-		      (t nil))))
-	    (if nc
-		(setq this-original-command this-command
-		      this-command nc))))
+	  (if (and mark-active (not deactivate-mark))
+	      (let* ((ds (or (get this-command 'delete-selection)
+			     (get this-command 'pending-delete)))
+		     (nc (cond
+			  ((not ds) nil)
+			  ((eq ds 'yank) 
+			   'cua-paste)
+			  ((eq ds 'kill)
+			   (if cua--rectangle
+			       'cua-copy-rectangle
+			     'cua-copy-region))
+			  ((eq ds 'supersede)
+			   (if cua--rectangle
+			       'cua-delete-rectangle ;; replace?
+			     'cua-replace-region))
+			  (t
+			   (if cua--rectangle
+			       'cua-delete-rectangle
+			     'cua-delete-region)))))
+		(if nc
+		    (setq this-original-command this-command
+			  this-command nc)))))
 	  
 	;; Detect extension of rectangles by mouse or other movement
 	(setq cua--buffer-and-point-before-command 
