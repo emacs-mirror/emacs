@@ -41,7 +41,7 @@ Takes args PROMPTER ACTOR LIST, and optional arg HELP.
 LIST is a list of objects, or a function of no arguments to return the next
 object or nil.
 
-If is PROMPTER a string, the prompt is \(format PROMPTER OBJECT\).  If not
+If PROMPTER is a string, the prompt is \(format PROMPTER OBJECT\).  If not
 a string, PROMPTER is a function of one arg (an object from LIST), which
 returns a string to be used as the prompt for that object.  If the return
 value is not a string, it is eval'd to get the answer; it may be nil to

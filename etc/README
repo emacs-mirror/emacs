@@ -1,3 +1,11 @@
+This directory contains the architecture-independent files used by or
+with Emacs.  This includes some text files of documentation for GNU
+Emacs or of interest to Emacs users, and the file of dumped docstrings
+for Emacs functions and variables.
+
+`termcap.dat' is for VMS.  It is a copy of the `/etc/termcap' file
+used on Unix.
+
 [/amiga/editors/README				Fri Nov 23 15:37:39 EST 1990]
 
 ue-patches/	Patches to Uedit by Rick Stiles.
