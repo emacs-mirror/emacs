@@ -1023,6 +1023,10 @@ The return value is a string."
   (if default
       (setq prompt (format prompt default)))
   (let* ((completion-ignore-case t)
+	 ;; As it is quite normal to change input method in the
+	 ;; minibuffer, we must enable it even if
+	 ;; enable-recursive-minibuffers is currently nil.
+	 (enable-recursive-minibuffers t)
 	 ;; This binding is necessary because input-method-history is
 	 ;; buffer local.
 	 (input-method (completing-read prompt input-method-alist
