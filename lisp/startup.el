@@ -566,7 +566,9 @@ from being initialized.")
 			   ((eq system-type 'ms-dos)
 			    (concat "~" init-file-user "/_emacs"))
 			   ((eq system-type 'windows-nt)
-			    "~/_emacs")
+			    (if (file-exists-p "~/.emacs") 
+				"~/.emacs"
+			      "~/_emacs"))
 			   ((eq system-type 'vax-vms) 
 			    "sys$login:.emacs")
 			   (t 
