@@ -859,6 +859,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 		(dired-insert-directory directory
 					(concat dired-actual-switches "d")
 					(list filename)))
+              (goto-char opoint)
 	      ;; Put in desired marker char.
 	      (when marker-char
 		(let ((dired-marker-char
