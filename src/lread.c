@@ -535,6 +535,52 @@ static void readevalloop ();
 static Lisp_Object load_unwind ();
 static Lisp_Object load_descriptor_unwind ();
 
+/* Non-zero means load dangerous compiled Lisp files.  */
+
+int load_dangerous_libraries;
+
+/* A regular expression used to detect files compiled with Emacs.  */
+
+static Lisp_Object Vbytecomp_version_regexp;
+
+
+/* Value is non-zero if the file asswociated with file descriptor FD
+   is a compiled Lisp file that's safe to load.  Only files compiled
+   with Emacs are safe to load.  Files compiled with XEmacs can lead
+   to a crash in Fbyte_code because of an incompatible change in the
+   byte compiler.  */
+
+static int
+safe_to_load_p (fd)
+     int fd;
+{
+  char buf[512];
+  int nbytes, i;
+  int safe_p = 1;
+
+  /* Read the first few bytes from the file, and look for a line
+     specifying the byte compiler version used.  */
+  nbytes = emacs_read (fd, buf, sizeof buf - 1);
+  if (nbytes > 0)
+    {
+      buf[nbytes] = '\0';
+
+      /* Skip to the next newline, skipping over the initial `ELC'
+	 with NUL bytes following it.  */
+      for (i = 0; i < nbytes && buf[i] != '\n'; ++i)
+	;
+
+      if (i < nbytes
+	  && fast_c_string_match_ignore_case (Vbytecomp_version_regexp,
+					      buf + i) < 0)
+	safe_p = 0;
+    }
+
+  lseek (fd, 0, SEEK_SET);
+  return safe_p;
+}
+
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
   "Execute a file of Lisp code named FILE.\n\
 First try FILE with `.elc' appended, then try with `.el',\n\
@@ -569,6 +615,7 @@ Return t if file exists.")
 #ifdef DOS_NT
   fmode = "rt";
 #endif /* DOS_NT */
+  int safe_p = 1;
 
   CHECK_STRING (file, 0);
 
@@ -649,6 +696,16 @@ Return t if file exists.")
       struct stat s1, s2;
       int result;
 
+      if (!safe_to_load_p (fd))
+	{
+	  safe_p = 0;
+	  if (!load_dangerous_libraries)
+	    error ("File `%s' was not compiled in Emacs",
+		   XSTRING (found)->data);
+	  else if (!NILP (nomessage))
+	    message_with_string ("File `%s' not compiled in Emacs", found, 1);
+	}
+
       compiled = 1;
 
 #ifdef DOS_NT
@@ -671,6 +728,8 @@ Return t if file exists.")
     }
   else
     {
+    load_source:
+
       /* We are loading a source file (*.el).  */
       if (!NILP (Vload_source_file_function))
 	{
@@ -699,7 +758,10 @@ Return t if file exists.")
 
   if (NILP (nomessage))
     {
-      if (!compiled)
+      if (!safe_p)
+	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...",
+		 file, 1);
+      else if (!compiled)
 	message_with_string ("Loading %s (source)...", file, 1);
       else if (newer)
 	message_with_string ("Loading %s (compiled; note, source file is newer)...",
@@ -740,7 +802,10 @@ Return t if file exists.")
 
   if (!noninteractive && NILP (nomessage))
     {
-      if (!compiled)
+      if (!safe_p)
+	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...done",
+		 file, 1);
+      else if (!compiled)
 	message_with_string ("Loading %s (source)...done", file, 1);
       else if (newer)
 	message_with_string ("Loading %s (compiled; note, source file is newer)...done",
@@ -3350,6 +3415,16 @@ You cannot count on them to still be there!");
   DEFVAR_LISP ("byte-boolean-vars", &Vbyte_boolean_vars,
      "List of all DEFVAR_BOOL variables, used by the byte code optimizer.");
   Vbyte_boolean_vars = Qnil;
+
+  DEFVAR_BOOL ("load-dangerous-libraries", &load_dangerous_libraries,
+     "Non-nil means load dangerous compiled Lisp files.\n\
+Some versions of XEmacs use different byte codes than Emacs.  These\n\
+incompatible byte codes can make Emacs crash when it tries to execute\n\
+them.");
+  load_dangerous_libraries = 0;
+
+  Vbytecomp_version_regexp = build_string ("^;;;.in Emacs version");
+  staticpro (&Vbytecomp_version_regexp);
 
   /* Vsource_directory was initialized in init_lread.  */
 
