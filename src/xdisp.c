@@ -12818,7 +12818,8 @@ display_line (it)
 	      row->displays_text_p = 0;
 
 	      if (!NILP (XBUFFER (it->w->buffer)->indicate_empty_lines)
-		  && !MINI_WINDOW_P (it->w))
+		  && (!MINI_WINDOW_P (it->w)
+		      || (minibuf_level && EQ (it->window, minibuf_window))))
 		row->indicate_empty_line_p = 1;
 	    }
 	  
