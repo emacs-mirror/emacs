@@ -1,9 +1,9 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000
 ;;  Free Software Foundation, Inc.
 
-;; Author: jwz, then rms, then sm <simon@gnu.org>
+;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
 
