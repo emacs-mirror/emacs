@@ -1170,49 +1170,6 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
 
   return syntax;
 }
-
-
-static void
-describe_syntax (value, args)
-    Lisp_Object value, args;
-{
-  Findent_to (make_number (16), make_number (1));
-  Finternal_describe_syntax_value (value);
-  insert_string ("\n");
-}
-
-
-static Lisp_Object
-describe_syntax_1 (vector)
-     Lisp_Object vector;
-{
-  struct buffer *old = current_buffer;
-  set_buffer_internal (XBUFFER (Vstandard_output));
-  describe_vector (vector, Qnil, Qnil, describe_syntax,
-		   0, Qnil, Qnil, NULL, 0);
-  while (! NILP (XCHAR_TABLE (vector)->parent))
-    {
-      vector = XCHAR_TABLE (vector)->parent;
-      insert_string ("\nThe parent syntax table is:");
-      describe_vector (vector, Qnil, Qnil, describe_syntax,
-		       0, Qnil, Qnil, NULL, 0);
-    }
-	
-  call0 (intern ("help-mode"));
-  set_buffer_internal (old);
-  return Qnil;
-}
-
-DEFUN ("describe-syntax", Fdescribe_syntax, Sdescribe_syntax, 0, 0, "",
-       doc: /* Describe the syntax specifications in the syntax table.
-The descriptions are inserted in a buffer, which is then displayed.  */)
-     ()
-{
-  internal_with_output_to_temp_buffer
-     ("*Help*", describe_syntax_1, current_buffer->syntax_table);
-
-  return Qnil;
-}
 
 int parse_sexp_ignore_comments;
 
@@ -3038,7 +2995,6 @@ See the info node `(elisp)Syntax Properties' for a description of the
   defsubr (&Smatching_paren);
   defsubr (&Sstring_to_syntax);
   defsubr (&Smodify_syntax_entry);
-  defsubr (&Sdescribe_syntax);
   defsubr (&Sinternal_describe_syntax_value);
 
   defsubr (&Sforward_word);
