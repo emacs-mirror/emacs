@@ -1,3 +1,25 @@
+2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* Makefile.in (../info/tramp): Compile Emacs, instead of XEmacs,
+	version of manual.
+
+	* tramp.texi (Auto-save and Backup): New node.
+
+2003-03-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Top): Include trampver.texi.  Rename "Emacs" to "GNU
+	Emacs" in order to have better differentiation to "XEmacs".
+	`emacs-other-name', `emacs-other-dir' and `emacs-other-file-name'
+	are new macros in order to point to the other Emacs flavor where
+	appropriate.  In info case, point to node `Installation' in order
+	to explain how to generate the other way.  In html case, make a
+	link to the other html file.
+	(Obtaining TRAMP): Added a paragraph saying to perform `autoconf'
+	after CVS checkout/update.
+	(Installation): Completely rewritten.
+	(Installation parameters, Load paths): New sections under
+	`Installation'.
+
 2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* tramp.texi: Version 2.0.30 released.

@@ -754,20 +754,37 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 ;; They should have the format
 ;;
 ;; \s-\{2,2}                              - leading spaces
-;; \S-\(.*\S-\)\s-*                       - file name, 32 chars, left bound
+;; \S-\(.*\S-\)\s-*                       - file name, 30 chars, left bound
+;; \s-+[ADHRSV]*                          - permissions, 7 chars, right bound
 ;; \s-                                    - space delimeter
-;; \s-*[ADHRS]*                           - permissions, 5 chars, right bound
-;; \s-                                    - space delimeter
-;; \s-*[0-9]+                             - size, 8 (Samba) or 7 (Windows)
-;;                                          chars, right bound
+;; \s-+[0-9]+                             - size, 8 chars, right bound
 ;; \s-\{2,2\}                             - space delimeter
 ;; \w\{3,3\}                              - weekday
+;; \s-                                    - space delimeter
+;; \w\{3,3\}                              - month
 ;; \s-                                    - space delimeter
 ;; [ 19][0-9]                             - day
 ;; \s-                                    - space delimeter
 ;; [0-9]\{2,2\}:[0-9]\{2,2\}:[0-9]\{2,2\} - time
 ;; \s-                                    - space delimeter
 ;; [0-9]\{4,4\}                           - year
+;;
+;; samba/src/client.c (http://samba.org/doxygen/samba/client_8c-source.html)
+;; has function display_finfo:
+;;
+;;   d_printf("  %-30s%7.7s %8.0f  %s",
+;;            finfo->name,
+;;            attrib_string(finfo->mode),
+;;            (double)finfo->size,
+;;            asctime(LocalTime(&t)));
+;;
+;; in Samba 1.9, there's the following code:
+;;
+;;   DEBUG(0,("  %-30s%7.7s%10d  %s",
+;;  	   CNV_LANG(finfo->name),
+;;	   attrib_string(finfo->mode),
+;;	   finfo->size,
+;;	   asctime(LocalTime(&t))));
 ;;
 ;; Problems:
 ;; * Modern regexp constructs, like spy groups and counted repetitions, aren't
@@ -828,27 +845,28 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 
 	;; size
 	(if (string-match "\\([0-9]+\\)$" line)
-	    (setq
-	     size (string-to-number (match-string 1 line))
-	     line (substring
-		   line 0 (- (max 8 (1+ (length (match-string 1 line)))))))
+	    (let ((length (- (max 10 (1+ (length (match-string 1 line)))))))
+	      (setq size (string-to-number (match-string 1 line)))
+	      (when (string-match "\\([ADHRSV]+\\)" (substring line length))
+		(setq length (+ length (match-end 0))))
+	      (setq line (substring line 0 length)))
 	  (return))
 
-	;; mode
-	(if (string-match "\\(\\([ADHRS]+\\)?\\s-?\\)$" line)
+	;; mode: ARCH, DIR, HIDDEN, RONLY, SYSTEM, VOLID
+	(if (string-match "\\([ADHRSV]+\\)?$" line)
 	    (setq
-	     mode (or (match-string 2 line) "")
+	     mode (or (match-string 1 line) "")
 	     mode (save-match-data (format
 		    "%s%s"
 		    (if (string-match "D" mode) "d" "-")
 		    (mapconcat
 		     (lambda (x) "") "    "
 		     (concat "r" (if (string-match "R" mode) "-" "w") "x"))))
-	     line (substring line 0 (- (1+ (length (match-string 2 line))))))
+	     line (substring line 0 -7))
 	  (return))
 
 	;; localname
-	(if (string-match "^\\s-+\\(\\S-\\(.*\\S-\\)?\\)\\s-+$" line)
+	(if (string-match "^\\s-+\\(\\S-\\(.*\\S-\\)?\\)\\s-*$" line)
 	    (setq localname (match-string 1 line))
 	  (return))))
 

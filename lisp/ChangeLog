@@ -1,3 +1,27 @@
+2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* tramp.el: Version 2.0.31 released.
+	(tramp-handle-expand-file-name): Do not allow ".." to
+	cross file handler boundaries, so that "/user@host:/../foo"
+	expands to itself, rather than "/foo".  This is intended to work
+	in conjunction with a change in `file-relative-name' which makes
+	sure to use absolute file names if FILE and DIRECTORY have
+	different handlers. 
+	(tramp-handle-insert-directory): Comment out XEmacs
+	kludge.  Suggested by Katsumi Yamaoka <yamaoka@jpl.org>.
+
+2003-03-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* trampver.el: New file, to support Autoconf in Tramp CVS
+	repository.
+	* tramp.el (tramp-version, tramp-bug-report-address): Moved to
+	trampver.el, which is required now.
+	(tramp-chunksize): Type can be nil as well.  Reported
+	by Markus Rost <rost@math.ohio-state.edu>.
+	* tramp-smb.el (tramp-smb-read-file-entry): Make reading size of a
+	listing entry more robust.  Ranges from 10 chars (Samba 1) to 7-9
+	chars (Samba 2).
+
 2003-03-29  John Paul Wallington  <jpw@gnu.org>
 
 	* international/mule.el (with-category-table): Use `make-symbol'

@@ -1,8 +1,9 @@
-;;; tramp.el --- Transparent Remote Access, Multiple Protocol -*- coding: iso-8859-1; -*-
+;;; -*- mode: Emacs-Lisp; coding: iso-8859-1; -*-
+;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
-;; Author: Kai.Grossjohann@CS.Uni-Dortmund.DE 
+;; Author: kai.grossjohann@gmx.net
 ;; Keywords: comm, processes
 
 ;; This file is part of GNU Emacs.
@@ -29,8 +30,7 @@
 ;; the local and the remote host, whereas tramp.el uses a combination
 ;; of rsh and rcp or other work-alike programs, such as ssh/scp.
 ;;
-;; For more detailed instructions, please see the info file, which is
-;; included in the file `tramp.tar.gz' mentioned below.
+;; For more detailed instructions, please see the info file.
 ;;
 ;; Notes:
 ;; -----
@@ -46,13 +46,11 @@
 ;;
 ;; Also see the todo list at the bottom of this file.
 ;;
-;; The current version of tramp.el can be retrieved from the following
-;; URL:  ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz
-;; For your convenience, the *.el file is available separately from
-;; the same directory.
+;; The current version of Tramp can be retrieved from the following URL:
+;;            http://savannah.nongnu.org/download/tramp/
 ;;
 ;; There's a mailing list for this, as well.  Its name is:
-;;                tramp-devel@mail.freesoftware.fsf.org
+;;            tramp-devel@mail.freesoftware.fsf.org
 ;; Send a mail with `help' in the subject (!) to the administration
 ;; address for instructions on joining the list.  The administration
 ;; address is:
@@ -69,14 +67,8 @@
 
 ;;; Code:
 
-;; In the Tramp CVS repository, the version numer is auto-frobbed from
-;; the Makefile, so you should edit the top-level Makefile to change
-;; the version number.
-(defconst tramp-version "2.0.30"
-  "This version of tramp.")
-
-(defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
-  "Email address to send bug reports to.")
+;; The Tramp version number and bug report address, as prepared by configure.
+(require 'trampver)
 
 (require 'timer)
 (require 'format-spec)                  ;from Gnus 5.8, also in tar ball
@@ -1275,7 +1267,7 @@ checked via the following code:
 Please raise a bug report via \"M-x tramp-bug\" if your system needs
 this variable to be set as well."
   :group 'tramp
-  :type 'integer)
+  :type '(choice (const nil) integer))
 
 ;;; Internal Variables:
 
@@ -2831,6 +2823,10 @@ This is like `dired-recursive-delete-directory' for tramp files."
 		   (file-name-nondirectory localname)))))
       (sit-for 1)			;needed for rsh but not ssh?
       (tramp-wait-for-output))
+    ;; The following let-binding is used by code that's commented
+    ;; out.  Let's leave the let-binding in for a while to see
+    ;; that the commented-out code is really not needed.  Commenting-out
+    ;; happened on 2003-03-13.
     (let ((old-pos (point)))
       (insert-buffer-substring
        (tramp-get-buffer multi-method method user host))
@@ -2843,13 +2839,16 @@ This is like `dired-recursive-delete-directory' for tramp files."
       (save-excursion
 	(tramp-send-command multi-method method user host "cd")
 	(tramp-wait-for-output))
-      ;; Another XEmacs specialty follows.  What's the right way to do
-      ;; it?
-      (when (and (featurep 'xemacs)
-		 (eq major-mode 'dired-mode))
-	(save-excursion
-	  (require 'dired)
-	  (dired-insert-set-properties old-pos (point)))))))
+      ;; For the time being, the XEmacs kludge is commented out.
+      ;; Please test it on various XEmacs versions to see if it works.
+;;       ;; Another XEmacs specialty follows.  What's the right way to do
+;;       ;; it?
+;;       (when (and (featurep 'xemacs)
+;; 		 (eq major-mode 'dired-mode))
+;; 	(save-excursion
+;; 	  (require 'dired)
+;; 	  (dired-insert-set-properties old-pos (point))))
+      )))
 
 ;; Continuation of kluge to pacify byte-compiler.
 ;;(eval-when-compile
@@ -2917,20 +2916,33 @@ the result will be a local, non-Tramp, filename."
 	    (setq uname (buffer-substring (point) (tramp-line-end-position)))
 	    (setq localname (concat uname fname))
 	    (erase-buffer)))
-	;; Look if localname starts with "/../" construct.  If this is
-	;; the case, then we return a local name instead of a remote name.
-	(if (string-match "^/\\.\\./" localname)
-	    (expand-file-name (substring localname 3))
-	  ;; No tilde characters in file name, do normal
-	  ;; expand-file-name (this does "/./" and "/../").  We bind
-	  ;; directory-sep-char here for XEmacs on Windows, which
-	  ;; would otherwise use backslash.
-	  (let ((directory-sep-char ?/))
-	    (tramp-make-tramp-file-name
-	     multi-method method user host
-	     (tramp-drop-volume-letter
-	      (tramp-run-real-handler 'expand-file-name
-				      (list localname))))))))))
+	;; No tilde characters in file name, do normal
+	;; expand-file-name (this does "/./" and "/../").  We bind
+	;; directory-sep-char here for XEmacs on Windows, which
+	;; would otherwise use backslash.
+	(let ((directory-sep-char ?/))
+	  (tramp-make-tramp-file-name
+	   multi-method method user host
+	   (tramp-drop-volume-letter
+	    (tramp-run-real-handler 'expand-file-name
+				    (list localname)))))))))
+
+;; old version follows.  it uses ".." to cross file handler
+;; boundaries.
+;; 	;; Look if localname starts with "/../" construct.  If this is
+;; 	;; the case, then we return a local name instead of a remote name.
+;; 	(if (string-match "^/\\.\\./" localname)
+;; 	    (expand-file-name (substring localname 3))
+;; 	  ;; No tilde characters in file name, do normal
+;; 	  ;; expand-file-name (this does "/./" and "/../").  We bind
+;; 	  ;; directory-sep-char here for XEmacs on Windows, which
+;; 	  ;; would otherwise use backslash.
+;; 	  (let ((directory-sep-char ?/))
+;; 	    (tramp-make-tramp-file-name
+;; 	     multi-method method user host
+;; 	     (tramp-drop-volume-letter
+;; 	      (tramp-run-real-handler 'expand-file-name
+;; 				      (list localname))))))))))
 
 ;; Remote commands.
 

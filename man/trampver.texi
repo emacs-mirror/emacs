@@ -1,0 +1,14 @@
+@c -*-texinfo-*-
+@c texi/trampver.texi.  Generated from trampver.texi.in by configure.
+
+@c In the Tramp CVS, the version number is auto-frobbed from
+@c configure.ac, so you should edit that file and run
+@c "autoconf && ./configure" to change the version number.
+@macro trampver{}
+2.0.31
+@end macro
+
+@c Other flags from configuration
+@set prefix /usr/local
+@set lispdir /usr/local/share/emacs/site-lisp
+@set infodir /usr/local/info
