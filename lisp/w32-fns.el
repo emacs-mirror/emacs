@@ -2,6 +2,7 @@
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker (voelker@cs.washington.edu)
+;; Version: 1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,12 +23,12 @@
 ;;; Commentary:
 
 ;; (August 12, 1993)
-;; NT switches placed in:
-;;
-;; compile.el, dired-new.el, dired.el, loadup.el, startup.el, subr.el
+;; Created.
 
-;; (November 21, 1993)
-;; General stuffing for supporting Windows NT.  
+;; (November 21, 1994)
+;; [C-M-backspace] defined.
+;; mode-line-format defined to show buffer file type.
+;; audio bell initialized.
 
 ;;; Code:
 
@@ -35,6 +36,23 @@
 (define-key function-key-map [backspace] "\177")
 (define-key function-key-map [delete] "\C-d")
 (define-key function-key-map [M-backspace] [?\M-\177])
+(define-key function-key-map [C-M-backspace] [\C-\M-delete])
+
+;; Show file type (text or binary) on modeline
+(setq-default mode-line-format
+  (list (purecopy "")
+   'mode-line-modified
+   'mode-line-buffer-identification
+   (purecopy "   ")
+   'global-mode-string
+   (purecopy "   %[(")
+   (purecopy "%t:")
+   'mode-name 'mode-line-process 'minor-mode-alist
+   (purecopy "%n")
+   (purecopy ")%]--")
+   (purecopy '(line-number-mode "L%l--"))
+   (purecopy '(-3 . "%p"))
+   (purecopy "-%-")))
 
 ;; Ignore case on file-name completion
 (setq completion-ignore-case t)
@@ -111,5 +129,8 @@ against the file name, and TYPE is nil for text, t for binary.")
 (global-unset-key [C-down-mouse-1])
 (global-unset-key [C-down-mouse-2])
 (global-unset-key [C-down-mouse-3])
+
+;;; Set to a system sound if you want a fancy bell.
+(set-message-beep nil)
 
 ;;; winnt.el ends here
