@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 1990, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Adapted-by: Simon Marshall <s.marshall@dcs.hull.ac.uk>
+;; Adapted-by: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -27,7 +27,7 @@
 ;;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;;; merge them into the master source.
 ;;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;;     - Simon Marshall (s.marshall@dcs.hull.ac.uk)
+;;;     - Simon Marshall (simon@gnu.ai.mit.edu)
 
 ;;; This file defines a general command-interpreter-in-a-buffer package
 ;;; (comint mode). The idea is that you can build specific process-in-a-buffer
@@ -2002,7 +2002,7 @@ Typing SPC flushes the help buffer."
 	    (set-buffer (get-buffer "*Completions*"))
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))
-	    (and (consp first)
+	    (and (consp first) (consp (event-start first))
 		 (eq (window-buffer (posn-window (event-start first)))
 		     (get-buffer "*Completions*"))
 		 (eq (key-binding key) 'mouse-choose-completion)))
