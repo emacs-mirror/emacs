@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.8.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.21 1999/02/16 00:33:44 rms Exp kwzh $
+;; X-RCS: $Id: speedbar.el,v 1.22 1999/03/13 04:52:25 kwzh Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -1534,10 +1534,11 @@ Argument E is the event causing this activity."
 	  (set-window-dedicated-p (selected-window) nil)
 	  (call-interactively fn)
 	  (setq newbuff (current-buffer)))
-      (switch-to-buffer " SPEEDBAR")
+      (switch-to-buffer speedbar-buffer)
       (set-window-dedicated-p (selected-window) t))
-    (speedbar-with-attached-buffer
-     (switch-to-buffer newbuff))))
+    (if (not (eq newbuff speedbar-buffer))
+	(speedbar-with-attached-buffer
+	 (switch-to-buffer newbuff)))))
 
 (defun speedbar-next (arg)
   "Move to the next ARGth line in a speedbar buffer."
