@@ -781,16 +781,17 @@ or properties are considered."
       (let* ((pat buffer-file-name)
 	     (files (PC-expand-many-files pat))
 	     (first (car files))
-	     (next files))
+	     (next (reverse (cdr files))))
 	(kill-buffer (current-buffer))
 	(or files
 	    (error "No matching files"))
 	;; Bring the other files (not the first) into buffers.
 	(save-window-excursion
-	  (while (setq next (cdr next))
+	  (while next
 	    (let ((buf (find-file-noselect (car next))))
 	      ;; Put this buffer at the front of the buffer list.
-	      (switch-to-buffer buf))))
+	      (switch-to-buffer buf))
+	    (setq next (cdr next))))
 	;; This modifies the `buf' variable inside find-file-noselect.
 	(setq buf (get-file-buffer first))
 	(if buf
