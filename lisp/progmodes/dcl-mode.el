@@ -71,7 +71,7 @@
 
 ;;; *** Customization *****************************************************
 
-(defcustom dcl nil
+(defgroup dcl nil
   "Major mode for editing DCL command files."
   :group 'languages)
 
