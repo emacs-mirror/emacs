@@ -1,3 +1,31 @@
+2002-09-02  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.15 released.
+	(require 'base64): Most modern Emacsen have the base64
+	encode/decode functions built in, so test to see if they are bound
+	before we go blindly requiring base64.el.  From Steve Youngs
+	<youngs@xemacs.org>.
+	(tramp-feature-write-region-fix): XEmacs doesn't have a
+	'find-operation-coding-system' and this variable doesn't seem to
+	be used anywhere so wrap it in (unless (featurep 'xemacs)).  From
+	Steve Youngs <youngs@xemacs.org>.
+	(tramp-methods): Remove duplicate definition of ssh1-old and
+	ssh2-old.
+	(tramp-open-connection-su): Use user name "root" if no user name
+	is given.
+
+	From Michael Albinus <Michael.Albinus@alcatel.de>:
+	* net/tramp.el (tramp-invoke-ange-ftp):
+	(tramp-ange-ftp-file-name-p): Check for Xemacs.
+	(tramp-do-copy-or-rename-file): Don't pass KEEP-DATE to
+	tramp-invoke-ange-ftp 'rename.
+	(tramp-handle-write-region): Don't pass LOCKNAME and CONFIRM to
+	tramp-invoke-ange-ftp 'write-region.
+	(tramp-handle-set-file-modes): Change order of FILENAME and MODE
+	passing to tramp-invoke-ange-ftp 'set-file-modes.
+	(tramp-invoke-ange-ftp): `tramp-disable-ange-ftp' must be called
+	again after activating `ange-ftp'.
+	
 2002-09-02  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-ignore-item-temp-list): New variable.
