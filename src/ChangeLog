@@ -1,3 +1,27 @@
+2003-07-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (ALIGN): Add casts to simplify usage.
+	(BLOCK_ALIGN, BLOCK_BYTES, ABLOCKS_PADDING, ABLOCKS_SIZE)
+	(ABLOCKS_BYTES, ABLOCK_ABASE, ABLOCKS_BUSY, ABLOCKS_BASE): New macros.
+	(struct ablock, struct ablocks): New types.
+	(free_ablock): New global var.
+	(lisp_align_malloc, lisp_align_free): New functions.
+	(FLOAT_BLOCK_SIZE): Redefine in terms of BLOCK_BYTES.
+	(struct float_block): Reorder and add gcmarkbits.
+	(GETMARKBIT, SETMARKBIT, UNSETMARKBIT, FLOAT_BLOCK, FLOAT_INDEX)
+	(FLOAT_MARKED_P, FLOAT_MARK, FLOAT_UNMARK): New macros.
+	(init_float, make_float): Use lisp_align_malloc.
+	(free_float, live_float_p): Don't use `type' any more.
+	(make_float): Use FLOAT_UNMARK to access to mark bit.
+	(mark_maybe_object, mark_maybe_pointer, survives_gc_p):
+	Use FLOAT_MARKED_P to access the mark bit.
+	(pure_alloc): Simplify use of ALIGN.
+	(mark_object): Use FLOAT_MARK to access the mark bit.
+	(gc_sweep): Use new macros to access the float's mark bit.
+	(init_alloc_once): Init free_ablock.
+
+	* lisp.h (struct Lisp_Float): Remove unused field `type'.
+
 2003-06-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* alloc.c (VECTOR_MARK, VECTOR_UNMARK, VECTOR_MARKED_P): New macros.
