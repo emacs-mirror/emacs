@@ -145,7 +145,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 	(setq sort-lists (cdr sort-lists))
 	(setq msgnum (1+ msgnum))))
     (rmail-set-message-counters)
-    (rmail-show-message)))
+    (rmail-show-message 1)))
 
 (defun rmail-fetch-field (msg field)
   "Return the value of the header field FIELD of MSG.
@@ -167,7 +167,13 @@ Arguments are MSG and FIELD."
   (let ((month '(("JAN" . " 1")("FEB" . " 2")("MAR" . " 3")
 		 ("APR" . " 4")("MAY" . " 5")("JUN" . " 6")
 		 ("JUL" . " 7")("AUG" . " 8")("SEP" . " 9")
-		 ("OCT" . "10")("NOV" . "11")("DEC" . "12")))
+		 ("OCT" . "10")("NOV" . "11")("DEC" . "12")
+		 ("JANUARY" . " 1") ("FEBRUARY" . " 2")
+		 ("MARCH" . " 3")   ("APRIL" . " 4")
+		 ("MAY" . " 5")     ("JUNE" . " 6")
+		 ("JULY" . " 7")    ("AUGUST" . " 8")
+		 ("SEPTEMBER" " 9") ("OCTOBER" . "10")
+		 ("NOVEMBER" "11")  ("DECEMBER" . "12")))
 	(date (or date "")))
     ;; Can understand the following styles:
     ;; (1) 14 Apr 89 03:20:12 GMT
