@@ -215,12 +215,10 @@ Resources can be used to over-ride these face attributes.  For example, the
 resource `Emacs.font-lock-comment-face.attributeUnderline' can be used to
 specify the UNDERLINE-P attribute for face `font-lock-comment-face'.")
 
-(defvar font-lock-make-faces-done nil
-  "Non-nil if have already set up the faces for Font Lock mode.")
-
-(defun font-lock-make-faces ()
+(defun font-lock-make-faces (&optional override)
   "Make faces from `font-lock-face-attributes'.
 A default list is used if this is nil.
+If optional OVERRIDE is non-nil, faces that already exist are reset.
 See `font-lock-make-face' and `list-faces-display'."
   ;; We don't need to `setq' any of these variables, but the user can see what
   ;; is being used if we do.
@@ -299,8 +297,16 @@ See `font-lock-make-face' and `list-faces-display'."
 		       (font-lock-variable-name-face "LightGoldenrod")
 		       (font-lock-type-face "PaleGreen")
 		       (font-lock-reference-face "Aquamarine")))))))
-  (mapcar 'font-lock-make-face font-lock-face-attributes)
-  (setq font-lock-make-faces-done t))
+  ;; Now make the faces if we have to.
+  (mapcar (function (lambda (face-attributes)
+	     (let ((face (nth 0 face-attributes)))
+	       (if (and (not override) (facep face))
+		   ;; The face exists.  Only set the variable if it's nil.
+		   (if (or (not (boundp face)) (symbol-value face))
+		       (set face face))
+		 ;; The face doesn't exist or we can stomp all over it anyway.
+		 (font-lock-make-face face-attributes)))))
+	  font-lock-face-attributes))
 
 (defun font-lock-make-face (face-attributes)
   "Make a face from FACE-ATTRIBUTES.
@@ -939,8 +945,7 @@ This does a lot more highlighting.")
 Sets `font-lock-keywords', `font-lock-no-comments', `font-lock-syntax-table'
 and `font-lock-keywords-case-fold-search' using `font-lock-defaults-alist'."
   ;; Set face defaults.
-  (or font-lock-make-faces-done
-      (font-lock-make-faces))
+  (font-lock-make-faces)
   ;; Set fontification defaults.
   (or font-lock-keywords
       (let ((defaults (or font-lock-defaults
