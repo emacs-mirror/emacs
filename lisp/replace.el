@@ -243,16 +243,11 @@ in the buffer that the occurrences were found in.
 match.  A negative number means to include that many lines before the match.
 A positive number means to include that many lines both before and after.")
 
-(defvar occur-whole-buffer nil
-  "If t, occur operates on whole buffer, otherwise occur starts from point.
-default is nil.")
-
 (fset 'list-matching-lines 'occur)
 
 (defun occur (regexp &optional nlines)
-  "Show lines containing a match for REGEXP.  If the global variable
-`occur-whole-buffer' is non-nil, the entire buffer is searched, otherwise
-search begins at point.  Interactively, REGEXP defaults to the last REGEXP
+  "Show all lines in the current buffer containing a match for REGEXP.
+Interactively, REGEXP defaults to the last REGEXP
 used interactively with \\[occur].
 
 If a match spreads across multiple lines, all those lines are shown.
@@ -276,11 +271,10 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(linenum 1)
 	(prevpos (point-min))
 	(final-context-start (make-marker)))
-    (if (not occur-whole-buffer)
-	(save-excursion
-	  (beginning-of-line)
-	  (setq linenum (1+ (count-lines (point-min) (point))))
-	  (setq prevpos (point))))
+;;;	(save-excursion
+;;;	  (beginning-of-line)
+;;;	  (setq linenum (1+ (count-lines (point-min) (point))))
+;;;	  (setq prevpos (point)))
     (with-output-to-temp-buffer "*Occur*"
       (save-excursion
 	(set-buffer standard-output)
@@ -294,8 +288,7 @@ It serves as a menu to find any of the occurrences in this buffer.
       (if (eq buffer standard-output)
 	  (goto-char (point-max)))
       (save-excursion
-	(if occur-whole-buffer
-	    (beginning-of-buffer))
+	(beginning-of-buffer)
 	;; Find next match, but give up if prev match was at end of buffer.
 	(while (and (not (= prevpos (point-max)))
 		    (re-search-forward regexp nil t))
