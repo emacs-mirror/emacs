@@ -158,6 +158,8 @@ static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
 
 /* get a character from the tty */
 
+extern Lisp_Object read_char ();
+
 DEFUN ("read-char", Fread_char, Sread_char, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
 It is returned as a number.\n\
