@@ -5,6 +5,7 @@
 ;; Copyright (C) 2001, 2002
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; Keywords: i18n, mule, multilingual, character set, coding system
 
@@ -153,6 +154,7 @@
 (define-iso-single-byte-charset 'iso-8859-9 'latin-iso8859-9
   "ISO/IEC 8859/9" "Latin-5" 148 ?M 141 "8859-9")
 
+;; Fixme: final char
 (define-iso-single-byte-charset 'iso-8859-13 'latin-iso8859-13
   "ISO/IEC 8859/13" "Latin-7" nil nil nil "8859-13")
 
@@ -463,7 +465,7 @@
   :map "georgian-ps")
 
 (define-charset 'windows-1250
-  "WINDOWS-1250"
+  "WINDOWS-1250 (Central Europe)"
   :short-name "WINDOWS-1250"
   :long-name "WINDOWS-1250"
   :ascii-compatible-p t
@@ -481,13 +483,75 @@
 (define-charset-alias 'cp1251 'windows-1251)
 
 (define-charset 'windows-1252
-  "WINDOWS-1252"
+  "WINDOWS-1252 (Greek)"
   :short-name "WINDOWS-1252"
   :long-name "WINDOWS-1252"
   :ascii-compatible-p t
   :code-space [0 255]
   :map "windows-1252")
 (define-charset-alias 'cp1252 'windows-1252)
+
+(define-charset 'windows-1253
+  "WINDOWS-1253"
+  :short-name "WINDOWS-1253"
+  :long-name "WINDOWS-1253"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1253")
+(define-charset-alias 'cp1253 'windows-1253)
+
+(define-charset 'windows-1254
+  "WINDOWS-1254"
+  :short-name "WINDOWS-1254"
+  :long-name "WINDOWS-1254"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1254")
+(define-charset-alias 'cp1254 'windows-1254)
+
+(define-charset 'windows-1255
+  "WINDOWS-1255 (Hebrew)"
+  :short-name "WINDOWS-1255"
+  :long-name "WINDOWS-1255"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1255")
+(define-charset-alias 'cp1255 'windows-1255)
+
+(define-charset 'windows-1256
+  "WINDOWS-1256 (Arabic)"
+  :short-name "WINDOWS-1256"
+  :long-name "WINDOWS-1256"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1256")
+(define-charset-alias 'cp1256 'windows-1256)
+
+(define-charset 'windows-1257
+  "WINDOWS-1257 (Baltic)"
+  :short-name "WINDOWS-1257"
+  :long-name "WINDOWS-1257"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1257")
+(define-charset-alias 'cp1257 'windows-1257)
+
+(define-charset 'windows-1258
+  "WINDOWS-1258"
+  :short-name "WINDOWS-1258"
+  :long-name "WINDOWS-1258"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1258")
+(define-charset-alias 'cp1258 'windows-1258)
+
+(define-charset 'next
+  "NEXT"
+  :short-name "NEXT"
+  :long-name "NEXT"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "next")
 
 (define-charset 'cp1125
   "CP1125"
