@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: ATAE@spva.physics.imperial.ac.uk (Ata Etemadi)
-;; Maintainers: FSF
+;; Maintainer: FSF
 ;; Keywords: data
 
 ;; This file is part of GNU Emacs.
