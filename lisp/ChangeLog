@@ -1,3 +1,9 @@
+2004-01-04  Karl Berry  <karl@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): allow the common
+	comment characters % and # in the copyright year notice,
+	as well as ;.
+
 2004-01-04  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (default): Define dummy :value-delete.
