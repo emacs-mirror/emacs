@@ -1874,11 +1874,11 @@ kbd_buffer_get_event ()
 #endif
 	}
 
-#ifdef MULTI_FRAME
       /* If this event is on a different frame, return a switch-frame this
 	 time, and leave the event in the queue for next time.  */
       else
 	{
+#ifdef MULTI_FRAME
 	  Lisp_Object frame = event->frame_or_window;
 	  Lisp_Object focus;
 
@@ -1893,6 +1893,7 @@ kbd_buffer_get_event ()
 	      && XFRAME (frame) != selected_frame)
 	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
+#endif /* MULTI_FRAME */
 
 	  /* If we didn't decide to make a switch-frame event, go ahead
 	     and build a real event from the queue entry.  */
@@ -1909,7 +1910,6 @@ kbd_buffer_get_event ()
 	      kbd_fetch_ptr = event + 1;
 	    }
 	}
-#endif
     }
   else if (do_mouse_tracking && mouse_moved)
     {
@@ -2024,7 +2024,7 @@ static char *lispy_function_keys[] =
   {
     /* X Keysym value */
 
-    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xff00 */
+    "remove", 0, 0, 0, 0, 0, 0, 0,	/* 0xff00 */
     "backspace",
     "tab",
     "linefeed",
@@ -3097,7 +3097,7 @@ menu_bar_items ()
 #ifdef USE_TEXT_PROPERTIES
     maps[nmaps-2] = get_local_map (PT, current_buffer);
 #else
-    maps[nmaps-2] = current_buffer->local_map;
+    maps[nmaps-2] = current_buffer->keymap;
 #endif
     maps[nmaps-1] = global_map;
   }
@@ -3632,10 +3632,14 @@ read_key_sequence (keybuf, bufsize, prompt)
     echo_start = echo_length ();
   keys_start = this_command_key_count;
 
+#if 0 /* This doesn't quite work, because some of the things
+	 that read_char does cannot safely be bypassed.
+	 It seems too risky to try to make this work right.  */ 
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
   first_event = read_char (!prompt, 0, submaps, last_nonmenu_event,
 			   &junk);
+#endif
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -3661,7 +3665,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 #ifdef USE_TEXT_PROPERTIES
     submaps[nmaps-2] = get_local_map (PT, current_buffer);
 #else
-    submaps[nmaps-2] = current_buffer->local_map;
+    submaps[nmaps-2] = current_buffer->keymap;
 #endif
     submaps[nmaps-1] = global_map;
   }
@@ -3733,16 +3737,12 @@ read_key_sequence (keybuf, bufsize, prompt)
       /* If not, we should actually read a character.  */
       else
 	{
+	  struct buffer *buf = current_buffer;
+
 	  last_real_key_start = t;
 
-	  if (! NILP (first_event))
-	    {
-	      key = first_event;
-	      first_event = Qnil;
-	    }
-	  else
-	    key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
-			     &used_mouse_menu);
+	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
+			   &used_mouse_menu);
 
 	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
@@ -3818,6 +3818,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      keybuf[t+1] = key;
 		      mock_input = t + 2;
 
+		      /* If we switched buffers while reading the first event,
+			 replay in case we switched keymaps too.  */
+		      if (buf != current_buffer && t == 0)
+			goto replay_sequence;
 		      goto replay_key;
 		    }
 		}
@@ -3854,6 +3858,15 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      goto replay_sequence;
 		    }
 		}
+	    }
+
+	  /* If we switched buffers while reading the first event,
+	     replay in case we switched keymaps too.  */
+	  if (buf != current_buffer && t == 0)
+	    {
+	      keybuf[t++] = key;
+	      mock_input = t;
+	      goto replay_sequence;
 	    }
 	}
 
