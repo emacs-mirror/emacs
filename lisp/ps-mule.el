@@ -280,7 +280,7 @@ CHARSET is a charset (symbol) for this font family,
 
 FONT-TYPE is a font type: normal, bold, italic, or bold-italic.
 
-FONT-SRC is a font source: builtin, ps-bdf, vflib, or nil.
+FONT-SRC is a font source: builtin, bdf, vflib, or nil.
 
   If FONT-SRC is builtin, FONT-NAME is a built-in PostScript font name.
 
