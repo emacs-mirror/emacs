@@ -3461,11 +3461,11 @@ link.
 The action code tells @key{Mouse-1} how to follow the link:
 
 @table @asis
-@item a string
+@item a string or vector
 If the action code is a string or vector, the @key{Mouse-1} event is
 translated into the first element of the string or vector; i.e., the
 action of the @key{Mouse-1} click is the local or global binding of
-that character.  Thus, if the action code is @code{"foo"},
+that character or symbol.  Thus, if the action code is @code{"foo"},
 @key{Mouse-1} translates into @kbd{f}.  If it is @code{[foo]},
 @key{Mouse-1} translates into @key{foo}.
 
