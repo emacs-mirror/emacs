@@ -1,3 +1,10 @@
+2000-06-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add support for `*-lynxos*'.
+	Use `cpp' as NON_GNU_CPP for `alpha*-dec-osf[5-9]*', as
+	recommended by <Karen.Dorhamer@compaq.com> to fix problems
+	on Tru64 UNIX v5.0.
+
 2000-06-13  Ken Raeburn  <raeburn@gnu.org>
 
 	* Makefile.in (install-arch-indep): Don't use "-unset CDPATH" when

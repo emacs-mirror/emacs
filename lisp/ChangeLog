@@ -1,3 +1,8 @@
+2000-06-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/goto-addr.el (goto-address): Don't bind C-c RET locally.
+	(goto-address-highlight-keymap): Bind C-c RET.
+
 2000-06-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* mail/sendmail.el (sendmail-send-it): The temporary buffer
