@@ -777,6 +777,8 @@ run `normal-mode' explicitly."
 				  ("\\.lisp\\'" . lisp-mode)
 				  ("\\.f\\'" . fortran-mode)
 				  ("\\.for\\'" . fortran-mode)
+				  ("\\.p\\'" . pascal-mode)
+				  ("\\.pas\\'" . pascal-mode)
 				  ("\\.mss\\'" . scribe-mode)
 				  ("\\.pl\\'" . prolog-mode)
 				  ("\\.cc\\'" . c++-mode)
