@@ -1,5 +1,8 @@
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
+	* descr-text.el (describe-text-properties): Don't err if called in
+	the *Help* buffer; output to *Help-2* buffer instead.
+
 	* kmacro.el (group kmacro): Add :version.
 	(kmacro-keyboard-quit): New function to cleanup on C-g.
 	(kmacro-start-macro): Set defining-kbd-macro to append when
