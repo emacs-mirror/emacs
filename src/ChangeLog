@@ -1,3 +1,8 @@
+2000-02-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* data.c (let_shadows_buffer_binding_p): Ignore specbindings
+	for symbols other than the symbol in question.
+
 2000-02-17  Dave Love  <fx@gnu.org>
 
 	* s/sol2.h (C_DEBUG_SWITCH): Define to allow optimization.
