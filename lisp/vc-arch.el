@@ -55,7 +55,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'vc))
+(eval-when-compile (require 'vc) (require 'cl))
 
 ;;;
 ;;; Customization options
