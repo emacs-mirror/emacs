@@ -3500,31 +3500,7 @@ dos_keyread ()
 }
 
 #ifndef HAVE_X_WINDOWS
-/* See xterm.c for more info.  */
-void
-pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
-     FRAME_PTR f;
-     register int pix_x, pix_y, *x, *y;
-     XRectangle *bounds;
-     int noclip;
-{
-  if (bounds) abort ();
 
-  /* Ignore clipping.  */
-
-  *x = pix_x;
-  *y = pix_y;
-}
-
-void
-glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
-     FRAME_PTR f;
-     register int x, y, *pix_x, *pix_y;
-{
-  *pix_x = x;
-  *pix_y = y;
-}
-
 /* Simulation of X's menus.  Nothing too fancy here -- just make it work
    for now.
 

@@ -705,23 +705,6 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
   return Qt;
 }
 
-#ifndef HAVE_NTGUI
-void
-pixel_to_glyph_coords (struct frame * f, int pix_x, int pix_y, int *x, int *y,
-		      void *bounds, int noclip)
-{
-  *x = pix_x;
-  *y = pix_y;
-}
-
-void
-glyph_to_pixel_coords (struct window * f, int x, int y, int *pix_x, int *pix_y)
-{
-  *pix_x = x;
-  *pix_y = y;
-}
-#endif /* !HAVE_NTGUI */
-
 void
 syms_of_ntterm ()
 {

@@ -1402,6 +1402,113 @@ estimate_mode_line_height (f, face_id)
   return 1;
 }
 
+/* Given a pixel position (PIX_X, PIX_Y) on frame F, return glyph
+   co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle that the
+   glyph at X, Y occupies, if BOUNDS != 0.  If NOCLIP is non-zero, do
+   not force the value into range.  */
+
+void
+pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
+     FRAME_PTR f;
+     register int pix_x, pix_y;
+     int *x, *y;
+     NativeRectangle *bounds;
+     int noclip;
+{
+
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
+    {
+      /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to round down
+	 even for negative values.  */
+      if (pix_x < 0)
+	pix_x -= FONT_WIDTH (FRAME_FONT (f)) - 1;
+      if (pix_y < 0)
+	pix_y -= FRAME_X_OUTPUT(f)->line_height - 1;
+
+      pix_x = PIXEL_TO_CHAR_COL (f, pix_x);
+      pix_y = PIXEL_TO_CHAR_ROW (f, pix_y);
+
+      if (bounds)
+	STORE_NATIVE_RECT (*bounds,
+			   CHAR_TO_PIXEL_COL (f, pix_x),
+			   CHAR_TO_PIXEL_ROW (f, pix_y),
+			   FONT_WIDTH  (FRAME_FONT (f)) - 1,
+			   FRAME_X_OUTPUT (f)->line_height - 1);
+
+      if (!noclip)
+	{
+	  if (pix_x < 0)
+	    pix_x = 0;
+	  else if (pix_x > FRAME_WINDOW_WIDTH (f))
+	    pix_x = FRAME_WINDOW_WIDTH (f);
+
+	  if (pix_y < 0)
+	    pix_y = 0;
+	  else if (pix_y > f->height)
+	    pix_y = f->height;
+	}
+    }
+#endif
+
+  *x = pix_x;
+  *y = pix_y;
+}
+
+
+/* Given HPOS/VPOS in the current matrix of W, return corresponding
+   frame-relative pixel positions in *FRAME_X and *FRAME_Y.  If we
+   can't tell the positions because W's display is not up to date,
+   return 0.  */
+
+int
+glyph_to_pixel_coords (w, hpos, vpos, frame_x, frame_y)
+     struct window *w;
+     int hpos, vpos;
+     int *frame_x, *frame_y;
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))))
+    {
+      int success_p;
+
+      xassert (hpos >= 0 && hpos < w->current_matrix->matrix_w);
+      xassert (vpos >= 0 && vpos < w->current_matrix->matrix_h);
+
+      if (display_completed)
+	{
+	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
+	  struct glyph *glyph = row->glyphs[TEXT_AREA];
+	  struct glyph *end = glyph + min (hpos, row->used[TEXT_AREA]);
+
+	  hpos = row->x;
+	  vpos = row->y;
+	  while (glyph < end)
+	    {
+	      hpos += glyph->pixel_width;
+	      ++glyph;
+	    }
+
+	  success_p = 1;
+	}
+      else
+	{
+	  hpos = vpos = 0;
+	  success_p = 0;
+	}
+
+      *frame_x = WINDOW_TO_FRAME_PIXEL_X (w, hpos);
+      *frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, vpos);
+      return success_p;
+    }
+#endif
+
+  *frame_x = hpos;
+  *frame_y = vpos;
+  return 1;
+}
+
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Find the glyph under window-relative coordinates X/Y in window W.
