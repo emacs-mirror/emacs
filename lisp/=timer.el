@@ -58,7 +58,7 @@ Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
 TIME, a string, can be specified absolutely or relative to now.
 TIME can also be an integer, a number of seconds.
 REPEAT, an integer number of seconds, is the interval on which to repeat
-the call to the function.  If REPEAT is nil, call it just once.
+the call to the function.  If REPEAT is nil or 0, call it just once.
 
 Absolute times may be specified in a wide variety of formats;
 Something of the form `HOUR:MIN:SEC TIMEZONE MONTH/DAY/YEAR', where
@@ -72,6 +72,8 @@ Relative times may be specified as a series of numbers followed by units:
   1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
 			denotes the sum of all the given durations from now."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
+  (if (equal repeat 0)
+      (setq repeat nil))
   ;; Make TIME a string.
   (if (integerp time)
       (setq time (format "%d sec" time)))
