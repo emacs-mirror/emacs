@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.1 2000/08/05 19:28:18 gerd Exp gerd $
+;; Revision: $Id: pcvs.el,v 1.6 2000/08/05 20:08:49 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -138,7 +138,7 @@
 (defun cvs-defaults (&rest defs)
   (let ((defs (cvs-first defs cvs-shared-start)))
     (append defs
-	    (make-list (- cvs-shared-start (length defs)) (first defs))
+	    (make-list (- cvs-shared-start (length defs)) (nth 0 defs))
 	    cvs-shared-flags)))
 
 ;; For cvs flags, we need to add "-f" to override the cvsrc settings
@@ -338,8 +338,8 @@ information and will be read-only unless NORMAL is non-nil.  It will be emptied
 from the current buffer."
   (let* ((cvs-buf (current-buffer))
 	 (info (cdr (assoc cmd cvs-buffer-name-alist)))
-	 (name (eval (first info)))
-	 (mode (second info))
+	 (name (eval (nth 0 info)))
+	 (mode (nth 1 info))
 	 (dir default-directory)
 	 (buf (cond
 	       (name (cvs-get-buffer-create name))
@@ -496,9 +496,9 @@ Working dir: " (abbreviate-file-name dir) "
 			(fi (car fis) (car fis)))
 		      ((not (and fis (string= dir (cvs-fileinfo->dir fi))))
 		       (list dir files fis))))))
-	     (dir (first dir+files+rest))
-	     (files (second dir+files+rest))
-	     (rest (third dir+files+rest)))
+	     (dir (nth 0 dir+files+rest))
+	     (files (nth 1 dir+files+rest))
+	     (rest (nth 2 dir+files+rest)))
 
 	;; setup the (current) process buffer
 	(set (make-local-variable 'cvs-postprocess)
@@ -666,8 +666,8 @@ clear what alternative to use.
     (cond
      ;; a trivial interaction, no need to move it
      ((or (eq style 'SIMPLE)
-	  (null (second interact))
-	  (stringp (second interact)))
+	  (null (nth 1 interact))
+	  (stringp (nth 1 interact)))
       `(defun ,fun ,args ,docstring ,interact
 	 (cvs-mode! (lambda () ,@body))))
 
@@ -1301,7 +1301,7 @@ The POSTPROC specified there (typically `cvs-edit') is then called,
   (pop-to-buffer (cvs-temp-buffer "message" 'normal 'nosetup))
   (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
   (let ((lbd list-buffers-directory)
-	(setupfun (or (third (cdr (assoc "message" cvs-buffer-name-alist)))
+	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
 		      'cvs-edit)))
     (funcall setupfun 'cvs-do-commit setup 'cvs-commit-filelist)
     (set (make-local-variable 'list-buffers-directory) lbd)))
@@ -1540,12 +1540,12 @@ Signal an error if there is no backup file."
 	 (fis (cvs-mode-marked 'diff "idiff" :file t)))
     (when (> (length fis) 2)
       (error "idiff-other cannot be applied to more than 2 files at a time."))
-    (let* ((fi1 (first fis))
+    (let* ((fi1 (nth 0 fis))
 	   (rev1-buf (if rev1 (cvs-retrieve-revision fi1 rev1)
 		       (find-file-noselect (cvs-fileinfo->full-path fi1))))
 	   rev2-buf)
       (if (cdr fis)
-	  (let ((fi2 (second fis)))
+	  (let ((fi2 (nth 1 fis)))
 	    (setq rev2-buf
 		  (if rev2 (cvs-retrieve-revision fi2 rev2)
 		    (find-file-noselect (cvs-fileinfo->full-path fi2)))))
@@ -1595,7 +1595,7 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
 			 (member cmd cvs-execute-single-dir)))
 	 (parse (member cmd cvs-parse-known-commands))
 	 (args (append cvsargs (list cmd) flags))
-	 (after-mode (third (cdr (assoc cmd cvs-buffer-name-alist)))))
+	 (after-mode (nth 2 (cdr (assoc cmd cvs-buffer-name-alist)))))
     (cvs-cleanup-collection cvs-cookies ;cleanup remaining messages
 			    (eq cvs-auto-remove-handled 'delayed) nil t)
     (when (fboundp after-mode)

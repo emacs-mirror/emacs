@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.3 2000/03/22 01:08:08 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.4 2000/05/10 22:08:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -283,8 +283,8 @@ BEWARE:  because of stability issues, this is not a symetric operation."
       (cvs-tree-merge tree1 (list (cons (cvs-tag-make (butlast vl2)) tree2)))))))))
 
 (defun cvs-tag-make-tag (tag)
-  (let ((vl (mapcar 'string-to-number (split-string (third tag) "\\."))))
-    (cvs-tag-make vl (first tag) (intern (second tag)))))
+  (let ((vl (mapcar 'string-to-number (split-string (nth 2 tag) "\\."))))
+    (cvs-tag-make vl (nth 0 tag) (intern (nth 1 tag)))))
 
 (defun cvs-tags->tree (tags)
   "Make a tree out of a list of TAGS."
@@ -425,9 +425,9 @@ Optional prefix ARG chooses between two representations."
 	      ;;(pt (save-excursion (forward-line -1) (point)))
 	      )
 	  (setq tags (sort tags 'cvs-tag-lessp))
-	  (let* ((first (first tags))
+	  (let* ((first (nth 0 tags))
 		 (prev (if (cvs-tag-p first)
-			   (list (first (cvs-tag->vlist first))) nil)))
+			   (list (nth 0 (cvs-tag->vlist first))) nil)))
 	    (cvs-tree-tags-insert tags prev)
 	    ;;(cvs-refontify pt (point))
 	    (sit-for 0)))))))
@@ -505,6 +505,9 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.4  2000/05/10 22:08:28  monnier
+;; (cvs-status-minor-wrap): Use mark-active.
+;;
 ;; Revision 1.3  2000/03/22 01:08:08  monnier
 ;; (cvs-status-mode): Use define-derived-mode.
 ;;

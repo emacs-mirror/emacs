@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-util.el,v 1.2 2000/03/17 10:07:00 fx Exp $
+;; Revision: $Id: pcvs-util.el,v 1.1 2000/08/05 19:33:53 gerd Exp gerd $
 
 ;; This file is part of GNU Emacs.
 
@@ -314,7 +314,7 @@ See `cvs-prefix-set' for further description of the behavior."))
 	   (unless (>= (length defaults) cvs-prefix-number)
 	     (setq defaults (append defaults
 				    (make-list (1- cvs-prefix-number)
-					       (first defaults)))))
+					       (nth 0 defaults)))))
 	   (-cvs-flags-make ,desc defaults ,qtypedesc ,hist-sym))))))
 
 (defun cvs-prefix-make-local (sym)
@@ -347,7 +347,7 @@ If ARG is NIL toggle the PREFIX's value between its 0th default and NIL
 	 (cond
 	  ((null arg)
 	   (setf (cvs-flags-persist prefix) nil)
-	   (unless (symbol-value sym) (first (cvs-flags-defaults prefix))))
+	   (unless (symbol-value sym) (nth 0 (cvs-flags-defaults prefix))))
 
 	  ((or (consp arg) (< numarg 0))
 	   (setf (nth (- numarg) (cvs-flags-defaults prefix))
