@@ -1478,10 +1478,7 @@ Optional DEFAULT is password to start with."
 		 (setq count (1+ count))
 		 (if quoted-printable-header-field-end
 		     (save-excursion
-		       (save-restriction
-			 (narrow-to-region header-end (point))
-			 (require 'gnus-art)
-			 (article-mime-decode-quoted-printable-buffer))
+		       (rmail-decode-quoted-printable header-end (point))
 		       ;; Change "quoted-printable" to "8bit",
 		       ;; to reflect the decoding we just did.
 		       (goto-char quoted-printable-header-field-end)
@@ -1507,6 +1504,46 @@ Optional DEFAULT is password to start with."
 	      ((eolp) (delete-char 1))
 	      (t (error "Cannot convert to babyl format")))))
     count))
+
+(defun rmail-hex-char-to-integer (character)
+  "Return CHARACTER's value interpreted as a hex digit."
+  (if (and (>= character ?0) (<= character ?9))
+      (- character ?0)
+    (let ((ch (logior character 32)))
+      (if (and (>= ch ?a) (<= ch ?f))
+	  (- ch (- ?a 10))
+	(error "Invalid hex digit `%c'" ch)))))
+
+(defun rmail-hex-string-to-integer (hex-string)
+  "Return decimal integer for HEX-STRING."
+  (let ((hex-num 0)
+	(index 0))
+    (while (< index (length hex-string))
+      (setq hex-num (+ (* hex-num 16)
+		       (rmail-hex-char-to-integer (aref hex-string index))))
+      (setq index (1+ index)))
+    hex-num))
+
+(defun rmail-decode-quoted-printable (from to)
+  "Decode Quoted-Printable in the region between FROM and TO."
+  (interactive "r")
+  (goto-char from)
+  (or (markerp to)
+      (setq to (copy-marker to)))
+  (while (search-forward "=" to t)
+    (cond ((eq (following-char) ?\n)
+	   (delete-char -1)
+	   (delete-char 1))
+	  ((looking-at "[0-9A-F][0-9A-F]")
+	   (subst-char-in-region
+	    (1- (point)) (point) ?=
+	    (rmail-hex-string-to-integer
+	     (buffer-substring (point) (+ 2 (point)))))
+	   (delete-char 2))
+	  ((looking-at "=")
+	   (delete-char 1))
+	  (t
+	   (message "Malformed MIME quoted-printable message")))))
 
 ;; Delete the "From ..." line, creating various other headers with
 ;; information from it if they don't already exist.  Now puts the
