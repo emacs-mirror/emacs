@@ -294,9 +294,7 @@ Default value, nil, means edit the string instead."
     (define-key map " " 'isearch-whitespace-chars)
     (define-key map [?\S-\ ] 'isearch-whitespace-chars)
 
-    (define-key map "\C-b" 'isearch-del-char)
-    (define-key map "\C-f" 'isearch-yank-char)
-    (define-key map "\C-w" 'isearch-yank-word)
+    (define-key map "\C-w" 'isearch-yank-word-or-char)
     (define-key map "\C-y" 'isearch-yank-line)
 
     ;; Define keys for regexp chars * ? |.
