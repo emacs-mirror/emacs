@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.6) $
+ * $HopeName: MMsrc!mpmst.h(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -228,7 +228,8 @@ typedef struct VMStruct {       /* SunOS 4 VM structure; impl.c.vmsu */
  */
 
 typedef struct SegStruct {      /* segment structure */
-  Pool pool;                    /* owner, MUST BE FIRST, impl.c.arenvm.page */
+  Pool pool;                    /* .seg.pool: owner, 
+				 * MUST BE FIRST, impl.c.arenavm.page */
   Bool single;                  /* single page segment */
   Rank rank;                    /* rank of all references in this seg */
   AccessSet pm, sm;             /* protection and shield modes */
