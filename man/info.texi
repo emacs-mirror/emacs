@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.19 2002/03/16 19:32:15 eliz Exp $
+@comment $Id: info.texi,v 1.20 2002/03/18 06:45:49 eliz Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -85,19 +85,19 @@ If you are new to Info and want to learn how to use it, type the
 command @kbd{h} now.  It brings you to a programmed instruction
 sequence.
 
-To learn advanced Info commands, type @kbd{n} twice.  This brings you to
+To learn expert-level Info commands, type @kbd{n} twice.  This brings you to
 @cite{Info for Experts}, skipping over the `Getting Started' chapter.
 @end ifinfo
 @end ifnottex
 
 @menu
 * Getting Started::             Getting started using an Info reader.
-* Advanced Info::               Advanced commands within Info.
+* Expert Info::                 Info commands for experts.
 * Creating an Info File::       How to make your own Info file.
 * Index::                       An index of topics, commands, and variables.
 @end menu
 
-@node Getting Started, Advanced Info, Top, Top
+@node Getting Started, Expert Info, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Getting Started
 
@@ -310,10 +310,10 @@ you may make Info skip past an important warning that was coming up.
 @comment  node-name,  next,  previous,  up
 @section The Space, DEL, B and ^L commands.
 
-  This node's mode line tells you that you are now at node @samp{Help-^L},
-and the header line tells you that @kbd{p} would get you back to
-@samp{Help-P}.  The node's title is underlined; it says what the node
-is about (most nodes have titles).
+  This node's mode line tells you that you are now at node
+@samp{Help-^L}, and the header line tells you that @kbd{p} would get
+you back to @samp{Help-P}.  The node's title is highlighted and may be
+underlined as well; it says what the node is about.
 
   This is a big node and it does not all fit on your display screen.
 You can tell that there is more that is not visible because you
@@ -398,7 +398,7 @@ beginning.
 >> Try that now.  (We have put in enough verbiage to push this past
    the first screenful, but screens are so big nowadays that perhaps it
    isn't enough.  You may need to shrink your Emacs or Info window.)
-   Then come back, with @key{SPS}s.
+   Then come back, by typing @key{SPC} one or more times.
 @end format
 
   If your screen is very tall, all of this node might fit at once.
@@ -459,7 +459,7 @@ special meaning---they are only for the human reader's benefit and do
 not define additional subtopics.  Here is an example:
 
 @example
-* Foo:  Node about FOO      This tells about FOO
+* Foo:  Node about FOO.      This tells about FOO.
 @end example
 
 The subtopic name is Foo, and the node describing it is @samp{Node
@@ -479,7 +479,7 @@ and so both it and the subtopic name are the same.  There is an
 abbreviation for this:
 
 @example
-* Foo::   This tells about FOO
+* Foo::   This tells about FOO.
 @end example
 
 @noindent
@@ -742,7 +742,7 @@ records the nodes where you have been in a special history list.  The
 @kbd{l} command revisits nodes in the history list; each successive
 @kbd{l} command moves one step back through the history.
 
-  If you have been following directions, ad @kbd{l} command now will get
+  If you have been following directions, an @kbd{l} command now will get
 you back to @samp{Help-M}.  Another @kbd{l} command would undo the
 @kbd{u} and get you back to @samp{Help-FOO}.  Another @kbd{l} would undo
 the @kbd{m} and get you back to @samp{Help-M}.
@@ -792,27 +792,27 @@ underlying text and the mouse pointer change in response.
 >> Now type @kbd{n} to see the last node of the course.
 @end format
 
-  @xref{Advanced Info}, for more advanced Info features.
+  @xref{Expert Info}, for more advanced Info features.
 
 @c If a menu appears at the end of this node, remove it.
 @c It is an accident of the menu updating command.
 
-@node Advanced Info
+@node Expert Info
 @chapter Info for Experts
 
-  This chapter describes various advanced Info commands.  (If you are
-using a stand-alone Info reader, there are additional commands
+  This chapter describes various Info commands for experts.  (If you
+are using a stand-alone Info reader, there are additional commands
 specific to it, which are documented in several chapters of @ref{Top,,
 GNU Info, info-stnd, GNU Info}.)
 
   This chapter also explains how to write an Info as distinct from a
 Texinfo file.  (However, in most cases, writing a Texinfo file is
-better, since you can use it @emph{both} to generate an Info file and
-to make a printed manual.  @xref{Top,, Overview of Texinfo, texinfo,
-Texinfo: The GNU Documentation Format}.)
+better, since you can use it to make a printed manual or an HTML file
+as well as for generating Info files.)  @xref{Top,, Overview of
+Texinfo, texinfo, Texinfo: The GNU Documentation Format}.)
 
 @menu
-* Expert::               Advanced Info commands: g, s, e, and 1 - 5.
+* Advanced::             Advanced Info commands: g, s, e, and 1 - 5.
 * Info Search::          How to search Info documents for specific subjects.
 * Add::                  Describes how to add new nodes to the hierarchy.
                            Also tells what nodes look like.
@@ -823,7 +823,7 @@ Texinfo: The GNU Documentation Format}.)
 * Emacs Info Variables:: Variables modifying the behavior of Emacs Info.
 @end menu
 
-@node Expert, Info Search,  , Advanced Info
+@node Advanced, Info Search,  , Expert Info
 @comment  node-name,  next,  previous,  up
 @section Advanced Info Commands
 
@@ -837,7 +837,7 @@ Here are some more Info commands that make it easier to move around.
   If you know a node's name, you can go there by typing @kbd{g}, the
 name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
 called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
-@ref{Help-Int}.)  @kbd{gExpert@key{RET}} would come back here.
+@ref{Help-Int}.)  @kbd{gAdvanced{RET}} would come back here.
 @kbd{g} in Emacs runs the command @code{Info-goto-node}.
 
   Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
@@ -894,7 +894,7 @@ only if the variable @code{Info-enable-edit} is non-@code{nil}.
 edit the Info file, so typing @kbd{e} there goes to the end of the
 current node.
 
-@node Info Search, Add, Expert, Advanced Info
+@node Info Search, Add, Advanced, Expert Info
 @comment  node-name,  next,  previous,  up
 @section How to search Info documents for specific subjects
 
@@ -970,7 +970,7 @@ kind of search command.  Both @kbd{s} and @kbd{M-s} run in Emacs the
 command @code{Info-search}.
 
 
-@node Add, Menus, Info Search, Advanced Info
+@node Add, Menus, Info Search, Expert Info
 @comment  node-name,  next,  previous,  up
 @section Adding a new node to Info
 
@@ -985,8 +985,11 @@ Put that topic in the menu in the directory.  @xref{Menus, Menu}.
 
   Usually, the way to create the nodes is with Texinfo (@pxref{Top,,
 Overview of Texinfo, texinfo, Texinfo: The GNU Documentation Format});
-this has the advantage that you can also make a printed manual from
-them.  However, if you want to edit an Info file, here is how.
+this has the advantage that you can also make a printed manual or HTML
+from them.  You would use the @samp{@@dircategory} and
+@samp{@@direntry} commands to put the manual into the Info directory.
+However, if you want to edit an Info file manually and install it
+manually, here is how.
 
 @cindex node delimiters
   The new node can live in an existing documentation file, or in a new
@@ -1000,12 +1003,11 @@ page boundary as well is to put a @samp{^L} @emph{right after} the
 @samp{^_}.}
 
   The @samp{^_} starting a node must be followed by a newline or a
-@samp{^L} newline, after which comes the node's header line.  The header
-line must give the node's name (by which Info finds it), and state the
-names of the @samp{Next}, @samp{Previous}, and @samp{Up} nodes (if there
-are any).  As you can see, this node's @samp{Up} node is the node
-@samp{Top}, which points at all the documentation for Info.  The
-@samp{Next} node is @samp{Menus}.
+@samp{^L} newline, after which comes the node's header line.  The
+header line must give the node's name (by which Info finds it), and
+state the names of the @samp{Next}, @samp{Previous}, and @samp{Up}
+nodes (if there are any).  As you can see, this node's @samp{Up} node
+is the node @samp{Expert Info}.  The @samp{Next} node is @samp{Menus}.
 
 @cindex node header line format
 @cindex format of node headers
@@ -1051,7 +1053,7 @@ node is in the same file, it was not necessary to use one.
 line.  The file names are ignored by Info, but they serve as comments
 to help identify the node for the user.
 
-@node Menus, Cross-refs, Add, Advanced Info
+@node Menus, Cross-refs, Add, Expert Info
 @comment  node-name,  next,  previous,  up
 @section How to Create Menus
 
@@ -1107,7 +1109,7 @@ collector, nothing terrible happens if a substructure is not pointed
 to, but such a substructure is rather useless since nobody can
 ever find out that it exists.
 
-@node Cross-refs, Tags, Menus, Advanced Info
+@node Cross-refs, Tags, Menus, Expert Info
 @comment  node-name,  next,  previous,  up
 @section Creating Cross References
 
@@ -1166,7 +1168,7 @@ as new users should do when they learn a new package.
 
   Another set of Info commands is useful when you need to find
 something quickly in a manual---that is, when you need to use a manual
-as a reference rather than as a tutorial.  We urge you to make learn
+as a reference rather than as a tutorial.  We urge you to learn
 these search commands as well.  If you want to do that now, follow this
 cross reference to @ref{Info Search}.
 
@@ -1182,7 +1184,7 @@ manner.
 @end format
 
 
-@node Tags, Checking, Cross-refs, Advanced Info
+@node Tags, Checking, Cross-refs, Expert Info
 @comment  node-name,  next,  previous,  up
 @section Tags Tables for Info Files
 
@@ -1227,7 +1229,7 @@ a @samp{DEL} character, and the character position in the file of the
 beginning of the node.
 
 
-@node Checking, Emacs Info Variables, Tags, Advanced Info
+@node Checking, Emacs Info Variables, Tags, Expert Info
 @section Checking an Info File
 
 When creating an Info file, it is easy to forget the name of a node when
@@ -1246,7 +1248,7 @@ usually few.
 To check an Info file, do @kbd{M-x Info-validate} while looking at any
 node of the file with Emacs Info mode.
 
-@node Emacs Info Variables, , Checking, Advanced Info
+@node Emacs Info Variables, , Checking, Expert Info
 @section Emacs Info-mode Variables
 
 The following variables may modify the behavior of Info-mode in Emacs;
