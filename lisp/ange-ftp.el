@@ -701,7 +701,7 @@ These mean that the FTP process should (or already has) been killed."
   :type 'regexp)
 
 (defcustom ange-ftp-tmp-name-template 
-  (concat system-tmp-directory "/ange-ftp")
+  (expand-file-name "ange-ftp" temporary-file-directory)
   "*Template used to create temporary files."
   :group 'ange-ftp
   :type 'directory)
