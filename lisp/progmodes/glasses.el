@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@freesoft.cz>
 ;; Maintainer: Milan Zamazal <pdm@freesoft.cz>
@@ -47,7 +47,7 @@
 ;; the command `M-x customize-group RET glasses RET'.
 ;;
 ;; If you set any of the variables `glasses-separator' or `glasses-face' after
-;; glasses.el is loaded and in a different way than through customize, you
+;; glasses.el is loaded in a different way than through customize, you
 ;; should call the function `glasses-set-overlay-properties' afterwards.
 
 ;;; Code:
@@ -61,7 +61,7 @@
 
 
 (defgroup glasses nil
-  "Make unreadable identifiers likeThis readable."
+  "Make unreadable code likeThis(one) readable."
   :group 'tools)
 
 
@@ -82,6 +82,33 @@ For example, you can set `glasses-separator' to an empty string and
 but will have their capitals in bold."
   :group 'glasses
   :type 'symbol
+  :set 'glasses-custom-set
+  :initialize 'custom-initialize-default)
+
+
+(defcustom glasses-separate-parentheses-p t
+  "*If non-nil, ensure space between an identifier and an opening parenthesis."
+  :group 'glasses
+  :type 'boolean)
+
+
+(defcustom glasses-uncapitalize-p nil
+  "*If non-nil, downcase embedded capital letters in identifiers.
+Only identifiers starting with lower case letters are affected, letters inside
+other identifiers are unchanged."
+  :group 'glasses
+  :type 'boolean
+  :set 'glasses-custom-set
+  :initialize 'custom-initialize-default)
+
+
+(defcustom glasses-uncapitalize-regexp "[a-z]"
+  "*Regexp matching beginnings of words to be uncapitalized.
+Only words starting with this regexp are uncapitalized.
+The regexp is case sensitive.
+It has any effect only when `glasses-uncapitalize-p' is non-nil."
+  :group 'glasses
+  :type 'regexp
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
 
@@ -117,21 +144,26 @@ Consider current setting of user variables."
   (put 'glasses 'face glasses-face)
   ;; Beg-identifier overlay
   (put 'glasses-init 'evaporate t)
-  (put 'glasses-init 'face glasses-face))
+  (put 'glasses-init 'face glasses-face)
+  ;; Parenthesis overlay
+  (put 'glasses-parenthesis 'evaporate t)
+  (put 'glasses-parenthesis 'before-string " "))
 
 (glasses-set-overlay-properties)
 
 
 (defun glasses-overlay-p (overlay)
   "Return whether OVERLAY is an overlay of glasses mode."
-  (memq (overlay-get overlay 'category) '(glasses glasses-init)))
+  (memq (overlay-get overlay 'category)
+	'(glasses glasses-init glasses-parenthesis)))
 
 
-(defun glasses-make-overlay (beg end &optional init)
-  "Create readability overlay over the region from BEG to END.
-If INIT is non-nil, put `glasses-init' overlay there."
+(defun glasses-make-overlay (beg end &optional category)
+  "Create and return readability overlay over the region from BEG to END.
+CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
   (let ((overlay (make-overlay beg end)))
-    (overlay-put overlay 'category (if init 'glasses-init 'glasses))))
+    (overlay-put overlay 'category (or category 'glasses))
+    overlay))
 
 
 (defun glasses-make-readable (beg end)
@@ -144,14 +176,28 @@ If INIT is non-nil, put `glasses-init' overlay there."
 	(while (re-search-forward
 		"\\<\\([A-Z]\\)[a-zA-Z]*\\([a-z][A-Z]\\|[A-Z][a-z]\\)"
 		end t)
-	  (glasses-make-overlay (match-beginning 1) (match-end 1) t))
-	(goto-char beg)
+	  (glasses-make-overlay (match-beginning 1) (match-end 1)
+				'glasses-init))
 	;; Face + separator
+	(goto-char beg)
 	(while (re-search-forward "[a-z]\\([A-Z]\\)\\|[A-Z]\\([A-Z]\\)[a-z]"
 				  end t)
-	  (let ((n (if (match-string 1) 1 2)))
-	    (glasses-make-overlay (match-beginning n) (match-end n))
-	    (goto-char (match-beginning n))))))))
+	  (let* ((n (if (match-string 1) 1 2))
+		 (o (glasses-make-overlay (match-beginning n) (match-end n))))
+	    (goto-char (match-beginning n))
+	    (when (and glasses-uncapitalize-p
+		       (save-excursion
+			 (save-match-data
+			   (re-search-backward "\\<.")
+			   (looking-at glasses-uncapitalize-regexp))))
+	      (overlay-put o 'invisible t)
+	      (overlay-put o 'after-string (downcase (match-string n))))))
+	;; Parentheses
+	(when glasses-separate-parentheses-p
+	  (goto-char beg)
+	  (while (re-search-forward "[a-zA-Z]\\(\(\\)" end t)
+	    (glasses-make-overlay (match-beginning 1) (match-end 1)
+				  'glasses-parenthesis)))))))
 
 
 (defun glasses-make-unreadable (beg end)
@@ -174,7 +220,11 @@ recognized according to the current value of the variable `glasses-separator'."
 		"[a-z]\\(_\\)[A-Z]\\|[A-Z]\\(_\\)[A-Z][a-z]" nil t)
 	  (let ((n (if (match-string 1) 1 2)))
 	    (replace-match "" t nil nil n)
-	    (goto-char (match-end n)))))))
+	    (goto-char (match-end n))))
+	(when glasses-separate-parentheses-p
+	  (goto-char (point-min))
+	  (while (re-search-forward "[a-zA-Z]\\( \\)\(" nil t)
+	    (replace-match "" t nil nil 1))))))
   ;; nil must be returned to allow use in write file hooks
   nil)
 
@@ -212,6 +262,9 @@ at places they belong to."
 	  (widen)
 	  (if new-flag
 	      (progn
+		;; We erase the all overlays to avoid dual sight in some
+		;; circumstances
+		(glasses-make-unreadable (point-min) (point-max))
 		(glasses-make-readable (point-min) (point-max))
 		(make-local-hook 'after-change-functions)
 		(add-hook 'after-change-functions 'glasses-change nil t)
