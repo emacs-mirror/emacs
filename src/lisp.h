@@ -2395,8 +2395,7 @@ extern int check_point_in_composition
 extern void redisplay_preserve_echo_area P_ ((int));
 extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern void prepare_menu_bars P_ ((void));
-enum text_cursor_kinds get_specified_cursor_type P_ ((Lisp_Object, int *));
-enum text_cursor_kinds get_window_cursor_type P_ ((struct window *, int *, int *));
+
 void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
