@@ -3708,7 +3708,7 @@ The format is suitable for use with `easy-menu-define'."
     (setq name "Customize"))
   `(,name
     :filter (lambda (&rest junk)
-	      (cdr (custom-menu-create ',symbol)))))
+	      (custom-menu-create ',symbol))))
 
 ;;; The Custom Mode.
 
