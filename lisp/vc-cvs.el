@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.51 2003/02/17 08:11:13 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.52 2003/03/27 22:38:38 schwab Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -169,7 +169,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
         (case-fold-search nil))
     (if (file-readable-p (expand-file-name "CVS/Entries" dirname))
 	(with-temp-buffer
-          (vc-insert-file (expand-file-name "CVS/Entries" dirname))
+          (vc-cvs-get-entries dirname)
           (goto-char (point-min))
 	  (cond
 	   ((re-search-forward
@@ -781,7 +781,7 @@ essential information."
 (defun vc-cvs-dir-state-heuristic (dir)
   "Find the CVS state of all files in DIR, using only local information."
   (with-temp-buffer
-    (vc-insert-file (expand-file-name "CVS/Entries" dir))
+    (vc-cvs-get-entries dir)
     (goto-char (point-min))
     (while (not (eobp))
       ;; CVS-removed files are not taken under VC control.
@@ -791,7 +791,15 @@ essential information."
 	    (vc-cvs-parse-entry file t))))
       (forward-line 1))))
 
-
+(defun vc-cvs-get-entries (dir)
+  "Insert the CVS/Entries file from below DIR into the current buffer.
+This function ensures that the correct coding system is used for that,
+which may not be the one that is used for the files' contents.
+CVS/Entries should only be accessed through this function."
+  (let ((coding-system-for-read (or file-name-coding-system
+                                    default-file-name-coding-system)))
+    (vc-insert-file (expand-file-name "CVS/Entries" dir))))
+     
 (defun vc-cvs-valid-symbolic-tag-name-p (tag)
   "Return non-nil if TAG is a valid symbolic tag name."
   ;; According to the CVS manual, a valid symbolic tag must start with
