@@ -68,10 +68,6 @@ Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
 @end table
 
-@kindex C-x 4 b
-@findex switch-to-buffer-other-window
-@kindex C-x 5 b
-@findex switch-to-buffer-other-frame
 @kindex C-x b
 @findex switch-to-buffer
   To select the buffer named @var{bufname}, type @kbd{C-x b @var{bufname}
@@ -80,6 +76,34 @@ Similar, but select @var{buffer} in a separate frame
 name you want (@pxref{Completion}).  An empty argument to @kbd{C-x b}
 specifies the most recently selected buffer that is not displayed in any
 window.@refill
+
+@kindex C-x 4 b
+@findex switch-to-buffer-other-window
+@vindex even-window-heights
+  To select a buffer in a window other than the current one, type
+@kbd{C-x 4 b @var{bufname} @key{RET}}.  This runs the command
+@code{switch-to-buffer-other-window} which displays the buffer
+@var{bufname} in another window.  By default, if displaying the buffer
+causes two vertically adjacent windows to be displayed, the heights of
+those windows are evened out; to countermand that and preserve the
+window configuration, set the variable @code{even-window-heights} to
+@code{nil}.
+
+@kindex C-x 5 b
+@findex switch-to-buffer-other-frame
+  Similarly, @kbd{C-x 5 b @var{buffer} @key{RET}} runs the command
+@code{switch-to-buffer-other-frame} which selects a buffer in another
+frame.
+
+@vindex display-buffer-reuse-frames
+  You can control how certain buffers are handled by these commands by
+customizing the variables @code{special-display-buffer-names},
+@code{special-display-regexps}, @code{same-window-buffer-names}, and
+@code{same-window-regexps}.  See @ref{Force Same Window}, and
+@ref{Special Buffer Frames}, for more about these variables.  In
+addition, if the value of @code{display-buffer-reuse-frames} is
+non-@code{nil}, and the buffer you want to switch to is already
+displayed in some frame, Emacs will raise that frame.
 
   Most buffers are created by visiting files, or by Emacs commands that
 want to display some text, but you can also create a buffer explicitly
