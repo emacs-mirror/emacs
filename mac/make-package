@@ -1,0 +1,219 @@
+#!/bin/sh
+
+#### make-package: create a Mac OS X package for use by the installer.
+#### The installer will place the Emacs OSX application in
+#### /Application/Emacs and the rest of emacs in the usual unix places
+#### under /usr/local or some other location if specified as the first
+#### argument. The disc image will be in the file EmacsInstaller.dmg.
+####
+#### Upon installation, this will leave two versions of emacs on the
+#### computer, 20.7 and 21.1.
+####
+#### Examples:
+#### ./make-package
+####     Will create an installer that will place the emacs support
+####     files inside /usr/local.
+#### ./make-package /usr
+####     Will create an installer that will place the emacs support
+####     files inside /usr.  This will replace the default version of
+####     emacs included with Mac OS X.
+
+# Copyright (C) 2002 Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+#
+# Contributed by Steven Tamm (steventamm@mac.com).
+
+progname="$0"
+## Default location to place it is /usr/local
+prefix=/usr/local
+if [ $1 ]; then
+    prefix="$1"
+fi
+
+
+### Exit if a command fails.
+#set -e
+
+### Print out each line we read, for debugging's sake.
+set -v
+
+LANGUAGE=C
+LC_ALL=C
+LC_MESSAGES=
+LANG=
+export LANGUAGE LC_ALL LC_MESSAGES LANG
+
+## Don't restrict access to any files.
+umask 0
+
+### Make sure we're running in the right place.
+if [ -f Emacs.pkg ]; then
+  echo "${progname}: Package Emacs.pkg already exists.
+Perhaps a previous invocation of \`${progname}' failed to clean up after
+itself.  Move or delete Emacs.pkg and try again." >&2
+  exit 1
+fi
+
+if [ ! -f Emacs.app/Contents/PkgInfo ]; then
+  echo "${progname}: Can't find \`Emacs.app/Contents/PkgInfo'" >&2
+  echo "${progname} must be run in the \`mac' directory of the Emacs" >&2
+  echo "distribution tree.  cd to that directory and try again." >&2
+  exit 1
+fi
+
+### Check whether file ../lisp/version.el exists.
+if [ ! -f ../lisp/version.el ]; then
+  echo "${progname}: Can't find \`../lisp/version.el'" >&2
+  exit 1
+fi
+
+### Find out which version of Emacs this is.
+shortversion=`grep 'defconst[	 ]*emacs-version' ../lisp/version.el \
+	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
+version=`grep 'defconst[	 ]*emacs-version' ../lisp/version.el \
+	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
+if [ ! "${version}" ]; then
+  echo "${progname}: can't find current Emacs version in \`./lisp/version.el'" >&2
+  exit 1
+fi
+
+echo Version numbers are $version and $shortversion
+
+### Make sure we don't already have a directory  emacs-${version}.
+
+emacsname="emacs-${version}${new_extension}"
+
+if [ -d ${emacsname} ]
+then
+  echo Directory "${emacsname}" already exists >&2
+  exit 1
+fi
+
+### Make sure the subdirectory is available.
+tempparent="make-package.tmp.$$"
+if [ -d ${tempparent} ]; then
+  echo "${progname}: staging directory \`${tempparent}' already exists.
+Perhaps a previous invocation of \`${progname}' failed to clean up after
+itself.  Check that directories whose names are of the form
+\`make-dist.tmp.NNNNN' don't contain any important information, remove
+them, and try again." >&2
+  exit 1
+fi
+
+if [ -d /Volumes/Emacs ]; then
+  echo "${progname}: Already have an Emacs disc image mounted.  Please
+eject that disc image and try again." >&2
+  exit 1
+fi
+
+tempparentfull="`pwd`/${tempparent}"
+
+echo Installing into directory ${tempparentfull} >&2
+
+(cd ..; ./configure --without-x --prefix=${prefix}; make install prefix=${tempparentfull}${prefix})
+
+### This trap ensures that the staging directory will be cleaned up even
+### when the script is interrupted in mid-career.
+trap "echo 'Interrupted...cleaning up the staging directory'; rm -rf ${tempparent}; rm -rf Emacs.pkg; exit 1" 1 2 15
+
+mkdir ${tempparentfull}/Applications
+
+cp -r Emacs.app ${tempparentfull}/Applications
+
+echo "Creating Package Info file"
+
+mkdir Emacs.pkg
+mkdir Emacs.pkg/Contents
+mkdir Emacs.pkg/Contents/Resources
+mkdir Emacs.pkg/Contents/Resources/English.lproj
+echo 'pmkrpkg1' > Emacs.pkg/Contents/PkgInfo
+
+infofile=Emacs.pkg/Contents/Resources/English.lproj/Emacs.info
+
+echo 'Title Emacs' > ${infofile}
+echo "Version ${version}" >> ${infofile}
+echo "Description Install GNU Emacs ${version} as a command-line app and a Mac OS Application" >> ${infofile}
+echo 'DefaultLocation /' >> ${infofile}
+echo 'DeleteWarning' >> ${infofile}
+echo 'NeedsAuthorization YES' >> ${infofile}
+echo 'Required NO' >> ${infofile}
+echo 'Relocatable NO' >> ${infofile}
+echo 'RequiresReboot NO' >> ${infofile}
+echo 'UseUserMask NO' >> ${infofile}
+echo 'OverwritePermissions NO' >> ${infofile}
+echo 'InstallFat NO' >> ${infofile}
+
+echo "Creating pax file"
+(cd ${tempparentfull}; pax -w -f ../Emacs.pkg/Contents/Resources/Emacs.pax .; cd ..)
+#echo "Compressing pax file"
+#gzip Emacs.pkg/Contents/Resources/Emacs.pax
+
+echo "Creating bom file"
+mkbom ${tempparentfull} Emacs.pkg/Contents/Resources/Emacs.bom
+
+echo "Generating sizes file"
+sizesfile=Emacs.pkg/Contents/Resources/Emacs.sizes
+
+numFiles=`du -a ${tmpparent} | wc -l`
+installedSize=`du -s ${tmpparent} | cut -f1`
+compressedSize=`du -s Emacs.pkg | cut -f1`
+
+echo "NumFiles ${numFiles}" > ${sizesfile}
+echo "InstalledSize ${installedSize}" >> ${sizesfile}
+echo "CompressedSize ${compressedSize}" >> ${sizesfile}
+cat ${sizesfile}
+
+mv ${tempparentfull} ${emacsname}
+
+echo "Creating Disc Image"
+## Allocate an extra 5000 sectors (about 2.5 mg)
+## Note a sector appears to be ~500k
+sectorsAlloced=`echo 2*${compressedSize}+5000|bc`
+hdiutil create -ov EmacsRW -sectors ${sectorsAlloced}
+## Need to format the disc image before mounting
+mountLoc=`hdid -nomount EmacsRW.dmg | grep HFS | cut -f1`
+/sbin/newfs_hfs -v Emacs ${mountLoc}
+hdiutil eject ${mountLoc}
+echo "Copying Package to Disc Image"
+hdid EmacsRW.dmg
+
+rm -rf ${emacsname}
+
+if [ ! -d /Volumes/Emacs ]; then
+  echo "Could not create disc image.  The Emacs installer package in this
+directory should be correct.  Please use the Disc Copy program to create
+a disc image." >&2
+  exit 0
+fi
+
+cp -a Emacs.pkg /Volumes/Emacs
+
+## Converting Disk Image to read-only
+echo 'Converting Disc Image to read-only'
+hdiutil eject ${mountLoc}
+hdiutil resize EmacsRW.dmg -sectors min
+hdiutil convert EmacsRW.dmg -format UDRO -o EmacsInstaller.dmg
+gzip EmacsInstaller.dmg
+rm EmacsRW.dmg
+
+echo "Cleaning up the staging directory"
+rm -rf Emacs.pkg
+
+### make-package ends here
+
