@@ -1,3 +1,13 @@
+2003-03-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* frame.c (x_report_frame_params) [HAVE_CARBON]: Do not report
+	parent window ID.
+
+	* macfns.c (syms_of_macfns): Remove call to init_x_parm_symbols.
+
+	* macterm.h (struct mac_output): Define x_pixels_diff and
+	y_pixels_diff.
+	
 2003-04-01  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (frame.o): Add dependency on blockinput.h and files

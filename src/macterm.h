@@ -432,6 +432,14 @@ struct mac_output {
 
   /* See enum below */
   int want_fullscreen;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     left of the window manager decoration) and FRAME_X_WINDOW. */
+  int x_pixels_diff;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     top of the window manager titlebar) and FRAME_X_WINDOW. */
+  int y_pixels_diff;
 };
 
 typedef struct mac_output mac_output;

@@ -2967,11 +2967,14 @@ x_report_frame_params (f, alistptr)
   store_in_alist (alistptr, Qdisplay,
 		  XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
 
+#ifndef HAVE_CARBON
+/* A Mac Window is identified by a struct, not an integer.  */
   if (FRAME_X_OUTPUT (f)->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
   else
     XSETFASTINT (tem, FRAME_X_OUTPUT (f)->parent_desc);
   store_in_alist (alistptr, Qparent_id, tem);
+#endif
 }
 
 

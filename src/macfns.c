@@ -8803,8 +8803,6 @@ syms_of_macfns ()
   Fput (Qundefined_color, Qerror_message,
 	build_string ("Undefined color"));
 
-  init_x_parm_symbols ();
-
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
 	       doc: /* List of directories to search for window system bitmap files.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, "PATH");
