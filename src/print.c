@@ -311,8 +311,8 @@ print_string (string, printcharfun)
 }
 
 DEFUN ("write-char", Fwrite_char, Swrite_char, 1, 2, 0,
-  "Output character CHAR to stream STREAM.\n\
-STREAM defaults to the value of `standard-output' (which see).")
+  "Output character CHAR to stream PRINTCHARFUN.\n\
+PRINTCHARFUN defaults to the value of `standard-output' (which see).")
   (ch, printcharfun)
      Lisp_Object ch, printcharfun;
 {
@@ -448,8 +448,8 @@ to get the buffer displayed.  It gets one argument, the buffer to display.")
 static void print ();
 
 DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
-  "Output a newline to STREAM.\n\
-If STREAM is omitted or nil, the value of `standard-output' is used.")
+  "Output a newline to stream PRINTCHARFUN.\n\
+If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.")
   (printcharfun)
      Lisp_Object printcharfun;
 {
@@ -470,7 +470,7 @@ DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
   "Output the printed representation of OBJECT, any Lisp object.\n\
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
-Output stream is STREAM, or value of `standard-output' (which see).")
+Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   (obj, printcharfun)
      Lisp_Object obj, printcharfun;
 {
@@ -529,7 +529,7 @@ DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
   "Output the printed representation of OBJECT, any Lisp object.\n\
 No quoting characters are used; no delimiters are printed around\n\
 the contents of strings.\n\
-Output stream is STREAM, or value of standard-output (which see).")
+Output stream is PRINTCHARFUN, or value of standard-output (which see).")
   (obj, printcharfun)
      Lisp_Object obj, printcharfun;
 {
@@ -551,7 +551,7 @@ DEFUN ("print", Fprint, Sprint, 1, 2, 0,
   "Output the printed representation of OBJECT, with newlines around it.\n\
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
-Output stream is STREAM, or value of `standard-output' (which see).")
+Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   (obj, printcharfun)
      Lisp_Object obj, printcharfun;
 {
