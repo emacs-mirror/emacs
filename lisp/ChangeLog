@@ -1,3 +1,13 @@
+2004-12-29  Milan Zamazal  <pdm@zamazal.org>
+
+	* files.el (hack-local-variables): If no PREFIX, set it to "^".
+	Redundant variable PREFIXLEN removed.
+
+2004-12-28  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* eshell/em-hist.el (eshell-previous-matching-input):
+	Start the deletion from the end of the output.
+
 2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Require x-dnd.
