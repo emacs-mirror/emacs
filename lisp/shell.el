@@ -37,7 +37,7 @@
 ;; featureful, robust, and uniform than the Emacs 18 version.
 
 ;; Since this mode is built on top of the general command-interpreter-in-
-;; a-buffer mode (comint mode), it shares a common base functionality, 
+;; a-buffer mode (comint mode), it shares a common base functionality,
 ;; and a common set of bindings, with all modes derived from comint mode.
 ;; This makes these modes easier to use.
 
@@ -46,7 +46,7 @@
 ;; For further information on shell mode, see the comments below.
 
 ;; Needs fixin:
-;; When sending text from a source file to a subprocess, the process-mark can 
+;; When sending text from a source file to a subprocess, the process-mark can
 ;; move off the window, so you can lose sight of the process interactions.
 ;; Maybe I should ensure the process mark is in the window when I send
 ;; text to the process? Switch selectable?
@@ -58,7 +58,7 @@
 ;; ;; Define M-# to run some strange command:
 ;; (eval-after-load "shell"
 ;;  '(define-key shell-mode-map "\M-#" 'shells-dynamic-spell))
-
+
 ;; Brief Command Documentation:
 ;;============================================================================
 ;; Comint Mode Commands: (common to shell and all comint-derived modes)
@@ -100,7 +100,7 @@
 ;; compatibility.
 
 ;; Read the rest of this file for more information.
-
+
 ;;; Code:
 
 (require 'comint)
@@ -133,7 +133,7 @@ arguments."
 (defcustom shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
-This variable is used to initialise `comint-prompt-regexp' in the 
+This variable is used to initialise `comint-prompt-regexp' in the
 shell buffer.
 
 This variable is only used if the variable
@@ -244,7 +244,7 @@ This mirrors the optional behavior of tcsh."
   :group 'shell-directories)
 
 (defcustom shell-chdrive-regexp
-  (if (memq system-type '(ms-dos windows-nt)) 
+  (if (memq system-type '(ms-dos windows-nt))
       ; NetWare allows the five chars between upper and lower alphabetics.
       "[]a-zA-Z^_`\\[\\\\]:"
     nil)
@@ -334,7 +334,7 @@ Thus, this does not include the shell's current directory.")
     ("^[^ \t\n]+:.*" . font-lock-string-face)
     ("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
   "Additional expressions to highlight in Shell mode.")
-
+
 ;;; Basic Procedures
 
 (put 'shell-mode 'mode-class 'special)
@@ -362,7 +362,7 @@ to continue it.
 keep this buffer's default directory the same as the shell's working directory.
 While directory tracking is enabled, the shell's working directory is displayed
 by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
-\\[dirs] queries the shell and resyncs Emacs' idea of what the current 
+\\[dirs] queries the shell and resyncs Emacs' idea of what the current
     directory stack is.
 \\[dirtrack-mode] turns directory tracking on and off.
 
@@ -372,9 +372,9 @@ Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `comint-input-filter-functions' are run.  After each shell output, the hooks
 on `comint-output-filter-functions' are run.
 
-Variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp' 
-and `shell-popd-regexp' are used to match their respective commands, 
-while `shell-pushd-tohome', `shell-pushd-dextract' and `shell-pushd-dunique' 
+Variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp'
+and `shell-popd-regexp' are used to match their respective commands,
+while `shell-pushd-tohome', `shell-pushd-dextract' and `shell-pushd-dunique'
 control the behavior of the relevant command.
 
 Variables `comint-completion-autolist', `comint-completion-addsuffix',
@@ -441,16 +441,18 @@ buffer."
   "Called when the shell process is stopped.
 
 Writes the input history to a history file
-`comint-comint-input-ring-file-name' using `comint-write-input-ring'
+`comint-input-ring-file-name' using `comint-write-input-ring'
 and inserts a short message in the shell buffer.
 
 This function is a sentinel watching the shell interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
   ;; Write history.
   (comint-write-input-ring)
-  (if (buffer-live-p (process-buffer process))
-      (insert (format "\nProcess %s %s\n" process event))))
-
+  (let ((buf (process-buffer process)))
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (insert (format "\nProcess %s %s\n" process event))))))
+
 ;;;###autoload
 (defun shell (&optional buffer)
   "Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
@@ -490,7 +492,7 @@ Otherwise, one argument `-i' is passed to the shell.
       (let* ((prog (or explicit-shell-file-name
 		       (getenv "ESHELL")
 		       (getenv "SHELL")
-		       "/bin/sh"))		     
+		       "/bin/sh"))
 	     (name (file-name-nondirectory prog))
 	     (startfile (concat "~/.emacs_" name))
 	     (xargs-name (intern-soft (concat "explicit-" name "-args")))
@@ -508,7 +510,7 @@ Otherwise, one argument `-i' is passed to the shell.
 
 ;;; Don't do this when shell.el is loaded, only while dumping.
 ;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
-
+
 ;;; Directory tracking
 ;;;
 ;;; This code provides the shell mode input sentinel
@@ -537,7 +539,7 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;;
 ;;; The solution is to relax, not stress out about it, and settle for
 ;;; a hack that works pretty well in typical circumstances. Remember
-;;; that a half-assed solution is more in keeping with the spirit of Unix, 
+;;; that a half-assed solution is more in keeping with the spirit of Unix,
 ;;; anyway. Blech.
 ;;;
 ;;; One good hack not implemented here for users of programmable shells
@@ -559,7 +561,7 @@ You may toggle this tracking on and off with M-x dirtrack-mode.
 If emacs gets confused, you can resync with the shell with M-x dirs.
 
 See variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp',
-and  `shell-popd-regexp', while `shell-pushd-tohome', `shell-pushd-dextract', 
+and  `shell-popd-regexp', while `shell-pushd-tohome', `shell-pushd-dextract',
 and `shell-pushd-dunique' control the behavior of the relevant command.
 
 Environment variables are expanded, see function `substitute-in-file-name'."
@@ -729,7 +731,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 
 (defun shell-resync-dirs ()
   "Resync the buffer's idea of the current directory stack.
-This command queries the shell with the command bound to 
+This command queries the shell with the command bound to
 `shell-dirstack-query' (default \"dirs\"), reads the next
 line output and parses it to form the new directory stack.
 DON'T issue this command unless the buffer is at a shell prompt.
@@ -743,7 +745,7 @@ command again."
     (goto-char pmark)
     (insert shell-dirstack-query) (insert "\n")
     (sit-for 0) ; force redisplay
-    (comint-send-string proc shell-dirstack-query) 
+    (comint-send-string proc shell-dirstack-query)
     (comint-send-string proc "\n")
     (set-marker pmark (point))
     (let ((pt (point))) ; wait for 1 line
@@ -804,7 +806,7 @@ command again."
 	  (setq msg (concat msg (directory-file-name dir) " "))
 	  (setq ds (cdr ds))))
       (message "%s" msg))))
-
+
 ;; This was mostly copied from shell-resync-dirs.
 (defun shell-snarf-envar (var)
   "Return as a string the shell's value of environment variable VAR."
@@ -835,7 +837,7 @@ from Emacs."
   (interactive (list (read-envvar-name "\
 Copy Shell environment variable to Emacs: ")))
   (setenv variable (shell-snarf-envar variable)))
-
+
 (defun shell-forward-command (&optional arg)
   "Move forward across ARG shell command(s).  Does not cross lines.
 See `shell-command-regexp'."
@@ -1006,7 +1008,7 @@ Returns t if successful."
 		 (replace-match (file-name-as-directory (nth index stack)) t t)
 		 (message "Directory item: %d" index)
 		 t))))))
-
+
 (provide 'shell)
 
 ;;; shell.el ends here

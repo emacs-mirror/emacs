@@ -1,10 +1,16 @@
+2001-01-27  Sam Steingold  <sds@gnu.org>
+
+	* shell.el (shell-write-history-on-exit): Make sure that we are in
+	the shell buffer (M-x tex-file RET inserted the error message into
+	the TeX	buffer).
+
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (transient-mark-mode): Doc fix.
 
 2001-01-27  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/etags.el (find-tag-noselect): Don't bind 
+	* progmodes/etags.el (find-tag-noselect): Don't bind
 	tags-file-name.
 
 2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -22,7 +28,7 @@
 
 2001-01-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
-	* dabbrev.el (dabbrev--substitute-expansion): 
+	* dabbrev.el (dabbrev--substitute-expansion):
 	Treat a one-capital-letter abbrev as "not all upper case",
 	so as to force preservation of the expansion's pattern
 	if the expansion starts with a capital letter.
@@ -49,7 +55,7 @@
 
 	* time-stamp.el: Doc fixes.
 
-	* progmodes/delphi.el (delphi-comment-face, delphi-string-face) 
+	* progmodes/delphi.el (delphi-comment-face, delphi-string-face)
 	(delphi-keyword-face, delphi-other-face): Fix :type.
 
 	* textmodes/flyspell.el: Doc fixes.  Add :version to new options.
