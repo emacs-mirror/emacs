@@ -1,5 +1,5 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 92, 93, 94, 95, 1996, 1997, 1998, 1999
+   Copyright (C) 1989, 92, 93, 94, 95, 1996, 1997, 1998, 1999, 2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -7614,7 +7614,7 @@ Lisp_Object Qxbm;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata;
 Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
-Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
+Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex;
 
 /* Other symbols.  */
@@ -8377,20 +8377,20 @@ lookup_image (f, spec)
 	  /* Should we apply an image transformation algorithm?  */
 	  if (img->pixmap)
 	    {
-	      Lisp_Object algorithm;
+	      Lisp_Object conversion;
 
-	      algorithm = image_spec_value (spec, QCalgorithm, NULL);
-	      if (EQ (algorithm, Qdisabled))
+	      algorithm = image_spec_value (spec, QCconversion, NULL);
+	      if (EQ (conversion, Qdisabled))
 		x_disable_image (f, img);
-	      else if (EQ (algorithm, Qlaplace))
+	      else if (EQ (conversion, Qlaplace))
 		x_laplace (f, img);
-	      else if (EQ (algorithm, Qemboss))
+	      else if (EQ (conversion, Qemboss))
 		x_emboss (f, img);
-	      else if (CONSP (algorithm)
-		       && EQ (XCAR (algorithm), Qedge_detection))
+	      else if (CONSP (conversion)
+		       && EQ (XCAR (conversion), Qedge_detection))
 		{
 		  Lisp_Object tem;
-		  tem = XCDR (algorithm);
+		  tem = XCDR (conversion);
 		  if (CONSP (tem))
 		    x_edge_detection (f, img,
 				      Fplist_get (tem, QCmatrix),
@@ -8654,7 +8654,7 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -9244,7 +9244,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -9934,7 +9934,7 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -10290,7 +10290,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -10776,7 +10776,7 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -11139,7 +11139,7 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -11458,7 +11458,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
 };
@@ -11773,7 +11773,7 @@ static struct image_keyword gs_format[GS_LAST] =
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
@@ -13841,8 +13841,8 @@ versions of Windows) characters.");
   staticpro (&Qxbm);
   QCtype = intern (":type");
   staticpro (&QCtype);
-  QCalgorithm = intern (":algorithm");
-  staticpro (&QCalgorithm);
+  QCconversion = intern (":conversion");
+  staticpro (&QCconversion);
   QCheuristic_mask = intern (":heuristic-mask");
   staticpro (&QCheuristic_mask);
   QCcolor_symbols = intern (":color-symbols");
