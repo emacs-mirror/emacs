@@ -1,3 +1,13 @@
+2002-05-19  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (LISP_MAKE_RVALUE): Delete disabled version, making XCAR
+	and XCDR real rvalues in most configurations.
+
+	* buffer.c (fix_overlays_in_range, fix_overlays_before): Don't
+	take the address of the cdr part of a cons cell; instead, track
+	the parent cell and call XSETCDR, or set the variable for the head
+	of the list if we haven't started down the list yet.
+
 2002-05-19  Richard M. Stallman  <rms@gnu.org>
 
 	* doc.c (reread_doc_file): Don't ask for confirmation.
