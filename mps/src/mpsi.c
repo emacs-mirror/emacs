@@ -20,8 +20,6 @@ SRCID("$HopeName");
 
 /* Check consistency of interface mappings. */
 
-#ifdef DEBUG
-
 static Bool mpsi_check(void)
 {
   /* Check that external and internal result codes match. */
@@ -60,8 +58,6 @@ static Bool mpsi_check(void)
 
   return TRUE;
 }
-
-#endif /* DEBUG */
 
 mps_assert_t mps_assert_install(mps_assert_t handler)
 {
