@@ -18,6 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/param.h>
 
 #ifndef MAXPATHLEN
@@ -1359,9 +1361,21 @@ init_buffer_once ()
 init_buffer ()
 {
   char buf[MAXPATHLEN+1];
+  char *pwd;
+  struct stat dotstat, pwdstat;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
-  if (getwd (buf) == 0)
+
+  /* If PWD is accurate, use it instead of calling getwd.  This is faster
+     when PWD is right, and may avoid a fatal error.  */
+  if ((pwd = getenv ("PWD")) != 0 && *pwd == '/'
+      && stat (pwd, &pwdstat) == 0
+      && stat (".", &dotstat) == 0
+      && dotstat.st_ino == pwdstat.st_ino
+      && dotstat.st_dev == pwdstat.st_dev
+      && strlen (pwd) < MAXPATHLEN)
+    strcpy (buf, pwd);
+  else if (getwd (buf) == 0)
     fatal ("`getwd' failed: %s.\n", buf);
 
 #ifndef VMS
