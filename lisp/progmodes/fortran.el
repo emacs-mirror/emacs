@@ -284,7 +284,7 @@ This variable used in TAB format mode.")
 	   ;; Fontify the type specifier.
 	   '(1 font-lock-type-face)
 	   ;; Fontify each declaration item (or just the /.../ block name).
-	   '(font-lock-match-c++-style-declaration-item-and-skip-to-next
+	   '(font-lock-match-c-style-declaration-item-and-skip-to-next
 	     ;; Start after any *(...) expression.
 	     (and (match-beginning 15) (forward-sexp 1))
 	     ;; No need to clean up.
