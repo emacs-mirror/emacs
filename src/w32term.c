@@ -177,7 +177,7 @@ int last_scroll_bar_drag_pos;
 static RECT last_mouse_glyph;
 static Lisp_Object last_mouse_press_frame;
 
-Lisp_Object Vw32_num_mouse_buttons;
+int w32_num_mouse_buttons;
 
 Lisp_Object Vw32_swap_mouse_buttons;
 
@@ -4360,10 +4360,16 @@ w32_read_socket (sd, expected, hold_quit)
 
           /* If the contents of the global variable help_echo_string
              has changed, generate a HELP_EVENT.  */
+#if 0 /* The below is an invalid comparison when USE_LISP_UNION_TYPE.
+	 But it was originally changed to this to fix a bug, so I have
+	 not removed it completely in case the bug is still there.  */
           if (help_echo_string != previous_help_echo_string ||
 	      (!NILP (help_echo_string) && !STRINGP (help_echo_string) && f->mouse_moved))
+#else /* This is what xterm.c does.  */
+	    if (!NILP (help_echo_string)
+		|| !NILP (previous_help_echo_string))
 	    do_help = 1;
-
+#endif
           break;
 
 	case WM_LBUTTONDOWN:
@@ -4784,7 +4790,7 @@ w32_read_socket (sd, expected, hold_quit)
 
 	  if (do_help > 0)
 	    {
-	      if (help_echo_string == Qnil)
+	      if (NILP (help_echo_string))
 		{
 		  help_echo_object = help_echo_window = Qnil;
 		  help_echo_pos = -1;
@@ -6459,9 +6465,9 @@ syms_of_w32term ()
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
 
   DEFVAR_INT ("w32-num-mouse-buttons",
-	      &Vw32_num_mouse_buttons,
+	      &w32_num_mouse_buttons,
 	      doc: /* Number of physical mouse buttons.  */);
-  Vw32_num_mouse_buttons = Qnil;
+  w32_num_mouse_buttons = 2;
 
   DEFVAR_LISP ("w32-swap-mouse-buttons",
 	      &Vw32_swap_mouse_buttons,
