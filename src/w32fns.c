@@ -4642,6 +4642,7 @@ int size;
 {
   Lisp_Object bdf_fonts;
   struct font_info *retval = NULL;
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
   bdf_fonts = w32_list_bdf_fonts (build_string (fontname), 1);
 
@@ -4649,10 +4650,21 @@ int size;
     {
       char *bdf_name, *bdf_file;
       Lisp_Object bdf_pair;
+      int i;
 
       bdf_name = SDATA (XCAR (bdf_fonts));
       bdf_pair = Fassoc (XCAR (bdf_fonts), Vw32_bdf_filename_alist);
       bdf_file = SDATA (XCDR (bdf_pair));
+
+      // If the font is already loaded, do not load it again.
+      for (i = 0; i < dpyinfo->n_fonts; i++)
+	{
+	  if ((dpyinfo->font_table[i].name
+	       && !strcmp (dpyinfo->font_table[i].name, bdf_name))
+	      || (dpyinfo->font_table[i].full_name
+		  && !strcmp (dpyinfo->font_table[i].full_name, bdf_name)))
+	    return dpyinfo->font_table[i];
+	}
 
       retval = w32_load_bdf_font (f, bdf_name, size, bdf_file);
 
