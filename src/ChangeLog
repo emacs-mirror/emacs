@@ -1,3 +1,13 @@
+1999-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (QCuser_data): Removed.
+	(syms_of_xfns): Initialization of QCuser_data removed.
+	(parse_image_spec): Don't handle :user-data specially.  Allow
+	unknown keys.  Remove parameter ALLOW_OTHER_KEYS.
+	(xbm_image_p, xbm_load, xpm_image_p, pbm_image_p, png_image_p)
+	(tiff_image_p, jpeg_image_p, gif_image_p, gs_image_p): Call
+	parse_image_spec accordingly.
+
 1999-11-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* cmds.c (Fbeginning_of_line): Doc fix.
