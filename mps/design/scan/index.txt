@@ -1,0 +1,76 @@
+                   THE DESIGN OF THE GENERIC SCANNER
+                            design.mps.scan
+                           incomplete design
+                           richard 1995-08-25
+
+SUMMARIES
+
+Scanned Summary
+
+.summary.subset: The summary of reference seens by scan (ss.unfixedSummary) is 
+a subset of the summary previously computed (SegSummary).
+
+There are two reasons that it is not an equality relation:  
+
+1. If the segment has had objects forwarded onto it then its summary will get 
+unioned with the summary of the segment that the object was forwarded from.  
+This may increase the summary.  The forwarded object of course may have a 
+smaller summary (if such a thing were to be computed) and so subsequent 
+scanning of the segment may reduce the summmary.  (The forwarding process may 
+erroneously introduce zones into the destination's summary).  
+
+2. A write barrier hit will set the summary to RefSetUNIV.  
+
+The reason that ss.unfixedSummary is always a subset of the previous summary is 
+due to an "optimization" which has not been made in TraceFix.  See 
+impl.c.trace.fix.fixed.all.
+
+
+Partial Scans
+
+.clever-summary: With enough cleverness, it's possible to have partial scans of 
+condemned segments contribute to the segment summary.  [We had a system which 
+nearly worked -- see MMsrc(MMdevel_poolams at 1997/08/14 13:02:55 BST), but it 
+did not handle the situation in which a segment was not under the write barrier 
+when it was condemned.]
+
+.clever-summary.acc: Each time we partially scan a segment, we accumulate the 
+post-scan summary of the scanned objects into a field in the group, called 
+'summarySoFar'.  The post-scan summary is (summary \ white) U fixed.
+
+.clever-summary.acc.condemn: The cumulative summary is only meaningful while 
+the segment is condemned.  Otherwise it is set to RefSetEMPTY (a value which we 
+can check).
+
+.clever-summary.acc.reclaim: Then when we reclaim the segment, we set the 
+segment summary to the cumulative summary, as it is a post-scan summary of all 
+the scanned objects.
+
+.clever-summary.acc.other-trace: If the segment is scanned by another trace 
+while it is condemned, the cumulative summary must be set to the post-scan 
+summary of this scan (otherwise it becomes out-of-date).
+
+.clever-summary.scan: The scan summary is expected to be a summary of all 
+scanned references in the segment.  We don't know this accurately until we've 
+scanned everything in the segment.  So we add in the segment summary each time.
+
+.clever-summary.scan.fix: TraceScan also expects the scan state fixed summary 
+to include the post-scan summary of all references which were white.  Since we 
+don't scan all white references, we need to add in an approximation to the 
+summary of all white references which we didn't scan.  This is the intersection 
+of the segment summary and the white summary.
+
+.clever-summary.wb: If the cumulative summary is smaller than the mutator's 
+summary, a write-barrier is needed to pervent the mutator from invalidating it. 
+ This means that sometimes we'd have to put the segment under the write-barrier 
+at condemn [this is not an operation currently available to pool class 
+implementations pekka 1998-02-26], which might not be very efficient.
+
+.clever-summary.method.wb: We need a new pool class method, called when the 
+write barrier is hit (or possibly any barrier hit).  The generic method will do 
+the usual TraceAccess work, the trivial method will do nothing.
+
+.clever-summary.acc.wb: When the write barrier is hit, we need to correct the 
+cumulative summary to the mutator summary.  This is approximated by setting the 
+summary to RefSetUNIV.
+

@@ -1,0 +1,28 @@
+         THE DESIGN OF THE MEMORY POOL SYSTEM SIGNATURE SYSTEM
+                             design.mps.sig
+                           incomplete design
+                           richard 1995-08-25
+
+
+TESTING:
+
+.test.uniq: The unix command
+sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' *.[ch]| sort| uniq -c
+will display all signatures defined in the mps along with a count of how many 
+times they are defined.  If any counts are greater than 1, then the same 
+signature value is being used for different signatures.  This is undesirable 
+and the problem should be investigated.  People not using unix may still find 
+the RE useful.
+
+
+TEXT:
+
+Signatures are magic numbers which are written into structures
+when they are created and invalidated (by overwriting with
+SigInvalid) when they are destroyed.  They provide a limited form
+of run-time type checking and dynamic scope checking.
+
+Signature values should be transliterations of the corresponding words into 
+hex, as guide.hex.trans.  The first three hex digits should be the 
+transliteration of "SIG".
+

@@ -1,0 +1,73 @@
+                       DESIGN OF CHECKING IN MPS
+                            design.mps.check
+                           incomplete design
+                           gavinm 1996-08-05
+
+
+INTRODUCTION:
+
+This documents the design of structure checking within the MPS
+
+
+IMPLEMENTATION:
+
+.level: There are three levels of checking:
+  .level.sig: The lowest level checks only that the structure has a valid 
+Signature (see design.mps.sig).
+  .level.shallow: Shallow checking checks all local fields (including 
+signature) and also checks the signatures of any parent or child structures.
+  .level.deep: Deep checking checks all local fields (including signatures), 
+the signatures of any parent structures, and does full recursive checking on 
+any child structures.
+  .level.control: control over the levels of checking is via the definition of 
+at most one of the macros TARGET_CHECK_SHALLOW (which if defined gives 
+.level.shallow), TARGET_CHECK_DEEP (which if defined gives .level.deep).  If 
+neither macro is defined then .level.sig is used.  These macros are not 
+intended to be manipulated directly by developers, they should use the 
+interface in impl.h.target.
+
+.order: Because deep checking (.level.deep) uses unchecked recursion, it is 
+important that child relationships are acyclic (.macro.down).
+
+.fun: Every abstract data type which is a structure pointer should have a 
+function <type>Check which takes a pointer of type <type> and returns a Bool.  
+It should check all fields in order, using one of the macros in .macro, or 
+document why not.
+
+.fun.omit: The only fields which should be omitted from a check function are 
+those for
+which there is no meaningful check (e.g. unlimited unsigned integer with no 
+relation to
+other fields).
+
+.fun.return: Although the function returns a Bool, if the assert handler 
+returns (or there is no assert handler), then this is taken to mean "ignore and 
+continue", and the check function hence returns TRUE.
+
+.macro: Checking is implemented by invoking four macros in impl.h.assert:
+  .macro.sig: CHECKS(type, val) checks the signature only, and should be called 
+precisely on type <type> and the received object pointer.
+  .macro.local: CHECKL(cond) checks a local field (depending on level (see 
+.level)), and should be called on each local field that is not an abstract data 
+type structure pointer itself (apart from the signature), with an appropriate 
+normally-true test condition.
+  .macro.up: CHECKU(type, val) checks a parent abstract data type structure 
+pointer, performing at most signature checks (depending on level (see 
+.level)).  It should be called with the parent type and pointer.
+  .macro.down: CHECKD(type, val) checks a child abstract data type structure 
+pointer, possibly invoking <type>Check (depending on level (see .level)).  It 
+should be called with the child type and pointer.
+
+.full-type: CHECKS, CHECKD, CHECKU, all operate only on fully fledged types.  
+This means the type has to provide a function Bool TypeCheck(Type type) where 
+Type is substituted for the name of the type (eg, PoolCheck), and the 
+expression obj->sig must be a valid value of type Sig whenever obj is a valid 
+value of type Type.
+
+.type.no-sig: This tag is to be referenced in implementations whenver the form 
+CHECKL(ThingCheck(thing)) is used instead of CHECK{U,D}(Thing, thing) because 
+Thing is not a fully fledged type (.full-type).
+
+
+
+

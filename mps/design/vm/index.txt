@@ -1,0 +1,95 @@
+              THE DESIGN OF THE VIRTUAL MAPPING INTERFACE
+                             design.mps.vm
+                           incomplete design
+                           richard 1998-05-11
+
+.intro: This the design of the VM interface.  The VM interface provides a 
+simple, low-level, operating-system independent interface to address-space.  
+Each call to VMCreate() reserves (from the operating-system) a single 
+contiguous range of addresses, and returns a VMStruct thereafter used to manage 
+this address-space.  The VM interface has separate implementations for each 
+platform that supports it (at least conceptually, in practice some of them may 
+be the same).  The VM module provides a mechanism to reserve large (relative to 
+the amount of RAM) amounts of address space, and functions to map (back with 
+RAM) and unmap portions of this address space.
+
+.motivation: The VM is used by the VM Arena Class.  It provides the basic 
+substrate to provide sparse address maps.  Sparse address maps have at least 
+two uses: to encode information into the address of an object which is used in 
+tracing (the Zone Test) to speed things up; to avoid fragmentation at the 
+segment level and above (since the amount of address space reserved is large 
+compared to the RAM, the hope is that there will also be enough address space 
+somewhere to fit any particular segment in).
+
+
+DEFINITIONS
+
+.def.reserve: The "reserve" operation: Exclusively reserve a portion of the 
+virtual address space without arranging RAM or backing store for the virtual 
+addresses.  The intention is that no other component in the process will make 
+use of the reserved virtual addresses, but in practice this may entail assuming 
+a certain amount of cooperation.  When reserving address space, the requester 
+simply asks for a particular size, not a particular range of virtual 
+addresses.  Accessing (read/write/execute) reserved addresses is illegal unless 
+those addresses have been mapped.
+
+.def.map: The "map" operation: Arrange that a specified portion of the virtual 
+address space is mapped from the swap, effectively allocating RAM and/or swap 
+space for a particular range of addresses.  If successful, accessing the 
+addresses is now legal.  Only reserved addresses should be mapped.
+
+.def.unmap: The "unmap" operation: The inverse of the map operation.  Arrange 
+that a specified portion of the virtual address space is no longer mapped, 
+effectively freeing up the RAM and swap space that was in use.  Accessing the 
+addresses is now illegal.  The addresses return to the reserved state.
+
+.def.vm: "VM" stands for Virtual Memory.  Various meanings: A processor 
+architecture's virtual space and structure; The generic idea / interface / 
+implementation of the MPS VM module; The C structure (struct VMStruct) used to 
+encapsulate the functionality of the MPS VM module; An instance of such a 
+structure.
+
+.def.vm.mps: In the MPS, a "VM" is a VMStruct, providing access to the single 
+contiguous range of address-space that was reserved (from the operating-system) 
+when VMCreate was called.
+
+
+INTERFACE
+
+.if.create: Res VMCreate(VM *VMReturn, Size size)
+
+VMCreate is responsible both for allocating a VMStruct and for reserving an 
+amount of virtual address space.  A VM is created and a pointer to it is 
+returned in the return parameter VMReturn.  This VM has at least size bytes of 
+virtual memory reserved.  If there's not enough space to allocate the VM, 
+ResMEMORY is returned.  If there's not enough address space to reserve a block 
+of the given size, ResRESOURCE is returned.  The reserved virtual memory can be 
+mapped and unmapped using VMMap and VMUnmap.
+
+
+.if.destroy: void VMDestroy(VM vm)
+
+A VM is destroyed by calling VMDestroy.  Any address space that was mapped 
+through this VM is unmapped.
+
+
+[lots of interfaces missing here]
+
+
+NOTES
+
+.diagram:
+
+
+
+.testing: It is important to test that a VM implementation will work in extreme 
+cases.  .testing.large: It must be able to reserve a large address space.  
+Clients will want multi-GB spaces, more than that OSs will allow.  If they ask 
+for too much, mps_arena_create (and hence VMCreat4e) must fail in a predictable 
+way.  .testing.larger: It must be possible to allocate in a large space; 
+sometimes commiting will fail, because there's not enough space to replace the 
+"reserve" mapping.  See request.epcore.160201 for details.  .testing.lots: It 
+must be possible to have lots of mappings.  The OS must either combine adjacent 
+mappings or have lots of space in the kernel tables.  See request.epcore.160117 
+for ideas on how to test this.
+
