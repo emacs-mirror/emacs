@@ -18,3 +18,10 @@
 
 /* The dumped Emacs records the timezone it was dumped in.  */
 #define LOCALTIME_CACHE
+
+/* System uses OXTABS instead of the expected TAB3.
+   (Copied from netbsd.h.)  */
+#define TABDLY OXTABS
+#define TAB3 OXTABS
+
+#define SYSV_SYSTEM_DIR
