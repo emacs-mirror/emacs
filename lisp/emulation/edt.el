@@ -1233,7 +1233,7 @@ Argument NUM is the number of form feeds to insert."
 
 (defun edt-tab-insert (num)
   "Insert tab character at cursor position.
-Argument NUM is the the number of tabs to insert."
+Argument NUM is the number of tabs to insert."
   (interactive "*p")
   (edt-check-prefix num)
   (while (> num 0)
