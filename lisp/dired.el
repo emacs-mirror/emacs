@@ -1351,13 +1351,14 @@ DIR must be a directory name, not a file name."
 ;;; Functions for finding the file name in a dired buffer line.
 
 (defvar dired-move-to-filename-regexp
-  (let* ((l "[A-Za-z\xa0-\xff]")
+  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
 	 ;; In some locales, month abbreviations are as short as 2 letters,
 	 ;; and they can be padded on the right with spaces.
 	 (month (concat l l "+ *"))
-	 ;; Recognize any non-ISO-8859 character.  
+	 ;; Recognize any non-ASCII character.  
 	 ;; The purpose is to match a Kanji character.
-	 (k "[^\x00-\xff]")
+	 (k "[^\0-\177]")
+	 ;; (k "[^\x00-\x7f\x80-\xff]")
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (mm "[ 0-1][0-9]")
