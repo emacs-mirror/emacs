@@ -409,8 +409,6 @@ static char *vga_colors[16] = {
   "lightred", "lightmagenta", "yellow", "white"
 };
 
-extern char unspecified_fg[], unspecified_bg[];
-
 /* Given a color name, return its index, or -1 if not found.  Note
    that this only performs case-insensitive comparison against the
    standard names.  For anything more sophisticated, like matching
