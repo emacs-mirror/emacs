@@ -220,10 +220,19 @@ Dutch, Spanish, and Vietnamese.
 @end quotation
 
 @cindex fonts for various scripts
+@cindex Intlfonts package, installation
   To display the script(s) used by your language environment on a
 graphical display, you need to have a suitable font.  If some of the
 characters appear as empty boxes, you should install the GNU Intlfonts
-package, which includes fonts for all supported scripts.
+package, which includes fonts for all supported scripts.@footnote{If
+you run Emacs on X, you need to inform the X server about the location
+of the newly installed fonts with the following commands:
+
+@example
+ xset fp+ /usr/local/share/emacs/fonts
+ xset fp rehash
+@end example
+}
 @xref{Fontsets}, for more details about setting up your fonts.
 
 @findex set-locale-environment
@@ -279,7 +288,10 @@ environment.
 @code{set-language-environment} runs that hook after setting up the new
 language environment.  The hook functions can test for a specific
 language environment by checking the variable
-@code{current-language-environment}.
+@code{current-language-environment}.  This hook is where you should
+put non-default settings for specific language environment, such as
+coding systems for keyboard input and terminal output, the default
+input method, etc.
 
 @vindex exit-language-environment-hook
   Before it starts to set up the new language environment,
@@ -301,8 +313,10 @@ has its own input method; sometimes several languages which use the same
 characters can share one input method.  A few languages support several
 input methods.
 
-  The simplest kind of input method works by mapping ASCII letters into
-another alphabet.  This is how the Greek and Russian input methods work.
+  The simplest kind of input method works by mapping ASCII letters
+into another alphabet; this allows you to type characters which your
+keyboard doesn't support directly.  This is how the Greek and Russian
+input methods work.
 
   A more powerful technique is composition: converting sequences of
 characters into one letter.  Many European input methods use composition
@@ -356,6 +370,7 @@ is the command @kbd{C-\} (@code{toggle-input-method}) used twice.
 @xref{Select Input Method}.
 @end ifinfo
 
+@cindex incremental search, input method interference
   @kbd{C-\ C-\} is especially useful inside an incremental search,
 because it stops waiting for more characters to combine, and starts
 searching for what you have already entered.
@@ -431,6 +446,26 @@ use in various buffers.  When you have a default input method, you can
 select it in the current buffer by typing @kbd{C-\}.  The variable
 @code{default-input-method} specifies the default input method
 (@code{nil} means there is none).
+
+  In some language environments, which support several different input
+methods, you might want to use an input method different from the
+default chosen by @code{set-language-environment}.  You can instruct
+Emacs to select a different default input method for a certain
+language environment if you by using
+@code{set-language-environment-hook} (@pxref{Language Environments,
+set-language-environment-hook}).  For example:
+
+@lisp
+(defun my-chinese-setup ()
+  "Set up my private Chinese environment."
+  (if (equal current-language-environment "Chinese-GB")
+      (setq default-input-method "chinese-tonepy")))
+(add-hook 'set-language-environment-hook 'my-chinese-setup)
+@end lisp
+
+@noindent
+This sets the default input method to be @code{chinese-tonepy}
+whenever you choose a Chinese-GB language environment.
 
 @findex quail-set-keyboard-layout
   Some input methods for alphabetic scripts work by (in effect)
@@ -653,7 +688,11 @@ the contents of the file: if it sees only carriage-returns, or only
 carriage-return linefeed sequences, then it chooses the end-of-line
 conversion accordingly.  You can inhibit the automatic use of
 end-of-line conversion by setting the variable @code{inhibit-eol-conversion}
-to non-@code{nil}.
+to non-@code{nil}.  If you do that, DOS-style files will be displayed
+with the @samp{^M} characters visible in the buffer; some people
+prefer this to the more subtle @samp{(DOS)} end-of-line type
+indication near the left edge of the mode line (@pxref{Mode Line,
+eol-mnemonic}.
 
 @vindex inhibit-iso-escape-detection
 @cindex escape sequences in files
@@ -901,6 +940,7 @@ corresponding buffer.
 current language environment.
 
 @vindex file-name-coding-system
+@cindex file names with non-ASCII characters
   The variable @code{file-name-coding-system} specifies a coding system
 to use for encoding file names.  If you set the variable to a coding
 system name (as a Lisp symbol or a string), Emacs encodes file names
