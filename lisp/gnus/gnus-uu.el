@@ -561,9 +561,9 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	(delete-region (point) (gnus-point-at-eol))
 	(insert subject))
       (goto-char (point-min))
-      (when (re-search-forward "^From: ")
+      (when (re-search-forward "^From:")
 	(delete-region (point) (gnus-point-at-eol))
-	(insert from))
+	(insert " " from))
       (message-forward post t))
     (setq gnus-uu-digest-from-subject nil)))
 
