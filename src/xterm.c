@@ -66,6 +66,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stat.h>
 #include <sys/param.h>
 
+#include "frame.h"
 #include "dispextern.h"
 #include "termhooks.h"
 #include "termopts.h"
@@ -75,7 +76,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "sinkmask.h"
 #endif /* ! 0 */
 #include "gnu.h"
-#include "frame.h"
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
@@ -129,39 +129,18 @@ extern void _XEditResCheckMessages ();
 #define min(a,b) ((a)<(b) ? (a) : (b))
 #define max(a,b) ((a)>(b) ? (a) : (b))
 
-/* Nonzero means we must reprint all windows
-   because 1) we received an ExposeWindow event
-   or 2) we received too many ExposeRegion events to record.
-
-   This is never needed under X11.  */
-static int expose_all_windows;
-
-/* Nonzero means we must reprint all icon windows.  */
-
-static int expose_all_icons;
-
-#if defined (SIGIO) && defined (FIONREAD)
-int BLOCK_INPUT_mask;
-#endif /* ! defined (SIGIO) && defined (FIONREAD) */
-
 /* Stuff for dealing with the main icon title. */
 
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
 char *x_id_name;
-
-/* Initial values of argv and argc.  */
-extern char **initial_argv;
-extern int initial_argc;
-
-/* For now, we have just one x_display structure since we only support
-   one X display.  */
-static struct x_display_info the_x_screen;
 
 /* This is a chain of structures for all the X displays currently in use.  */
 struct x_display_info *x_display_list;
 
-/* The cursor to use for vertical scroll bars on x_current_display.  */
-static Cursor x_vertical_scroll_bar_cursor;
+/* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
+   one for each element of x_display_list and in the same order.
+   NAME is the name of the frame.
+   FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
+Lisp_Object x_display_name_list;
 
 /* Frame being updated by update_frame.  This is declared in term.c.
    This is set by update_begin and looked at by all the
@@ -193,11 +172,6 @@ struct frame *x_focus_event_frame;
    minibuffer.  */
 static struct frame *x_highlight_frame;
 
-/* From .Xdefaults, the value of "emacs.WarpMouse".  If non-zero,
-   mouse is moved to inside of frame when frame is de-iconified.  */
-
-static int warp_mouse_on_deiconify;
-
 /* During an update, maximum vpos for ins/del line operations to affect.  */
 
 static int flexlines;
@@ -211,9 +185,6 @@ static int highlight;
 
 static int curs_x;
 static int curs_y;
-
-/* Reusable Graphics Context for drawing a cursor in a non-default face. */
-static GC scratch_cursor_gc;
 
 /* Mouse movement.
 
@@ -256,28 +227,6 @@ static Lisp_Object last_mouse_scroll_bar;
    it's somewhat accurate.  */
 static Time last_mouse_movement_time;
 
-/* These variables describe the range of text currently shown
-   in its mouse-face, together with the window they apply to.
-   As long as the mouse stays within this range, we need not
-   redraw anything on its account.  */
-static int mouse_face_beg_row, mouse_face_beg_col;
-static int mouse_face_end_row, mouse_face_end_col;
-static int mouse_face_past_end;
-static Lisp_Object mouse_face_window;
-static int mouse_face_face_id;
-
-/* 1 if a mouse motion event came and we didn't handle it right away because
-   gc was in progress.  */
-static int mouse_face_deferred_gc;
-
-/* FRAME and X, Y position of mouse when last checked for
-   highlighting.  X and Y can be negative or out of range for the frame.  */
-static FRAME_PTR mouse_face_mouse_frame;
-static int mouse_face_mouse_x, mouse_face_mouse_y;
-
-/* Nonzero means defer mouse-motion highlighting.  */
-static int mouse_face_defer;
-
 /* Incremented by XTread_socket whenever it really tries to read events.  */
 #ifdef __STDC__
 static int volatile input_signal_count;
@@ -285,34 +234,32 @@ static int volatile input_signal_count;
 static int input_signal_count;
 #endif
 
+/* Used locally within XTread_socket.  */
+static int x_noop_count;
+
+/* Initial values of argv and argc.  */
+extern char **initial_argv;
+extern int initial_argc;
+
+extern Lisp_Object Vcommand_line_args, Vsystem_name;
+
 /* Tells if a window manager is present or not. */
 
 extern Lisp_Object Vx_no_window_manager;
-
-/* Timestamp that we requested selection data was made. */
-extern Time requestor_time;
-
-/* ID of the window requesting selection data. */
-extern Window requestor_window;
 
 /* Nonzero enables some debugging for the X interface code. */
 extern int _Xdebug;
 
 extern Lisp_Object Qface, Qmouse_face;
 
-static int x_noop_count;
-
 extern int errno;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
 extern int extra_keyboard_modifiers;
 
-extern Display *XOpenDisplay ();
-extern Window XCreateWindow ();
-
-extern Cursor XCreateCursor ();
-extern XFontStruct *XOpenFont ();
 extern XrmDatabase x_load_resources ();
+
+void x_delete_display ();
 
 static void flashback ();
 static void redraw_previous_char ();
@@ -325,9 +272,9 @@ static void clear_mouse_face ();
 static void show_mouse_face ();
 static void do_line_dance ();
 
-void dumpborder ();
 static int XTcursor_to ();
 static int XTclear_end_of_line ();
+static int x_io_error_quitter ();
 
 /* Return the struct x_display_info corresponding to DPY.  */
 
@@ -353,8 +300,6 @@ x_display_info_for_display (dpy)
    should never be called except during an update, the only exceptions
    being XTcursor_to, XTwrite_glyphs and XTreassert_line_highlight.  */
 
-extern int mouse_track_top, mouse_track_left, mouse_track_width;
-
 static
 XTupdate_begin (f)
      struct frame *f;
@@ -369,14 +314,14 @@ XTupdate_begin (f)
 
   BLOCK_INPUT;
 
-  if (f == mouse_face_mouse_frame)
+  if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
       /* Don't do highlighting for mouse motion during the update.  */
-      mouse_face_defer = 1;
-      if (!NILP (mouse_face_window))
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 1;
+      if (!NILP (FRAME_X_DISPLAY_INFO (f)->mouse_face_window))
 	{
 	  int firstline, lastline, i;
-	  struct window *w = XWINDOW (mouse_face_window);
+	  struct window *w = XWINDOW (FRAME_X_DISPLAY_INFO (f)->mouse_face_window);
 
 	  /* Find the first, and the last+1, lines affected by redisplay.  */
 	  for (firstline = 0; firstline < f->height; firstline++)
@@ -397,7 +342,7 @@ XTupdate_begin (f)
 	  if (! (firstline > (XFASTINT (w->top) + window_internal_height (w))
 		 || lastline < XFASTINT (w->top)))
 	    /* Otherwise turn off the mouse highlight now.  */
-	    clear_mouse_face ();
+	    clear_mouse_face (FRAME_X_DISPLAY_INFO (f));
 	}
     }
 
@@ -415,8 +360,8 @@ XTupdate_end (f)
   do_line_dance ();
   x_display_cursor (f, 1);
 
-  if (f == mouse_face_mouse_frame)
-    mouse_face_defer = 0;
+  if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
+    FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 #if 0
   /* This fails in the case of having updated only the echo area
      if we have switched buffers.  In that case, FRAME_CURRENT_GLYPHS
@@ -424,8 +369,9 @@ XTupdate_end (f)
      have no relation to the contents of the window-buffer.
   I don't know a clean way to check
      for that case.  window_end_valid isn't set up yet.  */
-  if (f == mouse_face_mouse_frame)
-    note_mouse_highlight (f, mouse_face_mouse_x, mouse_face_mouse_y);
+  if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
+    note_mouse_highlight (f, FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_x,
+			  FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_y);
 #endif
 
   XFlush (FRAME_X_DISPLAY (f));
@@ -438,11 +384,13 @@ static
 XTframe_up_to_date (f)
      FRAME_PTR f;
 {
-  if (mouse_face_deferred_gc || f == mouse_face_mouse_frame)
+  if (FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc
+      || f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
-      note_mouse_highlight (mouse_face_mouse_frame,
-			    mouse_face_mouse_x, mouse_face_mouse_y);
-      mouse_face_deferred_gc = 0;
+      note_mouse_highlight (FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame,
+			    FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_x,
+			    FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_y);
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc = 0;
     }
 }
 
@@ -583,7 +531,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 
 	/* HL = 3 means use a mouse face previously chosen.  */
 	if (hl == 3)
-	  cf = mouse_face_face_id;
+	  cf = FRAME_X_DISPLAY_INFO (f)->mouse_face_face_id;
 
 	/* First look at the face of the text itself.  */
 	if (cf != 0)
@@ -658,12 +606,14 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 		xgcv.font = face->font->fid;
 		xgcv.graphics_exposures = 0;
 		mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
-		if (scratch_cursor_gc)
-		  XChangeGC (FRAME_X_DISPLAY (f), scratch_cursor_gc, mask, &xgcv);
+		if (FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc)
+		  XChangeGC (FRAME_X_DISPLAY (f),
+			     FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc,
+			     mask, &xgcv);
 		else
-		  scratch_cursor_gc
+		  FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc
 		    = XCreateGC (FRAME_X_DISPLAY (f), window, mask, &xgcv);
-		gc = scratch_cursor_gc;
+		gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
 #if 0
 /* If this code is restored, it must also reset to the default stipple
    if necessary. */
@@ -1241,6 +1191,11 @@ XTset_terminal_window (n)
     flexlines = n;
 }
 
+/* These variables need not be per frame
+   because redisplay is done on a frame-by-frame basis
+   and the line dance for one frame is finished before
+   anything is done for anoter frame.  */
+
 /* Array of line numbers from cached insert/delete operations.
    line_dance[i] is the old position of the line that we want
    to move to line i, or -1 if we want a blank line there.  */
@@ -1896,16 +1851,16 @@ note_mouse_highlight (f, x, y)
   if (disable_mouse_highlight)
     return;
 
-  mouse_face_mouse_x = x;
-  mouse_face_mouse_y = y;
-  mouse_face_mouse_frame = f;
+  FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_x = x;
+  FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_y = y;
+  FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame = f;
 
-  if (mouse_face_defer)
+  if (FRAME_X_DISPLAY_INFO (f)->mouse_face_defer)
     return;
 
   if (gc_in_progress)
     {
-      mouse_face_deferred_gc = 1;
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc = 1;
       return;
     }
 
@@ -1918,8 +1873,8 @@ note_mouse_highlight (f, x, y)
   w = XWINDOW (window);
 
   /* If we were displaying active text in another window, clear that.  */
-  if (! EQ (window, mouse_face_window))
-    clear_mouse_face ();
+  if (! EQ (window, FRAME_X_DISPLAY_INFO (f)->mouse_face_window))
+    clear_mouse_face (FRAME_X_DISPLAY_INFO (f));
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
@@ -1938,13 +1893,15 @@ note_mouse_highlight (f, x, y)
       pos = ptr[i];
       /* Is it outside the displayed active region (if any)?  */
       if (pos <= 0)
-	clear_mouse_face ();
-      else if (! (EQ (window, mouse_face_window)
-		  && row >= mouse_face_beg_row
-		  && row <= mouse_face_end_row
-		  && (row > mouse_face_beg_row || column >= mouse_face_beg_col)
-		  && (row < mouse_face_end_row || column < mouse_face_end_col
-		      || mouse_face_past_end)))
+	clear_mouse_face (FRAME_X_DISPLAY_INFO (f));
+      else if (! (EQ (window, FRAME_X_DISPLAY_INFO (f)->mouse_face_window)
+		  && row >= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
+		  && row <= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
+		  && (row > FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
+		      || column >= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col)
+		  && (row < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
+		      || column < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col
+		      || FRAME_X_DISPLAY_INFO (f)->mouse_face_past_end)))
 	{
 	  Lisp_Object mouse_face, overlay, position;
 	  Lisp_Object *overlay_vec;
@@ -1966,7 +1923,7 @@ note_mouse_highlight (f, x, y)
 	  ZV = Z;
 
 	  /* Yes.  Clear the display of the old active region, if any.  */
-	  clear_mouse_face ();
+	  clear_mouse_face (FRAME_X_DISPLAY_INFO (f));
 
 	  /* Is this char mouse-active?  */
 	  XSETINT (position, pos);
@@ -2007,17 +1964,20 @@ note_mouse_highlight (f, x, y)
 	      before = Foverlay_start (overlay);
 	      after = Foverlay_end (overlay);
 	      /* Record this as the current active region.  */
-	      fast_find_position (window, before, &mouse_face_beg_col,
-				  &mouse_face_beg_row);
-	      mouse_face_past_end
-		= !fast_find_position (window, after, &mouse_face_end_col,
-				       &mouse_face_end_row);
-	      mouse_face_window = window;
-	      mouse_face_face_id = compute_char_face (f, w, pos, 0, 0,
-						      &ignore, pos + 1, 1);
+	      fast_find_position (window, before,
+				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col,
+				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row);
+	      FRAME_X_DISPLAY_INFO (f)->mouse_face_past_end
+		= !fast_find_position (window, after,
+				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col,
+				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row);
+	      FRAME_X_DISPLAY_INFO (f)->mouse_face_window = window;
+	      FRAME_X_DISPLAY_INFO (f)->mouse_face_face_id
+		= compute_char_face (f, w, pos, 0, 0,
+				     &ignore, pos + 1, 1);
 
 	      /* Display it as active.  */
-	      show_mouse_face (1);
+	      show_mouse_face (FRAME_X_DISPLAY_INFO (f), 1);
 	    }
 	  /* Handle the text property case.  */
 	  else if (! NILP (mouse_face))
@@ -2038,18 +1998,20 @@ note_mouse_highlight (f, x, y)
 		= Fnext_single_property_change (position, Qmouse_face,
 						w->buffer, end);
 	      /* Record this as the current active region.  */
-	      fast_find_position (window, before, &mouse_face_beg_col,
-				  &mouse_face_beg_row);
-	      mouse_face_past_end
-		= !fast_find_position (window, after, &mouse_face_end_col,
-				       &mouse_face_end_row);
-	      mouse_face_window = window;
-	      mouse_face_face_id
+	      fast_find_position (window, before,
+				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col,
+				  &FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row);
+	      FRAME_X_DISPLAY_INFO (f)->mouse_face_past_end
+		= !fast_find_position (window, after,
+				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col,
+				       &FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row);
+	      FRAME_X_DISPLAY_INFO (f)->mouse_face_window = window;
+	      FRAME_X_DISPLAY_INFO (f)->mouse_face_face_id
 		= compute_char_face (f, w, pos, 0, 0,
 				     &ignore, pos + 1, 1);
 
 	      /* Display it as active.  */
-	      show_mouse_face (1);
+	      show_mouse_face (FRAME_X_DISPLAY_INFO (f), 1);
 	    }
 	  BEGV = obegv;
 	  ZV = ozv;
@@ -2122,10 +2084,11 @@ fast_find_position (window, pos, columnp, rowp)
    in its mouse-face if HL > 0, in its normal face if HL = 0.  */
 
 static void
-show_mouse_face (hl)
+show_mouse_face (dpyinfo, hl)
+     struct x_display_info *dpyinfo;
      int hl;
 {
-  struct window *w = XWINDOW (mouse_face_window);
+  struct window *w = XWINDOW (dpyinfo->mouse_face_window);
   int width = window_internal_width (w);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
@@ -2139,16 +2102,22 @@ show_mouse_face (hl)
   curs_x = f->phys_cursor_x;
   curs_y = f->phys_cursor_y;
 
-  for (i = mouse_face_beg_row; i <= mouse_face_end_row; i++)
+  for (i = FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row;
+       i <= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row; i++)
     {
-      int column = (i == mouse_face_beg_row ? mouse_face_beg_col : w->left);
-      int endcolumn = (i == mouse_face_end_row ? mouse_face_end_col : w->left + width);
+      int column = (i == FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
+		    ? FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col
+		    : w->left);
+      int endcolumn = (i == FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
+		       ? FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col
+		       : w->left + width);
       endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i]);
 
       /* If the cursor's in the text we are about to rewrite,
 	 turn the cursor off.  */
       if (i == curs_y
-	  && curs_x >= mouse_face_beg_col - 1 && curs_x <= mouse_face_end_col)
+	  && curs_x >= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col - 1
+	  && curs_x <= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col)
 	{
 	  x_display_cursor (f, 0);
 	  cursor_off = 1;
@@ -2183,14 +2152,15 @@ show_mouse_face (hl)
    Redraw it unhighlighted first.  */
 
 static void
-clear_mouse_face ()
+clear_mouse_face (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
-  if (! NILP (mouse_face_window))
-    show_mouse_face (0);
+  if (! NILP (dpyinfo->mouse_face_window))
+    show_mouse_face (dpyinfo, 0);
 
-  mouse_face_beg_row = mouse_face_beg_col = -1;
-  mouse_face_end_row = mouse_face_end_col = -1;
-  mouse_face_window = Qnil;
+  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+  dpyinfo->mouse_face_window = Qnil;
 }
 
 static struct scroll_bar *x_window_to_scroll_bar ();
@@ -2422,7 +2392,7 @@ x_scroll_bar_create (window, top, left, width, height)
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
-    a.cursor = x_vertical_scroll_bar_cursor;
+    a.cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 
     mask = (CWBackPixel | CWEventMask | CWCursor);
 
@@ -2976,7 +2946,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 
 		       /* Mouse buttons and modifier keys.  */
 		       &dummy_mask))
-    *fp = 0;
+    ;
   else
     {
       int inside_height
@@ -2995,7 +2965,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 	win_y = top_range;
 
       *fp = f;
-      *bar_window = w;
+      *bar_window = bar->window;
 
       if (! NILP (bar->dragging))
 	*part = scroll_bar_handle;
@@ -3162,6 +3132,10 @@ static XComposeStatus compose_status;
 int temp_index;
 short temp_buffer[100];
 
+/* Set this to nonzero to fake an "X I/O error"
+   on a particular display.  */
+struct x_display_info *XTread_socket_fake_io_error;
+
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
@@ -3202,635 +3176,586 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
   interrupt_input_pending = 0;
   BLOCK_INPUT;
 
-  /* Find the display we are supposed to read input for.
-     It's the one communicating on descriptor SD.  */
-  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
-    if (dpyinfo->connection == sd)
-      break;
-  if (dpyinfo == 0)
-    abort ();
-
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
   if (numchars <= 0)
     abort ();			/* Don't think this happens. */
 
+  /* Find the display we are supposed to read input for.
+     It's the one communicating on descriptor SD.  */
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+    {
+#if 0 /* This ought to be unnecessary; let's verify it.  */
 #ifdef FIOSNBIO
-  /* If available, Xlib uses FIOSNBIO to make the socket
-     non-blocking, and then looks for EWOULDBLOCK.  If O_NDELAY is set,
-     FIOSNBIO is ignored, and instead of signalling EWOULDBLOCK,
-     a read returns 0, which Xlib interprets as equivalent to EPIPE. */
-  fcntl (sd, F_SETFL, 0);
+      /* If available, Xlib uses FIOSNBIO to make the socket
+	 non-blocking, and then looks for EWOULDBLOCK.  If O_NDELAY is set,
+	 FIOSNBIO is ignored, and instead of signalling EWOULDBLOCK,
+	 a read returns 0, which Xlib interprets as equivalent to EPIPE. */
+      fcntl (dpyinfo->connection, F_SETFL, 0);
 #endif /* ! defined (FIOSNBIO) */
+#endif
 
+#if 0 /* This code can't be made to work, with multiple displays,
+	 and appears not to be used on any system any more.
+	 Also keyboard.c doesn't turn O_NDELAY on and off
+	 for X connections.  */
 #ifndef SIGIO
 #ifndef HAVE_SELECT
-  if (! (fcntl (sd, F_GETFL, 0) & O_NDELAY))
-    {
-      extern int read_alarm_should_throw;
-      read_alarm_should_throw = 1;
-      XPeekEvent (dpyinfo->display, &event);
-      read_alarm_should_throw = 0;
-    }
+      if (! (fcntl (dpyinfo->connection, F_GETFL, 0) & O_NDELAY))
+	{
+	  extern int read_alarm_should_throw;
+	  read_alarm_should_throw = 1;
+	  XPeekEvent (dpyinfo->display, &event);
+	  read_alarm_should_throw = 0;
+	}
 #endif /* HAVE_SELECT */
 #endif /* SIGIO */
+#endif
 
-  while (XPending (dpyinfo->display) != 0)
-    {
-      XNextEvent (dpyinfo->display, &event);
-      event_found = 1;
-
-      switch (event.type)
+      /* For debugging, this gives a way to fake an I/O error.  */
+      if (dpyinfo == XTread_socket_fake_io_error)
 	{
-	case ClientMessage:
-	  {
-	    if (event.xclient.message_type
-		== dpyinfo->Xatom_wm_protocols
-		&& event.xclient.format == 32)
-	      {
-		if (event.xclient.data.l[0]
-		    == dpyinfo->Xatom_wm_take_focus)
-		  {
-		    f = x_window_to_frame (event.xclient.window);
-		    /* Since we set WM_TAKE_FOCUS, we must call
-		       XSetInputFocus explicitly.  But not if f is null,
-		       since that might be an event for a deleted frame.  */
-		    if (f)
-		      XSetInputFocus (event.xclient.display,
-				      event.xclient.window,
-				      RevertToPointerRoot,
-				      event.xclient.data.l[1]);
-		    /* Not certain about handling scroll bars here */
-		  }
-		else if (event.xclient.data.l[0]
-			 == dpyinfo->Xatom_wm_save_yourself)
-		  {
-		    /* Save state modify the WM_COMMAND property to
-		       something which can reinstate us. This notifies
-		       the session manager, who's looking for such a
-		       PropertyNotify.  Can restart processing when
-		       a keyboard or mouse event arrives. */
-		    if (numchars > 0)
-		      {
-			f = x_top_window_to_frame (event.xclient.window);
+	  XTread_socket_fake_io_error = 0;
+	  x_io_error_quitter (dpyinfo->display);
+	}
 
-			/* This is just so we only give real data once
-			   for a single Emacs process.  */
-			if (f == selected_frame)
-			  XSetCommand (FRAME_X_DISPLAY (f),
-				       event.xclient.window,
-				       initial_argv, initial_argc);
-			else
-			  XSetCommand (FRAME_X_DISPLAY (f),
-				       event.xclient.window,
-				       0, 0);
+      while (XPending (dpyinfo->display) != 0)
+	{
+	  XNextEvent (dpyinfo->display, &event);
+	  event_found = 1;
+
+	  switch (event.type)
+	    {
+	    case ClientMessage:
+	      {
+		if (event.xclient.message_type
+		    == dpyinfo->Xatom_wm_protocols
+		    && event.xclient.format == 32)
+		  {
+		    if (event.xclient.data.l[0]
+			== dpyinfo->Xatom_wm_take_focus)
+		      {
+			f = x_window_to_frame (event.xclient.window);
+			/* Since we set WM_TAKE_FOCUS, we must call
+			   XSetInputFocus explicitly.  But not if f is null,
+			   since that might be an event for a deleted frame.  */
+			if (f)
+			  XSetInputFocus (event.xclient.display,
+					  event.xclient.window,
+					  RevertToPointerRoot,
+					  event.xclient.data.l[1]);
+			/* Not certain about handling scroll bars here */
+		      }
+		    else if (event.xclient.data.l[0]
+			     == dpyinfo->Xatom_wm_save_yourself)
+		      {
+			/* Save state modify the WM_COMMAND property to
+			   something which can reinstate us. This notifies
+			   the session manager, who's looking for such a
+			   PropertyNotify.  Can restart processing when
+			   a keyboard or mouse event arrives. */
+			if (numchars > 0)
+			  {
+			    f = x_top_window_to_frame (event.xclient.window);
+
+			    /* This is just so we only give real data once
+			       for a single Emacs process.  */
+			    if (f == selected_frame)
+			      XSetCommand (FRAME_X_DISPLAY (f),
+					   event.xclient.window,
+					   initial_argv, initial_argc);
+			    else
+			      XSetCommand (FRAME_X_DISPLAY (f),
+					   event.xclient.window,
+					   0, 0);
+			  }
+		      }
+		    else if (event.xclient.data.l[0]
+			     == dpyinfo->Xatom_wm_delete_window)
+		      {
+			struct frame *f = x_any_window_to_frame (event.xclient.window);
+
+			if (f)
+			  {
+			    if (numchars == 0)
+			      abort ();
+
+			    bufp->kind = delete_window_event;
+			    XSETFRAME (bufp->frame_or_window, f);
+			    bufp++;
+
+			    count += 1;
+			    numchars -= 1;
+			  }
 		      }
 		  }
-		else if (event.xclient.data.l[0]
-			 == dpyinfo->Xatom_wm_delete_window)
+		else if (event.xclient.message_type
+			 == dpyinfo->Xatom_wm_configure_denied)
+		  {
+		  }
+		else if (event.xclient.message_type
+			 == dpyinfo->Xatom_wm_window_moved)
+		  {
+		    int new_x, new_y;
+		    struct frame *f = x_window_to_frame (event.xclient.window);
+
+		    new_x = event.xclient.data.s[0];
+		    new_y = event.xclient.data.s[1];
+
+		    if (f)
+		      {
+			f->display.x->left_pos = new_x;
+			f->display.x->top_pos = new_y;
+		      }
+		  }
+#if defined (USE_X_TOOLKIT) && defined (HAVE_X11R5)
+		else if (event.xclient.message_type
+			 == dpyinfo->Xatom_editres)
 		  {
 		    struct frame *f = x_any_window_to_frame (event.xclient.window);
-
-		    if (f)
-		      {
-			if (numchars == 0)
-			  abort ();
-
-			bufp->kind = delete_window_event;
-			XSETFRAME (bufp->frame_or_window, f);
-			bufp++;
-
-			count += 1;
-			numchars -= 1;
-		      }
+		    _XEditResCheckMessages (f->display.x->widget, NULL, &event, NULL);
 		  }
-	      }
-	    else if (event.xclient.message_type
-		     == dpyinfo->Xatom_wm_configure_denied)
-	      {
-	      }
-	    else if (event.xclient.message_type
-		     == dpyinfo->Xatom_wm_window_moved)
-	      {
-		int new_x, new_y;
-		struct frame *f = x_window_to_frame (event.xclient.window);
-
-		new_x = event.xclient.data.s[0];
-		new_y = event.xclient.data.s[1];
-
-		if (f)
-		  {
-		    f->display.x->left_pos = new_x;
-		    f->display.x->top_pos = new_y;
-		  }
-	      }
-#if defined (USE_X_TOOLKIT) && defined (HAVE_X11R5)
-	    else if (event.xclient.message_type
-		     == dpyinfo->Xatom_editres)
-	      {
-		struct frame *f = x_any_window_to_frame (event.xclient.window);
-		_XEditResCheckMessages (f->display.x->widget, NULL, &event, NULL);
-	      }
 #endif /* USE_X_TOOLKIT and HAVE_X11R5 */
-	  }
-	  break;
+	      }
+	      break;
 
-	case SelectionNotify:
+	    case SelectionNotify:
 #ifdef USE_X_TOOLKIT
-	  if (! x_window_to_frame (event.xselection.requestor))
-	    goto OTHER;
+	      if (! x_window_to_frame (event.xselection.requestor))
+		goto OTHER;
 #endif /* not USE_X_TOOLKIT */
-	  x_handle_selection_notify (&event);
-	  break;
+	      x_handle_selection_notify (&event);
+	      break;
 
-	case SelectionClear:	/* Someone has grabbed ownership. */
+	    case SelectionClear:	/* Someone has grabbed ownership. */
 #ifdef USE_X_TOOLKIT
-	  if (! x_window_to_frame (event.xselectionclear.window))
-	    goto OTHER;
+	      if (! x_window_to_frame (event.xselectionclear.window))
+		goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  {
-	    XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+	      {
+		XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
 
-	    if (numchars == 0)
-	      abort ();
+		if (numchars == 0)
+		  abort ();
 
-	    bufp->kind = selection_clear_event;
-	    SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
-	    SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
-	    SELECTION_EVENT_TIME (bufp) = eventp->time;
-	    bufp++;
+		bufp->kind = selection_clear_event;
+		SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+		SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+		SELECTION_EVENT_TIME (bufp) = eventp->time;
+		bufp++;
 
-	    count += 1;
-	    numchars -= 1;
-	  }
-	  break;
+		count += 1;
+		numchars -= 1;
+	      }
+	      break;
 
-	case SelectionRequest:	/* Someone wants our selection. */
+	    case SelectionRequest:	/* Someone wants our selection. */
 #ifdef USE_X_TOOLKIT
-	  if (!x_window_to_frame (event.xselectionrequest.owner))
-	    goto OTHER;
+	      if (!x_window_to_frame (event.xselectionrequest.owner))
+		goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  if (x_queue_selection_requests)
-	    x_queue_event (x_window_to_frame (event.xselectionrequest.owner),
-			   &event);
-	  else
-	    {
-	      XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
-
-	      if (numchars == 0)
-		abort ();
-
-	      bufp->kind = selection_request_event;
-	      SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
-	      SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
-	      SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
-	      SELECTION_EVENT_TARGET (bufp) = eventp->target;
-	      SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
-	      SELECTION_EVENT_TIME (bufp) = eventp->time;
-	      bufp++;
-
-	      count += 1;
-	      numchars -= 1;
-	    }
-	  break;
-
-	case PropertyNotify:
-#ifdef USE_X_TOOLKIT
-	  if (!x_any_window_to_frame (event.xproperty.window))
-	    goto OTHER;
-#endif /* not USE_X_TOOLKIT */
-	  x_handle_property_notify (&event);
-	  break;
-
-	case ReparentNotify:
-	  f = x_top_window_to_frame (event.xreparent.window);
-	  if (f)
-	    {
-	      int x, y;
-	      f->display.x->parent_desc = event.xreparent.parent;
-	      x_real_positions (f, &x, &y);
-	      f->display.x->left_pos = x;
-	      f->display.x->top_pos = y;
-	    }
-	  break;
-
-	case Expose:
-	  f = x_window_to_frame (event.xexpose.window);
-	  if (f)
-	    {
-	      if (f->async_visible == 0)
+	      if (x_queue_selection_requests)
+		x_queue_event (x_window_to_frame (event.xselectionrequest.owner),
+			       &event);
+	      else
 		{
-		  f->async_visible = 1;
-		  f->async_iconified = 0;
-		  SET_FRAME_GARBAGED (f);
+		  XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
+
+		  if (numchars == 0)
+		    abort ();
+
+		  bufp->kind = selection_request_event;
+		  SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+		  SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
+		  SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+		  SELECTION_EVENT_TARGET (bufp) = eventp->target;
+		  SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
+		  SELECTION_EVENT_TIME (bufp) = eventp->time;
+		  bufp++;
+
+		  count += 1;
+		  numchars -= 1;
+		}
+	      break;
+
+	    case PropertyNotify:
+#ifdef USE_X_TOOLKIT
+	      if (!x_any_window_to_frame (event.xproperty.window))
+		goto OTHER;
+#endif /* not USE_X_TOOLKIT */
+	      x_handle_property_notify (&event);
+	      break;
+
+	    case ReparentNotify:
+	      f = x_top_window_to_frame (event.xreparent.window);
+	      if (f)
+		{
+		  int x, y;
+		  f->display.x->parent_desc = event.xreparent.parent;
+		  x_real_positions (f, &x, &y);
+		  f->display.x->left_pos = x;
+		  f->display.x->top_pos = y;
+		}
+	      break;
+
+	    case Expose:
+	      f = x_window_to_frame (event.xexpose.window);
+	      if (f)
+		{
+		  if (f->async_visible == 0)
+		    {
+		      f->async_visible = 1;
+		      f->async_iconified = 0;
+		      SET_FRAME_GARBAGED (f);
+		    }
+		  else
+		    dumprectangle (x_window_to_frame (event.xexpose.window),
+				   event.xexpose.x, event.xexpose.y,
+				   event.xexpose.width, event.xexpose.height);
 		}
 	      else
-		dumprectangle (x_window_to_frame (event.xexpose.window),
-			       event.xexpose.x, event.xexpose.y,
-			       event.xexpose.width, event.xexpose.height);
-	    }
-	  else
-	    {
-	      struct scroll_bar *bar
-		= x_window_to_scroll_bar (event.xexpose.window);
+		{
+		  struct scroll_bar *bar
+		    = x_window_to_scroll_bar (event.xexpose.window);
 
-	      if (bar)
-	        x_scroll_bar_expose (bar, &event);
+		  if (bar)
+		    x_scroll_bar_expose (bar, &event);
+#ifdef USE_X_TOOLKIT
+		  else
+		    goto OTHER;
+#endif /* USE_X_TOOLKIT */
+		}
+	      break;
+
+	    case GraphicsExpose:	/* This occurs when an XCopyArea's
+				      source area was obscured or not
+				      available.*/
+	      f = x_window_to_frame (event.xgraphicsexpose.drawable);
+	      if (f)
+		{
+		  dumprectangle (f,
+				 event.xgraphicsexpose.x, event.xgraphicsexpose.y,
+				 event.xgraphicsexpose.width,
+				 event.xgraphicsexpose.height);
+		}
 #ifdef USE_X_TOOLKIT
 	      else
 		goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	    }
-	  break;
+	      break;
 
-	case GraphicsExpose:	/* This occurs when an XCopyArea's
-				  source area was obscured or not
-				  available.*/
-	  f = x_window_to_frame (event.xgraphicsexpose.drawable);
-	  if (f)
-	    {
-	      dumprectangle (f,
-			     event.xgraphicsexpose.x, event.xgraphicsexpose.y,
-			     event.xgraphicsexpose.width,
-			     event.xgraphicsexpose.height);
-	    }
-#ifdef USE_X_TOOLKIT
-	  else
-	    goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	  break;
+	    case NoExpose:		/* This occurs when an XCopyArea's
+				      source area was completely
+				      available */
+	      break;
 
-	case NoExpose:		/* This occurs when an XCopyArea's
-				  source area was completely
-				  available */
-	  break;
-
-	case UnmapNotify:
-	  f = x_any_window_to_frame (event.xunmap.window);
-	  if (f)		/* F may no longer exist if
-				   the frame was deleted.  */
-	    {
-	      /* While a frame is unmapped, display generation is
-		 disabled; you don't want to spend time updating a
-		 display that won't ever be seen.  */
-	      f->async_visible = 0;
-	      /* We can't distinguish, from the event, whether the window
-		 has become iconified or invisible.  So assume, if it
-		 was previously visible, than now it is iconified.
-		 We depend on x_make_frame_invisible to mark it iconified.  */
-	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
-		f->async_iconified = 1;
-	    }
-#ifdef USE_X_TOOLKIT
-	  goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	  break;
-
-	case MapNotify:
-	  /* We use x_top_window_to_frame because map events can come
-	     for subwindows and they don't mean that the frame is visible.  */
-	  f = x_top_window_to_frame (event.xmap.window);
-	  if (f)
-	    {
-	      f->async_visible = 1;
-	      f->async_iconified = 0;
-
-	      /* wait_reading_process_input will notice this and update
-		 the frame's display structures.  */
-	      SET_FRAME_GARBAGED (f);
-	    }
-#ifdef USE_X_TOOLKIT
-	  goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	  break;
-
-	  /* Turn off processing if we become fully obscured. */
-	case VisibilityNotify:
-	  break;
-
-	case KeyPress:
-	  f = x_any_window_to_frame (event.xkey.window);
-
-	  if (f != 0)
-	    {
-	      KeySym keysym, orig_keysym;
-	      /* al%imercury@uunet.uu.net says that making this 81 instead of
-		 80 fixed a bug whereby meta chars made his Emacs hang.  */
-	      unsigned char copy_buffer[81];
-	      int modifiers;
-
-	      event.xkey.state
-		|= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
-					   extra_keyboard_modifiers);
-	      modifiers = event.xkey.state;
-
-	      /* This will have to go some day...  */
-
-	      /* make_lispy_event turns chars into control chars.
-		 Don't do it here because XLookupString is too eager.  */
-	      event.xkey.state &= ~ControlMask;
-	      nbytes =
-		XLookupString (&event.xkey, copy_buffer, 80, &keysym,
-			       &compose_status);
-
-	      orig_keysym = keysym;
-
-	      if (numchars > 1)
+	    case UnmapNotify:
+	      f = x_any_window_to_frame (event.xunmap.window);
+	      if (f)		/* F may no longer exist if
+				       the frame was deleted.  */
 		{
-		  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
-		       || keysym == XK_Delete
-		       || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
-		       || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
+		  /* While a frame is unmapped, display generation is
+		     disabled; you don't want to spend time updating a
+		     display that won't ever be seen.  */
+		  f->async_visible = 0;
+		  /* We can't distinguish, from the event, whether the window
+		     has become iconified or invisible.  So assume, if it
+		     was previously visible, than now it is iconified.
+		     We depend on x_make_frame_invisible to mark it iconified.  */
+		  if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
+		    f->async_iconified = 1;
+		}
+#ifdef USE_X_TOOLKIT
+	      goto OTHER;
+#endif /* USE_X_TOOLKIT */
+	      break;
+
+	    case MapNotify:
+	      /* We use x_top_window_to_frame because map events can come
+		 for subwindows and they don't mean that the frame is visible.  */
+	      f = x_top_window_to_frame (event.xmap.window);
+	      if (f)
+		{
+		  f->async_visible = 1;
+		  f->async_iconified = 0;
+
+		  /* wait_reading_process_input will notice this and update
+		     the frame's display structures.  */
+		  SET_FRAME_GARBAGED (f);
+		}
+#ifdef USE_X_TOOLKIT
+	      goto OTHER;
+#endif /* USE_X_TOOLKIT */
+	      break;
+
+	      /* Turn off processing if we become fully obscured. */
+	    case VisibilityNotify:
+	      break;
+
+	    case KeyPress:
+	      f = x_any_window_to_frame (event.xkey.window);
+
+	      if (f != 0)
+		{
+		  KeySym keysym, orig_keysym;
+		  /* al%imercury@uunet.uu.net says that making this 81 instead of
+		     80 fixed a bug whereby meta chars made his Emacs hang.  */
+		  unsigned char copy_buffer[81];
+		  int modifiers;
+
+		  event.xkey.state
+		    |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
+					       extra_keyboard_modifiers);
+		  modifiers = event.xkey.state;
+
+		  /* This will have to go some day...  */
+
+		  /* make_lispy_event turns chars into control chars.
+		     Don't do it here because XLookupString is too eager.  */
+		  event.xkey.state &= ~ControlMask;
+		  nbytes =
+		    XLookupString (&event.xkey, copy_buffer, 80, &keysym,
+				   &compose_status);
+
+		  orig_keysym = keysym;
+
+		  if (numchars > 1)
+		    {
+		      if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
+			   || keysym == XK_Delete
+			   || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
+			   || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
 #ifdef HPUX
-		       /* This recognizes the "extended function keys".
-			  It seems there's no cleaner way.
-			  Test IsModifierKey to avoid handling mode_switch
-			  incorrectly.  */
-		       || ((unsigned) (keysym) >= XK_Select
-			   && (unsigned)(keysym) < XK_KP_Space)
+			   /* This recognizes the "extended function keys".
+			      It seems there's no cleaner way.
+			      Test IsModifierKey to avoid handling mode_switch
+			      incorrectly.  */
+			   || ((unsigned) (keysym) >= XK_Select
+			       && (unsigned)(keysym) < XK_KP_Space)
 #endif
 #ifdef XK_dead_circumflex
-		       || orig_keysym == XK_dead_circumflex
+			   || orig_keysym == XK_dead_circumflex
 #endif
 #ifdef XK_dead_grave
-		       || orig_keysym == XK_dead_grave
+			   || orig_keysym == XK_dead_grave
 #endif
 #ifdef XK_dead_tilde
-		       || orig_keysym == XK_dead_tilde
+			   || orig_keysym == XK_dead_tilde
 #endif
 #ifdef XK_dead_diaeresis
-		       || orig_keysym == XK_dead_diaeresis
+			   || orig_keysym == XK_dead_diaeresis
 #endif
 #ifdef XK_dead_macron
-		       || orig_keysym == XK_dead_macron
+			   || orig_keysym == XK_dead_macron
 #endif
 #ifdef XK_dead_degree
-		       || orig_keysym == XK_dead_degree
+			   || orig_keysym == XK_dead_degree
 #endif
 #ifdef XK_dead_acute
-		       || orig_keysym == XK_dead_acute
+			   || orig_keysym == XK_dead_acute
 #endif
 #ifdef XK_dead_cedilla
-		       || orig_keysym == XK_dead_cedilla
+			   || orig_keysym == XK_dead_cedilla
 #endif
 #ifdef XK_dead_breve
-		       || orig_keysym == XK_dead_breve
+			   || orig_keysym == XK_dead_breve
 #endif
 #ifdef XK_dead_ogonek
-		       || orig_keysym == XK_dead_ogonek
+			   || orig_keysym == XK_dead_ogonek
 #endif
 #ifdef XK_dead_caron
-		       || orig_keysym == XK_dead_caron
+			   || orig_keysym == XK_dead_caron
 #endif
 #ifdef XK_dead_doubleacute
-		       || orig_keysym == XK_dead_doubleacute
+			   || orig_keysym == XK_dead_doubleacute
 #endif
 #ifdef XK_dead_abovedot
-		       || orig_keysym == XK_dead_abovedot
+			   || orig_keysym == XK_dead_abovedot
 #endif
-		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
-		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
-		       /* Any "vendor-specific" key is ok.  */
-		       || (orig_keysym & (1 << 28)))
-		      && ! (IsModifierKey (orig_keysym)
+			   || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
+			   || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
+			   /* Any "vendor-specific" key is ok.  */
+			   || (orig_keysym & (1 << 28)))
+			  && ! (IsModifierKey (orig_keysym)
 #ifndef HAVE_X11R5
 #ifdef XK_Mode_switch
-			    || ((unsigned)(orig_keysym) == XK_Mode_switch)
+				|| ((unsigned)(orig_keysym) == XK_Mode_switch)
 #endif
 #ifdef XK_Num_Lock
-			    || ((unsigned)(orig_keysym) == XK_Num_Lock)
+				|| ((unsigned)(orig_keysym) == XK_Num_Lock)
 #endif
 #endif /* not HAVE_X11R5 */
-			    ))
-		    {
-		      if (temp_index == sizeof temp_buffer / sizeof (short))
-			temp_index = 0;
-		      temp_buffer[temp_index++] = keysym;
-		      bufp->kind = non_ascii_keystroke;
-		      bufp->code = keysym;
-		      XSETFRAME (bufp->frame_or_window, f);
-		      bufp->modifiers
-			= x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-						  modifiers);
-		      bufp->timestamp = event.xkey.time;
-		      bufp++;
-		      count++;
-		      numchars--;
-		    }
-		  else if (numchars > nbytes)
-		    {
-		      register int i;
-
-		      for (i = 0; i < nbytes; i++)
+				))
 			{
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
 			    temp_index = 0;
-			  temp_buffer[temp_index++] = copy_buffer[i];
-			  bufp->kind = ascii_keystroke;
-			  bufp->code = copy_buffer[i];
+			  temp_buffer[temp_index++] = keysym;
+			  bufp->kind = non_ascii_keystroke;
+			  bufp->code = keysym;
 			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->modifiers
 			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
 						      modifiers);
 			  bufp->timestamp = event.xkey.time;
 			  bufp++;
+			  count++;
+			  numchars--;
 			}
+		      else if (numchars > nbytes)
+			{
+			  register int i;
 
-		      count += nbytes;
-		      numchars -= nbytes;
+			  for (i = 0; i < nbytes; i++)
+			    {
+			      if (temp_index == sizeof temp_buffer / sizeof (short))
+				temp_index = 0;
+			      temp_buffer[temp_index++] = copy_buffer[i];
+			      bufp->kind = ascii_keystroke;
+			      bufp->code = copy_buffer[i];
+			      XSETFRAME (bufp->frame_or_window, f);
+			      bufp->modifiers
+				= x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+							  modifiers);
+			      bufp->timestamp = event.xkey.time;
+			      bufp++;
+			    }
+
+			  count += nbytes;
+			  numchars -= nbytes;
+			}
+		      else
+			abort ();
 		    }
 		  else
 		    abort ();
 		}
-	      else
-		abort ();
-	    }
-	  break;
+	      break;
 
-	  /* Here's a possible interpretation of the whole
-	     FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If you get a
-	     FocusIn event, you have to get a FocusOut event before you
-	     relinquish the focus.  If you haven't received a FocusIn event,
-	     then a mere LeaveNotify is enough to free you.  */
+	      /* Here's a possible interpretation of the whole
+		 FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If you get a
+		 FocusIn event, you have to get a FocusOut event before you
+		 relinquish the focus.  If you haven't received a FocusIn event,
+		 then a mere LeaveNotify is enough to free you.  */
 
-	case EnterNotify:
-	  f = x_any_window_to_frame (event.xcrossing.window);
+	    case EnterNotify:
+	      f = x_any_window_to_frame (event.xcrossing.window);
 
-	  if (event.xcrossing.focus)		/* Entered Window */
-	    {
-	      /* Avoid nasty pop/raise loops. */
-	      if (f && (!(f->auto_raise)
-			|| !(f->auto_lower)
-			|| (event.xcrossing.time - enter_timestamp) > 500))
+	      if (event.xcrossing.focus)		/* Entered Window */
 		{
-		  x_new_focus_frame (f);
-		  enter_timestamp = event.xcrossing.time;
+		  /* Avoid nasty pop/raise loops. */
+		  if (f && (!(f->auto_raise)
+			    || !(f->auto_lower)
+			    || (event.xcrossing.time - enter_timestamp) > 500))
+		    {
+		      x_new_focus_frame (f);
+		      enter_timestamp = event.xcrossing.time;
+		    }
 		}
-	    }
-	  else if (f == x_focus_frame)
-	    x_new_focus_frame (0);
-	  /* EnterNotify counts as mouse movement,
-	     so update things that depend on mouse position.  */
-	  if (f)
-	    note_mouse_movement (f, &event.xmotion);
+	      else if (f == x_focus_frame)
+		x_new_focus_frame (0);
+	      /* EnterNotify counts as mouse movement,
+		 so update things that depend on mouse position.  */
+	      if (f)
+		note_mouse_movement (f, &event.xmotion);
 #ifdef USE_X_TOOLKIT
-	  goto OTHER;
+	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  break;
+	      break;
 
-	case FocusIn:
-	  f = x_any_window_to_frame (event.xfocus.window);
-	  if (event.xfocus.detail != NotifyPointer)
-	    x_focus_event_frame = f;
-	  if (f)
-	    x_new_focus_frame (f);
+	    case FocusIn:
+	      f = x_any_window_to_frame (event.xfocus.window);
+	      if (event.xfocus.detail != NotifyPointer)
+		x_focus_event_frame = f;
+	      if (f)
+		x_new_focus_frame (f);
 #ifdef USE_X_TOOLKIT
-	  goto OTHER;
+	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  break;
+	      break;
 
 
-	case LeaveNotify:
-	  f = x_top_window_to_frame (event.xcrossing.window);
-	  if (f)
-	    {
-	      if (f == mouse_face_mouse_frame)
-		/* If we move outside the frame,
-		   then we're certainly no longer on any text in the frame.  */
-		clear_mouse_face ();
-
-	      if (event.xcrossing.focus)
+	    case LeaveNotify:
+	      f = x_top_window_to_frame (event.xcrossing.window);
+	      if (f)
 		{
-		  if (! x_focus_event_frame)
-		    x_new_focus_frame (0);
+		  if (f == dpyinfo->mouse_face_mouse_frame)
+		    /* If we move outside the frame,
+		       then we're certainly no longer on any text in the frame.  */
+		    clear_mouse_face (dpyinfo);
+
+		  if (event.xcrossing.focus)
+		    {
+		      if (! x_focus_event_frame)
+			x_new_focus_frame (0);
+		      else
+			x_new_focus_frame (f);
+		    }
 		  else
-		    x_new_focus_frame (f);
+		    {
+		      if (f == x_focus_event_frame)
+			x_focus_event_frame = 0;
+		      if (f == x_focus_frame)
+			x_new_focus_frame (0);
+		    }
 		}
-	      else
-		{
-		  if (f == x_focus_event_frame)
-		    x_focus_event_frame = 0;
-		  if (f == x_focus_frame)
-		    x_new_focus_frame (0);
-		}
-	    }
 #ifdef USE_X_TOOLKIT
-	  goto OTHER;
+	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  break;
+	      break;
 
-	case FocusOut:
-	  f = x_any_window_to_frame (event.xfocus.window);
-	  if (event.xfocus.detail != NotifyPointer
-	      && f == x_focus_event_frame)
-	    x_focus_event_frame = 0;
-	  if (f && f == x_focus_frame)
-	    x_new_focus_frame (0);
+	    case FocusOut:
+	      f = x_any_window_to_frame (event.xfocus.window);
+	      if (event.xfocus.detail != NotifyPointer
+		  && f == x_focus_event_frame)
+		x_focus_event_frame = 0;
+	      if (f && f == x_focus_frame)
+		x_new_focus_frame (0);
 #ifdef USE_X_TOOLKIT
-	  goto OTHER;
+	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  break;
+	      break;
 
-	case MotionNotify:
-	  {
-	    if (dpyinfo->grabbed && last_mouse_frame
-		&& FRAME_LIVE_P (last_mouse_frame))
-	      f = last_mouse_frame;
-	    else
-	      f = x_window_to_frame (event.xmotion.window);
-	    if (f)
-	      note_mouse_movement (f, &event.xmotion);
-	    else
+	    case MotionNotify:
 	      {
-		struct scroll_bar *bar
-		  = x_window_to_scroll_bar (event.xmotion.window);
+		if (dpyinfo->grabbed && last_mouse_frame
+		    && FRAME_LIVE_P (last_mouse_frame))
+		  f = last_mouse_frame;
+		else
+		  f = x_window_to_frame (event.xmotion.window);
+		if (f)
+		  note_mouse_movement (f, &event.xmotion);
+		else
+		  {
+		    struct scroll_bar *bar
+		      = x_window_to_scroll_bar (event.xmotion.window);
 
-		if (bar)
-		  x_scroll_bar_note_movement (bar, &event);
+		    if (bar)
+		      x_scroll_bar_note_movement (bar, &event);
 
-		/* If we move outside the frame,
-		   then we're certainly no longer on any text in the frame.  */
-		clear_mouse_face ();
+		    /* If we move outside the frame,
+		       then we're certainly no longer on any text in the frame.  */
+		    clear_mouse_face (dpyinfo);
+		  }
 	      }
-	  }
 #if 0 /* This should be unnecessary, since the toolkit has no use
-	 for motion events that happen outside of the menu event loop,
-	 and it seems to cause the bug that mouse events stop coming
-	 after a while.  */
+	     for motion events that happen outside of the menu event loop,
+	     and it seems to cause the bug that mouse events stop coming
+	     after a while.  */
 #ifdef USE_X_TOOLKIT
-	  goto OTHER;
+	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
 #endif
-	  break;
+	      break;
 
-	case ConfigureNotify:
-          f = x_any_window_to_frame (event.xconfigure.window);
+	    case ConfigureNotify:
+	      f = x_any_window_to_frame (event.xconfigure.window);
 #ifdef USE_X_TOOLKIT
-          if (f
+	      if (f
 #if 0
-              && ! event.xconfigure.send_event
+		  && ! event.xconfigure.send_event
 #endif
-              && (event.xconfigure.window == XtWindow (f->display.x->widget)))
-            {
-              Window win, child;
-              int win_x, win_y;
-
-              /* Find the position of the outside upper-left corner of
-                 the window, in the root coordinate system.  Don't
-                 refer to the parent window here; we may be processing
-                 this event after the window manager has changed our
-                 parent, but before we have reached the ReparentNotify.  */
-              XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                                     /* From-window, to-window.  */
-                                     XtWindow (f->display.x->widget),
-                                     FRAME_X_DISPLAY_INFO (f)->root_window,
-
-                                     /* From-position, to-position.  */
-                                     -event.xconfigure.border_width,
-                                     -event.xconfigure.border_width,
-                                     &win_x, &win_y,
-
-                                     /* Child of win.  */
-                                     &child);
-              event.xconfigure.x = win_x;
-              event.xconfigure.y = win_y;
-
-              f->display.x->pixel_width = event.xconfigure.width;
-              f->display.x->pixel_height = event.xconfigure.height;
-              f->display.x->left_pos = event.xconfigure.x;
-              f->display.x->top_pos = event.xconfigure.y;
-
-	      /* What we have now is the position of Emacs's own window.
-		 Convert that to the position of the window manager window.  */
-	      {
-		int x, y;
-		x_real_positions (f, &x, &y);
-		f->display.x->left_pos = x;
-		f->display.x->top_pos = y;
-	      }
-            }
-          goto OTHER;
-#else /* not USE_X_TOOLKIT */
-	  if (f)
-	    {
-	      int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
-	      int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
-
-	      /* Even if the number of character rows and columns has
-		 not changed, the font size may have changed, so we need
-		 to check the pixel dimensions as well.  */
-	      if (columns != f->width
-		  || rows != f->height
-		  || event.xconfigure.width != f->display.x->pixel_width
-		  || event.xconfigure.height != f->display.x->pixel_height)
-		{
-		  change_frame_size (f, rows, columns, 0, 1);
-		  SET_FRAME_GARBAGED (f);
-		}
-
-	      if (! event.xconfigure.send_event)
+		  && (event.xconfigure.window == XtWindow (f->display.x->widget)))
 		{
 		  Window win, child;
 		  int win_x, win_y;
@@ -3843,7 +3768,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 					 /* From-window, to-window.  */
-					 f->display.x->window_desc,
+					 XtWindow (f->display.x->widget),
 					 FRAME_X_DISPLAY_INFO (f)->root_window,
 
 					 /* From-position, to-position.  */
@@ -3855,119 +3780,179 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 					 &child);
 		  event.xconfigure.x = win_x;
 		  event.xconfigure.y = win_y;
-		}
 
-	      f->display.x->pixel_width = event.xconfigure.width;
-	      f->display.x->pixel_height = event.xconfigure.height;
-	      f->display.x->left_pos = event.xconfigure.x;
-	      f->display.x->top_pos = event.xconfigure.y;
+		  f->display.x->pixel_width = event.xconfigure.width;
+		  f->display.x->pixel_height = event.xconfigure.height;
+		  f->display.x->left_pos = event.xconfigure.x;
+		  f->display.x->top_pos = event.xconfigure.y;
 
-	      /* What we have now is the position of Emacs's own window.
-		 Convert that to the position of the window manager window.  */
-	      {
-		int x, y;
-		x_real_positions (f, &x, &y);
-		f->display.x->left_pos = x;
-		f->display.x->top_pos = y;
-		if (y != event.xconfigure.y)
+		  /* What we have now is the position of Emacs's own window.
+		     Convert that to the position of the window manager window.  */
 		  {
-		    /* Since the WM decorations come below top_pos now,
-		       we must put them below top_pos in the future.  */
-		    f->display.x->win_gravity = NorthWestGravity;
-		    x_wm_set_size_hint (f, 0, 0);
+		    int x, y;
+		    x_real_positions (f, &x, &y);
+		    f->display.x->left_pos = x;
+		    f->display.x->top_pos = y;
 		  }
-	      }
-	    }
+		}
+	      goto OTHER;
+#else /* not USE_X_TOOLKIT */
+	      if (f)
+		{
+		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
+		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
+
+		  /* Even if the number of character rows and columns has
+		     not changed, the font size may have changed, so we need
+		     to check the pixel dimensions as well.  */
+		  if (columns != f->width
+		      || rows != f->height
+		      || event.xconfigure.width != f->display.x->pixel_width
+		      || event.xconfigure.height != f->display.x->pixel_height)
+		    {
+		      change_frame_size (f, rows, columns, 0, 1);
+		      SET_FRAME_GARBAGED (f);
+		    }
+
+		  if (! event.xconfigure.send_event)
+		    {
+		      Window win, child;
+		      int win_x, win_y;
+
+		      /* Find the position of the outside upper-left corner of
+			 the window, in the root coordinate system.  Don't
+			 refer to the parent window here; we may be processing
+			 this event after the window manager has changed our
+			 parent, but before we have reached the ReparentNotify.  */
+		      XTranslateCoordinates (FRAME_X_DISPLAY (f),
+
+					     /* From-window, to-window.  */
+					     f->display.x->window_desc,
+					     FRAME_X_DISPLAY_INFO (f)->root_window,
+
+					     /* From-position, to-position.  */
+					     -event.xconfigure.border_width,
+					     -event.xconfigure.border_width,
+					     &win_x, &win_y,
+
+					     /* Child of win.  */
+					     &child);
+		      event.xconfigure.x = win_x;
+		      event.xconfigure.y = win_y;
+		    }
+
+		  f->display.x->pixel_width = event.xconfigure.width;
+		  f->display.x->pixel_height = event.xconfigure.height;
+		  f->display.x->left_pos = event.xconfigure.x;
+		  f->display.x->top_pos = event.xconfigure.y;
+
+		  /* What we have now is the position of Emacs's own window.
+		     Convert that to the position of the window manager window.  */
+		  {
+		    int x, y;
+		    x_real_positions (f, &x, &y);
+		    f->display.x->left_pos = x;
+		    f->display.x->top_pos = y;
+		    if (y != event.xconfigure.y)
+		      {
+			/* Since the WM decorations come below top_pos now,
+			   we must put them below top_pos in the future.  */
+			f->display.x->win_gravity = NorthWestGravity;
+			x_wm_set_size_hint (f, 0, 0);
+		      }
+		  }
+		}
 #endif /* not USE_X_TOOLKIT */
-	  break;
+	      break;
 
-	case ButtonPress:
-	case ButtonRelease:
-	  {
-	    /* If we decide we want to generate an event to be seen
-	       by the rest of Emacs, we put it here.  */
-	    struct input_event emacs_event;
-	    emacs_event.kind = no_event;
-
-	    bzero (&compose_status, sizeof (compose_status));
-
-	    f = x_window_to_frame (event.xbutton.window);
-	    if (f)
+	    case ButtonPress:
+	    case ButtonRelease:
 	      {
-		if (!x_focus_frame || (f == x_focus_frame))
-		  construct_mouse_click (&emacs_event, &event, f);
-	      }
-	    else
-	      {
-		struct scroll_bar *bar
-		  = x_window_to_scroll_bar (event.xbutton.window);
+		/* If we decide we want to generate an event to be seen
+		   by the rest of Emacs, we put it here.  */
+		struct input_event emacs_event;
+		emacs_event.kind = no_event;
 
-		if (bar)
-		  x_scroll_bar_handle_click (bar, &event, &emacs_event);
-#ifdef USE_X_TOOLKIT
+		bzero (&compose_status, sizeof (compose_status));
+
+		f = x_window_to_frame (event.xbutton.window);
+		if (f)
+		  {
+		    if (!x_focus_frame || (f == x_focus_frame))
+		      construct_mouse_click (&emacs_event, &event, f);
+		  }
 		else
 		  {
-		    /* Assume we have a menubar button press. A bad
-                       assumption should behave benignly. */
-		    popup_get_selection (&event);
-		    break;
+		    struct scroll_bar *bar
+		      = x_window_to_scroll_bar (event.xbutton.window);
+
+		    if (bar)
+		      x_scroll_bar_handle_click (bar, &event, &emacs_event);
+#ifdef USE_X_TOOLKIT
+		    else
+		      {
+			/* Assume we have a menubar button press. A bad
+			   assumption should behave benignly. */
+			popup_get_selection (&event);
+			break;
+		      }
+#endif /* USE_X_TOOLKIT */
 		  }
-#endif /* USE_X_TOOLKIT */
-	      }
 
-	    if (event.type == ButtonPress)
-	      {
-		dpyinfo->grabbed |= (1 << event.xbutton.button);
-		last_mouse_frame = f;
-	      }
-	    else
-	      {
-		dpyinfo->grabbed &= ~(1 << event.xbutton.button);
-	      }
+		if (event.type == ButtonPress)
+		  {
+		    dpyinfo->grabbed |= (1 << event.xbutton.button);
+		    last_mouse_frame = f;
+		  }
+		else
+		  {
+		    dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+		  }
 
-	    if (numchars >= 1 && emacs_event.kind != no_event)
-	      {
-		bcopy (&emacs_event, bufp, sizeof (struct input_event));
-		bufp++;
-		count++;
-		numchars--;
-	      }
+		if (numchars >= 1 && emacs_event.kind != no_event)
+		  {
+		    bcopy (&emacs_event, bufp, sizeof (struct input_event));
+		    bufp++;
+		    count++;
+		    numchars--;
+		  }
 
 #ifdef USE_X_TOOLKIT
-	    goto OTHER;
+		goto OTHER;
 #endif /* USE_X_TOOLKIT */
-	  }
-	  break;
+	      }
+	      break;
 
-	case CirculateNotify:
-	  break;
-	case CirculateRequest:
-	  break;
+	    case CirculateNotify:
+	      break;
+	    case CirculateRequest:
+	      break;
 
-	case MappingNotify:
-	  /* Someone has changed the keyboard mapping - update the
-	     local cache.  */
-	  switch (event.xmapping.request)
-	    {
-	    case MappingModifier:
-	      x_find_modifier_meanings (dpyinfo);
-	      /* This is meant to fall through.  */
-	    case MappingKeyboard:
-	      XRefreshKeyboardMapping (&event.xmapping);
+	    case MappingNotify:
+	      /* Someone has changed the keyboard mapping - update the
+		 local cache.  */
+	      switch (event.xmapping.request)
+		{
+		case MappingModifier:
+		  x_find_modifier_meanings (dpyinfo);
+		  /* This is meant to fall through.  */
+		case MappingKeyboard:
+		  XRefreshKeyboardMapping (&event.xmapping);
+		}
+#ifdef USE_X_TOOLKIT
+	      goto OTHER;
+#endif /* USE_X_TOOLKIT */
+	      break;
+
+	    default:
+#ifdef USE_X_TOOLKIT
+	    OTHER:
+	      BLOCK_INPUT;
+	      XtDispatchEvent (&event);
+	      UNBLOCK_INPUT;
+#endif /* USE_X_TOOLKIT */
+	      break;
 	    }
-#ifdef USE_X_TOOLKIT
-	  goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	  break;
-
-	default:
-#ifdef USE_X_TOOLKIT
-	OTHER:
-	  BLOCK_INPUT;
-	  XtDispatchEvent (&event);
-	  UNBLOCK_INPUT;
-#endif /* USE_X_TOOLKIT */
-	  break;
 	}
     }
 
@@ -3982,7 +3967,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
       if (x_noop_count >= 100)
 	{
 	  x_noop_count=0;
-	  XNoOp (dpyinfo->display);
+	  /* Use the first display in the list.  Why not?  */
+	  XNoOp (x_display_list->display);
 	}
     }
 
@@ -4015,6 +4001,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
   /* If the focus was just given to an autoraising frame,
      raise it now.  */
+  /* ??? This ought to be able to handle more than one such frame.  */
   if (pending_autoraise_frame)
     {
       x_raise_frame (pending_autoraise_frame);
@@ -4189,15 +4176,15 @@ x_display_box_cursor (f, on)
 
       /* If the cursor is in the mouse face area, redisplay that when
 	 we clear the cursor.  */
-      if (f == mouse_face_mouse_frame
+      if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame
 	  &&
-	  (f->phys_cursor_y > mouse_face_beg_row
-	   || (f->phys_cursor_y == mouse_face_beg_row
-	       && f->phys_cursor_x >= mouse_face_beg_col))
+	  (f->phys_cursor_y > FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
+	   || (f->phys_cursor_y == FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
+	       && f->phys_cursor_x >= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col))
 	  &&
-	  (f->phys_cursor_y < mouse_face_end_row
-	   || (f->phys_cursor_y == mouse_face_end_row
-	       && f->phys_cursor_x < mouse_face_end_col)))
+	  (f->phys_cursor_y < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
+	   || (f->phys_cursor_y == FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
+	       && f->phys_cursor_x < FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col)))
 	mouse_face_here = 1;
 
       /* If the font is not as tall as a whole line,
@@ -4353,65 +4340,91 @@ x_text_icon (f, icon_name)
 
 /* Handling X errors.  */
 
-/* Shut down Emacs in an orderly fashion, because of a SIGPIPE on the
-   X server's connection, or an error reported via the X protocol.  */
+/* Handle the loss of connection to display DISPLAY.  */
 
 static SIGTYPE
-x_connection_closed ()
+x_connection_closed (display, error_message)
+     Display *display;
+     char *error_message;
 {
+  struct x_display_info *dpyinfo = x_display_info_for_display (display);
+  Lisp_Object frame, tail;
+
   if (_Xdebug)
     abort ();
 
-  shut_down_emacs (0, 1, Qnil);
+  /* First delete frames whose minibuffers are on frames
+     that are on the dead display.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      Lisp_Object minibuf_frame;
+      minibuf_frame
+	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
+      if (! EQ (frame, minibuf_frame)
+	  && FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+	Fdelete_frame (frame, Qt);
+    }
 
-  exit (70);
+  /* Now delete all remaining frames on the dead display.
+     We are now sure none of these is used as the minibuffer
+     for another frame that we need to delete.  */
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+      Fdelete_frame (frame, Qt);
+
+  x_delete_display (dpyinfo);
+
+  if (x_display_list == 0)
+    {
+      fprintf (stderr, "%s", error_message);
+      shut_down_emacs (0, 0, Qnil);
+      exit (70);
+    }
+
+  /* Ordinary stack unwind doesn't deal with these.  */
+#ifdef SIGIO
+  sigunblock (sigmask (SIGIO));
+#endif
+  sigunblock (sigmask (SIGALRM));
+  TOTALLY_UNBLOCK_INPUT;
+
+  error ("%s", error_message);
 }
 
-/* An X error handler which prints an error message and then kills
-   Emacs.  This is what's normally installed as Xlib's handler for
-   protocol errors.  */
+/* This is the usual handler for X protocol errors.
+   It kills all frames on the display that we got the error for.
+   If that was the only one, it prints an error message and kills Emacs.  */
+
 static int
 x_error_quitter (display, error)
      Display *display;
      XErrorEvent *error;
 {
-  char buf[256];
+  char buf[256], buf1[356];
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
 
   XGetErrorText (display, error->error_code, buf, sizeof (buf));
-  fprintf (stderr, "X protocol error: %s on protocol request %d\n",
+  sprintf (buf1, "X protocol error: %s on protocol request %d",
 	   buf, error->request_code);
-
-#if 0
-  /* While we're testing Emacs 19, we'll just dump core whenever we
-     get an X error, so we can figure out why it happened.  */
-  abort ();
-#endif
-
-  x_connection_closed ();
+  x_connection_closed (display, buf1);
 }
 
-/* A handler for X IO errors which prints an error message and then
-   kills Emacs.  This is what is always installed as Xlib's handler
-   for I/O errors.  */
+/* This is the handler for X IO errors, always.
+   It kills all frames on the display that we lost touch with.
+   If that was the only one, it prints an error message and kills Emacs.  */
+
 static int
 x_io_error_quitter (display)
      Display *display;
 {
-  fprintf (stderr, "Connection to X server %s lost.\n",
-	   XDisplayName (DisplayString (display)));
+  char buf[256];
 
-#if 0
-  /* While we're testing Emacs 19, we'll just dump core whenever we
-     get an X error, so we can figure out why it happened.  */
-  abort ();
-#endif
-
-  x_connection_closed ();
+  sprintf (buf, "Connection lost to X server `%s'", DisplayString (display));
+  x_connection_closed (display, buf);
 }
-
+
 /* A buffer for storing X error messages.  */
 static char *x_caught_error_message;
 #define X_CAUGHT_ERROR_MESSAGE_SIZE 200
@@ -4419,6 +4432,7 @@ static char *x_caught_error_message;
 /* An X error handler which stores the error message in
    x_caught_error_message.  This is what's installed when
    x_catch_errors is in effect.  */
+
 static int
 x_error_catcher (display, error)
      Display *display;
@@ -4429,9 +4443,9 @@ x_error_catcher (display, error)
 }
 
 
-/* Begin trapping X errors for frame F.
-   Actually we trap X errors for all frames, but F should be the frame
-   you are actually operating on.
+/* Begin trapping X errors for display DPY.  Actually we trap X errors
+   for all displays, but DPY should be the display you are actually
+   operating on.
 
    After calling this function, X protocol errors no longer cause
    Emacs to exit; instead, they are recorded in x_cfc_error_message.
@@ -4444,11 +4458,11 @@ x_error_catcher (display, error)
 void x_catch_errors (), x_check_errors (), x_uncatch_errors ();
 
 void
-x_catch_errors (f)
-     FRAME_PTR f;
+x_catch_errors (dpy)
+     Display *dpy;
 {
   /* Make sure any errors from previous requests have been dealt with.  */
-  XSync (FRAME_X_DISPLAY (f), False);
+  XSync (dpy, False);
 
   /* Set up the error buffer.  */
   x_caught_error_message
@@ -4464,19 +4478,19 @@ x_catch_errors (f)
    sprintf (a buffer, FORMAT, the x error message text) as the text.  */
 
 void
-x_check_errors (f, format)
-     FRAME_PTR f;
+x_check_errors (dpy, format)
+     Display *dpy;
      char *format;
 {
   /* Make sure to catch any errors incurred so far.  */
-  XSync (FRAME_X_DISPLAY (f), False);
+  XSync (dpy, False);
 
   if (x_caught_error_message[0])
     {
       char buf[X_CAUGHT_ERROR_MESSAGE_SIZE + 56];
 
       sprintf (buf, format, x_caught_error_message);
-      x_uncatch_errors (f);
+      x_uncatch_errors (dpy);
       error (buf);
     }
 }
@@ -4484,11 +4498,11 @@ x_check_errors (f, format)
 /* Nonzero if we had any X protocol errors since we did x_catch_errors.  */
 
 int
-x_had_errors_p (f)
-     FRAME_PTR f;
+x_had_errors_p (dpy)
+     Display *dpy;
 {
   /* Make sure to catch any errors incurred so far.  */
-  XSync (FRAME_X_DISPLAY (f), False);
+  XSync (dpy, False);
 
   return x_caught_error_message[0] != 0;
 }
@@ -4496,8 +4510,8 @@ x_had_errors_p (f)
 /* Stop catching X protocol errors and let them make Emacs die.  */
 
 void
-x_uncatch_errors (f)
-     FRAME_PTR f;
+x_uncatch_errors (dpy)
+     Display *dpy;
 {
   xfree (x_caught_error_message);
   x_caught_error_message = 0;
@@ -4514,28 +4528,6 @@ x_trace_wire ()
 
 
 /* Changing the font of the frame.  */
-
-/* Set the font of the x-window specified by frame F
-   to the font named NEWNAME.  This is safe to use
-   even before F has an actual x-window.  */
-
-struct font_info
-{
-  XFontStruct *font;
-  char *name;
-  char *full_name;
-};
-
-/* A table of all the fonts we have already loaded.  */
-static struct font_info *x_font_table;
-
-/* The current capacity of x_font_table.  */
-static int x_font_table_size;
-
-/* The number of fonts actually stored in x_font_table.
-   x_font_table[n] is used and valid iff 0 <= n < n_fonts.
-   0 <= n_fonts <= x_font_table_size.  */
-static int n_fonts;
 
 /* Give frame F the font named FONTNAME as its default font, and
    return the full name of that font.  FONTNAME may be a wildcard
@@ -4572,13 +4564,13 @@ x_new_font (f, fontname)
     {
       int i, j;
 
-      for (i = 0; i < n_fonts; i++)
+      for (i = 0; i < FRAME_X_DISPLAY_INFO (f)->n_fonts; i++)
 	for (j = 0; j < n_matching_fonts; j++)
-	  if (!strcmp (x_font_table[i].name, font_names[j])
-	      || !strcmp (x_font_table[i].full_name, font_names[j]))
+	  if (!strcmp (FRAME_X_DISPLAY_INFO (f)->font_table[i].name, font_names[j])
+	      || !strcmp (FRAME_X_DISPLAY_INFO (f)->font_table[i].full_name, font_names[j]))
 	    {
 	      already_loaded = i;
-	      fontname = x_font_table[i].full_name;
+	      fontname = FRAME_X_DISPLAY_INFO (f)->font_table[i].full_name;
 	      goto found_font;
 	    }
     }
@@ -4586,13 +4578,14 @@ x_new_font (f, fontname)
 
   /* If we have, just return it from the table.  */
   if (already_loaded >= 0)
-    f->display.x->font = x_font_table[already_loaded].font;
+    f->display.x->font = FRAME_X_DISPLAY_INFO (f)->font_table[already_loaded].font;
   /* Otherwise, load the font and add it to the table.  */
   else
     {
       int i;
       char *full_name;
       XFontStruct *font;
+      int n_fonts;
 
       /* Try to find a character-cell font in the list.  */
 #if 0
@@ -4618,21 +4611,22 @@ x_new_font (f, fontname)
 	}
 
       /* Do we need to create the table?  */
-      if (x_font_table_size == 0)
+      if (FRAME_X_DISPLAY_INFO (f)->font_table_size == 0)
 	{
-	  x_font_table_size = 16;
-	  x_font_table
-	    = (struct font_info *) xmalloc (x_font_table_size
-					    * sizeof (x_font_table[0]));
+	  FRAME_X_DISPLAY_INFO (f)->font_table_size = 16;
+	  FRAME_X_DISPLAY_INFO (f)->font_table
+	    = (struct font_info *) xmalloc (FRAME_X_DISPLAY_INFO (f)->font_table_size
+					    * sizeof (struct font_info));
 	}
       /* Do we need to grow the table?  */
-      else if (n_fonts >= x_font_table_size)
+      else if (FRAME_X_DISPLAY_INFO (f)->n_fonts
+	       >= FRAME_X_DISPLAY_INFO (f)->font_table_size)
 	{
-	  x_font_table_size *= 2;
-	  x_font_table
-	    = (struct font_info *) xrealloc (x_font_table,
-					     (x_font_table_size
-					      * sizeof (x_font_table[0])));
+	  FRAME_X_DISPLAY_INFO (f)->font_table_size *= 2;
+	  FRAME_X_DISPLAY_INFO (f)->font_table
+	    = (struct font_info *) xrealloc (FRAME_X_DISPLAY_INFO (f)->font_table,
+					     (FRAME_X_DISPLAY_INFO (f)->font_table_size
+					      * sizeof (struct font_info)));
 	}
 
       /* Try to get the full name of FONT.  Put it in full_name.  */
@@ -4669,13 +4663,15 @@ x_new_font (f, fontname)
 	  XFree (atom);
 	}
 
-      x_font_table[n_fonts].name = (char *) xmalloc (strlen (fontname) + 1);
-      bcopy (fontname, x_font_table[n_fonts].name, strlen (fontname) + 1);
+      n_fonts = FRAME_X_DISPLAY_INFO (f)->n_fonts;
+      FRAME_X_DISPLAY_INFO (f)->font_table[n_fonts].name = (char *) xmalloc (strlen (fontname) + 1);
+      bcopy (fontname, FRAME_X_DISPLAY_INFO (f)->font_table[n_fonts].name, strlen (fontname) + 1);
       if (full_name != 0)
-	x_font_table[n_fonts].full_name = full_name;
+	FRAME_X_DISPLAY_INFO (f)->font_table[n_fonts].full_name = full_name;
       else
-	x_font_table[n_fonts].full_name = x_font_table[n_fonts].name;
-      f->display.x->font = x_font_table[n_fonts++].font = font;
+	FRAME_X_DISPLAY_INFO (f)->font_table[n_fonts].full_name = FRAME_X_DISPLAY_INFO (f)->font_table[n_fonts].name;
+      f->display.x->font = FRAME_X_DISPLAY_INFO (f)->font_table[n_fonts].font = font;
+      FRAME_X_DISPLAY_INFO (f)->n_fonts++;
 
       if (full_name)
 	fontname = full_name;
@@ -5295,11 +5291,13 @@ x_destroy_window (f)
   if (f == x_highlight_frame)
     x_highlight_frame = 0;
 
-  if (f == mouse_face_mouse_frame)
+  if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
-      mouse_face_beg_row = mouse_face_beg_col = -1;
-      mouse_face_end_row = mouse_face_end_col = -1;
-      mouse_face_window = Qnil;
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
+	= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col = -1;
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
+	= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col = -1;
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_window = Qnil;
     }
 
   UNBLOCK_INPUT;
@@ -5463,7 +5461,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 
   if (pixmap_id > 0)
     {
-      Pixmap icon_pixmap = x_lookup_pixmap (pixmap_id);
+      Pixmap icon_pixmap = x_bitmap_pixmap (f, pixmap_id);
       f->display.x->wm_hints.icon_pixmap = icon_pixmap;
       f->display.x->wm_hints.flags |= IconPixmapHint;
     }
@@ -5515,6 +5513,8 @@ static XrmOptionDescRec emacs_options[] = {
 };
 #endif /* USE_X_TOOLKIT */
 
+static int x_initialized;
+
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -5526,26 +5526,15 @@ x_term_init (display_name, xrm_option, resource_name)
   int argc = 0;
   char** argv = 0;
   int connection;
+  Display *dpy;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
 
-#ifndef F_SETOWN_BUG
-#ifdef F_SETOWN
-  extern int old_fcntl_owner;
-#endif /* ! defined (F_SETOWN) */
-#endif /* F_SETOWN_BUG */
-
-  dpyinfo = &the_x_screen;
-
-  /* Put our one and only display on the chain.  */
-  x_display_list = dpyinfo;
-  dpyinfo->next = 0;
-
-  dpyinfo->name = display_name;
-
-  x_noop_count = 0;
-
-  x_focus_frame = x_highlight_frame = 0;
+  if (!x_initialized)
+    {
+      x_initialize ();
+      x_initialized = 1;
+    }
 
 #ifdef USE_X_TOOLKIT
 #ifdef HAVE_X11R5
@@ -5570,43 +5559,51 @@ x_term_init (display_name, xrm_option, resource_name)
 				  &argc, argv,
 				  NULL, NULL, 0);
   XtFree ((char *)argv);
-  dpyinfo->display = XtDisplay (Xt_app_shell);
+  dpy = XtDisplay (Xt_app_shell);
 
 #else /* not USE_X_TOOLKIT */
 #ifdef HAVE_X11R5
   XSetLocaleModifiers ("");
 #endif
-  dpyinfo->display = XOpenDisplay (XSTRING (display_name)->data);
+  dpy = XOpenDisplay (XSTRING (display_name)->data);
 #endif /* not USE_X_TOOLKIT */
 
-  if (dpyinfo->display == 0)
-    fatal ("X server %s not responding.\n\
-Check the DISPLAY environment variable or use \"-d\"\n",
-	   XSTRING (display_name)->data);
+  /* Detect failure.  */
+  if (dpy == 0)
+    return 0;
 
-  {
+  /* We have definitely succeeded.  Record the new connection.  */
+
+  dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
+
+  /* Put this display on the chain.  */
+  dpyinfo->next = x_display_list;
+  x_display_list = dpyinfo;
+
+  /* Put it on x_display_name_list as well, to keep them parallel.  */ 
+  x_display_name_list = Fcons (Fcons (display_name, Qnil),
+			       x_display_name_list);
+  dpyinfo->name_list_element = XCONS (x_display_name_list)->car;
+
+  dpyinfo->display = dpy;
+
 #if 0
-    XSetAfterFunction (x_current_display, x_trace_wire);
+  XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
-    x_id_name = (char *) xmalloc (XSTRING (Vinvocation_name)->size
-				+ XSTRING (Vsystem_name)->size
-				+ 2);
-    sprintf (x_id_name, "%s@%s",
-	     XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
-  }
+
+  dpyinfo->x_id_name
+    = (char *) xmalloc (XSTRING (Vinvocation_name)->size
+			+ XSTRING (Vsystem_name)->size
+			+ 2);
+  sprintf (dpyinfo->x_id_name, "%s@%s",
+	   XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);
 
   /* Get the scroll bar cursor.  */
-  x_vertical_scroll_bar_cursor
+  dpyinfo->vertical_scroll_bar_cursor
     = XCreateFontCursor (dpyinfo->display, XC_sb_v_double_arrow);
-
-#if 0
-  /* Watch for PropertyNotify events on the root window; we use them
-     to figure out when to invalidate our cache of the cut buffers.  */
-  x_watch_cut_buffer_cache ();
-#endif
 
   xrdb = x_load_resources (dpyinfo->display, xrm_option,
 			   resource_name, EMACS_CLASS);
@@ -5615,6 +5612,9 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 #else
   dpyinfo->display->db = xrdb;
 #endif
+  /* Put thr rdb where we can find it in a way that works on
+     all versions.  */
+  dpyinfo->xrdb = xrdb;
 
   dpyinfo->screen = ScreenOfDisplay (dpyinfo->display,
 				     DefaultScreen (dpyinfo->display));
@@ -5626,6 +5626,20 @@ Check the DISPLAY environment variable or use \"-d\"\n",
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
   dpyinfo->icon_bitmap_id = -1;
+  dpyinfo->n_fonts = 0;
+  dpyinfo->font_table_size = 0;
+  dpyinfo->bitmaps = 0;
+  dpyinfo->bitmaps_size = 0;
+  dpyinfo->bitmaps_last = 0;
+  dpyinfo->scratch_cursor_gc = 0;
+  dpyinfo->mouse_face_mouse_frame = 0;
+  dpyinfo->mouse_face_deferred_gc = 0;
+  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+  dpyinfo->mouse_face_face_id = 0;
+  dpyinfo->mouse_face_window = Qnil;
+  dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
+  dpyinfo->mouse_face_defer = 0;
 
   dpyinfo->Xatom_wm_protocols
     = XInternAtom (dpyinfo->display, "WM_PROTOCOLS", False);
@@ -5670,13 +5684,11 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 #ifdef subprocesses
   /* This is only needed for distinguishing keyboard and process input.  */
   if (connection != 0)
-    change_keyboard_wait_descriptor (connection);
+    add_keyboard_wait_descriptor (connection);
 #endif
-  change_input_fd (connection);
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
-  old_fcntl_owner = fcntl (connection, F_GETOWN, 0);
 #ifdef F_SETOWN_SOCK_NEG
   /* stdin is a socket here */
   fcntl (connection, F_SETOWN, -getpid ());
@@ -5687,11 +5699,63 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 #endif /* F_SETOWN_BUG */
 
 #ifdef SIGIO
-  init_sigio ();
+  init_sigio (connection);
 #endif /* ! defined (SIGIO) */
 
-  expose_all_windows = 0;
+  return dpyinfo;
+}
+
+/* Get rid of display DPYINFO, assuming all frames are already gone,
+   and without sending any more commands to the X server.  */
 
+void
+x_delete_display (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+  delete_keyboard_wait_descriptor (dpyinfo->connection);
+
+  /* Discard this display from x_display_name_list and x_display_list.
+     We can't use Fdelq because that can quit.  */
+  if (! NILP (x_display_name_list)
+      && EQ (XCONS (x_display_name_list)->car, dpyinfo->name_list_element))
+    x_display_name_list = XCONS (x_display_name_list)->cdr;
+  else
+    {
+      Lisp_Object tail;
+
+      tail = x_display_name_list;
+      while (CONSP (tail) && CONSP (XCONS (tail)->cdr))
+	{
+	  if (EQ (XCONS (XCONS (tail)->cdr)->car,
+		  dpyinfo->name_list_element))
+	    {
+	      XCONS (tail)->cdr = XCONS (XCONS (tail)->cdr)->cdr;
+	      break;
+	    }
+	  tail = XCONS (tail)->cdr;
+	}
+    }
+
+  if (x_display_list == dpyinfo)
+    x_display_list = dpyinfo->next;
+  {
+    struct x_display_info *tail;
+
+    for (tail = x_display_list; tail; tail = tail->next)
+      if (tail->next == dpyinfo)
+	tail->next = tail->next->next;
+  }
+
+  /* ??? Should free the xrdb slot somehow?  */
+  free (dpyinfo->font_table);
+  free (dpyinfo->x_id_name);
+  free (dpyinfo);
+}
+
+/* Set up use of X before we make the first connection.  */
+
+x_initialize ()
+{
   clear_frame_hook = XTclear_frame;
   clear_end_of_line_hook = XTclear_end_of_line;
   ins_del_lines_hook = XTins_del_lines;
@@ -5725,6 +5789,10 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 				   off the bottom */
   baud_rate = 19200;
 
+  x_noop_count = 0;
+
+  x_focus_frame = x_highlight_frame = 0;
+
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
 
@@ -5744,14 +5812,10 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 void
 syms_of_xterm ()
 {
-  the_x_screen.font_list_cache = Qnil;
-  the_x_screen.name = Qnil;
-  staticpro (&the_x_screen.font_list_cache);
-  staticpro (&the_x_screen.name);
+  staticpro (&x_display_name_list);
+  x_display_name_list = Qnil;
 
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
-  staticpro (&mouse_face_window);
-  mouse_face_window = Qnil;
 }
 #endif /* ! defined (HAVE_X_WINDOWS) */
