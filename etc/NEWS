@@ -692,10 +692,13 @@ opening of stream and datagram connections to a server, as well as
 create a stream or datagram server inside emacs.
 
 - A server is started using :server t arg.
-- Datagram connection is selected using :datagram t arg.
+- Datagram connection is selected using :type 'datagram arg.
 - A server can open on a random port using :service t arg.
 - Local sockets are supported using :family 'local arg.
 - Non-blocking connect is supported using :nowait t arg.
+
+To test for the availability of a given feature, use featurep like this:
+  (featurep 'make-network-process '(:type datagram))
 
 *** Original open-network-stream is now emulated using make-network-process.
 
