@@ -1,3 +1,10 @@
+2000-10-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Make default fontsize on w32 10
+	point, as Windows has oversized fonts.
+
+	* fontset.c (syms_of_fontset) [WINDOWSNT]: Likewise.
+
 2000-10-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* gmalloc.c [GC_MCHECK]: Add code from mcheck.c of glibc-1.09.1.
