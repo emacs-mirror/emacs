@@ -545,7 +545,8 @@ Instead, these commands are available:
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   ;; Provide default set of inboxes for primary mail file ~/RMAIL.
   (and (null rmail-inbox-list)
-       (equal buffer-file-name (expand-file-name rmail-file-name))
+       (or (equal buffer-file-name (expand-file-name rmail-file-name))
+	   (equal buffer-file-truename (file-truename rmail-file-name)))
        (setq rmail-inbox-list
 	     (or rmail-primary-inbox-list
 		 (list (or (getenv "MAIL")
