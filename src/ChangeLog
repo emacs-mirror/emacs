@@ -1,3 +1,10 @@
+2000-10-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_set_frame_parameters): Don't initialize Lisp_Object
+	variables.  If ALISt includes foreground-color or
+	background-color, change also the colors of the default face for
+	this frame.
+
 2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (top-level) <Qbackground_color, Qforeground_color>: Make
