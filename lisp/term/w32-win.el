@@ -76,6 +76,7 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
+(require 'x-dnd)
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -105,7 +106,10 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-    (mapcar 'find-file (car (cdr (cdr event)))))
+      (mapcar (lambda (file-name) 
+		(x-dnd-handle-one-url window 'private 
+				      (concat "file:" file-name)))
+		(car (cdr (cdr event)))))
   (raise-frame)))
 
 (defun w32-drag-n-drop-other-frame (event)
