@@ -2338,7 +2338,7 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer].
 
 Many commands change their behavior when Transient Mark mode is in effect
 and the mark is active, by acting on the region instead of their usual
-default part of the buffer's text.  Examples of such command include
+default part of the buffer's text.  Examples of such commands include
 \\[comment-dwim], \\[flush-lines], \\[ispell], \\[keep-lines],
 \\[query-replace], \\[query-replace-regexp], and \\[undo].  Invoke
 \\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
