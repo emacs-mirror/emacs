@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/08/30 21:20:09 $|$Revision: 1.73 $
+;; |$Date: 1994/09/30 09:16:06 $|$Revision: 1.74 $
 
 ;; This file is part of GNU Emacs.
 
@@ -738,10 +738,11 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	      (setq cursor-in-echo-area nil)
 	      (setq isearch-new-string
 		    (let (junk-ring)
-		      (read-from-minibuffer (isearch-message-prefix)
-					    isearch-string
-					    minibuffer-local-isearch-map nil
-					    'junk-ring))
+		      (read-from-minibuffer
+ 		       (isearch-message-prefix nil nil isearch-nonincremental)
+		       isearch-string
+		       minibuffer-local-isearch-map nil
+		       'junk-ring))
 		    isearch-new-message
 		    (mapconcat 'isearch-text-char-description
 			       isearch-new-string "")))
@@ -880,7 +881,7 @@ Use `isearch-exit' to quit without signalling."
   (setq isearch-case-fold-search
 	(if isearch-case-fold-search nil 'yes))
   (message "%s%s [case %ssensitive]"
-	   (isearch-message-prefix)
+	   (isearch-message-prefix nil nil isearch-nonincremental)
 	   isearch-message
 	   (if isearch-case-fold-search "in" ""))
   (setq isearch-adjusted t)
