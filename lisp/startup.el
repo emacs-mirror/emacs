@@ -480,7 +480,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
 	    (if (memq window-system '(x w32))
-		(precompute-menubar-bindings)))))))
+		(precompute-menubar-bindings)
+	      ))))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()
@@ -1013,23 +1014,15 @@ where FACE is a valid face specification, as it can be used with
   "Display fancy splash screens when Emacs starts."
   (setq fancy-splash-help-echo (startup-echo-area-message))
   (switch-to-buffer "GNU Emacs")
-  (let ((old-global-map (current-global-map))
-	(old-busy-cursor display-busy-cursor)
+  (let ((old-busy-cursor display-busy-cursor)
 	(splash-buffer (current-buffer))
-	;; Don't update menu bindings in the following.  Since
-	;; C-x etc. are not bound in the map installed below,
-	;; there wouldn't be any bindings shown otherwise.
-	(update-menu-bindings nil)
 	timer)
     (unwind-protect
-	(let ((map (nconc (make-sparse-keymap)
-			  '((t . fancy-splash-default-action))))
+	(let ((map (make-sparse-keymap))
 	      (show-help-function nil))
-	  (use-global-map map)
-	  (use-local-map nil)
+	  (use-local-map map)
+	  (define-key map [t] 'fancy-splash-default-action)
 	  (define-key map [mouse-movement] 'ignore)
-	  (define-key map [menu-bar] (lookup-key old-global-map [menu-bar]))
-	  (define-key map [tool-bar] (lookup-key old-global-map [tool-bar]))
 	  (setq cursor-type nil
 		display-busy-cursor nil
 		mode-line-format
@@ -1040,7 +1033,6 @@ where FACE is a valid face specification, as it can be used with
 	  (recursive-edit))
       (cancel-timer timer)
       (remove-hook 'pre-command-hook 'fancy-splash-pre-command)
-      (use-global-map old-global-map)
       (setq display-busy-cursor old-busy-cursor)
       (kill-buffer splash-buffer))))
 
