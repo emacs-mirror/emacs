@@ -1235,6 +1235,10 @@ Return 0 if current buffer is not a mini-buffer."
 (defvar undo-no-redo nil
   "If t, `undo' doesn't go through redo entries.")
 
+(defvar pending-undo-list nil
+  "Within a run of consecutive undo commands, list remaining to be undone.
+t if we undid all the way to the end of it.")
+
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
@@ -1258,14 +1262,15 @@ as an argument limits undo to changes within the current region."
     (setq this-command 'undo-start)
 
     (unless (and (eq last-command 'undo)
-		 ;; If something (a timer or filter?) changed the buffer
-		 ;; since the previous command, don't continue the undo seq.
-		 (let ((list buffer-undo-list))
-		   (while (eq (car list) nil)
-		     (setq list (cdr list)))
-		   ;; If the last undo record made was made by undo
-		   ;; it shows nothing else happened in between.
-		   (gethash list undo-equiv-table)))
+		 (or (eq pending-undo-list t)
+		     ;; If something (a timer or filter?) changed the buffer
+		     ;; since the previous command, don't continue the undo seq.
+		     (let ((list buffer-undo-list))
+		       (while (eq (car list) nil)
+			 (setq list (cdr list)))
+		       ;; If the last undo record made was made by undo
+		       ;; it shows nothing else happened in between.
+		       (gethash list undo-equiv-table))))
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
       (if undo-in-region
@@ -1340,9 +1345,6 @@ Contrary to `undo', this will not redo a previous undo."
 ;; no idea whereas to bind it.  Any suggestion welcome.  -stef
 ;; (define-key ctl-x-map "U" 'undo-only)
 
-(defvar pending-undo-list nil
-  "Within a run of consecutive undo commands, list remaining to be undone.")
-
 (defvar undo-in-progress nil
   "Non-nil while performing an undo.
 Some change-hooks test this variable to do something different.")
@@ -1351,12 +1353,14 @@ Some change-hooks test this variable to do something different.")
   "Undo back N undo-boundaries beyond what was already undone recently.
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
-  (or pending-undo-list
+  (or (listp pending-undo-list)
       (error (format "No further undo information%s"
 		     (if (and transient-mark-mode mark-active)
 			 " for region" ""))))
   (let ((undo-in-progress t))
-    (setq pending-undo-list (primitive-undo count pending-undo-list))))
+    (setq pending-undo-list (primitive-undo count pending-undo-list))
+    (if (null pending-undo-list)
+	(setq pending-undo-list t))))
 
 ;; Deep copy of a list
 (defun undo-copy-list (list)
