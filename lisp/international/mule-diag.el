@@ -783,7 +783,7 @@ system which uses fontsets)."
       (list-input-methods-1)
       (insert "\n")
       (if default-input-method
-	  (insert "Default input method: " default-input-method "\n")
+	  (insert (format "Default input method: %s\n" default-input-method))
 	(insert "No default input method is specified\n"))
 
       (insert-section 4 "Coding systems")
