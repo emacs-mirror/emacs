@@ -191,6 +191,9 @@ existing values.  For example:
 will start up Emacs on an initial frame of 100x20 with red background,
 irrespective of geometry or background setting on the Windows registry.
 
+** The terminal emulation code in term.el has been improved, it can
+run most curses applications now.
+
 ** New features in evaluation commands
 
 +++
