@@ -256,6 +256,10 @@ static int any_help_event_p;
 
 int x_stretch_cursor_p;
 
+/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
+
+int x_use_underline_position_properties;
+
 /* This is a chain of structures for all the X displays currently in
    use.  */
 
@@ -4498,7 +4502,8 @@ x_draw_glyph_string (s)
 	     ROUND ((maximum descent) / 2), with
 	     ROUND(x) = floor (x + 0.5)  */
 	  
-	  if (XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
+	  if (x_use_underline_position_properties
+	      && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
 	    y = s->ybase + (long) tem;
 	  else if (s->face->font)
 	    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
@@ -14410,6 +14415,14 @@ syms_of_xterm ()
 For example, if a block cursor is over a tab, it will be drawn as\n\
 wide as that tab on the display.");
   x_stretch_cursor_p = 0;
+
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+	       &x_use_underline_position_properties,
+     "*Non-nil means make use of UNDERLINE_POSITION font properties.\n\
+Nil means ignore them.  If you encounter fonts with bogus\n\
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior\n\
+to 4.1, set this to nil.");
+  x_use_underline_position_properties = 1;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
     "What X toolkit scroll bars Emacs uses.\n\
