@@ -419,7 +419,8 @@ IBM PS/2 (-machine=ibmps2-aix; -opsystem=usg5-2-2 or -opsystem=usg5-3)
 
 IBM RS/6000 (-machine=ibmrs6000; -opsystem=aix3-1)
 
-  Changes merged in version 19.
+  Changes merged in version 19.  Currently the configuration
+  does not actually depend on the version of AIX.
 
   Compiling with -O using the IBM compiler has been known
   to make Emacs work incorrectly.
