@@ -1,3 +1,9 @@
+2000-08-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (TAGS): Don't use [a-zA-Z]*, as it causes wildcard
+	expansion to become case-sensitive and return all file names in
+	upper case on plain DOS.
+
 2000-08-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mainmake.v2 (src): Put gdb.tmp after -a, since djecho's -a
