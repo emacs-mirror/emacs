@@ -326,7 +326,7 @@ See `PC-complete' for details."
     (PC-do-complete-and-exit)))
 
 (defun PC-do-complete-and-exit ()
-  (if (= (buffer-size) 0)  ; Duplicate the "bug" that Info-menu relies on...
+  (if (= (point-max) (minibuffer-prompt-end))  ; Duplicate the "bug" that Info-menu relies on...
       (exit-minibuffer)
     (let ((flag (PC-do-completion 'exit)))
       (and flag
