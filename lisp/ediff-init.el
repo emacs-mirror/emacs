@@ -1548,7 +1548,7 @@ This property can be toggled interactively."
   "*Save the results of merge jobs automatically.
 Nil means don't save automatically. t means always save. Anything but nil or t
 means save automatically only if the merge job is part of a group of jobs, such
-as `ediff-merge-directory' or `ediff-merge-directory-revisions'."
+as `ediff-merge-directories' or `ediff-merge-directory-revisions'."
   :type '(choice (const nil) (const t) (const group-jobs-only))
   :group 'ediff-merge)
 (make-variable-buffer-local 'ediff-autostore-merges)
