@@ -9,12 +9,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/10/19 11:54:10 vinicius>
-;; Version:	6.2.1
+;; Time-stamp:	<2000/10/28 23:38:44 Vinicius>
+;; Version:	6.3
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.2.1"
-  "ps-print.el, v 6.2.1 <2000/10/19 vinicius>
+(defconst ps-print-version "6.3"
+  "ps-print.el, v 6.3 <2000/10/28 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1301,68 +1301,71 @@ Please send all bug fixes and enhancements to
 
 ;;; Code:
 
-(unless (featurep 'lisp-float-type)
-  (error "`ps-print' requires floating point support"))
+(eval-and-compile
+  (unless (featurep 'lisp-float-type)
+    (error "`ps-print' requires floating point support"))
 
 
-;; For Emacs 20.2 and the earlier version.
+  ;; For Emacs 20.2 and the earlier version.
 
-(or (fboundp 'set-buffer-multibyte)
-    (defun set-buffer-multibyte (arg)
-      (setq enable-multibyte-characters arg)))
+  (or (fboundp 'set-buffer-multibyte)
+      (defun set-buffer-multibyte (arg)
+	(setq enable-multibyte-characters arg)))
 
-(or (fboundp 'string-as-unibyte)
-    (defun string-as-unibyte (arg) arg))
+  (or (fboundp 'string-as-unibyte)
+      (defun string-as-unibyte (arg) arg))
 
-(or (fboundp 'string-as-multibyte)
-    (defun string-as-multibyte (arg) arg))
+  (or (fboundp 'string-as-multibyte)
+      (defun string-as-multibyte (arg) arg))
 
-(or (fboundp 'char-charset)
-    (defun char-charset (arg) 'ascii))
+  (or (fboundp 'char-charset)
+      (defun char-charset (arg) 'ascii))
 
-(or (fboundp 'charset-after)
-    (defun charset-after (&optional arg)
-      (char-charset (char-after arg))))
-
-
-;; GNU Emacs
-(or (fboundp 'line-beginning-position)
-    (defun line-beginning-position (&optional n)
-      (save-excursion
-	(and n (/= n 1) (forward-line (1- n)))
-	(beginning-of-line)
-	(point))))
+  (or (fboundp 'charset-after)
+      (defun charset-after (&optional arg)
+	(char-charset (char-after arg))))
 
 
-;; to avoid compilation gripes
-
-;; XEmacs
-(defalias 'ps-x-color-instance-p              'color-instance-p)
-(defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
-(defalias 'ps-x-color-name                    'color-name)
-(defalias 'ps-x-color-specifier-p             'color-specifier-p)
-(defalias 'ps-x-copy-coding-system            'copy-coding-system)
-(defalias 'ps-x-device-class                  'device-class)
-(defalias 'ps-x-extent-end-position           'extent-end-position)
-(defalias 'ps-x-extent-face                   'extent-face)
-(defalias 'ps-x-extent-priority               'extent-priority)
-(defalias 'ps-x-extent-start-position         'extent-start-position)
-(defalias 'ps-x-face-font-instance            'face-font-instance)
-(defalias 'ps-x-find-coding-system            'find-coding-system)
-(defalias 'ps-x-font-instance-properties      'font-instance-properties)
-(defalias 'ps-x-make-color-instance           'make-color-instance)
-(defalias 'ps-x-map-extents                   'map-extents)
-
-;; GNU Emacs
-(if (fboundp 'find-composition)
-    (defalias 'ps-e-find-composition 'find-composition)
-  (defalias 'ps-e-find-composition 'ignore))
+  ;; GNU Emacs
+  (or (fboundp 'line-beginning-position)
+      (defun line-beginning-position (&optional n)
+	(save-excursion
+	  (and n (/= n 1) (forward-line (1- n)))
+	  (beginning-of-line)
+	  (point))))
 
 
-(defconst ps-windows-system
-  (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
-(defconst ps-lp-system
-  (memq system-type '(usq-unix-v dgux hpux irix)))
+  ;; to avoid compilation gripes
+
+  ;; XEmacs
+  (defalias 'ps-x-color-instance-p              'color-instance-p)
+  (defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
+  (defalias 'ps-x-color-name                    'color-name)
+  (defalias 'ps-x-color-specifier-p             'color-specifier-p)
+  (defalias 'ps-x-copy-coding-system            'copy-coding-system)
+  (defalias 'ps-x-device-class                  'device-class)
+  (defalias 'ps-x-extent-end-position           'extent-end-position)
+  (defalias 'ps-x-extent-face                   'extent-face)
+  (defalias 'ps-x-extent-priority               'extent-priority)
+  (defalias 'ps-x-extent-start-position         'extent-start-position)
+  (defalias 'ps-x-face-font-instance            'face-font-instance)
+  (defalias 'ps-x-find-coding-system            'find-coding-system)
+  (defalias 'ps-x-font-instance-properties      'font-instance-properties)
+  (defalias 'ps-x-make-color-instance           'make-color-instance)
+  (defalias 'ps-x-map-extents                   'map-extents)
+
+  ;; GNU Emacs
+  (defalias 'ps-e-x-color-values 'x-color-values)
+  (defalias 'ps-e-color-values   'color-values)
+  (if (fboundp 'find-composition)
+      (defalias 'ps-e-find-composition 'find-composition)
+    (defalias 'ps-e-find-composition 'ignore))
+
+
+  (defconst ps-windows-system
+    (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
+  (defconst ps-lp-system
+    (memq system-type '(usq-unix-v dgux hpux irix))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1722,7 +1725,9 @@ After ps-print processing `ps-selected-pages' is set to nil.  But the latest
 `ps-selected-pages' is saved in `ps-last-selected-pages' (see it for
 documentation).  So you can restore the latest selected pages by using
 `ps-last-selected-pages' or by calling `ps-restore-selected-pages' command (see
-it for documentation)."
+it for documentation).
+
+See also `ps-even-or-odd-pages'."
   :type '(repeat :tag "Selected Pages"
 		 (radio :tag "Page"
 			(integer :tag "Number")
@@ -1742,7 +1747,20 @@ Valid values are:
 
    `odd'	print only odd pages.
 
-Any other value is treated as nil."
+Any other value is treated as nil.
+
+If you set `ps-selected-pages' (see it for documentation), first the pages are
+filtered by `ps-selected-pages' and then by `ps-even-or-odd-pages'.  For
+example, if we have:
+
+   (setq ps-selected-pages '(1 4 (6 . 10) 12))
+
+We have the following results:
+
+   `ps-even-or-odd-pages'	PAGES PRINTED
+	nil			1, 4, 6, 7, 8, 9, 10, 12
+	even			4, 6, 8, 10, 12
+	odd			1, 7, 9"
   :type '(choice :menu-tag "Print Even/Odd Pages"
 		 :tag "Print Even/Odd Pages"
 		 (const :tag "All Pages" nil)
@@ -2415,8 +2433,11 @@ it uses the fonts resident in your printer."
 ;;; Colors
 
 ;; Printing color requires x-color-values.
-(defcustom ps-print-color-p (or (fboundp 'x-color-values) ; Emacs
-				(fboundp 'color-instance-rgb-components))
+(defcustom ps-print-color-p
+  (or (and (fboundp 'color-values)	; Emacs
+	   (ps-e-color-values "Green"))
+      (fboundp 'x-color-values)		; Emacs
+      (fboundp 'color-instance-rgb-components))
 					; XEmacs
   "*Non-nil means print the buffer's text in color."
   :type 'boolean
@@ -2911,17 +2932,18 @@ The table depends on the current ps-print setup."
 
   ;; Return t if the device (which can be changed during an emacs session)
   ;; can handle colors.
-  ;; This is function is not yet implemented for GNU emacs.
+  ;; This function is not yet implemented for GNU emacs.
   (cond ((and (eq ps-print-emacs-type 'xemacs)
 	      (>= emacs-minor-version 12)) ; xemacs
 	 (defun ps-color-device ()
-	   (eq (ps-x-device-class) 'color))
-	 )
+	   (eq (ps-x-device-class) 'color)))
 
 	(t				; emacs
 	 (defun ps-color-device ()
-	   t)
-	 ))
+	   (if (fboundp 'color-values)
+	       (ps-e-color-values "Green")
+	     t))))
+
 
   (defun ps-mapper (extent list)
     (nconc list
@@ -2951,9 +2973,13 @@ The table depends on the current ps-print setup."
   (cond ((eq ps-print-emacs-type 'emacs) ; emacs
 
 	 (defun ps-color-values (x-color)
-	   (if (fboundp 'x-color-values)
-	       (x-color-values x-color)
-	     (error "No available function to determine X color values.")))
+	   (cond
+	    ((fboundp 'color-values)
+	     (ps-e-color-values x-color))
+	    ((fboundp 'x-color-values)
+	     (ps-e-x-color-values x-color))
+	    (t
+	     (error "No available function to determine X color values."))))
 
 	 (defalias 'ps-face-foreground-name 'face-foreground)
 	 (defalias 'ps-face-background-name 'face-background)
@@ -2977,7 +3003,7 @@ The table depends on the current ps-print setup."
 	   (let ((color (ps-xemacs-color-name x-color)))
 	     (cond
 	      ((fboundp 'x-color-values)
-	       (x-color-values color))
+	       (ps-e-x-color-values color))
 	      ((and (fboundp 'color-instance-rgb-components)
 		    (ps-color-device))
 	       (ps-x-color-instance-rgb-components
@@ -3004,7 +3030,7 @@ The table depends on the current ps-print setup."
 	 )))
 
 
-(defvar ps-print-color-scale nil)
+(defvar ps-print-color-scale 1.0)
 
 (defun ps-color-scale (color)
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
@@ -3057,9 +3083,11 @@ The table depends on the current ps-print setup."
 (defvar ps-page-postscript 0)
 (defvar ps-page-order 0)
 (defvar ps-page-count 0)
+(defvar ps-page-n-up 0)
 (defvar ps-showline-count 1)
 (defvar ps-first-page nil)
 (defvar ps-last-page nil)
+(defvar ps-print-page-p t)
 
 (defvar ps-control-or-escape-regexp nil)
 (defvar ps-n-up-on nil)
@@ -3614,16 +3642,19 @@ page-height == bm + print-height + tm - ho - hh
 			      ".ps"))
 	      (prompt (format "Save PostScript to file: (default %s) " name))
 	      (res    (read-file-name prompt default-directory name nil)))
-	 (while (cond ((not (file-writable-p res))
+	 (while (cond ((file-directory-p res)
 		       (ding)
-		       (setq prompt "is unwritable"))
+		       (setq prompt "It's a directory"))
+		      ((not (file-writable-p res))
+		       (ding)
+		       (setq prompt "File is unwritable"))
 		      ((file-exists-p res)
-		       (setq prompt "exists")
+		       (setq prompt "File exists")
 		       (not (y-or-n-p (format "File `%s' exists; overwrite? "
 					      res))))
 		      (t nil))
 	   (setq res (read-file-name
-		      (format "File %s; save PostScript to file: " prompt)
+		      (format "%s; save PostScript to file: " prompt)
 		      (file-name-directory res) nil nil
 		      (file-name-nondirectory res))))
 	 (if (file-directory-p res)
@@ -3691,26 +3722,27 @@ page-height == bm + print-height + tm - ho - hh
 		(< ps-last-page ps-page-postscript)))))
 
 
-(defsubst ps-print-page-p ()
-  (and (cond ((null ps-first-page))
-	     ((<= ps-page-postscript ps-last-page)
-	      (<= ps-first-page ps-page-postscript))
-	     (ps-selected-pages
-	      (ps-selected-pages)
-	      (and (<= ps-first-page ps-page-postscript)
-		   (<= ps-page-postscript ps-last-page)))
-	     (t
-	      nil))
-       (cond ((eq ps-even-or-odd-pages 'even)
-	      (= (logand ps-page-postscript 1) 0))
-	     ((eq ps-even-or-odd-pages 'odd)
-	      (= (logand ps-page-postscript 1) 1))
-	     (t)
-	     )))
+(defun ps-print-page-p ()
+  (setq ps-print-page-p
+	(and (cond ((null ps-first-page))
+		   ((<= ps-page-postscript ps-last-page)
+		    (<= ps-first-page ps-page-postscript))
+		   (ps-selected-pages
+		    (ps-selected-pages)
+		    (and (<= ps-first-page ps-page-postscript)
+			 (<= ps-page-postscript ps-last-page)))
+		   (t
+		    nil))
+	     (cond ((eq ps-even-or-odd-pages 'even)
+		    (= (logand ps-page-postscript 1) 0))
+		   ((eq ps-even-or-odd-pages 'odd)
+		    (= (logand ps-page-postscript 1) 1))
+		   (t)
+		   ))))
 
 
 (defun ps-output (&rest args)
-  (when (ps-print-page-p)
+  (when ps-print-page-p
     (setcdr ps-output-tail args)
     (while (cdr ps-output-tail)
       (setq ps-output-tail (cdr ps-output-tail)))))
@@ -4388,6 +4420,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-get-page-dimensions)
   (setq ps-page-postscript 0
 	ps-page-order 0
+	ps-page-n-up 0
+	ps-print-page-p t
 	ps-background-text-count 0
 	ps-background-image-count 0
 	ps-background-pages nil
@@ -4733,36 +4767,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	))
 
 
-(defmacro ps-page-number ()
-  `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
-
-(defun ps-end-file (needs-begin-file)
-  (let (ps-even-or-odd-pages)
-    (ps-flush-output)
-    ;; Back to the PS output buffer to set the last page n-up printing
-    (save-excursion
-      (let ((pages-per-sheet (mod ps-page-postscript ps-n-up-printing))
-	    case-fold-search)
-	(set-buffer ps-spool-buffer)
-	(goto-char (point-max))
-	(and (> pages-per-sheet 0)
-	     (re-search-backward "^[0-9]+ BeginSheet$" nil t)
-	     (replace-match (format "%d BeginSheet" pages-per-sheet) t))))
-    ;; Set dummy page
-    (and ps-spool-duplex (= (mod ps-page-order 2) 1)
-	 (let (ps-first-page)
-	   (ps-dummy-page)))
-    ;; Set end of PostScript file
-    (or ps-first-page
-	(ps-output "EndSheet\n"))
-    (setq ps-first-page nil)		; disable selected pages
-    (ps-output "\n%%Trailer\n%%Pages: "
-	       (format "%d"
-		       (if (and needs-begin-file
-				ps-banner-page-when-duplexing)
-			   (1+ ps-page-order)
-			 ps-page-order))
-	       "\n\nEndDoc\n\n%%EOF\n")))
+(defun ps-page-number ()
+  (if ps-print-only-one-header
+      (1+ (/ (1- ps-page-count) ps-number-of-columns))
+    ps-page-count))
 
 
 (defun ps-next-page ()
@@ -4773,45 +4781,39 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-header-sheet ()
   ;; Print only when a new sheet begins.
-  (let ((print-posterior (ps-print-page-p)))
-    (setq ps-page-postscript (1+ ps-page-postscript))
-    (cond ((ps-print-page-p)
-	   (setq ps-page-order (1+ ps-page-order))
-	   (and (or print-posterior ps-even-or-odd-pages) (> ps-page-order 1)
-		(ps-output "EndSheet\n"))
-	   (ps-output (if ps-n-up-on
-			  (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
-				  ps-page-order ps-page-postscript ps-page-order)
-			(format "\n%%%%Page: %d %d\n"
-				ps-page-postscript ps-page-order))
-		      (format "%d BeginSheet\nBeginDSCPage\n"
-			      ps-n-up-printing)))
-	  (print-posterior
-	   (let (ps-first-page)
-	     (ps-output "EndSheet\n"))))))
+  (setq ps-page-order (1+ ps-page-order))
+  (and (> ps-page-order 1)
+       (ps-output "EndSheet\n"))
+  (ps-output (if ps-n-up-on
+		 (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
+			 ps-page-order ps-page-postscript ps-page-order)
+	       (format "\n%%%%Page: %d %d\n"
+		       ps-page-postscript ps-page-order))
+	     (format "%d BeginSheet\nBeginDSCPage\n"
+		     ps-n-up-printing)))
 
 
-(defsubst ps-header-page ()
+(defun ps-header-page ()
   ;; set total line and page number when printing has finished
   ;; (see `ps-generate')
-  (run-hooks
-   (if (prog1
-	   (zerop (mod ps-page-count ps-number-of-columns))
-	 (setq ps-page-count (1+ ps-page-count)))
-       (prog1
-	   (if (zerop (mod ps-page-postscript ps-n-up-printing))
-	       ;; Print only when a new sheet begins.
-	       (progn
-		 (ps-header-sheet)
-		 'ps-print-begin-sheet-hook)
-	     ;; Print only when a new page begins.
-	     (setq ps-page-postscript (1+ ps-page-postscript))
-	     (ps-output "BeginDSCPage\n")
-	     'ps-print-begin-page-hook)
-	 (ps-background ps-page-postscript))
-     ;; Print only when a new column begins.
-     (ps-output "BeginDSCPage\n")
-     'ps-print-begin-column-hook)))
+  (if (zerop (mod ps-page-count ps-number-of-columns))
+      (progn
+	(setq ps-page-postscript (1+ ps-page-postscript))
+	(when (ps-print-page-p)
+	  (if (zerop (mod ps-page-n-up ps-n-up-printing))
+	      ;; Print only when a new sheet begins.
+	      (progn
+		(ps-header-sheet)
+		(run-hooks 'ps-print-begin-sheet-hook))
+	    ;; Print only when a new page begins.
+	    (ps-output "BeginDSCPage\n")
+	    (run-hooks 'ps-print-begin-page-hook))
+	  (ps-background ps-page-postscript)
+	  (setq ps-page-n-up (1+ ps-page-n-up))))
+    ;; Print only when a new column begins.
+    (ps-output "BeginDSCPage\n")
+    (run-hooks 'ps-print-begin-column-hook))
+  (setq ps-page-count (1+ ps-page-count)))
 
 (defun ps-begin-page ()
   (ps-get-page-dimensions)
@@ -4821,9 +4823,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-header-page)
 
   (ps-output (format "/LineNumber %d def\n" ps-showline-count)
-	     (format "/PageNumber %d def\n" (if ps-print-only-one-header
-						(ps-page-number)
-					      ps-page-count)))
+	     (format "/PageNumber %d def\n" (ps-page-number)))
 
   (when ps-print-header
     (ps-generate-header "HeaderLinesLeft"    ps-left-header)
@@ -4838,17 +4838,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-end-page ()
   (ps-output "EndPage\nEndDSCPage\n"))
-
-(defun ps-dummy-page ()
-  (let ((ps-n-up-printing 0))
-    (ps-header-sheet))
-  (ps-output "/PrintHeader false def
-/ColumnIndex 0 def
-/PrintLineNumber false def
-BeginPage
-EndPage
-EndDSCPage\n")
-  (setq ps-page-postscript ps-n-up-printing))
 
 (defun ps-next-line ()
   (setq ps-showline-count (1+ ps-showline-count))
@@ -4969,7 +4958,7 @@ EndDSCPage\n")
       (if (re-search-forward ps-control-or-escape-regexp to t)
 	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
-		 (match (char-after match-point))
+		 (match       (char-after match-point))
 		 (composition (ps-e-find-composition from (1+ match-point))))
 	    (if composition
 		(if (and (nth 2 composition)
@@ -5215,12 +5204,14 @@ If FACE is not a valid face name, it is used default face."
 
 
 ;; to avoid compilation gripes
-(eval-and-compile
-  (require 'lazy-lock)
-
-  (defun ps-print-ensure-fontified (start end)
-    (and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode)
-	 (lazy-lock-fontify-region start end))))
+(defun ps-print-ensure-fontified (start end)
+  (cond
+   ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
+    (defalias 'ps-jitify 'jit-lock-fontify-now) ; avoid compilation gripes
+    (ps-jitify start end))
+   ((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
+    (defalias 'ps-lazify 'lazy-lock-fontify-region) ; avoid compilation gripes
+    (ps-lazify start end))))
 
 
 (defun ps-generate-postscript-with-faces (from to)
@@ -5263,9 +5254,8 @@ If FACE is not a valid face name, it is used default face."
 	    ;; XEmacs 19.12: for some reason, we're getting into a
 	    ;; situation in which some of the records have
 	    ;; positions less than 'from'.  Since we've narrowed
-	    ;; the buffer, this'll generate errors.  This is a
-	    ;; hack, but don't call ps-plot-with-face unless from >
-	    ;; point-min.
+	    ;; the buffer, this'll generate errors.  This is a hack,
+	    ;; but don't call ps-plot-with-face unless from > point-min.
 	    (and (>= from (point-min))
 		 (ps-plot-with-face from (min position (point-max)) face))
 
@@ -5372,22 +5362,21 @@ If FACE is not a valid face name, it is used default face."
 		(goto-char (point-min))
 		(or (looking-at (regexp-quote ps-adobe-tag))
 		    (setq needs-begin-file t))
+
+		(set-buffer ps-source-buffer)
 		(save-excursion
-		  (set-buffer ps-source-buffer)
-		  (let (ps-even-or-odd-pages)
+		  (let ((ps-print-page-p t)
+			ps-even-or-odd-pages)
 		    (ps-begin-job)
 		    (when needs-begin-file
 		      (ps-begin-file)
 		      (ps-mule-initialize))
 		    (ps-mule-begin-job from to)
-		    (ps-selected-pages))
-		  (ps-begin-page))
-		(set-buffer ps-source-buffer)
+		    (ps-selected-pages)))
+		(ps-begin-page)
 		(funcall genfunc from to)
 		(ps-end-page)
-
-		(ps-end-file needs-begin-file)
-		(ps-end-job)
+		(ps-end-job needs-begin-file)
 
 		;; Setting this variable tells the unwind form that the
 		;; the PostScript was generated without error.
@@ -5405,20 +5394,42 @@ If FACE is not a valid face name, it is used default face."
 	(and ps-razzle-dazzle (message "Formatting...done"))))))
 
 
-(defun ps-end-job ()
-  (ps-flush-output)
-  (let ((total-lines (cdr ps-printing-region))
-	(total-pages (if ps-print-only-one-header
-			 (ps-page-number)
-		       ps-page-count))
-	case-fold-search)
-    (set-buffer ps-spool-buffer)
-    ;; Back to the PS output buffer to set the page count
-    (goto-char (point-min))
-    (and (re-search-forward "^/Lines 0 def\n/PageCount 0 def$" nil t)
-	 (replace-match (format "/Lines %d def\n/PageCount %d def"
-				total-lines total-pages) t)))
-  ;; selected pages
+(defun ps-end-job (needs-begin-file)
+  (let ((ps-print-page-p t))
+    (ps-flush-output)
+    (save-excursion
+      (let ((pages-per-sheet (mod ps-page-n-up ps-n-up-printing))
+	    (total-lines (cdr ps-printing-region))
+	    (total-pages (ps-page-number))
+	    case-fold-search)
+	(set-buffer ps-spool-buffer)
+	;; Back to the PS output buffer to set the last page n-up printing
+	(goto-char (point-max))
+	(and (> pages-per-sheet 0)
+	     (re-search-backward "^[0-9]+ BeginSheet$" nil t)
+	     (replace-match (format "%d BeginSheet" pages-per-sheet) t))
+	;; Back to the PS output buffer to set the page count
+	(goto-char (point-min))
+	(and (re-search-forward "^/Lines 0 def\n/PageCount 0 def$" nil t)
+	     (replace-match (format "/Lines %d def\n/PageCount %d def"
+				    total-lines total-pages) t))))
+    ;; Set dummy page
+    (and ps-spool-duplex (= (mod ps-page-order 2) 1)
+	 (let ((ps-n-up-printing 0))
+	   (ps-header-sheet)
+	   (ps-output "/PrintHeader false def\n/ColumnIndex 0 def\n"
+		      "/PrintLineNumber false def\nBeginPage\n")
+	   (ps-end-page)))
+    ;; Set end of PostScript file
+    (ps-output "EndSheet\n\n%%Trailer\n%%Pages: "
+	       (number-to-string
+		(if (and needs-begin-file
+			 ps-banner-page-when-duplexing)
+		    (1+ ps-page-order)
+		  ps-page-order))
+	       "\n\nEndDoc\n\n%%EOF\n")
+    (ps-flush-output))
+  ;; disable selected pages
   (setq ps-selected-pages nil))
 
 
