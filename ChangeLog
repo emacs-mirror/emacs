@@ -1,3 +1,8 @@
+2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in <Motif>: Don't let a special LessTif/Motif1.2 install
+	shadow the main Lesstif/Motif-2.1 libs and includes.
+
 2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Only add XASSERTS to cppflags.

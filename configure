@@ -10680,78 +10680,6 @@ fi
 fi
 
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-  echo "$as_me:$LINENO: checking for LessTif where some systems put it" >&5
-echo $ECHO_N "checking for LessTif where some systems put it... $ECHO_C" >&6
-if test "${emacs_cv_lesstif+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  # We put this in CFLAGS temporarily to precede other -I options
-  # that might be in CFLAGS temporarily.
-  # We put this in CPPFLAGS where it precedes the other -I options.
-  OLD_CPPFLAGS=$CPPFLAGS
-  OLD_CFLAGS=$CFLAGS
-  CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
-  CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>
-int
-main ()
-{
-int x = 5;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  emacs_cv_lesstif=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-emacs_cv_lesstif=no
-fi
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: $emacs_cv_lesstif" >&5
-echo "${ECHO_T}$emacs_cv_lesstif" >&6
-  if test $emacs_cv_lesstif = yes; then
-    # Make sure this -I option remains in CPPFLAGS after it is set
-    # back to REAL_CPPFLAGS.
-    # There is no need to change REAL_CFLAGS, because REAL_CFLAGS does not
-    # have those other -I options anyway.  Ultimately, having this
-    # directory ultimately in CPPFLAGS will be enough.
-    REAL_CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $REAL_CPPFLAGS"
-    LDFLAGS="-L/usr/X11R6/LessTif/Motif1.2/lib $LDFLAGS"
-  else
-    CFLAGS=$OLD_CFLAGS
-    CPPFLAGS=$OLD_CPPFLAGS
-  fi
   echo "$as_me:$LINENO: checking for Motif version 2.1" >&5
 echo $ECHO_N "checking for Motif version 2.1... $ECHO_C" >&6
 if test "${emacs_cv_motif_version_2_1+set}" = set; then
@@ -10891,6 +10819,79 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBXP 1
 _ACEOF
 
+    fi
+  else
+    echo "$as_me:$LINENO: checking for LessTif where some systems put it" >&5
+echo $ECHO_N "checking for LessTif where some systems put it... $ECHO_C" >&6
+if test "${emacs_cv_lesstif+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  # We put this in CFLAGS temporarily to precede other -I options
+    # that might be in CFLAGS temporarily.
+    # We put this in CPPFLAGS where it precedes the other -I options.
+    OLD_CPPFLAGS=$CPPFLAGS
+    OLD_CFLAGS=$CFLAGS
+    CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
+    CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
+    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>
+int
+main ()
+{
+int x = 5;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  emacs_cv_lesstif=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+emacs_cv_lesstif=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $emacs_cv_lesstif" >&5
+echo "${ECHO_T}$emacs_cv_lesstif" >&6
+    if test $emacs_cv_lesstif = yes; then
+      # Make sure this -I option remains in CPPFLAGS after it is set
+      # back to REAL_CPPFLAGS.
+      # There is no need to change REAL_CFLAGS, because REAL_CFLAGS does not
+      # have those other -I options anyway.  Ultimately, having this
+      # directory ultimately in CPPFLAGS will be enough.
+      REAL_CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $REAL_CPPFLAGS"
+      LDFLAGS="-L/usr/X11R6/LessTif/Motif1.2/lib $LDFLAGS"
+    else
+      CFLAGS=$OLD_CFLAGS
+      CPPFLAGS=$OLD_CPPFLAGS
     fi
   fi
 fi

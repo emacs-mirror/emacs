@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -2080,29 +2080,6 @@ if test "${HAVE_X11}" = "yes"; then
 fi
 
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-  AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
-  # We put this in CFLAGS temporarily to precede other -I options
-  # that might be in CFLAGS temporarily.
-  # We put this in CPPFLAGS where it precedes the other -I options.
-  OLD_CPPFLAGS=$CPPFLAGS
-  OLD_CFLAGS=$CFLAGS
-  CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
-  CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
-  [AC_TRY_COMPILE([#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>],
-    [int x = 5;],
-    emacs_cv_lesstif=yes, emacs_cv_lesstif=no)])
-  if test $emacs_cv_lesstif = yes; then
-    # Make sure this -I option remains in CPPFLAGS after it is set
-    # back to REAL_CPPFLAGS.
-    # There is no need to change REAL_CFLAGS, because REAL_CFLAGS does not
-    # have those other -I options anyway.  Ultimately, having this
-    # directory ultimately in CPPFLAGS will be enough.
-    REAL_CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $REAL_CPPFLAGS"
-    LDFLAGS="-L/usr/X11R6/LessTif/Motif1.2/lib $LDFLAGS"
-  else
-    CFLAGS=$OLD_CFLAGS
-    CPPFLAGS=$OLD_CPPFLAGS
-  fi
   AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
   [AC_TRY_COMPILE([#include <Xm/Xm.h>],
     [#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
@@ -2120,6 +2097,30 @@ Motif version prior to 2.1.
     if test ${HAVE_LIBXP} = yes; then
       AC_DEFINE(HAVE_LIBXP, 1,
 		[Define to 1 if you have the Xp library (-lXp).])
+    fi
+  else
+    AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
+    # We put this in CFLAGS temporarily to precede other -I options
+    # that might be in CFLAGS temporarily.
+    # We put this in CPPFLAGS where it precedes the other -I options.
+    OLD_CPPFLAGS=$CPPFLAGS
+    OLD_CFLAGS=$CFLAGS
+    CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
+    CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
+    [AC_TRY_COMPILE([#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>],
+      [int x = 5;],
+      emacs_cv_lesstif=yes, emacs_cv_lesstif=no)])
+    if test $emacs_cv_lesstif = yes; then
+      # Make sure this -I option remains in CPPFLAGS after it is set
+      # back to REAL_CPPFLAGS.
+      # There is no need to change REAL_CFLAGS, because REAL_CFLAGS does not
+      # have those other -I options anyway.  Ultimately, having this
+      # directory ultimately in CPPFLAGS will be enough.
+      REAL_CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $REAL_CPPFLAGS"
+      LDFLAGS="-L/usr/X11R6/LessTif/Motif1.2/lib $LDFLAGS"
+    else
+      CFLAGS=$OLD_CFLAGS
+      CPPFLAGS=$OLD_CPPFLAGS
     fi
   fi
 fi
