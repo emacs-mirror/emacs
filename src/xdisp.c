@@ -3723,10 +3723,10 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 #ifdef MULTI_FRAME
       if (!NILP (selected_frame->title))
 	return (char *) XSTRING (selected_frame->title)->data;
-      return (char *) XSTRING (selected_frame->name)->data;
-#else
-      return "Emacs";
+      if (selected_frame->explicit_name)
+	return (char *) XSTRING (selected_frame->name)->data;
 #endif
+      return "Emacs";
 
     case 'f': 
       obj = b->filename;
