@@ -940,7 +940,9 @@ string_make_unibyte (string)
 
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
-  "Return the multibyte equivalent of STRING.")
+  "Return the multibyte equivalent of STRING.\n\
+The function `unibyte-char-to-multibyte' is used to convert\n\
+each unibyte character to a multibyte character.")
   (string)
      Lisp_Object string;
 {
@@ -949,7 +951,9 @@ DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
 
 DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
        1, 1, 0,
-  "Return the unibyte equivalent of STRING.")
+  "Return the unibyte equivalent of STRING.\n\
+Multibyte character codes are converted to unibyte\n\
+by using just the low 8 bits.")
   (string)
      Lisp_Object string;
 {
