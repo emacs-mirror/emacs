@@ -4128,7 +4128,7 @@ shrink_decoding_region (beg, end, coding, str)
 	if (!NILP (CHAR_TABLE_REF (translation_table, i)))
 	  break;
       if (i < 128)
-	/* Some ASCII character should be tranlsated.  We give up
+	/* Some ASCII character should be translated.  We give up
 	   shrinking.  */
 	return;
     }
@@ -4148,6 +4148,9 @@ shrink_decoding_region (beg, end, coding, str)
       begp_orig = begp = BYTE_POS_ADDR (*beg);
       endp_orig = endp = begp + *end - *beg;
     }
+
+  eol_conversion = (coding->eol_type == CODING_EOL_CR
+		    || coding->eol_type == CODING_EOL_CRLF);
 
   switch (coding->type)
     {
