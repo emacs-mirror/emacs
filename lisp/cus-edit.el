@@ -3395,7 +3395,9 @@ Leave point at the location of the call, or after the last expression."
       (setq saved-list (sort (cdr saved-list) 'string<))
       (unless (bolp)
 	(princ "\n"))
-      (princ "(custom-set-variables")
+      (princ "(custom-set-variables
+  ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
+  ;; Your init file must only contain one such instance.")
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-value))
@@ -3453,7 +3455,9 @@ Leave point at the location of the call, or after the last expression."
 	  (setq saved-list (cons 'default (delq 'default saved-list))))
       (unless (bolp)
 	(princ "\n"))
-      (princ "(custom-set-faces")
+      (princ "(custom-set-faces
+  ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
+  ;; Your init file must only contain one such instance.")
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-face))
