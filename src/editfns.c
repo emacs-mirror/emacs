@@ -3674,7 +3674,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	     and ARGN is the number of the next arg we will come to.  */
 	  for (list = props; CONSP (list); list = XCDR (list))
 	    {
-	      Lisp_Object item, pos;
+	      Lisp_Object item;
+	      int pos;
 
 	      item = XCAR (list);
 
@@ -3753,7 +3754,6 @@ format2 (string1, arg0, arg1)
      Lisp_Object arg0, arg1;
 {
   Lisp_Object args[3];
-  int numargs;
   args[0] = build_string (string1);
   args[1] = arg0;
   args[2] = arg1;
