@@ -18706,6 +18706,11 @@ get_window_cursor_type (w, width, active_cursor)
       return FRAME_BLINK_OFF_CURSOR (f);
     }
 
+#if 0
+  /* Some people liked having a permanently visible blinking cursor,
+     while others had very strong opinions against it.  So it was
+     decided to remove it.  KFS 2003-09-03 */
+
   /* Finally perform built-in cursor blinking:
        filled box      <->   hollow box
        wide [h]bar     <->   narrow [h]bar
@@ -18720,6 +18725,7 @@ get_window_cursor_type (w, width, active_cursor)
       *width = 1;
       return cursor_type;
     }
+#endif
 
   return NO_CURSOR;
 }
