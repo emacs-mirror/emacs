@@ -1,3 +1,9 @@
+2005-03-11  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Frename_file, Fadd_name_to_file)
+	(Fmake_symbolic_link): If NEWNAME or LINKNAME is a directory,
+	expand the basename of FILE relative to it.
+
 2005-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Call Fcheck_coding_system
