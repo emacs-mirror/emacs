@@ -1959,7 +1959,10 @@ run_hook_with_args (nargs, args, cond)
 		   globals = XCONS (globals)->cdr)
 		{
 		  args[0] = XCONS (globals)->car;
-		  ret = Ffuncall (nargs, args);
+		  /* In a global value, t should not occur.  If it does, we
+		     must ignore it to avoid an endless loop.  */
+		  if (!EQ (args[0], Qt))
+		    ret = Ffuncall (nargs, args);
 		}
 	    }
 	  else
@@ -2007,7 +2010,10 @@ run_hook_list_with_args (funlist, nargs, args)
 	       globals = XCONS (globals)->cdr)
 	    {
 	      args[0] = XCONS (globals)->car;
-	      Ffuncall (nargs, args);
+	      /* In a global value, t should not occur.  If it does, we
+		 must ignore it to avoid an endless loop.  */
+	      if (!EQ (args[0], Qt))
+		Ffuncall (nargs, args);
 	    }
 	}
       else
