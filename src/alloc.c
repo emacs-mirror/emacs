@@ -3585,7 +3585,7 @@ If you are a system-programmer, or can get the help of a local wizard\n\
 who is, please take a look at the function mark_stack in alloc.c, and\n\
 verify that the methods used are appropriate for your system.\n\
 \n\
-Please mail the result to <gerd@gnu.org>.\n\
+Please mail the result to <emacs-devel@gnu.org>.\n\
 "
 
 #define SETJMP_WILL_NOT_WORK "\
@@ -3597,7 +3597,7 @@ solution for your system.\n\
 \n\
 Please take a look at the function mark_stack in alloc.c, and\n\
 try to find a way to make it work on your system.\n\
-Please mail the result to <gerd@gnu.org>.\n\
+Please mail the result to <emacs-devel@gnu.org>.\n\
 "
 
 
