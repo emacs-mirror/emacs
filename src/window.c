@@ -1815,7 +1815,7 @@ before each command.")
 }
 
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 2,
-       "BDisplay buffer: \nP",
+       "bDisplay buffer: \nP",
   "Make BUFFER appear in some window but don't select it.\n\
 BUFFER can be a buffer or a buffer name.\n\
 If BUFFER is shown already in some window, just use that one,\n\
