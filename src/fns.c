@@ -4617,7 +4617,7 @@ is `eql'.  New tests can be defined with `define-hash-table-test'.")
 {
   Lisp_Object args[2];
   args[0] = QCtest;
-  args[1] = test;
+  args[1] = NILP (test) ? Qeql : test;
   return Fmake_hash_table (2, args);
 }
 
