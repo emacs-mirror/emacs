@@ -898,22 +898,22 @@
 (defun ccl-compile-map-multiple (cmd)
   (if (/= (length cmd) 4)
       (error "CCL: Invalid number of arguments: %s" cmd))
-  (let ((func '(lambda (arg mp)
-			  (let ((len 0) result add)
-			    (while arg
-			      (if (consp (car arg))
-				  (setq add (funcall func (car arg) t)
-					result (append result add)
-					add (+ (-(car add)) 1))
-				(setq result
-				      (append result
-					      (list (car arg)))
-				      add 1))
-			      (setq arg (cdr arg)
-				    len (+ len add)))
-			    (if mp 
-				(cons (- len) result)
-			      result))))
+  (let ((func (lambda (arg mp)
+		(let ((len 0) result add)
+		  (while arg
+		    (if (consp (car arg))
+			(setq add (funcall func (car arg) t)
+			      result (append result add)
+			      add (+ (-(car add)) 1))
+		      (setq result
+			    (append result
+				    (list (car arg)))
+			    add 1))
+		    (setq arg (cdr arg)
+			  len (+ len add)))
+		  (if mp 
+		      (cons (- len) result)
+		    result))))
 	arg)
     (setq arg (append (list (nth 0 cmd) (nth 1 cmd) (nth 2 cmd))
 		      (funcall func (nth 3 cmd) nil)))
