@@ -2726,9 +2726,11 @@ the WIDTH times as wide as FACE on FRAME.")
       /* This is of limited utility since it works with character
 	 widths.  Keep it for compatibility.  --gerd.  */
       int face_id = lookup_named_face (f, face, 0);
-      struct face *face = FACE_FROM_ID (f, face_id);
+      struct face *face = (face_id < 0
+			   ? NULL
+			   : FACE_FROM_ID (f, face_id));
 
-      if (face->font)
+      if (face && face->font)
 	size = FONT_WIDTH (face->font);
       else
 	size = FONT_WIDTH (FRAME_FONT (f));
@@ -4650,7 +4652,7 @@ If FRAME is omitted or nil, use the selected frame.")
       struct frame *f = frame_or_selected_frame (frame, 1);
       int face_id = lookup_named_face (f, face, 0);
       struct face *face = FACE_FROM_ID (f, face_id);
-      return build_string (face->font_name);
+      return face ? build_string (face->font_name) : Qnil;
     }
 }
 
@@ -5268,7 +5270,9 @@ lookup_face (f, attr, c, base_face)
 
 
 /* Return the face id of the realized face for named face SYMBOL on
-   frame F suitable for displaying character C.  */
+   frame F suitable for displaying character C.  Value is -1 if the
+   face couldn't be determined, which might happen if the default face
+   isn't realized and cannot be realized.  */
 
 int
 lookup_named_face (f, symbol, c)
@@ -5279,6 +5283,13 @@ lookup_named_face (f, symbol, c)
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
   struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+
+  if (default_face == NULL)
+    {
+      if (!realize_basic_faces (f))
+	return -1;
+      default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+    }
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
@@ -5396,6 +5407,7 @@ face_with_height (f, face_id, height)
 
   return face_id;
 }
+
 
 /* Return the face id of the realized face for named face SYMBOL on
    frame F suitable for displaying character C, and use attributes of
@@ -5948,7 +5960,7 @@ realize_basic_faces (f)
       realize_named_face (f, Qmouse, MOUSE_FACE_ID);
       realize_named_face (f, Qmenu, MENU_FACE_ID);
 
-      /* Reflext changes in the `menu' face in menu bars.  */
+      /* Reflect changes in the `menu' face in menu bars.  */
       if (menu_face_change_count)
 	{
 	  menu_face_change_count = 0;
