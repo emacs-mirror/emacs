@@ -1550,6 +1550,7 @@ Meta and Alt:
     (setq x-alt-keysym 'meta)
     (setq x-meta-keysym 'alt)
 
++++
 ** vc-annotate-mode enhancements
 
 In vc-annotate mode, you can now use the following key bindings for
