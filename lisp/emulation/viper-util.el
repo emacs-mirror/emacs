@@ -694,7 +694,7 @@
        ;; CVS files are considered not checked in
        (not (memq (vc-backend file) '(nil CVS)))
        (if (fboundp 'vc-state)
-	   (progn
+	   (and
 	     (not (memq (vc-state file) '(edited needs-merge)))
 	     (not (stringp (vc-state file))))
 	 ;; XEmacs has no vc-state
