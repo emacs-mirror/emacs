@@ -1,3 +1,11 @@
+2000-10-02  Dave Love  <fx@gnu.org>
+
+	* config.in (HAVE_GAI_STRERROR): Add undef.
+
+	* process.c (Fopen_network_stream): Use it.
+
+	* m/alpha.h (NO_REMAP): Don't define.
+
 2000-10-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (wrong_type_argument): Remove NO_RETURN, the function can

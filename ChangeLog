@@ -1,3 +1,7 @@
+2000-10-02  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for gai_strerror.
+
 2000-10-01  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep): Update list of installed info
