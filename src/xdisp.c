@@ -2456,6 +2456,7 @@ handle_single_display_prop (it, prop, object, position)
       space_or_image_found_p = 1;
       start_pos = *position;
       *position = display_prop_end (it, object, start_pos);
+      value = Qnil;
 
       /* Let's stop at the new position and assume that all
 	 text properties change there.  */
@@ -5325,7 +5326,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5)
      int a1, a2, a3, a4, a5;
 {
   Lisp_Object buffer;
-  int i, this_one, the_other, clear_buffer_p, rc;
+  int this_one, the_other, clear_buffer_p, rc;
   int count = specpdl_ptr - specpdl;
 
   /* If buffers aren't life, make new ones.  */
@@ -7785,7 +7786,7 @@ update:
 	  w->current_matrix->begv = BUF_BEGV (b);
 	  w->current_matrix->zv = BUF_ZV (b);
 	}
-      
+
       update_mode_lines = 0;
       windows_or_buffers_changed = 0;
     }
@@ -8983,7 +8984,8 @@ redisplay_window (window, just_this_one_p)
          If point has not moved off frame, accept the results.  */
       if (!current_matrix_up_to_date_p
 	  /* Don't use try_window_reusing_current_matrix in this case
-	     because it can have changed the buffer.  */
+	     because a window scroll function can have changed the
+	     buffer.  */
 	  || !NILP (Vwindow_scroll_functions)
 	  || MINI_WINDOW_P (w)
 	  || !try_window_reusing_current_matrix (w))
@@ -9480,7 +9482,8 @@ try_window_reusing_current_matrix (w)
 	  run.current_y = first_row_y;
 	  run.desired_y = it.current_y;
 	  run.height = it.last_visible_y - it.current_y;
-	  if (run.height > 0)
+	  if (run.height > 0
+	      && run.current_y != run.desired_y)
 	    {
 	      update_begin (f);
 	      rif->update_window_begin_hook (w);
