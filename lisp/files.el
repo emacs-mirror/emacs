@@ -936,6 +936,15 @@ Value is a list whose car is the name for the backup file
 (defun file-nlinks (filename)
   "Return number of names file FILENAME has."
   (car (cdr (file-attributes filename))))
+
+(defun file-relative-name (filename &optional directory)
+  "Convert FILENAME to be relative to DIRECTORY (default: default-directory)."
+  (setq filename (expand-file-name filename)
+	directory (file-name-as-directory (or (expand-file-name directory)
+					      default-directory)))
+  (while (not (string-match (concat "^" (regexp-quote directory)) filename))
+    (setq directory (file-name-directory (substring directory 0 -1))))
+  (substring filename (match-end 0)))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
