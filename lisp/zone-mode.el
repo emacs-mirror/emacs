@@ -90,8 +90,7 @@ Zone-mode does two things:
 
 	- fontification"
 
-  (require 'zone-mode)
-  (make-variable-buffer-local 'write-file-hooks)
+  (make-local-hook 'write-file-hooks)
   (add-hook 'write-file-hooks 'zone-mode-update-serial-hook)
 
   (if (null zone-mode-syntax-table)
