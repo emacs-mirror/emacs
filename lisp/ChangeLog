@@ -1,3 +1,7 @@
+2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/ispell.el (ispell-change-dictionary): Doc fix.
+
 2001-05-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/sh-script.el (sh-prev-line): Look for sh-heredoc-face
