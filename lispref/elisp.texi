@@ -97,9 +97,8 @@ Reference Manual, corresponding to GNU Emacs version 21.1.
 @end ifnottex
 
 @menu
-* Copying::                 Conditions for copying and changing GNU Emacs.
 * Introduction::            Introduction and conventions used.
-* Standards: Coding Conventions.    Coding conventions for Emacs Lisp.
+* Standards: Coding Conventions::    Coding conventions for Emacs Lisp.
 
 * Lisp Data Types::         Data types of objects in Emacs Lisp.
 * Numbers::                 Numbers and arithmetic functions.
@@ -157,6 +156,8 @@ Reference Manual, corresponding to GNU Emacs version 21.1.
 Appendices
 
 * Antinews::                Info for users downgrading to Emacs 20.
+* GNU Free Documentation Licence:: The license for this documentation
+* Copying::                 Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
@@ -955,6 +956,8 @@ Object Internals
 @c  REMOVE this:  include non-hacker.texi
 
 @include anti.texi
+@include doclicense.texi
+@include gpl.texi
 @include tips.texi
 @include internals.texi
 @include errors.texi
