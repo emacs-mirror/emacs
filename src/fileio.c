@@ -3728,7 +3728,7 @@ This does code conversion according to the value of\n\
       /* Allow quitting out of the actual I/O.  */
       immediate_quit = 1;
       QUIT;
-      this = read (fd, BYTE_POS_ADDR (PT + inserted - 1) + 1, trytry);
+      this = read (fd, BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1, trytry);
       immediate_quit = 0;
 
       if (this <= 0)
@@ -3771,7 +3771,12 @@ This does code conversion according to the value of\n\
   if (inserted > 0)
     {
       if (CODING_MAY_REQUIRE_DECODING (&coding))
-	inserted = code_convert_region (PT, PT + inserted, &coding, 0, 0);
+	{
+	  code_convert_region (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
+			       &coding, 0, 0);
+	  inserted = (NILP (current_buffer->enable_multibyte_characters)
+		      ? coding.produced : coding.produced_char);
+	}
 
 #ifdef DOS_NT
       /* Use the conversion type to determine buffer-file-type
