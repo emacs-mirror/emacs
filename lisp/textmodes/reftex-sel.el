@@ -49,8 +49,6 @@ During a selection process, these are the local bindings.
 
   (interactive)
   (kill-all-local-variables)
-  (make-local-hook 'pre-command-hook)
-  (make-local-hook 'post-command-hook)
   (setq major-mode 'reftex-select-label-mode
 	mode-name "LSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
@@ -77,8 +75,6 @@ During a selection process, these are the local bindings.
 \\{reftex-select-label-map}"
   (interactive)
   (kill-all-local-variables)
-  (make-local-hook 'pre-command-hook)
-  (make-local-hook 'post-command-hook)
   (setq major-mode 'reftex-select-bib-mode
 	mode-name "BSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
