@@ -72,13 +72,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   ;; This strange form ensures that (recent-keys) is the value before
   ;; the bug subject string is read.
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
-  (let (user-point message-end-point)
+  ;; If there are four numbers in emacs-version, this is a pretest
+  ;; version.
+  (let ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
+	user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer "*Messages*")
 	    (point-max-marker)))
-    (compose-mail (if (string-match "\\..*\\..*\\." emacs-version)
-		      ;; If there are four numbers in emacs-version,
-		      ;; this is a pretest version.
+    (compose-mail (if pretest-p
 		      report-emacs-bug-pretest-address
 		    report-emacs-bug-address)
 		  topic)
@@ -104,7 +105,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	(insert "English")
 	(put-text-property pos (point) 'face 'highlight))
       (insert ", because the Emacs maintainers do not have
-translators to read other languages for them.\n\n"))
+translators to read other languages for them.\n\n")
+      (insert (format "Your bug report will be posted to the %s mailing list"
+		      (if pretest-p
+			  report-emacs-bug-pretest-address
+			report-emacs-bug-address)))
+      (if pretest-p
+	  (insert ".\n\n")
+	(insert ",\nand to the gnu.emacs.bug news group.\n\n")))
 
     (insert "In " (emacs-version) "\n")
     (if (and system-configuration-options
