@@ -44,45 +44,9 @@ struct frame
   EMACS_INT size;
   struct Lisp_Vector *next;
 
-  /* glyphs as they appear on the frame */
-  struct frame_glyphs *current_glyphs;
-
-  /* glyphs we'd like to appear on the frame */
-  struct frame_glyphs *desired_glyphs;
-
-  /* See do_line_insertion_deletion_costs for info on these arrays. */
-  /* Cost of inserting 1 line on this frame */
-  int *insert_line_cost;
-  /* Cost of deleting 1 line on this frame */
-  int *delete_line_cost;
-  /* Cost of inserting n lines on this frame */
-  int *insert_n_lines_cost;
-  /* Cost of deleting n lines on this frame */
-  int *delete_n_lines_cost;
-
-  /* glyphs for the mode line */
-  struct frame_glyphs *temp_glyphs;
-
-  /* Intended cursor position of this frame.
-     Measured in characters, counting from upper left corner
-     within the frame.  */
-  int cursor_x;
-  int cursor_y;
-
-  /* Actual cursor position of this frame, and the character under it.
-     (Not used for terminal frames.)  */
-  int phys_cursor_x;
-  int phys_cursor_y;
-  /* This is handy for undrawing the cursor, because current_glyphs is
-     not always accurate when in do_scrolling.  */
-  GLYPH phys_cursor_glyph;
-
-  /* Size of this frame, in units of characters.  */
-  EMACS_INT height;
-  EMACS_INT width;
-
-  /* New height and width for pending size change.  0 if no change pending.  */
-  int new_height, new_width;
+  /* All Lisp_Object components must come first.
+     Only EMACS_INT values can be intermixed with them.
+     That ensures they are all aligned normally.  */
 
   /* Name of this frame: a Lisp string.  See also `explicit_name'.  */
   Lisp_Object name;
@@ -139,6 +103,59 @@ struct frame
 
   /* Alist of elements (FACE-NAME . FACE-VECTOR-DATA).  */
   Lisp_Object face_alist;
+
+  /* A vector that records the entire structure of this frame's menu bar.
+     For the format of the data, see extensive comments in xmenu.c.
+     Only the X toolkit version uses this.  */
+  Lisp_Object menu_bar_vector;
+  /* Number of elements in the vector that have meaningful data.  */
+  EMACS_INT menu_bar_items_used;
+
+  /* Predicate for selecting buffers for other-buffer.  */
+  Lisp_Object buffer_predicate;
+
+  /* Beyond here, there should be no more Lisp_Object components.  */
+
+
+  /* glyphs as they appear on the frame */
+  struct frame_glyphs *current_glyphs;
+
+  /* glyphs we'd like to appear on the frame */
+  struct frame_glyphs *desired_glyphs;
+
+  /* See do_line_insertion_deletion_costs for info on these arrays. */
+  /* Cost of inserting 1 line on this frame */
+  int *insert_line_cost;
+  /* Cost of deleting 1 line on this frame */
+  int *delete_line_cost;
+  /* Cost of inserting n lines on this frame */
+  int *insert_n_lines_cost;
+  /* Cost of deleting n lines on this frame */
+  int *delete_n_lines_cost;
+
+  /* glyphs for the mode line */
+  struct frame_glyphs *temp_glyphs;
+
+  /* Intended cursor position of this frame.
+     Measured in characters, counting from upper left corner
+     within the frame.  */
+  int cursor_x;
+  int cursor_y;
+
+  /* Actual cursor position of this frame, and the character under it.
+     (Not used for terminal frames.)  */
+  int phys_cursor_x;
+  int phys_cursor_y;
+  /* This is handy for undrawing the cursor, because current_glyphs is
+     not always accurate when in do_scrolling.  */
+  GLYPH phys_cursor_glyph;
+
+  /* Size of this frame, in units of characters.  */
+  EMACS_INT height;
+  EMACS_INT width;
+
+  /* New height and width for pending size change.  0 if no change pending.  */
+  int new_height, new_width;
 
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
@@ -233,13 +250,6 @@ struct frame
   /* Nonnegative if current redisplay should not do scroll computation
      for lines beyond a certain vpos.  This is the vpos.  */
   int scroll_bottom_vpos;
-
-  /* A vector that records the entire structure of this frame's menu bar.
-     For the format of the data, see extensive comments in xmenu.c.
-     Only the X toolkit version uses this.  */
-  Lisp_Object menu_bar_vector;
-  /* Number of elements in the vector that have meaningful data.  */
-  int menu_bar_items_used;
 
   /* Width of the scroll bar, in pixels and in characters.
      scroll_bar_cols tracks scroll_bar_pixel_width if the latter is positive;
