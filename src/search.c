@@ -2183,12 +2183,18 @@ FIXEDCASE and LITERAL are optional arguments.\n\
 Leaves point at end of replacement text.\n\
 \n\
 The optional fourth argument STRING can be a string to modify.\n\
-In that case, this function creates and returns a new string\n\
-which is made by replacing the part of STRING that was matched.\n\
+This is meaningful when the previous match was done against STRING,\n\
+using `string-match'.  When used this way, `replace-match'\n\
+creates and returns a new string made by copying STRING and replacing\n\
+the part of STRING that was matched.\n\
 \n\
-The optional fifth argument SUBEXP specifies a subexpression of the match.\n\
-It says to replace just that subexpression instead of the whole match.\n\
-This is useful only after a regular expression search or match\n\
+The optional fifth argument SUBEXP specifies a subexpression;\n\
+it says to replace just that subexpression with NEWTEXT,\n\
+rather than replacing the entire matched text.\n\
+This is, in a vague sense, the inverse of using `\\N' in NEWTEXT;\n\
+`\\N' copies subexp N into NEWTEXT, but using N as SUBEXP puts\n\
+NEWTEXT in place of subexp B.\n\
+This is useful only after a regular expression search or match,\n\
 since only regular expressions have distinguished subexpressions.")
   (newtext, fixedcase, literal, string, subexp)
      Lisp_Object newtext, fixedcase, literal, string, subexp;
