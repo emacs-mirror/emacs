@@ -429,6 +429,8 @@ is non-nil.")
 
 ;;;; *** Rmail Mode ***
 
+(defvar rmail-enable-multibyte nil)
+
 ;;;###autoload
 (defun rmail (&optional file-name-arg)
   "Read and edit incoming mail.
@@ -452,6 +454,14 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	       (setq rmail-enable-mime nil))))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
+	 (rmail-enable-multibyte (default-value 'enable-multibyte-characters))
+	 ;; Since the file may contain messages of different encodings
+	 ;; at the tail (non-BYBYL part), we can't decode them at once
+	 ;; on reading.  So, at first, we read the file without text
+	 ;; code conversion, then decode the messages one by one by
+	 ;; rmail-decode-babyl-format or
+	 ;; rmail-convert-to-babyl-format.
+	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
 	 run-mail-hook msg-shown)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
@@ -478,6 +488,11 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (rmail-mode-2)
       ;; Convert all or part to Babyl file if possible.
       (rmail-convert-file)
+      ;; As we have read a file by raw-text, the buffer is set to
+      ;; unibyte.  We must make it multibyte if necessary.
+      (if (and rmail-enable-multibyte
+	       (not enable-multibyte-characters))
+	  (set-buffer-multibyte t))
       (goto-char (point-max))
       (if (null rmail-inbox-list)
 	  (progn
@@ -531,13 +546,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	   ;; Non-empty file in non-RMAIL format.  Add header and convert.
 	   (setq convert t)
 	   (rmail-insert-rmail-file-header)))
-    (if (and (not convert)
-	     (not rmail-enable-mime)
-	     rmail-file-coding-system)
-	;; Decode coding system of BABYL part at the head only.  The
-	;; remaining non BABYL parts are decoded in
-	;; rmail-convert-to-babyl-format if necessary.
-	(rmail-decode-babyl-format))
     ;; If file was not a Babyl file or if there are
     ;; Unix format messages added at the end,
     ;; convert file as necessary.
@@ -556,7 +564,11 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  (search-forward "\n\^_" nil t)
 	  (narrow-to-region (point) (point-max))
 	  (rmail-convert-to-babyl-format)
-	  (message "Converting to Babyl format...done")))))
+	  (message "Converting to Babyl format...done"))
+      (if (and (not rmail-enable-mime)
+	       rmail-enable-multibyte)
+	  ;; We still have to decode BABYL part.
+	  (rmail-decode-babyl-format)))))
 
 ;;; I have checked that adding "-*- rmail -*-" to the BABYL OPTIONS line
 ;;; will not cause emacs 18.55 problems.
@@ -571,22 +583,34 @@ Note:   If you are seeing it in rmail,
 Note:    it means the file has no messages in it.\n\^_")))
 
 ;; Decode Babyl formated part at the head of current buffer by
-;; rmail-file-coding-system.
+;; rmail-file-coding-system, or if it is nil, do auto conversion.
 
 (defun rmail-decode-babyl-format ()
   (let ((modifiedp (buffer-modified-p))
 	(buffer-read-only nil)
-	pos)
+	from to)
     (goto-char (point-min))
     (search-forward "\n\^_" nil t)	; Skip BYBYL header.
-    (setq pos (point))
-    (message "Decoding messages...")
-    (while (search-forward "\n\^_" nil t)
-      (decode-coding-region pos (point) rmail-file-coding-system)
-      (setq pos (point)))
-    (message "Decoding messages...done")
-    (set-buffer-file-coding-system rmail-file-coding-system)
-    (set-buffer-modified-p modifiedp)))
+    (setq from (point))
+    (goto-char (point-max))
+    (search-backward "\n\^_" from 'mv)
+    (setq to (point))
+    (if (not (and rmail-file-coding-system
+		  (coding-system-p rmail-file-coding-system)))
+	(setq rmail-file-coding-system (detect-coding-region from to t)))
+    (if (not (eq rmail-file-coding-system 'undecided))
+	(let ((count 1))
+	  (goto-char from)
+	  (while (search-forward "\n\^_" nil t)
+	    (decode-coding-region from (1- (point)) rmail-file-coding-system)
+	    (goto-char (point))
+	    (setq from (point))
+	    (if (= (% count 10) 0)
+		(message "Decoding messages (%d)..." count))
+	    (setq count (1+ count)))
+	  (message "Decoding messages (%d)...done" count)
+	  (set-buffer-file-coding-system rmail-file-coding-system)
+	  (set-buffer-modified-p modifiedp)))))
 
 (if rmail-mode-map
     nil
@@ -1085,6 +1109,7 @@ It returns t if it got any new messages."
       (setq buffer-undo-list nil))
   (let ((all-files (if file-name (list file-name)
 		     rmail-inbox-list))
+	(rmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found)
     (unwind-protect
 	(progn
@@ -1396,9 +1421,10 @@ Optional DEFAULT is password to start with."
 				(skip-chars-forward " \t\n")
 				(point)))
 	       (or rmail-enable-mime
-		   (not rmail-file-coding-system)
+		   (not rmail-enable-multibyte)
 		   (decode-coding-region start (point)
-					 rmail-file-coding-system))
+					 (or rmail-file-coding-system
+					     'undecided)))
 	       (narrow-to-region (point) (point-max)))
 	      ;;*** MMDF format
 	      ((let ((case-fold-search t))
@@ -1414,7 +1440,7 @@ Optional DEFAULT is password to start with."
 		   (while (search-forward "\n\^_" nil t); single char "\^_"
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (or rmail-enable-mime
-		   (not enable-multibyte-characters)
+		   (not rmail-enable-multibyte)
 		   (decode-coding-region start (point) 'undecided))
 	       (narrow-to-region (point) (point-max))
 	       (setq count (1+ count)))
@@ -1490,7 +1516,7 @@ Optional DEFAULT is password to start with."
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
 	       (insert ?\^_)
 	       (or rmail-enable-mime
-		   (not enable-multibyte-characters)
+		   (not rmail-enable-multibyte)
 		   (decode-coding-region start (point) 'undecided))
 	       (narrow-to-region (point) (point-max)))
 	      ;;
