@@ -1528,6 +1528,7 @@ x_set_mouse_color (f, arg, oldval)
 {
 #if 0
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
+  int count;
 #endif
   int mask_color;
 
@@ -1544,7 +1545,7 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  x_catch_errors (FRAME_W32_DISPLAY (f));
+  count = x_catch_errors (FRAME_W32_DISPLAY (f));
 
   if (!EQ (Qnil, Vx_pointer_shape))
     {
@@ -1587,7 +1588,7 @@ x_set_mouse_color (f, arg, oldval)
 
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
-  x_uncatch_errors (FRAME_W32_DISPLAY (f));
+  x_uncatch_errors (FRAME_W32_DISPLAY (f), count);
 
   {
     XColor fore_color, back_color;
