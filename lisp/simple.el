@@ -2108,14 +2108,46 @@ Setting this variable automatically makes it local to the current buffer.")
 	      ;; No place to break => stop trying.
 	      (setq give-up t)))))))
 
+(defun auto-fill-mode (&optional arg)
+  "Toggle auto-fill mode.
+With arg, turn Auto-Fill mode on if and only if arg is positive.
+In Auto-Fill mode, inserting a space at a column beyond `fill-column'
+automatically breaks the line at a previous space."
+  (interactive "P")
+  (prog1 (setq auto-fill-function
+	       (if (if (null arg)
+		       (not auto-fill-function)
+		       (> (prefix-numeric-value arg) 0))
+		   'do-auto-fill
+		   nil))
+    ;; update mode-line
+    (set-buffer-modified-p (buffer-modified-p))))
+
+;; This holds a document string used to document auto-fill-mode.
+(defun auto-fill-function ()
+  "Automatically break line at a previous space, in insertion of text."
+  nil)
+
+(defun turn-on-auto-fill ()
+  "Unconditionally turn on Auto Fill mode."
+  (auto-fill-mode 1))
+
+(defun set-fill-column (arg)
+  "Set `fill-column' to current column, or to argument if given.
+The variable `fill-column' has a separate value for each buffer."
+  (interactive "P")
+  (setq fill-column (if (integerp arg) arg (current-column)))
+  (message "fill-column set to %d" fill-column))
+
 (defconst comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
 on new line, with no new terminator or starter.
 This is obsolete because you might as well use \\[newline-and-indent].")
 
 (defun indent-new-comment-line ()
-  "Break line at point and indent, continuing comment if presently within one.
-The body of the continued comment is indented under the previous comment line.
+  "Break line at point and indent, continuing comment if within one.
+This indents the body of the continued comment
+under the previous comment line.
 
 This command is intended for styles where you write a comment per line,
 starting a new comment (and terminating it if necessary) on each line.
@@ -2175,32 +2207,6 @@ If you want to continue one comment across several lines, use \\[newline-and-ind
       (if fill-prefix
 	  (insert fill-prefix)
 	(indent-according-to-mode)))))
-
-(defun auto-fill-mode (&optional arg)
-  "Toggle auto-fill mode.
-With arg, turn auto-fill mode on if and only if arg is positive.
-In auto-fill mode, inserting a space at a column beyond  fill-column
-automatically breaks the line at a previous space."
-  (interactive "P")
-  (prog1 (setq auto-fill-function
-	       (if (if (null arg)
-		       (not auto-fill-function)
-		       (> (prefix-numeric-value arg) 0))
-		   'do-auto-fill
-		   nil))
-    ;; update mode-line
-    (set-buffer-modified-p (buffer-modified-p))))
-
-(defun turn-on-auto-fill ()
-  "Unconditionally turn on Auto Fill mode."
-  (auto-fill-mode 1))
-
-(defun set-fill-column (arg)
-  "Set `fill-column' to current column, or to argument if given.
-The variable `fill-column' has a separate value for each buffer."
-  (interactive "P")
-  (setq fill-column (if (integerp arg) arg (current-column)))
-  (message "fill-column set to %d" fill-column))
 
 (defun set-selective-display (arg)
   "Set `selective-display' to ARG; clear it if no arg.
