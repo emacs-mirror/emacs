@@ -1345,22 +1345,18 @@ free_menubar_widget_value_tree (wv)
   UNBLOCK_INPUT;
 }
 
-/* Return a tree of widget_value structures for a menu bar item
+/* Set up data i menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
    and whose contents come from the list of keymaps MAPS.  */
 
-static widget_value *
-single_submenu (item_key, item_name, maps)
+static int
+parse_single_submenu (item_key, item_name, maps)
      Lisp_Object item_key, item_name, maps;
 {
-  widget_value *wv, *prev_wv, *save_wv, *first_wv;
-  int i;
-  int submenu_depth = 0;
   Lisp_Object length;
   int len;
   Lisp_Object *mapvec;
-  widget_value **submenu_stack;
-  int previous_items = menu_items_used;
+  int i;
   int top_level_items = 0;
 
   length = Flength (maps);
@@ -1373,8 +1369,6 @@ single_submenu (item_key, item_name, maps)
       mapvec[i] = Fcar (maps);
       maps = Fcdr (maps);
     }
-
-  menu_items_n_panes = 0;
 
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
@@ -1394,8 +1388,21 @@ single_submenu (item_key, item_name, maps)
 	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
     }
 
-  /* Create a tree of widget_value objects
-     representing the panes and their items.  */
+  return top_level_items;
+}
+
+/* Create a tree of widget_value objects
+   representing the panes and items
+   in menu_items starting at index START, up to index END.  */
+
+static widget_value *
+digest_single_submenu (start, end, top_level_items)
+     int start, end;
+{
+  widget_value *wv, *prev_wv, *save_wv, *first_wv;
+  int i;
+  int submenu_depth = 0;
+  widget_value **submenu_stack;
 
   submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -1413,8 +1420,8 @@ single_submenu (item_key, item_name, maps)
      and construct a tree of widget_value objects.
      Ignore the panes and items made by previous calls to
      single_submenu, even though those are also in menu_items.  */
-  i = previous_items;
-  while (i < menu_items_used)
+  i = start;
+  while (i < end)
     {
       if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
 	{
@@ -1558,8 +1565,6 @@ single_submenu (item_key, item_name, maps)
 
   return first_wv;
 }
-
-
 
 /* Recompute all the widgets of frame F, when the menu bar has been
    changed.  Value is non-zero if widgets were updated.  */
@@ -1618,7 +1623,9 @@ set_frame_menubar (f, first_time, deep_p)
   Widget menubar_widget = f->output_data.x->menubar_widget;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i;
+  int i, last_i;
+  int *submenu_start, *submenu_end;
+  int *submenu_top_level_items;
 
   LWLIB_ID id;
 
@@ -1639,14 +1646,6 @@ set_frame_menubar (f, first_time, deep_p)
       f->output_data.x->saved_menu_event = (XEvent*)xmalloc (sizeof (XEvent));
       f->output_data.x->saved_menu_event->type = 0;
     }
-
-  wv = xmalloc_widget_value ();
-  wv->name = "menubar";
-  wv->value = 0;
-  wv->enabled = 1;
-  wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
-  first_wv = wv;
 
   if (deep_p)
     {
@@ -1692,20 +1691,25 @@ set_frame_menubar (f, first_time, deep_p)
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
-      inhibit_garbage_collection ();
-
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
 	       previous_menu_items_used * sizeof (Lisp_Object));
 
-      /* Fill in the current menu bar contents.  */
+      /* Fill in menu_items with the current menu bar contents.
+	 This can evaluate Lisp code.  */
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
+      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_top_level_items
+	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
       init_menu_items ();
       for (i = 0; i < XVECTOR (items)->size; i += 4)
 	{
 	  Lisp_Object key, string, maps;
+
+	  last_i = i;
 
 	  key = XVECTOR (items)->contents[i];
 	  string = XVECTOR (items)->contents[i + 1];
@@ -1713,7 +1717,32 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 
-	  wv = single_submenu (key, string, maps);
+	  submenu_start[i] = menu_items_used;
+
+	  menu_items_n_panes = 0;
+	  submenu_top_level_items[i]
+	    = parse_single_submenu (key, string, maps);
+
+	  submenu_end[i] = menu_items_used;
+	}
+
+      finish_menu_items ();
+
+      /* Convert menu_items into widget_value trees
+	 to display the menu.  This cannot evaluate Lisp code.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
+
+      for (i = 0; i < last_i; i += 4)
+	{
+	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
+				      submenu_top_level_items[i]);
 	  if (prev_wv) 
 	    prev_wv->next = wv;
 	  else
@@ -1723,8 +1752,6 @@ set_frame_menubar (f, first_time, deep_p)
 	  wv->button_type = BUTTON_TYPE_NONE;
 	  prev_wv = wv;
 	}
-
-      finish_menu_items ();
 
       set_buffer_internal_1 (prev);
       unbind_to (specpdl_count, Qnil);
@@ -1765,6 +1792,14 @@ set_frame_menubar (f, first_time, deep_p)
     {
       /* Make a widget-value tree containing
 	 just the top level menu bar strings.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
 
       items = FRAME_MENU_BAR_ITEMS (f);
       for (i = 0; i < XVECTOR (items)->size; i += 4)
