@@ -1303,7 +1303,7 @@ and nil for X and Y.")
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
-    (*mouse_position_hook) (&f, 0,
+    (*mouse_position_hook) (&f, -1,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
@@ -1343,7 +1343,7 @@ and nil for X and Y.")
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
   if (mouse_position_hook)
-    (*mouse_position_hook) (&f, 0,
+    (*mouse_position_hook) (&f, -1,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
