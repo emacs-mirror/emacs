@@ -704,7 +704,7 @@ case "${canonical}" in
 		opsys=sunos4shr
 		NON_GNU_CPP=/usr/lib/cpp
 		;;
-      *-sunos4.1.[3-9]*-noshare )
+      *-sunos4.1.[3-9]*noshare )
 		opsys=sunos4-1-3
 		NON_GNU_CPP=/usr/lib/cpp
 		NON_GCC_TEST_OPTIONS=-Bstatic
