@@ -1,10 +1,10 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.13) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.14) $
 test_lib.h
-   various handy things for running tests, reporting errors &c
+   various handy things for running tests, reporting errors &c.
 */
 
-#ifndef test_lib_h
-#define test_lib_h
+#ifndef testlib_h
+#define testlib_h
 
 #include "mmqasym.h"
 #ifndef MMQA_HEADER_mps
@@ -141,17 +141,6 @@ mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
 #endif
 
 
-#if !defined(MMQA_PROD_dylan)
-
-#include "mpsavm.h" /* only for mps_space_create */
-#define ARENA_SIZE ((Size)1<<30)
-
-#define mps_space_create(space) \
-  mps_arena_create(space, mps_arena_class_vm(), ARENA_SIZE)
-
-#endif
-
-
 /* time-based queue
    (use for killing objects at the right time)
 */
@@ -182,4 +171,5 @@ void TQAdd(TimeQueue, void *, unsigned long);
 
 void TQWarp(TimeQueue, unsigned long);
 
-#endif
+
+#endif /* testlib_h */
