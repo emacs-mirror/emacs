@@ -364,10 +364,10 @@ of CODING-SYSTEM.  See the function `make-coding-system' for more detail."
 
 (defun coding-system-mnemonic (coding-system)
   "Return the mnemonic character of CODING-SYSTEM.
-A mnemonic character of a coding system is used in mode line
-to indicate the coding system."
-  (or (aref (coding-system-spec coding-system) coding-spec-mnemonic-idx)
-      ?-))
+The mnemonic character of a coding system is used in mode line
+to indicate the coding system.  If the arg is nil, return ?-."
+  (let ((spec (coding-system-spec coding-system)))
+    (if spec (aref spec coding-spec-mnemonic-idx) ?-)))
 
 (defun coding-system-doc-string (coding-system)
   "Return the documentation string for CODING-SYSTEM."
