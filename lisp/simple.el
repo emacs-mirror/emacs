@@ -2392,6 +2392,9 @@ in the mode line."
 (defconst blink-matching-paren-distance 12000
   "*If non-nil, is maximum distance to search for matching open-paren.")
 
+(defconst blink-matching-delay 1
+  "*The number of seconds that `blink-matching-open' will delay at a match.")
+
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
   (interactive)
@@ -2425,7 +2428,7 @@ in the mode line."
 	       (progn
 		(goto-char blinkpos)
 		(if (pos-visible-in-window-p)
-		    (sit-for 1)
+		    (sit-for blink-matching-delay)
 		  (goto-char blinkpos)
 		  (message
 		   "Matches %s"
