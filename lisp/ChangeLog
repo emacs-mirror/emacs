@@ -3,6 +3,8 @@
 	* calendar/holidays.el (holiday-easter-etc): Make arguments
 	optional for backwards compatability.  Doc fix.  Remove
 	un-necessary local vars mandatory, output-list.
+	(holiday-advent):  Make arguments optional for backwards
+	compatability.  Doc fix.
 
 2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 

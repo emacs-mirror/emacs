@@ -1481,9 +1481,9 @@ day of that ISO week.
 
 ---
 ** The functions `holiday-easter-etc' and `holiday-advent' now take
-arguments, and only report on the specified holiday rather than all.
-This makes customization of the variable `christian-holidays' simpler,
-but existing customizations may need to be updated.
+optional arguments, in order to only report on the specified holiday
+rather than all. This makes customization of variables such as
+`christian-holidays' simpler.
 
 ** The function `simple-diary-display' now by default sets a header line.
 This can be controlled through the variables `diary-header-line-flag'
