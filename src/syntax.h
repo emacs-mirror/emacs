@@ -252,7 +252,7 @@ extern char syntax_code_spec[16];
 
 #define UPDATE_SYNTAX_TABLE_BACKWARD(charpos)			\
   (parse_sexp_lookup_properties					\
-   && (charpos) <= gl_state.b_property				\
+   && (charpos) < gl_state.b_property				\
    ? (update_syntax_table ((charpos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
@@ -262,7 +262,7 @@ extern char syntax_code_spec[16];
 
 #define UPDATE_SYNTAX_TABLE(charpos)				\
   (parse_sexp_lookup_properties					\
-   && (charpos) <= gl_state.b_property				\
+   && (charpos) < gl_state.b_property				\
    ? (update_syntax_table ((charpos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
@@ -284,7 +284,7 @@ extern char syntax_code_spec[16];
 #define SETUP_SYNTAX_TABLE(FROM, COUNT)					\
 if (1)									\
   {									\
-    gl_state.b_property = BEGV - 1;					\
+    gl_state.b_property = BEGV;						\
     gl_state.e_property = ZV + 1;					\
     gl_state.object = Qnil;						\
     gl_state.use_global = 0;						\
@@ -311,25 +311,25 @@ if (1)									\
     if (BUFFERP (gl_state.object))					\
       {									\
 	struct buffer *buf = XBUFFER (gl_state.object);			\
-	gl_state.b_property = 0;					\
+	gl_state.b_property = 1;					\
 	gl_state.e_property = BUF_ZV (buf) - BUF_BEGV (buf) + 1;	\
 	gl_state.offset = BUF_BEGV (buf) - 1;				\
       }									\
     else if (NILP (gl_state.object))					\
       {									\
-	gl_state.b_property = 0;					\
+	gl_state.b_property = 1;					\
 	gl_state.e_property = ZV - BEGV + 1;				\
 	gl_state.offset = BEGV - 1;					\
       }									\
     else if (EQ (gl_state.object, Qt))					\
       {									\
-	gl_state.b_property = - 1;					\
+	gl_state.b_property = 0;					\
 	gl_state.e_property = 1500000000;				\
 	gl_state.offset = 0;						\
       }									\
     else								\
       {									\
-	gl_state.b_property = -1;					\
+	gl_state.b_property = 0;					\
 	gl_state.e_property = 1 + XSTRING (gl_state.object)->size;	\
 	gl_state.offset = 0;						\
       }									\
@@ -352,8 +352,7 @@ struct gl_state_s
   Lisp_Object global_code;		/* Syntax code of current char. */
   Lisp_Object current_syntax_table;	/* Syntax table for current pos. */
   Lisp_Object old_prop;			/* Syntax-table prop at prev pos. */
-  int b_property;			/* Last index where c_s_t is 
-					   not valid. */
+  int b_property;			/* First index where c_s_t is valid. */
   int e_property;			/* First index where c_s_t is
 					   not valid. */
   INTERVAL forward_i;			/* Where to start lookup on forward */
@@ -365,8 +364,6 @@ struct gl_state_s
 					   on: */
   /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
   int offset;
-  char left_ok;
-  char right_ok;
 };
 
 extern struct gl_state_s gl_state;
