@@ -6329,10 +6329,7 @@ nil means use format `var'.  This variable is meaningful only on VMS.  */);
 The value should be either ?/ or ?\\ (any other value is treated as ?\\).
 This variable affects the built-in functions only on Windows,
 on other platforms, it is initialized so that Lisp code can find out
-what the normal separator is.
-
-WARNING: This variable is deprecated and will be removed in the near
-future.  DO NOT USE IT.  */);
+what the normal separator is.  */);
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
