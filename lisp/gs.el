@@ -36,7 +36,7 @@
   "The Ghostscript device to use to produce images.")
 
 
-(defvar gs-options 
+(defvar gs-options
   '("-q"
     ;"-dNOPAUSE"
     "-dBATCH"
@@ -46,54 +46,45 @@
 Arguments may contain place-holders `<file>' for the name of the
 input file, and `<device>' for the device to use.")
 
-
-(defun gs-replace-in-string (string find repl)
-  "Return STRING with all occurrences of FIND replaced by REPL.
-FIND is a regular expression."
-  (while (string-match find string)
-    (setq string (replace-match repl nil t string)))
-  string)
-
-
 (defun gs-options (device file)
   "Return a list of command line options with place-holders replaced.
 DEVICE is the value to substitute for the place-holder `<device>',
 FILE is the value to substitute for the place-holder `<file>'."
   (mapcar #'(lambda (option)
-	      (setq option (gs-replace-in-string option "<device>" device)
-		    option (gs-replace-in-string option "<file>" file)))
+	      (setq option (replace-regexp-in-string "<device>" device option)
+		    option (replace-regexp-in-string "<file>" file option)))
 	  gs-options))
-  
+
 
 ;; The GHOSTVIEW property (taken from gv 3.5.8).
-;; 
+;;
 ;; Type:
 ;;
 ;; STRING
-;; 
+;;
 ;; Parameters:
-;; 
+;;
 ;; BPIXMAP ORIENT LLX LLY URX URY XDPI YDPI [LEFT BOTTOM TOP RIGHT]
-;; 
+;;
 ;; Scanf format: "%d %d %d %d %d %d %f %f %d %d %d %d"
-;; 
+;;
 ;; Explanation of parameters:
-;; 
+;;
 ;; BPIXMAP: pixmap id of the backing pixmap for the window.  If no
 ;; pixmap is to be used, this parameter should be zero.  This
 ;; parameter must be zero when drawing on a pixmap.
-;; 
+;;
 ;; ORIENT: orientation of the page.  The number represents clockwise
 ;; rotation of the paper in degrees.  Permitted values are 0, 90, 180,
 ;; 270.
-;; 
+;;
 ;; LLX, LLY, URX, URY: Bounding box of the drawable.  The bounding box
 ;; is specified in PostScript points in default user coordinates.
-;; 
+;;
 ;; XDPI, YDPI: Resolution of window.  (This can be derived from the
 ;; other parameters, but not without roundoff error.  These values are
 ;; included to avoid this error.)
-;; 
+;;
 ;; LEFT, BOTTOM, TOP, RIGHT: (optional) Margins around the window.
 ;; The margins extend the imageable area beyond the boundaries of the
 ;; window.  This is primarily used for popup zoom windows.  I have
@@ -116,7 +107,7 @@ FILE is the value to substitute for the place-holder `<file>'."
 	       (/ (float (x-display-mm-height frame))
 		  (float (x-display-pixel-height frame))))))
     (/ (* 25.4 mm) 72.0)))
-	
+
 
 (defun gs-set-ghostview-window-prop (frame spec img-width img-height)
   "Set the `GHOSTVIEW' window property of FRAME.
@@ -148,7 +139,7 @@ image in pixels."
 		    (t "Monochrome"))))
     (x-change-window-property "GHOSTVIEW_COLORS"
 			      (format "%s %s" mode pixel-colors))))
-	      
+
 
 ;
 ;;;###autoload
@@ -178,7 +169,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 ;			:bounding-box (22 171 567 738)
 ;			:file ,ps-file)))
 ;    (put-text-property 1 2 'display spec)))
-;    
+;
 
 (provide 'gs)
 

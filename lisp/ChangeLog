@@ -1,3 +1,14 @@
+2001-01-24  Sam Steingold  <sds@gnu.org>
+
+	* dired.el (dired-replace-in-string): Removed.
+	(dired-sort-toggle): Use `replace-regexps-in-string'
+	instead of `dired-replace-in-string'.
+	* dired-aux.el (dired-shell-stuff-it, dired-rename-subdir,
+	dired-rename-subdir-2, dired-insert-subdir-doinsert): Ditto.
+	* gs.el (gs-replace-in-string): Removed.
+	(gs-options): Use `replace-regexps-in-string'
+	instead of `gs-replace-in-string'.
+
 2001-01-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/emacsbug.el (report-emacs-bug): Mention the fact that the
@@ -14,7 +25,7 @@
 	the tool-bar.
 
 	* frame.el (frame-initialize): Create the initial frame invisible.
-	
+
 2001-01-24  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* language/chinese.el (chinese-iso-8bit): MIME:GB2312.
@@ -22,7 +33,7 @@
 
 2001-01-24  Gerd Moellmann  <gerd@gnu.org>
 
-	* international/mule-cmds.el (universal-coding-system-argument): 
+	* international/mule-cmds.el (universal-coding-system-argument):
 	Handle commands with prefix args.
 
 2001-01-24  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
@@ -83,7 +94,7 @@
 	* textmodes/texinfo.el (texinfo-mode): Use backward-paragraph
 	as font-lock-beginning-of-syntax-function in font-lock-defaults.
 
-	* jit-lock.el (jit-lock-fontify-now): Don't bind 
+	* jit-lock.el (jit-lock-fontify-now): Don't bind
 	font-lock-beginning-of-syntax-function to nil.
 
 2001-01-19  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -96,7 +107,7 @@
 
 	* font-lock.el (font-lock-default-fontify-region): Fix last
 	change.
-	
+
 	* font-lock.el (font-lock-multiline): Default to nil.
 	(font-lock-default-fontify-region): If font-lock-multiline is
 	nil, don't check the property `font-lock-multiline'.
@@ -107,23 +118,23 @@
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper.el: Call initial-major-mode on startup.
-	
+
 	* ediff.el (ediff-patch-file): Use better defaults.
-	
+
 	* ediff-vers.el: Fix for 8+3 DOS file systems.
-	
+
 2001-01-19  Colin Walters <walters@cis.ohio-state.edu>
-	
+
 	* ediff-util.el (ediff-compare-custom-diffs-maybe): Put diff in
 	diff mode, if available.
-	
+
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-hook.el (ediff-xemacs-init-menus): Fixed add-menu-button.
-	
+
 	* ediff-init.el (subst-char-in-string): Define and use it, unless
 	it's already defined.
-	
+
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* tooltip.el (tooltip-hide-delay): New user-option.
