@@ -355,54 +355,53 @@ CODING-SYSTEM, use \\[list-coding-systems]."
     ("black"          0     0     0     0))
 "A list of VGA console colors, their indices and 16-bit RGB values.")
 
-;; w32term.c sets this to nil, but if it has been overridden before we
-;; get here, we should not try to set it again.
-(if (not w32-charset-info-alist)
-    (progn (setq w32-charset-info-alist
-                 '(("iso8859-1" . (w32-charset-ansi . 1252))
-                   ("jisx0208-sjis" . (w32-charset-shiftjis . 932))
-                   ("jisx0201-latin" . (w32-charset-shiftjis . 932))
-                   ("jisx0201-katakana" . (w32-charset-shiftjis . 932))
-                   ("ksc5601.1987" . (w32-charset-hangul . 949))
-                   ("big5" . (w32-charset-chinesebig5 . 950))
-                   ("gb2312" . (w32-charset-gb2312 . 936))
-                   ("ms-symbol" . (w32-charset-symbol . nil))
-                   ("ms-oem" . (w32-charset-oem . 437))
-                   ("ms-oemlatin" . (w32-charset-oem . 850))))
-           (if (boundp 'w32-extra-charsets-defined)
-               (progn
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-2" . (w32-charset-easteurope . 28592)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-3" . (w32-charset-turkish . 28593)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-4" . (w32-charset-baltic . 28594)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-5" . (w32-charset-russian . 28595)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-6" . (w32-charset-arabic . 28596)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-7" . (w32-charset-greek . 28597)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-8" . (w32-charset-hebrew . 1255)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-9" . (w32-charset-turkish . 1254)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso8859-13" . (w32-charset-baltic . 1257)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("koi8-r" . (w32-charset-russian . 20866)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("tis620" . (w32-charset-thai . 874)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("ksc5601.1992" . (w32-charset-johab . 1361)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("mac" . (w32-charset-mac . nil))))))
-           (if (boundp 'w32-unicode-charset-defined)
-               (progn
-                 (add-to-list 'w32-charset-info-alist
-                  '("iso10646" . (w32-charset-unicode . t)))
-                 (add-to-list 'w32-charset-info-alist
-                  '("unicode" . (w32-charset-unicode . t))))))
+
+(defun w32-add-charset-info (xlfd-charset windows-charset codepage)
+  "Function to add character sets to display with Windows fonts.
+Creates entries in `w32-charset-info-alist'.
+XLFD-CHARSET is a string which will appear in the XLFD font name to
+identify the character set. WINDOWS-CHARSET is a symbol identifying
+the Windows character set this maps to. For the list of possible
+values, see the documentation for `w32-charset-info-alist'. CODEPAGE
+can be a numeric codepage that Windows uses to display the character
+set, t for Unicode output with no codepage translation or nil for 8
+bit output with no translation."
+  (add-to-list 'w32-charset-info-alist
+               (cons xlfd-charset (cons windows-charset codepage)))
+  )
+
+(w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252)
+(w32-add-charset-info "iso8859-14" 'w32-charset-ansi  28604)
+(w32-add-charset-info "iso8859-15" 'w32-charset-ansi  28605)
+(w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
+(w32-add-charset-info "jisx0201-latin" 'w32-charset-shiftjis 932)
+(w32-add-charset-info "jisx0201-katakana" 'w32-charset-shiftjis 932)
+(w32-add-charset-info "ksc5601.1987" 'w32-charset-hangeul 949)
+(w32-add-charset-info "big5" 'w32-charset-chinesebig5 950)
+(w32-add-charset-info "gb2312" 'w32-charset-gb2312 936)
+(w32-add-charset-info "ms-symbol" 'w32-charset-symbol nil)
+(w32-add-charset-info "ms-oem" 'w32-charset-oem 437)
+(w32-add-charset-info "ms-oemlatin" 'w32-charset-oem 850)
+(if (boundp 'w32-extra-charsets-defined)
+    (progn
+      (w32-add-charset-info "iso8859-2" 'w32-charset-easteurope 28592)
+      (w32-add-charset-info "iso8859-3" 'w32-charset-turkish 28593)
+      (w32-add-charset-info "iso8859-4" 'w32-charset-baltic 28594)
+      (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
+      (w32-add-charset-info "iso8859-6" 'w32-charset-arabic 28596)
+      (w32-add-charset-info "iso8859-7" 'w32-charset-greek 28597)
+      (w32-add-charset-info "iso8859-8" 'w32-charset-hebrew 1255)
+      (w32-add-charset-info "iso8859-9" 'w32-charset-turkish 1254)
+      (w32-add-charset-info "iso8859-13" 'w32-charset-baltic 1257)
+      (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
+      (w32-add-charset-info "tis620" 'w32-charset-thai 874)
+      (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
+      (w32-add-charset-info "mac" 'w32-charset-mac nil)))
+(if (boundp 'w32-unicode-charset-defined)
+    (progn
+      (w32-add-charset-info "iso10646" 'w32-charset-unicode t)
+      (w32-add-charset-info "unicode" 'w32-charset-unicode t)))
+
 
 (make-obsolete-variable 'w32-enable-italics 'w32-enable-synthesized-fonts)
 (make-obsolete-variable 'w32-charset-to-codepage-alist
