@@ -125,7 +125,9 @@ To get the number of characters, use `chars-in-string'")
   else if (VECTORP (sequence))
     XSETFASTINT (val, XVECTOR (sequence)->size);
   else if (CHAR_TABLE_P (sequence))
-    XSETFASTINT (val, CHAR_TABLE_ORDINARY_SLOTS);
+    XSETFASTINT (val, (MIN_CHAR_COMPOSITION
+		       + (CHAR_FIELD2_MASK | CHAR_FIELD3_MASK)
+		       - 1));
   else if (BOOL_VECTOR_P (sequence))
     XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
   else if (COMPILEDP (sequence))
@@ -2059,6 +2061,20 @@ mapcar1 (leni, vals, fn, seq)
 	  vals[i] = call1 (fn, dummy);
 	}
     }
+  else if (BOOL_VECTOR_P (seq))
+    {
+      for (i = 0; i < leni; i++)
+	{
+	  int byte;
+	  byte = XBOOL_VECTOR (seq)->data[i / BITS_PER_CHAR];
+	  if (byte & (1 << (i % BITS_PER_CHAR)))
+	    dummy = Qt;
+	  else
+	    dummy = Qnil;
+
+	  vals[i] = call1 (fn, dummy);
+	}
+    }
   else if (STRINGP (seq) && ! STRING_MULTIBYTE (seq))
     {
       /* Single-byte string.  */
@@ -2100,7 +2116,8 @@ mapcar1 (leni, vals, fn, seq)
 DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
   "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.\n\
 In between each pair of results, stick in SEPARATOR.  Thus, \" \" as\n\
-SEPARATOR results in spaces between the values returned by FUNCTION.")
+SEPARATOR results in spaces between the values returned by FUNCTION.\n\
+SEQUENCE may be a list, a vector, a bool-vector, or a string.")
   (function, sequence, separator)
      Lisp_Object function, sequence, separator;
 {
@@ -2134,7 +2151,7 @@ SEPARATOR results in spaces between the values returned by FUNCTION.")
 DEFUN ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.\n\
 The result is a list just as long as SEQUENCE.\n\
-SEQUENCE may be a list, a vector or a string.")
+SEQUENCE may be a list, a vector, a bool-vector, or a string.")
   (function, sequence)
      Lisp_Object function, sequence;
 {
