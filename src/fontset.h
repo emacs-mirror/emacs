@@ -182,6 +182,9 @@ extern void (*set_frame_fontset_func) P_ ((struct frame *f, Lisp_Object arg,
    This function set the memer `encoder' of the structure.  */
 extern void (*find_ccl_program_func) P_ ((struct font_info *));
 
+extern Lisp_Object (*get_font_repertory_func) P_ ((struct frame *,
+						   struct font_info *));
+
 /* Check if any window system is used now.  */
 extern void (*check_window_system_func) P_ ((void));
 
@@ -191,8 +194,8 @@ extern void free_face_fontset P_ ((FRAME_PTR, struct face *));
 extern Lisp_Object fontset_font_pattern P_ ((FRAME_PTR, struct face *, int));
 extern int face_suitable_for_char_p P_ ((struct face *, int));
 extern int face_for_char P_ ((FRAME_PTR, struct face *, int));
-extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int));
-extern struct font_info *fs_load_font P_ ((struct frame *, char *));
+extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int, struct face *));
+extern struct font_info *fs_load_font P_ ((struct frame *, char *, int));
 extern int fs_query_fontset P_ ((Lisp_Object, int));
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
@@ -209,7 +212,7 @@ extern Lisp_Object Vvertical_centering_font_regexp;
    struct font_info of the loaded font.  If loading fails, return
    NULL.  */
 
-#define FS_LOAD_FONT(f, fontname) fs_load_font (f, fontname)
+#define FS_LOAD_FONT(f, fontname) fs_load_font (f, fontname, charset_ascii)
 
 
 /* Return an immutable id for font_info FONT_INFO on frame F.  The
