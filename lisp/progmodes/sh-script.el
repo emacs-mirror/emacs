@@ -50,7 +50,7 @@
 ;; a wide variety of styles.  Most of these variables are named
 ;; sh-indent-for-XXX and sh-indent-after-XXX.  For example.
 ;; sh-indent-after-if controls the indenting of a line following
-;; an if statement,  and sh-indent-for-fi controls the indentation
+;; an if statement, and sh-indent-for-fi controls the indentation
 ;; of the line containing the fi.
 ;; 
 ;; You can set each to a numeric value, but it is often more convenient
@@ -116,7 +116,7 @@
 ;   (add-hook 'sh-set-shell-hook 'sh-learn-buffer-indent)
 ;; 
 ;; However...   `sh-learn-buffer-indent' is extremely slow,
-;; especially on large-ish buffer.  Also,  if there are conflicts the
+;; especially on large-ish buffer.  Also, if there are conflicts the
 ;; "last one wins" which may not produce the desired setting.
 ;; 
 ;; So...There is a minimal way of being able to save indentation values and
@@ -134,31 +134,31 @@
 ;; 	----------------------------------------------
 ;; I think that often having them buffer-local makes sense,
 ;; especially if one is using `sh-learn-buffer-indent'.  However, if
-;; a user sets values using customization,  these changes won't appear
+;; a user sets values using customization, these changes won't appear
 ;; to work if the variables are already local!
 ;; 
-;; To get round this,  there is a variable `sh-make-vars-local' and 2
+;; To get round this, there is a variable `sh-make-vars-local' and 2
 ;; functions: `sh-make-vars-local' and `sh-reset-indent-vars-to-global-values'.
 ;; 
-;; If `sh-make-vars-local' is non-nil,  then these variables become
+;; If `sh-make-vars-local' is non-nil, then these variables become
 ;; buffer local when the mode is established.
-;; If this is nil,  then the variables are global.  At any time you
+;; If this is nil, then the variables are global.  At any time you
 ;; can make them local with the command `sh-make-vars-local'.
-;; Conversely,  to update with the global values you can use the
+;; Conversely, to update with the global values you can use the
 ;; command `sh-reset-indent-vars-to-global-values'.
 ;; 
-;; This may be awkward,  but the intent is to cover all cases.
+;; This may be awkward, but the intent is to cover all cases.
 ;; 
 ;; 	Awkward things, pitfalls
 ;; 	------------------------
 ;; Indentation for a sh script is complicated for a number of reasons:
 ;; 
-;; 1. You can't format by simply looking at symbols,  you need to look
+;; 1. You can't format by simply looking at symbols, you need to look
 ;;    at keywords.  [This is not the case for rc and es shells.]
 ;; 2. The character ")" is used both as a matched pair "(" ... ")" and
 ;;    as a stand-alone symbol (in a case alternative).  This makes
 ;;    things quite tricky!
-;; 3. Here-documents in a script should be treated "as is",  and when
+;; 3. Here-documents in a script should be treated "as is", and when
 ;;    they terminate we want to revert to the indentation of the line
 ;;    containing the "<<" symbol.
 ;; 4. A line may be continued using the "\".
@@ -166,7 +166,7 @@
 ;;    but it doesn't in the sequence "$#"!
 ;; 
 ;; To try and address points 2 3 and 5 I used a feature that cperl mode
-;; uses,  that of a text's syntax property.  This, however, has 2
+;; uses, that of a text's syntax property.  This, however, has 2
 ;; disadvantages:
 ;; 1. We need to scan the buffer to find which ")" symbols belong to a
 ;;    case alternative, to find any here documents, and handle "$#".
@@ -183,14 +183,14 @@
 ;;   indent to.  However, if font-lock mode is active when there is
 ;;   any change inside the here-document font-lock clears that
 ;;   property.  This causes several problems: lines after the here-doc
-;;   will not be re-indentation properly,  words in the here-doc region
-;;   may be fontified,  and indentation may occur within the
+;;   will not be re-indented properly, words in the here-doc region
+;;   may be fontified, and indentation may occur within the
 ;;   here-document.
 ;;   I'm not sure how to fix this, perhaps using the point-entered
 ;;   property.  Anyway, if you use font lock and change a
-;;   here-document,  I recommend using M-x sh-rescan-buffer after the
-;;   changes are made.  Similarly, when using higlight-changes-mode,
-;;   changes inside a here-document may confuse shell indenting,  but again
+;;   here-document, I recommend using M-x sh-rescan-buffer after the
+;;   changes are made.  Similarly, when using highlight-changes-mode,
+;;   changes inside a here-document may confuse shell indenting, but again
 ;;   using `sh-rescan-buffer' should fix them.
 ;; 
 ;; - Indenting many lines is slow.  It currently does each line
@@ -856,22 +856,20 @@ Anything else means:   whenever we have a \"good guess\" as to the value."
   :type '(choice
 	  (const :tag "Never" nil)
 	  (const :tag "Only if sure"  t)
-	  (const :tag "If have a good guess" usually)
-	  )
+	  (const :tag "If have a good guess" usually))
   :group 'sh-indentation)
 
 (defcustom sh-popup-occur-buffer nil
-  "*Controls when  `sh-learn-buffer-indent' poos the *indent* buffer.
-If t it is always shown.  If nil,  it is shown only when there
+  "*Controls when  `sh-learn-buffer-indent' pops the *indent* buffer.
+If t it is always shown.  If nil, it is shown only when there
 are conflicts."
   :type '(choice
 	  (const :tag "Only when there are conflicts." nil)
-	  (const :tag "Always"  t)
-	  )
+	  (const :tag "Always"  t))
   :group 'sh-indentation)
 
 (defcustom sh-blink t
-  "*If non-nil,  `sh-show-indent' shows the line indentation is relative to.
+  "*If non-nil, `sh-show-indent' shows the line indentation is relative to.
 The position on the line is not necessarily meaningful.
 In some cases the line will be the matching keyword, but this is not
 always the case."
@@ -881,17 +879,16 @@ always the case."
 (defcustom sh-first-lines-indent 0
   "*The indentation of the first non-blank non-comment line.
 Usually 0 meaning first column.
-Can be set to a number,  or to nil which means leave it as is."
+Can be set to a number, or to nil which means leave it as is."
   :type '(choice
 	  (const :tag "Leave as is"	nil)
 	  (integer :tag "Column number"
-		   :menu-tag "Indent to this col (0 means first col)" )
-	  )
+		   :menu-tag "Indent to this col (0 means first col)" ))
   :group 'sh-indentation)
 
 
 (defcustom sh-basic-offset 4
-  "*The default indentation incrementation.
+  "*The default indentation increment.
 This value is used for the + and - symbols in an indentation variable."
   :type 'integer
   :group 'sh-indentation)
@@ -899,9 +896,9 @@ This value is used for the + and - symbols in an indentation variable."
 (defcustom sh-indent-comment nil
   "*How a comment line is to be indented.
 nil means leave it as it is;
-t  means indent it as a normal line,  aligning it to previous non-blank
+t  means indent it as a normal line, aligning it to previous non-blank
    non-comment line;
-a number means align to that column,  e.g. 0 means fist column."
+a number means align to that column, e.g. 0 means fist column."
   :type '(choice
 	  (const :tag "Leave as is." nil)
 	  (const :tag "Indent as a normal line."  t)
@@ -980,7 +977,7 @@ does not affect then else elif or fi statements themselves."
 
 (defcustom sh-indent-for-do '*
   "*How much to indent a do statement.
-This is relative to the statement before the do,  i.e. the
+This is relative to the statement before the do, i.e. the
 while until or for statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
@@ -988,7 +985,7 @@ while until or for statement."
 (defcustom sh-indent-after-do '*
 "*How much to indent a line after a do statement.
 This is used when the do is the first word of the line.
-This is relative to the statement before the do,  e.g. a
+This is relative to the statement before the do, e.g. a
 while for repeat or select statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
@@ -1090,13 +1087,13 @@ This is for the rc shell."
 
 (defun sh-mkword-regexpr (word)
   "Make a regexp which matches WORD as a word.
-This specifically excludes an occurance of WORD followed by
+This specifically excludes an occurrence of WORD followed by
 punctuation characters like '-'."
   (concat word "\\([^-a-z0-9_]\\|$\\)"))
 
 (defun sh-mkword-regexp (word)
   "Make a regexp which matches WORD as a word.
-This specifically excludes an occurance of WORD followed by
+This specifically excludes an occurrence of WORD followed by
 or preceded by punctuation characters like '-'."
   (concat "\\(^\\|[^-a-z0-9_]\\)" word "\\([^-a-z0-9_]\\|$\\)"))
 
@@ -1147,12 +1144,12 @@ or preceded by punctuation characters like '-'."
     )
   "A list of variables used by script mode to control indentation.
 This list is used when switching between buffer-local and global
-values of variables,  and for the commands using indenation styles.")
+values of variables, and for the commands using indentation styles.")
 
 (defvar sh-make-vars-local t
   "*Controls whether indentation variables are local to the buffer.
-If non-nil,  indentation variables are made local initially.
-If nil,  you can later make the variables local by invoking
+If non-nil, indentation variables are made local initially.
+If nil, you can later make the variables local by invoking
 command `sh-make-vars-local'.
 The default is t because I assume that in one Emacs session one is
 frequently editing existing scripts with different styles.")
@@ -1197,7 +1194,7 @@ For sh and rc shells indentation commands are:
 \\[sh-learn-line-indent]	Change the indentation variable so this line
 would indent to the way it currently is.
 \\[sh-learn-buffer-indent]  Set the indentation variables so the
-buffer indents as it currently is indendeted.
+buffer indents as it currently is indented.
 
 
 \\[backward-delete-char-untabify]	 Delete backward one position, even if it was a tab.
@@ -1349,19 +1346,19 @@ This adds rules for comments and assignments."
 ;; This is used to set `sh-kw-alist' which is a list of sublists each
 ;; having 3 elements:
 ;;   a keyword
-;;   a rule to check when the keyword apepars on "this" line
-;;   a rule to check when the keyword apepars on "the previous" line
+;;   a rule to check when the keyword appears on "this" line
+;;   a rule to check when the keyword appears on "the previous" line
 ;; The keyword is usually a string and is the first word on a line.
-;; If this keyword appears on the line whose indenation is to be
-;; calculated,  the rule in element 2 is called.  If this returns
-;; non-zero,  the resulting point (which may be changed by the rule)
+;; If this keyword appears on the line whose indentation is to be
+;; calculated, the rule in element 2 is called.  If this returns
+;; non-zero, the resulting point (which may be changed by the rule)
 ;; is used as the default indentation.
 ;; If it returned false or the keyword was not found in the table,
 ;; then the keyword from the previous line is looked up and the rule
 ;; in element 3 is called.  In this case, however,
-;; `sh-get-indent-info' does not stop but may keepp going and test
+;; `sh-get-indent-info' does not stop but may keep going and test
 ;; other keywords against rules in element 3.  This is because the
-;; precending line could have, for example, an opening "if" and an
+;; preceding line could have, for example, an opening "if" and an
 ;; opening "while" keyword and we need to add the indentation offsets
 ;; for both.
 ;;
@@ -1499,7 +1496,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	;; but do it in case this is called before that.
 	(make-local-variable 'indent-line-function)
 	(setq indent-line-function 'sh-indent-line)
-	;; This is very inefficient,  but this at least makes indent-region work:
+	;; This is very inefficient, but this at least makes indent-region work:
 	(make-local-variable 'indent-region-function)
 	(setq indent-region-function nil)
 	(if sh-make-vars-local
@@ -1704,7 +1701,7 @@ region, clear header."
 
 (defun sh-must-support-indent ()
   "*Signal an error if the shell type for this buffer is not supported.
-Also,  the buffer must be in Shell-script mode."
+Also, the buffer must be in Shell-script mode."
   (sh-must-be-shell-mode)
   (unless sh-indent-supported-here
     (error "This buffer's shell type is not supported for this command")))
@@ -1714,7 +1711,7 @@ Also,  the buffer must be in Shell-script mode."
 Normally they already are local.  This command is provided in case
 variable `sh-make-vars-local' has been set to nil.
 
-To revert all these variables to the global values,  use
+To revert all these variables to the global values, use
 command `sh-reset-indent-vars-to-global-values'."
   (interactive)
   (sh-must-be-shell-mode)
@@ -1722,8 +1719,8 @@ command `sh-reset-indent-vars-to-global-values'."
   (message "Indentation variable are now local."))
 
 (defun sh-reset-indent-vars-to-global-values ()
-  "Reset local indenatation variables to the global values.
-Then, if variable `sh-make-vars-local' is non-nil,  make them local."
+  "Reset local indentation variables to the global values.
+Then, if variable `sh-make-vars-local' is non-nil, make them local."
   (interactive)
   (sh-must-be-shell-mode)
   (mapcar 'kill-local-variable sh-var-list)
@@ -1744,10 +1741,10 @@ Then, if variable `sh-make-vars-local' is non-nil,  make them local."
 	     (eq var 'sh-indent-comment))
       (setq msg2
 	    (format "\n
-You can enter a number (positive to increase indentenation,
-negative to decrease indentation,  zero for no change to  indentnation).
+You can enter a number (positive to increase indentation,
+negative to decrease indentation, zero for no change to indentation).
 
-Or,  you can enter one of the following symbols which are relative to
+Or, you can enter one of the following symbols which are relative to
 the value of variable `sh-basic-offset'
 which in this buffer is currently %s.
 
@@ -1796,7 +1793,7 @@ This handles nested if..fi pairs."
 
 ;; Functions named sh-handle-this-XXX are called when the keyword on the
 ;; line whose indentation is being handled contain XXX;
-;; those named sh-handle-prev-XXX are when XXX appears on the prevoius line.
+;; those named sh-handle-prev-XXX are when XXX appears on the previous line.
 
 (defun sh-handle-prev-if ()
   (list '(+ sh-indent-after-if)))
@@ -1872,7 +1869,7 @@ This handles nested if..fi pairs."
   ;; we shouldn't -- and can't find prev-case
   (if (looking-at ".*\\bcase\\b")
       (list '(+ sh-indent-for-case-label))
-    (error "We don't see to be on a line with a case") ;; debug
+    (error "We don't seem to be on a line with a case") ;; debug
     ))
 
 (defun sh-handle-this-esac ()
@@ -1906,7 +1903,7 @@ This handles nested if..fi pairs."
 
 (defun sh-safe-backward-sexp ()
   "Try and do a `backward-sexp', but do not error.
-Return new point if successful,  nil if an error occurred."
+Return new point if successful, nil if an error occurred."
   (condition-case nil
       (progn
 	(backward-sexp 1)
@@ -1919,7 +1916,7 @@ Return new point if successful,  nil if an error occurred."
 
 (defun sh-safe-forward-sexp ()
   "Try and do a `forward-sexp', but do not error.
-Return new point if successful,  nil if an error occurred."
+Return new point if successful, nil if an error occurred."
   (condition-case nil
       (progn
 	(forward-sexp 1)
@@ -1976,7 +1973,7 @@ Return new point if successful,  nil if an error occurred."
 ;; for rc:
 (defun sh-find-prev-switch ()
   "Find the line for the switch keyword matching this line's case keyword."
-  (re-search-backward "\\bswitch\\b" nil t))
+  (re-search-backward "\\<switch\\>" nil t))
 
 (defun sh-handle-this-rc-case ()
   (if (sh-find-prev-switch)
@@ -2002,19 +1999,19 @@ Return new point if successful,  nil if an error occurred."
   "Return indent-info for this line.
 This is a list.  nil means the line is to be left as is.
 Otherwise it contains one or more of the following sublists:
-\(t NUMBER\)   NUMBER is the base location in the buffer that indendation is
+\(t NUMBER\)   NUMBER is the base location in the buffer that indentation is
 	     relative to.  If present, this is always the first of the
 	     sublists.  The indentation of the line in question is
-	     derived from the indentation of this point,  possibly
+	     derived from the indentation of this point, possibly
 	     modified by subsequent sublists.
 \(+ VAR\)
 \(- VAR\)      Get the value of variable VAR and add to or subtract from
 	     the indentation calculated so far.
 \(= VAR\)	     Get the value of variable VAR and *replace* the
-	     indentation with itss value.  This only occurs for
+	     indentation with its value.  This only occurs for
 	     special variables such as `sh-indent-comment'.
 STRING	     This is ignored for the purposes of calculating
-	     indentation,  it is printed in certain cases to help show
+	     indentation, it is printed in certain cases to help show
 	     what the indentation is based on."
   ;; See comments before `sh-kw'.
   (save-excursion
@@ -2046,7 +2043,7 @@ STRING	     This is ignored for the purposes of calculating
 	    (setq result t);; return nil if 1st line!
 	  (setq result (list '(= sh-indent-comment)))
 	  ;; we still need to get previous line in case
-	  ;; sh-indent-comnent is t (indent as normal)
+	  ;; sh-indent-comment is t (indent as normal)
 	  (setq align-point (sh-prev-line nil))
 	  (setq have-result nil)
 	  ))
@@ -2077,7 +2074,7 @@ STRING	     This is ignored for the purposes of calculating
 		  (setq result (append result val))
 		  (setq have-result t)
 		  ;; set prev-line to continue processing remainder
-		  ;; of this line as a previous l ine
+		  ;; of this line as a previous line
 		  (setq prev-line-end (point))
 		  ))))
 
@@ -2216,23 +2213,23 @@ If INFO is supplied it is used, else it is calculated."
 
 ;; Finding the previous line isn't trivial.
 ;; We must *always* go back one more and see if that is a continuation
-;; line -- it is the PREVIOUS line which is continued,  not the one
+;; line -- it is the PREVIOUS line which is continued, not the one
 ;; we are going to!
 ;; Also, we want to treat a whole "here document" as one big line,
 ;; because we may want to a align to the beginning of it.
 ;;
 ;; What we do:
-;; - go back a line,  if empty repeat
+;; - go back a line, if empty repeat
 ;; - (we are now at a previous non empty line)
 ;; - save this
-;; - if this is in a here-document,  go to the beginning of it
+;; - if this is in a here-document, go to the beginning of it
 ;;   and save that
-;; - go back one more physcial line and see if it is a continuation line
-;; - if yes,  save it and repeat
-;; - if no,  go back to where we last saved.
+;; - go back one more physical line and see if it is a continuation line
+;; - if yes, save it and repeat
+;; - if no, go back to where we last saved.
 (defun sh-prev-line (&optional end)
   "Back to end of previous non-comment non-empty line.
-Go to beginning of logical line unless END is non-nil,  in which case
+Go to beginning of logical line unless END is non-nil, in which case
 we go to the end of the previous line and do not check for continuations."
   (sh-must-be-shell-mode)
   (let ((going t)
@@ -2296,7 +2293,7 @@ we go to the end of the previous line and do not check for continuations."
 (defun sh-prev-stmt ()
   "Return the address of the previous stmt or nil."
   ;; This is used when we are trying to find a matching keyword.
-  ;; Searching backward for the keyword would certainly be quicker,  but
+  ;; Searching backward for the keyword would certainly be quicker, but
   ;; it is hard to remove "false matches" -- such as if the keyword
   ;; appears in a string or quote.  This way is slower, but (I think) safer.
   (interactive)
@@ -2309,7 +2306,7 @@ we go to the end of the previous line and do not check for continuations."
       (while (and (not found)
 		  (not (bobp))
 		  going)
-	;; Do a backward-sexp if possible,  else backup bit by bit...
+	;; Do a backward-sexp if possible, else backup bit by bit...
 	(if (sh-safe-backward-sexp)
 	    (progn
 	      (if (looking-at sh-special-keywords)
@@ -2365,7 +2362,7 @@ we go to the end of the previous line and do not check for continuations."
   "Return the previous thing this logical line."
   ;; This is called when `sh-get-indent-info' is working backwards on
   ;; the previous line(s) finding what keywords may be relevant for
-  ;; indenting.  It moves over sexps if possible,  and will stop
+  ;; indenting.  It moves over sexps if possible, and will stop
   ;; on a ; and at the beginning of a line if it is not a continuation
   ;; line.
   ;;
@@ -2489,7 +2486,7 @@ Optional parameter DEPTH (usually 1) says how many to look for."
 (defun sh-var-value (var &optional ignore-error)
   "Return the value of variable VAR, interpreting symbols.
 It can also return t or nil.
-If an illegal value is found,  throw an error unless Optional argument
+If an illegal value is found, throw an error unless Optional argument
 IGNORE-ERROR is non-nil."
   (let ((val (symbol-value var)))
     (cond
@@ -2514,14 +2511,14 @@ IGNORE-ERROR is non-nil."
      (t
       (if ignore-error
 	  (progn
-	    (message "Don't konw how to handle %s's value of %s" var val)
+	    (message "Don't know how to handle %s's value of %s" var val)
 	    0)
 	(error "Don't know how to handle %s's value of %s" var val))
       ))))
 
 (defun sh-set-var-value (var value &optional no-symbol)
   "Set variable VAR to VALUE.
-Unless optional argument NO-SYMBOL is non-nil,  then if VALUE is
+Unless optional argument NO-SYMBOL is non-nil, then if VALUE is
 can be represented by a symbol then do so."
   (cond
    (no-symbol
@@ -2716,14 +2713,14 @@ for a new value for it."
 			 var (symbol-value var) indent-val)
 	      (message "Variable: %s  Value: %s  would leave line as is."
 		       var (symbol-value var)))
-	    ;; I'm not sure about this,  indenting it now?
+	    ;; I'm not sure about this, indenting it now?
 	    ;; No.  Because it would give the impression that an undo would
-	    ;; restore thing,  but the value has been altered.
+	    ;; restore thing, but the value has been altered.
 	    ;; (sh-indent-line)
 	    )
 	(error
 	 (set var old-val)
-	 (message "Bad value for %s,  restoring to previous value %s"
+	 (message "Bad value for %s, restoring to previous value %s"
 		  var old-val)
 	 (sit-for 1)
 	 nil))
@@ -2758,7 +2755,7 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
       (message (format "Cannot learn line - %s" var)))
      ((eq var 'sh-indent-comment)
       ;; This is arbitrary...
-      ;; - if curr-indent is 0,  set to curr-indent
+      ;; - if curr-indent is 0, set to curr-indent
       ;; - else if it has the indentation of a "normal" line,
       ;;   then set to t
       ;; - else set to curr-indent.
@@ -2809,7 +2806,7 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
   "Insert MESSAGE referring to location POINT in current buffer into BUFFER.
 Buffer BUFFER is in `occur-mode'.
 If ADD-LINENUM is non-nil the message is preceded by the line number.
-If OCCUR-POINT is non-nil then the line is marked as a new occurence
+If OCCUR-POINT is non-nil then the line is marked as a new occurrence
 so that `occur-next' and `occur-prev' will work."
   (let ((m1 (make-marker))
 	(main-buffer (current-buffer))
@@ -2849,7 +2846,7 @@ so that `occur-next' and `occur-prev' will work."
 
 ;; Is this really worth having?
 (defvar sh-learned-buffer-hook nil
-  "*An abnormal hook,  called with an alist of leared variables.")
+  "*An abnormal hook, called with an alist of learned variables.")
 ;;; Example of how to use sh-learned-buffer-hook
 ;; 
 ;; (defun what-i-learned (list)
@@ -2869,27 +2866,27 @@ so that `occur-next' and `occur-prev' will work."
 
 
 ;; Originally this was sh-learn-region-indent (beg end)
-;; However, in practise this was awkward so I changed it to
+;; However, in practice this was awkward so I changed it to
 ;; use the whole buffer.  Use narrowing if needbe.
 (defun sh-learn-buffer-indent (&optional arg)
   "Learn how to indent the buffer the way it currently is.
 
 Output in buffer \"*indent*\" shows any lines which have conflicting
-values of a variable, and the final value of all variables learnt.
-This buffer is popped to automatically if there are any discrepencies.
+values of a variable, and the final value of all variables learned.
+This buffer is popped to automatically if there are any discrepancies.
 
-If no prefix ARG is given,  then variables are set to numbers.
-If a prefix arg is given,  then variables are set to symbols when
+If no prefix ARG is given, then variables are set to numbers.
+If a prefix arg is given, then variables are set to symbols when
 applicable -- e.g. to symbol `+' if the value is that of the
 basic indent.
 If a positive numerical prefix is given, then  `sh-basic-offset'
 is set to the prefix's numerical value.
-Otherwise,  sh-basic-offset may or may not be changed,  according
+Otherwise, sh-basic-offset may or may not be changed, according
 to the value of variable `sh-learn-basic-offset'.
 
 Abnormal hook `sh-learned-buffer-hook' if non-nil is called when the
 function completes.  The function is abnormal because it is called
-with an alist of variables learnt.  This feature may be changed or
+with an alist of variables learned.  This feature may be changed or
 removed in the future.
 
 This command can often take a long time to run."
@@ -2905,7 +2902,7 @@ This command can often take a long time to run."
 	  (max 17)
 	  vec
 	  msg
-	  (comment-col nil) ;; number if all same,  t if seen diff values
+	  (comment-col nil) ;; number if all same, t if seen diff values
 	  (comments-always-default t) ;; nil if we see one not default
 	  initial-msg
 	  (specified-basic-offset (and arg (numberp arg)
@@ -2950,7 +2947,7 @@ This command can often take a long time to run."
 	      (unless (looking-at "\\s-*#");; don't learn from comments
 		(if (setq previous-set-info (assoc var learned-var-list))
 		    (progn
-		      ;; it was already there,  is it same value ?
+		      ;; it was already there, is it same value ?
 		      (unless (eq (symbol-value var)
 				  (nth 1 previous-set-info))
 			(sh-mark-line
@@ -3013,7 +3010,7 @@ This command can often take a long time to run."
        ((numberp comment-col)
 	(setq msg  (format "\nComments are in col %d." comment-col)))
        (t
-	(setq msg  "\nComments seem to be mixed,  leaving them as is.\n")
+	(setq msg  "\nComments seem to be mixed, leaving them as is.\n")
 	(setq comment-col nil)
 	))
       (sh-debug msg)
@@ -3114,13 +3111,13 @@ This command can often take a long time to run."
       )))
 
 (defun sh-guess-basic-offset (vec)
-  "See if we can determine a reasonbable value for `sh-basic-offset'.
+  "See if we can determine a reasonable value for `sh-basic-offset'.
 This is experimental, heuristic and arbitrary!
 Argument VEC is a vector of information collected by
 `sh-learn-buffer-indent'.
 Return values:
   number          - there appears to be a good single value
-  list of numbers - no obvious one,  here is a list of one or more
+  list of numbers - no obvious one, here is a list of one or more
 		    reasonable choices
   nil		  - we couldn't find a reasonable one."
   (let* ((max (1- (length vec)))
@@ -3186,11 +3183,11 @@ Return values:
 (defun sh-do-nothing (a b c)
   ;; checkdoc-params: (a b c)
   "A dummy function to prevent font-lock from re-fontifying a change.
-Otherwise,  we fontify something and font-lock overwrites it."
+Otherwise, we fontify something and font-lock overwrites it."
   )
 
 ;; The default font-lock-unfontify-region-function removes 
-;; syntax-table properties,  and so removes our information.
+;; syntax-table properties, and so removes our information.
 (defun sh-font-lock-unfontify-region-function (beg end)
   (let* ((modified (buffer-modified-p)) (buffer-undo-list t)
 	 (inhibit-read-only t) (inhibit-point-motion-hooks t)
@@ -3213,10 +3210,10 @@ Otherwise,  we fontify something and font-lock overwrites it."
 
 (defun sh-check-paren-in-case ()
   "Make syntax class of case label's right parenthesis not close parenthesis.
-If this parenthesis is a case alternative,  set its syntax class to a word."
+If this parenthesis is a case alternative, set its syntax class to a word."
   (let ((start (point))
 	state prev-line)
-    ;; First test if this is a possible candidate,  the first "(" or ")"
+    ;; First test if this is a possible candidate, the first "(" or ")"
     ;; on the line;  then, if go, check prev line is ;; or case.
     (save-excursion
       (beginning-of-line)
@@ -3365,7 +3362,7 @@ Called from scan-buff.  If ok, return non-nil."
     ;; (message "end of search for esac  at %d depth=%d" (point) depth)
     (setq end (point))
     (goto-char start)
-    ;; if we found the esac,  then fix all appropriate ')'s in the region
+    ;; if we found the esac, then fix all appropriate ')'s in the region
     (if (zerop depth)
 	(progn
 	  (while (< (point) end)
@@ -3389,6 +3386,7 @@ Called from scan-buff.  If ok, return non-nil."
     ))
 
 
+;; FIXME: This loses big time on very large files (such as CVS' sanity.sh).
 (defun sh-scan-buffer ()
   "Scan a sh buffer for case statements and here-documents.
 
@@ -3396,7 +3394,7 @@ For each case alternative found, mark its \")\" with a text property
 so that its syntax class is no longer a close parenthesis character.
 
 Each here-document is also marked so that it is effectively immune
-from indenation changes."
+from indentation changes."
   ;; Do not call this interactively, call `sh-rescan-buffer' instead.
   (sh-must-be-shell-mode)
   (let ((n 0)
@@ -3471,16 +3469,16 @@ from indenation changes."
 
 ;; ========================================================================
 
-;; Styles -- a quick and dirty way of saving the indenation settings.
+;; Styles -- a quick and dirty way of saving the indentation settings.
 
 (defvar sh-styles-alist nil
   "A list of all known shell indentation styles.")
 
 (defun sh-name-style (name &optional confirm-overwrite)
   "Name the current indentation settings as a style called NAME.
-If this name exists,  the command will prompt whether it should be
+If this name exists, the command will prompt whether it should be
 overwritten if
-- - it was called interactively with a prefix argument,  or
+- - it was called interactively with a prefix argument, or
 - - called non-interactively with optional CONFIRM-OVERWRITE non-nil."
   ;; (interactive "sName for this style: ")
   (interactive
