@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!129.c(trunk.2) $
  summary = test of ramp allocation with small arena
  language = c
  link = testlib.o rankfmt.o
@@ -43,6 +43,7 @@ mps_ap_t apamc;
 
 static mps_addr_t objtab[TABSIZE];
 
+
 static void alloc_back(void) {
  long int i, j;
 
@@ -55,11 +56,9 @@ static void alloc_back(void) {
 
 static void test(void) {
  long int i;
- long int rsize;
-
+ long int rsize = 0;
  int inramp;
-
- mycell *r, *s;
+ mycell *r = NULL, *s;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(),
    (size_t) 1024*1024*ARENALIMIT),
@@ -148,6 +147,7 @@ static void test(void) {
  mps_arena_destroy(arena);
  comment("Destroyed space.");
 }
+
 
 int main(void)
 {
