@@ -218,6 +218,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   int count = specpdl_ptr - specpdl;
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  Lisp_Object enable_multibyte;
 
   specbind (Qminibuffer_default, defalt);
 
@@ -226,6 +227,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   val = Qnil;
   ambient_dir = current_buffer->directory;
   input_method = Qnil;
+  enable_multibyte = Qnil;
 
   /* Don't need to protect PROMPT, HISTVAR, and HISTPOS because we
      store them away before we can GC.  Don't need to protect
@@ -299,9 +301,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vhelp_form = Vminibuffer_help_form;
 
   if (inherit_input_method)
-    /* `current-input-method' is buffer local.  So, remeber it in
-       INPUT_METHOD before changing the current buffer.  */
-    input_method = Fsymbol_value (Qcurrent_input_method);
+    {
+      /* `current-input-method' is buffer local.  So, remeber it in
+	 INPUT_METHOD before changing the current buffer.  */
+      input_method = Fsymbol_value (Qcurrent_input_method);
+      enable_multibyte = current_buffer->enable_multibyte_characters;
+    }
 
   /* Switch to the minibuffer.  */
 
@@ -373,6 +378,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && Ffboundp (Qactivate_input_method))
     call1 (Qactivate_input_method, input_method);
+
+  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
+  if (inherit_input_method)
+    current_buffer->enable_multibyte_characters = enable_multibyte_characters;
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
