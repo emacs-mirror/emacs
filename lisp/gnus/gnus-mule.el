@@ -210,6 +210,9 @@ coding-system for reading and writing respectively."
 
 (gnus-mule-add-group "" 'undecided)
 (gnus-mule-add-group "fj" 'iso-2022-7bit)
+(gnus-mule-add-group "tnn" 'iso-2022-7bit)
+(gnus-mule-add-group "japan" 'iso-2022-7bit)
+(gnus-mule-add-group "pin" 'iso-2022-7bit)
 (gnus-mule-add-group "alt.chinese.text" 'chinese-hz)
 (gnus-mule-add-group "alt.hk" 'chinese-hz)
 (gnus-mule-add-group "alt.chinese.text.big5" 'chinese-big5)
