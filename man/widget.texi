@@ -3,6 +3,28 @@
 @c %**start of header
 @setfilename ../info/widget
 @settitle The Emacs Widget Library
+@ifnottex
+Copyright @copyright{} 2000 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end ifnottex
+
 @iftex
 @afourpaper
 @headings double
@@ -550,8 +572,11 @@ Emacsen that supports it.
 
 @vindex help-echo@r{ keyword}
 @item :help-echo
-Message displayed whenever you move to the widget with either
-@code{widget-forward} or @code{widget-backward}.
+Specifies how to display a message whenever you move to the widget with
+either @code{widget-forward} or @code{widget-backward} or move the mouse
+over it (using the standard @code{help-echo} mechanism}).  The argument
+is either a string to display or a function of one argument, the widget,
+which should return a string to display.
 
 @vindex indent@r{ keyword}
 @item :indent
@@ -628,7 +653,7 @@ in the buffer with a positive tabbing order, or @code{nil}
 
 @vindex parent@r{ keyword}
 @item :parent
-The parent of a nested widget (e.g. a @code{menu-choice} item or an
+The parent of a nested widget (e.g.@: a @code{menu-choice} item or an
 element of a @code{editable-list} widget).
 
 @vindex sibling-args@r{ keyword}
@@ -778,7 +803,7 @@ Face used for highlighting the editable field.  Default is
 
 @vindex secret@r{ keyword}
 @item :secret
-Character used to display the value.  You can set this to e.g. @code{?*}
+Character used to display the value.  You can set this to e.g.@: @code{?*}
 if the field contains a password or other secret information.  By
 default, this is nil, and the value is not secret.
 
@@ -884,7 +909,7 @@ Insert a literal @samp{%}.
 @vindex button-args@r{ keyword}
 @item :button-args
 A list of keywords to pass to the radio buttons.  Useful for setting
-e.g. the @samp{:help-echo} for each button.
+e.g.@: the @samp{:help-echo} for each button.
 
 @vindex buttons@r{ keyword}
 @item :buttons
@@ -1033,12 +1058,12 @@ Usually a checklist will only match if the items are in the exact
 sequence given in the specification.  By setting @code{:greedy} to
 non-nil, it will allow the items to come in any sequence.  However, if
 you extract the value they will be in the sequence given in the
-checklist.  I.e. the original sequence is forgotten.
+checklist, i.e.@: the original sequence is forgotten.
 
 @vindex button-args@r{ keyword}
-@item button-args
+@item :button-args
 A list of keywords to pass to the checkboxes.  Useful for setting
-e.g. the @samp{:help-echo} for each checkbox.
+e.g.@: the @samp{:help-echo} for each checkbox.
 
 @vindex buttons@r{ keyword}
 @item :buttons
@@ -1403,7 +1428,7 @@ Non-nil if @var{widget} has a value (even nil) for property @var{property}.
 @end defun
 
 Occasionally it can be useful to know which kind of widget you have,
-i.e. the name of the widget type you gave when the widget was created. 
+i.e.@: the name of the widget type you gave when the widget was created. 
 
 @defun widget-type widget
 Return the name of @var{widget}, a symbol.
