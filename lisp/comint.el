@@ -828,7 +828,7 @@ If N is negative, find the previous or Nth previous match."
   "Search backwards through input history for match for current input.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
-If N is negative, find the next or Nth next match."
+If N is negative, search forwards for the -Nth following match."
   (interactive "p")
   (if (not (memq last-command '(comint-previous-matching-input-from-input
 				comint-next-matching-input-from-input)))
@@ -844,9 +844,9 @@ If N is negative, find the next or Nth next match."
 
 (defun comint-next-matching-input-from-input (arg)
   "Search forwards through input history for match for current input.
-\(Previous history elements are earlier commands.)
-With prefix argument N, search for Nth previous match.
-If N is negative, find the next or Nth next match."
+\(Following history elements are more recent commands.)
+With prefix argument N, search for Nth following match.
+If N is negative, search backwards for the -Nth previous match."
   (interactive "p")
   (comint-previous-matching-input-from-input (- arg)))
 
