@@ -80,6 +80,12 @@ nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 It is called with two arguments: the compilation buffer, and a string
 describing how the process finished.")
 
+;;;###autoload
+(defvar compilation-finish-functions nil
+  "*Functions to call when a compilation process finishes.
+Each function is called with two arguments: the compilation buffer,
+and a string describing how the process finished.")
+
 (defvar compilation-last-buffer nil
   "The most recent compilation buffer.
 A buffer becomes most recent when its compilation is started
@@ -613,7 +619,11 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
     (if compilation-finish-function
-	(funcall compilation-finish-function (current-buffer) msg))))
+	(funcall compilation-finish-function (current-buffer) msg))
+    (let ((functions compilation-finish-functions))
+      (while functions
+	(funcall (car functions) (current-buffer) msg)
+	(setq functions (cdr functions))))))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
