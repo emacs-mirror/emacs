@@ -94,7 +94,7 @@ int inhibit_window_system;
    priority; Those functions have their own extern declaration.  */
 int emacs_priority;
 
-#ifdef BSD
+#ifdef BSD_PGRPS
 /* See sysdep.c.  */
 extern int inherited_pgroup;
 #endif
