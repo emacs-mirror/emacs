@@ -1,3 +1,21 @@
+2001-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (command-line-1): Don't do startup screen
+	if a subprocess is running.
+
+	* net/browse-url.el (browse-url-galeon-new-window-is-tab): New var.
+	(browse-url-galeon): Use that variable.
+
+	* mail/supercite.el (sc-toggle-var): Don't use set-variable or
+	eval-expression.  Eval and set the variable simply.
+
+	* files.el (temporary-file-directory): Use defcustom.
+	(small-temporary-file-directory): Likewise.
+	(normal-backup-enable-predicate): Move down in file
+	after definition of temporary-file-directory.
+
+	* bindings.el (last-buffer, unbury-buffer): Doc fixes.
+
 2001-11-24  Colin Walters  <walters@debian.org>
 
 	* calc/calc-ext.el (calc-init-extensions): Update the rest of the
