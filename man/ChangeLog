@@ -1,3 +1,23 @@
+2001-02-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Release mh-e-doc-1.3 for Emacs 21.1.
+	(Viewing): Added mh-header-display index entry.
+	(Organizing,Customizing Reading): Added mh-kill-folder index entry.
+	(Preface): The current version of mh-e has come
+	standard since 19.29. Since Version 5 of mh-e has been out so
+	long, lots of text regarding earlier versions was pruned.
+	(Conventions): Use BACKSPACE instead of DELETE in Emacs 21.
+	(Reading MIME): Use nmh commands.
+	(Bug Reports): Current maintainer now Bill Wohler. Bug reports now
+	at SourceForge.
+	(Mailing List): Mailing lists now at SourceForge.
+	(MH FAQ): FAQ now at faqs.org.
+	(Getting mh-e): Version in Emacs should be fairly up to date. New
+	releases at SourceForge.
+	(History): mh-e now maintained by Bill Wohler at SourceForge.
+	(Changes to mh-e): Gone.
+	(Copying): Clean up close-quote punctuation (rms-1.7).
+
 2001-02-19  Andreas Schwab  <schwab@suse.de>
 
 	* programs.texi: Fix typo.
