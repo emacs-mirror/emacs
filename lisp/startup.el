@@ -1144,8 +1144,7 @@ where FACE is a valid face specification, as it can be used with
 	timer)
     (catch 'stop-splashing
       (unwind-protect
-	  (let ((map (make-sparse-keymap))
-		(show-help-function nil))
+	  (let ((map (make-sparse-keymap)))
 	    (use-local-map map)
 	    (define-key map [t] 'fancy-splash-default-action)
 	    (define-key map [mouse-movement] 'ignore)
