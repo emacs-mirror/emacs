@@ -657,6 +657,21 @@ sleep_or_kbd_hit (secs, kbdok)
   while (clnow < clthen);
 }
 
+/* The Emacs root directory as determined by init_environment.  */
+static char emacsroot[MAXPATHLEN];
+
+char *
+rootrelativepath (rel)
+     char *rel;
+{
+  static char result[MAXPATHLEN + 10];
+
+  strcpy (result, emacsroot);
+  strcat (result, "/");
+  strcat (result, rel);
+  return result;
+}
+
 /* Define a lot of environment variables if not already defined.  Don't
    remove anything unless you know what you're doing -- lots of code will
    break if one or more of these are missing.  */
@@ -666,32 +681,30 @@ init_environment (argc, argv, skip_args)
      char **argv;
      int skip_args;
 {
-  char *s, *t;
+  char *s, *t, *root;
+  int len;
 
-  /* We default HOME to the directory from which Emacs was started, but with
-     a "/bin" suffix removed.  */
-  s = argv[0];
-  t = alloca (strlen (s) + 1);
-  strcpy (t, s);
-  s = t + strlen (t);
-  while (s != t && *s != '/' && *s != ':') s--;
-  if (s == t)
-    t = "c:/emacs"; /* When run under debug32.  */
+  /* Find our root from argv[0].  Assuming argv[0] is, say,
+     "c:/emacs/bin/emacs.exe" our root will be "c:/emacs".  */
+  len = strlen (argv[0]);
+  root = alloca (len + 10);  /* A little extra space for the stuff below.  */
+  strcpy (root, argv[0]);
+  while (len > 0 && root[len] != '/' && root[len] != ':')
+    len--;
+  root[len] = '\0';
+  if (len > 4 && strcmp (root + len - 4, "/bin") == 0)
+    root[len - 4] = '\0';
   else
-    {
-      if (*s == ':') s++;
-      *s = 0;
-      if (s - 4 >= t && strcmp (s - 4, "/bin") == 0)
-	s[strlen (s) - 4] = 0;
-    }
-  setenv ("HOME", t, 0);
+    strcpy (root, "c:/emacs");  /* Only under debuggers, I think.  */
+  len = strlen (root);
+  strcpy (emacsroot, root);
 
-  /* We set EMACSPATH to ~/bin (expanded) */
-  s = getenv ("HOME");
-  t = strcpy (alloca (strlen (s) + 6), s);
-  if (s[strlen (s) - 1] != '/') strcat (t, "/");
-  strcat (t, "bin");
-  setenv ("EMACSPATH", t, 0);
+  /* We default HOME to our root.  */
+  setenv ("HOME", root, 0);
+
+  /* We default EMACSPATH to root + "/bin".  */
+  strcpy (root + len, "/bin");
+  setenv ("EMACSPATH", root, 0);
 
   /* I don't expect anybody to ever use other terminals so the internal
      terminal is the default.  */
