@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later.
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001 Free Software Foundation
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -346,7 +346,10 @@ through a file easier.")
 
 (defun bookmark-get-bookmark (bookmark)
   "Return the full entry for BOOKMARK in bookmark-alist."
-  (assoc bookmark bookmark-alist))
+  (apply (if bookmark-completion-ignore-case
+             #'assoc-ignore-case
+           #'assoc)
+         (list bookmark bookmark-alist)))
 
 
 (defun bookmark-get-bookmark-record (bookmark)
