@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.23 2000/11/14 10:03:56 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.24 2000/11/14 15:09:40 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -418,41 +418,43 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
 		      (and empty block-comment-start) comment-start))
 	 (ender (or (and continue comment-continue "")
 		    (and empty block-comment-end) comment-end)))
-    (cond
-     ((null starter)
-      (error "No comment syntax defined"))
-     (t (let* ((eolpos (line-end-position))
-               cpos indent begpos)
-          (beginning-of-line)
-          (if (not (setq begpos (comment-search-forward eolpos t)))
-	      (setq begpos (point))
-	    (setq cpos (point-marker))
-	    (goto-char begpos))
-	  ;; Compute desired indent.
-	  (setq indent (funcall comment-indent-function))
-	  (if (not indent)
-	      ;; comment-indent-function refuses delegates to indent.
-	      (indent-according-to-mode)
-	    ;; Avoid moving comments past the fill-column.
-	    (setq indent
-		  (min indent
-		       (+ (current-column)
-			  (- fill-column
-			     (save-excursion (end-of-line) (current-column))))))
-	    (if (= (current-column) indent)
-		(goto-char begpos)
-	      ;; If that's different from current, change it.
-	      (skip-chars-backward " \t")
-	      (delete-region (point) begpos)
-	      (indent-to (if (bolp) indent
-			   (max indent (1+ (current-column)))))))
-	  ;; An existing comment?
-	  (if cpos
-	      (progn (goto-char cpos) (set-marker cpos nil))
-	    ;; No, insert one.
+    (unless starter (error "No comment syntax defined"))
+    (beginning-of-line)
+    (let* ((eolpos (line-end-position))
+	   (begpos (comment-search-forward eolpos t))
+	   cpos indent)
+      ;; An existing comment?
+      (if begpos (setq cpos (point-marker))
+	  ;; If none, insert one.
+	  (save-excursion
+	    ;; Some comment-indent-function insist on not moving comments that
+	    ;; are in column 0, so we insert a space to avoid this special case
+	    (insert " ")
+	    (setq begpos (point))
 	    (insert starter)
-	    (save-excursion
-	      (insert ender))))))))
+	    (setq cpos (point-marker))
+	    (insert ender)))
+      (goto-char begpos)
+      ;; Compute desired indent.
+      (setq indent (funcall comment-indent-function))
+      (if (not indent)
+	  ;; comment-indent-function refuses delegates to indent.
+	  (indent-according-to-mode)
+	;; Avoid moving comments past the fill-column.
+	(setq indent
+	      (min indent
+		   (+ (current-column)
+		      (- fill-column
+			 (save-excursion (end-of-line) (current-column))))))
+	(if (= (current-column) indent)
+	    (goto-char begpos)
+	  ;; If that's different from current, change it.
+	  (skip-chars-backward " \t")
+	  (delete-region (point) begpos)
+	  (indent-to (if (bolp) indent
+		       (max indent (1+ (current-column)))))))
+      (goto-char cpos)
+      (set-marker cpos nil))))
 
 ;;;###autoload
 (defun comment-set-column (arg)
@@ -884,6 +886,9 @@ Else, call `comment-indent'."
 	(if arg (comment-kill (and (integerp arg) arg)) (comment-indent))
       (let ((add (if arg (prefix-numeric-value arg)
 		   (if (= (length comment-start) 1) comment-add 0))))
+	;; Some modes insist on keeping column 0 comment in column 0
+	;; so we need to move away from it before inserting the comment.
+	(indent-according-to-mode)
 	(insert (comment-padright comment-start add))
 	(save-excursion
 	  (unless (string= "" comment-end)
