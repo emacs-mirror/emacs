@@ -678,21 +678,29 @@ Instead, these commands are available:
 
 ;; Choose a .xmail file in dir rmail-secondary-file-directory.
 (defun rmail-secondary-file-menu (event)
-  (let* ((files (directory-files rmail-secondary-file-directory nil
-				 rmail-secondary-file-regexp))
-	 (menu (list "Rmail Files"
-		     (cons "Rmail Files"
-			   (mapcar (function (lambda (f) (cons f f)))
-				   files))))
-	 (chosen (x-popup-menu event menu)))
-    (if chosen
-	(expand-file-name chosen rmail-secondary-file-directory))))
+  (let ((files (directory-files rmail-secondary-file-directory nil
+				rmail-secondary-file-regexp)))
+    (if files
+	(let* ((menu (list "Rmail Files"
+			   (cons "Rmail Files"
+				 (mapcar (function (lambda (f) (cons f f)))
+					 files))))
+	       (chosen (x-popup-menu event menu)))
+	  (if chosen
+	      (expand-file-name chosen rmail-secondary-file-directory)))
+      (message "No files matching %s%s found"
+	       rmail-secondary-file-directory rmail-secondary-file-regexp)
+      nil)))
+
 
 (defun rmail-input-menu (event)
-  "Choose a new Rmail file to edit, with a menu."
+  "Choose a new Rmail file to edit, with a menu.
+The variables `rmail-secondary-file-directory' and
+`rmail-secondary-file-regexp' control which files are offered in the menu."
   (interactive "e")
-  (rmail-input (expand-file-name (rmail-secondary-file-menu event)
-				 rmail-secondary-file-directory)))
+  (let ((file-name (rmail-secondary-file-menu event)))
+    (if file-name
+	(rmail-input file-name))))
 
 ;;;; *** Rmail input ***
 
