@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.56) $
+ * $HopeName: MMsrc!mpsi.c(trunk.57) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.56) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.57) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -305,8 +305,8 @@ mps_res_t mps_space_collect(mps_space_t mps_space)
 /* mps_arena_create -- create an arena object */
 
 mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
-			   mps_arena_class_t mps_arena_class,
-			   ...)
+                           mps_arena_class_t mps_arena_class,
+                           ...)
 {
   mps_res_t res;
   va_list args;
@@ -321,8 +321,8 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
 /* mps_arena_create_v -- create an arena object */
 
 mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
-			     mps_arena_class_t mps_arena_class,
-			     va_list args)
+                             mps_arena_class_t mps_arena_class,
+                             va_list args)
 {
   Arena arena;
   Res res;
@@ -397,14 +397,14 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
   res = FormatCreate(&format,
                      arena,
                      (Align)mps_fmt_A->align,
-		     FormatVarietyA,
+                     FormatVarietyA,
                      (FormatScanMethod)mps_fmt_A->scan,
                      (FormatSkipMethod)mps_fmt_A->skip,
                      (FormatMoveMethod)mps_fmt_A->fwd,
                      (FormatIsMovedMethod)mps_fmt_A->isfwd,
                      (FormatCopyMethod)mps_fmt_A->copy,
                      (FormatPadMethod)mps_fmt_A->pad,
-		     NULL);
+                     NULL);
 
   ArenaLeave(arena);
 
@@ -434,14 +434,14 @@ mps_res_t mps_fmt_create_B(mps_fmt_t *mps_fmt_o,
   res = FormatCreate(&format,
                      arena,
                      (Align)mps_fmt_B->align,
-		     FormatVarietyB,
+                     FormatVarietyB,
                      (FormatScanMethod)mps_fmt_B->scan,
                      (FormatSkipMethod)mps_fmt_B->skip,
                      (FormatMoveMethod)mps_fmt_B->fwd,
                      (FormatIsMovedMethod)mps_fmt_B->isfwd,
                      (FormatCopyMethod)mps_fmt_B->copy,
                      (FormatPadMethod)mps_fmt_B->pad,
-		     (FormatClassMethod)mps_fmt_B->class);
+                     (FormatClassMethod)mps_fmt_B->class);
 
   ArenaLeave(arena);
 
@@ -535,7 +535,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o,
 }
 
 mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
-		      va_list args)
+                      va_list args)
 {
   Pool pool = (Pool)mps_pool;
   Arena arena;
@@ -1117,7 +1117,7 @@ void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
  */
 
 mps_bool_t mps_ld_isstale(mps_ld_t mps_ld, mps_arena_t mps_arena,
-			  mps_addr_t addr)
+                          mps_addr_t addr)
 {
   Arena arena = (Arena)mps_arena;
   LD ld = (LD)mps_ld;
@@ -1255,7 +1255,7 @@ mps_bool_t mps_message_get(mps_message_t *mps_message_return,
 }
 
 mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
-				  mps_arena_t mps_arena)
+                                  mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
   MessageType type;
@@ -1280,7 +1280,7 @@ mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
 
 void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
                                   mps_arena_t mps_arena,
-				  mps_message_t mps_message)
+                                  mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
   Message message = (Message)mps_message;
@@ -1295,6 +1295,59 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
   ArenaPoke(arena, (Addr)mps_addr_return, ref);
 
   ArenaLeave(arena);
+}
+
+/* MPS_MESSAGE_TYPE_COLLECTION_STATS */
+
+size_t mps_message_collection_stats_live_size(mps_arena_t mps_arena,
+                                              mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  Size size;
+
+  ArenaEnter(arena);
+
+  AVERT(Arena, arena);
+  size = MessageCollectionStatsLiveSize(arena, message);
+
+  ArenaLeave(arena);
+
+  return (size_t)size;
+}
+
+size_t mps_message_collection_stats_condemned_size(mps_arena_t mps_arena,
+                                                   mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  Size size;
+
+  ArenaEnter(arena);
+
+  AVERT(Arena, arena);
+  size = MessageCollectionStatsCondemnedSize(arena, message);
+
+  ArenaLeave(arena);
+
+  return (size_t)size;
+}
+
+size_t mps_message_collection_stats_not_condemned_size(mps_arena_t mps_arena,
+                                                       mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  Size size;
+
+  ArenaEnter(arena);
+
+  AVERT(Arena, arena);
+  size = MessageCollectionStatsNotCondemnedSize(arena, message);
+
+  ArenaLeave(arena);
+
+  return (size_t)size;
 }
 
 
