@@ -781,6 +781,7 @@ Recommended as a parent keymap for modes using widgets.")
 (defvar widget-field-keymap
   (let ((map (copy-keymap widget-keymap)))
     (define-key map [menu-bar] nil)
+    (define-key map [tool-bar] nil)
     (define-key map "\C-k" 'widget-kill-line)
     (define-key map "\M-\t" 'widget-complete)
     (define-key map "\C-m" 'widget-field-activate)
@@ -792,7 +793,8 @@ Recommended as a parent keymap for modes using widgets.")
 
 (defvar widget-text-keymap
   (let ((map (copy-keymap widget-keymap)))
-    (define-key map [menu-bar] 'nil)
+    (define-key map [menu-bar] nil)
+    (define-key map [tool-bar] nil)
     (define-key map "\C-a" 'widget-beginning-of-line)
     (define-key map "\C-e" 'widget-end-of-line)
     (set-keymap-parent map global-map)
