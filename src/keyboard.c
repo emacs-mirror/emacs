@@ -120,6 +120,18 @@ Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
 Lisp_Object this_command_keys;
 int this_command_key_count;
 
+/* Record values of this_command_key_count and echo_length ()
+   before this command was read.  */
+static int before_command_key_count;
+static int before_command_echo_length;
+/* Values of before_command_key_count and before_command_echo_length
+   saved by reset-this-command-lengths.  */
+static int before_command_key_count_1;
+static int before_command_echo_length_1;
+/* Flag set by reset-this-command-lengths,
+   saying to reset the lengths when add_command_key is called.  */
+static int before_command_restore_flag;
+
 extern int minbuf_level;
 
 extern struct backtrace *backtrace_list;
@@ -667,6 +679,15 @@ add_command_key (key)
 {
   int size = XVECTOR (this_command_keys)->size;
 
+  /* If reset-this-command-length was called recently, obey it now.
+     See the doc string of that function for an explanation of why.  */
+  if (before_command_restore_flag)
+    {
+      this_command_key_count = before_command_key_count_1;
+      echo_truncate (before_command_echo_length_1);
+      before_command_restore_flag = 0;
+    }
+
   if (this_command_key_count >= size)
     {
       Lisp_Object new_keys;
@@ -1133,6 +1154,9 @@ command_loop_1 ()
       if (! NILP (Vlucid_menu_bar_dirty_flag)
 	  && !NILP (Ffboundp (Qrecompute_lucid_menubar)))
 	call0 (Qrecompute_lucid_menubar);
+
+      before_command_key_count = this_command_key_count;
+      before_command_echo_length = echo_length ();
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
@@ -1624,6 +1648,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   Lisp_Object also_record;
   also_record = Qnil;
 
+  before_command_key_count = this_command_key_count;
+  before_command_echo_length = echo_length ();
+
   if (CONSP (Vunread_command_events))
     {
       c = XCONS (Vunread_command_events)->car;
@@ -1645,6 +1672,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       else
 	goto reread;
     }
+
+  /* If there is no function key translated before
+     reset-this-command-lengths takes effect, forget about it.  */
+  before_command_restore_flag = 0;
 
   if (!NILP (Vexecuting_macro))
     {
@@ -2033,6 +2064,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  from_macro:
  reread_first:
+  before_command_key_count = this_command_key_count;
+  before_command_echo_length = echo_length ();
 
   /* Don't echo mouse motion events.  */
   if (echo_keystrokes
@@ -6231,6 +6264,26 @@ The value is a string or a vector.")
 			   XVECTOR (this_command_keys)->contents);
 }
 
+DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
+  Sreset_this_command_lengths, 0, 0, 0,
+  "Used for complicated reasons in `universal-argument-other-key'.\n\
+\n\
+`universal-argument-other-key' rereads the event just typed.\n\
+It then gets translated through `function-key-map'.\n\
+The translated event gets included in the echo area and in\n\
+the value of `this-command-keys' in addition to the raw original event.\n\
+That is not right.\n\
+\n\
+Calling this function directs the translated event to replace\n\
+the original event, so that only one version of the event actually\n\
+appears in the echo area and in the value of `this-command-keys.'.")
+  ()
+{
+  before_command_restore_flag = 1;
+  before_command_key_count_1 = before_command_key_count;
+  before_command_echo_length_1 = before_command_echo_length;
+}
+
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   "Return the current depth in recursive edits.")
   ()
@@ -6935,6 +6988,7 @@ syms_of_keyboard ()
   defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
   defsubr (&Sthis_command_keys);
+  defsubr (&Sreset_this_command_lengths);
   defsubr (&Ssuspend_emacs);
   defsubr (&Sabort_recursive_edit);
   defsubr (&Sexit_recursive_edit);
