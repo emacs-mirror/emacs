@@ -1,5 +1,3 @@
-dnl The following are from prerelease autoconf 2.14a.  When 2.14 is
-dnl released, we should be able to zap them and just use AC_PREREQ(2.14).
 
 % Copyright (C) 2000, 2001  Free Software Foundation, Inc.
 %
