@@ -1,3 +1,15 @@
+2002-07-15  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (STRING_INTERVALS): Produce rvalue.
+	(STRING_SET_INTERVALS): New macro.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Use it.
+	* fns.c (Fstring_as_multibyte): Likewise.
+	* intervals.c (create_root_interval,
+	balance_possible_root_interval, delete_interval,
+	copy_intervals_to_string): Likewise.
+	* textprop.c (set_text_properties): Likewise.  Use NULL_INTERVAL
+	instead of 0.
+
 2002-07-14  Ken Raeburn  <raeburn@gnu.org>
 
 	* lisp.h (STRING_SET_CHARS): New macro.
