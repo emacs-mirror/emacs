@@ -973,29 +973,50 @@
 
 ;;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
-       '(% * + - / /= 1+ 1- < <= = > >= append aref ash assoc assq boundp
-	 buffer-file-name buffer-local-variables buffer-modified-p
-	 buffer-substring capitalize car cdr concat coordinates-in-window-p
-	 copy-marker count-lines documentation downcase elt fboundp featurep
+       '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
+	 assoc assq
+	 boundp buffer-file-name buffer-local-variables buffer-modified-p
+	 buffer-substring
+	 capitalize car-less-than-car car cdr ceiling concat coordinates-in-window-p
+	 copy-marker cos count-lines
+	 default-boundp default-value documentation downcase
+	 elt exp expt fboundp featurep
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
-	 format get get-buffer get-buffer-window getenv get-file-buffer length
-	 logand logior lognot logxor lsh marker-buffer max member memq min mod
-	 next-window nth nthcdr previous-window rassq regexp-quote reverse
-	 string< string= string-lessp string-equal substring user-variable-p
-	 window-buffer window-edges window-height window-hscroll window-width
+	 float floor format
+	 get get-buffer get-buffer-window getenv get-file-buffer
+	 int-to-string
+	 length log log10 logand logb logior lognot logxor lsh
+	 marker-buffer max member memq min mod
+	 next-window nth nthcdr number-to-string
+	 parse-colon-path previous-window
+	 radians-to-degrees rassq regexp-quote reverse round
+	 sin sqrt string< string= string-equal string-lessp string-to-char
+	 string-to-int string-to-number substring symbol-plist
+	 tan upcase user-variable-p vconcat
+	 window-buffer window-dedicated-p window-edges window-height
+	 window-hscroll window-minibuffer-p window-width
 	 zerop))
-      ;; could also add plusp, minusp, signum.  If anyone ever defines
-      ;; these, they will certainly be side-effect free.
       (side-effect-and-error-free-fns
-       '(arrayp atom bobp bolp buffer-end buffer-list buffer-size
-	 buffer-string bufferp char-or-string-p commandp cons consp
-	 current-buffer dot dot-marker eobp eolp eq eql equal
-	 get-largest-window identity integerp integer-or-marker-p
-	 interactive-p keymapp list listp make-marker mark mark-marker
-	 markerp minibuffer-window natnump nlistp not null numberp
-	 one-window-p point point-marker processp selected-window sequencep
-	 stringp subrp symbolp syntax-table-p vector vectorp windowp)))
+       '(arrayp atom
+	 bobp bolp buffer-end buffer-list buffer-size buffer-string bufferp
+	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
+	 current-buffer
+	 dot dot-marker eobp eolp eq eql equal eventp floatp framep
+	 get-largest-window get-lru-window
+	 identity ignore integerp integer-or-marker-p interactive-p
+	 invocation-directory invocation-name
+	 keymapp list listp
+	 make-marker mark mark-marker markerp memory-limit minibuffer-window
+	 mouse-movement-p
+	 natnump nlistp not null number-or-marker-p numberp
+	 one-window-p overlayp
+	 point point-marker point-min point-max processp
+	 selected-window sequencep stringp subrp symbolp syntax-table-p
+	 user-full-name user-login-name user-original-login-name
+	 user-real-login-name user-real-uid user-uid
+	 vector vectorp
+	 window-configuration-p window-live-p windowp)))
   (while side-effect-free-fns
     (put (car side-effect-free-fns) 'side-effect-free t)
     (setq side-effect-free-fns (cdr side-effect-free-fns)))
@@ -1198,7 +1219,8 @@
     check-protected-fields completion-auto-help completion-ignore-case
     cursor-in-echo-area debug-on-next-call debug-on-quit
     defining-kbd-macro delete-exited-processes
-    enable-recursive-minibuffers indent-tabs-mode
+    enable-recursive-minibuffers
+    highlight-nonselected-windows indent-tabs-mode
     insert-default-directory inverse-video load-in-progress
     menu-prompting mode-line-inverse-video no-redraw-on-reenter
     noninteractive parse-sexp-ignore-comments pop-up-frames
