@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.27 2001/04/13 15:18:11 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.28 2001/07/16 07:46:48 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -53,8 +53,8 @@
 
 ;;; Bugs:
 
-;; - can somehow ignore important messages like `co aborted' or
-;;   or `co: output error: No space left on device'.
+;; - Extracting an old version seems not to recognize encoding correctly.
+;;   That's probably because it's done via a process rather than a file.
 
 ;;; Todo:
 

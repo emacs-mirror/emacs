@@ -1,5 +1,7 @@
 2001-09-22  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* pcvs-parse.el (cvs-parse-commit): Remove the temp files used by VC.
+
 	* vc-hooks.el (vc-delete-automatic-version-backups):
 	Don't fail if the directory doesn't exist.
 
