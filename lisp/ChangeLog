@@ -1,5 +1,14 @@
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* imenu.el (imenu--split-menu): Use dolist and copy-sequence.
+	(imenu--create-keymap-2): Remove.
+	(imenu--create-keymap-1): Simplify, remove third argument.
+	(imenu--generic-function): Use dolist.
+	(imenu-find-default): New function.
+	(imenu--completion-buffer): Use it.
+	(imenu--mouse-menu): Use popup-menu.
+	(imenu--menubar-select): Return t rather than calling imenu.
+
 	* textmodes/fill.el (fill-delete-prefix, fill-delete-newlines):
 	New functions, extracted from fill-region-as-paragraph.
 	(fill-region-as-paragraph): Use them.
