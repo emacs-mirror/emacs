@@ -1337,7 +1337,26 @@ window_loop (type, obj, mini, frames)
 		if (EQ (w, FRAME_ROOT_WINDOW (f))
 		    && !NILP (XWINDOW (w)->dedicated)
 		    && other_visible_frames (f))
-		  Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
+		  {
+		    /* Skip the other windows on this frame.
+		       There might be one, the minibuffer!  */
+		    if (! EQ (w, last_window))
+		      while (f == XFRAME (WINDOW_FRAME (XWINDOW (next_window))))
+			{
+			  /* As we go, check for the end of the loop.
+			     We mustn't start going around a second time.  */
+			  if (EQ (next_window, last_window))
+			    {
+			      last_window = w;
+			      break;
+			    }
+			  next_window = Fnext_window (next_window,
+						      mini ? Qt : Qnil,
+						      frame_arg);
+			}
+		    /* Now we can safely delete the frame.  */
+		    Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
+		  }
 		else
 #endif
 		  {
