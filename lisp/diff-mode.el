@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.19 2000/09/20 16:56:13 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.20 2000/09/20 22:36:23 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -169,7 +169,9 @@ when editing big diffs)."
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
-  '((t (:bold t))) ;; :height 1.3
+  '((((class color) (background light))
+     (:background "grey70" :bold t))
+    (t (:bold t)))			; :height 1.3
   "`diff-mode' face used to highlight file header lines."
   :group 'diff-mode)
 (defvar diff-file-header-face 'diff-file-header-face)
@@ -219,8 +221,7 @@ when editing big diffs)."
     ("\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
      (1 diff-hunk-header-face)
      (2 diff-comment-face))
-    ("^\\*\\*\\* .+ \\*\\*\\*\\*"	;context
-     . diff-hunk-header-face)
+    ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\).*[^*-]\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
     ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
@@ -869,7 +870,7 @@ Only works for unified diffs."
 	   (equal (match-string 1) (match-string 2)))))
 
 (defun diff-hunk-text (hunk destp &optional char-offset)
-  "Returns the literal source text from HUNK.
+  "Return the literal source text from HUNK.
 if DESTP is nil return the source, otherwise the destination text.
 If CHAR-OFFSET is non-nil, it should be a char-offset in
 HUNK, and instead of a string, a cons cell is returned whose car is the
@@ -923,7 +924,7 @@ appropriate text, and whose cdr is the corresponding char-offset in that text."
 	;; Implied empty text
 	(if char-offset '("" . 0) "")
 
-      (when char-offset (goto-char char-offset))
+      (when char-offset (goto-char (+ (point-min) char-offset)))
 
       ;; Get rid of anything except the desired text.
       (save-excursion
@@ -943,7 +944,8 @@ appropriate text, and whose cdr is the corresponding char-offset in that text."
 	      (forward-line 1)))))
 
       (let ((text (buffer-substring-no-properties (point-min) (point-max))))
-	(if char-offset (cons text (point)) text))))))
+	(if char-offset (cons text (- (point) (point-min))) text))))))
+
 
 (defun diff-find-text (text)
   "Return the buffer position of the nearest occurrence of TEXT.
@@ -959,30 +961,30 @@ If TEXT isn't found, nil is returned."
 	(if (> (- forw orig) (- orig back)) back forw)
       (or back forw))))
 
+(defsubst diff-xor (a b) (if a (not b) b))
+
 (defun diff-find-source-location (&optional other-file reverse)
   "Find out (BUF LINE-OFFSET POS SRC DST SWITCHED)."
   (save-excursion
-    (let* ((old (if (not other-file) diff-jump-to-old-file-flag
-		  (not diff-jump-to-old-file-flag)))
-	   (hunk-char-offset
-	    (- (point) (progn (diff-beginning-of-hunk) (point))))
+    (let* ((other (diff-xor other-file diff-jump-to-old-file-flag))
+	   (char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
+	   (hunk (buffer-substring (point)
+				   (save-excursion (diff-end-of-hunk) (point))))
+	   (old (diff-hunk-text hunk reverse char-offset))
+	   (new (diff-hunk-text hunk (not reverse) char-offset))
 	   ;; Find the location specification.
 	   (line (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
-		    (error "Can't find the hunk header")
-		  (if old (match-string 1)
-		    (if (match-end 3) (match-string 3)
-		      (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
-			(error "Can't find the hunk separator"))
-		      (match-string 1)))))
-	   (file (or (diff-find-file-name old) (error "Can't find the file")))
-	   (buf (find-file-noselect file))
-	   (hunk
-	    (buffer-substring (point) (progn (diff-end-of-hunk) (point))))
-	   (old (diff-hunk-text hunk reverse hunk-char-offset))
-	   (new (diff-hunk-text hunk (not reverse) hunk-char-offset)))
+		     (error "Can't find the hunk header")
+		   (if other (match-string 1)
+		     (if (match-end 3) (match-string 3)
+		       (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
+			 (error "Can't find the hunk separator"))
+		       (match-string 1)))))
+	   (file (or (diff-find-file-name other) (error "Can't find the file")))
+	   (buf (find-file-noselect file)))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
-	(setq diff-jump-to-old-file-flag old))
+	(setq diff-jump-to-old-file-flag other))
       (with-current-buffer buf
 	(goto-line (string-to-number line))
 	(let* ((orig-pos (point))
@@ -990,12 +992,24 @@ If TEXT isn't found, nil is returned."
 	       (switched nil))
 	  (when (null pos)
 	    (setq pos (diff-find-text (car new)) switched t))
-	  (cons buf
-		(nconc
-		 (if pos (list (count-lines orig-pos pos) pos) (list nil orig-pos))
-		 (if switched (list new old t) (list old new)))))))))
+	  (nconc
+	   (list buf)
+	   (if pos (list (count-lines orig-pos pos) pos) (list nil orig-pos))
+	   (if switched (list new old t) (list old new))))))))
 
-(defun diff-apply-hunk (&optional reverse other-file dry-run popup noerror)
+
+(defun diff-hunk-status-msg (line-offset reversed dry-run)
+  (let ((msg (if dry-run
+		 (if reversed "already applied" "not yet applied")
+	       (if reversed "undone" "applied"))))
+    (message (cond ((null line-offset) "Hunk text not found")
+		   ((= line-offset 0) "Hunk %s")
+		   ((= line-offset 1) "Hunk %s at offset %d line")
+		   (t "Hunk %s at offset %d lines"))
+	     msg line-offset)))
+
+
+(defun diff-apply-hunk (&optional reverse)
   "Apply the current hunk to the source file.
 By default, the new source file is patched, but if the variable
 `diff-jump-to-old-file-flag' is non-nil, then the old source file is
@@ -1003,92 +1017,51 @@ patched instead (some commands, such as `diff-goto-source' can change
 the value of this variable when given an appropriate prefix argument).
 
 With a prefix argument, REVERSE the hunk.
-If OTHER-FILE is non-nil, patch the old file by default, and reverse the
-  sense of `diff-jump-to-old-file-flag'.
-If DRY-RUN is non-nil, don't actually modify anything, just see whether
-  it's possible to do so.
-If POPUP is non-nil, pop up the patched file in another window.
-If NOERROR is non-nil, then no error is signaled in the case where the hunk
-  cannot be found in the source file (other errors may still be signaled).
 
-Return values are t if the hunk was sucessfully applied (or could be
-applied, in the case where DRY-RUN was non-nil), `reversed' if the hunk
-was applied backwards, or nil if the hunk couldn't be found and NOERROR
-was non-nil."
-  (interactive (list current-prefix-arg nil nil t))
-
-  (when other-file
-    ;; OTHER-FILE inverts the sense of the hunk
-    (setq reverse (not reverse)))
-  (when diff-jump-to-old-file-flag
-    ;; The global variable `diff-jump-to-old-file-flag' inverts the
-    ;; sense of OTHER-FILE (in `diff-find-source-location')
-    (setq reverse (not reverse)))
-
-  (destructuring-bind (buf line-offset pos old new &optional switched)
-      (diff-find-source-location other-file reverse)
-
-    (when (and line-offset switched popup)
-      ;; A reversed patch was detected, perhaps apply it in reverse
-      ;; (this is only done in `interactive' mode, when POPUP is non-nil).
-      (if (or dry-run
-	      (save-window-excursion
-		(pop-to-buffer buf)
-		(goto-char (+ pos (cdr old)))
-		(if reverse
-		    (y-or-n-p
-		     "Hunk hasn't been applied yet, so can't reverse it; apply it now? ")
-		  (y-or-n-p "Hunk has already been applied; undo it? "))))
-
-	  nil
-	;; The user has chosen not to apply the reversed hunk, but we
-	;; don't want to given an error message, so set things up so
-	;; nothing else gets done down below
-	(setq line-offset nil)
-	(message "(Nothing done)")
-	(setq noerror t)))
-
-    (if (null line-offset)
-	;; LINE-OFFSET is nil, so we couldn't find the source text.
-	(funcall (if noerror 'message 'error) "Can't find the text to patch")
-
-      (let ((reversed (if switched (not reverse) reverse)))
-	(unless dry-run
-	  ;; Apply the hunk
-	  (with-current-buffer buf
-	    (goto-char pos)
-	    (delete-char (length (car old)))
-	    (insert (car new))))
-
-	(when popup
-	  (with-current-buffer buf
-	    ;; Show a message describing what was done
-	    (let ((msg
-		   (if dry-run
-		       (if reversed "already applied" "not yet applied")
-		     (if reversed "undone" "applied"))))
-	      (message (cond ((= line-offset 0) "Hunk %s")
-			     ((= line-offset 1) "Hunk %s at offset %d line")
-			     (t "Hunk %s at offset %d lines"))
-		       msg line-offset))
-
-	    ;; fixup POS to reflect the hunk char offset
-	    (goto-char (+ pos (cdr (if dry-run old new))))
-	    (setq pos (point)))
-
-	  ;; Display BUF in a window, and maybe select it
-	  (let ((win (display-buffer buf)))
-	    (set-window-point win pos)))
-
-	;; Return an appropriate indicator of success
-	(if reversed 'reversed t)))))
-      
-      
-(defun diff-test-hunk (&optional reverse)
-  "See whether it's possible to apply the current hunk.
-With a prefix argument, REVERSE the hunk."
+Return value is t if the hunk was sucessfully applied, `reversed' if the
+hunk was applied backwards and nil if the hunk wasn't applied."
   (interactive "P")
-  (diff-apply-hunk reverse nil t t))
+  (destructuring-bind (buf line-offset pos old new &optional switched)
+      (diff-find-source-location nil reverse)
+    (cond
+     ((null line-offset) (error "Can't find the text to patch"))
+     ((and switched
+	   ;; A reversed patch was detected, perhaps apply it in reverse
+	   (not (save-window-excursion
+		  (pop-to-buffer buf)
+		  (goto-char (+ pos (cdr old)))
+		  (y-or-n-p
+		   (if reverse
+		       "Hunk hasn't been applied yet; apply it now? "
+		     "Hunk has already been applied; undo it? ")))))
+      (message "(Nothing done)"))
+     (t
+      (let ((reversed (diff-xor switched reverse)))
+	;; Apply the hunk
+	(with-current-buffer buf
+	  (goto-char pos)
+	  (delete-char (length (car old)))
+	  (insert (car new)))
+	;; Display BUF in a window
+	(let ((win (display-buffer buf)))
+	  (set-window-point win (+ pos (cdr new))))
+	(diff-hunk-status-msg line-offset reversed nil)
+	(if reversed 'reversed t))))))
+
+
+(defun diff-test-hunk (&optional reverse)
+  ;; FIXME: is `reverse' ever useful ???
+  "See whether it's possible to apply the current hunk.
+With a prefix argument, try to REVERSE the hunk.
+Returns t if the hunk can be applied, `reversed' if it's already
+applied and nil if it can't be found."
+  (interactive "P")
+  (destructuring-bind (buf line-offset pos src dst &optional switched)
+      (diff-find-source-location nil reverse)
+    (let ((win (display-buffer buf)))
+      (set-window-point win (+ pos (cdr src))))
+    (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
+
 
 (defun diff-goto-source (&optional other-file)
   "Jump to the corresponding source line.
@@ -1098,17 +1071,26 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
   then `diff-jump-to-old-file-flag' is also set, for the next invocations."
   (interactive "P")
   (destructuring-bind (buf line-offset pos src dst &optional switched)
-      (diff-find-source-location other-file)
+      ;; We normally jump to the NEW file, where the hunk should already
+      ;; be applied, so favor the `reverse'.
+      (diff-find-source-location other-file t)
     (pop-to-buffer buf)
     (goto-char (+ pos (cdr src)))
-    (if (null line-offset) (message "Hunk text not found"))))
+    (unless line-offset (message "Hunk text not found"))))
+
 
 (defun diff-current-defun ()
+  "Find the name of function at point.
+For use in `add-log-current-defun-function'."
   (destructuring-bind (buf line-offset pos src dst &optional switched)
       (diff-find-source-location)
     (save-excursion
       (beginning-of-line)
       (or (when (memq (char-after) '(?< ?-))
+	    ;; Cursor is pointing at removed text.  This could be a removed
+	    ;; function, in which case, going to the source buffer will
+	    ;; not help since the function is now removed.  Instead,
+	    ;; try to figure out the function name just from the code-fragment.
 	    (let ((old (if switched dst src)))
 	      (with-temp-buffer
 		(insert (car old))
