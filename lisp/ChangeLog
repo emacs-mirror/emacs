@@ -1,3 +1,8 @@
+2003-03-14  Simon Josefsson  <jas@extundo.com>
+
+	* fringe.el (fringe-mode): Autoload so that
+	Options->Show/Hide->Fringe->Customize works.
+
 2003-03-13  Dave Love  <fx@gnu.org>
 
 	* international/latin1-disp.el (ucs-tables): Don't require.
