@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>

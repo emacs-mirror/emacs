@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
