@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.8) $
+# $HopeName: MMQA_harness!script:logging(trunk.9) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -10,6 +10,27 @@
 $: = " \n-\\/";
 
 @LOG_FILES = (STDOUT);
+
+#
+# &describe_settings
+# like the first part of verbose_test_report
+# used when running a test set, for the summary file
+#
+
+sub describe_settings {
+ local ($LOGFILE, $oldhandle) = @_;
+ if ($LOGFILE) {
+  $oldhandle = select($LOGFILE);
+ }
+ %eh = ();
+ print "\n--- ".$log_test_opts."\n";
+ &vdispopts;
+ print "\n--- ".$log_test_ident."\n";
+ &vdispvals(*identify, *eh);
+ if ($LOGFILE) {
+  select($oldhandle);
+ }
+}
 
 #
 # &verbose_test_report
