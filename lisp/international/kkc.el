@@ -236,7 +236,7 @@ and the return value is the length of the conversion."
 
   (force-mode-line-update)
   (goto-char (overlay-end kkc-overlay-tail))
-  (prog1 (- (overlay-start kkc-overlay-head) from)
+  (prog1 (- (point) from)
     (delete-overlay kkc-overlay-head)
     (delete-overlay kkc-overlay-tail)))
 
