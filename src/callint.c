@@ -174,14 +174,18 @@ check_mark (for_region)
     Fsignal (Qmark_inactive, Qnil);
 }
 
+/* If the list of args INPUT was produced with an explicit call to
+   `list', look for elements that were computed with
+   (region-beginning) or (region-end), and put those expressions into
+   VALUES instead of the present values.
+
+   This function doesn't return a value because it modifies elements
+   of VALUES to do its job.  */
+
 static void
 fix_command (input, values)
      Lisp_Object input, values;
 {
-  /* If the list of args was produced with an explicit call to `list',
-     look for elements that were computed with (region-beginning)
-     or (region-end), and put those expressions into VALUES
-     instead of the present values.  */
   if (CONSP (input))
     {
       Lisp_Object car;
