@@ -91,47 +91,50 @@ Value is the image created, or nil if images of type TYPE are not supported."
 
 
 ;;;###autoload
-(defun put-image (image pos &optional area)
+(defun put-image (image pos string &optional area)
   "Put image IMAGE in front of POS in the current buffer.
 IMAGE must be an image created with `create-image' or `defimage'.
+IMAGE is displayed by putting an overlay into the current buffer with a
+`before-string' STRING that has a `display' property whose value is the
+image.
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
-means display it in the right marginal area.
-IMAGE is displayed by putting an overlay into the current buffer with a
-`before-string' that has a `display' property whose value is the
-image."
+means display it in the right marginal area."
   (let ((buffer (current-buffer)))
     (unless (eq (car image) 'image)
       (error "Not an image: %s" image))
     (unless (or (null area) (memq area '(left-margin right-margin)))
       (error "Invalid area %s" area))
+    (setq string (copy-sequence string))
     (let ((overlay (make-overlay pos pos buffer))
-	  (string (make-string 1 ?x))
-	  (prop (if (null area) image (cons area image))))
-      (put-text-property 0 1 'display prop string)
+	  (prop (if (null area) image (list (list 'margin area) image))))
+      (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string))))
 
 
 ;;;###autoload
-(defun insert-image (image &optional area)
+(defun insert-image (image string &optional area)
   "Insert IMAGE into current buffer at point.
+IMAGE is displayed by inserting STRING into the current buffer
+with a `display' property whose value is the image.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
-means display it in the right marginal area.
-IMAGE is displayed by inserting an \"x\" into the current buffer
-having a `display' property whose value is the image."
+means display it in the right marginal area."
   (unless (eq (car image) 'image)
     (error "Not an image: %s" image))
   (unless (or (null area) (memq area '(left-margin right-margin)))
     (error "Invalid area %s" area))
-  (insert "x")
-  (add-text-properties (1- (point)) (point)
-		       (list 'display (if (null area) image (cons area image))
-			     'rear-nonsticky (list 'display))))
+  (when area
+    (setq image (list (list 'margin area) image)))
+  (let ((start (point)))
+    (insert string)
+    (add-text-properties start (point)
+			 (list 'display image
+			       'rear-nonsticky (list 'display)))))
 	
 
 ;;;###autoload
