@@ -206,7 +206,8 @@ nil for FUNCTION means all messages."
       (setq rmail-summary-buffer sumbuf))
     ;; Now display the summary buffer and go to the right place in it.
     (or was-in-summary
-	(if (one-window-p)
+	(if (and (one-window-p)
+		 pop-up-windows (not pop-up-frames))
 	    ;; If there is just one window, put the summary on the top.
 	    (progn
 	      (split-window)
@@ -460,6 +461,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 (defun rmail-summary-mark-deleted (&optional n undel)
   (and n (rmail-summary-goto-msg n t t))
   (or (eobp)
+      (not (overlay-get rmail-summary-overlay 'face))
       (let ((buffer-read-only nil))
 	(skip-chars-forward " ")
 	(skip-chars-forward "[0-9]")
@@ -614,7 +616,8 @@ Commands for sorting the summary:
 		(if (buffer-name rmail-buffer)
 		    (save-excursion
 		      (set-buffer rmail-buffer)
-		      (rmail-show-message msg-num t))))))))))
+		      (rmail-show-message msg-num t))))))
+	(rmail-summary-update-highlight nil)))))
 
 (defvar rmail-summary-mode-map nil)
 
@@ -839,21 +842,7 @@ Commands for sorting the summary:
 			(let ((buffer-read-only nil))
 			  (delete-char 1)
 			  (insert " "))))
-    ;; Make sure we have an overlay to use.
-    (or rmail-summary-overlay
-	(progn
-	  (make-local-variable 'rmail-summary-overlay)
-	  (setq rmail-summary-overlay (make-overlay (point) (point)))))
-    ;; If this message is in the summary, use the overlay to highlight it.
-    ;; Otherwise, don't highlight anything.
-    (if message-not-found
-	(overlay-put rmail-summary-overlay 'face nil)
-      (move-overlay rmail-summary-overlay
-		    (save-excursion (beginning-of-line)
-				    (skip-chars-forward " ")
-				    (point))
-		    (save-excursion (end-of-line) (point)))
-      (overlay-put rmail-summary-overlay 'face 'highlight))
+    (rmail-summary-update-highlight message-not-found)
     (beginning-of-line)
     (if skip-rmail
 	nil
@@ -864,6 +853,26 @@ Commands for sorting the summary:
 	  (select-window selwin)
 	  ;; The actions above can alter the current buffer.  Preserve it.
 	  (set-buffer obuf))))))
+
+;; Update the highlighted line in an rmail summary buffer.
+;; That should be current.  We highlight the line point is on.
+;; If NOT-FOUND is non-nil, we turn off highlighting.
+(defun rmail-summary-update-highlight (not-found)
+  ;; Make sure we have an overlay to use.
+  (or rmail-summary-overlay
+      (progn
+	(make-local-variable 'rmail-summary-overlay)
+	(setq rmail-summary-overlay (make-overlay (point) (point)))))
+  ;; If this message is in the summary, use the overlay to highlight it.
+  ;; Otherwise, don't highlight anything.
+  (if not-found
+      (overlay-put rmail-summary-overlay 'face nil)
+    (move-overlay rmail-summary-overlay
+		  (save-excursion (beginning-of-line)
+				  (skip-chars-forward " ")
+				  (point))
+		  (save-excursion (end-of-line) (point)))
+    (overlay-put rmail-summary-overlay 'face 'highlight)))
 
 (defun rmail-summary-scroll-msg-up (&optional dist)
   "Scroll the Rmail window forward.
