@@ -810,7 +810,8 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   struct glyph *src_start = src, *src_end = src + src_len;
   unsigned char *dst_start = dst, *dst_end = dst + dst_len;
   register GLYPH g;
-  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *buf;
+  unsigned char workbuf[MAX_MULTIBYTE_LENGTH];
+  const unsigned char *buf;
   int len;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
