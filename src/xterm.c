@@ -13164,6 +13164,9 @@ x_delete_display (dpyinfo)
 	}
     }
 
+  if (next_noop_dpyinfo == dpyinfo)
+    next_noop_dpyinfo = dpyinfo->next;
+
   if (x_display_list == dpyinfo)
     x_display_list = dpyinfo->next;
   else
