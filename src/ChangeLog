@@ -1,5 +1,8 @@
 2002-06-16  Andrew Choi  <akochoi@shaw.ca>
 
+	* macterm.c (XTread_socket): Call FrontNonFloatingWindow instead
+	of FrontWindow for cases keyDown and autoKey.
+
 	* fontset.c (syms_of_fontset) [MAC_OS]: Set ASCII font of
 	Vdefault_fontset to Monaco with mac-roman coding.
 

@@ -12624,7 +12624,8 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	bufp->modifiers	= the_modifiers;
 				
 	{
-	  mac_output *mwp = (mac_output *) GetWRefCon (FrontWindow ());
+	  mac_output *mwp
+	    = (mac_output *) GetWRefCon (FrontNonFloatingWindow ());
 	  XSETFRAME (bufp->frame_or_window, mwp->mFP);
 	}
 
