@@ -559,7 +559,14 @@ the standard GTK @file{~/.gtkrc-2.0} file or with the Emacs specific
 customizing specific GTK widget features.  To customize Emacs font,
 background, faces etc., use the normal X resources, see @ref{Resources}.
 
-In these files you first defines a style and then how to apply that style
+  NOTE:  Some themes does not allow cutomizations and the mechanisms
+described here may not work for those themes.  The theme may ignore the
+attempt to customization, or things are just not drawn correctly.
+Also, it is recommended that you use @file{~/.emacs.d/gtkrc} for
+customizations, @file{~/.gtkrc-2.0} seems to be ignored when running
+GConf with Gnome.
+
+  In these files you first defines a style and then how to apply that style
 to widgets (@pxref{GTK widget names}).  Here is an example of how to
 change the font for Emacs menus:
 
@@ -571,6 +578,21 @@ style "menufont"
 @}
 
 widget "*emacs-menuitem*" style "menufont"
+
+@end smallexample
+
+  Here is a more elaborate example, showing how to change the parts of
+the scroll bar:
+@smallexample
+style "scroll"
+@{
+  fg[NORMAL] = "red"@ @ @ @ @ # The arrow color.
+  bg[NORMAL] = "yellow"@ @ # The thumb and background around the arrow.
+  bg[ACTIVE] = "blue"@ @ @ @ # The trough color.
+  bg[PRELIGHT] = "white"@ # The thumb color when the mouse is over it.
+@}
+
+widget "*verticalScrollBar*" style "scroll"
 
 @end smallexample
 

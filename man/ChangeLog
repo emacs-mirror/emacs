@@ -1,3 +1,8 @@
+2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): Added a note that some themes
+	disallow customizations.  Added scroll theme example.
+
 2003-10-08  Nick Roberts  <nick@nick.uklinux.net>
 
 	* speedbar.texi: Remove paragraph for GUD that is no longer true.
