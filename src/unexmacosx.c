@@ -753,6 +753,25 @@ copy_dysymtab (struct load_command *lc)
   curr_header_offset += lc->cmdsize;
 }
 
+/* Copy a LC_TWOLEVEL_HINTS load command from the input file to the output
+   file, adjusting the file offset fields.  */
+static void
+copy_twolevelhints (struct load_command *lc)
+{
+  struct twolevel_hints_command *tlhp = (struct twolevel_hints_command *) lc;
+
+  if (tlhp->nhints > 0) {
+    tlhp->offset += delta;
+  }
+
+  printf ("Writing LC_TWOLEVEL_HINTS command\n");
+
+  if (!unexec_write (curr_header_offset, lc, lc->cmdsize))
+    unexec_error ("cannot write two level hint command to header");
+
+  curr_header_offset += lc->cmdsize;
+}
+
 /* Copy other kinds of load commands from the input file to the output
    file, ones that do not require adjustments of file offsets.  */
 static void
@@ -798,6 +817,9 @@ dump_it ()
 	break;
       case LC_DYSYMTAB:
 	copy_dysymtab (lca[i]);
+	break;
+      case LC_TWOLEVEL_HINTS:
+	copy_twolevelhints (lca[i]);
 	break;
       default:
 	copy_other (lca[i]);

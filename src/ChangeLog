@@ -1,3 +1,9 @@
+2002-12-01  Steven Tamm  <steventamm@mac.com>
+
+	* unexmacosx.c (copy_twolevelhints, dump_it):  Now corrects the
+	offset in two hints table to allow prebinding to be redone and
+	allow the executable to be stripped.
+
 2002-11-29  Dave Love  <fx@gnu.org>
 
 	* fns.c (Frequire): Don't call LOADHIST_ATTACH if feature was
