@@ -7265,7 +7265,8 @@ Additional image properties supported are:
 `:index INDEX'
 
 INDEX must be an integer >= 0.  Load image number INDEX from a
-multi-image GIF file.  An error is signaled if INDEX is too large.
+multi-image GIF file.  If INDEX is too large, the image displays
+as a hollow box.
 
 This could be used to implement limited support for animated GIFs.
 For example, the following function displays a multi-image GIF file

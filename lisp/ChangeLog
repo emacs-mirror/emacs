@@ -1,3 +1,41 @@
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* info-look.el (info-lookup): Use assoc-string.
+
+	* frame.el (pop-up-frame-function): Use quote, not `function'.
+	(frame-notice-user-settings): Calculate ADJUSTED-TOP
+	copying with lists as coordinate values.
+
+	* font-lock.el (font-lock-after-change-function): Bind inhibit-quit.
+
+	* find-dired.el (kill-find): New command.
+	(find-dired): Make buffer read-only.
+	Set up a keymap with C-c C-k running kill-find.
+	(find-dired-filter, find-dired-sentinel): Bind inhibit-read-only.
+
+	* files.el (backup-buffer-copy): If MODES is nil, don't set modes.
+
+	* filecache.el (file-cache-ignore-case): New variable.
+	(file-cache-assoc-function): Var deleted.  Use assoc-string instead.
+
+	* comint.el (comint-arguments): Set COUNT after ARGS is complete.
+	(comint-dynamic-complete-as-filename): Rename local vars.
+	(comint-dynamic-list-filename-completions): Likewise.
+
+	* comint.el (comint-dynamic-list-completions-config): New var.
+	(comint-dynamic-list-completions): Handle both SPC and TAB right.
+
+	* comint.el (comint-file-name-chars): Add [].
+	(comint-word): Use skip-chars-backward, not search.
+
+	* shell.el (shell-file-name-chars): Add [].
+
+	* shell.el (shell-dynamic-complete-as-command): Rename local vars.
+
+	* bookmark.el (bookmark-get-bookmark): Use assoc-string.
+
+	* generic.el (define-generic-mode): Doc fix.
+
 2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
 
 	* files.el (kill-some-buffers): Doc fix.
