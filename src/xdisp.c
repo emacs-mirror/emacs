@@ -5370,15 +5370,32 @@ setup_echo_area_for_printing (multibyte_p)
 }
 
 
-/* Display the current echo area message in window W.  Value is
-   non-zero if W's height is changed.  */
+/* Display an echo area message in window W.  Value is non-zero if W's
+   height is changed.  If display_last_displayed_message_p is
+   non-zero, display the message that was last displayed, otherwise
+   display the current message.  */
 
 static int
 display_echo_area (w)
      struct window *w;
 {
-  return with_echo_area_buffer (w, display_last_displayed_message_p,
-				(int (*) ()) display_echo_area_1, w);
+  int i, no_message_p, window_height_changed_p;
+
+  /* If there is no message, we must call display_echo_area_1
+     nevertheless because it resizes the window.  But we will have to
+     reset the echo_area_buffer in question to nil at the end because
+     with_echo_area_buffer will sets it to an empty buffer.  */
+  i = display_last_displayed_message_p ? 1 : 0;
+  no_message_p = NILP (echo_area_buffer[i]);
+  
+  window_height_changed_p
+    = with_echo_area_buffer (w, display_last_displayed_message_p,
+			     (int (*) ()) display_echo_area_1, w);
+
+  if (no_message_p)
+    echo_area_buffer[i] = Qnil;
+  
+  return window_height_changed_p;
 }
 
 
@@ -5406,10 +5423,6 @@ display_echo_area_1 (w)
   SET_TEXT_POS (start, BEG, BEG_BYTE);
   try_window (window, start);
 
-  /* The current buffer is the one containing the last displayed
-     echo area message.  */
-  XSETBUFFER (echo_area_buffer[1], current_buffer);
-
   return window_height_changed_p;
 }
 
@@ -5429,54 +5442,51 @@ resize_mini_window (w)
   if (!FRAME_MINIBUF_ONLY_P (f))
     {
       struct it it;
+      struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
+      int total_height = XFASTINT (root->height) + XFASTINT (w->height);
+      int height, max_height;
+      int unit = CANON_Y_UNIT (f);
+      struct text_pos start;
       
       init_iterator (&it, w, BEGV, BEGV_BYTE, NULL, DEFAULT_FACE_ID);
-      if (!it.truncate_lines_p)
+
+      /* Compute the max. number of lines specified by the user.  */
+      if (FLOATP (Vmax_mini_window_height))
+	max_height = XFLOATINT (Vmax_mini_window_height) * total_height;
+      else if (INTEGERP (Vmax_mini_window_height))
+	max_height = XINT (Vmax_mini_window_height);
+      
+      /* Correct that max. height if it's bogus. */
+      max_height = max (1, max_height);
+      max_height = min (total_height, max_height);
+      
+      /* Find out the height of the text in the window.  */
+      move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
+      height = (unit - 1 + it.current_y + last_height) / unit;
+      height = max (1, height);
+      
+      /* Compute a suitable window start.  */
+      if (height > max_height)
 	{
-	  struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
-	  int total_height = XFASTINT (root->height) + XFASTINT (w->height);
-	  int height, max_height;
-	  int unit = CANON_Y_UNIT (f);
-	  struct text_pos start;
-
-	  /* Compute the max. number of lines specified by the user.  */
-	  if (FLOATP (Vmax_mini_window_height))
-	    max_height = XFLOATINT (Vmax_mini_window_height) * total_height;
-	  else if (INTEGERP (Vmax_mini_window_height))
-	    max_height = XINT (Vmax_mini_window_height);
-
-	  /* Correct that max. height if it's bogus. */
-	  max_height = max (1, max_height);
-	  max_height = min (total_height, max_height);
-
-	  /* Find out the height of the text in the window.  */
-	  move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
-	  height = (unit - 1 + it.current_y + last_height) / unit;
-	  height = max (1, height);
-
-	  /* Compute a suitable window start.  */
-	  if (height > max_height)
-	    {
-	      height = max_height;
-	      init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
-	      move_it_vertically_backward (&it, (height - 1) * unit);
-	      start = it.current.pos;
-	    }
-	  else
-	    SET_TEXT_POS (start, BEGV, BEGV_BYTE);
-	  SET_MARKER_FROM_TEXT_POS (w->start, start);
-
-	  /* Change window's height, if necessary.  */
-	  if (height != XFASTINT (w->height))
-	    {
-	      Lisp_Object old_selected_window;
-	      
-	      old_selected_window = selected_window;
-	      XSETWINDOW (selected_window, w);
-	      change_window_height (height - XFASTINT (w->height), 0);
-	      selected_window = old_selected_window;
-	      window_height_changed_p = 1;
-	    }
+	  height = max_height;
+	  init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
+	  move_it_vertically_backward (&it, (height - 1) * unit);
+	  start = it.current.pos;
+	}
+      else
+	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
+      SET_MARKER_FROM_TEXT_POS (w->start, start);
+      
+      /* Change window's height, if necessary.  */
+      if (height != XFASTINT (w->height))
+	{
+	  Lisp_Object old_selected_window;
+	  
+	  old_selected_window = selected_window;
+	  XSETWINDOW (selected_window, w);
+	  change_window_height (height - XFASTINT (w->height), 0);
+	  selected_window = old_selected_window;
+	  window_height_changed_p = 1;
 	}
     }
 
@@ -5813,10 +5823,9 @@ echo_area_display (update_frame_p)
     }
   else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
-
-  if (NILP (echo_area_buffer[0]))
-    clear_message (0, 1);
   
+  echo_area_buffer[1] = echo_area_buffer[0];
+      
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now
      displays the message instead of its buffer text.  */
@@ -7007,6 +7016,7 @@ redisplay_internal (preserve_echo_area)
     {
       int window_height_changed_p = echo_area_display (0);
       must_finish = 1;
+      
       if (fonts_changed_p)
 	goto retry;
       else if (window_height_changed_p)
@@ -7016,12 +7026,18 @@ redisplay_internal (preserve_echo_area)
 	  ++windows_or_buffers_changed;
 	}
     }
-  else if (w == XWINDOW (minibuf_window) && resize_mini_window (w))
+  else if (w == XWINDOW (minibuf_window)
+	   && (current_buffer->clip_changed
+	       || XFASTINT (w->last_modified) < MODIFF
+	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF)
+	   && resize_mini_window (w))
     {
       /* Resized active mini-window to fit the size of what it is
-         showing.  */
+         showing if its contents might have changed.  */
+      must_finish = 1;
+      consider_all_windows_p = 1;
       ++windows_or_buffers_changed;
-      goto retry;
+      ++update_mode_lines;
     }
   
 
