@@ -1,3 +1,7 @@
+2000-11-11  Dave Love  <fx@gnu.org>
+
+	* config.sub, config.guess: Updated from master source.
+
 2000-11-07  Dave Love  <fx@gnu.org>
 
 	* configure.in: Test for mkstemp.
