@@ -4864,13 +4864,7 @@ uncache_face (c, face)
    of frame F.  The face will be used to display character C.  Value
    is the ID of the face found.  If no suitable face is found, realize
    a new one.  In that case, if C is a multibyte character, BASE_FACE
-   is a face for ASCII characters that has the same attributes.
-
-   When this function is called from face_for_char (in this case, C is
-   a multibyte character), a fontset of a face returned by
-   realize_face is not yet set, i.e. FACE_SUITABLE_FOR_CHAR_P (FACE,
-   C) is not sutisfied.  The fontset is set for this face by
-   face_for_char later.  */
+   is a face for ASCII characters that has the same attributes.  */
 
 INLINE int
 lookup_face (f, attr, c, base_face)
@@ -4904,6 +4898,12 @@ lookup_face (f, attr, c, base_face)
 
 #if GLYPH_DEBUG
   xassert (face == FACE_FROM_ID (f, face->id));
+
+/* When this function is called from face_for_char (in this case, C is
+   a multibyte character), a fontset of a face returned by
+   realize_face is not yet set, i.e. FACE_SUITABLE_FOR_CHAR_P (FACE,
+   C) is not sutisfied.  The fontset is set for this face by
+   face_for_char later.  */
 #if 0
   if (FRAME_WINDOW_P (f))
     xassert (FACE_SUITABLE_FOR_CHAR_P (face, c));
