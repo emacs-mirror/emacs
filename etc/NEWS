@@ -110,7 +110,7 @@ Default is `grow-only'.
 ** LessTif support.
 
 Emacs now runs with the LessTif toolkit (see
-<http://www.lesstif.org>).  You will need version 0.92 or later.
+<http://www.lesstif.org>).  You will need version 0.92.26, or later.
 
 ** LessTif/Motif file selection dialog.
 
