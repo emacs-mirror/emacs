@@ -1,3 +1,20 @@
+2004-10-28  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-list-for-emacs): Add ("Info" . "info")
+	to search `Info-...' commands in `info' manual.
+	(Info-goto-emacs-command-node, Info-goto-emacs-key-command-node):
+	Add 'info-file "emacs" property.
+	(Info-find-emacs-command-nodes): Fix index line number regexp.
+	Set real line number (instead of fake 0) in first element of the
+	returned list.
+	(Info-goto-emacs-command-node): Use line number of first element
+	to set point in the first found Info node.
+
+	* progmodes/grep.el (grep-regexp-alist): Move match highlighting
+	code to `grep-mode-font-lock-keywords'.
+	(grep-mode-font-lock-keywords): Delete grep markers instead
+	of making them invisible.
+
 2004-10-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* mail/emacsbug.el (report-emacs-bug): Insert x-server-vendor
