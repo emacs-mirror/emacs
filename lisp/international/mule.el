@@ -310,10 +310,13 @@ It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   "Return dimension string of CHARSET."
   (plist-get (charset-plist charset) :dimension))
 
-(defun charset-chars (charset)
-  "Return character numbers contained in a dimension of CHARSET."
+(defun charset-chars (charset &optional dimension)
+  "Return character numbers contained in DIMENSION of CHARSET.
+DIMENSION defaults to the first dimension."
+  (unless dimension (setq dimension 1))
   (let ((code-space (plist-get (charset-plist charset) :code-space)))
-    (1+ (- (aref code-space 1) (aref code-space 0)))))
+    (1+ (- (aref code-space (1- (* 2 dimension)))
+	   (aref code-space (- (* 2 dimension) 2))))))
 
 (defun charset-iso-final-char (charset)
   "Return final char of CHARSET."
@@ -1512,17 +1515,6 @@ the table in `translation-table-vector'."
        (unwind-protect
 	   (progn ,@body)
 	 (set-category-table ,current-category-table)))))
-
-;; Backwards compatibility.  These might be better with :init-value t,
-;; but that breaks loadup.
-(define-minor-mode unify-8859-on-encoding-mode
-  "Obsolete."
-  :group 'mule
-  :global t)
-(define-minor-mode unify-8859-on-decoding-mode
-  "Obsolete."
-  :group 'mule
-  :global t)
 
 ;;; Initialize some variables.
 
