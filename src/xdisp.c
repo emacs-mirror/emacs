@@ -459,19 +459,19 @@ message2 (m, len)
   message_log_maybe_newline ();
   if (m)
     message_dolog (m, len, 1);
-  message2_nolog (m, len);
+  message2_nolog (m, len,
+		  ! NILP (current_buffer->enable_multibyte_characters));
 }
 
 
 /* The non-logging counterpart of message2.  */
 
 void
-message2_nolog (m, len)
+message2_nolog (m, len, multibyte)
      char *m;
      int len;
 {
-  message_enable_multibyte
-    = ! NILP (current_buffer->enable_multibyte_characters);
+  message_enable_multibyte = multibyte;
 
   if (noninteractive)
     {
@@ -542,7 +542,8 @@ void
 message1_nolog (m)
      char *m;
 {
-  message2_nolog (m, (m ? strlen (m) : 0));
+  message2_nolog (m, (m ? strlen (m) : 0),
+		  ! NILP (current_buffer->enable_multibyte_characters));
 }
 
 /* Truncate what will be displayed in the echo area
