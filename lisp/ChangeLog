@@ -1,3 +1,7 @@
+2005-03-09  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-default-browser): Doc fix.
+
 2005-03-09  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-variable-ref)
