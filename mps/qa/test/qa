@@ -71,7 +71,10 @@ $qa_command = shift(@qa_args);
 
 foreach (keys %qa_options) {
  unless (eval("$".$qa_options{$_})) {
-  die "Error: you must specify $qa_options{$_} (use the -$_ option).\n";
+  eval("$".$qa_options{$_}." = \$ENV{'".$qa_options{$_}."'}");
+  unless (eval("$".$qa_options{$_})) {
+   die "Error: please specify $qa_options{$_} (use the -$_ option).\n";
+  }
  }
 }
 
