@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.47" "The current version of Ediff")
-(defconst ediff-date "October 11, 1995" "Date of last update")  
+(defconst ediff-version "2.54" "The current version of Ediff")
+(defconst ediff-date "February 14, 1996" "Date of last update")  
 
 ;; This file is part of GNU Emacs.
 
@@ -70,6 +70,8 @@
 ;; particular, it can do patching, and 2-way and 3-way file comparison,
 ;; merging, and directory operations.
 
+
+
 ;;; Bugs:
 
 ;;  1. The undo command doesn't restore deleted regions well. That is, if
@@ -92,6 +94,7 @@
 ;;  commands in `ediff-prepare-buffer-hook' (which will unhighlight every
 ;;  buffer used by Ediff) or you can execute them interactively, at any time
 ;;  and on any buffer.
+
 
 ;;; Acknowledgements:
 
@@ -128,7 +131,7 @@
 
 ;;;###autoload
 (defun ediff-patch-file (source-filename &optional startup-hooks job-name)
-  "Run Ediff by patching FILE-TP-PATCH."
+  "Run Ediff by patching SOURCE-FILENAME."
   ;; This now returns the control buffer
   (interactive 
    (list (ediff-read-file-name
@@ -160,12 +163,15 @@
 	 ;; file for the purpose of patching.
 	 (true-source-filename source-filename)
 	 (target-filename source-filename)
-	 target-buf buf-to-patch file-name-magic-p ctl-buf)
+	 target-buf buf-to-patch file-name-magic-p ctl-buf backup-style)
 	  
     ;; if the user didn't specify a backup extension, use
     ;; ediff-backup-extension 
     (if (string= backup-extension "")
 	(setq backup-extension ediff-backup-extension))
+    (if (string-match "-V" ediff-patch-options)
+	(error
+	 "Ediff doesn't take the -V option in `ediff-patch-options'--sorry"))
 					
     ;; Make a temp file, if source-filename has a magic file handler (or if
     ;; it is handled via auto-mode-alist and similar magic).
@@ -188,7 +194,9 @@
     
     (ediff-eval-in-buffer ediff-patch-diagnostics
       (message "Applying patch ... ")
-      ;;(sit-for 0)
+      ;; fix environment for gnu patch, so it won't make numbered extensions
+      (setq backup-style (getenv "VERSION_CONTROL"))
+      (setenv "VERSION_CONTROL" nil)
       ;; always pass patch the -f option, so it won't ask any questions
       (shell-command-on-region 
        (point-min) (point-max)
@@ -196,7 +204,9 @@
 	       ediff-patch-program ediff-patch-options
 	       backup-extension
 	       (expand-file-name true-source-filename))
-       t))
+       t)
+      ;; restore environment for gnu patch
+      (setenv "VERSION_CONTROL" backup-style))
     ;;(message "Applying patch ... done")(sit-for 0)
     (switch-to-buffer ediff-patch-diagnostics)
     (sit-for 0) ; synchronize - let the user see diagnostics
@@ -251,8 +261,8 @@
 	     (buffer-name ediff-patch-diagnostics))
     ctl-buf))
   
+;; Used as a startup hook to set `_orig' patch file read-only.
 (defun ediff-set-read-only-in-buf-A ()
-  "Used as a startup hook to set `_orig' patch file read-only."
   (ediff-eval-in-buffer ediff-buffer-A
     (toggle-read-only 1)))
 
@@ -363,15 +373,16 @@
 (defalias 'ediff3 'ediff-files3)
 
 
+;; Visit FILE and arrange its buffer to Ediff's liking. 
+;; FILE is actually a variable symbol that must contain a true file name.
+;; BUFFER-NAME is a variable symbol, which will get the buffer object into
+;; which FILE is read.
+;; LAST-DIR is the directory variable symbol where FILE's
+;; directory name should be returned. HOOKS-VAR is a variable symbol that will
+;; be assigned the hook to be executed after `ediff-startup' is finished.
+;; `ediff-find-file' arranges that the temp files it might create will be
+;; deleted.
 (defun ediff-find-file (file-var buffer-name &optional last-dir hooks-var)
-  "Visit FILE and arrange its buffer to Ediff's liking. 
-FILE is actually a variable symbol that must contain a true file name.
-BUFFER-NAME is a variable symbol, which will get the buffer object into which
-FILE is read.  LAST-DIR is the directory variable symbol where FILE's
-directory name should be returned. HOOKS is a variable symbol that will be
-assigned the hook to be executed after `ediff-startup' is finished.
-`ediff-find-file' arranges that the temp files it might create will be
-deleted."
   (let* ((file (symbol-value file-var))
 	 (file-magic (find-file-name-handler file 'find-file-noselect))
 	 (temp-file-name-prefix (file-name-nondirectory file)))
@@ -380,7 +391,7 @@ deleted."
 	  ((file-directory-p file)
 	   (error "File `%s' is a directory" file)))
 	
-    ;; some of the command, below, require full file name
+    ;; some of the commands, below, require full file name
     (setq file (expand-file-name file))
   
     ;; Record the directory of the file
@@ -509,8 +520,8 @@ deleted."
     (if (stringp buf-C-file-name)
 	(setq buf-C-file-name (file-name-nondirectory buf-C-file-name)))
 	
-    (setq file-A (ediff-make-temp-file buf-A buf-A-file-name))
-    (setq file-B (ediff-make-temp-file buf-B buf-B-file-name))
+    (setq file-A (ediff-make-temp-file buf-A buf-A-file-name)
+	  file-B (ediff-make-temp-file buf-B buf-B-file-name))
     (if buf-C-is-alive
 	(setq file-C (ediff-make-temp-file buf-C buf-C-file-name)))
 	  
@@ -1148,9 +1159,8 @@ Continue anyway? (y/n) "))
 The file is the optional FILE argument or the file visited by the current
 buffer."
   (interactive)
-  (ediff-load-version-control)
   (if (stringp file) (find-file file))
-  (let (rev1 rev2 buf1 buf2)
+  (let (rev1 rev2)
     (setq rev1
 	  (read-string
 	   (format
@@ -1163,38 +1173,11 @@ buffer."
 	    "Version 2 to merge (default: %s): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
-    (cond ((eq ediff-version-control-package 'vc)
-	   (save-excursion
-	     (vc-version-other-window rev1)
-	     (setq buf1 (current-buffer)))
-	   (save-excursion
-	     (or (string= rev2 "")
-		 (vc-version-other-window rev2))
-	     (setq buf2 (current-buffer)))
-	   (setq startup-hooks 
-		 (cons 
-		  (` (lambda () 
-		       (delete-file (, (buffer-file-name buf1)))
-		       (or (, (string= rev2 ""))
-			   (delete-file (, (buffer-file-name buf2))))))
-		  startup-hooks)))
-	  ((eq ediff-version-control-package 'rcs)
-	   (setq buf1 (rcs-ediff-view-revision rev1)
-		 buf2 (if (string= rev2 "")
-			  (current-buffer)
-			(rcs-ediff-view-revision rev2))))
-	  ((eq ediff-version-control-package 'generic-sc)
-	   (save-excursion
-	     (if (string= rev1 "")
-		 (setq rev1 (generic-sc-get-latest-rev)))
-	     (sc-visit-previous-revision rev1)
-	     (setq buf1 (current-buffer)))
-	   (save-excursion
-	     (or (string= rev2 "")
-		 (sc-visit-previous-revision rev2))
-	     (setq buf2 (current-buffer))))
-	  ) ; cond
-    (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions)))
+    (ediff-load-version-control)
+    ;; ancestor-revision=nil
+    (funcall
+     (intern (format "%S-ediff-merge-internal" ediff-version-control-package))
+     rev1 rev2 nil startup-hooks)))
     
 
 ;;;###autoload
@@ -1203,9 +1186,8 @@ buffer."
 The file is the the optional FILE argument or the file visited by the current
 buffer."
   (interactive)
-  (ediff-load-version-control)
   (if (stringp file) (find-file file))
-  (let (rev1 rev2 ancestor-rev buf1 buf2 ancestor-buf)
+  (let (rev1 rev2 ancestor-rev)
     (setq rev1
 	  (read-string
 	   (format
@@ -1224,53 +1206,22 @@ buffer."
 	    "Ancestor version (default: %s): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
-    (cond ((eq ediff-version-control-package 'vc)
-	   (save-excursion
-	     (vc-version-other-window rev1)
-	     (setq buf1 (current-buffer)))
-	   (save-excursion
-	     (or (string= rev2 "")
-		 (vc-version-other-window rev2))
-	     (setq buf2 (current-buffer)))
-	   (save-excursion
-	     (or (string= ancestor-rev "")
-		 (vc-version-other-window ancestor-rev))
-	     (setq ancestor-buf (current-buffer)))
-	   (setq startup-hooks 
-		 (cons
-		  (` (lambda () 
-		       (delete-file (, (buffer-file-name buf1)))
-		       (or (, (string= rev2 ""))
-			   (delete-file (, (buffer-file-name buf2))))
-		       (or (, (string= ancestor-rev ""))
-			   (delete-file (, (buffer-file-name ancestor-buf))))))
-		  startup-hooks)))
-	  ((eq ediff-version-control-package 'rcs)
-	   (setq buf1 (rcs-ediff-view-revision rev1)
-		 buf2 (if (string= rev2 "")
-			  (current-buffer)
-			(rcs-ediff-view-revision rev2))
-		 ancestor-buf (if (string= ancestor-rev "")
-				  (current-buffer)
-				(rcs-ediff-view-revision ancestor-rev))))
-	  ((eq ediff-version-control-package 'generic-sc)
-	   (save-excursion
-	     (if (string= rev1 "")
-		 (setq rev1 (generic-sc-get-latest-rev)))
-	     (sc-visit-previous-revision rev1)
-	     (setq buf1 (current-buffer)))
-	   (save-excursion
-	     (or (string= rev2 "")
-		 (sc-visit-previous-revision rev2))
-	     (setq buf2 (current-buffer)))
-	   (save-excursion
-	     (or (string= ancestor-rev "")
-		 (sc-visit-previous-revision ancestor-rev))
-	     (setq ancestor-buf (current-buffer))))
-	  ) ; cond
-    (ediff-merge-buffers-with-ancestor
-     buf1 buf2 ancestor-buf
-     startup-hooks 'ediff-merge-revisions-with-ancestor)))
+    (ediff-load-version-control)
+    (funcall
+     (intern (format "%S-ediff-merge-internal" ediff-version-control-package))
+     rev1 rev2 ancestor-rev startup-hooks)))
+
+;;;###autoload
+(defun run-ediff-from-cvs-buffer (pos)
+  "Run Ediff-merge on appropriate revisions of the selected file.
+First run after `M-x cvs-update'. Then place the cursor on a lide describing a
+file and then run `run-ediff-from-cvs-buffer'."
+  (interactive "d")
+  (ediff-load-version-control)
+  (let ((tin (tin-locate cvs-cookie-handle pos)))
+    (if tin
+	(cvs-run-ediff-on-file-descriptor tin)
+      (error "There is no file to merge"))))
      
      
 ;;; Apply patch
@@ -1369,6 +1320,7 @@ buffer. Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 ;; Test if version control package is loaded and load if not
 ;; Is SILENT is non-nil, don't report error if package is not found.
 (defun ediff-load-version-control (&optional silent)
+  (require 'ediff-vers)
   (or (featurep ediff-version-control-package)
       (if (locate-library (symbol-name ediff-version-control-package))
 	  (progn
@@ -1378,105 +1330,6 @@ buffer. Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 	    (error "Version control package %S.el not found. Use vc.el instead"
 		   ediff-version-control-package)))))
 
-      
-(defun vc-ediff-internal (rev1 rev2 &optional startup-hooks)
-  "Run Ediff on versions of the current buffer.
-If REV2 is \"\" then compare current buffer with REV1.
-If the current buffer is named `F', the version is named `F.~REV~'.
-If `F.~REV~' already exists, it is used instead of being re-created."
-  (let (file1 file2 rev1buf rev2buf)
-    (save-excursion
-      (vc-version-other-window rev1)
-      (setq rev1buf (current-buffer)
-	    file1 (buffer-file-name)))
-    (save-excursion
-      (or (string= rev2 "") 		; use current buffer
-	  (vc-version-other-window rev2))
-      (setq rev2buf (current-buffer)
-	    file2 (buffer-file-name)))
-    (setq startup-hooks
-	  (cons (` (lambda ()
-		     (delete-file (, file1))
-		     (or (, (string= rev2 "")) (delete-file (, file2)))
-		     ))
-		startup-hooks))
-    (ediff-buffers
-     rev1buf rev2buf
-     startup-hooks
-     'ediff-revision)))
-    
-(defun rcs-ediff-view-revision (&optional rev)
-  "View previous RCS revision of current file.
-With prefix argument, prompts for a revision name." 
-  (interactive (list (if current-prefix-arg 
-			 (read-string "Revision: "))))
-  (let* ((filename (buffer-file-name (current-buffer)))
-	 (switches (append '("-p")
-			   (if rev (list (concat "-r" rev)) nil)))
-	 (buff (concat (file-name-nondirectory filename) ".~" rev "~")))
-    (message "Working ...")
-    (setq filename (expand-file-name filename))
-    (with-output-to-temp-buffer buff
-      (let ((output-buffer (ediff-rcs-get-output-buffer filename buff)))
-	(delete-windows-on output-buffer)
-	(save-excursion
-	  (set-buffer output-buffer)
-	  (apply 'call-process "co" nil t nil
-		 ;; -q: quiet (no diagnostics)
-		 (append switches rcs-default-co-switches
-			 (list "-q" filename))))) 
-      (message "")
-      buff)))    
-      
-(defun ediff-rcs-get-output-buffer (file name)
-  ;; Get a buffer for RCS output for FILE, make it writable and clean it up.
-  ;; Optional NAME is name to use instead of `*RCS-output*'.
-  ;; This is a modified version from rcs.el v1.1. I use it here to make
-  ;; Ediff immune to changes in rcs.el
-  (let* ((default-major-mode 'fundamental-mode) ; no frills!
-	 (buf (get-buffer-create name)))
-    (save-excursion
-      (set-buffer buf)
-      (setq buffer-read-only nil
-	    default-directory (file-name-directory (expand-file-name file)))
-      (erase-buffer))
-    buf))
-
-(defun rcs-ediff-internal (rev1 rev2 &optional startup-hooks)
-  "Run Ediff on versions of the current buffer.
-If REV2 is \"\" then use current buffer."
-  (let ((rev2buf (if (string= rev2 "")
-		     (current-buffer)
-		   (rcs-ediff-view-revision rev2)))
-	(rev1buf (rcs-ediff-view-revision rev1)))
-	
-    ;; rcs.el doesn't create temp version files, so we don't have to delete
-    ;; anything in startup hooks to ediff-buffers
-    (ediff-buffers rev1buf rev2buf startup-hooks 'ediff-revision)
-    ))
-
-(defun generic-sc-get-latest-rev ()
-  (cond ((eq sc-mode 'CCASE)
-	 (eval "main/LATEST"))
-	(t (eval "")))
-  )
-
-(defun generic-sc-ediff-internal (rev1 rev2 &optional startup-hooks)
-  "Run Ediff on versions of the current buffer.
-If REV2 is \"\" then compare current buffer with REV1.
-If the current buffer is named `F', the version is named `F.~REV~'.
-If `F.~REV~' already exists, it is used instead of being re-created."
-  (let (rev1buf rev2buf)
-    (save-excursion
-      (if (or (not rev1) (string= rev1 ""))
-	  (setq rev1 (generic-sc-get-latest-rev)))
-      (sc-visit-previous-revision rev1)
-      (setq rev1buf (current-buffer)))
-    (save-excursion
-      (or (string= rev2 "") 		; use current buffer
-	  (sc-visit-previous-revision rev2))
-      (setq rev2buf (current-buffer)))
-    (ediff-buffers rev1buf rev2buf startup-hooks 'ediff-revision)))
 
 ;;;###autoload
 (defun ediff-version ()
@@ -1487,6 +1340,40 @@ When called interactively, displays the version."
       (message (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
+
+;;;###autoload
+(defun ediff-documentation ()
+  "Jump to Ediff's Info file."
+  (interactive)
+  (let ((ctl-window ediff-control-window)
+	(ctl-buf ediff-control-buffer))
+
+    (ediff-skip-unsuitable-frames)
+    (condition-case nil
+	(progn
+	  (pop-to-buffer (get-buffer-create "*info*"))
+	  (info (if ediff-xemacs-p "ediff.info" "ediff"))
+	  (message "Type `i' to search for a specific topic"))
+      (error (beep 1)
+	     (with-output-to-temp-buffer " *ediff-info*"
+	       (princ (format "
+The Info file for Ediff does not seem to be installed.
+
+This file is part of the distribution of %sEmacs.
+Please contact your system administrator. "
+			      (if ediff-xemacs-p "X" ""))))
+	     (if (window-live-p ctl-window)
+		 (progn
+		   (select-window ctl-window)
+		   (set-window-buffer ctl-window ctl-buf)))))))
+    
+
+
+
+;;; Local Variables:
+;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
+;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+;;; End:
 
 (provide 'ediff)
 (require 'ediff-util)

@@ -85,29 +85,28 @@ This variable has no effect when buffer-A/B/C are shown in different frames.
 In this case, Ediff will use those frames to display these buffers.")
 
 (defconst ediff-control-frame-parameters
-  (if (ediff-window-display-p)
-      (list 
-       '(name . "Ediff")
-       ;;'(unsplittable . t)
-       '(minibuffer . nil)
-       '(user-position . t)	      ; Emacs only
-       '(vertical-scroll-bars . nil)  ; Emacs only
-       '(scrollbar-width . 0)         ; XEmacs only
-       '(menu-bar-lines . 0)          ; Emacs only
-       '(visibility . nil)	      ; doesn't work for XEmacs yet
-       ;; don't lower and auto-raise
-       '(auto-lower . nil)
-       '(auto-raise . t)
-       ;; this blocks queries from  window manager as to where to put
-       ;; ediff's control frame. we put the frame outside the display,
-       ;; so the initial frame won't jump all over the screen
-       (cons 'top  (if (fboundp 'ediff-display-pixel-height)
-		       (1+ (ediff-display-pixel-height))
-		     3000))
-       (cons 'left (if (fboundp 'ediff-display-pixel-width)
-		       (1+ (ediff-display-pixel-width))
-		     3000))
-       ))
+  (list 
+   '(name . "Ediff")
+   ;;'(unsplittable . t)
+   '(minibuffer . nil)
+   '(user-position . t)	      ; Emacs only
+   '(vertical-scroll-bars . nil)  ; Emacs only
+   '(scrollbar-width . 0)         ; XEmacs only
+   '(menu-bar-lines . 0)          ; Emacs only
+   '(visibility . nil)	      ; doesn't work for XEmacs yet
+   ;; don't lower and auto-raise
+   '(auto-lower . nil)
+   '(auto-raise . t)
+   ;; this blocks queries from  window manager as to where to put
+   ;; ediff's control frame. we put the frame outside the display,
+   ;; so the initial frame won't jump all over the screen
+   (cons 'top  (if (fboundp 'ediff-display-pixel-height)
+		   (1+ (ediff-display-pixel-height))
+		 3000))
+   (cons 'left (if (fboundp 'ediff-display-pixel-width)
+		   (1+ (ediff-display-pixel-width))
+		 3000))
+   )
   "Frame parameters for displaying Ediff Control Panel.
 Do not specify width and height here. These are computed automatically.")
 
@@ -266,7 +265,7 @@ into icons, regardless of the window manager.")
 (defun ediff-setup-windows-plain-merge (buf-A buf-B buf-C control-buffer)
   ;; skip dedicated and unsplittable frames
   (ediff-destroy-control-frame control-buffer)
-  (let ((window-min-height 2)
+  (let ((window-min-height 1)
 	split-window-function 
 	merge-window-share merge-window-lines
 	wind-A wind-B wind-C)
@@ -319,7 +318,7 @@ into icons, regardless of the window manager.")
 (defun ediff-setup-windows-plain-compare (buf-A buf-B buf-C control-buffer)
   ;; skip dedicated and unsplittable frames
   (ediff-destroy-control-frame control-buffer)
-  (let ((window-min-height 2)
+  (let ((window-min-height 1)
 	split-window-function wind-width-or-height
 	three-way-comparison
 	wind-A-start wind-B-start wind-A wind-B wind-C)
@@ -386,7 +385,7 @@ into icons, regardless of the window manager.")
     ))
 
     
-;; dispatch the appropriate window setup function
+;; dispatch an appropriate window setup function
 (defun ediff-setup-windows-multiframe (buf-A buf-B buf-C control-buf)
   (ediff-eval-in-buffer control-buf
     (setq ediff-multiframe t))
@@ -408,7 +407,7 @@ into icons, regardless of the window manager.")
   ;;   Unsplittable frames are taken care of later.
   (ediff-skip-unsuitable-frames 'ok-unsplittable)
   
-  (let* ((window-min-height 2)
+  (let* ((window-min-height 1)
 	 (wind-A (ediff-get-visible-buffer-window buf-A))
 	 (wind-B (ediff-get-visible-buffer-window buf-B))
 	 (wind-C (ediff-get-visible-buffer-window buf-C))
@@ -486,7 +485,7 @@ into icons, regardless of the window manager.")
     
     (if use-same-frame
 	(let ((curr-frame (selected-frame))
-	      (window-min-height 2))
+	      (window-min-height 1))
 	  ;; avoid dedicated and non-splittable windows
 	  (ediff-skip-unsuitable-frames)
 	  (or (eq curr-frame (selected-frame))
@@ -583,7 +582,7 @@ into icons, regardless of the window manager.")
   ;; Unsplittable frames are taken care of later.
   (ediff-skip-unsuitable-frames 'ok-unsplittable)
   
-  (let* ((window-min-height 2)
+  (let* ((window-min-height 1)
 	 (wind-A (ediff-get-visible-buffer-window buf-A))
 	 (wind-B (ediff-get-visible-buffer-window buf-B))
 	 (wind-C (ediff-get-visible-buffer-window buf-C))
@@ -754,6 +753,8 @@ into icons, regardless of the window manager.")
 		    (or
 		     (window-dedicated-p (selected-window))
 		     (ediff-frame-iconified-p (selected-frame))
+		     (< (frame-height (selected-frame))
+			(* 3 window-min-height))
 		     (if ok-unsplittable
 			 nil
 		       (ediff-frame-unsplittable-p (selected-frame)))))
@@ -769,7 +770,7 @@ into icons, regardless of the window manager.")
 
 ;; Prepare or refresh control frame
 (defun ediff-setup-control-frame (ctl-buffer designated-minibuffer-frame)
-  (let ((window-min-height 2)
+  (let ((window-min-height 1)
 	ctl-frame-iconified-p dont-iconify-ctl-frame deiconify-ctl-frame
 	ctl-frame old-ctl-frame lines user-grabbed-mouse
 	fheight fwidth adjusted-parameters) 
@@ -780,20 +781,11 @@ into icons, regardless of the window manager.")
       (run-hooks 'ediff-before-setup-control-frame-hook))
   
     (setq old-ctl-frame (ediff-eval-in-buffer ctl-buffer ediff-control-frame))
-    ;; Delete the old ctl frame and get a new ctl frame.
-    ;; The old ctl frame is deleted to let emacs reset default minibuffer
-    ;; frame or when the ctl frame needs to be moved.
-    ;; The old frame isn't reused, since ediff-setup-control-frame is called
-    ;; very rarely, so the overhead is minimal.
-    (if (frame-live-p old-ctl-frame) (delete-frame old-ctl-frame))
-    ;;(redraw-display)
-    ;; new ctl frame should be created while ctl-buff is current, so that
-    ;; the local default-minibuffer-frame will be consulted and
-    ;; that ediff-control-frame-parameters will have the right value.
     (ediff-eval-in-buffer ctl-buffer
-      (let ((default-minibuffer-frame designated-minibuffer-frame))
-	(setq ctl-frame (make-frame ediff-control-frame-parameters)
-	      ediff-control-frame ctl-frame)))
+      (setq ctl-frame (if (frame-live-p old-ctl-frame)
+			  old-ctl-frame
+			(make-frame ediff-control-frame-parameters))
+	    ediff-control-frame ctl-frame))
     
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
@@ -817,19 +809,21 @@ into icons, regardless of the window manager.")
 	       dont-iconify-ctl-frame))
     
     ;; 1 more line for the modeline
-    (setq lines (if ediff-xemacs-p
-		    (+ 2 (count-lines (point-min) (point-max)))
-		  (1+ (count-lines (point-min) (point-max))))
+    (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
 	  fwidth (+ (ediff-help-message-line-length) 2)
 	  adjusted-parameters (append (list
 				       '(visibility . t)
+				       ;; possibly change surrogate minibuffer
+				       (cons 'minibuffer
+					     (minibuffer-window
+					      designated-minibuffer-frame))
 				       (cons 'width fwidth)
 				       (cons 'height fheight))
 				      (funcall
 				       ediff-control-frame-position-function
 				       ctl-buffer fwidth fheight)))
-    (if ediff-prefer-long-help-message
+    (if ediff-use-long-help-message
 	(setq adjusted-parameters
 	      (cons '(auto-raise . nil) adjusted-parameters)))
     
@@ -846,11 +840,12 @@ into icons, regardless of the window manager.")
 	  ;;(sit-for 0)
 	  ))
     
-    ;; Under OS/2 (emx) we have to call modify frame parameters twice, in
-    ;; order to make sure that at least once we do it for non-iconified
-    ;; frame. If appears that in the OS/2 port of Emacs, one can't modify
-    ;; frame parameters of iconified frames.
-    (if (eq system-type 'emx)
+    ;; Under OS/2 (emx) we have to call modify frame parameters twice, in order
+    ;; to make sure that at least once we do it for non-iconified frame. If
+    ;; appears that in the OS/2 port of Emacs, one can't modify frame
+    ;; parameters of iconified frames. As a precaution, we do likewise for
+    ;; windows-nt.
+    (if (memq system-type '(emx windows-nt windows-95))
 	(modify-frame-parameters ctl-frame adjusted-parameters))
       
     (goto-char (point-min))
@@ -876,15 +871,18 @@ into icons, regardless of the window manager.")
       
     ;; resynch so the cursor will move to control frame
     ;; per RMS suggestion
-    (let ((count 7))
-      (sit-for .1)
-      (while (and (not (frame-visible-p ctl-frame)) (> count 0))
-	(setq count (1- count))
-	(sit-for .3)))
+    (if (ediff-window-display-p)
+	(let ((count 7))
+	  (sit-for .1)
+	  (while (and (not (frame-visible-p ctl-frame)) (> count 0))
+	    (setq count (1- count))
+	    (sit-for .3))))
 
     (or (ediff-frame-iconified-p ctl-frame)
 	;; don't warp the mouse, unless ediff-grab-mouse = t
-	(ediff-reset-mouse ctl-frame (not (eq ediff-grab-mouse t))))
+	(ediff-reset-mouse ctl-frame
+			   (or (eq this-command 'ediff-quit)
+			       (not (eq ediff-grab-mouse t)))))
 	
     (if ediff-xemacs-p
 	(ediff-eval-in-buffer ctl-buffer
@@ -932,7 +930,7 @@ into icons, regardless of the window manager.")
 	    (- frame-A-top upward-adjustment ediff-control-frame-upward-shift)
 	    ctl-frame-left
 	    (+ frame-A-left
-	       (if ediff-prefer-long-help-message
+	       (if ediff-use-long-help-message
 		   (* (ediff-frame-char-width ctl-frame)
 		      (+ ediff-wide-control-frame-rightward-shift
 			 horizontal-adjustment))
@@ -941,9 +939,6 @@ into icons, regardless of the window manager.")
 		       (+ ctl-frame-width
 			  ediff-narrow-control-frame-leftward-shift
 			  horizontal-adjustment))))))
-      ;; keep ctl frame within the visible bounds
-      (setq ctl-frame-top (max ctl-frame-top 1)
-	    ctl-frame-left (max ctl-frame-left 1))
       (setq ctl-frame-top
 	    (min ctl-frame-top
 		 (- (ediff-display-pixel-height)
@@ -953,6 +948,9 @@ into icons, regardless of the window manager.")
 	    (min ctl-frame-left
 		 (- (ediff-display-pixel-width)
 		    (* ctl-frame-width (ediff-frame-char-width ctl-frame)))))
+      ;; keep ctl frame within the visible bounds
+      (setq ctl-frame-top (max ctl-frame-top 1)
+	    ctl-frame-left (max ctl-frame-left 1))
       
       (list (cons 'top ctl-frame-top)
 	    (cons 'left ctl-frame-left))
@@ -960,7 +958,7 @@ into icons, regardless of the window manager.")
 			       
 (defun ediff-xemacs-select-frame-hook ()
   (if (and (equal (selected-frame) ediff-control-frame)
-	   (not ediff-prefer-long-help-message))
+	   (not ediff-use-long-help-message))
       (raise-frame ediff-control-frame)))
 	
 (defun ediff-make-wide-display ()

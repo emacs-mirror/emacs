@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Users are strongly encourage to add functionality to this file.
+;; Users are strongly encouraged to add functionality to this file.
 ;; In particular, epatch needs to be enhanced to work with multi-file
 ;; patches. The present file contains all the infrastructure needed for that.
 ;;
@@ -300,9 +300,9 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 ;;	((dir1 dir2 dir3) (file . num) (file . num)...)
 ;; where num encodes the set of dirs where the file is found:
 ;; 2 - only dir1; 3 - only dir2; 5 - only dir3; 6 - dir1&2; 10 - dir1&3; etc.
-(defun ediff-intersect-directories (jobname diff-var regexp dir1 dir2
-					    &optional dir3 comparison-func)
-  (require 'cl)
+(defun ediff-intersect-directories (jobname
+				    diff-var regexp dir1 dir2
+				    &optional dir3 comparison-func)
   (setq comparison-func (or comparison-func 'string=))
   (let (lis1 lis2 lis3 common auxdir1 auxdir2 auxdir3 difflist)
 
@@ -318,7 +318,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
     (setq lis1 (delete "."  lis1)
 	  lis1 (delete ".." lis1))
 
-    (setq common (intersection lis1 lis2 ':test comparison-func))
+    (setq common (ediff-intersection lis1 lis2 comparison-func))
     ;; get rid of files that are directories in dir1 but not dir2
     (mapcar (function (lambda (elt)
 			(if (Xor (file-directory-p (concat auxdir1 elt))
@@ -326,7 +326,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 			    (setq common (delq elt common)))))
 	    common)
     ;; intersect with the third dir
-    (if lis3 (setq common (intersection common lis3 ':test comparison-func)))
+    (if lis3 (setq common (ediff-intersection common lis3 comparison-func)))
     (if (ediff-comparison-metajob3 jobname)
 	(mapcar (function (lambda (elt)
 			    (if (Xor (file-directory-p (concat auxdir1 elt))
@@ -334,19 +334,20 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 				(setq common (delq elt common)))))
 		common))
 
-    ;; trying to avoid side effects of sorting
-    (setq common (sort (copy-list common) 'string-lessp))
+    ;; copying is needed because sort sorts via side effects
+    (setq common (sort (ediff-copy-list common) 'string-lessp))
 
     ;; compute difference list
-    (setq difflist (set-difference
-		    (union (union lis1 lis2 ':test comparison-func)
-			   lis3
-			   ':test comparison-func)
+    (setq difflist (ediff-set-difference
+		    (ediff-union (ediff-union lis1 lis2 comparison-func)
+				 lis3
+				 comparison-func)
 		    common
-		    ':test comparison-func)
+		    comparison-func)
 	  difflist (delete "."  difflist)
-	  ;; copy-list needed because sort sorts it by side effects
-	  difflist (sort (copy-list (delete ".." difflist)) 'string-lessp))
+	  ;; copying is needed because sort sorts via side effects
+	  difflist (sort (ediff-copy-list (delete ".." difflist))
+			 'string-lessp))
 
     (setq difflist (mapcar (function (lambda (elt) (cons elt 1))) difflist))
 
@@ -377,7 +378,6 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 ;; find directory files that are under revision.
 ;; display subdirectories, too, since we may visit them recursively.
 (defun ediff-get-directory-files-under-revision (jobname regexp dir1)
-  (require 'cl)
   (let (lis1 elt common auxdir1)
     (setq auxdir1 (file-name-as-directory dir1)
 	  lis1	  (directory-files auxdir1 nil regexp))
@@ -389,14 +389,17 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
       (cond ((file-directory-p (concat auxdir1 elt))
 	     (setq common (cons elt common)))
 	    ((file-exists-p (concat auxdir1 elt ",v"))
-	     (setq common (cons elt common))))
+	     (setq common (cons elt common)))
+	    ((file-exists-p (concat auxdir1 "RCS/" elt ",v"))
+	     (setq common (cons elt common)))
+	    ) ; cond
       ) ; while
 
     (setq common (delete "."  common)
 	  common (delete ".." common))
 
-    ;; trying to avoid side effects of sorting
-    (setq common (sort (copy-list common) 'string-lessp))
+    ;; copying is needed because sort sorts via side effects
+    (setq common (sort (ediff-copy-list common) 'string-lessp))
 
     ;; return result
     (cons (list regexp auxdir1 nil nil)
@@ -942,7 +945,9 @@ Useful commands:
     (if (ediff-buffer-live-p session-buf)
 	(ediff-eval-in-buffer session-buf
 	  (if (eq ediff-control-buffer session-buf) ; individual session
-	      (setq custom-diff-buf ediff-custom-diff-buffer))))
+	      (progn
+		(ediff-compute-custom-diffs-maybe)
+		(setq custom-diff-buf ediff-custom-diff-buffer)))))
 
     (or (ediff-buffer-live-p meta-diff-buff)
 	(error "Ediff: something wrong--no multiple diffs buffer"))
@@ -953,7 +958,9 @@ Useful commands:
 	     (goto-char (point-max))
 	     (insert-buffer custom-diff-buf)
 	     (insert "\n")))
-	  ((eq metajob 'ediff-directories)
+	  ((memq metajob '(ediff-directories 
+			   ediff-merge-directories
+			   ediff-merge-directories-with-ancestor))
 	   ;; get diffs by calling shell command on ediff-custom-diff-program
 	   (save-excursion
 	     (set-buffer (setq tmp-buf (get-buffer-create ediff-tmp-buffer)))
@@ -970,10 +977,8 @@ Useful commands:
 	     (insert-buffer tmp-buf)
 	     (insert "\n")))
 	  (t
-	   (error
-	    "Session %d is marked but inactive--can't make its diff"
-	    sessionNum)))
-	  ))
+	   (error "Can't make context diff for Session %d" sessionNum )))
+    ))
 
 (defun ediff-collect-custom-diffs ()
   "Collect custom diffs of marked sessions in buffer `*Ediff Multifile Diffs*'.
@@ -1185,10 +1190,11 @@ all marked sessions must be active."
 	      (t (ediff-skip-unsuitable-frames 'ok-unsplittable)
 		 (set-window-buffer (selected-window) meta-buf)))
 	))
-    (if (ediff-window-display-p)
+    (if (and (ediff-window-display-p)
+	     (window-live-p 
+	      (setq wind (ediff-get-visible-buffer-window meta-buf))))
 	(progn
-	  (setq frame
-		(window-frame (ediff-get-visible-buffer-window meta-buf)))
+	  (setq frame (window-frame wind))
 	  (raise-frame frame)
 	  (ediff-reset-mouse frame)))
     (run-hooks 'ediff-show-session-group-hook)
@@ -1213,7 +1219,7 @@ all marked sessions must be active."
       (error "No active Ediff sessions or corrupted session registry"))
   (let (wind frame)
     ;; for some reason, point moves in ediff-registry-buffer, so we preserve it
-    ;; explictly
+    ;; explicitly
     (ediff-eval-in-buffer ediff-registry-buffer
       (save-excursion
 	(cond  ((setq wind
@@ -1322,7 +1328,7 @@ If this is a session registry buffer then just bury it."
 	     (bury-buffer)
 	     (beep)
 	     (message
-	      "Group has active sessions, panel not deleted")))
+	      "Session group suspended, not deleted (has active sessions)")))
       (ediff-cleanup-meta-buffer parent-buf)
       (ediff-kill-buffer-carefully dir-diffs-buffer)
       (ediff-kill-buffer-carefully meta-diff-buffer)
@@ -1342,7 +1348,7 @@ If this is a session registry buffer then just bury it."
   (kill-buffer buf))
     
 
-;; obtain information on a meta record where the user clicked or typed
+;; Obtain information on a meta record where the user clicked or typed
 ;; BUF is the buffer where this happened and POINT is the position
 ;; If optional NOERROR arg is given, don't report error and return nil if no
 ;; meta info is found on line.

@@ -23,10 +23,12 @@
 
 ;;; Code:
 
-;;   These must be placed in menu-bar.el in Emacs
+;;;   These must be placed in menu-bar.el in Emacs
 ;;
+;;      (define-key menu-bar-tools-menu [ediff-doc]
+;;	 '("Ediff Manual..." . ediff-documentation))
 ;;      (define-key menu-bar-tools-menu [eregistry]
-;;	'("List Ediff Sessions" . ediff-show-registry))
+;;	'("List Ediff Sessions..." . ediff-show-registry))
 ;;      (define-key menu-bar-tools-menu [epatch]
 ;;	'("Apply Patch" . menu-bar-epatch-menu))
 ;;      (define-key menu-bar-tools-menu [ediff-merge]
@@ -46,12 +48,14 @@
 	 '("Tools") epatch-menu "OO-Browser...")
 	(add-menu-button
 	 '("Tools")
-	 ["List Ediff Sessions" ediff-show-registry t] "OO-Browser...")
+	 ["List Ediff Sessions..." ediff-show-registry t] "OO-Browser...")
 	(add-menu-button
 	 '("Tools")
-	 ["---" nil nil] "OO-Browser...")
+	 ["Ediff Manual..." ediff-documentation t] "OO-Browser...")
+	(add-menu-button
+	 '("Tools")
+	 ["-------" nil nil] "OO-Browser...")
 	)))
-
 
 
 ;; explicit string-match is needed: ediff-xemacs-p is not defined at build time
@@ -73,7 +77,8 @@
 	   ["Windows Line-by-line..." ediff-windows-linewise t]
 	   "---"
 	   ["Regions Word-by-word..." ediff-regions-wordwise t]
-	   ["Regions Line-by-line..." ediff-regions-linewise t]))
+	   ["Regions Line-by-line..." ediff-regions-linewise t]
+	   ))
        (defvar ediff-merge-menu
 	 '("Merge"
 	   ["Files..."  ediff-merge-files t]
@@ -91,15 +96,16 @@
 	    ediff-merge-revisions-with-ancestor t]
 	   ["Directory Revisions..." ediff-merge-directory-revisions t]
 	   ["Directory Revisions with Ancestor..."
-	    ediff-merge-directory-revisions-with-ancestor t]))
+	    ediff-merge-directory-revisions-with-ancestor t]
+	   ))
        (defvar epatch-menu
 	 '("Apply Patch"
 	   ["To a file..."  ediff-patch-file t]
-	   ["To a buffer..." ediff-patch-buffer t]))
+	   ["To a buffer..." ediff-patch-buffer t]
+	   ))
 
        ;; put these menus before Object-Oriented-Browser in Tools menu
        (add-hook 'before-init-hook 'ediff-xemacs-init-menus)
-       ;; this `if' is to be deleted before going into distribution
        (if (not purify-flag)
 	   (ediff-xemacs-init-menus))
        )
@@ -117,7 +123,17 @@
 
        ;; define ediff-menu
        (define-key menu-bar-ediff-menu [window]
-	 '("This Window And Next Window" . compare-windows))
+	 '("This Window and Next Window" . compare-windows))
+       (define-key menu-bar-ediff-menu [ediff-windows-linewise]
+	 '("Windows Line-by-line..." . ediff-windows-linewise))
+       (define-key menu-bar-ediff-menu [ediff-windows-wordwise]
+	 '("Windows Word-by-word..." . ediff-windows-wordwise))
+       (define-key menu-bar-ediff-menu [separator-ediff-windows] '("--"))
+       (define-key menu-bar-ediff-menu [ediff-regions-linewise]
+	 '("Regions Line-by-line..." . ediff-regions-linewise))
+       (define-key menu-bar-ediff-menu [ediff-regions-wordwise]
+	 '("Regions Word-by-word..." . ediff-regions-wordwise))
+       (define-key menu-bar-ediff-menu [separator-ediff-regions] '("--"))
        (define-key menu-bar-ediff-menu [ediff-dir-revision]
 	 '("Directory Revisions..." . ediff-directory-revisions))
        (define-key menu-bar-ediff-menu [ediff-revision]
@@ -136,16 +152,6 @@
 	 '("Two Buffers..." . ediff-buffers))
        (define-key menu-bar-ediff-menu [ediff-files]
 	 '("Two Files..." . ediff-files))
-       (define-key menu-bar-ediff-menu [separator-ediff-regions] '("--"))
-       (define-key menu-bar-ediff-menu [ediff-regions-linewise]
-	 '("Regions Line-by-line..." . ediff-regions-linewise))
-       (define-key menu-bar-ediff-menu [ediff-regions-wordwise]
-	 '("Regions Word-by-word..." . ediff-regions-wordwise))
-       (define-key menu-bar-ediff-menu [separator-ediff-windows] '("--"))
-       (define-key menu-bar-ediff-menu [ediff-windows-linewise]
-	 '("Windows Line-by-line..." . ediff-windows-linewise))
-       (define-key menu-bar-ediff-menu [ediff-windows-wordwise]
-	 '("Windows Word-by-word..." . ediff-windows-wordwise))
 
        ;; define merge menu
        (define-key
@@ -268,7 +274,7 @@
 
   ;; misc
   (autoload 'ediff-show-registry
-    "ediff-mult"
+    "ediff-meta"
     "Display the registry of active Ediff sessions"
     t)
   (autoload 'ediff-version

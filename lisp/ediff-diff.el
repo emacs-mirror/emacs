@@ -25,8 +25,10 @@
 
 (require 'ediff-init)
 
+
 (defvar ediff-shell
   (cond ((eq system-type 'emx) "cmd") ; OS/2
+	((eq system-type 'ms-dos) shell-file-name) ; no standard name on MS-DOS
 	((memq system-type '(vax-vms axp-vms)) "*dcl*") ; VMS
 	(t  "sh")) ; UNIX
   "*The shell used to run diff and patch.  If user's .profile or
@@ -84,7 +86,7 @@ Lines that do not match are assumed to be error messages.")
   
 ;;; Fine differences 
 
-(ediff-defvar-local ediff-auto-refine (if (ediff-window-display-p) 'on 'nix)
+(ediff-defvar-local ediff-auto-refine (if (ediff-has-face-support-p) 'on 'nix)
   "If `on', Ediff auto-highlights fine diffs for the current diff region.
 If `off', auto-highlighting is not used. If `nix', no fine diffs are shown
 at all, unless the user force-refines the region by hitting `*'.
@@ -132,9 +134,9 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-  ;; Force all minibuffers to display ediff's messages.
-  ;; When xemacs implements minibufferless frames, this won't be necessary
-  (if ediff-xemacs-p (setq synchronize-minibuffers t))
+;;;  ;; Force all minibuffers to display ediff's messages.
+;;;  ;; When xemacs implements minibufferless frames, this won't be necessary
+;;;  (if ediff-xemacs-p (setq synchronize-minibuffers t))
 						  
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
@@ -148,8 +150,7 @@ one optional arguments, diff-number to refine.")
   ;;(message "Computing differences ... done")
   (ediff-convert-diffs-to-overlays
    (ediff-extract-diffs
-    ediff-diff-buffer ediff-word-mode ediff-narrow-bounds))
-  )
+    ediff-diff-buffer ediff-word-mode ediff-narrow-bounds)))
      
 ;; If file-A/B/C is nil, do 2-way comparison with the non-nil buffers
 ;; This function works for diff3 and diff2 jobs
@@ -178,7 +179,8 @@ one optional arguments, diff-number to refine.")
 			) ; exec process
   
     (ediff-prepare-error-list ok-regexp ediff-fine-diff-buffer)
-    ;;(ediff-message-if-verbose
+    (ediff-message-if-verbose
+     "")
     ;; "Refining difference region %d ... done" (1+ reg-num))
     
     (setq diff-list
@@ -463,15 +465,9 @@ one optional arguments, diff-number to refine.")
 	    (setq pt-saved (ediff-eval-in-buffer buff (point)))))
       (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
       
-      ;; Priorities of overlays should be equal in all ediff control
-      ;; panel buffers. Otherwise it won't work due to Emacs
-      ;; bug, as insert-in-front-hooks will be called 
-      ;; only on behalf of the buffer with higher priority.
       (ediff-overlay-put overlay 'priority ediff-shadow-overlay-priority)
       (ediff-overlay-put overlay 'ediff-diff-num current-diff)
-      (ediff-overlay-put 
-       overlay 'insert-in-front-hooks '(ediff-insert-in-front))
-      (if (and (ediff-window-display-p)
+      (if (and (ediff-has-face-support-p)
 	       ediff-use-faces ediff-highlight-all-diffs)
 	  (ediff-set-overlay-face
 	   overlay (ediff-background-face buf-type current-diff)))
@@ -502,7 +498,7 @@ one optional arguments, diff-number to refine.")
   (or n  (setq n ediff-current-difference))
   
   (if (< ediff-number-of-differences 1)
-      (error "No differences found"))
+      (error "Sorry, it is not my job to munch identical variants..."))
       
   (if ediff-word-mode
       (setq flag 'skip
@@ -668,10 +664,10 @@ one optional arguments, diff-number to refine.")
     
 ;; if fine diff vector is not set for diff N, then do nothing
 (defun ediff-set-fine-diff-properties (n &optional default)
-  (or (not (ediff-window-display-p))
+  (or (not (ediff-has-face-support-p))
       (< n 0)
       (>= n ediff-number-of-differences)
-      ;; in a window system, set faces and priorities of fine overlays
+      ;; when faces are supported, set faces and priorities of fine overlays
       (progn
 	(ediff-set-fine-diff-properties-in-one-buffer 'A n default)
 	(ediff-set-fine-diff-properties-in-one-buffer 'B n default)
@@ -966,9 +962,9 @@ one optional arguments, diff-number to refine.")
 ;; or it is the ancestor file.
 (defun ediff-setup-diff-regions3 (file-A file-B file-C)
   
-  ;; force all minibuffers to display ediff's messages.
-  ;; when xemacs implements minibufferless frames, this won't be necessary
-  (if ediff-xemacs-p (setq synchronize-minibuffers t))
+;;;  ;; force all minibuffers to display ediff's messages.
+;;;  ;; when xemacs implements minibufferless frames, this won't be necessary
+;;;  (if ediff-xemacs-p (setq synchronize-minibuffers t))
 						  
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
@@ -987,11 +983,11 @@ one optional arguments, diff-number to refine.")
    ))
    
 
-;; Execute PROGRAM asynchronously, unless OS/2 or unless SYNC is non-nil.
-;; BUFFER must be a buffer object, and must be alive.
-;; All arguments in ARGS must be strings. The first arg may be a blank string,
-;; in which case we delete it from ARGS list. We also delete nil from args.
-(defun ediff-exec-process (program buffer sync &rest args)
+;; Execute PROGRAM asynchronously, unless OS/2, Windows-*, or DOS, or unless
+;; SYNCH is non-nil.  BUFFER must be a buffer object, and must be alive.  All
+;; arguments in ARGS must be strings. The first arg may be a blank string, in
+;; which case we delete it from ARGS list. We also delete nil from args.
+(defun ediff-exec-process (program buffer synch &rest args)
   (let ((data (match-data)))
     (if (string-match "^[ \t]*$" (car args)) ; delete blank string
 	(setq args (cdr args)))
@@ -1004,13 +1000,17 @@ one optional arguments, diff-number to refine.")
 	    (set-buffer buffer)
 	    (erase-buffer)
 	    (setq default-directory directory)
-	    (if (or (eq system-type 'emx) sync)
-		;; In OS/2 do it synchronously, since OS/2 doesn't let us
+	    (if (or (memq system-type '(emx ms-dos windows-nt windows-95))
+		    synch)
+		;; In OS/2 (emx) do it synchronously, since OS/2 doesn't let us
 		;; delete files used by other processes. Thus, in ediff-buffers
 		;; and similar functions, we can't delete temp files because
-		;; they might be used by the async process that computes
+		;; they might be used by the asynch process that computes
 		;; custom diffs. So, we have to wait till custom diff
 		;; subprocess is done.
+		;; Similarly for Windows-*
+		;; In DOS, must synchronize because DOS doesn't have
+		;; asynchronous processes.
 		(apply 'call-process program nil buffer nil args)
 	      ;; On other systems, do it asynchronously.
 	      (setq proc (get-buffer-process buffer))
@@ -1163,5 +1163,6 @@ argument to `skip-chars-forward'."
 
 
 (provide 'ediff-diff)
+
 
 ;; ediff-diff.el ends here

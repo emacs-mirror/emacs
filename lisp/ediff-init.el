@@ -33,8 +33,18 @@
       window-system
     (device-type (selected-device))))
 ;; in XEmacs: device-type is tty on tty and stream in batch.
-(defsubst ediff-window-display-p ()
-  (and (ediff-device-type) (not (memq (ediff-device-type) '(tty stream)))))
+(defun ediff-window-display-p ()
+  (and (ediff-device-type) (not (memq (ediff-device-type) '(tty pc stream)))))
+
+;; test if supports faces
+;; ediff-force-faces is for those devices that support faces, but we don't know
+;; this yet
+(defun ediff-has-face-support-p ()
+  (cond ((ediff-window-display-p))
+	(ediff-force-faces)
+	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
+	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))))
+  
 
 ;;; Macros
 (defmacro ediff-odd-p (arg)
@@ -146,8 +156,7 @@
 		 (,@ forms))
 	     (set-buffer StartBuffer))
 	 (or (eq this-command 'ediff-quit)
-	     (error
-	      "You've killed an essential Ediff buffer---Please quit Ediff"))
+	     (error ediff-KILLED-VITAL-BUFFER))
 	 ))))
 	 
 
@@ -226,11 +235,16 @@
       ;; add more here
       ))
 (defsubst ediff-collect-diffs-metajob (&optional metajob)
-  (or (ediff-revision-metajob metajob)
-      (memq ediff-metajob-name
-	    '(ediff-directories
-	      ;; add more here
-	      ediff-directory-revisions))))
+  (memq (or metajob ediff-metajob-name)
+	'(ediff-directories
+	  ediff-directory-revisions
+	  ediff-merge-directories
+	  ediff-merge-directories-with-ancestor
+	  ediff-merge-directory-revisions
+	  ediff-merge-directory-revisions-with-ancestor
+	  ;; add more here
+	  )))
+
 (defsubst ediff-metajob3 (&optional metajob)
   (memq (or metajob ediff-metajob-name)
 	'(ediff-merge-directories-with-ancestor
@@ -335,7 +349,7 @@ n,SPC -next diff     |     h -hiliting           | rx -restore buf X's old diff
   C-l -recenter      |    ## -ignore whitespace  |
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
-                     |     m -wide display       |  ~ -swap buffers
+    ~ -swap variants |     m -wide display       |  
 "
   "Help message usually used for 2-way comparison.
 Normally, not a user option. See `ediff-help-message' for details.")
@@ -349,7 +363,7 @@ n,SPC -next diff     |     h -hiliting           | rx -restore buf X's old diff
   C-l -recenter      |    ## -ignore whitespace  |
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
-                     |     m -wide display       |  ~ -swap buffers
+    ~ -swap variants |     m -wide display       |  
 "
   "Help message when comparing windows or regions line-by-line.
 Normally, not a user option. See `ediff-help-message' for details.")
@@ -363,7 +377,7 @@ n,SPC -next diff     |     h -hiliting           | rx -restore buf X's old diff
   C-l -recenter      |                           |
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
-                     |     m -wide display       |  ~ -swap buffers
+    ~ -swap variants |     m -wide display       |  
 "
   "Help message when comparing windows or regions word-by-word.
 Normally, not a user option. See `ediff-help-message' for details.")
@@ -377,7 +391,7 @@ n,SPC -next diff     |     h -hiliting           |  r -restore buf C's old diff
   C-l -recenter      | #f/#h -focus/hide regions |  + -combine diff regions
   v/V -scroll up/dn  |     X -read-only in buf X | wx -save buf X
   </> -scroll lt/rt  |     m -wide display       | wd -save diff output
-    / -ancestor buff |     s -shrink window C    |  ~ -swap buffers
+    ~ -swap variants |     s -shrink window C    |  / -show ancestor buff 
                      |     $ -show clashes only  |  & -merge w/new default
 "
   "Help message during merging.
@@ -402,8 +416,8 @@ produce the brief help message. This function must return a string.")
   "The long help message that the user can customize.
 See `ediff-brief-help-message-function' for more.")
 
-(defvar ediff-prefer-long-help-message nil
-  "*If t, Ediff starts with a long help message. Short help msg otherwise.")
+(defvar ediff-use-long-help-message nil
+  "*If t, Ediff displays a long help message. Short help message otherwise.")
 
 ;; The actual help message.
 (ediff-defvar-local ediff-help-message ""
@@ -412,6 +426,12 @@ Normally, the user shouldn't touch this. However, if you want Ediff to
 start up with different help messages for different jobs, you can change
 the value of this variable and the variables `ediff-help-message-*' in
 `ediff-startup-hook'.") 
+
+;; Error messages
+(defconst ediff-KILLED-VITAL-BUFFER
+  "You have killed a vital Ediff buffer---you must leave Ediff now!")
+(defconst ediff-NO-DIFFERENCES
+  "Sorry, it is not my job to munch identical variants...")
  
 ;; Selective browsing
 
@@ -484,12 +504,17 @@ Must end with newline.")
 
   
 (ediff-defvar-local ediff-use-faces t 
-  "If t, differences are highlighted using faces on a window system.
-If nil, they are highlighted using ASCII flags, ediff-before-flag
+  "If t, differences are highlighted using faces, if device supports faces.
+If nil, differences are highlighted using ASCII flags, ediff-before-flag
 and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
+
+(defvar ediff-force-faces nil
+  "If t, Ediff will think that it is running on a display that supports faces.
+This is provided as a temporary relief for users of face-capable displays
+that Ediff doesn't know about.")
 
 
 ;; this indicates that diff regions are word-size, so fine diffs are
@@ -570,7 +595,7 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 ;; Buffer-local variables to be saved then restored during Ediff sessions
 ;; Buffer-local variables to be saved then restored during Ediff sessions
 (defconst ediff-protected-variables '(buffer-read-only 
-				      synchronize-minibuffers
+;;;				      synchronize-minibuffers
 				      mode-line-format))
 
 ;; Vector of differences between the variants.  Each difference is
@@ -636,10 +661,10 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 
 (defvar ediff-version-control-package 'vc
   "Version control package used.
-Currently, Ediff supports vc.el, rcs.el, and generic-sc.el. The standard Emacs
-interface to RCS, CVS, SCCS, etc., is vc.el. However, some people find the
-other two packages more convenient. Set this variable `rcs' or `generic-sc' if
-you are such a person.")
+Currently, Ediff supports vc.el, rcs.el, pcl-cvs.el, and generic-sc.el. The
+standard Emacs interface to RCS, CVS, SCCS, etc., is vc.el. However, some
+people find the other two packages more convenient. Set this variable to the
+appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
 
 
 (if ediff-xemacs-p
@@ -647,16 +672,12 @@ you are such a person.")
       (fset 'ediff-read-event (symbol-function 'next-command-event))
       (fset 'ediff-overlayp (symbol-function 'extentp))
       (fset 'ediff-make-overlay (symbol-function 'make-extent))
-      (fset 'ediff-delete-overlay (symbol-function 'delete-extent))
-      (fset 'ediff-overlay-buffer (symbol-function 'extent-buffer))
-      (fset 'ediff-overlay-get (symbol-function 'extent-property)))
+      (fset 'ediff-delete-overlay (symbol-function 'delete-extent)))
   (fset 'ediff-read-event (symbol-function 'read-event))
   (fset 'ediff-overlayp (symbol-function 'overlayp))
   (fset 'ediff-overlayp (symbol-function 'overlayp))
   (fset 'ediff-make-overlay (symbol-function 'make-overlay))
-  (fset 'ediff-delete-overlay (symbol-function 'delete-overlay))
-  (fset 'ediff-overlay-buffer (symbol-function 'overlay-buffer))
-  (fset 'ediff-overlay-get (symbol-function 'overlay-get)))
+  (fset 'ediff-delete-overlay (symbol-function 'delete-overlay)))
   
 ;; Check the current version against the major and minor version numbers
 ;; using op: cur-vers op major.minor If emacs-major-version or
@@ -728,30 +749,34 @@ you are such a person.")
     (eq (device-class (selected-device)) 'color)))
 
   
+(if (ediff-has-face-support-p)
+    (if ediff-xemacs-p
+	(progn
+	  (fset 'ediff-valid-color-p (symbol-function 'valid-color-name-p))
+	  (fset 'ediff-get-face (symbol-function 'get-face)))
+      ;; Temporary fix for OS/2 port of Emacs
+      ;; pm-win.el in PM-Emacs should be fixed.
+      (if (eq (ediff-device-type) 'pm)
+	  (fset 'ediff-valid-color-p 
+		(function (lambda (color) (assoc color pm-color-alist))))
+	(fset 'ediff-valid-color-p (symbol-function 'x-color-defined-p)))
+      (fset 'ediff-get-face (symbol-function 'internal-get-face))))
+
 (if (ediff-window-display-p)
     (if ediff-xemacs-p
 	(progn
 	  (fset 'ediff-display-pixel-width
 		(symbol-function 'device-pixel-width))
 	  (fset 'ediff-display-pixel-height
-		(symbol-function 'device-pixel-height))
-	  (fset 'ediff-valid-color-p (symbol-function 'valid-color-name-p))
-	  (fset 'ediff-get-face (symbol-function 'get-face)))
-      ;; Temporary fix for OS/2 port of Emacs
-      ;; pm-win.el in PM-Emacs should be fixed.
+		(symbol-function 'device-pixel-height)))
       (fset 'ediff-display-pixel-width 
 	    (symbol-function 'x-display-pixel-width))
       (fset 'ediff-display-pixel-height
-	    (symbol-function 'x-display-pixel-height))
-      (if (eq (ediff-device-type) 'pm)
-	  (fset 'ediff-valid-color-p 
-		(function (lambda (color) (assoc color pm-color-alist))))
-	(fset 'ediff-valid-color-p (symbol-function 'x-color-defined-p)))
-      (fset 'ediff-get-face (symbol-function 'internal-get-face))))
+	    (symbol-function 'x-display-pixel-height))))
       
 
 (defun ediff-make-current-diff-overlay (type)
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (let ((overlay (intern (format "ediff-current-diff-overlay-%S" type)))
 	    (buffer (ediff-get-buffer type))
 	    (face (face-name
@@ -787,7 +812,7 @@ you are such a person.")
 
 (defun ediff-set-face (ground face color)
   "Set face foreground/background."
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (if (ediff-valid-color-p color)
 	  (if (eq ground 'foreground)
 	      (set-face-foreground face color)
@@ -815,14 +840,15 @@ you are such a person.")
 	       (copy-face 'secondary-selection face))))
     ))
 
-(or (boundp 'facemenu-unlisted-faces)
-    (setq facemenu-unlisted-faces nil))
-
-(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-A)
+(defun ediff-hide-face (face)
+  (if (and (ediff-has-face-support-p) ediff-emacs-p)
+      (add-to-list 'facemenu-unlisted-faces face)))
+      
 (defvar ediff-current-diff-face-A
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-current-diff-face-A)
+	(ediff-hide-face 'ediff-current-diff-face-A)
 	(or (face-differs-from-default-p 'ediff-current-diff-face-A)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -837,11 +863,11 @@ you are such a person.")
 	'ediff-current-diff-face-A))
   "Face for highlighting the selected difference in buffer A.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-B)
 (defvar ediff-current-diff-face-B
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-current-diff-face-B)
+	(ediff-hide-face 'ediff-current-diff-face-B)
 	(or (face-differs-from-default-p 'ediff-current-diff-face-B)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -857,11 +883,11 @@ you are such a person.")
   "Face for highlighting the selected difference in buffer B.")
     
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-C)
 (defvar ediff-current-diff-face-C
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-current-diff-face-C)
+	(ediff-hide-face 'ediff-current-diff-face-C)
 	(or (face-differs-from-default-p 'ediff-current-diff-face-C)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -876,21 +902,21 @@ you are such a person.")
 	'ediff-current-diff-face-C))
   "Face for highlighting the selected difference in buffer C.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-Ancestor)
 (defvar ediff-current-diff-face-Ancestor
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-current-diff-face-Ancestor)
+	(ediff-hide-face 'ediff-current-diff-face-Ancestor)
 	(or (face-differs-from-default-p 'ediff-current-diff-face-Ancestor)
 	    (copy-face 
 	     'ediff-current-diff-face-C 'ediff-current-diff-face-Ancestor))))
   "Face for highlighting the selected difference in the ancestor buffer.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-A)
 (defvar ediff-fine-diff-face-A
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-fine-diff-face-A)
+	(ediff-hide-face 'ediff-fine-diff-face-A)
 	(or (face-differs-from-default-p 'ediff-fine-diff-face-A)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face 'foreground 'ediff-fine-diff-face-A
@@ -901,11 +927,11 @@ you are such a person.")
 	'ediff-fine-diff-face-A))
   "Face for highlighting the refinement of the selected diff in buffer A.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-B)
 (defvar ediff-fine-diff-face-B
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-fine-diff-face-B)
+	(ediff-hide-face 'ediff-fine-diff-face-B)
 	(or (face-differs-from-default-p 'ediff-fine-diff-face-B)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face 'foreground 'ediff-fine-diff-face-B "Black")
@@ -914,11 +940,11 @@ you are such a person.")
 	'ediff-fine-diff-face-B))
   "Face for highlighting the refinement of the selected diff in buffer B.")
     
-(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-C)
 (defvar ediff-fine-diff-face-C
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-fine-diff-face-C)
+	(ediff-hide-face 'ediff-fine-diff-face-C)
 	(or (face-differs-from-default-p 'ediff-fine-diff-face-C)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face 'foreground 'ediff-fine-diff-face-C "black")
@@ -928,11 +954,11 @@ you are such a person.")
 	'ediff-fine-diff-face-C))
   "Face for highlighting the refinement of the selected diff in buffer C.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-Ancestor)
 (defvar ediff-fine-diff-face-Ancestor
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-fine-diff-face-Ancestor)
+	(ediff-hide-face 'ediff-fine-diff-face-Ancestor)
 	(or (face-differs-from-default-p 'ediff-fine-diff-face-Ancestor)
 	    (copy-face
 	     'ediff-fine-diff-face-C 'ediff-fine-diff-face-Ancestor))))
@@ -940,11 +966,11 @@ you are such a person.")
 Presently, this is not used, as difference regions are not refined in the
 ancestor buffer.")
     
-(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-A)
 (defvar ediff-even-diff-face-A
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-even-diff-face-A)
+	(ediff-hide-face 'ediff-even-diff-face-A)
 	(or (face-differs-from-default-p 'ediff-even-diff-face-A)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -956,11 +982,11 @@ ancestor buffer.")
 	'ediff-even-diff-face-A))
   "Face used to highlight even-numbered differences in buffer A.")
       
-(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-B)
 (defvar ediff-even-diff-face-B
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-even-diff-face-B)
+	(ediff-hide-face 'ediff-even-diff-face-B)
 	(or (face-differs-from-default-p 'ediff-even-diff-face-B)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -972,31 +998,31 @@ ancestor buffer.")
 	'ediff-even-diff-face-B))
   "Face used to highlight even-numbered differences in buffer B.")
     
-(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-C)
 (defvar ediff-even-diff-face-C
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-even-diff-face-C)
+	(ediff-hide-face 'ediff-even-diff-face-C)
 	(or (face-differs-from-default-p 'ediff-even-diff-face-C)
 	    (copy-face 'ediff-even-diff-face-A 'ediff-even-diff-face-C))
 	'ediff-even-diff-face-C))
   "Face used to highlight even-numbered differences in buffer C.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-Ancestor)
 (defvar ediff-even-diff-face-Ancestor
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-even-diff-face-Ancestor)
+	(ediff-hide-face 'ediff-even-diff-face-Ancestor)
 	(or (face-differs-from-default-p 'ediff-even-diff-face-Ancestor)
 	    (copy-face 'ediff-even-diff-face-C 'ediff-even-diff-face-Ancestor))
 	'ediff-even-diff-face-Ancestor))
   "Face highlighting even-numbered differences in the ancestor buffer.")
   
-(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-A)
 (defvar ediff-odd-diff-face-A
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-odd-diff-face-A)
+	(ediff-hide-face 'ediff-odd-diff-face-A)
 	(or (face-differs-from-default-p 'ediff-odd-diff-face-A)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -1008,11 +1034,11 @@ ancestor buffer.")
 	'ediff-odd-diff-face-A))
   "Face used to highlight odd-numbered differences in buffer A.")
       
-(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-B)
 (defvar ediff-odd-diff-face-B
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-odd-diff-face-B)
+	(ediff-hide-face 'ediff-odd-diff-face-B)
 	(or (face-differs-from-default-p 'ediff-odd-diff-face-B)
 	    (cond ((ediff-color-display-p)
 		   (ediff-set-face
@@ -1024,21 +1050,21 @@ ancestor buffer.")
 	'ediff-odd-diff-face-B))
   "Face used to highlight odd-numbered differences in buffer B.")
     
-(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-C)
 (defvar ediff-odd-diff-face-C
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-odd-diff-face-C)
+	(ediff-hide-face 'ediff-odd-diff-face-C)
 	(or (face-differs-from-default-p 'ediff-odd-diff-face-C)
 	    (copy-face 'ediff-odd-diff-face-A 'ediff-odd-diff-face-C))
 	'ediff-odd-diff-face-C))
   "Face used to highlight odd-numbered differences in buffer C.")
 
-(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-Ancestor )
 (defvar ediff-odd-diff-face-Ancestor 
-  (if (ediff-window-display-p)
+  (if (ediff-has-face-support-p)
       (progn
 	(make-face 'ediff-odd-diff-face-Ancestor)
+	(ediff-hide-face 'ediff-odd-diff-face-Ancestor)
 	(or (face-differs-from-default-p 'ediff-odd-diff-face-Ancestor)
 	    (copy-face 'ediff-odd-diff-face-C 'ediff-odd-diff-face-Ancestor))
 	'ediff-odd-diff-face-Ancestor))
@@ -1110,9 +1136,9 @@ Instead, C-h jumps to previous difference.")
 	d)
     (setq d (if (and env (> (length env) 0))
 		env
-	      (if (memq system-type '(vax-vms axp-vms))
-		  "SYS$SCRATCH:"
-		"/tmp")))
+	      (cond ((memq system-type '(vax-vms axp-vms)) "SYS$SCRATCH:")
+ 		    ((eq system-type 'ms-dos) "c:/")
+ 		    (t "/tmp"))))
     ;; The following is to make sure we get something to which we can
     ;; add directory levels on VMS.
     (setq d (file-name-as-directory (directory-file-name d)))
@@ -1129,6 +1155,9 @@ Do not start with `~/' or `~user-name/'.")
   "Characters that must be quoted with \\ when used in a shell command line.
 More precisely, a regexp to match any one such character.")
 
+;; needed to simulate frame-char-width in XEmacs.
+(defvar ediff-H-glyph (if ediff-xemacs-p (make-glyph "H")))
+
   
 (ediff-defvar-local ediff-temp-file-A nil
   "Temporary file used for refining difference regions in buffer A.")
@@ -1143,14 +1172,6 @@ More precisely, a regexp to match any one such character.")
   (if (fboundp ediff-ange-ftp-ftp-name)
       (funcall ediff-ange-ftp-ftp-name file-name)))
 
-;;(defun ediff-frame-has-menubar ()
-;;  (and (ediff-window-display-p)
-;;       (if ediff-xemacs-p
-;;	   current-menubar
-;;	 (let ((lines (cdr (assq 'menu-bar-lines
-;;				 (frame-parameters (selected-frame))))))
-;;	   (or (eq lines t) (and (numberp lines) (< 0 lines))))
-;;	 )))
     
 (defsubst ediff-frame-unsplittable-p (frame)
   (cdr (assq 'unsplittable (frame-parameters frame))))
@@ -1246,7 +1267,7 @@ More precisely, a regexp to match any one such character.")
 	   (posn-point (event-start event))))
 	((ediff-key-press-event-p event)
 	 (point))
-	(t (error ""))))
+	(t (error))))
 
 (defun ediff-event-buffer (event)
   (cond ((ediff-mouse-event-p event)
@@ -1255,7 +1276,7 @@ More precisely, a regexp to match any one such character.")
 	   (window-buffer (posn-window (event-start event)))))
 	((ediff-key-press-event-p event)
 	 (current-buffer))
-	(t (error ""))))
+	(t (error))))
    
     
 (defsubst ediff-frame-iconified-p (frame)
@@ -1299,10 +1320,9 @@ More precisely, a regexp to match any one such character.")
 (defsubst ediff-spy-after-mouse ()
   (setq ediff-mouse-pixel-position (mouse-pixel-position)))
 
-;; This is actually not easy to find out since emacs and xemacs behave
-;; differently when mouse is not in any frame. Also, this is sensitive to
-;; when the user grabbed mouse.
-;; Not used for now.
+;; It is not easy to find out when the user grabs the mouse, since emacs and
+;; xemacs behave differently when mouse is not in any frame. Also, this is
+;; sensitive to when the user grabbed mouse.  Not used for now.
 (defun ediff-user-grabbed-mouse ()
   (if ediff-mouse-pixel-position
       (cond ((not (eq (car ediff-mouse-pixel-position)
@@ -1321,12 +1341,26 @@ More precisely, a regexp to match any one such character.")
     
 (defsubst ediff-frame-char-height (frame)
   (if ediff-xemacs-p
-      (/ (frame-pixel-height frame) (frame-height frame))
+      (glyph-height ediff-H-glyph (selected-window frame))
     (frame-char-height frame)))
     
 
 (defsubst ediff-empty-overlay-p (overl)
   (= (ediff-overlay-start overl) (ediff-overlay-end overl)))
+
+;; like overlay-buffer in Emacs. In XEmacs, returns nil if the extent is
+;; dead. Otherwise, works like extent-buffer
+(defun ediff-overlay-buffer (overl)
+  (if ediff-emacs-p
+      (overlay-buffer overl)
+    (and (extent-live-p overl) (extent-buffer overl))))
+
+;; like overlay-get in Emacs. In XEmacs, returns nil if the extent is
+;; dead. Otherwise, like extent-property
+(defun ediff-overlay-get (overl property)
+  (if ediff-emacs-p
+      (overlay-get overl property)
+    (and (extent-live-p overl) (extent-property overl property))))
   
 ;; t if diff region is empty.
 ;; In case of buffer C, t also if it is not a 3way
@@ -1354,7 +1388,7 @@ More precisely, a regexp to match any one such character.")
 	    
 ;; temporarily uses DIR to abbreviate file name
 ;; if DIR is nil, use default-directory
-(defsubst ediff-abbreviate-file-name (file &optional dir)
+(defun ediff-abbreviate-file-name (file &optional dir)
   (cond ((stringp dir)
 	 (let ((directory-abbrev-alist (list (cons dir ""))))
 	   (abbreviate-file-name file)))
@@ -1447,6 +1481,7 @@ More precisely, a regexp to match any one such character.")
 (defsubst ediff-message-if-verbose (string &rest args)
   (if ediff-verbose-p
       (apply 'message string args)))
+
      
 (provide 'ediff-init)
 
