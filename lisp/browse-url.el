@@ -1,6 +1,6 @@
 ;;; browse-url.el --- Pass a URL to a WWW browser
 
-;; Copyright 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: Dave Love <fx@gnu.org>
@@ -707,18 +707,20 @@ used instead of `browse-url-new-window-p'."
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
- 			(concat "netscape " url) nil
- 			browse-url-netscape-program
- 			(append browse-url-netscape-arguments
-				(if (eq window-system 'w32)
-				    (list url)
-				  (if new-window '("-noraise"))
-				  (list "-remote"
-					(concat "openURL(" url
-						(if (browse-url-maybe-new-window
-						     new-window)
-						    ",new-window")
-						")")))))))
+			 (concat "netscape " url) nil
+			 browse-url-netscape-program
+			 (append
+			  browse-url-netscape-arguments
+			  (if (eq window-system 'w32)
+			      (list url)
+			    (append
+			     (if new-window '("-noraise"))
+			     (list "-remote"
+				   (concat "openURL(" url
+					   (if (browse-url-maybe-new-window
+						new-window)
+					       ",new-window")
+					   ")"))))))))
     (set-process-sentinel process
 			  (list 'lambda '(process change)
 				(list 'browse-url-netscape-sentinel 'process url)))))
