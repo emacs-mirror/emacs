@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- Major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
 ;; Version: 1.4
@@ -1494,7 +1494,7 @@ Otherwise, indent the current line with `antlr-indent-line'."
 	  c-method-key nil
 	  c-baseclass-key nil
 	  c-recognize-knr-p nil
-	  c-access-key c-Java-access-key)
+	  c-access-key (and (boundp 'c-Java-access-key) c-Java-access-key))
     (and (boundp 'c-inexpr-class-key) (boundp 'c-Java-inexpr-class-key)
 	 (setq c-inexpr-class-key c-Java-inexpr-class-key)))
   ;; various -----------------------------------------------------------------
