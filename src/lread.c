@@ -2112,9 +2112,9 @@ read1 (readcharfun, pch, first_in_list)
 	{
 	  Lisp_Object value;
 
-	  new_backquote_flag = 1;
+	  new_backquote_flag++;
 	  value = read0 (readcharfun);
-	  new_backquote_flag = 0;
+	  new_backquote_flag--;
 
 	  return Fcons (Qbackquote, Fcons (value, Qnil));
 	}
@@ -2136,9 +2136,9 @@ read1 (readcharfun, pch, first_in_list)
 	      comma_type = Qcomma;
 	    }
 
-	  new_backquote_flag = 0;
+	  new_backquote_flag--;
 	  value = read0 (readcharfun);
-	  new_backquote_flag = 1;
+	  new_backquote_flag++;
 	  return Fcons (comma_type, Fcons (value, Qnil));
 	}
       else
