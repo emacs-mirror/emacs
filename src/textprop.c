@@ -300,8 +300,8 @@ set_properties (properties, interval, object)
 		  XCONS (value)->car))
 	  {
 	    modify_region (XBUFFER (object),
-			   make_number (interval->position),
-			   make_number (interval->position + LENGTH (interval)));
+			   interval->position,
+			   interval->position + LENGTH (interval));
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCONS (sym)->car, XCONS (value)->car,
 				    object);
@@ -317,8 +317,8 @@ set_properties (properties, interval, object)
 	if (EQ (property_value (interval->plist, XCONS (sym)->car), Qunbound))
 	  {
 	    modify_region (XBUFFER (object),
-			   make_number (interval->position),
-			   make_number (interval->position + LENGTH (interval)));
+			   interval->position,
+			   interval->position + LENGTH (interval));
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCONS (sym)->car, Qnil,
 				    object);
@@ -387,8 +387,8 @@ add_properties (plist, i, object)
 	    if (BUFFERP (object))
 	      {
 		modify_region (XBUFFER (object),
-			       make_number (i->position),
-			       make_number (i->position + LENGTH (i)));
+			       i->position,
+			       i->position + LENGTH (i));
 		record_property_change (i->position, LENGTH (i),
 					sym1, Fcar (this_cdr), object);
 		signal_after_change (i->position, LENGTH (i), LENGTH (i));
@@ -406,8 +406,8 @@ add_properties (plist, i, object)
 	  if (BUFFERP (object))
 	    {
 	      modify_region (XBUFFER (object),
-			     make_number (i->position),
-			     make_number (i->position + LENGTH (i)));
+			     i->position,
+			     i->position + LENGTH (i));
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
 	      signal_after_change (i->position, LENGTH (i), LENGTH (i));
@@ -447,8 +447,8 @@ remove_properties (plist, i, object)
 	  if (BUFFERP (object))
 	    {
 	      modify_region (XBUFFER (object),
-			     make_number (i->position),
-			     make_number (i->position + LENGTH (i)));
+			     i->position,
+			     i->position + LENGTH (i));
 	      record_property_change (i->position, LENGTH (i),
 				      sym, Fcar (Fcdr (current_plist)),
 				      object);
@@ -470,8 +470,8 @@ remove_properties (plist, i, object)
 	      if (BUFFERP (object))
 		{
 		  modify_region (XBUFFER (object),
-				 make_number (i->position),
-				 make_number (i->position + LENGTH (i)));
+				 i->position,
+				 i->position + LENGTH (i));
 		  record_property_change (i->position, LENGTH (i),
 					  sym, Fcar (Fcdr (this)), object);
 		  signal_after_change (i->position, LENGTH (i), LENGTH (i));
