@@ -2050,6 +2050,8 @@ void init_sigio P_ ((int));
 
 char *x_charset_registry P_ ((int));
 void clear_face_cache P_ ((int));
+unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
+			      enum lface_attribute_index));
 void unload_color P_ ((struct frame *, unsigned long));
 int frame_update_line_height P_ ((struct frame *));
 int ascii_face_of_lisp_face P_ ((struct frame *, int));
@@ -2061,6 +2063,7 @@ int face_suitable_for_charset_p P_ ((struct face *, int));
 int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
+int lookup_derived_face P_ ((struct frame *, Lisp_Object, int, int));
 void init_frame_faces P_ ((struct frame *));
 void free_frame_faces P_ ((struct frame *));
 void recompute_basic_faces P_ ((struct frame *));
