@@ -1,3 +1,12 @@
+2002-07-12  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (mule-unicode-e000-ffff): Set
+	:max-code.
+
+	* international/mule-util.el (with-coding-priority): Fix.
+
+	* international/mule.el (set-coding-priority): Fix obsolete spec.
+
 2002-07-05  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (leim-list-header): Add coding tag.

@@ -1,3 +1,7 @@
+2002-07-12  Dave Love  <fx@gnu.org>
+
+	* coding.c (Fset_coding_system_priority): Allow null arg list.
+
 2002-07-03  Dave Love  <fx@gnu.org>
 
 	* minibuf.c (Fminibuffer_complete_word): Remove unused var.
