@@ -156,7 +156,7 @@
       (goto-char (point-min))
       (message "Done")
       (setq buffer-read-only t)
-      (set-buffer-modified-p (buffer-modified-p))
+      (force-mode-line-update)
       (sit-for 0))))
 
 ;;;
