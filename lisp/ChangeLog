@@ -1,3 +1,7 @@
+1999-10-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (vc-backend-diff): get rid of the autoloaded advice.
+
 1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile (setwins): abstract out the command to find subdirectories

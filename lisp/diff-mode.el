@@ -754,19 +754,6 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	(diff-fixup-modifs (point) (cdr diff-unhandled-changes))))
     (setq diff-unhandled-changes nil)))
 
-;;;###autoload
-(defadvice vc-backend-diff (around diff-mode-vc activate)
-  ;; BEWARE!! when this is autoloaded, CL might not be available
-  (condition-case ()
-      (with-current-buffer "*vc-diff*" (setq buffer-read-only nil))
-    (error nil))
-  ad-do-it
-  (condition-case ()
-      (with-current-buffer "*vc-diff*"
-	(if (memq major-mode '(fundamental-mode diff-mode)) (diff-mode)))
-    (error nil)))
-
-
 ;;;; 
 ;;;; The main function
 ;;;; 
