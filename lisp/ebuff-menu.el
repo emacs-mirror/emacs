@@ -194,6 +194,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (define-key map "\e\C-v" 'scroll-other-window)
     (define-key map "\e>" 'end-of-buffer)
     (define-key map "\e<" 'beginning-of-buffer)
+    (define-key map [mouse-2] 'Electric-buffer-menu-mouse-select)
     (setq electric-buffer-menu-mode-map map)))
  
 (defun Electric-buffer-menu-exit ()
@@ -210,6 +211,13 @@ electric-buffer-menu-mode-hook if it is non-nil."
 Saves buffers marked \"S\".  Deletes buffers marked \"K\".
 Selects buffer at point and displays buffers marked \">\" in other windows."
   (interactive)
+  (throw 'electric-buffer-menu-select (point)))
+
+(defun Electric-buffer-menu-mouse-select (event)
+  (interactive "e")
+  (select-window (posn-window (event-end event)))
+  (set-buffer (window-buffer (selected-window)))
+  (goto-char (posn-point (event-end event)))
   (throw 'electric-buffer-menu-select (point)))
 
 (defun Electric-buffer-menu-quit ()
