@@ -858,6 +858,9 @@ NAME may be an abbreviation of the reference name."
 	    (Info-following-node-name (if multi-line "^.,\t" "^.,\t\n"))))
     (while (setq i (string-match "\n" str i))
       (aset str i ?\ ))
+    ;; Collapse multiple spaces.
+    (while (string-match "  +" str)
+      (setq str (replace-match " " t t str)))
     str))
 
 ;; No one calls this.
