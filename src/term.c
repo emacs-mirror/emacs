@@ -958,7 +958,6 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   struct glyph *src_start = src, *src_end = src + src_len;
   unsigned char *dst_start = dst, *dst_end = dst + dst_len;
   register GLYPH g;
-  unsigned int c;
   unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *buf;
   int len;
   register int tlen = GLYPH_TABLE_LENGTH;
