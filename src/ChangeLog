@@ -5,6 +5,8 @@
 	(syms_of_frame): DEFVAR_LISP it, and initialize according to
 	window-system default scroll bar position.
 
+	* window.c (Fwindow_scroll_bars): Doc fix.
+
 2003-09-19  Dave Love  <fx@gnu.org>
 
 	* alloc.c (GC_MALLOC_CHECK): Move conditional undef after lisp.h.
