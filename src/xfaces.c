@@ -489,7 +489,7 @@ static Lisp_Object Vparam_value_alist;
 
 /* Non-zero while realizing the default face.  */
 
-static int realizing_default_face_p;
+static int realizing_basic_faces_p;
 
 /* The total number of colors currently allocated.  */
 
@@ -2362,7 +2362,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
 
   /* If someone specified a default font that's scalable, try
      to do the right thing.  */
-  if (realizing_default_face_p
+  if (realizing_basic_faces_p
       && try_alternatives_p
       && n == 0
       && nignored > 0)
@@ -5954,6 +5954,7 @@ realize_basic_faces (f)
   /* Block input there so that we won't be surprised by an X expose
      event, for instance without having the faces set up.  */
   BLOCK_INPUT;
+  realizing_basic_faces_p = 1;
 
   if (realize_default_face (f))
     {
@@ -5979,6 +5980,7 @@ realize_basic_faces (f)
       success_p = 1;
     }
 
+  realizing_basic_faces_p = 0;
   UNBLOCK_INPUT;
   return success_p;
 }
@@ -6081,11 +6083,7 @@ realize_default_face (f)
   xassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
-  
-  realizing_default_face_p = 1;
   face = realize_face (c, attrs, 0, NULL, DEFAULT_FACE_ID);
-  realizing_default_face_p = 0;
-
   return 1;
 }
 
