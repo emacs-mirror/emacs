@@ -1495,12 +1495,26 @@ encode_coding_iso2022 (coding, source, destination,
 
 	case EMACS_leading_code_2:
 	  ONE_MORE_BYTE (c2);
-	  ENCODE_ISO_CHARACTER (c1, c2, /* dummy */ c3);
+	  if (c2 < 0xA0)
+	    {
+	      /* invalid sequence */
+	      *dst++ = c1;
+	      *dst++ = c2;
+	    }
+	  else
+	    ENCODE_ISO_CHARACTER (c1, c2, /* dummy */ c3);
 	  break;
 
 	case EMACS_leading_code_3:
 	  TWO_MORE_BYTES (c2, c3);
-	  if (c1 < LEADING_CODE_PRIVATE_11)
+	  if (c2 < 0xA0 || c3 < 0xA0)
+	    {
+	      /* invalid sequence */
+	      *dst++ = c1;
+	      *dst++ = c2;
+	      *dst++ = c3;
+	    }
+	  else if (c1 < LEADING_CODE_PRIVATE_11)
 	    ENCODE_ISO_CHARACTER (c1, c2, c3);
 	  else
 	    ENCODE_ISO_CHARACTER (c2, c3, /* dummy */ c4);
@@ -1508,12 +1522,27 @@ encode_coding_iso2022 (coding, source, destination,
 
 	case EMACS_leading_code_4:
 	  THREE_MORE_BYTES (c2, c3, c4);
-	  ENCODE_ISO_CHARACTER (c2, c3, c4);
+	  if (c2 < 0xA0 || c3 < 0xA0 || c4 < 0xA0)
+	    {
+	      /* invalid sequence */
+	      *dst++ = c1;
+	      *dst++ = c2;
+	      *dst++ = c3;
+	      *dst++ = c4;
+	    }
+	  else
+	    ENCODE_ISO_CHARACTER (c2, c3, c4);
 	  break;
 
 	case EMACS_leading_code_composition:
-	  ONE_MORE_BYTE (c1);
-	  if (c1 == 0xFF)
+	  ONE_MORE_BYTE (c2);
+	  if (c2 < 0xA0)
+	    {
+	      /* invalid sequence */
+	      *dst++ = c1;
+	      *dst++ = c2;
+	    }
+	  else if (c2 == 0xFF)
 	    {
 	      coding->composing = COMPOSING_WITH_RULE_HEAD;
 	      ENCODE_COMPOSITION_WITH_RULE_START;
@@ -2555,7 +2584,7 @@ detect_coding_mask (src, src_bytes)
 	/* No valid ISO2022 code follows C.  Try again.  */
 	goto label_loop_detect_coding;
     }
-  else if (c == ISO_CODE_SS2 || c == ISO_CODE_SS3 || c == ISO_CODE_CSI)
+  else if (c == ISO_CODE_SS2 || c == ISO_CODE_SS3)
     /* C is an ISO2022 specific control code of C1,
        or the first byte of SJIS's 2-byte character code,
        or a leading code of Emacs.  */
@@ -2563,6 +2592,17 @@ detect_coding_mask (src, src_bytes)
 	    | detect_coding_sjis (src, src_end)
 	    | detect_coding_emacs_mule (src, src_end));
 
+  else if (c == ISO_CODE_CSI
+	   && (src < src_end
+	      && (*src == ']'
+		  || (src + 1 < src_end
+		      && src[1] == ']'
+		      && (*src == '0' || *src == '1' || *src == '2')))))
+    /* C is an ISO2022's control-sequence-introducer.  */
+    mask = (detect_coding_iso2022 (src, src_end)
+	    | detect_coding_sjis (src, src_end)
+	    | detect_coding_emacs_mule (src, src_end));
+    
   else if (c < 0xA0)
     /* C is the first byte of SJIS character code,
        or a leading-code of Emacs.  */
