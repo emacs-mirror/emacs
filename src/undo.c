@@ -26,6 +26,8 @@ and this notice must be preserved on all copies.  */
 /* Last buffer for which undo information was recorded.  */
 Lisp_Object last_undo_buffer;
 
+Lisp_Object Qinhibit_read_only;
+
 /* Record an insertion that just happened or is about to happen,
    for LENGTH characters at position BEG.
    (It is possible to record an insertion before or after the fact
@@ -286,6 +288,7 @@ Return what remains of the list.")
   (count, list)
      Lisp_Object count, list;
 {
+  int count = specpdl_ptr - specpdl;
   register int arg = XINT (count);
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
@@ -297,6 +300,10 @@ Return what remains of the list.")
   if (NILP (tem))
     list = Fcdr (list);
 #endif
+
+  /* Don't let read-only properties interfere with undo.  */
+  if (NILP (current_buffer->read_only))
+    specbind (Qinhibit_read_only, Qt);
 
   while (arg > 0)
     {
@@ -401,11 +408,14 @@ Return what remains of the list.")
       arg--;
     }
 
-  return list;
+  return unbind_to (count, list);
 }
 
 syms_of_undo ()
 {
+  Qinhibit_read_only = intern ("inhibit-read-only");
+  staticpro (&Qinhibit_read_only);
+
   defsubr (&Sprimitive_undo);
   defsubr (&Sundo_boundary);
 }
