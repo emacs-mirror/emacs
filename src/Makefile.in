@@ -315,7 +315,7 @@ LIBW= -lXol
 LIBXTR6 = -lSM -lICE
 #endif
 
-LIBXT= $(LIBW) -lXt $(LIBXTR6) -lXmu -lXext
+LIBXT= $(LIBW) -lXmu -lXt $(LIBXTR6) -lXext
 #else
 LIBXT=
 #endif
