@@ -1092,6 +1092,17 @@ at the end of STRING, we don't include a null substring for that."
 	      (cons (substring string start)
 		    list)))
     (nreverse list)))
+
+(defun subst-char-in-string (fromchar tochar string &optional inplace)
+  "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
+Unless optional argument INPLACE is non-nil, return a new string."
+  (let ((i (length string))
+	(newstr (if inplace string (copy-sequence string))))
+    (while (> i 0)
+      (setq i (1- i))
+      (if (eq (aref newstr i) fromchar)
+	  (aset newstr i tochar)))
+    newstr))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
