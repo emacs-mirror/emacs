@@ -31,14 +31,16 @@
 (defun setup-czech-environment ()
   "Setup multilingual environment (MULE) for Czech."
   (interactive)
-  (funcall (get-language-info "Latin-2" 'setup-function))
-  (setq default-input-method "czech"))
+  (set-language-environment "Latin-2"))
 
 (set-language-info-alist
- "Czech" '((setup-function . setup-czech-environment)
-	   (charset . (ascii latin-iso8859-2))
+ "Czech" '((charset . (ascii latin-iso8859-2))
 	   (coding-system . (iso-8859-2))
 	   (coding-priority . (iso-8859-2))
+	   (input-method . "czech")
+	   (nonascii-translation . latin-iso8859-2)
+	   (unibyte-syntax . "latin-2")
+	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.cs")
 	   (sample-text . "P,Bx(Bejeme v,Ba(Bm hezk,B}(B den!")
 	   (documentation . t))

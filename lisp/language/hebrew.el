@@ -42,14 +42,16 @@
   "Setup multilingual environment (MULE) for Hebrew.
 But, please note that right-to-left writing is not yet supported."
   (interactive)
-  (setup-8-bit-environment "Hebrew" 'hebrew-iso8859-8 "hebrew"))
+  (set-language-environment "Hebrew"))
 
 (set-language-info-alist
- "Hebrew" '((setup-function . setup-hebrew-environment)
-	    (describe-function . describe-hebrew-support)
+ "Hebrew" '((describe-function . describe-hebrew-support)
 	    (charset . (hebrew-iso8859-8))
 	    (coding-priority hebrew-iso-8bit)
 	    (coding-system . (hebrew-iso-8bit))
+	    (nonascii-translation . hebrew-iso8859-8)
+	    (input-method . "hebrew")
+	    (unibyte-display . hebrew-iso-8bit)
 	    (sample-text . "Hebrew	,Hylem(B")
 	    (documentation . "Right-to-left writing is not yet supported.")
 	    ))

@@ -33,14 +33,16 @@
 (defun setup-slovak-environment ()
   "Setup multilingual environment (MULE) for Slovak."
   (interactive)
-  (funcall (get-language-info "Latin-2" 'setup-function))
-  (setq default-input-method "slovak"))
+  (set-language-environment "Slovak"))
 
 (set-language-info-alist
- "Slovak" '((setup-function . setup-slovak-environment)
-	    (charset . (ascii latin-iso8859-2))
+ "Slovak" '((charset . (ascii latin-iso8859-2))
 	    (coding-system . (iso-8859-2))
 	    (coding-priority . (iso-8859-2))
+	    (nonascii-translation . latin-iso8859-2)
+	    (input-method . "slovak")
+	    (unibyte-syntax . "latin-2")
+	    (unibyte-display . iso-8859-2)
 	    (sample-text . "Prajeme V,Ba(Bm pr,Bm(Bjemn,B}(B de,Br(B!")
 	    (documentation . t))
  '("European"))

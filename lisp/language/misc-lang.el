@@ -29,13 +29,15 @@
 (defun setup-ipa-environment ()
   "Setup multilingual environment (MULE) for IPA."
   (interactive)
-  (setup-english-environment))
+  (set-language-environment "IPA"))
 
 (set-language-info-alist
- "IPA" '((setup-function . setup-ipa-environment)
-	 (charset . (ipa))
+ "IPA" '((charset . (ipa))
 	 (coding-priority iso-2022-7bit)
 	 (coding-system iso-2022-7bit)
+	 (input-method . "ipa")
+	 (nonascii-translation . ipa)
+	 (unibyte-display . iso-2022-7bit)
 	 (documentation . "\
 IPA is International Phonetic Alphabet for English, French, German
 and Italian.")))
