@@ -938,11 +938,19 @@ selected.
 
 @item Info-directory-list
 The list of directories to search for Info files.  Each element is a
-string (directory name) or @code{nil} (try default directory).
+string (directory name) or @code{nil} (try default directory).  If not
+initialized Info uses the environment variable @env{INFOPATH} to
+initialize it, or @code{Info-default-directory-list} if there is no
+@env{INFOPATH} variable in the environment.
+
+@item Info-additional-directory-list
+A list of additional directories to search for Info documentation files.
+These directories are not searched for merging the @file{dir} file.
 
 @item Info-directory
 The standard directory for Info documentation files.  Only used when the
 function @code{Info-directory} is called.
+
 @end table
 
 @node Create an Info File,  , Advanced Info, Top
