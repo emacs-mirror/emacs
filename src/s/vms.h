@@ -135,6 +135,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define READ_SYSUAF */
 
+/* Traditionally, filenames on VMS are always upper case.  */
+
+#define FILE_SYSTEM_CASE Fupcase
+
 /* On VMS these have a different name */
 
 #define index strchr
