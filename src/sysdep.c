@@ -2927,7 +2927,11 @@ closedir (dirp)
      register DIR *dirp;              /* stream from opendir */
 {
   sys_close (dirp->dd_fd);
-  xfree ((char *) dirp->dd_buf);       /* directory block defined in <dirent.h> */
+
+  /* Some systems allocate the buffer and the DIR all in one block.
+     Why in the world are we freeing this ourselves anyway?  */
+  if (dirp->dd_buf != (char *)(dirp + 1))
+    xfree ((char *) dirp->dd_buf); /* directory block defined in <dirent.h> */
   xfree ((char *) dirp);
 }
 #endif /* not AIX */
