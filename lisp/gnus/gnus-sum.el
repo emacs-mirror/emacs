@@ -37,8 +37,12 @@
 (require 'gnus-undo)
 (require 'gnus-util)
 (require 'mm-decode)
+;; Recursive :-(.
+;; (require 'gnus-art)
+(require 'nnoo)
 (autoload 'gnus-summary-limit-include-cached "gnus-cache" nil t)
 (autoload 'gnus-cache-write-active "gnus-cache")
+(autoload 'mm-uu-dissect "mm-uu")
 
 (defcustom gnus-kill-summary-on-exit t
   "*If non-nil, kill the summary buffer when you exit from it.
