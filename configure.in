@@ -797,9 +797,15 @@ case "${canonical}" in
   ;;
 
   ## PowerPC reference platform
-  powerpcle-*-solaris2* )
+  powerpcle-*-solaris2.5* )
     machine=prep
     opsys=sol2-5
+  ;;
+
+  ## PowerPC reference platform
+  powerpcle-*-solaris2* )
+    machine=prep
+    opsys=sol2-6
   ;;
 
   ## Pyramid machines
@@ -941,8 +947,13 @@ case "${canonical}" in
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		RANLIB="ar -ts"
 		;;
+      *-sunos5.6* | *-solaris2.6* )
+		opsys=sol2-6
+		NON_GNU_CPP=/usr/ccs/lib/cpp
+		RANLIB="ar -ts"
+		;;
       *-sunos5* | *-solaris* )
-		opsys=sol2-5
+		opsys=sol2-6
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
       *			  ) opsys=bsd4-2   ;;
