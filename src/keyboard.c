@@ -144,6 +144,8 @@ static int before_command_restore_flag;
 
 extern int minbuf_level;
 
+extern int message_enable_multibyte;
+
 extern struct backtrace *backtrace_list;
 
 /* Nonzero means do menu prompting.  */
@@ -7289,10 +7291,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
 				? Vsuggest_key_bindings : make_number (2)),
 			       Qnil, Qnil)))
-	    {
-	      message_enable_multibyte = oldmultibyte;
-	      message2_nolog (oldmessage, oldmessage_len);
-	    }
+	    message2_nolog (oldmessage, oldmessage_len, oldmultibyte);
 	}
     }
 
