@@ -1,3 +1,7 @@
+2001-07-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* gnus-setup.el (gnus-use-installed-gnus): Fix a typo.
+
 2001-07-12  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnfolder.el (nnfolder-read-folder): Force to use a multibyte buffer.
