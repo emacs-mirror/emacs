@@ -801,6 +801,7 @@ lisp_time_argument (specified_time, result)
     }
 }
 
+/*
 DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
   "Use FORMAT-STRING to format the time TIME, or now if omitted.\n\
 TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as returned by\n\
@@ -837,7 +838,7 @@ by text that describes the specified date and time in TIME:\n\
 \n\
 Finally, %n is like \n, %t is like \t, %% is a literal %.\n\
 \n\
-Certain flags and modifiers are available with some format controls.
+Certain flags and modifiers are available with some format controls.\n\
 The flags are `_' and `-'.  For certain characters X, %_X is like %X,\n\
 but padded with blanks; %-X is like %X, but without padding.\n\
 %NX (where N stands for an integer) is like %X,\n\
@@ -847,6 +848,10 @@ The modifiers are `E' and `O'.  For certain characters X,\n\
 %OX is like %X, but uses the locale's number symbols.\n\
 \n\
 For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\".")
+*/
+
+DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
+  0 /* See immediately above */)
   (format_string, time, universal)
      Lisp_Object format_string, time, universal;
 {
