@@ -1019,8 +1019,7 @@ of the text to be executed.\n\
 Programs can pass third argument PRINTFLAG which controls output:\n\
 nil means discard it; anything else is stream for printing it.\n\
 \n\
-If there is no error, point does not move.  If there is an error,\n\
-point remains at the end of the last character read from the buffer.")
+This function does not move point.")
   (start, end, printflag)
      Lisp_Object start, end, printflag;
 {
