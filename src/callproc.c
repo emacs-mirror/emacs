@@ -350,10 +350,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   if (outfilefd < 0)
     {
       close (filefd);
-      report_file_error ("Opening process output file", Fcons (tempfile, Qnil));
+      report_file_error ("Opening process output file",
+			 Fcons (build_string (tempfile), Qnil));
     }
+  fd[0] = filefd;
   fd[1] = outfilefd;
-#endif
+#endif /* MSDOS */
 
   if (INTEGERP (buffer))
     fd[1] = open (NULL_DEVICE, O_WRONLY), fd[0] = -1;
@@ -404,10 +406,17 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     if (fd_error < 0)
       {
 	close (filefd);
-	close (fd[0]);
+	if (fd[0] != filefd)
+	  close (fd[0]);
 	if (fd1 >= 0)
 	  close (fd1);
-	report_file_error ("Cannot open", error_file);
+#ifdef MSDOS
+	unlink (tempfile);
+#endif
+	report_file_error ("Cannot redirect stderr",
+			   Fcons ((NILP (error_file)
+				   ? build_string (NULL_DEVICE) : error_file),
+				  Qnil));
       }
 #ifdef MSDOS /* MW, July 1993 */
     /* ??? Someone who knows MSDOG needs to check whether this properly
