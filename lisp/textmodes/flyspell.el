@@ -871,7 +871,7 @@ if the character at POS has any other property."
 BEG and END specify the range in the buffer of that word.
 FACE and MOUSE-FACE specify the `face' and `mouse-face' properties
 for the overlay."
-  (let ((flyspell-overlay (make-overlay beg end)))
+  (let ((flyspell-overlay (make-overlay beg end nil t nil)))
     (overlay-put flyspell-overlay 'face face)
     (overlay-put flyspell-overlay 'mouse-face mouse-face)
     (overlay-put flyspell-overlay 'flyspell-overlay t)
