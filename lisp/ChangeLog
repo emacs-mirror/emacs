@@ -1,3 +1,14 @@
+2004-08-11  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* speedbar.el (speedbar-scan-subdirs): New option.
+	(speedbar-file-lists): Don't ignore file-name case on Unix and use
+	dolist.
+	(speedbar-insert-files-at-point): Take an extra argument and use
+	it to optionally find out if a subdir is empty.  Also unreadable
+	files don't get expand buttons.
+	(speedbar-directory-plus): New image (bitmap already existed unused).
+	(speedbar-expand-image-button-alist): Use it.
+
 2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	CC Mode update to 5.30.9:
