@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -71,7 +71,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "systty.h"
 #include "systime.h"
 
+#ifndef INCLUDED_FCNTL
 #include <fcntl.h>
+#endif
 #include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>
@@ -275,6 +277,21 @@ unsigned int x_mouse_grabbed;
    it's somewhat accurate.  */
 static Time last_mouse_movement_time;
 
+/* These variables describe the range of text currently shown
+   in its mouse-face, together with the window they apply to.
+   As long as the mouse stays within this range, we need not
+   redraw anything on its account.  */
+static int mouse_face_beg, mouse_face_end;
+static Lisp_Object mouse_face_window;
+static int mouse_face_face_id;
+
+/* FRAME and X, Y position of mouse when last checked for highlighting.  */
+static FRAME_PTR mouse_face_mouse_frame;
+static int mouse_face_mouse_x, mouse_face_mouse_y;
+
+/* Nonzero means defer mouse-motion highlighting.  */
+static int mouse_face_defer;
+
 #ifdef HAVE_X11
 /* `t' if a mouse button is depressed. */
 
@@ -292,6 +309,8 @@ extern Window requestor_window;
 
 /* Nonzero enables some debugging for the X interface code. */
 extern int _Xdebug;
+
+extern Qface, Qmouse_face;
 
 #else /* ! defined (HAVE_X11) */
 
@@ -334,6 +353,10 @@ static void flashback ();
 static void redraw_previous_char ();
 static unsigned int x_x_to_emacs_modifiers ();
 
+static void note_mouse_highlight ();
+static void clear_mouse_face ();
+static void show_mouse_face ();
+
 #ifndef HAVE_X11
 static void dumpqueue ();
 #endif /* HAVE_X11 */
@@ -367,6 +390,13 @@ XTupdate_begin (f)
   highlight = 0;
 
   BLOCK_INPUT;
+
+  if (f == mouse_face_mouse_frame)
+    {
+      mouse_face_defer = 1;
+      if (!NILP (mouse_face_window))
+	clear_mouse_face ();
+    }
 #ifndef HAVE_X11
   dumpqueue ();
 #endif /* HAVE_X11 */
@@ -391,8 +421,31 @@ XTupdate_end (f)
 
   x_display_cursor (f, 1);
 
+  if (f == mouse_face_mouse_frame)
+    mouse_face_defer = 0;
+#if 0
+  /* This fails in the case of having updated only the echo area
+     if we have switched buffers.  In that case, FRAME_CURRENT_GLYPHS
+     has no relation to the current contents, and its charstarts
+     have no relation to the contents of the window-buffer.
+  I don't know a clean way to check
+     for that case.  window_end_valid isn't set up yet.  */
+  if (f == mouse_face_mouse_frame)
+    note_mouse_highlight (f, mouse_face_mouse_x, mouse_face_mouse_y);
+#endif
+
   XFlushQueue ();
   UNBLOCK_INPUT;
+}
+
+/* This is called when all windows on frame F are now up to date.  */
+
+static
+XTframe_up_to_date (f)
+     FRAME_PTR f;
+{
+  if (f == mouse_face_mouse_frame)
+    note_mouse_highlight (f, mouse_face_mouse_x, mouse_face_mouse_y);
 }
 
 /* External interface to control of standout mode.
@@ -461,7 +514,8 @@ XTcursor_to (row, col)
 
 /* Display a sequence of N glyphs found at GP.
    WINDOW is the x-window to output to.  LEFT and TOP are starting coords.
-   HL is 1 if this text is highlighted, 2 if the cursor is on it.
+   HL is 1 if this text is highlighted, 2 if the cursor is on it,
+   3 if should appear in its mouse-face.
 
    FONT is the default font to use (for glyphs whose font-code is 0).
 
@@ -525,6 +579,10 @@ dumpglyphs (f, left, top, gp, n, hl)
 	GC gc = FACE_GC (face);
 	int defaulted = 1;
 	int gc_temporary = 0;
+
+	/* HL = 3 means use a mouse face previously chosen.  */
+	if (hl == 3)
+	  cf = mouse_face_face_id;
 
 	/* First look at the face of the text itself.  */
 	if (cf != 0)
@@ -1202,7 +1260,7 @@ dumprectangle (f, left, top, cols, rows)
 	|| right > intborder + f->width * FONT_WIDTH (f->display.x->font))
       dumpborder (f, 0);
   }
-#endif /* HAVE_X11		Window manger does this for X11. */
+#endif /* not HAVE_X11		Window manger does this for X11. */
   
   /* Convert rectangle edges in pixels to edges in chars.
      Round down for left and top, up for right and bottom.  */
@@ -1810,6 +1868,7 @@ construct_menu_click (result, event, f)
    If the mouse is over a different glyph than it was last time, tell
    the mainstream emacs code by setting mouse_moved.  If not, ask for
    another motion event, so we can check again the next time it moves.  */
+
 static void
 note_mouse_movement (frame, event)
      FRAME_PTR frame;
@@ -1826,6 +1885,18 @@ note_mouse_movement (frame, event)
     {
       mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
+
+      note_mouse_highlight (frame, event->x, event->y);
+
+      /* Ask for another mouse motion event.  */
+      {
+	int dummy;
+
+	XQueryPointer (event->display, event->window,
+		       (Window *) &dummy, (Window *) &dummy,
+		       &dummy, &dummy, &dummy, &dummy,
+		       (unsigned int *) &dummy);
+      }
     }
   else
     {
@@ -1841,6 +1912,240 @@ note_mouse_movement (frame, event)
     }
 }
 
+/* Take proper action when the mouse has moved to position X, Y on frame F
+   as regards highlighting characters that have mouse-face properties.
+   Also dehighlighting chars where the mouse was before.  */
+
+static void
+note_mouse_highlight (f, x, y)
+     FRAME_PTR f;
+{
+  int row, column, portion;
+  XRectangle new_glyph;
+  Lisp_Object window;
+  struct window *w;
+
+  mouse_face_mouse_x = x;
+  mouse_face_mouse_y = y;
+  mouse_face_mouse_frame = f;
+
+  if (mouse_face_defer)
+    return;
+
+  /* Find out which glyph the mouse is on.  */
+  pixel_to_glyph_coords (f, x, y, &column, &row,
+			 &new_glyph, x_mouse_grabbed);
+
+  /* Which window is that in?  */
+  window = window_from_coordinates (f, column, row, &portion);
+  w = XWINDOW (window);
+
+  /* If we were displaying active text in another window, clear that.  */
+  if (! EQ (window, mouse_face_window))
+    clear_mouse_face ();
+
+  /* Are we in a window whose display is up to date?  */
+  if (WINDOWP (window) && portion == 0
+      && EQ (w->window_end_valid, Qt))
+    {
+      int *ptr = FRAME_CURRENT_GLYPHS (f)->charstarts[row];
+      int i, pos;
+
+      /* Find which buffer position the mouse corresponds to.  */
+      for (i = column; i >= 0; i--)
+	if (ptr[i] > 0)
+	  break;
+      pos = ptr[i];
+      /* Is it outside the displayed active region (if any)?  */
+      if (pos > 0
+	  && ! (EQ (window, mouse_face_window)
+		&& pos >= mouse_face_beg && pos < mouse_face_end))
+	{
+	  Lisp_Object mouse_face, overlay, position;
+	  Lisp_Object *overlay_vec;
+	  int len, noverlays, ignor1;
+
+	  /* Yes.  Clear the display of the old active region, if any.  */
+	  clear_mouse_face ();
+
+	  /* Is this char mouse-active?  */
+	  XSET (position, Lisp_Int, pos);
+
+	  len = 10;
+	  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+
+	  /* Put all the overlays we want in a vector in overlay_vec.
+	     Store the length in len.  */
+	  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &ignor1);
+	  sort_overlays (overlay_vec, noverlays, w);
+
+	  /* Find the highest priority overlay that has a mouse-face prop.  */
+	  overlay = Qnil;
+	  for (i = 0; i < noverlays; i++)
+	    {
+	      mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
+	      if (!NILP (mouse_face))
+		{
+		  overlay = overlay_vec[i];
+		  break;
+		}
+	    }
+	  free (overlay_vec);
+	  /* If no overlay applies, get a text property.  */
+	  if (NILP (overlay))
+	    mouse_face = Fget_text_property (position, Qmouse_face, w->buffer);
+
+	  /* Handle the overlay case.  */
+	  if (! NILP (overlay))
+	    {
+	      /* Find the range of text around this char that
+		 should be active.  */
+	      Lisp_Object before, after;
+	      int ignore;
+
+	      before = Foverlay_start (overlay);
+	      after = Foverlay_end (overlay);
+	      /* Record this as the current active region.  */
+	      mouse_face_beg = XFASTINT (before);
+	      mouse_face_end = XFASTINT (after);
+	      mouse_face_window = window;
+	      mouse_face_face_id = compute_char_face (f, w, pos, 0, 0,
+						      &ignore, pos + 1, 1);
+
+	      /* Display it as active.  */
+	      show_mouse_face (1);
+	    }
+	  /* Handle the text property case.  */
+	  else if (! NILP (mouse_face))
+	    {
+	      /* Find the range of text around this char that
+		 should be active.  */
+	      Lisp_Object before, after, beginning, end;
+	      int ignore;
+
+	      beginning = Fmarker_position (w->start);
+	      XSET (end, Lisp_Int,
+		    (BUF_ZV (XBUFFER (w->buffer))
+		     - XFASTINT (w->window_end_pos)));
+	      before
+		= Fprevious_single_property_change (make_number (pos + 1),
+						    Qmouse_face,
+						    w->buffer, beginning);
+	      after
+		= Fnext_single_property_change (position, Qmouse_face,
+						w->buffer, end);
+	      /* Record this as the current active region.  */
+	      mouse_face_beg = XFASTINT (before);
+	      mouse_face_end = XFASTINT (after);
+	      mouse_face_window = window;
+	      mouse_face_face_id
+		= compute_char_face (f, w, pos, 0, 0,
+				     &ignore, pos + 1, 1);
+
+	      /* Display it as active.  */
+	      show_mouse_face (1);
+	    }
+	}
+      else if (pos <= 0)
+	clear_mouse_face ();
+    }
+}
+
+/* Find the row and column of position POS in window WINDOW.
+   Store them in *COLUMNP and *ROWP.
+   This assumes display in WINDOW is up to date.  */
+
+static int
+fast_find_position (window, pos, columnp, rowp)
+     Lisp_Object window;
+     int pos;
+     int *columnp, *rowp;
+{
+  struct window *w = XWINDOW (window);
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+  int i;
+  int row;
+  int left = w->left;
+  int top = w->top;
+  int height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
+  int width = window_internal_width (w);
+  int *charstarts;
+
+  for (i = 0;
+       i < height;
+       i++)
+    {
+      int linestart = FRAME_CURRENT_GLYPHS (f)->charstarts[top + i][left];
+      if (linestart > pos)
+	break;
+      if (linestart > 0)
+	row = i;
+    }
+
+  charstarts = FRAME_CURRENT_GLYPHS (f)->charstarts[top + row];
+  for (i = 0; i < width; i++)
+    if (charstarts[left + i] == pos)
+      {
+	*rowp = row + top;
+	*columnp = i + left;
+	return 1;
+      }
+
+  return 0;
+}
+
+/* Display the active region described by mouse_face_*
+   in its mouse-face if HL > 0, in its normal face if HL = 0.  */
+
+static void
+show_mouse_face (hl)
+     int hl;
+{
+  int begcol, begrow, endcol, endrow;
+  struct window *w = XWINDOW (mouse_face_window);
+  int width = window_internal_width (w);
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+  int i;
+
+  fast_find_position (mouse_face_window, mouse_face_beg,
+		      &begcol, &begrow);
+  fast_find_position (mouse_face_window, mouse_face_end,
+		      &endcol, &endrow);
+
+  x_display_cursor (f, 0);
+
+  for (i = begrow; i <= endrow; i++)
+    {
+      int column = (i == begrow ? begcol : w->left);
+      int endcolumn = (i == endrow ? endcol : w->left + width);
+      endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i] - w->left),
+
+      dumpglyphs (f,
+		  CHAR_TO_PIXEL_COL (f, column),
+		  CHAR_TO_PIXEL_ROW (f, i),
+		  FRAME_CURRENT_GLYPHS (f)->glyphs[i] + column,
+		  endcolumn - column,
+		  /* Highlight with mouse face if hl > 0.  */
+		  hl > 0 ? 3 : 0);
+    }
+
+  x_display_cursor (f, 1);
+}
+
+/* Clear out the mouse-highlighted active region.
+   Redraw it unhighlighted first.  */
+
+static void
+clear_mouse_face ()
+{
+  if (! NILP (mouse_face_window))
+    show_mouse_face (0);
+
+  mouse_face_beg = -1;
+  mouse_face_end = -1;
+  mouse_face_window = Qnil;
+}
+
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
 
@@ -3387,6 +3692,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	case LeaveNotify:
 	  f = x_any_window_to_frame (event.xcrossing.window);
 
+	  if (f == mouse_face_mouse_frame)
+	    /* If we move outside the frame,
+	       then we're certainly no longer on any text in the frame.  */
+	    clear_mouse_face ();
+
 	  if (event.xcrossing.focus)
 	    {
 	      if (! x_focus_event_frame)
@@ -3470,6 +3780,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		if (bar)
 		  x_scroll_bar_note_movement (bar, &event);
+
+		/* If we move outside the frame,
+		   then we're certainly no longer on any text in the frame.  */
+		clear_mouse_face ();
 	      }
 	  }
 #ifdef USE_X_TOOLKIT
@@ -5393,6 +5707,7 @@ Check the DISPLAY environment variable or use \"-d\"\n",
   update_end_hook = XTupdate_end;
   set_terminal_window_hook = XTset_terminal_window;
   read_socket_hook = XTread_socket;
+  frame_up_to_date_hook = XTframe_up_to_date;
   cursor_to_hook = XTcursor_to;
   reassert_line_highlight_hook = XTreassert_line_highlight;
   mouse_position_hook = XTmouse_position;
@@ -5432,6 +5747,8 @@ syms_of_xterm ()
 {
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
+  staticpro (&mouse_face_window);
+  mouse_face_window = Qnil;
 }
 #endif /* ! defined (HAVE_X11) */
 #endif /* ! defined (HAVE_X_WINDOWS) */
