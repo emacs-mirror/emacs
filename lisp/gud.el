@@ -255,6 +255,7 @@ and source-file directory for your debugger."
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
+  (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'gdb-mode-hook)
   )
 
@@ -420,6 +421,7 @@ and source-file directory for your debugger."
   (gud-def gud-print  "%e/"  "\C-p"   "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
+  (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'sdb-mode-hook)
   )
 
@@ -558,6 +560,7 @@ and source-file directory for your debugger."
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
+  (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'dbx-mode-hook)
   )
 
@@ -658,6 +661,7 @@ directories if your program contains sources from more than one directory."
   (gud-def gud-print  "p %e"       "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "^>")
+  (setq paragraph-start comint-prompt-regexp)
   (make-local-variable 'gud-xdb-accumulation)
   (setq gud-xdb-accumulation "")
   (run-hooks 'xdb-mode-hook))
@@ -757,6 +761,7 @@ and source-file directory for your debugger."
   (gud-def gud-print  "%e"           "\C-p" "Evaluate perl expression at point.")
 
   (setq comint-prompt-regexp "^  DB<[0-9]+> ")
+  (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'perldb-mode-hook)
   )
 
@@ -871,6 +876,7 @@ comint mode, which see."
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
+  (make-local-variable 'paragraph-start)
   (make-local-variable 'gud-delete-prompt-marker)
   (setq gud-delete-prompt-marker (make-marker))
   (run-hooks 'gud-mode-hook)
