@@ -1758,6 +1758,8 @@ Fill mode.
 *** gnus-mule.el is now just a compatibility layer over the built-in
 Gnus facilities.
 
+*** pcomplete.el ??
+
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
@@ -1770,6 +1772,14 @@ functionality with aliases for the mldrag functions.
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
+
++++
+** The treatment of non-ACSII characters in search ranges has changed.
+If a range in a regular expression or the arg of
+skip-chars-forward/backward starts with a unibyte character C and ends
+with a multibyte character C2, the range is divided into two: one is
+C..?\377, the other is C1..C2, where C1 is the first character of C2's
+charset.
 
 +++
 ** The new function `display-message-or-buffer' displays a message in
