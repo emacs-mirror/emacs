@@ -15,6 +15,8 @@
 
 	* programs.texi (ForIndent Vars): `fortran-if-indent' does other
 	constructs as well.
+	(Fortran Motion): Add fortran-end-of-block,
+	fortran-beginning-of-block.
 
 2005-03-29  Kenichi Handa  <handa@m17n.org>
 

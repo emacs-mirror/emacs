@@ -2252,17 +2252,23 @@ from the file name or buffer contents.
 ---
 ** Perl mode has a new variable `perl-indent-continued-arguments'.
 
+---
+** Fortran mode does more font-locking by default. Use level 3
+highlighting for the old default.
+
 +++
 ** Fortran mode has a new variable `fortran-directive-re'.
 Adapt this to match the format of any compiler directives you use.
 Lines that match are never indented, and are given distinctive font-locking.
 
 +++
-** F90 mode has new navigation commands `f90-end-of-block',
-`f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
+** F90 mode and Fortran mode have new navigation commands
+`f90-end-of-block', `f90-beginning-of-block', `f90-next-block',
+`f90-previous-block', `fortran-end-of-block',
+`fortran-beginning-of-block'.
 
 ---
-** F90 mode now has support for hs-minor-mode (hideshow).
+** F90 mode and Fortran mode have support for hs-minor-mode (hideshow).
 It cannot deal with every code format, but ought to handle a sizeable
 majority.
 

@@ -1,5 +1,17 @@
 2005-03-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
+	* progmodes/fortran.el (fortran-if-indent): Doc fix.
+	(fortran-font-lock-keywords-2): Add "where", "elsewhere".
+	(fortran-font-lock-keywords-4): New variable.
+	(fortran-blocks-re, fortran-end-block-re)
+	(fortran-start-block-re): New constants, for hideshow.
+	(hs-special-modes-alist): Add a Fortran entry.
+	(fortran-mode-map): Bind fortran-end-of-block,
+	fortran-beginning-of-block to \M-\C-n, \M-\C-p.
+	(fortran-mode): Doc fix. Add fortran-font-lock-keywords-4.
+	(fortran-looking-at-if-then, fortran-end-of-block)
+	(fortran-beginning-of-block): New functions, for hideshow.
+
 	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): Doc
 	fix. Tweak regexp.
 	(f90-beginning-of-block): Push mark first.
