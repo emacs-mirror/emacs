@@ -52,8 +52,12 @@ struct option longopts[] =
   { "no-wait",	no_argument,	   NULL, 'n' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
+  { "alternate-editor",required_argument, NULL, 'a' },
   { 0 }
 };
+
+
+const char * alternate_editor = NULL;
 
 /* Decode the options from argv and argc.
    The global variable `optind' will say how many arguments we used up.  */
@@ -66,18 +70,24 @@ decode_options (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHn", longopts, 0);
+			     "VHna:", longopts, 0);
 
       if (opt == EOF)
 	break;
 
+      alternate_editor = getenv ("ALTERNATE_EDITOR");
+      
       switch (opt)
 	{
 	case 0:
 	  /* If getopt returns 0, then it has already processed a
 	     long-named option.  We should do nothing.  */
 	  break;
-
+	  
+	case 'a':
+	  alternate_editor = optarg;
+	  break;
+	  
 	case 'n':
 	  nowait = 1;
 	  break;
@@ -98,7 +108,7 @@ void
 print_help_and_exit ()
 {
   fprintf (stderr,
-	   "Usage: %s [-n] [--no-wait] [+LINENUMBER] FILENAME\n",
+	   "Usage: %s [-a ALTERNATE-EDITOR] [-n] [--no-wait] [+LINENUMBER] FILENAME\n",
 	   progname);
   fprintf (stderr,
 	   "Or %s --version\n",
@@ -139,6 +149,7 @@ quote_file_name (name)
     }
   *q++ = 0;
 
+  
   return copy;
 }
 
@@ -157,6 +168,28 @@ xmalloc (size)
   return result;
 }
 
+/*
+  Try to run a different command, or --if no alternate editor is
+  defined-- exit with an errorcode.
+*/
+fail (argc, argv)
+     int argc;
+     char **argv;
+{
+  if (alternate_editor)
+    {
+      int i = optind -1 ;
+      execvp (alternate_editor, argv + i);
+    }
+  else
+    {
+      exit (1);
+    }
+}
+
+
+       
+
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
 main (argc, argv)
@@ -166,7 +199,8 @@ main (argc, argv)
   fprintf (stderr, "%s: Sorry, the Emacs server is supported only\n",
 	   argv[0]);
   fprintf (stderr, "on systems with Berkeley sockets or System V IPC.\n");
-  exit (1);
+
+  fail (argc, argv);
 }
 
 #else /* HAVE_SOCKETS or HAVE_SYSVIPC */
@@ -212,8 +246,9 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("socket");
-      exit (1);
+      fail (argc, argv);
     }
+  
   server.sun_family = AF_UNIX;
 
   {
@@ -249,19 +284,19 @@ main (argc, argv)
 	else
 	  fprintf (stderr, "%s: can't stat %s: %s\n",
 		   argv[0], server.sun_path, strerror (errno));
-	exit (1);
+	fail (argc, argv);
       }
     if (statbfr.st_uid != geteuid ())
       {
 	fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
-	exit (1);
+	fail (argc, argv);
       }
   }
 #else
   if ((homedir = getenv ("HOME")) == NULL)
     {
       fprintf (stderr, "%s: No home directory\n", argv[0]);
-      exit (1);
+      fail (argc, argv);
     }
   strcpy (server.sun_path, homedir);
   strcat (server.sun_path, "/.emacs-server-");
@@ -273,7 +308,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("connect");
-      exit (1);
+      fail (argc, argv);
     }
 
   /* We use the stream OUT to send our command to the server.  */
@@ -281,7 +316,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("fdopen");
-      exit (1);
+      fail (argc, argv);
     }
 
   /* We use the stream IN to read the response.
@@ -293,7 +328,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("fdopen");
-      exit (1);
+      fail (argc, argv);
     }
 
 #ifdef BSD_SYSTEM
@@ -311,7 +346,7 @@ main (argc, argv)
 	       "Cannot get current working directory",
 #endif
 	       strerror (errno));
-      exit (1);
+      fail (argc, argv);
     }
 
   if (nowait)
@@ -442,7 +477,7 @@ main (argc, argv)
       fprintf (stderr, "%s: Cannot get current working directory: %s\n",
 	       argv[0], strerror (errno));
 #endif
-      exit (1);
+      fail (argc, argv);
     }
 
   msgp->mtext[0] = 0;
@@ -498,7 +533,7 @@ main (argc, argv)
   if (strlen (msgp->mtext) >= 512)
     {
       fprintf (stderr, "%s: args too long for msgsnd\n", progname);
-      exit (1);
+      fail (argc, argv);
     }
 #endif
   msgp->mtype = 1;
@@ -506,7 +541,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", progname);
       perror ("msgsnd");
-      exit (1);
+      fail (argc, argv);
     }
 
   /* Maybe wait for an answer.   */
