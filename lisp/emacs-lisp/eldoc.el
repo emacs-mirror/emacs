@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.7 1996/10/04 04:43:42 friedman Exp $
+;; $Id: eldoc.el,v 1.8 1997/02/03 06:13:34 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -43,6 +43,7 @@
 ;;      (autoload 'turn-on-eldoc-mode "eldoc" nil t)
 ;;      (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
 ;;      (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
+;;      (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 
 ;;; Code:
 
@@ -234,15 +235,32 @@ overwrite them unless it is more restrained."
 
 
 (defun eldoc-print-current-symbol-info ()
+  (and (eldoc-display-message-p)
+       (let ((current-symbol (eldoc-current-symbol))
+             (current-fnsym  (eldoc-fnsym-in-current-sexp)))
+         (cond ((eq current-symbol current-fnsym)
+                (eldoc-print-fnsym-args current-fnsym))
+               (t
+                (or (eldoc-print-var-docstring current-symbol)
+                    (eldoc-print-fnsym-args current-fnsym)))))))
+
+;; Decide whether now is a good time to display a message.
+(defun eldoc-display-message-p ()
   (and eldoc-mode
        (not executing-kbd-macro)
 
-       ;; Having this mode operate in an active minibuffer makes it
-       ;; impossible to what you're doing.
+       ;; Having this mode operate in an active minibuffer/echo area causes
+       ;; interference with what's going on there.
+       (not cursor-in-echo-area)
        (not (eq (selected-window) (minibuffer-window)))
 
        (cond (eldoc-use-idle-timer-p
-              (and (symbolp last-command)
+              ;; If this-command is non-nil while running via an idle
+              ;; timer, we're still in the middle of executing a command,
+              ;; e.g. a query-replace where it would be annoying to
+              ;; overwrite the echo area.
+              (and (not this-command)
+                   (symbolp last-command)
                    (intern-soft (symbol-name last-command)
                                 eldoc-message-commands)))
              (t
@@ -253,15 +271,7 @@ overwrite them unless it is more restrained."
               (and (symbolp this-command)
                    (intern-soft (symbol-name this-command)
                                 eldoc-message-commands)
-                   (sit-for eldoc-idle-delay))))
-
-       (let ((current-symbol (eldoc-current-symbol))
-             (current-fnsym  (eldoc-fnsym-in-current-sexp)))
-         (cond ((eq current-symbol current-fnsym)
-                (eldoc-print-fnsym-args current-fnsym))
-               (t
-                (or (eldoc-print-var-docstring current-symbol)
-                    (eldoc-print-fnsym-args current-fnsym)))))))
+                   (sit-for eldoc-idle-delay))))))
 
 (defun eldoc-print-fnsym-args (&optional symbol)
   (interactive)
