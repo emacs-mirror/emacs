@@ -35,25 +35,25 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* True if an interval pointer is null, or is a Lisp_Buffer or
    Lisp_String pointer (meaning it points to the owner of this
-   interval tree.) */
-#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL ||                    \
-			    XTYPE ((Lisp_Object)(i)) == Lisp_Buffer || \
-			    XTYPE ((Lisp_Object)(i)) == Lisp_String)
+   interval tree). */
+#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL                       \
+			    || XTYPE ((Lisp_Object)(i)) == Lisp_Buffer \
+			    || XTYPE ((Lisp_Object)(i)) == Lisp_String)
 
 /* True if this interval has no right child. */
-#define NULL_RIGHT_CHILD(i) (NULL_INTERVAL_P((i)->right))
+#define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
 
 /* True if this interval has no left child. */
-#define NULL_LEFT_CHILD(i) (NULL_INTERVAL_P((i)->left))
+#define NULL_LEFT_CHILD(i) ((i)->left == NULL_INTERVAL)
 
 /* True if this interval has no parent. */
-#define NULL_PARENT(i) (NULL_INTERVAL_P((i)->parent))
+#define NULL_PARENT(i) (NULL_INTERVAL_P ((i)->parent))
 
 /* True if this interval is the left child of some other interval. */
 #define AM_LEFT_CHILD(i) (! NULL_INTERVAL_P ((i)->parent) \
 			  && (i)->parent->left == (i))
 
-/* True if this interval is the right ehild of some other interval. */
+/* True if this interval is the right child of some other interval. */
 #define AM_RIGHT_CHILD(i) (! NULL_INTERVAL_P ((i)->parent) \
 			   && (i)->parent->right == (i))
 
@@ -65,7 +65,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define ROOT_INTERVAL_P(i) (NULL_PARENT (i))
 
 /* True if this interval is the only interval in the interval tree. */
-#define ONLY_INTERVAL_P(i) (ROOT_INTERVAL_P((i)) && LEAF_INTERVAL_P ((i)))
+#define ONLY_INTERVAL_P(i) (ROOT_INTERVAL_P ((i)) && LEAF_INTERVAL_P ((i)))
 
 /* True if this interval has both left and right children. */
 #define BOTH_KIDS_P(i) ((i)->left != NULL_INTERVAL     \
@@ -98,15 +98,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define DEFAULT_INTERVAL_P(i) (NULL_INTERVAL_P (i) || EQ ((i)->plist, Qnil))
 
 /* Reset this interval to its vanilla, or no-property state. */
-#define RESET_INTERVAL(i) { \
-			      (i)->total_length = (i)->position = 0;    \
-			      (i)->left = (i)->right = NULL_INTERVAL;   \
-			      (i)->parent = NULL_INTERVAL;              \
-			      (i)->write_protect = 0;                   \
-			      (i)->visible = 0;                         \
-			      (i)->front_sticky = (i)->rear_sticky = 0; \
-			      (i)->plist = Qnil;         \
-			  }
+#define RESET_INTERVAL(i) \
+{ \
+    (i)->total_length = (i)->position = 0;    \
+    (i)->left = (i)->right = NULL_INTERVAL;   \
+    (i)->parent = NULL_INTERVAL;              \
+    (i)->write_protect = 0;                   \
+    (i)->visible = 0;                         \
+    (i)->front_sticky = (i)->rear_sticky = 0; \
+    (i)->plist = Qnil;         	              \
+}
 
 /* Copy the cached property values of interval FROM to interval TO. */
 #define COPY_INTERVAL_CACHE(from,to) \
