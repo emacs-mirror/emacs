@@ -1764,12 +1764,10 @@ Parameters not specified by PARAMETERS are taken from
 `default-frame-alist'.  If either PARAMETERS or `default-frame-alist'
 contains a `reverse' parameter, handle that.  Value is the new frame
 created."
-  (let ((old-frame (selected-frame))
-	(frame (make-terminal-frame parameters))
+  (let ((frame (make-terminal-frame parameters))
 	success)
     (unwind-protect
-	(progn
-	  (select-frame frame)
+	(with-selected-frame frame
 	  (tty-handle-reverse-video frame (frame-parameters frame))
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
@@ -1790,7 +1788,6 @@ created."
 	  (modify-frame-parameters frame '((interprogram-paste-function . nil)))
 	  (setq success t))
       (unless success
-	(select-frame old-frame)
 	(delete-frame frame)))
     frame))
 
