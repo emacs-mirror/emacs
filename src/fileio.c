@@ -4440,8 +4440,10 @@ responsible for calling the after-insert-file-functions if appropriate.");
 
   DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
     "A list of functions to be called at the start of `write-region'.\n\
-Each is passed two arguments, START and END as for `write-region'.  It should\n\
-return a list of pairs (POSITION . STRING) of strings to be effectively\n\
+Each is passed two arguments, START and END as for `write-region'.\n\
+These are usually two numbers but not always; see the documentation\n\
+for `write-region'.  The function should return a list of pairs\n\
+of the form (POSITION . STRING), consisting of strings to be effectively\n\
 inserted at the specified positions of the file being written (1 means to\n\
 insert before the first byte written).  The POSITIONs must be sorted into\n\
 increasing order.  If there are several functions in the list, the several\n\
