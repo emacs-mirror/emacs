@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.208.1.1 1998/02/27 18:28:44 spiegel Exp $
+;; $Id: vc.el,v 1.209 1998/02/27 18:44:14 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -618,6 +618,15 @@ to an optional list of FLAGS."
 	      ;; to beginning of OSTRING
 	      (- (point) (length context-string))))))))
 
+(defun vc-context-matches-p (posn context)
+  ;; Returns t if POSN matches CONTEXT, nil otherwise.
+  (let* ((context-string (nth 2 context))
+	 (len (length context-string))
+	 (end (+ posn len)))
+    (if (> end (1+ (buffer-size)))
+	nil
+      (string= context-string (buffer-substring posn end)))))
+
 (defun vc-buffer-context ()
   ;; Return a list '(point-context mark-context reparse); from which
   ;; vc-restore-buffer-context can later restore the context.
@@ -678,12 +687,14 @@ to an optional list of FLAGS."
 		(setq compilation-error-list (cdr compilation-error-list))))))
       (setq reparse (cdr reparse)))
 
-    ;; Restore point and mark
-    (let ((new-point (vc-find-position-by-context point-context)))
-      (if new-point (goto-char new-point)))
+    ;; if necessary, restore point and mark
+    (if (not (vc-context-matches-p (point) point-context))
+	(let ((new-point (vc-find-position-by-context point-context)))
+	  (if new-point (goto-char new-point))))
     (if mark-context
-	(let ((new-mark (vc-find-position-by-context mark-context)))
-	  (if new-mark (set-mark new-mark))))))
+	(if (not (vc-context-matches-p (mark) mark-context))
+	    (let ((new-mark (vc-find-position-by-context mark-context)))
+	      (if new-mark (set-mark new-mark)))))))
 
 (defun vc-revert-buffer1 (&optional arg no-confirm)
   ;; Revert buffer, try to keep point and mark where user expects them in spite
@@ -692,8 +703,14 @@ to an optional list of FLAGS."
   (interactive "P")
   (widen)
   (let ((context (vc-buffer-context)))
-    ;; t means don't call normal-mode; that's to preserve various minor modes.
-    (revert-buffer arg no-confirm t)
+    ;; Use save-excursion here, because it may be able to restore point
+    ;; and mark properly even in cases where vc-restore-buffer-context
+    ;; would fail.  However, save-excursion might also get it wrong -- 
+    ;; in this case, vc-restore-buffer-context gives it a second try.
+    (save-excursion
+      ;; t means don't call normal-mode; 
+      ;; that's to preserve various minor modes.
+      (revert-buffer arg no-confirm t))
     (vc-restore-buffer-context context)))
 
 
@@ -984,6 +1001,7 @@ merge in the changes into your working copy."
              (format "Initial version level for %s: " buffer-file-name)))
        vc-default-init-version)
    comment)
+  ;; Recompute backend property (it may have been set to nil before).
   (setq vc-buffer-backend (vc-backend (buffer-file-name)))
   )
 
@@ -997,11 +1015,7 @@ merge in the changes into your working copy."
   (and (string= buffer-file-name file)
        (if keep
 	   (progn
-	     ;; temporarily remove vc-find-file-hook, so that
-             ;; we don't lose the properties
-	     (remove-hook 'find-file-hooks 'vc-find-file-hook)
 	     (vc-revert-buffer1 t noquery)
-	     (add-hook 'find-file-hooks 'vc-find-file-hook)
              (and view-read-only
                   (if (file-writable-p file)
                       (and view-mode
@@ -1015,11 +1029,13 @@ merge in the changes into your working copy."
 
 (defun vc-resynch-buffer (file &optional keep noquery)
   ;; if FILE is currently visited, resynch its buffer
-  (let ((buffer (get-file-buffer file)))
-    (if buffer
-	(save-excursion
-	  (set-buffer buffer)
-	  (vc-resynch-window file keep noquery)))))
+  (if (string= buffer-file-name file)
+      (vc-resynch-window file keep noquery)
+    (let ((buffer (get-file-buffer file)))
+      (if buffer
+	  (save-excursion
+	    (set-buffer buffer)
+	    (vc-resynch-window file keep noquery))))))
 
 (defun vc-start-entry (file rev comment msg action &optional after-hook)
   ;; Accept a comment for an operation on FILE revision REV.  If COMMENT
@@ -1448,12 +1464,15 @@ the variable `vc-header-alist'."
   ;; Don't lose point and mark during this.
   (let ((context (vc-buffer-context))
         (case-fold-search nil))
-    (goto-char (point-min))
-    (while (re-search-forward 
-            (concat "\\$\\(Author\\|Date\\|Header\\|Id\\|Locker\\|Name\\|"
-                    "RCSfile\\|Revision\\|Source\\|State\\): [^\\$\\n]+\\$")
-            nil t)
-      (replace-match "$\\1$"))
+    ;; save-excursion may be able to relocate point and mark properly.
+    ;; If it fails, vc-restore-buffer-context will give it a second try.
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward 
+	      (concat "\\$\\(Author\\|Date\\|Header\\|Id\\|Locker\\|Name\\|"
+		      "RCSfile\\|Revision\\|Source\\|State\\): [^$\n]+\\$")
+	      nil t)
+	(replace-match "$\\1$")))
     (vc-restore-buffer-context context)))
 
 ;; The VC directory major mode.  Coopt Dired for this.
