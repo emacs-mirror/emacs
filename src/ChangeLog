@@ -1,3 +1,7 @@
+2002-02-02  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (enlarge_window): Fix last change.
+
 2002-02-01  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (x_erase_phys_cursor): Don't erase cursor if cursor row

@@ -3525,17 +3525,29 @@ enlarge_window (window, delta, widthflag)
 	{
 	  /* If trying to grow this window to or beyond size of the parent,
 	     just delete all the sibling windows.  */
-	  Lisp_Object tem, next;
+	  Lisp_Object start, tem, next;
 
-	  tem = XWINDOW (parent)->vchild;
-	  if (NILP (tem))
-	    tem = XWINDOW (parent)->hchild;
+	  start = XWINDOW (parent)->vchild;
+	  if (NILP (start))
+	    start = XWINDOW (parent)->hchild;
 
+	  /* Delete any siblings that come after WINDOW.  */
+	  tem = XWINDOW (window)->next;
 	  while (! NILP (tem))
 	    {
 	      next = XWINDOW (tem)->next;
-	      if (!EQ (tem, window))
-		delete_window (tem);
+	      delete_window (tem);
+	      tem = next;
+	    }
+
+	  /* Delete any siblings that come after WINDOW.
+	     Note that if START is not WINDOW, then WINDOW still
+	     Fhas siblings, so WINDOW has not yet replaced its parent.  */
+	  tem = start;
+	  while (! EQ (tem, window))
+	    {
+	      next = XWINDOW (tem)->next;
+	      delete_window (tem);
 	      tem = next;
 	    }
 	}
