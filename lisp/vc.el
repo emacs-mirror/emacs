@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.311.4.4 2001/11/15 10:56:37 spiegel Exp $
+;; $Id: vc.el,v 1.311.4.5 2002/03/05 13:41:05 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -147,7 +147,8 @@
 ;;   contents with those of the master version.  If the backend does not
 ;;   have such a brief-comparison feature, the default implementation of
 ;;   this function can be used, which delegates to a full
-;;   vc-BACKEND-diff.
+;;   vc-BACKEND-diff.  (Note that vc-BACKEND-diff must not run
+;;   asynchronously in this case.)
 ;;
 ;; - mode-line-string (file)
 ;;
