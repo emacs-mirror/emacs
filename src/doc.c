@@ -362,7 +362,8 @@ translation.")
 static void
 store_function_docstring (fun, offset)
      Lisp_Object fun;
-     int offset;
+     /* Use EMACS_INT because we get this from pointer subtraction.  */
+     EMACS_INT offset;
 {
   fun = indirect_function (fun);
 
