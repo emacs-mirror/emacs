@@ -1065,7 +1065,7 @@ filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h charset.h fontset.h msdos.h dosfns.h $(config_h)
-fontset.o: fontset.h fontset.c ccl.h charset.h frame.h $(config_h)
+fontset.o: dispextern.h fontset.h fontset.c ccl.h charset.h frame.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h charset.h composite.h
