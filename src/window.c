@@ -5801,7 +5801,7 @@ If there is only one window, it is split regardless of this value.");
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       &Vscroll_preserve_screen_position,
-    "*Nonzero means scroll commands move point to keep its screen line unchanged.");
+    "*Non-nil means scroll commands move point to keep its screen line unchanged.");
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",
