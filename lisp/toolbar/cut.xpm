@@ -2,7 +2,7 @@
 static char *magick[] = {
 /* columns rows colors chars-per-pixel */
 "24 24 2 1",
-"  c gray0",
+"  c Gray0",
 ". c None",
 /* pixels */
 "........................",
