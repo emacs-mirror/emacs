@@ -1612,6 +1612,14 @@ This function sets the number of columns from the left margin that
 @var{columns} should be zero or positive; if not, it is taken as zero.
 Fractional values of @var{columns} are not supported at present.
 
+Note that @code{set-window-hscroll} may appear not to work if you test
+it by evaluating a call with @kbd{M-:} in a simple way.  What happens
+is that the function sets the horizontal scroll value and returns, but
+then redisplay adjusts the horizontal scrolling to make point visible,
+and this overrides what the function did.  You can observe the
+function's effect if you call it while point is sufficiently far from
+the left margin that it will remain visible.
+
 The value returned is @var{columns}.
 
 @example
