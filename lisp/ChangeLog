@@ -1,3 +1,12 @@
+2000-02-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* format.el (format-annotate-single-property-change): Handle
+	properties.with dotted-list values.
+	(format-proper-list-p): New function.
+
+	* enriched.el (enriched-face-ans): Handle '(foreground-color
+	. COLOR) and (background-color . COLOR).
+
 2000-02-20  Dave Love  <fx@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mouse-map): Change definition
