@@ -24,7 +24,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Fortran added by Jim Kleckner.
  *	Ed Pelegri-Llopart added C typedefs.
  *	Gnu Emacs TAGS format and modifications by RMS?
- * 199x	Sam Kendall added C++.
+ * 1989	Sam Kendall added C++.
  * 1993	Francesco Potortì reorganised C and C++ based on work by Joe Wells.
  * 1994	Regexp tags by Tom Tromey.
  * 2001 Nested classes by Francesco Potortì based on work by Mykola Dzyuba.
@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.11";
+char pot_etags_version[] = "@(#) pot revision number is 14.13";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -64,6 +64,14 @@ char pot_etags_version[] = "@(#) pot revision number is 14.11";
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
 #endif
 
+/* WIN32_NATIVE is for Xemacs.
+   MSDOS, WINDOWSNT, DOS_NT are for Emacs. */
+#ifdef WIN32_NATIVE
+# undef MSDOS
+# undef  WINDOWSNT
+# define WINDOWSNT
+#endif /* WIN32_NATIVE */
+
 #ifdef MSDOS
 # undef MSDOS
 # define MSDOS TRUE
@@ -85,11 +93,9 @@ char pot_etags_version[] = "@(#) pot revision number is 14.11";
 # include <direct.h>
 # include <io.h>
 # define MAXPATHLEN _MAX_PATH
-# ifdef HAVE_CONFIG_H
-#   undef HAVE_NTGUI
-# else
-#   define DOS_NT
-# endif /* not HAVE_CONFIG_H */
+# undef HAVE_NTGUI
+# undef  DOS_NT
+# define DOS_NT
 # ifndef HAVE_GETCWD
 #   define HAVE_GETCWD
 # endif /* undef HAVE_GETCWD */
@@ -105,7 +111,7 @@ char pot_etags_version[] = "@(#) pot revision number is 14.11";
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #else
-# if defined (HAVE_GETCWD) && !WINDOWSNT
+# if defined (HAVE_GETCWD) && !defined (WINDOWSNT)
     extern char *getcwd (char *buf, size_t size);
 # endif
 #endif /* HAVE_UNISTD_H */
@@ -154,15 +160,6 @@ char pot_etags_version[] = "@(#) pot revision number is 14.11";
 # define	GOOD	0
 # define	BAD	1
 #endif
-
-/* C extensions. */
-#define C_EXT	0x00fff		/* C extensions */
-#define C_PLAIN 0x00000		/* C */
-#define C_PLPL	0x00001		/* C++ */
-#define C_STAR	0x00003		/* C* */
-#define C_JAVA	0x00005		/* JAVA */
-#define C_AUTO  0x01000		/* C, switch to C++ if `class' is met */
-#define YACC	0x10000		/* yacc file */
 
 #define streq(s,t)	(assert((s)!=NULL || (t)!=NULL), !strcmp (s, t))
 #define strneq(s,t,n)	(assert((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
@@ -475,7 +472,8 @@ char *Asm_suffixes [] = { "a",	/* Unix assembler */
 			};
 
 /* Note that .c and .h can be considered C++, if the --c++ flag was
-   given.  That is why default_C_entries is called here. */
+   given, or if the `class' keyowrd is met inside the file.
+   That is why default_C_entries is called for these. */
 char *default_C_suffixes [] =
   { "c", "h", NULL };
 
@@ -563,7 +561,7 @@ language lang_names [] =
   { "lisp",    	  Lisp_functions,      	NULL, Lisp_suffixes,       	NULL },
   { "makefile",   Makefile_targets,     Makefile_filenames, NULL,     	NULL },
   { "pascal",  	  Pascal_functions,    	NULL, Pascal_suffixes,     	NULL },
-  { "perl",    	  Perl_functions,       NULL, Perl_suffixes, Perl_interpreters },
+  { "perl",    	  Perl_functions,     NULL, Perl_suffixes, Perl_interpreters },
   { "postscript", Postscript_functions, NULL, Postscript_suffixes, 	NULL },
   { "proc",    	  plain_C_entries,     	NULL, plain_C_suffixes,    	NULL },
   { "prolog",  	  Prolog_functions,    	NULL, Prolog_suffixes,     	NULL },
@@ -1920,6 +1918,15 @@ total_size_of_entries (np)
 }
 
 
+/* C extensions. */
+#define C_EXT	0x00fff		/* C extensions */
+#define C_PLAIN 0x00000		/* C */
+#define C_PLPL	0x00001		/* C++ */
+#define C_STAR	0x00003		/* C* */
+#define C_JAVA	0x00005		/* JAVA */
+#define C_AUTO  0x01000		/* C, but switch to C++ if `class' is met */
+#define YACC	0x10000		/* yacc file */
+
 /*
  * The C symbol tables.
  */

@@ -1,3 +1,15 @@
+2001-01-30  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: [WIN32-NATIVE]: #undef MSDOS, #undef WINDOWSNT and
+	#define it for the sake of Xemacs.
+	[WINDOWSNT]: #undef HAVE_NTGUI even if built without
+	HAVE_CONFIG_H.  This change only affects a standalone etags.
+	[WINDOWSNT]: #undef DOS_NT and #define it even if built with
+	HAVE_CONFIG_H.  This change does nothing in Emacs, as DOS_NT is
+	always defined when HAVE_CONFIG_H and WINDOWS are both defined.
+	[!HAVE_UNISTD_H]: use defined(WINDOWSNT) instead of the bare
+	WINDOWSNT, as this is the correct way to use it.
+
 2001-01-28  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: Be capable to parse nested struct-like structures.
