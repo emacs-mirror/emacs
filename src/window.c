@@ -51,9 +51,22 @@ Boston, MA 02111-1307, USA.  */
 #define max(a, b) ((a) < (b) ? (b) : (a))
 #endif
 
+/* Values returned from coordinates_in_window.  */
+
+enum window_part
+{
+  ON_NOTHING,
+  ON_TEXT,
+  ON_MODE_LINE,
+  ON_VERTICAL_BORDER,
+  ON_HEADER_LINE,
+  ON_LEFT_FRINGE,
+  ON_RIGHT_FRINGE
+};
+
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qwindow_size_fixed, Qleft_bitmap_area, Qright_bitmap_area;
+Lisp_Object Qwindow_size_fixed, Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
 
 static struct window *decode_window P_ ((Lisp_Object));
@@ -499,20 +512,17 @@ and BOTTOM is one more than the bottommost row used by WINDOW\n\
 
    X and Y are frame relative pixel coordinates.  */
 
-static int
+static enum window_part
 coordinates_in_window (w, x, y)
      register struct window *w;
      register int *x, *y;
 {
   /* Let's make this a global enum later, instead of using numbers
      everywhere.  */
-  enum {ON_NOTHING, ON_TEXT, ON_MODE_LINE, ON_VERTICAL_BORDER,
-	ON_HEADER_LINE, ON_LEFT_FRINGE, ON_RIGHT_FRINGE};
-
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int left_x, right_x, top_y, bottom_y;
   int flags_area_width = FRAME_LEFT_FLAGS_AREA_WIDTH (f);
-  int part;
+  enum window_part part;
   int ux = CANON_X_UNIT (f), uy = CANON_Y_UNIT (f);
   int x0 = XFASTINT (w->left) * ux;
   int x1 = x0 + XFASTINT (w->width) * ux;
@@ -583,7 +593,9 @@ coordinates_in_window (w, x, y)
 	   || *x < (left_x
 		    - flags_area_width
 		    - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * ux)
-	   || *x > right_x + flags_area_width)
+	   || *x > (right_x
+		    + flags_area_width
+		    + FRAME_RIGHT_SCROLL_BAR_WIDTH (f) * ux))
     {
       part = ON_NOTHING;
     }
@@ -654,15 +666,15 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   "Return non-nil if COORDINATES are in WINDOW.\n\
 COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
 measured in characters from the upper-left corner of the frame.\n\
-(0 .  0) denotes the character in the upper left corner of the\n\
+\(0 .  0) denotes the character in the upper left corner of the\n\
 frame.\n\
 If COORDINATES are in the text portion of WINDOW,\n\
    the coordinates relative to the window are returned.\n\
 If they are in the mode line of WINDOW, `mode-line' is returned.\n\
 If they are in the top mode line of WINDOW, `header-line' is returned.\n\
-If they are in the bitmap-area to the left of the window,\n\
-   `left-bitmap-area' is returned, if they are in the area on the right of\n\
-   the window, `right-bitmap-area' is returned.\n\
+If they are in the fringe to the left of the window,\n\
+   `left-fringe' is returned, if they are in the area on the right of\n\
+   the window, `right-fringe' is returned.\n\
 If they are on the border between WINDOW and its right sibling,\n\
    `vertical-line' is returned.")
   (coordinates, window)
@@ -686,30 +698,29 @@ If they are on the border between WINDOW and its right sibling,\n\
 
   switch (coordinates_in_window (w, &x, &y))
     {
-    case 0:			/* NOT in window at all. */
+    case ON_NOTHING:
       return Qnil;
 
-    case 1:			/* In text part of window. */
-      /* X and Y are now window relative pixel coordinates.
-	 Convert them to canonical char units before returning
-	 them.  */
+    case ON_TEXT:
+      /* X and Y are now window relative pixel coordinates.  Convert
+	 them to canonical char units before returning them.  */
       return Fcons (CANON_X_FROM_PIXEL_X (f, x), 
 		    CANON_Y_FROM_PIXEL_Y (f, y));
 
-    case 2:			/* In mode line of window. */
+    case ON_MODE_LINE:
       return Qmode_line;
 
-    case 3:			/* On right border of window.  */
+    case ON_VERTICAL_BORDER:
       return Qvertical_line;
 
-    case 4:
+    case ON_HEADER_LINE:
       return Qheader_line;
 
-    case 5:
-      return Qleft_bitmap_area;
+    case ON_LEFT_FRINGE:
+      return Qleft_fringe;
       
-    case 6:
-      return Qright_bitmap_area;
+    case ON_RIGHT_FRINGE:
+      return Qright_fringe;
 
     default:
       abort ();
@@ -738,16 +749,18 @@ check_window_containing (w, user_data)
      void *user_data;
 {
   struct check_window_data *cw = (struct check_window_data *) user_data;
-  int found;
+  enum window_part found;
+  int continue_p = 1;
 
   found = coordinates_in_window (w, cw->x, cw->y);
-  if (found)
+  if (found != ON_NOTHING)
     {
       *cw->part = found - 1;
       XSETWINDOW (*cw->window, w);
+      continue_p = 0;
     }
   
-  return !found;
+  return continue_p;
 }
 
 
@@ -787,7 +800,8 @@ window_from_coordinates (f, x, y, part, tool_bar_p)
       && tool_bar_p
       && WINDOWP (f->tool_bar_window)
       && XINT (XWINDOW (f->tool_bar_window)->height) > 0
-      && coordinates_in_window (XWINDOW (f->tool_bar_window), &x, &y))
+      && (coordinates_in_window (XWINDOW (f->tool_bar_window), &x, &y)
+	  != ON_NOTHING))
     {
       *part = 0;
       window = f->tool_bar_window;
@@ -5631,10 +5645,10 @@ init_window ()
 void
 syms_of_window ()
 {
-  Qleft_bitmap_area = intern ("left-bitmap-area");
-  staticpro (&Qleft_bitmap_area);
-  Qright_bitmap_area = intern ("right-bitmap-area");
-  staticpro (&Qright_bitmap_area);
+  Qleft_fringe = intern ("left-fringe");
+  staticpro (&Qleft_fringe);
+  Qright_fringe = intern ("right-fringe");
+  staticpro (&Qright_fringe);
   
   Qwindow_size_fixed = intern ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
