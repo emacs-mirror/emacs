@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic, Minibuffer, Exiting, Top
 @chapter Basic Editing Commands
@@ -504,13 +504,17 @@ Print page number of point, and line number within page.
 @item M-x what-line
 Print line number of point in the buffer.
 @item M-x line-number-mode
-Toggle automatic display of current line number.
+@itemx M-x column-number-mode
+Toggle automatic display of current line number or column number.
+@xref{Optional Mode Line}.
 @item M-=
 Print number of lines in the current region (@code{count-lines-region}).
 @xref{Mark}, for information about the region.
 @item C-x =
 Print character code of character after point, character position of
 point, and column of point (@code{what-cursor-position}).
+@item M-x hl-line-mode
+Highlighting the current line.
 @end table
 
 @findex what-page
@@ -609,6 +613,18 @@ as the actual glyph of A with grave accent.}:
 @example
 Char: @`A (04300, 2240, 0x8c0, ext ESC , A @@) (latin-iso8859-1 64)
 @end example
+
+@findex hl-line-mode
+@findex blink-cursor-mode
+@cindex cursor, locating visually
+@cindex cursor, blinking
+@kbd{M-x hl-line-mode} turns on a global minor mode which highlights the
+line about point in the selected window (on terminals which support
+highlighting).  Some people find this convenient.  If you find the
+cursor difficult to spot, you might try changing its color by
+customizing the @code{cursor} face or rely on (the default)
+@code{blink-cursor-mode}.  Cursor color and blinking can be conrolled
+via the @code{cursor} Custom group.
 
 @node Arguments
 @section Numeric Arguments
