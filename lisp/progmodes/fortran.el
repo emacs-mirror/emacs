@@ -326,8 +326,8 @@ style.")
      ;; Fontify do/goto keywords and targets, and goto tags.
      (list "\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)?"
 	   '(1 font-lock-keyword-face)
-	   '(2 font-lock-reference-face nil t))
-     (cons "^ *\\([0-9]+\\)" 'font-lock-reference-face))))
+	   '(2 font-lock-constant-face nil t))
+     (cons "^ *\\([0-9]+\\)" 'font-lock-constant-face))))
 
   (setq fortran-font-lock-keywords-3
    (append
@@ -354,7 +354,7 @@ style.")
      ;;
      ;; Fontify goto-like `err=label'/`end=label' in read/write statements.
      '(", *\\(e\\(nd\\|rr\\)\\)\\> *\\(= *\\([0-9]+\\)\\)?"
-       (1 font-lock-keyword-face) (4 font-lock-reference-face nil t))
+       (1 font-lock-keyword-face) (4 font-lock-constant-face nil t))
      ;;
      ;; Highlight standard continuation character and in a TAB-formatted line.
      '("^     \\([^ 0]\\)" 1 font-lock-string-face)

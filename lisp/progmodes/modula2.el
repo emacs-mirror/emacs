@@ -171,7 +171,7 @@ followed by the first character of the construct.
      (1 font-lock-keyword-face)
      (font-lock-match-c-style-declaration-item-and-skip-to-next
       nil (goto-char (match-end 0))
-      (1 font-lock-reference-face)))
+      (1 font-lock-constant-face)))
     ;;
     ;; Pragmas as warnings.
     ;; Spencer Allain <sallain@teknowledge.com> says do them as comments...
@@ -224,7 +224,7 @@ followed by the first character of the construct.
 	   (1 font-lock-function-name-face)))
 	;;
 	;; Fontify constants as references.
-	'("\\<\\(FALSE\\|NIL\\|NULL\\|TRUE\\)\\>" . font-lock-reference-face)
+	'("\\<\\(FALSE\\|NIL\\|NULL\\|TRUE\\)\\>" . font-lock-constant-face)
 	))))
   "Gaudy level highlighting for Modula-3 modes.")
 

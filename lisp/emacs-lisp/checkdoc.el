@@ -1680,7 +1680,7 @@ This function returns non-nil if the text was replaced."
 (defvar checkdoc-output-font-lock-keywords
   '(("\\(\\w+\\.el\\):" 1 font-lock-function-name-face)
     ("style check: \\(\\w+\\)" 1 font-lock-comment-face)
-    ("^\\([0-9]+\\):" 1 font-lock-reference-face))
+    ("^\\([0-9]+\\):" 1 font-lock-constant-face))
   "Keywords used to highlight a checkdoc diagnostic buffer.")
 
 (defvar checkdoc-output-mode-map nil

@@ -141,7 +141,7 @@ for SIMULA mode to function correctly.")
      (if (match-beginning 1) font-lock-string-face font-lock-comment-face))
    ;;
    ;; Compiler directives.
-   '("^%\\([^ \t\n].*\\)" 1 font-lock-reference-face)
+   '("^%\\([^ \t\n].*\\)" 1 font-lock-constant-face)
    ;;
    ;; Class and procedure names.
    '("\\<\\(class\\|procedure\\)\\>[ \t]*\\(\\sw+\\)?"
@@ -153,8 +153,8 @@ for SIMULA mode to function correctly.")
   (append simula-font-lock-keywords-1
    (list
     ;;
-    ;; Constants as references.
-    '("\\<\\(false\\|none\\|notext\\|true\\)\\>" . font-lock-reference-face)
+    ;; Constants.
+    '("\\<\\(false\\|none\\|notext\\|true\\)\\>" . font-lock-constant-face)
     ;;
     ;; Keywords.
     (concat "\\<\\("

@@ -2324,7 +2324,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		  (setq tag (buffer-substring b1 e1)
 			qtag (regexp-quote tag))
 		  (cond (cperl-pod-here-fontify 
-			 (put-text-property b1 e1 'face font-lock-reference-face)
+			 (put-text-property b1 e1 'face font-lock-constant-face)
 			 (cperl-put-do-not-fontify b1 e1)))
 		  (forward-line)
 		  (setq b (point))
@@ -2332,7 +2332,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			 (if cperl-pod-here-fontify 
 			     (progn
 			       (put-text-property (match-beginning 0) (match-end 0) 
-						  'face font-lock-reference-face)
+						  'face font-lock-constant-face)
 			       (cperl-put-do-not-fontify b (match-end 0))
 			       ;;(put-text-property (max (point-min) (1- b))
 			       ;;		      (min (point-max)
@@ -2628,7 +2628,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 ;;;	      (setq tag (buffer-substring b1 e1)
 ;;;		    qtag (regexp-quote tag))
 ;;;	      (cond (cperl-pod-here-fontify 
-;;;		     (put-text-property b1 e1 'face font-lock-reference-face)
+;;;		     (put-text-property b1 e1 'face font-lock-constant-face)
 ;;;		     (cperl-put-do-not-fontify b1 e1)))
 ;;;	      (forward-line)
 ;;;	      (setq b (point))
@@ -2636,7 +2636,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 ;;;		     (if cperl-pod-here-fontify 
 ;;;			 (progn
 ;;;			   (put-text-property (match-beginning 0) (match-end 0) 
-;;;					      'face font-lock-reference-face)
+;;;					      'face font-lock-constant-face)
 ;;;			   (cperl-put-do-not-fontify b (match-end 0))
 ;;;			   ;;(put-text-property (max (point-min) (1- b))
 ;;;			   ;;		      (min (point-max)
@@ -3294,9 +3294,9 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	    '("[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
 	      font-lock-string-face t)
 	    '("^[ \t]*\\([a-zA-Z0-9_]+[ \t]*:\\)[ \t]*\\($\\|{\\|\\<\\(until\\|while\\|for\\(each\\)?\\|do\\)\\>\\)" 1 
-	      font-lock-reference-face) ; labels
+	      font-lock-constant-face) ; labels
 	    '("\\<\\(continue\\|next\\|last\\|redo\\|goto\\)\\>[ \t]+\\([a-zA-Z0-9_:]+\\)" ; labels as targets
-	      2 font-lock-reference-face)
+	      2 font-lock-constant-face)
 	    (cond ((featurep 'font-lock-extra)
 		   '("^[ \t]*\\(my\\|local\\)[ \t]*\\(([ \t]*\\)?\\([$@%*][a-zA-Z0-9_:]+\\)\\([ \t]*,\\)?"
 		     (3 font-lock-variable-name-face)
@@ -3394,7 +3394,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		    nil
 		    [nil		nil		t		t	t]
 		    )
-	      (list 'font-lock-reference-face
+	      (list 'font-lock-constant-face
 		    ["CadetBlue"	"Aquamarine" 	"Gray50"	"LightGray"]
 		    nil
 		    [nil		nil		t		t	t]
@@ -3432,7 +3432,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		      ((fboundp 'valid-color-name-p) 'valid-color-name-p)
 		      ;; XEmacs 19.11
 		      (t 'x-valid-color-name-p))))
-	  (defvar font-lock-reference-face 'font-lock-reference-face)
+	  (defvar font-lock-constant-face 'font-lock-constant-face)
 	  (defvar font-lock-variable-name-face 'font-lock-variable-name-face)
 	  (or (boundp 'font-lock-type-face)
 	      (defconst font-lock-type-face
@@ -3572,8 +3572,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	       (t (set-face-background 'font-lock-emphasized-face "gray90"))))
 	    (if (is-face 'font-lock-variable-name-face) nil
 	      (copy-face 'italic 'font-lock-variable-name-face))
-	    (if (is-face 'font-lock-reference-face) nil
-	      (copy-face 'italic 'font-lock-reference-face))))
+	    (if (is-face 'font-lock-constant-face) nil
+	      (copy-face 'italic 'font-lock-constant-face))))
 	(setq cperl-faces-init t))
     (error nil)))
 

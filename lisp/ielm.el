@@ -130,7 +130,9 @@ This variable is buffer-local.")
 (defvar ielm-font-lock-keywords
   (list 
    (cons (concat "^" (regexp-quote ielm-prompt)) 'font-lock-keyword-face)
-   '("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)" (1 font-lock-comment-face) (2 font-lock-reference-face)))
+   '("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)"
+     (1 font-lock-comment-face)
+     (2 font-lock-constant-face)))
   "Additional expressions to highlight in ielm buffers.")
 	
 ;;; Completion stuff

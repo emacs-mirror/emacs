@@ -659,7 +659,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	  "&progname" "&random" "&rdrag" "&regions" "&resize" "&row" 
 	  "&rpress" "&rrelease" "&shift" "&source" "&storage" "&subject" 
 	  "&time" "&trace" "&ucase" "&version" "&window" "&x" "&y") t)
-       'font-lock-reference-face)
+       'font-lock-constant-face)
       (cons      ;; global local static declarations and link files
        (concat 
 	"^[ \t]*"

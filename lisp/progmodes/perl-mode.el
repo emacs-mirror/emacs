@@ -171,15 +171,15 @@ The expansion is entirely correct because it uses the C preprocessor."
     ("^#[ \t]*define[ \t]+\\(\\sw+\\)(" 1 font-lock-function-name-face)
     ("^#[ \t]*if\\>"
      ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
-      (1 font-lock-reference-face) (2 font-lock-variable-name-face nil t)))
+      (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t)))
     ("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-reference-face) (2 font-lock-variable-name-face nil t))
+     (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t))
     ;;
     ;; Fontify function and package names in declarations.
     ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
     ("\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-reference-face nil t)))
+     (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
   "Subdued level highlighting for Perl mode.")
 
 (defconst perl-font-lock-keywords-2
@@ -206,12 +206,12 @@ The expansion is entirely correct because it uses the C preprocessor."
     '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
     '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
-    '("<\\(\\sw+\\)>" 1 font-lock-reference-face)
+    '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
     '("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
-      (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
-    '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-reference-face)))
+      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
+    '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
   "Gaudy level highlighting for Perl mode.")
 
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1

@@ -3797,10 +3797,10 @@ If that is the case remember the name of that function."
     (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)\\>" ; "when" removed
                   ; "[ \t]*\\(\\sw+\\(\\.\\sw*\\)*\\)?") ; RE
                   "[ \t]*\\([a-zA-Z0-9_\\.\\|, ]+\\)\\W")
-          '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+          '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
     ;;
     ;; Goto tags.
-    '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
+    '("<<\\(\\sw+\\)>>" 1 font-lock-constant-face)
     ))
   "Gaudy level highlighting for Ada mode.")
 

@@ -245,10 +245,10 @@
          (cons (concat "\\<" input-keywords "\\>"
                        "[ \t]+\\(\\sw+\\)")
                '((1 font-lock-keyword-face)
-                 (2 font-lock-reference-face)))
+                 (2 font-lock-constant-face)))
          ;; embedded Metafont/MetaPost code in comments
          (cons "|\\([^|]+\\)|" 
-               '(1 font-lock-reference-face t))
+               '(1 font-lock-constant-face t))
      ))
   "Default expressions to highlight in Metafont or MetaPost mode.")
 

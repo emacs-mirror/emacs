@@ -263,7 +263,7 @@ not be enclosed in { } or ( )."
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
    ;;
    ;; Variable references even in targets/strings/comments:
-   '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-reference-face prepend)
+   '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-constant-face prepend)
 
    ;; Highlight lines that contain just whitespace.
    ;; They can cause trouble, especially if they start with a tab.

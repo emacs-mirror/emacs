@@ -156,7 +156,7 @@ in the file it applies to."
 				      (3 . font-lock-keyword-face)
 				      (4 . font-lock-builtin-face)
 				      (5 . font-lock-comment-face)
-				      (6 . font-lock-reference-face)
+				      (6 . font-lock-constant-face)
 				      (7 . font-lock-type-face)
 				      (8 . font-lock-string-face))))
 			 font-lock-warning-face)

@@ -2699,7 +2699,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
              (- (point) (length label)) (point)
              'face (if comment
                        'font-lock-comment-face
-                     'font-lock-reference-face)))
+                     'font-lock-constant-face)))
 
           (insert (if counter (format " (%d) " cnt) "")
                   (if comment " LABEL IS COMMENTED OUT " "")
@@ -4114,7 +4114,7 @@ started with the command \\[reftex-citation].")
                          authors)
       (put-text-property 0 (length title)   'face 'font-lock-comment-face
                          title)
-      (put-text-property 0 (length extra)   'face 'font-lock-reference-face
+      (put-text-property 0 (length extra)   'face 'font-lock-constant-face
                          extra))
     (concat key "\n     " authors " " year " " extra "\n     " title "\n\n")))
 

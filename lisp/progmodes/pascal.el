@@ -164,7 +164,7 @@
    (cons (concat "\\<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
 		 "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\>")
 	 'font-lock-type-face)
-   '("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-reference-face)
+   '("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-constant-face)
    '("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-function-name-face)
 ;   ("of" "to" "for" "if" "then" "else" "case" "while"
 ;    "do" "until" "and" "or" "not" "in" "with" "repeat" "begin" "end")

@@ -104,10 +104,10 @@
        ;;
        ;; Words inside `' which tend to be symbol names.
        (list (concat "`\\(" sym-char sym-char "+\\)'")
-	     1 'font-lock-reference-face t)
+	     1 'font-lock-constant-face t)
        ;;
-       ;; CLisp `:' keywords as references.
-       (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-reference-face t))))
+       ;; CLisp `:' keywords as builtins.
+       (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-builtin-face t))))
   "Default expressions to highlight in Help mode.")
 
 (defun help-mode ()

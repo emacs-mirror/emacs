@@ -259,7 +259,7 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;;
    ;; Dired marks.
    (list dired-re-mark
-	 '(0 font-lock-reference-face)
+	 '(0 font-lock-constant-face)
 	 '(".+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
    ;; People who are paranoid about security would consider this more
    ;; important than other things such as whether it is a directory.

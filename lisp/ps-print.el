@@ -1278,7 +1278,7 @@ This applies to generating PostScript."
 (defcustom ps-underlined-faces
   (unless ps-print-color-p
     '(font-lock-function-name-face
-      font-lock-reference-face
+      font-lock-constant-face
       font-lock-warning-face))
   "*A list of the \(non-underlined\) faces that should be printed underlined.
 This applies to generating PostScript."

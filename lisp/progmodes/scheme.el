@@ -345,7 +345,7 @@ if that value is non-nil and inserts the value of
      '("(\\(element\\)\\>[ 	]*(\\(\\S)+\\))"
        (1 font-lock-keyword-face)
        (2 font-lock-type-face))
-     '("\\<\\sw+:\\>" . font-lock-reference-face) ; trailing `:' c.f. scheme
+     '("\\<\\sw+:\\>" . font-lock-constant-face) ; trailing `:' c.f. scheme
      ;; SGML markup (from sgml-mode) :
      '("<\\([!?][-a-z0-9]+\\)" 1 font-lock-keyword-face)
      '("<\\(/?[-a-z0-9]+\\)" 1 font-lock-function-name-face)))

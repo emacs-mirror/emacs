@@ -106,7 +106,7 @@ for file A.
     ("^\\sw.........[0-9: ]*"
      (0 font-lock-string-face)
      ("\\([^<]+\\)<\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)>" nil nil
-      (1 font-lock-reference-face)
+      (1 font-lock-constant-face)
       (2 font-lock-variable-name-face)))
     ;;
     ;; File names.

@@ -239,7 +239,7 @@ actually occur.")
 			"\\(" cite-chars "[ \t]*\\)\\)+"
 			"\\(.*\\)")
 	       (beginning-of-line) (end-of-line)
-	       (2 font-lock-reference-face nil t)
+	       (2 font-lock-constant-face nil t)
 	       (4 font-lock-comment-face nil t)))
 	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*"
 	      . font-lock-string-face))))

@@ -116,7 +116,7 @@ the tail of the list.")
 (defvar decipher-font-lock-keywords
   '(("^:.*"  . font-lock-keyword-face)
     ("^>.*"  . font-lock-string-face)
-    ("^%!.*" . font-lock-reference-face)
+    ("^%!.*" . font-lock-constant-face)
     ("^%.*"  . font-lock-comment-face)
     ("\\`(\\([a-z]+\\) +\\([A-Z]+\\)"
      (1 font-lock-string-face)
@@ -128,7 +128,7 @@ the tail of the list.")
 
 Ciphertext uses `font-lock-keyword-face', plaintext uses
 `font-lock-string-face', comments use `font-lock-comment-face', and
-checkpoints use `font-lock-reference-face'.  You can customize the
+checkpoints use `font-lock-constant-face'.  You can customize the
 display by changing these variables.  For best results, I recommend
 that all faces use the same background color.
 

@@ -1118,7 +1118,7 @@ the value of `bibtex-text-indentation', minus 2."
    ;; reference type and reference label
    (list bibtex-reference-maybe-empty-head
          (list bibtex-type-in-head 'font-lock-function-name-face)
-         (list bibtex-key-in-head 'font-lock-reference-face nil t))
+         (list bibtex-key-in-head 'font-lock-constant-face nil t))
    ;; comments
    (list 
     (concat "^\\([ \t]*" bibtex-comment-start ".*\\)$")

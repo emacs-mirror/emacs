@@ -103,7 +103,7 @@
      (cons (mapconcat 'identity
 		      '("&&" "||" "<=" "<" ">=" ">" "==" "!=" "!~" "~")
 		      "\\|")
-	   'font-lock-reference-face)
+	   'font-lock-constant-face)
      ))
  "Default expressions to highlight in AWK mode.")
 
