@@ -78,8 +78,15 @@ struct kboard
        commands that set the prefix argument.  */
     Lisp_Object Vlast_command;
 
+    /* Normally same as last-command, but never modified by
+       other commands.  */
+    Lisp_Object Vreal_last_command;
+
     /* The prefix argument for the next command, in raw form.  */
     Lisp_Object Vprefix_arg;
+
+    /* Saved prefix argument for the last command, in raw form.  */
+    Lisp_Object Vlast_prefix_arg;
 
     /* Unread events specific to this kboard.  */
     Lisp_Object kbd_queue;
