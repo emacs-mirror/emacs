@@ -39,6 +39,9 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
+/* These are used to print like we read.  */
+extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
+
 #ifdef LISP_FLOAT_TYPE
 Lisp_Object Vfloat_output_format, Qfloat_output_format;
 #endif /* LISP_FLOAT_TYPE */
@@ -74,6 +77,12 @@ Lisp_Object Vprint_level;
 int print_escape_newlines;
 
 Lisp_Object Qprint_escape_newlines;
+
+/* Nonzero means print (quote foo) forms as 'foo, etc.  */
+
+int print_quoted;
+
+Lisp_Object Qprint_quoted;
 
 /* Nonzero means print newline to stdout before next minibuffer message.
    Defined in xdisp.c */
@@ -991,6 +1000,28 @@ print (obj, printcharfun, escapeflag)
       if (INTEGERP (Vprint_level)
 	  && print_depth > XINT (Vprint_level))
 	strout ("...", -1, printcharfun);
+      else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
+	       && (EQ (XCAR (obj), Qquote)))
+	{
+	  PRINTCHAR ('\'');
+	  print (XCAR (XCDR (obj)), printcharfun, escapeflag);
+	}
+      else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
+	       && (EQ (XCAR (obj), Qfunction)))
+	{
+	  PRINTCHAR ('#');
+	  PRINTCHAR ('\'');
+	  print (XCAR (XCDR (obj)), printcharfun, escapeflag);
+	}
+      else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
+	       && ((EQ (XCAR (obj), Qbackquote)
+		    || EQ (XCAR (obj), Qcomma)
+		    || EQ (XCAR (obj), Qcomma_at)
+		    || EQ (XCAR (obj), Qcomma_dot))))
+	{
+	  print (XCAR (obj), printcharfun, 0);
+	  print (XCAR (XCDR (obj)), printcharfun, escapeflag);
+	}
       else
 	{
 	  PRINTCHAR ('(');
@@ -1012,11 +1043,11 @@ print (obj, printcharfun, escapeflag)
 		    strout ("...", 3, printcharfun);
 		    break;
 		  }
-		print (Fcar (obj), printcharfun, escapeflag);
-		obj = Fcdr (obj);
+		print (XCAR (obj), printcharfun, escapeflag);
+		obj = XCDR (obj);
 	      }
 	  }
-	  if (!NILP (obj) && !CONSP (obj))
+	  if (!NILP (obj))
 	    {
 	      strout (" . ", 3, printcharfun);
 	      print (obj, printcharfun, escapeflag);
@@ -1317,9 +1348,6 @@ print_interval (interval, printcharfun)
 void
 syms_of_print ()
 {
-  staticpro (&Qprint_escape_newlines);
-  Qprint_escape_newlines = intern ("print-escape-newlines");
-
   DEFVAR_LISP ("standard-output", &Vstandard_output,
     "Output stream `print' uses by default for outputting a character.\n\
 This may be any function of one argument.\n\
@@ -1365,6 +1393,12 @@ A value of nil means no limit.");
 Also print formfeeds as backslash-f.");
   print_escape_newlines = 0;
 
+  DEFVAR_BOOL ("print-quoted", &print_quoted,
+    "Non-nil means print quoted forms with reader syntax.\n\
+I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and, backquoted\n\
+forms print in the new syntax.");
+  print_quoted = 0;
+
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
 
@@ -1379,6 +1413,12 @@ Also print formfeeds as backslash-f.");
 
   Qexternal_debugging_output = intern ("external-debugging-output");
   staticpro (&Qexternal_debugging_output);
+
+  Qprint_escape_newlines = intern ("print-escape-newlines");
+  staticpro (&Qprint_escape_newlines);
+
+  Qprint_quoted = intern ("print-quoted");
+  staticpro (&Qprint_quoted);
 
 #ifndef standalone
   defsubr (&Swith_output_to_temp_buffer);
