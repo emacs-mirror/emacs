@@ -626,13 +626,15 @@
     (setq l (cdr l))))
 
 
-;; Setup auto-fill-chars for characters that should invoke auto-filling.
-;; SPACE and NEWLIE are already set.
+;; Setup auto-fill-chars for charsets that should invoke auto-filling.
+;; SPACE and NEWLIE are already set.  Also put `nospace-between-words'
+;; property to the charsets.
 (let ((l '(katakana-jisx0201
 	   japanese-jisx0208 japanese-jisx0212
 	   chinese-gb2312 chinese-big5-1 chinese-big5-2)))
   (while l
     (aset auto-fill-chars (make-char (car l)) t)
+    (put-charset-property (car l) 'nospace-between-words t)
     (setq l (cdr l))))
 
 ;;; Local Variables:
