@@ -1,5 +1,9 @@
 2001-03-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* bs.el (bs-cycle-next, bs-cycle-previous): Fix handling of
+	bs-cycle-configuration-name.  From Juanma Barranquero
+	<lektu@uol.com.br>.
+
 	* Makefile.in, makefile.w32-in (COMPILE_FIRST): Add cc-mode.el
 	and cc-vars.el.
 

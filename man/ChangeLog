@@ -1,3 +1,7 @@
+2001-03-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* cc-mode.texi: Updated to CC mode version 5.28.
+
 2001-03-20  John Wiegley  <johnw@gnu.org>
 
 	* calendar.texi: Added documentation for the Baha'i calendar
