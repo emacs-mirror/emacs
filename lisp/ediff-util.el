@@ -2355,10 +2355,7 @@ temporarily reverses the meaning of this variable."
 
   ;; warp mouse into a working window
   (setq warp-frame  ; if mouse is over a reasonable frame, use it
-	(cond ((and ediff-xemacs-p (window-live-p (car (mouse-position))))
-	       (window-frame (car (mouse-position))))
-	      ((frame-live-p (car (mouse-position)))
-	       (car (mouse-position)))
+	(cond ((ediff-good-frame-under-mouse))
 	      (t warp-frame)))
   (if (frame-live-p warp-frame)
       (set-mouse-position (if ediff-emacs-p
@@ -2369,6 +2366,24 @@ temporarily reverses the meaning of this variable."
   (if (ediff-buffer-live-p meta-buffer)
       (ediff-show-meta-buffer meta-buffer))
   ))
+
+;; Returns frame under mouse, if this frame is not a minibuffer
+;; frame. Otherwise: nil
+(defun ediff-good-frame-under-mouse ()
+  (let ((frame-or-win (car (mouse-position)))
+	(buf-name "")
+	frame obj-ok)
+    (setq obj-ok
+	  (if ediff-emacs-p
+	      (frame-live-p frame-or-win)
+	    (window-live-p frame-or-win)))
+    (if obj-ok
+	(setq frame (if ediff-emacs-p frame-or-win (window-frame frame-or-win))
+	      buf-name
+	      (buffer-name (window-buffer (frame-selected-window frame)))))
+    (if (string-match "Minibuf" buf-name)
+	nil
+      frame)))
   
   
 (defun ediff-delete-temp-files ()
