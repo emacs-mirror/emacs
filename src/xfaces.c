@@ -4080,8 +4080,7 @@ FRAME 0 means change the face on all frames, and change the default\n\
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-  if (!EQ (frame, Qt)
-      && !UNSPECIFIEDP (value)
+  if (!UNSPECIFIEDP (value)
       && NILP (Fequal (old_value, value)))
     {
       Lisp_Object param;
@@ -4136,13 +4135,20 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	++menu_face_change_count;
 
       if (!NILP (param))
-	{
-	  Lisp_Object cons;
-	  cons = XCAR (Vparam_value_alist);
-	  XCAR (cons) = param;
-	  XCDR (cons) = value;
-	  Fmodify_frame_parameters (frame, Vparam_value_alist);
-	}
+	if (EQ (frame, Qt))
+	  /* Update `default-frame-alist', which is used for new frames.  */
+	  {
+	    store_in_alist (&Vdefault_frame_alist, param, value);
+	  }
+	else
+	  /* Update the current frame's parameters.  */
+	  {
+	    Lisp_Object cons;
+	    cons = XCAR (Vparam_value_alist);
+	    XCAR (cons) = param;
+	    XCDR (cons) = value;
+	    Fmodify_frame_parameters (frame, Vparam_value_alist);
+	  }
     }
 
 #endif /* HAVE_WINDOW_SYSTEM */
