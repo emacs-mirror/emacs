@@ -1,3 +1,8 @@
+2005-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* case-table.el: Adjust code merged from trunk for unicode
+	branch (for the change on 2005-02-02).
+
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (DONTCOMPILE): Include charprop.el and uni-*.el.
