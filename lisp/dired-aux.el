@@ -949,7 +949,10 @@ Special value `always' suppresses confirmation.")
 ;;;###autoload
 (defun dired-copy-file (from to ok-flag)
   (dired-handle-overwrite to)
-  (copy-file from to ok-flag dired-copy-preserve-time))
+  (condition-case ()
+      (copy-file from to ok-flag dired-copy-preserve-time)
+    (file-date-error (message "Can't set date")
+		     (sit-for 1))))
 
 ;;;###autoload
 (defun dired-rename-file (from to ok-flag)
