@@ -37,6 +37,9 @@ Lisp_Object Vfontset_alias_alist;
 Lisp_Object Vhighlight_wrong_size_font;
 Lisp_Object Vclip_large_size_font;
 
+/* Used as a temporary in macro FS_LOAD_FONT.  */
+int font_idx_temp;
+
 /* We had better have our own strcasecmp function because some system
    doesn't have it.  */
 static char my_strcasetbl[256];
@@ -114,7 +117,10 @@ free_fontset_data (fontset_data)
    If loading fails, return 0;
    If FONTNAME is NULL, the name is taken from the information of FONTSET.
    If FONTSET is given, try to load a font whose size matches that of
-   FONTSET, and, the font index is stored in the table for FONTSET.  */
+   FONTSET, and, the font index is stored in the table for FONTSET.
+
+   If you give FONTSET argument, don't call this function directry,
+   instead call macro FS_LOAD_FONT with the same argument.  */
 
 struct font_info *
 fs_load_font (f, font_table, charset, fontname, fontset)
