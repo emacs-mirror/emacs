@@ -37,6 +37,9 @@
 ;; you do, information may be hidden from users who don't know it
 ;; already.
 
+;; Note that `hs-minor-mode' will do a similar job by default, but
+;; it's not selective about what leading commentary it hides.
+
 ;; Inspired by jwz's hide-copyleft.el, for which we don't have an
 ;; assignment.
 
