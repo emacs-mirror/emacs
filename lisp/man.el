@@ -489,16 +489,19 @@ See the variable `Man-notify' for the different notification behaviors."
       (set-buffer man-buffer)
       (new-frame Man-frame-parameters)))
    ((eq Man-notify 'bully)
-    (and (frame-live-p Man-original-frame)
+    (and window-system
+	 (frame-live-p Man-original-frame)
 	 (select-frame Man-original-frame))
     (pop-to-buffer man-buffer)
     (delete-other-windows))
    ((eq Man-notify 'aggressive)
-    (and (frame-live-p Man-original-frame)
+    (and window-system
+	 (frame-live-p Man-original-frame)
 	 (select-frame Man-original-frame))
     (pop-to-buffer man-buffer))
    ((eq Man-notify 'friendly)
-    (and (frame-live-p Man-original-frame)
+    (and window-system
+	 (frame-live-p Man-original-frame)
 	 (select-frame Man-original-frame))
     (display-buffer man-buffer 'not-this-window))
    ((eq Man-notify 'polite)
