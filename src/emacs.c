@@ -2135,6 +2135,17 @@ decode_env_path (evarname, defalt)
       /* Add /: to the front of the name
 	 if it would otherwise be treated as magic.  */
       tem = Ffind_file_name_handler (element, Qt);
+
+      /* However, if the handler says "I'm safe",
+	 don't bother adding /:.  */
+      if (SYMBOLP (tem))
+	{
+	  Lisp_Object prop;
+	  prop = Fget (tem, intern ("safe-magic"));
+	  if (! NILP (prop))
+	    tem = Qnil;
+	}
+
       if (! NILP (tem))
 	element = concat2 (build_string ("/:"), element);
 
