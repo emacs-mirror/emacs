@@ -689,7 +689,7 @@ We put that list in a buffer, and display the buffer.
 
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
-  (interactive "p")
+  (interactive "P")
   (describe-bindings-internal nil prefix))
 
 (defun where-is (definition &optional insert)
