@@ -1,3 +1,8 @@
+2001-07-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* composite.h (syms_of_composite): Renamed from
+	syms_of_composition.
+
 2001-07-18  Ken Raeburn  <raeburn@gnu.org>
 
 	* fns.c (Fset_char_table_default): Check that a charset is defined
