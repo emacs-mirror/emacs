@@ -741,8 +741,6 @@ for numeric input."
   (let ((message-log-max nil) done (first t) (code 0) char)
     (while (not done)
       (let ((inhibit-quit first)
-	    ;; Don't use input methods inside this function.
-	    (input-method-function nil)
 	    ;; Don't let C-h get the help message--only help function keys.
 	    (help-char nil)
 	    (help-form
@@ -750,8 +748,7 @@ for numeric input."
 or the octal character code.
 RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
-	(and prompt (message "%s-" prompt))
-	(setq char (read-event))
+	(setq char (read-event (and prompt (format "%s-" prompt)) t))
 	(if inhibit-quit (setq quit-flag nil)))
       ;; Translate TAB key into control-I ASCII character, and so on.
       (and char
