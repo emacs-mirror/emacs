@@ -300,8 +300,8 @@ by @code{cl-}.  Here is a complete list of functions @emph{not}
 prefixed by @code{cl-} which were not taken from Common Lisp:
 
 @example
-member        delete        remove        remq
-rassoc        floatp-safe   lexical-let   lexical-let*
+member        remove        remq
+floatp-safe   lexical-let   lexical-let*
 callf         callf2        letf          letf*
 defsubst*     defalias      add-hook      eval-when-compile
 @end example
@@ -3419,7 +3419,7 @@ which were left out of Emacs Lisp.
 
 @menu
 * Predicates on Numbers::       `plusp', `oddp', `floatp-safe', etc.
-* Numerical Functions::         `abs', `expt', `floor*', etc.
+* Numerical Functions::         `abs', `floor*', etc.
 * Random Numbers::              `random*', `make-random-state'
 * Implementation Parameters::   `most-positive-fixnum', `most-positive-float'
 @end menu
@@ -4521,13 +4521,6 @@ elements of @var{a-list} to be an error.)
 This function searches for an element whose @code{cdr} matches
 @var{item}.  If @var{a-list} represents a mapping, this applies
 the inverse of the mapping to @var{item}.
-@end defun
-
-@defun rassoc item a-list
-This function searches like @code{rassoc*} with a @code{:test}
-argument of @code{equal}.  It is analogous to Emacs Lisp's
-standard @code{assoc} function, which derives from the MacLisp
-rather than the Common Lisp tradition.
 @end defun
 
 @findex assoc-if
