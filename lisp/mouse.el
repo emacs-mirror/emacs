@@ -24,14 +24,55 @@
 
 ;;; Utility functions.
 
-(defun mouse-movement-p (event)
-  (and (consp event)
-       (eq (car event) 'mouse-movement)))
+(defsubst mouse-movement-p (object)
+  "Return non-nil if OBJECT is a mouse movement event."
+  (and (consp object)
+       (eq (car object) 'mouse-movement)))
 
-(defun event-window (event)	(nth 1 event))
-(defun event-point (event)	(nth 2 event))
-(defun mouse-coords (event)	(nth 3 event))
-(defun mouse-timestamp (event)	(nth 4 event))
+(defsubst event-start (event)
+  "Return the starting position of EVENT.
+If EVENT is a mouse press or a mouse click, this returns the location
+of the event.
+If EVENT is a drag, this returns the drag's starting position.
+The return value is of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+The `posn-' functions access elements of such lists."
+  (nth 1 event))
+
+(defsubst event-end (event)
+  "Return the ending location of EVENT.  EVENT should be a drag event.
+The return value is of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+The `posn-' functions access elements of such lists."
+  (nth 2 event))
+
+(defsubst posn-window (position)
+  "Return the window in POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (nth 0 position))
+
+(defsubst posn-point (position)
+  "Return the buffer location in POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (nth 1 position))
+
+(defsubst posn-col-row (position)
+  "Return the row and column in POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+as returned by the `event-start' and `event-end' functions."
+  (nth 2 position))
+
+(defsubst posn-timestamp (position)
+  "Return the timestamp of POSITION.
+POSITION should be a list of the form
+   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
+nas returned by the `event-start' and `event-end' functions."
+  (nth 3 position))
 
 ;;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
@@ -41,11 +82,11 @@
   "Delete the window you click on.
 This must be bound to a mouse click."
   (interactive "e")
-  (delete-window (event-window click)))
+  (delete-window (posn-window (event-start click))))
 
-(defun mouse-delete-other-windows (click)
+(defun mouse-delete-other-windows ()
   "Delete all window except the one you click on."
-  (interactive "@e")
+  (interactive "@")
   (delete-other-windows))
 
 (defun mouse-split-window-vertically (click)
@@ -53,7 +94,9 @@ This must be bound to a mouse click."
 The window is split at the line clicked on.
 This command must be bound to a mouse click."
   (interactive "@e")
-  (split-window-vertically (1+ (cdr (mouse-coords click)))))
+  (let ((start (event-start click)))
+    (select-window (posn-window start))
+    (split-window-vertically (1+ (cdr (posn-col-row click))))))
 
 (defun mouse-split-window-horizontally (click)
   "Select Emacs window mouse is on, then split it horizontally in half.
@@ -66,9 +109,10 @@ This command must be bound to a mouse click."
   "Move point to the position clicked on with the mouse.
 This must be bound to a mouse click."
   (interactive "e")
-  (select-window (event-window click))
-  (if (numberp (event-point click))
-      (goto-char (event-point click))))
+  (let ((posn (event-start click)))
+    (select-window (posn-window posn))
+    (if (numberp (posn-point posn))
+	(goto-char (posn-point posn)))))
 
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
@@ -186,7 +230,7 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (interactive "@e")
   (scroll-left (1+ (car (mouse-coords click)))))
 
-(defun mouse-scroll-right (ncolumns)
+(defun mouse-scroll-right (click)
   (interactive "@e")
   (scroll-right (1+ (car (mouse-coords click)))))
 
@@ -538,7 +582,6 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 ;; are properly implemented.
 (global-set-key   [mouse-1]	'mouse-set-point)
 
-(global-set-key   [down-mouse-1]	'mouse-set-point)
 (global-set-key   [drag-mouse-1]	'mouse-set-mark)
 (global-set-key   [mouse-2]	'mouse-yank-at-click)
 (global-set-key   [mouse-3]	'mouse-save-then-kill)
