@@ -1100,8 +1100,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	    (cons (list subexpr
 			(+ subexpr (nth 1 (car alist)))
 			(+ subexpr (nth 2 (car alist)))
-			(and (nth 2 (car alist))
-			     (+ subexpr (nth 2 (car alist)))))
+			(and (nth 3 (car alist))
+			     (+ subexpr (nth 3 (car alist)))))
 		  error-regexp-groups))
       (setq subexpr (+ subexpr 1 (count-regexp-groupings (car (car alist)))))
       (setq alist (cdr alist)))
