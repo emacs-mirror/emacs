@@ -1,5 +1,11 @@
 2000-05-25  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (run_pre_post_conversion_on_str): Set point to the
+	beginning of buffer before calling coding->post_read_conversion.
+	(decode_coding_string): Give correct args to
+	run_pre_post_conversion_on_str.
+	(encode_coding_string): Likewise.
+
 	* ccl.c (ccl_driver) <CCL_ReadMultibyteChar2>
 	<CCL_WriteMultibyteChar2>:  Handle charsets eight-bit-control and
 	eight-bit-graphic correctly.
