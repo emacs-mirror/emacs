@@ -2313,7 +2313,9 @@ Use %% to put a single % into the output.")
 	      args[n] = Ffloat (args[n]);
 #endif
 	    thissize = 30;	
-	    if (*format == 'c' && ! SINGLE_BYTE_CHAR_P (XINT (args[n])))
+	    if (*format == 'c'
+		&& (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
+		    || XINT (args[n]) == 0))
 	      {
 		if (! multibyte)
 		  {
@@ -2375,6 +2377,7 @@ Use %% to put a single % into the output.")
       if (*format == '%')
 	{
 	  int minlen;
+	  int negative = 0;
 	  unsigned char *this_format_start = format;
 
 	  format++;
@@ -2382,7 +2385,7 @@ Use %% to put a single % into the output.")
 	  /* Process a numeric arg and skip it.  */
 	  minlen = atoi (format);
 	  if (minlen < 0)
-	    minlen = - minlen;
+	    minlen = - minlen, negative = 1;
 
 	  while ((*format >= '0' && *format <= '9')
 		 || *format == '-' || *format == ' ' || *format == '.')
@@ -2399,22 +2402,31 @@ Use %% to put a single % into the output.")
 
 	  if (STRINGP (args[n]))
 	    {
-	      int padding, nbytes, width;
+	      int padding, nbytes;
+	      int width = strwidth (XSTRING (args[n])->data,
+				    XSTRING (args[n])->size_byte);
+
+	      /* If spec requires it, pad on right with spaces.  */
+	      padding = minlen - width;
+	      if (! negative)
+		while (padding-- > 0)
+		  {
+		    *p++ = ' ';
+		    nchars++;
+		  }
 
 	      nbytes = copy_text (XSTRING (args[n])->data, p,
 				  XSTRING (args[n])->size_byte,
 				  STRING_MULTIBYTE (args[n]), multibyte);
-	      width = strwidth (p, nbytes);
 	      p += nbytes;
 	      nchars += XSTRING (args[n])->size;
 
-	      /* If spec requires it, pad on right with spaces.  */
-	      padding = minlen - width;
-	      while (padding-- > 0)
-		{
-		  *p++ = ' ';
-		  nchars++;
-		}
+	      if (negative)
+		while (padding-- > 0)
+		  {
+		    *p++ = ' ';
+		    nchars++;
+		  }
 	    }
 	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
 	    {
