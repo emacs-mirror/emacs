@@ -3800,7 +3800,7 @@ This does code conversion according to the value of\n\
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
-  GCPRO3 (filename, visit, lockname);
+  GCPRO4 (start, filename, visit, lockname);
   filename = Fexpand_file_name (filename, Qnil);
   if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
