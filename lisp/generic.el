@@ -581,7 +581,7 @@ The regexp is highlighted with FACE."
 		"\\)\\>"
 		(or suffix ""))
 	1
-	face)))
+	face))
 
 (provide 'generic)
 
