@@ -601,6 +601,9 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (setq local-enable-local-variables nil)
   (make-local-variable 'next-line-add-newlines)
   (setq next-line-add-newlines nil)
+  ;; Prevent loss of data when saving the file.
+  (make-local-variable 'file-precious-flag)
+  (setq file-precious-flag t)
   (setq major-mode 'tar-mode)
   (setq mode-name "Tar")
   (use-local-map tar-mode-map)
