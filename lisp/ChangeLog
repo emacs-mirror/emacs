@@ -1,3 +1,7 @@
+2001-05-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* smerge-mode.el (smerge-mode): Force font-lock-multiline to t.
+
 2001-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/emacsbug.el (report-emacs-bug): Don't switch the buffer to
@@ -6,13 +10,12 @@
 2001-05-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* net/browse-url.el (browse-url-filename-alist): Allow UNC file
-	names for MS-Windows and MS-DOS.  From Dan Holmsand
-	<dan@eyebee.com>.
+	names for MS-Windows and MS-DOS.  From Dan Holmsand <dan@eyebee.com>.
 
 2001-05-09  John Wiegley  <johnw@gnu.org>
 
-	* eshell/esh-util.el (eshell-convert-numeric-arguments): Annotated
-	the documentation string to tell users about
+	* eshell/esh-util.el (eshell-convert-numeric-arguments):
+	Annotated the documentation string to tell users about
 	`eshell-no-numeric-conversions'.
 
 	* eshell/esh-cmd.el (eshell-lisp-command): Don't perform numeric
@@ -30,7 +33,7 @@
 	eshell/which, eshell/addpath.
 
 2001-05-09  John Wiegley  <johnw@gnu.org>
-	
+
 	* eshell/esh-arg.el (eshell-parse-argument-hook): If a number is
 	encountered as an argument, don't convert it right away, but tag
 	the first character of the string with the text properties
@@ -52,14 +55,14 @@
 	(eshell-proc-initialize): Don't bind keys for
 	`eshell-stop-process' or `eshell-continue-process'.
 
-	* eshell/em-unix.el (eshell-shuffle-files): Apply
-	`directory-file-name' before calling `file-name-directory'.
+	* eshell/em-unix.el (eshell-shuffle-files):
+	Apply `directory-file-name' before calling `file-name-directory'.
 
 	* eshell/em-hist.el (eshell-add-to-history): Reference to
 	`eshell-history-ring' needed to be `eshell-history-index'.
 
-	* calendar/timeclock.el (timeclock-find-discrep): Initialize
-	`elapsed' to 0.
+	* calendar/timeclock.el (timeclock-find-discrep):
+	Initialize `elapsed' to 0.
 	(timeclock-find-discrep): Set `timeclock-last-event-workday' if
 	it's still nil.
 
