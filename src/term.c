@@ -621,6 +621,15 @@ turn_on_highlight ()
     }
 }
 
+static void
+toggle_highlight ()
+{
+  if (standout_mode)
+    turn_off_highlight ();
+  else
+    turn_on_highlight ();
+}
+
 
 /* Make cursor invisible.  */
 
@@ -2009,8 +2018,44 @@ turn_on_face (f, face_id)
      int face_id;
 {
   struct face *face = FACE_FROM_ID (f, face_id);
+  long fg = face->foreground;
+  long bg = face->background;
 
-  xassert (face != NULL);
+  /* Do this first because TS_end_standout_mode may be the same
+     as TS_exit_attribute_mode, which turns all appearances off. */
+  if (MAY_USE_WITH_COLORS_P (NC_REVERSE))
+    {
+      if (TN_max_colors > 0)
+	{
+	  if (fg >= 0 && bg >= 0)
+	    {
+	      /* If the terminal supports colors, we can set them
+		 below without using reverse video.  The face's fg
+		 and bg colors are set as they should appear on
+		 the screen, i.e. they take the inverse-video'ness
+		 of the face already into account.  */
+	    }
+	  else if (inverse_video)
+	    {
+	      if (fg == FACE_TTY_DEFAULT_FG_COLOR
+		  || bg == FACE_TTY_DEFAULT_BG_COLOR)
+		toggle_highlight ();
+	    }
+	  else
+	    {
+	      if (fg == FACE_TTY_DEFAULT_BG_COLOR
+		  || bg == FACE_TTY_DEFAULT_FG_COLOR)
+		toggle_highlight ();
+	    }
+	}
+      else
+	{
+	  /* If we can't display colors, use reverse video
+	     if the face specifies that.  */
+	  if (face->tty_reverse_p)
+	    toggle_highlight ();
+	}
+    }
 
   if (face->tty_bold_p)
     {
@@ -2036,32 +2081,20 @@ turn_on_face (f, face_id)
       && MAY_USE_WITH_COLORS_P (NC_UNDERLINE))
     OUTPUT1_IF (TS_enter_underline_mode);
 
-  if (MAY_USE_WITH_COLORS_P (NC_REVERSE))
-    if (face->tty_reverse_p
-	|| face->foreground == FACE_TTY_DEFAULT_BG_COLOR
-	|| face->background == FACE_TTY_DEFAULT_FG_COLOR)
-      OUTPUT1_IF (TS_enter_reverse_mode);
-
   if (TN_max_colors > 0)
     {
       char *p;
       
-      if (face->foreground != FACE_TTY_DEFAULT_COLOR
-	  && face->foreground != FACE_TTY_DEFAULT_FG_COLOR
-	  && face->foreground != FACE_TTY_DEFAULT_BG_COLOR
-	  && TS_set_foreground)
+      if (fg >= 0 && TS_set_foreground)
 	{
-	  p = tparam (TS_set_foreground, NULL, 0, (int) face->foreground);
+	  p = tparam (TS_set_foreground, NULL, 0, (int) fg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
 
-      if (face->background != FACE_TTY_DEFAULT_COLOR
-	  && face->background != FACE_TTY_DEFAULT_BG_COLOR
-	  && face->background != FACE_TTY_DEFAULT_FG_COLOR
-	  && TS_set_background)
+      if (bg >= 0 && TS_set_background)
 	{
-	  p = tparam (TS_set_background, NULL, 0, (int) face->background);
+	  p = tparam (TS_set_background, NULL, 0, (int) bg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
