@@ -164,6 +164,7 @@ Lisp_Object Qgeometry;
 Lisp_Object Qicon_left;
 Lisp_Object Qicon_top;
 Lisp_Object Qicon_type;
+Lisp_Object Qicon_name;
 Lisp_Object Qinternal_border_width;
 Lisp_Object Qleft;
 Lisp_Object Qmouse_color;
@@ -639,6 +640,7 @@ void x_set_cursor_color ();
 void x_set_border_color ();
 void x_set_cursor_type ();
 void x_set_icon_type ();
+void x_set_icon_name ();
 void x_set_font ();
 void x_set_border_width ();
 void x_set_internal_border_width ();
@@ -660,6 +662,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "border-color", x_set_border_color,
   "cursor-type", x_set_cursor_type,
   "icon-type", x_set_icon_type,
+  "icon-name", x_set_icon_name,
   "font", x_set_font,
   "border-width", x_set_border_width,
   "internal-border-width", x_set_internal_border_width,
@@ -1010,6 +1013,7 @@ x_report_frame_params (f, alistptr)
   sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
+  store_in_alist (alistptr, Qicon_name, f->display.x->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);
   store_in_alist (alistptr, Qvisibility,
 		  (FRAME_VISIBLE_P (f) ? Qt
@@ -1454,7 +1458,10 @@ x_set_icon_type (f, arg, oldval)
 
   BLOCK_INPUT;
   if (NILP (arg))
-    result = x_text_icon (f, 0);
+    result = x_text_icon (f,
+			  (char *) XSTRING ((!NILP (f->display.x->icon_name)
+					     ? f->display.x->icon_name
+					     : f->name))->data);
   else
     result = x_bitmap_icon (f, arg);
 
@@ -1491,6 +1498,54 @@ x_icon_type (f)
     return XCONS (tem)->cdr;
   else
     return Qnil;
+}
+
+void
+x_set_icon_name (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  Lisp_Object tem;
+  int result;
+
+  if (STRINGP (arg))
+    {
+      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+	return;
+    }
+  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+    return;
+
+  f->display.x->icon_name = arg;
+
+  if (f->display.x->icon_bitmap != 0)
+    return;
+
+  BLOCK_INPUT;
+
+  result = x_text_icon (f,
+			(char *) XSTRING ((!NILP (f->display.x->icon_name)
+					   ? f->display.x->icon_name
+					   : f->name))->data);
+
+  if (result)
+    {
+      UNBLOCK_INPUT;
+      error ("No icon window available");
+    }
+
+  /* If the window was unmapped (and its icon was mapped),
+     the new icon is not mapped, so map the window in its stead.  */
+  if (FRAME_VISIBLE_P (f))
+    {
+#ifdef USE_X_TOOLKIT
+      XtPopup (f->display.x->widget, XtGrabNone);
+#endif
+      XMapWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+    }
+
+  XFlush (FRAME_X_DISPLAY (f));
+  UNBLOCK_INPUT;
 }
 
 extern Lisp_Object x_new_font ();
@@ -1694,19 +1749,30 @@ x_set_name (f, name, explicit)
       BLOCK_INPUT;
 #ifdef HAVE_X11R4
       {
-	XTextProperty text;
+	XTextProperty text, icon;
+	Lisp_Object icon_name;
+
 	text.value = XSTRING (name)->data;
 	text.encoding = XA_STRING;
 	text.format = 8;
 	text.nitems = XSTRING (name)->size;
+
+	icon_name = (!NILP (f->display.x->icon_name)
+		     ? f->display.x->icon_name
+		     : name);
+
+	icon.value = XSTRING (icon_name)->data;
+	icon.encoding = XA_STRING;
+	icon.format = 8;
+	icon.nitems = XSTRING (icon_name)->size;
 #ifdef USE_X_TOOLKIT
 	XSetWMName (FRAME_X_DISPLAY (f),
 		    XtWindow (f->display.x->widget), &text);
 	XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->display.x->widget),
-			&text);
+			&icon);
 #else /* not USE_X_TOOLKIT */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
-	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
+	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
       }
 #else /* not HAVE_X11R4 */
@@ -2668,6 +2734,11 @@ x_icon (f, parms)
 	 ? IconicState
 	 : NormalState));
 
+  x_text_icon (f,
+	       (char *) XSTRING ((!NILP (f->display.x->icon_name)
+				  ? f->display.x->icon_name
+				  : f->name))->data);
+
   UNBLOCK_INPUT;
 }
 
@@ -2827,6 +2898,9 @@ This function is an internal primitive--use `make-frame' instead.")
   f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
   bzero (f->display.x, sizeof (struct x_display));
   f->display.x->icon_bitmap = -1;
+
+  f->display.x->icon_name
+    = x_get_arg (parms, Qicon_name, "iconName", "Title", string);
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #ifdef MULTI_KBOARD
@@ -4773,6 +4847,8 @@ syms_of_xfns ()
   staticpro (&Qicon_top);
   Qicon_type = intern ("icon-type");
   staticpro (&Qicon_type);
+  Qicon_name = intern ("icon-name");
+  staticpro (&Qicon_name);
   Qinternal_border_width = intern ("internal-border-width");
   staticpro (&Qinternal_border_width);
   Qleft = intern ("left");
