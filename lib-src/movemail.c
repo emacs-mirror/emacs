@@ -129,7 +129,8 @@ extern int lk_open (), lk_close ();
 #endif
 
 #if !defined (MAIL_USE_SYSTEM_LOCK) && !defined (MAIL_USE_MMDF) && \
-	defined (HAVE_LIBMAIL) && defined (HAVE_MAILLOCK_H)
+	(defined (HAVE_LIBMAIL) || defined (HAVE_LIBLOCKFILE)) && \
+        defined (HAVE_MAILLOCK_H)
 #include <maillock.h>
 /* We can't use maillock unless we know what directory system mail
    files appear in. */
