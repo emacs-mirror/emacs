@@ -768,6 +768,11 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
     (insert "(quail-define-rules\n")
     (save-excursion
       (set-buffer dicbuf)
+      ;; Handle double CR line ends, which result when checking out of
+      ;; CVS on MS-Windows.
+      (goto-char (point-min))
+      (while (re-search-forward "\r\r$" nil t)
+	(replace-match ""))
       (goto-char (point-min))
       (search-forward "A440")
       (beginning-of-line)

@@ -1,3 +1,8 @@
+2003-09-02  Jason Rumney  <jasonr@gnu.org>
+
+	* international/titdic-cnv.el (tsang-quick-converter): Fix broken
+	line-ends from CVS before doing conversion.
+
 2003-09-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (diary-header-line-flag)
