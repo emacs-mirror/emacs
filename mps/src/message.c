@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.5) $
+ * $HopeName: MMsrc!message.c(trunk.6) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.5) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.6) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -349,31 +349,28 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
   return;
 }
 
-Size MessageCollectionStatsLiveSize(Arena arena, Message message)
+Size MessageCollectionStatsLiveSize(Message message)
 {
-  AVERT(Arena, arena);
   AVERT(Message, message);
   AVER(message->type == MessageTypeCollectionStats);
 
-  return (*message->class->collectionStatsLiveSize)(arena, message);
+  return (*message->class->collectionStatsLiveSize)(message);
 }
 
-Size MessageCollectionStatsCondemnedSize(Arena arena, Message message)
+Size MessageCollectionStatsCondemnedSize(Message message)
 {
-  AVERT(Arena, arena);
   AVERT(Message, message);
   AVER(message->type == MessageTypeCollectionStats);
 
-  return (*message->class->collectionStatsCondemnedSize)(arena, message);
+  return (*message->class->collectionStatsCondemnedSize)(message);
 }
 
-Size MessageCollectionStatsNotCondemnedSize(Arena arena, Message message)
+Size MessageCollectionStatsNotCondemnedSize(Message message)
 {
-  AVERT(Arena, arena);
   AVERT(Message, message);
   AVER(message->type == MessageTypeCollectionStats);
 
-  return (*message->class->collectionStatsNotCondemnedSize)(arena, message);
+  return (*message->class->collectionStatsNotCondemnedSize)(message);
 }
 
 
@@ -389,30 +386,30 @@ void MessageNoFinalizationRef(Ref *refReturn, Arena arena,
   NOTREACHED;
 }
 
-Size MessageNoCollectionStatsLiveSize(Arena arena, Message message)
+Size MessageNoCollectionStatsLiveSize(Message message)
 {
-  AVERT(Arena, arena);
   AVERT(Message, message);
+  UNUSED(message);
 
   NOTREACHED;
 
   return (Size)0;
 }
 
-Size MessageNoCollectionStatsCondemnedSize(Arena arena, Message message)
+Size MessageNoCollectionStatsCondemnedSize(Message message)
 {
-  AVERT(Arena, arena);
   AVERT(Message, message);
+  UNUSED(message);
 
   NOTREACHED;
 
   return (Size)0;
 }
 
-Size MessageNoCollectionStatsNotCondemnedSize(Arena arena, Message message)
+Size MessageNoCollectionStatsNotCondemnedSize(Message message)
 {
-  AVERT(Arena, arena);
   AVERT(Message, message);
+  UNUSED(message);
 
   NOTREACHED;
 
