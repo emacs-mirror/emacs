@@ -925,7 +925,7 @@ Auto-indent does not happen if a numeric ARG is used."
   ;; Having got a possible match for the subprogram end, we need a
   ;; match of whitespace, avoiding possible column 73+ stuff.
   (save-match-data
-    (string-match "^\\s-*\\'"
+    (string-match "^\\s-*\\(\\'\\|\\s<\\)"
 		  (buffer-substring (match-end 0)
 				    (min (line-end-position)
 					 (+ 72 (line-beginning-position)))))))
