@@ -1113,7 +1113,9 @@ AC_AIX
 AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h)
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h termcap.h)
+AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
+  linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
+  termcap.h stdio_ext.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1161,6 +1163,13 @@ fi
 dnl checks for structure members
 AC_STRUCT_TM
 AC_STRUCT_TIMEZONE
+AC_CACHE_CHECK(for tm_gmtoff in struct tm, emacs_cv_tm_gmtoff,
+AC_TRY_LINK([#include <time.h>], [struct tm t; t.tm_gmtoff = 0],
+  emacs_cv_tm_gmtoff=yes,
+  emacs_cv_tm_gmtoff=no))
+if test $emacs_cv_tm_gmtoff = yes; then
+  AC_DEFINE(HAVE_TM_GMTOFF)
+fi
 
 dnl checks for compiler characteristics
 AC_C_CONST
@@ -1772,7 +1781,8 @@ AC_CHECK_FUNCS(gettimeofday gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
-utimes setrlimit setpgid getcwd shutdown strftime getaddrinfo)
+utimes setrlimit setpgid getcwd shutdown strftime getaddrinfo \
+__fpending ftello getloadavg mblen mbrlen strsignal)
 
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
@@ -1788,9 +1798,6 @@ AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
 AC_TRY_RUN([#include <time.h>
-#if STDC_HEADERS
-# include <stdlib.h>
-#endif
 extern char **environ;
 unset_TZ ()
 {

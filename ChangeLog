@@ -1,3 +1,13 @@
+1999-10-19  Paul Eggert  <eggert@twinsun.com>
+
+	Add support for large files.  Merge glibc 2.1.2.
+
+	* configure.in (AC_CHECK_HEADERS): Add stdio_ext.h.
+	(HAVE_TM_GMTOFF): New symbol.
+	(AC_CHECK_FUNCS): Add __fpending, ftello, getloadavg, mblen,
+	mbrlen, strsignal.
+	(LOCALTIME_CACHE): Don't include stdlib.h, as config.h does this now.
+	
 1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* make-dist (dontcompile): look for the DONTCOMPILE variable rather
