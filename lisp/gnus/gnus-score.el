@@ -1,5 +1,5 @@
-1;;; gnus-score.el --- scoring code for Gnus
-;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
+;;; gnus-score.el --- scoring code for Gnus
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
