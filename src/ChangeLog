@@ -1,3 +1,32 @@
+2002-01-13  Jan Djarv  <Jan.Djarv@mbox200.swipnet.se>
+
+	* xterm.h (struct x_output): New members want_fullscreen,
+	x_pixels_diff, y_pixels_diff, x_pixels_outer_diff, and
+	y_pixels_outer_diff.
+	New enum for FULLSCREEN_* constants.
+	(FRAME_OUTER_WINDOW): Handle the case where output_data.x->widget
+	is NULL.
+	(x_fullscreen_adjust): Add prototype.
+
+	* emacs.c (USAGE2): Add the new full-screen arguments.
+	(standard_args): Ditto.
+
+	* xfns.c (Qfullscreen, Qfullwidth, Qfullheight, Qfullboth): New
+	variables.
+	(syms_of_xfns): Intern and staticpro them.
+	(x_frame_parms) <"fullscreen">: New parameter.
+	(x_fullscreen_move, x_set_fullscreen): New functions.
+	(x_set_frame_parameters): Support for Qfullscreen.
+	(x_real_positions): More accurate computation of the frame position.
+	(x_figure_window_size): Support full-screen frames.
+	(Fx_create_frame): Default the fullscreen parameter.
+
+	* xterm.c (x_check_fullscreen, x_fullscreen_adjust): New functions.
+	(XTread_socket) <Expose>: Call x_check_fullscreen.
+	<ConfigureNotify>: Don't resize to fullscreen.  Call
+	x_check_fullscreen_move, and set the want_fullscreen member of
+	output_data.x.
+
 2002-01-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (WM_XBUTTONDOWN, WM_XBUTTONUP): New window messages

@@ -1,4 +1,4 @@
-2002-01-13  Eli Zaretskii  <eliz@gnu.org>
+2002-01-13  Jan Djarv  <Jan.Djarv@mbox200.swipnet.se>
 
 	* startup.el (command-line-x-option-alist): New options "-fs",
 	"-fw", "-fh", "--fullscreen", "--fullwidth", and "--fullheight".
