@@ -258,6 +258,7 @@ chapter."
   (modify-syntax-entry ?\] ")[" texinfo-mode-syntax-table)
   (modify-syntax-entry ?{ "(}" texinfo-mode-syntax-table)
   (modify-syntax-entry ?} "){" texinfo-mode-syntax-table)
+  (modify-syntax-entry ?\n ">" texinfo-mode-syntax-table)
   (modify-syntax-entry ?\' "w" texinfo-mode-syntax-table))
 
 ;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
@@ -269,10 +270,13 @@ chapter."
 
   "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.")
 
+(defvar texinfo-font-lock-syntactic-keywords
+  '(("\\(@\\)c\\(omment\\)?\\>" (1 '(11))))
+  "Syntactic keywords to catch comment delimiters in `texinfo-mode'.")
+
 (defvar texinfo-font-lock-keywords
-  '(;; All but the first 2 had an OVERRIDE of t.
+  '(;; All but the first had an OVERRIDE of t.
     ;; It didn't seem to be any better, and it's slower--simon.
-    ("^\\(@c\\|@comment\\)\\>.*" . font-lock-comment-face) ;comments
     ;; Robert J. Chassell <bob@gnu.org> says remove this line.
     ;;("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
     ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face) ;commands
@@ -350,6 +354,10 @@ chapter."
   ;; bindings for `texnfo-tex.el'
   (texinfo-define-common-keys texinfo-mode-map)
 
+  ;; Bindings from `tex-mode.el'
+  ;; This should still use " when inside @example and @code
+  ;;(define-key texinfo-mode-map "\"" 'tex-insert-quote)
+
   ;; bindings for `makeinfo.el'
   (define-key texinfo-mode-map "\C-c\C-m\C-k" 'kill-compilation)
   (define-key texinfo-mode-map "\C-c\C-m\C-l"
@@ -377,7 +385,7 @@ chapter."
   (define-key texinfo-mode-map "\C-c{"          'texinfo-insert-braces)
 
   ;; bindings for inserting strings
-
+  (define-key texinfo-mode-map "\C-c\C-o"     'texinfo-insert-block)
   (define-key texinfo-mode-map "\C-c\C-c\C-d" 'texinfo-start-menu-description)
 
   (define-key texinfo-mode-map "\C-c\C-cv"    'texinfo-insert-@var)
@@ -396,13 +404,15 @@ chapter."
 
 ;;; Texinfo mode
 
+;; Also defined in texnfo-upd.el but copied here to avoid having
+;; to require texnfo-upd.el.
 (defvar texinfo-chapter-level-regexp
   "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
   "Regular expression matching Texinfo chapter-level headings.
 This does not match `@node' and does not match the `@top' command.")
 
 ;;;###autoload
-(defun texinfo-mode ()
+(define-derived-mode texinfo-mode text-mode "Texinfo"
   "Major mode for editing Texinfo files.
 
   It has these extra commands:
@@ -466,14 +476,8 @@ Top node, is accompanied by some kind of section line, such as an
 If the file has a `top' node, it must be called `top' or `Top' and
 be the first node in the file.
 
-Entering Texinfo mode calls the value of text-mode-hook, and then the
-value of texinfo-mode-hook."
-  (interactive)
-  (text-mode)
-  (setq mode-name "Texinfo")
-  (setq major-mode 'texinfo-mode)
-  (use-local-map texinfo-mode-map)
-  (set-syntax-table texinfo-mode-syntax-table)
+Entering Texinfo mode calls the value of `text-mode-hook', and then the
+value of `texinfo-mode-hook'."
   (make-local-variable 'page-delimiter)
   (setq page-delimiter
         (concat
@@ -496,19 +500,21 @@ value of texinfo-mode-hook."
   (make-local-variable 'comment-start)
   (setq comment-start "@c ")
   (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "@c +")
+  (setq comment-start-skip "@c +\\|@comment +")
   (make-local-variable 'words-include-escapes)
   (setq words-include-escapes t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression texinfo-imenu-generic-expression)
   (setq imenu-case-fold-search nil)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(texinfo-font-lock-keywords t))
+  (setq font-lock-defaults
+	'(texinfo-font-lock-keywords nil nil nil nil
+				     (font-lock-syntactic-keywords
+				      . texinfo-font-lock-syntactic-keywords)))
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (make-local-variable 'outline-regexp)
   (setq outline-regexp
-        (concat "@\\("
-                (mapconcat 'car texinfo-section-list "\\>\\|")
-                "\\>\\)"))
+        (concat "@" (regexp-opt (mapcar 'car texinfo-section-list) t) "\\>"))
   (make-local-variable 'outline-level)
   (setq outline-level 'texinfo-outline-level)
   (make-local-variable 'tex-start-of-header)
@@ -518,58 +524,73 @@ value of texinfo-mode-hook."
   (make-local-variable 'tex-first-line-header-regexp)
   (setq tex-first-line-header-regexp "^\\\\input")
   (make-local-variable 'tex-trailer)
-  (setq tex-trailer "@bye\n")
-  (run-hooks 'text-mode-hook 'texinfo-mode-hook))
+  (setq tex-trailer "@bye\n"))
 
 
 ;;; Insert string commands
 
-;; Keep as concatinated lists for ease of maintenance
+(defconst texinfo-environments
+  '("cartouche"
+    "defcv"
+    "deffn"
+    "defivar"
+    "defmac"
+    "defmethod"
+    "defop"
+    "defopt"
+    "defspec"
+    "deftp"
+    "deftypefn"
+    "deftypefun"
+    "deftypevar"
+    "deftypevr"
+    "defun"
+    "defvar"
+    "defvr"
+    "description"
+    "display"
+    "enumerate"
+    "example"
+    "flushleft"
+    "flushright"
+    "format"
+    "ftable"
+    "group"
+    "ifclear"
+    "ifset"
+    "ifhtml"
+    "ifinfo"
+    "ifnothtml"
+    "ifnotinfo"
+    "ifnottex"
+    "iftex"
+    "ignore"
+    "itemize"
+    "lisp"
+    "macro"
+    "multitable"
+    "quotation"
+    "smalldisplay"
+    "smallexample"
+    "smallformat"
+    "smalllisp"
+    "table"
+    "tex"
+    "titlepage"
+    "vtable")
+  "List of TeXinfo environments.")
+
+;; Keep as concatenated lists for ease of maintenance
 (defconst texinfo-environment-regexp
-  (concat
-   "^@\\("
-   (mapconcat 'identity
-	      '("cartouche"
-		"display"
-		"end"
-		"enumerate"
-		"example"
-		"deffn"
-		"defun"
-		"defmac"
-		"defspec"
-		"defva?r"
-		"defopt"
-		"deftypefu?n"
-		"deftypeva?r"
-		"defcv"
-		"defivar"
-		"defop"
-		"defmethod"
-		"deftp"
-		"f?table"
-		"flushleft"
-		"flushright"
-		"format"
-		"group"
-		"ifhtml"
-		"ifinfo"
-		"iftex"
-		"ignore"
-		"itemize"
-		"lisp"
-		"macro"
-		"multitable"
-		"quotation"
-		"smalldisplay"
-		"smallexample"
-		"smallformat"
-		"smalllisp"
-		"tex")
-	      "\\|")
-   "\\)")
+  (concat "^@" (regexp-opt (cons "end" texinfo-environments) t) "\\>")
   "Regexp for environment-like TexInfo list commands.
    Subexpression 1 is what goes into the corresponding `@end' statement.")
+
+(define-skeleton texinfo-insert-block
+  "Create a matching pair @<cmd> .. @end <cmd> at point.
+Puts point on a blank line between them."
+  (completing-read "Block name: " (mapcar 'list texinfo-environments))
+  "@" str \n _ \n "@end " str \n)
 
 ;; The following texinfo-insert-@end command not only inserts a SPC
 ;; after the @end, but tries to find out what belongs there.  It is
