@@ -2366,6 +2366,7 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
 (defcustom next-line-add-newlines nil
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error."
   :type 'boolean
+  :version "21.1"
   :group 'editing-basics)
 
 (defun next-line (arg)
