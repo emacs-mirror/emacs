@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/11/01 04:20:43 $|$Revision: 1.75 $
+;; |$Date: 1994/11/15 16:53:29 $|$Revision: 1.76 $
 
 ;; This file is part of GNU Emacs.
 
@@ -104,18 +104,8 @@
 ;;; Code:
 
 
-;;;=========================================================================
-;;; Emacs features
-
-;; isearch-mode takes advantage of the features provided by several
-;; different versions of emacs.  Rather than testing the version of
-;; emacs, several constants are defined, one for each of the features.
-;; Each of the tests below must work on any version of emacs.
-;; (Perhaps provide and featurep could be used for this purpose.)
-
-(defconst isearch-gnu-emacs-events (fboundp 'set-frame-height)) ;; emacs 19
-(defconst isearch-pre-command-hook-exists (boundp 'pre-command-hook)) ;; lemacs
-(defconst isearch-event-data-type nil)  ;; lemacs
+;;;========================================================================
+;;; Some additional options and constants.
 
 (defconst search-exit-option t
   "*Non-nil means random control characters terminate incremental search.")
@@ -130,9 +120,6 @@ and the value is minus the number of lines.")
   "*Highest terminal speed at which to use \"slow\" style incremental search.
 This is the style where a one-line window is created to show the line
 that the search has reached.")
-
-;;;========================================================================
-;;; Some additional options and constants.
 
 (defvar search-upper-case 'not-yanks
   "*If non-nil, upper case chars disable case fold searching.
@@ -290,9 +277,8 @@ Default value, nil, means edit the string instead.")
 
       (define-key map "\M-\t" 'isearch-complete)
 
-      ;; For emacs 19, switching frames should terminate isearch-mode
-      (if isearch-gnu-emacs-events
-	  (define-key map [switch-frame] 'isearch-switch-frame-handler))
+      ;; Switching frames should terminate isearch-mode
+      (define-key map [switch-frame] 'isearch-switch-frame-handler)
       
       (setq isearch-mode-map map)
       ))
@@ -507,10 +493,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq isearch-window-configuration
 	(if isearch-slow-terminal-mode (current-window-configuration) nil))
 
-;; This was for Lucid Emacs.  But now that we have pre-command-hook,
-;; it causes trouble.
-;;  (if isearch-pre-command-hook-exists
-;;      (add-hook 'pre-command-hook 'isearch-pre-command-hook))
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (set-buffer-modified-p (buffer-modified-p)) ; update modeline
 
@@ -535,11 +517,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
 (defun isearch-update ()
   ;; Called after each command to update the display.  
-  (if (if isearch-event-data-type
-	  (null unread-command-event)
-	(if isearch-gnu-emacs-events
-	    (null unread-command-events)
-	  (< unread-command-char 0)))
+  (if (null unread-command-events)
       (progn
 	(if (not (input-pending-p))
 	    (isearch-message))
@@ -1432,8 +1410,6 @@ since they have special meaning in a regexp."
 
 (defun isearch-last-command-char ()
   ;; General function to return the last command character.
-  (if isearch-event-data-type
-      last-command-event
-    last-command-char))
+  last-command-char)
 
 ;;; isearch.el ends here
