@@ -114,8 +114,7 @@ Lisp_Object read_minibuf ();
    but if EXPFLAG is nonzero, read it and return the object read.
    If HISTVAR is given, save the value read on that history only if it doesn't
    match the front of that history list exactly.  The value is pushed onto
-   the list as the string that was read, or as the object that resulted iff
-   EXPFLAG is nonzero.  */
+   the list as the string that was read.  */
 
 Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
