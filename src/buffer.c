@@ -456,7 +456,6 @@ reset_buffer (b)
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
-  b->redisplay_end_trigger = Qnil;
   b->extra1 = Qnil;
   b->extra2 = Qnil;
   b->extra3 = Qnil;
@@ -910,8 +909,8 @@ before the buffer is actually killed.  The buffer to be killed is current\n\
 when the hook functions are called.\n\n\
 Any processes that have this buffer as the `process-buffer' are killed\n\
 with `delete-process'.")
-  (bufname)
-     Lisp_Object bufname;
+  (buffer)
+     Lisp_Object buffer;
 {
   Lisp_Object buf;
   register struct buffer *b;
@@ -919,12 +918,12 @@ with `delete-process'.")
   register struct Lisp_Marker *m;
   struct gcpro gcpro1, gcpro2;
 
-  if (NILP (bufname))
+  if (NILP (buffer))
     buf = Fcurrent_buffer ();
   else
-    buf = Fget_buffer (bufname);
+    buf = Fget_buffer (buffer);
   if (NILP (buf))
-    nsberror (bufname);
+    nsberror (buffer);
 
   b = XBUFFER (buf);
 
@@ -936,7 +935,7 @@ with `delete-process'.")
   if (INTERACTIVE && !NILP (b->filename)
       && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
     {
-      GCPRO2 (buf, bufname);
+      GCPRO1 (buf);
       tem = do_yes_or_no_p (format1 ("Buffer %s modified; kill anyway? ",
 				     XSTRING (b->name)->data));
       UNGCPRO;
@@ -1172,8 +1171,8 @@ do not put this buffer at the front of the list of recently selected ones.\n\
 WARNING: This is NOT the way to work on another buffer temporarily\n\
 within a Lisp program!  Use `set-buffer' instead.  That avoids messing with\n\
 the window-buffer correspondences.")
-  (bufname, norecord)
-     Lisp_Object bufname, norecord;
+  (buffer, norecord)
+     Lisp_Object buffer, norecord;
 {
   register Lisp_Object buf;
   Lisp_Object tem;
@@ -1184,14 +1183,14 @@ the window-buffer correspondences.")
   if (!NILP (tem))
     error ("Cannot switch buffers in a dedicated window");
 
-  if (NILP (bufname))
+  if (NILP (buffer))
     buf = Fother_buffer (Fcurrent_buffer (), Qnil);
   else
     {
-      buf = Fget_buffer (bufname);
+      buf = Fget_buffer (buffer);
       if (NILP (buf))
 	{
-	  buf = Fget_buffer_create (bufname);
+	  buf = Fget_buffer_create (buffer);
 	  Fset_buffer_major_mode (buf);
 	}
     }
@@ -1213,18 +1212,18 @@ If BUFFER is nil, then some other buffer is chosen.\n\
 If `pop-up-windows' is non-nil, windows can be split to do this.\n\
 If optional second arg OTHER-WINDOW is non-nil, insist on finding another\n\
 window even if BUFFER is already visible in the selected window.")
-  (bufname, other)
-     Lisp_Object bufname, other;
+  (buffer, other)
+     Lisp_Object buffer, other;
 {
   register Lisp_Object buf;
-  if (NILP (bufname))
+  if (NILP (buffer))
     buf = Fother_buffer (Fcurrent_buffer (), Qnil);
   else
     {
-      buf = Fget_buffer (bufname);
+      buf = Fget_buffer (buffer);
       if (NILP (buf))
 	{
-	  buf = Fget_buffer_create (bufname);
+	  buf = Fget_buffer_create (buffer);
 	  Fset_buffer_major_mode (buf);
 	}
     }
@@ -1408,17 +1407,17 @@ See also `save-excursion' when you want to make a buffer current temporarily.\n\
 This function does not display the buffer, so its effect ends\n\
 when the current command terminates.\n\
 Use `switch-to-buffer' or `pop-to-buffer' to switch buffers permanently.")
-  (bufname)
-     register Lisp_Object bufname;
+  (buffer)
+     register Lisp_Object buffer;
 {
-  register Lisp_Object buffer;
-  buffer = Fget_buffer (bufname);
-  if (NILP (buffer))
-    nsberror (bufname);
-  if (NILP (XBUFFER (buffer)->name))
+  register Lisp_Object buf;
+  buf = Fget_buffer (buffer);
+  if (NILP (buf))
+    nsberror (buffer);
+  if (NILP (XBUFFER (buf)->name))
     error ("Selecting deleted buffer");
-  set_buffer_internal (XBUFFER (buffer));
-  return buffer;
+  set_buffer_internal (XBUFFER (buf));
+  return buf;
 }
 
 DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
@@ -3375,7 +3374,6 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
-  XSETINT (buffer_local_flags.redisplay_end_trigger, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
