@@ -131,11 +131,6 @@ extern struct frame *x_any_window_to_frame ();
 extern struct frame *x_top_window_to_frame ();
 #endif
 
-/* The frame (if any) which has the X window that has keyboard focus.
-   Zero if none.  This is examined by Ffocus_frame in xfns.c */
-
-extern struct frame *x_focus_frame;
-
 extern Visual *select_visual ();
 
 enum text_cursor_kinds {
@@ -293,6 +288,26 @@ struct x_display_info
   struct kboard *kboard;
 #endif
   int cut_buffers_initialized; /* Whether we're sure they all exist */
+
+  /* The frame (if any) which has the X window that has keyboard focus.
+     Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
+     that a mere EnterNotify event can set this; if you need to know the
+     last frame specified in a FocusIn or FocusOut event, use
+     x_focus_event_frame.  */
+  struct frame *x_focus_frame;
+
+  /* The last frame mentioned in a FocusIn or FocusOut event.  This is
+     separate from x_focus_frame, because whether or not LeaveNotify
+     events cause us to lose focus depends on whether or not we have
+     received a FocusIn event for it.  */
+  struct frame *x_focus_event_frame;
+
+  /* The frame which currently has the visual highlight, and should get
+     keyboard input (other sorts of input have the frame encoded in the
+     event).  It points to the X focus frame's selected window's
+     frame.  It differs from x_focus_frame when we're using a global
+     minibuffer.  */
+  struct frame *x_highlight_frame;
 };
 
 /* This is a chain of structures for all the X displays currently in use.  */
