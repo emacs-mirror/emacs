@@ -2,7 +2,8 @@
 
 	* config.bat: If 8-byte alignment is not supported, define
 	NO_DECL_ALIGN in src/config.h, instead of trivially defining
-	DECL_ALIGN.
+	DECL_ALIGN.  Protect & with "" because & is special for cmd.exe;
+	filter through Sed to remove the quotes.
 
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
