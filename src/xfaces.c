@@ -6176,8 +6176,8 @@ DEFUN ("tty-suppress-bold-inverse-default-colors",
        Stty_suppress_bold_inverse_default_colors, 1, 1, 0,
   "Suppress/allow boldness of faces with inverse default colors.\n\
 SUPPRESS non-nil means suppress it.\n\
-This affects bold faces whose foreground is the default background color\n\
-of the display and whose background is the default foreground color.\n\
+This affects bold faces on TTYs whose foreground is the default background\n\
+color of the display and whose background is the default foreground color.\n\
 For such faces, no bold text will be displayed.")
   (suppress)
      Lisp_Object suppress;
