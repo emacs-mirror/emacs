@@ -2570,11 +2570,13 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
   "This function is for use internally in `combine-after-change-calls'.")
   ()
 {
-  register Lisp_Object val;
   int count = specpdl_ptr - specpdl;
   int beg, end, change;
   int begpos, endpos;
   Lisp_Object tail;
+
+  if (NILP (combine_after_change_list))
+    return Qnil;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
@@ -2633,7 +2635,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
 			 Vcombine_after_change_calls);
   signal_after_change (begpos, endpos - begpos - change, endpos - begpos);
 
-  return unbind_to (count, val);
+  return unbind_to (count, Qnil);
 }
 
 void
@@ -2641,6 +2643,7 @@ syms_of_insdel ()
 {
   staticpro (&combine_after_change_list);
   combine_after_change_list = Qnil;
+  combine_after_change_buffer = Qnil;
 
   DEFVAR_BOOL ("check-markers-debug-flag", &check_markers_debug_flag,
     "Non-nil means enable debugging checks for invalid marker positions.");
