@@ -5740,6 +5740,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
 
 #define TTY_SAME_COLOR_THRESHOLD  10000
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Return non-zero if all the face attributes in ATTRS are supported
    on the window-system frame F.
@@ -5749,26 +5750,15 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
    default face for display, can be represented in a way that's
 
     \(1) different in appearance than the default face, and
-    \(2) `close in spirit' to what the attributes specify, if not exact.
-
-   This function modifies ATTRS by merging from the default face.  */
+    \(2) `close in spirit' to what the attributes specify, if not exact.  */
 
 static int
-x_supports_face_attributes_p (f, attrs)
+x_supports_face_attributes_p (f, attrs, def_face)
      struct frame *f;
      Lisp_Object *attrs;
+     struct face *def_face;
 {
-  Lisp_Object *def_attrs;
-  struct face *def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-
-  if (def_face == NULL)
-    {
-      if (! realize_basic_faces (f))
-	signal_error ("Cannot realize default face", 0);
-      def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-    }
-
-  def_attrs = def_face->lface;
+  Lisp_Object *def_attrs = def_face->lface;
 
   /* Check that other specified attributes are different that the default
      face.  */
@@ -5828,6 +5818,7 @@ x_supports_face_attributes_p (f, attrs)
   return 1;
 }
 
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Return non-zero if all the face attributes in ATTRS are supported
    on the tty frame F.
@@ -5846,57 +5837,35 @@ x_supports_face_attributes_p (f, attrs)
    substitution of a `dim' face for italic.  */
 
 static int
-tty_supports_face_attributes_p (f, attrs)
+tty_supports_face_attributes_p (f, attrs, def_face)
      struct frame *f;
      Lisp_Object *attrs;
+     struct face *def_face;
 {
   int weight, i;
   Lisp_Object val, fg, bg;
   XColor fg_tty_color, fg_std_color;
   XColor bg_tty_color, bg_std_color;
   unsigned test_caps = 0;
+  Lisp_Object *def_attrs = def_face->lface;
+
 
   /* First check some easy-to-check stuff; ttys support none of the
-     following attributes, so we can just return nil if any are requested.  */
-
-  /* stipple */
-  val = attrs[LFACE_STIPPLE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return 0;
-
-  /* font height */
-  val = attrs[LFACE_HEIGHT_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return 0;
-
-  /* font width */
-  val = attrs[LFACE_SWIDTH_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val)
-      && face_numeric_swidth (val) != XLFD_SWIDTH_MEDIUM)
-    return 0;
-
-  /* overline */
-  val = attrs[LFACE_OVERLINE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return 0;
-
-  /* strike-through */
-  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return 0;
-
-  /* boxes */
-  val = attrs[LFACE_BOX_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return 0;
-
-  /* slant (italics/oblique); We consider any non-default value
-     unsupportable on ttys, even though the face code actually `fakes'
-     them using a dim attribute if possible.  This is because the faked
-     result is too different from what the face specifies.  */
-  val = attrs[LFACE_SLANT_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val)
-      && face_numeric_slant (val) != XLFD_SLANT_ROMAN)
+     following attributes, so we can just return false if any are requested
+     (even if `nominal' values are specified, we should still return false,
+     as that will be the same value that the default face uses).  We
+     consider :slant unsupportable on ttys, even though the face code
+     actually `fakes' them using a dim attribute if possible.  This is
+     because the faked result is too different from what the face
+     specifies.  */
+  if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX]))
     return 0;
 
 
@@ -5906,26 +5875,45 @@ tty_supports_face_attributes_p (f, attrs)
   weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
   if (weight >= 0)
     {
+      int def_weight = face_numeric_weight (def_attrs[LFACE_WEIGHT_INDEX]);
+
       if (weight > XLFD_WEIGHT_MEDIUM)
-	test_caps = TTY_CAP_BOLD;
+	{
+	  if (def_weight > XLFD_WEIGHT_MEDIUM)
+	    return 0;		/* same as default */
+	  test_caps = TTY_CAP_BOLD;
+	}
       else if (weight < XLFD_WEIGHT_MEDIUM)
-	test_caps = TTY_CAP_DIM;
+	{
+	  if (def_weight < XLFD_WEIGHT_MEDIUM)
+	    return 0;		/* same as default */
+	  test_caps = TTY_CAP_DIM;
+	}
+      else if (def_weight == XLFD_WEIGHT_MEDIUM)
+	return 0;		/* same as default */
     }
 
   /* underlining */
   val = attrs[LFACE_UNDERLINE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
+  if (!UNSPECIFIEDP (val))
     {
       if (STRINGP (val))
-	return 0;		/* ttys don't support colored underlines */
+	return 0;		/* ttys can't use colored underlines */
+      else if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
+	return 0;		/* same as default */
       else
 	test_caps |= TTY_CAP_UNDERLINE;
     }
 
   /* inverse video */
   val = attrs[LFACE_INVERSE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    test_caps |= TTY_CAP_INVERSE;
+  if (!UNSPECIFIEDP (val))
+    {
+      if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
+	return 0;		/* same as default */
+      else
+	test_caps |= TTY_CAP_INVERSE;
+    }
 
 
   /* Color testing.  */
@@ -5940,22 +5928,48 @@ tty_supports_face_attributes_p (f, attrs)
   fg = attrs[LFACE_FOREGROUND_INDEX];
   if (STRINGP (fg))
     {
-      if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
-	return 0;
+      Lisp_Object def_fg = def_attrs[LFACE_FOREGROUND_INDEX];
+
+      if (face_attr_equal_p (fg, def_fg))
+	return 0;		/* same as default */
+      else if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
+	return 0;		/* not a valid color */
       else if (color_distance (&fg_tty_color, &fg_std_color)
 	       > TTY_SAME_COLOR_THRESHOLD)
-	return 0;
+	return 0;		/* displayed color is too different */
+      else
+	/* Make sure the color is really different than the default.  */
+	{
+	  XColor def_fg_color;
+	  if (tty_lookup_color (f, def_fg, &def_fg_color, 0)
+	      && (color_distance (&fg_tty_color, &def_fg_color)
+		  <= TTY_SAME_COLOR_THRESHOLD))
+	    return 0;
+	}
     }
 
   /* Check if background color is close enough.  */
   bg = attrs[LFACE_BACKGROUND_INDEX];
   if (STRINGP (bg))
     {
-      if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
-	return 0;
+      Lisp_Object def_bg = def_attrs[LFACE_FOREGROUND_INDEX];
+
+      if (face_attr_equal_p (bg, def_bg))
+	return 0;		/* same as default */
+      else if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
+	return 0;		/* not a valid color */
       else if (color_distance (&bg_tty_color, &bg_std_color)
 	       > TTY_SAME_COLOR_THRESHOLD)
-	return 0;
+	return 0;		/* displayed color is too different */
+      else
+	/* Make sure the color is really different than the default.  */
+	{
+	  XColor def_bg_color;
+	  if (tty_lookup_color (f, def_bg, &def_bg_color, 0)
+	      && (color_distance (&bg_tty_color, &def_bg_color)
+		  <= TTY_SAME_COLOR_THRESHOLD))
+	    return 0;
+	}
     }
 
   /* If both foreground and background are requested, see if the
@@ -6010,6 +6024,7 @@ face for italic. */)
   int supports, i;
   Lisp_Object frame;
   struct frame *f;
+  struct face *def_face;
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
   if (NILP (display))
@@ -6039,11 +6054,21 @@ face for italic. */)
     attrs[i] = Qunspecified;
   merge_face_vector_with_property (f, attrs, attributes);
 
+  def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+  if (def_face == NULL)
+    {
+      if (! realize_basic_faces (f))
+	signal_error ("Cannot realize default face", 0);
+      def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+    }
+
   /* Dispatch to the appropriate handler.  */
   if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-    supports = tty_supports_face_attributes_p (f, attrs);
+    supports = tty_supports_face_attributes_p (f, attrs, def_face);
+#ifdef HAVE_WINDOW_SYSTEM
   else
-    supports = x_supports_face_attributes_p (f, attrs);
+    supports = x_supports_face_attributes_p (f, attrs, def_face);
+#endif
 
   return supports ? Qt : Qnil;
 }

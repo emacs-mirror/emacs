@@ -244,39 +244,20 @@ If FRAME is omitted or nil, use the selected frame."
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (if (not (equal (face-font face frame) (face-font 'default frame)))
-      ;; The font is different from the default face's font, so clearly it
-      ;; differs.  This only really works on window-systems; on ttys, the
-      ;; "font" is a constant, with attributes layered on top of it.
-      :font
-    ;; General face attribute check.  On graphical displays
-    ;; `display-supports-face-attributes-p' just checks whether each
-    ;; attribute is different that the default face, so we just check to
-    ;; make sure each attribute of the merged face is not `unspecified';
-    ;; we already checked the font above, so font-related attributes are
-    ;; omitted for that reason.  On a tty,
-    ;; display-supports-face-attributes-p actually does do further
-    ;; checks, and correctly deals with the display's capabilities, so
-    ;; we use it to check all attributes.
-    (let ((attrs
-	   (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
-	       ;; Omit font-related attributes on a window-system
-	       '(:foreground :foreground :background :underline :overline
-		 :strike-through :box :inverse-video :stipple)
-	     ;; On a tty, check all attributes
-	     '(:family :width :height :weight :slant :foreground
-	       :foreground :background :underline :overline
-	       :strike-through :box :inverse-video :stipple)))
-	  (differs nil))
-      (while (and attrs (not differs))
-	(let* ((attr (pop attrs))
-	       (attr-val (face-attribute face attr frame t)))
-	  (when (and
-		 (not (eq attr-val 'unspecified))
-		 (display-supports-face-attributes-p (list attr attr-val)
-						     frame))
-	    (setq differs attr))))
-      differs)))
+  (let ((attrs
+	 '(:family :width :height :weight :slant :foreground
+	   :foreground :background :underline :overline
+	   :strike-through :box :inverse-video))
+	(differs nil))
+    (while (and attrs (not differs))
+      (let* ((attr (pop attrs))
+	     (attr-val (face-attribute face attr frame t)))
+	(when (and
+	       (not (eq attr-val 'unspecified))
+	       (display-supports-face-attributes-p (list attr attr-val)
+						   frame))
+	  (setq differs attr))))
+    differs))
 
 
 (defun face-nontrivial-p (face &optional frame)

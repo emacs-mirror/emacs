@@ -231,10 +231,29 @@
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
 2004-06-03  Karl Fogel  <kfogel@red-bean.com>
+2004-06-05  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Reintroduce face.
+	(help-default-arg-highlight): Use it, now that
+	`face-differs-from-default-p' can be trusted.
+
+2004-06-05  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
+
+	* textmodes/table.el: Sentence commands added to Point Motion
+	group; kill and backward-kill commands added to Extraction group.
+
+2004-06-04  Mario Lang  <mlang@delysid.org>
+
+	* battery.el (battery-linux-proc-acpi): mA was hardcored, but some
+	systems appear to use mW, make the code handle this.  Fix a
+	division-by-zero bug while at it, and handle kernels with
+	a slightly different layout in /proc/acpi.
+
+2004-06-04  Karl Fogel  <kfogel@red-bean.com>
 
 	* vc-svn.el (vc-svn-checkin): Use 'nconc' instead of 'list*',
 	because the latter is a CL-ism.  This fixes the bug reported by
-	Shawn Boyette <mdxi@collapsar.net> in 
+	Shawn Boyette <mdxi@collapsar.net> in
         http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
@@ -243,7 +262,11 @@
 	C code.  Previously only the tty-related portion of this function
 	was done in C; however the previous attempt to do a halfway-proper
 	job for non-tty displays in lisp didn't work properly because of
-	funny conditions during emacs startup.
+	funny conditions during Emacs startup.
+	(face-differs-from-default-p): Simplify, now that
+	display-supports-face-attributes-p works properly on all display
+	types.  Remove :stipple from comparison; it doesn't really work
+	in emacs anyway.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
@@ -459,7 +482,7 @@
 	* thumbs.el (thumbs-show-name): Do nothing if no image at point.
 	(thumbs-mouse-find-image): New command.
 	(thumbs-mode-map): Bind it to mouse-2.
-	(thumbs-mode):  Make mode-class special.
+	(thumbs-mode): Make mode-class special.
 	(thumbs-view-image-mode): Likewise.
 
 2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
@@ -1648,7 +1671,7 @@
 	(sql-connect-postgres): Add username prompt.
 	(sql-imenu-generic-expression, sql-mode-font-lock-object-name):
 	Make patterns less product specific.
-	(sql-xemacs-p, sql-emacs19-p): Add flags for emacs variants.
+	(sql-xemacs-p, sql-emacs19-p): Add flags for Emacs variants.
 	(sql-mode-abbrev-table): Modify initialization.
 	(sql-builtin-face): Add variable.
 	(sql-keywords-re): Add macro.
@@ -6647,7 +6670,7 @@
 	(ffap-file-at-point): Use the new regexp to strip the prompts from
 	the file names.  This is an issue mostly for user prompts that
 	don't have a trailing space and find-file-at-point is invoked from
-	within a shell inside emacs.
+	within a shell inside Emacs.
 
 2003-09-24  Andre Spiegel  <spiegel@gnu.org>
 

@@ -1,11 +1,11 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables
 
-;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 01, 02, 03, 04 Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Tue Dec 09 2003 14:36:50 (PST)
+;; Revised: Tue Jun 01 2004 11:36:39 (PDT)
 
 ;; This file is part of GNU Emacs.
 
@@ -1410,6 +1410,8 @@ the last cache point coordinate."
    end-of-buffer
    forward-word
    backward-word
+   forward-sentence
+   backward-sentence
    forward-paragraph
    backward-paragraph))
 
@@ -1434,9 +1436,18 @@ the last cache point coordinate."
 	   (cons (cons command func-symbol)
 		 table-command-remap-alist))))
  '(kill-region
+   kill-ring-save
    delete-region
    copy-region-as-kill
-   kill-line))
+   kill-line
+   kill-word
+   backward-kill-word
+   kill-sentence
+   backward-kill-sentence
+   kill-paragraph
+   backward-kill-paragraph
+   kill-sexp
+   backward-kill-sexp))
 
 ;; Pasting Group
 (mapcar

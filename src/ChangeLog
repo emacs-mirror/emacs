@@ -67,6 +67,18 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-06-05  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (tty_supports_face_attributes_p): Make sure the specified
+	attributes have different values than the default face.
+
+2004-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (x_supports_face_attributes_p): Make this function
+	conditional on HAVE_WINDOW_SYSTEM.
+	(Fdisplay_supports_face_attributes_p) [HAVE_WINDOW_SYSTEM]: Don't
+	call x_supports_face_attributes_p if it was not compiled in.
+
 2004-06-04  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (tty_supports_face_attributes_p): New function, mostly
