@@ -13433,10 +13433,10 @@ display_mode_lines (w)
 
   if (WINDOW_WANTS_MODELINE_P (w))
     {
-      struct window *old_w = XWINDOW (old_selected_window);
+      struct window *sel_w = XWINDOW (old_selected_window);
 
       /* Select mode line face based on the real selected window.  */
-      display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (old_w),
+      display_mode_line (w, CURRENT_MODE_LINE_FACE_ID_3 (sel_w, sel_w, w),
 			 current_buffer->mode_line_format);
       ++n;
     }
