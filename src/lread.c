@@ -40,6 +40,13 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/inode.h>
 #endif /* lint */
 
+#ifdef MSDOS
+#if __DJGPP__ < 2
+#include <unistd.h>	/* to get X_OK */
+#endif
+#include "msdos.h"
+#endif
+
 #ifndef X_OK
 #define X_OK 01
 #endif
@@ -47,10 +54,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef LISP_FLOAT_TYPE
 #ifdef STDC_HEADERS
 #include <stdlib.h>
-#endif
-
-#ifdef MSDOS
-#include "msdos.h"
 #endif
 
 #include <math.h>
