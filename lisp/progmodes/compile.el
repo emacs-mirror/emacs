@@ -1773,7 +1773,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
     (when (and (bobp)
-	       (eq major-mode 'compilation-mode))
+	       (compilation-buffer-p (current-buffer)))
       (setq compilation-current-file nil) ; No current file at start.
       ;; Don't parse the first two lines as error messages.
       ;; This matters for grep.
