@@ -291,7 +291,7 @@ executed once when the buffer is created.")
 
 (defvar comint-ptyp t
   "Non-nil if communications via pty; false if by pipe.  Buffer local.
-This is to work around a bug in Emacs process signalling.")
+This is to work around a bug in Emacs process signaling.")
 
 (defvar comint-input-ring nil)
 (defvar comint-last-input-start)
@@ -1796,7 +1796,7 @@ See `comint-prompt-regexp'."
 ;;; want them present in specific modes.
 
 (defvar comint-completion-autolist nil
-  "*If non-nil, automatically list possiblities on partial completion.
+  "*If non-nil, automatically list possibilities on partial completion.
 This mirrors the optional behavior of tcsh.")
 
 (defvar comint-completion-addsuffix t
