@@ -1217,9 +1217,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given.
 With prefix argument, delete and move backward."
   (interactive "P")
   (rmail-set-attribute "deleted" t)
-  (condition-case ()
-      (rmail-next-undeleted-message (if backward -1 1))
-    (error nil)))
+  (rmail-next-undeleted-message (if backward -1 1)))
 
 (defun rmail-delete-backward ()
   "Delete this message and move to previous nondeleted one.
