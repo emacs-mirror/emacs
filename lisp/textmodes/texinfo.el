@@ -541,26 +541,30 @@ to jump to the corresponding spot in the Texinfo source file."
       (re-search-forward ":")
       (setq margin
             (cond
-             ((looking-at (concat "@" texinfo-chapter-level-regexp)) 5)
+             ((looking-at
+               (concat "@\\(" texinfo-chapter-level-regexp "\\)")) 5)
              ;; ((looking-at "@chapter ") 5)
              ;; ((looking-at "@unnumbered ") 5)
              ;; ((looking-at "@appendix ") 5)
              ;; ((looking-at "@majorheading ") 5)
              ;; ((looking-at "@chapheading ") 5)
 
-             ((looking-at (concat "@" texinfo-section-level-regexp)) 9)
+             ((looking-at
+               (concat "@\\(" texinfo-section-level-regexp "\\)")) 9)
              ;; ((looking-at "@section ") 9)
              ;; ((looking-at "@unnumberedsec ") 9)
              ;; ((looking-at "@appendixsec ") 9)
              ;; ((looking-at "@heading ") 9)
 
-             ((looking-at (concat "@" texinfo-subsection-level-regexp)) 13)
+             ((looking-at 
+               (concat "@\\(" texinfo-subsection-level-regexp "\\)")) 13)
              ;; ((looking-at "@subsection ") 13)
              ;; ((looking-at "@unnumberedsubsec ") 13)
              ;; ((looking-at "@appendixsubsec ") 13)
              ;; ((looking-at "@subheading ") 13)
 
-             ((looking-at (concat "@" texinfo-subsubsection-level-regexp)) 17)
+             ((looking-at 
+               (concat "@\\(" texinfo-subsection-level-regexp "\\)")) 13)
              ;; ((looking-at "@subsubsection ") 17)
              ;; ((looking-at "@unnumberedsubsubsec ") 17)
              ;; ((looking-at "@appendixsubsubsec ") 17)
