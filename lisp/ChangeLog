@@ -1,3 +1,9 @@
+2002-11-19   Markus Rost  <rost@math.ohio-state.edu>
+
+	* emacs-lisp/shadow.el (defgroup lisp-shadow): New group name.
+	Previous group name shadow is used in shadowfile.el.
+	(shadows-compare-text-p): Use group lisp-shadow.
+
 2002-11-19  Masatake Yamato  <jet@gyve.org>  (tiny change)
 
 	* register.el (describe-register-1): Don't assign to val the value
