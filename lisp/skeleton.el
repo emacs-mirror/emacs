@@ -262,6 +262,8 @@ If ELEMENT is a string or a character it gets inserted (see also
 
 	\\n	go to next line and indent according to mode
 	_	interesting point, interregion here
+	-	interesting point, no interregion interaction, overrides
+		interesting point set by _
 	>	indent line (or interregion if > _) according to major mode
 	@	add position to `skeleton-positions'
 	&	do next ELEMENT iff previous moved point
@@ -270,8 +272,8 @@ If ELEMENT is a string or a character it gets inserted (see also
 	resume:	skipped, continue here if quit is signaled
 	nil	skipped
 
-After termination, point will be positioned at the first occurrence
-of _ or @ or at the end of the inserted text.
+After termination, point will be positioned at the last occurrence of -
+or at the first occurrence of _ or at the end of the inserted text.
 
 Further elements can be defined via `skeleton-further-elements'.  ELEMENT may
 itself be a SKELETON with an INTERACTOR.  The user is prompted repeatedly for
@@ -455,19 +457,20 @@ automatically, and you are prompted to fill in the variable parts.")))
 	  (goto-char (pop skeleton-regions))
 	  (and (<= (current-column) (current-indentation))
 	       (eq (nth 1 skeleton) '\n)
-	       (end-of-line 0)))
-      (or skeleton-point
-	  (setq skeleton-point (point)))))
+		    (end-of-line 0)))
+	   (or skeleton-point
+	       (setq skeleton-point (point)))))
+	((eq element '-)
+	 (setq skeleton-point (point)))
 	((eq element '&)
-    (when skeleton-modified (pop skeleton)))
-   ((eq element '|)
-    (unless skeleton-modified (pop skeleton)))
-   ((eq element '@)
-    (push (point) skeleton-positions)
-    (unless skeleton-point (setq skeleton-point (point))))
-   ((eq 'quote (car-safe element))
-    (eval (nth 1 element)))
-   ((or (stringp (car-safe element))
+	 (when skeleton-modified (pop skeleton)))
+	((eq element '|)
+	 (unless skeleton-modified (pop skeleton)))
+	((eq element '@)
+	 (push (point) skeleton-positions))
+	((eq 'quote (car-safe element))
+	 (eval (nth 1 element)))
+	((or (stringp (car-safe element))
 	(consp (car-safe element)))
     (if (symbolp (car-safe (car element)))
 	(while (skeleton-internal-list element nil t))
