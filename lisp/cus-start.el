@@ -312,7 +312,7 @@ since it could result in memory overflow and make Emacs crash."
 	  ;; use the current value as the standard value.
 	  standard (if (nthcdr 4 this)
 		       (nth 4 this)
-		     (when (boundp symbol)
+		     (when (default-boundp symbol)
 		       (funcall quoter (default-value symbol))))
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
