@@ -229,7 +229,10 @@ sed -f ../msdos/sed6.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the ELisp Introduction manual directory...
-cd lispintro
+Rem The two variants for the line below is for when the shell
+Rem supports long file names but DJGPP does not
+if exist lispintro\Makefile.in cd lispintro
+if exist lispintr\Makefile.in cd lispintr
 sed -f ../msdos/sed6.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
