@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.12
+;; Version:    5.13
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -169,16 +169,6 @@ Infodock (based on XEmacs) has an additional symbol on this list:
   ;; for Emacs.
   (and (boundp 'zmacs-region-stays)
        (setq zmacs-region-stays t)))
-
-(defsubst c-load-all ()
-  ;; make sure all necessary components of CC Mode are loaded in.
-  (require 'cc-vars)
-  (require 'cc-engine)
-  (require 'cc-langs)
-  (require 'cc-menus)
-  (require 'cc-align)
-  (require 'cc-styles)
-  (require 'cc-cmds))
 
 
 (provide 'cc-defs)
