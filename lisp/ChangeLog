@@ -1,3 +1,10 @@
+2000-11-09  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Patch for variable initialization when spooling.  Doc
+	fix.
+	(ps-output-list): Fun eliminated.
+	(ps-begin-file, ps-begin-job): Code fix.
+
 2000-11-08  Dave Love  <fx@gnu.org>
 
 	* ediff-wind.el (ediff-control-frame-parameters): Zero
