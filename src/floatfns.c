@@ -183,8 +183,7 @@ static char *float_error_fn_name;
 #define FLOAT_TO_INT(x, i, name, num)					\
   do									\
     {									\
-      if ((x) >= (((EMACS_INT) 1) << (VALBITS-1)) ||			\
-	  (x) <= - (((EMACS_INT) 1) << (VALBITS-1)) - 1)		\
+      if (FIXNUM_OVERFLOW_P (x))					\
 	range_error (name, num);					\
       XSETINT (i,  (EMACS_INT)(x));					\
     }									\
@@ -192,8 +191,7 @@ static char *float_error_fn_name;
 #define FLOAT_TO_INT2(x, i, name, num1, num2)				\
   do									\
     {									\
-      if ((x) >= (((EMACS_INT) 1) << (VALBITS-1)) ||			\
-	  (x) <= - (((EMACS_INT) 1) << (VALBITS-1)) - 1)		\
+      if (FIXNUM_OVERFLOW_P (x))					\
 	range_error2 (name, num1, num2);				\
       XSETINT (i,  (EMACS_INT)(x));					\
     }									\
