@@ -1,4 +1,5 @@
 ;;; smiley-ems.el --- displaying smiley faces
+
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -26,9 +27,9 @@
 ;; A re-written, simplified version of Wes Hardaker's XEmacs smiley.el
 ;; which might be merged back to smiley.el if we get an assignment for
 ;; that.  We don't have assignments for the images smiley.el uses, but
-;; I'm not sure we need that degree of rococoness and they shouldn't
-;; have a yellow background by default.  Also, using XBM means we can
-;; display the images more generally.  -- fx
+;; I'm not sure we need that degree of rococoness and defaults like a
+;; yellow background.  Also, using PBM means we can display the images
+;; more generally.  -- fx
 
 ;;; Test smileys:  :-) :-\ :-( :-/
 
@@ -49,12 +50,12 @@
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
   ;; Perhaps :-) should be distinct -- it does appear in the Jargon File.
-  '(("\\([:;]-?)\\)\\W" 1 "smile.xbm")
-    ("\\(:-[/\\]\\)\\W" 1 "wry.xbm")
-    ("\\(:-[({]\\)\\W" 1 "frown.xbm"))
+  '(("\\([:;]-?)\\)\\W" 1 "smile.pbm")
+    ("\\(:-[/\\]\\)\\W" 1 "wry.pbm")
+    ("\\(:-[({]\\)\\W" 1 "frown.pbm"))
   "*A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH FILE), where MATCH is the submatch in
-rgexp to replace with IMAGE.  IMAGE is the name of an XBM file in
+rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
 `smiley-data-directory'."
   :type '(repeat (list regexp
 		       (integer :tag "Regexp match number")
@@ -70,7 +71,7 @@ rgexp to replace with IMAGE.  IMAGE is the name of an XBM file in
 (defun smiley-update-cache ()
   (dolist (elt smiley-regexp-alist)
     (let* ((data-directory smiley-data-directory)
-	   (image (find-image (list (list :type 'xbm
+	   (image (find-image (list (list :type 'pbm
 					  :file (nth 2 elt)
 					  :ascent 'center)))))
       (if image
