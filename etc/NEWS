@@ -251,6 +251,12 @@ argument it toggles the mode.
 Turning off PC-Selection mode restores the global key bindings
 that were replaced by turning on the mode.
 
+** Emacs now displays a splash screen by default even if command-line
+arguments were given.  The new command-line option --no-splash
+disables the splash screen; see also the variable
+`inhibit-startup-message' (which is also aliased as
+`inhibit-splash-screen').
+
 ** Changes in support of colors on character terminals
 
 +++
@@ -353,6 +359,14 @@ bind C-w to `isearch-yank-word' in `isearch-mode-map'.
 be inconvenient when you did not expect them.  The variable
 `yank-excluded-properties' specifies which ones.  Insertion
 of register contents and rectangles also discards these properties.
+
+** Occur, Info, and comint-derived modes now support using
+M-x font-lock-mode to toggle fontification.  The variable
+`Info-fontify' is no longer applicable; to disable fontification,
+remove `turn-on-font-lock' from `Info-mode-hook'.
+
+** The Emacs Lisp byte-compiler now displays the actual line and
+character position of errors.
 
 ** M-x grep now tries to avoid appending `/dev/null' to the command line
 by using GNU grep `-H' option instead.  M-x grep will automatically
