@@ -3174,7 +3174,7 @@ Returns t if test was successful, nil otherwise."
        (forward-char))))
   (bibtex-find-text arg t))
 
-(defun bibtex-find-text (arg &optional as-if-interactive)
+(defun bibtex-find-text (arg &optional as-if-interactive silent)
   "Go to end of text of current field; with ARG, go to beginning."
   (interactive "P")
   (bibtex-inside-field)
@@ -3205,7 +3205,8 @@ Returns t if test was successful, nil otherwise."
            (match-beginning bibtex-key-in-head)
          (match-end 0))))
      (t
-      (error "Not on BibTeX field.")))))
+      (if (not silent)
+          (error "Not on BibTeX field."))))))
 
 (defun bibtex-remove-OPT-or-ALT ()
   "Removes the string starting optional/alternative fields.
@@ -3287,9 +3288,8 @@ do not actually kill it."
       (if copy-only
           (goto-char pnt)
         (delete-region the-beginning the-end)
-        (goto-char the-beginning)
         (let (bibtex-help-message)
-          (bibtex-find-text nil t)))))
+          (bibtex-find-text nil t t)))))
   (setq bibtex-last-kill-command 'field))
 
 (defun bibtex-copy-field-as-kill ()
@@ -3544,7 +3544,7 @@ If mark is active it reformats entries in region, if not in whole buffer."
                                   " comma at end of entry? "))
                        'last-comma)
                    (if (y-or-n-p
-                        "Substitute double page dashes by single ones? ")
+                        "Replace double page dashes by single ones? ")
                        'page-dashes)
                    (if (y-or-n-p
                         "Force delimiters? ")
