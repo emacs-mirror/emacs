@@ -45,8 +45,13 @@ The supported characters and potential disadvantages are:
 
 When only one of ?\\\" or ?' are included, \"'\" or '\"' as it can be found in
 DTDs, start a string.  To partially avoid this problem this also makes these
-self insert as named entities.  <!----> must contain an even multiple of two
-(4, 8, ...) minuses, or Emacs' syntax mechanism won't recognize a comment.")
+self insert as named entities depending on `sgml-quick-keys'.  <!----> must
+contain an even multiple of two (4, 8, ...) minuses, or Emacs' syntax
+mechanism won't recognize a comment.")
+
+(defvar sgml-quick-keys nil
+  "Use <, >, &, SPC and `sgml-specials' keys ``electrically'' when non-nil.
+This takes effect when first loading the library.")
 
 
 (defvar sgml-mode-map
@@ -55,8 +60,8 @@ self insert as named entities.  <!----> must contain an even multiple of two
     (define-key map "\t" 'indent-relative-maybe)
     (define-key map "\C-c\C-i" 'sgml-tags-invisible)
     (define-key map "/" 'sgml-slash)
-    (define-key map "&" 'sgml-name-char)
-    (define-key map "<" 'sgml-tag)
+    (define-key map "\C-c\C-n" 'sgml-name-char)
+    (define-key map "\C-c\C-t" 'sgml-tag)
     (define-key map "\C-c\C-a" 'sgml-attributes)
     (define-key map "\C-c\C-b" 'sgml-skip-tag-backward)
     (define-key map [?\C-c left] 'sgml-skip-tag-backward)
@@ -65,14 +70,18 @@ self insert as named entities.  <!----> must contain an even multiple of two
     (define-key map "\C-c\C-d" 'sgml-delete-tag)
     (define-key map "\C-c\^?" 'sgml-delete-tag)
     (define-key map "\C-c?" 'sgml-tag-help)
-    (define-key map " " 'sgml-auto-attributes)
-    (define-key map ">" 'sgml-maybe-end-tag)
-    (if (memq ?\" sgml-specials)
-	(define-key map "\"" 'sgml-name-self))
-    (if (memq ?' sgml-specials)
-	(define-key map "'" 'sgml-name-self))
     (define-key map "\C-c8" 'sgml-name-8bit-mode)
     (define-key map "\C-c\C-v" 'sgml-validate)
+    (if sgml-quick-keys
+	(progn
+	  (define-key map "&" 'sgml-name-char)
+	  (define-key map "<" 'sgml-tag)
+	  (define-key map " " 'sgml-auto-attributes)
+	  (define-key map ">" 'sgml-maybe-end-tag)
+	  (if (memq ?\" sgml-specials)
+	      (define-key map "\"" 'sgml-name-self))
+	  (if (memq ?' sgml-specials)
+	      (define-key map "'" 'sgml-name-self))))
     (let ((c 127)
 	  (map (nth 1 map)))
       (while (< (setq c (1+ c)) 256)
@@ -202,7 +211,8 @@ When more these are fontified together with `sgml-font-lock-keywords'.")
 
 
 (defvar sgml-tag-alist
-  '(("!attlist")
+  '(("![" ("ignore" t) ("include" t))
+    ("!attlist")
     ("!doctype")
     ("!element")
     ("!entity"))
@@ -243,10 +253,6 @@ an optional alist of possible values.")
 			point-entered sgml-point-entered
 			read-only t)
 		      (symbol-plist 'sgml-tag))))
-
-
-(defvar sgml-auto-attributes t
-  "*When non-`nil' SPC at top level of tag prompts for attributes.")
 
 
 
@@ -327,6 +333,8 @@ varables of same name)."
 (defun sgml-mode (&optional function)
   "Major mode for editing SGML documents.
 Makes > match <.  Makes / blink matching /.
+Keys <, &, SPC within <>, \" and ' can be electric depending on
+`sgml-quick-keys'.
 
 Do \\[describe-variable] sgml- SPC to see available variables.
 
@@ -444,16 +452,19 @@ to `upcase'."
   ?< (setq v1 (eval str)) |
   (("") -1 '(undo-boundary) "&lt;") |
   (("") '(setq v2 (sgml-attributes v1 t)) ?>
-   (if (or (eq v2 t)
-	   (string-match "^[/!?]" v1))
-       ()
-     (if (symbolp v2)
-	 '(("") v2 _ v2 "</" v1 ?>)
-       (if (eq (car v2) t)
-	   (cons '("") (cdr v2))
-	 (append '(("") (car v2))
-		 (cdr v2)
-		 '(resume: (car v2) _ "</" v1 ?>)))))))
+   (if (string= "![" v1)
+       (prog1 '(("") " [ " _ " ]]")
+	 (backward-char))
+     (if (or (eq v2 t)
+	     (string-match "^[/!?]" v1))
+	 ()
+       (if (symbolp v2)
+	   '(("") v2 _ v2 "</" v1 ?>)
+	 (if (eq (car v2) t)
+	     (cons '("") (cdr v2))
+	   (append '(("") (car v2))
+		   (cdr v2)
+		   '(resume: (car v2) _ "</" v1 ?>))))))))
 
 (autoload 'skeleton-read "skeleton")
 
@@ -493,12 +504,11 @@ to `upcase'."
 
 (defun sgml-auto-attributes (arg)
   "Self insert, except, when at top level of tag, prompt for attributes.
-With prefix ARG, or if `sgml-auto-attributes' is `nil' only self insert."
+With prefix ARG only self insert."
   (interactive "*P")
   (let ((point (point))
 	tag)
     (if (or arg
-	    (not sgml-auto-attributes)
 	    (not sgml-tag-alist)	; no message when nothing configured
 	    (symbolp (setq tag (save-excursion (sgml-beginning-of-tag t))))
 	    (eq (aref tag 0) ?/))
@@ -595,7 +605,7 @@ With prefix ARG, repeat that many times."
   (while (>= arg 1)
     (save-excursion
       (let* (close open)
-	(if (looking-at "[ \t]*<")
+	(if (looking-at "[ \t\n]*<")
 	    ;; just before tag
 	    (if (eq (char-after (match-end 0)) ?/)
 		;; closing tag
@@ -742,27 +752,38 @@ Else `t'."
 
 (provide 'sgml-mode)
 
-(defvar html-quick-keys t
-  "Use C-c <x> combinations for quick insertion of frequent tags when non-nil.
+(defvar html-quick-keys sgml-quick-keys
+    "Use C-c X combinations for quick insertion of frequent tags when non-nil.
+This defaults to `sgml-quick-keys'.
 This takes effect when first loading the library.")
 
 (defvar html-mode-map
   (let ((map (nconc (make-sparse-keymap) sgml-mode-map))
 	(menu-map (make-sparse-keymap "HTML")))
+    (define-key map "\C-c6" 'html-headline)
+    (define-key map "\C-c5" 'html-headline)
+    (define-key map "\C-c4" 'html-headline)
+    (define-key map "\C-c3" 'html-headline)
+    (define-key map "\C-c2" 'html-headline)
+    (define-key map "\C-c1" 'html-headline)
+    (define-key map "\C-c\r" 'html-paragraph)
+    (define-key map "\C-c\n" 'html-line)
+    (define-key map "\C-c\C-c-" 'html-horizontal-rule)
+    (define-key map "\C-c\C-co" 'html-list)
+    (define-key map "\C-c\C-cu" 'html-list)
+    (define-key map "\C-c\C-cr" 'html-radio-buttons)
+    (define-key map "\C-c\C-cc" 'html-checkboxes)
+    (define-key map "\C-c\C-cl" 'html-list-item)
+    (define-key map "\C-c\C-ch" 'html-href-anchor)
+    (define-key map "\C-c\C-cn" 'html-name-anchor)
+    (define-key map "\C-c\C-ci" 'html-image)
     (if html-quick-keys
 	(progn
-	  (define-key map "\C-c1" 'html-headline)
-	  (define-key map "\C-c2" 'html-headline)
-	  (define-key map "\C-c3" 'html-headline)
-	  (define-key map "\C-c4" 'html-headline)
-	  (define-key map "\C-c5" 'html-headline)
-	  (define-key map "\C-c6" 'html-headline)
 	  (define-key map "\C-c-" 'html-horizontal-rule)
-	  (define-key map "\C-c\r" 'html-paragraph)
-	  (define-key map "\C-c\n" 'html-line)
 	  (define-key map "\C-co" 'html-list)
 	  (define-key map "\C-cu" 'html-list)
 	  (define-key map "\C-cr" 'html-radio-buttons)
+	  (define-key map "\C-cc" 'html-checkboxes)
 	  (define-key map "\C-cl" 'html-list-item)
 	  (define-key map "\C-ch" 'html-href-anchor)
 	  (define-key map "\C-cn" 'html-name-anchor)
@@ -782,10 +803,11 @@ This takes effect when first loading the library.")
     (define-key menu-map "2" '("Heading 2" . html-headline))
     (define-key menu-map "1" '("Heading 1" . html-headline))
     (define-key menu-map "l" '("Radio Buttons" . html-radio-buttons))
+    (define-key menu-map "c" '("Checkboxes" . html-checkboxes))
     (define-key menu-map "l" '("List Item" . html-list-item))
     (define-key menu-map "u" '("Unordered List" . html-list))
     (define-key menu-map "o" '("Ordered List" . html-list))
-    (define-key menu-map "-" '("Horizontal rule" . html-horizontal-rule))
+    (define-key menu-map "-" '("Horizontal Rule" . html-horizontal-rule))
     (define-key menu-map "\n" '("Line Break" . html-line))
     (define-key menu-map "\r" '("Paragraph" . html-paragraph))
     (define-key menu-map "i" '("Image" . html-image))
@@ -842,7 +864,7 @@ This takes effect when first loading the library.")
 	 (rel '(("next") ("previous") ("parent") ("subdocument") ("made")))
 	 (href '("href" ("ftp:") ("file:") ("finger:") ("gopher:") ("http:")
 		 ("mailto:") ("news:") ("rlogin:") ("telnet:") ("tn3270:")
-		 ("wais:")))
+		 ("wais:") ("/cgi-bin/")))
 	 (name '("name"))
 	 (link `(,href
 		 ("rel" ,@rel)
@@ -864,7 +886,8 @@ This takes effect when first loading the library.")
       ("base" t ,@href)
       ("dir" ,@list)
       ("font" "size" ("-1") ("+1") ("-2") ("+2") ,@(cdr (cdr 1-9)))
-      ("form" \n ("action" ,@(cdr href)) ("method" ("get") ("post")))
+      ("form" (\n _ \n "<input type=\"submit\" value=\"\">")
+       ("action" ,@(cdr href)) ("method" ("get") ("post")))
       ("h1" ,@align)
       ("h2" ,@align)
       ("h3" ,@align)
@@ -876,7 +899,8 @@ This takes effect when first loading the library.")
        ("src") ("alt") ("width" "1") ("height" "1")
        ("border" "1") ("vspace" "1") ("hspace" "1") ("ismap" t))
       ("input" t ("size" ,@1-9) ("maxlength" ,@1-9) ("checked" t) ,name
-       ("type" ("text") ("password") ("checkbox") ("radio") ("sbmit") ("reset"))
+       ("type" ("text") ("password") ("checkbox") ("radio")
+	("submit") ("reset"))
        ("value"))
       ("link" t ,@link)
       ("menu" ,@list)
@@ -1058,12 +1082,12 @@ This takes effect when first loading the library.")
 ;;;###autoload
 (defun html-mode ()
   "Major mode based on SGML mode for editing HTML documents.
-This allows inserting skeleton costructs used in hypertext documents via
-the command `<' with completion.  See below for an introduction to HTML.
-Use \\[browse-url-of-buffer] to see how this comes out.
-See also `sgml-mode' on which this is based.
+This allows inserting skeleton costructs used in hypertext documents with
+completion.  See below for an introduction to HTML.  Use
+\\[browse-url-of-buffer] to see how this comes out.  See also `sgml-mode' on
+which this is based.
 
-Do \\[describe-variable] html- SPC to see available variables.
+Do \\[describe-variable] html- SPC and \\[describe-variable] sgml- SPC to see available variables.
 
 To write fairly well formatted pages you only need to know few things.  Most
 browsers have a function to read the source code of the page being seen, so
@@ -1161,6 +1185,17 @@ do:
   nil
   (if (bolp) nil ?\n)
   \n "<p>")
+
+(define-skeleton html-checkboxes
+  "Group of connected checkbox inputs."
+  nil
+  '(setq v1 (eval str))			; allow passing name as argument
+  ("Value & Text: "
+   "<input type=\"checkbox\" name=\""
+   (or v1 (setq v1 (skeleton-read "Name: ")))
+   "\" value=\"" str ?\"
+   (if v2 "" " checked") ?> str
+   (or v2 (setq v2 (if (y-or-n-p "Newline? ") "<br>" ""))) \n))
 
 (define-skeleton html-radio-buttons
   "Group of connected radio button inputs."
