@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2003 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -266,7 +266,12 @@ ARGLIST allows full Common Lisp conventions."
 	     (nconc (let ((hdr (nreverse header)))
 		      (require 'help-fns)
 		      (cons (help-add-fundoc-usage
-			     (if (stringp (car hdr)) (pop hdr)) orig-args)
+			     (if (stringp (car hdr)) (pop hdr))
+			     ;; orig-args can contain &cl-defs (an internal CL
+			     ;; thingy that I do not understand), so remove it.
+			     (let ((x (memq '&cl-defs orig-args)))
+			       (if (null x) orig-args
+				 (delq (car x) (remq (cadr x) orig-args)))))
 			    hdr))
 		    (list (nconc (list 'let* bind-lets)
 				 (nreverse bind-forms) body)))))))
