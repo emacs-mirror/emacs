@@ -1380,10 +1380,6 @@ It is saved for when this flag is not set.")
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
-	 ;; Fix the mode line.
-	 (setq mode-line-process
-	       (concat ":"
-		       (symbol-name (process-status proc))))
 	 (let* ((obuf (current-buffer)))
 	   ;; save-excursion isn't the right thing if
 	   ;;  process-buffer is current-buffer
@@ -1391,6 +1387,10 @@ It is saved for when this flag is not set.")
 	       (progn
 		 ;; Write something in *compilation* and hack its mode line,
 		 (set-buffer (process-buffer proc))
+		 ;; Fix the mode line.
+		 (setq mode-line-process
+		       (concat ":"
+			       (symbol-name (process-status proc))))
 		 (force-mode-line-update)
 		 (if (eobp)
 		     (insert ?\n mode-name " " msg)
