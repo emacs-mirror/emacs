@@ -650,14 +650,16 @@ the echo area."
   "Prompting with PROMPT, let user edit COMMAND and eval result.
 COMMAND is a Lisp expression.  Let user edit that expression in
 the minibuffer, then read and evaluate the result."
-  (let ((command (read-from-minibuffer prompt
-				       (prin1-to-string command)
-				       read-expression-map t
-				       '(command-history . 1))))
-    ;; If command was added to command-history as a string,
-    ;; get rid of that.  We want only evaluable expressions there.
-    (if (stringp (car command-history))
-	(setq command-history (cdr command-history)))
+  (let ((command
+	 (unwind-protect
+	     (read-from-minibuffer prompt
+				   (prin1-to-string command)
+				   read-expression-map t
+				   '(command-history . 1))
+	   ;; If command was added to command-history as a string,
+	   ;; get rid of that.  We want only evaluable expressions there.
+	   (if (stringp (car command-history))
+	       (setq command-history (cdr command-history))))))
 
     ;; If command to be redone does not match front of history,
     ;; add it to the history.
@@ -683,14 +685,16 @@ to get different commands to edit and resubmit."
 		(let ((print-level nil)
 		      (minibuffer-history-position arg)
 		      (minibuffer-history-sexp-flag (1+ (minibuffer-depth))))
-		  (read-from-minibuffer
-		   "Redo: " (prin1-to-string elt) read-expression-map t
-		   (cons 'command-history arg))))
+		  (unwind-protect
+		      (read-from-minibuffer
+		       "Redo: " (prin1-to-string elt) read-expression-map t
+		       (cons 'command-history arg))
 
-	  ;; If command was added to command-history as a string,
-	  ;; get rid of that.  We want only evaluable expressions there.
-	  (if (stringp (car command-history))
-	      (setq command-history (cdr command-history)))
+		    ;; If command was added to command-history as a
+		    ;; string, get rid of that.  We want only
+		    ;; evaluable expressions there.
+		    (if (stringp (car command-history))
+			(setq command-history (cdr command-history))))))
 
 	  ;; If command to be redone does not match front of history,
 	  ;; add it to the history.
