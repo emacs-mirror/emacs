@@ -1396,7 +1396,7 @@ Similarly for Soar, Scheme, etc."
 
           (if comint-process-echoes
               (delete-region pmark (point))
-	    (insert-before-markers ?\n))
+	    (insert ?\n))
 
 	  (if (and (funcall comint-input-filter history)
 		   (or (null comint-input-ignoredups)
@@ -1430,6 +1430,7 @@ Similarly for Soar, Scheme, etc."
 	      ;; Make an overlay for the terminating newline
 	      (let ((over (make-overlay end (1+ end))))
 		(overlay-put over 'field 'boundary)
+		(overlay-put over 'rear-nonsticky t)
 		(overlay-put over 'evaporate t))))
 
 	  (comint-snapshot-last-prompt)
@@ -1507,16 +1508,21 @@ This variable is permanent-local.")
 		(setq obeg (+ obeg nchars)))
 	    (if (<= (point) oend)
 		(setq oend (+ oend nchars)))
-	    (insert-before-markers string)
+
+	    (insert string)
 
 	    (unless comint-use-prompt-regexp-instead-of-fields
 	      ;; We check to see if the last overlay used for output has
 	      ;; already been extended to include STRING (because it was
 	      ;; inserted with insert-before-markers?), and only make
 	      ;; a new overlay if it hasn't.
-	      (unless (and comint-last-output-overlay
-			   (equal (overlay-end comint-last-output-overlay)
-				  (point)))
+	      (if (and comint-last-output-overlay
+		       (equal (overlay-end comint-last-output-overlay) ostart))
+		  ;; Extend comint-last-output-overlay to include the
+		  ;; most recent output
+		  (move-overlay comint-last-output-overlay
+				(overlay-start comint-last-output-overlay)
+				(point))
 		;; Create a new overlay
 		(let ((over (make-overlay ostart (point))))
 		  (overlay-put over 'field 'output)
