@@ -1,3 +1,14 @@
+2004-06-17  David Kastrup  <dak@gnu.org>
+
+	* replace.el (query-replace-read-args): Only warn about use of \n
+	and \t when we are doing a regexp replacement and the actual
+	escaped character is n or t.
+	(query-replace-regexp): Add \, and \# interpretation to
+	interactive call and document it.
+	(query-replace-regexp-eval, replace-match-string-symbols): add \#
+	as shortkey for replace-count.
+	(replace-quote): New function for doubling backslashes.
+
 2004-06-17  Juanma Barranquero  <lektu@terra.es>
 
 	* files.el (parse-colon-path, cd): Mention in docstring that the
