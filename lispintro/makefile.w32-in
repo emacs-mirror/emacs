@@ -1,6 +1,6 @@
 #### -*- Makefile -*- for the Emacs Lisp Introduction manual.
 
-# Copyright (C) 2003 Free Software Foundation, Inc.
+# Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -69,5 +69,3 @@ maintainer-clean: distclean
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
-
-# arch-tag: d713164a-e683-4ce3-a39e-3bf82f2f82f4

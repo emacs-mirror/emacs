@@ -1,6 +1,6 @@
 # -*- Makefile -*- for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 2003
+# Copyright (C) 2003, 2004
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -119,5 +119,3 @@ distclean: clean
 
 maintainer-clean: clean
 	- $(DEL) elisp elisp-* elisp.dvi elisp.oaux
-
-# arch-tag: da68f1c2-536d-4d41-9150-7b01434eda3f
