@@ -217,7 +217,7 @@ readline (linebuffer, stream)
 	  linebuffer->size *= 2;
 	  buffer = ((char *) xrealloc (buffer, linebuffer->size));
 	  p += buffer - linebuffer->buffer;
-	  end += buffer - linebuffer->buffer;
+	  end = buffer + linebuffer->size;
 	  linebuffer->buffer = buffer;
 	}
       if (c < 0 || c == '\n')
