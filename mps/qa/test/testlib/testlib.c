@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.9) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.10) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -68,7 +68,7 @@ void vreport(const char *str, const char *format, va_list args)
  fprintf(stdout, "!%s=", str);
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
- fflush(NULL);
+ fflush(stdout);
 }
 
 /* cdie
@@ -123,7 +123,7 @@ void vcomment(const char *format, va_list args)
  fprintf(stdout, "%% ");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
- fflush(NULL);
+ fflush(stdout);
 }
 
 /* commentif(boolean, "comment")
@@ -164,7 +164,7 @@ void verror(const char *format, va_list args)
  fprintf(stdout, "!errtext=");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
- fflush(NULL);
+ fflush(stdout);
  myabort();
 }
 
@@ -183,7 +183,7 @@ void asserts(int expr, const char *format, ...)
   fprintf(stdout, "!asserttext=");
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
-  fflush(NULL);
+  fflush(stdout);
   va_end(args);
   myabort();
  }
@@ -222,7 +222,7 @@ static void my_assert_handler(const char *cond, const char *id,
   fputc('\n', stdout);
   val++;
   report("assertline", val);
-  fflush(NULL);
+  fflush(stdout);
  } else {
   comment("MPS ASSERTION FAILURE");
   report("assert", "true");
