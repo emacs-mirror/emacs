@@ -654,8 +654,9 @@ In addition, certain other PC bindings are imitated:
   ;; The following bindings are useful on Sun Type 3 keyboards
   ;; They implement the Get-Delete-Put (copy-cut-paste)
   ;; functions from sunview on the L6, L8 and L10 keys
-  (define-key global-map [f16]  'yank)
-  (define-key global-map [f18]  'copy-region-as-kill)
+  ;; Sam Steingold <sds@ptc.com> says that f16 is copy and f18 is paste.
+  (define-key global-map [f16]  'copy-region-as-kill)
+  (define-key global-map [f18]  'yank)
   (define-key global-map [f20]  'kill-region)
 
   ;; The following bindings are from Pete Forman.
