@@ -128,9 +128,9 @@ DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
 
   p = XSTRING (str);
   if (p->size)
-    XFASTINT (val) = ((unsigned char *) p->data)[0];
+    XSETFASTINT (val, ((unsigned char *) p->data)[0]);
   else
-    XFASTINT (val) = 0;
+    XSETFASTINT (val, 0);
   return val;
 }
 
@@ -150,7 +150,7 @@ Beginning of buffer is position (point-min)")
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = point;
+  XSETFASTINT (temp, point);
   return temp;
 }
 
@@ -357,7 +357,7 @@ DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 0, 0,
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = Z - BEG;
+  XSETFASTINT (temp, Z - BEG);
   return temp;
 }
 
@@ -367,7 +367,7 @@ This is 1, unless narrowing (a buffer restriction) is in effect.")
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = BEGV;
+  XSETFASTINT (temp, BEGV);
   return temp;
 }
 
@@ -386,7 +386,7 @@ is in effect, in which case it is less.")
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = ZV;
+  XSETFASTINT (temp, ZV);
   return temp;
 }
 
@@ -406,9 +406,9 @@ At the end of the buffer or accessible region, return 0.")
 {
   Lisp_Object temp;
   if (point >= ZV)
-    XFASTINT (temp) = 0;
+    XSETFASTINT (temp, 0);
   else
-    XFASTINT (temp) = FETCH_CHAR (point);
+    XSETFASTINT (temp, FETCH_CHAR (point));
   return temp;
 }
 
@@ -419,9 +419,9 @@ At the beginning of the buffer or accessible region, return 0.")
 {
   Lisp_Object temp;
   if (point <= BEGV)
-    XFASTINT (temp) = 0;
+    XSETFASTINT (temp, 0);
   else
-    XFASTINT (temp) = FETCH_CHAR (point - 1);
+    XSETFASTINT (temp, FETCH_CHAR (point - 1));
   return temp;
 }
 
@@ -479,7 +479,7 @@ If POS is out of range, the value is nil.")
   n = XINT (pos);
   if (n < BEGV || n >= ZV) return Qnil;
 
-  XFASTINT (val) = FETCH_CHAR (n);
+  XSETFASTINT (val, FETCH_CHAR (n));
   return val;
 }
 
@@ -1305,7 +1305,7 @@ for the character with code N.  Returns the number of characters changed.")
 	}
     }
 
-  XFASTINT (z) = cnt;
+  XSETFASTINT (z, cnt);
   return (z);
 }
 
@@ -1355,7 +1355,7 @@ or markers) bounding the text that should remain visible.")
     {
       i = XFASTINT (b);
       b = e;
-      XFASTINT (e) = i;
+      XSETFASTINT (e, i);
     }
 
   if (!(BEG <= XINT (b) && XINT (b) <= XINT (e) && XINT (e) <= Z))
@@ -1380,8 +1380,8 @@ save_restriction_save ()
   /* Note: I tried using markers here, but it does not win
      because insertion at the end of the saved region
      does not advance mh and is considered "outside" the saved region. */
-  XFASTINT (bottom) = BEGV - BEG;
-  XFASTINT (top) = Z - ZV;
+  XSETFASTINT (bottom, BEGV - BEG);
+  XSETFASTINT (top, Z - ZV);
 
   return Fcons (Fcurrent_buffer (), Fcons (bottom, top));
 }
