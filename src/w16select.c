@@ -263,7 +263,13 @@ set_clipboard_data (Format, Data, Size, Raw)
 
   /* Move the buffer into the low memory, convert LF into CR-LF if needed.  */
   if (Raw)
-    dosmemput (Data, truelen, __tb);
+    {
+      dosmemput (Data, Size, xbuf_addr);
+
+      /* Terminate with a null, otherwise Windows does strange things
+	 when the text size is an integral multiple of 32 bytes. */
+      _farpokeb (_dos_ds, xbuf_addr + Size, '\0');
+    }
   else
     {
       dp = Data;
@@ -279,11 +285,11 @@ set_clipboard_data (Format, Data, Size, Raw)
 	    _farnspokeb (buf_offset++, '\r');
 	  _farnspokeb (buf_offset++, *dp++);
 	}
-    }
 
-  /* Terminate with a null, otherwise Windows does strange things when
-     the text size is an integral multiple of 32 bytes. */
-  _farnspokeb (buf_offset, *dp);
+      /* Terminate with a null, otherwise Windows does strange things
+	 when the text size is an integral multiple of 32 bytes. */
+      _farnspokeb (buf_offset, '\0');
+    }
 
   /* Calls Int 2Fh/AX=1703h with:
 	             DX = WinOldAp-Supported Clipboard format
