@@ -53,7 +53,7 @@ an `@' character, followed by the value returned by `system-name'.")
       (if (eq system-type 'vax-vms) 
 	  "$CHANGE_LOG$.TXT" 
 	(if (eq system-type 'ms-dos)
-	    "change.log"
+	    "changelo"
 	  "ChangeLog"))))
 
 ;;;###autoload
