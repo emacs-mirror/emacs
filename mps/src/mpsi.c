@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.8) $
+ * $HopeName: MMsrc!mpsi.c(trunk.9) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: MMsrc!mpsi.c(trunk.8) $");
+SRCID("$HopeName: MMsrc!mpsi.c(trunk.9) $");
 
 
 /* Check consistency of interface mappings. */
@@ -435,7 +435,7 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
   AVER(rootReturn != NULL);
   AVER(ISVALID(Space, space));
   AVER(mps_root_scan != NULL);
-  AVER(mps_rm = (mps_rm_t)0);
+  AVER(mps_rm == (mps_rm_t)0);
 
   /* The root mode is ignored. */
   e = RootCreate(rootReturn, space, rank,
