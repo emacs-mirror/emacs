@@ -1,3 +1,12 @@
+2001-08-28  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-revert-file): Call the backend even if the FILE's
+	contents can be reverted locally; pass new arg CONTENTS-DONE
+	down to the backend.
+
+	* vc-{cvs,rcs,sccs}.el (vc-*-revert-file): Handle new
+	optional arg CONTENTS-DONE.
+
 2001-08-28  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt (DONTCOMPILE): Sync list from makefile.w32-in.
