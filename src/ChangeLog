@@ -1,3 +1,8 @@
+1999-11-16  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* print.c (PRINTPREPARE): Don't call setup_echo_area_for_printing
+	in noninteractive.
+
 1999-11-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (ensure_echo_area_buffers): New.
