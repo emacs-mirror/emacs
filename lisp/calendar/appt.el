@@ -516,26 +516,30 @@ They specify the range of dates that the diary is being processed for."
 					       (cadr (car entry-list))) 1 -1)))
 
 		  (while (string-match
-			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\(.*\n\\)*.*"
+			  "\\([0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\).*"
 			  time-string)
-		    (let* ((appt-time-string (match-string 0 time-string)))
+		    (let* ((beg (match-beginning 0))
+			   ;; Get just the time for this appointment.
+			   (only-time (match-string 1 time-string))
+			   ;; Find the end of this appointment
+			   ;; (the start of the next).
+			   (end (string-match
+				 "^[ \t]*[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
+				 time-string
+				 (match-end 0)))
+			   ;; Get the whole string for this appointment.
+			   (appt-time-string
+			    (substring time-string beg (if end (1- end)))))
 
-		      (if (< (match-end 0) (length time-string))
-			  (setq new-time-string (substring time-string 
-							   (+ (match-end 0) 1)
-							   nil))
-			(setq new-time-string ""))
+		      ;; Add this appointment to appt-time-msg-list.
+		      (let* ((appt-time (list (appt-convert-time only-time)))
+			     (time-msg (list appt-time appt-time-string)))
+			(setq appt-time-msg-list
+			      (nconc appt-time-msg-list (list time-msg))))
 
-		      (string-match "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
-				    time-string)
-
-		      (let* ((appt-time (list (appt-convert-time 
-					       (match-string 0 time-string))))
-			     (time-msg (cons appt-time
-					     (list appt-time-string))))
-			(setq time-string new-time-string)
-			(setq appt-time-msg-list (nconc appt-time-msg-list
-							(list time-msg)))))))
+		      ;; Discard this appointment from the string.
+		      (setq time-string
+			    (if end (substring time-string end) "")))))
 		(setq entry-list (cdr entry-list)))))
 	(setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
 
