@@ -270,24 +270,17 @@ the Meta-CVS command (in that order)."
 	  (unless (get-buffer-window (current-buffer) t)
 	    (kill-buffer (current-buffer)))))))
   ;; Now do the ADD.
-  (let ((switches (append
-		   (if (stringp vc-register-switches)
-		       (list vc-register-switches)
-		     vc-register-switches)
-		   (if (stringp vc-mcvs-register-switches)
-		       (list vc-mcvs-register-switches)
-		     vc-mcvs-register-switches))))
-    (prog1 (apply 'vc-mcvs-command nil 0 file
-		  "add"
-		  (and comment (string-match "[^\t\n ]" comment)
-		       (concat "-m" comment))
-		  switches)
-      ;; I'm not sure exactly why, but if we don't setup the inode and root
-      ;; prop of the file, things break later on in vc-mode-line that
-      ;; ends up calling vc-mcvs-workfile-version.
-      ;; We also need to set vc-checkout-time so that vc-workfile-unchanged-p
-      ;; doesn't try to call `mcvs diff' on the file.
-      (vc-mcvs-registered file))))
+  (prog1 (apply 'vc-mcvs-command nil 0 file
+		"add"
+		(and comment (string-match "[^\t\n ]" comment)
+		     (concat "-m" comment))
+		(vc-switches 'MCVS 'register))
+    ;; I'm not sure exactly why, but if we don't setup the inode and root
+    ;; prop of the file, things break later on in vc-mode-line that
+    ;; ends up calling vc-mcvs-workfile-version.
+    ;; We also need to set vc-checkout-time so that vc-workfile-unchanged-p
+    ;; doesn't try to call `mcvs diff' on the file.
+    (vc-mcvs-registered file)))
 
 (defalias 'vc-mcvs-responsible-p 'vc-mcvs-root
   "Return non-nil if CVS thinks it is responsible for FILE.")
@@ -298,26 +291,19 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 
 (defun vc-mcvs-checkin (file rev comment)
   "Meta-CVS-specific version of `vc-backend-checkin'."
-  (let ((switches (if (stringp vc-checkin-switches)
-		      (list vc-checkin-switches)
-		    vc-checkin-switches))
-	status)
-    (if (or (not rev) (vc-mcvs-valid-version-number-p rev))
-        (setq status (apply 'vc-mcvs-command nil 1 file
-                            "ci" (if rev (concat "-r" rev))
-                            "-m" comment
-                            switches))
-      (if (not (vc-mcvs-valid-symbolic-tag-name-p rev))
-          (error "%s is not a valid symbolic tag name" rev)
-        ;; If the input revison is a valid symbolic tag name, we create it
-        ;; as a branch, commit and switch to it.
-        (apply 'vc-mcvs-command nil 0 file "tag" "-b" (list rev))
-        (apply 'vc-mcvs-command nil 0 file "update" "-r" (list rev))
-        (setq status (apply 'vc-mcvs-command nil 1 file
-                            "ci"
-                            "-m" comment
-                            switches))
-        (vc-file-setprop file 'vc-mcvs-sticky-tag rev)))
+  (unless (or (not rev) (vc-mcvs-valid-version-number-p rev))
+    (if (not (vc-mcvs-valid-symbolic-tag-name-p rev))
+	(error "%s is not a valid symbolic tag name" rev)
+      ;; If the input revison is a valid symbolic tag name, we create it
+      ;; as a branch, commit and switch to it.
+      (apply 'vc-mcvs-command nil 0 file "tag" "-b" (list rev))
+      (apply 'vc-mcvs-command nil 0 file "update" "-r" (list rev))
+      (vc-file-setprop file 'vc-mcvs-sticky-tag rev)
+      (setq rev nil)))
+  (let ((status (apply 'vc-mcvs-command nil 1 file
+		       "ci" (if rev (concat "-r" rev))
+		       "-m" comment
+		       (vc-switches 'MCVS 'checkin))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (when (not (zerop status))
@@ -356,17 +342,12 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	 (and rev (not (string= rev ""))
 	      (concat "-r" rev))
 	 "-p"
-	 (if (stringp vc-checkout-switches)
-	     (list vc-checkout-switches)
-	   vc-checkout-switches)))
+	 (vc-switches 'MCVS 'checkout)))
 
 (defun vc-mcvs-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
-    (let ((switches (if (stringp vc-checkout-switches)
-			(list vc-checkout-switches)
-		      vc-checkout-switches)))
-      (vc-call update file editable rev switches)))
+    (vc-call update file editable rev (vc-switches 'MCVS 'checkout)))
   (vc-mode-line file)
   (message "Checking out %s...done" file))
 
@@ -476,32 +457,27 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-mcvs-diff (file &optional oldvers newvers)
   "Get a difference report using Meta-CVS between two versions of FILE."
-  (let (status (diff-switches-list (vc-diff-switches-list 'MCVS)))
-    (if (string= (vc-workfile-version file) "0")
-	;; This file is added but not yet committed; there is no master file.
-	(if (or oldvers newvers)
-	    (error "No revisions of %s exist" file)
-	  ;; We regard this as "changed".
-	  ;; Diff it against /dev/null.
-          ;; Note: this is NOT a "mcvs diff".
-          (apply 'vc-do-command "*vc-diff*"
-                 1 "diff" file
-                 (append diff-switches-list '("/dev/null")))
-	  ;; Even if it's empty, it's locally modified.
-	  1)
-      (setq status
-            (apply 'vc-mcvs-command "*vc-diff*"
-                   (if (and (vc-mcvs-stay-local-p file)
-			    (fboundp 'start-process))
-		       'async
-		     1)
-                   file "diff"
-                   (and oldvers (concat "-r" oldvers))
-                   (and newvers (concat "-r" newvers))
-                   diff-switches-list))
-      (if (vc-mcvs-stay-local-p file)
-          1 ;; async diff, pessimistic assumption
-        status))))
+  (if (string= (vc-workfile-version file) "0")
+      ;; This file is added but not yet committed; there is no master file.
+      (if (or oldvers newvers)
+	  (error "No revisions of %s exist" file)
+	;; We regard this as "changed".
+	;; Diff it against /dev/null.
+	;; Note: this is NOT a "mcvs diff".
+	(apply 'vc-do-command "*vc-diff*"
+	       1 "diff" file
+	       (append (vc-switches nil 'diff) '("/dev/null")))
+	;; Even if it's empty, it's locally modified.
+	1)
+    (let* ((async (and (vc-mcvs-stay-local-p file) (fboundp 'start-process)))
+	   (status
+	    (apply 'vc-mcvs-command "*vc-diff*"
+		   (if async 'async 1)
+		   file "diff"
+		   (and oldvers (concat "-r" oldvers))
+		   (and newvers (concat "-r" newvers))
+		   (vc-switches 'MCVS 'diff))))
+      (if async 1 status))))	       ; async diff, pessimistic assumption.
 
 (defun vc-mcvs-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
@@ -525,7 +501,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
         (apply 'vc-mcvs-command "*vc-diff*" 1 nil "diff"
                (and rev1 (concat "-r" rev1))
                (and rev2 (concat "-r" rev2))
-               (vc-diff-switches-list 'MCVS))))))
+               (vc-switches 'MCVS 'diff))))))
 
 (defun vc-mcvs-annotate-command (file buffer &optional version)
   "Execute \"mcvs annotate\" on FILE, inserting the contents in BUFFER.
