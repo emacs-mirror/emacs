@@ -2,14 +2,15 @@
 
 Problems, fixmes and other issues in the emacs-unicode branch
 
-Notes by fx to record a few things.  handa needs to check them --
-don't take too seriously, especially with regard to completeness.
+Notes by fx to record various things of variable importance.  handa
+needs to check them -- don't take too seriously, especially with
+regard to completeness.
 
-Do take seriously that you don't want this CVS branch unless you're
-actually working on it.  If you just want to edit Unicode and/or unify
-iso-8859 et al, see the existing support and the extra stuff at
-<URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>.  Editing support is mostly
-orthogonal to the internal representation.
+_Do take seriously that you don't want this CVS branch unless you're
+actually working on it; you'd risk your data._  If you just want to
+edit Unicode and/or unify iso-8859 et al, see the existing support and
+the extra stuff at <URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>.  Editing
+support is mostly orthogonal to the internal representation.
 
  * SINGLE_BYTE_CHAR_P returns true for Latin-1 characters.
 
@@ -47,8 +48,7 @@ orthogonal to the internal representation.
 
  * Lazy-load tables for unify-charset somehow?
 
- * Should translation tables for {en,de}code and input work now or be
-   scrapped?
+ * Translation tables for {en,de}code currently aren't supported.
 
  * Defining CCL coding systems currently doesn't work.
 
@@ -62,7 +62,7 @@ orthogonal to the internal representation.
    handle more scripts specifically (á la Devanagari).  There are
    issues with canonicalization.
 
- * Bidi is a separate issue.
+ * Bidi is a separate issue with no support currently.
 
  * DTRT with X keysyms.  We should get the right unicode for a given
    keysym, not decode raw bytes in some ill-defined coding system.
@@ -73,3 +73,10 @@ orthogonal to the internal representation.
 
  * Need multibyte text in menus, e.g. for the above.  (Not specific to
    Unicode.)
+
+ * Still can't have case pairs which have different byte lengths --
+   can that be fixed for Turkish, at least?
+
+ * There's currently no support for Unicode normalization.
+
+ * You can grep the code for lots of fixmes.
