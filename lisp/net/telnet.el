@@ -154,7 +154,10 @@ rejecting one login and prompting again for a username and password.")
 ;; instead of "\n".
 (defun telnet-simple-send (proc string)
   (comint-send-string proc string)
-  (comint-send-string proc telnet-new-line))
+  (if comint-input-sender-no-newline
+      (if (not (string-equal input ""))
+	  (process-send-eof))
+    (comint-send-string proc telnet-new-line)))
 
 (defun telnet-filter (proc string)
   (save-excursion
