@@ -105,11 +105,14 @@ shell it really is.")
   "*The executable file name for the shell being programmed.")
 
 
+;; bash and ksh do not need any options when run in a shell script,
+;; and Bill_Mann@praxisint.com says -p with ksh can do harm.
 (defvar sh-shell-arg
-  '((bash . "-norc")
+  '((bash)
     (csh . "-f")
-    (ksh88 eval progn nil (if (file-exists-p "/etc/suid_profile") nil "-p"))
     (pdksh)
+    (ksh88)
+    ;; Bill_Mann@praxisint.com says -p may be wrong for this too.
     (rc . "-p")
     (wksh . "-motif")
     (zsh . "-f"))
