@@ -430,6 +430,7 @@
 (define-charset 'japanese-jisx0213.2004-1
   "JISX0213.2004 Plane1 (Japanese)"
   :short-name "JISX0213.2004-1"
+  :dimension 2
   :iso-final-char ?Q
   :superset '(japanese-jisx0213-a japanese-jisx0213-1))
 
