@@ -367,11 +367,6 @@ This regular expression should start with a `^' character.")
   "Used for initialising variables based on display's color support.
 This is necessary if one wants to dump man.el with Emacs."
 
-  ;; The following is necessary until fonts are implemented on
-  ;; terminals.
-  (setq Man-fontify-manpage-flag (and Man-fontify-manpage-flag
-				      (display-color-p)))
-
   ;; Avoid possible error in call-process by using a directory that must exist.
   (let ((default-directory "/"))
     (setq Man-sed-script
