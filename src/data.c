@@ -1312,10 +1312,15 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
 Other buffers will continue to share a common default value.\n\
 \(The buffer-local value of VARIABLE starts out as the same value\n\
 VARIABLE previously had.  If VARIABLE was void, it remains void.\)\n\
-See also `make-variable-buffer-local'.\n\n\
+See also `make-variable-buffer-local'.\n\
+\n\
 If the variable is already arranged to become local when set,\n\
 this function causes a local value to exist for this buffer,\n\
 just as setting the variable would do.\n\
+\n\
+This function returns VARIABLE, and therefore\n\
+  (set (make-local-variable 'VARIABLE) VALUE-EXP)\n\
+works.\n\
 \n\
 Do not use `make-local-variable' to make a hook variable buffer-local.\n\
 Use `make-local-hook' instead.")
