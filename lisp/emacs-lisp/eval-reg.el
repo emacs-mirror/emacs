@@ -1,4 +1,4 @@
-;;; eval-region.el --- Redefine eval-region, and subrs that use it, in Lisp
+;;; eval-reg.el --- Redefine eval-region, and subrs that use it, in Lisp
 
 ;; Copyright (C) 1994 Daniel LaLiberte
 
@@ -69,9 +69,9 @@
 	  (symbol-function 'eval-current-buffer)))
 
 (defvar elisp-eval-region-level 0
-  "If the value is 0, use the original version of elisp-eval-region.
-Callers of elisp-eval-region should increment elisp-eval-region-level
-while the Lisp version should be used.  Installing elisp-eval-region
+  "If the value is 0, use the original version of `elisp-eval-region'.
+Callers of `elisp-eval-region' should increment `elisp-eval-region-level'
+while the Lisp version should be used.  Installing `elisp-eval-region'
 increments it once, and uninstalling decrements it.")
 
 ;; Installing and uninstalling should always be used in pairs, 
@@ -99,13 +99,13 @@ increments it once, and uninstalling decrements it.")
 (put 'with-elisp-eval-region 'edebug-form-spec t)
 
 (defmacro with-elisp-eval-region (flag &rest body)
-  "If FLAG is nil, decrement eval-region-level while executing BODY.
+  "If FLAG is nil, decrement `eval-region-level' while executing BODY.
 The effect of decrementing all the way to zero is that `eval-region'
-will use the original eval-region, which may be the Emacs subr or some
+will use the original `eval-region', which may be the Emacs subr or some
 previous redefinition.  Before calling this macro, this package should
 already have been installed, using `elisp-eval-region-install', which
 increments the count once.  So if another package still requires the
-elisp version of the code, the count will still be non-zero.
+Lisp version of the code, the count will still be non-zero.
 
 The count is not bound locally by this macro, so changes by BODY to
 its value will not be lost."
@@ -127,7 +127,7 @@ of the text to be executed.
 Programs can pass third argument PRINTFLAG which controls printing of output:
 nil means discard it; anything else is stream for print.
 
-This version, from eval-region, allows Lisp customization of read,
+This version, from `eval-reg.el', allows Lisp customization of read,
 eval, and the printer."
 
   ;; Because this doesnt narrow to the region, one other difference 
@@ -190,7 +190,7 @@ eval, and the printer."
 Programs can pass argument PRINTFLAG which controls printing of output:
 nil means discard it; anything else is stream for print.
 
-This version from eval-region calls `eval-region' on the whole buffer."
+This version calls `eval-region' on the whole buffer."
   ;; The standard eval-current-buffer doesn't use eval-region.
   (interactive)
   (eval-region (point-min) (point-max) elisp-output))
@@ -201,7 +201,7 @@ This version from eval-region calls `eval-region' on the whole buffer."
 Programs can pass argument PRINTFLAG which controls printing of
 output: nil means discard it; anything else is stream for print.
 
-This version from eval-region calls `eval-region' on the whole buffer."
+This version calls `eval-region' on the whole buffer."
   (interactive)
   (if (null elisp-bufname)
       (setq elisp-bufname (current-buffer)))
@@ -211,5 +211,5 @@ This version from eval-region calls `eval-region' on the whole buffer."
     (eval-region (point-min) (point-max) elisp-printflag)))
 
 
-(provide 'elisp-eval-region)
+(provide 'eval-reg)
 
