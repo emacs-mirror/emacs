@@ -1,5 +1,8 @@
 2004-11-26  Kim F. Storm  <storm@cua.dk>
 
+	* fringe.c (update_window_fringes): Prefer truncation bitmaps over
+	angle bitmaps at top/bottom line.
+
 	* xdisp.c: Undo recent changes for restoring saved_face_id. Instead,
 	set it when it->method is set to next_element_from_display_vector.
 	(setup_for_ellipsis): Add LEN argument.  Callers changed.
