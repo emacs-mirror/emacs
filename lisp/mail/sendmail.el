@@ -1259,7 +1259,7 @@ external program defined by `sendmail-program'."
   (goto-char (mail-text-start)))
 
 (defun mail-signature (&optional atpoint)
-  "Sign letter with contents of the file `mail-signature-file'.
+  "Sign letter with signature based on `mail-signature-file'.
 Prefix arg means put contents at point."
   (interactive "P")
   (save-excursion
@@ -1269,8 +1269,10 @@ Prefix arg means put contents at point."
     (end-of-line)
     (or atpoint
 	(delete-region (point) (point-max)))
-    (insert "\n\n-- \n")
-    (insert-file-contents (expand-file-name mail-signature-file))))
+    (if (stringp mail-signature)
+	(insert mail-signature)
+      (insert "\n\n-- \n")
+      (insert-file-contents (expand-file-name mail-signature-file)))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
   "Fill the paragraphs of a message yanked into this one.
