@@ -327,6 +327,7 @@ coding systems ordered by priority."
 	 (mapc (function (lambda (x) (set (car x) (cdr x))))
 	       prio-list)
 	 (set-coding-priority (mapcar #'car prio-list))
+	 (update-coding-systems-internal)
 	 (detect-coding-region ,from ,to))
      ;; We must restore the internal database.
      (set-coding-priority coding-category-list)
