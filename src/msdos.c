@@ -1634,11 +1634,7 @@ void
 XMenuLocate (Display *foo0, XMenu *menu, int foo1, int foo2, int x, int y,
 	     int *ulx, int *uly, int *width, int *height)
 {
-  if (menu->count == 1 && menu->submenu[0])
-      /* Special case: the menu consists of only one pane.  */
-    IT_menu_calc_size (menu->submenu[0], width, height);
-  else
-    IT_menu_calc_size (menu, width, height);
+  IT_menu_calc_size (menu, width, height);
   *ulx = x + 1;
   *uly = y;
   *width += 2;
@@ -1693,6 +1689,8 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   state[0].menu = menu;
   mouse_off ();
   ScreenRetrieve (state[0].screen_behind = xmalloc (screensize));
+
+  IT_menu_display (menu, y0 - 1, x0 - 1, faces); /* display the menu title */
   if ((onepane = menu->count == 1 && menu->submenu[0]))
     {
       menu->width = menu->submenu[0]->width;
