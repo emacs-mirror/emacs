@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
+Lisp_Object Qyes_or_no_p_history;
 
 static Lisp_Object internal_equal ();
 
@@ -1216,7 +1217,8 @@ and can edit it until it as been confirmed.")
   GCPRO1 (prompt);
   while (1)
     {
-      ans = Fdowncase (Fread_string (prompt, Qnil));
+      ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
+					      Qyes_or_no_p_history));
       if (XSTRING (ans)->size == 3 && !strcmp (XSTRING (ans)->data, "yes"))
 	{
 	  UNGCPRO;
@@ -1333,6 +1335,8 @@ syms_of_fns ()
   staticpro (&Qprovide);
   Qrequire = intern ("require");
   staticpro (&Qrequire);
+  Qyes_or_no_p_history = intern ("yes-or-no-p-history");
+  staticpro (&Qyes_or_no_p_history);
 
   DEFVAR_LISP ("features", &Vfeatures,
     "A list of symbols which are the features of the executing emacs.\n\
