@@ -323,10 +323,18 @@ chapter."
     ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face) ;commands
     ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) ;menu items
     ("@\\(emph\\|strong\\|b\\|i\\|sc\\){\\([^}]+\\)" 2 font-lock-comment-face)
-    ("@\\(file\\|kbd\\|key\\|url\\|uref\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
+    ("@\\(kbd\\|key\\|url\\|uref\\){\\([^}]+\\)"
+     2 font-lock-string-face)
+    ;; The following two groups have an OVERRIDE of `keep' because
+    ;; their arguments frequently include a @@, and we don't want that
+    ;; to overwrite the normal fontification of the argument.
+    ("@\\(file\\|email\\){\\([^}]+\\)" 2 font-lock-string-face keep)
     ("@\\(samp\\|code\\|var\\|math\\|env\\|command\\|option\\){\\([^}]+\\)"
-     2 font-lock-variable-name-face)
-    ("@\\(cite\\|[ux]?ref\\|pxref\\){\\([^}]+\\)" 2 font-lock-constant-face)
+     2 font-lock-variable-name-face keep)
+    ("@\\(cite\\|x?ref\\|pxref\\|dfn\\|inforef\\){\\([^}]+\\)"
+     2 font-lock-constant-face)
+    ("@\\(anchor\\){\\([^}]+\\)" 2 font-lock-type-face)
+    ("@\\(dmn\\|acronym\\|value\\){\\([^}]+\\)" 2 font-lock-builtin-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-function-name-face keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
 	       ".*\n") 0 texinfo-heading-face t))
