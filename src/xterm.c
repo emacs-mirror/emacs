@@ -5709,31 +5709,31 @@ expose_area (w, row, r, area)
      XRectangle *r;
      enum glyph_row_area area;
 {
-  int x;
   struct glyph *first = row->glyphs[area];
   struct glyph *end = row->glyphs[area] + row->used[area];
   struct glyph *last;
-  int first_x;
-
-  /* Set x to the window-relative start position for drawing glyphs of
-     AREA.  The first glyph of the text area can be partially visible.
-     The first glyphs of other areas cannot.  */
-  if (area == LEFT_MARGIN_AREA)
-    x = 0;
-  else if (area == TEXT_AREA)
-    x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
-  else
-    x = (window_box_width (w, LEFT_MARGIN_AREA)
-	 + window_box_width (w, TEXT_AREA));
+  int first_x, start_x, x;
 
   if (area == TEXT_AREA && row->fill_line_p)
     /* If row extends face to end of line write the whole line.  */
-    x_draw_glyphs (w, x, row, area,
+    x_draw_glyphs (w, 0, row, area,
 		   0, row->used[area],
 		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
 		   NULL, NULL, 0);
   else
     {
+      /* Set START_X to the window-relative start position for drawing glyphs of
+	 AREA.  The first glyph of the text area can be partially visible.
+	 The first glyphs of other areas cannot.  */
+      if (area == LEFT_MARGIN_AREA)
+	start_x = 0;
+      else if (area == TEXT_AREA)
+	start_x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
+      else
+	start_x = (window_box_width (w, LEFT_MARGIN_AREA)
+		   + window_box_width (w, TEXT_AREA));
+      x = start_x;
+
       /* Find the first glyph that must be redrawn.  */
       while (first < end
 	     && x + first->pixel_width < r->x)
@@ -5754,7 +5754,7 @@ expose_area (w, row, r, area)
       
       /* Repaint.  */
       if (last > first)
-	x_draw_glyphs (w, first_x, row, area,
+	x_draw_glyphs (w, first_x - start_x, row, area,
 		       first - row->glyphs[area],
 		       last - row->glyphs[area],
 		       row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
