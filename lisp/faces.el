@@ -1808,9 +1808,7 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((t
-     :inherit mode-line)
-    (((type tty))
+  '((((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
      ;; good when combined with inverse-video mode-lines and multiple
      ;; windows.  Underlining looks better, and is more consistent with
@@ -1820,24 +1818,27 @@ created."
      ;; highlighting; this may be too confusing in general, although it
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
-     :underline t
-     :inverse-video nil)
+     :underline t)
     (((class color grayscale) (background light))
      :background "grey90" :foreground "grey20"
-     :box nil)
+     :box nil
+     :inherit mode-line)
     (((class color grayscale) (background dark))
      :background "grey20" :foreground "grey90"
-     :box nil)
+     :box nil
+     :inherit mode-line)
     (((class mono) (background light))
      :background "white" :foreground "black"
      :inverse-video nil
      :box nil
-     :underline t)
+     :underline t
+     :inherit mode-line)
     (((class mono) (background dark))
      :background "black" :foreground "white"
      :inverse-video nil
      :box nil
-     :underline t))
+     :underline t
+     :inherit mode-line))
   "Basic header-line face."
   :version "21.1"
   :group 'basic-faces)
