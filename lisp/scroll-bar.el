@@ -136,8 +136,9 @@ If you click outside the slider, the window scrolls to bring the slider there."
 	 (echo-keystrokes 0))
     (or point-before-scroll
 	(setq point-before-scroll (point)))
-    (scroll-bar-drag-1 event)
+    ;; Our scrolling can move point; don't let that clear point-before-scroll.
     (let (point-before-scroll)
+      (scroll-bar-drag-1 event)
       (track-mouse
 	(while (not done)
 	  (setq event (read-event))
@@ -147,7 +148,8 @@ If you click outside the slider, the window scrolls to bring the slider there."
 		 (scroll-bar-drag-1 event))
 		(t
 		 ;; Exit when we get the drag event; ignore that event.
-		 (setq done t))))))))
+		 (setq done t)))))
+      (sit-for 0))))
 
 (defun scroll-bar-scroll-down (event)
   "Scroll the window's top line down to the location of the scroll bar click.
