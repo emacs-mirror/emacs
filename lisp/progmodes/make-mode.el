@@ -17,7 +17,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.14 1994/04/11 20:40:58 kwzh Exp rms $
+;; $Id: makefile.el,v 1.15 1994/04/22 20:20:49 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -122,7 +122,7 @@ an item has been selected in the browser.")
 
 (defvar makefile-pickup-everything-picks-up-filenames-p nil
   "If non-nil, makefile-pickup-everything also picks up filenames as targets
-(i.e. it calls makefile-find-filenames-as-targets), otherwise filenames are
+\(i.e. it calls makefile-find-filenames-as-targets), otherwise filenames are
 omitted.")
 
 (defvar makefile-cleanup-continuations-p t
@@ -748,7 +748,7 @@ In the browser\'s client buffer, go to (end-of-line), insert a \'\\\'
 character, insert a new blank line, go to that line and indent by one TAB.
 This is most useful in the process of creating continued lines when copying
 large dependencies from the browser to the client buffer.
-(point) advances accordingly in the client buffer."
+\(point) advances accordingly in the client buffer."
   (interactive)
   (save-excursion
     (set-buffer makefile-browser-client)

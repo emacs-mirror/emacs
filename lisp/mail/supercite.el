@@ -264,7 +264,7 @@ be used to select the most preferred attribution since it reflects how
 the original author would like to be distinguished.  It should be
 considered bad taste to put any attribution preference key before
 \"x-attribution\" in this list, except perhaps for \"sc-lastchoice\"
-(see below).
+\(see below).
 
 Supercite remembers the last attribution used when reciting an already
 cited paragraph.  This attribution will always be saved with the

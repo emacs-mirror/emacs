@@ -74,12 +74,12 @@ and the cdr extra OTHERWISE indentation.")
 (defconst simula-abbrev-keyword 'upcase
   "*Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table' or nil if they should not be changed.")
+\(as in) `abbrev-table' or nil if they should not be changed.")
 
 (defconst simula-abbrev-stdproc 'abbrev-table
   "*Specify how to convert case for standard SIMULA procedure and class names.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table', or nil if they should not be changed.")
+\(as in) `abbrev-table', or nil if they should not be changed.")
 
 (defvar simula-abbrev-file nil
   "*File with extra abbrev definitions for use in SIMULA mode.

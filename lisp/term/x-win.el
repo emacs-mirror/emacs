@@ -205,7 +205,7 @@
 This is done before the user's startup file is loaded.  They are copied to
 x-invocation args from which the X-related things are extracted, first
 the switch (e.g., \"-fg\") in the following code, and possible values
-(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
+\(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
 This returns ARGS with the arguments that have been processed removed."
   (setq x-invocation-args args
 	args nil)

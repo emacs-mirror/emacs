@@ -108,7 +108,7 @@ Set it to `imenu--sort-by-name' if you want alphabetic sorting.
 
 The function should take two arguments and return T if the first
 element should come before the second.  The arguments are cons cells;
-(NAME . POSITION).  Look at `imenu--sort-by-name' for an example.")
+\(NAME . POSITION).  Look at `imenu--sort-by-name' for an example.")
 
 (defvar imenu-max-items 25
   "*Maximum number of elements in an index mouse-menu.")
@@ -141,7 +141,7 @@ with name concatenation.")
 It should be a function that takes no arguments and returns an index
 of the current buffer as an alist. The elements in the alist look
 like: (INDEX-NAME . INDEX-POSITION). You may also nest index list like
-(INDEX-NAME . INDEX-ALIST).
+\(INDEX-NAME . INDEX-ALIST).
 
 This function is called within a `save-excursion'.
 

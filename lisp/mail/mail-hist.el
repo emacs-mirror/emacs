@@ -180,7 +180,7 @@ HEADER is a string without the colon."
 (defsubst mail-hist-add-header-contents-to-ring (header &optional contents)
   "Add the contents of HEADER to the header history ring.
 Optional argument CONTENTS is a string which will be the contents
-(instead of whatever's found in the header)."
+\(instead of whatever's found in the header)."
   (let ((ring (cdr (assoc header mail-hist-header-ring-alist))))
     (or ring
         ;; If the ring doesn't exist, we'll have to make it and add it
@@ -251,7 +251,7 @@ its own independent history, as does the body of the message.
 
 Although you can do so, it does not make much sense to call this
 without having called `mail-hist-previous-header' first
-(\\[mail-hist-previous-header]).
+\(\\[mail-hist-previous-header]).
 
 The history only contains the contents of outgoing messages, not
 received mail."

@@ -978,7 +978,7 @@ Lines that do not match are assumed to be error messages.")
   "A list of killed diffs. 
 A diff is saved here if it is replaced by a diff
 from another buffer.  This alist has the form:
-((num (A . diff) (B . diff)) ...),
+\((num (A . diff) (B . diff)) ...),
 where A or B parts may be missing.")
 
 

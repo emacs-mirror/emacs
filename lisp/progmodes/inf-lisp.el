@@ -69,7 +69,7 @@
   "*What not to save on inferior Lisp's input history.
 Input matching this regexp is not saved on the input history in Inferior Lisp
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword 
-(as in :a, :c, etc.)")
+\(as in :a, :c, etc.)")
 
 (defvar inferior-lisp-mode-map nil)
 (cond ((not inferior-lisp-mode-map)

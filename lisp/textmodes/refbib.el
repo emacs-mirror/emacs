@@ -72,7 +72,7 @@ may be eliminated if is exactly the same as the car.
 for the journal name should be listed as beginning with a capital 
 letter, even if it really doesn't.
   For example, a value of '((\"Aij\" \"{Artificial Intelligence}\")
-(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
+\(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the 
 BibTeX macro \"ijcai7\".")
 
@@ -87,7 +87,7 @@ may be eliminated if is exactly the same as the car.
   Because titles are capitalized before matching, the abbreviated title
 should be listed as beginning with a capital letter, even if it doesn't.
   For example, a value of '((\"Aij\" \"{Artificial Intelligence}\")
-(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
+\(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the 
 BibTeX macro \"ijcai7\".")
 

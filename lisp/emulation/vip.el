@@ -627,7 +627,7 @@ to vip-d-com for later use by vip-repeat"
 
 (defun vip-repeat (arg)
   "(ARG)  Re-execute last destructive command.  vip-d-com has the form
-(COM ARG CH REG), where COM is the command to be re-executed, ARG is the
+\(COM ARG CH REG), where COM is the command to be re-executed, ARG is the
 argument for COM, CH is a flag for repeat, and REG is optional and if exists
 is the name of the register for COM."
   (interactive "P")

@@ -104,7 +104,7 @@ Gregorian date Sunday, December 31, 1 BC."
   "Compute the French Revolutionary equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the
-(imaginary) Gregorian date Sunday, December 31, 1 BC."
+\(imaginary) Gregorian date Sunday, December 31, 1 BC."
   (if (< date 654415)
       (list 0 0 0);; pre-French Revolutionary date
     (let* ((approx (/ (- date 654414) 366));; Approximation from below.

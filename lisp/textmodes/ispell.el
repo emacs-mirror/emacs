@@ -682,7 +682,7 @@ Currently the only other valid parser is 'tex.
 
 You can set this variable in hooks in your init file -- eg:
 
-(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))")
+\(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))")
 
 (defvar ispell-region-end (make-marker)
   "Marker that allows spelling continuations.")

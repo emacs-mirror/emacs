@@ -54,7 +54,7 @@ If the kanji code of the NNTP server is different from the local kanji
 code, the correct kanji code of the buffer associated with the NNTP
 server must be specified as follows:
 
-(setq nntp-server-hook
+\(setq nntp-server-hook
       (function
        (lambda ()
 	 ;; Server's Kanji code is EUC (NEmacs hack).

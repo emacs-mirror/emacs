@@ -699,7 +699,7 @@ This will only work for errors raised by WordStar mode functions."
 
 (defun ws-kill-bol ()
   "In WordStar mode: Kill to beginning of line 
-(like WordStar, not like Emacs)."
+\(like WordStar, not like Emacs)."
   (interactive)
   (let ((p (point)))
     (beginning-of-line)

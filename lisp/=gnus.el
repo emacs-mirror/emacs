@@ -142,7 +142,7 @@ given.  Instead, if the first character of the name is `|', the
 contents of the article is piped out to the named program. It is
 possible to save an article in an MH folder as follows:
 
-(setq gnus-author-copy \"|/usr/local/lib/mh/rcvstore +Article\")")
+\(setq gnus-author-copy \"|/usr/local/lib/mh/rcvstore +Article\")")
 
 (defvar gnus-author-copy-saver (function rmail-output)
   "*A function called with a file name to save an author copy to.

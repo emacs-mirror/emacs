@@ -455,14 +455,14 @@ and 'outline-distinctive-bullets-string'.")
 (defvar outline-line-boundary-regexp ()
   "Outline-regexp with outline-style beginning-of-line anchor.
 
-(Ie, C-j, *or* C-m, for prefixes of hidden topics).  This is properly
+\(Ie, C-j, *or* C-m, for prefixes of hidden topics).  This is properly
 set when outline-regexp is produced by 'set-outline-regexp', so
 that (match-beginning 2) and (match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'outline-line-boundary-regexp)
 ;;;_   = outline-bob-regexp
 (defvar outline-bob-regexp ()
   "Like outline-line-boundary-regexp, for headers at beginning of buffer.
-(match-beginning 2) and (match-end 2) delimit the prefix.")
+\(match-beginning 2) and (match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'outline-bob-regexp)
 ;;;_   = outline-header-subtraction
 (defvar outline-header-subtraction (1- (length outline-header-prefix))

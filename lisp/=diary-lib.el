@@ -787,7 +787,7 @@ and XX:XXam or XX:XXpm."
 (defun list-hebrew-diary-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
 Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
-(normally an `H').  The same diary date forms govern the style of the Hebrew
+\(normally an `H').  The same diary date forms govern the style of the Hebrew
 calendar entries, except that the Hebrew month names must be spelled in full.
 The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
 Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
@@ -871,7 +871,7 @@ not be marked in the calendar.  This function is provided for use with the
   "Mark days in the calendar window that have Hebrew date diary entries.
 Each entry in diary-file (or included files) visible in the calendar window
 is marked.  Hebrew date entries are prefaced by a hebrew-diary-entry-symbol
-(normally an `H').  The same diary-date-forms govern the style of the Hebrew
+\(normally an `H').  The same diary-date-forms govern the style of the Hebrew
 calendar entries, except that the Hebrew month names must be spelled in full.
 The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
 Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
@@ -1650,7 +1650,7 @@ have 30 days), and has Passover start on Tuesday.")
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
 Islamic date diary entries must be prefaced by an `islamic-diary-entry-symbol'
-(normally an `I').  The same diary date forms govern the style of the Islamic
+\(normally an `I').  The same diary date forms govern the style of the Islamic
 calendar entries, except that the Islamic month names must be spelled in full.
 The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
 Dhu al-Hijjah.  If an Islamic date diary entry begins with a
@@ -1733,7 +1733,7 @@ not be marked in the calendar.  This function is provided for use with the
   "Mark days in the calendar window that have Islamic date diary entries.
 Each entry in diary-file (or included files) visible in the calendar window
 is marked.  Islamic date entries are prefaced by a islamic-diary-entry-symbol
-(normally an `I').  The same diary-date-forms govern the style of the Islamic
+\(normally an `I').  The same diary-date-forms govern the style of the Islamic
 calendar entries, except that the Islamic month names must be spelled in full.
 The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
 Dhu al-Hijjah.  Islamic date diary entries that begin with a

@@ -209,7 +209,7 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
 (defun holiday-float (month dayname n string &optional day)
   "Holiday on MONTH, DAYNAME (Nth occurrence, Gregorian) called STRING.
 If the Nth DAYNAME in MONTH is visible, the value returned is the list
-(((MONTH DAY year) STRING)).
+\(((MONTH DAY year) STRING)).
 
 If N<0, count backward from the end of MONTH.
 

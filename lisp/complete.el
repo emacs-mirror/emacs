@@ -109,7 +109,7 @@ Some arcane rules:  If `]' is in this string it must come first.
 If `^' is in this string it must NOT come first.  If `-' is in this
 string, it must come first or right after `]'.  In other words, if
 S is this string, then `[S]' must be a legal Emacs regular expression
-(not containing character ranges like `a-z').")
+\(not containing character ranges like `a-z').")
 
 
 (defvar PC-first-char 'x
