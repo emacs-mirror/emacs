@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;;; Commentary:
-;;
+
 ;; This file provides routines for getting the `thing' at the location of
 ;; point, whatever that `thing' happens to be.  The `thing' is defined by
 ;; it's beginning and end positions in the buffer.
@@ -43,11 +43,11 @@
 ;;     (thing-at-point 'line)
 ;;     (thing-at-point 'page)
 
-;;; Code: =================================================================
+;;; Code:
 
 (provide 'thingatpt)
 
-;;=== Basic movement ======================================================
+;; Basic movement
 
 ;;;###autoload
 (defun forward-thing (THING &optional N)
@@ -58,7 +58,7 @@
 	(funcall forward-op (or N 1))
       (error "Can't determine how to move over %ss" THING))))
 
-;;=== General routines ====================================================
+;; General routines
 
 ;;;###autoload
 (defun bounds-of-thing-at-point (THING)
@@ -92,7 +92,7 @@ bounds-of-thing-at-point."
     (if bounds 
 	(buffer-substring (car bounds) (cdr bounds)))))
 
-;;=== Go to beginning/end =================================================
+;; Go to beginning/end
 
 (defun beginning-of-thing (THING)
   (let ((bounds (bounds-of-thing-at-point THING)))
@@ -104,9 +104,9 @@ bounds-of-thing-at-point."
     (or bounds (error "No %s here" THING))
     (goto-char (cdr bounds))))
 
-;;=== Special cases =======================================================
+;;  Special cases 
 
-;;--- Lines ---
+;;  Lines 
 
 ;; bolp will be false when you click on the last line in the buffer
 ;; and it has no final newline.
@@ -114,7 +114,7 @@ bounds-of-thing-at-point."
 (put 'line 'beginning-op
      (function (lambda () (if (bolp) (forward-line -1) (beginning-of-line)))))
 
-;;--- Sexps ---
+;;  Sexps 
 
 (defun in-string-p ()
   (let ((orig (point)))
@@ -131,12 +131,12 @@ bounds-of-thing-at-point."
 
 (put 'sexp 'end-op 'end-of-sexp)
 
-;;--- Lists ---
+;;  Lists 
 
 (put 'list 'end-op (function (lambda () (up-list 1))))
 (put 'list 'beginning-op 'backward-sexp)
 
-;;--- Filenames ---
+;;  Filenames 
 
 (defvar file-name-chars "~/A-Za-z0-9---_.${}#%,"
   "Characters allowable in filenames.")
@@ -146,7 +146,7 @@ bounds-of-thing-at-point."
 (put 'filename 'beginning-op
      (function (lambda () (skip-chars-backward file-name-chars (point-min)))))
 
-;;--- Whitespace ---
+;;  Whitespace 
 
 (defun forward-whitespace (ARG)
   (interactive "p")
@@ -158,12 +158,12 @@ bounds-of-thing-at-point."
 	      (skip-chars-backward " \t")))
       (setq ARG (1+ ARG)))))
 
-;;--- Buffer ---
+;;  Buffer 
 
 (put 'buffer 'end-op 'end-of-buffer)
 (put 'buffer 'beginning-op 'beginning-of-buffer)
 
-;;--- Symbols ---
+;;  Symbols 
 
 (defun forward-symbol (ARG)
   (interactive "p")
@@ -174,7 +174,7 @@ bounds-of-thing-at-point."
 	  (skip-syntax-backward "w_"))
       (setq ARG (1+ ARG)))))
 
-;;--- Syntax blocks ---
+;;  Syntax blocks 
 
 (defun forward-same-syntax (&optional arg)
   (interactive "p")
@@ -186,7 +186,7 @@ bounds-of-thing-at-point."
     (skip-syntax-forward (char-to-string (char-syntax (char-after (point)))))
     (setq arg (1- arg))))
 
-;;=== Aliases =============================================================
+;;  Aliases 
 
 (defun word-at-point () (thing-at-point 'word))
 (defun sentence-at-point () (thing-at-point 'sentence))

@@ -1,4 +1,5 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
+
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
@@ -18,8 +19,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -87,7 +89,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.5 $" 11 -2)
+   (substring "$Revision: 1.6 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")

@@ -21,49 +21,50 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-; DESCRIPTION:
-; ------------
-;   This program can be used to monitor running time performance of Emacs Lisp
-; functions. It takes a list of functions and report the real time spent 
-; inside these functions. It runs a process with a separate timer program.
-;   Caveat: the C code in ../lib-src/profile.c requires BSD-compatible
-; time-of-day functions.  If you're running an AT&T version prior to SVr4,
-; you may have difficulty getting it to work.  Your X library may supply
-; the required routines if the standard C library does not.
+;; DESCRIPTION:
+;; ------------
+;;   This program can be used to monitor running time performance of Emacs Lisp
+;; functions. It takes a list of functions and report the real time spent 
+;; inside these functions. It runs a process with a separate timer program.
+;;   Caveat: the C code in ../lib-src/profile.c requires BSD-compatible
+;; time-of-day functions.  If you're running an AT&T version prior to SVr4,
+;; you may have difficulty getting it to work.  Your X library may supply
+;; the required routines if the standard C library does not.
 
-; HOW TO USE:
-; -----------
-;   Set the variable  profile-functions-list  to the list of functions
-; (as symbols) You want to profile. Call  M-x  profile-functions to set 
-; this list on and start using your program.  Note that profile-functions 
-; MUST be called AFTER all the functions in profile-functions-list have 
-; been loaded !!   (This call modifies the code of the profiled functions.
-; Hence if you reload these functions, you need to call  profile-functions  
-; again! ).
-;   To display the results do  M-x  profile-results .  For example:
-;-------------------------------------------------------------------
-;  (setq profile-functions-list '(sokoban-set-mode-line sokoban-load-game 
-;	                          sokoban-move-vertical sokoban-move))
-;  (load "sokoban")
-;  M-x profile-functions
-;     ...  I play the sokoban game ..........
-;  M-x profile-results
-;
-;      Function                     Time (Seconds.Useconds)
-;      ========                     =======================
-;      sokoban-move                     0.539088
-;      sokoban-move-vertical            0.410130
-;      sokoban-load-game                0.453235
-;      sokoban-set-mode-line            1.949203
-;-----------------------------------------------------
-; To clear all the settings to profile use profile-finish. 
-; To set one function at a time (instead of or in addition to setting the 
-; above list and  M-x profile-functions) use M-x profile-a-function.
+;; HOW TO USE:
+;; -----------
+;;   Set the variable  profile-functions-list  to the list of functions
+;; (as symbols) You want to profile. Call  M-x  profile-functions to set 
+;; this list on and start using your program.  Note that profile-functions 
+;; MUST be called AFTER all the functions in profile-functions-list have 
+;; been loaded !!   (This call modifies the code of the profiled functions.
+;; Hence if you reload these functions, you need to call  profile-functions  
+;; again! ).
+;;   To display the results do  M-x  profile-results .  For example:
+;;-------------------------------------------------------------------
+;;  (setq profile-functions-list '(sokoban-set-mode-line sokoban-load-game 
+;;	                          sokoban-move-vertical sokoban-move))
+;;  (load "sokoban")
+;;  M-x profile-functions
+;;     ...  I play the sokoban game ..........
+;;  M-x profile-results
+;;
+;;      Function                     Time (Seconds.Useconds)
+;;      ========                     =======================
+;;      sokoban-move                     0.539088
+;;      sokoban-move-vertical            0.410130
+;;      sokoban-load-game                0.453235
+;;      sokoban-set-mode-line            1.949203
+;;-----------------------------------------------------
+;; To clear all the settings to profile use profile-finish. 
+;; To set one function at a time (instead of or in addition to setting the 
+;; above list and  M-x profile-functions) use M-x profile-a-function.
 
 ;;; Code:
 

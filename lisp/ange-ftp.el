@@ -1,623 +1,624 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;;; Copyright (C) 1989,90,91,92,93,94,95  Free Software Foundation, Inc.
-;;;
+;; Copyright (C) 1989,90,91,92,93,94,95  Free Software Foundation, Inc.
+
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Keywords: comm
-;;;
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; A copy of the GNU General Public License can be obtained from this
-;;; program's author (send electronic mail to ange@hplb.hpl.hp.com) or from
-;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
-;;; 02139, USA.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;;
-;;; This package attempts to make accessing files and directories using FTP
-;;; from within GNU Emacs as simple and transparent as possible.  A subset of
-;;; the common file-handling routines are extended to interact with FTP.
 
-;;; Usage:
-;;;
-;;; Some of the common GNU Emacs file-handling operations have been made
-;;; FTP-smart.  If one of these routines is given a filename that matches
-;;; '/user@host:name' then it will spawn an FTP process connecting to machine
-;;; 'host' as account 'user' and perform its operation on the file 'name'.
-;;;
-;;; For example: if find-file is given a filename of:
-;;;
-;;;   /ange@anorman:/tmp/notes
-;;;
-;;; then ange-ftp spawns an FTP process, connect to the host 'anorman' as
-;;; user 'ange', get the file '/tmp/notes' and pop up a buffer containing the
-;;; contents of that file as if it were on the local filesystem.  If ange-ftp
-;;; needs a password to connect then it reads one in the echo area.
+;; This package attempts to make accessing files and directories using FTP
+;; from within GNU Emacs as simple and transparent as possible.  A subset of
+;; the common file-handling routines are extended to interact with FTP.
 
-;;; Extended filename syntax:
-;;;
-;;; The default extended filename syntax is '/user@host:name', where the
-;;; 'user@' part may be omitted.  This syntax can be customised to a certain
-;;; extent by changing ange-ftp-name-format.  There are limitations.
-;;;
-;;; If the user part is omitted then ange-ftp generates a default user
-;;; instead whose value depends on the variable ange-ftp-default-user.
+;; Usage:
+;;
+;; Some of the common GNU Emacs file-handling operations have been made
+;; FTP-smart.  If one of these routines is given a filename that matches
+;; '/user@host:name' then it will spawn an FTP process connecting to machine
+;; 'host' as account 'user' and perform its operation on the file 'name'.
+;;
+;; For example: if find-file is given a filename of:
+;;
+;;   /ange@anorman:/tmp/notes
+;;
+;; then ange-ftp spawns an FTP process, connect to the host 'anorman' as
+;; user 'ange', get the file '/tmp/notes' and pop up a buffer containing the
+;; contents of that file as if it were on the local filesystem.  If ange-ftp
+;; needs a password to connect then it reads one in the echo area.
 
-;;; Passwords:
-;;;
-;;; A password is required for each host/user pair.  Ange-ftp reads passwords
-;;; as needed.  You can also specify a password with ange-ftp-set-passwd, or
-;;; in a *valid* ~/.netrc file.
+;; Extended filename syntax:
+;;
+;; The default extended filename syntax is '/user@host:name', where the
+;; 'user@' part may be omitted.  This syntax can be customised to a certain
+;; extent by changing ange-ftp-name-format.  There are limitations.
+;;
+;; If the user part is omitted then ange-ftp generates a default user
+;; instead whose value depends on the variable ange-ftp-default-user.
 
-;;; Passwords for user "anonymous":
-;;;
-;;; Passwords for the user "anonymous" (or "ftp") are handled
-;;; specially.  The variable `ange-ftp-generate-anonymous-password'
-;;; controls what happens: if the value of this variable is a string,
-;;; then this is used as the password; if non-nil (the default), then
-;;; the value of `user-mail-address' is used; if nil then the user
-;;; is prompted for a password as normal.
+;; Passwords:
+;;
+;; A password is required for each host/user pair.  Ange-ftp reads passwords
+;; as needed.  You can also specify a password with ange-ftp-set-passwd, or
+;; in a *valid* ~/.netrc file.
 
-;;; "Dumb" UNIX hosts:
-;;;
-;;; The FTP servers on some UNIX machines have problems if the 'ls' command is
-;;; used.
-;;;
-;;; The routine ange-ftp-add-dumb-unix-host can be called to tell ange-ftp to
-;;; limit itself to the DIR command and not 'ls' for a given UNIX host.  Note
-;;; that this change will take effect for the current GNU Emacs session only.
-;;; See below for a discussion of non-UNIX hosts.  If a large number of
-;;; machines with similar hostnames have this problem then it is easier to set
-;;; the value of ange-ftp-dumb-unix-host-regexp in your .emacs file. ange-ftp
-;;; is unable to automatically recognize dumb unix hosts.
+;; Passwords for user "anonymous":
+;;
+;; Passwords for the user "anonymous" (or "ftp") are handled
+;; specially.  The variable `ange-ftp-generate-anonymous-password'
+;; controls what happens: if the value of this variable is a string,
+;; then this is used as the password; if non-nil (the default), then
+;; the value of `user-mail-address' is used; if nil then the user
+;; is prompted for a password as normal.
 
-;;; File name completion:
-;;;
-;;; Full file-name completion is supported on UNIX, VMS, CMS, and MTS hosts.
-;;; To do filename completion, ange-ftp needs a listing from the remote host.
-;;; Therefore, for very slow connections, it might not save any time.
+;; "Dumb" UNIX hosts:
+;;
+;; The FTP servers on some UNIX machines have problems if the 'ls' command is
+;; used.
+;;
+;; The routine ange-ftp-add-dumb-unix-host can be called to tell ange-ftp to
+;; limit itself to the DIR command and not 'ls' for a given UNIX host.  Note
+;; that this change will take effect for the current GNU Emacs session only.
+;; See below for a discussion of non-UNIX hosts.  If a large number of
+;; machines with similar hostnames have this problem then it is easier to set
+;; the value of ange-ftp-dumb-unix-host-regexp in your .emacs file. ange-ftp
+;; is unable to automatically recognize dumb unix hosts.
 
-;;; FTP processes:
-;;;
-;;; When ange-ftp starts up an FTP process, it leaves it running for speed
-;;; purposes.  Some FTP servers will close the connection after a period of
-;;; time, but ange-ftp should be able to quietly reconnect the next time that
-;;; the process is needed.
-;;;
-;;; Killing the "*ftp user@host*" buffer also kills the ftp process.
-;;; This should not cause ange-ftp any grief.
+;; File name completion:
+;;
+;; Full file-name completion is supported on UNIX, VMS, CMS, and MTS hosts.
+;; To do filename completion, ange-ftp needs a listing from the remote host.
+;; Therefore, for very slow connections, it might not save any time.
 
-;;; Binary file transfers:
-;;;
-;;; By default ange-ftp transfers files in ASCII mode.  If a file being
-;;; transferred matches the value of ange-ftp-binary-file-name-regexp then
-;;; binary mode is used for that transfer.
+;; FTP processes:
+;;
+;; When ange-ftp starts up an FTP process, it leaves it running for speed
+;; purposes.  Some FTP servers will close the connection after a period of
+;; time, but ange-ftp should be able to quietly reconnect the next time that
+;; the process is needed.
+;;
+;; Killing the "*ftp user@host*" buffer also kills the ftp process.
+;; This should not cause ange-ftp any grief.
 
-;;; Account passwords:
-;;;
-;;; Some FTP servers require an additional password which is sent by the
-;;; ACCOUNT command.  ange-ftp partially supports this by allowing the user to
-;;; specify an account password by either calling ange-ftp-set-account, or by
-;;; specifying an account token in the .netrc file.  If the account password
-;;; is set by either of these methods then ange-ftp will issue an ACCOUNT
-;;; command upon starting the FTP process.
+;; Binary file transfers:
+;;
+;; By default ange-ftp transfers files in ASCII mode.  If a file being
+;; transferred matches the value of ange-ftp-binary-file-name-regexp then
+;; binary mode is used for that transfer.
 
-;;; Preloading:
-;;;
-;;; ange-ftp can be preloaded, but must be put in the site-init.el file and
-;;; not the site-load.el file in order for the documentation strings for the
-;;; functions being overloaded to be available.
+;; Account passwords:
+;;
+;; Some FTP servers require an additional password which is sent by the
+;; ACCOUNT command.  ange-ftp partially supports this by allowing the user to
+;; specify an account password by either calling ange-ftp-set-account, or by
+;; specifying an account token in the .netrc file.  If the account password
+;; is set by either of these methods then ange-ftp will issue an ACCOUNT
+;; command upon starting the FTP process.
 
-;;; Status reports:
-;;;
-;;; Most ange-ftp commands that talk to the FTP process output a status
-;;; message on what they are doing.  In addition, ange-ftp can take advantage
-;;; of the FTP client's HASH command to display the status of transferring
-;;; files and listing directories.  See the documentation for the variables
-;;; ange-ftp-{ascii,binary}-hash-mark-size, ange-ftp-send-hash and
-;;; ange-ftp-process-verbose for more details.
+;; Preloading:
+;;
+;; ange-ftp can be preloaded, but must be put in the site-init.el file and
+;; not the site-load.el file in order for the documentation strings for the
+;; functions being overloaded to be available.
 
-;;; Gateways:
-;;;
-;;; Sometimes it is necessary for the FTP process to be run on a different
-;;; machine than the machine running GNU Emacs.  This can happen when the
-;;; local machine has restrictions on what hosts it can access.
-;;;
-;;; ange-ftp has support for running the ftp process on a different (gateway)
-;;; machine.  The way it works is as follows:
-;;;
-;;; 1) Set the variable 'ange-ftp-gateway-host' to the name of a machine
-;;;    that doesn't have the access restrictions.
-;;;
-;;; 2) Set the variable 'ange-ftp-local-host-regexp' to a regular expression
-;;;    that matches hosts that can be contacted from running a local ftp
-;;;    process, but fails to match hosts that can't be accessed locally.  For
-;;;    example:
-;;;
-;;;    "\\.hp\\.com$\\|^[^.]*$"
-;;;
-;;;    will match all hosts that are in the .hp.com domain, or don't have an
-;;;    explicit domain in their name, but will fail to match hosts with
-;;;    explicit domains or that are specified by their ip address.
-;;;
-;;; 3) Using NFS and symlinks, make sure that there is a shared directory with
-;;;    the *same* name between the local machine and the gateway machine.
-;;;    This directory is necessary for temporary files created by ange-ftp.
-;;;
-;;; 4) Set the variable 'ange-ftp-gateway-tmp-name-template' to the name of
-;;;    this directory plus an identifying filename prefix.  For example:
-;;;
-;;;    "/nfs/hplose/ange/ange-ftp"
-;;;
-;;;    where /nfs/hplose/ange is a directory that is shared between the
-;;;    gateway machine and the local machine.
-;;;
-;;; The simplest way of getting a ftp process running on the gateway machine
-;;; is if you can spawn a remote shell using either 'rsh' or 'remsh'.  If you
-;;; can't do this for some reason such as security then points 7 onwards will
-;;; discuss an alternative approach.
-;;;
-;;; 5) Set the variable ange-ftp-gateway-program to the name of the remote
-;;;    shell process such as 'remsh' or 'rsh' if the default isn't correct.
-;;;
-;;; 6) Set the variable ange-ftp-gateway-program-interactive to nil if it
-;;;    isn't already.  This tells ange-ftp that you are using a remote shell
-;;;    rather than logging in using telnet or rlogin.
-;;;
-;;; That should be all you need to allow ange-ftp to spawn a ftp process on
-;;; the gateway machine.  If you have to use telnet or rlogin to get to the
-;;; gateway machine then follow the instructions below.
-;;;
-;;; 7) Set the variable ange-ftp-gateway-program to the name of the program
-;;;    that lets you log onto the gateway machine.  This may be something like
-;;;    telnet or rlogin.
-;;;
-;;; 8) Set the variable ange-ftp-gateway-prompt-pattern to a regular
-;;;    expression that matches the prompt you get when you login to the
-;;;    gateway machine.  Be very specific here; this regexp must not match
-;;;    *anything* in your login banner except this prompt.
-;;;    shell-prompt-pattern is far too general as it appears to match some
-;;;    login banners from Sun machines.  For example:
-;;;
-;;;    "^$*$ *"
-;;;
-;;; 9) Set the variable ange-ftp-gateway-program-interactive to 't' to let
-;;;    ange-ftp know that it has to "hand-hold" the login to the gateway
-;;;    machine.
-;;;
-;;; 10) Set the variable ange-ftp-gateway-setup-term-command to a UNIX command
-;;;     that will put the pty connected to the gateway machine into a
-;;;     no-echoing mode, and will strip off carriage-returns from output from
-;;;     the gateway machine.  For example:
-;;;
-;;;     "stty -onlcr -echo"
-;;;
-;;;     will work on HP-UX machines, whereas:
-;;;
-;;;     "stty -echo nl"
-;;;
-;;;     appears to work for some Sun machines.
-;;;
-;;; That's all there is to it.
+;; Status reports:
+;;
+;; Most ange-ftp commands that talk to the FTP process output a status
+;; message on what they are doing.  In addition, ange-ftp can take advantage
+;; of the FTP client's HASH command to display the status of transferring
+;; files and listing directories.  See the documentation for the variables
+;; ange-ftp-{ascii,binary}-hash-mark-size, ange-ftp-send-hash and
+;; ange-ftp-process-verbose for more details.
 
-;;; Smart gateways:
-;;;
-;;; If you have a "smart" ftp program that allows you to issue commands like
-;;; "USER foo@bar" which do nice proxy things, then look at the variables
-;;; ange-ftp-smart-gateway and ange-ftp-smart-gateway-port.
-;;;
-;;; Otherwise, if there is an alternate ftp program that implements proxy in
-;;; a transparent way (i.e. w/o specifying the proxy host), that will
-;;; connect you directly to the desired destination host:
-;;; Set ange-ftp-gateway-ftp-program-name to that program's name.
-;;; Set ange-ftp-local-host-regexp to a value as stated earlier on.
-;;; Leave ange-ftp-gateway-host set to nil.
-;;; Set ange-ftp-smart-gateway to t.
+;; Gateways:
+;;
+;; Sometimes it is necessary for the FTP process to be run on a different
+;; machine than the machine running GNU Emacs.  This can happen when the
+;; local machine has restrictions on what hosts it can access.
+;;
+;; ange-ftp has support for running the ftp process on a different (gateway)
+;; machine.  The way it works is as follows:
+;;
+;; 1) Set the variable 'ange-ftp-gateway-host' to the name of a machine
+;;    that doesn't have the access restrictions.
+;;
+;; 2) Set the variable 'ange-ftp-local-host-regexp' to a regular expression
+;;    that matches hosts that can be contacted from running a local ftp
+;;    process, but fails to match hosts that can't be accessed locally.  For
+;;    example:
+;;
+;;    "\\.hp\\.com$\\|^[^.]*$"
+;;
+;;    will match all hosts that are in the .hp.com domain, or don't have an
+;;    explicit domain in their name, but will fail to match hosts with
+;;    explicit domains or that are specified by their ip address.
+;;
+;; 3) Using NFS and symlinks, make sure that there is a shared directory with
+;;    the *same* name between the local machine and the gateway machine.
+;;    This directory is necessary for temporary files created by ange-ftp.
+;;
+;; 4) Set the variable 'ange-ftp-gateway-tmp-name-template' to the name of
+;;    this directory plus an identifying filename prefix.  For example:
+;;
+;;    "/nfs/hplose/ange/ange-ftp"
+;;
+;;    where /nfs/hplose/ange is a directory that is shared between the
+;;    gateway machine and the local machine.
+;;
+;; The simplest way of getting a ftp process running on the gateway machine
+;; is if you can spawn a remote shell using either 'rsh' or 'remsh'.  If you
+;; can't do this for some reason such as security then points 7 onwards will
+;; discuss an alternative approach.
+;;
+;; 5) Set the variable ange-ftp-gateway-program to the name of the remote
+;;    shell process such as 'remsh' or 'rsh' if the default isn't correct.
+;;
+;; 6) Set the variable ange-ftp-gateway-program-interactive to nil if it
+;;    isn't already.  This tells ange-ftp that you are using a remote shell
+;;    rather than logging in using telnet or rlogin.
+;;
+;; That should be all you need to allow ange-ftp to spawn a ftp process on
+;; the gateway machine.  If you have to use telnet or rlogin to get to the
+;; gateway machine then follow the instructions below.
+;;
+;; 7) Set the variable ange-ftp-gateway-program to the name of the program
+;;    that lets you log onto the gateway machine.  This may be something like
+;;    telnet or rlogin.
+;;
+;; 8) Set the variable ange-ftp-gateway-prompt-pattern to a regular
+;;    expression that matches the prompt you get when you login to the
+;;    gateway machine.  Be very specific here; this regexp must not match
+;;    *anything* in your login banner except this prompt.
+;;    shell-prompt-pattern is far too general as it appears to match some
+;;    login banners from Sun machines.  For example:
+;;
+;;    "^$*$ *"
+;;
+;; 9) Set the variable ange-ftp-gateway-program-interactive to 't' to let
+;;    ange-ftp know that it has to "hand-hold" the login to the gateway
+;;    machine.
+;;
+;; 10) Set the variable ange-ftp-gateway-setup-term-command to a UNIX command
+;;     that will put the pty connected to the gateway machine into a
+;;     no-echoing mode, and will strip off carriage-returns from output from
+;;     the gateway machine.  For example:
+;;
+;;     "stty -onlcr -echo"
+;;
+;;     will work on HP-UX machines, whereas:
+;;
+;;     "stty -echo nl"
+;;
+;;     appears to work for some Sun machines.
+;;
+;; That's all there is to it.
 
-;;; Tips for using ange-ftp:
-;;;
-;;; 1. For dired to work on a host which marks symlinks with a trailing @ in
-;;;    an ls -alF listing, you need to (setq dired-ls-F-marks-symlinks t).
-;;;    Most UNIX systems do not do this, but ULTRIX does. If you think that
-;;;    there is a chance you might connect to an ULTRIX machine (such as
-;;;    prep.ai.mit.edu), then set this variable accordingly.  This will have
-;;;    the side effect that dired will have problems with symlinks whose names
-;;;    end in an @.  If you get yourself into this situation then editing
-;;;    dired's ls-switches to remove "F", will temporarily fix things.
-;;;
-;;; 2. If you know that you are connecting to a certain non-UNIX machine
-;;;    frequently, and ange-ftp seems to be unable to guess its host-type,
-;;;    then setting the appropriate host-type regexp
-;;;    (ange-ftp-vms-host-regexp, ange-ftp-mts-host-regexp, or
-;;;    ange-ftp-cms-host-regexp) accordingly should help. Also, please report
-;;;    ange-ftp's inability to recognize the host-type as a bug.
-;;;
-;;; 3. For slow connections, you might get "listing unreadable" error
-;;;    messages, or get an empty buffer for a file that you know has something
-;;;    in it. The solution is to increase the value of ange-ftp-retry-time.
-;;;    Its default value is 5 which is plenty for reasonable connections.
-;;;    However, for some transatlantic connections I set this to 20.
-;;;
-;;; 4. Beware of compressing files on non-UNIX hosts. Ange-ftp will do it by
-;;;    copying the file to the local machine, compressing it there, and then
-;;;    sending it back. Binary file transfers between machines of different
-;;;    architectures can be a risky business. Test things out first on some
-;;;    test files. See "Bugs" below. Also, note that ange-ftp copies files by
-;;;    moving them through the local machine. Again, be careful when doing
-;;;    this with binary files on non-Unix machines.
-;;;
-;;; 5. Beware that dired over ftp will use your setting of dired-no-confirm
-;;;    (list of dired commands for which confirmation is not asked).  You
-;;;    might want to reconsider your setting of this variable, because you
-;;;    might want confirmation for more commands on remote direds than on
-;;;    local direds. For example, I strongly recommend that you not include
-;;;    compress and uncompress in this list. If there is enough demand it
-;;;    might be a good idea to have an alist ange-ftp-dired-no-confirm of
-;;;    pairs ( TYPE . LIST ), where TYPE is an operating system type and LIST
-;;;    is a list of commands for which confirmation would be suppressed.  Then
-;;;    remote dired listings would take their (buffer-local) value of
-;;;    dired-no-confirm from this alist. Who votes for this?
+;; Smart gateways:
+;;
+;; If you have a "smart" ftp program that allows you to issue commands like
+;; "USER foo@bar" which do nice proxy things, then look at the variables
+;; ange-ftp-smart-gateway and ange-ftp-smart-gateway-port.
+;;
+;; Otherwise, if there is an alternate ftp program that implements proxy in
+;; a transparent way (i.e. w/o specifying the proxy host), that will
+;; connect you directly to the desired destination host:
+;; Set ange-ftp-gateway-ftp-program-name to that program's name.
+;; Set ange-ftp-local-host-regexp to a value as stated earlier on.
+;; Leave ange-ftp-gateway-host set to nil.
+;; Set ange-ftp-smart-gateway to t.
 
-;;; ---------------------------------------------------------------------
-;;; Non-UNIX support:
-;;; ---------------------------------------------------------------------
+;; Tips for using ange-ftp:
+;;
+;; 1. For dired to work on a host which marks symlinks with a trailing @ in
+;;    an ls -alF listing, you need to (setq dired-ls-F-marks-symlinks t).
+;;    Most UNIX systems do not do this, but ULTRIX does. If you think that
+;;    there is a chance you might connect to an ULTRIX machine (such as
+;;    prep.ai.mit.edu), then set this variable accordingly.  This will have
+;;    the side effect that dired will have problems with symlinks whose names
+;;    end in an @.  If you get yourself into this situation then editing
+;;    dired's ls-switches to remove "F", will temporarily fix things.
+;;
+;; 2. If you know that you are connecting to a certain non-UNIX machine
+;;    frequently, and ange-ftp seems to be unable to guess its host-type,
+;;    then setting the appropriate host-type regexp
+;;    (ange-ftp-vms-host-regexp, ange-ftp-mts-host-regexp, or
+;;    ange-ftp-cms-host-regexp) accordingly should help. Also, please report
+;;    ange-ftp's inability to recognize the host-type as a bug.
+;;
+;; 3. For slow connections, you might get "listing unreadable" error
+;;    messages, or get an empty buffer for a file that you know has something
+;;    in it. The solution is to increase the value of ange-ftp-retry-time.
+;;    Its default value is 5 which is plenty for reasonable connections.
+;;    However, for some transatlantic connections I set this to 20.
+;;
+;; 4. Beware of compressing files on non-UNIX hosts. Ange-ftp will do it by
+;;    copying the file to the local machine, compressing it there, and then
+;;    sending it back. Binary file transfers between machines of different
+;;    architectures can be a risky business. Test things out first on some
+;;    test files. See "Bugs" below. Also, note that ange-ftp copies files by
+;;    moving them through the local machine. Again, be careful when doing
+;;    this with binary files on non-Unix machines.
+;;
+;; 5. Beware that dired over ftp will use your setting of dired-no-confirm
+;;    (list of dired commands for which confirmation is not asked).  You
+;;    might want to reconsider your setting of this variable, because you
+;;    might want confirmation for more commands on remote direds than on
+;;    local direds. For example, I strongly recommend that you not include
+;;    compress and uncompress in this list. If there is enough demand it
+;;    might be a good idea to have an alist ange-ftp-dired-no-confirm of
+;;    pairs ( TYPE . LIST ), where TYPE is an operating system type and LIST
+;;    is a list of commands for which confirmation would be suppressed.  Then
+;;    remote dired listings would take their (buffer-local) value of
+;;    dired-no-confirm from this alist. Who votes for this?
 
-;;; VMS support:
-;;;
-;;; Ange-ftp has full support for VMS hosts.  It
-;;; should be able to automatically recognize any VMS machine. However, if it
-;;; fails to do this, you can use the command ange-ftp-add-vms-host.  As well,
-;;; you can set the variable ange-ftp-vms-host-regexp in your .emacs file. We
-;;; would be grateful if you would report any failures to automatically
-;;; recognize a VMS host as a bug.
-;;;
-;;; Filename Syntax:
-;;;
-;;; For ease of *implementation*, the user enters the VMS filename syntax in a
-;;; UNIX-y way.  For example:
-;;;  PUB$:[ANONYMOUS.SDSCPUB.NEXT]README.TXT;1
-;;; would be entered as:
-;;;  /PUB$$:/ANONYMOUS/SDSCPUB/NEXT/README.TXT;1
-;;; i.e. to log in as anonymous on ymir.claremont.edu and grab the file:
-;;;  [.CSV.POLICY]RULES.MEM
-;;; you would type:
-;;;  C-x C-f /anonymous@ymir.claremont.edu:CSV/POLICY/RULES.MEM
-;;;
-;;; A legal VMS filename is of the form: FILE.TYPE;##
-;;; where FILE can be up to 39 characters
-;;;       TYPE can be up to 39 characters
-;;;       ## is a version number (an integer between 1 and 32,767)
-;;; Valid characters in FILE and TYPE are A-Z 0-9 _ - $
-;;; $ cannot begin a filename, and - cannot be used as the first or last
-;;; character.
-;;;
-;;; Tips:
-;;; 1. Although VMS is not case sensitive, EMACS running under UNIX is.
-;;;    Therefore, to access a VMS file, you must enter the filename with upper
-;;;    case letters.
-;;; 2. To access the latest version of file under VMS, you use the filename
-;;;    without the ";" and version number. You should always edit the latest
-;;;    version of a file. If you want to edit an earlier version, copy it to a
-;;;    new file first. This has nothing to do with ange-ftp, but is simply
-;;;    good VMS operating practice. Therefore, to edit FILE.TXT;3 (say 3 is
-;;;    latest version), do C-x C-f /ymir.claremont.edu:FILE.TXT. If you
-;;;    inadvertently do C-x C-f /ymir.claremont.edu:FILE.TXT;3, you will find
-;;;    that VMS will not allow you to save the file because it will refuse to
-;;;    overwrite FILE.TXT;3, but instead will want to create FILE.TXT;4, and
-;;;    attach the buffer to this file. To get out of this situation, M-x
-;;;    write-file /ymir.claremont.edu:FILE.TXT will attach the buffer to
-;;;    latest version of the file. For this reason, in dired "f"
-;;;    (dired-find-file), always loads the file sans version, whereas "v",
-;;;    (dired-view-file), always loads the explicit version number. The
-;;;    reasoning being that it reasonable to view old versions of a file, but
-;;;    not to edit them.
-;;; 3. EMACS has a feature in which it does environment variable substitution
-;;;    in filenames. Therefore, to enter a $ in a filename, you must quote it
-;;;    by typing $$.
+;; ---------------------------------------------------------------------
+;; Non-UNIX support:
+;; ---------------------------------------------------------------------
 
-;;; MTS support:
-;;;
-;;; Ange-ftp has full support for hosts running
-;;; the Michigan terminal system.  It should be able to automatically
-;;; recognize any MTS machine. However, if it fails to do this, you can use
-;;; the command ange-ftp-add-mts-host.  As well, you can set the variable
-;;; ange-ftp-mts-host-regexp in your .emacs file. We would be grateful if you
-;;; would report any failures to automatically recognize a MTS host as a bug.
-;;;
-;;; Filename syntax:
-;;; 
-;;; MTS filenames are entered in a UNIX-y way. For example, if your account
-;;; was YYYY, the file FILE in the account XXXX: on mtsg.ubc.ca would be
-;;; entered as
-;;;   /YYYY@mtsg.ubc.ca:/XXXX:/FILE
-;;; In other words, MTS accounts are treated as UNIX directories. Of course,
-;;; to access a file in another account, you must have access permission for
-;;; it.  If FILE were in your own account, then you could enter it in a
-;;; relative name fashion as
-;;;   /YYYY@mtsg.ubc.ca:FILE
-;;; MTS filenames can be up to 12 characters. Like UNIX, the structure of the
-;;; filename does not contain a TYPE (i.e. it can have as many "."'s as you
-;;; like.) MTS filenames are always in upper case, and hence be sure to enter
-;;; them as such! MTS is not case sensitive, but an EMACS running under UNIX
-;;; is.
+;; VMS support:
+;;
+;; Ange-ftp has full support for VMS hosts.  It
+;; should be able to automatically recognize any VMS machine. However, if it
+;; fails to do this, you can use the command ange-ftp-add-vms-host.  As well,
+;; you can set the variable ange-ftp-vms-host-regexp in your .emacs file. We
+;; would be grateful if you would report any failures to automatically
+;; recognize a VMS host as a bug.
+;;
+;; Filename Syntax:
+;;
+;; For ease of *implementation*, the user enters the VMS filename syntax in a
+;; UNIX-y way.  For example:
+;;  PUB$:[ANONYMOUS.SDSCPUB.NEXT]README.TXT;1
+;; would be entered as:
+;;  /PUB$$:/ANONYMOUS/SDSCPUB/NEXT/README.TXT;1
+;; i.e. to log in as anonymous on ymir.claremont.edu and grab the file:
+;;  [.CSV.POLICY]RULES.MEM
+;; you would type:
+;;  C-x C-f /anonymous@ymir.claremont.edu:CSV/POLICY/RULES.MEM
+;;
+;; A legal VMS filename is of the form: FILE.TYPE;##
+;; where FILE can be up to 39 characters
+;;       TYPE can be up to 39 characters
+;;       ## is a version number (an integer between 1 and 32,767)
+;; Valid characters in FILE and TYPE are A-Z 0-9 _ - $
+;; $ cannot begin a filename, and - cannot be used as the first or last
+;; character.
+;;
+;; Tips:
+;; 1. Although VMS is not case sensitive, EMACS running under UNIX is.
+;;    Therefore, to access a VMS file, you must enter the filename with upper
+;;    case letters.
+;; 2. To access the latest version of file under VMS, you use the filename
+;;    without the ";" and version number. You should always edit the latest
+;;    version of a file. If you want to edit an earlier version, copy it to a
+;;    new file first. This has nothing to do with ange-ftp, but is simply
+;;    good VMS operating practice. Therefore, to edit FILE.TXT;3 (say 3 is
+;;    latest version), do C-x C-f /ymir.claremont.edu:FILE.TXT. If you
+;;    inadvertently do C-x C-f /ymir.claremont.edu:FILE.TXT;3, you will find
+;;    that VMS will not allow you to save the file because it will refuse to
+;;    overwrite FILE.TXT;3, but instead will want to create FILE.TXT;4, and
+;;    attach the buffer to this file. To get out of this situation, M-x
+;;    write-file /ymir.claremont.edu:FILE.TXT will attach the buffer to
+;;    latest version of the file. For this reason, in dired "f"
+;;    (dired-find-file), always loads the file sans version, whereas "v",
+;;    (dired-view-file), always loads the explicit version number. The
+;;    reasoning being that it reasonable to view old versions of a file, but
+;;    not to edit them.
+;; 3. EMACS has a feature in which it does environment variable substitution
+;;    in filenames. Therefore, to enter a $ in a filename, you must quote it
+;;    by typing $$.
 
-;;; CMS support:
-;;; 
-;;; Ange-ftp has full support for hosts running
-;;; CMS.  It should be able to automatically recognize any CMS machine.
-;;; However, if it fails to do this, you can use the command
-;;; ange-ftp-add-cms-host.  As well, you can set the variable
-;;; ange-ftp-cms-host-regexp in your .emacs file. We would be grateful if you
-;;; would report any failures to automatically recognize a CMS host as a bug.
-;;; 
-;;; Filename syntax:
-;;;
-;;; CMS filenames are entered in a UNIX-y way. In otherwords, minidisks are
-;;; treated as UNIX directories. For example to access the file READ.ME in
-;;; minidisk *.311 on cuvmb.cc.columbia.edu, you would enter
-;;;   /anonymous@cuvmb.cc.columbia.edu:/*.311/READ.ME
-;;; If *.301 is the default minidisk for this account, you could access
-;;; FOO.BAR on this minidisk as
-;;;   /anonymous@cuvmb.cc.columbia.edu:FOO.BAR
-;;; CMS filenames are of the form FILE.TYPE, where both FILE and TYPE can be
-;;; up to 8 characters. Again, beware that CMS filenames are always upper
-;;; case, and hence must be entered as such.
-;;;
-;;; Tips:
-;;; 1. CMS machines, with the exception of anonymous accounts, nearly always
-;;;    need an account password. To have ange-ftp send an account password,
-;;;    you can either include it in your .netrc file, or use
-;;;    ange-ftp-set-account.
-;;; 2. Ange-ftp cannot send "write passwords" for a minidisk. Hopefully, we
-;;;    can fix this.
-;;;
-;;; ------------------------------------------------------------------
-;;; Bugs:
-;;; ------------------------------------------------------------------
-;;; 
-;;; 1. Umask problems:
-;;;    Be warned that files created by using ange-ftp will take account of the
-;;;    umask of the ftp daemon process rather than the umask of the creating
-;;;    user.  This is particularly important when logging in as the root user.
-;;;    The way that I tighten up the ftp daemon's umask under HP-UX is to make
-;;;    sure that the umask is changed to 027 before I spawn /etc/inetd.  I
-;;;    suspect that there is something similar on other systems.
-;;;
-;;; 2. Some combinations of FTP clients and servers break and get out of sync
-;;;    when asked to list a non-existent directory.  Some of the ai.mit.edu
-;;;    machines cause this problem for some FTP clients. Using
-;;;    ange-ftp-kill-ftp-process can restart the ftp process, which
-;;;    should get things back in sync.
-;;;
-;;; 3. Ange-ftp does not check to make sure that when creating a new file,
-;;;    you provide a valid filename for the remote operating system.
-;;;    If you do not, then the remote FTP server will most likely
-;;;    translate your filename in some way. This may cause ange-ftp to
-;;;    get confused about what exactly is the name of the file. The
-;;;    most common causes of this are using lower case filenames on systems
-;;;    which support only upper case, and using filenames which are too
-;;;    long.
-;;;
-;;; 4. Null (blank) passwords confuse both ange-ftp and some FTP daemons.
-;;;
-;;; 5. Ange-ftp likes to use pty's to talk to its FTP processes.  If GNU Emacs
-;;;    for some reason creates a FTP process that only talks via pipes then
-;;;    ange-ftp won't be getting the information it requires at the time that
-;;;    it wants it since pipes flush at different times to pty's.  One
-;;;    disgusting way around this problem is to talk to the FTP process via
-;;;    rlogin which does the 'right' things with pty's.
-;;;
-;;; 6. For CMS support, we send too many cd's. Since cd's are cheap, I haven't
-;;;    worried about this too much. Eventually, we should have some caching
-;;;    of the current minidisk.
-;;;    
-;;; 7. Some CMS machines do not assign a default minidisk when you ftp them as
-;;;    anonymous. It is then necessary to guess a valid minidisk name, and cd
-;;;    to it. This is (understandably) beyond ange-ftp.
-;;;
-;;; 8. Remote to remote copying of files on non-Unix machines can be risky.
-;;;    Depending on the variable ange-ftp-binary-file-name-regexp, ange-ftp
-;;;    will use binary mode for the copy. Between systems of different
-;;;    architecture, this still may not be enough to guarantee the integrity
-;;;    of binary files. Binary file transfers from VMS machines are
-;;;    particularly problematical. Should ange-ftp-binary-file-name-regexp be
-;;;    an alist of OS type, regexp pairs?
-;;;
-;;; 9. The code to do compression of files over ftp is not as careful as it
-;;;    should be. It deletes the old remote version of the file, before
-;;;    actually checking if the local to remote transfer of the compressed
-;;;    file succeeds. Of course to delete the original version of the file
-;;;    after transferring the compressed version back is also dangerous,
-;;;    because some OS's have severe restrictions on the length of filenames,
-;;;    and when the compressed version is copied back the "-Z" or ".Z" may be
-;;;    truncated. Then, ange-ftp would delete the only remaining version of
-;;;    the file.  Maybe ange-ftp should make backups when it compresses files
-;;;    (of course, the backup "~" could also be truncated off, sigh...).
-;;;    Suggestions?
-;;;
+;; MTS support:
+;;
+;; Ange-ftp has full support for hosts running
+;; the Michigan terminal system.  It should be able to automatically
+;; recognize any MTS machine. However, if it fails to do this, you can use
+;; the command ange-ftp-add-mts-host.  As well, you can set the variable
+;; ange-ftp-mts-host-regexp in your .emacs file. We would be grateful if you
+;; would report any failures to automatically recognize a MTS host as a bug.
+;;
+;; Filename syntax:
+;; 
+;; MTS filenames are entered in a UNIX-y way. For example, if your account
+;; was YYYY, the file FILE in the account XXXX: on mtsg.ubc.ca would be
+;; entered as
+;;   /YYYY@mtsg.ubc.ca:/XXXX:/FILE
+;; In other words, MTS accounts are treated as UNIX directories. Of course,
+;; to access a file in another account, you must have access permission for
+;; it.  If FILE were in your own account, then you could enter it in a
+;; relative name fashion as
+;;   /YYYY@mtsg.ubc.ca:FILE
+;; MTS filenames can be up to 12 characters. Like UNIX, the structure of the
+;; filename does not contain a TYPE (i.e. it can have as many "."'s as you
+;; like.) MTS filenames are always in upper case, and hence be sure to enter
+;; them as such! MTS is not case sensitive, but an EMACS running under UNIX
+;; is.
 
-;;; 10. If a dir listing is attempted for an empty directory on (at least
-;;;     some) VMS hosts, an ftp error is given. This is really an ftp bug, and
-;;;     I don't know how to get ange-ftp work to around it.
-;;;
-;;; 11. Bombs on filenames that start with a space. Deals well with filenames
-;;;     containing spaces, but beware that the remote ftpd may not like them
-;;;     much.
-;;;
-;;; 12. The dired support for non-Unix-like systems does not currently work.
-;;;     It needs to be reimplemented by modifying the parse-...-listing
-;;;	functions to convert the directory listing to ls -l format.
-;;; 
-;;; 13. The famous @ bug. As mentioned above in TIPS, ULTRIX marks symlinks
-;;;     with a trailing @ in a ls -alF listing. In order to account for this
-;;;     ange-ftp looks to chop trailing @'s off of symlink names when it is
-;;;     parsing a listing with the F switch. This will cause ange-ftp to
-;;;     incorrectly get the name of a symlink on a non-ULTRIX host if its name
-;;;     ends in an @. ange-ftp will correct itself if you take F out of the
-;;;     dired ls switches (C-u s will allow you to edit the switches). The
-;;;     dired buffer will be automatically reverted, which will allow ange-ftp
-;;;     to fix its files hashtable.  A cookie to anyone who can think of a
-;;;     fast, sure-fire way to recognize ULTRIX over ftp.
+;; CMS support:
+;; 
+;; Ange-ftp has full support for hosts running
+;; CMS.  It should be able to automatically recognize any CMS machine.
+;; However, if it fails to do this, you can use the command
+;; ange-ftp-add-cms-host.  As well, you can set the variable
+;; ange-ftp-cms-host-regexp in your .emacs file. We would be grateful if you
+;; would report any failures to automatically recognize a CMS host as a bug.
+;; 
+;; Filename syntax:
+;;
+;; CMS filenames are entered in a UNIX-y way. In otherwords, minidisks are
+;; treated as UNIX directories. For example to access the file READ.ME in
+;; minidisk *.311 on cuvmb.cc.columbia.edu, you would enter
+;;   /anonymous@cuvmb.cc.columbia.edu:/*.311/READ.ME
+;; If *.301 is the default minidisk for this account, you could access
+;; FOO.BAR on this minidisk as
+;;   /anonymous@cuvmb.cc.columbia.edu:FOO.BAR
+;; CMS filenames are of the form FILE.TYPE, where both FILE and TYPE can be
+;; up to 8 characters. Again, beware that CMS filenames are always upper
+;; case, and hence must be entered as such.
+;;
+;; Tips:
+;; 1. CMS machines, with the exception of anonymous accounts, nearly always
+;;    need an account password. To have ange-ftp send an account password,
+;;    you can either include it in your .netrc file, or use
+;;    ange-ftp-set-account.
+;; 2. Ange-ftp cannot send "write passwords" for a minidisk. Hopefully, we
+;;    can fix this.
+;;
+;; ------------------------------------------------------------------
+;; Bugs:
+;; ------------------------------------------------------------------
+;; 
+;; 1. Umask problems:
+;;    Be warned that files created by using ange-ftp will take account of the
+;;    umask of the ftp daemon process rather than the umask of the creating
+;;    user.  This is particularly important when logging in as the root user.
+;;    The way that I tighten up the ftp daemon's umask under HP-UX is to make
+;;    sure that the umask is changed to 027 before I spawn /etc/inetd.  I
+;;    suspect that there is something similar on other systems.
+;;
+;; 2. Some combinations of FTP clients and servers break and get out of sync
+;;    when asked to list a non-existent directory.  Some of the ai.mit.edu
+;;    machines cause this problem for some FTP clients. Using
+;;    ange-ftp-kill-ftp-process can restart the ftp process, which
+;;    should get things back in sync.
+;;
+;; 3. Ange-ftp does not check to make sure that when creating a new file,
+;;    you provide a valid filename for the remote operating system.
+;;    If you do not, then the remote FTP server will most likely
+;;    translate your filename in some way. This may cause ange-ftp to
+;;    get confused about what exactly is the name of the file. The
+;;    most common causes of this are using lower case filenames on systems
+;;    which support only upper case, and using filenames which are too
+;;    long.
+;;
+;; 4. Null (blank) passwords confuse both ange-ftp and some FTP daemons.
+;;
+;; 5. Ange-ftp likes to use pty's to talk to its FTP processes.  If GNU Emacs
+;;    for some reason creates a FTP process that only talks via pipes then
+;;    ange-ftp won't be getting the information it requires at the time that
+;;    it wants it since pipes flush at different times to pty's.  One
+;;    disgusting way around this problem is to talk to the FTP process via
+;;    rlogin which does the 'right' things with pty's.
+;;
+;; 6. For CMS support, we send too many cd's. Since cd's are cheap, I haven't
+;;    worried about this too much. Eventually, we should have some caching
+;;    of the current minidisk.
+;;    
+;; 7. Some CMS machines do not assign a default minidisk when you ftp them as
+;;    anonymous. It is then necessary to guess a valid minidisk name, and cd
+;;    to it. This is (understandably) beyond ange-ftp.
+;;
+;; 8. Remote to remote copying of files on non-Unix machines can be risky.
+;;    Depending on the variable ange-ftp-binary-file-name-regexp, ange-ftp
+;;    will use binary mode for the copy. Between systems of different
+;;    architecture, this still may not be enough to guarantee the integrity
+;;    of binary files. Binary file transfers from VMS machines are
+;;    particularly problematical. Should ange-ftp-binary-file-name-regexp be
+;;    an alist of OS type, regexp pairs?
+;;
+;; 9. The code to do compression of files over ftp is not as careful as it
+;;    should be. It deletes the old remote version of the file, before
+;;    actually checking if the local to remote transfer of the compressed
+;;    file succeeds. Of course to delete the original version of the file
+;;    after transferring the compressed version back is also dangerous,
+;;    because some OS's have severe restrictions on the length of filenames,
+;;    and when the compressed version is copied back the "-Z" or ".Z" may be
+;;    truncated. Then, ange-ftp would delete the only remaining version of
+;;    the file.  Maybe ange-ftp should make backups when it compresses files
+;;    (of course, the backup "~" could also be truncated off, sigh...).
+;;    Suggestions?
+;;
+;; 10. If a dir listing is attempted for an empty directory on (at least
+;;     some) VMS hosts, an ftp error is given. This is really an ftp bug, and
+;;     I don't know how to get ange-ftp work to around it.
+;;
+;; 11. Bombs on filenames that start with a space. Deals well with filenames
+;;     containing spaces, but beware that the remote ftpd may not like them
+;;     much.
+;;
+;; 12. The dired support for non-Unix-like systems does not currently work.
+;;     It needs to be reimplemented by modifying the parse-...-listing
+;;	functions to convert the directory listing to ls -l format.
+;; 
+;; 13. The famous @ bug. As mentioned above in TIPS, ULTRIX marks symlinks
+;;     with a trailing @ in a ls -alF listing. In order to account for this
+;;     ange-ftp looks to chop trailing @'s off of symlink names when it is
+;;     parsing a listing with the F switch. This will cause ange-ftp to
+;;     incorrectly get the name of a symlink on a non-ULTRIX host if its name
+;;     ends in an @. ange-ftp will correct itself if you take F out of the
+;;     dired ls switches (C-u s will allow you to edit the switches). The
+;;     dired buffer will be automatically reverted, which will allow ange-ftp
+;;     to fix its files hashtable.  A cookie to anyone who can think of a
+;;     fast, sure-fire way to recognize ULTRIX over ftp.
 
-;;; If you find any bugs or problems with this package, PLEASE either e-mail
-;;; the above author, or send a message to the ange-ftp-lovers mailing list
-;;; below.  Ideas and constructive comments are especially welcome.
+;; If you find any bugs or problems with this package, PLEASE either e-mail
+;; the above author, or send a message to the ange-ftp-lovers mailing list
+;; below.  Ideas and constructive comments are especially welcome.
 
-;;; ange-ftp-lovers:
-;;;
-;;; ange-ftp has its own mailing list modestly called ange-ftp-lovers.  All
-;;; users of ange-ftp are welcome to subscribe (see below) and to discuss
-;;; aspects of ange-ftp.  New versions of ange-ftp are posted periodically to
-;;; the mailing list.
-;;;
-;;; To [un]subscribe to ange-ftp-lovers, or to report mailer problems with the
-;;; list, please mail one of the following addresses:
-;;;
-;;;     ange-ftp-lovers-request@anorman.hpl.hp.com
-;;; or
-;;;     ange-ftp-lovers-request%anorman.hpl.hp.com@hplb.hpl.hp.com
-;;;
-;;; Please don't forget the -request part.
-;;;
-;;; For mail to be posted directly to ange-ftp-lovers, send to one of the
-;;; following addresses:
-;;; 
-;;;     ange-ftp-lovers@anorman.hpl.hp.com
-;;; or
-;;;     ange-ftp-lovers%anorman.hpl.hp.com@hplb.hpl.hp.com
-;;;
-;;; Alternatively, there is a mailing list that only gets announcements of new
-;;; ange-ftp releases.  This is called ange-ftp-lovers-announce, and can be
-;;; subscribed to by e-mailing to the -request address as above.  Please make
-;;; it clear in the request which mailing list you wish to join.
+;; ange-ftp-lovers:
+;;
+;; ange-ftp has its own mailing list modestly called ange-ftp-lovers.  All
+;; users of ange-ftp are welcome to subscribe (see below) and to discuss
+;; aspects of ange-ftp.  New versions of ange-ftp are posted periodically to
+;; the mailing list.
+;;
+;; To [un]subscribe to ange-ftp-lovers, or to report mailer problems with the
+;; list, please mail one of the following addresses:
+;;
+;;     ange-ftp-lovers-request@anorman.hpl.hp.com
+;; or
+;;     ange-ftp-lovers-request%anorman.hpl.hp.com@hplb.hpl.hp.com
+;;
+;; Please don't forget the -request part.
+;;
+;; For mail to be posted directly to ange-ftp-lovers, send to one of the
+;; following addresses:
+;; 
+;;     ange-ftp-lovers@anorman.hpl.hp.com
+;; or
+;;     ange-ftp-lovers%anorman.hpl.hp.com@hplb.hpl.hp.com
+;;
+;; Alternatively, there is a mailing list that only gets announcements of new
+;; ange-ftp releases.  This is called ange-ftp-lovers-announce, and can be
+;; subscribed to by e-mailing to the -request address as above.  Please make
+;; it clear in the request which mailing list you wish to join.
 
-;;; The latest version of ange-ftp can usually be obtained via anonymous ftp
-;;; from:
-;;;     alpha.gnu.ai.mit.edu:ange-ftp/ange-ftp.tar.Z
-;;; or:
-;;;     ugle.unit.no:/pub/gnu/emacs-lisp/ange-ftp.tar.Z
-;;; or:
-;;;   archive.cis.ohio-state.edu:pub/gnu/emacs/elisp-archive/packages/ange-ftp.tar.Z
+;; The latest version of ange-ftp can usually be obtained via anonymous ftp
+;; from:
+;;     alpha.gnu.ai.mit.edu:ange-ftp/ange-ftp.tar.Z
+;; or:
+;;     ugle.unit.no:/pub/gnu/emacs-lisp/ange-ftp.tar.Z
+;; or:
+;;   archive.cis.ohio-state.edu:pub/gnu/emacs/elisp-archive/packages/ange-ftp.tar.Z
 
-;;; The archives for ange-ftp-lovers can be found via anonymous ftp under:
-;;;
-;;;     ftp.reed.edu:pub/mailing-lists/ange-ftp/
+;; The archives for ange-ftp-lovers can be found via anonymous ftp under:
+;;
+;;     ftp.reed.edu:pub/mailing-lists/ange-ftp/
 
-;;; -----------------------------------------------------------
-;;; Technical information on this package:
-;;; -----------------------------------------------------------
+;; -----------------------------------------------------------
+;; Technical information on this package:
+;; -----------------------------------------------------------
 
-;;; ange-ftp works by putting a handler on file-name-handler-alist
-;;; which is called by many primitives, and a few non-primitives,
-;;; whenever they see a file name of the appropriate sort.
+;; ange-ftp works by putting a handler on file-name-handler-alist
+;; which is called by many primitives, and a few non-primitives,
+;; whenever they see a file name of the appropriate sort.
 
-;;; Checklist for adding non-UNIX support for TYPE
-;;; 
-;;; The following functions may need TYPE versions:
-;;; (not all functions will be needed for every OS)
-;;;
-;;; ange-ftp-fix-name-for-TYPE
-;;; ange-ftp-fix-dir-name-for-TYPE
-;;; ange-ftp-TYPE-host
-;;; ange-ftp-TYPE-add-host
-;;; ange-ftp-parse-TYPE-listing
-;;; ange-ftp-TYPE-delete-file-entry
-;;; ange-ftp-TYPE-add-file-entry
-;;; ange-ftp-TYPE-file-name-as-directory
-;;; ange-ftp-TYPE-make-compressed-filename
-;;; ange-ftp-TYPE-file-name-sans-versions
-;;;
-;;; Variables:
-;;;
-;;; ange-ftp-TYPE-host-regexp
-;;; May need to add TYPE to ange-ftp-dumb-host-types
-;;;
-;;; Check the following functions for OS dependent coding:
-;;;
-;;; ange-ftp-host-type
-;;; ange-ftp-guess-host-type
-;;; ange-ftp-allow-child-lookup
+;; Checklist for adding non-UNIX support for TYPE
+;; 
+;; The following functions may need TYPE versions:
+;; (not all functions will be needed for every OS)
+;;
+;; ange-ftp-fix-name-for-TYPE
+;; ange-ftp-fix-dir-name-for-TYPE
+;; ange-ftp-TYPE-host
+;; ange-ftp-TYPE-add-host
+;; ange-ftp-parse-TYPE-listing
+;; ange-ftp-TYPE-delete-file-entry
+;; ange-ftp-TYPE-add-file-entry
+;; ange-ftp-TYPE-file-name-as-directory
+;; ange-ftp-TYPE-make-compressed-filename
+;; ange-ftp-TYPE-file-name-sans-versions
+;;
+;; Variables:
+;;
+;; ange-ftp-TYPE-host-regexp
+;; May need to add TYPE to ange-ftp-dumb-host-types
+;;
+;; Check the following functions for OS dependent coding:
+;;
+;; ange-ftp-host-type
+;; ange-ftp-guess-host-type
+;; ange-ftp-allow-child-lookup
 
-;;; Host type conventions:
-;;;
-;;; The function ange-ftp-host-type and the variable ange-ftp-dired-host-type
-;;; (mostly) follow the following conventions for remote host types.  At
-;;; least, I think that future code should try to follow these conventions,
-;;; and the current code should eventually be made compliant.
-;;;
-;;; nil = local host type, whatever that is (probably unix).
-;;;       Think nil as in "not a remote host". This value is used by
-;;;       ange-ftp-dired-host-type for local buffers.
-;;;
-;;; t = a remote host of unknown type. Think t is in true, it's remote.
-;;;     Currently, 'unix is used as the default remote host type.
-;;;     Maybe we should use t.
-;;;
-;;; 'type = a remote host of TYPE type.
-;;;
-;;; 'type:list = a remote host of TYPE type, using a specialized ftp listing
-;;;              program called list. This is currently only used for Unix
-;;;              dl (descriptive listings), when ange-ftp-dired-host-type
-;;;              is set to 'unix:dl.
+;; Host type conventions:
+;;
+;; The function ange-ftp-host-type and the variable ange-ftp-dired-host-type
+;; (mostly) follow the following conventions for remote host types.  At
+;; least, I think that future code should try to follow these conventions,
+;; and the current code should eventually be made compliant.
+;;
+;; nil = local host type, whatever that is (probably unix).
+;;       Think nil as in "not a remote host". This value is used by
+;;       ange-ftp-dired-host-type for local buffers.
+;;
+;; t = a remote host of unknown type. Think t is in true, it's remote.
+;;     Currently, 'unix is used as the default remote host type.
+;;     Maybe we should use t.
+;;
+;; 'type = a remote host of TYPE type.
+;;
+;; 'type:list = a remote host of TYPE type, using a specialized ftp listing
+;;              program called list. This is currently only used for Unix
+;;              dl (descriptive listings), when ange-ftp-dired-host-type
+;;              is set to 'unix:dl.
 
-;;; Bug report codes:
-;;;
-;;; Because of their naive faith in this code, there are certain situations
-;;; which the writers of this program believe could never happen. However,
-;;; being realists they have put calls to `error' in the program at these
-;;; points. These errors provide a code, which is an integer, greater than 1.
-;;; To aid debugging.  the error codes, and the functions in which they reside
-;;; are listed below.
-;;; 
-;;; 1: See ange-ftp-ls
-;;;
+;; Bug report codes:
+;;
+;; Because of their naive faith in this code, there are certain situations
+;; which the writers of this program believe could never happen. However,
+;; being realists they have put calls to `error' in the program at these
+;; points. These errors provide a code, which is an integer, greater than 1.
+;; To aid debugging.  the error codes, and the functions in which they reside
+;; are listed below.
+;; 
+;; 1: See ange-ftp-ls
+;;
 
-;;; -----------------------------------------------------------
-;;; Hall of fame:
-;;; -----------------------------------------------------------
-;;; 
-;;; Thanks to Roland McGrath for improving the filename syntax handling,
-;;; for suggesting many enhancements and for numerous cleanups to the code.
-;;;
-;;; Thanks to Jamie Zawinski for bugfixes and for ideas such as gateways.
-;;;
-;;; Thanks to Ken Laprade for improved .netrc parsing, password reading, and
-;;; dired / shell auto-loading.
-;;;
-;;; Thanks to Sebastian Kremer for dired support and for many ideas and
-;;; bugfixes.
-;;;
-;;; Thanks to Joe Wells for bugfixes, the original non-UNIX system support,
-;;; VOS support, and hostname completion.
-;;;
-;;; Thanks to Nakagawa Takayuki for many good ideas, filename-completion, help
-;;; with file-name expansion, efficiency worries, stylistic concerns and many
-;;; bugfixes.
-;;;
-;;; Thanks to Sandy Rutherford who re-wrote most of ange-ftp to support VMS,
-;;; MTS, CMS and UNIX-dls.  Sandy also added dired-support for non-UNIX OS and
-;;; auto-recognition of the host type.
-;;;
-;;; Thanks to Dave Smith who wrote the info file for ange-ftp.
-;;;
-;;; Finally, thanks to Keith Waclena, Mark D. Baushke, Terence Kelleher, Ping
-;;; Zhou, Edward Vielmetti, Jack Repenning, Mike Balenger, Todd Kaufmann,
-;;; Kjetil Svarstad, Tom Wurgler, Linus Tolke, Niko Makila, Carl Edman, Bill
-;;; Trost, Dave Brennan, Dan Jacobson, Andy Scott, Steve Anderson, Sanjay
-;;; Mathur, the folks on the ange-ftp-lovers mailing list and many others
-;;; whose names I've forgotten who have helped to debug and fix problems with
-;;; ange-ftp.el.
+;; -----------------------------------------------------------
+;; Hall of fame:
+;; -----------------------------------------------------------
+;; 
+;; Thanks to Roland McGrath for improving the filename syntax handling,
+;; for suggesting many enhancements and for numerous cleanups to the code.
+;;
+;; Thanks to Jamie Zawinski for bugfixes and for ideas such as gateways.
+;;
+;; Thanks to Ken Laprade for improved .netrc parsing, password reading, and
+;; dired / shell auto-loading.
+;;
+;; Thanks to Sebastian Kremer for dired support and for many ideas and
+;; bugfixes.
+;;
+;; Thanks to Joe Wells for bugfixes, the original non-UNIX system support,
+;; VOS support, and hostname completion.
+;;
+;; Thanks to Nakagawa Takayuki for many good ideas, filename-completion, help
+;; with file-name expansion, efficiency worries, stylistic concerns and many
+;; bugfixes.
+;;
+;; Thanks to Sandy Rutherford who re-wrote most of ange-ftp to support VMS,
+;; MTS, CMS and UNIX-dls.  Sandy also added dired-support for non-UNIX OS and
+;; auto-recognition of the host type.
+;;
+;; Thanks to Dave Smith who wrote the info file for ange-ftp.
+;;
+;; Finally, thanks to Keith Waclena, Mark D. Baushke, Terence Kelleher, Ping
+;; Zhou, Edward Vielmetti, Jack Repenning, Mike Balenger, Todd Kaufmann,
+;; Kjetil Svarstad, Tom Wurgler, Linus Tolke, Niko Makila, Carl Edman, Bill
+;; Trost, Dave Brennan, Dan Jacobson, Andy Scott, Steve Anderson, Sanjay
+;; Mathur, the folks on the ange-ftp-lovers mailing list and many others
+;; whose names I've forgotten who have helped to debug and fix problems with
+;; ange-ftp.el.
 
-
 ;;; Code:
+
 (require 'comint)
 
 ;;;; ------------------------------------------------------------

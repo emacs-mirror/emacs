@@ -1,73 +1,74 @@
 ;;; hideshow.el --- minor mode cmds to selectively display blocks of code
 
-;;; Copyright (C) 1994,1995 Free Software Foundation
+;; Copyright (C) 1994,1995 Free Software Foundation
 
-;;; Author: Thien-Thi Nguyen <ttn@netcom.com>
-;;; Version: 3.4
-;;; Keywords: C C++ lisp tools editing
-;;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
+;; Author: Thien-Thi Nguyen <ttn@netcom.com>
+;; Version: 3.4
+;; Keywords: C C++ lisp tools editing
+;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;;; GNU Emacs is free software; you can redistribute it and/or modify it
-;;; under the terms of the GNU General Public License as published by the
-;;; Free Software Foundation; either version 2 of the License, or (at your
-;;; option) any later version.
-;;; 
-;;; GNU Emacs is distributed in the hope that it will be useful, but WITHOUT
-;;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-;;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-;;; for more details.
-;;; 
-;;; You should have received a copy of the GNU General Public License along
-;;; with this program; if not, write to the Free Software Foundation, Inc.,
-;;; 675 Mass Ave, Cambridge, MA 02139, USA.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;;; LCD Archive Entry:
-;;; hideshow|Thien-Thi Nguyen|ttn@netcom.com|
-;;; minor mode commands to selectively display blocks of code|
-;;; 18-Oct-1994|3.4|~/modes/hideshow.el.Z|
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;; LCD Archive Entry:
+;; hideshow|Thien-Thi Nguyen|ttn@netcom.com|
+;; minor mode commands to selectively display blocks of code|
+;; 18-Oct-1994|3.4|~/modes/hideshow.el.Z|
 
 ;;; Commentary:
 
-;;; This file provides `hs-minor-mode'.  When active, six commands:
-;;;   hs-{hide,show}-{all,block}, hs-show-region and hs-minor-mode
-;;; are available.  They implement block hiding and showing.  Blocks are
-;;; defined in mode-specific way.  In c-mode or c++-mode, they are simply
-;;; curly braces, while in lisp-ish modes they are parens.  Multi-line
-;;; comments (c-mode) can also be hidden.  The command M-x hs-minor-mode
-;;; toggles the minor mode or sets it (similar to outline minor mode).
-;;; See documentation for each command for more info.
-;;;
-;;; The variable `hs-unbalance-handler-method' controls hideshow's behavior
-;;; in the case of "unbalanced parentheses".  See doc for more info.
+;; This file provides `hs-minor-mode'.  When active, six commands:
+;;   hs-{hide,show}-{all,block}, hs-show-region and hs-minor-mode
+;; are available.  They implement block hiding and showing.  Blocks are
+;; defined in mode-specific way.  In c-mode or c++-mode, they are simply
+;; curly braces, while in lisp-ish modes they are parens.  Multi-line
+;; comments (c-mode) can also be hidden.  The command M-x hs-minor-mode
+;; toggles the minor mode or sets it (similar to outline minor mode).
+;; See documentation for each command for more info.
+;;
+;; The variable `hs-unbalance-handler-method' controls hideshow's behavior
+;; in the case of "unbalanced parentheses".  See doc for more info.
 
-;;; Suggested usage:
+;; Suggested usage:
 
-;;; (load-library "hideshow")
-;;; (defun my-hs-setup () "enables hideshow and binds some commands"
-;;;   (hs-minor-mode 1)
-;;;   (define-key hs-minor-mode-map "\C-ch" 'hs-hide-block)
-;;;   (define-key hs-minor-mode-map "\C-cs" 'hs-show-block)
-;;;   (define-key hs-minro-mode-map "\C-cH" 'hs-hide-all)
-;;;   (define-key hs-minro-mode-map "\C-cS" 'hs-show-all)
-;;;   (define-key hs-minor-mode-map "\C-cR" 'hs-show-region))
-;;; (add-hook 'X-mode-hook 'my-hs-setup t)   ; other modes similarly
-;;;
-;;; where X = {emacs-lisp,c,c++,perl,...}.  See the doc for the variable
-;;; `hs-special-modes-alist' if you'd like to use hideshow w/ other modes.
+;; (load-library "hideshow")
+;; (defun my-hs-setup () "enables hideshow and binds some commands"
+;;   (hs-minor-mode 1)
+;;   (define-key hs-minor-mode-map "\C-ch" 'hs-hide-block)
+;;   (define-key hs-minor-mode-map "\C-cs" 'hs-show-block)
+;;   (define-key hs-minro-mode-map "\C-cH" 'hs-hide-all)
+;;   (define-key hs-minro-mode-map "\C-cS" 'hs-show-all)
+;;   (define-key hs-minor-mode-map "\C-cR" 'hs-show-region))
+;; (add-hook 'X-mode-hook 'my-hs-setup t)   ; other modes similarly
+;;
+;; where X = {emacs-lisp,c,c++,perl,...}.  See the doc for the variable
+;; `hs-special-modes-alist' if you'd like to use hideshow w/ other modes.
 
-;;; Etc:
+;; Etc:
 
-;;; Bug reports and fixes welcome (comments, too).  Thanks go to
-;;;	Dean Andrews <adahome@ix.netcom.com>
-;;;	Preston F. Crow <preston.f.crow@dartmouth.edu>
-;;;	Gael Marziou <gael@gnlab030.grenoble.hp.com>
-;;;	Keith Sheffield <sheff@edcsgw2.cr.usgs.gov>
-;;;	Jan Djarv <jan.djarv@sa.erisoft.se>
-;;;	Lars Lindberg <qhslali@aom.ericsson.se>
-;;;	Alf-Ivar Holm <alfh@ifi.uio.no>
-;;; for valuable feedback, code and bug reports.
+;; Bug reports and fixes welcome (comments, too).  Thanks go to
+;;	Dean Andrews <adahome@ix.netcom.com>
+;;	Preston F. Crow <preston.f.crow@dartmouth.edu>
+;;	Gael Marziou <gael@gnlab030.grenoble.hp.com>
+;;	Keith Sheffield <sheff@edcsgw2.cr.usgs.gov>
+;;	Jan Djarv <jan.djarv@sa.erisoft.se>
+;;	Lars Lindberg <qhslali@aom.ericsson.se>
+;;	Alf-Ivar Holm <alfh@ifi.uio.no>
+;; for valuable feedback, code and bug reports.
 
 ;;; Code:
 

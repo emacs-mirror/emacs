@@ -8,13 +8,6 @@
 ;; Author's Update Number: see variable `bookmark-version'.
 ;; Keywords: bookmarks, placeholders, annotations
 
-;;; Summary:
-;; This package is for setting "bookmarks" in files.  A bookmark
-;; associates a string with a location in a certain file.  Thus, you
-;; can navigate your way to that location by providing the string.
-;; See the "User Variables" section for customizations.
-
-;;; Copyright info:
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -28,8 +21,16 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; This package is for setting "bookmarks" in files.  A bookmark
+;; associates a string with a location in a certain file.  Thus, you
+;; can navigate your way to that location by providing the string.
+;; See the "User Variables" section for customizations.
 
 ;; Thanks to David Bremner <bremner@cs.sfu.ca> for thinking of and
 ;; then implementing the bookmark-current-bookmark idea.  He even
@@ -76,12 +77,10 @@
 ;; FAVORITE CHINESE RESTAURANT: 
 ;; Boy, that's a tough one.  Probably Hong Min, or maybe Emperor's
 ;; Choice (both in Chicago's Chinatown).  Well, both.  How about you?
-
-
-(require 'pp)
-
 
 ;;;; Code:
+
+(require 'pp)
 
 (defconst bookmark-version "2.6.20"
   "Version number of bookmark.el.  This is not related to the version

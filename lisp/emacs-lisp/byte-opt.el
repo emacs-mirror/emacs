@@ -19,131 +19,132 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; ========================================================================
-;;; "No matter how hard you try, you can't make a racehorse out of a pig.
-;;; You can, however, make a faster pig."
-;;;
-;;; Or, to put it another way, the emacs byte compiler is a VW Bug.  This code
-;;; makes it be a VW Bug with fuel injection and a turbocharger...  You're 
-;;; still not going to make it go faster than 70 mph, but it might be easier
-;;; to get it there.
-;;;
+;; ========================================================================
+;; "No matter how hard you try, you can't make a racehorse out of a pig.
+;; You can, however, make a faster pig."
+;;
+;; Or, to put it another way, the emacs byte compiler is a VW Bug.  This code
+;; makes it be a VW Bug with fuel injection and a turbocharger...  You're 
+;; still not going to make it go faster than 70 mph, but it might be easier
+;; to get it there.
+;;
 
-;;; TO DO:
-;;;
-;;; (apply '(lambda (x &rest y) ...) 1 (foo))
-;;;
-;;; maintain a list of functions known not to access any global variables
-;;; (actually, give them a 'dynamically-safe property) and then
-;;;   (let ( v1 v2 ... vM vN ) <...dynamically-safe...> )  ==>
-;;;   (let ( v1 v2 ... vM ) vN <...dynamically-safe...> )
-;;; by recursing on this, we might be able to eliminate the entire let.
-;;; However certain variables should never have their bindings optimized
-;;; away, because they affect everything.
-;;;   (put 'debug-on-error 'binding-is-magic t)
-;;;   (put 'debug-on-abort 'binding-is-magic t)
-;;;   (put 'debug-on-next-call 'binding-is-magic t)
-;;;   (put 'mocklisp-arguments 'binding-is-magic t)
-;;;   (put 'inhibit-quit 'binding-is-magic t)
-;;;   (put 'quit-flag 'binding-is-magic t)
-;;;   (put 't 'binding-is-magic t)
-;;;   (put 'nil 'binding-is-magic t)
-;;; possibly also
-;;;   (put 'gc-cons-threshold 'binding-is-magic t)
-;;;   (put 'track-mouse 'binding-is-magic t)
-;;; others?
-;;;
-;;; Simple defsubsts often produce forms like
-;;;    (let ((v1 (f1)) (v2 (f2)) ...)
-;;;       (FN v1 v2 ...))
-;;; It would be nice if we could optimize this to 
-;;;    (FN (f1) (f2) ...)
-;;; but we can't unless FN is dynamically-safe (it might be dynamically
-;;; referring to the bindings that the lambda arglist established.)
-;;; One of the uncountable lossages introduced by dynamic scope...
-;;;
-;;; Maybe there should be a control-structure that says "turn on 
-;;; fast-and-loose type-assumptive optimizations here."  Then when
-;;; we see a form like (car foo) we can from then on assume that
-;;; the variable foo is of type cons, and optimize based on that.
-;;; But, this won't win much because of (you guessed it) dynamic 
-;;; scope.  Anything down the stack could change the value.
-;;; (Another reason it doesn't work is that it is perfectly valid
-;;; to call car with a null argument.)  A better approach might
-;;; be to allow type-specification of the form
-;;;   (put 'foo 'arg-types '(float (list integer) dynamic))
-;;;   (put 'foo 'result-type 'bool)
-;;; It should be possible to have these types checked to a certain
-;;; degree.
-;;;
-;;; collapse common subexpressions
-;;;
-;;; It would be nice if redundant sequences could be factored out as well,
-;;; when they are known to have no side-effects:
-;;;   (list (+ a b c) (+ a b c))   -->  a b add c add dup list-2
-;;; but beware of traps like
-;;;   (cons (list x y) (list x y))
-;;;
-;;; Tail-recursion elimination is not really possible in Emacs Lisp.
-;;; Tail-recursion elimination is almost always impossible when all variables
-;;; have dynamic scope, but given that the "return" byteop requires the
-;;; binding stack to be empty (rather than emptying it itself), there can be
-;;; no truly tail-recursive Emacs Lisp functions that take any arguments or
-;;; make any bindings.
-;;;
-;;; Here is an example of an Emacs Lisp function which could safely be
-;;; byte-compiled tail-recursively:
-;;;
-;;;  (defun tail-map (fn list)
-;;;    (cond (list
-;;;           (funcall fn (car list))
-;;;           (tail-map fn (cdr list)))))
-;;;
-;;; However, if there was even a single let-binding around the COND,
-;;; it could not be byte-compiled, because there would be an "unbind"
-;;; byte-op between the final "call" and "return."  Adding a 
-;;; Bunbind_all byteop would fix this.
-;;;
-;;;   (defun foo (x y z) ... (foo a b c))
-;;;   ... (const foo) (varref a) (varref b) (varref c) (call 3) END: (return)
-;;;   ... (varref a) (varbind x) (varref b) (varbind y) (varref c) (varbind z) (goto 0) END: (unbind-all) (return)
-;;;   ... (varref a) (varset x) (varref b) (varset y) (varref c) (varset z) (goto 0) END: (return)
-;;;
-;;; this also can be considered tail recursion:
-;;;
-;;;   ... (const foo) (varref a) (call 1) (goto X) ... X: (return)
-;;; could generalize this by doing the optimization
-;;;   (goto X) ... X: (return)  -->  (return)
-;;;
-;;; But this doesn't solve all of the problems: although by doing tail-
-;;; recursion elimination in this way, the call-stack does not grow, the
-;;; binding-stack would grow with each recursive step, and would eventually
-;;; overflow.  I don't believe there is any way around this without lexical
-;;; scope.
-;;;
-;;; Wouldn't it be nice if Emacs Lisp had lexical scope.
-;;;
-;;; Idea: the form (lexical-scope) in a file means that the file may be 
-;;; compiled lexically.  This proclamation is file-local.  Then, within 
-;;; that file, "let" would establish lexical bindings, and "let-dynamic"
-;;; would do things the old way.  (Or we could use CL "declare" forms.)
-;;; We'd have to notice defvars and defconsts, since those variables should
-;;; always be dynamic, and attempting to do a lexical binding of them
-;;; should simply do a dynamic binding instead.
-;;; But!  We need to know about variables that were not necessarily defvarred
-;;; in the file being compiled (doing a boundp check isn't good enough.)
-;;; Fdefvar() would have to be modified to add something to the plist.
-;;;
-;;; A major disadvantage of this scheme is that the interpreter and compiler 
-;;; would have different semantics for files compiled with (dynamic-scope).  
-;;; Since this would be a file-local optimization, there would be no way to
-;;; modify the interpreter to obey this (unless the loader was hacked 
-;;; in some grody way, but that's a really bad idea.)
+;; TO DO:
+;;
+;; (apply '(lambda (x &rest y) ...) 1 (foo))
+;;
+;; maintain a list of functions known not to access any global variables
+;; (actually, give them a 'dynamically-safe property) and then
+;;   (let ( v1 v2 ... vM vN ) <...dynamically-safe...> )  ==>
+;;   (let ( v1 v2 ... vM ) vN <...dynamically-safe...> )
+;; by recursing on this, we might be able to eliminate the entire let.
+;; However certain variables should never have their bindings optimized
+;; away, because they affect everything.
+;;   (put 'debug-on-error 'binding-is-magic t)
+;;   (put 'debug-on-abort 'binding-is-magic t)
+;;   (put 'debug-on-next-call 'binding-is-magic t)
+;;   (put 'mocklisp-arguments 'binding-is-magic t)
+;;   (put 'inhibit-quit 'binding-is-magic t)
+;;   (put 'quit-flag 'binding-is-magic t)
+;;   (put 't 'binding-is-magic t)
+;;   (put 'nil 'binding-is-magic t)
+;; possibly also
+;;   (put 'gc-cons-threshold 'binding-is-magic t)
+;;   (put 'track-mouse 'binding-is-magic t)
+;; others?
+;;
+;; Simple defsubsts often produce forms like
+;;    (let ((v1 (f1)) (v2 (f2)) ...)
+;;       (FN v1 v2 ...))
+;; It would be nice if we could optimize this to 
+;;    (FN (f1) (f2) ...)
+;; but we can't unless FN is dynamically-safe (it might be dynamically
+;; referring to the bindings that the lambda arglist established.)
+;; One of the uncountable lossages introduced by dynamic scope...
+;;
+;; Maybe there should be a control-structure that says "turn on 
+;; fast-and-loose type-assumptive optimizations here."  Then when
+;; we see a form like (car foo) we can from then on assume that
+;; the variable foo is of type cons, and optimize based on that.
+;; But, this won't win much because of (you guessed it) dynamic 
+;; scope.  Anything down the stack could change the value.
+;; (Another reason it doesn't work is that it is perfectly valid
+;; to call car with a null argument.)  A better approach might
+;; be to allow type-specification of the form
+;;   (put 'foo 'arg-types '(float (list integer) dynamic))
+;;   (put 'foo 'result-type 'bool)
+;; It should be possible to have these types checked to a certain
+;; degree.
+;;
+;; collapse common subexpressions
+;;
+;; It would be nice if redundant sequences could be factored out as well,
+;; when they are known to have no side-effects:
+;;   (list (+ a b c) (+ a b c))   -->  a b add c add dup list-2
+;; but beware of traps like
+;;   (cons (list x y) (list x y))
+;;
+;; Tail-recursion elimination is not really possible in Emacs Lisp.
+;; Tail-recursion elimination is almost always impossible when all variables
+;; have dynamic scope, but given that the "return" byteop requires the
+;; binding stack to be empty (rather than emptying it itself), there can be
+;; no truly tail-recursive Emacs Lisp functions that take any arguments or
+;; make any bindings.
+;;
+;; Here is an example of an Emacs Lisp function which could safely be
+;; byte-compiled tail-recursively:
+;;
+;;  (defun tail-map (fn list)
+;;    (cond (list
+;;           (funcall fn (car list))
+;;           (tail-map fn (cdr list)))))
+;;
+;; However, if there was even a single let-binding around the COND,
+;; it could not be byte-compiled, because there would be an "unbind"
+;; byte-op between the final "call" and "return."  Adding a 
+;; Bunbind_all byteop would fix this.
+;;
+;;   (defun foo (x y z) ... (foo a b c))
+;;   ... (const foo) (varref a) (varref b) (varref c) (call 3) END: (return)
+;;   ... (varref a) (varbind x) (varref b) (varbind y) (varref c) (varbind z) (goto 0) END: (unbind-all) (return)
+;;   ... (varref a) (varset x) (varref b) (varset y) (varref c) (varset z) (goto 0) END: (return)
+;;
+;; this also can be considered tail recursion:
+;;
+;;   ... (const foo) (varref a) (call 1) (goto X) ... X: (return)
+;; could generalize this by doing the optimization
+;;   (goto X) ... X: (return)  -->  (return)
+;;
+;; But this doesn't solve all of the problems: although by doing tail-
+;; recursion elimination in this way, the call-stack does not grow, the
+;; binding-stack would grow with each recursive step, and would eventually
+;; overflow.  I don't believe there is any way around this without lexical
+;; scope.
+;;
+;; Wouldn't it be nice if Emacs Lisp had lexical scope.
+;;
+;; Idea: the form (lexical-scope) in a file means that the file may be 
+;; compiled lexically.  This proclamation is file-local.  Then, within 
+;; that file, "let" would establish lexical bindings, and "let-dynamic"
+;; would do things the old way.  (Or we could use CL "declare" forms.)
+;; We'd have to notice defvars and defconsts, since those variables should
+;; always be dynamic, and attempting to do a lexical binding of them
+;; should simply do a dynamic binding instead.
+;; But!  We need to know about variables that were not necessarily defvarred
+;; in the file being compiled (doing a boundp check isn't good enough.)
+;; Fdefvar() would have to be modified to add something to the plist.
+;;
+;; A major disadvantage of this scheme is that the interpreter and compiler 
+;; would have different semantics for files compiled with (dynamic-scope).  
+;; Since this would be a file-local optimization, there would be no way to
+;; modify the interpreter to obey this (unless the loader was hacked 
+;; in some grody way, but that's a really bad idea.)
 
 ;; Other things to consider:
 

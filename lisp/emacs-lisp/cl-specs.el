@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 1995/10/30 16:51:55 $|1.1|
+;; |$Date: 1996/01/05 21:56:25 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +22,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;;; Commentary:
 

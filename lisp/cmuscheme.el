@@ -19,50 +19,51 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;;    This is a customisation of comint-mode (see comint.el)
-;;;
-;;; Written by Olin Shivers (olin.shivers@cs.cmu.edu). With bits and pieces
-;;; lifted from scheme.el, shell.el, clisp.el, newclisp.el, cobol.el, et al..
-;;; 8/88
-;;;
-;;; Please send me bug reports, bug fixes, and extensions, so that I can
-;;; merge them into the master source.
-;;;
-;;; The changelog is at the end of this file.
-;;;
-;;; NOTE: MIT Cscheme, when invoked with the -emacs flag, has a special user
-;;; interface that communicates process state back to the superior emacs by
-;;; outputting special control sequences. The gnumacs package, xscheme.el, has
-;;; lots and lots of special purpose code to read these control sequences, and
-;;; so is very tightly integrated with the cscheme process. The cscheme
-;;; interrupt handler and debugger read single character commands in cbreak
-;;; mode; when this happens, xscheme.el switches to special keymaps that bind
-;;; the single letter command keys to emacs functions that directly send the
-;;; character to the scheme process.  Cmuscheme mode does *not* provide this
-;;; functionality. If you are a cscheme user, you may prefer to use the
-;;; xscheme.el/cscheme -emacs interaction.
-;;; 
-;;; Here's a summary of the pros and cons, as I see them.
-;;; xscheme: Tightly integrated with inferior cscheme process!  A few commands
-;;;	     not in cmuscheme. But. Integration is a bit of a hack.  Input
-;;;	     history only keeps the immediately prior input. Bizarre
-;;;	     keybindings.
-;;; 
-;;; cmuscheme: Not tightly integrated with inferior cscheme process.  But.
-;;;            Carefully integrated functionality with the entire suite of
-;;;            comint-derived CMU process modes. Keybindings reminiscent of
-;;;            Zwei and Hemlock. Good input history. A few commands not in
-;;;            xscheme.
-;;;  
-;;; It's a tradeoff. Pay your money; take your choice. If you use a Scheme
-;;; that isn't Cscheme, of course, there isn't a choice. Xscheme.el is *very*
-;;; Cscheme-specific; you must use cmuscheme.el.  Interested parties are
-;;; invited to port xscheme functionality on top of comint mode...
+;;    This is a customisation of comint-mode (see comint.el)
+;;
+;; Written by Olin Shivers (olin.shivers@cs.cmu.edu). With bits and pieces
+;; lifted from scheme.el, shell.el, clisp.el, newclisp.el, cobol.el, et al..
+;; 8/88
+;;
+;; Please send me bug reports, bug fixes, and extensions, so that I can
+;; merge them into the master source.
+;;
+;; The changelog is at the end of this file.
+;;
+;; NOTE: MIT Cscheme, when invoked with the -emacs flag, has a special user
+;; interface that communicates process state back to the superior emacs by
+;; outputting special control sequences. The gnumacs package, xscheme.el, has
+;; lots and lots of special purpose code to read these control sequences, and
+;; so is very tightly integrated with the cscheme process. The cscheme
+;; interrupt handler and debugger read single character commands in cbreak
+;; mode; when this happens, xscheme.el switches to special keymaps that bind
+;; the single letter command keys to emacs functions that directly send the
+;; character to the scheme process.  Cmuscheme mode does *not* provide this
+;; functionality. If you are a cscheme user, you may prefer to use the
+;; xscheme.el/cscheme -emacs interaction.
+;; 
+;; Here's a summary of the pros and cons, as I see them.
+;; xscheme: Tightly integrated with inferior cscheme process!  A few commands
+;;	     not in cmuscheme. But. Integration is a bit of a hack.  Input
+;;	     history only keeps the immediately prior input. Bizarre
+;;	     keybindings.
+;; 
+;; cmuscheme: Not tightly integrated with inferior cscheme process.  But.
+;;            Carefully integrated functionality with the entire suite of
+;;            comint-derived CMU process modes. Keybindings reminiscent of
+;;            Zwei and Hemlock. Good input history. A few commands not in
+;;            xscheme.
+;;  
+;; It's a tradeoff. Pay your money; take your choice. If you use a Scheme
+;; that isn't Cscheme, of course, there isn't a choice. Xscheme.el is *very*
+;; Cscheme-specific; you must use cmuscheme.el.  Interested parties are
+;; invited to port xscheme functionality on top of comint mode...
 
 ;;; Code:
 

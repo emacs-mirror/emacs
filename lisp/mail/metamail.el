@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993 Masanobu UMEDA
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/metamail.el,v 1.1 1993/07/20 03:02:12 rms Exp kwzh $
+;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/metamail.el,v 1.2 1996/01/05 00:07:09 kwzh Exp erik $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -19,15 +19,16 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
 ;; LCD Archive Entry:
 ;; metamail|Masanobu UMEDA|umerin@mse.kyutech.ac.jp|
 ;; Metamail interface for GNU Emacs|
-;; $Date: 1993/07/20 03:02:12 $|$Revision: 1.1 $|~/misc/metamail.el.Z|
+;; $Date: 1996/01/05 00:07:09 $|$Revision: 1.2 $|~/misc/metamail.el.Z|
 
 ;; Note: Metamail does not have all options which are compatible with
 ;; the environment variables.  For that reason, metamail.el has to

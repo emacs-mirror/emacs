@@ -23,39 +23,39 @@
 
 ;;; Commentary:
 
-;;; USAGE
-;;; =====
+;; USAGE
+;; =====
 
-;;; Emacs should enter Pascal mode when you find a Pascal source file.
-;;; When you have entered Pascal mode, you may get more info by pressing
-;;; C-h m. You may also get online help describing various functions by:
-;;; C-h f <Name of function you want described>
+;; Emacs should enter Pascal mode when you find a Pascal source file.
+;; When you have entered Pascal mode, you may get more info by pressing
+;; C-h m. You may also get online help describing various functions by:
+;; C-h f <Name of function you want described>
 
-;;; If you want to customize Pascal mode to fit you better, you may add
-;;; these lines (the values of the variables presented here are the defaults):
-;;;
-;;; ;; User customization for Pascal mode
-;;; (setq pascal-indent-level       3
-;;;       pascal-case-indent        2
-;;;       pascal-auto-newline       nil
-;;;       pascal-tab-always-indent  t
-;;;       pascal-auto-endcomments   t
-;;;       pascal-auto-lineup        '(all)
-;;;       pascal-toggle-completions nil
-;;;       pascal-type-keywords      '("array" "file" "packed" "char" 
-;;; 				      "integer" "real" "string" "record")
-;;;       pascal-start-keywords     '("begin" "end" "function" "procedure"
-;;; 				      "repeat" "until" "while" "read" "readln"
-;;; 				      "reset" "rewrite" "write" "writeln")
-;;;       pascal-separator-keywords '("downto" "else" "mod" "div" "then"))
+;; If you want to customize Pascal mode to fit you better, you may add
+;; these lines (the values of the variables presented here are the defaults):
+;;
+;; ;; User customization for Pascal mode
+;; (setq pascal-indent-level       3
+;;       pascal-case-indent        2
+;;       pascal-auto-newline       nil
+;;       pascal-tab-always-indent  t
+;;       pascal-auto-endcomments   t
+;;       pascal-auto-lineup        '(all)
+;;       pascal-toggle-completions nil
+;;       pascal-type-keywords      '("array" "file" "packed" "char" 
+;; 				      "integer" "real" "string" "record")
+;;       pascal-start-keywords     '("begin" "end" "function" "procedure"
+;; 				      "repeat" "until" "while" "read" "readln"
+;; 				      "reset" "rewrite" "write" "writeln")
+;;       pascal-separator-keywords '("downto" "else" "mod" "div" "then"))
 
-;;; KNOWN BUGS / BUGREPORTS
-;;; =======================
-;;; As far as I know, there are no bugs in the current version of this
-;;; package.  This may not be true however, since I never use this mode
-;;; myself and therefore would never notice them anyway.   If you do
-;;; find any bugs, you may submit them to: espensk@stud.cs.uit.no
-;;; as well as to bug-gnu-emacs@prep.ai.mit.edu.
+;; KNOWN BUGS / BUGREPORTS
+;; =======================
+;; As far as I know, there are no bugs in the current version of this
+;; package.  This may not be true however, since I never use this mode
+;; myself and therefore would never notice them anyway.   If you do
+;; find any bugs, you may submit them to: espensk@stud.cs.uit.no
+;; as well as to bug-gnu-emacs@prep.ai.mit.edu.
 
 ;;; Code:
 

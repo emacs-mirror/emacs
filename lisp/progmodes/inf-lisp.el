@@ -1,62 +1,64 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
-;;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
+
+;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
+;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
 
-;;; This file defines a a lisp-in-a-buffer package (inferior-lisp
-;;; mode) built on top of comint mode.  This version is more
-;;; featureful, robust, and uniform than the Emacs 18 version.  The
-;;; key bindings are also more compatible with the bindings of Hemlock
-;;; and Zwei (the Lisp Machine emacs).
+;; This file defines a a lisp-in-a-buffer package (inferior-lisp
+;; mode) built on top of comint mode.  This version is more
+;; featureful, robust, and uniform than the Emacs 18 version.  The
+;; key bindings are also more compatible with the bindings of Hemlock
+;; and Zwei (the Lisp Machine emacs).
 
-;;; Since this mode is built on top of the general command-interpreter-in-
-;;; a-buffer mode (comint mode), it shares a common base functionality, 
-;;; and a common set of bindings, with all modes derived from comint mode.
-;;; This makes these modes easier to use.
+;; Since this mode is built on top of the general command-interpreter-in-
+;; a-buffer mode (comint mode), it shares a common base functionality, 
+;; and a common set of bindings, with all modes derived from comint mode.
+;; This makes these modes easier to use.
 
-;;; For documentation on the functionality provided by comint mode, and
-;;; the hooks available for customising it, see the file comint.el.
-;;; For further information on inferior-lisp mode, see the comments below.
+;; For documentation on the functionality provided by comint mode, and
+;; the hooks available for customising it, see the file comint.el.
+;; For further information on inferior-lisp mode, see the comments below.
 
-;;; Needs fixin:
-;;; The load-file/compile-file default mechanism could be smarter -- it
-;;; doesn't know about the relationship between filename extensions and
-;;; whether the file is source or executable. If you compile foo.lisp
-;;; with compile-file, then the next load-file should use foo.bin for
-;;; the default, not foo.lisp. This is tricky to do right, particularly
-;;; because the extension for executable files varies so much (.o, .bin,
-;;; .lbin, .mo, .vo, .ao, ...).
-;;;
-;;; It would be nice if inferior-lisp (and inferior scheme, T, ...) modes
-;;; had a verbose minor mode wherein sending or compiling defuns, etc.
-;;; would be reflected in the transcript with suitable comments, e.g.
-;;; ";;; redefining fact". Several ways to do this. Which is right?
-;;;
-;;; When sending text from a source file to a subprocess, the process-mark can 
-;;; move off the window, so you can lose sight of the process interactions.
-;;; Maybe I should ensure the process mark is in the window when I send
-;;; text to the process? Switch selectable?
+;; Needs fixin:
+;; The load-file/compile-file default mechanism could be smarter -- it
+;; doesn't know about the relationship between filename extensions and
+;; whether the file is source or executable. If you compile foo.lisp
+;; with compile-file, then the next load-file should use foo.bin for
+;; the default, not foo.lisp. This is tricky to do right, particularly
+;; because the extension for executable files varies so much (.o, .bin,
+;; .lbin, .mo, .vo, .ao, ...).
+;;
+;; It would be nice if inferior-lisp (and inferior scheme, T, ...) modes
+;; had a verbose minor mode wherein sending or compiling defuns, etc.
+;; would be reflected in the transcript with suitable comments, e.g.
+;; ";;; redefining fact". Several ways to do this. Which is right?
+;;
+;; When sending text from a source file to a subprocess, the process-mark can 
+;; move off the window, so you can lose sight of the process interactions.
+;; Maybe I should ensure the process mark is in the window when I send
+;; text to the process? Switch selectable?
 
 ;;; Code:
 

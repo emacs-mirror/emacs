@@ -1,9 +1,9 @@
 ;;; menu-bar.el --- define a default menu bar.
 
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+
 ;; Author: RMS
 ;; Keywords: internal
-
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,10 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;; Avishai Yacobi suggested some menu rearrangements.
+
+;;; Code:
 
 ;;; User options:
 
@@ -30,8 +33,6 @@
 If this is 10, then only the ten most-recently-selected buffers are shown.
 If this is nil, then all buffers are shown.
 A large number or nil slows down menu responsiveness.")
-
-;;; Code:
 
 ;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
 ;; definitions made in loaddefs.el.

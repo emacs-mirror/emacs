@@ -1,6 +1,6 @@
 ;;; eval-reg.el --- Redefine eval-region, and subrs that use it, in Lisp
 
-;; Copyright (C) 1994 Daniel LaLiberte
+;; Copyright (C) 1994, 1996 Daniel LaLiberte
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Keywords: lisp
@@ -21,26 +21,28 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;;; Commentary:
+;;; Commentary:
 
-;;; eval-region, eval-buffer, and eval-current-buffer are redefined in
-;;; Lisp to allow customizations by Lisp code.  eval-region calls
-;;; `read', `eval', and `prin1', so Lisp replacements of these
-;;; functions will affect eval-region and anything else that calls it.
-;;; eval-buffer and eval-current-buffer are redefined in Lisp to call
-;;; eval-region on the buffer.  
+;; eval-region, eval-buffer, and eval-current-buffer are redefined in
+;; Lisp to allow customizations by Lisp code.  eval-region calls
+;; `read', `eval', and `prin1', so Lisp replacements of these
+;; functions will affect eval-region and anything else that calls it.
+;; eval-buffer and eval-current-buffer are redefined in Lisp to call
+;; eval-region on the buffer.  
 
-;;; Because of dynamic binding, all local variables are protected from
-;;; being seen by eval by giving them funky names.  But variables in
-;;; routines that call eval-region are similarly exposed.
+;; Because of dynamic binding, all local variables are protected from
+;; being seen by eval by giving them funky names.  But variables in
+;; routines that call eval-region are similarly exposed.
 
-;;; Perhaps this should be one of several files in an `elisp' package
-;;; that replaces Emacs Lisp subroutines with Lisp versions of the
-;;; same.
+;; Perhaps this should be one of several files in an `elisp' package
+;; that replaces Emacs Lisp subroutines with Lisp versions of the
+;; same.
 
-;;; Eval-region may be installed, after loading, by calling:
-;;; (elisp-eval-region-install).  Installation can be undone with:
-;;; (elisp-eval-region-uninstall).
+;; Eval-region may be installed, after loading, by calling:
+;; (elisp-eval-region-install).  Installation can be undone with:
+;; (elisp-eval-region-uninstall).
+
+;;; Code:
 
 '(defpackage "elisp-eval-region"
    (:nicknames "elisp")

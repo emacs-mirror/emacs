@@ -20,56 +20,57 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; This Lisp code is run in Emacs when it is to operate as
-;;; a server for other processes.
+;; This Lisp code is run in Emacs when it is to operate as
+;; a server for other processes.
 
-;;; Load this library and do M-x server-edit to enable Emacs as a server.
-;;; Emacs runs the program ../arch-lib/emacsserver as a subprocess
-;;; for communication with clients.  If there are no client buffers to edit, 
-;;; server-edit acts like (switch-to-buffer (other-buffer))
+;; Load this library and do M-x server-edit to enable Emacs as a server.
+;; Emacs runs the program ../arch-lib/emacsserver as a subprocess
+;; for communication with clients.  If there are no client buffers to edit, 
+;; server-edit acts like (switch-to-buffer (other-buffer))
 
-;;; When some other program runs "the editor" to edit a file,
-;;; "the editor" can be the Emacs client program ../lib-src/emacsclient.
-;;; This program transmits the file names to Emacs through
-;;; the server subprocess, and Emacs visits them and lets you edit them.
+;; When some other program runs "the editor" to edit a file,
+;; "the editor" can be the Emacs client program ../lib-src/emacsclient.
+;; This program transmits the file names to Emacs through
+;; the server subprocess, and Emacs visits them and lets you edit them.
 
-;;; Note that any number of clients may dispatch files to emacs to be edited.
+;; Note that any number of clients may dispatch files to emacs to be edited.
 
-;;; When you finish editing a Server buffer, again call server-edit
-;;; to mark that buffer as done for the client and switch to the next 
-;;; Server buffer.  When all the buffers for a client have been edited 
-;;; and exited with server-edit, the client "editor" will return
-;;; to the program that invoked it.  
+;; When you finish editing a Server buffer, again call server-edit
+;; to mark that buffer as done for the client and switch to the next 
+;; Server buffer.  When all the buffers for a client have been edited 
+;; and exited with server-edit, the client "editor" will return
+;; to the program that invoked it.  
 
-;;; Your editing commands and Emacs's display output go to and from
-;;; the terminal in the usual way.  Thus, server operation is possible
-;;; only when Emacs can talk to the terminal at the time you invoke
-;;; the client.  This is possible in four cases:
+;; Your editing commands and Emacs's display output go to and from
+;; the terminal in the usual way.  Thus, server operation is possible
+;; only when Emacs can talk to the terminal at the time you invoke
+;; the client.  This is possible in four cases:
 
-;;; 1. On a window system, where Emacs runs in one window and the
-;;; program that wants to use "the editor" runs in another.
+;; 1. On a window system, where Emacs runs in one window and the
+;; program that wants to use "the editor" runs in another.
 
-;;; 2. On a multi-terminal system, where Emacs runs on one terminal and the
-;;; program that wants to use "the editor" runs on another.
+;; 2. On a multi-terminal system, where Emacs runs on one terminal and the
+;; program that wants to use "the editor" runs on another.
 
-;;; 3. When the program that wants to use "the editor" is running
-;;; as a subprocess of Emacs.
+;; 3. When the program that wants to use "the editor" is running
+;; as a subprocess of Emacs.
 
-;;; 4. On a system with job control, when Emacs is suspended, the program
-;;; that wants to use "the editor" will stop and display
-;;; "Waiting for Emacs...".  It can then be suspended, and Emacs can be
-;;; brought into the foreground for editing.  When done editing, Emacs is
-;;; suspended again, and the client program is brought into the foreground.
+;; 4. On a system with job control, when Emacs is suspended, the program
+;; that wants to use "the editor" will stop and display
+;; "Waiting for Emacs...".  It can then be suspended, and Emacs can be
+;; brought into the foreground for editing.  When done editing, Emacs is
+;; suspended again, and the client program is brought into the foreground.
 
-;;; The buffer local variable "server-buffer-clients" lists 
-;;; the clients who are waiting for this buffer to be edited.  
-;;; The global variable "server-clients" lists all the waiting clients,
-;;; and which files are yet to be edited for each.
+;; The buffer local variable "server-buffer-clients" lists 
+;; the clients who are waiting for this buffer to be edited.  
+;; The global variable "server-clients" lists all the waiting clients,
+;; and which files are yet to be edited for each.
 
 ;;; Code:
 

@@ -19,22 +19,23 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Reposition-window makes an entire function definition or comment visible,
-;;; or, if it is already visible, places it at the top of the window;
-;;; additional invocations toggle the visibility of comments preceding the
-;;; code.  For the gory details, see the documentation for reposition-window;
-;;; rather than reading that, you may just want to play with it.
+;; Reposition-window makes an entire function definition or comment visible,
+;; or, if it is already visible, places it at the top of the window;
+;; additional invocations toggle the visibility of comments preceding the
+;; code.  For the gory details, see the documentation for reposition-window;
+;; rather than reading that, you may just want to play with it.
 
-;;; This tries pretty hard to do the recentering correctly; the precise
-;;; action depends on what the buffer looks like.  If you find a situation
-;;; where it doesn't behave well, let me know.  This function is modeled
-;;; after one of the same name in ZMACS, but the code is all-new and the
-;;; behavior in some situations differs.
+;; This tries pretty hard to do the recentering correctly; the precise
+;; action depends on what the buffer looks like.  If you find a situation
+;; where it doesn't behave well, let me know.  This function is modeled
+;; after one of the same name in ZMACS, but the code is all-new and the
+;; behavior in some situations differs.
 
 ;;; Code:
 

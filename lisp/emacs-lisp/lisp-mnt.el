@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.10 1995/03/16 04:37:48 rms Exp kwzh $
+;; Version: $Id: lisp-mnt.el,v 1.11 1995/06/15 20:42:24 kwzh Exp erik $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -22,8 +22,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 

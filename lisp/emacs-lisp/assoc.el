@@ -1,20 +1,26 @@
 ;;; assoc.el --- insert/delete/sort functions on association lists
 
+;; Copyright (C) 1996 Free Software Foundation, Inc.
+
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions
 
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY.  No author or distributor accepts
-;; responsibility to anyone for the consequences of using it or for
-;; whether it serves any particular purpose or works at all, unless he
-;; says so in writing.
+;; This file is part of GNU Emacs.
 
-;; This software was written as part of the supercite author's
-;; official duty as an employee of the United States Government and is
-;; thus in the public domain.  You are free to use that particular
-;; software as you wish, but WITHOUT ANY WARRANTY WHATSOEVER.  It
-;; would be nice, though if when you use any of this code, you give
-;; due credit to the author.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 

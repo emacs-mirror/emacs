@@ -19,70 +19,71 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; The changelog is at the end of this file.
+;; The changelog is at the end of this file.
 
-;;; Please send me bug reports, bug fixes, and extensions, so that I can
-;;; merge them into the master source.
-;;;     - Per Bothner (bothner@cygnus.com)
+;; Please send me bug reports, bug fixes, and extensions, so that I can
+;; merge them into the master source.
+;;     - Per Bothner (bothner@cygnus.com)
 
-;;; This file defines a general command-interpreter-in-a-buffer package
-;;; (term mode). The idea is that you can build specific process-in-a-buffer
-;;; modes on top of term mode -- e.g., lisp, shell, scheme, T, soar, ....
-;;; This way, all these specific packages share a common base functionality, 
-;;; and a common set of bindings, which makes them easier to use (and
-;;; saves code, implementation time, etc., etc.).
+;; This file defines a general command-interpreter-in-a-buffer package
+;; (term mode). The idea is that you can build specific process-in-a-buffer
+;; modes on top of term mode -- e.g., lisp, shell, scheme, T, soar, ....
+;; This way, all these specific packages share a common base functionality, 
+;; and a common set of bindings, which makes them easier to use (and
+;; saves code, implementation time, etc., etc.).
 
-;;; For hints on converting existing process modes (e.g., tex-mode,
-;;; background, dbx, gdb, kermit, prolog, telnet) to use term-mode
-;;; instead of shell-mode, see the notes at the end of this file.
+;; For hints on converting existing process modes (e.g., tex-mode,
+;; background, dbx, gdb, kermit, prolog, telnet) to use term-mode
+;; instead of shell-mode, see the notes at the end of this file.
 
 
-;;; Brief Command Documentation:
-;;;============================================================================
-;;; Term Mode Commands: (common to all derived modes, like cmushell & cmulisp
-;;; mode)
-;;;
-;;; m-p	    term-previous-input    	  Cycle backwards in input history
-;;; m-n	    term-next-input  	    	  Cycle forwards
-;;; m-r     term-previous-matching-input  Previous input matching a regexp
-;;; m-s     comint-next-matching-input      Next input that matches
-;;; return  term-send-input
-;;; c-c c-a term-bol                      Beginning of line; skip prompt.
-;;; c-d	    term-delchar-or-maybe-eof     Delete char unless at end of buff.
-;;; c-c c-u term-kill-input	    	    ^u
-;;; c-c c-w backward-kill-word    	    ^w
-;;; c-c c-c term-interrupt-subjob 	    ^c
-;;; c-c c-z term-stop-subjob	    	    ^z
-;;; c-c c-\ term-quit-subjob	    	    ^\
-;;; c-c c-o term-kill-output		    Delete last batch of process output
-;;; c-c c-r term-show-output		    Show last batch of process output
-;;; c-c c-h term-dynamic-list-input-ring  List input history
-;;;
-;;; Not bound by default in term-mode
-;;; term-send-invisible			Read a line w/o echo, and send to proc
-;;; (These are bound in shell-mode)
-;;; term-dynamic-complete		Complete filename at point.
-;;; term-dynamic-list-completions	List completions in help buffer.
-;;; term-replace-by-expanded-filename	Expand and complete filename at point;
-;;;					replace with expanded/completed name.
-;;; term-kill-subjob			No mercy.
-;;; term-show-maximum-output            Show as much output as possible.
-;;; term-continue-subjob		Send CONT signal to buffer's process
-;;;					group. Useful if you accidentally
-;;;					suspend your process (with C-c C-z).
+;; Brief Command Documentation:
+;;============================================================================
+;; Term Mode Commands: (common to all derived modes, like cmushell & cmulisp
+;; mode)
+;;
+;; m-p	    term-previous-input    	  Cycle backwards in input history
+;; m-n	    term-next-input  	    	  Cycle forwards
+;; m-r     term-previous-matching-input  Previous input matching a regexp
+;; m-s     comint-next-matching-input      Next input that matches
+;; return  term-send-input
+;; c-c c-a term-bol                      Beginning of line; skip prompt.
+;; c-d	    term-delchar-or-maybe-eof     Delete char unless at end of buff.
+;; c-c c-u term-kill-input	    	    ^u
+;; c-c c-w backward-kill-word    	    ^w
+;; c-c c-c term-interrupt-subjob 	    ^c
+;; c-c c-z term-stop-subjob	    	    ^z
+;; c-c c-\ term-quit-subjob	    	    ^\
+;; c-c c-o term-kill-output		    Delete last batch of process output
+;; c-c c-r term-show-output		    Show last batch of process output
+;; c-c c-h term-dynamic-list-input-ring  List input history
+;;
+;; Not bound by default in term-mode
+;; term-send-invisible			Read a line w/o echo, and send to proc
+;; (These are bound in shell-mode)
+;; term-dynamic-complete		Complete filename at point.
+;; term-dynamic-list-completions	List completions in help buffer.
+;; term-replace-by-expanded-filename	Expand and complete filename at point;
+;;					replace with expanded/completed name.
+;; term-kill-subjob			No mercy.
+;; term-show-maximum-output            Show as much output as possible.
+;; term-continue-subjob		Send CONT signal to buffer's process
+;;					group. Useful if you accidentally
+;;					suspend your process (with C-c C-z).
 
-;;; term-mode-hook is the term mode hook. Basically for your keybindings.
-;;; term-load-hook is run after loading in this package.
+;; term-mode-hook is the term mode hook. Basically for your keybindings.
+;; term-load-hook is run after loading in this package.
 
-;;; Code:
+;; Code:
 
-;;; This is passed to the inferior in the EMACS environment variable,
-;;; so it is important to increase it if there are protocol-relevant changes.
+;; This is passed to the inferior in the EMACS environment variable,
+;; so it is important to increase it if there are protocol-relevant changes.
 (defconst term-protocol-version "0.95")
 
 (require 'ring)

@@ -1,7 +1,8 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
-;;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
-;;; Maintainer's Time-stamp: <95/12/28 19:48:49 gildea>
 
+;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
+
+;; Maintainer's Time-stamp: <95/12/28 19:48:49 gildea>
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
 ;; Keywords: tools
 
@@ -16,39 +17,40 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; If you put a time stamp template anywhere in the first 8 lines of a file,
-;;; it can be updated every time you save the file.  See the top of
-;;; time-stamp.el for a sample.  The template looks like one of the following:
-;;;     Time-stamp: <>
-;;;     Time-stamp: " "
-;;; The time stamp is written between the brackets or quotes, resulting in
-;;;     Time-stamp: <95/01/18 10:20:51 gildea>
-;;; Here is an example that puts the file name and time stamp in the binary:
-;;; static char *time_stamp = "sdmain.c Time-stamp: <>";
+;; If you put a time stamp template anywhere in the first 8 lines of a file,
+;; it can be updated every time you save the file.  See the top of
+;; time-stamp.el for a sample.  The template looks like one of the following:
+;;     Time-stamp: <>
+;;     Time-stamp: " "
+;; The time stamp is written between the brackets or quotes, resulting in
+;;     Time-stamp: <95/01/18 10:20:51 gildea>
+;; Here is an example that puts the file name and time stamp in the binary:
+;; static char *time_stamp = "sdmain.c Time-stamp: <>";
 
-;;; To activate automatic time stamping in GNU Emacs 19, add this code
-;;; to your .emacs file:
-;;; (add-hook 'write-file-hooks 'time-stamp)
-;;;
-;;; In Emacs 18 you will need to do this instead:
-;;; (if (not (memq 'time-stamp write-file-hooks))
-;;;     (setq write-file-hooks
-;;;           (cons 'time-stamp write-file-hooks)))
-;;; (autoload 'time-stamp "time-stamp" "Update the time stamp in a buffer." t)
+;; To activate automatic time stamping in GNU Emacs 19, add this code
+;; to your .emacs file:
+;; (add-hook 'write-file-hooks 'time-stamp)
+;;
+;; In Emacs 18 you will need to do this instead:
+;; (if (not (memq 'time-stamp write-file-hooks))
+;;     (setq write-file-hooks
+;;           (cons 'time-stamp write-file-hooks)))
+;; (autoload 'time-stamp "time-stamp" "Update the time stamp in a buffer." t)
 
-;;; See the documentation for the function `time-stamp' for more details.
+;; See the documentation for the function `time-stamp' for more details.
 
-;;; Change Log:
+;; Change Log:
 
-;;; Originally based on the 19 Dec 88 version of
-;;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
-;;; version 2, January 1995: replaced functions with %-escapes
-;;; $Id: time-stamp.el,v 1.15 1995/10/31 00:01:15 kwzh Exp kwzh $
+;; Originally based on the 19 Dec 88 version of
+;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
+;; version 2, January 1995: replaced functions with %-escapes
+;; $Id: time-stamp.el,v 1.16 1996/01/06 01:03:24 kwzh Exp erik $
 
 ;;; Code:
 

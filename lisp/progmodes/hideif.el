@@ -1,6 +1,6 @@
 ;;; hide-ifdef-mode.el --- hides selected code within ifdef.
 
-;;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
 
 ;; Author: Dan LaLiberte <liberte@a.cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -19,93 +19,94 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; To initialize, toggle the hide-ifdef minor mode with
-;;;
-;;; M-x hide-ifdef-mode
-;;;
-;;; This will set up key bindings and call hide-ifdef-mode-hook if it
-;;; has a value.  To explicitly hide ifdefs using a buffer-local
-;;; define list (default empty), type
-;;;
-;;; M-x hide-ifdefs  or C-c @ h
-;;;
-;;; Hide-ifdef suppresses the display of code that the preprocessor wouldn't
-;;; pass through.  The support of constant expressions in #if lines is 
-;;; limited to identifiers, parens, and the operators: &&, ||, !, and
-;;; "defined".  Please extend this.
-;;;
-;;; The hidden code is marked by ellipses (...).  Be
-;;; cautious when editing near ellipses, since the hidden text is
-;;; still in the buffer, and you can move the point into it and modify
-;;; text unawares.  If you don't want to see the ellipses, set 
-;;; selective-display-ellipses to nil.  But this can be dangerous.
-;;; You can make your buffer read-only while hide-ifdef-hiding by setting
-;;; hide-ifdef-read-only to a non-nil value.  You can toggle this 
-;;; variable with hide-ifdef-toggle-read-only (C-c @ C-q).
-;;;
-;;; You can undo the effect of hide-ifdefs by typing
-;;;
-;;; M-x show-ifdefs  or C-c @ s
-;;;
-;;; Use M-x hide-ifdef-define (C-c @ d) to define a symbol.
-;;; Use M-x hide-ifdef-undef (C-c @ u) to undefine a symbol.
-;;;
-;;; If you define or undefine a symbol while hide-ifdef-mode is in effect,
-;;; the display will be updated.  Only the define list for the current
-;;; buffer will be affected.  You can save changes to the local define
-;;; list with hide-ifdef-set-define-alist.  This adds entries 
-;;; to hide-ifdef-define-alist.
-;;;
-;;; If you have defined a hide-ifdef-mode-hook, you can set
-;;; up a list of symbols that may be used by hide-ifdefs as in the
-;;; following example:
-;;;
-;;; (setq hide-ifdef-mode-hook
-;;;      '(lambda ()
-;;;	 (if (not hide-ifdef-define-alist)
-;;;	     (setq hide-ifdef-define-alist
-;;;		  '((list1 ONE TWO)
-;;;		    (list2 TWO THREE)
-;;;		    )))
-;;;	 (hide-ifdef-use-define-alist 'list2) ; use list2 by default
-;;;	 ))
-;;;
-;;; You can call hide-ifdef-use-define-alist (C-c @ u) at any time to specify
-;;; another list to use.
-;;;
-;;; To cause ifdefs to be hidden as soon as hide-ifdef-mode is called,
-;;; set hide-ifdef-initially to non-nil.
-;;;
-;;; If you set hide-ifdef-lines to t, hide-ifdefs hides all the #ifdef lines.
-;;; In the absence of highlighting, that might be a bad idea.  If you set
-;;; hide-ifdef-lines to nil (the default), the surrounding preprocessor
-;;; lines will be displayed.  That can be confusing in its own
-;;; right.  Other variations on display are possible, but not much
-;;; better.
-;;;
-;;; You can explicitly hide or show individual ifdef blocks irrespective
-;;; of the define list by using hide-ifdef-block and show-ifdef-block.
-;;;
-;;; You can move the point between ifdefs with forward-ifdef, backward-ifdef,
-;;; up-ifdef, down-ifdef, next-ifdef, and previous-ifdef.
-;;;
-;;; If you have minor-mode-alist in your mode line (the default) two labels
-;;; may appear.  "Ifdef" will appear when hide-ifdef-mode is active.  "Hiding"
-;;; will appear when text may be hidden ("hide-ifdef-hiding" is non-nil).
-;;;
-;;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
-;;; Extensively modified by Daniel LaLiberte (while at Gould).
-;;;
-;;; You may freely modify and distribute this, but keep a record
-;;; of modifications and send comments to:
-;;; 	 liberte@a.cs.uiuc.edu  or  ihnp4!uiucdcs!liberte
-;;; I will continue to upgrade hide-ifdef-mode
-;;; with your contributions.
+;; To initialize, toggle the hide-ifdef minor mode with
+;;
+;; M-x hide-ifdef-mode
+;;
+;; This will set up key bindings and call hide-ifdef-mode-hook if it
+;; has a value.  To explicitly hide ifdefs using a buffer-local
+;; define list (default empty), type
+;;
+;; M-x hide-ifdefs  or C-c @ h
+;;
+;; Hide-ifdef suppresses the display of code that the preprocessor wouldn't
+;; pass through.  The support of constant expressions in #if lines is 
+;; limited to identifiers, parens, and the operators: &&, ||, !, and
+;; "defined".  Please extend this.
+;;
+;; The hidden code is marked by ellipses (...).  Be
+;; cautious when editing near ellipses, since the hidden text is
+;; still in the buffer, and you can move the point into it and modify
+;; text unawares.  If you don't want to see the ellipses, set 
+;; selective-display-ellipses to nil.  But this can be dangerous.
+;; You can make your buffer read-only while hide-ifdef-hiding by setting
+;; hide-ifdef-read-only to a non-nil value.  You can toggle this 
+;; variable with hide-ifdef-toggle-read-only (C-c @ C-q).
+;;
+;; You can undo the effect of hide-ifdefs by typing
+;;
+;; M-x show-ifdefs  or C-c @ s
+;;
+;; Use M-x hide-ifdef-define (C-c @ d) to define a symbol.
+;; Use M-x hide-ifdef-undef (C-c @ u) to undefine a symbol.
+;;
+;; If you define or undefine a symbol while hide-ifdef-mode is in effect,
+;; the display will be updated.  Only the define list for the current
+;; buffer will be affected.  You can save changes to the local define
+;; list with hide-ifdef-set-define-alist.  This adds entries 
+;; to hide-ifdef-define-alist.
+;;
+;; If you have defined a hide-ifdef-mode-hook, you can set
+;; up a list of symbols that may be used by hide-ifdefs as in the
+;; following example:
+;;
+;; (setq hide-ifdef-mode-hook
+;;      '(lambda ()
+;;	 (if (not hide-ifdef-define-alist)
+;;	     (setq hide-ifdef-define-alist
+;;		  '((list1 ONE TWO)
+;;		    (list2 TWO THREE)
+;;		    )))
+;;	 (hide-ifdef-use-define-alist 'list2) ; use list2 by default
+;;	 ))
+;;
+;; You can call hide-ifdef-use-define-alist (C-c @ u) at any time to specify
+;; another list to use.
+;;
+;; To cause ifdefs to be hidden as soon as hide-ifdef-mode is called,
+;; set hide-ifdef-initially to non-nil.
+;;
+;; If you set hide-ifdef-lines to t, hide-ifdefs hides all the #ifdef lines.
+;; In the absence of highlighting, that might be a bad idea.  If you set
+;; hide-ifdef-lines to nil (the default), the surrounding preprocessor
+;; lines will be displayed.  That can be confusing in its own
+;; right.  Other variations on display are possible, but not much
+;; better.
+;;
+;; You can explicitly hide or show individual ifdef blocks irrespective
+;; of the define list by using hide-ifdef-block and show-ifdef-block.
+;;
+;; You can move the point between ifdefs with forward-ifdef, backward-ifdef,
+;; up-ifdef, down-ifdef, next-ifdef, and previous-ifdef.
+;;
+;; If you have minor-mode-alist in your mode line (the default) two labels
+;; may appear.  "Ifdef" will appear when hide-ifdef-mode is active.  "Hiding"
+;; will appear when text may be hidden ("hide-ifdef-hiding" is non-nil).
+;;
+;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
+;; Extensively modified by Daniel LaLiberte (while at Gould).
+;;
+;; You may freely modify and distribute this, but keep a record
+;; of modifications and send comments to:
+;; 	 liberte@a.cs.uiuc.edu  or  ihnp4!uiucdcs!liberte
+;; I will continue to upgrade hide-ifdef-mode
+;; with your contributions.
 
 ;;; Code:
 

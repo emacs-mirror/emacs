@@ -18,62 +18,66 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;; LCD Archive Entry:
-;;; shadowfile|Boris Goldowsky|boris@gnu.ai.mit.edu|
-;;; Helps you keep identical copies of files in multiple places.|
-;;; $Date: 1995/10/30 17:22:28 $ |$Revision: 1.5 $|~/misc/shadowfile.el.Z|
+;; LCD Archive Entry:
+;; shadowfile|Boris Goldowsky|boris@gnu.ai.mit.edu|
+;; Helps you keep identical copies of files in multiple places.|
+;; $Date: 1995/10/30 17:23:17 $ |$Revision: 1.6 $|~/misc/shadowfile.el.Z|
 
-;;; Commentary:
-;;;
-;;;  This package helps you to keep identical copies of files in more than one
-;;;  place - possibly on different machines.  When you save a file, it checks
-;;;  whether it is on the list of files with "shadows", and if so, it tries to
-;;;  copy it when you exit emacs (or use the shadow-copy-files command).
+;; Commentary:
 
-;;; Installation & Use:
-;;;
-;;;      Put (require 'shadowfile) in your .emacs; add clusters (if necessary)
-;;;  and file groups with shadow-define-cluster, shadow-define-literal-group,
-;;;  and shadow-define-regexp-group (see the documentation for these functions
-;;;  for information on how and when to use them).  After doing this once,
-;;;  everything should be automatic.
-;;;      The lists of clusters and shadows are saved in a file called
-;;;  .shadows, so that they can be remembered from one emacs session to
-;;;  another, even (as much as possible) if the emacs session terminates
-;;;  abnormally.  The files needing to be copied are stored in .shadow_todo; if
-;;;  a file cannot be copied for any reason, it will stay on the list to be
-;;;  tried again next time.  The .shadows file should itself have shadows on
-;;;  all your accounts so that the information in it is consistent everywhere,
-;;;  but .shadow_todo is local information and should have no shadows.
-;;;     If you do not want to copy a particular file, you can answer "no"
-;;;  and be asked again next time you hit C-x 4 s or exit emacs.  If you do not
-;;;  want to be asked again, use shadow-cancel, and you will not be asked until
-;;;  you change the file and save it again.  If you do not want to shadow
-;;;  that file ever again, you can edit it out of the .shadows buffer.
-;;;  Anytime you edit the .shadows buffer, you must type M-x shadow-read-files
-;;;  to load in the new information, or your changes will be overwritten!
+;;  This package helps you to keep identical copies of files in more than one
+;;  place - possibly on different machines.  When you save a file, it checks
+;;  whether it is on the list of files with "shadows", and if so, it tries to
+;;  copy it when you exit emacs (or use the shadow-copy-files command).
 
-;;; Bugs & Warnings:
-;;;
-;;;  - It is bad to have two emacses both running shadowfile at the same
-;;;  time.  It tries to detect this condition, but is not always successful.
-;;;
-;;;  - You have to be careful not to edit a file in two locations
-;;;  before shadowfile has had a chance to copy it; otherwise
-;;;  "updating shadows" will overwrite one of the changed versions.
-;;;
-;;;  - It ought to check modification times of both files to make sure
-;;;  it is doing the right thing.  This will have to wait until
-;;;  file-newer-than-file-p works between machines.
-;;;
-;;;  - It will not make directories for you, it just fails to copy files
-;;;  that belong in non-existent directories.
-;;;
-;;;  Please report any bugs to me (boris@gnu.ai.mit.edu).  Also let me know
-;;;  if you have suggestions or would like to be informed of updates.
+;; Installation & Use:
+
+;;  Put (require 'shadowfile) in your .emacs; add clusters (if necessary)
+;;  and file groups with shadow-define-cluster,
+;;  shadow-define-literal-group, and shadow-define-regexp-group (see the
+;;  documentation for these functions for information on how and when to
+;;  use them).  After doing this once, everything should be automatic.
+
+;;  The lists of clusters and shadows are saved in a file called .shadows,
+;;  so that they can be remembered from one emacs session to another, even
+;;  (as much as possible) if the emacs session terminates abnormally.  The
+;;  files needing to be copied are stored in .shadow_todo; if a file cannot
+;;  be copied for any reason, it will stay on the list to be tried again
+;;  next time.  The .shadows file should itself have shadows on all your
+;;  accounts so that the information in it is consistent everywhere, but
+;;  .shadow_todo is local information and should have no shadows.
+
+;;  If you do not want to copy a particular file, you can answer "no" and
+;;  be asked again next time you hit C-x 4 s or exit emacs.  If you do not
+;;  want to be asked again, use shadow-cancel, and you will not be asked
+;;  until you change the file and save it again.  If you do not want to
+;;  shadow that file ever again, you can edit it out of the .shadows
+;;  buffer.  Anytime you edit the .shadows buffer, you must type M-x
+;;  shadow-read-files to load in the new information, or your changes will
+;;  be overwritten!
+
+;; Bugs & Warnings:
+;;
+;;  - It is bad to have two emacses both running shadowfile at the same
+;;  time.  It tries to detect this condition, but is not always successful.
+;;
+;;  - You have to be careful not to edit a file in two locations
+;;  before shadowfile has had a chance to copy it; otherwise
+;;  "updating shadows" will overwrite one of the changed versions.
+;;
+;;  - It ought to check modification times of both files to make sure
+;;  it is doing the right thing.  This will have to wait until
+;;  file-newer-than-file-p works between machines.
+;;
+;;  - It will not make directories for you, it just fails to copy files
+;;  that belong in non-existent directories.
+;;
+;;  Please report any bugs to me (boris@gnu.ai.mit.edu).  Also let me know
+;;  if you have suggestions or would like to be informed of updates.
 
 ;;; Code:
 

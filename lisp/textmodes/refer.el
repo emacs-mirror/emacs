@@ -19,11 +19,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;
+
 ;; Functions to look up references in bibliography files given lists of
 ;; keywords, similar to refer(1).  I don't use tags since tags on .bib files
 ;; only picks up the cite key, where as refer-find-entry looks for occurrences
@@ -60,7 +61,7 @@
 ;;      the (forward-paragraph 1) call in refer-find-entry-in-file.
 
 ;;; ChangeLog:
-;;
+
 ;; 01/08/89 Ashwin Ram <Ram-Ashwin@cs.yale.edu>
 ;;          Initial release.
 ;;

@@ -1,27 +1,31 @@
 ;;; emacs-lock.el --- prevents you from exiting emacs if a buffer is locked
+
 ;; Copyright (C) 1994 Free Software Foundation, Inc
-;;
+
 ;; Author: Tom Wurgler <twurgler@goodyear.com>
 ;; Created: 12/8/94
 ;; Version: 1.3
 ;; Keywords: 
-;;
-;; This program is free software; you can redistribute it and/or modify
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;
+
 ;; This code sets a buffer-local variable to t if toggle-emacs-lock is run,
 ;; then if the user attempts to exit emacs, the locked buffer name will be
 ;; displayed and the exit aborted.  This is just a way of protecting
@@ -30,6 +34,8 @@
 ;; that buffer, then if you forget about it after a while, you won't
 ;; accidentally exit emacs.  To unlock the buffer, just goto the buffer and
 ;; run toggle-emacs-lock again.
+
+;;; Code:
 
 (defvar lock-emacs-from-exiting nil
   "Whether emacs is locked to prevent exiting.  See `check-emacs-lock'.")

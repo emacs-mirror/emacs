@@ -1,4 +1,5 @@
 ;;; enriched.el --- read and save files in text/enriched format
+
 ;; Copyright (c) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
@@ -10,31 +11,34 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;;
+
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;
+
 ;; This file implements reading, editing, and saving files with
-;; text-properties such as faces, levels of indentation, and true line breaks
-;; distinguished from newlines just used to fit text into the window.
-;;
+;; text-properties such as faces, levels of indentation, and true line
+;; breaks distinguished from newlines just used to fit text into the window.
+
 ;; The file format used is the MIME text/enriched format, which is a
-;; standard format defined in internet RFC 1563.  All standard annotations are
-;; supported except for <smaller> and <bigger>, which are currently not
+;; standard format defined in internet RFC 1563.  All standard annotations
+;; are supported except for <smaller> and <bigger>, which are currently not
 ;; possible to display.
-;; 
+
 ;; A separate file, enriched.doc, contains further documentation and other
-;; important information about this code.  It also serves as an example file
-;; in text/enriched format.  It should be in the etc directory of your emacs
-;; distribution.
+;; important information about this code.  It also serves as an example
+;; file in text/enriched format.  It should be in the etc directory of your
+;; emacs distribution.
+
+;;; Code:
 
 (provide 'enriched)
 (if window-system (require 'facemenu))

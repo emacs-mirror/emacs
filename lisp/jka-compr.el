@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;;; Copyright (C) 1993, 1994  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Keywords: data
@@ -18,83 +18,84 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary: 
 
-;;; This package implements low-level support for reading, writing,
-;;; and loading compressed files.  It hooks into the low-level file
-;;; I/O functions (including write-region and insert-file-contents) so
-;;; that they automatically compress or uncompress a file if the file
-;;; appears to need it (based on the extension of the file name).
-;;; Packages like Rmail, VM, GNUS, and Info should be able to work
-;;; with compressed files without modification.
+;; This package implements low-level support for reading, writing,
+;; and loading compressed files.  It hooks into the low-level file
+;; I/O functions (including write-region and insert-file-contents) so
+;; that they automatically compress or uncompress a file if the file
+;; appears to need it (based on the extension of the file name).
+;; Packages like Rmail, VM, GNUS, and Info should be able to work
+;; with compressed files without modification.
 
 
-;;; INSTRUCTIONS:
-;;;
-;;; To use jka-compr, simply load this package, and edit as usual.
-;;; Its operation should be transparent to the user (except for
-;;; messages appearing when a file is being compressed or
-;;; uncompressed).
-;;;
-;;; The variable, jka-compr-compression-info-list can be used to
-;;; customize jka-compr to work with other compression programs.
-;;; The default value of this variable allows jka-compr to work with
-;;; Unix compress and gzip.
-;;;
-;;; If you are concerned about the stderr output of gzip and other
-;;; compression/decompression programs showing up in your buffers, you
-;;; should set the discard-error flag in the compression-info-list.
-;;; This will cause the stderr of all programs to be discarded.
-;;; However, it also causes emacs to call compression/uncompression
-;;; programs through a shell (which is specified by jka-compr-shell).
-;;; This may be a drag if, on your system, starting up a shell is
-;;; slow.
-;;;
-;;; If you don't want messages about compressing and decompressing
-;;; to show up in the echo area, you can set the compress-name and
-;;; decompress-name fields of the jka-compr-compression-info-list to
-;;; nil.
+;; INSTRUCTIONS:
+;;
+;; To use jka-compr, simply load this package, and edit as usual.
+;; Its operation should be transparent to the user (except for
+;; messages appearing when a file is being compressed or
+;; uncompressed).
+;;
+;; The variable, jka-compr-compression-info-list can be used to
+;; customize jka-compr to work with other compression programs.
+;; The default value of this variable allows jka-compr to work with
+;; Unix compress and gzip.
+;;
+;; If you are concerned about the stderr output of gzip and other
+;; compression/decompression programs showing up in your buffers, you
+;; should set the discard-error flag in the compression-info-list.
+;; This will cause the stderr of all programs to be discarded.
+;; However, it also causes emacs to call compression/uncompression
+;; programs through a shell (which is specified by jka-compr-shell).
+;; This may be a drag if, on your system, starting up a shell is
+;; slow.
+;;
+;; If you don't want messages about compressing and decompressing
+;; to show up in the echo area, you can set the compress-name and
+;; decompress-name fields of the jka-compr-compression-info-list to
+;; nil.
 
 
-;;; APPLICATION NOTES:
-;;;
-;;; crypt++
-;;;   jka-compr can coexist with crpyt++ if you take all the decompression
-;;;   entries out of the crypt-encoding-list.  Clearly problems will arise if
-;;;   you have two programs trying to compress/decompress files.  jka-compr
-;;;   will not "work with" crypt++ in the following sense: you won't be able to
-;;;   decode encrypted compressed files--that is, files that have been
-;;;   compressed then encrypted (in that order).  Theoretically, crypt++ and
-;;;   jka-compr could properly handle a file that has been encrypted then
-;;;   compressed, but there is little point in trying to compress an encrypted
-;;;   file.
-;;;
+;; APPLICATION NOTES:
+;;
+;; crypt++
+;;   jka-compr can coexist with crpyt++ if you take all the decompression
+;;   entries out of the crypt-encoding-list.  Clearly problems will arise if
+;;   you have two programs trying to compress/decompress files.  jka-compr
+;;   will not "work with" crypt++ in the following sense: you won't be able to
+;;   decode encrypted compressed files--that is, files that have been
+;;   compressed then encrypted (in that order).  Theoretically, crypt++ and
+;;   jka-compr could properly handle a file that has been encrypted then
+;;   compressed, but there is little point in trying to compress an encrypted
+;;   file.
+;;
 
 
-;;; ACKNOWLEDGMENTS
-;;; 
-;;; jka-compr is a V19 adaptation of jka-compr for V18 of Emacs.  Many people
-;;; have made helpful suggestions, reported bugs, and even fixed bugs in 
-;;; jka-compr.  I recall the following people as being particularly helpful.
-;;;
-;;;   Jean-loup Gailly
-;;;   David Hughes
-;;;   Richard Pieri
-;;;   Daniel Quinlan
-;;;   Chris P. Ross
-;;;   Rick Sladkey
-;;;
-;;; Andy Norman's ange-ftp was the inspiration for the original jka-compr for
-;;; Version 18 of Emacs.
-;;;
-;;; After I had made progress on the original jka-compr for V18, I learned of a
-;;; package written by Kazushi Jam Marukawa, called jam-zcat, that did exactly
-;;; what I was trying to do.  I looked over the jam-zcat source code and
-;;; probably got some ideas from it.
-;;;
+;; ACKNOWLEDGMENTS
+;; 
+;; jka-compr is a V19 adaptation of jka-compr for V18 of Emacs.  Many people
+;; have made helpful suggestions, reported bugs, and even fixed bugs in 
+;; jka-compr.  I recall the following people as being particularly helpful.
+;;
+;;   Jean-loup Gailly
+;;   David Hughes
+;;   Richard Pieri
+;;   Daniel Quinlan
+;;   Chris P. Ross
+;;   Rick Sladkey
+;;
+;; Andy Norman's ange-ftp was the inspiration for the original jka-compr for
+;; Version 18 of Emacs.
+;;
+;; After I had made progress on the original jka-compr for V18, I learned of a
+;; package written by Kazushi Jam Marukawa, called jam-zcat, that did exactly
+;; what I was trying to do.  I looked over the jam-zcat source code and
+;; probably got some ideas from it.
+;;
 
 ;;; Code:
 

@@ -19,35 +19,36 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Please send me bug reports, bug fixes, and extensions, so that I can
-;;; merge them into the master source.
-;;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;;     - Simon Marshall (simon@gnu.ai.mit.edu)
+;; Please send me bug reports, bug fixes, and extensions, so that I can
+;; merge them into the master source.
+;;     - Olin Shivers (shivers@cs.cmu.edu)
+;;     - Simon Marshall (simon@gnu.ai.mit.edu)
 
-;;; This file defines a a shell-in-a-buffer package (shell mode) built
-;;; on top of comint mode.  This is actually cmushell with things
-;;; renamed to replace its counterpart in Emacs 18.  cmushell is more
-;;; featureful, robust, and uniform than the Emacs 18 version.
+;; This file defines a a shell-in-a-buffer package (shell mode) built
+;; on top of comint mode.  This is actually cmushell with things
+;; renamed to replace its counterpart in Emacs 18.  cmushell is more
+;; featureful, robust, and uniform than the Emacs 18 version.
 
-;;; Since this mode is built on top of the general command-interpreter-in-
-;;; a-buffer mode (comint mode), it shares a common base functionality, 
-;;; and a common set of bindings, with all modes derived from comint mode.
-;;; This makes these modes easier to use.
+;; Since this mode is built on top of the general command-interpreter-in-
+;; a-buffer mode (comint mode), it shares a common base functionality, 
+;; and a common set of bindings, with all modes derived from comint mode.
+;; This makes these modes easier to use.
 
-;;; For documentation on the functionality provided by comint mode, and
-;;; the hooks available for customising it, see the file comint.el.
-;;; For further information on shell mode, see the comments below.
+;; For documentation on the functionality provided by comint mode, and
+;; the hooks available for customising it, see the file comint.el.
+;; For further information on shell mode, see the comments below.
 
-;;; Needs fixin:
-;;; When sending text from a source file to a subprocess, the process-mark can 
-;;; move off the window, so you can lose sight of the process interactions.
-;;; Maybe I should ensure the process mark is in the window when I send
-;;; text to the process? Switch selectable?
+;; Needs fixin:
+;; When sending text from a source file to a subprocess, the process-mark can 
+;; move off the window, so you can lose sight of the process interactions.
+;; Maybe I should ensure the process mark is in the window when I send
+;; text to the process? Switch selectable?
 
 ;; YOUR .EMACS FILE
 ;;=============================================================================
@@ -57,55 +58,53 @@
 ;; (eval-after-load "shell"
 ;;  '(define-key shell-mode-map "\M-#" 'shells-dynamic-spell))
 
-;;; Brief Command Documentation:
-;;;============================================================================
-;;; Comint Mode Commands: (common to shell and all comint-derived modes)
-;;;
-;;; m-p	    comint-previous-input    	    Cycle backwards in input history
-;;; m-n	    comint-next-input  	    	    Cycle forwards
-;;; m-r     comint-previous-matching-input  Previous input matching a regexp
-;;; m-s     comint-next-matching-input      Next input that matches
-;;; m-c-l   comint-show-output		    Show last batch of process output
-;;; return  comint-send-input
-;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
-;;; c-c c-a comint-bol                      Beginning of line; skip prompt
-;;; c-c c-u comint-kill-input	    	    ^u
-;;; c-c c-w backward-kill-word    	    ^w
-;;; c-c c-c comint-interrupt-subjob 	    ^c
-;;; c-c c-z comint-stop-subjob	    	    ^z
-;;; c-c c-\ comint-quit-subjob	    	    ^\
-;;; c-c c-o comint-kill-output		    Delete last batch of process output
-;;; c-c c-r comint-show-output		    Show last batch of process output
-;;; c-c c-h comint-dynamic-list-input-ring  List input history
-;;;         send-invisible                  Read line w/o echo & send to proc
-;;;         comint-continue-subjob	    Useful if you accidentally suspend
-;;;					        top-level job
-;;; comint-mode-hook is the comint mode hook.
+;; Brief Command Documentation:
+;;============================================================================
+;; Comint Mode Commands: (common to shell and all comint-derived modes)
+;;
+;; m-p	    comint-previous-input    	    Cycle backwards in input history
+;; m-n	    comint-next-input  	    	    Cycle forwards
+;; m-r     comint-previous-matching-input  Previous input matching a regexp
+;; m-s     comint-next-matching-input      Next input that matches
+;; m-c-l   comint-show-output		    Show last batch of process output
+;; return  comint-send-input
+;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
+;; c-c c-a comint-bol                      Beginning of line; skip prompt
+;; c-c c-u comint-kill-input	    	    ^u
+;; c-c c-w backward-kill-word    	    ^w
+;; c-c c-c comint-interrupt-subjob 	    ^c
+;; c-c c-z comint-stop-subjob	    	    ^z
+;; c-c c-\ comint-quit-subjob	    	    ^\
+;; c-c c-o comint-kill-output		    Delete last batch of process output
+;; c-c c-r comint-show-output		    Show last batch of process output
+;; c-c c-h comint-dynamic-list-input-ring  List input history
+;;         send-invisible                  Read line w/o echo & send to proc
+;;         comint-continue-subjob	    Useful if you accidentally suspend
+;;					        top-level job
+;; comint-mode-hook is the comint mode hook.
 
-;;; Shell Mode Commands:
-;;;         shell			Fires up the shell process
-;;; tab     comint-dynamic-complete	Complete filename/command/history
-;;; m-?     comint-dynamic-list-filename-completions
-;;;					List completions in help buffer
-;;; m-c-f   shell-forward-command	Forward a shell command
-;;; m-c-b   shell-backward-command	Backward a shell command
-;;; 	    dirs			Resync the buffer's dir stack
-;;; 	    dirtrack-toggle		Turn dir tracking on/off
-;;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
-;;;
-;;; The shell mode hook is shell-mode-hook
-;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
-;;; compatibility.
+;; Shell Mode Commands:
+;;         shell			Fires up the shell process
+;; tab     comint-dynamic-complete	Complete filename/command/history
+;; m-?     comint-dynamic-list-filename-completions
+;;					List completions in help buffer
+;; m-c-f   shell-forward-command	Forward a shell command
+;; m-c-b   shell-backward-command	Backward a shell command
+;; 	    dirs			Resync the buffer's dir stack
+;; 	    dirtrack-toggle		Turn dir tracking on/off
+;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
+;;
+;; The shell mode hook is shell-mode-hook
+;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
+;; compatibility.
 
-;;; Read the rest of this file for more information.
+;; Read the rest of this file for more information.
 
-;;; Customization and Buffer Variables
-;;; ===========================================================================
-;;; 
-
 ;;; Code:
 
 (require 'comint)
+
+;;; Customization and Buffer Variables
 
 ;;;###autoload
 (defvar shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
@@ -254,8 +253,6 @@ Thus, this does not include the shell's current directory.")
   "Additional expressions to highlight in Shell mode.")
 
 ;;; Basic Procedures
-;;; ===========================================================================
-;;;
 
 (defun shell-mode ()
   "Major mode for interacting with an inferior shell.
@@ -394,7 +391,7 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
 
 ;;; Directory tracking
-;;; ===========================================================================
+;;;
 ;;; This code provides the shell mode input sentinel
 ;;;     SHELL-DIRECTORY-TRACKER
 ;;; that tracks cd, pushd, and popd commands issued to the shell, and

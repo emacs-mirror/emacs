@@ -18,12 +18,15 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;; This is compatible with easymenu.el by Per Abrahamsen
-;;; but it is much simpler as it doesn't try to support other Emacs versions.
-;;; The code was mostly derived from lmenu.el.
+;;; Commentary:
+
+;; This is compatible with easymenu.el by Per Abrahamsen
+;; but it is much simpler as it doesn't try to support other Emacs versions.
+;; The code was mostly derived from lmenu.el.
 
 ;;; Code:
 

@@ -20,11 +20,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;
+
 ;; This package emulates the mark, copy, cut and paste look-and-feel of motif
 ;; programs (which is the same as the MAC gui and (sorry for that) MS-Windows).
 ;; It modifies the keybindings of the cursor keys and the next, prior,
@@ -68,23 +69,8 @@
 ;;    They will be bound according to the "old" behaviour to S-delete (cut),
 ;;    S-insert (paste) and C-insert (copy). These keys do the same in many
 ;;    other programs.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; INSTALLATION:
-;;;; o Put this file called "pc-select.el" into a path where emacs
-;;;;   looks for lisp libraries. Byte-compile if you want to.
-;;;; o Put the command '(require 'pc-select) or
-;;;;   '(load "pc-select")' into your ~/.emacs. After that line
-;;;;   put the command '(pc-selection-mode)' to activate the mode.
-;;;;
-;;;; Please note that I am _not_ a lisp expert, I apologise for
-;;;; all hacks which look ugly to an experienced lisp programmer.
-;;;; Please report all errors and improvement. Thank you.
-;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;; Code:
+;;; Code:
 
 ;;;;
 ;; misc

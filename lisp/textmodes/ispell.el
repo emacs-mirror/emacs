@@ -1,319 +1,314 @@
 ;;; ispell.el --- spell checking using Ispell
 
-;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
-;;; Authors         : Ken Stevens <k.stevens@ieee.org>
-;;; Note: version numbers and time stamp are not updated
-;;;   when this file is edited for release with GNU Emacs.
-;;; Last Modified On: Tue Jun 13 12:05:28 EDT 1995
-;;; Update Revision : 2.37
-;;; Syntax          : emacs-lisp
-;;; Status	    : Release with 3.1.12+ ispell.
-;;; Version	    : International Ispell Version 3.1 by Geoff Kuenning.
-;;; Bug Reports	    : ispell-el-bugs@itcorp.com
+;; Authors         : Ken Stevens <k.stevens@ieee.org>
+;; Last Modified On: Tue Jun 13 12:05:28 EDT 1995
+;; Update Revision : 2.37
+;; Syntax          : emacs-lisp
+;; Status	   : Release with 3.1.12+ ispell.
+;; Version	   : International Ispell Version 3.1 by Geoff Kuenning.
+;; Bug Reports	   : ispell-el-bugs@itcorp.com
 
-;;; Note: version numbers and time stamp are not updated
-;;;   when this file is edited for release with GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-;;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;; Note: version numbers and time stamp are not updated
+;;   when this file is edited for release with GNU Emacs.
+
 ;;; Commentary:
-;;;
-;;; INSTRUCTIONS
-;;;
-;;;  This code contains a section of user-settable variables that you should
-;;; inspect prior to installation.  Look past the end of the history list.
-;;; Set them up for your locale and the preferences of the majority of the
-;;; users.  Otherwise the users may need to set a number of variables
-;;; themselves.
-;;;  You particularly may want to change the default dictionary for your
-;;; country and language.
-;;;
-;;;
-;;; To fully install this, add this file to your Emacs Lisp directory and
-;;; compile it with M-X byte-compile-file.  Then add the following to the
-;;; appropriate init file:
-;;;
-;;;  (autoload 'ispell-word "ispell"
-;;;    "Check the spelling of word in buffer." t)
-;;;  (global-set-key "\e$" 'ispell-word)
-;;;  (autoload 'ispell-region "ispell"
-;;;    "Check the spelling of region." t)
-;;;  (autoload 'ispell-buffer "ispell"
-;;;    "Check the spelling of buffer." t)
-;;;  (autoload 'ispell-complete-word "ispell"
-;;;    "Look up current word in dictionary and try to complete it." t)
-;;;  (autoload 'ispell-change-dictionary "ispell"
-;;;    "Change ispell dictionary." t)
-;;;  (autoload 'ispell-message "ispell"
-;;;    "Check spelling of mail message or news post.")
-;;;
-;;;  Depending on the mail system you use, you may want to include these:
-;;;
-;;;  (add-hook 'news-inews-hook 'ispell-message)
-;;;  (add-hook 'mail-send-hook  'ispell-message)
-;;;  (add-hook 'mh-before-send-letter-hook 'ispell-message)
-;;;
-;;;
-;;; Ispell has a TeX parser and a nroff parser (the default).
-;;; The parsing is controlled by the variable ispell-parser.  Currently
-;;; it is just a "toggle" between TeX and nroff, but if more parsers are
-;;; added it will be updated.  See the variable description for more info.
-;;;
-;;;
-;;; TABLE OF CONTENTS
-;;;
-;;;   ispell-word
-;;;   ispell-region
-;;;   ispell-buffer
-;;;   ispell-message
-;;;   ispell-continue
-;;;   ispell-complete-word
-;;;   ispell-complete-word-interior-frag
-;;;   ispell-change-dictionary
-;;;   ispell-kill-ispell
-;;;   ispell-pdict-save
-;;;
-;;;
-;;; Commands in ispell-region:
-;;; Character replacement: Replace word with choice.  May query-replace.
-;;; ' ': Accept word this time.
-;;; 'i': Accept word and insert into private dictionary.
-;;; 'a': Accept word for this session.
-;;; 'A': Accept word and place in buffer-local dictionary.
-;;; 'r': Replace word with typed-in value.  Rechecked.
-;;; 'R': Replace word with typed-in value. Query-replaced in buffer. Rechecked.
-;;; '?': Show these commands
-;;; 'x': Exit spelling buffer.  Move cursor to original point.
-;;; 'X': Exit spelling buffer.  Leave cursor at the current point.
-;;; 'q': Quit spelling session (Kills ispell process).
-;;; 'l': Look up typed-in replacement in alternate dictionary.  Wildcards okay.
-;;; 'u': Like 'i', but the word is lower-cased first.
-;;; 'm': Like 'i', but allows one to include dictionary completion info.
-;;; 'C-l': redraws screen
-;;; 'C-r': recursive edit
-;;; 'C-z': suspend emacs or iconify frame
-;;;
-;;; Buffer-Local features:
-;;; There are a number of buffer-local features that can be used to customize
-;;;  ispell for the current buffer.  This includes language dictionaries,
-;;;  personal dictionaries, parsing, and local word spellings.  Each of these
-;;;  local customizations are done either through local variables, or by
-;;;  including the keyword and argument(s) at the end of the buffer (usually
-;;;  prefixed by the comment characters).  See the end of this file for
-;;;  examples.  The local keywords and variables are:
-;;;
-;;;  ispell-dictionary-keyword   language-dictionary
-;;;      uses local variable ispell-local-dictionary
-;;;  ispell-pdict-keyword        personal-dictionary
-;;;      uses local variable ispell-local-pdict
-;;;  ispell-parsing-keyword      mode-arg extended-char-arg
-;;;  ispell-words-keyword        any number of local word spellings
-;;;
-;;;
-;;; BUGS:
-;;;  Highlighting in version 19 still doesn't work on tty's.
-;;;  On some versions of emacs, growing the minibuffer fails.
-;;;
-;;; HISTORY
-;;;
-;;; Revision 2.37  1995/6/13 12:05:28	stevens
-;;; Removed autoload from ispell-dictionary-alist. *choices* mode-line shows
-;;; misspelled word.  Block skip for pgp & forwarded messages added.
-;;; RMS: the autoload changes had problems and I removed them.
-;;;
-;;; Revision 2.36  1995/2/6 17:39:38	stevens
-;;; Properly adjust screen with different ispell-choices-win-default-height
-;;; settings.  Skips SGML entity references.
-;;;
-;;; Revision 2.35  1995/1/13 14:16:46	stevens
-;;; Skips SGML tags, ispell-change-dictionary fix for add-hook, assure personal
-;;; dictionary is saved when called from the menu
-;;;
-;;; Revision 2.34  1994/12/08 13:17:41  stevens
-;;; Interaction corrected to function with all 3.1 ispell versions.
-;;;
-;;; Revision 2.33  1994/11/24 02:31:20  stevens
-;;; Repaired bug introduced in 2.32 that corrupts buffers when correcting.
-;;; Improved buffer scrolling. Nondestructive buffer selections allowed.
-;;;
-;;; Revision 2.32  1994/10/31 21:10:08  geoff
-;;; Many revisions accepted from RMS/FSF.  I think (though I don't know) that
-;;; this represents an 'official' version.
-;;;
-;;; Revision 2.31  1994/5/31 10:18:17  stevens
-;;; Repaired comments.  buffer-local commands executed in `ispell-word' now.
-;;; German dictionary described for extended character mode.  Dict messages.
-;;;
-;;; Revision 2.30  1994/5/20 22:18:36  stevens
-;;; Continue ispell from ispell-word, C-z functionality fixed.
-;;;
-;;; Revision 2.29  1994/5/12 09:44:33  stevens
-;;; Restored ispell-use-ptys-p, ispell-message aborts sends with interrupt.
-;;; defined fn ispell
-;;;
-;;; Revision 2.28  1994/4/28 16:24:40  stevens
-;;; Window checking when ispell-message put on gnus-inews-article-hook jwz.
-;;; prefixed ispell- to highlight functions and horiz-scroll fn.
-;;; Try and respect case of word in ispell-complete-word.
-;;; Ignore non-char events.  Ispell-use-ptys-p commented out. Lucid menu.
-;;; Better interrupt handling.  ispell-message improvements from Ethan.
-;;;
-;;; Revision 2.27
-;;; version 18 explicit C-g handling disabled as it didn't work. Added
-;;; ispell-extra-args for ispell customization (jwz)
-;;;
-;;; Revision 2.26  1994/2/15 16:11:14  stevens
-;;; name changes for copyright assignment.  Added word-frags in complete-word.
-;;; Horizontal scroll (John Conover). Query-replace matches words now.  bugs.
-;;;
-;;; Revision 2.25
-;;; minor mods, upgraded ispell-message
-;;;
-;;; Revision 2.24
-;;; query-replace more robust, messages, defaults, ispell-change-dict.
-;;;
-;;; Revision 2.23  1993/11/22 23:47:03  stevens
-;;; ispell-message, Fixed highlighting, added menu-bar, fixed ispell-help, ...
-;;;
-;;; Revision 2.22
-;;; Added 'u' command.  Fixed default in ispell-local-dictionary.
-;;; fixed affix rules display.  Tib skipping more robust.  Contributions by
-;;; Per Abraham (parser selection), Denis Howe, and Eberhard Mattes.
-;;;
-;;; Revision 2.21  1993/06/30 14:09:04  stevens
-;;; minor bugs. (nroff word skipping fixed)
-;;;
-;;; Revision 2.20  1993/06/30 14:09:04  stevens
-;;;
-;;; Debugging and contributions by: Boris Aronov, Rik Faith, Chris Moore,
-;;;  Kevin Rodgers, Malcolm Davis.
-;;; Particular thanks to Michael Lipp, Jamie Zawinski, Phil Queinnec
-;;;  and John Heidemann for suggestions and code.
-;;; Major update including many tweaks.
-;;; Many changes were integrations of suggestions.
-;;; lookup-words rehacked to use call-process (Jamie).
-;;; ispell-complete-word rehacked to be compatible with the rest of the
-;;; system for word searching and to include multiple wildcards,
-;;; and it's own dictionary.
-;;; query-replace capability added.  New options 'X', 'R', and 'A'.
-;;; buffer-local modes for dictionary, word-spelling, and formatter-parsing.
-;;; Many random bugs, like commented comments being skipped, fix to
-;;; keep-choices-win, fix for math mode, added pipe mode choice,
-;;; fixed 'q' command, ispell-word checks previous word and leave cursor
-;;; in same location.  Fixed tib code which could drop spelling regions.
-;;; Cleaned up setq calls for efficiency. Gave more context on window overlays.
-;;; Assure context on ispell-command-loop.  Window lossage in look cmd fixed.
-;;; Due to pervasive opinion, common-lisp package syntax removed. Display
-;;; problem when not highlighting.
-;;;
-;;; Revision 2.19  1992/01/10  10:54:08  geoff
-;;; Make another attempt at fixing the "Bogus, dude" problem.  This one is
-;;; less elegant, but has the advantage of working.
-;;;
-;;; Revision 2.18  1992/01/07  10:04:52  geoff
-;;; Fix the "Bogus, Dude" problem in ispell-word.
-;;;
-;;; Revision 2.17  1991/09/12  00:01:42  geoff
-;;; Add some changes to make ispell-complete-word work better, though
-;;; still not perfectly.
-;;;
-;;; Revision 2.16  91/09/04  18:00:52  geoff
-;;; More updates from Sebastian, to make the multiple-dictionary support
-;;; more flexible.
-;;;
-;;; Revision 2.15  91/09/04  17:30:02  geoff
-;;; Sebastian Kremer's tib support
-;;;
-;;; Revision 2.14  91/09/04  16:19:37  geoff
-;;; Don't do set-window-start if the move-to-window-line moved us
-;;; downward, rather than upward.  This prevents getting the buffer all
-;;; confused.  Also, don't use the "not-modified" function to clear the
-;;; modification flag;  instead use set-buffer-modified-p.  This prevents
-;;; extra messages from flashing.
-;;;
-;;; Revision 2.13  91/09/04  14:35:41  geoff
-;;; Fix a spelling error in a comment.  Add code to handshake with the
-;;; ispell process before sending anything to it.
-;;;
-;;; Revision 2.12  91/09/03  20:14:21  geoff
-;;; Add Sebastian Kremer's multiple-language support.
-;;;
-;;;
-;;; Walt Buehring
-;;; Texas Instruments - Computer Science Center
-;;; ARPA:  Buehring%TI-CSL@CSNet-Relay
-;;; UUCP:  {smu, texsun, im4u, rice} ! ti-csl ! buehring
-;;;
-;;; ispell-region and associated routines added by
-;;; Perry Smith
-;;; pedz@bobkat
-;;; Tue Jan 13 20:18:02 CST 1987
-;;;
-;;; extensively modified by Mark Davies and Andrew Vignaux
-;;; {mark,andrew}@vuwcomp
-;;; Sun May 10 11:45:04 NZST 1987
-;;;
-;;; Ken Stevens  ARPA: k.stevens@ieee.org
-;;; Tue Jan  3 16:59:07 PST 1989
-;;; This file has overgone a major overhaul to be compatible with ispell
-;;; version 2.1.  Most of the functions have been totally rewritten, and
-;;; many user-accessible variables have been added.  The syntax table has
-;;; been removed since it didn't work properly anyway, and a filter is
-;;; used rather than a buffer.  Regular expressions are used based on
-;;; ispell's internal definition of characters (see ispell(4)).
-;;; Some new updates:
-;;; - Updated to version 3.0 to include terse processing.
-;;; - Added a variable for the look command.
-;;; - Fixed a bug in ispell-word when cursor is far away from the word
-;;;   that is to be checked.
-;;; - Ispell places the incorrect word or guess in the minibuffer now.
-;;; - fixed a bug with 'l' option when multiple windows are on the screen.
-;;; - lookup-words just didn't work with the process filter.  Fixed.
-;;; - Rewrote the process filter to make it cleaner and more robust
-;;;   in the event of a continued line not being completed.
-;;; - Made ispell-init-process more robust in handling errors.
-;;; - Fixed bug in continuation location after a region has been modified by
-;;;   correcting a misspelling.
-;;; Mon 17 Sept 1990
-;;;
-;;; Sebastian Kremer <sk@thp.uni-koeln.de>
-;;; Wed Aug  7 14:02:17 MET DST 1991
-;;; - Ported ispell-complete-word from Ispell 2 to Ispell 3.
-;;; - Added ispell-kill-ispell command.
-;;; - Added ispell-dictionary and ispell-dictionary-alist variables to
-;;;   support other than default language.  See their docstrings and
-;;;   command ispell-change-dictionary.
-;;; - (ispelled it :-)
-;;; - Added ispell-skip-tib variable to support the tib bibliography
-;;;   program.
-;;;
-;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; INSTRUCTIONS
+;;
+;;  This code contains a section of user-settable variables that you should
+;; inspect prior to installation.  Look past the end of the history list.
+;; Set them up for your locale and the preferences of the majority of the
+;; users.  Otherwise the users may need to set a number of variables
+;; themselves.
+;;  You particularly may want to change the default dictionary for your
+;; country and language.
+;;
+;;
+;; To fully install this, add this file to your Emacs Lisp directory and
+;; compile it with M-X byte-compile-file.  Then add the following to the
+;; appropriate init file:
+;;
+;;  (autoload 'ispell-word "ispell"
+;;    "Check the spelling of word in buffer." t)
+;;  (global-set-key "\e$" 'ispell-word)
+;;  (autoload 'ispell-region "ispell"
+;;    "Check the spelling of region." t)
+;;  (autoload 'ispell-buffer "ispell"
+;;    "Check the spelling of buffer." t)
+;;  (autoload 'ispell-complete-word "ispell"
+;;    "Look up current word in dictionary and try to complete it." t)
+;;  (autoload 'ispell-change-dictionary "ispell"
+;;    "Change ispell dictionary." t)
+;;  (autoload 'ispell-message "ispell"
+;;    "Check spelling of mail message or news post.")
+;;
+;;  Depending on the mail system you use, you may want to include these:
+;;
+;;  (add-hook 'news-inews-hook 'ispell-message)
+;;  (add-hook 'mail-send-hook  'ispell-message)
+;;  (add-hook 'mh-before-send-letter-hook 'ispell-message)
+;;
+;;
+;; Ispell has a TeX parser and a nroff parser (the default).
+;; The parsing is controlled by the variable ispell-parser.  Currently
+;; it is just a "toggle" between TeX and nroff, but if more parsers are
+;; added it will be updated.  See the variable description for more info.
+;;
+;;
+;; TABLE OF CONTENTS
+;;
+;;   ispell-word
+;;   ispell-region
+;;   ispell-buffer
+;;   ispell-message
+;;   ispell-continue
+;;   ispell-complete-word
+;;   ispell-complete-word-interior-frag
+;;   ispell-change-dictionary
+;;   ispell-kill-ispell
+;;   ispell-pdict-save
+;;
+;;
+;; Commands in ispell-region:
+;; Character replacement: Replace word with choice.  May query-replace.
+;; ' ': Accept word this time.
+;; 'i': Accept word and insert into private dictionary.
+;; 'a': Accept word for this session.
+;; 'A': Accept word and place in buffer-local dictionary.
+;; 'r': Replace word with typed-in value.  Rechecked.
+;; 'R': Replace word with typed-in value. Query-replaced in buffer. Rechecked.
+;; '?': Show these commands
+;; 'x': Exit spelling buffer.  Move cursor to original point.
+;; 'X': Exit spelling buffer.  Leave cursor at the current point.
+;; 'q': Quit spelling session (Kills ispell process).
+;; 'l': Look up typed-in replacement in alternate dictionary.  Wildcards okay.
+;; 'u': Like 'i', but the word is lower-cased first.
+;; 'm': Like 'i', but allows one to include dictionary completion info.
+;; 'C-l': redraws screen
+;; 'C-r': recursive edit
+;; 'C-z': suspend emacs or iconify frame
+;;
+;; Buffer-Local features:
+;; There are a number of buffer-local features that can be used to customize
+;;  ispell for the current buffer.  This includes language dictionaries,
+;;  personal dictionaries, parsing, and local word spellings.  Each of these
+;;  local customizations are done either through local variables, or by
+;;  including the keyword and argument(s) at the end of the buffer (usually
+;;  prefixed by the comment characters).  See the end of this file for
+;;  examples.  The local keywords and variables are:
+;;
+;;  ispell-dictionary-keyword   language-dictionary
+;;      uses local variable ispell-local-dictionary
+;;  ispell-pdict-keyword        personal-dictionary
+;;      uses local variable ispell-local-pdict
+;;  ispell-parsing-keyword      mode-arg extended-char-arg
+;;  ispell-words-keyword        any number of local word spellings
+;;
+;;
+;; BUGS:
+;;  Highlighting in version 19 still doesn't work on tty's.
+;;  On some versions of emacs, growing the minibuffer fails.
+;;
+;; HISTORY
+;;
+;; Revision 2.37  1995/6/13 12:05:28	stevens
+;; Removed autoload from ispell-dictionary-alist. *choices* mode-line shows
+;; misspelled word.  Block skip for pgp & forwarded messages added.
+;; RMS: the autoload changes had problems and I removed them.
+;;
+;; Revision 2.36  1995/2/6 17:39:38	stevens
+;; Properly adjust screen with different ispell-choices-win-default-height
+;; settings.  Skips SGML entity references.
+;;
+;; Revision 2.35  1995/1/13 14:16:46	stevens
+;; Skips SGML tags, ispell-change-dictionary fix for add-hook, assure personal
+;; dictionary is saved when called from the menu
+;;
+;; Revision 2.34  1994/12/08 13:17:41  stevens
+;; Interaction corrected to function with all 3.1 ispell versions.
+;;
+;; Revision 2.33  1994/11/24 02:31:20  stevens
+;; Repaired bug introduced in 2.32 that corrupts buffers when correcting.
+;; Improved buffer scrolling. Nondestructive buffer selections allowed.
+;;
+;; Revision 2.32  1994/10/31 21:10:08  geoff
+;; Many revisions accepted from RMS/FSF.  I think (though I don't know) that
+;; this represents an 'official' version.
+;;
+;; Revision 2.31  1994/5/31 10:18:17  stevens
+;; Repaired comments.  buffer-local commands executed in `ispell-word' now.
+;; German dictionary described for extended character mode.  Dict messages.
+;;
+;; Revision 2.30  1994/5/20 22:18:36  stevens
+;; Continue ispell from ispell-word, C-z functionality fixed.
+;;
+;; Revision 2.29  1994/5/12 09:44:33  stevens
+;; Restored ispell-use-ptys-p, ispell-message aborts sends with interrupt.
+;; defined fn ispell
+;;
+;; Revision 2.28  1994/4/28 16:24:40  stevens
+;; Window checking when ispell-message put on gnus-inews-article-hook jwz.
+;; prefixed ispell- to highlight functions and horiz-scroll fn.
+;; Try and respect case of word in ispell-complete-word.
+;; Ignore non-char events.  Ispell-use-ptys-p commented out. Lucid menu.
+;; Better interrupt handling.  ispell-message improvements from Ethan.
+;;
+;; Revision 2.27
+;; version 18 explicit C-g handling disabled as it didn't work. Added
+;; ispell-extra-args for ispell customization (jwz)
+;;
+;; Revision 2.26  1994/2/15 16:11:14  stevens
+;; name changes for copyright assignment.  Added word-frags in complete-word.
+;; Horizontal scroll (John Conover). Query-replace matches words now.  bugs.
+;;
+;; Revision 2.25
+;; minor mods, upgraded ispell-message
+;;
+;; Revision 2.24
+;; query-replace more robust, messages, defaults, ispell-change-dict.
+;;
+;; Revision 2.23  1993/11/22 23:47:03  stevens
+;; ispell-message, Fixed highlighting, added menu-bar, fixed ispell-help, ...
+;;
+;; Revision 2.22
+;; Added 'u' command.  Fixed default in ispell-local-dictionary.
+;; fixed affix rules display.  Tib skipping more robust.  Contributions by
+;; Per Abraham (parser selection), Denis Howe, and Eberhard Mattes.
+;;
+;; Revision 2.21  1993/06/30 14:09:04  stevens
+;; minor bugs. (nroff word skipping fixed)
+;;
+;; Revision 2.20  1993/06/30 14:09:04  stevens
+;;
+;; Debugging and contributions by: Boris Aronov, Rik Faith, Chris Moore,
+;;  Kevin Rodgers, Malcolm Davis.
+;; Particular thanks to Michael Lipp, Jamie Zawinski, Phil Queinnec
+;;  and John Heidemann for suggestions and code.
+;; Major update including many tweaks.
+;; Many changes were integrations of suggestions.
+;; lookup-words rehacked to use call-process (Jamie).
+;; ispell-complete-word rehacked to be compatible with the rest of the
+;; system for word searching and to include multiple wildcards,
+;; and it's own dictionary.
+;; query-replace capability added.  New options 'X', 'R', and 'A'.
+;; buffer-local modes for dictionary, word-spelling, and formatter-parsing.
+;; Many random bugs, like commented comments being skipped, fix to
+;; keep-choices-win, fix for math mode, added pipe mode choice,
+;; fixed 'q' command, ispell-word checks previous word and leave cursor
+;; in same location.  Fixed tib code which could drop spelling regions.
+;; Cleaned up setq calls for efficiency. Gave more context on window overlays.
+;; Assure context on ispell-command-loop.  Window lossage in look cmd fixed.
+;; Due to pervasive opinion, common-lisp package syntax removed. Display
+;; problem when not highlighting.
+;;
+;; Revision 2.19  1992/01/10  10:54:08  geoff
+;; Make another attempt at fixing the "Bogus, dude" problem.  This one is
+;; less elegant, but has the advantage of working.
+;;
+;; Revision 2.18  1992/01/07  10:04:52  geoff
+;; Fix the "Bogus, Dude" problem in ispell-word.
+;;
+;; Revision 2.17  1991/09/12  00:01:42  geoff
+;; Add some changes to make ispell-complete-word work better, though
+;; still not perfectly.
+;;
+;; Revision 2.16  91/09/04  18:00:52  geoff
+;; More updates from Sebastian, to make the multiple-dictionary support
+;; more flexible.
+;;
+;; Revision 2.15  91/09/04  17:30:02  geoff
+;; Sebastian Kremer's tib support
+;;
+;; Revision 2.14  91/09/04  16:19:37  geoff
+;; Don't do set-window-start if the move-to-window-line moved us
+;; downward, rather than upward.  This prevents getting the buffer all
+;; confused.  Also, don't use the "not-modified" function to clear the
+;; modification flag;  instead use set-buffer-modified-p.  This prevents
+;; extra messages from flashing.
+;;
+;; Revision 2.13  91/09/04  14:35:41  geoff
+;; Fix a spelling error in a comment.  Add code to handshake with the
+;; ispell process before sending anything to it.
+;;
+;; Revision 2.12  91/09/03  20:14:21  geoff
+;; Add Sebastian Kremer's multiple-language support.
+;;
+;;
+;; Walt Buehring
+;; Texas Instruments - Computer Science Center
+;; ARPA:  Buehring%TI-CSL@CSNet-Relay
+;; UUCP:  {smu, texsun, im4u, rice} ! ti-csl ! buehring
+;;
+;; ispell-region and associated routines added by
+;; Perry Smith
+;; pedz@bobkat
+;; Tue Jan 13 20:18:02 CST 1987
+;;
+;; extensively modified by Mark Davies and Andrew Vignaux
+;; {mark,andrew}@vuwcomp
+;; Sun May 10 11:45:04 NZST 1987
+;;
+;; Ken Stevens  ARPA: k.stevens@ieee.org
+;; Tue Jan  3 16:59:07 PST 1989
+;; This file has overgone a major overhaul to be compatible with ispell
+;; version 2.1.  Most of the functions have been totally rewritten, and
+;; many user-accessible variables have been added.  The syntax table has
+;; been removed since it didn't work properly anyway, and a filter is
+;; used rather than a buffer.  Regular expressions are used based on
+;; ispell's internal definition of characters (see ispell(4)).
+;; Some new updates:
+;; - Updated to version 3.0 to include terse processing.
+;; - Added a variable for the look command.
+;; - Fixed a bug in ispell-word when cursor is far away from the word
+;;   that is to be checked.
+;; - Ispell places the incorrect word or guess in the minibuffer now.
+;; - fixed a bug with 'l' option when multiple windows are on the screen.
+;; - lookup-words just didn't work with the process filter.  Fixed.
+;; - Rewrote the process filter to make it cleaner and more robust
+;;   in the event of a continued line not being completed.
+;; - Made ispell-init-process more robust in handling errors.
+;; - Fixed bug in continuation location after a region has been modified by
+;;   correcting a misspelling.
+;; Mon 17 Sept 1990
+;;
+;; Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Wed Aug  7 14:02:17 MET DST 1991
+;; - Ported ispell-complete-word from Ispell 2 to Ispell 3.
+;; - Added ispell-kill-ispell command.
+;; - Added ispell-dictionary and ispell-dictionary-alist variables to
+;;   support other than default language.  See their docstrings and
+;;   command ispell-change-dictionary.
+;; - (ispelled it :-)
+;; - Added ispell-skip-tib variable to support the tib bibliography
+;;   program.
 
 
+;; **********************************************************************
+;; The following variables should be set according to personal preference
+;; and location of binaries:
+;; **********************************************************************
 
-;;; **********************************************************************
-;;; The following variables should be set according to personal preference
-;;; and location of binaries:
-;;; **********************************************************************
+;;  ******* THIS FILE IS WRITTEN FOR ISPELL VERSION 3.1
 
-
-;;;  ******* THIS FILE IS WRITTEN FOR ISPELL VERSION 3.1
 ;;; Code:
 
 (defvar ispell-highlight-p t

@@ -19,51 +19,52 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-; by F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
-; doc comment by Root Boy Jim <rbj@dsys.icst.nbs.gov>, 27 Apr 89
-; interface improvements by ESR, Dec 5 1991.
+;; by F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
+;; doc comment by Root Boy Jim <rbj@dsys.icst.nbs.gov>, 27 Apr 89
+;; interface improvements by ESR, Dec 5 1991.
 
-; The object of the game is to find four hidden balls by shooting rays
-; into the black box.  There are four possibilities: 1) the ray will
-; pass thru the box undisturbed, 2) it will hit a ball and be absorbed,
-; 3) it will be deflected and exit the box, or 4) be deflected immediately,
-; not even being allowed entry into the box.
-; 
-; The strange part is the method of deflection.  It seems that rays will
-; not pass next to a ball, and change direction at right angles to avoid it.
-; 
-; 		             R   3   
-; 		 1 - - - - - - - - 1 
-; 		   - - - - - - - -   
-; 		   - O - - - - - - 3 
-; 		 2 - - - - O - O -   
-; 		 4 - - - - - - - - 
-; 		 5 - - - - - - - - 5 
-; 		   - - - - - - - - R 
-; 		 H - - - - - - - O   
-; 		   2   H 4       H   
-; 
-; Rays which enter and exit are numbered.  You can see that rays 1 & 5 pass
-; thru the box undisturbed. Ray 2 is deflected by the northwesternmost
-; ball.  Likewise rays 3 and 4. Rays which hit balls and are absorbed are
-; marked with H.  The bottom of the left and the right of the bottom hit
-; the southeastern ball directly.  Rays may also hit balls after being
-; reflected. Consider the H on the bottom next to the 4.  It bounces off
-; the NW-ern most ball and hits the central ball.  A ray shot from above
-; the right side 5 would hit the SE-ern most ball.  The R beneath the 5
-; is because the ball is returned instantly.  It is not allowed into
-; the box if it would reflect immediately.  The R on the top is a more
-; leisurely return.  Both central balls would tend to deflect it east
-; or west, but it cannot go either way, so it just retreats.
-;
-; At the end of the game, if you've placed guesses for as many balls as
-; there are in the box, the true board position will be revealed.  Each
-; `x' is an incorrect guess of yours; `o' is the true location of a ball.
+;; The object of the game is to find four hidden balls by shooting rays
+;; into the black box.  There are four possibilities: 1) the ray will
+;; pass thru the box undisturbed, 2) it will hit a ball and be absorbed,
+;; 3) it will be deflected and exit the box, or 4) be deflected immediately,
+;; not even being allowed entry into the box.
+;; 
+;; The strange part is the method of deflection.  It seems that rays will
+;; not pass next to a ball, and change direction at right angles to avoid it.
+;; 
+;; 		             R   3   
+;; 		 1 - - - - - - - - 1 
+;; 		   - - - - - - - -   
+;; 		   - O - - - - - - 3 
+;; 		 2 - - - - O - O -   
+;; 		 4 - - - - - - - - 
+;; 		 5 - - - - - - - - 5 
+;; 		   - - - - - - - - R 
+;; 		 H - - - - - - - O   
+;; 		   2   H 4       H   
+;; 
+;; Rays which enter and exit are numbered.  You can see that rays 1 & 5 pass
+;; thru the box undisturbed. Ray 2 is deflected by the northwesternmost
+;; ball.  Likewise rays 3 and 4. Rays which hit balls and are absorbed are
+;; marked with H.  The bottom of the left and the right of the bottom hit
+;; the southeastern ball directly.  Rays may also hit balls after being
+;; reflected. Consider the H on the bottom next to the 4.  It bounces off
+;; the NW-ern most ball and hits the central ball.  A ray shot from above
+;; the right side 5 would hit the SE-ern most ball.  The R beneath the 5
+;; is because the ball is returned instantly.  It is not allowed into
+;; the box if it would reflect immediately.  The R on the top is a more
+;; leisurely return.  Both central balls would tend to deflect it east
+;; or west, but it cannot go either way, so it just retreats.
+;;
+;; At the end of the game, if you've placed guesses for as many balls as
+;; there are in the box, the true board position will be revealed.  Each
+;; `x' is an incorrect guess of yours; `o' is the true location of a ball.
 
 ;;; Code:
 

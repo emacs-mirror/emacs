@@ -20,26 +20,27 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
 ;; This collection of functions implements the creation of LaTeX calendars
 ;; based on the user's holiday choices and diary file.
 
-;;; TO DO
-;;;
-;;;     (*)  Add holidays and diary entries to daily calendar.
-;;;
-;;;     (*)  Add diary entries to weekly calendar functions.
-;;;
-;;;     (*)  Make calendar styles for A4 paper.
-;;;
-;;;     (*)  Make daily and monthly styles Filofax paper.
-;;;
-;;;     (*)  Improve the LaTeX command that produces the boxes in the monthly
-;;;          calendar to eliminate slight gap--what causes it?!
+;; TO DO
+;;
+;;     (*)  Add holidays and diary entries to daily calendar.
+;;
+;;     (*)  Add diary entries to weekly calendar functions.
+;;
+;;     (*)  Make calendar styles for A4 paper.
+;;
+;;     (*)  Make daily and monthly styles Filofax paper.
+;;
+;;     (*)  Improve the LaTeX command that produces the boxes in the monthly
+;;          calendar to eliminate slight gap--what causes it?!
 
 ;;; Code:
 

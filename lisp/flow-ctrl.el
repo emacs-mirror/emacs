@@ -1,6 +1,6 @@
 ;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control
 
-;;; Copyright (C) 1990, 1991, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1994 Free Software Foundation, Inc.
 
 ;; Author Kevin Gallagher
 ;; Maintainer: FSF
@@ -20,26 +20,27 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;;; Terminals that use XON/XOFF flow control can cause problems with
-;;;; GNU Emacs users.  This file contains Emacs Lisp code that makes it
-;;;; easy for a user to deal with this problem, when using such a
-;;;; terminal. 
-;;;;      
-;;;; To invoke these adjustments, a user need only invoke the function
-;;;; enable-flow-control-on with a list of terminal types in his/her own
-;;;; .emacs file.  As arguments, give it the names of one or more terminal
-;;;; types in use by that user which require flow control adjustments.
-;;;; Here's an example: 
-;;;; 
-;;;;	(enable-flow-control-on "vt200" "vt300" "vt101" "vt131")
+;; Terminals that use XON/XOFF flow control can cause problems with
+;; GNU Emacs users.  This file contains Emacs Lisp code that makes it
+;; easy for a user to deal with this problem, when using such a
+;; terminal. 
+;;      
+;; To invoke these adjustments, a user need only invoke the function
+;; enable-flow-control-on with a list of terminal types in his/her own
+;; .emacs file.  As arguments, give it the names of one or more terminal
+;; types in use by that user which require flow control adjustments.
+;; Here's an example: 
+;; 
+;;	(enable-flow-control-on "vt200" "vt300" "vt101" "vt131")
 
-;;; Portability note: This uses (getenv "TERM"), and therefore probably
-;;; won't work outside of UNIX-like environments.
+;; Portability note: This uses (getenv "TERM"), and therefore probably
+;; won't work outside of UNIX-like environments.
 
 ;;; Code:
 

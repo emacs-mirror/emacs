@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;;; Copyright (c) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (c) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
@@ -20,8 +20,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -36,19 +37,19 @@
 ;; Dr. Anil Gokhale, Ulrich Mueller, Mark Neale, Eric Prestemon, 
 ;; Gary Sabot and Richard Stallman.
 
-;;; This file may be used with GNU Emacs version 18.xx if the following
-;;; variable and function substitutions are made.
-;;;  Replace:
-;;;   frame-width                           with screen-width
-;;;   auto-fill-function                    with auto-fill-hook
-;;;   comment-indent-function               with comment-indent-hook
-;;;   (setq unread-command-events (list c)) with (setq unread-command-char c)
+;; This file may be used with GNU Emacs version 18.xx if the following
+;; variable and function substitutions are made.
+;;  Replace:
+;;   frame-width                           with screen-width
+;;   auto-fill-function                    with auto-fill-hook
+;;   comment-indent-function               with comment-indent-hook
+;;   (setq unread-command-events (list c)) with (setq unread-command-char c)
 
-;;; Bugs to bug-fortran-mode@erl.mit.edu
-
-(defconst fortran-mode-version "version 1.30.6")
+;; Bugs to bug-fortran-mode@erl.mit.edu
 
 ;;; Code:
+
+(defconst fortran-mode-version "version 1.30.6")
 
 ;;;###autoload
 (defvar fortran-tab-mode-default nil
@@ -1586,4 +1587,3 @@ file before the end or the first `fortran-analyze-depth' lines."
 (provide 'fortran)
 
 ;;; fortran.el ends here
-

@@ -19,121 +19,122 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Please send me bug reports, bug fixes, and extensions, so that I can
-;;; merge them into the master source.
-;;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;;     - Simon Marshall (simon@gnu.ai.mit.edu)
+;; Please send me bug reports, bug fixes, and extensions, so that I can
+;; merge them into the master source.
+;;     - Olin Shivers (shivers@cs.cmu.edu)
+;;     - Simon Marshall (simon@gnu.ai.mit.edu)
 
-;;; This file defines a general command-interpreter-in-a-buffer package
-;;; (comint mode). The idea is that you can build specific process-in-a-buffer
-;;; modes on top of comint mode -- e.g., lisp, shell, scheme, T, soar, ....
-;;; This way, all these specific packages share a common base functionality, 
-;;; and a common set of bindings, which makes them easier to use (and
-;;; saves code, implementation time, etc., etc.).
+;; This file defines a general command-interpreter-in-a-buffer package
+;; (comint mode). The idea is that you can build specific process-in-a-buffer
+;; modes on top of comint mode -- e.g., lisp, shell, scheme, T, soar, ....
+;; This way, all these specific packages share a common base functionality, 
+;; and a common set of bindings, which makes them easier to use (and
+;; saves code, implementation time, etc., etc.).
 
-;;; Several packages are already defined using comint mode:
-;;; - shell.el defines a shell-in-a-buffer mode.
-;;; - cmulisp.el defines a simple lisp-in-a-buffer mode.
-;;;
-;;; - The file cmuscheme.el defines a scheme-in-a-buffer mode.
-;;; - The file tea.el tunes scheme and inferior-scheme modes for T.
-;;; - The file soar.el tunes lisp and inferior-lisp modes for Soar.
-;;; - cmutex.el defines tex and latex modes that invoke tex, latex, bibtex,
-;;;   previewers, and printers from within emacs.
-;;; - background.el allows csh-like job control inside emacs.
-;;; It is pretty easy to make new derived modes for other processes.
+;; Several packages are already defined using comint mode:
+;; - shell.el defines a shell-in-a-buffer mode.
+;; - cmulisp.el defines a simple lisp-in-a-buffer mode.
+;;
+;; - The file cmuscheme.el defines a scheme-in-a-buffer mode.
+;; - The file tea.el tunes scheme and inferior-scheme modes for T.
+;; - The file soar.el tunes lisp and inferior-lisp modes for Soar.
+;; - cmutex.el defines tex and latex modes that invoke tex, latex, bibtex,
+;;   previewers, and printers from within emacs.
+;; - background.el allows csh-like job control inside emacs.
+;; It is pretty easy to make new derived modes for other processes.
 
-;;; For documentation on the functionality provided by comint mode, and
-;;; the hooks available for customising it, see the comments below.
-;;; For further information on the standard derived modes (shell, 
-;;; inferior-lisp, inferior-scheme, ...), see the relevant source files.
+;; For documentation on the functionality provided by comint mode, and
+;; the hooks available for customising it, see the comments below.
+;; For further information on the standard derived modes (shell, 
+;; inferior-lisp, inferior-scheme, ...), see the relevant source files.
 
-;;; For hints on converting existing process modes (e.g., tex-mode,
-;;; background, dbx, gdb, kermit, prolog, telnet) to use comint-mode
-;;; instead of shell-mode, see the notes at the end of this file.
+;; For hints on converting existing process modes (e.g., tex-mode,
+;; background, dbx, gdb, kermit, prolog, telnet) to use comint-mode
+;; instead of shell-mode, see the notes at the end of this file.
 
 
-;;; Brief Command Documentation:
-;;;============================================================================
-;;; Comint Mode Commands: (common to all derived modes, like shell & cmulisp
-;;; mode)
-;;;
-;;; m-p	    comint-previous-input    	    Cycle backwards in input history
-;;; m-n	    comint-next-input  	    	    Cycle forwards
-;;; m-r     comint-previous-matching-input  Previous input matching a regexp
-;;; m-s     comint-next-matching-input      Next input that matches
-;;; m-c-l   comint-show-output		    Show last batch of process output
-;;; return  comint-send-input
-;;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff
-;;; c-c c-a comint-bol                      Beginning of line; skip prompt
-;;; c-c c-u comint-kill-input	    	    ^u
-;;; c-c c-w backward-kill-word    	    ^w
-;;; c-c c-c comint-interrupt-subjob 	    ^c
-;;; c-c c-z comint-stop-subjob	    	    ^z
-;;; c-c c-\ comint-quit-subjob	    	    ^\
-;;; c-c c-o comint-kill-output		    Delete last batch of process output
-;;; c-c c-r comint-show-output		    Show last batch of process output
-;;; c-c c-l comint-dynamic-list-input-ring  List input history
-;;;
-;;; Not bound by default in comint-mode (some are in shell mode)
-;;; comint-run				Run a program under comint-mode
-;;; send-invisible			Read a line w/o echo, and send to proc
-;;; comint-dynamic-complete-filename	Complete filename at point.
-;;; comint-dynamic-complete-variable    Complete variable name at point.
-;;; comint-dynamic-list-filename-completions List completions in help buffer.
-;;; comint-replace-by-expanded-filename	Expand and complete filename at point;
-;;;					replace with expanded/completed name.
-;;; comint-replace-by-expanded-history	Expand history at point;
-;;;					replace with expanded name.
-;;; comint-magic-space                  Expand history and add (a) space(s).
-;;; comint-kill-subjob			No mercy.
-;;; comint-show-maximum-output          Show as much output as possible.
-;;; comint-continue-subjob		Send CONT signal to buffer's process
-;;;					group. Useful if you accidentally
-;;;					suspend your process (with C-c C-z).
+;; Brief Command Documentation:
+;;============================================================================
+;; Comint Mode Commands: (common to all derived modes, like shell & cmulisp
+;; mode)
+;;
+;; m-p	    comint-previous-input    	    Cycle backwards in input history
+;; m-n	    comint-next-input  	    	    Cycle forwards
+;; m-r     comint-previous-matching-input  Previous input matching a regexp
+;; m-s     comint-next-matching-input      Next input that matches
+;; m-c-l   comint-show-output		    Show last batch of process output
+;; return  comint-send-input
+;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff
+;; c-c c-a comint-bol                      Beginning of line; skip prompt
+;; c-c c-u comint-kill-input	    	    ^u
+;; c-c c-w backward-kill-word    	    ^w
+;; c-c c-c comint-interrupt-subjob 	    ^c
+;; c-c c-z comint-stop-subjob	    	    ^z
+;; c-c c-\ comint-quit-subjob	    	    ^\
+;; c-c c-o comint-kill-output		    Delete last batch of process output
+;; c-c c-r comint-show-output		    Show last batch of process output
+;; c-c c-l comint-dynamic-list-input-ring  List input history
+;;
+;; Not bound by default in comint-mode (some are in shell mode)
+;; comint-run				Run a program under comint-mode
+;; send-invisible			Read a line w/o echo, and send to proc
+;; comint-dynamic-complete-filename	Complete filename at point.
+;; comint-dynamic-complete-variable    Complete variable name at point.
+;; comint-dynamic-list-filename-completions List completions in help buffer.
+;; comint-replace-by-expanded-filename	Expand and complete filename at point;
+;;					replace with expanded/completed name.
+;; comint-replace-by-expanded-history	Expand history at point;
+;;					replace with expanded name.
+;; comint-magic-space                  Expand history and add (a) space(s).
+;; comint-kill-subjob			No mercy.
+;; comint-show-maximum-output          Show as much output as possible.
+;; comint-continue-subjob		Send CONT signal to buffer's process
+;;					group. Useful if you accidentally
+;;					suspend your process (with C-c C-z).
 
-;;; comint-mode-hook is the comint mode hook. Basically for your keybindings.
+;; comint-mode-hook is the comint mode hook. Basically for your keybindings.
 
 ;;; Code:
 
 (require 'ring)
 
-;;; Buffer Local Variables:
-;;;============================================================================
-;;; Comint mode buffer local variables:
-;;;     comint-prompt-regexp    - string       comint-bol uses to match prompt
-;;;     comint-delimiter-argument-list - list  For delimiters and arguments
-;;;     comint-last-input-start - marker       Handy if inferior always echoes
-;;;     comint-last-input-end   - marker       For comint-kill-output command
-;;;     comint-input-ring-size  - integer      For the input history
-;;;     comint-input-ring       - ring             mechanism
-;;;     comint-input-ring-index - number           ...
-;;;     comint-input-autoexpand - symbol           ...
-;;;     comint-input-ignoredups - boolean          ...
-;;;     comint-last-input-match - string           ...
-;;;     comint-dynamic-complete-functions - hook   For the completion mechanism
-;;;     comint-completion-fignore - list           ...
-;;;	comint-file-name-quote-list - list	   ...
-;;;     comint-get-old-input    - function     Hooks for specific 
-;;;     comint-input-filter-functions - hook     process-in-a-buffer
-;;;     comint-output-filter-functions - hook    function modes.
-;;;     comint-input-filter     - function         ...
-;;;     comint-input-sender	- function         ...
-;;;     comint-eol-on-send	- boolean          ...
-;;;     comint-process-echoes   - boolean          ...
-;;;     comint-scroll-to-bottom-on-input - symbol For scroll behavior
-;;;     comint-scroll-to-bottom-on-output - symbol ...
-;;;     comint-scroll-show-maximum-output - boolean...
-;;;
-;;; Comint mode non-buffer local variables:
-;;;     comint-completion-addsuffix - boolean/cons  For file name completion
-;;;     comint-completion-autolist  - boolean      behavior
-;;;     comint-completion-recexact  - boolean      ...
+;; Buffer Local Variables:
+;;============================================================================
+;; Comint mode buffer local variables:
+;;     comint-prompt-regexp    - string       comint-bol uses to match prompt
+;;     comint-delimiter-argument-list - list  For delimiters and arguments
+;;     comint-last-input-start - marker       Handy if inferior always echoes
+;;     comint-last-input-end   - marker       For comint-kill-output command
+;;     comint-input-ring-size  - integer      For the input history
+;;     comint-input-ring       - ring             mechanism
+;;     comint-input-ring-index - number           ...
+;;     comint-input-autoexpand - symbol           ...
+;;     comint-input-ignoredups - boolean          ...
+;;     comint-last-input-match - string           ...
+;;     comint-dynamic-complete-functions - hook   For the completion mechanism
+;;     comint-completion-fignore - list           ...
+;;	comint-file-name-quote-list - list	   ...
+;;     comint-get-old-input    - function     Hooks for specific 
+;;     comint-input-filter-functions - hook     process-in-a-buffer
+;;     comint-output-filter-functions - hook    function modes.
+;;     comint-input-filter     - function         ...
+;;     comint-input-sender	- function         ...
+;;     comint-eol-on-send	- boolean          ...
+;;     comint-process-echoes   - boolean          ...
+;;     comint-scroll-to-bottom-on-input - symbol For scroll behavior
+;;     comint-scroll-to-bottom-on-output - symbol ...
+;;     comint-scroll-show-maximum-output - boolean...
+;;
+;; Comint mode non-buffer local variables:
+;;     comint-completion-addsuffix - boolean/cons  For file name completion
+;;     comint-completion-autolist  - boolean      behavior
+;;     comint-completion-recexact  - boolean      ...
 
 (defvar comint-prompt-regexp "^"
   "Regexp to recognise prompts in the inferior process.
@@ -230,7 +231,7 @@ This variable is buffer-local.")
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'.")
 
-;;; Here are the per-interpreter hooks.
+;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
   "Function that returns old text in comint mode.
 This function is called when return is typed while the point is in old text.
@@ -500,9 +501,9 @@ BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(open run stop)))))
 
-;;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
-;;; for the second argument (program).
-;;;###autoload
+;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
+;; for the second argument (program).
+;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
   "Make a comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
@@ -525,7 +526,7 @@ If PROGRAM is a string, any more args are arguments to PROGRAM."
 	   (comint-exec buffer name program startfile switches)))
     buffer))
 
-;;;###autoload
+;;###autoload
 (defun comint-run (program)
   "Run PROGRAM in a comint buffer and switch to it.
 The buffer name is made by surrounding the file name of PROGRAM with `*'s.
@@ -573,8 +574,8 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
     (run-hooks 'comint-exec-hook)
     buffer)))
 
-;;; This auxiliary function cranks up the process for comint-exec in
-;;; the appropriate environment.
+;; This auxiliary function cranks up the process for comint-exec in
+;; the appropriate environment.
 
 (defun comint-exec-1 (name buffer command switches)
   (let ((process-environment
@@ -599,28 +600,28 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	    "/")))
     (apply 'start-process name buffer command switches)))
 
-;;; Input history processing in a buffer
-;;; ===========================================================================
-;;; Useful input history functions, courtesy of the Ergo group.
+;; Input history processing in a buffer
+;; ===========================================================================
+;; Useful input history functions, courtesy of the Ergo group.
 
-;;; Eleven commands:
-;;; comint-dynamic-list-input-ring	List history in help buffer.
-;;; comint-previous-input		Previous input...
-;;; comint-previous-matching-input	...matching a string.
-;;; comint-previous-matching-input-from-input ... matching the current input.
-;;; comint-next-input			Next input...
-;;; comint-next-matching-input		...matching a string.
-;;; comint-next-matching-input-from-input     ... matching the current input.
-;;; comint-backward-matching-input      Backwards input...
-;;; comint-forward-matching-input       ...matching a string.
-;;; comint-replace-by-expanded-history	Expand history at point;
-;;;					replace with expanded history.
-;;; comint-magic-space			Expand history and insert space.
-;;;
-;;; Three functions:
-;;; comint-read-input-ring              Read into comint-input-ring...
-;;; comint-write-input-ring             Write to comint-input-ring-file-name.
-;;; comint-replace-by-expanded-history-before-point Workhorse function.
+;; Eleven commands:
+;; comint-dynamic-list-input-ring	List history in help buffer.
+;; comint-previous-input		Previous input...
+;; comint-previous-matching-input	...matching a string.
+;; comint-previous-matching-input-from-input ... matching the current input.
+;; comint-next-input			Next input...
+;; comint-next-matching-input		...matching a string.
+;; comint-next-matching-input-from-input     ... matching the current input.
+;; comint-backward-matching-input      Backwards input...
+;; comint-forward-matching-input       ...matching a string.
+;; comint-replace-by-expanded-history	Expand history at point;
+;;					replace with expanded history.
+;; comint-magic-space			Expand history and insert space.
+;;
+;; Three functions:
+;; comint-read-input-ring              Read into comint-input-ring...
+;; comint-write-input-ring             Write to comint-input-ring-file-name.
+;; comint-replace-by-expanded-history-before-point Workhorse function.
 
 (defun comint-read-input-ring (&optional silent)
   "Sets the buffer's `comint-input-ring' from a history file.
@@ -1097,9 +1098,9 @@ Argument 0 is the command name."
       (mapconcat
        (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
 
-;;;
-;;; Input processing stuff
-;;;
+;;
+;; Input processing stuff
+;;
 
 (defun comint-send-input () 
   "Send input to process.
@@ -1377,10 +1378,10 @@ The prompt skip is done by skipping text matching the regular expression
   (beginning-of-line)
   (if (null arg) (comint-skip-prompt)))
 
-;;; These three functions are for entering text you don't want echoed or
-;;; saved -- typically passwords to ftp, telnet, or somesuch.
-;;; Just enter m-x send-invisible and type in your line, or add
-;;; `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
+;; These three functions are for entering text you don't want echoed or
+;; saved -- typically passwords to ftp, telnet, or somesuch.
+;; Just enter m-x send-invisible and type in your line, or add
+;; `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
 (defun comint-read-noecho (prompt &optional stars)
   "Read a single line of text from user without echoing, and return it. 
@@ -1455,12 +1456,12 @@ This function could be in the list `comint-output-filter-functions'."
   (if (string-match comint-password-prompt-regexp string)
       (send-invisible nil)))
 
-;;; Low-level process communication
+;; Low-level process communication
 
 (defalias 'comint-send-string 'process-send-string)
 (defalias 'comint-send-region 'process-send-region)
 
-;;; Random input hackage
+;; Random input hackage
 
 (defun comint-kill-output ()
   "Kill all output from interpreter since last input.
@@ -1581,67 +1582,67 @@ See `comint-prompt-regexp'."
   (interactive "p")
   (comint-next-prompt (- n)))
 
-;;; Support for source-file processing commands.
-;;;============================================================================
-;;; Many command-interpreters (e.g., Lisp, Scheme, Soar) have
-;;; commands that process files of source text (e.g. loading or compiling
-;;; files). So the corresponding process-in-a-buffer modes have commands
-;;; for doing this (e.g., lisp-load-file). The functions below are useful
-;;; for defining these commands.
-;;;
-;;; Alas, these guys don't do exactly the right thing for Lisp, Scheme
-;;; and Soar, in that they don't know anything about file extensions.
-;;; So the compile/load interface gets the wrong default occasionally.
-;;; The load-file/compile-file default mechanism could be smarter -- it
-;;; doesn't know about the relationship between filename extensions and
-;;; whether the file is source or executable. If you compile foo.lisp
-;;; with compile-file, then the next load-file should use foo.bin for
-;;; the default, not foo.lisp. This is tricky to do right, particularly
-;;; because the extension for executable files varies so much (.o, .bin,
-;;; .lbin, .mo, .vo, .ao, ...).
+;; Support for source-file processing commands.
+;;============================================================================
+;; Many command-interpreters (e.g., Lisp, Scheme, Soar) have
+;; commands that process files of source text (e.g. loading or compiling
+;; files). So the corresponding process-in-a-buffer modes have commands
+;; for doing this (e.g., lisp-load-file). The functions below are useful
+;; for defining these commands.
+;;
+;; Alas, these guys don't do exactly the right thing for Lisp, Scheme
+;; and Soar, in that they don't know anything about file extensions.
+;; So the compile/load interface gets the wrong default occasionally.
+;; The load-file/compile-file default mechanism could be smarter -- it
+;; doesn't know about the relationship between filename extensions and
+;; whether the file is source or executable. If you compile foo.lisp
+;; with compile-file, then the next load-file should use foo.bin for
+;; the default, not foo.lisp. This is tricky to do right, particularly
+;; because the extension for executable files varies so much (.o, .bin,
+;; .lbin, .mo, .vo, .ao, ...).
 
 
-;;; COMINT-SOURCE-DEFAULT -- determines defaults for source-file processing
-;;; commands.
-;;;
-;;; COMINT-CHECK-SOURCE -- if FNAME is in a modified buffer, asks you if you
-;;; want to save the buffer before issuing any process requests to the command
-;;; interpreter.
-;;;
-;;; COMINT-GET-SOURCE -- used by the source-file processing commands to prompt
-;;; for the file to process.
+;; COMINT-SOURCE-DEFAULT -- determines defaults for source-file processing
+;; commands.
+;;
+;; COMINT-CHECK-SOURCE -- if FNAME is in a modified buffer, asks you if you
+;; want to save the buffer before issuing any process requests to the command
+;; interpreter.
+;;
+;; COMINT-GET-SOURCE -- used by the source-file processing commands to prompt
+;; for the file to process.
 
-;;; (COMINT-SOURCE-DEFAULT previous-dir/file source-modes)
-;;;============================================================================
-;;; This function computes the defaults for the load-file and compile-file
-;;; commands for tea, soar, cmulisp, and cmuscheme modes. 
-;;; 
-;;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last 
-;;; source-file processing command. NIL if there hasn't been one yet.
-;;; - SOURCE-MODES is a list used to determine what buffers contain source
-;;; files: if the major mode of the buffer is in SOURCE-MODES, it's source.
-;;; Typically, (lisp-mode) or (scheme-mode).
-;;; 
-;;; If the command is given while the cursor is inside a string, *and*
-;;; the string is an existing filename, *and* the filename is not a directory,
-;;; then the string is taken as default. This allows you to just position
-;;; your cursor over a string that's a filename and have it taken as default.
-;;;
-;;; If the command is given in a file buffer whose major mode is in
-;;; SOURCE-MODES, then the the filename is the default file, and the
-;;; file's directory is the default directory.
-;;; 
-;;; If the buffer isn't a source file buffer (e.g., it's the process buffer),
-;;; then the default directory & file are what was used in the last source-file
-;;; processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
-;;; the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
-;;; is the cwd, with no default file. (\"no default file\" = nil)
-;;; 
-;;; SOURCE-REGEXP is typically going to be something like (tea-mode)
-;;; for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
-;;; for Soar programs, etc.
-;;; 
-;;; The function returns a pair: (default-directory . default-file).
+;; (COMINT-SOURCE-DEFAULT previous-dir/file source-modes)
+;;============================================================================
+;; This function computes the defaults for the load-file and compile-file
+;; commands for tea, soar, cmulisp, and cmuscheme modes. 
+;; 
+;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last 
+;; source-file processing command. NIL if there hasn't been one yet.
+;; - SOURCE-MODES is a list used to determine what buffers contain source
+;; files: if the major mode of the buffer is in SOURCE-MODES, it's source.
+;; Typically, (lisp-mode) or (scheme-mode).
+;; 
+;; If the command is given while the cursor is inside a string, *and*
+;; the string is an existing filename, *and* the filename is not a directory,
+;; then the string is taken as default. This allows you to just position
+;; your cursor over a string that's a filename and have it taken as default.
+;;
+;; If the command is given in a file buffer whose major mode is in
+;; SOURCE-MODES, then the the filename is the default file, and the
+;; file's directory is the default directory.
+;; 
+;; If the buffer isn't a source file buffer (e.g., it's the process buffer),
+;; then the default directory & file are what was used in the last source-file
+;; processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
+;; the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
+;; is the cwd, with no default file. (\"no default file\" = nil)
+;; 
+;; SOURCE-REGEXP is typically going to be something like (tea-mode)
+;; for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
+;; for Soar programs, etc.
+;; 
+;; The function returns a pair: (default-directory . default-file).
 
 (defun comint-source-default (previous-dir/file source-modes)
   (cond ((and buffer-file-name (memq major-mode source-modes))
@@ -1652,13 +1653,13 @@ See `comint-prompt-regexp'."
 	 (cons default-directory nil))))
 
 
-;;; (COMINT-CHECK-SOURCE fname)
-;;;============================================================================
-;;; Prior to loading or compiling (or otherwise processing) a file (in the CMU
-;;; process-in-a-buffer modes), this function can be called on the filename.
-;;; If the file is loaded into a buffer, and the buffer is modified, the user
-;;; is queried to see if he wants to save the buffer before proceeding with
-;;; the load or compile.
+;; (COMINT-CHECK-SOURCE fname)
+;;============================================================================
+;; Prior to loading or compiling (or otherwise processing) a file (in the CMU
+;; process-in-a-buffer modes), this function can be called on the filename.
+;; If the file is loaded into a buffer, and the buffer is modified, the user
+;; is queried to see if he wants to save the buffer before proceeding with
+;; the load or compile.
 
 (defun comint-check-source (fname)
   (let ((buff (get-file-buffer fname)))
@@ -1672,27 +1673,27 @@ See `comint-prompt-regexp'."
 	  (set-buffer old-buffer)))))
 
 
-;;; (COMINT-GET-SOURCE prompt prev-dir/file source-modes mustmatch-p)
-;;;============================================================================
-;;; COMINT-GET-SOURCE is used to prompt for filenames in command-interpreter
-;;; commands that process source files (like loading or compiling a file).
-;;; It prompts for the filename, provides a default, if there is one,
-;;; and returns the result filename.
-;;; 
-;;; See COMINT-SOURCE-DEFAULT for more on determining defaults.
-;;; 
-;;; PROMPT is the prompt string. PREV-DIR/FILE is the (directory . file) pair
-;;; from the last source processing command.  SOURCE-MODES is a list of major
-;;; modes used to determine what file buffers contain source files.  (These
-;;; two arguments are used for determining defaults). If MUSTMATCH-P is true,
-;;; then the filename reader will only accept a file that exists.
-;;; 
-;;; A typical use:
-;;; (interactive (comint-get-source "Compile file: " prev-lisp-dir/file
-;;;                                 '(lisp-mode) t))
+;; (COMINT-GET-SOURCE prompt prev-dir/file source-modes mustmatch-p)
+;;============================================================================
+;; COMINT-GET-SOURCE is used to prompt for filenames in command-interpreter
+;; commands that process source files (like loading or compiling a file).
+;; It prompts for the filename, provides a default, if there is one,
+;; and returns the result filename.
+;; 
+;; See COMINT-SOURCE-DEFAULT for more on determining defaults.
+;; 
+;; PROMPT is the prompt string. PREV-DIR/FILE is the (directory . file) pair
+;; from the last source processing command.  SOURCE-MODES is a list of major
+;; modes used to determine what file buffers contain source files.  (These
+;; two arguments are used for determining defaults). If MUSTMATCH-P is true,
+;; then the filename reader will only accept a file that exists.
+;; 
+;; A typical use:
+;; (interactive (comint-get-source "Compile file: " prev-lisp-dir/file
+;;                                 '(lisp-mode) t))
 
-;;; This is pretty stupid about strings. It decides we're in a string
-;;; if there's a quote on both sides of point on the current line.
+;; This is pretty stupid about strings. It decides we're in a string
+;; if there's a quote on both sides of point on the current line.
 (defun comint-extract-string ()
   "Return string around POINT that starts the current line, or nil." 
   (save-excursion
@@ -1728,30 +1729,30 @@ See `comint-prompt-regexp'."
 			      mustmatch-p)))
     (list (expand-file-name (substitute-in-file-name ans)))))
 
-;;; I am somewhat divided on this string-default feature. It seems
-;;; to violate the principle-of-least-astonishment, in that it makes
-;;; the default harder to predict, so you actually have to look and see
-;;; what the default really is before choosing it. This can trip you up.
-;;; On the other hand, it can be useful, I guess. I would appreciate feedback
-;;; on this.
-;;;     -Olin
+;; I am somewhat divided on this string-default feature. It seems
+;; to violate the principle-of-least-astonishment, in that it makes
+;; the default harder to predict, so you actually have to look and see
+;; what the default really is before choosing it. This can trip you up.
+;; On the other hand, it can be useful, I guess. I would appreciate feedback
+;; on this.
+;;     -Olin
 
 
-;;; Simple process query facility.
-;;; ===========================================================================
-;;; This function is for commands that want to send a query to the process
-;;; and show the response to the user. For example, a command to get the
-;;; arglist for a Common Lisp function might send a "(arglist 'foo)" query
-;;; to an inferior Common Lisp process.
-;;; 
-;;; This simple facility just sends strings to the inferior process and pops
-;;; up a window for the process buffer so you can see what the process
-;;; responds with.  We don't do anything fancy like try to intercept what the
-;;; process responds with and put it in a pop-up window or on the message
-;;; line. We just display the buffer. Low tech. Simple. Works good.
+;; Simple process query facility.
+;; ===========================================================================
+;; This function is for commands that want to send a query to the process
+;; and show the response to the user. For example, a command to get the
+;; arglist for a Common Lisp function might send a "(arglist 'foo)" query
+;; to an inferior Common Lisp process.
+;; 
+;; This simple facility just sends strings to the inferior process and pops
+;; up a window for the process buffer so you can see what the process
+;; responds with.  We don't do anything fancy like try to intercept what the
+;; process responds with and put it in a pop-up window or on the message
+;; line. We just display the buffer. Low tech. Simple. Works good.
 
-;;; Send to the inferior process PROC the string STR. Pop-up but do not select
-;;; a window for the inferior process so that its response can be seen.
+;; Send to the inferior process PROC the string STR. Pop-up but do not select
+;; a window for the inferior process so that its response can be seen.
 (defun comint-proc-query (proc str)
   (let* ((proc-buf (process-buffer proc))
 	 (proc-mark (process-mark proc)))
@@ -1773,27 +1774,27 @@ See `comint-prompt-regexp'."
 	      (set-window-point proc-win opoint)))))))
 
 
-;;; Filename/command/history completion in a buffer
-;;; ===========================================================================
-;;; Useful completion functions, courtesy of the Ergo group.
+;; Filename/command/history completion in a buffer
+;; ===========================================================================
+;; Useful completion functions, courtesy of the Ergo group.
 
-;;; Six commands:
-;;; comint-dynamic-complete		Complete or expand command, filename,
-;;;                                     history at point.
-;;; comint-dynamic-complete-filename	Complete filename at point.
-;;; comint-dynamic-list-filename-completions List completions in help buffer.
-;;; comint-replace-by-expanded-filename	Expand and complete filename at point;
-;;;					replace with expanded/completed name.
-;;; comint-dynamic-simple-complete	Complete stub given candidates.
+;; Six commands:
+;; comint-dynamic-complete		Complete or expand command, filename,
+;;                                     history at point.
+;; comint-dynamic-complete-filename	Complete filename at point.
+;; comint-dynamic-list-filename-completions List completions in help buffer.
+;; comint-replace-by-expanded-filename	Expand and complete filename at point;
+;;					replace with expanded/completed name.
+;; comint-dynamic-simple-complete	Complete stub given candidates.
 
-;;; These are not installed in the comint-mode keymap. But they are
-;;; available for people who want them. Shell-mode installs them:
-;;; (define-key shell-mode-map "\t" 'comint-dynamic-complete)
-;;; (define-key shell-mode-map "\M-?"
-;;;             'comint-dynamic-list-filename-completions)))
-;;;
-;;; Commands like this are fine things to put in load hooks if you
-;;; want them present in specific modes.
+;; These are not installed in the comint-mode keymap. But they are
+;; available for people who want them. Shell-mode installs them:
+;; (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+;; (define-key shell-mode-map "\M-?"
+;;             'comint-dynamic-list-filename-completions)))
+;;
+;; Commands like this are fine things to put in load hooks if you
+;; want them present in specific modes.
 
 (defvar comint-completion-autolist nil
   "*If non-nil, automatically list possibilities on partial completion.
@@ -2070,95 +2071,95 @@ Typing SPC flushes the help buffer."
 	    (set-window-configuration conf)
 	  (setq unread-command-events (listify-key-sequence key)))))))
 
-;;; Converting process modes to use comint mode
-;;; ===========================================================================
-;;; The code in the Emacs 19 distribution has all been modified to use comint
-;;; where needed.  However, there are `third-party' packages out there that
-;;; still use the old shell mode.  Here's a guide to conversion.
-;;;
-;;; Renaming variables
-;;; Most of the work is renaming variables and functions. These are the common
-;;; ones:
-;;; Local variables:
-;;;	last-input-start	comint-last-input-start
-;;; 	last-input-end		comint-last-input-end
-;;;	shell-prompt-pattern	comint-prompt-regexp
-;;;     shell-set-directory-error-hook <no equivalent>
-;;; Miscellaneous:
-;;;	shell-set-directory	<unnecessary>
-;;; 	shell-mode-map		comint-mode-map
-;;; Commands:
-;;;	shell-send-input	comint-send-input
-;;;	shell-send-eof		comint-delchar-or-maybe-eof
-;;; 	kill-shell-input	comint-kill-input
-;;;	interrupt-shell-subjob	comint-interrupt-subjob
-;;;	stop-shell-subjob	comint-stop-subjob
-;;;	quit-shell-subjob	comint-quit-subjob
-;;;	kill-shell-subjob	comint-kill-subjob
-;;;	kill-output-from-shell	comint-kill-output
-;;;	show-output-from-shell	comint-show-output
-;;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
-;;;
-;;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
-;;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-filter-functions.
-;;; Comint mode does not provide functionality equivalent to
-;;; shell-set-directory-error-hook; it is gone.
-;;;
-;;; comint-last-input-start is provided for modes which want to munge
-;;; the buffer after input is sent, perhaps because the inferior
-;;; insists on echoing the input.  The LAST-INPUT-START variable in
-;;; the old shell package was used to implement a history mechanism,
-;;; but you should think twice before using comint-last-input-start
-;;; for this; the input history ring often does the job better.
-;;; 
-;;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
-;;; *not* create the comint-mode local variables in your foo-mode function.
-;;; This is not modular.  Instead, call comint-mode, and let *it* create the
-;;; necessary comint-specific local variables. Then create the
-;;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
-;;; be foo-mode-map, and its mode to be foo-mode.  Set the comint-mode hooks
-;;; (comint-{prompt-regexp, input-filter, input-filter-functions,
-;;; get-old-input) that need to be different from the defaults.  Call
-;;; foo-mode-hook, and you're done. Don't run the comint-mode hook yourself;
-;;; comint-mode will take care of it. The following example, from shell.el,
-;;; is typical:
-;;; 
-;;; (defvar shell-mode-map '())
-;;; (cond ((not shell-mode-map)
-;;;        (setq shell-mode-map (copy-keymap comint-mode-map))
-;;;        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
-;;;        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
-;;;        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
-;;;        (define-key shell-mode-map "\M-?"
-;;;          'comint-dynamic-list-filename-completions)))
-;;;
-;;; (defun shell-mode ()
-;;;   (interactive)
-;;;   (comint-mode)
-;;;   (setq comint-prompt-regexp shell-prompt-pattern)
-;;;   (setq major-mode 'shell-mode)
-;;;   (setq mode-name "Shell")
-;;;   (use-local-map shell-mode-map)
-;;;   (make-local-variable 'shell-directory-stack)
-;;;   (setq shell-directory-stack nil)
-;;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
-;;;   (run-hooks 'shell-mode-hook))
-;;;
-;;;
-;;; Note that make-comint is different from make-shell in that it
-;;; doesn't have a default program argument. If you give make-shell
-;;; a program name of NIL, it cleverly chooses one of explicit-shell-name,
-;;; $ESHELL, $SHELL, or /bin/sh. If you give make-comint a program argument
-;;; of NIL, it barfs. Adjust your code accordingly...
-;;;
-;;; Completion for comint-mode users
-;;; 
-;;; For modes that use comint-mode, comint-dynamic-complete-functions is the
-;;; hook to add completion functions to.  Functions on this list should return
-;;; non-nil if completion occurs (i.e., further completion should not occur).
-;;; You could use comint-dynamic-simple-complete to do the bulk of the
-;;; completion job.
+;; Converting process modes to use comint mode
+;; ===========================================================================
+;; The code in the Emacs 19 distribution has all been modified to use comint
+;; where needed.  However, there are `third-party' packages out there that
+;; still use the old shell mode.  Here's a guide to conversion.
+;;
+;; Renaming variables
+;; Most of the work is renaming variables and functions. These are the common
+;; ones:
+;; Local variables:
+;;	last-input-start	comint-last-input-start
+;; 	last-input-end		comint-last-input-end
+;;	shell-prompt-pattern	comint-prompt-regexp
+;;     shell-set-directory-error-hook <no equivalent>
+;; Miscellaneous:
+;;	shell-set-directory	<unnecessary>
+;; 	shell-mode-map		comint-mode-map
+;; Commands:
+;;	shell-send-input	comint-send-input
+;;	shell-send-eof		comint-delchar-or-maybe-eof
+;; 	kill-shell-input	comint-kill-input
+;;	interrupt-shell-subjob	comint-interrupt-subjob
+;;	stop-shell-subjob	comint-stop-subjob
+;;	quit-shell-subjob	comint-quit-subjob
+;;	kill-shell-subjob	comint-kill-subjob
+;;	kill-output-from-shell	comint-kill-output
+;;	show-output-from-shell	comint-show-output
+;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
+;;
+;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
+;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-filter-functions.
+;; Comint mode does not provide functionality equivalent to
+;; shell-set-directory-error-hook; it is gone.
+;;
+;; comint-last-input-start is provided for modes which want to munge
+;; the buffer after input is sent, perhaps because the inferior
+;; insists on echoing the input.  The LAST-INPUT-START variable in
+;; the old shell package was used to implement a history mechanism,
+;; but you should think twice before using comint-last-input-start
+;; for this; the input history ring often does the job better.
+;; 
+;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
+;; *not* create the comint-mode local variables in your foo-mode function.
+;; This is not modular.  Instead, call comint-mode, and let *it* create the
+;; necessary comint-specific local variables. Then create the
+;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
+;; be foo-mode-map, and its mode to be foo-mode.  Set the comint-mode hooks
+;; (comint-{prompt-regexp, input-filter, input-filter-functions,
+;; get-old-input) that need to be different from the defaults.  Call
+;; foo-mode-hook, and you're done. Don't run the comint-mode hook yourself;
+;; comint-mode will take care of it. The following example, from shell.el,
+;; is typical:
+;; 
+;; (defvar shell-mode-map '())
+;; (cond ((not shell-mode-map)
+;;        (setq shell-mode-map (copy-keymap comint-mode-map))
+;;        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
+;;        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
+;;        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+;;        (define-key shell-mode-map "\M-?"
+;;          'comint-dynamic-list-filename-completions)))
+;;
+;; (defun shell-mode ()
+;;   (interactive)
+;;   (comint-mode)
+;;   (setq comint-prompt-regexp shell-prompt-pattern)
+;;   (setq major-mode 'shell-mode)
+;;   (setq mode-name "Shell")
+;;   (use-local-map shell-mode-map)
+;;   (make-local-variable 'shell-directory-stack)
+;;   (setq shell-directory-stack nil)
+;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
+;;   (run-hooks 'shell-mode-hook))
+;;
+;;
+;; Note that make-comint is different from make-shell in that it
+;; doesn't have a default program argument. If you give make-shell
+;; a program name of NIL, it cleverly chooses one of explicit-shell-name,
+;; $ESHELL, $SHELL, or /bin/sh. If you give make-comint a program argument
+;; of NIL, it barfs. Adjust your code accordingly...
+;;
+;; Completion for comint-mode users
+;; 
+;; For modes that use comint-mode, comint-dynamic-complete-functions is the
+;; hook to add completion functions to.  Functions on this list should return
+;; non-nil if completion occurs (i.e., further completion should not occur).
+;; You could use comint-dynamic-simple-complete to do the bulk of the
+;; completion job.
 
 (provide 'comint)
 
-;;; comint.el ends here
+;; comint.el ends here

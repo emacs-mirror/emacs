@@ -16,18 +16,19 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Internal support for mh-e package.
-;;; Support for generating an mhn composition file.
-;;; MIME is supported only by MH 6.8 or later.
+;; Internal support for mh-e package.
+;; Support for generating an mhn composition file.
+;; MIME is supported only by MH 6.8 or later.
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.4 1995/04/20 23:35:26 kwzh Exp kwzh $
+;; $Id: mh-mime.el,v 1.5 1995/11/03 02:29:49 kwzh Exp erik $
 
 ;;; Code:
 

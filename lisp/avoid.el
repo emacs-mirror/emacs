@@ -18,52 +18,53 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;;
-;;; For those who are annoyed by the mouse pointer obscuring text,
-;;; this mode moves the mouse pointer - either just a little out of
-;;; the way, or all the way to the corner of the frame. 
-;;; To use, load or evaluate this file and type M-x mouse-avoidance-mode .
-;;; To set up permanently, put the following in your .emacs: 
-;;;
-;;; (if window-system (mouse-avoidance-mode 'animate))
-;;;
-;;; The 'animate can be 'jump or 'banish or 'exile or 'protean if you prefer.
-;;; See the documentation for function `mouse-avoidance-mode' for
-;;; details of the different modes.
-;;;
-;;; For added silliness, make the animatee animate...
-;;; put something similar to the following into your .emacs:
-;;;
-;;; (if window-system
-;;;     (mouse-avoidance-set-pointer-shape
-;;;	     (eval (nth (random 4)
-;;;			'(x-pointer-man x-pointer-spider
-;;;			  x-pointer-gobbler x-pointer-gumby)))))
-;;;
-;;; For completely random pointer shape, replace the setq above with:
-;;; (setq x-pointer-shape (mouse-avoidance-random-shape))
-;;; 
-;;; Bugs / Warnings / To-Do:
-;;;
-;;; - Using this code does slow emacs down.  "banish" mode shouldn't
-;;;   be too bad, and on my workstation even "animate" is reasonable.
-;;;
-;;; - It ought to find out where any overlapping frames are and avoid them,
-;;;   rather than always raising the frame.
 
-;;; Credits:
-;;; This code was helped by all those who contributed suggestions, 
-;;;   fixes, and additions
-;;; Joe Harrington (and his advisor), for the original inspiration.
-;;; Ken Manheimer, for dreaming up the Protean mode.
-;;; Richard Stallman, for the awful cat-and-mouse pun, among other things.
-;;; Mike Williams, Denis Howe, Bill Benedetto, Chris Moore, Don Morris,
-;;; Simon Marshall, and M.S. Ashton, for their feedback.
-;;;
+;; For those who are annoyed by the mouse pointer obscuring text,
+;; this mode moves the mouse pointer - either just a little out of
+;; the way, or all the way to the corner of the frame. 
+;; To use, load or evaluate this file and type M-x mouse-avoidance-mode .
+;; To set up permanently, put the following in your .emacs: 
+;;
+;; (if window-system (mouse-avoidance-mode 'animate))
+;;
+;; The 'animate can be 'jump or 'banish or 'exile or 'protean if you prefer.
+;; See the documentation for function `mouse-avoidance-mode' for
+;; details of the different modes.
+;;
+;; For added silliness, make the animatee animate...
+;; put something similar to the following into your .emacs:
+;;
+;; (if window-system
+;;     (mouse-avoidance-set-pointer-shape
+;;	     (eval (nth (random 4)
+;;			'(x-pointer-man x-pointer-spider
+;;			  x-pointer-gobbler x-pointer-gumby)))))
+;;
+;; For completely random pointer shape, replace the setq above with:
+;; (setq x-pointer-shape (mouse-avoidance-random-shape))
+;; 
+;; Bugs / Warnings / To-Do:
+;;
+;; - Using this code does slow emacs down.  "banish" mode shouldn't
+;;   be too bad, and on my workstation even "animate" is reasonable.
+;;
+;; - It ought to find out where any overlapping frames are and avoid them,
+;;   rather than always raising the frame.
+
+;; Credits:
+;; This code was helped by all those who contributed suggestions, 
+;;   fixes, and additions
+;; Joe Harrington (and his advisor), for the original inspiration.
+;; Ken Manheimer, for dreaming up the Protean mode.
+;; Richard Stallman, for the awful cat-and-mouse pun, among other things.
+;; Mike Williams, Denis Howe, Bill Benedetto, Chris Moore, Don Morris,
+;; Simon Marshall, and M.S. Ashton, for their feedback.
+
 ;;; Code:
 
 (provide 'avoid)

@@ -18,24 +18,25 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; This code defines a ring data structure. A ring is a 
-;;;     (hd-index length . vector) 
-;;; list. You can insert to, remove from, and rotate a ring. When the ring
-;;; fills up, insertions cause the oldest elts to be quietly dropped.
-;;;
-;;; In ring-ref, 0 is the index of the newest element.  Higher indexes
-;;; correspond to older elements until they wrap.
-;;;
-;;; hd-index = index of the newest item on the ring.
-;;; length = number of ring items.
-;;;
-;;; These functions are used by the input history mechanism, but they can
-;;; be used for other purposes as well.
+;; This code defines a ring data structure. A ring is a 
+;;     (hd-index length . vector) 
+;; list. You can insert to, remove from, and rotate a ring. When the ring
+;; fills up, insertions cause the oldest elts to be quietly dropped.
+;;
+;; In ring-ref, 0 is the index of the newest element.  Higher indexes
+;; correspond to older elements until they wrap.
+;;
+;; hd-index = index of the newest item on the ring.
+;; length = number of ring items.
+;;
+;; These functions are used by the input history mechanism, but they can
+;; be used for other purposes as well.
 
 ;;; Code:
 

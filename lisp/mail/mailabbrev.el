@@ -1,128 +1,129 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases.
 
-;;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: Jamie Zawinski <jwz@lucid.com>
 ;; Created: 19 Oct 90
 ;; Keywords: mail
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; This file ensures that, when the point is in a To:, CC:, BCC:, or From: 
-;;; field, word-abbrevs are defined for each of your mail aliases.  These
-;;; aliases will be defined from your .mailrc file (or the file specified by
-;;; the MAILRC environment variable) if it exists.  Your mail aliases will
-;;; expand any time you type a word-delimiter at the end of an abbreviation.
-;;;
-;;; What you see is what you get: if mailabbrev is in use when you type
-;;; a name, and the name does not expand, you know it is not an abbreviation.
-;;; However, if you yank abbreviations into the headers
-;;; in a way that bypasses the check for abbreviations,
-;;; they are expanded (but not visibly) when you send the message.
-;;;
-;;; Your mail alias abbrevs will be in effect only when the point is in an
-;;; appropriate header field.  When in the body of the message, or other
-;;; header fields, the mail aliases will not expand.  Rather, the normal
-;;; mode-specific abbrev table (mail-mode-abbrev-table) will be used if 
-;;; defined.  So if you use mail-mode specific abbrevs, this code will not
-;;; adversely affect you.  You can control which header fields the abbrevs
-;;; are used in by changing the variable mail-abbrev-mode-regexp.
-;;;
-;;; If auto-fill mode is on, abbrevs will wrap at commas instead of at word
-;;; boundaries; also, header continuation-lines will be properly indented.
-;;;
-;;; You can also insert a mail alias with mail-interactive-insert-alias
-;;; (bound to C-c C-a), which prompts you for an alias (with completion)
-;;; and inserts its expansion at point.
-;;;
-;;; This file fixes a bug in the old system which prohibited your .mailrc
-;;; file from having lines like
-;;;
-;;;     alias someone "John Doe <doe@quux.com>"
-;;;
-;;; That is, if you want an address to have embedded spaces, simply surround it
-;;; with double-quotes.  This is necessary because the format of the .mailrc
-;;; file bogusly uses spaces as address delimiters.  The following line defines
-;;; an alias which expands to three addresses:
-;;;
-;;;     alias foobar addr-1 addr-2 "address three <addr-3>"
-;;;
-;;; (This is bogus because mail-delivery programs want commas, not spaces,
-;;; but that's what the file format is, so we have to live with it.)
-;;;
-;;; If you like, you can call the function define-mail-abbrev to define your
-;;; mail aliases instead of using a .mailrc file.  When you call it in this
-;;; way, addresses are separated by commas.
-;;;
-;;; CAVEAT: This works on most Sun systems; I have been told that some versions
-;;; of /bin/mail do not understand double-quotes in the .mailrc file.  So you
-;;; should make sure your version does before including verbose addresses like
-;;; this.  One solution to this, if you are on a system whose /bin/mail doesn't
-;;; work that way, (and you still want to be able to /bin/mail to send mail in
-;;; addition to emacs) is to define minimal aliases (without full names) in
-;;; your .mailrc file, and use define-mail-abbrev to redefine them when sending
-;;; mail from emacs; this way, mail sent from /bin/mail will work, and mail
-;;; sent from emacs will be pretty.
-;;;
-;;; Aliases in the mailrc file may be nested.  If you define aliases like
-;;;     alias group1 fred ethel
-;;;     alias group2 larry curly moe
-;;;     alias everybody group1 group2
-;;; Then when you type "everybody" on the To: line, it will be expanded to
-;;;     fred, ethyl, larry, curly, moe
-;;;
-;;; Aliases may also contain forward references; the alias of "everybody" can
-;;; precede the aliases of "group1" and "group2".
-;;;
-;;; This code also understands the "source" .mailrc command, for reading
-;;; aliases from some other file as well.
-;;;
-;;; Aliases may contain hyphens, as in "alias foo-bar foo@bar"; word-abbrevs
-;;; normally cannot contain hyphens, but this code works around that for the
-;;; specific case of mail-alias word-abbrevs.
-;;;
-;;; To read in the contents of another .mailrc-type file from emacs, use the
-;;; command Meta-X merge-mail-abbrevs.  The rebuild-mail-abbrevs command is
-;;; similar, but will delete existing aliases first.
-;;;
-;;; If you would like your aliases to be expanded when you type M-> or ^N to
-;;; move out of the mail-header into the message body (instead of having to
-;;; type SPC at the end of the abbrev before moving away) then you can do
-;;;
-;;;  (add-hook
-;;;   'mail-setup-hook
-;;;   '(lambda ()
-;;;      (substitute-key-definition 'next-line 'mail-abbrev-next-line
-;;;				 mail-mode-map global-map)
-;;;      (substitute-key-definition 'end-of-buffer 'mail-abbrev-end-of-buffer
-;;;				 mail-mode-map global-map)))
-;;;
-;;; If you want multiple addresses separated by a string other than ", " then
-;;; you can set the variable mail-alias-separator-string to it.  This has to
-;;; be a comma bracketed by whitespace if you want any kind of reasonable
-;;; behaviour.
-;;;
-;;; Thanks to Harald Hanche-Olsen, Michael Ernst, David Loeffler, and
-;;; Noah Friedman for suggestions and bug reports.
+;; This file ensures that, when the point is in a To:, CC:, BCC:, or From: 
+;; field, word-abbrevs are defined for each of your mail aliases.  These
+;; aliases will be defined from your .mailrc file (or the file specified by
+;; the MAILRC environment variable) if it exists.  Your mail aliases will
+;; expand any time you type a word-delimiter at the end of an abbreviation.
+;;
+;; What you see is what you get: if mailabbrev is in use when you type
+;; a name, and the name does not expand, you know it is not an abbreviation.
+;; However, if you yank abbreviations into the headers
+;; in a way that bypasses the check for abbreviations,
+;; they are expanded (but not visibly) when you send the message.
+;;
+;; Your mail alias abbrevs will be in effect only when the point is in an
+;; appropriate header field.  When in the body of the message, or other
+;; header fields, the mail aliases will not expand.  Rather, the normal
+;; mode-specific abbrev table (mail-mode-abbrev-table) will be used if 
+;; defined.  So if you use mail-mode specific abbrevs, this code will not
+;; adversely affect you.  You can control which header fields the abbrevs
+;; are used in by changing the variable mail-abbrev-mode-regexp.
+;;
+;; If auto-fill mode is on, abbrevs will wrap at commas instead of at word
+;; boundaries; also, header continuation-lines will be properly indented.
+;;
+;; You can also insert a mail alias with mail-interactive-insert-alias
+;; (bound to C-c C-a), which prompts you for an alias (with completion)
+;; and inserts its expansion at point.
+;;
+;; This file fixes a bug in the old system which prohibited your .mailrc
+;; file from having lines like
+;;
+;;     alias someone "John Doe <doe@quux.com>"
+;;
+;; That is, if you want an address to have embedded spaces, simply surround it
+;; with double-quotes.  This is necessary because the format of the .mailrc
+;; file bogusly uses spaces as address delimiters.  The following line defines
+;; an alias which expands to three addresses:
+;;
+;;     alias foobar addr-1 addr-2 "address three <addr-3>"
+;;
+;; (This is bogus because mail-delivery programs want commas, not spaces,
+;; but that's what the file format is, so we have to live with it.)
+;;
+;; If you like, you can call the function define-mail-abbrev to define your
+;; mail aliases instead of using a .mailrc file.  When you call it in this
+;; way, addresses are separated by commas.
+;;
+;; CAVEAT: This works on most Sun systems; I have been told that some versions
+;; of /bin/mail do not understand double-quotes in the .mailrc file.  So you
+;; should make sure your version does before including verbose addresses like
+;; this.  One solution to this, if you are on a system whose /bin/mail doesn't
+;; work that way, (and you still want to be able to /bin/mail to send mail in
+;; addition to emacs) is to define minimal aliases (without full names) in
+;; your .mailrc file, and use define-mail-abbrev to redefine them when sending
+;; mail from emacs; this way, mail sent from /bin/mail will work, and mail
+;; sent from emacs will be pretty.
+;;
+;; Aliases in the mailrc file may be nested.  If you define aliases like
+;;     alias group1 fred ethel
+;;     alias group2 larry curly moe
+;;     alias everybody group1 group2
+;; Then when you type "everybody" on the To: line, it will be expanded to
+;;     fred, ethyl, larry, curly, moe
+;;
+;; Aliases may also contain forward references; the alias of "everybody" can
+;; precede the aliases of "group1" and "group2".
+;;
+;; This code also understands the "source" .mailrc command, for reading
+;; aliases from some other file as well.
+;;
+;; Aliases may contain hyphens, as in "alias foo-bar foo@bar"; word-abbrevs
+;; normally cannot contain hyphens, but this code works around that for the
+;; specific case of mail-alias word-abbrevs.
+;;
+;; To read in the contents of another .mailrc-type file from emacs, use the
+;; command Meta-X merge-mail-abbrevs.  The rebuild-mail-abbrevs command is
+;; similar, but will delete existing aliases first.
+;;
+;; If you would like your aliases to be expanded when you type M-> or ^N to
+;; move out of the mail-header into the message body (instead of having to
+;; type SPC at the end of the abbrev before moving away) then you can do
+;;
+;;  (add-hook
+;;   'mail-setup-hook
+;;   '(lambda ()
+;;      (substitute-key-definition 'next-line 'mail-abbrev-next-line
+;;				 mail-mode-map global-map)
+;;      (substitute-key-definition 'end-of-buffer 'mail-abbrev-end-of-buffer
+;;				 mail-mode-map global-map)))
+;;
+;; If you want multiple addresses separated by a string other than ", " then
+;; you can set the variable mail-alias-separator-string to it.  This has to
+;; be a comma bracketed by whitespace if you want any kind of reasonable
+;; behaviour.
+;;
+;; Thanks to Harald Hanche-Olsen, Michael Ernst, David Loeffler, and
+;; Noah Friedman for suggestions and bug reports.
 
-;;; To use this package, do (add-hook 'mail-setup-hook 'mail-abbrevs-setup).
+;; To use this package, do (add-hook 'mail-setup-hook 'mail-abbrevs-setup).
 
 ;;; Code:
 
@@ -552,3 +553,5 @@ Don't use this command in Lisp programs!
 ;;(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
 
 (provide 'mailabbrev)
+
+;;; mailabbrev.el ends here.

@@ -1,8 +1,5 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; You may use these commands to handle an address list or other
-;; small data base.
-
 ;; Copyright (C) 1990, 1991, 1993, 1994 Free Software Foundation
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.ai.mit.edu>
@@ -20,212 +17,218 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; You may use these commands to handle an address list or other
+;; small data base.
 
 
 ;;; Summary
 
-; The current page commands are:
+;; The current page commands are:
 
-;     forward-page         C-x ]
-;     backward-page        C-x [
-;     narrow-to-page       C-x p
-;     count-lines-page     C-x l
-;     mark-page            C-x C-p  (change this to C-x C-p C-m)
-;     sort-pages           not bound
-;     what-page            not bound
+;;     forward-page         C-x ]
+;;     backward-page        C-x [
+;;     narrow-to-page       C-x p
+;;     count-lines-page     C-x l
+;;     mark-page            C-x C-p  (change this to C-x C-p C-m)
+;;     sort-pages           not bound
+;;     what-page            not bound
 
-; The new page handling commands all use `C-x C-p' as a prefix.  This
-; means that the key binding for `mark-page' must be changed.
-; Otherwise, no other changes are made to the current commands or
-; their bindings.
+;; The new page handling commands all use `C-x C-p' as a prefix.  This
+;; means that the key binding for `mark-page' must be changed.
+;; Otherwise, no other changes are made to the current commands or
+;; their bindings.
 
-; New page handling commands:
+;; New page handling commands:
 
-;     next-page                        C-x C-p C-n
-;     previous-page                    C-x C-p C-p
-;     search-pages                     C-x C-p C-s
-;     add-new-page                     C-x C-p C-a
-;     sort-pages-buffer                C-x C-p s      
-;     set-page-delimiter               C-x C-p C-l
-;     pages-directory                  C-x C-p C-d   
-;     pages-directory-for-addresses    C-x C-p d
-;        pages-directory-goto          C-c C-c
+;;     next-page                        C-x C-p C-n
+;;     previous-page                    C-x C-p C-p
+;;     search-pages                     C-x C-p C-s
+;;     add-new-page                     C-x C-p C-a
+;;     sort-pages-buffer                C-x C-p s      
+;;     set-page-delimiter               C-x C-p C-l
+;;     pages-directory                  C-x C-p C-d   
+;;     pages-directory-for-addresses    C-x C-p d
+;;        pages-directory-goto          C-c C-c
 
 
 ;;; Using the page commands
  
-; The page commands are helpful in several different contexts.  For
-; example, programmers often divide source files into sections using the
-; `page-delimiter'; you can use the `pages-directory' command to list
-; the sections.
+;; The page commands are helpful in several different contexts.  For
+;; example, programmers often divide source files into sections using the
+;; `page-delimiter'; you can use the `pages-directory' command to list
+;; the sections.
 
-; You may change the buffer local value of the `page-delimiter' with
-; the `set-page-delimiter' command.  This command is bound to `C-x C-p
-; C-l' The command prompts you for a new value for the page-delimiter.
-; Called with a prefix-arg, the command resets the value of the
-; page-delimiter to its original value.
+;; You may change the buffer local value of the `page-delimiter' with
+;; the `set-page-delimiter' command.  This command is bound to `C-x C-p
+;; C-l' The command prompts you for a new value for the page-delimiter.
+;; Called with a prefix-arg, the command resets the value of the
+;; page-delimiter to its original value.
 
-; You may set several user options:
-;
-;   The `pages-directory-buffer-narrowing-p' variable causes the
-;   `pages-directory-goto' command to narrow to the destination page.
-;
-;   The `pages-directory-for-adding-page-narrowing-p' variable, causes the
-;   `add-new-page' command to narrow to the new entry.
-;
-;   The `pages-directory-for-adding-new-page-before-current-page-p' variable
-;   causes the `add-new-page' command to insert a new page before current
-;   page.
-;
-; These variables are true by default.
-;
-; Additional, addresses-related user options are described in the next page
-; of this file.
+;; You may set several user options:
+;;
+;;   The `pages-directory-buffer-narrowing-p' variable causes the
+;;   `pages-directory-goto' command to narrow to the destination page.
+;;
+;;   The `pages-directory-for-adding-page-narrowing-p' variable, causes the
+;;   `add-new-page' command to narrow to the new entry.
+;;
+;;   The `pages-directory-for-adding-new-page-before-current-page-p' variable
+;;   causes the `add-new-page' command to insert a new page before current
+;;   page.
+;;
+;; These variables are true by default.
+;;
+;; Additional, addresses-related user options are described in the next page
+;; of this file.
 
 
 ;;; Handling an address list or small data base
 
-; You may use the page commands to handle an address list or other
-; small data base.  Put each address or entry on its own page.  The
-; first line of text in each page is a `header line' and is listed by
-; the `pages-directory' or `pages-directory-for-addresses' command.
+;; You may use the page commands to handle an address list or other
+;; small data base.  Put each address or entry on its own page.  The
+;; first line of text in each page is a `header line' and is listed by
+;; the `pages-directory' or `pages-directory-for-addresses' command.
 
-; Specifically:
-; 
-;   1. Begin each entry with a `page-delimiter' (which is, by default,
-;      `^L' at the beginning of the line).
-; 
-;   2. The first line of text in each entry is the `heading line'; it
-;      will appear in the pages-directory-buffer which is constructed
-;      using the `C-x C-p C-d' (pages-directory) command or the `C-x
-;      C-p d' (pages-directory-for-addresses) command.
-; 
-;      The heading line may be on the same line as the page-delimiter
-;      or it may follow after.  It is the first non-blank line on the
-;      page.  Conventionally, the heading line is placed on the line
-;      immediately following the line containing page-delimiter.
-;
-;   3. Follow the heading line with the body of the entry.  The body
-;      extends up to the next `page-delimiter'.  The body may be of any
-;      length.  It is conventional to place a blank line after the last
-;      line of the body.
+;; Specifically:
+;; 
+;;   1. Begin each entry with a `page-delimiter' (which is, by default,
+;;      `^L' at the beginning of the line).
+;; 
+;;   2. The first line of text in each entry is the `heading line'; it
+;;      will appear in the pages-directory-buffer which is constructed
+;;      using the `C-x C-p C-d' (pages-directory) command or the `C-x
+;;      C-p d' (pages-directory-for-addresses) command.
+;; 
+;;      The heading line may be on the same line as the page-delimiter
+;;      or it may follow after.  It is the first non-blank line on the
+;;      page.  Conventionally, the heading line is placed on the line
+;;      immediately following the line containing page-delimiter.
+;;
+;;   3. Follow the heading line with the body of the entry.  The body
+;;      extends up to the next `page-delimiter'.  The body may be of any
+;;      length.  It is conventional to place a blank line after the last
+;;      line of the body.
 
-; For example, a file might look like this:
-; 
-;     FSF
-;     Free Software Foundation
-;     675 Massachusetts Avenue
-;     Cambridge, MA 02139  USA
-;     (617) 876-3296
-;     gnu@prep.ai.mit.edu
-; 
-;     
-;     House Subcommittee on Intellectual Property,
-;     U.S. House of Representatives,
-;     Washington, DC  20515
-;     
-;     Congressional committee concerned with permitting or preventing
-;     monopolistic restrictions on the use of software technology.
-; 
-;     
-;     George Lakoff
-;     ``Women, Fire, and Dangerous Things:
-;     What Categories Reveal about the Mind''
-;     1987, Univ. of Chicago Press
-; 
-;     About philosophy, Whorfian effects, and linguistics.
-; 
-;      
-;     OBI   (On line text collection.)
-;     Open Book Initiative
-;     c/o Software Tool & Die
-;     1330 Beacon St, Brookline, MA 02146 USA
-;     (617) 739-0202 
-;     obi@world.std.com
+;; For example, a file might look like this:
+;; 
+;;     FSF
+;;     Free Software Foundation
+;;     675 Massachusetts Avenue
+;;     Cambridge, MA 02139  USA
+;;     (617) 876-3296
+;;     gnu@prep.ai.mit.edu
+;; 
+;;     
+;;     House Subcommittee on Intellectual Property,
+;;     U.S. House of Representatives,
+;;     Washington, DC  20515
+;;     
+;;     Congressional committee concerned with permitting or preventing
+;;     monopolistic restrictions on the use of software technology.
+;; 
+;;     
+;;     George Lakoff
+;;     ``Women, Fire, and Dangerous Things:
+;;     What Categories Reveal about the Mind''
+;;     1987, Univ. of Chicago Press
+;; 
+;;     About philosophy, Whorfian effects, and linguistics.
+;; 
+;;      
+;;     OBI   (On line text collection.)
+;;     Open Book Initiative
+;;     c/o Software Tool & Die
+;;     1330 Beacon St, Brookline, MA 02146 USA
+;;     (617) 739-0202 
+;;     obi@world.std.com
 
-; In this example, the heading lines are:
-;
-;     FSF
-;     House Subcommittee on Intellectual Property
-;     George Lakoff
-;     OBI (On line text collection.)
+;; In this example, the heading lines are:
+;;
+;;     FSF
+;;     House Subcommittee on Intellectual Property
+;;     George Lakoff
+;;     OBI (On line text collection.)
 
-; The `C-x C-p s' (sort-pages-buffer) command sorts the entries in the
-; buffer alphabetically.
+;; The `C-x C-p s' (sort-pages-buffer) command sorts the entries in the
+;; buffer alphabetically.
 
-; You may use any of the page commands, including the `next-page',
-; `previous-page', `add-new-page', `mark-page', and `search-pages'
-; commands.
+;; You may use any of the page commands, including the `next-page',
+;; `previous-page', `add-new-page', `mark-page', and `search-pages'
+;; commands.
 
-; You may use either the `C-x C-p d' (pages-directory-for-addresses)
-; or the `C-x C-p C-d' (pages-directory) command to construct and
-; display a directory of all the heading lines.
+;; You may use either the `C-x C-p d' (pages-directory-for-addresses)
+;; or the `C-x C-p C-d' (pages-directory) command to construct and
+;; display a directory of all the heading lines.
 
-; In the directory, you may position the cursor over a heading line
-; and type `C-c C-c' (pages-directory-goto) to go to the entry to
-; which it refers in the pages buffer.
+;; In the directory, you may position the cursor over a heading line
+;; and type `C-c C-c' (pages-directory-goto) to go to the entry to
+;; which it refers in the pages buffer.
 
-; You can type `C-c C-p C-a' (add-new-page) to add a new entry in the
-; pages buffer or address file.  This is the same command you use to
-; add a new entry when you are in the pages buffer or address file.
+;; You can type `C-c C-p C-a' (add-new-page) to add a new entry in the
+;; pages buffer or address file.  This is the same command you use to
+;; add a new entry when you are in the pages buffer or address file.
 
-; If you wish, you may create several different directories,
-; one for each different buffer.
+;; If you wish, you may create several different directories,
+;; one for each different buffer.
 
 ;; `pages-directory-for-addresses' in detail
 
-; The `pages-directory-for-addresses' assumes a default addresses
-; file.  You do not need to specify the addresses file but merely type
-; `C-x C-p d' from any buffer.  The command finds the file, constructs
-; a directory for it, and switches you to the directory.  If you call
-; the command with a prefix arg, `C-u C-x C-p d', it prompts you for a
-; file name.
+;; The `pages-directory-for-addresses' assumes a default addresses
+;; file.  You do not need to specify the addresses file but merely type
+;; `C-x C-p d' from any buffer.  The command finds the file, constructs
+;; a directory for it, and switches you to the directory.  If you call
+;; the command with a prefix arg, `C-u C-x C-p d', it prompts you for a
+;; file name.
 
-; You may customize the addresses commands:
+;; You may customize the addresses commands:
 
-;   The `pages-addresses-file-name' variable determines the name of
-;   the addresses file; by default it is "~/addresses".
+;;   The `pages-addresses-file-name' variable determines the name of
+;;   the addresses file; by default it is "~/addresses".
 
-;   The `pages-directory-for-addresses-goto-narrowing-p' variable
-;   determines whether `pages-directory-goto' narrows the addresses
-;   buffer to the entry, which it does by default.
+;;   The `pages-directory-for-addresses-goto-narrowing-p' variable
+;;   determines whether `pages-directory-goto' narrows the addresses
+;;   buffer to the entry, which it does by default.
 
-;   The `pages-directory-for-addresses-buffer-keep-windows-p' variable
-;   determines whether `pages-directory-for-addresses' deletes other
-;   windows to show as many lines as possible on the screen or works
-;   in the usual Emacs manner and keeps other windows.  Default is to
-;   keep other windows.
+;;   The `pages-directory-for-addresses-buffer-keep-windows-p' variable
+;;   determines whether `pages-directory-for-addresses' deletes other
+;;   windows to show as many lines as possible on the screen or works
+;;   in the usual Emacs manner and keeps other windows.  Default is to
+;;   keep other windows.
 
-;   The `pages-directory-for-adding-addresses-narrowing-p' variable
-;   determines whether `pages-directory-for-addresses' narrows the
-;   addresses buffer to a new entry when you are adding that entry.
-;   Default is to narrow to new entry, which means you see a blank
-;   screen before you write the new entry.
+;;   The `pages-directory-for-adding-addresses-narrowing-p' variable
+;;   determines whether `pages-directory-for-addresses' narrows the
+;;   addresses buffer to a new entry when you are adding that entry.
+;;   Default is to narrow to new entry, which means you see a blank
+;;   screen before you write the new entry.
 
 ;; `pages-directory' in detail
 
-; Call the `pages-directory' command from the buffer for which you
-; want a directory created; it creates a directory for the buffer and
-; pops you to the directory.
+;; Call the `pages-directory' command from the buffer for which you
+;; want a directory created; it creates a directory for the buffer and
+;; pops you to the directory.
 
-; The `pages-directory' command has several options:
+;; The `pages-directory' command has several options:
 
-;   Called with a prefix arg, `C-u C-x C-p C-d', the `pages-directory'
-;   prompts you for a regular expression and only lists only those
-;   header lines that are part of pages that contain matches to the
-;   regexp.  In the example above, `C-u C-x C-p C-d 617 RET' would
-;   match the telephone area code of the first and fourth entries, so
-;   only the header lines of those two entries would appear in the
-;   pages-directory-buffer.
-; 
-;   Called with a numeric argument, the `pages-directory' command
-;   lists the number of lines in each page.  This is helpful when you
-;   are printing hardcopy.  
+;;   Called with a prefix arg, `C-u C-x C-p C-d', the `pages-directory'
+;;   prompts you for a regular expression and only lists only those
+;;   header lines that are part of pages that contain matches to the
+;;   regexp.  In the example above, `C-u C-x C-p C-d 617 RET' would
+;;   match the telephone area code of the first and fourth entries, so
+;;   only the header lines of those two entries would appear in the
+;;   pages-directory-buffer.
+;; 
+;;   Called with a numeric argument, the `pages-directory' command
+;;   lists the number of lines in each page.  This is helpful when you
+;;   are printing hardcopy.  
 
-;   Called with a negative numeric argument, the `pages-directory'
-;   command lists the lengths of pages whose contents match a regexp.
+;;   Called with a negative numeric argument, the `pages-directory'
+;;   command lists the lengths of pages whose contents match a regexp.
 
 ;;; Code:
 

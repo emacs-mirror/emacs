@@ -18,8 +18,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -30,28 +31,28 @@
 
 ;;; Change Log:
 
-; HISTORY
-; 9/88, created H.Kautz
-; modified 1/19/89, allow books with editor but no author;
-;                   added %O ordering field;
-;                   appended illegal multiple fields, instead of 
-;                     discarding;
-;                   added rule, a tech report whose %R number
-;                     contains "ISBN" is really a book
-;                   added rule, anything with an editor is a book
-;                     or a proceedings
-;                   added 'manual type, for items with institution
-;                     but no author or editor
-;                   fixed bug so trailing blanks are trimmed
-;                   added 'proceedings type
-;                   used "organization" field for proceedings
-; modified 2/16/89, updated help messages
-; modified 2/23/89, include capitalize stop words in r2b stop words,
-;                   fixed problems with contractions (e.g. it's),
-;                   caught multiple stop words in a row
-; modified 3/1/89,  fixed capitalize-title for first words all caps
-; modified 3/15/89, allow use of " to delimit fields
-; modified 4/18/89, properly "quote" special characters on output
+;; HISTORY
+;; 9/88, created H.Kautz
+;; modified 1/19/89, allow books with editor but no author;
+;;                   added %O ordering field;
+;;                   appended illegal multiple fields, instead of 
+;;                     discarding;
+;;                   added rule, a tech report whose %R number
+;;                     contains "ISBN" is really a book
+;;                   added rule, anything with an editor is a book
+;;                     or a proceedings
+;;                   added 'manual type, for items with institution
+;;                     but no author or editor
+;;                   fixed bug so trailing blanks are trimmed
+;;                   added 'proceedings type
+;;                   used "organization" field for proceedings
+;; modified 2/16/89, updated help messages
+;; modified 2/23/89, include capitalize stop words in r2b stop words,
+;;                   fixed problems with contractions (e.g. it's),
+;;                   caught multiple stop words in a row
+;; modified 3/1/89,  fixed capitalize-title for first words all caps
+;; modified 3/15/89, allow use of " to delimit fields
+;; modified 4/18/89, properly "quote" special characters on output
 
 ;;; Code:
 

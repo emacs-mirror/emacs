@@ -1,8 +1,11 @@
 ;;; cplus-md.el --- C++ code editing commands for Emacs
-;;; Copyright (C) 1985, 1992, 1994, 1995 Free Software Foundation, Inc.
+
+;; Copyright (C) 1985, 1992, 1994, 1995 Free Software Foundation, Inc.
+
+;; Maintainer: Dave Detlefs <dld@cs.cmu.edu>
+;; Keywords: c
 
 ;; This file is part of GNU Emacs.
-;; Keywords: c languages oop
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,10 +18,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-;; Maintainer: Dave Detlefs <dld@cs.cmu.edu>
-;; Keywords: c
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 

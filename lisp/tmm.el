@@ -18,19 +18,21 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;; Commentary ============================================================
+;;; Commentary:
 
-;;; To use this package add 
+;; To use this package add 
 
-;;; (autoload 'tmm-menubar 'tmm "Text mode substitute for menubar" t) 
-;;; (global-set-key [f10] 'tmm-menubar)
+;; (autoload 'tmm-menubar 'tmm "Text mode substitute for menubar" t) 
+;; (global-set-key [f10] 'tmm-menubar)
+;; to your .emacs file. You can also add your own access to different
+;; menus available in Window System Emacs modeling definition after
+;; tmm-menubar.
 
-;;; to your .emacs file. You can also add your own access to different
-;;; menus available in Window System Emacs modeling definition after
-;;; tmm-menubar.
+;;; Code:
 
 (require 'electric)
 
@@ -412,8 +414,6 @@ of `menu-bar-final-items'."
 
 (add-hook 'calendar-load-hook (lambda () (require 'cal-menu)))
 
-
 (provide 'tmm)
-
 
 ;;; tmm.el ends here

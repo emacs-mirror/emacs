@@ -1,6 +1,6 @@
 ;;; rcompile.el --- run a compilation on a remote machine
 
-;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Albert    <alon@milcse.rtsg.mot.com>
 ;; Maintainer: FSF
@@ -21,44 +21,45 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; This package is for running a remote compilation and using emacs to parse
-;;; the error messages. It works by rsh'ing the compilation to a remote host
-;;; and parsing the output. If the file visited at the time remote-compile was
-;;; called was loaded remotely (ange-ftp), the host and user name are obtained
-;;; by the calling ange-ftp-ftp-name on the current directory. In this case the
-;;; next-error command will also ange-ftp the files over. This is achieved
-;;; automatically because the compilation-parse-errors function uses
-;;; default-directory to build it's file names. If however the file visited was
-;;; loaded locally, remote-compile prompts for a host and user and assumes the
-;;; files mounted locally (otherwise, how was the visited file loaded).
+;; This package is for running a remote compilation and using emacs to parse
+;; the error messages. It works by rsh'ing the compilation to a remote host
+;; and parsing the output. If the file visited at the time remote-compile was
+;; called was loaded remotely (ange-ftp), the host and user name are obtained
+;; by the calling ange-ftp-ftp-name on the current directory. In this case the
+;; next-error command will also ange-ftp the files over. This is achieved
+;; automatically because the compilation-parse-errors function uses
+;; default-directory to build it's file names. If however the file visited was
+;; loaded locally, remote-compile prompts for a host and user and assumes the
+;; files mounted locally (otherwise, how was the visited file loaded).
 
-;;; See the user defined variables section for more info.
+;; See the user defined variables section for more info.
 
-;;; I was contemplating redefining "compile" to "remote-compile" automatically
-;;; if the file visited was ange-ftp'ed but decided against it for now. If you
-;;; feel this is a good idea, let me know and I'll consider it again.
+;; I was contemplating redefining "compile" to "remote-compile" automatically
+;; if the file visited was ange-ftp'ed but decided against it for now. If you
+;; feel this is a good idea, let me know and I'll consider it again.
 
-;;; Installation:
+;; Installation:
 
-;;; To use rcompile, you also need to give yourself permission to connect to
-;;; the remote host.  You do this by putting lines like:
+;; To use rcompile, you also need to give yourself permission to connect to
+;; the remote host.  You do this by putting lines like:
 
-;;; monopoly alon
-;;; vme33
-;;;
-;;; in a file named .rhosts in the home directory (of the remote machine).
-;;; Be careful what you put in this file. A line like:
-;;;
-;;; +
-;;;
-;;; Will allow anyone access to your account without a password. I suggest you
-;;; read the rhosts(5) manual page before you edit this file (if you are not
-;;; familiar with it already) 
+;; monopoly alon
+;; vme33
+;;
+;; in a file named .rhosts in the home directory (of the remote machine).
+;; Be careful what you put in this file. A line like:
+;;
+;; +
+;;
+;; Will allow anyone access to your account without a password. I suggest you
+;; read the rhosts(5) manual page before you edit this file (if you are not
+;; familiar with it already) 
 
 ;;; Code:
 

@@ -1,5 +1,6 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
-;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
@@ -21,11 +22,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;  ----------
 
 ;; Never read that diff output again!
 ;; Apply patch selectively, like a pro!
@@ -69,10 +70,7 @@
 ;; particular, it can do patching, and 2-way and 3-way file comparison,
 ;; merging, and directory operations.
 
-
-
 ;;; Bugs:
-;;  -----
 
 ;;  1. The undo command doesn't restore deleted regions well. That is, if
 ;;  you delete all characters in a difference region and then invoke
@@ -94,8 +92,6 @@
 ;;  commands in `ediff-prepare-buffer-hook' (which will unhighlight every
 ;;  buffer used by Ediff) or you can execute them interactively, at any time
 ;;  and on any buffer.
-;;
-
 
 ;;; Acknowledgements:
 
@@ -103,7 +99,6 @@
 ;; Ediff would not have been possible without the help and encouragement of
 ;; its many users. See Ediff on-line Info for the full list of those who
 ;; helped. Improved defaults in Ediff file-name reading commands.
-
 
 ;;; Code:
 

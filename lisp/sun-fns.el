@@ -18,40 +18,41 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; Submitted Mar. 1987, Jeff Peck
-;;;		 	 Sun Microsystems Inc. <peck@sun.com>
-;;; Conceived Nov. 1986, Stan Jefferson,
-;;;                      Computer Science Lab, SRI International.
-;;; GoodIdeas Feb. 1987, Steve Greenbaum
-;;; & UpClicks           Reasoning Systems, Inc.
-;;;
-;;;
-;;; Functions for manipulating via the mouse and mouse-map definitions
-;;; for accessing them.  Also definitions of mouse menus.
-;;; This file you should freely modify to reflect you personal tastes.
-;;;
-;;; First half of file defines functions to implement mouse commands,
-;;; Don't delete any of those, just add what ever else you need.
-;;; Second half of file defines mouse bindings, do whatever you want there.
+;; Submitted Mar. 1987, Jeff Peck
+;;		 	 Sun Microsystems Inc. <peck@sun.com>
+;; Conceived Nov. 1986, Stan Jefferson,
+;;                      Computer Science Lab, SRI International.
+;; GoodIdeas Feb. 1987, Steve Greenbaum
+;; & UpClicks           Reasoning Systems, Inc.
+;;
+;;
+;; Functions for manipulating via the mouse and mouse-map definitions
+;; for accessing them.  Also definitions of mouse menus.
+;; This file you should freely modify to reflect you personal tastes.
+;;
+;; First half of file defines functions to implement mouse commands,
+;; Don't delete any of those, just add what ever else you need.
+;; Second half of file defines mouse bindings, do whatever you want there.
 
-;;;
-;;;         Mouse Functions.
-;;;
-;;; These functions follow the sun-mouse-handler convention of being called
-;;; with three arguments: (window x-pos y-pos)
-;;; This makes it easy for a mouse executed command to know where the mouse is.
-;;; Use the macro "eval-in-window" to execute a function 
-;;; in a temporarily selected window.
-;;;
-;;; If you have a function that must be called with other arguments
-;;; bind the mouse button to an s-exp that contains the necessary parameters.
-;;; See "minibuffer" bindings for examples.
-;;;
+;;
+;;         Mouse Functions.
+;;
+;; These functions follow the sun-mouse-handler convention of being called
+;; with three arguments: (window x-pos y-pos)
+;; This makes it easy for a mouse executed command to know where the mouse is.
+;; Use the macro "eval-in-window" to execute a function 
+;; in a temporarily selected window.
+;;
+;; If you have a function that must be called with other arguments
+;; bind the mouse button to an s-exp that contains the necessary parameters.
+;; See "minibuffer" bindings for examples.
+;;
 
 ;;; Code:
 

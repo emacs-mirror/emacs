@@ -1,5 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
-;;; Copyright (C) 1995 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -16,11 +17,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;; Notes:
-;;
+;;; Commentary:
+
 ;; Users are strongly encourage to add functionality to this file.
 ;; In particular, epatch needs to be enhanced to work with multi-file
 ;; patches. The present file contains all the infrastructure needed for that.
@@ -78,6 +80,8 @@
 ;; up appropriate files. It will also require a generalization of the functions
 ;; that do the layout of the meta- and differences buffers and of
 ;; ediff-dir-action.
+
+;;; Code:
 
 (require 'ediff-init)
 

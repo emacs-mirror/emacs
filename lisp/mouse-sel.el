@@ -17,8 +17,13 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
 ;;; Commentary:
-;;
+
 ;; This module provides multi-click mouse support for GNU Emacs versions
 ;; 19.18 and later.  I've tried to make it behave more like standard X
 ;; clients (eg. xterm) than the default Emacs 19 mouse selection handlers.
@@ -130,7 +135,7 @@
 ;;
 ;;     (overlay-put mouse-drag-overlay 'face 'bold)
 
-;;; Code: =================================================================
+;;; Code:
 
 (provide 'mouse-sel)
 

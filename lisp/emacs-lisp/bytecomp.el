@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code.
 
-;;; Copyright (C) 1985, 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -25,8 +25,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -36,120 +37,120 @@
 
 ;;; Code:
 
-;;; ========================================================================
-;;; Entry points:
-;;;	byte-recompile-directory, byte-compile-file,
-;;;     batch-byte-compile, batch-byte-recompile-directory,
-;;;	byte-compile, compile-defun,
-;;;	display-call-tree
-;;; (byte-compile-buffer and byte-compile-and-load-file were turned off
-;;;  because they are not terribly useful and get in the way of completion.)
+;; ========================================================================
+;; Entry points:
+;;	byte-recompile-directory, byte-compile-file,
+;;     batch-byte-compile, batch-byte-recompile-directory,
+;;	byte-compile, compile-defun,
+;;	display-call-tree
+;; (byte-compile-buffer and byte-compile-and-load-file were turned off
+;;  because they are not terribly useful and get in the way of completion.)
 
-;;; This version of the byte compiler has the following improvements:
-;;;  + optimization of compiled code:
-;;;    - removal of unreachable code;
-;;;    - removal of calls to side-effectless functions whose return-value
-;;;      is unused;
-;;;    - compile-time evaluation of safe constant forms, such as (consp nil)
-;;;      and (ash 1 6);
-;;;    - open-coding of literal lambdas;
-;;;    - peephole optimization of emitted code;
-;;;    - trivial functions are left uncompiled for speed.
-;;;  + support for inline functions;
-;;;  + compile-time evaluation of arbitrary expressions;
-;;;  + compile-time warning messages for:
-;;;    - functions being redefined with incompatible arglists;
-;;;    - functions being redefined as macros, or vice-versa;
-;;;    - functions or macros defined multiple times in the same file;
-;;;    - functions being called with the incorrect number of arguments;
-;;;    - functions being called which are not defined globally, in the 
-;;;      file, or as autoloads;
-;;;    - assignment and reference of undeclared free variables;
-;;;    - various syntax errors;
-;;;  + correct compilation of nested defuns, defmacros, defvars and defsubsts;
-;;;  + correct compilation of top-level uses of macros;
-;;;  + the ability to generate a histogram of functions called.
+;; This version of the byte compiler has the following improvements:
+;;  + optimization of compiled code:
+;;    - removal of unreachable code;
+;;    - removal of calls to side-effectless functions whose return-value
+;;      is unused;
+;;    - compile-time evaluation of safe constant forms, such as (consp nil)
+;;      and (ash 1 6);
+;;    - open-coding of literal lambdas;
+;;    - peephole optimization of emitted code;
+;;    - trivial functions are left uncompiled for speed.
+;;  + support for inline functions;
+;;  + compile-time evaluation of arbitrary expressions;
+;;  + compile-time warning messages for:
+;;    - functions being redefined with incompatible arglists;
+;;    - functions being redefined as macros, or vice-versa;
+;;    - functions or macros defined multiple times in the same file;
+;;    - functions being called with the incorrect number of arguments;
+;;    - functions being called which are not defined globally, in the 
+;;      file, or as autoloads;
+;;    - assignment and reference of undeclared free variables;
+;;    - various syntax errors;
+;;  + correct compilation of nested defuns, defmacros, defvars and defsubsts;
+;;  + correct compilation of top-level uses of macros;
+;;  + the ability to generate a histogram of functions called.
 
-;;; User customization variables:
-;;;
-;;; byte-compile-verbose	Whether to report the function currently being
-;;;				compiled in the minibuffer;
-;;; byte-optimize		Whether to do optimizations; this may be 
-;;;				t, nil, 'source, or 'byte;
-;;; byte-optimize-log		Whether to report (in excruciating detail) 
-;;;				exactly which optimizations have been made.
-;;;				This may be t, nil, 'source, or 'byte;
-;;; byte-compile-error-on-warn	Whether to stop compilation when a warning is
-;;;				produced;
-;;; byte-compile-delete-errors	Whether the optimizer may delete calls or
-;;;				variable references that are side-effect-free
-;;;				except that they may return an error.
-;;; byte-compile-generate-call-tree	Whether to generate a histogram of
-;;;				function calls.  This can be useful for 
-;;;				finding unused functions, as well as simple
-;;;				performance metering.
-;;; byte-compile-warnings	List of warnings to issue, or t.  May contain
-;;;				'free-vars (references to variables not in the
-;;;					    current lexical scope)
-;;;				'unresolved (calls to unknown functions)
-;;;				'callargs  (lambda calls with args that don't
-;;;					    match the lambda's definition)
-;;;				'redefine  (function cell redefined from
-;;;					    a macro to a lambda or vice versa,
-;;;					    or redefined to take other args)
-;;;				'obsolete  (obsolete variables and functions)
-;;; byte-compile-compatibility	Whether the compiler should
-;;;				generate .elc files which can be loaded into
-;;;				generic emacs 18.
-;;; emacs-lisp-file-regexp	Regexp for the extension of source-files;
-;;;				see also the function byte-compile-dest-file.
+;; User customization variables:
+;;
+;; byte-compile-verbose	Whether to report the function currently being
+;;				compiled in the minibuffer;
+;; byte-optimize		Whether to do optimizations; this may be 
+;;				t, nil, 'source, or 'byte;
+;; byte-optimize-log		Whether to report (in excruciating detail) 
+;;				exactly which optimizations have been made.
+;;				This may be t, nil, 'source, or 'byte;
+;; byte-compile-error-on-warn	Whether to stop compilation when a warning is
+;;				produced;
+;; byte-compile-delete-errors	Whether the optimizer may delete calls or
+;;				variable references that are side-effect-free
+;;				except that they may return an error.
+;; byte-compile-generate-call-tree	Whether to generate a histogram of
+;;				function calls.  This can be useful for 
+;;				finding unused functions, as well as simple
+;;				performance metering.
+;; byte-compile-warnings	List of warnings to issue, or t.  May contain
+;;				'free-vars (references to variables not in the
+;;					    current lexical scope)
+;;				'unresolved (calls to unknown functions)
+;;				'callargs  (lambda calls with args that don't
+;;					    match the lambda's definition)
+;;				'redefine  (function cell redefined from
+;;					    a macro to a lambda or vice versa,
+;;					    or redefined to take other args)
+;;				'obsolete  (obsolete variables and functions)
+;; byte-compile-compatibility	Whether the compiler should
+;;				generate .elc files which can be loaded into
+;;				generic emacs 18.
+;; emacs-lisp-file-regexp	Regexp for the extension of source-files;
+;;				see also the function byte-compile-dest-file.
 
-;;; New Features:
-;;;
-;;;  o	The form `defsubst' is just like `defun', except that the function
-;;;	generated will be open-coded in compiled code which uses it.  This
-;;;	means that no function call will be generated, it will simply be
-;;;	spliced in.  Lisp functions calls are very slow, so this can be a
-;;;	big win.
-;;;
-;;;	You can generally accomplish the same thing with `defmacro', but in
-;;;	that case, the defined procedure can't be used as an argument to
-;;;	mapcar, etc.
-;;;
-;;;  o	You can also open-code one particular call to a function without
-;;;	open-coding all calls.  Use the 'inline' form to do this, like so:
-;;;
-;;;		(inline (foo 1 2 3))	;; `foo' will be open-coded
-;;;	or...
-;;;		(inline			;;  `foo' and `baz' will be 
-;;;		 (foo 1 2 3 (bar 5))	;; open-coded, but `bar' will not.
-;;;		 (baz 0))
-;;;
-;;;  o	It is possible to open-code a function in the same file it is defined
-;;;	in without having to load that file before compiling it.  the
-;;;	byte-compiler has been modified to remember function definitions in
-;;;	the compilation environment in the same way that it remembers macro
-;;;	definitions.
-;;;
-;;;  o  Forms like ((lambda ...) ...) are open-coded.
-;;;
-;;;  o  The form `eval-when-compile' is like progn, except that the body
-;;;     is evaluated at compile-time.  When it appears at top-level, this
-;;;     is analogous to the Common Lisp idiom (eval-when (compile) ...).
-;;;     When it does not appear at top-level, it is similar to the
-;;;     Common Lisp #. reader macro (but not in interpreted code).
-;;;
-;;;  o  The form `eval-and-compile' is similar to eval-when-compile, but
-;;;	the whole form is evalled both at compile-time and at run-time.
-;;;
-;;;  o  The command compile-defun is analogous to eval-defun.
-;;;
-;;;  o  If you run byte-compile-file on a filename which is visited in a 
-;;;     buffer, and that buffer is modified, you are asked whether you want
-;;;     to save the buffer before compiling.
-;;;
-;;;  o  byte-compiled files now start with the string `;ELC'.
-;;;     Some versions of `file' can be customized to recognize that.
+;; New Features:
+;;
+;;  o	The form `defsubst' is just like `defun', except that the function
+;;	generated will be open-coded in compiled code which uses it.  This
+;;	means that no function call will be generated, it will simply be
+;;	spliced in.  Lisp functions calls are very slow, so this can be a
+;;	big win.
+;;
+;;	You can generally accomplish the same thing with `defmacro', but in
+;;	that case, the defined procedure can't be used as an argument to
+;;	mapcar, etc.
+;;
+;;  o	You can also open-code one particular call to a function without
+;;	open-coding all calls.  Use the 'inline' form to do this, like so:
+;;
+;;		(inline (foo 1 2 3))	;; `foo' will be open-coded
+;;	or...
+;;		(inline			;;  `foo' and `baz' will be 
+;;		 (foo 1 2 3 (bar 5))	;; open-coded, but `bar' will not.
+;;		 (baz 0))
+;;
+;;  o	It is possible to open-code a function in the same file it is defined
+;;	in without having to load that file before compiling it.  the
+;;	byte-compiler has been modified to remember function definitions in
+;;	the compilation environment in the same way that it remembers macro
+;;	definitions.
+;;
+;;  o  Forms like ((lambda ...) ...) are open-coded.
+;;
+;;  o  The form `eval-when-compile' is like progn, except that the body
+;;     is evaluated at compile-time.  When it appears at top-level, this
+;;     is analogous to the Common Lisp idiom (eval-when (compile) ...).
+;;     When it does not appear at top-level, it is similar to the
+;;     Common Lisp #. reader macro (but not in interpreted code).
+;;
+;;  o  The form `eval-and-compile' is similar to eval-when-compile, but
+;;	the whole form is evalled both at compile-time and at run-time.
+;;
+;;  o  The command compile-defun is analogous to eval-defun.
+;;
+;;  o  If you run byte-compile-file on a filename which is visited in a 
+;;     buffer, and that buffer is modified, you are asked whether you want
+;;     to save the buffer before compiling.
+;;
+;;  o  byte-compiled files now start with the string `;ELC'.
+;;     Some versions of `file' can be customized to recognize that.
 
 (require 'backquote)
 

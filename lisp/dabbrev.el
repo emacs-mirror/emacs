@@ -1,4 +1,5 @@
 ;;; dabbrev.el --- dynamic abbreviation package
+
 ;; Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -7,19 +8,22 @@
 ;; Lindberg's last update version: 5.7
 ;; Keywords: abbrev expand completion
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -90,11 +94,9 @@
 
 ;;; Code:
 
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
-;;; Customization variables
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
+;;----------------------------------------------------------------
+;; Customization variables
+;;----------------------------------------------------------------
 (defvar dabbrev-backward-only nil
   "*If non-nil, `dabbrev-expand' only looks backwards.")
 
@@ -213,11 +215,9 @@ If this variable is non-nil, dabbrev will only look in these buffers.
 It will not even look in the current buffer if it is not a member of
 this list.")
 
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
-;;; Internal variables
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
+;;----------------------------------------------------------------
+;; Internal variables
+;;----------------------------------------------------------------
 
 ;; Last obarray of completions in `dabbrev-completion'
 (defvar dabbrev--last-obarray nil)
@@ -258,11 +258,9 @@ this list.")
 ;; The regexp for recognizing a character in an abbreviation.
 (defvar dabbrev--abbrev-char-regexp nil)
 
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
-;;; Macros
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
+;;----------------------------------------------------------------
+;; Macros
+;;----------------------------------------------------------------
 
 ;;; Get the buffer that mini-buffer was activated from
 (defsubst dabbrev--minibuffer-origin ()
@@ -282,11 +280,9 @@ this list.")
 	 (setq dabbrev-tail (cdr dabbrev-tail)))
        (nreverse dabbrev-result))))
 
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
-;;; Exported functions
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
+;;----------------------------------------------------------------
+;; Exported functions
+;;----------------------------------------------------------------
 
 ;;;###autoload
 (define-key esc-map "/" 'dabbrev-expand)
@@ -519,11 +515,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (setq dabbrev--last-abbreviation abbrev)
       (setq dabbrev--last-abbrev-location (point-marker))))))
 
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
-;;; Local functions
-;;;----------------------------------------------------------------
-;;;----------------------------------------------------------------
+;;----------------------------------------------------------------
+;; Local functions
+;;----------------------------------------------------------------
 
 ;;; Checks if OTHER-BUFFER has the same major mode as current buffer.
 (defun dabbrev--same-major-mode-p (other-buffer)
@@ -839,6 +833,4 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 
 (provide 'dabbrev)
 
-;; dabbrev.el ends here
-
-
+;;; dabbrev.el ends here
