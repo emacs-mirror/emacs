@@ -3030,12 +3030,15 @@ non-nil, it is called instead of rereading visited file contents."
 	     (not (file-exists-p file-name)))
 	   (error "Auto-save file %s not current" file-name))
 	  ((save-window-excursion
-	     (if (not (memq system-type '(vax-vms windows-nt)))
-		 (with-output-to-temp-buffer "*Directory*"
-		   (buffer-disable-undo standard-output)
-		   (call-process "ls" nil standard-output nil
-				 (if (file-symlink-p file) "-lL" "-l")
-				 file file-name)))
+	     (with-output-to-temp-buffer "*Directory*"
+	       (buffer-disable-undo standard-output)
+	       (save-excursion
+		 (let ((switches dired-listing-switches))
+		   (if (file-symlink-p file)
+		       (setq switches (concat switches "L")))
+		   (set-buffer standard-output)
+		   (insert-directory file switches)
+		   (insert-directory file-name switches))))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((buffer-read-only nil)
