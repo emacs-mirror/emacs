@@ -60,14 +60,24 @@ This association list has elements of the form
    (function (lambda (p) (fset (car p) (symbol-function (cdr p)))))
    gud-overload-alist))
 
-(defun gud-massage-args (file args)
-  (error "GUD not properly entered"))
+(defvar gud-massage-args nil)
+(put 'gud-massage-args 'permanent-local t)
+(defvar gud-marker-filter nil)
+(put 'gud-marker-filter 'permanent-local t)
+(defvar gud-find-file nil)
+(put 'gud-find-file 'permanent-local t)
 
-(defun gud-marker-filter (str)
-  (error "GUD not properly entered"))
+(defun gud-massage-args (&rest args)
+  (apply gud-massage-args args))
 
-(defun gud-find-file (f)
-  (error "GUD not properly entered"))
+(defun gud-marker-filter (&rest args)
+  (apply gud-marker-filter args))
+
+(defun gud-find-file (file)
+  ;; Don't get confused by double slashes in the name that comes from GDB.
+  (while (string-match "//+" file)
+    (setq file (replace-match "/" t t file)))
+  (funcall gud-find-file file))
 
 ;; ======================================================================
 ;; command definition
@@ -236,12 +246,9 @@ and source-file directory for your debugger."
 				 "gdb ")
 			       gdb-minibuffer-local-map nil
 			       '(gud-gdb-history . 1))))
-  (gud-overload-functions '((gud-massage-args . gud-gdb-massage-args)
-			    (gud-marker-filter . gud-gdb-marker-filter)
-			    (gud-find-file . gud-gdb-find-file)
-			    ))
 
-  (gud-common-init command-line)
+  (gud-common-init command-line 'gud-gdb-massage-args
+		   'gud-gdb-marker-filter 'gud-gdb-find-file)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
@@ -295,21 +302,16 @@ available with older versions of GDB."
     (string-match "\\(\\`\\| \\)\\([^ ]*\\)\\'" command)
     (setq gud-gdb-complete-break (match-beginning 2)
 	  command-word (substring command gud-gdb-complete-break))
-    (unwind-protect
-	(progn
-	  ;; Temporarily install our filter function.
-	  (gud-overload-functions
-	   '((gud-marker-filter . gud-gdb-complete-filter)))
-	  ;; Issue the command to GDB.
-	  (gud-basic-call (concat "complete " command))
-	  (setq gud-gdb-complete-in-progress t
-		gud-gdb-complete-string nil
-		gud-gdb-complete-list nil)
-	  ;; Slurp the output.
-	  (while gud-gdb-complete-in-progress
-	    (accept-process-output (get-buffer-process gud-comint-buffer))))
-      ;; Restore the old filter function.
-      (gud-overload-functions '((gud-marker-filter . gud-gdb-marker-filter))))
+    ;; Temporarily install our filter function.
+    (let ((gud-marker-filter 'gud-gdb-complete-filter))
+      ;; Issue the command to GDB.
+      (gud-basic-call (concat "complete " command))
+      (setq gud-gdb-complete-in-progress t
+	    gud-gdb-complete-string nil
+	    gud-gdb-complete-list nil)
+      ;; Slurp the output.
+      (while gud-gdb-complete-in-progress
+	(accept-process-output (get-buffer-process gud-comint-buffer))))
     ;; Protect against old versions of GDB.
     (and gud-gdb-complete-list
 	 (string-match "^Undefined command: \"complete\""
@@ -408,12 +410,9 @@ and source-file directory for your debugger."
 		     (stringp tags-file-name)
 		     (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
-  (gud-overload-functions '((gud-massage-args . gud-sdb-massage-args)
-			    (gud-marker-filter . gud-sdb-marker-filter)
-			    (gud-find-file . gud-sdb-find-file)
-			    ))
 
-  (gud-common-init command-line)
+  (gud-common-init command-line 'gud-sdb-massage-args
+		   'gud-sdb-marker-filter 'gud-sdb-find-file)
 
   (gud-def gud-break  "%l b" "\C-b"   "Set breakpoint at current line.")
   (gud-def gud-tbreak "%l c" "\C-t"   "Set temporary breakpoint at current line.")
@@ -606,22 +605,18 @@ and source-file directory for your debugger."
 			       nil nil
 			       '(gud-dbx-history . 1))))
 
-  (gud-overload-functions
-   (cond
-    (gud-mips-p
-     '((gud-massage-args . gud-mipsdbx-massage-args)
-       (gud-marker-filter . gud-mipsdbx-marker-filter)
-       (gud-find-file . gud-dbx-find-file)))
-    (gud-irix-p
-     '((gud-massage-args . gud-dbx-massage-args)
-       (gud-marker-filter . gud-irixdbx-marker-filter)
-       (gud-find-file . gud-dbx-find-file)))
-    (t
-     '((gud-massage-args . gud-dbx-massage-args)
-       (gud-marker-filter . gud-dbx-marker-filter)
-       (gud-find-file . gud-dbx-find-file)))))
+  (gud-switch-to-buffer command-line)
 
-  (gud-common-init command-line)
+  (cond
+   (gud-mips-p
+    (gud-common-init command-line 'gud-mipsdbx-massage-args
+		     'gud-mipsdbx-marker-filter 'gud-dbx-find-file))
+   (gud-irix-p
+    (gud-common-init command-line 'gud-dbx-massage-args
+		     'gud-irixdbx-marker-filter 'gud-dbx-find-file))
+   (t
+    (gud-common-init command-line 'gud-dbx-massage-args
+		     'gud-dbx-marker-filter 'gud-dbx-find-file)))
 
   (cond
    (gud-mips-p
@@ -729,11 +724,9 @@ directories if your program contains sources from more than one directory."
 				 "xdb ")
 			       nil nil
 			       '(gud-xdb-history . 1))))
-  (gud-overload-functions '((gud-massage-args . gud-xdb-massage-args)
-			    (gud-marker-filter . gud-xdb-marker-filter)
-			    (gud-find-file . gud-xdb-find-file)))
 
-  (gud-common-init command-line)
+  (gud-common-init command-line 'gud-xdb-massage-args
+		   'gud-xdb-marker-filter 'gud-xdb-find-file)
 
   (gud-def gud-break  "b %f:%l"    "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "b %f:%l\\t" "\C-t"
@@ -828,12 +821,9 @@ and source-file directory for your debugger."
 				 "perl ")
 			       nil nil
 			       '(gud-perldb-history . 1))))
-  (gud-overload-functions '((gud-massage-args . gud-perldb-massage-args)
-			    (gud-marker-filter . gud-perldb-marker-filter)
-			    (gud-find-file . gud-perldb-find-file)
-			    ))
 
-  (gud-common-init command-line)
+  (gud-common-init command-line 'gud-perldb-massage-args
+		   'gud-perldb-marker-filter 'gud-perldb-find-file)
 
   (gud-def gud-break  "b %l"         "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "d %l"         "\C-d" "Remove breakpoint at current line")
@@ -964,8 +954,7 @@ comint mode, which see."
   (make-local-variable 'paragraph-start)
   (make-local-variable 'gud-delete-prompt-marker)
   (setq gud-delete-prompt-marker (make-marker))
-  (run-hooks 'gud-mode-hook)
-)
+  (run-hooks 'gud-mode-hook))
 
 ;; Chop STRING into words separated by SPC or TAB and return a list of them.
 (defun gud-chop-words (string)
@@ -986,7 +975,11 @@ comint mode, which see."
     (nreverse words)))
 
 ;; Perform initializations common to all debuggers.
-(defun gud-common-init (command-line)
+;; The first arg is the specified command line,
+;; which starts with the program to debug.
+;; The other three args specify the values to use
+;; for local variables in the debugger buffer.
+(defun gud-common-init (command-line massage-args marker-filter find-file)
   (let* ((words (gud-chop-words command-line))
 	 (program (car words))
 	 (file-word (let ((w (cdr words)))
@@ -997,13 +990,21 @@ comint mode, which see."
 	 (file (and file-word
 		    (expand-file-name (substitute-in-file-name file-word))))
 	 (filepart (and file-word (file-name-nondirectory file))))
-      (switch-to-buffer (concat "*gud-" filepart "*"))
-      (and file-word (setq default-directory (file-name-directory file)))
-      (or (bolp) (newline))
-      (insert "Current directory is " default-directory "\n")
-      (apply 'make-comint (concat "gud-" filepart) program nil
-	     (if file-word (gud-massage-args file args))))
+    (switch-to-buffer (concat "*gud-" filepart "*"))
+    (and file-word (setq default-directory (file-name-directory file)))
+    (or (bolp) (newline))
+    (insert "Current directory is " default-directory "\n")
+    (apply 'make-comint (concat "gud-" filepart) program nil
+	   (if file-word (funcall massage-args file args))))
+  ;; Since comint clobbered the mode, we don't set it until now.
   (gud-mode)
+  (make-local-variable 'gud-massage-args)
+  (setq gud-massage-args massage-args)
+  (make-local-variable 'gud-marker-filter)
+  (setq gud-marker-filter marker-filter)
+  (make-local-variable 'gud-find-file)
+  (setq gud-find-file find-file)
+
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
   (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
   (gud-set-buffer)
