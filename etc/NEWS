@@ -541,6 +541,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The file name argument of function `file-locked-p' is now required
+instead of being optional.
+
 ** The new built-in error `text-read-only' is signaled when trying to
 modify read-only text.
 
