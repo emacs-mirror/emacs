@@ -455,7 +455,7 @@ do_switch_frame (frame, no_enter, track)
     {
       Lisp_Object focus, xfocus;
 
-      xfocus = x_get_focus_frame ();
+      xfocus = x_get_focus_frame (XFRAME (frame));
       if (FRAMEP (xfocus))
 	{
 	  focus = FRAME_FOCUS_FRAME (XFRAME (xfocus));
@@ -1411,7 +1411,7 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
 #endif
 
   if (frame_rehighlight_hook)
-    (*frame_rehighlight_hook) ();
+    (*frame_rehighlight_hook) (XFRAME (focus_frame));
   
   return Qnil;
 }
