@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.88) $
+ * $HopeName: MMsrc!mpmst.h(trunk.89) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -255,7 +255,6 @@ typedef struct SegClassStruct {
   size_t size;                  /* size of outer structure */
   SegInitMethod init;           /* initialize the segment */
   SegFinishMethod finish;       /* finish the segment */
-  SegSummaryMethod summary;     /* get the segment summary  */
   SegSetSummaryMethod setSummary; /* set the segment summary  */
   SegBufferMethod buffer;       /* get the segment buffer  */
   SegSetBufferMethod setBuffer; /* set the segment buffer  */
