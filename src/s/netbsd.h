@@ -70,8 +70,6 @@
 #define HAVE_WAIT_HEADER
 #define WAIT_USE_INT
 
-#define NO_MATHERR
-
 #define AMPERSAND_FULL_NAME
 
 #ifdef __ELF__

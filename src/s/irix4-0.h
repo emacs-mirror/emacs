@@ -56,7 +56,3 @@
     return -1;							\
   strcpy (pty_name, name);					\
 }
-
-/* jpff@maths.bath.ac.uk reports `struct exception' is not defined
-   on this system, so inhibit use of matherr.  */
-#define NO_MATHERR
