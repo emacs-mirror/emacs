@@ -1,3 +1,9 @@
+2000-04-04  Milan Zamazal  <pdm@freesoft.cz>
+
+	* glasses.el: Provide facilities for inserting space before left
+	parentheses and uncapitalization of identifiers.
+	(glasses-mode): Try to remove old overlays in all cases.
+
 2000-04-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/compile.el (compile-internal): Display the compilation

@@ -1,3 +1,9 @@
+2000-04-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecode.c (Fbyte_code): Add a bunch of BEFORE_POTENTIAL_GC/
+	AFTER_POTENTIAL_GC calls around calls to functions that can
+	signal an error and thus invoke the debugger.
+
 2000-04-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* fns.c (Fbase64_decode_region, Fbase64_decode_string): Signal
