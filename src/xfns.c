@@ -3234,12 +3234,9 @@ x_window (f, window_prompting, minibuffer_only)
 
   UNBLOCK_INPUT;
 
-  if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
-    initialize_frame_menubar (f);
-  lw_set_main_areas (pane_widget, f->output_data.x->menubar_widget, frame_widget);
-
-  if (FRAME_X_WINDOW (f) == 0)
-    error ("Unable to create window");
+  /* This is a no-op, except under Motif.  Make sure main areas are
+     set to something reasonable, in case we get an error later.  */
+  lw_set_main_areas (pane_widget, 0, frame_widget);
 }
 
 #else /* not USE_X_TOOLKIT */
@@ -3747,6 +3744,9 @@ This function is an internal primitive--use `make-frame' instead.")
 
   f->output_data.x->size_hint_flags = window_prompting;
 
+  tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
+  f->no_split = minibuffer_only || EQ (tem, Qt);
+
   /* Create the X widget or window.  Add the toolbar height to the
      initial frame height so that the user gets a text display area of
      the size he specified with -g or via .Xdefaults.  Later changes
@@ -3754,16 +3754,20 @@ This function is an internal primitive--use `make-frame' instead.")
      so that users can create tall Emacs frames without having to
      guess how tall the toolbar will get.  */
   f->height += FRAME_TOOLBAR_LINES (f);
+
 #ifdef USE_X_TOOLKIT
   x_window (f, window_prompting, minibuffer_only);
 #else
   x_window (f);
 #endif
+  
   x_icon (f, parms);
   x_make_gc (f);
 
-  call1 (Qface_set_after_frame_default, frame);
-  
+  /* Now consider the frame official.  */
+  FRAME_X_DISPLAY_INFO (f)->reference_count++;
+  Vframe_list = Fcons (frame, Vframe_list);
+
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
   x_default_parameter (f, parms, Qicon_type, Qnil,
@@ -3785,30 +3789,35 @@ This function is an internal primitive--use `make-frame' instead.")
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0);
 
-  /* Tell the server what size and position, etc, we want,
-     and how badly we want them.  */
+  /* Set up faces after all frame parameters are known.  */
+  call1 (Qface_set_after_frame_default, frame);
+  
+#ifdef USE_X_TOOLKIT
+  /* Create the menu bar.  */
+  if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
+    {
+      /* If this signals an error, we haven't set size hints for the
+	 frame and we didn't make it visible.  */
+      initialize_frame_menubar (f);
+
+      /* This is a no-op, except under Motif where it arranges the
+	 main window for the widgets on it.  */
+      lw_set_main_areas (f->output_data.x->column_widget,
+			 f->output_data.x->menubar_widget,
+			 f->output_data.x->edit_widget);
+    }
+#endif /* USE_X_TOOLKIT */
+
+  /* Tell the server what size and position, etc, we want, and how
+     badly we want them.  This should be done after we have the menu
+     bar so that its size can be taken into account.  */
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
 
-  tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
-  f->no_split = minibuffer_only || EQ (tem, Qt);
-
-  UNGCPRO;
-
-  /* It is now ok to make the frame official
-     even if we get an error below.
-     And the frame needs to be on Vframe_list
-     or making it visible won't work.  */
-  Vframe_list = Fcons (frame, Vframe_list);
-
-  /* Now that the frame is official, it counts as a reference to
-     its display.  */
-  FRAME_X_DISPLAY_INFO (f)->reference_count++;
-
-  /* Make the window appear on the frame and enable display,
-     unless the caller says not to.  However, with explicit parent,
-     Emacs cannot control visibility, so don't try.  */
+  /* Make the window appear on the frame and enable display, unless
+     the caller says not to.  However, with explicit parent, Emacs
+     cannot control visibility, so don't try.  */
   if (! f->output_data.x->explicit_parent)
     {
       Lisp_Object visibility;
@@ -3827,6 +3836,7 @@ This function is an internal primitive--use `make-frame' instead.")
 	;
     }
 
+  UNGCPRO;
   return unbind_to (count, frame);
 }
 
