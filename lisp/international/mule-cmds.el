@@ -1866,8 +1866,10 @@ XX is a country, and CODE specifies a character set and coding system.
 For example, the locale name \"ja_JP.EUC\" might name a locale
 for Japanese in Japan using the `japanese-iso-8bit' coding-system.
 
-If LOCALE-NAME is nil, its value is taken from the environment
-variables LC_ALL, LC_CTYLE and LANG (the first one that is set).
+If LOCALE-NAME is nil, its value is looked up via `locale-codeset'
+using nl_langinfo(3), if that function is available in the system's
+library, otherwise it is simply taken from the environment variables
+LC_ALL, LC_CTYPE and LANG \(the first one that is set).
 
 The locale names supported by your system can typically be found in a
 directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
@@ -1894,7 +1896,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (setq files (cdr files)))
 	  (car files)))
 
-  (let ((locale locale-name))
+  (let ((locale (or locale-name (locale-codeset))))
 
     (unless locale
       ;; Use the first of these three environment variables
