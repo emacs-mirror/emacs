@@ -2097,8 +2097,9 @@ See `same-window-buffer-names' and `same-window-regexps'.")
   return Qnil;
 }
 
-DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 2,
-     "BDisplay buffer: \nP",   /* Use B so the default is (other-buffer).  */
+   /* Use B so the default is (other-buffer).  */
+DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 3,
+     "BDisplay buffer: \nP",
   "Make BUFFER appear in some window but don't select it.\n\
 BUFFER can be a buffer or a buffer name.\n\
 If BUFFER is shown already in some window, just use that one,\n\
@@ -2109,9 +2110,18 @@ Returns the window displaying BUFFER.\n\
 \n\
 The variables `special-display-buffer-names', `special-display-regexps',\n\
 `same-window-buffer-names', and `same-window-regexps' customize how certain\n\
-buffer names are handled.")
-  (buffer, not_this_window)
-     register Lisp_Object buffer, not_this_window;
+buffer names are handled.\n\
+\n\
+If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is 0, search all visible and iconified frames.\n\
+If FRAME is t, search all frames.\n\
+If FRAME is a frame, search only that frame.\n\
+If FRAME is nil, search only the selected frame\n\
+ (actually the last nonminibuffer frame),\n\
+ unless `pop-up-frames' is non-nil,\n\
+ which means search visible and iconified frames.")
+  (buffer, not_this_window, frame)
+     register Lisp_Object buffer, not_this_window, frame;
 {
   register Lisp_Object window, tem;
 
@@ -2140,7 +2150,9 @@ buffer names are handled.")
   /* If pop_up_frames,
      look for a window showing BUFFER on any visible or iconified frame.
      Otherwise search only the current frame.  */
-  if (pop_up_frames || last_nonminibuf_frame == 0)
+  if (! NILP (frame))
+    tem = frame;
+  else if (pop_up_frames || last_nonminibuf_frame == 0)
     XSETFASTINT (tem, 0);
   else
     XSETFRAME (tem, last_nonminibuf_frame);
@@ -2301,7 +2313,7 @@ temp_output_buffer_show (buf)
     call1 (Vtemp_buffer_show_function, buf);
   else
     {
-      window = Fdisplay_buffer (buf, Qnil);
+      window = Fdisplay_buffer (buf, Qnil, Qnil);
 
       if (XFRAME (XWINDOW (window)->frame) != selected_frame)
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
@@ -2973,7 +2985,7 @@ showing that buffer is used.")
     {
       window = Fget_buffer_window (Vother_window_scroll_buffer, Qnil);
       if (NILP (window))
-	window = Fdisplay_buffer (Vother_window_scroll_buffer, Qt);
+	window = Fdisplay_buffer (Vother_window_scroll_buffer, Qt, Qnil);
     }
   else
     {
