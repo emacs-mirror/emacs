@@ -230,7 +230,8 @@ On nonblank line, delete any immediately following blank lines."
 (defun delete-trailing-whitespace ()
   "Delete all the trailing whitespace across the current buffer.
 All whitespace after the last non-whitespace character in a line is deleted.
-This respects narrowing, created by \\[narrow-to-region] and friends."
+This respects narrowing, created by \\[narrow-to-region] and friends.
+A formfeed is not considered whitespace by this function."
   (interactive "*")
   (save-match-data
     (save-excursion
@@ -4069,12 +4070,12 @@ For more details, see `delete-key-deletes-forward'."
   (cond ((or (memq window-system '(x w32 mac pc))
 	     (memq system-type '(ms-dos windows-nt)))
 	 (let ((bindings 
-		`(([C-delete] [C-backspace] kill-word backward-kill-word)
-		  ([M-delete] [M-backspace] kill-word backward-kill-word)
-		  ([C-M-delete] [C-M-backspace] kill-sexp backward-kill-sexp)
+		`(([C-delete] [C-backspace])
+		  ([M-delete] [M-backspace])
+		  ([C-M-delete] [C-M-backspace])
 		  (,esc-map
-		   [C-delete] [C-backspace]
-		   kill-sexp backward-kill-sexp))))
+		   [C-delete] [C-backspace])))
+	       (old-state (lookup-key function-key-map [delete])))
 
 	   (if delete-key-deletes-forward
 	       (progn
@@ -4085,19 +4086,18 @@ For more details, see `delete-key-deletes-forward'."
 	     (define-key function-key-map [kp-delete] [?\C-?])
 	     (define-key function-key-map [backspace] [?\C-?]))
 
-	   (dolist (binding bindings)
-	     (let ((map global-map))
-	       (when (keymapp (car binding))
-		 (setq map (car binding) binding (cdr binding)))
-	       (let ((key1 (nth 0 binding))
-		     (key2 (nth 1 binding))
-		     (binding1 (nth 2 binding))
-		     (binding2 (nth 3 binding)))
-		 (unless delete-key-deletes-forward
-		   (let ((temp binding1))
-		     (setq binding1 binding2 binding2 temp)))
-		 (define-key map key1 binding1)
-		 (define-key map key2 binding2))))))
+	   ;; Maybe swap bindings of C-delete and C-backspace, etc.
+	   (unless (equal old-state (lookup-key function-key-map [delete]))
+	     (dolist (binding bindings)
+	       (let ((map global-map))
+		 (when (keymapp (car binding))
+		   (setq map (car binding) binding (cdr binding)))
+		 (let* ((key1 (nth 0 binding))
+			(key2 (nth 1 binding))
+			(binding1 (lookup-key map key1))
+			(binding2 (lookup-key map key2)))
+		   (define-key map key1 binding2)
+		   (define-key map key2 binding1)))))))
 	 (t
 	  (if delete-key-deletes-forward
 	      (progn
