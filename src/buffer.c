@@ -1562,7 +1562,7 @@ Automatically becomes buffer-local when set in any fashion.");
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
-		     make_number (Lisp_Vector),
+		     Qnil,
     "Display table that controls display of the contents of current buffer.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
 The display table is a vector created with `make-display-table'.\n\
@@ -1579,7 +1579,7 @@ If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 
   DEFVAR_PER_BUFFER ("buffer-field-list", &current_buffer->fieldlist,
-		     make_number (Lisp_Cons),
+		     Qnil,
     "List of fields in the current buffer.  See `add-field'.");
 
   DEFVAR_BOOL ("check-protected-fields", check_protected_fields,
@@ -1621,7 +1621,7 @@ The function is called, with no arguments, if it is non-nil.");
   Vfirst_change_function = Qnil;
 
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list,
-		     make_number (Lisp_Cons),
+		     Qnil,
     "List of undo entries in current buffer.\n\
 Recent changes come first; older changes follow newer.\n\
 \n\
