@@ -1,5 +1,8 @@
 2001-02-22  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* server.el (server-switch-buffer): Only switch window if the
+	current one is dedicated.
+
 	* textmodes/fill.el (fill-region-as-paragraph): Skip spaces backward
 	rather than using (match-beginning 0) when searching for break point.
 
