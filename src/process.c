@@ -5578,8 +5578,12 @@ process_send_signal (process, signo, current_group, nomsg)
 	}
 
       if (sig_char && *sig_char != CDISABLE)
-	send_process (proc, sig_char, 1, Qnil);
-      return;
+	{
+	  send_process (proc, sig_char, 1, Qnil);
+	  return;
+	}
+      /* If we can't send the signal with a character,
+	 fall through and send it another way.  */
 #else /* ! HAVE_TERMIOS */
 
       /* On Berkeley descendants, the following IOCTL's retrieve the
@@ -5636,9 +5640,12 @@ process_send_signal (process, signo, current_group, nomsg)
 	 you'd better be using one of the alternatives above!  */
 #endif /* ! defined (TCGETA) */
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-#endif /* ! defined HAVE_TERMIOS */
+	/* In this case, the code above should alway returns.  */
 	abort ();
-      /* The code above always returns from the function.  */
+#endif /* ! defined HAVE_TERMIOS */
+
+      /* The code above may fall through if it can't
+	 handle the signal.  */
 #endif /* defined (SIGNALS_VIA_CHARACTERS) */
 
 #ifdef TIOCGPGRP
