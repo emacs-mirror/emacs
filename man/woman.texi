@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texinfo,v 1.2 2000-08-03 20:43:01+01 fjw Exp $
+@c $Id: woman.texi,v 1.1 2000/08/08 10:38:56 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse UN*X Manual Pages ``Wo (without) Man''
@@ -14,7 +14,7 @@
 @paragraphindent 0
 @c %**end of header
 
-@dircategory GNU Emacs Lisp
+@dircategory Emacs
 @direntry
 * WoMan: (woman).       Browse UN*X Manual Pages `Wo (without) Man'.
 @end direntry
@@ -48,6 +48,8 @@ permission notice identical to this one.
 Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions.
 @end ifinfo
+
+@finalout
 
 @finalout
 
