@@ -511,7 +511,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	(contain-stack (list (point)))
 	(case-fold-search nil)
 	restart outer-loop-done inner-loop-done state ostate
-	this-indent last-sexp
+	this-indent last-sexp last-depth
 	at-else at-brace at-do
 	(opoint (point))
 	(next-depth 0))
@@ -525,8 +525,8 @@ Returns nil if line starts inside a string, t if in a comment."
 	;; plus enough other lines to get to one that
 	;; does not end inside a comment or string.
 	;; Meanwhile, do appropriate indentation on comment lines.
-	(setq innerloop-done nil)
-	(while (and (not innerloop-done)
+	(setq inner-loop-done nil)
+	(while (and (not inner-loop-done)
 		    (not (and (eobp) (setq outer-loop-done t))))
 	  (setq ostate state)
 	  (setq state (parse-partial-sexp (point) (progn (end-of-line) (point))
@@ -539,7 +539,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	      (icon-indent-line))
 	  (if (or (nth 3 state))
 	      (forward-line 1)
-	    (setq innerloop-done t)))
+	    (setq inner-loop-done t)))
 	(if (<= next-depth 0)
 	    (setq outer-loop-done t))
 	(if outer-loop-done
