@@ -21,6 +21,10 @@
 	code (eval-current-buffer).
 	Change doc-string comments to `new style' [w/`doc:' keyword].
 
+2001-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (access_keymap): Don't use initializers on Lisp_Object.
+
 2001-11-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lread.c (read1): Fix behavior with nested backquoting.
