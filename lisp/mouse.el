@@ -449,12 +449,13 @@ release the mouse button.  Otherwise, it does not."
 	    ;; In the case of a multiple click, it gives the wrong results,
 	    ;; because it would fail to set up a region.
 	    (if (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
+		;; In this case, we can just let the up-event execute normally.
 		(progn
-		  (setq this-command fun)
 		  ;; Delete the overlay before calling the function,
 		  ;; because delete-overlay increases buffer-modified-tick.
 		  (delete-overlay mouse-drag-overlay)
-		  (funcall fun event))
+		  (setq unread-command-events
+			(cons event unread-command-events)))
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
 		  (let (last-command this-command)
