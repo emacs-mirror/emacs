@@ -266,13 +266,9 @@ access_keymap (map, idx, t_ok)
      ought to be a symbol.  */
   idx = EVENT_HEAD (idx);
 
-  if (XTYPE (idx) == Lisp_Int
-      && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
-    error ("only ASCII characters may be looked up in keymaps");
-
   /* If idx is a symbol, it might have modifiers, which need to
      be put in the canonical order.  */
-  else if (XTYPE (idx) == Lisp_Symbol)
+  if (XTYPE (idx) == Lisp_Symbol)
     idx = reorder_modifiers (idx);
 
   {
@@ -294,7 +290,9 @@ access_keymap (map, idx, t_ok)
 
 	  case Lisp_Vector:
 	    if (XVECTOR (binding)->size == DENSE_TABLE_SIZE
-		&& XTYPE (idx) == Lisp_Int)
+		&& XTYPE (idx) == Lisp_Int
+		&& XINT (idx) >= 0
+		&& XINT (idx) < DENSE_TABLE_SIZE)
 	      return XVECTOR (binding)->contents[XINT (idx)];
 	    break;
 	  }
@@ -365,13 +363,9 @@ store_in_keymap (keymap, idx, def)
      ought to be a symbol.  */
   idx = EVENT_HEAD (idx);
 
-  if (XTYPE (idx) == Lisp_Int
-      && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
-    error ("only ASCII characters may be used as keymap indices");
-
   /* If idx is a symbol, it might have modifiers, which need to
      be put in the canonical order.  */
-  else if (XTYPE (idx) == Lisp_Symbol)
+  if (XTYPE (idx) == Lisp_Symbol)
     idx = reorder_modifiers (idx);
 
 
@@ -396,7 +390,8 @@ store_in_keymap (keymap, idx, def)
 	  case Lisp_Vector:
 	    if (XVECTOR (elt)->size != DENSE_TABLE_SIZE)
 	      break;
-	    if (XTYPE (idx) == Lisp_Int)
+	    if (XTYPE (idx) == Lisp_Int
+		&& XINT (idx) >= 0 && XINT (idx) < DENSE_TABLE_SIZE)
 	      {
 		XVECTOR (elt)->contents[XFASTINT (idx)] = def;
 		return def;
@@ -543,7 +538,7 @@ the front of KEYMAP.")
       else
 	{
 	  if (XTYPE (c) == Lisp_Int)
-	    XSETINT (c, XINT (c) & 0177);
+	    XSETINT (c, XINT (c) & ~meta_bit);
 
 	  metized = 0;
 	  idx++;
@@ -652,9 +647,8 @@ recognize the default bindings, just as `read-key-sequence' does.")
     }
 }
 
-/* Append a key to the end of a key sequence.  If key_sequence is a
-   string and key is a character, the result will be another string;
-   otherwise, it will be a vector.  */
+/* Append a key to the end of a key sequence.  We always make a vector.  */
+
 Lisp_Object
 append_key (key_sequence, key)
      Lisp_Object key_sequence, key;
@@ -663,17 +657,8 @@ append_key (key_sequence, key)
 
   args[0] = key_sequence;
 
-  if (XTYPE (key_sequence) == Lisp_String
-      && XTYPE (key) == Lisp_Int)
-    {
-      args[1] = Fchar_to_string (key);
-      return Fconcat (2, args);
-    }
-  else
-    {
-      args[1] = Fcons (key, Qnil);
-      return Fvconcat (2, args);
-    }
+  args[1] = Fcons (key, Qnil);
+  return Fvconcat (2, args);
 }
 
 
@@ -1002,7 +987,9 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 {
   Lisp_Object maps, tail;
 
-  maps = Fcons (Fcons (build_string (""), get_keymap (startmap)), Qnil);
+  maps = Fcons (Fcons (Fmake_vector (make_number (0), Qnil),
+		       get_keymap (startmap)),
+		Qnil);
 
   /* For each map in the list maps,
      look at any other maps it points to,
@@ -1054,14 +1041,16 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 			     keymap table.  */
 			  if (is_metized)
 			    {
+			      int meta_bit = meta_modifier;
 			      tem = Fcopy_sequence (thisseq);
-			      Faset (tem, last, make_number (i | 0200));
+			      
+			      Faset (tem, last, make_number (i | meta_bit));
 			      
 			      /* This new sequence is the same length as
 				 thisseq, so stick it in the list right
 				 after this one.  */
-			      XCONS (tail)->cdr =
-				Fcons (Fcons (tem, cmd), XCONS (tail)->cdr);
+			      XCONS (tail)->cdr
+				= Fcons (Fcons (tem, cmd), XCONS (tail)->cdr);
 			    }
 			  else
 			    {
@@ -1095,7 +1084,8 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 		      if (is_metized && XTYPE (elt) == Lisp_Int)
 			{
 			  tem = Fcopy_sequence (thisseq);
-			  Faset (tem, last, make_number (XINT (elt) | 0200));
+			  Faset (tem, last,
+				 make_number (XINT (elt) | meta_modifier));
 
 			  /* This new sequence is the same length as
 			     thisseq, so stick it in the list right
@@ -1438,7 +1428,7 @@ indirect definition itself.")
 	  if (XTYPE (key) == Lisp_Int && last_is_meta)
 	    {
 	      sequence = Fcopy_sequence (this);
-	      Faset (sequence, last, make_number (XINT (key) | 0200));
+	      Faset (sequence, last, make_number (XINT (key) | meta_modifier));
 	    }
 	  else
 	    sequence = append_key (this, key);
