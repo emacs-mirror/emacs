@@ -1494,7 +1494,10 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	    }
 	}
       if (!require_encoding)
-	str = make_unibyte_string ((char *) data, size);
+	{
+	  str = make_unibyte_string ((char *) data, size);
+	  Vlast_coding_system_used = Qraw_text;
+	}
       else
 	{
 	  int bufsize;
@@ -1512,6 +1515,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 		  : coding.produced_char);
 	  str = make_string_from_bytes ((char *) buf, size, coding.produced);
 	  xfree (buf);
+	  Vlast_coding_system_used = coding.symbol;
 	}
       return str;
     }
@@ -1627,6 +1631,7 @@ lisp_data_to_selection_data (display, obj,
 	  /* No multibyte character in OBJ.  We need not encode it.  */
 	  *nofree_ret = 1;
 	  if (NILP (type)) type = QSTRING;
+	  Vlast_coding_system_used = Qraw_text;
 	}
       else
 	{
@@ -1657,6 +1662,7 @@ lisp_data_to_selection_data (display, obj,
 	      /* We must return it as `COMPOUND_TEXT'.  */
 	      if (NILP (type)) type = QCOMPOUND_TEXT;
 	    }
+	  Vlast_coding_system_used = coding.symbol;
 	}
     }
   else if (SYMBOLP (obj))
