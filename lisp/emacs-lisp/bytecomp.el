@@ -246,6 +246,29 @@ t means do all optimizations.
   "*If non-nil, the optimizer may delete forms that may signal an error.
 This includes variable references and calls to functions such as `car'.")
 
+(defvar byte-compile-dynamic nil
+  "*If non-nil, compile function bodies so they load lazily.
+They are hidden comments in the compiled file, and brought into core when the
+function is called.
+
+To enable this option, make it a file-local variable
+in the source file you want it to apply to.
+For example, add  -*-byte-compile-dynamic: t;-*- on the first line.
+
+When this option is true, if you load the compiled file and then move it,
+the functions you loaded will not be able to run.")
+
+(defvar byte-compile-dynamic-docstrings t
+  "*If non-nil, compile doc strings for lazy access.
+We bury the doc strings of functions and variables
+inside comments in the file, and bring them into core only when they
+are actually needed.
+
+When this option is true, if you load the compiled file and then move it,
+you won't be able to find the documentation of anything in that file.
+
+This option is enabled by default because it reduces Emacs memory usage.")
+
 (defvar byte-optimize-log nil
   "*If true, the byte-compiler will log its optimizations into *Compile-Log*.
 If this is 'source, then only source-level optimizations will be logged.
@@ -677,8 +700,9 @@ otherwise pop it")
 
 ;;; byte compiler messages
 
-(defconst byte-compile-current-form nil)
-(defconst byte-compile-current-file nil)
+(defvar byte-compile-current-form nil)
+(defvar byte-compile-current-file nil)
+(defvar byte-compile-dest-file nil)
 
 (defmacro byte-compile-log (format-string &rest args)
   (list 'and
@@ -899,7 +923,7 @@ otherwise pop it")
 	 (sig (and def (byte-compile-arglist-signature
 			 (if (eq 'lambda (car-safe def))
 			     (nth 1 def)
-			   (if (compiled-function-p def)
+			   (if (byte-code-function-p def)
 			       (aref def 0)
 			     '(&rest def))))))
 	 (ncall (length (cdr form))))
@@ -934,7 +958,7 @@ otherwise pop it")
 	(let ((sig1 (byte-compile-arglist-signature
 		      (if (eq 'lambda (car-safe old))
 			  (nth 1 old)
-			(if (compiled-function-p old)
+			(if (byte-code-function-p old)
 			    (aref old 0)
 			  '(&rest def)))))
 	      (sig2 (byte-compile-arglist-signature (nth 2 form))))
@@ -1019,6 +1043,10 @@ otherwise pop it")
 		;;
 		(byte-compile-verbose byte-compile-verbose)
 		(byte-optimize byte-optimize)
+		(byte-compile-compatibility byte-compile-compatibility)
+		(byte-compile-dynamic byte-compile-dynamic)
+		(byte-compile-dynamic-docstrings
+		 byte-compile-dynamic-docstrings)
 ;; 		(byte-compile-generate-emacs19-bytecodes
 ;; 		 byte-compile-generate-emacs19-bytecodes)
 		(byte-compile-warnings (if (eq byte-compile-warnings t)
@@ -1150,7 +1178,10 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
   (if byte-compile-verbose
       (message "Compiling %s..." filename))
   (let ((byte-compile-current-file filename)
-	target-file input-buffer output-buffer)
+	target-file input-buffer output-buffer
+	byte-compile-dest-file)
+    (setq target-file (byte-compile-dest-file filename))
+    (setq byte-compile-dest-file target-file)
     (save-excursion
       (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (set-buffer input-buffer)
@@ -1158,8 +1189,9 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
       (insert-file-contents filename)
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
-      (let ((buffer-file-name filename))
-        (set-auto-mode)
+      (let ((buffer-file-name filename)
+	    (enable-local-eval nil))
+        (normal-mode)
         (setq filename buffer-file-name)))
     (setq byte-compiler-error-flag nil)
     ;; It is important that input-buffer not be current at this call,
@@ -1174,11 +1206,6 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 	(goto-char (point-max))
 	(insert "\n")			; aaah, unix.
 	(let ((vms-stmlf-recfm t))
-	  (setq target-file (byte-compile-dest-file filename))
-;;;	  (or byte-compile-overwrite-file
-;;;		  (condition-case ()
-;;;		      (delete-file target-file)
-;;;		    (error nil)))
 	  (if (file-writable-p target-file)
 	      (let ((kanji-flag nil))	; for nemacs, from Nakagawa Takayuki
 		(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
@@ -1191,12 +1218,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 			  (if (file-exists-p target-file)
 			      "cannot overwrite file"
 			    "directory not writable or nonexistent")
-			  target-file)))
-;;;	  (or byte-compile-overwrite-file
-;;;		  (condition-case ()
-;;;		      (set-file-modes target-file (file-modes filename))
-;;;		    (error nil)))
-	  )
+			  target-file))))
 	(kill-buffer (current-buffer)))
       (if (and byte-compile-generate-call-tree
 	       (or (eq t byte-compile-generate-call-tree)
@@ -1252,115 +1274,104 @@ With argument, insert value in current buffer after the form."
 
 (defun byte-compile-from-buffer (inbuffer &optional filename)
   ;; Filename is used for the loading-into-Emacs-18 error message.
-  (let (outbuffer)
-    (let (;; Prevent truncation of flonums and lists as we read and print them
-	  (float-output-format nil)
-	  (case-fold-search nil)
-	  (print-length nil)
-	  ;; Simulate entry to byte-compile-top-level
-	  (byte-compile-constants nil)
-	  (byte-compile-variables nil)
-	  (byte-compile-tag-number 0)
-	  (byte-compile-depth 0)
-	  (byte-compile-maxdepth 0)
-	  (byte-compile-output nil)
-	  ;;	  #### This is bound in b-c-close-variables.
-	  ;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
-	  ;;				     byte-compile-warning-types
-	  ;;				   byte-compile-warnings))
-	  )
-      (byte-compile-close-variables
-       (save-excursion
-	 (setq outbuffer
-	       (set-buffer (get-buffer-create " *Compiler Output*")))
-	 (erase-buffer)
-	 ;;	 (emacs-lisp-mode)
-	 (setq case-fold-search nil)
+  (let (outbuffer
+	;; Prevent truncation of flonums and lists as we read and print them
+	(float-output-format nil)
+	(case-fold-search nil)
+	(print-length nil)
+	;; Simulate entry to byte-compile-top-level
+	(byte-compile-constants nil)
+	(byte-compile-variables nil)
+	(byte-compile-tag-number 0)
+	(byte-compile-depth 0)
+	(byte-compile-maxdepth 0)
+	(byte-compile-output nil)
+	;;	  #### This is bound in b-c-close-variables.
+	;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
+	;;				     byte-compile-warning-types
+	;;				   byte-compile-warnings))
+	)
+    (byte-compile-close-variables
+     (save-excursion
+       (setq outbuffer
+	     (set-buffer (get-buffer-create " *Compiler Output*")))
+       (erase-buffer)
+       ;;	 (emacs-lisp-mode)
+       (setq case-fold-search nil)
+       (and filename (byte-compile-insert-header filename))
 
-	 ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
-	 ;; write files containing binary information specially.
-	 ;; Under most circumstances, such files will be in binary
-	 ;; overwrite mode, so those OS's use that flag to guess how
-	 ;; they should write their data.  Advise them that .elc files
-	 ;; need to be written carefully.
-	 (setq overwrite-mode 'overwrite-mode-binary))
-       (displaying-byte-compile-warnings
-	(save-excursion
-	  (set-buffer inbuffer)
-	  (goto-char 1)
-	  (while (progn
-		   (while (progn (skip-chars-forward " \t\n\^l")
-				 (looking-at ";"))
-		     (forward-line 1))
-		   (not (eobp)))
-	    (byte-compile-file-form (read inbuffer)))
-	  ;; Compile pending forms at end of file.
-	  (byte-compile-flush-pending)
-	  (and filename (byte-compile-insert-header filename))
-	  (byte-compile-warn-about-unresolved-functions)
-	  ;; always do this?  When calling multiple files, it
-	  ;; would be useful to delay this warning until all have
-	  ;; been compiled.
-	  (setq byte-compile-unresolved-functions nil)))
-       (save-excursion
-	 (set-buffer outbuffer)
-	 (goto-char (point-min)))))
+       ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
+       ;; write files containing binary information specially.
+       ;; Under most circumstances, such files will be in binary
+       ;; overwrite mode, so those OS's use that flag to guess how
+       ;; they should write their data.  Advise them that .elc files
+       ;; need to be written carefully.
+       (setq overwrite-mode 'overwrite-mode-binary))
+     (displaying-byte-compile-warnings
+      (save-excursion
+	(set-buffer inbuffer)
+	(goto-char 1)
+
+	;; Compile the forms from the input buffer.
+	(while (progn
+		 (while (progn (skip-chars-forward " \t\n\^l")
+			       (looking-at ";"))
+		   (forward-line 1))
+		 (not (eobp)))
+	  (byte-compile-file-form (read inbuffer)))
+
+	;; Compile pending forms at end of file.
+	(byte-compile-flush-pending)
+	(byte-compile-warn-about-unresolved-functions)
+	;; SHould we always do this?  When calling multiple files, it
+	;; would be useful to delay this warning until all have
+	;; been compiled.
+	(setq byte-compile-unresolved-functions nil))))
     outbuffer))
-;;;     (if (not eval)
-;;;         outbuffer
-;;;       (while (condition-case nil
-;;;		  (progn (setq form (read outbuffer))
-;;;			 t)
-;;;		(end-of-file nil))
-;;;	 (eval form))
-;;;       (kill-buffer outbuffer)
-;;;       nil))))
 
 (defun byte-compile-insert-header (filename)
-  (save-excursion
-    (set-buffer outbuffer)
-    (goto-char 1)
-    ;;
-    ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After that is
-    ;; the file-format version number (18 or 19) as a byte, followed by some
-    ;; nulls.  The primary motivation for doing this is to get some binary
-    ;; characters up in the first line of the file so that `diff' will simply
-    ;; say "Binary files differ" instead of actually doing a diff of two .elc
-    ;; files.  An extra benefit is that you can add this to /etc/magic:
-    ;;
-    ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
-    ;; >4	byte		x		version %d
-    ;;
-    (insert
-     ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
-     "\000\000\000\n"
-     )
-    (insert ";;; compiled by " user-mail-address " on "
-	    (current-time-string) "\n;;; from file " filename "\n")
-    (insert ";;; emacs version " emacs-version ".\n")
-    (insert ";;; bytecomp version " byte-compile-version "\n;;; "
-     (cond
-       ((eq byte-optimize 'source) "source-level optimization only")
-       ((eq byte-optimize 'byte) "byte-level optimization only")
-       (byte-optimize "optimization is on")
-       (t "optimization is off"))
-     (if (byte-compile-version-cond byte-compile-compatibility)
-	 "; compiled with Emacs 18 compatibility.\n"
-       ".\n"))
-   (if (not (byte-compile-version-cond byte-compile-compatibility))
-       (insert ";;; this file uses opcodes which do not exist in Emacs 18.\n"
-	       ;; Have to check if emacs-version is bound so that this works
-	       ;; in files loaded early in loadup.el.
-	       "\n(if (and (boundp 'emacs-version)\n"
-	       "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	       "\t     (string-lessp emacs-version \"19\")))\n"
-	       "    (error \"`"
-	       ;; This escapes all backslashes in FILENAME.  Needed on Windows.
-	       (substring (prin1-to-string filename) 1 -1)
-	       "' was compiled for Emacs 19\"))\n"
-	       ))
-   ))
+  (set-buffer outbuffer)
+  (goto-char 1)
+  ;;
+  ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After that is
+  ;; the file-format version number (18 or 19) as a byte, followed by some
+  ;; nulls.  The primary motivation for doing this is to get some binary
+  ;; characters up in the first line of the file so that `diff' will simply
+  ;; say "Binary files differ" instead of actually doing a diff of two .elc
+  ;; files.  An extra benefit is that you can add this to /etc/magic:
+  ;;
+  ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
+  ;; >4	byte		x		version %d
+  ;;
+  (insert
+   ";ELC"
+   (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
+   "\000\000\000\n"
+   )
+  (insert ";;; compiled by " user-mail-address " on "
+	  (current-time-string) "\n;;; from file " filename "\n")
+  (insert ";;; emacs version " emacs-version ".\n")
+  (insert ";;; bytecomp version " byte-compile-version "\n;;; "
+	  (cond
+	   ((eq byte-optimize 'source) "source-level optimization only")
+	   ((eq byte-optimize 'byte) "byte-level optimization only")
+	   (byte-optimize "optimization is on")
+	   (t "optimization is off"))
+	  (if (byte-compile-version-cond byte-compile-compatibility)
+	      "; compiled with Emacs 18 compatibility.\n"
+	    ".\n"))
+  (if (not (byte-compile-version-cond byte-compile-compatibility))
+      (insert ";;; this file uses opcodes which do not exist in Emacs 18.\n"
+	      ;; Have to check if emacs-version is bound so that this works
+	      ;; in files loaded early in loadup.el.
+	      "\n(if (and (boundp 'emacs-version)\n"
+	      "\t (or (and (boundp 'epoch::version) epoch::version)\n"
+	      "\t     (string-lessp emacs-version \"19\")))\n"
+	      "    (error \"`"
+	      ;; This escapes all backslashes in FILENAME.  Needed on Windows.
+	      (substring (prin1-to-string filename) 1 -1)
+	      "' was compiled for Emacs 19\"))\n\n"
+	      )))
 
 
 (defun byte-compile-output-file-form (form)
@@ -1372,7 +1383,8 @@ With argument, insert value in current buffer after the form."
   ;; it here.
   (if (and (memq (car-safe form) '(defun defmacro defvar defconst autoload))
 	   (stringp (nth 3 form)))
-      (byte-compile-output-docform '("\n(" 3 ")") form)
+      (byte-compile-output-docform nil nil '("\n(" 3 ")") form nil
+				   (eq (car form) 'autoload))
     (let ((print-escape-newlines t)
 	  (print-readably t)	; print #[] for bytecode, 'x for (quote x)
 	  (print-gensym nil))	; this is too dangerous for now
@@ -1380,27 +1392,67 @@ With argument, insert value in current buffer after the form."
       (prin1 form outbuffer)
       nil)))
 
-(defun byte-compile-output-docform (info form)
+(defun byte-compile-output-docform (preface name info form specindex quoted)
   ;; Print a form with a doc string.  INFO is (prefix doc-index postfix).
+  ;; If PREFACE and NAME are non-nil, print them too,
+  ;; before INFO and the FORM but after the doc string itself.
+  ;; If SPECINDEX is non-nil, it is the index in FORM
+  ;; of the function bytecode string.  In that case,
+  ;; we output that argument and the following argument (the constants vector)
+  ;; together, for lazy loading.
+  ;; QUOTED says that we have to put a quote before the
+  ;; list that represents a doc string reference.
+  ;; `autoload' needs that.
   (set-buffer
    (prog1 (current-buffer)
      (set-buffer outbuffer)
-     (insert (car info))
-     (let ((docl (nthcdr (nth 1 info) form))
-	   (print-escape-newlines t)
-	   (print-readably t)	; print #[] for bytecode, 'x for (quote x)
-	   (print-gensym nil))	; this is too dangerous for now
-       (prin1 (car form) outbuffer)
-       (while (setq form (cdr form))
-	 (insert " ")
-	 (if (eq form docl)
-	     (let ((print-escape-newlines nil))
-	       (goto-char (prog1 (1+ (point))
-			    (prin1 (car form) outbuffer)))
-	       (insert "\\\n")
-	       (goto-char (point-max)))
-	   (prin1 (car form) outbuffer))))
-     (insert (nth 2 info))))
+     (let (position)
+
+       ;; Insert the doc string, and make it a comment with #@LENGTH.
+       (and (>= (nth 1 info) 0)
+	    byte-compile-dynamic-docstrings
+	    (progn
+	      ;; Make the doc string start at beginning of line
+	      ;; for make-docfile's sake.
+	      (insert "\n")
+	      (setq position
+		    (byte-compile-output-as-comment
+		     (nth (nth 1 info) form) nil))))
+
+       (if preface
+	   (progn
+	     (insert preface)
+	     (prin1 name outbuffer)))
+       (insert (car info))
+       (let ((print-escape-newlines t)
+	     (print-readably t)		; print #[] for bytecode, 'x for (quote x)
+	     (print-gensym nil)	; this is too dangerous for now
+	     (index 0))
+	 (prin1 (car form) outbuffer)
+	 (while (setq form (cdr form))
+	   (setq index (1+ index))
+	   (insert " ")
+	   (cond ((and (numberp specindex) (= index specindex))
+		  (let ((position
+			 (byte-compile-output-as-comment
+			  (cons (car form) (nth 1 form))
+			  t)))
+		    (princ (format "(#$ . %d) nil" position) outbuffer)
+		    (setq form (cdr form))
+		    (setq index (1+ index))))
+		 ((= index (nth 1 info))
+		  (if position
+		      (princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
+				     position)
+			     outbuffer)
+		    (let ((print-escape-newlines nil))
+		      (goto-char (prog1 (1+ (point))
+				   (prin1 (car form) outbuffer)))
+		      (insert "\\\n")
+		      (goto-char (point-max)))))
+		 (t
+		  (prin1 (car form) outbuffer)))))
+       (insert (nth 2 info)))))
   nil)
 
 (defun byte-compile-keep-pending (form &optional handler)
@@ -1591,36 +1643,82 @@ With argument, insert value in current buffer after the form."
 	       (eq 'lambda (car-safe (nth 1 code))))
 	  (cons (car form)
 		(cons name (cdr (nth 1 code))))
+	(byte-compile-flush-pending)
 	(if (not (stringp (nth 3 form)))
-	    ;; No doc string to make-docfile; insert form in normal code.
-	    (byte-compile-keep-pending
-	     (list (if (byte-compile-version-cond byte-compile-compatibility)
-		       'fset 'defalias)
-		   (list 'quote name)
-		   (cond ((not macrop)
-			  code)
-			 ((eq 'make-byte-code (car-safe code))
-			  (list 'cons ''macro code))
-			 ((list 'quote (if macrop
-					   (cons 'macro new-one)
-					 new-one))))))
+	    ;; No doc string.  Provide -1 as the "doc string index"
+	    ;; so that no element will be treated as a doc string.
+	    (byte-compile-output-docform
+	     (if (byte-compile-version-cond byte-compile-compatibility)
+		 "\n(fset '" "\n(defalias '")
+	     name
+	     (cond ((atom code)
+		    (if macrop '(" '(macro . #[" -1 "])") '(" #[" -1 "]")))
+		   ((eq (car code) 'quote)
+		    (setq code new-one)
+		    (if macrop '(" '(macro " -1 ")") '(" '(" -1 ")")))
+		   ((if macrop '(" (cons 'macro (" -1 "))") '(" (" -1 ")"))))
+	     (append code nil)
+	     (and (atom code) byte-compile-dynamic
+		  1)
+	     nil)
 	  ;; Output the form by hand, that's much simpler than having
 	  ;; b-c-output-file-form analyze the defalias.
-	  (byte-compile-flush-pending)
-	  (princ (if (byte-compile-version-cond byte-compile-compatibility)
-		     "\n(fset '" "\n(defalias '")
-		 outbuffer)
-	  (prin1 name outbuffer)
 	  (byte-compile-output-docform
+	   (if (byte-compile-version-cond byte-compile-compatibility)
+	       "\n(fset '" "\n(defalias '")
+	   name
 	   (cond ((atom code)
 		  (if macrop '(" '(macro . #[" 4 "])") '(" #[" 4 "]")))
 		 ((eq (car code) 'quote)
 		  (setq code new-one)
 		  (if macrop '(" '(macro " 2 ")") '(" '(" 2 ")")))
 		 ((if macrop '(" (cons 'macro (" 5 "))") '(" (" 5 ")"))))
-	   (append code nil))
-	  (princ ")" outbuffer)
-	  nil)))))
+	   (append code nil)
+	   (and (atom code) byte-compile-dynamic
+		1)
+	   nil))
+	(princ ")" outbuffer)
+	nil))))
+
+;; Print Lisp object EXP in the output file, inside a comment,
+;; and return the file position it will have.
+;; If QUOTED is non-nil, print with quoting; otherwise, print without quoting.
+(defun byte-compile-output-as-comment (exp quoted)
+  (let ((position (point)))
+    (set-buffer
+     (prog1 (current-buffer)
+       (set-buffer outbuffer)
+
+       ;; Insert EXP, and make it a comment with #@LENGTH.
+       (insert " ")
+       (if quoted
+	   (prin1 exp outbuffer)
+	 (princ exp outbuffer))
+       (goto-char position)
+       ;; Quote certain special characters as needed.
+       ;; get_doc_string in doc.c does the unquoting.
+       (while (search-forward "\^A" nil t)
+	 (replace-match "\^A\^A" t t))
+       (goto-char position)
+       (while (search-forward "\000" nil t)
+	 (replace-match "\^A0" t t))
+       (goto-char position)
+       (while (search-forward "\037" nil t)
+	 (replace-match "\^A_" t t))
+       (goto-char (point-max))
+       (insert "\037")
+       (goto-char position)
+       (insert "#@" (format "%d" (- (point-max) position)))
+
+       ;; Save the file position of the object.
+       ;; Note we should add 1 to skip the space
+       ;; that we inserted before the actual doc string,
+       ;; and subtract 1 to convert from an 1-origin Emacs position
+       ;; to a file position; they cancel.
+       (setq position (point))
+       (goto-char (point-max))))
+    position))
+
 
 
 ;;;###autoload
