@@ -1398,8 +1398,8 @@ Mode}).  The Foldout package provides folding-editor features
 
   This section gives a brief description of the special features
 available in C, C++, Objective-C, Java, CORBA IDL, and Pike modes.
-(These are called ``C mode and related modes.'')  @xref{Top, CC Mode,
-ccmode, , CC Mode}, for a more extensive description of these modes
+(These are called ``C mode and related modes.'')  @xref{Top, , CC Mode,
+ccmode, CC Mode}, for a more extensive description of these modes
 and their special features.
 
 @menu
