@@ -1618,7 +1618,7 @@ character, write it as a Lisp character constant: @samp{?} followed by
 the character as it would appear in a string.
 
   Here are examples of using vectors to rebind @kbd{C-=} (a control
-character outside of ASCII), @kbd{H-a} (a Hyper character; ASCII doesn't
+character not in ASCII), @kbd{H-a} (a Hyper character; ASCII doesn't
 have Hyper at all), @key{F7} (a function key), and @kbd{C-Mouse-1} (a
 keyboard-modified mouse button):
 
@@ -2016,8 +2016,8 @@ string quotes, and so on.  It does this by assigning each character to
 one of fifteen-odd @dfn{syntax classes}.  In some cases it specifies
 some additional information also.
 
-  Each major mode has its own syntax table (though sometimes related
-major modes share one syntax table) which it installs in each buffer
+  Each major mode has its own syntax table (though related major modes
+sometimes share one syntax table) which it installs in each buffer
 that uses the mode.  The syntax table installed in the current buffer
 is the one that all commands use, so we call it ``the'' syntax table.
 
@@ -2278,20 +2278,23 @@ Here an absolute file name is used, so no searching is done.
 @item
 @cindex loading Lisp libraries automatically
 @cindex autoload Lisp libraries
-Tell Emacs to automatically load a Lisp library named @file{mypackage}
-(i.e.@: a file @file{mypackage.elc} or @file{mypackage.el}) when the
-function @code{myfunction} in that library is called:
+Tell Emacs to find the definition for the function @code{myfunction}
+by loading a Lisp library named @file{mypackage} (i.e.@: a file
+@file{mypackage.elc} or @file{mypackage.el}):
 
 @example
 (autoload 'myfunction "mypackage" "Do what I say." t)
 @end example
 
 @noindent
-Here the string @code{"Do what I say."} is the function's documentation
-string made available to Emacs even when the package is not loaded
-(e.g., for commands such as @kbd{C-h a}), and @code{t} tells Emacs this
-function is interactive, that is, it can be invoked interactively by
-typing @kbd{M-x myfunction @key{RET}} or by binding it to a key.
+Here the string @code{"Do what I say."} is the function's
+documentation string.  You specify it in the @code{autoload}
+definition so it will be available for help commands even when the
+package is not loaded.  The last argument, @code{t}, indicates that
+this function is interactive; that is, it can be invoked interactively
+by typing @kbd{M-x myfunction @key{RET}} or by binding it to a key.
+If the function is not interactive, omit the @code{t} or use
+@code{nil}.
 
 @item
 Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}.
@@ -2398,10 +2401,10 @@ library.  @xref{Hooks}.
 
   Normally Emacs uses the environment variable @env{HOME} to find
 @file{.emacs}; that's what @samp{~} means in a file name.  But if you
-have done @code{su}, Emacs tries to find your own @file{.emacs}, not
-that of the user you are currently pretending to be.  The idea is
-that you should get your own editor customizations even if you are
-running as the super user.
+run Emacs from a shell started by @code{su}, Emacs tries to find your
+own @file{.emacs}, not that of the user you are currently pretending
+to be.  The idea is that you should get your own editor customizations
+even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
 It gets the user name from the environment variables @env{LOGNAME} and
