@@ -97,6 +97,8 @@ Lisp_Object QPRIMARY, QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
 
 Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
 
+Lisp_Object Qcompound_text_with_extensions;
+
 #ifdef CUT_BUFFER_SUPPORT
 Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
   QCUT_BUFFER4, QCUT_BUFFER5, QCUT_BUFFER6, QCUT_BUFFER7;
@@ -1650,6 +1652,10 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  str = make_string_from_bytes ((char *) buf,
 					coding.produced_char, coding.produced);
 	  xfree (buf);
+
+	  if (SYMBOLP (coding.post_read_conversion)
+	      && !NILP (Ffboundp (coding.post_read_conversion)))
+	    str = run_pre_post_conversion_on_str (str, coding, 0);
 	  Vlast_coding_system_used = coding.symbol;
 	}
       compose_chars_in_text (0, XSTRING (str)->size, str);
@@ -1756,10 +1762,13 @@ lisp_data_to_selection_data (display, obj,
 	Vnext_selection_coding_system = Vselection_coding_system;
 
       *format_ret = 8;
-      *data_ret = x_encode_text (obj, Vnext_selection_coding_system,
+      *data_ret = x_encode_text (obj, Vnext_selection_coding_system, 1,
 				 (int *) size_ret, &stringp);
       *nofree_ret = (*data_ret == XSTRING (obj)->data);
-      if (NILP (type))
+      if (EQ (Vnext_selection_coding_system,
+	      Qcompound_text_with_extensions))
+	type = QCOMPOUND_TEXT;
+      else if (NILP (type))
 	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
       Vlast_coding_system_used = (*nofree_ret
 				  ? Qraw_text
@@ -2426,6 +2435,8 @@ A value of 0 means wait as long as necessary.  This is initialized from the\n\
   QATOM	     = intern ("ATOM");		staticpro (&QATOM);
   QATOM_PAIR = intern ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
   QNULL	     = intern ("NULL");		staticpro (&QNULL);
+  Qcompound_text_with_extensions = intern ("compound-text-with-extensions");
+  staticpro (&Qcompound_text_with_extensions);
 
 #ifdef CUT_BUFFER_SUPPORT
   QCUT_BUFFER0 = intern ("CUT_BUFFER0"); staticpro (&QCUT_BUFFER0);
