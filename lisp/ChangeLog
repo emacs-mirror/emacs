@@ -1,3 +1,8 @@
+2002-06-14  Kim F. Storm  <storm@filanet.dk>
+
+	* progmodes/compile.el (grep-tree): Doc fixes.
+	Added SUBDIRS arg for non-interactive use.
+
 2002-06-14  Juanma Barranquero  <lektu@terra.es>
 
 	* comint.el (comint-snapshot-last-prompt): Bind
