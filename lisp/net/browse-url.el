@@ -236,7 +236,7 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (if (eq system-type 'windows-nt)
+  (if (memq system-type '(windows-nt ms-dos))
       'browse-url-default-windows-browser
     'browse-url-netscape)
   "*Function to display the current buffer in a WWW browser.
@@ -670,7 +670,11 @@ to use."
 
 (defun browse-url-default-windows-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (w32-shell-execute "open" url))
+  (if (eq system-type 'ms-dos)
+      (if dos-windows-version
+	  (shell-command (concat "start " (shell-quote-argument url)))
+	(error "Browsing URLs is not supported on this system"))
+    (w32-shell-execute "open" url)))
 
 ;; --- Netscape ---
 
