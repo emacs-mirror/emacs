@@ -1,3 +1,8 @@
+2002-05-15  John Paul Wallington <jpw@shootybangbang.com>
+
+	* replace.el (occur-read-primary-args): Handle a bare 'C-u'
+	correctly.
+
 2002-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp/easymenu.el (easy-menu-add): Doc fix.
