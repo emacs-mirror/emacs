@@ -1230,9 +1230,9 @@ current_minor_maps (modeptr, mapptr)
 		  BLOCK_INPUT;
 		  cmm_size = 30;
 		  newmodes
-		    = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
+		    = (Lisp_Object *) xmalloc (cmm_size * sizeof (Lisp_Object));
 		  newmaps
-		    = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
+		    = (Lisp_Object *) xmalloc (cmm_size * sizeof (Lisp_Object));
 		  UNBLOCK_INPUT;
 		}
 
