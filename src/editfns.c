@@ -2527,9 +2527,9 @@ Use %% to put a single % into the output.")
 
 	      if (p > buf
 		  && multibyte
-		  && *((unsigned char *) p - 1) >= 0x80
+		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
 		  && STRING_MULTIBYTE (args[n])
-		  && XSTRING (args[n])->data[0] >= 0xA0)
+		  && !CHAR_HEAD_P (XSTRING (args[n])->data[0]))
 		maybe_combine_byte = 1;
 	      nbytes = copy_text (XSTRING (args[n])->data, p,
 				  STRING_BYTES (XSTRING (args[n])),
@@ -2559,8 +2559,8 @@ Use %% to put a single % into the output.")
 
 	      if (p > buf
 		  && multibyte
-		  && *((unsigned char *) p - 1) >= 0x80
-		  && *((unsigned char *) p) >= 0xA0)
+		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
+		  && !CHAR_HEAD_P (*((unsigned char *) p)))
 		maybe_combine_byte = 1;
 	      this_nchars = strlen (p);
 	      p += this_nchars;
@@ -2572,8 +2572,8 @@ Use %% to put a single % into the output.")
 	  /* Copy a whole multibyte character.  */
 	  if (p > buf
 	      && multibyte
-	      && *((unsigned char *) p - 1) >= 0x80
-	      && *format >= 0xA0)
+	      && !ASCII_BYTE_P (*((unsigned char *) p - 1))
+	      && !CHAR_HEAD_P (*format))
 	    maybe_combine_byte = 1;
 	  *p++ = *format++;
 	  while (! CHAR_HEAD_P (*format)) *p++ = *format++;
