@@ -162,9 +162,9 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 
     ;; MIPS lint pass<n>; looks good for SunPro lint also
     ;;  TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomon.c due to truncation
-    ("[^ ]+ (\\([0-9]+\\)) in \\([^ ]+\\)" 2 1)
+    ("\n[^\n ]+ (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
     ;;  name defined but never used: LinInt in cmap_calc.c(199)
-    ("in \\([^(]+\\)(\\([0-9]+\\))$" 1 2)
+    ("in \\([^(\n]+\\)(\\([0-9]+\\))$" 1 2)
 
     ;; Ultrix 3.0 f77:
     ;;  fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
@@ -215,6 +215,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ("\n[a-zA-Z]?:?[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
+    ;; GNU messages with program name and optional column number
+    ;; and a severity letter after that.  nsgmls makes them.
+    ("\n[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
+\\([0-9]+\\):\\(\\([0-9]+\\):\\)?[A-Za-z]:" 1 2 4)
+
     ;; Cray C compiler error messages
     ("\n\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \\([^,\n]+\\), Line = \\([0-9]+\\)" 4 5)
 
@@ -226,7 +231,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
 
     ;; Sun ada (VADS, Solaris):
     ;;  /home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: "," inserted
-    ("\n\\([^, ]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
+    ("\n\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
