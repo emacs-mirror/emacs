@@ -987,7 +987,7 @@
 (unify-charset 'vietnamese-viscii-lower)
 (unify-charset 'vietnamese-viscii-upper)
 ;; Fixme: unifying sucks in the charset tables, which may be large.
-;; (Can we avoid that and do it anyhow?)
+;; (Can we avoid that and do it anyhow (with lazy loading)?)
 (unify-charset 'chinese-sisheng)
 (unify-charset 'indian-is13194)
 ;; (unify-charset 'ipa)
@@ -998,6 +998,7 @@
 ;; (unify-charset 'japanese-jisx0212)
 ;; (unify-charset 'japanese-jisx0213-1)
 ;; (unify-charset 'japanese-jisx0213-2)
+;; (unify-charset 'korean-ksc5601)
 
 
 ;; These are tables for translating characters on decoding and
@@ -1249,7 +1250,7 @@ for decoding and encoding files, process I/O, etc."
 ;; Tar files are not decoded at all, but we treat them as raw bytes.
 
 (setq file-coding-system-alist
-      '(("\\.elc\\'" . (emacs-mule . emacs-mule))
+      '(("\\.elc\\'" . utf-8-emacs)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
 	;; This is the defined default for XML documents.  It may be
 	;; overridden by a charset specification in the header.  That
