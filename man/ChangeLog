@@ -1,3 +1,7 @@
+2004-04-05  Kim F. Storm  <storm@cua.dk>
+
+	* custom.texi (File Variables): Add safe-local-eval-forms.
+
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
 	* info.texi (Info Search): Add info-apropos.
