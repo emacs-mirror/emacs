@@ -2090,12 +2090,15 @@ typically for purposes of moderating a list."
 	  "^ *---+ +Original message +---+ *$\\|"
 	  "^ *--+ +begin message +--+ *$\\|"
 	  "^ *---+ +Original message follows +---+ *$\\|"
-	  "^|? *---+ +Message text follows: +---+ *|?$"))
+	  "^|? *---+ +Message text follows: +---+ *|?$")
+  "A regexp that matches the separator before the text of a failed message.")
 
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
-the body of the original message."
+the body of the original message.
+The variable `mail-unsent-separator' should match the string that
+delimits the returned original message."
   (interactive)
   (require 'mail-utils)
   (let (to subj irp2 cc orig-message)
