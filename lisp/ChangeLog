@@ -1,5 +1,9 @@
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* tmm.el (tmm-get-keymap): Fix handling of :filter.
+	(tmm-add-prompt): Bind buffer-read-only to nil when inserting
+	text into *Completions*.
+
 	* net/goto-addr.el (goto-address-at-point): Deal with URLs
 	part of which look like email addresses.
 
