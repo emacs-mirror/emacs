@@ -1071,7 +1071,7 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
 
 
 DEFUN ("primary-charset", Fprimary_charset, Sprimary_charset, 0, 0, 0,
-       doc: /* Return the primary charset.  */)
+       doc: /* Return the primary charset (set by `set-primary-charset').  */)
      ()
 {
   return CHARSET_NAME (CHARSET_FROM_ID (charset_primary));
@@ -1080,7 +1080,9 @@ DEFUN ("primary-charset", Fprimary_charset, Sprimary_charset, 0, 0, 0,
 
 DEFUN ("set-primary-charset", Fset_primary_charset, Sset_primary_charset,
        1, 1, 0,
-       doc: /* Set the primary charset to CHARSET.  */)
+       doc: /* Set the primary charset to CHARSET.
+This determines how unibyte/multibyte conversion is done.  See also
+function `primary-charset'.  */)
      (charset)
      Lisp_Object charset;
 {
@@ -1093,7 +1095,7 @@ DEFUN ("set-primary-charset", Fset_primary_charset, Sset_primary_charset,
 
 
 DEFUN ("charset-plist", Fcharset_plist, Scharset_plist, 1, 1, 0,
-       doc: /* Return a property list of CHARSET.  */)
+       doc: /* Return the property list of CHARSET.  */)
      (charset)
      Lisp_Object charset;
 {
@@ -1118,7 +1120,9 @@ DEFUN ("set-charset-plist", Fset_charset_plist, Sset_charset_plist, 2, 2, 0,
 
 
 DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 2, 0,
-       doc: /* Unify characters of CHARSET with Unicode.   */)
+       doc: /* Unify characters of CHARSET with Unicode.
+This means reading the relevant file and installing the table defined
+by CHARSET's `:unify-map' property.  */)
      (charset, unify_map)
      Lisp_Object charset, unify_map;
 {
@@ -1137,8 +1141,12 @@ DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 2, 0,
     unify_map = CHARSET_UNIFY_MAP (cs);
   if (STRINGP (unify_map))
     load_charset_map_from_file (cs, unify_map, 2);
-  else
+  else if (VECTORP (unify_map))
     load_charset_map_from_vector (cs, unify_map, 2);
+  else if (NILP (unify_map))
+    error ("No unify-map for charset");
+  else
+    error ("Bad unify-map arg");
   CHARSET_UNIFIED_P (cs) = 1;
   return Qnil;
 }
@@ -1191,7 +1199,7 @@ DEFUN ("declare-equiv-charset", Fdeclare_equiv_charset, Sdeclare_equiv_charset,
        4, 4, 0,
        doc: /*
 Declare a charset of DIMENSION, CHARS, FINAL-CHAR is the same as CHARSET.
-CHARSET should be defined by `defined-charset' in advance.  */)
+CHARSET should be defined by `define-charset' in advance.  */)
      (dimension, chars, final_char, charset)
      Lisp_Object dimension, chars, final_char, charset;
 {
@@ -1296,9 +1304,6 @@ DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
 BEG and END are buffer positions.
 Optional arg TABLE if non-nil is a translation table to look up.
 
-If the region contains invalid multibyte characters,
-`unknown' is included in the returned list.
-
 If the current buffer is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
      (beg, end, table)
@@ -1350,9 +1355,6 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
        1, 2, 0,
        doc: /* Return a list of charsets in STR.
 Optional arg TABLE if non-nil is a translation table to look up.
-
-If the string contains invalid multibyte characters,
-`unknown' is included in the returned list.
 
 If STR is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
@@ -1734,6 +1736,7 @@ char_charset (c, charset_list, code_return)
 }
 
 
+/* Fixme: `unknown' can't happen now?  */
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
        doc: /*Return list of charset and one to three position-codes of CHAR.
 If CHAR is invalid as a character code,
