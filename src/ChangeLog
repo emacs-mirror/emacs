@@ -1,4 +1,4 @@
-2005-03-15  Kenichi Handa  <handa@m17n.org>
+2005-03-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Docstring of coding-category-list
 	fixed.

@@ -3,6 +3,9 @@
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
