@@ -1,3 +1,10 @@
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* shell.el (shell-file-name-quote-list): Add backslash.
+
+	* comint.el (comint-quote-filename): Correctly handle backslash
+	in comint-file-name-quote-list.
+
 2003-12-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-default-coding-systems): Call
