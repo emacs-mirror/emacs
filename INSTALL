@@ -73,6 +73,23 @@ that file `dir' in this directory contains an entry like this:
 
     * Elisp: (elisp).	The Emacs Lisp Reference Manual.
 
+* Image support libraries
+
+Emacs needs optional libraries to be able to display images (with the
+exception of PBM images whose support is built-in).  Here's the list
+of these optional libraries, and the URLs where they can be found:
+
+  . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
+  . libpng for PNG:   ftp://www.libpng.org/pub/png/
+  . Zlib (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
+  . libjpeg for JPEG: ftp://ftp.uu.net/graphics/jpeg/
+  . libtiff for TIFF: http://www.libtiff.org/
+  . libungif for GIF: 
+      http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
+
+Emacs needs to be configured with the appropriate --with-LIB option,
+to be built with these libraries.  See below for more details.
+
 
 BUILDING AND INSTALLATION:
 
@@ -128,7 +145,8 @@ To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
 TOOLKIT is `athena' or `motif' (`yes' and `lucid' are synonyms for
 `athena').  On some systems, it does not work to use a toolkit with
-shared libraries.
+shared libraries.  A free implementation of Motif, called LessTif, is
+available ftom <http://www.lesstif.org>.
 
 The `--with-gcc' option specifies that the build process should
 compile Emacs using GCC.  If you don't want to use GCC, specify
@@ -142,6 +160,19 @@ Kerberos-authenticated POP add `--with-kerberos', for Hesiod support
 add `--with-hesiod'.  These options enable Emacs to use POP; whether
 Emacs uses POP is controlled by individual users--see the Rmail
 chapter of the Emacs manual.
+
+For get Emacs with image support, use one or more of these options:
+
+  --with-xpm        for XPM image support
+  --with-jpeg       for JPEG image support
+  --with-tiff       for TIFF image support
+  --with-gif        for GIF image support
+  --with-png        for PNG image support
+
+You will have to download, build, and install the appropriate image
+support libraries, see the list of URLs in "ADDITIONAL DISTRIBUTION
+FILES" above.  (Note that configuring --with-png requires Zlib in
+addition to libpng.)
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -599,7 +630,7 @@ into problems during the build process.)
 It is important to understand that the runtime support of long file
 names by the Emacs binary is NOT affected by the LFN setting during
 compilation; Emacs compiled with DJGPP v2.0 or later will always
-support long file names on Windows 95 no matter what was the setting
+support long file names on Windows 9X no matter what was the setting
 of LFN at compile time.  However, if you compiled with LFN disabled
 and want to enable LFN support after Emacs was already built, you need
 to make sure that the support files in the lisp, etc and info
@@ -677,5 +708,5 @@ work.  Synchronous subprocesses do work.
 Version 2.0 of djgpp has two bugs that affect Emacs.  We've included
 corrected versions of two files from djgpp in the msdos subdirectory:
 is_exec.c and sigaction.c.  To work around the bugs, compile these
-files and link them into temacs.  Djgpp version 2.01 have these bugs
-fixed, so upgrade if you can before building Emacs.
+files and link them into temacs.  Djgpp versions 2.01 and later have
+these bugs fixed, so upgrade if you can before building Emacs.
