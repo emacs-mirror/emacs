@@ -74,6 +74,7 @@ than the begining."
   :version "21.4"
   :group 'grep)
 
+;;;###autoload
 (defcustom grep-command nil
   "The default grep command for \\[grep].
 If the grep program used supports an option to always include file names
@@ -100,6 +101,7 @@ call that function before using this variable in your program."
 		 (other :tag "Not Set" auto-detect))
   :group 'grep)
 
+;;;###autoload
 (defcustom grep-find-command nil
   "The default find command for \\[grep-find].
 The default value of this variable is set up by `grep-compute-defaults';
@@ -223,6 +225,7 @@ or when it is used with \\[grep-next-match].
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `complation-last-buffer' rather than `grep-last-buffer'.")
 
+;;;###autoload
 (defvar grep-regexp-alist
   '(("^\\(.+?\\)[:( \t]+\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
@@ -258,6 +261,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
+;;;###autoload
 (defvar grep-program
   ;; Currently zgrep has trouble.  It runs egrep instead of grep,
   ;; and it doesn't pass along long options right.
@@ -272,10 +276,12 @@ This gets tacked on the end of the generated expressions.")
   "The default grep program for `grep-command' and `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
+;;;###autoload
 (defvar find-program "find"
   "The default find program for `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
+;;;###autoload
 (defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
@@ -285,9 +291,12 @@ if not nil and not `gnu', it uses `find -print' and `xargs'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;; History of grep commands.
+;;;###autoload
 (defvar grep-history nil)
+;;;###autoload
 (defvar grep-find-history nil)
 
+;;;###autoload
 (defun grep-process-setup ()
   "Setup compilation variables and buffer for `grep'.
 Set up `compilation-exit-message-function' and run `grep-setup-hook'."
@@ -303,6 +312,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	   (cons msg code))))
   (run-hooks 'grep-setup-hook))
 
+;;;###autoload
 (defun grep-compute-defaults ()
   (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
     (setq grep-use-null-device
@@ -448,6 +458,7 @@ temporarily highlight in visited source lines."
        grep-regexp-alist))
 
 ;; This is a copy of find-tag-default from etags.el.
+;;;###autoload
 (defun grep-tag-default ()
   (save-excursion
     (while (looking-at "\\sw\\|\\s_")
