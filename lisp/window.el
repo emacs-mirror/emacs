@@ -286,9 +286,11 @@ This is a kluge."
 (defconst height-affecting-face-attributes
   '(:family :height :box :font :inherit))
 
-(defsubst mode-line-window-height-fudge ()
+(defsubst mode-line-window-height-fudge (&optional face)
   "Return a fudge factor to compensate for the extra height of graphic mode-lines.
 On a non-graphic display, return 0.
+
+FACE is the face used to display the mode-line; it defaults to `mode-line'.
 
 If the variable `mode-line-window-height-fudge' has a non-nil value, it
 is returned.  Otherwise, the `mode-line' face is checked to see if it
@@ -314,11 +316,54 @@ This is a kluge."
        (let ((attrs height-affecting-face-attributes)
 	     (fudge 0))
 	 (while attrs
-	   (let ((val (face-attribute 'mode-line (pop attrs))))
+	   (let ((val (face-attribute (or face 'mode-line) (pop attrs))))
 	     (unless (or (null val) (eq val 'unspecified))
 	       (setq fudge 1 attrs nil))))
 	 fudge))
     0))
+
+
+;;; These functions should eventually be replaced with versions that
+;;; really do the job (instead of using the kludgey mode-line face
+;;; hacking junk).
+
+(defun window-text-height (&optional window)
+  "Return the height in lines of the text display area of WINDOW.
+This doesn't include the mode-line (or header-line if any) or any
+partial-height lines in the text display area.
+
+Note that the current implementation of this function may sometimes
+return an inaccurate value, but attempts to be conservative, by
+returning fewer lines than actually exist in the case where the real
+value cannot be determined."
+  (with-current-buffer (window-buffer window)
+    (- (window-height window)
+       (if mode-line-format
+	   (1+ (mode-line-window-height-fudge))
+	 0)
+       (if header-line-format
+	   (1+ (mode-line-window-height-fudge 'header-line))
+	 0))))
+
+(defun set-window-text-height (window height)
+  "Sets the height in lines of the text display area of WINDOW to HEIGHT.
+This doesn't include the mode-line (or header-line if any) or any
+partial-height lines in the text display area.
+
+If WINDOW is nil, the selected window is used.
+If HEIGHT is less than `window-min-height', then WINDOW is deleted.
+
+Note that the current implementation of this function cannot always set
+the height exactly, but attempts to be conservative, by allocating more
+lines than are actually needed in the case where some error may be present."
+  (let ((delta (- height (window-text-height window))))
+    (unless (zerop delta)
+      (if (and window (not (eq window (selected-window))))
+	  (save-selected-window
+	    (select-window window)
+	    (enlarge-window delta))
+	(enlarge-window delta)))))
+
 
 (defun enlarge-window-horizontally (arg)
   "Make current window ARG columns wider."
@@ -404,20 +449,23 @@ or if the window is the only window of its frame."
                (or (not mini)
                    (< (nth 3 edges) (nth 1 (window-edges mini)))
                    (> (nth 1 edges) (frame-parameter nil 'menu-bar-lines))))
+
           ;; `count-screen-lines' always works on the current buffer, so
           ;; make sure it is the buffer displayed by WINDOW.
           (let ((text-height
-		 (+ (with-current-buffer (window-buffer window)
-		      (count-screen-lines))
-		    (mode-line-window-height-fudge)))
-                (window-height (window-height)))
+		 (with-current-buffer (window-buffer window)
+		   (count-screen-lines)))
+		(window-height
+		 (window-text-height)))
+
 	    ;; Don't try to redisplay with the cursor at the end
 	    ;; on its own line--that would force a scroll and spoil things.
 	    (when (and (eobp) (bolp) (not (bobp)))
 	      (forward-char -1))
-            (when (> window-height (1+ text-height))
+	    
+            (when (> window-height text-height)
               (shrink-window
-               (- window-height (max (1+ text-height) window-min-height)))))))))
+               (- window-height (max text-height window-min-height)))))))))
 
 (defun kill-buffer-and-window ()
   "Kill the current buffer and delete the selected window."
