@@ -3767,7 +3767,7 @@ This does code conversion according to the value of\n\
 	{
 	  /* try is reserved in some compilers (Microsoft C) */
 	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
-	  char *destination = read_buf + unprocessed;
+	  unsigned char *destination = read_buf + unprocessed;
 	  int this;
 
 	  /* Allow quitting out of the actual I/O.  */
