@@ -1,3 +1,13 @@
+1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* cus-edit.el (Custom-reset-standard): Doc fix.
+	(custom-variable-reset-standard): Doc fix.
+	(custom-face-reset-standard): Doc fix.
+	(custom-face-menu): "Reset to Standard" => "Erase Customization".
+	(custom-variable-menu): Likewise.
+	(custom-reset-menu): Likewise.
+	(custom-buffer-create-internal): Likewise.
+
 1999-11-26  Dave Love  <fx@gnu.org>
 
 	* progmodes/make-mode.el (makefile-mode-hook): Customize.
