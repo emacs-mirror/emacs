@@ -111,8 +111,8 @@ extern Lisp_Object _temp_category_set;
 
 /* Return 1 if there is a word boundary between two word-constituent
    characters C1 and C2 if they appear in this order, else return 0.
-   There is no word boundary between two word-constituent ASCII
-   characters.  */
+   There is no word boundary between two word-constituent ASCII and
+   Latin-1 characters.  */
 #define WORD_BOUNDARY_P(c1, c2)					\
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))

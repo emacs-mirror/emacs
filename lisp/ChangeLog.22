@@ -1,3 +1,8 @@
+2003-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (define-coding-system): Fix attribute
+	name :for-unibyte.
+
 2003-09-11  Dave Love  <fx@gnu.org>
 
 	* international/mule-util.el

@@ -119,8 +119,6 @@ existing support and the extra stuff at
    files need sorting out, but rms says Babyl will go before this is
    released.
 
- * ps-print won't work with non-ASCII text.  ps-mule needs rework.
-
  * Gnus still needs some attention, and we need to get changes
    accepted by Gnus maintainers...
 
