@@ -632,8 +632,15 @@ Before doing that, check if there are any old backups and get rid of them."
   (unless (and (fboundp 'msdos-long-file-names)
                (not (with-no-warnings (msdos-long-file-names))))
     (vc-delete-automatic-version-backups file)
-    (copy-file file (vc-version-backup-file-name file)
-               nil 'keep-date)))
+    (condition-case nil
+        (copy-file file (vc-version-backup-file-name file)
+                   nil 'keep-date)
+      ;; It's ok if it doesn't work (e.g. directory not writable),
+      ;; since this is just for efficiency.
+      (file-error 
+       (message
+        (concat "Warning: Cannot make version backup; "
+                "diff/revert therefore not local"))))))
 
 (defun vc-before-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
