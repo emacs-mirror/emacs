@@ -6046,6 +6046,7 @@ lookup_image (f, spec)
   int i;
   unsigned hash;
   struct gcpro gcpro1;
+  EMACS_TIME now;
 
   /* F must be a window-system frame, and SPEC must be a valid image
      specification.  */
@@ -6122,6 +6123,10 @@ lookup_image (f, spec)
 	}
     }
 
+  /* We're using IMG, so set its timestamp to `now'.  */
+  EMACS_GET_TIME (now);
+  img->timestamp = EMACS_SECS (now);
+  
   UNGCPRO;
   
   /* Value is the image id.  */
