@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001, 2002
+   Copyright (C) 1989, 93, 94, 95, 96, 97, 98, 1999, 2000, 01, 02, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3103,7 +3103,7 @@ x_new_focus_frame (dpyinfo, frame)
       selected_frame = frame;
       XSETFRAME (XWINDOW (selected_frame->selected_window)->frame,
 		 selected_frame);
-      Fselect_window (selected_frame->selected_window);
+      Fselect_window (selected_frame->selected_window, Qnil);
       choose_minibuf_frame ();
 #endif /* ! 0 */
 

@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1995, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1985, 1986, 1993, 1995, 1997, 1998, 1999, 2000, 2001, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -366,7 +366,7 @@ extern Lisp_Object Vmouse_window;
 extern Lisp_Object Vmouse_event;
 
 EXFUN (Fnext_window, 3);
-EXFUN (Fselect_window, 1);
+EXFUN (Fselect_window, 2);
 EXFUN (Fdisplay_buffer, 3);
 EXFUN (Fset_window_buffer, 2);
 EXFUN (Fset_window_hscroll, 2);

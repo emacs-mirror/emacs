@@ -589,7 +589,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (minibuf_level == 1 || !EQ (minibuf_window, selected_window))
     minibuf_selected_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
-  Fselect_window (minibuf_window);
+  Fselect_window (minibuf_window, Qnil);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
 
   Fmake_local_variable (Qprint_escape_newlines);

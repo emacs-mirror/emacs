@@ -3235,7 +3235,7 @@ x_new_focus_frame (dpyinfo, frame)
       selected_frame = frame;
       XSETFRAME (XWINDOW (selected_frame->selected_window)->frame,
 		 selected_frame);
-      Fselect_window (selected_frame->selected_window);
+      Fselect_window (selected_frame->selected_window, Qnil);
       choose_minibuf_frame ();
 #endif /* ! 0 */
 

@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 2002
+   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 02, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -379,7 +379,7 @@ supply if the command inquires which events were used to invoke it.  */)
       if (i != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
-	  Lisp_Object values, car;
+	  Lisp_Object values;
 	  /* Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  values = quotify_args (Fcopy_sequence (specs));
@@ -456,7 +456,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	      if (!NILP (Vmouse_leave_buffer_hook))
 		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
 
-	      Fselect_window (event);
+	      Fselect_window (event, Qnil);
 	    }
 	  string++;
 	}

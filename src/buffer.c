@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 02, 2003
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1661,9 +1661,9 @@ do not put this buffer at the front of the list of recently selected ones.  */)
     }
   Fset_buffer (buf);
   if (NILP (norecord))
-    /* This seems bogus since Fselect_window will call record_buffer anyway.  */
+    /* Why bother ?  Fselect_window will do it for us anyway.  -stef  */
     record_buffer (buf);
-  Fselect_window (Fdisplay_buffer (buf, other_window, Qnil));
+  Fselect_window (Fdisplay_buffer (buf, other_window, Qnil), norecord);
   return buf;
 }
 

@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2003
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -682,7 +682,7 @@ do_switch_frame (frame, track, for_deletion)
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
 
-  Fselect_window (XFRAME (frame)->selected_window);
+  Fselect_window (XFRAME (frame)->selected_window, Qnil);
 
 #ifndef WINDOWSNT
   /* Make sure to switch the tty color mode to that of the newly
@@ -860,7 +860,7 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
     error ("In `set-frame-selected-window', WINDOW is not on FRAME");
 
   if (EQ (frame, selected_frame))
-    return Fselect_window (window);
+    return Fselect_window (window, Qnil);
 
   return XFRAME (frame)->selected_window = window;
 }
@@ -1234,7 +1234,7 @@ The functions are run with one arg, the frame to be deleted.  */)
       /* If the dying minibuffer window was selected,
 	 select the new one.  */
       if (minibuffer_selected)
-	Fselect_window (minibuf_window);
+	Fselect_window (minibuf_window, Qnil);
     }
 
   /* Don't let echo_area_window to remain on a deleted frame.  */
