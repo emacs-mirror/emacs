@@ -367,7 +367,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (let ((buf (mpuz-get-buffer)))
     (or buf (setq buf (mpuz-create-buffer)))
     (switch-to-buffer buf)
-    (or buffer-read-only (toggle-read-only))
+    (setq buffer-read-only t)
     (mpuz-mode)))
 
 
