@@ -58,7 +58,8 @@ to use --brief and sets this variable to remember whether it worked.")
     vc-find-cvs-master)
   "*Where to look for version-control master files.
 The first pair corresponding to a given back end is used as a template
-when creating new masters.")
+when creating new masters.
+Setting this variable to nil turns off use of VC entirely.")
 
 (defvar vc-make-backup-files nil
   "*If non-nil, backups of registered files are made as with other files.
