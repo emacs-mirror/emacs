@@ -2117,7 +2117,10 @@ describe_translation (definition)
       insert_string ("\n");
     }
   else if (STRINGP (definition) || VECTORP (definition))
-    insert1 (Fkey_description (definition));
+    {
+      insert1 (Fkey_description (definition));
+      insert_string ("\n");
+    }
   else
     {
       tem1 = Fkeymapp (definition);
