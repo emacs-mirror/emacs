@@ -896,7 +896,7 @@ N is the digit argument used to invoke this command."
       (while (progn (setq flag (not (pos-visible-in-window-p (point-max))))
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
-		    (if (/= ?\  (setq ch (read-char)))
+		    (if (not (eq ?\  (setq ch (read-event))))
 			(progn (setq unread-command-events (list ch)) nil)
 		      flag))
 	(scroll-up)))))
