@@ -357,7 +357,8 @@ For minor modes, see following pages.\n\n"))
 	  ;; Document a minor mode if it is listed in minor-mode-alist,
 	  ;; bound locally in this buffer, non-nil, and has a function
 	  ;; definition.
-	  (if (and (symbol-value minor-mode)
+	  (if (and (boundp minor-mode)
+		   (symbol-value minor-mode)
 		   (fboundp minor-mode))
 	      (let ((pretty-minor-mode minor-mode))
 		(if (string-match "-mode$" (symbol-name minor-mode))
