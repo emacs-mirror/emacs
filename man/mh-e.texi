@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.4 2001/02/19 02:21:28 wohler Exp $
+@c $Id: mh-e.texi,v 1.8 2001/02/19 19:13:47 wohler Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -3367,7 +3367,7 @@ The FAQ is available via the World Wide Web (WWW) at
 
 The version of mh-e in the current version of Emacs should be up to
 date. It is most likely to be more up to date than the copy that comes
-with the the MH distribution in @file{miscellany/mh-e}.
+with the MH distribution in @file{miscellany/mh-e}.
 
 New mh-e releases will appear at
 @uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
