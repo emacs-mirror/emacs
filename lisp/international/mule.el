@@ -1490,7 +1490,8 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 ;; See the bottom of this file for built-in auto coding functions.
-(defcustom auto-coding-functions '(sgml-xml-auto-coding-function)
+(defcustom auto-coding-functions '(sgml-xml-auto-coding-function
+				   sgml-html-meta-auto-coding-function)
   "A list of functions which attempt to determine a coding system.
 
 Each function in this list should be written to operate on the current
@@ -1499,8 +1500,8 @@ argument SIZE, past which it should not search.  If a function
 succeeds in determining a coding system, it should return that coding
 system.  Otherwise, it should return nil.
 
-The functions in this list take priority over `coding:' tags in the
-file, just as for `auto-coding-regexp-alist'."
+Any `coding:' tags present have a higher priority than the
+functions in this list."
   :group 'files
   :group 'mule
   :type '(repeat function))
@@ -1520,26 +1521,6 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 	(setq alist (cdr alist))))
     coding-system))
 
-(defun auto-coding-from-file-contents (size)
-  "Determine a coding system from the contents of the current buffer.
-The current buffer contains SIZE bytes starting at point.
-Value is either a coding system or nil."
-  (save-excursion
-    (let ((alist auto-coding-regexp-alist)
-	  (funcs auto-coding-functions)
-	  coding-system)
-      (while (and alist (not coding-system))
-	(let ((regexp (car (car alist))))
-	  (when (re-search-forward regexp (+ (point) size) t)
-	    (setq coding-system (cdr (car alist)))))
-	(setq alist (cdr alist)))
-      (while (and funcs (not coding-system))
-	(setq coding-system (condition-case e
-				(save-excursion
-				  (funcall (pop funcs) size))
-			      (error nil))))
-      coding-system)))
-
 (defun set-auto-coding (filename size)
   "Return coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
@@ -1548,11 +1529,12 @@ and the last 3k of the file, but the middle may be omitted.
 It checks FILENAME against the variable `auto-coding-alist'.  If
 FILENAME doesn't match any entries in the variable, it checks the
 contents of the current buffer following point against
-`auto-coding-regexp-alist', and tries calling each function in
-`auto-coding-functions'.  If no match is found, it checks for a
+`auto-coding-regexp-alist'.  If no match is found, it checks for a
 `coding:' tag in the first one or two lines following point.  If no
 `coding:' tag is found, it checks for local variables list in the last
-3K bytes out of the SIZE bytes.
+3K bytes out of the SIZE bytes.  Finally, if none of these methods
+succeed, then it checks to see if any function in
+`auto-coding-functions' gives a match.
 
 The return value is the specified coding system,
 or nil if nothing specified.
@@ -1560,7 +1542,16 @@ or nil if nothing specified.
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
   (or (auto-coding-alist-lookup filename)
-      (auto-coding-from-file-contents size)
+      ;; Try using `auto-coding-regexp-alist'.
+      (save-excursion
+	(let ((alist auto-coding-regexp-alist)
+	      coding-system)
+	  (while (and alist (not coding-system))
+	    (let ((regexp (car (car alist))))
+	      (when (re-search-forward regexp (+ (point) size) t)
+		(setq coding-system (cdr (car alist)))))
+	    (setq alist (cdr alist))) 
+	  coding-system))
       (let* ((case-fold-search t)
 	     (head-start (point))
 	     (head-end (+ head-start (min size 1024)))
@@ -1635,6 +1626,16 @@ function by default."
 		  (setq coding-system (intern (match-string 1)))
 		  (or (coding-system-p coding-system)
 		      (setq coding-system nil))))))
+	coding-system)
+      ;; Finally, try all the `auto-coding-functions'.
+      (let ((funcs auto-coding-functions)
+	    (coding-system nil))
+	(while (and funcs (not coding-system))
+	  (setq coding-system (condition-case e
+				  (save-excursion
+				    (goto-char (point-min))
+				    (funcall (pop funcs) size))
+				(error nil))))
 	coding-system)))
 
 (setq set-auto-coding-function 'set-auto-coding)
@@ -1931,16 +1932,31 @@ This function is intended to be added to `auto-coding-functions'."
 		 (re-search-forward "\"\\s-*\\?>" size t))))
       (when end
 	(if (re-search-forward "encoding=\"\\(.+?\\)\"" end t)
-	    (let ((match (downcase (match-string 1))))
-	      (cond ((member match '("utf-8" "iso-2022-jp"
-				     "euc-jp" "shift_jis"))
-		     (intern match))
-		    ((string-match "iso-8859-[[:digit:]]+" match)
-		     (intern match))
-		    (t (message "Warning: unknown XML encoding %s" match)
-		       nil)))
+	    (let* ((match (match-string 1))
+		   (sym (intern (downcase match))))
+	      (if (coding-system-p sym)
+		  sym
+		(message "Warning: unknown coding system \"%s\"" match)
+		nil))
 	  'utf-8)))))
 
+(defun sgml-html-meta-auto-coding-function (size)
+  "If the buffer has an HTML meta tag, use it to determine encoding.
+This function is intended to be added to `auto-coding-functions'."
+  (setq size (min size
+		  ;; Only search forward 10 lines
+		  (save-excursion
+		    (forward-line 10)
+		    (point))))
+  (when (and (search-forward "<html>" size t)
+	     (re-search-forward "<meta\\s-+http-equiv=\"content-type\"\\s-+content=\"text/\\sw+;\\s-*charset=\\(.+?\\)\"" size t))
+      (let* ((match (match-string 1))
+	     (sym (intern (downcase match))))
+	(if (coding-system-p sym)
+	    sym
+	  (message "Warning: unknown coding system \"%s\"" match)
+	  nil))))
+      
 ;;;
 (provide 'mule)
 
