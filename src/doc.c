@@ -202,6 +202,51 @@ translation.")
   return tem;
 }
 
+/* Scanning the DOC files and placing docstring offsets into functions.  */
+
+static void
+store_function_docstring (fun, offset)
+     Lisp_Object fun;
+     int offset;
+{
+  fun = indirect_function (fun);
+
+  /* The type determines where the docstring is stored.  */
+
+  /* Lisp_Subrs have a slot for it.  */
+  if (XTYPE (fun) == Lisp_Subr)
+    XSUBR (fun)->doc = (char *) - offset;
+
+  /* If it's a lisp form, stick it in the form.  */
+  else if (CONSP (fun))
+    {
+      Lisp_Object tem;
+
+      tem = XCONS (fun)->car;
+      if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
+	{
+	  tem = Fcdr (Fcdr (fun));
+	  if (CONSP (tem) &&
+	      XTYPE (XCONS (tem)->car) == Lisp_Int)
+	    XFASTINT (XCONS (tem)->car) = offset;
+	}
+      else if (EQ (tem, Qmacro))
+	store_function_docstring (XCONS (fun)->cdr, offset);
+    }
+
+  /* Bytecode objects sometimes have slots for it.  */
+  else if (XTYPE (fun) == Lisp_Compiled)
+    {
+      /* This bytecode object must have a slot for the
+	 docstring, since we've found a docstring for it.  */
+      if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
+	abort ();
+
+      XFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING]) = offset;
+    }
+}
+
+
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
   1, 1, 0,
   "Used during Emacs initialization, before dumping runnable Emacs,\n\
@@ -292,42 +337,12 @@ when doc strings are referred to later in the dumped Emacs.")
 				     * (end[1] == '*' ? -1 : 1)));
 		}
 
-	      /* Attach a docstring to a function?  The type determines where
-	         the docstring is stored.  */
+	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
-		{
-		  fun = XSYMBOL (sym)->function;
+		store_function_docstring (sym, pos + end + 1 - buf);
 
-		  /* Lisp_Subrs have a slot for it.  */
-		  if (XTYPE (fun) == Lisp_Subr)
-		    XSUBR (fun)->doc = (char *) - (pos + end + 1 - buf);
-
-		  /* If it's a lisp form, stick it in the form.  */
-		  else if (CONSP (fun))
-		    {
-		      tem = XCONS (fun)->car;
-		      if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
-			{
-			  tem = Fcdr (Fcdr (fun));
-			  if (CONSP (tem) &&
-			      XTYPE (XCONS (tem)->car) == Lisp_Int)
-			    XFASTINT (XCONS (tem)->car) = (pos + end + 1 - buf);
-			}
-		    }
-
-		  /* Bytecode objects sometimes have slots for it.  */
-		  else if (XTYPE (fun) == Lisp_Compiled)
-		    {
-		      /* This bytecode object must have a slot for the
-			 docstring, since we've found a docstring for it.  */
-		      if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
-			abort ();
-
-		      XFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING])
-			= pos + end + 1 - buf;
-		    }
-		}
-	      else error ("DOC file invalid at position %d", pos);
+	      else
+		error ("DOC file invalid at position %d", pos);
 	    }
 	}
       pos += end - buf;
