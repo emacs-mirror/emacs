@@ -3028,13 +3028,15 @@ check_windows_init_file ()
   if (!noninteractive && !inhibit_window_system) 
     {
       extern Lisp_Object Vwindow_system, Vload_path, Qfile_exists_p;
+      Lisp_Object objs[2];
       Lisp_Object full_load_path;
       Lisp_Object init_file;
       int fd;
 
+      objs[0] = Vload_path;
+      objs[1] = decode_env_path (0, (getenv ("EMACSLOADPATH")));
+      full_load_path = Fappend (2, objs);
       init_file = build_string ("term/w32-win");
-      full_load_path = Fcons (build_string (getenv ("EMACSLOADPATH")),
-			      Vload_path);
       fd = openp (full_load_path, init_file, ".el:.elc", NULL, 0);
       if (fd < 0) 
 	{
