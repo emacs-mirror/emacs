@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "composite.h"
 
 Lisp_Object QCLIPBOARD;
 
@@ -325,6 +326,10 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	coding.dst_multibyte = 1;
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
+	/* We explicitely disable composition handling because
+	   selection data should not contain any composition
+	   sequence.  */
+	coding.composing = COMPOSITION_DISABLED;
 	bufsize = decoding_buffer_size (&coding, nbytes);
 	buf = (unsigned char *) xmalloc (bufsize);
 	decode_coding (&coding, src, buf, nbytes, bufsize);
