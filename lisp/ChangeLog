@@ -1,3 +1,10 @@
+2004-03-27  Dave Love  <fx@gnu.org>
+
+	* strokes.el (strokes-global-set-stroke-string): New function.
+	(strokes-list-strokes): Cope with strings, not just commands.  Set
+	foreground colour of image.
+	(strokes-global-set-stroke): Doc fix.
+
 2004-03-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buff-menu.el (Buffer-menu-revert-function): Make it suitable for
