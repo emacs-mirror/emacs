@@ -70,7 +70,7 @@ Acme organization in the United States."
 (defcustom ldap-host-parameters-alist nil
   "*Alist of host-specific options for LDAP transactions.
 The format of each list element is (HOST PROP1 VAL1 PROP2 VAL2 ...).
-HOST is the hostname of an LDAP server(with an optional TCP port number
+HOST is the hostname of an LDAP server (with an optional TCP port number
 appended to it using a colon as a separator).
 PROPn and VALn are property/value pairs describing parameters for the server.
 Valid properties include:
