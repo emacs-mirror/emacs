@@ -63,7 +63,9 @@ inherit all the commands defined in this map.")
 ;  (setq delete-auto-save-files t))
 
 (defun text-mode ()
-  "Major mode for editing text intended for humans to read.  Special commands:\\{text-mode-map}
+  "Major mode for editing text intended for humans to read.
+Special commands:
+\\{text-mode-map}
 Turning on Text mode calls the value of the variable `text-mode-hook',
 if that value is non-nil."
   (interactive)
