@@ -1,3 +1,10 @@
+2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* textmodes/reftex-index.el (reftex-index-mode): Remove
+	make-local-hook.
+
+	* textmodes/reftex-toc.el (reftex-toc-mode): Likewise.
+
 2001-12-02  Kim F. Storm  <storm@cua.dk>
 
 	* isearch.el (isearch-resume-enabled): New variable.
