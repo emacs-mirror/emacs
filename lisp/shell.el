@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell
 
-;; Copyright (C) 1988, 93, 94, 95, 96, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 93, 94, 95, 96, 1997, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -271,6 +271,14 @@ This is effective only if directory tracking is enabled."
       '("-i" "-T")
     '("-i"))
   "*Args passed to inferior shell by M-x shell, if the shell is csh.
+Value is a list of strings, which may be nil."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-bash-args
+    ;; Tell bash not to use readline.
+    '("--noediting" "-i")
+  "*Args passed to inferior shell by M-x shell, if the shell is bash.
 Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)

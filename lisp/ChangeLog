@@ -1,3 +1,7 @@
+2002-07-30  Andreas Schwab  <schwab@suse.de>
+
+	* shell.el (explicit-bash-args): New user option.
+
 2002-07-29  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (non-standard-designations-alist) 
