@@ -3059,7 +3059,7 @@ It will read a directory name from the minibuffer when invoked."
 
 (define-widget 'variable 'symbol
   ;; Should complete on variables.
-  "A lisp variable."
+  "A Lisp variable."
   :prompt-match 'boundp
   :prompt-history 'widget-variable-prompt-value-history
   :tag "Variable")
@@ -3100,7 +3100,7 @@ It will read a directory name from the minibuffer when invoked."
   )
 
 (define-widget 'sexp 'editable-field
-  "An arbitrary lisp expression."
+  "An arbitrary Lisp expression."
   :tag "Lisp expression"
   :format "%{%t%}: %v"
   :value nil
@@ -3223,12 +3223,12 @@ To use this type, you must define :match or :match-alternatives."
 	     (integerp value))))
 
 (define-widget 'list 'group
-  "A lisp list."
+  "A Lisp list."
   :tag "List"
   :format "%{%t%}:\n%v")
 
 (define-widget 'vector 'group
-  "A lisp vector."
+  "A Lisp vector."
   :tag "Vector"
   :format "%{%t%}:\n%v"
   :match 'widget-vector-match
