@@ -1,5 +1,36 @@
 2000-03-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.h (x_specified_cursor_type, x_copy_color): Add prototypes.
+
+	* xfaces.c (register_color, unregister_colors, unregister_colors)
+	[DEBUG_X_COLORS]: New functions.
+	(x_free_colors) [DEBUG_X_COLORS]: Unregister colors.
+
+	* xfns.c (x_set_cursor_color): Get color reference counts right.
+
+	* xterm.c (x_copy_color): New function.
+	(x_alloc_nearest_color) [DEBUG_X_COLORS]: Call register_color.
+
+	* buffer.h (MAX_PER_BUFFER_VARS): Renamed from MAX_BUFFER_LOCAL_VARS.
+	(PER_BUFFER_VAR_OFFSET): Renamed from BUFFER_LOCAL_VAR_OFFSET.
+	(PER_BUFFER_VAR_IDX): Renamed from BUFFER_LOCAL_VAR_IDX.
+	(PER_BUFFER_VALUE_P): Renamed from BUFFER_HAS_LOCAL_VALUE_P.
+	(SET_PER_BUFFER_VALUE_P): Renamed from SET_BUFFER_HAS_LOCAL_VALUE_P.
+	(PER_BUFFER_IDX): Renamed from BUFFER_LOCAL_IDX.
+	(PER_BUFFER_DEFAULT): Renamed from BUFFER_LOCAL_DEFAULT_VALUE.
+	(PER_BUFFER_VALUE): Renamed from BUFFER_LOCAL_VALUE.
+	(PER_BUFFER_SYMBOL): Renamed from BUFFER_LOCAL_SYMBOL.
+	(PER_BUFFER_TYPE): Renamed from BUFFER_LOCAL_TYPE.
+
+	* category.c, data.c, syntax.c, print.c: Use new macro names
+	for handling per-buffer variables.
+
+	* buffer.c (buffer_permanent_local_flags): Use MAX_PER_BUFFER_VARS
+	instead of MAX_BUFFER_LOCAL_VARS.
+	(last_per_buffer_idx): Renamed from max_buffer_local_idx.
+
+	* xfaces.c (lookup_face): Don't assert FACE_SUITABLE_FOR_CHAR_P.
+
 	* xfns.c (x_specified_cursor_type): New function.
 	(x_set_cursor_type): Use it.
 
