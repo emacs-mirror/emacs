@@ -1,11 +1,9 @@
 ;;; ibuf-macs.el --- macros for ibuffer
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Created: 6 Dec 2001
-;; X-RCS: $Id: ibuf-macs.el,v 1.6 2001/12/11 22:47:09 walters Exp $
-;; URL: http://cvs.verbum.org/ibuffer
 ;; Keywords: buffer, convenience
 
 ;; This file is not currently part of GNU Emacs.
@@ -26,6 +24,9 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'cl))
 
 ;; From Paul Graham's "ANSI Common Lisp", adapted for Emacs Lisp here.
 (defmacro ibuffer-aif (test true-body &rest false-body)
