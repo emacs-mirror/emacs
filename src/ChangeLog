@@ -1,3 +1,11 @@
+2001-04-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (window_internal_height): Return 1 less if the
+	window has a header line.
+
+	* xdisp.c (try_window_id): When scrolling on a terminal, take
+	the change of window_internal_height into account.
+
 2001-04-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* gmalloc.c (align): If the argument SIZE would overflow
