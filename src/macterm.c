@@ -419,7 +419,6 @@ void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 void mac_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
-enum text_cursor_kinds x_specified_cursor_type P_ ((Lisp_Object, int *));
 static void x_draw_phys_cursor_glyph P_ ((struct window *,
 					  struct glyph_row *,
 					  enum draw_glyphs_face));
@@ -9049,7 +9048,7 @@ x_draw_bar_cursor (w, row, width)
 	}
 
       if (width < 0)
-	width = f->output_data.mac->cursor_width;
+	width = FRAME_CURSOR_WIDTH (f);
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       x_clip_to_row (w, row, gc, 0);
@@ -9254,8 +9253,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
-  int cursor_non_selected;
-  int active_cursor = 1;
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      windows and frames; in the latter case, the frame or window may
@@ -9285,65 +9282,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 
   xassert (interrupt_input_blocked);
 
-  /* Set new_cursor_type to the cursor we want to be displayed.  In a
-     mini-buffer window, we want the cursor only to appear if we are
-     reading input from this window.  For the selected window, we want
-     the cursor type given by the frame parameter.  If explicitly
-     marked off, draw no cursor.  In all other cases, we want a hollow
-     box cursor.  */
-  cursor_non_selected 
-    = !NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
-				  w->buffer));
-  new_cursor_width = -1;
-  if (cursor_in_echo_area
-      && FRAME_HAS_MINIBUF_P (f)
-      && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
-    {
-      if (w == XWINDOW (echo_area_window))
-	new_cursor_type = FRAME_DESIRED_CURSOR (f);
-      else
-	{
-	  if (cursor_non_selected)
-	    new_cursor_type = HOLLOW_BOX_CURSOR;
-	  else
-	    new_cursor_type = NO_CURSOR;
-	  active_cursor = 0;
-	}
-    }
-  else
-    {
-      if (f != FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame
-          || w != XWINDOW (f->selected_window))
-        {
-	  active_cursor = 0;
+  /* Set new_cursor_type to the cursor we want to be displayed.  */
+  new_cursor_type = get_window_cursor_type (w, &new_cursor_width);
 
-          if (MINI_WINDOW_P (w) 
-              || !cursor_non_selected
-              || NILP (XBUFFER (w->buffer)->cursor_type))
-            new_cursor_type = NO_CURSOR;
-          else
-            new_cursor_type = HOLLOW_BOX_CURSOR;
-        }
-      else
-        {
-	  struct buffer *b = XBUFFER (w->buffer);
-
-	  if (EQ (b->cursor_type, Qt))
-            new_cursor_type = FRAME_DESIRED_CURSOR (f);
-	  else
-	    new_cursor_type = x_specified_cursor_type (b->cursor_type, 
-						       &new_cursor_width);
-	  if (w->cursor_off_p)
-	    {
-	      if (new_cursor_type == FILLED_BOX_CURSOR)
-		new_cursor_type = HOLLOW_BOX_CURSOR;
-	      else if (new_cursor_type == BAR_CURSOR && new_cursor_width > 1)
-		new_cursor_width = 1;
-	      else
-		new_cursor_type = NO_CURSOR;
-	    }
-	}
-    }
 
   /* If cursor is currently being shown and we don't want it to be or
      it is in the wrong place, or the cursor type is not what we want,
@@ -9353,7 +9294,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  || w->phys_cursor.x != x
 	  || w->phys_cursor.y != y
 	  || new_cursor_type != w->phys_cursor_type
-	  || (new_cursor_type == BAR_CURSOR
+	  || ((new_cursor_type == BAR_CURSOR || new_cursor_type == HBAR_CURSOR)
 	      && new_cursor_width != w->phys_cursor_width)))
     x_erase_phys_cursor (w);
 
@@ -9384,6 +9325,8 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  x_draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
 	  break;
 
+	case HBAR_CURSOR:
+	  /* TODO.  For now, just draw bar cursor. */
 	case BAR_CURSOR:
 	  x_draw_bar_cursor (w, glyph_row, new_cursor_width);
 	  break;
@@ -13225,15 +13168,15 @@ void make_mac_frame (struct frame *f)
 {
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
-  
+
+  FRAME_DESIRED_CURSOR (f) = FILLED_BOX_CURSOR;
+ 
   NewMacWindow(f);
 
   f->output_data.mac->cursor_pixel = 0;
   f->output_data.mac->border_pixel = 0x00ff00;
   f->output_data.mac->mouse_pixel = 0xff00ff;
   f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
-
-  f->output_data.mac->desired_cursor = FILLED_BOX_CURSOR;
 
   f->output_data.mac->fontset = -1;
   f->output_data.mac->scroll_bar_foreground_pixel = -1;
