@@ -1,3 +1,8 @@
+2002-04-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (syms_of_msdos): Fix last change with
+	mouse_autoselect_window.
+
 2002-04-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* w32term.c, xterm.c, msdos.c: Rename autoselect_window_p to
