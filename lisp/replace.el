@@ -241,11 +241,14 @@ Applies to lines after point."
   (setq occur-mode-map (make-sparse-keymap))
   (define-key occur-mode-map [mouse-2] 'occur-mode-mouse-goto)
   (define-key occur-mode-map "\C-c\C-c" 'occur-mode-goto-occurrence)
-  (define-key occur-mode-map "\C-m" 'occur-mode-goto-occurrence))
+  (define-key occur-mode-map "\C-m" 'occur-mode-goto-occurrence)
+  (define-key occur-mode-map "g" 'revert-buffer))
 
 (defvar occur-buffer nil)
 (defvar occur-nlines nil)
 (defvar occur-pos-list nil)
+(defvar occur-command-arguments nil
+  "Arguments that were given to `occur' when it made this buffer.")
 
 (defun occur-mode ()
   "Major mode for output from \\[occur].
@@ -258,10 +261,20 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (use-local-map occur-mode-map)
   (setq major-mode 'occur-mode)
   (setq mode-name "Occur")
+  (make-local-variable 'revert-buffer-function)
+  (setq revert-buffer-function 'occur-revert-function)
   (make-local-variable 'occur-buffer)
   (make-local-variable 'occur-nlines)
   (make-local-variable 'occur-pos-list)
+  (make-local-variable 'occur-command-arguments)
   (run-hooks 'occur-mode-hook))
+
+;; Handle revert-buffer for *Occur* buffers.
+(defun occur-revert-function (ignore1 ignore2)
+  (let ((args occur-command-arguments ))
+    (save-excursion
+      (set-buffer occur-buffer)
+      (apply 'occur args))))
 
 (defun occur-mode-mouse-goto (event)
   "In Occur mode, go to the occurrence whose line you click on."
@@ -380,7 +393,9 @@ It serves as a menu to find any of the occurrences in this buffer.
 	    (occur-mode)
 	    (setq occur-buffer buffer)
 	    (setq occur-nlines nlines)
-	    (setq occur-pos-list ()))
+	    (setq occur-pos-list ())
+	    (setq occur-command-arguments
+		  (list regexp nlines)))
 	  (if (eq buffer standard-output)
 	      (goto-char (point-max)))
 	  (save-excursion
