@@ -937,23 +937,23 @@ Value is a list whose car is the name for the backup file
   "Return number of names file FILENAME has."
   (car (cdr (file-attributes filename))))
 
+(defun file-relative-name-1 (directory)
+  (cond ((string= directory "/")
+	 filename)
+	((string-match (concat "^" (regexp-quote directory))
+		       filename)
+	 (substring filename (match-end 0)))
+	(t
+	 (file-relative-name-1
+	  (file-name-directory (substring directory 0 -1))))))
+
 (defun file-relative-name (filename &optional directory)
   "Convert FILENAME to be relative to DIRECTORY (default: default-directory)."
   (setq filename (expand-file-name filename)
 	directory (file-name-as-directory (if directory
 					      (expand-file-name directory)
 					      default-directory)))
-  (let ((strip (lambda (directory)
-		 (cond ((string= directory "/")
-			filename)
-		       ((string-match (concat "^" (regexp-quote directory))
-				      filename)
-			(substring filename (match-end 0)))
-		       (t
-			(funcall strip
-				 (file-name-directory (substring directory
-								 0 -1))))))))
-    (funcall strip directory)))
+  (file-relative-name-1 directory))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
