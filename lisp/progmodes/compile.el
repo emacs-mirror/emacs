@@ -96,7 +96,11 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; /usr/src/foo/foo.c(8): warning: w may be used before set
     ;; or GNU utilities
     ;; foo.c:8: error message
-    ("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2)
+    ;;
+    ;; We'll insist that the number be followed by a colon or closing
+    ;; paren, because otherwise this matches just about anything
+    ;; containing a number with spaces around it.
+    ("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:)]" 1 2)
     ;; 4.3BSD lint pass 2
     ;; strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
     ("[ \t:]+\\([^:( \t\n]+\\)[ \t]*[:(]*(+[ \t]*\\([0-9]+\\))[:) \t]*$" 1 2)
@@ -119,6 +123,9 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ("in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
+
+    ;; MIPS RISC CC - the one distributed with Ultrix.
+    (": \\([^,]+\\), line \\([0-9]+\\):" 1 2)
     )
   "Alist that specifies how to match errors in compiler output.
 Each element has the form (REGEXP FILE-IDX LINE-IDX).
