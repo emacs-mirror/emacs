@@ -1,3 +1,8 @@
+2000-08-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* desktop.el (desktop-save): Don't look at symbol-value of a
+	member of minor-mode-alist, unless it is boundp.
+
 2000-08-16  Sam Steingold  <sds@gnu.org>
 
 	* buff-menu.el (list-buffers-noselect): Use `dolist' instead of
