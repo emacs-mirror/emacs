@@ -1,3 +1,12 @@
+2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sysdep.c (init_sys_modes): Change doc-string comments to `new
+	style' [w/`doc:' keyword].
+
+	* data.c, fileio.c, indent.c, print.c, search.c, sound.c,
+	* sunfns.c, textprop.c, undo.c, xselect.c: Change doc-string
+	comments to `new style' [w/`doc:' keyword].
+
 2001-10-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_file_dialog): Pass a filter to GetOpenFileName.
