@@ -279,7 +279,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 		file)
 	      extra-string)))
     (when (zerop n)
-      (if (and filename
+      (if (and filename extra-string
 	       (setq filename (file-name-directory filename))
 	       (equal filename
 		      (file-name-directory (directory-file-name filename))))
