@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
- * $HopeName: MMsrc!event.h(trunk.11) $
+ * $HopeName: MMsrc!event.h(trunk.12) $
  *
  * READERSHIP
  *
@@ -19,7 +19,6 @@
 #include "mpm.h"
 
 
-extern Res EventFlush(void);
 extern Res EventSync(void);
 extern Res EventInit(void);
 extern void EventFinish(void);
@@ -27,7 +26,11 @@ extern Word EventControl(Word, Word);
 extern Word EventInternString(const char *);
 extern void EventLabelAddr(Addr, Word);
 
-typedef Index EventKind;
+
+#ifdef EVENT
+
+
+extern Res EventFlush(void);
 
 
 /* Event Kinds --- see design.mps.telemetry
@@ -36,21 +39,23 @@ typedef Index EventKind;
  * They are small enough to be able to be used as shifts within a word.
  */
 
-#define EventKindArena      ((EventType)0) /* Per space or arena */
-#define EventKindPool       ((EventType)1) /* Per pool */
-#define EventKindTrace      ((EventType)2) /* Per trace or scan */
-#define EventKindSeg        ((EventType)3) /* Per seg */
-#define EventKindRef        ((EventType)4) /* Per ref or fix */
-#define EventKindObject     ((EventType)5) /* Per alloc or object */
-#define EventKindUser       ((EventType)6) /* User-invoked */
+#define EventKindArena      ((EventKind)0) /* Per space or arena */
+#define EventKindPool       ((EventKind)1) /* Per pool */
+#define EventKindTrace      ((EventKind)2) /* Per trace or scan */
+#define EventKindSeg        ((EventKind)3) /* Per seg */
+#define EventKindRef        ((EventKind)4) /* Per ref or fix */
+#define EventKindObject     ((EventKind)5) /* Per alloc or object */
+#define EventKindUser       ((EventKind)6) /* User-invoked */
 
 #define EventKindNumber     ((Count)7) /* Number of event kinds */
 
 
-#ifdef EVENT
+/* Event type definitions
+ *
+ * Define various constants for each event type to describe them.
+ */
 
 /* Note that enum values can be up to fifteen bits long portably. */
-
 #define RELATION(type, code, always, kind, format) \
   enum { \
     Event##type##High = ((code >> 8) & 0xFF), \
@@ -65,31 +70,29 @@ typedef Index EventKind;
 #undef RELATION
 
 
-extern EventUnion EventMould;
+/* Event writing support */
 
-#define EVENT_BEGIN(type, format, _length) \
-  BEGIN \
+extern EventUnion EventMould;
+extern char *EventNext, *EventLimit;
+extern Word EventKindControl;
+
+#define EVENT_BEGIN(type) \
+  if(BS_IS_MEMBER(EventKindControl, ((Index)Event##type##Kind))) BEGIN \
+    size_t _length; \
+
+#define EVENT_END(type, format, length) \
     AVER(EventFormat##format == Event##type##Format); \
     /* @@@@ As an interim measure, send the old event codes */ \
     EventMould.any.code = Event##type; \
-    /* @@@@ Length is in words, excluding header; this will change */ \
-    /* We know that _length is aligned to word size */ \
-    EventMould.any.length = ((_length / sizeof(Word)) - 3); \
-    EventMould.any.clock = mps_clock(); 
-
-#define EVENT_END(type, length) \
-    if(BS_IS_MEMBER(EventKindControl, ((Index)Event##type##Kind))) { \
-      AVER(EventNext <= EventLimit); \
-      if((length) > (size_t)(EventLimit - EventNext)) \
-        EventFlush(); /* @@@@ should pass length */ \
-      AVER((length) <= (size_t)(EventLimit - EventNext)); \
-      mps_lib_memcpy(EventNext, &EventMould, (length)); \
-      EventNext += (length); \
-    } \
+    EventMould.any.clock = mps_clock(); \
+    AVER(EventNext <= EventLimit); \
+    _length = size_tAlignUp(length, sizeof(Word)); \
+    if(_length > (size_t)(EventLimit - EventNext)) \
+      EventFlush(); /* @@@@ should pass length */ \
+    AVER(_length <= (size_t)(EventLimit - EventNext)); \
+    mps_lib_memcpy(EventNext, &EventMould, _length); \
+    EventNext += _length; \
   END
-
-extern char *EventNext, *EventLimit;
-extern Word EventKindControl;
 
 
 #else /* EVENT not */
