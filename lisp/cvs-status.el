@@ -277,10 +277,10 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 	       (cvs-tree-merge (cdr tree1) (cdr tree2))))))
      ((> l1 l2)
       (cvs-tree-merge
-       (list (cons (cvs-tag-make (cvs-butlast vl1)) tree1)) tree2))
+       (list (cons (cvs-tag-make (butlast vl1)) tree1)) tree2))
      ((< l1 l2)
       (cvs-tree-merge
-       tree1 (list (cons (cvs-tag-make (cvs-butlast vl2)) tree2)))))))))
+       tree1 (list (cons (cvs-tag-make (butlast vl2)) tree2)))))))))
 
 (defun cvs-tag-make-tag (tag)
   (let ((vl (mapcar 'string-to-number (split-string (nth 2 tag) "\\."))))
@@ -293,7 +293,7 @@ BEWARE:  because of stability issues, this is not a symetric operation."
 	  (lambda (tag)
 	    (let ((tag (cvs-tag-make-tag tag)))
 	      (list (if (not (eq (cvs-tag->type tag) 'branch)) tag
-		      (list (cvs-tag-make (cvs-butlast (cvs-tag->vlist tag)))
+		      (list (cvs-tag-make (butlast (cvs-tag->vlist tag)))
 			    tag)))))
 	  tags)))
     (while (cdr tags)
