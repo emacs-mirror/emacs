@@ -1692,10 +1692,11 @@
 	* syntax.h (SYNTAX_COMMENT_NESTED, SYNTAX_FLAGS_COMMENT_NESTED):
 	Add support for nested comments.
 
-	* syntax.c (lisp_parse_state, back_comment, Fmodify_syntax_entry)
-	(Fforward_comment, scan_lists, scan_sexps_forward)
-	(Fparse_partial_sexp): Add support for nested comments.
-	(forw_comment): New subroutine used in them.
+ 	* syntax.c (Fforward_comment, scan_lists, scan_sexps_forward):
+ 	Consolidate the forward comment code into the new `forw_comment'.
+ 	(forw_comment): New subroutine.  Added support for nested comments.
+ 	(lisp_parse_state, back_comment, Fmodify_syntax_entry)
+ 	(Fparse_partial_sexp): Add support for nested comments.
 
 1999-08-28  Ken Raeburn  <raeburn@gnu.org>
 

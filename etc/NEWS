@@ -351,11 +351,6 @@ print-level, print-length, and debug-on-error based on the
 customizable variables eval-expression-print-level,
 eval-expression-print-length, and eval-expression-debug-on-error.
 
-** syntax tables now understand nested comments.
-To declare a comment syntax as allowing nesting, just add an `n'
-modifier to either of the characters of the comment end and the comment
-start sequences.
-
 ** Dired changes
 
 *** New variable `dired-recursive-deletes' determines if the delete
@@ -485,6 +480,11 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** syntax tables now understand nested comments.
+To declare a comment syntax as allowing nesting, just add an `n'
+modifier to either of the characters of the comment end and the comment
+start sequences.
 
 ** The function `pixmap-spec-p' has been renamed `bitmap-spec-p'
 because `bitmap' is more in line with the usual X terminology.
