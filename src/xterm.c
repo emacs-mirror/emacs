@@ -225,9 +225,6 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
 extern Lisp_Object Vx_no_window_manager;
 
-/* Nonzero enables some debugging for the X interface code. */
-extern int _Xdebug;
-
 extern Lisp_Object Qface, Qmouse_face;
 
 extern int errno;
@@ -4515,9 +4512,6 @@ x_connection_closed (display, error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
   Lisp_Object frame, tail;
-
-  if (_Xdebug)
-    abort ();
 
   /* Indicate that this display is dead.  */
 
