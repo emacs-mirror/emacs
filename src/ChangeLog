@@ -1,3 +1,8 @@
+2004-10-15  Stefan  <monnier@iro.umontreal.ca>
+
+	* doc.c (Fsubstitute_command_keys): Fix remap-handling.
+	Don't ignore menus, because where-is-internal already does it for us.
+
 2004-10-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Only update fringes and vertical
