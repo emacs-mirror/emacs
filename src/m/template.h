@@ -108,3 +108,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
+
+/* Some really obscure 4.2-based systems (like Sequent DYNIX)
+ * do not support asynchronous I/O (using SIGIO) on sockets,
+ * even though it works fine on tty's.  If you have one of
+ * these systems, define the following, and then use it in
+ * config.h (or elsewhere) to decide when (not) to use SIGIO.
+ *
+ * You'd think this would go in an operating-system description file,
+ * but since it only occurs on some, but not all, BSD systems, the
+ * reasonable place to select for it is in the machine description
+ * file.
+ */
+
+#define NO_SOCK_SIGIO
