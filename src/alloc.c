@@ -1378,11 +1378,11 @@ mark_object (objptr)
 
 	if (XMARKBIT (ptr->plist)) break;
 	XMARK (ptr->plist);
-	XSETTYPE (*(Lisp_Object *) &ptr->name, Lisp_String);
-	mark_object (&ptr->name);
 	mark_object ((Lisp_Object *) &ptr->value);
 	mark_object (&ptr->function);
 	mark_object (&ptr->plist);
+	XSETTYPE (*(Lisp_Object *) &ptr->name, Lisp_String);
+	mark_object (&ptr->name);
 	ptr = ptr->next;
 	if (ptr)
 	  {
