@@ -335,9 +335,9 @@ space does not end a sentence, so don't break a line there."
 	      ;; Justify the line just ended, if desired.
 	      (if justify
 		  (if (eobp)
-		      (justify-current-line justify t t)
+		      (justify-current-line (not (null justify)) t t)
 		    (forward-line -1)
-		    (justify-current-line justify nil t)
+		    (justify-current-line (not (null justify)) nil t)
 		    (forward-line 1))))))
 	;; Leave point after final newline.
 	(goto-char (point-max)))
