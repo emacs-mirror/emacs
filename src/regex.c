@@ -5324,7 +5324,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
-	      charpos = BYTE_TO_CHAR (pos1 ? pos1 : 1);
+	      charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos1 ? pos1 : 1);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s1 = SYNTAX (c1);
@@ -5361,7 +5361,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
-	      charpos = BYTE_TO_CHAR (pos1);
+	      charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos1);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s1 = SYNTAX (c1);
@@ -5397,8 +5397,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
-	      charpos = BYTE_TO_CHAR (pos1);
-	      UPDATE_SYNTAX_TABLE (pos1);
+	      charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos1);
+	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s2 = SYNTAX (c2);
 	
@@ -5441,8 +5441,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 #ifdef emacs
-	      charpos = BYTE_TO_CHAR (pos1 - 1);
-	      UPDATE_SYNTAX_TABLE (pos1);
+	      charpos = SYNTAX_TABLE_BYTE_TO_CHAR (pos1 - 1);
+	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s1 = SYNTAX (c1);
 
@@ -5498,7 +5498,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PREFETCH ();
 #ifdef emacs
 	  {
-	    int pos1 = BYTE_TO_CHAR (PTR_TO_OFFSET (d));
+	    int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (PTR_TO_OFFSET (d));
 	    UPDATE_SYNTAX_TABLE (pos1);
 	  }
 #endif
@@ -5532,7 +5532,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PREFETCH ();
 #ifdef emacs
 	  {
-	    int pos1 = BYTE_TO_CHAR (PTR_TO_OFFSET (d));
+	    int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (PTR_TO_OFFSET (d));
 	    UPDATE_SYNTAX_TABLE (pos1);
 	  }
 #endif
