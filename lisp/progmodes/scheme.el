@@ -98,6 +98,8 @@
   (setq paragraph-ignore-fill-prefix t)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'scheme-indent-line)
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
   (make-local-variable 'comment-start)
   (setq comment-start ";")
   (make-local-variable 'comment-start-skip)
