@@ -111,7 +111,13 @@ static int sequence_number;
 /* Nonzero after init_window_once has finished.  */
 static int window_initialized;
 
+/* Nonzero means scroll commands try to put point
+   at the same screen height as previously.  */
+static int scroll_preserve_screen_position;
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
+
+extern int scroll_margin;
 
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 
@@ -2638,8 +2644,7 @@ window_internal_width (w)
 
 
 /* Scroll contents of window WINDOW up N lines.
-   If WHOLE is nonzero, it means we wanted to scroll
-   by entire screenfuls.  */
+   If WHOLE is nonzero, it means scroll N screenfuls instead.  */
 
 static void
 window_scroll (window, n, whole, noerror)
@@ -2693,8 +2698,6 @@ window_scroll (window, n, whole, noerror)
 
   if (pos < ZV)
     {
-      extern int scroll_margin;
-
       int this_scroll_margin = scroll_margin;
 
       /* Don't use a scroll margin that is negative or too large.  */
@@ -2713,7 +2716,7 @@ window_scroll (window, n, whole, noerror)
 	 the window-scroll-functions.  */
       w->force_start = Qt;
 
-      if (whole)
+      if (whole && scroll_preserve_screen_position)
 	{
 	  SET_PT (pos);
 	  Fvertical_motion (make_number (original_vpos), window);
@@ -2735,11 +2738,13 @@ window_scroll (window, n, whole, noerror)
 
 	  if (top_margin <= opoint)
 	    SET_PT (opoint);
-	  else
+	  else if (scroll_preserve_screen_position)
 	    {
 	      SET_PT (pos);
 	      Fvertical_motion (make_number (original_vpos), window);
 	    }
+	  else
+	    SET_PT (pos);
 	}
       else if (n < 0)
 	{
@@ -2758,8 +2763,13 @@ window_scroll (window, n, whole, noerror)
 	    SET_PT (opoint);
 	  else
 	    {
-	      SET_PT (pos);
-	      Fvertical_motion (make_number (original_vpos), window);
+	      if (scroll_preserve_screen_position)
+		{
+		  SET_PT (pos);
+		  Fvertical_motion (make_number (original_vpos), window);
+		}
+	      else
+		Fvertical_motion (make_number (-1), window);
 	    }
 	}
     }
@@ -3643,6 +3653,11 @@ If there is only one window, it is split regardless of this value.");
   DEFVAR_INT ("window-min-width", &window_min_width,
     "*Delete any window less than this wide.");
   window_min_width = 10;
+
+  DEFVAR_BOOL ("scroll-preserve-screen-position",
+	       &scroll_preserve_screen_position,
+    "*Nonzero means scroll commands move point to keep its screen line unchanged.");
+  scroll_preserve_screen_position = 0;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
