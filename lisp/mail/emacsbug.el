@@ -77,7 +77,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (let ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
 	user-point message-end-point)
     (setq message-end-point
-	  (with-current-buffer (get-buffer "*Messages*")
+	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
     (compose-mail (if pretest-p
 		      report-emacs-bug-pretest-address
