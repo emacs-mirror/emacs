@@ -4916,28 +4916,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Check for keyboard input */
 
-      if (XINT (read_kbd) != 0)
+      if ((XINT (read_kbd) != 0)
+	  && detect_input_pending_run_timers (do_display))
 	{
-	  int old_timers_run = timers_run;
-	  int leave = 0;
-	
+	  swallow_events (do_display);
 	  if (detect_input_pending_run_timers (do_display))
-	    {
-	      swallow_events (do_display);
-	      if (detect_input_pending_run_timers (do_display))
-		leave = 1;
-	    }
-
-	  /* If a timer has run, this might have changed buffers
-	     an alike.  Make read_key_sequence aware of that.  */
-	  if (timers_run != old_timers_run
-	      && waiting_for_user_input_p == -1)
-	    record_asynch_buffer_change ();
-
-	  if (leave)
 	    break;
-	}    
-      
+	}
+
       /* If there is unread keyboard input, also return.  */
       if (XINT (read_kbd) != 0
 	  && requeued_events_pending_p ())
