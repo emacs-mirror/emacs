@@ -1,4 +1,4 @@
-/* This file is the configuration file for the GNU/Linux operating system.
+/* This file is the configuration file for GNU/Linux operating systems.
    Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -154,6 +154,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   ((FILE)->_pptr - (FILE)->_pbase)
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
+
+/* Ask GCC where to find libgcc.a.  */
+#define LIB_GCC `$(CC) $(C_SWITCH_X_MACHINE) -print-libgcc-file-name`
 
 #ifndef __ELF__
 /* Linux has crt0.o in a non-standard place */
