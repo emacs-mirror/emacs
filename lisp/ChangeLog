@@ -1,5 +1,11 @@
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (delete-key-deletes-forward-mode): Treat `kp-delete'
+	like `delete'.
+
+	* bindings.el: Define `kp-delete' like `delete' in
+	function-key-map.
+
 	* term/w32-win.el (mouse-set-font): Doc fix.
 
 2001-01-31  Markus Rost  <rost@math.ohio-state.edu>
