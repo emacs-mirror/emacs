@@ -2911,7 +2911,6 @@ extern Lisp_Object Qexecute_kbd_macro;
 EXFUN (Fexecute_kbd_macro, 2);
 extern void init_macros P_ ((void));
 extern void syms_of_macros P_ ((void));
-extern void keys_of_macros P_ ((void));
 
 /* defined in undo.c */
 extern Lisp_Object Qinhibit_read_only;

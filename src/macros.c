@@ -366,11 +366,3 @@ syms_of_macros ()
   DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,
     "Last kbd macro defined, as a string or vector; nil if none defined.");
 }
-
-void
-keys_of_macros ()
-{
-  initial_define_key (control_x_map, ('e'), "call-last-kbd-macro");
-  initial_define_key (control_x_map, ('('), "start-kbd-macro");
-  initial_define_key (control_x_map, (')'), "end-kbd-macro");
-}
