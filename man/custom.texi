@@ -2002,6 +2002,12 @@ file directly or with the command @kbd{M-x disable-command}, which edits
 the @file{.emacs} file for you.  Likewise, @kbd{M-x enable-command}
 edits @file{.emacs} to enable a command permanently.  @xref{Init File}.
 
+  If Emacs was invoked with the @option{-q} or @option{--no-init-file}
+options (@pxref{Initial Options}), it will not edit your
+@file{~/.emacs} init file.  This is because editing the init file from
+such a session might overwrite the lines you might have on your init
+file which enable and disable commands.
+
   Whether a command is disabled is independent of what key is used to
 invoke it; disabling also applies if the command is invoked using
 @kbd{M-x}.  Disabling a command has no effect on calling it as a
