@@ -904,10 +904,11 @@ Lisp programs by representing the former as the integer 9, and the
 latter as the symbol @code{tab}.
 
 Most of the time, it's not useful to distinguish the two.  So normally
-@code{function-key-map} is set up to map @code{tab} into 9.  Thus, a key
-binding for character code 9 (the character @kbd{C-i}) also applies to
-@code{tab}.  Likewise for the other symbols in this group.  The function
-@code{read-char} likewise converts these events into characters.
+@code{function-key-map} (@pxref{Translating Input}) is set up to map
+@code{tab} into 9.  Thus, a key binding for character code 9 (the
+character @kbd{C-i}) also applies to @code{tab}.  Likewise for the other
+symbols in this group.  The function @code{read-char} likewise converts
+these events into characters.
 
 In @sc{ASCII}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
 converts into the character code 127 (@key{DEL}), not into code 8
@@ -1619,7 +1620,8 @@ functions for keyboard input are also available for use in Lisp
 programs.  See also @code{momentary-string-display} in @ref{Temporary
 Displays}, and @code{sit-for} in @ref{Waiting}.  @xref{Terminal Input},
 for functions and variables for controlling terminal input modes and
-debugging terminal input.
+debugging terminal input.  @xref{Translating Input}, for features you
+can use for translating or modifying input events while reading them.
 
   For higher-level input facilities, see @ref{Minibuffers}.
 
