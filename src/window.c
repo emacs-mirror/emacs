@@ -304,10 +304,11 @@ DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
   Spos_visible_in_window_p, 0, 3, 0,
   "Return t if position POS is currently on the frame in WINDOW.\n\
 Return nil if that position is scrolled vertically out of view.\n\
-If FULLY is non-nil, then only return t when POS is completely visible.\n\
+If a character is only partially visible, nil is returned, unless the\n\
+optional argument PARTIALLY is non-nil.\n\
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
-  (pos, window, fully)
-     Lisp_Object pos, window, fully;
+  (pos, window, partially)
+     Lisp_Object pos, window, partially;
 {
   register struct window *w;
   register int posint;
@@ -341,9 +342,9 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
 	 that info.  This doesn't work for POSINT == end pos, because
 	 the window end pos is actually the position _after_ the last
 	 char in the window.  */
-      if (!NILP (fully))
+      if (NILP (partially))
 	{
-	  pos_visible_p (w, posint, &fully_p, !NILP (fully));
+	  pos_visible_p (w, posint, &fully_p, NILP (partially));
 	  in_window = fully_p ? Qt : Qnil;
 	}
       else
@@ -356,8 +357,8 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
     in_window = Qnil;
   else
     {
-      if (pos_visible_p (w, posint, &fully_p, !NILP (fully)))
-	in_window = NILP (fully) || fully_p ? Qt : Qnil;
+      if (pos_visible_p (w, posint, &fully_p, NILP (partially)))
+	in_window = !NILP (partially) || fully_p ? Qt : Qnil;
       else
 	in_window = Qnil;
     }
@@ -3885,6 +3886,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
   Lisp_Object tem;
   int this_scroll_margin;
   int preserve_y;
+  /* True if we fiddled the window vscroll field without really scrolling.   */
+  int vscrolled = 0;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   
@@ -3944,23 +3947,53 @@ window_scroll_pixel_based (window, n, whole, noerror)
   if ((n > 0 && IT_CHARPOS (it) == ZV)
       || (n < 0 && IT_CHARPOS (it) == CHARPOS (start)))
     {
-      if (noerror)
-	return;
-      else if (IT_CHARPOS (it) == ZV)
-	Fsignal (Qend_of_buffer, Qnil);
+      if (IT_CHARPOS (it) == ZV)
+	{
+	  if (it.current_y + it.max_ascent + it.max_descent
+	      > it.last_visible_y)
+	    /* The last line was only partially visible, make it fully
+	       visible.  */
+	    w->vscroll = 
+	      it.last_visible_y
+	      - it.current_y + it.max_ascent + it.max_descent;
+	  else if (noerror)
+	    return;
+	  else
+	    Fsignal (Qend_of_buffer, Qnil);
+	}
       else
-	Fsignal (Qbeginning_of_buffer, Qnil);
+	{
+	  if (w->vscroll != 0)
+	    /* The first line was only partially visible, make it fully
+	       visible. */
+	    w->vscroll = 0;
+	  else if (noerror)
+	    return;
+	  else
+	    Fsignal (Qbeginning_of_buffer, Qnil);
+	}
+
+      /* If control gets here, then we vscrolled.  */
+
+      XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
+
+      /* Don't try to change the window start below.  */
+      vscrolled = 1;
     }
 
-  /* Set the window start, and set up the window for redisplay.  */
-  set_marker_restricted (w->start, make_number (IT_CHARPOS (it)), w->buffer);
-  w->start_at_line_beg = Fbolp ();
-  w->update_mode_line = Qt;
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
-  /* Set force_start so that redisplay_window will run the
-     window-scroll-functions.  */
-  w->force_start = Qt;
+  if (! vscrolled)
+    {
+      /* Set the window start, and set up the window for redisplay.  */
+      set_marker_restricted (w->start, make_number (IT_CHARPOS (it)),
+			     w->buffer);
+      w->start_at_line_beg = Fbolp ();
+      w->update_mode_line = Qt;
+      XSETFASTINT (w->last_modified, 0);
+      XSETFASTINT (w->last_overlay_modified, 0);
+      /* Set force_start so that redisplay_window will run the
+	 window-scroll-functions.  */
+      w->force_start = Qt;
+    }
   
   it.current_y = it.vpos = 0;
   
@@ -3988,18 +4021,30 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	}
       else if (n < 0)
 	{
+	  int charpos, bytepos;
+
 	  /* We moved the window start towards BEGV, so PT may be now
 	     in the scroll margin at the bottom.  */
 	  move_it_to (&it, PT, -1,
 		      it.last_visible_y - this_scroll_margin - 1, -1,
 		      MOVE_TO_POS | MOVE_TO_Y);
+
+	  /* Save our position, in case it's correct.  */
+	  charpos = IT_CHARPOS (it);
+	  bytepos = IT_BYTEPOS (it);
       
-	  /* Don't put point on a partially visible line at the end.  */
-	  if (it.current_y + it.max_ascent + it.max_descent
-	      > it.last_visible_y)
-	    move_it_by_lines (&it, -1, 0);
-      
-	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+	  /* See if point is on a partially visible line at the end.  */
+	  move_it_by_lines (&it, 1, 1);
+	  if (it.current_y > it.last_visible_y)
+	    /* The last line was only partially visible, so back up two
+	       lines to make sure we're on a fully visible line.  */
+	    {
+	      move_it_by_lines (&it, -2, 0);
+	      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+	    }
+	  else
+	    /* No, the position we saved is OK, so use it.  */
+	    SET_PT_BOTH (charpos, bytepos);
 	}
     }
 }
@@ -4437,9 +4482,11 @@ displayed_window_lines (w)
       int lines = (rest + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
       it.vpos += lines;
     }
+#if 0
   else if (it.current_y < height && bottom_y > height)
     /* Partially visible line at the bottom.  */
     ++it.vpos;
+#endif
   
   return it.vpos;
 }
