@@ -1,3 +1,8 @@
+2001-01-19  Andrew Innes  <andrewi@gnu.org>
+
+	* w32.c (init_environment): Add a version-independent site-lisp
+	directory to EMACSLOADPATH, after the version dependent one.
+
 2001-01-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (Fbuffer_substring): Doc fix.
