@@ -1,3 +1,28 @@
+2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-show-following-heading): New option.
+	(org-show-hierarchy-above): Use `org-show-following-heading'.
+
+	* textmodes/org.el (orgtbl-optimized): New option
+	(orgtbl-mode): New command, a minor mode.
+	(orgtbl-mode-map): New variable.
+	(turn-on-orgtbl, orgtbl-mode, orgtbl-make-binding)
+	(orgtbl-error, orgtbl-self-insert-command)
+	(orgtbl-delete-backward-char, orgtbl-delete-char): New functions.
+
+	* textmodes/org.el (org-mode): `org-table-may-need-update' is now
+	a local variable in each org-mode buffer.
+
+	* textmodes/org.el (org-set-regexps-and-options): Renamed from
+	`org-set-regexps'.  Added checking for STARTUP keyword.
+	(org-get-current-options): Added STARTUP options.
+	(org-table-insert-row): Mode mode intelligent about when
+	realignment is needed.
+	(org-self-insert-command, org-delete-backward-char,
+	org-delete-char): New commands.
+	(org-enable-table-editor): new default value `optimized'.
+	(org-table-blank-field): Support blanking regions if active.
+
 
 2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
 
