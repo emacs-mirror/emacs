@@ -514,7 +514,16 @@ For CVS, the full name of CVS/Entries is returned."
 		(vc-file-getprop file 'vc-checkout-model))))
     ((eq (vc-backend file) 'CVS)
      (vc-file-setprop file 'vc-checkout-model
-		      (if (getenv "CVSREAD") 'manual 'implicit))))))
+      (cond
+       ((getenv "CVSREAD") 'manual)
+       ;; If the file is not writeable, this is probably because the
+       ;; file is being "watched" by other developers.  Use "manual"
+       ;; checkout in this case.  (If vc-mistrust-permissions was t,
+       ;; we actually shouldn't trust this, but there is no other way
+       ;; to learn this from CVS at the moment (version 1.9).)
+       ((string-match "r-..-..-." (nth 8 (file-attributes file)))
+        'manual)
+       (t 'implicit)))))))
 
 ;;; properties indicating the locking state
 
