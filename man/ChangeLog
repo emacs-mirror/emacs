@@ -1,3 +1,7 @@
+2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (../info/idlwave): Use --no-split.
+
 2000-12-14  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (mostlyclean): Remove gnustmp.*
