@@ -527,15 +527,15 @@ create_frame_gcs (ew)
 {
   struct frame *s = ew->emacs_frame.frame;
 
-  s->display.x->normal_gc =
-    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-	       (unsigned long)0, (XGCValues *)0);
-  s->display.x->reverse_gc =
-    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-	       (unsigned long)0, (XGCValues *)0);
-  s->display.x->cursor_gc =
-    XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-	       (unsigned long)0, (XGCValues *)0);
+  s->display.x->normal_gc
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
+		 (unsigned long)0, (XGCValues *)0);
+  s->display.x->reverse_gc
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
+		 (unsigned long)0, (XGCValues *)0);
+  s->display.x->cursor_gc
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
+		 (unsigned long)0, (XGCValues *)0);
 }
 
 static char setup_frame_cursor_bits[] =
@@ -563,19 +563,20 @@ setup_frame_gcs (ew)
      effectively cache all of the GC settings we need to use.
    */
 
-  blank_stipple = 
-    XCreateBitmapFromData (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-			   setup_frame_cursor_bits, 2, 2);
+  blank_stipple
+    = XCreateBitmapFromData (XtDisplay (ew),
+			     RootWindowOfScreen (XtScreen (ew)),
+			     setup_frame_cursor_bits, 2, 2);
 
   /* use fg = 0, bg = 1 below, but it's irrelevant since this pixmap should
      never actually get used as a background tile!
    */
-  blank_tile =
-    XCreatePixmapFromBitmapData (XtDisplay(ew),
-				 RootWindowOfScreen (XtScreen (ew)),
-				 setup_frame_cursor_bits, 2, 2,
-				 (unsigned long)0, (unsigned long)1,
-				 ew->core.depth);
+  blank_tile
+    = XCreatePixmapFromBitmapData (XtDisplay(ew),
+				   RootWindowOfScreen (XtScreen (ew)),
+				   setup_frame_cursor_bits, 2, 2,
+				   (unsigned long)0, (unsigned long)1,
+				   ew->core.depth);
 
   /* Normal video */
   gc_values.font = ew->emacs_frame.font->fid;
@@ -607,10 +608,10 @@ setup_frame_gcs (ew)
   gc_values.background = ew->emacs_frame.cursor_color;
   gc_values.graphics_exposures = False;
   gc_values.tile = blank_tile;
-  gc_values.stipple =
-    XCreateBitmapFromData (XtDisplay (ew),
-			   RootWindowOfScreen (XtScreen (ew)),
-			   setup_frame_cursor_bits, 16, 16);
+  gc_values.stipple
+    = XCreateBitmapFromData (XtDisplay (ew),
+			     RootWindowOfScreen (XtScreen (ew)),
+			     setup_frame_cursor_bits, 16, 16);
   XChangeGC (XtDisplay (ew), s->display.x->cursor_gc,
 	     (GCFont | GCForeground | GCBackground | GCGraphicsExposures
 	      | GCStipple | GCTile),
