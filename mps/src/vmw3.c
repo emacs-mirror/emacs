@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.6) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -54,11 +54,9 @@
 #include <stddef.h>
 #include <windows.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!vmnt.c(trunk.7) $");
 
-
-static SigStruct VMSigStruct;
-
+#define VMSig	((Sig)0x519FEE33)
 
 typedef struct VMStruct
 {
@@ -89,8 +87,7 @@ Addr VMGrain(void)
 Bool VMIsValid(VM vm, ValidationType validParam)
 {
   AVER(vm != NULL);
-  AVER(ISVALIDNESTED(Sig, vm->sig));
-  AVER(vm->sig == &VMSigStruct);
+  AVER(vm->sig == VMSig);
   AVER(vm->base != 0);
   AVER(vm->limit != 0);
   AVER(vm->base < vm->limit);
@@ -139,8 +136,7 @@ Error VMCreate(VM *vmReturn, Addr size)
   vm->limit = (Addr)base + size;
   AVER(vm->base < vm->limit);  /* .assume.not-last */
   
-  SigInit(&VMSigStruct, "VM");
-  vm->sig = &VMSigStruct;
+  vm->sig = VMSig;
 
   AVER(ISVALID(VM, vm));
 

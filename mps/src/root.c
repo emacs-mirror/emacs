@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.9) $
+ *  $HopeName: MMsrc!root.c(trunk.10) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,15 +20,12 @@
 #include "trace.h"
 #include "space.h"
 
-SRCID("$HopeName$");
-
-static SigStruct RootSigStruct;
+SRCID("$HopeName: MMsrc!root.c(trunk.10) $");
 
 Bool RootIsValid(Root root, ValidationType validParam)
 {
   AVER(root != NULL);
-  AVER(ISVALIDNESTED(Sig, &RootSigStruct));
-  AVER(root->sig == &RootSigStruct);
+  AVER(root->sig == RootSig);
   AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
   AVER(ISVALIDNESTED(RefRank, root->rank));
   switch(root->type)
@@ -81,8 +78,7 @@ static Error create(Root *rootReturn, Space space,
 
   DequeNodeInit(&root->spaceDeque);
 
-  SigInit(&RootSigStruct, "Root");
-  root->sig = &RootSigStruct;
+  root->sig = RootSig;
 
   AVER(ISVALID(Root, root));
 

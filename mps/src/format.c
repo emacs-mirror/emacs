@@ -1,6 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.5) $
+ *  $HopeName: MMsrc!format.c(trunk.6) $
  */
 
 #include "std.h"
@@ -8,11 +8,7 @@
 #include "format.h"
 #include "pool.h"
 
-SRCID("$HopeName$");
-
-
-static struct SigStruct FormatSigStruct;
-
+SRCID("$HopeName: MMsrc!format.c(trunk.6) $");
 
 
 #ifdef DEBUG
@@ -20,8 +16,7 @@ static struct SigStruct FormatSigStruct;
 Bool FormatIsValid(Format format, ValidationType validParam)
 {
   AVER(format != NULL);
-  AVER(ISVALIDNESTED(Sig, &FormatSigStruct));
-  AVER(format->sig == &FormatSigStruct);
+  AVER(format->sig == FormatSig);
   AVER(ISVALIDNESTED(Space, format->space));
   AVER(IsPoT(format->alignment));
   /* **** alignment should be less than maximum allowed */
@@ -62,8 +57,7 @@ Error FormatCreate(Format *formatReturn, Space space,
   format->isMoved = isMoved;
   format->copy = copy;
 
-  SigInit(&FormatSigStruct, "Format");
-  format->sig = &FormatSigStruct;
+  format->sig = FormatSig;
 
   AVER(ISVALID(Format, format));
   

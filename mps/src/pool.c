@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.9) $
+ * $HopeName: MMsrc!pool.c(trunk.10) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -19,17 +19,13 @@
 #include <stddef.h>
 #include <stdarg.h>
 
-SRCID("$HopeName: MMsrc!pool.c(trunk.9) $");
-
-
-static SigStruct PoolSigStruct;
+SRCID("$HopeName: MMsrc!pool.c(trunk.10) $");
 
 
 Bool PoolIsValid(Pool pool, ValidationType validParam)
 {
   AVER(pool != NULL);
-  AVER(ISVALIDNESTED(Sig, &PoolSigStruct));
-  AVER(pool->sig == &PoolSigStruct);
+  AVER(pool->sig == PoolSig);
   AVER(ISVALIDNESTED(DequeNode, &pool->spaceDeque));
   AVER(ISVALIDNESTED(Deque, &pool->segDeque));
   AVER(ISVALIDNESTED(Deque, &pool->bufferDeque));
@@ -49,8 +45,7 @@ void PoolInit(Pool pool, Space space, PoolClass class)
   DequeInit(&pool->bufferDeque);
   pool->alignment = ARCH_ALIGNMOD;
 
-  SigInit(&PoolSigStruct, "Pool");
-  pool->sig = &PoolSigStruct;
+  pool->sig = PoolSig;
 
   AVER(ISVALID(Pool, pool));
 
