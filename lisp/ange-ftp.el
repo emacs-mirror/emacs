@@ -3501,7 +3501,7 @@ system TYPE.")
 	      (ange-ftp-send-cmd
 	       f-host
 	       f-user
-	       (list 'get f-name (or temp1 newname))
+	       (list 'get f-name (or temp1 (ange-ftp-quote-string newname)))
 	       (or msg
 		   (if (and temp1 t-parsed)
 		       (format "Getting %s" f-abbr)
