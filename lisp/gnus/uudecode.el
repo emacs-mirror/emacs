@@ -34,6 +34,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defalias 'uudecode-char-int
   (if (fboundp 'char-int)
       'char-int
