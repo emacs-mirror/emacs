@@ -3457,6 +3457,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		     We depend on x_make_frame_invisible to mark it iconified.  */
 		  if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
 		    f->async_iconified = 1;
+
+		  bufp->kind = iconify_event;
+		  XSETFRAME (bufp->frame_or_window, f);
+		  bufp++;
+		  count++;
+		  numchars--;
 		}
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
@@ -3475,6 +3481,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  /* wait_reading_process_input will notice this and update
 		     the frame's display structures.  */
 		  SET_FRAME_GARBAGED (f);
+
+		  bufp->kind = deiconify_event;
+		  XSETFRAME (bufp->frame_or_window, f);
+		  bufp++;
+		  count++;
+		  numchars--;
 		}
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
