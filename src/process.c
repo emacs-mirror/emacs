@@ -3055,6 +3055,7 @@ read_process_output (proc, channel)
       int before, before_byte;
       int opoint_byte;
       Lisp_Object text;
+      struct buffer *b;
 
       odeactivate = Vdeactivate_mark;
 
@@ -3120,7 +3121,14 @@ read_process_output (proc, channel)
       signal_after_change (before, 0, PT - before);
       update_compositions (before, PT, CHECK_BORDER);
 
-      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
+      /* Make sure the process marker's position is valid when the
+	 process buffer is changed in the signal_after_change above.
+	 W3 is known to do that.  */
+      if (BUFFERP (p->buffer)
+	  && (b = XBUFFER (p->buffer), b != current_buffer))
+	set_marker_both (p->mark, p->buffer, BUF_PT (b), BUF_PT_BYTE (b));
+      else
+	set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
       update_mode_lines++;
 
