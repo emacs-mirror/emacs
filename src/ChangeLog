@@ -1,3 +1,11 @@
+2002-04-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_phys_cursor_glyph): Undo last change.  Compute
+	phys_cursor_width from the x position returned by x_draw_glyhs,
+	which is cheaper.
+	(x_display_and_set_cursor): Compute the buffer-local value
+	of `cursor-in-non-selected-windows' only when needed.
+
 2002-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_phys_cursor_glyph): Take into account that a box
