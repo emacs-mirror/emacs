@@ -313,13 +313,21 @@
 
 (make-coding-system
  'emacs-mule 0 ?=
- "Emacs internal format used in buffer and string"
+ "Emacs internal format used in buffer and string.
+Encoding text with this coding system produces the actual byte
+sequence of the text in buffers and strings.  An exception is made for
+eight-bit-control characters.  Each of them is encoded into a single
+byte."
  nil
  '((safe-charsets . t)))
 
 (make-coding-system
  'raw-text 5 ?t
- "Raw text, which means text contains random 8-bit codes."
+ "Raw text, which means text contains random 8-bit codes.
+Encoding text with this coding system produces the actual byte
+sequence of the text in buffers and strings.  An exception is made for
+eight-bit-control characters.  Each of them is encoded into a single
+byte."
  nil
  '((safe-charsets . t)))
 
