@@ -4463,18 +4463,18 @@ read_process_output (proc, channel)
   if (DATAGRAM_CHAN_P (channel))
     {
       int len = datagram_address[channel].len;
-      nbytes = recvfrom (channel, chars + carryover, readmax,
+      nbytes = recvfrom (channel, chars + carryover, readmax - carryover,
 			 0, datagram_address[channel].sa, &len);
     }
   else
 #endif
   if (proc_buffered_char[channel] < 0)
-    nbytes = emacs_read (channel, chars + carryover, readmax);
+    nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
   else
     {
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
+      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1 - carryover);
       if (nbytes < 0)
 	nbytes = 1;
       else
