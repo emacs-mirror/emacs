@@ -529,26 +529,37 @@ Returns nil if line starts inside a string, t if in a comment."
 		 ;; If no, find that first statement and indent like it.
 		 (save-excursion
 		   (forward-char 1)
-		   (while (progn (skip-chars-forward " \t\n")
-				 (looking-at
-				  (concat
-				   "#\\|/\\*\\|//"
-				   "\\|case[ \t]"
-				   "\\|[a-zA-Z0-9_$]*:[^:]"
-				   "\\|friend[ \t]")))
-		     ;; Skip over comments and labels following openbrace.
-		     (cond ((= (following-char) ?\#)
-			    (forward-line 1))
-			   ((looking-at "/\\*")
-			    (search-forward "*/" nil 'move))
-			   ((looking-at "//\\|friend[ \t]")
-			    (forward-line 1))
-			   (t
-			    (re-search-forward ":[^:]" nil 'move))))
-		      ;; The first following code counts
-		      ;; if it is before the line we want to indent.
-		      (and (< (point) indent-point)
-			   (current-column)))
+		   (let ((colon-line-end 0))
+		     (while (progn (skip-chars-forward " \t\n")
+				   (looking-at
+				    (concat
+				     "#\\|/\\*\\|//"
+				     "\\|case[ \t]"
+				     "\\|[a-zA-Z0-9_$]*:[^:]"
+				     "\\|friend[ \t]")))
+		       ;; Skip over comments and labels following openbrace.
+		       (cond ((= (following-char) ?\#)
+			      (forward-line 1))
+			     ((looking-at "/\\*")
+			      (search-forward "*/" nil 'move))
+			     ((looking-at "//\\|friend[ \t]")
+			      (forward-line 1))
+			     (t
+			      (save-excursion (end-of-line)
+					      (setq colon-line-end (point)))
+			      (search-forward ":"))))
+		     ;; The first following code counts
+		     ;; if it is before the line we want to indent.
+		     (and (< (point) indent-point)
+			  (- 
+			   (if (> colon-line-end (point))
+			       (- (current-indentation) c-label-offset)
+			     (current-column))
+			   ;; If prev stmt starts with open-brace, that
+			   ;; open brace was offset by c-brace-offset.
+			   ;; Compensate to get the column where
+			   ;; an ordinary statement would start.
+			   (if (= (following-char) ?\{) c-brace-offset 0)))))
 		 ;; If no previous statement,
 		 ;; indent it relative to line brace is on.
 		 ;; For open brace in column zero, don't let statement
