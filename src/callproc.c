@@ -847,7 +847,6 @@ init_callproc ()
   register char * sh;
   Lisp_Object tempdir;
 
-#ifndef MSDOS
   if (initialized && !NILP (Vinstallation_directory))
     {
       /* Add to the path the lib-src subdir of the installation dir.  */
@@ -856,8 +855,11 @@ init_callproc ()
 			       Vinstallation_directory);
       if (NILP (Fmember (tem, Vexec_path)))
 	{
+#ifndef MSDOS
+	  /* MSDOS uses wrapped binaries, so don't do this.  */
 	  Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
 	  Vexec_directory = Ffile_name_as_directory (tem);
+#endif
 
 	  /* If we use ../lib-src, maybe use ../etc as well.
 	     Do so if ../etc exists and has our DOC-... file in it.  */
@@ -893,7 +895,6 @@ init_callproc ()
 	    Vdata_directory = newdir;
 	}
     }
-#endif
 
   tempdir = Fdirectory_file_name (Vexec_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
