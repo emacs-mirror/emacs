@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, character set, coding system
 
