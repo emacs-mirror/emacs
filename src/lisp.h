@@ -425,6 +425,60 @@ extern int pure_size;
 #define XSETPROCESS(a, b) XSETPNTR(a, (int) (b))
 #define XSETFLOAT(a, b) XSETPNTR(a, (int) (b))
 
+#ifdef USE_TEXT_PROPERTIES
+/* Basic data type for use of intervals.  See the macros in intervals.h */
+
+struct interval
+{
+  /* The first group of entries deal with the tree structure. */
+
+  unsigned int total_length;	/* Length of myself and both children. */
+  unsigned int position;	/* Cache of interval's character position  */
+  struct interval *left;	/* Intervals which precede me. */
+  struct interval *right;	/* Intervals which succeed me. */
+  struct interval *parent;	/* Parent in the tree, or the Lisp_Object
+				   containing this interval tree. */
+
+  /* The remaining components are `properties' of the interval.
+     The first four are duplicates for things which can be on the list,
+     for purposes of speed. */
+
+  unsigned char write_protect;	    /* Non-zero means can't modify.  */
+  unsigned char visible;	    /* Zero means don't display. */
+  unsigned char front_hungry;	    /* Non-zero means text inserted just
+				       before this interval goes into it. */
+  unsigned char rear_hungry;	    /* Likewise for just after it. */
+
+  Lisp_Object plist;		    /* Properties of this interval. */
+};
+
+typedef struct interval *INTERVAL;
+
+/* Complain if object is not string or buffer type */
+#define CHECK_STRING_OR_BUFFER(x, i) \
+  { if (XTYPE ((x)) != Lisp_String && XTYPE ((x)) != Lisp_Buffer) \
+      x = wrong_type_argument (Qbuffer_or_string_p, (x)); }
+
+/* Macro used to conditionally compile intervals into certain data
+   structures.  See, e.g., struct Lisp_String below. */
+#define DECLARE_INTERVALS INTERVAL intervals;
+
+/* Macro used to condionally compile interval initialization into
+   certain code.  See, e.g., alloc.c. */
+#define INITIALIZE_INTERVAL(ptr,val) ptr->intervals = val
+
+#else  /* No text properties */
+
+/* If no intervals are used, make the above definitions go away. */
+
+#define CHECK_STRING_OR_BUFFER(x, i)
+
+#define INTERVAL
+#define DECLARE_INTERVALS
+#define INITIALIZE_INTERVAL(ptr,val)
+
+#endif /* USE_TEXT_PROPERTIES */
+
 /* In a cons, the markbit of the car is the gc mark bit */
 
 struct Lisp_Cons
@@ -447,6 +501,7 @@ struct Lisp_Buffer_Cons
 struct Lisp_String
   {
     int size;
+    DECLARE_INTERVALS		/* `data' field must be last. */
     unsigned char data[1];
   };
 
