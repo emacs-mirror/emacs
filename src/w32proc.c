@@ -2232,10 +2232,9 @@ the truename of a file can be slow.  */);
 #endif
 
   DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
-	       doc: /* Non-nil means determine accurate link count in file-attributes.
-This option slows down file-attributes noticeably, so is disabled by
-default.  Note that it is only useful for files on NTFS volumes,
-where hard links are supported.  */);
+	       doc: /* Non-nil means determine accurate link count in `file-attributes'.
+Note that this option is only useful for files on NTFS volumes, where hard links
+are supported.  Moreover, it slows down `file-attributes' noticeably.  */)
   Vw32_get_true_file_attributes = Qt;
 }
 /* end of ntproc.c */
