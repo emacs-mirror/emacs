@@ -50,7 +50,7 @@
 (defconst mode-line-mule-info
   (purecopy '(enable-multibyte-characters
 	      ((current-input-method ("[" current-input-method-title "]"))
-	       "%z")))
+	       "%z:")))
   "Mode-line control for displaying information of multilingual environment.")
 
 (make-variable-buffer-local 'mode-line-mule-info)
@@ -71,7 +71,7 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-process)
 
-(defvar mode-line-modified (purecopy '("-%1*%1+"))
+(defvar mode-line-modified (purecopy '("%1*%1+"))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
