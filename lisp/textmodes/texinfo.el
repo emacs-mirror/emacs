@@ -1,10 +1,12 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985, 1988, 1989, 1990, 1991, 1992, 1993, 1997
-;;    Free Software Foundation, Inc.
+;; Copyright (C) 1985, '88, '89, '90, '91,
+;;                '92, '93, '96, '97 Free Software Foundation, Inc.
 
-;; Author: Robert J. Chassell          
-;; Maintainer: FSF
+;; Author: Robert J. Chassell
+;; Date:   [Set date below for texinfo-version]
+;; Maintainer: bug-texinfo@prep.ai.mit.edu
+;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.
 
@@ -23,44 +25,107 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Code:
+
 (defgroup texinfo nil
   "Texinfo Mode"
   :group 'docs)
+
+(defvar texinfo-version "2.37 of 24 May 1997")
+
+(defun texinfo-version (&optional here)
+  "Show the version of texinfo.el in the minibuffer.
+If optional argument HERE is non-nil, insert info at point."
+  (interactive "P")
+  (let ((version-string 
+         (format "Version of \`texinfo.el\': %s" texinfo-version)))
+    (if here 
+        (insert version-string)
+      (if (interactive-p)
+          (message "%s" version-string)
+        version-string))))
 
 
 ;;; Autoloads:
 
 (autoload 'makeinfo-region
-          "makeinfo"
+  "makeinfo"
   "Make Info file from region of current Texinfo file, and switch to it.
 
 This command does not offer the `next-error' feature since it would
 apply to a temporary file, not the original; use the `makeinfo-buffer'
 command to gain use of `next-error'."
-          t nil)
+  t nil)
 
 (autoload 'makeinfo-buffer
-          "makeinfo"
+  "makeinfo"
   "Make Info file from current buffer.
 
-Use the \\[next-error] command to move to the next error 
+Use the \\[next-error] command to move to the next error
 \(if there are errors\)."
-          t nil)
+  t nil)
 
 (autoload 'kill-compilation
-          "compile"
+  "compile"
   "Kill the process made by the \\[compile] command."
-          t nil)
+  t nil)
 
 (autoload 'makeinfo-recenter-compilation-buffer
-          "makeinfo"
+  "makeinfo"
   "Redisplay `*compilation*' buffer so most recent output can be seen.
 The last line of the buffer is displayed on
 line LINE of the window, or centered if LINE is nil."
-          t nil)
+  t nil)
+
+(autoload 'texinfo-update-node
+  "texnfo-upd"
+  "Without any prefix argument, update the node in which point is located.
+Non-nil argument (prefix, if interactive) means update the nodes in the
+marked region.
+
+The functions for creating or updating nodes and menus, and their
+keybindings, are:
+
+    texinfo-update-node (&optional region-p)    \\[texinfo-update-node]
+    texinfo-every-node-update ()                \\[texinfo-every-node-update]
+    texinfo-sequential-node-update (&optional region-p)
+
+    texinfo-make-menu (&optional region-p)      \\[texinfo-make-menu]
+    texinfo-all-menus-update ()                 \\[texinfo-all-menus-update]
+    texinfo-master-menu ()
+
+    texinfo-indent-menu-description (column &optional region-p)
+
+The `texinfo-column-for-description' variable specifies the column to
+which menu descriptions are indented. Its default value is 32."
+  t nil)
+
+(autoload 'texinfo-every-node-update
+  "texnfo-upd"
+  "Update every node in a Texinfo file."
+  t nil)
+
+(autoload 'texinfo-sequential-node-update
+  "texnfo-upd"
+  "Update one node (or many) in a Texinfo file with sequential pointers.
+
+This function causes the `Next' or `Previous' pointer to point to the
+immediately preceding or following node, even if it is at a higher or
+lower hierarchical level in the document.  Continually pressing `n' or
+`p' takes you straight through the file.
+
+Without any prefix argument, update the node in which point is located.
+Non-nil argument (prefix, if interactive) means update the nodes in the
+marked region.
+
+This command makes it awkward to navigate among sections and
+subsections; it should be used only for those documents that are meant
+to be read like a novel rather than a reference, and for which the
+Info `g*' command is inadequate."
+  t nil)
 
 (autoload 'texinfo-make-menu
-          "texnfo-upd"
+  "texnfo-upd"
   "Without any prefix argument, make or update a menu.
 Make the menu for the section enclosing the node found following point.
 
@@ -71,19 +136,19 @@ Whenever a menu exists, and is being updated, the descriptions that
 are associated with node names in the pre-existing menu are
 incorporated into the new menu.  Otherwise, the nodes' section titles
 are inserted as descriptions."
-          t nil)
+  t nil)
 
 (autoload 'texinfo-all-menus-update
-          "texnfo-upd"
+  "texnfo-upd"
   "Update every regular menu in a Texinfo file.
 Remove pre-existing master menu, if there is one.
 
 If called with a non-nil argument, this function first updates all the
 nodes in the buffer before updating the menus."
-          t nil)
+  t nil)
 
 (autoload 'texinfo-master-menu
-          "texnfo-upd"
+  "texnfo-upd"
   "Make a master menu for a whole Texinfo file.
 Non-nil argument (prefix, if interactive) means first update all
 existing nodes and menus.  Remove pre-existing master menu, if there is one.
@@ -115,38 +180,38 @@ recommendation in the Texinfo Manual:
 
 Each of the menus in the detailed node listing is introduced by the
 title of the section containing the menu."
-          t nil)
+  t nil)
 
 (autoload 'texinfo-indent-menu-description
-          "texnfo-upd"
-  "Indent every description in menu following point to COLUMN.  
+  "texnfo-upd"
+  "Indent every description in menu following point to COLUMN.
 Non-nil argument (prefix, if interactive) means indent every
 description in every menu in the region.  Does not indent second and
 subsequent lines of a multi-line description."
-          t nil)
+  t nil)
 
 (autoload 'texinfo-insert-node-lines
-          "texnfo-upd"
+  "texnfo-upd"
   "Insert missing `@node' lines in region of Texinfo file.
 Non-nil argument (prefix, if interactive) means also to insert the
 section titles as node names; and also to insert the section titles as
 node names in pre-existing @node lines that lack names."
-          t nil)
+  t nil)
 
 (autoload 'texinfo-start-menu-description
-          "texnfo-upd"
-  "In this menu entry, insert the node's section title as a description. 
+  "texnfo-upd"
+  "In this menu entry, insert the node's section title as a description.
 Position point at beginning of description ready for editing.
 Do not insert a title if the line contains an existing description.
 
 You will need to edit the inserted text since a useful description
 complements the node name rather than repeats it as a title does."
-          t nil)
+  t nil)
 
 (autoload 'texinfo-multiple-files-update
-          "texnfo-upd"
+  "texnfo-upd"
   "Update first node pointers in each file included in OUTER-FILE;
-create or update main menu in the outer file that refers to such nodes. 
+create or update main menu in the outer file that refers to such nodes.
 This does not create or update menus or pointers within the included files.
 
 With optional MAKE-MASTER-MENU argument (prefix arg, if interactive),
@@ -160,7 +225,7 @@ a master menu in OUTER-FILE.
 
 The command also updates the `Top' level node pointers of OUTER-FILE.
 
-Notes: 
+Notes:
 
   * this command does NOT save any files--you must save the
     outer file and any modified, included files.
@@ -172,13 +237,13 @@ Notes:
 Requirements:
 
   * each of the included files must contain exactly one highest
-    hierarchical level node, 
+    hierarchical level node,
   * this highest node must be the first node in the included file,
   * each highest hierarchical level node must be of the same type.
 
 Thus, normally, each included file contains one, and only one,
 chapter."
-          t nil)
+  t nil)
 
 
 ;;; Code:
@@ -214,11 +279,11 @@ chapter."
 (defvar texinfo-font-lock-keywords
   '(;; All but the first 2 had an OVERRIDE of t.
     ;; It didn't seem to be any better, and it's slower--simon.
-    ("^\\(@c\\|@comment\\)\\>.*" . font-lock-comment-face) 	;comments
+    ("^\\(@c\\|@comment\\)\\>.*" . font-lock-comment-face) ;comments
     ;; Robert J. Chassell <bob@gnu.ai.mit.edu> says remove this line.
-    ;("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
-    ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face)	;commands
-    ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) 	;menu items
+    ;;("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
+    ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face) ;commands
+    ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) ;menu items
     ("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face)
     ("@\\(file\\|kbd\\|key\\|url\\|email\\){\\([^}]+\\)" 2 font-lock-string-face)
     ("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
@@ -253,14 +318,15 @@ chapter."
   ;; Calculate level of current texinfo outline heading.
   (save-excursion
     (if (bobp)
-	0
+        0
       (forward-char 1)
-      (let* ((word (buffer-substring-no-properties 
-		    (point) (progn (forward-word 1) (point))))
-	     (entry (assoc word texinfo-section-list)))
-	(if entry
-	    (nth 1 entry)
-	  5)))))
+      (let* ((word (buffer-substring-no-properties
+                    (point) (progn (forward-word 1) (point))))
+             (entry (assoc word texinfo-section-list)))
+        (if entry
+            (nth 1 entry)
+          5)))))
+
 
 ;;; Keybindings
 (defvar texinfo-mode-map nil)
@@ -281,7 +347,7 @@ chapter."
   (define-key keymap "\C-c\C-t\C-r"    'texinfo-tex-region)
   (define-key keymap "\C-c\C-t\C-b"    'texinfo-tex-buffer))
 
-;; Mode documentation displays commands in reverse order 
+;; Mode documentation displays commands in reverse order
 ;; from how they are listed in the texinfo-mode-map.
 
 (if texinfo-mode-map
@@ -293,12 +359,12 @@ chapter."
 
   ;; bindings for `makeinfo.el'
   (define-key texinfo-mode-map "\C-c\C-m\C-k" 'kill-compilation)
-  (define-key texinfo-mode-map "\C-c\C-m\C-l" 
+  (define-key texinfo-mode-map "\C-c\C-m\C-l"
     'makeinfo-recenter-compilation-buffer)
   (define-key texinfo-mode-map "\C-c\C-m\C-r" 'makeinfo-region)
   (define-key texinfo-mode-map "\C-c\C-m\C-b" 'makeinfo-buffer)
 
-  ; Bindings for texinfmt.el.
+  ;; bindings for `texinfmt.el'
   (define-key texinfo-mode-map "\C-c\C-e\C-r"    'texinfo-format-region)
   (define-key texinfo-mode-map "\C-c\C-e\C-b"    'texinfo-format-buffer)
 
@@ -313,8 +379,9 @@ chapter."
 
   (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
 
-  (define-key texinfo-mode-map "\C-c}"    	'up-list)
-  (define-key texinfo-mode-map "\C-c{"    	'texinfo-insert-braces)
+  (define-key texinfo-mode-map "\C-c}"          'up-list)
+  (define-key texinfo-mode-map "\C-c]"          'up-list)
+  (define-key texinfo-mode-map "\C-c{"          'texinfo-insert-braces)
 
   ;; bindings for inserting strings
 
@@ -336,7 +403,7 @@ chapter."
 
 ;;; Texinfo mode
 
-(defvar texinfo-chapter-level-regexp 
+(defvar texinfo-chapter-level-regexp
   "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
   "Regular expression matching Texinfo chapter-level headings.
 This does not match `@node' and does not match the `@top' command.")
@@ -383,7 +450,7 @@ Here are the functions:
 
     texinfo-update-node                \\[texinfo-update-node]
     texinfo-every-node-update          \\[texinfo-every-node-update]
-    texinfo-sequential-node-update 
+    texinfo-sequential-node-update
 
     texinfo-make-menu                  \\[texinfo-make-menu]
     texinfo-all-menus-update           \\[texinfo-all-menus-update]
@@ -392,7 +459,7 @@ Here are the functions:
     texinfo-indent-menu-description (column &optional region-p)
 
 The `texinfo-column-for-description' variable specifies the column to
-which menu descriptions are indented. 
+which menu descriptions are indented.
 
 Passed an argument (a prefix argument, if interactive), the
 `texinfo-update-node' and `texinfo-make-menu' functions do their jobs
@@ -415,17 +482,18 @@ value of texinfo-mode-hook."
   (use-local-map texinfo-mode-map)
   (set-syntax-table texinfo-mode-syntax-table)
   (make-local-variable 'page-delimiter)
-  (setq page-delimiter 
-        (concat 
-         "^@node [ \t]*[Tt]op\\|^@\\(" 
-         texinfo-chapter-level-regexp 
+  (setq page-delimiter
+        (concat
+         "^@node [ \t]*[Tt]op\\|^@\\("
+         texinfo-chapter-level-regexp
          "\\)"))
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
   (make-local-variable 'indent-tabs-mode)
   (setq indent-tabs-mode nil)
   (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
+  (setq paragraph-separate
+	(concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-separate))
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
   (make-local-variable 'fill-column)
@@ -441,10 +509,10 @@ value of texinfo-mode-hook."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(texinfo-font-lock-keywords t))
   (make-local-variable 'outline-regexp)
-  (setq outline-regexp 
-	(concat "@\\("
-		(mapconcat 'car texinfo-section-list "\\>\\|")
-		"\\>\\)"))
+  (setq outline-regexp
+        (concat "@\\("
+                (mapconcat 'car texinfo-section-list "\\>\\|")
+                "\\>\\)"))
   (make-local-variable 'outline-level)
   (setq outline-level 'texinfo-outline-level)
   (make-local-variable 'tex-start-of-header)
@@ -460,14 +528,40 @@ value of texinfo-mode-hook."
 
 ;;; Insert string commands
 
+;; Keep as concatinated lists for ease of maintenance
 (defconst texinfo-environment-regexp
-  "^[ \t]*@\\(f?table\\|enumerate\\|itemize\
-\\|ifhtml\\|ifinfo\\|iftex\\|ifset\\|ifclear\
-\\|example\\|quotation\\|lisp\\|smallexample\\|smalllisp\\|display\\|format\
-\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|html\\|cartouche\\|menu\
-\\|titlepage\\|end\\|def[a-z]*[a-wyz]\\>\\)"
-  "Regexp for environment-like Texinfo list commands.
-Subexpression 1 is what goes into the corresponding `@end' statement.")
+  (concat
+   "^@"
+   "\\("
+   "cartouche\\|"
+   "display\\|"
+   "end\\|"
+   "enumerate\\|"
+   "example\\|"
+   "f?table\\|"
+   "flushleft\\|"
+   "flushright\\|"
+   "format\\|"
+   "group\\|"
+   "ifhtml\\|"
+   "ifinfo\\|"
+   "iftex\\|"
+   "ignore\\|"
+   "itemize\\|"
+   "lisp\\|"
+   "macro\\|"
+   "multitable\\|"
+   "quotation\\|"
+   "smallexample\\|"
+   "smalllisp\\|"
+   "tex"
+   "\\)")
+  "Regexp for environment-like TexInfo list commands.
+   Subexpression 1 is what goes into the corresponding `@end' statement.")
+
+;; The following texinfo-insert-@end command not only inserts a SPC
+;; after the @end, but tries to find out what belongs there.  It is
+;; not very smart: it does not understand nested lists.
 
 (defun texinfo-insert-@end ()
   "Insert the matching `@end' for the last Texinfo command that needs one."
@@ -475,15 +569,15 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
   (let ((depth 1) string)
     (save-excursion
       (while (and (> depth 0)
-		  (re-search-backward texinfo-environment-regexp nil t)
+                  (re-search-backward texinfo-environment-regexp nil t))
 	(if (looking-at "@end")
 	    (setq depth (1+ depth))
-	  (setq depth (1- depth)))))
+	  (setq depth (1- depth))))
       (looking-at texinfo-environment-regexp)
       (if (zerop depth)
-	  (setq string
-		(buffer-substring (match-beginning 1)
-				  (match-end 1)))))
+          (setq string
+                (buffer-substring (match-beginning 1)
+                                  (match-end 1)))))
     (insert "@end ")
     (if string (insert string "\n"))))
 
@@ -496,7 +590,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 ;; These commands use texinfo-insert-@-with-arg
 (defun texinfo-insert-@-with-arg (string &optional arg)
-  (if arg 
+  (if arg
       (progn
         (setq arg (prefix-numeric-value arg))
         (if (< arg 0)
@@ -594,13 +688,13 @@ The default is not to surround any existing words with the braces."
 
 ;;; Texinfo file structure
 
-;; These are defined in tenfo-upd.el.
+;; These are defined in texnfo-upd.el.  defvars here avoid warnings.
 (defvar texinfo-section-types-regexp)
 (defvar texinfo-section-level-regexp)
 (defvar texinfo-subsection-level-regexp)
 (defvar texinfo-subsubsection-level-regexp)
 
-(defun texinfo-show-structure (&optional nodes-too) 
+(defun texinfo-show-structure (&optional nodes-too)
   "Show the structure of a Texinfo file.
 List the lines in the file that begin with the @-sign commands for
 @chapter, @section, and the like.
@@ -611,12 +705,12 @@ with @-sign commands for @chapter, @section, and the like, and list
 
 Lines with structuring commands beginning in them are displayed in
 another buffer named `*Occur*'.  In that buffer, you can move point to
-one of those lines and then use \\<occur-mode-map>\\[occur-mode-goto-occurrence], 
+one of those lines and then use \\<occur-mode-map>\\[occur-mode-goto-occurrence],
 to jump to the corresponding spot in the Texinfo source file."
 
   (interactive "P")
   (require 'texnfo-upd)
-  (save-excursion 
+  (save-excursion
     (goto-char (point-min))
     (if nodes-too
         (occur (concat "\\(^@node\\)\\|" texinfo-section-types-regexp))
@@ -647,14 +741,14 @@ to jump to the corresponding spot in the Texinfo source file."
              ;; ((looking-at "@appendixsec ") 9)
              ;; ((looking-at "@heading ") 9)
 
-             ((looking-at 
+             ((looking-at
                (concat "@\\(" texinfo-subsection-level-regexp "\\)")) 13)
              ;; ((looking-at "@subsection ") 13)
              ;; ((looking-at "@unnumberedsubsec ") 13)
              ;; ((looking-at "@appendixsubsec ") 13)
              ;; ((looking-at "@subheading ") 13)
 
-             ((looking-at 
+             ((looking-at
                (concat "@\\(" texinfo-subsubsection-level-regexp "\\)")) 17)
              ;; ((looking-at "@subsubsection ") 17)
              ;; ((looking-at "@unnumberedsubsubsec ") 17)
@@ -724,6 +818,10 @@ This runs the shell command defined by `texinfo-texindex-command'."
   (interactive)
   (require 'tex-mode)
   (tex-send-command texinfo-texindex-command (concat tex-zap-file ".??"))
+  ;; alternatively
+  ;; (send-string "tex-shell"
+  ;;              (concat texinfo-texindex-command
+  ;;                      " " tex-zap-file ".??" "\n"))
   (tex-recenter-output-buffer nil))
 
 (defun texinfo-tex-print ()
@@ -746,17 +844,29 @@ This runs the shell command defined by `tex-dvi-view-command'."
   (if (not (get-process "tex-shell"))
       (error "No TeX shell running"))
   (tex-send-command "x"))
+;; alternatively:
+;; save-excursion
+;;   (set-buffer (get-buffer "*tex-shell*"))
+;;   (goto-char (point-max))
+;;   (insert "x")
+;;   (comint-send-input)
 
 (defun texinfo-delete-from-print-queue (job-number)
   "Delete job from the line printer spooling queue.
 You are prompted for the job number (use a number shown by a previous
-\\[texinfo-show-print-queue] command)."
+\\[tex-show-print-queue] command)."
   (interactive "nPrinter job number for deletion: ")
   (require 'tex-mode)
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
   (tex-send-command texinfo-delete-from-print-queue-command job-number)
+  ;; alternatively
+  ;; (send-string "tex-shell"
+  ;;              (concat
+  ;;               texinfo-delete-from-print-queue-command
+  ;;               " "
+  ;;               job-number"\n"))
   (tex-recenter-output-buffer nil))
 
 (provide 'texinfo)
