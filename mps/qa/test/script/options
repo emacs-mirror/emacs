@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.21) $
+# $HopeName: MMQA_harness!script:options(trunk.22) $
 #
 
 # global options for qa commands
@@ -47,7 +47,7 @@ sub auto_settings {
 
 
 %qa_options = (
- "v", "MPS_INTERFACE_VERSION",
+# "v", "MPS_INTERFACE_VERSION",
  "i", "MPS_INCLUDE_DIR",
  "l", "MPS_LINK_OBJ",
  "prod", "MPS_PRODUCT",
@@ -61,6 +61,7 @@ sub auto_settings {
 );
 
 %qa_flags = (
+ "danger", "DANGEROUS",
  "debug", "DEBUG_INFO",
  "mail", "MAIL_RESULTS"
 );
@@ -74,10 +75,11 @@ sub auto_settings {
 %qa_defaults = (
  "PLATFORM", "[error -- you shouldn't see this]",
  "DEBUG_INFO", "off",
+ "DANGEROUS", "off",
  "DATA_DIR", "$test_dir/../data",
  "LOG_DIR", "$test_dir/log",
  "PARAMETERS", "",
- "MPS_INTERFACE_VERSION", "HU",
+# "MPS_INTERFACE_VERSION", "HU",
  "MAIL_RESULTS", "on",
  "MAIL_TO", "mm-qa-test-log",
  "MAIL_SUBJECT", "MMQA-log"
