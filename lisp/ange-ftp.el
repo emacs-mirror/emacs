@@ -630,7 +630,7 @@ parenthesized expressions in REGEXP for the components (in that order).")
 ;; Otherwise, ange-ftp will go into multi-skip mode, and never come out.
 
 (defvar ange-ftp-multi-msgs
-  "^220-\\|^230-\\|^226\\|^25.-\\|^221-\\|^200-\\|^530-\\|^4[25]1-"
+  "^220-\\|^230-\\|^226\\|^25.-\\|^221-\\|^200-\\|^331-\\|^4[25]1-\\|^530-"
   "*Regular expression matching messages from the ftp process that start
 a multiline reply.")
 
@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.25 $")
+(defconst ange-ftp-version "$Revision: 1.26 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
