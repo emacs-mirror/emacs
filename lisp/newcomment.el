@@ -710,54 +710,59 @@ comment markers."
   (interactive "*r\nP")
   (comment-normalize-vars)
   (when (> beg end) (setq beg (prog1 end (setq end beg))))
-  (save-excursion
-    (if uncomment-region-function
-	(funcall uncomment-region-function beg end arg)
-      (goto-char beg)
-      (setq end (copy-marker end))
-      (let* ((numarg (prefix-numeric-value arg))
-	     (ccs comment-continue)
-	     (srei (comment-padright ccs 're))
-	     (csre (comment-padright comment-start 're))
-	     (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
-	     spt)
-	(while (and (< (point) end)
-		    (setq spt (comment-search-forward end t)))
-	  (let ((ipt (point))
-		;; Find the end of the comment.
-		(ept (progn
-		       (goto-char spt)
-		       (unless (or (comment-forward)
-				   ;; Allow non-terminated comments.
-				   (eobp))
-			 (error "Can't find the comment end"))
-		       (point)))
-		(box nil)
-		(box-equal nil)) ;Whether we might be using `=' for boxes.
-	    (save-restriction
-	      (narrow-to-region spt ept)
 
-	      ;; Remove the comment-start.
-	      (goto-char ipt)
-	    (skip-syntax-backward " ")
-	    ;; A box-comment starts with a looong comment-start marker.
-	    (when (and (or (and (= (- (point) (point-min)) 1)
-				(setq box-equal t)
-				(looking-at "=\\{7\\}")
-				(not (eq (char-before (point-max)) ?\n))
-				(skip-chars-forward "="))
-			   (> (- (point) (point-min) (length comment-start)) 7))
-		       (> (count-lines (point-min) (point-max)) 2))
-	      (setq box t))
-	    ;; Skip the padding.  Padding can come from comment-padding and/or
-	    ;; from comment-start, so we first check comment-start.
-	    (if (or (save-excursion (goto-char (point-min)) (looking-at csre))
-		    (looking-at (regexp-quote comment-padding)))
-		(goto-char (match-end 0)))
-	    (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
-	      (goto-char (match-end 0)))
-	    (if (null arg) (delete-region (point-min) (point))
-	      (skip-syntax-backward " ")
+  ;; Bind `comment-use-global-state' to nil. While uncommenting a
+  ;; (which works a line at a time) region a comment can appear to be
+  ;; included in a mult-line string, but it is actually not.
+  (let ((comment-use-global-state nil))
+    (save-excursion
+      (if uncomment-region-function
+	  (funcall uncomment-region-function beg end arg)
+	(goto-char beg)
+	(setq end (copy-marker end))
+	(let* ((numarg (prefix-numeric-value arg))
+	       (ccs comment-continue)
+	       (srei (comment-padright ccs 're))
+	       (csre (comment-padright comment-start 're))
+	       (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
+	       spt)
+	  (while (and (< (point) end)
+		      (setq spt (comment-search-forward end t)))
+	    (let ((ipt (point))
+		  ;; Find the end of the comment.
+		  (ept (progn
+			 (goto-char spt)
+			 (unless (or (comment-forward)
+				     ;; Allow non-terminated comments.
+				     (eobp))
+			   (error "Can't find the comment end"))
+			 (point)))
+		  (box nil)
+		  (box-equal nil)) ;Whether we might be using `=' for boxes.
+	      (save-restriction
+		(narrow-to-region spt ept)
+		
+		;; Remove the comment-start.
+		(goto-char ipt)
+		(skip-syntax-backward " ")
+		;; A box-comment starts with a looong comment-start marker.
+		(when (and (or (and (= (- (point) (point-min)) 1)
+				    (setq box-equal t)
+				    (looking-at "=\\{7\\}")
+				    (not (eq (char-before (point-max)) ?\n))
+				    (skip-chars-forward "="))
+			       (> (- (point) (point-min) (length comment-start)) 7))
+			   (> (count-lines (point-min) (point-max)) 2))
+		  (setq box t))
+		;; Skip the padding.  Padding can come from comment-padding and/or
+		;; from comment-start, so we first check comment-start.
+		(if (or (save-excursion (goto-char (point-min)) (looking-at csre))
+			(looking-at (regexp-quote comment-padding)))
+		    (goto-char (match-end 0)))
+		(when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
+		  (goto-char (match-end 0)))
+		(if (null arg) (delete-region (point-min) (point))
+		  (skip-syntax-backward " ")
 		  (delete-char (- numarg))
 		  (unless (or (bobp)
 			      (save-excursion (goto-char (point-min))
@@ -765,7 +770,7 @@ comment markers."
 		    ;; If there's something left but it doesn't look like
 		    ;; a comment-start any more, just remove it.
 		    (delete-region (point-min) (point))))
-
+		
 		;; Remove the end-comment (and leading padding and such).
 		(goto-char (point-max)) (comment-enter-backward)
 		;; Check for special `=' used sometimes in comment-box.
@@ -803,7 +808,7 @@ comment markers."
 		      (replace-match "" t t nil (if (match-end 2) 2 1)))))
 		;; Go to the end for the next comment.
 		(goto-char (point-max)))))))
-      (set-marker end nil)))
+      (set-marker end nil))))
 
 (defun comment-make-extra-lines (cs ce ccs cce min-indent max-indent &optional block)
   "Make the leading and trailing extra lines.

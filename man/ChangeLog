@@ -1,3 +1,24 @@
+2004-09-03  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Incremental Search): Update wording for M-%.
+
+2004-09-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* killing.texi (Killing): Correct description of kill commands in
+	read-only buffer.
+
+2004-09-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* building.texi (Compilation Mode): Add a paragraph about rules
+	for finding the compilation buffer for `next-error'.
+
+	* search.texi (Other Repeating Search): Mention that Occur mode
+	supports the next-error functionality.
+
+2004-09-02  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Regexp Replace): Add missing backslash to \footnote.
+
 2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* kmacro.texi (Basic Keyboard Macro):
@@ -179,6 +200,39 @@
 
 	* search.texi (Regexp Replace): Further update text for new
 	replacement operators.
+
+2004-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Encoding Customization): Add a note to the
+	mm-content-transfer-encoding-defaults entry.
+	(rfc2047): Update.
+
+	* gnus.texi (Article Highlighting): Add
+	gnus-cite-ignore-quoted-from.
+	(POP before SMTP): New node.
+	(Posting Styles): Addition.
+	(Splitting Mail): Add nnmail-split-lowercase-expanded.
+	(Fancy Mail Splitting): Ditto.
+	(X-Face): Add gnus-x-face.
+
+2004-08-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi,
+	pgg.texi, sieve.texi: Use @copying and @insertcopying.
+
+2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Specifiers): Describe
+	`pop3-leave-mail-on-server'.
+
+2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* Makefile.in, makefile.w32-in: Added PGG and Sieve files.
+
+	* pgg.texi, sieve.texi: Import from the v5_10 branch of the Gnus
+	repository.  Change setfilename.
+
+	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi: Ditto.
 
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 

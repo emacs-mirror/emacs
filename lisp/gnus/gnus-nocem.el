@@ -1,6 +1,8 @@
 ;;; gnus-nocem.el --- NoCeM pseudo-cancellation treatment
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002, 2004
+;;        Free Software Foundation, Inc.
+
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -58,6 +60,7 @@ This can also be a list of `(ISSUER CONDITION ...)' elements.
 See <URL:http://www.xs4all.nl/~rosalind/nocemreg/nocemreg.html> for an
 issuer registry."
   :group 'gnus-nocem
+  :link '(url-link "http://www.xs4all.nl/~rosalind/nocemreg/nocemreg.html")
   :type '(repeat (choice string sexp)))
 
 (defcustom gnus-nocem-directory
@@ -294,7 +297,8 @@ valid issuer, which is much faster if you are selective about the issuers."
       (while (search-forward "\t" nil t)
 	(cond
 	 ((not (ignore-errors
-		 (setq group (let ((obarray gnus-active-hashtb)) (read buf)))))
+		 (setq group (let ((obarray gnus-nocem-real-group-hashtb))
+			       (read buf)))))
 	  ;; An error.
 	  )
 	 ((not (symbolp group))

@@ -1,6 +1,6 @@
 ;;; gnus-soup.el --- SOUP packet writing support for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
@@ -154,11 +154,11 @@ move those articles instead."
 			   gnus-soup-encoding-type
 			   gnus-soup-index-type)
 	  (gnus-soup-area-set-number
-	   area (1+ (or (gnus-soup-area-number area) 0))))
-	;; Mark article as read.
-	(set-buffer gnus-summary-buffer)
+	   area (1+ (or (gnus-soup-area-number area) 0)))
+	  ;; Mark article as read.
+	  (set-buffer gnus-summary-buffer)
+	  (gnus-summary-mark-as-read (car articles) gnus-souped-mark))
 	(gnus-summary-remove-process-mark (car articles))
-	(gnus-summary-mark-as-read (car articles) gnus-souped-mark)
 	(setq articles (cdr articles)))
       (kill-buffer tmp-buf))
     (gnus-soup-save-areas)
@@ -357,9 +357,9 @@ If NOT-ALL, don't pack ticked articles."
     (gnus-make-directory dir)
     (setq gnus-soup-areas nil)
     (gnus-message 4 "Packing %s..." packer)
-    (if (zerop (call-process shell-file-name
-			     nil nil nil shell-command-switch
-			     (concat "cd " dir " ; " packer)))
+    (if (eq 0 (call-process shell-file-name
+			    nil nil nil shell-command-switch
+			    (concat "cd " dir " ; " packer)))
 	(progn
 	  (call-process shell-file-name nil nil nil shell-command-switch
 			(concat "cd " dir " ; rm " files))
@@ -496,10 +496,10 @@ Return whether the unpacking was successful."
   (gnus-make-directory dir)
   (gnus-message 4 "Unpacking: %s" (format unpacker packet))
   (prog1
-      (zerop (call-process
-	      shell-file-name nil nil nil shell-command-switch
-	      (format "cd %s ; %s" (expand-file-name dir)
-		      (format unpacker packet))))
+      (eq 0 (call-process
+	     shell-file-name nil nil nil shell-command-switch
+	     (format "cd %s ; %s" (expand-file-name dir)
+		     (format unpacker packet))))
     (gnus-message 4 "Unpacking...done")))
 
 (defun gnus-soup-send-packet (packet)
@@ -540,26 +540,35 @@ Return whether the unpacking was successful."
 				     (match-beginning 1) (match-end 1)))))
 	      (switch-to-buffer tmp-buf)
 	      (erase-buffer)
+	      (mm-disable-multibyte)
 	      (insert-buffer-substring msg-buf beg end)
-	      (goto-char (point-min))
-	      (search-forward "\n\n")
-	      (forward-char -1)
-	      (insert mail-header-separator)
-	      (setq message-newsreader (setq message-mailer
-					     (gnus-extended-version)))
 	      (cond
 	       ((string= (gnus-soup-reply-kind (car replies)) "news")
 		(gnus-message 5 "Sending news message to %s..."
 			      (mail-fetch-field "newsgroups"))
 		(sit-for 1)
 		(let ((message-syntax-checks
-		       'dont-check-for-anything-just-trust-me))
-		  (funcall message-send-news-function)))
+		       'dont-check-for-anything-just-trust-me)
+		      (method (if (functionp message-post-method)
+				  (funcall message-post-method)
+				message-post-method))
+		      result)
+		  (run-hooks 'message-send-news-hook)
+		  (gnus-open-server method)
+		  (message "Sending news via %s..."
+			   (gnus-server-string method))
+		  (unless (let ((mail-header-separator ""))
+			    (gnus-request-post method))
+		    (message "Couldn't send message via news: %s"
+			     (nnheader-get-report (car method))))))
 	       ((string= (gnus-soup-reply-kind (car replies)) "mail")
 		(gnus-message 5 "Sending mail to %s..."
 			      (mail-fetch-field "to"))
 		(sit-for 1)
-		(message-send-mail))
+		(let ((mail-header-separator ""))
+		  (mm-with-unibyte-current-buffer
+		    (funcall (or message-send-mail-real-function
+				 message-send-mail-function)))))
 	       (t
 		(error "Unknown reply kind")))
 	      (set-buffer msg-buf)

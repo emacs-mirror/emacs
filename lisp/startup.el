@@ -355,9 +355,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
 	 (list (default-value 'user-full-name)))
-    ;; Subprocesses of Emacs do not have direct access to the terminal,
-    ;; so unless told otherwise they should only assume a dumb terminal.
-    (setenv "TERM" "dumb")
     ;; For root, preserve owner and group when editing files.
     (if (equal (user-uid) 0)
 	(setq backup-by-copying-when-mismatch t))

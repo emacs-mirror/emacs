@@ -1,6 +1,6 @@
 ;;; gnus-gl.el --- an interface to GroupLens for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Brad Miller <bmiller@cs.umn.edu>
@@ -131,7 +131,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar gnus-summary-grouplens-line-format
-  "%U\%R\%z%l%I\%(%[%4L: %-20,20n%]%) %s\n"
+  "%U\%R\%z%l%I\%(%[%4L: %-23,23n%]%) %s\n"
   "*The line format spec in summary GroupLens mode buffers.")
 
 (defvar grouplens-pseudonym ""
@@ -342,7 +342,7 @@ If this times out we give up and assume that something has died..." )
 
 (defun bbb-build-mid-scores-alist (groupname)
   "this function can be called as part of the function to return the list of score files to use.
-See the gnus variable gnus-score-find-score-files-function.
+See the gnus variable `gnus-score-find-score-files-function'.
 
 *Note:*  If you want to use grouplens scores along with calculated scores,
 you should see the offset and scale variables.  At this point, I don't
@@ -510,11 +510,11 @@ recommend using both scores and grouplens predictions together."
       ;; Return an empty string
       ""
     (let* ((rate-string (make-string 12 ?\ ))
-           (mid (mail-header-id header))
-           (hashent (gnus-gethash mid grouplens-current-hashtable))
-           (pred (or (nth 0 hashent) 0))
-           (low (nth 1 hashent))
-           (high (nth 2 hashent)))
+	   (mid (mail-header-id header))
+	   (hashent (gnus-gethash mid grouplens-current-hashtable))
+	   (pred (or (nth 0 hashent) 0))
+	   (low (nth 1 hashent))
+	   (high (nth 2 hashent)))
       ;; Init rate-string
       (aset rate-string 0 ?|)
       (aset rate-string 11 ?|)
@@ -632,10 +632,10 @@ recommend using both scores and grouplens predictions together."
 
 (defun bbb-build-rate-command (rate-alist)
   (concat "putratings " grouplens-bbb-token " " grouplens-current-group " \r\n"
-	  (mapconcat '(lambda (this)	; form (mid . (score . time))
-			(concat (car this)
-				" :rating=" (cadr this) ".00"
-				" :time=" (cddr this)))
+	  (mapconcat (lambda (this)	; form (mid . (score . time))
+		       (concat (car this)
+			       " :rating=" (cadr this) ".00"
+			       " :time=" (cddr this)))
 		     rate-alist "\r\n")
 	  "\r\n.\r\n"))
 
@@ -810,9 +810,9 @@ If prefix argument ALL is non-nil, all articles are marked as read."
 	  (if (null arg) (not gnus-grouplens-mode)
 	    (> (prefix-numeric-value arg) 0)))
     (when gnus-grouplens-mode
-      (make-local-hook 'gnus-select-article-hook)
+      (gnus-make-local-hook 'gnus-select-article-hook)
       (add-hook 'gnus-select-article-hook 'grouplens-do-time nil 'local)
-      (make-local-hook 'gnus-exit-group-hook)
+      (gnus-make-local-hook 'gnus-exit-group-hook)
       (add-hook 'gnus-exit-group-hook 'bbb-exit-group nil 'local)
       (make-local-variable 'gnus-score-find-score-files-function)
 

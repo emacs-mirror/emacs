@@ -1,5 +1,6 @@
 ;;; score-mode.el --- mode for editing Gnus score files
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -26,7 +27,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'mm-util)			; for mm-auto-save-coding-system
+(require 'mm-util)			; for mm-universal-coding-system
+(require 'gnus-util)			; for gnus-pp
 
 (defvar gnus-score-mode-hook nil
   "*Hook run in score mode buffers.")
@@ -52,7 +54,7 @@
   "Syntax table used in score-mode buffers.")
 
 ;; We need this to cope with non-ASCII scoring.
-(defvar score-mode-coding-system mm-auto-save-coding-system)
+(defvar score-mode-coding-system mm-universal-coding-system)
 
 ;;;###autoload
 (defun gnus-score-mode ()
@@ -93,7 +95,7 @@ This mode is an extended emacs-lisp mode.
   (let ((form (read (current-buffer))))
     (erase-buffer)
     (let ((emacs-lisp-mode-syntax-table score-mode-syntax-table))
-      (pp form (current-buffer))))
+      (gnus-pp form)))
   (goto-char (point-min)))
 
 (defun gnus-score-edit-exit ()

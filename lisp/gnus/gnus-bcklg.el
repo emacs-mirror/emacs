@@ -1,5 +1,6 @@
 ;;; gnus-bcklg.el --- backlog functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -55,36 +56,39 @@
 
 (defun gnus-backlog-shutdown ()
   "Clear all backlog variables and buffers."
+  (interactive)
   (when (get-buffer gnus-backlog-buffer)
-    (kill-buffer gnus-backlog-buffer))
+    (gnus-kill-buffer gnus-backlog-buffer))
   (setq gnus-backlog-hashtb nil
 	gnus-backlog-articles nil))
 
 (defun gnus-backlog-enter-article (group number buffer)
-  (gnus-backlog-setup)
-  (let ((ident (intern (concat group ":" (int-to-string number))
-		       gnus-backlog-hashtb))
-	b)
-    (if (memq ident gnus-backlog-articles)
-	()				; It's already kept.
+  (when (and (numberp number)
+	     (not (string-match "^nnvirtual" group)))
+    (gnus-backlog-setup)
+    (let ((ident (intern (concat group ":" (int-to-string number))
+			 gnus-backlog-hashtb))
+	  b)
+      (if (memq ident gnus-backlog-articles)
+	  ()				; It's already kept.
       ;; Remove the oldest article, if necessary.
-      (and (numberp gnus-keep-backlog)
-	   (>= (length gnus-backlog-articles) gnus-keep-backlog)
+	(and (numberp gnus-keep-backlog)
+	     (>= (length gnus-backlog-articles) gnus-keep-backlog)
 	   (gnus-backlog-remove-oldest-article))
-      (push ident gnus-backlog-articles)
-      ;; Insert the new article.
-      (save-excursion
-	(set-buffer (gnus-backlog-buffer))
-	(let (buffer-read-only)
-	  (goto-char (point-max))
-	  (unless (bolp)
-	    (insert "\n"))
-	  (setq b (point))
-	  (insert-buffer-substring buffer)
-	  ;; Tag the beginning of the article with the ident.
-	  (if (> (point-max) b)
+	(push ident gnus-backlog-articles)
+	;; Insert the new article.
+	(save-excursion
+	  (set-buffer (gnus-backlog-buffer))
+	  (let (buffer-read-only)
+	    (goto-char (point-max))
+	    (unless (bolp)
+	      (insert "\n"))
+	    (setq b (point))
+	    (insert-buffer-substring buffer)
+	    ;; Tag the beginning of the article with the ident.
+	    (if (> (point-max) b)
 	      (gnus-put-text-property b (1+ b) 'gnus-backlog ident)
-	    (gnus-error 3 "Article %d is blank" number)))))))
+	      (gnus-error 3 "Article %d is blank" number))))))))
 
 (defun gnus-backlog-remove-oldest-article ()
   (save-excursion
@@ -127,7 +131,8 @@
 	  (setq gnus-backlog-articles (delq ident gnus-backlog-articles)))))))
 
 (defun gnus-backlog-request-article (group number &optional buffer)
-  (when (numberp number)
+  (when (and (numberp number)
+	     (not (string-match "^nnvirtual" group)))
     (gnus-backlog-setup)
     (let ((ident (intern (concat group ":" (int-to-string number))
 			 gnus-backlog-hashtb))

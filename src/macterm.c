@@ -1325,6 +1325,10 @@ static void
 x_update_end (f)
      struct frame *f;
 {
+  /* Mouse highlight may be displayed again.  */
+  FRAME_MAC_DISPLAY_INFO (f)->mouse_face_defer = 0;
+
+  BLOCK_INPUT;
   /* Reset the background color of Mac OS Window to that of the frame after
      update so that it is used by Mac Toolbox to clear the update region before
      an update event is generated.  */
@@ -1332,10 +1336,6 @@ x_update_end (f)
 
   mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 
-  /* Mouse highlight may be displayed again.  */
-  FRAME_MAC_DISPLAY_INFO (f)->mouse_face_defer = 0;
-
-  BLOCK_INPUT;
   XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
 }
@@ -5123,7 +5123,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   modified_left = f->left_pos;
   modified_top = f->top_pos;
 
-  MoveWindow (f->output_data.mac->mWP, modified_left + 6,
+  MoveWindow (FRAME_MAC_WINDOW (f), modified_left + 6,
 	      modified_top + 42, false);
 
   UNBLOCK_INPUT;

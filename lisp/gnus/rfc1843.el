@@ -1,5 +1,5 @@
 ;;; rfc1843.el --- HZ (rfc1843) decoding
-;; Copyright (c) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n
@@ -43,18 +43,18 @@
 
 (defvar rfc1843-hzp-word-regexp
   "~\\({\\([\041-\167][\041-\176]\\| \\)+\\|\
-[<>]\\([\041-\175][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
+\[<>]\\([\041-\175][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
 
 (defvar rfc1843-hzp-word-regexp-strictly
   "~\\({\\([\041-\167][\041-\176]\\)+\\|\
-[<>]\\([\041-\175][\041-\176]\\)+\\)\\(~}\\|$\\)")
+\[<>]\\([\041-\175][\041-\176]\\)+\\)\\(~}\\|$\\)")
 
 (defcustom rfc1843-decode-loosely nil
   "Loosely check HZ encoding if non-nil.
 When it is set non-nil, only buffers or strings with strictly
 HZ-encoded are decoded."
   :type 'boolean
-  :group 'gnus)
+  :group 'mime)
 
 (defcustom rfc1843-decode-hzp t
   "HZ+ decoding support if non-nil.
@@ -64,12 +64,12 @@ e-mail transmission, news posting, etc.
 The document of HZ+ 0.78 specification can be found at
 ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
   :type 'boolean
-  :group 'gnus)
+  :group 'mime)
 
 (defcustom rfc1843-newsgroups-regexp "chinese\\|hz"
   "Regexp of newsgroups in which might be HZ encoded."
   :type 'string
-  :group 'gnus)
+  :group 'mime)
 
 (defun rfc1843-decode-region (from to)
   "Decode HZ in the region between FROM and TO."

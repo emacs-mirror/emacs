@@ -1088,6 +1088,7 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
   (setq isearch-regexp (not isearch-regexp))
   (if isearch-regexp (setq isearch-word nil))
+  (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
 (defun isearch-toggle-case-fold ()
@@ -1100,34 +1101,39 @@ Use `isearch-exit' to quit without signaling."
 	     (isearch-message-prefix nil nil isearch-nonincremental)
 	     isearch-message
 	     (if isearch-case-fold-search "in" "")))
-  (setq isearch-adjusted t)
+  (setq isearch-success t isearch-adjusted t)
   (sit-for 1)
   (isearch-update))
 
-(defun isearch-query-replace ()
+(defun isearch-query-replace (&optional regexp-flag)
   "Start query-replace with string to replace from last search string."
   (interactive)
   (barf-if-buffer-read-only)
+  (if regexp-flag (setq isearch-regexp t))
   (let ((case-fold-search isearch-case-fold-search))
     (isearch-done)
     (isearch-clean-overlays)
-    (and isearch-forward isearch-other-end (goto-char isearch-other-end))
+    (if (and (< isearch-other-end (point))
+             (not (and transient-mark-mode mark-active
+                       (< isearch-opoint (point)))))
+        (goto-char isearch-other-end))
+    (set query-replace-from-history-variable
+         (cons isearch-string
+               (symbol-value query-replace-from-history-variable)))
     (perform-replace
      isearch-string
-     (query-replace-read-to isearch-string "Query replace" isearch-regexp)
-     t isearch-regexp isearch-word)))
+     (query-replace-read-to
+      isearch-string
+      (if isearch-regexp "Query replace regexp" "Query replace")
+      isearch-regexp)
+     t isearch-regexp isearch-word nil nil
+     (if (and transient-mark-mode mark-active) (region-beginning))
+     (if (and transient-mark-mode mark-active) (region-end)))))
 
 (defun isearch-query-replace-regexp ()
   "Start query-replace-regexp with string to replace from last search string."
   (interactive)
-  (let ((query-replace-interactive t)
-        (case-fold-search isearch-case-fold-search))
-    ;; Put search string into the right ring
-    (setq isearch-regexp t)
-    (isearch-done)
-    (isearch-clean-overlays)
-    (and isearch-forward isearch-other-end (goto-char isearch-other-end))
-    (call-interactively 'query-replace-regexp)))
+  (isearch-query-replace t))
 
 
 (defun isearch-delete-char ()
@@ -1620,8 +1626,7 @@ Isearch mode."
            (let ((ab-bel (isearch-string-out-of-window isearch-point)))
              (if ab-bel
                  (isearch-back-into-window (eq ab-bel 'above) isearch-point)
-               (or (eq (point) isearch-point)
-                   (goto-char isearch-point))))
+               (goto-char isearch-point)))
            (isearch-update))
 	  (search-exit-option
 	   (let (window)
@@ -1895,6 +1900,7 @@ If there is no completion possible, say so and continue searching."
   ;; If currently failing, display no ellipsis.
   (or isearch-success (setq ellipsis nil))
   (let ((m (concat (if isearch-success "" "failing ")
+		   (if isearch-adjusted "pending " "")
 		   (if (and isearch-wrapped
 			    (not isearch-wrap-function)
 			    (if isearch-forward
@@ -2356,9 +2362,10 @@ search string to change or the window to scroll)."
 	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
 	    isearch-lazy-highlight-regexp	isearch-regexp
             isearch-lazy-highlight-wrapped      nil)
-      (setq isearch-lazy-highlight-timer
-            (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
-                                 'isearch-lazy-highlight-update)))))
+      (unless (equal isearch-string "")
+	(setq isearch-lazy-highlight-timer
+	      (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
+				   'isearch-lazy-highlight-update))))))
 
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.

@@ -1,3 +1,139 @@
+2004-09-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/paragraphs.el (use-hard-newlines): Make it into a
+	permanent local.
+
+2004-09-04  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop): Don't invoke
+	highlighting if the search string is empty.
+
+2004-09-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* facemenu.el (facemenu-active-faces): Change condition of inner
+	`while' loop to also check the first two elements of `face-atts'
+	and `mask-atts'.
+
+2004-09-04  John Paul Wallington  <jpw@gnu.org>
+
+	* thumbs.el (thumbs-view-image-mode-map): Fix command name typo.
+	(thumbs-view-image-mode): Make buffer read-only.
+
+2004-09-04  Christopher J. Madsen  <cjm@pobox.com>
+
+	* textmodes/ispell.el (ispell-really-aspell): New defvar.
+	(ispell-check-version): Set it.
+	(ispell-send-replacement): New function.
+	(ispell-process-line): Call ispell-send-replacement.
+
+2004-09-04  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
+
+	* eshell/em-pred.el (eshell-predicate-help-string): Doc fix.
+	Support choosing seconds with "s".
+
+2004-09-04  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* terminal.el (te-escape): Show `?' in prompt for help key.
+
+2004-09-04  Emilio C. Lopes <eclig@gmx.net>
+
+	* emacs-lisp/lisp.el (kill-backward-up-list): New function.
+
+2004-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* simple.el (next-error-follow-minor-mode)
+	(next-error-follow-mode-post-command-hook): New functions.
+	(next-error-follow-last-line): New defvar.
+
+	* diff-mode.el (diff-mode-map): Bind
+	toggle-next-error-follow-mode.
+	* progmodes/compile.el (compilation-mode-map): Likewise.
+	* progmodes/grep.el (grep-mode-map): Likewise.
+	* replace.el (occur-mode-map): Likewise.
+
+	* newcomment.el (uncomment-region): Bind comment-use-global-state
+	to nil.
+
+2004-09-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Bind `buffer-read-only'
+	locally around the call to `revert-buffer'.
+
+2004-09-03  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-toggle-regexp): Set `isearch-success' and
+	`isearch-adjusted' to `t'.
+	(isearch-toggle-case-fold): Set `isearch-success' to `t'.
+	(isearch-message-prefix): Add "pending" for isearch-adjusted.
+	(isearch-other-meta-char): Restore isearch-point unconditionally.
+	(isearch-query-replace): Add new arg `regexp-flag' and use it.
+	Set point to start of match if region is not active in transient
+	mark mode (to include the current match to region boundaries).
+	Push the search string to `query-replace-from-history-variable'.
+	Add prompt "Query replace regexp" for isearch-regexp.
+	Add region beginning/end as last arguments of `perform-replace.'
+	(isearch-query-replace-regexp): Replace code by the call to
+	`isearch-query-replace' with arg `t'.
+
+2004-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (normal-top-level): Undo previous TERM change.
+
+2004-09-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--overlay-keymap): New keymap for
+	highlight overlays; allow using RET when cursor is over a button.
+	(cua--highlight-rectangle): Use it.
+	(cua--rectangle-set-corners): Don't move backwards at eol.
+	(cua--forward-line): Don't move into void after eob.
+
+	* emulation/cua-rect.el (cua--rectangle-set-corners): Ensure that
+	point is set (and displayed) inside rectangle.
+	(cua--rectangle-operation): Fix for highlight of empty lines.
+	(cua--highlight-rectangle): Fix highlight for tabs.
+	Position cursor at left/right edge of rectangle using new `cursor'
+	property on overlay strings.
+	(cua--indent-rectangle): Don't tabify.
+	(cua-rotate-rectangle): Ignore that point has moved.
+
+2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add ASCII equivalents for some function keys.
+	(mode-line-frame-identification): Sync with x-win.el.
+
+2004-09-02  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-buffer-name): Compare major
+	mode with second element of compilation-arguments instead of third
+	to reflect latest changes in compilation-arguments structure.
+	(recompile): Use global variable `compilation-directory' to get
+	recent compilation directory only when `recompile' is invoked NOT
+	in the compilation buffer.  Otherwise, use `default-directory' of
+	the compilation buffer.
+	(compilation-error-properties): Allow to funcall col and end-col.
+	(compilation-mode-font-lock-keywords): Check col and end-col by
+	`integerp'.
+	(compilation-goto-locus): If end-mk is non-nil in transient mark
+	mode don't activate the mark (and don't display message in
+	push-mark), but highlight overlay between mk and end-mk.
+
+	* progmodes/grep.el (grep-highlight-matches): New defcustom.
+	(grep-regexp-alist): Add rule to highlight grep matches.
+	(grep-process-setup): Set env-vars GREP_OPTIONS and GREP_COLOR.
+
+	* info.el (Info-fontify-node): Don't compute other-tag
+	if Info-hide-note-references=hide.
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point):
+	Try `find-tag-default' when other methods failed.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Do not push mark if inhibit-mark-movement is non-nil.
+
+	* textmodes/ispell.el (ispell-html-skip-alists):
+	Fix backslashes in docstring.
+
 2004-09-01  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-wrap-function)
@@ -673,6 +809,16 @@
 
 	* ps-print.el (ps-begin-file): Improve the DSC compliance of the
 	generated PostScript.
+
+2004-08-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (tls-process-connection-type): Fix docstring.  (Sync
+	with Gnus v5_10 branch.)
+
+2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* calendar/time-date.el (time-to-number-of-days): New function.
+	Imported from from Gnus.
 
 2004-07-22  Kim F. Storm  <storm@cua.dk>
 

@@ -1,5 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;;       Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -46,14 +47,36 @@
     (modify-syntax-entry ?{ "(" table)
     (modify-syntax-entry ?} ")" table)
     table)
-  "A syntax table for parsing sgml attributes.")
+  "A syntax table for parsing SGML attributes.")
+
+(eval-and-compile
+  (when (featurep 'xemacs)
+    (condition-case nil
+	(require 'lpr)
+      (error nil))))
+
+(defvar mailcap-print-command
+  (mapconcat 'identity
+	     (cons (if (boundp 'lpr-command)
+		       lpr-command
+		     "lpr")
+		   (when (boundp 'lpr-switches)
+		     (if (stringp lpr-switches)
+			 (list lpr-switches)
+		       lpr-switches)))
+	     " ")
+  "Shell command (including switches) used to print Postscript files.")
 
 ;; Postpone using defcustom for this as it's so big and we essentially
 ;; have to have two copies of the data around then.  Perhaps just
 ;; customize the Lisp viewers and rely on the normal configuration
 ;; files for the rest?  -- fx
 (defvar mailcap-mime-data
-  '(("application"
+  `(("application"
+     ("vnd.ms-excel"
+      (viewer . "gnumeric %s")
+      (test   . (getenv "DISPLAY"))
+      (type . "application/vnd.ms-excel"))
      ("x-x509-ca-cert"
       (viewer . ssl-view-site-cert)
       (test . (fboundp 'ssl-view-site-cert))
@@ -66,23 +89,23 @@
       (viewer . mailcap-save-binary-file)
       (non-viewer . t)
       (type . "application/octet-stream"))
-;;; XEmacs says `ns' device-type not implemented.
-;;      ("dvi"
-;;       (viewer . "open %s")
-;;       (type   . "application/dvi")
-;;       (test   . (eq (mm-device-type) 'ns)))
      ("dvi"
-      (viewer . "xdvi %s")
-      (test   . (eq (mm-device-type) 'x))
+      (viewer . "xdvi -safer %s")
+      (test   . (eq window-system 'x))
       ("needsx11")
-      (type   . "application/dvi"))
+      (type   . "application/dvi")
+      ("print" . "dvips -qRP %s"))
      ("dvi"
       (viewer . "dvitty %s")
       (test   . (not (getenv "DISPLAY")))
-      (type   . "application/dvi"))
+      (type   . "application/dvi")
+      ("print" . "dvips -qRP %s"))
      ("emacs-lisp"
       (viewer . mailcap-maybe-eval)
       (type   . "application/emacs-lisp"))
+     ("x-emacs-lisp"
+      (viewer . mailcap-maybe-eval)
+      (type   . "application/x-emacs-lisp"))
      ("x-tar"
       (viewer . mailcap-save-binary-file)
       (non-viewer . t)
@@ -114,36 +137,52 @@
       ("copiousoutput"))
      ;; Prefer free viewers.
      ("pdf"
-      (viewer . "gv %s")
+      (viewer . "gv -safer %s")
       (type . "application/pdf")
-      (test . window-system))
+      (test . window-system)
+      ("print" . ,(concat "pdf2ps %s - | " mailcap-print-command)))
      ("pdf"
       (viewer . "xpdf %s")
       (type . "application/pdf")
-      (test . (eq (mm-device-type) 'x)))
+      ("print" . ,(concat "pdftops %s - | " mailcap-print-command))
+      (test . (eq window-system 'x)))
      ("pdf"
       (viewer . "acroread %s")
-      (type   . "application/pdf"))
-;;; XEmacs says `ns' device-type not implemented.
-;;      ("postscript"
-;;       (viewer . "open %s")
-;;       (type   . "application/postscript")
-;;       (test   . (eq (mm-device-type) 'ns)))
+      (type   . "application/pdf")
+      ("print" . ,(concat "cat %s | acroread -toPostScript | "
+			  mailcap-print-command))
+      (test . window-system))
+     ("pdf"
+      (viewer . ,(concat "pdftotext %s -"))
+      (type   . "application/pdf")
+      ("print" . ,(concat "pdftops %s - | " mailcap-print-command))
+      ("copiousoutput"))
      ("postscript"
       (viewer . "gv -safer %s")
       (type . "application/postscript")
       (test   . window-system)
+      ("print" . ,(concat mailcap-print-command " %s"))
       ("needsx11"))
      ("postscript"
       (viewer . "ghostview -dSAFER %s")
       (type . "application/postscript")
-      (test   . (eq (mm-device-type) 'x))
+      (test   . (eq window-system 'x))
+      ("print" . ,(concat mailcap-print-command " %s"))
       ("needsx11"))
      ("postscript"
       (viewer . "ps2ascii %s")
       (type . "application/postscript")
       (test . (not (getenv "DISPLAY")))
-      ("copiousoutput")))
+      ("print" . ,(concat mailcap-print-command " %s"))
+      ("copiousoutput"))
+     ("sieve"
+      (viewer . sieve-mode)
+      (test   . (fboundp 'sieve-mode))
+      (type   . "application/sieve"))
+     ("pgp-keys"
+      (viewer . "gpg --import --interactive --verbose")
+      (type   . "application/pgp-keys")
+      ("needsterminal")))
     ("audio"
      ("x-mpeg"
       (viewer . "maplay %s")
@@ -173,34 +212,29 @@
       (viewer  . "xwud -in %s")
       (type    . "image/x-xwd")
       ("compose" . "xwd -frame > %s")
-      (test    . (eq (mm-device-type) 'x))
+      (test    . (eq window-system 'x))
       ("needsx11"))
      ("x11-dump"
       (viewer . "xwud -in %s")
       (type . "image/x-xwd")
       ("compose" . "xwd -frame > %s")
-      (test   . (eq (mm-device-type) 'x))
+      (test   . (eq window-system 'x))
       ("needsx11"))
      ("windowdump"
       (viewer . "xwud -in %s")
       (type . "image/x-xwd")
       ("compose" . "xwd -frame > %s")
-      (test   . (eq (mm-device-type) 'x))
+      (test   . (eq window-system 'x))
       ("needsx11"))
-;;; XEmacs says `ns' device-type not implemented.
-;;      (".*"
-;;       (viewer . "aopen %s")
-;;       (type   . "image/*")
-;;       (test   . (eq (mm-device-type) 'ns)))
      (".*"
       (viewer . "display %s")
       (type . "image/*")
-      (test   . (eq (mm-device-type) 'x))
+      (test   . (eq window-system 'x))
       ("needsx11"))
      (".*"
       (viewer . "ee %s")
       (type . "image/*")
-      (test   . (eq (mm-device-type) 'x))
+      (test   . (eq window-system 'x))
       ("needsx11")))
     ("text"
      ("plain"
@@ -215,7 +249,7 @@
       (viewer  . fundamental-mode)
       (type    . "text/plain"))
      ("enriched"
-      (viewer . enriched-decode-region)
+      (viewer . enriched-decode)
       (test   . (fboundp 'enriched-decode))
       (type   . "text/enriched"))
      ("html"
@@ -226,7 +260,7 @@
      ("mpeg"
       (viewer . "mpeg_play %s")
       (type   . "video/mpeg")
-      (test   . (eq (mm-device-type) 'x))
+      (test   . (eq window-system 'x))
       ("needsx11")))
     ("x-world"
      ("x-vrml"
@@ -279,6 +313,10 @@ nil means your home directory."
   :type '(choice (const :tag "Home directory" nil)
 		 directory)
   :group 'mailcap)
+
+(defvar mailcap-poor-system-types
+  '(ms-dos ms-windows windows-nt win32 w32 mswindows)
+  "Systems that don't have a Unix-like directory hierarchy.")
 
 ;;;
 ;;; Utility functions
@@ -356,7 +394,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
     (cond
      (path nil)
      ((getenv "MAILCAPS") (setq path (getenv "MAILCAPS")))
-     ((memq system-type '(ms-dos ms-windows windows-nt))
+     ((memq system-type mailcap-poor-system-types)
       (setq path '("~/.mailcap" "~/mail.cap" "~/etc/mail.cap")))
      (t (setq path
 	      ;; This is per RFC 1524, specifically
@@ -533,7 +571,7 @@ Also return non-nil if no test clause is present."
       (cond
        ((equal (car (car major)) minor)
 	(setq exact (cons (cdr (car major)) exact)))
-       ((and minor (string-match (car (car major)) minor))
+       ((and minor (string-match (concat "^" (car (car major)) "$") minor))
 	(setq wildcard (cons (cdr (car major)) wildcard))))
       (setq major (cdr major)))
     (nconc exact wildcard)))
@@ -590,7 +628,7 @@ Also return non-nil if no test clause is present."
 
 (defun mailcap-viewer-passes-test (viewer-info type-info)
   "Return non-nil iff viewer specified by VIEWER-INFO passes its test clause.
-Also retun non-nil if it has no test clause.  TYPE-INFO is an argument
+Also return non-nil if it has no test clause.  TYPE-INFO is an argument
 to supply to the test."
   (let* ((test-info (assq 'test viewer-info))
 	 (test (cdr test-info))
@@ -619,7 +657,7 @@ to supply to the test."
 	       test (list shell-file-name nil nil nil
 			  shell-command-switch test)
 	       status (apply 'call-process test))
-	 (= 0 status))))
+	 (eq 0 status))))
       (push (list otest result) mailcap-viewer-test-cache)
       result)))
 
@@ -629,18 +667,18 @@ to supply to the test."
 	(setq mailcap-mime-data
 	      (cons (cons major (list (cons minor info)))
 		    mailcap-mime-data))
-       (let ((cur-minor (assoc minor old-major)))
- 	(cond
- 	 ((or (null cur-minor)		; New minor area, or
- 	      (assq 'test info))	; Has a test, insert at beginning
- 	  (setcdr old-major (cons (cons minor info) (cdr old-major))))
- 	 ((and (not (assq 'test info))	; No test info, replace completely
- 	       (not (assq 'test cur-minor))
+      (let ((cur-minor (assoc minor old-major)))
+	(cond
+	 ((or (null cur-minor)		; New minor area, or
+	      (assq 'test info))	; Has a test, insert at beginning
+	  (setcdr old-major (cons (cons minor info) (cdr old-major))))
+	 ((and (not (assq 'test info))	; No test info, replace completely
+	       (not (assq 'test cur-minor))
 	       (equal (assq 'viewer info)  ; Keep alternative viewer
 		      (assq 'viewer cur-minor)))
- 	  (setcdr cur-minor info))
- 	 (t
- 	  (setcdr old-major (cons (cons minor info) (cdr old-major))))))
+	  (setcdr cur-minor info))
+	 (t
+	  (setcdr old-major (cons (cons minor info) (cdr old-major))))))
       )))
 
 (defun mailcap-add (type viewer &optional test)
@@ -723,9 +761,8 @@ this type is returned."
        ((or (null request) (equal request ""))
 	(mailcap-unescape-mime-test (cdr (assq 'viewer viewer)) info))
        ((stringp request)
-	(if (or (eq request 'test) (eq request 'viewer))
-	    (mailcap-unescape-mime-test
-	     (cdr-safe (assoc request viewer)) info)))
+	(mailcap-unescape-mime-test
+	 (cdr-safe (assoc request viewer)) info))
        ((eq request 'all)
 	passed)
        (t
@@ -808,6 +845,7 @@ this type is returned."
     (".rtx"   . "text/richtext")
     (".sh"    . "application/x-sh")
     (".sit"   . "application/x-stuffit")
+    (".siv"   . "application/sieve")
     (".snd"   . "audio/basic")
     (".src"   . "application/x-wais-source")
     (".tar"   . "archive/tar")
@@ -825,6 +863,7 @@ this type is returned."
     (".vox"   . "audio/basic")
     (".vrml"  . "x-world/x-vrml")
     (".wav"   . "audio/x-wav")
+    (".xls"   . "application/vnd.ms-excel")
     (".wrl"   . "x-world/x-vrml")
     (".xbm"   . "image/xbm")
     (".xpm"   . "image/xpm")
@@ -851,7 +890,7 @@ If FORCE, re-parse even if already parsed."
     (cond
      (path nil)
      ((getenv "MIMETYPES") (setq path (getenv "MIMETYPES")))
-     ((memq system-type '(ms-dos ms-windows windows-nt))
+     ((memq system-type mailcap-poor-system-types)
       (setq path '("~/mime.typ" "~/etc/mime.typ")))
      (t (setq path
 	      ;; mime.types seems to be the normal name, definitely so

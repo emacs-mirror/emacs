@@ -3525,23 +3525,24 @@ Preserve text properties."
                 other-tag)
             (when not-fontified-p
               (when Info-hide-note-references
-                ;; *Note is often used where *note should have been
-                (goto-char start)
-                (skip-syntax-backward " ")
-                (setq other-tag
-                      (cond ((memq (char-before) '(nil ?\. ?! ??))
-                             "See ")
-                            ((memq (char-before) '(?\, ?\; ?\: ?-))
-                             "see ")
-                            ((memq (char-before) '(?\( ?\[ ?\{))
-                             ;; Check whether the paren is preceded by
-                             ;; an end of sentence
-                             (skip-syntax-backward " (")
-                             (if (memq (char-before) '(nil ?\. ?! ??))
-                                 "See "
-                               "see "))
-                            ((save-match-data (looking-at "\n\n"))
-                             "See ")))
+                (when (not (eq Info-hide-note-references 'hide))
+                  ;; *Note is often used where *note should have been
+                  (goto-char start)
+                  (skip-syntax-backward " ")
+                  (setq other-tag
+                        (cond ((memq (char-before) '(nil ?\. ?! ??))
+                               "See ")
+                              ((memq (char-before) '(?\, ?\; ?\: ?-))
+                               "see ")
+                              ((memq (char-before) '(?\( ?\[ ?\{))
+                               ;; Check whether the paren is preceded by
+                               ;; an end of sentence
+                               (skip-syntax-backward " (")
+                               (if (memq (char-before) '(nil ?\. ?! ??))
+                                   "See "
+                                 "see "))
+                              ((save-match-data (looking-at "\n\n"))
+                               "See "))))
                 (goto-char next)
                 (add-text-properties
                  (match-beginning 1)
@@ -3551,7 +3552,7 @@ Preserve text properties."
                          (if (string-match "\n" (match-string 1))
                              (+ start1 (match-beginning 0)))))
                      (match-end 1))
-                 (if (and other-tag (not (eq Info-hide-note-references 'hide)))
+                 (if other-tag
                      `(display ,other-tag front-sticky nil rear-nonsticky t)
                    '(invisible t front-sticky nil rear-nonsticky t))))
               (add-text-properties

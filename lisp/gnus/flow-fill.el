@@ -1,6 +1,6 @@
 ;;; flow-fill.el --- interprete RFC2646 "flowed" text
 
-;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -35,10 +35,10 @@
 ;; paragraph and we let `fill-region' fill the long line into several
 ;; lines with the quote prefix as `fill-prefix'.
 
-;; Todo: encoding, implement basic `fill-region' (Emacs and XEmacs
+;; Todo: implement basic `fill-region' (Emacs and XEmacs
 ;;       implementations differ..)
 
-;; History:
+;;; History:
 
 ;; 2000-02-17  posted on ding mailing list
 ;; 2000-02-19  use `point-at-{b,e}ol' in XEmacs
@@ -46,10 +46,29 @@
 ;; 2000-03-26  committed to gnus cvs
 ;; 2000-10-23  don't flow "-- " lines, make "quote-depth wins" rule
 ;;             work when first line is at level 0.
+;; 2002-01-12  probably incomplete encoding support
+;; 2003-12-08  started working on test harness.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(defcustom fill-flowed-display-column 'fill-column
+  "Column beyond which format=flowed lines are wrapped, when displayed.
+This can be a Lisp expression or an integer."
+  :type '(choice (const :tag "Standard `fill-column'" fill-column)
+		 (const :tag "Fit Window" (- (window-width) 5))
+		 (sexp)
+		 (integer)))
+
+(defcustom fill-flowed-encode-column 66
+  "Column beyond which format=flowed lines are wrapped, in outgoing messages.
+This can be a Lisp expression or an integer.
+RFC 2646 suggests 66 characters for readability."
+  :type '(choice (const :tag "Standard fill-column" fill-column)
+		 (const :tag "RFC 2646 default (66)" 66)
+		 (sexp)
+		 (integer)))
 
 (eval-and-compile
   (defalias 'fill-flowed-point-at-bol
@@ -62,6 +81,29 @@
 	    'point-at-eol
 	  'line-end-position)))
 
+;;;###autoload
+(defun fill-flowed-encode (&optional buffer)
+  (with-current-buffer (or buffer (current-buffer))
+    ;; No point in doing this unless hard newlines is used.
+    (when use-hard-newlines
+      (let ((start (point-min)) end)
+	;; Go through each paragraph, filling it and adding SPC
+	;; as the last character on each line.
+	(while (setq end (text-property-any start (point-max) 'hard 't))
+	  (let ((fill-column (eval fill-flowed-encode-column)))
+	    (fill-region start end t 'nosqueeze 'to-eop))
+	  (goto-char start)
+	  ;; `fill-region' probably distorted end.
+	  (setq end (text-property-any start (point-max) 'hard 't))
+	  (while (and (< (point) end)
+		      (re-search-forward "$" (1- end) t))
+	    (insert " ")
+	    (setq end (1+ end))
+	    (forward-char))
+	  (goto-char (setq start (1+ end)))))
+      t)))
+
+;;;###autoload
 (defun fill-flowed (&optional buffer)
   (save-excursion
     (set-buffer (or (current-buffer) buffer))
@@ -70,7 +112,8 @@
       (when (save-excursion
 	      (beginning-of-line)
 	      (looking-at "^\\(>*\\)\\( ?\\)"))
-	(let ((quote (match-string 1)) sig)
+	(let ((quote (match-string 1))
+	      sig)
 	  (if (string= quote "")
 	      (setq quote nil))
 	  (when (and quote (string= (match-string 2) ""))
@@ -79,6 +122,7 @@
 	      (beginning-of-line)
 	      (when (> (skip-chars-forward ">") 0)
 		(insert " "))))
+	  ;; XXX slightly buggy handling of "-- "
 	  (while (and (save-excursion
 			(ignore-errors (backward-char 3))
 			(setq sig (looking-at "-- "))
@@ -86,17 +130,90 @@
 		      (save-excursion
 			(unless (eobp)
 			  (forward-char 1)
-			  (looking-at (format "^\\(%s\\)\\([^>]\\)" (or quote " ?"))))))
+			  (looking-at (format "^\\(%s\\)\\([^>\n\r]\\)"
+					      (or quote " ?"))))))
 	    (save-excursion
 	      (replace-match (if (string= (match-string 2) " ")
 				 "" "\\2")))
 	    (backward-delete-char -1)
 	    (end-of-line))
 	  (unless sig
-	    (let ((fill-prefix (when quote (concat quote " "))))
-	      (fill-region (fill-flowed-point-at-bol)
-			   (fill-flowed-point-at-eol)
-			   'left 'nosqueeze))))))))
+	    (condition-case nil
+		(let ((fill-prefix (when quote (concat quote " ")))
+		      (fill-column (eval fill-flowed-display-column))
+		      filladapt-mode)
+		  (fill-region (fill-flowed-point-at-bol)
+			       (min (1+ (fill-flowed-point-at-eol))
+				    (point-max))
+			       'left 'nosqueeze))
+	      (error
+	       (forward-line 1)
+	       nil))))))))
+
+;; Test vectors.
+
+(eval-when-compile
+  (defvar show-trailing-whitespace))
+
+(defvar fill-flowed-encode-tests
+  '(
+    ;; The syntax of each list element is:
+    ;; (INPUT . EXPECTED-OUTPUT)
+    ("> Thou villainous ill-breeding spongy dizzy-eyed 
+> reeky elf-skinned pigeon-egg! 
+>> Thou artless swag-bellied milk-livered 
+>> dismal-dreaming idle-headed scut!
+>>> Thou errant folly-fallen spleeny reeling-ripe 
+>>> unmuzzled ratsbane!
+>>>> Henceforth, the coding style is to be strictly 
+>>>> enforced, including the use of only upper case.
+>>>>> I've noticed a lack of adherence to the coding 
+>>>>> styles, of late.
+>>>>>> Any complaints?
+" . "> Thou villainous ill-breeding spongy dizzy-eyed reeky elf-skinned
+> pigeon-egg! 
+>> Thou artless swag-bellied milk-livered dismal-dreaming idle-headed
+>> scut!
+>>> Thou errant folly-fallen spleeny reeling-ripe unmuzzled ratsbane!
+>>>> Henceforth, the coding style is to be strictly enforced,
+>>>> including the use of only upper case.
+>>>>> I've noticed a lack of adherence to the coding styles, of late.
+>>>>>> Any complaints?
+")
+;    ("
+;> foo
+;> 
+;> 
+;> bar
+;" . "
+;> foo bar
+;")
+    ))
+
+(defun fill-flowed-test ()
+  (interactive "")
+  (switch-to-buffer (get-buffer-create "*Format=Flowed test output*"))
+  (erase-buffer)
+  (setq show-trailing-whitespace t)
+  (dolist (test fill-flowed-encode-tests)
+    (let (start output)
+      (insert "***** BEGIN TEST INPUT *****\n")
+      (insert (car test))
+      (insert "***** END TEST INPUT *****\n\n")
+      (insert "***** BEGIN TEST OUTPUT *****\n")
+      (setq start (point))
+      (insert (car test))
+      (save-restriction
+	(narrow-to-region start (point))
+	(fill-flowed))
+      (setq output (buffer-substring start (point-max)))
+      (insert "***** END TEST OUTPUT *****\n")
+      (unless (string= output (cdr test))
+	(insert "\n***** BEGIN TEST EXPECTED OUTPUT *****\n")
+	(insert (cdr test))
+	(insert "***** END TEST EXPECTED OUTPUT *****\n"))
+      (insert "\n\n")))
+  (goto-char (point-max)))
 
 (provide 'flow-fill)
 

@@ -249,6 +249,32 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
                  (const :tag "Fringe arrow" 'fringe-arrow))
   :group 'next-error
   :version "21.4")
+
+;;; Internal variable for `next-error-follow-mode-post-command-hook'.
+(defvar next-error-follow-last-line nil)
+
+(define-minor-mode next-error-follow-minor-mode
+  "Minor mode for compilation, occur and diff modes.
+When turned on, cursor motion in the compilation, grep, occur or diff
+buffer causes automatic display of the corresponding source code
+location."
+  nil " Fol" nil
+  (if (not next-error-follow-mode)
+      (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
+    (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)
+    (make-variable-buffer-local 'next-error-follow-last-line)))
+
+;;; Used as a `post-command-hook' by `next-error-follow-mode'
+;;; for the *Compilation* *grep* and *Occur* buffers.
+(defun next-error-follow-mode-post-command-hook ()
+  (unless (equal next-error-follow-last-line (line-number-at-pos))
+    (setq next-error-follow-last-line (line-number-at-pos))
+    (condition-case nil
+	(let ((compilation-context-lines nil))
+	  (setq compilation-current-error (point))
+	  (next-error-no-select 0))
+      (error t))))
+
 
 ;;;
 

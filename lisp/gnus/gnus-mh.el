@@ -40,6 +40,9 @@
 (require 'gnus-msg)
 (require 'gnus-sum)
 
+(eval-when-compile
+  (defvar mh-lib-progs))
+
 (defun gnus-summary-save-article-folder (&optional arg)
   "Append the current article to an mh folder.
 If N is a positive number, save the N next articles.

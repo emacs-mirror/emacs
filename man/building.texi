@@ -204,6 +204,14 @@ commands advance from there.  When @kbd{C-x `} gets to the end of the
 buffer and finds no more error messages to visit, it fails and signals
 an Emacs error.
 
+  You don't have to be in the compilation buffer in order to use
+@code{next-error}.  If one window on the selected frame can be the
+target of the @code{next-error} call, it is used.  Else, if a buffer
+previously had @code{next-error} called on it, it is used.  Else,
+if the current buffer can be the target of @code{next-error}, it is
+used.  Else, all the buffers Emacs manages are tried for
+@code{next-error} support.
+
   @kbd{C-u C-x `} starts scanning from the beginning of the compilation
 buffer.  This is one way to process the same set of errors again.
 

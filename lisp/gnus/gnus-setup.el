@@ -1,6 +1,7 @@
-;;; gnus-setup.el --- initialization & setup for Gnus 5
+;;; gnus-setup.el --- Initialization & Setup for Gnus 5
 
-;; Copyright (C) 1995, 1996, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2000, 2001
+;;        Free Software Foundation, Inc.
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news
@@ -89,8 +90,8 @@
     (setq load-path (cons gnus-mailcrypt-lisp-directory load-path)))
   (autoload 'mc-install-write-mode "mailcrypt" nil t)
   (autoload 'mc-install-read-mode "mailcrypt" nil t)
-  (add-hook 'message-mode-hook 'mc-install-write-mode)
-  (add-hook 'gnus-summary-mode-hook 'mc-install-read-mode)
+;;;   (add-hook 'message-mode-hook 'mc-install-write-mode)
+;;;   (add-hook 'gnus-summary-mode-hook 'mc-install-read-mode)
   (when gnus-use-mhe
     (add-hook 'mh-folder-mode-hook 'mc-install-read-mode)
     (add-hook 'mh-letter-mode-hook 'mc-install-write-mode)))

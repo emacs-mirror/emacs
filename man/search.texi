@@ -215,10 +215,9 @@ string.  It uses the same text that @kbd{C-y} as a command would yank.
 there.  In Transient Mark mode, incremental search sets the mark without
 activating it, and does so only if the mark is not already active.
 
-  @kbd{M-%} or @kbd{C-M-%} exits the incremental search and starts an
-interactive command @code{query-replace} or @code{query-replace-regexp}
-with the last search string inserted in the minibuffer as initial input
-for the string to replace.
+  @kbd{M-%} typed in incremental search invokes @code{query-replace}
+or @code{query-replace-regexp} (depending on search mode) with the
+current search string used as the string to replace.
 
 @cindex lazy search highlighting
 @vindex isearch-lazy-highlight
@@ -1080,7 +1079,7 @@ ask you to edit the replacement string in the minibuffer, putting
 point where the @samp{\?} was.  For example,
 
 @example
-M-x replace-regexp @key{RET} \footnote@{ @key{RET}
+M-x replace-regexp @key{RET} \\footnote@{ @key{RET}
 \&\\label@{fn:\#\?@} @key{RET}
 @end example
 
@@ -1285,6 +1284,9 @@ point there and type @key{RET}; this switches to the buffer that was
 searched and moves point to the original of the chosen occurrence.
 @kbd{o} and @kbd{C-o} display the match in another window; @kbd{C-o}
 does not select it.
+
+Occur mode supports the @code{next-error} functionality described in
+in @ref{Compilation Mode}.
 
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.

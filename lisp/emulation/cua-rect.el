@@ -65,6 +65,10 @@
 (defvar cua--rectangle-overlays nil)
 (make-variable-buffer-local 'cua--rectangle-overlays)
 
+(defvar cua--overlay-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'cua-rotate-rectangle)))
+
 (defvar cua--virtual-edges-debug nil)
 
 ;; Per-buffer CUA mode undo list.
@@ -274,14 +278,24 @@ Knows about CUA rectangle highlighting in addition to standard undo."
     (move-to-column mc)
     (set-mark (point))
     (goto-char pp)
-    (move-to-column pc)
+    ;; Move cursor inside rectangle, except if char at rigth edge is a tab.
+    (if (and (if (cua--rectangle-right-side)
+		 (and (= (move-to-column pc) (- pc tab-width))
+		      (not (eolp)))
+	       (> (move-to-column pc) pc))
+	     (not (bolp)))
+	(backward-char 1))
     ))
 
 ;;; Rectangle resizing
 
 (defun cua--forward-line (n)
   ;; Move forward/backward one line.  Returns t if movement.
-  (= (forward-line n) 0))
+  (let ((pt (point)))
+    (and (= (forward-line n) 0)
+	 ;; Deal with end of buffer
+	 (or (not (eobp))
+	     (goto-char pt)))))
 
 (defun cua--rectangle-resized ()
   ;; Refresh state after resizing rectangle
@@ -569,6 +583,8 @@ If command is repeated at same position, delete the rectangle."
           (setq end   (min (window-end) end)))
         (goto-char end)
         (setq end (line-end-position))
+	(if (and visible (bolp) (not (eobp)))
+	    (setq end (1+ end)))
         (goto-char start)
         (setq start (line-beginning-position))
         (narrow-to-region start end)
@@ -761,7 +777,7 @@ If command is repeated at same position, delete the rectangle."
       (cua--rectangle-operation nil t nil nil nil ; do not tabify
         '(lambda (s e l r v)
            (let ((rface (if v 'cua-rectangle-face 'cua-rectangle-noselect-face))
-                 overlay bs as)
+                 overlay bs ms as)
 	     (if (= s e) (setq e (1+ e)))
 	     (when (cua--rectangle-virtual-edges)
 	       (let ((lb (line-beginning-position))
@@ -791,23 +807,31 @@ If command is repeated at same position, delete the rectangle."
 			 (setq s (1- s))))
 		   (cond
 		    ((= cr r)
-		     (if (and (/= cr0 (1- cr))
-			      (= (mod cr tab-width) 0))
+		     (if (and (/= pr le)
+			      (/= cr0 (1- cr))
+			      (or bs (/= cr0 (- cr tab-width)))
+			      (/= (mod cr tab-width) 0))
 			 (setq e (1- e))))
 		    ((= cr cl)
-		     (setq bs (concat bs
-				      (propertize
-				       (make-string
-					(- r l)
-					(if cua--virtual-edges-debug ?, ?\s))
-				       'face rface)))
+		     (setq ms (propertize
+			       (make-string
+				(- r l)
+				(if cua--virtual-edges-debug ?, ?\s))
+			       'face rface))
+		     (if (cua--rectangle-right-side)
+			 (put-text-property (1- (length ms)) (length ms) 'cursor t ms)
+		       (put-text-property 0 1 'cursor t ms))
+		     (setq bs (concat bs ms))
 		     (setq rface nil))
-		    (t
+ 		    (t
 		     (setq as (propertize
 			       (make-string
 				(- r cr0 (if (= le pr) 1 0))
 				(if cua--virtual-edges-debug ?~ ?\s))
 			       'face rface))
+		     (if (cua--rectangle-right-side)
+			 (put-text-property (1- (length as)) (length as) 'cursor t as)
+		       (put-text-property 0 1 'cursor t as))
 		     (if (/= pr le)
 			 (setq e (1- e))))))))
 	     ;; Trim old leading overlays.
@@ -826,9 +850,10 @@ If command is repeated at same position, delete the rectangle."
                    (move-overlay overlay s e)
                    (setq old (cdr old)))
                (setq overlay (make-overlay s e)))
-	     (overlay-put overlay 'before-string bs)
+ 	     (overlay-put overlay 'before-string bs)
 	     (overlay-put overlay 'after-string as)
 	     (overlay-put overlay 'face rface)
+	     (overlay-put overlay 'keymap cua--overlay-keymap)
 	     (setq new (cons overlay new))))))
     ;; Trim old trailing overlays.
     (mapcar (function delete-overlay) old)
@@ -839,7 +864,7 @@ If command is repeated at same position, delete the rectangle."
   (let ((col (cua--rectangle-insert-col))
         (pad (cua--rectangle-virtual-edges))
         indent)
-    (cua--rectangle-operation (if clear 'clear 'corners) nil t pad t
+    (cua--rectangle-operation (if clear 'clear 'corners) nil t pad nil
       '(lambda (s e l r)
          (move-to-column col pad)
          (if (and (eolp)
@@ -975,7 +1000,9 @@ With prefix argument, the toggle restriction."
 (defun cua-rotate-rectangle ()
   (interactive)
   (cua--rectangle-corner (if (= (cua--rectangle-left) (cua--rectangle-right)) 0 1))
-  (cua--rectangle-set-corners))
+  (cua--rectangle-set-corners)
+  (if (cua--rectangle-virtual-edges)
+      (setq cua--buffer-and-point-before-command nil)))
 
 (defun cua-toggle-rectangle-virtual-edges ()
   (interactive)

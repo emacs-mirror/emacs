@@ -1,3 +1,9 @@
+2004-09-04  Eric S. Raymond  <esr@thyrsus.com>
+
+	* PROBLEMS: More reorganization to exile old stuff to the
+	pre-2000 section.  I looked up end-of-life dates for a bunch
+	of old Unixes to check.
+
 2004-08-24  Bill Wohler  <wohler@newt.com>
 
 	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.82.
@@ -39,6 +45,18 @@
 2004-07-27  Werner Lemberg  <wl@gnu.org>
 
 	* NEWS: Document all new tutorials.
+
+2004-08-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS: Import from the v5_10 branch of the Gnus repository.
+
+	* NEWS (Gnus package): Gnus includes Sieve and PGG.  Gnus changes
+	are described in GNUS-NEWS.
+
+2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.xpm, gnus-pointer.xbm, gnus-pointer.xpm: Import from the
+	v5_10 branch of the Gnus repository.
 
 2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
 
