@@ -158,12 +158,6 @@ Lisp_Object composition_temp;
 #define CHAR_WIDTH(c) \
   (SINGLE_BYTE_CHAR_P (c) ? 1 : CHARSET_WIDTH (CHAR_CHARSET (c)))
 
-/* The following macros for hash table are copied from fns.c.  */
-/* Value is the key part of entry IDX in hash table H.  */
-#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
-/* Value is the value part of entry IDX in hash table H.  */
-#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
-
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
    the sequence is PROP.  STRING, if non-nil, is a string that
