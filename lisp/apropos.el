@@ -144,8 +144,8 @@ This looks good, but slows down the commands several times."
 (fset 'command-apropos 'apropos-command)
 ;;;###autoload
 (defun apropos-command (apropos-regexp &optional do-all)
-  "Shows commands (interactively callable functions) that match REGEXP.
-With optional prefix ARG or if `apropos-do-all' is non-nil, also show
+  "Show commands (interactively callable functions) that match REGEXP.
+With optional prefix ARG, or if `apropos-do-all' is non-nil, also show
 variables."
   (interactive (list (read-string (concat "Apropos command "
 					  (if (or current-prefix-arg
