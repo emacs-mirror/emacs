@@ -205,71 +205,75 @@ at the beginning of a line."
 
 (defun xml-lite-get-context (&optional full)
   "Determine the context of the current position.
+If FULL is `empty', return even if the context is empty (i.e.
+we just skipped over some element and got to a beginning of line).
 If FULL is non-nil, parse back to the beginning of the buffer, otherwise
 parse until we find a start-tag as the first thing on a line.
 
 The context is a list of tag-info structures.  The last one is the tag
 immediately enclosing the current position."
   (let ((here (point))
-        (ignore nil)
-        tag-info context)
+	(ignore nil)
+	(context nil)
+	tag-info)
     ;; CONTEXT keeps track of the tag-stack
     ;; IGNORE keeps track of the nesting level of point relative to the
     ;;   first (outermost) tag on the context.  This is the list of
     ;;   enclosing start-tags we'll have to ignore.
-    (save-excursion
-
-      (while
-          (and (or (not context)
-		   ignore
-                   full
-                   (not (xml-lite-at-indentation-p)))
-               (setq tag-info (xml-lite-parse-tag-backward)))
-
-        ;; This tag may enclose things we thought were tags.  If so,
-        ;; discard them.
-        (while (and context
-                    (> (xml-lite-tag-end tag-info)
-                       (xml-lite-tag-end (car context))))
-          (setq context (cdr context)))
+    (skip-chars-backward " \t\n")      ; Make sure we're not at indentation.
+    (while
+	(and (or ignore (not (if full (eq full 'empty) context))
+		 (not (xml-lite-at-indentation-p)))
+	     (setq tag-info (xml-lite-parse-tag-backward)))
+      
+      ;; This tag may enclose things we thought were tags.  If so,
+      ;; discard them.
+      (while (and context
+		  (> (xml-lite-tag-end tag-info)
+		     (xml-lite-tag-end (car context))))
+	(setq context (cdr context)))
            
-        (cond
+      (cond
 
-         ;; inside a tag ...
-         ((xml-lite-inside-tag-p tag-info here)
-          (push tag-info context))
+       ;; inside a tag ...
+       ((xml-lite-inside-tag-p tag-info here)
+	(push tag-info context))
 
-         ;; start-tag
-         ((eq (xml-lite-tag-type tag-info) 'open)
-	  (cond
-	   ((null ignore) (push tag-info context))
-	   ((eq t (compare-strings (xml-lite-tag-name tag-info) nil nil
-				   (car ignore) nil nil t))
-	    (setq ignore (cdr ignore)))
-	   (t
-	    ;; The open and close tags don't match.
-	    (if (not sgml-xml-mode)
-		;; Assume the open tag is simply not closed.
-		(message "Unclosed tag <%s>" (xml-lite-tag-name tag-info))
-	      (message "Unmatched tags <%s> and </%s>"
-		       (xml-lite-tag-name tag-info) (pop ignore))))))
+       ;; start-tag
+       ((eq (xml-lite-tag-type tag-info) 'open)
+	(cond
+	 ((null ignore) (push tag-info context))
+	 ((eq t (compare-strings (xml-lite-tag-name tag-info) nil nil
+				 (car ignore) nil nil t))
+	  (setq ignore (cdr ignore)))
+	 (t
+	  ;; The open and close tags don't match.
+	  (if (not sgml-xml-mode)
+	      ;; Assume the open tag is simply not closed.
+	      (unless (member-ignore-case (xml-lite-tag-name tag-info)
+					  sgml-unclosed-tags)
+		(message "Unclosed tag <%s>" (xml-lite-tag-name tag-info)))
+	    (message "Unmatched tags <%s> and </%s>"
+		     (xml-lite-tag-name tag-info) (pop ignore))))))
 
-	 ;; end-tag
-         ((eq (xml-lite-tag-type tag-info) 'close)
-          (push (xml-lite-tag-name tag-info) ignore))
-         
-         )))
+       ;; end-tag
+       ((eq (xml-lite-tag-type tag-info) 'close)
+	(if (and (not sgml-xml-mode)
+		 (member-ignore-case (xml-lite-tag-name tag-info)
+				     sgml-empty-tags))
+	    (message "Spurious </%s>: empty tag" (xml-lite-tag-name tag-info))
+	  (push (xml-lite-tag-name tag-info) ignore)))
+       ))
 
     ;; return context
-    context
-    ))
+    context))
 
 (defun xml-lite-show-context (&optional full)
   "Display the current context.
 If FULL is non-nil, parse back to the beginning of the buffer."
   (interactive "P")
   (with-output-to-temp-buffer "*XML Context*"
-    (pp (xml-lite-get-context full))))
+    (pp (save-excursion (xml-lite-get-context full)))))
 
 
 ;; Indenting
@@ -277,7 +281,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 (defun xml-lite-calculate-indent ()
   "Calculate the column to which this line should be indented."
   (let* ((here (point))
-         (context (xml-lite-get-context))
+         (context (save-excursion (xml-lite-get-context)))
          (ref-tag-info (car context))
          (last-tag-info (car (last context))))
 
@@ -338,10 +342,8 @@ If FULL is non-nil, parse back to the beginning of the buffer."
   (let* ((savep (point))
 	 (indent-col
 	  (save-excursion
-	    (beginning-of-line)
-	    (skip-chars-forward " \t")
+	    (back-to-indentation)
 	    (if (>= (point) savep) (setq savep nil))
-	    ;; calculate basic indent
 	    (xml-lite-calculate-indent))))
     (if savep
 	(save-excursion (indent-line-to indent-col))
@@ -353,7 +355,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 (defun xml-lite-insert-end-tag ()
   "Insert an end-tag for the current element."
   (interactive)
-  (let* ((context (xml-lite-get-context))
+  (let* ((context (save-excursion (xml-lite-get-context)))
          (tag-info (car (last context)))
          (type (and tag-info (xml-lite-tag-type tag-info))))
 
