@@ -1643,8 +1643,8 @@ Thus,
 
 @example
 (set-face-attribute 'foo nil
-                    :width :extended
-                    :weight :bold
+                    :width 'extended
+                    :weight 'bold
                     :underline "red")
 @end example
 
