@@ -5,9 +5,18 @@ See the end for copying conditions.
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
+Temporary note: +++ indicates that the appropriate manual
+has already been updated.  --- means no change in the manuals
+is called for.
 
 * Changes in Emacs 21.3
  
++++
+** Emacs now reads the standard abbrevs file ~/.abbrev_defs
+automatically at startup, if it exists.  And it always offers to save
+abbrevs (if you have changed them) when if offers to save modified
+buffers.
+
 ** Display of hollow cursors now obeys the buffer-local value (if any)
 of `cursor-in-non-selected-windows' in the buffer that the cursor
 appears in.
@@ -446,13 +455,9 @@ have enabled one.
 
 Currently, the following actions have been defined:
 
-- Mouse-1 on the buffer name in the mode line switches between two
-buffers.
+- Mouse-1 on the buffer name in the mode line goes to the next buffer.
 
-- Mouse-2 on the buffer-name switches to the next buffer, and
-M-mouse-2 switches to the previous buffer in the buffer list.
-
-- Mouse-3 on the buffer-name displays a buffer menu.
+- Mouse-3 on the buffer-name goes to the previous buffer.
 
 - Mouse-2 on the read-only or modified status in the mode line (`%' or
 `*') toggles the status.
