@@ -3062,19 +3062,21 @@ If there is no error, we return nil.  */)
      (filename, string)
      Lisp_Object filename, string;
 {
-  Lisp_Object handler, encoded_filename;
+  Lisp_Object handler, encoded_filename, absname;
   int fd;
 
   CHECK_STRING (filename, 0);
+  absname = Fexpand_file_name (filename, Qnil);
+
   CHECK_STRING (string, 1);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qaccess_file);
+  handler = Ffind_file_name_handler (absname, Qaccess_file);
   if (!NILP (handler))
-    return call3 (handler, Qaccess_file, filename, string);
+    return call3 (handler, Qaccess_file, absname, string);
 
-  encoded_filename = ENCODE_FILE (filename);
+  encoded_filename = ENCODE_FILE (absname);
 
   fd = emacs_open (XSTRING (encoded_filename)->data, O_RDONLY, 0);
   if (fd < 0)
