@@ -808,8 +808,8 @@ The binding is probably a symbol with a function definition.\n\
 \n\
 Normally, `key-binding' ignores bindings for t, which act as default\n\
 bindings, used when nothing else in the keymap applies; this makes it\n\
-useable as a general function for probing keymaps.  However, if the\n\
-third optional argument ACCEPT-DEFAULT is non-nil, `key-binding' will\n\
+usable as a general function for probing keymaps.  However, if the\n\
+optional second argument ACCEPT-DEFAULT is non-nil, `key-binding' does\n\
 recognize the default bindings, just as `read-key-sequence' does.")
   (key, accept_default)
      Lisp_Object key;
