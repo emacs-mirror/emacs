@@ -1,5 +1,7 @@
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* lwlib-Xm.c (make_menubar): Take out code in #if 0.
+	
 	* lwlib-Xm.c (xm_popup_menu): Don't set XmNmenuPost unless
 	necessary.  From Rick Scott <rwscott@alumni.uwaterloo.ca>.
 

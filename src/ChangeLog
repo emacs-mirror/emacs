@@ -1,5 +1,8 @@
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (xm_set_menu_resources_from_menu_face): Change
+	#if 0 to #ifndef LESSTIF_VERSION.
+
 	* xmenu.c (xmenu_show) [LESSTIF_VERSION]: Take out the code
 	removing button grabs.
 
