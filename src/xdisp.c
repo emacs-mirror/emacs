@@ -2867,7 +2867,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 			       /* Truncate the prompt a little before the
 				  margin, so user input can at least start
 				  on the first line.  */
-			       w->width > 10 ? w->width - 4 : -1)
+			       (XFASTINT (w->width) > 10
+				? XFASTINT (w->width) - 4 : -1))
 	       - hpos);
 	  hpos += minibuf_prompt_width;
 	  taboffset -= minibuf_prompt_width;
@@ -3285,7 +3286,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	  if (p1 >= leftmargin)
 	    *p1 = (fix_glyph
 		   (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-			&& GLYPH_CHAR_VALID_P (DISP_ESCAPE_GLYPH (dp))
+			&& GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (dp)))
 			? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
 		    current_face)
 		   | rev_dir_bit);
@@ -3533,7 +3534,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	}
       else if (!FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	*p1++ = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
-		 ? DISP_BORDER_GLYPH (dp)
+		 ? XINT (DISP_BORDER_GLYPH (dp))
 		 : '|');
     }
   desired_glyphs->used[vpos] = max (desired_glyphs->used[vpos],
