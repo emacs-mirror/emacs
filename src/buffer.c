@@ -3706,8 +3706,13 @@ init_buffer ()
       && dotstat.st_dev == pwdstat.st_dev
       && strlen (pwd) < MAXPATHLEN)
     strcpy (buf, pwd);
+#ifdef HAVE_GETCWD
+  else if (getcwd (buf, MAXPATHLEN+1) == 0)
+    fatal ("`getcwd' failed: %s\n", buf);
+#else
   else if (getwd (buf) == 0)
     fatal ("`getwd' failed: %s\n", buf);
+#endif
 
 #ifndef VMS
   /* Maybe this should really use some standard subroutine
