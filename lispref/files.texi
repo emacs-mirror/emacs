@@ -1378,11 +1378,13 @@ how to manipulate file names.
 can operate on file names that do not refer to an existing file or
 directory.
 
-  On VMS, all these functions understand both VMS file-name syntax and
-Unix syntax.  This is so that all the standard Lisp libraries can
-specify file names in Unix syntax and work properly on VMS without
-change.  On MS-DOS and MS-Windows, these functions understand MS-DOS or
-MS-Windows file-name syntax as well as Unix syntax.
+  On MS-DOS and MS-Windows, these functions (like the function that
+actually operate on files) accept MS-DOS or MS-Windows file-name syntax,
+where backslashes separate the components, as well as Unix syntax; but
+they always return Unix syntax.  On VMS, these functions (and the ones
+that operate on files) understand both VMS file-name syntax and Unix
+syntax.  This enables Lisp programs to specify file names in Unix syntax
+and work properly on all systems without change.
 
 @menu
 * File Name Components::  The directory part of a file name, and the rest.
@@ -1410,8 +1412,9 @@ parts: the @dfn{directory name} part, and the @dfn{nondirectory} part
 Concatenating these two parts reproduces the original file name.
 
   On most systems, the directory part is everything up to and including
-the last slash (or backslash, on MS-DOS or MS-Windows); the nondirectory
-part is the rest.  The rules in VMS syntax are complicated.
+the last slash (backslash is also allowed in input on MS-DOS or
+MS-Windows); the nondirectory part is the rest.  The rules in VMS syntax
+are complicated.
 
   For some purposes, the nondirectory part is further subdivided into
 the name proper and the @dfn{version number}.  On most systems, only
@@ -1505,14 +1508,21 @@ The extension, in a file name, is the part that starts with the last
 @end example
 @end defun
 
-@defvar directory-sep-char
-@tindex directory-sep-char
-This variable holds the character that the system normally uses to
-separate file name components.  The value is @code{?/} on GNU and Unix
-systems, and @code{?\\} on MS-DOS and MS-Windows.  Note that file names
-using slashes as separators work properly in Emacs on all of these
-systems; you are not obliged to use backslashes on Microsoft systems.
+@ignore
+Andrew Innes says that this 
+
+@c @defvar directory-sep-char
+@c @tindex directory-sep-char
+This variable holds the character that Emacs normally uses to separate
+file name components.  The default value is @code{?/}, but on MS-Windows
+you can set it to @code{?\\}; then the functions that transform file names
+use backslashes in their output.
+
+File names using backslashes work as input to Lisp primitives even on
+MS-DOS and MS-Windows, even if @code{directory-sep-char} has its default
+value of @code{?/}.
 @end defvar
+@end ignore
 
 @node Directory Names
 @comment  node-name,  next,  previous,  up
@@ -1524,9 +1534,10 @@ systems; you are not obliged to use backslashes on Microsoft systems.
 kind of file, and it has a file name, which is related to the directory
 name but not identical to it.  (This is not quite the same as the usual
 Unix terminology.)  These two different names for the same entity are
-related by a syntactic transformation.  On most systems, this is simple: a
-directory name ends in a slash, whereas the directory's name as a file
-lacks that slash.  On VMS, the relationship is more complicated.
+related by a syntactic transformation.  On most systems, this is simple:
+a directory name ends in a slash (or backslash), whereas the directory's
+name as a file lacks that slash.  On VMS, the relationship is more
+complicated.
 
   The difference between a directory name and its name as a file is
 subtle but crucial.  When an Emacs variable or function argument is
@@ -1555,9 +1566,9 @@ already end in one).  On VMS, the function converts a string of the form
 @defun directory-file-name dirname
 This function returns a string representing @var{dirname} in a form that
 the operating system will interpret as the name of a file.  On most
-systems, this means removing the final slash from the string.  On VMS,
-the function converts a string of the form @file{[X.Y]} to
-@file{[X]Y.DIR.1}.
+systems, this means removing the final slash (or backslash) from the
+string.  On VMS, the function converts a string of the form @file{[X.Y]}
+to @file{[X]Y.DIR.1}.
 
 @example
 @group
@@ -1896,8 +1907,9 @@ in the directory, which is unpredictable and conveys no useful
 information.
 
 The argument @var{partial-filename} must be a file name containing no
-directory part and no slash.  The current buffer's default directory is
-prepended to @var{directory}, if @var{directory} is not absolute.
+directory part and no slash (or backslash on some systems).  The current
+buffer's default directory is prepended to @var{directory}, if
+@var{directory} is not absolute.
 
 In the following example, suppose that @file{~rms/lewis} is the current
 default directory, and has five files whose names begin with @samp{f}:

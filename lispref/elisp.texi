@@ -797,6 +797,24 @@ Text Properties
 * Not Intervals::	    Why text properties do not use
 			      Lisp-visible text intervals.
 
+Non-ASCII Characters
+
+* Text Representations::    Unibyte and multibyte representations
+* Converting Representations::  Converting unibyte to multibyte and vice versa.
+* Selecting a Representation::  Treating a byte sequence as unibyte or multi.
+* Character Codes::         How unibyte and multibyte relate to
+                                codes of individual characters.
+* Character Sets::          The space of possible characters codes
+                                is divided into various character sets.
+* Chars and Bytes::         More information about multibyte encodings.
+* Splitting Characters::    Converting a character to its byte sequence.
+* Scanning Charsets::       Which character sets are used in a buffer?
+* Translation of Characters::   Translation tables are used for conversion.
+* Coding Systems::          Coding systems are conversions for saving files.
+* Input Methods::           Input methods allow users to enter various
+                                non-ASCII characters without speciak keyboards.
+* Locales::                 Interacting with the POSIX locale.
+
 Searching and Matching
 
 * String Search::           Search for an exact match.

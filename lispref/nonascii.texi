@@ -12,18 +12,21 @@
 characters and how they are stored in strings and buffers.
 
 @menu
-* Text Representations::
-* Converting Representations::
-* Selecting a Representation::
-* Character Codes::
-* Character Sets::
-* Chars and Bytes::
-* Splitting Characters::
-* Scanning Charsets::
-* Translation of Characters::
-* Coding Systems::
-* Input Methods::
-* Locales::             Interacting with the POSIX locale.
+* Text Representations::    Unibyte and multibyte representations
+* Converting Representations::  Converting unibyte to multibyte and vice versa.
+* Selecting a Representation::  Treating a byte sequence as unibyte or multi.
+* Character Codes::         How unibyte and multibyte relate to
+                                codes of individual characters.
+* Character Sets::          The space of possible characters codes
+                                is divided into various character sets.
+* Chars and Bytes::         More information about multibyte encodings.
+* Splitting Characters::    Converting a character to its byte sequence.
+* Scanning Charsets::       Which character sets are used in a buffer?
+* Translation of Characters::   Translation tables are used for conversion.
+* Coding Systems::          Coding systems are conversions for saving files.
+* Input Methods::           Input methods allow users to enter various
+                                non-ASCII characters without speciak keyboards.
+* Locales::                 Interacting with the POSIX locale.
 @end menu
 
 @node Text Representations
@@ -491,15 +494,17 @@ by a particular @dfn{coding system}.
 documented here.
 
 @menu
-* Coding System Basics::
-* Encoding and I/O::
-* Lisp and Coding Systems::
-* User-Chosen Coding Systems::
-* Default Coding Systems::
-* Specifying Coding Systems::
-* Explicit Encoding::
-* Terminal I/O Encoding::
-* MS-DOS File Types::
+* Coding System Basics::        Basic concepts.
+* Encoding and I/O::            How file I/O functions handle coding systems.
+* Lisp and Coding Systems::     Functions to operate on coding system names.
+* User-Chosen Coding Systems::  Asking the user to choose a coding system.
+* Default Coding Systems::      Controlling the default choices.
+* Specifying Coding Systems::   Requesting a particular coding system
+                                    for a single file operation.
+* Explicit Encoding::           Encoding or decoding text without doing I/O.
+* Terminal I/O Encoding::       Use of encoding for terminal I/O.
+* MS-DOS File Types::           How DOS "text" and "binary" files
+                                    relate to coding systems.
 @end menu
 
 @node Coding System Basics

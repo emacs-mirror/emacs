@@ -747,6 +747,20 @@ value is @code{":"} for Unix and GNU systems, and @code{";"} for MS-DOS
 and MS-Windows.
 @end defvar
 
+@defun parse-colon-path path
+@tindex parse-colon-path
+This function takes a search path string such as would be the value of
+the @code{PATH} environment variable, and splits it at the separators,
+returning a list of directory names.  @code{nil} in this list stands for
+``use the current directory.''  Although the function's name says
+``colon,'' it actually uses the value of @code{path-separator}.
+
+@example
+(parse-colon-path ":/foo:/bar")
+     @result{} (nil "/foo/" "/bar/")
+@end example
+@end defun
+
 @defvar invocation-name
 This variable holds the program name under which Emacs was invoked.  The
 value is a string, and does not include a directory name.
