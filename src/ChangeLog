@@ -1,3 +1,8 @@
+2002-05-11  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (intersection): Keep the elements of the returned list
+	in the same order as in the first list.
+
 2002-05-11  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (current_minor_maps): Fixed resizing of cmm_maps;
