@@ -27,10 +27,10 @@
 ;;     Lots of codes are stolen from mm-decode.el, gnus-uu.el and
 ;;     base64.el
 
-;; This looks as though it could be made rather more efficient.
-;; Encoding could use a lookup table and decoding should presumably
-;; use a vector or list buffer for partial results rather than
-;; with-current-buffer.  -- fx
+;; This looks as though it could be made rather more efficient for
+;; internal working.  Encoding could use a lookup table and decoding
+;; should presumably use a vector or list buffer for partial results
+;; rather than with-current-buffer.  -- fx
 
 ;;; Code:
 
@@ -42,7 +42,7 @@
 	'char-int
       'identity))
 
-  (if (fboundp 'insert-char)
+  (if (featurep 'xemacs)
       (defalias 'uudecode-insert-char 'insert-char)
     (defun uudecode-insert-char (char &optional count ignored buffer)
       (if (or (null buffer) (eq buffer (current-buffer)))
@@ -80,11 +80,11 @@ input and write the converted data to its standard output."
 
 ;;;###autoload
 (defun uudecode-decode-region-external (start end &optional file-name)
-  "Uudecode region between START and END with external decoder.
-
-If FILE-NAME is non-nil, save the result to FILE-NAME."
+  "Uudecode region between START and END using external program.
+If FILE-NAME is non-nil, save the result to FILE-NAME.  The program
+used is specified by `uudecode-decoder-program'."
   (interactive "r\nP")
-  (let ((cbuf (current-buffer)) tempfile firstline work-buffer status)
+  (let ((cbuf (current-buffer)) tempfile firstline status)
     (save-excursion
       (goto-char start)
       (when (re-search-forward uudecode-begin-line nil t)
@@ -98,16 +98,13 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 					       (match-string 1)))))
 	(setq tempfile (if file-name
 			   (expand-file-name file-name)
-			 (make-temp-name
-			  ;; /tmp/uu...
-			  (expand-file-name
-			   "uu" uudecode-temporary-file-directory))))
-	(let ((cdir default-directory) default-process-coding-system)
+			 (let ((temporary-file-directory
+				uudecode-temporary-file-directory))
+			   (make-temp-file "uu"))))
+	(let ((cdir default-directory)
+	      default-process-coding-system)
 	  (unwind-protect
-	      (progn
-		(set-buffer (setq work-buffer
-				  (generate-new-buffer " *uudecode-work*")))
-		(buffer-disable-undo work-buffer)
+	      (with-temp-buffer
 		(insert "begin 600 " (file-name-nondirectory tempfile) "\n")
 		(insert-buffer-substring cbuf firstline end)
 		(cd (file-name-directory tempfile))
@@ -127,13 +124,11 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	      (let (format-alist)
 		(insert-file-contents-literally tempfile)))
 	  (message "Can not uudecode")))
-      (and work-buffer (kill-buffer work-buffer))
       (ignore-errors (or file-name (delete-file tempfile))))))
 
 ;;;###autoload
-
 (defun uudecode-decode-region (start end &optional file-name)
-  "Uudecode region between START and END.
+  "Uudecode region between START and END without using an external program.
 If FILE-NAME is non-nil, save the result to FILE-NAME."
   (interactive "r\nP")
   (let ((work-buffer nil)
