@@ -3650,6 +3650,9 @@ actually used.")
 	   end-of-line conversion.  */
 	setup_raw_text_coding_system (&coding);
 
+      coding.src_multibyte = 0;
+      coding.dst_multibyte
+	= !NILP (current_buffer->enable_multibyte_characters);
       coding_system_decided = 1;
     }
 
@@ -3672,9 +3675,7 @@ actually used.")
      and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
       && BEGV < ZV
-      && ! CODING_REQUIRE_DECODING (&coding)
-      && (coding.eol_type == CODING_EOL_UNDECIDED
-	  || coding.eol_type == CODING_EOL_LF))
+      && !(coding.common_flags & CODING_REQUIRE_DECODING_MASK))
     {
       /* same_at_start and same_at_end count bytes,
 	 because file access counts bytes
@@ -3711,7 +3712,7 @@ actually used.")
 
 	  if (coding.type == coding_type_undecided)
 	    detect_coding (&coding, buffer, nread);
-	  if (CODING_REQUIRE_DECODING (&coding))
+	  if (coding.common_flags & CODING_REQUIRE_DECODING_MASK)
 	    /* We found that the file should be decoded somehow.
                Let's give up here.  */
 	    {
@@ -3929,7 +3930,11 @@ actually used.")
 	      /* Save for next iteration whatever we didn't convert.  */
 	      unprocessed = this - coding.consumed;
 	      bcopy (read_buf + coding.consumed, read_buf, unprocessed);
-	      this = coding.produced;
+	      if (!NILP (current_buffer->enable_multibyte_characters))
+		this = coding.produced;
+	      else
+		this = str_as_unibyte (conversion_buffer + inserted,
+				       coding.produced);
 	    }
 
 	  inserted += this;
@@ -4198,34 +4203,27 @@ actually used.")
 	setup_raw_text_coding_system (&coding);
     }
 
+  if (!NILP (visit)
+      && (coding.type == coding_type_no_conversion
+	  || coding.type == coding_type_raw_text))
+    {
+      /* Visiting a file with these coding system always make the buffer
+	 unibyte. */
+      current_buffer->enable_multibyte_characters = Qnil;
+      coding.dst_multibyte = 0;
+    }
+
   if (inserted > 0 || coding.type == coding_type_ccl)
     {
       if (CODING_MAY_REQUIRE_DECODING (&coding))
 	{
-	  /* Here, we don't have to consider byte combining (see the
-             comment below) because code_convert_region takes care of
-             it.  */
 	  code_convert_region (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
 			       &coding, 0, 0);
-	  inserted = (NILP (current_buffer->enable_multibyte_characters)
-		      ? coding.produced : coding.produced_char);
-	}
-      else if (!NILP (current_buffer->enable_multibyte_characters))
-	{
-	  int inserted_byte = inserted;
-
-	  /* There's a possibility that we must combine bytes at the
-	     head (resp. the tail) of the just inserted text with the
-	     bytes before (resp. after) the gap to form a single
-	     character.  */
-	  inserted = multibyte_chars_in_text (GPT_ADDR - inserted, inserted);
-	  adjust_after_insert (PT, PT_BYTE,
-			       PT + inserted_byte, PT_BYTE + inserted_byte,
-			       inserted);
+	  inserted = coding.produced_char;
 	}
       else
 	adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
-			     inserted);
+ 			     inserted);
     }
 
 #ifdef DOS_NT
@@ -5020,6 +5018,7 @@ e_write (desc, string, start, end, coding)
   register int nbytes;
   char buf[WRITE_BUF_SIZE];
   int return_val = 0;
+  int require_encoding_p;
 
   if (start >= end)
     coding->composing = COMPOSITION_DISABLED;
@@ -5030,17 +5029,21 @@ e_write (desc, string, start, end, coding)
     {
       addr = XSTRING (string)->data;
       nbytes = STRING_BYTES (XSTRING (string));
+      coding->src_multibyte = STRING_MULTIBYTE (string);
     }
   else if (start < end)
     {
       /* It is assured that the gap is not in the range START and END-1.  */
       addr = CHAR_POS_ADDR (start);
       nbytes = CHAR_TO_BYTE (end) - CHAR_TO_BYTE (start);
+      coding->src_multibyte
+	= !NILP (current_buffer->enable_multibyte_characters);
     }
   else
     {
       addr = "";
       nbytes = 0;
+      coding->src_multibyte = 1;
     }
 
   /* We used to have a code for handling selective display here.  But,
