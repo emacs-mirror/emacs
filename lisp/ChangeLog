@@ -1,3 +1,32 @@
+2001-10-22  Andre Spiegel  <spiegel@gnu.org>
+
+	Add autoscaling support for vc-annotate.
+	From J.D. Smith <jdsmith@astro.cornell.edu>.
+	
+	* vc.el (vc-annotate-display-default): Accept colormap scaling
+	ratio (now deprecated).
+	(vc-annotate-display-autoscale): Added.
+	(vc-annotate-add-menu): New autoscaling menu options "Span to
+	Oldest" and "Span Oldest->Newest".  Easymenu support added for
+	toggle menus driven by customize variable
+	`vc-annotate-display-mode'.
+	(vc-annotate-display-select): Added.
+	(vc-annotate): Changed temp-buffer-show-function to
+	`vc-annotate-display-select'.
+	(vc-annotate-display): Removed arguments BUFFER and BACKEND.
+	Added argument OFFSET.  Instead of backend function, calls now
+	generic `vc-annotate-difference'.
+	(vc-annotate-difference): Added as generic function instead of
+	backend-specific function.  No longer takes argument POINT, but
+	instead accepts a time OFFSET.
+	(vc-default-annotate-current-time): Added.
+
+	* vc-cvs.el (vc-cvs-annotate-difference): Removed to generic
+	version in vc.el, with 
+	(vc-cvs-annotate-current-time): Added, as override of default.
+	(vc-cvs-annotate-time) Added. Taken mostly from the (now removed)
+	`vc-cvs-annotate-difference'.
+
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* saveplace.el (save-place): Require `saveplace'.
