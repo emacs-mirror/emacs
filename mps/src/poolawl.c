@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.47) $
+ * $HopeName: MMsrc!poolawl.c(trunk.48) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -46,7 +46,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.47) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.48) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -1200,7 +1200,11 @@ static Bool AWLCheck(AWL awl)
   CHECKL(awl->poolStruct.class == &PoolClassAWLStruct);
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Action, &awl->actionStruct);
-  CHECKL(ArenaMutatorAllocSize(awl->poolStruct.arena) >= awl->lastCollected);
+  /* This useful check cannot be made because ArenaMutatorAllocSize */
+  /* is not monotonic.  See request.dylan.160070. */
+  /* CHECKL(ArenaMutatorAllocSize(awl->poolStruct.arena) */
+  /*        >= awl->lastCollected); */
+
   /* 30 is just a sanity check really, not a constraint */
   CHECKL(0 <= awl->gen && awl->gen <= 30);
   return TRUE;
