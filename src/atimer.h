@@ -21,9 +21,13 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_ATIMER_H
 #define EMACS_ATIMER_H
 
-/* Building alloca.o includes us, and we need lisp.h for the P_ macro
-   in that case.  */
-#include "lisp.h"
+/* Declare the prototype for a general external function.  */
+#if defined (PROTOTYPES) || defined (WINDOWSNT)
+#define P_(proto) proto
+#else
+#define P_(proto) ()
+#endif
+
 #include "systime.h"		/* for EMACS_TIME */
 
 /* Forward declaration.  */
