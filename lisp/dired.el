@@ -1258,9 +1258,6 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 ;; The list is in reverse order of buffer creation, most recent last.
 ;; As a side effect, killed dired buffers for DIR are removed from
 ;; dired-buffers.
-  ;; For testing. -MDE 8/21/94
-  (if (not (string-equal dir (expand-file-name dir)))
-      (debug))
   (setq dir (file-name-as-directory dir))
   (let ((alist dired-buffers) result elt buf)
     (while alist
@@ -1301,9 +1298,6 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 
 (defun dired-in-this-tree (file dir)
   ;;"Is FILE part of the directory tree starting at DIR?"
-  ;; For testing. -MDE 8/21/94
-  (if (not (string-equal dir (expand-file-name dir)))
-      (debug))
   (let (case-fold-search)
     (string-match (concat "^" (regexp-quote dir)) file)))
 
