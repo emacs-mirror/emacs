@@ -3483,7 +3483,7 @@ FLAGS is the current flags of the interface.  */)
     return Qnil;
 
   elt = Qnil;
-#if defined(SIOCGIFFLAGS) && defined(ifr_flags)
+#if defined(SIOCGIFFLAGS) && defined(HAVE_STRUCT_IFREQ_IFR_FLAGS)
   if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
     {
       int flags = rq.ifr_flags;
@@ -3511,7 +3511,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFHWADDR) && defined(ifr_hwaddr)
+#if defined(SIOCGIFHWADDR) && defined(HAVE_STRUCT_IFREQ_IFR_HWADDR)
   if (ioctl (s, SIOCGIFHWADDR, &rq) == 0)
     {
       Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
@@ -3537,7 +3537,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFBRDADDR) && defined(ifr_broadaddr)
+#if defined(SIOCGIFBRDADDR) && defined(HAVE_STRUCT_IFREQ_IFR_BROADADDR)
   if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
     {
       any++;
@@ -3547,7 +3547,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFADDR) && defined(ifr_addr)
+#if defined(SIOCGIFADDR) && defined(HAVE_STRUCT_IFREQ_IFR_ADDR)
   if (ioctl (s, SIOCGIFADDR, &rq) == 0)
     {
       any++;
