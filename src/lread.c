@@ -73,8 +73,10 @@ Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
+Lisp_Object Qinhibit_file_name_operation;
 
 extern Lisp_Object Qevent_symbol_element_mask;
+extern Lisp_Object Qfile_exists_p;
 
 /* non-zero if inside `load' */
 int load_in_progress;
@@ -433,6 +435,13 @@ Return t if file exists.")
 	return Qnil;
     }
 
+  /* If FD is 0, that means openp found a remote file.  */
+  if (fd == 0)
+    {
+      handler = Ffind_file_name_handler (found, Qload);
+      return call5 (handler, Qload, found, noerror, nomessage, Qt);
+    }
+
   if (!bcmp (&(XSTRING (found)->data[XSTRING (found)->size - 4]),
 	     ".elc", 4))
     {
@@ -490,6 +499,7 @@ Return t if file exists.")
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
+  specbind (Qinhibit_file_name_operation, Qnil);
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
@@ -579,7 +589,11 @@ complete_filename_p (pathname)
 
    If STOREPTR is nonzero, it points to a slot where the name of
    the file actually found should be stored as a Lisp string.
-   Nil is stored there on failure.  */
+   nil is stored there on failure.
+
+   If the file we find is remote, return 0
+   but store the found remote file name in *STOREPTR.
+   We do not check for remote files if EXEC_ONLY is nonzero.  */
 
 int
 openp (path, str, suffix, storeptr, exec_only)
@@ -594,7 +608,7 @@ openp (path, str, suffix, storeptr, exec_only)
   register char *fn = buf;
   int absolute = 0;
   int want_size;
-  register Lisp_Object filename;
+  Lisp_Object filename;
   struct stat st;
   struct gcpro gcpro1;
 
@@ -634,6 +648,7 @@ openp (path, str, suffix, storeptr, exec_only)
 	{
 	  char *esuffix = (char *) index (nsuffix, ':');
 	  int lsuffix = esuffix ? esuffix - nsuffix : strlen (nsuffix);
+	  Lisp_Object handler;
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
@@ -654,23 +669,52 @@ openp (path, str, suffix, storeptr, exec_only)
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
 	    strncat (fn, nsuffix, lsuffix);
 
-	  /* Ignore file if it's a directory.  */
-	  if (stat (fn, &st) >= 0
-	      && (st.st_mode & S_IFMT) != S_IFDIR)
+	  /* Check that the file exists and is not a directory.  */
+	  if (absolute)
+	    handler = Qnil;
+	  else
+	    handler = Ffind_file_name_handler (filename, Qfile_exists_p);
+	  if (! NILP (handler) && ! exec_only)
 	    {
-	      /* Check that we can access or open it.  */
-	      if (exec_only)
-		fd = (access (fn, X_OK) == 0) ? 1 : -1;
-	      else
-		fd = open (fn, O_RDONLY, 0);
+	      Lisp_Object string;
+	      int exists;
 
-	      if (fd >= 0)
+	      string = build_string (fn);
+	      exists = ! NILP (exec_only ? Ffile_executable_p (string)
+			       : Ffile_readable_p (string));
+	      if (exists
+		  && ! NILP (Ffile_directory_p (build_string (fn))))
+		exists = 0;
+
+	      if (exists)
 		{
 		  /* We succeeded; return this descriptor and filename.  */
 		  if (storeptr)
 		    *storeptr = build_string (fn);
 		  UNGCPRO;
-		  return fd;
+		  return 0;
+		}
+	    }
+	  else
+	    {
+	      int exists = (stat (fn, &st) >= 0
+			    && (st.st_mode & S_IFMT) != S_IFDIR);
+	      if (exists)
+		{
+		  /* Check that we can access or open it.  */
+		  if (exec_only)
+		    fd = (access (fn, X_OK) == 0) ? 1 : -1;
+		  else
+		    fd = open (fn, O_RDONLY, 0);
+
+		  if (fd >= 0)
+		    {
+		      /* We succeeded; return this descriptor and filename.  */
+		      if (storeptr)
+			*storeptr = build_string (fn);
+		      UNGCPRO;
+		      return fd;
+		    }
 		}
 	    }
 
@@ -2590,6 +2634,9 @@ You cannot count on them to still be there!");
   staticpro (&Qcomma_at);
   Qcomma_dot = intern (",.");
   staticpro (&Qcomma_dot);
+
+  Qinhibit_file_name_operation = intern ("inhibit-file-name-operation");
+  staticpro (&Qinhibit_file_name_operation);
 
   Qascii_character = intern ("ascii-character");
   staticpro (&Qascii_character);
