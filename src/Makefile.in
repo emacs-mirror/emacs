@@ -53,6 +53,7 @@ libsrc = $(dot)$(dot)/lib-src/
 etc = $(dot)$(dot)/etc/
 oldXMenudir = $(dot)$(dot)/oldXMenu/
 lwlibdir = $(dot)$(dot)/lwlib/
+lispdir = $(dot)$(dot)/lisp/
 
 # Configuration files for .o files to depend on.
 M_FILE = ${srcdir}/@machfile@
@@ -1198,7 +1199,7 @@ TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
 TAGS-LISP: frc
-	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags
+	$(MAKE) -f ${lispdir}Makefile TAGS-LISP ETAGS=../lib-src/etags
 
 $(lwlibdir)TAGS:
 	(cd $(lwlibdir); $(MAKE) -f $(lwlibdir)Makefile tags ETAGS=../lib-src/etags)
