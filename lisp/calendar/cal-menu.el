@@ -37,6 +37,7 @@
 ;;; Code:
 
 (define-key calendar-mode-map [down-mouse-2] 'calendar-mouse-2-date-menu)
+(define-key calendar-mode-map [mouse-2] 'ignore)
 
 (defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
 (define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
