@@ -1303,7 +1303,6 @@ with SIGHUP.  */)
   /* Run hooks with the buffer to be killed the current buffer.  */
   {
     int count = SPECPDL_INDEX ();
-    Lisp_Object list;
     Lisp_Object arglist[1];
 
     record_unwind_protect (save_excursion_restore, save_excursion_save ());
