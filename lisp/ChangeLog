@@ -1,5 +1,7 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* vc.el (vc-transfer-file): Fix malformed autoload cookie.
+
 	* emulation/viper-util.el (viper-file-checked-in-p): Use `and'
 	instead of `progn'.
 

@@ -1,3 +1,7 @@
+2001-08-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* mm-uu.el (mm-uu-dissect, mm-uu-test): Fix autoload cookies.
+
 2001-08-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* mm-view.el (autoload): Don't autoload `diff-mode' if it's 

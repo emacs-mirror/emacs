@@ -1,5 +1,9 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Frecenter): If ARG < 0, and on a window system
+	frame, count in some empty lines when we can't move -ARG lines
+	down.
+
 	* xdisp.c (start_display): Don't try to determine the continuation
 	lines width if lines are truncated.  It's superfluous and leads to
 	incorrect results if POS is not visible in the window after
