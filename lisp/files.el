@@ -185,8 +185,6 @@ The functions are called in the order given until one of them returns non-nil.")
 The buffer's local variables (if any) will have been processed before the
 functions are called.")
 
-;;; In case someone does make it local.
-(put 'write-file-hooks 'permanent-local t)
 (defvar write-file-hooks nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
@@ -195,12 +193,15 @@ These hooks are considered to pertain to the visited file.
 So this list is cleared if you change the visited file name.
 See also `write-contents-hooks'.
 Don't make this variable buffer-local; instead, use `local-write-file-hooks'.")
+;;; However, in case someone does make it local...
+(put 'write-file-hooks 'permanent-local t)
 
-(put 'local-write-file-hooks 'permanent-local t)
 (defvar local-write-file-hooks nil
   "Just like `write-file-hooks', except intended for per-buffer use.
 The functions in this list are called before the ones in
 `write-file-hooks'.")
+(make-variable-buffer-local 'local-write-file-hooks)
+(put 'local-write-file-hooks 'permanent-local t)
 
 (defvar write-contents-hooks nil
   "List of functions to be called before writing out a buffer to a file.
