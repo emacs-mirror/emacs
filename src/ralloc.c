@@ -1389,41 +1389,39 @@ mmap_enlarge (r, npages)
 {
   char *region_end = (char *) r + r->nbytes_mapped;
   size_t nbytes;
-  int success = 1;
+  int success = 0;
 
   if (npages < 0)
     {
       /* Unmap pages at the end of the region.  */
       nbytes = - npages * page_size;
       if (munmap (region_end - nbytes, nbytes) == -1)
-	{
-	  fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
-	  success = 0;
-	}
+	fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
       else
-	r->nbytes_mapped -= nbytes;
+	{
+	  r->nbytes_mapped -= nbytes;
+	  success = 1;
+	}
     }
   else if (npages > 0)
     {
+      struct mmap_region *r2;
+      
       nbytes = npages * page_size;
       
       /* Try to map additional pages at the end of the region.  We
 	 cannot do this if the address range is already occupied by
 	 something else because mmap deletes any previous mapping.
 	 I'm not sure this is worth doing, let's see.  */
-      if (mmap_find (region_end, region_end + nbytes))
-	success = 0;
-      else
+      r2 = mmap_find (region_end, region_end + nbytes);
+      if (r2 == NULL)
 	{
 	  POINTER_TYPE *p;
       
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
 		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
 	  if (p == MAP_FAILED)
-	    {
-	      fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
-	      success = 0;
-	    }
+	    fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
 	  else if (p != (POINTER_TYPE *) region_end)
 	    {
 	      /* Kernels are free to choose a different address.  In
@@ -1431,13 +1429,13 @@ mmap_enlarge (r, npages)
 		 no use for it.  */
 	      if (munmap (p, nbytes) == -1)
 		fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
-	      success = 0;
 	    }
 	  else
-	    r->nbytes_mapped += nbytes;
+	    {
+	      r->nbytes_mapped += nbytes;
+	      success = 1;
+	    }
 	}
-      
-      success = 0;
     }
 
   return success;
