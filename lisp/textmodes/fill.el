@@ -62,6 +62,7 @@ for the paragraph.")
 
 (defun fill-region-as-paragraph (from to &optional justify-flag)
   "Fill region as one paragraph: break lines to fit `fill-column'.
+Any paragraph breaks in the region will be removed.
 Prefix arg means justify too.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there.
@@ -97,23 +98,21 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    )))
 
     (save-restriction
-      (let (end)
+      (let (beg)
+	(goto-char (min from to))
+	(skip-chars-forward "\n")
+	(setq beg (point))
 	(goto-char (max from to))
-	;; If specified region ends before a newline,
-	;; include that newline.
-	(if (and (eolp) (not (eobp)) (not (bolp)))
-	    (forward-char 1))
-	(setq end (point))
-	(setq from (min from to))
+	(skip-chars-backward "\n")
+	(setq to (point)
+	      from beg)
 	(goto-char from)
 	(beginning-of-line)
-	(narrow-to-region (point) end))
-      (skip-chars-forward "\n")
-      (narrow-to-region (point) (point-max))
+	(narrow-to-region (point) to))
+      (if use-hard-newlines
+	  (remove-text-properties from to '(hard nil)))
       (if (> from (point))
-	  (goto-char from)
-	(setq from (point)))
-      (goto-char (point-max))
+	  (goto-char from))
       (let ((fpre (and fill-prefix (not (equal fill-prefix ""))
 		       (regexp-quote fill-prefix))))
 	;; Delete the fill prefix from every line except the first.
@@ -138,7 +137,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
       ;; loses on split abbrevs ("Mr.\nSmith")
       (goto-char from)
       (while (re-search-forward "[.?!][])}\"']*$" nil t)
-	(insert ? ))
+	(insert-and-inherit ? ))
 
       ;; Then change all newlines to spaces.
       (subst-char-in-region from (point-max) ?\n ?\ )
@@ -162,7 +161,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	 (match-end 0)))
       (goto-char (point-max))
       (delete-horizontal-space)
-      (insert "  ")
+      (insert-and-inherit " ")
       (goto-char (point-min))
 
       ;; This is the actual filling loop.
@@ -171,7 +170,7 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	  (setq linebeg (point))
 	  (move-to-column (1+ fill-column))
 	  (if (eobp)
-	      nil
+	      (delete-horizontal-space)
 	    ;; Move back to start of word.
 	    (skip-chars-backward "^ \n" linebeg)
 	    ;; Don't break after a period followed by just one space.
@@ -226,19 +225,22 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 							    (not (looking-at "\\.  ")))))))
 		    (skip-chars-forward " ")
 		    (skip-chars-forward "^ \n")
-		    (setq first nil)))))
-	  ;; Replace all whitespace here with one newline.
-	  ;; Insert before deleting, so we don't forget which side of
-	  ;; the whitespace point or markers used to be on.
-	  (skip-chars-backward " ")
-	  (insert ?\n)
-	  (delete-horizontal-space)
-	  ;; Insert the fill prefix at start of each line.
-	  ;; Set prefixcol so whitespace in the prefix won't get lost.
-	  (and (not (eobp)) fill-prefix (not (equal fill-prefix ""))
-	       (progn
-		 (insert fill-prefix)
-		 (setq prefixcol (current-column))))
+		    (setq first nil))))
+	    ;; Replace all whitespace here with one newline.
+	    ;; Insert before deleting, so we don't forget which side of
+	    ;; the whitespace point or markers used to be on.
+	    (skip-chars-backward " ")
+	    (insert ?\n)
+	    ;; Give newline the properties of the space(s) it replaces
+	    (set-text-properties (1- (point)) (point)
+				 (text-properties-at (point)))
+	    (delete-horizontal-space)
+	    ;; Insert the fill prefix at start of each line.
+	    ;; Set prefixcol so whitespace in the prefix won't get lost.
+	    (and fill-prefix (not (equal fill-prefix ""))
+		 (progn
+		   (insert-and-inherit fill-prefix)
+		   (setq prefixcol (current-column)))))
 	  ;; Justify the line just ended, if desired.
 	  (and justify-flag (not (eobp))
 	       (progn
@@ -258,7 +260,11 @@ space does not end a sentence, so don't break a line there."
       (let ((end (point))
 	    (beg (progn (backward-paragraph) (point))))
 	(goto-char before)
-	(fill-region-as-paragraph beg end arg)))))
+	(if use-hard-newlines
+	    ;; Can't use fill-region-as-paragraph, since this paragraph may
+	    ;; still contain hard newlines.  See fill-region.
+	    (fill-region beg end arg)
+	  (fill-region-as-paragraph beg end arg))))))
 
 (defun fill-region (from to &optional justify-flag)
   "Fill each of the paragraphs in the region.
@@ -266,13 +272,12 @@ Prefix arg (non-nil third arg, if called from program) means justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive "r\nP")
-  (let (end beg)
+  ;; If using hard newlines, break at every one for filling purposes rather
+  ;; than breaking at normal paragraph breaks.
+  (let ((paragraph-start (if use-hard-newlines "^" paragraph-start))
+ 	end beg)
     (save-restriction
       (goto-char (max from to))
-      ;; If specified region ends before a newline,
-      ;; include that newline.
-      (if (and (eolp) (not (eobp)) (not (bolp)))
-	  (forward-char 1))
       (setq end (point))
       (goto-char (setq beg (min from to)))
       (beginning-of-line)
