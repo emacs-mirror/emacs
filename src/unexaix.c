@@ -1,6 +1,5 @@
-/* Modified by Andrew.Vignaux@comp.vuw.ac.nz to get it to work :-) */
-
-/* Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+/* Dump an executable image.
+   Copyright (C) 1985, 1986, 1987, 1988, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,22 +23,12 @@ You are forbidden to forbid anyone else to use, share and improve
 what you give them.   Help stamp out software-hoarding!  */
 
 
-/*
- * unexec.c - Convert a running program into an a.out file.
+/* Originally based on the COFF unexec.c by Spencer W. Thomas.
  *
- * Author:	Spencer W. Thomas
- * 		Computer Science Dept.
- * 		University of Utah
- * Date:	Tue Mar  2 1982
- * Modified heavily since then.
- *
- * Updated for AIX 4.1.3 by Bill_Mann @ PraxisInt.com, Feb 1996
- *   As of AIX 4.1, text, data, and bss are pre-relocated by the binder in
- *   such a way that the file can be mapped with code in one segment and
- *   data/bss in another segment, without reading or copying the file, by
- *   the AIX exec loader.  Padding sections are omitted, nevertheless
- *   small amounts of 'padding' still occurs between sections in the file.
- *   As modified, this code handles both 3.2 and 4.1 conventions.
+ * Subsequently hacked on by
+ * Bill Mann <Bill_Man@praxisint.com>
+ * Andrew Vignaux <Andrew.Vignaux@comp.vuw.ac.nz>
+ * Mike Sperber <sperber@informatik.uni-tuebingen.de>
  *
  * Synopsis:
  *	unexec (new_name, a_name, data_start, bss_start, entry_address)
@@ -51,122 +40,16 @@ what you give them.   Help stamp out software-hoarding!  */
  * If a_name is non-NULL, the symbol table will be taken from the given file.
  * On some machines, an existing a_name file is required.
  *
- * The boundaries within the a.out file may be adjusted with the data_start
- * and bss_start arguments.  Either or both may be given as 0 for defaults.
+ * data_start and entry_address are ignored.
  *
- * Data_start gives the boundary between the text segment and the data
- * segment of the program.  The text segment can contain shared, read-only
- * program code and literal data, while the data segment is always unshared
- * and unprotected.  Data_start gives the lowest unprotected address.
- * The value you specify may be rounded down to a suitable boundary
- * as required by the machine you are using.
- *
- * Specifying zero for data_start means the boundary between text and data
- * should not be the same as when the program was loaded.
- * If NO_REMAP is defined, the argument data_start is ignored and the
- * segment boundaries are never changed.
- *
- * Bss_start indicates how much of the data segment is to be saved in the
+ * bss_start indicates how much of the data segment is to be saved in the
  * a.out file and restored when the program is executed.  It gives the lowest
  * unsaved address, and is rounded up to a page boundary.  The default when 0
  * is given assumes that the entire data segment is to be stored, including
  * the previous data and bss as well as any additional storage allocated with
- * break (2).
- *
- * The new file is set up to start at entry_address.
- *
- * If you make improvements I'd like to get them too.
- * harpo!utah-cs!thomas, thomas@Utah-20
+ * sbrk(2).
  *
  */
-
-/* There are several compilation parameters affecting unexec:
-
-* COFF
-
-Define this if your system uses COFF for executables.
-Otherwise we assume you use Berkeley format.
-
-* NO_REMAP
-
-Define this if you do not want to try to save Emacs's pure data areas
-as part of the text segment.
-
-Saving them as text is good because it allows users to share more.
-
-However, on machines that locate the text area far from the data area,
-the boundary cannot feasibly be moved.  Such machines require
-NO_REMAP.
-
-Also, remapping can cause trouble with the built-in startup routine
-/lib/crt0.o, which defines `environ' as an initialized variable.
-Dumping `environ' as pure does not work!  So, to use remapping,
-you must write a startup routine for your machine in Emacs's crt0.c.
-If NO_REMAP is defined, Emacs uses the system's crt0.o.
-
-* SECTION_ALIGNMENT
-
-Some machines that use COFF executables require that each section
-start on a certain boundary *in the COFF file*.  Such machines should
-define SECTION_ALIGNMENT to a mask of the low-order bits that must be
-zero on such a boundary.  This mask is used to control padding between
-segments in the COFF file.
-
-If SECTION_ALIGNMENT is not defined, the segments are written
-consecutively with no attempt at alignment.  This is right for
-unmodified system V.
-
-* SEGMENT_MASK
-
-Some machines require that the beginnings and ends of segments
-*in core* be on certain boundaries.  For most machines, a page
-boundary is sufficient.  That is the default.  When a larger
-boundary is needed, define SEGMENT_MASK to a mask of
-the bits that must be zero on such a boundary.
-
-* A_TEXT_OFFSET(HDR)
-
-Some machines count the a.out header as part of the size of the text
-segment (a_text); they may actually load the header into core as the
-first data in the text segment.  Some have additional padding between
-the header and the real text of the program that is counted in a_text.
-
-For these machines, define A_TEXT_OFFSET(HDR) to examine the header
-structure HDR and return the number of bytes to add to `a_text'
-before writing it (above and beyond the number of bytes of actual
-program text).  HDR's standard fields are already correct, except that
-this adjustment to the `a_text' field has not yet been made;
-thus, the amount of offset can depend on the data in the file.
-  
-* A_TEXT_SEEK(HDR)
-
-If defined, this macro specifies the number of bytes to seek into the
-a.out file before starting to write the text segment.a
-
-* EXEC_MAGIC
-
-For machines using COFF, this macro, if defined, is a value stored
-into the magic number field of the output file.
-
-* ADJUST_EXEC_HEADER
-
-This macro can be used to generate statements to adjust or
-initialize nonstandard fields in the file header
-
-* ADDR_CORRECT(ADDR)
-
-Macro to correct an int which is the bit pattern of a pointer to a byte
-into an int which is the number of a byte.
-
-This macro has a default definition which is usually right.
-This default definition is a no-op on most machines (where a
-pointer looks like an int) but not on all machines.
-
-*/
-
-#define XCOFF
-#define COFF
-#define NO_REMAP
 
 #ifndef emacs
 #define PERROR(arg) perror (arg); return -1
@@ -181,56 +64,42 @@ pointer looks like an int) but not on all machines.
  */
 #include "getpagesize.h"
 
-#ifndef makedev			/* Try to detect types.h already loaded */
 #include <sys/types.h>
-#endif
 #include <stdio.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-extern char *start_of_text ();		/* Start of text */
-extern char *start_of_data ();		/* Start of initialized data */
+extern char *start_of_text (void);		/* Start of text */
+extern char *start_of_data (void);		/* Start of initialized data */
 
 extern int _data;
-extern int _edata;
 extern int _text;
-extern int _etext;
-extern int _end;
-#ifdef COFF
-#ifndef USG
-#ifndef STRIDE
-#ifndef UMAX
-#ifndef sun386
-/* I have a suspicion that these are turned off on all systems
-   and can be deleted.  Try it in version 19.  */
+
 #include <filehdr.h>
 #include <aouthdr.h>
 #include <scnhdr.h>
 #include <syms.h>
-#endif /* not sun386 */
-#endif /* not UMAX */
-#endif /* Not STRIDE */
-#endif /* not USG */
+
 static struct filehdr f_hdr;		/* File header */
 static struct aouthdr f_ohdr;		/* Optional file header (a.out) */
-long bias;			/* Bias to add for growth */
-long lnnoptr;			/* Pointer to line-number info within file */
+static long bias;			/* Bias to add for growth */
+static long lnnoptr;			/* Pointer to line-number info within file */
 
 static long text_scnptr;
 static long data_scnptr;
-#ifdef XCOFF
 #define ALIGN(val, pwr) (((val) + ((1L<<(pwr))-1)) & ~((1L<<(pwr))-1))
 static long load_scnptr;
 static long orig_load_scnptr;
 static long orig_data_scnptr;
-#endif
-static ulong data_st;                   /* start of data area written out */
+static int unrelocate_symbols (int, int, char *, char *);
 
 #ifndef MAX_SECTIONS
 #define MAX_SECTIONS	10
 #endif
 
-#endif /* COFF */
+static int adjust_lnnoptrs (int, int, char *);
 
 static int pagemask;
 
@@ -245,10 +114,8 @@ static int pagemask;
 #ifdef emacs
 #include "lisp.h"
 
-static
-report_error (file, fd)
-     char *file;
-     int fd;
+static void
+report_error (char *file, int fd)
 {
   if (fd)
     close (fd);
@@ -260,11 +127,8 @@ report_error (file, fd)
 #define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
 #define ERROR2(msg,x,y) report_error_1 (new, msg, x, y); return -1
 
-static
-report_error_1 (fd, msg, a1, a2)
-     int fd;
-     char *msg;
-     int a1, a2;
+static void
+report_error_1 (int fd, char *msg, int a1, int a2)
 {
   close (fd);
 #ifdef emacs
@@ -275,23 +139,25 @@ report_error_1 (fd, msg, a1, a2)
 #endif
 }
 
-static int make_hdr ();
-static void mark_x ();
-static int copy_text_and_data ();
-static int copy_sym ();
+static int make_hdr (int, int, unsigned, unsigned, unsigned, char *, char *);
+static void mark_x (char *);
+static int copy_text_and_data (int);
+static int copy_sym (int, int, char *, char *);
+static void write_segment (int, char *, char *);
 
 /* ****************************************************************
  * unexec
  *
  * driving logic.
  */
-unexec (new_name, a_name, data_start, bss_start, entry_address)
-     char *new_name, *a_name;
-     unsigned data_start, bss_start, entry_address;
+int unexec (char *new_name, char *a_name,
+	    uintptr_t data_start,
+	    uintptr_t bss_start,
+	    uintptr_t entry_address)
 {
-  int new, a_out = -1;
+  int new = -1, a_out = -1;
 
-  if (a_name && (a_out = open (a_name, 0)) < 0)
+  if (a_name && (a_out = open (a_name, O_RDONLY)) < 0)
     {
       PERROR (a_name);
     }
@@ -299,16 +165,14 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
     {
       PERROR (new_name);
     }
-  if (make_hdr (new,a_out,data_start,bss_start,entry_address,a_name,new_name) < 0
+  if (make_hdr (new, a_out,
+		data_start, bss_start,
+		entry_address,
+		a_name, new_name) < 0
       || copy_text_and_data (new) < 0
       || copy_sym (new, a_out, a_name, new_name) < 0
-#ifdef COFF
       || adjust_lnnoptrs (new, a_out, new_name) < 0
-#endif
-#ifdef XCOFF
-      || unrelocate_symbols (new, a_out, a_name, new_name) < 0
-#endif
-      )
+      || unrelocate_symbols (new, a_out, a_name, new_name) < 0)
     {
       close (new);
       return -1;	
@@ -328,13 +192,12 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
  * Modify the text and data sizes.
  */
 static int
-make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
-     int new, a_out;
-     unsigned data_start, bss_start, entry_address;
-     char *a_name;
-     char *new_name;
+make_hdr (int new, int a_out,
+	  unsigned data_start, unsigned bss_start,
+	  unsigned entry_address,
+	  char *a_name, char *new_name)
 {
-  register int scns;
+  int scns;
   unsigned int bss_end;
 
   struct scnhdr section[MAX_SECTIONS];
@@ -350,17 +213,10 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-#ifdef NO_REMAP
   data_start = (long) start_of_data ();
-#endif /*  NO_REMAP */
   data_start = ADDR_CORRECT (data_start);
 
-#ifdef SEGMENT_MASK
-  data_start = data_start & ~SEGMENT_MASK; /* (Down) to segment boundary. */
-#else
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
-#endif
-
 
   bss_end = ADDR_CORRECT (sbrk (0)) + pagemask;
   bss_end &= ~ pagemask;
@@ -385,7 +241,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 	      data_start, bss_start);
     }
 
-#ifdef COFF
   /* Salvage as much info from the existing file as possible */
   f_thdr = NULL; f_dhdr = NULL; f_bhdr = NULL;
   f_lhdr = NULL; f_tchdr = NULL; f_dbhdr = NULL; f_xhdr = NULL;
@@ -437,15 +292,15 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 
       if (f_thdr == 0)
 	{
-	  ERROR1 ("unexec: couldn't find \"%s\" section", _TEXT);
+	  ERROR1 ("unexec: couldn't find \"%s\" section", (int) _TEXT);
 	}
       if (f_dhdr == 0)
 	{
-	  ERROR1 ("unexec: couldn't find \"%s\" section", _DATA);
+	  ERROR1 ("unexec: couldn't find \"%s\" section", (int) _DATA);
 	}
       if (f_bhdr == 0)
 	{
-	  ERROR1 ("unexec: couldn't find \"%s\" section", _BSS);
+	  ERROR1 ("unexec: couldn't find \"%s\" section", (int) _BSS);
 	}
     }
   else
@@ -462,15 +317,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
      we only update it enough to fake out the exec-time loader.  */
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
 
-#ifdef EXEC_MAGIC
-  f_ohdr.magic = EXEC_MAGIC;
-#endif
-#ifndef NO_REMAP
-  f_ohdr.tsize = data_start - f_ohdr.text_start;
-  f_ohdr.text_start = (long) start_of_text ();
-#endif
-  data_st = f_ohdr.data_start ? f_ohdr.data_start : (ulong) &_data;
-  f_ohdr.dsize = bss_start - data_st;
+  f_ohdr.dsize = bss_start - f_ohdr.data_start;
   f_ohdr.bsize = bss_end - bss_start;
 
   f_dhdr->s_size = f_ohdr.dsize;
@@ -541,10 +388,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   data_scnptr = f_dhdr->s_scnptr;
   load_scnptr = f_lhdr ? f_lhdr->s_scnptr : 0;
 
-#ifdef ADJUST_EXEC_HEADER
-  ADJUST_EXEC_HEADER
-#endif /* ADJUST_EXEC_HEADER */
-
   if (write (new, &f_hdr, sizeof (f_hdr)) != sizeof (f_hdr))
     {
       PERROR (new_name);
@@ -567,8 +410,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   }
 
   return (0);
-
-#endif /* COFF */
 }
 
 /* ****************************************************************
@@ -577,19 +418,18 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
  * Copy the text and data segments from memory to the new a.out
  */
 static int
-copy_text_and_data (new)
-     int new;
+copy_text_and_data (int new)
 {
-  register char *end;
-  register char *ptr;
+  char *end;
+  char *ptr;
 
-  lseek (new, (long) text_scnptr, 0);
+  lseek (new, (long) text_scnptr, SEEK_SET);
   ptr = start_of_text () + text_scnptr;
   end = ptr + f_ohdr.tsize;
   write_segment (new, ptr, end);
 
-  lseek (new, (long) data_scnptr, 0);
-  ptr = (char *) data_st;
+  lseek (new, (long) data_scnptr, SEEK_SET);
+  ptr = (char *) f_ohdr.data_start;
   end = ptr + f_ohdr.dsize;
   write_segment (new, ptr, end);
 
@@ -597,11 +437,10 @@ copy_text_and_data (new)
 }
 
 #define UnexBlockSz (1<<12)			/* read/write block size */
-write_segment (new, ptr, end)
-     int new;
-     register char *ptr, *end;
+static void
+write_segment (int new, char *ptr, char *end)
 {
-  register int i, nwrite, ret;
+  int i, nwrite, ret;
   char buf[80];
   extern int errno;
   char zeros[UnexBlockSz];
@@ -619,7 +458,7 @@ write_segment (new, ptr, end)
 	 So write zeros for it.  */
       if (ret == -1 && errno == EFAULT)
 	{
-	  bzero (zeros, nwrite);
+	  memset (zeros, 0, nwrite);
 	  write (new, zeros, nwrite);
 	}
       else if (nwrite != ret)
@@ -640,9 +479,7 @@ write_segment (new, ptr, end)
  * Copy the relocation information and symbol table from the a.out to the new
  */
 static int
-copy_sym (new, a_out, a_name, new_name)
-     int new, a_out;
-     char *a_name, *new_name;
+copy_sym (int new, int a_out, char *a_name, char *new_name)
 {
   char page[UnexBlockSz];
   int n;
@@ -654,9 +491,9 @@ copy_sym (new, a_out, a_name, new_name)
     return 0;
 
   if (lnnoptr && lnnoptr < orig_load_scnptr) /* if there is line number info  */
-    lseek (a_out, lnnoptr, 0);  /* start copying from there */
+    lseek (a_out, lnnoptr, SEEK_SET);  /* start copying from there */
   else
-    lseek (a_out, orig_load_scnptr, 0); /* Position a.out to symtab. */
+    lseek (a_out, orig_load_scnptr, SEEK_SET); /* Position a.out to symtab. */
 
   while ((n = read (a_out, page, sizeof page)) > 0)
     {
@@ -678,8 +515,7 @@ copy_sym (new, a_out, a_name, new_name)
  * After successfully building the new a.out, mark it executable
  */
 static void
-mark_x (name)
-     char *name;
+mark_x (char *name)
 {
   struct stat sbuf;
   int um;
@@ -696,65 +532,32 @@ mark_x (name)
     PERROR (name);
 }
 
-/*
- *	If the COFF file contains a symbol table and a line number section,
- *	then any auxiliary entries that have values for x_lnnoptr must
- *	be adjusted by the amount that the line number section has moved
- *	in the file (bias computed in make_hdr).  The #@$%&* designers of
- *	the auxiliary entry structures used the absolute file offsets for
- *	the line number entry rather than an offset from the start of the
- *	line number section!
- *
- *	When I figure out how to scan through the symbol table and pick out
- *	the auxiliary entries that need adjustment, this routine will
- *	be fixed.  As it is now, all such entries are wrong and sdb
- *	will complain.   Fred Fish, UniSoft Systems Inc.
- *
- *      I believe this is now fixed correctly.  Bill Mann
- */
-
-#ifdef COFF
-
-/* This function is probably very slow.  Instead of reopening the new
-   file for input and output it should copy from the old to the new
-   using the two descriptors already open (WRITEDESC and READDESC).
-   Instead of reading one small structure at a time it should use
-   a reasonable size buffer.  But I don't have time to work on such
-   things, so I am installing it as submitted to me.  -- RMS.  */
-
-adjust_lnnoptrs (writedesc, readdesc, new_name)
-     int writedesc;
-     int readdesc;
-     char *new_name;
+static int
+adjust_lnnoptrs (int writedesc, int readdesc, char *new_name)
 {
-  register int nsyms;
-  register int naux;
-  register int new;
-#ifdef amdahl_uts
-  SYMENT symentry;
-  AUXENT auxentry;
-#else
+  int nsyms;
+  int naux;
+  int new;
   struct syment symentry;
   union auxent auxentry;
-#endif
 
   if (!lnnoptr || !f_hdr.f_symptr)
     return 0;
 
-  if ((new = open (new_name, 2)) < 0)
+  if ((new = open (new_name, O_RDWR)) < 0)
     {
       PERROR (new_name);
       return -1;
     }
 
-  lseek (new, f_hdr.f_symptr, 0);
+  lseek (new, f_hdr.f_symptr, SEEK_SET);
   for (nsyms = 0; nsyms < f_hdr.f_nsyms; nsyms++)
     {
       read (new, &symentry, SYMESZ);
       if (symentry.n_sclass == C_BINCL || symentry.n_sclass == C_EINCL)
 	{
 	  symentry.n_value += bias;
-	  lseek (new, -SYMESZ, 1);
+	  lseek (new, -SYMESZ, SEEK_CUR);
 	  write (new, &symentry, SYMESZ);
 	}
 
@@ -766,39 +569,36 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
               && (symentry.n_sclass == C_EXT || symentry.n_sclass == C_HIDEXT))
             {
               auxentry.x_sym.x_fcnary.x_fcn.x_lnnoptr += bias;
-              lseek (new, -AUXESZ, 1);
+              lseek (new, -AUXESZ, SEEK_CUR);
               write (new, &auxentry, AUXESZ);
             }
 	}
     }
   close (new);
+
+  return 0;
 }
 
-#endif /* COFF */
-
-#ifdef XCOFF
-
-/* It is probably a false economy to optimise this routine (it used to
-   read one LDREL and do do two lseeks per iteration) but the wrath of
-   RMS (see above :-) would be too much to bear */
-
-unrelocate_symbols (new, a_out, a_name, new_name)
-     int new, a_out;
-     char *a_name, *new_name;
+static int
+unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
 {
-  register int i;
-  register int l;
-  register LDREL *ldrel;
+  int i;
   LDHDR ldhdr;
-  LDREL ldrel_buf [20];
+  LDREL ldrel;
   ulong t_reloc = (ulong) &_text - f_ohdr.text_start;
+#ifndef ALIGN_DATA_RELOC
+  ulong d_reloc = (ulong) &_data - f_ohdr.data_start;
+#else
+  /* This worked (and was needed) before AIX 4.2. 
+     I have no idea why. -- Mike */
   ulong d_reloc = (ulong) &_data - ALIGN(f_ohdr.data_start, 2);
+#endif
   int * p;
 
   if (load_scnptr == 0)
     return 0;
 
-  lseek (a_out, orig_load_scnptr, 0);
+  lseek (a_out, orig_load_scnptr, SEEK_SET);
   if (read (a_out, &ldhdr, sizeof (ldhdr)) != sizeof (ldhdr))
     {
       PERROR (new_name);
@@ -807,55 +607,50 @@ unrelocate_symbols (new, a_out, a_name, new_name)
 #define SYMNDX_TEXT	0
 #define SYMNDX_DATA	1
 #define SYMNDX_BSS	2
-  l = 0;
-  for (i = 0; i < ldhdr.l_nreloc; i++, l--, ldrel++)
+
+  for (i = 0; i < ldhdr.l_nreloc; i++)
     {
-      if (l == 0) {
-	lseek (a_out,
-	       orig_load_scnptr + LDHDRSZ + LDSYMSZ*ldhdr.l_nsyms + LDRELSZ*i,
-	       0);
+      lseek (a_out,
+	     orig_load_scnptr + LDHDRSZ + LDSYMSZ*ldhdr.l_nsyms + LDRELSZ*i,
+	     SEEK_SET);
 
-	l = ldhdr.l_nreloc - i;
-	if (l > sizeof (ldrel_buf) / LDRELSZ)
-	  l = sizeof (ldrel_buf) / LDRELSZ;
-
-	if (read (a_out, ldrel_buf, l * LDRELSZ) != l * LDRELSZ)
-	  {
-	    PERROR (a_name);
-	  }
-	ldrel = ldrel_buf;
-      }
+      if (read (a_out, &ldrel, LDRELSZ) != LDRELSZ)
+	{
+	  PERROR (a_name);
+	}
 
       /* move the BSS loader symbols to the DATA segment */
-      if (ldrel->l_symndx == SYMNDX_BSS)
+      if (ldrel.l_symndx == SYMNDX_BSS)
 	{
-	  ldrel->l_symndx = SYMNDX_DATA;
+	  ldrel.l_symndx = SYMNDX_DATA;
 
 	  lseek (new,
 		 load_scnptr + LDHDRSZ + LDSYMSZ*ldhdr.l_nsyms + LDRELSZ*i,
-		 0);
+		 SEEK_SET);
 
-	  if (write (new, ldrel, LDRELSZ) != LDRELSZ)
+	  if (write (new, &ldrel, LDRELSZ) != LDRELSZ)
 	    {
 	      PERROR (new_name);
 	    }
 	}
 
-      if (ldrel->l_rsecnm == f_ohdr.o_sndata)
+      if (ldrel.l_rsecnm == f_ohdr.o_sndata)
 	{
 	  int orig_int;
 
 	  lseek (a_out,
-                 orig_data_scnptr + (ldrel->l_vaddr - f_ohdr.data_start), 0);
+                 orig_data_scnptr + (ldrel.l_vaddr - f_ohdr.data_start),
+		 SEEK_SET);
 
-	  if (read (a_out, (void *) &orig_int, sizeof (orig_int)) != sizeof (orig_int))
+	  if (read (a_out, (void *) &orig_int, sizeof (orig_int))
+	      != sizeof (orig_int))
 	    {
 	      PERROR (a_name);
 	    }
 
-          p = (int *) (ldrel->l_vaddr + d_reloc);
+          p = (int *) (ldrel.l_vaddr + d_reloc);
 
-	  switch (ldrel->l_symndx) {
+	  switch (ldrel.l_symndx) {
 	  case SYMNDX_TEXT:
 	    orig_int = * p - t_reloc;
 	    break;
@@ -869,7 +664,8 @@ unrelocate_symbols (new, a_out, a_name, new_name)
           if (orig_int != * p)
             {
               lseek (new,
-                     data_scnptr + (ldrel->l_vaddr - f_ohdr.data_start), 0);
+                     data_scnptr + (ldrel.l_vaddr - f_ohdr.data_start),
+		     SEEK_SET);
               if (write (new, (void *) &orig_int, sizeof (orig_int))
                   != sizeof (orig_int))
                 {
@@ -878,5 +674,5 @@ unrelocate_symbols (new, a_out, a_name, new_name)
             }
 	}
     }
+  return 0;
 }
-#endif /* XCOFF */
