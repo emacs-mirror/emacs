@@ -1,3 +1,10 @@
+2000-02-04  Dave Love  <fx@gnu.org>
+
+	* completion.el: Replace completion-dolist with dolist.
+
+	* tar-mode.el: Replace tar-dolist, tar-dotimes with dolist,
+	dotimes.
+
 2000-02-04  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* textmodes/reftex.el (reftex-compile-variables): regexp-quote the
