@@ -2475,7 +2475,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
      SELECT_TYPE *rfds, *wfds, *efds;
      EMACS_TIME *timeout;
 {
-  int ravail = 0, old_alarm;
+  int ravail = 0;
   SELECT_TYPE orfds;
   int timeoutval;
   int *local_timeout;
@@ -2485,7 +2485,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 #else
   extern int process_tick, update_tick;
 #endif
-  SIGTYPE (*old_trap) ();
   unsigned char buf;
 
 #if defined (HAVE_SELECT) && defined (HAVE_X_WINDOWS)
@@ -2568,10 +2567,12 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	}
       if (*local_timeout == 0 || ravail != 0 || process_tick != update_tick)
 	break;
-      old_alarm = alarm (0);
-      old_trap = signal (SIGALRM, select_alarm);
+
+      turn_on_atimers (0);
+      signal (SIGALRM, select_alarm);
       select_alarmed = 0;
       alarm (SELECT_PAUSE);
+      
       /* Wait for a SIGALRM (or maybe a SIGTINT) */
       while (select_alarmed == 0 && *local_timeout != 0
 	     && process_tick == update_tick)
@@ -2589,18 +2590,10 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	    pause ();
 	}
       (*local_timeout) -= SELECT_PAUSE;
-      /* Reset the old alarm if there was one */
-      alarm (0);
-      signal (SIGALRM, old_trap);
-      if (old_alarm != 0)
-	{
-	  /* Reset or forge an interrupt for the original handler. */
-	  old_alarm -= SELECT_PAUSE;
-	  if (old_alarm <= 0)
-	    kill (getpid (), SIGALRM); /* Fake an alarm with the orig' handler */
-	  else
-	    alarm (old_alarm);
-	}
+      
+      /* Reset the old alarm if there was one.  */
+      turn_on_atimers (1);
+      
       if (*local_timeout == 0)  /* Stop on timer being cleared */
 	break;
     }
