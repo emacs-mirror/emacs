@@ -5474,7 +5474,7 @@ from happening repeatedly and making Emacs nonfunctional.  */);
   Vbefore_change_functions = Qnil;
 
   DEFVAR_LISP ("after-change-functions", &Vafter_change_functions,
-	       doc: /* List of function to call after each text change.
+	       doc: /* List of functions to call after each text change.
 Three arguments are passed to each function: the positions of
 the beginning and end of the range of changed text,
 and the length in bytes of the pre-change text replaced by that range.
