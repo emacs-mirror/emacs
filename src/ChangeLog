@@ -1,3 +1,7 @@
+2003-02-12  Juanma Barranquero  <lektu@terra.es>
+
+	* eval.c (Fdefmacro): Fix typo.
+
 2003-02-12  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (Fstart_kbd_macro): If appending, and last keyboard
