@@ -1,3 +1,22 @@
+2002-07-03  Dave Love  <fx@gnu.org>
+
+	* callproc.c (Fcall_process): Remove unused vars.
+
+	* xterm.c (XTread_socket): Add extra dead keysyms.
+
+	* xdisp.c (decode_mode_spec_coding): Use CHARACTERP.
+
+	* dispextern.h: Remove prototypes for redraw_frame,
+	redraw_garbaged_frames.
+
+	* cmds.c (Fself_insert_command): Use CHARACTERP.
+
+	* chartab.c (make_sub_char_table): Remove unused var.
+	(Fset_char_table_default, Fmap_char_table): Doc fix.
+
+	* keymap.c (access_keymap): Remove generic char code.
+	(push_key_description): Use CHARACTERP.
+
 2002-07-01  Dave Love  <fx@gnu.org>
 
 	* charset.c: Doc fixes.
