@@ -30,7 +30,7 @@
 
 ;;{{{ Documentation
 
-;; `Follow mode' is a minor mode for Emacs 19 and XEmacs which
+;; `Follow mode' is a minor mode for Emacs and XEmacs that
 ;; combines windows into one tall virtual window.
 ;;
 ;; The feeling of a "virtual window" has been accomplished by the use
@@ -45,31 +45,27 @@
 ;;   makes it possible to walk between windows using normal cursor
 ;;   movement commands.
 ;;
-;; Follow mode comes to its prime when used on a large screen and two
+;; Follow mode comes to its prime when a large screen and two
 ;; side-by-side window are used. The user can, with the help of Follow
 ;; mode, use two full-height windows as though they would have been
 ;; one. Imagine yourself editing a large function, or section of text,
 ;; and being able to use 144 lines instead of the normal 72... (your
 ;; mileage may vary).
 
+
 ;; The latest version, and a demonstration, are avaiable at:
 ;;
-;;	ftp://ftp.csd.uu.se/pub/users/andersl/emacs/follow.el
-;;	http://www.csd.uu.se/~andersl/follow.shtml
-
-;; `Follow mode' can be used together with Emacs 19 and XEmacs.
-;; It has been tested together with Emacs 19.27, 19.28, 19.29,
-;; 19.30, XEmacs 19.12, and 19.13.
+;;	http://www.csd.uu.se/~andersl/emacs.shtml
 
 
 ;; To test this package, make sure `follow' is loaded, or will be
 ;; autoloaded when activated (see below). Then do the following:
 ;;
-;; * Find your favorite file (preferably a long one.)
+;; * Find your favorite file (preferably a long one).
 ;;
-;; * Resize Emacs so that it will be wide enough for two full sized
-;;   columns.  Delete the other windows and split with the commands
-;;   `C-x 1 C-x 3'.
+;; * Resize Emacs so that it will be wide enough for two full size
+;;   columns.  Delete the other windows and split the window with
+;;   the commands `C-x 1 C-x 3'.
 ;;
 ;; * Give the command:
 ;;	M-x follow-mode <RETURN>
@@ -101,16 +97,6 @@
 ;;   to turn it off.
 
 
-;; Installation:
-;;
-;; To fully install this, add this file to your Emacs Lisp directory and
-;; compile it with M-x byte-compile-file.  Then add the following to the
-;; appropriate init file (normally your `~/.emacs' file):
-;;
-;; (autoload 'follow-mode "follow"
-;;   "Synchronize windows showing the same buffer, minor mode." t)
-
-
 ;; The command `follow-delete-other-windows-and-split' maximises the
 ;; visible area of the current buffer.
 ;;
@@ -118,17 +104,12 @@
 ;; key map.  To do so, add the following lines (replacing `[f7]' and
 ;; `[f8]' with your favorite keys) to the init file:
 ;;
-;; (autoload 'follow-mode "follow"
-;;   "Synchronize windows showing the same buffer, minor mode." t)
 ;; (global-set-key [f8] 'follow-mode)
-;;
-;; (autoload 'follow-delete-other-windows-and-split "follow"
-;;   "Delete other windows, split the frame in two, and enter Follow Mode." t)
 ;; (global-set-key [f7] 'follow-delete-other-windows-and-split)
 
 
-;; There exists two system variables which controls the appearence of
-;; lines which are wider than the window containing them.  The default
+;; There exists two system variables that controls the appearence of
+;; lines that are wider than the window containing them.  The default
 ;; is to truncate long lines whenever a window isn't as wide as the
 ;; frame.
 ;;
@@ -149,7 +130,7 @@
 
 
 ;; The correct way to cofigurate Follow mode, or any other mode for
-;; that matter, is to create one (or more) function which does
+;; that matter, is to create one (or more) function that does
 ;; whatever you would like to do.  The function is then added to
 ;; a hook.
 ;;
@@ -170,10 +151,11 @@
 
 ;; Usage:
 ;;
-;; To activate give the command:  M-x follow-mode
+;; To activate issue the command "M-x follow-mode"
 ;; and press return. To deactivate, do it again.
 ;;
-;; Some special commands have been developed to make life even easier:
+;; The following is a list of commands useful when follow-mode is active.
+;;
 ;;	follow-scroll-up			 C-c . C-v
 ;;		Scroll text in a Follow Mode window chain up.
 ;;
@@ -231,7 +213,7 @@
 ;; Implementation:
 ;;
 ;; In an ideal world, follow mode would have been implemented in the
-;; kernal of the display routines, making sure that the windows (in
+;; kernel of the display routines, making sure that the windows (using
 ;; follow mode) ALWAYS are aligned. On planet earth, however, we must
 ;; accept a solution where we ALMOST ALWAYS can make sure that the
 ;; windows are aligned.
@@ -242,84 +224,12 @@
 ;; 3) When a scrollbar has been moved.
 ;;
 ;; This will cover most situations. (Let me know if there are other
-;; situations which should be covered.)
+;; situations that should be covered.)
 ;;
-;; However, only the selected window is checked, for the reason of
-;; efficiency and code complexity. (i.e. it is possible to make a
+;; Note that only the selected window is checked, for the reason of
+;; efficiency and code complexity. (I.e. it is possible to make a
 ;; non-selected windows unaligned. It will, however, pop right back
 ;; when it is selected.)
-
-;;}}}
-;;{{{ Change Log
-
-;;; Change log:
-;;	25-May-95 andersl  * File created.
-;;	26-May-95 andersl  * It works!
-;;	27-May-95 andersl  * Avoids hitting the head in the roof.
-;;		           * follow-scroll-up, -scroll-down, and -recenter.
-;;		           * V0.1 Sent to Ohio.
-;;	28-May-95 andersl  * Scroll-bar support added.
-;;	30-May-95 andersl  * Code adopted to standard style.
-;;			   * Minor mode keymap.
-;;	 2-Jun-95 andersl  * Processor output.
-;;	 3-Jun-95 andersl  * V0.4
-;;	 5-Jun-95 andersl  * V0.5. Copyright notice corrected.
-;;			     (The old one stated that I had copyright, but
-;;			     that Emacs could be freely distributed ;-)  )
-;;	 6-Jun-95 andersl  * Lucid support added. (no longer valid.)
-;;	 7-Jun-95 andersl  * Menu bar added.
-;;			   * Bug fix, (at-window 0 0) => (frame-first-window)
-;;	15-Jun-95 andersl  * 0.8 Major rework. looong lines and outline mode.
-;;	18-Jun-95 andersl  * 0.9 Allow a tail window to be selected, but pick
-;;			     a better one when edited.
-;;	26-Jun-95 andersl  * Inlineing.
-;;      02-Jul-95 andersl  * compute-motion imitated with a ugly workaround,
-;;			     Works with XEmacs again!
-;;	15-Jul-95 andersl  * find-file hook.
-;;                         * submit-feedback.
-;;                         * Survives major mode changes.
-;;                         * Region spanning multiple windows looks
-;;			       reasonably good.
-;;	19-Jul-95 andersl  * New process-filter handling.
-;;	 1-Aug-95 andersl  * XEmacs scrollbar support.
-;;			   * Emacs 19 `window-size-change' support.
-;;			   * `save-window-excursion' removed, it triggered
-;;			     a redraw!
-;;	 5-Aug-95 andersl  * `follow-switch-to-current-buffer-all' added.
-;;	16-Nov-95 andersl  * V1.0 released!
-;;	17-Nov-95 andersl  * Byte compiler silencer for XEmacs broken.
-;;			   * fkey-end-of-buffer treated the same way
-;;			     end-of-buffer is.
-;;			   * follow-mode-off-hook added.
-;;			     (Suggested by David Hughes, thanks!)
-;;	20-Nov-95 andersl  * Bug in menu code corrected.
-;;			     (Reported by Robert E. Brown, thanks!)
-;;	 5-Dec-95 andersl  * `follow-avoid-tail-recenter' added to the
-;;			     post-command-idle-hook to avoid recentering
-;;			     caused by `paren' et. al.
-;;	 7-Dec-95 andersl  * `follow-avoid-tail-recenter' called by
-;;			     `window-scroll-functions'.
-;;	18-Dec-95 andersl  * All processes intercepted.
-;;	20-Dec-95 andersl  * `follow-recenter' accepts arguments.
-;;                         * `move-overlay' advices, drag-region works.
-;;	 2-Jan-96 andersl  * XEmacs: isearch fixed.
-;;                         * `follow-calc-win-end' created.
-;;       8-Jan-96 andersl  * XEmacs: `window-end' with `guarantee'
-;;                           argument used in `follow-calc-win-end'.
-;;       9-Jan-96 andersl  * `follow-end-of-buffer' added.
-;;                           Code in post hook removed.
-;;                         * XEmacs: Post hook is always executed
-;;			     after a mouse button event.
-;;      22-Jan-96 andersl  * 1.5 released.
-;;
-
-;;}}}
-;;{{{ LCD Entry
-
-;;; LCD Archive Entry:
-;; follow|Anders Lindgren|andersl@csd.uu.se|
-;; Combines windows into tall virtual window, minor mode.
-;; 20-Feb-1996|1.6|~/modes/follow.el.Z|
 
 ;;}}}
 
@@ -345,10 +255,9 @@
 ;;	(funcall (symbol-function 'set) 'bar ...)
 ;;
 ;; Note: When this file is interpreted, `eval-when-compile' is
-;; evaluted (really smart...)  Since it doesn't hurt to evaluate it,
-;; but it is a bit annoying, we test if the byte-compiler has been
-;; loaded.  This can, of course, lead to some occasional unintended
-;; evaluation...
+;; evaluted.  Since it doesn't hurt to evaluate it, but it is a bit
+;; annoying, we test if the byte-compiler has been loaded.  This can,
+;; of course, lead to some occasional unintended evaluation...
 ;;
 ;; Should someone come up with a better solution, please let me
 ;; know.
@@ -387,9 +296,6 @@
   :type 'hook
   :group 'follow)
 
-(defvar follow-mode-version "follow.el (Release 1.6)"
-  "The current version of Follow mode.")
-
 (defvar follow-mode-map nil
   "*Minor mode keymap for Follow mode.")
 
@@ -425,7 +331,7 @@ After that, changing the prefix key requires manipulating keymaps."
   (not follow-emacs-version-xemacs-p)
   "*When non-nil, patch emacs so that tail windows won't be recentered.
 
-A \"tail window\" is a window which displays only the end of
+A \"tail window\" is a window that displays only the end of
 the buffer.  Normally it is practical for the user that empty
 windows are recentered automatically.  However, when using
 Follow Mode it breaks the display when the end is displayed
@@ -442,7 +348,7 @@ XEmacs, as of 19.12, does not recenter windows, good!")
 
 (defvar follow-cache-command-list
   '(next-line previous-line forward-char backward-char)
-  "List of commands which don't require recalculation.
+  "List of commands that don't require recalculation.
 
 In order to be able to use the cache, a command should not change the
 contents of the buffer, nor should it change selected window or current
@@ -490,7 +396,7 @@ Used by `follow-window-size-change'.")
   (and (y-or-n-p "Do you really want to submit a report on Follow mode? ")
        (reporter-submit-bug-report
 	"Anders Lindgren <andersl@csd.uu.se>"
-	follow-mode-version
+	"follow.el"
 	'(post-command-hook
 	  post-command-idle-hook
 	  pre-command-hook
@@ -515,7 +421,7 @@ Used by `follow-window-size-change'.")
 ;;{{{ Debug messages
 
 ;; This inline function must be as small as possible!
-;; Maybe we should define a macro which expands to nil if
+;; Maybe we should define a macro that expands to nil if
 ;; the variable is not set.
 
 (defsubst follow-debug-message (&rest args)
@@ -562,7 +468,7 @@ Used by `follow-window-size-change'.")
     (define-key follow-mode-map follow-mode-prefix map)
 
     ;; Replace the standard `end-of-buffer', when in Follow Mode.  (I
-    ;; don't see the point in trying to replace every function which
+    ;; don't see the point in trying to replace every function that
     ;; could be enhanced in Follow mode.  End-of-buffer is a special
     ;; case since it is very simple to define and it greatly enhances
     ;; the look and feel of Follow mode.)
@@ -587,7 +493,7 @@ Used by `follow-window-size-change'.")
     (if (not follow-emacs-version-xemacs-p)
 
 	;;
-	;; Emacs 19
+	;; Emacs
 	;;
 	(let ((menumap (funcall (symbol-function 'make-sparse-keymap)
 			"Follow"))
@@ -680,7 +586,7 @@ Used by `follow-window-size-change'.")
 
 	;; Why not just `(set-buffer-menubar current-menubar)'?  The
 	;; question is a very good question.  The reason is that under
-	;; Emacs 19, neither `set-buffer-menubar' nor
+	;; Emacs, neither `set-buffer-menubar' nor
 	;; `current-menubar' is defined, hence the byte-compiler will
 	;; warn.
 	(funcall (symbol-function 'set-buffer-menubar)
@@ -728,7 +634,7 @@ Used by `follow-window-size-change'.")
 
 ;;;###autoload
 (defun follow-mode (arg)
-  "Minor mode which combines windows into one tall virtual window.
+  "Minor mode that combines windows into one tall virtual window.
 
 The feeling of a \"virtual window\" has been accomplished by the use
 of two major techniques:
@@ -860,7 +766,9 @@ Works like `scroll-up' when not in Follow Mode."
 	   (if (eq end (point-max))
 	       (signal 'end-of-buffer nil)
 	     (select-window (car windows))
-	     (goto-char end)
+	     ;; `window-end' might return nil.
+	     (if end
+		 (goto-char end))
 	     (vertical-motion (- next-screen-context-lines))
 	     (set-window-start (car windows) (point)))))))
 
@@ -1121,7 +1029,7 @@ from the selected window."
     (cons pred (cdr windows))))
 
 
-;; Try to optimize this function for speed!
+;; This function is optimized function for speed!
 
 (defun follow-calc-win-end (&optional win)
   "Calculate the presumed window end for WIN.
@@ -1140,10 +1048,10 @@ Returns (end-pos end-of-buffer-p)"
 			    (window-buffer win)))
 	    (list end t)
 	  (list (+ end 1) nil)))
-    ;; Emacs 19: We have to calculate the end by ourselves.
-    ;; This code works on both XEmacs and Emacs 19, but now
+    ;; Emacs: We have to calculate the end by ourselves.
+    ;; This code works on both XEmacs and Emacs, but now
     ;; that XEmacs has got custom-written code, this could
-    ;; be optimized for Emacs 19.
+    ;; be optimized for Emacs.
     (let ((orig-win (and win (selected-window)))
 	  height
 	  buffer-end-p)
@@ -1310,7 +1218,7 @@ Note that this handles the case when the cache has been set to nil."
 Return the selected window."
   (let ((win nil))
     (while (and (not win) win-start-end)
-      ;; Don't select a window which was just moved. This makes it
+      ;; Don't select a window that was just moved. This makes it
       ;; possible to later select the last window after a `end-of-buffer'
       ;; command.
       (if (follow-pos-visible dest (car (car win-start-end)) win-start-end)
@@ -1325,7 +1233,7 @@ Return the selected window."
 ;; it wasn't just moved here. (i.e. M-> shall not unconditionally place
 ;; the point in the selected window.)
 ;;
-;; (Compability cludge: in Emacs 19 `window-end' is equal to `point-max';
+;; (Compability cludge: in Emacs `window-end' is equal to `point-max';
 ;; in XEmacs, it is equal to `point-max + 1'. Should I really bother
 ;; checking `window-end' now when I check `end-of-buffer' explicitly?)
 
@@ -1333,13 +1241,15 @@ Return the selected window."
   "Select and return a window, if end is visible in it."
   (let ((win nil))
     (while (and (not win) win-start-end)
-      ;; Don't select a window which was just moved. This makes it
+      ;; Don't select a window that was just moved. This makes it
       ;; possible to later select the last window after a `end-of-buffer'
       ;; command.
       (if (and (eq (point-max) (nth 2 (car win-start-end)))
 	       (nth 3 (car win-start-end))
-	       (eq (point-max) (min (point-max)
-				    (window-end (car (car win-start-end))))))
+	       ;; `window-end' might return nil.
+	       (let ((end (window-end (car (car win-start-end)))))
+		 (and end
+		      (eq (point-max) (min (point-max) end)))))
 	  (progn
 	    (setq win (car (car win-start-end)))
 	    (select-window win)))
@@ -1347,7 +1257,7 @@ Return the selected window."
     win))
 
 
-;; Select a window which will display the point if the windows would
+;; Select a window that will display the point if the windows would
 ;; be redisplayed with the first window fixed. This is useful for
 ;; example when the user has pressed return at the bottom of a window
 ;; as the point is not visible in any window.
@@ -1725,7 +1635,7 @@ non-first windows in Follow Mode."
 			(setq visible t)
 			(setq aligned nil))
 		       ;; If we can position the cursor without moving the first
-		       ;; window, do it. This is the case which catches `RET'
+		       ;; window, do it. This is the case that catches `RET'
 		       ;; at the bottom of a window.
 		       ((follow-select-if-visible-from-first dest windows)
 			(follow-debug-message "Below first")
@@ -1846,7 +1756,7 @@ non-first windows in Follow Mode."
 
 (cond ((fboundp 'scroll-bar-drag)
        ;;;
-       ;;; Emacs 19 style scrollbars.
+       ;;; Emacs style scrollbars.
        ;;;
 
        ;; Select the dragged window if it is a follower of the
@@ -1948,12 +1858,12 @@ WINDOW can be an object or a window."
 ;;}}}
 ;;{{{ Process output
 
-;;; The following sections installs a spy which listens to process
+;;; The following sections installs a spy that listens to process
 ;;; output and tries to reposition the windows whose buffers are in
 ;;; Follow mode.  We play safe as much as possible...
 ;;;
 ;;; When follow-mode is activated all active processes are
-;;; intercepted.  All new processes which change their filter function
+;;; intercepted.  All new processes that change their filter function
 ;;; using `set-process-filter' are also intercepted.  The reason is
 ;;; that a process can cause a redisplay recentering "tail" windows.
 ;;; Note that it doesn't hurt to spy on more processes than needed.
@@ -1965,7 +1875,7 @@ WINDOW can be an object or a window."
 ;;; output filter.  It also makes sure that the windows connected to
 ;;; the buffer are aligned.
 ;;;
-;;; Discussion: How do we find processes which don't call
+;;; Discussion: How do we find processes that don't call
 ;;; `set-process-filter'?  (How often are processes created in a
 ;;; buffer after Follow mode are activated?)
 ;;;
@@ -2047,7 +1957,7 @@ magic stuff before the real process filter is called."
 ;;{{{ Start/stop interception of processes.
 
 ;; Normally, all new processed are intercepted by our `set-process-filter'.
-;; This is needed to intercept old processed which were started before we were
+;; This is needed to intercept old processed that were started before we were
 ;; loaded, and processes we have forgotten by calling
 ;; `follow-stop-intercept-process-output'.
 
@@ -2247,7 +2157,7 @@ report this using the `follow-submit-feedback' function."
 ;; called every time a window in a frame changes size. Most notably, it
 ;; is called after the frame has been resized.
 ;;
-;; We basically call our post-command-hook for every buffer which is
+;; We basically call our post-command-hook for every buffer that is
 ;; visible in any window in the resized frame, which is in follow-mode.
 ;;
 ;; Since this function can be called indirectly from
@@ -2363,7 +2273,7 @@ report this using the `follow-submit-feedback' function."
     (add-hook 'window-scroll-functions 'follow-avoid-tail-recenter t))
 
 
-;;  This prevents all packages which calls `sit-for' directly
+;;  This prevents all packages that calls `sit-for' directly
 ;;  to recenter tail windows.
 
 (if follow-avoid-tail-recenter-p
