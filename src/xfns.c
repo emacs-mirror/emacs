@@ -3011,7 +3011,7 @@ This function is an internal primitive--use `make-frame' instead.")
   long window_prompting = 0;
   int width, height;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct x_display_info *dpyinfo;
   Lisp_Object parent;
@@ -3049,6 +3049,11 @@ This function is an internal primitive--use `make-frame' instead.")
   if (! NILP (parent))
     CHECK_NUMBER (parent, 0);
 
+  /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
+  /* No need to protect DISPLAY because that's not used after passing
+     it to make_frame_without_minibuffer.  */
+  frame = Qnil;
+  GCPRO4 (parms, parent, name, frame);
   tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
@@ -3062,11 +3067,10 @@ This function is an internal primitive--use `make-frame' instead.")
   else
     f = make_frame (1);
 
+  XSETFRAME (frame, f);
+
   /* Note that X Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-
-  XSETFRAME (frame, f);
-  GCPRO1 (frame);
 
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
