@@ -108,6 +108,14 @@ Lisp_Object Vnonascii_translate_table;
 #define min(X, Y) ((X) < (Y) ? (X) : (Y))
 #define max(X, Y) ((X) > (Y) ? (X) : (Y))
 
+void
+invalid_character (c)
+     int c;
+{
+  error ("Invalid character: %o, %d, 0x%x", c);
+}
+
+
 /* Set STR a pointer to the multi-byte form of the character C.  If C
    is not a composite character, the multi-byte form is set in WORKBUF
    and STR points WORKBUF.  The caller should allocate at least 4-byte
@@ -136,7 +144,7 @@ non_ascii_char_to_string (c, workbuf, str)
 	}
       else
 	{
-	  error ("Invalid character: %d", c);
+	  invalid_character (c);
 	}
     }
 
@@ -145,7 +153,7 @@ non_ascii_char_to_string (c, workbuf, str)
       || ! CHARSET_DEFINED_P (charset)
       || c1 >= 0 && c1 < 32
       || c2 >= 0 && c2 < 32)
-    error ("Invalid character: %d", c);
+    invalid_character (c);
 
   *str = workbuf;
   *workbuf++ = CHARSET_LEADING_CODE_BASE (charset);
@@ -1017,7 +1025,7 @@ The returned value is 0 for left-to-right and 1 for right-to-left.")
   CHECK_NUMBER (ch, 0);
   charset = CHAR_CHARSET (XFASTINT (ch));
   if (!CHARSET_DEFINED_P (charset))
-    error ("Invalid character: %d", XINT (ch));
+    invalid_character (XINT (ch));
   return CHARSET_TABLE_INFO (charset, CHARSET_DIRECTION_IDX);
 }
 
@@ -1044,7 +1052,7 @@ chars_in_text (ptr, nbytes)
      unsigned char *ptr;
      int nbytes;
 {
-  unsigned char *endp;
+  unsigned char *endp, c;
   int chars;
 
   /* current_buffer is null at early stages of Emacs initialization.  */
@@ -1057,13 +1065,10 @@ chars_in_text (ptr, nbytes)
 
   while (ptr < endp)
     {
-      if (*ptr == LEADING_CODE_COMPOSITION)
-	{
-	  ptr++;
-	  while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
-	}
-      else
-	ptr += BYTES_BY_CHAR_HEAD (*ptr);
+      c = *ptr++;
+
+      if (BASE_LEADING_CODE_P (c))
+	while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
       chars++;
     }
 
@@ -1079,7 +1084,7 @@ multibyte_chars_in_text (ptr, nbytes)
      unsigned char *ptr;
      int nbytes;
 {
-  unsigned char *endp;
+  unsigned char *endp, c;
   int chars;
 
   endp = ptr + nbytes;
@@ -1087,13 +1092,10 @@ multibyte_chars_in_text (ptr, nbytes)
 
   while (ptr < endp)
     {
-      if (*ptr == LEADING_CODE_COMPOSITION)
-	{
-	  ptr++;
-	  while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
-	}
-      else
-	ptr += BYTES_BY_CHAR_HEAD (*ptr);
+      c = *ptr++;
+
+      if (BASE_LEADING_CODE_P (c))
+	while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
       chars++;
     }
 
@@ -1193,10 +1195,6 @@ str_cmpchar_id (str, len)
   int i;
   struct cmpchar_info *cmpcharp;
 
-  if (len < 5)
-    /* Any composite char have at least 3-byte length.  */
-    return -1;
-
   /* The second byte 0xFF means compostion rule is embedded.  */
   embedded_rule = (str[1] == 0xFF);
 
@@ -1206,22 +1204,24 @@ str_cmpchar_id (str, len)
     int bytes;
 
     while (endp < lastp && ! CHAR_HEAD_P (*endp)) endp++;
+    if (endp - str < 5)
+      /* Any composite char have at least 5-byte length.  */
+      return -1;
+
     chars = 0;
-    p = str + 1 + embedded_rule;
+    p = str + 1;
     while (p < endp)
       {
+	if (embedded_rule) p++;
 	/* No need of checking if *P is 0xA0 because
-	 BYTES_BY_CHAR_HEAD (0x80) surely returns 2.  */
-	p += (bytes = BYTES_BY_CHAR_HEAD (*p - 0x20) + embedded_rule);
+	   BYTES_BY_CHAR_HEAD (0x80) surely returns 2.  */
+	p += BYTES_BY_CHAR_HEAD (*p - 0x20);
 	chars++;
       }
-    len = (p -= embedded_rule) - str;
-    if (p > endp)
-      len -= - bytes, chars--;
-
-    if (chars < 2 || chars > MAX_COMPONENT_COUNT)
-      /* Invalid number of components.  */
+    if (p > endp || chars < 2 || chars > MAX_COMPONENT_COUNT)
+      /* Invalid components.  */
       return -1;
+    len = p - str;
   }
   hash_idx = hash_string (str, len) % CMPCHAR_HASH_TABLE_SIZE;
   hashp = cmpchar_hash_table[hash_idx];
