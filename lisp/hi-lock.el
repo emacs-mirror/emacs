@@ -537,21 +537,22 @@ Optional argument END is maximum excursion."
     (let ((all-patterns nil)
           (target-regexp (concat "\\<" hi-lock-file-patterns-prefix ":")))
       (save-excursion
-        (widen)
-        (goto-char (point-min))
-        (re-search-forward target-regexp
-                           (+ (point) hi-lock-file-patterns-range) t)
-        (beginning-of-line)
-        (while (and (re-search-forward target-regexp (+ (point) 100) t)
-		    (not (looking-at "\\s-*end")))
-          (let ((patterns
-		 (condition-case nil
-		     (read (current-buffer))
-		   (error  (message
-			    (format "Could not read expression at %d"
-				    (hi-lock-current-line))) nil))))
-            (if patterns
-                (setq all-patterns (append patterns all-patterns))))))
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (re-search-forward target-regexp
+			     (+ (point) hi-lock-file-patterns-range) t)
+	  (beginning-of-line)
+	  (while (and (re-search-forward target-regexp (+ (point) 100) t)
+		      (not (looking-at "\\s-*end")))
+	    (let ((patterns
+		   (condition-case nil
+		       (read (current-buffer))
+		     (error  (message
+			      (format "Could not read expression at %d"
+				      (hi-lock-current-line))) nil))))
+	      (if patterns
+		  (setq all-patterns (append patterns all-patterns)))))))
       (when hi-lock-mode (hi-lock-set-file-patterns all-patterns))
       (if (interactive-p)
         (message (format "Hi-lock added %d patterns." (length all-patterns)))))))
