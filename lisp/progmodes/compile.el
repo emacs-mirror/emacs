@@ -1706,7 +1706,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 ;; error messages and their text, so that they no longer slow down gap motion.
 ;; This would happen anyway at the next garbage collection, but it is better to
 ;; do it right away.
-  (defun compilation-forget-errors ()
+(defun compilation-forget-errors ()
   (while compilation-old-error-list
     (let ((next-error (car compilation-old-error-list)))
       (set-marker (car next-error) nil)
@@ -1720,8 +1720,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (let ((inhibit-read-only t)
 	(buffer-undo-list t)
 	deactivate-mark)
-    (remove-text-properties (point-min) (point-max) '(mouse-face highlight)))
-  )
+    (remove-text-properties (point-min) (point-max) '(mouse-face highlight))))
 
 
 ;; This function is not needed any more by compilation mode.
