@@ -179,15 +179,6 @@ Boston, MA 02111-1307, USA.  */
    basic faces are realized for CHARSET_ASCII.  Frame parameters are
    used to fill in unspecified attributes of the default face.  */
 
-/* Define SCALABLE_FONTS to a non-zero value to enable scalable
-   font use. Define it to zero to disable scalable font use.
-
-   Use of too many or too large scalable fonts can crash XFree86
-   servers.  That's why I've put the code dealing with scalable fonts
-   in #if's.  */
-
-#define SCALABLE_FONTS 1
-
 #include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -197,14 +188,15 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
-#endif
+#endif /* HAVE_WINDOW_SYSTEM */
+
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
 #include <Xm/XmStrDefs.h>
 #endif /* USE_MOTIF */
-#endif
+#endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
 #include "dosfns.h"
@@ -224,7 +216,7 @@ Boston, MA 02111-1307, USA.  */
 /* For historic reasons, FONT_WIDTH refers to average width on W32,
    not maximum as on X. Redefine here. */
 #define FONT_WIDTH FONT_MAX_WIDTH
-#endif
+#endif /* WINDOWSNT */
 
 #include "buffer.h"
 #include "dispextern.h"
@@ -362,9 +354,7 @@ Lisp_Object Vface_alternative_font_family_alist;
    font may be scaled if its name matches a regular expression in the
    list.  */
 
-#if SCALABLE_FONTS
 Lisp_Object Vscalable_fonts_allowed;
-#endif
 
 /* Maximum number of fonts to consider in font_list.  If not an
    integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
@@ -638,8 +628,8 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
   return Qnil;
 }
 
-
 #endif /* DEBUG_X_COLORS */
+
 
 /* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
    color values.  Interrupt input must be blocked when this function
@@ -2251,7 +2241,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
   BLOCK_INPUT;
   names = XListFonts (dpy, pattern, nfonts, &n);
   UNBLOCK_INPUT;
-#endif
+#endif /* HAVE_X_WINDOWS */
 #ifdef WINDOWSNT
   /* NTEMACS_TODO : currently this uses w32_list_fonts, but it may be
      better to do it the other way around. */
@@ -2283,7 +2273,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
       names[i] = XSTRING (XCAR (tem))->data;
       tem = XCDR (tem);
     }
-#endif
+#endif /* WINDOWSNT */
 
   if (names)
     {
@@ -2299,16 +2289,11 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
 	    xfree (fonts[j].name);
 	  else if (font_scalable_p (fonts + j))
 	    {
-#if SCALABLE_FONTS
 	      if (!scalable_fonts_p
 		  || !may_use_scalable_font_p (fonts + j, names[i]))
 		xfree (fonts[j].name);
 	      else
 		++j;
-#else /* !SCALABLE_FONTS */
-	      /* Always ignore scalable fonts.  */
-	      xfree (fonts[j].name);
-#endif /* !SCALABLE_FONTS */
 	    }
 	  else
 	    ++j;
@@ -2415,11 +2400,7 @@ sorted_font_list (f, pattern, cmpfn, fonts)
     nfonts = XFASTINT (Vfont_list_limit);
 
   *fonts = (struct font_name *) xmalloc (nfonts * sizeof **fonts);
-#if SCALABLE_FONTS
   nfonts = x_face_list_fonts (f, pattern, *fonts, nfonts, 1, 1);
-#else
-  nfonts = x_face_list_fonts (f, pattern, *fonts, nfonts, 1, 0);
-#endif
 
   /* Sort the resulting array and return it in *FONTS.  If no
      fonts were found, make sure to set *FONTS to null.  */
@@ -3064,6 +3045,7 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
 
   return 1;
 }
+
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
@@ -3644,9 +3626,10 @@ FRAME 0 means change the face on all frames, and change the default\n\
   if (INTEGERP (frame) && XINT (frame) == 0)
     {
       Lisp_Object tail;
+      Finternal_set_lisp_face_attribute (face, attr, value, Qt);
       FOR_EACH_FRAME (tail, frame)
 	Finternal_set_lisp_face_attribute (face, attr, value, frame);
-      return Finternal_set_lisp_face_attribute (face, attr, value, Qt);
+      return face;
     }
 
   /* Set lface to the Lisp attribute vector of FACE.  */
@@ -3995,7 +3978,7 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	  else if (EQ (attr, QCbackground))
 	    param = Qscroll_bar_background;
 	}
-#endif
+#endif /* not WINDOWSNT */
       else if (EQ (face, Qborder))
 	{
 	  /* Changing background color of `border' sets frame parameter
@@ -4145,7 +4128,7 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
   UNBLOCK_INPUT;
-#endif
+#endif /* not WINDOWSNT */
   return value;
 }
 
@@ -4335,7 +4318,6 @@ xm_set_menu_resources_from_menu_face (f, widget)
 	XmFontListFree (fl);
     }
 }
-
 
 #endif /* USE_MOTIF */
 
@@ -5548,8 +5530,6 @@ better_font_p (values, font1, font2, compare_pt_p)
 }
 
 
-#if SCALABLE_FONTS
-
 /* Value is non-zero if FONT is an exact match for face attributes in
    SPECIFIED.  SPECIFIED is an array of face attribute values in font
    sort order.  */
@@ -5658,7 +5638,6 @@ may_use_scalable_font_p (font, name)
   return 0;
 }
 
-#endif /* SCALABLE_FONTS != 0 */
 
 
 /* Return the name of the best matching font for face attributes
@@ -5700,9 +5679,6 @@ best_matching_font (f, attrs, fonts, nfonts)
 	abort ();
     }
 
-#if SCALABLE_FONTS
-
-  /* Set to 1 */
   exact_p = 0;
 
   /* Start with the first non-scalable font in the list.  */
@@ -5764,22 +5740,6 @@ best_matching_font (f, attrs, fonts, nfonts)
     font_name = build_scalable_font_name (f, best, pt);
   else
     font_name = build_font_name (best);
-
-#else /* !SCALABLE_FONTS */
-
-  /* Find the best non-scalable font.  */
-  best = fonts;
-
-  for (i = 1; i < nfonts; ++i)
-    {
-      xassert (!font_scalable_p (fonts + i));
-      if (better_font_p (specified, fonts + i, best, 1))
-	best = fonts + i;
-    }
-
-  font_name = build_font_name (best);
-
-#endif /* !SCALABLE_FONTS */
 
   /* Free font_name structures.  */
   free_font_names (fonts, nfonts);
@@ -7071,8 +7031,6 @@ See `set-face-stipple' for possible values for this variable.");
    "An alist of defined terminal colors and their RGB values.");
   Vtty_defined_color_alist = Qnil;
 
-#if SCALABLE_FONTS
-
   DEFVAR_LISP ("scalable-fonts-allowed", &Vscalable_fonts_allowed,
     "Allowed scalable fonts.\n\
 A value of nil means don't allow any scalable fonts.\n\
@@ -7086,7 +7044,6 @@ scaled if its name matches a regular expression in the list.");
 #else
   Vscalable_fonts_allowed = Qnil;
 #endif
-#endif /* SCALABLE_FONTS */
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
