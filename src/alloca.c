@@ -32,7 +32,7 @@
 # include <stdlib.h>
 #endif
 
-#ifdef emacs
+#ifdef DO_BLOCK_INPUT
 # include "lisp.h"
 # include "blockinput.h"
 #endif
@@ -196,7 +196,7 @@ alloca (size)
   {
     register header *hp;	/* Traverses linked list.  */
 
-#  ifdef emacs
+#  ifdef DO_BLOCK_INPUT
     BLOCK_INPUT;
 #  endif
 
@@ -215,7 +215,7 @@ alloca (size)
 
     last_alloca_header = hp;	/* -> last valid storage.  */
 
-#  ifdef emacs
+#  ifdef DO_BLOCK_INPUT
     UNBLOCK_INPUT;
 #  endif
   }
