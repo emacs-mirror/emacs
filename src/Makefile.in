@@ -1007,7 +1007,7 @@ alloca.o : alloca.s $(config_h)
    and so rarely changed in ways that do require any.  */
 
 abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h character.h \
-	$(config_h)
+	syntax.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h character.h \
    $(config_h)
@@ -1122,8 +1122,8 @@ xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h character.h charset.h \
    $(config_h) msdos.h composite.h fontset.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
-   window.h character.h msdos.h dosfns.h composite.h atimer.h systime.h \
-   fontset.h $(config_h)
+   window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h \
+   systime.h fontset.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    character.h charset.h coding.h $(config_h)
