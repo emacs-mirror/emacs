@@ -251,7 +251,7 @@ static WINDOWINFO_TYPE windowinfo;
 
 extern int errno;
 
-/* See keyboard.c.  */
+/* A mask of extra modifier bits to put into every keyboard char.  */
 extern int extra_keyboard_modifiers;
 
 extern Display *XOpenDisplay ();
@@ -1470,11 +1470,10 @@ x_find_modifier_meanings ()
 }
 
 
-/* Convert a set of X modifier bits to the proper form for a
-   struct input_event modifiers value.  */
-
+/* Convert between the modifier bits X uses and the modifier bits
+   Emacs uses.  */
 static unsigned int
-x_convert_modifiers (state)
+x_x_to_emacs_modifiers (state)
      unsigned int state;
 {
   return (  ((state & (ShiftMask | x_shift_lock_mask)) ? shift_modifier : 0)
@@ -1483,6 +1482,18 @@ x_convert_modifiers (state)
 	  | ((state & x_alt_mod_mask)		       ? alt_modifier  : 0)
 	  | ((state & x_super_mod_mask)		       ? super_modifier  : 0)
 	  | ((state & x_hyper_mod_mask)		       ? hyper_modifier  : 0));
+}
+
+static unsigned int
+x_emacs_to_x_modifiers (state)
+     unsigned int state;
+{
+  return (  ((state & alt_modifier)		? x_alt_mod_mask   : 0)
+	  | ((state & super_modifier)		? x_super_mod_mask : 0)
+	  | ((state & hyper_modifier)		? x_hyper_mod_mask : 0)
+	  | ((state & shift_modifier)		? ShiftMask        : 0)
+	  | ((state & ctrl_modifier)		? ControlMask      : 0)
+	  | ((state & meta_modifier)		? x_meta_mod_mask  : 0));
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -1501,7 +1512,7 @@ construct_mouse_click (result, event, f)
   result->kind = mouse_click;
   XSET (result->code, Lisp_Int, event->button - Button1);
   result->timestamp = event->time;
-  result->modifiers = (x_convert_modifiers (event->state)
+  result->modifiers = (x_x_to_emacs_modifiers (event->state)
 		       | (event->type == ButtonRelease
 			  ? up_modifier 
 			  : down_modifier));
@@ -2215,7 +2226,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
   emacs_event->kind = scroll_bar_click;
   XSET (emacs_event->code, Lisp_Int, event->xbutton.button - Button1);
   emacs_event->modifiers =
-    (x_convert_modifiers (event->xbutton.state)
+    (x_x_to_emacs_modifiers (event->xbutton.state)
      | (event->type == ButtonRelease
 	? up_modifier
 	: down_modifier));
@@ -2773,15 +2784,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      char copy_buffer[80];
 	      int modifiers;
 
-	      event.xkey.state |= extra_keyboard_modifiers;
+	      event.xkey.state
+		|= x_emacs_to_x_modifiers (extra_keyboard_modifiers);
 	      modifiers = event.xkey.state;
-
-	      /* Some keyboards generate different characters
-		 depending on the state of the meta key, in an attempt
-		 to support non-English typists.  It would be nice to
-		 keep this functionality somehow, but for now, we will
-		 just clear the meta-key flag to get the 'pure' character.  */
-	      event.xkey.state &= ~Mod1Mask;
 
 	      /* This will have to go some day...  */
 	      nbytes =
@@ -2808,7 +2813,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      bufp->kind = non_ascii_keystroke;
 		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff00);
 		      XSET (bufp->frame_or_window, Lisp_Frame, f);
-		      bufp->modifiers = x_convert_modifiers (modifiers);
+		      bufp->modifiers = x_x_to_emacs_modifiers (modifiers);
 		      bufp->timestamp = event.xkey.time;
 		      bufp++;
 		      count++;
@@ -2826,7 +2831,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  bufp->kind = ascii_keystroke;
 			  XSET (bufp->code, Lisp_Int, copy_buffer[i]);
 			  XSET (bufp->frame_or_window, Lisp_Frame, f);
-			  bufp->modifiers = x_convert_modifiers (modifiers);
+			  bufp->modifiers = x_x_to_emacs_modifiers (modifiers);
 			  bufp->timestamp = event.xkey.time;
 			  bufp++;
 			}
@@ -3593,8 +3598,10 @@ x_text_icon (f, icon_name)
     if (! f->display.x->icon_label)
       f->display.x->icon_label = " *emacs* ";
   
+#if 0
   XSetIconName (x_current_display, FRAME_X_WINDOW (f),
 		(char *) f->display.x->icon_label);
+#endif
   
   f->display.x->icon_bitmap_flag = 0;
   x_wm_set_icon_pixmap (f, 0);
