@@ -1,5 +1,9 @@
 2001-02-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (forward_to_next_line_start): When taking the shortcut
+	at the start of the function, check that the \n in it->c is
+	from the iterator's current position.
+	
 	* xdisp.c (handle_single_display_prop): Add parameter
 	DISPLAY_REPLACED_BEFORE_P.  If it is non-zero ignore display
 	properties which replace the display of text with something else.
