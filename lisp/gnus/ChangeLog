@@ -1,3 +1,11 @@
+2000-10-18  Dave Love  <fx@gnu.org>
+
+	* gnus-nocem.el (gnus-nocem-issuers): Update.
+	(gnus-nocem-check-from): New option.
+	(gnus-nocem-scan-groups): Use it.
+	(gnus-nocem-check-article): Bind gnus-newsgroup-name.
+	(gnus-nocem-check-article-limit): Add :version.
+
 2000-10-16  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* gnus-nocem.el (gnus-nocem-check-article-limit): New variable.
