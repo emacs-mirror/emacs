@@ -1019,7 +1019,7 @@ variable `browse-url-grail'."
     (set-buffer (get-buffer-create " *Shell Command Output*"))
     (erase-buffer)
     ;; don't worry about this failing.
-    (if new-window
+    (if (browse-url-maybe-new-window new-window)
 	(call-process browse-url-grail nil 0 nil "-b" url)
       (call-process browse-url-grail nil 0 nil url))
     (message "Sending URL to Grail... done")))
