@@ -684,6 +684,7 @@ between them, return t; otherwise return nil.")
 
 	  if (code == Sendcomment && !quoted)
 	    {
+#if 0
 	      if (code != SYNTAX (c))
 		/* For a two-char comment ender, we can assume
 		   it does end a comment.  So scan back in a simple way.  */
@@ -709,6 +710,7 @@ between them, return t; otherwise return nil.")
 		    }
 		  break;
 		}
+#endif /* 0 */
 
 	      /* Look back, counting the parity of string-quotes,
 		 and recording the comment-starters seen.
@@ -1076,6 +1078,7 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sendcomment:
 	      if (!parse_sexp_ignore_comments)
 		break;
+#if 0
 	      if (code != SYNTAX (c))
 		/* For a two-char comment ender, we can assume
 		   it does end a comment.  So scan back in a simple way.  */
@@ -1096,6 +1099,7 @@ scan_lists (from, count, depth, sexpflag)
 		    }
 		  break;
 		}
+#endif /* 0 */
 
 	      /* Look back, counting the parity of string-quotes,
 		 and recording the comment-starters seen.
@@ -1410,14 +1414,18 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
     {
       code = SYNTAX (FETCH_CHAR (from));
       from++;
-      if (from < end && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
-	  && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
+      if (code == Scomment)
+	state.comstart = from-1;
+      
+      else if (from < end && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
+	       && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
 	{
 	  /* Record the comment style we have entered so that only
 	     the comment-end sequence of the same style actually
 	     terminates the comment section.  */
 	  code = Scomment;
 	  state.comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
+	  state.comstart = from-1;
 	  from++;
 	}
 
@@ -1471,7 +1479,6 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 
 	case Scomment:
 	  state.incomment = 1;
-	  state.comstart = from;
 	startincomment:
 	  if (commentstop)
 	    goto done;
