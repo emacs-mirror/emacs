@@ -223,7 +223,11 @@ immediately enclosing the current position."
     (skip-chars-backward " \t\n")      ; Make sure we're not at indentation.
     (while
 	(and (or ignore (not (if full (eq full 'empty) context))
-		 (not (xml-lite-at-indentation-p)))
+		 (not (xml-lite-at-indentation-p))
+		 (and (not sgml-xml-mode) context
+		      (/= (point) (xml-lite-tag-start (car context)))
+		      (member-ignore-case (xml-lite-tag-name (car context))
+					  sgml-unclosed-tags)))
 	     (setq tag-info (xml-lite-parse-tag-backward)))
       
       ;; This tag may enclose things we thought were tags.  If so,
@@ -242,7 +246,16 @@ immediately enclosing the current position."
        ;; start-tag
        ((eq (xml-lite-tag-type tag-info) 'open)
 	(cond
-	 ((null ignore) (push tag-info context))
+	 ((null ignore)
+	  (if (and (not sgml-xml-mode) context
+		   (member-ignore-case (xml-lite-tag-name tag-info)
+				       sgml-unclosed-tags)
+		   (eq t (compare-strings
+			  (xml-lite-tag-name tag-info) nil nil
+			  (xml-lite-tag-name (car context)) nil nil t)))
+	      ;; There was an implicit end-tag.
+	      nil
+	    (push tag-info context)))
 	 ((eq t (compare-strings (xml-lite-tag-name tag-info) nil nil
 				 (car ignore) nil nil t))
 	  (setq ignore (cdr ignore)))
@@ -277,77 +290,6 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 
 
 ;; Indenting
-
-(defun xml-lite-calculate-indent ()
-  "Calculate the column to which this line should be indented."
-  (let* ((here (point))
-         (context (save-excursion (xml-lite-get-context)))
-         (ref-tag-info (car context))
-         (last-tag-info (car (last context))))
-
-    (save-excursion
-      (cond
-
-       ;; no context
-       ((null context) 0)
-
-       ;; inside a comment
-       ((eq 'comment (xml-lite-tag-type last-tag-info))
-        (let ((mark (looking-at "--")))
-          (goto-char (xml-lite-tag-start last-tag-info))
-	  (forward-char 2)
-	  (if mark (current-column)
-	    (forward-char 2)
-	    (+ (if (zerop (skip-chars-forward " \t")) 1 0)
-	       (current-column)))))
-
-       ;; inside a tag
-       ((xml-lite-inside-tag-p last-tag-info here)
-        
-        (let ((start-of-enclosing-string
-               (xml-lite-in-string-p (xml-lite-tag-start last-tag-info))))
-          (cond
-           ;; inside an attribute value
-           (start-of-enclosing-string
-            (goto-char start-of-enclosing-string)
-            (1+ (current-column)))
-           ;; if we have a tag-name, base indent on that
-           ((and (xml-lite-tag-name-end last-tag-info)
-                 (progn
-                   (goto-char (xml-lite-tag-name-end last-tag-info))
-                   (not (looking-at "[ \t]*$"))))
-            (1+ (current-column)))
-           ;; otherwise, add indent-offset
-           (t
-            (goto-char (xml-lite-tag-start last-tag-info))
-            (+ (current-column) xml-lite-basic-offset)))))
-
-       ;; inside an element
-       (t
-        ;; indent to start of tag
-        (let ((indent-offset xml-lite-basic-offset))
-          ;; add xml-lite-basic-offset, unless we're looking at the
-          ;; matching end-tag
-          (if (and (eq (length context) 1)
-                   (xml-lite-looking-at "</"))
-              (setq indent-offset 0))
-          (goto-char (xml-lite-tag-start ref-tag-info))
-          (+ (current-column) indent-offset)))
-
-       ))))
-
-(defun xml-lite-indent-line ()
-  "Indent the current line as XML."
-  (interactive)
-  (let* ((savep (point))
-	 (indent-col
-	  (save-excursion
-	    (back-to-indentation)
-	    (if (>= (point) savep) (setq savep nil))
-	    (xml-lite-calculate-indent))))
-    (if savep
-	(save-excursion (indent-line-to indent-col))
-      (indent-line-to indent-col))))
 
 
 ;; Editing shortcuts
@@ -431,7 +373,7 @@ Key bindings:
 	(set (make-local-variable 'sgml-xml-mode) t)
         (set (make-local-variable 'xml-lite-orig-indent-line-function)
 	     indent-line-function)
-	(set (make-local-variable 'indent-line-function) 'xml-lite-indent-line))
+	(set (make-local-variable 'indent-line-function) 'sgml-indent-line))
     (kill-local-variable 'sgml-xml-mode)
     (setq indent-line-function xml-lite-orig-indent-line-function)))
 
