@@ -1254,28 +1254,28 @@
         (hypertext  hypermedia  mouse))
     ("eudc-bob.el"
         "Binary Objects Support for EUDC"
-        (help))
+        (comm))
     ("eudc-export.el"
         "functions to export EUDC query results"
-        (help))
+        (comm))
     ("eudc-hotlist.el"
         "hotlist management for EUDC"
-        (help))
+        (comm))
     ("eudc-vars.el"
         "Emacs Unified Directory Client"
-        (help))
+        (comm))
     ("eudc.el"
         "Emacs Unified Directory Client"
-        (help))
+        (comm))
     ("eudcb-bbdb.el"
         "Emacs Unified Directory Client - BBDB Backend"
-        (help))
+        (comm))
     ("eudcb-ldap.el"
         "Emacs Unified Directory Client - LDAP Backend"
-        (help))
+        (comm))
     ("eudcb-ph.el"
         "Emacs Unified Directory Client - CCSO PH/QI Backend"
-        (help))
+        (comm))
     ("goto-addr.el"
         "click to browse URL or to send to e-mail address"
         (mh-e  www  mouse  mail))
@@ -1284,7 +1284,7 @@
         (comm))
     ("net-utils.el"
         "network functions"
-        (network communications))
+        (network comm))
     ("quickurl.el"
         "insert an URL based on text at point in buffer"
         (hypermedia))
@@ -2227,9 +2227,6 @@
     ("uudecode.el"
         "elisp native uudecode"
         (uudecode news))
-    ("vcard.el"
-        "vcard parsing and display routines"
-        (extensions))
     ("webmail.el"
         "interface of web mail"
         (hotmail netaddress my-deja netscape))
