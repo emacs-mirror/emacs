@@ -1,6 +1,6 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.1) $
+ *  $HopeName: !mpmss.c(trunk.2) $
  */
 
 
@@ -29,14 +29,14 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   va_start(arg, size);
   e = mps_pool_create_v(&pool, space, class, arg);
   va_end(arg);
-  if(e != MPS_RES_OK) return(e);
+  if(e != MPS_RES_OK) return e;
 
   for(i=0; i<TEST_SET_SIZE; ++i)
   {
     ss[i] = (*size)(i);
 
     e = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
-    if(e != MPS_RES_OK) return(e);
+    if(e != MPS_RES_OK) return e;
 
     if(i && i%5==0) putchar('\n');
     printf("%8lX %4lu ", (unsigned long)ps[i], (unsigned long)ss[i]);
@@ -69,7 +69,7 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
 
 static size_t randomSize(int i)
 {
-  return((rand() % 1000)+1);
+  return (rand() % 1000)+1;
   (void)i;
 }
 
@@ -78,7 +78,7 @@ static size_t fixedSizeSize = 0;
 
 static size_t fixedSize(int i)
 {
-  return(fixedSizeSize);
+  return fixedSizeSize;
   (void)i;
 }
 
@@ -108,5 +108,5 @@ int main(void)
 
   mps_space_destroy(space);
 
-  return(0);
+  return 0;
 }
