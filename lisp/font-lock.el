@@ -325,7 +325,7 @@ This is normally set via `font-lock-defaults'.")
 
 ;;;###autoload
 (defun font-lock-mode (&optional arg)
-  "[pretest] Toggle Font Lock mode.
+  "Toggle Font Lock mode.
 With arg, turn Font Lock mode on if and only if arg is positive.
 
 When Font Lock mode is enabled, text is fontified as you type it:
