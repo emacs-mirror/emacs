@@ -2530,6 +2530,15 @@ Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
 
+(defun line-move-invisible (pos)
+  "Return non-nil if the character after POS is currently invisible."
+  (let ((prop
+	 (get-char-property pos 'invisible)))
+    (if (eq buffer-invisibility-spec t)
+	prop
+      (or (memq prop buffer-invisibility-spec)
+	  (assq prop buffer-invisibility-spec)))))
+
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
 (defun line-move (arg)
@@ -2563,88 +2572,99 @@ Outline mode sets this."
 			 (bolp)))
 		  (signal (if (< arg 0)
 			      'beginning-of-buffer
-			    'end-of-buffer)
+a			    'end-of-buffer)
 			  nil))
 	    ;; Move by arg lines, but ignore invisible ones.
 	    (while (> arg 0)
+	      ;; If the following character is currently invisible,
+	      ;; skip all characters with that same `invisible' property value.
+	      (while (and (not (eobp)) (line-move-invisible (point)))
+		(goto-char (next-char-property-change (point))))
+	      ;; Now move a line.
 	      (end-of-line)
 	      (and (zerop (vertical-motion 1))
 		   (signal 'end-of-buffer nil))
-	      ;; If the following character is currently invisible,
-	      ;; skip all characters with that same `invisible' property value.
-	      (while (and (not (eobp))
-			  (let ((prop
-				 (get-char-property (point) 'invisible)))
-			    (if (eq buffer-invisibility-spec t)
-				prop
-			      (or (memq prop buffer-invisibility-spec)
-				  (assq prop buffer-invisibility-spec)))))
-		(if (get-text-property (point) 'invisible)
-		    (goto-char (or (next-single-property-change (point) 'invisible)
-				   (point-max)))
-		  (goto-char (next-overlay-change (point)))))
 	      (setq arg (1- arg)))
 	    (while (< arg 0)
 	      (beginning-of-line)
 	      (and (zerop (vertical-motion -1))
 		   (signal 'beginning-of-buffer nil))
-	      (while (and (not (bobp))
-			  (let ((prop
-				 (get-char-property (1- (point)) 'invisible)))
-			    (if (eq buffer-invisibility-spec t)
-				prop
-			      (or (memq prop buffer-invisibility-spec)
-				  (assq prop buffer-invisibility-spec)))))
-		(if (get-text-property (1- (point)) 'invisible)
-		    (goto-char (or (previous-single-property-change (point) 'invisible)
-				   (point-min)))
-		  (goto-char (previous-overlay-change (point)))))
-	      (setq arg (1+ arg))))
-	  (let ((buffer-invisibility-spec nil))
-	    (move-to-column (or goal-column temporary-goal-column))))
-      (setq new (point))
-      ;; If we are moving into some intangible text,
-      ;; look for following text on the same line which isn't intangible
-      ;; and move there.
-      (setq line-end (save-excursion (end-of-line) (point)))
-      (setq line-beg (save-excursion (beginning-of-line) (point)))
-      (let ((after (and (< new (point-max))
-			(get-char-property new 'intangible)))
-	    (before (and (> new (point-min))
-			 (get-char-property (1- new) 'intangible))))
-	(when (and before (eq before after)
-		   (not (bolp)))
-	  (goto-char (point-min))
-	  (let ((inhibit-point-motion-hooks nil))
-	    (goto-char new))
-	  (if (<= new line-end)
-	      (setq new (point)))))
-      ;; NEW is where we want to move to.
-      ;; LINE-BEG and LINE-END are the beginning and end of the line.
-      ;; Move there in just one step, from our starting position,
-      ;; with intangibility and point-motion hooks enabled this time.
-      (goto-char opoint)
-      (setq inhibit-point-motion-hooks nil)
-      (goto-char
-       (constrain-to-field new opoint nil t 'inhibit-line-move-field-capture))
-      ;; If intangibility processing moved us to a different line,
-      ;; readjust the horizontal position within the line we ended up at.
-      (when (or (< (point) line-beg) (> (point) line-end))
-	(setq new (point))
-	(setq inhibit-point-motion-hooks t)
-	(setq line-end (save-excursion (end-of-line) (point)))
-	(beginning-of-line)
-	(setq line-beg (point))
-	(let ((buffer-invisibility-spec nil))
-	  (move-to-column (or goal-column temporary-goal-column)))
-	(if (<= (point) line-end)
-	    (setq new (point)))
-	(goto-char (point-min))
-	(setq inhibit-point-motion-hooks nil)
-	(goto-char
-	 (constrain-to-field new opoint nil t
-			     'inhibit-line-move-field-capture)))))
+	      (setq arg (1+ arg))
+	      (while (and (not (bobp)) (line-move-invisible (1- (point))))
+		(goto-char (previous-char-property-change (point)))))))
+
+      (line-move-finish (or goal-column temporary-goal-column) opoint)))
   nil)
+
+(defun line-move-finish (column opoint)
+  (let ((repeat t))
+    (while repeat
+      ;; Set REPEAT to t to repeat the whole thing.
+      (setq repeat nil)
+
+      ;; Move to the desired column.
+      (line-move-to-column column)
+
+      (let ((new (point))
+	    (line-beg (save-excursion (beginning-of-line) (point)))
+	    (line-end (save-excursion (end-of-line) (point))))
+
+	;; Process intangibility within a line.
+	;; Move to the chosen destination position from above,
+	;; with intangibility processing enabled.
+
+	(goto-char (point-min))
+	(let ((inhibit-point-motion-hooks nil))
+	  (goto-char new)
+
+	  ;; If intangibility moves us to a different (later) place
+	  ;; in the same line, use that as the destination.
+	  (if (<= (point) line-end)
+	      (setq new (point))))
+
+	;; Now move to the updated destination, processing fields
+	;; as well as intangibility.
+	(goto-char opoint)
+	(let ((inhibit-point-motion-hooks nil))
+	  (goto-char
+	   (constrain-to-field new opoint nil t
+			       'inhibit-line-move-field-capture)))
+
+	;; If intangibility processing moved us to a different line,
+	;; retry everything within that new line.
+	(when (or (< (point) line-beg) (> (point) line-end))
+	  ;; Repeat the intangibility and field processing.
+	  (setq repeat t))))))
+
+(defun line-move-to-column (col)
+  "Try to find column COL, considering invisibility.
+This function works only in certain cases,
+because what we really need is for `move-to-column'
+and `current-column' to be able to ignore invisible text."
+  (move-to-column col)
+
+  (when (and line-move-ignore-invisible
+	     (not (bolp)) (line-move-invisible (1- (point))))
+    (let ((normal-location (point))
+	  (normal-column (current-column)))
+      ;; If the following character is currently invisible,
+      ;; skip all characters with that same `invisible' property value.
+      (while (and (not (eobp))
+		  (line-move-invisible (point)))
+	(goto-char (next-char-property-change (point))))
+      ;; Have we advanced to a larger column position?
+      (if (> (current-column) normal-column)
+	  ;; We have made some progress towards the desired column.
+	  ;; See if we can make any further progress.
+	  (line-move-to-column (+ (current-column) (- col normal-column)))
+	;; Otherwise, go to the place we originally found
+	;; and move back over invisible text.
+	;; that will get us to the same place on the screen
+	;; but with a more reasonable buffer position.
+	(goto-char normal-location)
+	(let ((line-beg (save-excursion (beginning-of-line) (point))))
+	  (while (and (not (bolp)) (line-move-invisible (1- (point))))
+	    (goto-char (previous-char-property-change (point) line-beg))))))))
 
 ;;; Many people have said they rarely use this feature, and often type
 ;;; it by accident.  Maybe it shouldn't even be on a key.
