@@ -1,3 +1,8 @@
+2004-10-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Add gbk.
+	(charset-script-alist): Add chinese-gbk.
+
 2004-10-04  Kenichi Handa  <handa@m17n.org>
 
 	* language/chinese.el (chinese-gbk): Include ascii in
