@@ -850,14 +850,11 @@ See also the function `substitute-in-file-name'.")
 	  /* "//" anywhere isn't necessarily hairy; we just start afresh
 	     with the second slash.  */
 	  if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
-#ifdef APOLLO
-	      /* // at start of filename is meaningful on Apollo system */
+#if defined (APOLLO) || defined (WINDOWSNT)
+	      /* // at start of filename is meaningful on Apollo 
+		 and WindowsNT systems */
 	      && nm != p
-#endif /* APOLLO */
-#ifdef WINDOWSNT
-	      /* \\ or // at the start of a pathname is meaningful on NT.  */
-	      && nm != p
-#endif /* WINDOWSNT */
+#endif /* APOLLO || WINDOWSNT */
 	      )
 	    nm = p + 1;
 
@@ -1139,20 +1136,12 @@ See also the function `substitute-in-file-name'.")
 	{
 	  *o++ = *p++;
 	}
-      else if (
-#ifdef WINDOWSNT
-	       (!strncmp (p, "\\\\", 2) || !strncmp (p, "//", 2))
-#else  /* not WINDOWSNT */
-	       !strncmp (p, "//", 2)
-#endif /* not WINDOWSNT */
-#ifdef APOLLO
-	       /* // at start of filename is meaningful in Apollo system */
+      else if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
+#if defined (APOLLO) || defined (WINDOWSNT)
+	       /* // at start of filename is meaningful in Apollo 
+		  and WindowsNT systems */
 	       && o != target
 #endif /* APOLLO */
-#ifdef WINDOWSNT
-	       /* \\ at start of filename is meaningful in Windows-NT */
-	       && o != target
-#endif /* WINDOWSNT */
 	       )
 	{
 	  o = target;
@@ -1169,29 +1158,19 @@ See also the function `substitute-in-file-name'.")
 	    *o++ = *p;
 	  p += 2;
 	}
-      else if (
-#ifdef WINDOWSNT
-	       (!strncmp (p, "\\..", 3) || !strncmp (p, "/..", 3))
-#else  /* not WINDOWSNT */
-	       !strncmp (p, "/..", 3)
-#endif /* not WINDOWSNT */
+      else if (IS_DIRECTORY_SEP (p[0]) && p[1] == '.' && p[2] == '.'
 	       /* `/../' is the "superroot" on certain file systems.  */
 	       && o != target
 	       && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	{
 	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
 	    ;
-#ifdef APOLLO
-	  if (o == target + 1 && o[-1] == '/' && o[0] == '/')
+#if defined (APOLLO) || defined (WINDOWSNT)
+	  if (o == target + 1 
+	      && IS_DIRECTORY_SEP (o[-1]) && IS_DIRECTORY_SEP (o[0]))
 	    ++o;
 	  else
-#endif /* APOLLO */
-#ifdef WINDOWSNT
-	  if (o == target + 1 && (o[-1] == '/' && o[0] == '/')
-	      || (o[-1] == '\\' && o[0] == '\\'))
-	    ++o;
-	  else
-#endif /* WINDOWSNT */
+#endif /* APOLLO || WINDOWSNT */
 	  if (o == target && IS_ANY_SEP (*o))
 	    ++o;
 	  p += 3;
