@@ -943,17 +943,17 @@ Use `isearch-exit' to quit without signaling."
   ;; Utility for isearch-repeat-forward and -backward.
   (if (eq isearch-forward (eq direction 'forward))
       ;; C-s in forward or C-r in reverse.
-      (when (equal isearch-string "")
+      (if (equal isearch-string "")
 	  ;; If search string is empty, use last one.
-	(setq isearch-string
-	      (or (if isearch-regexp
-		      (car regexp-search-ring)
-		    (car search-ring))
-		  "")
-	      isearch-message
-	      (mapconcat 'isearch-text-char-description
-			 isearch-string "")
-	      isearch-case-fold-search isearch-last-case-fold-search)
+	  (setq isearch-string
+		(or (if isearch-regexp
+			(car regexp-search-ring)
+		      (car search-ring))
+		    "")
+		isearch-message
+		(mapconcat 'isearch-text-char-description
+			   isearch-string "")
+		isearch-case-fold-search isearch-last-case-fold-search)
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
