@@ -259,20 +259,16 @@ Prefix arg means just kill any existing server communications subprocess."
   (unless leave-dead
     (if server-process
 	(server-log (message "Restarting server")))
-    (let ((umask (default-file-modes)))
-      (unwind-protect
-	  (progn
-	    (set-default-file-modes ?\700)
-	    (setq server-process
-		  (make-network-process
-		   :name "server" :family 'local :server t :noquery t
-		   :service server-socket-name
-		   :sentinel 'server-sentinel :filter 'server-process-filter
-		   ;; We must receive file names without being decoded.
-		   ;; Those are decoded by server-process-filter according
-		   ;; to file-name-coding-system.
-		   :coding 'raw-text)))
-	(set-default-file-modes umask)))))
+    (letf (((default-file-modes) ?\700))
+      (setq server-process
+	    (make-network-process
+	     :name "server" :family 'local :server t :noquery t
+	     :service server-socket-name
+	     :sentinel 'server-sentinel :filter 'server-process-filter
+	     ;; We must receive file names without being decoded.
+	     ;; Those are decoded by server-process-filter according
+	     ;; to file-name-coding-system.
+	     :coding 'raw-text)))))
 
 ;;;###autoload
 (define-minor-mode server-mode
