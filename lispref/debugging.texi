@@ -316,6 +316,10 @@ invocation of a function.)  The frame whose line point is on is
 considered the @dfn{current frame}.  Some of the debugger commands
 operate on the current frame.
 
+  If a function name is underlined, that means the debugger knows
+where its source code is located.  You can click @kbd{Mouse-2} on that
+name, or move to it and type @key{RET}, to visit the source code.
+
   The debugger itself must be run byte-compiled, since it makes
 assumptions about how many stack frames are used for the debugger
 itself.  These assumptions are false if the debugger is running
@@ -327,18 +331,15 @@ interpreted.
 @subsection Debugger Commands
 @cindex debugger command list
 
-  Inside the debugger (in Debugger mode), these special commands are
-available in addition to the usual cursor motion commands.  (Keep in
-mind that all the usual facilities of Emacs, such as switching windows
-or buffers, are still available.)
-
-  The most important use of debugger commands is for stepping through
-code, so that you can see how control flows.  The debugger can step
-through the control structures of an interpreted function, but cannot do
-so in a byte-compiled function.  If you would like to step through a
-byte-compiled function, replace it with an interpreted definition of the
-same function.  (To do this, visit the source for the function and type
-@kbd{C-M-x} on its definition.)
+  The debugger buffer (in Debugger mode) provides special commands in
+addition to the usual Emacs commands.  The most important use of
+debugger commands is for stepping through code, so that you can see
+how control flows.  The debugger can step through the control
+structures of an interpreted function, but cannot do so in a
+byte-compiled function.  If you would like to step through a
+byte-compiled function, replace it with an interpreted definition of
+the same function.  (To do this, visit the source for the function and
+type @kbd{C-M-x} on its definition.)
 
   Here is a list of Debugger mode commands:
 
