@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell.
 
-;; Copyright (C) 1988, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Maintainer: Simon Marshall <simon@gnu.ai.mit.edu>
@@ -114,7 +114,7 @@ This variable is used to initialise `comint-prompt-regexp' in the
 shell buffer.
 
 The pattern should probably not match more than one line.  If it does,
-shell-mode may become confused trying to distinguish prompt from input
+Shell mode may become confused trying to distinguish prompt from input
 on lines which don't start with a prompt.
 
 This is a fine thing to set in your `.emacs' file.")
@@ -341,7 +341,9 @@ buffer."
 	    (equal (file-truename comint-input-ring-file-name) "/dev/null"))
 	(setq comint-input-ring-file-name nil))
     (setq shell-dirstack-query
-	  (if (string-match "^k?sh$" shell) "pwd" "dirs")))
+	  (cond ((string-equal shell "sh") "pwd")
+		((string-equal shell "ksh") "echo $PWD ~-")
+		(t "dirs"))))
   (run-hooks 'shell-mode-hook)
   (comint-read-input-ring t))
 
@@ -516,8 +518,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		 (shell-dirstack
 		  (let ((old default-directory))
 		    (shell-cd (car shell-dirstack))
-		    (setq shell-dirstack
-			  (cons old (cdr shell-dirstack)))
+		    (setq shell-dirstack (cons old (cdr shell-dirstack)))
 		    (shell-dirstack-message)))
 		 (t
 		  (message "Directory stack empty."))))
@@ -617,7 +618,8 @@ command again."
       (let ((ds (nreverse ds)))
 	(condition-case nil
 	    (progn (shell-cd (car ds))
-		   (setq shell-dirstack (cdr ds))
+		   (setq shell-dirstack (cdr ds)
+			 shell-last-dir (car shell-dirstack))
 		   (shell-dirstack-message))
 	  (error (message "Couldn't cd.")))))))
 
