@@ -9787,7 +9787,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       && (!on
 	  || w->phys_cursor.x != x
 	  || w->phys_cursor.y != y
-	  || new_cursor_type != w->phys_cursor_type)
+	  || new_cursor_type != w->phys_cursor_type
 	  || (new_cursor_type == BAR_CURSOR
 	      && new_cursor_width != w->phys_cursor_width)))
     x_erase_phys_cursor (w);
