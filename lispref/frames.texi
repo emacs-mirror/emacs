@@ -56,7 +56,7 @@ The frame is displayed on an MS-DOS terminal.
 * Input Focus::			Specifying the selected frame.
 * Visibility of Frames::	Frames may be visible or invisible, or icons.
 * Raising and Lowering::	Raising a frame makes it hide other windows;
-				  lowering it makes the others hide them.
+				  lowering it makes the others hide it.
 * Frame Configurations::	Saving the state of all frames.
 * Mouse Tracking::		Getting events that say when the mouse moves.
 * Mouse Position::		Asking where the mouse is, or moving it.
@@ -212,9 +212,10 @@ of @var{frame}.  If @var{frame} is @code{nil}, it returns the
 selected  frame's parameter.
 @end defun
 
-@defun frame-parameters frame
+@defun frame-parameters &optional frame
 The function @code{frame-parameters} returns an alist listing all the
-parameters of @var{frame} and their values.
+parameters of @var{frame} and their values.  If @var{frame} is
+@code{nil} or omitted, this returns the selected frame's parameters
 @end defun
 
 @defun modify-frame-parameters frame alist
@@ -222,7 +223,8 @@ This function alters the parameters of frame @var{frame} based on the
 elements of @var{alist}.  Each element of @var{alist} has the form
 @code{(@var{parm} . @var{value})}, where @var{parm} is a symbol naming a
 parameter.  If you don't mention a parameter in @var{alist}, its value
-doesn't change.
+doesn't change.  If @var{frame} is @code{nil}, it defaults to the selected
+frame.
 @end defun
 
 @defun modify-all-frames-parameters alist
@@ -505,9 +507,8 @@ Display a horizontal bar @var{width} pixels high.
 
 @vindex cursor-type
 The buffer-local variable @code{cursor-type} overrides the value of
-the @code{cursor-type} frame parameter, and can in addition have
-values @code{t} (use the cursor specified for the frame) and
-@code{nil} (don't display a cursor).
+the @code{cursor-type} frame parameter, but if it is @code{t}, that
+means to use the cursor specified for the frame.
 
 @item border-width
 The width in pixels of the window border.
@@ -542,7 +543,7 @@ iconified.  @xref{Visibility of Frames}.
 @item menu-bar-lines
 The number of lines to allocate at the top of the frame for a menu bar.
 The default is 1.  @xref{Menu Bar}.  (In Emacs versions that use the X
-toolkit, there is only one menu bar line; all that matters about the
+toolkit or GTK, there is only one menu bar line; all that matters about the
 number you specify is whether it is greater than zero.)
 
 @item screen-gamma
@@ -566,7 +567,9 @@ results for LCD color displays.
 
 @item tool-bar-lines
 The number of lines to use for the toolbar.  A value of @code{nil} means
-don't display a tool bar.
+don't display a tool bar.  (In Emacs versions that use GTK, there is
+only one tool bar line; all that matters about the number you specify
+is whether it is greater than zero.)
 
 @item line-spacing
 Additional space put below text lines in pixels (a positive integer).
@@ -634,6 +637,12 @@ equivalent to the @code{:foreground} attribute of the
 If non-@code{nil}, the color for the background of scroll bars.  It is
 equivalent to the @code{:background} attribute of the
 @code{scroll-bar} face.
+
+@item wait-for-wm
+If non-@code{nil}, tell Xt to wait for the window manager to confirm
+geometry changes.  Some window managers, including versions of Fvwm2
+and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
+prevent hanging with those window managers.
 @end table
 
 @node Size and Position
@@ -909,8 +918,9 @@ upper left corner, down and to the right, until it reaches the window at
 the lower right corner (always the minibuffer window, if the frame has
 one), and then it moves back to the top.  @xref{Cyclic Window Ordering}.
 
-@defun frame-first-window frame
+@defun frame-first-window &optional frame
 This returns the topmost, leftmost window of frame @var{frame}.
+If omitted or @code{nil}, @var{frame} defaults to the selected frame.
 @end defun
 
 At any time, exactly one window on any frame is @dfn{selected within the
@@ -918,9 +928,9 @@ frame}.  The significance of this designation is that selecting the
 frame also selects this window.  You can get the frame's current
 selected window with @code{frame-selected-window}.
 
-@defun frame-selected-window frame
+@defun frame-selected-window  &optional frame
 This function returns the window on @var{frame} that is selected within
-@var{frame}.
+@var{frame}.  If omitted or @code{nil}, @var{frame} defaults to the selected frame.
 @end defun
 
 @defun set-frame-selected-window frame window
@@ -1026,14 +1036,14 @@ Focus events normally do their job by invoking this command.
 Don't call it for any other reason.
 @end deffn
 
-@defun redirect-frame-focus frame focus-frame
+@defun redirect-frame-focus frame &optional focus-frame
 This function redirects focus from @var{frame} to @var{focus-frame}.
 This means that @var{focus-frame} will receive subsequent keystrokes and
 events intended for @var{frame}.  After such an event, the value of
 @code{last-event-frame} will be @var{focus-frame}.  Also, switch-frame
 events specifying @var{frame} will instead select @var{focus-frame}.
 
-If @var{focus-frame} is @code{nil}, that cancels any existing
+If @var{focus-frame} is omitted or @code{nil}, that cancels any existing
 redirection for @var{frame}, which therefore once again receives its own
 events.
 
@@ -1458,9 +1468,10 @@ The argument @var{data} may also be a vector of valid non-vector
 selection values.
 
 Each possible @var{type} has its own selection value, which changes
-independently.  The usual values of @var{type} are @code{PRIMARY} and
-@code{SECONDARY}; these are symbols with upper-case names, in accord
-with X Window System conventions.  The default is @code{PRIMARY}.
+independently.  The usual values of @var{type} are @code{PRIMARY},
+@code{SECONDARY} and @code{CLIPBOARD}; these are symbols with upper-case
+names, in accord with X Window System conventions.  The default is
+@code{PRIMARY}.
 @end defun
 
 @defun x-get-selection &optional type data-type
@@ -1472,6 +1483,7 @@ clients.  It takes two optional arguments, @var{type} and
 The @var{data-type} argument specifies the form of data conversion to
 use, to convert the raw data obtained from another X client into Lisp
 data.  Meaningful values include @code{TEXT}, @code{STRING},
+@code{UTF8_STRING},
 @code{TARGETS}, @code{LENGTH}, @code{DELETE}, @code{FILE_NAME},
 @code{CHARACTER_POSITION}, @code{LINE_NUMBER}, @code{COLUMN_NUMBER},
 @code{OWNER_OS}, @code{HOST_NAME}, @code{USER}, @code{CLASS},
@@ -1481,13 +1493,14 @@ upper-case names in accord with X conventions.)  The default for
 @end defun
 
 @cindex cut buffer
-The X server also has a set of numbered @dfn{cut buffers} which can
+The X server also has a set of eight numbered @dfn{cut buffers} which can
 store text or other data being moved between applications.  Cut buffers
 are considered obsolete, but Emacs supports them for the sake of X
-clients that still use them.
+clients that still use them.  Cut buffers are numbered from 0 to 7.
 
-@defun x-get-cut-buffer n
+@defun x-get-cut-buffer &optional n
 This function returns the contents of cut buffer number @var{n}.
+If omitted @var{n} defaults to 0.
 @end defun
 
 @defun x-set-cut-buffer string &optional push
@@ -1693,7 +1706,7 @@ instead of an actual name.  The format
 
 @defun x-get-resource attribute class &optional component subclass
 The function @code{x-get-resource} retrieves a resource value from the X
-Windows defaults database.
+Window defaults database.
 
 Resources are indexed by a combination of a @dfn{key} and a @dfn{class}.
 This function searches using a key of the form
@@ -1713,6 +1726,12 @@ This variable specifies the application name that @code{x-get-resource}
 should look up.  The default value is @code{"Emacs"}.  You can examine X
 resources for application names other than ``Emacs'' by binding this
 variable to some other string, around a call to @code{x-get-resource}.
+@end defvar
+
+@defvar x-resource-name
+This variable specifies the instance name that @code{x-get-resource}
+should look up.  The default value is the name Emacs was invoked with,
+or the value specified with the @samp{-name} or @samp{-rn} switches.
 @end defvar
 
   @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
