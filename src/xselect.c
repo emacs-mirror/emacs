@@ -2503,11 +2503,11 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
 
   XSETFRAME (frame, f);
 
-  vec = Fmake_vector (4, Qnil);
+  vec = Fmake_vector (make_number (4), Qnil);
   AREF (vec, 0) = SYMBOL_NAME (x_atom_to_symbol (FRAME_X_DISPLAY (f),
                                                  event->message_type));
   AREF (vec, 1) = frame;
-  AREF (vec, 2) = XFASTINT (event->format);
+  AREF (vec, 2) = make_number (event->format);
   AREF (vec, 3) = x_property_data_to_lisp (f,
                                            event->data.b,
                                            event->message_type,

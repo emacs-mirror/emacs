@@ -3513,12 +3513,12 @@ handle_single_display_prop (it, prop, object, position,
 
       if (EQ (XCAR (prop), Qleft_fringe))
 	{
-	  it->left_user_fringe_bitmap = value;
+	  it->left_user_fringe_bitmap = XINT (value);
 	  it->left_user_fringe_face_id = face_id;
 	}
       else
 	{
-	  it->right_user_fringe_bitmap = value;
+	  it->right_user_fringe_bitmap = XINT (value);
 	  it->right_user_fringe_face_id = face_id;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */

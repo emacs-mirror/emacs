@@ -1165,7 +1165,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
   if (NILP (which))
     {
       if (max_used_fringe_bitmap < MAX_FRINGE_BITMAPS)
-	n = make_number (max_used_fringe_bitmap++);
+	n = max_used_fringe_bitmap++;
       else
 	{
 	  for (n = MAX_STANDARD_FRINGE_BITMAPS;
