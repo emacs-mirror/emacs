@@ -800,7 +800,7 @@ extern void set_buffer_temp P_ ((struct buffer *));
 extern void record_buffer P_ ((Lisp_Object));
 extern void buffer_slot_type_mismatch P_ ((int));
 extern void fix_overlays_before P_ ((struct buffer *, int, int));
-
+extern void mmap_set_vars P_ ((int));
 
 EXFUN (Fbuffer_name, 1);
 EXFUN (Fget_file_buffer, 1);
