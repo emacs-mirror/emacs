@@ -1151,48 +1151,37 @@ key (or menu-item)"))
 
 ;;; Set up a menu bar menu for the minibuffer.
 
-(mapcar
- (function
-  (lambda (map)
-    (define-key map [menu-bar minibuf]
-      (cons "Minibuf" (make-sparse-keymap "Minibuf")))))
- (list minibuffer-local-ns-map
-       minibuffer-local-must-match-map
-       minibuffer-local-isearch-map
-       minibuffer-local-map
-       minibuffer-local-completion-map))
+(dolist (map (list minibuffer-local-ns-map
+		   minibuffer-local-must-match-map
+		   minibuffer-local-isearch-map
+		   minibuffer-local-map
+		   minibuffer-local-completion-map))
+  (define-key map [menu-bar minibuf]
+    (cons "Minibuf" (make-sparse-keymap "Minibuf"))))
 
-(mapcar
- (function
-  (lambda (map)
-    (define-key map [menu-bar minibuf ?\?]
-      (list 'menu-item "List Completions" 'minibuffer-completion-help
-	    :help "Display all possible completions"))
-    (define-key map [menu-bar minibuf space]
-      (list 'menu-item "Complete Word" 'minibuffer-complete-word
-	    :help "Complete at most one word"))
-    (define-key map [menu-bar minibuf tab]
-      (list 'menu-item "Complete" 'minibuffer-complete
-	    :help "Complete as far as possible"))
-    ))
- (list minibuffer-local-must-match-map
-       minibuffer-local-completion-map))
+(dolist (map (list minibuffer-local-must-match-map
+		   minibuffer-local-completion-map))
+  (define-key map [menu-bar minibuf ?\?]
+    (list 'menu-item "List Completions" 'minibuffer-completion-help
+	  :help "Display all possible completions"))
+  (define-key map [menu-bar minibuf space]
+    (list 'menu-item "Complete Word" 'minibuffer-complete-word
+	  :help "Complete at most one word"))
+  (define-key map [menu-bar minibuf tab]
+    (list 'menu-item "Complete" 'minibuffer-complete
+	  :help "Complete as far as possible")))
 
-(mapcar
- (function
-  (lambda (map)
-    (define-key map [menu-bar minibuf quit]
-      (list 'menu-item "Quit" 'keyboard-escape-quit
-	    :help "Abort input and exit minibuffer"))
-    (define-key map [menu-bar minibuf return]
-      (list 'menu-item "Enter" 'exit-minibuffer
-	    :help "Terminate input and exit minibuffer"))
-    ))
- (list minibuffer-local-ns-map
-       minibuffer-local-must-match-map
-       minibuffer-local-isearch-map
-       minibuffer-local-map
-       minibuffer-local-completion-map))
+(dolist (map (list minibuffer-local-ns-map
+		   minibuffer-local-must-match-map
+		   minibuffer-local-isearch-map
+		   minibuffer-local-map
+		   minibuffer-local-completion-map))
+  (define-key map [menu-bar minibuf quit]
+    (list 'menu-item "Quit" 'keyboard-escape-quit
+	  :help "Abort input and exit minibuffer"))
+  (define-key map [menu-bar minibuf return]
+    (list 'menu-item "Enter" 'exit-minibuffer
+	  :help "Terminate input and exit minibuffer")))
 
 (defcustom menu-bar-mode nil
   "Toggle display of a menu bar on each frame.
