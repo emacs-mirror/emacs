@@ -672,6 +672,9 @@ Please convert your programs to use the variable `baud-rate' directly."
   "Make the hook HOOK local to the current buffer.
 The return value is HOOK.
 
+You never need to call this function now that `add-hook' does it for you
+if its LOCAL argument is non-nil.
+
 When a hook is local, its local and global values
 work in concert: running the hook actually runs all the hook
 functions listed in *either* the local value *or* the global value
