@@ -1,6 +1,5 @@
 ;;; viper-keym.el -- Main Viper keymaps
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -88,6 +87,11 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 
 ;; This keymap should stay empty
 (defvar vip-empty-keymap (make-sparse-keymap))
+
+;; This was the main Vi mode in old versions of VIP which may have been
+;; extensively used by VIP users. We declare it as a global var
+;; and, after .vip is loaded, we add this keymap to vip-vi-basic-map.
+(defvar vip-mode-map (make-sparse-keymap))
 
 
 ;;; Variables used by minor modes
@@ -294,7 +298,7 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 (define-key vip-vi-basic-map "t" 'vip-goto-char-forward)
 (define-key vip-vi-basic-map "u" 'vip-undo)
 (define-key vip-vi-basic-map "v" 'find-file)
-(define-key vip-vi-basic-map "\C-v" 'vip-find-file-other-frame)
+(define-key vip-vi-basic-map "\C-v" 'find-file-other-frame)
 (define-key vip-vi-basic-map "w" 'vip-forward-word)
 (define-key vip-vi-basic-map "x" 'vip-delete-char)
 (define-key vip-vi-basic-map "y" 'vip-command-argument)
@@ -428,8 +432,8 @@ Arguments: (major-mode vip-state keymap)"
     (vip-set-mode-vars-for vip-current-state)))
 
     
+;; Displays variables that control Viper's keymaps
 (defun vip-debug-keymaps ()
-  "Displays variables that control Viper's keymaps."
   (interactive)
   (with-output-to-temp-buffer " *vip-debug*"
     (princ (format "Buffer name:  %s\n\n" (buffer-name)))

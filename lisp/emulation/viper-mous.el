@@ -1,6 +1,5 @@
 ;;; viper-mous.el -- Mouse support for Viper
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +29,7 @@
 (defvar vip-frame-of-focus nil)
     
 ;; Frame that was selected before the switch-frame event.
-(defconst vip-pre-click-frame (vip-selected-frame))
+(defconst vip-current-frame-saved (selected-frame))
   
 (defvar vip-surrounding-word-function 'vip-surrounding-word
   "*Function that determines what constitutes a word for clicking events.
@@ -67,7 +66,7 @@ considered related.")
 
 ;;; Code
 
-(defun vip-multiclick-p ()
+(defsubst vip-multiclick-p ()
   (not (vip-sit-for-short vip-multiclick-timeout t)))
 	     
 (defun vip-surrounding-word (count click-count)
@@ -188,27 +187,26 @@ Click may be in another window. Current window and buffer isn't changed."
 	  (error "Click must be over a window."))
 	click-word))))
 
-(defun vip-mouse-click-frame (click)
-  "Returns window where click occurs."
-  (vip-window-frame (vip-mouse-click-window click)))
+;; Returns window where click occurs
+(defsubst vip-mouse-click-frame (click)
+  (window-frame (vip-mouse-click-window click)))
 
-(defun vip-mouse-click-window (click)
-  "Returns window where click occurs."
+;; Returns window where click occurs
+(defsubst vip-mouse-click-window (click)
   (if vip-xemacs-p
       (event-window click)
     (posn-window (event-start click))))
 
-(defun vip-mouse-click-window-buffer (click)
-  "Returns the buffer of the window where click occurs."
+;; Returns the buffer of the window where click occurs
+(defsubst vip-mouse-click-window-buffer (click)
   (window-buffer (vip-mouse-click-window click)))
 
-(defun vip-mouse-click-window-buffer-name (click)
-  "Returns the name of the buffer in the window where click occurs."
+;; Returns the name of the buffer in the window where click occurs
+(defsubst vip-mouse-click-window-buffer-name (click)
   (buffer-name (vip-mouse-click-window-buffer click)))
 
-(defun vip-mouse-click-posn (click)
-  "Returns position of a click."
-  (interactive "e")
+;; Returns position of a click
+(defsubst vip-mouse-click-posn (click)
   (if vip-xemacs-p
       (event-point click)
     (posn-point (event-start click))))
@@ -222,7 +220,7 @@ The double-click action of the same mouse button must not be bound
 See `vip-surrounding-word' for the definition of a word in this case."
   (interactive "e\nP")
   (if vip-frame-of-focus	;; to handle clicks in another frame
-      (vip-select-frame vip-frame-of-focus))
+      (select-frame vip-frame-of-focus))
       
   ;; turn arg into a number
   (cond ((numberp arg) nil)
@@ -287,7 +285,7 @@ See `vip-surrounding-word' for the details on what constitutes a word for
 this command."
   (interactive "e\nP")
   (if vip-frame-of-focus	;; to handle clicks in another frame
-      (vip-select-frame vip-frame-of-focus))
+      (select-frame vip-frame-of-focus))
   (let (click-word click-count
 	(previous-search-string vip-s-string))
     
@@ -388,7 +386,7 @@ bindings in viper.el and in the Viper manual."
   ;; pass prefix arg along to vip-mouse-click-search/insert-word
   (setq prefix-arg arg)
   (if (eq last-command 'handle-switch-frame)
-      (setq vip-frame-of-focus vip-pre-click-frame))
+      (setq vip-frame-of-focus vip-current-frame-saved))
   ;; make Emacs forget that it executed vip-mouse-catch-frame-switch
   (setq this-command last-command))
       
@@ -408,12 +406,12 @@ bindings in viper.el and in the Viper manual."
 ;; until you do something other than vip-mouse-click-* command.
 ;; In XEmacs, you have to manually select frame B (with the mouse click) in
 ;; order to shift focus to frame B.
-(defun vip-save-pre-click-frame (frame)
-  (setq last-command 'handle-switch-frame)
-  (setq vip-pre-click-frame (vip-selected-frame)))
+(defsubst vip-remember-current-frame (frame)
+  (setq last-command 'handle-switch-frame
+	vip-current-frame-saved (selected-frame)))
 
 
-(cond (window-system
+(cond ((vip-window-display-p)
        (let* ((search-key (if vip-xemacs-p [(meta button1up)] [S-mouse-1]))
 	      (search-key-catch (if vip-xemacs-p
 				    [(meta button1)] [S-down-mouse-1]))
@@ -445,11 +443,11 @@ bindings in viper.el and in the Viper manual."
 	     (global-set-key insert-key-catch   'vip-mouse-catch-frame-switch))
 	 
 	 (if vip-xemacs-p
-	     (add-hook 'mouse-leave-screen-hook
-		       'vip-save-pre-click-frame)
+	     (add-hook 'mouse-leave-frame-hook
+		       'vip-remember-current-frame)
 	   (defadvice handle-switch-frame (before vip-frame-advice activate)
 	     "Remember the selected frame before the switch-frame event." 
-	     (vip-save-pre-click-frame (vip-selected-frame))))
+	     (vip-remember-current-frame (selected-frame))))
        )))
 
 
