@@ -296,6 +296,7 @@ static int live_cons_p P_ ((struct mem_node *, void *));
 static int live_symbol_p P_ ((struct mem_node *, void *));
 static int live_float_p P_ ((struct mem_node *, void *));
 static int live_misc_p P_ ((struct mem_node *, void *));
+static void mark_maybe_object P_ ((Lisp_Object));
 static void mark_memory P_ ((void *, void *));
 static void mem_init P_ ((void));
 static struct mem_node *mem_insert P_ ((void *, void *, enum mem_type));
@@ -2823,6 +2824,86 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 #endif /* GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES */
 
 
+/* Mark OBJ if we can prove it's a Lisp_Object.  */
+
+static INLINE void
+mark_maybe_object (obj)
+     Lisp_Object obj;
+{
+  void *po = (void *) XPNTR (obj);
+  struct mem_node *m = mem_find (po);
+      
+  if (m != MEM_NIL)
+    {
+      int mark_p = 0;
+
+      switch (XGCTYPE (obj))
+	{
+	case Lisp_String:
+	  mark_p = (live_string_p (m, po)
+		    && !STRING_MARKED_P ((struct Lisp_String *) po));
+	  break;
+
+	case Lisp_Cons:
+	  mark_p = (live_cons_p (m, po)
+		    && !XMARKBIT (XCONS (obj)->car));
+	  break;
+
+	case Lisp_Symbol:
+	  mark_p = (live_symbol_p (m, po)
+		    && !XMARKBIT (XSYMBOL (obj)->plist));
+	  break;
+
+	case Lisp_Float:
+	  mark_p = (live_float_p (m, po)
+		    && !XMARKBIT (XFLOAT (obj)->type));
+	  break;
+
+	case Lisp_Vectorlike:
+	  /* Note: can't check GC_BUFFERP before we know it's a
+	     buffer because checking that dereferences the pointer
+	     PO which might point anywhere.  */
+	  if (live_vector_p (m, po))
+	    mark_p = (!GC_SUBRP (obj)
+		      && !(XVECTOR (obj)->size & ARRAY_MARK_FLAG));
+	  else if (live_buffer_p (m, po))
+	    mark_p = GC_BUFFERP (obj) && !XMARKBIT (XBUFFER (obj)->name);
+	  break;
+
+	case Lisp_Misc:
+	  if (live_misc_p (m, po))
+	    {
+	      switch (XMISCTYPE (obj))
+		{
+		case Lisp_Misc_Marker:
+		  mark_p = !XMARKBIT (XMARKER (obj)->chain);
+		  break;
+		      
+		case Lisp_Misc_Buffer_Local_Value:
+		case Lisp_Misc_Some_Buffer_Local_Value:
+		  mark_p = !XMARKBIT (XBUFFER_LOCAL_VALUE (obj)->realvalue);
+		  break;
+		      
+		case Lisp_Misc_Overlay:
+		  mark_p = !XMARKBIT (XOVERLAY (obj)->plist);
+		  break;
+		}
+	    }
+	  break;
+	}
+
+      if (mark_p)
+	{
+#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+	  if (nzombies < MAX_ZOMBIES)
+	    zombies[nzombies] = *p;
+	  ++nzombies;
+#endif
+	  mark_object (&obj);
+	}
+    }
+}
+	  
 /* Mark Lisp objects in the address range START..END.  */
 
 static void 
@@ -2843,83 +2924,90 @@ mark_memory (start, end)
       start = end;
       end = tem;
     }
-
+  
   for (p = (Lisp_Object *) start; (void *) p < end; ++p)
+    mark_maybe_object (*p);
+}
+
+
+#if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
+
+static int setjmp_tested_p, longjmps_done;
+
+#define SETJMP_WILL_LIKELY_WORK "\
+\n\
+Emacs garbage collector has been changed to use conservative stack\n\
+marking.  Emacs has determined that the method it uses to do the\n\
+marking will likely work on your system, but this isn't sure.\n\
+\n\
+If you are a system-programmer, or can get the help of a local wizard\n\
+who is, please take a look at the function mark_stack in alloc.c, and\n\
+verify that the methods used are appropriate for your system.\n\
+\n\
+Please mail the result to <gerd@gnu.org>.\n\
+"
+
+#define SETJMP_WILL_NOT_WORK "\
+\n\
+Emacs garbage collector has been changed to use conservative stack\n\
+marking.  Emacs has determined that the default method it uses to do the\n\
+marking will not work on your system.  We will need a system-dependent\n\
+solution for your system.\n\
+\n\
+Please take a look at the function mark_stack in alloc.c, and\n\
+try to find a way to make it work on your system.\n\
+Please mail the result to <gerd@gnu.org>.\n\
+"
+
+
+/* Perform a quick check if it looks like setjmp saves registers in a
+   jmp_buf.  Print a message to stderr saying so.  When this test
+   succeeds, this is _not_ a proof that setjmp is sufficient for
+   conservative stack marking.  Only the sources or a disassembly
+   can prove that.  */
+
+static void
+test_setjmp ()
+{
+  char buf[10];
+  register int x;
+  jmp_buf jbuf;
+  int result = 0;
+
+  /* Arrange for X to be put in a register.  */
+  sprintf (buf, "1");
+  x = strlen (buf);
+  x = 2 * x - 1;
+
+  setjmp (jbuf);
+  if (longjmps_done == 1)
     {
-      void *po = (void *) XPNTR (*p);
-      struct mem_node *m = mem_find (po);
-      
-      if (m != MEM_NIL)
+      /* Came here after the longjmp at the end of the function.
+
+         If x == 1, the longjmp has restored the register to its
+         value before the setjmp, and we can hope that setjmp
+         saves all such registers in the jmp_buf, although that
+	 isn't sure.
+
+         For other values of X, either something really strange is
+         taking place, or the setjmp just didn't save the register.  */
+
+      if (x == 1)
+	fprintf (stderr, SETJMP_WILL_LIKELY_WORK);
+      else
 	{
-	  int mark_p = 0;
-
-	  switch (XGCTYPE (*p))
-	    {
-	    case Lisp_String:
-	      mark_p = (live_string_p (m, po)
-			&& !STRING_MARKED_P ((struct Lisp_String *) po));
-	      break;
-
-	    case Lisp_Cons:
-	      mark_p = (live_cons_p (m, po)
-			&& !XMARKBIT (XCONS (*p)->car));
-	      break;
-
-	    case Lisp_Symbol:
-	      mark_p = (live_symbol_p (m, po)
-			&& !XMARKBIT (XSYMBOL (*p)->plist));
-	      break;
-
-	    case Lisp_Float:
-	      mark_p = (live_float_p (m, po)
-			&& !XMARKBIT (XFLOAT (*p)->type));
-	      break;
-
-	    case Lisp_Vectorlike:
-	      /* Note: can't check GC_BUFFERP before we know it's a
-		 buffer because checking that dereferences the pointer
-		 PO which might point anywhere.  */
-	      if (live_vector_p (m, po))
-		mark_p = (!GC_SUBRP (*p)
-			  && !(XVECTOR (*p)->size & ARRAY_MARK_FLAG));
-	      else if (live_buffer_p (m, po))
-		mark_p = GC_BUFFERP (*p) && !XMARKBIT (XBUFFER (*p)->name);
-	      break;
-
-	    case Lisp_Misc:
-	      if (live_misc_p (m, po))
-		{
-		  switch (XMISCTYPE (*p))
-		    {
-		    case Lisp_Misc_Marker:
-		      mark_p = !XMARKBIT (XMARKER (*p)->chain);
-		      break;
-		      
-		    case Lisp_Misc_Buffer_Local_Value:
-		    case Lisp_Misc_Some_Buffer_Local_Value:
-		      mark_p = !XMARKBIT (XBUFFER_LOCAL_VALUE (*p)->realvalue);
-		      break;
-		      
-		    case Lisp_Misc_Overlay:
-		      mark_p = !XMARKBIT (XOVERLAY (*p)->plist);
-		      break;
-		    }
-		}
-	      break;
-	    }
-
-	  if (mark_p)
-	    {
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-	      if (nzombies < MAX_ZOMBIES)
-		zombies[nzombies] = *p;
-	      ++nzombies;
-#endif
-	      mark_object (p);
-	    }
+	  fprintf (stderr, SETJMP_WILL_NOT_WORK);
+	  exit (1);
 	}
     }
+
+  ++longjmps_done;
+  x = 2;
+  if (longjmps_done == 1)
+    longjmp (jbuf, 1);
 }
+
+#endif /* not GC_SAVE_REGISTERS_ON_STACK && not GC_SETJMP_WORKS */
 
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
@@ -2956,7 +3044,51 @@ dump_zombies ()
 #endif /* GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES */
 
 
-/* Mark live Lisp objects on the C stack.  */
+/* Mark live Lisp objects on the C stack.
+
+   There are several system-dependent problems to consider when
+   porting this to new architectures:
+
+   Processor Registers
+
+   We have to mark Lisp objects in CPU registers that can hold local
+   variables or are used to pass parameters.
+
+   If GC_SAVE_REGISTERS_ON_STACK is defined, it should expand to
+   something that either saves relevant registers on the stack, or
+   calls mark_maybe_object passing it each register's contents.
+
+   If GC_SAVE_REGISTERS_ON_STACK is not defined, the current
+   implementation assumes that calling setjmp saves registers we need
+   to see in a jmp_buf which itself lies on the stack.  This doesn't
+   have to be true!  It must be verified for each system, possibly
+   by taking a look at the source code of setjmp.
+
+   Stack Layout
+
+   Architectures differ in the way their processor stack is organized.
+   For example, the stack might look like this
+
+     +----------------+
+     |  Lisp_Object   |  size = 4
+     +----------------+
+     | something else |  size = 2
+     +----------------+
+     |  Lisp_Object   |  size = 4
+     +----------------+
+     |	...	      |
+
+   In such a case, not every Lisp_Object will be aligned equally.  To
+   find all Lisp_Object on the stack it won't be sufficient to walk
+   the stack in steps of 4 bytes.  Instead, two passes will be
+   necessary, one starting at the start of the stack, and a second
+   pass starting at the start of the stack + 2.  Likewise, if the
+   minimal alignment of Lisp_Objects on the stack is 1, four passes
+   would be necessary, each one starting with one byte more offset
+   from the stack start.
+
+   The current code assumes by default that Lisp_Objects are aligned
+   equally on the stack.  */
 
 static void
 mark_stack ()
@@ -2976,15 +3108,37 @@ mark_stack ()
      pass parameters.  */
 #ifdef GC_SAVE_REGISTERS_ON_STACK
   GC_SAVE_REGISTERS_ON_STACK (end);
-#else
+#else /* not GC_SAVE_REGISTERS_ON_STACK */
+  
+#ifndef GC_SETJMP_WORKS  /* If it hasn't been checked yet that
+			    setjmp will definitely work, test it
+			    and print a message with the result
+			    of the test.  */
+  if (!setjmp_tested_p)
+    {
+      setjmp_tested_p = 1;
+      test_setjmp ();
+    }
+#endif /* GC_SETJMP_WORKS */
+  
   setjmp (j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
-#endif
+#endif /* not GC_SAVE_REGISTERS_ON_STACK */
 
   /* This assumes that the stack is a contiguous region in memory.  If
-     that's not the case, something has to be done here to iterate over
-     the stack segments.  */
+     that's not the case, something has to be done here to iterate
+     over the stack segments.  */
+#if GC_LISP_OBJECT_ALIGNMENT == 1
   mark_memory (stack_base, end);
+  mark_memory ((char *) stack_base + 1, end);
+  mark_memory ((char *) stack_base + 2, end);
+  mark_memory ((char *) stack_base + 3, end);
+#elif GC_LISP_OBJECT_ALIGNMENT == 2
+  mark_memory (stack_base, end);
+  mark_memory ((char *) stack_base + 2, end);
+#else
+  mark_memory (stack_base, end);
+#endif
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
   check_gcpros ();
@@ -4548,6 +4702,11 @@ init_alloc ()
 {
   gcprolist = 0;
   byte_stack_list = 0;
+#if GC_MARK_STACK
+#if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
+  setjmp_tested_p = longjmps_done = 0;
+#endif
+#endif
 }
 
 void
