@@ -40,8 +40,6 @@ TRES		= $(BLD)\emacs.rbj
 
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:console -entry:_start 
 
-# -debug:PARTIAL -debugtype:COFF
-
 #
 # Split up the objects into two sets so that we don't run out of
 # command line space when we link them into a library.
@@ -108,14 +106,11 @@ OBJ2 =  $(BLD)\nt.obj           \
 	$(BLD)\region-cache.obj	\
 	$(BLD)\strftime.obj
 
-LIBS =  $(TLIB1)                        \
-	$(TLIB2)			\
-	$(SYS_LIB_DIR)\setargv.obj      \
-	$(SYS_LIB_DIR)\kernel32.lib     \
-	$(SYS_LIB_DIR)\advapi32.lib     \
-	$(SYS_LIB_DIR)\user32.lib	\
-	$(SYS_LIB_DIR)\libc.lib		\
-	$(COMPAT_LIB)
+LIBS =  $(TLIB1)	\
+	$(TLIB2)	\
+	$(BASE_LIBS)	\
+	$(ADVAPI32)	\
+	user32.lib
 
 #
 # Build the executable and dump it.
@@ -126,10 +121,10 @@ all:            $(BLD) $(EMACS)
 # Headers we would preprocess if we could.
 #
 PREPARED_HEADERS = config.h paths.h
-config.h:	..\nt\config.h
-		cp ..\nt\config.h config.h
+config.h:	..\nt\$(CONFIG_H)
+		$(CP) $** $@
 paths.h:	..\nt\paths.h
-		cp ..\nt\paths.h paths.h
+		$(CP) $** $@
 
 #
 # Make sure we have the DOC file in the right place.
@@ -145,9 +140,13 @@ $(DOC):;	cd ..\lib-src
 #
 emacs:          $(EMACS)
 $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
+!if "$(OS_TYPE)" == "win95"
+		move $(BLD)\temacs.exe $(BLD)\emacs.exe
+!else
 		cd $(BLD)
 		temacs.exe -batch -l loadup dump
 		cd ..\..
+!endif
 
 #
 # The undumped executable
@@ -157,7 +156,8 @@ $(TEMACS):      $(BLD) $(TLIB1) $(TLIB2) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 
 #
-# The resource file.
+# The resource file.  NT 3.10 requires the use of cvtres; even though
+# it is not necessary on later versions, it is still ok to use it.
 #
 $(TRES):	..\nt\emacs.rc
 		$(RC) -i..\nt -Fo$(BLD)\emacs.res $**
@@ -188,7 +188,7 @@ install:        all
 #
 # Maintenance
 # 
-clean:;         - del /q *~
+clean:;         - del /q *~ *.pdb config.h
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 
@@ -196,7 +196,9 @@ clean:;         - del /q *~
 # These files are the ones that compile conditionally on CANNOT_DUMP...
 # this target is mostly used for debugging.
 #
-cleandump:;     cd $(BLD) && - del callproc.obj data.obj dispnew.obj doc.obj editfns.obj emacs.obj lread.obj process.obj sysdep.obj term.obj ntheap.obj unexnt.obj
+cleandump:;     cd $(BLD)
+		- del callproc.obj data.obj dispnew.obj doc.obj editfns.obj emacs.obj lread.obj process.obj sysdep.obj term.obj ntheap.obj unexnt.obj
+		cd ..\..
 
 
 ### DEPENDENCIES ###
