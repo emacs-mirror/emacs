@@ -1,3 +1,10 @@
+2004-04-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Fix code that
+	handles wrong-number-of-arguments in backend call.
+
+	* vc.el (vc-print-log): Likewise.
+
 2004-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-util.el (char-displayable-p): Simplified by
