@@ -349,13 +349,20 @@ Returns the compilation buffer created."
 					(window-height))))
 		 (select-window w))))
 	;; Start the compilation.
-	(let ((proc (start-process-shell-command (downcase mode-name)
-						 outbuf
-						 command)))
-	  (set-process-sentinel proc 'compilation-sentinel)
-	  (set-process-filter proc 'compilation-filter)
-	  (set-marker (process-mark proc) (point) outbuf)
-	  (setq compilation-in-progress (cons proc compilation-in-progress)))))
+	(if (fboundp 'start-process)
+	    (let ((proc (start-process-shell-command (downcase mode-name)
+						     outbuf
+						     command)))
+	      (set-process-sentinel proc 'compilation-sentinel)
+	      (set-process-filter proc 'compilation-filter)
+	      (set-marker (process-mark proc) (point) outbuf)
+	      (setq compilation-in-progress 
+		    (cons proc compilation-in-progress)))
+	  ;; No asynchronous processes available
+	  (message (format "Executing `%s'..." command))
+	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
+				      command))))
+	  (message (format "Executing `%s'...done" command)))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
