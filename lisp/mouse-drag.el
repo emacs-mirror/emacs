@@ -1,8 +1,8 @@
-;;; mouse-drag.el
-;;; Copyright (C) 1996 Free Software Foundation, Inc.
+;;; mouse-drag.el -- use mouse-2 to do a new style of scrolling
+;; Copyright (C) 1996 Free Software Foundation, Inc.
 
-;;; Author: John Heidemann <johnh@ISI.EDU>
-;;; Keywords: mouse
+;; Author: John Heidemann <johnh@ISI.EDU>
+;; Keywords: mouse
 
 ;; This file is part of GNU Emacs.
 
