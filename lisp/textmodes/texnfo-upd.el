@@ -451,9 +451,9 @@ The old menu is the menu as it appears in the texinfo file."
              ;; 
              ;; Recognize both when looking for the description.
              (concat "\\* \\("              ; so only menu entries are found
-                     (car (car new-menu-list)) "::"
+                     (regexp-quote (car (car new-menu-list))) "::"
                      "\\|"
-                     ".*: " (car (car new-menu-list)) "[.,\t\n]"
+                     ".*: " (regexp-quote (car (car new-menu-list))) "[.,\t\n]"
                      "\\)"
                      )               ; so only complete entries are found
              end-of-menu
