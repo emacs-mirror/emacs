@@ -73,15 +73,16 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	(goto-char (point-min))
 	(re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
 	;; Insert warnings for novice users.
-	(insert "This mail is sent to Free Software Foundation, ")
+	(insert "This bug report will be sent to the Free Software Foundation,\n")
 	(let ((pos (point)))
-	  (insert "NOT TO YOUR SITE MANAGERS!!")
+	  (insert " not to your local site managers!!")
 	  (put-text-property pos (point) 'face 'highlight))
 	(insert "\nPlease write in ")
 	(let ((pos (point)))
-	  (insert "ENGLISH ONLY")
+	  (insert "English")
 	  (put-text-property pos (point) 'face 'highlight))
-	(insert ", recipients are not yet fully multilingualized.\n\n")
+	(insert ", because the Emacs maintainers do not have
+translators to read other languages for them.\n\n")
 
 	(insert "In " (emacs-version) "\n")
 	(if (and system-configuration-options
@@ -171,7 +172,7 @@ Type SPC to scroll through this section and its subsections.")))
 			  (find-charset-region (point-min) (point-max)))))
       (if charsets
 	  (if (or report-emacs-bug-run-tersely
-		  (y-or-n-p "Convert Non-English letters to hexadecimal? "))
+		  (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
 	      (save-excursion
 		(goto-char (point-min))
 		(let ((enable-multibyte-characters nil)
@@ -181,12 +182,12 @@ Type SPC to scroll through this section and its subsections.")))
 		    (setq ch (preceding-char))
 		    (delete-char -1)
 		    (insert (format "=%02x" ch)))))
-	    (error "Please delete non-English chars by yourself"))))
+	    (error "Please convert non-ASCII characters to something else"))))
 
     ;; The last warning for novice users.
     (if (or report-emacs-bug-run-tersely
 	    (yes-or-no-p
-	     "Do you surely send this mail to Free Software Foundation? "))
+	     "Send this bug report to the Emacs maintainers? "))
 	;; Just send the current mail.
 	nil
       (goto-char (point-min))
@@ -197,13 +198,13 @@ Type SPC to scroll through this section and its subsections.")))
       (kill-local-variable 'mail-send-hook)
       (with-output-to-temp-buffer "*Bug Help*"
 	(princ (substitute-command-keys "\
-You invoked the command report-emacs-bug (\\[report-emacs-bug]),
-but refused to send an e-mail report to Free Software Foundation.
+You invoked the command M-x report-emacs-bug,
+but you decided not to mail the bug report to the Emacs maintainers.
 
-If you want to send the mail to someone else,
-please insert the actual e-mail address after \"To: \",
-and send the mail again by \\[mail-send-and-exit].")))
-      (error "Report-emacs-bug was cancelled, please read *Bug Help* buffer"))
+If you want to mail it to someone else instead,
+please insert the proper e-mail address after \"To: \",
+and send the mail again using \\[mail-send-and-exit].")))
+      (error "M-x report-emacs-bug was cancelled, please read *Bug Help* buffer"))
     ))
 
 (provide 'emacsbug)
