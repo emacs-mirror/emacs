@@ -588,6 +588,7 @@ temp_output_buffer_setup (bufname)
 
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 
+  Fkill_all_local_variables ();
   current_buffer->directory = old->directory;
   current_buffer->read_only = Qnil;
   current_buffer->filename = Qnil;
