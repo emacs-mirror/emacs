@@ -44,6 +44,8 @@ extern char my_begdata[];
 extern char my_edata[];
 extern char my_begbss[];
 extern char my_endbss[];
+extern char *my_begbss_static;
+extern char *my_endbss_static;
 
 #include "w32heap.h"
 
@@ -332,6 +334,7 @@ close_file_data (file_data *p_file)
 
 /* Routines to manipulate NT executable file sections.  */
 
+#ifdef SEPARATE_BSS_SECTION
 static void
 get_bss_info_from_map_file (file_data *p_infile, PUCHAR *p_bss_start, 
 			    DWORD *p_bss_size)
@@ -370,6 +373,7 @@ get_bss_info_from_map_file (file_data *p_infile, PUCHAR *p_bss_start,
   *p_bss_start = (PUCHAR) start;
   *p_bss_size = (DWORD) len;
 }
+#endif
 
 unsigned long
 get_section_size (PIMAGE_SECTION_HEADER p_section)
@@ -517,8 +521,20 @@ get_section_info (file_data *p_infile)
 	+ data_section->VirtualAddress;
     }
 #else
-  bss_start = my_begbss;
-  bss_size = my_endbss - bss_start;
+/* As noted in lastfile.c, the Alpha (but not the Intel) MSVC linker
+   globally segregates all static and public bss data (ie. across all
+   linked modules, not just per module), so we must take both static and
+   public bss areas into account to determine the true extent of the bss
+   area used by Emacs.
+
+   To be strictly correct, we should dump the static and public bss
+   areas used by Emacs separately if non-overlapping (since otherwise we
+   are dumping bss data belonging to system libraries, eg. the static
+   bss system data on the Alpha).  However, in practice this doesn't
+   seem to matter, since presumably the system libraries always
+   reinitialize their bss variables.  */
+  bss_start = min (my_begbss, my_begbss_static);
+  bss_size = max (my_endbss, my_endbss_static) - bss_start;
 #endif
 }
 
@@ -596,6 +612,43 @@ dump_bss_and_heap (file_data *p_infile, file_data *p_outfile)
 
 /* Reload and remap routines.  */
 
+void
+w32_fatal_reload_error (char *step)
+{
+  int error = GetLastError ();
+  char *buffer = alloca (4096);
+
+  sprintf (buffer, 
+	   "Emacs failed to load its dumped heap back into its address space.\n"
+	   "The error occurred during the following step:\n\n"
+	   "%s\n\n"
+	   "GetLastError = %d\n\n"
+	   "Heap start:  0x%08x\n"
+	   "Heap commit:  0x%08x\n"
+	   "Heap end:  0x%08x\n\n"
+	   "This error typically happens when the system loads a DLL into\n"
+	   "the middle of Emacs' address space, preventing Emacs from\n"
+	   "loading its heap there.  If you think that you have installed\n"
+	   "Emacs correctly, then you have two options:\n\n"
+	   "1) You can dump Emacs yourself.  By doing this, you ensure that\n"
+	   "Emacs' heap fits around the DLLs in your system.  To dump Emacs,\n"
+	   "download the emacs-(version)-undump-(arch) distribution file\n"
+	   "from the site where you downloaded the executable distribution.\n\n"
+	   "2) You can build Emacs from source.  This is just another way\n"
+	   "to dump Emacs on your system.",
+	   step, 
+	   error,
+	   get_heap_start (), 
+	   get_heap_start () + get_committed_heap_size (),
+	   get_heap_end ());
+
+  MessageBox (NULL,
+	      buffer,
+	      "Emacs Abort Dialog",
+	      MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
+
+  exit (-1);
+}
 
 /* Load the dumped .bss section into the .bss area of our address space.  */
 void
@@ -609,27 +662,17 @@ read_in_bss (char *filename)
   file = CreateFile (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
 		     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (file == INVALID_HANDLE_VALUE) 
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Opening Emacs executable file for .bss.");
 
   /* Seek to where the .bss section is tucked away after the heap...  */
   index = heap_index_in_executable + get_committed_heap_size ();
   if (SetFilePointer (file, index, NULL, FILE_BEGIN) == 0xFFFFFFFF) 
-    {
-      i = GetLastError ();
-      exit (1);
-    }
-
+    w32_fatal_reload_error ("Seeking to the saved .bss section.");
   
   /* Ok, read in the saved .bss section and initialize all 
      uninitialized variables.  */
   if (!ReadFile (file, bss_start, bss_size, &n_read, NULL))
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Reading the saved .bss section.");
 
   CloseHandle (file);
 }
@@ -647,19 +690,13 @@ map_in_heap (char *filename)
   file = CreateFile (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
 		     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (file == INVALID_HANDLE_VALUE) 
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Opening Emacs executable file for heap.");
   
   size = GetFileSize (file, &upper_size);
   file_mapping = CreateFileMapping (file, NULL, PAGE_WRITECOPY, 
 				    0, size, NULL);
   if (!file_mapping) 
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Creating file mapping to heap in executable.");
     
   size = get_committed_heap_size ();
   file_base = MapViewOfFileEx (file_mapping, FILE_MAP_COPY, 0, 
@@ -677,26 +714,17 @@ map_in_heap (char *filename)
 
   if (VirtualAlloc (get_heap_start (), get_committed_heap_size (),
 		    MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE) == NULL)
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Allocating heap address space.");
 
   /* Seek to the location of the heap data in the executable.  */
   i = heap_index_in_executable;
   if (SetFilePointer (file, i, NULL, FILE_BEGIN) == 0xFFFFFFFF)
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Seeking to saved heap in executable file.");
 
   /* Read in the data.  */
   if (!ReadFile (file, get_heap_start (), 
 		 get_committed_heap_size (), &n_read, NULL))
-    {
-      i = GetLastError ();
-      exit (1);
-    }
+    w32_fatal_reload_error ("Reading saved heap from executable file.");
 
   CloseHandle (file);
 }
