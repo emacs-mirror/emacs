@@ -946,8 +946,7 @@ See Info node `(emacs-mime)Composing'.
 			"attachment")))
 	 (disposition (completing-read "Disposition: "
 				       '(("attachment") ("inline") (""))
-				       nil
-				       nil)))
+				       nil t)))
     (if (not (equal disposition ""))
 	disposition
       default)))

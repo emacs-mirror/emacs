@@ -37,25 +37,56 @@
 
 (require 'mail-utils)
 
-(defvar pop3-maildrop (or (user-login-name) (getenv "LOGNAME") (getenv "USER") nil)
-  "*POP3 maildrop.")
-(defvar pop3-mailhost (or (getenv "MAILHOST") nil)
-  "*POP3 mailhost.")
-(defvar pop3-port 110
-  "*POP3 port.")
+(defgroup pop3 nil
+  "Post Office Protocol"
+  :group 'mail
+  :group 'mail-source)
 
-(defvar pop3-password-required t
-  "*Non-nil if a password is required when connecting to POP server.")
+(defcustom pop3-maildrop (or (user-login-name)
+			     (getenv "LOGNAME")
+			     (getenv "USER"))
+  "*POP3 maildrop."
+  :version "21.4" ;; Oort Gnus
+  :type 'string
+  :group 'pop3)
+
+(defcustom pop3-mailhost (or (getenv "MAILHOST") ;; nil -> mismatch
+			     "pop3")
+  "*POP3 mailhost."
+  :version "21.4" ;; Oort Gnus
+  :type 'string
+  :group 'pop3)
+
+(defcustom pop3-port 110
+  "*POP3 port."
+  :version "21.4" ;; Oort Gnus
+  :type 'number
+  :group 'pop3)
+
+(defcustom pop3-password-required t
+  "*Non-nil if a password is required when connecting to POP server."
+  :version "21.4" ;; Oort Gnus
+  :type 'boolean
+  :group 'pop3)
+
+;; Should this be customizable?
 (defvar pop3-password nil
   "*Password to use when connecting to POP server.")
 
-(defvar pop3-authentication-scheme 'pass
+(defcustom pop3-authentication-scheme 'pass
   "*POP3 authentication scheme.
 Defaults to 'pass, for the standard USER/PASS authentication.  Other valid
-values are 'apop.")
+values are 'apop."
+  :version "21.4" ;; Oort Gnus
+  :type '(choice (const :tag "USER/PASS" pass)
+		 (const :tag "APOP" apop))
+  :group 'pop3)
 
-(defvar pop3-leave-mail-on-server nil
-  "*Non-nil if the mail is to be left on the POP server after fetching.")
+(defcustom pop3-leave-mail-on-server nil
+  "*Non-nil if the mail is to be left on the POP server after fetching."
+  :version "21.4" ;; Oort Gnus
+  :type 'boolean
+  :group 'pop3)
 
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
@@ -71,8 +102,7 @@ Used for APOP authentication.")
 	 (crashbuf (get-buffer-create " *pop3-retr*"))
 	 (n 1)
 	 message-count
-	 (pop3-password pop3-password)
-	 )
+	 (pop3-password pop3-password))
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
     ;; query for password
@@ -114,8 +144,7 @@ Used for APOP authentication.")
   "Return the number of messages in the maildrop."
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
 	 message-count
-	 (pop3-password pop3-password)
-	 )
+	 (pop3-password pop3-password))
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
     ;; query for password
@@ -159,15 +188,14 @@ Returns the process associated with the connection."
     (insert output)))
 
 (defun pop3-send-command (process command)
-    (set-buffer (process-buffer process))
-    (goto-char (point-max))
-;;    (if (= (aref command 0) ?P)
-;;	(insert "PASS <omitted>\r\n")
-;;      (insert command "\r\n"))
-    (setq pop3-read-point (point))
-    (goto-char (point-max))
-    (process-send-string process (concat command "\r\n"))
-    )
+  (set-buffer (process-buffer process))
+  (goto-char (point-max))
+  ;; (if (= (aref command 0) ?P)
+  ;;     (insert "PASS <omitted>\r\n")
+  ;;   (insert command "\r\n"))
+  (setq pop3-read-point (point))
+  (goto-char (point-max))
+  (process-send-string process (concat command "\r\n")))
 
 (defun pop3-read-response (process &optional return)
   "Read the response from the server.
@@ -355,27 +383,15 @@ This function currently does nothing.")
       (while (not (re-search-forward "^\\.\r\n" nil t))
 	;; Fixme: Shouldn't depend on nnheader.
 	(nnheader-accept-process-output process)
-	;; bill@att.com ... to save wear and tear on the heap
-	;; uncommented because the condensed version below is a problem for
-	;; some.
-	(if (> (buffer-size)  20000) (sleep-for 1))
-	(if (> (buffer-size)  50000) (sleep-for 1))
-	(if (> (buffer-size) 100000) (sleep-for 1))
-	(if (> (buffer-size) 200000) (sleep-for 1))
-	(if (> (buffer-size) 500000) (sleep-for 1))
-	;; bill@att.com
-	;; condensed into:
-	;; (sometimes causes problems for really large messages.)
-;	(if (> (buffer-size) 20000) (sleep-for (/ (buffer-size) 20000)))
 	(goto-char start))
       (setq pop3-read-point (point-marker))
-;; this code does not seem to work for some POP servers...
-;; and I cannot figure out why not.
-;      (goto-char (match-beginning 0))
-;      (backward-char 2)
-;      (if (not (looking-at "\r\n"))
-;	  (insert "\r\n"))
-;      (re-search-forward "\\.\r\n")
+      ;; this code does not seem to work for some POP servers...
+      ;; and I cannot figure out why not.
+      ;;      (goto-char (match-beginning 0))
+      ;;      (backward-char 2)
+      ;;      (if (not (looking-at "\r\n"))
+      ;;	  (insert "\r\n"))
+      ;;      (re-search-forward "\\.\r\n")
       (goto-char (match-beginning 0))
       (setq end (point-marker))
       (pop3-clean-region start end)

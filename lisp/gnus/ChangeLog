@@ -1,3 +1,26 @@
+2004-10-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el: Mention that multibyte characters don't work as marks.
+
+	* gnus.el (message-y-or-n-p): Autoload.
+
+	* pop3.el (pop3-maildrop, pop3-mailhost, pop3-port)
+	(pop3-password-required, pop3-authentication-scheme)
+	(pop3-leave-mail-on-server): Made customizable.
+	(pop3): New custom group.
+	(pop3-retr): Remove `sleep-for' statements.
+	Suggested by Dave Love <fx@gnu.org>.
+
+	* nnheader.el (nnheader-read-timeout): Explain 1.0 timeout for
+	Windows/DOS.
+
+	* imap.el (imap-parse-flag-list, imap-parse-body-extension)
+	(imap-parse-body): Fix incorrect use of `assert'.  Suggested by
+	Dave Love <fx@gnu.org>.
+
+	* mml.el (mml-minibuffer-read-disposition): Require match.
+	Suggested by Dave Love <fx@gnu.org>.
+
 2004-10-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-group.el (gnus-update-group-mark-positions):
