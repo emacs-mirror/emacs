@@ -1693,7 +1693,7 @@ verify_interval_modification (buf, start, end)
 		      if (TMEM (Qread_only, tem)
 			  || (NILP (Fplist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
-			error ("Attempt to insert within read-only text");
+			Fsignal (Qtext_read_only, Qnil);
 		    }
 		}
 
@@ -1713,7 +1713,7 @@ verify_interval_modification (buf, start, end)
 		      if (! TMEM (Qread_only, tem)
 			  && (! NILP (Fplist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
-			error ("Attempt to insert within read-only text");
+			Fsignal (Qtext_read_only, Qnil);
 		    }
 		}
 	    }
@@ -1732,13 +1732,13 @@ verify_interval_modification (buf, start, end)
 		  if (TMEM (Qread_only, tem)
 		      || (NILP (Fplist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
-		    error ("Attempt to insert within read-only text");
+		    Fsignal (Qtext_read_only, Qnil);
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
 		      && (! NILP (Fplist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
-		    error ("Attempt to insert within read-only text");
+		    Fsignal (Qtext_read_only, Qnil);
 		}
 	    }
 	}
@@ -1760,7 +1760,7 @@ verify_interval_modification (buf, start, end)
       do
 	{
 	  if (! INTERVAL_WRITABLE_P (i))
-	    error ("Attempt to modify read-only text");
+	    Fsignal (Qtext_read_only, Qnil);
 
 	  mod_hooks = textget (i->plist, Qmodification_hooks);
 	  if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
