@@ -1,3 +1,7 @@
+2004-08-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Fmake_keymap, Fmap_keymap, Fwhere_is_internal): Doc fixes.
+
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keyboard.c: Declare Qdisabled_command_function instead of
