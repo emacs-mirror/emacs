@@ -108,7 +108,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2)
+    ("^\\([^:( \t\n]+\\)[ \t]*[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 2)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
