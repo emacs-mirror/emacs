@@ -2810,10 +2810,10 @@ extern void syms_of_xfns P_ ((void));
 extern void init_xfns P_ ((void));
 EXFUN (Fxw_display_color_p, 1);
 #ifdef HAVE_X_I18N
-extern void free_frame_xic P_ ((struct frame *))
+extern void free_frame_xic P_ ((struct frame *));
 #endif
 /* Fixme: x_defined_color needs declaring, but needs FRAME_PTR and XColor. */
-#endif
+#endif /* HAVE_X_WINDOWS */
 
 /* Defined in xselect.c */
 extern void syms_of_xselect P_ ((void));
