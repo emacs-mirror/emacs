@@ -835,7 +835,6 @@ interval_deletion_adjustment (tree, from, amount)
     }
 
   /* Never reach here */
-  abort ();
 }
 
 /* Effect the adjustments neccessary to the interval tree of BUFFER
