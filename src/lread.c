@@ -776,17 +776,22 @@ Return t if file exists.  */)
 	  stat ((char *)XSTRING (found)->data, &s1);
 	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 0;
 	  result = stat ((char *)XSTRING (found)->data, &s2);
+	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 'c';
+	  
 	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
 	    {
 	      /* Make the progress messages mention that source is newer.  */
 	      newer = 1;
 
 	      /* If we won't print another message, mention this anyway.  */
-	      if (! NILP (nomessage))
-		message_with_string ("Source file `%s' newer than byte-compiled file",
-				     found, 1);
+	      if (!NILP (nomessage))
+		{
+		  Lisp_Object file;
+		  file = Fsubstring (found, make_number (0), make_number (-1));
+		  message_with_string ("Source file `%s' newer than byte-compiled file",
+				       file, SMBP (file));
+		}
 	    }
-	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 'c';
 	}
     }
   else
