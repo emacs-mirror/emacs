@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.27) $
+ * $HopeName: MMsrc!poolams.c(trunk.28) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.27) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.28) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -878,6 +878,34 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 }
 
 
+/* AMSBlacken -- the pool class blackening method
+ *
+ * Turn all grey objects black.
+ */
+
+void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
+{
+  AMS ams;
+  AMSGroup group;
+
+  AVERT(Pool, pool);
+  ams = PoolPoolAMS(pool);
+  AVERT(AMS, ams);
+  AVERT(TraceSet, traceSet);
+  AVERT(Seg, seg);
+
+  /* If it's white for any trace, remove the greyness from tables. */
+  if(TraceSetInter(traceSet, SegWhite(seg)) != TraceSetEMPTY) {
+    group = AMSSegGroup(seg);
+    AVERT(AMSGroup, group);
+    AVER(group->marksChanged); /* there must be something grey */
+    group->marksChanged = FALSE;
+    /* This will turn grey->black, and not affect black or white. */
+    BTSetRange(group->nongreyTable, 0, group->grains);
+  }
+}
+
+
 /* AMSReclaim -- the pool class reclamation method */
 
 void AMSReclaim(Pool pool, Trace trace, Seg seg)
@@ -1062,7 +1090,7 @@ Res AMSGroupDescribe(AMSGroup group, mps_lib_FILE *stream)
     WRITE_BUFFER_LIMIT(stream, group, i+1, buffer, BufferLimit, "]");
   }
 
-  res = WriteF(stream, "\n} AMS Group $P\n", (WriteFP)group);
+  res = WriteF(stream, "\n} AMS Group $P\n", (WriteFP)group, NULL);
   return res;
 }
 
@@ -1135,7 +1163,7 @@ static PoolClassStruct PoolClassAMSStruct = {
   PoolSegAccess,
   AMSWhiten,                 /* condemn (whiten) */
   PoolTrivGrey,              /* d.m.p.colour.determine */
-  PoolTrivBlacken,
+  AMSBlacken,
   AMSScan,
   AMSFix,                    /* fix */
   AMSFix,                    /* emergency fix */
