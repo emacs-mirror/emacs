@@ -2413,7 +2413,9 @@ If visiting file read-only and `view-read-only' is non-nil, enter view mode."
     nil)				; do nothing.
    ;; Toggle.
    ((and buffer-read-only view-mode)
-    (View-exit-and-edit))		; Must leave view mode.
+    (View-exit-and-edit)
+    (make-local-variable 'view-read-only)
+    (setq view-read-only t))		; Must leave view mode.
    ((and (not buffer-read-only) view-read-only
 	 (not (eq (get major-mode 'mode-class) 'special)))
     (view-mode-enter))
