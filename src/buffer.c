@@ -5036,6 +5036,7 @@ init_buffer_once ()
   Qpermanent_local = intern ("permanent-local");
 
   Qkill_buffer_hook = intern ("kill-buffer-hook");
+  Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
   Qucs_set_table_for_input = intern ("ucs-set-table-for-input");
 
