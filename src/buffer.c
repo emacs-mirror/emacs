@@ -34,7 +34,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "syntax.h"
 #include "indent.h"
 #include "blockinput.h"
 
@@ -130,6 +129,8 @@ Lisp_Object QSFundamental;	/* A string "Fundamental" */
 
 Lisp_Object Qkill_buffer_hook;
 
+Lisp_Object Qget_file_buffer;
+
 Lisp_Object Qoverlayp;
 
 Lisp_Object Qmodification_hooks;
@@ -175,8 +176,16 @@ If there is no such live buffer, return nil.")
      register Lisp_Object filename;
 {
   register Lisp_Object tail, buf, tem;
+  Lisp_Object handler;
+
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (filename);
+  if (!NILP (handler))
+    return call2 (handler, Qget_file_buffer, filename);
 
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     {
@@ -2175,6 +2184,8 @@ syms_of_buffer ()
   Qinsert_in_front_hooks = intern ("insert-in-front-hooks");
   staticpro (&Qinsert_behind_hooks);
   Qinsert_behind_hooks = intern ("insert-behind-hooks");
+  staticpro (&Qget_file_buffer);
+  Qget_file_buffer = intern ("get-file-buffer");
 
   Qoverlayp = intern ("overlayp");
 
