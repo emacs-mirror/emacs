@@ -140,6 +140,12 @@
 (if (load "site-load" t)
     (garbage-collect))
 
+(if (fboundp 'x-popup-menu)
+    (precompute-menubar-bindings))
+;; Turn on recording of which commands get rebound,
+;; for the sake of the next call to precompute-menubar-bindings.
+(setq define-key-rebound-commands nil)
+
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
 (if (and (or (equal (nth 3 command-line-args) "dump")
