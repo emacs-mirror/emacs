@@ -3699,35 +3699,57 @@ The default is nil, which means to use your init file
 as specified by `user-init-file'.  If the value is not nil,
 it should be an absolute file name.
 
-To make this feature work, you'll need to put something in your
-init file to specify the value of `custom-file'.  Just
-customizing the variable won't suffice, because Emacs won't know
-which file to load unless the init file sets `custom-file'.
+You can set this option through Custom, if you carefully read the
+last paragraph below.  However, usually it is simpler to write
+something like the following in your init file:
 
-When you change this variable, look in the previous custom file
-\(usually your init file) for the forms `(custom-set-variables ...)'
-and `(custom-set-faces ...)', and copy them (whichever ones you find)
-to the new custom file.  This will preserve your existing customizations."
-  :type '(choice (const :tag "Your Emacs init file" nil) file)
+\(setq custom-file \"~/.emacs-custom.el\")
+\(load custom-file)
+
+Note that both lines are necessary: the first line tells Custom to
+save all customizations in this file, but does not load it.
+
+When you change this variable outside Custom, look in the
+previous custom file \(usually your init file) for the
+forms `(custom-set-variables ...)'  and `(custom-set-faces ...)',
+and copy them (whichever ones you find) to the new custom file.
+This will preserve your existing customizations.
+
+If you save this option using Custom, Custom will write all
+currently saved customizations, including the new one for this
+option itself, into the file you specify, overwriting any
+`custom-set-variables' and `custom-set-faces' forms already
+present in that file.  It will not delete any customizations from
+the old custom file.  You should do that manually if that is what you
+want.  You also have to put something like `\(load \"CUSTOM-FILE\")
+in your init file, where CUSTOM-FILE is the actual name of the
+file.  Otherwise, Emacs will not load the file when it starts up,
+and hence will not set `custom-file' to that file either."
+  :type '(choice (const :tag "Your Emacs init file" nil)
+		 (file :format "%t:%v%d"
+		       :doc
+		       "Please read entire docstring below before setting \
+this through Custom.
+Click om \"More\" \(or position point there and press RETURN)
+if only the first line of the docstring is shown."))
   :group 'customize)
 
 (defun custom-file ()
   "Return the file name for saving customizations."
-  (setq custom-file
-	(or custom-file
-	    (let ((user-init-file user-init-file)
-		  (default-init-file
-		    (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-	      (when (null user-init-file)
-		(if (or (file-exists-p default-init-file)
-			(and (eq system-type 'windows-nt)
-			     (file-exists-p "~/_emacs")))
-		    ;; Started with -q, i.e. the file containing
-		    ;; Custom settings hasn't been read.  Saving
-		    ;; settings there would overwrite other settings.
-		    (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
-		(setq user-init-file default-init-file))
-	      user-init-file))))
+  (or custom-file
+      (let ((user-init-file user-init-file)
+	    (default-init-file
+	      (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
+	(when (null user-init-file)
+	  (if (or (file-exists-p default-init-file)
+		  (and (eq system-type 'windows-nt)
+		       (file-exists-p "~/_emacs")))
+	      ;; Started with -q, i.e. the file containing
+	      ;; Custom settings hasn't been read.  Saving
+	      ;; settings there would overwrite other settings.
+	      (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+	  (setq user-init-file default-init-file))
+	user-init-file)))
 
 (defun custom-save-delete (symbol)
   "Visit `custom-file' and delete all calls to SYMBOL from it.
