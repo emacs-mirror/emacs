@@ -747,7 +747,7 @@ specified, it can be either a list (as from `current-time-zone') or an\n\
 integer (as from `decode-time'), and is applied without consideration for\n\
 daylight savings time.\n\
 Year numbers less than 100 are treated just like other year numbers.\n\
-If you them to stand for years above 1900, you must do that yourself.")
+If you want them to stand for years above 1900, you must do that yourself.")
   (sec, minute, hour, day, month, year, zone)
      Lisp_Object sec, minute, hour, day, month, year, zone;
 {
