@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
-;; Maintainer: Dave Love <fx@gnu.org>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -972,12 +972,14 @@ non-comment Fortran statement in the file, and nil otherwise."
     (setq continue-test
 	  (and
 	   (not (looking-at fortran-comment-line-start-skip))
+           (not (looking-at "^[ \t]*#"))
 	   (or (looking-at
 	        (concat "[ \t]*"
 			(regexp-quote fortran-continuation-string)))
 	       (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))))
     (while (and (setq not-first-statement (= (forward-line -1) 0))
 		(or (looking-at fortran-comment-line-start-skip)
+                    (looking-at "^[ \t]*#")
 		    (looking-at "[ \t]*$\\| \\{5\\}[^ 0\n]\\|\t[1-9]")
 		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (cond ((and continue-test
@@ -999,6 +1001,7 @@ non-comment Fortran statement in the file, and nil otherwise."
 		      (and (= (forward-line 1) 0)
 			   (not (eobp))))
  		(or (looking-at fortran-comment-line-start-skip)
+                    (looking-at "^[ \t]*#")
  		    (looking-at "[ \t]*$\\|     [^ 0\n]\\|\t[1-9]")
  		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (if (not not-last-statement)
@@ -1101,7 +1104,7 @@ Return point or nil."
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
 	    (cond ((looking-at
-		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[0-9]")
+		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+")
 		   (setq count (1- count)))
 		  ((looking-at "end[ \t]*do\\b")
 		   (setq count (1+ count)))))
@@ -1792,7 +1795,7 @@ Intended as the value of `fill-paragraph-function'."
 	  (fortran-previous-statement)))
     (fortran-indent-line)))
 
-(defun fortran-strip-sqeuence-nos (&optional do-space)
+(defun fortran-strip-sequence-nos (&optional do-space)
   "Delete all text in column 72 and up (assumed to be sequence numbers).
 Normally also deletes trailing whitespace after stripping such text.
 Supplying prefix arg DO-SPACE prevents stripping the whitespace."
