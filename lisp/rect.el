@@ -192,6 +192,30 @@ but instead winds up to the right of the rectangle."
     (indent-to column)))
 
 ;;;###autoload
+(defun fill-rectangle (start end text)
+  "Fill each line of the rectangle with corners at point and mark with
+text, shifting text right.  The text previously in the region is not
+overwritten by the blanks, but instead winds up to the right of the
+rectangle.  Called from a program, takes three args; START, END and
+TEXT."
+  (interactive "r\nsText:")
+  (operate-on-rectangle 'fill-rectangle-line start end nil)
+  (goto-char start))
+
+(defun fill-rectangle-line (startpos begextra endextra)
+  (let ((column (+ (current-column) begextra endextra)))
+    (goto-char startpos)
+    (let ((ocol (current-column)))
+      (skip-chars-forward " \t")
+      (setq column (+ column (- (current-column) ocol))))
+    (delete-region (point)
+		   ;; Use skip-chars-backward's LIM argument to leave
+		   ;; characters before STARTPOS undisturbed.
+                   (progn (skip-chars-backward " \t" startpos)
+			  (point)))
+    (insert text)))
+
+;;;###autoload
 (defun clear-rectangle (start end)
   "Blank out rectangle with corners at point and mark.
 The text previously in the region is overwritten by the blanks.
