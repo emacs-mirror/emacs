@@ -6510,14 +6510,21 @@ menu_bar_items (old)
       }
     else
       {
-	/* No, so use major and minor mode keymaps.
-	   Don't include local-map or keymap properties, as menu-bar
-	   bindings are not supported in those maps (that would require
-	   checking for menu-bar updates after every command).  */
-	nmaps = current_minor_maps (NULL, &tmaps);
-	maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
-	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-	maps[nmaps++] = current_buffer->keymap;
+	/* No, so use major and minor mode keymaps and keymap property.
+	   Note that menu-bar bindings in the local-map and keymap
+	   properties may not work reliable, as they are only
+	   recognized when the menu-bar (or mode-line) is updated,
+	   which does not normally happen after every command.  */
+	Lisp_Object tem;
+	int nminor;
+	nminor = current_minor_maps (NULL, &tmaps);
+	maps = (Lisp_Object *) alloca ((nminor + 3) * sizeof (maps[0]));
+	nmaps = 0;
+	if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
+	  maps[nmaps++] = tem;
+	bcopy (tmaps, (void *) (maps + nmaps), nminor * sizeof (maps[0]));
+	nmaps += nminor;
+	maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
       }
     maps[nmaps++] = current_global_map;
   }
@@ -7158,14 +7165,21 @@ tool_bar_items (reuse, nitems)
     }
   else
     {
-      /* No, so use major and minor mode keymaps.
-	 Don't include local-map or keymap properties, as tool-bar
-	 bindings are not supported in those maps (that would require
-	 checking for tool-bar updates after every command).  */
-      nmaps = current_minor_maps (NULL, &tmaps);
-      maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
-      bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-      maps[nmaps++] = current_buffer->keymap;
+      /* No, so use major and minor mode keymaps and keymap property.
+	 Note that tool-bar bindings in the local-map and keymap
+	 properties may not work reliable, as they are only
+	 recognized when the tool-bar (or mode-line) is updated,
+	 which does not normally happen after every command.  */
+      Lisp_Object tem;
+      int nminor;
+      nminor = current_minor_maps (NULL, &tmaps);
+      maps = (Lisp_Object *) alloca ((nminor + 3) * sizeof (maps[0]));
+      nmaps = 0;
+      if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
+	maps[nmaps++] = tem;
+      bcopy (tmaps, (void *) (maps + nmaps), nminor * sizeof (maps[0]));
+      nmaps += nminor;
+      maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
     }
 
   /* Add global keymap at the end.  */
