@@ -1261,14 +1261,14 @@ shut_down_emacs (sig, no_x, stuff)
 DEFUN ("dump-emacs-data", Fdump_emacs_data, Sdump_emacs_data, 1, 1, 0,
   "Dump current state of Emacs into data file FILENAME.\n\
 This function exists on systems that use HAVE_SHM.")
-  (intoname)
-     Lisp_Object intoname;
+  (filename)
+     Lisp_Object filename;
 {
   extern char my_edata[];
   Lisp_Object tem;
 
-  CHECK_STRING (intoname, 0);
-  intoname = Fexpand_file_name (intoname, Qnil);
+  CHECK_STRING (filename, 0);
+  filename = Fexpand_file_name (filename, Qnil);
 
   tem = Vpurify_flag;
   Vpurify_flag = Qnil;
@@ -1279,7 +1279,7 @@ This function exists on systems that use HAVE_SHM.")
 #ifndef SYSTEM_MALLOC
   memory_warnings (my_edata, malloc_warning);
 #endif
-  map_out_data (XSTRING (intoname)->data);
+  map_out_data (XSTRING (filename)->data);
 
   Vpurify_flag = tem;
 
@@ -1296,19 +1296,19 @@ This is used in the file `loadup.el' when building Emacs.\n\
 Bind `command-line-processed' to nil before dumping,\n\
 if you want the dumped Emacs to process its command line\n\
 and announce itself normally when it is run.")
-  (intoname, symname)
-     Lisp_Object intoname, symname;
+  (filename, symfile)
+     Lisp_Object filename, symfile;
 {
   extern char my_edata[];
   Lisp_Object tem;
 
-  CHECK_STRING (intoname, 0);
-  intoname = Fexpand_file_name (intoname, Qnil);
-  if (!NILP (symname))
+  CHECK_STRING (filename, 0);
+  filename = Fexpand_file_name (filename, Qnil);
+  if (!NILP (symfile))
     {
-      CHECK_STRING (symname, 0);
-      if (XSTRING (symname)->size)
-	symname = Fexpand_file_name (symname, Qnil);
+      CHECK_STRING (symfile, 0);
+      if (XSTRING (symfile)->size)
+	symfile = Fexpand_file_name (symfile, Qnil);
     }
 
   tem = Vpurify_flag;
@@ -1316,7 +1316,7 @@ and announce itself normally when it is run.")
 
   fflush (stdout);
 #ifdef VMS
-  mapout_data (XSTRING (intoname)->data);
+  mapout_data (XSTRING (filename)->data);
 #else
   /* Tell malloc where start of impure now is */
   /* Also arrange for warnings when nearly out of space.  */
@@ -1327,8 +1327,8 @@ and announce itself normally when it is run.")
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif
-  unexec (XSTRING (intoname)->data,
-	  !NILP (symname) ? XSTRING (symname)->data : 0, my_edata, 0, 0);
+  unexec (XSTRING (filename)->data,
+	  !NILP (symfile) ? XSTRING (symfile)->data : 0, my_edata, 0, 0);
 #endif /* not VMS */
 
   Vpurify_flag = tem;
