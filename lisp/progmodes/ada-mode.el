@@ -121,12 +121,6 @@
 ;;;    gse@ocsystems.com (Scott Evans)
 ;;;    comar@LANG8.CS.NYU.EDU (Cyrille Comar)
 ;;;    and others for their valuable hints.
-
-;;; LCD Archive Entry:
-;;; ada-mode|Rolf Ebert|<ebert@inf.enst.fr>
-;;; |Major-mode for Ada
-;;; |$Date: 1995/05/24 17:02:23 $|$Revision: 2.17 $|
-
 
 ;;;--------------------
 ;;;    USER OPTIONS
