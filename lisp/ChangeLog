@@ -1,3 +1,8 @@
+2000-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (cjk-codepages-alist): Add associations for
+	Chinese and Korean codepages.  Remove FIXME comment.
+
 2000-05-03  Dave Love  <fx@gnu.org>
 
 	* time.el (display-time-mail-face, display-time-use-mail-icon):
