@@ -1,3 +1,7 @@
+2004-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer) <vertical-scroll-bar>: Doc fix.
+
 2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (install_window_handler): Modify extern to return OSErr

@@ -1,3 +1,7 @@
+2004-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (File Variables): Clarify previous change.
+
 2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Mention Gtk+ 2.6 also, as that version is
