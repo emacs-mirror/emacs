@@ -3595,7 +3595,7 @@ than 988 characters long, and if they are not, trim them until they are."
     (if (not (and message-this-is-mail mua))
 	(message-setup-1 headers replybuffer actions)
       (if replybuffer
-	  (setq yank-action (cons 'insert-buffer replybuffer)))
+	  (setq yank-action (list 'insert-buffer replybuffer)))
       (setq headers (copy-sequence headers))
       (setq field (assq 'Subject headers))
       (when field
@@ -3728,13 +3728,20 @@ than 988 characters long, and if they are not, trim them until they are."
   "Start editing a mail message to be sent.
 OTHER-HEADERS is an alist of header/value pairs."
   (interactive)
-  (let ((message-this-is-mail t))
+  (let ((message-this-is-mail t) replybuffer)
     (unless (message-mail-user-agent)
       (message-pop-to-buffer (message-buffer-name "mail" to)))
+    ;; FIXME: message-mail should do something if YANK-ACTION is not
+    ;; insert-buffer.
+    (and (consp yank-action) (eq (car yank-action) 'insert-buffer)
+	 (setq replybuffer (nth 1 yank-action)))
     (message-setup
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
-      (when other-headers other-headers)))))
+      (when other-headers other-headers))
+     replybuffer)
+    ;; FIXME: Should return nil if failure.
+    t))
 
 ;;;###autoload
 (defun message-news (&optional newsgroups subject)
