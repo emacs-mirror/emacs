@@ -193,9 +193,11 @@ repeat the search will then search for a string including that
 character or word.
 
   @kbd{C-y} is similar to @kbd{C-w} but copies all the rest of the
-current line into the search string.  Both @kbd{C-y} and @kbd{C-w}
-convert the text they copy to lower case if the search is currently
-not case-sensitive; this is so the search remains case-insensitive.
+current line into the search string.  If point is already at the end
+of a line, it grabs the entire next line.  Both @kbd{C-y} and
+@kbd{C-w} convert the text they copy to lower case if the search is
+currently not case-sensitive; this is so the search remains
+case-insensitive.
 
   @kbd{C-M-w} and @kbd{C-M-y} modify the search string by only one
 character at a time: @kbd{C-M-w} deletes the last character from the
