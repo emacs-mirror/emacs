@@ -899,7 +899,13 @@ Auto-indent does not happen if a numeric ARG is used."
       (fortran-indent-line))))
 
 (defvar fortran-end-prog-re1
-  "end\\b[ \t]*\\(\\(program\\|subroutine\\|function\\)[ \t]*\\)?[^ \t=\(a-z]")
+  ;; `end' followed by optional block type name and then optional
+  ;; symbol, then eol.  In the absence of the block type name, the
+  ;; trailing symbol would presumably be a sequence number in cols 72+.
+  "end\
+\\([ \t]+\\(program\\|subroutine\\|function\\|block[ \t]*data\\)\\>\\)?\
+[ \t]*\\(\\(\\sw\\|\\s_\\)+[ \t]*\\)?\
+$")
 (defvar fortran-end-prog-re
   (concat "^[ \t0-9]*" fortran-end-prog-re1))
 
