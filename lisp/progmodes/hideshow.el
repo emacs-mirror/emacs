@@ -233,7 +233,6 @@
 ;;; Code:
 
 (require 'easymenu)
-(eval-when-compile (require 'cl))
 
 ;;---------------------------------------------------------------------------
 ;; user-configurable variables
