@@ -1,3 +1,7 @@
+2000-06-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (redisplay_window): Always use set_buffer_internal_1.
+
 2000-06-05  Dave Love  <fx@gnu.org>
 
 	* xdisp.c: Include fontset.h.
@@ -40,7 +44,7 @@
 2000-06-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (realize_x_face): When copying BASE_FACE bitwise to the
-	result face, set flags in the face indicating that colors may not
+	result face, set flags in that face indicating that colors may not
 	be freed.
 
 	* xterm.c (x_set_mouse_face_gc): If first glyph isn't a character

@@ -1,3 +1,8 @@
+2000-06-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* info.el: Bind case-fold-search to t when searching in case
+	a user sets it to nil in a hook.
+
 2000-06-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* autoarg.el (autoarg-mode, autoarg-kp-mode):
@@ -42,12 +47,12 @@
 
 2000-06-05  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* ediff-init.el (ediff-has-face-support-p): make it paint faces on
+	* ediff-init.el (ediff-has-face-support-p): Make it paint faces on
 	tty's.
-	* ediff-diff.el (ediff-exec-process): use --binary for fine
+	* ediff-diff.el (ediff-exec-process): Use --binary for fine
 	differences whenever appropriate.
-	* viper-cmd.el (viper-smart-suffix-list): rearranged list members.
-	* viper.el (find-file, find-file-other-window): get viper to do
+	* viper-cmd.el (viper-smart-suffix-list): Rearranged list members.
+	* viper.el (find-file, find-file-other-window): Get viper to do
 	wildcards. 
 	
 2000-06-04  Stefan Monnier  <monnier@cs.yale.edu>
