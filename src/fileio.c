@@ -3366,7 +3366,8 @@ This is the sort of file that holds an ordinary stream of data bytes.  */)
 }
 
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
-       doc: /* Return mode bits of file named FILENAME, as an integer.  */)
+       doc: /* Return mode bits of file named FILENAME, as an integer.
+Return nil, if file does not exist or is not accessible.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -5712,17 +5713,21 @@ Lisp_Object
 auto_save_1 ()
 {
   struct stat st;
+  Lisp_Object modes;
+
+  auto_save_mode_bits = 0666;
 
   /* Get visited file's mode to become the auto save file's mode.  */
-  if (! NILP (current_buffer->filename)
-      && stat (SDATA (current_buffer->filename), &st) >= 0)
-    /* But make sure we can overwrite it later!  */
-    auto_save_mode_bits = st.st_mode | 0600;
-  else if (! NILP (current_buffer->filename))
-    /* Remote files don't cooperate with stat.  */
-    auto_save_mode_bits = XINT (Ffile_modes (current_buffer->filename)) | 0600;
-  else
-    auto_save_mode_bits = 0666;
+  if (! NILP (current_buffer->filename))
+    {
+      if (stat (SDATA (current_buffer->filename), &st) >= 0)
+	/* But make sure we can overwrite it later!  */
+	auto_save_mode_bits = st.st_mode | 0600;
+      else if ((modes = Ffile_modes (current_buffer->filename),
+		INTEGERP (modes)))
+	/* Remote files don't cooperate with stat.  */
+	auto_save_mode_bits = XINT (modes) | 0600;
+    }
 
   return
     Fwrite_region (Qnil, Qnil,
@@ -6190,7 +6195,7 @@ before any other event (mouse or keypress) is handeled.  */)
 #endif
   return Qnil;
 }
-       
+
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
