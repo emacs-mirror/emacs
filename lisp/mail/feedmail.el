@@ -2651,10 +2651,19 @@ been weeded out."
   "Internal; finds the end of message header fields, returns mark just before it"
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n") nil noerror)
-	(progn
-	  (forward-line -1)
-	  (point-marker)))))
+    (when (or (re-search-forward (concat "^"
+					 (regexp-quote mail-header-separator)
+					 "\n")
+				 nil noerror)
+	      (and feedmail-queue-alternative-mail-header-separator
+		   (re-search-forward
+		    (concat "^"
+			    (regexp-quote
+			     feedmail-queue-alternative-mail-header-separator)
+			    "\n")
+		    nil noerror)))
+      (forward-line -1)
+      (point-marker))))
 
 (provide 'feedmail)
 ;;; feedmail.el ends here
