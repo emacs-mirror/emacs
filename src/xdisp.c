@@ -3267,8 +3267,14 @@ forward_to_next_line_start (it, skipped_p)
      struct it *it;
      int *skipped_p;
 {
-  int newline_found_p, n;
+  int old_selective, newline_found_p, n;
   const int MAX_NEWLINE_DISTANCE = 500;
+
+  /* Don't handle selective display in the following.  It's (a)
+     unnecessary and (b) leads to an infinite recursion because
+     next_element_from_ellipsis indirectly calls this function.  */
+  old_selective = it->selective;
+  it->selective = 0;
 
   /* Scan for a newline within MAX_NEWLINE_DISTANCE display elements
      from buffer text.  */
@@ -3318,6 +3324,7 @@ forward_to_next_line_start (it, skipped_p)
 	}
     }
 
+  it->selective = old_selective;
   return newline_found_p;
 }
 
@@ -4147,7 +4154,10 @@ next_element_from_ellipsis (it)
 	}
     }
   else
-    reseat_at_next_visible_line_start (it, 1);
+    {
+      it->method = next_element_from_buffer;
+      reseat_at_next_visible_line_start (it, 1);
+    }
   
   return get_next_display_element (it);
 }
