@@ -727,7 +727,7 @@ cached information about equivalent key sequences.")
 	  if (mouse_position_hook)
 	    (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
 	  if (new_f != 0)
-	    XSET (window, Lisp_Frame, new_f);
+	    XSETFRAME (window, new_f);
 	  else
 	    {
 	      window = selected_window;
@@ -918,7 +918,7 @@ on the left of the dialog box and all following items on the right.\n\
       (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
 
       if (new_f != 0)
-	XSET (window, Lisp_Frame, new_f);
+	XSETFRAME (window, new_f);
       else
 	window = selected_window;
 #endif
@@ -960,9 +960,9 @@ on the left of the dialog box and all following items on the right.\n\
      in the middle of frame F.  */
   {
     Lisp_Object x, y, frame, newpos;
-    XSET (frame, Lisp_Frame, f);
-    XSET (x, Lisp_Int, x_pixel_width (f) / 2);
-    XSET (y, Lisp_Int, x_pixel_height (f) / 2);
+    XSETFRAME (frame, f);
+    XSETINT (x, x_pixel_width (f) / 2);
+    XSETINT (y, x_pixel_height (f) / 2);
     newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
 
     return Fx_popup_menu (newpos,
