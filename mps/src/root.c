@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.11) $
+ *  $HopeName: MMsrc!root.c(trunk.12) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,7 +20,7 @@
 #include "trace.h"
 #include "space.h"
 
-SRCID("$HopeName: MMsrc!root.c(trunk.11) $");
+SRCID("$HopeName: MMsrc!root.c(trunk.12) $");
 
 Bool RootIsValid(Root root, ValidationType validParam)
 {
@@ -193,19 +193,11 @@ Error RootScan(ScanState ss, Root root)
     return ErrSUCCESS;
 
   switch(root->type) {
-    case RootTABLE: {
-      Addr *base, *what, *limit;
-      base = (Addr *)root->the.table.base;
-      what = base;
-      limit = (Addr *)root->the.table.limit;
-      /* @@@@ doesn't accumulate summary or do zone test */
-      while(what < limit) {
-        e = TraceFix(ss, what);
-        if(e != ErrSUCCESS)
-          return e;
-        ++what;
-      }
-    } break;
+    case RootTABLE:
+    TraceScanArea(ss,
+      (Addr *)root->the.table.base,
+      (Addr *)root->the.table.limit);
+    break;
 
     case RootFUN:
     e = (*root->the.fun.scan)(ss, root->the.fun.p, root->the.fun.s);
