@@ -1202,7 +1202,8 @@ everything on input operations."
 	;; Update the table of what encodes to what.
 	(register-char-codings coding-system table)
 	(coding-system-put coding-system 'translation-table-for-encode table)))
-    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
+    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
+  (optimize-char-coding-system-table))
 
 (defun ucs-fragment-8859 (for-encode for-decode)
   "Undo the unification done by `ucs-unify-8859'.
@@ -1265,7 +1266,8 @@ unification on input operations."
 	  (set-char-table-parent safe nil))
 	(coding-system-put coding-system 'translation-table-for-encode nil)))
     (optimize-char-coding-system-table)
-    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
+    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
+  (optimize-char-coding-system-table))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
