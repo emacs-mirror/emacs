@@ -191,6 +191,7 @@ message1 (m)
 
       choose_minibuf_frame ();
       minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+      FRAME_SAMPLE_VISIBILITY (XFRAME (minibuf_frame));
       if (FRAME_VISIBLE_P (selected_frame)
 	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
@@ -346,6 +347,18 @@ redisplay ()
   if (noninteractive)
     return;
 
+  /* Set the visible flags for all frames.
+     Do this before checking for resized or garbaged frames; they want
+     to know if their frames are visible.
+     See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
+  {
+    Lisp_Object tail;
+    FRAME_PTR f;
+
+    FOR_EACH_FRAME (tail, f)
+      FRAME_SAMPLE_VISIBILITY (f);
+  }
+
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change ();
 
@@ -476,28 +489,16 @@ redisplay ()
 
   if (all_windows)
     {
-#ifdef MULTI_FRAME
       Lisp_Object tail;
+      FRAME_PTR f;
 
       /* Recompute # windows showing selected buffer.
 	 This will be incremented each time such a window is displayed.  */
       buffer_shared = 0;
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
-	{
-	  FRAME_PTR f;
-
-	  if (XTYPE (XCONS (tail)->car) != Lisp_Frame)
-	    continue;
-
-	  f = XFRAME (XCONS (tail)->car);
-	  if (f->visible)
-	    /* Redraw its windows.  */
-	    redisplay_windows (FRAME_ROOT_WINDOW (f));
-	}
-#else
-    redisplay_windows (FRAME_ROOT_WINDOW (f));
-#endif /* not MULTI_FRAME */
+      FOR_EACH_FRAME (tail, f)
+	if (FRAME_VISIBLE_P (f))
+	  redisplay_windows (FRAME_ROOT_WINDOW (f));
     }
   else if (FRAME_VISIBLE_P (selected_frame))
     {
@@ -542,7 +543,7 @@ update:
     {
       if (FRAME_VISIBLE_P (selected_frame))
 	pause = update_frame (selected_frame, 0, 0);
-#ifdef MULTI_FRAME
+
       /* We may have called echo_area_display at the top of this
 	 function.  If the echo area is on another frame, that may
 	 have put text on a frame other than the selected one, so the
@@ -555,7 +556,6 @@ update:
 	if (mini_frame != selected_frame)
 	  pause |= update_frame (mini_frame, 0, 0);
       }
-#endif
     }
 
   /* If frame does not match, prevent doing single-line-update next time.
