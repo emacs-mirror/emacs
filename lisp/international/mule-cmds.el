@@ -897,6 +897,7 @@ specifies the character set for the major languages of Western Europe."
       (setq language-name (symbol-name language-name)))
   (let ((doc (get-language-info language-name 'documentation)))
     (with-output-to-temp-buffer "*Help*"
+      (princ-list language-name " language environment" "\n")
       (if (stringp doc)
 	  (progn
 	    (princ-list doc)
