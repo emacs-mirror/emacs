@@ -1,5 +1,13 @@
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
+	* misc.texi (FFAP): Add C-x C-r, C-x C-v, C-x C-d,
+	C-x 4 r, C-x 4 d, C-x 5 r, C-x 5 d.
+
+	* dired.texi (Dired Navigation): Add @r{(Dired)} to M-g.
+	(Misc Dired Commands): Add @r{(Dired)} to w.
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
 	* mark.texi (Marking Objects): Marking commands also extend the
 	region when mark is active in Transient Mark mode.
 

@@ -1,5 +1,38 @@
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
+	* files.el (find-file-other-window, find-file-other-frame):
+	Add the first buffer to the returned value to return the complete
+	list of all visited buffers.
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use nil for `mustmatch' arg of
+	`find-file-read-args'.  Signal an error about non-existent file
+	only if file name doesn't contain wildcards.  Toggle read-only in
+	all visited buffers.
+	(find-alternate-file, find-alternate-file-other-window):
+	Add optional arg `wildcards'.  Doc fix.  Set `wildcards' to t when
+	called interactively.  Pass arg `wildcards' to other functions.
+	(find-file-noselect): Doc fix.
+
+	* ffap.el (ffap-dired-wildcards): Set default to "[*?][^/]*\\'".
+	Doc fix.
+	(ffap-directory-finder): New variable.
+	(ffap-string-at-point-mode-alist): Add * and ? to `file'.
+	(ffap-file-at-point): Add /* to immediately rejected names.
+	Return absolute file names matching ffap-dired-wildcards.
+	(ffap-read-file-or-url): Set default value for `completing-read'
+	to `buffer-file-name'.
+	(find-file-at-point): When filename matches ffap-dired-wildcards,
+	call ffap-file-finder with t arg `wildcards', instead of dired.
+	(ffap-other-window, ffap-other-frame): Return visited buffers.
+	(ffap-read-only, ffap-read-only-other-window)
+	(ffap-read-only-other-frame, ffap-alternate-file): New commands.
+	(dired-at-point): Call ffap-directory-finder instead of dired.
+	(ffap-dired-other-window, ffap-dired-other-frame)
+	(ffap-list-directory): New commands.
+	(ffap-bindings): New keybindings for new commands.
+
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
 	* simple.el (beginning-of-buffer, end-of-buffer):
 	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
 	Do not push mark when mark is active in transient-mark-mode.
