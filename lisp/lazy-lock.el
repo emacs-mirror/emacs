@@ -401,7 +401,7 @@ makes little sense if `lazy-lock-defer-contextually' is non-nil.)
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (sexp :tag "eventually" :format "%t\n" eventually))
+		 (other :tag "eventually" eventually))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-contextually 'syntax-driven
@@ -419,7 +419,7 @@ buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (sexp :tag "syntax-driven" :format "%t\n" syntax-driven))
+		 (other :tag "syntax-driven" syntax-driven))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-time
