@@ -293,6 +293,27 @@ Each argument may be a list, vector or string.")
   return concat (nargs, args, Lisp_Vectorlike, 0);
 }
 
+/* Retrun a copy of a sub char table ARG.  The elements except for a
+   nested sub char table are not copied.  */
+static Lisp_Object
+copy_sub_char_table (arg)
+{
+  Lisp_Object copy = make_sub_char_table (XCHAR_TABLE (arg)->defalt);
+  int i;
+
+  /* Copy all the contents.  */
+  bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
+	 SUB_CHAR_TABLE_ORDINARY_SLOTS * sizeof (Lisp_Object));
+  /* Recursively copy any sub char-tables in the ordinary slots.  */
+  for (i = 32; i < SUB_CHAR_TABLE_ORDINARY_SLOTS; i++)
+    if (SUB_CHAR_TABLE_P (XCHAR_TABLE (arg)->contents[i]))
+      XCHAR_TABLE (copy)->contents[i]
+	= copy_sub_char_table (XCHAR_TABLE (copy)->contents[i]);
+
+  return copy;
+}
+
+
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
   "Return a copy of a list, vector or string.\n\
 The elements of a list or vector are not copied; they are shared\n\
@@ -313,11 +334,13 @@ with the original.")
 	     ((XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK)
 	      * sizeof (Lisp_Object)));
 
-      /* Recursively copy any char-tables in the ordinary slots.  */
-      for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-	if (CHAR_TABLE_P (XCHAR_TABLE (arg)->contents[i]))
+      /* Recursively copy any sub char tables in the ordinary slots
+         for multibyte characters.  */
+      for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS;
+	   i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+	if (SUB_CHAR_TABLE_P (XCHAR_TABLE (arg)->contents[i]))
 	  XCHAR_TABLE (copy)->contents[i]
-	    = Fcopy_sequence (XCHAR_TABLE (copy)->contents[i]);
+	    = copy_sub_char_table (XCHAR_TABLE (copy)->contents[i]);
 
       return copy;
     }
@@ -1298,13 +1321,12 @@ or a character code.")
     return Faref (char_table, range);
   else if (VECTORP (range))
     {
-      for (i = 0; i < XVECTOR (range)->size - 1; i++)
-	char_table = Faref (char_table, XVECTOR (range)->contents[i]);
-
-      if (EQ (XVECTOR (range)->contents[i], Qnil))
-	return XCHAR_TABLE (char_table)->defalt;
-      else
-	return Faref (char_table, XVECTOR (range)->contents[i]);
+      int size = XVECTOR (range)->size;
+      Lisp_Object *val = XVECTOR (range)->contents;
+      Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
+					    size <= 1 ? Qnil : val[1],
+					    size <= 2 ? Qnil : val[2]);
+      return Faref (char_table, ch);
     }
   else
     error ("Invalid RANGE argument to `char-table-range'");
@@ -1332,22 +1354,12 @@ or a character code.")
     Faset (char_table, range, value);
   else if (VECTORP (range))
     {
-      for (i = 0; i < XVECTOR (range)->size - 1; i++)
-	{
-	  Lisp_Object tmp = Faref (char_table, XVECTOR (range)->contents[i]);
-	  if (NILP (tmp))
-	    {
-	      /* Make this char-table deeper.  */
-	      XVECTOR (char_table)->contents[XVECTOR (range)->contents[i]]
-		= tmp = Fmake_char_table (Qnil, Qnil);
-	    }
-	  char_table = tmp;
-	}
-
-      if (EQ (XVECTOR (range)->contents[i], Qnil))
-	XCHAR_TABLE (char_table)->defalt = value;
-      else
-	Faset (char_table, XVECTOR (range)->contents[i], value);
+      int size = XVECTOR (range)->size;
+      Lisp_Object *val = XVECTOR (range)->contents;
+      Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
+					    size <= 1 ? Qnil : val[1],
+					    size <= 2 ? Qnil : val[2]);
+      return Faset (char_table, ch, value);
     }
   else
     error ("Invalid RANGE argument to `set-char-table-range'");
@@ -1366,46 +1378,54 @@ map_char_table (c_function, function, chartable, depth, indices)
      Lisp_Object (*c_function) (), function, chartable, *indices;
      int depth;
 {
-  int i;
-  int from, to;
+  int i, to;
 
   if (depth == 0)
-    from = 0, to = CHAR_TABLE_ORDINARY_SLOTS;
-  else
-    from = 32, to = 128;
-  /* Make INDICES longer if we are about to fill it up.  */
-  if ((depth % 10) == 9)
     {
-      Lisp_Object *new_indices
-	= (Lisp_Object *) alloca ((depth + 10) * sizeof (Lisp_Object));
-      bcopy (indices, new_indices, depth * sizeof (Lisp_Object));
-      indices = new_indices;
+      /* At first, handle ASCII and 8-bit European characters.  */
+      for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
+	{
+	  Lisp_Object elt = XCHAR_TABLE (chartable)->contents[i];
+	  if (c_function)
+	    (*c_function) (i, elt);
+	  else
+	    call2 (function, make_number (i), elt);
+	}
+      to = CHAR_TABLE_ORDINARY_SLOTS;
+    }
+  else
+    {
+      i = 32;
+      to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
     }
 
-  for (i = from; i < to; i++)
+  for (i; i < to; i++)
     {
-      Lisp_Object elt;
+      Lisp_Object elt = XCHAR_TABLE (chartable)->contents[i];
+
       indices[depth] = i;
-      elt = XCHAR_TABLE (chartable)->contents[i];
-      if (CHAR_TABLE_P (elt))
-	map_char_table (c_function, function, elt, depth + 1, indices);
-      else if (c_function)
-	(*c_function) (depth + 1, indices, elt);
-      else if (depth == 0 && i < 256)
-	/* This is an ASCII or 8-bit European character.  */
-	call2 (function, make_number (i), elt);
+
+      if (SUB_CHAR_TABLE_P (elt))
+	{
+	  if (depth >= 3)
+	    error ("Too deep char table");
+	  map_char_table (c_function, function, elt, depth + 1, indices);
+	}
       else
 	{
-	  /* This is an entry for multibyte characters.  */
-	  unsigned int charset = XFASTINT (indices[0]) - 128, c1, c2, c;
+	  int charset = XFASTINT (indices[0]) - 128, c1, c2, c;
+
 	  if (CHARSET_DEFINED_P (charset))
 	    {
-	      c1 = depth < 1 ? 0 : XFASTINT (indices[1]);
-	      c2 = depth < 2 ? 0 : XFASTINT (indices[2]);
+	      c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
+	      c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
 	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
-	      call2 (function, make_number (c), elt);
+	      if (c_function)
+		(*c_function) (c, elt);
+	      else
+		call2 (function, make_number (c), elt);
 	    }
-	}	  
+  	}	  
     }
 }
 
@@ -1418,7 +1438,8 @@ The key is always a possible RANGE argument to `set-char-table-range'.")
      Lisp_Object function, char_table;
 {
   Lisp_Object keyvec;
-  Lisp_Object *indices = (Lisp_Object *) alloca (10 * sizeof (Lisp_Object));
+  /* The depth of char table is at most 3. */
+  Lisp_Object *indices = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
 
   map_char_table (NULL, function, char_table, 0, indices);
   return Qnil;
