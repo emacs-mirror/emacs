@@ -98,7 +98,7 @@ The buffer in question is current when this function is called."
   (save-window-excursion
     (let (answer)
       (while (null answer)
-	(message "%s changed on disk; really edit the buffer? (y, n or C-h) "
+	(message "%s changed on disk; really edit the buffer? (y, n, r or C-h) "
 		 (file-name-nondirectory fn))
 	(let ((tem (downcase (let ((cursor-in-echo-area t))
 			       (read-char)))))
@@ -108,14 +108,20 @@ The buffer in question is current when this function is called."
 		  (cdr (assoc tem '((?n . yield)
 				    (?\C-g . yield)
 				    (?y . proceed)
+				    (?r . revert)
 				    (?? . help))))))
 	  (cond ((null answer)
 		 (beep)
-		 (message "Please type y or n; or ? for help")
+		 (message "Please type y, n or r; or ? for help")
 		 (sit-for 3))
 		((eq answer 'help)
 		 (ask-user-about-supersession-help)
 		 (setq answer nil))
+		((eq answer 'revert)
+		 (revert-buffer nil (not (buffer-modified-p)))
+					; ask confirmation iff buffer modified
+		 (signal 'file-supersession
+			 (list "File reverted" fn)))
 		((eq answer 'yield)
 		 (signal 'file-supersession
 			 (list "File changed on disk" fn))))))
@@ -130,6 +136,8 @@ since you last read it in or saved it with this buffer.
 
 If you say `y' to go ahead and modify this buffer,
 you risk ruining the work of whoever rewrote the file.
+If you say `r' to revert, the contents of the buffer are refreshed
+from the file on disk.
 If you say `n', the change you started to make will be aborted.
 
 Usually, you should type `n' and then `M-x revert-buffer',
