@@ -5,8 +5,8 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/09/18 21:29:37 vinicius>
-;; Version: 3.6
+;; Time-stamp: <2001/09/24 10:31:13 vinicius>
+;; Version: 3.6.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
@@ -26,9 +26,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.6"
-  "ebnf2ps.el, v 3.6 <2001/09/18 vinicius>
-
+(defconst ebnf-version "3.6.1"
+  "ebnf2ps.el, v 3.6.1 <2001/09/24 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -2258,11 +2257,6 @@ It returns the old style symbol."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal variables
-
-
-(make-local-hook 'ebnf-hook)
-(make-local-hook 'ebnf-production-hook)
-(make-local-hook 'ebnf-page-hook)
 
 
 (defvar ebnf-eps-buffer-name " *EPS*")
