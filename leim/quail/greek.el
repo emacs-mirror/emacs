@@ -153,7 +153,7 @@ iota		I		i
 kappa		K		k
 lamda		L		l
 mu		M		m
-nu		H		n
+nu		N		n
 xi		X		x
 omicron		O		o
 pi		P		p
