@@ -115,7 +115,7 @@ of the manual.
   To use input methods provided by the Mac OS, set the keyboard coding
 system accordingly using the @kbd{C-x RET k} command
 (@code{set-keyboard-coding-system}).  For example, for Traditional
-Chinese, use the @samp{chinese-big5} as keyboard coding system; for
+Chinese, use @samp{chinese-big5} as keyboard coding system; for
 Japanese, use @samp{sjis}, etc.  Then select the desired input method in
 the keyboard layout pull-down menu.
 
@@ -129,7 +129,7 @@ one in another Mac application and yank it into a Emacs buffer.
   The encoding of text selections must be specified using the commands
 @kbd{C-x RET x} (@code{set-selection-coding-system}) or @kbd{C-x RET X}
 (@code{set-next-selection-coding-system}) (e.g., for Traditional
-Chinese, use the @samp{chinese-big5-mac} and for Japanese,
+Chinese, use @samp{chinese-big5-mac} and for Japanese,
 @samp{sjis-mac}).  @xref{Specify Coding}, for more details.
 
 
