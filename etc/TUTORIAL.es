@@ -17,49 +17,7 @@ las siguientes abreviaciones.
 Nota importante: para finalizar la sesión de Emacs presione C-x C-c. 
 (dos caracteres.) los caracteres ">>" al margen izquierdo indican 
 instrucciones para que usted trate de usar un comando. Por ejemplo:  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[Mitad de página en blanco con propósitos didacticos. El texto continua  abajo]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<<Blank lines inserted here by startup of help-with-tutorial>>
 >> Ahora digite C-v (ver la proxima pantalla) para desplazarse a la 
 	siguiente pantalla  (hágalo manteniendo la tecla control oprimida
 	mientras digita v). 

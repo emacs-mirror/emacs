@@ -15,47 +15,7 @@ steeds de volledige naam te noemen, gebruiken we de volgende afkortingen:
 BELANGRIJK: om Emacs te verlaten, type C-x C-c (twee tekens).
 De tekens ">>" tegen de linker kantlijn nodigen je uit om een
 bepaald commando te proberen.  Bijvoorbeeld:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[Het midden van deze pagina is om didactische redenen niet gevuld.
- De tekst gaat beneden verder.]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<<Blank lines inserted here by startup of help-with-tutorial>>
 >>  Type nu C-v (volgend scherm) om naar het volgende scherm te gaan.
 	(Geef nu het commando door de control toets ingedrukt te houden
 	terwijl je de v typt.)
