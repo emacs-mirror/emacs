@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.76) $
+ * $HopeName: MMsrc!mpmst.h(trunk.77) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -102,6 +102,7 @@ typedef struct PoolClassStruct {
   PoolWalkMethod walk;          /* walk over a segment */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
+  Bool labelled;                /* whether it has been EventLabelled */
   Sig sig;                      /* .class.end-sig */
 } PoolClassStruct;
 
