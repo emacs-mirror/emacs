@@ -1,3 +1,11 @@
+2004-01-26  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/Makefile (CP932-2BYTE.map): Call mapconv with
+	cp932.awk.
+
+	* charsets/mapconv: In UNICODE2 case, sort by 4th field after
+	running an awk program.
+
 2004-01-25  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/mapconv: Handle UNICODE2.
