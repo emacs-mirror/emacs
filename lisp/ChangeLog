@@ -1,3 +1,32 @@
+2002-09-29  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.24 released.
+	(tramp-methods, tramp-completion-function-alist):
+	Rename "*-old" methods to "*_old".  From Michael Albinus.
+	(tramp-completion-function-alist): Use
+	`tramp-completion-function-alist-ssh' for the "fcp" method.  From
+	Michael Albinus.
+	(tramp-default-method-alist): Use "su" for "root@localhost".
+	(tramp-host-regexp): Allow "#" for "host#port" kludge.
+	(tramp-ange-ftp-file-name-p): If METHOD is nil, find the right
+	default method.  Require additional args USER and HOST for this.
+	Callers changed.
+	(tramp-handle-file-local-copy): More local bindings.  Bind results
+	of tramp-get-{remote,local}-{de,en}coding earlier to avoid nasty
+	"are you awake" problem.
+	(tramp-action-password): Protect against clobbered match data.
+	(tramp-open-connection-setup-interactive-shell): Explicitly set
+	tramp-last-cmd-time before invoking tramp-send-command the first
+	time.  Otherwise, tramp-send-command would issue "echo are you
+	awake" right at the first time, which is not what we want.
+	Reported by Douglas Gray Stephens.
+	(tramp-find-inline-encoding): Don't redirect stdout to
+	/dev/null to avoid "chmode go-rwx" operation from "mimencode
+	>/dev/null" as root(!), and to check the output of the decoding
+	command.
+	(tramp-maybe-open-connection): Don't send "are you awake" if
+	process has died.
+
 2002-09-29  Colin Walters  <walters@gnu.org>
 
 	* calc/calc.el (calc-dispatch-map): Actually set to keymap.
