@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.20 2001/07/16 12:22:59 pj Exp $
+;; $Id: vc-rcs.el,v 1.21 2001/08/28 17:05:12 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -204,7 +204,7 @@ When VERSION is given, perform check for that version."
   (unless version (setq version (vc-workfile-version file)))
   (with-temp-buffer
     (string= version
-	     (if (vc-rcs-trunk-p version)
+	     (if (vc-trunk-p version)
 		 (progn
 		   ;; Compare VERSION to the head version number.
 		   (vc-insert-file (vc-name file) "^[0-9]")
@@ -212,7 +212,7 @@ When VERSION is given, perform check for that version."
 	       ;; If we are not on the trunk, we need to examine the
 	       ;; whole current branch.
 	       (vc-insert-file (vc-name file) "^desc")
-	       (vc-rcs-find-most-recent-rev (vc-rcs-branch-part version))))))
+	       (vc-rcs-find-most-recent-rev (vc-branch-part version))))))
 
 (defun vc-rcs-checkout-model (file)
   "RCS-specific version of `vc-checkout-model'."
@@ -365,11 +365,11 @@ whether to remove it."
       ;; branch accordingly
       (cond
        ((and old-version new-version
-	     (not (string= (vc-rcs-branch-part old-version)
-			   (vc-rcs-branch-part new-version))))
+	     (not (string= (vc-branch-part old-version)
+			   (vc-branch-part new-version))))
 	(vc-rcs-set-default-branch file 
-				   (if (vc-rcs-trunk-p new-version) nil
-				     (vc-rcs-branch-part new-version)))
+				   (if (vc-trunk-p new-version) nil
+				     (vc-branch-part new-version)))
 	;; If this is an old RCS release, we might have
 	;; to remove a remaining lock.
 	(if (not (vc-rcs-release-p "5.6.2"))
@@ -450,8 +450,8 @@ whether to remove it."
 		   (vc-rcs-set-default-branch 
 		    file
 		    (if (vc-rcs-latest-on-branch-p file new-version)
-			(if (vc-rcs-trunk-p new-version) nil
-			  (vc-rcs-branch-part new-version))
+			(if (vc-trunk-p new-version) nil
+			  (vc-branch-part new-version))
 		      new-version))))))
 	(message "Checking out %s...done" filename)))))
 
@@ -500,8 +500,10 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-rcs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV.
 Needs RCS 5.6.2 or later for -M."
-  (vc-do-command nil 0 "rcs" (vc-name file) "-M"
-		 (concat "-u" rev) (concat "-l" rev)))
+  (vc-do-command nil 0 "rcs" (vc-name file) "-M" (concat "-u" rev))
+  ;; Do a real checkout after stealing the lock, so that we see 
+  ;; expanded headers.
+  (vc-do-command nil 0 "co" (vc-name file) "-f" (concat "-l" rev)))
 
 
 
@@ -593,38 +595,6 @@ Needs RCS 5.6.2 or later for -M."
 ;;; Internal functions
 ;;;
 
-(defun vc-rcs-trunk-p (rev)
-  "Return t if REV is an RCS revision on the trunk."
-  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
-
-(defun vc-rcs-branch-part (rev)
-  "Return the branch part of an RCS revision number REV"
-  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
-
-(defun vc-rcs-branch-p (rev)
-  "Return t if REV is an RCS branch revision"
-  (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
-
-(defun vc-rcs-minor-part (rev)
-  "Return the minor version number of an RCS revision number REV."
-  (string-match "[0-9]+\\'" rev)
-  (substring rev (match-beginning 0) (match-end 0)))
-
-(defun vc-rcs-previous-version (rev)
-  "Guess the previous RCS version number"
-  (let ((branch (vc-rcs-branch-part rev))
-        (minor-num (string-to-number (vc-rcs-minor-part rev))))
-    (if (> minor-num 1)
-        ;; version does probably not start a branch or release
-        (concat branch "." (number-to-string (1- minor-num)))
-      (if (vc-rcs-trunk-p rev)
-          ;; we are at the beginning of the trunk --
-          ;; don't know anything to return here
-          ""
-        ;; we are at the beginning of a branch --
-        ;; return version of starting point
-        (vc-rcs-branch-part branch)))))
-
 (defun vc-rcs-workfile-is-newer (file)
   "Return non-nil if FILE is newer than its RCS master.
 This likely means that FILE has been changed with respect
@@ -647,7 +617,7 @@ to its master version."
 	  (setq latest-rev rev)
 	  (setq value (match-string 1)))))
     (or value
-	(vc-rcs-branch-part branch))))
+	(vc-branch-part branch))))
 
 (defun vc-rcs-fetch-master-state (file &optional workfile-version)
   "Compute the master file's idea of the state of FILE.
