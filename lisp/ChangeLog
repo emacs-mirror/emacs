@@ -1,3 +1,17 @@
+2004-06-05  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el (debug-ignored-errors): Add regexps for history
+	related messages.  Remove $ from "No further undo information".
+	Move Ediff's messages to ediff.el.
+
+	* ediff.el: Move Ediff's debug-ignored-errors from bindings.el.
+
+	* cus-edit.el (custom-display): Add `min-colors'.
+
+	* custom.el (defface): Add `supports' to docstring.
+
+	* help-fns.el (help-argument-name): Add :group 'help.
+
 2004-06-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* find-dired.el (find-ls-subdir-switches): New user option.
@@ -3266,7 +3280,7 @@
 	if the source location can't be found.
 	(edebug-compute-previous-result): Use prin1-char.
 
-	* emacs-lisp/checkdoc.el (checkdoc-error): Dont' assume point-min == 1.
+	* emacs-lisp/checkdoc.el (checkdoc-error): Don't assume point-min == 1.
 	(debug-ignored-errors): Add an entry.
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory): Ignore hidden dir.
