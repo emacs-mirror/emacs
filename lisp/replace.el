@@ -1132,7 +1132,7 @@ make, or the user didn't cancel the call."
     (unwind-protect
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
-		    (not (eobp))
+		    (not (or (eobp) (and limit (>= (point) limit))))
 		    ;; Use the next match if it is already known;
 		    ;; otherwise, search for a match after moving forward
 		    ;; one char if progress is required.
@@ -1148,7 +1148,10 @@ make, or the user didn't cancel the call."
 				     ;; character too far at the end,
 				     ;; but this is undone after the
 				     ;; while-loop.
-				     (progn (forward-char 1) (not (eobp))))
+				     (progn
+				       (forward-char 1)
+				       (not (or (eobp)
+						(and limit (>= (point) limit))))))
 				 (funcall search-function search-string limit t)
 				 ;; For speed, use only integers and
 				 ;; reuse the list used last time.
