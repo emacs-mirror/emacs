@@ -53,10 +53,10 @@ enum syntaxcode
 
 /* Set the syntax entry VAL for char C in table TABLE.  */
 
-#define SET_RAW_SYNTAX_ENTRY(table, c, val)			\
-  ((unsigned)(c) < 128						\
-   ? (XCHAR_TABLE (table)->contents[(unsigned) (c)] = (val))	\
-   : Faset ((table), (unsigned) (c), (val)))
+#define SET_RAW_SYNTAX_ENTRY(table, c, val)				\
+  ((c) < CHAR_TABLE_ORDINARY_SLOTS					\
+   ? (XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))	\
+   : Faset ((table), make_number (c), (val)))
 
 /* Fetch the syntax entry for char C in syntax table TABLE.
    This macro is called only when C is less than CHAR_TABLE_ORDINARY_SLOTS.
@@ -89,10 +89,12 @@ extern Lisp_Object syntax_parent_lookup ();
    This returns the whole entry (normally a cons cell).
    Do Inheritance.  */
 
-#define SYNTAX_ENTRY(c)							      \
-  ((unsigned) (c) < CHAR_TABLE_ORDINARY_SLOTS				      \
-   ? SYNTAX_ENTRY_FOLLOW_PARENT (current_buffer->syntax_table, (unsigned) (c))\
-   : Faref (current_buffer->syntax_table, make_number (c)))
+#define SYNTAX_ENTRY(c)						\
+  ((c) < CHAR_TABLE_ORDINARY_SLOTS				\
+   ? SYNTAX_ENTRY_FOLLOW_PARENT (current_buffer->syntax_table,	\
+				 (unsigned char) (c))		\
+   : Faref (current_buffer->syntax_table, make_number ((c))))
+
 
 /* Extract the information from the entry for character C
    in the current syntax table.  */
