@@ -11094,6 +11094,7 @@ xim_open_dpy (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
+#ifdef USE_XIM
   XIM xim;
 
   xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name, EMACS_CLASS);
@@ -11115,6 +11116,10 @@ xim_open_dpy (dpyinfo, resource_name)
       XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
 #endif
     }
+  
+#else /* not USE_XIM */
+  dpyinfo->xim = NULL;
+#endif /* not USE_XIM */
 }
 
 
@@ -11188,6 +11193,7 @@ xim_initialize (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
+#ifdef USE_XIM
 #ifdef HAVE_X11R6_XIM
   struct xim_inst_t *xim_inst;
   int len;
@@ -11209,6 +11215,10 @@ xim_initialize (dpyinfo, resource_name)
   dpyinfo->xim = NULL;
   xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
+  
+#else /* not USE_XIM */
+  dpyinfo->xim = NULL;
+#endif /* not USE_XIM */
 }
 
 
@@ -11218,6 +11228,7 @@ static void
 xim_close_dpy (dpyinfo)
      struct x_display_info *dpyinfo;
 {
+#ifdef USE_XIM
 #ifdef HAVE_X11R6_XIM
   XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				    NULL, EMACS_CLASS,
@@ -11226,6 +11237,7 @@ xim_close_dpy (dpyinfo)
   XCloseIM (dpyinfo->xim);
   dpyinfo->xim = NULL;
   XFree (dpyinfo->xim_styles);
+#endif /* USE_XIM */
 }
 
 #endif /* not HAVE_X11R6_XIM */
