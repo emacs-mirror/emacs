@@ -226,7 +226,7 @@ and reentering it will cause these functions to be called again.")
 This can be used, for example, to replace today's date with asterisks; a
 function `calendar-star-date' is included for this purpose:
     (setq today-visible-calendar-hook 'calendar-star-date)
-It can also be used to mark the current date with calendar-today-marker;
+It can also be used to mark the current date with `calendar-today-marker';
 a function is also provided for this:
     (setq today-visible-calendar-hook 'calendar-mark-today)
 
@@ -285,9 +285,10 @@ instead, if you execute `european-calendar' when in the calendar, or set
 To revert to the default American style from the European style, execute
 `american-calendar' in the calendar.
 
-A diary entry can be preceded by a diary-nonmarking-symbol (ordinarily `&')
-to make that entry nonmarking--that is, it will not be marked on dates in
-the calendar window but will appear in a diary window.
+A diary entry can be preceded by the character
+`diary-nonmarking-symbol' (ordinarily `&') to make that entry
+nonmarking--that is, it will not be marked on dates in the calendar
+window but will appear in a diary window.
 
 Multiline diary entries are made by indenting lines after the first with
 either a TAB or one or more spaces.
@@ -397,7 +398,7 @@ characters with or without a period.")
     (monthname " *" day ", *" year "[^0-9]")
     (dayname "\\W"))
   "*List of pseudo-patterns describing the American patterns of date used.
-See the documentation of diary-date-forms for an explanation.")
+See the documentation of `diary-date-forms' for an explanation.")
 
 ;;;###autoload
 (defvar european-date-diary-pattern
@@ -407,7 +408,7 @@ See the documentation of diary-date-forms for an explanation.")
     (day " *" monthname " *" year "[^0-9]")
     (dayname "\\W"))
   "*List of pseudo-patterns describing the European patterns of date used.
-See the documentation of diary-date-forms for an explanation.")
+See the documentation of `diary-date-forms' for an explanation.")
 
 (defvar diary-date-forms
   (if european-calendar-style
@@ -446,7 +447,7 @@ See the documentation of calendar-date-display-form for an explanation.")
 (defvar american-calendar-display-form
   '((if dayname (concat dayname ", ")) monthname " " day ", " year)
   "*Pseudo-pattern governing the way a date appears in the American style.
-See the documentation of calendar-date-display-form for an explanation.")
+See the documentation of `calendar-date-display-form' for an explanation.")
 
 (defvar calendar-date-display-form
   (if european-calendar-style
@@ -504,7 +505,7 @@ It is to be used for diary entries that are not found in the diary file.
 
 A function `include-other-diary-files' is provided for use as the value of
 this hook.  This function enables you to use shared diary files together
-with your own.  The files included are specified in the diary-file by lines
+with your own.  The files included are specified in the diary file by lines
 of the form
 
         #include \"filename\"
@@ -513,7 +514,7 @@ This is recursive; that is, #include directives in files thus included are
 obeyed.  You can change the \"#include\" to some other string by changing
 the variable `diary-include-string'.  When you use `include-other-diary-files'
 as part of the list-diary-entries-hook, you will probably also want to use the
-function `mark-included-diary-files' as part of the mark-diary-entries-hook.
+function `mark-included-diary-files' as part of `mark-diary-entries-hook'.
 
 For example, you could use
 
@@ -521,7 +522,7 @@ For example, you could use
        '(include-other-diary-files sort-diary-entries))
      (setq diary-display-hook 'fancy-diary-display)
 
-in your .emacs file to cause the fancy diary buffer to be displayed with
+in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
 lexicographic order.")
 
@@ -567,14 +568,14 @@ describes the style of such diary entries.")
 
 A function `mark-included-diary-files' is also provided for use as the
 mark-diary-entries-hook; it enables you to use shared diary files together
-with your own.  The files included are specified in the diary-file by lines
+with your own.  The files included are specified in the diary file by lines
 of the form
         #include \"filename\"
 This is recursive; that is, #include directives in files thus included are
 obeyed.  You can change the \"#include\" to some other string by changing the
 variable `diary-include-string'.  When you use `mark-included-diary-files' as
 part of the mark-diary-entries-hook, you will probably also want to use the
-function `include-other-diary-files' as part of the list-diary-entries-hook.")
+function `include-other-diary-files' as part of `list-diary-entries-hook'.")
 
 ;;;###autoload
 (defvar nongregorian-diary-marking-hook nil
@@ -1185,7 +1186,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
 
 (autoload 'view-diary-entries "diary"
   "Prepare and display a buffer with diary entries.
-Searches the file diary-file for entries that match ARG days starting with
+Searches your diary file for entries that match ARG days starting with
 the date indicated by the cursor position in the displayed three-month
 calendar."
   t)
@@ -1247,15 +1248,15 @@ calendar."
   t)
 
 (autoload 'show-all-diary-entries "diary"
-  "Show all of the diary entries in the diary-file.
-This function gets rid of the selective display of the diary-file so that
+  "Show all of the diary entries in the diary file.
+This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   t)
 
 (autoload 'mark-diary-entries "diary"
   "Mark days in the calendar window that have diary entries.
-Each entry in diary-file visible in the calendar window is marked."
+Each entry in diary file visible in the calendar window is marked."
   t)
 
 (autoload 'insert-diary-entry "diary-ins"
@@ -1632,7 +1633,7 @@ The following commands control the diary:
        \\[view-diary-entries]  display diary entries       \\[show-all-diary-entries]  show all diary entries
        \\[print-diary-entries]  print diary entries
 
-Displaying the diary entries causes the diary entries from the diary-file
+Displaying the diary entries causes the diary entries from the diary file
 \(for the date indicated by the cursor in the calendar window) to be
 displayed in another window.  This function takes an integer argument that
 specifies the number of days of calendar entries to be displayed, starting
@@ -1646,7 +1647,7 @@ displayed, independently of the calendar.  The number of days of entries is
 governed by number-of-diary-entries.
 
 The format of the entries in the diary file is described in the
-documentation string for the variable diary-file.
+documentation string for the variable `diary-file'.
 
 When diary entries are in view in the window, they can be edited.  It is
 important to keep in mind that the buffer displayed contains the entire
