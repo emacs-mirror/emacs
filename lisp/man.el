@@ -271,7 +271,7 @@ This regular expression should start with a `^' character.")
 
 (defun Man-build-man-command ()
   "Builds the entire background manpage and cleaning command."
-  (let ((command (concat "man " Man-switches " %s 2>&1"))
+  (let ((command (concat "man " Man-switches " %s 2>/dev/null"))
 	(flist Man-filter-list))
     (while flist
       (let ((pcom (car (car flist)))
@@ -451,6 +451,7 @@ start a background process even if a buffer already exists and
 	     (not override-reuse-p)
 	     buffer)
 	(Man-notify-when-ready buffer)
+      (require 'env)
       (message "Invoking man %s in background..." man-args)
       (setq buffer (generate-new-buffer bufname))
       (let ((process-environment (copy-sequence process-environment)))
