@@ -1345,18 +1345,15 @@ string_xstring_p (string)
 {
   const unsigned char *p = SDATA (string);
   const unsigned char *endp = p + SBYTES (string);
-  struct charset *charset;
 
   if (SCHARS (string) == SBYTES (string))
     return 0;
 
-  charset = CHARSET_FROM_ID (charset_iso_8859_1);
   while (p < endp)
     {
       int c = STRING_CHAR_ADVANCE (p);
 
-      /* Fixme: comparison of unsigned expression < 0 is always false */
-      if (ENCODE_CHAR (charset, c) < 0)
+      if (c >= 0x100)
 	return 2;
     }
   return 1;
@@ -1365,53 +1362,53 @@ string_xstring_p (string)
 
 /* Find charsets in the string at PTR of NCHARS and NBYTES.
 
-   CHARSETS is a vector.  Each element is a cons of CHARSET and
-   FOUND-FLAG.  CHARSET is a charset id, and FOUND-FLAG is nil or t.
-   FOUND-FLAG t (or nil) means that the corresponding charset is
-   already found (or not yet found).
+   CHARSETS is a vector.  If Nth element is non-nil, it means the
+   charset whose id is N is already found.
 
    It may lookup a translation table TABLE if supplied.  */
 
 static void
-find_charsets_in_text (ptr, nchars, nbytes, charsets, table)
+find_charsets_in_text (ptr, nchars, nbytes, charsets, table, multibyte)
      const unsigned char *ptr;
      EMACS_INT nchars, nbytes;
      Lisp_Object charsets, table;
+     int multibyte;
 {
   const unsigned char *pend = ptr + nbytes;
   int ncharsets = ASIZE (charsets);
 
   if (nchars == nbytes)
-    return;
-
-  while (ptr < pend)
     {
-      int c = STRING_CHAR_ADVANCE (ptr);
-      int i;
-      int all_found = 1;
-      Lisp_Object elt;
+      if (multibyte)
+	ASET (charsets, charset_ascii, Qt);
+      else
+	while (ptr < pend)
+	  {
+	    int c = *ptr++;
 
-      if (!NILP (table))
-	c = translate_char (table, c);
-      for (i = 0; i < ncharsets; i++)
+	    if (!NILP (table))
+	      c = translate_char (table, c);
+	    if (ASCII_BYTE_P (c))
+	      ASET (charsets, charset_ascii, Qt);
+	    else
+	      ASET (charsets, charset_eight_bit, Qt);
+	  }
+    }
+  else
+    {
+      while (ptr < pend)
 	{
-	  elt = AREF (charsets, i);
-	  if (NILP (XCDR (elt)))
-	    {
-	      struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (elt)));
+	  int c = STRING_CHAR_ADVANCE (ptr);
+	  struct charset *charset;
 
-	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
-		XSETCDR (elt, Qt);
-	      else
-		all_found = 0;
-	    }
+	  if (!NILP (table))
+	    c = translate_char (table, c);
+	  charset = CHAR_CHARSET (c);
+	  ASET (charsets, CHARSET_ID (charset), Qt);
 	}
-      if (all_found)
-	break;
     }
 }
 
-/* Fixme: returns nil for unibyte.  */
 DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
        2, 3, 0,
        doc: /* Return a list of charsets in the region between BEG and END.
@@ -1427,6 +1424,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   EMACS_INT from, from_byte, to, stop, stop_byte;
   int i;
   Lisp_Object val;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&beg, &end);
   from = XFASTINT (beg);
@@ -1443,13 +1441,11 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   from_byte = CHAR_TO_BYTE (from);
 
   charsets = Fmake_vector (make_number (charset_table_used), Qnil);
-  for (i = 0; i < charset_table_used; i++)
-    ASET (charsets, i, Fcons (make_number (i), Qnil));
-
   while (1)
     {
       find_charsets_in_text (BYTE_POS_ADDR (from_byte), stop - from,
-			     stop_byte - from_byte, charsets, table);
+			     stop_byte - from_byte, charsets, table,
+			     multibyte);
       if (stop < to)
 	{
 	  from = stop, from_byte = stop_byte;
@@ -1461,12 +1457,11 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
 
   val = Qnil;
   for (i = charset_table_used - 1; i >= 0; i--)
-    if (!NILP (XCDR (AREF (charsets, i))))
+    if (!NILP (AREF (charsets, i)))
       val = Fcons (CHARSET_NAME (charset_table + i), val);
   return val;
 }
 
-/* Fixme: returns nil for unibyte.  */
 DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
        1, 2, 0,
        doc: /* Return a list of charsets in STR.
@@ -1484,14 +1479,12 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
   CHECK_STRING (str);
 
   charsets = Fmake_vector (make_number (charset_table_used), Qnil);
-  for (i = 0; i < charset_table_used; i++)
-    ASET (charsets, i, Fcons (make_number (i), Qnil));
   find_charsets_in_text (SDATA (str), SCHARS (str), SBYTES (str),
-			 charsets, table);
-
+			 charsets, table,
+			 STRING_MULTIBYTE (str));
   val = Qnil;
   for (i = charset_table_used - 1; i >= 0; i--)
-    if (!NILP (XCDR (AREF (charsets, i))))
+    if (!NILP (AREF (charsets, i)))
       val = Fcons (CHARSET_NAME (charset_table + i), val);
   return val;
 }
@@ -1846,10 +1839,12 @@ char_charset (c, charset_list, code_return)
 }
 
 
-/* Fixme: `unknown' can't happen now?  */
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
-       doc: /*Return list of charset and one to three position-codes of CHAR.
-If CHAR is invalid as a character code, return a list `(unknown CHAR)'.  */)
+       doc:
+       /*Return list of charset and one to four position-codes of CHAR.
+The charset is decided by the current priority order of charsets.
+A position-code is a byte value of each dimension of the code-point of
+CHAR in the charset.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1862,18 +1857,16 @@ If CHAR is invalid as a character code, return a list `(unknown CHAR)'.  */)
   c = XFASTINT (ch);
   charset = CHAR_CHARSET (c);
   if (! charset)
-    return Fcons (intern ("unknown"), Fcons (ch, Qnil));
-
+    abort ();
   code = ENCODE_CHAR (charset, c);
   if (code == CHARSET_INVALID_CODE (charset))
     abort ();
   dimension = CHARSET_DIMENSION (charset);
-  val = (dimension == 1 ? Fcons (make_number (code), Qnil)
-	 : dimension == 2 ? Fcons (make_number (code >> 8),
-				   Fcons (make_number (code & 0xFF), Qnil))
-	 : Fcons (make_number (code >> 16),
-		  Fcons (make_number ((code >> 8) & 0xFF),
-			 Fcons (make_number (code & 0xFF), Qnil))));
+  for (val = Qnil; dimension > 0; dimension--)
+    {
+      val = Fcons (make_number (code & 0xFF), val);
+      code >>= 8;
+    }
   return Fcons (CHARSET_NAME (charset), val);
 }
 
