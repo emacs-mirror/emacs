@@ -1,3 +1,15 @@
+2002-08-14  Kim F. Storm  <storm@cua.dk>
+
+	* macros.c (Fstart_kbd_macro): Added NO-EXEC argument to inhibit
+	executing macro before appending to it (when used from Lisp).
+	(Fexecute_kbd_macro): Added LOOPFUNC argument to supply function
+	which is called prior to each iteration of macro (for kmacro.el).
+	(Fend_kbd_macro, Fcall_last_kbd_macro): Likewise.
+
+	* lisp.h (Fexecute_kbd_macro): Update prototype.
+
+	* keyboard.c (Fcommand_execute): Update call to Fexecute_kbd_macro.
+	
 2002-08-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* xselect.c (QUTF8_STRING): New variable.
