@@ -212,7 +212,7 @@ Set it to either \`yes' or \`no'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-            val="$1"; shift
+	    val="$1"; shift
 	  fi
           srcdir="${val}"
 	;;
@@ -254,6 +254,12 @@ Set it to either \`yes' or \`no'."
 	"run_in_place" )
 	  single_tree=
 	  run_in_place=1
+	;;
+
+        ## Should this use the "single tree" configuration?
+	"single_tree" )
+	   run_in_place=
+	   single_tree=1
 	;;
 
 	## Has the user specified one of the path options?
@@ -999,7 +1005,7 @@ AC_PROG_YACC
 dnl checks for UNIX variants that set `DEFS'
 
 dnl checks for header files
-AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
+AC_HAVE_HEADERS(sys/timeb.h sys/time.h unistd.h)
 AC_STDC_HEADERS
 AC_TIME_WITH_SYS_TIME
 
@@ -1018,7 +1024,6 @@ AC_LONG_FILE_NAMES
 
 dnl other checks for UNIX variants
 [
-
 
 #### Choose a window system.
 echo "Checking window system."
@@ -1392,18 +1397,45 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile.in, [
+AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile.in) [
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
-# after src/config.h is built, since we rely on that file.  
-echo creating src/Makefile
-( cd src
-  rm -f junk.c
-  cp Makefile.in junk.c
-  ${CPP} -I. -I${top_srcdir}/src ${CPPFLAGS} junk.c |
-  sed -e 's/^#.*$//' -e '/^[ 	]*$/d' -e 's/^ /	/' > Makefile.new
-  # There is a window of lossage if you mv Makefile.new before chmoding it.
-  chmod 444 Makefile.new
-  mv -f Makefile.new Makefile
-  rm -f junk.c
-)
-])
+# after src/config.h is built, since we rely on that file.  Only do the
+# build if "config.status" is present, since it's non-presence indicates
+# an error occured.
+status=$?
+if [ ! -f ./config.status ]; then
+   exit $status
+fi
+topsrcdir=${srcdir}
+makefile_command='echo "creating src/Makefile";
+  topsrcdir='"${topsrcdir}"';
+( cd ./src;
+  cp Makefile.in junk.c;
+  eval `echo ${CPP} -I. -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
+  < junk.cpp							'\
+'    sed -e '\''s/^#.*//'\''					'\
+'	-e '\''s/^[ \f\t][ \f\t]*$//'\''			'\
+'	-e '\''s/^ /	/'\'' 					'\
+'	| sed -n -e '\''/^..*$/p'\''				'\
+'	> Makefile.new;
+    chmod 444 Makefile.new;
+    mv -f Makefile.new Makefile;
+    rm -f junk.c junk.cpp;
+)'
+eval `echo $makefile_command`
+# AC-OUTPUT has created `config.status' already.  We need to add the above
+# commands to re-create `src/Makefile', and we need to insert them before
+# the final "exit 0" which appears at the end of `config.status'.
+<config.status sed -e 's/^exit 0$//' >config.new
+echo $makefile_command >>config.new
+echo exit 0 >>config.new
+mv -f config.new config.status
+chmod +x config.status
+# Don't let the fact that we just rewrote config.status make Makefile think
+# that it is now newer.  We have just rewritten all of the Makefiles as well.
+MFS="Makefile src/Makefile src/Makefile.in lib-src/Makefile oldXMenu/Makefile"
+for file in $MFS; do
+   chmod a+w $file; touch $file; chmod 444 $file
+done
+exit 0
+]
