@@ -902,14 +902,14 @@ See variables `compilation-parse-errors-function' and
   "Visit previous compilation error message and corresponding source code.
 This operates on the output from the \\[compile] command."
   (interactive)
-  (next-error '-1))
+  (next-error -1))
 
 (defun first-error ()
   "Reparse the error message buffer and start at the first error
 Visit corresponding source code.
 This operates on the output from the \\[compile] command."
   (interactive)
-  (next-error '(1.1)))
+  (next-error '(4)))
 
 (defun compilation-next-error-locus (&optional move reparse silent)
   "Visit next compilation error and return locus in corresponding source code.
@@ -1037,8 +1037,9 @@ The current buffer should be the desired compilation output buffer."
 								nil 'end
 								lines))
 					 (forward-line lines))
-				       (if column
-					   (move-to-column (1- column)))
+				       (if (and column (> column 1))
+					   (move-to-column (1- column))
+					 (beginning-of-line))
 				       (setq last-line this)
 				       (setcdr (car errors) (point-marker))))
 				(setq errors (cdr errors)))))))))
@@ -1077,7 +1078,9 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 
   ;; Show compilation buffer in other window, scrolled to this error.
   (let* ((pop-up-windows t)
+	 ;; Use an existing window if it is in a visible frame.
 	 (w (or (get-buffer-window (marker-buffer (car next-error)) 'visible)
+		;; Pop up a window.
 		(display-buffer (marker-buffer (car next-error))))))
     (set-window-point w (car next-error))
     (set-window-start w (car next-error))
@@ -1344,7 +1347,11 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       ;; giving a marker for the current compilation buffer
 	       ;; location, and the file and line number of the error.
 	       (save-excursion
-		 (beginning-of-line 1)
+		 ;; Save as the start of the error the beginning of the
+		 ;; line containing the match unless the match starts at a
+		 ;; newline, in which case the beginning of the next line.
+		 (goto-char beginning-of-match)
+		 (forward-line (if (eolp) 1 0))
 		 (let ((this (cons (point-marker)
 				   (list filename linenum column))))
 		   ;; Don't add the same source line more than once.
