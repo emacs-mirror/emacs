@@ -16,7 +16,20 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <../src/epaths.h>      /* For PATH_DATA.  */
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#include "epaths.h"		/* For PATH_DATA.  */
 
 #define BUFSIZE  80
 #define SEP      '\0'
@@ -36,8 +49,6 @@
     strcpy (p + 4, rel);\
     &res;})
 #endif
-
-char *malloc(), *realloc();
 
 void yow();
 void setup_yow();
@@ -66,7 +77,7 @@ main (argc, argv)
   }
 
   /* initialize random seed */
-  srand((int) (getpid() + time((long *) 0)));
+  srand((int) (getpid() + time((time_t *) 0)));
 
   setup_yow(fp);
   yow(fp);
@@ -143,7 +154,7 @@ yow (fp)
   }
 
   bufsize = BUFSIZE;
-  buf = malloc(bufsize);
+  buf = (char *) malloc(bufsize);
   if (buf == (char *)0) {
     fprintf(stderr, "yow: virtual memory exhausted\n");
     exit (3);
@@ -156,7 +167,7 @@ yow (fp)
     if (i == bufsize-1) {
       /* Yow! Is this quotation too long yet? */
       bufsize *= 2;
-      buf = realloc(buf, bufsize);
+      buf = (char *) realloc(buf, bufsize);
       if (buf == (char *)0) {
 	fprintf(stderr, "yow: virtual memory exhausted\n");
 	exit (3);
