@@ -3931,7 +3931,7 @@ syms_of_keyboard ()
   staticpro (&recent_keys);
 
   this_command_keys = Fmake_vector (make_number (40), Qnil);
-  staticpro (&recent_keys);
+  staticpro (&this_command_keys);
 
   func_key_syms = Qnil;
   staticpro (&func_key_syms);
