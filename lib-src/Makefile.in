@@ -200,6 +200,10 @@ HESIODLIB=
 
 MOVE_LIBS=$(KRBLIB) $(DESLIB) $(COM_ERRLIB) $(HESIODLIB)
 
+#ifdef HAVE_LIBMAIL
+LIBMAIL=-lmail
+#endif
+
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
 
 /* We need to #define emacs to get the right versions of some files.
@@ -365,7 +369,7 @@ b2m: ${srcdir}/b2m.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
 
 movemail: movemail.o pop.o
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(LOADLIBES) $(MOVE_LIBS) -o movemail
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(LOADLIBES) $(LIBMAIL) $(MOVE_LIBS) -o movemail
 
 movemail.o: ${srcdir}/movemail.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
