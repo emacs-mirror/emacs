@@ -161,9 +161,11 @@ static Lisp_Object help_echo_window;
 static Lisp_Object help_echo_object;
 static int help_echo_pos;
 
-/* Temporary variable for w32_read_socket.  */
+/* Temporary variables for w32_read_socket.  */
 
 static Lisp_Object previous_help_echo;
+static int last_mousemove_x = 0;
+static int last_mousemove_y = 0;
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
@@ -8766,9 +8768,17 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  break;
 
 	case WM_MOUSEMOVE:
+	  /* Ignore non-movement.  */
+	  {
+	    int x = LOWORD (msg.msg.lParam);
+	    int y = HIWORD (msg.msg.lParam);
+	    if (x == last_mousemove_x && y == last_mousemove_y)
+	      break;
+	    last_mousemove_x = x;
+	    last_mousemove_y = y;
+	  }
+
           previous_help_echo = help_echo;
-          help_echo_object = help_echo_window = Qnil;
-          help_echo_pos = -1;
 
 	  if (dpyinfo->grabbed && last_mouse_frame
 	      && FRAME_LIVE_P (last_mouse_frame))
@@ -8793,10 +8803,17 @@ w32_read_socket (sd, bufp, numchars, expected)
 
           /* If the contents of the global variable help_echo
              has changed, generate a HELP_EVENT.  */
-          if (help_echo != previous_help_echo)
+          if (help_echo != previous_help_echo ||
+	      (!NILP (help_echo) && !STRINGP (help_echo) && f->mouse_moved))
             {
               Lisp_Object frame;
               int n;
+
+	      if (help_echo == Qnil)
+		{
+		  help_echo_object = help_echo_window = Qnil;
+		  help_echo_pos = -1;
+		}
 
               if (f)
                 XSETFRAME (frame, f);
