@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -202,16 +202,6 @@
 (if (not (fboundp 'buffer-substring-no-properties))
     (defun buffer-substring-no-properties (start end)
       (buffer-substring start end)))
-
-;;;###autoload
-(defconst xemacsp (string-match "Lucid\\|XEmacs" emacs-version)
-  "Non nil if using XEmacs.")
-
-(defconst ispell-graphic-p
-  (if (fboundp 'display-graphic-p)
-      (display-graphic-p)
-    xemacsp)
-  "True if running on a `graphics capable' display.")
 
 (defalias 'ispell-check-version 'check-ispell-version)
 
@@ -813,7 +803,7 @@ and added as a submenu of the \"Edit\" menu.")
 (defvar ispell-menu-map-needed
   ;; only needed when not version 18 and not XEmacs.
   (and (not ispell-menu-map)
-       (not xemacsp)
+       (not (featurep 'xemacs))
        'reload))
 
 (defvar ispell-library-directory (condition-case ()
@@ -841,15 +831,11 @@ and added as a submenu of the \"Edit\" menu.")
 	  name load-dict)
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       ;; add the dictionaries to the bottom of the list.
-      (dolist (dict dicts)
-	(setq name (car dict)
-	      load-dict (car (cdr (member "-d" (nth 5 dict)))))
-	(unless (stringp name)
-	  (define-key ispell-menu-map [default]
-	    '("Select Default Dict"
-	      "Dictionary for which Ispell was configured"
-	      . (lambda () (interactive)
-		  (ispell-change-dictionary "default"))))))
+      (define-key ispell-menu-map [default]
+	'("Select Default Dict"
+	  "Dictionary for which Ispell was configured"
+	  . (lambda () (interactive)
+	      (ispell-change-dictionary "default"))))
       (fset 'ispell-dict-map dict-map)
       (define-key ispell-menu-map [dictionaries]
 	`(menu-item "Select Dict" ispell-dict-map))
@@ -940,7 +926,7 @@ and added as a submenu of the \"Edit\" menu.")
       (fset 'ispell-menu-map (symbol-value 'ispell-menu-map))))
 
 ;;; XEmacs versions 19 & 20
-(if (and xemacsp
+(if (and (featurep 'xemacs)
 	 (featurep 'menubar)
 	 (null ispell-menu-xemacs)
 	 (not (and (boundp 'infodock-version) infodock-version)))
@@ -991,7 +977,7 @@ and added as a submenu of the \"Edit\" menu.")
 	    (add-menu '("Edit") "Spell" ispell-menu-xemacs)))))
 
 ;;; Allow incrementing characters as integers in XEmacs 20
-(if (and xemacsp
+(if (and (featurep 'xemacs)
 	 (fboundp 'int-char))
     (fset 'ispell-int-char 'int-char)
   ;; Emacs and XEmacs 19 or earlier
@@ -1014,7 +1000,7 @@ used as key in `ispell-dictionary-alist' (which see).")
 (defun ispell-decode-string (str)
   "Decodes multibyte character strings.
 Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
-  (if (and (or xemacsp
+  (if (and (or (featurep 'xemacs)
 	       (and (boundp 'enable-multibyte-characters)
 		    enable-multibyte-characters))
 	   (fboundp 'decode-coding-string)
@@ -1189,7 +1175,7 @@ Currently the only other valid parser is `tex'.
 
 You can set this variable in hooks in your init file -- eg:
 
-(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))")
+\(add-hook 'tex-mode-hook (lambda () (setq ispell-parser 'tex)))")
 
 (defvar ispell-region-end (make-marker)
   "Marker that allows spelling continuations.")
@@ -1255,7 +1241,7 @@ pass it the output of the last ispell invocation."
 	(insert string)
 	(if (not (memq cmd cmds-to-defer))
 	    (let (coding-system-for-read coding-system-for-write status)
-	      (if (or xemacsp
+	      (if (or (featurep 'xemacs)
 		      (and (boundp 'enable-multibyte-characters)
 			   enable-multibyte-characters))
 		  (setq coding-system-for-read (ispell-get-coding-system)
@@ -2059,7 +2045,7 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
 
 (defun ispell-highlight-spelling-error (start end &optional highlight refresh)
   (cond
-   (xemacsp
+   ((featurep 'xemacs)
     (ispell-highlight-spelling-error-xemacs start end highlight))
    ((and (featurep 'faces)
 	 (or (and (fboundp 'display-color-p) (display-color-p))
@@ -2076,7 +2062,9 @@ text line, the returned value may be smaller than that from
 `window-height'."
   (cond ((fboundp 'window-text-height)
 	 (1+ (window-text-height window)))
-	(ispell-graphic-p
+	((if (fboundp 'display-graphic-p)
+	     (display-graphic-p)
+	   (featurep 'xemacs))
 	 (1- (window-height window)))
 	(t
 	 (window-height window))))
@@ -2128,7 +2116,7 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
    ((string= output "") t)		; for startup with pipes...
    ((string= output "*") t)		; exact match
    ((string= output "-") t)		; compound word match
-   ((string= (substring output 0 1) "+") ; found because of root word
+   ((eq (aref output 0) ?+)		; found because of root word
     (substring output 2))		; return root word
    ((equal 0 (string-match "[\ra-zA-Z]" output))
     (ding)				; error message from ispell!
@@ -2136,17 +2124,17 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
     (sit-for 5)
     nil)
    (t					; need to process &, ?, and #'s
-    (let ((type (substring output 0 1))	; &, ?, or #
+    (let ((type (aref output 0))	; &, ?, or #
 	  (original-word (substring output 2 (string-match " " output 2)))
 	  (cur-count 0)			; contains number of misses + guesses
 	  count miss-list guess-list offset)
       (setq output (substring output (match-end 0))) ; skip over misspelling
-      (if (string= type "#")
+      (if (eq type ?#)
 	  (setq count 0)		; no misses for type #
 	(setq count (string-to-int output) ; get number of misses.
 	      output (substring output (1+ (string-match " " output 1)))))
       (setq offset (string-to-int output))
-      (if (string= type "#")		; No miss or guess list.
+      (if (eq type ?#)			; No miss or guess list.
 	  (setq output nil)
 	(setq output (substring output (1+ (string-match " " output 1)))))
       (while output
@@ -2229,7 +2217,7 @@ Keeps argument list for future ispell invocations for no async support."
     (if ispell-async-processp
 	(set-process-filter ispell-process 'ispell-filter))
     ;; protect against bogus binding of `enable-multibyte-characters' in XEmacs
-    (if (and (or xemacsp
+    (if (and (or (featurep 'xemacs)
 		 (and (boundp 'enable-multibyte-characters)
 		      enable-multibyte-characters))
 	     (fboundp 'set-process-coding-system))
@@ -2411,7 +2399,7 @@ Return nil if spell session is quit,
 			      (marker-position ispell-region-end)))
 	      (let* ((start (point))
 		     (end (save-excursion (end-of-line) (min (point) reg-end)))
-		     (string (ispell-get-line start end reg-end)))
+		     (string (ispell-get-line start end)))
 		(setq end (point))	; "end" tracks region retrieved.
 		(if string		; there is something to spell check!
 		    ;; (special start end)
@@ -2582,7 +2570,7 @@ otherwise, the current line is skipped."
 
 ;;; Grab the next line of data.
 ;;; Returns a string with the line data
-(defun ispell-get-line (start end reg-end)
+(defun ispell-get-line (start end)
   (let ((ispell-casechars (ispell-get-casechars))
 	string)
     (cond				; LOOK AT THIS LINE AND SKIP OR PROCESS
@@ -2845,12 +2833,10 @@ Standard ispell choices are then available."
 	   (cond
 	    ((string-equal (upcase word) word)
 	     (setq possibilities (mapcar 'upcase possibilities)))
-	    ((string-equal (upcase (substring word 0 1)) (substring word 0 1))
+	    ((eq (upcase (aref word 0)) (aref word 0))
              (setq possibilities (mapcar (function
                                           (lambda (pos)
-                                            (if (string-equal
-						 (substring word 0 1)
-						 (substring pos 0 1))
+                                            (if (eq (aref word 0) (aref pos 0))
 						pos
                                               (capitalize pos))))
                                          possibilities))))
