@@ -3648,7 +3648,8 @@ Unibyte strings are converted to multibyte for comparison."
     (save-excursion
       (rfc822-goto-eoh)
       (while other-headers
-	(if (not (member (car (car other-headers)) '("in-reply-to" "cc")))
+	(if (not (assoc-ignore-case (car (car other-headers))
+				    '(("in-reply-to") ("cc"))))
 	    (insert (car (car other-headers)) ": "
 		    (cdr (car other-headers)) "\n"))
 	(setq other-headers (cdr other-headers)))
