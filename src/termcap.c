@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985, 86, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 2000 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -288,7 +288,6 @@ tgetst1 (ptr, area)
 
 /* Outputting a string with padding.  */
 
-short ospeed;
 /* If OSPEED is 0, we use this as the actual baud rate.  */
 int tputs_baud_rate;
 char PC;
@@ -316,21 +315,12 @@ tputs (str, nlines, outfun)
   register int padcount = 0;
   register int speed;
 
-#ifdef emacs
   extern int baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */
   if (speed > 10000)
     speed = - speed / 100;
-#else
-  if (ospeed == 0)
-    speed = tputs_baud_rate;
-  else if (ospeed > 0 && ospeed < (sizeof speeds / sizeof speeds[0]))
-    speed = speeds[ospeed];
-  else
-    speed = 0;
-#endif
 
   if (!str)
     return;
@@ -453,7 +443,7 @@ tgetent (bp, name)
   char *term;
   int malloc_size = 0;
   register int c;
-  char *tcenv;			/* TERMCAP value, if it contains :tc=.  */
+  char *tcenv = NULL;		/* TERMCAP value, if it contains :tc=.  */
   char *indirect = NULL;	/* Terminal type in :tc= in TERMCAP value.  */
   int filep;
 
