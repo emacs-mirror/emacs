@@ -2004,12 +2004,12 @@ that represents the number without losing information.");
 
   DEFVAR_LISP ("print-length", &Vprint_length,
     "Maximum length of list to print before abbreviating.\n\
-A value of nil means no limit.");
+A value of nil means no limit.  See also `eval-expression-print-length'.");
   Vprint_length = Qnil;
 
   DEFVAR_LISP ("print-level", &Vprint_level,
     "Maximum depth of list nesting to print before abbreviating.\n\
-A value of nil means no limit.");
+A value of nil means no limit.  See also `eval-expression-print-level'.");
   Vprint_level = Qnil;
 
   DEFVAR_BOOL ("print-escape-newlines", &print_escape_newlines,
