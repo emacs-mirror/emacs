@@ -1,6 +1,6 @@
 /*  impl.c.poolmv2ss: POOLMV2 STRESS TEST
  *
- * $HopeName: MMsrc!mv2test.c(MMdevel_gavinm_splay.6) $
+ * $HopeName: MMsrc!mv2test.c(trunk.2) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -281,13 +281,11 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   return MPS_RES_OK;
 }
 
-
-int main(void)
+static void stress_with_arena_class(mps_arena_class_t aclass)
 {
   mps_arena_t arena;
 
-  /* mps_arena_class_an? */
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+  die(mps_arena_create(&arena, aclass, testArenaSIZE),
       "mps_arena_create");
 
   min = 8;
@@ -305,6 +303,14 @@ int main(void)
 
   mps_arena_destroy(arena);
 
-  return 0;
+  return;
 }
 
+int main(void)
+{
+  stress_with_arena_class(mps_arena_class_vm());
+  stress_with_arena_class(mps_arena_class_vmnz());
+  /* mps_arena_class_an?  mps_arena_class_cl? */
+
+  return 0;
+}
