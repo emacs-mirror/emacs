@@ -176,13 +176,20 @@ at once, rather than line by line, and the matching sequence can match
 multiple lines; and \fIs\fP, which implies \fIm\fP and means that the
 dot character in \fItagregexp\fP matches the newline char as well.
 .br
-cthe optional \fB{\fP\fIlanguage\fP\fB}\fP means that the tag should be
+The separator, which is \fB/\fP in the examples, can be any character
+different from space, tab, braces and \fB@\fP.  If the separator
+character is needed inside the regular expression, it must be quoted
+by preceding it with \fB\\\fP.
+.br
+The optional \fB{\fP\fIlanguage\fP\fB}\fP prefix means that the tag
+should be
 created only for files of language \fIlanguage\fP, and ignored
 otherwise.  This is particularly useful when storing many predefined
 regexps in a file.
 .br
-In its second form, \fIregexfile\fP is the name of a file containing
-regexps, one per line.  Lines beginning with a space or tab are assumed
+In its second form, \fIregexfile\fP is the name of a file that contains
+a number of arguments to the \fI\-\-regex\=\fP option,
+one per line.  Lines beginning with a space or tab are assumed
 to be comments, and ignored.
 
 .br
