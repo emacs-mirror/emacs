@@ -1,6 +1,6 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -775,10 +775,8 @@ look for files that have been changed and need to be copied to other systems."
 	   (let ((processes (process-list))
 		 active)
 	     (while processes
-	       (and (memq (process-status (car processes)) '(run stop open))
-		    (let ((val (process-kill-without-query (car processes))))
-		      (process-kill-without-query (car processes) val)
-		      val)
+	       (and (memq (process-status (car processes)) '(run stop open listen))
+		    (process-query-on-exit-flag (car processes))
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
