@@ -5523,14 +5523,16 @@ window-systems.  */);
 		     doc: /* *If a number, scroll display up aggressively.
 If scrolling a window because point is below the window end, choose
 a new window start so that point ends up that fraction of the window's
-height from the bottom of the window.  */);
+height from the bottom of the window.  Meaningful values are
+between 0.0 and 1.0, inclusive.  */);
   
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
 		     &current_buffer->scroll_down_aggressively, Qnil,
 		     doc: /* *If a number, scroll display down aggressively.
 If scrolling a window because point is above the window start, choose
 a new window start so that point ends up that fraction of the window's
-height from the top of the window.  */);
+height from the top of the window.  Meaningful values are
+between 0.0 and 1.0, inclusive.  */);
   
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
