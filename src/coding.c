@@ -1078,6 +1078,7 @@ detect_coding_utf_8 (coding, mask)
 }
 
 
+/* Fixme: deal with surrogates?  */
 static void
 decode_coding_utf_8 (coding)
      struct coding_system *coding;
@@ -1126,23 +1127,38 @@ decode_coding_utf_8 (coding)
 	  if (! UTF_8_EXTRA_OCTET_P (c2))
 	    goto invalid_code;
 	  if (UTF_8_2_OCTET_LEADING_P (c1))
-	    c = ((c1 & 0x1F) << 6) | (c2 & 0x3F);
+	    {
+	      c = ((c1 & 0x1F) << 6) | (c2 & 0x3F);
+	      /* Reject overlong sequences here and below.  Encoders
+		 producing them are incorrect, they can be misleading,
+		 and they mess up read/write invariance.  */
+	      if (c < 128)
+		goto invalid_code;
+	    }
 	  else
 	    {
 	      ONE_MORE_BYTE (c3);
 	      if (! UTF_8_EXTRA_OCTET_P (c3))
 		goto invalid_code;
 	      if (UTF_8_3_OCTET_LEADING_P (c1))
-		c = (((c1 & 0xF) << 12)
-		     | ((c2 & 0x3F) << 6) | (c3 & 0x3F));
+		{
+		  c = (((c1 & 0xF) << 12)
+		       | ((c2 & 0x3F) << 6) | (c3 & 0x3F));
+		  if (c < 0x800)
+		    goto invalid_code;
+		}
 	      else
 		{
 		  ONE_MORE_BYTE (c4);
 		  if (! UTF_8_EXTRA_OCTET_P (c4))
 		    goto invalid_code;
 		  if (UTF_8_4_OCTET_LEADING_P (c1))
+		    {
 		    c = (((c1 & 0x7) << 18) | ((c2 & 0x3F) << 12)
 			 | ((c3 & 0x3F) << 6) | (c4 & 0x3F));
+		    if (c < 0x10000)
+		      goto invalid_code;
+		    }
 		  else
 		    {
 		      ONE_MORE_BYTE (c5);
@@ -1153,7 +1169,7 @@ decode_coding_utf_8 (coding)
 			  c = (((c1 & 0x3) << 24) | ((c2 & 0x3F) << 18)
 			       | ((c3 & 0x3F) << 12) | ((c4 & 0x3F) << 6)
 			       | (c5 & 0x3F));
-			  if (c > MAX_CHAR)
+			  if ((c > MAX_CHAR) || (c < 0x200000))
 			    goto invalid_code;
 			}
 		      else
