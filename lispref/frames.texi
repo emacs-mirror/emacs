@@ -71,33 +71,6 @@ Parameters}, for documentation of individual parameters you can specify
 when creating an X window frame.
 @end defun
 
-@defvar default-frame-alist
-This is an alist specifying default values of frame parameters.
-Each element has the form:
-
-@example
-(@var{parameter} . @var{value})
-@end example
-@end defvar
-
-@defvar initial-frame-alist
-This is an alist specifying frame parameters for the initial Emacs frame.
-
-Emacs creates the initial X frame before it reads the user's init file,
-which is the first occasion that the user has to set this variable.  So
-after reading the init file, Emacs modifies the parameters according to
-the value of this variable.  In most cases, that is good enough.
-However, for window position parameters, it may be inconvenient that the
-window initially appears in the wrong place or the wrong size.  The way
-to overcome this annoyance is to specify the initial frame's geometry
-with an X resource.
-@end defvar
-
-If you use options that specify window appearance when you invoke Emacs,
-they take effect by adding elements to @code{default-frame-alist}.  One
-exception is @samp{-geometry}, which adds to @code{initial-frame-alist}
-instead.  @xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
-
 @defvar before-make-frame-hook
 A normal hook run by @code{make-frame} before it actually creates the
 frame.
@@ -153,7 +126,30 @@ by setting @code{initial-frame-alist} in your @file{.emacs} file.
 
 @defvar initial-frame-alist
 This variable's value is an alist of parameter values used when creating
-the initial X window frame.
+the initial X window frame.  Each element has the form:
+
+@example
+(@var{parameter} . @var{value})
+@end example
+
+Emacs creates the initial frame before it reads your @file{~/.emacs}
+file.  After reading that file, Emacs checks @code{initial-frame-alist},
+and applies the parameter settings in the altered value to the already
+created initial frame.
+
+If these settings affect the frame geometry, you'll see the frame appear
+with the wrong geometry and then change to the specified one.  If you
+like, you can specify the same geometry with X resources; those do take
+affect before the frame is created.  @xref{Resources X,, X Resources,
+emacs, The GNU Emacs Manual}.
+
+X resource settings typically apply to all frames.  If you want to
+specify some X resources solely for the sake of the initial frame, and
+you don't want them to apply to subsequent frames, here's how to achieve
+this.  Specify parameters in @code{default-frame-alist} to override the
+X resources for subsequent frames; then, to prevent these from affecting
+the initial frame, specify the same parameters in
+@code{initial-frame-alist} with values that match the X resources.
 @end defvar
 
 If these parameters specify a separate minibuffer-only frame,
@@ -164,6 +160,21 @@ This variable's value is an alist of parameter values used when creating
 an initial minibuffer-only frame---if such a frame is needed, according
 to the parameters for the main initial frame.
 @end defvar
+
+@defvar special-display-frame-alist
+The variable @code{special-display-frame-alist} specifies the frame
+parameters for special display frames.
+@end defvar
+
+@defvar default-frame-alist
+This is an alist specifying default values of frame parameters for
+subsequent Emacs frames (not the initial ones).
+@end defvar
+
+If you use options that specify window appearance when you invoke Emacs,
+they take effect by adding elements to @code{default-frame-alist}.  One
+exception is @samp{-geometry}, which adds to @code{initial-frame-alist}
+instead.  @xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
 
 @node X Frame Parameters
 @subsection X Window Frame Parameters
