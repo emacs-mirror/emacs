@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'comint)
+(require 'shell)
 
 ;;;###autoload
 (defvar rlogin-program "rlogin"
