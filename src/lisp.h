@@ -154,13 +154,14 @@ enum Lisp_Misc_Type
     Lisp_Misc_Limit
   };
 
-/* These values are overridden by the m- file on some machines.  */
-#ifndef VALBITS
-#define VALBITS (BITS_PER_EMACS_INT - 4)
-#endif
-
 #ifndef GCTYPEBITS
 #define GCTYPEBITS 3
+#endif
+
+/* These values are overridden by the m- file on some machines.  */
+#ifndef VALBITS
+/* The -1 is for the markbit.  */
+#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS - 1)
 #endif
 
 #ifndef NO_UNION_TYPE
@@ -546,57 +547,7 @@ extern size_t pure_size;
     bcopy (new, XSTRING (string)->data + index, count)
 
 
-/* Basic data type for use of intervals.  See the macros in intervals.h.  */
-
-struct interval
-{
-  /* The first group of entries deal with the tree structure.  */
-
-  unsigned int total_length;	/* Length of myself and both children.  */
-  unsigned int position;	/* Cache of interval's character position.  */
-				/* This field is usually updated
-				   simultaneously with an interval
-				   traversal, there is no guarantee
-				   that it is valid for a random
-				   interval.  */
-  struct interval *left;	/* Intervals which precede me.  */
-  struct interval *right;	/* Intervals which succeed me.  */
-
-  /* Parent in the tree, or the Lisp_Object containing this interval tree.
-
-     The mark bit on the root interval of an interval tree says
-     whether we have started (and possibly finished) marking the
-     tree.  If GC comes across an interval tree whose root's parent
-     field has its markbit set, it leaves the tree alone.
-
-     You'd think we could store this information in the parent object
-     somewhere (after all, that should be visited once and then
-     ignored too, right?), but strings are GC'd strangely.  */
-  union
-  {
-    struct interval *interval;
-    Lisp_Object obj;
-  } up;
-  unsigned int up_obj : 1;
-
-  unsigned gcmarkbit : 1;
-
-  /* The remaining components are `properties' of the interval.
-     The first four are duplicates for things which can be on the list,
-     for purposes of speed.  */
-
-  unsigned int write_protect : 1;   /* Non-zero means can't modify.  */
-  unsigned int visible : 1;	    /* Zero means don't display.  */
-  unsigned int front_sticky : 1;    /* Non-zero means text inserted just
-				       before this interval goes into it.  */
-  unsigned int rear_sticky : 1;	    /* Likewise for just after it.  */
-
-  /* Properties of this interval.
-     The mark bit on this field says whether this particular interval
-     tree node has been visited.  Since intervals should never be
-     shared, GC aborts if it seems to have visited an interval twice.  */
-  Lisp_Object plist;
-};
+/* See the macros in intervals.h.  */
 
 typedef struct interval *INTERVAL;
 
@@ -1085,7 +1036,6 @@ struct Lisp_Free
     union Lisp_Misc *chain;
   };
 
-/* In a marker, the markbit of the chain field is used as the gc mark bit.  */
 struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
@@ -1105,9 +1055,9 @@ struct Lisp_Marker
      this is used to chain of all the markers in a given buffer.  */
   struct Lisp_Marker *next;
   /* This is the char position where the marker points.  */
-  int charpos;
+  EMACS_INT charpos;
   /* This is the byte position.  */
-  int bytepos;
+  EMACS_INT bytepos;
 };
 
 /* Forwarding pointer to an int variable.
@@ -1217,8 +1167,7 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object cdr;
   };
 
-/* In an overlay object, the mark bit of the plist is used as the GC mark.
-   START and END are markers in the overlay's buffer, and
+/* START and END are markers in the overlay's buffer, and
    PLIST is the overlay's property list.  */
 struct Lisp_Overlay
   {
@@ -2172,7 +2121,6 @@ extern void swap_in_global_binding P_ ((Lisp_Object));
 EXFUN (Fend_of_line, 1);
 EXFUN (Fforward_char, 1);
 EXFUN (Fforward_line, 1);
-extern int forward_point P_ ((int));
 extern int internal_self_insert P_ ((int, int));
 extern void syms_of_cmds P_ ((void));
 extern void keys_of_cmds P_ ((void));
@@ -3010,28 +2958,19 @@ extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
 extern void syms_of_undo P_ ((void));
 
 /* defined in textprop.c */
-extern Lisp_Object Qmodification_hooks;
-extern Lisp_Object Qrear_nonsticky, Qfont, Qmouse_face;
+extern Lisp_Object Qfont, Qmouse_face;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
-EXFUN (Fnext_property_change, 3);
 EXFUN (Fnext_single_property_change, 4);
 EXFUN (Fnext_single_char_property_change, 4);
 EXFUN (Fprevious_single_property_change, 4);
-EXFUN (Fget_text_property, 3);
 EXFUN (Fput_text_property, 5);
-EXFUN (Fset_text_properties, 4);
-EXFUN (Ftext_property_not_all, 5);
 EXFUN (Fprevious_char_property_change, 2);
 EXFUN (Fnext_char_property_change, 2);
 extern void report_interval_modification P_ ((Lisp_Object, Lisp_Object));
-extern void syms_of_textprop P_ ((void));
 extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
 							 Lisp_Object,
 							 Lisp_Object,
 							 Lisp_Object));
-extern Lisp_Object set_text_properties P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object,
-					    Lisp_Object));
 
 /* defined in xmenu.c */
 EXFUN (Fx_popup_menu, 2);
