@@ -714,7 +714,8 @@ Returns the new status of auto compression (non-nil means on)."
 
 (defun jka-compr-install ()
   "Install jka-compr.
-This adds entries to `file-name-handler-alist' and `auto-mode-alist'."
+This adds entries to `file-name-handler-alist' and `auto-mode-alist'
+and `inhibit-first-line-modes-suffixes'."
 
   (setq jka-compr-file-name-handler-entry
 	(cons (jka-compr-build-file-regexp) 'jka-compr-handler))
@@ -747,7 +748,17 @@ This adds entries to `file-name-handler-alist' and `auto-mode-alist'."
 (defun jka-compr-uninstall ()
   "Uninstall jka-compr.
 This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
-that were created by `jka-compr-installed'."
+and `inhibit-first-line-modes-suffixes' that were added
+by `jka-compr-installed'."
+  ;; Delete from inhibit-first-line-modes-suffixes
+  ;; what jka-compr-install added.
+  (mapcar
+     (function (lambda (x)
+		 (and (jka-compr-info-strip-extension x)
+		      (setq inhibit-first-line-modes-suffixes
+			    (delete (jka-compr-info-regexp x)
+				    inhibit-first-line-modes-suffixes)))))
+     jka-compr-compression-info-list)
 
   (let* ((fnha (cons nil file-name-handler-alist))
 	 (last fnha))
