@@ -2762,6 +2762,21 @@ ARGS are passed as extra arguments to the function.")
   ((Character) < 128)
 #define IS_BASE64(Character) \
   (IS_ASCII (Character) && base64_char_to_value[Character] >= 0)
+#define IS_BASE64_IGNORABLE(Character) \
+  ((Character) == ' ' || (Character) == '\t' || (Character) == '\n' \
+   || (Character) == '\f' || (Character) == '\r')
+
+/* Used by base64_decode_1 to retrieve a non-base64-ignorable
+   character or return retval if there are no characters left to
+   process. */
+#define READ_QUADRUPLET_BYTE(retval) \
+  do \
+    { \
+      if (i == length) \
+        return (retval); \
+      c = from[i++]; \
+    } \
+  while (IS_BASE64_IGNORABLE (c))
 
 /* Don't use alloca for regions larger than this, lest we overflow
    their stack.  */
@@ -3095,29 +3110,16 @@ base64_decode_1 (from, to, length)
      char *to;
      int length;
 {
-  int counter = 0, i = 0;
+  int i = 0;
   char *e = to;
   unsigned char c;
   unsigned long value;
 
-  while (i < length)
+  while (1)
     {
-      /* Accept wrapping lines, reversibly if at each 76 characters.  */
+      /* Process first byte of a quadruplet. */
 
-      c = from[i++];
-      if (c == '\n')
-	{
-	  if (i == length)
-	    break;
-	  c = from[i++];
-	  if (i == length)
-	    break;
-	  counter = 1;
-	}
-      else
-	counter++;
-
-      /* Process first byte of a quadruplet.  */
+      READ_QUADRUPLET_BYTE (e-to);
 
       if (!IS_BASE64 (c))
 	return -1;
@@ -3125,9 +3127,7 @@ base64_decode_1 (from, to, length)
 
       /* Process second byte of a quadruplet.  */
 
-      if (i == length)
-	return -1;
-      c = from[i++];
+      READ_QUADRUPLET_BYTE (-1);
 
       if (!IS_BASE64 (c))
 	return -1;
@@ -3136,14 +3136,13 @@ base64_decode_1 (from, to, length)
       *e++ = (unsigned char) (value >> 16);
 
       /* Process third byte of a quadruplet.  */
-
-      if (i == length)
-	return -1;
-      c = from[i++];
+      
+      READ_QUADRUPLET_BYTE (-1);
 
       if (c == '=')
 	{
-	  c = from[i++];
+	  READ_QUADRUPLET_BYTE (-1);
+	  
 	  if (c != '=')
 	    return -1;
 	  continue;
@@ -3157,9 +3156,7 @@ base64_decode_1 (from, to, length)
 
       /* Process fourth byte of a quadruplet.  */
 
-      if (i == length)
-	return -1;
-      c = from[i++];
+      READ_QUADRUPLET_BYTE (-1);
 
       if (c == '=')
 	continue;
@@ -3170,8 +3167,6 @@ base64_decode_1 (from, to, length)
 
       *e++ = (unsigned char) (0xff & value);
     }
-
-  return e - to;
 }
 
 void
