@@ -1,5 +1,5 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
-   Copyright (C) 1987, 1990, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1990, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -198,11 +198,9 @@ Boston, MA 02111-1307, USA.  */
    So give it a try.  */
 #define HAVE_SOCKETS
 
-#ifndef IRIX6
 #define bcopy(src,dst,n)	memmove (dst,src,n)
 #define bcmp(src,dst,n)		memcmp (src,dst,n)
 #define bzero(s,n)		memset (s,0,n)
-#endif
 
 /* Markus Weiand <weiand@khof.com> says this is needed for Motif on
    SINIX.  */
