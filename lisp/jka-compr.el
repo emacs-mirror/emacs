@@ -465,7 +465,7 @@ There should be no more than seven characters after the final '/'")
 	(write-region start end filename append visit))))
 
 
-(defun jka-compr-insert-file-contents (file &optional visit beg end)
+(defun jka-compr-insert-file-contents (file &optional visit beg end replace)
   "Documented as original."
 
   (barf-if-buffer-read-only)
@@ -560,7 +560,7 @@ There should be no more than seven characters after the final '/'")
 
 	  (list filename size))
 
-      (insert-file-contents file visit beg end))))
+      (insert-file-contents file visit beg end replace))))
 
 
 (defun jka-compr-file-local-copy (file)
