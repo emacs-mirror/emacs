@@ -1483,7 +1483,7 @@ we do not remove backup version numbers, only true file version numbers."
   (let ((handler (find-file-name-handler file 'file-ownership-preserved-p)))
     (if handler
 	(funcall handler 'file-ownership-preserved-p file)
-      (let ((attributes (file-attribtues file)))
+      (let ((attributes (file-attributes file)))
 	;; Return t if the file doesn't exist, since it's true that no
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
