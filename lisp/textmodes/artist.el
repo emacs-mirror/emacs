@@ -823,7 +823,7 @@ The layout of the INFO-PART for `graphics-operation' is
 
   (TITLE (UNSHIFTED SHIFTED))
 
-TITLE is the the title that appears in the popup menu.  UNSHIFTED
+TITLE is the title that appears in the popup menu.  UNSHIFTED
 and SHIFTED specify for unshifted and shifted operation.  Both
 have the form
 

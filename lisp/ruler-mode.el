@@ -410,7 +410,7 @@ START-EVENT is the mouse click event."
     (remove-hook 'post-command-hook     ; remove local hook
                  #'force-mode-line-update t)))
 
-;; Add ruler-mode to the the minor mode menu in the mode line
+;; Add ruler-mode to the minor mode menu in the mode line
 (define-key mode-line-mode-menu [ruler-mode]
   `(menu-item "Ruler" ruler-mode
 	      :button (:toggle . ruler-mode)))

@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.42 2001/12/02 04:19:32 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.43 2001/12/14 21:53:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -677,7 +677,7 @@ comment markers."
 			 (forward-line 1)
 			 (re-search-forward sre (line-end-position) t))
 		  (replace-match "" t t nil (if (match-end 2) 2 1)))))
-	    ;; Go the the end for the next comment.
+	    ;; Go to the end for the next comment.
 	    (goto-char (point-max)))))
       (set-marker end nil))))
 

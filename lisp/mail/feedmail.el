@@ -1278,7 +1278,7 @@ function, for example, to archive all of your sent messages someplace
 
 
 (defvar feedmail-is-a-resend nil
-  "*Non-nil means the the message is a Resend (in the RFC-822 sense).
+  "*Non-nil means the message is a Resend (in the RFC-822 sense).
 This affects the composition of certain headers.  feedmail sets this
 variable as soon as it starts prepping the message text buffer, so any
 user-supplied functions can rely on it.  Users shouldn't set or change this

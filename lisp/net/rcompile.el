@@ -116,7 +116,7 @@ nil means run no commands."
 
 ;;;###autoload
 (defun remote-compile (host user command)
-  "Compile the the current buffer's directory on HOST.  Log in as USER.
+  "Compile the current buffer's directory on HOST.  Log in as USER.
 See \\[compile]."
   (interactive
    (let ((parsed (or (and (featurep 'ange-ftp)
