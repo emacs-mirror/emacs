@@ -2114,6 +2114,12 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   /* Just in case we got here without a mouse present...  */
   if (have_mouse <= 0)
     return XM_IA_SELECT;
+  /* Don't allow non-positive x0 and y0, lest the menu will wrap
+     around the display.  */
+  if (x0 <= 0)
+    x0 = 1;
+  if (y0 <= 0)
+    y0 = 1;
 
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
