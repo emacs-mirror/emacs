@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.34) $
+ * $HopeName: MMsrc!mpm.h(trunk.35) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -47,6 +47,7 @@ extern Bool MPMCheck(void);
 
 extern Bool BoolCheck(Bool b);
 extern Bool FunCheck(Fun f);
+extern Bool ShiftCheck(Shift shift);
 extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
 #define FUNCHECK(f)     (FunCheck((Fun)f))
@@ -224,11 +225,17 @@ extern void (BTRes)(BT bt, Index index);
   END
 
 extern void BTSetRange(BT bt, Index base, Index limit);
+extern Bool BTIsSetRange(BT bt, Index base, Index limit);
 extern void BTResRange(BT bt, Index base, Index limit);
-extern Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
-                           BT bt,
-                           Index searchBase, Index searchLimit,
-                           unsigned long length);
+extern Bool BTIsResRange(BT bt, Index base, Index limit);
+extern Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
+                                BT bt,
+                                Index searchBase, Index searchLimit,
+                                unsigned long length);
+extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
+                               BT bt,
+                               Index searchBase, Index searchLimit,
+                               unsigned long length);
 
 
 /* Pool Interface -- see impl.c.pool */
@@ -417,8 +424,8 @@ extern Res ArenaExtend(Space, Addr /* base */, Size /* size */);
 extern Res ArenaRetract(Space, Addr /* base */, Size /* size */);
 
 extern Bool SegPrefCheck(SegPref pref);
-extern SegPref SegPrefDefault (void);
-extern Res SegPrefExpress (SegPref, SegPrefKind, void *);
+extern SegPref SegPrefDefault(void);
+extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 
 extern Res SegAlloc(Seg *segReturn, SegPref pref,
                     Space space, Size size, Pool pool);
