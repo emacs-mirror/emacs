@@ -26,7 +26,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
-Lisp_Object Vuse_hard_newlines;
 
 /* A possible value for a buffer's overwrite-mode variable.  */
 Lisp_Object Qoverwrite_mode_binary;
@@ -36,10 +35,6 @@ Lisp_Object Vself_insert_face;
 
 /* This is the command that set up Vself_insert_face.  */
 Lisp_Object Vself_insert_face_command;
-
-#ifdef USE_TEXT_PROPERTIES 
-Lisp_Object Qhard;
-#endif
 
 extern Lisp_Object Qface;
 
@@ -236,81 +231,6 @@ Whichever character you type to run this command is inserted.")
   return Qnil;
 }
 
-DEFUN ("newline", Fnewline, Snewline, 0, 1, "P",
-  "Insert a newline.  With arg, insert that many newlines.\n\
-In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
-  (arg1)
-     Lisp_Object arg1;
-{
-  int flag, i;
-  Lisp_Object arg;
-  char c1 = '\n';
-
-  arg = Fprefix_numeric_value (arg1);
-
-  if (!NILP (current_buffer->read_only))
-    Fbarf_if_buffer_read_only ();
-
-  /* Inserting a newline at the end of a line produces better
-     redisplay in try_window_id than inserting at the beginning of a
-     line, and the textual result is the same.  So, if we're at
-     beginning of line, pretend to be at the end of the previous line.  
-
-     We can't use internal_self_insert in that case since it won't do
-     the insertion correctly.  Luckily, internal_self_insert's special
-     features all do nothing in that case.  */
-
-  flag = point > BEGV && FETCH_CHAR (point - 1) == '\n';
-  /* Don't do this if at the beginning of the window.  */
-  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer
-      && marker_position (XWINDOW (selected_window)->start) == PT)
-    flag = 0;
-
-#ifdef USE_TEXT_PROPERTIES
-  /* We cannot use this optimization if properties change
-     in the vicinity.
-     ??? We need to check for change hook properties, etc.  */
-  if (flag)
-    if (! (point - 1 > BEGV && ! property_change_between_p (point - 2, point)))
-      flag = 0;
-#endif
-
-  if (flag)
-    SET_PT (point - 1);
-
-  for (i = XINT (arg); i > 0; i--)
-    {
-      if (flag)
-	insert_and_inherit (&c1, 1);
-      else
-	internal_self_insert ('\n', !NILP (arg1));
-    }
-
-#ifdef USE_TEXT_PROPERTIES
-  if (Vuse_hard_newlines)
-    {
-      Lisp_Object from, to, sticky;
-      XSETFASTINT (from, PT - arg);
-      XSETFASTINT (to, PT);
-      Fput_text_property (from, to, Qhard, Qt, Qnil);
-      /* If rear_nonsticky is not "t", locally add Qhard to the list. */
-      sticky = Fget_text_property (from, Qrear_nonsticky, Qnil);
-      if (NILP (sticky)
-	  || (CONSP (sticky) && NILP (Fmemq (Qhard, sticky))))
-	{
-	  sticky = Fcons (Qhard, sticky);
-	  Fput_text_property (from, to, Qrear_nonsticky, sticky, Qnil);
-	}
-    }
-#endif
-
-
-  if (flag)
-    SET_PT (point + 1);
-
-  return Qnil;
-}
-
 /* Insert character C1.  If NOAUTOFILL is nonzero, don't do autofill
    even if it is enabled.
 
@@ -364,11 +284,15 @@ internal_self_insert (c1, noautofill)
       && !noautofill
       && !NILP (current_buffer->auto_fill_function))
     {
-      if (c1 != '\n')
-	insert_and_inherit (&c1, 1);
+      insert_and_inherit (&c1, 1);
+      if (c1 == '\n')
+	/* After inserting a newline, move to previous line and fill */
+	/* that.  Must have the newline in place already so filling and */
+	/* justification, if any, know where the end is going to be. */
+	SET_PT (point - 1);
       call0 (current_buffer->auto_fill_function);
       if (c1 == '\n')
-	insert_and_inherit (&c1, 1);
+	SET_PT (point + 1);
       hairy = 2;
     }
   else
@@ -407,19 +331,6 @@ syms_of_cmds ()
   Qoverwrite_mode_binary = intern ("overwrite-mode-binary");
   staticpro (&Qoverwrite_mode_binary);
 
-  Qhard = intern ("hard");
-  staticpro (&Qhard);
-
-  DEFVAR_BOOL ("use-hard-newlines", &Vuse_hard_newlines,
-    "Non-nil means to distinguish hard and soft newlines.\n\
-When this is non-nil, the functions `newline' and `open-line' add the\n\
-text-property `hard' to newlines that they insert.  Also, a line is\n\
-only considered as a candidate to match `paragraph-start' or\n\
-`paragraph-separate' if it follows a hard newline.  Newlines not\n\
-marked hard are called \"soft\", and are always internal to\n\
-paragraphs.  The fill functions always insert soft newlines.");
-  Vuse_hard_newlines = 0;
-
   DEFVAR_LISP ("self-insert-face", &Vself_insert_face,
     "If non-nil, set the face of the next self-inserting character to this.\n\
 See also `self-insert-face-command'.");
@@ -445,14 +356,12 @@ More precisely, a char with closeparen syntax is self-inserted.");
   defsubr (&Sdelete_backward_char);
 
   defsubr (&Sself_insert_command);
-  defsubr (&Snewline);
 }
 
 keys_of_cmds ()
 {
   int n;
 
-  initial_define_key (global_map, Ctl ('M'), "newline");
   initial_define_key (global_map, Ctl ('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");
