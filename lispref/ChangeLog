@@ -1,3 +1,14 @@
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
+
+
+	* buffers.texi, commands.texi, debugging.texi, eval.texi: 
+	* loading.texi, minibuf.texi, text.texi, variables.texi:
+	Avoid @strong{Note:}.
+
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Fix typo.
+
 2003-09-23  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* processes.texi (Low-Level Network): Fix typo.
