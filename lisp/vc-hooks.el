@@ -570,18 +570,14 @@ For CVS, the full name of CVS/Entries is returned."
 (defun vc-file-owner (file)
   ;; The expression below should return the username of the owner
   ;; of the file.  It doesn't.  It returns the username if it is
-  ;; you, or otherwise the UID of the owner of the file.  The
-  ;; return value from this function is only used by
-  ;; vc-dired-reformat-line, and it does the proper thing if a UID
-  ;; is returned.
+  ;; you, or otherwise the UID of the owner of the file.  The UID
+  ;; is returned as a string, so that the rest of VC doesn't notice 
+  ;; the difference.
   ;; The *proper* way to fix this would be to implement a built-in
   ;; function in Emacs, say, (username UID), that returns the
   ;; username of a given UID.
-  ;; The result of this hack is that vc-directory will print the
-  ;; name of the owner of the file for any files that are
-  ;; modified.
   (let ((uid (nth 2 (file-attributes file))))
-    (if (= uid (user-uid)) (user-login-name) uid)))
+    (if (= uid (user-uid)) (user-login-name) (number-to-string uid))))
 
 (defun vc-rcs-lock-from-diff (file)
   ;; Diff the file against the master version.  If differences are found,
