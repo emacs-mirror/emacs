@@ -1046,8 +1046,10 @@ that are visiting the various files."
 	   (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
 	       ;; If they fail too, set error.
 	       (setq error t)))))
-      ;; Find the file's truename, and maybe use that as visited name.
-      (setq buffer-file-truename truename)
+      ;; Record the file's truename, and maybe use that as visited name.
+      (if (equal filename buffer-file-name)
+	  (setq buffer-file-truename truename)
+	(setq buffer-file-truename (file-truename buffer-file-name)))
       (setq buffer-file-number number)
       ;; On VMS, we may want to remember which directory in a search list
       ;; the file was found in.
@@ -1063,7 +1065,7 @@ that are visiting the various files."
 		(setq filename
 		      (expand-file-name buffer-file-truename))))
       ;; Set buffer's default directory to that of the file.
-      (setq default-directory (file-name-directory filename))
+      (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
       ;; this is a permanent local, the major mode won't eliminate it.
       (and (not (funcall backup-enable-predicate buffer-file-name))
