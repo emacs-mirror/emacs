@@ -1,6 +1,9 @@
 /* alloca.c -- allocate automatically reclaimed memory
    (Mostly) portable public-domain implementation -- D A Gwyn
 
+   NOTE: The canonical source of this file is maintained with gnulib.
+   Bugs can be reported to bug-gnulib@gnu.org.
+
    This implementation of the PWB library alloca function,
    which is used to allocate space off the run-time stack so
    that it is automatically reclaimed upon procedure exit,
@@ -54,7 +57,7 @@
 you
 lose
 -- must know STACK_DIRECTION at compile-time
-/* Using #error here is not wise since this file is for
+/* Using #error here is not wise since this file should work for
    old and obscure compilers.  */
 #    endif /* STACK_DIRECTION undefined */
 #   endif /* static */
@@ -180,7 +183,7 @@ static header *last_alloca_header = NULL;	/* -> last alloca header.  */
 
 pointer
 alloca (size)
-     unsigned size;
+     size_t size;
 {
   auto char probe;		/* Probes stack depth: */
   register char *depth = ADDRESS_FUNCTION (probe);
