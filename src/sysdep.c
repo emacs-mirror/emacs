@@ -3349,7 +3349,10 @@ getwd (pathname)
   BLOCK_INPUT;			/* getcwd uses malloc */
   spath = npath = getcwd ((char *) 0, MAXPATHLEN);
   if (spath == 0)
-    return spath;
+    {
+      UNBLOCK_INPUT;
+      return spath;
+    }
   /* On Altos 3068, getcwd can return @hostname/dir, so discard
      up to first slash.  Should be harmless on other systems.  */
   while (*npath && *npath != '/')
