@@ -2041,7 +2041,7 @@ extern Lisp_Object Vfundamental_mode_abbrev_table;
 EXFUN (Fstring_match, 3);
 extern void restore_match_data P_ ((void));
 EXFUN (Fmatch_data, 2);
-EXFUN (Fstore_match_data, 1);
+EXFUN (Fset_match_data, 1);
 EXFUN (Fmatch_beginning, 1);
 EXFUN (Fmatch_end, 1);
 extern int fast_string_match P_ ((Lisp_Object, Lisp_Object));
