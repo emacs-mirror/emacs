@@ -845,6 +845,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 int
 pop_retr (server, msgno, arg)
      popserver server;
+     int msgno;
      FILE *arg;
 {
   extern char *strerror ();
