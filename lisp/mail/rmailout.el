@@ -162,16 +162,14 @@ When called from lisp code, N may be omitted."
 	;; If we can do it, read a little of the file
 	;; to check whether it is an RMAIL file.
 	;; If it is, don't mess it up.
-	(if (fboundp 'insert-partial-file-contents)
-	    (progn
-	      (insert-partial-file-contents file-name 0 20)
-	      (if (looking-at "BABYL OPTIONS:\n")
-		  (error (save-excursion
-			   (set-buffer rmailbuf)
-			   (substitute-command-keys
-			    "File %s is an RMAIL file; use the \\[rmail-output-to-rmail-file] command"))
-			 file-name))
-	      (erase-buffer)))
+	(insert-file-contents file-name nil 0 20)
+	(if (looking-at "BABYL OPTIONS:\n")
+	    (error (save-excursion
+		     (set-buffer rmailbuf)
+		     (substitute-command-keys
+		      "Use \\[rmail-output-to-rmail-file] to output to Rmail file `%s'"))
+		   (file-name-nondirectory file-name)))
+	(erase-buffer)
 	(insert-buffer-substring rmailbuf)
 	(insert "\n")
 	(goto-char (point-min))
