@@ -486,14 +486,26 @@ and use this command with a prefix argument (the value does not matter)."
 	   (funcall handler 'dired-compress-file file))
 	  ((file-symlink-p file)
 	   nil)
-	  ((string-match "\\.Z$" file)
+	  ((let (case-fold-search)
+	     (string-match "\\.Z$" file))
 	   (if (not (dired-check-process (concat "Uncompressing " file)
 					 "uncompress" file))
 	       (substring file 0 -2)))
+	  ((let (case-fold-search)
+	     (string-match "\\.gz$" file))
+	   (if (not (dired-check-process (concat "Uncompressing " file)
+					 "gunzip" file))
+	       (substring file 0 -3)))
 	  (t
-	   (if (not (dired-check-process (concat "Compressing " file)
-					 "compress" "-f" file))
-	       (concat file ".Z"))))))
+	   ;;; Try gzip; if we don't have that, use compress.
+	   (condition-case nil
+	       (if (not (dired-check-process (concat "Compressing " file)
+					     "gzip" "-f" file))
+		   (concat file ".gz"))
+	     (file-error
+	      (if (not (dired-check-process (concat "Compressing " file)
+					    "compress" "-f" file))
+		  (concat file ".Z"))))))))
 
 (defun dired-mark-confirm (op-symbol arg)
   ;; Request confirmation from the user that the operation described
