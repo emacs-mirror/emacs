@@ -157,10 +157,10 @@ DEFINITION can be one or more mail addresses separated by commas."
 	(setq mail-aliases nil)
 	(if (file-exists-p "~/.mailrc")
 	    (build-mail-aliases))))
-  ;; Strip leading and trailing blanks.
-  (if (string-match "^[ \t]+" definition)
+  ;; strip garbage from front and end
+  (if (string-match "\\`[ \t\n,]+" definition)
       (setq definition (substring definition (match-end 0))))
-  (if (string-match "[ \t]+$" definition)
+  (if (string-match "[ \t\n,]+\\'" definition)
       (setq definition (substring definition 0 (match-beginning 0))))
   (let ((first (aref definition 0))
 	(last (aref definition (1- (length definition))))
