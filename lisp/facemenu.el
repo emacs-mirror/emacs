@@ -468,7 +468,8 @@ These special properties include `invisible', `intangible' and `read-only'."
   (let ((col (completing-read (or prompt "Color: ") 
 			      (or facemenu-color-alist
 				  (if window-system
-				      (mapcar 'list (x-defined-colors))))
+				      (mapcar 'list (x-defined-colors))
+				    (mapcar 'list (tty-defined-colors))))
 			      nil t)))
     (if (equal "" col)
 	nil
