@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; Really cool code to lookup info indexes.
-;; Try especially info-lookup-symbol (aka C-h TAB).
+;; Try especially info-lookup-symbol (aka C-h S).
 
 ;;; Code:
 
@@ -829,6 +829,17 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 (t nil)))
 	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'maxima-mode
+ :ignore-case t
+ :regexp "[a-zA-Z_%]+"
+ :doc-spec '( ("(maxima)Function and Variable Index" nil 
+	       "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'inferior-maxima-mode
+ :other-modes '(maxima-mode))
 
 ;; coreutils and bash builtins overlap in places, eg. printf, so there's a
 ;; question which should come first.  Some of the coreutils descriptions are
