@@ -85,7 +85,7 @@ Boston, MA 02111-1307, USA.  */
    to read the input and send it to the true Emacs process
    through a pipe. */
 
-#define INTERRUPT_INPUT
+/* #define INTERRUPT_INPUT */
 
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
@@ -140,8 +140,13 @@ Boston, MA 02111-1307, USA.  */
 
 #define BSTRING
 #define bzero(b, l) memset(b, 0, l)
-#define bcopy(s, d, l) memcpy(d, s, l)
+#define bcopy(s, d, l) memmove(d, s, l)
 #define bcmp(a, b, l) memcmp(a, b, l)
+
+/* bcopy (aka memmove aka memcpy at least on x86) under MSVC is quite safe */
+#define GAP_USE_BCOPY
+#define BCOPY_UPWARD_SAFE 1
+#define BCOPY_DOWNWARD_SAFE 1
 
 /* subprocesses should be defined if you want to
    have code for asynchronous subprocesses
@@ -293,41 +298,39 @@ Boston, MA 02111-1307, USA.  */
 /* get some redefinitions in place */
 
 /* IO calls that are emulated or shadowed */
+#undef access
 #define access  sys_access
+#undef chdir
 #define chdir   sys_chdir
+#undef chmod
 #define chmod   sys_chmod
+#undef close
 #define close   sys_close
+#undef creat
 #define creat   sys_creat
 #define ctime	sys_ctime
+#undef dup
 #define dup     sys_dup
+#undef dup2
 #define dup2    sys_dup2
 #define fopen   sys_fopen
 #define link    sys_link
 #define mkdir   sys_mkdir
+#undef mktemp
 #define mktemp  sys_mktemp
+#undef open
 #define open    sys_open
 #define pipe    sys_pipe
+#undef read
 #define read    sys_read
 #define rename  sys_rename
 #define rmdir   sys_rmdir
 #define select  sys_select
 #define sleep   sys_sleep
+#undef unlink
 #define unlink  sys_unlink
+#undef write
 #define write   sys_write
-
-/* this is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the SDK compilers */
-#ifndef __STDC__
-#define __STDC__ 1
-#define MUST_UNDEF__STDC__
-#endif
-#include <direct.h>
-#include <io.h>
-#include <stdio.h>
-#ifdef MUST_UNDEF__STDC__
-#undef __STDC__
-#undef MUST_UNDEF__STDC__
-#endif
 
 /* subprocess calls that are emulated */
 #define spawnve sys_spawnve
@@ -344,6 +347,7 @@ Boston, MA 02111-1307, USA.  */
 #define fileno	  _fileno
 #define flushall  _flushall
 #define fputchar  _fputchar
+#define getcwd	  _getcwd
 #define getw	  _getw
 #define getpid    _getpid
 #define isatty    _isatty
@@ -360,6 +364,20 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_NTGUI
 #define abort	w32_abort
+#endif
+
+/* this is hacky, but is necessary to avoid warnings about macro
+   redefinitions using the SDK compilers */
+#ifndef __STDC__
+#define __STDC__ 1
+#define MUST_UNDEF__STDC__
+#endif
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+#ifdef MUST_UNDEF__STDC__
+#undef __STDC__
+#undef MUST_UNDEF__STDC__
 #endif
 
 /* Defines that we need that aren't in the standard signal.h  */
@@ -410,5 +428,36 @@ Boston, MA 02111-1307, USA.  */
 
 /* We need a little extra space, see ../../lisp/loadup.el */
 #define SYSTEM_PURESIZE_EXTRA 25000
+
+/* For unexec to work on Alpha systems, we need to put Emacs'
+   initialized data into a separate section from the CRT initialized
+   data (because the Alpha linker freely reorders data variables, even
+   across libraries, so our data and the CRT data get intermingled).
+
+   Starting with MSVC 5.0, we must also place the uninitialized data
+   into its own section.  VC5 intermingles uninitialized data from the CRT
+   between Emacs' static uninitialized data and its public uninitialized
+   data.  A separate .bss section for Emacs groups both static and
+   public uninitalized together.
+
+   Note that unexnt.c relies on this fact, and must be modified
+   accordingly if this section name is changed, or if this pragma is
+   removed.  Also, obviously, all files that define initialized data
+   must include config.h to pick up this pragma.  */
+
+/* Names must be < 8 bytes */
+#pragma data_seg("EMDATA")
+#pragma bss_seg("EMBSS")
+
+/* #define FULL_DEBUG */
+/* #define EMACSDEBUG */
+
+#ifdef EMACSDEBUG
+extern void _DebPrint (const char *fmt, ...);
+#define DebPrint(stuff) _DebPrint stuff
+#else
+#define DebPrint(stuff)
+#endif
+
 
 /* ============================================================ */
