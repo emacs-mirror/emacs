@@ -1374,6 +1374,25 @@ update_line (frame, vpos)
     {
       int i,j;
 
+#if 0
+      if (FRAME_X_P (frame))
+	{
+	  /* Under X, erase everything we are going to rewrite,
+	     and rewrite everything from the first char that's changed.
+	     This is part of supporting fonts like Courier
+	     whose chars can overlap outside the char width.  */
+	  for (i = 0; i < nlen; i++)
+	    if (i >= olen || nbody[i] != obody[i])
+	      break;
+
+	  cursor_to (vpos, i);
+	  if (i != olen)
+	    clear_end_of_line (olen);
+	  write_glyphs (nbody + i, nlen - i);
+	}
+      else
+	{}
+#endif /* 0 */
       for (i = 0; i < nlen; i++)
 	{
 	  if (i >= olen || nbody[i] != obody[i])    /* A non-matching char. */
