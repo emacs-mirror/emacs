@@ -16,6 +16,9 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The many obsolete language `setup-...-environment' commands have
+been removed -- use `set-language-environment'.
+
 ** New user options `display-time-mail-face' and
 `display-time-use-mail-icon' control the appearance of mode-line mail
 indicator used by the display-time package.  On a suitable display the
@@ -1167,6 +1170,9 @@ minibuffer with completion.
 
 *** todo-mode.el provides management of TODO lists and integration
 with the diary features.
+
+*** autoarg.el provides a feature reported from Twenex Emacs whereby
+numeric keys supply prefix args rather than self inserting.
 
 ** Withdrawn packages
 
