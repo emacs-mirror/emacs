@@ -129,7 +129,10 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;;  Error on line 3 of t.f: Execution error unclassifiable statement    
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofel undefined
-    ("\n\\(Error on \\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
+    ;; Absoft FORTRAN 77 Compiler 3.1.3
+    ;;  error on line 19 of fplot.f: spelling error?
+    ;;  warning on line 17 of fplot.f: data type is undefined for variable d
+    ("\\(\n\\|on \\)[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
 
     ;; Apollo cc, 4.3BSD fc:
