@@ -65,17 +65,17 @@ single_tree=
 prefix='/usr/local'
 exec_prefix='${prefix}'
 bindir='${exec_prefix}/bin'
-datadir='${prefix}/lib'
-statedir='${prefix}/lib'
-libdir='${exec_prefix}/lib'
+datadir='${prefix}/share'
+sharedstatedir='${prefix}/com'
+libexecdir='${exec_prefix}/libexec'
 mandir='${prefix}/man/man1'
 infodir='${prefix}/info'
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
-lockdir='${statedir}/emacs/lock'
-archlibdir='${libdir}/emacs/${version}/${configuration}'
+lockdir='${sharedstatedir}/emacs/lock'
+archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
 # On Sun systems, people sometimes set up the variable CPP
@@ -89,8 +89,8 @@ fi
 # We cannot use this variable in the case statement below, because many
 # /bin/sh's have broken semantics for "case".  Unfortunately, you must
 # actually edit the clause itself.
-# path_options="prefix | exec_prefix | bindir | libdir | etcdir | datadir"
-# path_options="$path_options | archlibdir | statedir | mandir | infodir"
+# path_options="prefix | exec_prefix | bindir | libexecdir | etcdir | datadir"
+# path_options="$path_options | archlibdir | sharedstatedir | mandir | infodir"
 # path_options="$path_options | lispdir | lockdir | lisppath | locallisppath"
 
 #### Usage messages.
@@ -124,7 +124,7 @@ CONFIGURATION specifies the machine and operating system to build for.
 --prefix=DIR		Install files below DIR. Defaults to \`${prefix}'.
 
 You may also specify any of the \`path' variables found in Makefile.in,
-including --bindir, --libdir, --etcdir, --infodir, and so on.  This allows
+including --bindir, --libexecdir, --etcdir, --infodir, and so on.  This allows
 you to override a single default location when configuring.
 
 If successful, ${progname} leaves its status in config.status.  If
@@ -300,8 +300,8 @@ Set it to either \`yes' or \`no'."
 	;;
 
 	## Has the user specified one of the path options?
-	prefix | exec_prefix | bindir | libdir | etcdir | datadir | \
-	archlibdir | statedir | mandir | infodir | lispdir | lockdir | \
+	prefix | exec_prefix | bindir | libexecdir | etcdir | datadir | \
+	archlibdir | sharedstatedir | mandir | infodir | lispdir | lockdir | \
 	lisppath | locallisppath | docdir )
 	   ## If the value was omitted, get it from the next argument.
 	   if [ "${valomitted}" = "yes" ]; then
@@ -1619,8 +1619,8 @@ AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
 AC_SUBST(bindir)
 AC_SUBST(datadir)
-AC_SUBST(statedir)
-AC_SUBST(libdir)
+AC_SUBST(sharedstatedir)
+AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
 AC_SUBST(lispdir)
@@ -1703,11 +1703,11 @@ elif [ "$single_tree" = "1" ]; then
    if [ "$datadir_specified" = "" ]; then
       datadir='${prefix}/common'
    fi
-   if [ "$statedir_specified" = "" ]; then
-      statedir='${prefix}/common'
+   if [ "$sharedstatedir_specified" = "" ]; then
+      sharedstatedir='${prefix}/common'
    fi
-   if [ "$libdir_specified" = "" ]; then
-      libdir='${bindir}'
+   if [ "$libexecdir_specified" = "" ]; then
+      libexecdir='${bindir}'
    fi
    if [ "$lispdir_specified" = "" ]; then
       lispdir='${prefix}/common/lisp'
@@ -1719,7 +1719,7 @@ elif [ "$single_tree" = "1" ]; then
       lockdir='${prefix}/common/lock'
    fi
    if [ "$archlibdir_specified" = "" ]; then
-      archlibdir='${libdir}/etc'
+      archlibdir='${libexecdir}/etc'
    fi
    if [ "$etcdir_specified" = "" ]; then
       etcdir='${prefix}/common/data'
