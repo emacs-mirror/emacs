@@ -408,7 +408,7 @@ With argument, print output into current buffer."
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))
 
-(defun eval-defun-2 (eval-defun-arg-internal)
+(defun eval-defun-2 ()
   "Evaluate defun that point is in or before.
 The value is displayed in the minibuffer.
 If the current defun is actually a call to `defvar',
@@ -430,7 +430,7 @@ Return the result of evaluation."
       ;; variables like `end'.
       (apply
        #'eval-region 
-       (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
+       (let ((standard-output t)
 	     beg end form)
 	 ;; Read the form from the buffer, and record where it ends.
 	 (save-excursion
@@ -450,27 +450,36 @@ Return the result of evaluation."
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
 
-(defun eval-defun (eval-defun-arg-internal)
-  "Evaluate defun that point is in or before.
-The value is displayed in the minibuffer.
-If the current defun is actually a call to `defvar',
-then reset the variable using the initial value expression
-even if the variable already has some other value.
-\(Normally `defvar' does not change the variable's value
-if it already has a value.\)
+(defun eval-defun (edebug-it)
+  "Evaluate the top-level form containing point, or after point.
 
-With argument, insert value in current buffer after the defun.
-Return the result of evaluation."
+If the current defun is actually a call to `defvar', then reset the
+variable using its initial value expression even if the variable
+already has some other value.  (Normally `defvar' does not change the
+variable's value if it already has a value.)
+
+With a prefix argument, instrument the code for Edebug.
+
+If acting on a `defun' for FUNCTION, and the function was
+instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
+instrumented, just FUNCTION is printed.
+
+If not acting on a `defun', the result of evaluation is displayed in
+the minibuffer."
   (interactive "P")
-  (if (null eval-expression-debug-on-error)
-      (eval-defun-2 eval-defun-arg-internal)
-    (let ((old-value (make-symbol "t")) new-value value)
-      (let ((debug-on-error old-value))
-	(setq value (eval-defun-2 eval-defun-arg-internal))
-	(setq new-value debug-on-error))
-      (unless (eq old-value new-value)
-	(setq debug-on-error new-value))
-      value)))
+  (cond (edebug-it
+	 (require 'edebug)
+	 (eval-defun (not edebug-all-defs)))
+	(t
+	 (if (null eval-expression-debug-on-error)
+	     (eval-defun-2)
+	   (let ((old-value (make-symbol "t")) new-value value)
+	     (let ((debug-on-error old-value))
+	       (setq value (eval-defun-2))
+	       (setq new-value debug-on-error))
+	     (unless (eq old-value new-value)
+	       (setq debug-on-error new-value))
+	     value)))))
 
 
 (defun lisp-comment-indent ()
