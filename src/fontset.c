@@ -534,7 +534,6 @@ fontset_font_pattern (f, id, c)
 {
   Lisp_Object fontset, elt;
   struct font_info *fontp;
-  Lisp_Object family_registry;
   
   elt = Qnil;
   if (fontset_id_valid_p (id))
