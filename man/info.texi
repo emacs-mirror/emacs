@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.28 2003/07/03 01:59:39 teirllm Exp $
+@comment $Id: info.texi,v 1.29 2003/07/04 21:07:23 teirllm Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -417,7 +417,7 @@ the same size screen, it would be impossible to warn you anyway.
    to visit the next node.
 @end format
 
-@node Help-Inv, Help-M, Help-^L, Getting Started 
+@node Help-Inv, Help-M, Help-^L, Getting Started
 @comment  node-name,  next,  previous,  up
 @section Invisible text in Emacs Info
 
@@ -433,20 +433,20 @@ visible (by default) after killing and yanking, it appears in printed
 output, it gets saved to file just like any other text, and so on.
 Thus it is useful to know it is there.
 
-@findex vis-mode
+@findex visible-mode
 You can make invisible text visible by using the command @kbd{M-x
-vis-mode}.  @code{vis-mode} is a minor mode, so using it a second time
-will make the text invisible again.  Use this command and watch its
-effect on the ``menu'' below and the top line of this node.
+visible-mode}.  @code{visible-mode} is a minor mode, so using it a
+second time will make the text invisible again.  Use this command and
+watch its effect on the ``menu'' below and the top line of this node.
 
 If you prefer to @emph{always} see the invisible text, you can set
 @code{Info-hide-note-references} to @code{nil}.  Enabling
-@code{vis-mode} permanently is not a real alternative, because Emacs
-Info also uses (although less extensively) another text property that
-can change the text being displayed, the @samp{display} property.
-Only the invisibility property is affected by @code{vis-mode}.  When,
-in this tutorial, we refer to the @samp{Emacs} behavior, we mean the
-@emph{default} Emacs behavior.
+@code{visible-mode} permanently is not a real alternative, because
+Emacs Info also uses (although less extensively) another text property
+that can change the text being displayed, the @samp{display} property.
+Only the invisibility property is affected by @code{visible-mode}.
+When, in this tutorial, we refer to the @samp{Emacs} behavior, we mean
+the @emph{default} Emacs behavior.
 
 Now type @kbd{]}, to learn about the @kbd{]} and @kbd{[} commands.
 
@@ -526,7 +526,7 @@ there is no line above it which starts with @w{@samp{* Menu:}}.  Also,
 in a real menu item, the @samp{*} would appear at the very start of
 the line.  This is why the ``normally hidden'' text in Emacs, namely
 @samp{: Node about FOO.}, is actually visible in this example, even
-when @code{vis-mode} is off.]]
+when @code{visible-mode} is off.]]
 
   When you use a menu to go to another node (in a way that will be
 described soon), what you specify is the subtopic name, the first
@@ -619,7 +619,7 @@ three ways of going to one place, Help-FOO:
 * Help-FOO::            And yet another!
 @end menu
 
-(Turn @code{vis-mode} on if you are using Emacs.)
+(Turn @code{visible-mode} on if you are using Emacs.)
 
 @format
 >>  Now type just an @kbd{m} and see what happens:
@@ -735,7 +735,7 @@ pointer shown in the header line (provided that you have a mouse).
 Cross references look like this: @xref{Help-Cross, Cross}.  That text
 is a real, live cross reference, whose name is @samp{Cross} and which
 points to the node named @samp{Help-Cross}.  (The node name is hidden
-in Emacs.  Do @kbd{M-x vis-mode} to show or hide it.)
+in Emacs.  Do @kbd{M-x visible-mode} to show or hide it.)
 
 @kindex f @r{(Info mode)}
 @findex Info-follow-reference
@@ -787,11 +787,11 @@ link, type @kbd{l} to get back to this node.)  Here the name
 @samp{texinfo} between parentheses (shown in the stand-alone version)
 refers to the file name.  This file name appears in cross references
 and node names if it differs from the current file.  In Emacs, the
-file name is hidden (along with other text).  (Use @kbd{M-x vis-mode}
-to show or hide it.)
+file name is hidden (along with other text).  (Use @kbd{M-x
+visible-mode} to show or hide it.)
 
   The remainder of this node applies only to the Emacs version.  If
-you use the stand-alone version, you can type @kbd{n} immediately.   
+you use the stand-alone version, you can type @kbd{n} immediately.
 
   To some users, switching manuals is a much bigger switch than
 switching sections.  These users like to know that they are going to
