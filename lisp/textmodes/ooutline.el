@@ -164,13 +164,16 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 				   outline-regexp "\\)"))
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
+(defvar outline-minor-mode-prefix "\C-c"
+  "*Prefix key to use for Outline commands in Outline minor mode.")
+
 (defvar outline-minor-mode-map nil)
 (if outline-minor-mode-map
     nil
   (setq outline-minor-mode-map (make-sparse-keymap))
   (define-key outline-minor-mode-map [menu-bar]
     (lookup-key outline-mode-map [menu-bar]))
-  (define-key outline-minor-mode-map "\C-c"
+  (define-key outline-minor-mode-map outline-minor-mode-prefix
     (lookup-key outline-mode-map "\C-c")))
 
 (or (assq 'outline-minor-mode minor-mode-map-alist)
