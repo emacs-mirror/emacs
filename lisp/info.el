@@ -1995,7 +1995,7 @@ Give a blank topic name to go to the Index node itself."
 	   (car (car Info-index-alternatives))
 	   (nth 2 (car Info-index-alternatives))
 	   (if (cdr Info-index-alternatives)
-	       "(Press `,' for more)"
+	       "(`,' tries to find next)"
 	     "(Only match)")))
 
 (defun Info-find-index-name (name)
