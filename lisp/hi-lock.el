@@ -110,7 +110,7 @@ of functions `hi-lock-mode' and `hi-lock-find-patterns'."
   "List of major modes in which hi-lock will not run.
 For security reasons since font lock patterns can specify function
 calls."
-  :type 'variable
+  :type '(repeat symbol)
   :group 'hi-lock-interactive-text-highlighting)
 
 
