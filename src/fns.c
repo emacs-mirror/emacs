@@ -886,6 +886,7 @@ do_cdr:
     return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
 #endif
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
+  if (MISCP (o1) && XMISC (o1)->type != XMISC (o2)->type) return Qnil;
   if (CONSP (o1) || OVERLAYP (o1))
     {
       Lisp_Object v1;
