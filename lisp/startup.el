@@ -819,136 +819,148 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
                      (null (cdr tool-bar-lines))
                      (eq 0 (cdr tool-bar-lines)))))))
 
-  (run-hooks 'before-init-hook)
+  (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
+	(old-font-list-limit font-list-limit)
+	(old-face-ignored-fonts face-ignored-fonts))
 
-  ;; Run the site-start library if it exists.  The point of this file is
-  ;; that it is run before .emacs.  There is no point in doing this after
-  ;; .emacs; that is useless.
-  (if site-run-file 
-      (load site-run-file t t))
+    (run-hooks 'before-init-hook)
 
-  ;; Sites should not disable this.  Only individuals should disable
-  ;; the startup message.
-  (setq inhibit-startup-message nil)
+    ;; Run the site-start library if it exists.  The point of this file is
+    ;; that it is run before .emacs.  There is no point in doing this after
+    ;; .emacs; that is useless.
+    (if site-run-file 
+	(load site-run-file t t))
 
-  ;; Load that user's init file, or the default one, or none.
-  (let (debug-on-error-from-init-file
-	debug-on-error-should-be-set
-	(debug-on-error-initial
-	 (if (eq init-file-debug t) 'startup init-file-debug))
-	(orig-enable-multibyte default-enable-multibyte-characters))
-    (let ((debug-on-error debug-on-error-initial)
-	  ;; This function actually reads the init files.
-	  (inner
-	   (function
-	    (lambda ()
-	      (if init-file-user
-		  (let ((user-init-file-1
-			  (cond 
-			   ((eq system-type 'ms-dos)
-			    (concat "~" init-file-user "/_emacs"))
-			   ((eq system-type 'windows-nt)
-			    (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
-				"~/.emacs"
-			      "~/_emacs"))
-			   ((eq system-type 'vax-vms) 
-			    "sys$login:.emacs")
-			   (t 
-			    (concat "~" init-file-user "/.emacs")))))
-		    ;; This tells `load' to store the file name found
-		    ;; into user-init-file.
-		    (setq user-init-file t)
-		    (load user-init-file-1 t t)
+    ;; Sites should not disable this.  Only individuals should disable
+    ;; the startup message.
+    (setq inhibit-startup-message nil)
 
-		    ;; If we did not find the user's init file,
-		    ;; set user-init-file conclusively to nil;
-		    ;; don't let it be set from default.el.
-		    (if (eq user-init-file t)
-			(setq user-init-file nil))
+    ;; Load that user's init file, or the default one, or none.
+    (let (debug-on-error-from-init-file
+	  debug-on-error-should-be-set
+	  (debug-on-error-initial
+	   (if (eq init-file-debug t) 'startup init-file-debug))
+	  (orig-enable-multibyte default-enable-multibyte-characters))
+      (let ((debug-on-error debug-on-error-initial)
+	    ;; This function actually reads the init files.
+	    (inner
+	     (function
+	      (lambda ()
+		(if init-file-user
+		    (let ((user-init-file-1
+			   (cond 
+			    ((eq system-type 'ms-dos)
+			     (concat "~" init-file-user "/_emacs"))
+			    ((eq system-type 'windows-nt)
+			     (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
+				 "~/.emacs"
+			       "~/_emacs"))
+			    ((eq system-type 'vax-vms) 
+			     "sys$login:.emacs")
+			    (t 
+			     (concat "~" init-file-user "/.emacs")))))
+		      ;; This tells `load' to store the file name found
+		      ;; into user-init-file.
+		      (setq user-init-file t)
+		      (load user-init-file-1 t t)
+		      
+		      ;; If we did not find the user's init file,
+		      ;; set user-init-file conclusively to nil;
+		      ;; don't let it be set from default.el.
+		      (if (eq user-init-file t)
+			  (setq user-init-file nil))
+		      
+		      ;; If we loaded a compiled file, set
+		      ;; `user-init-file' to the source version if that
+		      ;; exists.
+		      (when (and user-init-file
+				 (equal (file-name-extension user-init-file)
+					"elc"))
+			(let* ((source (file-name-sans-extension user-init-file))
+			       (alt (concat source ".el")))
+			  (setq source (cond ((file-exists-p alt) alt)
+					     ((file-exists-p source) source)
+					     (t nil)))
+			  (when source
+			    (when (file-newer-than-file-p source user-init-file)
+			      (message "Warning: %s is newer than %s"
+				       source user-init-file)
+			      (sit-for 1))
+			    (setq user-init-file source))))
+		      
+		      (or inhibit-default-init
+			  (let ((inhibit-startup-message nil))
+			    ;; Users are supposed to be told their rights.
+			    ;; (Plus how to get help and how to undo.)
+			    ;; Don't you dare turn this off for anyone
+			    ;; except yourself.
+			    (load "default" t t)))))))))
+	(if init-file-debug
+	    ;; Do this without a condition-case if the user wants to debug.
+	    (funcall inner)
+	  (condition-case error
+	      (progn
+		(funcall inner)
+		(setq init-file-had-error nil))
+	    (error
+	     (let ((message-log-max nil))
+	       (save-excursion
+		 (set-buffer (get-buffer-create "*Messages*"))
+		 (insert "\n\n"
+			 (format "An error has occurred while loading `%s':\n\n"
+				 user-init-file)
+			 (format "%s%s%s"
+				 (get (car error) 'error-message)
+				 (if (cdr error) ": " "")
+				 (mapconcat 'prin1-to-string (cdr error) ", "))
+			 "\n\n"
+			 "To ensure normal operation, you should investigate the cause\n"
+			 "of the error in your initialization file and remove it.  Start\n"
+			 "Emacs with the `--debug-init' option to view a complete error\n"
+			 "backtrace\n"))
+	       (message "Error in init file: %s%s%s"
+			(get (car error) 'error-message)
+			(if (cdr error) ": " "")
+			(mapconcat 'prin1-to-string (cdr error) ", "))
+	       (pop-to-buffer "*Messages*")
+	       (setq init-file-had-error t)))))
+	;; If we can tell that the init file altered debug-on-error,
+	;; arrange to preserve the value that it set up.
+	(or (eq debug-on-error debug-on-error-initial)
+	    (setq debug-on-error-should-be-set t
+		  debug-on-error-from-init-file debug-on-error)))
+      (if debug-on-error-should-be-set
+	  (setq debug-on-error debug-on-error-from-init-file))
+      (unless (or default-enable-multibyte-characters
+		  (eq orig-enable-multibyte default-enable-multibyte-characters))
+	;; Init file changed to unibyte.  Reset existing multibyte
+	;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
+	;; Arguably this should only be done if they're free of
+	;; multibyte characters.
+	(mapcar (lambda (buffer)
+		  (with-current-buffer buffer
+		    (if enable-multibyte-characters
+			(set-buffer-multibyte nil))))
+		(buffer-list))
+	;; Also re-set the language environment in case it was
+	;; originally done before unibyte was set and is sensitive to
+	;; unibyte (display table, terminal coding system &c).
+	(set-language-environment current-language-environment)))
+    
+    ;; Do this here in case the init file sets mail-host-address.
+    (or user-mail-address
+	(setq user-mail-address (concat (user-login-name) "@"
+					(or mail-host-address
+					    (system-name)))))
 
-		    ;; If we loaded a compiled file, set
-		    ;; `user-init-file' to the source version if that
-		    ;; exists.
-		    (when (and user-init-file
-			       (equal (file-name-extension user-init-file)
-				      "elc"))
-		      (let* ((source (file-name-sans-extension user-init-file))
-			     (alt (concat source ".el")))
-			(setq source (cond ((file-exists-p alt) alt)
-					   ((file-exists-p source) source)
-					   (t nil)))
-			(when source
-			  (when (file-newer-than-file-p source user-init-file)
-			    (message "Warning: %s is newer than %s"
-				     source user-init-file)
-			    (sit-for 1))
-			  (setq user-init-file source))))
-
-		    (or inhibit-default-init
-			(let ((inhibit-startup-message nil))
-			  ;; Users are supposed to be told their rights.
-			  ;; (Plus how to get help and how to undo.)
-			  ;; Don't you dare turn this off for anyone
-			  ;; except yourself.
-			  (load "default" t t)))))))))
-      (if init-file-debug
-	  ;; Do this without a condition-case if the user wants to debug.
-	  (funcall inner)
-	(condition-case error
-	    (progn
-	      (funcall inner)
-	      (setq init-file-had-error nil))
-	  (error
-	   (let ((message-log-max nil))
-	     (save-excursion
-	       (set-buffer (get-buffer-create "*Messages*"))
-	       (insert "\n\n"
-		       (format "An error has occurred while loading `%s':\n\n"
-			       user-init-file)
-		       (format "%s%s%s"
-			       (get (car error) 'error-message)
-			       (if (cdr error) ": " "")
-			       (mapconcat 'prin1-to-string (cdr error) ", "))
-		       "\n\n"
-		       "To ensure normal operation, you should investigate the cause\n"
-		       "of the error in your initialization file and remove it.  Start\n"
-		       "Emacs with the `--debug-init' option to view a complete error\n"
-		       "backtrace\n"))
-	     (message "Error in init file: %s%s%s"
-		      (get (car error) 'error-message)
-		      (if (cdr error) ": " "")
-		      (mapconcat 'prin1-to-string (cdr error) ", "))
-	     (pop-to-buffer "*Messages*")
-	     (setq init-file-had-error t)))))
-      ;; If we can tell that the init file altered debug-on-error,
-      ;; arrange to preserve the value that it set up.
-      (or (eq debug-on-error debug-on-error-initial)
-	  (setq debug-on-error-should-be-set t
-		debug-on-error-from-init-file debug-on-error)))
-    (if debug-on-error-should-be-set
-	(setq debug-on-error debug-on-error-from-init-file))
-    (unless (or default-enable-multibyte-characters
-		(eq orig-enable-multibyte default-enable-multibyte-characters))
-      ;; Init file changed to unibyte.  Reset existing multibyte
-      ;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
-      ;; Arguably this should only be done if they're free of
-      ;; multibyte characters.
-      (mapcar (lambda (buffer)
-		(with-current-buffer buffer
-		  (if enable-multibyte-characters
-		      (set-buffer-multibyte nil))))
-	      (buffer-list))
-      ;; Also re-set the language environment in case it was
-      ;; originally done before unibyte was set and is sensitive to
-      ;; unibyte (display table, terminal coding system &c).
-      (set-language-environment current-language-environment)))
-
-  ;; Do this here in case the init file sets mail-host-address.
-  (or user-mail-address
-      (setq user-mail-address (concat (user-login-name) "@"
-				      (or mail-host-address
-					  (system-name)))))
-
+    ;; If parameter have been changed in the init file which influence
+    ;; face realization, clear the face cache so that new faces will
+    ;; be realized.
+    (unless (and (eq scalable-fonts-allowed old-scalable-fonts-allowed)
+		 (eq font-list-limit old-font-list-limit)
+		 (eq face-ignored-fonts old-face-ignored-fonts))
+      (clear-face-cache)))
+    
   (run-hooks 'after-init-hook)
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
