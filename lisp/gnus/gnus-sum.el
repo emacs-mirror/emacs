@@ -2673,17 +2673,19 @@ buffer that was in action when the last article was fetched."
 	   [0 "" "" "" "" "" 0 0 "" nil]  0 nil 128 t nil "" nil 1)
 	  (goto-char (point-min))
 	  (setq pos (list (cons 'unread (and (search-forward "\200" nil t)
-					     (- (point) 2)))))
+					     (- (point) (point-min) 1)))))
 	  (goto-char (point-min))
 	  (push (cons 'replied (and (search-forward "\201" nil t)
-				    (- (point) 2)))
+				    (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'score (and (search-forward "\202" nil t) (- (point) 2)))
+	  (push (cons 'score (and (search-forward "\202" nil t)
+				  (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
 	  (push (cons 'download
-		      (and (search-forward "\203" nil t) (- (point) 2)))
+		      (and (search-forward "\203" nil t)
+			   (- (point) (point-min) 1)))
 		pos)))
       (setq gnus-summary-mark-positions pos))))
 
@@ -7428,7 +7430,7 @@ If ARG is a negative number, hide the unwanted header lines."
     (save-restriction
       (let* ((buffer-read-only nil)
 	     (inhibit-point-motion-hooks t)
-	     hidden e)
+	     hidden s e)
 	(setq hidden
 	      (if (numberp arg)
 		  (>= arg 0)
@@ -7439,11 +7441,10 @@ If ARG is a negative number, hide the unwanted header lines."
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (point-min) (1- (point))))
 	(goto-char (point-min))
-	(save-excursion
-	  (set-buffer gnus-original-article-buffer)
-	  (goto-char (point-min))
+	(with-current-buffer gnus-original-article-buffer
+	  (goto-char (setq s (point-min)))
 	  (setq e (1- (or (search-forward "\n\n" nil t) (point-max)))))
-	(insert-buffer-substring gnus-original-article-buffer 1 e)
+	(insert-buffer-substring gnus-original-article-buffer s e)
 	(save-restriction
 	  (narrow-to-region (point-min) (point))
 	  (article-decode-encoded-words)
