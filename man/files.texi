@@ -183,6 +183,13 @@ the command with the name of the file you wish to visit, terminated by a
 defaulting and completion in the standard manner (@pxref{File Names}).
 While in the minibuffer, you can abort @kbd{C-x C-f} by typing @kbd{C-g}.
 
+@cindex file selection dialog
+  When Emacs is built with a suitable GUI toolkit, it pops up the
+standard File Selection dialog of that toolkit instead of prompting for
+the file name in the minibuffer.  On Unix and GNU/Linux platforms, Emacs
+does that when built with LessTif and Motif toolkits; on MS-Windows, the
+GUI version does that by default.
+
   Your confirmation that @kbd{C-x C-f} has completed successfully is the
 appearance of new text on the screen and a new buffer name in the mode
 line.  If the specified file does not exist and could not be created, or
