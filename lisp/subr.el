@@ -2457,6 +2457,8 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
     (push toggle minor-mode-list))
 
   (unless toggle-fun (setq toggle-fun toggle))
+  (unless (eq toggle-fun toggle)
+    (put toggle :minor-mode-function toggle-fun))
   ;; Add the name to the minor-mode-alist.
   (when name
     (let ((existing (assq toggle minor-mode-alist)))
