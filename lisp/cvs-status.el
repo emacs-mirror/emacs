@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.1 2000/03/11 03:42:28 monnier Exp $
+;; Revision: $Id: cvs-status.el,v 1.2 2000/03/22 01:01:36 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -92,9 +92,7 @@
 
 (put 'cvs-status-mode 'mode-class 'special)
 ;;;###autoload
-(autoload 'cvs-status-mode "cvs-status" "Mode used for cvs status output." t)
-(eval-when-compile (autoload 'easy-mmode-define-derived-mode "easy-mmode"))
-(easy-mmode-define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
+(define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
   "Mode used for cvs status output."
   (set (make-local-variable 'font-lock-defaults) cvs-status-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-status-minor-wrap))
@@ -507,6 +505,12 @@ Optional prefix ARG chooses between two representations."
 (provide 'cvs-status)
 
 ;;; Change Log:
-;; $Log$
+;; $Log: cvs-status.el,v $
+;; Revision 1.2  2000/03/22 01:01:36  monnier
+;; (cvs-status-(prev|next)): Rename from
+;; cvs-status-(prev|next)-entry and use easy-mmode-define-navigation.
+;; (cvs-tree-dstr-*): Rename from cvstree-dstr-* and use two ascii chars
+;; to let the output "breathe" a little more (more readable).
+;;
 
 ;;; cvs-status.el ends here
