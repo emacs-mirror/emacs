@@ -332,27 +332,14 @@ in each directory, not to the directory list itself."
 		    file-cache-alist)))
       )))
 
-(defun file-cache-find-posix-p ()
-  "Check if `file-cache-find-command' handles wildcards POSIX style."
-  (or (not (memq system-type '(ms-dos windows-nt)))  ;; Include all POSIX systems.
-      (with-temp-buffer                   ;; Cygwin?
-        (call-process file-cache-find-command
-                      nil
-                      (current-buffer)
-                      nil
-                      "--version")
-        (goto-char (point-min))
-        ;; Cygwin
-        (if (re-search-forward "GNU" nil t)
-            (buffer-string)))))
-
 (defun file-cache-add-directory-using-find (directory)
   "Use the `find' command to add files to the file cache.
 Find is run in DIRECTORY."
   (interactive "DAdd files under directory: ")
   (let ((dir (expand-file-name directory)))
     (if (eq file-cache-find-command-posix-flag 'not-defined)
-        (setq file-cache-find-command-posix-flag (file-cache-find-posix-p)))
+        (setq file-cache-find-command-posix-flag
+	      (executable-command-find-posix-p file-cache-find-command)))
     (set-buffer (get-buffer-create file-cache-buffer))
     (erase-buffer)
     (call-process file-cache-find-command nil
