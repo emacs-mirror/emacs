@@ -44,7 +44,7 @@
 
 (defcustom gnus-audio-directory (nnheader-find-etc-directory "sounds")
   "The directory containing the Sound Files."
-  :type 'directory
+  :type '(choice directory (const nil))
   :group 'gnus-audio)
 
 (defcustom gnus-audio-au-player "/usr/bin/showaudio"
