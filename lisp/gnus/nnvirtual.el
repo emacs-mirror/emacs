@@ -671,27 +671,27 @@ based on the marks on the component groups."
     ;; Into all-unreads we put (g unreads).
     ;; Into all-marks we put (g marks).
     ;; We also increment cnt and tot here, and compute M (max of sizes).
-    (mapc (lambda (g)
-	    (setq active (gnus-activate-group g)
-		  min (car active)
-		  max (cdr active))
-	    (when (and active (>= max min) (not (zerop max)))
-	      ;; store active information
-	      (push (list g (- max min -1) max) actives)
-	      ;; collect unread/mark info for later
-	      (setq unreads (gnus-list-of-unread-articles g))
-	      (setq marks (gnus-info-marks (gnus-get-info g)))
-	      (when gnus-use-cache
-		(push (cons 'cache
-			    (gnus-cache-articles-in-group g))
-		      marks))
-	      (push (cons g unreads) all-unreads)
-	      (push (cons g marks) all-marks)
-	      ;; count groups, total #articles, and max size
-	      (setq size (- max min -1))
-	      (setq cnt (1+ cnt)
-		    tot (+ tot size)
-		    M (max M size))))
+    (mapcar (lambda (g)
+	      (setq active (gnus-activate-group g)
+		    min (car active)
+		    max (cdr active))
+	      (when (and active (>= max min) (not (zerop max)))
+		;; store active information
+		(push (list g (- max min -1) max) actives)
+		;; collect unread/mark info for later
+		(setq unreads (gnus-list-of-unread-articles g))
+		(setq marks (gnus-info-marks (gnus-get-info g)))
+		(when gnus-use-cache
+		  (push (cons 'cache
+			      (gnus-cache-articles-in-group g))
+			marks))
+		(push (cons g unreads) all-unreads)
+		(push (cons g marks) all-marks)
+		;; count groups, total #articles, and max size
+		(setq size (- max min -1))
+		(setq cnt (1+ cnt)
+		      tot (+ tot size)
+		      M (max M size))))
 	  nnvirtual-component-groups)
 
     ;; Number of articles in the virtual group.
