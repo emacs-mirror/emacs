@@ -603,7 +603,8 @@ Whatever it returns becomes the value of `try-completion'.\n\
 If optional third argument PREDICATE is non-nil,\n\
 it is used to test each possible match.\n\
 The match is a candidate only if PREDICATE returns non-nil.\n\
-The argument given to PREDICATE is the alist element or the symbol from the obarray.")
+The argument given to PREDICATE is the alist element\n\
+or the symbol from the obarray.")
   (string, alist, pred)
      Lisp_Object string, alist, pred;
 {
@@ -796,10 +797,11 @@ scmp (s1, s2, len)
     return len - l;
 }
 
-DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 3, 0,
+DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
   "Search for partial matches to STRING in ALIST.\n\
 Each car of each element of ALIST is tested to see if it begins with STRING.\n\
 The value is a list of all the strings from ALIST that match.\n\
+\n\
 ALIST can be an obarray instead of an alist.\n\
 Then the print names of all symbols in the obarray are the possible matches.\n\
 \n\
@@ -810,9 +812,14 @@ Whatever it returns becomes the value of `all-completion'.\n\
 If optional third argument PREDICATE is non-nil,\n\
 it is used to test each possible match.\n\
 The match is a candidate only if PREDICATE returns non-nil.\n\
-The argument given to PREDICATE is the alist element or the symbol from the obarray.")
-  (string, alist, pred)
-     Lisp_Object string, alist, pred;
+The argument given to PREDICATE is the alist element\n\
+or the symbol from the obarray.\n\
+\n\
+If the optional fourth argument HIDE-SPACES is non-nil,\n\
+strings in ALIST that start with a space\n\
+are ignored unless STRING itself starts with a space.")
+  (string, alist, pred, hide_spaces)
+     Lisp_Object string, alist, pred, hide_spaces;
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
@@ -876,10 +883,11 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       if (STRINGP (eltstring)
 	  && XSTRING (string)->size <= XSTRING (eltstring)->size
-	  /* Reject alternatives that start with space
+	  /* If HIDE_SPACES, reject alternatives that start with space
 	     unless the input starts with space.  */
 	  && ((XSTRING (string)->size > 0 && XSTRING (string)->data[0] == ' ')
-	      || XSTRING (eltstring)->data[0] != ' ')
+	      || XSTRING (eltstring)->data[0] != ' '
+	      || NILP (hide_spaces))
 	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
 		       XSTRING (string)->size))
 	{
@@ -1572,7 +1580,8 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   message ("Making completion list...");
   completions = Fall_completions (Fbuffer_string (),
 				  Vminibuffer_completion_table,
-				  Vminibuffer_completion_predicate);
+				  Vminibuffer_completion_predicate,
+				  Qt);
   echo_area_glyphs = 0;
 
   if (NILP (completions))
