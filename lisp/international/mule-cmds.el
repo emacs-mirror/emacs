@@ -7,7 +7,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
-;; Keywords: mule, multilingual
+;; Keywords: mule, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -276,12 +276,12 @@ wrong, use this command again to toggle back to the right mode."
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
 	      ;; Have to bind `last-command-char' here so that
-	      ;; `digit-argument', for isntance, can compute the
+	      ;; `digit-argument', for instance, can compute the
 	      ;; prefix arg.
 	      (last-command-char (aref keyseq 0)))
 	  (call-interactively cmd)))
 
-      ;; This is the final call to `univeral-argument-other-key', which
+      ;; This is the final call to `universal-argument-other-key', which
       ;; set's the final `prefix-arg.
       (let ((current-prefix-arg prefix-arg))
 	(call-interactively cmd))
@@ -435,34 +435,40 @@ If STRING contains no multibyte characters, return a list of a single
 element `undecided'."
   (find-coding-systems-region string nil))
 
-;; Fixme: re-write
 (defun find-coding-systems-for-charsets (charsets)
   "Return a list of proper coding systems to encode characters of CHARSETS.
-CHARSETS is a list of character sets."
+CHARSETS is a list of character sets.
+
+This only finds coding systems of type `charset', whose
+`:charset-list' property includes all of CHARSETS (plus `ascii' for
+ascii-compatible coding systems).  It was used in older versions of
+Emacs, but is unlikely to be what you really want now."
+  ;; Deal with aliases.
+  (setq charsets (mapcar (lambda (c)
+			   (get-charset-property c :name))
+			 charsets))
   (cond ((or (null charsets)
 	     (and (= (length charsets) 1)
 		  (eq 'ascii (car charsets))))
 	 '(undecided))
 	((or (memq 'eight-bit-control charsets)
 	     (memq 'eight-bit-graphic charsets))
-	 '(raw-text emacs-mule))
+	 '(raw-text utf-8-emacs))
 	(t
-	 (let ((codings t)
-	       charset l ll)
-	   (while (and codings charsets)
-	     (setq charset (car charsets) charsets (cdr charsets))
-	     (unless (eq charset 'ascii)
-	       (setq l (aref char-coding-system-table (make-char charset)))
-	       (if (eq codings t)
-		   (setq codings l)
-		 (let ((ll nil))
-		   (while codings
-		     (if (memq (car codings) l)
-			 (setq ll (cons (car codings) ll)))
-		     (setq codings (cdr codings)))
-		   (setq codings ll)))))
-	   (append codings
-		   (char-table-extra-slot char-coding-system-table 0))))))
+	 (let (codings)
+	   (dolist (cs (coding-system-list t))
+	     (let ((cs-charsets (coding-system-get cs :charset-list))
+		   (charsets charsets))
+	       (if (coding-system-get cs :ascii-compatible-p)
+		   (add-to-list 'cs-charsets 'ascii))
+	       (if (catch 'ok
+		     (when cs-charsets
+		       (while charsets
+			 (unless (memq (pop charsets) cs-charsets)
+			   (throw 'ok nil)))
+		       t))
+		   (push cs codings))))
+	   (nreverse codings)))))
 
 ;; Fixme: is this doing the right thing now, at least with eight-bit?
 (defun find-multibyte-characters (from to &optional maxcount excludes)
@@ -473,7 +479,7 @@ The return value is an alist of the following format:
 where
   CHARSET is a character set,
   COUNT is a number of characters,
-  CHARs are found characters of the character set.
+  CHARs are the characters found from the character set.
 Optional 3rd arg MAXCOUNT limits how many CHARs are put in the above list.
 Optional 4th arg EXCLUDE is a list of character sets to be ignored."
   (let ((chars nil)
@@ -766,6 +772,73 @@ is nil.
 			but as non-ASCII characters in this language
 			environment.")
 
+(defcustom language-info-custom-alist nil
+  "Customizations of language environment parameters.
+Value is an alist with elements like those of `language-info-alist'.
+These are used to set values in `language-info-alist' which replace
+the defaults.  A typical use is replacing the default input method for
+the environment.  Use \\[describe-language-environment] to find the environment's
+settings.
+
+Setting this variable directly does not take effect.  See
+`set-language-info-alist' for use in programs."
+  :group 'mule
+  :version "22.1"
+  :set (lambda (s v)
+	 (custom-set-default s v)
+	 ;; modify language-info-alist
+	 (dolist (elt v)
+	   (set-language-info-alist (car elt) (cdr elt)))
+	 ;; re-set the environment in case its parameters changed
+	 (set-language-environment current-language-environment))
+  :type '(alist
+	  :key-type
+	  (string :tag "Language environment"
+		  :complete-function
+		  (lambda ()
+		    (interactive)
+		    (let* ((prefix (buffer-substring-no-properties
+				    (widget-field-start widget) (point)))
+			   (completion-ignore-case t)
+			   (completion (try-completion prefix
+						       language-info-alist)))
+		      (cond ((eq completion t)
+			     (delete-region (widget-field-start widget)
+					    (widget-field-end widget))
+			     (insert-and-inherit
+			      (car (assoc-ignore-case prefix
+						      language-info-alist)))
+			     (message "Only match"))
+			    ((null completion)
+			     (error "No match"))
+			    ((not (eq t (compare-strings prefix nil nil
+							 completion nil nil
+							 t)))
+			     (delete-region (widget-field-start widget)
+					    (widget-field-end widget))
+			     (insert-and-inherit completion))
+			    (t
+			     (message "Making completion list...")
+			     (with-output-to-temp-buffer "*Completions*"
+			       (display-completion-list
+				(all-completions prefix language-info-alist
+						 nil)))
+			     (message "Making completion list...done"))))))
+	  :value-type
+	  (alist :key-type symbol
+		 :options ((documentation string)
+			   (charset (repeat symbol))
+			   (sample-text string)
+			   (setup-function function)
+			   (exit-function function)
+			   (coding-system (repeat coding-system))
+			   (coding-priority (repeat coding-system))
+			   (nonascii-translation symbol)
+			   (input-method string)
+			   (features (repeat symbol))
+			   (unibyte-display coding-system)
+			   (unibyte-syntax string)))))
+
 (defun get-language-info (lang-env key)
   "Return information listed under KEY for language environment LANG-ENV.
 KEY is a symbol denoting the kind of information.
@@ -935,6 +1008,7 @@ If nil, that means no input method is activated now.")
   "*Default input method for multilingual text (a string).
 This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
+  :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
   :type '(choice (const nil) string)
   :set-after '(current-language-environment))
@@ -1232,20 +1306,26 @@ See also the variable `input-method-verbose-flag'."
   :type 'boolean
   :group 'mule)
 
-(defvar input-method-activate-hook nil
+(defcustom input-method-activate-hook nil
   "Normal hook run just after an input method is activated.
 
 The variable `current-input-method' keeps the input method name
-just activated.")
+just activated."
+  :type 'hook
+  :group 'mule)
 
-(defvar input-method-inactivate-hook nil
+(defcustom input-method-inactivate-hook nil
   "Normal hook run just after an input method is inactivated.
 
 The variable `current-input-method' still keeps the input method name
-just inactivated.")
+just inactivated."
+  :type 'hook
+  :group 'mule)
 
-(defvar input-method-after-insert-chunk-hook nil
-  "Normal hook run just after an input method insert some chunk of text.")
+(defcustom input-method-after-insert-chunk-hook nil
+  "Normal hook run just after an input method inserts some chunk of text."
+  :type 'hook
+  :group 'mule)
 
 (defvar input-method-exit-on-first-char nil
   "This flag controls when an input method returns.
@@ -1254,12 +1334,14 @@ that it may find a different translation if a user types another key.
 But, it this flag is non-nil, the input method returns as soon as
 the current key sequence gets long enough to have some valid translation.")
 
-(defvar input-method-use-echo-area nil
+(defcustom input-method-use-echo-area nil
   "This flag controls how an input method shows an intermediate key sequence.
 Usually, the input method inserts the intermediate key sequence,
 or candidate translations corresponding to the sequence,
 at point in the current buffer.
-But, if this flag is non-nil, it displays them in echo area instead.")
+But, if this flag is non-nil, it displays them in echo area instead."
+  :type 'hook
+  :group 'mule)
 
 (defvar input-method-exit-on-invalid-key nil
   "This flag controls the behaviour of an input method on invalid key input.
@@ -1269,21 +1351,25 @@ input method temporarily.  After that key, the input method is re-enabled.
 But, if this flag is non-nil, the input method is never back on.")
 
 
-(defvar set-language-environment-hook nil
+(defcustom set-language-environment-hook nil
   "Normal hook run after some language environment is set.
 
 When you set some hook function here, that effect usually should not
 be inherited to another language environment.  So, you had better set
 another function in `exit-language-environment-hook' (which see) to
-cancel the effect.")
+cancel the effect."
+  :type 'hook
+  :group 'mule)
 
-(defvar exit-language-environment-hook nil
+(defcustom exit-language-environment-hook nil
   "Normal hook run after exiting from some language environment.
 When this hook is run, the variable `current-language-environment'
 is still bound to the language environment being exited.
 
 This hook is mainly used for canceling the effect of
-`set-language-environment-hook' (which-see).")
+`set-language-environment-hook' (which-see)."
+  :type 'hook
+  :group 'mule)
 
 (put 'setup-specified-language-environment 'apropos-inhibit t)
 
@@ -1399,7 +1485,7 @@ specifies the character set for the major languages of Western Europe."
 			   default-buffer-file-coding-system)))
     (reset-language-environment)
 
-    ;; The fetaures might set up coding systems.
+    ;; The features might set up coding systems.
     (let ((required-features (get-language-info language-name 'features)))
       (while required-features
 	(require (car required-features))
@@ -1415,6 +1501,8 @@ specifies the character set for the major languages of Western Europe."
 		(cons input-method
 		      (delete input-method input-method-history))))))
 
+  ;; Fixme: default from the environment coding system where that's
+  ;; charset-based.
   (apply 'set-charset-priority  (get-language-info language-name 'charset))
 
   ;; Note: For DOS, we assumed that the charset cpXXX is already
@@ -1442,9 +1530,9 @@ specifies the character set for the major languages of Western Europe."
 	    (modify-syntax-entry ch " " syntax-table)
 	    (aset case-table ch ch)
 	    (setq ch (1+ ch)))
-	  (set-char-table-extra-slot case-table 0 nil)
-	  (set-char-table-extra-slot case-table 1 nil)
-	  (set-char-table-extra-slot case-table 2 nil))
+	(set-char-table-extra-slot case-table 0 nil)
+	(set-char-table-extra-slot case-table 1 nil)
+	(set-char-table-extra-slot case-table 2 nil))
 	(set-standard-case-table (standard-case-table))
 	(let ((list (buffer-list)))
 	  (while list
@@ -1491,7 +1579,7 @@ specifies the character set for the major languages of Western Europe."
   "Do various coding system setups for language environment LANGUAGE-NAME.
 
 The optional arg EOL-TYPE specifies the eol-type of the default value
-of buffer-file-coding-system set by this function."
+of `buffer-file-coding-system' set by this function."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority)))
     (when priority
