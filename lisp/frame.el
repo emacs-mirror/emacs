@@ -32,9 +32,9 @@
 The window system startup file should set this to its frame creation
 function, which should take an alist of parameters as its argument.")
 
-;;; The initial value given here for used to ask for a minibuffer.
-;;; But that's not necessary, because the default is to have one.
-;;; By not specifying it here, we let an X resource specify it.
+;; The initial value given here used to ask for a minibuffer.
+;; But that's not necessary, because the default is to have one.
+;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
   "*Alist of frame parameters for creating the initial X window frame.
 You can set this in your `.emacs' file; for example,
@@ -113,17 +113,30 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
   (if (and args (symbolp (car args)))
       (apply (car args) buffer (cdr args))
     (let ((window (get-buffer-window buffer t)))
-      (if window
-	  ;; If we have a window already, make it visible.
-	  (let ((frame (window-frame window)))
-	    (make-frame-visible frame)
-	    (raise-frame frame)
-	    window)
-	;; If no window yet, make one in a new frame.
-	(let ((frame (make-frame (append args special-display-frame-alist))))
-	  (set-window-buffer (frame-selected-window frame) buffer)
-	  (set-window-dedicated-p (frame-selected-window frame) t)
-	  (frame-selected-window frame))))))
+      (or
+       ;; If we have a window already, make it visible.
+       (when window
+	 (let ((frame (window-frame window)))
+	   (make-frame-visible frame)
+	   (raise-frame frame)
+	   window))
+       ;; Reuse the current window if the user requested it.
+       (when (cdr (assq 'same-window args))
+	 (condition-case nil
+	     (progn (switch-to-buffer buffer) (selected-window))
+	   (error nil)))
+       ;; Stay on the same frame if requested.
+       (when (or (cdr (assq 'same-frame args)) (cdr (assq 'same-window args)))
+	 (let* ((pop-up-frames nil) (pop-up-windows t)
+		special-display-regexps special-display-buffer-names
+		(window (display-buffer buffer)))
+	   ;; (set-window-dedicated-p window t)
+	   window))
+       ;; If no window yet, make one in a new frame.
+       (let ((frame (make-frame (append args special-display-frame-alist))))
+	 (set-window-buffer (frame-selected-window frame) buffer)
+	 (set-window-dedicated-p (frame-selected-window frame) t)
+	 (frame-selected-window frame))))))
 
 (defun handle-delete-frame (event)
   "Handle delete-frame events from the X server."
@@ -143,14 +156,14 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 
 ;;;; Arrangement of frames at startup
 
-;;; 1) Load the window system startup file from the lisp library and read the
-;;; high-priority arguments (-q and the like).  The window system startup
-;;; file should create any frames specified in the window system defaults.
-;;;
-;;; 2) If no frames have been opened, we open an initial text frame.
-;;;
-;;; 3) Once the init file is done, we apply any newly set parameters
-;;; in initial-frame-alist to the frame.
+;; 1) Load the window system startup file from the lisp library and read the
+;; high-priority arguments (-q and the like).  The window system startup
+;; file should create any frames specified in the window system defaults.
+;;
+;; 2) If no frames have been opened, we open an initial text frame.
+;;
+;; 3) Once the init file is done, we apply any newly set parameters
+;; in initial-frame-alist to the frame.
 
 ;; These are now called explicitly at the proper times,
 ;; since that is easier to understand.
@@ -158,7 +171,7 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 ;; (add-hook 'before-init-hook 'frame-initialize)
 ;; (add-hook 'window-setup-hook 'frame-notice-user-settings)
 
-;;; If we create the initial frame, this is it.
+;; If we create the initial frame, this is it.
 (defvar frame-initial-frame nil)
 
 ;; Record the parameters used in frame-initialize to make the initial frame.
@@ -166,9 +179,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 
 (defvar frame-initial-geometry-arguments nil)
 
-;;; startup.el calls this function before loading the user's init
-;;; file - if there is no frame with a minibuffer open now, create
-;;; one to display messages while loading the init file.
+;; startup.el calls this function before loading the user's init
+;; file - if there is no frame with a minibuffer open now, create
+;; one to display messages while loading the init file.
 (defun frame-initialize ()
   "Create an initial frame if necessary."
   ;; Are we actually running under a window system at all?
@@ -217,9 +230,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 (defvar frame-notice-user-settings t
   "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
 
-;;; startup.el calls this function after loading the user's init
-;;; file.  Now default-frame-alist and initial-frame-alist contain
-;;; information to which we must react; do what needs to be done.
+;; startup.el calls this function after loading the user's init
+;; file.  Now default-frame-alist and initial-frame-alist contain
+;; information to which we must react; do what needs to be done.
 (defun frame-notice-user-settings ()
   "Act on user's init file settings of frame parameters.
 React to settings of `default-frame-alist', `initial-frame-alist' there."
@@ -788,6 +801,9 @@ To get the frame's current default font, use `frame-parameters'."
 			   (list (cons 'font font-name)))
   (run-hooks 'after-setting-font-hook 'after-setting-font-hooks))
 
+(defun set-frame-parameter (frame parameter value)
+  (modify-frame-parameters frame (list (cons parameter value))))
+
 (defun set-background-color (color-name)
   "Set the background color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
@@ -1088,7 +1104,7 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (make-obsolete 'set-screen-height 'set-frame-height) ;before 19.15
 
 
-;;; Highlighting trailing whitespace.
+;; Highlighting trailing whitespace.
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 
@@ -1103,7 +1119,7 @@ Setting this variable makes it local to the current buffer."
 
 
 
-;;; Scrolling
+;; Scrolling
 
 (defgroup scrolling nil
   "Scrolling windows."
@@ -1119,7 +1135,7 @@ point visible."
   :group 'scrolling)
 
 
-;;; Blinking cursor
+;; Blinking cursor
 
 (defgroup cursor nil
   "Displaying text cursors."
@@ -1215,7 +1231,7 @@ itself as a pre-command hook."
 
 
 
-;;; Hourglass pointer
+;; Hourglass pointer
 
 (defcustom display-hourglass t
   "*Non-nil means show an hourglass pointer when running under a window system."
