@@ -1,3 +1,11 @@
+2000-12-12  Miles Bader  <miles@gnu.org>
+
+	* simple.el (delete-horizontal-space): Add BACKWARD-ONLY parameter.
+	Respect field end too.
+	(just-one-space): Respect fields as `delete-horizontal-space'.
+	(newline-and-indent, reindent-then-newline-and-indent): Use
+	`delete-horizontal-space'.
+
 2000-12-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-indent-new-line): Use delete-horizontal-space
