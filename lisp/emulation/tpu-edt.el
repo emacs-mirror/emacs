@@ -1297,15 +1297,15 @@ corners of a rectangle."
 		  (exchange-point-and-mark))       ; point -> upper-left
 
 		 (t	                           ; point @  lower-left
-		  (move-to-column-force mc)        ; point -> lower-right
+		  (move-to-column mc t)            ; point -> lower-right
 		  (exchange-point-and-mark)        ; point -> upper-right
-		  (move-to-column-force pc))))     ; point -> upper-left
+		  (move-to-column pc t))))         ; point -> upper-left
 
 	  (t                                       ; point on upper line
 	   (cond ((> pc mc)                        ; point @  upper-right
-		  (move-to-column-force mc)        ; point -> upper-left
+		  (move-to-column mc t)            ; point -> upper-left
 		  (exchange-point-and-mark)        ; point -> lower-left
-		  (move-to-column-force pc)        ; point -> lower-right
+		  (move-to-column pc t)            ; point -> lower-right
 		  (exchange-point-and-mark)))))))  ; point -> upper-left
 
 (defun tpu-cut-text nil
