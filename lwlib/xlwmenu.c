@@ -30,8 +30,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/bitmaps/gray>
 #include "xlwmenuP.h"
 
-static int disable_add_grab, disable_grab_pointer;
-
 static int pointer_grabbed;
 static XEvent menu_post_event;
 
@@ -1289,10 +1287,8 @@ handle_single_motion_event (mw, ev)
     set_new_state (mw, val, level);
   remap_menubar (mw);
   
-#if 1
   /* Sync with the display.  Makes it feel better on X terms. */
   XSync (XtDisplay (mw), False);
-#endif
 }
 
 static void
@@ -1307,7 +1303,6 @@ handle_motion_event (mw, ev)
   handle_single_motion_event (mw, ev);
 
   /* allow motion events to be generated again */
-#if 0
   if (ev->is_hint
       && XQueryPointer (XtDisplay (mw), ev->window,
 			&ev->root, &ev->subwindow,
@@ -1317,14 +1312,6 @@ handle_motion_event (mw, ev)
       && ev->state == state
       && (ev->x_root != x || ev->y_root != y))
     handle_single_motion_event (mw, ev);
-#else
-  XQueryPointer (XtDisplay (mw), ev->window,
-		 &ev->root, &ev->subwindow,
-		 &ev->x_root, &ev->y_root,
-		 &ev->x, &ev->y,
-		 &ev->state);
-  handle_single_motion_event (mw, ev);
-#endif
 }
 
 static void 
@@ -1457,8 +1444,7 @@ pop_up_menu (mw, event)
     {
       XEvent *ev = (XEvent *) event;
 
-      if (!disable_add_grab)
-	XtAddGrab ((Widget) mw, True, True);
+      XtAddGrab ((Widget) mw, True, True);
 
       /* notes the absolute position of the menubar window */
       mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
@@ -1468,18 +1454,15 @@ pop_up_menu (mw, event)
 #ifdef emacs
   x_catch_errors ();
 #endif
-  if (!disable_grab_pointer)
-    {
-      XtGrabPointer ((Widget)mw, False,
-		     (PointerMotionMask
-		      | PointerMotionHintMask
-		      | ButtonReleaseMask
-		      | ButtonPressMask),
-		     GrabModeAsync, GrabModeAsync, None,
-		     mw->menu.cursor_shape,
-		     event->time);
-      pointer_grabbed = 1;
-    }
+  XtGrabPointer ((Widget)mw, False,
+		 (PointerMotionMask
+		  | PointerMotionHintMask
+		  | ButtonReleaseMask
+		  | ButtonPressMask),
+		 GrabModeAsync, GrabModeAsync, None,
+		 mw->menu.cursor_shape,
+		 event->time);
+  pointer_grabbed = 1;
 #ifdef emacs
   if (x_had_errors_p ())
     {
@@ -1490,14 +1473,4 @@ pop_up_menu (mw, event)
 #endif
 
   handle_motion_event (mw, (XMotionEvent*)event);
-}
-
-void GetWindowAttributes (w)
-     Widget w;
-{
-  XWindowAttributes attrs;
-
-  XGetWindowAttributes (XtDisplay (w),
-			XtWindow (w),
-			&attrs);
 }
