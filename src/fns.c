@@ -218,6 +218,107 @@ Symbols are also allowed; their print names are used instead.")
   return Qt;
 }
 
+DEFUN ("compare-strings", Fcompare_strings,
+       Scompare_strings, 2, 7, 0,
+  "Compare the contents of two strings, converting to multibyte if needed.\n\
+In string STR1, skip the first START1 characters and stop at END1.\n\
+In string STR2, skip the first START2 characters and stop at END2.\n\
+Case is significant in this comparison if IGNORE-CASE is nil.\n\
+Unibyte strings are converted to multibyte for comparison.\n\
+\n\
+The value is t if the strings (or specified portions) match.\n\
+If string STR1 is less, the value is a negative number N;\n\
+  - 1 - N is the number of characters that match at the beginning.\n\
+If string STR1 is greater, the value is a positive number N;\n\
+  N - 1 is the number of characters that match at the beginning.")
+  (str1, start1, end1, str2, start2, end2, ignore_case)
+     Lisp_Object str1, start1, end1, start2, str2, end2, ignore_case;
+{
+  register int end1_char, end2_char;
+  register int i1, i1_byte, i2, i2_byte;
+
+  CHECK_STRING (str1, 0);
+  CHECK_STRING (str2, 1);
+  if (NILP (start1))
+    start1 = make_number (0);
+  if (NILP (start2))
+    start2 = make_number (0);
+  CHECK_NATNUM (start1, 2);
+  CHECK_NATNUM (start2, 3);
+  if (! NILP (end1))
+    CHECK_NATNUM (end1, 4);
+  if (! NILP (end2))
+    CHECK_NATNUM (end2, 4);
+
+  i1 = XINT (start1);
+  i2 = XINT (start2);
+
+  i1_byte = string_char_to_byte (str1, i1);
+  i2_byte = string_char_to_byte (str2, i2);
+
+  end1_char = XSTRING (str1)->size;
+  if (! NILP (end1) && end1_char > XINT (end1))
+    end1_char = XINT (end1);
+
+  end2_char = XSTRING (str2)->size;
+  if (! NILP (end2) && end2_char > XINT (end2))
+    end2_char = XINT (end2);
+
+  while (i1 < end1_char && i2 < end2_char)
+    {
+      /* When we find a mismatch, we must compare the
+	 characters, not just the bytes.  */
+      int c1, c2;
+
+      if (STRING_MULTIBYTE (str1))
+	FETCH_STRING_CHAR_ADVANCE (c1, str1, i1, i1_byte);
+      else
+	{
+	  c1 = XSTRING (str1)->data[i1++];
+	  c1 = unibyte_char_to_multibyte (c1);
+	}
+
+      if (STRING_MULTIBYTE (str2))
+	FETCH_STRING_CHAR_ADVANCE (c2, str2, i2, i2_byte);
+      else
+	{
+	  c2 = XSTRING (str2)->data[i2++];
+	  c2 = unibyte_char_to_multibyte (c2);
+	}
+
+      if (c1 == c2)
+	continue;
+
+      if (! NILP (ignore_case))
+	{
+	  Lisp_Object tem;
+
+	  tem = Fupcase (make_number (c1));
+	  c1 = XINT (tem);
+	  tem = Fupcase (make_number (c2));
+	  c2 = XINT (tem);
+	}
+
+      if (c1 == c2)
+	continue;
+
+      /* Note that I1 has already been incremented
+	 past the character that we are comparing;
+	 hence we don't add or subtract 1 here.  */
+      if (c1 < c2)
+	return make_number (- i1);
+      else
+	return make_number (i1);
+    }
+
+  if (i1 < end1_char)
+    return make_number (i1 - XINT (start1) + 1);
+  if (i2 < end2_char)
+    return make_number (- i1 + XINT (start1) - 1);
+
+  return Qt;
+}
+
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
   "Return t if first arg string is less than second in lexicographic order.\n\
 Case is significant.\n\
@@ -2600,6 +2701,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Ssafe_length);
   defsubr (&Sstring_bytes);
   defsubr (&Sstring_equal);
+  defsubr (&Scompare_strings);
   defsubr (&Sstring_lessp);
   defsubr (&Sappend);
   defsubr (&Sconcat);
