@@ -46,7 +46,7 @@ Nil means 1 <= hh <= 12, and an AM/PM suffix is used.")
 
 ;;;###autoload
 (defun display-time ()
-  "Display current time and load level in mode line of each buffer.
+  "Display current time, load level, and mail flag in mode line of each buffer.
 Updates automatically every minute.
 If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
