@@ -1,6 +1,6 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.22) $
+ *  $HopeName: MMsrc!vmw3.c(trunk.23) $
  *  Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.22) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.23) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -95,7 +95,7 @@ Bool VMCheck(VM vm)
 /* VMRAMSize -- determine the RAM size for the platform */
 /* This is not a protocol function - but it could be in future */
 
-Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
+static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
 {
   MEMORYSTATUS memstat;
 
@@ -116,7 +116,7 @@ extern unsigned long AMCGen2Frequency;
 /* VMSetCollectionStrategy -- initialize strategy for platform */
 /* This is not a protocol function - but it could be in future */
 
-Res VMSetCollectionStrategy(VM vm)
+static Res VMSetCollectionStrategy(VM vm)
 {
   Res res;
   Size vmRAMSize;
@@ -133,10 +133,10 @@ Res VMSetCollectionStrategy(VM vm)
   if (ResOK == res) {
     if (vmRAMSize >= 110*1024*1024) {
       /* Parameters optimized for 128 MB machines */
-      /* Source: mail.cohn.1998-03-26.02-34 */
-      AMCGen0Frequency = 30;
-      AMCGen1Frequency = 435;
-      AMCGen2Frequency = 3915;
+      /* Source: drj's test data, 1998-03-30 */
+      AMCGen0Frequency = 16;
+      AMCGen1Frequency = 160;
+      AMCGen2Frequency = 1000;
     } else if (vmRAMSize >= 60*1024*1024) {
       /* Parameters optimized for 64 MB machines */
       /* Source: RIT's test data, 1998-03-26 */
