@@ -1766,6 +1766,8 @@ spaces are put between sequence elements, etc.")
   else
     keys = wrong_type_argument (Qarrayp, keys);
 
+  if (len == 0)
+    return build_string ("");
   return Fconcat (len * 2 - 1, args);
 }
 
