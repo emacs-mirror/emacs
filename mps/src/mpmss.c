@@ -1,6 +1,6 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.8) $
+ *  $HopeName: MMsrc!mpmss.c(trunk.9) $
  */
 
 
@@ -8,13 +8,16 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "poolmfs.h"
-#include "poolmv.h"
 #include "mps.h"
+#include "mpscmv.h"
 #include "mpslib.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
+
+
+/* @@@@ Hack due to missing mpscmfs.h */
+extern mps_class_t PoolClassMFS(void);
 
 
 #define TEST_SET_SIZE           500
@@ -101,11 +104,11 @@ int main(void)
   mps_space_t space;
 
   die(mps_space_create(&space), "SpaceInit");
-  die(stress((mps_class_t)PoolClassMV(),
+  die(stress(mps_class_mv(),
              space, randomSize, (size_t)65536,
              (size_t)32, (size_t)65536), "stress MV");
   fixedSizeSize = 13;
-  die(stress((mps_class_t)PoolClassMFS(),
+  die(stress(PoolClassMFS(),
              space, fixedSize, (size_t)100000, fixedSizeSize),
       "stress MFS");
 
