@@ -1,3 +1,14 @@
+2000-09-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (Vloads_in_progress): New variable.
+	(record_load_unwind): New function.
+	(Fload): Check for recursive loads.
+	(syms_of_lread): Initialize Vloads_in_progress.
+	(read_integer, read1): Avoid some compiler warnings.
+
+	* fns.c (concat, Fsubstring, internal_equal, Fnconc): Avoid some
+	compiler warnings.
+
 2000-09-11  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (Fbuffer_string): Doc fix.
