@@ -450,9 +450,9 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Vector *dp = window_display_table (win);
   int selective
-    = XTYPE (current_buffer->selective_display) == Lisp_Int
-      ? XINT (current_buffer->selective_display)
-	: !NILP (current_buffer->selective_display) ? -1 : 0;
+    = (XTYPE (current_buffer->selective_display) == Lisp_Int
+       ? XINT (current_buffer->selective_display)
+       : !NILP (current_buffer->selective_display) ? -1 : 0);
   int prev_vpos, prev_hpos = 0;
   int selective_rlen
     = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
@@ -462,9 +462,6 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   int next_invisible = from;
   Lisp_Object prop, position;
 #endif
-
-  if (! BUFFERP (win->buffer) || XBUFFER (win->buffer) != current_buffer)
-    abort ();
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   for (pos = from; pos < to; pos++)
@@ -636,8 +633,10 @@ margin; this is usually taken from a window's hscroll member.\n\
 TAB-OFFSET is the number of columns of the first tab that aren't\n\
 being displayed, perhaps because the line was continued within it.\n\
 If OFFSETS is nil, HSCROLL and TAB-OFFSET are assumed to be zero.\n\
+\n\
 WINDOW is the window to operate on.  Currently this is used only to\n\
-find the buffer and the display table.\n\
+find the display table.  It does not matter what buffer WINDOW displays;\n\
+`compute-motion' always operates on the current buffer.\n\
 \n\
 The value is a list of five elements:\n\
   (POS HPOS VPOS PREVHPOS CONTIN)\n\
@@ -664,7 +663,6 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
   Lisp_Object bufpos, hpos, vpos, prevhpos, contin;
   struct position *pos;
   int hscroll, tab_offset;
-  struct buffer *old_buffer;
 
   CHECK_NUMBER_COERCE_MARKER (from, 0);
   CHECK_CONS (frompos, 0);
@@ -691,17 +689,12 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
   else
     CHECK_LIVE_WINDOW (window, 0);
 
-  /* Might as well use the buffer on the specified window, rather than
-     generating an error.  */
-  old_buffer = current_buffer;
-  current_buffer = XBUFFER (XWINDOW (window)->buffer);
   pos = compute_motion (XINT (from), XINT (XCONS (frompos)->cdr),
 			XINT (XCONS (frompos)->car),
 			XINT (to), XINT (XCONS (topos)->cdr),
 			XINT (XCONS (topos)->car),
 			XINT (width), hscroll, tab_offset,
 			XWINDOW (window));
-  current_buffer = old_buffer;
 
   XFASTINT (bufpos) = pos->bufpos;
   XSET (hpos, Lisp_Int, pos->hpos);
@@ -853,12 +846,17 @@ vmotion (from, vtarget, width, hscroll, window)
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
   "Move to start of screen line LINES lines down.\n\
 If LINES is negative, this is moving up.\n\
-The optional second argument WINDOW specifies the window\n\
- to use for computations.\n\
+\n\
+The optional second argument WINDOW specifies the window to use for\n\
+parameters such as width, horizontal scrolling, and so on.\n\
+the default is the selected window.\n\
+It does not matter what buffer is displayed in WINDOW.\n\
+`vertical-motion' always uses the current buffer.\n\
+\n\
 Sets point to position found; this may be start of line\n\
- or just the start of a continuation line.\n\
+or just the start of a continuation line.\n\
 Returns number of lines moved; may be closer to zero than LINES\n\
- if beginning or end of buffer was reached.")
+if beginning or end of buffer was reached.")
   (lines, window)
      Lisp_Object lines, window;
 {
@@ -872,6 +870,7 @@ Returns number of lines moved; may be closer to zero than LINES\n\
     XSET (window, Lisp_Window, selected_window);
 
   w = XWINDOW (window);
+
   pos = *vmotion (point, XINT (lines), window_internal_width (w) - 1,
 		  /* Not XFASTINT since perhaps could be negative */
 		  XINT (w->hscroll), window);
