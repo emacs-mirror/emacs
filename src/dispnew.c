@@ -3180,8 +3180,10 @@ direct_output_for_insert (g)
       || !display_completed
       /* Give up if buffer appears in two places.  */
       || buffer_shared > 1
-      /* Give up if w is mini-buffer and a message is being displayed there */
-      || (MINI_WINDOW_P (w) && !NILP (echo_area_buffer[0]))
+      /* Give up if currently displaying a message instead of the
+	 minibuffer contents.  */
+      || (EQ (selected_window, minibuf_window)
+	  && EQ (minibuf_window, echo_area_window))
       /* Give up for hscrolled mini-buffer because display of the prompt
 	 is handled specially there (see display_line).  */
       || (MINI_WINDOW_P (w) && XFASTINT (w->hscroll))
