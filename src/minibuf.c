@@ -410,7 +410,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
-  extern Lisp_Object Qread_only, Qfront_sticky;
+  extern Lisp_Object Qfront_sticky;
   extern Lisp_Object Qrear_nonsticky;
 
   specbind (Qminibuffer_default, defalt);
