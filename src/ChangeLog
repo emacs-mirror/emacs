@@ -1,3 +1,7 @@
+2004-03-03  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_line): Fix call to get_overlay_arrow_glyph_row.
+
 2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Ftranslate_region): Lisp_Object/int mixup.
