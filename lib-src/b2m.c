@@ -1,12 +1,13 @@
 /*
  * b2m - a filter for Babyl -> Unix mail files
+ * The copyright on this file has been disclaimed.
  *
  * usage:	b2m < babyl > mailbox
  *
  * I find this useful whenever I have to use a
  * system which - shock horror! - doesn't run
- * Gnu emacs. At least now I can read all my
- * Gnumacs Babyl format mail files!
+ * GNU Emacs. At least now I can read all my
+ * GNU Emacs Babyl format mail files!
  *
  * it's not much but it's free!
  *
@@ -167,7 +168,7 @@ main (argc, argv)
 	      p = strtok (data.buffer, " ,\r\n\t");
 	      labels = "X-Babyl-Labels: ";
 
-	      while (p = strtok (NULL, " ,\r\n\t"))
+	      while ((p = strtok (NULL, " ,\r\n\t")))
 		labels = concat (labels, p, ", ");
 
 	      p = &labels[strlen (labels) - 2];
