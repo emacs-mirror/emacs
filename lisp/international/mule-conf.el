@@ -306,13 +306,14 @@ When you visit a file with this coding, the file is read into a
 unibyte buffer as is, thus each byte of a file is treated as a
 character."
 	     (list 'coding-category 'coding-category-binary
-		   'alias-coding-systems '(no-conversion))
+		   'alias-coding-systems '(no-conversion)
+		   'safe-charsets t 'safe-chars t)
 	     nil))
 (put 'no-conversion 'eol-type 0)
 (put 'coding-category-binary 'coding-systems '(no-conversion))
 (setq coding-system-list '(no-conversion))
 (setq coding-system-alist '(("no-conversion")))
-(register-char-codings 'no-conversion t)
+(define-coding-system-internal 'no-conversion)
 
 (define-coding-system-alias 'binary 'no-conversion)
 
