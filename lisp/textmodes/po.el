@@ -32,10 +32,6 @@
 
 ;;; Code:
 
-; Make the cpnnn codesets available.
-(if (not (string-match "XEmacs\\|Lucid" emacs-version))
-  (mapc #'codepage-setup (mapcar #'car (cp-supported-codepages))))
-
 (defconst po-content-type-charset-alist
   '(; Note: Emacs 21 doesn't support all encodings, thus the missing entries.
     (ASCII . undecided)
