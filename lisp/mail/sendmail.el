@@ -387,10 +387,11 @@ actually occur.")
 
 
 (defun sendmail-sync-aliases ()
-  (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-    (or (equal mail-alias-modtime modtime)
-	(setq mail-alias-modtime modtime
-	      mail-aliases t))))
+  (when mail-personal-alias-file
+    (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+      (or (equal mail-alias-modtime modtime)
+	  (setq mail-alias-modtime modtime
+		mail-aliases t)))))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (or mail-default-reply-to
@@ -399,8 +400,9 @@ actually occur.")
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(if (file-exists-p mail-personal-alias-file)
-	    (build-mail-aliases))))
+	(when mail-personal-alias-file
+	  (if (file-exists-p mail-personal-alias-file)
+	      (build-mail-aliases)))))
   ;; Don't leave this around from a previous message.
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
