@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.43) $
+ * $HopeName: MMsrc!buffer.c(trunk.44) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.43) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.44) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -804,24 +804,53 @@ Bool BufferIsTrapped(Buffer buffer)
 }
 
 
+/* Alloc pattern functions
+ *
+ * Just represent the two patterns by two different pointers to dummies.
+ */
+
+AllocPatternStruct AllocPatternRampStruct = {'\0'};
+
+AllocPattern AllocPatternRamp(void)
+{
+  return &AllocPatternRampStruct;
+}
+
+AllocPatternStruct AllocPatternRampCollectAllStruct = {'\0'};
+
+AllocPattern AllocPatternRampCollectAll(void)
+{
+  return &AllocPatternRampCollectAllStruct;
+}
+
+static Bool AllocPatternCheck(AllocPattern pattern)
+{
+  CHECKL(pattern == &AllocPatternRampCollectAllStruct
+         || pattern == &AllocPatternRampStruct);
+  return TRUE;
+}
+
+
 /* BufferRampBegin -- note an entry into a ramp pattern
  *
  * .ramp.hack: We count the number of times the ap has begun ramp mode
  * (and not ended), so we can do reset by ending all the current ramps.
  */
 
-void BufferRampBegin(Buffer buffer)
+void BufferRampBegin(Buffer buffer, AllocPattern pattern)
 {
   Pool pool;
 
   AVERT(Buffer, buffer);
+  AVERT(AllocPattern, pattern);
 
   AVER(buffer->rampCount < UINT_MAX);
   ++buffer->rampCount;
 
   pool = BufferPool(buffer);
   AVERT(Pool, pool);
-  (*pool->class->rampBegin)(pool, buffer);
+  (*pool->class->rampBegin)(pool, buffer,
+                            pattern == &AllocPatternRampCollectAllStruct);
 }
 
 
