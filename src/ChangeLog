@@ -1,3 +1,8 @@
+2001-09-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* process.c (send_process): Disable composition if from_byte < 0.
+	From Kenichi Handa <handa@etl.go.jp>.
+
 2001-09-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (refreshicon): Function removed.
