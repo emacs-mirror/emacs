@@ -75,10 +75,11 @@
 ;;  Richard Stallman <rms@gnu.ai.mit.edu>
 ;;  Steve Fisk <fisk@medved.bowdoin.edu>
 
-;; This version turned into a global minor mode by Dave Love.
+;; This version turned into a global minor mode and subsequently
+;; hacked on by Dave Love.
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 
 ;;;
 ;;; Some example constants to be used for `msb-menu-cond'.  See that
@@ -399,13 +400,6 @@ This is instead of the groups in `msb-menu-cond'."
 ;;; Internal variables
 ;;;
 
-;; Home directory for the current user
-(defconst msb--home-dir
-  (condition-case nil
-      (substitute-in-file-name "$HOME")
-    ;; If $HOME isn't defined, use nil
-    (error nil)))
-
 ;; The last calculated menu.
 (defvar msb--last-buffer-menu nil)
 
@@ -565,13 +559,8 @@ If the argument is left out or nil, then the current buffer is considered."
 
 (defun msb--format-title (top-found-p path number-of-items)
   "Format a suitable title for the menu item."
-  (let ((new-path path))
-    (when (and msb--home-dir
-	       (string-match (concat "^" msb--home-dir) path))
-      (setq new-path (concat "~"
-			     (substring path (match-end 0)))))
-    (format (if top-found-p "%s... (%d)" "%s (%d)")
-	    new-path number-of-items)))
+  (format (if top-found-p "%s... (%d)" "%s (%d)")
+	  (abbreviate-file-name path) number-of-items))
 
 ;; Variables for debugging.
 (defvar msb--choose-file-menu-list)
@@ -608,7 +597,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	(while (and tmp-rest
 		    (<= (length buffers) max-clumped-together)
 		    (>= (length (car item)) (length path))
-		    (string= path (substring (car item) 0 (length path))))
+		    (compare-strings path 0 nil (car item) 0 (length path)))
 	  (setq found-p t)
 	  (setq buffers (append buffers (cdr item))) ;nconc is faster than append
 	  (setq tmp-rest (cdr tmp-rest)
@@ -646,11 +635,11 @@ If the argument is left out or nil, then the current buffer is considered."
 	      (setq last-path path))
 	  (when (and last-path
 		     (or (and (>= (length path) (length last-path))
-			      (string= last-path
-				       (substring path 0 (length last-path))))
+			      (compare-strings last-path 0 nil
+					       path 0 (length last-path)))
 			 (and (< (length path) (length last-path))
-			      (string= path
-				       (substring last-path 0 (length path))))))
+			      (compare-strings path 0 nil
+					       last-path 0 (length path)))))
 	    ;; We have reached the same place in the file hierarchy as
 	    ;; the last result, so we should quit at this point and
 	    ;; take what we have as result.
