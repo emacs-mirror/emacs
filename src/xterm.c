@@ -1784,10 +1784,6 @@ XTmouse_position (f, bar_window, part, x, y, time)
 {
   FRAME_PTR f1;
 
-  /* If this isn't an X-window frame, quit now. */
-  if (!FRAME_X_P (*f))
-    return;
-
   BLOCK_INPUT;
 
   if (! NILP (last_mouse_scroll_bar))
@@ -2940,7 +2936,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  if (f != 0)
 	    {
 	      KeySym keysym, orig_keysym;
-	      unsigned char copy_buffer[80];
+	      /* al%imercury@uunet.uu.net says that making this 81 instead of
+		 80 fixed a bug whereby meta chars made his Emacs hang.  */
+	      unsigned char copy_buffer[81];
 	      int modifiers;
 
 	      event.xkey.state
