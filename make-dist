@@ -9,7 +9,7 @@
 progname="$0"
 
 # Exit if a command fails.
-set -e
+# set -e
 
 # Print out each line we read, for debugging's sake.
 # set -v
@@ -79,6 +79,12 @@ mkdir ${tempparent}
 emacsname="emacs-${version}"
 tempdir="${tempparent}/${emacsname}"
 
+# This trap ensures that the staging directory will be cleaned up even
+# when the script is interrupted in mid-career.
+if [ "${clean_up}" = yes ]; then
+  trap "echo 'Interrupted...cleaning up the staging directory.'; rm -rf ${tempparent}; exit 1" 1 2 15
+fi
+
 echo "Creating top directory: \`${tempdir}'"
 mkdir ${tempdir}
 
@@ -135,8 +141,7 @@ echo "Making links to \`src'."
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.com *.opt vms-pp.trans vmsbuild ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h paths.h Makefile
- etags *.h *.c ../lisp/*.el)
+ rm -f config.h paths.h Makefile)
 
 echo "Making links to \`src/m'."
 (cd src/m
@@ -221,3 +226,5 @@ if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory."
   rm -rf ${tempparent}
 fi
+
+# make-dist ends here
