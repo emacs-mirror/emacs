@@ -2017,6 +2017,20 @@ run_hook_list_with_args (funlist, nargs, args)
   UNGCPRO;
   return Qnil;
 }
+
+/* Run the hook HOOK, giving each function the two args ARG1 and ARG2.  */
+
+void
+run_hook_with_args_2 (hook, arg1, arg2)
+     Lisp_Object hook, arg1, arg2;
+{
+  Lisp_Object temp[3];
+  temp[0] = hook;
+  temp[1] = arg1;
+  temp[2] = arg2;
+
+  Frun_hook_with_args (3, temp);
+}
 
 /* Apply fn to arg */
 Lisp_Object
