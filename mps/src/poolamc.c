@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.4) $
+ * $HopeName: MMsrc!poolamc.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.4) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.5) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -705,26 +705,32 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       if(BufferScanLimit(buffer) == SegBase(seg)) {
         /* There's nothing but the buffer, don't condemn. */
         return ResOK;
-      } else if(!AMCSegHasNailBoard(seg)) {
-        if(SegNailed(seg) == TraceSetEMPTY) {
-          res = AMCSegCreateNailBoard(seg, pool);
-          if(res != ResOK)
-            return ResOK; /* can't create nail board, don't condemn */
-          AMCNailMarkRange(seg, BufferScanLimit(buffer),
-                           BufferLimit(buffer));
-          ++trace->nailCount;
-          SegSetNailed(seg, TraceSetSingle(trace->ti));
-        } else {
-          /* Segment is nailed already, cannot create a nail board */
-          /* (see .nail.new), just give up condemning. */
-          return ResOK;
-        }
+      } else if(BufferScanLimit(buffer) == BufferLimit(buffer)) {
+        /* The buffer is full, so it won't be used by the mutator. */
+        BufferDetach(buffer, pool);
       } else {
-        /* We have a nail board, the buffer must be nailed already. */
-        AVER(AMCNailRangeIsMarked(seg, BufferScanLimit(buffer),
-                                  BufferLimit(buffer)));
-        /* Nail it for this trace as well. */
-        SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace->ti));
+        /* There is an active buffer, make sure it's nailed. */
+        if(!AMCSegHasNailBoard(seg)) {
+          if(SegNailed(seg) == TraceSetEMPTY) {
+            res = AMCSegCreateNailBoard(seg, pool);
+            if(res != ResOK)
+              return ResOK; /* can't create nail board, don't condemn */
+            AMCNailMarkRange(seg, BufferScanLimit(buffer),
+                             BufferLimit(buffer));
+            ++trace->nailCount;
+            SegSetNailed(seg, TraceSetSingle(trace->ti));
+          } else {
+            /* Segment is nailed already, cannot create a nail board */
+            /* (see .nail.new), just give up condemning. */
+            return ResOK;
+          }
+        } else {
+          /* We have a nail board, the buffer must be nailed already. */
+          AVER(AMCNailRangeIsMarked(seg, BufferScanLimit(buffer),
+                                    BufferLimit(buffer)));
+          /* Nail it for this trace as well. */
+          SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace->ti));
+        }
       }
     }
   }
