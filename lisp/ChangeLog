@@ -1,3 +1,9 @@
+2003-02-12  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-mode-map): Don't remap
+	beginning-of-defun to the non-existing command
+	sh-beginning-of-compound-command.
+
 2003-02-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
 
 	* files.el (find-alternate-file): Check whether `dired-directory'
