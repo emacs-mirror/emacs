@@ -144,9 +144,11 @@ Usenet paths ending in an element that matches are removed also."
 			    "\\>"))))
   (let ((match (concat "\\(^\\|,\\)[ \t\n]*\\([^,\n]*!\\|\\)\\("
 		       rmail-dont-reply-to-names
+		       "\\|[^\,.<]*<\\(" rmail-dont-reply-to-names "\\)"
 		       "\\)"))
 	(case-fold-search t)
 	pos epos)
+    (setq foo match)
     (while (setq pos (string-match match userids))
       (if (> pos 0) (setq pos (match-beginning 2)))
       (setq epos
