@@ -1,3 +1,7 @@
+2003-05-09  Sam Steingold  <sds@gnu.org>
+
+	* pcvs.el (cvs-mode-find-file): Fixed the last patch's logic.
+
 2003-05-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el: Use the original buffer-name as `base' in place of the

@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.51 2003/04/20 22:03:00 sds Exp $
+;; Revision: $Id: pcvs.el,v 1.52 2003/05/01 00:46:41 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1901,8 +1901,9 @@ With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
   ;; If the event moves point, check that it moves it to a valid location.
   (when (and (/= (point) (progn (ignore-errors (mouse-set-point e)) (point)))
-	     (memq (get-text-property (1- (line-end-position)) 'font-lock-face)
-		   '(cvs-header-face cvs-filename-face)))
+	     (not (memq (get-text-property (1- (line-end-position))
+                                           'font-lock-face)
+                        '(cvs-header-face cvs-filename-face))))
     (error "Not a file name"))
   (cvs-mode!
    (lambda (&optional rev)
