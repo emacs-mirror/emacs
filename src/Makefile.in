@@ -305,7 +305,7 @@ LIBW= -lXm
 LIBW= -lXol
 #endif
 
-#ifdef HAVE_X11R6
+#ifdef HAVE_X11XTR6
 LIBXTR6 = -lSM -lICE
 #endif
 
