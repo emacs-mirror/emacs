@@ -1,16 +1,31 @@
+/* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
+ *
+ * $HopeName$
+ * Copyright (C) 1997 Harlequin Group, all rights reserved
+ *
+ * .readership: MPS developers, Dylan developers
+ */
+
 #include "fmtdy.h"
 #include "mps.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
-/* Format Test Code */
+
+#ifdef MPS_BUILD_MV
+/* windows.h causes warnings about "unreferenced inline function */
+/* has been removed". */
+#pragma warning(disable: 4514)
+#endif
+
 
 static mps_word_t *ww = NULL;
 static mps_word_t *tvw;
 
+
 static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
-			 mps_word_t es, mps_word_t vf) 
+                                mps_word_t es, mps_word_t vf) 
 {
   assert((version & ((1 << 8) - 1)) == version);
   assert((vb & ((1 << 8) - 1)) == vb);
@@ -23,6 +38,7 @@ static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
 	 (es << 3) |
 	 vf);
 }
+
 
 mps_res_t dylan_init(mps_addr_t addr, size_t size,
                      mps_addr_t *refs, size_t nr_refs)
@@ -74,6 +90,7 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
   return MPS_RES_OK;
 }
 
+
 void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
 {
   mps_word_t *p = (mps_word_t *)addr;
@@ -86,6 +103,7 @@ void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
         (mps_word_t)refs[rand() % nr_refs];
   }
 }
+
 
 mps_addr_t dylan_read(mps_addr_t addr)
 {
