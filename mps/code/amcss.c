@@ -5,6 +5,7 @@
  */
 
 #include "fmtdy.h"
+#include "fmtdytst.h"
 #include "testlib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
@@ -50,7 +51,7 @@ static void enable(mps_arena_t arena)
 static void report(mps_arena_t arena)
 {
     mps_message_t message;
-   
+
     while (mps_message_get(&message, arena, mps_message_type_gc())) {
         size_t live, condemned, not_condemned;
 
@@ -163,7 +164,7 @@ static void *test(void *arg, size_t s)
               break;
           }
       } while(1);
-   
+
       report(arena);
       for(r = 0; r < exactRootsCOUNT; ++r)
         cdie(exactRoots[r] == objNULL ||

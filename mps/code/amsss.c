@@ -9,6 +9,7 @@
  */
 
 #include "fmtdy.h"
+#include "fmtdytst.h"
 #include "testlib.h"
 #include "mpscams.h"
 #include "mpsavm.h"

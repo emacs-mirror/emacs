@@ -12,6 +12,7 @@
 #include "mpsclo.h"
 #include "mpsavm.h"
 #include "fmthe.h"
+#include "fmtdy.h"
 #include "testlib.h"
 #include "mps.h"
 #include "mpstd.h"

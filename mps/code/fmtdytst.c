@@ -7,12 +7,14 @@
  */
 
 #include "fmtdy.h"
+#include "fmtdytst.h"
 #include "mps.h"
 #include "testlib.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
+#define unused(param)   ((void)param)
 
 #ifdef MPS_BUILD_MV
 /* windows.h causes warnings about "unreferenced inline function */
@@ -137,4 +139,15 @@ mps_addr_t dylan_read(mps_addr_t addr)
   }
 
   return addr;
+}
+
+mps_bool_t dylan_check(mps_addr_t addr)
+{
+  assert(addr != 0);
+  assert(((mps_word_t)addr & (ALIGN-1)) == 0);
+  assert(dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]));
+  /* .assert.unused: Asserts throw away their conditions */
+  /* in hot varieties, so UNUSED is needed. */
+  unused(addr);
+  return 1;
 }

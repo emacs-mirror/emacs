@@ -1,14 +1,13 @@
-/* impl.c.amsss: POOL CLASS AMS STRESS TEST
+/* impl.c.amssshe: POOL CLASS AMS STRESS TEST WITH HEADERS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
  *
- * .design: Adapted from amcss.c, but not counting collections, just
- * total size of objects allocated (because epoch doesn't increment
- * when AMS is collected).
+ * .design: Adapted from amsss.c.
  */
 
-#include "fmtdy.h"
+#include "fmthe.h"
+#include "fmtdytst.h"
 #include "testlib.h"
 #include "mpscams.h"
 #include "mpsavm.h"
@@ -25,7 +24,7 @@
 
 #define exactRootsCOUNT 50
 #define ambigRootsCOUNT 100
-/* This is enough for three GCs. */
+/* This is enough for five GCs. */
 #define totalSizeMAX    800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -45,20 +44,23 @@ static size_t totalSize = 0;
 static mps_addr_t make(void)
 {
   size_t length = rnd() % 20, size = (length+2) * sizeof(mps_word_t);
-  mps_addr_t p;
+  mps_addr_t p, userP;
   mps_res_t res;
 
   do {
-    MPS_RESERVE_BLOCK(res, p, ap, size);
+    MPS_RESERVE_BLOCK(res, p, ap, size + headerSIZE);
     if(res)
       die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    userP = (mps_addr_t)((char*)p + headerSIZE);
+    res = dylan_init(userP, size, exactRoots, exactRootsCOUNT);
     if(res)
       die(res, "dylan_init");
-  } while(!mps_commit(ap, p, size));
+    ((int*)p)[0] = realTYPE;
+    ((int*)p)[1] = 0xED0ED;
+  } while(!mps_commit(ap, p, size + headerSIZE));
 
   totalSize += size;
-  return p;
+  return userP;
 }
 
 
@@ -76,7 +78,7 @@ static void *test(void *arg, size_t s)
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
 
-  die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
+  die(EnsureHeaderFormat(&format, arena), "make header format");
   die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
   die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain),
       "pool_create(ams)");

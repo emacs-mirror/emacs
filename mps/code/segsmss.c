@@ -13,6 +13,7 @@
 #include "mpm.h"
 #include "poolams.h"
 #include "fmtdy.h"
+#include "fmtdytst.h"
 #include "testlib.h"
 #include "chain.h"
 #include "mpscams.h"
@@ -163,7 +164,7 @@ static void amstSegFinish(Seg seg)
   /* finish the superclass fields last */
   super = SEG_SUPERCLASS(AMSTSegClass);
   super->finish(seg);
-} 
+}
 
 
 
@@ -581,7 +582,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Seg segLo, segHi;
         Res sres;
         AMSUnallocateRange(seg, mid, limit);
-        sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);       
+        sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);
         if (ResOK == sres) { /* successful split */
           limit = mid;  /* range is lower segment */
         } else {            /* failed to split */
