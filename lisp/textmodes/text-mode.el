@@ -28,8 +28,11 @@
 
 ;;; Code:
 
-(defvar text-mode-hook nil
-  "Normal hook run when entering Text mode and many related modes.")
+(defcustom text-mode-hook nil
+  "Normal hook run when entering Text mode and many related modes."
+  :type 'hook
+  :options '(turn-on-auto-fill)
+  :group 'data)
 
 (defvar text-mode-variant nil
   "Non-nil if this buffer's major mode is a variant of Text mode.")
