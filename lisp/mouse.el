@@ -90,7 +90,9 @@ PREFIX is the prefix argument (if any) to pass to the command."
       (message "")
       ;; Maybe try again but with the submap.
       (setq map (if (keymapp cmd) cmd)))
-    (when (functionp cmd)
+    ;; If the user did not cancel by refusing to select,
+    ;; and if the result is a command, run it.
+    (when (and (null map) (commandp cmd))
       (setq prefix-arg prefix)
       ;; `setup-specified-language-environment', for instance,
       ;; expects this to be set from a menu keymap.
