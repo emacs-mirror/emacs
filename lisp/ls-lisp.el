@@ -1,9 +1,9 @@
-;;;; dired-lisp.el - emulate Dired's ls completely in Emacs Lisp
+;;;; dired-lisp.el - emulate Tree Dired's ls completely in Emacs Lisp
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
 
-(defconst dired-lisp-version (substring "$Revision: 5.212 $" 11 -2)
-  "$Id: dired-lisp.el,v 4.19 1991/09/20 13:20:58 sk RelBeta $")
+(defconst dired-lisp-version (substring "$Revision: 1.6 $" 11 -2)
+  "$Id: dired-lisp.el,v 1.6 1992/04/30 10:29:53 sk Exp sk $")
 
 ;; Copyright (C) 1992 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
@@ -24,13 +24,16 @@
 ;; LISPDIR ENTRY for the Elisp Archive ===============================
 ;;    LCD Archive Entry:
 ;;    dired-lisp|Sebastian Kremer|sk@thp.uni-koeln.de
-;;    |emulate Dired's ls completely in Emacs Lisp 
-;;    |$Date: 1991/09/20 13:20:58 $|$Revision: 4.19 $|
+;;    |emulate Tree Dired's ls completely in Emacs Lisp 
+;;    |$Date: 1992/04/30 10:29:53 $|$Revision: 1.6 $|
 
 ;; INSTALLATION =======================================================
 ;; 
 ;; Put this file into your load-path.  Loading it will result in
 ;; redefining function dired-ls to not call ls.
+
+;; You need tree dired from ftp.cs.buffalo.edu:pub/Emacs/diredall.tar.Z,
+;; classic (e.g. 18.57) dired.el will not work.
 
 ;; OVERVIEW ===========================================================
 
@@ -87,11 +90,9 @@
 ;;
 ;;   If you load dired-lisp first, there seem to be no problems.
 
-;; It is surprisingly fast, though!
-
 ;; TODO ==============================================================
 
-;; Recognize at some more ls switches: R F
+;; Recognize some more ls switches: R F
 
 
 (require 'dired)			; we will redefine dired-ls:
@@ -160,12 +161,12 @@ SWITCHES default to dired-listing-switches."
 		fil (concat dir short)
 		sum (+ sum (nth 7 attr)))
 	  (insert (dired-lisp-format short attr switches)))
+	;; Fill in total size of all files:
 	(save-excursion
 	  (search-backward "total \007")
 	  (goto-char (match-end 0))
 	  (delete-char -1)
-	  (insert (format "%d" (1+ (/ sum 1024)))))
-	)
+	  (insert (format "%d" (1+ (/ sum 1024))))))
     ;; if not full-directory-p, FILE *must not* end in /, as
     ;; file-attributes will not recognize a symlink to a directory
     ;; must make it a relative filename as ls does:
