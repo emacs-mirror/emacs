@@ -221,8 +221,7 @@ N7|aaa-26|ann arbor ambassador/26 lines:\
 N8|aaa-28|ann arbor ambassador/28 lines:\
 	:ti=\E[28;0;0;28p:\
 	:te=\E[60;0;0;28p\E[28;1H\E[J:\
-	:is=\EP`+x~M\E\\\E[m\E7\E[60;0;0;28p\E[3g\E[f\E[8a\EH\E[8a\EH\E[8a\EH\E
-[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E8\E[>6h\E[1Q:\
+	:is=\EP`+x~M\E\\\E[m\E7\E[60;0;0;28p\E[3g\E[f\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E[8a\EH\E8\E[>6h\E[1Q:\
 	:li#28:tc=aaa-unk:
 N9|aaa|ambassador|aaa-30|ann arbor ambassador/30 lines:\
 	:ti=\E[30;0;0;30p:\
