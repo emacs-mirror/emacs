@@ -1008,7 +1008,7 @@ until that control is somehow reasserted.
 When using a text-only terminal, only one frame can be displayed at a
 time on the terminal, so after a call to @code{select-frame}, the next
 redisplay actually displays the newly selected frame.  This frame
-remains displayed until a subsequent call to @code{select-frame} or
+remains selected until a subsequent call to @code{select-frame} or
 @code{select-frame-set-input-focus}.  Each terminal frame has a number
 which appears in the mode line before the buffer name (@pxref{Mode
 Line Variables}).
