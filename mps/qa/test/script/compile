@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:compile(trunk.21) $
+# $HopeName: MMQA_harness!script:compile(trunk.22) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -45,6 +45,8 @@ sub settings_nt {
  $cc_link = "$obj_dir/platform.obj";
  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:both /pdb:none /debug:full";
  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
+ $cc_def = "/D";
+ $cc_defeq = "=";
  $cc_conly = "/c";
  $cc_obj = "/Fo";
  $cc_exe = "/Fe";
@@ -80,6 +82,8 @@ sub settings_unix {
   "-Wshadow -Wmissing-prototypes -Wcast-align ".
   "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
+ $cc_def = "-D";
+ $cc_defeq = "=";
  $cc_conly = "-c";
  $cc_obj = "-o ";
  $cc_exe = "-o ";
@@ -157,7 +161,7 @@ sub compile {
 }
 
 sub compile_and_link {
- local($srcfile, $exefile, $linkfiles, $objfile) = @_;
+ local($srcfile, $exefile, $linkfiles, $objfile, $hashdefs) = @_;
 
  &compiler_settings;
  unless ($linkfiles) {$linkfiles =""};
@@ -167,13 +171,19 @@ sub compile_and_link {
  $linkfiles =~ s/\.o /$obj_suffix /g;
  $objfile = "$obj_dir/tmp_obj$obj_suffix";
 
+ $hashdefs = ""; 
+ foreach (keys %parmdefs) {
+  $hashdefs .= $cc_def.$_.$cc_defeq.$parmdefs{$_}." ";
+ }
+ chop $hashdefs;
+
  if ($cc_objandexe) {
   $comobjfspec = "$cc_obj$objfile "
  } else {
   $comobjfspec = ""
  }
 
- $command = "$cc_command $cc_opts $comobjfspec$cc_exe$exefile ".
+ $command = "$cc_command $cc_opts $hashdefs $comobjfspec$cc_exe$exefile ".
  "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts";
  
  if (&mysystem($command)) {
