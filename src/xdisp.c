@@ -9713,8 +9713,15 @@ sync_frame_with_window_matrix_rows (w)
   while (window_row < window_row_end)
     {
       int area;
+      
       for (area = LEFT_MARGIN_AREA; area <= LAST_AREA; ++area)
 	frame_row->glyphs[area] = window_row->glyphs[area];
+
+      /* Disable frame rows whose corresponding window rows have
+	 been disabled in try_window_id.  */
+      if (!window_row->enabled_p)
+	frame_row->enabled_p = 0;
+      
       ++window_row, ++frame_row;
     }
 }
