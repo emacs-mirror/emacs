@@ -26,7 +26,7 @@ srcdir = @srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
-infodir = ../info
+infodir = $(srcdir)/../info
 
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
@@ -111,7 +111,7 @@ srcs = \
 info: $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs) index.texi
-	cd $(srcdir); $(MAKEINFO) -I. elisp.texi -o $(infodir)/elisp
+	$(MAKEINFO) -I. -I$(srcdir) $(srcdir)/elisp.texi -o $(infodir)/elisp
 
 elisp.dvi: $(srcs) index.texi
 	# Avoid losing old contents of aux file entirely.
@@ -131,9 +131,9 @@ elisp.dvi: $(srcs) index.texi
 index.texi:
 	if [ a${permuted_index} != a ]; \
 	then \
-	  ln -s $(srcdir)/index.perm index.texi || ln $(srcdir)/index.perm index.texi; \
+	  ln -s $(srcdir)/index.perm index.texi || ln $(srcdir)/index.perm index.texi || cp $(srcdir)/index.perm index.texi; \
 	else \
-	  ln -s $(srcdir)/index.unperm index.texi || ln $(srcdir)/index.unperm index.texi; \
+	  ln -s $(srcdir)/index.unperm index.texi || ln $(srcdir)/index.unperm index.texi || cp $(srcdir)/index.unperm index.texi; \
 	fi
 
 install: elisp
