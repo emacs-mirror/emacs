@@ -1059,21 +1059,35 @@ system cut and paste."
   (interactive "r")
   (copy-region-as-kill beg end)
   (if (interactive-p)
-      (save-excursion
-	(let ((other-end (if (= (point) beg) end beg)))
-	  (if (pos-visible-in-window-p other-end (selected-window))
-	      (let ((omark (mark t))) 
-		(set-marker (mark-marker) (point) (current-buffer))
-		(goto-char other-end)
-		(sit-for 1))		  
-	    (let* ((killed-text (current-kill 0))
-		   (message-len (min (length killed-text) 40)))
-	      (if (= (point) beg)
-		  ;; Don't say "killed"; that is misleading.
-		  (message "Saved text until \"%s\""
-			  (substring killed-text (- message-len)))
-		(message "Saved text from \"%s\""
-			(substring killed-text 0 message-len)))))))))
+      (let ((other-end (if (= (point) beg) end beg))
+	    (opoint (point))
+	    ;; Inhibit quitting so we can make a quit here
+	    ;; look like a C-g typed as a command.
+	    (inhibit-quit t))
+	(if (pos-visible-in-window-p other-end (selected-window))
+	    (progn
+	      ;; Swap point and mark.
+	      (set-marker (mark-marker) (point) (current-buffer))
+	      (goto-char other-end)
+	      (sit-for 1)
+	      ;; Swap back.
+	      (set-marker (mark-marker) other-end (current-buffer))
+	      (goto-char opoint)
+	      ;; If user quit, deactivate the mark
+	      ;; as C-g would as a command.
+	      (and quit-flag transient-mark-mode mark-active
+		   (progn
+		     (message "foo")
+		     (setq mark-active nil)
+		     (run-hooks 'deactivate-mark-hook))))
+	  (let* ((killed-text (current-kill 0))
+		 (message-len (min (length killed-text) 40)))
+	    (if (= (point) beg)
+		;; Don't say "killed"; that is misleading.
+		(message "Saved text until \"%s\""
+			(substring killed-text (- message-len)))
+	      (message "Saved text from \"%s\""
+		      (substring killed-text 0 message-len))))))))
 
 (defun append-next-kill ()
   "Cause following command, if it kills, to append to previous kill."
@@ -2092,8 +2106,10 @@ in the mode line."
 During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
-  (if transient-mark-mode
-      (setq mark-active nil))
+  (and transient-mark-mode mark-active
+       (progn
+	 (setq mark-active nil)
+	 (run-hooks 'deactivate-mark-hook)))
   (signal 'quit nil))
 
 (define-key global-map "\C-g" 'keyboard-quit)
