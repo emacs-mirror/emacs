@@ -43,6 +43,7 @@
 
 /* freebsd has POSIX-style pgrp behavior. */
 #undef BSD_PGRPS
+#define GETPGRP_NO_ARG
 
 #ifndef NO_SHARED_LIBS
 #define LD_SWITCH_SYSTEM -e start -dc -dp
@@ -67,7 +68,7 @@
 
 #define HAVE_WAIT_HEADER
 #define HAVE_GETLOADAVG
-#define HAVE_GETPAGESIZE
+/*#define HAVE_GETPAGESIZE  /* configure now puts this in config.h */
 #define HAVE_TERMIOS
 #define NO_TERMIO
 #define DECLARE_GETPWUID_WITH_UID_T
