@@ -1,21 +1,8 @@
-2001-09-13  Milan Zamazal  <pdm@zamazal.org>
-
-	* progmodes/compile.el (grep-compute-defaults): Don't set
-	grep-command/grep-find-command when it is already non-nil.
-	(grep-command): Make it a user option.
-	(grep-find-command): Likewise.
-
 2001-09-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Avoid `$@' which is handled specially in
 	Autoconf 2.52.  From "Adam J. Richter" <adam@yggdrasil.com>.
 	
-2001-09-04  Andrew Innes  <andrewi@gnu.org>
-
-	* admin/nt/makedist.bat: Remove reference to obsolete file
-	GETTING.GNU.SOFTWARE.  Remove outdated comments.  Explain about
-	version of tar used.
-
 2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist (nt): Add subdirs.el to the list of distributed files.
