@@ -916,7 +916,7 @@ See also `multi-occur'."
 		(goto-char headerpt)
 		(let ((beg (point))
 		      end)
-		  (insert (format "%d lines matching \"%s\" in buffer: %s\n"
+		  (insert (format "%d matches for \"%s\" in buffer: %s\n"
 				  matches regexp (buffer-name buf)))
 		  (setq end (point))
 		  (add-text-properties beg end
