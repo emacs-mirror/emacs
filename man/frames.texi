@@ -1308,6 +1308,14 @@ frames on your terminal.
 Delete all frames except the selected one.
 @end table
 
+@cindex busy-cursor display
+@vindex busy-cursor-delay
+  Emacs can optionally display a busy cursor on X and other window
+systems.  To turn this on or off, customize the group @code{cursor}.
+You can also control the amount of time Emacs is busy before the
+busy-cursor is displayed, by customizing the value of the variable
+@code{busy-cursor-delay}.
+
 @node Non-Window Terminals
 @section Non-Window Terminals
 @cindex non-window terminals
