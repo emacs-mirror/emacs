@@ -2252,7 +2252,7 @@ to get a separate frame for the IDL shell, remove that command from your
 @end lisp
 @item 
 The key sequence @kbd{M-@key{TAB}} no longer inserts a TAB character.
-Like in in many other Emacs modes, @kbd{M-@key{TAB}} now does
+Like in many other Emacs modes, @kbd{M-@key{TAB}} now does
 completion.  Inserting a TAB has therefore been moved to
 @kbd{C-@key{TAB}}.  On a character based terminal you can also use
 @kbd{C-c @key{SPC}}.
