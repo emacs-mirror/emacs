@@ -633,7 +633,8 @@ Returns the documentation as a string, also."
      (setq val (completing-read (if (symbolp v)
 				    (format "Describe variable (default %s): " v)
 				  "Describe variable: ")
-				obarray 'boundp t nil nil (symbol-name v)))
+				obarray 'boundp t nil nil
+				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
   (if (symbolp variable)
