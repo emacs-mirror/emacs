@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.14 1994/05/03 22:17:03 kwzh Exp rms $
+;; Version: $Id: cmacexp.el,v 1.15 1994/08/07 17:23:44 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -305,11 +305,14 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		(call-process-region 1 (point-max) "sh" t t nil "-c"
 				     (concat cppcommand " 2>" tempname)))
 	  (if display (message (concat mymsg "done")))
-	  ;; Find and delete the mark of the start of the expansion.
-	  ;; Look for `# nn "file.c"' lines and delete them.
-	  (goto-char (point-min))
-	  (search-forward startmarker)
-	  (delete-region 1 (point))
+	  (if (= (buffer-size) 0)
+	      ;; Empty output is normal after a fatal error.
+	      (insert "\nPreprocessor produced no output\n")
+	    ;; Find and delete the mark of the start of the expansion.
+	    ;; Look for `# nn "file.c"' lines and delete them.
+	    (goto-char (point-min))
+	    (search-forward startmarker)
+	    (delete-region 1 (point)))
 	  (while (re-search-forward (concat "^# [0-9]+ \""
 					    (regexp-quote filename)
 					    "\"") nil t)
