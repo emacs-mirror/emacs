@@ -812,13 +812,13 @@ otherwise pop it")
 
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
-  (if (memq 'obsolete byte-compile-warnings)
-      (let ((new (get (car form) 'byte-obsolete-info)))
+  (let ((new (get (car form) 'byte-obsolete-info)))
+    (if (memq 'obsolete byte-compile-warnings)
 	(byte-compile-warn "%s is an obsolete function; %s" (car form)
 			   (if (stringp (car new))
 			       (car new)
-			       (format "use %s instead." (car new))))
-	(funcall (or (cdr new) 'byte-compile-normal-call) form))))
+			       (format "use %s instead." (car new)))))
+    (funcall (or (cdr new) 'byte-compile-normal-call) form)))
 
 ;; Compiler options
 
