@@ -750,6 +750,10 @@ recursive_edit_1 ()
   val = command_loop ();
   if (EQ (val, Qt))
     Fsignal (Qquit, Qnil);
+  /* Handle throw from read_minibuf when using minibuffer
+     while it's active but we're in another window.  */
+  if (STRINGP (val))
+    Fsignal (Qerror, Fcons (val, Qnil));
 
   return unbind_to (count, Qnil);
 }
