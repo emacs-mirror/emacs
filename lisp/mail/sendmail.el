@@ -43,10 +43,27 @@ If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
 If `angles', they look like:
 	Elvis Parsley <king@grassland.com>
-If `system-default', Rmail allows the system to insert its default From field."
+If `system-default', allows the mailer to insert its default From field
+derived from the envelope-from address.
+
+In old versions of Emacs, the `system-default' setting also caused
+Emacs to pass the proper email address from `user-mail-address'
+to the mailer to specify the envelope-from address.  But that is now
+controlled by a separate variable, `mail-specify-envelope-from'."
   :type '(choice (const nil) (const parens) (const angles)
 		 (const system-default))
   :version "20.3"
+  :group 'sendmail)
+
+;;;###autoload
+(defcustom mail-specify-envelope-from t "\
+  "*If non-nil, specify the envelope-from address when sending mail.
+The value used to specify it is whatever is found in `user-mail-address'.
+
+On most systems, specifying the envelope-from address
+is a privileged operation."
+  :version "21.1"
+  :type 'boolean
   :group 'sendmail)
 
 ;;;###autoload
@@ -889,11 +906,8 @@ See also the function `select-message-coding-system'.")
 					sendmail-program
 				      "/usr/lib/sendmail")
 				    nil errbuf nil "-oi")
-			      ;; Always specify who from,
-			      ;; since some systems have broken sendmails.
-			      ;; unless user has said no.
-			      (if (memq mail-from-style '(angles parens nil))
-				  (list "-f" user-mail-address))
+			      (and mail-specify-envelope-from 
+				   (list "-f" user-mail-address))
 ;;; 			      ;; Don't say "from root" if running under su.
 ;;; 			      (and (equal (user-real-login-name) "root")
 ;;; 				   (list "-f" (user-login-name)))
