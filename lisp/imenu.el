@@ -980,9 +980,16 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 
 (defvar imenu-buffer-menubar nil)
 
+(defvar imenu-update-menubar-modified-tick 0
+  "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.
+This value becomes local in every buffer when it is set.")
+(make-variable-buffer-local 'imenu-update-menubar-modified-tick)
+
 (defun imenu-update-menubar ()
   (and (current-local-map)
        (keymapp (lookup-key (current-local-map) [menu-bar index]))
+       (not (eq (buffer-modified-tick)
+		imenu-update-menubar-modified-tick))
        (let ((index-alist (imenu--make-index-alist t)))
 	 ;; Don't bother updating if the index-alist has not changed
 	 ;; since the last time we did it.
@@ -996,6 +1003,8 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
                                                    (if (< 1 (length (cdr menu)))
                                                        (cdr menu)
 						     (cdr (car (cdr menu))))))
+	       (setq imenu-update-menubar-modified-tick
+		     (buffer-modified-tick))
 	       (setq old (lookup-key (current-local-map) [menu-bar index]))
 	       (setcdr old (cdr menu1)))))))
 
