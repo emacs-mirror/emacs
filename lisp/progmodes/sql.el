@@ -654,6 +654,17 @@ used for the default `font-lock-defaults' value in `sql-mode'.  This
 can be changed by some entry functions to provide more hilighting.")
 
 
+;;; Compatibility functions
+
+(if (not (fboundp 'comint-line-beginning-position))
+    ;; comint-line-beginning-position is defined in Emacs 21
+    (defun comint-line-beginning-position ()
+      "Returns the buffer position of the beginning of the line, after any prompt.
+The prompt is assumed to be any text at the beginning of the line matching
+the regular expression `comint-prompt-regexp', a buffer local variable."
+      (save-excursion (comint-bol nil) (point))))
+
+
 
 ;;; Small functions
 
