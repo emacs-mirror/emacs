@@ -13,3 +13,5 @@
 
 /* We have missing/inconsistent prototypes on 5.0, at least.  */
 #define INHIBIT_X11R6_XIM
+
+#define USE_MMAP_FOR_BUFFERS	1
