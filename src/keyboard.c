@@ -2101,7 +2101,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && !NILP (prev_event)
       && EVENT_HAS_PARAMETERS (prev_event)
       && !EQ (XCONS (prev_event)->car, Qmenu_bar)
-      && !EQ (XCONS (prev_event)->car, Qtoolbar)
+      && !EQ (XCONS (prev_event)->car, Qtool_bar)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && unread_command_char < 0)
@@ -2354,7 +2354,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       posn = POSN_BUFFER_POSN (EVENT_START (c));
       /* Handle menu-bar events:
 	 insert the dummy prefix event `menu-bar'.  */
-      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtoolbar))
+      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
 	{
 	  /* Change menu-bar to (menu-bar) as the event "position".  */
 	  POSN_BUFFER_POSN (EVENT_START (c)) = Fcons (posn, Qnil);
@@ -3185,9 +3185,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 		 beginning of the menu sequence, and we might as well leave
 		 that as the `event with parameters' for this selection.  */
 	      if ((event->kind == menu_bar_event
-		   || event->kind == TOOLBAR_EVENT)
+		   || event->kind == TOOL_BAR_EVENT)
 		  && !(CONSP (obj) && EQ (XCONS (obj)->car, Qmenu_bar))
-		  && !(CONSP (obj) && EQ (XCONS (obj)->car, Qtoolbar))
+		  && !(CONSP (obj) && EQ (XCONS (obj)->car, Qtool_bar))
 		  && used_mouse_menu)
 		*used_mouse_menu = 1;
 #endif
@@ -4680,7 +4680,7 @@ make_lispy_event (event)
       return XCONS (event->frame_or_window)->cdr;
 #endif
 
-    case TOOLBAR_EVENT:
+    case TOOL_BAR_EVENT:
       {
 	Lisp_Object key;
 	if (!CONSP (event->frame_or_window))
@@ -6378,40 +6378,40 @@ parse_menu_item (item, notreal, inmenubar)
 			       Tool-bars
  ***********************************************************************/
 
-/* A vector holding toolbar items while they are parsed in function
-   toolbar_items runs Each item occupies TOOLBAR_ITEM_NSCLOTS
-   elements in the vector.  */
+/* A vector holding tool bar items while they are parsed in function
+   tool_bar_items runs Each item occupies TOOL_BAR_ITEM_NSCLOTS elements
+   in the vector.  */
 
-static Lisp_Object toolbar_items_vector;
+static Lisp_Object tool_bar_items_vector;
 
-/* A vector holding the result of parse_toolbar_item.  Layout is like
-   the one for a single item in toolbar_items_vector.  */
+/* A vector holding the result of parse_tool_bar_item.  Layout is like
+   the one for a single item in tool_bar_items_vector.  */
 
-static Lisp_Object toolbar_item_properties;
+static Lisp_Object tool_bar_item_properties;
 
-/* Next free index in toolbar_items_vector.  */
+/* Next free index in tool_bar_items_vector.  */
 
-static int ntoolbar_items;
+static int ntool_bar_items;
 
-/* The symbols `toolbar', `toolbar-item', and `:image'.  */
+/* The symbols `tool-bar', and `:image'.  */
 
-extern Lisp_Object Qtoolbar;
+extern Lisp_Object Qtool_bar;
 Lisp_Object QCimage;
 
 /* Function prototypes.  */
 
-static void init_toolbar_items P_ ((Lisp_Object));
-static void process_toolbar_item P_ ((Lisp_Object, Lisp_Object));
-static int parse_toolbar_item P_ ((Lisp_Object, Lisp_Object));
-static void append_toolbar_item P_ ((void));
+static void init_tool_bar_items P_ ((Lisp_Object));
+static void process_tool_bar_item P_ ((Lisp_Object, Lisp_Object));
+static int parse_tool_bar_item P_ ((Lisp_Object, Lisp_Object));
+static void append_tool_bar_item P_ ((void));
 
 
-/* Return a vector of toolbar items for keymaps currently in effect.
+/* Return a vector of tool bar items for keymaps currently in effect.
    Reuse vector REUSE if non-nil.  Return in *NITEMS the number of
-   toolbar items found.  */
+   tool bar items found.  */
 
 Lisp_Object
-toolbar_items (reuse, nitems)
+tool_bar_items (reuse, nitems)
      Lisp_Object reuse;
      int *nitems;
 {
@@ -6433,8 +6433,8 @@ toolbar_items (reuse, nitems)
   oquit = Vinhibit_quit;
   Vinhibit_quit = Qt;
   
-  /* Initialize toolbar_items_vector and protect it from GC.  */
-  init_toolbar_items (reuse);
+  /* Initialize tool_bar_items_vector and protect it from GC.  */
+  init_tool_bar_items (reuse);
 
   /* Build list of keymaps in maps.  Set nmaps to the number of maps
      to process.  */
@@ -6467,13 +6467,13 @@ toolbar_items (reuse, nitems)
   maps[nmaps++] = current_global_map;
 
   /* Process maps in reverse order and look up in each map the prefix
-     key `toolbar'.  */
+     key `tool-bar'.  */
   for (i = nmaps - 1; i >= 0; --i)
     if (!NILP (maps[i]))
       {
 	Lisp_Object keymap;
       
-	keymap = get_keyelt (access_keymap (maps[i], Qtoolbar, 1, 1), 0);
+	keymap = get_keyelt (access_keymap (maps[i], Qtool_bar, 1, 1), 0);
 	if (!NILP (Fkeymapp (keymap)))
 	  {
 	    Lisp_Object tail;
@@ -6483,28 +6483,28 @@ toolbar_items (reuse, nitems)
 	      {
 		Lisp_Object keydef = XCAR (tail);
 		if (CONSP (keydef))
-		  process_toolbar_item (XCAR (keydef), XCDR (keydef));
+		  process_tool_bar_item (XCAR (keydef), XCDR (keydef));
 	      }
 	  }
       }
 
   Vinhibit_quit = oquit;
-  *nitems = ntoolbar_items / TOOLBAR_ITEM_NSLOTS;
-  return toolbar_items_vector;
+  *nitems = ntool_bar_items / TOOL_BAR_ITEM_NSLOTS;
+  return tool_bar_items_vector;
 }
 
 
 /* Process the definition of KEY which is DEF.  */
 
 static void
-process_toolbar_item (key, def)
+process_tool_bar_item (key, def)
      Lisp_Object key, def;
 {
   int i;
   extern Lisp_Object Qundefined;
   struct gcpro gcpro1, gcpro2;
 
-  /* Protect KEY and DEF from GC because parse_toolbar_item may call
+  /* Protect KEY and DEF from GC because parse_tool_bar_item may call
      eval.  */
   GCPRO2 (key, def);
 
@@ -6512,32 +6512,32 @@ process_toolbar_item (key, def)
     {
       /* If a map has an explicit `undefined' as definition,
 	 discard any previously made item.  */
-      for (i = 0; i < ntoolbar_items; i += TOOLBAR_ITEM_NSLOTS)
+      for (i = 0; i < ntool_bar_items; i += TOOL_BAR_ITEM_NSLOTS)
 	{
-	  Lisp_Object *v = XVECTOR (toolbar_items_vector)->contents + i;
+	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->contents + i;
 	  
-	  if (EQ (key, v[TOOLBAR_ITEM_KEY]))
+	  if (EQ (key, v[TOOL_BAR_ITEM_KEY]))
 	    {
-	      if (ntoolbar_items > i + TOOLBAR_ITEM_NSLOTS)
-		bcopy (v + TOOLBAR_ITEM_NSLOTS, v,
-		       ((ntoolbar_items - i - TOOLBAR_ITEM_NSLOTS)
+	      if (ntool_bar_items > i + TOOL_BAR_ITEM_NSLOTS)
+		bcopy (v + TOOL_BAR_ITEM_NSLOTS, v,
+		       ((ntool_bar_items - i - TOOL_BAR_ITEM_NSLOTS)
 			* sizeof (Lisp_Object)));
-	      ntoolbar_items -= TOOLBAR_ITEM_NSLOTS;
+	      ntool_bar_items -= TOOL_BAR_ITEM_NSLOTS;
 	      break;
 	    }
 	}
     }
-  else if (parse_toolbar_item (key, def))
-    /* Append a new toolbar item to toolbar_items_vector.  Accept
+  else if (parse_tool_bar_item (key, def))
+    /* Append a new tool bar item to tool_bar_items_vector.  Accept
        more than one definition for the same key.  */
-    append_toolbar_item ();
+    append_tool_bar_item ();
 
   UNGCPRO;
 }
 
 
-/* Parse a toolbar item specification ITEM for key KEY and return the
-   result in toolbar_item_properties.  Value is zero if ITEM is
+/* Parse a tool bar item specification ITEM for key KEY and return the
+   result in tool_bar_item_properties.  Value is zero if ITEM is
    invalid.
 
    ITEM is a list `(menu-item CAPTION BINDING PROPS...)'.
@@ -6545,19 +6545,19 @@ process_toolbar_item (key, def)
    CAPTION is the caption of the item,  If it's not a string, it is
    evaluated to get a string.
    
-   BINDING is the toolbar item's binding.  Toolbar items with keymaps
+   BINDING is the tool bar item's binding.  Tool-bar items with keymaps
    as binding are currently ignored.
 
    The following properties are recognized:
 
    - `:enable FORM'.
    
-   FORM is evaluated and specifies whether the toolbar item is enabled
-   or disabled.
+   FORM is evaluated and specifies whether the tool bar item is
+   enabled or disabled.
    
    - `:visible FORM'
    
-   FORM is evaluated and specifies whether the toolbar item is visible.
+   FORM is evaluated and specifies whether the tool bar item is visible.
    
    - `:filter FUNCTION'
 
@@ -6572,18 +6572,18 @@ process_toolbar_item (key, def)
    - `:image IMAGES'
 
    IMAGES is either a single image specification or a vector of four
-   image specifications.  See enum toolbar_item_images.
+   image specifications.  See enum tool_bar_item_images.
    
    - `:help HELP-STRING'.
    
-   Gives a help string to display for the toolbar item.  */
+   Gives a help string to display for the tool bar item.  */
 
 static int
-parse_toolbar_item (key, item)
+parse_tool_bar_item (key, item)
      Lisp_Object key, item;
 {
-  /* Access slot with index IDX of vector toolbar_item_properties.  */
-#define PROP(IDX) XVECTOR (toolbar_item_properties)->contents[IDX]
+  /* Access slot with index IDX of vector tool_bar_item_properties.  */
+#define PROP(IDX) XVECTOR (tool_bar_item_properties)->contents[IDX]
 
   Lisp_Object filter = Qnil;
   Lisp_Object caption;
@@ -6592,9 +6592,9 @@ parse_toolbar_item (key, item)
   int i;
   struct gcpro gcpro1;
 
-  /* Defininition looks like `(toolbar-item CAPTION BINDING
+  /* Defininition looks like `(tool-bar-item CAPTION BINDING
      PROPS...)'.  Rule out items that aren't lists, don't start with
-     `toolbar-item' or whose rest following `toolbar-item' is not a
+     `tool-bar-item' or whose rest following `tool-bar-item' is not a
      list.  */
   if (!CONSP (item)
       || !EQ (XCAR (item), Qmenu_item)
@@ -6602,20 +6602,20 @@ parse_toolbar_item (key, item)
 	  !CONSP (item)))
     return 0;
 
-  /* Create toolbar_item_properties vector if necessary.  Reset it to
+  /* Create tool_bar_item_properties vector if necessary.  Reset it to
      defaults.  */
-  if (VECTORP (toolbar_item_properties))
+  if (VECTORP (tool_bar_item_properties))
     {
-      for (i = 0; i < TOOLBAR_ITEM_NSLOTS; ++i)
+      for (i = 0; i < TOOL_BAR_ITEM_NSLOTS; ++i)
 	PROP (i) = Qnil;
     }
   else
-    toolbar_item_properties
-      = Fmake_vector (make_number (TOOLBAR_ITEM_NSLOTS), Qnil);
+    tool_bar_item_properties
+      = Fmake_vector (make_number (TOOL_BAR_ITEM_NSLOTS), Qnil);
   
   /* Set defaults.  */
-  PROP (TOOLBAR_ITEM_KEY) = key;
-  PROP (TOOLBAR_ITEM_ENABLED_P) = Qt;
+  PROP (TOOL_BAR_ITEM_KEY) = key;
+  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qt;
 	 
   /* Get the caption of the item.  If the caption is not a string,
      evaluate it to get a string.  If we don't get a string, skip this
@@ -6627,7 +6627,7 @@ parse_toolbar_item (key, item)
       if (!STRINGP (caption))
 	return 0;
     }
-  PROP (TOOLBAR_ITEM_CAPTION) = caption;
+  PROP (TOOL_BAR_ITEM_CAPTION) = caption;
 
   /* Give up if rest following the caption is not a list.  */
   item = XCDR (item);
@@ -6635,7 +6635,7 @@ parse_toolbar_item (key, item)
     return 0;
 
   /* Store the binding.  */
-  PROP (TOOLBAR_ITEM_BINDING) = XCAR (item);
+  PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
   item = XCDR (item);
 
   /* Process the rest of the properties.  */
@@ -6648,7 +6648,7 @@ parse_toolbar_item (key, item)
 
       if (EQ (key, QCenable))
 	/* `:enable FORM'.  */
-	PROP (TOOLBAR_ITEM_ENABLED_P) = value;
+	PROP (TOOL_BAR_ITEM_ENABLED_P) = value;
       else if (EQ (key, QCvisible))
 	{
 	  /* `:visible FORM'.  If got a visible property and that
@@ -6658,7 +6658,7 @@ parse_toolbar_item (key, item)
 	}
       else if (EQ (key, QChelp))
 	/* `:help HELP-STRING'.  */
-	PROP (TOOLBAR_ITEM_HELP) = value;
+	PROP (TOOL_BAR_ITEM_HELP) = value;
       else if (EQ (key, QCfilter))
 	/* ':filter FORM'.  */
 	filter = value;
@@ -6671,8 +6671,8 @@ parse_toolbar_item (key, item)
 	  selected = XCDR (value);
 	  if (EQ (type, QCtoggle) || EQ (type, QCradio))
 	    {
-	      PROP (TOOLBAR_ITEM_SELECTED_P) = selected;
-	      PROP (TOOLBAR_ITEM_TYPE) = type;
+	      PROP (TOOL_BAR_ITEM_SELECTED_P) = selected;
+	      PROP (TOOL_BAR_ITEM_TYPE) = type;
 	    }
 	}
       else if (EQ (key, QCimage)
@@ -6680,29 +6680,29 @@ parse_toolbar_item (key, item)
 		   || (VECTORP (value) && XVECTOR (value)->size == 4)))
 	/* Value is either a single image specification or a vector
 	   of 4 such specifications for the different buttion states.  */
-	PROP (TOOLBAR_ITEM_IMAGES) = value;
+	PROP (TOOL_BAR_ITEM_IMAGES) = value;
     }
 
   /* If got a filter apply it on binding.  */
   if (!NILP (filter))
-    PROP (TOOLBAR_ITEM_BINDING)
+    PROP (TOOL_BAR_ITEM_BINDING)
       = menu_item_eval_property (list2 (filter,
 					list2 (Qquote,
-					       PROP (TOOLBAR_ITEM_BINDING))));
+					       PROP (TOOL_BAR_ITEM_BINDING))));
 
   /* See if the binding is a keymap.  Give up if it is.  */
-  if (!NILP (get_keymap_1 (PROP (TOOLBAR_ITEM_BINDING), 0, 1)))
+  if (!NILP (get_keymap_1 (PROP (TOOL_BAR_ITEM_BINDING), 0, 1)))
     return 0;
 
   /* Enable or disable selection of item.  */
-  if (!EQ (PROP (TOOLBAR_ITEM_ENABLED_P), Qt))
-    PROP (TOOLBAR_ITEM_ENABLED_P)
-      = menu_item_eval_property (PROP (TOOLBAR_ITEM_ENABLED_P));
+  if (!EQ (PROP (TOOL_BAR_ITEM_ENABLED_P), Qt))
+    PROP (TOOL_BAR_ITEM_ENABLED_P)
+      = menu_item_eval_property (PROP (TOOL_BAR_ITEM_ENABLED_P));
 
   /* Handle radio buttons or toggle boxes.  */ 
-  if (!NILP (PROP (TOOLBAR_ITEM_SELECTED_P)))
-    PROP (TOOLBAR_ITEM_SELECTED_P)
-      = menu_item_eval_property (PROP (TOOLBAR_ITEM_SELECTED_P));
+  if (!NILP (PROP (TOOL_BAR_ITEM_SELECTED_P)))
+    PROP (TOOL_BAR_ITEM_SELECTED_P)
+      = menu_item_eval_property (PROP (TOOL_BAR_ITEM_SELECTED_P));
 
   return 1;
   
@@ -6710,48 +6710,49 @@ parse_toolbar_item (key, item)
 }
 
 
-/* Initialize Vtoolbar_items.  REUSE, if non-nil, is a vector that can
-   be reused.  */
+/* Initialize tool_bar_items_vector.  REUSE, if non-nil, is a vector
+   that can be reused.  */
 
 static void
-init_toolbar_items (reuse)
+init_tool_bar_items (reuse)
      Lisp_Object reuse;
 {
   if (VECTORP (reuse))
-    toolbar_items_vector = reuse;
+    tool_bar_items_vector = reuse;
   else
-    toolbar_items_vector = Fmake_vector (make_number (64), Qnil);
-  ntoolbar_items = 0;
+    tool_bar_items_vector = Fmake_vector (make_number (64), Qnil);
+  ntool_bar_items = 0;
 }
 
 
-/* Append parsed toolbar item properties from toolbar_item_properties */
+/* Append parsed tool bar item properties from
+   tool_bar_item_properties */
 
 static void
-append_toolbar_item ()
+append_tool_bar_item ()
 {
   Lisp_Object *to, *from;
   
-  /* Enlarge toolbar_items_vector if necessary.  */
-  if (ntoolbar_items + TOOLBAR_ITEM_NSLOTS
-      >= XVECTOR (toolbar_items_vector)->size)
+  /* Enlarge tool_bar_items_vector if necessary.  */
+  if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
+      >= XVECTOR (tool_bar_items_vector)->size)
     {
       Lisp_Object new_vector;
-      int old_size = XVECTOR (toolbar_items_vector)->size;
+      int old_size = XVECTOR (tool_bar_items_vector)->size;
 
       new_vector = Fmake_vector (make_number (2 * old_size), Qnil);
-      bcopy (XVECTOR (toolbar_items_vector)->contents,
+      bcopy (XVECTOR (tool_bar_items_vector)->contents,
 	     XVECTOR (new_vector)->contents,
 	     old_size * sizeof (Lisp_Object));
-      toolbar_items_vector = new_vector;
+      tool_bar_items_vector = new_vector;
     }
 
-  /* Append entries from toolbar_item_properties to the end of
-     toolbar_items_vector.  */
-  to = XVECTOR (toolbar_items_vector)->contents + ntoolbar_items;
-  from = XVECTOR (toolbar_item_properties)->contents;
-  bcopy (from, to, TOOLBAR_ITEM_NSLOTS * sizeof *to);
-  ntoolbar_items += TOOLBAR_ITEM_NSLOTS;
+  /* Append entries from tool_bar_item_properties to the end of
+     tool_bar_items_vector.  */
+  to = XVECTOR (tool_bar_items_vector)->contents + ntool_bar_items;
+  from = XVECTOR (tool_bar_item_properties)->contents;
+  bcopy (from, to, TOOL_BAR_ITEM_NSLOTS * sizeof *to);
+  ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
 
@@ -6821,7 +6822,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
      use a real menu for mouse selection.  */
   if (EVENT_HAS_PARAMETERS (prev_event)
       && !EQ (XCONS (prev_event)->car, Qmenu_bar)
-      && !EQ (XCONS (prev_event)->car, Qtoolbar))
+      && !EQ (XCONS (prev_event)->car, Qtool_bar))
     {
       /* Display the menu and get the selection.  */
       Lisp_Object *realmaps
@@ -7786,7 +7787,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      posn = POSN_BUFFER_POSN (EVENT_START (key));
 	      /* Handle menu-bar events:
 		 insert the dummy prefix event `menu-bar'.  */
-	      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtoolbar))
+	      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
 		{
 		  if (t + 1 >= bufsize)
 		    error ("Key sequence too long");
@@ -9520,7 +9521,7 @@ struct event_head head_table[] = {
 void
 syms_of_keyboard ()
 {
-  /* Toolbars.  */
+  /* Tool-bars.  */
   QCimage = intern (":image");
   staticpro (&QCimage);
 
@@ -9530,10 +9531,10 @@ syms_of_keyboard ()
   staticpro (&item_properties);
   item_properties = Qnil;
 
-  staticpro (&toolbar_item_properties);
-  toolbar_item_properties = Qnil;
-  staticpro (&toolbar_items_vector);
-  toolbar_items_vector = Qnil;
+  staticpro (&tool_bar_item_properties);
+  tool_bar_item_properties = Qnil;
+  staticpro (&tool_bar_items_vector);
+  tool_bar_items_vector = Qnil;
 
   staticpro (&real_this_command);
   real_this_command = Qnil;

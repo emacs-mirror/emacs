@@ -307,13 +307,13 @@ enum event_kind
                                    .code is a number identifying it,
                                    index into lispy_user_signals.  */
 
-  /* Currently only returned when the mouse enters a toolbar item that
+  /* Currently only returned when the mouse enters a tool-bar item that
      has a help string.  Member frame_or_window of the input_event is
-     a cons cell whose car is the toolbar's frame and whose cdr is the
+     a cons cell whose car is the tool-bar's frame and whose cdr is the
      help string.  */
   HELP_EVENT,
 
-  TOOLBAR_EVENT
+  TOOL_BAR_EVENT
 };
 
 /* If a struct input_event has a kind which is selection_request_event

@@ -90,7 +90,7 @@ Lisp_Object Qname;
 Lisp_Object Qonly;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines;
-Lisp_Object Qtoolbar_lines;
+Lisp_Object Qtool_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qw32;
@@ -128,8 +128,8 @@ syms_of_frame_1 ()
   staticpro (&Qunsplittable);
   Qmenu_bar_lines = intern ("menu-bar-lines");
   staticpro (&Qmenu_bar_lines);
-  Qtoolbar_lines = intern ("toolbar-lines");
-  staticpro (&Qtoolbar_lines);
+  Qtool_bar_lines = intern ("tool-bar-lines");
+  staticpro (&Qtool_bar_lines);
   Qwidth = intern ("width");
   staticpro (&Qwidth);
   Qx = intern ("x");
@@ -329,10 +329,10 @@ make_frame (mini_p)
   f->namebuf = 0;
   f->title = Qnil;
   f->menu_bar_window = Qnil;
-  f->toolbar_window = Qnil;
-  f->desired_toolbar_items = f->current_toolbar_items = Qnil;
-  f->desired_toolbar_string = f->current_toolbar_string = Qnil;
-  f->n_desired_toolbar_items = f->n_current_toolbar_items = 0;
+  f->tool_bar_window = Qnil;
+  f->desired_tool_bar_items = f->current_tool_bar_items = Qnil;
+  f->desired_tool_bar_string = f->current_tool_bar_string = Qnil;
+  f->n_desired_tool_bar_items = f->n_current_tool_bar_items = 0;
 
   root_window = make_window ();
   if (mini_p)

@@ -581,14 +581,14 @@ If they are on the border between WINDOW and its right sibling,\n\
    set *PART to 1; if it is on the separating line between the window
    and its right sibling, set it to 2; otherwise set it to 0.  If
    there is no window under X, Y return nil and leave *PART
-   unmodified.  TOOLBAR_P non-zero means detect toolbar windows.  */
+   unmodified.  TOOL_BAR_P non-zero means detect tool-bar windows.  */
 
 Lisp_Object
-window_from_coordinates (frame, x, y, part, toolbar_p)
+window_from_coordinates (frame, x, y, part, tool_bar_p)
      FRAME_PTR frame;
      int x, y;
      int *part;
-     int toolbar_p;
+     int tool_bar_p;
 {
   register Lisp_Object tem, first;
   int found;
@@ -609,14 +609,14 @@ window_from_coordinates (frame, x, y, part, toolbar_p)
     }
   while (!EQ (tem, first));
 
-  /* See if it's in the toolbar window, if a toolbar exists.  */
-  if (toolbar_p
-      && WINDOWP (frame->toolbar_window)
-      && XFASTINT (XWINDOW (frame->toolbar_window)->height)
-      && coordinates_in_window (XWINDOW (frame->toolbar_window), &x, &y))
+  /* See if it's in the tool bar window, if a tool bar exists.  */
+  if (tool_bar_p
+      && WINDOWP (frame->tool_bar_window)
+      && XFASTINT (XWINDOW (frame->tool_bar_window)->height)
+      && coordinates_in_window (XWINDOW (frame->tool_bar_window), &x, &y))
     {
       *part = 0;
-      return frame->toolbar_window;
+      return frame->tool_bar_window;
     }
 
   return Qnil;
@@ -3976,7 +3976,7 @@ struct save_window_data
     EMACS_INT size_from_Lisp_Vector_struct;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
     Lisp_Object frame_width, frame_height, frame_menu_bar_lines;
-    Lisp_Object frame_toolbar_lines;
+    Lisp_Object frame_tool_bar_lines;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
@@ -4091,7 +4091,7 @@ the return value is nil.  Otherwise the value is t.")
       int previous_frame_height = FRAME_HEIGHT (f);
       int previous_frame_width =  FRAME_WIDTH  (f);
       int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
-      int previous_frame_toolbar_lines = FRAME_TOOLBAR_LINES (f);
+      int previous_frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
 
       /* The mouse highlighting code could get screwed up
 	 if it runs during this.  */
@@ -4106,9 +4106,9 @@ the return value is nil.  Otherwise the value is t.")
 	  != previous_frame_menu_bar_lines)
 	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, make_number (0));
 #ifdef HAVE_WINDOW_SYSTEM
-      if (XFASTINT (data->frame_toolbar_lines)
-	  != previous_frame_toolbar_lines)
-	x_set_toolbar_lines (f, data->frame_toolbar_lines, make_number (0));
+      if (XFASTINT (data->frame_tool_bar_lines)
+	  != previous_frame_tool_bar_lines)
+	x_set_tool_bar_lines (f, data->frame_tool_bar_lines, make_number (0));
 #endif
 #endif
 
@@ -4273,9 +4273,9 @@ the return value is nil.  Otherwise the value is t.")
 	x_set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
 			      make_number (0));
 #ifdef HAVE_WINDOW_SYSTEM
-      if (previous_frame_toolbar_lines != FRAME_TOOLBAR_LINES (f))
-	x_set_toolbar_lines (f, make_number (previous_frame_toolbar_lines),
-			     make_number (0));
+      if (previous_frame_tool_bar_lines != FRAME_TOOL_BAR_LINES (f))
+	x_set_tool_bar_lines (f, make_number (previous_frame_tool_bar_lines),
+			      make_number (0));
 #endif
 #endif
 
@@ -4529,7 +4529,7 @@ redirection (see `redirect-frame-focus').")
   XSETFASTINT (data->frame_width, FRAME_WIDTH (f));
   XSETFASTINT (data->frame_height, FRAME_HEIGHT (f));
   XSETFASTINT (data->frame_menu_bar_lines, FRAME_MENU_BAR_LINES (f));
-  XSETFASTINT (data->frame_toolbar_lines, FRAME_TOOLBAR_LINES (f));
+  XSETFASTINT (data->frame_tool_bar_lines, FRAME_TOOL_BAR_LINES (f));
   XSETFRAME (data->selected_frame, selected_frame);
   data->current_window = FRAME_SELECTED_WINDOW (f);
   XSETBUFFER (data->current_buffer, current_buffer);

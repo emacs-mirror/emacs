@@ -2357,7 +2357,7 @@ EXFUN (Frecursive_edit, 0);
 EXFUN (Fcommand_execute, 4);
 EXFUN (Finput_pending_p, 0);
 extern Lisp_Object menu_bar_items P_ ((Lisp_Object));
-extern Lisp_Object toolbar_items P_ ((Lisp_Object, int *));
+extern Lisp_Object tool_bar_items P_ ((Lisp_Object, int *));
 extern Lisp_Object Qvertical_scroll_bar;
 extern void discard_mouse_events ();
 EXFUN (Fevent_convert_list, 1);
@@ -2639,7 +2639,7 @@ extern void syms_of_xfaces P_ ((void));
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
-extern void x_set_toolbar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
 #endif
 

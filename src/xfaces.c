@@ -280,7 +280,7 @@ Lisp_Object Qx_charset_registry;
 
 /* Names of basic faces.  */
 
-Lisp_Object Qdefault, Qmodeline, Qtoolbar, Qregion, Qmargin;
+Lisp_Object Qdefault, Qmodeline, Qtool_bar, Qregion, Qmargin;
 Lisp_Object Qtop_line;
 
 /* Default stipple pattern used on monochrome displays.  This stipple
@@ -5130,7 +5130,7 @@ realize_basic_faces (f)
   if (realize_default_face (f))
     {
       realize_named_face (f, Qmodeline, MODE_LINE_FACE_ID);
-      realize_named_face (f, Qtoolbar, TOOLBAR_FACE_ID);
+      realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
       realize_named_face (f, Qmargin, BITMAP_AREA_FACE_ID);
       realize_named_face (f, Qtop_line, TOP_LINE_FACE_ID);
       success_p = 1;
@@ -6242,8 +6242,8 @@ syms_of_xfaces ()
   staticpro (&Qdefault);
   Qmodeline = intern ("modeline");
   staticpro (&Qmodeline);
-  Qtoolbar = intern ("toolbar");
-  staticpro (&Qtoolbar);
+  Qtool_bar = intern ("tool-bar");
+  staticpro (&Qtool_bar);
   Qregion = intern ("region");
   staticpro (&Qregion);
   Qmargin = intern ("margin");

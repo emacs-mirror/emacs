@@ -885,9 +885,9 @@ clear_current_matrices (f)
   if (WINDOWP (f->menu_bar_window))
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
 
-  /* Clear the matrix of the toolbar window, if any.  */
-  if (WINDOWP (f->toolbar_window))
-    clear_glyph_matrix (XWINDOW (f->toolbar_window)->current_matrix);
+  /* Clear the matrix of the tool-bar window, if any.  */
+  if (WINDOWP (f->tool_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
 
   /* Clear current window matrices.  */
   xassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
@@ -907,8 +907,8 @@ clear_desired_matrices (f)
   if (WINDOWP (f->menu_bar_window))
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->desired_matrix);
 
-  if (WINDOWP (f->toolbar_window))
-    clear_glyph_matrix (XWINDOW (f->toolbar_window)->desired_matrix);
+  if (WINDOWP (f->tool_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tool_bar_window)->desired_matrix);
 
   /* Do it for window matrices.  */
   xassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
@@ -2076,21 +2076,21 @@ adjust_frame_glyphs_for_window_redisplay (f)
   }
 #endif /* not USE_X_TOOLKIT */
 
-  /* Allocate/ reallocate matrices of the toolbar window.  If we don't
-     have a toolbar window yet, make one.  */
-  if (NILP (f->toolbar_window))
+  /* Allocate/ reallocate matrices of the tool bar window.  If we
+     don't have a tool bar window yet, make one.  */
+  if (NILP (f->tool_bar_window))
     {
-      f->toolbar_window = make_window ();
-      w = XWINDOW (f->toolbar_window);
+      f->tool_bar_window = make_window ();
+      w = XWINDOW (f->tool_bar_window);
       XSETFRAME (w->frame, f);
       w->pseudo_window_p = 1;
     }
   else
-    w = XWINDOW (f->toolbar_window);
+    w = XWINDOW (f->tool_bar_window);
 
   XSETFASTINT (w->top, FRAME_MENU_BAR_LINES (f));
   XSETFASTINT (w->left, 0);
-  XSETFASTINT (w->height, FRAME_TOOLBAR_LINES (f));
+  XSETFASTINT (w->height, FRAME_TOOL_BAR_LINES (f));
   XSETFASTINT (w->width, FRAME_WINDOW_WIDTH (f));
   allocate_matrices_for_window_redisplay (w, ch_dim);
 }
@@ -2167,14 +2167,14 @@ free_glyphs (f)
 	  f->menu_bar_window = Qnil;
 	}
 
-      /* Free the toolbar window and its glyph matrices.  */
-      if (!NILP (f->toolbar_window))
+      /* Free the tool bar window and its glyph matrices.  */
+      if (!NILP (f->tool_bar_window))
 	{
-	  struct window *w = XWINDOW (f->toolbar_window);
+	  struct window *w = XWINDOW (f->tool_bar_window);
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
-	  f->toolbar_window = Qnil;
+	  f->tool_bar_window = Qnil;
 	}
 
       /* Release frame glyph matrices.  Reset fields to zero in
@@ -3352,10 +3352,10 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 	update_window (XWINDOW (f->menu_bar_window), 1);
 
       /* Update the tool-bar window, if present.  */
-      if (WINDOWP (f->toolbar_window))
+      if (WINDOWP (f->tool_bar_window))
 	{
 	  Lisp_Object tem;
-	  struct window *w = XWINDOW (f->toolbar_window);
+	  struct window *w = XWINDOW (f->tool_bar_window);
 
 	  /* Update tool-bar window.  */
 	  if (w->must_be_updated_p)
@@ -3365,16 +3365,16 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 
 	      /* Swap tool-bar strings.  We swap because we want to
 		 reuse strings.  */
-	      tem = f->current_toolbar_string;
-	      f->current_toolbar_string = f->desired_toolbar_string;
-	      f->desired_toolbar_string = tem;
-	      f->n_current_toolbar_items = f->n_desired_toolbar_items;
+	      tem = f->current_tool_bar_string;
+	      f->current_tool_bar_string = f->desired_tool_bar_string;
+	      f->desired_tool_bar_string = tem;
+	      f->n_current_tool_bar_items = f->n_desired_tool_bar_items;
 	      
 	      /* Swap tool-bar items.  We swap because we want to
 		 reuse vectors.  */
-	      tem = f->current_toolbar_items;
-	      f->current_toolbar_items = f->desired_toolbar_items;
-	      f->desired_toolbar_items = tem;
+	      tem = f->current_tool_bar_items;
+	      f->current_tool_bar_items = f->desired_tool_bar_items;
+	      f->desired_tool_bar_items = tem;
 	    }
 	}
   
@@ -5336,8 +5336,8 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
       if (FRAME_TERMCAP_P (f) && !pretend)
 	FrameCols = newwidth;
 
-      if (WINDOWP (f->toolbar_window))
-	XSETFASTINT (XWINDOW (f->toolbar_window)->width, newwidth);
+      if (WINDOWP (f->tool_bar_window))
+	XSETFASTINT (XWINDOW (f->tool_bar_window)->width, newwidth);
     }
 
   FRAME_HEIGHT (f) = newheight;

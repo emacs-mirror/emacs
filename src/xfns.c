@@ -20,7 +20,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 /* Image support (XBM, XPM, PBM, JPEG, TIFF, GIF, PNG, GS). tooltips,
-   toolbars, busy-cursor, file selection dialog added by Gerd
+   tool-bars, busy-cursor, file selection dialog added by Gerd
    Moellmann <gerd@gnu.org>.  */
 
 /* Completely rewritten by Richard Stallman.  */
@@ -259,7 +259,7 @@ Lisp_Object Qscreen_gamma;
 
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
-extern Lisp_Object Qtoolbar_lines;
+extern Lisp_Object Qtool_bar_lines;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -769,7 +769,7 @@ void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_scroll_bar_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_unsplittable P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_toolbar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_scroll_bar_foreground P_ ((struct frame *, Lisp_Object,
 				      Lisp_Object));
 void x_set_scroll_bar_background P_ ((struct frame *, Lisp_Object,
@@ -803,7 +803,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "unsplittable", x_set_unsplittable,
   "vertical-scroll-bars", x_set_vertical_scroll_bars,
   "visibility", x_set_visibility,
-  "toolbar-lines", x_set_toolbar_lines,
+  "tool-bar-lines", x_set_tool_bar_lines,
   "scroll-bar-foreground", x_set_scroll_bar_foreground,
   "scroll-bar-background", x_set_scroll_bar_background,
   "screen-gamma", x_set_screen_gamma
@@ -1984,7 +1984,7 @@ x_set_menu_bar_lines (f, value, oldval)
    The frame's height doesn't change.  */
 
 void
-x_set_toolbar_lines (f, value, oldval)
+x_set_tool_bar_lines (f, value, oldval)
      struct frame *f;
      Lisp_Object value, oldval;
 {
@@ -1999,8 +1999,8 @@ x_set_toolbar_lines (f, value, oldval)
   /* Make sure we redisplay all windows in this frame.  */
   ++windows_or_buffers_changed;
 
-  delta = nlines - FRAME_TOOLBAR_LINES (f);
-  FRAME_TOOLBAR_LINES (f) = nlines;
+  delta = nlines - FRAME_TOOL_BAR_LINES (f);
+  FRAME_TOOL_BAR_LINES (f) = nlines;
   x_set_menu_bar_lines_1 (FRAME_ROOT_WINDOW (f), delta);
   adjust_glyphs (f);
 }
@@ -3773,7 +3773,7 @@ This function is an internal primitive--use `make-frame' instead.")
   
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtoolbar_lines, make_number (0),
+  x_default_parameter (f, parms, Qtool_bar_lines, make_number (0),
 		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth",
@@ -3807,13 +3807,13 @@ This function is an internal primitive--use `make-frame' instead.")
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Create the X widget or window.  Add the toolbar height to the
+  /* Create the X widget or window.  Add the tool-bar height to the
      initial frame height so that the user gets a text display area of
      the size he specified with -g or via .Xdefaults.  Later changes
-     of the toolbar height don't change the frame size.  This is done
+     of the tool-bar height don't change the frame size.  This is done
      so that users can create tall Emacs frames without having to
-     guess how tall the toolbar will get.  */
-  f->height += FRAME_TOOLBAR_LINES (f);
+     guess how tall the tool-bar will get.  */
+  f->height += FRAME_TOOL_BAR_LINES (f);
 
 #ifdef USE_X_TOOLKIT
   x_window (f, window_prompting, minibuffer_only);

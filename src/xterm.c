@@ -411,8 +411,8 @@ static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
 static void note_mode_line_highlight P_ ((struct window *, int, int));
 static void x_check_font P_ ((struct frame *, XFontStruct *));
 static void note_mouse_highlight P_ ((struct frame *, int, int));
-static void note_toolbar_highlight P_ ((struct frame *f, int, int));
-static void x_handle_toolbar_click P_ ((struct frame *, XButtonEvent *));
+static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
+static void x_handle_tool_bar_click P_ ((struct frame *, XButtonEvent *));
 static void show_mouse_face P_ ((struct x_display_info *,
 				 enum draw_glyphs_face));
 static int x_io_error_quitter P_ ((Display *));
@@ -2439,9 +2439,9 @@ x_get_glyph_string_clip_rect (s, r)
   else
     r->y = max (0, s->row->y);
 
-  /* If drawing a toolbar window, draw it over the internal border
+  /* If drawing a tool-bar window, draw it over the internal border
      at the top of the window.  */
-  if (s->w == XWINDOW (s->f->toolbar_window))
+  if (s->w == XWINDOW (s->f->tool_bar_window))
     r->y -= s->f->output_data.x->internal_border_width;
 
   /* If S draws overlapping rows, it's sufficient to use the top and
@@ -3464,7 +3464,7 @@ x_draw_image_relief (s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = toolbar_button_relief > 0 ? toolbar_button_relief : 3;
+      thick = tool_bar_button_relief > 0 ? tool_bar_button_relief : 3;
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -4099,8 +4099,8 @@ x_init_glyph_string (s, char2b, w, row, area, start, hl)
   s->height = row->height;
   s->y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
 
-  /* Display the internal border below the toolbar window.  */
-  if (s->w == XWINDOW (s->f->toolbar_window))
+  /* Display the internal border below the tool-bar window.  */
+  if (s->w == XWINDOW (s->f->tool_bar_window))
     s->y -= s->f->output_data.x->internal_border_width;
   
   s->ybase = s->y + row->ascent;
@@ -4870,7 +4870,7 @@ XTflash (f)
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
 			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOOLBAR_LINES (f) * CANON_Y_UNIT (f)),
+			   + FRAME_TOOL_BAR_LINES (f) * CANON_Y_UNIT (f)),
 			  width, flash_height);
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
@@ -4919,7 +4919,7 @@ XTflash (f)
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
 			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOOLBAR_LINES (f) * CANON_Y_UNIT (f)),
+			   + FRAME_TOOL_BAR_LINES (f) * CANON_Y_UNIT (f)),
 			  width, flash_height);
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
@@ -5107,9 +5107,9 @@ expose_frame (f, x, y, w, h)
   TRACE ((stderr, "(%d, %d, %d, %d)\n", r.x, r.y, r.width, r.height));
   expose_window_tree (XWINDOW (f->root_window), &r);
 
-  if (WINDOWP (f->toolbar_window))
+  if (WINDOWP (f->tool_bar_window))
     {
-      struct window *w = XWINDOW (f->toolbar_window);
+      struct window *w = XWINDOW (f->tool_bar_window);
       XRectangle window_rect;
       XRectangle intersection_rect;
       int window_x, window_y, window_width, window_height;
@@ -6145,11 +6145,11 @@ note_mouse_highlight (f, x, y)
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
 
-  /* Handle toolbar window differently since it doesn't display a
+  /* Handle tool-bar window differently since it doesn't display a
      buffer.  */
-  if (EQ (window, f->toolbar_window))
+  if (EQ (window, f->tool_bar_window))
     {
-      note_toolbar_highlight (f, x, y);
+      note_tool_bar_highlight (f, x, y);
       return;
     }
 
@@ -6372,37 +6372,37 @@ redo_mouse_highlight ()
 
 
 /***********************************************************************
-			       Toolbars
+			       Tool-bars
  ***********************************************************************/
 
-static int x_toolbar_item P_ ((struct frame *, int, int,
-			       struct glyph **, int *, int *, int *));
+static int x_tool_bar_item P_ ((struct frame *, int, int,
+				struct glyph **, int *, int *, int *));
 
-/* Toolbar item index of the item on which a mouse button was pressed
+/* Tool-bar item index of the item on which a mouse button was pressed
    or -1.  */
 
-static int last_toolbar_item;
+static int last_tool_bar_item;
 
 
-/* Get information about the toolbar item at position X/Y on frame F.
-   Return in *GLYPH a pointer to the glyph of the toolbar item in
-   the current matrix of the toolbar window of F, or NULL if not
-   on a toolbar item.  Return in *PROP_IDX the index of the toolbar
-   item in F->current_toolbar_items.  Value is
+/* Get information about the tool-bar item at position X/Y on frame F.
+   Return in *GLYPH a pointer to the glyph of the tool-bar item in
+   the current matrix of the tool-bar window of F, or NULL if not
+   on a tool-bar item.  Return in *PROP_IDX the index of the tool-bar
+   item in F->current_tool_bar_items.  Value is
 
-   -1	if X/Y is not on a toolbar item
+   -1	if X/Y is not on a tool-bar item
    0	if X/Y is on the same item that was highlighted before.
    1	otherwise.  */
 
 static int
-x_toolbar_item (f, x, y, glyph, hpos, vpos, prop_idx)
+x_tool_bar_item (f, x, y, glyph, hpos, vpos, prop_idx)
      struct frame *f;
      int x, y;
      struct glyph **glyph;
      int *hpos, *vpos, *prop_idx;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  struct window *w = XWINDOW (f->toolbar_window);
+  struct window *w = XWINDOW (f->tool_bar_window);
   int area;
 
   /* Find the glyph under X/Y.  */
@@ -6410,13 +6410,13 @@ x_toolbar_item (f, x, y, glyph, hpos, vpos, prop_idx)
   if (*glyph == NULL)
     return -1;
 
-  /* Get the start of this toolbar item's properties in
-     f->current_toolbar_items.  */
-  if (!toolbar_item_info (f, *glyph, prop_idx))
+  /* Get the start of this tool-bar item's properties in
+     f->current_tool_bar_items.  */
+  if (!tool_bar_item_info (f, *glyph, prop_idx))
     return -1;
 
   /* Is mouse on the highlighted item?  */
-  if (EQ (f->toolbar_window, dpyinfo->mouse_face_window)
+  if (EQ (f->tool_bar_window, dpyinfo->mouse_face_window)
       && *vpos >= dpyinfo->mouse_face_beg_row
       && *vpos <= dpyinfo->mouse_face_end_row
       && (*vpos > dpyinfo->mouse_face_beg_row
@@ -6430,31 +6430,31 @@ x_toolbar_item (f, x, y, glyph, hpos, vpos, prop_idx)
 }
 
 
-/* Handle mouse button event on the toolbar of frame F, at
+/* Handle mouse button event on the tool-bar of frame F, at
    frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
    or ButtonRelase.  */
 
 static void
-x_handle_toolbar_click (f, button_event)
+x_handle_tool_bar_click (f, button_event)
      struct frame *f;
      XButtonEvent *button_event;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  struct window *w = XWINDOW (f->toolbar_window);
+  struct window *w = XWINDOW (f->tool_bar_window);
   int hpos, vpos, prop_idx;
   struct glyph *glyph;
   Lisp_Object enabled_p;
   int x = button_event->x;
   int y = button_event->y;
   
-  /* If not on the highlighted toolbar item, return.  */
+  /* If not on the highlighted tool-bar item, return.  */
   frame_to_window_pixel_xy (w, &x, &y);
-  if (x_toolbar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx) != 0)
+  if (x_tool_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx) != 0)
     return;
 
   /* If item is disabled, do nothing.  */
-  enabled_p = (XVECTOR (f->current_toolbar_items)
-	       ->contents[prop_idx + TOOLBAR_ITEM_ENABLED_P]);
+  enabled_p = (XVECTOR (f->current_tool_bar_items)
+	       ->contents[prop_idx + TOOL_BAR_ITEM_ENABLED_P]);
   if (NILP (enabled_p))
     return;
   
@@ -6463,7 +6463,7 @@ x_handle_toolbar_click (f, button_event)
       /* Show item in pressed state.  */
       show_mouse_face (dpyinfo, DRAW_IMAGE_SUNKEN);
       dpyinfo->mouse_face_image_state = DRAW_IMAGE_SUNKEN;
-      last_toolbar_item = prop_idx;
+      last_tool_bar_item = prop_idx;
     }
   else
     {
@@ -6474,34 +6474,34 @@ x_handle_toolbar_click (f, button_event)
       show_mouse_face (dpyinfo, DRAW_IMAGE_RAISED);
       dpyinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
 
-      key = (XVECTOR (f->current_toolbar_items)
-	     ->contents[prop_idx + TOOLBAR_ITEM_KEY]);
+      key = (XVECTOR (f->current_tool_bar_items)
+	     ->contents[prop_idx + TOOL_BAR_ITEM_KEY]);
 
       XSETFRAME (frame, f);
-      event.kind = TOOLBAR_EVENT;
-      event.frame_or_window = Fcons (frame, Fcons (Qtoolbar, Qnil));
+      event.kind = TOOL_BAR_EVENT;
+      event.frame_or_window = Fcons (frame, Fcons (Qtool_bar, Qnil));
       kbd_buffer_store_event (&event);
 
-      event.kind = TOOLBAR_EVENT;
+      event.kind = TOOL_BAR_EVENT;
       event.frame_or_window = Fcons (frame, key);
       event.modifiers = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
 						button_event->state);
       kbd_buffer_store_event (&event);
-      last_toolbar_item = -1;
+      last_tool_bar_item = -1;
     }
 }
 
 
-/* Possibly highlight a toolbar item on frame F when mouse moves to
-   toolbar window-relative coordinates X/Y.  Called from
+/* Possibly highlight a tool-bar item on frame F when mouse moves to
+   tool-bar window-relative coordinates X/Y.  Called from
    note_mouse_highlight.  */
 
 static void
-note_toolbar_highlight (f, x, y)
+note_tool_bar_highlight (f, x, y)
      struct frame *f;
      int x, y;
 {
-  Lisp_Object window = f->toolbar_window;
+  Lisp_Object window = f->tool_bar_window;
   struct window *w = XWINDOW (window);
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   int hpos, vpos;
@@ -6521,33 +6521,33 @@ note_toolbar_highlight (f, x, y)
       return;
     }
 
-  rc = x_toolbar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx);
+  rc = x_tool_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx);
   if (rc < 0)
     {
-      /* Not on toolbar item.  */
+      /* Not on tool-bar item.  */
       clear_mouse_face (dpyinfo);
       return;
     }
   else if (rc == 0)
-    /* On same toolbar item as before.  */
+    /* On same tool-bar item as before.  */
     goto set_help_echo;
 
   clear_mouse_face (dpyinfo);
   
-  /* Mouse is down, but on different toolbar item?  */
+  /* Mouse is down, but on different tool-bar item?  */
   mouse_down_p = (dpyinfo->grabbed
 		  && f == last_mouse_frame
 		  && FRAME_LIVE_P (f));
   if (mouse_down_p
-      && last_toolbar_item != prop_idx)
+      && last_tool_bar_item != prop_idx)
     return;
 
   dpyinfo->mouse_face_image_state = DRAW_NORMAL_TEXT;
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
   
-  /* If toolbar item is not enabled, don't highlight it.  */
-  enabled_p = (XVECTOR (f->current_toolbar_items)
-	       ->contents[prop_idx + TOOLBAR_ITEM_ENABLED_P]);
+  /* If tool-bar item is not enabled, don't highlight it.  */
+  enabled_p = (XVECTOR (f->current_tool_bar_items)
+	       ->contents[prop_idx + TOOL_BAR_ITEM_ENABLED_P]);
   if (!NILP (enabled_p))
     {
       /* Compute the x-position of the glyph.  In front and past the
@@ -6568,7 +6568,7 @@ note_toolbar_highlight (f, x, y)
       dpyinfo->mouse_face_end_x = x + glyph->pixel_width;
       dpyinfo->mouse_face_end_y = row->y;
       dpyinfo->mouse_face_window = window;
-      dpyinfo->mouse_face_face_id = TOOLBAR_FACE_ID;
+      dpyinfo->mouse_face_face_id = TOOL_BAR_FACE_ID;
       
       /* Display it as active.  */
       show_mouse_face (dpyinfo, draw);
@@ -6577,13 +6577,13 @@ note_toolbar_highlight (f, x, y)
       
  set_help_echo:
   
-  /* Set help_echo to a help string.to display for this toolbar item.
+  /* Set help_echo to a help string.to display for this tool-bar item.
      XTread_socket does the rest.  */
-  help_echo = (XVECTOR (f->current_toolbar_items)
-	       ->contents[prop_idx + TOOLBAR_ITEM_HELP]);
+  help_echo = (XVECTOR (f->current_tool_bar_items)
+	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
   if (!STRINGP (help_echo))
-    help_echo = (XVECTOR (f->current_toolbar_items)
-		 ->contents[prop_idx + TOOLBAR_ITEM_CAPTION]);
+    help_echo = (XVECTOR (f->current_tool_bar_items)
+		 ->contents[prop_idx + TOOL_BAR_ITEM_CAPTION]);
 }
 
 
@@ -9520,7 +9520,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		/* If we decide we want to generate an event to be seen
 		   by the rest of Emacs, we put it here.  */
 		struct input_event emacs_event;
-		int toolbar_p = 0;
+		int tool_bar_p = 0;
 		
 		emacs_event.kind = no_event;
 		bzero (&compose_status, sizeof (compose_status));
@@ -9534,9 +9534,9 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		if (f)
 		  {
-		    /* Is this in the toolbar?  */
-		    if (WINDOWP (f->toolbar_window)
-			&& XFASTINT (XWINDOW (f->toolbar_window)->height))
+		    /* Is this in the tool-bar?  */
+		    if (WINDOWP (f->tool_bar_window)
+			&& XFASTINT (XWINDOW (f->tool_bar_window)->height))
 		      {
 			Lisp_Object window;
 			int p, x, y;
@@ -9546,14 +9546,14 @@ XTread_socket (sd, bufp, numchars, expected)
 
 			/* Set x and y.  */
 			window = window_from_coordinates (f, x, y, &p, 1);
-			if (EQ (window, f->toolbar_window))
+			if (EQ (window, f->tool_bar_window))
 			  {
-			    x_handle_toolbar_click (f, &event.xbutton);
-			    toolbar_p = 1;
+			    x_handle_tool_bar_click (f, &event.xbutton);
+			    tool_bar_p = 1;
 			  }
 		      }
 
-		    if (!toolbar_p)
+		    if (!tool_bar_p)
 		      if (!dpyinfo->x_focus_frame
 			  || f == dpyinfo->x_focus_frame)
 			construct_mouse_click (&emacs_event, &event, f);
@@ -9580,8 +9580,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		    if (f != 0)
 		      f->mouse_moved = 0;
 		    
-		    if (!toolbar_p)
-		      last_toolbar_item = -1;
+		    if (!tool_bar_p)
+		      last_tool_bar_item = -1;
 		    if (display_busy_cursor_p)
 		      inhibit_busy_cursor = 2;
 		  }
@@ -12836,7 +12836,7 @@ x_initialize ()
   baud_rate = 19200;
 
   x_noop_count = 0;
-  last_toolbar_item = -1;
+  last_tool_bar_item = -1;
   any_help_event_p = 0;
   
   /* Try to use interrupt input; if we can't, then start polling.  */

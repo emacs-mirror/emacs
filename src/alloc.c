@@ -2247,14 +2247,14 @@ mark_object (argptr)
 	  mark_object (&ptr->buffer_predicate);
 	  mark_object (&ptr->buffer_list);
 	  mark_object (&ptr->menu_bar_window);
-	  mark_object (&ptr->toolbar_window);
+	  mark_object (&ptr->tool_bar_window);
 	  mark_face_cache (ptr->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
 	  mark_image_cache (ptr);
-	  mark_object (&ptr->desired_toolbar_items);
-	  mark_object (&ptr->current_toolbar_items);
-	  mark_object (&ptr->desired_toolbar_string);
-	  mark_object (&ptr->current_toolbar_string);
+	  mark_object (&ptr->desired_tool_bar_items);
+	  mark_object (&ptr->current_tool_bar_items);
+	  mark_object (&ptr->desired_tool_bar_string);
+	  mark_object (&ptr->current_tool_bar_string);
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
       else if (GC_BOOL_VECTOR_P (obj))

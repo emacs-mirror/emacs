@@ -1264,7 +1264,7 @@ enum face_id
 {
   DEFAULT_FACE_ID,
   MODE_LINE_FACE_ID,
-  TOOLBAR_FACE_ID,
+  TOOL_BAR_FACE_ID,
   BITMAP_AREA_FACE_ID,
   TOP_LINE_FACE_ID,
   BASIC_FACE_ID_SENTINEL
@@ -1581,7 +1581,7 @@ struct it
   unsigned overlay_strings_at_end_processed_p : 1;
 
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
-     MODE_LINE_FACE_ID, or TOOLBAR_FACE_ID, depending on what we
+     MODE_LINE_FACE_ID, or TOOL_BAR_FACE_ID, depending on what we
      are displaying.  */
   int base_face_id;
 
@@ -1961,69 +1961,69 @@ struct image_cache
 
 
 /***********************************************************************
-			       Toolbars
+			       Tool-bars
  ***********************************************************************/
 
-/* Enumeration defining where to find toolbar item information in
-   toolbar items vectors stored with frames.  Each toolbar item
-   occupies TOOLBAR_ITEM_NSLOTS elements in such a vector.  */
+/* Enumeration defining where to find tool-bar item information in
+   tool-bar items vectors stored with frames.  Each tool-bar item
+   occupies TOOL_BAR_ITEM_NSLOTS elements in such a vector.  */
 
-enum toolbar_item_idx
+enum tool_bar_item_idx
 {
-  /* The key of the toolbar item.  Used to remove items when a binding
+  /* The key of the tool-bar item.  Used to remove items when a binding
      for `undefined' is found.  */
-  TOOLBAR_ITEM_KEY,
+  TOOL_BAR_ITEM_KEY,
 
   /* Non-nil if item is enabled.  */
-  TOOLBAR_ITEM_ENABLED_P,
+  TOOL_BAR_ITEM_ENABLED_P,
 
   /* Non-nil if item is selected (pressed).  */
-  TOOLBAR_ITEM_SELECTED_P,
+  TOOL_BAR_ITEM_SELECTED_P,
 
   /* Caption.  */
-  TOOLBAR_ITEM_CAPTION,
+  TOOL_BAR_ITEM_CAPTION,
 
   /* Image(s) to display.  This is either a single image specification
      or a vector of specifications.  */
-  TOOLBAR_ITEM_IMAGES,
+  TOOL_BAR_ITEM_IMAGES,
 
   /* The binding.  */
-  TOOLBAR_ITEM_BINDING,
+  TOOL_BAR_ITEM_BINDING,
 
   /* Button type.  One of nil, `:radio' or `:toggle'.  */
-  TOOLBAR_ITEM_TYPE,
+  TOOL_BAR_ITEM_TYPE,
 
   /* Help string.  */
-  TOOLBAR_ITEM_HELP,
+  TOOL_BAR_ITEM_HELP,
 
-  /* Sentinel = number of slots in toolbar_items occupied by one
-     toolbar item.  */
-  TOOLBAR_ITEM_NSLOTS
+  /* Sentinel = number of slots in tool_bar_items occupied by one
+     tool-bar item.  */
+  TOOL_BAR_ITEM_NSLOTS
 };
 
 
 /* An enumeration for the different images that can be specified
-   for a toolbar item.  */
+   for a tool-bar item.  */
 
-enum toolbar_item_image
+enum tool_bar_item_image
 {
-  TOOLBAR_IMAGE_ENABLED_SELECTED,
-  TOOLBAR_IMAGE_ENABLED_DESELECTED,
-  TOOLBAR_IMAGE_DISABLED_SELECTED,
-  TOOLBAR_IMAGE_DISABLED_DESELECTED
+  TOOL_BAR_IMAGE_ENABLED_SELECTED,
+  TOOL_BAR_IMAGE_ENABLED_DESELECTED,
+  TOOL_BAR_IMAGE_DISABLED_SELECTED,
+  TOOL_BAR_IMAGE_DISABLED_DESELECTED
 };
 
-/* Non-zero means raise toolbar buttons when the mouse moves over them.  */
+/* Non-zero means raise tool-bar buttons when the mouse moves over them.  */
 
-extern int auto_raise_toolbar_buttons_p;
+extern int auto_raise_tool_bar_buttons_p;
 
-/* Margin around toolbar buttons in pixels.  */
+/* Margin around tool-bar buttons in pixels.  */
 
-extern int toolbar_button_margin;
+extern int tool_bar_button_margin;
 
-/* Thickness of relief to draw around toolbar buttons.  */
+/* Thickness of relief to draw around tool-bar buttons.  */
 
-extern int toolbar_button_relief;
+extern int tool_bar_button_relief;
 
 
 
@@ -2060,8 +2060,8 @@ void move_it_vertically P_ ((struct it *, int));
 void move_it_by_lines P_ ((struct it *, int, int));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
-int toolbar_item_info P_ ((struct frame *, struct glyph *, int *));
-extern Lisp_Object Qtoolbar;
+int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
+extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int redisplaying_p;
 
