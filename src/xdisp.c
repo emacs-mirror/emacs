@@ -664,7 +664,6 @@ static void init_from_display_pos P_ ((struct it *, struct window *,
 				       struct display_pos *));
 static void reseat_to_string P_ ((struct it *, unsigned char *,
 				  Lisp_Object, int, int, int, int));
-static int charset_at_position P_ ((struct text_pos));
 static enum move_it_result move_it_in_display_line_to P_ ((struct it *,
 							   int, int, int));
 void move_it_vertically_backward P_ ((struct it *, int));
@@ -1029,31 +1028,6 @@ compute_string_pos (newpos, pos, string)
 }
 
 
-/* Return the charset of the character at position POS in
-   current_buffer.  */
-
-static int
-charset_at_position (pos)
-     struct text_pos pos;
-{
-  int c, multibyte_p;
-  unsigned char *p = BYTE_POS_ADDR (BYTEPOS (pos));
-
-  multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
-  if (multibyte_p)
-    {
-      int maxlen = ((BYTEPOS (pos) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE)
-		    - BYTEPOS (pos));
-      int len;
-      c = string_char_and_length (p, maxlen, &len);
-    }
-  else
-    c = *p;
-
-  return CHAR_CHARSET (c);
-}
-
-
 
 /***********************************************************************
 			Lisp form evaluation
@@ -1214,7 +1188,6 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   bzero (it, sizeof *it);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
-  it->charset = CHARSET_ASCII;
   it->base_face_id = base_face_id;
 
   /* The window in which we iterate over current_buffer:  */
@@ -1921,7 +1894,6 @@ handle_face_prop (it)
     }
   
   it->face_id = new_face_id;
-  it->charset = CHARSET_ASCII;
   return HANDLED_NORMALLY;
 }
 
@@ -1980,12 +1952,11 @@ face_before_or_after_it_pos (it, before_p)
 	{
 	  unsigned char *p = XSTRING (it->string)->data + BYTEPOS (pos);
 	  int rest = STRING_BYTES (XSTRING (it->string)) - BYTEPOS (pos);
-	  int c, len, charset;
+	  int c, len;
+	  struct face *face = FACE_FROM_ID (it->f, face_id);
       
 	  c = string_char_and_length (p, rest, &len);
-	  charset = CHAR_CHARSET (c);
-	  if (charset != CHARSET_ASCII)
-	    face_id = FACE_FOR_CHARSET (it->f, face_id, charset);
+	  face_id = FACE_FOR_CHAR (it->f, face, c);
 	}
     }
   else
@@ -2021,9 +1992,9 @@ face_before_or_after_it_pos (it, before_p)
 	 suitable for unibyte text if current_buffer is unibyte.  */
       if (it->multibyte_p)
 	{
-	  int charset = charset_at_position (pos);
-	  if (charset != CHARSET_ASCII)
-	    face_id = FACE_FOR_CHARSET (it->f, face_id, charset);
+	  int c = FETCH_MULTIBYTE_CHAR (CHARPOS (pos));
+	  struct face *face = FACE_FROM_ID (it->f, face_id);
+	  face_id = FACE_FOR_CHAR (it->f, face, c);
 	}
     }
   
@@ -3259,7 +3230,6 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
   bzero (&it->current, sizeof it->current);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
-  it->charset = CHARSET_ASCII;
   xassert (charpos >= 0);
   
   /* Use the setting of MULTIBYTE if specified.  */
@@ -3338,7 +3308,6 @@ get_next_display_element (it)
      function pointer `method' used here turns out to be faster than
      using a sequence of if-statements.  */
   int success_p = (*it->method) (it);
-  int charset;
 
   if (it->what == IT_CHARACTER)
     {
@@ -3460,16 +3429,14 @@ get_next_display_element (it)
 	    }
 	}
 
-      /* Adjust face id if charset changes.  There are no charset
-         changes in unibyte text because Emacs' charsets are not
-	 applicable there.  */
+      /* Adjust face id for a multibyte character.  There are no
+         multibyte character in unibyte text.  */
       if (it->multibyte_p
 	  && success_p
-	  && (charset = CHAR_CHARSET (it->c),
-	      charset != it->charset))
+	  && FRAME_WINDOW_P (it->f))
 	{
-	  it->charset = charset;
-	  it->face_id = FACE_FOR_CHARSET (it->f, it->face_id, charset);
+	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
+	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c);
 	}
     }
 
@@ -3555,11 +3522,9 @@ set_iterator_to_next (it)
 	 strings.  */
       ++it->current.dpvec_index;
 
-      /* Restore face and charset of the iterator to what they were
-	 before the display vector entry (these entries may contain
-	 faces, and of course characters of different charsets).  */
+      /* Restore face of the iterator to what they were before the
+         display vector entry (these entries may contain faces).  */
       it->face_id = it->saved_face_id;
-      it->charset = FACE_FROM_ID (it->f, it->face_id)->charset;
       
       if (it->dpvec + it->current.dpvec_index == it->dpend)
 	{
@@ -3680,7 +3645,6 @@ next_element_from_display_vector (it)
 	  if (face_id >= 0)
 	    {
 	      it->face_id = face_id;
-	      it->charset = CHARSET_ASCII;
 	    }
 	}
     }
@@ -10809,7 +10773,6 @@ insert_left_trunc_glyphs (it)
 
   /* Get the truncation glyphs.  */
   truncate_it = *it;
-  truncate_it.charset = -1;
   truncate_it.current_x = 0;
   truncate_it.face_id = DEFAULT_FACE_ID;
   truncate_it.glyph_row = &scratch_glyph_row;
@@ -10965,8 +10928,8 @@ append_space (it, default_face_p)
 	  struct text_pos saved_pos;
 	  int saved_what = it->what;
 	  int saved_face_id = it->face_id;
-	  int saved_charset = it->charset;
 	  Lisp_Object saved_object;
+	  struct face *face;
 
 	  saved_object = it->object;
 	  saved_pos = it->position;
@@ -10976,14 +10939,11 @@ append_space (it, default_face_p)
 	  it->object = 0;
 	  it->c = ' ';
 	  it->len = 1;
-	  it->charset = CHARSET_ASCII;
 
 	  if (default_face_p)
 	    it->face_id = DEFAULT_FACE_ID;
-	  if (it->multibyte_p)
-	    it->face_id = FACE_FOR_CHARSET (it->f, it->face_id, CHARSET_ASCII);
-	  else
-	    it->face_id = FACE_FOR_CHARSET (it->f, it->face_id, -1);
+	  face = FACE_FROM_ID (it->f, it->face_id);
+	  it->face_id = FACE_FOR_CHAR (it->f, face, 0);
 
 	  PRODUCE_GLYPHS (it);
 	  
@@ -10992,7 +10952,6 @@ append_space (it, default_face_p)
 	  it->position = saved_pos;
 	  it->what = saved_what;
 	  it->face_id = saved_face_id;
-	  it->charset = saved_charset;
 	  return 1;
 	}
     }
@@ -11031,15 +10990,13 @@ extend_face_to_end_of_line (it)
      in the text area has to be drawn to the end of the text area.  */
   it->glyph_row->fill_line_p = 1;
 
-  /* If current charset of IT is not ASCII, make sure we have the
-     ASCII face.  This will be automatically undone the next time
-     get_next_display_element returns a character from a different
-     charset.  Note that the charset will always be ASCII in unibyte
-     text.  */
-  if (it->charset != CHARSET_ASCII)
+  /* If current character of IT is not ASCII, make sure we have the
+         ASCII face.  This will be automatically undone the next time
+         get_next_display_element returns a multibyte character.  Note
+         that the character will always be single byte in unibyte text.  */
+  if (!SINGLE_BYTE_CHAR_P (it->c))
     {
-      it->charset = CHARSET_ASCII;
-      it->face_id = FACE_FOR_CHARSET (f, it->face_id, CHARSET_ASCII);
+      it->face_id = FACE_FOR_CHAR (f, face, 0);
     }
 
   if (FRAME_WINDOW_P (f))
@@ -11140,8 +11097,7 @@ highlight_trailing_whitespace (f, row)
 		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
-	  int face_id = lookup_named_face (f, Qtrailing_whitespace,
-					   CHARSET_ASCII);
+	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0);
 	  
 	  while (glyph >= start
 		 && BUFFERP (glyph->object)
