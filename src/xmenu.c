@@ -1583,7 +1583,6 @@ update_frame_menubar (f)
 
   /* Re-manage the text-area widget, and then thrash the sizes.  */
   XtManageChild (x->edit_widget);
-  x_set_menu_resources_from_menu_face (f, x->menubar_widget);
   lw_refigure_widget (x->column_widget, True);
 
   /* Force the pane widget to resize itself with the right values.  */
@@ -1835,8 +1834,7 @@ set_frame_menubar (f, first_time, deep_p)
   }
   
   free_menubar_widget_value_tree (first_wv);
-  if (!update_frame_menubar (f))
-    x_set_menu_resources_from_menu_face (f, menubar_widget);
+  update_frame_menubar (f);
 
   UNBLOCK_INPUT;
 }
@@ -2175,9 +2173,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
-
-  /* Override any default settings with ones from the `menu' face.  */
-  x_set_menu_resources_from_menu_face (f, menu);
 
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
