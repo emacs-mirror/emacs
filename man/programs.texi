@@ -48,7 +48,7 @@ Programming modes often support Outline minor mode (@pxref{Outline
 Mode}).  The Foldout package provides folding-editor features
 (@pxref{Foldout}).
 
-  The `automatic typing' features may be useful for writing programs.
+  The ``automatic typing'' features may be useful for writing programs.
 @xref{,Autotyping,, autotype, Autotyping}.
 
 @menu
@@ -109,7 +109,7 @@ VHDL, CORBA IDL, and Tcl.
 There is also a major mode for makefiles, called Makefile
 mode.  An alternative mode for Perl is called CPerl mode.  Modes
 are available for scripts for the common Unix shells, VMS DCL and
-MS-DOS/MS-Windows `BAT' files.  In a similar fashion to programming
+MS-DOS/MS-Windows @samp{BAT} files.  In a similar fashion to programming
 languages, modes are provided for editing various sorts of configuration
 files.
 
@@ -181,9 +181,9 @@ parentheses exist (including human languages).
 braces (whichever ones must balance in the language you are working with),
 and escape characters that might be used to quote those.
 
-  The other commands deal with expressions or @dfn{sexps}.  The word `sexp'
+  The other commands deal with expressions or @dfn{sexps}.  The word ``sexp''
 is derived from @dfn{s-expression}, the ancient term for an expression in
-Lisp.  But in Emacs, the notion of `sexp' is not limited to Lisp.  It
+Lisp.  But in Emacs, the notion of ``sexp'' is not limited to Lisp.  It
 refers to an expression in whatever language your program is written in.
 Each programming language has its own major mode, which customizes the
 syntax tables so that expressions in that language count as sexps.

@@ -63,7 +63,7 @@ whether the terminal has this capability.
 * Highlight Changes::   Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Trailing Whitespace:: Showing possibly-spurious trailing whitespace.
-* Tooltips::            Showing `tooltips', AKA `ballon help' for active text.
+* Tooltips::            Showing "tooltips", AKA "ballon help" for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
@@ -753,7 +753,7 @@ setting of Scroll Bar mode similarly.  @xref{Resources X}.
 
 @cindex mouse wheel
 @findex mouse-wheel-install
-  Some mice have a `wheel' instead of a third button.  You can usually
+  Some mice have a ``wheel'' instead of a third button.  You can usually
 click the wheel to act as @kbd{Mouse-3}.  You can also use the wheel to
 scroll windows instead of using the scroll bar or keyboard commands.
 Use @kbd{M-x mouse-wheel-install} to set up the wheel for scrolling or put
@@ -1191,7 +1191,7 @@ for all new buffers.
   Tooltips are small X windows displaying a help string at the current
 mouse position, typically over text---including the mode line---which
 can be activated with the mouse or other keys.  (This facility is
-sometimes known as `balloon help'.)  Help text may be available for
+sometimes known as @dfn{balloon help}.)  Help text may be available for
 menu items too.
 
 @findex tooltip-mode

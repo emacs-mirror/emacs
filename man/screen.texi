@@ -91,9 +91,9 @@ The cursor in the selected frame is solid; the cursor in other frames is
 a hollow box, and appears in the window that would be selected if you
 give the input focus to that frame.
 
-  The term `point' comes from the character @samp{.}, which was the
+  The term ``point'' comes from the character @samp{.}, which was the
 command in TECO (the language in which the original Emacs was written)
-for accessing the value now called `point'.
+for accessing the value now called ``point.''
 
 @node Echo Area
 @section The Echo Area

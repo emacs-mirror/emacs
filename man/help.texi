@@ -110,8 +110,8 @@ mode bindings, major mode bindings, and global bindings
 (@code{describe-bindings}).
 @item C-h c @var{key}
 Print the name of the command that @var{key} runs
-(@code{describe-key-briefly}).  Here @kbd{c} stands for `character'.  For more
-extensive information on @var{key}, use @kbd{C-h k}.
+(@code{describe-key-briefly}).  Here @kbd{c} stands for ``character.''
+For more extensive information on @var{key}, use @kbd{C-h k}.
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
 (@code{describe-function}).  Since commands are Lisp functions,
@@ -274,7 +274,7 @@ contain @samp{file}, including @code{copy-file}, @code{find-file}, and
 so on.  With each command name appears a brief description of how to use
 the command, and what keys you can currently invoke it with.  For
 example, it would say that you can invoke @code{find-file} by typing
-@kbd{C-x C-f}.  The @kbd{a} in @kbd{C-h a} stands for `Apropos';
+@kbd{C-x C-f}.  The @kbd{a} in @kbd{C-h a} stands for ``Apropos'';
 @kbd{C-h a} runs the command @code{apropos-command}.  This command
 normally checks only commands (interactive functions); if you specify a
 prefix argument, it checks noninteractive functions as well.
@@ -544,8 +544,9 @@ various situations with solutions or workarounds in many cases.
 
 @cindex tooltips
 @cindex ballon help
-Often when a region of text is `active' so that you can select it with
-the mouse or a key like @kbd{RET}, it has associated help text.  Areas
-of the mode line are examples.  This help will normally be printed in
-the echo area when you move point into the active text.  In a window
-system you can display the help text as `tooltips'.  @xref{Tooltips}.
+When a region of text is ``active,'' so that you can select it with
+the mouse or a key like @kbd{RET}, it often has associated help text.
+Areas of the mode line are examples.  This help will normally be
+printed in the echo area when you move point into the active text.  In
+a window system you can display the help text as a ``tooltip.''
+@xref{Tooltips}.

@@ -1564,7 +1564,7 @@ where the sort keys were @samp{Emacs}, @samp{If}, @samp{buffer},
 columns by putting point at one of the columns and the mark at the other
 column.  Because this means you cannot put point or the mark at the
 beginning of the first line of the text you want to sort, this command
-uses an unusual definition of `region': all of the line point is in is
+uses an unusual definition of ``region'': all of the line point is in is
 considered part of the region, and so is all of the line the mark is in,
 as well as all the lines in between.
 
@@ -1961,9 +1961,9 @@ Emacs key bindings are still available.  The EDT emulation rebindings
 are done in the global keymap, so there is no problem switching
 buffers or major modes while in EDT emulation.
 
-@item `PC' bindings
+@item ``PC'' bindings
 @findex pc-bindings-mode
-@cindex `PC' key bindings
+@cindex ``PC'' key bindings
 The command @kbd{M-x pc-bindings-mode} sets up certain key bindings
 for ``PC compatibility''---what people are often used to on PCs---as
 follows: @kbd{Delete} and its variants delete forward instead of
@@ -1977,7 +1977,7 @@ to beginning and end of buffer and @kbd{C-Escape} does
 @findex pc-selection-mode
 @cindex PC Selection minor mode
 @cindex mode, PC selection
-@cindex selection, `PC'
+@cindex selection, PC
 The command @kbd{M-x pc-selection-mode} enables a global minor mode
 that emulates the mark, copy, cut and paste commands of various other
 systems---an interface known as CUA.  It establishes the keybindings
@@ -2332,7 +2332,7 @@ unique olfactory cues from each of the four directions.
 
 @findex life
 @cindex Life
-@kbd{M-x life} runs Conway's `Life' cellular automaton.
+@kbd{M-x life} runs Conway's ``Life'' cellular automaton.
 
 @findex morse-region
 @findex unmorse-region

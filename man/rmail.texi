@@ -83,7 +83,7 @@ merging new mail from an inbox file (@pxref{Rmail Inbox}).
 @findex rmail-bury
   You can exit Rmail with @kbd{q} (@code{rmail-quit}); this expunges and
 saves the Rmail file and then switches to another buffer.  But there is
-no need to `exit' formally.  If you switch from Rmail to editing in
+no need to ``exit'' formally.  If you switch from Rmail to editing in
 other buffers, and never happen to switch back, you have exited.  (The
 Rmail command @kbd{b}, @code{rmail-bury}, does this for you.)  Just make
 sure to save the Rmail file eventually (like any other file you have

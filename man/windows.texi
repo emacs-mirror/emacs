@@ -148,7 +148,7 @@ but does not move point in it (@code{mouse-select-window}).
 @findex other-window
   To select a different window, click with @kbd{Mouse-1} on its mode
 line.  With the keyboard, you can switch windows by typing @kbd{C-x o}
-(@code{other-window}).  That is an @kbd{o}, for `other', not a zero.
+(@code{other-window}).  That is an @kbd{o}, for ``other,'' not a zero.
 When there are more than two windows, this command moves through all the
 windows in a cyclic order, generally top to bottom and left to right.
 After the rightmost and bottommost window, it goes back to the one at

@@ -546,7 +546,7 @@ on Unix and GNU systems.)
 @item @dots{}-dos
 Assume the file uses carriage-return linefeed to separate lines, and do
 the appropriate conversion.  (This is the convention normally used on
-Microsoft systems.@footnote{It is also specified for MIME `text/*'
+Microsoft systems.@footnote{It is also specified for MIME @samp{text/*}
 bodies and in other network transport contexts.  It is different
 from the SGML reference syntax record-start/record-end format which
 Emacs doesn't support directly.})
@@ -1170,7 +1170,7 @@ them yet.
 @cindex 8-bit display
   Normally non-ISO-8859 characters (between characters 128 and 159
 inclusive) are displayed as octal escapes.  You can change this for
-non-standard `extended' versions of ISO-8859 character sets by using the
+non-standard ``extended'' versions of ISO-8859 character sets by using the
 function @code{standard-display-8bit} in the @code{disp-table} library.
 
   There are several ways you can input single-byte non-ASCII
