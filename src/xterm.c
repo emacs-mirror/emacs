@@ -1798,6 +1798,17 @@ x_produce_glyphs (it)
       int font_not_found_p;
       struct font_info *font_info;
       int boff;			/* baseline offset */
+      /* We may change it->multibyte_p upon unibyte<->multibyte
+	 conversion.  So, save the current value now and restore it
+	 later.
+
+	 Note: It seems that we don't have to record multibyte_p in
+	 struct glyph because the character code itself tells if or
+	 not the character is multibyte.  Thus, in the future, we must
+	 consider eliminating the field `multibyte_p' in the struct
+	 glyph.
+      */
+      int saved_multibyte_p = it->multibyte_p;
 
       /* Maybe translate single-byte characters to multibyte, or the
 	 other way.  */
@@ -1810,6 +1821,7 @@ x_produce_glyphs (it)
 		  || !NILP (Vnonascii_translation_table)))
 	    {
 	      it->char_to_display = unibyte_char_to_multibyte (it->c);
+	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
@@ -1817,6 +1829,7 @@ x_produce_glyphs (it)
 		   && !it->multibyte_p)
 	    {
 	      it->char_to_display = multibyte_char_to_unibyte (it->c, Qnil);
+	      it->multibyte_p = 0;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
@@ -2016,6 +2029,7 @@ x_produce_glyphs (it)
 	  if (it->glyph_row)
 	    x_append_glyph (it);
 	}
+      it->multibyte_p = saved_multibyte_p;
     }
   else if (it->what == IT_COMPOSITION)
     {
