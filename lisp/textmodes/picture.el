@@ -64,6 +64,22 @@
 
 ;; Picture Movement Commands
 
+;; When a cursor is on a wide-column character (e.g. Chinese,
+;; Japanese, Korean), this variable tells the desired current column
+;; which may be different from (current-column).
+(defvar picture-desired-column 0)
+
+;; If the value of picture-desired-column is far from the current
+;; column, or if the arg ADJUST-TO-CURRENT is non-nil, set it to the
+;; current column.   Return the current column.
+(defun picture-update-desired-column (adjust-to-current)
+  (let ((current-column (current-column)))
+    (if (or adjust-to-current
+	    (< picture-desired-column (1- current-column))
+	    (> picture-desired-column (1+ current-column)))
+	(setq picture-desired-column current-column))
+    current-column))
+
 (defun picture-beginning-of-line (&optional arg)
   "Position point at the beginning of the line.
 With ARG not nil, move forward ARG - 1 lines first.
@@ -71,6 +87,7 @@ If scan reaches end of buffer, stop there without error."
   (interactive "P")
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
+  (setq picture-desired-column 0)
   ;; This call will go away when Emacs gets real horizontal autoscrolling
   (hscroll-point-visible))
 
@@ -82,6 +99,7 @@ If scan reaches end of buffer, stop there without error."
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
   (skip-chars-backward " \t" (prog1 (point) (end-of-line)))
+  (setq picture-desired-column (current-column))
   ;; This call will go away when Emacs gets real horizontal autoscrolling
   (hscroll-point-visible))
 
@@ -89,27 +107,31 @@ If scan reaches end of buffer, stop there without error."
   "Move cursor right, making whitespace if necessary.
 With argument, move that many columns."
   (interactive "p")
-  (let ((target-column (+ (current-column) arg)))
-    (move-to-column target-column t)
-    ;; Picture mode isn't really suited to multi-column characters,
-    ;; but we might as well let the user move across them.
-    (and (< arg 0)
-	 (> (current-column) target-column)
-	 (forward-char -1))))
+  (picture-update-desired-column (interactive-p))
+  (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
+  (let ((current-column (move-to-column picture-desired-column t)))
+    (if (and (> current-column picture-desired-column)
+	     (< arg 0))
+	;; It seems that we have just tried to move to the right
+	;; column of a multi-column character.
+	(forward-char -1))))
 
 (defun picture-backward-column (arg)
   "Move cursor left, making whitespace if necessary.
 With argument, move that many columns."
   (interactive "p")
+  (picture-update-desired-column (interactive-p))
   (picture-forward-column (- arg)))
 
 (defun picture-move-down (arg)
   "Move vertically down, making whitespace if necessary.
 With argument, move that many lines."
   (interactive "p")
-  (let ((col (current-column)))
-    (picture-newline arg)
-    (move-to-column col t)))
+  (picture-update-desired-column nil)
+  (picture-newline arg)
+  (let ((current-column (move-to-column picture-desired-column t)))
+    (if (> current-column picture-desired-column)
+	(forward-char -1))))
 
 (defconst picture-vertical-step 0
   "Amount to move vertically after text character in Picture mode.")
@@ -121,6 +143,7 @@ With argument, move that many lines."
   "Move vertically up, making whitespace if necessary.
 With argument, move that many lines."
   (interactive "p")
+  (picture-update-desired-column nil)
   (picture-move-down (- arg)))
 
 (defun picture-movement-right ()
@@ -143,25 +166,29 @@ With argument, move that many lines."
   (interactive)
   (picture-set-motion 1 0))
 
-(defun picture-movement-nw ()
-  "Move up and left after self-inserting character in Picture mode."
-  (interactive)
-  (picture-set-motion -1 -1))
+(defun picture-movement-nw (&optional arg)
+  "Move up and left after self-inserting character in Picture mode.
+With prefix argument, move up and two-column left."
+  (interactive "P")
+  (picture-set-motion -1 (if arg -2 -1)))
 
-(defun picture-movement-ne ()
-  "Move up and right after self-inserting character in Picture mode."
-  (interactive)
-  (picture-set-motion -1 1))
+(defun picture-movement-ne (&optional arg)
+  "Move up and right after self-inserting character in Picture mode.
+With prefix argument, move up and two-column right."
+  (interactive "P")
+  (picture-set-motion -1 (if arg 2 1)))
 
-(defun picture-movement-sw ()
-  "Move down and left after self-inserting character in Picture mode."
-  (interactive)
-  (picture-set-motion 1 -1))
+(defun picture-movement-sw (&optional arg)
+  "Move down and left after self-inserting character in Picture mode.
+With prefix argument, move down and two-column left."
+  (interactive "P")
+  (picture-set-motion 1 (if arg -2 -1)))
 
-(defun picture-movement-se ()
-  "Move down and right after self-inserting character in Picture mode."
-  (interactive)
-  (picture-set-motion 1 1))
+(defun picture-movement-se (&optional arg)
+  "Move down and right after self-inserting character in Picture mode.
+With prefix argument, move down and two-column right."
+  (interactive "P")
+  (picture-set-motion 1 (if arg 2 1)))
 
 (defun picture-set-motion (vert horiz)
   "Set VERTICAL and HORIZONTAL increments for movement in Picture mode.
@@ -170,15 +197,18 @@ The mode line is updated to reflect the current direction."
 	picture-horizontal-step horiz)
   (setq mode-name
 	(format "Picture:%s"
-		(car (nthcdr (+ 1 (% horiz 2) (* 3 (1+ (% vert 2))))
-			     '(nw up ne left none right sw down se)))))
+		(nth (+ 2 (% horiz 3) (* 5 (1+ (% vert 2))))
+		     '(wnw nw up ne ene Left left none right Right
+			   wsw sw down se ese))))
   (force-mode-line-update)
   (message ""))
 
 (defun picture-move ()
   "Move in direction of `picture-vertical-step' and `picture-horizontal-step'."
-  (picture-move-down picture-vertical-step)
-  (picture-forward-column picture-horizontal-step))
+  (if (/= picture-vertical-step 0)
+      (picture-move-down picture-vertical-step))
+  (if (/= picture-horizontal-step 0)
+      (picture-forward-column picture-horizontal-step)))
 
 (defun picture-motion (arg)
   "Move point in direction of current picture motion in Picture mode.
@@ -201,13 +231,27 @@ Do \\[command-apropos] `picture-movement' to see commands which control motion."
 ;; Picture insertion and deletion.
 
 (defun picture-insert (ch arg)
-  (while (> arg 0)
-    (setq arg (1- arg))
-    (move-to-column (1+ (current-column)) t)
-    (delete-char -1)
-    (insert ch)
-    (forward-char -1)
-    (picture-move)))
+  (let* ((width (char-width ch))
+	 ;; We must be sure that the succeeding insertion won't delete
+	 ;; the just inserted character.
+	 (picture-horizontal-step
+	  (if (and (= picture-vertical-step 0)
+		   (> width 1)
+		   (< (abs picture-horizontal-step) 2))
+	      (* picture-horizontal-step 2)
+	    picture-horizontal-step)))
+    (while (> arg 0)
+      (setq arg (1- arg))
+      (if (/= picture-desired-column (current-column))
+	  (move-to-column-force picture-desired-column))
+      (let ((col (+ picture-desired-column width)))
+	(or (eolp)
+	    (let ((pos (point)))
+	      (move-to-column-force col)
+	      (delete-region pos (point)))))
+      (insert ch)
+      (forward-char -1)
+      (picture-move))))
 
 (defun picture-self-insert (arg)
   "Insert this character in place of character previously at the cursor.
@@ -215,18 +259,22 @@ The cursor then moves in the direction you previously specified
 with the commands `picture-movement-right', `picture-movement-up', etc.
 Do \\[command-apropos] `picture-movement' to see those commands."
   (interactive "p")
+  (picture-update-desired-column (not (eq this-command last-command)))
   (picture-insert last-command-event arg)) ; Always a character in this case.
 
 (defun picture-clear-column (arg)
   "Clear out ARG columns after point without moving."
   (interactive "p")
-  (let* ((opoint (point))
-	 (original-col (current-column))
-	 (target-col (+ original-col arg)))
-    (move-to-column target-col t)
-    (delete-region opoint (point))
+  (let* ((original-col (current-column))
+	 (target-col (max 0 (+ original-col arg)))
+	 pos)
+    (move-to-column-force target-col)
+    (setq pos (point))
+    (move-to-column original-col)
+    (delete-region pos (point))
     (save-excursion
-     (indent-to (max target-col original-col)))))
+     (indent-to (max target-col original-col))))
+  (setq picture-desired-column (current-column)))
 
 (defun picture-backward-clear-column (arg)
   "Clear out ARG columns before point, moving back over them."
@@ -506,11 +554,12 @@ Leaves the region surrounding the rectangle."
          (top    (min r1 r2))
          (bottom (max r1 r2)))
     (goto-line top)
-    (move-to-column left)
+    (move-to-column-force left)
+    (picture-update-desired-column t)
 
     (picture-movement-right)
     (picture-insert picture-rectangle-ctl 1)
-    (picture-insert picture-rectangle-h (- right (current-column)))
+    (picture-insert picture-rectangle-h (- right picture-desired-column))
 
     (picture-movement-down)
     (picture-insert picture-rectangle-ctr 1)
@@ -518,7 +567,7 @@ Leaves the region surrounding the rectangle."
 
     (picture-movement-left)
     (picture-insert picture-rectangle-cbr 1)
-    (picture-insert picture-rectangle-h (- (current-column) left))
+    (picture-insert picture-rectangle-h (- picture-desired-column left))
 
     (picture-movement-up)
     (picture-insert picture-rectangle-cbl 1)
@@ -538,7 +587,7 @@ Leaves the region surrounding the rectangle."
 
 (if (not picture-mode-map)
     (progn
-      (setq picture-mode-map (list 'keymap (make-vector 256 nil)))
+      (setq picture-mode-map (make-keymap))
       (picture-substitute 'self-insert-command 'picture-self-insert)
       (picture-substitute 'completion-separator-self-insert-command
 			  'picture-self-insert)
@@ -605,6 +654,10 @@ afterwards settable by these commands:
   C-c '	  Move northeast (ne) after insertion.
   C-c /	  Move southwest (sw) after insertion.
   C-c \\   Move southeast (se) after insertion.
+  C-u C-c `  Move westnorthwest (wnw) after insertion.
+  C-u C-c '  Move eastnortheast (ene) after insertion.
+  C-u C-c /  Move westsouthwest (wsw) after insertion.
+  C-u C-c \\  Move eastsoutheast (ese) after insertion.
 The current direction is displayed in the mode line.  The initial
 direction is right.  Whitespace is inserted and tabs are changed to
 spaces when required by movement.  You can move around in the buffer
