@@ -30,6 +30,26 @@ Boston, MA 02111-1307, USA.  */
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
+static char *
+w32_get_rdb_resource (rdb, resource)
+     char *rdb;
+     char *resource;
+{
+  char *value = rdb;
+  int len = strlen (resource);
+
+  while (*value)
+    {
+      /* Comparison is case-insensitive because registry searches are too.  */
+      if ((strnicmp (value, resource, len) == 0) && (value[len] == ':'))
+        return xstrdup (&value[len + 1]);
+
+      value = strchr (value, '\0') + 1;
+    }
+
+  return NULL;
+}
+
 LPBYTE
 w32_get_string_resource (name, class, dwexptype)
      char *name, *class;
@@ -99,8 +119,18 @@ w32_get_string_resource (name, class, dwexptype)
 
 char *
 x_get_string_resource (rdb, name, class)
-     int rdb;
+     char *rdb;
      char *name, *class;
 {
+  if (rdb)
+    {
+      char *resource;
+
+      if (resource = w32_get_rdb_resource (rdb, name))
+        return resource;
+      if (resource = w32_get_rdb_resource (rdb, class))
+        return resource;
+    }
+
   return (w32_get_string_resource (name, class, REG_SZ));
 }
