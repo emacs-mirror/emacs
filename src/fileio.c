@@ -846,13 +846,13 @@ static char make_temp_name_tbl[64] =
 static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
 
 /* Value is a temporary file name starting with PREFIX, a string.
-   
+
    The Emacs process number forms part of the result, so there is
    no danger of generating a name being used by another process.
    In addition, this function makes an attempt to choose a name
    which has no existing file.  To make this work, PREFIX should be
    an absolute file name.
-   
+
    BASE64_P non-zero means add the pid as 3 characters in base64
    encoding.  In this case, 6 characters will be added to PREFIX to
    form the file name.  Otherwise, if Emacs is running on a system
@@ -872,7 +872,7 @@ make_temp_name (prefix, base64_p)
   unsigned char *p, *data;
   char pidbuf[20];
   int pidlen;
-     
+
   CHECK_STRING (prefix, 0);
 
   /* VAL is created by adding 6 characters to PREFIX.  The first
@@ -901,7 +901,7 @@ make_temp_name (prefix, base64_p)
       pidlen = 3;
 #endif
     }
-  
+
   len = XSTRING (prefix)->size;
   val = make_uninit_string (len + 3 + pidlen);
   data = XSTRING (val)->data;
@@ -1188,7 +1188,7 @@ See also the function `substitute-in-file-name'.")
 		   && IS_DIRECTORY_SEP (p[0])
 		   && IS_DIRECTORY_SEP (p[1]))
 	    lose = 1;
-	  
+
 #ifdef VMS
 	  if (p[0] == '\\')
 	    lose = 1;
@@ -1531,7 +1531,7 @@ See also the function `substitute-in-file-name'.")
 	     absolute directory in nm produces "//", which will then be
 	     incorrectly treated as a network share.  Ignore newdir in
 	     this case (keeping the drive letter).  */
-	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0]) 
+	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0])
 		&& newdir[1] == '\0'))
 #endif
 	    strcpy (target, newdir);
@@ -2353,7 +2353,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 
 #ifdef WINDOWSNT
   if (!CopyFile (XSTRING (encoded_file)->data,
-		 XSTRING (encoded_newname)->data, 
+		 XSTRING (encoded_newname)->data,
 		 FALSE))
     report_file_error ("Copying file", Fcons (file, Fcons (newname, Qnil)));
   else if (!NILP (keep_time))
@@ -2510,7 +2510,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 }
 
 DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
-  "Delete the directory named DIRECTORY.")
+  "Delete the directory named DIRECTORY.  Does not follow symlinks.")
   (directory)
      Lisp_Object directory;
 {
@@ -2536,15 +2536,22 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
 }
 
 DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 1, "fDelete file: ",
-  "Delete file named FILENAME.\n\
+  "Delete file named FILENAME.  If it is a symlink, remove the symlink.\n\
 If file has multiple names, it continues to exist with the other names.")
   (filename)
      Lisp_Object filename;
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
+  struct gcpro gcpro1;
 
-  CHECK_STRING (filename, 0);
+  GCPRO1 (filename);
+  if (!NILP (Ffile_directory_p (filename)))
+    Fsignal (Qfile_error,
+	     Fcons (build_string ("Removing old name: is a directory"),
+		    Fcons (filename, Qnil)));
+  UNGCPRO;
+
   filename = Fexpand_file_name (filename, Qnil);
 
   handler = Ffind_file_name_handler (filename, Qdelete_file);
@@ -3133,7 +3140,7 @@ Otherwise returns nil.")
       bufsize *= 2;
       buf = (char *) xrealloc (buf, bufsize);
       bzero (buf, bufsize);
-      
+
       errno = 0;
       valsize = readlink (XSTRING (filename)->data, buf, bufsize);
       if (valsize == -1)
@@ -3151,7 +3158,7 @@ Otherwise returns nil.")
 	}
     }
   while (valsize >= bufsize);
-  
+
   val = make_string (buf, valsize);
   if (buf[0] == '/' && index (buf, ':'))
     val = concat2 (build_string ("/:"), val);
@@ -3209,12 +3216,6 @@ searchable directory.")
   if (!NILP (handler))
     return call2 (handler, Qfile_accessible_directory_p, filename);
 
-  /* It's an unlikely combination, but yes we really do need to gcpro:
-     Suppose that file-accessible-directory-p has no handler, but
-     file-directory-p does have a handler; this handler causes a GC which
-     relocates the string in `filename'; and finally file-directory-p
-     returns non-nil.  Then we would end up passing a garbaged string
-     to file-executable-p.  */
   GCPRO1 (filename);
   tem = (NILP (Ffile_directory_p (filename))
 	 || NILP (Ffile_executable_p (filename)));
@@ -3734,7 +3735,7 @@ actually used.")
 		     standard-output.  */
 		  count1 = specpdl_ptr - specpdl;
 		  temp_output_buffer_setup (" *code-converting-work*");
-		  
+
 		  set_buffer_internal (XBUFFER (Vstandard_output));
 		  current_buffer->enable_multibyte_characters = Qnil;
 		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
@@ -3745,7 +3746,7 @@ actually used.")
 
 		  /* Remove the binding for standard-output.  */
 		  unbind_to (count1, Qnil);
-		  
+
 		  /* Discard the unwind protect for recovering the
                      current buffer.  */
 		  specpdl_ptr--;
@@ -3910,11 +3911,11 @@ actually used.")
 		break;
 	      total_read += nread;
 	    }
-	  
+
 	  /* Scan this bufferful from the end, comparing with
 	     the Emacs buffer.  */
 	  bufpos = total_read;
-	  
+
 	  /* Compare with same_at_start to avoid counting some buffer text
 	     as matching both at the file's beginning and at the end.  */
 	  while (bufpos > 0 && same_at_end > same_at_start
@@ -4171,7 +4172,7 @@ actually used.")
       if (coding.cmp_data && coding.cmp_data->used)
 	coding_restore_composition (&coding, Fcurrent_buffer ());
       coding_free_composition_data (&coding);
-  
+
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
 
@@ -4216,15 +4217,15 @@ actually used.")
      before exiting the loop, it is set to a negative value if I/O
      error occurs.  */
   how_much = 0;
-  
+
   /* Total bytes inserted.  */
   inserted = 0;
-  
+
   /* Here, we don't do code conversion in the loop.  It is done by
      code_convert_region after all data are read into the buffer.  */
   {
     int gap_size = GAP_SIZE;
-    
+
     while (how_much < total)
       {
 	/* try is reserved in some compilers (Microsoft C) */
@@ -4268,7 +4269,7 @@ actually used.")
 	    this = emacs_read (fd, BEG_ADDR + PT_BYTE - 1 + inserted, trytry);
 	    immediate_quit = 0;
 	  }
-      
+
 	if (this <= 0)
 	  {
 	    how_much = this;
@@ -4416,7 +4417,7 @@ actually used.")
   /* Use the conversion type to determine buffer-file-type
      (find-buffer-file-type is now used to help determine the
      conversion).  */
-  if ((coding.eol_type == CODING_EOL_UNDECIDED 
+  if ((coding.eol_type == CODING_EOL_UNDECIDED
        || coding.eol_type == CODING_EOL_LF)
       && ! CODING_REQUIRE_DECODING (&coding))
     current_buffer->buffer_file_type = Qt;
@@ -4461,7 +4462,7 @@ actually used.")
   if (inserted > 0)
     {
       int empty_undo_list_p = 0;
-      
+
       /* If we're anyway going to discard undo information, don't
 	 record it in the first place.  The buffer's undo list at this
 	 point is either nil or t when visiting a file.  */
@@ -4470,12 +4471,12 @@ actually used.")
 	  empty_undo_list_p = NILP (current_buffer->undo_list);
 	  current_buffer->undo_list = Qt;
 	}
-	  
+
       insval = call3 (Qformat_decode,
 		      Qnil, make_number (inserted), visit);
       CHECK_NUMBER (insval, 0);
       inserted = XFASTINT (insval);
-      
+
       if (!NILP (visit))
 	current_buffer->undo_list = empty_undo_list_p ? Qnil : Qt;
     }
@@ -4646,7 +4647,7 @@ This does code conversion according to the value of\n\
 	  if (NILP (current_buffer->enable_multibyte_characters))
 	    force_raw_text = 1;
 	}
-	
+
       if (NILP (val))
 	{
 	  /* Check file-coding-system-alist.  */
@@ -4668,7 +4669,7 @@ This does code conversion according to the value of\n\
 	  val = current_buffer->buffer_file_coding_system;
 	  using_default_coding = 1;
 	}
-	    
+
       if (!force_raw_text
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	  /* Confirm that VAL can surely encode the current region.  */
@@ -4868,7 +4869,7 @@ This does code conversion according to the value of\n\
   if (!NILP (append) && !NILP (Ffile_regular_p (filename)))
     {
       long ret;
-      
+
       if (NUMBERP (append))
 	ret = lseek (desc, XINT (append), 1);
       else
@@ -4882,7 +4883,7 @@ This does code conversion according to the value of\n\
 	  report_file_error ("Lseek error", Fcons (filename, Qnil));
 	}
     }
-  
+
   UNGCPRO;
 
 #ifdef VMS
@@ -5114,7 +5115,7 @@ build_annotations (start, end, pre_write_conversion)
   for (i = 0; !NILP (p); p = Fcdr (p), ++i)
     {
       struct buffer *given_buffer = current_buffer;
-      
+
       Vwrite_region_annotations_so_far = annotations;
 
       /* Value is either a list of annotations or nil if the function
@@ -5128,7 +5129,7 @@ build_annotations (start, end, pre_write_conversion)
 	  XSETFASTINT (end, ZV);
 	  annotations = Qnil;
 	}
-      
+
       if (CONSP (res))
 	annotations = merge (annotations, res, Qcar_less_than_car);
     }
@@ -5403,9 +5404,9 @@ auto_save_error (error)
   Lisp_Object args[3], msg;
   int i, nbytes;
   struct gcpro gcpro1;
-  
+
   ring_bell ();
-  
+
   args[0] = build_string ("Auto-saving %s: %s");
   args[1] = current_buffer->name;
   args[2] = Ferror_message_string (error);
@@ -5488,7 +5489,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   int count = specpdl_ptr - specpdl;
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
   int message_p = push_message ();
-  
+  struct gcpro gcpro1, gcpro2;
+
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
   oquit = Vquit_flag;
@@ -5506,7 +5508,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   if (STRINGP (Vauto_save_list_file_name))
     {
       Lisp_Object listfile;
-      
+
       listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
 
       /* Don't try to create the directory when shutting down Emacs,
@@ -5515,11 +5517,14 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
       if (!NILP (Vrun_hooks))
 	{
 	  Lisp_Object dir;
+	  dir = Qnil;
+	  GCPRO2 (dir, listfile);
 	  dir = Ffile_name_directory (listfile);
 	  if (NILP (Ffile_directory_p (dir)))
 	    call2 (Qmake_directory, dir, Qt);
+	  UNGCPRO;
 	}
-      
+
       stream = fopen (XSTRING (listfile)->data, "w");
       if (stream != NULL)
 	{
@@ -5901,7 +5906,7 @@ provides a file dialog box..")
   specbind (intern ("minibuffer-completing-file-name"), Qt);
 
   GCPRO2 (insdef, default_filename);
-  
+
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
@@ -5977,7 +5982,7 @@ provides a file dialog box..")
 	Fset (Qfile_name_history,
 	      Fcons (val1, tem));
     }
-    
+
   return val;
 }
 
@@ -6102,7 +6107,7 @@ same format as a regular save would use.");
   staticpro (&Qformat_decode);
   Qformat_annotate_function = intern ("format-annotate-function");
   staticpro (&Qformat_annotate_function);
-	
+
   Qcar_less_than_car = intern ("car-less-than-car");
   staticpro (&Qcar_less_than_car);
 
@@ -6272,4 +6277,3 @@ a non-nil value.");
   defsubr (&Sunix_sync);
 #endif
 }
-
