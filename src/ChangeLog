@@ -1,3 +1,7 @@
+2002-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (MIN_SAFE_WINDOW_HEIGHT): Value now 1.
+
 2002-01-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* doprnt.c (doprnt1): Fix typos in error call.
