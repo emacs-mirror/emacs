@@ -1,3 +1,8 @@
+2001-07-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* font-lock.el (c-font-lock-keywords-3): When matching something
+	like `struct X Y', finish with point after Y.
+
 2001-07-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* find-file.el (ff-find-the-other-file): Use file-name-nondirectory
