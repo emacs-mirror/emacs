@@ -1,10 +1,9 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages
 
-;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999,2000,2003  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.18 2003/02/04 11:34:12 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,6 +50,22 @@
 
 ;; compiler pacifiers
 (defvar cvs-buffer)
+
+
+;; The main keymap
+
+;; Initialization code, to be done just once at load-time
+(defvar vc-log-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\M-n" 'vc-next-comment)
+    (define-key map "\M-p" 'vc-previous-comment)
+    (define-key map "\M-r" 'vc-comment-search-reverse)
+    (define-key map "\M-s" 'vc-comment-search-forward)
+    (define-key map "\C-c\C-c" 'vc-finish-logentry)
+    map))
+;; Compatibility with old name.  Should we bother ?
+(defvar vc-log-entry-mode vc-log-mode-map)
 
 (easy-mmode-defmap log-edit-mode-map
   `(("\C-c\C-c" . log-edit-done)
@@ -162,6 +177,118 @@ when this variable is set to nil.")
 (defvar log-edit-callback nil)
 (defvar log-edit-listfun nil)
 (defvar log-edit-parent-buffer nil)
+
+;;; Taken from VC-Log mode
+
+(defconst vc-maximum-comment-ring-size 32
+  "Maximum number of saved comments in the comment ring.")
+(defvar vc-comment-ring (make-ring vc-maximum-comment-ring-size))
+(defvar vc-comment-ring-index nil)
+(defvar vc-last-comment-match "")
+
+(defun vc-new-comment-index (stride len)
+  "Return the comment index STRIDE elements from the current one.
+LEN is the length of `vc-comment-ring'."
+  (mod (cond
+	(vc-comment-ring-index (+ vc-comment-ring-index stride))
+	;; Initialize the index on the first use of this command
+	;; so that the first M-p gets index 0, and the first M-n gets
+	;; index -1.
+	((> stride 0) (1- stride))
+	(t stride))
+       len))
+
+(defun vc-previous-comment (arg)
+  "Cycle backwards through comment history.
+With a numeric prefix ARG, go back ARG comments."
+  (interactive "*p")
+  (let ((len (ring-length vc-comment-ring)))
+    (if (<= len 0)
+	(progn (message "Empty comment ring") (ding))
+      (erase-buffer)
+      (setq vc-comment-ring-index (vc-new-comment-index arg len))
+      (message "Comment %d" (1+ vc-comment-ring-index))
+      (insert (ring-ref vc-comment-ring vc-comment-ring-index)))))
+
+(defun vc-next-comment (arg)
+  "Cycle forwards through comment history.
+With a numeric prefix ARG, go forward ARG comments."
+  (interactive "*p")
+  (vc-previous-comment (- arg)))
+
+(defun vc-comment-search-reverse (str &optional stride)
+  "Search backwards through comment history for substring match of STR.
+If the optional argument STRIDE is present, that is a step-width to use
+when going through the comment ring."
+  ;; Why substring rather than regexp ?   -sm
+  (interactive
+   (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
+  (unless stride (setq stride 1))
+  (if (string= str "")
+      (setq str vc-last-comment-match)
+    (setq vc-last-comment-match str))
+  (let* ((str (regexp-quote str))
+	 (len (ring-length vc-comment-ring))
+	 (n (vc-new-comment-index stride len)))
+    (while (progn (when (or (>= n len) (< n 0)) (error "Not found"))
+		  (not (string-match str (ring-ref vc-comment-ring n))))
+      (setq n (+ n stride)))
+    (setq vc-comment-ring-index n)
+    (vc-previous-comment 0)))
+
+(defun vc-comment-search-forward (str)
+  "Search forwards through comment history for a substring match of STR."
+  (interactive
+   (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
+  (vc-comment-search-reverse str -1))
+
+(defun vc-comment-to-change-log (&optional whoami file-name)
+  "Enter last VC comment into the change log for the current file.
+WHOAMI (interactive prefix) non-nil means prompt for user name
+and site.  FILE-NAME is the name of the change log; if nil, use
+`change-log-default-name'.
+
+This may be useful as a `vc-checkin-hook' to update change logs
+automatically."
+  (interactive (if current-prefix-arg
+		   (list current-prefix-arg
+			 (prompt-for-change-log-name))))
+  ;; Make sure the defvar for add-log-current-defun-function has been executed
+  ;; before binding it.
+  (require 'add-log)
+  (let (;; Extract the comment first so we get any error before doing anything.
+	(comment (ring-ref vc-comment-ring 0))
+	;; Don't let add-change-log-entry insert a defun name.
+	(add-log-current-defun-function 'ignore)
+	end)
+    ;; Call add-log to do half the work.
+    (add-change-log-entry whoami file-name t t)
+    ;; Insert the VC comment, leaving point before it.
+    (setq end (save-excursion (insert comment) (point-marker)))
+    (if (looking-at "\\s *\\s(")
+	;; It starts with an open-paren, as in "(foo): Frobbed."
+	;; So remove the ": " add-log inserted.
+	(delete-char -2))
+    ;; Canonicalize the white space between the file name and comment.
+    (just-one-space)
+    ;; Indent rest of the text the same way add-log indented the first line.
+    (let ((indentation (current-indentation)))
+      (save-excursion
+	(while (< (point) end)
+	  (forward-line 1)
+	  (indent-to indentation))
+	(setq end (point))))
+    ;; Fill the inserted text, preserving open-parens at bol.
+    (let ((paragraph-separate (concat paragraph-separate "\\|\\s *\\s("))
+	  (paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
+      (beginning-of-line)
+      (fill-region (point) end))
+    ;; Canonicalize the white space at the end of the entry so it is
+    ;; separated from the next entry by a single blank line.
+    (skip-syntax-forward " " end)
+    (delete-char (- (skip-syntax-backward " ")))
+    (or (eobp) (looking-at "\n\n")
+	(insert "\n"))))
 
 ;;;
 ;;; Actual code
@@ -311,7 +438,6 @@ To select default log text, we:
   "Show the list of files to be committed."
   (interactive)
   (let* ((files (log-edit-files))
-	 (editbuf (current-buffer))
 	 (buf (get-buffer-create log-edit-files-buf)))
     (with-current-buffer buf
       (log-edit-hide-buf buf 'all)
