@@ -187,12 +187,15 @@ StandardEncoding 46 82 getinterval aload pop
   dobackground
 }def
 
-/PSL{bg{eolbg}if  0  currentpoint exch pop LineHeight sub  moveto}def
+/LineHS LineHeight LineSpacing add def
+/ParagraphHS LineHeight ParagraphSpacing add def
+/PSL{/h exch def bg{eolbg}if  0  currentpoint exch pop h sub  moveto}def
 /PLN{PrintLineNumber{doLineNumber}if}def
 
-/SL{PSL isLineStep pop}def		% Soft Linefeed
+/SL{LineHS PSL isLineStep pop}def	% Soft Linefeed
 
-/HL{PSL PLN}def				% Hard Linefeed
+/PHL{ParagraphHS PSL PLN}def		% Paragraph Hard Linefeed
+/LHL{LineHS PSL PLN}def			% Hard Linefeed
 
 % Some debug
 /dcp{currentpoint exch 40 string cvs print(, )print =}def
@@ -207,36 +210,51 @@ StandardEncoding 46 82 getinterval aload pop
   0 rmoveto
 }def
 
-/Effect 0 def
-/EF{/Effect exch def}def
+/Effect          0 def
+/EffectUnderline false def
+/EffectStrikeout false def
+/EffectOverline  false def
+/EffectShadow    false def
+/EffectBox       false def
+/EffectOutline   false def
 
-% stack:  string  |-  --
 % effect: 1  - underline  2   - strikeout  4  - overline
 %         8  - shadow     16  - box        32 - outline
+/EF{
+  /Effect exch def
+  /EffectUnderline Effect 1  and 0 ne def
+  /EffectStrikeout Effect 2  and 0 ne def
+  /EffectOverline  Effect 4  and 0 ne def
+  /EffectShadow    Effect 8  and 0 ne def
+  /EffectBox       Effect 16 and 0 ne def
+  /EffectOutline   Effect 32 and 0 ne def
+}def
+
+% stack:  string  |-  --
 /S{
   /xx currentpoint dup Descent add/yy exch def
   Ascent add/YY exch def def
   dup stringwidth pop xx add/XX exch def
-  Effect 8 and 0 ne{
+  EffectShadow{
     /yy yy Yshadow add def
     /XX XX Xshadow add def
   }if
   bg{
     true
-    Effect 16 and 0 ne
+    EffectBox
       {SpaceBackground doBox}
       {xx yy XX YY doRect}
     ifelse
   }if						% background
-  Effect 16 and 0 ne{false 0 doBox}if		% box
-  Effect 8  and 0 ne{dup doShadow}if		% shadow
-  Effect 32 and 0 ne
+  EffectBox      {false 0 doBox}if		% box
+  EffectShadow   {dup doShadow}if		% shadow
+  EffectOutline
     {true doOutline}				% outline
     {show}					% normal text
   ifelse
-  Effect 1  and 0 ne{UnderlinePosition Hline}if	% underline
-  Effect 2  and 0 ne{StrikeoutPosition Hline}if	% strikeout
-  Effect 4  and 0 ne{OverlinePosition  Hline}if	% overline
+  EffectUnderline{UnderlinePosition Hline}if	% underline
+  EffectStrikeout{StrikeoutPosition Hline}if	% strikeout
+  EffectOverline {OverlinePosition  Hline}if	% overline
 }bind def
 
 % stack:  position  |-  --
@@ -351,7 +369,7 @@ StandardEncoding 46 82 getinterval aload pop
   gsave
   ZebraColor SetColor
   /double-zebra ZebraHeight ZebraHeight add def
-  /yiter double-zebra LineHeight mul neg def
+  /yiter double-zebra LineHS mul neg def
   /xiter PrintWidth InterColumn add def
   /zebra-line LinesPrinted def
   NumberOfColumns{LinesPerColumn doColumnZebra xiter 0 rmoveto}repeat
@@ -370,18 +388,23 @@ StandardEncoding 46 82 getinterval aload pop
      /lpc lpc ZebraHeight sub def
      H ZebraHeight add}
     {H}ifelse	% "white" stripe
-    LineHeight mul neg 0 exch rmoveto
+    LineHS mul neg 0 exch rmoveto
     /zebra-line zebra-line LinesPerColumn add def
   }if
+  /zspacing 0 def
   lpc dup double-zebra idiv{ZebraHeight doZebra 0 yiter rmoveto}repeat
   double-zebra mod dup 0 le{pop}
-  {dup ZebraHeight gt ZebraFollow 2 and 0 ne or{pop ZebraHeight}if doZebra}ifelse
+  {dup ZebraHeight gt
+   {pop ZebraHeight}
+   {/zspacing LineSpacing def
+    ZebraFollow 2 and 0 ne{pop ZebraHeight}if}ifelse
+   doZebra}ifelse
   grestore
 }def
 
 % stack:  zebra-height (in lines) |- --
 /doZebra{
-  /zh exch 0.05 sub LineHeight mul def
+  /zh exch 0.05 sub LineHS mul zspacing sub def
   gsave
   0 LineHeight 0.65 mul rmoveto
   PrintWidth 0 rlineto
