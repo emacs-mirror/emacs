@@ -64,6 +64,8 @@ struct lisp_parse_state
     int location;	/* Char number at which parsing stopped.  */
     int mindepth;	/* Minimum depth seen while scanning.  */
     int comstr_start;	/* Position just after last comment/string starter.  */
+    Lisp_Object levelstarts;	/* Char numbers of starts-of-expression
+				   of levels (starting from outermost).  */
   };
 
 /* These variables are a cache for finding the start of a defun.
@@ -2361,6 +2363,18 @@ do { prev_from = from;				\
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
       state.comstr_start = NILP (tem) ? -1 : XINT (tem) ;
+      oldstate = Fcdr (oldstate);
+      tem = Fcar (oldstate);
+      while (!NILP (tem))		/* >= second enclosing sexps.  */
+	{
+	  /* curlevel++->last ran into compiler bug on Apollo */
+	  curlevel->last = XINT (Fcar (tem));
+	  if (++curlevel == endlevel)
+	    error ("Nesting too deep for parser");
+	  curlevel->prev = -1;
+	  curlevel->last = -1;
+	  tem = Fcdr (tem);
+	}
     }
   state.quoted = 0;
   mindepth = depth;
@@ -2596,6 +2610,10 @@ do { prev_from = from;				\
   state.prevlevelstart
     = (curlevel == levelstart) ? -1 : (curlevel - 1)->last;
   state.location = from;
+  state.levelstarts = Qnil;
+  while (--curlevel >= levelstart)
+      state.levelstarts = Fcons (make_number (curlevel->last),
+				 state.levelstarts);
   immediate_quit = 0;
 
   *stateptr = state;
@@ -2611,7 +2629,7 @@ Parsing stops at TO or when certain criteria are met;\n\
  point is set to where parsing stops.\n\
 If fifth arg STATE is omitted or nil,\n\
  parsing assumes that FROM is the beginning of a function.\n\
-Value is a list of nine elements describing final state of parsing:\n\
+Value is a list of ten elements describing final state of parsing:\n\
  0. depth in parens.\n\
  1. character address of start of innermost containing list; nil if none.\n\
  2. character address of start of last complete sexp terminated.\n\
@@ -2624,6 +2642,7 @@ Value is a list of nine elements describing final state of parsing:\n\
  7. t if in a comment of style b; `syntax-table' if the comment\n\
     should be terminated by a generic comment delimiter.\n\
  8. character address of start of comment or string; nil if not in one.\n\
+ 9. Intermediate data for continuation of parsing (subject to change).\n\
 If third arg TARGETDEPTH is non-nil, parsing stops if the depth\n\
 in parentheses becomes equal to TARGETDEPTH.\n\
 Fourth arg STOPBEFORE non-nil means stop when come to\n\
@@ -2678,7 +2697,7 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 			      Fcons ((state.incomment || state.instring
 				      ? make_number (state.comstr_start)
 				      : Qnil),
-				     Qnil)))))))));
+				     Fcons (state.levelstarts, Qnil))))))))));
 }
 
 void
