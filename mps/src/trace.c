@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.30) $
+ * $HopeName: MMsrc!trace.c(trunk.31) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.30) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.31) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -123,7 +123,7 @@ static Res TraceStart(Trace trace, Action action)
   space = trace->space;
   pool = action->pool;
 
-  EVENT3(TraceStart, trace, pool, action);
+  EVENT_PPP(TraceStart, trace, pool, action);
   ring = PoolSegRing(pool);
   node = RingNext(ring);
   while(node != ring) {
@@ -277,7 +277,7 @@ found:
   if(res != ResOK) goto failStart;
 
   *traceReturn = trace;
-  EVENT4(TraceCreate, space, action, trace, ti);
+  EVENT_PPPU(TraceCreate, space, action, trace, ti);
   return ResOK;
 
 failStart:
@@ -310,7 +310,7 @@ void TraceDestroy(Trace trace)
     TraceSetDel(trace->space->busyTraces, trace->ti);
   trace->space->flippedTraces =
     TraceSetDel(trace->space->flippedTraces, trace->ti);
-  EVENT1(TraceDestroy, trace);
+  EVENT_P(TraceDestroy, trace);
 }
 
 
@@ -336,7 +336,7 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
      TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
     ShieldRaise(space, seg, AccessREAD);
   SegSetGrey(seg, grey);
-  EVENT3(TraceSegGreyen, space, seg, ts);
+  EVENT_PPU(TraceSegGreyen, space, seg, ts);
 }
 
 
@@ -421,7 +421,7 @@ static Res TraceFlip(Trace trace)
 
   AVER(trace->state == TraceUNFLIPPED);
 
-  EVENT2(TraceFlipBegin, trace, space);
+  EVENT_PP(TraceFlipBegin, trace, space);
 
   TraceFlipBuffers(space);
  
@@ -481,7 +481,7 @@ static Res TraceFlip(Trace trace)
 
   ss.sig = SigInvalid;  /* just in case */
 
-  EVENT2(TraceFlipEnd, trace, space);
+  EVENT_PP(TraceFlipEnd, trace, space);
 
   ShieldResume(space);
 
@@ -498,7 +498,7 @@ static void TraceReclaim(Trace trace)
   AVER(trace->state == TraceRECLAIM);
 
 
-  EVENT1(TraceReclaim, trace);
+  EVENT_P(TraceReclaim, trace);
   space = trace->space;
   if(SegFirst(&seg, space)) {
     Addr base;
@@ -583,7 +583,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
   
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
-  EVENT5(TraceScan, ts, rank, space, seg, &ss);
+  EVENT_UUPPP(TraceScan, ts, rank, space, seg, &ss);
 
   ss.rank = rank;
   ss.traces = ts;
@@ -643,7 +643,7 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
   AVERT(Seg, seg);
   UNUSED(mode);
 
-  EVENT3(TraceAccess, space, seg, mode);
+  EVENT_PPU(TraceAccess, space, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
     /* In this case, the segment must be grey for a trace which is */
@@ -712,7 +712,7 @@ Res TracePoll(Trace trace)
 
   space = trace->space;
 
-  EVENT2(TracePoll, trace, space);
+  EVENT_PP(TracePoll, trace, space);
 
   switch(trace->state) {
     case TraceUNFLIPPED: {
@@ -771,12 +771,12 @@ Res TraceFix(ScanState ss, Ref *refIO)
 
   ref = *refIO;
 
-  EVENT4(TraceFix, ss, refIO, ref, ss->rank);
+  EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
   if(SegOfAddr(&seg, ss->space, ref)) {
-    EVENT1(TraceFixSeg, seg);
+    EVENT_P(TraceFixSeg, seg);
     if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
       Res res;
-      EVENT0(TraceFixWhite);
+      EVENT_0(TraceFixWhite);
       pool = SegPool(seg);
       res = PoolFix(pool, ss, seg, refIO);
       if (res != ResOK)
@@ -806,7 +806,7 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   AVER(limit != NULL);
   AVER(base < limit);
 
-  EVENT3(TraceScanArea, ss, base, limit);
+  EVENT_PPP(TraceScanArea, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
     p = base;
@@ -854,7 +854,7 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   AVER(limit != NULL);
   AVER(base < limit);
 
-  EVENT3(TraceScanAreaTagged, ss, base, limit);
+  EVENT_PPP(TraceScanAreaTagged, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
     p = base;
