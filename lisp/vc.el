@@ -5,6 +5,8 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
+;; $Id: vc.el,v 1.208.1.1 1998/02/27 18:28:44 spiegel Exp $
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -108,6 +110,12 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
 (defcustom vc-initial-comment nil
   "*If non-nil, prompt for initial comment when a file is registered."
   :type 'boolean
+  :group 'vc)
+
+(defcustom vc-default-init-version "1.1"
+  "*A string used as the default version number when a new file is registered.
+This can be overriden by giving a prefix argument to \\[vc-register]."
+  :type 'string
   :group 'vc)
 
 (defcustom vc-command-messages nil
@@ -971,9 +979,11 @@ merge in the changes into your working copy."
 	 (setq backup-inhibited t)))
   (vc-admin
    buffer-file-name
-   (and override
-	(read-string
-	 (format "Initial version level for %s: " buffer-file-name))))
+   (or (and override
+            (read-string
+             (format "Initial version level for %s: " buffer-file-name)))
+       vc-default-init-version)
+   comment)
   (setq vc-buffer-backend (vc-backend (buffer-file-name)))
   )
 
