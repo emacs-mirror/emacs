@@ -28,6 +28,9 @@
 ;; Written by Howard Gayle.  See case-table.el for details.
 ;; Updated by Erik Naggum.
 
+;; The current standard is ISO/IEC 8859-1:1998.  As of 1999-05, see
+;; <URL:http://czyborra.com/charsets/iso8859.html> and the `final text'
+;; <URL:http://anubis.dkuug.dk/jtc1/sc2/wg3/docs/n411.pdf>.
 ;;; Code:
 
 (require 'case-table)
@@ -52,17 +55,17 @@
   (set-case-syntax 172 "_" tbl)		;not sign
   (set-case-syntax 173 "_" tbl)		;soft hyphen
   (set-case-syntax 174 "_" tbl)		;registered sign
-  (set-case-syntax 175 "w" tbl)		;overline
+  (set-case-syntax 175 "w" tbl)		;macron
   (set-case-syntax 176 "_" tbl)		;degree sign
   (set-case-syntax 177 "_" tbl)		;plus-minus sign
-  (set-case-syntax 178 "w" tbl)		;superscript digit two
-  (set-case-syntax 179 "w" tbl)		;superscript digit three
+  (set-case-syntax 178 "w" tbl)		;superscript two
+  (set-case-syntax 179 "w" tbl)		;superscript three
   (set-case-syntax 180 "w" tbl)		;acute accent
   (set-case-syntax 181 "_" tbl)		;micro sign
   (set-case-syntax 182 "w" tbl)		;pilcrow sign
   (set-case-syntax 183 "_" tbl)		;middle dot
   (set-case-syntax 184 "w" tbl)		;cedilla
-  (set-case-syntax 185 "w" tbl)		;superscript digit one
+  (set-case-syntax 185 "w" tbl)		;superscript one
   (set-case-syntax 186 "w" tbl)		;masculine ordinal indicator
   (set-case-syntax 188 "_" tbl)		;vulgar fraction one quarter
   (set-case-syntax 189 "_" tbl)		;vulgar fraction one half
@@ -84,7 +87,7 @@
   (set-case-syntax-pair 205 237 tbl)	;latin letter i with acute
   (set-case-syntax-pair 206 238 tbl)	;latin letter i with circumflex
   (set-case-syntax-pair 207 239 tbl)	;latin letter i with diaeresis
-  (set-case-syntax-pair 208 240 tbl)	;latin letter eth
+  (set-case-syntax-pair 208 240 tbl)	;latin letter eth (Icelandic)
   (set-case-syntax-pair 209 241 tbl)	;latin letter n with tilde
   (set-case-syntax-pair 210 242 tbl)	;latin letter o with grave
   (set-case-syntax-pair 211 243 tbl)	;latin letter o with acute
@@ -98,8 +101,8 @@
   (set-case-syntax-pair 219 251 tbl)	;latin letter u with circumflex
   (set-case-syntax-pair 220 252 tbl)	;latin letter u with diaeresis
   (set-case-syntax-pair 221 253 tbl)	;latin letter y with acute
-  (set-case-syntax-pair 222 254 tbl)	;latin letter thorn
-  (set-case-syntax 223 "w" tbl)		;latin small letter sharp s
+  (set-case-syntax-pair 222 254 tbl)	;latin letter thorn (Icelandic)
+  (set-case-syntax 223 "w" tbl)		;latin small letter sharp s (German)
   (set-case-syntax 247 "_" tbl)		;division sign
   (set-case-syntax 255 "w" tbl))	;latin small letter y with diaeresis
 
