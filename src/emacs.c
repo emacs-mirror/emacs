@@ -1189,7 +1189,8 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
      if this is not done.  Do it after set_process_environment so that we
      don't pollute Vprocess_environment.  */
-#ifdef AIX
+  /* Setting LANG here will defeat the startup locale processing...  */
+#ifdef AIX3_2
   putenv ("LANG=C");
 #endif
 
