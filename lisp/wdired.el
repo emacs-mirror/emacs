@@ -877,3 +877,4 @@ commands.  This advice only has effect in wdired mode."
 ;;; wdired.el ends here
 
 
+;;; arch-tag: bc00902e-526f-4305-bc7f-8862a559184f
