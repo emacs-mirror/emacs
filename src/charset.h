@@ -209,7 +209,9 @@ struct charset
 
   /* Mininum and Maximum character codes of the charset.  If the
      charset is compatible with ASCII, min_char is a minimum non-ASCII
-     character of the charset.  */
+     character of the charset.  If the method of charset is
+     CHARSET_METHOD_OFFSET, even if the charset is unified, min_char
+     and max_char doesn't change.  */
   int min_char, max_char;
 
   /* The code returned by ENCODE_CHAR if a character is not encodable
@@ -246,6 +248,11 @@ extern struct charset *charset_table;
 extern int charset_table_used;
 
 #define CHARSET_FROM_ID(id) (charset_table + (id))
+
+extern Lisp_Object Vcharset_ordered_list;
+
+/* Incremented everytime we change the priority of charsets.  */
+unsigned short charset_ordered_list_tick;
 
 extern Lisp_Object Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
@@ -486,6 +493,18 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 	      ? ! NILP (CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c))) \
 	      : encode_char ((charset), (c)) != (charset)->invalid_code))))
 
+
+/* Special macros for emacs-mule encoding.  */
+
+/* Leading-code followed by extended leading-code.    DIMENSION/COLUMN */
+#define EMACS_MULE_LEADING_CODE_PRIVATE_11	0x9A /* 1/1 */
+#define EMACS_MULE_LEADING_CODE_PRIVATE_12	0x9B /* 1/2 */
+#define EMACS_MULE_LEADING_CODE_PRIVATE_21	0x9C /* 2/2 */
+#define EMACS_MULE_LEADING_CODE_PRIVATE_22	0x9D /* 2/2 */
+
+extern struct charset *emacs_mule_charset[256];
+
+
 
 extern Lisp_Object Qcharsetp;
 
@@ -508,6 +527,6 @@ extern void map_charset_chars P_ ((void (*) (Lisp_Object, Lisp_Object),
 				   Lisp_Object, Lisp_Object,
 				   struct charset *, unsigned, unsigned));
 
-EXFUN (Funify_charset, 2);
+EXFUN (Funify_charset, 3);
 
 #endif /* EMACS_CHARSET_H */
