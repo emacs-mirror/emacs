@@ -1676,7 +1676,7 @@ temp_set_point (buffer, charpos)
 
 INLINE void
 temp_set_point_both (buffer, charpos, bytepos)
-     int charpos;
+     int charpos, bytepos;
      struct buffer *buffer;
 {
   /* In a single-byte buffer, the two positions must be equal.  */
@@ -1712,7 +1712,7 @@ set_point (buffer, charpos)
 void
 set_point_both (buffer, charpos, bytepos)
      register struct buffer *buffer;
-     register int charpos;
+     register int charpos, bytepos;
 {
   register INTERVAL to, from, toprev, fromprev, target;
   int buffer_point;
