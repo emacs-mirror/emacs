@@ -823,7 +823,7 @@ menus.
 @section Tool Bars
 @cindex Tool Bar mode
 @cindex mode, Tool Bar
-@cindex icons, tool bar
+@cindex icons, toolbar
 
 The @dfn{tool bar} is a line (or multiple lines) of icons at the top
 of the Emacs window.  You can click on these icons with the mouse
