@@ -176,6 +176,10 @@ The holidays are those in the list `calendar-holidays'."
   "Ethiopic calendar equivalent of date diary entry."
   t)
 
+(autoload 'diary-persian-date "cal-persian"
+  "Persian calendar equivalent of date diary entry."
+  t)
+
 (autoload 'diary-phases-of-moon "lunar" "Moon phases diary entry." t)
 
 (autoload 'diary-sunrise-sunset "solar"
@@ -478,11 +482,15 @@ This function is provided for optional use as the `diary-display-hook'."
                           d)))
                   (insert (if (= (point) (point-min)) "" ?\n) date-string)
                   (if date-holiday-list (insert ":  "))
-                  (let ((l (current-column)))
-                    (insert (mapconcat 'identity date-holiday-list
-                                       (concat "\n" (make-string l ? )))))
-                  (let ((l (current-column)))
-                    (insert ?\n (make-string l ?=) ?\n)))))
+                  (let* ((l (current-column))
+                         (longest 0))
+                    (insert (mapconcat '(lambda (x)
+                                          (if (< longest (length x))
+                                              (setq longest (length x)))
+                                          x)
+                                       date-holiday-list
+                                       (concat "\n" (make-string l ? ))))
+                    (insert ?\n (make-string (+ l longest) ?=) ?\n)))))
           (if (< 0 (length (car (cdr (car entry-list)))))
               (insert (car (cdr (car entry-list))) ?\n))
           (setq entry-list (cdr entry-list))))
