@@ -1479,6 +1479,10 @@ command_loop_1 ()
          this variable differently.  */
       Vdisable_point_adjustment = Qnil;
 
+      /* Process filters and timers may have messed with deactivate-mark.
+	 reset it before we execute the command. */
+      Vdeactivate_mark = Qnil;
+
       /* Execute the command.  */
 
       Vthis_command = cmd;
