@@ -1,7 +1,7 @@
 ;;; Abbrev-expansion of mail aliases.
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 ;;; Created: 19 oct 90, Jamie Zawinski <jwz@lucid.com>
-;;; Last change 24-mar-92. jwz
+;;; Last change 5-apr-92 by roland@gnu.ai.mit.edu.
 
 ;;; This file is part of GNU Emacs.
 
@@ -303,32 +303,36 @@ If DEFINITION contains multiple addresses, seperate them with commas."
   (symbol-value sym))
 
 
-(defun mail-abbrev-expand-hook ()
+(defun mail-abbrev-expand-hook-v19 ()
   "For use as the fourth arg to define-abbrev.
-  After expanding a mail-abbrev, if fill-mode is on and we're past the 
+After expanding a mail-abbrev, if fill-mode is on and we're past the 
 fill-column, break the line at the previous comma, and indent the next
 line."
-  (let (p bol)
+  (save-excursion
+    (let ((p (point))
+	  bol comma fp)
+      (beginning-of-line)
+      (setq bol (point))
+      (goto-char p)
       (while (and auto-fill-function
-		  (>= (current-column) fill-column))
+		  (>= (current-column) fill-column)
+		  (search-backward "," bol t))
+	(setq comma (point))
+	(forward-char 1)		; Now we are just past the comma.
+	(insert "\n")
+	(delete-horizontal-space)
 	(setq p (point))
-	(save-excursion
-	  (let (fp)
-	    (beginning-of-line)
-	    (setq bol (point))
-	    (goto-char p)
-	    (while (and (>= (current-column) fill-column)
-			(search-backward "," bol t)))
-	    (save-excursion
-	      (forward-char 1)
-	      (insert "\n")
-	      (delete-horizontal-space)
-	      (setq p (point))
-	      (indent-relative)
-	      (setq fp (buffer-substring p (point))))
-	    (if (> (current-column) fill-column)
-		(let ((fill-prefix (or fp "\t")))
-		  (do-auto-fill))))))))
+	(indent-relative)
+	(setq fp (buffer-substring p (point)))
+	;; Go to the end of the new line.
+	(end-of-line)
+	(if (> (current-column) fill-column)
+	    ;; It's still too long; do normal auto-fill.
+	    (let ((fill-prefix (or fp "\t")))
+	      (do-auto-fill)))
+	;; Resume the search.
+	(goto-char comma)
+	))))
 
 
 ;;; Syntax tables and abbrev-expansion
