@@ -1,3 +1,16 @@
+2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Add group.
+
+	* textmodes/sgml-mode.el (html-autoview-mode): Add group.
+
+	* textmodes/paragraphs.el (use-hard-newlines): Add group.
+
+	* progmodes/compile.el (compilation-shell-minor-mode): Add group.
+	(compilation-minor-mode):  Add group.
+
+	* reveal.el (global-reveal-mode): Add group.
+
 2002-11-17  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-ignored-headers): Add more headers.
@@ -36,7 +49,7 @@
 
 2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
 
-	* bookmark.el (bookmark-menu-length): Fix typo in group name.
+	* bookmark.el (bookmark-menu-length): Fix group name.
 
 2002-11-17   Markus Rost  <rost@math.ohio-state.edu>
 
@@ -48,8 +61,7 @@
 	* mail/feedmail.el (feedmail-fiddle-headers-upwardly)
 	(feedmail-fiddle-plex-user-list):  Fix typo in group name.
 
-	* progmodes/make-mode.el (makefile-space-face): Fix typo in group
-	name.
+	* progmodes/make-mode.el (makefile-space-face): Fix group name.
 
 	* textmodes/ispell.el (defgroup ispell): Arrange that definition
 	starts at beginning of line.
