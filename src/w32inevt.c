@@ -550,9 +550,10 @@ mouse_moved_to (int x, int y)
      Right == 2
    Others increase from there.  */
 
-static int emacs_button_translation[NUM_MOUSE_BUTTONS] =
+#define NUM_TRANSLATED_MOUSE_BUTTONS 3
+static int emacs_button_translation[NUM_TRANSLATED_MOUSE_BUTTONS] =
 {
-  0, 2, 1, 3, 4,
+  0, 2, 1
 };
 
 static int 
@@ -581,18 +582,16 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   /* Find out what button has changed state since the last button event.  */
   but_change = button_state ^ event->dwButtonState;
   mask = 1;
-  for (i = 0; i < NUM_MOUSE_BUTTONS; i++, mask <<= 1)
+  for (i = 0; mask; i++, mask <<= 1)
     if (but_change & mask)
       {
-	XSETINT (emacs_ev->code, emacs_button_translation[i]);
+        if (i < NUM_TRANSLATED_MOUSE_BUTTONS)
+          XSETINT (emacs_ev->code, emacs_button_translation[i]);
+        else
+          XSETINT (emacs_ev->code, i);
 	break;
       }
 
-  /* If the changed button is out of emacs' range (highly unlikely)
-     ignore this event.  */
-  if (i == NUM_MOUSE_BUTTONS)
-    return 0;
-  
   button_state = event->dwButtonState;
   emacs_ev->timestamp = GetTickCount ();
   emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState, 0) |
