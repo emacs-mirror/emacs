@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!30.c(trunk.5) $
+ id = $HopeName: MMQA_test_function!30.c(trunk.6) $
  summary = test my format for checking the graph
  language = c
  link = testlib.o awlfmt.o
@@ -11,12 +11,6 @@ END_HEADER
 #include "mpscawl.h"
 #include "awlfmt.h"
 #include "mpsavm.h"
-
-
-#define genCOUNT (3)
-
-static mps_gen_param_s testChain[genCOUNT] = {
-  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 
 void *stackpointer;
@@ -30,7 +24,6 @@ static void test(void)
  mps_root_t root;
 
  mps_fmt_t format;
- mps_chain_t chain;
  mps_ap_t ap;
 
  mycell *a, *b, *c, *d, *e, *f, *g;
@@ -49,9 +42,8 @@ static void test(void)
      "create root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
- cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- die(mmqa_pool_create_chain(&pool, arena, mps_class_awl(), format, chain),
+ die(mps_pool_create(&pool, arena, mps_class_awl(), format),
      "create pool");
 
  cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "create ap");
@@ -95,7 +87,6 @@ static void test(void)
 
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
- mps_chain_destroy(chain);
  mps_fmt_destroy(format);
  mps_root_destroy(root);
  mps_thread_dereg(thread);
