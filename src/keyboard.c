@@ -6627,6 +6627,7 @@ record_asynch_buffer_change ()
 {
   struct input_event event;
   Lisp_Object tem;
+  EVENT_INIT (event);
 
   event.kind = BUFFER_SWITCH_EVENT;
   event.frame_or_window = Qnil;
@@ -6684,6 +6685,9 @@ read_avail_input (expected)
   struct input_event buf[KBD_BUFFER_SIZE];
   register int i;
   int nread;
+
+  for (i = 0; i < KBD_BUFFER_SIZE; i++)
+    EVENT_INIT (buf[i]);
 
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
@@ -11375,4 +11379,43 @@ keys_of_keyboard ()
    * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",
 			    "handle-save-session");
+}
+
+/* Mark the pointers in the kboard objects.
+   Called by the Fgarbage_collector.  */
+void
+mark_kboards ()
+{
+  KBOARD *kb;
+  Lisp_Object *p;
+  for (kb = all_kboards; kb; kb = kb->next_kboard)
+    {
+      if (kb->kbd_macro_buffer)
+	for (p = kb->kbd_macro_buffer; p < kb->kbd_macro_ptr; p++)
+	  mark_object (p);
+      mark_object (&kb->Voverriding_terminal_local_map);
+      mark_object (&kb->Vlast_command);
+      mark_object (&kb->Vreal_last_command);
+      mark_object (&kb->Vprefix_arg);
+      mark_object (&kb->Vlast_prefix_arg);
+      mark_object (&kb->kbd_queue);
+      mark_object (&kb->defining_kbd_macro);
+      mark_object (&kb->Vlast_kbd_macro);
+      mark_object (&kb->Vsystem_key_alist);
+      mark_object (&kb->system_key_syms);
+      mark_object (&kb->Vdefault_minibuffer_frame);
+      mark_object (&kb->echo_string);
+    }
+  {
+    struct input_event *event;
+    for (event = kbd_fetch_ptr; event != kbd_store_ptr; event++)
+      {
+	if (event == kbd_buffer + KBD_BUFFER_SIZE)
+	  event = kbd_buffer;
+	mark_object (&event->x);
+	mark_object (&event->y);
+	mark_object (&event->frame_or_window);
+	mark_object (&event->arg);
+      }
+  }
 }
