@@ -3636,20 +3636,11 @@ or (if there were none) at the end of the buffer."
 				   ':style 'toggle
 				   ':selected symbol)))
 
-;; Fixme: sort out use of :filter in Emacs 21.
-(if nil ; (string-match "XEmacs" emacs-version)
-    ;; XEmacs can create menus dynamically.
-    (defun custom-group-menu-create (widget symbol)
-      "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
-      `( ,(custom-unlispify-menu-entry symbol t)
-	 :filter (lambda (&rest junk)
-		   (cdr (custom-menu-create ',symbol)))))
-  ;; But emacs can't.
-  (defun custom-group-menu-create (widget symbol)
-    "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
-    ;; Limit the nesting.
-    (let ((custom-menu-nesting (1- custom-menu-nesting)))
-      (custom-menu-create symbol))))
+(defun custom-group-menu-create (widget symbol)
+  "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
+  `( ,(custom-unlispify-menu-entry symbol t)
+     :filter (lambda (&rest junk)
+	       (cdr (custom-menu-create ',symbol)))))
 
 ;;;###autoload
 (defun custom-menu-create (symbol)
@@ -3686,14 +3677,9 @@ Otherwise the menu will be named `Customize'.
 The format is suitable for use with `easy-menu-define'."
   (unless name
     (setq name "Customize"))
-  ;; Fixme: sort out use of :filter in Emacs 21.
-  (if nil ;(string-match "XEmacs" emacs-version)
-      ;; We can delay it under XEmacs.
-      `(,name
-	:filter (lambda (&rest junk)
-		  (cdr (custom-menu-create ',symbol))))
-    ;; But we must create it now under Emacs.
-    (cons name (cdr (custom-menu-create symbol)))))
+  `(,name
+    :filter (lambda (&rest junk)
+	      (cdr (custom-menu-create ',symbol)))))
 
 ;;; The Custom Mode.
 
