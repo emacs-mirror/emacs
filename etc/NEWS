@@ -1168,11 +1168,14 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
+** New function `string-to-multibyte' converts a unibyte string to a
+multibyte string with the same individual character codes.
+
 ** New variables `gc-elapsed' and `gcs-done' provide extra information
 on garbage collection.
 
-** New function `decode-coding-region-as-inserted-from-file' decodes a
-region as if it is read from a file without decoding.
+** New function `decode-coding-inserted-region' decodes a region as if
+it is read from a file without decoding.
 
 ** New function `optimize-char-coding-system-table' can be called
 after making changes to `char-coding-system-table'.

@@ -1,3 +1,9 @@
+2003-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (string_to_multibyte): New function.
+	(Fstring_to_multibyte): New function.
+	(syms_of_fns): Defsubr it.
+
 2003-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (EXEEXT): Define to @EXEEXT@ and use this variable
