@@ -206,10 +206,10 @@ Completion does ignore case distinctions for certain arguments in which
 case does not matter.
 
 @menu
-* Example: Completion Example.
-* Commands: Completion Commands.
-* Strict Completion::
-* Options: Completion Options.
+* Example: Completion Example.    Examples of using completion.
+* Commands: Completion Commands.  A list of completion commands.
+* Strict Completion::             Different types of completion.
+* Options: Completion Options.    Options for completion.
 @end menu
 
 @node Completion Example
