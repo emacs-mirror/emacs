@@ -1,3 +1,16 @@
+2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* hexl.el (hexl-insert-multibyte-char) New function.
+	(hexl-quoted-insert, hexl-self-insert-command)
+	(hexl-insert-hex-char, hexl-insert-decimal-char)
+	(hexl-insert-octal-char): Call it instead of hexl-insert-char.
+	Fix the doc strings accordingly.
+	(hexl-insert-char): Reject characters whose code is above 255.
+	Doc fix.
+	(hexl-mode-map): Copy the global keymap instead of creating a
+	sparse keymap, and bind all self-inserting characters to
+	hexl-self-insert-command.
+
 2001-08-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mail/sendmail.el (mail-mode): Use adaptive-fill-regexp.
