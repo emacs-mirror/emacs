@@ -65,6 +65,8 @@ Boston, MA 02111-1307, USA.  */
    font determined by the other attributes (those may be inherited
    from the `default' face).
 
+   15. A face name or list of face names from which to inherit attributes.
+
    Faces are frame-local by nature because Emacs allows to define the
    same named face (face names are symbols) differently for different
    frames.  Each frame has an alist of face definitions for all named
@@ -303,7 +305,7 @@ Lisp_Object QCfamily, QCheight, QCweight, QCslant, QCunderline;
 Lisp_Object QCinverse_video, QCforeground, QCbackground, QCstipple;
 Lisp_Object QCwidth, QCfont, QCbold, QCitalic;
 Lisp_Object QCreverse_video;
-Lisp_Object QCoverline, QCstrike_through, QCbox;
+Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
 
 /* Symbols used for attribute values.  */
 
@@ -502,7 +504,9 @@ static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
 static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int));
-static void merge_face_vectors P_ ((Lisp_Object *from, Lisp_Object *));
+static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
+static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
+					Lisp_Object *, Lisp_Object));
 static void merge_face_vector_with_property P_ ((struct frame *, Lisp_Object *,
 						 Lisp_Object));
 static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object,
@@ -2760,6 +2764,8 @@ the WIDTH times as wide as FACE on FRAME.")
      XVECTOR (LFACE)->contents[LFACE_BOX_INDEX]
 #define LFACE_FONT(LFACE) \
      XVECTOR (LFACE)->contents[LFACE_FONT_INDEX]
+#define LFACE_INHERIT(LFACE) \
+     XVECTOR (LFACE)->contents[LFACE_INHERIT_INDEX]
 
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
@@ -2783,7 +2789,9 @@ check_lface_attrs (attrs)
   xassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
-	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX]));
+	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX])
+	   || FLOATP (attrs[LFACE_HEIGHT_INDEX])
+	   || FUNCTIONP (attrs[LFACE_HEIGHT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
 	   || SYMBOLP (attrs[LFACE_WEIGHT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
@@ -2808,6 +2816,10 @@ check_lface_attrs (attrs)
 	   || STRINGP (attrs[LFACE_FOREGROUND_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_BACKGROUND_INDEX]));
+  xassert (UNSPECIFIEDP (attrs[LFACE_INHERIT_INDEX])
+	   || NILP (attrs[LFACE_INHERIT_INDEX])
+	   || SYMBOLP (attrs[LFACE_INHERIT_INDEX])
+	   || CONSP (attrs[LFACE_INHERIT_INDEX]));
 #ifdef HAVE_WINDOW_SYSTEM
   xassert (UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
 	   || SYMBOLP (attrs[LFACE_STIPPLE_INDEX])
@@ -3049,18 +3061,170 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
-/* Merge two Lisp face attribute vectors FROM and TO and store the
-   resulting attributes in TO.  Every non-nil attribute of FROM
-   overrides the corresponding attribute of TO.  */
+/* Merges the face height FROM with the face height TO, and returns the
+   merged height.  If FROM is an invalid height, then INVALID is
+   returned instead.  FROM may be a either an absolute face height or a
+   `relative' height, and TO must be an absolute height.  The returned
+   value is always an absolute height.  GCPRO is a lisp value that will
+   be protected from garbage-collection if this function makes a call
+   into lisp.  */
+
+Lisp_Object
+merge_face_heights (from, to, invalid, gcpro)
+     Lisp_Object from, to, invalid, gcpro;
+{
+  int result = 0;
+
+  if (INTEGERP (from))
+    result = XINT (from);
+  else if (NUMBERP (from))
+    result = XFLOATINT (from) * XINT (to);
+#if 0 /* Probably not so useful.  */
+  else if (CONSP (from) && CONSP (XCDR (from)))
+    {
+      if (EQ (XCAR(from), Qplus) || EQ (XCAR(from), Qminus))
+	{
+	  if (INTEGERP (XCAR (XCDR (from))))
+	    {
+	      int inc = XINT (XCAR (XCDR (from)));
+	      if (EQ (XCAR (from), Qminus))
+		inc = -inc;
+
+	      result = XFASTINT (to);
+	      if (result + inc > 0)
+		/* Note that `underflows' don't mean FROM is invalid, so
+		   we just pin the result at TO if it would otherwise be
+		   negative or 0.  */
+		result += inc;
+	    }
+	}
+    }
+#endif
+  else if (FUNCTIONP (from))
+    {
+      /* Call function with current height as argument.
+	 From is the new height.  */
+      Lisp_Object args[2], height;
+      struct gcpro gcpro1;
+
+      GCPRO1 (gcpro);
+
+      args[0] = from;
+      args[1] = to;
+      height = call_function (2, args);
+
+      UNGCPRO;
+
+      if (NUMBERP (height))
+	result = XFLOATINT (height);
+    }
+
+  if (result > 0)
+    return make_number (result);
+  else
+    return invalid;
+}
+
+
+/* Merge two Lisp face attribute vectors on frame F, FROM and TO, and
+   store the resulting attributes in TO.  Every non-nil attribute of
+   FROM overrides the corresponding attribute of TO.  CYCLE_CHECK is
+   used internally to detect loops in face inheritance; it should be
+   Qnil when called from other places.  */
 
 static INLINE void
-merge_face_vectors (from, to)
+merge_face_vectors (f, from, to, cycle_check)
+     struct frame *f;
      Lisp_Object *from, *to;
+     Lisp_Object cycle_check;
 {
   int i;
+
+  /* If FROM inherits from some other faces, merge their attributes into
+     TO before merging FROM's direct attributes.  Note that an :inherit
+     attribute of `unspecified' is the same as one of nil; we never
+     merge :inherit attributes, so nil is more correct, but lots of
+     other code uses `unspecified' as a generic value for face attributes. */
+  if (!UNSPECIFIEDP (from[LFACE_INHERIT_INDEX])
+      && !NILP (from[LFACE_INHERIT_INDEX]))
+    merge_face_inheritance (f, from[LFACE_INHERIT_INDEX], to, cycle_check);
+
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (from[i]))
-      to[i] = from[i];
+      if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
+	to[i] = merge_face_heights (from[i], to[i], to[i], cycle_check);
+      else
+	to[i] = from[i];
+
+  /* TO is always an absolute face, which should inherit from nothing.
+     We blindly copy the :inherit attribute above and fix it up here.  */
+  to[LFACE_INHERIT_INDEX] = Qnil;
+}
+
+/* Checks the `cycle check' variable CHECK to see if it indicates that
+   EL is part of a cycle; CHECK must be either Qnil or a value returned
+   by an earlier use of CYCLE_CHECK.  SUSPICIOUS is the number of
+   elements after which a cycle might be suspected; after that many
+   elements, this macro begins consing in order to keep more precise
+   track of elements.
+
+   Returns NIL if a cycle was detected, otherwise a new value for CHECK
+   that includes EL.
+
+   CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
+   the caller should make sure that's ok.  */
+#define CYCLE_CHECK(check, el, suspicious)				      \
+  (NILP (check)								      \
+   ? make_number (0)							      \
+   : INTEGERP (check)							      \
+   ? (XFASTINT (check) < (suspicious)					      \
+      ? make_number (XFASTINT (check) + 1)				      \
+      : Fcons (el, Qnil))						      \
+   : Fmemq ((el), (check))						      \
+   ? Qnil								      \
+   : Fcons ((el), (check)))
+
+static void
+merge_face_inheritance (f, inherit, to, cycle_check)
+     struct frame *f;
+     Lisp_Object inherit;
+     Lisp_Object *to;
+     Lisp_Object cycle_check;
+{
+  if (SYMBOLP (inherit) && !EQ (inherit, Qunspecified))
+    /* Inherit from the named face INHERIT.  */
+    {
+      Lisp_Object lface;
+
+      /* Make sure we're not in an inheritance loop.  */
+      cycle_check = CYCLE_CHECK (cycle_check, inherit, 15);
+      if (NILP (cycle_check))
+	/* Cycle detected, ignore any further inheritance.  */
+	return;
+
+      lface = lface_from_face_name (f, inherit, 0);
+      if (!NILP (lface))
+	merge_face_vectors (f, XVECTOR (lface)->contents, to, cycle_check);
+    }
+  else if (CONSP (inherit))
+    /* Handle a list of inherited faces by calling ourselves recursively
+       on each element.  Note that we only do so for symbol elements, so
+       it's not possible to infinitely recurse.  */
+    {
+      while (CONSP (inherit))
+	{
+	  if (SYMBOLP (XCAR (inherit)))
+	    merge_face_inheritance (f, XCAR (inherit), to, cycle_check);
+
+	  /* Check for a circular inheritance list.  */
+	  cycle_check = CYCLE_CHECK (cycle_check, inherit, 15);
+	  if (NILP (cycle_check))
+	    /* Cycle detected.  */
+	    break;
+
+	  inherit = XCDR (inherit);
+	}
+    }
 }
 
 
@@ -3129,10 +3293,14 @@ merge_face_vector_with_property (f, to, prop)
 		}
 	      else if (EQ (keyword, QCheight))
 		{
-		  if (INTEGERP (value))
-		    to[LFACE_HEIGHT_INDEX] = value;
-		  else
+		  Lisp_Object new_height =
+		    merge_face_heights (value, to[LFACE_HEIGHT_INDEX],
+					Qnil, Qnil);
+
+		  if (NILP (new_height))
 		    add_to_log ("Invalid face font height", value, Qnil);
+		  else
+		    to[LFACE_HEIGHT_INDEX] = new_height;
 		}
 	      else if (EQ (keyword, QCweight))
 		{
@@ -3229,6 +3397,22 @@ merge_face_vector_with_property (f, to, prop)
 		  else
 		    add_to_log ("Invalid face width", value, Qnil);
 		}
+	      else if (EQ (keyword, QCinherit))
+		{
+		  if (SYMBOLP (value))
+		    to[LFACE_INHERIT_INDEX] = value;
+		  else
+		    {
+		      Lisp_Object tail;
+		      for (tail = value; CONSP (tail); tail = XCDR (tail))
+			if (!SYMBOLP (XCAR (tail)))
+			  break;
+		      if (NILP (tail))
+			to[LFACE_INHERIT_INDEX] = value;
+		      else
+			add_to_log ("Invalid face inherit", value, Qnil);
+		    }
+		}
 	      else
 		add_to_log ("Invalid attribute %s in face property",
 			    keyword, Qnil);
@@ -3255,7 +3439,7 @@ merge_face_vector_with_property (f, to, prop)
       if (NILP (lface))
 	add_to_log ("Invalid face text property value: %s", prop, Qnil);
       else
-	merge_face_vectors (XVECTOR (lface)->contents, to);
+	merge_face_vectors (f, XVECTOR (lface)->contents, to, Qnil);
     }
 }
 
@@ -3457,10 +3641,17 @@ frame.")
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  CHECK_NUMBER (value, 3);
-	  if (XINT (value) <= 0)
+	  Lisp_Object test = Qnil;
+
+	  if (!EQ (face, Qdefault))
+	    /* The default face must have an absolute size, otherwise, we do
+	       a test merge with a random height to see if VALUE's ok. */
+	    test = merge_face_heights (value, make_number(10), Qnil, Qnil);
+
+	  if (!INTEGERP(test) || XINT(test) <= 0)
 	    signal_error ("Invalid face height", value);
 	}
+
       old_value = LFACE_HEIGHT (lface);
       LFACE_HEIGHT (lface) = value;
       font_related_attr_p = 1;
@@ -3682,6 +3873,20 @@ frame.")
 
       font_attr_p = 1;
 #endif /* HAVE_WINDOW_SYSTEM */
+    }
+  else if (EQ (attr, QCinherit))
+    {
+      Lisp_Object tail;
+      if (SYMBOLP (value))
+	tail = Qnil;
+      else
+	for (tail = value; CONSP (tail); tail = XCDR (tail))
+	  if (!SYMBOLP (XCAR (tail)))
+	    break;
+      if (NILP (tail))
+	LFACE_INHERIT (lface) = value;
+      else
+	signal_error ("Invalid font inheritance", value);
     }
   else if (EQ (attr, QCbold))
     {
@@ -4244,6 +4449,8 @@ frames).  If FRAME is omitted or nil, use the selected frame.")
     value = LFACE_STIPPLE (lface);
   else if (EQ (keyword, QCwidth))
     value = LFACE_SWIDTH (lface);
+  else if (EQ (keyword, QCinherit))
+    value = LFACE_INHERIT (lface);
   else if (EQ (keyword, QCfont))
     value = LFACE_FONT (lface);
   else
@@ -4318,8 +4525,10 @@ DEFUN ("internal-merge-in-global-face", Finternal_merge_in_global_face,
   local_lface = lface_from_face_name (XFRAME (frame), face, 0);
   if (NILP (local_lface))
     local_lface = Finternal_make_lisp_face (face, frame);
-  merge_face_vectors (XVECTOR (global_lface)->contents,
-		      XVECTOR (local_lface)->contents);
+  merge_face_vectors (XFRAME (frame),
+		      XVECTOR (global_lface)->contents,
+		      XVECTOR (local_lface)->contents,
+		      Qnil);
   return face;
 }
 
@@ -4530,8 +4739,7 @@ lface_same_font_attributes_p (lface1, lface2)
 	   && lface_fully_specified_p (lface2));
   return (xstricmp (XSTRING (lface1[LFACE_FAMILY_INDEX])->data,
 		    XSTRING (lface2[LFACE_FAMILY_INDEX])->data) == 0
-	  && (XFASTINT (lface1[LFACE_HEIGHT_INDEX])
-	      == XFASTINT (lface2[LFACE_HEIGHT_INDEX]))
+	  && EQ (lface1[LFACE_HEIGHT_INDEX], lface2[LFACE_HEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SWIDTH_INDEX], lface2[LFACE_SWIDTH_INDEX])
 	  && EQ (lface1[LFACE_WEIGHT_INDEX], lface2[LFACE_WEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SLANT_INDEX], lface2[LFACE_SLANT_INDEX])
@@ -4989,7 +5197,7 @@ lookup_named_face (f, symbol, c)
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (symbol_attrs, attrs);
+  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
   return lookup_face (f, attrs, c, NULL);
 }
 
@@ -5126,7 +5334,7 @@ lookup_derived_face (f, symbol, c, face_id)
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (symbol_attrs, attrs);
+  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
   return lookup_face (f, attrs, c, default_face);
 }
 
@@ -5816,7 +6024,7 @@ realize_named_face (f, symbol, id)
 
   /* Merge SYMBOL's face with the default face.  */
   get_lface_attributes (f, symbol, symbol_attrs, 1);
-  merge_face_vectors (symbol_attrs, attrs);
+  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
 
   /* Realize the face.  */
   new_face = realize_face (c, attrs, 0, NULL, id);
@@ -6413,7 +6621,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   if (pos >= region_beg && pos < region_end)
     {
       Lisp_Object region_face = lface_from_face_name (f, Qregion, 0);
-      merge_face_vectors (XVECTOR (region_face)->contents, attrs);
+      merge_face_vectors (f, XVECTOR (region_face)->contents, attrs, Qnil);
 
       if (region_end < endpos)
 	endpos = region_end;
@@ -6513,7 +6721,7 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
       && bufpos < region_end)
     {
       Lisp_Object region_face = lface_from_face_name (f, Qregion, 0);
-      merge_face_vectors (XVECTOR (region_face)->contents, attrs);
+      merge_face_vectors (f, XVECTOR (region_face)->contents, attrs, Qnil);
     }
 
   /* Look up a realized face with the given face attributes,
@@ -6658,6 +6866,8 @@ syms_of_xfaces ()
   staticpro (&QCstrike_through);
   QCbox = intern (":box");
   staticpro (&QCbox);
+  QCinherit = intern (":inherit");
+  staticpro (&QCinherit);
 
   /* Symbols used for Lisp face attribute values.  */
   QCcolor = intern (":color");
