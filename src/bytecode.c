@@ -582,7 +582,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Btemp_output_buffer_show:
 	  v1 = POP;
-	  temp_output_buffer_show (TOP, Qnil);
+	  temp_output_buffer_show (TOP);
 	  TOP = v1;
 	  /* pop binding of standard-output */
 	  unbind_to (specpdl_ptr - specpdl - 1, Qnil);
