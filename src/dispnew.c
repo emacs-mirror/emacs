@@ -1143,9 +1143,14 @@ direct_output_forward_char (n)
 	  && (FRAME_CURSOR_X (frame) + 1 >= window_internal_width (w) - 1))
       || cursor_in_echo_area)
     return 0;
-  
+
   /* Can't use direct output if highlighting a region.  */
   if (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
+    return 0;
+
+  /* Can't use direct output at an overlay boundary; it might have
+     before-string or after-string properties.  */
+  if (overlay_touches_p (PT) || overlay_touches_p (PT - n))
     return 0;
 
 #ifdef USE_TEXT_PROPERTIES
