@@ -1626,6 +1626,7 @@ struct it
     enum glyph_row_area area;
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
+    unsigned display_ellipsis_p : 1;
     Lisp_Object space_width;
     short voffset;
     Lisp_Object font_height;
