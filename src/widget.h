@@ -71,6 +71,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef XtCGeometry
 #define XtCGeometry "Geometry"
 #endif
+#ifndef XtNshowGrip
+#define XtNshowGrip "showGrip"
+#endif
+#ifndef XtNallowResize
+#define XtNallowResize "allowResize"
+#endif
+#ifndef XtNresizeToPreferred
+#define XtNresizeToPreferred "resizeToPreferred"
+#endif
 
 #define XtNinitialGeometry "initialGeometry"
 #define XtCInitialGeometry "InitialGeometry"
