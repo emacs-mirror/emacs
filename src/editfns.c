@@ -3213,7 +3213,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  {
 	    /* Use a temp var to avoid problems when ENABLE_CHECKING
 	       is turned on.  */
-	    struct Lisp_String *t = XSYMBOL (args[n])->name;
+	    struct Lisp_String *t = XSTRING (SYMBOL_NAME (args[n]));
 	    XSETSTRING (args[n], t);
 	    if (STRING_MULTIBYTE (args[n]) && ! multibyte)
 	      {
