@@ -35,12 +35,12 @@ Metrowerks CodeWarrior Pro 5 or Pro 6 or MPW-GM (August 2000) can be
 used to build Emacs on the Mac OS.  See the INSTALL file in this
 directory for instructions on building Emacs.
 
-Binary distributions are available at
+Binary distributions are available in
 
-  http://mac-emacs.sourceforge.net/index.html
+  ftp://ftp.gnu.org/gnu/mac/emacs/
 
-At this site you can also find an FAQ, mailing lists, and dicussion
-forums for discussing issues related to running GNU Emacs on Mac OS.
+At this site you can also find an FAQ related to running GNU Emacs on
+Mac OS.
 
 Andrew.
-<akochoi@users.sourceforge.net>
+<akochoi@i-cable.com>
