@@ -677,7 +677,7 @@ store_in_keymap (keymap, idx, def)
   return def;
 }
 
-Lisp_Object
+void
 copy_keymap_1 (chartable, idx, elt)
      Lisp_Object chartable, idx, elt;
 {
@@ -1338,7 +1338,7 @@ DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_
 
 /* Help functions for describing and documenting keymaps.		*/
 
-static Lisp_Object accessible_keymaps_char_table ();
+static void accessible_keymaps_char_table ();
 
 /* This function cannot GC.  */
 
@@ -1561,7 +1561,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
   return Fnreverse (good_maps);
 }
 
-static Lisp_Object
+static void
 accessible_keymaps_char_table (args, index, cmd)
      Lisp_Object args, index, cmd;
 {
@@ -1569,7 +1569,7 @@ accessible_keymaps_char_table (args, index, cmd)
   Lisp_Object maps, tail, thisseq;
 
   if (NILP (cmd))
-    return Qnil;
+    return;
 
   maps = XCONS (args)->car;
   tail = XCONS (XCONS (args)->cdr)->car;
@@ -1587,7 +1587,6 @@ accessible_keymaps_char_table (args, index, cmd)
 	  nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
 	}
     }
-  return Qnil;
 }
 
 Lisp_Object Qsingle_key_description, Qkey_description;
@@ -1816,7 +1815,7 @@ Control characters turn into \"^char\", etc.")
 
   if (!SINGLE_BYTE_CHAR_P (XFASTINT (character)))
     {
-      char *str;
+      unsigned char *str;
       int len = non_ascii_char_to_string (XFASTINT (character), tem, &str);
 
       return make_string (str, len);
@@ -1855,7 +1854,7 @@ ascii_sequence_p (seq)
 /* where-is - finding a command in a set of keymaps.			*/
 
 static Lisp_Object where_is_internal_1 ();
-static Lisp_Object where_is_internal_2 ();
+static void where_is_internal_2 ();
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
@@ -2054,7 +2053,7 @@ indirect definition itself.")
    Since map_char_table doesn't really use the return value from this function,
    we the result append to RESULT, the slot in ARGS.  */
 
-static Lisp_Object
+static void
 where_is_internal_2 (args, key, binding)
      Lisp_Object args, key, binding;
 {
@@ -2077,8 +2076,6 @@ where_is_internal_2 (args, key, binding)
   if (!NILP (sequence))
     XCONS (XCONS (XCONS (args)->car)->cdr)->cdr
       = Fcons (sequence, result);
-
-  return Qnil;
 }
 
 static Lisp_Object
@@ -2661,7 +2658,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
   UNGCPRO;
 }
 
-static int
+static void
 describe_vector_princ (elt)
      Lisp_Object elt;
 {
@@ -2716,12 +2713,13 @@ This is text showing the elements of vector matched against indices.")
    indices at higher levels in this char-table,
    and CHAR_TABLE_DEPTH says how many levels down we have gone.  */
 
+void.
 describe_vector (vector, elt_prefix, elt_describer,
 		 partial, shadow, entire_map,
 		 indices, char_table_depth)
      register Lisp_Object vector;
      Lisp_Object elt_prefix;
-     int (*elt_describer) ();
+     void (*elt_describer) P_ ((Lisp_Object));
      int partial;
      Lisp_Object shadow;
      Lisp_Object entire_map;
