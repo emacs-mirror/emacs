@@ -332,7 +332,8 @@ end
 document xreload
   When starting Emacs a second time in the same gdb session under
   FreeBSD 2.2.5, gdb 4.13, $valmask and $nonvalbits have lost
-  their values.  This function reloads them.
+  their values.  (The same happens on GNU/Linux with gdb 5.0.)
+  This function reloads them.
 end
 
 set print pretty on
