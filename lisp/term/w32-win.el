@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2003 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -1065,13 +1065,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 ;;; navigation feature.
 (global-set-key [f10] (lambda ()
 			(interactive) (w32-send-sys-command ?\xf100)))
-
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
 
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
