@@ -48,7 +48,10 @@ They are searched in the order they are given in this list.
 Therefore, the directory of Info files that come with Emacs
 normally should come last (so that local files override standard ones).")
 
-(defvar news-path "/usr/spool/news/"
+(defvar news-path
+  (if (file-exists-p "/usr/spool/news/")
+      "/usr/spool/news/"
+    "/var/spool/news/")
   "The root directory below which all news files are stored.")
 
 (defvar news-inews-program
@@ -98,6 +101,9 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 	;; let's assume this dir is never used for anything else.
 	((file-exists-p "/var/mail")
 	 "/var/mail/")
+	;; Many GNU/Linux systems use this name.
+	((file-exists-p "/var/spool/mail")
+	 "/var/spool/mail")
 	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
 	 "/usr/mail/")
 	(t "/usr/spool/mail/"))
