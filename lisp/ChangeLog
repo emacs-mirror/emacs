@@ -1,3 +1,22 @@
+2004-07-01  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind C-M-w to isearch-del-char,
+	C-M-y to isearch-yank-char.  Bind M-% to isearch-query-replace,
+	C-M-% to isearch-query-replace-regexp.
+	(minibuffer-local-isearch-map): Add arrow key bindings.
+	Bind C-f to isearch-yank-char-in-minibuffer.
+	(isearch-forward): Doc fix.
+	(isearch-edit-string): Doc fix.
+	(isearch-query-replace, isearch-query-replace-regexp): New funs.
+	(isearch-del-char): Add optional arg.  Set isearch-yank-flag to t.
+	(isearch-yank-char): Add optional arg.
+	(isearch-yank-char-in-minibuffer): New fun.
+
+	* replace.el (query-replace-interactive): Change type from boolean
+	to choice.  Add value `initial'.
+	(query-replace-read-args): Handle value `initial' of
+	query-replace-interactive.
+
 2004-06-29  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled-bitmap-face)
