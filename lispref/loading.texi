@@ -181,7 +181,7 @@ without altering @code{load-path}.
 Dumping Emacs uses a special value of @code{load-path}.  If the value of
 @code{load-path} at the end of dumping is unchanged (that is, still the
 same special value), the dumped Emacs switches to the ordinary
-@code{load-path} value when it starts up, as decribed above.  But if
+@code{load-path} value when it starts up, as described above.  But if
 @code{load-path} has any other value at the end of dumping, that value
 is used for execution of the dumped Emacs also.
 
@@ -616,7 +616,7 @@ execution of the rest of @var{form}.
 In general, well-designed Lisp programs should not use this feature.
 The clean and modular ways to interact with a Lisp library are (1)
 examine and set the library's variables (those which are meant for
-outside use), and and (2) call the library's functions.  If you wish to
+outside use), and (2) call the library's functions.  If you wish to
 do (1), you can do it immediately---there is no need to wait for when
 the library is loaded.  To do (2), you must load the library (preferably
 with @code{require}).

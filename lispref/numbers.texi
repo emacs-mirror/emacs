@@ -690,7 +690,7 @@ In binary, in the 28-bit implementation, the argument looks like this:
 
 @example
 @group
-;; @r{Decimal 134.217,727}
+;; @r{Decimal 134,217,727}
 0111  1111 1111  1111 1111  1111 1111         
 @end group
 @end example

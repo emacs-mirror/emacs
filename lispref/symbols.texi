@@ -506,7 +506,7 @@ stored in the property list @var{plist}.  For example,
 @defun plist-put plist property value
 This stores @var{value} as the value of the @var{property} property in
 the property list @var{plist}.  It may modify @var{plist} destructively,
-or it may construct new list structure without altering the old.  The
+or it may construct a new list structure without altering the old.  The
 function returns the modified property list, so you can store that back
 in the place where you got @var{plist}.  For example,
 

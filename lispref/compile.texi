@@ -238,7 +238,7 @@ call to @code{byte-code}.
 
   Functions and variables loaded from a byte-compiled file access their
 documentation strings dynamically from the file whenever needed.  This
-saves space within Emacs, and make loading faster because the
+saves space within Emacs, and makes loading faster because the
 documentation strings themselves need not be processed while loading the
 file.  Actual access to the documentation strings becomes slower as a
 result, but this normally is not enough to bother users.
