@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,1997,2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node MS-DOS, Manifesto, Antinews, Top
+@node MS-DOS, Manifesto, Mac OS, Top
 @appendix Emacs and MS-DOS 
 @cindex MS-DOG
 @cindex MS-DOS peculiarities
