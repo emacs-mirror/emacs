@@ -631,6 +631,11 @@ directory listing into a buffer.
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
+** Unexpected yanking of text due to accidental clicking on the mouse
+wheel button (typically mouse-2) during wheel scrolling is now avoided.
+This behaviour can be customized via the mouse-wheel-click-event and
+mouse-wheel-inhibit-click-time variables.
+
 +++
 ** The keyboard-coding-system is now automatically set based on
 your current locale settings.  If it turns out that your terminal
