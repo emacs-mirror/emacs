@@ -1598,8 +1598,8 @@ The default status is as follows:
 	coding-category-iso-8-1		iso-latin-1
 	coding-category-iso-8-2		iso-latin-1
 	coding-category-utf-8		mule-utf-8
-	coding-category-utf-16-be	mule-utf-16-be-with-signature
-	coding-category-utf-16-le	mule-utf-16-le-with-signature
+	coding-category-utf-16-be	mule-utf-16be-with-signature
+	coding-category-utf-16-le	mule-utf-16le-with-signature
 	coding-category-iso-7-tight	iso-2022-jp
 	coding-category-iso-7		iso-2022-7bit
 	coding-category-iso-7-else	iso-2022-7bit-lock
@@ -1624,8 +1624,8 @@ The default status is as follows:
 	coding-category-raw-text	'raw-text
 	coding-category-sjis		'japanese-shift-jis
 	coding-category-big5		'chinese-big5
-	coding-category-utf-16-be       'mule-utf-16-be-with-signature
-	coding-category-utf-16-le       'mule-utf-16-le-with-signature
+	coding-category-utf-16-be       'mule-utf-16be-with-signature
+	coding-category-utf-16-le       'mule-utf-16le-with-signature
 	coding-category-utf-8           'mule-utf-8
 	coding-category-ccl		nil
 	coding-category-binary		'no-conversion)
