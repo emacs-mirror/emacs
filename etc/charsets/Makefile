@@ -36,6 +36,7 @@ MAPS =	8859-2.map \
 	8859-15.map \
 	8859-16.map \
 	gb2312-1980.map \
+	gbk.map \
 	ksc5601-1987.map \
 	jisx0201.map \
 	jisx0208-1990.map \
@@ -47,10 +48,12 @@ MAPS =	8859-2.map \
 	koi8-r.map \
 	ibm866.map \
 	mac-roman.map \
+	gb18030-bmp.map
 
 all: ${MAPS}
 
 GLIBCDIR=../../../src/glibc-2.2.4/localedata/charmaps
+ICUDIR=../../../icu/data
 
 8859-%.map: ${GLIBCDIR}/ISO-8859-%
 	${SED} -n \
@@ -64,6 +67,11 @@ gb2312-1980.map: ${GLIBCDIR}/GB2312
 	  | ${SED} -e 's/xa/2/g' -e 's/xb/3/g' -e 's/xc/4/g' \
 		   -e 's/xd/5/g' -e 's/xe/6/g' -e 's/xf/7/g' \
 	  > $@
+
+gbk.map: ${GLIBCDIR}/GBK
+	${SED} -n -e \
+	  '/^<.*x[0-9a-f]..x[0-9a-f]/s/<U\(....\)[^x]*x\(..\)..\(..\).*/0x\2\3 0x\1/p' \
+	  < $< > $@
 
 ksc5601-1987.map: ${GLIBCDIR}/EUC-KR
 	${SED} -n -e \
@@ -139,6 +147,9 @@ mac-roman.map: ${GLIBCDIR}/MACINTOSH
 	${SED} -n -e \
 	  '/^<U[^x]*x[89A-Fa-f]/s/<U\(....\)[^x]*x\(..\).*/0x\2 0x\1/p' \
 	  < $< > $@
+
+gb18030-bmp.map: ${ICUDIR}/gb18030.ucm gb18030.awk
+	${SED} -n -e '/CHARMAP/,/END CHARMAP/p' < $< | gawk -f gb18030.awk > $@
 
 maintainer-clean:
 	rm -rf ${MAPS}
