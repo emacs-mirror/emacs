@@ -1,3 +1,8 @@
+2001-11-01  Miles Bader  <miles@gnu.org>
+
+	* button.el (define-button-type): Make sure every user-defined
+	button type has a supertype.
+
 2001-10-31  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule-cmds.el (locale-language-names): Add chs and
