@@ -676,6 +676,9 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 
 ;;; Region specific commands
 
+(defvar cua--last-deleted-region-pos nil)
+(defvar cua--last-deleted-region-text nil)
+
 (defun cua-delete-region ()
   "Delete the active region.
 Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
@@ -683,17 +686,22 @@ Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
   (let ((start (mark)) (end (point)))
     (or (<= start end)
 	(setq start (prog1 end (setq end start))))
+    (setq cua--last-deleted-region-text (buffer-substring start end))
     (if cua-delete-copy-to-register-0
-	(copy-to-register ?0 start end nil))
+	(set-register ?0 cua--last-deleted-region-text))
     (delete-region start end)
+    (setq cua--last-deleted-region-pos 
+	  (cons (current-buffer)
+		(and (consp buffer-undo-list)
+		     (car buffer-undo-list))))
     (cua--deactivate)))
 
 (defun cua-replace-region ()
   "Replace the active region with the character you type."
   (interactive)
   (cua-delete-region)
-  (if (not (eq this-original-command this-command))
-      (cua--fallback)))
+  (unless (eq this-original-command this-command)
+    (cua--fallback)))
 
 (defun cua-copy-region (arg)
   "Copy the region to the kill ring.
@@ -814,23 +822,40 @@ Activates the mark if a prefix argument is given."
   "Repeat replacing text of highlighted region with typed text.
 Searches for the next streach of text identical to the region last
 replaced by typing text over it and replaces it with the same streach
-of text.  
-Note: Works only when used immediately after typing the last character.
-After that, it can be repeated (fairly) reliable until a buffer is
-modified in any other way than repeating this command."
+of text."
   (interactive "P")
-  (unless (or (eq this-command last-command)
-	      (not cua--repeat-replace-text)
-	      (not (eq last-command 'self-insert-command)))
-    (setq cua--repeat-replace-text
-	  (and (mark t)
-	       (/= (point) (mark t))
-	       (buffer-substring-no-properties (point) (mark t)))))
-  (let ((old (get-register ?0)))
-    (if (and old
-	     cua--repeat-replace-text
-	     (search-forward old nil t nil))
-	(replace-match cua--repeat-replace-text arg t))))
+  (when cua--last-deleted-region-pos
+    (save-excursion
+      (save-restriction
+	(set-buffer (car cua--last-deleted-region-pos))
+	(widen)
+	;; Find the text that replaced the region via the undo list.
+	(let ((ul buffer-undo-list)
+	      (elt (cdr cua--last-deleted-region-pos))
+	      u s e)
+	  (when elt
+	    (while (consp ul)
+	      (setq u (car ul) ul (cdr ul))
+	      (cond
+	       ((eq u elt) ;; got it
+		(setq ul nil))
+	       ((and (consp u) (integerp (car u)) (integerp (cdr u)))
+		(if (and s (= (cdr u) s))
+		    (setq s (car u))
+		  (setq s (car u) e (cdr u)))))))
+	  (setq cua--repeat-replace-text
+		(cond ((and s e (<= s e) (= s (mark t)))
+		       (buffer-substring-no-properties s e))
+		      ((and (null s) (eq u elt)) ;; nothing inserted
+		       "")
+		      (t
+		       (message "Cannot locate replacement text")
+		       nil))))))
+    (setq cua--last-deleted-region-pos nil))
+  (if (and cua--last-deleted-region-text
+	   cua--repeat-replace-text
+	   (search-forward cua--last-deleted-region-text nil t nil))
+      (replace-match cua--repeat-replace-text arg t)))
 
 (defun cua-help-for-region (&optional help)
   "Show region specific help in echo area."
