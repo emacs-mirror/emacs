@@ -32,7 +32,7 @@
 
 ;; You probably don't really want this; if the cursor is difficult to
 ;; spot, try changing its colour, relying on `blink-cursor-mode' or
-;; both.  The hookery used might affect repsonse noticeably on a slow
+;; both.  The hookery used might affect response noticeably on a slow
 ;; machine.
 
 ;; An overlay is used, active only on the selected window.  Hooks are
