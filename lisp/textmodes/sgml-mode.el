@@ -976,7 +976,8 @@ With prefix argument, unquote the region."
 Assume that parsing starts from within a textual context.
 Leave point at the beginning of the tag."
   (let (tag-type tag-start tag-end name)
-    (search-backward ">")
+    (or (search-backward ">" nil 'move)
+        (error "No tag found"))
     (setq tag-end (1+ (point)))
     (cond
      ((sgml-looking-back-at "--")   ; comment
