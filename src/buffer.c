@@ -1167,7 +1167,7 @@ list_buffers_1 (files)
 	continue;
       /* Identify the current buffer. */
       if (b == old)
-	XSETFASTINT (desired_point, point);
+	XSETFASTINT (desired_point, PT);
       write_string (b == old ? "." : " ", -1);
       /* Identify modified buffers */
       write_string (BUF_MODIFF (b) > b->save_modified ? "*" : " ", -1);
@@ -1367,8 +1367,6 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
       int startpos, endpos;
 
       overlay = XCONS (tail)->car;
-      if (XGCTYPE (overlay) != Lisp_Overlay)
-	abort ();
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -1414,8 +1412,6 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
       int startpos, endpos;
 
       overlay = XCONS (tail)->car;
-      if (XGCTYPE (overlay) != Lisp_Overlay)
-	abort ();
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -1844,8 +1840,11 @@ BEG and END may be integers or markers.")
   beg = Fset_marker (Fmake_marker (), beg, buffer);
   end = Fset_marker (Fmake_marker (), end, buffer);
 
-  overlay = Fcons (Fcons (beg, end), Qnil);
-  XSETTYPE (overlay, Lisp_Overlay);
+  overlay = allocate_misc ();
+  XMISC (overlay)->type = Lisp_Misc_Overlay;
+  XOVERLAY (overlay)->start = beg;
+  XOVERLAY (overlay)->end = end;
+  XOVERLAY (overlay)->plist = Qnil;
 
   /* Put the new overlay on the wrong list.  */ 
   end = OVERLAY_END (overlay);
@@ -2049,7 +2048,7 @@ OVERLAY.")
 {
   CHECK_OVERLAY (overlay, 0);
 
-  return Fcopy_sequence (Fcdr_safe (XCONS (overlay)->cdr));
+  return Fcopy_sequence (XOVERLAY (overlay)->plist);
 }
 
 
@@ -2203,7 +2202,7 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
 
   fallback = Qnil;
 
-  for (plist = Fcdr_safe (XCONS (overlay)->cdr);
+  for (plist = XOVERLAY (overlay)->plist;
        CONSP (plist) && CONSP (XCONS (plist)->cdr);
        plist = XCONS (XCONS (plist)->cdr)->cdr)
     {
@@ -2226,16 +2225,14 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   (overlay, prop, value)
      Lisp_Object overlay, prop, value;
 {
-  Lisp_Object plist, tail, buffer;
+  Lisp_Object tail, buffer;
   int changed;
 
   CHECK_OVERLAY (overlay, 0);
 
   buffer = Fmarker_buffer (OVERLAY_START (overlay));
 
-  plist = Fcdr_safe (XCONS (overlay)->cdr);
-
-  for (tail = plist;
+  for (tail = XOVERLAY (overlay)->plist;
        CONSP (tail) && CONSP (XCONS (tail)->cdr);
        tail = XCONS (XCONS (tail)->cdr)->cdr)
     if (EQ (XCONS (tail)->car, prop))
@@ -2246,9 +2243,8 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
       }
   /* It wasn't in the list, so add it to the front.  */
   changed = !NILP (value);
-  if (! CONSP (XCONS (overlay)->cdr))
-    XCONS (overlay)->cdr = Fcons (Qnil, Qnil);
-  XCONS (XCONS (overlay)->cdr)->cdr = Fcons (prop, Fcons (value, plist));
+  XOVERLAY (overlay)->plist
+    = Fcons (prop, Fcons (value, XOVERLAY (overlay)->plist));
  found:
   if (! NILP (buffer))
     {
