@@ -192,7 +192,7 @@ With this form of menu, the return value is VALUE from the chosen item.")
 
       /* Extract the detailed info to make one pane.  */
       number_of_panes = keymap_panes (&obj_list, &menus, &names, &enables,
-				      &items, &menu, 1);
+				      &items, &prefixes, &menu, 1);
       /* The menu title seems to be ignored,
 	 so put it in the pane title.  */
       if (menus[0] == 0)
@@ -329,6 +329,7 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
   int ulx, uly, width, height;
   int dispwidth, dispheight;
 
+  *error = 0;
   if (pane_cnt == 0)
     return 0;
 
