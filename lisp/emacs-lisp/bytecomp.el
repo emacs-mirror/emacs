@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.19 $")
+(defconst byte-compile-version "$Revision: 2.20 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -489,7 +489,8 @@ Each element is (INDEX . VALUE)")
 (byte-defop  94 -1 byte-min)
 (byte-defop  95 -1 byte-mult) ; v19 only
 (byte-defop  96  1 byte-point)
-(byte-defop  97  1 byte-mark-OBSOLETE) ; no longer generated as of v18
+(byte-defop  97  0 byte-save-current-buffer
+  "To make a binding to record the current buffer")
 (byte-defop  98  0 byte-goto-char)
 (byte-defop  99  0 byte-insert)
 (byte-defop 100  1 byte-point-max)
@@ -2870,6 +2871,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler-1 unwind-protect)
 (byte-defop-compiler-1 condition-case)
 (byte-defop-compiler-1 save-excursion)
+(byte-defop-compiler-1 save-current-buffer)
 (byte-defop-compiler-1 save-restriction)
 (byte-defop-compiler-1 save-window-excursion)
 (byte-defop-compiler-1 with-output-to-temp-buffer)
@@ -2948,6 +2950,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 (defun byte-compile-save-restriction (form)
   (byte-compile-out 'byte-save-restriction 0)
+  (byte-compile-body-do-effect (cdr form))
+  (byte-compile-out 'byte-unbind 1))
+
+(defun byte-compile-save-current-buffer (form)
+  (byte-compile-out 'byte-save-current-buffer 0)
   (byte-compile-body-do-effect (cdr form))
   (byte-compile-out 'byte-unbind 1))
 
