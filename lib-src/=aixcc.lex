@@ -8,7 +8,8 @@ D5	[0-9 ][0-9 ][0-9 ][0-9 ][0-9]
 DS	[0-9 ]
 
 %{
-/*
+/* moore@wilma.cs.utk.edu
+
  * Hack to work around the AIX C compiler's brain-damaged error messages
  * so that emacs can parse them.  It runs /bin/cc as a subprocess, and
  * tries to rearrange the error messages so that (a) each message contains
