@@ -1,3 +1,15 @@
+2000-11-24  Miles Bader  <miles@gnu.org>
+
+	* cus-edit.el (custom-filter-face-spec, custom-pre-filter-face-spec) 
+	(custom-post-filter-face-spec): New functions.
+	(custom-face-set, custom-face-value-create): Filter the face spec
+	before and after customization.
+	(custom-face-set): If VALUE specifies a null face, pass a
+	non-null-but-otherwise-ignored face-spec instead to `face-spec-set'.
+	* cus-face.el (custom-face-attributes): Remove SET and GET
+	functions.  Add some IN-FILTER and OUT-FILTER functions in the few
+	cases they're needed.
+
 2000-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el: Moved variables around to have it compile under NT.
