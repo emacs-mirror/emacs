@@ -115,13 +115,14 @@ frame parameter is used."
   (let ((mode (intern (completing-read
 		       "Select fringe mode for all frames (SPACE for list): "
 		       '(("none") ("default") ("left-only")
-			 ("right-only") ("half"))
+			 ("right-only") ("half") ("minimal"))
 		       nil t))))
     (cond ((eq mode 'none) 0)
 	  ((eq mode 'default) nil)
 	  ((eq mode 'left-only) '(nil . 0))
 	  ((eq mode 'right-only) '(0 . nil))
 	  ((eq mode 'half) '(5 . 5))
+	  ((eq mode 'minimal) '(1 . 1))
 	  ((eq mode (intern ""))
 	   (if (eq 0 (cdr (assq 'left-fringe
 				(if all-frames
@@ -134,10 +135,10 @@ frame parameter is used."
 (defun fringe-mode (&optional mode)
   "Toggle appearance of fringes on all frames.
 Valid values for MODE include `none', `default', `left-only',
-`right-only' and `half'.  MODE can also be a cons cell where the
-integer in car will be used as left fringe width and the integer in
-cdr will be used as right fringe width. If MODE is not specified, the
-user is queried.
+`right-only', `minimal' and `half'.  MODE can also be a cons cell
+where the integer in car will be used as left fringe width and the
+integer in cdr will be used as right fringe width. If MODE is not
+specified, the user is queried.
 It applies to all frames that exist and frames to be created in the
 future.
 If you want to set appearance of fringes on the selected frame only,
@@ -149,10 +150,10 @@ see `set-fringe-style'."
 (defun set-fringe-style (&optional mode)
   "Set appearance of fringes on selected frame.
 Valid values for MODE include `none', `default', `left-only',
-`right-only' and `half'.  MODE can also be a cons cell where the
-integer in car will be used as left fringe width and the integer in
-cdr will be used as right fringe width. If MODE is not specified, the
-user is queried.
+`right-only', `minimal' and `half'.  MODE can also be a cons cell
+where the integer in car will be used as left fringe width and the
+integer in cdr will be used as right fringe width. If MODE is not
+specified, the user is queried.
 If you want to set appearance of fringes on all frames, see `fringe-mode'."
   (interactive (list (fringe-query-style)))
   (modify-frame-parameters
