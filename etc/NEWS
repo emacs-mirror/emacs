@@ -930,6 +930,11 @@ mode-lines in inverse-video.
 
 * Lisp Changes in Emacs 21.4
 
+** The functions all-completions and try-completion now accept lists
+of strings as well as hash-tables additionally to alists, obarrays
+and functions.  Furthermore, the function `test-completion' is now
+exported to Lisp.
+
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
 
@@ -1453,10 +1458,6 @@ This function returns the buffer-local binding of VARIABLE (a symbol)
 in buffer BUFFER.  If VARIABLE does not have a buffer-local binding in
 buffer BUFFER, it returns the default value of VARIABLE instead.
 
-** The default value of `paragraph-start' and `indent-line-function' has
-been changed to reflect the one used in Text mode rather than the one
-used in Indented Text mode.
-
 ** New function `text-clone-create'.  Text clones are chunks of text
 that are kept identical by transparently propagating changes from one
 clone to the other.
@@ -1476,6 +1477,7 @@ or `bg:COLOR' has been removed.  Lisp programs should use the
 are used by define-derived-mode to make sure the mode hook for the
 parent mode is run at the end of the child mode.
 
++++
 ** `provide' and `featurep' now accept an optional second argument
 to test/provide subfeatures.  Also `provide' now checks `after-load-alist'
 and run any code associated with the provided feature.

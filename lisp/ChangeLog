@@ -1,5 +1,12 @@
 2002-07-07  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* language/ind-util.el (indian-make-hash):
+	* language/devan-util.el (dev-char-glyph-hash, dev-glyph-glyph-hash)
+	(dev-glyph-glyph-2-hash): Switch makehash -> make-hash-table.
+
+	* subr.el (insert-string): Update the obsolete info.
+	(makehash): Move from C and mark obsolete.
+
 	* emacs-lisp/debug.el (debug-on-entry): Fix the wrapper used for
 	aliases to also work for interactive functions.
 	Use the same wrapper for subroutines.
