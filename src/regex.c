@@ -3952,6 +3952,16 @@ static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
       dend = end_match_2;						\
     }
 
+/* Call before fetching a char with *d if you already checked other limits.
+   This is meant for use in lookahead operations like wordend, etc..
+   where we might need to look at parts of the string that might be
+   outside of the LIMITs (i.e past `stop').  */
+#define PREFETCH_NOLIMIT()						\
+  if (d == end1)							\
+     {									\
+       d = string2;							\
+       dend = end_match_2;						\
+     }									\
 
 /* Test if at very beginning or at very end of the virtual concatenation
    of `string1' and `string2'.	If only one string, it's `string2'.  */
@@ -4497,7 +4507,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
     }
   else
     {
-      if (stop <= size1)
+      if (stop < size1)
 	{
 	  /* Only match within string1.  */
 	  end_match_1 = string1 + stop;
@@ -4512,7 +4522,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  end_match_2 = end_match_1;
 	}
       else
-	{
+	{ /* It's important to use this code when stop == size so that
+	     moving `d' from end1 to string2 will not prevent the d == dend
+	     check from catching the end of string.  */
 	  end_match_1 = end1;
 	  end_match_2 = string2 + stop - size1;
 	}
@@ -5014,12 +5026,11 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    {
 	      if (!bufp->not_eol) break;
 	    }
-
-	  /* We have to ``prefetch'' the next character.  */
-	  else if ((d == end1 ? *string2 : *d) == '\n'
-		   && bufp->newline_anchor)
+	  else
 	    {
-	      break;
+	      PREFETCH_NOLIMIT ();
+	      if (*d == '\n' && bufp->newline_anchor)
+		break;
 	    }
 	  goto fail;
 
@@ -5254,7 +5265,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 #ifdef emacs
 	      UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
-	      PREFETCH ();
+	      PREFETCH_NOLIMIT ();
 	      c2 = RE_STRING_CHAR (d, dend - d);
 	      s2 = SYNTAX (c2);
 
@@ -5341,7 +5352,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      /* Case 3: D is not at the end of string ... */
 	      if (!AT_STRINGS_END (d))
 		{
-		  PREFETCH ();
+		  PREFETCH_NOLIMIT ();
 		  c2 = RE_STRING_CHAR (d, dend - d);
 #ifdef emacs
 		  UPDATE_SYNTAX_TABLE_FORWARD (charpos);
