@@ -45,7 +45,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #undef HAVE_MULTILINGUAL_MENU
-#undef HAVE_DIALOGS /* NTEMACS_TODO: Implement native dialogs.  */
+#undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
 
 /******************************************************************/
 /* Definitions copied from lwlib.h */
@@ -2033,7 +2033,10 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
   int return_value;
 
   if (name_is_separator (wv->name))
-    fuFlags = MF_SEPARATOR;
+    {
+      fuFlags = MF_SEPARATOR;
+      out_string = NULL;
+    }
   else 
     {
       if (wv->enabled)
@@ -2057,8 +2060,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
 	  strcpy (out_string, wv->name);
 #endif
-          /* NTEMACS_TODO: Why has owner drawing stopped working? */
-	  fuFlags = /*MF_OWNERDRAW |*/ MF_DISABLED;
+          /* TODO: Why has owner-draw stopped working? */
+	  fuFlags |= /*MF_OWNERDRAW |*/ MF_DISABLED;
 	}
 
       /* Draw radio buttons and tickboxes. */
@@ -2077,7 +2080,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
     AppendMenu (menu,
                 fuFlags,
                 item != NULL ? (UINT) item : (UINT) wv->call_data,
-                (fuFlags == MF_SEPARATOR) ? NULL: out_string );
+                out_string );
 
   /* This must be done after the menu item is created.  */
   {
@@ -2099,9 +2102,11 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
             /* CheckMenuRadioItem allows us to differentiate TOGGLE and
                RADIO items, but is not available on NT 3.51 and earlier.  */
             info.fMask |= MIIM_TYPE | MIIM_STATE;
-            info.fType = MFT_RADIOCHECK;
+            info.fType = MFT_RADIOCHECK | MFT_STRING;
+            info.dwTypeData = out_string;
             info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
           }
+
         set_menu_item_info (menu,
                             item != NULL ? (UINT) item : (UINT) wv->call_data,
                             FALSE, &info);
@@ -2154,7 +2159,7 @@ popup_activated ()
 void
 w32_menu_display_help (HMENU menu, UINT item, UINT flags)
 {
-  int pane = 0; /* NTEMACS_TODO: Set this to pane number.  */
+  int pane = 0; /* TODO: Set this to pane number.  */
 
   HMODULE user32 = GetModuleHandle ("user32.dll");
   FARPROC get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");

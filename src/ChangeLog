@@ -1,3 +1,8 @@
+2000-11-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (add_menu_item): Reset menu item text when changing
+	type to radio button.
+
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xselect.c (wait_for_property_change): Update copyright.
