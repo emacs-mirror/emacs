@@ -1095,14 +1095,14 @@ void staticpro();
 
 /* Evaluate expr, UNGCPRO, and then return the value of expr.  */
 #define RETURN_UNGCPRO(expr)			\
-do						\
+if (1)						\
     {						\
       Lisp_Object ret_ungc_val;			\
       ret_ungc_val = (expr);			\
       UNGCPRO;					\
       return ret_ungc_val;			\
     }						\
-while (1)
+else
 
 /* Defined in data.c */
 extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
