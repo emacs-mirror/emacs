@@ -53,8 +53,10 @@ extern void abort ();
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
 
+#ifndef USE_MOTIF
 #include <X11/Xaw/Paned.h>
 #include <X11/Xaw/Label.h>
+#endif /* USE_MOTIF */
 
 #ifdef USG
 #undef USG	/* ####KLUDGE for Solaris 2.2 and up */
