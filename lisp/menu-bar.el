@@ -679,7 +679,8 @@ Do the same for the keys of the same name."
 (defun menu-bar-showhide-fringe-menu-customize-left ()
   "Make fringes appear only on the left."
   (interactive)
-  (customize-set-variable 'fringe-mode nil '(nil . 0)))
+  (require 'fringe)
+  (customize-set-variable 'fringe-mode '(nil . 0)))
 
 (define-key menu-bar-showhide-fringe-menu [left]
   '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
@@ -690,7 +691,8 @@ Do the same for the keys of the same name."
 (defun menu-bar-showhide-fringe-menu-customize-right ()
   "Make fringes appear only on the right."
   (interactive)
-  (customize-set-variable 'fringe-mode nil '(0 . nil)))
+  (require 'fringe)
+  (customize-set-variable 'fringe-mode '(0 . nil)))
 
 (define-key menu-bar-showhide-fringe-menu [right]
   '(menu-item "On the Right" menu-bar-showhide-fringe-menu-customize-right
@@ -701,7 +703,8 @@ Do the same for the keys of the same name."
 (defun menu-bar-showhide-fringe-menu-customize-disable ()
   "Make fringes disappear."
   (interactive)
-  (customize-set-variable 'fringe-mode nil 0))
+  (require 'fringe)
+  (customize-set-variable 'fringe-mode 0))
 
 (define-key menu-bar-showhide-fringe-menu [none]
   '(menu-item "None" menu-bar-showhide-fringe-menu-customize-disable
