@@ -5,6 +5,28 @@
 
 2003-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* view.el (view-file, view-file-other-window, view-file-other-frame):
+	Signal an error when trying to visit an inexistent file.
+
+	* vc-hooks.el (vc-call-backend): Give better error message
+	when a backend function is missing.
+	(vc-find-file-hook): USe unless.  Merge if and cond.
+
+	* vc.el (vc-directory-exclusion-list): Add MCVS and .svn.
+	(vc-checkin-hook): Adjust option to new name.
+
+	* log-edit.el (log-edit-maximum-comment-ring-size)
+	(log-edit-comment-ring, log-edit-comment-ring-index)
+	(log-edit-last-comment-match): Rename vars from
+	vc-maximum-comment-ring-size, vc-comment-ring, vc-comment-ring-index,
+	and vc-last-comment-match.
+	(log-edit-new-comment-index, log-edit-previous-comment)
+	(log-edit-next-comment, log-edit-comment-search-backward)
+	(log-edit-comment-search-forward, log-edit-comment-to-change-log):
+	Rename funs from vc-new-comment-index, vc-previous-comment,
+	vc-next-comment, vc-comment-search-reverse, vc-comment-search-forward,
+	and vc-comment-to-change-log.
+
 	* wid-edit.el (widget-specify-insert): Simplify.
 	(widget-editable-list-entry-create): Don't assume that %d and %i are
 	in the format string.
