@@ -273,7 +273,7 @@ Bindings:
 \\[flyspell-correct-word] (or mouse-2): popup correct words.
 
 Hooks:
-flyspell-mode-hook is runner after flyspell is entered.
+flyspell-mode-hook is run after flyspell is entered.
 
 Remark:
 `flyspell-mode' uses `ispell-mode'.  Thus all Ispell options are
@@ -305,7 +305,7 @@ flyspell-buffer checks the whole buffer."
 ;*    flyspell-mode-on ...                                             */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-mode-on ()
-  "Turn flyspell mode on.  Do not use this; use `flyspell-mode' instead."
+  "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
   (setq ispell-highlight-face 'flyspell-incorrect-face)
   ;; ispell initialization
   (if flyspell-multi-language-p
@@ -315,7 +315,13 @@ flyspell-buffer checks the whole buffer."
 	(make-variable-buffer-local 'ispell-filter)
 	(make-variable-buffer-local 'ispell-filter-continue)
 	(make-variable-buffer-local 'ispell-process-directory)
-	(make-variable-buffer-local 'ispell-parser)))
+	(make-variable-buffer-local 'ispell-parser)
+	(put 'ispell-dictionary 'permanent-local t)
+	(put 'ispell-process 'permanent-local t)
+	(put 'ispell-filter 'permanent-local t)
+	(put 'ispell-filter-continue 'permanent-local t)
+	(put 'ispell-process-directory 'permanent-local t)
+	(put 'ispell-parser 'permanent-local t)))
   ;; We put the `flyspel-delayed' property on some commands.
   (flyspell-delay-commands)
   ;; we bound flyspell action to post-command hook
@@ -353,7 +359,7 @@ flyspell-buffer checks the whole buffer."
 ;*    flyspell-delay-commands ...                                      */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-delay-commands ()
-  "Install the standard set of delayed commands."
+  "Install the standard set of Flyspell delayed commands."
   (mapcar 'flyspell-delay-command flyspell-default-delayed-commands)
   (mapcar 'flyspell-delay-command flyspell-delayed-commands))
 
@@ -361,7 +367,7 @@ flyspell-buffer checks the whole buffer."
 ;*    flyspell-delay-command ...                                       */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-delay-command (command)
-  "Set COMMAND to be delayed.
+  "Set COMMAND to be delayed, for Flyspell.
 When flyspell `post-command-hook' is invoked because a delayed command
 as been used the current word is not immediatly checked.
 It will be checked only after `flyspell-delay' seconds."
@@ -416,8 +422,9 @@ COMMAND is the name of the command to be delayed."
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-mode-off ...                                            */
 ;*---------------------------------------------------------------------*/
+;;;###autoload
 (defun flyspell-mode-off ()
-  "Turn flyspell mode off.  Do not use this--use `flyspell-mode' instead."
+  "Turn Flyspell mode off."
   ;; If we have an Ispell process for each buffer,
   ;; kill the one for this buffer.
   (if flyspell-multi-language-p
