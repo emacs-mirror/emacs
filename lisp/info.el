@@ -1557,7 +1557,9 @@ FOOTNOTENAME may be an abbreviation of the reference name."
       (setq i (+ i 1)))
     (Info-goto-node target)))
 
-(defconst Info-menu-entry-name-re "\\(?:[^:\n]\\|:[^:,.;() \t\n]\\)*"
+(defconst Info-menu-entry-name-re "\\(?:[^:]\\|:[^:,.;() \t\n]\\)*"
+  ;; We allow newline because this is also used in Info-follow-reference,
+  ;; where the xref name might be wrapped over two lines.
   "Regexp that matches a menu entry name upto but not including the colon.
 Because of ambiguities, this should be concatenated with something like
 `:' and `Info-following-node-name-re'.")
