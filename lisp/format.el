@@ -140,7 +140,10 @@ MODIFY, if non-nil, means the TO-FN wants to modify the region.  If nil,
 
 MODE-FN, if specified, is called when visiting a file with that format.
          It is called with a single positive argument, on the assumption
-         that it turns on some Emacs mode.")
+         that it turns on some Emacs mode.
+
+PRESERVE, if non-nil, means that `format-write-file' should not remove
+          this format from `buffer-file-formats'.")
 
 ;;; Basic Functions (called from Lisp)
 
@@ -371,7 +374,16 @@ name as FILENAME, to write a file of the same old name in that directory."
 	  (fmt (format-read (format "Write file `%s' in format: "
 				    (file-name-nondirectory file)))))
      (list file fmt)))
-  (setq buffer-file-format format)
+  (let ((old-formats buffer-file-format)
+	preserve-formats)
+    (dolist (fmt old-formats)
+      (let ((aelt (assq fmt format-alist)))
+	(if (nth 7 aelt)
+	    (push fmt preserve-formats))))
+    (setq buffer-file-format format)
+    (dolist (fmt preserve-formats)
+      (unless (memq fmt buffer-file-format)
+	(setq buffer-file-format (append buffer-file-format (list fmt))))))
   (write-file filename))
 
 (defun format-find-file (filename format)
