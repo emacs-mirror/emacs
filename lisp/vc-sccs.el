@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.16 2002/10/08 15:35:03 monnier Exp $
+;; $Id: vc-sccs.el,v 1.17 2002/10/08 20:24:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -88,8 +88,9 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;;;###autoload
-(progn (defun vc-sccs-registered (f) (vc-default-registered 'SCCS f)))
+;;; The definition should be at beginning of line (for Help and etags).
+;;;###autoload(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
+(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."
