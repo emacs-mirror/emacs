@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.8) $
+ * $HopeName: MMsrc!mpmst.h(trunk.9) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -54,7 +54,7 @@ typedef struct RingStruct {     /* double-ended queue structure */
 #define PoolClassSig    ((Sig)0x519C1A55)
 
 typedef struct PoolClassStruct {
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   const char *name;             /* class name string */
   size_t size;                  /* size of instance structure */
   size_t offset;                /* offset of PoolStruct in instance */
@@ -92,7 +92,7 @@ typedef struct PoolClassStruct {
 #define PoolSig         ((Sig)0x519B0011)
 
 typedef struct PoolStruct {     /* Pool instance structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from space->poolSerial */
   PoolClass class;              /* pool class structure */
   Space space;                  /* owning space */
@@ -126,7 +126,7 @@ typedef struct MFSStruct {      /* MFS instance structure */
   Word unitsPerSeg;             /* number of units per segment */
   struct MFSHeaderStruct *freeList; /* head of the free list */
   Seg segList;                  /* the first segment */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
 } MFSStruct;
 
 
@@ -155,7 +155,7 @@ typedef struct MVStruct {
   Size space;                   /* total free space in pool */
   Size lost;                    /* lost because free couldn't allocate(!) */
   RingStruct spans;             /* span chain */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
 } MVStruct;
 
 
@@ -172,7 +172,7 @@ typedef struct MVStruct {
 #ifdef TARGET_VM_RM
 
 typedef struct VMStruct {	/* Real Memory fake VM; impl.c.vmrm */
-  Sig sig;			/* impl.h.misc.sig */
+  Sig sig;			/* design.mps.sig */
   Align align;			/* made-up alignment */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */
@@ -182,7 +182,7 @@ typedef struct VMStruct {	/* Real Memory fake VM; impl.c.vmrm */
 #elif defined(MPS_OS_W3)
 
 typedef struct VMStruct {       /* Win32 VM structure; impl.c.vmnt */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */
@@ -192,7 +192,7 @@ typedef struct VMStruct {       /* Win32 VM structure; impl.c.vmnt */
 #elif defined(MPS_OS_O1) || defined(MPS_OS_S7) || defined(MPS_OS_IR)
 
 typedef struct VMStruct {       /* ANSI fake VM structure; impl.c.vman */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Addr base, limit;             /* boundaries of malloc'd memory */
   void *block;                  /* pointer to malloc'd block, for free() */
   Size reserved;                /* total reserved address space */
@@ -202,7 +202,7 @@ typedef struct VMStruct {       /* ANSI fake VM structure; impl.c.vman */
 #elif defined(MPS_OS_SU) || defined(MPS_OS_SO)
 
 typedef struct VMStruct {       /* SunOS 4 VM structure; impl.c.vmsu */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   int zero_fd;                  /* see impl.c.vmsu */
   int none_fd;                  /* see impl.c.vmsu */
   Align align;                  /* page size */
@@ -253,7 +253,7 @@ typedef struct SegStruct {      /* segment structure */
 /* arena implementation, impl.c.arenaan. */
 
 typedef struct ArenaStruct {    /* ANSI arena structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   RingStruct blockRing;         /* list of blocks in arena */
   Size committed;               /* total allocated memory */
 } ArenaStruct;
@@ -267,7 +267,7 @@ typedef struct PageStruct *Page;/* page type */
 typedef Word *BT;               /* bool table type */
 
 typedef struct ArenaStruct {    /* VM arena structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   VMStruct vmStruct;            /* virtual memory structure */
   Addr base;                    /* base address of arena area */
   Addr limit;                   /* limit address of arena area */
@@ -311,7 +311,7 @@ typedef struct APStruct {
 #define BufferSig       ((Sig)0x519B0FFA)
 
 typedef struct BufferStruct {
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from pool->bufferSerial */
   Space space;                  /* owning space */
   Pool pool;                    /* owning pool */
@@ -340,7 +340,7 @@ typedef struct BufferStruct {
 #define FormatSig       ((Sig)0x519F43A2)
 
 typedef struct FormatStruct {
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from space->formatSerial */
   Space space;                  /* owning space */
   RingStruct spaceRing;         /* link in list of formats in space */
@@ -376,13 +376,13 @@ typedef struct LDStruct {
 #if defined(MPS_OS_W3)
 
 typedef struct LockStruct {     /* Win32 lock structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   unsigned long claims;         /* # claims held by the owning thread */
   CRITICAL_SECTION cs;          /* Win32's recursive lock thing */
 } LockStruct;
 
 typedef struct ThreadStruct {   /* Win32 thread structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from space->threadSerial */
   Space space;                  /* owning space */
   RingStruct spaceRing;         /* threads attached to space */
@@ -394,12 +394,12 @@ typedef struct ThreadStruct {   /* Win32 thread structure */
  defined(MPS_OS_S7) || defined(MPS_OS_IR) || defined(MPS_OS_SO)
 
 typedef struct LockStruct {     /* ANSI fake lock structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   unsigned long claims;         /* # claims held by owner */
 } LockStruct;
 
 typedef struct ThreadStruct {   /* ANSI fake thread structure */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from space->threadSerial */
   Space space;                  /* owning space */
   RingStruct spaceRing;         /* attaches to space */
@@ -420,7 +420,7 @@ typedef struct ThreadStruct {   /* ANSI fake thread structure */
 #define RootSig         ((Sig)0x51940022)
 
 typedef struct RootStruct {
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from space->rootSerial */
   Space space;                  /* owning space */
   RingStruct spaceRing;         /* attachment to space */
@@ -474,7 +474,7 @@ typedef struct ScanStateStruct {
   Word zoneShift;
   RefSet condemned;             /* condemned set, for inline fix test */
   RefSet summary;               /* accumulated summary of scanned references */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Space space;                  /* owning space */
   TraceId traceId;              /* trace ID of scan */
   Rank rank;                    /* reference rank of scanning */
@@ -500,7 +500,7 @@ typedef struct TraceStruct {
 
 typedef struct SpaceStruct {
   /* space fields (impl.c.space) */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from static spaceSerial */
   RingStruct globalRing;        /* node in global ring of spaces */
   Bool poolReady;               /* has control pool been initialized? */
