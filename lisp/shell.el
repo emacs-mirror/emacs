@@ -337,7 +337,7 @@ Thus, this does not include the shell's current directory.")
 
 (put 'shell-mode 'mode-class 'special)
 
-(defun shell-mode ()
+(define-derived-mode shell-mode comint-mode "Shell"
   "Major mode for interacting with an inferior shell.
 \\[comint-send-input] after the end of the process' output sends the text from
     the end of process to the end of the current line.
@@ -389,11 +389,6 @@ Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
 control whether input and output cause the window to scroll to the end of the
 buffer."
-  (interactive)
-  (comint-mode)
-  (setq major-mode 'shell-mode)
-  (setq mode-name "Shell")
-  (use-local-map shell-mode-map)
   (setq comint-prompt-regexp shell-prompt-pattern)
   (setq comint-completion-fignore shell-completion-fignore)
   (setq comint-delimiter-argument-list shell-delimiter-argument-list)
@@ -438,7 +433,6 @@ buffer."
 	  (cond ((string-equal shell "sh") "pwd")
 		((string-equal shell "ksh") "echo $PWD ~-")
 		(t "dirs"))))
-  (run-hooks 'shell-mode-hook)
   (comint-read-input-ring t))
 
 (defun shell-write-history-on-exit (process event)
