@@ -68,6 +68,7 @@
       (define-key news-reply-mode-map "\C-c\C-f\C-f" 'news-reply-followup-to)
       (define-key news-reply-mode-map "\C-c\C-f\C-s" 'mail-subject)
       (define-key news-reply-mode-map "\C-c\C-f\C-a" 'news-reply-summary)
+      (define-key news-reply-mode-map "\C-c\C-t" 'mail-text)
       (define-key news-reply-mode-map "\C-c\C-r" 'news-caesar-buffer-body)
       (define-key news-reply-mode-map "\C-c\C-w" 'news-reply-signature)
       (define-key news-reply-mode-map "\C-c\C-y" 'news-reply-yank-original)
