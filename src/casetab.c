@@ -76,8 +76,7 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
   return Fcons (down, Fcons (up, Fcons (canon, Fcons (eqv, Qnil))));
 }
 
-DEFUN ("standard-case-table", Fstandard_case_table,
-  Sstandard_case_table, 0, 0, 0,
+DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
   "Return the standard case table.\n\
 This is the one used for new buffers.")
   ()
@@ -111,8 +110,7 @@ Both CANONICALIZE and EQUIVALENCES may be nil, in which case\n\
   return set_case_table (table, 0);
 }
 
-DEFUN ("set-standard-case-table",
-       Fset_standard_case_table, Sset_standard_case_table, 1, 1, 0,
+DEFUN ("set-standard-case-table", Fset_standard_case_table, Sset_standard_case_table, 1, 1, 0,
   "Select a new standard case table for new buffers.\n\
 See `set-case-table' for more info on case tables.")
   (table)
