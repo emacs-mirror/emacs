@@ -1,3 +1,15 @@
+2005-03-16  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (mark-diary-entries): Use new optional
+	argument REDRAW rather than calendar-redrawing variable.
+	* calendar/calendar.el (calendar-redrawing): Delete.
+	(redraw-calendar): Do not bind calendar-redrawing.
+
+2005-03-16  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* calendar/diary-lib.el (diary-redraw-calendar): Preserve point in
+	diary-file buffer.
+
 2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (describe-mode): Allow a :minor-mode-function property to
