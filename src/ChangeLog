@@ -1,8 +1,12 @@
+2003-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (read_process_output): Handle carryover correctly.
+
 2003-06-02  Dave Love  <fx@gnu.org>
 
 	* regex.c (re_search_2): Fix last change.
 
-2003-05-30  Kenichi Handa  <handa@etlken2>
+2003-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (GET_CHAR_BEFORE_2): Check multibyte, not
 	target_multibyte.  Even in a unibyte case, return a converted
