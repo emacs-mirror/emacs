@@ -442,7 +442,7 @@ int line_number_displayed;
 
 /* Maximum buffer size for which to display line numbers.  */
 
-static int line_number_display_limit;
+Lisp_Object Vline_number_display_limit;
 
 /* line width to consider when repostioning for line number display */
 
@@ -12282,7 +12282,8 @@ decode_mode_spec (w, c, field_width, precision)
 	  w->base_line_pos = Qnil;
 
 	/* If the buffer is very big, don't waste time.  */
-	if (BUF_ZV (b) - BUF_BEGV (b) > line_number_display_limit)
+	if (!INTEGERP (Vline_number_display_limit)
+	    && BUF_ZV (b) - BUF_BEGV (b) > XINT (Vline_number_display_limit))
 	  {
 	    w->base_line_pos = Qnil;
 	    w->base_line_number = Qnil;
@@ -13038,13 +13039,14 @@ of the top or bottom of the window.");
     "*Non-nil means use inverse video for the mode line.");
   mode_line_inverse_video = 1;
 
-  DEFVAR_INT ("line-number-display-limit", &line_number_display_limit,
+  DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit,
     "*Maximum buffer size for which line number should be displayed.\n\
 If the buffer is bigger than this, the line number does not appear\n\
-in the mode line.");
-  line_number_display_limit = 1000000;
+in the mode line.  A value of nil means no limit.");
+  Vline_number_display_limit = Qnil;
 
-  DEFVAR_INT ("line-number-display-limit-width", &line_number_display_limit_width,
+  DEFVAR_INT ("line-number-display-limit-width",
+	      &line_number_display_limit_width,
     "*Maximum line width (in characters) for line number display.\n\
 If the average length of the lines near point is bigger than this, then the\n\
 line number may be omitted from the mode line.");
