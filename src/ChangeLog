@@ -11,24 +11,36 @@
 	* gtkutil.c (xg_get_file_name): Fix typo in
 	HAVE_GTK_FILE_SELECTION_NEW.
 
-	* xmenu.c (x_menu_in_use): Removed.
+	* xmenu.c (x_menu_in_use): Remove.
 	(x_menu_set_in_use): Also set popup_activated_flag.
 
 	* xfns.c (Fx_file_dialog): Call popup_activated instead of
 	x_menu_in_use.  Call x_menu_set_in_use in Motif version also.
 
-	* xterm.h: (x_menu_in_use): Removed.
+	* xterm.h: (x_menu_in_use): Remove.
 
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
 
-	* keymap.c (Fmap_keymap): New arg SORT-FIRST.  Use
-	map-keymap-internal to implement that.
+	* keymap.c (Fmap_keymap): New arg SORT-FIRST.
+	Use map-keymap-internal to implement that.
 
 	* indent.c (Fvertical_motion): In batch mode, use vmotion directly.
 
+2004-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_glyph_string_clip_rect, init_glyph_string): Check it's
+	a window before using XWINDOW.
+
+	* window.c (make_window, Fselect_window, make_dummy_parent)
+	(save_window_save):
+	* frame.c (make_frame):
+	* fns.c (concat): Avoid side-effects inside XSETFASTINT's arguments.
+
+	* lisp.h (NILP): Use EQ rather than XFASTINT.
+
 2004-11-16  Kim F. Storm  <storm@cua.dk>
 
-	* fringe.c (Fdefine_fringe_bitmap): Always set 'h'. Simplify.
+	* fringe.c (Fdefine_fringe_bitmap): Always set 'h'.  Simplify.
 
 	* indent.c (Fvertical_motion): Fix last change.  Only reseat when
 	moving backwards.
@@ -99,12 +111,12 @@
 2004-11-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_file_sel_ok, xg_file_sel_cancel)
-	(xg_file_sel_destroy): Removed.
+	(xg_file_sel_destroy): Remove.
 	(xg_file_response_cb, pop_down_file_dialog)
 	(xg_get_file_name_from_chooser, xg_get_file_name_from_selector):
 	New functions.
-	(xg_get_file_with_chooser, xg_get_file_with_selection): Take
-	new argument func, set it to xg_get_file_name_from_chooser/selector.
+	(xg_get_file_with_chooser, xg_get_file_with_selection):
+	Take new arg func, set it to xg_get_file_name_from_chooser/selector.
 	Move common code to xg_get_file_name.  Return widget created.
 	(xg_get_file_name): Set name, transient for, modal and destroy
 	with parent here.  Connect response signal to xg_file_response_cb,
@@ -121,7 +133,7 @@
 	(create_and_show_popup_menu, create_and_show_dialog): ... to here.
 	Move destroy of widget to pop_down_menu.
 	(pop_down_menu): BLOCK_INPUT and destroy widget/window.
-	(xmenu_show): record unwind pop_down_menu.  Move XMenuDestroy,
+	(xmenu_show): Record unwind pop_down_menu.  Move XMenuDestroy,
 	x_mouse_leave and grabbed = 0 to pop_down_menu.
 
 2004-11-13  Kim F. Storm  <storm@cua.dk>
@@ -144,8 +156,8 @@
 	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P)
 	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P): Use helper macros.
 
-	* window.c (window_scroll_pixel_based, Frecenter): Use
-	move_it_vertically_backward directly.
+	* window.c (window_scroll_pixel_based, Frecenter):
+	Use move_it_vertically_backward directly.
 	(Frecenter): Fix calculation of new start pos for negative arg.
 	Before, the new start pos was sometimes chosen too far back, so
 	the last line became only partially visible, and thus would be
@@ -156,7 +168,7 @@
 	(move_it_vertically_backward): Don't recure to move further back.
 	(move_it_vertically): Remove superfluous condition.
 	(move_it_by_lines): Clear last_height when moved 0 lines.
-	(resize_mini_window): use it.max_extra_line_spacing.
+	(resize_mini_window): Use it.max_extra_line_spacing.
 	(display_tool_bar_line): Clear row->extra_line_spacing.
 	(try_scrolling): Use move_it_vertically_backward directly.
 	(redisplay_window): Likewise.
@@ -248,7 +260,7 @@
 	* Makefile.in (SOME_MACHINE_OBJECTS): Add fringe.o, image.o
 	and w32*.o.
 	(temacs${EXEEXT}): Generate buildobj.lst when temacs is linked.
-	(mostlyclean): rm buildobj.lst
+	(mostlyclean): Rm buildobj.lst
 
 	* makefile.w32-in ($(TEMACS)): Generate buildobj.lst when temacs
 	is linked.
