@@ -82,6 +82,9 @@
 (defvar server-switch-hook nil
   "*List of hooks to call when switching to a buffer for the Emacs server.")
 
+(defvar server-done-hook nil
+  "*List of hooks to call when done editing a buffer for the Emacs server.")
+
 (defvar server-process nil 
   "the current server process")
 
@@ -250,7 +253,8 @@ as a suggestion for what to select next."
 	(progn
 	  (save-excursion
 	    (set-buffer buffer)
-	    (setq server-buffer-clients nil))
+	    (setq server-buffer-clients nil)
+	    (run-hooks 'server-done-hook))
 	  (if (server-temp-file-p buffer)
 	      (kill-buffer buffer)
 	    (bury-buffer buffer))))
