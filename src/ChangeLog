@@ -1,5 +1,8 @@
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* lread.c (syms_of_lread)<recursive-load-depth-limit>: Raise to
+	50.
+
 	* xterm.c (x_draw_glyphs): Remove parameters READ_START and 
 	REAL_END.  Notice if cursor gets overwritten.
 	(notice_overwritten_cursor): Take X positions as parameters.
