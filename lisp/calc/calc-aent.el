@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -473,6 +472,7 @@
 	(math-exp-old-pos 0)
 	(math-exp-keep-spaces nil)
 	math-exp-token math-expr-data)
+    (setq math-exp-str (math-read-preprocess-string math-exp-str))
     (if calc-language-input-filter
 	(setq math-exp-str (funcall calc-language-input-filter math-exp-str)))
     (while (setq math-exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
