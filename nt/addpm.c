@@ -152,9 +152,12 @@ main (argc, argv)
 
       /* Tell user what we are going to do.  */
       {
+	int result;
+
 	char msg[ MAX_PATH ];
 	sprintf (msg, "Install Emacs at %s?\n", emacs_path);
-	if (!MessageBox (NULL, msg, "Install Emacs", MB_OKCANCEL | MB_ICONQUESTION))
+	result = MessageBox (NULL, msg, "Install Emacs", MB_OKCANCEL | MB_ICONQUESTION);
+	if (result != IDOK)
 	  {
 	    fprintf (stderr, "Install cancelled\n");
 	    exit (1);
