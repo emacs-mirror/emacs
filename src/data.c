@@ -902,6 +902,19 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   (symbol, newval)
      register Lisp_Object symbol, newval;
 {
+  return set_internal (symbol, newval, 0);
+}
+
+/* Stpre the value NEWVAL into SYMBOL.
+   If BINDFLAG is zero, then if this symbol is supposed to become
+   local in every buffer where it is set, then we make it local.
+   If BINDFLAG is nonzero, we don't do that.  */
+
+Lisp_Object
+set_internal (symbol, newval, bindflag)
+     register Lisp_Object symbol, newval;
+     int bindflag;
+{
   int voide = EQ (newval, Qunbound);
 
   register Lisp_Object valcontents, tem1, current_alist_element;
@@ -978,13 +991,14 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 	      /* This buffer still sees the default value.  */
 
 	      /* If the variable is a Lisp_Some_Buffer_Local_Value,
+		 or if this is `let' rather than `set',
 		 make CURRENT-ALIST-ELEMENT point to itself,
 		 indicating that we're seeing the default value.  */
-	      if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
+	      if (bindflag || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 		tem1 = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr;
 
-	      /* If it's a Lisp_Buffer_Local_Value, give this buffer a
-		 new assoc for a local value and set
+	      /* If it's a Lisp_Buffer_Local_Value, being set not bound,
+		 give this buffer a new assoc for a local value and set
 		 CURRENT-ALIST-ELEMENT to point to that.  */
 	      else
 		{
