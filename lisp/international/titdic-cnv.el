@@ -73,7 +73,7 @@
 ;; dictionary.  The extra docstring in this alist is to add more
 ;; information.
 ;; The command describe-input-method shows the automatically generated
-;; docstring, then an extra docstrings while replacing the form \<VAR>
+;; docstring, then an extra docstring while replacing the form \<VAR>
 ;; by the value of variable VAR.  For instance, the form
 ;; \<quail-translation-docstring> is replaced by a description about
 ;; how to select a translation from a list of candidates.
@@ -84,7 +84,7 @@
     ("chinese-ccdospy" "缩拼"
      "Pinyin base input method for Chinese charset GB2312 \(`chinese-gb2312').
 
-Pinyin is the standared roman transliteration method for Chinese.
+Pinyin is the standard Roman transliteration method for Chinese.
 For the detail of Pinyin system, see the documentation of the input
 method `chinese-py'.
 
@@ -92,7 +92,7 @@ This input method works almost the same way as `chinese-py'.  The
 difference is that you type a single key for these Pinyin spelling.
     Pinyin:  zh  en  eng ang ch  an  ao  ai  ong sh  ing  yu(ü)
     keyseq:   a   f   g   h   i   j   k   l   s   u   y   v
-For expample:
+For example:
     Chinese:  啊    果    中    文    光    玉    全
     Pinyin:   a    guo   zhong  wen  guang  yu   quan
     Keyseq:   a1   guo4   as1   wf4  guh1  yu..6 qvj6
