@@ -4823,6 +4823,10 @@ setup_coding_system (coding_system, coding)
   coding->head_ascii = -1;
   coding->common_flags
     = (VECTORP (eol_type) ? CODING_REQUIRE_DETECTION_MASK : 0);
+  if (! NILP (CODING_ATTR_POST_READ (attrs)))
+    coding->common_flags |= CODING_REQUIRE_DECODING_MASK;
+  if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
+    coding->common_flags |= CODING_REQUIRE_ENCODING_MASK;
 
   val = CODING_ATTR_SAFE_CHARSETS (attrs);
   coding->max_charset_id = XSTRING (val)->size - 1;
@@ -6227,6 +6231,7 @@ decode_coding_gap (coding, chars, bytes)
      EMACS_INT chars, bytes;
 {
   int count = specpdl_ptr - specpdl;
+  Lisp_Object attrs;
   Lisp_Object buffer;
 
   buffer = Fcurrent_buffer ();
@@ -6238,7 +6243,7 @@ decode_coding_gap (coding, chars, bytes)
   coding->src_pos = -chars;
   coding->src_pos_byte = -bytes;
   coding->src_multibyte = chars < bytes;
-  coding->dst_object = coding->src_object;
+  coding->dst_object = buffer;
   coding->dst_pos = PT;
   coding->dst_pos_byte = PT_BYTE;
   coding->dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
@@ -6248,6 +6253,23 @@ decode_coding_gap (coding, chars, bytes)
     detect_coding (coding);
     
   decode_coding (coding);
+
+  attrs = CODING_ID_ATTRS (coding->id);
+  if (! NILP (CODING_ATTR_POST_READ (attrs)))
+    {
+      struct gcpro gcpro1;
+      EMACS_INT prev_Z = Z, prev_Z_BYTE = Z_BYTE;
+      Lisp_Object val;
+
+      TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
+      GCPRO1 (buffer);
+      val = call1 (CODING_ATTR_POST_READ (attrs),
+		   make_number (coding->produced_char));
+      UNGCPRO;
+      CHECK_NATNUM (val);
+      coding->produced_char += Z - prev_Z;
+      coding->produced += Z_BYTE - prev_Z_BYTE;
+    }
 
   unbind_to (count, Qnil);
   return coding->result;
