@@ -1,7 +1,7 @@
 /* impl.c.eventcnv: Simple event log converter
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName$
+ * $HopeName: MMsrc!eventcnv.c(trunk.1) $
  */
 
 #include "config.h"
@@ -391,7 +391,7 @@ static Res readLog(char *filename)
     error("Unknown style code '%c'", style);
   }
 
-  while (!feof(input)) {
+  while (TRUE) {
     char *eventFormat;
     int argCount, i;
     Event event;
@@ -399,6 +399,8 @@ static Res readLog(char *filename)
     Res res;
 
     res = EventRead(&event, input);
+    if (res != ResOK) error("Truncated file");
+    if (event == NULL) break;
     eventTime = event->any.clock;
     code = EventGetCode(event);
 
