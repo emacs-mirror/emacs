@@ -1032,7 +1032,7 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
    $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
-   INTERVAL_SRC $(config_h)
+   buffer.h INTERVAL_SRC $(config_h)
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
    coding.h $(config_h)
 filelock.o: filelock.c buffer.h paths.h $(config_h)
