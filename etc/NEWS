@@ -32,7 +32,8 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
-** The amount of automatic hscrolling can now be customized.
++++
+** The parameters of automatic hscrolling can now be customized.
 The variable `automatic-hscroll-margin' determines how many columns
 away from the window edge point is allowed to get before automatic
 hscrolling will horizontally scroll the window.  The default value is 5.
