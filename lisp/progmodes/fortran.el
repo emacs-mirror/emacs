@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000
+;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -30,7 +30,9 @@
 ;;
 ;; Note that it is for editing Fortran77 or Fortran90 fixed source
 ;; form.  For editing Fortran 90 free format source, use `f90-mode'
-;; (f90.el).
+;; (f90.el).  It is meant to support the GNU Fortran language
+;; implemented by g77 (its extensions to Fortran77 and
+;; interpretations, e.g. of blackslash in strings).
 
 ;;; History:
 
@@ -49,7 +51,7 @@
 ;; * Implement insertion and removal of statement continuations in
 ;;   mixed f77/f90 style, with the first `&' past column 72 and the
 ;;   second in column 6.
-;; * Support any other extensions to f77 grokked by GNU Fortran.
+;; * Support any other extensions to f77 grokked by GNU Fortran I've missed.
 
 (defgroup fortran nil
   "Fortran mode for Emacs"
@@ -232,9 +234,8 @@ format style.")
     (modify-syntax-entry ?/ "." table)
     (modify-syntax-entry ?\' "\"" table)
     (modify-syntax-entry ?\" "\"" table)
-;;; Supposedly this is mistaken; Fortran does not treat \ as an escape.
-;;;    (modify-syntax-entry ?\\ "\\" table)
-    (modify-syntax-entry ?\\ "." table)
+    ;; Consistent with GNU Fortran -- see the manual.
+    (modify-syntax-entry ?\\ "\\" table)
     ;; This might be better as punctuation, as for C, but this way you
     ;; can treat floating-point numbers as symbols.
     (modify-syntax-entry ?. "_" table)	; e.g. `a.ne.b'
@@ -294,7 +295,8 @@ These get fixed-format comments fontified.")
          (regexp-opt '("continue" "format" "end" "enddo" "if" "then"
                        "else" "endif" "elseif" "while" "inquire" "stop"
                        "return" "include" "open" "close" "read" "write"
-                       "format" "print" "select" "case" "cycle" "exit"))))
+                       "format" "print" "select" "case" "cycle" "exit"
+		       "rewind" "backspace"))))
       (fortran-logicals
        (eval-when-compile
          (regexp-opt '("and" "or" "not" "lt" "le" "eq" "ge" "gt" "ne"
@@ -363,7 +365,7 @@ These get fixed-format comments fontified.")
           ;; TAB-formatted line.
           '("^     \\([^ 0]\\)" 1 font-lock-string-face)
           '("^\t\\([1-9]\\)" 1 font-lock-string-face))
-	 (list 
+	 (list
 	  ;; cpp stuff (ugh)
 	  '("^# *[a-z]+" . font-lock-keyword-face))
          ;; The list `fortran-font-lock-keywords-2' less that for types
@@ -801,22 +803,18 @@ The key typed is executed unless it is SPC."
   "Make the window 72 columns wide.
 See also `fortran-window-create-momentarily'."
   (interactive)
-  (condition-case error
-      (progn
-	(let ((window-min-width 2))
-	  (if (< (window-width) (frame-width))
-	      (enlarge-window-horizontally (- (frame-width)
-					      (window-width) 1)))
-	  (let* ((window-edges (window-edges))
-		 (scroll-bar-width (- (nth 2 window-edges)
-				      (car window-edges)
-				      (window-width))))
-	    (split-window-horizontally (+ 72 scroll-bar-width)))
-	  (other-window 1)
-	  (switch-to-buffer " fortran-window-extra" t)
-	  (select-window (previous-window))))
-    (error (message "No room for Fortran window")
-	   'error)))
+  (let ((window-min-width 2))
+    (if (< (window-width) (frame-width))
+	(enlarge-window-horizontally (- (frame-width)
+					(window-width) 1)))
+    (let* ((window-edges (window-edges))
+	   (scroll-bar-width (- (nth 2 window-edges)
+				(car window-edges)
+				(window-width))))
+      (split-window-horizontally (+ 72 scroll-bar-width)))
+    (other-window 1)
+    (switch-to-buffer " fortran-window-extra" t)
+    (select-window (previous-window))))
 
 (defun fortran-window-create-momentarily (&optional arg)
   "Momentarily make the window 72 columns wide.
@@ -826,11 +824,14 @@ See also `fortran-window-create'."
   (if (or (not arg)
 	  (= arg 1))
       (save-window-excursion
-	(if (not (equal (fortran-window-create) 'error))
-	    (progn (message "Type SPC to continue editing.")
-		   (let ((char (read-event)))
-		     (or (equal char (string-to-char " "))
-			 (setq unread-command-events (list char)))))))
+	(progn
+	  (condition-case nil
+	      (fortran-window-create)
+	    (error (error "No room for Fortran window")))
+	  (message "Type SPC to continue editing.")
+	  (let ((char (read-event)))
+	    (or (equal char (string-to-char " "))
+		(setq unread-command-events (list char))))))
     (fortran-window-create)))
 
 (defun fortran-split-line ()
@@ -931,7 +932,7 @@ Auto-indent does not happen if a numeric ARG is used."
 ;; Note that you can't just check backwards for `subroutine' &c in
 ;; case of un-marked main programs not at the start of the file.
 (defun fortran-beginning-of-subprogram ()
-  "Moves point to the beginning of the current Fortran subprogram."
+  "Move point to the beginning of the current Fortran subprogram."
   (interactive)
   (save-match-data
     (let ((case-fold-search t))
@@ -943,7 +944,7 @@ Auto-indent does not happen if a numeric ARG is used."
 	  (forward-line)))))
 
 (defun fortran-end-of-subprogram ()
-  "Moves point to the end of the current Fortran subprogram."
+  "Move point to the end of the current Fortran subprogram."
   (interactive)
   (save-match-data
     (let ((case-fold-search t))
@@ -961,7 +962,7 @@ Auto-indent does not happen if a numeric ARG is used."
 	(forward-line)))))
 
 (defun fortran-previous-statement ()
-  "Moves point to beginning of the previous Fortran statement.
+  "Move point to beginning of the previous Fortran statement.
 Returns `first-statement' if that statement is the first
 non-comment Fortran statement in the file, and nil otherwise."
   (interactive)
@@ -987,7 +988,7 @@ non-comment Fortran statement in the file, and nil otherwise."
 	   'first-statement))))
 
 (defun fortran-next-statement ()
-  "Moves point to beginning of the next Fortran statement.
+  "Move point to beginning of the next Fortran statement.
 Returns `last-statement' if that statement is the last
 non-comment Fortran statement in the file, and nil otherwise."
   (interactive)
@@ -1099,7 +1100,7 @@ Return point or nil."
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
 	    (cond ((looking-at
-		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]")
+		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[0-9]")
 		   (setq count (1- count)))
 		  ((looking-at "end[ \t]*do\\b")
 		   (setq count (1+ count)))))
@@ -1216,7 +1217,7 @@ Return point or nil."
 				  (setq then-test
 					(looking-at
 					 (concat ".*then\\b[ \t]*"
-						 "[^ \t(=a-z[0-9]]"))))))
+						 "[^ \t(=a-z0-9]"))))))
 			    then-test))
 			 (setq count (- count 1)))))
 		  ((looking-at "end[ \t]*if\\b")
@@ -1735,7 +1736,7 @@ Intended as the value of `fill-paragraph-function'."
 	;; paragraph, delimited either by non-comment lines or empty
 	;; comments.  (Get positions as markers, since the
 	;; `indent-region' below can shift the block's end).
-	(let* ((non-empty-comment 
+	(let* ((non-empty-comment
 		(concat fortran-comment-line-start-skip "[^ \t\n]"))
 	       (start (save-excursion
 			;; Find (start of) first line.
@@ -1746,7 +1747,7 @@ Intended as the value of `fill-paragraph-function'."
 			(point-marker)))
 	       (end (save-excursion
 		      ;; Find start of first line past region to fill.
-		      (while (progn 
+		      (while (progn
 			       (forward-line)
 			       (looking-at non-empty-comment)))
 		      (point-marker))))
