@@ -1,3 +1,7 @@
+2004-11-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (require): Explain why CL is needed.
+
 2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/iso-cvt.el (iso-cvt-define-menu): Fix typo.
