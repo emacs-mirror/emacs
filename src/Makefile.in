@@ -518,6 +518,7 @@ INTERVAL_SRC = intervals.h composite.h
 #else
 #define GETLOADAVG_OBJ getloadavg.o
 #endif
+GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
@@ -799,7 +800,8 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/menu-bar.elc ${dotdot}/lisp/mouse.elc \
    duplicated symbols.  If the standard libraries were compiled
    with GCC, we might need gnulib again after them.  */
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   LIBS_DEBUG $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
+   LIBS_DEBUG $(GETLOADAVG_LIBS) $(GNULIB_VAR) LIB_MATH LIB_STANDARD \
+   $(GNULIB_VAR)
 
 /* Enable recompilation of certain other files depending on system type.  */
 
