@@ -981,13 +981,13 @@ main (argc, argv, envp)
 	  if (result < 0)
 	    {
 	      char *errstring = strerror (errno);
-	      fprintf (stderr, "emacs: %s: %s\n", term, errstring);
+	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
 	      exit (1);
 	    }
 	  dup (0);
 	  if (! isatty (0))
 	    {
-	      fprintf (stderr, "emacs: %s: not a tty\n", term);
+	      fprintf (stderr, "%s: %s: not a tty\n", argv[0], term);
 	      exit (1);
 	    }
 	  fprintf (stderr, "Using %s\n", term);
