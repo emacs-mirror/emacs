@@ -359,7 +359,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ("@\\(dmn\\|acronym\\|value\\){\\([^}]+\\)" 2 font-lock-builtin-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-keyword-face keep)
     (,texinfo-environment-regexp
-     1 (texinfo-clone-environment (match-beginning 1) (match-end 1)))
+     1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
 	       ".*\n") 0 texinfo-heading-face t))
   "Additional expressions to highlight in TeXinfo mode.")
