@@ -36,7 +36,9 @@
 NAME is a character (a number).  CONTENTS is a string, number,
 frame configuration, mark or list.
 A list of strings represents a rectangle.
-A list of the form (file . NAME) represents the file named NAME.")
+A list of the form (file . NAME) represents the file named NAME.
+A list of the form (file-query NAME POSITION) represents position POSITION
+ in the file named NAME, but query before visiting it.")
 
 (defun get-register (reg)
   "Return contents of Emacs register named REG, or nil if none."
@@ -101,8 +103,29 @@ delete any existing frames that the frame configuration doesn't mention.
       (goto-char val))
      ((and (consp val) (eq (car val) 'file))
       (find-file (cdr val)))
+     ((and (consp val) (eq (car val) 'file-query))
+      (or (find-buffer-visiting (nth 1 val))
+	  (y-or-n-p (format "Visit file %s again? " (nth 1 val)))
+	  (error "Register access aborted"))
+      (find-file (nth 1 val))
+      (goto-char (nth 2 val)))
      (t
       (error "Register doesn't contain a buffer position or configuration")))))
+
+;; Turn markers into file-query references when a buffer is killed.
+(defun register-swap-out ()
+  (and buffer-file-name
+       (let ((tail register-alist))
+	 (while tail
+	   (and (markerp (cdr (car tail)))
+		(eq (marker-buffer (cdr (car tail))) (current-buffer))
+		(setcdr (car tail)
+			(list 'file-query
+			      buffer-file-name
+			      (marker-position (cdr (car tail))))))
+	   (setq tail (cdr tail))))))
+
+(add-hook 'kill-buffer-hook 'register-swap-out)
 
 ;(defun number-to-register (arg char)
 ;  "Store a number in a register.
