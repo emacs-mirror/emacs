@@ -1646,7 +1646,19 @@ dos_rawgetc ()
       
       if (c == 0)
 	{
-	  if (code & Alt)
+        /* We only look at the keyboard Ctrl/Shift/Alt keys when
+           Emacs is ready to read a key.  Therefore, if they press
+           `Alt-x' when Emacs is busy, by the time we get to
+           `dos_get_modifiers', they might have already released the
+           Alt key, and Emacs gets just `x', which is BAD.
+           However, for keys with the `Map' property set, the ASCII
+           code returns zero iff Alt is pressed.  So, when we DON'T
+           have to support international_keyboard, we don't have to
+           distinguish between the left and  right Alt keys, and we
+           can set the META modifier for any keys with the `Map'
+           property if they return zero ASCII code (c = 0).  */
+        if ( (code & Alt)
+             || ( (code & 0xf000) == Map && !international_keyboard))
 	    modifiers |= meta_modifier;
 	  if (code & Ctrl)
 	    modifiers |= ctrl_modifier;
