@@ -220,7 +220,7 @@ if test "$with_app" == "yes"; then
   ## Copy Emacs application
   cp -r Emacs.app ${tempparentfull}/Applications
   ## Delete any CVS files
-  find ${tempparentfull}/Applications -name "CVS" -execdir rm -r {} \;
+  find ${tempparentfull}/Applications -name "CVS" -type d -exec rm -r {} \;
 fi
 
 echo "Creating Package Info file"
