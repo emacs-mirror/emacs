@@ -2,7 +2,7 @@
 
 	* coding.c (syms_of_coding): Docstring modified.
 
-2001-02-28  Kenichi Handa  <handa@etl.go.jp>
+2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (char_to_string): If a single byte char has modifier
 	bits that can't be reflected to the character code, ignore them

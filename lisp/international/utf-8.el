@@ -139,7 +139,7 @@
 		   ;; U+3400 .. U+DFFF
 		   ;; keep those bytes as eight-bit-{control|graphic}
 		   (if (r3 < #xe000)
-		       (;; #xe0 < r0 < #xf0, so r0 is eight-bit-graphic
+		       (;; #xe0 <= r0 < #xf0, so r0 is eight-bit-graphic
 			(r3 = ,(charset-id 'eight-bit-graphic))
 			(write-multibyte-character r3 r0)
 			(if (r1 < #xa0)
