@@ -1255,21 +1255,27 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  reg[rrr] = i;
 		  reg[RRR] = CHARSET_ASCII;
 		}
-	      else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION1)
-		{
-		  if (src >= src_end)
-		    goto ccl_read_multibyte_character_suspend;
-		  reg[RRR] = i;
-		  reg[rrr] = (*src++ & 0x7F);
-		}
 	      else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION2)
 		{
-		  if ((src + 1) >= src_end)
+		  int dimension = BYTES_BY_CHAR_HEAD (i) - 1;
+
+		  if (dimension == 0)
+		    {
+		      /* `i' is a leading code for an undefined charset.  */
+		      reg[RRR] = CHARSET_8_BIT_GRAPHIC;
+		      reg[rrr] = i;
+		    }
+		  else if (src + dimension > src_end)
 		    goto ccl_read_multibyte_character_suspend;
-		  reg[RRR] = i;
-		  i = (*src++ & 0x7F);
-		  reg[rrr] = ((i << 7) | (*src & 0x7F));
-		  src++;
+		  else
+		    {
+		      reg[RRR] = i;
+		      i = (*src++ & 0x7F);
+		      if (dimension == 1)
+			reg[rrr] = i;
+		      else
+			reg[rrr] = ((i << 7) | (*src++ & 0x7F));
+		    }
 		}
 	      else if ((i == LEADING_CODE_PRIVATE_11)
 		       || (i == LEADING_CODE_PRIVATE_12))
