@@ -1,3 +1,7 @@
+2001-10-30  Simon Josefsson  <jas@extundo.com>
+
+	* nnimap.el (nnimap-date-days-ago): Defeat locale.
+
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus-ems.el (gnus-article-display-xface): Skip over previously
