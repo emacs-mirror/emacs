@@ -200,7 +200,8 @@ A heading line is one that starts with a `*' (or that
   "Hides or shows lines from FROM to TO, according to FLAG.
 If FLAG is `\\n' (newline character) then text is shown,
 while if FLAG is `\\^M' (control-M) the text is hidden."
-  (let ((modp (buffer-modified-p)))
+  (let (buffer-read-only
+	(modp (buffer-modified-p)))
     (unwind-protect
         (subst-char-in-region from to
 			      (if (= flag ?\n) ?\^M ?\n)
