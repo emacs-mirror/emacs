@@ -1386,7 +1386,7 @@ init_sys_modes ()
       if (!flow_control) tcflow (input_fd, TCOON);
 #endif
 
-#ifdef AIX
+#ifdef AIXHFT
       hft_init ();
 #ifdef IBMR2AIX
       {
@@ -1398,7 +1398,7 @@ init_sys_modes ()
 	  write (1, "\033[20l", 5);
       }
 #endif
-#endif
+#endif /* AIXHFT */
 
 #ifdef VMS
 /*  Appears to do nothing when in PASTHRU mode.
@@ -1597,7 +1597,7 @@ reset_sys_modes ()
   clear_end_of_line (FRAME_WIDTH (selected_frame));
   /* clear_end_of_line may move the cursor */
   cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
-#ifdef IBMR2AIX
+#if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to 
        do the LF only.  Now, we need to reset it. */
@@ -1643,7 +1643,7 @@ reset_sys_modes ()
   dos_ttcooked ();
 #endif
 
-#ifdef AIX
+#ifdef AIXHFT
   hft_reset ();
 #endif
 
@@ -4851,7 +4851,7 @@ srandom (seed)
 }
 #endif /* VMS */
 
-#ifdef AIX
+#ifdef AIXHFT
 
 /* Called from init_sys_modes.  */
 hft_init ()
@@ -4943,7 +4943,7 @@ hft_reset ()
   hftctl (0, HFSKBD, &buf);
 }
 
-#endif /* AIX */
+#endif /* AIXHFT */
 
 #ifdef USE_DL_STUBS
 
