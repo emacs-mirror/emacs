@@ -678,6 +678,8 @@ for current buffer."
 		(cond ((eq var 'mode)
 		       (funcall (intern (concat (downcase (symbol-name val))
 						"-mode"))))
+		      ((eq var 'enable-local-eval)
+		       nil)
 		      ((eq var 'eval)
 		       (if (and (not (string= (user-login-name) "root"))
 				(or (eq enable-local-eval t)
