@@ -1972,14 +1972,15 @@ construct_drag_n_drop (result, msg, f)
   result->timestamp = msg->msg.time;
   result->modifiers = msg->dwModifiers;
 
+  hdrop = (HDROP) msg->msg.wParam;
+  DragQueryPoint (hdrop, &p);
+
   p.x = LOWORD (msg->msg.lParam);
   p.y = HIWORD (msg->msg.lParam);
   ScreenToClient (msg->msg.hwnd, &p);
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);
 
-  hdrop = (HDROP) msg->msg.wParam;
-  DragQueryPoint (hdrop, &p);
   num_files = DragQueryFile (hdrop, 0xFFFFFFFF, NULL, 0);
   files = Qnil;
 
