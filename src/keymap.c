@@ -1768,9 +1768,10 @@ spaces are put between sequence elements, etc.")
 }
 
 char *
-push_key_description (c, p)
+push_key_description (c, p, force_multibyte)
      register unsigned int c;
      register char *p;
+     int force_multibyte;
 {
   unsigned c2;
   
@@ -1859,13 +1860,23 @@ push_key_description (c, p)
     }
   else if (c < 128
 	   || (NILP (current_buffer->enable_multibyte_characters)
-	       && SINGLE_BYTE_CHAR_P (c)))
-    *p++ = c;
+	       && SINGLE_BYTE_CHAR_P (c)
+	       && !force_multibyte))
+    {
+      *p++ = c;
+    }
   else
     {
-      if (NILP (current_buffer->enable_multibyte_characters)
-	  || SINGLE_BYTE_CHAR_P (c)
-	  || ! char_valid_p (c, 0))
+      int valid_p = SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, 0);
+      
+      if (force_multibyte && valid_p)
+	{
+	  if (SINGLE_BYTE_CHAR_P (c))
+	    c = unibyte_char_to_multibyte (c);
+	  p += CHAR_STRING (c, p);
+	}
+      else if (NILP (current_buffer->enable_multibyte_characters)
+	       || valid_p)
 	{
 	  int bit_offset;
 	  *p++ = '\\';
@@ -1877,9 +1888,7 @@ push_key_description (c, p)
 	    }
 	}
       else
-	{
-	  p += CHAR_STRING (c, p);
-	}
+	p += CHAR_STRING (c, p);
     }
 
   return p;  
@@ -1926,7 +1935,7 @@ around function keys and event symbols.")
 	{
 	  char tem[KEY_DESCRIPTION_SIZE];
 
-	  *push_key_description (XUINT (key), tem) = 0;
+	  *push_key_description (XUINT (key), tem, 1) = 0;
 	  return build_string (tem);
 	}
     }
@@ -2445,10 +2454,10 @@ You type        Translation\n\
 		alternate_heading = 0;
 	      }
 
-	    bufend = push_key_description (translate[c], buf);
+	    bufend = push_key_description (translate[c], buf, 1);
 	    insert (buf, bufend - buf);
 	    Findent_to (make_number (16), make_number (1));
-	    bufend = push_key_description (c, buf);
+	    bufend = push_key_description (c, buf, 1);
 	    insert (buf, bufend - buf);
 
 	    insert ("\n", 1);
