@@ -411,6 +411,10 @@ The value is never nil.  */)
   reset_buffer (b);
   reset_buffer_local_variables (b, 1);
 
+  b->mark = Fmake_marker ();
+  BUF_MARKERS (b) = Qnil;
+  b->name = name;
+
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
@@ -421,9 +425,6 @@ The value is never nil.  */)
     /* buff is on buffer-alist, so no gcpro */
     call1 (Qucs_set_table_for_input, buf);
 
-  b->mark = Fmake_marker ();
-  BUF_MARKERS (b) = Qnil;
-  b->name = name;
   return buf;
 }
 
