@@ -260,10 +260,10 @@ system."
 
 ;;;###autoload
 (defun info-lookup-symbol (symbol &optional mode)
-  "Display the documentation of a symbol.
-If called interactively, SYMBOL will be read from the mini-buffer.
-Prefix argument means unconditionally insert the default symbol name
-into the mini-buffer so that it can be edited.
+  "Display the definition of SYMBOL, as found in the relevant manual.
+When this command is called interactively, it reads SYMBOL from the minibuffer.
+In the minibuffer, use M-n to yank the default argument value
+into the minibuffer so you can edit it.
 The default symbol is the one found at point."
   (interactive
    (info-lookup-interactive-arguments 'symbol))
@@ -272,30 +272,28 @@ The default symbol is the one found at point."
 ;;;###autoload
 (defun info-lookup-file (file &optional mode)
   "Display the documentation of a file.
-If called interactively, FILE will be read from the mini-buffer.
-Prefix argument means unconditionally insert the default file name
-into the mini-buffer so that it can be edited.
+When this command is called interactively, it reads FILE from the minibuffer.
+In the minibuffer, use M-n to yank the default file name
+into the minibuffer so you can edit it.
 The default file name is the one found at point."
   (interactive
    (info-lookup-interactive-arguments 'file))
   (info-lookup 'file file mode))
 
 (defun info-lookup-interactive-arguments (topic)
-  "Return default value and help mode for help topic TOPIC."
+  "Read and return argument value (and help mode) for help topic TOPIC."
   (let* ((mode (if (info-lookup->mode-value topic (info-lookup-select-mode))
 		   info-lookup-mode
 		 (info-lookup-change-mode topic)))
 	 (completions (info-lookup->completions topic mode))
 	 (default (info-lookup-guess-default topic mode))
-	 (input (if (or current-prefix-arg (not (assoc default completions)))
-		    default))
 	 (completion-ignore-case (info-lookup->ignore-case topic mode))
 	 (enable-recursive-minibuffers t)
 	 (value (completing-read
-		 (if (and default (not input))
+		 (if default
 		     (format "Describe %s (default %s): " topic default)
 		   (format "Describe %s: " topic))
-		 completions nil nil input 'info-lookup-history)))
+		 completions nil nil nil 'info-lookup-history default)))
     (list (if (equal value "") default value) mode)))
 
 (defun info-lookup-select-mode ()
