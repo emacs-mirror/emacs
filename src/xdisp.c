@@ -297,6 +297,7 @@ message_dolog (m, len, nlflag, multibyte)
       int point_at_end = 0;
       int zv_at_end = 0;
       Lisp_Object old_deactivate_mark, tem;
+      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
@@ -306,6 +307,7 @@ message_dolog (m, len, nlflag, multibyte)
       oldpoint = Fpoint_marker ();
       oldbegv = Fpoint_min_marker ();
       oldzv = Fpoint_max_marker ();
+      GCPRO4 (oldpoint, oldbegv, oldzv, old_deactivate_mark);
 
       if (PT == Z)
 	point_at_end = 1;
@@ -415,6 +417,7 @@ message_dolog (m, len, nlflag, multibyte)
       else
 	Fgoto_char (oldpoint);
 
+      UNGCPRO;
       free_marker (oldpoint);
       free_marker (oldbegv);
       free_marker (oldzv);
