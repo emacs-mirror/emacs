@@ -23,7 +23,7 @@ search for MSDOG.  For Windows NT, see the file nt/install.)
 a program whose pure code is 900k bytes and whose data area is at
 least 400k and can reach 8Mb or more.  If the swapping space is
 insufficient, you will get an error in the command `temacs -batch -l
-loadup dump', found in `./src/Makefile.in.in', or possibly when
+loadup dump', found in `./src/Makefile.in', or possibly when
 running the final dumped Emacs.
  
 Building Emacs requires about 70 Mb of disk space (including the Emacs
@@ -145,7 +145,7 @@ doing, you'll make a mistake.
 Lisp code you want Emacs to load before it is dumped out.  Use
 site-load.el for additional libraries if you arrange for their
 documentation strings to be in the etc/DOC file (see
-src/Makefile.in.in if you wish to figure out how to do that).  For all
+src/Makefile.in if you wish to figure out how to do that).  For all
 else, use site-init.el.
 
 If you set load-path to a different value in site-init.el or
@@ -389,7 +389,7 @@ CONFIGURATION BY HAND
 Instead of running the `configure' program, you have to perform the
 following steps.
 
-1) Copy `./src/config.h.in' to `./src/config.h'.
+1) Copy `./src/config.in' to `./src/config.h'.
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 use for your system.  Look at the code of the `configure' script to
@@ -405,7 +405,7 @@ changing the s/*.h and m/*.h files.  Occasionally you may need to
 redefine parameters used in `./lib-src/movemail.c'.
 
 3) Create src/Makefile and lib-src/Makefile from the corresponding
-`Makefile.in.in' files.  First copy `Makefile.in.in' to `Makefile.in',
+`Makefile.in' files.  First copy `Makefile.in' to `Makefile.c',
 then edit in appropriate substituions for the @...@ constructs,
 and then copy the shell commands near the end of `configure'
 that run cpp to construct `Makefile'.
@@ -423,7 +423,7 @@ Once Emacs is configured, running `make' in the top directory performs
 the following steps.
 
 1) Run `make src/paths.h' in the top directory.  This produces
-`./src/paths.h' from the template file `./src/paths.h.in', changing
+`./src/paths.h' from the template file `./src/paths.in', changing
 the paths to the values specified in `./Makefile'.
 
 2) Go to directory `./lib-src' and run `make'.  This creates
