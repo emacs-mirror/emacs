@@ -27,7 +27,7 @@
 ;;; MULE related key bindings and menus.
 
 (defvar mule-keymap (make-sparse-keymap)
-  "Keymap for MULE (Multilingual environment) specific commands.")
+  "Keymap for Mule (Multilingual environment) specific commands.")
 
 ;; Keep "C-x C-m ..." for mule specific commands.
 (define-key ctl-x-map "\C-m" mule-keymap)
@@ -50,7 +50,7 @@
 (define-key help-map "h" 'view-hello-file)
 
 (defvar mule-menu-keymap (make-sparse-keymap "Mule")
-  "Keymap for MULE (Multilingual environment) menu specific commands.")
+  "Keymap for Mule (Multilingual environment) menu specific commands.")
 
 (define-key global-map [menu-bar mule]
   `(menu-item "Mule" ,mule-menu-keymap
@@ -101,7 +101,7 @@
   '("--")
   t)
 (define-key-after mule-menu-keymap [mule-diag]
-  '("Show All of MULE Status" . mule-diag)
+  '("Show All of Mule Status" . mule-diag)
   t)
 (define-key-after mule-menu-keymap [view-hello-file]
   '("Show Script Examples" . view-hello-file)
