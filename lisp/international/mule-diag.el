@@ -1057,9 +1057,12 @@ but still contains full information about each coding system."
 
 (defun print-fontset (fontset &optional print-fonts)
   "Print information about FONTSET.
+If FONTSET is nil, print information about the default fontset.
 If optional arg PRINT-FONTS is non-nil, also print names of all opened
 fonts for FONTSET.  This function actually inserts the information in
 the current buffer."
+  (or fontset
+      (setq fontset (query-fontset "fontset-default")))
   (let ((tail (aref (fontset-info fontset) 2))
 	elt chars font-spec opened prev-charset charset from to)
     (beginning-of-line)
@@ -1138,9 +1141,8 @@ This shows which font is used for which character(s)."
 	      "Fontset (default, used by the current frame): "
 	      fontset-list nil t)))))
   (if (= (length fontset) 0)
-      (setq fontset (cdr (assq 'font (frame-parameters)))))
-  (if (not (setq fontset (query-fontset fontset)))
-      (error "Current frame is using font, not fontset"))
+      (setq fontset (frame-parameter nil 'font)))
+  (setq fontset (query-fontset fontset))
   (help-setup-xref (list #'describe-fontset fontset) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
