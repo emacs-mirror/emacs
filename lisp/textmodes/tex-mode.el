@@ -239,7 +239,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   "Keymap for the TeX shell.
 Inherits `comint-mode-map' with a few additions.")
 
-(defvar compare-windows-whitespace nil)	; Pacify the byte-compiler
+(defvar compare-windows-whitespace)	; Pacify the byte-compiler
 
 ;;; This would be a lot simpler if we just used a regexp search,
 ;;; but then it would be too slow.
@@ -931,7 +931,9 @@ The value of `tex-command' specifies the command to use to run TeX."
          (zap-directory
           (file-name-as-directory (expand-file-name tex-directory)))
          (tex-out-file (concat zap-directory tex-zap-file)))
-    (tex-delete-last-temp-files t)
+    ;; Don't delete temp files if we do the same buffer twice in a row.
+    (or (eq (current-buffer) tex-last-buffer-texed)
+	(tex-delete-last-temp-files t))
     ;; Write the new temp file.
     (save-excursion
       (save-restriction
