@@ -1,3 +1,11 @@
+2003-11-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): New member first_vpos.
+
+	* xdisp.c (start_display): Set it->first_vpos.
+	(try_window_id): Use first_vpos to start display in first _text_
+	line if no reusable lines at start of window with header line.
+
 2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* w32fns.c (XPutPixel):
