@@ -1,3 +1,20 @@
+2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
+	handeled by x-dnd-handle-file-name.
+	(x-dnd-known-types): Add COMPOUND_TEXT.
+	(x-dnd-init-frame): Call x-dnd-init-motif-for-frame.
+	(x-dnd-get-state-cons-for-frame): Must do copy-sequence on
+	x-dnd-empty-state.
+	(x-dnd-forget-drop): Ditto.
+	(x-dnd-save-state): Add optional parameter extra-data (for Motif).
+	(x-dnd-handle-one-url): Return private when inserting text.
+	(x-dnd-insert-ctext): New function.
+	(x-dnd-handle-file-name): New function for FILE_NAME.
+	(x-dnd-handle-drag-n-drop-event): Add Motif, remove call to error.
+	(x-dnd-init-motif-for-frame, x-dnd-get-motif-value)
+	(x-dnd-motif-value-to-list, x-dnd-handle-motif): New functions.
+
 2004-02-10  Kenichi Handa  <handa@m17n.org>
 
 	* term/x-win.el (x-select-utf8-or-ctext): Use compare-strings
