@@ -1,3 +1,7 @@
+2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (transient-mark-mode): Doc fix.
+
 2001-01-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/etags.el (find-tag-noselect): Don't bind 

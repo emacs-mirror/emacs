@@ -1,3 +1,7 @@
+2001-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* etags.c: Add a coding: tag.
+
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (matching_regexp_buffer, matching_regexp_end_buf): 
