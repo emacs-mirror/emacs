@@ -166,7 +166,10 @@ slow things down!")
       ;; Find each interesting place between here and END.
       (while (and (< (point) end)
 		  (setq prev (point) prevstate state)
-		  (re-search-forward (concat "\\s\"\\|" comment-start-skip) end t)
+		  (re-search-forward (if comment-start-skip
+					 (concat "\\s\"\\|" comment-start-skip)
+				       "\\s\"")
+				     end t)
 		  ;; Clear out the fonts of what we skip over.
 		  (progn (remove-text-properties prev (point) '(face nil)) t)
 		  ;; Verify the state at that place
