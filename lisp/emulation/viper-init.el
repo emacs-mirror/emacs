@@ -25,6 +25,9 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
+(defvar quail-mode)
+(defvar iso-accents-mode)
+(defvar viper-current-state)
 (defvar viper-version)
 (defvar viper-expert-level)
 ;; end pacifier
@@ -83,13 +86,15 @@ In all likelihood, you don't need to bother with this setting."
        (make-variable-buffer-local '(, var))
      )))
 
-(defmacro viper-loop (count body)
-  "(viper-loop COUNT BODY) Execute BODY COUNT times."
-  (list 'let (list (list 'count count))
-	(list 'while '(> count 0)
-	      body
-	      '(setq count (1- count))
-	      )))
+;; (viper-loop COUNT BODY) Execute BODY COUNT times.
+(defmacro viper-loop (count &rest body)
+  (` (let ((count (, count)))
+       (while (> count 0)
+	 (progn
+	   (,@ body)
+	   (setq count (1- count))
+	   ))
+       )))
 
 (defmacro viper-buffer-live-p (buf)
   (` (and (, buf) (get-buffer (, buf)) (buffer-name (get-buffer (, buf))))))
@@ -124,6 +129,19 @@ In all likelihood, you don't need to bother with this setting."
 ;; last elt of a sequence
 (defsubst viper-seq-last-elt (seq)
   (elt seq (1- (length seq))))
+
+(defsubst viper-string-to-list (string)
+  (append (vconcat string) nil))
+
+(defsubst viper-charlist-to-string (list)
+  (mapconcat 'char-to-string list ""))
+
+;; like char-after/before, but saves typing
+(defun viper-char-at-pos (direction &optional offset)
+  (or (integerp offset) (setq offset 0))
+  (if (eq direction 'forward)
+      (char-after (+ (point) offset))
+    (char-before (- (point) offset))))
   
 
 (defvar viper-minibuffer-overlay-priority 300)
@@ -251,16 +269,81 @@ Use `M-x viper-set-expert-level' to change this.")
 (defconst viper-max-expert-level 5)
 
 
-;;; ISO characters
-  
+;;; ISO characters and MULE
+
+;; If non-nil, ISO accents will be turned on in insert/replace emacs states and
+;; turned off in vi-state.  For some users, this behavior may be too
+;; primitive. In this case, use insert/emacs/vi state hooks.
 (viper-deflocalvar viper-automatic-iso-accents nil "")
-(defcustom viper-automatic-iso-accents nil
-  "*If non-nil, ISO accents will be turned on in insert/replace emacs states and turned off in vi-state. 
-For some users, this behavior may be too primitive. In this case, use
-insert/emacs/vi state hooks."
-  :type 'boolean
-  :group 'viper)
+;; Set iso-accents-mode to ARG. Check if it is bound first
+(defsubst viper-set-iso-accents-mode (arg)
+  (if (boundp 'iso-accents-mode)
+      (setq iso-accents-mode arg)))
   
+;; Internal flag used to control when viper mule hooks are run.
+;; Don't change this!
+(defvar viper-mule-hook-flag t)
+;; If non-nil, the default intl. input method is turned on.
+(viper-deflocalvar viper-special-input-method nil "")
+  
+;; viper hook to run on input-method activation
+(defun viper-activate-input-method-action ()
+  (if (null viper-mule-hook-flag)
+      ()
+    (setq viper-special-input-method t)
+    ;; turn off special input methods in vi-state
+    (if (eq viper-current-state 'vi-state)
+	(viper-set-input-method nil))
+    (if (memq viper-current-state '(vi-state insert-state replace-state))
+	(message "Viper special input method%s: on"
+		 (if (or current-input-method default-input-method)
+		     (format " %S" 
+			     (or current-input-method default-input-method))
+		   "")))
+    ))
+;; viper hook to run on input-method deactivation
+(defun viper-inactivate-input-method-action ()
+  (if (null viper-mule-hook-flag)
+      ()
+    (setq viper-special-input-method nil)
+    (if (memq viper-current-state '(vi-state insert-state replace-state))
+	(message "Viper special input method%s: off"
+		 (if (or current-input-method default-input-method)
+		     (format " %S"
+			     (or current-input-method default-input-method))
+		   "")))))
+
+(defun viper-inactivate-input-method ()
+  (cond ((and viper-emacs-p (fboundp 'inactivate-input-method))
+	 (inactivate-input-method))
+	((and viper-xemacs-p (boundp 'current-input-method))
+	 ;; XEmacs had broken quil-mode for some time, so we are working around
+	 ;; it here 
+	 (setq quail-mode nil)
+	 (if (featurep 'quail)
+	     (quail-delete-overlays))
+	 (setq describe-current-input-method-function nil)
+	 (setq current-input-method nil)
+	 (run-hooks 'input-method-inactivate-hook)
+	 (force-mode-line-update))
+	))
+(defun viper-activate-input-method ()
+  (cond ((and viper-emacs-p (fboundp 'activate-input-method))
+	 (activate-input-method default-input-method))
+	((and viper-xemacs-p (fboundp 'quail-mode))
+	 (quail-mode 1))))
+
+;; Set quail-mode to ARG
+(defun viper-set-input-method (arg)
+  (setq viper-mule-hook-flag t) ; just a precaution
+  (let (viper-mule-hook-flag) ; temporarily inactivate viper mule hooks
+    (cond ((and arg (> (prefix-numeric-value arg) 0) default-input-method)
+	   ;; activate input method
+	   (viper-activate-input-method))
+	  (t ; deactivate input method
+	   (viper-inactivate-input-method)))
+    ))
+
 
 ;; VI-style Undo
 
@@ -372,7 +455,12 @@ color displays. By default, the delimiters are used only on TTYs."
 ;; Remember the number of characters that have to be deleted in replace
 ;; mode to compensate for the inserted characters.
 (viper-deflocalvar viper-replace-chars-to-delete 0 "")
-(viper-deflocalvar viper-replace-chars-deleted 0 "")
+;; This variable is used internally by the before/after changed functions to
+;; determine how many chars were deleted by the change. This can't be
+;; determined inside after-change-functions because those get the length of the
+;; deleted region, not the number of chars deleted (which are two different
+;; things under MULE).
+(viper-deflocalvar viper-replace-region-chars-deleted 0 "")
 
 ;; Insertion ring and command ring
 (defcustom viper-insertion-ring-size 14
@@ -520,8 +608,7 @@ to a new place after repeating previous Vi command."
 (defvar viper-use-register nil)
 
 
-
-;; Variables for Moves and Searches
+;;; Variables for Moves and Searches
 
 ;; For use by `;' command.
 (defvar viper-f-char nil)
@@ -589,18 +676,22 @@ If nil, these commands cross line boundaries."
   :type 'boolean
   :group 'viper)
 
-(viper-deflocalvar viper-ex-style-editing-in-insert t "")
-(defcustom viper-ex-style-editing-in-insert t
-  "*If t, `Backspace' and `Delete' don't cross line boundaries in insert, etc.
+(viper-deflocalvar viper-ex-style-editing t "")
+(defcustom viper-ex-style-editing t
+  "*If t, Ex-style behavior while editing in Vi command and insert states.
+`Backspace' and `Delete' don't cross line boundaries in insert.
+`X' and `x' can't delete characters across line boundary in Vi, etc.
 Note: this doesn't preclude `Backspace' and `Delete' from deleting characters
-by moving past the insertion point. This is a feature, not a bug."
+by moving past the insertion point. This is a feature, not a bug.
+
+If nil, the above commands can work across lines."
   :type 'boolean
   :group 'viper)
 
-(viper-deflocalvar viper-ESC-moves-cursor-back viper-ex-style-editing-in-insert "")
+(viper-deflocalvar viper-ESC-moves-cursor-back viper-ex-style-editing "")
 (defcustom viper-ESC-moves-cursor-back nil
   "*If t, ESC moves cursor back when changing from insert to vi state.
-If nil, the cursor stays where it was."
+If nil, the cursor stays where it was when ESC was hit."
   :type 'boolean
   :group 'viper)
 

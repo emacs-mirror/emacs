@@ -28,7 +28,7 @@
 (defvar viper-current-state)
 (defvar viper-mode-string)
 (defvar viper-expert-level)
-(defvar viper-ex-style-editing-in-insert)
+(defvar viper-ex-style-editing)
 (defvar viper-ex-style-motion)
 
 ;; loading happens only in non-interactive compilation
@@ -597,8 +597,8 @@ Arguments: (major-mode viper-state keymap)"
     (princ (format "viper-always  %S\n" viper-always))
     (princ (format "viper-ex-style-motion  %S\n"
 		   viper-ex-style-motion))
-    (princ (format "viper-ex-style-editing-in-insert  %S\n"
-		   viper-ex-style-editing-in-insert))
+    (princ (format "viper-ex-style-editing  %S\n"
+		   viper-ex-style-editing))
     (princ (format "viper-want-emacs-keys-in-vi  %S\n"
 		   viper-want-emacs-keys-in-vi)) 
     (princ (format "viper-want-emacs-keys-in-insert  %S\n"

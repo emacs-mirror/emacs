@@ -136,6 +136,7 @@
 
 (defgroup ediff nil
   "A comprehensive visual interface to diff & patch"
+  :tag "Ediff"
   :group 'tools)
 
 

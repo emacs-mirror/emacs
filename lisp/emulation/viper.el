@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "2.96 of August 7, 1997"
+(defconst viper-version "3.00 (Polyglot) of August 18, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -302,6 +302,7 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
+(defvar quail-mode)
 (defvar viper-expert-level)
 (defvar viper-expert-level)
 
@@ -469,7 +470,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun viper-comint-mode-hook ()
   (setq require-final-newline nil
-	viper-ex-style-editing-in-insert nil
+	viper-ex-style-editing nil
 	viper-ex-style-motion nil)
   (viper-change-state-to-insert))
 
@@ -828,6 +829,62 @@ remains buffer-local."
   (defadvice rmail-cease-edit (after viper-rmail-advice activate)
     "Switch to emacs state when done editing message."
     (viper-change-state-to-emacs))
+
+  ;; ISO accents
+  ;; Need to do it after loading iso-acc, or else this loading will wipe out
+  ;; the advice.
+  (eval-after-load
+   "iso-acc"
+   (defadvice iso-accents-mode (around viper-iso-accents-advice activate)
+     "Set viper-automatic-iso-accents to iso-accents-mode."
+     (let ((arg (ad-get-arg 0)))
+       ad-do-it
+       (setq viper-automatic-iso-accents 
+	     (if (eq viper-current-state 'vi-state)
+		 (if arg
+		     ;; if iso-accents-mode was called with positive arg, turn
+		     ;; accents on
+		     (> (prefix-numeric-value arg) 0)
+		   ;; else: toggle viper-automatic-iso-accents
+		   (not viper-automatic-iso-accents))
+	       ;; other states: accept what iso-accents-mode has done
+	       iso-accents-mode))
+       ;; turn off ISO accents in vi-state
+       (if (eq viper-current-state 'vi-state)
+	   (viper-set-iso-accents-mode nil))
+       (if (memq viper-current-state '(vi-state insert-state replace-state))
+	   (message "Viper ISO accents mode: %s"
+		    (if viper-automatic-iso-accents "on" "off")))
+       )))
+
+  ;; International input methods
+  (if viper-emacs-p
+      (eval-after-load "mule-cmds"
+	(progn
+	  (defadvice inactivate-input-method (after viper-mule-advice activate)
+	    "Set viper-special-input-method to disable intl. input methods."
+	    (viper-inactivate-input-method-action))
+	  (defadvice activate-input-method (after viper-mule-advice activate)
+	    "Set viper-special-input-method to enable intl. input methods."
+	    (viper-activate-input-method-action))
+	  ))
+    ;; XEmacs Although these hooks exist in Emacs, they don't seem to be always
+    ;; called on input-method activation/deactivation, so we the above advise
+    ;; functions instead.
+    (eval-after-load "mule-cmds"
+      (progn
+	(add-hook 'input-method-activate-hook
+		  'viper-activate-input-method-action t)
+	(add-hook 'input-method-inactivate-hook
+		  'viper-inactivate-input-method-action t)))
+    )
+  (eval-after-load "mule-cmds"
+    (defadvice toggle-input-method (around viper-mule-advice activate)
+      "Adjust input-method toggling in vi-state."
+      (if (and viper-special-input-method (eq viper-current-state 'vi-state))
+	  (viper-inactivate-input-method)
+	ad-do-it)))
+  
   ) ; viper-set-hooks
 
 
@@ -1089,8 +1146,8 @@ These two lines must come in the order given.
 		(cons 'viper-always (list viper-always))
 		(cons 'viper-no-multiple-ESC (list viper-no-multiple-ESC))
 		(cons 'viper-ex-style-motion (list viper-ex-style-motion))
-		(cons 'viper-ex-style-editing-in-insert
-		      (list viper-ex-style-editing-in-insert))
+		(cons 'viper-ex-style-editing
+		      (list viper-ex-style-editing))
 		(cons 'viper-want-emacs-keys-in-vi 
 		      (list viper-want-emacs-keys-in-vi))
 		(cons 'viper-electric-mode (list viper-electric-mode))
@@ -1104,7 +1161,7 @@ These two lines must come in the order given.
       (viper-set-minibuffer-style)
       (if viper-buffer-search-char
 	  (viper-buffer-search-enable))
-      (viper-update-alphanumeric-class)
+      (viper-update-syntax-classes 'set-default)
       ))
    
 

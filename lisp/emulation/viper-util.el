@@ -35,6 +35,7 @@
 (defvar ex-unix-type-shell)
 (defvar ex-unix-type-shell-options)
 (defvar viper-ex-tmp-buf-name)
+(defvar viper-syntax-preference)
 
 (require 'cl)
 (require 'ring)
@@ -215,6 +216,21 @@
     (setq result (point))
     (goto-char cur-pos)
     result))
+
+;; Emacs counts each multibyte character as several positions in the buffer, so
+;; we use Emacs' chars-in-region. XEmacs is counting each char as just one pos,
+;; so we can simply subtract. 
+(defun viper-chars-in-region (beg end &optional preserve-sign)
+  (let ((count (abs (if (fboundp 'chars-in-region)
+			(chars-in-region beg end)
+		      (- end beg)))))
+    (if (and (< end beg) preserve-sign)
+	(- count)
+      count)))
+
+;; Test if POS is between BEG and END
+(defsubst viper-pos-within-region (pos beg end)
+  (and (>= pos (min beg end)) (>= (max beg end) pos)))
 
 
 ;; Like move-marker but creates a virgin marker if arg isn't already a marker.
@@ -1058,45 +1074,104 @@ the `Local variables' section of a file."
 
 ;;; Movement utilities
 
-(defcustom viper-syntax-preference 'strict-vi
-  "*Syntax type characterizing Viper's alphanumeric symbols.
-`emacs' means only word constituents are considered to be alphanumeric.
-Word constituents are symbols specified as word constituents by the current
-syntax table.
-`extended' means word and symbol constituents.
-`reformed-vi' means Vi-ish behavior: word constituents and the symbol `_'.
-However, word constituents are determined according to Emacs syntax tables,
-which may be different from Vi in some major modes.
-`strict-vi' means Viper words are exactly as in Vi."
-  :type '(radio (const strict-vi) (const reformed-vi) 
-		 (const extended) (const emacs))
-  :group 'viper)
+;; Characters that should not be considered as part of the word, in reformed-vi
+;; syntax mode.
+(defconst viper-non-word-characters-reformed-vi
+  "!@#$%^&*()-+=|\\~`{}[];:'\",<.>/?")
+;; These are characters that are not to be considered as parts of a word in
+;; Viper.
+;; Set each time state changes and at loading time
+(viper-deflocalvar viper-non-word-characters  nil)
 
+;; must be buffer-local
 (viper-deflocalvar viper-ALPHA-char-class "w"
   "String of syntax classes characterizing Viper's alphanumeric symbols.
 In addition, the symbol `_' may be considered alphanumeric if
-`viper-syntax-preference'is `reformed-vi'.")
+`viper-syntax-preference' is `strict-vi' or `reformed-vi'.")
 
-(viper-deflocalvar viper-strict-ALPHA-chars "a-zA-Z0-9_"
+(defconst viper-strict-ALPHA-chars "a-zA-Z0-9_"
   "Regexp matching the set of alphanumeric characters acceptable to strict
 Vi.")
-(viper-deflocalvar viper-strict-SEP-chars " \t\n"
+(defconst viper-strict-SEP-chars " \t\n"
+  "Regexp matching the set of alphanumeric characters acceptable to strict
+Vi.")
+(defconst viper-strict-SEP-chars-sans-newline " \t"
   "Regexp matching the set of alphanumeric characters acceptable to strict
 Vi.")
 
-(viper-deflocalvar viper-SEP-char-class " -"
+(defconst viper-SEP-char-class " -"
   "String of syntax classes for Vi separators.
 Usually contains ` ', linefeed, TAB or formfeed.")
 
-(defun viper-update-alphanumeric-class ()
-  "Set the syntax class of Viper alphanumerals according to `viper-syntax-preference'.
-Must be called in order for changes to `viper-syntax-preference' to take effect."
+
+;; Set Viper syntax classes and related variables according to
+;; `viper-syntax-preference'.  
+(defun viper-update-syntax-classes (&optional set-default)
+  (let ((preference (cond ((eq viper-syntax-preference 'emacs)
+			   "w")   ; Viper words have only Emacs word chars
+			  ((eq viper-syntax-preference 'extended)
+			   "w_")  ; Viper words have Emacs word & symbol chars
+			  (t "w"))) ; Viper words are Emacs words plus `_'
+	(non-word-chars (cond ((eq viper-syntax-preference 'reformed-vi)
+			       (viper-string-to-list
+				viper-non-word-characters-reformed-vi))
+			      (t nil))))
+    (if set-default
+	(setq-default viper-ALPHA-char-class preference
+		      viper-non-word-characters non-word-chars)
+      (setq viper-ALPHA-char-class preference
+	    viper-non-word-characters non-word-chars))
+    ))
+
+;; SYMBOL is used because customize requires it, but it is ignored, unless it
+;; is `nil'. If nil, use setq.
+(defun viper-set-syntax-preference (&optional symbol value)
+  "Set Viper syntax preference.
+If called interactively or if SYMBOL is nil, sets syntax preference in current
+buffer. If called non-interactively, preferably via the customization widget,
+sets the default value."
   (interactive)
-  (setq-default
-   viper-ALPHA-char-class
-   (cond ((eq viper-syntax-preference 'emacs) "w")     ; only word constituents
-	 ((eq viper-syntax-preference 'extended) "w_") ; word & symbol chars
-	 (t "w"))))     ; vi syntax: word constituents and the symbol `_'
+  (or value
+      (setq value
+	    (completing-read
+	     "Viper syntax preference: "
+	     '(("strict-vi") ("reformed-vi") ("extended") ("emacs"))
+	     nil 'require-match)))
+  (if (stringp value) (setq value (intern value)))
+  (or (memq value '(strict-vi reformed-vi extended emacs))
+      (error "Invalid Viper syntax preference, %S" value))
+  (if symbol
+      (setq-default viper-syntax-preference value)
+    (setq viper-syntax-preference value))
+  (viper-update-syntax-classes))
+
+(defcustom viper-syntax-preference 'reformed-vi
+  "*Syntax type characterizing Viper's alphanumeric symbols.
+Affects movement and change commands that deal with Vi-style words.
+Works best when set in the hooks to various major modes.
+
+`strict-vi' means Viper words are (hopefully) exactly as in Vi.
+
+`reformed-vi' means Viper words are like Emacs words \(as determined using
+Emacs syntax tables, which are different for different major modes\) with two
+exceptions: the symbol `_' is always part of a word and typical Vi non-word
+symbols, such as `,',:,\",),{, etc., are excluded.
+This behaves very close to `strict-vi', but also works well with non-ASCII
+characters from various alphabets.
+
+`extended' means Viper word constituents are symbols that are marked as being
+parts of words OR symbols in Emacs syntax tables.
+This is most appropriate for major modes intended for editing programs.
+
+`emacs' means Viper words are the same as Emacs words as specified by Emacs
+syntax tables.
+This option is appropriate if you like Emacs-style words."
+  :type '(radio (const strict-vi) (const reformed-vi) 
+		 (const extended) (const emacs))
+  :set 'viper-set-syntax-preference
+  :group 'viper)
+(make-variable-buffer-local 'viper-syntax-preference)
+
 
 ;; addl-chars are characters to be temporarily considered as alphanumerical
 (defun viper-looking-at-alpha (&optional addl-chars)
@@ -1107,19 +1182,26 @@ Must be called in order for changes to `viper-syntax-preference' to take effect.
     (if char
 	(if (eq viper-syntax-preference 'strict-vi)
 	    (looking-at (concat "[" viper-strict-ALPHA-chars addl-chars "]"))
-	  (or (memq char
-		    ;; convert string to list
-		    (append (vconcat addl-chars) nil))
-	      (memq (char-syntax char)
-		    (append (vconcat viper-ALPHA-char-class) nil)))))
+	  (or
+	   ;; or one of the additional chars being asked to include
+	   (memq char (viper-string-to-list addl-chars))
+	   (and
+	    ;; not one of the excluded word chars
+	    (not (memq char viper-non-word-characters))
+	    ;; char of the Viper-word syntax class
+	    (memq (char-syntax char)
+		  (viper-string-to-list viper-ALPHA-char-class))))))
     ))
 
 (defun viper-looking-at-separator ()
   (let ((char (char-after (point))))
     (if char
-	(or (eq char ?\n) ; RET is always a separator in Vi
-	    (memq (char-syntax char)
-		  (append (vconcat viper-SEP-char-class) nil))))))
+	(if (eq viper-syntax-preference 'strict-vi)
+	    (memq char (viper-string-to-list viper-strict-SEP-chars))
+	  (or (eq char ?\n) ; RET is always a separator in Vi
+	      (memq (char-syntax char)
+		    (viper-string-to-list viper-SEP-char-class)))))
+    ))
 
 (defsubst viper-looking-at-alphasep (&optional addl-chars)
   (or (viper-looking-at-separator) (viper-looking-at-alpha addl-chars)))
@@ -1148,51 +1230,102 @@ Must be called in order for changes to `viper-syntax-preference' to take effect.
 
 ;; weird syntax tables may confuse strict-vi style
 (defsubst viper-skip-all-separators-forward (&optional within-line)
-  (viper-skip-syntax 'forward
-		     viper-SEP-char-class
-		     (or within-line "\n")
-		     (if within-line (viper-line-pos 'end))))
+  (if (eq viper-syntax-preference 'strict-vi)
+      (if within-line 
+	  (skip-chars-forward viper-strict-SEP-chars-sans-newline)
+	(skip-chars-forward viper-strict-SEP-chars))
+    (viper-skip-syntax 'forward
+		       viper-SEP-char-class
+		       (or within-line "\n")
+		       (if within-line (viper-line-pos 'end)))))
 (defsubst viper-skip-all-separators-backward (&optional within-line)
-  (viper-skip-syntax 'backward
-		     viper-SEP-char-class
-		     (or within-line "\n")
-		     (if within-line (viper-line-pos 'start))))
+  (if (eq viper-syntax-preference 'strict-vi)
+      (if within-line 
+	  (skip-chars-backward viper-strict-SEP-chars-sans-newline)
+	(skip-chars-backward viper-strict-SEP-chars))
+    (viper-skip-syntax 'backward
+		       viper-SEP-char-class
+		       (or within-line "\n")
+		       (if within-line (viper-line-pos 'start)))))
 (defun viper-skip-nonseparators (direction)
-  (let ((func (intern (format "skip-syntax-%S" direction))))
-    (funcall func (concat "^" viper-SEP-char-class)
-	     (viper-line-pos (if (eq direction 'forward) 'end 'start)))))
+  (viper-skip-syntax
+   direction
+   (concat "^" viper-SEP-char-class)
+   nil
+   (viper-line-pos (if (eq direction 'forward) 'end 'start))))
 
+
+;; skip over non-word constituents and non-separators
 (defun viper-skip-nonalphasep-forward ()
   (if (eq viper-syntax-preference 'strict-vi)
       (skip-chars-forward
        (concat "^" viper-strict-SEP-chars viper-strict-ALPHA-chars))
-    (skip-syntax-forward
-     (concat
-      "^" viper-ALPHA-char-class viper-SEP-char-class) (viper-line-pos 'end))))
+    (viper-skip-syntax
+     'forward
+     (concat "^" viper-ALPHA-char-class viper-SEP-char-class)
+     ;; Emacs may consider some of these as words, but we don't want them
+     viper-non-word-characters 
+     (viper-line-pos 'end))))
 (defun viper-skip-nonalphasep-backward ()
   (if (eq viper-syntax-preference 'strict-vi)
       (skip-chars-backward
        (concat "^" viper-strict-SEP-chars viper-strict-ALPHA-chars))
-    (skip-syntax-backward
-     (concat
-      "^"
-      viper-ALPHA-char-class viper-SEP-char-class)
+    (viper-skip-syntax
+     'backward
+     (concat "^" viper-ALPHA-char-class viper-SEP-char-class)
+     ;; Emacs may consider some of these as words, but we don't want them
+     viper-non-word-characters
      (viper-line-pos 'start))))
 
 ;; Skip SYNTAX like skip-syntax-* and ADDL-CHARS like skip-chars-*
 ;; Return the number of chars traveled.
-;; Either SYNTAX or ADDL-CHARS can be nil, in which case they are interpreted
-;; as an empty string.
+;; Both SYNTAX or ADDL-CHARS can be strings or lists of characters.
+;; When SYNTAX is "w", then viper-non-word-characters are not considered to be
+;; words, even if Emacs syntax table says they are.
 (defun viper-skip-syntax (direction syntax addl-chars &optional limit)
   (let ((total 0)
 	(local 1)
-	(skip-chars-func (intern (format "skip-chars-%S" direction)))
-	(skip-syntax-func (intern (format "skip-syntax-%S" direction))))
-    (or (stringp addl-chars) (setq addl-chars ""))
-    (or (stringp syntax) (setq syntax ""))
+	(skip-chars-func
+	 (if (eq direction 'forward)
+	     'skip-chars-forward 'skip-chars-backward))
+	(skip-syntax-func
+	 (if (eq direction 'forward)
+	     'viper-forward-char-carefully 'viper-backward-char-carefully))
+	char-looked-at syntax-of-char-looked-at negated-syntax)
+    (setq addl-chars
+	  (cond ((listp addl-chars) (viper-charlist-to-string addl-chars))
+		((stringp addl-chars) addl-chars)
+		(t "")))
+    (setq syntax
+	  (cond ((listp syntax) syntax)
+		((stringp syntax) (viper-string-to-list syntax))
+		(t nil)))
+    (if (memq ?^ syntax) (setq negated-syntax t))
+
     (while (and (not (= local 0)) (not (eobp)))
+      (setq char-looked-at (viper-char-at-pos direction)
+	    ;; if outside the range, set to nil
+	    syntax-of-char-looked-at (if char-looked-at
+					 (char-syntax char-looked-at)))
       (setq local
-	    (+ (funcall skip-syntax-func syntax limit)
+	    (+ (if (and
+		    (cond ((and limit (eq direction 'forward))
+			   (< (point) limit))
+			  (limit ; backward & limit
+			   (> (point) limit))
+			  (t t)) ; no limit
+		    ;; char under/before cursor has appropriate syntax
+		    (if negated-syntax
+			(not (memq syntax-of-char-looked-at syntax))
+		      (memq syntax-of-char-looked-at syntax))
+		    ;; if char-syntax class is "word", make sure it is not one
+		    ;; of the excluded characters
+		    (if (and (eq syntax-of-char-looked-at ?w)
+			     (not negated-syntax))
+			(not (memq char-looked-at viper-non-word-characters))
+		      t))
+		   (funcall skip-syntax-func 1)
+		 0)
 	       (funcall skip-chars-func addl-chars limit)))
       (setq total (+ total local)))
     total
