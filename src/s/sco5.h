@@ -135,6 +135,9 @@ Boston, MA 02111-1307, USA.  */
 #define sigblock(sig)					\
      (sigprocmask_set = SIGEMPTYMASK | (sig),		\
       sigprocmask (SIG_BLOCK, &sigprocmask_set, NULL))
+#define sigunblock(sig)						\
+     (sigprocmask_set = SIGFULLMASK & ~(sig),			\
+      sigprocmask (SIG_SETMASK, &sigprocmask_set, NULL))
 
 #ifndef PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
