@@ -338,6 +338,18 @@ functions that move by days and weeks."
   :group 'calendar-hooks)
 
 ;;;###autoload
+(defcustom calendar-move-hook nil
+  "*List of functions called whenever the cursor moves in the calendar.
+
+For example, 
+
+  (add-hook 'calendar-move-hook (lambda () (view-diary-entries 1)))
+
+redisplays the diary for whatever date the cursor is moved to."
+  :type 'hook
+  :group 'calendar-hooks)
+
+;;;###autoload
 (defcustom diary-file "~/diary"
   "*Name of the file in which one's personal diary of dates is kept.
 
