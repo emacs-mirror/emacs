@@ -1539,15 +1539,15 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	    Vnext_selection_coding_system = Vselection_coding_system;
 	  setup_coding_system
 	    (Fcheck_coding_system(Vnext_selection_coding_system), &coding);
+	  coding.src_multibyte = 0;
+	  coding.dst_multibyte = 1;
 	  Vnext_selection_coding_system = Qnil;
           coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
 	  decode_coding (&coding, data, buf, size, bufsize);
-	  size = (coding.fake_multibyte
-		  ? multibyte_chars_in_text (buf, coding.produced)
-		  : coding.produced_char);
-	  str = make_string_from_bytes ((char *) buf, size, coding.produced);
+	  str = make_string_from_bytes ((char *) buf,
+					coding.produced_char, coding.produced);
 	  xfree (buf);
 	  Vlast_coding_system_used = coding.symbol;
 	}
@@ -1648,22 +1648,17 @@ lisp_data_to_selection_data (display, obj,
     {
       /* Since we are now handling multilingual text, we must consider
 	 sending back compound text.  */
-      int charsets[MAX_CHARSET + 1];
-      int num;
-
+      unsigned char *ptr = XSTRING (obj)->data;
+      int nbytes = STRING_BYTES (XSTRING (obj));
+      int charset_info = find_charset_in_text (ptr, XSTRING (obj)->size,
+					       nbytes, NULL, Qnil);
       *format_ret = 8;
-      *size_ret = STRING_BYTES (XSTRING (obj));
-      *data_ret = XSTRING (obj)->data;
-      bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-      num = ((*size_ret <= 1	/* Check the possibility of short cut.  */
-	      || !STRING_MULTIBYTE (obj)
-	      || *size_ret == XSTRING (obj)->size)
-	     ? 0
-	     : find_charset_in_str (*data_ret, *size_ret, charsets, Qnil, 1));
 
-      if (!num || (num == 1 && charsets[CHARSET_ASCII]))
+      if (charset_info == 0)
 	{
 	  /* No multibyte character in OBJ.  We need not encode it.  */
+	  *size_ret = nbytes;
+	  *data_ret = ptr;
 	  *nofree_ret = 1;
 	  if (NILP (type)) type = QSTRING;
 	  Vlast_coding_system_used = Qraw_text;
@@ -1682,15 +1677,16 @@ lisp_data_to_selection_data (display, obj,
 	    Vnext_selection_coding_system = Vselection_coding_system;
 	  setup_coding_system
 	    (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+	  coding.src_multibyte = 1;
+	  coding.dst_multibyte = 0;
 	  Vnext_selection_coding_system = Qnil;
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
-	  bufsize = encoding_buffer_size (&coding, *size_ret);
+	  bufsize = encoding_buffer_size (&coding, nbytes);
 	  buf = (unsigned char *) xmalloc (bufsize);
-	  encode_coding (&coding, *data_ret, buf, *size_ret, bufsize);
+	  encode_coding (&coding, ptr, buf, nbytes, bufsize);
 	  *size_ret = coding.produced;
 	  *data_ret = buf;
-          if (charsets[charset_latin_iso8859_1]
-	      && (num == 1 || (num == 2 && charsets[CHARSET_ASCII])))
+          if (charset_info == 1)
 	    {
 	      /* Ok, we can return it as `STRING'.  */
 	      if (NILP (type)) type = QSTRING;
