@@ -1404,6 +1404,12 @@ search for the image in `data-directory'.  Some image types support
 building images from data.  When this is done, no `:file' property
 may be present in the image specification.
 
+`:user-data DATA'
+
+This property can be used to store user-defined data along with an
+image specification.  Please note that two image specifications are
+equal only if their user-defined data properties are equal.
+
 
 *** Supported image types
 
