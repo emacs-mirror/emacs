@@ -4056,7 +4056,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		   Instead, save it away
 		   and we will pass it to Xt from kbd_buffer_get_event.
 		   That way, we can run some Lisp code first.  */
-		if (f && event.type == ButtonPress)
+		if (f && event.type == ButtonPress
+		    /* Verify the event is really within the menu bar
+		       and not just sent to it due to grabbing.  */
+		    && event.xbutton.x >= 0
+		    && event.xbutton.x < f->output_data.x->pixel_width
+		    && event.xbutton.y >= 0
+		    && event.xbutton.y < f->output_data.x->menubar_height
+		    && event.xbutton.same_screen)
 		  {
 		    if (f->output_data.x->saved_button_event == 0)
 		      f->output_data.x->saved_button_event
