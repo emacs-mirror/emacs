@@ -275,7 +275,7 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; Dired marks.
    (list dired-re-mark
 	 '(0 font-lock-constant-face)
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
+	 '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
    ;; People who are paranoid about security would consider this more
    ;; important than other things such as whether it is a directory.
    ;; But we don't want to encourage paranoia, so our default
@@ -289,11 +289,11 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;;
    ;; Subdirectories.
    (list dired-re-dir
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-function-name-face)))
+	 '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-function-name-face)))
    ;;
    ;; Symbolic links.
    (list dired-re-sym 
-	 '(".+" (dired-move-to-filename) nil (0 font-lock-keyword-face)))
+	 '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-keyword-face)))
    ;;
    ;; Files suffixed with `completion-ignored-extensions'.
    '(eval .
@@ -301,7 +301,7 @@ Subexpression 2 must end right before the \\n or \\r.")
        ;; It is quicker to first find just an extension, then go back to the
        ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
        (list (concat "\\(" (mapconcat 'identity extensions "\\|") "\\|#\\)$")
-	     '(".+" (dired-move-to-filename) nil (0 font-lock-string-face))))))
+	     '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-string-face))))))
   "Additional expressions to highlight in Dired mode.")
 
 ;;; Macros must be defined before they are used, for the byte compiler.
