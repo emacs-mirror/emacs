@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000
+;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1396,6 +1396,12 @@ Completion is performed over known labels when reading."
 
 ;;;; *** Rmail Summary Mailing Commands ***
 
+(defun rmail-summary-override-mail-send-and-exit ()
+  "Replace bindings to 'mail-send-and-exit with 'rmail-summary-send-and-exit"
+  (use-local-map (copy-keymap (current-local-map)))
+  (dolist (key (where-is-internal 'mail-send-and-exit))
+    (define-key (current-local-map) key 'rmail-summary-send-and-exit)))
+
 (defun rmail-summary-mail ()
   "Send mail in another window.
 While composing the message, use \\[mail-yank-original] to yank the
@@ -1406,9 +1412,7 @@ original message into it."
 	(select-window window)
       (set-buffer rmail-buffer)))
   (rmail-start-mail nil nil nil nil nil (current-buffer))
-  (use-local-map (copy-keymap (current-local-map)))
-  (define-key (current-local-map)
-    "\C-c\C-c" 'rmail-summary-send-and-exit))
+  (rmail-summary-override-mail-send-and-exit))
 
 (defun rmail-summary-continue ()
   "Continue composing outgoing message previously being composed."
@@ -1430,9 +1434,7 @@ use \\[mail-yank-original] to yank the original message into it."
 	(select-window window)
       (set-buffer rmail-buffer)))
   (rmail-reply just-sender)
-  (use-local-map (copy-keymap (current-local-map)))
-  (define-key (current-local-map)
-    "\C-c\C-c" 'rmail-summary-send-and-exit))
+  (rmail-summary-override-mail-send-and-exit))
 
 (defun rmail-summary-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
@@ -1444,9 +1446,7 @@ the body of the original message; otherwise copy the current message."
 	(select-window window)
       (set-buffer rmail-buffer)))
   (rmail-retry-failure)
-  (use-local-map (copy-keymap (current-local-map)))
-  (define-key (current-local-map)
-    "\C-c\C-c" 'rmail-summary-send-and-exit))
+  (rmail-summary-override-mail-send-and-exit))
 
 (defun rmail-summary-send-and-exit ()
   "Send mail reply and return to summary buffer."
@@ -1464,9 +1464,7 @@ see the documentation of `rmail-resend'."
 	  (select-window window)
 	(set-buffer rmail-buffer)))
     (rmail-forward resend)
-    (use-local-map (copy-keymap (current-local-map)))
-    (define-key (current-local-map)
-      "\C-c\C-c" 'rmail-summary-send-and-exit)))
+    (rmail-summary-override-mail-send-and-exit)))
 
 (defun rmail-summary-resend ()
   "Resend current message using 'rmail-resend'."
