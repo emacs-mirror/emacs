@@ -98,9 +98,9 @@ element should come before the second.  The arguments are cons cells;
 (defvar imenu-max-items 25
   "*Maximum number of elements in an mouse menu for Imenu.")
 
-(defvar imenu-scanning-message "Scanning buffer for index (%3d%%)"
+(defvar imenu-scanning-message "Scanning buffer for index...%2d%%"
   "*Progress message during the index scanning of the buffer.
-If non-nil, user gets a message during the scanning of the buffer
+If non-nil, user gets a message during the scanning of the buffer.
 
 Relevant only if the mode-specific function that creates the buffer
 index use `imenu-progress-message'.")
