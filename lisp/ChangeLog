@@ -1,4 +1,39 @@
+2001-10-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el: Require `syntax'.
+	(font-lock-defaults-alist): Don't define keywords for lisp languages.
+	Use `c-font-lock-syntactic-face-function' for c languages.
+	(font-lock-mode): Don't unset vars when turning the mode off.
+	(font-lock-default-fontify-buffer): Don't unset vars at the end.
+	(font-lock-extra-managed-props): New var.
+	(font-lock-default-unfontify-region): Use it.
+	(font-lock-apply-syntactic-highlight): Flush the syntax cache.
+	Don't eval the value when there's no match.
+	(font-lock-ppss-stats): New var.
+	(font-lock-ppss): New fun.
+	(font-lock-fontify-syntactically-region): Use it and syntax.ppss.
+	(font-lock-apply-highlight): Allow `highlight' to set several props.
+	(font-lock-set-defaults): Use dolist.
+	(font-lock-unset-defaults): Remove.
+	(font-lock-match-c-style-declaration-item-and-skip-to-next):
+	Try to recognize prototypes using `foo P_ ((args))'.
+	({c,c++,java,objc}-font-lock-keywords-{1,2,3}): Don't setq a defconst.
+	(c-font-lock-keywords-2): Fix last change to still use Anders' trick.
+	(c-font-lock-syntactic-face-function): New function.
+	(font-lock-match-c++-style-declaration-item-and-skip-to-next)
+	(c++-keywords): Use a more sophisticated regexp to handle
+	shallowly nested templates.
+
 2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-empty-tags): New var.
+	(sgml-tag): Use it.  Cleanup with `cond'.
+	(sgml-tags-invisible): Make sgml-tags-invisible buffer-local.
+	Mark the overlays and only delete those that are marked.
+	(sgml-skip-close-p): Remove.
+	(sgml-value): Replace sgml-skip-close-p with its definition.
+	(html-tag-alist): Use sgml-xml a bit more.
+	(html-mode): Set sgml-empty-tags.
 
 	* textmodes/texnfo-upd.el: Use `when', `dolist', `push', ...
 	(texinfo-update-node, texinfo-sequential-node-update):
