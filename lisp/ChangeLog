@@ -54,6 +54,16 @@
 	(list-buffers-noselect): Calculate header-line spacing to take
 	into account width of left fringe and left scrollbar.
 
+2003-03-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-version): New version number (6.6).
+	(ps-begin-job): If background and foreground color are the same, give
+	an error.
+	(ps-default-fg, ps-default-bg): Better doc.
+	(ps-rgb-color): Became a defun, check RGB value list.
+	(ps-default-background): New internal var.
+	(ps-begin-file): Code fix.
+
 2003-03-05  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (query-replace-read-args): Use save-excursion.
