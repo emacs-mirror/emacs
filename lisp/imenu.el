@@ -1001,11 +1001,9 @@ See the command `imenu' for more information."
       (let ((newmap (make-sparse-keymap)))
 	(set-keymap-parent newmap (current-local-map))
 	(setq imenu--last-menubar-index-alist nil)
-	(define-key newmap [menu-bar]
-	  (let ((map (make-sparse-keymap)))
-	    (define-key map [index] 
-	      `(menu-item ,name ,(make-sparse-keymap "Imenu")))
-	    map))
+	(define-key newmap [menu-bar index]
+	  (define-key map [index] 
+	    `(menu-item ,name ,(make-sparse-keymap "Imenu"))))
 	(use-local-map newmap)
 	(add-hook 'menu-bar-update-hook 'imenu-update-menubar))
     (error "The mode `%s' does not support Imenu" mode-name)))
