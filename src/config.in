@@ -140,6 +140,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_RES_INIT /* For -lresolv on Suns.  */
 #undef HAVE_SETSID
 #undef HAVE_FPATHCONF
+#undef HAVE_SELECT
 
 #undef HAVE_INET_SOCKETS
 
@@ -154,6 +155,9 @@ and this notice must be preserved on all copies.  */
 
 /* Define if `struct utimbuf' is declared by <utime.h>.  */
 #undef HAVE_STRUCT_UTIMBUF
+
+/* Define if `struct timeval' is declared by <sys/time.h>.  */
+#undef HAVE_TIMEVAL
 
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
