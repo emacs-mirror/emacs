@@ -465,7 +465,14 @@ write into the compilation buffer, and to put in its mode line.")
    (mapcar (function
 	    (lambda (item)
 	      ;; Prepend "^", adjusting FILE-IDX and LINE-IDX accordingly.
-	      (let ((file-idx (nth 1 item)) (line-idx (nth 2 item)) keyword)
+	      (let ((file-idx (nth 1 item))
+		    (line-idx (nth 2 item))
+		    (col-idx (nth 3 item))
+		    keyword)
+		(when (numberp col-idx)
+		  (setq keyword
+			(cons (list (1+ col-idx) 'font-lock-type-face nil t)
+			      keyword)))
 		(when (numberp line-idx)
 		  (setq keyword
 			(cons (list (1+ line-idx) 'font-lock-variable-name-face)
