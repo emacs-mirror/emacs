@@ -2042,6 +2042,7 @@ x_set_tool_bar_lines (f, value, oldval)
     {
       updating_frame = f;
       clear_frame ();
+      clear_current_matrices (f);
       updating_frame = NULL;
     }
 }
