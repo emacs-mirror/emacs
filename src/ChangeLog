@@ -1,5 +1,8 @@
 2002-05-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* xfns.c (x_encode_text): Allocate coding.destination here, and
+	call encode_coding_object with dst_object Qnil.
+
 	* buffer.c (Fset_buffer_multibyte): Convert 8-bit bytes to
 	multibyte form correctly.
 
@@ -11,6 +14,12 @@
 	(encode_coding_iso_2022): Setup coding->safe_charsets in advance.
 	(decode_coding_object): Move point to coding->dst_pos before
 	calling post-read-conversion function.
+	(encode_coding_object): Give correct arguments ot
+	pre-write-conversion.  Ignore the return value of
+	pre-write-conversion function.  Pay attention for the case that
+	pre-write-conversion change the current buffer.  If dst_object is
+	Qt, even if coding->src_bytes is zero, allocate at least one byte
+	to coding->destination.
 
 	* coding.h (JIS_TO_SJIS): Fix typo (j1->s1, j2->s2).
 
