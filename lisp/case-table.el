@@ -68,7 +68,7 @@
     (set-char-table-extra-slot copy 1 nil)
     (set-char-table-extra-slot copy 2 nil)
     copy))
-    
+
 ;;;###autoload
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
@@ -105,8 +105,8 @@ word constituents."
 
 ;;;###autoload
 (defun set-case-syntax (c syntax table)
-  "Make characters C case-invariant with syntax SYNTAX.
-This sets the entries for character C in TABLE, which is a string
+  "Make character C case-invariant with syntax SYNTAX.
+This sets the entry for character C in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
