@@ -76,6 +76,8 @@
 (require 'select)
 (require 'menu-bar)
 
+(defvar x-command-line-resources nil)
+
 (setq command-switch-alist
       (append '(("-bw" .	x-handle-numeric-switch)
 		("-d" .		x-handle-display)
@@ -98,6 +100,7 @@
 		("-itype" .	x-handle-switch)
 		("-i" 	.	x-handle-switch)
 		("-iconic" .	x-handle-switch)
+		("-rn" .        x-handle-rn-switch)
 		("-cr" .	x-handle-switch)
 		("-vb" .	x-handle-switch)
 		("-hb" .	x-handle-switch)
@@ -151,6 +154,11 @@
 		    default-frame-alist)
 	      x-invocation-args
 	      (cdr x-invocation-args)))))
+
+;; Handle the -rn option.
+(defun x-handle-rn-switch (switch)
+  (setq x-command-line-resources (car x-invocation-args))
+  (setq x-invocation-args (cdr x-invocation-args)))
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
@@ -508,7 +516,8 @@ This returns ARGS with the arguments that have been processed removed."
 
 (setq command-line-args (x-handle-args command-line-args))
 (x-open-connection (or x-display-name
-		       (setq x-display-name (getenv "DISPLAY"))))
+		       (setq x-display-name (getenv "DISPLAY")))
+		   x-command-line-resources)
 
 (setq frame-creation-function 'x-create-frame-with-faces)
 
