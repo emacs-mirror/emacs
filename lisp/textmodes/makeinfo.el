@@ -56,7 +56,6 @@ the proper way to specify those is with the Texinfo commands
 `@footnotestyle` and `@paragraphindent'.")
 
 (require 'texinfo)
-(require 'texinfmt)
 
 (defvar makeinfo-compilation-process nil
   "Process that runs `makeinfo'.  Should start out nil.")
