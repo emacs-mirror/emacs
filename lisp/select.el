@@ -104,8 +104,8 @@ if the prefix arg is set."
 ;;; Cut Buffer support
 
 (defun x-get-cut-buffer (&optional which-one)
-  "Returns the value of one of the 8 X server cut-buffers.  Optional arg
-WHICH-ONE should be a number from 0 to 7, defaulting to 0.
+  "Returns the value of one of the 8 X server cut-buffers.
+Optional arg WHICH-ONE should be a number from 0 to 7, defaulting to 0.
 Cut buffers are considered obsolete; you should use selections instead."
   (x-get-cut-buffer-internal
    (if which-one

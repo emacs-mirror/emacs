@@ -588,8 +588,8 @@ decoder and encoder created by this function."
     ))
 
 (defun cp-codepage-decoder (codepage)
-  "If CODEPAGE is the name of a supported codepage, return its decode table;
-otherwise return nil."
+  "If CODEPAGE is the name of a supported codepage, return its decode table.
+Otherwise return nil."
   (let ((cp (if (symbolp codepage) (symbol-name codepage) codepage)))
     (cond
      ((stringp cp)
