@@ -1938,7 +1938,7 @@ otherwise, show it in full."
 					     (window-start window))))
 		       (recenter (min (+ old-screen-line lines-offscreen)
 				      ;; last line of window
-				      (- (window-height) 2))))))))))
+				      (- (window-height) 2)))))))))
       (rmail-highlight-headers))))
 
 ;; Lifted from repos-count-screen-lines.
