@@ -177,10 +177,10 @@ Some country.}
 See also @b{_other work_} for more information.
 
 Numbers: count to three below
-@b{[INS]} @b{[DEL]} @i{One}
-@b{[INS]} @b{[DEL]} @i{Eh, two?}
-@b{[INS]} @b{[DEL]} @i{Five!}
-@b{[INS]} 
+@b{+/-} @i{One}
+@b{+/-} @i{Eh, two?}
+@b{+/-} @i{Five!}
+@b{+} 
 
 Select multiple:
 
@@ -259,7 +259,7 @@ When you invoke one of these buttons, you will be asked to choose
 between a number of different options.  This is how you edit an option
 field.  Option fields are created by the @code{menu-choice} widget.  In
 the example, @samp{@b{Choose}} is an option field tag.
-@item The @samp{@b{[INS]}} and @samp{@b{[DEL]}} buttons
+@item The @samp{@b{+/-}} buttons
 Activating these will insert or delete elements from an editable list.
 The list is created by the @code{editable-list} widget. 
 @cindex embedded buttons
@@ -1103,16 +1103,18 @@ The following @samp{%} escapes are available:
 @item %v
 This will be replaced with the buffer representation of the @var{type}
 widget.
+@item %-
+Insert the @b{+/-} button.
 @item %i
-Insert the @b{[INS]} button.
+Insert the @b{+} button at the end of a list.
 @item %d
 Insert the @b{[DEL]} button.
 @item %%
 Insert a literal @samp{%}. 
 @end table
 
-@vindex insert-button-args@r{ keyword}
-@item :insert-button-args
+@vindex insert/delete-button-args@r{ keyword}
+@item :insert/delete-button-args
 A list of keyword arguments to pass to the insert buttons.
 
 @vindex delete-button-args@r{ keyword}
@@ -1709,12 +1711,6 @@ This is only meaningful for radio buttons or checkboxes in a list.
 It should be possible to add or remove items from a list with @kbd{C-k}
 and @kbd{C-o} (suggested by @sc{rms}).
 
-@item 
-The @samp{[INS]} and @samp{[DEL]} buttons should be replaced by a single
-dash (@samp{-}).  The dash should be a button that, when invoked, asks
-whether you want to add or delete an item (@sc{rms} wanted to git rid of
-the ugly buttons, the dash is my idea).
-
 @item
 The @code{menu-choice} tag should be prettier, something like the abbreviated
 menus in Open Look.
@@ -1734,12 +1730,6 @@ Find a way to disable mouse highlight for inactive widgets.
 
 @item
 Find a way to make glyphs look inactive.
-
-@item
-Add @code{property-list} widget.
-
-@item
-Add @code{association-list} widget.
 
 @item
 Add @code{key-binding} widget.
