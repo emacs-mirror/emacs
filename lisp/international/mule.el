@@ -75,7 +75,8 @@ Return t if file exists."
 			 ;; If this Emacs is running with --unibyte,
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.
-			 (not default-enable-multibyte-characters)))
+;;			 (not default-enable-multibyte-characters)
+			 ))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (let ((hook (assoc file after-load-alist)))
@@ -772,7 +773,7 @@ in the tailing 3K-byte oof STRING.
 The return value is the specified coding system,
 or nil if nothing specified.
 
-The variable `auto-file-coding-system' (which see) is set to this
+The variable `set-auto-coding-function' (which see) is set to this
 function by default."
   (condition-case nil
       (let ((case-fold-search t)
