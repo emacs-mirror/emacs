@@ -179,6 +179,9 @@ make_frame (mini_p)
   f->menu_bar_vector = Qnil;
   f->menu_bar_items_used = 0;
   f->buffer_predicate = Qnil;
+#ifdef MULTI_KBOARD
+  f->kboard = initial_kboard;
+#endif
 
   root_window = make_window ();
   if (mini_p)
@@ -331,6 +334,14 @@ make_terminal_frame ()
   register struct frame *f;
   Lisp_Object frame;
   char name[20];
+
+#ifdef MULTI_KBOARD
+  if (!initial_kboard)
+    {
+      initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+      init_kboard (initial_kboard);
+    }
+#endif
 
   /* The first call must initialize Vframe_list.  */
   if (! (NILP (Vframe_list) || CONSP (Vframe_list)))
