@@ -73,7 +73,7 @@ string are substituted as defined by the current value of the variable
 (defvar battery-update-timer nil
   "Interval timer object.")
 
-;;;### autoload
+;;;###autoload
 (defun battery ()
   "Display battery status information in the echo area.
 The text beeing displayed in the echo area is controlled by the variables
@@ -84,7 +84,7 @@ The text beeing displayed in the echo area is controlled by the variables
 				    (funcall battery-status-function))
 		  "Battery status not available")))
 
-;;;### autoload
+;;;###autoload
 (defun display-battery ()
   "Display battery status information in the mode line.
 The text beeing displayed in the mode line is controlled by the variables
