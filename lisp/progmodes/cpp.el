@@ -131,8 +131,12 @@ Each entry is a list with the following elements:
     ("both" . both)))
 
 (defcustom cpp-face-default-list nil
-  "List of faces you can choose from for cpp conditionals."
-  :type '(repeat face)
+  "Alist of faces you can choose from for cpp conditionals.
+Each element has the form (STRING . FACE), where STRING
+serves as a name (for `cpp-highlight-buffer' only)
+and FACE is either a face (a symbol)
+or a cons cell (background-color . COLOR)."
+  :type '(repeat (cons string (choice face (cons (const background-color) string))))
   :group 'cpp)
 
 (defcustom cpp-face-light-name-list
@@ -204,7 +208,8 @@ This command pops up a buffer which you should edit to specify
 what kind of highlighting to use, and the criteria for highlighting.
 A prefix arg suppresses display of that buffer."
   (interactive "P")
-  (unless (memq 'cpp buffer-invisibility-spec) 
+  (unless (or (eq t buffer-invisibility-spec)
+	      (memq 'cpp buffer-invisibility-spec))
     (add-to-invisibility-spec 'cpp))
   (setq cpp-parse-symbols nil)
   (cpp-parse-reset)
@@ -788,10 +793,7 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 (defun cpp-create-bg-face (color)
   ;; Create entry for face with background COLOR.
-  (let ((name (intern (concat "cpp " color))))
-    (make-face name)
-    (set-face-background name color)
-    (cons color name)))
+  (cons color (cons 'background-color color)))
 
 (cpp-choose-default-face (if window-system cpp-face-type 'none))
 
