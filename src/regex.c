@@ -2495,15 +2495,28 @@ regex_compile (pattern, size, syntax, bufp)
     if (fail_stack.size < (2 * re_max_failures * MAX_FAILURE_ITEMS))
       {
 	fail_stack.size = (2 * re_max_failures * MAX_FAILURE_ITEMS);
+
+#ifdef emacs
 	if (! fail_stack.stack)
-	  fail_stack.stack =
-	    (fail_stack_elt_t *) malloc (fail_stack.size 
-					 * sizeof (fail_stack_elt_t));
+	  fail_stack.stack
+	    = (fail_stack_elt_t *) xmalloc (fail_stack.size 
+					    * sizeof (fail_stack_elt_t));
 	else
-	  fail_stack.stack =
-	    (fail_stack_elt_t *) realloc (fail_stack.stack,
-					  (fail_stack.size
-					   * sizeof (fail_stack_elt_t)));
+	  fail_stack.stack
+	    = (fail_stack_elt_t *) xrealloc (fail_stack.stack,
+					     (fail_stack.size
+					      * sizeof (fail_stack_elt_t)));
+#else /* not emacs */
+	if (! fail_stack.stack)
+	  fail_stack.stack
+	    = (fail_stack_elt_t *) malloc (fail_stack.size 
+					   * sizeof (fail_stack_elt_t));
+	else
+	  fail_stack.stack
+	    = (fail_stack_elt_t *) realloc (fail_stack.stack,
+					    (fail_stack.size
+					     * sizeof (fail_stack_elt_t)));
+#endif /* not emacs */
       }
 
     /* Initialize some other variables the matcher uses.  */
