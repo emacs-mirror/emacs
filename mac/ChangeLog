@@ -1,3 +1,7 @@
+2002-10-14  Andreas Schwab  <schwab@suse.de>
+
+	* make-package: Fix syntax for find.
+
 2002-10-08  Steven Tamm  <steventamm@mac.com>
 
 	* make-package: Added ability to pass command line options
