@@ -413,7 +413,7 @@ should be shown to the user."
 	  ;; Generic success for all others.  Store in the cache, and
 	  ;; mark it as successful.
 	  (widen)
-	  (if (equal url-http-method "GET")
+	  (if (and url-automatic-caching (equal url-http-method "GET"))
 	      (url-store-in-cache (current-buffer)))
 	  (setq success t))))
       (3				; Redirection
