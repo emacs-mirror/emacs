@@ -1245,6 +1245,59 @@ This does nothing except loading eudc by autoload side-effect."
 
 ;;}}}
 
+;;;###autoload
+(cond ((not (string-match "XEmacs" emacs-version))
+       (defvar eudc-tools-menu (make-sparse-keymap "Directory Search"))
+       (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu))
+       
+       (define-key eudc-tools-menu [phone]
+	 '("Get Phone" . eudc-get-phone))
+       (define-key eudc-tools-menu [email]
+	 '("Get Email" . eudc-get-email))
+       (define-key eudc-tools-menu [separator-eudc-email]
+	 '("--"))
+       (define-key eudc-tools-menu [expand-inline]
+	 '("Expand Inline Query" . eudc-expand-inline))
+       (define-key eudc-tools-menu [query]
+	 '("Query with Form" . eudc-query-form))
+       (define-key eudc-tools-menu [separator-eudc-query]
+	 '("--"))
+       (define-key eudc-tools-menu [new]
+	 '("New Server" . eudc-set-server))
+       (define-key eudc-tools-menu [load]
+	 '("Load Hotlist of Servers" . eudc-load-eudc)))
+      
+      (t
+       (let ((menu  '("Directory Search"
+		      ["Load Hotlist of Servers" eudc-load-eudc t]
+		      ["New Server" eudc-set-server t]
+		      ["---" nil nil]
+		      ["Query with Form" eudc-query-form t]
+		      ["Expand Inline Query" eudc-expand-inline t]
+		      ["---" nil nil]
+		      ["Get Email" eudc-get-email t]
+		      ["Get Phone" eudc-get-phone t])))
+	 (if (not (featurep 'eudc-autoloads))
+	     (if (string-match "XEmacs" emacs-version)
+		 (if (and (featurep 'menubar)
+			  (not (featurep 'infodock)))
+		     (add-submenu '("Tools") menu))
+	       (require 'easymenu)
+	       (cond 
+		((fboundp 'easy-menu-add-item)
+		 (easy-menu-add-item nil '("tools")
+				     (easy-menu-create-menu (car menu)
+							    (cdr menu))))
+		((fboundp 'easy-menu-create-keymaps)
+		 (define-key 
+		   global-map
+		   [menu-bar tools eudc] 
+		   (cons "Directory Search"
+			 (easy-menu-create-keymaps "Directory Search"
+						   (cdr menu)))))))))))
+        
+;;}}}
+  
 (provide 'eudc)
 
 ;;; eudc.el ends here
