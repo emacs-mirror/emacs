@@ -1,3 +1,16 @@
+2004-10-17  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-default-display-maybe-show-predicates):
+	New customizable variable; whether to display buffers that match
+	`ibuffer-maybe-show-predicates' by default.
+	(ibuffer-maybe-show-predicates): Mention it in docstring.
+	(ibuffer-display-maybe-show-predicates): New variable.
+	(ibuffer-update): Prefix arg now toggles whether buffers that
+	match `ibuffer-maybe-show-predicates' should be displayed.
+	(ibuffer-mode): Set `ibuffer-display-maybe-show-predicates'
+	locally to heed `ibuffer-default-display-maybe-show-predicates'.
+	(ibuffer-redisplay-engine): Rename optional second arg to `ignore'.
+
 2004-10-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el: Redo sync with Tramp 2.0.45.  Last commit did not
