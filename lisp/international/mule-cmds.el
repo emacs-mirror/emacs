@@ -49,17 +49,9 @@
 (define-key help-map "C" 'describe-coding-system)
 (define-key help-map "h" 'view-hello-file)
 
-(defvar mule-menu-keymap (make-sparse-keymap "Mule")
+(defvar mule-menu-keymap
+  (make-sparse-keymap "Mule (Multilingual Environment)")
   "Keymap for Mule (Multilingual environment) menu specific commands.")
-
-(define-key global-map [menu-bar mule]
-  ;; It is better not to use backquote here,
-  ;; because that makes a bootstrapping problem
-  ;; if you need to recompile all the Lisp files using interpreted code.
-  (list 'menu-item "Mule" mule-menu-keymap
-	':visible 'default-enable-multibyte-characters))
-
-(setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 
 (defvar describe-language-environment-map
   (make-sparse-keymap "Describe Language Environment"))
@@ -70,83 +62,91 @@
 (defvar set-coding-system-map
   (make-sparse-keymap "Set Coding System"))
 
-(define-key-after mule-menu-keymap [describe-language-environment]
-  (cons "Describe Language Environment" describe-language-environment-map)
-  t)
 (define-key-after mule-menu-keymap [set-language-environment]
-  (cons "Set Language Environment" setup-language-environment-map)
+  (list 'menu-item "Set Language Environment" setup-language-environment-map
+	:help "Multilingual environment suitable for specific language")
   t)
 (define-key-after mule-menu-keymap [mouse-set-font]
-  '("Set Font/Fontset" . mouse-set-font)
+  '(menu-item "Set Font/Fontset" mouse-set-font
+	      :visible (fboundp 'generate-fontset-menu)
+	      :help "Select a font from list of known fonts/fontsets")
   t)
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)
 (define-key-after mule-menu-keymap [toggle-input-method]
-  '("Toggle Input Method" . toggle-input-method)
+  '(menu-item "Toggle Input Method" toggle-input-method)
   t)
 (define-key-after mule-menu-keymap [set-input-method]
-  '("Select Input Method" . set-input-method)
-  t)
-(define-key-after mule-menu-keymap [describe-input-method]
-  '("Describe Input Method" . describe-input-method)
+  '(menu-item "Select Input Method..." set-input-method)
   t)
 (define-key-after mule-menu-keymap [separator-input-method]
   '("--")
   t)
-(define-key-after mule-menu-keymap [describe-coding-system]
-  '("Describe Coding Systems" . describe-coding-system)
-  t)
 (define-key-after mule-menu-keymap [set-various-coding-system]
-  (cons "Set Coding System" set-coding-system-map)
+  (list 'menu-item "Set Coding Systems" set-coding-system-map)
+  t)
+(define-key-after mule-menu-keymap [view-hello-file]
+  '(menu-item "Show Multi-lingual Text" view-hello-file
+	      :enable (file-readable-p
+		       (expand-file-name "HELLO" data-directory))
+	      :help "Display file which says HELLO in many languages")
   t)
 (define-key-after mule-menu-keymap [separator-coding-system]
   '("--")
   t)
-(define-key-after mule-menu-keymap [mule-diag]
-  '("Show All of Mule Status" . mule-diag)
+(define-key-after mule-menu-keymap [describe-language-environment]
+  (list 'menu-item "Describe Language Environment"
+	describe-language-environment-map
+	:help "Show multilingual settings for specific language")
   t)
-(define-key-after mule-menu-keymap [view-hello-file]
-  '("Show Script Examples" . view-hello-file)
+(define-key-after mule-menu-keymap [describe-input-method]
+  '(menu-item "Describe Input Method..." describe-input-method
+	      :help "Keyboard layout for specific input method")
+  t)
+(define-key-after mule-menu-keymap [describe-coding-system]
+  '(menu-item "Describe Coding System..." describe-coding-system)
+  t)
+(define-key-after mule-menu-keymap [mule-diag]
+  '(menu-item "Show All of Mule Status" mule-diag
+	      :help "Display multilingual environment settings")
   t)
 
 (define-key-after set-coding-system-map [set-buffer-file-coding-system]
-  '("Buffer File" . set-buffer-file-coding-system)
+  '(menu-item "For Saving this Buffer" set-buffer-file-coding-system
+	      :help "How to encode this buffer on disk")
   t)
 (define-key-after set-coding-system-map [universal-coding-system-argument]
-  '("Next Command" . universal-coding-system-argument)
+  '(menu-item "For Next Command" universal-coding-system-argument
+	      :help "Coding system to be used by next command")
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
-  '("Terminal" . set-terminal-coding-system)
+  '(menu-item "For Terminal" set-terminal-coding-system
+	      :enable (null (memq window-system '(x w32 mac)))
+	      :help "How to encode terminal output")
   t)
 (define-key-after set-coding-system-map [set-keyboard-coding-system]
-  '("Keyboard" . set-keyboard-coding-system)
+  '(menu-item "For Keyboard" set-keyboard-coding-system
+	      :help "How to decode keyboard input")
   t)
 (define-key-after set-coding-system-map [set-buffer-process-coding-system]
-  '("Buffer Process" . set-buffer-process-coding-system)
+  '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
+	      :visible (fboundp 'start-process)
+	      :enable (get-buffer-process (current-buffer))
+	      :help "How to en/decode I/O from/to subprocess connected to this buffer")
   t)
 (define-key-after set-coding-system-map [set-selection-coding-system]
-  '("X Selection" . set-selection-coding-system)
+  '(menu-item "For X Selections/Clipboard" set-selection-coding-system
+	      :visible (display-selections-p)
+	      :help "How to en/decode data to/from selection/clipboard")
   t)
 (define-key-after set-coding-system-map [set-next-selection-coding-system]
-  '("Next X Selection" . set-next-selection-coding-system)
+  '(menu-item "For Next X Selection" set-next-selection-coding-system
+	      :visible (display-selections-p)
+	      :help "How to en/decode next selection/clipboard operation")
   t)
 (define-key setup-language-environment-map
-  [Default] '("Default" . setup-specified-language-environment))
-
-;; These are meaningless when running under X and W32.
-(put 'set-terminal-coding-system 'menu-enable
-     '(or (not window-system) (eq window-system 'pc)))
-(put 'set-keyboard-coding-system 'menu-enable
-     '(or (not window-system) (eq window-system 'pc)))
-;; This is meaningless when the current buffer has no process.
-(put 'set-buffer-process-coding-system 'menu-enable
-     '(get-buffer-process (current-buffer)))
-;; These are meaningless when running under terminal.
-(put 'set-selection-coding-system 'menu-enable
-     'window-system)
-(put 'set-next-selection-coding-system 'menu-enable
-     'window-system)
+  [Default] '(menu-item "Default" setup-specified-language-environment))
 
 ;; This should be a single character key binding because users use it
 ;; very frequently while editing multilingual text.  Now we can use
