@@ -1345,6 +1345,5 @@ See documentation for variable `ebnf-dtd-lex'."
 
 (provide 'ebnf-dtd)
 
-
-;;; arch-tag:
+;;; arch-tag: c21bb640-135f-4afa-8712-fa11d86301c4
 ;;; ebnf-dtd.el ends here
