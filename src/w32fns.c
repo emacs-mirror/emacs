@@ -1781,6 +1781,12 @@ w32_defined_color (f, color, color_def, alloc)
 
   if (!NILP (tem)) 
     {
+      /* Apply gamma correction.  */
+      w32_color_ref = XUINT (tem);
+      gamma_correct (f, &w32_color_ref);
+      XSETINT (tem, w32_color_ref);
+
+      /* Map this color to the palette if it is enabled. */
       if (!NILP (Vw32_enable_palette))
 	{
 	  struct w32_palette_entry * entry =
@@ -1815,12 +1821,6 @@ w32_defined_color (f, color, color_def, alloc)
 	 palette by simulating the PALETTERGB macro.  This works whether
 	 or not the display device has a palette. */
       w32_color_ref = XUINT (tem) | 0x2000000;
-
-      /* NTEMACS_TODO: Palette mapping should come after gamma
-         correction. */
-      /* Apply gamma correction.  */
-      if (f)
-        gamma_correct (f, &w32_color_ref);
 
       color_def->pixel = w32_color_ref;
       color_def->red = GetRValue (w32_color_ref);
@@ -3881,8 +3881,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       f = x_window_to_frame (dpyinfo, hwnd);
       if (f)
 	{
+          HDC hdc = get_frame_dc (f);
 	  GetUpdateRect (hwnd, &wmsg.rect, FALSE);
-	  w32_clear_rect (f, NULL, &wmsg.rect);
+	  w32_clear_rect (f, hdc, &wmsg.rect);
+          release_frame_dc (f, hdc);
 
 #if defined (W32_DEBUG_DISPLAY)
           DebPrint (("WM_ERASEBKGND: erasing %d,%d-%d,%d\n",
