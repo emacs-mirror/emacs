@@ -69,11 +69,11 @@
    "Octidi" "Nonidi" "Decadi"])
 
 (defconst french-calendar-multibyte-special-days-array
-  ["de la Vertu" "du Génie" "du Labour" "de la Raison" "de la Récompense"
+  ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
    "de la Révolution"])
 
 (defconst french-calendar-special-days-array
-  ["de la Vertu" "du Ge'nie" "du Labour" "de la Raison" "de la Re'compense"
+  ["de la Vertu" "du Ge'nie" "du Travail" "de la Raison" "des Re'compenses"
    "de la Re'volution"])
 
 (defun french-calendar-month-name-array ()
@@ -180,10 +180,9 @@ Defaults to today's date if DATE is not given."
                        y))
      (t (format
          (if (french-calendar-accents)
-             "Décade %s, %s de %s de l'Année %d de la Révolution"
-           "De'cade %s, %s de %s de l'Anne'e %d de la Re'volution")
-         (make-string (1+ (/ (1- d) 10)) ?I)
-         (aref (french-calendar-day-name-array) (% (1- d) 10))
+             "%d %s an %d de la Révolution"
+           "%d %s an %d de la Re'volution")
+         d
          (aref (french-calendar-month-name-array) (1- m))
          y)))))
 
@@ -235,20 +234,12 @@ Echo French Revolutionary date unless NOECHO is t."
                           month-list
                           nil t)
 			 (calendar-make-alist month-list 1 'car))))
-	    (decade (if (> month 12)
-			1
-		      (calendar-read
-		       (if accents
-			   "Décade (1-3): "
-			 "De'cade (1-3): ")
-		       '(lambda (x) (memq x '(1 2 3))))))
 	    (day (if (> month 12)
 		     (- month 12)
 		   (calendar-read
 		    "Jour (1-10): "
-		    '(lambda (x) (and (<= 1 x) (<= x 10))))))
-	    (month (if (> month 12) 13 month))
-	    (day (+ day (* 10 (1- decade)))))
+		    '(lambda (x) (and (<= 1 x) (<= x 30))))))
+	    (month (if (> month 12) 13 month)))
        (list (list month day year)))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-french date)))
