@@ -1,27 +1,30 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
+
+;; Copyright (c) 1996,97,98,1999,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Keywords: comm, data, processes, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'url)
 (require 'url-parse)
@@ -92,16 +95,19 @@ avoids conflicts with local files that look like URLs \(Gnus is
 particularly bad at this\).")
 
 ;;;###autoload
-(defun url-setup-file-name-handlers ()
-  "Setup file-name handlers."
-  (cond
-   ((not (boundp 'file-name-handler-alist))
-    nil)				; Don't load if no alist
-   ((rassq 'url-file-handler file-name-handler-alist)
-    nil)				; Don't load twice
-   (t
-    (push (cons url-handler-regexp 'url-file-handler)
-	  file-name-handler-alist))))
+(define-minor-mode url-handler-mode
+  "Use URL to handle URL-like file names."
+  :global t
+  (if (not (boundp 'file-name-handler-alist))
+      ;; Can't be turned ON anyway.
+      (setq url-handler-mode nil)
+    ;; Remove old entry, if any.
+    (setq file-name-handler-alist
+	  (delq (rassq 'url-file-handler file-name-handler-alist)
+		file-name-handler-alist))
+    (if url-handler-mode
+	(push (cons url-handler-regexp 'url-file-handler)
+	      file-name-handler-alist))))
 
 (defun url-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers (cons 'url-file-handler
@@ -248,4 +254,5 @@ accessible."
 
 (provide 'url-handlers)
 
-;;; arch-tag: 7300b99c-cc83-42ff-9147-79b2723c62ac
+;; arch-tag: 7300b99c-cc83-42ff-9147-79b2723c62ac
+;;; url-handlers.el ends here

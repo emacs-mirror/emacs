@@ -1,5 +1,4 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.20 2003/11/26 17:12:11 ttn Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
@@ -9,7 +8,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

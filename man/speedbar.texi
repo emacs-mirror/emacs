@@ -1,12 +1,11 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: speedbar.texi,v 1.13 2003/10/08 22:02:52 nickrob Exp $
 
 @setfilename ../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999, 2000, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2002, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

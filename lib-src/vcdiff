@@ -3,7 +3,7 @@
 # Enhanced sccs diff utility for use with vc mode.
 # This version is more compatible with rcsdiff(1).
 #
-# Copyright (C) 1992, 1993, 1995, 1997, 2001
+# Copyright (C) 1992, 1993, 1995, 1997, 2001, 2004
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -22,8 +22,6 @@
 # along with GNU Emacs; see the file COPYING.  If not, write to the
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
-#
-#	$Id: vcdiff,v 1.8 2003/09/01 15:45:03 miles Exp $
 #
 
 DIFF="diff"

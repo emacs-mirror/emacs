@@ -67,6 +67,12 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-04-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fmake_indirect_buffer): Throw an error if the intended
+	base buffer has been killed.  Correct the error message if the
+	base buffer does not exist.
+
 2004-04-12  Joe Buehler  <jbuehler@hekimian.com>
 
 	* s/cygwin.h: Changes for Cygwin unexec() support, changes in
