@@ -525,12 +525,12 @@ update_wm_hints (ew)
 /*  ((WMShellWidget) wmshell)->wm.size_hints.flags |= USSize;*/
 
   XtVaSetValues (wmshell,
-		 XtNbaseWidth, base_width,
-		 XtNbaseHeight, base_height,
-		 XtNwidthInc, cw, 
-		 XtNheightInc, ch,
-		 XtNminWidth, base_width + min_cols * cw,
-		 XtNminHeight, base_height + min_rows * ch,
+		 XtNbaseWidth, (XtArgVal) base_width,
+		 XtNbaseHeight, (XtArgVal) base_height,
+		 XtNwidthInc, (XtArgVal) cw, 
+		 XtNheightInc, (XtArgVal) ch,
+		 XtNminWidth, (XtArgVal) (base_width + min_cols * cw),
+		 XtNminHeight, (XtArgVal) (base_height + min_rows * ch),
 		 NULL);
 }
 
@@ -853,7 +853,8 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
   if (cur->emacs_frame.iconic != new->emacs_frame.iconic)
     {
       Widget wmshell = get_wm_shell ((Widget) cur);
-      XtVaSetValues (wmshell, XtNiconic, new->emacs_frame.iconic, NULL);
+      XtVaSetValues (wmshell, XtNiconic,
+		     (XtArgVal) new->emacs_frame.iconic, NULL);
     }
 
   return needs_a_refresh;
@@ -939,22 +940,39 @@ EmacsFrameSetCharSize (widget, columns, rows)
       int old_left = f->output_data.x->widget->core.x;
       int old_top = f->output_data.x->widget->core.y;
 
+      /* Input is blocked here, and Xt waits for some event to
+         occur.  */
+
       lw_refigure_widget (f->output_data.x->column_widget, False);
       update_hints_inhibit = 1;
 
+      /* Xt waits for a ConfigureNotify event from the window manager
+	 in EmacsFrameSetCharSize when the shell widget is resized.
+	 For some window managers like fvwm2 2.2.5 and KDE 2.1 this
+	 event doesn't arrive for an unknown reason and Emacs hangs in
+	 Xt when the default font is changed.  Tell Xt not to wait,
+	 depending on the value of the frame parameter
+	 `wait-for-wm'.  */
+      XtVaSetValues (f->output_data.x->widget,
+		     XtNwaitForWm, (XtArgVal) f->output_data.x->wait_for_wm,
+		     NULL);
+      
       /* Do parents first, otherwise LessTif's geometry management
 	 enters an infinite loop (as of 2000-01-15).  This is fixed in
 	 later versions of LessTif (as of 2001-03-13); I'll leave it
 	 as is because I think it can't do any harm.  */
       XtVaSetValues (f->output_data.x->widget,
-      		     XtNheight, outer_widget_height + hdelta,
-		     XtNwidth, outer_widget_width + wdelta, NULL);
+      		     XtNheight, (XtArgVal) (outer_widget_height + hdelta),
+		     XtNwidth, (XtArgVal) (outer_widget_width + wdelta),
+		     NULL);
       XtVaSetValues (f->output_data.x->column_widget,
-      		     XtNheight, column_widget_height + hdelta,
-      		     XtNwidth, column_widget_width + wdelta, NULL);
+      		     XtNheight, (XtArgVal) (column_widget_height + hdelta),
+      		     XtNwidth, (XtArgVal) column_widget_width + wdelta,
+		     NULL);
       XtVaSetValues ((Widget) ew,
-                     XtNheight, pixel_height,
-      		     XtNwidth, pixel_width, NULL);
+                     XtNheight, (XtArgVal) pixel_height,
+      		     XtNwidth, (XtArgVal) pixel_width,
+		     NULL);
  
       lw_refigure_widget (f->output_data.x->column_widget, True);
 
