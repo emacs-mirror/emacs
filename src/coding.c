@@ -8486,8 +8486,7 @@ usage: (define-coding-system-internal ...)  */)
 			 make_number (nargs)));
 }
 
-/* Fixme: should this record the alias relationships for
-   diagnostics?  Should it update coding-system-list?  */
+
 DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
        Sdefine_coding_system_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for CODING-SYSTEM.  */)
@@ -8499,6 +8498,9 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
   CHECK_SYMBOL (alias);
   CHECK_CODING_SYSTEM_GET_SPEC (coding_system, spec);
   aliases = AREF (spec, 1);
+  /* ALISES should be a list of length more than zero, and the first
+     element is a base coding system.  Append ALIAS at the tail of the
+     list.  */
   while (!NILP (XCDR (aliases)))
     aliases = XCDR (aliases);
   XSETCDR (aliases, Fcons (alias, Qnil));
@@ -8513,11 +8515,10 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
       for (i = 0; i < 3; i++)
 	Fdefine_coding_system_alias (AREF (subsidiaries, i),
 				     AREF (eol_type, i));
-
-      ASET (spec, 2, subsidiaries);
     }
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
+  Vcoding_system_list = Fcons (alias, Vcoding_system_list);
   Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
 				Vcoding_system_alist);
 
