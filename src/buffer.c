@@ -2299,10 +2299,6 @@ the normal hook `change-major-mode-hook'.  */)
 
   reset_buffer_local_variables (current_buffer, 0);
 
-  /* Redisplay mode lines; we are changing major mode.  */
-
-  update_mode_lines++;
-
   /* Any which are supposed to be permanent,
      make local again, with the same values they had.  */
      
