@@ -1490,9 +1490,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
      ((eq localp 'verbatim)
       file)
      ((and (not no-error-if-not-filep)
-	   (save-excursion
-	     (beginning-of-line)
-	     (looking-at dired-re-dir)))
+	   (member (file-name-nondirectory file) '("." "..")))
       (error "Cannot operate on `.' or `..'"))
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
