@@ -1,3 +1,29 @@
+2005-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (perform-replace): Pass new args to replace-highlight.
+	(replace-highlight): Take region args,
+	and pass them to isearch-lazy-highlight-new-loop.
+
+	* novice.el (disabled-command-hook): Autoload the defalias
+	and the make-obsolete-variable call.
+
+	* menu-bar.el (menu-bar-select-frame): FRAME defaults to selected.
+
+	* isearch.el (isearch-lazy-highlight-start-limit)
+	(isearch-lazy-highlight-end-limit): New variables limit
+	the region for highlighting.
+	(isearch-lazy-highlight-new-loop): New args BEG and END.
+	(isearch-lazy-highlight-search): Use the new vars.
+	(isearch-lazy-highlight-update): Likewise.
+
+	* dired.el (dired-build-subdir-alist): Bind buffer-undo-list to t.
+
+	* cus-start.el (all): Use default-boundp.
+
+2005-02-14  David Casperson  <casper@unbc.ca>  (tiny change)
+
+	* menu-bar.el (menu-bar-select-frame): Handle current frame.
+
 2005-02-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-stop-on-user-input)

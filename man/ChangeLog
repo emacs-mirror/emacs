@@ -1,3 +1,68 @@
+2005-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Split Window): Simplify line truncation info
+	and xref to Display Custom.
+
+	* trouble.texi (Quitting): Emergency escape only for text terminal.
+	(Screen Garbled): C-l for ungarbling is only for text terminal.
+
+	* text.texi (Text Mode): ESC TAB alternative for M-TAB.
+
+	* sending.texi (Header Editing): ESC TAB alternative for M-TAB.
+
+	* programs.texi (Program Modes): Mention Python mode.
+	(Moving by Defuns): Repeating C-M-h extends region.
+	(Basic Indent): Clarify.
+	(Custom C Indent): Clarify.
+	(Expressions): Repeating C-M-@ extends region.
+	(Info Lookup): Clarify for C-h S.
+	(Symbol Completion): ESC TAB alternative for M-TAB.
+	(Electric C): Clarify.
+
+	* emacs.texi (Top): Update display.texi and frames.texi submenu data.
+
+	* msdog.texi (MS-DOS Keyboard, MS-DOS Mouse): Split from
+	MS-DOS Input node.
+	(MS-DOS Keyboard): Start with explaining DEL and BREAK.
+	(MS-DOS and MULE): Clarify.
+	(MS-DOS Processes, Windows Processes): Fix typos.
+
+	* major.texi (Choosing Modes): Clarify.
+
+	* kmacro.texi (Basic Keyboard Macro): Doc F3, F4.
+	(Keyboard Macro Step-Edit): Clarify.
+
+	* indent.texi (Indentation): Clarifications.
+
+	* help.texi (Help): Correct error about C-h in query-replace.
+	Clarify apropos vs C-h a.  Fix how to search in FAQ.
+	(Key Help): Describe C-h w here.
+	(Name Help): Minor cleanup.  C-h w moved to Key Help.
+	Clarify the "object" joke.
+	(Apropos): Clarify.  Mouse-1 like Mouse-2.
+	(Help Mode): Mouse-1 like Mouse-2.
+
+	* fixit.texi (Spelling): Mention ESC TAB as alt. for M-TAB.
+
+	* display.texi (Display): Reorder menu.
+	(Faces): Cleanup.
+	(Font Lock): Cleanup.  Mention Options menu.
+	Delete obsolete text.
+	(Scrolling): For C-l, don't presume text terminal.
+	(Horizontal Scrolling): Simplify intro.
+	(Follow Mode): Clarify.
+	(Cursor Display): Moved before Display Custom.
+	(Display Custom): Explain no-redraw-on-reenter is for text terminals.
+	Doc default-tab-width.  Doc line truncation more thoroughly.
+
+	* dired.texi (Dired Enter): C-x C-f can run Dired.
+	(Dired Visiting): Comment out `a' command.
+	Mouse-1 is like Mouse-2.
+	(Shell Commands in Dired): ? can be used more than once.
+
+	* basic.texi (Continuation Lines): Simplify description of truncation,
+	and refer to Display Custom for the rest of it.
+
 2005-02-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi:  Change @LaTeX to La@TeX throughout.

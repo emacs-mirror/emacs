@@ -218,11 +218,11 @@ man/anti.texi
 man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
-man/calendar.texi    Joakim Verona <joakim@verona.se>
+man/calendar.texi   joakim@verona.se
 man/cmdargs.texi    Chong Yidong
 man/commands.texi   "Luc Teirlinck"
 man/custom.texi     Chong Yidong
-man/dired.texi      Chong Yidong
+man/dired.texi      Chong Yidong     joakim@verona.se 
 man/display.texi    "Luc Teirlinck"  Chong Yidong
 man/emacs.texi      "Luc Teirlinck"
 man/entering.texi   "Luc Teirlinck"  Chong Yidong
