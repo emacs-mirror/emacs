@@ -429,8 +429,8 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (setq str (nth 1 elt))
 	       (and str
 		    (consp (nth 3 elt))
-		    (stringp (cdr (car (nth 3 elt)))) ; keyseq cache
-		    (setq cache (cdr (car (nth 3 elt))))
+		    (stringp (cdr (nth 3 elt))) ; keyseq cache
+		    (setq cache (cdr (nth 3 elt)))
 		    cache
 		    (setq str (concat str cache))))
 	      ((if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
