@@ -1,3 +1,9 @@
+2004-05-01  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-add-fundoc-usage): Use %S instead of %s to
+	format arglist so default values in CL-style argument lists are
+	correctly shown.
+
 2004-05-01  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (w32-drag-n-drop): Use x-dnd.el functions.
@@ -39,7 +45,7 @@
 	* delsel.el: Don't put `delete-selection' property
 	on `insert-parentheses' symbol to take advantage of
 	region handling in `insert-pair' function.
-	Suggested by Stephan Stahl <stahl@eos.franken.de>
+	Suggested by Stephan Stahl <stahl@eos.franken.de>.
 
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
@@ -69,7 +75,7 @@
 	New defmacro.
 	(cua-upcase-rectangle, cua-downcase-rectangle): Use it.
 	(cua-upcase-initials-rectangle, cua-capitalize-rectangle):
-	New commands (suggested by Jordan Breeding)..
+	New commands (suggested by Jordan Breeding).
 
 2004-04-30  Juanma Barranquero  <lektu@terra.es>
 
@@ -5783,7 +5789,7 @@
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
 
 	* simple.el (backward-word, forward-to-indentation)
-	(backward-to-indentation):  Argument changed to optional.
+	(backward-to-indentation): Argument changed to optional.
 	(next-line, previous-line): Use `or' instead of `unless'.
 
 2003-08-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -5965,7 +5971,7 @@
 	behaviour of `calendar-day-name' and `calendar-month-name' functions.
 	(diary-name-pattern): Use abbrev arrays, rather than fixing
 	abbrevs at three chars.  Calling syntax change.
-	(mark-diary-entries):  Adapt for new behaviours of
+	(mark-diary-entries): Adapt for new behaviours of
 	`diary-name-pattern' and `calendar-make-alist' functions.
 	(fancy-diary-font-lock-keywords): Adapt for new behaviour of
 	`diary-name-pattern' function.
@@ -6416,7 +6422,7 @@
 
 2003-07-08  Markus Rost  <rost@math.ohio-state.edu>
 
-	* subr.el (dolist, dotimes):  Doc fix.
+	* subr.el (dolist, dotimes): Doc fix.
 
 2003-07-08  Kim F. Storm  <storm@cua.dk>
 
