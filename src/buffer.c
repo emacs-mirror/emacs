@@ -3944,7 +3944,9 @@ However, the overlays you get are the real objects that the buffer uses.  */)
 }
 
 DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
-       doc: /* Recenter the overlays of the current buffer around position POS.  */)
+       doc: /* Recenter the overlays of the current buffer around position POS.
+That makes overlay lookup faster for positions near POS (but perhaps slower
+for positions far away from POS).  */)
      (pos)
      Lisp_Object pos;
 {
