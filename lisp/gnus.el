@@ -11468,7 +11468,7 @@ Intended to be used with gnus-article-prepare-hook."
 	    (delete-region (match-beginning 1) (match-end 1))
 	    (insert
 	     (timezone-make-date-arpa-standard 
-	      date nil (current-time-zone))))))))
+	      date)))))))
 
 
 ;; Article mode commands
