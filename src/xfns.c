@@ -599,7 +599,8 @@ x_create_bitmap_from_file (f, file)
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
-  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (XSTRING (file)->size + 1);
+  dpyinfo->bitmaps[id - 1].file
+    = (char *) xmalloc (XSTRING (file)->size_byte + 1);
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
@@ -1822,14 +1823,14 @@ x_set_name (f, name, explicit)
 	text.value = XSTRING (name)->data;
 	text.encoding = XA_STRING;
 	text.format = 8;
-	text.nitems = XSTRING (name)->size;
+	text.nitems = XSTRING (name)->size_byte;
 
 	icon_name = (!NILP (f->icon_name) ? f->icon_name : name);
 
 	icon.value = XSTRING (icon_name)->data;
 	icon.encoding = XA_STRING;
 	icon.format = 8;
-	icon.nitems = XSTRING (icon_name)->size;
+	icon.nitems = XSTRING (icon_name)->size_byte;
 #ifdef USE_X_TOOLKIT
 	XSetWMName (FRAME_X_DISPLAY (f),
 		    XtWindow (f->output_data.x->widget), &text);
@@ -1912,14 +1913,14 @@ x_set_title (f, name)
 	text.value = XSTRING (name)->data;
 	text.encoding = XA_STRING;
 	text.format = 8;
-	text.nitems = XSTRING (name)->size;
+	text.nitems = XSTRING (name)->size_byte;
 
 	icon_name = (!NILP (f->icon_name) ? f->icon_name : name);
 
 	icon.value = XSTRING (icon_name)->data;
 	icon.encoding = XA_STRING;
 	icon.format = 8;
-	icon.nitems = XSTRING (icon_name)->size;
+	icon.nitems = XSTRING (icon_name)->size_byte;
 #ifdef USE_X_TOOLKIT
 	XSetWMName (FRAME_X_DISPLAY (f),
 		    XtWindow (f->output_data.x->widget), &text);
@@ -2049,7 +2050,7 @@ validate_x_resource_name ()
       unsigned char *p = XSTRING (Vx_resource_name)->data;
       int i;
 
-      len = XSTRING (Vx_resource_name)->size;
+      len = XSTRING (Vx_resource_name)->size_byte;
 
       /* Only letters, digits, - and _ are valid in resource names.
 	 Count the valid characters and count the invalid ones.  */
@@ -2133,16 +2134,16 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
+  name_key = (char *) alloca (XSTRING (Vx_resource_name)->size_byte
 			      + (STRINGP (component)
-				 ? XSTRING (component)->size : 0)
-			      + XSTRING (attribute)->size
+				 ? XSTRING (component)->size_byte : 0)
+			      + XSTRING (attribute)->size_byte
 			      + 3);
 
-  class_key = (char *) alloca (XSTRING (Vx_resource_class)->size
-			       + XSTRING (class)->size
+  class_key = (char *) alloca (XSTRING (Vx_resource_class)->size_byte
+			       + XSTRING (class)->size_byte
 			       + (STRINGP (subclass)
-				  ? XSTRING (subclass)->size : 0)
+				  ? XSTRING (subclass)->size_byte : 0)
 			       + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
@@ -2201,16 +2202,16 @@ display_x_get_resource (dpyinfo, attribute, class, component, subclass)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
+  name_key = (char *) alloca (XSTRING (Vx_resource_name)->size_byte
 			      + (STRINGP (component)
-				 ? XSTRING (component)->size : 0)
-			      + XSTRING (attribute)->size
+				 ? XSTRING (component)->size_byte : 0)
+			      + XSTRING (attribute)->size_byte
 			      + 3);
 
-  class_key = (char *) alloca (XSTRING (Vx_resource_class)->size
-			       + XSTRING (class)->size
+  class_key = (char *) alloca (XSTRING (Vx_resource_class)->size_byte
+			       + XSTRING (class)->size_byte
 			       + (STRINGP (subclass)
-				  ? XSTRING (subclass)->size : 0)
+				  ? XSTRING (subclass)->size_byte : 0)
 			       + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
@@ -2253,7 +2254,7 @@ x_get_resource_string (attribute, class)
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
-  name_key = (char *) alloca (XSTRING (Vinvocation_name)->size
+  name_key = (char *) alloca (XSTRING (Vinvocation_name)->size_byte
 			      + strlen (attribute) + 2);
   class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
 			       + strlen (class) + 2);
@@ -4870,7 +4871,7 @@ also be depressed for NEWSTRING to appear.")
 
   if (NILP (modifiers))
     XRebindKeysym (x_current_display, keysym, modifier_list, 0,
-		   XSTRING (newstring)->data, XSTRING (newstring)->size);
+		   XSTRING (newstring)->data, XSTRING (newstring)->size_byte);
   else
     {
       register Lisp_Object rest, mod;
@@ -4898,7 +4899,7 @@ also be depressed for NEWSTRING to appear.")
 	}
 
       XRebindKeysym (x_current_display, keysym, modifier_list, i,
-		     XSTRING (newstring)->data, XSTRING (newstring)->size);
+		     XSTRING (newstring)->data, XSTRING (newstring)->size_byte);
     }
 
   return Qnil;
@@ -4929,7 +4930,7 @@ See the documentation of `x-rebind-key' for more information.")
       if (!NILP (item))
 	{
 	  CHECK_STRING (item, 2);
-	  strsize = XSTRING (item)->size;
+	  strsize = XSTRING (item)->size_byte;
 	  rawstring = (unsigned char *) xmalloc (strsize);
 	  bcopy (XSTRING (item)->data, rawstring, strsize);
 	  modifier[1] = 1 << i;
