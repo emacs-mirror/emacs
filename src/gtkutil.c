@@ -1249,6 +1249,12 @@ make_menu_item (utf8_label, utf8_key, item, group)
   GtkWidget *w;
   GtkWidget *wtoadd = 0;
 
+  /* It has been observed that some menu items have a NULL name field.
+     This will lead to this function being called with a NULL utf8_label.
+     GTK crashes on that so we set a blank label.  Why there is a NULL
+     name remains to be investigated.  */
+  if (! utf8_label) utf8_label = " ";
+
   if (utf8_key)
     wtoadd = make_widget_for_menu_item (utf8_label, utf8_key);
 
