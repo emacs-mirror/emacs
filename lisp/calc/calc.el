@@ -203,26 +203,11 @@
 
 ;;; Code:
 
-(provide 'calc)
 (require 'calc-macs)
-
-;;; The "###autoload" comment will be used by Emacs version 19 for
-;;; maintaining the loaddefs.el file automatically.
-
-;;;###autoload
-(defvar calc-info-filename "calc.info"
-  "*File name in which to look for the Calculator's Info documentation.")
 
 ;;;###autoload
 (defvar calc-settings-file user-init-file
   "*File in which to record permanent settings; default is `user-init-file'.")
-
-;;;###autoload
-(defvar calc-autoload-directory nil
-  "Name of directory from which additional \".elc\" files for Calc should be
-loaded.  Should include a trailing \"/\".
-If nil, use original installation directory.
-This can safely be nil as long as the Calc files are on the load-path.")
 
 ;;;###autoload
 (defvar calc-gnuplot-name "gnuplot"
@@ -242,8 +227,6 @@ This can safely be nil as long as the Calc files are on the load-path.")
 (defvar calc-scan-for-dels t
   "If t, scan keymaps to find all DEL-like keys.
 if nil, only DEL itself is mapped to calc-pop.")
-
-(defvar calc-extensions-loaded nil)
 
 (defvar calc-stack '((top-of-stack 1 nil))
   "Calculator stack.
@@ -702,14 +685,7 @@ If nil, selections displayed but ignored.")
 					 (directory-file-name
 					  (file-name-directory
 					   (expand-file-name
-					    name (car p2))))))))))
-
-	;; If calc-autoload-directory is given, use that (and hope it works!).
-	(and calc-autoload-directory
-	     (not (equal calc-autoload-directory ""))
-	     (setq load-path (nconc load-path
-				    (list (directory-file-name
-					   calc-autoload-directory)))))))
+					    name (car p2))))))))))))
 
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
@@ -917,9 +893,6 @@ If nil, selections displayed but ignored.")
 	       ( ?? . calc-dispatch-help ) ))
     map))
 
-(autoload 'calc-extensions "calc-ext")
-(autoload 'calc-need-macros "calc-macs")
-
 ;;;; (Autoloads here)
 (mapcar
  (lambda (x) (dolist (func (cdr x)) (autoload func (car x))))
@@ -989,7 +962,7 @@ If nil, selections displayed but ignored.")
     (message "")
     (if key
 	(progn
-	  (or (commandp key) (calc-extensions))
+	  (or (commandp key) (require 'calc-ext))
 	  (call-interactively key))
       (beep))))
 
@@ -1048,7 +1021,7 @@ Notations:  3.14e6     3.14 * 10^6
 	   (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
-		     (progn (calc-extensions) calc-alg-map) calc-mode-map))
+		     (progn (require 'calc-ext) calc-alg-map) calc-mode-map))
   (mapcar (function (lambda (v) (make-local-variable v))) calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
@@ -1088,8 +1061,8 @@ Notations:  3.14e6     3.14 * 10^6
 	  (setq plist (cdr (cdr plist))))
 	(if plist
 	    (save-excursion
-	      (calc-extensions)
-	      (calc-need-macros)
+	      (require 'calc-ext)
+	      (require 'calc-macs)
 	      (set-buffer "*Calculator*")
 	      (while plist
 		(put 'calc-define (car plist) nil)
@@ -1135,9 +1108,9 @@ commands given here will actually operate on the *Calculator* stack."
       (calc-mode))
   (setq max-lisp-eval-depth (max max-lisp-eval-depth 1000))
   (when calc-always-load-extensions
-    (calc-extensions))
+    (require 'calc-ext))
   (when calc-language
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
 
 ;;;###autoload
@@ -1146,7 +1119,7 @@ commands given here will actually operate on the *Calculator* stack."
   (interactive "P\ni\np")
   (if arg
       (unless (eq arg 0)
-	(calc-extensions)
+	(require 'calc-ext)
 	(if (= (prefix-numeric-value arg) -1)
 	    (calc-grab-region (region-beginning) (region-end) nil)
 	  (when (= (prefix-numeric-value arg) -2)
@@ -1270,7 +1243,7 @@ This is most useful in the X window system.
 In this mode, click on the Calc \"buttons\" using the left mouse button.
 Or, position the cursor manually and do M-x calc-keypad-press."
   (interactive "p")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-keypad calc-full-mode interactive))
 
 ;;;###autoload
@@ -1278,7 +1251,7 @@ Or, position the cursor manually and do M-x calc-keypad-press."
   "Invoke the Calculator in full-screen \"visual keypad\" mode.
 See calc-keypad for details."
   (interactive "p")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-keypad t interactive))
 
 
@@ -1292,7 +1265,7 @@ See calc-keypad for details."
   (calc-check-defines)
   (let* ((calc-command-flags nil)
 	 (calc-start-time (and calc-timing (not calc-start-time)
-			       (calc-extensions)
+			       (require 'calc-ext)
 			       (current-time-string)))
 	 (gc-cons-threshold (max gc-cons-threshold
 				 (if calc-timing 2000000 100000)))
@@ -1305,7 +1278,7 @@ See calc-keypad for details."
 		  (calc-embedded-select-buffer)
 		(calc-select-buffer))
 	      (and (eq calc-algebraic-mode 'total)
-		   (calc-extensions)
+		   (require 'calc-ext)
 		   (use-local-map calc-alg-map))
 	      (when (and do-slow calc-display-working-message)
 		(message "Working...")
@@ -1580,7 +1553,7 @@ See calc-keypad for details."
 (defun calc-normalize (val)
   (if (memq calc-simplify-mode '(nil none num))
       (math-normalize val)
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-normalize-fancy val)))
 
 (defun calc-handle-whys ()
@@ -1860,7 +1833,7 @@ See calc-keypad for details."
       (calc-enter-result 2 name (cons (or func2 func)
 				      (mapcar 'math-check-complete
 					      (calc-top-list 2))))
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-binary-op-fancy name func arg ident unary)))
 
 (defun calc-unary-op (name func arg &optional func2)
@@ -1868,7 +1841,7 @@ See calc-keypad for details."
   (if (null arg)
       (calc-enter-result 1 name (list (or func2 func)
 				      (math-check-complete (calc-top 1))))
-    (calc-extensions)
+    (require 'calc-ext)
     (calc-unary-op-fancy name func arg)))
 
 
@@ -1980,7 +1953,7 @@ See calc-keypad for details."
 						 calc-digit-value))))))
        (if (eq calc-prev-char 'dots)
 	   (progn
-	     (calc-extensions)
+	     (require 'calc-ext)
 	     (calc-dots)))))))
 
 (defsubst calc-minibuffer-size ()
@@ -2104,7 +2077,7 @@ See calc-keypad for details."
 	(if (and (eq this-command last-command)
 		 (eq last-command-char ?.))
 	    (progn
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-digit-dots))
 	  (delete-backward-char 1)
 	  (beep)
@@ -2279,11 +2252,11 @@ See calc-keypad for details."
 	(integerp (car math-normalize-a))
 	(and (consp (car math-normalize-a)) 
              (not (eq (car (car math-normalize-a)) 'lambda))))
-    (calc-extensions)
+    (require 'calc-ext)
     (math-normalize-fancy math-normalize-a))
    (t
     (or (and calc-simplify-mode
-	     (calc-extensions)
+	     (require 'calc-ext)
 	     (math-normalize-nonstandard))
 	(let ((args (mapcar 'math-normalize (cdr math-normalize-a))))
 	  (or (condition-case err
@@ -2300,7 +2273,7 @@ See calc-keypad for details."
 			     (progn
 			       (or (eq var-EvalRules math-eval-rules-cache-tag)
 				   (progn
-				     (calc-extensions)
+				     (require 'calc-ext)
 				     (math-recompile-eval-rules)))
 			       (and (or math-eval-rules-cache-other
 					(assq (car math-normalize-a) 
@@ -2313,8 +2286,8 @@ See calc-keypad for details."
 			    (apply (cdr func) args)
 			  (and (or (consp (car math-normalize-a))
 				   (fboundp (car math-normalize-a))
-				   (and (not calc-extensions-loaded)
-					(calc-extensions)
+				   (and (not (featurep 'calc-ext))
+					(require 'calc-ext)
 					(fboundp (car math-normalize-a))))
 			       (apply (car math-normalize-a) args)))))
 		(wrong-number-of-arguments
@@ -2582,7 +2555,7 @@ See calc-keypad for details."
 			   (cons 'bigpos diff))))
 		    (cons 'bigpos (math-add-bignum (cdr a) (cdr b)))))))
 	 (and (Math-ratp a) (Math-ratp b)
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-add-fractions a b))
 	 (and (Math-realp a) (Math-realp b)
 	      (progn
@@ -2591,9 +2564,9 @@ See calc-keypad for details."
 		(or (and (consp b) (eq (car b) 'float))
 		    (setq b (math-float b)))
 		(math-add-float a b)))
-	 (and (calc-extensions)
+	 (and (require 'calc-ext)
 	      (math-add-objects-fancy a b))))
-   (and (calc-extensions)
+   (and (require 'calc-ext)
 	(math-add-symb-fancy a b))))
 
 (defun math-add-bignum (a b)   ; [L L L; l l l]
@@ -2722,12 +2695,12 @@ See calc-keypad for details."
    (and (Math-zerop a) (not (eq (car-safe b) 'mod))
 	(if (Math-scalarp b)
 	    (if (and (math-floatp b) (Math-ratp a)) (math-float a) a)
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-mul-zero a b)))
    (and (Math-zerop b) (not (eq (car-safe a) 'mod))
 	(if (Math-scalarp a)
 	    (if (and (math-floatp a) (Math-ratp b)) (math-float b) b)
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-mul-zero b a)))
    (and (Math-objvecp a) (Math-objvecp b)
 	(or
@@ -2743,7 +2716,7 @@ See calc-keypad for details."
 			     (math-mul-bignum-digit (cdr a) (nth 1 b) 0))
 			 (math-mul-bignum-digit (cdr b) (nth 1 a) 0))))))
 	 (and (Math-ratp a) (Math-ratp b)
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-mul-fractions a b))
 	 (and (Math-realp a) (Math-realp b)
 	      (progn
@@ -2753,9 +2726,9 @@ See calc-keypad for details."
 		    (setq b (math-float b)))
 		(math-make-float (math-mul (nth 1 a) (nth 1 b))
 				 (+ (nth 2 a) (nth 2 b)))))
-	 (and (calc-extensions)
+	 (and (require 'calc-ext)
 	      (math-mul-objects-fancy a b))))
-   (and (calc-extensions)
+   (and (require 'calc-ext)
 	(math-mul-symb-fancy a b))))
 
 (defun math-infinitep (a &optional undir)
@@ -2911,12 +2884,12 @@ See calc-keypad for details."
 (defun math-div (a b)
   (or
    (and (Math-zerop b)
-	(calc-extensions)
+	(require 'calc-ext)
 	(math-div-by-zero a b))
    (and (Math-zerop a) (not (eq (car-safe b) 'mod))
 	(if (Math-scalarp b)
 	    (if (and (math-floatp b) (Math-ratp a)) (math-float a) a)
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-div-zero a b)))
    (and (Math-objvecp a) (Math-objvecp b)
 	(or
@@ -2926,12 +2899,12 @@ See calc-keypad for details."
 		    (car q)
 		  (if calc-prefer-frac
 		      (progn
-			(calc-extensions)
+			(require 'calc-ext)
 			(math-make-frac a b))
 		    (math-div-float (math-make-float a 0)
 				    (math-make-float b 0))))))
 	 (and (Math-ratp a) (Math-ratp b)
-	      (calc-extensions)
+	      (require 'calc-ext)
 	      (calc-div-fractions a b))
 	 (and (Math-realp a) (Math-realp b)
 	      (progn
@@ -2940,9 +2913,9 @@ See calc-keypad for details."
 		(or (and (consp b) (eq (car b) 'float))
 		    (setq b (math-float b)))
 		(math-div-float a b)))
-	 (and (calc-extensions)
+	 (and (require 'calc-ext)
 	      (math-div-objects-fancy a b))))
-   (and (calc-extensions)
+   (and (require 'calc-ext)
 	(math-div-symb-fancy a b))))
 
 (defun math-div-float (a b)   ; [F F F]
@@ -2971,7 +2944,7 @@ See calc-keypad for details."
 			(memq calc-language '(nil flat unform))
 			(null math-comp-selected))
 		   (math-format-number a))
-		  (t (calc-extensions)
+		  (t (require 'calc-ext)
 		     (math-compose-expr a 0))))
 	 (off (math-stack-value-offset c))
 	 s w)
@@ -2994,7 +2967,7 @@ See calc-keypad for details."
 				c)))
     (unless (or (equal calc-right-label "")
 		(eq a 'top-of-stack))
-      (calc-extensions)
+      (require 'calc-ext)
       (setq c (list 'horiz c
 		    (make-string (max (- w (math-comp-width c)
 					 (length calc-right-label)) 0) ? )
@@ -3024,7 +2997,7 @@ See calc-keypad for details."
 	 math-svo-off)
     (if calc-display-just
 	(progn
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (math-stack-value-offset-fancy))
       (setq math-svo-off (or calc-display-origin 0))
       (when (integerp calc-line-breaking)
@@ -3044,7 +3017,7 @@ See calc-keypad for details."
   (if (and (Math-scalarp a)
 	   (memq calc-language '(nil flat unform)))
       (math-format-number a)
-    (calc-extensions)
+    (require 'calc-ext)
     (let ((calc-line-breaking nil))
       (math-composition-to-string (math-compose-expr a 0) w))))
 
@@ -3080,7 +3053,7 @@ See calc-keypad for details."
 	  (calc-language nil))
       (math-format-number a)))
    (t
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-flat-expr-fancy a prec))))
 
 
@@ -3090,7 +3063,7 @@ See calc-keypad for details."
   (cond
    ((eq calc-display-raw t) (format "%s" a))
    ((and (nth 1 calc-frac-format) (Math-integerp a))
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-number (math-adjust-fraction a)))
    ((integerp a)
     (if (not (or calc-group-digits calc-leading-zeros))
@@ -3098,7 +3071,7 @@ See calc-keypad for details."
 	    (int-to-string a)
 	  (if (< a 0)
 	      (concat "-" (math-format-number (- a)))
-	    (calc-extensions)
+	    (require 'calc-ext)
 	    (if math-radix-explicit-format
 		(if calc-radix-formatter
 		    (funcall calc-radix-formatter
@@ -3193,7 +3166,7 @@ See calc-keypad for details."
 				  str (- eadj scale)))))))
 	str)))
    (t
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-number-fancy a prec))))
 
 (defun math-format-bignum (a)   ; [X L]
@@ -3201,7 +3174,7 @@ See calc-keypad for details."
 	   (not calc-leading-zeros)
 	   (not calc-group-digits))
       (math-format-bignum-decimal a)
-    (calc-extensions)
+    (require 'calc-ext)
     (math-format-bignum-fancy a)))
 
 (defun math-format-bignum-decimal (a)   ; [X L]
@@ -3243,7 +3216,7 @@ See calc-keypad for details."
 
     ;; Forms that require extensions module
     ((string-match "[^-+0-9eE.]" s)
-     (calc-extensions)
+     (require 'calc-ext)
      (math-read-number-fancy s))
 
     ;; Decimal point
@@ -3352,26 +3325,26 @@ See calc-keypad for details."
 (defun calc-grab-region (top bot arg)
   "Parse the region as a vector of numbers and push it on the Calculator stack."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-region top bot arg))
 
 ;;;###autoload
 (defun calc-grab-rectangle (top bot arg)
   "Parse a rectangle as a matrix of numbers and push it on the Calculator stack."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg))
 
 (defun calc-grab-sum-down (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its columns."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reduced))
 
 (defun calc-grab-sum-across (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its rows."
   (interactive "r\nP")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reducea))
 
 
@@ -3379,7 +3352,7 @@ See calc-keypad for details."
 (defun calc-embedded (arg &optional end obeg oend)
   "Start Calc Embedded mode on the formula surrounding point."
   (interactive "P")
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-do-embedded arg end obeg oend))
 
 ;;;###autoload
@@ -3399,7 +3372,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 ;;;###autoload
 (defmacro defmath (func args &rest body)   ;  [Public]
-  (calc-extensions)
+  (require 'calc-ext)
   (math-do-defmath func args body))
 
 ;;; Functions needed for Lucid Emacs support.
@@ -3427,11 +3400,13 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
     (setq unread-command-events nil)))
 
 (when calc-always-load-extensions
-  (calc-extensions)
+  (require 'calc-ext)
   (calc-load-everything))
 
 
 (run-hooks 'calc-load-hook)
+
+(provide 'calc)
 
 ;;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here
