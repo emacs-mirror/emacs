@@ -548,6 +548,27 @@ For invalid characters, CHARs are actually strings."
 		  (setq chars (cons (list charset 1 char) chars))))))))
     (nreverse chars)))
 
+
+(defun search-unencodable-char (coding-system)
+  "Search forward from point for a character that is not encodable.
+It asks which coding system to check.
+If such a character is found, set point after that character.
+Otherwise, don't move point.
+
+When called from a program, the value is a position of the found character,
+or nil if all characters are encodable."
+  (interactive
+   (list (let ((default (or buffer-file-coding-system 'us-ascii)))
+	   (read-coding-system
+	    (format "Coding-system (default, %s): " default)
+	    default))))
+  (let ((pos (unencodable-char-position (point) (point-max) coding-system)))
+    (if pos
+	(goto-char (1+ pos))
+      (message "All following characters are encodable by %s" coding-system))
+    pos))
+
+
 (defvar last-coding-system-specified nil
   "Most recent coding system explicitly specified by the user when asked.
 This variable is set whenever Emacs asks the user which coding system
@@ -655,7 +676,30 @@ and TO is ignored."
 
     ;; If all the defaults failed, ask a user.
     (when (or (not coding-system) (consp coding-system))
-      ;; At first, change each coding system to the corresponding
+      ;; At first, record at most 11 problematic characters and their
+      ;; positions for each default.
+      (if (stringp from)
+	  (mapc #'(lambda (coding)
+		    (setcdr coding
+			    (mapcar #'(lambda (pos)
+					(cons pos (aref from pos)))
+				    (unencodable-char-position
+				     0 (length from) (car coding) 11 from))))
+		default-coding-system)
+	(mapc #'(lambda (coding)
+		  (setcdr coding
+			  (mapcar #'(lambda (pos)
+				      (cons pos (char-after pos)))
+				  (unencodable-char-position
+				   from to (car coding) 11))))
+	      default-coding-system))
+      ;; If 11 unencodable characters were found, mark the last one as nil.
+      (mapc #'(lambda (coding)
+		(if (> (length coding) 11)
+		    (setcdr (car (last coding)) nil)))
+	    default-coding-system)
+
+      ;; Change each safe coding system to the corresponding
       ;; mime-charset name if it is also a coding system.  Such a name
       ;; is more friendly to users.
       (let ((l codings)
@@ -676,75 +720,112 @@ and TO is ignored."
 			  (coding-system-category elt)))
 	    (push elt l))))
 
-      (unwind-protect
-	  (save-window-excursion
+      (let ((window-configuration (current-window-configuration)))
+	(save-excursion
+	  ;; Make sure the offending buffer is displayed.
+	  (when (and default-coding-system (not (stringp from)))
+	    (pop-to-buffer bufname)
+	    (goto-char (apply 'min (mapcar #'(lambda (x) (car (cadr x)))
+					   default-coding-system))))
+	  ;; Then ask users to select one from CODINGS.
+	  (with-output-to-temp-buffer "*Warning*"
 	    (save-excursion
-	      ;; Make sure the offending buffer is displayed.
-	      (unless (stringp from)
-		(pop-to-buffer bufname)
-		(goto-char (unencodable-char-position
-				from to (mapcar #'car default-coding-system))))
-	      ;; Then ask users to select one from CODINGS.
-	      (with-output-to-temp-buffer "*Warning*"
-		(save-excursion
-		  (set-buffer standard-output)
-		  (if (not default-coding-system)
-		      (insert "No default coding systems to try for "
-			      (if (stringp from)
-				  (format "string \"%s\"." from)
-				(format "buffer `%s'." bufname)))
-		    (insert
-		     "These default coding systems were tried to encode"
-		     (if (stringp from)
-			 (concat " \"" (if (> (length from) 10)
-					   (concat (substring from 0 10) "...\"")
-					 (concat from "\"")))
-		       (format " text\nin the buffer `%s'" bufname))
-		     ":\n")
-		    (let ((pos (point))
-			  (fill-prefix "  "))
-		      (mapcar (function (lambda (x)
-					  (princ "  ") (princ (car x))))
-			      default-coding-system)
-		      (insert "\n")
-		      (fill-region-as-paragraph pos (point)))
-		    (if (consp coding-system)
-			(insert (format "%s safely encodes the target text,\n"
-					(car coding-system))
-				"\
+	      (set-buffer standard-output)
+	      (if (not default-coding-system)
+		  (insert "No default coding systems to try for "
+			  (if (stringp from)
+			      (format "string \"%s\"." from)
+			    (format "buffer `%s'." bufname)))
+		(insert
+		 "These default coding systems were tried to encode"
+		 (if (stringp from)
+		     (concat " \"" (if (> (length from) 10)
+				       (concat (substring from 0 10) "...\"")
+				     (concat from "\"")))
+		   (format " text\nin the buffer `%s'" bufname))
+		 ":\n")
+		(let ((pos (point))
+		      (fill-prefix "  "))
+		  (mapcar (function (lambda (x)
+				      (princ "  ") (princ (car x))))
+			  default-coding-system)
+		  (insert "\n")
+		  (fill-region-as-paragraph pos (point)))
+		(if (consp coding-system)
+		    (insert (format "%s safely encodes the target text,\n"
+				    (car coding-system))
+			    "\
 but it is not recommended for encoding text in this context,
 e.g., for sending an email message.\n")
-		      (insert "\
-However, none of them safely encodes the target text.
-
+		  (insert "\
+However, each of them encountered these problematic characters:\n")
+		  (mapc
+		   #'(lambda (coding)
+		       (insert (format "  %s:" (car coding)))
+		       (dolist (elt (cdr coding))
+			 (insert " ")
+			 (if (stringp from)
+			     (insert (or (cdr elt) "..."))
+			   (if (cdr elt)
+			       (insert-text-button
+				(cdr elt)
+				:type 'help-xref
+				'help-echo
+				"mouse-2, RET: jump to this character"
+				'help-function
+				#'(lambda (bufname pos)
+				    (when (buffer-live-p (get-buffer bufname))
+				      (pop-to-buffer bufname)
+				      (goto-char pos)))
+				'help-args (list bufname (car elt)))
+			     (insert-text-button
+			      "..."
+			      :type 'help-xref
+			      'help-echo
+			      "mouse-2, RET: next unencodable character"
+			      'help-function
+			      #'(lambda (bufname pos coding)
+				  (when (buffer-live-p (get-buffer bufname))
+				    (pop-to-buffer bufname)
+				    (if (< (point) pos)
+					(goto-char pos)
+				      (forward-char 1)
+				      (search-unencodable-char coding)
+				      (forward-char -1))))
+			      'help-args (list bufname (car elt)
+					       (car coding))))))
+		       (insert "\n"))
+		   default-coding-system)
+		  (insert "\
 The first problematic character is at point in the displayed buffer,\n"
-			      (substitute-command-keys "\
+			  (substitute-command-keys "\
 and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
-		  (insert (if (consp coding-system)
-			      "\nSelect the above, or "
-			    "\nSelect ")
-			  "\
+	      (insert (if (consp coding-system)
+			  "\nSelect the above, or "
+			"\nSelect ")
+		      "\
 one of the following safe coding systems, or edit the buffer:\n")
-		  (let ((pos (point))
-			(fill-prefix "  "))
-		    (mapcar (function (lambda (x) (princ "  ") (princ x)))
-			    codings)
-		    (insert "\n")
-		    (fill-region-as-paragraph pos (point)))))
+	      (let ((pos (point))
+		    (fill-prefix "  "))
+		(mapcar (function (lambda (x) (princ "  ") (princ x)))
+			codings)
+		(insert "\n")
+		(fill-region-as-paragraph pos (point)))))
 
-	      ;; Read a coding system.
-	      (if (consp coding-system)
-		  (setq codings (cons (car coding-system) codings)))
-	      (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
-					 codings))
-		     (name (completing-read
-			    (format "Select coding system (default %s): "
-				    (car codings))
-			    safe-names nil t nil nil
-			    (car (car safe-names)))))
-		(setq last-coding-system-specified (intern name)
-		      coding-system last-coding-system-specified)))
-	  (kill-buffer "*Warning*"))))
+	  ;; Read a coding system.
+	  (if (consp coding-system)
+	      (setq codings (cons (car coding-system) codings)))
+	  (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
+				     codings))
+		 (name (completing-read
+			(format "Select coding system (default %s): "
+				(car codings))
+			safe-names nil t nil nil
+			(car (car safe-names)))))
+	    (setq last-coding-system-specified (intern name)
+		  coding-system last-coding-system-specified)))
+	(kill-buffer "*Warning*")
+	(set-window-configuration window-configuration)))
 
     (if (vectorp (coding-system-eol-type coding-system))
 	(let ((eol (coding-system-eol-type buffer-file-coding-system)))
@@ -779,46 +860,6 @@ one of the following safe coding systems, or edit the buffer:\n")
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted")))))
     coding-system))
-
-(defun unencodable-char-position (start end coding-system)
-  "Return position of first un-encodable character in a region.
-START and END specfiy the region and CODING-SYSTEM specifies the
-encoding to check.  Return nil if CODING-SYSTEM does encode the region.
-
-CODING-SYSTEM may also be a list of coding systems, in which case return
-the first position not encodable by any of them.
-
-This function is fairly slow."
-  ;; Use recursive calls in the binary chop below, since we're
-  ;; O(logN), and the call overhead shouldn't be a bottleneck.
-  (unless enable-multibyte-characters
-    (error "Unibyte buffer"))
-  ;; Recurse if list of coding systems.
-  (if (consp coding-system)
-      (let ((end end) res)
-	(dolist (elt coding-system (and res (>= res 0) res))
-	  (let ((pos (unencodable-char-position start end elt)))
-	    (if pos
-		(setq end pos
-		      res pos)))))
-    ;; Skip ASCII initially.
-    (save-excursion
-      (goto-char start)
-      (skip-chars-forward "\000-\177" end)
-      (setq start (point))
-      (unless (= start end)
-	(setq coding-system (coding-system-base coding-system))	; canonicalize
-	(let ((codings (find-coding-systems-region start end)))
-	  (unless (or (equal codings '(undecided))
-		      (memq coding-system
-			    (find-coding-systems-region start end)))
-	    ;; Binary chop.
-	    (if (= start (1- end))
-		start
-	      (or (unencodable-char-position start (/ (+ start end) 2)
-					     coding-system)
-		  (unencodable-char-position (/ (+ start end) 2) end
-					     coding-system)))))))))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
