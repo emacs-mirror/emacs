@@ -486,6 +486,12 @@ struct Lisp_String
     unsigned char data[1];
   };
 
+/* If a struct is made to look like a vector, this macro returns the length
+   of that vector.  */
+#define VECSIZE(type) ((sizeof (type) - (sizeof (struct Lisp_Vector)	\
+					 - sizeof (Lisp_Object)))	\
+		       / sizeof (Lisp_Object))
+
 struct Lisp_Vector
   {
     EMACS_INT size;
@@ -1259,6 +1265,7 @@ extern Lisp_Object Fpurecopy (), make_pure_string ();
 extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
 extern Lisp_Object Fmake_byte_code ();
+extern struct Lisp_Vector *allocate_vectorlike ();
 extern int gc_in_progress;
 
 /* Defined in print.c */
