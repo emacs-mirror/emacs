@@ -335,7 +335,7 @@
         "highlight the current line"
         (faces  frames  emulation))
     ("ibuf-ext.el"
-        "extended features for ibuffer"
+        "extensions for ibuffer"
         (buffer  convenience))
     ("ibuf-macs.el"
         "macros for ibuffer"
@@ -554,8 +554,8 @@
         "display a buffer in rot13"
         nil)
     ("ruler-mode.el"
-        "Display a ruler in the header line"
-        (environment))
+        "display a ruler in the header line"
+        (environment convenience))
     ("s-region.el"
         "set region using shift key"
         (terminals))
@@ -648,7 +648,7 @@
         (news))
     ("tmm.el"
         "text mode access to menu-bar"
-        nil)
+        (convenience))
     ("tooltip.el"
         "Show tooltip windows"
         (help c mouse tools))
@@ -702,6 +702,9 @@
         (hardware))
     ("w32-fns.el"
         "Lisp routines for Windows NT"
+        (internal))
+    ("w32-vars.el"
+        "MS-Windows specific user options"
         (internal))
     ("which-func.el"
         "print current function in mode line"
@@ -1123,9 +1126,6 @@
     ("nnweb.el"
         "retrieving articles via web search engines"
         (news))
-    ("parse-time.el"
-        "parsing time strings"
-        (util))
     ("pop3.el"
         "Post Office Protocol (RFC 1460) interface"
         (mail))
@@ -1156,9 +1156,6 @@
     ("starttls.el"
         "STARTTLS functions"
         (tls  ssl  openssl  mail  news))
-    ("time-date.el"
-        "date and time handling functions"
-        (mail news util))
     ("utf7.el"
         "UTF-7 encoding/decoding for Emacs"
         (mail))
@@ -1225,9 +1222,15 @@
     ("lunar.el"
         "calendar functions for phases of the moon"
         (calendar))
+    ("parse-time.el"
+        "parsing time strings"
+        (util))
     ("solar.el"
         "calendar functions for solar events"
         (calendar))
+    ("time-date.el"
+        "date and time handling functions"
+        (mail news util))
     ("timeclock.el"
         "mode for keeping track of how much you work"
         (calendar data))
