@@ -105,7 +105,7 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
   (obj)
      Lisp_Object obj;
 {
-  return XTYPE (obj) == Lisp_Window ? Qt : Qnil;
+  return WINDOWP (obj) ? Qt : Qnil;
 }
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
@@ -113,9 +113,7 @@ DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
      (obj)
      Lisp_Object obj;
 {
-  return ((XTYPE (obj) == Lisp_Window
-	   && ! NILP (XWINDOW (obj)->buffer))
-	  ? Qt : Qnil);
+  return (WINDOWP (obj) && ! NILP (XWINDOW (obj)->buffer) ? Qt : Qnil);
 }
 
 Lisp_Object
@@ -618,13 +616,13 @@ window_display_table (w)
 {
   Lisp_Object tem;
   tem = w->display_table;
-  if (XTYPE (tem) == Lisp_Vector && XVECTOR (tem)->size == DISP_TABLE_SIZE)
+  if (VECTORP (tem) && XVECTOR (tem)->size == DISP_TABLE_SIZE)
     return XVECTOR (tem);
   tem = XBUFFER (w->buffer)->display_table;
-  if (XTYPE (tem) == Lisp_Vector && XVECTOR (tem)->size == DISP_TABLE_SIZE)
+  if (VECTORP (tem) && XVECTOR (tem)->size == DISP_TABLE_SIZE)
     return XVECTOR (tem);
   tem = Vstandard_display_table;
-  if (XTYPE (tem) == Lisp_Vector && XVECTOR (tem)->size == DISP_TABLE_SIZE)
+  if (VECTORP (tem) && XVECTOR (tem)->size == DISP_TABLE_SIZE)
     return XVECTOR (tem);
   return 0;
 }
@@ -1227,7 +1225,7 @@ window_loop (type, obj, mini, frames)
      or Qt otherwise.  */
 
   /* Pick a window to start with.  */
-  if (XTYPE (obj) == Lisp_Window)
+  if (WINDOWP (obj))
     w = obj;
   else if (frame)
     w = FRAME_SELECTED_WINDOW (frame);
@@ -1423,7 +1421,7 @@ If FRAME is a frame, search only that frame.")
     Lisp_Object buffer, frame;
 {
   buffer = Fget_buffer (buffer);
-  if (XTYPE (buffer) == Lisp_Buffer)
+  if (BUFFERP (buffer))
     return window_loop (GET_BUFFER_WINDOW, buffer, 1, frame);
   else
     return Qnil;
@@ -2573,7 +2571,7 @@ showing that buffer, popping the buffer up if necessary.")
     window_scroll (window, next_screen_context_lines - ht, 1);
   else
     {
-      if (XTYPE (n) == Lisp_Cons)
+      if (CONSP (n))
 	n = Fcar (n);
       CHECK_NUMBER (n, 0);
       window_scroll (window, XINT (n), 1);
@@ -2641,7 +2639,7 @@ redraws with point in the center of the current window.")
       SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
       XFASTINT (n) = ht / 2;
     }
-  else if (XTYPE (n) == Lisp_Cons) /* Just C-u. */
+  else if (CONSP (n)) /* Just C-u. */
     {
       XFASTINT (n) = ht / 2;
     }
@@ -2755,7 +2753,7 @@ DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_
   (obj)
      Lisp_Object obj;
 {
-  if (XTYPE (obj) == Lisp_Window_Configuration)
+  if (WINDOW_CONFIGURATIONP (obj))
     return Qt;
   return Qnil;
 }
@@ -2775,7 +2773,7 @@ by `current-window-configuration' (which see).")
   Lisp_Object frame;
   FRAME_PTR f;
 
-  while (XTYPE (configuration) != Lisp_Window_Configuration)
+  while (!WINDOW_CONFIGURATIONP (configuration))
     {
       configuration = wrong_type_argument (intern ("window-configuration-p"),
 					   configuration);
@@ -2870,7 +2868,7 @@ by `current-window-configuration' (which see).")
 
 	  /* If we squirreled away the buffer in the window's height,
 	     restore it now.  */
-	  if (XTYPE (w->height) == Lisp_Buffer)
+	  if (BUFFERP (w->height))
 	    w->buffer = w->height;
 	  w->left = p->left;
 	  w->top = p->top;
@@ -2939,7 +2937,7 @@ by `current-window-configuration' (which see).")
 
 #ifdef MULTI_FRAME
       if (NILP (data->focus_frame)
-	  || (XTYPE (data->focus_frame) == Lisp_Frame
+	  || (FRAMEP (data->focus_frame)
 	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
 	Fredirect_frame_focus (frame, data->focus_frame);
 #endif
