@@ -373,6 +373,10 @@ Lisp_Object Vthis_command;
 /* This is like Vthis_command, except that commands never set it.  */
 Lisp_Object real_this_command;
 
+/* If the lookup of the command returns a binding, the original
+   command is stored in this-original-command.  It is nil otherwise.  */
+Lisp_Object Vthis_original_command;
+
 /* The value of point when the last command was executed.  */
 int last_point_position;
 
@@ -1502,6 +1506,17 @@ command_loop_1 ()
       /* Process filters and timers may have messed with deactivate-mark.
 	 reset it before we execute the command. */
       Vdeactivate_mark = Qnil;
+
+      /* Remap command through active keymaps */
+      Vthis_original_command = cmd;
+      if (is_command_symbol (cmd))
+	{
+	  Lisp_Object cmd1;
+
+	  cmd1 = Fkey_binding (cmd, Qnil, Qt);
+	  if (!NILP (cmd1) && is_command_symbol (cmd1))
+	    cmd = cmd1;
+	}
 
       /* Execute the command.  */
 
@@ -6947,7 +6962,7 @@ parse_menu_item (item, notreal, inmenubar)
       Lisp_Object prefix;
 
       if (!NILP (tem))
-	tem = Fkey_binding (tem, Qnil);
+	tem = Fkey_binding (tem, Qnil, Qnil);
 
       prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (CONSP (prefix))
@@ -6993,7 +7008,7 @@ parse_menu_item (item, notreal, inmenubar)
 	      && SYMBOLP (XSYMBOL (def)->function)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
-	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil);
+	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
 	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
 	    {
@@ -9408,7 +9423,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
       && NILP (Vexecuting_macro)
       && SYMBOLP (function))
     bindings = Fwhere_is_internal (function, Voverriding_local_map,
-				   Qt, Qnil);
+				   Qt, Qnil, Qnil);
   else
     bindings = Qnil;
 
@@ -10634,6 +10649,12 @@ was a kill command.  */);
 The command can set this variable; whatever is put here
 will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
+
+  DEFVAR_LISP ("this-original-command", &Vthis_original_command,
+	       doc: /* If non-nil, the original command bound to the current key sequence.
+The value of `this-command' is the result of looking up the original
+command in the active keymaps.  */);
+  Vthis_original_command = Qnil;
 
   DEFVAR_INT ("auto-save-interval", &auto_save_interval,
 	      doc: /* *Number of input events between auto-saves.
