@@ -2850,7 +2850,7 @@ window_scroll (window, n, whole, noerror)
 	      Fvertical_motion (make_number (original_vpos), window);
 	    }
 	  else
-	    SET_PT (pos);
+	    SET_PT (top_margin);
 	}
       else if (n < 0)
 	{
