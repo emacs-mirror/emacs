@@ -34,30 +34,29 @@
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
-  (let ((enable-local-eval nil)
-	(all-subdirs command-line-args-left)
-	(start-directory default-directory))
-    (get-buffer-create " cus-dep temp")
-    (set-buffer " cus-dep temp")
-    (while all-subdirs
-      (message "Directory %s" (car all-subdirs))
-      (let ((files (directory-files (car all-subdirs) nil "\\`[^=].*\\.el\\'"))
-	    (default-directory default-directory)
-	    file
+  (let ((enable-local-eval nil))
+    (set-buffer (get-buffer-create " cus-dep temp"))
+    (dolist (subdir command-line-args-left)
+      (message "Directory %s" subdir)
+      (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
+	    (default-directory (expand-file-name subdir))
 	    is-autoloaded)
-	(cd (car all-subdirs))
-	(while files
-	  (setq file (car files)
-		files (cdr files))
+	(dolist (file files)
 	  (when (file-exists-p file)
 	    (erase-buffer)
 	    (insert-file-contents file)
 	    (goto-char (point-min))
 	    (string-match "\\`\\(.*\\)\\.el\\'" file)
 	    (let ((name (file-name-nondirectory (match-string 1 file))))
+	      (if (save-excursion
+		    (re-search-forward
+		     (concat "(provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
+			     (regexp-quote name) "[ \t\n)]")
+		     nil t))
+		  (setq name (intern name)))
 	      (condition-case nil
-		  (while (re-search-forward "^(defcustom\\|^(defface\\|^(defgroup"
-					    nil t)
+		  (while (re-search-forward
+			  "^(def\\(custom\\|face\\|group\\)" nil t)
 		    (setq is-autoloaded nil)
 		    (beginning-of-line)
 		    (save-excursion
@@ -71,10 +70,9 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 			    (put (nth 1 expr) 'custom-autoloaded is-autoloaded)
 			    (put (nth 1 expr) 'custom-where name))
 			(error nil))))
-		(error nil)))))
-	(setq all-subdirs (cdr all-subdirs)))))
+		(error nil))))))))
   (message "Generating cus-load.el...")
-  (find-file "cus-load.el")
+  (set-buffer (find-file-noselect "cus-load.el"))
   (erase-buffer)
   (insert "\
 ;;; cus-load.el --- automatically extracted custom dependencies
