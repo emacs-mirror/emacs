@@ -3729,7 +3729,17 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
 
 /* See "GENERAL NOTES about `decode_coding_XXX ()' functions".  Before
    decoding, it may detect coding system and format of end-of-line if
-   those are not yet decided.  */
+   those are not yet decided.
+
+   This function does not make full use of DESTINATION buffer.  For
+   instance, if coding->type is coding_type_iso2022, it uses only
+   (DST_BYTES - 7) bytes of DESTINATION buffer.  In the case that
+   DST_BYTES is decided by the function decoding_buffer_size, it
+   contains extra 256 bytes (defined by CONVERSION_BUFFER_EXTRA_ROOM).
+   So, this function can decode the full SOURCE.  But, in the other
+   case, if you want to avoid carry over, you must supply at least 7
+   bytes more area in DESTINATION buffer than expected maximum bytes
+   that will be produced by this function.  */
 
 int
 decode_coding (coding, source, destination, src_bytes, dst_bytes)
@@ -3812,7 +3822,17 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
   return result;
 }
 
-/* See "GENERAL NOTES about `encode_coding_XXX ()' functions".  */
+/* See "GENERAL NOTES about `encode_coding_XXX ()' functions".
+
+   This function does not make full use of DESTINATION buffer.  For
+   instance, if coding->type is coding_type_iso2022, it uses only
+   (DST_BYTES - 20) bytes of DESTINATION buffer.  In the case that
+   DST_BYTES is decided by the function encoding_buffer_size, it
+   contains extra 256 bytes (defined by CONVERSION_BUFFER_EXTRA_ROOM).
+   So, this function can encode the full SOURCE.  But, in the other
+   case, if you want to avoid carry over, you must supply at least 20
+   bytes more area in DESTINATION buffer than expected maximum bytes
+   that will be produced by this function.  */
 
 int
 encode_coding (coding, source, destination, src_bytes, dst_bytes)
