@@ -444,10 +444,13 @@ such buffer in the buffer list.
 If @var{filename} is a non-empty string, this function changes the
 name of the file visited in the current buffer to @var{filename}.  (If the
 buffer had no visited file, this gives it one.)  The @emph{next time}
-the buffer is saved it will go in the newly-specified file.  This
-command marks the buffer as modified, since it does not (as far as Emacs
-knows) match the contents of @var{filename}, even if it matched the
-former visited file.
+the buffer is saved it will go in the newly-specified file.
+
+This command marks the buffer as modified, since it does not (as far
+as Emacs knows) match the contents of @var{filename}, even if it
+matched the former visited file.  It also renames the buffer to
+correspond to the new file name, unless the new name is already in
+use.
 
 If @var{filename} is @code{nil} or the empty string, that stands for
 ``no visited file''.  In this case, @code{set-visited-file-name} marks
