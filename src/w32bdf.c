@@ -211,6 +211,7 @@ set_bdf_font_info(bdffont *fontp)
   start = q;
   flag = proceed_file_line("CHARS", start, &len, &p, &q);
   if (!flag) return 0;
+  fontp->nchars = atoi(p);
   fontp->seeked = q;
 
   return 1;
@@ -649,7 +650,7 @@ w32_BDF_TextOut(bdffont *fontp, HDC hdc, int left,
 	{
 	  bytelen -= 2;
 	  if (bytelen < 0) break;
-	  index = MAKELENDSHORT(textp[1], textp[0]);
+	  index = MAKELENDSHORT(textp[0], textp[1]);
 	  textp += 2;
 	}
       pcb = get_bitmap_with_cache(fontp, index);
@@ -722,8 +723,9 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
   font->bdf = bdf_font;
   font->hfont = 0;
 
-  /* NTEMACS_TODO: Recognize DBCS fonts. */
-  font->double_byte_p = 0;
+  /* NTEMACS_TODO: Better way of determining if a font is double byte
+     or not. */
+  font->double_byte_p = bdf_font->nchars > 255 ? 1 : 0;
 
   w32_cache_char_metrics (font);
 
