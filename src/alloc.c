@@ -1916,7 +1916,7 @@ int n_float_blocks;
 struct Lisp_Float *float_free_list;
 
 
-/* Initialze float allocation.  */
+/* Initialize float allocation.  */
 
 void
 init_float ()
