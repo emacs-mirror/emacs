@@ -2678,10 +2678,12 @@ or shorter, higher or lower, wider or narrow, or replaced with an image.
 
 @item help-echo
 @kindex help-echo @r{(text property)}
+@cindex tooltip
 @anchor{Text help-echo}
 If text has a string as its @code{help-echo} property, then when you
 move the mouse onto that text, Emacs displays that string in the echo
-area, or in the tooltip window.
+area, or in the tooltip window (@pxref{Tooltips,,, emacs, The GNU Emacs
+Manual}).
 
 If the value of the @code{help-echo} property is a function, that
 function is called with three arguments, @var{window}, @var{object} and
