@@ -590,8 +590,7 @@ window_display_table (w)
   return 0;
 }
 
-DEFUN ("set-window-display-table",
-       Fset_window_display_table, Sset_window_display_table, 2, 2, 0,
+DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_display_table, 2, 2, 0,
   "Set WINDOW's display-table to TABLE.")
   (window, table)
      register Lisp_Object window, table;

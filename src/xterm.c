@@ -65,13 +65,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #endif
 
-#ifdef NEED_TIME_H
-#include <time.h>
-#else /* not NEED_TIME_H */
-#ifdef HAVE_TIMEVAL
-#include <sys/time.h>
-#endif /* HAVE_TIMEVAL */
-#endif /* not NEED_TIME_H */
+#include "systime.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -1915,6 +1909,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      KeySym keysym;
 	      XComposeStatus status;
 	      char copy_buffer[80];
+	      int modifiers = event.xkey.state;
+
+	      /* Some keyboards generate different characters
+		 depending on the state of the meta key, in an attempt
+		 to support non-English typists.  It would be nice to
+		 keep this functionality somehow, but for now, we will
+		 just clear the meta-key flag to get the 'pure' character.  */
+	      event.xkey.state &= ~Mod1Mask;
 
 	      /* This will have to go some day... */
 	      nbytes = XLookupString (&event.xkey,
@@ -1938,7 +1940,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      bufp->kind = non_ascii_keystroke;
 		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff50);
 		      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
-		      bufp->modifiers = x_convert_modifiers (event.xkey.state);
+		      bufp->modifiers = x_convert_modifiers (modifiers);
 		      XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
 		      bufp++;
 		      count++;
@@ -1950,7 +1952,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		      if (nbytes == 1)
 			{
-			  if (event.xkey.state & Mod1Mask)
+			  if (modifiers & Mod1Mask)
 			    *copy_buffer |= METABIT;
 			  bufp->kind = ascii_keystroke;
 			  bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
@@ -2301,7 +2303,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
       int mask = 1 << fd;
 
       if (0 != select (fd + 1, &mask, (long *) 0, (long *) 0,
-		       (struct timeval *) 0)
+		       (EMACS_TIME) 0)
 	  && !XStuffPending ())
 	kill (getpid (), SIGHUP);
     }
