@@ -2727,5 +2727,11 @@ syms_of_insdel ()
     "Used internally by the `combine-after-change-calls' macro.");
   Vcombine_after_change_calls = Qnil;
 
+  DEFVAR_BOOL ("inhibit-modification-hooks", &inhibit_modification_hooks,
+    "Non-nil means don't run any of the hooks that respond to buffer changes.\n\
+This affects `before-change-functions' and `after-change-functions',\n\
+as well as hooks attached to text properties and overlays.");
+  inhibit_modification_hooks = 0;
+
   defsubr (&Scombine_after_change_execute);
 }
