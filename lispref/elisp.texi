@@ -89,7 +89,7 @@ Cover art by Etienne Suvasa.
 @end titlepage
 @page
 
-@node Top, Copying, (dir), (dir)
+@node Top, Introduction, (dir), (dir)
 
 @ifnottex
 This Info file contains edition 2.6 of the GNU Emacs Lisp
@@ -98,7 +98,7 @@ Reference Manual, corresponding to GNU Emacs version 21.1.
 
 @menu
 * Introduction::            Introduction and conventions used.
-* Standards: Coding Conventions::    Coding conventions for Emacs Lisp.
+* Standards: Coding Conventions.    Coding conventions for Emacs Lisp.
 
 * Lisp Data Types::         Data types of objects in Emacs Lisp.
 * Numbers::                 Numbers and arithmetic functions.
