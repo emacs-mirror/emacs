@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
+;; Maintainer: FSF
 ;; Keywords: emulations
 
 ;; This won't completely work until we support or emulate Lucid-style extents.
