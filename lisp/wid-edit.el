@@ -1122,11 +1122,8 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 	     (widget-apply from-field :notify from-field))))))
 
 (defun widget-add-change ()
-  (make-local-hook 'post-command-hook)
   (remove-hook 'post-command-hook 'widget-add-change t)
-  (make-local-hook 'before-change-functions)
   (add-hook 'before-change-functions 'widget-before-change nil t)
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'widget-after-change nil t))
 
 (defun widget-after-change (from to old)
