@@ -104,6 +104,7 @@ Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
 Lisp_Object Qbuffer_list;
 Lisp_Object Qtitle;
+Lisp_Object Qdisplay_type;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
@@ -153,6 +154,8 @@ syms_of_frame_1 ()
   staticpro (&Qbuffer_list);
   Qtitle = intern ("title");
   staticpro (&Qtitle);
+  Qdisplay_type = intern ("display-type");
+  staticpro (&Qdisplay_type);
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
     "Alist of default values for frame creation.\n\
@@ -2080,6 +2083,41 @@ If FRAME is omitted, return information on the currently selected frame.")
   return alist;
 }
 
+
+DEFUN ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
+   "Return FRAME's value for parameter PARAMETER.\n\
+If FRAME is nil, describe the currently selected frame.")
+  (frame, parameter)
+       Lisp_Object frame, parameter;
+{
+  struct frame *f;
+  Lisp_Object value;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame, 0);
+  CHECK_SYMBOL (parameter, 1);
+  
+  f = XFRAME (frame);
+  value = Qnil;
+  
+  if (FRAME_LIVE_P (f))
+    {
+      value = Fassq (parameter, f->param_alist);
+      if (CONSP (value))
+	value = XCDR (value);
+      else if (EQ (parameter, Qdisplay_type))
+	/* Avoid consing in a frequent case.  */
+	value = Qnil;
+      else
+	value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
+    }
+  
+  return value;
+}
+
+
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters, 
        Smodify_frame_parameters, 2, 2, 0,
   "Modify the parameters of frame FRAME according to ALIST.\n\
@@ -2429,6 +2467,7 @@ displayed.");
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);
+  defsubr (&Sframe_parameter);
   defsubr (&Smodify_frame_parameters);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
