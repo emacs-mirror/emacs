@@ -605,11 +605,11 @@ between them, return t; otherwise return nil.")
 	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
 	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
 	    {
-	      /* we have encountered a comment start sequence and we 
-		 are ignoring all text inside comments. we must record
+	      /* We have encountered a comment start sequence and we 
+		 are ignoring all text inside comments.  We must record
 		 the comment style this sequence begins so that later,
 		 only a comment end of the same style actually ends
-		 the comment section */
+		 the comment section.  */
 	      code = Scomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
 	      from++;
@@ -670,13 +670,15 @@ between them, return t; otherwise return nil.")
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
 	  comstyle = 0;
+	  if (code == Sendcomment)
+	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1))
 	      && !char_quoted (from - 1))
 	    {
-	      /* we must record the comment style encountered so that
+	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
-		 sequence of the same style */
+		 sequence of the same style.  */
 	      code = Sendcomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from - 1));
 	      from--;
@@ -819,6 +821,8 @@ between them, return t; otherwise return nil.")
 		      from = comment_end;
 		  }
 	      }
+	      /* We have skipped one comment.  */
+	      break;
 	    }
 	  else if ((code != Swhitespace && code != Scomment) || quoted)
 	    {
@@ -1013,6 +1017,9 @@ scan_lists (from, count, depth, sexpflag)
 	    from--;
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
+	  comstyle = 0;
+	  if (code == Sendcomment)
+	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1))
 	      && !char_quoted (from - 1)
