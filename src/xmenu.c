@@ -44,6 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"
+#include "widget.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -123,12 +124,16 @@ void popup_get_selection ();
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object));
-static Lisp_Object xmenu_show ();
-static void keymap_panes ();
-static void single_keymap_panes ();
-static void single_menu_item ();
-static void list_of_panes ();
-static void list_of_items ();
+static int update_frame_menubar P_ ((struct frame *));
+static Lisp_Object xmenu_show P_ ((struct frame *, int, int, int, int,
+				   Lisp_Object, char **));
+static void keymap_panes P_ ((Lisp_Object *, int, int));
+static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				     int, int));
+static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object *,
+				  int, int, int *));
+static void list_of_panes P_ ((Lisp_Object));
+static void list_of_items P_ ((Lisp_Object));
 
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
@@ -1539,55 +1544,42 @@ single_submenu (item_key, item_name, maps)
 
   return first_wv;
 }
+
+
 
-extern void EmacsFrameSetCharSize ();
+/* Recompute all the widgets of frame F, when the menu bar has been
+   changed.  Value is non-zero if widgets were updated.  */
 
-/* Recompute all the widgets of frame F, when the menu bar
-   has been changed.  */
-
-static void
+static int
 update_frame_menubar (f)
      FRAME_PTR f;
 {
   struct x_output *x = f->output_data.x;
   int columns, rows;
-  int menubar_changed;
   
-  /* We assume the menubar contents has changed if the global flag is set,
-     or if the current buffer has changed, or if the menubar has never
-     been updated before.
-   */
-  menubar_changed = (x->menubar_widget
-		     && !XtIsManaged (x->menubar_widget));
-
-  if (! (menubar_changed))
-    return;
+  if (!x->menubar_widget || XtIsManaged (x->menubar_widget))
+    return 0;
 
   BLOCK_INPUT;
-  /* Save the size of the frame because the pane widget doesn't accept to
-     resize itself. So force it.  */
+  /* Save the size of the frame because the pane widget doesn't accept
+     to resize itself. So force it.  */
   columns = f->width;
   rows = f->height;
 
-  /* Do the voodoo which means "I'm changing lots of things, don't try to
-     refigure sizes until I'm done." */
+  /* Do the voodoo which means "I'm changing lots of things, don't try
+     to refigure sizes until I'm done."  */
   lw_refigure_widget (x->column_widget, False);
 
-  /* the order in which children are managed is the top to
-     bottom order in which they are displayed in the paned window.
-     First, remove the text-area widget.
-   */
+  /* The order in which children are managed is the top to bottom
+     order in which they are displayed in the paned window.  First,
+     remove the text-area widget.  */
   XtUnmanageChild (x->edit_widget);
 
-  /* remove the menubar that is there now, and put up the menubar that
-     should be there.
-   */
-  if (menubar_changed)
-    {
-      XtManageChild (x->menubar_widget);
-      XtMapWidget (x->menubar_widget);
-      XtVaSetValues (x->menubar_widget, XtNmappedWhenManaged, 1, NULL);
-    }
+  /* Remove the menubar that is there now, and put up the menubar that
+     should be there.  */
+  XtManageChild (x->menubar_widget);
+  XtMapWidget (x->menubar_widget);
+  XtVaSetValues (x->menubar_widget, XtNmappedWhenManaged, 1, NULL);
 
   /* Re-manage the text-area widget, and then thrash the sizes.  */
   XtManageChild (x->edit_widget);
@@ -1597,6 +1589,7 @@ update_frame_menubar (f)
   /* Force the pane widget to resize itself with the right values.  */
   EmacsFrameSetCharSize (x->edit_widget, columns, rows);
   UNBLOCK_INPUT;
+  return 1;
 }
 
 /* Set the contents of the menubar widgets of frame F.
@@ -1842,7 +1835,8 @@ set_frame_menubar (f, first_time, deep_p)
   }
   
   free_menubar_widget_value_tree (first_wv);
-  update_frame_menubar (f);
+  if (!update_frame_menubar (f))
+    x_set_menu_resources_from_menu_face (f, menubar_widget);
 
   UNBLOCK_INPUT;
 }
