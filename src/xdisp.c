@@ -4978,18 +4978,15 @@ get_next_display_element (it)
 		      if (lface_id)
 			{
 			  g = FAST_GLYPH_CHAR (g);
-			  /* The function returns -1 if lface_id is invalid.  */
-			  face_id = ascii_face_of_lisp_face (it->f, lface_id);
-			  if (face_id >= 0)
-			    face_id = merge_into_realized_face (it->f, Qnil,
-								face_id, it->face_id);
+			  face_id = merge_faces (it->f, Qt, lface_id,
+						 it->face_id);
 			}
 		    }
 		  else
 		    {
 		      /* Merge the escape-glyph face into the current face.  */
-		      face_id = merge_into_realized_face (it->f, Qescape_glyph,
-							  0, it->face_id);
+		      face_id = merge_faces (it->f, Qescape_glyph, 0,
+					     it->face_id);
 		      g = '^';
 		    }
 
@@ -5009,18 +5006,15 @@ get_next_display_element (it)
 		  if (lface_id)
 		    {
 		      escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
-		      /* The function returns -1 if lface_id is invalid.  */
-		      face_id = ascii_face_of_lisp_face (it->f, lface_id);
-		      if (face_id >= 0)
-			face_id = merge_into_realized_face (it->f, Qnil,
-							    face_id, it->face_id);
+		      face_id = merge_faces (it->f, Qt, lface_id,
+					     it->face_id);
 		    }
 		}
 	      else
 		{
 		  /* Merge the escape-glyph face into the current face.  */
-		  face_id = merge_into_realized_face (it->f, Qescape_glyph,
-						      0, it->face_id);
+		  face_id = merge_faces (it->f, Qescape_glyph, 0,
+					 it->face_id);
 		  escape_glyph = '\\';
 		}
 
@@ -5309,13 +5303,9 @@ next_element_from_display_vector (it)
       else
 	{
 	  int lface_id = FAST_GLYPH_FACE (g);
-	  if (lface_id)
-	    {
-	      /* The function returns -1 if lface_id is invalid.  */
-	      int face_id = ascii_face_of_lisp_face (it->f, lface_id);
-	      if (face_id >= 0)
-		it->face_id = face_id;
-	    }
+	  if (lface_id > 0)
+	    it->face_id = merge_faces (it->f, Qt, lface_id,
+				       it->saved_face_id);
 	}
     }
   else
