@@ -77,6 +77,9 @@ This is to optimize `debugger-make-xrefs'.")
 (defvar debugger-outer-track-mouse)
 (defvar debugger-outer-last-command)
 (defvar debugger-outer-this-command)
+;; unread-command-char is obsolete,
+;; but we still save and restore it
+;; in case some user program still tries to set it.
 (defvar debugger-outer-unread-command-char)
 (defvar debugger-outer-unread-command-events)
 (defvar debugger-outer-unread-post-input-method-events)
