@@ -1,5 +1,5 @@
 # -sed2.inp-------------------------------------------------------------
-# Configuration script for config.h
+# Configuration script for src/config.h
 # ----------------------------------------------------------------------
 /^#undef LISP_FLOAT_TYPE *$/s/undef/define/
 /^#undef GNU_MALLOC *$/s/undef/define/
