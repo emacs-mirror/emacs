@@ -489,8 +489,9 @@ extern int iso_charset_table[2][2][128];
 #define BASE_LEADING_CODE_P(c) (BYTES_BY_CHAR_HEAD ((unsigned char) (c)) > 1)
 
 /* Return how many bytes C will occupy in a multibyte buffer.  */
-#define CHAR_BYTES(c) \
-  ((SINGLE_BYTE_CHAR_P ((c)) || ((c) & ~GLYPH_MASK_CHAR)) ? 1 : char_bytes (c))
+#define CHAR_BYTES(c)							\
+  ((SINGLE_BYTE_CHAR_P ((c)) || ((c) & ~((1 << CHARACTERBITS) - 1)))	\
+   ? 1 : char_bytes (c))
 
 /* The following two macros CHAR_STRING and STRING_CHAR are the main
    entry points to convert between Emacs two types of character
