@@ -668,17 +668,19 @@ float_to_string (buf, data)
       /* Check the width specification.  */
       width = -1;
       if ('0' <= *cp && *cp <= '9')
-	for (width = 0; (*cp >= '0' && *cp <= '9'); cp++)
-	  width = (width * 10) + (*cp - '0');
+	{
+	  width = 0;
+	  do
+	    width = (width * 10) + (*cp++ - '0');
+	  while (*cp >= '0' && *cp <= '9');
+
+	  /* A precision of zero is valid only for %f.  */
+	  if (width > DBL_DIG
+	      || (width == 0 && *cp != 'f'))
+	    goto lose;
+	}
 
       if (*cp != 'e' && *cp != 'f' && *cp != 'g')
-	goto lose;
-
-      /* A precision of zero is valid for %f; everything else requires
-	 at least one.  Width may be omitted anywhere.  */
-      if (width != -1
-	  && (width < (*cp != 'f')
-	      || width > DBL_DIG))
 	goto lose;
 
       if (cp[1] != 0)
