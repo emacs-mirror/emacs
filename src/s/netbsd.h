@@ -112,5 +112,5 @@
  
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method.  */
 
-#define GC_MARK_STACK	1
+#define GC_MARK_STACK	GC_MAKE_GCPROS_NOOPS
 

@@ -188,7 +188,7 @@
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
    stack.  */
 
-#define GC_MARK_STACK 	1
+#define GC_MARK_STACK 	GC_MAKE_GCPROS_NOOPS
 
 /* Define USE_MMAP_FOR_BUFFERS to let Emacs use mmap(2) to allocate
    buffer text.  This overrides REL_ALLOC.  */
