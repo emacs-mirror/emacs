@@ -102,7 +102,6 @@
 ;;;   dired-clean-up-after-deletion    ../lisp/dired.el
 ;;;   dired-find-buffer-nocreate       ../lisp/dired.el
 ;;;   dired-initial-position           ../lisp/dired.el
-;;;   dired-up-directory               ../lisp/dired.el
 ;;;
 ;;;   dired-add-entry                  ../lisp/dired-aux.el
 ;;;   dired-read-shell-command         ../lisp/dired-aux.el
@@ -435,28 +434,6 @@ buffer and try again."
   "Like \\[dired-jump] (dired-jump) but in other window."
   (interactive)
   (dired-jump t))
-
-;;; REDEFINE.
-;;; This replaces the version in dired.el
-;;; It simply adds the OTHER-WINDOW option to the one in dired.el.
-(defun dired-up-directory (&optional other-window)
-  "Run dired on parent directory of current directory.
-Find the parent directory either in this buffer or another buffer.
-Finds in current window or in other window with optional OTHER-WINDOW.
-Creates a buffer if necessary."
-  (interactive "P")
-  (let* ((dir (dired-current-directory))
-         (up (file-name-directory (directory-file-name dir))))
-    (or (dired-goto-file (directory-file-name dir))
-        ;; Only try dired-goto-subdir if buffer has more than one dir.
-        (and (cdr dired-subdir-alist)
-             (dired-goto-subdir up))
-        (progn
-          (if other-window
-              (dired-other-window up)
-            (dired up))
-          (dired-goto-file dir)))))
-
 
 ;;;; TOGGLE.
 ;;; Toggle marked files with unmarked files.
@@ -1365,7 +1342,7 @@ See also variable `dired-vm-read-only-folders'."
 
 ;;; REDEFINE.
 ;;; Redefines dired.el's version of `dired-find-buffer-nocreate'
-(defun dired-find-buffer-nocreate (dirname)
+(defun dired-find-buffer-nocreate (dirname &optional mode)
   (if (and dired-find-subdir
 	   ;; don't try to find a wildcard as a subdirectory
 	   (string-equal dirname (file-name-directory dirname)))
@@ -1380,7 +1357,7 @@ See also variable `dired-vm-read-only-folders'."
 	(or (car (sort buffers (function dired-buffer-more-recently-used-p)))
 	    ;; ---unless it's the only possibility:
 	    (and cur-buf-matches cur-buf)))
-    (dired-old-find-buffer-nocreate dirname)))
+    (dired-old-find-buffer-nocreate dirname mode)))
 
 ;; This should be a builtin
 (defun dired-buffer-more-recently-used-p (buffer1 buffer2)
