@@ -588,15 +588,35 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (tty)
     {
       char *tty_name = ttyname (fileno (stdin));
+      char *type = getenv ("TERM");
+      
       if (! tty_name)
-        fail ();
+        {
+          fprintf (stderr, "%s: could not get terminal name\n", progname);
+          fail ();
+        }
+
+      if (! type)
+        {
+          fprintf (stderr, "%s: please set the TERM variable to your terminal type\n",
+                   progname);
+          fail ();
+        }
+
+      if (! strcmp (type, "eterm"))
+        {
+          /* This causes nasty, MULTI_KBOARD-related input lockouts. */
+          fprintf (stderr, "%s: opening a frame in an Emacs term buffer"
+                   " is not supported\n", progname);
+          fail ();
+        }
       
       init_signals ();
       
       fprintf (out, "-tty ");
       quote_file_name (tty_name, out);
       fprintf (out, " ");
-      quote_file_name (getenv("TERM"), out);
+      quote_file_name (type, out);
       fprintf (out, " ");
     }
 

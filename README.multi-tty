@@ -246,13 +246,6 @@ THINGS TO DO
    why raw terminal support is broken again.  I really do need to
    understand input.)
 
-** emacsclient -t from an Emacs term buffer does not work, complains
-   about face problems.  This can even lock up Emacs (if the recursive
-   frame sets single_kboard).  Update: the face problems are caused by
-   bugs in term.el, not in multi-tty.  The lockup is caused by
-   single_kboard mode, and is not easily solvable.  The best thing to
-   do is to simply refuse to create a tty frame of type `eterm'.
-
 ** Maybe standard-display-table should be display-local.
 
 DIARY OF CHANGES
@@ -662,5 +655,16 @@ DIARY OF CHANGES
    (Fixed.  There was a bug in the multi-tty version of
    narrow_foreground_group.  tcsetpgrp blocks if it is called from a
    process that is not in the same process group as the tty.)
+
+-- emacsclient -t from an Emacs term buffer does not work, complains
+   about face problems.  This can even lock up Emacs (if the recursive
+   frame sets single_kboard).  Update: the face problems are caused by
+   bugs in term.el, not in multi-tty.  The lockup is caused by
+   single_kboard mode, and is not easily solvable.  The best thing to
+   do is to simply refuse to create a tty frame of type `eterm'.
+
+   (Fixed, changed emacsclient to check for TERM=eterm.  The face
+   complaints seem to be caused by bugs in term.el; they are not
+   related to multi-tty.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
