@@ -228,5 +228,5 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBX11_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 62000
+#define SYSTEM_PURESIZE_EXTRA 68000
 #endif
