@@ -4690,6 +4690,7 @@ make_lispy_event (event)
 	Lisp_Object position;
 	Lisp_Object *start_pos_ptr;
 	Lisp_Object start_pos;
+	Lisp_Object window;
 
 	position = Qnil;
 
@@ -4697,8 +4698,7 @@ make_lispy_event (event)
 	if (event->kind == mouse_click)
 	  {
 	    int part;
-	    FRAME_PTR f = XFRAME (event->frame_or_window);
-	    Lisp_Object window;
+	    struct frame *f = XFRAME (event->frame_or_window);
 	    Lisp_Object posn;
 	    Lisp_Object string_info = Qnil;
 	    int row, column;
@@ -4836,7 +4836,6 @@ make_lispy_event (event)
 	else
 	  {
 	    /* It's a scrollbar click.  */
-	    Lisp_Object window;
 	    Lisp_Object portion_whole;
 	    Lisp_Object part;
 
@@ -4864,16 +4863,34 @@ make_lispy_event (event)
 	start_pos = *start_pos_ptr;
 	*start_pos_ptr = Qnil;
 
-	is_double = (button == last_mouse_button
-		     && (abs (XINT (event->x) - last_mouse_x)
-			 <= double_click_fuzz)
-		     && (abs (XINT (event->y) - last_mouse_y)
-			 <= double_click_fuzz)
-		     && button_down_time != 0
-		     && (EQ (Vdouble_click_time, Qt)
-			 || (INTEGERP (Vdouble_click_time)
-			     && ((int)(event->timestamp - button_down_time)
-				 < XINT (Vdouble_click_time)))));
+	{
+	  /* On window-system frames, use the value of
+	     double-click-fuzz as is.  On other frames, interpret it
+	     as a multiple of 1/8 characters.  */
+	  struct frame *f;
+	  int fuzz;
+
+	  if (WINDOWP (event->frame_or_window))
+	    f = XFRAME (XWINDOW (event->frame_or_window)->frame);
+	  else if (FRAMEP (event->frame_or_window))
+	    f = XFRAME (event->frame_or_window);
+	  else
+	    abort ();
+
+	  if (FRAME_WINDOW_P (f))
+	    fuzz = double_click_fuzz;
+	  else
+	    fuzz = double_click_fuzz / 8;
+
+	  is_double = (button == last_mouse_button
+		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && button_down_time != 0
+		       && (EQ (Vdouble_click_time, Qt)
+			   || (INTEGERP (Vdouble_click_time)
+			       && ((int)(event->timestamp - button_down_time)
+				   < XINT (Vdouble_click_time)))));
+	}
 	
 	last_mouse_button = button;
 	last_mouse_x = XINT (event->x);
@@ -10541,8 +10558,10 @@ by position only.");
 
   DEFVAR_INT ("double-click-fuzz", &double_click_fuzz,
     "*Maximum mouse movement between clicks to make a double-click.\n\
-Value is the number of pixels the mouse may have moved horizontally or\n\
-vertically between two clicks to make a double-click.");
+On window-system frames, value is the number of pixels the mouse may have\n\
+moved horizontally or vertically between two clicks to make a double-click.\n\
+On non window-system frames, value is interpreted in units of 1/8 characters\n\
+instead of pixels.");
   double_click_fuzz = 3;
   
   DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
