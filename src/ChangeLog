@@ -1,5 +1,17 @@
 2000-12-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (Fdump_glyph_row) [GLYPH_DEBUG]: Add optional arg
+	GLYPHS.
+
+	* dispextern.h (GLYPH_EQUAL_P): Also compare pixel widths,
+	otherwise tabs of different size compare equal.
+
+	* callint.c (Fcall_interactively): Prevent a compiler warning.
+
+	* print.c (print_unwind): Return nil.
+	(PRINTDECLARE): Initialize all local variables.
+	(print_preprocess): Add a default case.
+
 	* lisp.h (Qinhibit_point_motion_hooks): Declare extern.
 
 	* undo.c (Fprimitive_undo): Bind `inhibit-point-motion-hooks' to t.

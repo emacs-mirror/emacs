@@ -9,6 +9,10 @@
 	* server.el (server-switch-buffer): Choose a window on a visible
 	frame.
 
+2000-12-21  Dave Pearson  <davep@davep.org>
+
+	* quickurl.el: Commentry change, I've moved my web site.
+	
 2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ebnf2ps.el: Fix a problem with skip-chars-forward: it doesn't accept
