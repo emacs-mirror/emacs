@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.70 $
+;; Version: $Revision: 1.71 $
 
 ;; This file is part of GNU Emacs.
 
@@ -441,28 +441,16 @@ is a Tcl expression, and the last argument is Tcl commands.")
 
 
 
-;; Its pretty bogus to have to do this, but there is no easier way to
-;; say "match not syntax-1 and not syntax-2".  Too bad you can't put
-;; \s in [...].  This sickness is used in Emacs 19 to match a defun
-;; starter.  (It is used for this in v18 as well).
-;;(defconst tcl-omit-ws-regexp
-;;  (concat "^\\(\\s"
-;;	  (mapconcat 'char-to-string "w_.()\"\\$'/" "\\|\\s")
-;;	  "\\)\\S(*")
-;;  "Regular expression that matches everything except space, comment
-;;starter, and comment ender syntax codes.")
-
-;; FIXME?  Instead of using the hairy regexp above, we just use a
-;; simple one.
-;;(defconst tcl-omit-ws-regexp "^[^] \t\n#}]\\S(*"
-;;  "Regular expression used in locating function definitions.")
-
-;; Here's another stab.  I think this one actually works.  Now the
-;; problem seems to be that there is a bug in Emacs 19.22 where
-;; end-of-defun doesn't really use the brace matching the one that
-;; trails defun-prompt-regexp.
-;; ?? Is there a bug now ??
-(defconst tcl-omit-ws-regexp "^[^ \t\n#}][^\n}]+}*[ \t]+")
+;; Here's another stab.  I think this one actually works.
+;; We have to be careful that the open-brace following this regexp
+;; is indeed the one corresponding to the function's body so
+;; that end-of-defun works correctly.  Tricky cases are:
+;;    proc foo { {arg1 def} arg2 } {
+;; as well as
+;;    proc foo { \n {arg1 def} \n arg2 } {
+;; The current setting handles the first case properly but not the second.
+;; It also fails if `proc' is not in column-0 (e.g. it's in a namespace).
+(defconst tcl-omit-ws-regexp "^[^] \t\n#}].+[ \t]+")
 
 
 
@@ -543,8 +531,7 @@ documentation for details):
     If not nil, use a smarter, Tcl-specific way to find the current
     word when looking up help on a Tcl command.
 
-Turning on Tcl mode calls the value of the variable `tcl-mode-hook'
-with no args, if that value is non-nil.  Read the documentation for
+Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
 already exist.
 
@@ -560,7 +547,8 @@ Commands:
   ;; (setq require-final-newline t)
 
   (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip) "#+ *")
+  (set (make-local-variable 'comment-start-skip)
+       "\\(\\(^\\|[;{[]\\)\\s-*\\)#+ *")
   (set (make-local-variable 'comment-end) "")
 
   (set (make-local-variable 'outline-regexp) ".")
