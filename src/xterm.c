@@ -10098,7 +10098,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	      
 		/* EnterNotify counts as mouse movement,
 		   so update things that depend on mouse position.  */
-		if (f && !f->output_data.x->busy_p)
+		if (f && !f->output_data.x->hourglass_p)
 		  note_mouse_movement (f, &event.xmotion);
 		goto OTHER;
 	      }
