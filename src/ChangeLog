@@ -1,5 +1,9 @@
 2000-09-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_window): Move test for invisible lines
+	at the top to update_window_line.
+	(update_window_line): Handle invisible lines here.
+
 	* xfns.c (clear_image_cache): Clear current matrices of all
 	frames sharing an image cache.  Block input while freeing
 	images.  Fix timestamp comparison.

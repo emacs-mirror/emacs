@@ -1,3 +1,9 @@
+2000-09-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* toolbar/toolbar.el (toolbar-like-menu-item): Like in
+	toolbar-add-item, if image doesn't have a mask add a `:mask
+	heuristic'.
+
 2000-09-18  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* diff-mode.el (diff-hunk-text): Add new optional arg LINE-OFFSET,
