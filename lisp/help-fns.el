@@ -216,6 +216,14 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 			(intern (upcase name))))))
 		arglist)))
 
+;;; Could be this, if we make symbol-file do the work below.
+;;; (defun help-C-file-name (subr-or-var kind)
+;;;   "Return the name of the C file where SUBR-OR-VAR is defined.
+;;; KIND should be `var' for a variable or `subr' for a subroutine."
+;;;   (symbol-file (if (symbolp subr-or-var) subr-or-var
+;;; 		 (subr-name subr-or-var))
+;;; 	       (if (eq kind 'var) 'defvar 'defun)))
+
 (defun help-C-file-name (subr-or-var kind)
   "Return the name of the C file where SUBR-OR-VAR is defined.
 KIND should be `var' for a variable or `subr' for a subroutine."
@@ -231,8 +239,8 @@ KIND should be `var' for a variable or `subr' for a subroutine."
       (let ((file (catch 'loop
 		    (while t
 		      (let ((pnt (search-forward (concat "" name "\n"))))
-      (re-search-backward "S\\(.*\\)")
-      (let ((file (match-string 1)))
+			(re-search-backward "S\\(.*\\)")
+			(let ((file (match-string 1)))
 			  (if (member file build-files)
 			      (throw 'loop file)
 			    (goto-char pnt))))))))
