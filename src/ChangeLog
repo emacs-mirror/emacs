@@ -1,5 +1,8 @@
 2001-05-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (bootstrap-doc): New target.
+	(bootstrap-emacs): Depend on it.
+
 	* fileio.c (Fdo_auto_save): Don't try to create the directory of
 	auto-save-list-file-name when shutting down Emacs, because
 	creating the directory might signal an error, and leaves
