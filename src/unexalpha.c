@@ -81,8 +81,10 @@ Boston, MA 02111-1307, USA.  */
 #define	_SBSS		".sbss"
 #endif /* __NetBSD__ || __OpenBSD__ */
 
-static void fatal_unexec ();
-static void mark_x ();
+static void fatal_unexec __P ((char *, char *));
+static void mark_x __P ((char *));
+
+static void update_dynamic_symbols __P ((char *, char *, int, struct aouthdr));
 
 #define READ(_fd, _buffer, _size, _error_message, _error_arg) \
 	errno = EEOF; \
@@ -142,6 +144,7 @@ struct headers {
 #define DEFAULT_ENTRY_ADDRESS __start
 #endif
 
+void
 unexec (new_name, a_name, data_start, bss_start, entry_address)
      char *new_name, *a_name;
      unsigned long data_start, bss_start, entry_address;
@@ -424,7 +427,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 }
 
 
-
+static void
 update_dynamic_symbols (old, new_name, new, aout)
      char *old;			/* Pointer to old executable */
      char *new_name;            /* Name of new executable */
