@@ -92,6 +92,8 @@ This function works by modifying `process-environment'."
 	  (case-fold-search nil)
 	  (scan process-environment)
 	  found)
+      (if (string-equal "TZ" variable)
+	  (set-time-zone-rule value))
       (while scan
 	(cond ((string-match pattern (car scan))
 	       (setq found t)
