@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,2002
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -812,7 +812,7 @@ main (argc, argv, envp)
       else
 	{
 	  printf ("GNU Emacs %s\n", XSTRING (tem)->data);
-	  printf ("Copyright (C) 2001 Free Software Foundation, Inc.\n");
+	  printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
