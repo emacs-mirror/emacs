@@ -271,7 +271,9 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-/* Nonzero if should obey 0200 bit in input chars as "Meta".  */
+/* 1 if should obey 0200 bit in input chars as "Meta", 2 if should
+   keep 0200 bit in input chars.  0 to ignore the 0200 bit.  */
+
 int meta_key;
 
 extern char *pending_malloc_warning;
@@ -2846,9 +2848,10 @@ read_avail_input (expected)
 	{
 	  buf[i].kind = ascii_keystroke;
 	  buf[i].modifiers = 0;
-	  if (meta_key && (cbuf[i] & 0x80))
+	  if (meta_key == 1 && (cbuf[i] & 0x80))
 	    buf[i].modifiers = meta_modifier;
-	  cbuf[i] &= ~0x80;
+	  if (meta_key != 2)
+	    cbuf[i] &= ~0x80;
 	    
 	  XSET (buf[i].code,		Lisp_Int,   cbuf[i]);
 #ifdef MULTI_FRAME
@@ -4441,8 +4444,9 @@ First arg INTERRUPT non-nil means use input interrupts;\n\
  nil means use CBREAK mode.\n\
 Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal\n\
  (no effect except in CBREAK mode).\n\
-Third arg META non-nil means accept 8-bit input (for a Meta key).\n\
- Otherwise, the top bit is ignored, on the assumption it is parity.\n\
+Third arg META t means accept 8-bit input (for a Meta key).\n\
+ META nil means ignore the top bit, on the assumption it is parity.\n\
+ Otherwise, accept 8-bit input and don't use the top bit for Meta.\n\
 Optional fourth arg QUIT if non-nil specifies character to use for quitting.")
   (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
@@ -4469,7 +4473,12 @@ Optional fourth arg QUIT if non-nil specifies character to use for quitting.")
   interrupt_input = 1;
 #endif
   flow_control = !NILP (flow);
-  meta_key = !NILP (meta);
+  if (NILP (meta))
+    meta_key = 0;
+  else if (EQ (meta, Qt))
+    meta_key = 1;
+  else
+    meta_key = 2;
   if (!NILP (quit))
     /* Don't let this value be out of range.  */
     quit_char = XINT (quit) & (meta_key ? 0377 : 0177);
