@@ -193,6 +193,8 @@ the language you choose).")
 	 (second-char (if (or prompt
 			      (not (eq (key-binding "a")
 				       'self-insert-command))
+			      ;; Not at start of a key sequence.
+			      (> (length (this-single-command-keys)) 1)
 			      ;; Called from anything but the command loop.
 			      this-command)
 			  (progn
