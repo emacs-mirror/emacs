@@ -1,3 +1,11 @@
+2001-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (inhibit_try_window_id, inhibit_try_window_reusing)
+	(inhibit_try_cursor_movement) [GLYPH_DEBUG]: New variables.
+	(try_window_id, try_window_reusing_current_matrix)
+	(try_cursor_movement) [GLYPH_DEBUG]: Don't run if inhibited.
+	(syms_of_xdisp) [GLYPH_DEBUG]:  DEFVAR_BOOL the variables.
+
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xmenu.c: Spell the name of Emacs properly (GNU Emacs instead of
