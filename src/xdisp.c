@@ -3721,10 +3721,10 @@ decode_mode_spec (w, c, spec_width, maxwidth)
     case 'F':
       /* %F displays the frame name.  */
 #ifdef MULTI_FRAME
-      if (!NILP (selected_frame->title))
-	return (char *) XSTRING (selected_frame->title)->data;
-      if (selected_frame->explicit_name)
-	return (char *) XSTRING (selected_frame->name)->data;
+      if (!NILP (f->title))
+	return (char *) XSTRING (f->title)->data;
+      if (f->explicit_name || FRAME_TERMCAP_P (f))
+	return (char *) XSTRING (f->name)->data;
 #endif
       return "Emacs";
 
