@@ -918,7 +918,7 @@ a case-insensitive match is tried."
 		(beginning-of-line)
 		(setq end (point))
 		(push (list nodename other beg end) this-buffer-nodes)))
-	    (if (assoc-ignore-case "top" this-buffer-nodes)
+	    (if (assoc-string "top" this-buffer-nodes t)
 		(setq nodes (nconc this-buffer-nodes nodes))
 	      (setq problems t)
 	      (message "No `top' node in %s" Info-dir-file-name)))))
