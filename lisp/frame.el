@@ -1169,7 +1169,11 @@ This timer calls `blink-cursor' every `blink-cursor-interval' seconds.")
   "Toggle blinking cursor mode.
 With a numeric argument, turn blinking cursor mode on iff ARG is positive.
 When blinking cursor mode is enabled, the cursor of the selected
-window blinks."
+window blinks.
+
+Note that this command is effective only when Emacs
+displays through a window system, because then Emacs does its own
+cursor display.  On a text-only terminal, this is not implemented."
   (interactive "P")
   (let ((on-p (if (null arg)
 		  (not blink-cursor-mode)
