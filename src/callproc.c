@@ -206,7 +206,9 @@ Remaining arguments are strings passed as command arguments to PROGRAM.
 If BUFFER is 0, `call-process' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.  */)
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -990,7 +992,9 @@ Remaining args are passed to PROGRAM at startup as command args.
 If BUFFER is nil, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.  */)
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
