@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.38) $
+# $HopeName: MMsrc!comm.gmk(trunk.39) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -399,6 +399,26 @@ test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
 $(CC) $(CFLAGS) -c -o $@ $<
 endef
 
+# .force: FORCE is a dependent that can be used to force targets to be
+# built.
+.PHONY: FORCE
+# A rule with no dependents and no commands always causes update.
+# (See GNUMake doc, make.info, Node: Force Targets)
+# (ignore the bit about using FORCE as being the same as using .PHONY
+#  it's not, and we make use of that, see .special.version below)
+FORCE:
+
+# .special.version: version.o has a special rule so that it is always
+# built.  This rule has no commands, this has the effect of adding the
+# dependents to those specified by other rules (in this case the implicit
+# .o:.c rule below, .rule.c-to-o).  The extra dependent added is the
+# FORCE dependent (defined above, .force) which causes the target to be
+# always built.
+ifdef VARIETY
+$(PFM)/$(VARIETY)/version.o: FORCE
+endif
+
+# .rule.c-to-o:
 $(PFM)/$(VARIETY)/%.o: %.c
 	$(run-cc)
 
