@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.44 $
+;; Ada Core Technologies's version:   $Revision: 1.45 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -937,8 +937,10 @@ name"
         (setcdr tmp (list (cons body (cadr tmp))))
       (add-to-list 'ada-other-file-alist (list reg (list body)))))
 
-  (add-to-list 'auto-mode-alist (cons spec 'ada-mode))
-  (add-to-list 'auto-mode-alist (cons body 'ada-mode))
+  (add-to-list 'auto-mode-alist
+	       (cons (concat (regexp-quote spec) "\\'") 'ada-mode))
+  (add-to-list 'auto-mode-alist
+	       (cons (concat (regexp-quote body) "\\'") 'ada-mode))
 
   (add-to-list 'ada-spec-suffixes spec)
   (add-to-list 'ada-body-suffixes body)
