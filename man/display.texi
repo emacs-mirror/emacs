@@ -107,7 +107,8 @@ terminals.  @xref{Display Custom}.
 @item mode-line-inactive
 Like @code{mode-line}, but used for mode lines of the windows other
 than the selected one (if @code{mode-line-in-non-selected-windows} is
-non-@code{nil}).
+non-@code{nil}).  This face inherits from @code{mode-line}, so changes
+in that face affect mode lines in all windows.
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but the Info mode does.
@@ -790,13 +791,16 @@ Emacs.mode-line.AttributeBox: off
 @end example
 
 @cindex non-selected windows, mode line appearance
-@vindex mode-line-in-non-selected-windows
-  By default, the mode line of non-selected windows is displayed in a
+  By default, the mode line of nonselected windows is displayed in a
 different face, called @code{mode-line-inactive}.  Only the selected
-window is displayed in the @code{mode-line} face.  When you type at
-the minibuffer prompt, the window in @code{minibuffer-scroll-window}
-is considered to be the selected window.  You can disable this
-behavior by setting the value of the variable
+window is displayed in the @code{mode-line} face.  This helps show
+which window is selected.  When the minibuffer is selected, since
+it has no mode line, the window from which you activated the minibuffer
+has its mode line displayed using @code{mode-line}; as a result,
+ordinary entry to the minibuffer does not change any mode lines.
+
+@vindex mode-line-in-non-selected-windows
+  You can disable use of @code{mode-line-inactive} by setting variable
 @code{mode-line-in-non-selected-windows} to @code{nil}; then all mode
 lines are displayed in the @code{mode-line} face.
 
