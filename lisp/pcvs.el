@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.44 2002/11/13 20:19:38 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.45 2002/11/18 20:53:24 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -647,7 +647,7 @@ it is finished."
 	    (buffer-enable-undo)
 	    (with-current-buffer cvs-buffer
 	      (cvs-update-header nil nil) ;FIXME: might need to be inline
-	      (message "CVS process has completed"))))
+	      (message "CVS process has completed in %s" (buffer-name)))))
 	;; This might not even be necessary
 	(set-buffer obuf)))))
 
