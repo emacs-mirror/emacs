@@ -7677,6 +7677,44 @@ x_connection_closed (dpy, error_message)
      the original message here.  */
   count = x_catch_errors (dpy);
 
+  /* Inhibit redisplay while frames are being deleted. */
+  specbind (Qinhibit_redisplay, Qt);
+
+  if (dpyinfo)
+    {
+      /* Protect display from being closed when we delete the last
+         frame on it. */
+      dpyinfo->reference_count++;
+      dpyinfo->frame_display->reference_count++;
+    }
+  
+  /* First delete frames whose mini-buffers are on frames
+     that are on the dead display.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      Lisp_Object minibuf_frame;
+      minibuf_frame
+	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
+      if (FRAME_X_P (XFRAME (frame))
+	  && FRAME_X_P (XFRAME (minibuf_frame))
+	  && ! EQ (frame, minibuf_frame)
+	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
+	Fdelete_frame (frame, Qt);
+    }
+
+  /* Now delete all remaining frames on the dead display.
+     We are now sure none of these is used as the mini-buffer
+     for another frame that we need to delete.  */
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_X_P (XFRAME (frame))
+	&& FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+      {
+	/* Set this to t so that Fdelete_frame won't get confused
+	   trying to find a replacement.  */
+	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
+	Fdelete_frame (frame, Qt);
+      }
+
   /* We have to close the display to inform Xt that it doesn't
      exist anymore.  If we don't, Xt will continue to wait for
      events from the display.  As a consequence, a sequence of
@@ -7709,42 +7747,19 @@ x_connection_closed (dpy, error_message)
     xg_display_close (dpyinfo->display);
 #endif
 
-  /* Indicate that this display is dead.  */
   if (dpyinfo)
-    dpyinfo->display = 0;
-
-  /* Inhibit redisplay while frames are being deleted. */
-  specbind (Qinhibit_redisplay, Qt);
-
-  /* First delete frames whose mini-buffers are on frames
-     that are on the dead display.  */
-  FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object minibuf_frame;
-      minibuf_frame
-	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
-      if (FRAME_X_P (XFRAME (frame))
-	  && FRAME_X_P (XFRAME (minibuf_frame))
-	  && ! EQ (frame, minibuf_frame)
-	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	Fdelete_frame (frame, Qt);
+      /* Indicate that this display is dead.  */
+      dpyinfo->display = 0;
+
+      dpyinfo->reference_count--;
+      dpyinfo->frame_display->reference_count--;
+      if (dpyinfo->reference_count != 0)
+        /* We have just closed all frames on this display. */
+        abort ();
+
+      x_delete_display (dpyinfo);
     }
-
-  /* Now delete all remaining frames on the dead display.
-     We are now sure none of these is used as the mini-buffer
-     for another frame that we need to delete.  */
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_X_P (XFRAME (frame))
-	&& FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
-      {
-	/* Set this to t so that Fdelete_frame won't get confused
-	   trying to find a replacement.  */
-	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
-	Fdelete_frame (frame, Qt);
-      }
-
-  if (dpyinfo)
-    x_delete_display (dpyinfo);
 
   x_uncatch_errors (dpy, count);
 
@@ -10783,7 +10798,11 @@ x_delete_frame_display (struct display *display)
 #ifdef USE_X_TOOLKIT
   XtCloseDisplay (dpyinfo->display);
 #else
+#ifdef USE_GTK
+  xg_display_close (dpyinfo->display);
+#else
   XCloseDisplay (dpyinfo->display);
+#endif
 #endif
 
   x_delete_display (dpyinfo);
