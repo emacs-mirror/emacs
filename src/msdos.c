@@ -33,12 +33,16 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/time.h>
 #include <dos.h>
 #include <errno.h>
+#include <string.h>	 /* for bzero and string functions */
 #include <sys/stat.h>    /* for _fixpath */
+#include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #if __DJGPP__ >= 2
 #include <fcntl.h>
+#include <io.h>		 /* for setmode */
 #include <dpmi.h>	 /* for __dpmi_xxx stuff */
 #include <sys/farptr.h>	 /* for _farsetsel, _farnspokeb */
 #include <libc/dosio.h>  /* for _USE_LFN */
+#include <conio.h>	 /* for cputs */
 #endif
 
 #include "dosfns.h"
@@ -839,10 +843,6 @@ x_set_menu_bar_lines (f, value, oldval)
 static
 IT_set_terminal_modes (void)
 {
-  char *colors;
-  FRAME_PTR f;
-  struct face *fp;
-
   if (termscript)
     fprintf (termscript, "\n<SET_TERM>");
   highlight = 0;
@@ -974,7 +974,7 @@ IT_set_frame_parameters (f, alist)
 	      FRAME_FOREGROUND_PIXEL (f) = new_color;
 	      redraw = 1;
 	      if (termscript)
-		fprintf (termscript, "<FGCOLOR %d>\n", new_color);
+		fprintf (termscript, "<FGCOLOR %lu>\n", new_color);
 	    }
 	}
       else if (EQ (prop, intern ("background-color")))
@@ -985,7 +985,7 @@ IT_set_frame_parameters (f, alist)
 	      FRAME_BACKGROUND_PIXEL (f) = new_color;
 	      redraw = 1;
 	      if (termscript)
-		fprintf (termscript, "<BGCOLOR %d>\n", new_color);
+		fprintf (termscript, "<BGCOLOR %lu>\n", new_color);
 	    }
 	}
       else if (EQ (prop, intern ("menu-bar-lines")))
@@ -994,11 +994,16 @@ IT_set_frame_parameters (f, alist)
 
   if (redraw)
     {
+      extern void recompute_basic_faces (FRAME_PTR);
+      extern void redraw_frame (FRAME_PTR);
+
       recompute_basic_faces (f);
       if (f == selected_frame)
 	redraw_frame (f);
     }
 }
+
+extern void init_frame_faces (FRAME_PTR);
 
 #endif /* !HAVE_X_WINDOWS */
 
@@ -1561,6 +1566,8 @@ and then the scan code.")
 }
 
 /* Get a char from keyboard.  Function keys are put into the event queue.  */
+
+extern void kbd_buffer_store_event (struct input_event *);
 
 static int
 dos_rawgetc ()
@@ -2369,7 +2376,6 @@ crlf_to_lf (n, buf)
   unsigned char *np = buf;
   unsigned char *startp = buf;
   unsigned char *endp = buf + n;
-  unsigned char c;
 
   if (n == 0)
     return n;
@@ -2618,7 +2624,6 @@ The argument object is never altered--the value is a copy.")
   (filename)
      Lisp_Object filename;
 {
-  char *fname;
   Lisp_Object tem;
 
   if (! STRINGP (filename))
@@ -2933,7 +2938,7 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
   char *saveargv1, *saveargv2, **envv, *lowcase_argv0, *pa, *pl;
   char oldwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
   int msshell, result = -1;
-  int in, out, inbak, outbak, errbak;
+  int inbak, outbak, errbak;
   int x, y;
   Lisp_Object cmd;
 
