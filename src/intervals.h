@@ -1,5 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993, 1994, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 2000, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -298,6 +298,7 @@ int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 void extend_property_ranges P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 Lisp_Object get_char_property_and_overlay P_ ((Lisp_Object, Lisp_Object,
 					       Lisp_Object, Lisp_Object*));
+extern int text_property_stickiness (Lisp_Object prop, Lisp_Object pos);
 
 extern void syms_of_textprop ();
 
