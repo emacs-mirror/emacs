@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.14) $
+# $HopeName: MMQA_harness!script:options(trunk.15) $
 #
 
 # global options for qa commands
@@ -35,6 +35,7 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
  "l", "MPS_LINK_OBJ",
  "p", "PLATFORM",
  "data", "DATA_DIR",
+ "a", "PARAMETERS",
  "g", "LOG_DIR"
 );
 
@@ -47,8 +48,10 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
  "DEBUG_INFO", "off",
  "DATA_DIR", "$test_dir/../data",
  "LOG_DIR", "$test_dir/log",
+ "PARAMETERS", "",
  "INTERFACE_VERSION", "BQ"
 );
 
-%qa_unlogged_opts = (DATA_DIR, 1, LOG_DIR, 1);
+%qa_unlogged_opts = (PARAMETERS, 1, DATA_DIR, 1, LOG_DIR, 1);
+%qa_cumulative_opts = (PARAMETERS, 1);
 

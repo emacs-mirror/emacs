@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.8) $
+# $HopeName: MMQA_harness!script:optproc(trunk.9) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -41,6 +41,10 @@ sub requiredoptions {
  }
 }
 
+#
+# Only cumulative options can appear twice.
+#
+
 sub parseoptions {
  local ($tem);
 
@@ -48,7 +52,7 @@ sub parseoptions {
   if (/^\-+(.*)$/i) { # allow >1 minus sign before options!
    if ($qa_options{$1}) {
     $qa_opt_val = shift(@ARGV);
-    &setoption($qa_options{$1}, $qa_opt_val);
+    &setonceoption($qa_options{$1}, $qa_opt_val);
    } else {
     if ($1 =~ /^no/) { # prefix "no" negates any flag
      $flag = $1;
@@ -61,7 +65,7 @@ sub parseoptions {
     unless ($qa_flags{$flag}) {
      die "Unrecognized option or flag: $1.\n";
     }
-    &setoption($qa_flags{$flag}, $qa_opt_val);
+    &setonceoption($qa_flags{$flag}, $qa_opt_val);
    }
   } else {
    push(@qa_args, $_);
@@ -76,8 +80,36 @@ sub getoption {
 
 sub setoption {
  local ($opt, $val) = @_;
- if ($val) {
+ if (defined $val) {
   eval "\$".$opt." = \$val";
+ }
+}
+
+sub setonceoption {
+ local ($opt, $val) = @_;
+ if (defined &getoption($opt) && !exists $qa_cumulative_opts{$opt}) {
+  die "Non-cumulative option $opt specified twice on command line.\n"
+ }
+ if (defined &getoption($opt)) {
+  $val = &getoption($opt)." ".$val;
+ }
+ &setoption($opt, $val);
+}
+
+# 
+# precedence for parameters is:
+# 1. parameter supplied on command line
+# 2. parameter supplied in MMQA_PARAMETERS
+# 3. parameter supplied as MMQA_PARAM_<param>
+#
+
+sub getparameter {
+ local ($par) = @_;
+ &debug("*>*>*>$PARAMETERS<*<*<*");
+ if ($PARAMETERS =~ /(^|.*?\s)$par\s*=\s*(\S+)(\s|$)/) {
+  return $2;
+ } else {
+ return $ENV{"MMQA_PARAM_".$par};
  }
 }
 
@@ -101,20 +133,33 @@ sub optioncode {
  return 0;
 }
 
+#
+# for cumulative options, command line comes first
+#
+
 sub applydefaults {
  local ($opt, $val, %arr);
 
  %arr = (%qa_options, %qa_flags);
 
  foreach (keys %arr) {
-  $opt = ($qa_options{$_} || $qa_flags{$_});
-  unless (&getoption($opt)) {
-   $val = $ENV{"MMQA_".$opt};
-   unless ($val) {
-    $val = $qa_defaults{$opt};
+  $opt = $arr{$_};
+  $val = &getoption($opt);
+  $var = $ENV{"MMQA_".$opt};
+  $def = $qa_defaults{$opt};
+
+  if (defined $val) {
+   if (exists $qa_cumulative_opts{$opt} && defined $var) {
+    $val .= " ".$var;
    }
-   &setoption($opt, $val);
+  } else {
+   if (defined $var) {
+    $val = $var;
+   } else {
+    $val = $def;
+   }
   }
+  &setoption($opt, $val);
  }
 }
 
@@ -152,7 +197,7 @@ sub displayalloptions {
 format OPTLIST =
  @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $optname, $optcode, $optcur
-~~                                       ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+~~                                      ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $optcur
 .
 
