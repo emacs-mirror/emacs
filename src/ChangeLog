@@ -1,5 +1,9 @@
 2001-01-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (forward_to_next_line_start): Reset it->c if taking the
+	short cut at the start of the function.  Add an assertion.
+	(reseat_at_next_visible_line_start): Add an assertion.
+
 	* window.c (Frecenter): When changing the window start, set the
 	window's window_end_valid to nil.
 	(Fwindow_end): Fix window-end computation when UPDATE is non-nil.
