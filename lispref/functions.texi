@@ -811,7 +811,7 @@ anonymous function.  Such a list is valid wherever a function name is.
 
 @smallexample
 @group
-(setq silly (append (lambda (x)) (list (list '+ (* 3 4) 'x))))
+(setq silly (append '(lambda (x)) (list (list '+ (* 3 4) 'x))))
 @result{} (lambda (x) (+ 12 x))
 @end group
 @end smallexample
@@ -858,7 +858,7 @@ passing it a function to double a number:
 @example
 @group
 (defun double-property (symbol prop)
-  (change-property symbol prop (lambda (x) (* 2 x))))
+  (change-property symbol prop '(lambda (x) (* 2 x))))
 @end group
 @end example
 
@@ -891,6 +891,18 @@ looks like one, since it does not know what @code{change-property} will
 do with the list.  Perhaps it will check whether the @sc{car} of the third
 element is the symbol @code{*}!  Using @code{function} tells the
 compiler it is safe to go ahead and compile the constant function.
+
+  Nowadays it is possible to omit @code{function} entirely, like this:
+
+@example
+@group
+(defun double-property (symbol prop)
+  (change-property symbol prop (lambda (x) (* 2 x))))
+@end group
+@end example
+
+@noindent
+This is because @code{lambda} itself implies @code{function}.
 
   We sometimes write @code{function} instead of @code{quote} when
 quoting the name of a function, but this usage is just a sort of
