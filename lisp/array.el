@@ -790,6 +790,7 @@ Return COLUMN."
 
 (put 'array-mode 'mode-class 'special)
 
+;;;###autoload
 (defun array-mode ()
   "Major mode for editing arrays.
 
