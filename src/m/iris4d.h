@@ -139,7 +139,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #undef LIBS_MACHINE
 /* -lsun in case using Yellow Pages for passwords.  */
-#define LIBS_MACHINE -lsun -lmld
+#define LIBS_MACHINE -lmld
 #define LIBS_DEBUG
 
 /* Define this if you have a fairly recent system,
