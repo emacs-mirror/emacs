@@ -587,8 +587,10 @@ This function is provided for optional use as the `diary-display-hook'."
                            (extract-calendar-month date))
                      (setq holiday-list-last-year
                            (extract-calendar-year date))
-                     (increment-calendar-month
-                      holiday-list-last-month holiday-list-last-year 1)
+                     (progn
+                       (increment-calendar-month
+                        holiday-list-last-month holiday-list-last-year 1)
+                       t)
                      (setq holiday-list
                            (let ((displayed-month holiday-list-last-month)
                                  (displayed-year holiday-list-last-year))
