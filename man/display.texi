@@ -30,16 +30,18 @@ display it.
 @section Using Multiple Typefaces
 @cindex faces
 
-  When using Emacs with a window system, you can set up multiple
-styles of displaying characters.  Each style is called a @dfn{face}.
-Each face can specify various attributes, such as the height, weight
-and slant of the characters, the foreground and background color, and
-underlining.  But it does not have to specify all of them.
+  Emacs supports using multiple styles of displaying characters.  Each
+style is called a @dfn{face}.  Each face can specify various @dfn{face
+attributes}, such as the font family, the height, weight and slant of
+the characters, the foreground and background color, and underlining
+or overlining.  A face does not have to specify all of these
+attributes; often it inherits many of them from another face.
 
-  Emacs on a character terminal supports only part of face attributes.
-Which attributes are supported depends on your display type, but many
-displays support inverse video, bold, and underline attributes, and
-some support colors.
+  On a window system, all the Emacs face attributes are meaningful.
+On a character terminal, only some of them work.  Some character
+terminals support inverse video, bold, and underline attributes; some
+support colors.  Character terminals generally do not support changing
+the height and width or the font family.
 
   Features which rely on text in multiple faces (such as Font Lock mode)
 will also work on non-windowed terminals that can display more than one
