@@ -239,23 +239,6 @@ since the search algorithm searches sequentially through each directory
 specified in `ff-search-directories'.  If a file is not found, a new one
 is created with the first matching extension (`.cc' yields `.hh').")
 
-(defvar ada-search-directories
-  '("." "/usr/adainclude" "/usr/local/adainclude")
-  "*See the description for the `ff-search-directories' variable.")
-
-(defvar ada-other-file-alist
-  '(
-    ("\\.ads$" (".adb")) ;; Ada specs and bodies
-    ("\\.adb$" (".ads")) ;; GNAT filename conventions
-    )
-  "*Alist of extensions to find given the current file's extension.
-
-This list should contain the most used extensions before the others,
-since the search algorithm searches sequentially through each directory
-specified in `ada-search-directories'.  If a file is not found, a new one
-is created with the first matching extension (`.adb' yields `.ads').
-")
-
 (defvar modula2-other-file-alist
   '(
     ("\\.mi$" (".md")) ;; Modula-2 module definition
@@ -878,8 +861,7 @@ and the name of the file passed in."
 
 (defvar ff-function-name nil "Name of the function we are in.")
 
-(defvar ada-procedure-start-regexp)
-(defvar ada-package-start-regexp)
+(eval-when-compile (require 'ada-mode))
 
 ;; bind with (setq ff-pre-load-hooks 'ff-which-function-are-we-in)
 ;;
