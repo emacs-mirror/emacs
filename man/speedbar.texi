@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c
-@c $Id: speedbar.texi,v 1.5 2000/12/05 23:02:24 fx Exp $
+@c $Id: speedbar.texi,v 1.6 2000/12/05 23:06:42 fx Exp $
 @c
 
 @c This file is part of GNU Emacs
@@ -103,7 +103,7 @@ authors of other packages to provide speedbar summaries customized to
 the needs of that mode.
 
 Throughout this manual, activities are defined as `clicking on', or
-`expanding' items.  Clicking means using using @kbd{mouse-2} on a
+`expanding' items.  Clicking means using using @kbd{Mouse-2} on a
 button.  Expanding refers to clicking on an expansion button to display
 an expanded summary of the entry the expansion button is
 on.  @xref{Basic Navigation}.
@@ -360,28 +360,29 @@ with the mouse, or affected by the menu.
 The mouse bindings are:
 
 @table @kbd
-@item mouse-1
+@item Mouse-1
 Move cursor to that location.
-@item mouse-2
-@itemx double-mouse-1
-Activate the current button.  @kbd{double-mouse-1} is called a @dfn{double
+@item Mouse-2
+@itemx Double-Mouse-1
+Activate the current button.  @kbd{Double-Mouse-1} is called a @dfn{double
 click} on other platforms, and is useful for windows users with two
 button mice.
-@c Isn't it true that with two-button mice, the right button is mouse-2?
-@item S-mouse-2
-@itemx S-double-mouse-1
+@c Isn't it true that with two-button mice, the right button is Mouse-2?
+@c On GNU/Linux, the right button is Mouse-3.
+@item S-Mouse-2
+@itemx S-Double-Mouse-1
 @cindex power click
-This has the same effect as @kbd{mouse-2}, except it is called a power
+This has the same effect as @kbd{Mouse-2}, except it is called a power
 click.  This means that if a group with an expansion button @samp{+} is
 clicked, any caches are flushed, and subitems re-read.  If it is a name,
 it will be opened in a new frame.
-@item mouse-3
+@item Mouse-3
 Activate the speedbar menu.  The item selected affects the line clicked,
 not the line where the cursor was.
-@item mode-line mouse-1
+@item Mouse-1 @r{(mode line)}
 Activate the menu.  This affects the item the cursor is on before the
 click, since the mouse was not clicked on anything.
-@item C-mouse-1
+@item C-Mouse-1
 Buffers sub-menu.  The buffer in the attached frame is switched.
 @end table
 
@@ -399,8 +400,8 @@ You can display different data by using different display modes.  These
 specialized modes make it easier to navigate the relevant pieces of
 information, such as files and directories, or buffers.
 
-In the main menu, found by clicking @kbd{mouse-3}, there is a submenu
-labeled ``Displays''.  This submenu lets you easily choose between
+In the main menu, found by clicking @kbd{Mouse-3}, there is a submenu
+labeled @samp{Displays}.  This submenu lets you easily choose between
 different display modes.
 
 The contents are modes currently loaded into emacs.  By default, this
@@ -846,8 +847,8 @@ items is reached.
 
 When using the file mode in speedbar, information regarding a version
 control system adds small details to the display.  If a file is in a
-version control system, and is ``checked out'', or ``locked'' locally, an
-asterisk @samp{*} is placed at the end of the file name.  In addition,
+version control system, and is ``checked out'' or ``locked'' locally, an
+asterisk @samp{*} appears at the end of the file name.  In addition,
 the directory name for Version Control systems are left out of the
 speedbar display.
 
