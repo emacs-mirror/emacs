@@ -1,3 +1,9 @@
+2002-12-08  Dave Love  <fx@gnu.org>
+
+	* charsets/jisx0201.map: Remove codepoint 0x7f.
+
+	* charsets/pt154.map, charsets/mik.map: New.
+
 2002-10-30  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Change indian-2-column chars of Hindi line to Unicode

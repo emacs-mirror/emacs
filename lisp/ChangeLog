@@ -1,3 +1,9 @@
+2002-12-08  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (mik, pt154): New charsets.
+
+	* language/cyrillic.el (mik, pt154): New coding systems.
+
 2002-12-05  Dave Love  <fx@gnu.org>
 
 	* international/characters.el: Move parts around so that syntax
