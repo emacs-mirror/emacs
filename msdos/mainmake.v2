@@ -147,3 +147,31 @@ clean:
 	cd leim
 	if exist Makefile redir $(MAKE) clean
 	cd ..
+
+.PHONY: bootstrap bootstrap-lisp-1 boostrap-src bootstrap-lisp bootstrap-clean
+.PHONY: maybe_bootstrap
+
+maybe_bootstrap:
+	@if not exist lisp\abbrevs.elc djecho \
+	 "Some *.elc files are missing.  You should do a `make bootstrap'."
+	@if not exist lisp\abbrevs.elc fail-this-make
+
+bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
+
+bootstrap-lisp-1:
+	cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean
+
+bootstrap-lisp:
+	cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/b-emacs.exe
+
+bootstrap-src:
+	cd src; $(MAKE) $(MFLAGS) bootstrap
+
+### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
+bootstrap-clean-before: FRC
+	cd src;      $(MAKE) $(MFLAGS) mostlyclean
+	cd lib-src;  $(MAKE) $(MFLAGS) clean
+	cd leim;     $(MAKE) $(MFLAGS) clean
+
+bootstrap-clean-after:
+	cd src; $(MAKE) $(MFLAGS) mostlyclean
