@@ -2698,6 +2698,12 @@ usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
      int nargs;
      Lisp_Object *args;
 {
+  int argnum;
+  if (nargs == 2)
+    return arith_driver (Adiv, nargs, args);
+  for (argnum = 0; argnum < nargs; argnum++)
+    if (FLOATP (args[argnum]))
+      return float_arith_driver (0, 0, Adiv, nargs, args);
   return arith_driver (Adiv, nargs, args);
 }
 
