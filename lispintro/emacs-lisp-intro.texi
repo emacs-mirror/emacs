@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.06
-@set update-date 2002 Jun  6
+@set edition-number 2.07
+@set update-date 2002 Aug 23
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -39,6 +39,14 @@
     ## Plain text output
     makeinfo --fill-column=70 --no-split --paragraph-indent=0 \
     --verbose --no-headers --output=emacs-lisp-intro.txt emacs-lisp-intro.texi
+
+    ## DocBook output
+    makeinfo --docbook --no-split --paragraph-indent=0 \
+    --verbose emacs-lisp-intro.texi
+
+    ## XML output
+    makeinfo --xml --no-split --paragraph-indent=0 \
+    --verbose emacs-lisp-intro.texi
 
 @end ignore
 
@@ -216,13 +224,23 @@
   			A simple introduction to Emacs Lisp programming.
 @end direntry
 
-@ifinfo
+@copying
 This is an introduction to @cite{Programming in Emacs Lisp}, for
 people who are not programmers.
 
 Edition @value{edition-number}, @value{update-date}
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
+@sp 2
+
+Published by the Free Software Foundation, Inc.@*
+59 Temple Place, Suite 330@*
+Boston, MA 02111-1307 USA@*
+
+Edition @value{edition-number}, @value{update-date}
+
+@c Printed copies are available for $30 each.@*
+ISBN 1-882114-43-4
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -235,7 +253,7 @@ Documentation License''.
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and
 modify this GNU Manual, like GNU software.  Copies published by the
 Free Software Foundation raise funds for GNU development.''
-@end ifinfo
+@end copying
 
 @c half title; two lines here, so do not use `shorttitlepage'
 @tex
@@ -259,29 +277,7 @@ Free Software Foundation raise funds for GNU development.''
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
-@sp 2
-
-Published by the Free Software Foundation, Inc.@*
-59 Temple Place, Suite 330@*
-Boston, MA 02111-1307 USA@*
-
-Edition @value{edition-number}, @value{update-date}
-
-@c Printed copies are available for $20 each.@*
-ISBN 1-882114-43-4
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; there
-being no Invariant Section, with the Front-Cover Texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of
-the license is included in the section entitled ``GNU Free
-Documentation License''.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and
-modify this GNU Manual, like GNU software.  Copies published by the
-Free Software Foundation raise funds for GNU development.''
+@insertcopying
 @end titlepage
 
 @iftex
@@ -336,8 +332,7 @@ Free Software Foundation raise funds for GNU development.''
 @node Top, Preface, (dir), (dir)
 @top An Introduction to Programming in Emacs Lisp
 
-This is an introduction to @cite{Programming in Emacs Lisp}, for
-people who are not programmers.
+@insertcopying
 
 This master menu first lists each chapter and index; then it lists
 every node in every chapter.
