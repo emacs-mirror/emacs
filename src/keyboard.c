@@ -607,7 +607,7 @@ int flow_control;
 
 /* We are unable to use interrupts if FIONREAD is not available,
    so flush SIGIO so we won't try.  */
-#if !defined (FIONREAD) || defined(HAVE_CARBON)
+#if !defined (FIONREAD)
 #ifdef SIGIO
 #undef SIGIO
 #endif

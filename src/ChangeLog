@@ -1,3 +1,29 @@
+2004-11-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c: Don't undef SIGIO
+	* s/darwin.h (NO_SOCK_SIGIO): Define NO_SOCK_SIGIO on carbon
+	* Makefile.in (mac.o): Depend on blockinput.h and atimer.h.
+	(macfns.o): Don't depend on ccl.h.
+	* macfns.c (mac_frame_parm_handlers): Set handlers for
+	Qleft_fringe and Qright_fringe.
+	* macterm.c (mac_fill_rectangle_to_pixmap)
+	(mac_draw_rectangle_to_pixmap, mac_copy_area_to_pixmap)
+	(mac_copy_area_with_mask_to_pixmap, x_draw_image_foreground_1):
+	Put in #if 0.
+	(mac_scroll_area) [TARGET_API_MAC_CARBON]: Use ScrollWindowRect.
+	(x_flush) [TARGET_API_MAC_CARBON]: Don't traverse frames.
+	(XFlush) [TARGET_API_MAC_CARBON]: Define to an empty replacement.
+	(x_draw_glyph_string_background, x_draw_glyph_string_foreground)
+	[!MAC_OS8]: Added ifdef'd out code for os8.  Don't use
+	XDrawImageString.  Always draw background and foreground separately.
+	(x_draw_image_foreground): Use clipping instead of computing the
+	intersection rectangle.
+	(x_draw_image_glyph_string): Don't draw an image with mask to a
+	pixmap.
+	(x_redisplay_interface): Set flush_display_optional member to 0.
+	(XTread_socket): Correctly reset the TEConverter
+	object.
+
 2004-11-30  Kim F. Storm  <storm@cua.dk>
 
 	* lisp.h: New defines to enable buffer overrun checking.

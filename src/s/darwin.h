@@ -217,6 +217,13 @@ Boston, MA 02111-1307, USA.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
+/* In Carbon, asynchronous I/O (using SIGIO) can't be used for window
+   events because they don't come from sockets, even though it works
+   fine on tty's.  */
+#ifdef HAVE_CARBON
+#define NO_SOCK_SIGIO
+#endif
+
 /* Extra initialization calls in main for Mac OS X system type.  */
 #ifdef HAVE_CARBON
 #define SYMS_SYSTEM syms_of_mac()

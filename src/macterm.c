@@ -567,7 +567,7 @@ XCreatePixmap (display, w, width, height, depth)
      Display *display;		/* not used */
      WindowPtr w;
      unsigned int width, height;
-     unsigned int depth;	/* not used */
+     unsigned int depth;
 {
   Pixmap pixmap;
   Rect r;
@@ -643,6 +643,7 @@ XFillRectangle (display, w, gc, x, y, width, height)
 }
 
 
+#if 0 /* TODO: figure out if we need to do this on Mac.  */
 static void
 mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
      Display *display;
@@ -666,6 +667,7 @@ mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   SetGWorld (old_port, old_gdh);
 }
+#endif
 
 
 /* Mac replacement for XDrawRectangle: dest is a window.  */
@@ -689,6 +691,7 @@ mac_draw_rectangle (display, w, gc, x, y, width, height)
 }
 
 
+#if 0 /* TODO: figure out if we need to do this on Mac.  */
 /* Mac replacement for XDrawRectangle: dest is a Pixmap.  */
 
 static void
@@ -714,6 +717,7 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   SetGWorld (old_port, old_gdh);
 }
+#endif
 
 
 static void
@@ -908,24 +912,13 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
      int dest_x, dest_y;
 {
 #if TARGET_API_MAC_CARBON
-  Rect gw_r, src_r, dest_r;
+  Rect src_r;
+  RgnHandle dummy = NewRgn ();	/* For avoiding update events.  */
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
-  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
-
-  SetPortWindowPort (w);
-
-  ForeColor (blackColor);
-  BackColor (whiteColor);
-
-  LockPortBits (GetWindowPort (w));
-  {
-    const BitMap *bitmap = GetPortBitMapForCopyBits (GetWindowPort (w));
-    CopyBits (bitmap, bitmap, &src_r, &dest_r, srcCopy, 0);
-  }
-  UnlockPortBits (GetWindowPort (w));
-
-  mac_set_colors (gc);
+  ScrollWindowRect (w, &src_r, dest_x - src_x, dest_y - src_y,
+		    kScrollWindowNoOptions, dummy);
+  DisposeRgn (dummy);
 #else /* not TARGET_API_MAC_CARBON */
   Rect src_r, dest_r;
 
@@ -959,6 +952,7 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
 }
 
 
+#if 0 /* TODO: figure out if we need to do this on Mac.  */
 /* Mac replacement for XCopyArea: dest must be Pixmap.  */
 
 static void
@@ -1037,6 +1031,7 @@ mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
 
   SetGWorld (old_port, old_gdh);
 }
+#endif
 
 
 /* Mac replacement for XChangeGC.  */
@@ -1131,6 +1126,23 @@ x_sync (f)
 }
 
 
+/* Flush display of frame F, or of all frames if F is null.  */
+
+static void
+x_flush (f)
+     struct frame *f;
+{
+#if TARGET_API_MAC_CARBON
+  BLOCK_INPUT;
+  if (f)
+    QDFlushPortBuffer (GetWindowPort (FRAME_MAC_WINDOW (f)), NULL);
+  else
+    QDFlushPortBuffer (GetQDGlobalsThePort (), NULL);
+  UNBLOCK_INPUT;
+#endif
+}
+
+
 /* Remove calls to XFlush by defining XFlush to an empty replacement.
    Calls to XFlush should be unnecessary because the X output buffer
    is flushed automatically as needed by calls to XPending,
@@ -1138,32 +1150,7 @@ x_sync (f)
    XTread_socket calls XPending.  Removing XFlush improves
    performance.  */
 
-#if TARGET_API_MAC_CARBON
-#define XFlush(DISPLAY) QDFlushPortBuffer (GetQDGlobalsThePort (), NULL)
-#else
 #define XFlush(DISPLAY)	(void) 0
-#endif
-
-/* Flush display of frame F, or of all frames if F is null.  */
-
-void
-x_flush (f)
-     struct frame *f;
-{
-#if TARGET_API_MAC_CARBON
-  BLOCK_INPUT;
-  if (f == NULL)
-    {
-      Lisp_Object rest, frame;
-      FOR_EACH_FRAME (rest, frame)
-	x_flush (XFRAME (frame));
-    }
-  else if (FRAME_MAC_P (f))
-    XFlush (FRAME_MAC_DISPLAY (f));
-  UNBLOCK_INPUT;
-#endif /* TARGET_API_MAC_CARBON */
-}
-
 
 
 /* Return the struct mac_display_info corresponding to DPY.  There's
@@ -1957,6 +1944,14 @@ x_clear_glyph_string_rect (s, x, y, w, h)
 }
 
 
+/* We prefer not to use XDrawImageString (srcCopy text transfer mode)
+   on Mac OS X because:
+   - Screen is double-buffered.  (In srcCopy mode, a text is drawn
+     into an offscreen graphics world first.  So performance gain
+     cannot be expected.)
+   - It lowers rendering quality.
+   - Some fonts leave garbage on cursor movement.  */
+
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
    background even if it wouldn't be drawn normally.  This is used
@@ -1988,10 +1983,12 @@ x_draw_glyph_string_background (s, force_p)
 	}
       else
 #endif
+#if 0 /* defined(MAC_OS8)*/
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
+#endif
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
 				     s->background_width,
@@ -2044,6 +2041,7 @@ x_draw_glyph_string_foreground (s)
 	for (i = 0; i < s->nchars; ++i)
 	  char1b[i] = s->char2b[i].byte2;
 
+#if 0 /* defined(MAC_OS8) */
       /* Draw text with XDrawString if background has already been
 	 filled.  Otherwise, use XDrawImageString.  (Note that
 	 XDrawImageString is usually faster than XDrawString.)  Always
@@ -2051,6 +2049,7 @@ x_draw_glyph_string_foreground (s)
 	 no chance that characters under a box cursor are invisible.  */
       if (s->for_overlaps_p
 	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
+#endif
 	{
 	  /* Draw characters with 16-bit or 8-bit functions.  */
 	  if (s->two_byte_p)
@@ -2060,6 +2059,7 @@ x_draw_glyph_string_foreground (s)
 	    XDrawString (s->display, s->window, s->gc, x,
 			 s->ybase - boff, char1b, s->nchars);
 	}
+#if 0 /* defined(MAC_OS8)*/
       else
 	{
 	  if (s->two_byte_p)
@@ -2069,6 +2069,7 @@ x_draw_glyph_string_foreground (s)
 	    XDrawImageString (s->display, s->window, s->gc, x,
 			      s->ybase - boff, char1b, s->nchars);
 	}
+#endif
     }
 }
 
@@ -2635,38 +2636,17 @@ x_draw_image_foreground (s)
 
   if (s->img->pixmap)
     {
-      if (s->img->mask)
-	{
-	  Rect nr;
-	  XRectangle clip_rect, image_rect, r;
+      x_set_glyph_string_clipping (s);
 
-	  get_glyph_string_clip_rect (s, &nr);
-	  CONVERT_TO_XRECT (clip_rect, nr);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->slice.width;
-	  image_rect.height = s->slice.height;
-	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-	    mac_copy_area_with_mask (s->display, s->img->pixmap, s->img->mask,
-				     s->window, s->gc,
-				     s->slice.x + r.x - x, s->slice.y + r.y - y,
-				     r.width, r.height, r.x, r.y);
-	}
+      if (s->img->mask)
+	mac_copy_area_with_mask (s->display, s->img->pixmap, s->img->mask,
+				 s->window, s->gc, s->slice.x, s->slice.y,
+				 s->slice.width, s->slice.height, x, y);
       else
 	{
-	  Rect nr;
-	  XRectangle clip_rect, image_rect, r;
-
-	  get_glyph_string_clip_rect (s, &nr);
-	  CONVERT_TO_XRECT (clip_rect, nr);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->slice.width;
-	  image_rect.height = s->slice.height;
-	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-	    mac_copy_area (s->display, s->img->pixmap, s->window, s->gc,
-			   s->slice.x + r.x - x, s->slice.y + r.y - y,
-			   r.width, r.height, r.x, r.y);
+	  mac_copy_area (s->display, s->img->pixmap,
+			 s->window, s->gc, s->slice.x, s->slice.y,
+			 s->slice.width, s->slice.height, x, y);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -2745,6 +2725,7 @@ x_draw_image_relief (s)
 }
 
 
+#if 0 /* TODO: figure out if we need to do this on Mac.  */
 /* Draw the foreground of image glyph string S to PIXMAP.  */
 
 static void
@@ -2805,6 +2786,7 @@ x_draw_image_foreground_1 (s, pixmap)
     mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x, y,
 				  s->slice.width - 1, s->slice.height - 1);
 }
+#endif
 
 
 /* Draw part of the background of glyph string S.  X, Y, W, and H
@@ -2876,6 +2858,7 @@ x_draw_image_glyph_string (s)
       if (s->slice.y == 0)
 	y += box_line_vwidth;
 
+#if 0 /* TODO: figure out if we need to do this on Mac.  */
       if (s->img->mask)
 	{
 	  /* Create a pixmap as large as the glyph string.  Fill it
@@ -2912,12 +2895,14 @@ x_draw_image_glyph_string (s)
 	    }
 	}
       else
+#endif
 	x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
 
       s->background_filled_p = 1;
     }
 
   /* Draw the foreground.  */
+#if 0 /* TODO: figure out if we need to do this on Mac.  */
   if (pixmap != 0)
     {
       x_draw_image_foreground_1 (s, pixmap);
@@ -2928,6 +2913,7 @@ x_draw_image_glyph_string (s)
       XFreePixmap (s->display, pixmap);
     }
   else
+#endif
     x_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
@@ -5899,7 +5885,14 @@ mac_font_match (char *mf, char *xf)
 static Lisp_Object Qbig5, Qcn_gb, Qsjis, Qeuc_kr;
 
 static void
-decode_mac_font_name (char *name, int size, short scriptcode)
+decode_mac_font_name (name, size, scriptcode)
+     char *name;
+     int size;
+#if TARGET_API_MAC_CARBON
+     int scriptcode;
+#else
+     short scriptcode;
+#endif
 {
   Lisp_Object coding_system;
   struct coding_system coding;
@@ -5937,7 +5930,15 @@ decode_mac_font_name (char *name, int size, short scriptcode)
 
 
 static char *
-mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
+mac_to_x_fontname (name, size, style, scriptcode, encoding_base)
+     char *name;
+     int size;
+     Style style;
+#if TARGET_API_MAC_CARBON
+     int scriptcode;
+#else
+     short scriptcode;
+#endif
 {
   char foundry[32], family[32], cs[32];
   char xf[256], *result, *p;
@@ -5949,13 +5950,13 @@ mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
 
       switch (scriptcode)
       {
-      case smTradChinese:
+      case smTradChinese:	/* == kTextEncodingMacChineseTrad */
         strcpy(cs, "big5-0");
         break;
-      case smSimpChinese:
+      case smSimpChinese:	/* == kTextEncodingMacChineseSimp */
         strcpy(cs, "gb2312.1980-0");
         break;
-      case smJapanese:
+      case smJapanese:		/* == kTextEncodingMacJapanese */
         strcpy(cs, "jisx0208.1983-sjis");
         break;
       case -smJapanese:
@@ -5967,12 +5968,24 @@ mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
 	   font is being built.  */
 	strcpy(cs, "jisx0201.1976-0");
 	break;
-      case smKorean:
+      case smKorean:		/* == kTextEncodingMacKorean */
         strcpy(cs, "ksc5601.1989-0");
         break;
+#if TARGET_API_MAC_CARBON
+      case kTextEncodingMacCyrillic:
+	strcpy(cs, "mac-cyrillic");
+	break;
+      case kTextEncodingMacCentralEurRoman:
+	strcpy(cs, "mac-centraleuropean");
+	break;
+      case kTextEncodingMacSymbol:
+      case kTextEncodingMacDingbats:
+	strcpy(cs, "adobe-fontspecific");
+	break;
+#endif
       default:
-        strcpy(cs, "mac-roman");
-        break;
+	strcpy(cs, "mac-roman");
+	break;
       }
     }
 
@@ -6019,7 +6032,10 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
     coding_system = Qsjis;
   else if (strcmp (cs, "ksc5601.1989-0") == 0)
     coding_system = Qeuc_kr;
-  else if (strcmp (cs, "mac-roman") == 0)
+  else if (strcmp (cs, "mac-roman") == 0
+	   || strcmp (cs, "mac-cyrillic") == 0
+	   || strcmp (cs, "mac-centraleuropean") == 0
+	   || strcmp (cs, "adobe-fontspecific") == 0)
     strcpy (mf, family);
   else
     sprintf (mf, "%s-%s-%s", foundry, family, cs);
@@ -6091,7 +6107,8 @@ init_font_name_table ()
 	  FMFont font;
 	  FMFontStyle style;
 	  FMFontSize size;
-	  SInt16 sc;
+	  TextEncoding encoding;
+	  TextEncodingBase sc;
 
 	  if (FMGetFontFamilyName (ff, name) != noErr)
 	    break;
@@ -6099,9 +6116,11 @@ init_font_name_table ()
 	  if (*name == '.')
 	    continue;
 
-	  sc = FontToScript (ff);
+	  if (FMGetFontFamilyTextEncoding (ff, &encoding) != noErr)
+	    break;
+	  sc = GetTextEncodingBase (encoding);
 	  decode_mac_font_name (name, sizeof (name), sc);
-
+				       
 	  /* Point the instance iterator at the current font family.  */
 	  if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
 	    break;
@@ -8619,17 +8638,30 @@ XTread_socket (sd, expected, hold_quit)
 		{
 		  unsigned char ch = inev.code;
 		  ByteCount actual_input_length, actual_output_length;
-		  unsigned char outch;
-
-		  convert_status = TECConvertText (converter, &ch, 1,
-						   &actual_input_length,
-						   &outch, 1,
-						   &actual_output_length);
-		  if (convert_status == noErr
-		      && actual_input_length == 1
-		      && actual_output_length == 1)
-		    inev.code = outch;
-		}
+		  unsigned char outbuf[32];
+		  
+                  convert_status = TECConvertText (converter, &ch, 1,
+                                                   &actual_input_length,
+						   outbuf, 1,
+                                                   &actual_output_length);
+                  if (convert_status == noErr
+                      && actual_input_length == 1
+                      && actual_output_length == 1)
+		    inev.code = *outbuf;
+		  
+		  /* Reset internal states of the converter object.
+                   If it fails, create another one. */
+		  convert_status = TECFlushText (converter, outbuf,
+						 sizeof (outbuf),
+                                               &actual_output_length);
+		  if (convert_status != noErr)
+		    {
+		      TECDisposeConverter (converter);
+		      TECCreateConverter (&converter,
+					  kTextEncodingMacRoman,
+					  mac_keyboard_text_encoding);
+		    }
+                }
 	    }
 
 #if USE_CARBON_EVENTS
@@ -9148,7 +9180,7 @@ static struct redisplay_interface x_redisplay_interface =
   x_update_window_end,
   x_cursor_to,
   x_flush,
-  x_flush,
+  0, /* flush_display_optional */
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,

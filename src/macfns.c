@@ -4415,8 +4415,8 @@ frame_parm_handler mac_frame_parm_handlers[] =
   0, /* MAC_TODO: x_set_scroll_bar_background, */
   x_set_screen_gamma,
   x_set_line_spacing,
-  0, /* MAC_TODO: x_set_fringe_width, */
-  0, /* MAC_TODO: x_set_fringe_width, */
+  x_set_fringe_width,
+  x_set_fringe_width,
   0, /* x_set_wait_for_wm, */
   0, /* MAC_TODO: x_set_fullscreen, */
 };
