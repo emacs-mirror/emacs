@@ -853,7 +853,7 @@ are shown; the contents of those subgroups are initially hidden."
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
 	(let ((window (selected-window)))
-	  (pop-to-buffer-other-window name)
+	  (pop-to-buffer name)
 	  (select-window window))
       (custom-buffer-create-other-window
        (list (list group 'custom-group))
