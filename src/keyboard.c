@@ -7086,7 +7086,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
      history list. */
   function = Fcompleting_read (build_string (buf),
 			       Vobarray, Qcommandp,
-			       Qt, Qnil, Qextended_command_history, Qnil);
+			       Qt, Qnil, Qextended_command_history, Qnil,
+			       Qnil);
 
   if (STRINGP (function) && XSTRING (function)->size == 0)
     error ("No command name given");
