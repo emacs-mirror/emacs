@@ -107,6 +107,12 @@ Lisp_Object memory_signal_data;
 #define MAX_SAVE_STACK 16000
 #endif
 
+/* Define DONT_COPY_FLAG to be the bit in a small string that was placed
+   in the low bit of the size field when marking small strings.  */
+#ifndef DONT_COPY_FLAG
+#define DONT_COPY_FLAG PSEUDO_VECTOR_FLAG
+#endif /* no DONT_COPY_FLAG  */
+
 /* Buffer in which we save a copy of the C stack at each GC.  */
 
 char *stack_copy;
@@ -1514,10 +1520,12 @@ mark_object (objptr)
 	      }
 	    else
 	      XSETFASTINT (*objptr, ptr->size);
-	    if ((EMACS_INT) objptr & 1) abort ();
+
+	    if ((EMACS_INT) objptr & DONT_COPY_FLAG)
+	      abort ();
 	    ptr->size = (EMACS_INT) objptr & ~MARKBIT;
 	    if ((EMACS_INT) objptr & MARKBIT)
-	      ptr->size ++;
+	      ptr->size |= DONT_COPY_FLAG;
 	  }
       }
       break;
@@ -2035,7 +2043,7 @@ gc_sweep ()
 	if (s->size & ARRAY_MARK_FLAG)
 	  {
 	    ((struct Lisp_String *)(&sb->chars[0]))->size
-	      &= ~ARRAY_MARK_FLAG & ~MARKBIT;
+	      &= ~ARRAY_MARK_FLAG & ~MARKBIT & ~DONT_COPY_FLAG;
 	    UNMARK_BALANCE_INTERVALS (s->intervals);
 	    total_string_size += ((struct Lisp_String *)(&sb->chars[0]))->size;
 	    prev = sb, sb = sb->next;
@@ -2085,13 +2093,14 @@ compact_strings ()
 
 	  /* NEXTSTR is the old address of the next string.
 	     Just skip it if it isn't marked.  */
-	  if ((EMACS_UINT) size > STRING_BLOCK_SIZE)
+	  if (((EMACS_UINT) size & ~DONT_COPY_FLAG) > STRING_BLOCK_SIZE)
 	    {
 	      /* It is marked, so its size field is really a chain of refs.
 		 Find the end of the chain, where the actual size lives.  */
-	      while ((EMACS_UINT) size > STRING_BLOCK_SIZE)
+	      while (((EMACS_UINT) size & ~DONT_COPY_FLAG) > STRING_BLOCK_SIZE)
 		{
-		  if (size & 1) size ^= MARKBIT | 1;
+		  if (size & DONT_COPY_FLAG)
+		    size ^= MARKBIT | DONT_COPY_FLAG;
 		  size = *(EMACS_INT *)size & ~MARKBIT;
 		}
 
@@ -2125,10 +2134,11 @@ compact_strings ()
 		 and make each slot in the chain point to
 		 the new address of this string.  */
 	      size = newaddr->size;
-	      while ((EMACS_UINT) size > STRING_BLOCK_SIZE)
+	      while (((EMACS_UINT) size & ~DONT_COPY_FLAG) > STRING_BLOCK_SIZE)
 		{
 		  register Lisp_Object *objptr;
-		  if (size & 1) size ^= MARKBIT | 1;
+		  if (size & DONT_COPY_FLAG)
+		    size ^= MARKBIT | DONT_COPY_FLAG;
 		  objptr = (Lisp_Object *)size;
 
 		  size = XFASTINT (*objptr) & ~MARKBIT;
