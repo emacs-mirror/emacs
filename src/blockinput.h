@@ -52,21 +52,26 @@ extern int interrupt_input_pending;
 /* Begin critical section. */
 #define BLOCK_INPUT (interrupt_input_blocked++)
 
-/* End critical section. */
-#ifdef SIGIO
-/* If doing interrupt input, and an interrupt came in when input was blocked,
-   reinvoke the interrupt handler now to deal with it.  */
+/* End critical section.
+
+   If doing signal-driven input, and a signal came in when input was
+   blocked, reinvoke the signal handler now to deal with it.
+
+   We used to have two possible definitions of this macro - one for
+   when SIGIO was #defined, and one for when it wasn't; when SIGIO
+   wasn't #defined, we wouldn't bother to check if we should re-invoke
+   the signal handler.  But that doesn't work very well; some of the
+   files which use this macro don't #include the right files to get
+   SIGIO.
+
+   So, we always test interrupt_input_pending now; that's not too
+   expensive, and it'll never get set if we don't need to resignal.  */
 #define UNBLOCK_INPUT \
   (interrupt_input_blocked--, \
    (interrupt_input_blocked < 0 ? (abort (), 0) : 0), \
    ((interrupt_input_blocked == 0 && interrupt_input_pending != 0) \
-    ? (kill (0, SIGIO), 0) \
+    ? (reinvoke_input_signal (), 0) \
     : 0))
-#else
-#define UNBLOCK_INPUT \
-  (interrupt_input_blocked--, \
-   (interrupt_input_blocked < 0 ? (abort (), 0) : 0))
-#endif
 
 #define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
