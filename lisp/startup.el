@@ -930,13 +930,14 @@ where FACE is a valid face specification, as it can be used with
 
 (defun fancy-splash-tail ()
   "Insert the tail part of the splash screen into the current buffer."
-  (fancy-splash-insert
-   :face '(variable-pitch :foreground "darkblue")
-   "\nThis is "
-   (emacs-version)
-   "\n"
-   :face '(variable-pitch :height 0.5)
-   "Copyright (C) 2000 Free Software Foundation, Inc."))
+  (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
+		"cyan" "darkblue")))
+    (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
+			 "\nThis is "
+			 (emacs-version)
+			 "\n"
+			 :face '(variable-pitch :height 0.5)
+			 "Copyright (C) 2000 Free Software Foundation, Inc.")))
 
 
 (defun fancy-splash-screens ()
