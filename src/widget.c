@@ -882,17 +882,32 @@ EmacsFrameSetCharSize (widget, columns, rows)
        ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
        : 0);
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
-  result = XtMakeResizeRequest ((Widget)ew,
+
+/* Dont call XtMakeResize Request. This appears to not work for all
+   the cases.
+   Use XtVaSetValues instead.  */
+#if 0
+result = XtMakeResizeRequest ((Widget)ew,
 				pixel_width, pixel_height,
 				&granted_width, &granted_height);
   if (result == XtGeometryAlmost)
     XtMakeResizeRequest ((Widget) ew, granted_width, granted_height,
 			 NULL, NULL);
-  /* damn Paned widget won't ever change its width.  Force it. */
-  if (ew->core.width != pixel_width)
+#endif
+  /* Recompute the entire geometry management.  */
+  if (ew->core.width != pixel_width || ew->core.height != pixel_height)
     {
-      XtVaSetValues (XtParent ((Widget) ew), XtNwidth, pixel_width, 0);
-      XtVaSetValues ((Widget) ew, XtNwidth, pixel_width, 0);
+      int hdelta = pixel_height - ew->core.height;
+      int column_widget_height = f->display.x->column_widget->core.height;
+      XtVaSetValues ((Widget) ew, 
+		          XtNheight, pixel_height,
+		          XtNwidth, pixel_width,
+		          0);
+
+      XtVaSetValues (f->display.x->column_widget,
+		          XtNwidth, pixel_width,
+		          XtNheight, column_widget_height + hdelta, 
+		          0);
     }
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
