@@ -330,7 +330,7 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
             (list (calendar-gregorian-from-absolute (+ abs-easter 49))
                   "Pentecost (Whitsunday)")
             (list (calendar-gregorian-from-absolute (+ abs-easter 50))
-                  "Whitmunday")
+                  "Whitmonday")
             (list (calendar-gregorian-from-absolute (+ abs-easter 56))
                   "Trinity Sunday")
             (list (calendar-gregorian-from-absolute (+ abs-easter 60))
