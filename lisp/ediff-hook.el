@@ -131,10 +131,10 @@
        ))
    (defvar ediff-misc-menu
      '("Ediff Miscellanea"
-       ["Ediff Manual..." ediff-documentation t]
-       ["Customize Ediff..." ediff-customize t]
-       ["List Ediff Sessions..." ediff-show-registry t]
-       ["Use separate frame for Ediff control buffer..."
+       ["Ediff Manual" ediff-documentation t]
+       ["Customize Ediff" ediff-customize t]
+       ["List Ediff Sessions" ediff-show-registry t]
+       ["Use separate frame for Ediff control buffer"
 	ediff-toggle-multiframe
 	:style toggle
 	:selected (if (and (featurep 'ediff-util)
@@ -242,14 +242,14 @@
 
        ;; define ediff miscellanea
        (define-key menu-bar-ediff-misc-menu [emultiframe]
-	 '("Toggle use of separate control buffer frame..."
+	 '("Toggle use of separate control buffer frame"
 	   . ediff-toggle-multiframe))
        (define-key menu-bar-ediff-misc-menu [eregistry]
-	 '("List Ediff Sessions..." . ediff-show-registry))
+	 '("List Ediff Sessions" . ediff-show-registry))
        (define-key menu-bar-ediff-misc-menu [ediff-cust]
-	 '("Customize Ediff..." . ediff-customize))
+	 '("Customize Ediff" . ediff-customize))
        (define-key menu-bar-ediff-misc-menu [ediff-doc]
-	 '("Ediff Manual..." . ediff-documentation))
+	 '("Ediff Manual" . ediff-documentation))
        )
 
       ) ; emacs case
