@@ -1,5 +1,7 @@
 2004-03-27  Dave Love  <fx@gnu.org>
 
+	* emacs-lisp/rx.el (rx): Work at compile time, not run time.
+
 	* strokes.el (strokes-global-set-stroke-string): New function.
 	(strokes-list-strokes): Cope with strings, not just commands.  Set
 	foreground colour of image.
