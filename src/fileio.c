@@ -231,7 +231,7 @@ Lisp_Object Qfile_name_history;
 Lisp_Object Qcar_less_than_car;
 
 static int a_write P_ ((int, char *, int, int,
-			Lisp_Object, struct coding_system *));
+			Lisp_Object *, struct coding_system *));
 static int e_write P_ ((int, char *, int, struct coding_system *));
 
 void
