@@ -1564,7 +1564,7 @@ All arguments are markers.  If END-MK is non nil, mark is set there."
       (unless compilation-highlight-overlay
 	(setq compilation-highlight-overlay
 	      (make-overlay (point-min) (point-min)))
-	(overlay-put compilation-highlight-overlay 'face 'region))
+	(overlay-put compilation-highlight-overlay 'face 'next-error))
       (with-current-buffer (marker-buffer mk)
 	(save-excursion
 	  (end-of-line)
@@ -1574,11 +1574,18 @@ All arguments are markers.  If END-MK is non nil, mark is set there."
 		     (re-search-forward highlight-regexp end t))
 		(progn
 		  (goto-char (match-beginning 0))
-		  (move-overlay compilation-highlight-overlay (match-beginning 0) (match-end 0)))
-	      (move-overlay compilation-highlight-overlay (point) end))
-	    (sit-for 0.5)
-	    (delete-overlay compilation-highlight-overlay)))))))
-
+		  (move-overlay compilation-highlight-overlay
+				(match-beginning 0) (match-end 0)
+				(current-buffer)))
+	      (move-overlay compilation-highlight-overlay
+			    (point) end (current-buffer)))
+	    (if (numberp next-error-highlight)
+		(sit-for next-error-highlight))
+	    (if (not (eq next-error-highlight t))
+		(delete-overlay compilation-highlight-overlay))))))
+    (when (and (eq next-error-highlight 'fringe-arrow))
+      (set (make-local-variable 'overlay-arrow-position)
+	   (copy-marker (line-beginning-position))))))
 
 (defun compilation-find-file (marker filename dir &rest formats)
   "Find a buffer for file FILENAME.
