@@ -993,7 +993,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 	(error "No word found to check!"))
     (setq start (match-beginning 0)
 	  end (point)
-	  word (buffer-substring start end))
+	  word (buffer-substring-no-properties start end))
     (list word start end)))
 
 
@@ -1708,7 +1708,7 @@ With prefix argument, set the default directory."
 		   (setq ispell-dictionary dict))
 	       (if (null arg)		; set local dictionary
 		   (setq ispell-local-dictionary dict)))
-	   (error "Illegal dictionary: %s" dict))
+	   (error "Invalid Ispell dictionary: %s" dict))
 	 (ispell-kill-ispell t)
 	 (message "(Next %sIspell command will use %s dictionary)"
 		  (cond ((equal ispell-local-dictionary ispell-dictionary)
@@ -2360,7 +2360,7 @@ Includes latex/nroff modes and extended character mode."
 		 (process-send-string ispell-process "-\n~nroff"))
 		((string-match "~" string) ; Set extended character mode.
 		 (process-send-string ispell-process (concat string "\n")))
-		(t (message "Illegal Ispell Parsing argument!")
+		(t (message "Invalid Ispell Parsing argument!")
 		   (sit-for 2))))))))
 
 
@@ -2381,13 +2381,15 @@ Both should not be used to define a buffer-local dictionary."
 	(setq end (save-excursion (end-of-line) (point)))
 	(if (re-search-forward " *\\([^ \"]+\\)" end t)
 	    (setq ispell-local-dictionary
-		  (buffer-substring (match-beginning 1) (match-end 1)))))
+		  (buffer-substring-no-properties (match-beginning 1)
+						  (match-end 1)))))
       (goto-char (point-min))
       (while (search-forward ispell-pdict-keyword nil t)
 	(setq end (save-excursion (end-of-line) (point)))
 	(if (re-search-forward " *\\([^ \"]+\\)" end t)
 	    (setq ispell-local-pdict
-		  (buffer-substring (match-beginning 1) (match-end 1)))))))
+		  (buffer-substring-no-properties (match-beginning 1)
+						  (match-end 1)))))))
   ;; Reload if new personal dictionary defined.
   (if (and ispell-local-pdict
 	   (not (equal ispell-local-pdict ispell-personal-dictionary)))
