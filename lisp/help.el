@@ -1473,7 +1473,7 @@ out of view."
      (catch . "(catch TAG BODY...)")
      (unwind-protect . "(unwind-protect BODYFORM UNWINDFORMS...)")
      (condition-case . "(condition-case VAR BODYFORM HANDLERS...)")
-     (track-mouse . "(track-mouse BOFY ...)")
+     (track-mouse . "(track-mouse BODY ...)")
      (ml-if . "(ml-if COND THEN ELSE...)")
      (ml-provide-prefix-argument . "(ml-provide-prefix-argument ARG1 ARG2)")
      (with-output-to-temp-buffer
