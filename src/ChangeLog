@@ -1,3 +1,24 @@
+2005-02-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Fix escape-glyph criterion
+	for mode and header lines.
+
+	* lread.c (syms_of_lread) <user-init-file>: Doc fix.
+
+	* keymap.h (describe_map_tree): Change decl.
+
+	* keyboard.c (command_loop_1): Always use safe_run_hooks
+	to run Qdeferred_action_function.
+
+	* keymap.c (describe_map_tree): New arg MENTION_SHADOW.  Calls changed.
+	(describe_map, describe_vector): Likewise.  When it's 1,
+	don't omit shadowed bindings, instead mark them as shadowed.
+
+	* doc.c (Fsubstitute_command_keys): Compute list of shadowing maps
+	for describe_map_tree.  Pass 1 for MENTION_SHADOW.
+
+	* data.c (Fsetq_default): Allow no arg case.
+
 2005-02-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_string): Always return a unibyte string.
