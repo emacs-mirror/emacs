@@ -474,7 +474,7 @@ Otherwise, just return the value."
   "In WIDGET, match the start of VALS."
   (cond ((widget-get widget :inline)
 	 (widget-apply widget :match-inline vals))
-	((and vals
+	((and (listp vals)
 	      (widget-apply widget :match (car vals)))
 	 (cons (list (car vals)) (cdr vals)))
 	(t nil)))
