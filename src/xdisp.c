@@ -48,7 +48,7 @@ extern Lisp_Object Qface;
 extern Lisp_Object Voverriding_local_map;
 extern Lisp_Object Voverriding_local_map_menu_flag;
 
-Lisp_Object Qoverriding_local_map;
+Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
@@ -1268,7 +1268,10 @@ update_menu_bar (f, save_match_data)
 	  if (save_match_data)
 	    record_unwind_protect (Fstore_match_data, Fmatch_data ());
 	  if (NILP (Voverriding_local_map_menu_flag))
-	    specbind (Qoverriding_local_map, Qnil);
+	    {
+	      specbind (Qoverriding_terminal_local_map, Qnil);
+	      specbind (Qoverriding_local_map, Qnil);
+	    }
 
 	  /* Run the Lucid hook.  */
 	  call1 (Vrun_hooks, Qactivate_menubar_hook);
@@ -4056,6 +4059,9 @@ syms_of_xdisp ()
 {
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
+
+  staticpro (&Qoverriding_terminal_local_map);
+  Qoverriding_local_map = intern ("overriding-terminal-local-map");
 
   staticpro (&Qoverriding_local_map);
   Qoverriding_local_map = intern ("overriding-local-map");
