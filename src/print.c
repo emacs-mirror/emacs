@@ -977,6 +977,8 @@ print (obj, printcharfun, escapeflag)
 	      PRINTCHAR ('#');
 	      size &= PSEUDOVECTOR_SIZE_MASK;
 	    }
+	  if (size & PSEUDOVECTOR_FLAG)
+	    goto badtype;
 
 	  PRINTCHAR ('[');
 	  {
@@ -995,8 +997,9 @@ print (obj, printcharfun, escapeflag)
 
 #ifndef standalone
     case Lisp_Misc:
-      if (MARKERP (obj))
+      switch (XMISC (obj)->type)
 	{
+	case Lisp_Misc_Marker:
 	  strout ("#<marker ", -1, printcharfun);
 	  if (!(XMARKER (obj)->buffer))
 	    strout ("in no buffer", -1, printcharfun);
@@ -1009,9 +1012,8 @@ print (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('>');
 	  break;
-	}
-      else if (OVERLAYP (obj))
-	{
+
+	case Lisp_Misc_Overlay:
 	  strout ("#<overlay ", -1, printcharfun);
 	  if (!(XMARKER (OVERLAY_START (obj))->buffer))
 	    strout ("in no buffer", -1, printcharfun);
@@ -1026,16 +1028,76 @@ print (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('>');
 	  break;
+
+      /* Remaining cases shouldn't happen in normal usage, but let's print
+	 them anyway for the benefit of the debugger.  */
+	case Lisp_Misc_Free:
+	  strout ("#<misc free cell>", -1, printcharfun);
+	  break;
+
+	case Lisp_Misc_Intfwd:
+	  sprintf (buf, "#<intfwd to %d>", *XINTFWD (obj)->intvar);
+	  strout (buf, -1, printcharfun);
+	  break;
+
+	case Lisp_Misc_Boolfwd:
+	  sprintf (buf, "#<boolfwd to %s>",
+		   (*XBOOLFWD (obj)->boolvar ? "t" : "nil"));
+	  strout (buf, -1, printcharfun);
+	  break;
+
+	case Lisp_Misc_Objfwd:
+	  strout (buf, "#<objfwd to ", -1, printcharfun);
+	  print (*XOBJFWD (obj)->objvar, printcharfun, escapeflag);
+	  PRINTCHAR ('>');
+	  break;
+
+	case Lisp_Misc_Buffer_Objfwd:
+	  strout (buf, "#<buffer_objfwd to ", -1, printcharfun);
+	  print (*(Lisp_Object *)((char *)current_buffer +
+				  XBUFFER_OBJFWD (obj)->offset),
+		 printcharfun, escapeflag);
+	  PRINTCHAR ('>');
+	  break;
+
+	case Lisp_Misc_Buffer_Local_Value:
+	  strout ("#<buffer_local_value ", -1, printcharfun);
+	  goto do_buffer_local;
+	case Lisp_Misc_Some_Buffer_Local_Value:
+	  strout ("#<some_buffer_local_value ", -1, printcharfun);
+	do_buffer_local:
+	  strout ("[realvalue] ", -1, printcharfun);
+	  print (XBUFFER_LOCAL_VALUE (obj)->car, printcharfun, escapeflag);
+	  strout ("[buffer] ", -1, printcharfun);
+	  print (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->car,
+		 printcharfun, escapeflag);
+	  strout ("[alist-elt] ", -1, printcharfun);
+	  print (XCONS (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr)->car,
+		 printcharfun, escapeflag);
+	  strout ("[default-value] ", -1, printcharfun);
+	  print (XCONS (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr)->cdr,
+		 printcharfun, escapeflag);
+	  PRINTCHAR ('>');
+	  break;
+
+	default:
+	  goto badtype;
 	}
-      /* Other cases fall through to get an error.  */
+      break;
 #endif /* standalone */
 
     default:
+    badtype:
       {
 	/* We're in trouble if this happens!
 	   Probably should just abort () */
 	strout ("#<EMACS BUG: INVALID DATATYPE ", -1, printcharfun);
-	sprintf (buf, "(#o%3o)", (int) XTYPE (obj));
+	if (MISCP (obj))
+	  sprintf (buf, "(MISC 0x%04x)", (int) XMISC (obj)->type);
+	else if (VECTORLIKEP (obj))
+	  sprintf (buf, "(PVEC 0x%08x)", (int) XVECTOR (obj)->size);
+	else
+	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, printcharfun);
 	strout (" Save your buffers immediately and please report this bug>",
 		-1, printcharfun);
