@@ -455,7 +455,7 @@ Mule4 only."
     (nreverse out)))
 
 (defvar mm-inhibit-file-name-handlers
-  '(jka-compr-handler)
+  '(jka-compr-handler image-file-handler)
   "A list of handlers doing (un)compression (etc) thingies.")
 
 (defun mm-insert-file-contents (filename &optional visit beg end replace
@@ -494,6 +494,8 @@ If INHIBIT is non-nil, inhibit mm-inhibit-file-name-handlers."
   (let ((coding-system-for-write 
 	 (or codesys mm-text-coding-system-for-write 
 	     mm-text-coding-system))
+	;; Why on earth doesn't this just nullify
+	;; file-name-handler-alist?  -- fx
 	(inhibit-file-name-operation (if inhibit 
 					 'append-to-file
 				       inhibit-file-name-operation))
