@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SUNOS/SPARC v8/LCC PLATFORM
 #
-#  $HopeName: MMsrc!sus8lc.gmk(trunk.16) $
+#  $HopeName: MMsrc!sus8lc.gmk(trunk.17) $
 #  Copyright (C) 1996,1997 Harlequin Group, all rights reserved
 #
 #  This is the GNU makefile for platform.sus8lc.
@@ -19,7 +19,7 @@ MPMS = sssus8.s
 DW = fmtdy.c dw.c
 SW = assert.c ring.c mpm.c arenavm.c arenacl.c arena.c pool.c poolmfs.c \
      poolmv.c root.c format.c buffer.c lockan.c ref.c bt.c \
-     trace.c than.c protsw.c shield.c mpsi.c ld.c ssan.c vmsu.c \
+     trace.c than.c protsw.c prmcan.c shield.c mpsi.c ld.c ssan.c vmsu.c \
      poolepdl.c poolepvm.c action.c seg.c poolmrg.c message.c
 
 include lc.gmk
