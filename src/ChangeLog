@@ -1,3 +1,9 @@
+2000-07-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.c (next_frame, prev_frame): If MINIBUF is a window,
+	include those frames as candidates which have their focus
+	redirected to the minibuffer frame.
+
 2000-07-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fns.c (Fputhash): Return `value' rather than nil.
