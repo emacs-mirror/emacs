@@ -1593,39 +1593,128 @@ to be sure of changing the value of `foo'.")
 }
 
 DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
-  "Delete by side effect any occurrences of ELT as a member of LIST.\n\
-The modified LIST is returned.  Comparison is done with `equal'.\n\
-If the first member of LIST is ELT, deleting it is not a side effect;\n\
-it is simply using a different list.\n\
+  "Delete by side effect any occurrences of ELT as a member of SEQ.\n\
+SEQ must be a list, a vector, or a string.\n\
+The modified SEQ is returned.  Comparison is done with `equal'.\n\
+If SEQ is not a list, or the first member of SEQ is ELT, deleting it\n\
+is not a side effect; it is simply using a different sequence.\n\
 Therefore, write `(setq foo (delete element foo))'\n\
 to be sure of changing the value of `foo'.")
-  (elt, list)
-     register Lisp_Object elt;
-     Lisp_Object list;
+  (elt, seq)
+     Lisp_Object elt, seq;
 {
-  register Lisp_Object tail, prev;
-  register Lisp_Object tem;
-
-  tail = list;
-  prev = Qnil;
-  while (!NILP (tail))
+  if (VECTORP (seq))
     {
-      if (! CONSP (tail))
-	wrong_type_argument (Qlistp, list);
-      tem = XCAR (tail);
-      if (! NILP (Fequal (elt, tem)))
+      EMACS_INT i, n, size;
+
+      for (i = n = 0; i < ASIZE (seq); ++i)
+	if (NILP (Fequal (AREF (seq, i), elt)))
+	  ++n;
+
+      if (n != ASIZE (seq))
 	{
-	  if (NILP (prev))
-	    list = XCDR (tail);
-	  else
-	    Fsetcdr (prev, XCDR (tail));
+	  struct Lisp_Vector *p = allocate_vectorlike (n);
+	  
+	  for (i = n = 0; i < ASIZE (seq); ++i)
+	    if (NILP (Fequal (AREF (seq, i), elt)))
+	      p->contents[n++] = AREF (seq, i);
+
+	  p->size = n;
+	  XSETVECTOR (seq, p);
 	}
-      else
-	prev = tail;
-      tail = XCDR (tail);
-      QUIT;
     }
-  return list;
+  else if (STRINGP (seq))
+    {
+      EMACS_INT i, ibyte, nchars, nbytes, cbytes;
+      int c;
+
+      for (i = nchars = nbytes = ibyte = 0;
+	   i < XSTRING (seq)->size;
+	   ++i, ibyte += cbytes)
+	{
+	  if (STRING_MULTIBYTE (seq))
+	    {
+	      c = STRING_CHAR (&XSTRING (seq)->data[ibyte],
+			       STRING_BYTES (XSTRING (seq)) - ibyte);
+	      cbytes = CHAR_BYTES (c);
+	    }
+	  else
+	    {
+	      c = XSTRING (seq)->data[i];
+	      cbytes = 1;
+	    }
+	  
+	  if (!INTEGERP (elt) || c != XINT (elt))
+	    {
+	      ++nchars;
+	      nbytes += cbytes;
+	    }
+	}
+
+      if (nchars != XSTRING (seq)->size)
+	{
+	  Lisp_Object tem;
+
+	  tem = make_uninit_multibyte_string (nchars, nbytes);
+	  if (!STRING_MULTIBYTE (seq))
+	    SET_STRING_BYTES (XSTRING (tem), -1);
+	  
+	  for (i = nchars = nbytes = ibyte = 0;
+	       i < XSTRING (seq)->size;
+	       ++i, ibyte += cbytes)
+	    {
+	      if (STRING_MULTIBYTE (seq))
+		{
+		  c = STRING_CHAR (&XSTRING (seq)->data[ibyte],
+				   STRING_BYTES (XSTRING (seq)) - ibyte);
+		  cbytes = CHAR_BYTES (c);
+		}
+	      else
+		{
+		  c = XSTRING (seq)->data[i];
+		  cbytes = 1;
+		}
+	      
+	      if (!INTEGERP (elt) || c != XINT (elt))
+		{
+		  unsigned char *from = &XSTRING (seq)->data[ibyte];
+		  unsigned char *to   = &XSTRING (tem)->data[nbytes];
+		  EMACS_INT n;
+		  
+		  ++nchars;
+		  nbytes += cbytes;
+		  
+		  for (n = cbytes; n--; )
+		    *to++ = *from++;
+		}
+	    }
+
+	  seq = tem;
+	}
+    }
+  else
+    {
+      Lisp_Object tail, prev;
+
+      for (tail = seq, prev = Qnil; !NILP (tail); tail = XCDR (tail))
+	{
+	  if (!CONSP (tail))
+	    wrong_type_argument (Qlistp, seq);
+	  
+	  if (!NILP (Fequal (elt, XCAR (tail))))
+	    {
+	      if (NILP (prev))
+		seq = XCDR (tail);
+	      else
+		Fsetcdr (prev, XCDR (tail));
+	    }
+	  else
+	    prev = tail;
+	  QUIT;
+	}
+    }
+  
+  return seq;
 }
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
