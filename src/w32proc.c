@@ -2094,8 +2094,8 @@ If successful, the new layout id is returned, otherwise nil.")
   DWORD kl;
 
   CHECK_CONS (layout);
-  CHECK_NUMBER (XCAR (layout));
-  CHECK_NUMBER (XCDR (layout));
+  CHECK_NUMBER_CAR (layout);
+  CHECK_NUMBER_CDR (layout);
 
   kl = (XINT (XCAR (layout)) & 0xffff)
     | (XINT (XCDR (layout)) << 16);
