@@ -96,6 +96,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_SYS_TIMEB_H
 #undef HAVE_SYS_TIME_H
 #undef HAVE_UNISTD_H
+#undef HAVE_UTIME_H
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
 
