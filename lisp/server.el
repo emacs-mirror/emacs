@@ -251,7 +251,9 @@ as a suggestion for what to select next."
 	  (save-excursion
 	    (set-buffer buffer)
 	    (setq server-buffer-clients nil))
-	  (bury-buffer buffer)))
+	  (if (server-temp-file-p buffer)
+	      (kill-buffer buffer)
+	    (bury-buffer buffer))))
     next-buffer))
 
 (defun server-temp-file-p (buffer)
@@ -269,19 +271,17 @@ are considered temporary."
 Then bury it, and return a suggested buffer to select next."
   (let ((buffer (current-buffer)))
     (if server-buffer-clients
-	(let (suggested-buffer)
+	(progn
  	  (if (server-temp-file-p buffer)
 	      ;; For a temp file, save, and do make a non-numeric backup
 	      ;; (unless make-backup-files is nil).
 	      (let ((version-control nil)
 		    (buffer-backed-up nil))
-		(save-buffer)
-		(kill-buffer buffer)
-		(setq suggested-buffer (current-buffer)))
+		(save-buffer))
 	    (if (and (buffer-modified-p)
 		     (y-or-n-p (concat "Save file " buffer-file-name "? ")))
 		(save-buffer buffer)))
-	  (or (server-buffer-done buffer) suggested-buffer)))))
+	  (server-buffer-done buffer)))))
 
 ;; If a server buffer is killed, release its client.
 ;; I'm not sure this is really a good idea--do you want the client
