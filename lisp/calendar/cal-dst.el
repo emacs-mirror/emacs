@@ -63,8 +63,8 @@ absolute date ABS-DATE is the equivalent moment to X."
     (cons (+ calendar-system-time-basis
 	     ;; floor((2^16 h +l) / (60*60*24))
 	     (* 512 (floor h 675)) (floor u 675))
-	  ;; (2^16 h +l) % (60*60*24)
-	  (+ (* (% u 675) 128) (% l 128)))))
+	  ;; (2^16 h +l) mod (60*60*24)
+	  (+ (* (mod u 675) 128) (mod l 128)))))
 
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
@@ -77,9 +77,9 @@ midnight UTC on absolute date ABS-DATE."
          (u (+ (* 163 (mod a 512)) (floor s 128))))
     ;; Overflow is a terrible thing!
     (cons
-     ;; (60*60*24*a + s) / 2^16
+     ;; floor((60*60*24*a + s) / 2^16)
      (+ a (* 163 (floor a 512)) (floor u 512))
-     ;; (60*60*24*a + s) % 2^16
+     ;; (60*60*24*a + s) mod 2^16
      (+ (* 128 (mod u 512)) (mod s 128)))))
 
 (defun calendar-next-time-zone-transition (time)
