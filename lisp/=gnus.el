@@ -51,8 +51,7 @@
 ;;     (setq gnus-nntp-service 119)
 ;;
 ;;     Or, if you'd like to use a local news spool directly in stead
-;;     of NNTP, install nnspool.el and set the variable to nil as
-;;     follows:
+;;     of NNTP, set the variable to nil as follows:
 ;;
 ;;     (setq gnus-nntp-service nil)
 ;;
