@@ -4488,15 +4488,14 @@ redraws with point in the center of the current window.")
   (arg)
      register Lisp_Object arg;
 {
-  register struct window *w = XWINDOW (selected_window);
-  register int ht = displayed_window_lines (w);
-  struct position pos;
+  struct window *w = XWINDOW (selected_window);
   struct buffer *buf = XBUFFER (w->buffer);
   struct buffer *obuf = current_buffer;
+  int center_p = 0;
+  int charpos, bytepos;
 
   if (NILP (arg))
     {
-      extern int frame_garbaged;
       int i;
 
       /* Invalidate pixel data calculated for all compositions.  */
@@ -4505,31 +4504,61 @@ redraws with point in the center of the current window.")
 
       Fredraw_frame (w->frame);
       SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
-      XSETFASTINT (arg, ht / 2);
+      center_p = 1;
     }
   else if (CONSP (arg)) /* Just C-u. */
-    {
-      XSETFASTINT (arg, ht / 2);
-    }
+    center_p = 1;
   else
     {
       arg = Fprefix_numeric_value (arg);
       CHECK_NUMBER (arg, 0);
     }
 
-  if (XINT (arg) < 0)
-    XSETINT (arg, XINT (arg) + ht);
-
   set_buffer_internal (buf);
-  pos = *vmotion (PT, - XINT (arg), w);
 
-  set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
-  w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
-			   || FETCH_BYTE (pos.bytepos - 1) == '\n')
-			  ? Qt : Qnil);
+  /* Handle centering on a gfaphical frame specially.  Such frames can
+     have variable-height lines and centering point on the basis of
+     line counts would lead to strange effects.  */
+  if (center_p && FRAME_WINDOW_P (XFRAME (w->frame)))
+    {
+      struct it it;
+      struct text_pos pt;
+      
+      SET_TEXT_POS (pt, PT, PT_BYTE);
+      start_display (&it, w, pt);
+      move_it_vertically (&it, - it.last_visible_y / 2);
+      charpos = IT_CHARPOS (it);
+      bytepos = IT_BYTEPOS (it);
+    }
+  else
+    {
+      struct position pos;
+      
+      if (center_p)
+	{
+	  int ht = displayed_window_lines (w);
+	  arg = make_number (ht / 2);
+	}
+      else if (XINT (arg) < 0)
+	{
+	  int ht = displayed_window_lines (w);
+	  XSETINT (arg, XINT (arg) + ht);
+	}
+      
+      pos = *vmotion (PT, - XINT (arg), w);
+      charpos = pos.bufpos;
+      bytepos = pos.bytepos;
+    }
+
+  /* Set the new window start.  */
+  set_marker_both (w->start, w->buffer, charpos, bytepos);
   w->force_start = Qt;
+  if (bytepos == BEGV_BYTE || FETCH_BYTE (bytepos - 1) == '\n')
+    w->start_at_line_beg = Qt;
+  else
+    w->start_at_line_beg = Qnil;
+  
   set_buffer_internal (obuf);
-
   return Qnil;
 }
 
