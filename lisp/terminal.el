@@ -1145,11 +1145,11 @@ work with `terminfo' we will try to use it."
 
 
 (defun te-parse-program-and-args (s)
-  (cond ((string-match "\\`\\([a-zA-Z0-9-+=_.@/:]+[ \t]*\\)+\\'" s)
+  (cond ((string-match "\\`\\([-a-zA-Z0-9+=_.@/:]+[ \t]*\\)+\\'" s)
 	 (let ((l ()) (p 0))
 	   (while p
 	     (setq l (cons (if (string-match
-				"\\([a-zA-Z0-9-+=_.@/:]+\\)\\([ \t]+\\)*"
+				"\\([-a-zA-Z0-9+=_.@/:]+\\)\\([ \t]+\\)*"
 				s p)
 			       (prog1 (substring s p (match-end 1))
 				 (setq p (match-end 0))
@@ -1211,7 +1211,7 @@ of the terminal-emulator"
 ;;;; what a complete loss
 
 (defun te-quote-arg-for-sh (string)
-  (cond ((string-match "\\`[a-zA-Z0-9-+=_.@/:]+\\'"
+  (cond ((string-match "\\`[-a-zA-Z0-9+=_.@/:]+\\'"
 		       string)
 	 string)
 	((not (string-match "[$]" string))

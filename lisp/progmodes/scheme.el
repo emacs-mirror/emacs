@@ -381,7 +381,7 @@ of the start of the containing expression."
 
 (defun scheme-let-indent (state indent-point)
   (skip-chars-forward " \t")
-  (if (looking-at "[a-zA-Z0-9+-*/?!@$%^&_:~]")
+  (if (looking-at "[-a-zA-Z0-9+*/?!@$%^&_:~]")
       (scheme-indent-specform 2 state indent-point)
       (scheme-indent-specform 1 state indent-point)))
 
