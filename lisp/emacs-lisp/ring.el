@@ -1,4 +1,4 @@
-;;; ring.el --- handle rings of marks
+;;; ring.el --- handle rings of items
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
