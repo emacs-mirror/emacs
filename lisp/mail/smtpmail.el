@@ -223,6 +223,8 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
+        ;; Examine this variable now, so that
+	;; local binding in the mail buffer will take effect.
 	(smtpmail-mail-address
          (or (and mail-specify-envelope-from (mail-envelope-from))
              user-mail-address))
@@ -401,11 +403,14 @@ This is relative to `smtpmail-queue-dir'.")
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'no-conversion))
 	    (insert-file-contents file-msg))
-	  (if (not (null smtpmail-recipient-address-list))
-	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
-					  (current-buffer)))
-		  (error "Sending failed; SMTP protocol error"))
-	    (error "Sending failed; no recipients")))
+          (let ((smtpmail-mail-address
+                 (or (and mail-specify-envelope-from (mail-envelope-from))
+                     user-mail-address)))
+            (if (not (null smtpmail-recipient-address-list))
+                (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
+                                            (current-buffer)))
+                    (error "Sending failed; SMTP protocol error"))
+              (error "Sending failed; no recipients"))))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
 	(delete-region (point-at-bol) (point-at-bol 2)))
@@ -547,6 +552,12 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
+        ;; smtpmail-mail-address should be set to the appropriate
+        ;; buffer-local value by the caller, but in case not:
+        (envelope-from (or smtpmail-mail-address
+                           (and mail-specify-envelope-from
+                                (mail-envelope-from))
+                           user-mail-address))
 	response-code
 	greeting
 	process-buffer
@@ -696,7 +707,7 @@ This is relative to `smtpmail-queue-dir'.")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-                                                     smtpmail-mail-address
+                                                     envelope-from
 						     size-part
 						     body-part))
 
