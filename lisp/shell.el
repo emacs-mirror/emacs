@@ -152,7 +152,7 @@ This is a fine thing to set in your `.emacs' file.")
 
 (defvar shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt))
-      "~/A-Za-z0-9_^$!#%&{}@`'.()-"
+      "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 This variable is used to initialize `comint-file-name-chars' in the
