@@ -28,6 +28,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "lisp.h"
 #include "commands.h"
+#include "charset.h"
 
 #include "buffer.h"
 #include "keyboard.h"
@@ -1367,8 +1368,12 @@ map_char_table (c_function, function, chartable, depth, indices)
      int depth;
 {
   int i;
-  int size = CHAR_TABLE_ORDINARY_SLOTS;
+  int from, to;
 
+  if (depth == 0)
+    from = 0, to = CHAR_TABLE_ORDINARY_SLOTS;
+  else
+    from = 32, to = 128;
   /* Make INDICES longer if we are about to fill it up.  */
   if ((depth % 10) == 9)
     {
@@ -1378,22 +1383,30 @@ map_char_table (c_function, function, chartable, depth, indices)
       indices = new_indices;
     }
 
-  for (i = 0; i < size; i++)
+  for (i = from; i < to; i++)
     {
       Lisp_Object elt;
       indices[depth] = i;
       elt = XCHAR_TABLE (chartable)->contents[i];
       if (CHAR_TABLE_P (elt))
-	map_char_table (c_function, function, chartable, depth + 1, indices);
+	map_char_table (c_function, function, elt, depth + 1, indices);
       else if (c_function)
 	(*c_function) (depth + 1, indices, elt);
-      /* Here we should handle all cases where the range is a single character
-	 by passing that character as a number.  Currently, that is
-	 all the time, but with the MULE code this will have to be changed.  */
-      else if (depth == 0)
+      else if (depth == 0 && i < 256)
+	/* This is an ASCII or 8-bit European character.  */
 	call2 (function, make_number (i), elt);
       else
-	call2 (function, Fvector (depth + 1, indices), elt);
+	{
+	  /* This is an entry for multibyte characters.  */
+	  unsigned int charset = XFASTINT (indices[0]) - 128, c1, c2, c;
+	  if (CHARSET_DEFINED_P (charset))
+	    {
+	      c1 = depth < 1 ? 0 : XFASTINT (indices[1]);
+	      c2 = depth < 2 ? 0 : XFASTINT (indices[2]);
+	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
+	      call2 (function, make_number (c), elt);
+	    }
+	}	  
     }
 }
 
