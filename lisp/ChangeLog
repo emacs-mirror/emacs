@@ -1,3 +1,8 @@
+2000-08-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Fix the way of
+	checking the existence of any multibyte characters.
+
 2000-08-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* help.el (describe-mode): Test minor-mode symbol for being
