@@ -210,6 +210,10 @@ extern int errno;
 #define LOAD_AVE_TYPE long
 #endif
 
+#ifdef _AIX
+#define LOAD_AVE_TYPE long
+#endif
+
 #endif /* No LOAD_AVE_TYPE.  */
 
 #ifdef OSF_ALPHA
@@ -252,6 +256,10 @@ extern int errno;
 
 #ifdef tek4300
 #define FSCALE 100.0
+#endif
+
+#ifdef _AIX
+#define FSCALE 65536.0
 #endif
 
 #endif	/* Not FSCALE.  */
@@ -315,6 +323,10 @@ extern int errno;
 #define NLIST_STRUCT
 #endif
 
+#ifdef _AIX
+#define NLIST_STRUCT
+#endif
+
 #endif /* defined (NLIST_STRUCT) */
 
 
@@ -340,7 +352,7 @@ extern int errno;
 #define LDAV_SYMBOL "_Loadavg"
 #endif
 
-#if !defined(LDAV_SYMBOL) && ((defined(hpux) && !defined(hp9000s300)) || defined(_SEQUENT_) || defined(SVR4) || defined(ISC) || defined(sgi) || (defined (ardent) && defined (titan)))
+#if !defined(LDAV_SYMBOL) && ((defined(hpux) && !defined(hp9000s300)) || defined(_SEQUENT_) || defined(SVR4) || defined(ISC) || defined(sgi) || (defined (ardent) && defined (titan)) || defined (_AIX))
 #define LDAV_SYMBOL "avenrun"
 #endif
 
@@ -790,23 +802,29 @@ getloadavg (loadavg, nelem)
 #endif /* NLIST_STRUCT */
 
 #ifndef SUNOS_5
-      if (nlist (KERNEL_FILE, nl) >= 0)
-	/* Omit "&& nl[0].n_type != 0 " -- it breaks on Sun386i.  */
-	{
-#ifdef FIXUP_KERNEL_SYMBOL_ADDR
-	  FIXUP_KERNEL_SYMBOL_ADDR (nl);
+      if (
+#ifndef _AIX
+	  nlist (KERNEL_FILE, nl)
+#else  /* _AIX */
+	  knlist (nl, 1, sizeof (nl[0]))
 #endif
-	  offset = nl[0].n_value;
-	}
-#endif  /* !SUNOS_5 */
-#else /* sgi */
-      int ldav_off;
+	  >= 0)
+	  /* Omit "&& nl[0].n_type != 0 " -- it breaks on Sun386i.  */
+	  {
+#ifdef FIXUP_KERNEL_SYMBOL_ADDR
+	    FIXUP_KERNEL_SYMBOL_ADDR (nl);
+#endif
+	    offset = nl[0].n_value;
+	  }
+#endif /* !SUNOS_5 */
+#else  /* sgi */
+	  int ldav_off;
 
-      ldav_off = sysmp (MP_KERNADDR, MPKA_AVENRUN);
-      if (ldav_off != -1)
-	offset = (long) ldav_off & 0x7fffffff;
+	  ldav_off = sysmp (MP_KERNADDR, MPKA_AVENRUN);
+	  if (ldav_off != -1)
+	  offset = (long) ldav_off & 0x7fffffff;
 #endif /* sgi */
-    }
+	}
 
   /* Make sure we have /dev/kmem open.  */
   if (!getloadavg_initialized)
