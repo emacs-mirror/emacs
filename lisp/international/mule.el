@@ -903,6 +903,17 @@ and the contents of `file-coding-system-alist'.")
   "Non-nil means look for `load-coding' property instead of `coding'.
 This is used for loading and byte-compiling Emacs Lisp files.")
 
+(defun auto-coding-alist-lookup (filename)
+  "Return the coding system specified by `auto-coding-alist' for FILENAME."
+  (let ((alist auto-coding-alist)
+	(case-fold-search (memq system-type '(vax-vms windows-nt)))
+	coding-system)
+    (while (and alist (not coding-system))
+      (if (string-match (car (car alist)) filename)
+	  (setq coding-system (cdr (car alist)))
+	(setq alist (cdr alist))))
+    coding-system))
+
 (defun set-auto-coding (filename size)
   "Return coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
@@ -919,13 +930,7 @@ or nil if nothing specified.
 
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
-  (let ((alist auto-coding-alist)
-	(case-fold-search (memq system-type '(vax-vms windows-nt)))
-	coding-system)
-    (while (and alist (not coding-system))
-      (if (string-match (car (car alist)) filename)
-	  (setq coding-system (cdr (car alist)))
-	(setq alist (cdr alist))))
+  (let ((coding-system (auto-coding-alist-lookup filename)))
 
     (or coding-system
 	(let* ((case-fold-search t)
