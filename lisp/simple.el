@@ -1343,9 +1343,9 @@ store it in a Lisp variable.  Example:
     (set-marker (mark-marker) nil)))
 
 (defvar mark-ring nil
-  "The list of saved former marks of the current buffer,
-most recent first.")
+  "The list of former marks of the current buffer, most recent first.")
 (make-variable-buffer-local 'mark-ring)
+(put 'mark-ring 'permanent-local t)
 
 (defconst mark-ring-max 16
   "*Maximum size of mark ring.  Start discarding off end if gets this big.")
