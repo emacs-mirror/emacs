@@ -1071,14 +1071,7 @@ The returned value is a Quail map specific to KEY."
 		  (if input-method-exit-on-first-char
 		      (setq control-flag t))
 		(setq quail-current-str
-		      (substring quail-current-key 0 len)))
-	      (or enable-multibyte-characters
-		  (progn
-		    (if (not (stringp quail-current-str))
-			(setq quail-current-str
-			      (char-to-string quail-current-str)))
-		    (setq quail-current-str
-			  (string-as-unibyte quail-current-str))))))
+		      (substring quail-current-key 0 len)))))
 	(if quail-current-str
 	    (if input-method-exit-on-first-char
 		(setq control-flag t))
