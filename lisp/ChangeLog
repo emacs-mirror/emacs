@@ -1,3 +1,7 @@
+2004-12-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (auto-mode-alist): Map .com to DCL mode.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
@@ -19,7 +23,7 @@
 
 2002-03-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern): 
+	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern):
 	Use the other-window instead of the other-frame functions when
 	the window is dedicated.
 
