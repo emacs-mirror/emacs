@@ -43,7 +43,8 @@ Use (derived-mode-p 'text-mode) instead.")
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\" ".   " st)
     (modify-syntax-entry ?\\ ".   " st)
-    (modify-syntax-entry ?' "w   " st)
+    ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
+    (modify-syntax-entry ?' "w p" st)
     st)
   "Syntax table used while in `text-mode'.")
 
@@ -70,8 +71,6 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'indent-line-function) 'indent-relative))
 
-(defvar paragraph-indent-text-mode-abbrev-table text-mode-abbrev-table)
-(defvar paragraph-indent-text-mode-syntax-table text-mode-syntax-table)
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs
@@ -81,6 +80,7 @@ Special commands:
 \\{text-mode-map}
 Turning on Paragraph-Indent Text mode runs the normal hooks
 `text-mode-hook' and `paragraph-indent-text-mode-hook'."
+  :abbrev-table nil :syntax-table nil
   (paragraph-indent-minor-mode))
 
 (defun paragraph-indent-minor-mode ()
