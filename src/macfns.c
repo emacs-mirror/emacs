@@ -2527,9 +2527,11 @@ unwind_create_frame (frame)
 
       x_free_frame_resources (f);
 
+#if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
       xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+#endif
       return Qt;
     }
 

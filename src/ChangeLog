@@ -1,7 +1,9 @@
 2005-02-02  Steven Tamm  <steventamm@mac.com>
 
+	* macfns.c (unwind_create_frame): Fixing compile error due to
+	xassert being uncondition, but predicate is.
 	* dispnew.c (update_window): Fixing compile error due to
-	GLYPH_DEBUG being undefined.
+	xassert being uncondition, but predicate is.
 
 2005-02-02  Miles Bader  <miles@gnu.org>
 
