@@ -720,19 +720,26 @@ sys_subshell ()
 #ifdef WINDOWSNT
   pid = -1;
 #else /* not WINDOWSNT */
+#ifdef MSDOS
+  pid = 0;
+#else  
   pid = vfork ();
-
   if (pid == -1)
     error ("Can't spawn subshell");
+#endif
+
   if (pid == 0)
 #endif /* not WINDOWSNT */
     {
-      char *sh;
+      char *sh = 0;
 
 #ifdef MSDOS    /* MW, Aug 1993 */
       getwd (oldwd);
+      if (sh == 0)
+	sh = (char *) egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
 #endif
-      sh = (char *) egetenv ("SHELL");
+      if (sh == 0)
+	sh = (char *) egetenv ("SHELL");
       if (sh == 0)
 	sh = "sh";
 
@@ -756,8 +763,10 @@ sys_subshell ()
 #ifdef MSDOS    /* Demacs 1.1.2 91/10/20 Manabu Higashida */
       st = system (sh);
       chdir (oldwd);
+#if 0	/* This is also reported if last command executed in subshell failed, KFS */
       if (st)
 	report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
+#endif
 #else /* not MSDOS */
 #ifdef  WINDOWSNT
       /* Waits for process completion */
@@ -776,7 +785,9 @@ sys_subshell ()
 
   save_signal_handlers (saved_handlers);
   synch_process_alive = 1;
+#ifndef MSDOS
   wait_for_termination (pid);
+#endif
   restore_signal_handlers (saved_handlers);
 #endif /* !VMS */
 }
@@ -1607,10 +1618,14 @@ reset_sys_modes ()
 #ifdef MSDOS
   if (!EQ (Vwindow_system, Qnil))
     {
-      /* Change to grey on white.  */
+      char *colors = getenv("EMACSCOLORS");
+      int color = 0x07;      /* Change to white on black  */
+      if (colors && strlen (colors) >= 5 && colors[2] == ';')
+	color = ((colors[4] & 0x07) << 4) || (colors[3] & 0x07);
+      if ((stdout)->_cnt < 3) fflush(stdout); /* avoid call to _flsbuf */
       putchar ('\e');
       putchar ('A');
-      putchar (7);
+      putchar (color);
     }
 #endif
   clear_end_of_line (FRAME_WIDTH (selected_frame));
@@ -2211,6 +2226,7 @@ init_system_name ()
   }
 }
 
+#ifndef MSDOS
 #ifndef VMS
 #if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
 
@@ -2331,9 +2347,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 #ifdef FIONREAD
 		      status = ioctl (fd, FIONREAD, &avail);
 #else /* no FIONREAD */
-#ifdef MSDOS
-		      abort (); /* I don't think we need it.  */
-#else /* not MSDOS */
 		      /* Hoping it will return -1 if nothing available
 			 or 0 if all 0 chars requested are read.  */
 		      if (proc_buffered_char[fd] >= 0)
@@ -2344,7 +2357,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 			  if (avail > 0)
 			    proc_buffered_char[fd] = buf;
 			}
-#endif /* not MSDOS */
 #endif /* no FIONREAD */
 		    }
 		  if (status >= 0 && avail > 0)
@@ -2365,10 +2377,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
       while (select_alarmed == 0 && *local_timeout != 0
 	     && process_tick == update_tick)
 	{
-#ifdef MSDOS
-	  sleep_or_kbd_hit (SELECT_PAUSE, FD_ISSET (0, &orfds) != 0);
-	  select_alarm ();
-#else /* not MSDOS */
 	  /* If we are interested in terminal input,
 	     wait by reading the terminal.
 	     That makes instant wakeup for terminal input at least.  */
@@ -2380,7 +2388,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	    }
 	  else
 	    pause ();
-#endif /* not MSDOS */
 	}
       (*local_timeout) -= SELECT_PAUSE;
       /* Reset the old alarm if there was one */
@@ -2473,6 +2480,7 @@ read_input_waiting ()
 
 #endif /* not HAVE_SELECT */
 #endif /* not VMS */
+#endif /* not MSDOS */
 
 #ifdef BSD4_1
 /*
