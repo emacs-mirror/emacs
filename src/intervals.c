@@ -1604,6 +1604,8 @@ set_point (position, buffer)
   int backwards = (position < BUF_PT (buffer)) ? 1 : 0;
   int old_position = BUF_PT (buffer);
 
+  buffer->point_before_scroll = Qnil;
+
   if (position == BUF_PT (buffer))
     return;
 
