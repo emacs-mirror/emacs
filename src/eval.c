@@ -163,7 +163,8 @@ init_eval ()
   Vquit_flag = Qnil;
   debug_on_next_call = 0;
   lisp_eval_depth = 0;
-  when_entered_debugger = 0;
+  /* This is less than the initial value of num_nonmacro_input_chars.  */
+  when_entered_debugger = -1;
 }
 
 Lisp_Object
