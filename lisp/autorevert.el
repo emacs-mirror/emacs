@@ -172,7 +172,8 @@ When non-nil, a message is generated whenever a file is reverted."
 
 \(When the string is not empty, make sure that it has a leading space.)"
   :group 'auto-revert
-  :type 'string)
+  :type 'string
+  :version "21.4")
 
 (defcustom auto-revert-mode-hook nil
   "Functions to run when Auto-Revert Mode is activated."
