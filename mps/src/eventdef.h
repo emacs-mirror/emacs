@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.5) $
+ * $HopeName: MMsrc!eventdef.h(trunk.6) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -57,8 +57,10 @@ RELATION(AMCFinish                       , 0x0004, TRUE, Pool, P)
 RELATION(AMCBufferInit                   , 0x0005, TRUE, Pool, PP)
 RELATION(AMCBufferFill                   , 0x0006, TRUE, Seg, PPWAW)
 RELATION(AMCBufferEmpty                  , 0x0007, TRUE, Seg, PPW)
+#if 0 /* Not in use */
 RELATION(AMCTraceBegin                   , 0x0008, TRUE, Trace, PPPP)
 RELATION(AMCCondemn                      , 0x0009, TRUE, Seg, PPPP)
+#endif
 RELATION(AMCScanBegin                    , 0x000a, TRUE, Trace, PPP)
 RELATION(AMCScanEnd                      , 0x000b, TRUE, Trace, PPP)
 RELATION(AMCFix                          , 0x000c, TRUE, Ref, 0)
@@ -75,7 +77,9 @@ RELATION(PoolFinish                      , 0x0016, TRUE, Pool, P)
 RELATION(PoolAlloc                       , 0x0017, TRUE, Object, PAW)
 RELATION(PoolFree                        , 0x0018, TRUE, Object, PAW)
 RELATION(TraceStart                      , 0x001c, TRUE, Trace, PPP)
+#if 0 /* Not in use */
 RELATION(TraceCreate                     , 0x001d, TRUE, Trace, PPPU)
+#endif
 RELATION(TraceDestroy                    , 0x001e, TRUE, Trace, P)
 RELATION(SegSetGrey                      , 0x001f, TRUE, Seg, PPU)
 RELATION(TraceFlipBegin                  , 0x0020, TRUE, Trace, PP)
@@ -98,4 +102,6 @@ RELATION(VMUnmap                         , 0x002e, TRUE, Seg, PAA)
 RELATION(ArenaExtend                     , 0x002f, TRUE, Arena, PAW)
 RELATION(ArenaRetract                    , 0x0030, TRUE, Arena, PAW)
 RELATION(TraceSegGreyen                  , 0x0031, TRUE, Seg, PPU)
+/* RootScanned isn't a seg event, but so what */
+RELATION(RootScan                        , 0x0032, TRUE, Seg, PWW)
 
