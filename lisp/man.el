@@ -531,37 +531,38 @@ See the variable `Man-notify' for the different notification behaviors."
   "Manpage background process sentinel."
   (let ((Man-buffer (process-buffer process))
 	(delete-buff nil)
-	(err-mess nil)
-	(case-fold-search nil))
+	(err-mess nil))
     (if (null (buffer-name Man-buffer)) ;; deleted buffer
 	(set-process-buffer process nil)
       (save-match-data
 	(save-excursion
 	  (set-buffer Man-buffer)
 	  (goto-char (point-min))
-	  (cond ((or (looking-at "No \\(manual \\)*entry for")
-		     (looking-at "[^\n]*: nothing appropriate$"))
-		 (setq err-mess (buffer-substring (point) (Man-linepos 'eol))
-		       delete-buff t))
-		((not (and (eq (process-status process) 'exit)
-			   (= (process-exit-status process) 0)))
-		 (setq err-mess
-		       (concat (buffer-name Man-buffer)
-			       ": process "
-			       (let ((eos (1- (length msg))))
-				 (if (= (aref msg eos) ?\n)
-				     (substring msg 0 eos) msg))))
-		 (goto-char (point-max))
-		 (insert (format "\nprocess %s" msg))
-		 )))
+	  (let ((case-fold-search nil))
+	    (cond ((or (looking-at "No \\(manual \\)*entry for")
+		       (looking-at "[^\n]*: nothing appropriate$"))
+		   (setq err-mess (buffer-substring (point) (Man-linepos 'eol))
+			 delete-buff t))
+		  ((not (and (eq (process-status process) 'exit)
+			     (= (process-exit-status process) 0)))
+		   (setq err-mess
+			 (concat (buffer-name Man-buffer)
+				 ": process "
+				 (let ((eos (1- (length msg))))
+				   (if (= (aref msg eos) ?\n)
+				       (substring msg 0 eos) msg))))
+		   (goto-char (point-max))
+		   (insert (format "\nprocess %s" msg))
+		   ))))
 	(if delete-buff
 	    (kill-buffer Man-buffer)
 	  (save-window-excursion
 	    (save-excursion
 	      (set-buffer Man-buffer)
-	      (Man-set-fonts)
-	      (run-hooks 'Man-cooked-hook)
-	      (Man-mode)
+	      (let ((case-fold-search nil))
+		(Man-set-fonts)
+		(run-hooks 'Man-cooked-hook)
+		(Man-mode))
 	      (set-buffer-modified-p nil)))
 	  (Man-notify-when-ready Man-buffer))
 
