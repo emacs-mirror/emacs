@@ -1,3 +1,8 @@
+2002-04-22  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* diary-lib.el (include-other-diary-files): Allow modifying
+        included buffer, to turn off selective display.
+
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-mode.el: (c-define-abbrev-table): New function to
