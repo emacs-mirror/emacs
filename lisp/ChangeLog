@@ -1,5 +1,9 @@
 2003-11-14  John Wiegley  <johnw@newartisans.com>
 
+	* eshell/esh-var.el (eshell-parse-variable-ref): Added a backslash
+	that was optional, but obviously missing based on surrounding
+	code.
+
 	* eshell/esh-cmd.el (eshell-lisp-command): Do not late-convert
 	string arguments to numbers unless the whole argument was seen as
 	a number.
