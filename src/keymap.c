@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
+#include "charset.h"
 #include "keyboard.h"
 #include "termhooks.h"
 #include "blockinput.h"
@@ -1594,8 +1595,20 @@ push_key_description (c, p)
       *p++ = 'P';
       *p++ = 'C';
     }
-  else if (c < 256)
+  else if (c < 128)
     *p++ = c;
+  else if (c < 256)
+    {
+      if (current_buffer->enable_multibyte_characters)
+	*p++ = c;
+      else
+	{
+	  *p++ = '\\';
+	  *p++ = (7 & (c >> 6)) + '0';
+	  *p++ = (7 & (c >> 3)) + '0';
+	  *p++ = (7 & (c >> 0)) + '0';
+	}
+    }
   else
     {
       *p++ = '\\';
@@ -1672,6 +1685,14 @@ Control characters turn into \"^char\", etc.")
   char tem[6];
 
   CHECK_NUMBER (character, 0);
+
+  if (!SINGLE_BYTE_CHAR_P (XFASTINT (character)))
+    {
+      char *str;
+      int len = non_ascii_char_to_string (XFASTINT (character), tem, &str);
+
+      return make_string (str, len);
+    }
 
   *push_text_char_description (XINT (character) & 0377, tem) = 0;
 
@@ -2491,7 +2512,6 @@ describe_vector (vector, elt_prefix, elt_describer,
      Lisp_Object shadow;
      Lisp_Object entire_map;
 {
-  Lisp_Object this;
   Lisp_Object dummy;
   Lisp_Object definition;
   Lisp_Object tem2;
@@ -2500,11 +2520,19 @@ describe_vector (vector, elt_prefix, elt_describer,
   Lisp_Object kludge;
   Lisp_Object chartable_kludge;
   int first = 1;
-  int size;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  /* Range of elements to be handled.  */
+  int from, to;
+  /* The current depth of VECTOR if it is char-table.  */
+  int this_level;
+  /* Array of indices to access each level of char-table.
+     The elements are charset, code1, and code2.  */
+  int idx[3];
+  /* A flag to tell if a leaf in this level of char-table is not a
+     generic character (i.e. a complete multibyte character).  */
+  int complete_char;
 
   definition = Qnil;
-  chartable_kludge = Qnil;
 
   /* This vector gets used to present single keys to Flookup_key.  Since
      that is done once per vector element, we don't want to cons up a
@@ -2515,10 +2543,52 @@ describe_vector (vector, elt_prefix, elt_describer,
   if (partial)
     suppress = intern ("suppress-keymap");
 
-  /* This does the right thing for char-tables as well as ordinary vectors.  */
-  size = XFASTINT (Flength (vector));
+  if (CHAR_TABLE_P (vector))
+    {
+      /* Prepare for handling a nested char-table.  */
+      if (NILP (elt_prefix))
+	{
+	  /* VECTOR is the top level of char-table.  */
+	  this_level = 0;
+	  complete_char = 0;
+	  from = 0;
+	  to = CHAR_TABLE_ORDINARY_SLOTS;
+	}
+      else
+	{
+	  /* VECTOR is the deeper level of char-table.  */
+	  this_level = XVECTOR (elt_prefix)->size;
+	  if (this_level >= 3)
+	    /* A char-table is not that deep.  */
+	    wrong_type_argument (Qchar_table_p, vector);
 
-  for (i = 0; i < size; i++)
+	  for (i = 0; i < this_level; i++)
+	    idx[i] = XINT (XVECTOR (elt_prefix)->contents[i]);
+	  complete_char
+	    = (CHARSET_VALID_P (idx[0])
+	       && ((CHARSET_DIMENSION (idx[0]) == 1 && this_level == 1)
+		   || this_level == 2));
+
+	  /* Meaningful elements are from 32th to 127th.  */
+	  from = 32;
+	  to = 128;
+	}
+      chartable_kludge = Fmake_vector (make_number (this_level + 1), Qnil);
+      if (this_level != 0)
+	bcopy (XVECTOR (elt_prefix)->contents,
+	       XVECTOR (chartable_kludge)->contents,
+	       this_level * sizeof (Lisp_Object));
+    }
+  else
+    {
+      this_level = 0;
+      from = 0;
+      /* This does the right thing for ordinary vectors.  */
+      to = XFASTINT (Flength (vector));
+      /* Now, can this be just `XVECTOR (vector)->size'? -- K.Handa  */
+    }
+
+  for (i = from; i < to; i++)
     {
       QUIT;
       definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
@@ -2528,9 +2598,11 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* Don't mention suppressed commands.  */
       if (SYMBOLP (definition) && partial)
 	{
-	  this = Fget (definition, suppress);
-	  if (!NILP (this))
-	    continue;
+	  Lisp_Object tem;
+
+	  tem = Fget (definition, suppress);
+
+	  if (!NILP (tem)) continue;
 	}
 
       /* If this binding is shadowed by some other map, ignore it.  */
@@ -2557,51 +2629,39 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    continue;
 	}
 
-      /* If we find a char-table within a char-table,
-	 scan it recursively; it defines the details for
-	 a character set or a portion of a character set.  */
-      if (CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
-	{
-	  int outer_level
-	    = !NILP (elt_prefix) ? XVECTOR (elt_prefix)->size : 0;
-	  if (NILP (chartable_kludge))
-	    {
-	      chartable_kludge
-		= Fmake_vector (make_number (outer_level + 1), Qnil);
-	      if (outer_level != 0)
-		bcopy (XVECTOR (elt_prefix)->contents,
-		       XVECTOR (chartable_kludge)->contents,
-		       outer_level * sizeof (Lisp_Object));
-	    }
-	  XVECTOR (chartable_kludge)->contents[outer_level]
-	    = make_number (i);
-	  describe_vector (definition, chartable_kludge, elt_describer,
-			   partial, shadow, entire_map);
-	  continue;
-	}
-
       if (first)
 	{
-	  insert ("\n", 1);
+	  if (this_level == 0)
+	    insert ("\n", 1);
 	  first = 0;
 	}
 
+      /* If VECTOR is a deeper char-table, show the depth by indentation.
+	 THIS_LEVEL can be greater than 0 only for char-table.  */
+      if (this_level > 0)
+	insert ("    ", this_level * 2); /* THIS_LEVEL is 1 or 2.  */
+
+      /* Get a Lisp object for the character I.  */
+      XSETFASTINT (dummy, i);
+
       if (CHAR_TABLE_P (vector))
 	{
-	  if (!NILP (elt_prefix))
+	  if (complete_char)
 	    {
-	      /* Must combine elt_prefix with i to produce a character
-		 code, then insert that character's description.  */
+	      /* Combine ELT_PREFIX with I to produce a character code,
+		 then insert that character's description.  */
+	      idx[this_level] = i;
+	      insert_char (MAKE_NON_ASCII_CHAR (idx[0], idx[1], idx[2]));
+	    }
+	  else if (this_level > 0)
+	    {
+	      /* We need an octal representation.  */
+	      char work[5];
+	      sprintf (work, "\\%03o", i & 255);
+	      insert (work, 4);
 	    }
 	  else
-	    {
-	      /* Get the string to describe the character I, and print it.  */
-	      XSETFASTINT (dummy, i);
-
-	      /* THIS gets the string to describe the character DUMMY.  */
-	      this = Fsingle_key_description (dummy);
-	      insert1 (this);
-	    }
+	    insert1 (Fsingle_key_description (dummy));
 	}
       else
 	{
@@ -2609,18 +2669,38 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
 
-	  /* Get the string to describe the character I, and print it.  */
-	  XSETFASTINT (dummy, i);
+	  /* Get the string to describe the character DUMMY, and print it.  */
+	  insert1 (Fsingle_key_description (dummy));
+	}
 
-	  /* THIS gets the string to describe the character DUMMY.  */
-	  this = Fsingle_key_description (dummy);
-	  insert1 (this);
+      /* If we find a char-table within a char-table,
+	 scan it recursively; it defines the details for
+	 a character set or a portion of a character set.  */
+      if (CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
+	{
+	  if (this_level == 0
+	      && CHARSET_VALID_P (i))
+	    {
+	      /* Before scanning the deeper table, print the
+		 information for this character set.  */
+	      insert_string ("\t\t<charset:");
+	      tem2 = CHARSET_TABLE_INFO (i, CHARSET_SHORT_NAME_IDX);
+	      insert_from_string (tem2, 0 , XSTRING (tem2)->size, 0);
+	      insert (">", 1);
+	    }
+
+	  insert ("\n", 1);
+	  XVECTOR (chartable_kludge)->contents[this_level] = make_number (i);
+	  describe_vector (definition, chartable_kludge, elt_describer,
+			   partial, shadow, entire_map);
+	  continue;
 	}
 
       /* Find all consecutive characters that have the same definition.  */
-      while (i + 1 < XVECTOR (vector)->size
+      while (i + 1 < to
 	     && (tem2 = get_keyelt (XVECTOR (vector)->contents[i+1], 0),
-		 EQ (tem2, definition)))
+		 !NILP (tem2))
+	     && !NILP (Fequal (tem2, definition)))
 	i++;
 
       /* If we have a range of more than one character,
@@ -2631,22 +2711,26 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  insert (" .. ", 4);
 	  if (CHAR_TABLE_P (vector))
 	    {
-	      if (!NILP (elt_prefix))
+	      if (complete_char)
 		{
-		  /* Must combine elt_prefix with i to produce a character
-		     code, then insert that character's description.  */
+		  idx[this_level] = i;
+		  insert_char (MAKE_NON_ASCII_CHAR (idx[0], idx[1], idx[2]));
+		}
+	      else if (this_level > 0)
+		{
+		  char work[5];
+		  sprintf (work, "\\%03o", i & 255);
+		  insert (work, 4);
 		}
 	      else
 		{
 		  XSETFASTINT (dummy, i);
-
-		  this = Fsingle_key_description (dummy);
-		  insert1 (this);
+		  insert1 (Fsingle_key_description (dummy));
 		}
 	    }
 	  else
 	    {
-	      if (!NILP (elt_prefix))
+	      if (!NILP (elt_prefix) && !CHAR_TABLE_P (vector))
 		insert1 (elt_prefix);
 
 	      XSETFASTINT (dummy, i);
@@ -2658,6 +2742,14 @@ describe_vector (vector, elt_prefix, elt_describer,
 	 elt_describer will take care of spacing out far enough
 	 for alignment purposes.  */
       (*elt_describer) (definition);
+    }
+
+  /* For char-table, print `defalt' slot at last.  */
+  if (CHAR_TABLE_P (vector) && !NILP (XCHAR_TABLE (vector)->defalt))
+    {
+      insert ("    ", this_level * 2);
+      insert_string ("<<default>>");
+      (*elt_describer) (XCHAR_TABLE (vector)->defalt);
     }
 
   UNGCPRO;
