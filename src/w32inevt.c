@@ -36,9 +36,6 @@
 /* stdin, from ntterm */
 extern HANDLE keyboard_handle;
 
-/* Indicate mouse motion, from keyboard.c */
-extern int mouse_moved;
-
 /* Info for last mouse motion */
 static COORD movement_pos;
 static DWORD movement_time;
@@ -376,7 +373,7 @@ win32_mouse_position (FRAME_PTR *f,
   *f = get_frame ();
   *bar_window = Qnil;
   *part = 0;
-  mouse_moved = 0;
+  selected_frame->mouse_moved = 0;
   
   *x = movement_pos.X;
   *y = movement_pos.Y;
@@ -392,7 +389,7 @@ mouse_moved_to (int x, int y)
   /* If we're in the same place, ignore it */
   if (x != movement_pos.X || y != movement_pos.Y)
     {
-      mouse_moved = 1;
+      selected_frame->mouse_moved = 1;
       movement_pos.X = x;
       movement_pos.Y = y;
       movement_time = GetTickCount ();
