@@ -2515,7 +2515,7 @@ away in the internal cache."
 	 (s " ")
 	 (mm "[ 0-1][0-9]")
 	 (dd "[ 0-3][0-9]")
-	 (western (concat "\\(" l l l s dd "\\|" dd s l l l "\\)"))
+	 (western (concat "\\(" l l "+ +" dd "\\|" dd s l l "+" "\\)"))
 	 (japanese (concat mm k s dd k)))
     (concat s "\\(" western "\\|" japanese "\\)" s))
   "Regular expression to recognize the date in a directory listing.
