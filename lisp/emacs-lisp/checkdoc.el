@@ -2586,9 +2586,9 @@ This function will not modify `match-data'."
   (if (looking-at "\\(\\(\\w+\\|\\s_\\)+\\.el\\):\\([0-9]+\\):")
       (let ((l (string-to-int (match-string 3)))
 	    (f (match-string 1)))
-	(if (not (get-buffer f))
+	(if (not (get-file-buffer f))
 	    (error "Can't find buffer %s" f))
-	(switch-to-buffer-other-window (get-buffer f))
+	(switch-to-buffer-other-window (get-file-buffer f))
 	(goto-line l))))
 
 (defun checkdoc-buffer-label ()
