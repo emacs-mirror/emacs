@@ -1366,6 +1366,8 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
   CHECK_STRING (str);
 
   charsets = Fmake_vector (make_number (charset_table_used), Qnil);
+  for (i = 0; i < charset_table_used; i++)
+    ASET (charsets, i, Fcons (make_number (i), Qnil));
   find_charsets_in_text (XSTRING (str)->data, XSTRING (str)->size,
 			 STRING_BYTES (XSTRING (str)), charsets, table);
 
