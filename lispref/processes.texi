@@ -35,6 +35,8 @@ This function returns @code{t} if @var{object} is a process,
 @menu
 * Subprocess Creation::      Functions that start subprocesses.
 * Synchronous Processes::    Details of using synchronous subprocesses.
+* MS-DOS Subprocesses::      On MS-DOS, you must indicate text vs binary
+                                for data sent to and from a subprocess.
 * Asynchronous Processes::   Starting up an asynchronous subprocess.
 * Deleting Processes::       Eliminating an asynchronous subprocess.
 * Process Information::      Accessing run-status and other attributes.
@@ -80,9 +82,9 @@ Expansion}).
 argument which specifies where the standard output from the program will
 go.  If @var{buffer-or-name} is @code{nil}, that says to discard the
 output unless a filter function handles it.  (@xref{Filter Functions},
-and @ref{Streams, Reading and Printing}.)  Normally, you should avoid
-having multiple processes send output to the same buffer because their
-output would be intermixed randomly.
+and @ref{Read and Print}.)  Normally, you should avoid having multiple
+processes send output to the same buffer because their output would be
+intermixed randomly.
 
 @cindex program arguments
   All three of the subprocess-creating functions have a @code{&rest}
@@ -274,6 +276,32 @@ inputinput@point{}
 @end group
 @end smallexample
 @end defun
+
+@node MS-DOS Subprocesses
+@section MS-DOS Subprocesses
+
+  On MS-DOS, you must indicate whether the data going to and from
+a synchronous subprocess are text or binary.  Text data requires
+translation between the end-of-line convention used within Emacs
+(a single newline character) and the convention used outside Emacs
+(the two-character sequence, CRLF).
+
+  The variable @code{binary-process-input} applies to input sent to the
+subprocess, and @code{binary-process-output} applies to output received
+from it.  A non-@code{nil} value means the data is non-text; @code{nil}
+means the data is text, and calls for conversion.
+
+@defvar binary-process-input
+If this variable is @code{nil}, convert newlines to CRLF sequences in
+the input to a synchronous subprocess.
+@end defvar
+
+@defvar binary-process-output
+If this variable is @code{nil}, convert CRLF sequences to newlines in
+the output from a synchronous subprocess.
+@end defvar
+
+  @xref{Files and MS-DOS}, for related information.
 
 @node Asynchronous Processes
 @section Creating an Asynchronous Process
