@@ -230,7 +230,7 @@ following the containing message."
 	(let ((buffer-read-only nil)
 	      (forwarded-from (mail-fetch-field "From"))
 	      (forwarded-date (mail-fetch-field "Date"))
-	      beg end prefix forward-msg n)
+	      beg end prefix forward-msg)
 	  (cond ((re-search-forward
 		  "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage" nil t)
 		 (forward-line 1)
@@ -280,9 +280,9 @@ following the containing message."
 		(insert "\t"))
 	      (forward-line)))
 	  (goto-char (point-min))))
-    (setq n rmail-current-message)
-    (rmail-forget-messages)
-    (rmail-show-message n)
+    (let ((n rmail-current-message))
+      (rmail-forget-messages)
+      (rmail-show-message n))
     (if (rmail-summary-exists)
 	(rmail-select-summary
 	 (rmail-update-summary)))))
