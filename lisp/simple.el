@@ -2844,9 +2844,8 @@ buffer without requiring user interaction.  It should populate the
 standard mail headers, leaving the `to:' and `subject:' headers blank
 by default.
 
-COMPOSEFUNC should accept two optional arguments:
-TO and SUBJECT.  TO specifies a string to insert in the `To:' field,
-and SUBJECT specifies a string to insert in the `Subject:' field.
+COMPOSEFUNC should accept several optional arguments--the same
+arguments that `compose-mail' takes.  See that function's documentation.
 
 SENDFUNC is the command a user would run to send the message.
 
@@ -2866,15 +2865,63 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
+(defun assoc-ignore-case (key alist)
+  "Like `assoc', but assumes KEY is a string and ignores case when comparing."
+  (let (element)
+    (while (and alist (not element))
+      (if (equal key (downcase (car (car alist))))
+	  (setq element (car alist)))
+      (setq alist (cdr alist)))
+    element))
+
 (define-mail-user-agent 'sendmail-user-agent
-  '(lambda (&optional to subject)
-     (or (mail nil to subject)
-	 (error "Message aborted")))
+  '(lambda (&optional to subject other-headers continue
+		      switch-function yank-action send-actions)
+     (if switch-function
+	 (let ((special-display-buffer-names nil)
+	       (special-display-regexps nil)
+	       (same-window-buffer-names nil)
+	       (same-window-regexps nil))
+	   (funcall switch-function "*mail*")))
+     (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
+	   (in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers))))
+       (or (mail continue to subject in-reply-to cc yank-action send-actions)
+	   (error "Message aborted"))))
   'mail-send-and-exit)
 
 (define-mail-user-agent 'mh-e-user-agent
   'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
   'mh-before-send-letter-hook)
+
+(defun compose-mail (&optional to subject other-headers continue
+			       switch-function yank-action send-actions)
+  "Start composing a mail message to send.
+This uses the user's chosen mail composition package
+as selected with the variable `mail-user-agent'.
+The optional arguments TO and SUBJECT specify recipients
+and the initial Subject field, respectively.
+
+OTHER-HEADERS is an alist specifying additional
+header fields.  Elements look like (HEADER . VALUE) where both
+HEADER and VALUE are strings.
+
+CONTINUE, if non-nil, says to continue editing a message already
+being composed.
+
+SWITCH-FUNCTION, if non-nil, is a function to use to
+switch to and display the buffer used for mail composition.
+
+YANK-ACTION, if non-nil, is an action to perform, if and when necessary,
+to insert the text of the message being replied to.
+It has the form (FUNCTION . ARGS).  Performing the action is done
+by applying FUNCTION to ARGS.
+
+SEND-ACTIONS is a list of actions to call when the message is sent.
+Each action has the form (FUNCTION . ARGS)."
+  (interactive)
+  (let ((function (get mail-user-agent 'composefunc)))
+    (funcall function to subject other-headers continue
+	     switch-function yank-action send-actions)))
 
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
