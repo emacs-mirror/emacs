@@ -1,3 +1,7 @@
+2001-08-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* custom.el (defcustom): Doc fix.
+
 2001-08-16  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-mule.el: (find-composition): Check if (char-after POS)
