@@ -773,7 +773,20 @@ ACTIVATE-FUNC is a function to call to activate this method.
 TITLE is a string to show in the mode line when this method is active.
 DESCRIPTION is a string describing this method and what it is good for.
 The ARGS, if any, are passed as arguments to ACTIVATE-FUNC.
-All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS."
+All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS.
+
+This function is mainly used in the file \"leim-list.el\" which is
+created at building time of emacs, registering all quail input methods
+contained in the emacs distribution.
+
+In case you want to register a new quail input method by yourself, be
+careful to use the same input method title as given in the third
+parameter of `quail-define-package' (if the values are different, the
+string specified in this function takes precedence).
+
+The commands `describe-input-method' and `list-input-methods' need
+this duplicated values to show some information about input methods
+without loading the affected quail packages."
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
   (if (symbolp input-method)
