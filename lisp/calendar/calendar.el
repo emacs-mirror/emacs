@@ -145,24 +145,6 @@
   "Name of the buffer used for the calendar.")
 
 ;;;###autoload
-(defcustom calendar-week-start-day 0
-  "*The day of the week on which a week in the calendar begins.
-0 means Sunday (default), 1 means Monday, and so on.
-
-If you change this variable directly (without using customize)
-after starting `calendar', you should call `redraw-calendar' to
-update the calendar display to reflect the change, otherwise
-movement commands will not work correctly."
-  :type 'integer
-  :set (lambda (sym val)
-         (set sym val)
-         (let ((buffer (get-buffer calendar-buffer)))
-           (when (buffer-live-p buffer)
-             (with-current-buffer buffer
-               (redraw-calendar)))))
-  :group 'calendar)
-
-;;;###autoload
 (defcustom calendar-offset 0
   "*The offset of the principal month from the center of the calendar window.
 0 means the principal month is in the center (default), -1 means on the left,
@@ -2172,10 +2154,26 @@ the inserted text.  Value is always t."
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
   (if (get-buffer calendar-buffer)
-      (with-current-buffer calendar-buffer
-        (let ((cursor-date (calendar-cursor-to-nearest-date)))
-          (generate-calendar-window displayed-month displayed-year)
-          (calendar-cursor-to-visible-date cursor-date)))))
+      (save-excursion
+        (with-current-buffer calendar-buffer
+          (let ((cursor-date (calendar-cursor-to-nearest-date)))
+            (generate-calendar-window displayed-month displayed-year)
+            (calendar-cursor-to-visible-date cursor-date))))))
+
+;;;###autoload
+(defcustom calendar-week-start-day 0
+  "*The day of the week on which a week in the calendar begins.
+0 means Sunday (default), 1 means Monday, and so on.
+
+If you change this variable directly (without using customize)
+after starting `calendar', you should call `redraw-calendar' to
+update the calendar display to reflect the change, otherwise
+movement commands will not work correctly."
+  :type 'integer
+  :set (lambda (sym val)
+         (set sym val)
+         (redraw-calendar))
+  :group 'calendar)
 
 (defcustom calendar-debug-sexp nil
   "*Turn debugging on when evaluating a sexp in the diary or holiday list."
