@@ -201,7 +201,7 @@ int initial_argc;
 static void sort_args ();
 void syms_of_emacs ();
 
-#define USAGE "\
+#define USAGE1 "\
 Usage: %s [OPTION-OR-FILENAME]...\n\
 \n\
 Run Emacs, the extensible, customizable, self-documenting real-time\n\
@@ -239,7 +239,9 @@ FILE			visit FILE using find-file\n\
 --kill			exit without asking for confirmation\n\
 --load, -l FILE		load FILE of Emacs Lisp code using the load function\n\
 --visit FILE		visit FILE\n\
-\n\
+\n"
+
+#define USAGE2 "\
 Display options:\n\
 \n\
 --background-color, -bg COLOR	window background color\n\
@@ -939,7 +941,8 @@ main (argc, argv, envp)
   /* Handle the --help option, which gives a usage message..  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
-      printf (USAGE, argv[0]);
+      printf (USAGE1, argv[0]);
+      printf (USAGE2);
       exit (0);
     }
 
