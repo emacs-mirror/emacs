@@ -27,7 +27,7 @@
 (require 'quail)
 
 (quail-define-package
- "korean-hanja-jis" "Korean" "벌漢" t
+ "korean-hanja-jis" "Korean" "漢2" t
  "2벌식JIS漢字: 該當하는 漢字의 韻을 한글2벌式으로 呼出하여 選擇"
  nil nil nil nil nil nil t)
 
