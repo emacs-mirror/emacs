@@ -1518,7 +1518,7 @@ AC_ALLOCA
 # logb and frexp are found in -lm on most systems.
 AC_HAVE_LIBRARY(-lm)
 AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
-random bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
+random rand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
 fpathconf)
 
 ok_so_far=true
