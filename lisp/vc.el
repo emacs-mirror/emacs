@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.333 2002/07/16 20:44:23 monnier Exp $
+;; $Id: vc.el,v 1.334 2002/07/19 13:20:02 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1105,15 +1105,16 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
   (let ((visited (get-file-buffer file))
 	state version)
     (when visited
+      (if vc-dired-mode
+          (switch-to-buffer-other-window visited)
+        (set-buffer visited))
       ;; Check relation of buffer and file, and make sure
       ;; user knows what he's doing.  First, finding the file
       ;; will check whether the file on disk is newer.
-      (set-buffer visited)
-      ;; ignore buffer-read-only during this test
+      ;; Ignore buffer-read-only during this test, and
+      ;; preserve find-file-literally.
       (let ((buffer-read-only (not (file-writable-p file))))
-        (if vc-dired-mode
-            (find-file-other-window file)
-          (find-file-noselect file)))
+        (find-file-noselect file nil find-file-literally))
       (if (not (verify-visited-file-modtime (current-buffer)))
 	  (if (yes-or-no-p "Replace file on disk with buffer contents? ")
 	      (write-file (buffer-file-name))
