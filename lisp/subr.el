@@ -1622,11 +1622,24 @@ See also `with-temp-buffer'."
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
+This does not alter the buffer list ordering.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
-  `(save-selected-window
-     (select-window ,window 'norecord)
-     ,@body))
+  ;; Most of this code is a copy of save-selected-window.
+  `(let ((save-selected-window-window (selected-window))
+	 (save-selected-window-alist
+	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
+		  (frame-list))))
+     (unwind-protect
+	 (progn (select-window ,window 'norecord)
+		,@body)
+       (dolist (elt save-selected-window-alist)
+	 (and (frame-live-p (car elt))
+	      (window-live-p (cadr elt))
+	      (set-frame-selected-window (car elt) (cadr elt))))
+       (if (window-live-p save-selected-window-window)
+	   ;; This is where the code differs from save-selected-window.
+	   (select-window save-selected-window-window 'norecord))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
@@ -1783,11 +1796,14 @@ Value is what BODY returns."
   "Use function FUN as a dynamic completion table.
 FUN is called with one argument, the string for which completion is required,
 and it should return an alist containing all the intended possible
-completions. This alist may be a full list of possible completions so that FUN
-can ignore the value of its argument. If completion is performed in the
+completions.  This alist may be a full list of possible completions so that FUN
+can ignore the value of its argument.  If completion is performed in the
 minibuffer, FUN will be called in the buffer from which the minibuffer was
-entered. `dynamic-completion-table' then computes the completion, see Info
-node `(elisp)Programmed Completion'."
+entered.
+
+The result of the `dynamic-completion-table' form is a function
+that can be used as the ALIST argument to `try-completion' and
+`all-completion'.  See Info node `(elisp)Programmed Completion'."
   (let ((win (make-symbol "window"))
         (string (make-symbol "string"))
         (predicate (make-symbol "predicate"))
@@ -1805,9 +1821,9 @@ node `(elisp)Programmed Completion'."
   "Initialize variable VAR as a lazy completion table.
 If the completion table VAR is used for the first time (e.g., by passing VAR
 as an argument to `try-completion'), the function FUN is called with arguments
-ARGS. FUN must return the completion table that will be stored in VAR. If
-completion is requested in the minibuffer, FUN will be called in the buffer
-from which the minibuffer was entered. The return value of
+ARGS.  FUN must return the completion table that will be stored in VAR.
+If completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR."
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table
