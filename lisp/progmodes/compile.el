@@ -584,7 +584,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 				     (> (prefix-numeric-value arg) 0)))
       (progn
 	(compilation-setup)
-	(run-hooks 'compilation-minor-mode-hook)))
+	(run-hooks 'compilation-minor-mode-hook))))
 
 ;; Write msg in the current buffer and hack its mode-line-process.
 (defun compilation-handle-exit (process-status exit-status msg)
