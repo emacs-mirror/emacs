@@ -30,11 +30,12 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include "regex.h"
 
-#define REGEXP_CACHE_SIZE 5
+#define REGEXP_CACHE_SIZE 20
 
 /* If the regexp is non-nil, then the buffer contains the compiled form
    of that regexp, suitable for searching.  */
-struct regexp_cache {
+struct regexp_cache
+{
   struct regexp_cache *next;
   Lisp_Object regexp;
   struct re_pattern_buffer buf;
@@ -156,7 +157,8 @@ compile_pattern (pattern, regp, translate, posix)
   for (cpp = &searchbuf_head; ; cpp = &cp->next)
     {
       cp = *cpp;
-      if (!NILP (Fstring_equal (cp->regexp, pattern))
+      if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
+	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && cp->buf.translate == translate
 	  && cp->posix == posix)
 	break;
