@@ -1,0 +1,47 @@
+#!/usr/local/perl
+#
+# provide help on QA functions
+#
+
+&options();
+
+if (@qa_args) {
+ foreach (@qa_args) {
+  &printhelp($_);
+ }
+} else {
+ print "Help topics:\n";
+ foreach (<$script_dir/help/*>) {
+  /\/([^\/]*)$/;
+  &summhelp($1);
+ }
+ print "For help on a topic, type 'qa help <topic>'.\n";
+}
+
+sub summhelp {
+ local ($infile, $sumline) = @_;
+ unless(open(IN, $script_dir."/help/".$infile)) {
+  die "File ".$infile." unexpectedly not found.\n";
+ }
+ $sumline = <IN>;
+ close(IN);
+ write STDOUT;
+}
+
+sub printhelp {
+ local ($infile) = @_;
+ unless(open(IN, $script_dir."/help/".$infile)) {
+  print "No help available on $infile.\n";
+ } else {
+  <IN>;
+  while (<IN>) {
+   print $_;
+  }
+ }
+}
+
+format STDOUT =
+  @<<<<<<<<<<<@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$infile, $sumline
+.
+
