@@ -121,9 +121,7 @@ Pointers in structures may be followed in a tree-like fashion.
 The following interactive lisp functions help control operation :
 
 `gdb-many-windows'    - Toggle the number of windows gdb uses.
-`gdb-restore-windows' - To restore the window layout.
-`gdb-quit'            - To delete (most) of the buffers used by GDB-UI and
-                        reset variables."
+`gdb-restore-windows' - To restore the window layout."
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -570,9 +568,7 @@ This filter may simply queue output for a later time."
 	 (match-string 1 args)
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
-  (setq gdb-view-source t)
-  ;;update with new frame for machine code if necessary
-  (gdb-invalidate-assembler))
+  (setq gdb-view-source t))
 
 (defun gdb-send-item (item)
   (gdb-set-current-item item)
@@ -596,9 +592,7 @@ output from a previous command if that happens to be in effect."
       (gdb-set-output-sink 'post-emacs)
       (let ((handler
 	     (car (cdr (gdb-get-current-item)))))
-	(save-excursion
-	  (set-buffer (gdb-get-create-buffer
-		       'gdb-partial-output-buffer))
+	(with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
 	  (funcall handler))))
      (t
       (gdb-set-output-sink 'user)
@@ -945,8 +939,11 @@ output from the current command if that happens to be appropriate."
 	(insert-buffer-substring (gdb-get-buffer
 				  'gdb-partial-output-buffer)
 				 start end)
-	(add-text-properties (- (point) (- end start)) (- (point) 1)
-			     `(mouse-face highlight local-map ,gdb-dive-map))))
+	(add-text-properties 
+	 (- (point) (- end start)) (- (point) 1)
+	 `(mouse-face highlight 
+	   local-map ,gdb-dive-map
+	   help-echo "mouse-2: dive, S-mouse-2: dive in a new frame"))))
     (delete-region start end)))
 
 (defvar gdb-values nil)
@@ -1396,7 +1393,8 @@ static char *magick[] = {
 				(if (eq ?y flag)
 				    (gdb-put-string "B" (+ start 1))
 				  (gdb-put-string "b" (+ start 1))))))))))))
-	  (end-of-line))))))
+	  (end-of-line)))))
+  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1482,36 +1480,6 @@ current line."
 				 file
 			       (expand-file-name file gdb-cdir))))
 	  (goto-line (string-to-number line))))))
-;; I'll get this to work one day!
-;; (defun gdb-goto-breakpoint ()
-;;   "Display the file in the source buffer at the breakpoint specified on the
-;; current line."
-;;   (interactive)
-;;   (save-excursion
-;;     (let ((eol (progn (end-of-line) (point))))
-;;       (beginning-of-line 1)
-;;       (if (re-search-forward "\\(\\S-*\\):\\([0-9]+\\)" eol t)
-;; 	  (let ((line (match-string 2))
-;; 		(file (match-string 1)))
-;; 	    (save-selected-window
-;; 	      (select-window gdb-source-window)
-;; 	      (switch-to-buffer (find-file-noselect
-;; 				 (if (file-exists-p file)
-;; 				     file
-;; 				   (expand-file-name file gdb-cdir))))
-;; 	      (goto-line (string-to-number line))))))
-;;     (let ((eol (progn (end-of-line) (point))))
-;;       (beginning-of-line 1)
-;;       (if (re-search-forward "<\\(\\S-*?\\)\\(\\+*[0-9]*\\)>" eol t)
-;; 	  (save-selected-window
-;; 	    (select-window gdb-source-window)
-;; 	    (gdb-get-create-buffer 'gdb-assembler-buffer)
-;; 	    (gdb-enqueue-input
-;; 	     (list (concat "server disassemble " (match-string 1) "\n")
-;; 		   'gdb-assembler-handler))
-;; 	    (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
-;; 	      (re-search-forward 
-;; 	       (concat (match-string 1) (match-string 2)))))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
   "Display the file in the source buffer at the selected breakpoint."
@@ -1960,7 +1928,7 @@ the source buffer."
     (unwind-protect
 	(progn
 	  (walk-windows
-	   '(lambda (win)
+	   #'(lambda (win)
 	      (if (or (eq gud-comint-buffer (window-buffer win))
 		      (eq gdb-source-window win))
 		  (set-window-dedicated-p win t))))
@@ -1973,7 +1941,7 @@ the source buffer."
 		      (setq answer window))
 		  (setq must-split t)))))
       (walk-windows
-       '(lambda (win)
+       #'(lambda (win)
 	  (if (or (eq gud-comint-buffer (window-buffer win))
 		  (eq gdb-source-window win))
 	      (set-window-dedicated-p win nil)))))
@@ -1987,10 +1955,19 @@ the source buffer."
 
 (defun gdb-display-source-buffer (buffer)
   (if (eq gdb-selected-view 'source)
-      (set-window-buffer gdb-source-window buffer)
-    (set-window-buffer gdb-source-window
-		       (gdb-get-buffer 'gdb-assembler-buffer)))
-  gdb-source-window)
+      (progn
+	(if (window-live-p gdb-source-window)
+	    (set-window-buffer gdb-source-window buffer)
+	  (gdb-display-buffer buffer)
+	  (setq gdb-source-window (get-buffer-window buffer)))
+	      gdb-source-window)
+    (if (window-live-p gdb-source-window)
+	(set-window-buffer gdb-source-window
+			   (gdb-get-buffer 'gdb-assembler-buffer))
+      (let ((buf (gdb-get-buffer 'gdb-assembler-buffer)))
+	(gdb-display-buffer buf)
+	(setq gdb-source-window (get-buffer-window buf))))
+    nil))
 
 
 ;;; Shared keymap initialization:
@@ -2197,8 +2174,7 @@ buffers."
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
 	 (gud-find-file gdb-main-file)))
-      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
-      (gdb-invalidate-assembler))
+      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
     (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
@@ -2208,14 +2184,13 @@ buffers."
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is
 PUTSTRING."
-  (setq string "x")
-  (let ((buffer (current-buffer)))
-    (setq string (copy-sequence string))
+  (let ((gdb-string "x")
+	(buffer (current-buffer)))
     (let ((overlay (make-overlay pos pos buffer))
 	  (prop (list (list 'margin 'left-margin) putstring)))
-      (put-text-property 0 (length string) 'display prop string)
+      (put-text-property 0 (length gdb-string) 'display prop gdb-string)
       (overlay-put overlay 'put-break t)
-      (overlay-put overlay 'before-string string))))
+      (overlay-put overlay 'before-string gdb-string))))
 
 ;;from remove-images
 (defun gdb-remove-strings (start end &optional buffer)
@@ -2236,16 +2211,14 @@ BUFFER nil or omitted means use the current buffer."
 in the current buffer.  PUTSTRING is displayed by putting an
 overlay into the current buffer with a `before-string'
 \"gdb-arrow\" that has a `display' property whose value is
-PUTSTRING. STRING is defaulted if you omit it.  POS may be an
-integer or marker."
-  (setq string "gdb-arrow")
-  (let ((buffer (current-buffer)))
-    (setq string (copy-sequence string))
+PUTSTRING. POS may be an integer or marker."
+  (let ((gdb-string "gdb-arrow")
+	(buffer (current-buffer)))
     (let ((overlay (make-overlay pos pos buffer))
 	  (prop (list (list 'margin 'left-margin) putstring)))
-      (put-text-property 0 (length string) 'display prop string)
+      (put-text-property 0 (length gdb-string) 'display prop gdb-string)
       (overlay-put overlay 'put-arrow t)
-      (overlay-put overlay 'before-string string))))
+      (overlay-put overlay 'before-string gdb-string))))
 
 (defun gdb-remove-arrow (&optional buffer)
   "Remove arrow in BUFFER.
@@ -2374,8 +2347,7 @@ BUFFER nil or omitted means use the current buffer."
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
-  (gdb-invalidate-assembler)
-  (gdb-invalidate-breakpoints))
+  (gdb-invalidate-assembler))
 
 (defun gdb-assembler-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -2396,8 +2368,7 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-invalidate-assembler (&optional ignored)
   (if (gdb-get-buffer 'gdb-assembler-buffer)
       (progn
-	(if (string-equal gdb-current-frame gdb-previous-frame)
-	    (gdb-assembler-custom)
+	(unless (string-equal gdb-current-frame gdb-previous-frame)
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       (gdb-get-pending-triggers)))
 		  (not (string-equal gdb-current-address 
@@ -2450,6 +2421,7 @@ BUFFER nil or omitted means use the current buffer."
 		(set-window-buffer 
 		 gdb-source-window
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
+		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler)))))))
 
 (provide 'gdb-ui)
