@@ -445,7 +445,6 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 	}
       else
 	{
-	  for (; y > 0; y--)
 	  while (y > 0)
 	    {
 	      if (y & 1)
