@@ -1,3 +1,8 @@
+2001-02-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (decode_coding_emacs_mule): Handle composition only
+	when composition is enabled in the current coding system.
+
 2001-02-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (parse_str_to_multibyte): New function.
