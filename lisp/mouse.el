@@ -880,16 +880,15 @@ and selects that window."
 	(let ((beg (point)))
 	  (skip-chars-forward "^ \t\n")
 	  (setq choice (buffer-substring beg (point))))))
-    (save-excursion
-      (set-buffer (window-buffer (minibuffer-window)))
-      (goto-char (max (point-min) (- (point-max) (length choice))))
-      (while (and (not (eobp))
-		  (let ((tail (buffer-substring (point) (point-max))))
-		    (not (string= tail (substring choice 0 (length tail))))))
-	(forward-char 1))
-      (insert choice)
-      (delete-region (point) (point-max))
-      (minibuffer-complete-and-exit))))
+    (set-buffer (window-buffer (minibuffer-window)))
+    (goto-char (max (point-min) (- (point-max) (length choice))))
+    (while (and (not (eobp))
+		(let ((tail (buffer-substring (point) (point-max))))
+		  (not (string= tail (substring choice 0 (length tail))))))
+      (forward-char 1))
+    (insert choice)
+    (delete-region (point) (point-max))
+    (minibuffer-complete-and-exit)))
 
 ;; Font selection.
 
