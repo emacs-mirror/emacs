@@ -1085,7 +1085,7 @@ validate_region (b, e)
     args_out_of_range (*b, *e);
 }
 
-Lisp_Object
+static Lisp_Object
 list_buffers_1 (files)
      Lisp_Object files;
 {
@@ -1104,11 +1104,6 @@ list_buffers_1 (files)
   XFASTINT (minspace) = 1;
 
   Fset_buffer (Vstandard_output);
-
-  tail = intern ("Buffer-menu-mode");
-  if (!EQ (tail, current_buffer->major_mode)
-      && (tem = Ffboundp (tail), !NILP (tem)))
-    call0 (tail);
   Fbuffer_disable_undo (Vstandard_output);
   current_buffer->read_only = Qnil;
 
@@ -1162,7 +1157,9 @@ list_buffers_1 (files)
       write_string ("\n", -1);
     }
 
-  current_buffer->read_only = Qt;
+  tail = intern ("Buffer-menu-mode");
+  if ((tem = Ffboundp (tail), !NILP (tem)))
+    call0 (tail);
   set_buffer_internal (old);
   return desired_point;
 }
