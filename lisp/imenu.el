@@ -98,7 +98,7 @@ element should come before the second.  The arguments are cons cells;
 \(NAME . POSITION).  Look at `imenu--sort-by-name' for an example.")
 
 (defvar imenu-max-items 25
-  "*Maximum number of elements in an index mouse-menu.")
+  "*Maximum number of elements in an mouse menu for Imenu.")
 
 (defvar imenu-scanning-message "Scanning buffer for index (%3d%%)"
   "*Progress message during the index scanning of the buffer.
@@ -116,9 +116,6 @@ names work as tokens.")
   "*The separator between index names of different levels.
 Used for making mouse-menu titles and for flattening nested indexes
 with name concatenation.")
-
-(defvar imenu-submenu-name-format "%s"
-  "*The format for making a submenu name.")
 
 ;;;###autoload
 (defvar imenu-generic-expression nil
@@ -282,13 +279,13 @@ This function is called after the function pointed out by
 		       index-unknown-alist)))))))
     (imenu-progress-message prev-pos 100)
     (and index-var-alist
-	 (push (cons (imenu-create-submenu-name "Variables") index-var-alist)
+	 (push (cons "Variables" index-var-alist)
 	       index-alist))
     (and index-type-alist
- 	 (push (cons (imenu-create-submenu-name "Types") index-type-alist)
+ 	 (push (cons "Types" index-type-alist)
   	       index-alist))
     (and index-unknown-alist
-	 (push (cons (imenu-create-submenu-name "Syntax-unknown") index-unknown-alist)
+	 (push (cons "Syntax-unknown" index-unknown-alist)
 	       index-alist))
     index-alist))
 
@@ -372,14 +369,6 @@ This function is called after the function pointed out by
 	(/ (1- pos) (max (/ total 100) 1))
       (/ (* 100 (1- pos)) (max total 1)))))
 
-;;;
-;;; Function for supporting general looking submenu names.
-;;; Uses `imenu-submenu-name-format' for creating the name.
-;;; NAME is the base of the new submenu name.
-;;;
-(defun imenu-create-submenu-name (name)
-   (format imenu-submenu-name-format name))
-
 ;; Split LIST into sublists of max length N.
 ;; Example (imenu--split '(1 2 3 4 5 6 7 8) 3)-> '((1 2 3) (4 5 6) (7 8))
 (defun imenu--split (list n)
@@ -401,16 +390,30 @@ This function is called after the function pointed out by
 	 (push (nreverse sublist) result))
     (nreverse result)))
 
-;;;
-;;; Split a menu in to several menus.
-;;;
+;;; Split the alist MENULIST into a nested alist, if it is long enough.
+;;; In any case, add TITLE to the front of the alist.
 (defun imenu--split-menu (menulist title)
-  (cons "Index menu"
-	(mapcar
-	 (function
-	  (lambda (menu)
-	    (cons (format "(%s)" title) menu)))
-	 (imenu--split menulist imenu-max-items))))
+  (if (> (length menulist) imenu-max-items)
+      (let ((count 0))
+	(cons title
+	      (mapcar
+	       (function
+		(lambda (menu)
+		  (cons (format "(%s-%d)" title (setq count (1+ count)))
+			menu)))
+	       (imenu--split menulist imenu-max-items))))
+    (cons title menulist)))
+
+;;; Split up each long alist that are nested within ALIST
+;;; into nested alists.
+(defun imenu--split-submenus (alist)
+  (mapcar (function (lambda (elt)
+		      (if (and (consp elt)
+			       (stringp (car elt))
+			       (listp (cdr elt)))
+			  (imenu--split-menu (cdr elt) (car elt))
+			elt)))
+	  alist))
 
 ;;;
 ;;; Find all items in this buffer that should be in the index.
@@ -629,18 +632,14 @@ pattern.
 			  (push 
 			   (cons (buffer-substring-no-properties beg end) beg)
 			   (cdr 
-			    (or (if (not (stringp menu-title)) index-alist) 
-				(assoc 
-				 (imenu-create-submenu-name menu-title) 
-				 index-alist)
+			    (or (assoc menu-title index-alist)
 				(car (push 
-				      (cons 
-				       (imenu-create-submenu-name menu-title) 
-				       '()) 
+				      (cons menu-title '()) 
 				      index-alist))))))))))
-	    patterns))))
-      (imenu-progress-message prev-pos 100 t)
-      (delete 'dummy index-alist)))
+	   patterns))))
+    (imenu-progress-message prev-pos 100 t)
+    (let ((main-element (assq nil index-alist)))
+      (nconc (delq main-element (delq 'dummy index-alist)) main-element))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -696,6 +695,7 @@ Returns t for rescan and otherwise a position number."
 INDEX-ALIST is the buffer index and EVENT is a mouse event.
 
 Returns t for rescan and otherwise a position number."
+  (setq index-alist (imenu--split-submenus index-alist))
   (let* ((menu 	(imenu--split-menu
 		 (if imenu-sort-function
 		     (sort
@@ -810,6 +810,7 @@ See the command `imenu' for more information."
 	 (or (equal index-alist imenu--last-menubar-index-alist)
 	     (let (menu menu1 old)
 	       (setq imenu--last-menubar-index-alist index-alist)
+	       (setq index-alist (imenu--split-submenus index-alist))
 	       (setq menu (imenu--split-menu
 			   (if imenu-sort-function
 			       (sort
@@ -832,7 +833,6 @@ See the command `imenu' for more information."
 
 (defun imenu--menubar-select (item)
   "Use Imenu to select the function or variable named in this menu item."
-  (interactive)
   (imenu item))
 
 ;;;###autoload
