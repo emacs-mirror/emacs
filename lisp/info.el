@@ -1212,10 +1212,10 @@ Completion is allowed, and the menu item point is on is the default."
 	    (save-excursion
 	      (goto-char p)
 	      (end-of-line)
-	      (re-search-backward "\n\\* +\\([^:\t\n]*\\):" beg t)
-	      (setq default (format "%s" (buffer-substring
-					  (match-beginning 1)
-					  (match-end 1)))))))
+	      (if (re-search-backward "\n\\* +\\([^:\t\n]*\\):" beg t)
+		  (setq default (format "%s" (buffer-substring
+					      (match-beginning 1)
+					      (match-end 1))))))))
      (let ((item nil))
        (while (null item)
 	 (setq item (let ((completion-ignore-case t)
