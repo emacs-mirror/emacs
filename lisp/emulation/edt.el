@@ -1482,8 +1482,8 @@ If FILE is nil, try to load a default file.  The default file names are
 (defun edt-emulation-on ()
   "Turn on EDT Emulation."
   (interactive)
-  ;; If using MS-DOS, need to load edt-pc.el
-  (if (eq system-type 'ms-dos)
+  ;; If using MS-DOS or Windows, need to load edt-pc.el
+  (if (memq system-type '(ms-dos windows-nt))
       (setq edt-term "pc")
     (setq edt-term (getenv "TERM")))
   ;; All DEC VT series terminals are supported by loading edt-vt100.el
