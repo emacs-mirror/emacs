@@ -1093,6 +1093,16 @@ The value of this variable is used when Font Lock mode is turned on."
 	  ;; Use the fontification syntax table, if any.
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
+	  ;; check to see if we should expand the beg/end area for
+	  ;; proper multiline matches
+	  (setq beg (if (get-text-property beg 'font-lock-multiline)
+			(or (previous-single-property-change
+			     beg 'font-lock-multiline)
+			    (point-min))
+		      beg))
+	  (setq end (or (text-property-any end (point-max)
+					   'font-lock-multiline nil)
+			(point-max)))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
 	  (when font-lock-syntactic-keywords
@@ -1113,9 +1123,10 @@ The value of this variable is used when Font Lock mode is turned on."
 
 (defun font-lock-default-unfontify-region (beg end)
   (save-buffer-state nil
-    (if font-lock-syntactic-keywords
-	(remove-text-properties beg end '(face nil syntax-table nil))
-      (remove-text-properties beg end '(face nil)))))
+    (remove-text-properties beg end
+			    (if font-lock-syntactic-keywords
+				'(face nil syntax-table nil font-lock-multiline nil)
+			      '(face nil font-lock-multiline nil)))))
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
@@ -1425,12 +1436,16 @@ HIGHLIGHT should be of the form MATCH-HIGHLIGHT, see `font-lock-keywords'."
 KEYWORDS should be of the form MATCH-ANCHORED, see `font-lock-keywords',
 LIMIT can be modified by the value of its PRE-MATCH-FORM."
   (let ((matcher (nth 0 keywords)) (lowdarks (nthcdr 3 keywords)) highlights
+	(lead-start (match-beginning 0))
 	;; Evaluate PRE-MATCH-FORM.
 	(pre-match-value (eval (nth 1 keywords))))
     ;; Set LIMIT to value of PRE-MATCH-FORM or the end of line.
-    (if (and (numberp pre-match-value) (> pre-match-value (point)))
-	(setq limit pre-match-value)
-      (save-excursion (end-of-line) (setq limit (point))))
+    (if (not (and (numberp pre-match-value) (> pre-match-value (point))))
+	(save-excursion (end-of-line) (setq limit (point)))
+      (setq limit pre-match-value)
+      (when (>= pre-match-value (save-excursion (forward-line 1) (point)))
+	;; this is a multiline anchored match
+	(put-text-property (point) limit 'font-lock-multiline t)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
       (while (if (stringp matcher)
@@ -1466,6 +1481,13 @@ START should be at the beginning of a line."
 		  (if (stringp matcher)
 		      (re-search-forward matcher end t)
 		    (funcall matcher end)))
+	(when (and (match-beginning 0)
+		   (>= (point)
+		       (save-excursion (goto-char (match-beginning 0))
+				       (forward-line 1) (point))))
+	  ;; this is a multiline regexp match
+	  (put-text-property (match-beginning 0) (point)
+			     'font-lock-multiline t))
 	;; Apply each highlight to this instance of `matcher', which may be
 	;; specific highlights or more keywords anchored to `matcher'.
 	(setq highlights (cdr keyword))
