@@ -3648,30 +3648,17 @@ usage: (format STRING &rest OBJECTS)  */)
   return val;
 }
 
-
-/* VARARGS 1 */
 Lisp_Object
-#ifdef NO_ARG_ARRAY
-format1 (string1, arg0, arg1, arg2, arg3, arg4)
-     EMACS_INT arg0, arg1, arg2, arg3, arg4;
-#else
-format1 (string1)
-#endif
+format2 (string1, arg0, arg1)
      char *string1;
+     Lisp_Object arg0, arg1;
 {
-  char buf[100];
-#ifdef NO_ARG_ARRAY
-  EMACS_INT args[5];
-  args[0] = arg0;
-  args[1] = arg1;
-  args[2] = arg2;
-  args[3] = arg3;
-  args[4] = arg4;
-  doprnt (buf, sizeof buf, string1, (char *)0, 5, (char **) args);
-#else
-  doprnt (buf, sizeof buf, string1, (char *)0, 5, &string1 + 1);
-#endif
-  return build_string (buf);
+  Lisp_Object args[3];
+  int numargs;
+  args[0] = build_string (string1);
+  args[1] = arg0;
+  args[2] = arg1;
+  return Fformat (3, args);
 }
 
 DEFUN ("char-equal", Fchar_equal, Schar_equal, 2, 2, 0,
