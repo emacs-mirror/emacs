@@ -1,18 +1,20 @@
-# ==== NTPPMV NMAKE FILE ====
+# ==== W3PPMV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.11) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.12) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
+
 PFM = w3ppmv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
-MPM = <assert> <ring> <mpsliban> <mpm> <bt> \
+MPM = <assert> <ring> <mpm> <bt> \
       <arenavm> <vmw3> <space> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protw3> <shield> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> \
-      <mpsioan> <event> <action> <seg>
+      <event> <action> <seg>
+PLINTH = <mpsioan> <mpsliban>
 SW  = <assert> <ring> <mpm> \
       <arenacl> <space> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
