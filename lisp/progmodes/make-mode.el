@@ -14,7 +14,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.17 1994/10/11 20:42:23 rms Exp simon $
+;; $Id: makefile.el,v 1.18 1994/10/12 08:55:27 simon Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -65,6 +65,8 @@
 ;;
 ;; To Do:
 ;;
+;; * makefile-backslash-region should be given better behavior.
+;; * Consider binding C-c C-c to comment-region (like cc-mode).
 ;; * Eliminate electric stuff entirely.
 ;; * It might be nice to highlight targets differently depending on
 ;;   whether they are up-to-date or not.  Not sure how this would
@@ -74,7 +76,7 @@
 ;; * Consider removing browser mode.  It seems useless.
 ;; * ":" should notice when a new target is made and add it to the
 ;;   list (or at least set makefile-need-target-pickup).
-;; * Make browser into a mode.
+;; * Make browser into a major mode.
 ;; * Clean up macro insertion stuff.  It is a mess.
 ;; * Browser entry and exit is weird.  Normalize.
 ;; * Browser needs to be rewritten.  Right now it is kind of a crock.
@@ -104,13 +106,11 @@
   "Name of the macro- and target browser buffer.")
 
 (defvar makefile-target-colon ":"
-  "The string that gets appended to all target names
-inserted by makefile-insert-target.
-\":\" or \"::\" are quite common values.")
+  "String to append to all target names inserted by `makefile-insert-target'.
+\":\" or \"::\" are common values.")
 
 (defvar makefile-macro-assign " = "
-  "The string that gets appended to all macro names
-inserted by makefile-insert-macro.
+  "String to append to all macro names inserted by `makefile-insert-macro'.
 The normal value should be \" = \", since this is what
 standard make expects. However, newer makes such as dmake
 allow a larger variety of different macro assignments, so you
@@ -122,14 +122,14 @@ Default is nil.")
 
 (defvar makefile-use-curly-braces-for-macros-p nil
   "Controls the style of generated macro references.
-Set this variable to a non-nil value if you prefer curly braces
-in macro-references, so it looks like ${this}.  A value of nil
-will cause makefile-mode to use parentheses, making macro references
-look like $(this) .")
+t (actually non-nil) means macro references should use curly braces,
+like `${this}'.
+nil means use parentheses, like `$(this)'.")
 
 (defvar makefile-tab-after-target-colon t
-  "If you want a TAB (instead of a space) to be appended after the
-target colon, then set this to a non-nil value.")
+  "If non-nil, insert a TAB after a target colon.
+Otherwise, a space is inserted.
+The default is t.")
 
 (defvar makefile-browser-leftmost-column 10
   "Number of blanks to the left of the browser selection mark.")
@@ -138,6 +138,9 @@ target colon, then set this to a non-nil value.")
   "Column in which the cursor is positioned when it moves
 up or down in the browser.")
 
+(defvar makefile-backslash-column 48
+  "*Column in which `makefile-backslash-region' inserts backslashes.")
+
 (defvar makefile-browser-selected-mark "+  "
   "String used to mark selected entries in the browser.")
 
@@ -145,24 +148,21 @@ up or down in the browser.")
   "String used to mark unselected entries in the browser.")
 
 (defvar makefile-browser-auto-advance-after-selection-p t
-  "If non-nil, the cursor will automagically advance to the next line after
-an item has been selected in the browser.")
+  "If non-nil, cursor will move after item is selected in browser.")
 
 (defvar makefile-pickup-everything-picks-up-filenames-p nil
-  "If non-nil, makefile-pickup-everything also picks up filenames as targets
-\(i.e. it calls makefile-find-filenames-as-targets), otherwise filenames are
-omitted.")
+  "If non-nil, `makefile-pickup-everything' picks up filenames as targets.
+\(i.e. it calls `makefile-find-filenames-as-targets').
+Otherwise filenames are omitted.")
 
 (defvar makefile-cleanup-continuations-p t
-  "If non-nil, makefile-mode will assure that no line in the file ends with a
-backslash (the continuation character) followed by any whitespace.  This is
-done by silently removing the trailing whitespace, leaving the backslash itself
-intact.  IMPORTANT: Please note that enabling this option causes makefile-mode
+  "If non-nil, automatically clean up continuation lines when saving.
+A line is cleaned up by removing all whitespace following a trailing
+backslash.  This is done silently.
+IMPORTANT: Please note that enabling this option causes makefile-mode
 to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \'it seems necessary\'.")
 
-(defvar makefile-browser-hook '()
-  "A function or list of functions to be called just before the
-browser is entered. This is executed in the makefile buffer.")
+(defvar makefile-browser-hook '())
 
 ;;
 ;; Special targets for DMake, Sun's make ...
@@ -176,9 +176,9 @@ browser is entered. This is executed in the makefile buffer.")
     ("SCCS_GET")     ("SILENT")      ("SOURCE")       ("SUFFIXES")
     ("WAIT")         ("c.o")         ("C.o")          ("m.o")
     ("el.elc")       ("y.c")         ("s.o"))
-  "List of special targets. You will be offered to complete
-on one of those in the minibuffer whenever you enter a \".\"
-at the beginning of a line in makefile-mode.")
+  "List of special targets.
+You will be offered to complete on one of those in the minibuffer whenever
+you enter a \".\" at the beginning of a line in makefile-mode.")
 
 (defvar makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("?") ("%") ("$"))
@@ -198,12 +198,24 @@ not be enclosed in { } or ( ).")
 ;; if you change this regexp you must fix the imenu index function
 ;; defined at the end of the file.
 (defconst makefile-macroassign-regex
-  "^\\([^ \n\t][^:#=\n]*\\)[ \t]*[*:+]?:?="
+  "^\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
   "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
+
+;; TABs are important in Makefiles.  So highlight them in font-lock.
+;; Thanks to Job Ganzevoort <Job.Ganzevoort@cwi.nl> for this.
+(defvar makefile-tab-face
+  (if (fboundp 'make-face)
+      (progn
+	(make-face 'makefile-tab-face)
+	(or (face-differs-from-default-p 'makefile-tab-face)
+	    (set-face-background 'makefile-tab-face "hotpink"))
+	'makefile-tab-face)
+    '())
+  "Face to use for highlighting leading tabs in font-lock-mode.")
 
 (defconst makefile-font-lock-keywords
   (list
@@ -215,7 +227,11 @@ not be enclosed in { } or ( ).")
    '("\\$[({]\\([a-zA-Z0-9_]+\\)[})]" 1 font-lock-reference-face t)
    ;;
    ;; Do dependencies.  These get the function name face.
-   (list makefile-dependency-regex 1 'font-lock-function-name-face)))
+   (list makefile-dependency-regex 1 'font-lock-function-name-face)
+
+   ;; Highlight leading tab.  Maybe highlighting all leading TABs
+   ;; would be nice?  I don't know.
+   '("^\t" . makefile-tab-face)))
 
 ;;; ------------------------------------------------------------
 ;;; The following configurable variables are used in the
@@ -279,6 +295,7 @@ interface:
   (define-key makefile-mode-map "\C-c\C-p" 'makefile-pickup-everything)
   (define-key makefile-mode-map "\C-c\C-u" 'makefile-create-up-to-date-overview)
   (define-key makefile-mode-map "\C-c\C-i" 'makefile-insert-gmake-function)
+  (define-key makefile-mode-map "\C-c\C-\\" 'makefile-backslash-region)
   (define-key makefile-mode-map "\M-p"     'makefile-previous-dependency)
   (define-key makefile-mode-map "\M-n"     'makefile-next-dependency)
   (define-key makefile-mode-map "\e\t"     'makefile-complete)
@@ -318,8 +335,7 @@ interface:
   (define-key makefile-browser-map "\C-f" 'undefined))  
 
 
-(defvar makefile-mode-syntax-table nil
-  "The syntax-table used in makefile mode.")
+(defvar makefile-mode-syntax-table nil)
 (if makefile-mode-syntax-table
     ()
   (setq makefile-mode-syntax-table (make-syntax-table))
@@ -341,14 +357,10 @@ interface:
 ;;; ------------------------------------------------------------
 
 (defvar makefile-target-table nil
-  "Table of all targets that have been inserted in
-this Makefile buffer using makefile-insert-target or picked up
-using makefile-pickup-targets.")
+  "Table of all target names known for this buffer.")
 
 (defvar makefile-macro-table nil
-  "Table of all macros that have been iserted in
-this Makefile buffer using makefile-insert-macro or picked up
-using makefile-pickup-macros.")
+  "Table of all macro names known for this buffer.")
 
 (defvar makefile-browser-client
   "A buffer in makefile-mode that is currently using the browser.")
@@ -360,6 +372,8 @@ using makefile-pickup-macros.")
 
 (defvar makefile-mode-hook '())
 
+;; Each element looks like '("GNU MAKE FUNCTION" "ARG" "ARG" ... )
+;; Each "ARG" is used as a prompt for a required argument.
 (defconst makefile-gnumake-functions-alist
   '(
     ;; Text functions
@@ -384,10 +398,7 @@ using makefile-pickup-macros.")
     ;; Misc functions
     ("foreach" "Variable" "List" "Text")
     ("origin" "Variable")
-    ("shell" "Command"))
-  "A list of GNU make function names associated with
-the prompts for each function.
-This is used in the function makefile-insert-gmake-function .")
+    ("shell" "Command")))
 
 
 ;;; ------------------------------------------------------------
@@ -630,8 +641,7 @@ Anywhere else just self-inserts."
 ;;; ------------------------------------------------------------
 
 (defun makefile-pickup-targets ()
-  "Scan a buffer that contains a makefile for target definitions (dependencies)
-and add them to the list of known targets."
+  "Notice names of all target definitions in Makefile."
   (interactive)
   (if (not makefile-need-target-pickup)
       nil
@@ -665,10 +675,8 @@ and add them to the list of known targets."
 		    (message "Picked up target \"%s\" from line %d"
 			     target-name line-number)))))))))
 
-
 (defun makefile-pickup-macros ()
-  "Scan a buffer that contains a makefile for macro definitions
-and add them to the list of known macros."
+  "Notice names of all macro definitions in Makefile."
   (interactive)
   (if (not makefile-need-macro-pickup)
       nil
@@ -696,8 +704,7 @@ and add them to the list of known macros."
 		       macro-name line-number))))))
 
 (defun makefile-pickup-everything (arg)
-  "Calls makefile-pickup-targets and makefile-pickup-macros.
-See their documentation for what they do.
+  "Notice names of all macros and targets in Makefile.
 Prefix arg means force pickups to be redone."
   (interactive "P")
   (if arg
@@ -710,9 +717,9 @@ Prefix arg means force pickups to be redone."
       (makefile-pickup-filenames-as-targets)))
 
 (defun makefile-pickup-filenames-as-targets ()
-  "Scan the current directory for filenames, check each filename
-against makefile-ignored-files-in-pickup-regex and add all qualifying
-names to the list of known targets."
+  "Scan the current directory for filenames to use as targets.
+Checks each filename against `makefile-ignored-files-in-pickup-regex'
+and adds all qualifying names to the list of known targets."
   (interactive)
   (let* ((dir (file-name-directory (buffer-file-name)))
 	 (raw-filename-list (if dir
@@ -823,6 +830,56 @@ The context determines which are considered."
 
 
 
+;; Backslashification.  Stolen from cc-mode.el.
+
+(defun makefile-backslashify-current-line (doit)
+  (end-of-line)
+  (if doit
+      (if (not (save-excursion
+		 (forward-char -1)
+		 (eq (char-after (point)) ?\\ )))
+	  (progn
+	    (if (>= (current-column) makefile-backslash-column)
+		(insert " \\")
+	      (while (<= (current-column) makefile-backslash-column)
+		(insert "\t")
+		(end-of-line))
+	      (delete-char -1)
+	      (while (< (current-column) makefile-backslash-column)
+		(insert " ")
+		(end-of-line))
+	      (insert "\\"))))
+    (if (not (bolp))
+	(progn
+	  (forward-char -1)
+	  (if (eq (char-after (point)) ?\\ )
+	      (let ((saved (save-excursion
+			    (end-of-line)
+			    (point))))
+		(skip-chars-backward " \t")
+		(delete-region (point) saved)))))))
+
+(defun makefile-backslash-region (beg end arg)
+  "Insert backslashes at end of every line in region.
+Useful for defining multi-line rules.
+If called with a prefix argument, trailing backslahes are removed."
+  (interactive "r\nP")
+  (save-excursion
+    (let ((do-lastline-p (progn (goto-char end) (not (bolp)))))
+      (save-restriction
+	(narrow-to-region beg end)
+	(goto-char (point-min))
+	(while (not (save-excursion
+		      (forward-line 1)
+		      (eobp)))
+	  (makefile-backslashify-current-line (null arg))
+	  (forward-line 1)))
+      (and do-lastline-p
+	   (progn (goto-char end)
+		  (makefile-backslashify-current-line (null arg)))))))
+
+
+
 ;;; ------------------------------------------------------------
 ;;; Browser mode.
 ;;; ------------------------------------------------------------
@@ -889,8 +946,7 @@ The context determines which are considered."
 ;;;
 
 (defun makefile-browser-quit ()
-  "Leave the makefile-browser-buffer and return to the buffer
-from that it has been entered."
+  "Leave the browser and return to the makefile buffer."
   (interactive)
   (let ((my-client makefile-browser-client))
     (setq makefile-browser-client nil)	; we quitted, so NO client!
@@ -935,7 +991,7 @@ from that it has been entered."
 
 (defun makefile-browser-insert-continuation ()
   "Insert a makefile continuation.
-In the browser\'s client buffer, go to (end-of-line), insert a \'\\\'
+In the makefile buffer, go to (end-of-line), insert a \'\\\'
 character, insert a new blank line, go to that line and indent by one TAB.
 This is most useful in the process of creating continued lines when copying
 large dependencies from the browser to the client buffer.
@@ -947,8 +1003,7 @@ large dependencies from the browser to the client buffer.
     (insert "\\\n\t")))
 
 (defun makefile-browser-insert-selection ()
-  "Insert all browser-selected targets and/or macros in the browser\'s
-client buffer.
+  "Insert all selected targets and/or macros in the makefile buffer.
 Insertion takes place at (point)."
   (interactive)
   (save-excursion
@@ -1062,9 +1117,9 @@ dependency in the makefile."
     filename))				; return the filename
 
 (defun makefile-generate-temporary-filename ()
-  "Create a filename suitable for use in makefile-save-temporary.
+  "Create a filename suitable for use in `makefile-save-temporary'.
 Be careful to allow brain-dead file systems (DOS, SYSV ...) to cope
-with the generated name !"
+with the generated name!"
   (let ((my-name (user-login-name))
 	(my-uid (int-to-string (user-uid))))
     (concat "mktmp"
@@ -1077,8 +1132,8 @@ with the generated name !"
 	    my-uid))))
 
 (defun makefile-query-targets (filename target-table prereq-list)
-  "This function fills the up-to-date-overview-buffer.
-It checks each target in target-table using makefile-query-one-target-method
+  "Fill the up-to-date-overview-buffer.
+Checks each target in TARGET-TABLE using `makefile-query-one-target-method'
 and generates the overview, one line per target name."
   (insert
    (mapconcat
@@ -1101,7 +1156,9 @@ and generates the overview, one line per target name."
   (delete-file filename))		; remove the tmpfile
 
 (defun makefile-query-by-make-minus-q (target &optional filename)
-  (not (zerop (call-process makefile-brave-make nil nil nil "-f" filename "-q" target))))
+  (not (zerop
+	(call-process makefile-brave-make nil nil nil
+		      "-f" filename "-q" target))))
 
 
 
@@ -1146,15 +1203,9 @@ and generates the overview, one line per target name."
 ;;; ------------------------------------------------------------
 
 (defun makefile-insert-gmake-function ()
-  "This function is intended to help you using the numerous
-macro-like \'function calls\' of GNU make.
-It will ask you for the name of the function you wish to
-use (with completion), then, after you selected the function,
-it will prompt you for all required parameters.
-This function \'knows\' about the required parameters of every
-GNU make function and will use meaningfull prompts for the
-various args, making it much easier to take advantage of this
-powerful GNU make feature."
+  "Insert a GNU make function call.
+Asks for the name of the function to use (with completion).
+Then prompts for all required parameters."
   (interactive)
   (let* ((gm-function-name (completing-read
 			     "Function: "
@@ -1172,10 +1223,11 @@ powerful GNU make feature."
 (defun makefile-prompt-for-gmake-funargs (function-name prompt-list)
   (mapconcat
    (function (lambda (one-prompt)
-	       (read-string (format "[%s] %s: " function-name one-prompt) nil)))
+	       (read-string (format "[%s] %s: " function-name one-prompt)
+			    nil)))
    prompt-list
    ","))
-    
+
 
 
 ;;; ------------------------------------------------------------
@@ -1208,9 +1260,8 @@ powerful GNU make feature."
 		(cons (list macro-name) makefile-macro-table)))))
 
 (defun makefile-forward-after-target-colon ()
-"Move point forward after the terminating colon
-of a target has been inserted.
-This accts according to the value of makefile-tab-after-target-colon ."
+  "Move point forward after inserting the terminating colon of a target.
+This acts according to the value of `makefile-tab-after-target-colon'."
   (if makefile-tab-after-target-colon
       (insert "\t")
     (insert " ")))
@@ -1238,8 +1289,8 @@ This accts according to the value of makefile-tab-after-target-colon ."
       (buffer-substring macro-start (point)))))
 
 (defun makefile-format-macro-ref (macro-name)
-  "Format a macro reference according to the value of the
-configuration variable makefile-use-curly-braces-for-macros-p ."
+  "Format a macro reference.
+Uses `makefile-use-curly-braces-for-macros-p'."
   (if (or (char-equal ?\( (string-to-char macro-name))
 	  (char-equal ?\{ (string-to-char macro-name)))
       (format "$%s" macro-name)
@@ -1277,7 +1328,7 @@ configuration variable makefile-use-curly-braces-for-macros-p ."
 ;;; Support for other packages, like add-log and imenu.
 
 (defun makefile-add-log-defun ()
-  "Return name of target or macro point is in, or nil."
+  ;; "Return name of target or macro point is in, or nil."
   (save-excursion
     (beginning-of-line)
     (cond
@@ -1293,7 +1344,7 @@ configuration variable makefile-use-curly-braces-for-macros-p ."
 
 ;; FIXME it might be nice to have them separated by macro vs target.
 (defun makefile-menu-index-function ()
-  "Generate alist of indices for imenu."
+  ;; "Generate alist of indices for imenu."
   (let (alist
 	stupid
 	(re (concat makefile-dependency-regex
@@ -1303,9 +1354,6 @@ configuration variable makefile-use-curly-braces-for-macros-p ."
     (goto-char (point-min))
     (while (re-search-forward re nil t)
       (imenu-progress-message stupid)
-      (setq zardoz (list (match-beginning 0) (match-end 0)
-			 (match-beginning 1) (match-end 1)
-							  ))
       (let ((n (if (match-beginning 1) 1 5)))
 	(setq alist (cons
 		     (cons (buffer-substring (match-beginning n)
