@@ -5683,7 +5683,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	  
 	  /* Convert a multibyte string to single-byte
 	     for the *Message* buffer.  */
-	  for (i = 0; i < nbytes; i += nbytes)
+	  for (i = 0; i < nbytes; i += char_bytes)
 	    {
 	      c = string_char_and_length (m + i, nbytes - i, &char_bytes);
 	      work[0] = (SINGLE_BYTE_CHAR_P (c)
