@@ -1592,7 +1592,7 @@ See also the docstring of `make-translation-table'.");
 
   DEFVAR_LISP ("auto-fill-chars", &Vauto_fill_chars,
     "A char-table for characters which invoke auto-filling.\n\
-Such characters has value t in this table.");
+Such characters have value t in this table.");
   Vauto_fill_chars = Fmake_char_table (Qauto_fill_chars, Qnil);
   CHAR_TABLE_SET (Vauto_fill_chars, make_number (' '), Qt);
   CHAR_TABLE_SET (Vauto_fill_chars, make_number ('\n'), Qt);
