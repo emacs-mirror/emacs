@@ -8,6 +8,7 @@
 TEX=tex
 MAKE=make
 SHELL=/bin/sh
+INSTALL_INFO = install-info
 
 # Where the TeX macros are kept:
 texmacrodir = /usr/local/lib/tex/macros
@@ -82,7 +83,7 @@ index.texi:
 install: elisp
 	./mkinstalldirs $(infodir)
 	cp elisp elisp-* $(infodir)
-	@echo also add the line for elisp to $(infodir)/dir.
+	${INSTALL_INFO} --dir-file=${infodir}/dir --info-file=${infodir}/elisp
 
 installall: install
 	install -c texinfo.tex $(texmacrodir)
