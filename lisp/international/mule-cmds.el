@@ -880,19 +880,16 @@ specifies the character set for the major languages of Western Europe."
     (setq language-name "English"))
   (if (null (get-language-info language-name 'setup-function))
       (error "Language environment not defined: %S" language-name))
-  (unless default-enable-multibyte-characters
-    (or (member (downcase language-name)
-		'("latin-1" "latin-2" "latin-3" "latin-4" "latin-5"))
-	(error "Language environment `%s' not supported in unibyte mode"
-	       language-name))
-    (set-terminal-coding-system (intern (downcase language-name)))
-    (standard-display-european-internal))
-
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
 	(if (fboundp func) (funcall func))))
+  (when (and (not default-enable-multibyte-characters)
+	     (member (downcase language-name)
+		     '("latin-1" "latin-2" "latin-3" "latin-4" "latin-5")))
+    (set-terminal-coding-system (intern (downcase language-name)))
+    (standard-display-european-internal))
   (setq current-language-environment language-name)
   (funcall (get-language-info language-name 'setup-function))
   (run-hooks 'set-language-environment-hook)
