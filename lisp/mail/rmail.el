@@ -1264,14 +1264,9 @@ Interactively, empty argument means use same regexp used last time."
 	    (prefix-numeric-value current-prefix-arg))))
   (rmail-search regexp (- (or n -1))))
 
-(defun glofp ()
-  (interactive)
-  (let ((new (1+ (string-to-int (buffer-substring (1- (point)) (point))))))
-    (backward-delete-char 1)
-    (insert (int-to-string new))))
-
 ;; Show the first message which has the `unseen' attribute.
 (defun rmail-first-unseen-message ()
+  (rmail-maybe-set-message-counters)
   (let ((current 1)
 	found)
     (save-restriction
