@@ -5,6 +5,9 @@
 #include <dlfcn.h>
 
 #include "lisp.h"
+#include "buffer.h"
+#include "charset.h"
+#include "coding.h"
 
 int
 unexec (char *new_name, char *old_name, unsigned int data_start,
