@@ -1,3 +1,8 @@
+2002-07-05  Jonathan Kamens <jik@kamens.brookline.ma.us>
+
+	* b2m.pl: Obey the rmail file and use the unpruned header
+	properly.
+
 2002-06-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* b2m.pl: New file.
