@@ -10169,7 +10169,6 @@ redisplay_window (window, just_this_one_p)
   buffer_unchanged_p
     = (!NILP (w->window_end_valid)
        && !current_buffer->clip_changed
-       && END_UNCHANGED + BEG_UNCHANGED >= Z - BEG
        && XFASTINT (w->last_modified) >= MODIFF
        && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
 
@@ -10367,8 +10366,9 @@ redisplay_window (window, just_this_one_p)
     }
 
   /* Handle case where text has not changed, only point, and it has
-     not moved off the frame.  */
-  if (buffer_unchanged_p
+     not moved off the frame, and we are not retrying after hscroll.
+     (current_matrix_up_to_date_p is nonzero when retrying.)  */
+  if (current_matrix_up_to_date_p
       && (rc = try_cursor_movement (window, startp, &temp_scroll_step),
 	  rc != CURSOR_MOVEMENT_CANNOT_BE_USED))
     {
