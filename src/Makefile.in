@@ -1,5 +1,6 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000 Free Software Foundation, Inc.
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001
+# Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -834,7 +835,7 @@ emacs: temacs ${etc}DOC ${lisp}
    for the first time, this prevents any variation between configurations
    in the contents of the DOC file.
    Likewise for ${SOME_MACHINE_LISP}.  */
-${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
+${etc}DOC: ${libsrc}make-docfile ${obj} ${shortlisp} ${SOME_MACHINE_LISP}
 	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
 	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP} ${shortlisp}
