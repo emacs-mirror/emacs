@@ -39,7 +39,7 @@
 (defcustom sgml-transformation nil
   "*Default value for `skeleton-transformation' (which see) in SGML mode."
   :type 'function
-  :group sgml)
+  :group 'sgml)
 
 (put 'sgml-transformation 'variable-interactive
      "aTransformation function: ")
