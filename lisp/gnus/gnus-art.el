@@ -473,7 +473,7 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
   :group 'gnus-article-signature)
 
 (defface gnus-signature-face
-  '((((type x))
+  '((t
      (:italic t)))
   "Face used for highlighting a signature in the article buffer."
   :group 'gnus-article-highlight
