@@ -97,7 +97,7 @@
 ;; Set up colors, for those versions of rxvt that support it.
 (defvar rxvt-standard-colors
   ;; The names of the colors in the comments taken from the rxvt.1 man
-  ;; page; th corresponding RGB values--from rgb.txt.
+  ;; page; the corresponding RGB values--from rgb.txt.
   '(("black"          0 (  0   0   0))	; black
     ("red"            1 (205   0   0))	; red3
     ("green"          2 (  0 205   0))	; green3
