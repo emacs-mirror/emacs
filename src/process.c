@@ -2974,7 +2974,7 @@ usage: (make-network-process &rest ARGS)  */)
 	      if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 		{
 		  ((struct sockaddr_in *)(lres->ai_addr))->sin_port = sa1.sin_port;
-		  service = make_number (sa1.sin_port);
+		  service = make_number (ntohs (sa1.sin_port));
 		  contact = Fplist_put (contact, QCservice, service);
 		}
 	    }
