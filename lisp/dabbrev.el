@@ -1,6 +1,7 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 86, 92, 94, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000
+;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
 ;; Maintainer: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
@@ -193,15 +194,24 @@ Dabbrev always searches the current buffer first.  Then, if
 designated by `dabbrev-select-buffers-function'.
 
 Then, if `dabbrev-check-all-buffers' is non-nil, dabbrev searches
-all the other buffers, except those named in `dabbrev-ignored-buffer-names'."
+all the other buffers, except those named in `dabbrev-ignored-buffer-names',
+or matched by `dabbrev-ignored-regexps'."
   :type 'boolean
   :group 'dabbrev)
 
 (defcustom dabbrev-ignored-buffer-names '("*Messages*" "*Buffer List*")
-  "*List of buffer names that dabbrev should not check."
+  "*List of buffer names that dabbrev should not check.
+See also `dabbrev-ignored-regexps'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev
   :version "20.3")
+
+(defcustom dabbrev-ignored-regexps nil
+  "*List of regexps matching names of buffers that dabbrev should not check.
+See also `dabbrev-ignored-buffer-names'."
+  :type '(repeat regexp)
+  :group 'dabbrev
+  :version "21.1")
 
 (defcustom dabbrev-check-other-buffers t
   "*Should \\[dabbrev-expand] look in other buffers?\
@@ -761,9 +771,16 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			(nreverse
 			 (dabbrev-filter-elements
 			  buffer (buffer-list)
-			  (and (not (member (buffer-name buffer)
-					    dabbrev-ignored-buffer-names))
-			       (not (memq buffer dabbrev--friend-buffer-list)))))
+			  (let ((bn (buffer-name buffer)))
+			    (and (not (member bn dabbrev-ignored-buffer-names))
+				 (not (memq buffer dabbrev--friend-buffer-list))
+				 (not
+				  (let ((tail dabbrev-ignored-regexps)
+					(match nil))
+				    (while (and tail (not match))
+				      (setq match (string-match (car tail) bn)
+					    tail (cdr tail)))
+				    match))))))
 			dabbrev--friend-buffer-list
 			(append dabbrev--friend-buffer-list
 				non-friend-buffer-list)))))
