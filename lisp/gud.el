@@ -1,4 +1,5 @@
-;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, or dbx under Emacs
+;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, dbx, or xdb
+;;;            under Emacs
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 1.3
@@ -28,7 +29,8 @@
 ;; It was later rewritten by rms.  Some ideas were due to Masanobu. 
 ;; Grand Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com>
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
-;; who also hacked the mode to use comint.el.
+;; who also hacked the mode to use comint.el.  Shane Hartman <shane@spr.com>
+;; added support for xdb (HPUX debugger).
 
 ;;; Code:
 
@@ -316,6 +318,100 @@ and source-file directory for your debugger."
   (run-hooks 'dbx-mode-hook)
   )
 
+;; ======================================================================
+;; xdb (HP PARISC debugger) functions
+
+(defun gud-xdb-debugger-startup (file args)
+  (apply 'make-comint (concat "gud-" file) "xdb" nil
+         (append (let ((paths gud-xdb-paths)
+                       (result nil))
+                   (while paths
+                     (setq result (cons (car paths) (cons "-d" result)))
+                     (setq paths (cdr paths)))
+                   (nreverse result))
+                 args)))
+
+(defun gud-xdb-file-name (f)
+  "Transform a relative pathname to a full pathname in xdb mode"
+  (let ((result nil))
+    (if (file-exists-p f)
+        (setq result (expand-file-name f))
+      (let ((paths gud-xdb-paths))
+        (while paths
+          (let ((path (concat (car paths) "/" f)))
+            (if (file-exists-p path)
+                (setq result (expand-file-name path)
+                      paths nil)))
+          (setq paths (cdr paths)))))
+    result))
+
+;; xdb does not print the lines all at once, so we have to accumulate them
+(defvar gud-xdb-accumulation "")
+
+(defun gud-xdb-marker-filter (string)
+  (let (result)
+    (if (or (string-match comint-prompt-regexp string)
+            (string-match ".*\012" string))
+        (setq result (concat gud-xdb-accumulation string)
+              gud-xdb-accumulation "")
+      (setq gud-xdb-accumulation (concat gud-xdb-accumulation string)))
+    (if result
+        (if (or (string-match "\\([^\n \t:]+\\): [^:]+: \\([0-9]+\\):" result)
+                (string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
+                              result))
+            (let ((line (string-to-int 
+                         (substring result (match-beginning 2) (match-end 2))))
+                  (file (gud-xdb-file-name
+                         (substring result (match-beginning 1) (match-end 1)))))
+              (if file
+                  (setq gud-last-frame (cons file line))))))
+    (or result "")))    
+               
+(defvar gud-xdb-paths nil
+  "*A list of directories containing source code that should be made known
+to xdb on startup.  If nil, only source files in the program directory
+will be known to xdb.
+
+The pathnames should be full, or relative to the program directory.
+Program directory refers to the directory of the program that is being
+debugged.")
+
+(defun gud-xdb-find-file (f)
+  (let ((realf (gud-xdb-file-name f)))
+    (if realf (find-file-noselect realf))))
+
+;;;###autoload
+(defun xdb (args)
+  "Run xdb on program FILE in buffer *gud-FILE*.
+The directory containing FILE becomes the initial working directory
+and source-file directory for your debugger.
+
+The variable 'gud-xdb-paths' can be set to a list of program source
+directories if your program contains sources from more than one directory."
+  (interactive "sRun xdb (like this): xdb")
+  (gud-overload-functions '((gud-debugger-startup . gud-xdb-debugger-startup)
+			    (gud-marker-filter    . gud-xdb-marker-filter)
+			    (gud-find-file        . gud-xdb-find-file)))
+
+  (gud-common-init args)
+
+  (gud-def gud-break  "b %f:%l"    "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-tbreak "b %f:%l\\t" "\C-t"
+           "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "db"         "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "s %p"	   "\C-s" "Step one line with display.")
+  (gud-def gud-next   "S %p"	   "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "c"	   "\C-r" "Continue with display.")
+  (gud-def gud-up     "up %p"	   "<"    "Up (numeric arg) stack frames.")
+  (gud-def gud-down   "down %p"	   ">"    "Down (numeric arg) stack frames.")
+  (gud-def gud-finish "bu\\t"      "\C-f" "Finish executing current function.")
+  (gud-def gud-print  "p %e"       "\C-p" "Evaluate C expression at point.")
+
+  (setq comint-prompt-regexp  "^>")
+  (make-local-variable 'gud-xdb-accumulation)
+  (setq gud-xdb-accumulation "")
+  (run-hooks 'xdb-mode-hook))
+
 ;;
 ;; End of debugger-specific information
 ;;
@@ -366,9 +462,9 @@ and source-file directory for your debugger."
 (defun gud-mode ()
   "Major mode for interacting with an inferior debugger process.
 
-   You start it up with one of the commands M-x gdb, M-x sdb, or
-M-x dbx.  Each entry point finishes by executing a hook; `gdb-mode-hook',
-`sdb-mode-hook' or `dbx-mode-hook' respectively.
+   You start it up with one of the commands M-x gdb, M-x sdb, M-x dbx,
+or M-x xdb.  Each entry point finishes by executing a hook; `gdb-mode-hook',
+`sdb-mode-hook', `dbx-mode-hook' or `xdb-mode-hook' respectively.
 
 After startup, the following commands are available in both the GUD
 interaction buffer and any source buffer GUD visits due to a breakpoint stop
@@ -391,16 +487,17 @@ and then update the source window with the current file and position.
 \\[gud-print] tries to find the largest C lvalue or function-call expression
 around point, and sends it to the debugger for value display.
 
-The above commands are common to all supported debuggers.
+The above commands are common to all supported debuggers except xdb which
+does not support stepping instructions.
 
-Under gdb and sdb, \\[gud-tbreak] behaves exactly like \\[gud-break],
+Under gdb, sdb and xdb, \\[gud-tbreak] behaves exactly like \\[gud-break],
 except that the breakpoint is temporary; that is, it is removed when
 execution stops on it.
 
-Under gdb and dbx, \\[gud-up] pops up through an enclosing stack
+Under gdb, dbx, and xdb, \\[gud-up] pops up through an enclosing stack
 frame.  \\[gud-down] drops back down through one.
 
-If you are using gdb, \\[gdb-finish] runs execution to the return from
+If you are using gdb or xdb, \\[gud-finish] runs execution to the return from
 the current function and stops.
 
 All the keystrokes above are accessible in the GUD buffer
