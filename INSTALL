@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994, 1996, 1997, 2000 Free software Foundation, Inc.
+Copyright (c) 1992, 94, 96, 97, 2000, 01, 02 Free software Foundation, Inc.
 See the end of the file for copying permissions.
 
 
@@ -120,13 +120,13 @@ first, just unpack Leim, build Emacs again, and install it again.
 
 * intlfonts-VERSION.tar.gz
 
-The intlfonts distribution contains X11 fonts that Emacs needs in
-order to display international characters.  If you see a non-ASCII
-character appear as a hollow box, that means you don't have a font for
-it.  You might find a font in the intlfonts distribution.  If you do
-have a font for a non-ASCII character, but some characters don't look
-right, or appear improperly aligned, a font from the intlfonts
-distribution might look better.
+The intlfonts distribution contains X11 fonts in various encodings
+that Emacs may need to display international characters.  If you see a
+non-ASCII character appear as a hollow box, that means you don't have
+a font for it.  You might find one in the intlfonts distribution.  If
+you do have a font for a non-ASCII character, but some characters
+don't look right, or appear improperly aligned, a font from the
+intlfonts distribution might look better.
 
 The fonts in the intlfonts distribution are also used by the ps-print
 package for printing international characters.  The file
@@ -205,17 +205,21 @@ configure should avoid such old versions.  If that happens, use the
 * Extra fonts
 
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
-a Unicode font.  For information on Unicode fonts for X, see
-<URL:http://czyborra.com/unifont/>,
-<URL:http://openlab.ring.gr.jp/efont/> and
-<URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
+a Unicode font.  For `Unicode' (ISO 10646) fonts for X, see
+<URL:http://dvdeug.dhis.org/unifont.html> (packaged in Debian),
+<URL:http://openlab.ring.gr.jp/efont/> (packaged in Debian).  Perhaps
+also see <URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
+
 <URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
 ISO-8859 charsets.
 
 XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/> and mirrors)
 contains font support for most, if not all, of the charsets that Emacs
-supports.  The font files should be usable separately with older X
-releases.
+currently supports, including iso10646-1 encoded fonts for use with
+the mule-unicode charsets.  The font files should also be usable with
+older X releases.  Note that XFree 4 contains many iso10646-1 fonts
+with minimal character repertoires, which can cause problems -- see
+etc/PROBLEMS.
 
 
 DETAILED BUILDING AND INSTALLATION:
