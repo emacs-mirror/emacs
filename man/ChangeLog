@@ -1,3 +1,8 @@
+2003-08-17  Alex Schroeder  <alex@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Manual M-x desktop-save not
+	required.
+
 2003-08-16  Richard M. Stallman  <rms@gnu.org>
 
 	* dired-x.texi (Shell Command Guessing): Explain *.
