@@ -490,7 +490,7 @@ from being initialized."
 	      ;; Set up for this character set in unibyte mode.
 	      (load charset)))
 	(standard-display-european t (and default-enable-multibyte-characters
-					  charset))))))
+					  charset)))))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
