@@ -213,22 +213,15 @@ a string or vector of length 1."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
+(put 'keyboard-translate-table 'char-table-extra-slots 0)
+
 (defun keyboard-translate (from to)
   "Translate character FROM to TO at a low level.
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it."
-  (or (arrayp keyboard-translate-table)
-      (setq keyboard-translate-table ""))
-  (if (or (> from (length keyboard-translate-table))
-	  (> to   (length keyboard-translate-table)))
-      (progn
-	(let* ((i (length keyboard-translate-table))
-	       (table (concat keyboard-translate-table
-			      (make-string (- 256 i) 0))))
-	  (while (< i 256)
-	    (aset table i i)
-	    (setq i (1+ i)))
-	  (setq keyboard-translate-table table))))
+  (or (char-table-p keyboard-translate-table)
+      (setq keyboard-translate-table
+	    (make-char-table 'keyboard-translate-table nil)))
   (aset keyboard-translate-table from to))
 
 
