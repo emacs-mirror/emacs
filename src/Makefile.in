@@ -26,6 +26,7 @@ VPATH=@srcdir@
 CC=@CC@
 CPP=@CPP@
 CFLAGS=@CFLAGS@
+LDFLAGS=
 C_SWITCH_SYSTEM=
 LN_S=@LN_S@
 # These escaped doublequotes become part of the macro definition in emacs.c.
@@ -360,7 +361,7 @@ LD=ld
 #endif /* ! defined (COFF_ENCAPSULATE) */
 #endif /* not ORDINARY_LINK */
 
-LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE
+ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE
 
 /* A macro which other sections of ymakefile can redefine to munge the
    flags before they're passed to LD.  This is helpful if you have
@@ -561,7 +562,7 @@ ${libsrc}make-docfile:
 #endif
 
 temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) $(OLDXMENU) ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
-	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${LDFLAGS}) \
+	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) ${LDFLAGS} \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
 
