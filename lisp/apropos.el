@@ -324,6 +324,27 @@ Value is a list of offsets of the words into the string."
     (dolist (s (apropos-calc-scores symbol apropos-words) (* score (or weight 3)))
       (setq score (+ score (- 60 l) (/ (* (- l s) 60) l))))))
 
+(defun apropos-true-hit (str words)
+  "Return t if STR is a genuine hit.
+This may fail if only one of the keywords is matched more than once.
+This requires that at least 2 keywords (unless only one was given)."
+  (or (not str)
+      (not words)
+      (not (cdr words))
+      (> (length (apropos-calc-scores str words)) 1)))
+
+(defun apropos-false-hit-symbol (symbol)
+  "Return t if SYMBOL is not really matched by the current keywords."
+  (not (apropos-true-hit (symbol-name symbol) apropos-words)))
+
+(defun apropos-false-hit-str (str)
+  "Return t if STR is not really matched by the current keywords."
+  (not (apropos-true-hit str apropos-words)))
+
+(defun apropos-true-hit-doc (doc)
+  "Return t if DOC is really matched by the current keywords."
+  (apropos-true-hit doc apropos-all-words))
+
 ;;;###autoload
 (define-derived-mode apropos-mode fundamental-mode "Apropos"
   "Major mode for following hyperlinks in output of apropos commands.
@@ -378,7 +399,8 @@ satisfy the predicate VAR-PREDICATE."
 				(if do-all 'functionp 'commandp))))
     (let ((tem apropos-accumulator))
       (while tem
-	(if (get (car tem) 'apropos-inhibit)
+	(if (or (get (car tem) 'apropos-inhibit)
+		(apropos-false-hit-symbol (car tem)))
 	    (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
 	(setq tem (cdr tem))))
     (let ((p apropos-accumulator)
@@ -501,6 +523,12 @@ Returns list of symbols and values found."
 	(if do-all
 	    (setq f (apropos-value-internal 'fboundp symbol 'symbol-function)
 		  p (apropos-format-plist symbol "\n    " t)))
+	(if (apropos-false-hit-str v)
+	    (setq v nil))
+	(if (apropos-false-hit-str f)
+	    (setq f nil))
+	(if (apropos-false-hit-str p)
+	    (setq p nil))
 	(if (or f v p)
 	    (setq apropos-accumulator (cons (list symbol 
 						  (+ (apropos-score-str f)
@@ -576,6 +604,7 @@ Returns list of symbols and documentation found."
       (apropos-documentation-check-elc-file (car doc))
     (and doc
 	 (string-match apropos-all-regexp doc)
+	 (save-match-data (apropos-true-hit-doc doc))
 	 (progn
 	   (if apropos-match-face
 	       (put-text-property (match-beginning 0)
@@ -624,25 +653,26 @@ Returns list of symbols and documentation found."
 	    (setq beg (match-beginning 0)
 		  end (point))
 	    (goto-char (1+ sepa))
-	    (or (and (setq type (if (eq ?F (preceding-char))
-				    2	; function documentation
-				  3)		; variable documentation
-			   symbol (read)
-			   beg (- beg (point) 1)
-			   end (- end (point) 1)
-			   doc (buffer-substring (1+ (point)) (1- sepb))
-			   apropos-item (assq symbol apropos-accumulator))
-		     (setcar (cdr apropos-item)
-			     (+ (cadr apropos-item) (apropos-score-doc doc))))
-		(setq apropos-item (list symbol 
-					 (+ (apropos-score-symbol symbol 2)
-					    (apropos-score-doc doc))
-					 nil nil)
-		      apropos-accumulator (cons apropos-item
-						apropos-accumulator)))
-	    (if apropos-match-face
-		(put-text-property beg end 'face apropos-match-face doc))
-	    (setcar (nthcdr type apropos-item) doc)))
+	    (setq type (if (eq ?F (preceding-char))
+			   2	; function documentation
+			 3)		; variable documentation
+		  symbol (read)
+		  beg (- beg (point) 1)
+		  end (- end (point) 1)
+		  doc (buffer-substring (1+ (point)) (1- sepb)))
+	    (when (apropos-true-hit-doc doc)
+	      (or (and (setq apropos-item (assq symbol apropos-accumulator))
+		       (setcar (cdr apropos-item)
+			       (+ (cadr apropos-item) (apropos-score-doc doc))))
+		  (setq apropos-item (list symbol 
+					   (+ (apropos-score-symbol symbol 2)
+					      (apropos-score-doc doc))
+					   nil nil)
+			apropos-accumulator (cons apropos-item
+						  apropos-accumulator)))
+	      (if apropos-match-face
+		  (put-text-property beg end 'face apropos-match-face doc))
+	      (setcar (nthcdr type apropos-item) doc))))
       (setq sepa (goto-char sepb)))))
 
 (defun apropos-documentation-check-elc-file (file)
@@ -666,34 +696,35 @@ Returns list of symbols and documentation found."
 	      (goto-char (+ end 2))
 	      (setq doc (buffer-substring beg end)
 		    end (- (match-end 0) beg)
-		    beg (- (match-beginning 0) beg)
-		    this-is-a-variable (looking-at "(def\\(var\\|const\\) ")
-		    symbol (progn
-			     (skip-chars-forward "(a-z")
-			     (forward-char)
-			     (read))
-		    symbol (if (consp symbol)
-			       (nth 1 symbol)
-			     symbol))
-	      (if (if this-is-a-variable
-		      (get symbol 'variable-documentation)
-		    (and (fboundp symbol) (apropos-safe-documentation symbol)))
-		  (progn
-		    (or (and (setq apropos-item (assq symbol apropos-accumulator))
-			     (setcar (cdr apropos-item)
-				     (+ (cadr apropos-item) (apropos-score-doc doc))))
-			(setq apropos-item (list symbol
-						 (+ (apropos-score-symbol symbol 2)
-						    (apropos-score-doc doc))
-						 nil nil)
-			      apropos-accumulator (cons apropos-item
-							apropos-accumulator)))
-		    (if apropos-match-face
-			(put-text-property beg end 'face apropos-match-face
-					   doc))
-		    (setcar (nthcdr (if this-is-a-variable 3 2)
-				    apropos-item)
-			    doc)))))))))
+		    beg (- (match-beginning 0) beg))
+	      (when (apropos-true-hit-doc doc)
+		(setq this-is-a-variable (looking-at "(def\\(var\\|const\\) ")
+		      symbol (progn
+			       (skip-chars-forward "(a-z")
+			       (forward-char)
+			       (read))
+		      symbol (if (consp symbol)
+				 (nth 1 symbol)
+			       symbol))
+		(if (if this-is-a-variable
+			(get symbol 'variable-documentation)
+		      (and (fboundp symbol) (apropos-safe-documentation symbol)))
+		    (progn
+		      (or (and (setq apropos-item (assq symbol apropos-accumulator))
+			       (setcar (cdr apropos-item)
+				       (+ (cadr apropos-item) (apropos-score-doc doc))))
+			  (setq apropos-item (list symbol
+						   (+ (apropos-score-symbol symbol 2)
+						      (apropos-score-doc doc))
+						   nil nil)
+				apropos-accumulator (cons apropos-item
+							  apropos-accumulator)))
+		      (if apropos-match-face
+			  (put-text-property beg end 'face apropos-match-face
+					     doc))
+		      (setcar (nthcdr (if this-is-a-variable 3 2)
+				      apropos-item)
+			      doc))))))))))
 
 
 
