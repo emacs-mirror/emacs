@@ -1843,10 +1843,11 @@ copy_intervals (tree, start, length)
 
 INLINE void
 copy_intervals_to_string (string, buffer, position, length)
-     Lisp_Object string, buffer;
+     Lisp_Object string;
+     struct buffer *buffer;
      int position, length;
 {
-  INTERVAL interval_copy = copy_intervals (BUF_INTERVALS (XBUFFER (buffer)),
+  INTERVAL interval_copy = copy_intervals (BUF_INTERVALS (buffer),
 					   position, length);
   if (NULL_INTERVAL_P (interval_copy))
     return;
