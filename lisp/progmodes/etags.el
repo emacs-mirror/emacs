@@ -1355,8 +1355,7 @@ If you exit (\\[keyboard-quit] or ESC), you can resume the query-replace
 with the command \\[tags-loop-continue].
 
 See documentation of variable `tags-file-name'."
-  (interactive
-   "sTags query replace (regexp): \nsTags query replace %s by: \nP")
+  (interactive (query-replace-read-args "Tags query replace (regexp)" t))
   (setq tags-loop-scan (list 'prog1
 			     (list 'if (list 're-search-forward from nil t)
 				   ;; When we find a match, move back
