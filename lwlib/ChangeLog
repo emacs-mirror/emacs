@@ -1,3 +1,28 @@
+2000-06-06  Dave Love  <fx@gnu.org>
+
+	* xlwmenu.c (x_alloc_nearest_color_for_widget, x_catch_errors)
+	(x_uncatch_errors, x_had_errors_p, x_clear_errors): Add prototypes
+	-- should be moved into separate header.
+	(make_shadow_gcs) <x_alloc_nearest_color_for_widget>: Cast first
+	arg.
+	(Start) <pop_up_menu>: Cast second arg.
+
+	* lwlib.c (P_): Use PROTOTYPES.
+	(safe_strdup): Declare arg const.
+	(lw_modify_all_widgets) <!info>: Return 0.
+
+	* lwlib-Xm.c (P_): Use PROTOTYPES.
+
+	* xlwmenu.h, lwlib.h, lwlib-utils.h, lwlib-int.h, lwlib-Xm.h:
+	* lwlib-Xlw.h, lwlib-Xaw.h: Enable prototypes.
+
+	* lwlib-Xaw.c (xaw_popup_menu): Add EVENT arg.
+
+	* Makefile.in (lwlib.o): Depend on lwlib-Xlw.h.
+	(lwlib-Xlw.o): Depend on lwlib-Xlw.h.
+	(lwlib-Xaw.o): Depend on lwlib-Xaw.h.
+	(lwlib-Xm.o): Depend on lwlib-Xm.h.
+
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (make_menubar) [LESSTIF_VERSION]: Don't set

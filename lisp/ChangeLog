@@ -1,3 +1,8 @@
+2000-06-06  Dave Love  <fx@gnu.org>
+
+	* image.el (find-image): Doc fix.  Return nil if image not found.
+	(put-image, insert-image): Make STRING arg optional.
+
 2000-06-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/vietnamese.el: Remove eval-when-compile.

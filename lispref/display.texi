@@ -533,11 +533,14 @@ about to be executed.
 @defvar overlay-arrow-string
 This variable holds the string to display to call attention to a
 particular line, or @code{nil} if the arrow feature is not in use.
+On a graphical display the contents of the string are ignored; instead a
+glyph is displayed in the fringe area to the left of the display area.
 @end defvar
 
 @defvar overlay-arrow-position
 This variable holds a marker that indicates where to display the overlay
-arrow.  It should point at the beginning of a line.  The arrow text
+arrow.  It should point at the beginning of a line.  On a non-graphical
+display the arrow text
 appears at the beginning of that line, overlaying any text that would
 otherwise appear.  Since the arrow is usually short, and the line
 usually begins with indentation, normally nothing significant is
@@ -2322,7 +2325,7 @@ If @var{window} is @code{nil}, the selected window is used.
 @cindex conditional display specifications
 
   You can make any display specification conditional.  To do that,
-package it in another list of the form @code{(when @var{condition}
+package it in another list of the form @code{(when @var{condition} .
 @var{spec})}.  Then the specification @var{spec} applies only when
 @var{condition} evaluates to a non-@code{nil} value.  During the
 evaluation, point is temporarily set at the end position of the text
@@ -2674,7 +2677,7 @@ as @code{nil}.
 property yourself, but it is easier to use the functions in this
 section.
 
-@defun insert-image image string &optional area
+@defun insert-image image &optional string area
 This function inserts @var{image} in the current buffer at point.  The
 value @var{image} should be an image descriptor; it could be a value
 returned by @code{create-image}, or the value of a symbol defined with
@@ -2692,11 +2695,12 @@ it a @code{display} property which specifies @var{image}.  @xref{Display
 Property}.
 @end defun
 
-@defun put-image image pos string &optional area
+@defun put-image image pos &optional string area
 This function puts image @var{image} in front of @var{pos} in the
 current buffer.  The argument @var{pos} should be an integer or a
 marker.  It specifies the buffer position where the image should appear.
-The argument @var{string} specifies the text that should hold the image.
+The argument @var{string} specifies the text that should hold the image
+as an alternative to the default.
 
 The argument @var{image} must be an image descriptor, perhaps returned
 by @code{create-image} or stored by @code{defimage}.
