@@ -111,7 +111,7 @@ Lisp_Object Qlast_nonmenu_event;
 #ifdef HAVE_SOCKETS
 static Lisp_Object stream_process;
 
-#define NETCONN_P(p) (XGCTYPE (XPROCESS (p)->childp) == Lisp_String)
+#define NETCONN_P(p) (GC_STRINGP (XPROCESS (p)->childp))
 #else
 #define NETCONN_P(p) 0
 #endif /* HAVE_SOCKETS */
@@ -3005,11 +3005,10 @@ kill_buffer_processes (buffer)
 {
   Lisp_Object tail, proc;
 
-  for (tail = Vprocess_alist; XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
+  for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCONS (tail)->cdr)
     {
       proc = XCONS (XCONS (tail)->car)->cdr;
-      if (XGCTYPE (proc) == Lisp_Process
+      if (GC_PROCESSP (proc)
 	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
 	{
 	  if (NETCONN_P (proc))
