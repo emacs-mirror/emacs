@@ -12,13 +12,13 @@ VPATH=@srcdir@
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
-INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl ../info/dired-x \
-	       ../info/ediff ../info/forms ../info/gnus ../info/info \
-	       ../info/mh-e ../info/sc ../info/vip ../info/viper \
-	       ../info/message ../info/customize ../info/widget
-DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi ediff.dvi forms.dvi \
-		 gnus.dvi mh-e.dvi sc.dvi vip.dvi viper.dvi message.dvi \
-		 customize.dvi widget.dvi
+INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl ../info/customize \
+	       ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
+	       ../info/info ../info/message ../info/mh-e ../info/reftex \
+	       ../info/sc ../info/vip ../info/viper ../info/widget
+DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi  customize.dvi dired-x.dvi \
+		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
+		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -132,6 +132,11 @@ message.dvi: message.texi
 	cd $(srcdir); $(MAKEINFO) mh-e.texi
 mh-e.dvi: mh-e.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/mh-e.texi
+
+../info/reftex: reftex.texi
+	cd $(srcdir); $(MAKEINFO) reftex.texi
+reftex.dvi: reftex.texi
+	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/reftex.texi
 
 ../info/sc: sc.texi
 	cd $(srcdir); $(MAKEINFO) sc.texi
