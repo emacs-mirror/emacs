@@ -123,10 +123,10 @@ adding this fragment to your @file{_emacs} init file:
 @cindex Windows clipboard support
   Emacs built for MS-DOS supports clipboard operations when it runs on
 Windows.  Commands that put text on the kill ring, or yank text from the
-ring, check the Windows clipboard first, just as Emacs does on X Windows
-(@pxref{Mouse Commands}).  Only the primary selection and the cut buffer
-are supported by MS-DOS Emacs on Windows; the secondary selection always
-appears as empty.
+ring, check the Windows clipboard first, just as Emacs does on the X
+Window System (@pxref{Mouse Commands}).  Only the primary selection and
+the cut buffer are supported by MS-DOS Emacs on Windows; the secondary
+selection always appears as empty.
 
   Due to the way clipboard access is implemented by Windows, the
 length of text you can put into the clipboard is limited by the amount
@@ -598,8 +598,8 @@ characters (codes 128 through 255) vary from one codepage to another.
 Each DOS codepage is identified by a 3-digit number, such as 850, 862,
 etc.
 
-  In contrast to X Windows, which lets you use several fonts at the same
-time, MS-DOS doesn't allow use of several codepages in a single session.
+  In contrast to X, which lets you use several fonts at the same time,
+MS-DOS doesn't allow use of several codepages in a single session.
 Instead, MS-DOS loads a single codepage at system startup, and you must
 reboot MS-DOS to change it@footnote{Normally, one particular codepage is
 burnt into the display memory, while other codepages can be installed by

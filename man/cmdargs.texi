@@ -120,7 +120,8 @@ define new ones, by reading and setting this variable.
 
   The initial options specify parameters for the Emacs session.  This
 section describes the more general initial options; some other options
-specifically related to X Windows appear in the following sections.
+specifically related to the X Window System appear in the following
+sections.
 
   Some initial options affect the loading of init files.  The normal
 actions of Emacs are to first load @file{site-start.el} if it exists,
@@ -468,7 +469,7 @@ Used when initializing the Sun windows system.
 
 @node Display X
 @appendixsec Specifying the Display Name 
-@cindex display name (X Windows)
+@cindex display name (X Window System)
 @cindex @env{DISPLAY} environment variable
 
   The environment variable @env{DISPLAY} tells all X clients, including
@@ -524,7 +525,7 @@ remote machine.
 
 @node Font X
 @appendixsec Font Specification Options
-@cindex font name (X Windows)
+@cindex font name (X Window System)
 
   By default, Emacs displays text in the font named @samp{9x15}, which
 makes each character nine pixels wide and fifteen pixels high.  You can
@@ -635,7 +636,7 @@ displays the entire font @samp{6x13}.
 
 @node Colors X
 @appendixsec Window Color Options
-@cindex color of window (X Windows)
+@cindex color of window (X Window System)
 @cindex text colors, from command line
 
 @findex list-colors-display
@@ -688,7 +689,7 @@ emacs -ms coral -cr 'slate blue' &
 
 @node Window Size X
 @appendixsec Options for Window Geometry
-@cindex geometry (X Windows)
+@cindex geometry (X Window System)
 
   The @samp{-geometry} option controls the size and position of the
 initial Emacs frame.  Here is the format for specifying the window
@@ -751,7 +752,7 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
 
 @node Borders X
 @appendixsec Internal and External Borders
-@cindex borders (X Windows)
+@cindex borders (X Window System)
 
   An Emacs frame has an internal border and an external border.  The
 internal border is an extra strip of the background color around all
@@ -804,7 +805,7 @@ for the initial Emacs frame.
 
 @node Icons X
 @appendixsec Icons
-@cindex icons (X Windows)
+@cindex icons (X Window System)
 
   Most window managers allow the user to ``iconify'' a frame, removing
 it from sight, and leaving a small, distinctive ``icon'' window in its

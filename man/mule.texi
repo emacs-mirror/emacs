@@ -923,11 +923,11 @@ nonempty.
 @section Fontsets
 @cindex fontsets
 
-  A font for X Windows typically defines shapes for one alphabet or
-script.  Therefore, displaying the entire range of scripts that Emacs
-supports requires a collection of many fonts.  In Emacs, such a
-collection is called a @dfn{fontset}.  A fontset is defined by a list of
-fonts, each assigned to handle a range of character codes. 
+  A font for X typically defines shapes for one alphabet or script.
+Therefore, displaying the entire range of scripts that Emacs supports
+requires a collection of many fonts.  In Emacs, such a collection is
+called a @dfn{fontset}.  A fontset is defined by a list of fonts, each
+assigned to handle a range of character codes.
 
   Each fontset has a name, like a font.  The available X fonts are
 defined by the X server; fontsets, however, are defined within Emacs

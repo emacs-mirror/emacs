@@ -38,9 +38,9 @@ buffer this window is displaying is the current buffer.  The terminal's
 cursor shows the location of point in this window.  Each other window
 has a location of point as well, but since the terminal has only one
 cursor there is no way to show where those locations are.  When multiple
-frames are visible in X Windows, each frame has a cursor which appears
-in the frame's selected window.  The cursor in the selected frame is
-solid; the cursor in other frames is a hollow box.
+frames are visible in X, each frame has a cursor which appears in the
+frame's selected window.  The cursor in the selected frame is solid; the
+cursor in other frames is a hollow box.
 
   Commands to move point affect the value of point for the selected Emacs
 window only.  They do not change the value of point in any other Emacs

@@ -401,9 +401,9 @@ change to Vi state.@refill
 
 For users who chose to set their user level to 1 at Viper setup time,
 switching to Emacs state is deliberately made harder in order to not
-confuse the novice user.  In this case, @kbd{C-z} will either iconify Emacs
-(if Emacs runs as an application under X Windows) or it will stop Emacs (if
-Emacs runs on a dumb terminal or in an Xterm window).
+confuse the novice user.  In this case, @kbd{C-z} will either iconify
+Emacs (if Emacs runs as an application under X) or it will stop Emacs
+(if Emacs runs on a dumb terminal or in an Xterm window).
 
 @item Vi state
 This is the Vi command mode.  Any of the Vi commands, such as @kbd{i, o, a},
@@ -1984,8 +1984,8 @@ preferred form is [help], and the Undo key has the preferred form [f14].
 You can find out the preferred form of a key by typing @kbd{M-x
 describe-key-briefly} and then typing the key you want to know about.
 
-Under X Windows, every keyboard key emits its preferred form, so you can
-just type
+Under the X Window System, every keyboard key emits its preferred form,
+so you can just type
 
 @lisp
 (global-set-key [f11] 'calendar)                        ; L1, Stop
@@ -2069,7 +2069,7 @@ for each specific key; @kbd{C-h b} will show all bindings, and @kbd{C-h m}
 will provide information on the major mode in effect.  If Help is not
 enabled, you can still get help in Vi state by prefixing the above commands
 with @kbd{\}, e.g., @kbd{\ C-h k} (or you can use the Help menu in the
-menu bar, if Emacs runs under X Windows).
+menu bar, if Emacs runs under X).
 
 Viper users can also change bindings on a per major mode basis.  As with
 global bindings, this can be done separately for each of the three main Viper

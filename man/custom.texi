@@ -1638,9 +1638,9 @@ Keypad PF keys.
 @end table
 
   These names are conventional, but some systems (especially when using
-X windows) may use different names.  To make certain what symbol is used
-for a given function key on your terminal, type @kbd{C-h c} followed by
-that key.
+X) may use different names.  To make certain what symbol is used for a
+given function key on your terminal, type @kbd{C-h c} followed by that
+key.
 
   A key sequence which contains function key symbols (or anything but
 ASCII characters) must be a vector rather than a string.  The vector

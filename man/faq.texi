@@ -1821,7 +1821,7 @@ And evaluate the following Lisp form:
 @end example
 
 @node Turning the volume down, Automatic indentation, Turning off beeping, Common requests
-@section How do I turn down the bell volume in Emacs running under X Windows?
+@section How do I turn down the bell volume in Emacs running under X?
 @cindex Bell, volume of
 @cindex Volume of bell
 
@@ -2113,11 +2113,11 @@ If you need to repeat a command a small number of times, you can use
 
 @node Forcing Emacs to iconify itself, Using regular expressions, Forcing the cursor to remain in the same column, Common requests
 @section How do I tell Emacs to iconify itself?
-@cindex Iconification under X Windows
-@cindex X Windows and iconification
+@cindex Iconification under the X Window System
+@cindex X Window System and iconification
 @cindex Suspending Emacs
 
-@kbd{C-z} iconifies Emacs when running under X Windows and suspends Emacs
+@kbd{C-z} iconifies Emacs when running under X and suspends Emacs
 otherwise.  @inforef{Misc X, Misc X, emacs}.
 
 @node Using regular expressions, Replacing text across multiple files, Forcing Emacs to iconify itself, Common requests
@@ -3005,7 +3005,7 @@ programs, then removing the access.  This reduces the risk somewhat by
 narrowing the time window when hostile users would have access, but
 @emph{does not eliminate the risk}.
 
-On most computers running Unix and X Windows, you enable and disable
+On most computers running Unix and X, you enable and disable
 access using the @code{xhost} command.  To allow all hosts access to
 your X server, use
 
@@ -3467,7 +3467,7 @@ Emacs 19 and Epoch, an X-aware version of Emacs 18.
 
 Emacs (i.e., the version distributed by the FSF) has a larger installed
 base and now always contains the MULE multilingual facilities.
-XEmacs can do some clever tricks with X Windows, such as
+XEmacs can do some clever tricks with X and MS-Windows, such as
 putting arbitrary graphics in a buffer.  Similar facilities have been
 implemented for Emacs as part of a new redisplay implementation for
 Emacs 21, and are available in the latest Emacs releases.
@@ -4209,9 +4209,9 @@ For information on what Emacs does every time it is started, see the
 @file{lisp/startup.el} file.
 
 @node Using function keys under X, Working with function and arrow keys, Terminal setup code works after Emacs has begun, Key bindings
-@section How do I use function keys under X Windows?
+@section How do I use function keys under X?
 @cindex Function keys
-@cindex X Windows and function keys
+@cindex X Window System and function keys
 @cindex Binding function keys
 
 With Emacs 19, functions keys under X are bound like any other key.  @xref{Binding keys to commands}, for details.

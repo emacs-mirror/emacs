@@ -49,9 +49,9 @@ distinguish them.
 
   But the Emacs character set has room for control variants of all
 printing characters, and for distinguishing between @kbd{C-a} and
-@kbd{C-A}.  X Windows makes it possible to enter all these characters.
-For example, @kbd{C--} (that's Control-Minus) and @kbd{C-5} are
-meaningful Emacs commands under X.
+@kbd{C-A}.  The X Window System makes it possible to enter all these
+characters.  For example, @kbd{C--} (that's Control-Minus) and @kbd{C-5}
+are meaningful Emacs commands under X.
 
   Another Emacs character-set extension is additional modifier bits.
 Only one modifier bit is commonly used; it is called Meta.  Every
@@ -79,15 +79,16 @@ using two-character sequences starting with @key{ESC}.  Thus, to enter
 would type @kbd{@key{ESC} C-a}.  @key{ESC} is allowed on terminals with
 @key{META} keys, too, in case you have formed a habit of using it.
   
-  X Windows provides several other modifier keys that can be applied to
-any input character.  These are called @key{SUPER}, @key{HYPER} and
-@key{ALT}.  We write @samp{s-}, @samp{H-} and @samp{A-} to say that a
-character uses these modifiers.  Thus, @kbd{s-H-C-x} is short for
-@kbd{Super-Hyper-Control-x}.  Not all X terminals actually provide keys
-for these modifier flags---in fact, many terminals have a key labeled
-@key{ALT} which is really a @key{META} key.  The standard key bindings
-of Emacs do not include any characters with these modifiers.  But you
-can assign them meanings of your own by customizing Emacs.
+  The X Window System provides several other modifier keys that can be
+applied to any input character.  These are called @key{SUPER},
+@key{HYPER} and @key{ALT}.  We write @samp{s-}, @samp{H-} and @samp{A-}
+to say that a character uses these modifiers.  Thus, @kbd{s-H-C-x} is
+short for @kbd{Super-Hyper-Control-x}.  Not all X terminals actually
+provide keys for these modifier flags---in fact, many terminals have a
+key labeled @key{ALT} which is really a @key{META} key.  The standard
+key bindings of Emacs do not include any characters with these
+modifiers.  But you can assign them meanings of your own by customizing
+Emacs.
 
   Keyboard input includes keyboard keys that are not characters at all:
 for example function keys and arrow keys.  Mouse buttons are also

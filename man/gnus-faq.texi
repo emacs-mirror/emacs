@@ -132,7 +132,7 @@ list is mainly for developers and testers.
 Gnus has a home World Wide Web page at@*
 @file{http://www.ifi.uio.no/~larsi/ding.html}.
    
-Gnus has a write up in the X Windows Applications FAQ at@*
+Gnus has a write up in the X Applications FAQ at@*
 @file{http://www.ee.ryerson.ca:8080/~elf/xapps/Q-III.html}.
    
 The Gnus manual is also available on the World Wide Web. The canonical

@@ -739,10 +739,10 @@ had a fatal signal.
 If the symptom of the bug is that Emacs fails to respond, don't assume
 Emacs is ``hung''---it may instead be in an infinite loop.  To find out
 which, make the problem happen under GDB and stop Emacs once it is not
-responding.  (If Emacs is using X Windows directly, you can stop Emacs
-by typing @kbd{C-z} at the GDB job.)  Then try stepping with
-@samp{step}.  If Emacs is hung, the @samp{step} command won't return.
-If it is looping, @samp{step} will return.
+responding.  (If Emacs is using X directly, you can stop Emacs by typing
+@kbd{C-z} at the GDB job.)  Then try stepping with @samp{step}.  If
+Emacs is hung, the @samp{step} command won't return.  If it is looping,
+@samp{step} will return.
 
 If this shows Emacs is hung in a system call, stop it again and examine
 the arguments of the call.  In your bug report, state exactly where in

@@ -491,11 +491,11 @@ speedbar for it.
 @section Multiple Displays
 @cindex multiple displays
 
-  A single Emacs can talk to more than one X Windows display.
-Initially, Emacs uses just one display---the one specified with the
-@env{DISPLAY} environment variable or with the @samp{--display} option
-(@pxref{Initial Options}).  To connect to another display, use the
-command @code{make-frame-on-display}:
+  A single Emacs can talk to more than one X display.  Initially, Emacs
+uses just one display---the one specified with the @env{DISPLAY}
+environment variable or with the @samp{--display} option (@pxref{Initial
+Options}).  To connect to another display, use the command
+@code{make-frame-on-display}:
 
 @findex make-frame-on-display
 @table @kbd
