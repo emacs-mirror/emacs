@@ -1,3 +1,10 @@
+2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/text-mode.el (text-mode-syntax-table): Make ' a prefix.
+	(paragraph-indent-text-mode-abbrev-table)
+	(paragraph-indent-text-mode-syntax-table): Remove.
+	(paragraph-indent-text-mode): Use the :abbrev and :syntax-table args.
+
 2002-10-21  Juanma Barranquero  <lektu@terra.es>
 
 	* eshell/esh-util.el (directory-files-and-attributes): Copy docstring

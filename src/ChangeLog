@@ -1,3 +1,8 @@
+2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* casefiddle.c (casify_region): Don't treat a prefix char as part
+	of a word when at the beginning.
+
 2002-10-17  Juanma Barranquero  <lektu@terra.es>
 
 	* lread.c (syms_of_lread): Fix typos.
