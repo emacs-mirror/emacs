@@ -48,18 +48,18 @@ Boston, MA 02111-1307, USA.  */
 #endif /* emacs */
 
 
-/*** GENERAL NOTE on CODED CHARACTER SET (CHARSET) ***
+/*** GENERAL NOTES on CODED CHARACTER SETS (CHARSETS) ***
 
   A coded character set ("charset" hereafter) is a meaningful
-  collection (i.e. language, culture, functionality, etc) of
+  collection (i.e. language, culture, functionality, etc.) of
   characters.  Emacs handles multiple charsets at once.  In Emacs Lisp
-  code, a charset is represented by symbol.  In C code, a charset is
-  represented by its ID number or by a pointer the struct charset.
+  code, a charset is represented by a symbol.  In C code, a charset is
+  represented by its ID number or by a pointer to a struct charset.
 
   The actual information about each charset is stored in two places.
   Lispy information is stored in the hash table Vcharset_hash_table as
   a vector (charset attributes).  The other information is stored in
-  charset_table as struct charset.
+  charset_table as a struct charset.
 
 */
 
@@ -185,12 +185,10 @@ load_charset_map (charset, entries, n_entries, control_flag)
   int control_flag;
 {
   Lisp_Object vec, table;
-  unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int ascii_compatible_p = charset->ascii_compatible_p;
   int min_char, max_char, nonascii_min_char;
   int i;
-  int first;
   unsigned char *fast_map = charset->fast_map;
 
   if (n_entries <= 0)
@@ -215,7 +213,7 @@ load_charset_map (charset, entries, n_entries, control_flag)
   for (i = 0; i < n_entries; i++)
     {
       unsigned from, to;
-      int c, char_index;
+      int c;
       int idx = i % 0x10000;
 
       if (i > 0 && idx == 0)
@@ -385,7 +383,6 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   FILE *fp;
   int eof;
   Lisp_Object suffixes;
-  int i;
   struct charset_map_entries *head, *entries;
   int n_entries;
 
@@ -632,12 +629,13 @@ map_charset_chars (c_function, function, charset_symbol, arg)
 }
   
 DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 3, 0,
-       doc: /* Call FUNCTION for each characters in CHARSET.
-FUNCTION is called with an argument RANGE and the 2nd optional
+       doc: /* Call FUNCTION for all characters in CHARSET.
+FUNCTION is called with an argument RANGE and optional 2nd
 argument ARG.
 
-RANGE is a cons (FROM .  TO), where FROM and TO indicates a range of
-character sequence that are contained in CHARSET.  */)
+RANGE is either a cons (FROM .  TO), where FROM and TO indicate a range of
+characters contained in CHARSET or a single character in the case that
+FROM and TO would be equal.  (The charset mapping may have gaps.)*/)
      (function, charset, arg)
        Lisp_Object function, charset, arg;
 {
@@ -653,7 +651,8 @@ character sequence that are contained in CHARSET.  */)
 
 DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
-       doc: /* For internal use only.  */)
+       doc: /* For internal use only.
+usage: (define-charset-internal ...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -1479,7 +1478,7 @@ DEFUN ("make-char", Fmake_char, Smake_char, 1, 5, 0,
 
 CODE1 through CODE4 are optional, but if you don't supply sufficient
 position codes, it is assumed that the minimum code in each dimension
-are specified.  */)
+is specified.  */)
      (charset, code1, code2, code3, code4)
      Lisp_Object charset, code1, code2, code3, code4;
 {
@@ -1583,7 +1582,7 @@ char_charset (c, charset_list, code_return)
 
 
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
-       doc: /*Return list of charset and one or two position-codes of CHAR.
+       doc: /*Return list of charset and one to three position-codes of CHAR.
 If CHAR is invalid as a character code,
 return a list of symbol `unknown' and CHAR.  */)
      (ch)
@@ -1805,7 +1804,7 @@ syms_of_charset ()
 
   DEFVAR_LISP ("charset-map-directory", &Vcharset_map_directory,
 	       doc: /* Directory of charset map files that come with GNU Emacs.
-The default value is \"\\[data-directory]/charsets\".  */);
+The default value is sub-directory "charsets" of `data-directory'.  */);
   Vcharset_map_directory = Fexpand_file_name (build_string ("charsets"),
 					      Vdata_directory);
 
