@@ -2259,7 +2259,7 @@ send_process (proc, buf, len)
 
 	if (pty_max_bytes == 0)
 	  {
-#ifdef _PC_MAX_CANON
+#if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
 	    pty_max_bytes = fpathconf (XFASTINT (XPROCESS (proc)->outfd),
 				       _PC_MAX_CANON);
 #else
