@@ -125,21 +125,42 @@ Marker points nowhere if file has no tag table.")
 (defvar Info-standalone nil
   "Non-nil if Emacs was started solely as an Info browser.")
 
-(defvar Info-suffix-list '( (".info.Z"  . "uncompress")
-			    (".info.Y"  . "unyabba")
-			    (".info.gz" . "gunzip")
-			    (".info.z"  . "gunzip")
-			    (".info"    . nil)
-			    (".Z"       . "uncompress")
-			    (".Y"       . "unyabba")
-			    (".gz"      . "gunzip")
-			    (".z"       . "gunzip")
-			    (""         . nil))
+(defvar Info-suffix-list
+  (if (eq system-type 'ms-dos)
+      '( (".gz"      . "gunzip")
+	 (".z"       . "gunzip")
+	 (""         . nil))
+    '( (".info.Z"  . "uncompress")
+       (".info.Y"  . "unyabba")
+       (".info.gz" . "gunzip")
+       (".info.z"  . "gunzip")
+       (".info"    . nil)
+       (".Z"       . "uncompress")
+       (".Y"       . "unyabba")
+       (".gz"      . "gunzip")
+       (".z"       . "gunzip")
+       (""         . nil)))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
 the command as standard input.  If STRING is nil, no decoding is done.
 Because the SUFFIXes are tried in order, the empty string should
 be last in the list.")
+
+;; Concatenate SUFFIX onto FILENAME.
+;; First, on ms-dos, delete some of the extension in FILENAME
+;; to make room.
+(defun info-insert-file-contents-1 (filename suffix)
+  (if (not (eq system-type 'ms-dos))
+      (concat filename suffix)
+    (let* ((sans-exts (file-name-sans-extension filename))
+	   ;; How long is the extension in FILENAME.
+	   (ext-len (- (length filename) (length sans-exts) 1))
+	   ;; How many chars of that extension should we keep?
+	   (ext-left (max 0 (- 3 (length suffix)))))
+      ;; Get rid of the rest of the extension, and add SUFFIX.
+      (concat (substring filename 0 (- (length filename)
+				       (- ext-len ext-left)))
+	      suffix))))
 
 (defun info-insert-file-contents (filename &optional visit)
   "Insert the contents of an info file in the current buffer.
@@ -147,6 +168,8 @@ Do the right thing if the file has been compressed or zipped."
   (let ((tail Info-suffix-list)
 	fullname decoder)
     (if (file-exists-p filename)
+	;; FILENAME exists--see if that name contains a suffix.
+	;; If so, set DECODE accordingly.
 	(progn
 	  (while (and tail
 		      (not (string-match
@@ -155,13 +178,17 @@ Do the right thing if the file has been compressed or zipped."
 	    (setq tail (cdr tail)))
 	  (setq fullname filename
 		decoder (cdr (car tail))))
+      ;; Try adding suffixes to FILENAME and see if we can find something.
       (while (and tail
-		  (not (file-exists-p (concat filename (car (car tail))))))
+		  (not (file-exists-p (info-insert-file-contents-1
+				       filename (car (car tail))))))
 	(setq tail (cdr tail)))
+      ;; If we found a file with a suffix, set DECODER according to the suffix
+      ;; and set FULLNAME to the file's actual name.
       (setq fullname (concat filename (car (car tail)))
 	    decoder (cdr (car tail)))
       (or tail
-	  (error "Can't find %s or any compressed version of it!" filename)))
+	  (error "Can't find %s or any compressed version of it" filename)))
     ;; check for conflict with jka-compr
     (if (and (featurep 'jka-compr)
 	     (jka-compr-installed-p)
