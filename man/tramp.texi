@@ -8,12 +8,6 @@
 @c This is *so* much nicer :)
 @footnotestyle end
 
-@c Version values, for easy modification
-@c NOTE: The 'UPDATED' value is updated by the 'time-stamp' function.
-@c       If you change it by hand, the modifications will not stay.
-@set VERSION $Revision: 1.3 $
-@set UPDATED Monday, 17 June, 2002
-
 
 @c Entries for @command{install-info} to use
 @direntry
@@ -61,7 +55,6 @@ approved by the Free Software Foundation.
 
 @titlepage
 @title @tramp{} User Manual
-@subtitle Last updated @value{UPDATED}
 
 @author by Daniel Pittman
 @author based on documentation by Kai Gro@ss{}johann
@@ -101,9 +94,6 @@ The difference is that ange-ftp uses FTP to transfer files between the
 local and the remote host, whereas @tramp{} uses a combination of
 @command{rsh} and @command{rcp} or other work-alike programs, such as
 @command{ssh}/@command{scp}.
-
-This is version @value{VERSION} of the @tramp{} manual, last updated on
-@value{UPDATED}.
 
 You can find the latest version of this document on the web at
 @uref{http://www.freesoftware.fsf.org/tramp/}.
@@ -726,6 +716,13 @@ normal login shell is set up to ask them a number of questions when
 logging in.  This procedure avoids these questions, and just gives
 @tramp{} a more-or-less `standard' login shell to work with.
 
+Note that this procedure does not eliminate questions asked by
+@command{ssh} itself.  For example, @command{ssh} might ask ``Are you
+sure you want to continue connecting?'' if the host key of the remote
+host is not known.  Tramp does not know how to deal with such a
+question (yet), therefore you will need to make sure that you can log
+in without such questions.
+
 This is also useful for Windows users where @command{ssh}, when
 invoked from an Emacs buffer, tells them that it is not allocating a
 pseudo tty.  When this happens, the login shell is wont to not print
@@ -1090,6 +1087,13 @@ shell startup to finish before it can send commands to the remote
 shell.  The strategy here is to wait for the shell prompt.  In order to
 recognize the shell prompt, the variable @code{shell-prompt-pattern} has
 to be set correctly to recognize the shell prompt on the remote host.
+
+Note that Tramp requires the match for @code{shell-prompt-pattern} to
+be at the end of the buffer.  Many people have something like the
+following as the value for the variable: @code{"^[^>$][>$] *"}.  Now
+suppose your shell prompt is @code{a <b> c $ }.  In this case, Tramp
+recognizes the @code{>} character as the end of the prompt, but it is
+not at the end of the buffer.
 
 @item @code{tset} and other questions
 
@@ -1640,11 +1644,7 @@ mailing list.
 @c   shells.
 @c * Explain how tramp.el works in principle: open a shell on a remote
 @c   host and then send commands to it.
+@c * Mention that bookmarks are a cool feature to go along with Tramp.
+@c * Make terminology "inline" vs "out-of-band" consistent.
+@c   It seems that "external" is also used instead of "out-of-band".
 
-@c Local Variables:
-@c eval: (add-hook 'write-file-functions 'time-stamp)
-@c time-stamp-start: "@set UPDATED "
-@c time-stamp-format: "%:a, %:d %:b, %:y"
-@c time-stamp-end: "$"
-@c time-stamp-line-limit: 50
-@c End:

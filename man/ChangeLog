@@ -1,3 +1,12 @@
+2002-07-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* files.texi (Remote Files): Explain new unified file name synatx.
+
+	* tramp.texi: Remove version variables.
+	(Inline methods): Clarify which questions `smx' deals with.
+	(Remote shell setup): shell-prompt-pattern must match at end of
+	buffer.
+
 2002-06-17  David Kastrup  <David.Kastrup@t-online.de>
 
 	* tramp.texi: use correct @setfilename
