@@ -13,33 +13,6 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
-** Changes to etags.el
-
-*** You can display additional output with M-x tags-apropos by setting
-the new variable tags-apropos-additional-actions.
-
-If non-nil, the variable's value should be a list of triples (TITLE
-FUNCTION TO-SEARCH).  For each triple, M-x tags-apropos processes
-TO-SEARCH and lists tags from it.  TO-SEARCH should be an alist,
-obarray, or symbol.  If it is a symbol, the symbol's value is used.
-
-TITLE is a string to use to label the list of tags from TO-SEARCH.
-
-FUNCTION is a function to call when an entry is selected in the Tags
-List buffer.  It is called with one argument, the selected symbol.
-
-A useful example value for this variable might be something like:
-
-  '(("Emacs Lisp" Info-goto-emacs-command-node obarray)
-    ("Common Lisp" common-lisp-hyperspec common-lisp-hyperspec-obarray)
-    ("SCWM" scwm-documentation scwm-obarray))
-
-*** The face tags-tag-face can be used to customize the appearance
-of tags in the output of M-x tags-apropos.
-
-*** Setting tags-apropos-verbose to a non-nil value displays the
-names of tags files in the *Tags List* buffer.
-
 ** Emacs can now support 'wheeled' mice (such as the MS IntelliMouse)
 under XFree86.  To enable this, simply put (mwheel-install) in your
 .emacs file.
@@ -430,6 +403,10 @@ is, delete only empty directories.
 command will copy directories recursively.  The default is, do not
 copy directories recursively.
 
+*** In command `dired-do-shell-command' (usually bound to `!') a `?'
+in the shell command has a special meaning similar to `*', but with
+the difference that the command will be run on each file individually.
+
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.
 
@@ -502,6 +479,33 @@ variables are tagged.
 
 *** .ss files are Scheme files, .pdb is Postscript with C syntax, .psw is
 for PSWrap.
+
+** Changes in etags.el
+
+*** You can display additional output with M-x tags-apropos by setting
+the new variable tags-apropos-additional-actions.
+
+If non-nil, the variable's value should be a list of triples (TITLE
+FUNCTION TO-SEARCH).  For each triple, M-x tags-apropos processes
+TO-SEARCH and lists tags from it.  TO-SEARCH should be an alist,
+obarray, or symbol.  If it is a symbol, the symbol's value is used.
+
+TITLE is a string to use to label the list of tags from TO-SEARCH.
+
+FUNCTION is a function to call when an entry is selected in the Tags
+List buffer.  It is called with one argument, the selected symbol.
+
+A useful example value for this variable might be something like:
+
+  '(("Emacs Lisp" Info-goto-emacs-command-node obarray)
+    ("Common Lisp" common-lisp-hyperspec common-lisp-hyperspec-obarray)
+    ("SCWM" scwm-documentation scwm-obarray))
+
+*** The face tags-tag-face can be used to customize the appearance
+of tags in the output of M-x tags-apropos.
+
+*** Setting tags-apropos-verbose to a non-nil value displays the
+names of tags files in the *Tags List* buffer.
 
 ** Emacs now attempts to determine the initial language environment
 and preferred and locale coding systems systematically from the
