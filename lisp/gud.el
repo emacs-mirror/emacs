@@ -1175,6 +1175,13 @@ comint mode, which see."
   (cond ((eq major-mode 'gud-mode)
 	(setq gud-comint-buffer (current-buffer)))))
 
+(defvar gud-filter-defer-flag nil
+  "Non-nil means don't process anything from the debugger right now.
+It is saved for when this flag is not set.")
+
+(defvar gud-filter-pending-text nil
+  "Non-nil means this is text that has been saved for later in `gud-filter'.")
+
 ;; These functions are responsible for inserting output from your debugger
 ;; into the buffer.  The hard work is done by the method that is
 ;; the value of gud-marker-filter.
@@ -1183,26 +1190,43 @@ comint mode, which see."
   ;; Here's where the actual buffer insertion is done
   (let (output)
     (if (buffer-name (process-buffer proc))
-	(save-excursion
-	  (set-buffer (process-buffer proc))
-	  ;; If we have been so requested, delete the debugger prompt.
-	  (if (marker-buffer gud-delete-prompt-marker)
-	      (progn
-		(delete-region (process-mark proc) gud-delete-prompt-marker)
-		(set-marker gud-delete-prompt-marker nil)))
-	  ;; Save the process output, checking for source file markers.
-	  (setq output (gud-marker-filter string))
-	  ;; Check for a filename-and-line number.
-	  ;; Don't display the specified file
-	  ;; unless (1) point is at or after the position where output appears
-	  ;; and (2) this buffer is on the screen.
-	  (if (and gud-last-frame
-		   (>= (point) (process-mark proc))
-		   (get-buffer-window (current-buffer)))
-	      (gud-display-frame))
-	  ;; Let the comint filter do the actual insertion.
-	  ;; That lets us inherit various comint features.
-	  (comint-output-filter proc output)))))
+	(if gud-filter-defer-flag
+	    ;; If we can't process any text now,
+	    ;; save it for later.
+	    (setq gud-filter-pending-text
+		  (concat (or gud-filter-pending-text "") string))
+	  (save-excursion
+	    ;; If we have to ask a question during the processing,
+	    ;; defer any additional text that comes from the debugger
+	    ;; during that time.
+	    (let ((gud-filter-defer-flag t))
+	      ;; Process now any text we previously saved up.
+	      (if gud-filter-pending-text
+		  (setq string (concat gud-filter-pending-text string)
+			gud-filter-pending-text nil))
+	      (set-buffer (process-buffer proc))
+	      ;; If we have been so requested, delete the debugger prompt.
+	      (if (marker-buffer gud-delete-prompt-marker)
+		  (progn
+		    (delete-region (process-mark proc) gud-delete-prompt-marker)
+		    (set-marker gud-delete-prompt-marker nil)))
+	      ;; Save the process output, checking for source file markers.
+	      (setq output (gud-marker-filter string))
+	      ;; Check for a filename-and-line number.
+	      ;; Don't display the specified file
+	      ;; unless (1) point is at or after the position where output appears
+	      ;; and (2) this buffer is on the screen.
+	      (if (and gud-last-frame
+		       (>= (point) (process-mark proc))
+		       (get-buffer-window (current-buffer)))
+		  (gud-display-frame))
+	      ;; Let the comint filter do the actual insertion.
+	      ;; That lets us inherit various comint features.
+	      (comint-output-filter proc output))
+	    ;; If we deferred text that arrived during this processing,
+	    ;; handle it now.
+	    (if gud-filter-pending-text
+		(gud-filter proc "")))))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
