@@ -1259,7 +1259,7 @@ x_encode_char (c, char2b, font_info, charset)
 	  ccl->reg[2] = char2b->byte2;
 	}
       
-      ccl_driver (ccl, NULL, NULL, 0, 0);
+      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
       
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
