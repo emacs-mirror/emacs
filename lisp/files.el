@@ -2342,10 +2342,16 @@ Does not consider `auto-save-visited-file-name' as that variable is checked
 before calling this function.  You can redefine this for customization.
 See also `auto-save-file-name-p'."
   (if buffer-file-name
-      (concat (file-name-directory buffer-file-name)
-	      "#"
-	      (file-name-nondirectory buffer-file-name)
-	      "#")
+      (if (eq system-type 'ms-dos)
+	  (let ((fn (file-name-nondirectory buffer-file-name)))
+		(string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
+	    (concat (file-name-directory buffer-file-name)
+		    "#" (match-string 1 fn) 
+		    "." (match-string 3 fn) "#"))
+	(concat (file-name-directory buffer-file-name)
+		"#"
+		(file-name-nondirectory buffer-file-name)
+		"#"))
 
     ;; Deal with buffers that don't have any associated files.  (Mail
     ;; mode tends to create a good number of these.)
