@@ -13,6 +13,8 @@
 	* comint.el (comint-output-filter): Make the Comint buffer current
 	for the comint-preoutput-filter-functions.
 
+	* mail/reporter.el: Doc fix.
+
 1999-10-24  Stephen Eglen  <stephen@gnu.org>
 
 	* progmodes/octave-mod.el (octave-auto-indent): Remove :version so
