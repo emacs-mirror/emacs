@@ -1,3 +1,7 @@
+2000-05-07  Dave Love  <fx@gnu.org>
+
+	* time.el: Small doc fixes from Pavel Janic.
+
 2000-05-05  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-macs.el: Doc fixes; mainly avoid duplicating arg
