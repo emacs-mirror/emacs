@@ -3843,8 +3843,8 @@ void
 check_pure_size ()
 {
   if (pure_bytes_used_before_overflow)
-    error ("Pure Lisp storage overflow (approx. %d bytes needed)",
-	   (int) (pure_bytes_used + pure_bytes_used_before_overflow));
+    message ("Pure Lisp storage overflow (approx. %d bytes needed)",
+	     (int) (pure_bytes_used + pure_bytes_used_before_overflow));
 }
 
 
