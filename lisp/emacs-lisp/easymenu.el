@@ -95,6 +95,7 @@ is a list of menu items, as above."
        (defvar (, symbol) nil (, doc))
        (easy-menu-do-define (quote (, symbol)) (, maps) (, doc) (, menu)))))
 
+;;;###autoload
 (defun easy-menu-do-define (symbol maps doc menu)
   ;; We can't do anything that might differ between Emacs dialects in
   ;; `easy-menu-define' in order to make byte compiled files
