@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.63) $
+ * $HopeName: MMsrc!arena.c(trunk.64) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.63) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.64) $");
 
 
 /* Forward declarations */
@@ -572,7 +572,7 @@ void ArenaInit(Arena arena, ArenaClass class)
   arena->allocMutatorSize = 0.0;
   arena->fillInternalSize = 0.0;
   arena->emptyInternalSize = 0.0;
-  /* commitLimit may be overrideen by init (but probably not */
+  /* commitLimit may be overridden by init (but probably not */
   /* as there's not much point) */
   arena->commitLimit = (Size)-1;
   arena->spareCommitted = (Size)0;
@@ -584,6 +584,7 @@ void ArenaInit(Arena arena, ArenaClass class)
   arena->poolReady = FALSE;     /* design.mps.arena.pool.ready */
   for(rank = 0; rank < RankMAX; ++rank)
     RingInit(&arena->greyRing[rank]);
+  STATISTIC(arena->writeBarrierHitCount = 0);
 
   arena->sig = ArenaSig;
   arena->serial = arenaSerial;  /* design.mps.arena.static.serial */
@@ -683,6 +684,9 @@ failInit:
 void ArenaFinish(Arena arena)
 {
   Rank rank;
+
+  STATISTIC_STAT(EVENT_PW(ArenaWriteFaults, arena,
+                          arena->writeBarrierHitCount));
 
   arena->sig = SigInvalid;
   LockFinish(&arena->lockStruct);
