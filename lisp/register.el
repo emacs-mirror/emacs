@@ -93,6 +93,8 @@ delete any existing frames that the frame configuration doesn't mention.
      ((window-configuration-p val)
       (set-window-configuration val))
      ((markerp val)
+      (or (marker-buffer val)
+	  (error "That register's buffer no longer exists"))
       (switch-to-buffer (marker-buffer val))
       (goto-char val))
      ((and (consp val) (eq (car val) 'file))
