@@ -1,5 +1,9 @@
 2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/iso-cvt.el (iso-cvt-define-menu): Fix typo.
+
+	* tooltip.el: Require CL.
+
 	* emacs-lisp/bytecomp.el: Use push.
 	(byte-compile-file-form-defalias): Rename from byte-compile-defalias.
 	(defalias): Remove the `byte-compile' property and add
@@ -21,36 +25,36 @@
 
 2004-11-11  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-comb.el (math-prime-factors-finished):  Declared it as
-	a variable. 
-	(calcFunc-dfac):  Replaced unbound max by n.
+	* calc/calc-comb.el (math-prime-factors-finished):  Declare it as
+	a variable.
+	(calcFunc-dfac):  Replace unbound max by n.
 	(math-stirling-local-cache):  New variable.
 	(math-stirling-number, math-stirling-1, math-stirling-2):
-	Replaced the variable `cache' by the declared variable
-	math-stirling-local-cache.  
-	(var-RandSeed):  Declared it as a variable.
+	Replace the variable `cache' by the declared variable
+	math-stirling-local-cache.
+	(var-RandSeed):  Declare it as a variable.
 	(math-init-random-base, math-random-digit):  Don't check to see if
-	var-RandSeed is bound. 
+	var-RandSeed is bound.
 	(math-random-cache, math-gaussian-cache, calc-verbose-nextprime):
-	Declared them instead of just setting them.
+	Declare them instead of just setting them.
 	(math-init-random-base):  Made i a local variable.
 	(math-random-digit):  Made math-random-last a local variable.
-	(math-prime-test-cache):  Moved declaration to before it is used.
+	(math-prime-test-cache):  Move declaration to before it is used.
 	(math-prime-test-cache-k, math-prime-test-cache-q)
 	(math-prime-test-cache-nm1, math-prime-factors-finished):
-	Declared them as variables. 
+	Declare them as variables.
 
-2004-11-11  Jay Belanger  <belanger@truman.edu>	
+2004-11-11  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (math-defcache):  Use defvar for the new
 	variables it creates.
 
 2004-11-11  Lars Hansen  <larsh@math.ku.dk>
 
-	* desktop.el (desktop-buffer-mode-handlers, desktop-after-read-hook,
-	desktop-clear-preserve-buffers-regexp, desktop-file-name-format,
-	desktop-globals-to-clear, desktop-no-desktop-file-hook, desktop-path,
-	desktop-save): Add :version.
+	* desktop.el (desktop-buffer-mode-handlers, desktop-after-read-hook)
+	(desktop-clear-preserve-buffers-regexp, desktop-file-name-format)
+	(desktop-globals-to-clear, desktop-no-desktop-file-hook, desktop-path)
+	(desktop-save): Add :version.
 
 2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
