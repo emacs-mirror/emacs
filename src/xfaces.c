@@ -597,7 +597,7 @@ static void sort_fonts P_ ((struct frame *, struct font_name *, int,
 			       int (*cmpfn) P_ ((const void *, const void *))));
 static GC x_create_gc P_ ((struct frame *, unsigned long, XGCValues *));
 static void x_free_gc P_ ((struct frame *, GC));
-static void clear_font_table P_ ((struct frame *));
+static void clear_font_table P_ ((struct x_display_info *));
 
 #ifdef WINDOWSNT
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
@@ -979,6 +979,14 @@ clear_face_cache (clear_fonts_p)
   if (clear_fonts_p
       || ++clear_font_table_count == CLEAR_FONT_TABLE_COUNT)
     {
+      struct x_display_info *dpyinfo;
+      
+      /* Fonts are common for frames on one display, i.e. on
+	 one X screen.  */
+      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+	if (dpyinfo->n_fonts > CLEAR_FONT_TABLE_NFONTS)
+	  clear_font_table (dpyinfo);
+      
       /* From time to time see if we can unload some fonts.  This also
 	 frees all realized faces on all frames.  Fonts needed by
 	 faces will be loaded again when faces are realized again.  */
@@ -986,13 +994,10 @@ clear_face_cache (clear_fonts_p)
 
       FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (frame);
+	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f)
 	      && FRAME_X_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
-	    {
-	      free_all_realized_faces (frame);
-	      clear_font_table (f);
-	    }
+	    free_all_realized_faces (frame);
 	}
     }
   else
@@ -1034,21 +1039,32 @@ Optional THOROUGHLY non-nil means try to free unused fonts, too.")
    from time to time.  */
 
 static void
-clear_font_table (f)
-     struct frame *f;
+clear_font_table (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   int i;
 
-  xassert (FRAME_WINDOW_P (f));
-
-  /* Free those fonts that are not used by the frame F as the default.  */
+  /* Free those fonts that are not used by frames on DPYINFO.  */
   for (i = 0; i < dpyinfo->n_fonts; ++i)
     {
       struct font_info *font_info = dpyinfo->font_table + i;
+      Lisp_Object tail, frame;
 
-      if (!font_info->name
-	  || font_info->font == FRAME_FONT (f))
+      /* Check if slot is already free.  */
+      if (font_info->name == NULL)
+	continue;
+
+      /* Don't free a default font of some frame on this display.  */
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+	  if (FRAME_WINDOW_P (f)
+	      && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+	      && font_info->font == FRAME_FONT (f))
+	    break;
+	}
+
+      if (!NILP (tail))
 	continue;
 
       /* Free names.  */
