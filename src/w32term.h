@@ -426,9 +426,31 @@ struct w32_output
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* See enum below */
+  int want_fullscreen;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     left of the window manager decoration) and FRAME_W32_WINDOW. */
+  int x_pixels_diff;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     top of the window manager titlebar) and FRAME_W32_WINDOW. */
+  int y_pixels_diff;
 };
 
 extern struct w32_output w32term_display;
+
+enum
+{
+  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
+  FULLSCREEN_NONE       = 0,
+  FULLSCREEN_WIDTH      = 1,
+  FULLSCREEN_HEIGHT     = 2,
+  FULLSCREEN_BOTH       = 3,
+  FULLSCREEN_WAIT       = 4,
+  FULLSCREEN_MOVE_WAIT  = 8,
+};
 
 /* Return the window associated with the frame F.  */
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
@@ -694,6 +716,9 @@ w32_fill_area (f,hdc,f->output_data.x->background_pixel,px,py,nx,ny)
 
 extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
+
+extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
+				     int *, int *));
 
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
