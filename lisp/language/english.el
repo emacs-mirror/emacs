@@ -82,8 +82,11 @@ The default status is as follows.
      coding-category-binary))
 
   (set-default-coding-systems nil)
-  (set-terminal-coding-system-internal nil)
-  (set-keyboard-coding-system-internal nil)
+  ;; Don't alter the terminal and keyboard coding systems here.
+  ;; The terminal still supports the same coding system
+  ;; that it supported a minute ago.
+;;;  (set-terminal-coding-system-internal nil)
+;;;  (set-keyboard-coding-system-internal nil)
 
   (setq nonascii-insert-offset 0))
 
