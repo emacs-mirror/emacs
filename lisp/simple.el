@@ -2334,7 +2334,15 @@ In Transient Mark mode, when the mark is active, the region is highlighted.
 Changing the buffer \"deactivates\" the mark.
 So do certain other operations that set the mark
 but whose main purpose is something else--for example,
-incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
+incremental search, \\[beginning-of-buffer], and \\[end-of-buffer].
+
+Many commands change their behavior when Transient Mark mode is in effect
+and the mark is active, by acting on the region instead of their usual
+default part of the buffer's text.  Examples of such command include
+\\[comment-dwim], \\[flush-lines], \\[ispell], \\[keep-lines],
+\\[query-replace], \\[query-replace-regexp], and \\[undo].  Invoke
+\\[apropos-documentation] and type \"transient\" at the prompt, to see
+the documentation of commands which are sensitive to the Transient Mark mode."
   (interactive "P")
   (setq transient-mark-mode
 	(if (null arg)
