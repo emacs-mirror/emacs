@@ -1,5 +1,19 @@
 2000-07-23  Noah Friedman  <friedman@splode.com>
 
+	* emacs-lisp/eldoc.el (eldoc-minor-mode-string): Add autoload
+	cookie.
+	Use add-minor-mode to set minor-mode-alist, if available.
+	(eldoc-echo-area-use-multiline-p): New user option.
+	(eldoc-echo-area-multiline-supported-p): New variable.
+	(eldoc-docstring-format-sym-doc): Use them.
+	(eldoc-mode): If not using idle timers, append to local post and
+	pre command hooks.  Suggested by David Byers <davby@ida.liu.se>.
+	(eldoc-display-message-no-interference-p): Don't interfere with
+	edebug.
+	Add autoload cookie for eldoc-mode minor-mode-alist initialization.
+	(eldoc-function-arglist): New function.
+	(eldoc-function-argstring): Use it.
+
 	* menu-bar.el (menu-bar-files-menu [recover-session]): Make sure
 	auto save directory exists before calling directory-files.
 
