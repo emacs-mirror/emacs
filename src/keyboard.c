@@ -125,6 +125,10 @@ Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
 Lisp_Object this_command_keys;
 int this_command_key_count;
 
+/* Number of elements of this_command_keys
+   that precede this key sequence.  */
+int this_single_command_key_start;
+
 /* Record values of this_command_key_count and echo_length ()
    before this command was read.  */
 static int before_command_key_count;
@@ -715,6 +719,8 @@ add_command_key (key)
   if (before_command_restore_flag)
     {
       this_command_key_count = before_command_key_count_1;
+      if (this_command_key_count < this_single_command_key_start)
+	this_single_command_key_start = this_command_key_count;
       echo_truncate (before_command_echo_length_1);
       before_command_restore_flag = 0;
     }
@@ -1068,6 +1074,7 @@ command_loop_1 ()
   nonundocount = 0;
   no_redisplay = 0;
   this_command_key_count = 0;
+  this_single_command_key_start = 0;
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
@@ -1174,6 +1181,7 @@ command_loop_1 ()
 	{
 	  cancel_echoing ();
 	  this_command_key_count = 0;
+	  this_single_command_key_start = 0;
 	  goto finalize;
 	}
 
@@ -1398,6 +1406,7 @@ command_loop_1 ()
 	  current_kboard->Vlast_command = this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
+	  this_single_command_key_start = 0;
 	}
 
       if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
@@ -5819,6 +5828,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   if (INTERACTIVE)
     echo_start = echo_length ();
   keys_start = this_command_key_count;
+  this_single_command_key_start = keys_start;
 
 #if defined (GOBBLE_FIRST_EVENT)
   /* This doesn't quite work, because some of the things that read_char
@@ -6336,6 +6346,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (!used_mouse_menu)
 	last_nonmenu_event = key;
 
+      /* Record what part of this_command_keys is the current key sequence.  */
+      this_single_command_key_start = this_command_key_count - t;
+
       prev_fkey_map = fkey_map;
       prev_fkey_start = fkey_start;
       prev_fkey_end = fkey_end;
@@ -6404,7 +6417,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		     (To ignore it safely, we would need to gcpro a bunch of
 		     other variables.)  */
 		  if (! (VECTORP (fkey_next) || STRINGP (fkey_next)))
-		    error ("Function in function-key-map returns invalid key sequence");
+		    error ("Function in key-translation-map returns invalid key sequence");
 		}
 
 	      function_key_possible = ! NILP (fkey_next);
@@ -6738,7 +6751,10 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
   gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
 
   if (NILP (continue_echo))
-    this_command_key_count = 0;
+    {
+      this_command_key_count = 0;
+      this_single_command_key_start = 0;
+    }
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
@@ -6760,7 +6776,7 @@ Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in `command-history'.\n\
 Otherwise, that is done only if an arg is read using the minibuffer.\n\
 The argument KEYS specifies the value to use instead of (this-command-keys)\n\
-when reading the arguments; if it is nil, (this_command_key_count) is used.\n\
+when reading the arguments; if it is nil, (this-command-keys) is used.\n\
 The argument SPECIAL, if non-nil, means that this command is executing\n\
 a special event, so ignore the prefix argument and don't clear it.")
      (cmd, record_flag, keys, special)
@@ -6898,6 +6914,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     Lisp_Object tem;
 
     this_command_key_count = 0;
+    this_single_command_key_start = 0;
 
     keys = XVECTOR (saved_keys)->contents;
     for (i = 0; i < XVECTOR (saved_keys)->size; i++)
@@ -7060,6 +7077,20 @@ The value is a string or a vector.")
 {
   return make_event_array (this_command_key_count,
 			   XVECTOR (this_command_keys)->contents);
+}
+
+DEFUN ("this-single-command-keys", Fthis_single_command_keys,
+       Sthis_single_command_keys, 0, 0, 0,
+  "Return the key sequence that invoked this command.\n\
+Unlike `this-command-keys', this function's value\n\
+does not include prefix arguments.\n\
+The value is a string or a vector.")
+  ()
+{
+  return make_event_array (this_command_key_count
+			   - this_single_command_key_start,
+			   (XVECTOR (this_command_keys)->contents
+			    + this_single_command_key_start));
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
@@ -7814,6 +7845,7 @@ syms_of_keyboard ()
   defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
   defsubr (&Sthis_command_keys);
+  defsubr (&Sthis_single_command_keys);
   defsubr (&Sreset_this_command_lengths);
   defsubr (&Ssuspend_emacs);
   defsubr (&Sabort_recursive_edit);
