@@ -51,6 +51,9 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/ShellP.h>
 #include "../lwlib/lwlib.h"
 
+#include <signal.h>
+#include "syssignal.h"
+
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 /* This sucks: this is the first default that x-faces.el tries.  This won't
@@ -956,6 +959,15 @@ EmacsFrameSetCharSize (widget, columns, rows)
       XtVaSetValues (f->output_data.x->widget,
 		     XtNwaitForWm, (XtArgVal) f->output_data.x->wait_for_wm,
 		     NULL);
+
+      /* Workaround: When a SIGIO or SIGALRM occurs while Xt is
+	 waiting for a ConfigureNotify event (see above), this leads
+	 to Xt waiting indefinitely instead of using its default
+	 timeout (5 seconds).  */
+      turn_on_atimers (0);
+#ifdef SIGIO
+      sigblock (sigmask (SIGIO));
+#endif
       
       /* Do parents first, otherwise LessTif's geometry management
 	 enters an infinite loop (as of 2000-01-15).  This is fixed in
@@ -973,7 +985,11 @@ EmacsFrameSetCharSize (widget, columns, rows)
                      XtNheight, (XtArgVal) pixel_height,
       		     XtNwidth, (XtArgVal) pixel_width,
 		     NULL);
- 
+#ifdef SIGIO
+      sigunblock (sigmask (SIGIO));
+#endif
+      turn_on_atimers (1);
+      
       lw_refigure_widget (f->output_data.x->column_widget, True);
 
       update_hints_inhibit = 0;
