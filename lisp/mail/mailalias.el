@@ -32,6 +32,114 @@
 
 (require 'sendmail)
 
+(defgroup mailalias nil
+  "Expanding mail aliases"
+  :group 'mail)
+
+(defcustom mail-passwd-files '("/etc/passwd")
+  "*List of files from which to determine valid user names."
+  :type '(repeat string)
+  :group 'mailalias)
+
+(defcustom mail-passwd-command nil
+  "*Shell command to retrieve text to add to `/etc/passwd', or nil."
+  :type '(choice string (const nil))
+  :group 'mailalias)
+
+(defvar mail-directory-names t
+  "Alist of mail address directory entries.
+When t this still needs to be initialized.")
+
+(defvar mail-address-field-regexp
+  "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):")
+
+(defcustom mail-complete-alist
+  `((,mail-address-field-regexp mail-get-names pattern)
+    ("Newsgroups:" . (if (boundp 'gnus-active-hashtb)
+			 gnus-active-hashtb
+		       (if (boundp news-group-article-assoc)
+			   news-group-article-assoc)))
+    ("Followup-To:" . (mail-sentto-newsgroups))
+    ;;("Distribution:" ???)
+    )
+  "*Alist of header field and expression to return alist for completion.
+The expression may reference the variable `pattern'
+which will hold the string being completed.
+If not on matching header, `mail-complete-function' gets called instead."
+  :type 'sexp
+  :group 'mailalias)
+(put 'mail-complete-alist 'risky-local-variable t)
+
+;;;###autoload
+(defcustom mail-complete-style 'angles
+  "*Specifies how \\[mail-complete] formats the full name when it completes.
+If `nil', they contain just the return address like:
+	king@grassland.com
+If `parens', they look like:
+	king@grassland.com (Elvis Parsley)
+If `angles', they look like:
+	Elvis Parsley <king@grassland.com>"
+  :type '(choice (const angles) (const parens) (const nil))
+  :group 'mailalias)
+
+(defcustom mail-complete-function 'ispell-complete-word
+  "*Function to call when completing outside `mail-complete-alist'-header."
+  :type '(choice function (const nil))
+  :group 'mailalias)
+
+(defcustom mail-directory-function nil
+  "*Function to get completions from directory service or `nil' for none.
+See `mail-directory-requery'."
+  :type '(choice function (const nil))
+  :group 'mailalias)
+
+;; This is for when the directory is huge, or changes frequently.
+(defcustom mail-directory-requery nil
+  "*When non-`nil' call `mail-directory-function' for each completion.
+In that case, one argument gets passed to the function, the partial string
+entered so far."
+  :type 'boolean
+  :group 'mailalias)
+
+(defcustom mail-directory-process nil
+  "*Shell command to get the list of names from a mail directory.
+This value is used when the value of `mail-directory-function'
+is `mail-directory-process'.  The value should be a list
+of the form (COMMAND ARG ...), where each of the list elements
+is evaluated.  When `mail-directory-requery' is non-nil, during
+evaluation of these elements, the variable `pattern' contains
+the partial input being completed.
+
+The value might look like this:
+
+  '(remote-shell-program \"HOST\" \"-nl\" \"USER\" \"COMMAND\")
+
+or like this:
+
+  '(remote-shell-program \"HOST\" \"-n\" \"COMMAND '^\" pattern \"'\")"
+  :type 'sexp
+  :group 'mailalias)
+(put 'mail-directory-process 'risky-local-variable t)
+
+(defcustom mail-directory-stream nil
+  "*List of (HOST SERVICE) for stream connection to mail directory."
+  :type 'sexp
+  :group 'mailalias)
+(put 'mail-directory-stream 'risky-local-variable t)
+
+(defcustom mail-directory-parser nil
+  "*How to interpret the output of `mail-directory-function'.
+Three types of values are possible:
+
+  - nil means to gather each line as one name
+  - regexp means first \\(grouping\\) in successive matches is name
+  - function called at beginning of buffer that returns an alist of names"
+  :type '(choice (cosnt nil) regexp function)
+  :group 'mailalias)
+(put 'mail-directory-parser 'risky-local-variable t)
+
+;; Internal variables.
+
 (defvar mail-names t
   "Alist of local users, aliases and directory entries as available.
 Elements have the form (MAILNAME) or (MAILNAME . FULLNAME).
@@ -41,83 +149,7 @@ for the next use.  this is used in `mail-complete'.")
 (defvar mail-local-names t
   "Alist of local users.
 When t this still needs to be initialized.")
-
-(defvar mail-passwd-files '("/etc/passwd")
-  "List of files from which to determine valid user names.")
-
-(defvar mail-passwd-command nil
-  "Shell command to retrieve text to add to `/etc/passwd', or nil.")
-
-(defvar mail-directory-names t
-  "Alist of mail address directory entries.
-When t this still needs to be initialized.")
-
-(defvar mail-address-field-regexp
-  "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):")
-
-(defvar mail-complete-alist
-  `((,mail-address-field-regexp mail-get-names pattern)
-    ("Newsgroups:" . (if (boundp 'gnus-active-hashtb)
-			 gnus-active-hashtb
-		       (if (boundp news-group-article-assoc)
-			   news-group-article-assoc)))
-    ("Followup-To:" . (mail-sentto-newsgroups))
-    ;;("Distribution:" ???)
-    )
-  "Alist of header field and expression to return alist for completion.
-Expression may reference variable `pattern' which is the string being completed.
-If not on matching header, `mail-complete-function' gets called instead.")
-
-;;;###autoload
-(defvar mail-complete-style 'angles
-  "*Specifies how \\[mail-complete] formats the full name when it completes.
-If `nil', they contain just the return address like:
-	king@grassland.com
-If `parens', they look like:
-	king@grassland.com (Elvis Parsley)
-If `angles', they look like:
-	Elvis Parsley <king@grassland.com>")
-
-(defvar mail-complete-function 'ispell-complete-word
-  "Function to call when completing outside `mail-complete-alist'-header.")
-
-
-(defvar mail-directory-function nil
-  "Function to get completions from directory service or `nil' for none.
-See `mail-directory-requery'.")
-
-
-;; This is for when the directory is huge, or changes frequently.
-(defvar mail-directory-requery nil
-  "When non-`nil' call `mail-directory-function' for each completion.
-In that case, one argument gets passed to the function, the partial string
-entered so far.")
-
-
-(defvar mail-directory-process nil
-  "Unix command when `mail-directory-function' is `mail-directory-process'.
-This is a list of the form (COMMAND ARG ...), where each of the list elements
-is evaluated.  When `mail-directory-requery' is non-`nil', during
-evaluation the variable `pattern' contains the partial input being completed.
-This might look like
-
-  '(remote-shell-program \"HOST\" \"-nl\" \"USER\" \"COMMAND\")
-
-or
-
-  '(remote-shell-program \"HOST\" \"-n\" \"COMMAND '^\" pattern \"'\")")
-
-(defvar mail-directory-stream ()
-  "List of (HOST SERVICE) for stream connection to mail directory.")
-
-(defvar mail-directory-parser nil
-  "How to interpret the output of `mail-directory-function'.
-Three types of values are possible:
-
-  - nil means to gather each line as one name
-  - regexp means first \\(grouping\\) in successive matches is name
-  - function called at beginning of buffer that returns an alist of names")
-
+
 
 ;; Called from sendmail-send-it, or similar functions,
 ;; only if some mail aliases are defined.
@@ -451,7 +483,7 @@ Calls `mail-directory-function' and applies `mail-directory-parser' to output."
 
 
 (defun mail-directory-process (pattern)
-  "Call a Unix process to output names in directory.
+  "Run a shell command to output names in directory.
 See `mail-directory-process'."
   (apply 'call-process (eval (car mail-directory-process)) nil t nil
 	 (mapcar 'eval (cdr mail-directory-process))))
