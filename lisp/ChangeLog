@@ -1,3 +1,8 @@
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-number-at-pos): Rename from line-at-pos.
+	Uses changed (what-line and vc-annotate-warp-version).
+
 2004-02-06  Andreas Schwab  <schwab@suse.de>
 
 	* view.el (view-mode-enable): Add view-mode-map to
