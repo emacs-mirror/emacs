@@ -1,3 +1,15 @@
+2002-02-11  Kim F. Storm  <no-spam@cua.dk>
+
+	* window.c: (Vmode_line_in_non_selected_windows): New variable.
+	(syms_of_window): DEFVAR_LISP it.
+
+	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3): New macro.
+	(CURRENT_MODE_LINE_FACE_ID): Use it.
+	(Vmode_line_in_non_selected_windows): Declare extern.
+
+	* xdisp.c (display_mode_lines): Use CURRENT_MODE_LINE_FACE_ID_3
+	to get mode line face.
+
 2002-02-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (Vx_bitmap_file_path, x_stretch_cursor_p): Remove these
