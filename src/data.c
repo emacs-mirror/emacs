@@ -761,6 +761,19 @@ function with `&rest' args, or `unevalled' for a special form.  */)
     return Fcons (make_number (minargs), make_number (maxargs));
 }
 
+DEFUN ("subr-name", Fsubr_name, Ssubr_name, 1, 1, 0,
+       doc: /* Return name of subroutine SUBR.
+SUBR must be a built-in function.  */)
+     (subr)
+     Lisp_Object subr;
+{
+  const char *name;
+  if (!SUBRP (subr))
+    wrong_type_argument (Qsubrp, subr);
+  name = XSUBR (subr)->symbol_name;
+  return make_string (name, strlen (name));
+}
+
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
        doc: /* Return the interactive form of CMD or nil if none.
 CMD must be a command.  Value, if non-nil, is a list
@@ -3319,6 +3332,7 @@ syms_of_data ()
   defsubr (&Slognot);
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
+  defsubr (&Ssubr_name);
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
 
