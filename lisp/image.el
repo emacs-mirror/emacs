@@ -31,13 +31,13 @@
 
 
 (defconst image-type-regexps
-  '(("\\`/\\*.*XPM.\\*/" . xpm)
+  '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]" . pbm)
     ("\\`GIF8" . gif)
     ("\\`\211PNG\r\n" . png)
-    ("\\`#define" . xbm)
+    ("\\`[\t\n\r ]*#define" . xbm)
     ("\\`\\(MM\0\\*\\)\\|\\(II\\*\0\\)" . tiff)
-    ("\\`%!PS" . postscript)
+    ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . (image-jpeg-p . jpeg)))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
@@ -64,7 +64,7 @@ a non-nil value, TYPE is the image's type ")
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
 	      (throw 'jfif (string-match "\\`\xe0..JFIF\0" 
 					 (substring data i (+ i 10)))))
-	    (setq i (+ i nbytes))))))))
+	    (setq i (+ i 1 nbytes))))))))
 
 
 ;;;###autoload
