@@ -36,12 +36,13 @@ you can control are the type font, the foreground color, the
 background color, and whether or not to underline text, and in which
 color.
 
-  Features which rely on text in multiple faces (such as Font Lock
-mode) will also work on non-windowed terminals (including
-MS-DOS@pxref{MS-DOS}), that can display more than one face, whether by
-colors or underlining and emboldening.  This includes the console on
-GNU/Linux.  Emacs determines automatically whether the terminal has
-this capability.
+  Features which rely on text in multiple faces (such as Font Lock mode)
+will also work on non-windowed terminals that can display more than one
+face, whether by colors or underlining and emboldening.  This includes
+the console on GNU/Linux, an @code{xterm} which supports colors, the
+MS-DOS display (@pxref{MS-DOS}), and the MS-Windows version invoked with
+the @option{-nw} option.  Emacs determines automatically whether the
+terminal has this capability.
 
   The way you control display style is by defining named @dfn{faces}.
 Each face can specify various attributes, like the type font's height,
@@ -256,6 +257,7 @@ or comment.  (@xref{Defuns}.)  If you don't follow this convention,
 then Font Lock mode can misfontify the text after an open-parenthesis in
 the leftmost column that is inside a string or comment.
 
+@cindex slow display during scrolling
   The variable @code{font-lock-beginning-of-syntax-function} (always
 buffer-local) specifies how Font Lock mode can find a position
 guaranteed to be outside any comment or string.  In modes which use the
@@ -264,7 +266,9 @@ is @code{beginning-of-defun}---that tells Font Lock mode to use the
 convention.  If you set this variable to @code{nil}, Font Lock no longer
 relies on the convention.  This avoids incorrect results, but the price
 is that, in some cases, fontification for a changed text must rescan
-buffer text from the beginning of the buffer.
+buffer text from the beginning of the buffer.  This can considerably
+slow down redisplay while scrolling, particularly if you are close to
+the end of a large buffer.
 
 @findex font-lock-add-keywords
   Font Lock highlighting patterns already exist for many modes, but you
