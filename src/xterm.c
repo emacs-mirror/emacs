@@ -2841,20 +2841,6 @@ x_get_glyph_string_clip_rect (s, r)
       r->height = s->row->visible_height;
     }
 
-  /* Don't use S->y for clipping because it doesn't take partially
-     visible lines into account.  For example, it can be negative for
-     partially visible lines at the top of a window.  */
-  if (!s->row->full_width_p
-      && MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (s->w, s->row))
-    r->y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
-  else
-    r->y = max (0, s->row->y);
-
-  /* If drawing a tool-bar window, draw it over the internal border
-     at the top of the window.  */
-  if (s->w == XWINDOW (s->f->tool_bar_window))
-    r->y -= s->f->output_data.x->internal_border_width;
-
   /* If S draws overlapping rows, it's sufficient to use the top and
      bottom of the window for clipping because this glyph string
      intentionally draws over other lines.  */
@@ -2863,7 +2849,23 @@ x_get_glyph_string_clip_rect (s, r)
       r->y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
       r->height = window_text_bottom_y (s->w) - r->y;
     }
-      
+  else
+    {
+      /* Don't use S->y for clipping because it doesn't take partially
+	 visible lines into account.  For example, it can be negative for
+	 partially visible lines at the top of a window.  */
+      if (!s->row->full_width_p
+	  && MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (s->w, s->row))
+	r->y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (s->w);
+      else
+	r->y = max (0, s->row->y);
+
+      /* If drawing a tool-bar window, draw it over the internal border
+	 at the top of the window.  */
+      if (s->w == XWINDOW (s->f->tool_bar_window))
+	r->y -= s->f->output_data.x->internal_border_width;
+    }
+
   r->y = WINDOW_TO_FRAME_PIXEL_Y (s->w, r->y);
 }
 
