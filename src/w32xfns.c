@@ -23,6 +23,8 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "frame.h"
+#include "charset.h"
+#include "fontset.h"
 #include "blockinput.h"
 #include "w32term.h"
 #include "windowsx.h"
@@ -378,4 +380,3 @@ x_sync (f)
      void *f;
 {
 }
-
