@@ -5779,6 +5779,7 @@ resize_mini_window (w, exact_p)
 	    height = it.current_y + last_height;
 	  else
 	    height = it.current_y + it.max_ascent + it.max_descent;
+	  height -= it.extra_line_spacing;
 	  height = (height + unit - 1) / unit;
 	}
       
