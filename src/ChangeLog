@@ -1,3 +1,8 @@
+2001-12-17  Sam Steingold  <sds@gnu.org>
+
+	* coding.c (DECODE_COMPOSITION_END): Fixed a typo in the last
+	patch (COMPOSING_P, not COMPOSING).
+
 2001-12-17  Richard M. Stallman  <rms@gnu.org>
 
 	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING (coding)
@@ -491,7 +496,7 @@
 	(w32_wnd_proc) <WM_MENUSELECT>: Show help echo directly.
 	(my_create_tip_window): New function.
 	(x_create_tip_frame, compute_tip_xy): Adapt for Windows.
-	(Fx_show_tip, Fx_hide_tip) [TEST_TOOLTIPS]: Adapt for Windows. 
+	(Fx_show_tip, Fx_hide_tip) [TEST_TOOLTIPS]: Adapt for Windows.
 
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
