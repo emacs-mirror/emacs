@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
+#include "buffer.h"
 #include "charset.h"
 #include "coding.h"
 
@@ -1468,22 +1469,26 @@ selection_data_to_lisp_data (display, data, size, type, format)
       Lisp_Object str;
       int require_encoding = 0;
 
-      /* If TYPE is `TEXT' or `COMPOUND_TEXT', we should decode DATA
-	 to Emacs internal format because DATA may be encoded in
-	 compound text format.  In addtion, if TYPE is `STRING' and
-	 DATA contains any 8-bit Latin-1 code, we should also decode
-	 it.  */
-      if (type == dpyinfo->Xatom_TEXT || type == dpyinfo->Xatom_COMPOUND_TEXT)
-	require_encoding = 1;
-      else if (type == XA_STRING)
+      if (! NILP (buffer_defaults.enable_multibyte_characters))
 	{
-	  int i;
-	  for (i = 0; i < size; i++)
+	  /* If TYPE is `TEXT' or `COMPOUND_TEXT', we should decode
+	     DATA to Emacs internal format because DATA may be encoded
+	     in compound text format.  In addtion, if TYPE is `STRING'
+	     and DATA contains any 8-bit Latin-1 code, we should also
+	     decode it.  */
+	  if (type == dpyinfo->Xatom_TEXT
+	      || type == dpyinfo->Xatom_COMPOUND_TEXT)
+	    require_encoding = 1;
+	  else if (type == XA_STRING)
 	    {
-	      if (data[i] >= 0x80)
+	      int i;
+	      for (i = 0; i < size; i++)
 		{
-		  require_encoding = 1;
-		  break;
+		  if (data[i] >= 0x80)
+		    {
+		      require_encoding = 1;
+		      break;
+		    }
 		}
 	    }
 	}
@@ -1608,7 +1613,8 @@ lisp_data_to_selection_data (display, obj,
       *size_ret = XSTRING (obj)->size;
       *data_ret = XSTRING (obj)->data;
       bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-      num = ((*size_ret <= 1)	/* Check the possibility of short cut.  */
+      num = ((*size_ret <= 1	/* Check the possibility of short cut.  */
+	      || NILP (buffer_defaults.enable_multibyte_characters))
 	     ? 0
 	     : find_charset_in_str (*data_ret, *size_ret, charsets, Qnil));
 
@@ -1636,7 +1642,7 @@ lisp_data_to_selection_data (display, obj,
 	  *size_ret = encode_coding (&coding, *data_ret, buf,
 				     *size_ret, bufsize, &dummy);
 	  *data_ret = buf;
-          if (charsets[get_charset_id(charset_latin_iso8859_1)]
+          if (charsets[charset_latin_iso8859_1]
 	      && (num == 1 || (num == 2 && charsets[CHARSET_ASCII])))
 	    {
 	      /* Ok, we can return it as `STRING'.  */
