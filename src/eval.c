@@ -124,6 +124,12 @@ int max_lisp_eval_depth;
 /* Nonzero means enter debugger before next function call */
 int debug_on_next_call;
 
+/* Non-zero means debuffer may continue.  This is zero when the
+   debugger is called during redisplay, where it might not be safe to
+   continue the interrupted redisplay. */
+
+int debugger_may_continue;
+
 /* List of conditions (non-nil atom means all) which cause a backtrace
    if an error is handled by the command loop's error handler.  */
 Lisp_Object Vstack_trace_on_error;
@@ -197,6 +203,7 @@ call_debugger (arg)
      Lisp_Object arg;
 {
   int debug_while_redisplaying;
+  int count = specpdl_ptr - specpdl;
   Lisp_Object val;
   
   if (lisp_eval_depth + 20 > max_lisp_eval_depth)
@@ -212,6 +219,8 @@ call_debugger (arg)
      displayed if the debugger is invoked during redisplay.  */
   debug_while_redisplaying = redisplaying_p;
   redisplaying_p = 0;
+  specbind (intern ("debugger-may-continue"),
+	    debug_while_redisplaying ? Qnil : Qt);
   
   val = apply1 (Vdebugger, arg);
 
@@ -221,7 +230,7 @@ call_debugger (arg)
   if (debug_while_redisplaying)
     Ftop_level ();
 
-  return val;
+  return unbind_to (count, val);
 }
 
 void
@@ -3044,6 +3053,11 @@ Does not apply if quit is handled by a `condition-case'.");
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
     "Non-nil means enter debugger before next `eval', `apply' or `funcall'.");
+
+  DEFVAR_BOOL ("debugger-may-continue", &debugger_may_continue,
+    "Non-nil means debugger may continue execution.\n\
+This is nil when the debugger is called under circumstances where it\n\
+might not be safe to continue.");
 
   DEFVAR_LISP ("debugger", &Vdebugger,
     "Function to call to invoke debugger.\n\
