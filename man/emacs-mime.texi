@@ -589,10 +589,11 @@ non-nil, decode bytes into characters with that coding-system.
 @deffn Command quoted-printable-encode-region @var{from} @var{to} &optional @var{fold} @var{class}
 QP-encode all the region.  If @var{fold} is non-@var{nil}, fold lines
 at 76 characters, as required by the RFC.  If @var{class} is
-non-@code{nil}, translate the characters matched by that class, which
-should be in the form expected by @var{skip-chars-forward} and should
-probably not contain literal eight-bit characters.  Specifying
-@var{class} makes sense to do extra encoding in header fields.
+non-@code{nil}, translate the characters not matched by that regexp
+class, which should be in the form expected by
+@var{skip-chars-forward} and should probably not contain literal
+eight-bit characters.  Specifying @var{class} makes sense to do extra
+encoding in header fields.
 
 If variable @var{mm-use-ultra-safe-encoding} is defined and
 non-@code{nil}, fold lines unconditionally and encode @samp{From } and

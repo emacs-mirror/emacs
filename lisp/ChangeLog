@@ -1,5 +1,14 @@
 2001-01-26  Dave Love  <fx@gnu.org>
 
+	* textmodes/flyspell.el: Doc fixes.  Add :version to new options.
+
+	* mail/feedmail.el (feedmail): Add :link.
+	(feedmail-send-it): Doc fix.
+
+	* mail/sendmail.el: Doc fixes.
+	(sendmail-send-it): Fix the non-ASCII regexp and use
+	rfc2047-encode-string.
+
 	* dired.el, dired-aux.el: Revert last change.
 
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>

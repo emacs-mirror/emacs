@@ -768,6 +768,7 @@ not be asked until you change the file and save it again.
 @findex time-stamp
 @cindex time stamps
 @cindex modification dates
+@cindex locale, date format
 
 You can arrange to have time stamp text in a file updated
 automatically to reflect the modification time when you save the
@@ -783,10 +784,13 @@ Time-stamp: ""
 @noindent
 and customize the value of the hook @code{write-file-hooks} to add
 @code{time-stamp}.  Such a template is updated with the current time
-and date when the file is written.
+and date when the file is written.  You can also use the command
+@kbd{M-x time-stamp} to update the time stamp manually.
 
 You can customize the form of the template and the time string used
 along with other parameters in the Custom group @code{time-stamp}.
+Note that non-numeric fields in the time stamp are printed according
+to your locale setting.
 
 @node Reverting
 @section Reverting a Buffer
