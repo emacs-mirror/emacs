@@ -14,7 +14,12 @@
    additional optimization.  --nils@exp-math.uni-essen.de */
 #define C_SWITCH_SYSTEM -ma -qmaxmem=4000
 #endif
+
 #define HAVE_ALLOCA
+#ifndef NOT_C_CODE
+ #pragma alloca
+#endif
+
 #undef rindex
 #undef index
 
