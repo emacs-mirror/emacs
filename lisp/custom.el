@@ -442,7 +442,16 @@ COMMENT is a comment string about SYMBOL."
 			 (error "Circular custom dependency between `%s' and `%s'"
 				sym1 sym2))
 			(1-then-2 t)
-			(t nil))))))
+			(2-then-1 nil)
+			;; Put symbols with :require last.  The macro
+			;; define-minor-mode generates a defcustom
+			;; with a :require and a :set, where the
+			;; setter function calls the mode function.
+			;; Putting symbols with :require last ensures
+			;; that the mode function will see other
+			;; customized values rather than default
+			;; values.
+			(t (get sym2 'custom-requests)))))))
   (while args
     (let ((entry (car args)))
       (if (listp entry)
