@@ -215,6 +215,9 @@ static int update_tick;
 
 static SELECT_TYPE input_wait_mask;
 
+/* The largest descriptor currently in use for a process object.  */
+static int max_process_desc;
+
 /* Descriptor to use for keyboard input.  */
 static int keyboard_descriptor;
 
@@ -1383,6 +1386,8 @@ create_process (process, new_argv, current_dir)
   XFASTINT (XPROCESS (process)->pid) = pid;
 
   FD_SET (inchannel, &input_wait_mask);
+  if (inchannel > max_process_desc)
+    max_process_desc = inchannel;
 
   /* If the subfork execv fails, and it exits,
      this close hangs.  I don't know why.
@@ -1571,6 +1576,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XSET (XPROCESS (proc)->outfd, Lisp_Int, outch);
   XPROCESS (proc)->status = Qrun;
   FD_SET (inch, &input_wait_mask);
+  if (inch > max_process_desc)
+    max_process_desc = inch;
 
   UNGCPRO;
   return proc;
@@ -1608,6 +1615,16 @@ deactivate_process (proc)
       XSET (p->outfd, Lisp_Int, -1);
       chan_process[inchannel] = Qnil;
       FD_CLR (inchannel, &input_wait_mask);
+      if (inchannel == max_process_desc)
+	{
+	  int i;
+	  /* We just closed the highest-numbered process input descriptor,
+	     so recompute the highest-numbered one now.  */
+	  max_process_desc = 0;
+	  for (i = 0; i < MAXDESC; i++)
+	    if (!NILP (chan_process[i]))
+	      max_process_desc = i;
+	}
     }
 }
 
@@ -1984,7 +2001,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* Really FIRST_PROC_DESC should be 0 on Unix,
 	 but this is safer in the short run.  */
       for (channel = keyboard_descriptor == 0 ? FIRST_PROC_DESC : 0;
-	   channel < MAXDESC; channel++)
+	   channel <= max_process_desc; channel++)
 	{
 	  if (FD_ISSET (channel, &Available))
 	    {
@@ -3091,6 +3108,7 @@ init_process ()
 #endif
 
   FD_ZERO (&input_wait_mask);
+  max_process_desc = 0;
 
   keyboard_descriptor = 0;
   FD_SET (keyboard_descriptor, &input_wait_mask);
