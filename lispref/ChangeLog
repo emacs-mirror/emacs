@@ -1,3 +1,10 @@
+2003-10-05  Richard M. Stallman  <rms@gnu.org>
+
+	* loading.texi (Named Features): In `provide',
+	say how to test for subfeatures.
+	(Unloading): In unload-feature, use new var name
+	unload-feature-special-hooks.
+
 2003-10-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* modes.texi (Major Mode Conventions): Mention third way to set up

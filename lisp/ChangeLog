@@ -1,3 +1,18 @@
+2003-10-05  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-feature): Handle sh-modify like sh-append.
+	(sh-for, sh-indexed-loop, sh-function, sh-while, sh-while-getopts):
+	Use sh-modify directly.
+	(sh-select): Use sh-append, not eval.
+
+	* mail/emacsbug.el (report-emacs-bug): Fix previous change.
+
+	* info.el (Info-following-node-name): New function.
+
+	* loadhist.el (unload-feature-special-hooks):
+	Renamed from loadhist-hook-functions.
+	(loadhist-hook-functions): Now an alias.
+
 2003-10-04  Eli Zaretskii  <eliz@elta.co.il>
 
 	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
