@@ -41,7 +41,6 @@
 ;;; Code:
 
 (provide 'enriched)
-(if window-system (require 'facemenu))
 
 ;;;
 ;;; Variables controlling the display
@@ -49,19 +48,6 @@
 
 (defvar enriched-verbose t
   "*If non-nil, give status messages when reading and writing files.")
-
-(defvar enriched-default-right-margin 10
-  "*Default amount of space to leave on the right edge of the screen.
-This can be increased inside text by changing the 'right-margin text property.
-Measured in character widths.  If the screen is narrower than this, it is
-assumed to be 0.")
-
-(defvar enriched-fill-after-visiting t
-  "If t, fills paragraphs when reading in enriched documents.
-If nil, only fills when you explicitly request it.  If the value is 'ask, then
-it will query you whether to fill.
-Filling is never done if the current text-width is the same as the value
-stored in the file.")
 
 ;;;
 ;;; Set up faces & display table
@@ -100,7 +86,7 @@ These are set front-sticky everywhere except at hard newlines.")
 (defconst enriched-initial-annotation
   (lambda ()
     (format "Content-Type: text/enriched\nText-Width: %d\n\n"
-	    (enriched-text-width)))
+	    fill-column))
   "What to insert at the start of a text/enriched file.
 If this is a string, it is inserted.  If it is a list, it should be a lambda
 expression, which is evaluated to get the string to insert.")
@@ -168,9 +154,6 @@ them and their old values to `enriched-old-bindings'.")
 The value is a list of \(VAR VALUE VAR VALUE...).")
 (make-variable-buffer-local 'enriched-old-bindings)
 
-(defvar enriched-text-width nil)
-(make-variable-buffer-local 'enriched-text-width)
-
 ;;;
 ;;; Define the mode
 ;;;
@@ -204,27 +187,22 @@ Commands:
 	  (enriched-mode nil)		; Mode already on; do nothing.
 
 	  (t (setq enriched-mode t)	; Turn mode on
-	     (if (not (memq 'text/enriched buffer-file-format))
-		 (setq buffer-file-format 
-		       (cons 'text/enriched buffer-file-format)))
+	     (add-to-list 'buffer-file-format 'text/enriched)
 	     ;; Save old variable values before we change them.
 	     ;; These will be restored if we exit Enriched mode.
 	     (setq enriched-old-bindings
 		   (list 'buffer-display-table buffer-display-table
 			 'indent-line-function indent-line-function
-			 'use-hard-newlines    use-hard-newlines
 			 'default-text-properties default-text-properties))
 	     (make-local-variable 'indent-line-function)
-	     (make-local-variable 'use-hard-newlines)
 	     (make-local-variable 'default-text-properties)
 	     (setq indent-line-function 'indent-to-left-margin
-		   buffer-display-table  enriched-display-table
-		   use-hard-newlines     t)
+		   buffer-display-table  enriched-display-table)
+	     (use-hard-newlines 1 nil)
 	     (let ((sticky (plist-get default-text-properties 'front-sticky))
 		   (p enriched-par-props))
 	       (while p
-		 (if (not (memq (car p) sticky))
-		     (setq sticky (cons (car p) sticky)))
+		 (add-to-list 'sticky (car p))
 		 (setq p (cdr p)))
 	       (if sticky
 		   (setq default-text-properties
@@ -302,22 +280,12 @@ the region, and the START and END of each region."
 	  (justify-current-line t nil t))
 	(forward-line 1)))))
 
-(defun enriched-text-width ()
-  "The width of unindented text in this window, in characters.
-This is the width of the window minus `enriched-default-right-margin'."
-  (or enriched-text-width
-      (let ((ww (window-width)))
-	(setq enriched-text-width
-	      (if (> ww enriched-default-right-margin)
-		  (- ww enriched-default-right-margin)
-		ww)))))
-
 ;;;
 ;;; Encoding Files
 ;;;
 
 ;;;###autoload
-(defun enriched-encode (from to)
+(defun enriched-encode (from to orig-buf)
   (if enriched-verbose (message "Enriched: encoding document..."))
   (save-restriction
     (narrow-to-region from to)
@@ -331,7 +299,13 @@ This is the width of the window minus `enriched-default-right-margin'."
     (goto-char from)
     (insert (if (stringp enriched-initial-annotation)
 		enriched-initial-annotation
-	      (funcall enriched-initial-annotation)))
+	      (save-excursion
+		;; Eval this in the buffer we are annotating.  This
+		;; fixes a bug which was saving incorrect File-Width
+		;; information, since we were looking at local
+		;; variables in the wrong buffer.
+		(if orig-buf (set-buffer orig-buf))
+		(funcall enriched-initial-annotation))))
     (enriched-map-property-regions 'hard
       (lambda (v b e)
 	(if (and v (= ?\n (char-after b)))
@@ -384,37 +358,35 @@ One annotation each for foreground color, background color, italic, etc."
 ;;;###autoload
 (defun enriched-decode (from to)
   (if enriched-verbose (message "Enriched: decoding document..."))
+  (use-hard-newlines 1 'never)
   (save-excursion
     (save-restriction
       (narrow-to-region from to)
       (goto-char from)
-      (let ((file-width (enriched-get-file-width))
-	    (use-hard-newlines t))
+
+      ;; Deal with header
+      (let ((file-width (enriched-get-file-width)))
 	(enriched-remove-header)
 
 	;; Deal with newlines
-	(goto-char from)
 	(while (search-forward-regexp "\n\n+" nil t)
 	  (if (current-justification)
 	      (delete-char -1))
-	  (put-text-property (match-beginning 0) (point) 'hard t)
-	  (put-text-property (match-beginning 0) (point) 'front-sticky nil))
+	  (set-hard-newline-properties (match-beginning 0) (point)))
 
 	;; Translate annotations
 	(format-deannotate-region from (point-max) enriched-translations
 				  'enriched-next-annotation)
 
-	;; Fill paragraphs
-	(if (or (and file-width		; possible reasons not to fill:
-		     (= file-width (enriched-text-width))) ; correct wd.
-		(null enriched-fill-after-visiting) ; never fill
-		(and (eq 'ask enriched-fill-after-visiting) ; asked & declined
-		     (not (y-or-n-p "Re-fill for current display width? "))))
-	    ;; Minimally, we have to insert indentation and justification.
-	    (enriched-insert-indentation)
-	  (if enriched-verbose (message "Filling paragraphs..."))
-	  (fill-region (point-min) (point-max))))
-      (if enriched-verbose (message nil))
+	;; Indent or fill the buffer
+	(cond (file-width		; File was filled to this width
+	       (setq fill-column file-width)
+	       (if enriched-verbose (message "Indenting..."))
+	       (enriched-insert-indentation))
+	      (t			; File was not filled.
+	       (if enriched-verbose (message "Filling paragraphs..."))
+	       (fill-region (point-min) (point-max))))
+	(if enriched-verbose (message nil)))
       (point-max))))
 
 (defun enriched-next-annotation ()
