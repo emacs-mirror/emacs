@@ -673,18 +673,15 @@ This is relative to `smtpmail-queue-dir'.")
 There may be multiple BCC: lines, and each may have arbitrarily
 many continuation lines."
   (let ((case-fold-search t))
-	(save-excursion (goto-char (point-min))
-	  ;; iterate over all BCC: lines
-	  (while (re-search-forward "^\(RESENT-\)?BCC:" header-end t)
-	        (delete-region (match-beginning 0) (progn (forward-line 1) (point)))
-		;; get rid of any continuation lines
-		(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
-		  (replace-match ""))
-		)
-	  ) ;; save-excursion
-	) ;; let
-  )
-
+    (save-excursion
+      (goto-char (point-min))
+      ;; iterate over all BCC: lines
+      (while (re-search-forward "^\\(RESENT-\\)?BCC:" header-end t)
+	(delete-region (match-beginning 0)
+		       (progn (forward-line 1) (point)))
+	;; get rid of any continuation lines
+	(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
+	  (replace-match ""))))))
 
 
 (provide 'smtpmail)
