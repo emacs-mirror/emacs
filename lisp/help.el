@@ -334,8 +334,11 @@ describes the minor mode."
 				      0 (match-beginning 0)))))
 		(while (and indicator (symbolp indicator))
 		  (setq indicator (symbol-value indicator)))
-		(princ (format "%s minor mode (indicator%s):\n"
-			       pretty-minor-mode indicator))
+		(princ (format "%s minor mode (%s):\n"
+			       pretty-minor-mode
+			       (if indicator
+				   (format "indicator%s" indicator)
+				 "no indicator")))
 		(princ (documentation minor-mode))
 		(princ "\n\n"))))
 	(setq minor-modes (cdr minor-modes))))
