@@ -75,23 +75,25 @@ non-nil.  Set the var back to nil to re-enable icomplete."
 		     'icomplete-post-command-hook 'append))
 	  ((format "icomplete: non v19 emacs, %s - %s"
 		   emacs-version "try elisp-archive icomplete")))))
+
 ;;;_ > icomplete-prime-minibuffer ()
 (defun icomplete-prime-minibuffer ()
-
   "Prep emacs, v 19.18 or later, for icomplete.
-
 \(In emacs v19.17 and earlier, and in lemacs, icomplete-prime-session
 is used, instead to establish global hooks.\)
 
-Run via minibuffer-setup-hook, adds icomplete pre- and post-command
+Run via `minibuffer-setup-hook', adds icomplete pre- and post-command
 hooks at the start of each minibuffer."
 
   ;; Append the hooks to avoid as much as posssible interference from
   ;; other hooks that foul up minibuffer quit.
   (make-local-variable 'pre-command-hook)
   (make-local-variable 'post-command-hook)
+  (setq pre-command-hook (copy-sequence pre-command-hook))
+  (setq post-command-hook (copy-sequence post-command-hook))
   (add-hook 'pre-command-hook 'icomplete-pre-command-hook)
   (add-hook 'post-command-hook 'icomplete-post-command-hook))
+
 ;;;_ > icomplete-window-minibuffer-p ()
 (defmacro icomplete-window-minibuffer-p ()
 
