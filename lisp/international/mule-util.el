@@ -320,7 +320,8 @@ or one is an alias of the other."
 
 ;;;###autoload
 (defun prefer-coding-system (coding-system)
-  (interactive "zPrefered coding system: ")
+  "Add CODING-SYSTEM at the front of the priority list for automatic detection."
+  (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
   (let ((coding-category (coding-system-category coding-system))
