@@ -1,6 +1,6 @@
-;;; lisp-mnt.el --- minor mode for Emacs Lisp maintainers
+;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 
-;; This minor mode adds some services to Emacs-Lisp editing mode.
+;; This library adds some services to Emacs-Lisp editing mode.
 ;;
 ;; First, it knows about the header conventions for library packages.
 ;; One entry point supports generating synopses from a library directory.
@@ -79,7 +79,7 @@
 ;; in this file is mildly bogus because the maintainer line is redundant.
 ;;    The idea behind these two fields is to be able to write a Lisp function
 ;; that does "send mail to the author" without having to mine the name out by
-;; hand. Please be careful about surrounding the network address with <> if
+;; hand.  Please be careful about surrounding the network address with <> if
 ;; there's also a name in the field.
 ;;
 ;;    * Created line --- optional, gives the original creation date of the
@@ -124,7 +124,7 @@
 ;;; Variables:
 
 (defgroup lisp-mnt nil
-  "Minor mode for Emacs Lisp maintainers."
+  "Utility functions for Emacs Lisp maintainers."
   :prefix "lm-"
   :group 'maint)
 
@@ -154,6 +154,11 @@ Leading comment characters and whitespace should be in regexp group 1."
 (defcustom lm-comment-column 16
   "Column used for placing formatted output."
   :type 'integer
+  :group 'lisp-mnt)
+
+(defcustom lm-any-header ".*"
+  "Regexp which matches start of any section."
+  :type 'regexp
   :group 'lisp-mnt)
 
 (defcustom lm-commentary-header "Commentary\\|Documentation"
@@ -188,30 +193,65 @@ return section regexp instead."
 		    (match-end 1)))
 	(match-string-no-properties 1))))
 
-(defun lm-section-mark (header &optional after)
+(defun lm-section-start (header &optional after)
   "Return the buffer location of a given section start marker.
 The HEADER is the section mark string to search for.
-If AFTER is non-nil, return the location of the next line."
+If AFTER is non-nil, return the location of the next line.
+If the given section does not exist, return nil."
   (save-excursion
     (let ((case-fold-search t))
       (goto-char (point-min))
       (if (re-search-forward (lm-get-header-re header 'section) nil t)
-	  (progn
-	    (beginning-of-line)
-	    (if after (forward-line 1))
-	    (point))))))
+          (line-beginning-position (if after 2))))))
+(defalias 'lm-section-mark 'lm-section-start)
 
-(defsubst lm-code-mark ()
+(defun lm-section-end (header)
+  "Return the buffer location of the end of a given section.
+The HEADER is the section string marking the beginning of the
+section.  If the given section does not exist, return nil.
+
+The end of the section is defined as the beginning of the next
+section of the same level or lower.  The function
+`lisp-outline-level' is used to compute the level of a section.
+If no such section exists, return the end of the buffer."
+  (let ((start (lm-section-start header)))
+    (when start
+      (save-excursion
+        (goto-char start)
+        (let ((level (lisp-outline-level))
+              (case-fold-search t)
+              next-section-found)
+          (beginning-of-line 2)
+          (while (and (setq next-section-found
+                            (re-search-forward
+                             (lm-get-header-re lm-any-header 'section)
+                             nil t))
+                      (> (save-excursion
+                           (beginning-of-line)
+                           (lisp-outline-level))
+                         level)))
+          (if next-section-found
+              (line-beginning-position)
+            (point-max)))))))
+
+(defsubst lm-code-start ()
   "Return the buffer location of the `Code' start marker."
-  (lm-section-mark "Code"))
+  (lm-section-start "Code"))
+(defalias 'lm-code-mark 'lm-code-start)
 
-(defsubst lm-commentary-mark ()
+(defsubst lm-commentary-start ()
   "Return the buffer location of the `Commentary' start marker."
-  (lm-section-mark lm-commentary-header))
+  (lm-section-start lm-commentary-header))
+(defalias 'lm-commentary-mark 'lm-commentary-start)
 
-(defsubst lm-history-mark ()
+(defsubst lm-commentary-end ()
+  "Return the buffer location of the `Commentary' section end."
+  (lm-section-end lm-commentary-header))
+
+(defsubst lm-history-start ()
   "Return the buffer location of the `History' start marker."
-  (lm-section-mark lm-history-header))
+  (lm-section-start lm-history-header))
+(defalias 'lm-history-mark 'lm-history-start)
 
 (defsubst lm-copyright-mark ()
   "Return the buffer location of the `Copyright' line."
@@ -219,8 +259,7 @@ If AFTER is non-nil, return the location of the next line."
     (let ((case-fold-search t))
       (goto-char (point-min))
       (if (re-search-forward lm-copyright-prefix nil t)
-	  (point))))
-  )
+	  (point)))))
 
 (defun lm-header (header)
   "Return the contents of the header named HEADER."
@@ -431,18 +470,14 @@ distribution."
 
 (defun lm-commentary (&optional file)
   "Return the commentary in file FILE, or current buffer if FILE is nil.
-The value is returned as a string.  In the file, the commentary starts
-with the tag `Commentary' or `Documentation' and ends with one of the
-tags `Code', `Change Log' or `History'."
+Return the value as a string.  In the file, the commentary
+section starts with the tag `Commentary' or `Documentation' and
+ends just before the next section.  If the commentary section is
+absent, return nil."
   (lm-with-file file
-    (let ((commentary (lm-commentary-mark))
-	  (change-log (lm-history-mark))
-	  (code (lm-code-mark)))
-      (cond
-       ((and commentary change-log)
-	(buffer-substring-no-properties commentary change-log))
-       ((and commentary code)
-	(buffer-substring-no-properties commentary code))))))
+    (let ((start (lm-commentary-start)))
+      (when start
+        (buffer-substring-no-properties start (lm-commentary-end))))))
 
 ;;; Verification and synopses
 
