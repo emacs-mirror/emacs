@@ -1,3 +1,16 @@
+2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* calendar/cal-dst.el (calendar-time-from-absolute): Return a list
+	of two integers, instead of a cons.
+
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
+	`visited-file-modtime' now returns a list of two integers, instead
+	of a cons.
+
+	* dired.el (dired-directory-changed-p): Ditto.
+
+	* progmodes/grep.el (grep): Doc fix.
+
 2004-07-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* autorevert.el (auto-revert-tail-mode)

@@ -1,3 +1,8 @@
+2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fileio.c (Fvisited_file_modtime): Return a list of two integers,
+	instead of a cons.
+
 2004-07-14  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (echo_dash): Do nothing if there already is a dash
