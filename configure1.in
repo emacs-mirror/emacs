@@ -304,10 +304,10 @@ case "${srcdir}" in
       srcdir="${confdir}"
     else
       if [ -f "./src/lisp.h" -a -f "./lisp/version.el" ]; then
-        srcdir=`.`
+        srcdir='.'
       else
         if [ -f "../src/lisp.h" -a -f "../lisp/version.el" ]; then
-	  srcdir=`..`
+	  srcdir='..'
         else
 	  (echo "\
 ${progname}: Neither the current directory nor its parent seem to
