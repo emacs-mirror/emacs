@@ -1,3 +1,9 @@
+2003-03-03  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: add AC_CHECK_FUNCS for memcmp and memmove.
+	(AH_BOTTOM): switch tests to prefer memcmp, memset, and memmove
+	over bzero, bcmp, and bcopy.
+
 2003-02-23  Simon Josefsson  <jas@extundo.com>
 
 	* Makefile.in (install-arch-indep, uninstall): Add SMTP manual.

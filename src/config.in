@@ -343,6 +343,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mbsinit' function. */
 #undef HAVE_MBSINIT
 
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
+
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
@@ -1010,14 +1013,16 @@ typedef unsigned size_t;
 #  endif
 #endif
 
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
+/* avoid deprecated functions */
+#if HAVE_MEMCPY
+#  define bcopy(a,b,s) memcpy (b,a,s)
 #endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
+#if HAVE_MEMSET
+#  define bzero(a,s) memset (a,0,s)
 #endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
+#if HAVE_MEMCMP
+#  define BCMP memcmp
+#  define bcmp memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */
