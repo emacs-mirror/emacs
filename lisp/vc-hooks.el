@@ -155,8 +155,8 @@ visiting FILE."
 	 (not (string-equal (user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
     (and (null vc-type)
-	 (file-symlink-p buffer-file-name)
-	 (let ((link-type (vc-backend-deduce (file-symlink-p buffer-file-name))))
+	 (file-symlink-p file)
+	 (let ((link-type (vc-backend-deduce (file-symlink-p file))))
 	   (if link-type
 	       (message "Warning: symbolic link to %s-controlled source file"
 			link-type))))
