@@ -1,3 +1,7 @@
+2004-11-29  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (concat): Use SAFE_ALLOCA.
+
 2004-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sysdep.c (emacs_write): Don't use QUIT.
