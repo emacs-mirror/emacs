@@ -1,3 +1,11 @@
+2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fwindow_buffer, Fother_window,  Fget_lru_window)
+	(Fget_largest_window, Fget_buffer_window, Fdelete_windows_on)
+	(Freplace_buffer_in_windows, Fset_window_buffer)
+	(Fselect-window, Fdisplay-buffer, Fsplit_window): Doc fixes.
+	(syms_of_window): Expand docstring of `display-buffer-function'.
+
 2004-07-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* editfns.c (Ffloat_time, Fformat_time_string, Fdecode_time)
