@@ -195,6 +195,7 @@
 
 (eval-when-compile
   (require 'skeleton)
+  (require 'cl)
   (require 'comint))
 (require 'executable)
 
@@ -2485,16 +2486,12 @@ If INFO is supplied it is used, else it is calculated from current line."
 (defun sh-indent-line ()
   "Indent the current line."
   (interactive)
-  (let ((indent (sh-calculate-indent)) shift-amt beg end
+  (let ((indent (sh-calculate-indent))
 	(pos (- (point-max) (point))))
     (when indent
       (beginning-of-line)
-      (setq beg (point))
       (skip-chars-forward " \t")
-      (setq shift-amt (- indent (current-column)))
-      (unless (zerop shift-amt)
-	(delete-region beg (point))
-	(indent-to indent))
+      (indent-line-to indent)
       ;; If initial point was within line's indentation,
       ;; position after the indentation.  Else stay at same point in text.
       (if (> (- (point-max) pos) (point))
@@ -3079,6 +3076,11 @@ This is always added to the end of the buffer."
 ;; You are welcome to add the syntax or even completely new statements as
 ;; appropriate for your favorite shell.
 
+(defconst sh-non-closing-paren
+  ;; If we leave it rear-sticky, calling `newline' ends up inserting a \n
+  ;; that inherits this property, which then confuses the indentation.
+  (propertize ")" 'syntax-table sh-st-punc 'rear-nonsticky t))
+
 (define-skeleton sh-case
   "Insert a case/switch statement.  See `sh-feature'."
   (csh "expression: "
@@ -3108,16 +3110,11 @@ This is always added to the end of the buffer."
       ?\} > \n)
   (sh "expression: "
       > "case " str " in" \n
-      > (read-string "pattern: ")
-      (propertize ")" 'syntax-table sh-st-punc)
-      \n
-      > _ \n
-      ";;" \n
-      ( "other pattern, %s: "
-	> str (propertize ")" 'syntax-table sh-st-punc) \n
+      ( "pattern, %s: "
+	> str sh-non-closing-paren \n
 	> _ \n
 	";;" \n)
-      > "*" (propertize ")" 'syntax-table sh-st-punc) \n
+      > "*" sh-non-closing-paren \n
       > _ \n
       resume:
       "esac" > \n))
@@ -3220,12 +3217,10 @@ t means to return a list of all possible completions of STRING.
 			      (cons name name)))
 			  process-environment)
 		  sh-shell-variables))))
-    (cond ((null code)
-	   (try-completion string sh-shell-variables predicate))
-	  ((eq code t)
-	   (all-completions string sh-shell-variables predicate))
-	  ((eq code 'lambda)
-	   (assoc string sh-shell-variables)))))
+    (case code
+      (nil (try-completion string sh-shell-variables predicate))
+      (lambda (test-completion string sh-shell-variables predicate))
+      (t (all-completions string sh-shell-variables predicate)))))
 
 (defun sh-add (var delta)
   "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
@@ -3452,10 +3447,10 @@ option followed by a colon `:' if the option accepts an argument."
 		    v2 "\"$OPTARG\"")
 	    (setq v1 (cdr v1)
 		  v2 nil)))
-	> str "|+" str (propertize ")" 'syntax-table sh-st-punc) \n
+	> str "|+" str sh-non-closing-paren \n
 	> _ v2 \n
 	> ";;" \n)
-      > "*" (propertize ")" 'syntax-table sh-st-punc) \n
+      > "*" sh-non-closing-paren \n
       > "echo" " \"usage: " "`basename $0`"
       " [+-" '(setq v1 (point)) str
       '(save-excursion
