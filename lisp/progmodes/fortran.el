@@ -1,7 +1,7 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000, 01, 03, 04
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
+;;               2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
@@ -95,7 +95,7 @@ with a character in column 6."
   :group 'fortran-indent)
 
 (defcustom fortran-if-indent 3
-  "*Extra indentation applied to IF blocks."
+  "*Extra indentation applied to IF, SELECT CASE and WHERE blocks."
   :type  'integer
   :group 'fortran-indent)
 
@@ -321,7 +321,8 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
                             "while" "inquire" "stop" "return"
                             "include" "open" "close" "read"
                             "write" "format" "print" "select" "case"
-                            "cycle" "exit" "rewind" "backspace")
+                            "cycle" "exit" "rewind" "backspace"
+                            "where" "elsewhere")
                           'paren) "\\>")
            ;; Builtin operators.
            (concat "\\." (regexp-opt
@@ -370,6 +371,29 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
                 fortran-font-lock-keywords-2)))
   "Gaudy level highlighting for Fortran mode.")
 
+(defvar fortran-font-lock-keywords-4
+  (append fortran-font-lock-keywords-3
+          (list (list
+                 (concat "\\<"
+                         (regexp-opt
+                          '("int" "ifix" "idint" "real" "float" "sngl"
+                            "dble" "cmplx" "ichar" "char" "aint" "dint"
+                            "anint" "dnint" "nint" "idnint" "iabs" "abs"
+                            "dabs" "cabs" "mod" "amod" "dmod" "isign"
+                            "sign" "dsign" "idim" "dim" "ddim" "dprod"
+                            "max" "max0" "amax1" "dmax1" "amax0" "max1"
+                            "min0" "amin1" "dmin1" "amin0" "min1" "len"
+                            "index" "lge" "lgt" "lle" "llt" "aimag"
+                            "conjg" "sqrt" "dsqrt" "csqrt" "exp" "dexp"
+                            "cexp" "log" "alog" "dlog" "clog" "log10"
+                            "alog10" "dlog10" "sin" "dsin" "csin" "cos"
+                            "dcos" "ccos" "tan" "dtan" "asin" "dasin"
+                            "acos" "dacos" "atan" "datan" "atan2" "datan2"
+                            "sinh" "dsinh" "cosh" "dcosh" "tanh" "dtanh")
+                          'paren) "[ \t]*(") '(1 font-lock-builtin-face))))
+  "Maximum highlighting for Fortran mode.
+Consists of level 3 plus all other intrinsics not already highlighted.")
+
 ;; Comments are real pain in Fortran because there is no way to
 ;; represent the standard comment syntax in an Emacs syntax table.
 ;; (We can do so for F90-style).  Therefore an unmatched quote in a
@@ -409,6 +433,64 @@ These get fixed-format comments fontified.")
   "Value for `imenu-generic-expression' in Fortran mode.")
 
 
+;; Hideshow support.
+(defconst fortran-blocks-re
+  (concat "block[ \t]*data\\|select[ \t]*case\\|"
+          (regexp-opt '("do" "if" "interface" "function" "map" "program"
+                        "structure" "subroutine" "union" "where")))
+  "Regexp potentially indicating the start or end of a Fortran \"block\".
+Omits naked END statements, and DO-loops closed by anything other
+than ENDDO.")
+
+(defconst fortran-end-block-re
+  ;; Do-loops terminated by things other than ENDDO cannot be handled
+  ;; with a regexp. This omission does not seem to matter to hideshow...
+  (concat "^[ \t0-9]*\\<end[ \t]*\\("
+          fortran-blocks-re
+          ;; Naked END statement.
+          "\\|!\\|$\\)")
+  "Regexp matching the end of a Fortran \"block\", from the line start.
+Note that only ENDDO is handled for the end of a DO-loop.  Used
+in the Fortran entry in `hs-special-modes-alist'.")
+
+(defconst fortran-start-block-re
+  (concat
+   "^[ \t0-9]*\\("                      ; statement number
+   ;; Structure label for DO, IF, SELECT, WHERE.
+   "\\(\\(\\sw+[ \t]*:[ \t]*\\)?"
+   ;; IF blocks are a nuisance:
+   ;; IF ( ... ) foo   is not a block, but a single statement.
+   ;; IF ( ... ) THEN  can be split over multiple lines.
+   ;; [So can, eg, a DO WHILE (... ), but that is less common, I hope.]
+   ;; The regexp below allows for it to be split over at most 2 lines.
+   ;; That leads to the problem of not matching two consecutive IF
+   ;; statements as one, eg:
+   ;; IF ( ... ) foo
+   ;; IF ( ... ) THEN
+   ;; It simply is not possible to do this in a 100% correct fashion
+   ;; using a regexp - see the functions fortran-end-if,
+   ;; fortran-beginning-if for the hoops we have to go through.
+   ;; An alternative is to match on THEN at a line end, eg:
+   ;;   ".*)[ \t]*then[ \t]*\\($\\|!\\)"
+   ;; This would also match ELSE branches, though. This does not seem
+   ;; right to me, because then one has neighbouring blocks that are
+   ;; not nested in each other.
+   "\\(if[ \t]*(\\(.*\\|"
+   ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\>\\)\\)\\)\\<then\\|"
+   "do\\|select[ \t]*case\\|where\\)\\)\\|"
+   (regexp-opt '("interface" "function" "map" "program"
+                 "structure" "subroutine" "union"))
+   "\\|block[ \t]*data\\)[ \t]*")
+  "Regexp matching the start of a Fortran \"block\", from the line start.
+A simple regexp cannot do this in fully correct fashion, so this
+tries to strike a compromise between complexity and flexibility.
+Used in the Fortran entry in `hs-special-modes-alist'.")
+
+(add-to-list 'hs-special-modes-alist
+	     `(fortran-mode ,fortran-start-block-re ,fortran-end-block-re
+                            "^[cC*!]" fortran-end-of-block nil))
+
+
 (defvar fortran-mode-syntax-table
   (let ((table (make-syntax-table)))
     ;; We might like `;' to be punctuation (g77 multi-statement
@@ -422,7 +504,8 @@ These get fixed-format comments fontified.")
     (modify-syntax-entry ?/  "."  table)
     (modify-syntax-entry ?\' "\"" table)
     (modify-syntax-entry ?\" "\"" table)
-    ;; Consistent with GNU Fortran -- see the manual.
+    ;; Consistent with GNU Fortran's default -- see the manual.
+    ;; The F77 standard imposes no rule on this issue.
     (modify-syntax-entry ?\\ "\\" table)
     ;; This might be better as punctuation, as for C, but this way you
     ;; can treat floating-point numbers as symbols.
@@ -446,6 +529,8 @@ These get fixed-format comments fontified.")
     (define-key map "\C-c;"    'fortran-comment-region)
     (define-key map "\M-;"     'fortran-indent-comment)
     (define-key map "\M-\n"    'fortran-split-line)
+    (define-key map "\M-\C-n"  'fortran-end-of-block)
+    (define-key map "\M-\C-p"  'fortran-beginning-of-block)
     (define-key map "\M-\C-q"  'fortran-indent-subprogram)
     (define-key map "\C-c\C-w" 'fortran-window-create-momentarily)
     (define-key map "\C-c\C-r" 'fortran-column-ruler)
@@ -606,7 +691,7 @@ Key definitions:
 
 Variables controlling indentation style and extra features:
 
-`comment-start'
+`fortran-comment-line-start'
   To use comments starting with `!', set this to the string \"!\".
 `fortran-do-indent'
   Extra indentation within DO blocks (default 3).
@@ -696,7 +781,8 @@ with no args, if that value is non-nil."
        '((fortran-font-lock-keywords
           fortran-font-lock-keywords-1
           fortran-font-lock-keywords-2
-          fortran-font-lock-keywords-3)
+          fortran-font-lock-keywords-3
+          fortran-font-lock-keywords-4)
          nil t ((?/ . "$/") ("_$" . "w"))
          fortran-beginning-of-subprogram))
   (set (make-local-variable 'font-lock-syntactic-keywords)
@@ -1058,6 +1144,84 @@ Directive lines are treated as comments."
  		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (if (not not-last-statement)
  	'last-statement)))
+
+(defun fortran-looking-at-if-then ()
+  "Return non-nil if at the start of a line with an IF ... THEN statement."
+  ;; cf f90-looking-at-if-then.
+  (let ((p (point))
+        (i (fortran-beginning-if)))
+    (if i
+        (save-excursion
+          (goto-char i)
+          (beginning-of-line)
+          (= (point) p)))))
+
+;; Used in hs-special-modes-alist.
+(defun fortran-end-of-block (&optional num)
+  "Move point forward to the end of the current code block.
+With optional argument NUM, go forward that many balanced blocks.
+If NUM is negative, go backward to the start of a block.  Does
+not check for consistency of block types.  Interactively, pushes
+mark before moving point."
+  (interactive "p")
+  (if (interactive-p) (push-mark (point) t))
+  (and num (< num 0) (fortran-beginning-of-block (- num)))
+  (let ((case-fold-search t)
+        (count (or num 1)))
+    (end-of-line)
+    (while (and (> count 0)
+                (re-search-forward
+                 (concat "\\(" fortran-blocks-re
+                         (if fortran-check-all-num-for-matching-do
+                             "\\|^[ \t]*[0-9]+" "")
+                         "\\|continue\\|end\\)\\>")
+                 nil 'move))
+      (beginning-of-line)
+      (if (if (looking-at (concat "^[0-9 \t]*" fortran-if-start-re))
+              (fortran-looking-at-if-then)
+            (looking-at fortran-start-block-re))
+          (setq count (1+ count))
+        (if (or (looking-at fortran-end-block-re)
+                (and (or (looking-at "^[0-9 \t]*continue")
+                         (and fortran-check-all-num-for-matching-do
+                              (looking-at "[ \t]*[0-9]+")))
+                     (fortran-check-for-matching-do)))
+            (setq count (1- count))))
+      (end-of-line))
+    (if (> count 0) (error "Missing block end"))))
+
+(defun fortran-beginning-of-block (&optional num)
+  "Move point backwards to the start of the current code block.
+With optional argument NUM, go backward that many balanced
+blocks.  If NUM is negative, go forward to the end of a block.
+Does not check for consistency of block types.  Interactively,
+pushes mark before moving point."
+  (interactive "p")
+  (if (interactive-p) (push-mark (point) t))
+  (and num (< num 0) (fortran-end-of-block (- num)))
+  (let ((case-fold-search t)
+        (count (or num 1)))
+    (beginning-of-line)
+    (while (and (> count 0)
+                (re-search-backward
+                 (concat "\\(" fortran-blocks-re
+                         (if fortran-check-all-num-for-matching-do
+                             "\\|^[ \t]*[0-9]+" "")
+                         "\\|continue\\|end\\)\\>")
+                 nil 'move))
+      (beginning-of-line)
+      (if (if (looking-at (concat "^[0-9 \t]*" fortran-if-start-re))
+              (fortran-looking-at-if-then)
+            (looking-at fortran-start-block-re))
+          (setq count (1- count))
+        (if (or (looking-at fortran-end-block-re)
+                (and (or (looking-at "^[0-9 \t]*continue")
+                         (and fortran-check-all-num-for-matching-do
+                              (looking-at "[ \t]*[0-9]+")))
+                     (fortran-check-for-matching-do)))
+            (setq count (1+ count)))))
+    ;; Includes an un-named main program block.
+    (if (> count 0) (error "Missing block start"))))
 
 
 (defun fortran-blink-match (regex keyword find-begin)
@@ -1679,8 +1843,9 @@ If ALL is nil, only match comments that start in column > 0."
                             (1+ (point)))))
                   (if (re-search-forward "\\S\"\\s\"\\S\"" eol t)
                       (backward-char 2))
-                  ;; If the current string is longer than 72 - 6 chars,
-                  ;; break it at the fill column (else infinite loop).
+                  ;; If the current string is longer than (fill-column
+                  ;; - 6) chars, break it at the fill column (else
+                  ;; infinite loop).
                   (if (> (- (point) start)
                          (- fill-column 6 fortran-continuation-indent))
                       fcpoint
