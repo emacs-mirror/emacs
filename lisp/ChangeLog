@@ -1,3 +1,7 @@
+2001-06-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-offset): Add a doc string.
+
 2001-06-01  Richard M. Stallman  <rms@gnu.org>
 
 	* help.el (describe-variable): Put value on same line
