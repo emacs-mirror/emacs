@@ -170,6 +170,7 @@ Lisp_Object Qleft;
 Lisp_Object Qmouse_color;
 Lisp_Object Qnone;
 Lisp_Object Qparent_id;
+Lisp_Object Qsuppress_icon;
 Lisp_Object Qtop;
 Lisp_Object Qundefined_color;
 Lisp_Object Qvertical_scroll_bars;
@@ -1476,7 +1477,7 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
   return tem;
 }
 
-DEFUN ("x-geometry", Fx_geometry, Sx_geometry, 1, 1, 0,
+DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
        "Parse an X-style geometry string STRING.\n\
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
      (string)
@@ -2134,11 +2135,14 @@ be shared by the new frame.")
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Do not create an icon window if the caller says not to.
-     I'm not sure that this code is right; how does X10 handle icons?  */
-  x_text_icon (f, iconidentity);
-  x_default_parameter (f, parms, Qicon_type, Qnil,
-		       "BitmapIcon", 0, symbol);
+  /* Do not create an icon window if the caller says not to */
+  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, 0, boolean), Qt)
+      || f->display.x->parent_desc != ROOT_WINDOW)
+    {
+      x_text_icon (f, iconidentity);
+      x_default_parameter (f, parms, Qicon_type, Qnil,
+			   "BitmapIcon", 0, symbol);
+    }
 
   /* Tell the X server the previously set values of the
      background, border and mouse colors; also create the mouse cursor.  */
@@ -2283,7 +2287,7 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
 }
 #endif /* not HAVE_X11 */
 
-DEFUN ("x-defined-color", Fx_defined_color, Sx_defined_color, 1, 1, 0,
+DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
   "Return t if the current X display supports the color named COLOR.")
   (color)
      Lisp_Object color;
@@ -3896,6 +3900,8 @@ syms_of_xfns ()
   staticpro (&Qnone);
   Qparent_id = intern ("parent-id");
   staticpro (&Qparent_id);
+  Qsuppress_icon = intern ("suppress-icon");
+  staticpro (&Qsuppress_icon);
   Qtop = intern ("top");
   staticpro (&Qtop);
   Qundefined_color = intern ("undefined-color");
@@ -3953,7 +3959,7 @@ syms_of_xfns ()
   defsubr (&Sx_uncontour_region);
 #endif
   defsubr (&Sx_display_color_p);
-  defsubr (&Sx_defined_color);
+  defsubr (&Sx_color_defined_p);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
   defsubr (&Sx_display_pixel_width);
@@ -3977,7 +3983,7 @@ syms_of_xfns ()
   defsubr (&Sx_get_cut_buffer);
   defsubr (&Sx_set_face);
 #endif
-  defsubr (&Sx_geometry);
+  defsubr (&Sx_parse_geometry);
   defsubr (&Sx_create_frame);
   defsubr (&Sfocus_frame);
   defsubr (&Sunfocus_frame);
