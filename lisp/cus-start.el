@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -311,7 +311,8 @@ since it could result in memory overflow and make Emacs crash."
 	  ;; use the current value as the standard value.
 	  standard (if (nthcdr 4 this)
 		       (nth 4 this)
-		     (funcall quoter (default-value symbol)))
+		     (when (boundp symbol)
+		       (funcall quoter (default-value symbol))))
 	  ;; Don't complain about missing variables which are
 	  ;; irrelevant to this platform.
 	  native-p (save-match-data
