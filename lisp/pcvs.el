@@ -1194,11 +1194,12 @@ marked instead. A directory can never be marked."
       (ewoc-invalidate cvs-cookies tin)
       (cvs-mode-next-line 1))))
 
-(defun cvs-mouse-toggle-mark (e)
-  "Toggle the mark of the entry under the mouse."
-  (interactive "e")
+(defalias 'cvs-mouse-toggle-mark 'cvs-mode-toggle-mark)
+(defun cvs-mode-toggle-mark (e)
+  "Toggle the mark of the entry at point."
+  (interactive (list last-input-event))
   (save-excursion
-    (mouse-set-point e)
+    (posn-set-point (event-end e))
     (cvs-mode-mark 'toggle)))
 
 (defun-cvs-mode cvs-mode-unmark ()
@@ -1930,7 +1931,7 @@ to hear about anymore."
 With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
   ;; If the event moves point, check that it moves it to a valid location.
-  (when (and (/= (point) (progn (ignore-errors (mouse-set-point e)) (point)))
+  (when (and (/= (point) (progn (posn-set-point (event-end e)) (point)))
 	     (not (memq (get-text-property (1- (line-end-position))
                                            'font-lock-face)
                         '(cvs-header-face cvs-filename-face))))
