@@ -31,7 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #ifndef standalone
 #include "buffer.h"
 #include "charset.h"
-#include <paths.h>
+#include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
 #include "termhooks.h"
@@ -3182,7 +3182,7 @@ See documentation of `read' for possible values.");
     "*List of directories to search for files to load.\n\
 Each element is a string (directory name) or nil (try default directory).\n\
 Initialized based on EMACSLOADPATH environment variable, if any,\n\
-otherwise to default specified by file `paths.h' when Emacs was built.");
+otherwise to default specified by file `epaths.h' when Emacs was built.");
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
     "Non-nil iff inside of `load'.");

@@ -73,7 +73,7 @@ extern char *strerror ();
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
-#include <paths.h>
+#include <epaths.h>
 #include "process.h"
 #include "syssignal.h"
 #include "systty.h"
@@ -1250,7 +1250,7 @@ init_callproc_1 ()
 					     : PATH_DOC));
 
   /* Check the EMACSPATH environment variable, defaulting to the
-     PATH_EXEC path from paths.h.  */
+     PATH_EXEC path from epaths.h.  */
   Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);

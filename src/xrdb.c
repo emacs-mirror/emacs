@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
-#include <paths.h>
+#include <epaths.h>
 
 #include <stdio.h>
 
