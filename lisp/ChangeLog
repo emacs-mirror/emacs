@@ -1,3 +1,11 @@
+2000-11-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* ediff-util.el: (ediff-file-checked-out-p,
+	ediff-file-checked-in-p): Call vc-state instead of 
+	vc-locking-user, which no longer exists.
+
+	* emulation/viper-util.el (viper-file-checked-in-p): Same as above.
+
 2000-11-22  Dave Love  <fx@gnu.org>
 
 	* md5.el (md5): Provide.
