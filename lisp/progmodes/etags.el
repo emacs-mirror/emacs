@@ -42,9 +42,11 @@ To switch to a new list of tags tables, setting this variable is sufficient.
 If you set this variable, do not also set `tags-file-name'.
 Use the `etags' program to make a tags table file.")
 
-(defvar tags-add-tables nil
-  "*Non-nil means always add a new tags table to the current list.
-This eliminates the need to ask the user whether to add a new tags table
+;;;###autoload
+(defvar tags-add-tables 'ask-user
+  "*T means always add a new tags table to the current list.
+Nil means never add to the current list; always start a new list.
+Non-nil but not t says to ask the user whether to add a new tags table
 to the current list (as opposed to starting a new list).")
 
 (defvar tags-table-list-pointer nil
@@ -480,10 +482,11 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 
 			  ;; Not found in any existing set.
 			  (if (and tags-table-list
-				   (or tags-add-tables
-				       (y-or-n-p
-					(concat "Keep current list of "
-						"tags tables also? "))))
+				   (or (eq t tags-add-tables)
+				       (and tags-add-tables
+					    (y-or-n-p
+					     (concat "Keep current list of "
+						     "tags tables also? ")))))
 			      ;; Add it to the current list.
 			      (setq tags-table-list (cons tags-file-name
 							  tags-table-list))
