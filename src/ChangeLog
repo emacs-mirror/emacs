@@ -7,6 +7,10 @@
 
 	* term.c (tty_setup_colors): Treat any negative argument as -1.
 
+2003-09-27  Gaute B Strokkenes  <biggaute@uwc.net>  (tiny change)
+
+	* process.c (send_process): Delete unused temp_buf.
+
 2003-09-26  Dave Love  <fx@gnu.org>
 
 	* xterm.c (x_bitmap_mask): Declare.
