@@ -41,7 +41,7 @@
   (modify-syntax-entry ?* "." table)
   (modify-syntax-entry ?/ "." table)
   (modify-syntax-entry ?+ "." table)
-  (modify-syntax-entry ?- "." table)
+  (modify-syntax-entry ?- ". 12" table)
   (modify-syntax-entry ?= "." table)
   (modify-syntax-entry ?\& "." table)
   (modify-syntax-entry ?\| "." table)
@@ -57,7 +57,91 @@
   (modify-syntax-entry ?\; "." table)
   (modify-syntax-entry ?\' "." table)
   (modify-syntax-entry ?\" "\"" table)
+  (modify-syntax-entry ?\n ">" table)
   (setq ada-mode-syntax-table table))
+
+;; Strings are a real pain in Ada because both ' and " can appear in a
+;; non-string quote context (the former as an operator, the latter as a
+;; character string).  We follow the least losing solution, in which only " is
+;; a string quote.  Therefore a character string of the form '"' will throw
+;; fontification off on the wrong track.
+
+(defconst ada-font-lock-keywords-1
+  (list
+   ;;
+   ;; Function, package (body), pragma, procedure, task (body) plus name.
+   (list (concat "\\<\\("
+		 "function\\|"
+		 "p\\(ackage\\(\\|[ \t]+body\\)\\|r\\(agma\\|ocedure\\)\\)\\|"
+		 "task\\(\\|[ \t]+body\\)"
+		 "\\)\\>[ \t]*\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	 '(1 font-lock-keyword-face) '(6 font-lock-function-name-face nil t)))
+  "For consideration as a value of `ada-font-lock-keywords'.
+This does fairly subdued highlighting.")
+
+(defconst ada-font-lock-keywords-2
+  (append ada-font-lock-keywords-1
+   (list
+    ;;
+    ;; Main keywords, except those treated specially below.
+    (concat "\\<\\("
+;    ("abort" "abs" "abstract" "accept" "access" "aliased" "all"
+;     "and" "array" "at" "begin" "case" "declare" "delay" "delta"
+;     "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
+;     "generic" "if" "is" "limited" "loop" "mod" "not"
+;     "null" "or" "others" "private" "protected"
+;     "range" "record" "rem" "renames" "requeue" "return" "reverse"
+;     "select" "separate" "tagged" "task" "terminate" "then" "until"
+;     "while" "xor")
+	    "a\\(b\\(ort\\|s\\(\\|tract\\)\\)\\|cce\\(pt\\|ss\\)\\|"
+	    "l\\(iased\\|l\\)\\|nd\\|rray\\|t\\)\\|begin\\|case\\|"
+	    "d\\(e\\(clare\\|l\\(ay\\|ta\\)\\)\\|igits\\|o\\)\\|"
+	    "e\\(ls\\(e\\|if\\)\\|ntry\\|x\\(ception\\|it\\)\\)\\|for\\|"
+	    "generic\\|i[fs]\\|l\\(imited\\|oop\\)\\|mod\\|n\\(ot\\|ull\\)\\|"
+	    "o\\(r\\|thers\\)\\|pr\\(ivate\\|otected\\)\\|"
+	    "r\\(ange\\|e\\(cord\\|m\\|names\\|queue\\|turn\\|verse\\)\\)\\|"
+	    "se\\(lect\\|parate\\)\\|"
+	    "t\\(a\\(gged\\|sk\\)\\|erminate\\|hen\\)\\|until\\|while\\|xor"
+	    "\\)\\>")
+    ;;
+    ;; Anything following end and not already fontified is a body name.
+    '("\\<\\(end\\)\\>[ \t]*\\(\\sw+\\)?"
+      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+;    ;;
+;    ;; Variable name plus optional keywords followed by a type name.  Slow.
+;    (list (concat "\\<\\(\\sw+\\)\\>[ \t]*:"
+;		  "[ \t]*\\(constant\\|in\\|in[ \t]+out\\|out\\)?[ \t]*"
+;		  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+;	  '(1 font-lock-variable-name-face)
+;	  '(2 font-lock-keyword-face nil t) '(3 font-lock-type-face nil t))
+    ;;
+    ;; Optional keywords followed by a type name.
+    (list (concat ":[ \t]*\\<\\(constant\\|in\\|in[ \t]+out\\|out\\)\\>?[ \t]*"
+		  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	  '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
+    ;;
+    ;; Keywords followed by a type or function name.
+    (list (concat "\\<\\("
+		  "new\\|of\\|subtype\\|type"
+		  "\\)\\>[ \t]*\\(\\sw+\\(\\.\\sw*\\)*\\)?[ \t]*\\((\\)?")
+	  '(1 font-lock-keyword-face)
+	  '(2 (if (match-beginning 4)
+		  font-lock-function-name-face
+		font-lock-type-face) nil t))
+    ;;
+    ;; Keywords followed by a reference.
+    (list (concat "\\<\\(goto\\|raise\\|use\\|when\\|with\\)\\>"
+		  "[ \t]*\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	  '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+    ;;
+    ;; Goto tags.
+    '("<<\\(\\sw+\\(\\.\\sw*\\)*\\)>>" 1 font-lock-reference-face)
+    ))
+  "For consideration as a value of `ada-font-lock-keywords'.
+This does a lot more highlighting.")
+
+(defvar ada-font-lock-keywords ada-font-lock-keywords-1
+  "Additional expressions to highlight in Ada mode.")
 
 (defvar ada-mode-map nil
   "Keymap used in Ada mode.")
@@ -106,7 +190,7 @@
   (setq ada-mode-map map))
 
 (defvar ada-indent 4 "*Value is the number of columns to indent in Ada-Mode.")
-  
+
 ;;;###autoload
 (defun ada-mode ()
 "This is a mode intended to support program development in Ada.
@@ -169,6 +253,8 @@ Variable `ada-indent' controls the number of spaces for indent/undent."
   (setq comment-indent-function 'c-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(ada-font-lock-keywords nil t ((?\_ . "w"))))
   (run-hooks 'ada-mode-hook))
 
 (defun ada-tabsize (s)
