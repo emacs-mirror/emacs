@@ -290,7 +290,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
 #ifdef MSDOS
-	 && p[-1] != ':'
+	 && p[-1] != ':' && p[-1] != '\\'
 #endif
 	 ) p--;
 
@@ -345,7 +345,7 @@ or the entire name if it contains no slash.")
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
 #ifdef MSDOS
-	 && p[-1] != ':'
+	 && p[-1] != ':' && p[-1] != '\\'
 #endif
 	 ) p--;
 
@@ -443,7 +443,7 @@ file_name_as_directory (out, in)
 #else /* not VMS */
   /* For Unix syntax, Append a slash if necessary */
 #ifdef MSDOS
-  if (out[size] != ':' && out[size] != '/')
+  if (out[size] != ':' && out[size] != '/' && out[size] != '\\')
 #else
   if (out[size] != '/')
 #endif
@@ -623,9 +623,11 @@ directory_file_name (src, dst)
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
   if (slen > 1 
-      && dst[slen - 1] == '/'
 #ifdef MSDOS
+      && (dst[slen - 1] == '/' || dst[slen - 1] == '/')
       && dst[slen - 2] != ':'
+#else
+      && dst[slen - 1] == '/'
 #endif
       )
     dst[slen - 1] = 0;
@@ -764,7 +766,10 @@ See also the function `substitute-in-file-name'.")
   nm = XSTRING (name)->data;
   
 #ifdef MSDOS
-  /* firstly, strip drive name. */
+  /* First map all backslashes to slashes.  */
+  dostounix_filename (nm = strcpy (alloca (strlen (nm) + 1), nm));
+
+  /* Now strip drive name. */
   {
     unsigned char *colon = rindex (nm, ':');
     if (colon)
@@ -1487,6 +1492,10 @@ duplicates what `expand-file-name' does.")
   CHECK_STRING (string, 0);
 
   nm = XSTRING (string)->data;
+#ifdef MSDOS
+  dostounix_filename (nm = strcpy (alloca (strlen (nm) + 1), nm));
+  substituted = !strcmp (nm, XSTRING (string)->data);
+#endif
   endp = nm + XSTRING (string)->size;
 
   /* If /~ or // appears, discard everything through first slash. */
@@ -2139,7 +2148,7 @@ On Unix, this is a name starting with a `/' or a `~'.")
 	  && ptr[1] != '.')
 #endif /* VMS */
 #ifdef MSDOS
-      || (*ptr != 0 && ptr[1] == ':' && ptr[2] == '/')
+      || (*ptr != 0 && ptr[1] == ':' && (ptr[2] == '/' || ptr[2] == '\\'))
 #endif
       )
     return Qt;
