@@ -385,11 +385,18 @@ or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
 
 (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
 
+(defvar server-kill-buffer-running nil
+  "Non-nil while `server-kill-buffer' is running.")
+
 ;; When a buffer is killed, inform the clients.
 (add-hook 'kill-buffer-hook 'server-kill-buffer)
 (defun server-kill-buffer ()
-  (when server-process
-    (server-buffer-done (current-buffer) t)))
+  ;; Prevent infinite recursion if user has made server-done-hook
+  ;; call kill-buffer.
+  (or server-kill-buffer-running
+      (let ((server-kill-buffer-running t))
+	(when server-process
+	  (server-buffer-done (current-buffer) t)))))
 
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
