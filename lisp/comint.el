@@ -1397,7 +1397,8 @@ applications."
 	(c 0)
 	(echo-keystrokes 0)
 	(cursor-in-echo-area t)
-        (done nil))
+	(message-log-max nil)
+	(done nil))
     (while (not done)
       (if stars
 	  (message "%s%s" prompt (make-string (length ans) ?*))
