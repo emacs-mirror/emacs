@@ -166,7 +166,7 @@
 not available."
   (if (display-popup-menus-p)
       (x-popup-menu position menu)
-    (error "Popup menus are not available on this system.")))
+    (error "Popup menus are not available on this system")))
 
 (defun cal-menu-list-holidays-year ()
   "Display a list of the holidays of the selected date's year."
