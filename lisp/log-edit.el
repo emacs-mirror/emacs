@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.5 2000/05/21 02:13:26 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.6 2000/06/02 02:28:39 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -205,7 +205,9 @@ If you want to abort the commit, simply delete the buffer."
 	(goto-char (point-max))
 	(insert ?\n)))
   (let ((comment (buffer-string)))
-    (when (and (boundp 'vc-comment-ring) (ring-p vc-comment-ring)
+    (when (and (boundp 'vc-comment-ring)
+	       (ring-p vc-comment-ring)
+	       (not (ring-empty-p vc-comment-ring))
 	       (not (equal comment (ring-ref vc-comment-ring 0))))
       (ring-insert vc-comment-ring comment)))
   (let ((win (get-buffer-window log-edit-files-buf)))
