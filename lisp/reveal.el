@@ -156,7 +156,7 @@ Reveal mode renders invisible text around point visible again.
 Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG (or if ARG is nil) turn mode on.
 With zero or negative ARG turn mode off."
-  :global t
+  :global t :group 'reveal
   (setq-default reveal-mode global-reveal-mode)
   (if global-reveal-mode
       (progn
@@ -166,4 +166,5 @@ With zero or negative ARG turn mode off."
     (remove-hook 'post-command-hook 'reveal-post-command)))
 
 (provide 'reveal)
+
 ;;; reveal.el ends here
