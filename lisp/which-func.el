@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997, 1998, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -103,6 +103,7 @@ Zero means compute the Imenu menu regardless of size."
   "Format for displaying the function in the mode line."
   :group 'which-func
   :type 'sexp)
+(put 'which-func-format 'risky-local-variable t)
 
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
@@ -120,10 +121,11 @@ and you want to simplify them for the mode line
 ;;;
 (require 'imenu)
 
-(defvar which-func-current  which-func-unknown)
-(defvar which-func-previous which-func-unknown)
-(make-variable-buffer-local 'which-func-current)
-(make-variable-buffer-local 'which-func-previous)
+(defvar which-func-table (make-hash-table :test 'eq :weakness 'key))
+
+(defconst which-func-current
+  '(:eval (gethash (selected-window) which-func-table which-func-unknown)))
+(put 'which-func-current 'risky-local-variable t)
 
 (defvar which-func-mode nil
   "Non-nil means display current function name in mode line.
@@ -153,21 +155,19 @@ It creates the Imenu index for the buffer, if necessary."
      (setq which-func-mode nil))))
 
 (defun which-func-update ()
-  "Update the Which-Function mode display for all windows."
-  (walk-windows 'which-func-update-1 nil 'visible))
+  ;; "Update the Which-Function mode display for all windows."
+  ;; (walk-windows 'which-func-update-1 nil 'visible))
+  (which-func-update-1 (selected-window)))
 
 (defun which-func-update-1 (window)
   "Update the Which-Function mode display for window WINDOW."
-  (save-selected-window
-    (select-window window)
-    ;; Update the string containing the current function.
+  (with-selected-window window
     (when which-func-mode
       (condition-case info
-	  (progn
-	    (setq which-func-current (or (which-function) which-func-unknown))
-	    (unless (string= which-func-current which-func-previous)
-	      (force-mode-line-update)
-	      (setq which-func-previous which-func-current)))
+	  (let ((current (which-function)))
+	    (unless (equal current (gethash window which-func-table))
+	      (puthash window current which-func-table)
+	      (force-mode-line-update)))
 	(error
 	 (which-func-mode -1)
 	 (error "Error in which-func-update: %s" info))))))
