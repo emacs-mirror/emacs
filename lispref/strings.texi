@@ -743,12 +743,13 @@ equivalence class (of characters with the same canonical equivalent).
 @samp{A} into @samp{a}, and likewise for each set of equivalent
 characters.)
 
-  When you construct a case table, you can provide @code{nil} for both
-@var{canonicalize} and @var{equivalences}.  When you specify the case
-table for use, Emacs fills in these strings, computing them from
-@var{upcase} and @var{downcase}.  In a case table that is actually in
-use, those components are non-@code{nil}.  Do not try to make just one
-of these components @code{nil}; that is not meaningful.
+  When you construct a case table, you can provide @code{nil} for
+@var{canonicalize}; then Emacs fills in this string from @var{upcase}
+and @var{downcase}.  You can also provide @code{nil} for
+@var{equivalences}; then Emacs fills in this string from
+@var{canonicalize}.  In a case table that is actually in use, those
+components are non-@code{nil}.  Do not try to specify @var{equivalences}
+without also specifying @var{canonicalize}.
 
   Each buffer has a case table.  Emacs also has a @dfn{standard case
 table} which is copied into each buffer when you create the buffer.
