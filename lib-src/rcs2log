@@ -26,9 +26,9 @@ Options:
   --help  Output help.
   --version  Output version number.
 
-Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
+Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.43 1998/08/11 22:11:08 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.44 1998/08/12 14:22:14 eggert Exp eggert $'
 
 # Copyright 1992, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
@@ -47,7 +47,7 @@ Id='$Id: rcs2log,v 1.43 1998/08/11 22:11:08 eggert Exp eggert $'
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-Copyright='Copyright 1997 Free Software Foundation, Inc.
+Copyright='Copyright 1998 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
