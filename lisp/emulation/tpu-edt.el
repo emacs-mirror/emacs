@@ -561,7 +561,7 @@ current version of Emacs."
   "Prompt for a y or n answer with positive default.
 Optional second argument NOT-YES changes default to negative.
 Like Emacs `y-or-n-p', but also accepts space as y and DEL as n."
-  (message (format "%s[%s]" prompt (if not-yes "n" "y")))
+  (message "%s[%s]" prompt (if not-yes "n" "y"))
   (let ((doit t))
     (while doit
       (setq doit nil)
@@ -573,8 +573,8 @@ Like Emacs `y-or-n-p', but also accepts space as y and DEL as n."
 	      ((= ans ?\r) (setq tpu-last-answer (not not-yes)))
 	      (t
 	       (setq doit t) (beep)
-	       (message (format "Please answer y or n.  %s[%s]"
-				prompt (if not-yes "n" "y"))))))))
+	       (message "Please answer y or n.  %s[%s]"
+			prompt (if not-yes "n" "y")))))))
   tpu-last-answer)
 
 (defun tpu-local-set-key (key func)
