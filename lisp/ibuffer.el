@@ -133,7 +133,7 @@ elisp byte-compiler."
   :group 'ibuffer)
 
 (defcustom ibuffer-fontification-alist
-  `((10 buffer-read-only font-lock-reference-face)
+  `((10 buffer-read-only font-lock-constant-face)
     (15 (string-match "^*" (buffer-name)) font-lock-keyword-face)
     (20 (string-match "^ " (buffer-name)) font-lock-warning-face)
     (25 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
