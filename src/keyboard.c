@@ -768,15 +768,19 @@ cmd_error (data)
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_macro = Qnil;
-  clear_prefix_arg ();
-  cancel_echoing ();
+  if (current_perdisplay)
+    {
+      clear_prefix_arg ();
+      cancel_echoing ();
+    }
   cmd_error_internal (data, 0);
 
   Vquit_flag = Qnil;
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_PERDISPLAY
-  unlock_display ();
+  if (current_perdisplay)
+    unlock_display ();
 #endif
 
   return make_number (0);
