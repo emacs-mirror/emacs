@@ -18,6 +18,102 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+;;;###autoload
+(defun query-replace (from-string to-string &optional arg)
+  "Replace some occurrences of FROM-STRING with TO-STRING.
+As each match is found, the user must type a character saying
+what to do with it.  For directions, type \\[help-command] at that time.
+
+Preserves case in each replacement if  case-replace  and  case-fold-search
+are non-nil and FROM-STRING has no uppercase letters.
+Third arg DELIMITED (prefix arg if interactive) non-nil means replace
+only matches surrounded by word boundaries."
+  (interactive "sQuery replace: \nsQuery replace %s with: \nP")
+  (perform-replace from-string to-string t nil arg)
+  (message "Done"))
+;;;###autoload (define-key esc-map "%" 'query-replace)
+
+;;;###autoload
+(defun query-replace-regexp (regexp to-string &optional arg)
+  "Replace some things after point matching REGEXP with TO-STRING.
+As each match is found, the user must type a character saying
+what to do with it.  For directions, type \\[help-command] at that time.
+
+Preserves case in each replacement if  case-replace  and  case-fold-search
+are non-nil and REGEXP has no uppercase letters.
+Third arg DELIMITED (prefix arg if interactive) non-nil means replace
+only matches surrounded by word boundaries.
+In TO-STRING, \\& means insert what matched REGEXP,
+and \\=\\<n> means insert what matched <n>th \\(...\\) in REGEXP."
+  (interactive "sQuery replace regexp: \nsQuery replace regexp %s with: \nP")
+  (perform-replace regexp to-string t t arg)
+  (message "Done"))
+
+;;;###autoload
+(defun map-query-replace-regexp (regexp to-strings &optional arg)
+  "Replace some matches for REGEXP with various strings, in rotation.
+The second argument TO-STRINGS contains the replacement strings, separated
+by spaces.  This command works like `query-replace-regexp' except
+that each successive replacement uses the next successive replacement string,
+wrapping around from the last such string to the first.
+
+Non-interactively, TO-STRINGS may be a list of replacement strings.
+
+A prefix argument N says to use each replacement string N times
+before rotating to the next."
+  (interactive "sMap query replace (regexp): \nsQuery replace %s with (space-separated strings): \nP")
+  (let (replacements)
+    (if (listp to-strings)
+	(setq replacements to-strings)
+      (while (/= (length to-strings) 0)
+	(if (string-match " " to-strings)
+	    (setq replacements
+		  (append replacements
+			  (list (substring to-strings 0
+					   (string-match " " to-strings))))
+		  to-strings (substring to-strings
+				       (1+ (string-match " " to-strings))))
+	  (setq replacements (append replacements (list to-strings))
+		to-strings ""))))
+    (perform-replace regexp replacements t t nil arg))
+  (message "Done"))
+
+;;;###autoload
+(defun replace-string (from-string to-string &optional delimited)
+  "Replace occurrences of FROM-STRING with TO-STRING.
+Preserve case in each match if `case-replace' and `case-fold-search'
+are non-nil and FROM-STRING has no uppercase letters.
+Third arg DELIMITED (prefix arg if interactive) non-nil means replace
+only matches surrounded by word boundaries.
+
+This function is usually the wrong thing to use in a Lisp program.
+What you probably want is a loop like this:
+  (while (search-forward OLD-STRING nil t)
+    (replace-match REPLACEMENT nil t))
+which will run faster and will not set the mark or print anything."
+  (interactive "sReplace string: \nsReplace string %s with: \nP")
+  (perform-replace from-string to-string nil nil delimited)
+  (message "Done"))
+
+;;;###autoload
+(defun replace-regexp (regexp to-string &optional delimited)
+  "Replace things after point matching REGEXP with TO-STRING.
+Preserve case in each match if case-replace and case-fold-search
+are non-nil and REGEXP has no uppercase letters.
+Third arg DELIMITED (prefix arg if interactive) non-nil means replace
+only matches surrounded by word boundaries.
+In TO-STRING, \\& means insert what matched REGEXP,
+and \\=\\<n> means insert what matched <n>th \\(...\\) in REGEXP.
+
+This function is usually the wrong thing to use in a Lisp program.
+What you probably want is a loop like this:
+  (while (re-search-forward REGEXP nil t)
+    (replace-match REPLACEMENT nil nil))
+which will run faster and will not set the mark or print anything."
+  (interactive "sReplace regexp: \nsReplace regexp %s with: \nP")
+  (perform-replace regexp to-string nil t delimited)
+  (message "Done"))
+
 (fset 'delete-non-matching-lines 'keep-lines)
 (defun keep-lines (regexp)
   "Delete all lines except those containing matches for REGEXP.
@@ -121,7 +217,7 @@ in the buffer that the occurrences were found in.
     (goto-char (marker-position pos))))
 
 (defvar list-matching-lines-default-context-lines 0
-  "*Default number of context lines to include around a list-matching-lines
+  "*Default number of context lines to include around a `list-matching-lines'
 match.  A negative number means to include that many lines before the match.
 A positive number means to include that many lines both before and after.")
 
@@ -133,13 +229,15 @@ default is nil.")
 
 (defun occur (regexp &optional nlines)
   "Show lines containing a match for REGEXP.  If the global variable
-occur-whole-buffer is non-nil, the entire buffer is searched, otherwise
+`occur-whole-buffer' is non-nil, the entire buffer is searched, otherwise
 search begins at point.  Interactively, REGEXP defaults to the last REGEXP
-used interactively.
+used interactively with \\[occur].
 
-Each line is displayed with NLINES lines before and after,
-or -NLINES before if NLINES is negative.
-NLINES defaults to list-matching-lines-default-context-lines.
+If a match spreads across multiple lines, all those lines are shown.
+
+Each line is displayed with NLINES lines before and after, or -NLINES
+before if NLINES is negative.
+NLINES defaults to `list-matching-lines-default-context-lines'.
 Interactively it is the prefix arg.
 
 The lines are shown in a buffer named *Occur*.
@@ -178,13 +276,17 @@ It serves as a menu to find any of the occurrences in this buffer.
 	;; Find next match, but give up if prev match was at end of buffer.
 	(while (and (not (= prevpos (point-max)))
 		    (re-search-forward regexp nil t))
+	  (goto-char (match-beginning 0))
 	  (beginning-of-line)
 	  (setq linenum (+ linenum (count-lines prevpos (point))))
 	  (setq prevpos (point))
+	  (goto-char (match-end 0))
 	  (let* ((start (save-excursion
+			  (goto-char (match-beginning 0))
 			  (forward-line (if (< nlines 0) nlines (- nlines)))
 			  (point)))
 		 (end (save-excursion
+			(goto-char (match-end 0))
 			(if (> nlines 0)
 			    (forward-line (1+ nlines))
 			    (forward-line 1))
@@ -193,8 +295,6 @@ It serves as a menu to find any of the occurrences in this buffer.
 		 (empty (make-string (length tag) ?\ ))
 		 tem)
 	    (save-excursion
-	      (setq tem (make-marker))
-	      (set-marker tem (point))
 	      (set-buffer standard-output)
 	      (setq occur-pos-list (cons tem occur-pos-list))
 	      (or first (zerop nlines)
@@ -202,13 +302,22 @@ It serves as a menu to find any of the occurrences in this buffer.
 	      (setq first nil)
 	      (insert-buffer-substring buffer start end)
 	      (backward-char (- end start))
-	      (setq tem (if (< nlines 0) (- nlines) nlines))
+	      (setq tem nlines)
 	      (while (> tem 0)
 		(insert empty ?:)
 		(forward-line 1)
 		(setq tem (1- tem)))
-	      (insert tag ?:)
-	      (forward-line 1)
+	      (let ((final-context-start (make-marker))
+		    (this-linenum linenum))
+		(set-marker final-context-start
+			    (+ (point) (- (match-end 0) (match-beginning 0))))
+		(while (< (point) final-context-start)
+		  (if (null tag)
+		      (setq tag (format "%3d" this-linenum)))
+		  (insert tag ?:)
+		  (setq tag nil)
+		  (forward-line 1)
+		  (setq this-linenum (1+ this-linenum))))
 	      (while (< tem nlines)
 		(insert empty ?:)
 		(forward-line 1)
@@ -231,6 +340,7 @@ C-l to clear the screen, redisplay, and offer same replacement again,
 ^ to move point back to previous match."
   "Help message while in query-replace")
 
+;;;###autoload
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count)
@@ -252,7 +362,8 @@ which will run faster and do exactly what you probably want."
 	(stack nil)
 	(next-rotate-count 0)
 	(replace-count 0)
-	(lastrepl nil))			;Position after last match considered.
+	(lastrepl nil)			;Position after last match considered.
+	(match-after t))
     (if (stringp replacements)
 	(setq next-replacement replacements)
       (or repeat-count (setq repeat-count 1)))
@@ -267,13 +378,24 @@ which will run faster and do exactly what you probably want."
     (while (and keep-going
 		(not (eobp))
 		(funcall search-function search-string nil t)
-		(if (eq lastrepl (point))
-		    (progn 
+		;; If the search string matches immediately after
+		;; the previous match, but it did not match there
+		;; before the replacement was done, ignore the match.
+		(if (or (eq lastrepl (point))
+			(and regexp-flag
+			     (eq lastrepl (match-beginning 0))
+			     (not match-again)))
+		    (if (eobp)
+			nil
 		      ;; Don't replace the null string 
 		      ;; right after end of previous replacement.
 		      (forward-char 1)
 		      (funcall search-function search-string nil t))
 		  t))
+      ;; Before we make the replacement, decide whether the search string
+      ;; can match again just after this match.
+      (if regexp-flag
+	  (setq match-again (looking-at search-string)))
       ;; If time for a change, advance to next replacement string.
       (if (and (listp replacements)
 	       (= next-rotate-count replace-count))
@@ -342,7 +464,12 @@ which will run faster and do exactly what you probably want."
 		  ((= char ?\C-r)
 		   (store-match-data
 		    (prog1 (match-data)
-		      (save-excursion (recursive-edit)))))
+		      (save-excursion (recursive-edit))))
+		   ;; Before we make the replacement,
+		   ;; decide whether the search string
+		   ;; can match again just after this match.
+		   (if regexp-flag
+		       (setq match-again (looking-at search-string))))
 		  ((= char ?\C-w)
 		   (delete-region (match-beginning 0) (match-end 0))
 		   (store-match-data
@@ -373,8 +500,8 @@ which will run faster and do exactly what you probably want."
   "Replace some matches for REGEXP with various strings, in rotation.
 The second argument TO-STRINGS contains the replacement strings, separated
 by spaces.  This command works like `query-replace-regexp' except
-that each successive replacement uses the next successive replacement string,
-wrapping around from the last such string to the first.
+that each successive replacement uses the next successive replacement
+string, wrapping around from the last such string to the first.
 
 Non-interactively, TO-STRINGS may be a list of replacement strings.
 
