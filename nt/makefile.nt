@@ -83,6 +83,8 @@ all:		$(BLD) $(ALL)
 		$(BUILD_CMD)
 		cd ..\nt
 
+$(INSTALL_DIR)\bin:
+		- mkdir $(INSTALL_DIR)\bin
 
 $(INSTALL_DIR)\bin\emacs.bat:	emacs.bat.in
 		echo @echo off > $@
@@ -96,7 +98,9 @@ $(INSTALL_DIR)\bin\debug.bat:	debug.bat.in
 		echo set emacs_dir=$(INSTALL_DIR)>> $@
 		type debug.bat.in >> $@
 
-batch_files: $(INSTALL_DIR)\bin\emacs.bat $(INSTALL_DIR)\bin\debug.bat
+batch_files: $(INSTALL_DIR)\bin \
+	     $(INSTALL_DIR)\bin\emacs.bat \
+	     $(INSTALL_DIR)\bin\debug.bat
 
 #
 # Build and install emacs in INSTALL_DIR
