@@ -6525,12 +6525,12 @@ note_mouse_highlight (f, x, y)
 	   enough space for all, and try again.  */
 	len = 10;
 	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
+	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
 	if (noverlays > len)
 	  {
 	    len = noverlays;
 	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
+	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
 	  }
 
 	/* Sort overlays into increasing priority order.  */
