@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs log
 ;; Version: $Name:  $
-;; Revision: $Id: log-view.el,v 1.2 2000/03/03 20:58:09 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.1 2000/03/11 03:42:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,8 +28,6 @@
 
 ;; Todo:
 
-;; - extract version info in log-view-current-tag
-;; - add support for SCCS' output format
 ;; - add compatibility with cvs-log.el
 ;; - add ability to modify a log-entry (via cvs-mode-admin ;-)
 
@@ -46,12 +44,12 @@
   :prefix "log-view-")
 
 (easy-mmode-defmap log-view-mode-map
-  '(("n" . log-view-next-message)
-    ("N" . log-view-next-file)
-    ("M-n" . log-view-next-file)
-    ("p" . log-view-prev-message)
-    ("P" . log-view-prev-file)
-    ("M-p" . log-view-prev-file))
+  '(("n" . log-view-msg-next)
+    ("p" . log-view-msg-prev)
+    ("N" . log-view-file-next)
+    ("P" . log-view-file-prev)
+    ("M-n" . log-view-file-next)
+    ("M-p" . log-view-file-prev))
   "Log-View's keymap."
   :group 'log-view
   :inherit 'cvs-mode-map)
@@ -80,7 +78,7 @@
 	  "Working file: \\(.+\\)"
 	  "\\|SCCS/s\\.\\(.+\\):"
 	  "\\)\n"))
-(defconst log-view-message-re "^----------------------------$")
+(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\|D \\([.0-9]+\\) .*\\)$")
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
@@ -96,9 +94,7 @@
 ;;;; 
 
 ;;;###autoload
-(autoload 'log-view-mode "log-view" "Major mode for browsing CVS log output." t)
-(eval-when-compile (autoload 'easy-mmode-define-derived-mode "easy-mmode"))
-(easy-mmode-define-derived-mode log-view-mode fundamental-mode "Log-View"
+(define-derived-mode log-view-mode fundamental-mode "Log-View"
   "Major mode for browsing CVS log output."
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
@@ -107,37 +103,9 @@
 ;;;; Navigation
 ;;;;
 
-(defun log-view-next-message (&optional count)
-  "Move to next (COUNT'th) log message."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (log-view-prev-message (- count))
-    (when (looking-at log-view-message-re) (incf count))
-    (re-search-forward log-view-message-re nil nil count)
-    (goto-char (match-beginning 0))))
-
-(defun log-view-next-file (&optional count)
-  "Move to next (COUNT'th) file."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (log-view-prev-file (- count))
-    (when (looking-at log-view-file-re) (incf count))
-    (re-search-forward log-view-file-re nil nil count)
-    (goto-char (match-beginning 0))))
-
-(defun log-view-prev-message (&optional count)
-  "Move to previous (COUNT'th) log message."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (log-view-next-message (- count))
-    (re-search-backward log-view-message-re nil nil count)))
-
-(defun log-view-prev-file (&optional count)
-  "Move to previous (COUNT'th) file."
-  (interactive "p")
-  (unless count (setq count 1))
-  (if (< count 0) (log-view-next-file (- count))
-    (re-search-backward log-view-file-re nil nil count)))
+;; define log-view-{msg,file}-{next,prev}
+(easy-mmode-define-navigation log-view-msg log-view-message-re "log message")
+(easy-mmode-define-navigation log-view-file log-view-file-re "file")
 
 ;;;;
 ;;;; Linkage to PCL-CVS (mostly copied from cvs-status.el)
@@ -162,7 +130,13 @@
 	(expand-file-name file dir)))))
 
 (defun log-view-current-tag ()
-  nil);; FIXME
+  (save-excursion
+    (forward-line 1)
+    (let ((pt (point)))
+      (when (re-search-backward log-view-message-re nil t)
+	(let ((rev (or (match-string 2) (match-string 3))))
+	  (unless (re-search-forward log-view-file-re pt t)
+	    rev))))))
 
 (defun log-view-minor-wrap (buf f)
   (let ((data (with-current-buffer buf
@@ -186,4 +160,8 @@
       (funcall f))))
 
 (provide 'log-view)
+
+;;; Change Log:
+;; $Log$
+
 ;;; log-view.el ends here
