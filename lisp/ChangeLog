@@ -1,3 +1,21 @@
+2002-02-07  Richard M. Stallman  <rms@gnu.org>
+
+	* terminal.el (terminal-map): Define [menu-bar] so global def is seen.
+
+	* register.el (list-registers): New command.
+	(describe-register-1): New subroutine, taken out of view-register.
+
+	* emacs-lisp/copyright.el (copyright-regexp): 
+	Delete the unibyte copyright symbol; it's redundant.
+	Fix a spazz in the multibyte encoding here.
+
+2002-02-07  Dave Love  <fx@gnu.org>
+
+	* language/cyril-util.el (cyrillic-encode-koi8-r-char) 
+	(cyrillic-encode-alternativnyj-char): Get translation tables from
+	symbol properties, not as variables.
+	(standard-display-cyrillic-translit): Include unicodes.
+
 2002-02-06  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (where-is): Report remapped commands.
