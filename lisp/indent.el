@@ -40,19 +40,30 @@
 (defvar indent-line-function 'indent-to-left-margin
   "Function to indent current line.")
 
+(defcustom tab-always-indent t
+  "*Controls the operation of the TAB key.
+If t, hitting TAB always just indents the current line.
+If nil, hitting TAB indents the current line if point is at the left margin
+  or in the line's indentation, otherwise it insert a `real' tab character."
+  :group 'indent
+  :type 'boolean)
+
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode."
   (interactive)
   (funcall indent-line-function))
 
 (defun indent-for-tab-command (&optional prefix-arg)
-  "Indent line in proper way for current major mode.
+  "Indent line in proper way for current major mode or insert a tab.
+Depending on `tab-always-indent', either insert a tab or indent.
 If initial point was within line's indentation, position after
 the indentation.  Else stay at same point in text.
-The function actually called is determined by the value of
+The function actually called to indent is determined by the value of
 `indent-line-function'."
   (interactive "P")
-  (if (eq indent-line-function 'indent-to-left-margin)
+  (if (or (eq indent-line-function 'indent-to-left-margin)
+	  (and (not tab-always-indent)
+	       (> (current-column) (current-indentation))))
       (insert-tab prefix-arg)
     (if prefix-arg
 	(funcall indent-line-function prefix-arg)
