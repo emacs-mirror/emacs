@@ -635,7 +635,11 @@ This is the same as the exponent of a float.")
   int value;
   double f = extract_float (arg);
 
-#ifdef USG
+#ifdef HAVE_LOGB
+  IN_FLOAT (value = logb (f), "logb", arg);
+  XSET (val, Lisp_Int, value);
+#else
+#ifdef HAVE_FREXP
   {
     int exp;  
 
@@ -643,8 +647,8 @@ This is the same as the exponent of a float.")
     XSET (val, Lisp_Int, exp-1);
   }
 #else
-  IN_FLOAT (value = logb (f), "logb", arg);
-  XSET (val, Lisp_Int, value);
+  Well, what *do* you have?
+#endif
 #endif
 
   return val;
