@@ -371,7 +371,9 @@ If within the headers, this makes the new lines into continuation lines."
 	    (save-excursion
 	      (beginning-of-line)
 	      (while (not (eq (point) old-line-start))
-		(insert "   ")
+		;; Use insert-before-markers in case we're inserting
+		;; before the saved value of point (which is common).
+		(insert-before-markers "   ")
 		(forward-line -1))
 	      t)))
     (do-auto-fill)))
