@@ -592,9 +592,9 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT SYSTEMFLAG).
     }
   CHECK_VECTOR (table);
 
-  for (; !NILP (definitions); definitions = Fcdr (definitions))
+  for (; CONSP (definitions); definitions = XCDR (definitions))
     {
-      elt = Fcar (definitions);
+      elt = XCAR (definitions);
       name  = Fcar (elt);	elt = Fcdr (elt);
       exp   = Fcar (elt);	elt = Fcdr (elt);
       hook  = Fcar (elt);	elt = Fcdr (elt);
