@@ -156,7 +156,7 @@ echo "Making links to \`lisp'."
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
- ln [a-zA-Z]*.dat forms.README ../${tempdir}/lisp
+ ln [a-zA-Z]*.dat ../${tempdir}/lisp
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog OChangeLog README dired.todo ../${tempdir}/lisp
