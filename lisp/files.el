@@ -501,10 +501,12 @@ This is an interface to the function `load'."
   (interactive "sLoad library: ")
   (load library))
 
-(defun file-local-copy (file &optional buffer)
+(defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
+  ;; This formerly had an optional BUFFER argument that wasn't used by
+  ;; anything.
   (let ((handler (find-file-name-handler file 'file-local-copy)))
     (if handler
 	(funcall handler 'file-local-copy file)
