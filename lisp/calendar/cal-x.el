@@ -131,10 +131,12 @@ Can be used to change frame parameters, such as font, color, location, etc.")
             fancy-diary-buffer))
          'diary)))))
 
+;; Formerly (get-file-buffer diary-file) was added to the list here,
+;; but that isn't clean, and the value could even be nil.
 (setq special-display-buffer-names
       (append special-display-buffer-names
               (list "*Yahrzeits*" lunar-phases-buffer holiday-buffer
-                    fancy-diary-buffer (get-file-buffer diary-file)
+                    fancy-diary-buffer
                     other-calendars-buffer calendar-buffer)))
 
 (run-hooks 'cal-x-load-hook)
