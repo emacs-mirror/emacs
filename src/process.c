@@ -38,6 +38,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>		/* some typedefs are used in sys/file.h */
 #include <sys/file.h>
 #include <sys/stat.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
@@ -233,6 +236,9 @@ static Lisp_Object Vprocess_alist;
 static int proc_buffered_char[MAXDESC];
 
 static Lisp_Object get_process ();
+
+/* Maximum number of bytes to send to a pty without an eof.  */
+static int pty_max_bytes;
 
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
@@ -2249,12 +2255,31 @@ send_process (proc, buf, len)
       {
 	int this = len;
 	SIGTYPE (*old_sigpipe)();
+	int flush_pty = 0;
 
-	/* Don't send more than 500 bytes at a time.  */
-	if (this > 500)
-	  this = 500;
+	if (pty_max_bytes == 0)
+	  {
+#ifdef _PC_MAX_CANON
+	    pty_max_bytes = fpathconf (XFASTINT (XPROCESS (proc)->outfd),
+				       _PC_MAX_CANON);
+#else
+	    pty_max_bytes = 250;
+#endif
+	  }
+
+	/* Don't send more than pty_max_bytes bytes at a time.  */
+	/* Subtract 1 to leave room for the EOF.  */
+	if (this >= pty_max_bytes && XPROCESS (proc)->pty_flag != 0)
+	  this = pty_max_bytes - 1;
+
 	old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
 	rv = write (XINT (XPROCESS (proc)->outfd), buf, this);
+
+	/* If we sent just part of the string, put in an EOF
+	   to force it through, before we send the rest.  */
+	if (this < len)
+	  Fprocess_send_eof (proc);
+
 	signal (SIGPIPE, old_sigpipe);
 	if (rv < 0)
 	  {
