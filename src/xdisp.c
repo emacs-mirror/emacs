@@ -11210,6 +11210,41 @@ try_cursor_movement (window, startp, scroll_step)
   return rc;
 }
 
+void
+set_vertical_scroll_bar (w)
+     struct window *w;
+{
+  int start, end, whole;
+
+  /* Calculate the start and end positions for the current window.
+     At some point, it would be nice to choose between scrollbars
+     which reflect the whole buffer size, with special markers
+     indicating narrowing, and scrollbars which reflect only the
+     visible region.
+     
+     Note that mini-buffers sometimes aren't displaying any text.  */
+  if (!MINI_WINDOW_P (w)
+      || (w == XWINDOW (minibuf_window)
+	  && NILP (echo_area_buffer[0])))
+    {
+      struct buffer *buf = XBUFFER (w->buffer);
+      whole = BUF_ZV (buf) - BUF_BEGV (buf);
+      start = marker_position (w->start) - BUF_BEGV (buf);
+      /* I don't think this is guaranteed to be right.  For the
+	 moment, we'll pretend it is.  */
+      end = BUF_Z (buf) - XFASTINT (w->window_end_pos) - BUF_BEGV (buf);
+      
+      if (end < start)
+	end = start;
+      if (whole < (end - start))
+	whole = end - start;
+    }
+  else
+    start = end = whole = 0;
+
+  /* Indicate what this scroll bar ought to be displaying now.  */
+  set_vertical_scroll_bar_hook (w, end - start, whole, start);
+}
 
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
    selected_window is redisplayed.
@@ -11899,35 +11934,8 @@ redisplay_window (window, just_this_one_p)
 
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
     {
-      int start, end, whole;
-
-      /* Calculate the start and end positions for the current window.
-	 At some point, it would be nice to choose between scrollbars
-	 which reflect the whole buffer size, with special markers
-	 indicating narrowing, and scrollbars which reflect only the
-	 visible region.
-
-	 Note that mini-buffers sometimes aren't displaying any text.  */
-      if (!MINI_WINDOW_P (w)
-	  || (w == XWINDOW (minibuf_window)
-	      && NILP (echo_area_buffer[0])))
-	{
-	  whole = ZV - BEGV;
-	  start = marker_position (w->start) - BEGV;
-	  /* I don't think this is guaranteed to be right.  For the
-	     moment, we'll pretend it is.  */
-	  end = (Z - XFASTINT (w->window_end_pos)) - BEGV;
-
-	  if (end < start)
-	    end = start;
-	  if (whole < (end - start))
-	    whole = end - start;
-	}
-      else
-	start = end = whole = 0;
-
-      /* Indicate what this scroll bar ought to be displaying now.  */
-      set_vertical_scroll_bar_hook (w, end - start, whole, start);
+      /* Set the thumb's position and size.  */
+      set_vertical_scroll_bar (w);
 
       /* Note that we actually used the scroll bar attached to this
 	 window, so it shouldn't be deleted at the end of redisplay.  */
