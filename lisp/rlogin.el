@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.13 1993/10/22 17:12:54 rms Exp friedman $
+;; $Id: rlogin.el,v 1.14 1993/12/01 09:57:04 friedman Exp friedman $
 
 ;;; Todo:
 
@@ -56,7 +56,6 @@ number of them.  On the other hand, some implementations of `rlogin' assume
 a pty is being used, and errors will result from using a pipe instead.")
 
 ;;;###autoload
-;(setq rlogin-initially-track-cwd nil)
 (defvar rlogin-initially-track-cwd t
   "*If non-`nil', do remote directory tracking via ange-ftp right away.
 If `nil', you can still enable directory tracking by doing 
