@@ -1,3 +1,7 @@
+2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Search): Rename that to search-spaces-regexp.
+
 2004-11-19  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Regexp Search): Add search-whitespace-regexp.

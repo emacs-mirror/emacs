@@ -1,3 +1,8 @@
+2004-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Vsearch_spaces_regexp):
+	Renamed from Vsearch_whitespace_regexp.  All uses changed.
+
 2004-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* eval.c (init_eval_once): Increase `max_specpdl_size' to 650.
