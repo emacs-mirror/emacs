@@ -1014,7 +1014,7 @@ command_loop_1 ()
       if (!NILP (Vpre_command_hook))
 	call1 (Vrun_hooks, Qpre_command_hook);
 
-      if (NILP (cmd))
+      if (NILP (this_command))
 	{
 	  /* nil means key is undefined.  */
 	  bitch_at_user ();
@@ -1029,7 +1029,7 @@ command_loop_1 ()
 	    {
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
-	      if (EQ (cmd, Qforward_char) && point < ZV)
+	      if (EQ (this_command, Qforward_char) && point < ZV)
 		{
                   struct Lisp_Vector *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1050,7 +1050,7 @@ command_loop_1 ()
 		    no_redisplay = direct_output_forward_char (1);
 		  goto directly_done;
 		}
-	      else if (EQ (cmd, Qbackward_char) && point > BEGV)
+	      else if (EQ (this_command, Qbackward_char) && point > BEGV)
 		{
                   struct Lisp_Vector *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1071,7 +1071,7 @@ command_loop_1 ()
 		    no_redisplay = direct_output_forward_char (-1);
 		  goto directly_done;
 		}
-	      else if (EQ (cmd, Qself_insert_command)
+	      else if (EQ (this_command, Qself_insert_command)
 		       /* Try this optimization only on ascii keystrokes.  */
 		       && XTYPE (last_command_char) == Lisp_Int)
 		{
@@ -1134,7 +1134,7 @@ command_loop_1 ()
 	  nonundocount = 0;
 	  if (NILP (Vprefix_arg))
 	    Fundo_boundary ();
-	  Fcommand_execute (cmd, Qnil);
+	  Fcommand_execute (this_command, Qnil);
 
 	}
     directly_done: ;
