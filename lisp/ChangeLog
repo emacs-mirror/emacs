@@ -1,5 +1,7 @@
 2001-10-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* gs.el (gs-set-ghostview-window-prop): Fix args of `elt'.
+
 	* emacs-lisp/edebug.el (rx): Add def-edebug-spec.
 
 	* emacs-lisp/rx.el: New file.
