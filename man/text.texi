@@ -532,6 +532,12 @@ two spaces for the end of a sentence, as explained above.  @xref{Sentences}.
   If the variable @code{colon-double-space} is non-@code{nil}, the
 fill commands put two spaces after a colon.
 
+@vindex sentence-end-without-period
+The variable @code{sentence-end-without-period} can be set
+non-@code{nil} to indicate that a sentence will end without a period.
+For example, a sentence in Thai text ends with double space but without
+a period.
+
 @node Fill Prefix
 @subsection The Fill Prefix
 
