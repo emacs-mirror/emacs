@@ -158,15 +158,18 @@ Letters do not insert themselves; instead, they are commands.
   (let* ((where (save-excursion
 		  (beginning-of-line)
 		  (+ (point) Buffer-menu-buffer-column)))
-	 (name (and (not (eobp)) (get-text-property where 'buffer-name))))
+	 (name (and (not (eobp)) (get-text-property where 'buffer-name)))
+	 (buf (and (not (eobp)) (get-text-property where 'buffer))))
     (if name
 	(or (get-buffer name)
+	    (and buf (buffer-name buf) buf)
 	    (if error-if-non-existent-p
 		(error "No buffer named `%s'" name)
 	      nil))
+      (or (and buf (buffer-name buf) buf)
       (if error-if-non-existent-p
 	  (error "No buffer on this line")
-	nil))))
+	    nil)))))
 
 (defun buffer-menu (&optional arg)
   "Make a menu of buffers so you can save, delete or select them.
@@ -305,12 +308,12 @@ and then move up one line.  Prefix arg means move that many lines."
 	(let ((buf (Buffer-menu-buffer nil)))
 	  (or (eq buf nil)
 	      (eq buf buff-menu-buffer)
-	      (save-excursion (kill-buffer buf))))
-	(if (Buffer-menu-buffer nil)
+	      (save-excursion (kill-buffer buf)))
+	  (if (and buf (buffer-name buf))
 	    (progn (delete-char 1)
 		   (insert ? ))
 	  (delete-region (point) (progn (forward-line 1) (point)))
- 	  (forward-char -1))))))
+	    (forward-char -1)))))))
 
 (defun Buffer-menu-select ()
   "Select this line's buffer; also display buffers marked with `>'.
@@ -548,6 +551,8 @@ The R column contains a % for buffers that are read-only."
 		(indent-to 17 2)
 		(put-text-property this-buffer-line-start name-end
 				   'buffer-name name)
+		(put-text-property this-buffer-line-start (point)
+				   'buffer buffer)
 		(put-text-property this-buffer-line-start name-end
 				   'mouse-face 'highlight))
 	      (let (size
