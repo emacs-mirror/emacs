@@ -1,3 +1,10 @@
+2002-03-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_handle_tool_bar_click): Detect up and down events
+	correctly.  Do not pass up_modifier to keyboard buffer.
+
+	* w32fns.c [HAVE_IMAGES, HAVE_PBM]: Remove conditionals.
+
 2002-03-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile.in (bootstrapclean): New target.
