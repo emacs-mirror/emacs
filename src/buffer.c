@@ -3044,8 +3044,8 @@ add_overlay_mod_hooklist (functionlist, overlay)
       old = last_overlay_modification_hooks;
       last_overlay_modification_hooks
 	= Fmake_vector (make_number (oldsize * 2), Qnil);
-      bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
-	     XVECTOR (old)->contents,
+      bcopy (XVECTOR (old)->contents,
+	     XVECTOR (last_overlay_modification_hooks)->contents,
 	     sizeof (Lisp_Object) * oldsize);
     }
   XVECTOR (last_overlay_modification_hooks)->contents[last_overlay_modification_hooks_used++] = functionlist;
