@@ -772,7 +772,7 @@ Used in `find-file-not-found-functions'."
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
   (let ((backend (vc-backend buffer-file-name)))
-    (if backend (vc-call-backend backend find-file-not-found-hook))))
+    (if backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
   (if (yes-or-no-p
