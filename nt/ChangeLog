@@ -1,3 +1,7 @@
+2001-05-24  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Clarify that building with MSVC requires nmake.
+
 2001-05-17  Andrew Innes  <andrewi@gnu.org>
 
 	* gmake.defs (NEW_CYGWIN): Output message about spurious error
