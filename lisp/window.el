@@ -532,11 +532,18 @@ Return non-nil if the window was shrunk."
 (defun kill-buffer-and-window ()
   "Kill the current buffer and delete the selected window."
   (interactive)
-  (if (yes-or-no-p (format "Kill buffer `%s'? " (buffer-name)))
-      (let ((buffer (current-buffer)))
-	(delete-window (selected-window))
-	(kill-buffer buffer))
-    (error "Aborted")))
+  (let ((window-to-delete (selected-window))
+	(delete-window-hook (lambda ()
+			      (condition-case nil
+				  (delete-window)
+				(error nil)))))
+    (add-hook 'kill-buffer-hook delete-window-hook t t)
+    (if (kill-buffer (current-buffer))
+	;; If `delete-window' failed before, we rerun it to regenerate
+	;; the error so it can be seen in the minibuffer.
+	(when (eq (selected-window) window-to-delete)
+	  (delete-window))
+      (remove-hook 'kill-buffer-hook delete-window-hook t))))
 
 (defun quit-window (&optional kill window)
   "Quit the current buffer.  Bury it, and maybe delete the selected frame.
