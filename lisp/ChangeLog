@@ -1,3 +1,8 @@
+2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* bindings.el (completion-ignored-extensions):
+	Remove ".lis" for `vax-vms'.
+
 2005-03-22  Andreas Schwab  <schwab@suse.de>
 
 	* generic-x.el: Revert last change.
