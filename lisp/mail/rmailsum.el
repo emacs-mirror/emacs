@@ -840,14 +840,15 @@ Search, the `unseen' attribute is restored.")
   (define-key rmail-summary-mode-map "\ep"    'rmail-summary-previous-all)
   (define-key rmail-summary-mode-map "\e\C-p" 'rmail-summary-previous-labeled-message)
   (define-key rmail-summary-mode-map "q"      'rmail-summary-quit)
+  (define-key rmail-summary-mode-map "Q"      'rmail-summary-wipe)
   (define-key rmail-summary-mode-map "r"      'rmail-summary-reply)
   (define-key rmail-summary-mode-map "s"      'rmail-summary-expunge-and-save)
   (define-key rmail-summary-mode-map "\es"    'rmail-summary-search)
   (define-key rmail-summary-mode-map "t"      'rmail-summary-toggle-header)
   (define-key rmail-summary-mode-map "u"      'rmail-summary-undelete)
   (define-key rmail-summary-mode-map "\M-u"   'rmail-summary-undelete-many)
-  (define-key rmail-summary-mode-map "w"      'rmail-summary-wipe)
   (define-key rmail-summary-mode-map "x"      'rmail-summary-expunge)
+  (define-key rmail-summary-mode-map "w"      'rmail-summary-output-body)
   (define-key rmail-summary-mode-map "."      'rmail-summary-beginning-of-message)
   (define-key rmail-summary-mode-map "<"      'rmail-summary-first-message)
   (define-key rmail-summary-mode-map ">"      'rmail-summary-last-message)
@@ -890,6 +891,9 @@ Search, the `unseen' attribute is restored.")
 
 (define-key rmail-summary-mode-map [menu-bar classify output-menu]
   '(nil))
+
+(define-key rmail-summary-mode-map [menu-bar classify output-body]
+  '("Output (body)..." . rmail-summary-output-body))
 
 (define-key rmail-summary-mode-map [menu-bar classify output-inbox]
   '("Output (inbox)..." . rmail-summary-output))
@@ -1508,6 +1512,18 @@ The variables `rmail-secondary-file-directory' and
       (define-key rmail-summary-mode-map [menu-bar classify output-menu]
 	'("Output Rmail File" . rmail-disable-menu)))))
 
+(defun rmail-summary-output-body (&optional file-name)
+  "Write this message body to the file FILE-NAME.
+FILE-NAME defaults, interactively, from the Subject field of the message."
+  (interactive)
+  (save-excursion
+    (set-buffer rmail-buffer)
+    (let ((rmail-delete-after-output nil))
+      (if file-name
+	  (rmail-output-body-to-file file-name)
+	(call-interactively 'rmail-output-body-to-file))))
+  (if rmail-delete-after-output
+      (rmail-summary-delete-forward nil)))
 
 ;; Sorting messages in Rmail Summary buffer.
 
