@@ -1,3 +1,8 @@
+2003-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if emacs
+	was configured with --without-xim.
+
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (reseat_1): Set it->area to TEXT_AREA.
