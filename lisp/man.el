@@ -620,8 +620,9 @@ See the variable `Man-notify-method' for the different notification behaviors."
       ;; can't rely on the editor command loop to reselect the
       ;; selected window's buffer.
       (save-excursion
-	(set-buffer man-buffer)
-	(make-frame Man-frame-parameters)))
+	(let ((frame (make-frame Man-frame-parameters)))
+	  (set-window-buffer (frame-selected-window frame) man-buffer)
+          (set-window-dedicated-p (frame-selected-window frame) t))))
      ((eq Man-notify-method 'pushy)
       (switch-to-buffer man-buffer))
      ((eq Man-notify-method 'bully)
