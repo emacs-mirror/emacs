@@ -485,7 +485,7 @@ case "${canonical}" in
     opsys=netbsd
     case "${canonical}" in
       sparc-*-netbsd*)	machine=sparc ;;
-      i386-*-netbsd*)	machine=intel386 ;;
+      i[345]86-*-netbsd*) machine=intel386 ;;
       hp300-*-netbsd* | amiga-*-netbsd* | sun3-*-netbsd* | mac68k-*-netbsd* | da30-*-netbsd*)
 			# Yes, this is somewhat bogus.
 			machine=hp9000s300 ;;
@@ -574,7 +574,7 @@ case "${canonical}" in
   ;;
 
   ## Cubix QBx/386
-  i386-cubix-sysv* )
+  i[345]86-cubix-sysv* )
     machine=intel386 opsys=usg5-3
   ;;
 
@@ -726,10 +726,10 @@ case "${canonical}" in
   ;;
 
   ## IBM machines
-  i386-ibm-aix1.1* )
+  i[345]86-ibm-aix1.1* )
     machine=ibmps2-aix opsys=usg5-2-2
   ;;
-  i386-ibm-aix1.[23]* | i386-ibm-aix* )
+  i[345]86-ibm-aix1.[23]* | i[345]86-ibm-aix* )
     machine=ibmps2-aix opsys=usg5-3
   ;;
   i370-ibm-aix*)
@@ -775,23 +775,23 @@ case "${canonical}" in
   ;;
 
   ## Intel 386 machines where we do care about the manufacturer
-  i[34]86-intsys-sysv* )
+  i[345]86-intsys-sysv* )
     machine=is386 opsys=usg5-2-2
   ;;
 
   ## Prime EXL
-  i386-prime-sysv* )
+  i[345]86-prime-sysv* )
     machine=i386 opsys=usg5-3
   ;;
 
   ## Sequent Symmetry
-  i386-sequent-bsd* )
+  i[345]86-sequent-bsd* )
     machine=symmetry opsys=bsd4-3
   ;;
 
   ## Unspecified sysv on an ncr machine defaults to svr4.2.
   ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
-  i[34]86-ncr-sysv* )
+  i[345]86-ncr-sysv* )
     machine=intel386 opsys=usg5-4-2
   ;;
 
@@ -840,7 +840,7 @@ case "${canonical}" in
   ;;
 
   ## NeXT
-  m68*-next-* | i[34]86-next-* )
+  m68*-next-* | i[345]86-next-* )
     machine=next opsys=mach2
   ;;
 
@@ -936,19 +936,19 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  *-sun-sunos* | *-sun-bsd* | *-sun-solaris* | i[34]86-*-solaris2* | i[34]86-*-sunos5* )
+  *-sun-sunos* | *-sun-bsd* | *-sun-solaris* | i[345]86-*-solaris2* | i[345]86-*-sunos5* )
     case "${canonical}" in
       m68*-sunos1* )	machine=sun1 ;;
       m68*-sunos2* )	machine=sun2 ;;
       m68* )		machine=sun3 ;;
-      i[34]86-sun-sunos[34]* )	machine=sun386 ;;
-      i[34]86-*-* )     machine=intel386 ;;
+      i[345]86-sun-sunos[34]* )	machine=sun386 ;;
+      i[345]86-*-* )     machine=intel386 ;;
       sparc* )		machine=sparc ;;
       * )		unported=true ;;
     esac
     case "${canonical}" in
       ## The Sun386 didn't get past 4.0.
-      i386-*-sunos4	  ) opsys=sunos4-0 ;;
+      i[345]86-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4.1.3*	  ) opsys=sunos4-1-3
 		NON_GCC_TEST_OPTIONS=-Bstatic
@@ -1047,7 +1047,7 @@ case "${canonical}" in
   ;;
 
   ## Intel 386 machines where we don't care about the manufacturer
-  i[34]86-*-* )
+  i[345]86-*-* )
     machine=intel386
     case "${canonical}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
