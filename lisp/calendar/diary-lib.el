@@ -977,19 +977,19 @@ XX:XX (military time), and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm,
 or XX:XXPM."
   (let ((case-fold-search nil))
     (cond ((string-match;; Military time  
-	    "^[ \t]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
+	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
 	   (+ (* 100 (string-to-int
 		      (substring s (match-beginning 1) (match-end 1))))
 	      (string-to-int (substring s (match-beginning 2) (match-end 2)))))
 	  ((string-match;; Hour only  XXam or XXpm
-	    "^[ \t]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
+	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-int
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
 	      (if (equal ?a (downcase (aref s (match-beginning 2))))
 		  0 1200)))
 	  ((string-match;; Hour and minute  XX:XXam or XX:XXpm
-	    "^[ \t]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
+	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-int
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
@@ -997,6 +997,8 @@ or XX:XXPM."
 	      (if (equal ?a (downcase (aref s (match-beginning 3))))
 		  0 1200)))
 	  (t diary-unknown-time))));; Unrecognizable
+
+;; Unrecognizable
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
