@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #### make-dist: create an Emacs distribution tar file from the current
-#### source tree.	This basically creates a duplicate directory
+#### source tree.  This basically creates a duplicate directory
 #### structure, and then hard links into it only those files that should
 #### be distributed.  This means that if you add a file with an odd name,
 #### you should make sure that this script will include it.
@@ -103,7 +103,7 @@ cp config.sub ${tempdir}
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
 	      src src/m src/s lib-src oldXMenu \
-	      etc lock arch-lib cpp info man shortnames vms; do
+	      etc lock cpp info man shortnames vms; do
   mkdir ${tempdir}/${subdir}
 done
 
