@@ -1159,8 +1159,9 @@ Remaining arguments are strings to give program as arguments.")
 
   /* Make the process marker point into the process buffer (if any).  */
   if (!NILP (buffer))
-    Fset_marker (XPROCESS (proc)->mark,
-		 make_number (BUF_ZV (XBUFFER (buffer))), buffer);
+    set_marker_both (XPROCESS (proc)->mark, buffer,
+		     BUF_ZV (XBUFFER (buffer)),
+		     BUF_ZV_BYTE (XBUFFER (buffer)));
 
   if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
       || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
@@ -2928,16 +2929,21 @@ read_process_output (proc, channel)
     {
       Lisp_Object old_read_only;
       int old_begv, old_zv;
+      int old_begv_byte, old_zv_byte;
       Lisp_Object odeactivate;
-      int before;
+      int before, before_byte;
+      int opoint_byte;
 
       odeactivate = Vdeactivate_mark;
 
       Fset_buffer (p->buffer);
       opoint = PT;
+      opoint_byte = PT_BYTE;
       old_read_only = current_buffer->read_only;
       old_begv = BEGV;
       old_zv = ZV;
+      old_begv_byte = BEGV_BYTE;
+      old_zv_byte = ZV_BYTE;
 
       current_buffer->read_only = Qnil;
 
@@ -2945,10 +2951,13 @@ read_process_output (proc, channel)
 	 at the current end-of-output marker,
 	 thus preserving logical ordering of input and output.  */
       if (XMARKER (p->mark)->buffer)
-	SET_PT (clip_to_bounds (BEGV, marker_position (p->mark), ZV));
+	SET_PT_BOTH (clip_to_bounds (BEGV, marker_position (p->mark), ZV),
+		     clip_to_bounds (BEGV_BYTE, marker_byte_position (p->mark),
+				     ZV_BYTE));
       else
-	SET_PT (ZV);
+	SET_PT_BOTH (ZV, ZV_BYTE);
       before = PT;
+      before_byte = PT_BYTE;
 
       /* If the output marker is outside of the visible region, save
 	 the restriction and widen.  */
@@ -2961,18 +2970,27 @@ read_process_output (proc, channel)
 	insert_from_string_before_markers (p->decoding_buf, 0, nchars, 0);
       else
 	insert_before_markers (chars, nchars);
-      Fset_marker (p->mark, make_number (PT), p->buffer);
+      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
       update_mode_lines++;
 
       /* Make sure opoint and the old restrictions
 	 float ahead of any new text just as point would.  */
       if (opoint >= before)
-	opoint += PT - before;
+	{
+	  opoint += PT - before;
+	  opoint_byte += PT_BYTE - before_byte;
+	}
       if (old_begv > before)
-	old_begv += PT - before;
+	{
+	  old_begv += PT - before;
+	  old_begv_byte += PT_BYTE - before_byte;
+	}
       if (old_zv >= before)
-	old_zv += PT - before;
+	{
+	  old_zv += PT - before;
+	  old_zv_byte += PT_BYTE - before_byte;
+	}
 
       /* If the restriction isn't what it should be, set it.  */
       if (old_begv != BEGV || old_zv != ZV)
@@ -2982,7 +3000,7 @@ read_process_output (proc, channel)
       Vdeactivate_mark = odeactivate;
 
       current_buffer->read_only = old_read_only;
-      SET_PT (opoint);
+      SET_PT_BOTH (opoint, opoint_byte);
       set_buffer_internal (old);
     }
 #ifdef VMS
@@ -3063,7 +3081,7 @@ send_process (proc, buf, len, object)
          be relocated.  Setting OFFSET to -1 means we don't have to
          care relocation.  */
       offset = (BUFFERP (object)
-		? BUF_PTR_CHAR_POS (XBUFFER (object), buf)
+		? BUF_PTR_BYTE_POS (XBUFFER (object), buf)
 		: (STRINGP (object)
 		   ? offset = buf - XSTRING (object)->data
 		   : -1));
@@ -3075,7 +3093,7 @@ send_process (proc, buf, len, object)
 	  if (offset >= 0)
 	    {
 	      if (BUFFERP (object))
-		buf = BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
 	      else if (STRINGP (object))
 		buf = offset + XSTRING (object)->data;
 	      /* Now we don't have to care relocation.  */
@@ -3093,7 +3111,7 @@ send_process (proc, buf, len, object)
 	  if (offset >= 0)
 	    {
 	      if (BUFFERP (object))
-		buf = BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
 	      else if (STRINGP (object))
 		buf = offset + XSTRING (object)->data;
 	    }
@@ -3190,7 +3208,7 @@ send_process (proc, buf, len, object)
 		    /* Running filters might relocate buffers or strings.
 		       Arrange to relocate BUF.  */
 		    if (BUFFERP (object))
-		      offset = BUF_PTR_CHAR_POS (XBUFFER (object), buf);
+		      offset = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
 		    else if (STRINGP (object))
 		      offset = buf - XSTRING (object)->data;
 
@@ -3202,7 +3220,7 @@ send_process (proc, buf, len, object)
 #endif
 
 		    if (BUFFERP (object))
-		      buf = BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		      buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
 		    else if (STRINGP (object))
 		      buf = offset + XSTRING (object)->data;
 
@@ -3253,7 +3271,7 @@ Output from processes can arrive in between bunches.")
      Lisp_Object process, start, end;
 {
   Lisp_Object proc;
-  int start1;
+  int start1, end1;
 
   proc = get_process (process);
   validate_region (&start, &end);
@@ -3261,8 +3279,9 @@ Output from processes can arrive in between bunches.")
   if (XINT (start) < GPT && XINT (end) > GPT)
     move_gap (XINT (start));
 
-  start1 = XINT (start);
-  send_process (proc, POS_ADDR (start1), XINT (end) - XINT (start),
+  start1 = CHAR_TO_BYTE (XINT (start));
+  end1 = CHAR_TO_BYTE (XINT (end));
+  send_process (proc, BYTE_POS_ADDR (start1), end1 - start1,
 		Fcurrent_buffer ());
 
   return Qnil;
@@ -4099,8 +4118,8 @@ status_notify ()
 	    {
 	      Lisp_Object ro, tem;
 	      struct buffer *old = current_buffer;
-	      int opoint;
-	      int before;
+	      int opoint, opoint_byte;
+	      int before, before_byte;
 
 	      ro = XBUFFER (buffer)->read_only;
 
@@ -4111,15 +4130,17 @@ status_notify ()
 	      Fset_buffer (buffer);
 
 	      opoint = PT;
+	      opoint_byte = PT_BYTE;
 	      /* Insert new output into buffer
 		 at the current end-of-output marker,
 		 thus preserving logical ordering of input and output.  */
 	      if (XMARKER (p->mark)->buffer)
-		SET_PT (marker_position (p->mark));
+		Fgoto_char (p->mark);
 	      else
-		SET_PT (ZV);
+		SET_PT_BOTH (ZV, ZV_BYTE);
 
 	      before = PT;
+	      before_byte = PT_BYTE;
 
 	      tem = current_buffer->read_only;
 	      current_buffer->read_only = Qnil;
@@ -4128,12 +4149,13 @@ status_notify ()
 	      insert_string (" ");
 	      Finsert (1, &msg);
 	      current_buffer->read_only = tem;
-	      Fset_marker (p->mark, make_number (PT), p->buffer);
+	      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
 	      if (opoint >= before)
-		SET_PT (opoint + (PT - before));
+		SET_PT_BOTH (opoint + (PT - before),
+			     opoint_byte + (PT_BYTE - before_byte));
 	      else
-		SET_PT (opoint);
+		SET_PT_BOTH (opoint, opoint_byte);
 
 	      set_buffer_internal (old);
 	    }
