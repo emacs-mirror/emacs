@@ -1,9 +1,15 @@
+2004-06-29  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_get_emulated_btn)
+	(mac_event_to_emacs_modifiers): Fix emulated mouse button
+	support to correctly mask out modifiers.
+
 2004-06-29  David Kastrup  <dak@gnu.org>
 
 	* search.c (Fset_match_data): Allow buffer before end of list
 	which can happen if set-match-data is using a pre-consed list.
 
-2004-06-28  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+2004-06-28  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (XTread_socket): Correctly set the frame position
 	after the window is moved.

@@ -7018,7 +7018,7 @@ mac_get_emulated_btn ( UInt32 modifiers )
   int result = 0;
   if (!NILP (Vmac_emulate_three_button_mouse)) {
     int cmdIs3 = !EQ (Vmac_emulate_three_button_mouse, Qreverse);
-    if (modifiers & controlKey)
+    if (modifiers & cmdKey)
       result = cmdIs3 ? 2 : 1;
     else if (modifiers & optionKey)
       result = cmdIs3 ? 1 : 2;
@@ -7038,7 +7038,7 @@ mac_event_to_emacs_modifiers (EventRef eventRef)
   if (!NILP (Vmac_emulate_three_button_mouse) &&
       GetEventClass(eventRef) == kEventClassMouse)
     {
-      mods &= ~(optionKey & cmdKey);
+      mods &= ~(optionKey | cmdKey);
     }
   return mac_to_emacs_modifiers (mods);
 }
