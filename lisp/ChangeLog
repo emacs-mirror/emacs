@@ -1,5 +1,7 @@
 2002-04-06  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (display-time-string-forms): Mark as risky.
+
 	* enriched.el (enriched-decode-foreground, enriched-decode-background):
 	Use proper format for desired elts of `face' property.
 	Don't test display-color-p; make the properties unconditionally.

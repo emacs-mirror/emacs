@@ -771,6 +771,11 @@ supported, but new code should use the new functions.
 
 ** New function minibuffer-selected-window.
 
+** File local variables.
+
+A file local variables list cannot specify a string with text
+properties--any specified text properties are discarded.
+
 +++
 *** The meanings of scroll-up-aggressively and scroll-down-aggressively
 have been interchanged, so that the former now controls scrolling up,
@@ -815,6 +820,9 @@ variables call for both, only the mode line actually appears.
 for color support on character terminal frames.  Its value can be a
 number of colors to support, or a symbol.  See the Emacs Lisp
 Reference manual for more detailed documentation.
+
+** Mode line display ignores text properties in the value
+of a variable whose `risky-local-variables' property is nil.
 
 ** Already true in Emacs 21.1, but not emphasized clearly enough:
 
