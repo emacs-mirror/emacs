@@ -516,7 +516,8 @@ as returned by the `event-start' and `event-end' functions."
 Please convert your programs to use `aref' with character-base index."
   (let ((byte 0) (char 0))
     (while (< byte byte-index)
-      (setq byte (+ byte (char-bytes (aref string byte)))))
+      (setq byte (+ byte (char-bytes (aref string char)))
+	    char (1+ char)))
     (aref string char)))
 
 ;; Some programs still use this as a function.
