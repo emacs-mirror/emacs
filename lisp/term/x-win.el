@@ -83,8 +83,7 @@
 (require 'menu-bar)
 (require 'fontset)
 (require 'x-dnd)
-
-(eval-when-compile (require 'server))
+(require 'server)
 
 (defvar x-invocation-args)
 
@@ -2242,7 +2241,7 @@ order until succeed.")
     (if text
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
-
+      
 ;;; Return the value of the current X selection.
 ;;; Consult the selection, and the cut buffer.  Treat empty strings
 ;;; as if they were unset.

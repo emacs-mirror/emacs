@@ -100,9 +100,10 @@
    (fset 'viper-int-to-char (symbol-function 'identity))
    (if (viper-window-display-p)
        (fset 'viper-iconify (symbol-function 'iconify-or-deiconify-frame)))
-   (fset 'viper-get-face (symbol-function 'internal-get-face))
-   (fset 'viper-color-defined-p (symbol-function 'x-color-defined-p))
-          )
+   (cond ((viper-has-face-support-p)
+	  (fset 'viper-get-face (symbol-function 'internal-get-face))
+	  (fset 'viper-color-defined-p (symbol-function 'x-color-defined-p))
+	  )))
  )
 
 

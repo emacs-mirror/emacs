@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'server))
+(require 'server)
 
 (let ((map (make-sparse-keymap)))
   (define-key map "\e[A" [up])

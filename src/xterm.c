@@ -482,6 +482,7 @@ x_update_begin (f)
   /* Nothing to do.  */
 }
 
+
 /* Start update of window W.  Set the global variable updated_window
    to the window being updated and set output_cursor to the cursor
    position of W.  */
@@ -7542,7 +7543,7 @@ x_catch_errors_unwind (old_val)
 {
   Lisp_Object first = XCAR (old_val);
   Display *dpy = XSAVE_VALUE (first)->pointer;
-  
+
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
   if (x_display_info_for_display (dpy) != 0)
@@ -10618,17 +10619,15 @@ x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
   int i;
-  
-  {
-    /* Delete the generic struct display for this X display. */
-    struct display *d;
-    for (d = display_list; d; d = d->next_display)
-      if (d->type == output_x_window && d->display_info.x == dpyinfo)
-        {
-          delete_display (d);
-          break;
-        }
-  }
+  struct display *d;
+
+  /* Delete the generic struct display for this X display. */
+  for (d = display_list; d; d = d->next_display)
+    if (d->type == output_x_window && d->display_info.x == dpyinfo)
+      {
+        delete_display (d);
+        break;
+      }
     
   delete_keyboard_wait_descriptor (dpyinfo->connection);
 
@@ -10826,11 +10825,11 @@ x_create_frame_display (struct x_display_info *dpyinfo)
   display->delete_display_hook = x_delete_frame_display;
   
   display->rif = &x_redisplay_interface;
-  display->scroll_region_ok = 1; /* We'll scroll partial frames. */
+  display->scroll_region_ok = 1;    /* We'll scroll partial frames. */
   display->char_ins_del_ok = 1;
-  display->line_ins_del_ok = 1;        /* We'll just blt 'em. */
-  display->fast_clear_end_of_line = 1; /* X does this well. */
-  display->memory_below_frame = 0; /* We don't remember what scrolls
+  display->line_ins_del_ok = 1;         /* We'll just blt 'em. */
+  display->fast_clear_end_of_line = 1;  /* X does this well. */
+  display->memory_below_frame = 0;   /* We don't remember what scrolls
                                         off the bottom. */
 
   return display;

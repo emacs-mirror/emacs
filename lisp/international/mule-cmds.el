@@ -141,7 +141,7 @@
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '(menu-item "For Terminal" set-terminal-coding-system
-	      :enable (null (memq window-system '(x w32 mac)))
+	      :enable (null (memq initial-window-system '(x w32 mac)))
 	      :help "How to encode terminal output")
   t)
 (define-key-after set-coding-system-map [separator-3]
@@ -2337,115 +2337,6 @@ is returned.  Thus, for instance, if charset \"ISO8859-2\",
 	    (pop cs)))
 	(if c (coding-system-base c)))))
 
-(defun set-locale-translation-file-name ()
-  "Set up the locale-translation-file-name on the current system.
-
-This needs to be done at runtime for the sake of binaries
-possibly transported to a system without X."
-  (setq locale-translation-file-name
-	(let ((files
-	       '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
-		 "/usr/X11R6/lib/X11/locale/locale.alias" ; XFree86, e.g. RedHat 4.2
-		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
-		 ;;
-		 ;; The following name appears after the X-related names above,
-		 ;; since the X-related names are what X actually uses.
-		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
-		 )))
-	  (while (and files (not (file-exists-p (car files))))
-	    (setq files (cdr files)))
-	  (car files))))
-
-(defun get-locale-real-name (&optional locale-name)
-  "Return the canonicalized name of locale LOCALE-NAME.
-
-LOCALE-NAME should be a string which is the name of a locale supported
-by the system.  Often it is of the form xx_XX.CODE, where xx is a
-language, XX is a country, and CODE specifies a character set and
-coding system.  For example, the locale name \"ja_JP.EUC\" might name
-a locale for Japanese in Japan using the `japanese-iso-8bit'
-coding-system.  The name may also have a modifier suffix, e.g. `@euro'
-or `@cyrillic'.
-
-If LOCALE-NAME is nil, its value is taken from the environment
-variables LC_ALL, LC_CTYPE and LANG (the first one that is set).
-On server frames, the environment of the emacsclient process is
-used.
-
-See also `set-locale-environment'."
-  (unless locale-name
-    ;; Use the first of these three environment variables
-    ;; that has a nonempty value.
-    (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
-      (while (and vars
-		  (= 0 (length locale-name))) ; nil or empty string
-	(setq locale-name (server-getenv (pop vars))))))
-
-    (when locale-name
-      ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
-      ;; using the translation file that many systems have.
-      (when locale-translation-file-name
-	(with-temp-buffer
-	  (insert-file-contents locale-translation-file-name)
-	  (when (re-search-forward
-		 (concat "^" (regexp-quote locale-name) ":?[ \t]+") nil t)
-	    (setq locale-name (buffer-substring (point) (line-end-position)))))))
-    locale-name)
-
-(defun get-locale-coding-system (&optional locale)
-  "Return the coding system corresponding to locale LOCALE."
-  (setq locale (or locale (get-locale-real-name nil)))
-  (when locale
-    (or (locale-name-match locale locale-preferred-coding-systems)
-	(when locale
-	  (if (string-match "\\.\\([^@]+\\)" locale)
-	      (locale-charset-to-coding-system
-	       (match-string 1 locale)))))))
-
-(defun configure-display-for-locale (&optional locale)
-  "Set up terminal for locale LOCALE.
-
-The display table, the terminal coding system and the keyboard
-coding system of the current display device are set up for the
-given locale."
-  (setq locale (or locale (get-locale-real-name nil)))
-
-  (when locale
-    (let ((language-name
-	   (locale-name-match locale locale-language-names))
-	  (charset-language-name
-	   (locale-name-match locale locale-charset-language-names))
-	  (coding-system
-	   (get-locale-coding-system locale)))
-
-      ;; Give preference to charset-language-name over language-name.
-      (if (and charset-language-name
-	       (not
-		(equal (get-language-info language-name 'charset)
-		       (get-language-info charset-language-name 'charset))))
-	  (setq language-name charset-language-name))
-
-      (when language-name
-
-	;; If default-enable-multibyte-characters is nil,
-	;; we are using single-byte characters,
-	;; so the display table and terminal coding system are irrelevant.
-	(when default-enable-multibyte-characters
-	  ;; Override default-terminal-coding-system in case the
-	  ;; display coding can not be derived from the language
-	  ;; environment.
-	  (let ((default-terminal-coding-system coding-system))
-	    (set-display-table-and-terminal-coding-system language-name)))
-
-	;; Set the `keyboard-coding-system' if appropriate (tty
-	;; only).  At least X and MS Windows can generate
-	;; multilingual input.
-	(unless window-system
-	  (let ((kcs (or coding-system
-			 (car (get-language-info language-name
-						 'coding-system)))))
-	    (if kcs (set-keyboard-coding-system kcs))))))))
-
 ;; Fixme: This ought to deal with the territory part of the locale
 ;; too, for setting things such as calendar holidays, ps-print paper
 ;; size, spelling dictionary.
@@ -2465,8 +2356,6 @@ or `@cyrillic'.
 
 If LOCALE-NAME is nil, its value is taken from the environment
 variables LC_ALL, LC_CTYPE and LANG (the first one that is set).
-On server frames, the environment of the emacsclient process is
-used.
 
 The locale names supported by your system can typically be found in a
 directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
@@ -2477,9 +2366,42 @@ See also `locale-charset-language-names', `locale-language-names',
 `locale-preferred-coding-systems' and `locale-coding-system'."
   (interactive "sSet environment for locale: ")
 
-  (let ((locale (get-locale-real-name locale-name)))
+  ;; Do this at runtime for the sake of binaries possibly transported
+  ;; to a system without X.
+  (setq locale-translation-file-name
+	(let ((files
+	       '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
+		 "/usr/X11R6/lib/X11/locale/locale.alias" ; XFree86, e.g. RedHat 4.2
+		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
+		 ;;
+		 ;; The following name appears after the X-related names above,
+		 ;; since the X-related names are what X actually uses.
+		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
+		 )))
+	  (while (and files (not (file-exists-p (car files))))
+	    (setq files (cdr files)))
+	  (car files)))
+
+  (let ((locale locale-name))
+
+    (unless locale
+      ;; Use the first of these three environment variables
+      ;; that has a nonempty value.
+      (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
+	(while (and vars
+		    (= 0 (length locale))) ; nil or empty string
+	  (setq locale (getenv (pop vars))))))
 
     (when locale
+
+      ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
+      ;; using the translation file that many systems have.
+      (when locale-translation-file-name
+	(with-temp-buffer
+	  (insert-file-contents locale-translation-file-name)
+	  (when (re-search-forward
+		 (concat "^" (regexp-quote locale) ":?[ \t]+") nil t)
+	    (setq locale (buffer-substring (point) (line-end-position))))))
 
       ;; Leave the system locales alone if the caller did not specify
       ;; an explicit locale name, as their defaults are set from
@@ -2491,14 +2413,16 @@ See also `locale-charset-language-names', `locale-language-names',
 
       (setq locale (downcase locale))
 
-      (configure-display-for-locale locale)
-
       (let ((language-name
 	     (locale-name-match locale locale-language-names))
 	    (charset-language-name
 	     (locale-name-match locale locale-charset-language-names))
 	    (coding-system
-	     (get-locale-coding-system locale)))
+	     (or (locale-name-match locale locale-preferred-coding-systems)
+		 (when locale
+		   (if (string-match "\\.\\([^@]+\\)" locale)
+		       (locale-charset-to-coding-system
+			(match-string 1 locale)))))))
 
 	(if (consp language-name)
 	    ;; locale-language-names specify both lang-env and coding.
@@ -2517,6 +2441,21 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; Set up for this character set.  This is now the right way
 	  ;; to do it for both unibyte and multibyte modes.
 	  (set-language-environment language-name)
+
+	  ;; If default-enable-multibyte-characters is nil,
+	  ;; we are using single-byte characters,
+	  ;; so the display table and terminal coding system are irrelevant.
+	  (when default-enable-multibyte-characters
+	    (set-display-table-and-terminal-coding-system language-name))
+
+	  ;; Set the `keyboard-coding-system' if appropriate (tty
+	  ;; only).  At least X and MS Windows can generate
+	  ;; multilingual input.
+	  (unless window-system
+	    (let ((kcs (or coding-system
+			   (car (get-language-info language-name
+						   'coding-system)))))
+	      (if kcs (set-keyboard-coding-system kcs))))
 
 	  (setq locale-coding-system
 		(car (get-language-info language-name 'coding-priority))))

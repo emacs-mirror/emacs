@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'server))
+(require 'server)
 
 ;; Set up function-key-map entries that termcap and terminfo don't know.
 (let ((map (make-sparse-keymap)))

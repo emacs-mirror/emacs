@@ -1156,9 +1156,9 @@ static char *magick[] = {
   "Icon for disabled breakpoint in display margin.")
 
 ;; Bitmap for breakpoint in fringe
-(when (fboundp 'define-fringe-bitmap)
-  (define-fringe-bitmap 'breakpoint
-    "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
+(and (display-images-p)
+     (define-fringe-bitmap 'breakpoint
+       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
 (defface breakpoint-enabled
   '((((type tty))
