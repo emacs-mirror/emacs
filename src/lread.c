@@ -219,31 +219,10 @@ readchar (readcharfun)
 
       if (! NILP (inbuffer->enable_multibyte_characters))
 	{
-	  unsigned char workbuf[4];
-	  unsigned char *str = workbuf;
-	  int length;
-
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
 	  BUF_INC_POS (inbuffer, pt_byte);
 	  c = STRING_CHAR (p, pt_byte - orig_pt_byte);
-
-	  /* Find the byte-sequence representation of that character.  */
-	  if (SINGLE_BYTE_CHAR_P (c))
-	    length = 1, workbuf[0] = c;
-	  else
-	    length = non_ascii_char_to_string (c, workbuf, &str);
-
-	  /* If the bytes for this character in the buffer
-	     are not identical with what the character code implies,
-	     read the bytes one by one from the buffer.  */
-	  if (length != pt_byte - orig_pt_byte
-	      || (length == 1 ? *str != *p : bcmp (str, p, length)))
-	    {
-	      readchar_backlog = pt_byte - orig_pt_byte;
-	      c = BUF_FETCH_BYTE (inbuffer, orig_pt_byte);
-	      readchar_backlog--;
-	    }
 	}
       else
 	{
@@ -276,31 +255,10 @@ readchar (readcharfun)
 
       if (! NILP (inbuffer->enable_multibyte_characters))
 	{
-	  unsigned char workbuf[4];
-	  unsigned char *str = workbuf;
-	  int length;
-
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
 	  BUF_INC_POS (inbuffer, bytepos);
 	  c = STRING_CHAR (p, bytepos - orig_bytepos);
-
-	  /* Find the byte-sequence representation of that character.  */
-	  if (SINGLE_BYTE_CHAR_P (c))
-	    length = 1, workbuf[0] = c;
-	  else
-	    length = non_ascii_char_to_string (c, workbuf, &str);
-
-	  /* If the bytes for this character in the buffer
-	     are not identical with what the character code implies,
-	     read the bytes one by one from the buffer.  */
-	  if (length != bytepos - orig_bytepos
-	      || (length == 1 ? *str != *p : bcmp (str, p, length)))
-	    {
-	      readchar_backlog = bytepos - orig_bytepos;
-	      c = BUF_FETCH_BYTE (inbuffer, orig_bytepos);
-	      readchar_backlog--;
-	    }
 	}
       else
 	{
@@ -1399,12 +1357,12 @@ read_multibyte (c, readcharfun)
 {
   /* We need the actual character code of this multibyte
      characters.  */
-  unsigned char str[MAX_LENGTH_OF_MULTI_BYTE_FORM];
+  unsigned char str[MAX_MULTIBYTE_LENGTH];
   int len = 0;
 
   str[len++] = c;
   while ((c = READCHAR) >= 0xA0
-	 && len < MAX_LENGTH_OF_MULTI_BYTE_FORM)
+	 && len < MAX_MULTIBYTE_LENGTH)
     str[len++] = c;
   UNREAD (c);
   return STRING_CHAR (str, len);
@@ -1935,7 +1893,7 @@ read1 (readcharfun, pch, first_in_list)
 	while ((c = READCHAR) >= 0
 	       && c != '\"')
 	  {
-	    if (end - p < MAX_LENGTH_OF_MULTI_BYTE_FORM)
+	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
 		char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
 		p += new - read_buffer;
@@ -1964,19 +1922,11 @@ read1 (readcharfun, pch, first_in_list)
 
 	    if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
 	      {
-		unsigned char workbuf[4];
-		unsigned char *str = workbuf;
-		int length;
-
 		/* Any modifiers for a multibyte character are invalid.  */
 		if (c & CHAR_MODIFIER_MASK)
 		  error ("Invalid modifier in string");
-		length = non_ascii_char_to_string (c, workbuf, &str);
-		if (length > 1)
-		  force_multibyte = 1;
-
-		bcopy (str, p, length);
-		p += length;
+		p += CHAR_STRING (c, p);
+		force_multibyte = 1;
 	      }
 	    else
 	      {
@@ -2090,7 +2040,7 @@ read1 (readcharfun, pch, first_in_list)
 		      || c == '[' || c == ']' || c == '#'
 		      ))
 	    {
-	      if (end - p < MAX_LENGTH_OF_MULTI_BYTE_FORM)
+	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
 		  register char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
 		  p += new - read_buffer;
@@ -2104,16 +2054,7 @@ read1 (readcharfun, pch, first_in_list)
 		}
 
 	      if (! SINGLE_BYTE_CHAR_P (c))
-		{
-		  unsigned char workbuf[4];
-		  unsigned char *str = workbuf;
-		  int length;
-
-		  length = non_ascii_char_to_string (c, workbuf, &str);
-
-		  bcopy (str, p, length);
-		  p += length;
-		}
+		p += CHAR_STRING (c, p);
 	      else
 		*p++ = c;
 
@@ -2994,7 +2935,7 @@ init_obarray ()
   Qvariable_documentation = intern ("variable-documentation");
   staticpro (&Qvariable_documentation);
 
-  read_buffer_size = 100 + MAX_LENGTH_OF_MULTI_BYTE_FORM;
+  read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
   read_buffer = (char *) malloc (read_buffer_size);
 }
 
