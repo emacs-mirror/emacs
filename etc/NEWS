@@ -88,6 +88,9 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** GUD mode has its own tool bar for controlling execution of the inferior
+and other common debugger commands.
+
 ** recentf changes.
 
 The recent file list is now automatically cleanup when recentf mode is
@@ -996,6 +999,18 @@ Meta and Alt:
     (setq x-meta-keysym 'alt)
 
 * New modes and packages in 21.4
+
+** GDB-UI is now part of the Emacs distribution.
+
+This mode acts as an enhanced graphical user interface to GDB. You can
+interact with GDB through the GUD buffer in the usual way, but there are also
+further buffers which control the execution and describe the state of your
+program.  It separates the input/output of your program from that of GDB and
+displays expressions and their current values in their own buffers.  It also
+uses features of Emacs 21 such as the display margin for breakpoints, and the
+tool bar.
+
+Use M-x gdba to start GDB-UI.
 
 ---
 ** Ido mode is now part of the Emacs distribution.
