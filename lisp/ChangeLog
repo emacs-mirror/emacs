@@ -1,3 +1,8 @@
+2002-01-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (find-file-noselect): Don't consider a buffer as
+	visiting a file literally if it is in hexl-mode.
+
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Always return nil.
