@@ -25,7 +25,8 @@
 This file documents @tramp{}, a remote file editing package for Emacs and
 XEmacs.
      
-Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
+Foundation, Inc.
      
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -1149,60 +1150,79 @@ by the @command{EFS} and @command{ange-ftp} packages.
 @node Filename Syntax
 @section @tramp{} filename conventions
 
-To access the file <path> on the remote machine <machine> you would
-specify the filename @file{/[<machine>]<path>}.  (The square brackets
-are part of the file name.)  This will connect to <machine> and transfer
-the file using the default method.  @xref{Default Method}.
+On Emacs, the Ange-FTP and Tramp filenames use a unified syntax.  On
+XEmacs, EFS and Tramp use different formats for the filenames.
+Therefore, the following will describe the Emacs and XEmacs cases
+separately.
 
-Some examples of @tramp{} filenames are:
+On Emacs, to access the file @var{path} on the remote machine
+@var{machine} you would specify the filename
+@file{/@var{machine}:@var{path}}.  This will connect to @var{machine}
+and transfer the file using the default method.  @xref{Default
+Method}.  On XEmacs, use @file{/[@var{machine}]@var{path}}.  (The
+square brackets are part of the file name.)
+
+Some examples of @tramp{} filenames are shown below.  In each case,
+the Emacs-style filename is shown first, then the XEmacs-style
+filename.
 
 @table @file
-@item /[melancholia].emacs
+@item /melancholia:.emacs
+@itemx /[melancholia].emacs
 Edit the file @file{.emacs} in your home directory on the machine
 @code{melancholia}.
 
-@item /[melancholia.danann.net].emacs
+@item /melancholia.danann.net:.emacs
+@itemx /[melancholia.danann.net].emacs
 This edits the same file, using the fully qualified domain name of
 the machine.
 
-@item /[melancholia]~/.emacs
+@item /melancholia:~/.emacs
+@itemx /[melancholia]~/.emacs
 This also edits the same file --- the @file{~} is expanded to your
 home directory on the remote machine, just like it is locally.
 
-@item /[melancholia]~daniel/.emacs
+@item /melancholia:~daniel/.emacs
+@itemx /[melancholia]~daniel/.emacs
 This edits the file @file{.emacs} in the home directory of the user
 @code{daniel} on the machine @code{melancholia}. The @file{~<user>}
 construct is expanded to the home directory of that user on the remote
 machine.
 
-@item /[melancholia]/etc/squid.conf
+@item /melancholia:/etc/squid.conf
+@itemx /[melancholia]/etc/squid.conf
 This edits the file @file{/etc/squid.conf} on the machine
 @code{melancholia}.
 
 @end table
-
 
 Unless you specify a different name to use, @tramp{} will use the current
 local user name as the remote user name to log in with. If you need to
 log in as a different user, you can specify the user name as part of the
 filename.
 
-To log in to the remote machine as a specific user, you use the syntax
-@file{/[<user>@@<machine>]/path/to.file}.  That means that connecting to
-@code{melancholia} as @code{daniel} and editing @file{.emacs} in your
-home directory you would specify @file{/[daniel@@melancholia].emacs}.
+On Emacs, to log in to the remote machine as a specific user, you use
+the syntax @file{/@var{user}@@@var{machine}:/path/to.file}.  On
+XEmacs, use @file{/[@var{user}@@@var{machine}]/path/to.file}.  That
+means that connecting to @code{melancholia} as @code{daniel} and
+editing @file{.emacs} in your home directory you would specify
+@file{/daniel@@melancholia:.emacs} on Emacs and
+@file{/[daniel@@melancholia].emacs} on XEmacs.
 
 
 It is also possible to specify other file transfer methods
-(@pxref{Default Method}) as part of the filename.  This is done by
-replacing the initial @file{/[} with @file{/[<method>/}.  (Note the
-trailing slash!)  The user, machine and file specification remain the
-same.
+(@pxref{Default Method}) as part of the filename.  On Emacs, this is
+done by puttig the method before the user and host name, as in
+@file{/@var{method}:} (note the trailing colon).  On XEmacs, it is
+done by replacing the initial @file{/[} with @file{/[<method>/}.
+(Note the trailing slash!)  The user, machine and file specification
+remain the same.
 
-So, to connect to the machine @code{melancholia} as @code{daniel}, using
-the @option{su} method to transfer files, and edit @file{.emacs} in my
-home directory I would specify the filename
-@file{/[su/daniel@@melancholia].emacs}.
+So, to connect to the machine @code{melancholia} as @code{daniel},
+using the @option{su} method to transfer files, and edit @file{.emacs}
+in my home directory I would specify the filename
+@file{/su:daniel@@melancholia:.emacs} on Emacs and
+@file{/[su/daniel@@melancholia].emacs} on XEmacs.
 
 
 @node Multi-hop filename syntax
@@ -1210,18 +1230,21 @@ home directory I would specify the filename
 
 The syntax of multi-hop file names is necessarily slightly different
 than the syntax of other @tramp{} file names.  Here's an example multi-hop
-file name:
+file name, first in Emacs syntax and then in XEmacs syntax:
 
+@file{/multi:rsh:out@@gate:telnet:kai@@real.host:/path/to.file}
 @file{/[multi/rsh:out@@gate/telnet:kai@@real.host]/path/to.file}
 
 This is quite a mouthful.  So let's go through it step by step.  The
-file name consists of three parts, separated by slashes and square
-brackets.  The first part is @file{/[multi}, the method specification.
-The second part is @file{rsh:out@@gate/telnet:kai@@real.host} and
-specifies the hops.  (Yes, the second part may contain even more
-slashes, so that's why this file name has more than two colons in it.)
-The final part is @file{/path/to.file} and specifies the file name on
-the remote host.
+file name consists of three parts.  On Emacs, the parts are separated
+by colons, on XEmacs they are separated by slashes and square
+brackets.  The first part is @file{/multi:} (or @file{/[multi}), the
+method specification.  The second part is
+@file{rsh:out@@gate:telnet:kai@@real.host} (or
+@file{rsh:out@@gate/telnet:kai@@real.host}) and specifies the hops.
+(Yes, on Emacs the second part may contain even more colons, so that's why
+this file name has more than two colons in it.)  The final part is
+@file{/path/to.file} and specifies the file name on the remote host.
 
 The first part and the final part should be clear.  @ref{Multi-hop
 Methods}, for a list of alternatives for the method specification.
@@ -1631,6 +1654,18 @@ appear to exist in XEmacs 20.  I'm somewhat reluctant to add an
 emulation macro to @tramp{}, but if somebody who uses XEmacs 20 steps
 forward and wishes to implement and test it, please contact me or the
 mailing list.
+
+@item The @tramp{} filename syntax differs between Emacs and XEmacs.
+
+The Emacs maintainers wish to use a unified filename syntax for
+Ange-FTP and @tramp{} so that users don't have to learn a new
+syntax.  It is sufficient to learn some extensions to the old syntax.
+
+For the XEmacs maintainers, the problems caused from using a unified
+filename syntax are greater than the gains.  The XEmacs package
+system uses EFS for downloading new packages.  So, obviously, EFS has
+to be installed from the start.  If the filenames were unified, Tramp
+would have to be installed from the start, too.
 
 @end itemize
 

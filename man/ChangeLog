@@ -2,10 +2,12 @@
 
 	* files.texi (Remote Files): Explain new unified file name synatx.
 
-	* tramp.texi: Remove version variables.
+	* tramp.texi: Remove version variables.  Fix copyright years.
 	(Inline methods): Clarify which questions `smx' deals with.
 	(Remote shell setup): shell-prompt-pattern must match at end of
 	buffer.
+	(Filename Syntax, Multi-hop filename syntax): Explain two syntaxes.
+	(Issues): Explain why there are two syntaxes.
 
 2002-06-17  David Kastrup  <David.Kastrup@t-online.de>
 
