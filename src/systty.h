@@ -292,13 +292,18 @@ static struct sensemode {
 
 #endif
 
-/* EMACS_GETPGRP (arg) returns the process group of the terminal.  */
+/* EMACS_GETPGRP (arg) returns the process group of the process.  */
 
+#ifdef __GNU_LIBRARY__
+/* GNU libc by default defines getpgrp with no args on all systems.  */.
+#define GETPGRP_NO_ARG
+#else /* not __GNU_LIBRARY__ */
 #if defined (USG) && !defined (GETPGRP_NEEDS_ARG)
 #  if !defined (GETPGRP_NO_ARG)
 #    define GETPGRP_NO_ARG
 #  endif
 #endif
+#endif /* not __GNU_LIBRARY__ */
 
 #if defined (GETPGRP_NO_ARG)
 #  define EMACS_GETPGRP(x) getpgrp()
