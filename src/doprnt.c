@@ -26,6 +26,14 @@ Boston, MA 02111-1307, USA.  */
 #include <ctype.h>
 #include "lisp.h"
 
+#if STDC_HEADERS
+#include <float.h>
+#endif
+
+#ifndef DBL_MAX_10_EXP
+#define DBL_MAX_10_EXP 308 /* IEEE double */
+#endif
+
 extern long *xmalloc (), *xrealloc ();
 
 static int doprnt1 ();
@@ -80,10 +88,10 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   register char *bufptr = buffer; /* Pointer into output buffer.. */
 
   /* Use this for sprintf unless we need something really big.  */
-  char tembuf[100];
+  char tembuf[DBL_MAX_10_EXP + 100];
 
   /* Size of sprintf_buffer.  */
-  int size_allocated = 100;
+  int size_allocated = sizeof (tembuf);
 
   /* Buffer to use for sprintf.  Either tembuf or same as BIG_BUFFER.  */
   char *sprintf_buffer = tembuf;
@@ -114,7 +122,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
-	  int size_bound;
+	  int size_bound = 0;
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
@@ -123,22 +131,38 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	  while (1)
 	    {
 	      *string++ = *fmt;
-	      if (! (*fmt >= '0' && *fmt <= '9')
-		  && *fmt != '-' && *fmt != ' '&& *fmt != '.')
+	      if ('0' <= *fmt && *fmt <= '9')
+		{
+		  /* Get an idea of how much space we might need.
+		     This might be a field width or a precision; e.g.
+		     %1.1000f and %1000.1f both might need 1000+ bytes.
+		     Parse the width or precision, checking for overflow.  */
+		  int n = *fmt - '0';
+		  while ('0' <= fmt[1] && fmt[1] <= '9')
+		    {
+		      if (n * 10 / 10 != n
+			  || (n = n * 10 + (fmt[1] - '0')) < 0)
+			error ("Format width or precision too large");
+		      *string++ = *++fmt;
+		    }
+
+		  if (size_bound < n)
+		    size_bound = n;
+		}
+	      else if (*fmt == '-' || *fmt == ' ' || *fmt == '.')
+		;
+	      else
 		break;
 	      fmt++;
 	    }
 	  *string = 0;
-	  /* Get an idea of how much space we might need.  */
-	  size_bound = atoi (&fmtcpy[1]);
 
-	  /* Avoid pitfall of negative "size" parameter ("%-200d"). */
+	  /* Make the size bound large enough to handle floating point formats
+	     with large numbers.  */
+	  size_bound += DBL_MAX_10_EXP + 50;
+
 	  if (size_bound < 0)
-	    size_bound = -size_bound;
-	  size_bound += 50;
-
-	  if (size_bound > (((unsigned) 1) << (BITS_PER_INT - 1)))
-	    error ("Format padding too large");
+	    error ("Format width or precision too large");
 
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
