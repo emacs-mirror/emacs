@@ -2096,7 +2096,7 @@ better to use the smaller font in its own size, which Emacs does.
 @end example
 
 @noindent
-the font specification for ASCII characters would be this:
+the font specification for @sc{ascii} characters would be this:
 
 @example
 -*-fixed-medium-r-normal-*-24-*-ISO8859-1

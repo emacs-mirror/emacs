@@ -4,9 +4,9 @@
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/characters
 @node Non-ASCII Characters, Searching and Matching, Text, Top
-@chapter Non-ASCII Characters
+@chapter Non-@sc{ascii} Characters
 @cindex multibyte characters
-@cindex non-ASCII characters
+@cindex non-@sc{ascii} characters
 
   This chapter covers the special issues relating to non-@sc{ascii}
 characters and how they are stored in strings and buffers.

@@ -564,7 +564,7 @@ This function selects the @var{count}th following window in the cyclic
 order.  If count is negative, then it moves back @minus{}@var{count}
 windows in the cycle, rather than forward.  It returns @code{nil}.
 
-The argument @var{all-frames} has the same meaning is as in
+The argument @var{all-frames} has the same meaning as in
 @code{next-window}, but the @var{minibuf} argument of @code{next-window}
 is always effectively @code{nil}.
 

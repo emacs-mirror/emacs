@@ -420,8 +420,8 @@ This matches any @sc{ascii} control character.
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
 @item [:graph:]
-This matches graphic characters---everything except @sc{ascii} control characters,
-space, and DEL.
+This matches graphic characters---everything except @sc{ascii} control
+characters, space, and the delete character.
 @item [:lower:]
 This matches any lower-case letter, as determined by
 the current case table (@pxref{Case Tables}).

@@ -416,7 +416,7 @@ ordered most-recently-selected first.
 @item font
 The name of the font for displaying text in the frame.  This is a
 string, either a valid font name for your system or the name of an Emacs
-fontset (@pxref{Fontsets}).  Changing this frame parameter on a frame,
+fontset (@pxref{Fontsets}).  Changing this frame parameter on a frame
 also changes the font-related attributes of the default face on that
 frame.
 
@@ -522,9 +522,11 @@ number you specify is whether it is greater than zero.)
 @item screen-gamma
 If this is a number, Emacs performs ``gamma correction'' on colors.  The
 value should be the screen gamma of your display, a floating point
-number.  Usual PC monitors have a screen gamma of 2.2.  Smaller values
-result in darker colors; you might want to try a screen gamma of 1.5 for
-LCD color displays.  The viewing gamma Emacs uses is 0.4545 (1/2.2).
+number.  Usual PC monitors have a screen gamma of 2.2, so the default is
+to display for that gamma value.  Specifying a smaller value results in
+darker colors, which is desirable for a monitor that tends to display
+colors too light.  A screen gamma value of 1.5 may give good results for
+LCD color displays.
 
 @item tool-bar-lines
 The number of lines to use for the toolbar.  A value of @code{nil} means
@@ -1503,13 +1505,14 @@ amount of green, and the amount of blue.  Each integer ranges in
 principle from 0 to 65535, but in practice the largest value used is
 65280.
 
-  These functions accept a frame as an optional argument.  We hope in
-the future to make Emacs support multiple text-only terminals; then
-this'argument will specify which terminal to operate on (the default
-being the selected frame).  At present, though, the @var{frame} argument
-has no effect.
+  These functions accept a display (either a frame or the name of a
+terminal) as an optional argument.  We hope in the future to make Emacs
+support more than one text-only terminal at one time; then this argument
+will specify which terminal to operate on (the default being the
+selected frame's terminal).  At present, though, the @var{display}
+argument has no effect.
 
-@defun tty-color-define name number &optional rgb frame
+@defun tty-color-define name number &optional rgb display
 @tindex tty-color-define
 This function associates the color name @var{name} with
 color number @var{number} on the terminal.
@@ -1521,12 +1524,12 @@ approximate other colors, because Emacs does not know what it looks
 like.
 @end defun
 
-@defun tty-color-clear &optional frame
+@defun tty-color-clear &optional display
 @tindex tty-color-clear
 This function clears the table of defined colors for a text-only terminal.
 @end defun
 
-@defun tty-color-alist &optional frame
+@defun tty-color-alist &optional display
 @tindex tty-color-alist
 This function returns an alist recording the known colors supported by a
 text-only terminal.
@@ -1538,18 +1541,17 @@ If present, @var{rgb} is an rgb value that says what the color
 actually looks like.
 @end defun
 
-@defun tty-color-approximate rgb &optional frame
+@defun tty-color-approximate rgb &optional display
 @tindex tty-color-approximate
 This function finds the closest color, among the known colors supported
-for @var{frame}'s terminal, to that described by the rgb value
-@var{rgb}.
+for @var{display}, to that described by the rgb value @var{rgb}.
 @end defun
 
-@defun tty-color-translate color &optional frame
+@defun tty-color-translate color &optional display
 @tindex tty-color-translate
 This function finds the closest color to @var{color} among the known
-colors supported for @var{frame}'s terminal.  If the name @var{color} is
-not defined, the value is @code{nil}.
+colors supported for @var{display}.  If the name @var{color} is not
+defined, the value is @code{nil}.
 
 @var{color} can be an X-style @code{"#@var{xxxyyyzzz}"} specification
 instead of an actual name.  The format

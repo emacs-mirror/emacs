@@ -287,7 +287,7 @@ tells @code{locate-library} to display the file name in the echo area.
 @end deffn
 
 @node Loading Non-ASCII
-@section Loading Non-ASCII Characters
+@section Loading Non-@sc{ascii} Characters
 
   When Emacs Lisp programs contain string constants with non-@sc{ascii}
 characters, these can be represented within Emacs either as unibyte

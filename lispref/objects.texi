@@ -227,8 +227,8 @@ characters.  @xref{String Type}.
 
   Characters in strings, buffers, and files are currently limited to the
 range of 0 to 524287---nineteen bits.  But not all values in that range
-are valid character codes.  Codes 0 through 127 are ASCII codes; the
-rest are non-ASCII (@pxref{Non-ASCII Characters}).  Characters that represent
+are valid character codes.  Codes 0 through 127 are @sc{ascii} codes; the
+rest are non-@sc{ascii} (@pxref{Non-ASCII Characters}).  Characters that represent
 keyboard input have a much wider range, to encode modifier keys such as
 Control, Meta and Shift.
 
@@ -369,7 +369,7 @@ of basic character codes.
 @ifnottex
 2**7
 @end ifnottex
-bit attached to an ASCII character indicates a meta character; thus, the
+bit attached to an @sc{ascii} character indicates a meta character; thus, the
 meta characters that can fit in a string have codes in the range from
 128 to 255, and are the meta versions of the ordinary @sc{ascii}
 characters.  (In Emacs versions 18 and older, this convention was used
@@ -897,7 +897,7 @@ but the newline is ignored if escaped."
 @end example
 
 @node Non-ASCII in Strings
-@subsubsection Non-ASCII Characters in Strings
+@subsubsection Non-@sc{ascii} Characters in Strings
 
   You can include a non-@sc{ascii} international character in a string
 constant by writing it literally.  There are two text representations

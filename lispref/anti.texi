@@ -80,7 +80,7 @@ and background colors, so you cannot specify different colors for
 the scroll bars.
 
 @item
-For simplicity, all ASCII characters now have the same height and width.
+For simplicity, all @sc{ascii} characters now have the same height and width.
 (Certain characters, such as Chinese characters, always have twice
 the standard width.)  All characters are created equal.
 

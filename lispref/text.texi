@@ -2631,7 +2631,7 @@ had faces assigned automatically by a feature such as Font-Lock mode.
 @kindex display @r{(text property)}
 This property activates various features that change the
 way text is displayed.  For example, it can make text appear taller
-or shorter, higher or lower, wider or narror, or replaced with an image.
+or shorter, higher or lower, wider or narrow, or replaced with an image.
 @xref{Display Property}.
 
 @item help-echo
@@ -2834,12 +2834,13 @@ names are in the list.  For example, if a character has a
 then insertion before the character can inherit its @code{face} property
 and its @code{read-only} property, but no others.
 
-  The @code{rear-nonsticky} works the opposite way.  A property is
-normally rear-sticky by default, so the @code{rear-nonsticky} property
-says which properties are @emph{not} rear-sticky.  If a character's
-@code{rear-nonsticky} property is @code{t}, then none of its properties
-are rear-sticky.  If the @code{rear-nonsticky} property is a list,
-properties are rear-sticky @emph{unless} their names are in the list.
+  The @code{rear-nonsticky} property works the opposite way.  Most
+properties are rear-sticky by default, so the @code{rear-nonsticky}
+property says which properties are @emph{not} rear-sticky.  If a
+character's @code{rear-nonsticky} property is @code{t}, then none of its
+properties are rear-sticky.  If the @code{rear-nonsticky} property is a
+list, properties are rear-sticky @emph{unless} their names are in the
+list.
 
 @defvar text-property-default-nonsticky
 @tindex text-property-default-nonsticky
@@ -3155,15 +3156,15 @@ closest to @var{new-pos} that is in the same field as @var{old-pos}.
 If @var{new-pos} is @code{nil}, then @code{constrain-to-field} uses
 the value of point instead, and moves point to the resulting position.
 
-If @var{old-pos} is at the boundary of two fields, then the allowable
-positions for @var{new-pos} depends on the value of the optional
-argument @var{escape-from-edge}.  If @var{escape-from-edge} is
-@code{nil}, then @var{new-pos} is constrained to the field that has the
-same @code{field} text-property that new characters inserted at
-@var{old-pos} would get.  (This depends on the stickiness of the
-@code{field} property for the characters before and after
-@var{old-pos}.)  If @var{escape-from-edge} is non-@code{nil},
-@var{new-pos} is constrained to the union of the two adjacent fields.
+If @var{old-pos} is at the boundary of two fields, then the acceptable
+positions for @var{new-pos} depend on the value of the optional argument
+@var{escape-from-edge}.  If @var{escape-from-edge} is @code{nil}, then
+@var{new-pos} is constrained to the field that has the same @code{field}
+text-property that new characters inserted at @var{old-pos} would get.
+(This depends on the stickiness of the @code{field} property for the
+characters before and after @var{old-pos}.)  If @var{escape-from-edge}
+is non-@code{nil}, @var{new-pos} is constrained to the union of the two
+adjacent fields.
 
 If the optional argument @var{only-in-line} is non-@code{nil}, and
 constraining @var{new-pos} in the usual way would move it to a different
@@ -3282,10 +3283,10 @@ translation table.
 
   A register is a sort of variable used in Emacs editing that can hold a
 variety of different kinds of values.  Each register is named by a
-single character.  All ASCII characters and their meta variants (but
-with the exception of @kbd{C-g}) can be used to name registers.  Thus,
-there are 255 possible registers.  A register is designated in Emacs
-Lisp by the character that is its name.
+single character.  All @sc{ascii} characters and their meta variants
+(but with the exception of @kbd{C-g}) can be used to name registers.
+Thus, there are 255 possible registers.  A register is designated in
+Emacs Lisp by the character that is its name.
 
 @defvar register-alist
 This variable is an alist of elements of the form @code{(@var{name} .

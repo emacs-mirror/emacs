@@ -1256,7 +1256,7 @@ redefines @kbd{C-x C-\} to move down a line.
 redefines the first (leftmost) mouse button, typed with the Meta key, to
 set point where you click.
 
-@cindex non-ASCII text in keybindings
+@cindex non-@sc{ascii} text in keybindings
   Be careful when using non-@sc{ascii} text characters in Lisp
 specifications of keys to bind.  If these are read as multibyte text, as
 they usually will be in a Lisp file (@pxref{Loading Non-ASCII}), you
