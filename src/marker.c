@@ -32,6 +32,8 @@ static int cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
+static void byte_char_debug_check P_ ((struct buffer *, int, int));
+
 /* Nonzero means enable debugging checks on byte/char correspondences.  */
 
 static int byte_debug_flag;
@@ -97,7 +99,7 @@ clear_charpos_cache (b)
     }									\
 }
 
-int
+static void
 byte_char_debug_check (b, charpos, bytepos)
      struct buffer *b;
      int charpos, bytepos;
