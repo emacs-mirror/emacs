@@ -74,6 +74,7 @@ XtAppContext Xt_app_con;
    application.  */
 Widget Xt_app_shell;
 
+extern void free_frame_menubar ();
 #endif /* USE_X_TOOLKIT */
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
@@ -1076,9 +1077,8 @@ x_set_menu_bar_lines (f, value, oldval)
     FRAME_EXTERNAL_MENU_BAR (f) = 1;
   else
     {
-      if (FRAME_EXTERNAL_MENU_BAR (f) == 1 
-	  && f->display.x->menubar_widget)
-	XtDestroyWidget (f->display.x->menubar_widget);
+      if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
+	free_frame_menubar (f);
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
       f->display.x->menubar_widget = 0;
     }
