@@ -111,6 +111,28 @@ If TEST is omitted or nil, `equal' is used."
 	  (setq found t value (if (consp elt) (cdr elt) default))))
       (setq tail (cdr tail)))
     value))
+
+(defun assoc-ignore-case (key alist)
+  "Like `assoc', but ignores differences in case and text representation.
+KEY must be a string.  Upper-case and lower-case letters are treated as equal.
+Unibyte strings are converted to multibyte for comparison."
+  (let (element)
+    (while (and alist (not element))
+      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil t))
+	  (setq element (car alist)))
+      (setq alist (cdr alist)))
+    element))
+
+(defun assoc-ignore-representation (key alist)
+  "Like `assoc', but ignores differences in text representation.
+KEY must be a string.  
+Unibyte strings are converted to multibyte for comparison."
+  (let (element)
+    (while (and alist (not element))
+      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil))
+	  (setq element (car alist)))
+      (setq alist (cdr alist)))
+    element))
 
 ;;;; Keymap support.
 
