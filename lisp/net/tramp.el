@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.6"
+(defconst tramp-version "2.0.7"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -1244,6 +1244,7 @@ on the remote file system.")
   "perl -MMIME::Base64 -0777 -ne 'print encode_base64($_)'"
   "Perl program to use for encoding a file.
 Escape sequence %s is replaced with name of Perl binary.
+This string is passwd to `format', so percent characters need to be doubled.
 This implementation requires the MIME::Base64 Perl module to be installed
 on the remote host.")
 
@@ -1251,6 +1252,7 @@ on the remote host.")
   "perl -MMIME::Base64 -0777 -ne 'print decode_base64($_)'"
   "Perl program to use for decoding a file.
 Escape sequence %s is replaced with name of Perl binary.
+This string is passwd to `format', so percent characters need to be doubled.
 This implementation requires the MIME::Base64 Perl module to be installed
 on the remote host.")
 
@@ -1260,7 +1262,7 @@ on the remote host.")
 # Copyright (C) 2002 Free Software Foundation, Inc.
 use strict;
 
-my %trans = do {
+my %%trans = do {
     my $i = 0;
     map {(substr(unpack(q(B8), chr $i++), 2, 6), $_)}
       split //, q(ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/);
@@ -1277,7 +1279,7 @@ while (my $data = <STDIN>) {
 
     # Only for the last chunk, and only if did not fill the last three-byte packet
     if (eof) {
-        my $mod = length($data) % 3;
+        my $mod = length($data) %% 3;
         $pad = q(=) x (3 - $mod) if $mod;
     }
 
@@ -1293,7 +1295,8 @@ while (my $data = <STDIN>) {
 }
 '"
   "Perl program to use for encoding a file.
-Escape sequence %s is replaced with name of Perl binary.")
+Escape sequence %s is replaced with name of Perl binary.
+This string is passwd to `format', so percent characters need to be doubled.")
 
 (defvar tramp-perl-decode
   "%s -e '
@@ -1301,13 +1304,13 @@ Escape sequence %s is replaced with name of Perl binary.")
 # Copyright (C) 2002 Free Software Foundation, Inc.
 use strict;
 
-my %trans = do {
+my %%trans = do {
     my $i = 0;
-    map {($_, sprintf(q(%06b), $i++))}
+    map {($_, sprintf(q(%%06b), $i++))}
       split //, q(ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/)
 };
 
-my %bytes = map {(unpack(q(B8), chr $_), chr $_)} 0 .. 255;
+my %%bytes = map {(unpack(q(B8), chr $_), chr $_)} 0 .. 255;
 
 binmode(\*STDOUT);
 
@@ -1336,7 +1339,8 @@ while (my $data = <STDIN>) {
 }
 '"
   "Perl program to use for decoding a file.
-Escape sequence %s is replaced with name of Perl binary.")
+Escape sequence %s is replaced with name of Perl binary.
+This string is passwd to `format', so percent characters need to be doubled.")
 
 ; These values conform to `file-attributes' from XEmacs 21.2.
 ; GNU Emacs and other tools not checked.
