@@ -2,7 +2,7 @@
 
 /* The default search path for Lisp function "load".
    This sets load-path.  */
-#define PATH_LOADSEARCH "EMACS_LIBRARY:[LISP]"
+#define PATH_LOADSEARCH "EMACS_LIBRARY:[LOCAL-LISP],EMACS_LIBRARY:[LISP]"
 
 /* Like PATH_LOADSEARCH, but used only when Emacs is dumping.  This
    path is usually identical to PATH_LOADSEARCH except that the entry
@@ -15,7 +15,7 @@
    variable exec-path and the first file name in it sets the Lisp
    variable exec-directory.  exec-directory is used for finding
    executables and other architecture-dependent files.  */
-#define PATH_EXEC "EMACS_LIBRARY:[ETC]"
+#define PATH_EXEC "EMACS_LIBRARY:[LIB-SRC]"
 
 /* Where Emacs should look for its architecture-independent data
    files, like the docstring file.  The lisp variable data-directory

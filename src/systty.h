@@ -45,9 +45,15 @@ static struct iosb
 
 extern int waiting_for_ast;
 extern int stop_input;
+#if 0 /* VAX C doeasn't understand initializing declarations */
 extern int input_ef = 0;
 extern int timer_ef = 0;
 extern int process_ef = 0;
+#else
+extern int input_ef;
+extern int timer_ef;
+extern int process_ef;
+#endif
 extern int input_eflist;
 extern int timer_eflist;
 

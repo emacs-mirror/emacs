@@ -746,6 +746,7 @@ init_sys_modes ()
     timer_ef = get_timer_event_flag ();
     /* LIB$GET_EF (&timer_ef); */
   SYS$CLREF (timer_ef);
+#if 0
   if (!process_ef)
     {
       LIB$GET_EF (&process_ef);
@@ -753,10 +754,13 @@ init_sys_modes ()
     }
   if (input_ef / 32 != process_ef / 32)
     croak ("Input and process event flags in different clusters.");
+#endif
   if (input_ef / 32 != timer_ef / 32)
-    croak ("Input and process event flags in different clusters.");
+    croak ("Input and timer event flags in different clusters.");
+#if 0
   input_eflist = ((unsigned) 1 << (input_ef % 32)) |
     ((unsigned) 1 << (process_ef % 32));
+#endif
   timer_eflist = ((unsigned) 1 << (input_ef % 32)) |
     ((unsigned) 1 << (timer_ef % 32));
 #ifndef VMS4_4
@@ -1188,6 +1192,8 @@ short input_buffer;
 queue_kbd_input ()
 {
   int status;
+  extern kbd_input_ast ();
+
   waiting_for_ast = 0;
   stop_input = 0;
   status = SYS$QIO (0, input_fd, IO$_READVBLK,
@@ -1232,17 +1238,18 @@ kbd_input_ast ()
 #endif
   if (! stop_input)
     queue_kbd_input ();
-/* I don't know what this is doing!  The variables buf, cbuf and i are
-   not declared.  This is new from version 18, what does it do?
   if (c >= 0)
     {
       struct input_event e;
       e.kind = ascii_keystroke;
-      XSET (buf[i].code, Lisp_Int, cbuf[i]);
-      e.frame = selected_frame;
+      XSET (e.code, Lisp_Int, c);
+#ifdef MULTI_FRAME
+      XSET(e.frame_or_window, Lisp_Frame, selected_frame);
+#else
+      e.frame_or_window = Qnil;
+#endif
       kbd_buffer_store_event (&e);
     }
-*/
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
   errno = old_errno;
@@ -1567,6 +1574,25 @@ get_system_name ()
 #endif /* not USG, not 4.1 */
 #endif /* not USG */
 }
+
+#ifdef VMS
+#ifndef HAVE_GETHOSTNAME
+void gethostname(buf, len)
+    char *buf;
+    int len;
+{
+    char *s;
+    s = getenv ("SYS$NODE");
+    if (s == NULL)
+        buf[0] = '\0';
+    else {
+        strncpy (buf, s, len - 2);
+        buf[len - 1] = '\0';
+    } /* else */
+} /* static void gethostname */
+#endif /* ! HAVE_GETHOSTNAME */
+#endif /* VMS */
+
 
 #ifndef VMS
 #ifndef HAVE_SELECT
@@ -3084,16 +3110,16 @@ getwd (pathname)
      char *pathname;
 {
   char *ptr;
-  strcpy (pathname, egetenv ("PATH"));
+  extern char *getcwd ();
 
-  ptr = pathname;
-  while (*ptr)
-    {
-      if ('a' <= *ptr && *ptr <= 'z')
-	*ptr -= 040;
-      ptr++;
-    }
-  return pathname;
+#define MAXPATHLEN 1024
+
+  ptr = malloc (MAXPATHLEN);
+  getcwd (ptr, MAXPATHLEN);
+  strcpy (pathname, ptr);
+  free (ptr);
+  
+ return pathname;
 }
 
 getppid ()

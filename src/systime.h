@@ -45,6 +45,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern long timezone;
 #endif
 
+#ifdef VMS
+#ifdef VAXC
+#include "vmstime.h"
+#endif
+#endif
+
 
 /* EMACS_TIME is the type to use to represent temporal intervals -
    struct timeval on some systems, int on others.  It can be passed as
@@ -190,7 +196,7 @@ extern long timezone;
 #ifndef EMACS_CURRENT_TIME_ZONE
 
 /* System V derivatives have a timezone global variable.  */
-#ifdef USG
+#if defined(USG) || defined(VMS)
 #define EMACS_GET_TZ_OFFSET(offset)					\
   do {									\
     tzset ();								\
@@ -213,7 +219,7 @@ extern long timezone;
 /* The following sane systems have a tzname array.  The timezone() function
    is a stupid idea; timezone names can only be determined geographically,
    not by Greenwich offset.  */
-#if defined (ultrix) || defined (hpux) || defined (_AIX) || defined (USG)
+#if defined (ultrix) || defined (hpux) || defined (_AIX) || defined (USG) || defined(VMS)
 
 #define EMACS_GET_TZ_NAMES(standard, savings)				\
   do {									\
