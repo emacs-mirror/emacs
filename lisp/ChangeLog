@@ -1,3 +1,13 @@
+2004-11-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-resync): New function.
+	(gdb-pre-prompt, gdb-prompt, gdb-starting, gdb-stopping)
+	(gdb-frame-begin, gdb-stopped, gdb-post-prompt): 
+	Use it to fail more gracefully.
+	(gdb-variables): Delete variable.
+	Re-order variables to reduce byte-compiler warnings.
+
+
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* descr-text.el (describe-char):
