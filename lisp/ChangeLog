@@ -1,3 +1,10 @@
+2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: (gdb-goto-info): Delete.
+
+	* progmodes/gud.el (gud-goto-info): New function.
+	(gud-tool-bar-map): Use correct icon.
+
 2005-02-01  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-indent-function): Fix bug:
