@@ -445,21 +445,21 @@ Man-reuse-okay-p is non-nil."
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
-See the variable Man-notify for the different notification behaviors."
+See the variable `Man-notify' for the different notification behaviors."
   (cond
-   ((eq man-notify 'bully)
+   ((eq Man-notify 'bully)
     (pop-to-buffer man-buffer)
     (delete-other-windows))
-   ((eq man-notify 'aggressive)
+   ((eq Man-notify 'aggressive)
     (pop-to-buffer man-buffer))
-   ((eq man-notify 'friendly)
+   ((eq Man-notify 'friendly)
     (display-buffer man-buffer 'not-this-window))
-   ((eq man-notify 'polite)
+   ((eq Man-notify 'polite)
     (beep)
     (message "Manual buffer %s is ready." (buffer-name man-buffer)))
-   ((eq man-notify 'quiet)
+   ((eq Man-notify 'quiet)
     (message "Manual buffer %s is ready." (buffer-name man-buffer)))
-   ((or (eq man-notify 'meek)
+   ((or (eq Man-notify 'meek)
 	t)
     (message ""))
    ))
