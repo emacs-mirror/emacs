@@ -561,7 +561,23 @@ make_terminal_frame ()
   if (!inhibit_window_system
       && (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame))
 	  || XFRAME (selected_frame)->output_method == output_msdos_raw))
-    f->output_method = output_msdos_raw;
+    {
+      f->output_method = output_msdos_raw;
+      /* This initialization of foreground and background pixels is
+	 only important for the initial frame created in temacs.  If
+	 we don't do that, we get black background and foreground in
+	 the dumped Emacs because the_only_x_display is a static
+	 variable, hence it is born all-zeroes, and zero is the code
+	 for the black color.  Other frames all inherit their pixels
+	 from what's already in the_only_x_display.  */
+      if ((!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
+	  && f->output_data.x->background_pixel == 0
+	  && f->output_data.x->foreground_pixel == 0)
+	{
+	  f->output_data.x->background_pixel = FACE_TTY_DEFAULT_BG_COLOR;
+	  f->output_data.x->foreground_pixel = FACE_TTY_DEFAULT_FG_COLOR;
+	}
+    }
   else
     f->output_method = output_termcap;
 #else
