@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.19) $
+ * $HopeName: MMsrc!arenacl.c(trunk.20) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.arena.client.
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsacl.h"
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.19) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.20) $");
 
 
 /* ClientArenaStruct -- Client Arena Structure */
@@ -190,7 +190,6 @@ static void ClientChunkFinish(Chunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-
 static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
                            va_list args)
 {
@@ -446,8 +445,9 @@ static void ClientFree(Addr base, Size size, Pool pool)
   for(pi = baseIndex; pi < limitIndex; pi++) {
     Page page = &chunk->pageTable[pi];
     Tract tract = PageTract(page);
+
     AVER(TractPool(tract) == pool);
-    TractFinish(PageTract(page));
+    TractFinish(tract);
   }
 
   AVER(BTIsSetRange(chunk->allocTable, baseIndex, limitIndex));
