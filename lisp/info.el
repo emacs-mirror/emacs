@@ -270,7 +270,7 @@ Do the right thing if the file has been compressed or zipped."
 	 (check-short (and (fboundp 'msdos-long-file-names)
 			   lfn))
 	 fullname decoder done)
-    (if (file-exists-p filename)
+    (if (info-file-exists-p filename)
 	;; FILENAME exists--see if that name contains a suffix.
 	;; If so, set DECODE accordingly.
 	(progn
