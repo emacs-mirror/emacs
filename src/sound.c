@@ -355,7 +355,23 @@ sound_cleanup (arg)
 
 
 DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
-  "Play sound SOUND.")
+  "Play sound SOUND.\n\
+SOUND is a list of the form `(sound KEYWORD VALUE...)'.\n\
+The following keywords are recognized:\n\
+\n\
+  :file FILE.- read sound data from FILE.  If FILE Isn't an\n\
+absolute file name, it is searched in `data-directory'.\n\
+\n\
+  :data DATA - read sound data from string DATA.\n\
+\n\
+Exactly one of :file or :data must be present.\n\
+\n\
+  :volume VOL - set volume to VOL.  VOL must an integer in the\n\
+range 0..100 or a float in the range 0..1.0.  If not specified,\n\
+don't change the volume setting of the sound device.\n\
+\n\
+  :device DEVICE - play sound on DEVICE.  If not specified,\n\
+a system-dependent default device name is used.")
   (sound)
      Lisp_Object sound;
 {
