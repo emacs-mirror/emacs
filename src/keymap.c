@@ -1443,9 +1443,9 @@ DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
 If KEYMAP is nil, search only KEYMAP1.\n\
 If KEYMAP1 is nil, use the current global map.\n\
 \n\
-If optional 4th arg FIRSTONLY is non-nil, return a string representing\n\
-the first key sequence found, rather than a list of all possible key\n\
-sequences.  If FIRSTONLY is t, avoid key sequences which use non-ASCII\n\
+If optional 4th arg FIRSTONLY is non-nil, return the first key sequence found,\n\
+rather than a list of all possible key sequences.\n\
+If FIRSTONLY is t, avoid key sequences which use non-ASCII\n\
 keys and therefore may not be usable on ASCII terminals.  If FIRSTONLY\n\
 is the symbol `non-ascii', return the first binding found, no matter\n\
 what its components.\n\
