@@ -1618,35 +1618,6 @@ If @code{keyboard-translate-table} is a char-table
 looked up in this char-table.  If the value found there is
 non-@code{nil}, then it is used instead of the actual input character.
 
-In the example below, we set @code{keyboard-translate-table} to a
-char-table.  Then we fill it in to swap the characters @kbd{C-s} and
-@kbd{C-\} and the characters @kbd{C-q} and @kbd{C-^}.  Subsequently,
-typing @kbd{C-\} has all the usual effects of typing @kbd{C-s}, and vice
-versa.
-
-@cindex flow control example
-@example
-@group
-(defun evade-flow-control ()
-  "Replace C-s with C-\ and C-q with C-^."
-  (interactive)
-@end group
-@group
-  (setq keyboard-translate-table
-        (make-char-table 'keyboard-translate-table nil))
-@end group
-@group
-  ;; @r{Swap @kbd{C-s} and @kbd{C-\}.}
-  (aset keyboard-translate-table ?\034 ?\^s)
-  (aset keyboard-translate-table ?\^s ?\034)
-@end group
-@group
-  ;; @r{Swap @kbd{C-q} and @kbd{C-^}.}
-  (aset keyboard-translate-table ?\036 ?\^q)
-  (aset keyboard-translate-table ?\^q ?\036))
-@end group
-@end example
-
 Note that this translation is the first thing that happens to a
 character after it is read from the terminal.  Record-keeping features
 such as @code{recent-keys} and dribble files record the characters after
@@ -1663,6 +1634,26 @@ This function modifies @code{keyboard-translate-table} to translate
 character code @var{from} into character code @var{to}.  It creates
 the keyboard translate table if necessary.
 @end defun
+
+  Here's an example of using the @code{keyboard-translate-table} to
+make @kbd{C-x}, @kbd{C-c} and @kbd{C-v} perform the cut, copy and paste
+operations:
+
+@example
+(keyboard-translate ?\C-x 'control-x)
+(keyboard-translate ?\C-c 'control-c)
+(keyboard-translate ?\C-v 'control-v)
+(global-set-key [control-x] 'kill-region)
+(global-set-key [control-c] 'kill-ring-save)
+(global-set-key [control-v] 'yank)
+@end example
+
+@noindent
+On a graphical terminal that supports extended @acronym{ASCII} input,
+you can still get the standard Emacs meanings of one of those
+characters by typing it with the shift key.  That makes it a different
+character as far as keyboard translation is concerned, but it has the
+same usual meaning.
 
   The remaining translation features translate subsequences of key
 sequences being read.  They are implemented in @code{read-key-sequence}
