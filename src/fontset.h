@@ -217,6 +217,8 @@ extern int fs_register_fontset P_ ((struct frame *, Lisp_Object));
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
 extern Lisp_Object Vglobal_fontset_alist;
+struct frame;
+int fs_query_fontset P_ ((struct frame *f, char *name));
 
 extern Lisp_Object Qfontset;
 extern Lisp_Object Vuse_default_ascent; 
@@ -242,5 +244,25 @@ extern int font_idx_temp;
        font_idx_temp >= 0)						  \
    ? font_table + font_idx_temp						  \
    : fs_load_font (f, font_table, charset, fontname, fontset))
+
+extern Lisp_Object Vfontset_alias_alist;
+extern Lisp_Object Vglobal_fontset_alist;
+
+
+/* Return an immutable id for font_info FONT_INFO on frame F.  The
+   reason for this macro is hat one cannot hold pointers to font_info
+   structures in other data structures, because the table is
+   reallocated in x_list_fonts.  */
+
+#define FONT_INFO_ID(F, FONT_INFO) \
+     (FONT_INFO) - (FRAME_X_DISPLAY_INFO ((F))->font_table)
+
+/* Given a font_info id ID, return a pointer to the font_info
+   structure on frame F.  If ID is invalid, return null.  */
+
+#define FONT_INFO_FROM_ID(F, ID)					\
+     (((ID) >= 0 && (ID) < FRAME_X_DISPLAY_INFO ((F))->font_table_size)	\
+      ? (FRAME_X_DISPLAY_INFO ((F))->font_table + (ID))			\
+      : 0)
 
 #endif /* _FONTSET_H */
