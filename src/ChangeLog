@@ -1,3 +1,10 @@
+2001-12-07  Andreas Schwab  <schwab@suse.de>
+
+	* data.c (Vmost_positive_fixnum, Vmost_negative_fixnum): Renamed
+	from most_positive_fixnum and most_negative_fixnum, resp., and
+	type changed to Lisp_Object.
+	(syms_of_data): DEFVAR_LISP them.
+
 2001-12-07  Richard M. Stallman  <rms@gnu.org>
 
 	* callproc.c (init_callproc): Set Vdata_directory based on the source
