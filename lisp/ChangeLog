@@ -1,8 +1,12 @@
+2004-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* generic.el (generic-mode-set-comments): Accept an empty comment-end.
+
 2004-11-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (dedicated-switch-to-buffer): New function.
-	(gdb-ann3, gdb-setup-windows, gdb-restore-windows): Dedicate
-	gdb-related windows.
+	(gdb-ann3, gdb-setup-windows, gdb-restore-windows):
+	Dedicate gdb-related windows.
 	(gdb-display-buffer): Dedicate gdb-related windows. Don't grab
 	other frames.
 	(gdb-reset): Remove dedicated property after debugging.
@@ -48,20 +52,19 @@
 	(math-comp-simplify, math-comp-simplify-term)
 	(math-comp-add-string, math-comp-add-string-sel):
 	Replace	variables comp-highlight, comp-buf, comp-base,
-	comp-height, comp-tag, comp-hpos and comp-vpos by declared
-	variables.
+	comp-height, comp-tag, comp-hpos and comp-vpos by declared variables.
 
 2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* cus-start.el (all): Added x-use-old-gtk-file-dialog.
+	* cus-start.el (all): Add x-use-old-gtk-file-dialog.
 
 	* mail/emacsbug.el (report-emacs-bug): Catch error that x-server-vendor
 	and x-server-version may throw.
 
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
-	* subr.el (substitute-key-definition-key): Optimize.  Don't
-	call indirect-function for nil defn (always signals error).
+	* subr.el (substitute-key-definition-key): Optimize.
+	Don't call indirect-function for nil defn (always signals error).
 
 	* ido.el (ido-read-internal): Fix require-match check when
 	ido-directory-too-big is set.
@@ -71,8 +74,7 @@
 	* calc/calc-ext.el (math-read-replacement-list)
 	(math-read-superscripts): New variables.
 	(math-read-preprocess-string): New function.
-	(math-read-expr): Filter input through
-	math-read-preprocess-string.
+	(math-read-expr): Filter input through math-read-preprocess-string.
 
 	* calc/calc-aent.el (math-read-exprs): Filter input through
 	math-read-preprocess-string.
