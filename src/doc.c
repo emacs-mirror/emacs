@@ -334,8 +334,7 @@ string is passed through `substitute-command-keys'.")
       if (!SYMBOLP (funcar))
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
       else if (EQ (funcar, Qkeymap))
-	return build_string ("Prefix command (definition is a keymap associating keystrokes with\n\
-subcommands.)");
+	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qautoload))
 	{
