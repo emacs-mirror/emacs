@@ -35,7 +35,7 @@ define global abbrevs instead."
   :group 'abbrev-mode
   :group 'convenience)
 
-(defun abbrev-mode (arg)
+(defun abbrev-mode (&optional arg)
   "Toggle abbrev mode.
 With argument ARG, turn abbrev mode on iff ARG is positive.
 In abbrev mode, inserting an abbreviation causes it to expand
