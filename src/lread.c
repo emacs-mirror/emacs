@@ -1436,7 +1436,7 @@ init_lread ()
   /* Compute the default load-path.  */
 #ifdef CANNOT_DUMP
   normal = PATH_LOADSEARCH;
-  Vload_path = decode_env_path ("", normal);
+  Vload_path = decode_env_path (0, normal);
 #else
   if (NILP (Vpurify_flag))
     normal = PATH_LOADSEARCH;
@@ -1452,12 +1452,12 @@ init_lread ()
     {
       Lisp_Object dump_path;
 
-      dump_path = decode_env_path ("", PATH_DUMPLOADSEARCH);
+      dump_path = decode_env_path (0, PATH_DUMPLOADSEARCH);
       if (! NILP (Fequal (dump_path, Vload_path)))
-	Vload_path = decode_env_path ("", normal);
+	Vload_path = decode_env_path (0, normal);
     }
   else
-    Vload_path = decode_env_path ("", normal);
+    Vload_path = decode_env_path (0, normal);
 #endif
 
   /* Warn if dirs in the *standard* path don't exist.  */

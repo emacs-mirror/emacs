@@ -195,12 +195,9 @@ If you quit, the process is killed with SIGKILL.")
        Protect it from permanent change.  */
     register char **save_environ = environ;
     register int fd1 = fd[1];
-    char **env;
-
-    env = environ;
 
 #if 0  /* Some systems don't have sigblock.  */
-    EMACS_SIGBLOCK (sigmask (SIGCHLD), mask);
+    mask = sigblock (sigmask (SIGCHLD));
 #endif
 
     /* Record that we're about to create a synchronous process.  */
@@ -217,18 +214,14 @@ If you quit, the process is killed with SIGKILL.")
 #else
         setpgrp (pid, pid);
 #endif /* USG */
-	child_setup (filefd, fd1, fd1, new_argv, env, 0, current_dir);
+	child_setup (filefd, fd1, fd1, new_argv, 0, current_dir);
       }
 
 #if 0
     /* Tell SIGCHLD handler to look for this pid.  */
     synch_process_pid = pid;
     /* Now let SIGCHLD come through.  */
-    {
-      int dummy;
-
-      EMACS_SIGSETMASK (mask, dummy);
-    }
+    sigsetmask (mask);
 #endif
 
     environ = save_environ;
@@ -368,13 +361,14 @@ If you quit, the process is killed with SIGKILL.")
    a decent error from within the child, this should be verified as an
    executable directory by the parent.  */
 
-child_setup (in, out, err, new_argv, env, set_pgrp, current_dir)
+child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      int in, out, err;
      register char **new_argv;
-     char **env;
      int set_pgrp;
      Lisp_Object current_dir;
 {
+  char **env;
+
   register int pid = getpid();
 
   setpriority (PRIO_PROCESS, pid, 0);
@@ -424,7 +418,7 @@ child_setup (in, out, err, new_argv, env, set_pgrp, current_dir)
     /* new_length + 1 to include terminating 0 */
     env = new_env = (char **) alloca ((new_length + 1) * sizeof (char *));
 
-    /* Copy the env strings into new_env.  */
+    /* Copy the Vprocess_alist strings into new_env.  */
     for (tem = Vprocess_environment;
 	 (XTYPE (tem) == Lisp_Cons
 	  && XTYPE (XCONS (tem)->car) == Lisp_String);

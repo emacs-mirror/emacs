@@ -122,12 +122,13 @@ removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
 src/paths.h: Makefile src/paths.h.in
 	lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	/bin/sed < src/paths.h.in > src/paths.h				\
+	/bin/sed < src/paths.h.in > src/paths.h.tmp			\
 	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'		\
 	-e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";'	\
 	-e 's;\(#.*PATH_EXEC\).*$$;\1 "${libdir}";'			\
 	-e 's;\(#.*PATH_DATA\).*$$;\1 "${datadir}";'			\
 	-e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";'
+	./move-if-change src/paths.h.tmp src/paths.h
 
 src:	lib-src
 

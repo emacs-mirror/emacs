@@ -1046,8 +1046,8 @@ Optional second argument EXITING means ask about certain non-file buffers
 				    (buffer-name buffer)))))))
 		(function
 		 (lambda (buffer)
-		     (set-buffer buffer)
-		     (save-buffer)))
+		   (set-buffer buffer)
+		   (save-buffer)))
 		(buffer-list)
 		'("buffer" "buffers" "save")))
 	(message "(No files need saving)"))))

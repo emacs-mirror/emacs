@@ -638,11 +638,7 @@ reset_sigio ()
 request_sigio ()
 {
 #ifdef SIGWINCH
-  {
-    int dummy;
-
-    EMACS_SIGUNBLOCKX (SIGWINCH, dummy);
-  }
+  sigunblock (sigmask (SIGWINCH));
 #endif
   fcntl (0, F_SETFL, old_fcntl_flags | FASYNC);
 
@@ -652,11 +648,7 @@ request_sigio ()
 unrequest_sigio ()
 {
 #ifdef SIGWINCH
-  {
-    int dummy;
-    
-    EMACS_SIGBLOCK (SIGWINCH, dummy);
-  }
+  sigblock (sigmask (SIGWINCH));
 #endif
   fcntl (0, F_SETFL, old_fcntl_flags);
   interrupts_deferred = 1;
@@ -1881,6 +1873,19 @@ sys_signal (int signal_number, signal_handler_t action)
   return (old_action.sa_handler);
 #endif /* DGUX */
 }
+
+#ifndef __GNUC__
+/* If we're compiling with GCC, we don't need this function, since it
+   can be written as a macro.  */
+sigset_t
+sys_sigmask (int sig)
+{
+  sigset_t mask;
+  sigemptyset (&mask);
+  sigaddset (&mask, sig);
+  return mask;
+}
+#endif
 
 int
 sys_sigpause (sigset_t new_mask)

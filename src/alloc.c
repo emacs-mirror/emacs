@@ -29,6 +29,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif	/* MULTI_SCREEN */
 #endif
 
+#include "syssignal.h"
+
 #define max(A,B) ((A) > (B) ? (A) : (B))
 
 /* Macro to verify that storage intended for Lisp objects is not
@@ -549,11 +551,11 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 {
   register Lisp_Object val;
   register struct Lisp_Marker *p;
+
   /* Detact the bug that seems to have caused this to be called from
      a signal handler.  */
-  int mask, dummy;
-  EMACS_SIGSETMASK (-1, mask);
-  EMACS_SIGSETMASK (mask, dummy);
+  SIGMASKTYPE mask;
+  mask = sigblock (SIGEMPTYMASK);
   if (mask != 0)
     abort ();
 

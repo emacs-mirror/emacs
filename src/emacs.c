@@ -721,7 +721,10 @@ decode_env_path (evarname, defalt)
   /* It's okay to use getenv here, because this function is only used
      to initialize variables when Emacs starts up, and isn't called
      after that.  */
-  path = (char *) getenv (evarname);
+  if (evarname != 0)
+    path = (char *) getenv (evarname);
+  else
+    path = 0;
   if (!path)
     path = defalt;
   lpath = Qnil;

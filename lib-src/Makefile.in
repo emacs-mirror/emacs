@@ -118,52 +118,52 @@ getopt.o: getopt.c getopt.h
 getopt1.o: getopt1.c getopt.h
 
 etags: etags.c $(GETOPTDEPS)
-	$(CC) -o etags ${CFLAGS} -DETAGS etags.c $(GETOPTOBJS) $(LOADLIBES)
+	$(CC) ${CFLAGS} -DETAGS etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
 
 ctags: etags.c $(GETOPTDEPS)
-	$(CC) -o ctags ${CFLAGS} -DCTAGS etags.c $(GETOPTOBJS) $(LOADLIBES)
+	$(CC) ${CFLAGS} -DCTAGS etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
 
 wakeup: wakeup.c
-	$(CC) -o wakeup ${CFLAGS} wakeup.c $(LOADLIBES)
+	$(CC) ${CFLAGS} wakeup.c $(LOADLIBES) -o wakeup
 
 make-docfile: make-docfile.c
-	$(CC) -o make-docfile ${CFLAGS} make-docfile.c $(LOADLIBES)
+	$(CC) ${CFLAGS} make-docfile.c $(LOADLIBES) -o make-docfile
 
 digest-doc: digest-doc.c
-	$(CC) -o digest-doc ${CFLAGS} digest-doc.c $(LOADLIBES)
+	$(CC) ${CFLAGS} digest-doc.c $(LOADLIBES) -o digest-doc 
 
 sorted-doc: sorted-doc.c
-	$(CC) -o sorted-doc ${CFLAGS} sorted-doc.c $(LOADLIBES)
+	$(CC) ${CFLAGS} sorted-doc.c $(LOADLIBES) -o sorted-doc
 
 b2m: b2m.c
-	$(CC) -o b2m ${CFLAGS} b2m.c $(LOADLIBES)
+	$(CC) ${CFLAGS} b2m.c $(LOADLIBES) -o b2m 
 
 movemail: movemail.c ../src/config.h
-	$(CC) -o movemail ${CFLAGS} movemail.c $(LOADLIBES)
+	$(CC) ${CFLAGS} movemail.c $(LOADLIBES) -o movemail
 
 cvtmail: cvtmail.c
-	$(CC) -o cvtmail ${CFLAGS} cvtmail.c $(LOADLIBES)
+	$(CC) ${CFLAGS} cvtmail.c $(LOADLIBES) -o cvtmail
 
 fakemail: fakemail.c ../src/config.h
-	$(CC) -o fakemail ${CFLAGS} fakemail.c $(LOADLIBES)
+	$(CC) ${CFLAGS} fakemail.c $(LOADLIBES) -o fakemail
 
 yow: yow.c ../src/paths.h
-	$(CC) -o yow ${CFLAGS} yow.c $(LOADLIBES)
+	$(CC) ${CFLAGS} yow.c $(LOADLIBES) -o yow
 
 env: env.c ../src/config.h
-	$(CC) -o env -DEMACS ${CFLAGS} env.c $(LOADLIBES)
+	$(CC) -DEMACS ${CFLAGS} env.c $(LOADLIBES) -o env
 
 emacsserver: emacsserver.c ../src/config.h
-	$(CC) -o emacsserver ${CFLAGS} emacsserver.c $(LOADLIBES)
+	$(CC) ${CFLAGS} emacsserver.c $(LOADLIBES) -o emacsserver
 
 emacsclient: emacsclient.c ../src/config.h
-	$(CC) -o emacsclient ${CFLAGS} emacsclient.c $(LOADLIBES)
+	$(CC) ${CFLAGS} emacsclient.c $(LOADLIBES) -o emacsclient
 
 hexl: hexl.c
-	$(CC) -o hexl ${CFLAGS} hexl.c $(LOADLIBES)
+	$(CC) ${CFLAGS} hexl.c $(LOADLIBES) -o hexl
 
 timer: getdate.o timer.o
-	$(CC) -o timer $(CFLAGS) getdate.o timer.o
+	$(CC) $(CFLAGS) getdate.o timer.o -o timer
 
 # These are NOT included in INSTALLABLES or UTILITIES.
 # See ../src/ymakefile.

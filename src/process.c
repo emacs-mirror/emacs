@@ -1109,10 +1109,7 @@ create_process (process, new_argv)
 #endif
   int pty_flag = 0;
   Lisp_Object current_dir;
-  char **env;
   extern char **environ;
-
-  env = environ;
 
   inchannel = outchannel = -1;
 
@@ -1318,7 +1315,7 @@ create_process (process, new_argv)
 
 	child_setup_tty (xforkout);
 	child_setup (xforkin, xforkout, xforkout,
-		     new_argv, env, 1, current_dir);
+		     new_argv, 1, current_dir);
       }
     environ = save_environ;
   }

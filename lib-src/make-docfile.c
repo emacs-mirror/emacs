@@ -1,11 +1,11 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -166,7 +166,13 @@ write_c_args (out, buf, minargs, maxargs)
       else if (c == ' ' && space)
 	continue;
       space = (c == ' ');
-      putc (c, out);
+
+      /* Print the C arguments as they would appear in Elisp;
+	 print underscores as hyphens.  */
+      if (c == '_')
+	putc ('-');
+      else
+	putc (c, out);
     }
   putc ('\n', out);
 }

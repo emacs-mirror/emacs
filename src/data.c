@@ -1959,11 +1959,7 @@ arith_error (signo)
 #ifdef BSD4_1
   sigrelse (SIGFPE);
 #else /* not BSD4_1 */
-  {
-    int dummy;
-
-    EMACS_SIGSETMASK (SIGEMPTYMASK, dummy);
-  }
+  sigsetmask (SIGEMPTYMASK);
 #endif /* not BSD4_1 */
 
   Fsignal (Qarith_error, Qnil);

@@ -22,6 +22,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
+#include "syssignal.h"
 
 Lisp_Object Qarith_error;
 
@@ -509,11 +510,7 @@ float_error (signo)
 #ifdef BSD4_1
   sigrelse (SIGILL);
 #else /* not BSD4_1 */
-  {
-    int dummy;
-
-    EMACS_SIGSETMASK (0, dummy);
-  }
+  sigsetmask (SIGEMPTYMASK);
 #endif /* not BSD4_1 */
 #else
   /* Must reestablish handler each time it is called.  */

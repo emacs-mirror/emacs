@@ -65,7 +65,7 @@ char *superlock_path;
 
 /* Set LOCK to the name of the lock file for the filename FILE.
    char *LOCK; Lisp_Object FILE;  */
-#define MAKE_LOCK_PATH (lock, file) \
+#define MAKE_LOCK_PATH(lock, file) \
   (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_path) + 1), \
    fill_in_lock_file_name (lock, (file)))
 

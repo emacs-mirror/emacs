@@ -333,34 +333,16 @@ buffer. The hook comint-exec-hook is run after each exec."
     buffer))
 
 ;;; This auxiliary function cranks up the process for comint-exec in
-;;; the appropriate environment. It is twice as long as it should be
-;;; because emacs has two distinct mechanisms for manipulating the
-;;; process environment, selected at compile time with the
-;;; MAINTAIN-ENVIRONMENT #define. In one case, process-environment
-;;; is bound; in the other it isn't.
+;;; the appropriate environment.
 
 (defun comint-exec-1 (name buffer command switches)
-  (if (boundp 'process-environment) ; Not a completely reliable test.
-      (let ((process-environment
-	     (comint-update-env process-environment
-				(list (format "TERMCAP=emacs:co#%d:tc=unknown"
-					      (screen-width))
-				      "TERM=emacs"
-				      "EMACS=t"))))
-	(apply 'start-process name buffer command switches))
-
-      (let ((tcapv (getenv "TERMCAP"))
-	    (termv (getenv "TERM"))
-	    (emv   (getenv "EMACS")))
-	(unwind-protect
-	     (progn (setenv "TERMCAP" (format "emacs:co#%d:tc=unknown"
-					      (screen-width)))
-		    (setenv "TERM" "emacs")
-		    (setenv "EMACS" "t")
-		    (apply 'start-process name buffer command switches))
-	  (setenv "TERMCAP" tcapv)
-	  (setenv "TERM"    termv)
-	  (setenv "EMACS"   emv)))))
+  (let ((process-environment
+	 (comint-update-env process-environment
+			    (list (format "TERMCAP=emacs:co#%d:tc=unknown"
+					  (screen-width))
+				  "TERM=emacs"
+				  "EMACS=t"))))
+    (apply 'start-process name buffer command switches)))
 	     
 
 
