@@ -65,7 +65,13 @@ void fatal_error ();
 #include <unistd.h>
 #endif
 
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
+#ifndef errno
 extern int errno;
+#endif
 
 /* Copied from src/process.c */
 #ifdef FD_SET
