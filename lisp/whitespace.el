@@ -87,6 +87,7 @@ don't define defcustom"
   "Check for and fix five different types of whitespaces in source code."
   ;; Since XEmacs doesn't have a 'convenience group, use the next best group
   ;; which is 'editing?
+  :version "21.1"
   :group (if whitespace-running-emacs 'convenience 'editing))
 
 (defcustom whitespace-check-leading-whitespace t
