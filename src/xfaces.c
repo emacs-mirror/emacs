@@ -370,7 +370,7 @@ unload_color (f, pixel)
     return;
   cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (dpy));
   BLOCK_INPUT;
-  XFreeColors (dpy, cmap, &pixel, 1, 0);
+  XFreeColors (dpy, cmap, &pixel, 1, (unsigned long)0);
   UNBLOCK_INPUT;
 }
 
