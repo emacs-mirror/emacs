@@ -141,6 +141,8 @@
 ;;; Code:
 
 (require 'comint)
+(require 'lisp-mode)
+
 
 (defvar inferior-lisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "*What not to save on inferior Lisp's input history
