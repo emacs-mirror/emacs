@@ -4,6 +4,10 @@
 	user-visible commands.  From Rob Riepel
 	<riepel@Networking.Stanford.EDU>.
 
+2001-10-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* ruler-mode.el: New file.
+
 2001-10-09  Miles Bader  <miles@gnu.org>
 
 	* apropos.el (button): New require.
