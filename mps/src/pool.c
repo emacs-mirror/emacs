@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.37) $
+ * $HopeName: MMsrc!pool.c(trunk.38) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.37) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.38) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -495,22 +495,30 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
   NOOP;                         /* trivial free has no effect */
 }
 
-Res PoolNoBufferInit(Pool pool, Buffer buffer)
+
+/* PoolNoBufferInit -- buffer init for pools without buffers */
+
+Res PoolNoBufferInit(Pool pool, Buffer buffer, va_list args)
 {
   AVERT(Pool, pool);
-  UNUSED(buffer);
+  UNUSED(buffer); UNUSED(args);
   NOTREACHED;
   return ResUNIMPL;
 }
 
-/* The generic method initialised all generic fields; */
-/* This doesn't override any fields */
-Res PoolTrivBufferInit(Pool pool, Buffer buffer)
+
+/* PoolTrivBufferInit -- default initialization for buffers
+ *
+ * The generic method initialised all generic fields; nothing to do.
+ */
+
+Res PoolTrivBufferInit(Pool pool, Buffer buffer, va_list args)
 {
   AVERT(Pool, pool);
-  UNUSED(buffer);
+  UNUSED(buffer); UNUSED(args);
   return ResOK;
 }
+
 
 void PoolNoBufferFinish(Pool pool, Buffer buffer)
 {
