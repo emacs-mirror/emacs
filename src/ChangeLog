@@ -1,5 +1,8 @@
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (face-alternative-font-family-alist): Remove
+	DEFVAR_LISP; staticpro instead.
+
 	* xmenu.c (menu_help_callback): Call show_help_echo with 
 	new arguments.
 

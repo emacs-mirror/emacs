@@ -2839,10 +2839,11 @@ moves over a tool-bar item or a piece of text that has a text property
 that have a `help-echo' property.
 
 If the value of the `help-echo' property is a function, that function
-is called with two arguments OBJECT and POSITION.  OBJECT is the 
-buffer or string which had the `help-echo' property.  POSITION is
-the position within OBJECT under the mouse pointer.  The function
-should return a help string or nil for none.
+is called with three arguments WINDOW, OBJECT and POSITION.  WINDOW is
+the window in which the help was found, OBJECT is the buffer or string
+which had the `help-echo' property.  POSITION is the position within
+OBJECT under the mouse pointer.  The function should return a help
+string or nil for none.
 
 If the value of the `help-echo' property is neither a function nor a
 string, it is evaluated to obtain a help string.
