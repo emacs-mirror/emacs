@@ -435,7 +435,7 @@ lets you type a terminal emulator command."
 	     (setq last-input-char (get last-input-char 'ascii-character)))
 	 ;; Convert meta characters to 8-bit form for transmission.
 	 (if (and (integerp last-input-char)
-		  (not (zerop (logand last-input-char (lsh 1 23)))))
+		  (not (zerop (logand last-input-char ?\M-\^@))))
 	     (setq last-input-char (+ 128 (logand last-input-char 127))))
 	 ;; Now ignore all but actual characters.
 	 ;; (It ought to be possible to send through function
