@@ -1,3 +1,23 @@
+2004-11-30  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_buf, encode_terminal_bufsize): New
+	variables.
+	(encode_terminal_code): Argument changed.  Encode all
+	characters at once, and return a pointer to the result of
+	encoding.
+	(write_glyphs): Decide coding here.  Adjusted for the above
+	change.
+	(insert_glyphs): Likewise.
+	(term_init): Initialize encode_terminal_bufsize to 0.
+
+	* coding.c (Vcode_conversion_workbuf_name): New variable.
+	(syms_of_coding): Initialize and staticpro it.
+	(set_conversion_work_buffer): New function.
+	(run_pre_post_conversion_on_str): Use it.
+	(run_pre_write_conversin_on_c_str): New function.
+
+	* coding.h (run_pre_write_conversin_on_c_str): Extern it.
+
 2004-11-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c: Don't undef SIGIO

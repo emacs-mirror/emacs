@@ -21,7 +21,7 @@
 
 2004-11-29  Kenichi Handa  <handa@m17n.org>
 
-	* startup.el (command-line): Decode all buffer names by
+	* startup.el (command-line): Decode all default-directory by
 	locale-coding-system.
 
 2004-11-29  Jay Belanger  <belanger@truman.edu>
