@@ -78,6 +78,11 @@ Optional argument PROMPT specifies a string to use to prompt the user."
   (interactive)
   (ding))
 
+;; Some programs still use this as a function.
+(defun baud-rate ()
+  "Obsolete function returning the value of the `baud-rate' variable."
+  baud-rate)
+
 ;Prevent the \{...} documentation construct
 ;from mentioning keys that run this command.
 (put 'undefined 'suppress-keymap t)
