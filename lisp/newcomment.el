@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.24 2000/11/14 15:09:40 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.25 2000/11/21 21:31:16 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -436,7 +436,7 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
 	    (insert ender)))
       (goto-char begpos)
       ;; Compute desired indent.
-      (setq indent (funcall comment-indent-function))
+      (setq indent (save-excursion (funcall comment-indent-function)))
       (if (not indent)
 	  ;; comment-indent-function refuses delegates to indent.
 	  (indent-according-to-mode)
