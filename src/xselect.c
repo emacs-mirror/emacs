@@ -2301,7 +2301,7 @@ it merely informs you that they have happened.");
     "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
-A default value is `compound-text'");
+The default value is `compound-text'.");
   Vselection_coding_system = intern ("compound-text");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
