@@ -217,7 +217,7 @@ Whichever character you type to run this command is inserted.")
   CHECK_NUMBER (arg, 0);
 
   /* Barf if the key that invoked this was not a character.  */
-  if (XTYPE (last_command_char) != Lisp_Int)
+  if (!INTEGERP (last_command_char))
     bitch_at_user ();
   else
     while (XINT (arg) > 0)
