@@ -1348,12 +1348,14 @@ fail;
     AC_MSG_RESULT(before 5)])
 fi
 
+dnl Do not put whitespace before the #include statements below.
+dnl Older compilers (eg sunos4 cc) choke on it.
 if test x"${USE_X_TOOLKIT}" = xmaybe; then
   if test x"${HAVE_X11R5}" = xyes; then
     AC_MSG_CHECKING(X11 version 5 with Xaw)
     AC_TRY_LINK([
-	  #include <X11/Intrinsic.h>
-	  #include <X11/Xaw/Simple.h>],
+#include <X11/Intrinsic.h>
+#include <X11/Xaw/Simple.h>],
       [],
       [AC_MSG_RESULT(5 or newer, with Xaw; use toolkit by default)
        USE_X_TOOLKIT=LUCID],
