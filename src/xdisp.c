@@ -2461,6 +2461,14 @@ display_mode_line (w)
   if (XFASTINT (w->width) == FRAME_WIDTH (f)
       || XFASTINT (XWINDOW (w->parent)->width) == FRAME_WIDTH (f))
     FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
+  else if (! FRAME_TERMCAP_P (f))
+    {
+      /* For a partial width window, explicitly set face of each glyph. */
+      int i;
+      GLYPH *ptr = FRAME_DESIRED_GLYPHS (f)->glyphs[vpos];
+      for (i = left; i < right; ++i)
+	ptr[i] = MAKE_GLYPH (GLYPH_CHAR (ptr[i]), 1);
+    }
 
 #ifdef HAVE_X_WINDOWS
   /* I'm trying this out because I saw Unimpress use it, but it's
