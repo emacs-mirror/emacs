@@ -2919,6 +2919,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
     {
       if (! NILP (minibuf_prompt))
 	{
+	  int old_width = minibuf_prompt_width;
+
 	  minibuf_prompt_width
 	    = (display_string (w, vpos, XSTRING (minibuf_prompt)->data,
 			       XSTRING (minibuf_prompt)->size, hpos,
@@ -2932,7 +2934,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 				? XFASTINT (w->width) - 4 : -1))
 	       - hpos);
 	  hpos += minibuf_prompt_width;
-	  taboffset -= minibuf_prompt_width;
+	  taboffset -= minibuf_prompt_width - old_width;
 	}
       else
 	minibuf_prompt_width = 0;
