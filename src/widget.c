@@ -875,7 +875,9 @@ EmacsFrameSetCharSize (widget, columns, rows)
   Dimension pixel_width, pixel_height, granted_width, granted_height;
   XtGeometryResult result;
   struct frame *f = ew->emacs_frame.frame;
-
+  Arg al[2];
+  int ac = 0;
+  
   if (columns < 3) columns = 3;  /* no way buddy */
   if (rows < 3) rows = 3;
 
@@ -889,40 +891,23 @@ EmacsFrameSetCharSize (widget, columns, rows)
        : 0);
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 
-/* Dont call XtMakeResize Request. This appears to not work for all
-   the cases.
-   Use XtVaSetValues instead.  */
-#if 0
-result = XtMakeResizeRequest ((Widget)ew,
-				pixel_width, pixel_height,
-				&granted_width, &granted_height);
-  if (result == XtGeometryAlmost)
-    XtMakeResizeRequest ((Widget) ew, granted_width, granted_height,
-			 NULL, NULL);
-#endif
   /* Recompute the entire geometry management.  */
   if (ew->core.width != pixel_width || ew->core.height != pixel_height)
     {
       int hdelta = pixel_height - ew->core.height;
       int column_widget_height = f->display.x->column_widget->core.height;
-      Arg al[2];
-      int ac = 0;
-
       XawPanedSetRefigureMode (f->display.x->column_widget, False);
 
+      ac = 0;
       XtSetArg (al[ac], XtNheight, pixel_height); ac++;
       XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
       XtSetValues ((Widget) ew, al, ac);
-#if 0
-      XtVaSetValues ((Widget) ew, 
-		          XtNheight, pixel_height,
-		          XtNwidth, pixel_width,
-		          0);
-#endif
-      XtVaSetValues (f->display.x->column_widget,
-		          XtNwidth, pixel_width,
-		          XtNheight, column_widget_height + hdelta, 
-		          0);
+ 
+      ac = 0;
+      XtSetArg (al[ac], XtNheight, column_widget_height + hdelta); ac++;
+      XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
+      XtSetValues (f->display.x->column_widget, al, ac);
+
       XawPanedSetRefigureMode (f->display.x->column_widget, True);
     }
 
@@ -934,8 +919,8 @@ result = XtMakeResizeRequest ((Widget)ew,
 
   /* Coordinates of the toplevel widget seem to have been lost.
      So set it to the rignt values.  */
-  XtVaSetValues (f->display.x->widget, 
-	        XtNx, f->display.x->left_pos,
-	        XtNy, f->display.x->top_pos,
-	        0);
+  ac = 0;
+  XtSetArg (al[ac], XtNx, f->display.x->left_pos); ac++;
+  XtSetArg (al[ac], XtNy, f->display.x->top_pos); ac++;
+  XtSetValues (f->display.x->widget, al, ac);
 }
