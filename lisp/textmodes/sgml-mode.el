@@ -174,7 +174,7 @@ This takes effect when first loading the sgml-mode library.")
    "nbsp" "iexcl" "cent" "pound" "curren" "yen" "brvbar" "sect"
    "uml" "copy" "ordf" "laquo" "not" "shy" "reg" "macr"
    "ring" "plusmn" "sup2" "sup3" "acute" "micro" "para" "middot"
-   "cedil" "sup1" "ordm" "raquo" "frac14" "half" "frac34" "iquest"
+   "cedil" "sup1" "ordm" "raquo" "frac14" "frac12" "frac34" "iquest"
    "Agrave" "Aacute" "Acirc" "Atilde" "Auml" "Aring" "AElig" "Ccedil"
    "Egrave" "Eacute" "Ecirc" "Euml" "Igrave" "Iacute" "Icirc" "Iuml"
    "ETH" "Ntilde" "Ograve" "Oacute" "Ocirc" "Otilde" "Ouml" nil
