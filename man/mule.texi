@@ -44,6 +44,42 @@ have been merged from the modified version of Emacs known as MULE (for
   Emacs also supports various encodings of these characters used by
 other internationalized software, such as word processors and mailers.
 
+  Emacs allows editing text with international characters by supporting
+all the related activities:
+
+@itemize @bullet
+@item
+You can visit files with non-ASCII characters, save non-ASCII text, and
+pass non-ASCII text between Emacs and programs it invokes (such as
+compilers, spell-checkers, and mailers).  Setting your language
+environment (@pxref{Language Environments}) takes care of setting up the
+coding systems and other options for a specific language or culture.
+Alternatively, you can specify how Emacs should encode or decode text
+for each command; see @ref{Specify Coding}.
+
+@item
+You can display non-ASCII characters encoded by the various scripts.
+This works by using appropriate fonts on X and similar graphics
+displays (@pxref{Defining Fontsets}), and by sending special codes to
+text-only displays (@pxref{Specify Coding}).  If some characters are
+displayed incorrectly, refer to @ref{Undisplayable Characters}, which
+describes possible problems and explains how to solve them.
+
+@item
+You can insert non-ASCII characters or search for them.  To do that,
+you can specify an input method (@pxref{Select Input Method}) suitable
+for your language, or use the default input method set up when you set
+your language environment.  (Emacs input methods are part of the Leim
+package, which must be installed for you to be able to use them.)  If
+your keyboard can produce non-ASCII characters, you can select an
+appropriate keyboard coding system (@pxref{Specify Coding}), and Emacs
+will accept those characters.  Latin-1 characters can also be input by
+using the @kbd{C-x 8} prefix, see @ref{Single-Byte Character Support,
+C-x 8}.
+@end itemize
+
+  The rest of this chapter describes these issues in detail.
+
 @menu
 * International Intro::     Basic concepts of multibyte characters.
 * Enabling Multibyte::      Controlling whether to use multibyte characters.
@@ -121,6 +157,7 @@ its internal representation within Emacs.
 @node Enabling Multibyte
 @section Enabling Multibyte Characters
 
+@cindex turn multibyte support on or off
   You can enable or disable multibyte character support, either for
 Emacs as a whole, or for a single buffer.  When multibyte characters are
 disabled in a buffer, then each byte in that buffer represents a
@@ -133,6 +170,9 @@ character sets.
 use ISO Latin; the Emacs multibyte character set includes all the
 characters in these character sets, and Emacs can translate
 automatically to and from the ISO codes.
+
+  By default, Emacs starts in multibyte mode, because that allows you to
+use all the supported languages and scripts without limitations.
 
   To edit a particular file in unibyte representation, visit it using
 @code{find-file-literally}.  @xref{Visiting}.  To convert a buffer in
@@ -152,8 +192,16 @@ conversion, uncompression and auto mode selection as
 the @samp{--unibyte} option (@pxref{Initial Options}), or set the
 environment variable @env{EMACS_UNIBYTE}.  You can also customize
 @code{enable-multibyte-characters} or, equivalently, directly set the
-variable @code{default-enable-multibyte-characters} in your init file to
-have basically the same effect as @samp{--unibyte}.
+variable @code{default-enable-multibyte-characters} to @code{nil} in
+your init file to have basically the same effect as @samp{--unibyte}.
+
+@findex toggle-enable-multibyte-characters
+  To convert a unibyte session to a multibyte session, set
+@code{default-enable-multibyte-characters} to @code{t}.  Buffers which
+were created in the unibyte session before you turn on multibyte support
+will stay unibyte.  You can turn on multibyte support in a specific
+buffer by invoking the command @code{toggle-enable-multibyte-characters}
+in that buffer.
 
 @cindex Lisp files, and multibyte operation
 @cindex multibyte operation, and Lisp files
@@ -527,10 +575,15 @@ their names usually start with @samp{iso}.  There are also special
 coding systems @code{no-conversion}, @code{raw-text} and
 @code{emacs-mule} which do not convert printing characters at all.
 
+@cindex international files from DOS/Windows systems
   A special class of coding systems, collectively known as
 @dfn{codepages}, is designed to support text encoded by MS-Windows and
 MS-DOS software.  To use any of these systems, you need to create it
-with @kbd{M-x codepage-setup}.  @xref{MS-DOS and MULE}.
+with @kbd{M-x codepage-setup}.  @xref{MS-DOS and MULE}.  After
+creating the coding system for the codepage, you can use it as any
+other coding system.  For example, to visit a file encoded in codepage
+850, type @kbd{C-x @key{RET} c cp850 @key{RET} C-x C-f @var{filename}
+@key{RET}}.
 
   In addition to converting various representations of non-ASCII
 characters, a coding system can perform end-of-line conversion.  Emacs
@@ -630,8 +683,11 @@ the usual three variants to specify the kind of end-of-line conversion.
 @node Recognize Coding
 @section Recognizing Coding Systems
 
-  Most of the time, Emacs can recognize which coding system to use for
-any given file---once you have specified your preferences.
+  Emacs tries to recognize which coding system to use for a given text
+as an integral part of reading that text.  (This applies to files
+being read, output from subprocesses, text from X selections, etc.)
+Emacs can select the right coding system automatically most of the
+time---once you have specified your preferences.
 
   Some coding systems can be recognized or distinguished by which byte
 sequences appear in the data.  However, there are coding systems that
@@ -736,6 +792,11 @@ overrides @samp{-*-coding:-*-} tags in the file itself.  Emacs uses this
 feature for tar and archive files, to prevent Emacs from being confused
 by a @samp{-*-coding:-*-} tag in a member of the archive and thinking it
 applies to the archive file as a whole.
+
+  If Emacs recognizes the encoding of a file incorrectly, you can
+reread the file using the correct coding system by typing @kbd{C-x
+@key{RET} c @var{coding-system} @key{RET} M-x revert-buffer
+@key{RET}}.
 
 @vindex buffer-file-coding-system
   Once Emacs has chosen a coding system for a buffer, it stores that
