@@ -20,6 +20,11 @@
 #ifndef __REGEXP_LIBRARY_H__
 #define __REGEXP_LIBRARY_H__
 
+#ifdef VMS
+/* POSIX says that size_t should be in stddef.h.  */
+#include <stddef.h>
+#endif
+
 /* POSIX says that <sys/types.h> must be included before <regex.h>.  */
 
 /* The following bits are used to determine the regexp syntax we

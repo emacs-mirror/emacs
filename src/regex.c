@@ -135,7 +135,11 @@ init_syntax_once ()
    (Per Bothner suggested the basic approach.)  */
 #undef SIGN_EXTEND_CHAR
 #if __STDC__
+#ifndef VMS
 #define SIGN_EXTEND_CHAR(c) ((signed char) (c))
+#else /* On VMS, VAXC doesn't recognize `signed' before `char' */
+#define SIGN_EXTEND_CHAR(c) ((char) (c))
+#endif /* VMS */
 #else
 /* As in Harbison and Steele.  */
 #define SIGN_EXTEND_CHAR(c) ((((unsigned char) (c)) ^ 128) - 128)
