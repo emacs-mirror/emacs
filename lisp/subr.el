@@ -2274,28 +2274,6 @@ macros."
       (subrp object) (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
 
-(defun interactive-form (function)
-  "Return the interactive form of FUNCTION.
-If function is a command (see `commandp'), value is a list of the form
-\(interactive SPEC).  If function is not a command, return nil."
-  (setq function (indirect-function function))
-  (when (commandp function)
-    (cond ((byte-code-function-p function)
-	   (when (> (length function) 5)
-	     (let ((spec (aref function 5)))
-	       (if spec
-		   (list 'interactive spec)
-		 (list 'interactive)))))
-	  ((subrp function)
-	   (subr-interactive-form function))
-	  ((eq (car-safe function) 'lambda)
-	   (setq function (cddr function))
-	   (when (stringp (car function))
-	     (setq function (cdr function)))
-	   (let ((form (car function)))
-	     (when (eq (car-safe form) 'interactive)
-	       (copy-sequence form)))))))
-
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is KEY.
 Return the modified alist.
