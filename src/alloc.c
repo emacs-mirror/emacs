@@ -3831,46 +3831,34 @@ pure_alloc (size, type)
      size_t size;
      int type;
 {
-  size_t nbytes;
   POINTER_TYPE *result;
-  char *beg;
-
- again:
-  beg = purebeg;
-  result = (POINTER_TYPE *) (beg + pure_bytes_used);
-  nbytes = ALIGN (size, sizeof (EMACS_INT));
+  size_t alignment = sizeof (EMACS_INT);
 
   /* Give Lisp_Floats an extra alignment.  */
   if (type == Lisp_Float)
     {
-      POINTER_TYPE *orig = result;
-      size_t alignment;
 #if defined __GNUC__ && __GNUC__ >= 2
       alignment = __alignof (struct Lisp_Float);
 #else
       alignment = sizeof (struct Lisp_Float);
 #endif
-      /* Make sure result is correctly aligned for a
-	 Lisp_Float, which might need stricter alignment than
-	 EMACS_INT.  */
-      result = (POINTER_TYPE *)ALIGN((EMACS_UINT)result, alignment);
-      nbytes += (char *)result - (char *)orig;
-    }
-    
-  if (pure_bytes_used + nbytes > pure_size)
-    {
-      /* Don't allocate a large amount here,
-	 because it might get mmap'd and then its address
-	 might not be usable.  */
-      purebeg = (char *) xmalloc (10000);
-      pure_size = 10000;
-      pure_bytes_used_before_overflow += pure_bytes_used;
-      pure_bytes_used = 0;
-      goto again;
     }
 
-  pure_bytes_used += nbytes;
-  return result;
+ again:
+  result = (POINTER_TYPE *) ALIGN ((EMACS_UINT)purebeg + pure_bytes_used, alignment);
+  pure_bytes_used = ((char *)result - (char *)purebeg) + size;
+
+  if (pure_bytes_used <= pure_size)
+    return result;
+
+  /* Don't allocate a large amount here,
+     because it might get mmap'd and then its address
+     might not be usable.  */
+  purebeg = (char *) xmalloc (10000);
+  pure_size = 10000;
+  pure_bytes_used_before_overflow += pure_bytes_used - size;
+  pure_bytes_used = 0;
+  goto again;
 }
 
 
