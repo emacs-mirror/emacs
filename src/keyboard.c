@@ -3711,13 +3711,23 @@ kbd_buffer_store_event_hold (event, hold_quit)
       ++kbd_store_ptr;
     }
 
-  /* If we're in a section that requested to be interrupted as soon
-     as input comes, then set quit-flag to cause an interrupt.  */
+  /* If we're inside while-no-input, and this event qualifies
+     as input, set quit-flag to cause an interrupt.  */
   if (!NILP (Vthrow_on_input)
       && event->kind != FOCUS_IN_EVENT
       && event->kind != HELP_EVENT
       && event->kind != DEICONIFY_EVENT)
-    Vquit_flag = Vthrow_on_input;
+    {
+      Vquit_flag = Vthrow_on_input;
+      /* If we're inside a function that wants immediate quits,
+	 do it now.  */
+      if (immediate_quit && NILP (Vinhibit_quit))
+	{
+	  immediate_quit = 0;
+	  sigfree ();
+	  QUIT;
+	}
+    }
 }
 
 
