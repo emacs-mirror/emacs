@@ -360,6 +360,7 @@ This variable is the standard obarray for use by @code{intern} and
 @code{read}.
 @end defvar
 
+@anchor{Definition of mapatoms}
 @defun mapatoms function &optional obarray
 This function calls @var{function} once with each symbol in the obarray
 @var{obarray}.  Then it returns @code{nil}.  If @var{obarray} is
