@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h" /* ANSI arena */
+#include "mpsavm.h"
 #include "testlib.h"
 
 #ifdef MPS_OS_SU
@@ -59,7 +59,7 @@ static void doRead(void)
 {
   mps_word_t old;
   old = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
-      
+
   (void)printf(WORD_FORMAT "\n", old);
 }
 
@@ -193,7 +193,7 @@ static void obeyCommand(char *command)
   printf("command not understood\n> %s\n", command);
   doHelp();
 }
-     
+
 
 extern int main(int argc, char *argv[])
 {
@@ -203,9 +203,9 @@ extern int main(int argc, char *argv[])
   testlib_unused(argv);
 
   res = mps_arena_create(&arena,
-                         mps_arena_class_an());
+                         mps_arena_class_vm());
   if (res != MPS_RES_OK) {
-    printf("failed to create ANSI arena.\n");
+    printf("failed to create VM arena.\n");
     return 1;
   }
   doHelp();

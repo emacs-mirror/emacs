@@ -190,12 +190,6 @@
 #endif /* MPS_ARCH_I3 */
 
 
-/* ANSI Arena Configuration -- see impl.c.arenaan */
-
-#define ARENA_ANSI_ALIGN        ((Align)4096)
-#define ARENA_ANSI_ZONESHIFT    ((Shift)20)
-
-
 /* Shield Configuration -- see impl.c.shield */
 
 #define SHIELD_CACHE_SIZE       ((Size)16)

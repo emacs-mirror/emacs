@@ -265,6 +265,20 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .hack.align; maybe it should be 8, who knows? */
 
+/* GCC 2.95.3, gcc -E -dM
+ */
+
+#elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
+#define MPS_PF_FRI4GC
+#define MPS_PF_STRING   "fri4gc"
+#define MPS_OS_FR
+#define MPS_ARCH_I4
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
+
 #else
 #error "Unable to detect target platform"
 #endif

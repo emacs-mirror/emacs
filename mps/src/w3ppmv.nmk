@@ -35,7 +35,6 @@ LO = <poollo>
 DW = <fmtdy>
 DWTEST = <fmtdytst>
 POOLN = <pooln>
-ARENAAN = <arenaan>
 TESTLIB = <testlib>
 
 
@@ -78,8 +77,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\he\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\he\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\he\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\he\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -109,8 +106,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\ce\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\ce\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\ce\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ce\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -140,8 +135,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\hi\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\hi\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\hi\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\hi\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -171,8 +164,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\ci\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\ci\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\ci\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ci\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -202,8 +193,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\ti\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\ti\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\ti\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ti\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -233,8 +222,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\wi\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\wi\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\wi\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\wi\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -264,8 +251,6 @@ DWTESTOBJ0 = $(DWTEST:<=w3ppmv\we\)
 DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3ppmv\we\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\we\)
-ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\we\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -297,8 +282,6 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 #DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 #POOLNOBJ0 = $(POOLN:<=w3ppmv\cv\)
 #POOLNOBJ = $(POOLNOBJ0:>=.obj)
-#ARENAANOBJ0 = $(ARENAAN:<=w3ppmv\cv\)
-#ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 #TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\cv\)
 #TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 

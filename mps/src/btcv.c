@@ -13,7 +13,7 @@
 
 
 #include "mpm.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mpsavm.h"
 #include "mps.h"
 #include "testlib.h"
 
@@ -545,7 +545,7 @@ static void btTests(BT btlo, BT bthi, Count btSize)
 int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
-  Arena arena; /* the ANSI arena which we use to allocate the BT */
+  Arena arena; /* the arena which we use to allocate the BT */
   BT btlo, bthi;
   Count btSize;
 
@@ -555,7 +555,7 @@ int main(int argc, char *argv[])
   testlib_unused(argc);
   testlib_unused(argv);
 
-  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
+  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_vm()),
       "Failed to create arena");
   arena = (Arena)mpsArena; /* avoid pun */
 
