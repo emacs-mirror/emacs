@@ -1,3 +1,8 @@
+1999-11-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* doc.c (Fdocumentation_property): Remove GCPRO because
+	Fsubstitute_command_keys gcpro's the string.
+
 1999-11-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* editfns.c (Ftranslate_region): Check the buffer multibyteness.

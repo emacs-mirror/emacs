@@ -1,3 +1,8 @@
+1999-11-12  Andrew Innes  <andrewi@gnu.org>
+
+	* select.el (x-set-selection): Call buffer-substring, not
+	substring.  Also fix docstring
+
 1999-11-12  Peter Kleiweg  <kleiweg@let.rug.nl>
 
 	* progmodes/ps-mode.el (ps-mode-submit-bug-report): Added list
