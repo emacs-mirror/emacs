@@ -104,6 +104,9 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
   "*If non-nil, prompt for initial comment when a file is registered.")
 (defvar vc-command-messages nil
   "*If non-nil, display run messages from back-end commands.")
+(defvar vc-register-switches nil
+  "*A string or list of strings specifying extra switches passed 
+to the register program by \\[vc-register].")
 (defvar vc-checkin-switches nil
   "*A string or list of strings specifying extra switches passed 
 to the checkin program by \\[vc-checkin].")
@@ -1814,7 +1817,11 @@ default directory."
   (or vc-default-back-end
       (setq vc-default-back-end (if (vc-find-binary "rcs") 'RCS 'SCCS)))
   (message "Registering %s..." file)
-  (let ((backend
+  (let ((switches
+         (if (stringp vc-register-switches)
+             (list vc-register-switches)
+           vc-register-switches))
+        (backend
 	 (cond
 	  ((file-exists-p (vc-backend-subdirectory-name)) vc-default-back-end)
 	  ((file-exists-p "RCS") 'RCS)
@@ -1822,30 +1829,32 @@ default directory."
 	  ((file-exists-p "CVS") 'CVS)
 	  (t vc-default-back-end))))
     (cond ((eq backend 'SCCS)
-	   (vc-do-command nil 0 "admin" file 'MASTER	;; SCCS
-			  (and rev (concat "-r" rev))
-			  "-fb"
-			  (concat "-i" file)
-			  (and comment (concat "-y" comment))
-			  (format
-			   (car (rassq 'SCCS vc-master-templates))
-			   (or (file-name-directory file) "")
-			   (file-name-nondirectory file)))
+	   (apply 'vc-do-command nil 0 "admin" file 'MASTER	;; SCCS
+                                 (and rev (concat "-r" rev))
+                                 "-fb"
+                                 (concat "-i" file)
+                                 (and comment (concat "-y" comment))
+                                 (format
+                                  (car (rassq 'SCCS vc-master-templates))
+                                  (or (file-name-directory file) "")
+                                  (file-name-nondirectory file))
+                                 switches)
 	   (delete-file file)
 	   (if vc-keep-workfiles
 	       (vc-do-command nil 0 "get" file 'MASTER)))
 	  ((eq backend 'RCS)
-	   (vc-do-command nil 0 "ci" file 'MASTER	;; RCS
-                          ;; if available, use the secure registering option
-			  (and (vc-backend-release-p 'RCS "5.6.4") "-i")
-			  (concat (if vc-keep-workfiles "-u" "-r") rev)
-			  (and comment (concat "-t-" comment))
-			  file))
+	   (apply 'vc-do-command nil 0 "ci" file 'WORKFILE	;; RCS
+                                 ;; if available, use the secure registering option
+                                 (and (vc-backend-release-p 'RCS "5.6.4") "-i")
+                                 (concat (if vc-keep-workfiles "-u" "-r") rev)
+                                 (and comment (concat "-t-" comment))
+                                 switches))
 	  ((eq backend 'CVS)
-	   (vc-do-command nil 0 "cvs" file 'WORKFILE ;; CVS
-			  "add"
-			  (and comment (string-match "[^\t\n ]" comment)
-			       (concat "-m" comment)))
+	   (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE ;; CVS
+                                 "add"
+                                 (and comment (string-match "[^\t\n ]" comment)
+                                      (concat "-m" comment))
+                                 switches)
 	   )))
   (message "Registering %s...done" file)
   )
