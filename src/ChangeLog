@@ -1,3 +1,29 @@
+2004-03-12  Kim F. Storm  <storm@cua.dk>
+
+	Fix image support on MAC.  From YAMAMOTO Mitsuharu.
+	
+	* dispextern.h (XImagePtr, XImagePtr_or_DC): Add typedefs.
+	(image_background, image_background_transparent): Fix prototypes.
+
+	* image.c (XImagePtr, XImagePtr_or_DC): Move typedefs to
+	dispextern.h.
+
+	* macfns.c (x_list_fonts, x_get_font_info, x_load_font)
+	(x_query_font, x_find_ccl_program, x_set_window_size)
+	(x_make_frame_visible, mac_initialize, XCreatePixmap)
+	(XCreatePixmapFromBitmapData, XFreePixmap, XSetForeground)
+	(mac_draw_line_to_pixmap): Move prototypes to macterm.h.
+
+	* macterm.h (x_list_fonts, x_get_font_info, x_load_font)
+	(x_query_font, x_find_ccl_program, x_set_window_size)
+	(x_make_frame_visible, mac_initialize, XCreatePixmap)
+	(XCreatePixmapFromBitmapData, XFreePixmap, XSetForeground)
+	(mac_draw_line_to_pixmap): Add prototypes.
+
+2004-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Fix mouse click on tool bar.
+
 2004-03-11  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h: Move image related prototypes from xfns.c section
