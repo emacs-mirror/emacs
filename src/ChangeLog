@@ -1,3 +1,11 @@
+2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* window.h (MINI_WINDOW_P): Use NILP.
+
+	* coding.h (ENCODE_SYSTEM, DECODE_SYSTEM): Define also for non-NT.
+
+	* termhooks.h (struct input_event): Use proper type for `kind'.
+
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	This handles unknown keysyms better than before.  For example,

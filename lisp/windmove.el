@@ -310,7 +310,7 @@ MIN-N."
 (defun windmove-frame-edges (window)
   "Return (X-MIN Y-MIN X-MAX Y-MAX) for the frame containing WINDOW.
 If WINDOW is nil, return the edges for the selected frame.
-(X-MIN, Y-MIN) is the zero-based coordinate of the top-left corner
+\(X-MIN, Y-MIN) is the zero-based coordinate of the top-left corner
 of the frame; (X-MAX, Y-MAX) is the zero-based coordinate of the
 bottom-right corner of the frame.
 For example, if a frame has 76 rows and 181 columns, the return value
@@ -543,7 +543,7 @@ If no window is at direction DIR, an error is signaled."
 With no prefix argument, or with prefix argument equal to zero,
 \"left\" is relative to the position of point in the window; otherwise
 it is relative to the top edge (for positive ARG) or the bottom edge
-(for negative ARG) of the current window.
+\(for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled."
   (interactive "P")
   (windmove-do-window-select 'left arg))
@@ -576,7 +576,7 @@ If no window is at the desired location, an error is signaled."
 With no prefix argument, or with prefix argument equal to zero,
 \"down\" is relative to the position of point in the window; otherwise
 it is relative to the left edge (for positive ARG) or the right edge
-(for negative ARG) of the current window.
+\(for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled."
   (interactive "P")
   (windmove-do-window-select 'down arg))
