@@ -78,8 +78,8 @@ During evaluation of body, bind `it' to the value returned by TEST."
   "Define a column SYMBOL for use with `ibuffer-formats'.
 
 BODY will be called with `buffer' bound to the buffer object, and
-`mark' bound to the current mark on the buffer.  The current buffer
-will be `buffer'.
+`mark' bound to the current mark on the buffer.  The original ibuffer
+buffer will be bound to `ibuffer-buf'.
 
 If NAME is given, it will be used as a title for the column.
 Otherwise, the title will default to a capitalized version of the
@@ -105,7 +105,7 @@ change its definition, you should explicitly call
     `(progn
        ,(if inline
 	    `(push '(,sym ,bod) ibuffer-inline-columns)
-	  `(defun ,sym (buffer mark)
+	  `(defun ,sym (buffer mark ibuffer-buf)
 	     ,bod))
        (put (quote ,sym) 'ibuffer-column-name
 	    ,(if (stringp name)
@@ -160,7 +160,9 @@ value if and only if `a' is \"less than\" `b'."
 				  (active-opstring "Operate on")
 				  complex)
 				 &rest body)
-  "Generate a function named `ibuffer-do-OP', which operates on a buffer.
+  "Generate a function which operates on a buffer.
+OP becomes the name of the function; if it doesn't begin with
+`ibuffer-do-', then that is prepended to it.
 When an operation is performed, this function will be called once for
 each marked buffer, with that buffer current.
 
@@ -188,7 +190,9 @@ confirmation message, in the form:
 COMPLEX means this function is special; see the source code of this
 macro for exactly what it does."
   `(progn
-    (defun ,(intern (concat "ibuffer-do-" (symbol-name op))) ,args
+    (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
+				"" "ibuffer-do-") (symbol-name op)))
+      ,args
      ,(if (stringp documentation)
 	  documentation
 	(format "%s marked buffers." active-opstring))
