@@ -52,7 +52,8 @@ struct Lisp_Process
     Lisp_Object pid;
     /* Non-nil if this is really a command channel */
     Lisp_Object command_channel_p;
-    /* Non-nil if this is really a child process */
+    /* t if this is a real child process.
+       For a net connection, it is (HOST SERVICE).  */
     Lisp_Object childp;
     /* Marker set to end of last buffer-inserted output from this process */
     Lisp_Object mark;
