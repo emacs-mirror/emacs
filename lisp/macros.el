@@ -41,7 +41,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 (defun insert-kbd-macro (macroname &optional keys)
   "Insert in buffer the definition of kbd macro NAME, as Lisp code.
 Optional second arg KEYS means also record the keys it is on
-(this is the prefix argument, when calling interactively).
+\(this is the prefix argument, when calling interactively).
 
 This Lisp code will, when executed, define the kbd macro with the same
 definition it has now.  If you say to record the keys, the Lisp code
@@ -49,13 +49,35 @@ will also rebind those keys to the macro.  Only global key bindings
 are recorded since executing this Lisp code always makes global
 bindings.
 
-To save a kbd macro, visit a file of Lisp code such as your ~/.emacs,
+To save a kbd macro, visit a file of Lisp code such as your `~/.emacs',
 use this command, and then save the file."
   (interactive "CInsert kbd macro (name): \nP")
   (insert "(fset '")
   (prin1 macroname (current-buffer))
   (insert "\n   ")
-  (prin1 (symbol-function macroname) (current-buffer))
+  (let ((beg (point)) end)
+    (prin1 (symbol-function macroname) (current-buffer))
+    (setq end (point-marker))
+    (goto-char beg)
+    (while (< (point) end)
+      (let ((char (following-char)))
+	(cond ((< char 32)
+	       (delete-region (point) (1+ (point)))
+	       (insert "\\C-" (+ 96 char)))
+	      ((< char 127)
+	       (forward-char 1))
+	      ((= char 127)
+	       (delete-region (point) (1+ (point)))
+	       (insert "\\C-?"))
+	      ((< char 160)
+	       (delete-region (point) (1+ (point)))
+	       (insert "\\M-C-" (- char 32)))
+	      ((< char 255)
+	       (delete-region (point) (1+ (point)))
+	       (insert "\\M-" (- char 128)))
+	      ((= char 255)
+	       (delete-region (point) (1+ (point)))
+	       (insert "\\M-C-?"))))))
   (insert ")\n")
   (if keys
       (let ((keys (where-is-internal macroname nil)))
