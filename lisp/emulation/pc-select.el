@@ -2,7 +2,7 @@
 ;;;		     (or MAC GUI or MS-windoze (bah)) look-and-feel
 ;;;		     including key bindings.
 
-;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
 ;; Keywords: convenience emulation
@@ -107,6 +107,151 @@ This gives mostly Emacs-like behaviour with only the selection keys enabled."
   "*Non-nil means move sexp-wise with Meta key, otherwise move word-wise."
   :type 'boolean
   :group 'pc-select)
+
+(defcustom pc-selection-mode-hook nil
+  "The hook to run when pc-selection-mode is toggled."
+  :type 'hook
+  :group 'pc-select)
+
+(defvar pc-select-saved-settings-alist nil
+  "The values of the variables before `pc-selection-mode' was toggled on.
+When `pc-selection-mode' is toggled on, it sets quite a few variables
+for its own purposes.  This alist holds the original values of the
+variables `pc-selection-mode' had set, so that these variables can be
+restored to their original values when `pc-selection-mode' is toggled off.")
+
+(defvar pc-select-map nil
+  "The keymap used as the global map when `pc-selection-mode' is on." )
+
+(defvar pc-select-saved-global-map nil
+  "The global map that was in effect when `pc-selection-mode' was toggled on.")
+
+(defvar pc-select-key-bindings-alist nil
+  "This alist holds all the key bindings `pc-selection-mode' sets.")
+
+(defvar pc-select-default-key-bindings nil
+  "These key bindings always get set by `pc-selection-mode'.")
+
+(unless pc-select-default-key-bindings
+  (let ((lst
+	 ;; This is to avoid confusion with the delete-selection-mode
+	;; On simple displays you cant see that a region is active and
+	 ;; will be deleted on the next keypress IMHO especially for
+	 ;; copy-region-as-kill this is confusing.
+	 ;; The same goes for exchange-point-and-mark
+	 '(("\M-w" . copy-region-as-kill-nomark)
+	   ("\C-x\C-x" . exchange-point-and-mark-nomark)
+	   ([S-right]   . forward-char-mark)
+	   ([right]     . forward-char-nomark)
+	   ([C-S-right] . forward-word-mark)
+	   ([C-right]   . forward-word-nomark)
+	   ([S-left]    . backward-char-mark)
+	   ([left]      . backward-char-nomark)
+	   ([C-S-left]  . backward-word-mark)
+	   ([C-left]    . backward-word-nomark)
+	   ([S-down]    . next-line-mark)
+	   ([down]      . next-line-nomark)
+
+	   ([S-end]     . end-of-line-mark)
+	   ([end]       . end-of-line-nomark)
+	   ([S-C-end]   . end-of-buffer-mark)
+	   ([C-end]     . end-of-buffer-nomark)
+	   ([S-M-end]   . end-of-buffer-mark)
+	   ([M-end]     . end-of-buffer-nomark)
+
+	   ([S-next]    . scroll-up-mark)
+	   ([next]      . scroll-up-nomark)
+
+	   ([S-up]      . previous-line-mark)
+	   ([up]        . previous-line-nomark)
+
+	   ([S-home]    . beginning-of-line-mark)
+	   ([home]      . beginning-of-line-nomark)
+	   ([S-C-home]  . beginning-of-buffer-mark)
+	   ([C-home]    . beginning-of-buffer-nomark)
+	   ([S-M-home]  . beginning-of-buffer-mark)
+	   ([M-home]    . beginning-of-buffer-nomark)
+
+	   ([M-S-down]  . forward-line-mark)
+	   ([M-down]    . forward-line-nomark)
+	   ([M-S-up]    . backward-line-mark)
+	   ([M-up]      . backward-line-nomark)
+
+	   ([S-prior]   . scroll-down-mark)
+	   ([prior]     . scroll-down-nomark)
+
+	   ;; Next four lines are from Pete Forman.
+	   ([C-down]    . forward-paragraph-nomark) ; KNextPara     cDn
+	   ([C-up]      . backward-paragraph-nomark) ; KPrevPara     cUp
+	   ([S-C-down]  . forward-paragraph-mark)
+	   ([S-C-up]    . backward-paragraph-mark))))
+    
+    (setq pc-select-default-key-bindings lst)))
+
+(defvar pc-select-extra-key-bindings nil
+  "Key bindings to set only if `pc-select-selection-keys-only' is nil.")
+
+;; The following keybindings are for standard ISO keyboards
+;; as they are used with IBM compatible PCs, IBM RS/6000,
+;; MACs, many X-Stations and probably more
+(unless pc-select-extra-key-bindings
+  (let ((lst
+	 '(([S-insert]  . yank)
+	   ([C-insert]  . copy-region-as-kill)
+	   ([S-delete]  . kill-region)
+
+	   ;; The following bindings are useful on Sun Type 3 keyboards
+	   ;; They implement the Get-Delete-Put (copy-cut-paste)
+	   ;; functions from sunview on the L6, L8 and L10 keys
+	   ;; Sam Steingold <sds@gnu.org> says that f16 is copy and f18 is paste.
+	   ([f16]  . copy-region-as-kill)
+	   ([f18]  . yank)
+	   ([f20]  . kill-region)
+
+	   ;; The following bindings are from Pete Forman.
+	   ([f6] . other-window)		; KNextPane     F6
+	   ([C-delete] . kill-line)		; KEraseEndLine cDel
+	   ("\M-\d" . undo)			; KUndo         aBS
+
+	   ;; The following binding is taken from pc-mode.el
+	   ;; as suggested by RMS.
+	   ;; I only used the one that is not covered above.
+	   ([C-M-delete]  . kill-sexp)
+	   ;; Next line proposed by Eli Barzilay
+	   ([C-escape]    . electric-buffer-list))))
+    
+    (setq pc-select-extra-key-bindings lst)))
+
+(defvar pc-select-meta-moves-sexps-key-bindings
+  '((([M-S-right] . forward-sexp-mark)
+     ([M-right]   . forward-sexp-nomark)
+     ([M-S-left]  . backward-sexp-mark)
+     ([M-left]    . backward-sexp-nomark))
+    (([M-S-right] . forward-word-mark)
+     ([M-right]   . forward-word-nomark)
+     ([M-S-left]  . backward-word-mark)
+     ([M-left]    . backward-word-nomark)))
+  "The list of key bindings controlled by `pc-select-meta-moves-sexp'.
+The bindings in the car of this list get installed if
+`pc-select-meta-moves-sexp' is t, the bindings in the cadr of this
+list get installed otherwise.")
+
+;; This is for tty.  We don't turn on normal-erase-is-backspace,
+;; but bind keys as pc-selection-mode did before
+;; normal-erase-is-backspace was invented, to keep us back
+;; compatible.
+(defvar pc-select-tty-key-bindings
+  '(([delete] . delete-char)		; KDelete       Del
+   ([C-backspace] . backward-kill-word))
+  "The list of key bindings controlled by `pc-select-selection-keys-only'.
+These key bindings get installed when running in a tty, but only if
+`pc-select-selection-keys-only' is nil.")
+
+(defvar pc-select-old-M-delete-binding nil
+  "Holds the old mapping of [M-delete] in the `function-key-map'.
+This variable holds the value associated with [M-delete] in the
+`function-key-map' before `pc-selection-mode' had changed that
+association.")
 
 ;;;;
 ;; misc
@@ -606,8 +751,81 @@ Don't use this command in Lisp programs!
 		 (point-min))))
   (if arg (forward-line 1)))
 
+
+(defun pc-select-define-keys (alist keymap)
+  "Make KEYMAP have the key bindings specified in ALIST."
+  (let ((lst alist))
+    (while lst
+      (define-key keymap (caar lst) (cdar lst))
+      (setq lst (cdr lst)))))
+
+(defun pc-select-restore-keys (alist keymap saved-map)
+  "Use ALIST to restore key bindings from SAVED-MAP into KEYMAP.
+Go through all the key bindings in ALIST, and, for each key
+binding, if KEYMAP and ALIST still agree on the key binding,
+restore the previous value of that key binding from SAVED-MAP."
+  (let ((lst alist))
+    (while lst
+      (when (equal (lookup-key keymap (caar lst)) (cdar lst))
+	(define-key keymap (caar lst) (lookup-key saved-map (caar lst))))
+      (setq lst (cdr lst)))))
+
+(defmacro pc-select-add-to-alist (alist var val)
+  "Ensure that ALIST contains the cons cell (VAR . VAL).
+If a cons cell whose car is VAR is already on the ALIST, update the
+cdr of that cell with VAL.  Otherwise, make a new cons cell 
+\(VAR . VAL), and prepend it onto ALIST."
+  (let ((elt (make-symbol "elt")))
+    `(let ((,elt (assq ',var ,alist)))
+       (if ,elt
+	   (setcdr ,elt ,val)
+	 (setq ,alist (cons (cons ',var ,val) ,alist))))))
+
+(defmacro pc-select-save-and-set-var (var newval)
+  "Set VAR to NEWVAL; save the old value.
+The old value is saved on the `pc-select-saved-settings-alist'."
+  `(when (boundp ',var)
+       (pc-select-add-to-alist pc-select-saved-settings-alist ,var ,var)
+       (setq ,var ,newval)))
+
+(defmacro pc-select-save-and-set-mode (mode &optional arg mode-var)
+  "Call the function MODE; save the old value of the variable MODE.
+MODE is presumed to be a function which turns on a minor mode.  First,
+save the value of the variable MODE on `pc-select-saved-settings-alist'.
+Then, if ARG is specified, call MODE with ARG, otherwise call it with
+nil as an argument.  If MODE-VAR is specified, save the value of the
+variable MODE-VAR (instead of the value of the variable MODE) on
+`pc-select-saved-settings-alist'."
+    `(when (fboundp ',mode)
+       (pc-select-add-to-alist pc-select-saved-settings-alist
+				,mode
+				(or (and (boundp ',mode) ,mode)
+				    ,mode-var))
+       (,mode ,arg)))
+
+(defmacro pc-select-restore-var (var)
+  "Restore the previous value of the variable VAR. 
+Look up VAR's previous value in `pc-select-saved-settings-alist', and,
+if the value is found, set VAR to that value."
+  (let ((elt (make-symbol "elt")))
+    `(let ((,elt (assq ',var pc-select-saved-settings-alist)))
+       (unless (null ,elt)
+	 (setq ,var (cdr ,elt))))))
+
+(defmacro pc-select-restore-mode (mode)
+  "Restore the previous state (either on or off) of the minor mode MODE.
+Look up the value of the variable MODE on `pc-select-saved-settings-alist'.
+If the value is non-nil, call the function MODE with an argument of
+1, otherwise call it with an argument of -1."
+  (let ((elt (make-symbol "elt")))
+    `(when (fboundp ',mode)
+       (let ((,elt (assq ',mode pc-select-saved-settings-alist)))
+	 (unless (null ,elt)
+	 (,mode (if (cdr ,elt) 1 -1)))))))
+
+
 ;;;###autoload
-(defun pc-selection-mode ()
+(define-minor-mode pc-selection-mode
   "Change mark behaviour to emulate Motif, MAC or MS-Windows cut and paste style.
 
 This mode enables Delete Selection mode and Transient Mark mode.
@@ -649,135 +867,111 @@ In addition, certain other PC bindings are imitated (to avoid this, set
 the variable `pc-select-selection-keys-only' to t after loading pc-select.el
 but before calling `pc-selection-mode'):
 
-  F6           `other-window'
-  DELETE       `delete-char'
-  C-DELETE     `kill-line'
-  M-DELETE     `kill-word'
-  C-M-DELETE   `kill-sexp'
-  C-BACKSPACE  `backward-kill-word'
-  M-BACKSPACE  `undo'"
-  ;; FIXME: make into a proper minor mode (i.e. undoable).
+  F6           other-window
+  DELETE       delete-char
+  C-DELETE     kill-line
+  M-DELETE     kill-word
+  C-M-DELETE   kill-sexp
+  C-BACKSPACE  backward-kill-word
+  M-BACKSPACE  undo"
   ;; FIXME: bring pc-bindings-mode here ?
-  (interactive)
-  ;;
-  ;; keybindings
-  ;;
+  nil nil nil
 
-  ;; This is to avoid confusion with the delete-selection-mode
-  ;; On simple displays you can't see that a region is active and
-  ;; will be deleted on the next keypress.  IMHO especially for
-  ;; copy-region-as-kill this is confusing.
-  ;; The same goes for exchange-point-and-mark
-  (define-key global-map "\M-w" 'copy-region-as-kill-nomark)
-  (define-key global-map "\C-x\C-x" 'exchange-point-and-mark-nomark)
-  ;; The following keybindings are for standard ISO keyboards
-  ;; as they are used with IBM compatible PCs, IBM RS/6000,
-  ;; MACs, many X-Stations and probably more
-  (define-key global-map [S-right]   'forward-char-mark)
-  (define-key global-map [right]     'forward-char-nomark)
-  (define-key global-map [C-S-right] 'forward-word-mark)
-  (define-key global-map [C-right]   'forward-word-nomark)
-  (define-key global-map [S-left]    'backward-char-mark)
-  (define-key global-map [left]      'backward-char-nomark)
-  (define-key global-map [C-S-left]  'backward-word-mark)
-  (define-key global-map [C-left]    'backward-word-nomark)
-  (cond (pc-select-meta-moves-sexps
-	 (define-key global-map [M-S-right] 'forward-sexp-mark)
-	 (define-key global-map [M-right]   'forward-sexp-nomark)
-	 (define-key global-map [M-S-left]  'backward-sexp-mark)
-	 (define-key global-map [M-left]    'backward-sexp-nomark))
-	(t
-	 (define-key global-map [M-S-right] 'forward-word-mark)
-	 (define-key global-map [M-right]   'forward-word-nomark)
-	 (define-key global-map [M-S-left]  'backward-word-mark)
-	 (define-key global-map [M-left]    'backward-word-nomark)))
+  :group 'pc-select
+  :global t
 
-  (define-key global-map [S-down]    'next-line-mark)
-  (define-key global-map [down]      'next-line-nomark)
+  (if pc-selection-mode
+      (if (null pc-select-key-bindings-alist)
+	  (progn
+	    (setq pc-select-map (copy-keymap (current-global-map))
+		  pc-select-saved-global-map (copy-keymap (current-global-map)))
+	      
+	    (setq pc-select-key-bindings-alist
+		  (append pc-select-default-key-bindings
+			  (if pc-select-selection-keys-only
+			      nil
+			    pc-select-extra-key-bindings)
+			  (if pc-select-meta-moves-sexps
+			      (car pc-select-meta-moves-sexps-key-bindings)
+			    (cadr pc-select-meta-moves-sexps-key-bindings))
+			  (if  (or pc-select-selection-keys-only
+				   (eq window-system 'x)
+				   (memq system-name '(ms-dos windows-nt)))
+			      nil
+			    pc-select-tty-key-bindings)))
 
-  (define-key global-map [S-end]     'end-of-line-mark)
-  (define-key global-map [end]       'end-of-line-nomark)
-  (global-set-key [S-C-end]          'end-of-buffer-mark)
-  (global-set-key [C-end]            'end-of-buffer-nomark)
-  (global-set-key [S-M-end]          'end-of-buffer-mark)
-  (global-set-key [M-end]            'end-of-buffer-nomark)
+	    (pc-select-define-keys pc-select-key-bindings-alist pc-select-map)
+	    (use-global-map pc-select-map)
 
-  (define-key global-map [S-next]    'scroll-up-mark)
-  (define-key global-map [next]      'scroll-up-nomark)
+	    (unless  (or pc-select-selection-keys-only
+			 (eq window-system 'x)
+			 (memq system-name '(ms-dos windows-nt)))
+	      ;; it is not clear that we need the following line
+       ;; I hope it doesn't do too much harm to leave it in, though...
+	      (setq pc-select-old-M-delete-binding
+		    (lookup-key function-key-map [M-delete]))
+	      (define-key function-key-map  [M-delete] [?\M-d]))
 
-  (define-key global-map [S-up]      'previous-line-mark)
-  (define-key global-map [up]        'previous-line-nomark)
-
-  (define-key global-map [S-home]    'beginning-of-line-mark)
-  (define-key global-map [home]      'beginning-of-line-nomark)
-  (global-set-key [S-C-home]         'beginning-of-buffer-mark)
-  (global-set-key [C-home]           'beginning-of-buffer-nomark)
-  (global-set-key [S-M-home]         'beginning-of-buffer-mark)
-  (global-set-key [M-home]           'beginning-of-buffer-nomark)
-
-  (define-key global-map [M-S-down]  'forward-line-mark)
-  (define-key global-map [M-down]    'forward-line-nomark)
-  (define-key global-map [M-S-up]    'backward-line-mark)
-  (define-key global-map [M-up]      'backward-line-nomark)
-
-  (define-key global-map [S-prior]   'scroll-down-mark)
-  (define-key global-map [prior]     'scroll-down-nomark)
-
-  ;; Next four lines are from Pete Forman.
-  (global-set-key [C-down] 'forward-paragraph-nomark)	; KNextPara     cDn
-  (global-set-key [C-up] 'backward-paragraph-nomark)	; KPrevPara     cUp
-  (global-set-key [S-C-down] 'forward-paragraph-mark)
-  (global-set-key [S-C-up] 'backward-paragraph-mark)
-
-  (unless pc-select-selection-keys-only
-    ;; We are behaving like normal-erase-is-backspace-mode, so
-    ;; say so explicitly.  But don't do that on a Unix tty, since
-    ;; some of them have keyboards that by default already behave
-    ;; as if normal-erase-is-backspace mode is on, and turning it
-    ;; a second time screws them up.
-    (if (or (eq window-system 'x)
-	    (memq system-name '(ms-dos windows-nt macos)))
-	(progn
-	  (setq-default normal-erase-is-backspace t)
+	    (when (and (not pc-select-selection-keys-only)
+		       (or (eq window-system 'x)
+			   (memq system-name '(ms-dos windows-nt)))
+		       (fboundp 'normal-erase-is-backspace-mode))
+	      (pc-select-save-and-set-mode normal-erase-is-backspace-mode 1
+					   normal-erase-is-backspace))
+	    ;; the original author also had this above:
+	    ;; (setq-default normal-erase-is-backspace t)
+	    ;; However, the documentation for the variable says that
+	  ;; "setting it with setq has no effect", so I'm removing it.
+      
+	    (pc-select-save-and-set-var highlight-nonselected-windows nil)
+	    (pc-select-save-and-set-var transient-mark-mode t)
+	    (pc-select-save-and-set-var mark-even-if-inactive t)
+	    (pc-select-save-and-set-mode delete-selection-mode 1))
+	;;else
+	;; If the user turned on pc-selection-mode a second time
+	;; do not clobber the values of the variables that were
+	;; saved from before pc-selection mode was activated --
+	;; just make sure the values are the way we like them.
+	(setq pc-select-map (copy-keymap (current-global-map)))
+	(pc-select-define-keys pc-select-key-bindings-alist pc-select-map)
+	(use-global-map pc-select-map)
+	(unless  (or pc-select-selection-keys-only
+		     (eq window-system 'x)
+		     (memq system-name '(ms-dos windows-nt)))
+	  ;; it is not clear that we need the following line
+       ;; I hope it doesn't do too much harm to leave it in, though...
+	  (define-key function-key-map  [M-delete] [?\M-d]))
+	(when (and (not pc-select-selection-keys-only)
+		   (or (eq window-system 'x)
+		       (memq system-name '(ms-dos windows-nt)))
+		   (fboundp 'normal-erase-is-backspace-mode))
 	  (normal-erase-is-backspace-mode 1))
-      ;; This is for tty.  We don't turn on normal-erase-is-backspace,
-      ;; but bind keys as pc-selection-mode did before
-      ;; normal-erase-is-backspace was invented, to keep us back
-      ;; compatible.
-      (global-set-key [delete] 'delete-char) ; KDelete       Del
-      (define-key function-key-map  [M-delete] [?\M-d])
-      (global-set-key [C-backspace] 'backward-kill-word))
-    (define-key global-map [S-insert]  'yank)
-    (define-key global-map [C-insert]  'copy-region-as-kill)
-    (define-key global-map [S-delete]  'kill-region)
+	(setq highlight-nonselected-windows nil)
+	(setq transient-mark-mode t)
+	(setq mark-even-if-inactive t)
+	(delete-selection-mode 1))
+    ;;else
+    (when pc-select-key-bindings-alist
+      (when (and (not pc-select-selection-keys-only)
+		 (or (eq window-system 'x)
+		     (memq system-name '(ms-dos windows-nt))))
+	(pc-select-restore-mode normal-erase-is-backspace-mode))
 
-    ;; The following bindings are useful on Sun Type 3 keyboards
-    ;; They implement the Get-Delete-Put (copy-cut-paste)
-    ;; functions from sunview on the L6, L8 and L10 keys
-    ;; Sam Steingold <sds@gnu.org> says that f16 is copy and f18 is paste.
-    (define-key global-map [f16]  'copy-region-as-kill)
-    (define-key global-map [f18]  'yank)
-    (define-key global-map [f20]  'kill-region)
+      (setq pc-select-map (copy-keymap (current-global-map)))
+      (pc-select-restore-keys
+       pc-select-key-bindings-alist pc-select-map pc-select-saved-global-map)
+      (use-global-map pc-select-map)
 
-    ;; The following bindings are from Pete Forman.
-    (global-set-key [f6] 'other-window)	; KNextPane     F6
-    (global-set-key [C-delete] 'kill-line) ; KEraseEndLine cDel
-    (global-set-key "\M-\d" 'undo)	; KUndo         aBS
-
-    ;; The following binding is taken from pc-mode.el
-    ;; as suggested by RMS.
-    ;; I only used the one that is not covered above.
-    (global-set-key [C-M-delete]  'kill-sexp)
-    ;; Next line proposed by Eli Barzilay
-    (global-set-key [C-escape]    'electric-buffer-list))
-  ;;
-  ;; setup
-  ;;
-  ;; Next line proposed by Eli Barzilay
-  (setq highlight-nonselected-windows nil)
-  (transient-mark-mode 1)
-  (setq mark-even-if-inactive t)
-  (delete-selection-mode 1))
+      (pc-select-restore-var highlight-nonselected-windows)
+      (pc-select-restore-var transient-mark-mode)
+      (pc-select-restore-var mark-even-if-inactive)
+      (pc-select-restore-mode delete-selection-mode)
+      (and pc-select-old-M-delete-binding
+	   (define-key function-key-map [M-delete]
+	     pc-select-old-M-delete-binding))
+      (setq pc-select-key-bindings-alist nil
+	    pc-select-saved-settings-alist nil))))
+  
 
 ;;;###autoload
 (defcustom pc-selection-mode nil
@@ -787,7 +981,8 @@ and cursor movement commands.
 This mode enables Delete Selection mode and Transient Mark mode.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
-	(if value (pc-selection-mode)))
+	 (pc-selection-mode (if value 1 -1)))
+  :initialize 'custom-initialize-default
   :type 'boolean
   :group 'pc-select
   :require 'pc-select)
