@@ -41,6 +41,14 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_SYS_SOUNDCARD_H
 #include <sys/soundcard.h>
 #endif
+#ifdef HAVE_SOUNDCARD_H
+#include <sys/ioctl.h>
+#include <soundcard.h>
+#endif
+
+#ifndef DEFAULT_SOUND_DEVICE
+#define DEFAULT_SOUND_DEVICE "/dev/dsp"
+#endif
 
 #define max(X, Y) ((X) > (Y) ? (X) : (Y))
 #define min(X, Y) ((X) < (Y) ? (X) : (Y))
@@ -736,7 +744,7 @@ vox_open (sd)
   if (sd->file)
     file = sd->file;
   else
-    file = "/dev/dsp";
+    file = DEFAULT_SOUND_DEVICE;
   
   sd->fd = emacs_open (file, O_WRONLY, 0);
   if (sd->fd < 0)

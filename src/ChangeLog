@@ -1,3 +1,17 @@
+2000-07-05  Ken Raeburn  <raeburn@gnu.org>
+
+	Sound support for NetBSD through "Linux emulation" support:
+	* config.in (HAVE_SOUNDCARD_H): Undef.
+	(HAVE_SOUND): Define if HAVE_SOUNDCARD_H.
+	* Makefile.in (LIBSOUND): New variable.
+	(LIBES): Include it.
+	* sound.c [HAVE_SOUNDCARD_H]: Include <sys/ioctl.h> and
+	<soundcard.h>.
+	(DEFAULT_SOUND_DEVICE): Define to "/dev/dsp" if not defined
+	elsewhere.
+	(vox_open): Use DEFAULT_SOUND_DEVICE.
+	* s/netbsd.h (DEFAULT_SOUND_DEVICE): Define to /dev/audio.
+
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* print.c (print_error_message): If Vsignaling_function is set,

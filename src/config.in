@@ -136,12 +136,16 @@ Boston, MA 02111-1307, USA.  */
 /* Header for Voxware or PCM sound card driver.  */
 #undef HAVE_MACHINE_SOUNDCARD_H
 #undef HAVE_SYS_SOUNDCARD_H
+#undef HAVE_SOUNDCARD_H
 
 /* Define HAVE_SOUND if we have sound support.  */
 #ifdef HAVE_MACHINE_SOUNDCARD_H
 #define HAVE_SOUND 1
 #endif
 #ifdef HAVE_SYS_SOUNDCARD_H
+#define HAVE_SOUND 1
+#endif
+#ifdef HAVE_SOUNDCARD_H
 #define HAVE_SOUND 1
 #endif
 

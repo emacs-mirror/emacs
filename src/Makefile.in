@@ -417,6 +417,8 @@ LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
 #endif /* not HAVE_X_WINDOWS */
 
+LIBSOUND= @LIBSOUND@
+
 #ifndef ORDINARY_LINK
 /* Fix linking if compiled with GCC.  */
 #ifdef __GNUC__
@@ -794,7 +796,8 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/menu-bar.elc ${dotdot}/lisp/mouse.elc \
    Note that SunOS needs -lm to come before -lc; otherwise, you get
    duplicated symbols.  If the standard libraries were compiled
    with GCC, we might need gnulib again after them.  */
-LIBES = $(LOADLIBES) $(LIBS) $(LIBX) LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
+LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
+   LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    LIBS_DEBUG $(GETLOADAVG_LIBS) $(GNULIB_VAR) LIB_MATH LIB_STANDARD \
    $(GNULIB_VAR)
 

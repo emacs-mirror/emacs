@@ -87,3 +87,5 @@
 #define LINKER $(CC) -nostartfiles
 
 #define NARROWPROTO 1
+
+#define DEFAULT_SOUND_DEVICE "/dev/audio"
