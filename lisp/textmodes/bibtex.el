@@ -3175,7 +3175,7 @@ used as a reference key, an error is signaled.  However, if optional
 variable IGNORE-DUPS is non-nil, no error messages about duplicate
 entries are signaled, but the error handling is assumed to be made in
 the calling function.
-The value is nil if an duplicate entry error occurred,
+The value is nil if a duplicate entry error occurred,
 and t in all other cases."
   (let* ((case-fold-search t)
          (left
