@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.63) $
+ * $HopeName: MMsrc!mpm.h(trunk.64) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -587,7 +587,8 @@ extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 /* Buffer Interface -- see impl.c.buffer */
 
 extern Res BufferCreate(Buffer *bufferReturn, Pool pool, ...);
-extern Res BufferCreateV(Buffer *bufferReturn, Pool pool, va_list args);
+extern Res BufferCreateV(Buffer *bufferReturn,
+                         Pool pool, Bool isMutator, va_list args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
@@ -610,10 +611,10 @@ extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
   (BufferAP((buffer))->init = BufferAlloc((buffer)), \
    BufferAP((buffer))->limit != 0 || BufferTrip((buffer), (p), (size)))
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
-extern Res BufferInitV(Buffer buffer, Pool pool, va_list args);
 extern void BufferFinish(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
+extern Bool BufferIsMutator(Buffer buffer);
 extern void BufferDetach(Buffer buffer, Pool pool);
 extern void BufferFlip(Buffer buffer);
 extern Addr BufferScanLimit(Buffer buffer);
