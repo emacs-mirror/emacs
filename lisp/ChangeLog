@@ -1,3 +1,8 @@
+2003-08-26  Terje Rosten <terjeros@phys.ntnu.no>
+
+	* version.el (emacs-version): Check for gtk.  Include gtk version
+	info.
+
 2003-08-25  John Paul Wallington  <jpw@gnu.org>
 
 	* man.el (Man-default-man-entry): Don't whizz past the section
