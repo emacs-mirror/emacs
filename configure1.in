@@ -1424,6 +1424,15 @@ if test "${HAVE_X11}" = "yes"; then
 XScreenNumberOfScreen XSetWMProtocols)
 fi
 
+if test "${USE_X_TOOLKIT}" != "none"; then
+  AC_COMPILE_CHECK(X11 toolkit version,
+		   [#include <X11/Intrinsic.h>],
+		   [#if XtSpecificationRelease < 6
+fail;
+#endif],
+		   AC_DEFINE(HAVE_X11XTR6))
+fi
+
 AC_ALLOCA
 
 # logb and frexp are found in -lm on most systems.
