@@ -180,6 +180,15 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;; GNU messages with program name and optional column number.
     ("\n[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
+
+    ;; Cray C compiler error messages
+    ("\n\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,]+, \\)* File = \\([^,]+\\), Line = \\([0-9]+\\)" 4 5)
+
+    ;; IBM C/C++ Tools 2.01:
+    ;;  foo.c(2:0) : informational EDC0804: Function foo is not referenced.
+    ;;  foo.c(3:8) : warning EDC0833: Implicit return statement encountered.
+    ;;  foo.c(5:5) : error EDC0350: Syntax error.
+    ("\n *\\([^(]+\\)(\\([0-9]+\\):\\([0-9]+\\)) : " 1 2 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
@@ -1003,7 +1012,7 @@ The current buffer should be the desired compilation output buffer."
 			    (save-restriction
 			      (widen)
 			      (goto-line last-line)
-			      (if column
+			      (if (and column (> column 0))
 				  ;; Columns in error msgs are 1-origin.
 				  (move-to-column (1- column))
 				(beginning-of-line))
