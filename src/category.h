@@ -98,18 +98,21 @@ extern Lisp_Object _temp_category_set;
 
 /* Return the category set of character C in the current category table.  */
 #ifdef __GNUC__
-#define CATEGORY_SET(c)						\
-  ({ Lisp_Object table = current_buffer->category_table;	\
-     Lisp_Object temp;						\
-     if (c < CHAR_TABLE_ORDINARY_SLOTS)				\
-       while (NILP (temp = XCHAR_TABLE (table)->contents[c])	\
-	      && NILP (temp = XCHAR_TABLE (table)->defalt))	\
-	 table = XCHAR_TABLE (table)->parent;			\
-     else							\
-       temp = Faref (table, c);					\
+#define CATEGORY_SET(c)							     \
+  ({ Lisp_Object table = current_buffer->category_table;		     \
+     Lisp_Object temp;							     \
+     if (c < CHAR_TABLE_ORDINARY_SLOTS)					     \
+       while (NILP (temp = XCHAR_TABLE (table)->contents[c])		     \
+	      && NILP (temp = XCHAR_TABLE (table)->defalt))		     \
+	 table = XCHAR_TABLE (table)->parent;				     \
+     else								     \
+       temp = Faref (table,						     \
+		     COMPOSITE_CHAR_P (c) ? cmpchar_component (c, 0) : (c)); \
      temp; })
 #else
-#define CATEGORY_SET(c) Faref (current_buffer->category_table, c)
+#define CATEGORY_SET(c)				\
+  Faref (current_buffer->category_table,	\
+	 COMPOSITE_CHAR_P (c) ? cmpchar_component (c, 0) : (c))
 #endif   
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
