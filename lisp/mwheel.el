@@ -1,4 +1,4 @@
-;;; mwheel.el --- Mouse support for MS intelli-mouse type mice
+;;; mwheel.el --- Wheel mouse support
 
 ;; Copyright (C) 1998,2000,2001,2002  Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'custom)
+(require 'timer)
 
 ;; Setter function for mouse-button user-options.  Switch Mouse Wheel
 ;; mode off and on again so that the old button is unbound and
@@ -73,6 +74,26 @@
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
+
+(defvar mouse-wheel-click-button 2
+  "Obsolete.  Use `mouse-wheel-click-event'.")
+(defcustom mouse-wheel-click-event
+  ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
+  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		  mouse-wheel-click-button))
+  "Event that should be temporarily inhibited after mouse scrolling.
+The mouse wheel is typically on the mouse-2 button, so it may easily
+happen that text is accidentially yanked into the buffer when
+scrolling with the mouse wheel.  To prevent that, this variable can be
+set to the event sent when clicking on the mouse wheel button."
+  :group 'mouse
+  :type 'symbol
+  :set 'mouse-wheel-change-button)
+
+(defcustom mouse-wheel-inhibit-click-time 0.35
+  "Time in seconds to inhibit clicking on mouse wheel button after scroll."
+  :group 'mouse
+  :type 'float)
 
 (defcustom mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control) . nil))
   "Amount to scroll windows by when spinning the mouse wheel.
@@ -140,6 +161,19 @@ This can be slightly disconcerting, but some people prefer it."
       (posn-window (event-start event)))
   (fset 'mwheel-event-window 'event-window))
 
+(defvar mwheel-inhibit-click-event-timer nil
+  "Timer running while mouse wheel click event is inhibited.")
+
+(defun mwheel-inhibit-click-timeout ()
+  "Handler for `mwheel-inhibit-click-event-timer'."
+  (setq mwheel-inhibit-click-event-timer nil)
+  (remove-hook 'pre-command-hook 'mwheel-filter-click-events))
+
+(defun mwheel-filter-click-events ()
+  "Discard `mouse-wheel-click-event' while scrolling the mouse."
+  (if (eq (event-basic-type last-input-event) mouse-wheel-click-event)
+      (setq this-command 'ignore)))
+
 (defun mwheel-scroll (event)
   "Scroll up or down according to the EVENT.
 This should only be bound to mouse buttons 4 and 5."
@@ -165,8 +199,14 @@ This should only be bound to mouse buttons 4 and 5."
 	  (cond ((eq button mouse-wheel-down-event) (scroll-down amt))
 		((eq button mouse-wheel-up-event) (scroll-up amt))
 		(t (error "Bad binding in mwheel-scroll"))))
-      (if curwin (select-window curwin)))))
-
+      (if curwin (select-window curwin))))
+  (when (and mouse-wheel-click-event mouse-wheel-inhibit-click-time)
+    (if mwheel-inhibit-click-event-timer
+	(cancel-timer mwheel-inhibit-click-event-timer)
+      (add-hook 'pre-command-hook 'mwheel-filter-click-events))
+    (setq mwheel-inhibit-click-event-timer 
+	  (run-with-timer mouse-wheel-inhibit-click-time nil
+			  'mwheel-inhibit-click-timeout))))
 
 ;;;###autoload
 (define-minor-mode mouse-wheel-mode
