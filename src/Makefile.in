@@ -1105,7 +1105,7 @@ hftctl.o: hftctl.c $(config_h)
 /* The files of Lisp proper */
 
 alloc.o: alloc.c frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
- blockinput.h $(config_h) INTERVAL_SRC
+ blockinput.h charset.h $(config_h) INTERVAL_SRC
 bytecode.o: bytecode.c buffer.h syntax.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h $(config_h)
