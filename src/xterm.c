@@ -176,8 +176,8 @@ static FONT_TYPE *icon_font_info;
 
 /* Stuff for dealing with the main icon title. */
 
-extern Lisp_Object Vcommand_line_args;
-char *hostname, *x_id_name;
+extern Lisp_Object Vcommand_line_args, Vsystem_name;
+char *x_id_name;
 
 /* Initial values of argv and argc.  */
 extern char **initial_argv;
@@ -6114,11 +6114,11 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 #if 0
     XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
-    hostname = get_system_name ();
     x_id_name = (char *) xmalloc (XSTRING (Vinvocation_name)->size
-				+ strlen (hostname)
+				+ XSTRING (Vsystem_name)->size
 				+ 2);
-    sprintf (x_id_name, "%s@%s", XSTRING (Vinvocation_name)->data, hostname);
+    sprintf (x_id_name, "%s@%s",
+	     XSTRING (Vinvocation_name)->data, XSTRING (Vsystem_name)->data);
   }
 
   /* Figure out which modifier bits mean what.  */
