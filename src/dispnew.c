@@ -122,6 +122,8 @@ Lisp_Object Vstandard_display_table;
    positive means at end of text in echo area;
    negative means at beginning of line.  */
 int cursor_in_echo_area;
+
+Lisp_Object Qdisplay_table;
 
 /* The currently selected frame.
    In a single-frame version, this variable always holds the address of
@@ -2561,6 +2563,9 @@ syms_of_display ()
 
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
+
+  Qdisplay_table = intern ("display-table");
+  staticpro (&Qdisplay_table);
 
   DEFVAR_INT ("baud-rate", &baud_rate,
     "*The output baud rate of the terminal.\n\
