@@ -102,8 +102,11 @@ The `ORGANIZATION' environment variable is used instead if defined.")
 The file listing groups to which user is subscribed.
 Will use `gnus-startup-file'-SERVER instead if exists.")
 
-(defvar rmail-file-name "~/RMAIL" "\
-Name of user's primary mail file.")
+(defcustom rmail-file-name "~/RMAIL"
+  "*Name of user's primary mail file."
+  :type 'string
+  :group 'rmail
+  :version "21.1")
 
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
