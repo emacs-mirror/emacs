@@ -83,7 +83,6 @@
 	* international/utf-8-subst.el: Populate utf-8-subst-rev-table.
 	(utf-8-subst-table): Don't set.
 
->>>>>>> 1.4125
 2002-07-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (define-coding-system-alias):
