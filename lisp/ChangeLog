@@ -17,6 +17,10 @@
 	* emulation/tpu-extras.el (tpu-forward-line): Use
 	forward-visible-line.
 	
+2000-11-30  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-face-value-create): Always emphasize tag.
+
 2000-11-30  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
 	* calendar/diary-lib.el (diary-entry-time): Anchor pattern correctly
