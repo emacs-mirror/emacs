@@ -1,3 +1,11 @@
+2005-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move): Add fourth optional arg try-vscroll which
+	must be set to perform auto-window-vscroll.
+	When moving backwards and doing auto-window-vscroll, automatically
+	vscroll to the last part of lines which are taller than the window.
+	(next-line, previous-line): Set try-vscroll arg on line-move.
+
 2005-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* replace.el (query-replace, query-replace-regexp)
@@ -6,7 +14,7 @@
 
 	* isearch.el (isearch-forward): Document isearch-query-replace and
 	isearch-query-replace-regexp keybindings.
-	
+
 2005-02-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (math-read-token): Add local variable.
@@ -21,30 +29,29 @@
 	Adjust integration rule for calcFunc-tan.
 
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-cmd.el (viper-prefix-commands): make into a defconst.
-	(viper-exec-buffer-search): use regexp-quote to quote the buffer
-	string.
-	(viper-minibuffer-setup-sentinel): make some variables buffer-local.
-	(viper-skip-separators): bug fix.
-	(viper-set-searchstyle-toggling-macros): allow to unset macros in a
+
+	* viper-cmd.el (viper-prefix-commands): Make into a defconst.
+	(viper-exec-buffer-search): Use regexp-quote to quote buffer string.
+	(viper-minibuffer-setup-sentinel): Make some variables buffer-local.
+	(viper-skip-separators): Bug fix.
+	(viper-set-searchstyle-toggling-macros): Allow to unset macros in a
 	particular major mode.
-	(viper-del-backward-char-in-replace): don't put deleted char on the
+	(viper-del-backward-char-in-replace): Don't put deleted char on the
 	kill ring.
-	
-	* viper-ex.el (viper-color-display-p): new function.
-	(viper-has-face-support-p): use viper-color-display-p.
-	
-	* viper-keym.el (viper-gnus-modifier-map): new keymap.
-	
-	* viper-macs.el (viper-unrecord-kbd-macro): bug fix.
-	
-	* viper-util.el (viper-glob-unix-files): fix shell status check.
-	(viper-file-remote-p): make equivalent to file-remote-p.
-	
-	* viper.el (viper-major-mode-modifier-list): use
+
+	* viper-ex.el (viper-color-display-p): New function.
+	(viper-has-face-support-p): Use viper-color-display-p.
+
+	* viper-keym.el (viper-gnus-modifier-map): New keymap.
+
+	* viper-macs.el (viper-unrecord-kbd-macro): Bug fix.
+
+	* viper-util.el (viper-glob-unix-files): Fix shell status check.
+	(viper-file-remote-p): Make equivalent to file-remote-p.
+
+	* viper.el (viper-major-mode-modifier-list): Use
 	viper-gnus-modifier-map.
-	
+
 2005-02-19  David Kastrup  <dak@gnu.org>
 
 	* subr.el (subregexp-context-p): Fix garbled doc string by adding
@@ -91,25 +98,25 @@
 	(gdb-post-prompt): Simplify test for speedbar.
 
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff.el (ediff-set-diff-overlays-in-one-buffer,
 	ediff-set-fine-overlays-in-one-buffer,ediff-goto-word) make sure
 	we use the syntax table of the correct buffer.
 	(ediff-same-file-contents,ediff-same-contents): enhancements thanks to
 	Felix Gatzemeier.
-	
+
 	* ediff-init.el (ediff-hide-face): checks for definedness of functions.
 	(ediff-file-remote-p): make synonymous with file-remote-p.
 	In all deffaces ediff-*-face-*, use min-colors.
-	
+
 	* ediff-mult.el (ediff-meta-mark-equal-files): make use of
         ediff-recurse-to-subdirectories.
 	(ediff-mark-if-equal): check that the arguments are strings, use
 	ediff-same-contents (after to Felix Gatzemeier).
-	
+
 	* ediff.el (ediff-merge-on-startup): don't set buffer-modified-p to
 	nil.
-	
+
 2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-message-re): Fix up Subversion regexp.

@@ -1,3 +1,25 @@
+2005-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Be sure to move to the specified
+	position.  Always get the full ascent / descent of the
+	corresponding row, to return reliable rtop and rbot values.
+	(back_to_previous_visible_line_start): Fix 2005-01-18 change.
+	Must look one character back, as back_to_previous_line_start
+	returns position after the newline.
+	(move_it_vertically_backward): Fix heuristic for when to move further
+	back in case line_height * 2/3 is larger than window height.
+	(cursor_row_fully_visible_p): Rename make_cursor_line_fully_visible_p
+	as it does not do anything anymore.  Add arg current_matrix_p to
+	use current matrix rather than desired matrix when set.
+	(try_cursor_movement): Don't scroll to make cursor row fully
+	visible if cursor didn't move.  This avoids unexpected recentering
+	in case of blinking cursor or accepting process output.
+	Use current matrix to check cursor row visibility.
+	(redisplay_window): Fix whether to recenter or move to top in case
+	cursor line is taller than window height.
+	(find_first_unchanged_at_end_row): Stop search if we reach a row
+	which not enabled (instead of abort).
+
 2005-02-18  Kim F. Storm  <storm@cua.dk>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Allow :color property
