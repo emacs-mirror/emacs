@@ -923,7 +923,7 @@ Proc         Status   Buffer         Tty         Command\n\
 	  tem = Fcar (Fcdr (p->status));
 	  if (XFASTINT (tem))
 	    {
-	      sprintf (tembuf, " %d", XFASTINT (tem));
+	      sprintf (tembuf, " %d", (int) XFASTINT (tem));
 	      write_string (tembuf, -1);
 	    }
 	}
