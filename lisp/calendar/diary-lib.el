@@ -363,20 +363,28 @@ changing the variable `diary-include-string'."
            (regexp-quote diary-include-string)
            " \"\\([^\"]*\\)\"")
           nil t)
-    (let ((diary-file (substitute-in-file-name
-                       (buffer-substring-no-properties
-                        (match-beginning 2) (match-end 2))))
-          (diary-list-include-blanks nil)
-          (list-diary-entries-hook 'include-other-diary-files)
-          (diary-display-hook 'ignore)
-          (diary-hook nil))
+    (let* ((diary-file (substitute-in-file-name
+                        (buffer-substring-no-properties
+                         (match-beginning 2) (match-end 2))))
+           (diary-list-include-blanks nil)
+           (list-diary-entries-hook 'include-other-diary-files)
+           (diary-display-hook 'ignore)
+           (diary-hook nil)
+           (d-buffer (find-buffer-visiting diary-file))
+           (diary-modified (if d-buffer
+                               (save-excursion
+                                 (set-buffer d-buffer)
+                                 (buffer-modified-p)))))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
                   (setq diary-entries-list
                         (append diary-entries-list
                                 (list-diary-entries original-date number)))
-                (kill-buffer (find-buffer-visiting diary-file)))
+                (set-buffer (find-buffer-visiting diary-file))
+                (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
+                (setq selective-display nil)
+                (set-buffer-modified-p diary-modified))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
