@@ -1,3 +1,8 @@
+2000-03-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-last-modified-date): Add parameter
+	ISO-DATE.  If non-nil, return date in ISO 8601 format.
+
 2000-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* log-edit.el (log-edit-mode-map): Inherit from vc-log-mode-map
