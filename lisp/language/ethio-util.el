@@ -78,8 +78,8 @@
       (setq key-bindings (cdr key-bindings))))
 
   (add-hook 'quail-activate-hook 'ethio-select-a-translation)
-  (add-hook 'find-file-hooks 'ethio-find-file)
-  (add-hook 'write-file-hooks 'ethio-write-file)
+  (add-hook 'find-file-hook 'ethio-find-file)
+  (add-hook 'write-file-functions 'ethio-write-file)
   (add-hook 'after-save-hook 'ethio-find-file))
 
 (defun exit-ethiopic-environment ()
@@ -91,8 +91,8 @@
 	  (cdr exit-ethiopic-environment-data)))
 
   (remove-hook 'quail-activate-hook 'ethio-select-a-translation)
-  (remove-hook 'find-file-hooks 'ethio-find-file)
-  (remove-hook 'write-file-hooks 'ethio-write-file)
+  (remove-hook 'find-file-hook 'ethio-find-file)
+  (remove-hook 'write-file-functions 'ethio-write-file)
   (remove-hook 'after-save-hook 'ethio-find-file))
 
 ;;
