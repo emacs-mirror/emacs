@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "window.h"
+#include "charset.h"
 #include "syntax.h"
 
 /* An abbrev table is an obarray.

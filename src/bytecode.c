@@ -36,6 +36,7 @@ by Hallvard:
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
+#include "charset.h"
 #include "syntax.h"
 
 /*
