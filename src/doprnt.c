@@ -200,7 +200,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		minlen = atoi (&fmtcpy[1]);
 	      if (lispstrings)
 		{
-		  string = XSTRING (((Lisp_Object *) args)[cnt])->data;
+		  string = (char *) XSTRING (((Lisp_Object *) args)[cnt])->data;
 		  tem = XSTRING (((Lisp_Object *) args)[cnt])->size;
 		  cnt++;
 		}
