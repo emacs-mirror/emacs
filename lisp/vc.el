@@ -5,6 +5,8 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
+;; $Id$
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -2177,13 +2179,19 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
     (set-buffer obuf)
     ;; Do the reverting
     (message "Reverting %s..." file)
-    (with-vc-properties
-     file
-     (vc-call revert file)
-     `((vc-state up-to-date)
-       (vc-checkout-time ,(nth 5 (file-attributes file)))))
-    (vc-resynch-buffer file t t)
+    (vc-revert-file file)
     (message "Reverting %s...done" file)))
+
+(defun vc-revert-file (file)
+  "Revert FILE back to the version it was based on."
+  ;; TODO: With local version caching, this function will get the 
+  ;; base version locally and not from the server.
+  (with-vc-properties
+   file
+   (vc-call revert file)
+   `((vc-state up-to-date)
+     (vc-checkout-time ,(nth 5 (file-attributes file)))))
+  (vc-resynch-buffer file t t))
 
 ;;;###autoload
 (defun vc-cancel-version (norevert)
