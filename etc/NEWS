@@ -3361,8 +3361,18 @@ to display compressed images.
 **** PBM, image type `pbm'
 
 PBM images don't require an external library.  Color, gray-scale and
-mono images are supported.  There are no additional image properties
-defined.
+mono images are supported.  Additional image properties supported for
+mono images are
+
+`:foreground FG'
+
+FG must be a string specifying the image foreground color.  Default
+is the frame's foreground.
+
+`:background FG'
+
+BG must be a string specifying the image foreground color.  Default is
+the frame's background color.
 
 **** JPEG, image type `jpeg'
 
