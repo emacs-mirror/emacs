@@ -1,3 +1,7 @@
+2002-03-26  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (substring-no-properties): Function deleted (now in C).
+
 2002-03-26  Juanma Barranquero  <lektu@terra.es>
 
 	* toolbar/tool-bar.el: Fix typo in commentary.

@@ -1,5 +1,9 @@
 2002-03-26  Richard M. Stallman  <rms@gnu.org>
 
+	* fns.c (Fsubstring_no_properties): New function.
+	(Flax_plist_get, Flax_plist_put): New functions.
+	(syms_of_fns): defsubr them.
+
 	* xdisp.c (update_menu_bar): Test only update_mode_lines;
 	don't test or alter w->update_mode_line.
 

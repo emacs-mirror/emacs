@@ -770,6 +770,11 @@ and the latter now controls scrolling down.
 This is like window-height but does not count the mode line
 or the header line.
 
+** New functions `lax-plist-get' and `lax-plist-put'.
+
+These functions are like `plist-get' and `plist-put' except that they
+compare the property name using `equal' rather than `eq'.
+
 +++
 ** The function `atan' now accepts an optional second argument.
 
