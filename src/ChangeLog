@@ -1,3 +1,13 @@
+2004-05-18  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.h (GET_OVERLAYS_AT): New macro.
+	* msdos.c (IT_note_mouse_highlight): Use it.
+	* textprop.c (get_char_property_and_overlay): Use it.
+	* xdisp.c (next_overlay_change, note_mouse_highlight): Use it.
+	* xfaces.c (face_at_buffer_position): Use it.
+
+	* print.c (print_object): Increase buf size.
+
 2004-05-17  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (mark_object): Ignore Lisp_Misc_Free objects.
