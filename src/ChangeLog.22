@@ -2,6 +2,11 @@
 
 	* w32fns.c (x_to_w32_font): Update to use new coding struct.
 
+2004-08-17  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fdeclare_equiv_charset): Fix handing of CHARS.
+	(Fiso_charset): Likewise.
+
 2004-08-03  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_encode_char): Add charset argument and update
