@@ -74,10 +74,11 @@
 
 ;;;_* User Customization variables
 (defcustom icomplete-mode nil
-  "*Non-nil enables incremental minibuffer completion.
+  "Toggle incremental minibuffer completion.
 As text is typed into the minibuffer, prospective completions are indicated 
 in the minibuffer.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `icomplete-mode'.
   :set (lambda (symbol value)
 	 (icomplete-mode (if value 1 -1)))
   :initialize 'custom-initialize-default
