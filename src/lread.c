@@ -2197,25 +2197,26 @@ read1 (readcharfun, pch, first_in_list)
     default_label:
       if (c <= 040) goto retry;
       {
-	register char *p = read_buffer;
+	char *p = read_buffer;
 	int quoted = 0;
 
 	{
-	  register char *end = read_buffer + read_buffer_size;
+	  char *end = read_buffer + read_buffer_size;
 
 	  while (c > 040
-		 && !(c == '\"' || c == '\'' || c == ';' || c == '?'
+		 && !(c == '\"' || c == '\'' || c == ';'
 		      || c == '(' || c == ')'
-		      || c == '[' || c == ']' || c == '#'
-		      ))
+		      || c == '[' || c == ']' || c == '#'))
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
-		  register char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
+		  char *new = (char *) xrealloc (read_buffer,
+						 read_buffer_size *= 2);
 		  p += new - read_buffer;
 		  read_buffer += new - read_buffer;
 		  end = read_buffer + read_buffer_size;
 		}
+	      
 	      if (c == '\\')
 		{
 		  c = READCHAR;
