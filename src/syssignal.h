@@ -140,7 +140,7 @@ sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 #define EMACS_KILLPG(gid, signo) (killpg ( (gid), (signo)))
 #else
 #ifdef WINDOWSNT
-#define EMACS_KILLPG(gid, signo) (win32_kill_process (gid, signo))
+#define EMACS_KILLPG(gid, signo) (kill (gid, signo))
 #else
 #define EMACS_KILLPG(gid, signo) (kill   (-(gid), (signo)))
 #endif
