@@ -305,6 +305,7 @@ wrong, use this command again to toggle back to the right mode."
 
     (let ((coding-system-for-read coding-system)
 	  (coding-system-for-write coding-system)
+	  (coding-system-require-warning t)
 	  (current-prefix-arg prefix))
       (message "")
       (call-interactively cmd))))
@@ -604,7 +605,10 @@ re-visited and edited.)
 
 Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
 list of coding systems to be prepended to the default coding system
-list.
+list.  However, if DEFAULT-CODING-SYSTEM is a list and the first
+element is t, the cdr part is used as the defualt coding system list,
+i.e. `buffer-file-coding-system' and the most prepended coding system
+is not used.
 
 Optional 4th arg ACCEPT-DEFAULT-P, if non-nil, is a function to
 determine the acceptability of the silently selected coding system.
@@ -624,36 +628,43 @@ and TO is ignored."
 	   (not (listp default-coding-system)))
       (setq default-coding-system (list default-coding-system)))
 
-  ;; Change elements of the list to (coding . base-coding).
-  (setq default-coding-system
-	(mapcar (function (lambda (x) (cons x (coding-system-base x))))
-		default-coding-system))
+  (let ((no-other-defaults nil))
+    (if (eq (car default-coding-system) t)
+	(setq no-other-defaults t
+	      default-coding-system (cdr default-coding-system)))
 
-  ;; If buffer-file-coding-system is not nil nor undecided, append it
-  ;; to the defaults.
-  (if buffer-file-coding-system
-      (let ((base (coding-system-base buffer-file-coding-system)))
-	(or (eq base 'undecided)
-	    (assq buffer-file-coding-system default-coding-system)
-	    (rassq base default-coding-system)
-	    (setq default-coding-system
-		  (append default-coding-system
-			  (list (cons buffer-file-coding-system base)))))))
+    ;; Change elements of the list to (coding . base-coding).
+    (setq default-coding-system
+	  (mapcar (function (lambda (x) (cons x (coding-system-base x))))
+		  default-coding-system))
 
-  ;; If the most preferred coding system has the property mime-charset,
-  ;; append it to the defaults.
-  (let ((tail coding-category-list)
-	preferred base)
-    (while (and tail
-		(not (setq preferred (symbol-value (car tail)))))
-      (setq tail (cdr tail)))
-    (and (coding-system-p preferred)
-	 (setq base (coding-system-base preferred))
-	 (coding-system-get preferred 'mime-charset)
-	 (not (assq preferred default-coding-system))
-	 (not (rassq base default-coding-system))
-	 (setq default-coding-system
-	       (append default-coding-system (list (cons preferred base))))))
+    (unless no-other-defaults
+      ;; If buffer-file-coding-system is not nil nor undecided, append it
+      ;; to the defaults.
+      (if buffer-file-coding-system
+	  (let ((base (coding-system-base buffer-file-coding-system)))
+	    (or (eq base 'undecided)
+		(assq buffer-file-coding-system default-coding-system)
+		(rassq base default-coding-system)
+		(setq default-coding-system
+		      (append default-coding-system
+			      (list (cons buffer-file-coding-system base)))))))
+
+      ;; If the most preferred coding system has the property mime-charset,
+      ;; append it to the defaults.
+      (let ((tail coding-category-list)
+	    preferred base)
+	(while (and tail
+		    (not (setq preferred (symbol-value (car tail)))))
+	  (setq tail (cdr tail)))
+	(and (coding-system-p preferred)
+	     (setq base (coding-system-base preferred))
+	     (coding-system-get preferred 'mime-charset)
+	     (not (assq preferred default-coding-system))
+	     (not (rassq base default-coding-system))
+	     (setq default-coding-system
+		   (append default-coding-system
+			   (list (cons preferred base))))))))
 
   (if select-safe-coding-system-accept-default-p
       (setq accept-default-p select-safe-coding-system-accept-default-p))
@@ -821,20 +832,19 @@ one of the following safe coding systems, or edit the buffer:\n")
 		(mapcar (function (lambda (x) (princ "  ") (princ x)))
 			codings)
 		(insert "\n")
-		(fill-region-as-paragraph pos (point)))))
+		(fill-region-as-paragraph pos (point)))
+	      (insert "Or specify any other coding system
+on your risk of loosing the problematic characters.\n")))
 
 	  ;; Read a coding system.
-	  (if safe
-	      (setq codings (append safe codings)))
-	  (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
-				     codings))
-		 (name (completing-read
-			(format "Select coding system (default %s): "
-				(car codings))
-			safe-names nil t nil nil
-			(car (car safe-names)))))
-	    (setq last-coding-system-specified (intern name)
-		  coding-system last-coding-system-specified)))
+	  (setq default-coding-system (or (car safe) (car codings)))
+	  (setq coding-system
+		(read-coding-system 
+		 (format "Select coding system (default %s): "
+			 default-coding-system)
+		 default-coding-system))
+	  (setq last-coding-system-specified coding-system))
+
 	(kill-buffer "*Warning*")
 	(set-window-configuration window-configuration)))
 
