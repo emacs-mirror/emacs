@@ -191,6 +191,7 @@ get_boot_time ()
 #endif
 }
 
+#ifdef BOOT_TIME
 /* Try to get the boot time from wtmp file FILENAME.
    This succeeds if that file contains a reboot record.
    Success is indicated by setting BOOT_TIME.  */
@@ -220,6 +221,7 @@ get_boot_time_1 (filename)
     }
   endutent ();
 }
+#endif /* BOOT_TIME */
 
 /* Here is the structure that stores information about a lock.  */
 
