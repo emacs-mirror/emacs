@@ -1,3 +1,7 @@
+2002-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/tex-mode.el (tex-start-tex): Fix previous change.
+
 2002-04-26  Sam Steingold  <sds@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): When `host' is
