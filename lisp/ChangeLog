@@ -1,3 +1,7 @@
+2001-01-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* icomplete.el (icomplete-minibuffer-setup-hook): Doc fix.
+
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-case-fold-search)
