@@ -1,3 +1,48 @@
+2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bindings.el (mode-line-mode-name): Only put the help-echo property
+	if the local-map property was put as well.
+	(global-map): Bind switch-frame, delete-frame, iconify-frame
+	and make-frame-visible events.
+
+	* emacs-lisp/elp.el (elp-not-profilable): New var.
+	(elp-not-profilable-p): New function.
+	(elp-instrument-function): Use it.  Use backquotes and push.
+
+	* emacs-lisp/bytecomp.el (byte-compile-call-tree, byte-code-vector)
+	(byte-stack+-info, byte-compile-last-warned-form)
+	(byte-compile-last-logged-file): Don't defconst a variable.
+	(no-byte-compile): Declare.
+	(byte-compile-file): Don't boundp-check no-byte-compile any more.
+	(byte-compile-defvar): Leave defconst as is.
+
+	* emacs-lisp/edebug.el (edebug-form-data, edebug-offsets)
+	(edebug-offsets-stack, edebug-read-dotted-list, edebug-def-name)
+	(edebug-current-offset, edebug-old-def-name, edebug-error-point)
+	(edebug-best-error): Don't defconst a variable.
+	(edebug-read-syntax-table): Use a char-table.
+	(edebug-lemacs-specific): Remove.
+	Toplevel: Eliminate check for Lucid Emacs.
+
+	* pcvs-util.el (cvs-prefix-define): Don't defconst a variable.
+
+	* rect.el (move-to-column-force): Mark obsolete.
+	(operate-on-rectangle, delete-extract-rectangle-line)
+	(insert-rectangle, delete-whitespace-rectangle-line)
+	(open-rectangle-line, clear-rectangle-line): Use move-to-column.
+	(string-rectangle-history): New var.
+	(string-rectangle, string-insert-rectangle): Use it.
+	(delete-rectangle-line): Fix pos/column mixup and simplify.
+
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Simplify.
+	(normal-top-level, command-line, command-line-1): Simplify.
+
+	* tar-mode.el (tar-mode): Use define-derived-mode.
+
+	* view.el (view-mode-enable): Don't use make-local-hook.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Use define-minor-mode.
+
 2001-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mail-extr.el (mail-extr-voodoo): Treat a number as a word

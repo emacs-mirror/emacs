@@ -1,3 +1,10 @@
+2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fileio.c (build_annotations): Split off the tail.
+	(build_annotations_2): New fun.  Extracted from build_annotations.
+	(Fwrite_region): Split the call to build_annotations into two
+	calls to build_annotations and build_annotations_2.
+
 2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* sysdep.c (wait_for_kbd_input) [VMS]: Do not call
@@ -5,8 +12,7 @@
 
 	* xterm.h (x_update_cursor): Remove duplicated prototype.
 
-	* keyboard.h (clear_waiting_for_input): Remove duplicated
-	prototype.
+	* keyboard.h (clear_waiting_for_input): Remove duplicated prototype.
 
 	* xterm.c (waiting_for_input): Remove unnecessary prototype.
 
