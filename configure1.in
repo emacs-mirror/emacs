@@ -1196,6 +1196,12 @@ if [ x"${version}" = x ]; then
   exit 1
 fi
 
+if [ -f /usr/lpp/X11/bin/smt.exp ]; then
+  ]
+  AC_DEFINE(HAVE_AIX_SMT_EXP)
+  [
+fi
+
 
 #### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
