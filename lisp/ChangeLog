@@ -1,5 +1,7 @@
 2004-04-24  Andreas Schwab  <schwab@suse.de>
 
+	* progmodes/sh-script.el (sh-leading-keywords) <sh>: Add "!".
+
 	* diff.el (diff): Set default-directory in diff buffer.
 
 2004-04-24  Eli Zaretskii  <eliz@gnu.org>
