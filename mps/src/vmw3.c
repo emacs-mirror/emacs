@@ -1,6 +1,6 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.21) $
+ *  $HopeName: MMsrc!vmw3.c(trunk.22) $
  *  Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.21) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.22) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -90,6 +90,71 @@ Bool VMCheck(VM vm)
 }
 
 
+
+
+/* VMRAMSize -- determine the RAM size for the platform */
+/* This is not a protocol function - but it could be in future */
+
+Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
+{
+  MEMORYSTATUS memstat;
+
+  AVERT(VM, vm);
+ 
+  memstat.dwLength = sizeof(MEMORYSTATUS);
+  GlobalMemoryStatus(&memstat);
+  *vmRAMSizeReturn = (Size)memstat.dwTotalPhys;
+  return ResOK;
+}
+
+/* defined in impl.c.trace */
+extern unsigned long AMCGen0Frequency;
+extern unsigned long AMCGen1Frequency;
+extern unsigned long AMCGen2Frequency;
+
+
+/* VMSetCollectionStrategy -- initialize strategy for platform */
+/* This is not a protocol function - but it could be in future */
+
+Res VMSetCollectionStrategy(VM vm)
+{
+  Res res;
+  Size vmRAMSize;
+
+  AVERT(VM, vm);
+
+  res = VMRAMSize(vm, &vmRAMSize);
+
+  /* Adjust the collection frequencies according to the RAM size */
+  /* The magic numbers are the result of (some) benchmark testing */
+  /* Note that the RAM size returned is actually slightly less */
+  /* than the total RAM size (for some reason) - so there needs to */
+  /* be a comparison against a lower value than the optimal size */
+  if (ResOK == res) {
+    if (vmRAMSize >= 110*1024*1024) {
+      /* Parameters optimized for 128 MB machines */
+      /* Source: mail.cohn.1998-03-26.02-34 */
+      AMCGen0Frequency = 30;
+      AMCGen1Frequency = 435;
+      AMCGen2Frequency = 3915;
+    } else if (vmRAMSize >= 60*1024*1024) {
+      /* Parameters optimized for 64 MB machines */
+      /* Source: RIT's test data, 1998-03-26 */
+      AMCGen0Frequency = 6;
+      AMCGen1Frequency = 48;
+      AMCGen2Frequency = 480;
+    } else {
+      /* Parameters optimized for 32 MB machines */
+      /* Source: Tony's test data, 1998-03-26 */
+      AMCGen0Frequency = 4;
+      AMCGen1Frequency = 20;
+      AMCGen2Frequency = 300;
+    }
+  }
+  return res;
+}
+
+
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
 Res VMCreate(VM *vmReturn, Size size)
@@ -98,6 +163,7 @@ Res VMCreate(VM *vmReturn, Size size)
   SYSTEM_INFO si;
   Align align;
   VM vm;
+  Res sres;
 
   AVER(vmReturn != NULL);
 
@@ -137,6 +203,9 @@ Res VMCreate(VM *vmReturn, Size size)
   vm->sig = VMSig;
 
   AVERT(VM, vm);
+
+  sres = VMSetCollectionStrategy(vm);
+  AVER(ResOK == sres);
 
   EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
 
