@@ -1235,10 +1235,16 @@ in all these directories.  With a prefix argument, it lists all files."
 	   (and (>= firstchar ?0) (<= firstchar ?9)))
 	 name)
 	(t
-	 (car (vc-master-info
-	       (concat (vc-backend-subdirectory-name file) "/" vc-name-assoc-file)
-	       (list (concat name "\t:\t" file "\t\\(.+\\)"))))
-	 )))
+	 (save-excursion
+	   (set-buffer (get-buffer-create "*vc-info*"))
+	   (vc-insert-file (concat 
+			    (vc-backend-subdirectory-name file) 
+			    "/" vc-name-assoc-file))
+	   (prog1
+	       (car (vc-parse-buffer
+		     (list (list (concat name "\t:\t" file "\t\\(.+\\)") 1))))
+	     (kill-buffer "*vc-info*"))))
+	 ))
 
 ;; Named-configuration entry points
 
