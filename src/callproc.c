@@ -140,16 +140,15 @@ Lisp_Object
 call_process_cleanup (fdpid)
      Lisp_Object fdpid;
 {
-#ifdef MSDOS
+#if defined (MSDOS) || defined (macintosh)
   /* for MSDOS fdpid is really (fd . tempfile)  */
   register Lisp_Object file;
   file = Fcdr (fdpid);
   close (XFASTINT (Fcar (fdpid)));
   if (strcmp (XSTRING (file)-> data, NULL_DEVICE) != 0)
     unlink (XSTRING (file)->data);
-#else /* not MSDOS */
+#else /* not MSDOS and not macintosh */
   register int pid = XFASTINT (Fcdr (fdpid));
-
 
   if (call_process_exited)
     {
@@ -215,6 +214,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   Lisp_Object error_file;
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *outf, *tempfile;
+  int outfilefd;
+#endif
+#ifdef macintosh
+  char *tempfile;
   int outfilefd;
 #endif
 #if 0
@@ -438,12 +441,34 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   fd[1] = outfilefd;
 #endif /* MSDOS */
 
+#ifdef macintosh
+  /* Since we don't have pipes on the Mac, create a temporary file to
+     hold the output of the subprocess.  */
+  tempfile = (char *) alloca (STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
+  bcopy (XSTRING (Vtemp_file_name_pattern)->data, tempfile,
+	 STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
+
+  mktemp (tempfile);
+
+  outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
+  if (outfilefd < 0)
+    {
+      close (filefd);
+      report_file_error ("Opening process output file",
+			 Fcons (build_string (tempfile), Qnil));
+    }
+  fd[0] = filefd;
+  fd[1] = outfilefd;
+#endif /* macintosh */
+
   if (INTEGERP (buffer))
     fd[1] = open (NULL_DEVICE, O_WRONLY), fd[0] = -1;
   else
     {
 #ifndef MSDOS
+#ifndef macintosh
       pipe (fd);
+#endif
 #endif
 #if 0
       /* Replaced by close_process_descs */
@@ -502,6 +527,49 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
     current_dir = ENCODE_FILE (current_dir);
 
+#ifdef macintosh
+    {
+      /* Call run_mac_command in sysdep.c here directly instead of doing
+         a child_setup as for MSDOS and other platforms.  Note that this
+         code does not handle passing the environment to the synchronous
+         Mac subprocess.  */
+      char *infn, *outfn, *errfn, *currdn;
+      
+      /* close these files so subprocess can write to them */
+      close (outfilefd);
+      if (fd_error != outfilefd)
+        close (fd_error);
+      fd1 = -1; /* No harm in closing that one! */
+
+      infn = XSTRING (infile)->data;
+      outfn = tempfile;
+      if (NILP (error_file))
+        errfn = NULL_DEVICE;
+      else if (EQ (Qt, error_file))
+        errfn = outfn;
+      else
+        errfn = XSTRING (error_file)->data;
+      currdn = XSTRING (current_dir)->data;
+      pid = run_mac_command (new_argv, currdn, infn, outfn, errfn);
+
+      /* Record that the synchronous process exited and note its
+         termination status.  */
+      synch_process_alive = 0;
+      synch_process_retcode = pid;
+      if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
+        synch_process_death = strerror (errno);
+
+      /* Since CRLF is converted to LF within `decode_coding', we can
+         always open a file with binary mode.  */
+      fd[0] = open (tempfile, O_BINARY);
+      if (fd[0] < 0)
+	{
+	  unlink (tempfile);
+	  close (filefd);
+	  report_file_error ("Cannot re-open temporary file", Qnil);
+	}
+    }
+#else /* not macintosh */
 #ifdef MSDOS /* MW, July 1993 */
     /* Note that on MSDOS `child_setup' actually returns the child process
        exit status, not its PID, so we assign it to `synch_process_retcode'
@@ -557,6 +625,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     if (fd_error >= 0)
       close (fd_error);
 #endif /* not MSDOS */
+#endif /* not macintosh */
 
     environ = save_environ;
 
@@ -590,14 +659,14 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   /* Enable sending signal if user quits below.  */
   call_process_exited = 0;
 
-#ifdef MSDOS
+#if defined(MSDOS) || defined(macintosh)
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), build_string (tempfile)));
 #else
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
-#endif /* not MSDOS */
+#endif /* not MSDOS and not macintosh */
 
 
   if (BUFFERP (buffer))
