@@ -651,7 +651,9 @@ do not put this buffer at the front of the list of recently selected ones."
 Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files."
+expand wildcards (if any) and visit multiple files.  Wildcard expansion
+can be suppressed by setting `find-file-wildcards'.  Such expansion is
+not implemented for remote files."
   (interactive "FFind file: \np")
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
@@ -1398,7 +1400,10 @@ REGEXP and search the list again for another match.")
     ("tail" . text-mode)
     ("more" . text-mode)
     ("less" . text-mode)
-    ("pg" . text-mode))
+    ("pg" . text-mode)
+    ("make" . makefile-mode)		; Debian uses this
+    ("guile" . scheme-mode)
+    ("clisp" . lisp-mode))
   "Alist mapping interpreter names to major modes.
 This alist applies to files whose first line starts with `#!'.
 Each element looks like (INTERPRETER . MODE).
