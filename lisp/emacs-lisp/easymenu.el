@@ -616,20 +616,6 @@ In some cases we use that to select between the local and global maps."
   (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))
   map)
 
-(defun easy-menu-popup-menu (menu &optional event)
-  "Pop up a menu and run a command according to user's selection.
-MENU is a menu description as in `easy-menu-define'.
-EVENT is a mouse button event and determines where to pop up the menu.
-If EVENT is nil, pop up menu at the current mouse position."
-  (let ((map (easy-menu-create-menu (car menu) (cdr menu))))
-    (if (symbolp map)
-	(let ((f (memq :filter (get map 'menu-prop))))
-	  (setq map (symbol-function map))
-	  (if f (setq map (funcall (cadr f) map)))))
-    (let* ((sel (x-popup-menu (or event t) map))
-	   (f (if (consp sel) (lookup-key map (apply 'vector sel)))))
-      (if (commandp f) (call-interactively f)))))
-
 (provide 'easymenu)
 
 ;;; easymenu.el ends here
