@@ -239,6 +239,9 @@ static int highlight;
 static int curs_x;
 static int curs_y;
 
+/* Reusable Graphics Context for drawing a cursor in a non-default face. */
+static GC scratch_cursor_gc;
+
 /* Mouse movement.
 
    In order to avoid asking for motion events and then throwing most
@@ -630,7 +633,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	struct face *face = FRAME_DEFAULT_FACE (f);
 	FONT_TYPE *font = FACE_FONT (face);
 	GC gc = FACE_GC (face);
-	int gc_temporary = 0;
 
 	/* HL = 3 means use a mouse face previously chosen.  */
 	if (hl == 3)
@@ -668,8 +670,11 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	/* Now override that if the cursor's on this character.  */
 	if (hl == 2)
 	  {
-	    if (!face->font
-		|| (int) face->font == FACE_DEFAULT)
+	    if ((!face->font
+		 || (int) face->font == FACE_DEFAULT
+		 || face->font == f->display.x->font)
+		&& face->background == f->display.x->background_pixel
+		&& face->foreground == f->display.x->foreground_pixel)
 	      {
 		gc = f->display.x->cursor_gc;
 	      }
@@ -680,10 +685,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 		unsigned long mask;
 
 		xgcv.background = f->display.x->cursor_pixel;
-		if (face == FRAME_DEFAULT_FACE (f))
-		  xgcv.foreground = f->display.x->cursor_foreground_pixel;
-		else
-		  xgcv.foreground = face->background;
+		xgcv.foreground = face->background;
 		/* If the glyph would be invisible,
 		   try a different foreground.  */
 		if (xgcv.foreground == xgcv.background)
@@ -702,13 +704,18 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 		xgcv.font = face->font->fid;
 		xgcv.graphics_exposures = 0;
 		mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
-		gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
-				mask, &xgcv);
+		if (scratch_cursor_gc)
+		  XChangeGC (x_current_display, scratch_cursor_gc, mask, &xgcv);
+		else
+		  scratch_cursor_gc =
+		    XCreateGC (x_current_display, window, mask, &xgcv);
+		gc = scratch_cursor_gc;
 #if 0
+/* If this code is restored, it must also reset to the default stipple
+   if necessary. */
 		if (face->stipple && face->stipple != FACE_DEFAULT)
 		  XSetStipple (x_current_display, gc, face->stipple);
 #endif
-		gc_temporary = 1;
 	      }
 	  }
 
@@ -745,9 +752,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 				     PIXEL_TO_CHAR_ROW (f, top), hl == 1);
 	  }
 #endif
-
-	if (gc_temporary)
-	  XFreeGC (x_current_display, gc);
 
 	/* We should probably check for XA_UNDERLINE_POSITION and
 	   XA_UNDERLINE_THICKNESS properties on the font, but let's
