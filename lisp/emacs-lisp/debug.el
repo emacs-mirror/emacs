@@ -64,6 +64,10 @@ the middle is discarded, and just the beginning and end are displayed."
 (defvar debugger-old-buffer nil
   "This is the buffer that was current when the debugger was entered.")
 
+(defvar debugger-previous-backtrace nil
+  "The contents of the previous backtrace (including text properties).
+This is to optimize `debugger-make-xrefs'.")
+
 (defvar debugger-outer-match-data)
 (defvar debugger-outer-load-read-function)
 (defvar debugger-outer-overriding-local-map)
@@ -271,16 +275,73 @@ That buffer should be current already."
   (debugger-make-xrefs))
 
 (defun debugger-make-xrefs (&optional buffer)
-  "Create cross-references in the debugger buffer."
+  "Attach cross-references to symbol names in the `*Backtrace*' buffer."
   (interactive "b")
   (save-excursion
     (set-buffer (or buffer (current-buffer)))
-    (goto-char (point-min))
-    (let ((buffer-read-only nil))
-      (while (re-search-forward "\\(\\(\\sw\\|\\s_\\)+\\)" nil t)
-        (let* ((sym (intern-soft (match-string 1)))
-               (file (symbol-file sym)))
-          (when file (help-xref-button 1 'help-function-def sym file)))))))
+    (setq buffer (current-buffer))
+    (let ((buffer-read-only nil)
+	  (old-end 1) (new-end 1))
+      ;; If we saved an old backtrace, find the common part
+      ;; between the new and the old.
+      ;; Compare line by line, starting from the end,
+      ;; because that's the part that is likely to be unchanged.
+      (if debugger-previous-backtrace
+	  (let (old-start new-start (all-match t))
+	    (goto-char (point-max))
+	    (with-temp-buffer
+	      (insert debugger-previous-backtrace)
+	      (while (and all-match (not (bobp)))
+		(setq old-end (point))
+		(forward-line -1)
+		(setq old-start (point))
+		(with-current-buffer buffer
+		  (setq new-end (point))
+		  (forward-line -1)
+		  (setq new-start (point)))
+		(if (not (zerop
+			  (compare-buffer-substrings
+			   (current-buffer) old-start old-end
+			   buffer new-start new-end)))
+		    (setq all-match nil))))
+	    ;; Now new-end is the position of the start of the
+	    ;; unchanged part in the current buffer, and old-end is
+	    ;; the position of that same text in the saved old
+	    ;; backtrace.  But we must subtract 1 since strings are
+	    ;; indexed in origin 0.
+
+	    ;; Replace the unchanged part of the backtrace
+	    ;; with the text from debugger-previous-backtrace,
+	    ;; since that already has the proper xrefs.
+	    ;; With this optimization, we only need to scan
+	    ;; the changed part of the backtrace.
+	    (delete-region new-end (point-max))
+	    (goto-char (point-max))
+	    (insert (substring debugger-previous-backtrace (1- old-end)))
+	    ;; Make the unchanged part of the backtrace inaccessible
+	    ;; so it won't be scanned.
+	    (narrow-to-region (point-min) new-end)))
+	    
+      ;; Scan the new part of the backtrace, inserting xrefs.
+      (goto-char (point-min))
+      (while (progn
+	       (skip-syntax-forward "^w_")
+	       (not (eobp)))
+	(let* ((beg (point))
+	       (end (progn (skip-syntax-forward "w_") (point)))
+	       (sym (intern-soft (buffer-substring-no-properties
+				  beg end)))
+	       (file (and sym (symbol-file sym))))
+	  (message "sym %s, file %s" sym file)
+	  (recursive-edit)
+	  (when file
+	    (goto-char beg)
+	    ;; help-xref-button needs to operate on something matched
+	    ;; by a regexp, so set that up for it.
+	    (re-search-forward "\\(\\(\\sw\\|\\s_\\)+\\)")
+	    (help-xref-button 1 'help-function-def sym file))))
+      (widen))
+    (setq debugger-previous-backtrace (buffer-string))))
 
 (defun debugger-step-through ()
   "Proceed, stepping through subexpressions of this expression.
