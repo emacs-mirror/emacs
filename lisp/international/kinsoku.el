@@ -1,4 +1,4 @@
-;;; kinsoku.el --- `Kinsoku' processing functions.
+;;; kinsoku.el --- `Kinsoku' processing funcs. -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -72,7 +72,7 @@ The value 0 means there's no limitation.")
 	 ;; Chinese BIG5
 	 "$(0!"!#!$!%!&!'!(!)!*!+!,!-!.!/!0!1!2(B\
 $(0!3!4!5!6!7!8!9!:!;!<!=!?!A!C!E!G!I!K(B\
-$(0!M!O!Q(B	$(0!S!U!W!Y![!]!_!a!c!e!g!i!k!q(B\
+$(0!M!O!Q!S!U!W!Y![!]!_!a!c!e!g!i!k!q(B\
 $(0"#"$"%"&"'"(")"*"+","2"3"4"j"k"l"x%7(B"))
        (len (length kinsoku-bol))
        (idx 0)
