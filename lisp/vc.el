@@ -1498,7 +1498,7 @@ Return nil if there is no such person."
      (vc-do-command 0 "unget" file "-n" (if rev (concat "-r" rev)))
      (vc-do-command 0 "get" file "-g" (if rev (concat "-r" rev)))
      )
-   (vc-do-command 0 "rcs" "-M" (concat "-u" rev) (concat "-l" rev) file))
+   (vc-do-command 0 "rcs" file "-M" (concat "-u" rev) (concat "-l" rev)))
   (vc-file-setprop file 'vc-locking-user (user-login-name))
   (message "Stealing lock on %s...done" file)
   )  
