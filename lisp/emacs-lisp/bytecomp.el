@@ -749,14 +749,14 @@ otherwise pop it")
 		 (and byte-compile-last-warned-form
 		      (not (eq byte-compile-current-form
 			       byte-compile-last-warned-form))))
-	     (message (format "While compiling %s%s:"
-			(or byte-compile-current-form "toplevel forms")
-			(if byte-compile-current-file
-			    (if (stringp byte-compile-current-file)
-				(concat " in file " byte-compile-current-file)
-			      (concat " in buffer "
-				      (buffer-name byte-compile-current-file)))
-			    ""))))
+	     (message "While compiling %s%s:"
+		      (or byte-compile-current-form "toplevel forms")
+		      (if byte-compile-current-file
+			  (if (stringp byte-compile-current-file)
+			      (concat " in file " byte-compile-current-file)
+			    (concat " in buffer "
+				    (buffer-name byte-compile-current-file)))
+			"")))
 	 (message "  %s" string))
 	(t
 	 (save-excursion
