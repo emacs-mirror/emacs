@@ -1,0 +1,1014 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/frames
+@node Frames, Positions, Windows, Top
+@chapter Frames
+@cindex frame
+
+  A @var{frame} is a rectangle on the screen that contains one or more
+Emacs windows.  A frame initially contains a single main window (plus
+perhaps a minibuffer window) which you can subdivide vertically or
+horizontally into smaller windows.
+
+@cindex terminal frame
+@cindex X window frame
+  When Emacs runs on a text-only terminal, it has just one frame, a
+@dfn{terminal frame}.  There is no way to create another terminal frame
+after startup.  If Emacs has an X display, it does not have a terminal
+frame; instead, it starts with a single @dfn{X window frame}.  You can
+create more; see @ref{Creating Frames}.
+
+@defun framep object
+This predicate returns @code{t} if @var{object} is a frame, and
+@code{nil} otherwise.
+@end defun
+
+@menu
+* Creating Frames::		Creating additional X Window frames.
+* Frame Parameters::		Controlling frame size, position, font, etc.
+* Deleting Frames::		Frames last until explicitly deleted.
+* Finding All Frames::		How to examine all existing frames.
+* Frames and Windows::		A frame contains windows;
+				  display of text always works through windows.
+* Minibuffers and Frames::	How a frame finds the minibuffer to use.
+* Input Focus::			Specifying the selected frame.
+* Visibility of Frames::	Frames may be visible or invisible, or icons.
+* Raising and Lowering::	Raising a frame makes it hide other X windows;
+				  lowering it makes the others hide them.
+* Frame Configurations::	Saving the state of all frames.
+* Mouse Tracking::		Getting events that say when the mouse moves.
+* Mouse Position::		Asking where the mouse is, or moving it.
+* Pop-Up Menus::		Displaying a menu for the user to select from.
+* Dialog Boxes::                Displaying a box to ask yes or no.
+* X Selections::		Transferring text to and from other X clients.
+* X Connections::	        Opening and closing the X server connection.
+* Resources::		        Getting resource values from the server.
+* Server Data::		        Getting info about the X server.
+@end menu
+
+  @xref{Display}, for related information.
+
+@node Creating Frames
+@section Creating Frames
+
+To create a new frame, call the function @code{make-frame}.
+
+@defun make-frame alist
+This function creates a new frame, if the display mechanism permits
+creation of frames.  (An X server does; an ordinary terminal does not.)
+
+The argument is an alist specifying frame parameters.  Any parameters
+not mentioned in @var{alist} default according to the value of the
+variable @code{default-frame-alist}; parameters not specified there
+either default from the standard X defaults file and X resources.
+
+The set of possible parameters depends in principle on what kind of
+window system Emacs uses to display its the frames.  @xref{X Frame
+Parameters}, for documentation of individual parameters you can specify
+when creating an X window frame.
+@end defun
+
+@defvar default-frame-alist
+This is an alist specifying default values of frame parameters.
+Each element has the form:
+
+@example
+(@var{parameter} . @var{value})
+@end example
+
+If you use options that specify window appearance when you invoke Emacs,
+they take effect by adding elements to @code{default-frame-alist}.
+@xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
+@end defvar
+
+@defvar before-make-frame-hook
+A normal hook run by @code{make-frame} before it actually creates the
+frame.
+@end defvar
+
+@defvar after-make-frame-hook
+A normal hook run by @code{make-frame} after it creates the frame.
+@end defvar
+
+@node Frame Parameters
+@section Frame Parameters
+
+A frame has many parameters that control its appearance and behavior.
+Just what parameters a frame has depends on what display mechanism it
+uses.
+
+Frame parameters exist for the sake of window systems.  A terminal frame
+has a few parameters, for compatibility's sake only.  You can't change
+these parameters directly; the only ones that ever change are the height
+and width.
+
+@menu
+* Parameter Access::       How to change a frame's parameters.
+* Initial Parameters::	   Specifying frame parameters when you make a frame.
+* X Frame Parameters::     Individual parameters documented.
+* Size And Position::      Changing the size and position of a frame.
+@end menu
+
+@node Parameter Access
+@subsection Access to Frame Parameters
+
+These functions let you read and change the parameter values of a
+frame.
+
+@defun frame-parameters frame
+The function @code{frame-parameters} returns an alist listing all the
+parameters of @var{frame} and their values.
+@end defun
+
+@defun modify-frame-parameters frame alist
+This function alters the parameters of frame @var{frame} based on the
+elements of @var{alist}.  Each element of @var{alist} has the form
+@code{(@var{parm} . @var{value})}, where @var{parm} is a symbol naming a
+parameter.  If you don't mention a parameter in @var{alist}, its value
+doesn't change.
+@end defun
+
+@node Initial Parameters
+@subsection Initial Frame Parameters
+
+You can specify the parameters for the initial startup frame
+by setting @code{initial-frame-alist} in your @file{.emacs} file.
+
+@defvar initial-frame-alist
+This variable's value is an alist of parameter values used when creating
+the initial X window frame.
+@end defvar
+
+If these parameters specify a separate minibuffer-only frame,
+and you have not created one, Emacs creates one for you.
+
+@defvar minibuffer-frame-alist
+This variable's value is an alist of parameter values used when creating
+an initial minibuffer-only frame---if such a frame is needed, according
+to the parameters for the main initial frame.
+@end defvar
+
+@node X Frame Parameters
+@subsection X Window Frame Parameters
+
+Just what parameters a frame has depends on what display mechanism it
+uses.  Here is a table of the parameters of an X window frame:
+
+@table @code
+@item name
+The name of the frame.  Most window managers display the frame's name in
+the frame's border, at the top of the frame.  If you don't specify a
+name, and you have more than one frame, Emacs sets the frame name based
+on the buffer displayed in the frame's selected window.
+
+If you specify the frame name explicitly when you create the frame, the
+name is also used (instead of the name of the Emacs executable) when
+looking up X resources for the frame.
+
+@item left
+The screen position of the left edge, in pixels.
+
+@item top
+The screen position of the top edge, in pixels.
+
+@item height
+The height of the frame contents, in pixels.
+
+@item width
+The width of the frame contents, in pixels.
+
+@item window-id
+The number of the X window for the frame.
+
+@item minibuffer
+Whether this frame has its own minibuffer.  The value @code{t} means
+yes, @code{nil} means no, @code{only} means this frame is just a
+minibuffer, a minibuffer window (in some other frame) means the new
+frame uses that minibuffer.
+
+@item font
+The name of the font for displaying text in the frame.  This is a
+string.
+
+@item auto-raise
+Whether selecting the frame raises it (non-@code{nil} means yes).
+
+@item auto-lower
+Whether deselecting the frame lowers it (non-@code{nil} means yes).
+
+@item vertical-scroll-bars
+Whether the frame has scroll bars for vertical scrolling
+(non-@code{nil} means yes).
+
+@item horizontal-scroll-bars
+Whether the frame has scroll bars for horizontal scrolling
+(non-@code{nil} means yes).  (Horizontal scroll bars are not currently
+implemented.)
+
+@item icon-type
+The type of icon to use for this frame when it is iconified.
+Non-@code{nil} specifies a bitmap icon, @code{nil} a text icon.
+
+@item foreground-color
+The color to use for the inside of a character.  This is a string; the X
+server defines the meaningful color names.
+
+@item background-color
+The color to use for the background of text.
+
+@item mouse-color
+The color for the mouse cursor.
+
+@item cursor-color
+The color for the cursor that shows point.
+
+@item border-color
+The color for the border of the frame.
+
+@item cursor-type
+The way to display the cursor.  There are two legitimate values:
+@code{bar} and @code{box}.  The symbol @code{bar} specifies a vertical
+bar between characters as the cursor.  The symbol @code{box} specifies
+an ordinary black box overlaying the character after point; that is the
+default.
+
+@item border-width
+The width in pixels of the window border.
+
+@item internal-border-width
+The distance in pixels between text and border.
+
+@item unsplittable
+If non-@code{nil}, this frame's window is never split automatically.
+
+@item visibility
+The state of visibility of the frame.  There are three possibilities:
+@code{nil} for invisible, @code{t} for visible, and @code{icon} for
+iconified.  @xref{Visibility of Frames}.
+
+@item menu-bar-lines
+The number of lines to allocate at the top of the frame for a menu bar.
+The default is 1.  @xref{Menu Bar}.
+
+@item parent-id
+@c ??? Not yet working.
+The X window number of the window that should be the parent of this one.
+Specifying this lets you create an Emacs window inside some other
+application's window.  (It is not certain this will be implemented; try
+it and see if it works.)
+@end table
+
+@node Size And Position
+@subsection Frame Size And Position
+
+  You can read or change the size and position of a frame using the
+frame parameters @code{left}, @code{top}, @code{height} and
+@code{width}.  When you create a frame, you must specify either both
+size parameters or neither.  Likewise, you must specify either both
+position parameters or neither.  Whatever geometry parameters you don't
+specify are chosen by the window manager in its usual fashion.
+
+  Here are some special features for working with sizes and positions:
+
+@defun set-frame-position frame left top
+This function sets the position of the top left corner of
+@var{frame}---to @var{left} and @var{top}.  These arguments are measured
+in pixels, counting from the top left corner of the screen.
+@end defun
+
+@defun frame-height &optional frame
+@defunx frame-width &optional frame
+These functions return the height and width of @var{frame}, measured in
+characters.  If you don't supply @var{frame}, they use the selected
+frame.
+@end defun
+
+@defun frame-pixel-height &optional frame
+@defunx frame-pixel-width &optional frame
+These functions return the height and width of @var{frame}, measured in
+pixels.  If you don't supply @var{frame}, they use the selected frame.
+@end defun
+
+@defun frame-char-height &optional frame
+@defunx frame-char-width &optional frame
+These functions return the height and width, respectively, of a
+character in @var{frame}, measured in pixels.  The values depend on the
+choice of font.  If you don't supply @var{frame}, these functions use
+the selected frame.
+@end defun
+
+@defun set-frame-size frame cols rows
+This function sets the size of @var{frame}, measured in
+characters; @var{cols} and @var{rows} specify the new width and height.
+
+To set the size with values measured in pixels, use
+@code{modify-frame-parameters} to set the @code{width} and @code{height}
+parameters.  @xref{X Frame Parameters}.
+@end defun
+
+  The old-fashioned functions @code{set-screen-height} and
+@code{set-screen-width}, which were used to specify the height and width
+of the screen in Emacs versions that did not support multiple frames,
+are still usable.  They apply to the selected frame.  @xref{Screen
+Size}.
+
+@defun x-parse-geometry geom
+@cindex geometry specification
+The function @code{x-parse-geometry} converts a standard X windows
+geometry string to an alist which you can use as part of the argument to
+@code{make-frame}.
+
+The alist describes which parameters were specified in @var{geom}, and
+gives the values specified for them.  Each element looks like
+@code{(@var{parameter} . @var{value})}.  The possible @var{parameter}
+values are @code{left}, @code{top}, @code{width}, and @code{height}.
+
+@smallexample
+(x-parse-geometry "35x70+0-0")
+     @result{} ((width . 35) (height . 70) (left . 0) (top . -1))
+@end smallexample
+@end defun
+
+@ignore
+New functions @code{set-frame-height} and @code{set-frame-width} set the
+size of a specified frame.  The frame is the first argument; the size is
+the second.
+@end ignore
+
+@node Deleting Frames
+@section Deleting Frames
+@cindex deletion of frames
+
+Frames remain potentially visible until you explicitly @dfn{delete}
+them.  A deleted frame cannot appear on the screen, but continues to
+exist as a Lisp object until there are no references to it.  There is no
+way to cancel the deletion of a frame aside from restoring a saved frame
+configuration (@pxref{Frame Configurations}); this is similar to the
+way windows behave.
+
+@deffn Command delete-frame &optional frame
+This function deletes the frame @var{frame}.  By default, @var{frame} is
+the selected frame.
+@end deffn
+
+@defun frame-live-p frame
+The function @code{frame-live-p} returns non-@code{nil} if the frame
+@var{frame} has not been deleted.
+@end defun
+
+@node Finding All Frames
+@section Finding All Frames
+
+@defun frame-list
+The function @code{frame-list} returns a list of all the frames that
+have not been deleted.  It is analogous to @code{buffer-list} for
+buffers.  The list that you get is newly created, so modifying the list
+doesn't have any effect on the internals of Emacs.
+@end defun
+
+@defun visible-frame-list
+This function returns a list of just the currently visible frames.
+@xref{Visibility of Frames}.
+@end defun
+
+@defun next-frame &optional frame minibuf
+The function @code{next-frame} lets you cycle conveniently through all
+the frames from an arbitrary starting point.  It returns the ``next''
+frame after @var{frame} in the cycle.  If @var{frame} is omitted or
+@code{nil}, it defaults to the selected frame.
+
+The second argument, @var{minibuf}, says which frames to consider:
+
+@table @asis
+@item @code{nil}
+Exclude minibuffer-only frames.
+@item @code{visible}
+Consider all visible frames.
+@item a window
+Consider only the frames using that particular window as their
+minibuffer.
+@item anything else
+Consider all frames.
+@end table
+@end defun
+
+@defun previous-frame &optional frame minibuf
+Like @code{next-frame}, but cycles through all frames in the opposite
+direction.
+@end defun
+
+@node Frames and Windows
+@section Frames and Windows
+
+All the non-minibuffer windows in a frame are arranged in a tree of
+subdivisions; the root of this tree is available via the function
+@code{frame-root-window}.  Each window is part of one and
+only one frame; you can get the frame with @code{window-frame}.
+
+@defun frame-root-window frame
+This returns the root window of frame @var{frame}.
+@end defun
+
+@defun window-frame window
+This function returns the frame that @var{window} is on.
+@end defun
+
+At any time, exactly one window on any frame is @dfn{selected within the
+frame}.  The significance of this designation is that selecting the
+frame also selects this window.  You can get the frame's current
+selected window with @code{frame-selected-window}.
+
+@defun frame-selected-window frame
+This function returns the window on @var{frame} which is selected within
+@var{frame}.
+@end defun
+
+Conversely, selecting a window for Emacs with @code{select-window} also
+makes that window selected within its frame.  @xref{Selecting Windows}.
+
+@node Minibuffers and Frames
+@section Minibuffers and Frames
+
+Normally, each frame has its own minibuffer window at the bottom, which
+is used whenever that frame is selected.  If the frame has a minibuffer,
+you can get it with @code{minibuffer-window} (@pxref{Minibuffer Misc}).
+
+However, you can also create a frame with no minibuffer.  Such a frame
+must use the minibuffer window of some other frame.  When you create the
+frame, you can specify explicitly the frame on which to find the
+minibuffer to use.  If you don't, then the minibuffer is found in the
+frame which is the value of the variable
+@code{default-minibuffer-frame}.  Its value should be a frame which does
+have a minibuffer.
+
+If you use a minibuffer-only frame, you might want that frame to raise
+when you enter the minibuffer.  If so, set the variable
+@code{minibuffer-auto-raise} to @code{t}.  @xref{Raising and Lowering}.
+
+@node Input Focus
+@section Input Focus
+@cindex input focus
+@cindex selected frame
+
+At any time, one frame in Emacs is the @dfn{selected frame}.  The selected
+window always resides on the selected frame.
+
+@defun selected-frame
+This function returns the selected frame.
+@end defun
+
+The X server normally directs keyboard input to the X window that the
+mouse is in.  Some window managers use mouse clicks or keyboard events
+to @dfn{shift the focus} to various X windows, overriding the normal
+behavior of the server.
+
+Lisp programs can switch frames ``temporarily'' by calling
+the function @code{select-frame}.  This does not override the window
+manager; rather, it escapes from the window manager's control until
+that control is somehow reasserted.
+
+@c ??? This is not yet implemented properly.
+@defun select-frame frame
+This function selects frame @var{frame}, temporarily disregarding the
+focus of the X server.  The selection of @var{frame} lasts until the
+next time the user does something to select a different frame, or until
+the next time this function is called.
+@end defun
+
+Emacs cooperates with the X server and the window managers by arranging
+to select frames according to what the server and window manager ask
+for.  It does so by generating a special kind of input event, called a
+@dfn{focus} event.  The command loop handles a focus event by calling
+@code{handle-select-frame}.  @xref{Focus Events}.
+
+@deffn Command handle-switch-frame frame
+This function handles a focus event by selecting frame @var{frame}.
+
+Focus events normally do their job by invoking this command.
+Don't call it for any other reason.
+@end deffn
+
+@defun redirect-frame-focus frame focus-frame
+This function redirects focus from @var{frame} to @var{focus-frame}.
+This means that @var{focus-frame} will receive subsequent keystrokes and
+intended for @var{frame}.  After such an event, the value of
+@code{last-event-frame} will be @var{focus-frame}.  Also, switch-frame
+events specifying @var{frame} will instead select @var{focus-frame}.
+
+If @var{focus-frame} is @code{nil}, that cancels any existing
+redirection for @var{frame}, which therefore once again receives its own
+events.
+
+One use of focus redirection is for frames that don't have minibuffers.
+These frames use minibuffers on other frames.  Activating a minibuffer
+on another frame redirects focus to that frame.  This puts the focus on
+the minibuffer's frame, where it belongs, even though the mouse remains
+in the frame which activated the minibuffer.
+
+Selecting a frame can also change focus redirections.  Selecting frame
+@code{bar}, when @code{foo} had been selected, changes any redirections
+pointing to @code{foo} so that they point to @code{bar} instead.  This
+allows focus redirection to work properly when the user switches from
+one frame to another using @code{select-window}.
+
+This means that a frame whose focus is redirected to itself is treated
+differently from a frame whose focus is not redirected.
+@code{select-frame} affects the former but not the latter.
+
+The redirection lasts until @code{redirect-frame-focus} is called to
+change it.
+@end defun
+
+@node Visibility of Frames
+@section Visibility of Frames
+@cindex visible frame
+@cindex invisible frame
+@cindex iconified frame
+@cindex frame visibility
+
+A frame may be @dfn{visible}, @dfn{invisible}, or @dfn{iconified}.  If
+it is visible, you can see its contents.  If it is iconified, the
+frame's contents do not appear on the screen, but an icon does.  If the
+frame is invisible, it doesn't show in the screen, not even as an icon.
+
+@deffn Command make-frame-visible &optional frame
+This function makes frame @var{frame} visible.  If you omit @var{frame},
+it makes the selected frame visible.
+@end deffn
+
+@deffn Command make-frame-invisible &optional frame
+This function makes frame @var{frame} invisible.  If you omit
+@var{frame}, it makes the selected frame invisible.
+@end deffn
+
+@deffn Command iconify-frame &optional frame
+This function iconifies frame @var{frame}.  If you omit @var{frame}, it
+iconifies the selected frame.
+@end deffn
+
+@defun frame-visible-p frame
+This returns the visibility status of frame @var{frame}.  The value is
+@code{t} if @var{frame} is visible, @code{nil} if it is invisible, and
+@code{icon} if it is iconified.
+@end defun
+
+  The visibility status of a frame is also available as a frame
+parameter.  You can read or change it as such.  @xref{X Frame
+Parameters}.
+
+@node Raising and Lowering
+@section Raising and Lowering Frames
+
+The X Window System uses a desktop metaphor.  Part of this metaphor is
+the idea that windows are stacked in a notional third dimension
+perpendicular to the screen surface, and thus ordered from ``highest''
+to ``lowest''.  Where two windows overlap, the one higher up covers the
+one underneath.  Even a window at the bottom of the stack can be seen if
+no other window overlaps it.
+
+@cindex raising a frame
+@cindex lowering a frame
+A window's place in this ordering is not fixed; in fact, users tend to
+change the order frequently.  @dfn{Raising} a window means moving it
+``up'', to the top of the stack.  @dfn{Lowering} a window means moving
+it to the bottom of the stack.  This motion is in the notional third
+dimension only, and does not change the position of the window on the
+screen.
+
+You can raise and lower Emacs's X windows with these functions:
+
+@defun raise-frame frame
+This function raises frame @var{frame}.
+@end defun
+
+@defun lower-frame frame
+This function lowers frame @var{frame}.
+@end defun
+
+@defopt minibuffer-auto-raise
+If this is non-@code{nil}, activation of the minibuffer raises the frame
+that the minibuffer window is in.
+@end defopt
+
+You can also enable auto-raise (raising automatically when a frame is
+selected) or auto-lower (lowering automatically when it is deselected)
+for any frame using frame parameters.  @xref{X Frame Parameters}.
+
+@node Frame Configurations
+@section Frame Configurations
+@cindex frame configuration
+
+  A @dfn{frame configuration} records the current arrangement of frames,
+all their properties, and the window configuration of each one.
+
+@defun current-frame-configuration
+This function returns a frame configuration list which describes
+the current arrangement of frames and their contents.
+@end defun
+
+@defun set-frame-configuration configuration
+This function restores the state of frames described in
+@var{configuration}.
+@end defun
+
+@node Mouse Tracking
+@section Mouse Tracking
+@cindex mouse tracking
+@cindex tracking the mouse
+
+Sometimes it is useful to @dfn{track} the mouse, which means, to display
+something to indicate where the mouse is and move the indicator as the
+mouse moves.  For efficient mouse tracking, you need a way to wait until
+the mouse actually moves.
+
+The convenient way to track the mouse is to ask for events to represent
+mouse motion.  Then you can wait for motion by waiting for an event.  In
+addition, you can easily handle any other sorts of events that may
+occur.  That is useful, because normally you don't want to track the
+mouse forever---only until some other event, such as the release of a
+button.
+
+@defspec track-mouse body@dots{}
+Execute @var{body}, meanwhile generating input events for mouse motion.
+The code in @var{body} can read these events with @code{read-event} or
+@code{read-key-sequence}.  @xref{Motion Events}, for the format of mouse
+motion events.
+
+The value of @code{track-mouse} is that of the last form in @var{body}.
+@end defspec
+
+The usual purpose of tracking mouse motion is to indicate on the screen
+the consequences of pushing or releasing a button at the current
+position.
+
+@ignore
+@c These are not implemented yet.
+
+These functions change the screen appearance instantaneously.  The
+effect is transient, only until the next ordinary Emacs redisplay.  That
+is ok for mouse tracking, since it doesn't make sense for mouse tracking
+to change the text, and the body of @code{track-mouse} normally reads
+the events itself and does not do redisplay.
+
+@defun x-contour-region window beg end
+This function draws lines to make a box around the text from @var{beg}
+to @var{end}, in window @var{window}.
+@end defun
+
+@defun x-uncontour-region window beg end
+This function erases the lines that would make a box around the text
+from @var{beg} to @var{end}, in window @var{window}.  Use it to remove
+a contour that you previously made by calling @code{x-contour-region}.
+@end defun
+
+@defun x-draw-rectangle frame left top right bottom
+This function draws a hollow rectangle on frame @var{frame} with the
+specified edge coordinates, all measured in pixels from the inside top
+left corner.  It uses the cursor color, the one used for indicating the
+location of point.
+@end defun
+
+@defun x-erase-rectangle frame left top right bottom
+This function erases a hollow rectangle on frame @var{frame} with the
+specified edge coordinates, all measured in pixels from the inside top
+left corner.  Erasure means redrawing the text and background that
+normally belong in the specified rectangle.
+@end defun
+@end ignore
+
+@node Mouse Position
+@section Mouse Position
+@cindex mouse position
+@cindex position of mouse
+
+  The functions @code{mouse-position} and @code{set-mouse-position}
+give access to the current position of the mouse.
+
+@defun mouse-position
+This function returns a description of the position of the mouse.  The
+value looks like @code{(@var{frame} @var{x} . @var{y})}, where @var{x}
+and @var{y} are integers giving the position in pixels relative to the
+top left corner of the inside of @var{frame}.
+@end defun
+
+@defun set-mouse-position frame x y
+This function @dfn{warps the mouse} to position @var{x}, @var{y} in
+frame @var{frame}.  The arguments @var{x} and @var{y} are integers,
+giving the position in pixels relative to the top left corner of the
+inside of @var{frame}.
+
+@cindex warping the mouse
+@cindex mouse warping
+Warping the mouse means changing the screen position of the mouse as if
+the user had moved the physical mouse---thus simulating the effect of
+actual mouse motion.
+@end defun
+
+@need 3000
+
+@node Pop-Up Menus
+@section Pop-Up Menus
+
+@defun x-popup-menu position menu
+This function displays a pop-up menu and returns an indication of
+what selection the user makes.
+
+The argument @var{position} specifies where on the screen to put the
+menu.  It can be either a mouse button event (which says to put the menu
+where the user actuated the button) or a list of this form:
+
+@example
+((@var{xoffset} @var{yoffset}) @var{window})
+@end example
+
+@noindent
+where @var{xoffset} and @var{yoffset} are positions measured in
+characters, counting from the top left corner of @var{window}'s frame.
+
+If @var{position} is @code{t}, it means to use the current mouse
+position.  If @var{position} is @code{nil}, it means to precompute the
+key binding equivalents for the keymaps specified in @var{menu},
+without actually displaying or popping up the menu.
+
+The argument @var{menu} says what to display in the menu.  It can be a
+keymap or a list of keymaps (@pxref{Menu Keymaps}).  Alternatively, it
+can have the following form:
+
+@example
+(@var{title} @var{pane1} @var{pane2}...)
+@end example
+
+@noindent
+where each pane is a list of form
+
+@example
+(@var{title} (@var{line} @var{item})...)
+@end example
+
+Each @var{line} should be a string, and each @var{item} should be the
+value to return if that @var{line} is chosen.
+@end defun
+
+@strong{Usage note:} Don't use @code{x-popup-menu} to display a menu if
+a prefix key with a menu keymap would do the job.  If you use a menu
+keymap to implement a menu, @kbd{C-h c} and @kbd{C-h a} can see the
+individual items in that menu and provide help for them.  If instead you
+implement the menu by defining a command that calls @code{x-popup-menu},
+the help facilities cannot know what happens inside that command, so
+they cannot give any help for the menu's items.  This is the reason why
+all the menu bar items except @samp{Buffers} are implemented with menu
+keymaps (@pxref{Menu Keymaps}).
+
+@node Dialog Boxes
+@section Dialog Boxes
+@cindex dialog boxes
+
+  A dialog box is a variant of a pop-up menu.  It looks a little
+different (if Emacs uses an X toolkit), it always appears in the center
+of a frame, and it has just one level and one pane.  The main use of
+dialog boxes is for asking questions that the user can answer with
+``yes'', ``no'', and a few other alternatives.  The functions
+@code{y-or-n-p} and @code{yes-or-no-p} use dialog boxes instead of the
+keyboard, when called from commands invoked by mouse clicks.
+
+@defun x-popup-dialog position contents
+This function displays a pop-up dialog box and returns an indication of
+what selection the user makes.  The argument @var{contents} specifies
+the alternatives to offer; it has this format:
+
+@example
+(@var{title} (@var{string} @var{value})@dots{})
+@end example
+
+@noindent
+which looks like the list that specifies a single pane for
+@code{x-popup-menu}.
+
+Dialog boxes always appear in the center of a frame; the argument
+@var{position} specifies which frame.  The possible values are as in
+@code{x-popup-menu}, but the precise coordinates don't matter; only the
+frame matters.
+@end defun
+
+@node X Selections
+@section X Selections
+@cindex selection (for X windows)
+
+The X server records a set of @dfn{selections} which permit transfer of
+data between application programs.  The various selections are
+distinguished by @dfn{selection types}, represented in Emacs by
+symbols.  X clients including Emacs can read or set the selection for
+any given type.
+
+@defun x-set-selection type data
+This function sets a ``selection'' in the X server.  It takes two
+arguments: a selection type @var{type}, and the value to assign to it,
+@var{data}.  If @var{data} is @code{nil}, it means to clear out the
+selection.  Otherwise, @var{data} may be a string, a symbol, an integer
+(or a cons of two integers or list of two integers), an overlay, or a
+cons of two markers pointing to the same buffer.  An overlay or a pair
+of markers stands for text in the overlay or between the markers.
+
+The data may also be a vector of valid non-vector selection values.
+
+Each possible @var{type} has its own selection value, which changes
+independently.  The usual values of @var{type} are @code{PRIMARY} and
+@code{SECONDARY}; these are symbols with upper-case names, in accord
+with X Window System conventions.  The default is @code{PRIMARY}.
+@end defun
+
+@defun x-get-selection type data-type
+This function accesses selections set up by Emacs or by other X
+clients.  It takes two optional arguments, @var{type} and
+@var{data-type}.  The default for @var{type}, the selection type, is
+@code{PRIMARY}.
+
+The @var{data-type} argument specifies the form of data conversion to
+use, to convert the raw data obtained from another X client into Lisp
+data.  Meaningful values include @code{TEXT}, @code{STRING},
+@code{TARGETS}, @code{LENGTH}, @code{DELETE}, @code{FILE_NAME},
+@code{CHARACTER_POSITION}, @code{LINE_NUMBER}, @code{COLUMN_NUMBER},
+@code{OWNER_OS}, @code{HOST_NAME}, @code{USER}, @code{CLASS},
+@code{NAME}, @code{ATOM}, and @code{INTEGER}.  (These are symbols with
+upper-case names in accord with X conventions.)  The default for
+@var{data-type} is @code{STRING}.
+@end defun
+
+@cindex cut buffer
+The X server also has a set of numbered @dfn{cut buffers} which can
+store text or other data being moved between applications.  Cut buffers
+are considered obsolete, but Emacs supports them for the sake of X
+clients that still use them.
+
+@defun x-get-cut-buffer n
+This function returns the contents of cut buffer number @var{n}.
+@end defun
+
+@defun x-set-cut-buffer string
+This function stores @var{string} into the first cut buffer (cut buffer
+0), moving the other values down through the series of cut buffers, much
+like the way successive kills in Emacs move down the kill ring.
+@end defun
+
+@node X Connections
+@section X Connections
+
+You can close the connection with the X server with the function
+@code{x-close-current-connection}, and open a new one with
+@code{x-open-connection} (perhaps with a different server and display).
+
+@defun x-close-current-connection
+This function closes the connection to the X server.  It deletes all
+frames, making Emacs effectively inaccessible to the user; therefore, a
+Lisp program that closes the connection should open another one.
+@end defun
+
+@defun x-open-connection display &optional resource-string
+This function opens a connection to an X server, for use of display
+@var{display}.
+
+The optional argument @var{resource-string} is a string of resource
+names and values, in the same format used in the @file{.Xresources}
+file.  The values you specify override the resource values recorded in
+the X server itself.  Here's an example of what this string might look
+like:
+
+@example
+"*BorderWidth: 3\n*InternalBorder: 2\n"
+@end example
+
+@xref{Resources}.
+@end defun
+
+@defun x-display-color-p
+This returns @code{t} if the connected X display has color, and
+@code{nil} otherwise.
+@end defun
+
+@defun x-color-defined-p color
+This function reports whether a color name is meaningful and supported
+on the X display Emacs is using.  It returns @code{t} if the display
+supports that color; otherwise, @code{nil}.
+
+Black-and-white displays support just two colors, @code{"black"} or
+@code{"white"}.  Color displays support many other colors.
+@end defun
+
+@defun x-synchronize flag
+The function @code{x-synchronize} enables or disables synchronous
+communication with the X server.  It enables synchronous communication
+if @var{flag} is non-@code{nil}, and disables it if @var{flag} is
+@code{nil}.
+
+In synchronous mode, Emacs waits for a response to each X protocol
+command before doing anything else.  This is useful for debugging Emacs,
+because protocol errors are reported right away, which helps you find
+the erroneous command.  Synchronous mode is not the default because it
+is much slower.
+@end defun
+
+@node Resources
+@section X Resources
+
+@defun x-get-resource attribute &optional name class
+The function @code{x-get-resource} retrieves a resource value from the X
+Windows defaults database.
+
+Resources are indexed by a combination of a @dfn{key} and a @dfn{class}.
+This function searches using a key of the form
+@samp{@var{instance}.@var{attribute}}, using the name under which Emacs
+was invoked as @var{instance}, and using @samp{Emacs} as the class.
+
+The optional arguments @var{component} and @var{subclass} add to the key
+and the class, respectively.  You must specify both of them or neither.
+If you specify them, the key is
+@samp{@var{instance}.@var{component}.@var{attribute}}, and the class is
+@samp{Emacs.@var{subclass}}.
+@end defun
+
+  @xref{Resources X, X Resources,, emacs, The GNU Emacs Manual}.
+
+@node Server Data
+@section Data about the X Server
+
+  This section describes functions and a variable that you can use to
+get information about the capabilities and origin of the X server that
+Emacs is displaying its frames on.
+
+@defun x-display-screens
+This function returns the number of screens associated with the current
+display.
+@end defun
+
+@defun x-server-version
+This function returns the list of version numbers of the X server in
+use.
+@end defun
+
+@defun x-server-vendor
+This function returns the vendor supporting the X server in use.
+@end defun
+
+@defun x-display-pixel-height
+This function returns the height of this X screen in pixels.
+@end defun
+
+@defun x-display-mm-height
+This function returns the height of this X screen in millimeters.
+@end defun
+
+@defun x-display-pixel-width
+This function returns the width of this X screen in pixels.
+@end defun
+
+@defun x-display-mm-width
+This function returns the width of this X screen in millimeters.
+@end defun
+
+@defun x-display-backing-store
+This function returns the backing store capability of this screen.
+Values can be the symbols @code{always}, @code{when-mapped}, or
+@code{not-useful}.
+@end defun
+
+@defun x-display-save-under
+This function returns non-@code{nil} if this X screen supports the
+SaveUnder feature.
+@end defun
+
+@defun x-display-planes
+This function returns the number of planes this display supports.
+@end defun
+
+@defun x-display-visual-class
+This function returns the visual class for this X screen.  The value is
+one of the symbols @code{static-gray}, @code{gray-scale},
+@code{static-color}, @code{pseudo-color}, @code{true-color}, and
+@code{direct-color}.
+@end defun
+
+@defun x-display-color-p
+This function returns @code{t} if the X screen in use is a color
+screen.
+@end defun
+
+@defun x-display-color-cells
+This function returns the number of color cells this X screen supports.
+@end defun
+
+@ignore
+@defvar x-no-window-manager
+This variable's value is is @code{t} if no X window manager is in use.
+@end defvar
+@end ignore
+
+@ignore
+@item
+The functions @code{x-pixel-width} and @code{x-pixel-height} return the
+width and height of an X Window frame, measured in pixels.
+
+@item
+x-pointer-shape, x-nontext-pointer-shape, x-mode-pointer-shape.
+@end ignore
