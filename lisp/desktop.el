@@ -227,7 +227,8 @@ This variable is maintained for backward compatibility only.  Use
   fill-column
   overwrite-mode
   change-log-default-name
-  line-number-mode)
+  line-number-mode
+  buffer-file-coding-system)
   "List of local variables to save for each buffer.
 The variables are saved only when they really are local."
   :type '(repeat symbol)
@@ -872,7 +873,12 @@ directory DIRNAME."
 		   (y-or-n-p (format
 			      "File \"%s\" no longer exists. Re-create? "
 			      desktop-buffer-file-name))))
-	  (let ((buf (find-file-noselect desktop-buffer-file-name)))
+	  (let* ((auto-insert nil) ; Disable auto insertion
+		 (coding-system-for-read
+		  (or coding-system-for-read
+		      (cdr (assq 'buffer-file-coding-system
+				 desktop-buffer-locals))))
+		 (buf (find-file-noselect desktop-buffer-file-name)))
 	    (condition-case nil
 		(switch-to-buffer buf)
 	      (error (pop-to-buffer buf)))
