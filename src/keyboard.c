@@ -1836,14 +1836,29 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_first;
     }
 
+  /* if redisplay was requested */
   if (commandflag >= 0)
     {
+	/* If there is pending input, process any events which are not
+	   user-visible, such as X selection_request events.  */
       if (input_pending
 	  || detect_input_pending_run_timers (0))
-	swallow_events (0);
+	swallow_events (0);		/* may clear input_pending */
 
-      if (!input_pending)
-	redisplay ();
+      /* Redisplay if no pending input.  */
+      while (!input_pending)
+	{
+	  redisplay ();
+
+	  if (!input_pending)
+	    /* Normal case: no input arrived during redisplay.  */
+	    break;
+
+	  /* Input arrived and pre-empted redisplay.
+	     Process any events which are not user-visible.  */
+	  swallow_events (0);
+	  /* If that cleared input_pending, try again to redisplay.  */
+	}
     }
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
@@ -5636,31 +5651,15 @@ parse_menu_item (item, notreal, inmenubar)
      Lisp_Object item;
      int notreal, inmenubar;
 {
-  Lisp_Object def, tem, item_string, start, type;
-
-  Lisp_Object cachelist;
-  Lisp_Object filter;
-  Lisp_Object keyhint;
+  Lisp_Object def, tem, item_string, start;
+  Lisp_Object cachelist = Qnil;
+  Lisp_Object filter = Qnil;
+  Lisp_Object keyhint = Qnil;
   int i;
-  struct gcpro gcpro1, gcpro2, gcpro3;
   int newcache = 0;
-
-  cachelist = Qnil;
-  filter = Qnil;
-  keyhint = Qnil;
-
-#define RET0					\
-  if (1)					\
-    {						\
-      UNGCPRO;					\
-      return 0;					\
-    }						\
-  else
 
   if (!CONSP (item))
     return 0;
-
-  GCPRO1 (item);
 
   /* Create item_properties vector if necessary.  */
   if (NILP (item_properties))
@@ -5748,7 +5747,7 @@ parse_menu_item (item, notreal, inmenubar)
 		     then ignore this item.  */
 		  tem = menu_item_eval_property (XCONS (item)->car);
 		  if (NILP (tem))
-		    RET0;
+		    return 0;
 	 	}
 	      else if (EQ (tem, QChelp))
 		XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
@@ -5787,10 +5786,10 @@ parse_menu_item (item, notreal, inmenubar)
 	    }
 	}
       else if (inmenubar || !NILP (start))
-	RET0;
+	return 0;
     }
   else
-    RET0;
+    return 0;			/* not a menu item */
 
   /* If item string is not a string, evaluate it to get string.
      If we don't get a string, skip this item.  */
@@ -5799,7 +5798,7 @@ parse_menu_item (item, notreal, inmenubar)
     {
       item_string = menu_item_eval_property (item_string);
       if (!STRINGP (item_string))
-	RET0;
+	return 0;
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME] = item_string;
     }
      
@@ -5814,12 +5813,8 @@ parse_menu_item (item, notreal, inmenubar)
 
   /* If we got no definition, this item is just unselectable text which
      is OK in a submenu but not in the menubar.  */
-  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
   if (NILP (def))
-    {
-      UNGCPRO;
-      return (inmenubar ? 0 : 1);
-    }
+    return (inmenubar ? 0 : 1);
  
   /* Enable or disable selection of item.  */
   tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
@@ -5830,7 +5825,7 @@ parse_menu_item (item, notreal, inmenubar)
       else
 	tem = menu_item_eval_property (tem);
       if (inmenubar && NILP (tem))
-	RET0;		/* Ignore disabled items in menu bar.  */
+	return 0;		/* Ignore disabled items in menu bar.  */
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = tem;
     }
 
@@ -5841,11 +5836,10 @@ parse_menu_item (item, notreal, inmenubar)
     {
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP] = tem;
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = tem;
-      UNGCPRO;
       return 1;
     }
-  else if (inmenubar)
-    RET0;		/* Entries in menu bar must be submenus.  */
+  else if (inmenubar > 0)
+    return 0;			/* Entries in menu bar must be submenus.  */
 
   /* This is a command.  See if there is an equivalent key binding. */
   if (NILP (cachelist))
@@ -5956,24 +5950,20 @@ parse_menu_item (item, notreal, inmenubar)
 
   /* If we only want to precompute equivalent key bindings, stop here. */
   if (notreal)
-    {
-      UNGCPRO;
-      return 1;
-    }
+    return 1;
 
   /* If we have an equivalent key binding, use that.  */
-  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ]
-    = XCONS (cachelist)->cdr;
+  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ] = tem;
 
-  /* Include this when menu help is implemented. 
-     tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
-     if (!(NILP (tem) || STRINGP (tem)))
-     {
-     tem = menu_item_eval_property (tem);
-     if (!STRINGP (tem))
-     tem = Qnil;
-     XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP] = tem;
-     }
+  /* Include this when menu help is implemented.
+  tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
+  if (!(NILP (tem) || STRINGP (tem)))
+    {
+      tem = menu_item_eval_property (tem);
+      if (!STRINGP (tem))
+	tem = Qnil;
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP] = tem;
+    }
   */
 
   /* Handle radio buttons or toggle boxes.  */ 
@@ -5982,7 +5972,6 @@ parse_menu_item (item, notreal, inmenubar)
     XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]
       = menu_item_eval_property (tem);
 
-  UNGCPRO;
   return 1;
 }
 
