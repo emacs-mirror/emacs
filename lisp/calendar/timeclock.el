@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -64,7 +64,7 @@
 ;; `timeclock-ask-before-exiting' to t using M-x customize (this is
 ;; the default), or by adding the following to your .emacs file:
 ;;
-;;   (add-hook 'kill-emacs-hook 'timeclock-query-out)
+;;   (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
 
 ;; NOTE: If you change your .timelog file without using timeclock's
 ;; functions, or if you change the value of any of timeclock's
@@ -135,8 +135,8 @@ that day has a different length from the norm."
   "*If non-nil, ask if the user wants to clock out before exiting Emacs."
   :set (lambda (symbol value)
 	 (if value
-	     (add-hook 'kill-emacs-hook 'timeclock-query-out)
-	   (remove-hook 'kill-emacs-hook 'timeclock-query-out))
+	     (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
+	   (remove-hook 'kill-emacs-query-functions 'timeclock-query-out))
 	 (setq timeclock-ask-before-exiting value))
   :type 'boolean
   :group 'timeclock)
@@ -252,7 +252,8 @@ Note that you shouldn't access this value, but should use the function
 `timeclock-last-period' instead.")
 
 (defvar timeclock-mode-string nil
-  "The timeclock string (optionally) displayed in the modeline.")
+  "The timeclock string (optionally) displayed in the modeline.
+The time is bracketed by <> if you are clocked in, otherwise by [].")
 
 (defvar timeclock-day-over nil
   "The date of the last day when notified \"day over\" for.")
@@ -262,24 +263,25 @@ Note that you shouldn't access this value, but should use the function
 ;;;###autoload
 (defun timeclock-modeline-display (&optional arg)
   "Toggle display of the amount of time left today in the modeline.
-If `timeclock-use-display-time' is non-nil, the modeline will be
-updated whenever the time display is updated.  Otherwise, the
-timeclock will use its own sixty second timer to do its updating.
-With prefix ARG, turn modeline display on if and only if ARG is
-positive.  Returns the new status of timeclock modeline display
-\(non-nil means on)."
+If `timeclock-use-display-time' is non-nil (the default), then
+the function `display-time-mode' must be active, and the modeline
+will be updated whenever the time display is updated.  Otherwise,
+the timeclock will use its own sixty second timer to do its
+updating.  With prefix ARG, turn modeline display on if and only
+if ARG is positive.  Returns the new status of timeclock modeline
+display (non-nil means on)."
   (interactive "P")
+  ;; cf display-time-mode.
+  (setq timeclock-mode-string "")
+  (or global-mode-string (setq global-mode-string '("")))
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
 		(not timeclock-modeline-display))))
     (if on-p
-	(let ((list-entry (or (memq 'global-mode-string mode-line-format)
-			      ;; In Emacs 21.3 we must use assq
-			      (assq 'global-mode-string mode-line-format))))
-	  (unless (or (null list-entry)
-		      (memq 'timeclock-mode-string mode-line-format))
-	    (setcdr list-entry (cons 'timeclock-mode-string
-				     (cdr list-entry))))
+        (progn
+          (or (memq 'timeclock-mode-string global-mode-string)
+              (setq global-mode-string
+                    (append global-mode-string '(timeclock-mode-string))))
 	  (unless (memq 'timeclock-update-modeline timeclock-event-hook)
 	    (add-hook 'timeclock-event-hook 'timeclock-update-modeline))
 	  (when timeclock-update-timer
@@ -288,11 +290,15 @@ positive.  Returns the new status of timeclock modeline display
 	  (if (boundp 'display-time-hook)
 	      (remove-hook 'display-time-hook 'timeclock-update-modeline))
 	  (if timeclock-use-display-time
-	      (add-hook 'display-time-hook 'timeclock-update-modeline)
+              (progn
+                ;; Update immediately so there is a visible change
+                ;; on calling this function.
+                (if display-time-mode (timeclock-update-modeline))
+                (add-hook 'display-time-hook 'timeclock-update-modeline))
 	    (setq timeclock-update-timer
 		  (run-at-time nil 60 'timeclock-update-modeline))))
-      (setq mode-line-format
-	    (delq 'timeclock-mode-string mode-line-format))
+      (setq global-mode-string 
+	    (delq 'timeclock-mode-string global-mode-string))
       (remove-hook 'timeclock-event-hook 'timeclock-update-modeline)
       (if (boundp 'display-time-hook)
 	  (remove-hook 'display-time-hook
@@ -424,7 +430,7 @@ project you were working on."
 ;;;###autoload
 (defun timeclock-query-out ()
   "Ask the user before clocking out.
-This is a useful function for adding to `kill-emacs-hook'."
+This is a useful function for adding to `kill-emacs-query-functions'."
   (if (and (equal (car timeclock-last-event) "i")
 	   (y-or-n-p "You're currently clocking time, clock out? "))
       (timeclock-out)))
@@ -583,8 +589,8 @@ non-nil."
 (defun timeclock-update-modeline ()
   "Update the `timeclock-mode-string' displayed in the modeline."
   (interactive)
-  (let* ((remainder (timeclock-workday-remaining))
-	 (last-in (equal (car timeclock-last-event) "i")))
+  (let ((remainder (timeclock-workday-remaining))
+        (last-in (equal (car timeclock-last-event) "i")))
     (when (and (< remainder 0)
 	       (not (and timeclock-day-over
 			 (equal timeclock-day-over
@@ -594,10 +600,14 @@ non-nil."
 	    (timeclock-time-to-date (current-time)))
       (run-hooks 'timeclock-day-over-hook))
     (setq timeclock-mode-string
-	  (format "   %c%s%c"
-		  (if last-in ?< ?[)
-		  (timeclock-seconds-to-string remainder nil t)
-		  (if last-in ?> ?])))))
+          (propertize
+           (format " %c%s%c "
+                   (if last-in ?< ?[)
+ 		   (timeclock-seconds-to-string remainder nil t)
+		   (if last-in ?> ?]))
+           'help-echo "timeclock: time remaining"))))
+
+(put 'timeclock-mode-string 'risky-local-variable t)
 
 (defun timeclock-log (code &optional project)
   "Log the event CODE to the timeclock log, at the time of call.
@@ -1083,7 +1093,7 @@ See the documentation for the given function if more info is needed."
 	  (setq timeclock-discrepancy accum))))
     (unless timeclock-last-event-workday
       (setq timeclock-last-event-workday timeclock-workday))
-    (setq accum timeclock-discrepancy
+    (setq accum (or timeclock-discrepancy 0)
 	  elapsed (or timeclock-elapsed elapsed))
     (if timeclock-last-event
 	(if (equal (car timeclock-last-event) "i")
