@@ -409,11 +409,14 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
     }
   CORRECT_DIR_SEPS (beg);
 #endif /* DOS_NT */
-  return make_string (beg, p - beg);
+
+  if (STRING_MULTIBYTE (filename))
+    return make_string (beg, p - beg);
+  return make_unibyte_string (beg, p - beg);
 }
 
-DEFUN ("file-name-nondirectory", Ffile_name_nondirectory, Sfile_name_nondirectory,
-  1, 1, 0,
+DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
+       Sfile_name_nondirectory, 1, 1, 0,
   "Return file name FILENAME sans its directory.\n\
 For example, in a Unix-syntax file name,\n\
 this is everything after the last slash,\n\
@@ -443,12 +446,16 @@ or the entire name if it contains no slash.")
 	 /* only recognise drive specifier at beginning */
 	 && !(p[-1] == ':' && p == beg + 2)
 #endif
-	 ) p--;
+	 )
+    p--;
 
-  return make_string (p, end - p);
+  if (STRING_MULTIBYTE (filename))
+    return make_string (p, end - p);
+  return make_unibyte_string (p, end - p);
 }
 
-DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory, Sunhandled_file_name_directory, 1, 1, 0,
+DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
+       Sunhandled_file_name_directory, 1, 1, 0,
   "Return a directly usable directory name somehow associated with FILENAME.\n\
 A `directly usable' directory name is one that may be used without the\n\
 intervention of any file handler.\n\
@@ -1932,8 +1939,33 @@ duplicates what `expand-file-name' does.")
 	if (!o)
 	  goto badvar;
 
-	strcpy (x, o);
-	x += strlen (o);
+	if (STRING_MULTIBYTE (filename))
+	  {
+	    /* If the original string is multibyte,
+	       convert what we substitute into multibyte.  */
+	    unsigned char workbuf[4], *str;
+	    int len;
+	    extern int nonascii_insert_offset;
+
+	    while (*o)
+	      {
+		int c = *o++;
+		if (c >= 0200)
+		  {
+		    c += nonascii_insert_offset;
+		    len = CHAR_STRING (c, workbuf, str);
+		    bcopy (str, x, len);
+		    x += len;
+		  }
+		else
+		  *x++ = c;
+	      }
+	  }
+	else
+	  {
+	    strcpy (x, o);
+	    x += strlen (o);
+	  }
       }
 
   *x = 0;
@@ -1956,7 +1988,9 @@ duplicates what `expand-file-name' does.")
       xnm = p;
 #endif
 
-  return make_string (xnm, x - xnm);
+  if (STRING_MULTIBYTE (filename))
+    return make_string (xnm, x - xnm);
+  return make_unibyte_string (xnm, x - xnm);
 
  badsubst:
   error ("Bad format environment-variable substitution");
@@ -3260,8 +3294,11 @@ This does code conversion according to the value of\n\
 		     XSTRING (orig_filename)->data, strerror (errno));
 	    else if (nread > 0)
 	      {
-		val = call1 (Vset_auto_coding_function,
-			     make_string (read_buf, nread));
+		Lisp_Object tem;
+		/* Always make this a unibyte string
+		   because we have not yet decoded it.  */
+		tem = make_unibyte_string (read_buf, nread);
+		val = call1 (Vset_auto_coding_function, tem);
 		/* Rewind the file for the actual read done later.  */
 		if (lseek (fd, 0, 0) < 0)
 		  report_file_error ("Setting file position",
@@ -4331,7 +4368,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     return Qnil;
 
   if (!auto_saving)
-    message ("Wrote %s", XSTRING (visit_file)->data);
+    message_with_string ("Wrote %s", visit_file, 1);
 
   return Qnil;
 }
@@ -4624,11 +4661,11 @@ Lisp_Object
 auto_save_error ()
 {
   ring_bell ();
-  message ("Autosaving...error for %s", XSTRING (current_buffer->name)->data);
+  message_with_string ("Autosaving...error for %s", current_buffer->name, 1);
   Fsleep_for (make_number (1), Qnil);
-  message ("Autosaving...error!for %s", XSTRING (current_buffer->name)->data);
+  message_with_string ("Autosaving...error for %s", current_buffer->name, 0);
   Fsleep_for (make_number (1), Qnil);
-  message ("Autosaving...error for %s", XSTRING (current_buffer->name)->data);
+  message_with_string ("Autosaving...error for %s", current_buffer->name, 0);
   Fsleep_for (make_number (1), Qnil);
   return Qnil;
 }
@@ -4689,6 +4726,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   int auto_saved = 0;
   char *omessage = echo_area_glyphs;
   int omessage_length = echo_area_glyphs_length;
+  int oldmultibyte = message_enable_multibyte;
   int do_handled_files;
   Lisp_Object oquit;
   FILE *stream;
@@ -4808,8 +4846,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 	      {
 		/* It has shrunk too much; turn off auto-saving here.  */
 		minibuffer_auto_raise = orig_minibuffer_auto_raise;
-		message ("Buffer %s has shrunk a lot; auto save turned off there",
-			 XSTRING (b->name)->data);
+		message_with_string ("Buffer %s has shrunk a lot; auto save turned off there",
+				     b->name, 1);
 		minibuffer_auto_raise = 0;
 		/* Turn off auto-saving until there's a real save,
 		   and prevent any more warnings.  */
@@ -4843,7 +4881,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
       if (omessage)
 	{
 	  sit_for (1, 0, 0, 0, 0);
-	  message2 (omessage, omessage_length);
+	  message2 (omessage, omessage_length, oldmultibyte);
 	}
       else
 	message1 ("Auto-saving...done");
@@ -4897,14 +4935,16 @@ double_dollars (val)
   register int n;
   int osize, count;
 
-  osize = XSTRING (val)->size;
-  /* Quote "$" as "$$" to get it past substitute-in-file-name */
+  osize = XSTRING (val)->size_byte;
+
+  /* Count the number of $ characters.  */
   for (n = osize, count = 0, old = XSTRING (val)->data; n > 0; n--)
     if (*old++ == '$') count++;
   if (count > 0)
     {
       old = XSTRING (val)->data;
-      val = Fmake_string (make_number (osize + count), make_number (0));
+      val = make_uninit_multibyte_string (XSTRING (val)->size + count,
+					  osize + count);
       new = XSTRING (val)->data;
       for (n = osize; n > 0; n--)
 	if (*old != '$')
