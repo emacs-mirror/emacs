@@ -795,8 +795,9 @@ PATTERNS."
       ;; The character(s) to modify may be a single char or a string.
       (if (numberp (caar slist))
 	  (modify-syntax-entry (caar slist) (cdar slist) table)
-	(dolist (c (caar slist))
-	  (modify-syntax-entry c (cdar slist) table)))
+	(mapc (lambda (c)
+		(modify-syntax-entry c (cdar slist) table))
+	      (caar slist)))
       (setq slist (cdr slist)))
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
