@@ -1,13 +1,14 @@
 /* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
  *
- * $HopeName: MMsrc!fmtdytst.c(trunk.3) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!fmtdytst.c(trunk.4) $
+ * Copyright (C) 1998 Harlequin Group.  All rights reserved.
  *
- * .readership: MPS developers, Dylan developers
+ * .readership: MPS developers, Dylan developers.
  */
 
 #include "fmtdy.h"
 #include "mps.h"
+#include "testlib.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -88,10 +89,17 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
   if(size >= sizeof(mps_word_t) * 2) {
     mps_word_t *p = (mps_word_t *)addr;
     mps_word_t i, t = (size / sizeof(mps_word_t)) - 2;
+
     p[0] = (mps_word_t)tvw;     /* install vector wrapper */
     p[1] = (t << 2) | 1;        /* tag the vector length */
-    for(i = 0; i < t; ++i)
-      p[2+i] = (mps_word_t)refs[rand() % nr_refs];
+    for(i = 0; i < t; ++i) {
+      mps_word_t r = rnd();
+
+      if(r & 1)
+        p[2+i] = ((r & ~(mps_word_t)3) | 1); /* random int */
+      else
+        p[2+i] = (mps_word_t)refs[(r >> 1) % nr_refs]; /* random ptr */
+    }
   } else
     dylan_pad(addr, size);
 
@@ -107,8 +115,8 @@ void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
   if(p[0] == (mps_word_t)tvw) {
     mps_word_t t = p[1] >> 2;
     if(t > 0)
-      p[2 + (rand() % t)] =
-        (mps_word_t)refs[rand() % nr_refs];
+      p[2 + (rnd() % t)] =
+        (mps_word_t)refs[rnd() % nr_refs];
   }
 }
 
@@ -121,7 +129,7 @@ mps_addr_t dylan_read(mps_addr_t addr)
   if(p[0] == (mps_word_t)tvw) {
     mps_word_t t = p[1] >> 2;
     if(t > 0)
-      return (mps_addr_t)p[2 + (rand() % t)];
+      return (mps_addr_t)p[2 + (rnd() % t)];
   }
 
   return addr;
