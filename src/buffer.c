@@ -1844,7 +1844,27 @@ buffer.")
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
   if (!EQ (buffer, obuffer))
-    windows_or_buffers_changed = 1;
+    {
+      /* Redisplay where the overlay was.  */
+      if (!NILP (obuffer))
+	{
+	  Lisp_Object o_beg;
+	  Lisp_Object o_end;
+
+	  o_beg = OVERLAY_START (overlay);
+	  o_end = OVERLAY_END   (overlay);
+	  o_beg = OVERLAY_POSITION (o_beg);
+	  o_end = OVERLAY_POSITION (o_end);
+
+	  redisplay_region (b, XINT (o_beg), XINT (o_end));
+	}
+
+      /* Redisplay where the overlay is going to be.  */
+      redisplay_region (ob, beg, end);
+
+      /* Don't limit redisplay to the selected window.  */
+      windows_or_buffers_changed = 1;
+    }
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
     {
