@@ -117,6 +117,9 @@ static char *x_visual_strings[] =
 
 Lisp_Object Vmouse_depressed;
 
+extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
+extern Lisp_Object unread_command_char;
+
 /* Atom for indicating window state to the window manager. */
 Atom Xatom_wm_change_state;
 
@@ -3155,9 +3158,6 @@ at X, Y on the selected screen.")
 
   return Qnil;
 }
-
-extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
-extern Lisp_Object unread_command_char;
 
 #if 0
 int contour_begin_x, contour_begin_y;
