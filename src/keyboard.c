@@ -5429,183 +5429,183 @@ make_lispy_event (event)
 	Lisp_Object window;
 	Lisp_Object head;
 	
+	/* Build the position as appropriate for this mouse click.  */
+	enum window_part part;
+	struct frame *f = XFRAME (event->frame_or_window);
+	Lisp_Object posn;
+	Lisp_Object string_info = Qnil;
+	int row, column;
+	int wx, wy;
 	position = Qnil;
- 	/* Build the position as appropriate for this mouse click.  */
- 	enum window_part part;
- 	struct frame *f = XFRAME (event->frame_or_window);
- 	Lisp_Object posn;
- 	Lisp_Object string_info = Qnil;
- 	int row, column;
- 	int wx, wy;
 
- 	/* Ignore wheel events that were made on frame that have been
- 	   deleted.  */
- 	if (! FRAME_LIVE_P (f))
- 	  return Qnil;
- 	
- 	/* EVENT->x and EVENT->y are frame-relative pixel
- 	   coordinates at this place.  Under old redisplay, COLUMN
- 	   and ROW are set to frame relative glyph coordinates
- 	   which are then used to determine whether this click is
- 	   in a menu (non-toolkit version).  */
- 	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
- 			       &column, &row, NULL, 1);
+	/* Ignore wheel events that were made on frame that have been
+	   deleted.  */
+	if (! FRAME_LIVE_P (f))
+	  return Qnil;
 
- 	/* Set `window' to the window under frame pixel coordinates
- 	   event->x/event->y.  */
- 	window = window_from_coordinates (f, XINT (event->x),
- 					  XINT (event->y),
- 					  &part, &wx, &wy, 0);
+	/* EVENT->x and EVENT->y are frame-relative pixel
+	   coordinates at this place.  Under old redisplay, COLUMN
+	   and ROW are set to frame relative glyph coordinates
+	   which are then used to determine whether this click is
+	   in a menu (non-toolkit version).  */
+	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
+			       &column, &row, NULL, 1);
 
- 	if (!WINDOWP (window))
- 	  {
- 	    window = event->frame_or_window;
- 	    posn = Qnil;
- 	  }
- 	else
- 	  {
- 	    /* It's a click in window window at frame coordinates
- 	       event->x/ event->y.  */
- 	    struct window *w = XWINDOW (window);
- 	
- 	    /* Set event coordinates to window-relative coordinates
- 	       for constructing the Lisp event below.  */
- 	    XSETINT (event->x, wx);
- 	    XSETINT (event->y, wy);
- 	
- 	    if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
- 	      {
- 		/* Mode line or header line.  Look for a string under
- 		   the mouse that may have a `local-map' property.  */
- 		Lisp_Object string;
- 		int charpos;
- 		
- 		posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
- 		string = mode_line_string (w, wx, wy, part, &charpos);
- 		if (STRINGP (string))
- 		  string_info = Fcons (string, make_number (charpos));
- 	      }
- 	    else if (part == ON_VERTICAL_BORDER)
- 	      posn = Qvertical_line;
- 	    else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
- 	      {
- 		int charpos;
- 		Lisp_Object object = marginal_area_string (w, wx, wy, part,
- 							   &charpos);
- 		posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
- 		if (STRINGP (object))
- 		  string_info = Fcons (object, make_number (charpos));
- 	      }
- 	    else
- 	      {
- 		Lisp_Object object;
- 		struct display_pos p;
- 		buffer_posn_from_coords (w, &wx, &wy, &object, &p);
- 		posn = make_number (CHARPOS (p.pos));
- 		if (STRINGP (object))
- 		  string_info
- 		    = Fcons (object,
- 			     make_number (CHARPOS (p.string_pos)));
- 	      }
- 	  }
- 	
- 	position
- 	  = Fcons (window,
- 		   Fcons (posn,
- 			  Fcons (Fcons (event->x, event->y),
- 				 Fcons (make_number (event->timestamp),
- 					(NILP (string_info)
- 					 ? Qnil
- 					 : Fcons (string_info, Qnil))))));
+	/* Set `window' to the window under frame pixel coordinates
+	   event->x/event->y.  */
+	window = window_from_coordinates (f, XINT (event->x),
+					  XINT (event->y),
+					  &part, &wx, &wy, 0);
 
- 	/* Set double or triple modifiers to indicate the wheel speed.	*/
- 	{
- 	  /* On window-system frames, use the value of
- 	     double-click-fuzz as is.  On other frames, interpret it
- 	     as a multiple of 1/8 characters.  */
- 	  struct frame *f;
- 	  int fuzz;
- 	  int is_double;
+	if (!WINDOWP (window))
+	  {
+	    window = event->frame_or_window;
+	    posn = Qnil;
+	  }
+	else
+	  {
+	    /* It's a click in window window at frame coordinates
+	       event->x/ event->y.  */
+	    struct window *w = XWINDOW (window);
+	
+	    /* Set event coordinates to window-relative coordinates
+	       for constructing the Lisp event below.  */
+	    XSETINT (event->x, wx);
+	    XSETINT (event->y, wy);
+	
+	    if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
+	      {
+		/* Mode line or header line.  Look for a string under
+		   the mouse that may have a `local-map' property.  */
+		Lisp_Object string;
+		int charpos;
 
- 	  if (WINDOWP (event->frame_or_window))
- 	    f = XFRAME (XWINDOW (event->frame_or_window)->frame);
- 	  else if (FRAMEP (event->frame_or_window))
- 	    f = XFRAME (event->frame_or_window);
- 	  else
- 	    abort ();
+		posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
+		string = mode_line_string (w, wx, wy, part, &charpos);
+		if (STRINGP (string))
+		  string_info = Fcons (string, make_number (charpos));
+	      }
+	    else if (part == ON_VERTICAL_BORDER)
+	      posn = Qvertical_line;
+	    else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
+	      {
+		int charpos;
+		Lisp_Object object = marginal_area_string (w, wx, wy, part,
+							   &charpos);
+		posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
+		if (STRINGP (object))
+		  string_info = Fcons (object, make_number (charpos));
+	      }
+	    else
+	      {
+		Lisp_Object object;
+		struct display_pos p;
+		buffer_posn_from_coords (w, &wx, &wy, &object, &p);
+		posn = make_number (CHARPOS (p.pos));
+		if (STRINGP (object))
+		  string_info
+		    = Fcons (object,
+			     make_number (CHARPOS (p.string_pos)));
+	      }
+	  }
+	
+	position
+	  = Fcons (window,
+		   Fcons (posn,
+			  Fcons (Fcons (event->x, event->y),
+				 Fcons (make_number (event->timestamp),
+					(NILP (string_info)
+					 ? Qnil
+					 : Fcons (string_info, Qnil))))));
 
- 	  if (FRAME_WINDOW_P (f))
- 	    fuzz = double_click_fuzz;
- 	  else
- 	    fuzz = double_click_fuzz / 8;
+	/* Set double or triple modifiers to indicate the wheel speed.	*/
+	{
+	  /* On window-system frames, use the value of
+	     double-click-fuzz as is.  On other frames, interpret it
+	     as a multiple of 1/8 characters.  */
+	  struct frame *f;
+	  int fuzz;
+	  int is_double;
 
- 	  is_double = (last_mouse_button < 0
- 		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
- 		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
- 		       && button_down_time != 0
- 		       && (EQ (Vdouble_click_time, Qt)
- 			   || (INTEGERP (Vdouble_click_time)
- 			       && ((int)(event->timestamp - button_down_time)
- 				   < XINT (Vdouble_click_time)))));
- 	  if (is_double)
- 	    {
- 	      double_click_count++;
- 	      event->modifiers |= ((double_click_count > 2)
- 				   ? triple_modifier
- 				   : double_modifier);
- 	    }
- 	  else
- 	    {
- 	      double_click_count = 1;
- 	      event->modifiers |= click_modifier;
- 	    }
- 	
- 	  button_down_time = event->timestamp;
- 	  /* Use a negative value to distinguish wheel from mouse button.  */
- 	  last_mouse_button = -1;
- 	  last_mouse_x = XINT (event->x);
- 	  last_mouse_y = XINT (event->y);
- 	}
- 	
- 	{
- 	  int symbol_num;
- 	
- 	  if (event->modifiers & up_modifier)
- 	    {
- 	      /* Emit a wheel-up event.	 */
- 	      event->modifiers &= ~up_modifier;
- 	      symbol_num = 0;
- 	    }
- 	  else if (event->modifiers & down_modifier)
- 	    {
- 	      /* Emit a wheel-down event.  */
- 	      event->modifiers &= ~down_modifier;
- 	      symbol_num = 1;
- 	    }
- 	  else
- 	    /* Every wheel event should either have the down_modifier or
- 	       the up_modifier set.  */
- 	    abort ();
- 	
- 	  /* Get the symbol we should use for the wheel event.	*/
- 	  head = modify_event_symbol (symbol_num,
- 				      event->modifiers,
- 				      Qmouse_click,
- 				      Qnil,
- 				      lispy_wheel_names,
- 				      &wheel_syms,
- 				      ASIZE (wheel_syms));
- 	}
- 	
- 	if (event->modifiers & (double_modifier | triple_modifier))
- 	  return Fcons (head,
- 			Fcons (position,
- 			       Fcons (make_number (double_click_count),
- 				      Qnil)));
- 	else
- 	  return Fcons (head,
- 			Fcons (position,
- 			       Qnil));
+	  if (WINDOWP (event->frame_or_window))
+	    f = XFRAME (XWINDOW (event->frame_or_window)->frame);
+	  else if (FRAMEP (event->frame_or_window))
+	    f = XFRAME (event->frame_or_window);
+	  else
+	    abort ();
+
+	  if (FRAME_WINDOW_P (f))
+	    fuzz = double_click_fuzz;
+	  else
+	    fuzz = double_click_fuzz / 8;
+
+	  is_double = (last_mouse_button < 0
+		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && button_down_time != 0
+		       && (EQ (Vdouble_click_time, Qt)
+			   || (INTEGERP (Vdouble_click_time)
+			       && ((int)(event->timestamp - button_down_time)
+				   < XINT (Vdouble_click_time)))));
+	  if (is_double)
+	    {
+	      double_click_count++;
+	      event->modifiers |= ((double_click_count > 2)
+				   ? triple_modifier
+				   : double_modifier);
+	    }
+	  else
+	    {
+	      double_click_count = 1;
+	      event->modifiers |= click_modifier;
+	    }
+
+	  button_down_time = event->timestamp;
+	  /* Use a negative value to distinguish wheel from mouse button.  */
+	  last_mouse_button = -1;
+	  last_mouse_x = XINT (event->x);
+	  last_mouse_y = XINT (event->y);
+	}
+
+	{
+	  int symbol_num;
+
+	  if (event->modifiers & up_modifier)
+	    {
+	      /* Emit a wheel-up event.	 */
+	      event->modifiers &= ~up_modifier;
+	      symbol_num = 0;
+	    }
+	  else if (event->modifiers & down_modifier)
+	    {
+	      /* Emit a wheel-down event.  */
+	      event->modifiers &= ~down_modifier;
+	      symbol_num = 1;
+	    }
+	  else
+	    /* Every wheel event should either have the down_modifier or
+	       the up_modifier set.  */
+	    abort ();
+
+	  /* Get the symbol we should use for the wheel event.	*/
+	  head = modify_event_symbol (symbol_num,
+				      event->modifiers,
+				      Qmouse_click,
+				      Qnil,
+				      lispy_wheel_names,
+				      &wheel_syms,
+				      ASIZE (wheel_syms));
+	}
+
+	if (event->modifiers & (double_modifier | triple_modifier))
+	  return Fcons (head,
+			Fcons (position,
+			       Fcons (make_number (double_click_count),
+				      Qnil)));
+	else
+	  return Fcons (head,
+			Fcons (position,
+			       Qnil));
       }
 
 
