@@ -3558,17 +3558,20 @@ menu_bar_items (old)
       for (i = 0; i < end; i += 3)
 	if (EQ (XCONS (tail)->car, XVECTOR (menu_bar_items_vector)->contents[i]))
 	  {
-	    Lisp_Object tem;
-	    end -= 3;
-#define EXCH(a, b) tem = a, a = b, b = tem
-	    EXCH (XVECTOR (menu_bar_items_vector)->contents[i],
-		  XVECTOR (menu_bar_items_vector)->contents[end]);
-	    EXCH (XVECTOR (menu_bar_items_vector)->contents[i + 1],
-		  XVECTOR (menu_bar_items_vector)->contents[end + 1]);
-	    EXCH (XVECTOR (menu_bar_items_vector)->contents[i + 2],
-		  XVECTOR (menu_bar_items_vector)->contents[end + 2]);
-#undef EXCH
-	    i -= 3;
+	    Lisp_Object tem0, tem1, tem2;
+	    /* Move the item at index I to the end,
+	       shifting all the others forward.  */
+	    tem0 = XVECTOR (menu_bar_items_vector)->contents[i + 0];
+	    tem1 = XVECTOR (menu_bar_items_vector)->contents[i + 1];
+	    tem2 = XVECTOR (menu_bar_items_vector)->contents[i + 2];
+	    if (end > i + 3)
+	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 3],
+		     &XVECTOR (menu_bar_items_vector)->contents[i],
+		     (end - i - 3) * sizeof (Lisp_Object));
+	    XVECTOR (menu_bar_items_vector)->contents[end - 3] = tem0;
+	    XVECTOR (menu_bar_items_vector)->contents[end - 2] = tem1;
+	    XVECTOR (menu_bar_items_vector)->contents[end - 1] = tem2;
+	    break;
 	  }
     }
 
