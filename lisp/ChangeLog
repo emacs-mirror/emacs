@@ -1,3 +1,12 @@
+2002-10-27  Dave Love  <fx@gnu.org>
+
+	* term/x-win.el: Remove some ancient compatibility code.  Populate
+	x-keysym-table.
+
+	* international/mule-cmds.el (wid-edit): Require when compiling.
+	(set-locale-environment): Check locale against coding system
+	aliases too.
+
 2002-10-25  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (in-is13194-devanagari): Fix
