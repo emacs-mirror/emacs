@@ -5692,9 +5692,10 @@ update_frame_line (f, vpos)
    to character positions.  */
 
 void
-buffer_posn_from_coords (w, x, y, object, pos)
+buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
      struct window *w;
      int *x, *y;
+     int *dx, *dy;
      Lisp_Object *object;
      struct display_pos *pos;
 {
@@ -5702,6 +5703,7 @@ buffer_posn_from_coords (w, x, y, object, pos)
   struct buffer *old_current_buffer = current_buffer;
   struct text_pos startp;
   struct glyph_row *row;
+  struct image *img;
   int x0, x1;
 
   current_buffer = XBUFFER (w->buffer);
@@ -5721,7 +5723,15 @@ buffer_posn_from_coords (w, x, y, object, pos)
 
   current_buffer = old_current_buffer;
 
-  *object = STRINGP (it.string) ? it.string : w->buffer;
+  *dx = x0 + it.first_visible_x - it.current_x;
+  *dy = *y - it.current_y;
+
+  if (it.what == IT_IMAGE
+      && (img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
+      && !NILP (img->spec))
+    *object = img->spec;
+  else
+    *object = STRINGP (it.string) ? it.string : w->buffer;
   *pos = it.current;
   *x = it.hpos;
   *y = it.vpos;
@@ -5734,22 +5744,23 @@ buffer_posn_from_coords (w, x, y, object, pos)
    the string returned.  */
 
 Lisp_Object
-mode_line_string (w, x, y, part, charpos)
+mode_line_string (w, x, y, dx, dy, part, charpos)
      struct window *w;
      int *x, *y;
+     int *dx, *dy;
      enum window_part part;
      int *charpos;
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
-  int x0;
+  int x0, y0;
   Lisp_Object string = Qnil;
 
   if (part == ON_MODE_LINE)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
     row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
-
+  y0 = *y - row->y;
   *y = row - MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 
   if (row->mode_line_p && row->enabled_p)
@@ -5771,7 +5782,16 @@ mode_line_string (w, x, y, part, charpos)
 	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
     }
   else
-    *x = 0;
+    {
+      *x = 0;
+      x0 = 0;
+    }
+
+  if (dx)
+    {
+      *dx = x0;
+      *dy = y0;
+    }
 
   return string;
 }
@@ -5782,15 +5802,16 @@ mode_line_string (w, x, y, part, charpos)
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (w, x, y, part, charpos)
+marginal_area_string (w, x, y, dx, dy, part, charpos)
      struct window *w;
      int *x, *y;
+     int *dx, *dy;
      enum window_part part;
      int *charpos;
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
-  int x0, i, wy = *y;
+  int x0, y0, i, wy = *y;
   int area;
   Lisp_Object string = Qnil;
 
@@ -5804,6 +5825,7 @@ marginal_area_string (w, x, y, part, charpos)
   for (i = 0; row->enabled_p && i < w->current_matrix->nrows; ++i, ++row)
     if (wy >= row->y && wy < MATRIX_ROW_BOTTOM_Y (row))
       break;
+  y0 = *y - row->y;
   *y = row - MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 
   if (row->enabled_p)
@@ -5836,7 +5858,16 @@ marginal_area_string (w, x, y, part, charpos)
 	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
     }
   else
-    *x = 0;
+    {
+      x0 = 0;
+      *x = 0;
+    }
+
+  if (dx)
+    {
+      *dx = x0;
+      *dy = y0;
+    }
 
   return string;
 }
