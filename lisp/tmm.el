@@ -426,6 +426,11 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		   (setq str event event nil km (cons 'keymap elt))
 		   )))
       (and km (stringp km) (setq str km))
+      ;; Verify that the command is enabled;
+      ;; if not, don't mention it.
+      (when (and km (symbolp km) (get km 'menu-enable))
+	(unless (eval (get km 'menu-enable))
+	  (setq km nil)))
       (and km str
 	   (or (assoc str tmm-km-list)
 	       (setq tmm-km-list 
