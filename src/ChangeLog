@@ -1,3 +1,11 @@
+2003-01-03  Dave Love  <fx@gnu.org>
+
+	* keymap.c (apropos_predicate, apropos_accumulate): Declare
+	static.
+	(Fapropos_internal): Don't gcpro apropos_accumulate.  Set result
+	to new local and nullify apropos_accumulate before returning.
+	(syms_of_keymap): Staticpro and initialize apropos_accumulate.
+
 2002-12-05  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fdefine_charset_internal): Setup charset.fast_map
