@@ -1,3 +1,18 @@
+2003-03-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* data.c (store_symval_forwarding): Re-instate part of the code
+	that was deleted with too much enthusiasm.
+
+2003-03-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* data.c (store_symval_forwarding): Delete special read-only
+	hack for type == -1, since we now use ->constant instead.
+	(Fkill_local_variable): Don't use XBUFFER if it can be nil.
+
+	* buffer.c (overlays_in): Declare static.
+	(syms_of_buffer) <enable-multibyte-characters>: Use the symbol's
+	`constant' field rather than the variable's `type' field.
+
 2003-03-24  Andrew Choi  <akochoi@shaw.ca>
 
 	* config.in [MAC_OSX]: Do not redefine bcopy, bzero, and bcmp.
@@ -10,15 +25,14 @@
 
 	* macgui.h: Remove definition of No_Cursor.
 
-	* macterm.h: Include Carbon.h.  Replace (struct Cursor *) by
-	Cursor.
+	* macterm.h: Include Carbon.h.  Replace (struct Cursor *) by Cursor.
 
 	* xdisp.c: Define No_Cursor.
 	(x_write_glyphs, notice_overwritten_cursor)
 	(draw_phys_cursor_glyph, note_mode_line_or_margin_highlight)
 	(note_mouse_highlight): Remove Mac-specific code.
 	(note_mouse_highlight): Use bcmp instead of == to compare Cursors.
-	
+
 2003-03-24  John Paul Wallington  <jpw@gnu.org>
 
 	* xdisp.c (redisplay_window): If mini window's buffer is not
@@ -50,13 +64,13 @@
 	of scroll bar including borders.
 	Clear left and right part outside scroll bar separately as some
 	themes have bars that are not an even number of pixels.
-	Don't set reallocate_redraws, don't call 
+	Don't set reallocate_redraws, don't call
 	gdk_window_process_all_updates.
 	(xg_set_toolkit_scroll_bar_thumb): Upper value is fixed,
 	so no need to change it.  Calculate size and value with XG_SB_RANGE.
 
-	* xterm.c (x_scroll_bar_create, XTset_vertical_scroll_bar): Pass
-	left and width of scroll bar including borders to
+	* xterm.c (x_scroll_bar_create, XTset_vertical_scroll_bar):
+	Pass left and width of scroll bar including borders to
 	xg_update_scrollbar_pos.
 
 2003-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
