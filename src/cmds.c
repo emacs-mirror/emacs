@@ -230,13 +230,14 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   if (!NILP (current_buffer->read_only))
     Fsignal (Qbuffer_read_only, Qnil);
 
-  /* Inserting a newline at the end of a line
-     produces better redisplay in try_window_id
-     than inserting at the ebginning fo a line,
-     And the textual result is the same.
-     So if at beginning, pretend to be at the end.
-     Must avoid internal_self_insert in that case since point is wrong.
-     Luckily internal_self_insert's special features all do nothing in that case.  */
+  /* Inserting a newline at the end of a line produces better
+     redisplay in try_window_id than inserting at the ebginning fo a
+     line, and the textual result is the same.  So, if we're at
+     beginning of line, pretend to be at the end of the previous line.  
+
+     We can't use internal_self_insert in that case since it won't do
+     the insertion correctly.  Luckily, internal_self_insert's special
+     features all do nothing in that case.  */
 
   flag = point > BEGV && FETCH_CHAR (point - 1) == '\n';
   if (flag)
