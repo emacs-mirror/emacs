@@ -1701,12 +1701,9 @@ digest_single_submenu (start, end, top_level_items)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
-	      /* Ignore the @ that means "separate pane".
-		 This is a kludge, but this isn't worth more time.  */
-	      if (!NILP (prefix) && wv->name[0] == '@')
-		wv->name++;
-	      wv->value = 0;
+	      wv->lname = pane_name;
+              /* Set value to 1 so update_submenu_strings can handle '@'  */
+	      wv->value = (char *)1;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      wv->help = Qnil;
@@ -1749,9 +1746,9 @@ digest_single_submenu (start, end, top_level_items)
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) SDATA (item_name);
+	  wv->lname = item_name;
 	  if (!NILP (descrip))
-	    wv->key = (char *) SDATA (descrip);
+	    wv->lkey = descrip;
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1790,6 +1787,42 @@ digest_single_submenu (start, end, top_level_items)
 
   return first_wv;
 }
+
+/* Walk through thw widget_value tree starting at FIRST_WV and update
+   the char * pointers from the corresponding lisp values.
+   We do this after building the whole tree, since GC may happen while the
+   tree is constructed, and small strings are relocated.  So we must wait
+   until no GC can happen before storing pointers into lisp values.  */
+static void
+update_submenu_strings (first_wv)
+     widget_value *first_wv;
+{
+  widget_value *wv;
+
+  for (wv = first_wv; wv; wv = wv->next)
+    {
+      if (wv->lname && ! NILP (wv->lname))
+        {
+          wv->name = SDATA (wv->lname);
+
+          /* Ignore the @ that means "separate pane".
+             This is a kludge, but this isn't worth more time.  */
+          if (wv->value == (char *)1)
+            {
+              if (wv->name[0] == '@')
+		wv->name++;
+              wv->value = 0;
+            }
+        }
+
+      if (wv->lkey && ! NILP (wv->lkey))
+        wv->key = SDATA (wv->lkey);
+
+      if (wv->contents)
+        update_submenu_strings (wv->contents);
+    }
+}
+
 
 /* Recompute all the widgets of frame F, when the menu bar has been
    changed.  Value is non-zero if widgets were updated.  */
@@ -1930,7 +1963,6 @@ set_frame_menubar (f, first_time, deep_p)
       FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
       items = FRAME_MENU_BAR_ITEMS (f);
-      inhibit_garbage_collection ();
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
@@ -2023,9 +2055,10 @@ set_frame_menubar (f, first_time, deep_p)
 	  Lisp_Object string;
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
-	    break;
-	  wv->name = (char *) SDATA (string);
-	  wv = wv->next;
+            break;
+          wv->name = (char *) SDATA (ENCODE_MENU_STRING (string));
+          update_submenu_strings (wv->contents);
+          wv = wv->next;
 	}
 
       f->menu_bar_vector = menu_items;
@@ -2055,7 +2088,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) SDATA (string);
+	  wv->name = (char *) SDATA (ENCODE_MENU_STRING (string));
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;

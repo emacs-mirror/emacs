@@ -1,3 +1,14 @@
+2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (digest_single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.  Call ENCODE_MENU_STRING for top level
+	menu names.
+
+	* gtkutil.h (_widget_value): Added lname and lkey.
+
 2004-08-30  Steven Tamm  <steventamm@mac.com>
 
 	* macmenu.c (mac_menu_show): Remove shadowing of menu variable
