@@ -220,6 +220,8 @@ int initial_argc;
 static void sort_args ();
 void syms_of_emacs ();
 
+/* MSVC needs each string be shorter than 2048 bytes, so the usage
+   strings below are split to not overflow this limit.  */
 #define USAGE1 "\
 Usage: %s [OPTION-OR-FILENAME]...\n\
 \n\
@@ -246,7 +248,9 @@ Initialization options:\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
 --user, -u USER             load ~USER/.emacs instead of your own\n\
-\n\
+\n%s"
+
+#define USAGE2 "\
 Action options:\n\
 \n\
 FILE                    visit FILE using find-file\n\
@@ -265,7 +269,7 @@ FILE                    visit FILE using find-file\n\
 --visit FILE            visit FILE using find-file\n\
 \n"
 
-#define USAGE2 "\
+#define USAGE3 "\
 Display options:\n\
 \n\
 --background-color, -bg COLOR   window background color\n\
@@ -304,7 +308,7 @@ Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
 \n"
 
-#define USAGE3 "\
+#define USAGE4 "\
 Report bugs to %s.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
@@ -1064,9 +1068,9 @@ main (argc, argv
   /* Handle the --help option, which gives a usage message.  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
-      printf (USAGE1, argv[0]);
-      printf (USAGE2);
-      printf (USAGE3, bug_reporting_address ());
+      printf (USAGE1, argv[0], USAGE2);
+      printf (USAGE3);
+      printf (USAGE4, bug_reporting_address ());
       exit (0);
     }
 
