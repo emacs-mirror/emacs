@@ -37,7 +37,7 @@ rem   traffic.
 rem   ----------------------------------------------------------------------
 set X11=
 set nodebug=
-set djgpp-ver=
+set djgpp_ver=
 :again
 if "%1" == "" goto usage
 if "%1" == "--with-x" goto withx
@@ -112,10 +112,10 @@ rm -f junk.c junk junk.exe
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
 Goto End
 :go32Ok
-set djgpp-ver=1
-If ErrorLevel 20 set djgpp-ver=2
+set djgpp_ver=1
+If ErrorLevel 20 set djgpp_ver=2
 rm -f junk.c junk junk.exe
-Echo Configuring for DJGPP Version %DJGPP-VER% ...
+Echo Configuring for DJGPP Version %DJGPP_VER% ...
 Rem   ----------------------------------------------------------------------
 Echo Configuring the source directory...
 cd src
@@ -141,7 +141,7 @@ if exist dir.h ren dir.h vmsdir.h
 rem   Create "makefile" from "makefile.in".
 rm -f makefile junk.c
 sed -e "1,/cpp stuff/s@^# .*$@@" <makefile.in >junk.c
-If "%DJGPP-VER%" == "1" Goto mfV1
+If "%DJGPP_VER%" == "1" Goto mfV1
 gcc -E junk.c | sed -f ../msdos/sed1v2.inp >makefile
 goto mfDone
 :mfV1
@@ -167,7 +167,7 @@ cd lib-src
 rem   Create "makefile" from "makefile.in".
 sed -e "1,/cpp stuff/s@^# .*$@@" <makefile.in >junk.c
 gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
-If "%DJGPP-VER%" == "2" goto libsrc-v2
+If "%DJGPP_VER%" == "2" goto libsrc-v2
 sed -f ../msdos/sed3.inp <makefile.new >makefile
 Goto libsrc2
 :libsrc-v2
@@ -193,10 +193,10 @@ cd ..
 :oldx1
 rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
-If "%DJGPP-VER%" == "2" copy msdos\mainmake.v2 makefile >nul
-If "%DJGPP-VER%" == "1" copy msdos\mainmake makefile >nul
+If "%DJGPP_VER%" == "2" copy msdos\mainmake.v2 makefile >nul
+If "%DJGPP_VER%" == "1" copy msdos\mainmake makefile >nul
 rem   ----------------------------------------------------------------------
 :end
 set X11=
 set nodebug=
-set djgpp-ver=
+set djgpp_ver=
