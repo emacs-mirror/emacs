@@ -1,3 +1,54 @@
+2004-11-17  Jay Belanger  <belanger@truman.edu>
+	* calc/calc-alg.el (calc-poly-div):  Made calc-poly-div-remainder
+	a local variable. 
+
+	(math-eval-rules-cache, math-eval-rules-cache-other):  Declared
+	them. 
+
+	(math-top-only):  New variable.
+	(math-simplify, math-simplify-step):  Replaced variable top-only by 
+	declared variable math-top-only.
+
+	(math-simplify-expr):  Declared it.
+	Replaced argument expr in all calls of math-defsimplify by
+	math-simplify-expr. 
+	(math-simplify-plus, math-simplify-times, math-simplify-divide)
+	(math-simplify-divisor, math-simplify-one-divisor)
+	(math-simplify-mod, math-simplify-ineq, math-simplify-sqrt)
+	(math-simplify-pow):  Replaced variable expr by declared variable
+	math-simplify-expr.
+
+	(math-simplify-divisor):  Removed local variables temp and op.
+	(math-simplify-one-divisor):  Made temp and op local variables.
+
+	(math-simplify-divisor-nover, math-simplify-divisor-dover):  New
+	variables.
+	(math-simplify-divisor, math-simplify-one-divisor):  Replaced
+	variables nover and dover by declared variables.
+
+	(math-expr-subst-new, math-expr-subst-old):  New variables.
+	(math-expr-subst, math-expr-subst-rec):  Replaced variables new
+	and old by declared variables.
+
+	(math-is-poly-degree, math-is-poly-loose):  New variables.
+	(math-is-polynomial, math-is-poly-rec):  Replaced variables degree
+	and loose by declared variables.
+
+	(math-poly-base-const-ok, math-poly-base-pred): New variables.
+	(math-polynomial-base, math-polynomial-base-rec):  Replaced
+	variables const-ok and mpb-pred by declared variables. 
+
+	* calc/calc-poly.el (calc-poly-div-remainder):  Declared it.
+
+	* calc/calc-ext.el (math-defsimplify):  Changed the argument in
+	the created function to math-simplify-expr. 
+
+	* calc/calc-units.el (math-simplify-expr):  Declared it.
+	Replaced argument expr in all calls of math-defsimplify by
+	math-simplify-expr. 
+	(math-simplify-units-prod):  Replaced variable expr by declared
+	variable math-simplify-expr.
+
 2004-11-17  Miles Bader  <miles@gnu.org>
 
 	* progmodes/idlw-shell.el, progmodes/idlw-toolbar.el
