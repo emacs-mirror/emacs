@@ -1,3 +1,24 @@
+2002-05-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (charset_jisx0201_roman, charset_jisx0208_1978,
+	charset_jisx0208): New variables.
+	(Fdefine_charset_internal): Setup them if appropriate.
+	(init_charset_once): Initialize them to -1.
+
+	* charset.h (charset_jisx0201_roman, charset_jisx0208_1978,
+	charset_jisx0208): Extern them.
+
+	* coding.c (CODING_ISO_FLAG_USE_ROMAN): New macro
+	(CODING_ISO_FLAG_USE_OLDJIS): New macro.
+	(CODING_ISO_FLAG_FULL_SUPPORT): Macro definition changed.
+	(setup_iso_safe_charsets): Fix arguemtns to Fassq.
+	(DECODE_DESIGNATION): Pay attention to CODING_ISO_FLAG_USE_ROMAN
+	and CODING_ISO_FLAG_USE_OLDJIS.
+	(ENCODE_ISO_CHARACTER_DIMENSION1): Likewise.
+	(ENCODE_ISO_CHARACTER_DIMENSION2): Likewise.
+	(encode_coding_iso_2022): Change the 1st arg to
+	ENCODE_ISO_CHARACTER to a variable.
+
 2002-05-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.h (enum define_charset_arg_index): New enums
