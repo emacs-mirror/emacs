@@ -104,10 +104,16 @@ This can be slightly disconcerting, but some people may prefer it."
 (if (not (fboundp 'event-button))
     (defun mwheel-event-button (event)
       (let ((x (symbol-name (event-basic-type event))))
-	(if (not (string-match "^mouse-\\([0-9]+\\)" x))
-	    (error "Not a button event: %S" event))
-	(string-to-int (substring x (match-beginning 1) (match-end 1)))))
-  (fset 'mwheel-event-button 'event-button))
+	;; Map mouse-wheel events to appropriate buttons
+	(if (string-equal "mouse-wheel" x)
+	    (let ((amount (car (cdr (cdr (cdr event))))))
+	      (if (< amount 0)
+		  mouse-wheel-up-button
+		mouse-wheel-down-button))
+	  (if (not (string-match "^mouse-\\([0-9]+\\)" x))
+	      (error "Not a button event: %S" event)
+	    (string-to-int (substring x (match-beginning 1) (match-end 1)))))))
+  (fset  'mwheel-event-button 'event-button))
 
 (if (not (fboundp 'event-window))
     (defun mwheel-event-window (event)
@@ -125,9 +131,9 @@ This should only be bound to mouse buttons 4 and 5."
          (mods
 	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
          (amt
-	  (or (and mods
-		   (cdr (assoc mods (cdr mouse-wheel-scroll-amount))))
-	      (car mouse-wheel-scroll-amount))))
+	  (if mods
+	      (cdr (assoc mods (cdr mouse-wheel-scroll-amount)))
+	    (car mouse-wheel-scroll-amount))))
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
     (when (and mouse-wheel-progessive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
