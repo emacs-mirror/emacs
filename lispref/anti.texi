@@ -176,7 +176,7 @@ The function @code{buffer-size} always reports on the
 current buffer.
 
 @item
-The function @code{assoc-delete-all} has itself been deleted. 
+The function @code{assq-delete-all} has itself been deleted. 
 So there!
 
 @item

@@ -1625,8 +1625,8 @@ This function deletes from @var{alist} all the elements whose @sc{car}
 is @code{eq} to @var{key}.  It returns the modified alist.
 
 @example
-(assoc-delete-all 'foo
-                  '((foo 1) (bar 2) (foo 3) (lose 4)))
+(assq-delete-all 'foo
+                 '((foo 1) (bar 2) (foo 3) (lose 4)))
      @result{} ((bar 2) (lose 4))
 @end example
 @end defun
