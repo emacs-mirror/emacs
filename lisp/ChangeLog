@@ -1,3 +1,7 @@
+2001-11-23  Colin Walters  <walters@debian.org>
+
+	* Makefile.in (finder_setwins, setwins): Include Calc again.
+
 2001-11-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (with-vc-properties): Don't bind `filename' locally.
