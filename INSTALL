@@ -52,6 +52,15 @@ each character set.
 The intlfonts distribution contains its own installation instructions,
 in the intlfonts/README file.
 
+* elisp-manual-VERSION.tar.gz
+
+This is the Emacs Lisp Reference for programmers, containing an
+in-depth discussion of Emacs Lisp and Emacs internals.  The
+distribution contains the Texinfo source files for the Reference
+Manual.  The Emacs Lisp Reference Manual is quite large.  It contains
+around 900 pages in smallbook format; the info files total almost two
+megabytes.  The package contains installation instructions of its own.
+
 
 BUILDING AND INSTALLATION:
 

@@ -286,6 +286,11 @@ specifies a number of lines.  If nil, don't resize.
 
 Default is 0.25.
 
+** Changes to TeX mode
+
+The default mode has been changed from `plain-tex-mode' to
+`latex-mode'.
+
 ** Changes to RefTeX mode
 
 *** RefTeX has new support for index generation.  Index entries can be

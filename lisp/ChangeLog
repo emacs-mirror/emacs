@@ -1,3 +1,7 @@
+1999-11-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/tex-mode.el (tex-default-mode): Changed to latex-mode.
+
 1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* window.el (walk-windows): If ALL-FRAMES is a frame,
@@ -30,15 +34,15 @@
 	* ediff-vers.el (ediff-pcl-cvs-internal, ediff-pcl-cvs-merge-internal):
 	Use file-name-nondirectory when passing files to CVS.
 	
-	* ediff-diff.el (ediff-cmp-options): New var.
+	* ediff-diff.el (ediff-cmp-options): New variable.
 	(ediff-same-file-contents): Use ediff-cmp-options.
 	
 	* ediff-ptch.el (ediff-prompt-for-patch-buffer,
 	ediff-get-patch-buffer): Use current buffer if it appears to be a
 	patch.
 	
-	* viper-keym.el: Fixed calls to viper-ex,
-	change key C-c g to C-c C-g
+	* viper-keym.el: Fixed calls to viper-ex, change key C-c g to C-c
+	C-g
 
 	* viper-util.el (viper-nontrivial-find-file-function): Deleted.
 	(viper-glob-unix-files, viper-glob-mswindows-files): New functions.
