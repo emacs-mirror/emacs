@@ -33,6 +33,10 @@
 ;; For rmail-select-summary
 (require 'rmail)
 
+;;;###autoload
+(defvar rmail-summary-scroll-between-messages t
+  "*Non-nil means Rmail summary scroll commands move between messages.")
+
 (defvar rmail-summary-font-lock-keywords
   '(("^....D.*" . font-lock-string-face)			; Deleted.
     ("^....-.*" . font-lock-type-face)				; Unread.
@@ -994,7 +998,9 @@ advance to the next message."
 			(end-of-line)
 			(eobp)))
 		  (select-window rmail-summary-window)))
-	      (rmail-summary-next-msg (or dist 1))
+	      (if (not rmail-summary-scroll-between-messages)
+		  (error "End of buffer")
+		(rmail-summary-next-msg (or dist 1)))
 	    (let ((other-window-scroll-buffer rmail-buffer))
 	      (scroll-other-window dist)))
 	;; This forces rmail-buffer to be sized correctly later.
@@ -1019,7 +1025,9 @@ advance to the previous message."
 		      (beginning-of-line)
 		      (bobp))
 		  (select-window rmail-summary-window)))
-	      (rmail-summary-previous-msg (or dist 1))
+	      (if (not rmail-summary-scroll-between-messages)
+		  (error "Beginning of buffer")
+		(rmail-summary-previous-msg (or dist 1)))
 	    (let ((other-window-scroll-buffer rmail-buffer))
 	      (scroll-other-window-down dist)))
 	;; This forces rmail-buffer to be sized correctly later.
