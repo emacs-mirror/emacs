@@ -3834,7 +3834,7 @@ With prefix argument N, move N items (negative N means move backward)."
 These functions are called in order with four arguments:
 CHOICE - the string to insert in the buffer,
 BUFFER - the buffer in which the choice should be inserted,
-MINI-P - non-nil iff BUFFER is a minibuffer,  and
+MINI-P - non-nil iff BUFFER is a minibuffer, and
 BASE-SIZE - the number of characters in BUFFER before
 the string being completed.
 
