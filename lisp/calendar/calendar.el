@@ -1946,24 +1946,27 @@ If in the calendar buffer, also sets the current date local variables."
   "Returns a list of the month, day, and year of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
 ERROR is t, otherwise just returns nil."
-  (if (and (looking-at "[*0-9]")
-           (< 2 (count-lines (point-min) (point))))
-      (save-excursion
-        (re-search-backward "[^*0-9]")
-        (forward-char 1)
-        (let*
-            ((day (string-to-int (buffer-substring (point) (+ 3 (point)))))
-             (day (if (= 0 day) starred-day day))
-             (segment (/ (current-column) 25))
-             (month (% (+ displayed-month segment -1) 12))
-             (month (if (= 0 month) 12 month))
-             (year
-              (cond
-               ((and (=  12 month) (= segment 0)) (1- displayed-year))
-               ((and (=   1 month) (= segment 2)) (1+ displayed-year))
-               (t displayed-year))))
-          (list month day year)))
-      (if error (error "Cursor is not on a date!"))))
+  (let* ((segment (/ (current-column) 25))
+         (month (% (+ displayed-month segment -1) 12))
+         (month (if (= 0 month) 12 month))
+         (year
+          (cond
+           ((and (=  12 month) (= segment 0)) (1- displayed-year))
+           ((and (=   1 month) (= segment 2)) (1+ displayed-year))
+           (t displayed-year))))
+    (if (and (looking-at "[0-9]")
+             (< 2 (count-lines (point-min) (point))))
+        (save-excursion
+          (re-search-backward "[^0-9]")
+          (list month
+                (string-to-int (buffer-substring (1+ (point)) (+ 4 (point))))
+                year))
+      (if (looking-at "\\*")
+          (save-excursion
+            (re-search-backward "[^*]")
+            (if (looking-at ".\\*\\*")
+                (list month starred-day year)
+              (if error (error "Cursor is not on a date!"))))))))
 
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
