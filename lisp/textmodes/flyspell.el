@@ -1351,7 +1351,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 					       ispell-personal-dictionary)))))
 		      (setq args (append args ispell-extra-args))
 		      args))))
-      (if (= c 0)
+      (if (eq c 0)
 	  (flyspell-external-point-words)
 	(error "Can't check region...")))))
 

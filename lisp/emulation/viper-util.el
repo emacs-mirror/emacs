@@ -394,17 +394,17 @@
 			    command)))
       (goto-char (point-min))
       ;; Issue an error, if no match.
-      (if (> status 0)
-	  (save-excursion
-	    (skip-chars-forward " \t\n\j")
-	    (if (looking-at "ls:")
-		(viper-forward-Word 1))
-	    (error "%s: %s"
-		   (if (stringp  gshell)
-		       gshell
-		     "shell")
-		   (buffer-substring (point) (viper-line-pos 'end)))
-	    ))
+      (unless (eq 0 status)
+	(save-excursion
+	  (skip-chars-forward " \t\n\j")
+	  (if (looking-at "ls:")
+	      (viper-forward-Word 1))
+	  (error "%s: %s"
+		 (if (stringp  gshell)
+		     gshell
+		   "shell")
+		 (buffer-substring (point) (viper-line-pos 'end)))
+	  ))
       (goto-char (point-min))
       (viper-get-filenames-from-buffer 'one-per-line))
     ))

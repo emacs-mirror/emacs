@@ -425,9 +425,9 @@ This is necessary if one wants to dump man.el with Emacs."
 	  (cond
 	   (Man-fontify-manpage-flag
 	    nil)
-	   ((= 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
+	   ((eq 0 (call-process Man-sed-command nil nil nil Man-sysv-sed-script))
 	    Man-sysv-sed-script)
-	   ((= 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
+	   ((eq 0 (call-process Man-sed-command nil nil nil Man-berkeley-sed-script))
 	    Man-berkeley-sed-script)
 	   (t
 	    nil))))

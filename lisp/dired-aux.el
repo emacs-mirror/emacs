@@ -561,8 +561,8 @@ the list of file names explicitly with the FILE-LIST argument."
       (set-buffer err-buffer)
       (erase-buffer)
       (setq default-directory dir	; caller's default-directory
-	    err (/= 0
-		 (apply (function dired-call-process) program nil arguments)))
+	    err (not (eq 0
+		 (apply (function dired-call-process) program nil arguments))))
       (if err
 	  (progn
 	    (dired-log (concat program " " (prin1-to-string arguments) "\n"))

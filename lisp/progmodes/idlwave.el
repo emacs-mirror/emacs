@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2003/09/01 15:45:35 $
+;; Date: $Date: 2004/01/03 12:09:15 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -3889,9 +3889,12 @@ you specify /."
 		  (progn
 		    (message (concat "Tagging " item "..."))
 		    (setq errbuf (get-buffer-create "*idltags-error*"))
-		    (setq status (+ status
-				    (call-process "sh" nil errbuf nil "-c"
-						  (concat cmd append item))))
+		    (setq status
+			  (+ status
+			     (if (eq 0 (call-process "sh" nil errbuf nil "-c"
+						     (concat cmd append item)))
+				 0
+			       1)))
 		    ;;
 		    ;; Append additional tags
 		    (setq append " --append ")
