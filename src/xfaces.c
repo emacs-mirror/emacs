@@ -246,12 +246,6 @@ intern_face (f, face)
      struct frame *f;
      struct face *face;
 {
-  struct face *result;
-
-  /* Does the face have a GC already?  */
-  if (face->gc)
-    return face;
-  
   /* If it's equivalent to the default face, use that.  */
   if (face_eql (face, FRAME_DEFAULT_FACE (f)))
     {
@@ -268,6 +262,10 @@ intern_face (f, face)
       return FRAME_MODE_LINE_FACE (f);
     }
 
+  /* If it's not one of the frame's default faces, it shouldn't have a GC.  */
+  if (face->gc)
+    abort ();
+  
   /* Get a specialized display face.  */
   return get_cached_face (f, face);
 }
@@ -539,7 +537,7 @@ intern_frame_face (frame, new_face)
   i = next_face_id++;
 
   ensure_face_ready (frame, i);
-  bcopy (new_face, FRAME_FACES (frame)[i], sizeof (new_face));
+  bcopy (new_face, FRAME_FACES (frame)[i], sizeof (*new_face));
 
   return i;
 }
@@ -617,7 +615,8 @@ sort_overlays (s1, s2)
 /* Return the face ID associated with a buffer position POS.
    Store into *ENDPTR the position at which a different face is needed.
    This does not take account of glyphs that specify their own face codes.
-   F is the frame in use for display, and W is the window.  */
+   F is the frame in use for display, and W is a window displaying
+   the current buffer.  */
 int
 compute_char_face (f, w, pos, endptr)
      struct frame *f;
@@ -629,13 +628,20 @@ compute_char_face (f, w, pos, endptr)
   Lisp_Object prop, position;
   int i, j, noverlays;
   int facecode;
-  int endpos = BUF_ZV (XBUFFER (w->buffer));
   Lisp_Object *overlay_vec;
   int len;
   struct sortvec *sortvec;
   Lisp_Object frame;
+  int endpos;
+
+  /* W must display the current buffer.  We could write this function
+     to use the frame and buffer of W, but right now it doesn't.  */
+  if (XBUFFER (w->buffer) != current_buffer)
+    abort ();
 
   XSET (frame, Lisp_Frame, f);
+
+  endpos = ZV;
 
   XFASTINT (position) = pos;
   prop = Fget_text_property (position, Qface, w->buffer);
@@ -648,13 +654,13 @@ compute_char_face (f, w, pos, endptr)
   }
 
   {
-    int end;
+    int next_overlay;
 
     len = 10;
     overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
-    noverlays = overlays_at (pos, &overlay_vec, &len, &end);
-    if (end < endpos)
-      endpos = end;
+    noverlays = overlays_at (pos, &overlay_vec, &len, &next_overlay);
+    if (next_overlay < endpos)
+      endpos = next_overlay;
   }
 
   *endptr = endpos;
@@ -664,6 +670,7 @@ compute_char_face (f, w, pos, endptr)
     return 0;
 
   bcopy (FRAME_DEFAULT_FACE (f), &face, sizeof (struct face));
+  face.gc = 0;
 
   if (!NILP (prop))
     {
@@ -689,7 +696,8 @@ compute_char_face (f, w, pos, endptr)
 
 	  /* Also ignore overlays limited to one window
 	     if it's not the window we are using.  */
-	  if (NILP (window) || XWINDOW (window) == w)
+	  if (XTYPE (window) != Lisp_Window
+	      || XWINDOW (window) == w)
 	    {
 	      Lisp_Object tem;
 
@@ -714,10 +722,9 @@ compute_char_face (f, w, pos, endptr)
   qsort (sortvec, noverlays, sizeof (struct sortvec), sort_overlays);
 
   /* Now merge the overlay data in that order.  */
-
   for (i = 0; i < noverlays; i++)
     {
-      prop = Foverlay_get (overlay_vec[i], Qface);
+      prop = Foverlay_get (sortvec[i].overlay, Qface);
       if (!NILP (prop))
 	{
 	  Lisp_Object oend;
@@ -728,9 +735,9 @@ compute_char_face (f, w, pos, endptr)
 	      && FRAME_FACES (f) [facecode] != 0)
 	    merge_faces (FRAME_FACES (f) [facecode], &face);
 
-	  oend = OVERLAY_END (overlay_vec[i]);
+	  oend = OVERLAY_END (sortvec[i].overlay);
 	  oendpos = OVERLAY_POSITION (oend);
-	  if (oendpos > endpos)
+	  if (oendpos < endpos)
 	    endpos = oendpos;
 	}
     }
@@ -753,6 +760,7 @@ compute_glyph_face (f, face_code)
   struct face face;
 
   bcopy (FRAME_DEFAULT_FACE (f), &face, sizeof (face));
+  face.gc = 0;
 
   if (face_code >= 0 && face_code < FRAME_N_FACES (f)
       && FRAME_FACES (f) [face_code] != 0)
