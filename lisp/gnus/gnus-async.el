@@ -32,6 +32,10 @@
 (require 'gnus-sum)
 (require 'nntp)
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'timer-funcs)))
+
 (defgroup gnus-asynchronous nil
   "Support for asynchronous operations."
   :group 'gnus)

@@ -1,3 +1,38 @@
+2005-03-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnimap.el (nnimap-open-connection): Print which authinfo file is
+	used.
+
+	* nneething.el (nneething-map-file-directory): Derive from
+	`gnus-directory'.
+
+	* gnus-art.el (gnus-header-button-alist): Use `gnus-msg-mail' for
+	the To/Cc button.
+
+2005-03-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnmaildir.el (nnmaildir-request-accept-article): Use
+	`nnheader-cancel-timer' for compatibility with current XEmacs.
+
+2005-03-13  Steve Youngs  <steve@sxemacs.org>
+
+	* gnus.el: Don't try and mark `gnus-agent-save-groups' as an
+	autoloaded function.
+	From: Andrey Slusar <anrays@gmail.com>.
+
+2005-03-13  Steve Youngs  <steve@sxemacs.org>
+
+	* mm-url.el: Require timer-funcs at compile time when in XEmacs
+	for `with-timeout'.
+
+	* mail-source.el: Require timer-funcs at compile time when in
+	XEmacs for `run-with-idle-timer'.  
+
+	* gnus-async.el: Ditto.
+
+	* dgnushack.el: No need to ignore `run-with-idle-timer', XEmacs
+	has this function now. 
+
 2005-03-16  Lute Kamstra  <lute@gnu.org>
 
 	* message.el (message-make-date): Require parse-time.

@@ -38,7 +38,9 @@
   (autoload 'executable-find "executable"))
 
 (eval-when-compile
-  (require 'timer))
+  (if (featurep 'xemacs)
+      (require 'timer-funcs)
+    (require 'timer)))
 
 (defgroup mm-url nil
   "A wrapper of url package and external url command for Gnus."
