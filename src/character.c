@@ -81,6 +81,8 @@ Lisp_Object Vchar_script_table;
 
 static Lisp_Object Qchar_script_table;
 
+/* Mapping table from unibyte chars to multibyte chars.  */
+int unibyte_to_multibyte_table[256];
 
 
 
@@ -179,21 +181,6 @@ translate_char (table, c)
   return XINT (ch);
 }
 
-/* Convert the unibyte character C to the corresponding multibyte
-   character based on the current value of charset_unibyte.  If C
-   can't be converted, return C.  */
-
-int
-unibyte_char_to_multibyte (c)
-     int c;
-{
-  struct charset *charset = CHARSET_FROM_ID (charset_unibyte);
-  int c1 = DECODE_CHAR (charset, c);
-
-  return ((c1 >= 0) ? c1 : c);
-}
-
-
 /* Convert the multibyte character C to unibyte 8-bit character based
    on the current value of charset_unibyte.  If dimension of
    charset_unibyte is more than one, return (C & 0xFF).
@@ -206,9 +193,13 @@ multibyte_char_to_unibyte (c, rev_tbl)
      int c;
      Lisp_Object rev_tbl;
 {
-  struct charset *charset = CHARSET_FROM_ID (charset_unibyte);
-  unsigned c1 = ENCODE_CHAR (charset, c);
+  struct charset *charset;
+  unsigned c1;
 
+  if (CHAR_BYTE8_P (c))
+    return CHAR_TO_BYTE8 (c);
+  charset = CHARSET_FROM_ID (charset_unibyte);
+  c1 = ENCODE_CHAR (charset, c);
   return ((c1 != CHARSET_INVALID_CODE (charset)) ? c1 : c & 0xFF);
 }
 
