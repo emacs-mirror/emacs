@@ -1,3 +1,27 @@
+2002-07-17  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el (utf-8-subst-table) 
+	(utf-8-subst-rev-table, utf-8-translation-table-for-decode) 
+	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs) 
+	(utf-8-ccl-regs, utf-8-translate-cjk): New.
+	(ccl-encode-mule-utf-8): Use utf-8-subst-rev-table.
+	(ccl-decode-mule-utf-8, ccl-untranslated-to-ucs) 
+	(utf-8-untranslated-to-ucs, utf-8-compose): Rewritten.
+	(mule-utf-8): Remove pre-write-conversion.
+	(utf-8-post-read-conversion): Comment out.
+
+	* international/ccl.el (ccl-command-table): Add lookup-integer,
+	lookup-character.
+	(ccl-extended-code-table): Add lookup-int-const-tbl,
+	lookup-char-const-tbl.
+	(ccl-compile-lookup-integer, ccl-compile-lookup-character) 
+	(ccl-dump-lookup-int-const-tbl, ccl-dump-lookup-char-const-tbl):
+	New functions.
+	(define-ccl-program): Doc update.
+
+	* international/utf-8-subst.el: Populate utf-8-subst-rev-table.
+	(utf-8-subst-table): Don't set.
+
 2002-07-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (define-coding-system-alias): Don't
