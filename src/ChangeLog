@@ -1,3 +1,8 @@
+2002-05-16  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Fix
+	typo.
+
 2002-05-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (read_char_x_menu_prompt): Use an equivalent but more

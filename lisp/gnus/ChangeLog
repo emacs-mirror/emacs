@@ -1,3 +1,7 @@
+2002-05-16  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-art.el (gnus-mime-copy-part): Fix typo.
+
 2002-05-09  Miles Bader  <miles@gnu.org>
 
 	* gnus-cite.el (gnus-cite-blank-line-after-header): New variable.

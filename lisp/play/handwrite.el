@@ -492,7 +492,7 @@ values for `handwrite-linespace' and `handwrite-numlines'."
 }def
 %%EndPreamble\n"))
 
-;;The the font size for the PostScript output.
+;;The font size for the PostScript output.
 ;;Also the x-y-translations of the PostScript stuff.
 (defun handwrite-insert-info ()
   (insert "\n%%BeginSizeTranslate\n")
