@@ -1589,7 +1589,8 @@ With argument, insert value in current buffer after the form."
 			  (list 'cons ''macro code))
 			 ((list 'quote (if macrop
 					   (cons 'macro new-one)
-					 new-one))))))
+					 new-one)))))
+	     'byte-compile-two-args)
 	  ;; Output the form by hand, that's much simpler than having
 	  ;; b-c-output-file-form analyze the defalias.
 	  (byte-compile-flush-pending)
@@ -2420,15 +2421,14 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (setq for-effect nil)))
 
 (defun byte-compile-setq-default (form)
-  (let ((args (cdr form)))
-    (if args
-	(while args
-	  (byte-compile-form
-	   (list 'set-default (list 'quote (car args)) (car (cdr args))))
-	  (setq args (cdr (cdr args))))
-      ;; (setq-default), with no arguments.
-      (byte-compile-form nil for-effect))
-    (setq for-effect nil)))
+  (let ((args (cdr form))
+	setters)
+    (while args
+      (setq setters
+	    (cons (list 'set-default (list 'quote (car args)) (car (cdr args)))
+		  setters))
+      (setq args (cdr (cdr args))))
+    (byte-compile-form (cons 'progn (nreverse setters)))))
 
 (defun byte-compile-quote (form)
   (byte-compile-constant (car (cdr form))))
