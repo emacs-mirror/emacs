@@ -684,7 +684,14 @@ If file does not exist, returns nil.")
 #ifdef BSD4_3
 #undef BSD4_2 /* ok, you can look again without throwing up */
 #endif
+#if 1
+  /* To allow inode numbers larger than VALBITS, separate the bottom
+     16 bits.  */
+  values[10] = Fcons (make_number (s.st_ino >> 16),
+		      make_number (s.st_ino & 0xffff));
+#else
   values[10] = make_number (s.st_ino);
+#endif
   values[11] = make_number (s.st_dev);
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
