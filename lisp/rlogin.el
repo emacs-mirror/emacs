@@ -165,27 +165,35 @@ If `rlogin-mode-hook' is set, run it."
 
 
 (defun rlogin-filter (proc string)
-  (save-excursion
-    (set-buffer (process-buffer proc))
-    (let ((proc-mark (process-mark proc))
-          (region-begin (point)))
+  (let (proc-mark region-begin window)
+    (save-excursion
+      (set-buffer (process-buffer proc))
+      (setq proc-mark (process-mark proc)
+            region-begin (point)
+            ;; If process mark is at window start, insert-before-markers
+            ;; will insert text off-window since it's also inserting before
+            ;; the start window mark.  Make sure we can see the most recent
+            ;; text.  (note: it's a buglet that this isn't necessary if
+            ;; scroll-step is 0, but that works to our advantage since it
+            ;; makes the filter a little faster.)
+            window (and (/= 0 scroll-step)
+                        (= proc-mark (window-start))
+                        (get-buffer-window (current-buffer))))
       (goto-char proc-mark)
       (insert-before-markers string)
       (goto-char region-begin)
-      (while (search-forward "\C-m" proc-mark t)
-        (delete-char -1))))
-  ;; Kludgy workaround for scroll-step bug in emacs.  If point is at the
-  ;; top of the window, scroll step is nonzero, and you call
-  ;; insert-before-markers, the text is inserted off-screen.  If
-  ;; scroll-step is 0, this doesn't happen. 
-  (and (/= scroll-step 0)
-       (eq (process-buffer proc) (window-buffer (selected-window)))
-       (eq (point) (window-start))
-       (set-window-start (selected-window) 
-                         (save-excursion
-                           (beginning-of-line)
-                           (point)) 
-                         'noforce))
+      ;; I think something fishy is going on with save-excursion and
+      ;; search-forward.  If you don't make search-forward move to the end
+      ;; of the search region when it's done, then if the user switches
+      ;; buffers back and forth, it leaves point sitting behind the
+      ;; process-mark, so that text inserted later goes off-screen.
+      (while (search-forward "\C-m" proc-mark 'goto-end)
+        (delete-char -1)))
+    ;; Frob window-start outside of save-excursion so it works whether the
+    ;; current buffer is the process buffer or not.
+    (and window
+         (>= (window-start window) region-begin)
+         (set-window-start window region-begin 'noforce)))
   (and rlogin-password-paranoia 
        (string= "Password:" string)
        (rlogin-password proc)))
