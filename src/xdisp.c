@@ -10020,7 +10020,7 @@ try_window_id (w)
      only if buffer has really changed.  The reason is that the gap is
      initially at Z for freshly visited files.  The code below would
      set end_unchanged to 0 in that case.  */
-  if (MODIFF > SAVE_MODIFF)
+  if (MODIFF > 1)
     {
       if (GPT - BEG < BEG_UNCHANGED)
 	BEG_UNCHANGED = GPT - BEG;
