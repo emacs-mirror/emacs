@@ -671,110 +671,55 @@ The forms in BODY should be lists, as non-lists are reserved for new features."
 ;;;;    Cesar Quiroz @ UofR DofCSc - Dec. 1986
 ;;;;       (quiroz@cs.rochester.edu)
 
-(defvar *cl-valid-named-list-accessors*
-    '(first rest second third fourth fifth sixth seventh eighth ninth tenth))
-(defvar *cl-valid-nth-offsets*
-    '((second   . 1)
-      (third    . 2)
-      (fourth   . 3)
-      (fifth    . 4)
-      (sixth    . 5)
-      (seventh  . 6)
-      (eighth   . 7)
-      (ninth    . 8)
-      (tenth    . 9)))
 
-(defun byte-compile-named-list-accessors (form)
-  "Generate code for (<accessor> FORM), where <accessor> is one of the named
-list accessors: first, second, ..., tenth, rest."
-  (let* ((fun       (car form))
-         (arg       (cadr form))
-         (valid     *cl-valid-named-list-accessors*)
-         (offsets   *cl-valid-nth-offsets*))
-    (cond
 
-     ;; Check that it's a form we're prepared to handle.
-     ((not (memq fun valid))
-      (error
-       "cl.el internal bug: `%s' not in {first, ..., tenth, rest}"
-       fun))
-
-     ;; Check the number of arguments.
-     ((not (= (length form) 2))
-      (byte-compile-subr-wrong-args form 1))
-
-     ;; If the result will simply be tossed, don't generate any code for
-     ;; it, and indicate that we have already discarded the value.
-     (for-effect
-      (setq for-effect nil))
-
-     ;; Generate code for the call.
-     ((eq fun 'first)
-      (byte-compile-form arg)
-      (byte-compile-out 'byte-car 0))
-     ((eq fun 'rest)
-      (byte-compile-form arg)
-      (byte-compile-out 'byte-cdr 0))
-     (t				;one of the others
-      (byte-compile-constant (cdr (assq fun offsets)))
-      (byte-compile-form arg)
-      (byte-compile-out 'byte-nth 0)))))
+;;; To make these faster, we define them using defsubst.  This directs the 
+;;; compiler to open-code these functions.
 
 ;;; Synonyms for list functions
-(defun first (x)
+(defsubst first (x)
   "Synonym for `car'"
   (car x))
-(put 'first 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun second (x)
+(defsubst second (x)
   "Return the second element of the list LIST."
   (nth 1 x))
-(put 'second 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun third (x)
+(defsubst third (x)
   "Return the third element of the list LIST."
   (nth 2 x))
-(put 'third 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun fourth (x)
+(defsubst fourth (x)
   "Return the fourth element of the list LIST."
   (nth 3 x))
-(put 'fourth 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun fifth (x)
+(defsubst fifth (x)
   "Return the fifth element of the list LIST."
   (nth 4 x))
-(put 'fifth 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun sixth (x)
+(defsubst sixth (x)
   "Return the sixth element of the list LIST."
   (nth 5 x))
-(put 'sixth 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun seventh (x)
+(defsubst seventh (x)
   "Return the seventh element of the list LIST."
   (nth 6 x))
-(put 'seventh 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun eighth (x)
+(defsubst eighth (x)
   "Return the eighth element of the list LIST."
   (nth 7 x))
-(put 'eighth 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun ninth (x)
+(defsubst ninth (x)
   "Return the ninth element of the list LIST."
   (nth 8 x))
-(put 'ninth 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun tenth (x)
+(defsubst tenth (x)
   "Return the tenth element of the list LIST."
   (nth 9 x))
-(put 'tenth 'byte-compile 'byte-compile-named-list-accessors)
 
-(defun rest (x)
+(defsubst rest (x)
   "Synonym for `cdr'"
   (cdr x))
-(put 'rest 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun endp (x)
   "t if X is nil, nil if X is a cons; error otherwise."
@@ -845,186 +790,120 @@ SUBLIST must be one of the links in LIST; otherwise the value is LIST itself."
 
 ;;; The popular c[ad]*r functions and other list accessors.
 
-;;; To implement this efficiently, a new byte compile handler is used to
-;;; generate the minimal code, saving one function call.
+;;; To implement this efficiently, we define them using defsubst,
+;;; which directs the compiler to open-code these functions.
 
-(defun byte-compile-ca*d*r (form)
-  "Generate code for a (c[ad]+r argument).  This realizes the various
-combinations of car and cdr whose names are supported in this implementation.
-To use this functionality for a given function,just give its name a
-'byte-compile property of 'byte-compile-ca*d*r"
-  (let* ((fun (car form))
-         (arg (cadr form))
-         (seq (mapcar (function (lambda (letter)
-                                  (if (= letter ?a)
-                                      'byte-car 'byte-cdr)))
-                      (cdr (nreverse (cdr (append (symbol-name fun) nil)))))))
-    ;; SEQ is a list of byte-car and byte-cdr in the correct order.
-    (cond
-
-     ;; Is this a function we can handle?
-     ((null seq)
-      (error
-       "cl.el internal bug: `%s' cannot be compiled by byte-compile-ca*d*r"
-       (prin1-to-string form)))
-
-     ;; Are we passing this function the correct number of arguments?
-     ((or (null (cdr form)) (cddr form))
-      (byte-compile-subr-wrong-args form 1))
-
-     ;; Are we evaluating this expression for effect only?
-     (for-effect
-
-      ;; We needn't generate any actual code, as long as we tell the rest 
-      ;; of the compiler that we didn't push anything on the stack.
-      (setq for-effect nil))
-
-     ;; Generate code for the function.
-     (t
-      (byte-compile-form arg)
-      (while seq
-	(byte-compile-out (car seq) 0)
-	(setq seq (cdr seq)))))))
-
-(defun caar (X)
+(defsubst caar (X)
   "Return the car of the car of X."
   (car (car X)))
-(put 'caar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cadr (X)
+(defsubst cadr (X)
   "Return the car of the cdr of X."
   (car (cdr X)))
-(put 'cadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdar (X)
+(defsubst cdar (X)
   "Return the cdr of the car of X."
   (cdr (car X)))
-(put 'cdar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cddr (X)
+(defsubst cddr (X)
   "Return the cdr of the cdr of X."
   (cdr (cdr X)))
-(put 'cddr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caaar (X)
+(defsubst caaar (X)
   "Return the car of the car of the car of X."
   (car (car (car X))))
-(put 'caaar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caadr (X)
+(defsubst caadr (X)
   "Return the car of the car of the cdr of X."
   (car (car (cdr X))))
-(put 'caadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cadar (X)
+(defsubst cadar (X)
   "Return the car of the cdr of the car of X."
   (car (cdr (car X))))
-(put 'cadar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdaar (X)
+(defsubst cdaar (X)
   "Return the cdr of the car of the car of X."
   (cdr (car (car X))))
-(put 'cdaar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caddr (X)
+(defsubst caddr (X)
   "Return the car of the cdr of the cdr of X."
   (car (cdr (cdr X))))
-(put 'caddr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdadr (X)
+(defsubst cdadr (X)
   "Return the cdr of the car of the cdr of X."
   (cdr (car (cdr X))))
-(put 'cdadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cddar (X)
+(defsubst cddar (X)
   "Return the cdr of the cdr of the car of X."
   (cdr (cdr (car X))))
-(put 'cddar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdddr (X)
+(defsubst cdddr (X)
   "Return the cdr of the cdr of the cdr of X."
   (cdr (cdr (cdr X))))
-(put 'cdddr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caaaar (X)
+(defsubst caaaar (X)
   "Return the car of the car of the car of the car of X."
   (car (car (car (car X)))))
-(put 'caaaar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caaadr (X)
+(defsubst caaadr (X)
   "Return the car of the car of the car of the cdr of X."
   (car (car (car (cdr X)))))
-(put 'caaadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caadar (X)
+(defsubst caadar (X)
   "Return the car of the car of the cdr of the car of X."
   (car (car (cdr (car X)))))
-(put 'caadar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cadaar (X)
+(defsubst cadaar (X)
   "Return the car of the cdr of the car of the car of X."
   (car (cdr (car (car X)))))
-(put 'cadaar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdaaar (X)
+(defsubst cdaaar (X)
   "Return the cdr of the car of the car of the car of X."
   (cdr (car (car (car X)))))
-(put 'cdaaar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caaddr (X)
+(defsubst caaddr (X)
   "Return the car of the car of the cdr of the cdr of X."
   (car (car (cdr (cdr X)))))
-(put 'caaddr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cadadr (X)
+(defsubst cadadr (X)
   "Return the car of the cdr of the car of the cdr of X."
   (car (cdr (car (cdr X)))))
-(put 'cadadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdaadr (X)
+(defsubst cdaadr (X)
   "Return the cdr of the car of the car of the cdr of X."
   (cdr (car (car (cdr X)))))
-(put 'cdaadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun caddar (X)
+(defsubst caddar (X)
   "Return the car of the cdr of the cdr of the car of X."
   (car (cdr (cdr (car X)))))
-(put 'caddar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdadar (X)
+(defsubst cdadar (X)
   "Return the cdr of the car of the cdr of the car of X."
   (cdr (car (cdr (car X)))))
-(put 'cdadar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cddaar (X)
+(defsubst cddaar (X)
   "Return the cdr of the cdr of the car of the car of X."
   (cdr (cdr (car (car X)))))
-(put 'cddaar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cadddr (X)
+(defsubst cadddr (X)
   "Return the car of the cdr of the cdr of the cdr of X."
   (car (cdr (cdr (cdr X)))))
-(put 'cadddr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cddadr (X)
+(defsubst cddadr (X)
   "Return the cdr of the cdr of the car of the cdr of X."
   (cdr (cdr (car (cdr X)))))
-(put 'cddadr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdaddr (X)
+(defsubst cdaddr (X)
   "Return the cdr of the car of the cdr of the cdr of X."
   (cdr (car (cdr (cdr X)))))
-(put 'cdaddr 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cdddar (X)
+(defsubst cdddar (X)
   "Return the cdr of the cdr of the cdr of the car of X."
   (cdr (cdr (cdr (car X)))))
-(put 'cdddar 'byte-compile 'byte-compile-ca*d*r)
 
-(defun cddddr (X)
+(defsubst cddddr (X)
   "Return the cdr of the cdr of the cdr of the cdr of X."
   (cdr (cdr (cdr (cdr X)))))
-(put 'cddddr 'byte-compile 'byte-compile-ca*d*r)
 
 ;;; some inverses of the accessors are needed for setf purposes
 

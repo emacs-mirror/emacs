@@ -29,24 +29,29 @@
 ;; This was a pain.  Now, make-comint should autoload comint.
 ;; (require 'comint)
 
+;;;###autoload
 (defvar tex-shell-file-name nil
   "*If non-nil, is file name to use for the subshell in which TeX is run.")
 
+;;;###autoload
 (defvar tex-directory "."
   "*Directory in which temporary files are left.
 You can make this /tmp if your TEXINPUTS has no relative directories in it
 and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
 \\input commands with relative directories.")
 
+;;;###autoload
 (defvar tex-offer-save t
   "*If non-nil, ask about saving modified buffers before \\[tex-file] is run.")
 
+;;;###autoload
 (defvar tex-run-command "tex"
   "*Command used to run TeX subjob.
 If this string contains an asterisk (*), it will be replaced by the
 filename; if not, the name of the file, preceded by blank, will be added to
 this string.")
 
+;;;###autoload
 (defvar latex-run-command "latex"
   "*Command used to run LaTeX subjob.
 If this string contains an asterisk (*), it will be replaced by the
@@ -65,28 +70,33 @@ this string.")
         "verbatim"         "verbatim*"        "verse")
   "Standard LaTeX block names.")
 
+;;;###autoload
 (defvar latex-block-names nil
   "*User defined LaTeX block names.
 Combined with `standard-latex-block-names' for minibuffer completion.")
 
+;;;###autoload
 (defvar slitex-run-command "slitex"
   "*Command used to run SliTeX subjob.
 If this string contains an asterisk (*), it will be replaced by the
 filename; if not, the name of the file, preceded by blank, will be added to
 this string.")
 
+;;;###autoload
 (defvar tex-bibtex-command "bibtex"
   "*Command used by `tex-bibtex-file' to gather bibliographic data.
 If this string contains an asterisk (*), it will be replaced by the
 filename; if not, the name of the file, preceded by blank, will be added to
 this string.")
 
+;;;###autoload
 (defvar tex-dvi-print-command "lpr -d"
   "*Command used by \\[tex-print] to print a .dvi file.
 If this string contains an asterisk (*), it will be replaced by the
 filename; if not, the name of the file, preceded by blank, will be added to
 this string.")
 
+;;;###autoload
 (defvar tex-alt-dvi-print-command "lpr -d"
   "*Command used by \\[tex-print] with a prefix arg to print a .dvi file.
 If this string contains an asterisk (*), it will be replaced by the
@@ -103,6 +113,7 @@ for example,
 would tell \\[tex-print] with a prefix argument to ask you which printer to
 use.")
 
+;;;###autoload
 (defvar tex-dvi-view-command nil
   "*Command used by \\[tex-view] to display a .dvi file.
 If this string contains an asterisk (*), it will be replaced by the
@@ -118,19 +129,23 @@ window system being used.  For example,
 would tell \\[tex-view] use xdvi under X windows and to use dvi2tty
 otherwise.")
 
+;;;###autoload
 (defvar tex-show-queue-command "lpq"
   "*Command used by \\[tex-show-print-queue] to show the print queue.
 Should show the queue(s) that \\[tex-print] puts jobs on.")
 
+;;;###autoload
 (defvar tex-default-mode 'plain-tex-mode
   "*Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
 Normally set to either 'plain-tex-mode or 'latex-mode.")
 
+;;;###autoload
 (defvar tex-open-quote "``"
   "*String inserted by typing \\[tex-insert-quote] to open a quotation.")
 
+;;;###autoload
 (defvar tex-close-quote "''"
   "*String inserted by typing \\[tex-insert-quote] to close a quotation.")
 

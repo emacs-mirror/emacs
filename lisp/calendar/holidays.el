@@ -1,9 +1,9 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+;;; Copyright (C) 1989, 1990, 1992 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Keywords: calendar
+;; Keywords: holidays, calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -36,21 +36,51 @@
 ;; Technical details of all the calendrical calculations can be found in
 ;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
-;; pages 899-928.
+;; pages 899-928.  ``Calendrical Calculations, Part II: Three Historical
+;; Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
+;; Report Number UIUCDCS-R-92-1743, Department of Computer Science,
+;; University of Illinois, April, 1992.
+
+;; Hard copies of these two papers can be obtained by sending email to
+;; reingold@cs.uiuc.edu with the SUBJECT "send-paper-cal" (no quotes) and
+;; the message BODY containing your mailing address (snail).
 
 ;;; Code:
 
 (require 'calendar)
 
-;;;###autoload
-(defun holidays ()
+(autoload 'calendar-holiday-function-solar-equinoxes-solstices "solar"
+  "Date and time of equinoxes and solstices, if visible in the calendar window.
+Requires floating point."
+  t)
+
+(defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
+If called with an optional prefix argument, prompts for month and year.
+
 This function is suitable for execution in a .emacs file."
-  (interactive)
+  (interactive "P")
   (save-excursion
-    (let* ((date (calendar-current-date))
-           (displayed-month (extract-calendar-month date))
-           (displayed-year (extract-calendar-year date)))
+    (let* ((completion-ignore-case t)
+           (date (calendar-current-date))
+           (displayed-month
+            (if arg
+                (cdr (assoc
+                      (capitalize
+                       (completing-read
+                        "Month name: "
+                        (mapcar 'list (append calendar-month-name-array nil))
+                        nil t))
+                      (calendar-make-alist calendar-month-name-array)))
+              (extract-calendar-month date)))
+           (displayed-year
+            (if arg
+                (calendar-read
+                 "Year (>0): "
+                 '(lambda (x) (> x 0))
+                 (int-to-string
+                  (extract-calendar-year (calendar-current-date))))
+              (extract-calendar-year date))))
       (list-calendar-holidays))))
 
 (defun check-calendar-holidays (date)
@@ -79,13 +109,11 @@ The holidays are those in the list calendar-holidays."
          (msg (format "%s:  %s" date-string holiday-string)))
     (if (not holiday-list)
         (message "No holidays known for %s" date-string)
-      (if (<= (length msg) (frame-width))
+      (if (<= (length msg) (screen-width))
           (message msg)
         (set-buffer (get-buffer-create holiday-buffer))
         (setq buffer-read-only nil)
-        (setq mode-line-format
-              (format "--------------------------%s%%-"
-                      date-string))
+        (calendar-set-mode-line date-string)
         (erase-buffer)
         (insert (mapconcat 'identity holiday-list "\n"))
         (goto-char (point-min))
@@ -125,8 +153,8 @@ holidays are found, nil if not."
       (setq buffer-read-only nil)
       (increment-calendar-month m1 y1 -1)
       (increment-calendar-month m2 y2 1)
-      (setq mode-line-format
-            (format "-------------Notable Dates from %s, %d to %s, %d%%-"
+      (calendar-set-mode-line
+            (format "Notable Dates from %s, %d to %s, %d%%-"
                     (calendar-month-name m1) y1 (calendar-month-name m2) y2))
       (erase-buffer)
       (insert
@@ -150,9 +178,14 @@ The holidays are those in the list calendar-holidays."
       (let* ((function-name
               (intern (format "calendar-holiday-function-%s" (car (car p)))))
              (holidays
-              (if (cdr (car p));; optional arguments
-                  (funcall function-name (cdr (car p)))
-                (funcall function-name))))
+	      (condition-case nil
+		  (if (cdr (car p));; optional arguments
+		      (funcall function-name (cdr (car p)))
+		    (funcall function-name))
+		(error
+		 (beep)
+		 (message "Bad holiday list item: %s" (car p))
+		 (sleep-for 2)))))
         (if holidays
             (setq holiday-list (append holidays holiday-list))))
       (setq p (cdr p)))
@@ -164,13 +197,13 @@ The holidays are those in the list calendar-holidays."
 ;; including the evaluation of each element in the list that constitutes
 ;; the argument to the function.  If you don't do this evaluation, the
 ;; list calendar-holidays cannot contain expressions (as, for example, in
-;; the entry for the Islamic new year.  Also remember that each function
+;; the entry for the Islamic new year.)  Also remember that each function
 ;; must return a list of items of the form ((month day year) string);
 ;; the date (month day year) should be visible in the calendar window.
 
 (defun calendar-holiday-function-fixed (x)
   "Returns the corresponding Gregorian date, if visible in the window, to
-month, year where month is (car X) and year is (car (cdr X)).  If it is
+(month day) where month is (car X) and day is (car (cdr X)).  If it is
 visible, the value returned is the list (((month day year) string)) where
 string is (car (nthcdr 2 X)).  Returns nil if it is not visible in the
 current calendar window."
@@ -186,9 +219,9 @@ current calendar window."
 (defun calendar-holiday-function-float (x)
   "Returns the corresponding Gregorian date, if visible in the window, to the
 n-th occurrence (negative counts from the end of the month) of dayname in
-month, year where month is (car X), year is (car (cdr X)), n is
-\(car \(nthcdr 2 X\)\).  If it is visible, the value returned is the list
-\(\(\(month day year)\ string\)\) where string is (car (nthcdr 3 X)).
+month where month is (car X), dayname is (car (cdr X)), and n is
+(car (nthcdr 2 X)).  If it is visible, the value returned is the list
+(((month day year) string)) where string is (car (nthcdr 3 X)).
 Returns nil if it is not visible in the current calendar window."
   (let* ((month (eval (car x)))
          (dayname (eval (car (cdr x))))
@@ -202,7 +235,7 @@ Returns nil if it is not visible in the current calendar window."
 
 (defun calendar-holiday-function-julian (x)
   "Returns the corresponding Gregorian date, if visible in the window, to the
-Julian date month, year where month is (car X) and year is (car (cdr X)).
+Julian date (month day) where month is (car X) and day is (car (cdr X)).
 If it is visible, the value returned is the list (((month day year) string))
 where string is (car (nthcdr 2 X)).  Returns nil if it is not visible in the
 current calendar window."
@@ -233,7 +266,7 @@ current calendar window."
 
 (defun calendar-holiday-function-islamic (x)
   "Returns the corresponding Gregorian date, if visible in the window, to the
-Islamic date month, day where month is (car X) and day is (car (cdr X)).
+Islamic date (month day) where month is (car X) and day is (car (cdr X)).
 If it is visible, the value returned is the list (((month day year) string))
 where string is (car (nthcdr 2 X)).  Returns nil if it is not visible in
 the current calendar window."
@@ -257,7 +290,7 @@ the current calendar window."
 
 (defun calendar-holiday-function-hebrew (x)
   "Returns the corresponding Gregorian date, if visible in the window, to the
-Hebrew date month, day where month is (car X) and day is (car (cdr X)).
+Hebrew date (month day) where month is (car X) and day is (car (cdr X)).
 If it is visible, the value returned is the list (((month day year) string))
 where string is (car (nthcdr 2 X)).  Returns nil if it is not visible in
 the current calendar window."
@@ -307,6 +340,21 @@ checked.  If nil, the holiday (car (cdr (cdr X))), if there, is checked."
                   (funcall function-name (cdr h))
                 (funcall function-name))))
        holidays))))
+
+(defun calendar-holiday-function-sexp (x)
+  "Sexp holiday for dates in the calendar window.
+The sexp (in `year') is (car X).  If the sexp evals to a date visible in the
+calendar window, the holiday (car (cdr X)) is on that date.  If the sexp evals
+to nil, or if the date is not visible, there is no holiday."
+  (let ((m displayed-month)
+        (y displayed-year))
+    (increment-calendar-month m y -1)
+    (filter-visible-calendar-holidays
+     (append
+      (let ((year y))
+        (list (list (eval (car x)) (eval (car (cdr x))))))
+      (let ((year (1+ y)))
+        (list (list (eval (car x)) (eval (car (cdr x))))))))))
 
 (defun calendar-holiday-function-advent ()
   "Date of Advent, if visible in calendar window."
@@ -388,6 +436,30 @@ checked.  If nil, the holiday (car (cdr (cdr X))), if there, is checked."
                 (filter-visible-calendar-holidays optional)
                 output-list)))
      output-list)))
+
+(defun calendar-holiday-function-greek-orthodox-easter ()
+  "Date of Easter according to the rule of the Council of Nicaea, if visible
+in the calendar window."
+  (let ((m displayed-month)
+        (y displayed-year))
+    (increment-calendar-month m y 1)
+    (let* ((julian-year
+            (extract-calendar-year
+             (calendar-julian-from-absolute
+              (calendar-absolute-from-gregorian
+               (list m (calendar-last-day-of-month m y) y)))))
+           (shifted-epact ;; Age of moon for April 5.
+            (% (+ 14
+                  (* 11 (% julian-year 19)))
+               30))
+           (paschal-moon  ;; Day after full moon on or after March 21.
+            (- (calendar-absolute-from-julian (list 4 19 julian-year))
+               shifted-epact))
+           (nicaean-easter;; Sunday following the Paschal moon
+            (calendar-gregorian-from-absolute
+             (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))))
+      (if (calendar-date-is-visible-p nicaean-easter)
+          (list (list nicaean-easter "Pascha (Greek Orthodox Easter)"))))))
 
 (defun calendar-holiday-function-rosh-hashanah-etc ()
   "List of dates related to Rosh Hashanah, as visible in calendar window."

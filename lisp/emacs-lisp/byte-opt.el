@@ -234,9 +234,9 @@
   (let ((lambda (car form))
 	(values (cdr form)))
     (if (compiled-function-p lambda)
-	(setq lambda (list 'lambda (nth 0 form)
-			   (list 'byte-code
-				 (nth 1 form) (nth 2 form) (nth 3 form)))))
+	(setq lambda (list 'lambda (aref lambda 0)
+			   (list 'byte-code (aref lambda 1)
+				 (aref lambda 2) (aref lambda 3)))))
     (let ((arglist (nth 1 lambda))
 	  (body (cdr (cdr lambda)))
 	  optionalp restp
@@ -913,7 +913,8 @@
 		(eq (car-safe last) 'quote))
 	    (if (listp (nth 1 last))
 		(let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
-		  (nconc (list 'funcall fn) butlast (nth 1 last)))
+		  (nconc (list 'funcall fn) butlast
+			 (mapcar '(lambda (x) (list 'quote x)) (nth 1 last))))
 	      (byte-compile-warn
 	       "last arg to apply can't be a literal atom: %s"
 	       (prin1-to-string last))

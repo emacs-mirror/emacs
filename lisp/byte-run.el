@@ -86,9 +86,23 @@ If NEW is a string, that is the `use instead' message."
       (put fn 'byte-compile 'byte-compile-obsolete)))
   fn)
 
+(defun make-obsolete-variable (var new)
+  "Make the byte-compiler warn that VARIABLE is obsolete,
+and NEW should be used instead.  If NEW is a string, then that is the
+`use instead' message."
+  (interactive
+   (list
+    (let ((str (completing-read "Make variable obsolete: " obarray 'boundp t)))
+      (if (equal str "") (error ""))
+      (intern str))
+    (car (read-from-string (read-string "Obsoletion replacement: ")))))
+  (put var 'byte-obsolete-variable new)
+  var)
+
 (put 'dont-compile 'lisp-indent-hook 0)
 (defmacro dont-compile (&rest body)
-  "Like `progn', but the body always runs interpreted (not compiled)."
+  "Like `progn', but the body always runs interpreted (not compiled).
+If you think you need this, you're probably making a mistake somewhere."
   (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
 
 

@@ -107,29 +107,37 @@
 
 ;;; Code:
 
+;;;###autoload
 (defvar appt-issue-message t
   "*Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the time
 as the first thing on a line.")
 
+;;;###autoload
 (defvar appt-message-warning-time 10
   "*Time in minutes before an appointment that the warning begins.")
 
+;;;###autoload
 (defvar appt-audible t
   "*Non-nil means beep to indicate appointment.")
 
+;;;###autoload
 (defvar appt-visible t
   "*Non-nil means display appointment message in echo area.")
 
+;;;###autoload
 (defvar appt-display-mode-line t
   "*Non-nil means display minutes to appointment and time on the mode line.")
 
+;;;###autoload
 (defvar appt-msg-window t
   "*Non-nil means display appointment message in another window.")
 
+;;;###autoload
 (defvar appt-display-duration 5
   "*The number of seconds an appointment message is displayed.")
 
+;;;###autoload
 (defvar appt-display-diary t
   "*Non-nil means to display the next days diary on the screen. 
 This will occur at midnight when the appointment list is updated.")
