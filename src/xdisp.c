@@ -155,6 +155,10 @@ static int scroll_conservatively;
    of the top or bottom of the window.  */
 int scroll_margin;
 
+/* Number of characters of overlap to show,
+   when scrolling a one-line window such as a minibuffer.  */
+static int minibuffer_scroll_overlap;
+
 /* Nonzero if try_window_id has made blank lines at window bottom
  since the last redisplay that paused */
 static int blank_end_of_window;
@@ -2145,6 +2149,20 @@ recenter:
   w->base_line_number = Qnil;
 
   pos = *vmotion (PT, - (height / 2), w);
+
+  /* The minibuffer is often just one line.  Ordinary scrolling
+     gives little overlap and looks bad.  So show 20 chars before point.  */
+  if (height == 1
+      && (pos.bufpos >= PT - minibuffer_scroll_overlap
+	  /* If we scrolled less than 1/2 line forward, we will
+	     get too much overlap, so change to the usual amount.  */
+	  || pos.bufpos < startp + width / 2)
+      && PT > BEGV + minibuffer_scroll_overlap
+      /* If we scrolled to an actual line boundary,
+	 that's different; don't ignore line boundaries.  */
+      && FETCH_CHAR (pos.bufpos - 1) != '\n')
+    pos.bufpos = PT - minibuffer_scroll_overlap;
+    
   /* Set startp here explicitly in case that helps avoid an infinite loop
      in case the window-scroll-functions functions get errors.  */
   Fset_marker (w->start, make_number (pos.bufpos), Qnil);
@@ -5144,11 +5162,16 @@ all the functions in the list are called, with the frame as argument.");
   Vwindow_size_change_functions = Qnil;
 
   DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
-    "List of Functions to call before redisplaying a window with scrolling.\n\
+    "List of functions to call before redisplaying a window with scrolling.\n\
 Each function is called with two arguments, the window\n\
 and its new display-start position.  Note that the value of `window-end'\n\
 is not valid when these functions are called.");
   Vwindow_scroll_functions = Qnil;
+
+  DEFVAR_INT ("minibuffer-scroll-overlap", &minibuffer_scroll_overlap,
+    "*Number of characters of overlap when scrolling a one-line window.\n\
+This commonly affects the minibuffer window, hence the name of the variable.");
+  minibuffer_scroll_overlap = 20;
 }
 
 /* initialize the window system */
