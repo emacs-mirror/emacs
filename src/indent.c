@@ -47,7 +47,7 @@ int indent_tabs_mode;
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-int last_known_column;
+float last_known_column;
 
 /* Value of point when current_column was called.  */
 
@@ -57,8 +57,8 @@ int last_known_column_point;
 
 int last_known_column_modified;
 
-static int current_column_1 P_ ((void));
-static int position_indentation P_ ((int));
+static float current_column_1 P_ ((void));
+static float position_indentation P_ ((int));
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -329,6 +329,7 @@ check_composition (pos, pos_byte, point, len, len_byte, width)
       }									\
   } while (0)
 
+
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
        doc: /* Return the horizontal position of point.  Beginning of line is column 0.
 This is calculated by adding together the widths of all the displayed
@@ -342,7 +343,7 @@ however, ^M is treated as end of line when `selective-display' is t.  */)
      ()
 {
   Lisp_Object temp;
-  XSETFASTINT (temp, current_column ());
+  XSETFASTINT (temp, (int) current_column ()); /* iftc */
   return temp;
 }
 
@@ -354,7 +355,7 @@ invalidate_current_column ()
   last_known_column_point = 0;
 }
 
-int
+float
 current_column ()
 {
   register int col;
@@ -401,25 +402,25 @@ current_column ()
     {
       EMACS_INT i, n;
       Lisp_Object charvec;
-	
+
       if (ptr == stop)
 	{
 	  /* We stopped either for the beginning of the buffer
 	     or for the gap.  */
 	  if (ptr == BEGV_ADDR)
 	    break;
-	  
+
 	  /* It was the gap.  Jump back over it.  */
 	  stop = BEGV_ADDR;
 	  ptr = GPT_ADDR;
-	  
+
 	  /* Check whether that brings us to beginning of buffer.  */
 	  if (BEGV >= GPT)
 	    break;
 	}
 
       c = *--ptr;
-      
+
       if (dp && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  charvec = DISP_CHAR_VECTOR (dp, c);
@@ -430,7 +431,7 @@ current_column ()
 	  charvec = Qnil;
 	  n = 1;
 	}
-	    
+
       for (i = n - 1; i >= 0; --i)
 	{
 	  if (VECTORP (charvec))
@@ -438,14 +439,14 @@ current_column ()
 	      /* This should be handled the same as
 		 next_element_from_display_vector does it.  */
 	      Lisp_Object entry = AREF (charvec, i);
-	      
+
 	      if (INTEGERP (entry)
 		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
 		c = FAST_GLYPH_CHAR (XFASTINT (entry));
 	      else
 		c = ' ';
 	    }
-      
+
 	  if (c >= 040 && c < 0177)
 	    col++;
 	  else if (c == '\n'
@@ -459,7 +460,7 @@ current_column ()
 	    {
 	      if (tab_seen)
 		col = ((col + tab_width) / tab_width) * tab_width;
-	      
+
 	      post_tab += col;
 	      col = 0;
 	      tab_seen = 1;
@@ -501,7 +502,7 @@ current_column ()
    This function handles characters that are invisible
    due to text properties or overlays.  */
 
-static int
+static float
 current_column_1 ()
 {
   register int tab_width = XINT (current_buffer->tab_width);
@@ -615,7 +616,7 @@ current_column_1 ()
 	    {
 	      unsigned char *ptr;
 	      int bytes, width, wide_column;
-	      
+
 	      ptr = BYTE_POS_ADDR (scan_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
 	      scan_byte += bytes;
@@ -651,7 +652,7 @@ current_column_1 ()
    If BEG is nil, that stands for the beginning of STRING.
    If END is nil, that stands for the end of STRING.  */
 
-static int
+static float
 string_display_width (string, beg, end)
      Lisp_Object string, beg, end;
 {
@@ -777,7 +778,7 @@ even if that goes past COLUMN; by default, MININUM is zero.  */)
 }
 
 
-static int position_indentation P_ ((int));
+static float position_indentation P_ ((int));
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
@@ -791,12 +792,12 @@ following any initial whitespace.  */)
 
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
 
-  XSETFASTINT (val, position_indentation (PT_BYTE));
+  XSETFASTINT (val, (int) position_indentation (PT_BYTE)); /* iftc */
   SET_PT_BOTH (opoint, opoint_byte);
   return val;
 }
 
-static int
+static float
 position_indentation (pos_byte)
      register int pos_byte;
 {
@@ -846,7 +847,7 @@ position_indentation (pos_byte)
 	  /* The -1 and +1 arrange to point at the first byte of gap
 	     (if STOP_POS_BYTE is the position of the gap)
 	     rather than at the data after the gap.  */
-	     
+
 	  stop = BYTE_POS_ADDR (stop_pos_byte - 1) + 1;
 	  p = BYTE_POS_ADDR (pos_byte);
 	}
@@ -888,9 +889,10 @@ position_indentation (pos_byte)
 
 int
 indented_beyond_p (pos, pos_byte, column)
-     int pos, pos_byte, column;
+     int pos, pos_byte;
+     float column;
 {
-  int val;
+  float val;
   int opoint = PT, opoint_byte = PT_BYTE;
 
   SET_PT_BOTH (pos, pos_byte);
@@ -899,7 +901,7 @@ indented_beyond_p (pos, pos_byte, column)
 
   val = position_indentation (PT_BYTE);
   SET_PT_BOTH (opoint, opoint_byte);
-  return val >= column;
+  return val >= column;                 /* hmm, float comparison */
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
@@ -1093,7 +1095,7 @@ The return value is the current column.  */)
       goal_pt_byte = PT_BYTE;
       Findent_to (make_number (col), Qnil);
       SET_PT_BOTH (goal_pt, goal_pt_byte);
-      
+
       /* Set the last_known... vars consistently.  */
       col = goal;
     }
@@ -1352,7 +1354,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	     W_      ^---- next after the point
 	     ^----  next char. after the point.
 	     ----------
-	              In case of wide-column character 
+	              In case of wide-column character
 
 	 The problem here is continuation at a wide-column character.
 	 In this case, the line may shorter less than WIDTH.
@@ -1522,7 +1524,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	{
 	  EMACS_INT i, n;
 	  Lisp_Object charvec;
-	  
+
 	  c = FETCH_BYTE (pos_byte);
 
 	  /* Check composition sequence.  */
@@ -1588,14 +1590,14 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		  /* This should be handled the same as
 		     next_element_from_display_vector does it.  */
 		  Lisp_Object entry = AREF (charvec, i);
-	      
+
 		  if (INTEGERP (entry)
 		      && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
 		    c = FAST_GLYPH_CHAR (XFASTINT (entry));
 		  else
 		    c = ' ';
 		}
-      
+
 	      if (c >= 040 && c < 0177)
 		hpos++;
 	      else if (c == '\t')
@@ -1609,7 +1611,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      else if (c == '\n')
 		{
 		  if (selective > 0
-		      && indented_beyond_p (pos, pos_byte, selective))
+		      && indented_beyond_p (pos, pos_byte,
+                                            (float) selective)) /* iftc */
 		    {
 		      /* If (pos == to), we don't have to take care of
 			 selective display.  */
@@ -1624,7 +1627,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 			      pos_byte = CHAR_TO_BYTE (pos);
 			    }
 			  while (pos < to
-				 && indented_beyond_p (pos, pos_byte, selective));
+				 && indented_beyond_p (pos, pos_byte,
+                                                       (float) selective)); /* iftc */
 			  /* Allow for the " ..." that is displayed for them. */
 			  if (selective_rlen)
 			    {
@@ -1874,7 +1878,7 @@ vmotion (from, vtarget, w)
 		 && ((selective > 0
 		      && indented_beyond_p (XFASTINT (prevline),
 					    CHAR_TO_BYTE (XFASTINT (prevline)),
-					    selective))
+					    (float) selective)) /* iftc */
 		     /* watch out for newlines with `invisible' property */
 		     || (propval = Fget_char_property (prevline,
 						       Qinvisible,
@@ -1887,7 +1891,7 @@ vmotion (from, vtarget, w)
 				 lmargin + (XFASTINT (prevline) == BEG
 					    ? start_hpos : 0),
 				 0,
-				 from, 
+				 from,
 				 /* Don't care for VPOS...  */
 				 1 << (BITS_PER_SHORT - 1),
 				 /* ... nor HPOS.  */
@@ -1934,7 +1938,7 @@ vmotion (from, vtarget, w)
 	     && ((selective > 0
 		  && indented_beyond_p (XFASTINT (prevline),
 					CHAR_TO_BYTE (XFASTINT (prevline)),
-					selective))
+					(float) selective)) /* iftc */
 		 /* watch out for newlines with `invisible' property */
 		 || (propval = Fget_char_property (prevline, Qinvisible,
 						   text_prop_object),
@@ -1946,7 +1950,7 @@ vmotion (from, vtarget, w)
 			     lmargin + (XFASTINT (prevline) == BEG
 					? start_hpos : 0),
 			     0,
-			     from, 
+			     from,
 			     /* Don't care for VPOS...  */
 			     1 << (BITS_PER_SHORT - 1),
 			     /* ... nor HPOS.  */
@@ -2015,7 +2019,7 @@ whether or not it is currently displayed in some window.  */)
       old_buffer = w->buffer;
       XSETBUFFER (w->buffer, current_buffer);
     }
-      
+
   SET_TEXT_POS (pt, PT, PT_BYTE);
   start_display (&it, w, pt);
 
@@ -2028,12 +2032,12 @@ whether or not it is currently displayed in some window.  */)
 
   if (XINT (lines) != 0)
     move_it_by_lines (&it, XINT (lines), 0);
-  
+
   SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 
   if (BUFFERP (old_buffer))
     w->buffer = old_buffer;
-  
+
   RETURN_UNGCPRO (make_number (it.vpos));
 }
 
