@@ -3101,13 +3101,15 @@ This does code conversion according to the value of\n\
      least signal an error.  */
   if (!S_ISREG (st.st_mode))
     {
-      if (NILP (visit))
+      not_regular = 1;
+
+      if (! NILP (visit))
+	goto notfound;
+
+      if (! NILP (replace) || ! NILP (beg) || ! NILP (end))
 	Fsignal (Qfile_error,
 		 Fcons (build_string ("not a regular file"),
 			Fcons (filename, Qnil)));
-
-      not_regular = 1;
-      goto notfound;
     }
 #endif
 
@@ -3122,7 +3124,7 @@ This does code conversion according to the value of\n\
   record_unwind_protect (close_file_unwind, make_number (fd));
 
   /* Supposedly happens on VMS.  */
-  if (st.st_size < 0)
+  if (! not_regular && st.st_size < 0)
     error ("File size is negative");
 
   if (!NILP (beg) || !NILP (end))
@@ -3138,9 +3140,12 @@ This does code conversion according to the value of\n\
     CHECK_NUMBER (end, 0);
   else
     {
-      XSETINT (end, st.st_size);
-      if (XINT (end) != st.st_size)
-	error ("maximum buffer size exceeded");
+      if (! not_regular)
+	{
+	  XSETINT (end, st.st_size);
+	  if (XINT (end) != st.st_size)
+	    error ("Maximum buffer size exceeded");
+	}
     }
 
   /* If requested, replace the accessible part of the buffer
@@ -3472,16 +3477,20 @@ This does code conversion according to the value of\n\
       goto handled;
     }
 
-  total = XINT (end) - XINT (beg);
+  if (! not_regular)
+    {
+      register Lisp_Object temp;
 
-  {
-    register Lisp_Object temp;
+      total = XINT (end) - XINT (beg);
 
-    /* Make sure point-max won't overflow after this insertion.  */
-    XSETINT (temp, total);
-    if (total != XINT (temp))
-      error ("maximum buffer size exceeded");
-  }
+      /* Make sure point-max won't overflow after this insertion.  */
+      XSETINT (temp, total);
+      if (total != XINT (temp))
+	error ("Maximum buffer size exceeded");
+    }
+  else
+    /* For a special file, all we can do is guess.  */
+    total = READ_BUF_SIZE;
 
   if (NILP (visit) && total > 0)
     prepare_to_modify_buffer (PT, PT);
@@ -3525,7 +3534,13 @@ This does code conversion according to the value of\n\
 	  break;
 	}
 
-      how_much += this;
+      /* For a regular file, where TOTAL is the real size,
+	 count HOW_MUCH to compare with it.
+	 For a special file, where TOTAL is just a buffer size,
+	 so don't bother counting in HOW_MUCH.
+	 (INSERTED is where we count the number of characters inserted.)  */
+      if (! not_regular)
+	how_much += this;
 
       if (CODING_REQUIRE_CONVERSION (&coding))
 	{
@@ -3536,8 +3551,21 @@ This does code conversion according to the value of\n\
 	  require = decoding_buffer_size (&coding, this);
 	  if (GAP_SIZE < require)
 	    make_gap (require - GAP_SIZE);
-	  if (how_much >= total)  /* This is the last block.  */
-	    coding.last_block = 1;
+
+	  if (! not_regular)
+	    {
+	      if (how_much >= total)  /* This is the last block.  */
+		coding.last_block = 1;
+	    }
+	  else
+	    {
+	      /* If we encounter EOF, say it is the last block.  (The
+		 data this will apply to is the UNPROCESSED characters
+		 carried over from the last batch.)  */
+	      if (this == 0)
+		coding.last_block = 1;
+	    }
+
 	  produced = decode_coding (&coding, read_buf,
 				    POS_ADDR (PT + inserted - 1) + 1,
 				    this, GAP_SIZE, &consumed);
