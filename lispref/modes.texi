@@ -548,29 +548,6 @@ major mode function, so errors are caught and reported as a @samp{File
 mode specification error},  followed by the original error message.
 @end deffn
 
-@defopt enable-local-variables
-This variable controls processing of local variables lists in files
-being visited.  A value of @code{t} means process the local variables
-lists unconditionally; @code{nil} means ignore them; anything else means
-ask the user what to do for each file.  The default value is @code{t}.
-@end defopt
-
-@defvar ignored-local-variables
-This variable holds a list of variables that should not be
-set by a file's local variables list.  Any value specified
-for one of these variables is ignored.
-@end defvar
-
-In addition to this list, any variable whose name has a non-@code{nil}
-@code{risky-local-variable} property is also ignored.
-
-@defopt enable-local-eval
-This variable controls processing of @samp{Eval:} in local variables
-lists in files being visited.  A value of @code{t} means process them
-unconditionally; @code{nil} means ignore them; anything else means ask
-the user what to do for each file.  The default value is @code{maybe}.
-@end defopt
-
 @defun set-auto-mode
 @cindex visited file mode
   This function selects the major mode that is appropriate for the
@@ -681,16 +658,6 @@ an interpreter which matches @var{interpreter}.  The value of
 This variable is applicable only when the @code{auto-mode-alist} does
 not indicate which major mode to use.
 @end defvar
-
-@defun hack-local-variables &optional force
-This function parses, and binds or evaluates as appropriate, any local
-variables specified by the contents of the current buffer.
-
-The handling of @code{enable-local-variables} documented for
-@code{normal-mode} actually takes place here.  The argument @var{force}
-usually comes from the argument @var{find-file} given to
-@code{normal-mode}.
-@end defun
 
 @node Mode Help
 @subsection Getting Help about a Major Mode

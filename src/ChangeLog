@@ -1,3 +1,7 @@
+2000-01-21  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* data.c (set_internal): Further fix in same criterion.
+
 2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* data.c (set_internal): Fix the criteria for whether
