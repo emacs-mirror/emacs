@@ -59,7 +59,11 @@ Lisp_Object Qcode_conversion_map_id;
    is an index for Vccl_protram_table. */
 Lisp_Object Qccl_program_idx;
 
-/* Vector of CCL program names vs corresponding program data.  */
+/* Table of registered CCL programs.  Each element is a vector of
+   NAME, CCL_PROG, and RESOLVEDP where NAME (symbol) is the name of
+   the program, CCL_PROG (vector) is the compiled code of the program,
+   RESOLVEDP (t or nil) is the flag to tell if symbols in CCL_PROG is
+   already resolved to index numbers or not.  */
 Lisp_Object Vccl_program_table;
 
 /* CCL (Code Conversion Language) is a simple language which has
@@ -291,10 +295,15 @@ Lisp_Object Vccl_program_table;
 					*/
 
 #define CCL_Call		0x13 /* Call the CCL program whose ID is
-					(CC..C).
-					1:CCCCCCCCCCCCCCCCCCCC000XXXXX
+					CC..C or cc..c.
+					1:CCCCCCCCCCCCCCCCCCCCFFFXXXXX
+					[2:00000000cccccccccccccccccccc]
 					------------------------------
-					call (CC..C)
+					if (FFF)
+					  call (cc..c)
+					  IC++;
+					else
+					  call (CC..C)
 					*/
 
 #define CCL_WriteConstString	0x14 /* Write a constant or a string:
@@ -924,16 +933,27 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  op = field1 >> 6;
 	  goto ccl_set_expr;
 
-	case CCL_Call:		/* CCCCCCCCCCCCCCCCCCCC000XXXXX */
+	case CCL_Call:		/* 1:CCCCCCCCCCCCCCCCCCCCFFFXXXXX */
 	  {
 	    Lisp_Object slot;
+	    int prog_id;
+
+	    /* If FFF is nonzero, the CCL program ID is in the
+               following code.  */
+	    if (rrr)
+	      {
+		prog_id = XINT (ccl_prog[ic]);
+		ic++;
+	      }
+	    else
+	      prog_id = field1;
 
 	    if (stack_idx >= 256
-		|| field1 < 0
-		|| field1 >= XVECTOR (Vccl_program_table)->size
-		|| (slot = XVECTOR (Vccl_program_table)->contents[field1],
-		    !CONSP (slot))
-		|| !VECTORP (XCONS (slot)->cdr))
+		|| prog_id < 0
+		|| prog_id >= XVECTOR (Vccl_program_table)->size
+		|| (slot = XVECTOR (Vccl_program_table)->contents[prog_id],
+		    !VECTORP (slot))
+		|| !VECTORP (XVECTOR (slot)->contents[1]))
 	      {
 		if (stack_idx > 0)
 		  {
@@ -946,7 +966,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    ccl_prog_stack_struct[stack_idx].ccl_prog = ccl_prog;
 	    ccl_prog_stack_struct[stack_idx].ic = ic;
 	    stack_idx++;
-	    ccl_prog = XVECTOR (XCONS (slot)->cdr)->contents;
+	    ccl_prog = XVECTOR (XVECTOR (slot)->contents[1])->contents;
 	    ic = CCL_HEADER_MAIN;
 	  }
 	  break;
@@ -1619,20 +1639,141 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   return (dst ? dst - destination : 0);
 }
 
+/* Resolve symbols in the specified CCL code (Lisp vector).  This
+   function converts symbols of code conversion maps and character
+   translation tables embeded in the CCL code into their ID numbers.
+
+   The return value is a vector (CCL itself or a new vector in which
+   all symbols are resolved), Qt if resolving of some symbol failed,
+   or nil if CCL contains invalid data.  */
+
+static Lisp_Object
+resolve_symbol_ccl_program (ccl)
+     Lisp_Object ccl;
+{
+  int i, veclen, unresolved = 0;
+  Lisp_Object result, contents, val;
+
+  result = ccl;
+  veclen = XVECTOR (result)->size;
+
+  for (i = 0; i < veclen; i++)
+    {
+      contents = XVECTOR (result)->contents[i];
+      if (INTEGERP (contents))
+	continue;
+      else if (CONSP (contents)
+	       && SYMBOLP (XCONS (contents)->car)
+	       && SYMBOLP (XCONS (contents)->cdr))
+	{
+	  /* This is the new style for embedding symbols.  The form is
+	     (SYMBOL . PROPERTY).  (get SYMBOL PROPERTY) should give
+	     an index number.  */
+
+	  if (EQ (result, ccl))
+	    result =  Fcopy_sequence (ccl);
+
+	  val = Fget (XCONS (contents)->car, XCONS (contents)->cdr);
+	  if (NATNUMP (val))
+	    XVECTOR (result)->contents[i] = val;
+	  else
+	    unresolved = 1;
+	  continue;
+	}
+      else if (SYMBOLP (contents))
+	{
+	  /* This is the old style for embedding symbols.  This style
+             may lead to a bug if, for instance, a translation table
+             and a code conversion map have the same name.  */
+	  if (EQ (result, ccl))
+	    result = Fcopy_sequence (ccl);
+
+	  val = Fget (contents, Qtranslation_table_id);
+	  if (NATNUMP (val))
+	    XVECTOR (result)->contents[i] = val;
+	  else
+	    {
+	      val = Fget (contents, Qcode_conversion_map_id);
+	      if (NATNUMP (val))
+		XVECTOR (result)->contents[i] = val;
+	      else
+		{
+		  val = Fget (contents, Qccl_program_idx);
+		  if (NATNUMP (val))
+		    XVECTOR (result)->contents[i] = val;
+		  else
+		    unresolved = 1;
+		}
+	    }
+	  continue;
+	}
+      return Qnil;
+    }
+
+  return (unresolved ? Qt : result);
+}
+
+/* Return the compiled code (vector) of CCL program CCL_PROG.
+   CCL_PROG is a name (symbol) of the program or already compiled
+   code.  If necessary, resolve symbols in the compiled code to index
+   numbers.  If we failed to get the compiled code or to resolve
+   symbols, return Qnil.  */
+
+static Lisp_Object
+ccl_get_compiled_code (ccl_prog)
+     Lisp_Object ccl_prog;
+{
+  Lisp_Object val, slot;
+
+  if (VECTORP (ccl_prog))
+    {
+      val = resolve_symbol_ccl_program (ccl_prog);
+      return (VECTORP (val) ? val : Qnil);
+    }
+  if (!SYMBOLP (ccl_prog))
+    return Qnil;
+
+  val = Fget (ccl_prog, Qccl_program_idx);
+  if (! NATNUMP (val)
+      || XINT (val) >= XVECTOR (Vccl_program_table)->size)
+    return Qnil;
+  slot = XVECTOR (Vccl_program_table)->contents[XINT (val)];
+  if (! VECTORP (slot)
+      || XVECTOR (slot)->size != 3
+      || ! VECTORP (XVECTOR (slot)->contents[1]))
+    return Qnil;
+  if (NILP (XVECTOR (slot)->contents[2]))
+    {
+      val = resolve_symbol_ccl_program (XVECTOR (slot)->contents[1]);
+      if (! VECTORP (val))
+	return Qnil;
+      XVECTOR (slot)->contents[1] = val;
+      XVECTOR (slot)->contents[2] = Qt;
+    }
+  return XVECTOR (slot)->contents[1];
+}
+
 /* Setup fields of the structure pointed by CCL appropriately for the
-   execution of compiled CCL code in VEC (vector of integer).
-   If VEC is nil, we skip setting ups based on VEC.  */
-void
-setup_ccl_program (ccl, vec)
+   execution of CCL program CCL_PROG.  CCL_PROG is the name (symbol)
+   of the CCL program or the already compiled code (vector).
+   Return 0 if we succeed this setup, else return -1.
+
+   If CCL_PROG is nil, we just reset the structure pointed by CCL.  */
+int
+setup_ccl_program (ccl, ccl_prog)
      struct ccl_program *ccl;
-     Lisp_Object vec;
+     Lisp_Object ccl_prog;
 {
   int i;
 
-  if (VECTORP (vec))
+  if (! NILP (ccl_prog))
     {
-      struct Lisp_Vector *vp = XVECTOR (vec);
+      struct Lisp_Vector *vp;
 
+      ccl_prog = ccl_get_compiled_code (ccl_prog);
+      if (! VECTORP (ccl_prog))
+	return -1;
+      vp = XVECTOR (ccl_prog);
       ccl->size = vp->size;
       ccl->prog = vp->contents;
       ccl->eof_ic = XINT (vp->contents[CCL_HEADER_EOF]);
@@ -1645,64 +1786,38 @@ setup_ccl_program (ccl, vec)
   ccl->private_state = 0;
   ccl->status = 0;
   ccl->stack_idx = 0;
+  return 0;
 }
-
-/* Resolve symbols in the specified CCL code (Lisp vector).  This
-   function converts symbols of code conversion maps and character
-   translation tables embeded in the CCL code into their ID numbers.  */
-
-Lisp_Object
-resolve_symbol_ccl_program (ccl)
-     Lisp_Object ccl;
-{
-  int i, veclen;
-  Lisp_Object result, contents, prop;
-
-  result = ccl;
-  veclen = XVECTOR (result)->size;
-
-  /* Set CCL program's table ID */
-  for (i = 0; i < veclen; i++)
-    {
-      contents = XVECTOR (result)->contents[i];
-      if (SYMBOLP (contents))
-	{
-	  if (EQ(result, ccl))
-	    result = Fcopy_sequence (ccl);
-
-	  prop = Fget (contents, Qtranslation_table_id);
-	  if (NUMBERP (prop))
-	    {
-	      XVECTOR (result)->contents[i] = prop;
-	      continue;
-	    }
-	  prop = Fget (contents, Qcode_conversion_map_id);
-	  if (NUMBERP (prop))
-	    {
-	      XVECTOR (result)->contents[i] = prop;
-	      continue;
-	    }
-	  prop = Fget (contents, Qccl_program_idx);
-	  if (NUMBERP (prop))
-	    {
-	      XVECTOR (result)->contents[i] = prop;
-	      continue;
-	    }
-	}
-    }
-
-  return result;
-}
-
 
 #ifdef emacs
+
+DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
+  "Return t if OBJECT is a CCL program name or a compiled CCL program code.")
+  (object)
+     Lisp_Object object;
+{
+  Lisp_Object val;
+
+  if (VECTORP (object))
+    {
+      val = resolve_symbol_ccl_program (object);
+      return (VECTORP (val) ? Qt : Qnil);
+    }
+  if (!SYMBOLP (object))
+    return Qnil;
+
+  val = Fget (object, Qccl_program_idx);
+  return ((! NATNUMP (val)
+	   || XINT (val) >= XVECTOR (Vccl_program_table)->size)
+	  ? Qnil : Qt);
+}
 
 DEFUN ("ccl-execute", Fccl_execute, Sccl_execute, 2, 2, 0,
   "Execute CCL-PROGRAM with registers initialized by REGISTERS.\n\
 \n\
-CCL-PROGRAM is a symbol registered by register-ccl-program,\n\
+CCL-PROGRAM is a CCL program name (symbol)\n\
 or a compiled code generated by `ccl-compile' (for backward compatibility,\n\
-in this case, the execution is slower).\n\
+in this case, the overhead of the execution is bigger than the former case).\n\
 No I/O commands should appear in CCL-PROGRAM.\n\
 \n\
 REGISTERS is a vector of [R0 R1 ... R7] where RN is an initial value\n\
@@ -1715,27 +1830,14 @@ As side effect, each element of REGISTERS holds the value of\n\
 {
   struct ccl_program ccl;
   int i;
-  Lisp_Object ccl_id;
 
-  if ((SYMBOLP (ccl_prog)) &&
-      (!NILP (ccl_id = Fget (ccl_prog, Qccl_program_idx))))
-    {
-      ccl_prog = XVECTOR (Vccl_program_table)->contents[XUINT (ccl_id)];
-      CHECK_LIST (ccl_prog, 0);
-      ccl_prog = XCONS (ccl_prog)->cdr;
-      CHECK_VECTOR (ccl_prog, 1);
-    }
-  else
-    {
-      CHECK_VECTOR (ccl_prog, 1);
-      ccl_prog = resolve_symbol_ccl_program (ccl_prog);
-    }
+  if (setup_ccl_program (&ccl, ccl_prog) < 0)
+    error ("Invalid CCL program");
 
-  CHECK_VECTOR (reg, 2);
+  CHECK_VECTOR (reg, 1);
   if (XVECTOR (reg)->size != 8)
-    error ("Invalid length of vector REGISTERS");
+    error ("Length of vector REGISTERS is not 9");
 
-  setup_ccl_program (&ccl, ccl_prog);
   for (i = 0; i < 8; i++)
     ccl.reg[i] = (INTEGERP (XVECTOR (reg)->contents[i])
 		  ? XINT (XVECTOR (reg)->contents[i])
@@ -1783,30 +1885,18 @@ is a unibyte string.  By default it is a multibyte string.")
   int i, produced;
   int outbufsize;
   char *outbuf;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  Lisp_Object ccl_id;
+  struct gcpro gcpro1, gcpro2;
 
-  if ((SYMBOLP (ccl_prog)) &&
-      (!NILP (ccl_id = Fget (ccl_prog, Qccl_program_idx))))
-    {
-      ccl_prog = XVECTOR (Vccl_program_table)->contents[XUINT (ccl_id)];
-      CHECK_LIST (ccl_prog, 0);
-      ccl_prog = XCONS (ccl_prog)->cdr;
-      CHECK_VECTOR (ccl_prog, 1);
-    }
-  else
-    {
-      CHECK_VECTOR (ccl_prog, 1);
-      ccl_prog = resolve_symbol_ccl_program (ccl_prog);
-    }
+  if (setup_ccl_program (&ccl, ccl_prog) < 0)
+    error ("Invalid CCL program");
 
   CHECK_VECTOR (status, 1);
   if (XVECTOR (status)->size != 9)
-    error ("Invalid length of vector STATUS");
+    error ("Length of vector STATUS is not 9");
   CHECK_STRING (str, 2);
-  GCPRO3 (ccl_prog, status, str);
 
-  setup_ccl_program (&ccl, ccl_prog);
+  GCPRO2 (status, str);
+
   for (i = 0; i < 8; i++)
     {
       if (NILP (XVECTOR (status)->contents[i]))
@@ -1848,50 +1938,73 @@ is a unibyte string.  By default it is a multibyte string.")
 
 DEFUN ("register-ccl-program", Fregister_ccl_program, Sregister_ccl_program,
        2, 2, 0,
-  "Register CCL program PROGRAM of NAME in `ccl-program-table'.\n\
-PROGRAM should be a compiled code of CCL program, or nil.\n\
+  "Register CCL program CCL_PROG as NAME in `ccl-program-table'.\n\
+CCL_PROG should be a compiled CCL program (vector), or nil.\n\
+If it is nil, just reserve NAME as a CCL program name.\n\
 Return index number of the registered CCL program.")
   (name, ccl_prog)
      Lisp_Object name, ccl_prog;
 {
   int len = XVECTOR (Vccl_program_table)->size;
-  int i;
+  int idx;
+  Lisp_Object resolved;
 
   CHECK_SYMBOL (name, 0);
+  resolved = Qnil;
   if (!NILP (ccl_prog))
     {
       CHECK_VECTOR (ccl_prog, 1);
-      ccl_prog = resolve_symbol_ccl_program (ccl_prog);
-    }
-  
-  for (i = 0; i < len; i++)
-    {
-      Lisp_Object slot = XVECTOR (Vccl_program_table)->contents[i];
-
-      if (!CONSP (slot))
-	break;
-
-      if (EQ (name, XCONS (slot)->car))
+      resolved = resolve_symbol_ccl_program (ccl_prog);
+      if (! NILP (resolved))
 	{
-	  XCONS (slot)->cdr = ccl_prog;
-	  return make_number (i);
+	  ccl_prog = resolved;
+	  resolved = Qt;
 	}
     }
 
-  if (i == len)
+  for (idx = 0; idx < len; idx++)
     {
-      Lisp_Object new_table = Fmake_vector (make_number (len * 2), Qnil);
+      Lisp_Object slot;
+
+      slot = XVECTOR (Vccl_program_table)->contents[idx];
+      if (!VECTORP (slot))
+	/* This is the first unsed slot.  Register NAME here.  */
+	break;
+
+      if (EQ (name, XVECTOR (slot)->contents[0]))
+	{
+	  /* Update this slot.  */
+	  XVECTOR (slot)->contents[1] = ccl_prog;
+	  XVECTOR (slot)->contents[2] = resolved;
+	  return make_number (idx);
+	}
+    }
+
+  if (idx == len)
+    {
+      /* Extend the table.  */
+      Lisp_Object new_table;
       int j;
 
+      new_table = Fmake_vector (make_number (len * 2), Qnil);
       for (j = 0; j < len; j++)
 	XVECTOR (new_table)->contents[j]
 	  = XVECTOR (Vccl_program_table)->contents[j];
       Vccl_program_table = new_table;
     }
 
-  XVECTOR (Vccl_program_table)->contents[i] = Fcons (name, ccl_prog);
-  Fput (name, Qccl_program_idx, make_number (i));
-  return make_number (i);
+  {
+    Lisp_Object elt;
+
+    elt = Fmake_vector (make_number (3), Qnil);
+    XVECTOR (elt)->contents[0] = name;
+    XVECTOR (elt)->contents[1] = ccl_prog;
+    XVECTOR (elt)->contents[2] = resolved;
+    XVECTOR (Vccl_program_table)->contents[idx] = elt;
+  }
+
+  Fput (name, Qccl_program_idx, make_number (idx));
+  return make_number (idx);
 }
 
 /* Register code conversion map.
@@ -1989,6 +2102,7 @@ The code point in the font is set in CCL registers R1 and R2\n\
 If the font is single-byte font, the register R2 is not used.");
   Vfont_ccl_encoder_alist = Qnil;
 
+  defsubr (&Sccl_program_p);
   defsubr (&Sccl_execute);
   defsubr (&Sccl_execute_on_string);
   defsubr (&Sregister_ccl_program);
