@@ -32,10 +32,11 @@ Please do not send questions to us just because you do not want to disturb a
 lot of people and you think we would know the answer.  We do not have time to
 answer questions individually.  :-(
 
-Full instructions for getting the latest FAQ are in question 22.  Also see the
-`Introduction to news.answers' posting in the `news.answers' newsgroup, or send
-e-mail to `mail-server@rtfm.mit.edu' with `help' on a body line, or use FTP,
-WAIS, or Prospero to rtfm.mit.edu.
+Full instructions for getting the latest FAQ are in question 22.  Also
+see the `Introduction to news.answers' posting in the `news.answers'
+newsgroup, or send e-mail to `mail-server@rtfm.mit.edu' with `help' on
+a body line, or use FTP, WAIS, or Prospero to rtfm.mit.edu.  [Note: in
+Sep 1994, this seems no longer to be true--rms.]
 
 These ideas have already been suggested, but we have not had time to
 implement them:
@@ -2328,7 +2329,7 @@ Finding/Getting Emacs and Related Packages
     ;; LCD Archive Entry:
     ;; tex-complete|Sebastian Kremer|sk@thp.Uni-Koeln.DE
     ;; |Minibuffer name completion for editing [La]TeX.
-    ;; |91-03-26|$Revision: 1.4 $|~/packages/tex-complete.el.Z              !
+    ;; |91-03-26|$Revision: 1.5 $|~/packages/tex-complete.el.Z              !
   
   Dave Brennan has software which automatically looks for data in this
   format.  The format is fairly flexible.  The entry ends when a line is
