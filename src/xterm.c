@@ -76,10 +76,6 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
-#if 0
-#include "sink.h"
-#include "sinkmask.h"
-#endif /* ! 0 */
 #include "gnu.h"
 #include "disptab.h"
 #include "buffer.h"
