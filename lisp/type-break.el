@@ -44,7 +44,11 @@
 
 ;;; Setting type-break-good-rest-interval makes emacs cons like a maniac
 ;;; because of repeated calls to `current-time'.  There's not really any
-;;; good way to avoid this without disabling the variable.
+;;; good way to avoid this without disabling the variable.  In fact, this
+;;; package makes emacs somewhat cycle intensive because a small amount of
+;;; extra lisp code gets evaluated on every keystroke anyway.  But what's
+;;; more important, a few computer cycles or reducing your risk of
+;;; repetitive strain injury?
 
 ;;; This package was inspired by Roland McGrath's hanoi-break.el.
 
@@ -83,16 +87,18 @@ finally submits to taking a typing break.")
 
 ;;;###autoload
 (defvar type-break-keystroke-threshold
-  ;; Assuming average typing speed is 45wpm and the average word length is
+  ;; Assuming typing speed is 30wpm (on the average, do you really
+  ;; type more than that in a minute?  I spend a lot of time reading mail
+  ;; and simply studying code in buffers) and average word length is
   ;; about 5 letters, default upper threshold to the average number of
   ;; keystrokes one is likely to type in a break interval.  That way if the
   ;; user goes through a furious burst of typing activity, cause a typing
   ;; break to be required sooner than originally scheduled.
-  ;; Conversely, the minimum threshold should be about a quarter of this.
-  (let* ((wpm 45)
+  ;; Conversely, the minimum threshold should be about a fifth of this.
+  (let* ((wpm 30)
          (avg-word-length 5)
          (upper (* wpm avg-word-length (/ type-break-interval 60)))
-         (lower (/ upper 4)))
+         (lower (/ upper 5)))
     (cons lower upper))
   "*Upper and lower bound on number of keystrokes for considering typing break.
 This structure is a pair of numbers.
@@ -387,17 +393,23 @@ keystroke threshold has been exceeded."
 ;; Also, clean up the *Life* buffer after we're done.
 (defun type-break-demo-life ()
   "Take a typing break and get a life."
-  (and (get-buffer "*Life*")
-       (kill-buffer "*Life*"))
-  (condition-case ()
-      (progn
-        (life 3)
-        ;; Wait for user to come back.
-        (read-char)
-        (kill-buffer "*Life*"))
-    (quit
-     (and (get-buffer "*Life*")
-          (kill-buffer "*Life*")))))
+  (let ((continue t))
+    (while continue
+      (setq continue nil)
+      (and (get-buffer "*Life*")
+           (kill-buffer "*Life*"))
+      (condition-case ()
+          (progn
+            (life 3)
+            (kill-buffer "*Life*"))
+        (life-extinct
+         (message (get 'life-extinct 'error-message))
+         (sit-for 3)
+         ;; restart demo
+         (setq continue t))
+        (quit
+         (and (get-buffer "*Life*")
+              (kill-buffer "*Life*")))))))
 
 
 ;;;###autoload
@@ -448,7 +460,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
 2 would mean to use one half, a value of 4 would mean to use one quarter, etc."
   (interactive "nHow many words per minute do you type? ")
   (let* ((upper (* wpm (or wordlen 5) (/ type-break-interval 60)))
-         (lower (/ upper (or frac 4))))
+         (lower (/ upper (or frac 5))))
     (or type-break-keystroke-threshold
         (setq type-break-keystroke-threshold (cons nil nil)))
     (setcar type-break-keystroke-threshold lower)
