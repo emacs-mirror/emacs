@@ -941,6 +941,11 @@ In either case, the output is inserted after point (leaving mark after it)."
 		   (set-buffer buffer)
 		   (goto-char (point-min)))
 		 (display-buffer buffer))))))))
+       
+(defun shell-command-to-string (command)
+  "Execute shell command COMMAND and return its output as a string."
+  (with-output-to-string
+    (call-process shell-file-name nil t nil "-c" command)))
 
 (defconst universal-argument-map
   (let ((map (make-sparse-keymap)))
