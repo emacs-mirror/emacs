@@ -298,7 +298,8 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
   return Qnil;
 }
 
-DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0, "T if OBJECT is a character (a number) or a string.")
+DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
+  "T if OBJECT is a character (an integer) or a string.")
   (obj)
      register Lisp_Object obj;
 {
@@ -307,7 +308,7 @@ DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0, "T if 
   return Qnil;
 }
 
-DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "T if OBJECT is a number.")
+DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "T if OBJECT is an integer.")
   (obj)
      Lisp_Object obj;
 {
@@ -326,7 +327,8 @@ DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 
   return Qnil;
 }
 
-DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0, "T if OBJECT is a nonnegative number.")
+DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
+  "T if OBJECT is a nonnegative integer.")
   (obj)
      Lisp_Object obj;
 {
