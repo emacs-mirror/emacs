@@ -1,5 +1,5 @@
 ;;; map-ynp.el -- General-purpose boolean question-asker.
-;;; Copyright (C) 1991 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;; Written by Roland McGrath.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
@@ -41,13 +41,13 @@ Takes args PROMPTER ACTOR LIST, and optional arg HELP.
 LIST is a list of objects, or a function of no arguments to return the next
 object or nil.
 
-PROMPTER is a function of one arg (an object from LIST),
-which returns a string to be used as the prompt for that object.
-If the return value is not a string, it is eval'd to get the answer.
-So, it may be nil to ignore the object, t to act on the object without
-asking the user, or a form to do a more complex prompt.
-PROMPTER may instead be a string, in which case the prompt is
-\(format PROMPTER OBJECT\).
+If is PROMPTER a string, the prompt is \(format PROMPTER OBJECT\).  If not
+a string, PROMPTER is a function of one arg (an object from LIST), which
+returns a string to be used as the prompt for that object.  If the return
+value is not a string, it is eval'd to get the answer; it may be nil to
+ignore the object, t to act on the object without asking the user, or a
+form to do a more complex prompt.
+
 
 ACTOR is a function of one arg (an object from LIST),
 which gets called with each object that the user answers `yes' for.
