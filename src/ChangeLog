@@ -1,3 +1,7 @@
+2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fclear_string): Put call to CHECK_STRING in correct place.
+
 2004-07-06  John Paul Wallington  <jpw@gnu.org>
 
 	* eval.c (Fdefmacro): Signal an error if NAME is not a symbol.
