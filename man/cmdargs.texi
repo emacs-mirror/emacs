@@ -81,7 +81,11 @@ the action arguments in the order they are written.
 @opindex --file
 @itemx --file=@var{file}
 @cindex visiting files, command-line argument
+@vindex inhibit-startup-buffer-menu
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
+If you visit several files at startup in this way, Emacs
+also displays a Buffer Menu buffer to show you what files it
+has visited.  You can inhibit that by setting @code{inhibit-startup-buffer-menu} to @code{t}.
 
 @item +@var{linenum} @var{file}
 @opindex +@var{linenum}
@@ -218,8 +222,8 @@ the only option that blocks it.
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-startup-message
-Do not display a splash screen on startup; this is equivlaent to
-setting the variable @code{inhibit-startup-message} to non-nil.
+Do not display a splash screen on startup; this is equivalent to
+setting the variable @code{inhibit-startup-message} to non-@code{nil}.
 
 @item -u @var{user}
 @opindex -u
