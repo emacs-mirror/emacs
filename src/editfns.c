@@ -1282,7 +1282,7 @@ or markers) bounding the text that should remain visible.")
   (b, e)
      register Lisp_Object b, e;
 {
-  register int i;
+  register EMACS_INT i;
 
   CHECK_NUMBER_COERCE_MARKER (b, 0);
   CHECK_NUMBER_COERCE_MARKER (e, 1);
@@ -1582,7 +1582,7 @@ Use %% to put a single % into the output.")
 Lisp_Object
 #ifdef NO_ARG_ARRAY
 format1 (string1, arg0, arg1, arg2, arg3, arg4)
-     int arg0, arg1, arg2, arg3, arg4;
+     EMACS_INT arg0, arg1, arg2, arg3, arg4;
 #else
 format1 (string1)
 #endif
@@ -1590,7 +1590,7 @@ format1 (string1)
 {
   char buf[100];
 #ifdef NO_ARG_ARRAY
-  int args[5];
+  EMACS_INT args[5];
   args[0] = arg0;
   args[1] = arg1;
   args[2] = arg2;
