@@ -414,7 +414,7 @@ is treated as a character."
  'compound-text 2 ?x
  "Compound text based generic encoding for decoding unknown messages.
 
-This coding system does not support ICCCM Extended Segments."
+This coding system does not support extended segments."
  '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
    init-bol nil nil)
@@ -442,7 +442,7 @@ Like `compound-text', but does not produce escape sequences for compositions."
 
 (make-coding-system
  'compound-text-with-extensions 5 ?x
- "Compound text encoding with ICCCM Extended Segment extensions.
+ "Compound text encoding with extended segments.
 
 This coding system should be used only for X selections.  It is inappropriate
 for decoding and encoding files, process I/O, etc."
@@ -457,7 +457,7 @@ for decoding and encoding files, process I/O, etc."
 
 (make-coding-system
  'iso-safe 2 ?-
- "Convert all characters but ASCII to `?'."
+ "Encode ASCII asis and encode non-ASCII characters to `?'."
  '(ascii nil nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii)))

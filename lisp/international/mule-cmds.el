@@ -1905,6 +1905,8 @@ of `buffer-file-coding-system' set by this function."
     ; dz Bhutani
     ("el" . "Greek")
     ;; Users who specify "en" explicitly typically want Latin-1, not ASCII.
+    ;; That's actually what the GNU locales define, modulo things like
+    ;; en_IN -- fx.
     ("en" . "Latin-1") ; English
     ("eo" . "Latin-3") ; Esperanto
     ("es" . "Spanish")
