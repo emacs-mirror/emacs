@@ -162,7 +162,8 @@ removed from alias expansions."
 (defun define-mail-alias (name definition)
   "Define NAME as a mail alias that translates to DEFINITION.
 This means that sending a message to NAME will actually send to DEFINITION.
-DEFINITION can be one or more mail addresses separated by commas."
+DEFINITION can be one or more mail addresses separated by spaces.
+An address can contain spaces if it is quoted with double-quotes."
   (interactive "sDefine mail alias: \nsDefine %s as mail alias for: ")
   ;; Read the defaults first, if we have not done so.
   (if (eq mail-aliases t)
@@ -182,7 +183,7 @@ DEFINITION can be one or more mail addresses separated by commas."
 	;; Strip quotation marks.
 	(setq definition (substring definition 1 (1- (length definition))))
       ;; ~/.mailrc contains addresses separated by spaces.
-      ;; mailers should expect addresses separated by commas.
+      ;; Mailers should expect addresses separated by commas.
       (while (setq tem (string-match "[^ \t,][ \t,]+" definition tem))
 	(if (= (match-end 0) (length definition))
 	    (setq definition (substring definition 0 (1+ tem)))
