@@ -3960,8 +3960,10 @@ window_scroll_pixel_based (window, n, whole, noerror)
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   
   /* If PT is not visible in WINDOW, move back one half of
-     the screen.  */
-  tem = Fpos_visible_in_window_p (make_number (PT), window, Qnil);
+     the screen.  Allow PT to be partially visible, otherwise
+     something like (scroll-down 1) with PT in the line before
+     the partially visible one would recenter. */
+  tem = Fpos_visible_in_window_p (make_number (PT), window, Qt);
   if (NILP (tem))
     {
       /* Move backward half the height of the window.  Performance note:
