@@ -272,16 +272,14 @@ tty_reset_terminal_modes (struct display *display)
 }
 
 void
-update_begin (f)
-     struct frame *f;
+update_begin (struct frame *f)
 {
   if (FRAME_DISPLAY (f)->update_begin_hook)
     (*FRAME_DISPLAY (f)->update_begin_hook) (f);
 }
 
 void
-update_end (f)
-     struct frame *f;
+update_end (struct frame *f)
 {
   if (FRAME_DISPLAY (f)->update_end_hook)
     (*FRAME_DISPLAY (f)->update_end_hook) (f);
@@ -306,9 +304,7 @@ tty_update_end (struct frame *f)
    that is bounded by calls to update_begin and update_end.  */
 
 void
-set_terminal_window (f, size)
-     struct frame *f;
-     int size;
+set_terminal_window (struct frame *f, int size)
 {
   if (FRAME_DISPLAY (f)->set_terminal_window_hook)
     (*FRAME_DISPLAY (f)->set_terminal_window_hook) (f, size);
@@ -327,9 +323,7 @@ tty_set_terminal_window (struct frame *f, int size)
 }
 
 void
-set_scroll_region (f, start, stop)
-     struct frame *f;
-     int start, stop;
+set_scroll_region (struct frame *f, int start, int stop)
 {
   char *buf;
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -450,9 +444,7 @@ highlight_if_desired (struct tty_display_info *tty)
    frame-relative coordinates.  */
 
 void
-cursor_to (f, vpos, hpos)
-     struct frame *f;
-     int vpos, hpos;
+cursor_to (struct frame *f, int vpos, int hpos)
 {
   if (FRAME_DISPLAY (f)->cursor_to_hook)
     (*FRAME_DISPLAY (f)->cursor_to_hook) (f, vpos, hpos);
@@ -481,9 +473,7 @@ tty_cursor_to (struct frame *f, int vpos, int hpos)
 /* Similar but don't take any account of the wasted characters.  */
 
 void
-raw_cursor_to (f, row, col)
-     struct frame *f;
-     int row, col;
+raw_cursor_to (struct frame *f, int row, int col)
 {
   if (FRAME_DISPLAY (f)->raw_cursor_to_hook)
     (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (f, row, col);  
@@ -572,9 +562,7 @@ tty_clear_frame (struct frame *f)
    Note that the cursor may be moved, on terminals lacking a `ce' string.  */
 
 void
-clear_end_of_line (f, first_unused_hpos)
-     struct frame *f;
-     int first_unused_hpos;
+clear_end_of_line (struct frame *f, int first_unused_hpos)
 {
   if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
     (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (f, first_unused_hpos);
@@ -735,10 +723,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
    Advance the nominal cursor over the text.  */
 
 void
-write_glyphs (f, string, len)
-     struct frame *f;
-     register struct glyph *string;
-     register int len;
+write_glyphs (struct frame *f, struct glyph *string, int len)
 {
   if (FRAME_DISPLAY (f)->write_glyphs_hook)
     (*FRAME_DISPLAY (f)->write_glyphs_hook) (f, string, len);
@@ -842,10 +827,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
    If start is zero, insert blanks instead of a string at start */
 
 void
-insert_glyphs (f, start, len)
-     struct frame *f;
-     register struct glyph *start;
-     register int len;
+insert_glyphs (struct frame *f, struct glyph *start, int len)
 {
   if (len <= 0)
     return;
@@ -939,9 +921,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 /* Delete N glyphs at the nominal cursor position. */
 
 void
-delete_glyphs (f, n)
-     struct frame *f;
-     register int n;
+delete_glyphs (struct frame *f, int n)
 {
   if (FRAME_DISPLAY (f)->delete_glyphs_hook)
     (*FRAME_DISPLAY (f)->delete_glyphs_hook) (f, n);
@@ -983,9 +963,7 @@ tty_delete_glyphs (struct frame *f, int n)
 /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
 
 void
-ins_del_lines (f, vpos, n)
-     struct frame *f;
-     int vpos, n;
+ins_del_lines (struct frame *f, int vpos, int n)
 {
   if (FRAME_DISPLAY (f)->ins_del_lines_hook)
     (*FRAME_DISPLAY (f)->ins_del_lines_hook) (f, vpos, n);
@@ -1020,7 +998,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
   
   if (multi)
     {
-      raw_cursor_to (vpos, 0);
+      raw_cursor_to (f, vpos, 0);
       background_highlight (tty);
       buf = tparam (multi, 0, 0, i);
       OUTPUT (tty, buf);
@@ -1028,7 +1006,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
     }
   else if (single)
     {
-      raw_cursor_to (vpos, 0);
+      raw_cursor_to (f, vpos, 0);
       background_highlight (tty);
       while (--i >= 0)
         OUTPUT (tty, single);
@@ -1039,9 +1017,9 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
     {
       set_scroll_region (f, vpos, tty->specified_window);
       if (n < 0)
-        raw_cursor_to (tty->specified_window - 1, 0);
+        raw_cursor_to (f, tty->specified_window - 1, 0);
       else
-        raw_cursor_to (vpos, 0);
+        raw_cursor_to (f, vpos, 0);
       background_highlight (tty);
       while (--i >= 0)
         OUTPUTL (tty, scroll, tty->specified_window - vpos);
@@ -1061,8 +1039,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
    not counting any line-dependent padding.  */
 
 int
-string_cost (str)
-     char *str;
+string_cost (char *str)
 {
   cost = 0;
   if (str)
@@ -1074,8 +1051,7 @@ string_cost (str)
    counting any line-dependent padding at one line.  */
 
 static int
-string_cost_one_line (str)
-     char *str;
+string_cost_one_line (char *str)
 {
   cost = 0;
   if (str)
@@ -1087,8 +1063,7 @@ string_cost_one_line (str)
    in tenths of characters.  */
 
 int
-per_line_cost (str)
-     register char *str;
+per_line_cost (char *str)
 {
   cost = 0;
   if (str)
@@ -1111,8 +1086,7 @@ int *char_ins_del_vector;
 
 /* ARGSUSED */
 static void
-calculate_ins_del_char_costs (f)
-     FRAME_PTR f;
+calculate_ins_del_char_costs (struct frame *f)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
   int ins_startup_cost, del_startup_cost;
@@ -1173,8 +1147,7 @@ calculate_ins_del_char_costs (f)
 }
 
 void
-calculate_costs (frame)
-     FRAME_PTR frame;
+calculate_costs (struct frame *frame)
 {
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
