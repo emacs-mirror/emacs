@@ -136,6 +136,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 	  (cons (cons 'outline-minor-mode outline-minor-mode-map)
 		minor-mode-map-alist)))
 
+;;;###autoload
 (defun outline-minor-mode (&optional arg)
   "Toggle Outline minor mode.
 With arg, turn Outline minor mode on if arg is positive, off otherwise.
