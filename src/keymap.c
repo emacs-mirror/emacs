@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
+#define KEYMAPP(m) (!NILP (Fkeymapp (m)))
 
 /* The number of elements in keymap vectors.  */
 #define DENSE_TABLE_SIZE (0200)
@@ -99,10 +100,16 @@ extern Lisp_Object meta_prefix_char;
 
 extern Lisp_Object Voverriding_local_map;
 
-static Lisp_Object define_as_prefix ();
-static Lisp_Object describe_buffer_bindings ();
-static void describe_command (), describe_translation ();
-static void describe_map ();
+static Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+
+static Lisp_Object define_as_prefix P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object describe_buffer_bindings P_ ((Lisp_Object));
+static void describe_command P_ ((Lisp_Object));
+static void describe_translation P_ ((Lisp_Object));
+static void describe_map P_ ((Lisp_Object, Lisp_Object,
+			      void (*) P_ ((Lisp_Object)),
+			      int, Lisp_Object, Lisp_Object*, int));
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -195,6 +202,7 @@ is also allowed as an element.")
   (object)
      Lisp_Object object;
 {
+  /* FIXME: Maybe this should return t for autoloaded keymaps?   -sm  */
   return (NILP (get_keymap_1 (object, 0, 0)) ? Qnil : Qt);
 }
 
@@ -292,7 +300,7 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
   for (; CONSP (list); list = XCDR (list))
     {
       /* See if there is another `keymap'.  */
-      if (EQ (Qkeymap, XCAR (list)))
+      if (KEYMAPP (list))
 	return list;
     }
 
@@ -324,7 +332,7 @@ PARENT should be nil or another keymap.")
       list = XCDR (prev);
       /* If there is a parent keymap here, replace it.
 	 If we came to the end, add the parent in PREV.  */
-      if (! CONSP (list) || EQ (Qkeymap, XCAR (list)))
+      if (! CONSP (list) || KEYMAPP (list))
 	{
 	  /* If we already have the right parent, return now
 	     so that we avoid the loops below.  */
@@ -373,7 +381,7 @@ PARENT should be nil or another keymap.")
    if EVENT is also a prefix in MAP's parent,
    make sure that SUBMAP inherits that definition as its own parent.  */
 
-void
+static void
 fix_submap_inheritance (map, event, submap)
      Lisp_Object map, event, submap;
 {
