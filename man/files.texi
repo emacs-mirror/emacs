@@ -1449,7 +1449,7 @@ files in that directory and its subdirectories.
   @kbd{C-x v =} works by running a variant of the @code{diff} utility
 designed to work with the version control system in use.  When you
 invoke @code{diff} this way, in addition to the options specified by
-@code{diff-switches} (@pxref{Comparing files}), it receives those
+@code{diff-switches} (@pxref{Comparing Files}), it receives those
 specified by @code{vc-diff-switches}, plus those specified for the
 specific back end by @code{vc-@var{backend}-diff-switches}.  For
 instance, when the version control back end is RCS, @code{diff} uses
