@@ -1,5 +1,10 @@
 2004-11-08  Jay Belanger  <belanger@truman.edu>
 
+	* calc/calcalg2.el (math-do-integral-methods):  Try linear then
+	non-linear substitutions. 
+
+2004-11-08  Jay Belanger  <belanger@truman.edu>
+
 	* calc/calcalg2.el (math-linear-subst-tried): New variable.
 	(math-do-integral):  Set `math-linear-subst-tried' to nil. 
 	(math-do-integral-methods):  Use `math-linear-subst-tried' to
