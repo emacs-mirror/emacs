@@ -5334,20 +5334,20 @@ extern int *char_ins_del_vector;
 /* Perform a frame-based update on line VPOS in frame FRAME.  */
 
 static void
-update_frame_line (frame, vpos)
-     register struct frame *frame;
+update_frame_line (f, vpos)
+     struct frame *f;
      int vpos;
 {
   struct glyph *obody, *nbody, *op1, *op2, *np1, *nend;
   int tem;
   int osp, nsp, begmatch, endmatch, olen, nlen;
-  struct glyph_matrix *current_matrix = frame->current_matrix;
-  struct glyph_matrix *desired_matrix = frame->desired_matrix;
+  struct glyph_matrix *current_matrix = f->current_matrix;
+  struct glyph_matrix *desired_matrix = f->desired_matrix;
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, vpos);
   int must_write_whole_line_p;
   int write_spaces_p = must_write_spaces;
-  int colored_spaces_p = (FACE_FROM_ID (frame, DEFAULT_FACE_ID)->background
+  int colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			  != FACE_TTY_DEFAULT_BG_COLOR);
 
   if (colored_spaces_p)
@@ -5388,7 +5388,7 @@ update_frame_line (frame, vpos)
 	  /* For an inverse-video line, make sure it's filled with
 	     spaces all the way to the frame edge so that the reverse
 	     video extends all the way across.  */
-	  while (olen < FRAME_WIDTH (frame) - 1)
+	  while (olen < FRAME_WIDTH (f) - 1)
 	    obody[olen++] = space_glyph;
 	}
     }
@@ -5426,10 +5426,10 @@ update_frame_line (frame, vpos)
       /* Don't call clear_end_of_line if we already wrote the whole
 	 line.  The cursor will not be at the right margin in that
 	 case but in the line below.  */
-      if (nlen < FRAME_WINDOW_WIDTH (frame))
+      if (nlen < FRAME_WINDOW_WIDTH (f))
 	{
 	  cursor_to (vpos, nlen);
-          clear_end_of_line (FRAME_WINDOW_WIDTH (frame));
+          clear_end_of_line (FRAME_WINDOW_WIDTH (f));
 	}
       else
 	/* Make sure we are in the right row, otherwise cursor movement
@@ -5453,7 +5453,7 @@ update_frame_line (frame, vpos)
       /* For an inverse-video line, give it extra trailing spaces all
 	 the way to the frame edge so that the reverse video extends
 	 all the way across.  */
-      while (nlen < FRAME_WIDTH (frame) - 1)
+      while (nlen < FRAME_WIDTH (f) - 1)
 	nbody[nlen++] = space_glyph;
     }
 
@@ -5563,7 +5563,7 @@ update_frame_line (frame, vpos)
 
   tem = (nlen - nsp) - (olen - osp);
   if (endmatch && tem
-      && (!char_ins_del_ok || endmatch <= char_ins_del_cost (frame)[tem]))
+      && (!char_ins_del_ok || endmatch <= char_ins_del_cost (f)[tem]))
     endmatch = 0;
 
   /* nsp - osp is the distance to insert or delete.
@@ -5573,7 +5573,7 @@ update_frame_line (frame, vpos)
 
   if (nsp != osp
       && (!char_ins_del_ok
-	  || begmatch + endmatch <= char_ins_del_cost (frame)[nsp - osp]))
+	  || begmatch + endmatch <= char_ins_del_cost (f)[nsp - osp]))
     {
       begmatch = 0;
       endmatch = 0;
@@ -5607,16 +5607,23 @@ update_frame_line (frame, vpos)
   tem = nsp + begmatch + endmatch;
   if (nlen != tem || olen != tem)
     {
-      cursor_to (vpos, nsp + begmatch);
       if (!endmatch || nlen == olen)
 	{
-	  /* If new text being written reaches right margin,
-	     there is no need to do clear-to-eol at the end.
-	     (and it would not be safe, since cursor is not
-	     going to be "at the margin" after the text is done) */
-	  if (nlen == FRAME_WINDOW_WIDTH (frame))
+	  /* If new text being written reaches right margin, there is
+	     no need to do clear-to-eol at the end of this function
+	     (and it would not be safe, since cursor is not going to
+	     be "at the margin" after the text is done).  */
+	  if (nlen == FRAME_WINDOW_WIDTH (f))
 	    olen = 0;
-	  write_glyphs (nbody + nsp + begmatch, nlen - tem);
+
+	  /* Function write_glyphs is prepared to do nothing
+	     if passed a length <= 0.  Check it here to avoid
+	     unnecessary cursor movement.  */
+	  if (nlen - tem > 0)
+	    {
+	      cursor_to (vpos, nsp + begmatch);
+	      write_glyphs (nbody + nsp + begmatch, nlen - tem);
+	    }
 	}
       else if (nlen > olen)
 	{
@@ -5630,18 +5637,25 @@ update_frame_line (frame, vpos)
 	  int out = olen - tem;	/* Columns to be overwritten originally.  */
 	  int del;
 
+	  cursor_to (vpos, nsp + begmatch);
+	  
 	  /* Calculate columns we can actually overwrite.  */
-	  while (CHAR_GLYPH_PADDING_P (nbody[nsp + begmatch + out])) out--;
+	  while (CHAR_GLYPH_PADDING_P (nbody[nsp + begmatch + out]))
+	    out--;
 	  write_glyphs (nbody + nsp + begmatch, out);
+	  
 	  /* If we left columns to be overwritten, we must delete them.  */
 	  del = olen - tem - out;
-	  if (del > 0) delete_glyphs (del);
+	  if (del > 0)
+	    delete_glyphs (del);
+	  
 	  /* At last, we insert columns not yet written out.  */
 	  insert_glyphs (nbody + nsp + begmatch + out, nlen - olen + del);
 	  olen = nlen;
 	}
       else if (olen > nlen)
 	{
+	  cursor_to (vpos, nsp + begmatch);
 	  write_glyphs (nbody + nsp + begmatch, nlen - tem);
 	  delete_glyphs (olen - nlen);
 	  olen = nlen;
