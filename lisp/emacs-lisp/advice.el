@@ -2579,7 +2579,10 @@ that property, or otherwise use `(&rest ad-subr-args)'."
     ;; the old way of doing things.
     (let ((doc (or (ad-real-documentation subr-name t) "")))
       (if (not (string-match "\n\n\\((.+)\\)\\'" doc))
-	  (error "The usage info is missing from the subr %s" subr-name)
+	  ;; Signalling an error leads to bugs during bootstrapping because
+	  ;; the DOC file is not yet built (which is an error, BTW).
+	  ;; (error "The usage info is missing from the subr %s" subr-name)
+	  '(&rest ad-subr-args)
 	(ad-define-subr-args
 	 subr-name
 	 (cdr (car (read-from-string
