@@ -1,5 +1,11 @@
 2005-03-11  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule.el (make-coding-system): Set property
+	'coding-system-define-form to nil.
+	(define-coding-system-alias): Likewise.
+
+2005-03-11  Kenichi Handa  <handa@m17n.org>
+
 	These changes are suggested by Dave Love <fx@gnu.org>.
 
 	* textmodes/fill.el: Change encoding to iso-2022-7bit and add
