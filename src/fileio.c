@@ -3988,73 +3988,73 @@ actually used.")
     error ("IO error reading %s: %s",
 	   XSTRING (orig_filename)->data, strerror (errno));
 
-  if (inserted > 0)
+  if (! coding_system_decided)
     {
-      if (! coding_system_decided)
+      /* The coding system is not yet decided.  Decide it by an
+	 optimized method for handling `coding:' tag.  */
+      Lisp_Object val;
+      val = Qnil;
+
+      if (!NILP (Vcoding_system_for_read))
+	val = Vcoding_system_for_read;
+      else
 	{
-	  /* The coding system is not yet decided.  Decide it by an
-	     optimized method for handling `coding:' tag.  */
-	  Lisp_Object val;
-	  val = Qnil;
-
-	  if (!NILP (Vcoding_system_for_read))
-	    val = Vcoding_system_for_read;
-	  else
+	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
 	    {
-	      if (! NILP (Vset_auto_coding_function))
-		{
-		  /* Since we are sure that the current buffer was
-		     empty before the insertion, we can toggle
-		     enable-multibyte-characters directly here without
-		     taking care of marker adjustment and byte
-		     combining problem.  */
-		  Lisp_Object prev_multibyte;
-		  int count = specpdl_ptr - specpdl;
+	      /* Since we are sure that the current buffer was
+		 empty before the insertion, we can toggle
+		 enable-multibyte-characters directly here without
+		 taking care of marker adjustment and byte
+		 combining problem.  */
+	      Lisp_Object prev_multibyte;
+	      int count = specpdl_ptr - specpdl;
 
-		  prev_multibyte = current_buffer->enable_multibyte_characters;
-		  current_buffer->enable_multibyte_characters = Qnil;
-		  record_unwind_protect (set_auto_coding_unwind,
-					 prev_multibyte);
-		  val = call1 (Vset_auto_coding_function,
-			       make_number (inserted));
-		  /* Discard the unwind protect for recovering the
-		     error of Vset_auto_coding_function.  */
-		  specpdl_ptr--;
-		  current_buffer->enable_multibyte_characters = prev_multibyte;
-		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		}
-
-	      if (NILP (val))
-		{
-		  /* If the coding system is not yet decided, check
-		     file-coding-system-alist.  */
-		  Lisp_Object args[6], coding_systems;
-
-		  args[0] = Qinsert_file_contents, args[1] = orig_filename;
-		  args[2] = visit, args[3] = beg, args[4] = end, args[5] = Qnil;
-		  coding_systems = Ffind_operation_coding_system (6, args);
-		  if (CONSP (coding_systems))
-		    val = XCONS (coding_systems)->car;
-		}
+	      prev_multibyte = current_buffer->enable_multibyte_characters;
+	      current_buffer->enable_multibyte_characters = Qnil;
+	      record_unwind_protect (set_auto_coding_unwind,
+				     prev_multibyte);
+	      val = call1 (Vset_auto_coding_function,
+			   make_number (inserted));
+	      /* Discard the unwind protect for recovering the
+		 error of Vset_auto_coding_function.  */
+	      specpdl_ptr--;
+	      current_buffer->enable_multibyte_characters = prev_multibyte;
+	      TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 	    }
 
-	  /* The following kludgy code is to avoid some compiler bug.
-	     We can't simply do
-		setup_coding_system (val, &coding);
-	     on some system.  */
-	  {
-	    struct coding_system temp_coding;
-	    setup_coding_system (val, &temp_coding);
-	    bcopy (&temp_coding, &coding, sizeof coding);
-	  }
+	  if (NILP (val))
+	    {
+	      /* If the coding system is not yet decided, check
+		 file-coding-system-alist.  */
+	      Lisp_Object args[6], coding_systems;
 
-	  if (NILP (Vcoding_system_for_read)
-	      && NILP (current_buffer->enable_multibyte_characters))
-	    /* We must suppress all text conversion except for
-	       end-of-line conversion.  */
-	    setup_raw_text_coding_system (&coding);
+	      args[0] = Qinsert_file_contents, args[1] = orig_filename;
+	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = Qnil;
+	      coding_systems = Ffind_operation_coding_system (6, args);
+	      if (CONSP (coding_systems))
+		val = XCONS (coding_systems)->car;
+	    }
 	}
 
+      /* The following kludgy code is to avoid some compiler bug.
+	 We can't simply do
+	 setup_coding_system (val, &coding);
+	 on some system.  */
+      {
+	struct coding_system temp_coding;
+	setup_coding_system (val, &temp_coding);
+	bcopy (&temp_coding, &coding, sizeof coding);
+      }
+
+      if (NILP (Vcoding_system_for_read)
+	  && NILP (current_buffer->enable_multibyte_characters))
+	/* We must suppress all text conversion except for
+	   end-of-line conversion.  */
+	setup_raw_text_coding_system (&coding);
+    }
+
+  if (inserted > 0)
+    {
       if (CODING_MAY_REQUIRE_DECODING (&coding))
 	{
 	  /* Here, we don't have to consider byte combining (see the
@@ -4081,19 +4081,19 @@ actually used.")
       else
 	adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
 			     inserted);
+    }
 
 #ifdef DOS_NT
-      /* Use the conversion type to determine buffer-file-type
-	 (find-buffer-file-type is now used to help determine the
-	 conversion).  */
-      if ((coding.eol_type == CODING_EOL_UNDECIDED 
-	   || coding.eol_type == CODING_EOL_LF)
-	  && ! CODING_REQUIRE_DECODING (&coding))
-	current_buffer->buffer_file_type = Qt;
-      else
-	current_buffer->buffer_file_type = Qnil;
+  /* Use the conversion type to determine buffer-file-type
+     (find-buffer-file-type is now used to help determine the
+     conversion).  */
+  if ((coding.eol_type == CODING_EOL_UNDECIDED 
+       || coding.eol_type == CODING_EOL_LF)
+      && ! CODING_REQUIRE_DECODING (&coding))
+    current_buffer->buffer_file_type = Qt;
+  else
+    current_buffer->buffer_file_type = Qnil;
 #endif
-    }
 
  notfound:
  handled:
@@ -4149,7 +4149,7 @@ actually used.")
       && (NILP (visit) || !NILP (replace)))
     signal_after_change (PT, 0, inserted);
 
-  if (set_coding_system && inserted > 0)
+  if (set_coding_system)
     Vlast_coding_system_used = coding.symbol;
 
   if (inserted > 0)
