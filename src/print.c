@@ -2087,7 +2087,7 @@ print_object (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Save_Value:
 	  strout ("#<save_value ", -1, -1, printcharfun, 0);
-	  sprintf(buf, "ptr=0x%08x int=%d",
+	  sprintf(buf, "ptr=0x%08lx int=%d",
 		  (unsigned long) XSAVE_VALUE (obj)->pointer,
 		  XSAVE_VALUE (obj)->integer);
 	  strout (buf, -1, -1, printcharfun, 0);
