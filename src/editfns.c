@@ -905,6 +905,7 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
 {
   time_t value;
   int size;
+  struct tm *tm;
 
   CHECK_STRING (format_string, 1);
 
@@ -914,6 +915,10 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
   /* This is probably enough.  */
   size = STRING_BYTES (XSTRING (format_string)) * 6 + 50;
 
+  tm = NILP (universal) ? localtime (&value) : gmtime (&value);
+  if (! tm)
+    error ("Specified time is not representable");
+
   while (1)
     {
       char *buf = (char *) alloca (size + 1);
@@ -921,15 +926,13 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
 
       buf[0] = '\1';
       result = emacs_strftime (buf, size, XSTRING (format_string)->data,
-			       (NILP (universal) ? localtime (&value)
-				: gmtime (&value)));
+			       tm);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return build_string (buf);
 
       /* If buffer was too small, make it bigger and try again.  */
       result = emacs_strftime (NULL, 0x7fffffff, XSTRING (format_string)->data,
-			       (NILP (universal) ? localtime (&value)
-				: gmtime (&value)));
+			       tm);
       size = result + 1;
     }
 }
@@ -959,6 +962,8 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
     error ("Invalid time specification");
 
   decoded_time = localtime (&time_spec);
+  if (! decoded_time)
+    error ("Specified time is not representable");
   XSETFASTINT (list_args[0], decoded_time->tm_sec);
   XSETFASTINT (list_args[1], decoded_time->tm_min);
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
@@ -1143,18 +1148,15 @@ the data it can't find.")
 {
   time_t value;
   struct tm *t;
+  struct tm gmt;
 
   if (lisp_time_argument (specified_time, &value)
-      && (t = gmtime (&value)) != 0)
+      && (t = gmtime (&value)) != 0
+      && (gmt = *t, t = localtime (&value)) != 0)
     {
-      struct tm gmt;
-      int offset;
-      char *s, buf[6];
-
-      gmt = *t;		/* Make a copy, in case localtime modifies *t.  */
-      t = localtime (&value);
-      offset = tm_diff (t, &gmt);
-      s = 0;
+      int offset = tm_diff (t, &gmt);
+      char *s = 0;
+      char buf[6];
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
 	s = (char *)t->tm_zone;
