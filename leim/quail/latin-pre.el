@@ -180,28 +180,28 @@
 )
 
 (quail-define-package
- "esperanto-prefix" "Latin-1" "EO>" t
+ "esperanto-prefix" "Latin-3" "EO>" t
  "Esperanto input method with prefix modifiers
 Key translation rules are:
- ^H -> ?,A&(B   ^J -> ?,A,(B   ^h -> ?,A6(B   ^j -> ?,A<(B   ^C -> ?,AF(B   ^G -> ?,AX(B,
- ^S -> ?,A^(B   ^c -> ?,Af(B   ^g -> ?,Ax(B   ^s -> ?,A~(B   ~U -> ?,A](B   ~u -> ?,A}(B
+ ^H -> ?,C&(B   ^J -> ?,C,(B   ^h -> ?,C6(B   ^j -> ?,C<(B   ^C -> ?,CF(B   ^G -> ?,CX(B,
+ ^S -> ?,C^(B   ^c -> ?,Cf(B   ^g -> ?,Cx(B   ^s -> ?,C~(B   ~U -> ?,C](B   ~u -> ?,C}(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("^H" ?,A&(B)
- ("^J" ?,A,(B)
- ("^h" ?,A6(B)
- ("^j" ?,A<(B)
- ("^C" ?,AF(B)
- ("^G" ?,AX(B)
- ("^S" ?,A^(B)
- ("^c" ?,Af(B)
- ("^g" ?,Ax(B)
- ("^s" ?,A~(B)
+ ("^H" ?,C&(B)
+ ("^J" ?,C,(B)
+ ("^h" ?,C6(B)
+ ("^j" ?,C<(B)
+ ("^C" ?,CF(B)
+ ("^G" ?,CX(B)
+ ("^S" ?,C^(B)
+ ("^c" ?,Cf(B)
+ ("^g" ?,Cx(B)
+ ("^s" ?,C~(B)
  ("^^" ?^)
  ("^ " ?^)
- ("~U" ?,A](B)
- ("~u" ?,A}(B)
+ ("~U" ?,C](B)
+ ("~u" ?,C}(B)
  ("~ " ?~)
 )
 
