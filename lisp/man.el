@@ -419,6 +419,13 @@ Universal argument ARG, is passed to Man-getpage-in-background."
 	 (if (string= default-entry "")
 	     (error "No man args given.")
 	   (setq man-args default-entry)))
+    ;; Recognize the subject(section) syntax.
+    (if (string-match "^[ \t]*\\([^( \t]+\\)[ \t]*(\\([^)]+\\))[ \t]*$"
+		      man-args)
+	(setq man-args
+	      (concat (substring man-args (match-beginning 2) (match-end 2))
+		      " "
+		      (substring man-args (match-beginning 1) (match-end 1)))))
     (if Man-downcase-section-letters-p
 	(setq man-args (Man-downcase man-args)))
     (Man-getpage-in-background man-args (consp arg))
