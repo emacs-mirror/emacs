@@ -2166,7 +2166,7 @@ extern void truncate_echo_area P_ ((int));
 extern void redisplay P_ ((void));
 extern int check_point_in_composition
 	P_ ((struct buffer *, int, struct buffer *, int));
-extern void redisplay_preserve_echo_area P_ ((void));
+extern void redisplay_preserve_echo_area P_ ((int));
 extern void mark_window_display_accurate P_ ((Lisp_Object, int));
 extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
 extern void prepare_menu_bars P_ ((void));

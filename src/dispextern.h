@@ -2144,7 +2144,7 @@ int window_box_left P_ ((struct window *, int));
 int window_box_right P_ ((struct window *, int));
 void window_box_edges P_ ((struct window *, int, int *, int *, int *, int *));
 void mark_window_display_accurate P_ ((Lisp_Object, int));
-void redisplay_preserve_echo_area P_ ((void));
+void redisplay_preserve_echo_area P_ ((int));
 void set_cursor_from_row P_ ((struct window *, struct glyph_row *,
 			      struct glyph_matrix *, int, int, int, int));
 void init_iterator P_ ((struct it *, struct window *, int,
