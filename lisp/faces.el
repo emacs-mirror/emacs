@@ -2022,6 +2022,14 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 
+(defface glyph
+  '((t
+     :inherit secondary-selection))
+  "Basic face for displaying \\ and ^ in multichar glyphs.
+It is also used for ... in ellipses."
+  :group 'basic-faces)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.
