@@ -715,7 +715,19 @@ struct buffer
 
   /* Widths of left and right marginal areas for windows displaying
      this buffer.  */
-  Lisp_Object left_margin_width, right_margin_width;
+  Lisp_Object left_margin_cols, right_margin_cols;
+
+  /* Widths of left and right fringe areas for windows displaying
+     this buffer.  */
+  Lisp_Object left_fringe_width, right_fringe_width;
+
+  /* Non-nil means fringes are drawn outside display margins;
+     othersize draw them between margin areas and text.  */
+  Lisp_Object fringes_outside_margins;
+
+  /* Width and type of scroll bar areas for windows displaying
+     this buffer.  */
+  Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
 
   /* Non-nil means indicate lines not displaying text (in a style
      like vi).  */
