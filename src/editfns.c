@@ -1127,7 +1127,7 @@ the data it can't find.")
       return Fcons (make_number (offset), Fcons (build_string (s), Qnil));
     }
   else
-    return Fmake_list (2, Qnil);
+    return Fmake_list (make_number (2), Qnil);
 }
 
 /* This holds the value of `environ' produced by the previous
@@ -2500,7 +2500,8 @@ Transposing beyond buffer boundaries is an error.")
 #ifdef USE_TEXT_PROPERTIES
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
       tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-      Fset_text_properties (start1, end2, Qnil, Qnil);
+      Fset_text_properties (make_number (start1), make_number (end2),
+			    Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
       /* First region smaller than second.  */
@@ -2560,8 +2561,10 @@ Transposing beyond buffer boundaries is an error.")
 #ifdef USE_TEXT_PROPERTIES
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (start1, end1, Qnil, Qnil);
-          Fset_text_properties (start2, end2, Qnil, Qnil);
+          Fset_text_properties (make_number (start1), make_number (end1),
+				Qnil, Qnil);
+          Fset_text_properties (make_number (start2), make_number (end2),
+				Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
 	  if (len1 > 20000)
@@ -2593,7 +2596,8 @@ Transposing beyond buffer boundaries is an error.")
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (start1, end2, Qnil, Qnil);
+          Fset_text_properties (make_number (start1), make_number (end2),
+				Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
 	  /* holds region 2 */
@@ -2629,7 +2633,8 @@ Transposing beyond buffer boundaries is an error.")
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-          Fset_text_properties (start1, end2, Qnil, Qnil);
+          Fset_text_properties (make_number (start1), make_number (end2),
+				Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
 	  /* holds region 1 */
