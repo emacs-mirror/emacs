@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.261 2000/09/04 19:46:19 gerd Exp $
+;; $Id: vc.el,v 1.262 2000/09/04 19:46:58 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1892,6 +1892,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	    (dired-buffers-for-dir dir))
     result))
 
+;;;###autoload
 (defun vc-dired-resynch-file (file)
   "Update the entries for FILE in any VC Dired buffers that list it."
   (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
