@@ -880,6 +880,15 @@ now highlight user input and program prompts, and support choosing
 previous input with mouse-2.  To control these feature, see the
 user-options `comint-highlight-input' and `comint-highlight-prompt'.
 
+The new command `comint-write-output' (usually bound to `C-c C-s')
+saves the output from the most recent command to a file.  With a prefix
+argument, it appends to the file.
+
+The command `comint-kill-output' has been renamed `comint-delete-output'
+(usually bound to `C-c C-o'); the old name is aliased to it for
+compatibility.
+
+
 ** Changes to Rmail mode
 
 *** The new user-option rmail-rmail-user-mail-address-regexp can be
