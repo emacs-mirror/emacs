@@ -1733,7 +1733,7 @@ The next char is either \\n, or \\r if DIR is hidden."
 ;;;###autoload
 (defun dired-mark-subdir-files ()
   "Mark all files except `.' and `..'."
-  (interactive "P")
+  (interactive)
   (let ((p-min (dired-subdir-min)))
     (dired-mark-files-in-region p-min (dired-subdir-max))))
 
