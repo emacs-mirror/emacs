@@ -1949,7 +1949,7 @@ Control characters turn into C-whatever, etc.")
 	}
       else
 	{
-	  char tem[30];
+	  char tem[KEY_DESCRIPTION_SIZE];
 
 	  *push_key_description (XUINT (key), tem) = 0;
 	  return build_string (tem);
@@ -2414,7 +2414,7 @@ You type        Translation\n\
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
 	  {
-	    char buf[30];
+	    char buf[KEY_DESCRIPTION_SIZE];
 	    char *bufend;
 
 	    if (alternate_heading)
