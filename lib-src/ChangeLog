@@ -1,5 +1,7 @@
 2001-12-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacsserver.c: Conditionally include config.h.
+
 	* emacsclient.c: Include "config.h", not <../src/config.h>.
 	(main): Parenthesize assignment when used as truth value to
 	prevent gcc warnings.
