@@ -64,8 +64,8 @@ will be parsed and highlighted as soon as you try to move to them."
   :version "21.4"
   :group 'grep)
 
-(defcustom grep-highlight-matches t
-  "*Non-nil to use special markers to highlight grep matches.
+(defcustom grep-highlight-matches 'auto-detect
+  "*If t, use special markers to highlight grep matches.
 
 Some grep programs are able to surround matches with special
 markers in grep output.  Such markers can be used to highlight
@@ -75,7 +75,9 @@ This option sets the environment variable GREP_COLOR to specify
 markers for highlighting and GREP_OPTIONS to add the --color
 option in front of any explicit grep options before starting
 the grep."
-  :type 'boolean
+  :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
+		 (const :tag "Highlight matches with grep markers" t)
+		 (other :tag "Not Set" auto-detect))
   :version "21.4"
   :group 'grep)
 
@@ -110,7 +112,6 @@ necessary if the grep program used supports the `-H' option.
 
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
-  :type 'boolean
   :type '(choice (const :tag "Do Not Append Null Device" nil)
 		 (const :tag "Append Null Device" t)
 		 (other :tag "Not Set" auto-detect))
@@ -415,7 +416,18 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
 			   find-program gcmd))
 		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
-			     find-program gcmd null-device)))))))
+			     find-program gcmd null-device))))))
+  (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
+    (setq grep-highlight-matches
+	  (with-temp-buffer
+            (and (equal (condition-case nil
+                            (call-process grep-program nil t nil "--help")
+                          (error nil))
+                        0)
+                 (progn
+                   (goto-char (point-min))
+                   (search-forward "--color" nil t))
+                 t)))))
 
 (defun grep-default-command ()
   (let ((tag-default
