@@ -84,7 +84,7 @@ With prefix arg, the output format gets more cryptic,
 but still shows the full information."
   (interactive "P")
   (help-setup-xref (list #'list-character-sets arg) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
+  (with-output-to-temp-buffer "*Character Set List*"
     (with-current-buffer standard-output
       (if arg
 	  (list-character-sets-2)
@@ -487,8 +487,14 @@ This can list both Emacs `official' (ISO standard) charsets and the
 characters encoded by various Emacs coding systems which correspond to
 PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
   (interactive (list (read-charset "Character set: ")))
-  (with-output-to-temp-buffer "*Help*"
+  (with-output-to-temp-buffer "*Character List*"
     (with-current-buffer standard-output
+      (setq mode-line-format (copy-sequence mode-line-format))
+      (let ((slot (memq 'mode-line-buffer-identification mode-line-format)))
+	(if slot
+	    (setcdr slot
+		    (cons (format " (%s)" charset)
+			  (cdr slot)))))
       (setq indent-tabs-mode nil)
       (set-buffer-multibyte t)
       (cond ((charsetp charset)
