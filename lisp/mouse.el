@@ -886,12 +886,13 @@ is to prevent accidents."
 		(window-buffer (posn-window (event-start click)))
 	      (current-buffer)))
 	(error "Select or click on the buffer where the secondary selection is")))
-  (save-excursion
-    (set-buffer (overlay-buffer mouse-secondary-overlay))
-    (kill-region (overlay-start mouse-secondary-overlay)
-		 (overlay-end mouse-secondary-overlay)))
+  (let (this-command)
+    (save-excursion
+      (set-buffer (overlay-buffer mouse-secondary-overlay))
+      (kill-region (overlay-start mouse-secondary-overlay)
+		   (overlay-end mouse-secondary-overlay))))
   (delete-overlay mouse-secondary-overlay)
-  (x-set-selection 'SECONDARY nil)
+;;;  (x-set-selection 'SECONDARY nil)
   (setq mouse-secondary-overlay nil))
 
 (defun mouse-secondary-save-then-kill (click)
