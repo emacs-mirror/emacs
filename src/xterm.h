@@ -81,15 +81,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern XGCValues face_gc_values;				      
 
 /* The mask of events that text windows always want to receive.  This
-   does not include mouse movement events or button release events.
-   It is used when the window is created (in x_window) and when we
-   ask/unask for mouse movement events (in XTmouse_tracking_enable).
-   */
+   does not include mouse movement events.  It is used when the window
+   is created (in x_window) and when we ask/unask for mouse movement
+   events (in XTmouse_tracking_enable).
+
+   We do include ButtonReleases in this set because elisp isn't always
+   fast enough to catch them when it wants them, and they're rare
+   enough that they don't use much processor time.  */
 
 #define STANDARD_EVENT_SET      \
   (KeyPressMask			\
    | ExposureMask		\
    | ButtonPressMask		\
+   | ButtonReleaseMask		\
+   | PointerMotionMask		\
+   | PointerMotionHintMask	\
    | StructureNotifyMask	\
    | FocusChangeMask		\
    | LeaveWindowMask		\
