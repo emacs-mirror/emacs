@@ -1390,10 +1390,10 @@ number of backslashes."
    ("^\\s *(def\\(un\\|macro\\|advice\\|subst\\|method\\)\\s " "\\()\\|nil\\)" defun)
 
    ("^\\s *(\\(def\\(var\\|type\\|parameter\\)\\|declare\\)\\s +\\S +" nil decl)
-   ("^\\s *(def\\(const\\(ant\\)?\\|class\\|struct\\)\\s \\S +[ \t\n]+\\((\\(([^()]*)\\|[^()]+\\)*)\\)?" nil define)
+   ("^\\s *(def\\(const\\(ant\\)?\\|class\\|struct\\)\\s \\S +[ \t\n]+" nil define)
    ("^\\s *(\\(provide\\|require\\|\\(auto\\)?load\\).*$" nil include)
    ("[ \t]\\&\\(key\\|rest\\|optional\\|aux\\)\\s *" nil keyword)
-   ("(\\(let\\*?\\|locally\\|cond\\|if\\*?\\|or\\|and\\|map\\(car\\|c[ao]n\\)?\\|prog[nv1*]?\\|while\\|when\\|unless\\|do\\(\\*\\|list\\|times\\)\\|lambda\\|function\\|values\\|set\\([qf]\\|car\\|cdr\\)?\\|rplac[ad]\\|nconc\\|block\\|go\\|return\\(-from\\)?\\|[ec]?\\(type\\)?case\\|multiple-value-\\(bind\\|setq\\|list\\|call\\|prog1\\)\\|unwind-protect\\|handler-case\\|catch\\|throw\\|eval-when\\(-compile\\)?\\)[ \t\n]" 1 keyword)
+   ("(\\(let\\*?\\|locally\\|cond\\|if\\*?\\|or\\|and\\|map\\(car\\|c[ao]n\\)?\\|prog[nv1*]?\\|while\\|when\\|unless\\|do\\(\\*\\|list\\|times\\)\\|list\\|lambda\\|function\\|values\\|set\\([qf]\\|car\\|cdr\\)?\\|rplac[ad]\\|nconc\\|block\\|go\\|return\\(-from\\)?\\|[ec]?\\(type\\)?case\\|multiple-value-\\(bind\\|setq\\|list\\|call\\|prog1\\)\\|unwind-protect\\|handler-case\\|catch\\|throw\\|eval-when\\(-compile\\)?\\)[ \t\n]" 1 keyword)
    ))
 
 
@@ -1469,10 +1469,7 @@ number of backslashes."
 (hilit-set-mode-patterns
  'calendar-mode
  '(("[A-Z][a-z]+ [0-9]+" nil define)	; month and year
-   ("S  M Tu  W Th  F  S" nil label)	; week days
-   ("[0-9]+\\*" nil defun)		; holidays
-   ("[0-9]+\\+" nil comment)		; diary days
-   ))
+   ("S  M Tu  W Th  F  S" nil label)))	; week days
 
 (hilit-set-mode-patterns
  'pascal-mode
