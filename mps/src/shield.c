@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.7) $
+ * $HopeName: MMsrc!shield.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -73,7 +73,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.7) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.8) $");
 
 
 void ShieldSuspend(Arena arena)
@@ -105,7 +105,7 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
 
   if(SegPM(seg) & mode) {
     SegSetPM(seg, SegPM(seg) & ~mode);
-    ProtSet(SegBase(arena, seg), SegLimit(arena, seg), SegPM(seg));
+    ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
   }
 }
 
@@ -115,7 +115,7 @@ static void sync(Arena arena, Seg seg)
   AVERT(Seg, seg);
 
   if(SegPM(seg) != SegSM(seg)) {
-    ProtSet(SegBase(arena, seg), SegLimit(arena, seg), SegSM(seg));
+    ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
     SegSetPM(seg, SegSM(seg));
     /* inv.prot.shield */
   }

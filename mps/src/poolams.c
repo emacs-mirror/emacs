@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.8) $
+ * $HopeName: MMsrc!poolams.c(trunk.9) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.8) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.9) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -76,11 +76,9 @@ static Bool AMSCheck(AMS ams);
 /* only use when size is a multiple of the grain size */
 #define AMSGrains(ams,size)       ((size) >> (ams)->grainShift)
 
-#define AMSGroupBase(group)       SegBase(AMSGroupArena(group),       \
-					  (group)->seg)
+#define AMSGroupBase(group)       SegBase((group)->seg)
 
-#define AMSGroupLimit(group)      SegLimit(AMSGroupArena(group),      \
-					   (group)->seg)
+#define AMSGroupLimit(group)      SegLimit((group)->seg)
 
 #define AMSGroupShift(group)      ((group)->ams->grainShift)
 
@@ -174,8 +172,7 @@ static Bool AMSGroupCheck(AMSGroup group)
   CHECKU(AMS, group->ams);
 
   CHECKL(group->grains ==
-         (SegSize(AMSGroupArena(group), group->seg) >>
-          group->ams->grainShift));
+         (SegSize(group->seg) >> group->ams->grainShift));
   CHECKL(group->grains > 0);
 
   if (SegWhite(group->seg) != TraceSetEMPTY)
@@ -230,7 +227,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
     goto failGroup;
   group = (AMSGroup)p;
 
-  res = SegAlloc(&seg, SegPrefDefault(), arena, size, pool);
+  res = SegAlloc(&seg, SegPrefDefault(), size, pool);
   if (res != ResOK)
     goto failSeg;
   
@@ -273,7 +270,7 @@ failScan:
 failMark:
   BTDestroy(group->allocTable, arena, group->grains);
 failAlloc:
-  SegFree(arena, seg);
+  SegFree(seg);
 failSeg:
   ArenaFree(arena, group, (Size)sizeof(AMSGroupStruct));
 failGroup:
@@ -295,9 +292,9 @@ static void AMSGroupDestroy(AMSGroup group)
   arena = PoolArena(AMSPool(ams));
   AVERT(Arena, arena);
 
-  AVER(ams->size >= SegSize(arena, group->seg));
+  AVER(ams->size >= SegSize(group->seg));
 
-  ams->size -= SegSize(arena, group->seg);
+  ams->size -= SegSize(group->seg);
   /* design.mps.poolams.benefit.reclaim */
   ams->lastReclaimed = ams->size;
 
@@ -307,7 +304,7 @@ static void AMSGroupDestroy(AMSGroup group)
   BTDestroy(group->scanTable, arena, group->grains);
   BTDestroy(group->markTable, arena, group->grains);
   BTDestroy(group->allocTable, arena, group->grains);
-  SegFree(arena, group->seg);
+  SegFree(group->seg);
   ArenaFree(arena, group, (Size)sizeof(AMSGroupStruct));
 }  
 
@@ -441,7 +438,7 @@ static Res AMSBufferFill(Seg *segReturn,
   Res res;
   AMS ams;
   AMSGroup group;
-  Ring node, ring;              /* for iterating over the segments */
+  Ring node, ring, nextNode;    /* for iterating over the segments */
   Index base, limit;
   RankSet rankSet;
   Bool b;                       /* the return value of AMSGroupAlloc */
@@ -461,7 +458,7 @@ static Res AMSBufferFill(Seg *segReturn,
 
   /* design.mps.poolams.fill.slow */
   ring = PoolSegRing(pool);
-  RING_FOR(node, ring) {
+  RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     if (SegBuffer(seg) == NULL &&
 	SegRankSet(seg) == rankSet) {
@@ -642,8 +639,8 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
   alignment = PoolAlignment(AMSPool(ams));
   AVER(alignment == format->alignment); /* design.mps.poolams.align */
 
-  p = SegBase(arena, seg);
-  limit = SegLimit(arena, seg);
+  p = SegBase(seg);
+  limit = SegLimit(seg);
 
   while (p < limit) { /* design.mps.poolams.iter.how */
     Index i;
@@ -1146,7 +1143,7 @@ static Res AMSSegDescribe(AMS ams, Seg seg, mps_lib_FILE *stream)
 static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 {
   AMS ams;
-  Ring node;
+  Ring node, nextNode;
   Res res;
 
   AVERT(Pool, pool);
@@ -1179,7 +1176,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK)
     return res;
 
-  RING_FOR(node, PoolSegRing(pool)) {
+  RING_FOR(node, PoolSegRing(pool), nextNode) {
     Seg seg = SegOfPoolRing(node);
     AMSSegDescribe(ams, seg, stream);
   }
