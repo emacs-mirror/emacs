@@ -1871,18 +1871,6 @@ init_from_display_pos (it, w, pos)
       xassert (it->dpvec && it->current.dpvec_index == 0);
       it->current.dpvec_index = pos->dpvec_index;
     }
-  else if (it->current.dpvec_index >= 0)
-    {
-      /* I don't think this can happen, just being paranoid...  */
-      it->dpvec = NULL;
-      it->current.dpvec_index = -1;
-      if (it->s)
-	it->method = next_element_from_c_string;
-      else if (STRINGP (it->string))
-	it->method = next_element_from_string;
-      else
-	it->method = next_element_from_buffer;
-    }
   
   CHECK_IT (it);
 }
@@ -10450,6 +10438,13 @@ try_window_reusing_current_matrix (w)
     {
       int first_row_y;
       
+      /* Don't use this method if the display starts with an ellipsis
+	 displayed for invisible text.  It's not easy to handle that case
+	 below, and it's certainly not worth the effort since this is
+	 not a frequent case.  */
+      if (in_ellipses_for_invisible_text_p (&start_row->start, w))
+	return 0;
+
       IF_DEBUG (debug_method_add (w, "twu1"));
       
       /* Display up to a row that can be reused.  The variable
@@ -10649,6 +10644,7 @@ try_window_reusing_current_matrix (w)
       /* Start displaying at the start of first_row_to_display.  */
       xassert (first_row_to_display->y < yb);
       init_to_row_start (&it, w, first_row_to_display);
+
       nrows_scrolled = (MATRIX_ROW_VPOS (first_reusable_row, w->current_matrix)
 			- start_vpos);
       it.vpos = (MATRIX_ROW_VPOS (first_row_to_display, w->current_matrix)
