@@ -1,5 +1,8 @@
 2000-01-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* tmm.el (tmm-shortcut): Delete region after prompt instead
+	of erasing buffer.
+
 	* textmodes/fill.el (fill-common-string-prefix): New function.
 	(fill-context-prefix): Use the longest common substring of both
 	prefixes, if there is one.

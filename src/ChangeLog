@@ -1,3 +1,8 @@
+2000-01-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* .gdbinit: Adapt to new strings.  Add xbacktrace, xreload,
+	xprintsym.
+
 2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* minibuf.c (Ftry_completion): Doc fix.
@@ -9530,10 +9535,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xfaces.c (Fset_face_attribute_internal): Allow nil relief
 	to mean a zero relief.
-
-	* .gdbinit (xprintsym): Print a symbol.
-	(xbacktrace): Print a backtrace of Lisp function calls from
-	backtrace_list.
 
 1997-11-19  Gerd Moellmann  <gerd@acm.org>
 
