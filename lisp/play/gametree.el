@@ -93,7 +93,8 @@
 (defgroup gametree nil
   "Manage game analysis trees in Emacs."
   :prefix "gametree-"
-  :group 'games)
+  :group 'games
+  :version "20.3")
 
 (defcustom gametree-half-ply-regexp (regexp-quote ":")
   "*Matches ends of numbers of moves by the \"second\" player.

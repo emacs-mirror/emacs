@@ -93,7 +93,8 @@
 (defgroup vhdl nil
   "Customizations for VHDL Mode."
   :prefix "vhdl-"
-  :group 'languages)
+  :group 'languages
+  :version "20.3")
 
 
 (defgroup vhdl-mode nil

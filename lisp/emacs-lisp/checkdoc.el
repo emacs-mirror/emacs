@@ -1767,7 +1767,8 @@ function called to create the messages."
 (defgroup checkdoc nil
   "Support for doc-string checking in emacs lisp."
   :prefix "checkdoc"
-  :group 'lisp)
+  :group 'lisp
+  :version "20.3")
 
 (custom-add-option 'emacs-lisp-mode-hook
 		   (lambda () (checkdoc-minor-mode 1)))
