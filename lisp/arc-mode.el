@@ -905,12 +905,12 @@ using `make-temp-name', and the generated name is returned."
       (or (not (buffer-name buffer))
 	  (progn
 	    (if view-p
-		(view-buffer buffer (and just-created 'kill-buffer)))
-	    (if (eq other-window-p 'display)
-		(display-buffer buffer)
-	      (if other-window-p
-		  (switch-to-buffer-other-window buffer)
-		(switch-to-buffer buffer)))))))
+		(view-buffer buffer (and just-created 'kill-buffer))
+	      (if (eq other-window-p 'display)
+		  (display-buffer buffer)
+		(if other-window-p
+		    (switch-to-buffer-other-window buffer)
+		  (switch-to-buffer buffer))))))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))
