@@ -1836,9 +1836,7 @@ vmotion (from, vtarget, w)
      register int from, vtarget;
      struct window *w;
 {
-  /* We don't need to make room for continuation marks (we have fringes now),
-     so hould we really subtract 1 here if FRAME_WINDOW_P ?  ++KFS  */
-  int width = window_box_text_cols (w) - 1;
+  int width = window_box_text_cols (w);
   int hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
@@ -1858,6 +1856,12 @@ vmotion (from, vtarget, w)
   Lisp_Object text_prop_object;
 
   XSETWINDOW (window, w);
+
+  /* We must make room for continuation marks if we don't have fringes.  */
+#ifdef HAVE_WINDOW_SYSTEM
+  if (!FRAME_WINDOW_P (XFRAME (w->frame)))
+#endif
+    width -= 1;
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
