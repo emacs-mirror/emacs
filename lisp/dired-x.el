@@ -1560,13 +1560,15 @@ to test if that file exists.  Use minibuffer after snatching filename."
   (find-file-other-window (expand-file-name filename)))
 
 ;;; Internal functions.
-(defun dired-filename-at-point ()
 
+;; Fixme: This should probably be replaced with `thing-at-point', but
+;; that needs checking for compatibility.  -- fx
+(defun dired-filename-at-point ()
   "Get the filename closest to point, but do not change position.
 Has a preference for looking backward when not directly on a symbol.  Not
 perfect - point must be in middle of or end of filename."
 
-  (let ((filename-chars ".a-zA-Z0-9---_/:$+@") ; fixme: allow non-ASCII
+  (let ((filename-chars "-.[:alnum:]_/:$+@")
         (bol (save-excursion (beginning-of-line) (point)))
         (eol (save-excursion (end-of-line) (point)))
         start end filename prefix)
