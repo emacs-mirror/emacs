@@ -1,3 +1,10 @@
+2000-03-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (list-character-sets): Make help-echo
+	string by substitute-command-keys.
+	(list-character-sets): Likewise.
+	(sort-listed-character-sets): Call help-setup-xref.
+
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* time.el (display-time-mail-file): Add `none' to the list of
