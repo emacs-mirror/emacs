@@ -686,6 +686,9 @@ struct glyph_row
   /* 1 in a current row means this row overlaps others.  */
   unsigned overlapping_p : 1;
 
+  /* 1 means some glyphs in this row are displayed in mouse-face.  */
+  unsigned mouse_face_p : 1;
+
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 };
