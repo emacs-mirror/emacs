@@ -4,6 +4,11 @@
 	(backquote-unquote-symbol, backquote-splice-symbol): Remove `*'
 	from doc strings.
 
+2001-09-02  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-convert-to-unreadable): Consider
+	underscores as in `glasses-make-readable'.
+
 2001-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/cmacexp.el (c-macro-preprocessor): Use "gcc -E" for

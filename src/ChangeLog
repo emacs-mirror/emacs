@@ -1,3 +1,7 @@
+2001-09-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (syms_of_buffer) <default-directory>: Doc fix.
+
 2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fns.c (Fmd5): Doc fix.
