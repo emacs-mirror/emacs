@@ -1,7 +1,7 @@
 #!/bin/sh
 # ==== ROBOT CHECKOUT SCRIPT ====
 #
-# $Id: bin:checkout,v 1.3 1995/08/30 10:15:57 drj Exp $
+# $Id: bin:checkout,v 1.4 1997/06/05 08:12:48 drj Exp $
 #
 # This script is run in the MM Project Robot's home directory (~mm) as the
 # user `mm'.  It checks out the HOMEmm compound in order be sure that the
@@ -14,4 +14,4 @@ script="`basename $0`"
 cd $HOME &&
 hope checkout -compound HOMEmm -recursive -writable-files quit \
   -extra-files delete &&
-crontab < $HOME/etc/crontab
+crontab < $HOME/etc/`hostname`.cron
