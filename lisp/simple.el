@@ -2339,6 +2339,9 @@ it were the arg to `interactive' (which see) to interactively read the value."
 ;; Completion mode is suitable only for specially formatted data.
 (put 'completion-list-mode 'mode-class 'special)
 
+;; Record the buffer that was current when the completion list was requested.
+(defvar completion-reference-buffer)
+
 (defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
 Type \\<completion-list-mode-map>\\[mouse-choose-completion] to select
@@ -2352,11 +2355,15 @@ a completion with the mouse."
 
 (defun completion-setup-function ()
   (save-excursion
-    (completion-list-mode)
-    (goto-char (point-min))
-    (if window-system
-	(insert (substitute-command-keys
-		 "Click \\[mouse-choose-completion] on a completion to select it.\n\n")))))
+    (let ((mainbuf (current-buffer)))
+      (set-buffer standard-output)
+      (completion-list-mode)
+      (make-local-variable 'completion-reference-buffer)
+      (setq completion-reference-buffer mainbuf)
+      (goto-char (point-min))
+      (if window-system
+	  (insert (substitute-command-keys
+		   "Click \\[mouse-choose-completion] on a completion to select it.\n\n"))))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
