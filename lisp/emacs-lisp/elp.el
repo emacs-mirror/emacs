@@ -5,8 +5,8 @@
 ;; Author: 1994 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
 ;; Maintainer:    tools-help@anthem.nlm.nih.gov
 ;; Created:       26-Feb-1994
-;; Version:       2.22
-;; Last Modified: 1994/12/23 17:46:21
+;; Version:       2.23
+;; Last Modified: 1994/12/28 22:39:31
 ;; Keywords:      Emacs Lisp Profile Timing
 
 ;; This file is part of GNU Emacs.
@@ -27,34 +27,33 @@
 
 ;;; Commentary:
 ;;
-;; Here are some brief usage notes.  If you want to profile a bunch of
-;; functions, set elp-function-list to the list of symbols, then call
-;; elp-instrument-list.  This hacks the functions so that profiling
-;; information is recorded whenever they are called.  To print out the
-;; current results, use elp-results.  With elp-reset-after-results set
-;; to non-nil, profiling information will be reset whenever the
-;; results are displayed.  You can also reset all profiling info at
-;; any time with elp-reset-all.
+;; If you want to profile a bunch of functions, set elp-function-list
+;; to the list of symbols, then do a M-x elp-instrument-list.  This
+;; hacks those functions so that profiling information is recorded
+;; whenever they are called.  To print out the current results, use
+;; M-x elp-results.  With elp-reset-after-results set to non-nil,
+;; profiling information will be reset whenever the results are
+;; displayed.  You can also reset all profiling info at any time with
+;; M-x elp-reset-all.
 ;;
 ;; You can also instrument all functions in a package, provided that
 ;; the package follows the GNU coding standard of a common textural
-;; prefix.  Use the elp-instrument-package command for this.
+;; prefix.  Use M-x elp-instrument-package for this.
 ;;
 ;; If you want to sort the results, set elp-sort-by-function to some
 ;; predicate function.  The three most obvious choices are predefined:
 ;; elp-sort-by-call-count, elp-sort-by-average-time, and
-;; elp-sort-by-total-time.  Also, you can prune from the output
-;; display, all functions that have been called fewer than a given
-;; number of times by setting elp-report-limit to that number.
+;; elp-sort-by-total-time.  Also, you can prune from the output, all
+;; functions that have been called fewer than a given number of times
+;; by setting elp-report-limit.
 ;;
 ;; Elp can instrument byte-compiled functions just as easily as
 ;; interpreted functions, but it cannot instrument macros.  However,
 ;; when you redefine a function (e.g. with eval-defun), you'll need to
-;; re-instrument it with elp-instrument-function.  Re-instrumenting
-;; resets profiling information for that function.  Elp can also
-;; handle interactive functions (i.e. commands), but of course any
-;; time spent idling for user prompts will show up in the timing
-;; results.
+;; re-instrument it with M-x elp-instrument-function.  This will also
+;; reset profiling information for that function.  Elp can handle
+;; interactive functions (i.e. commands), but of course any time spent
+;; idling for user prompts will show up in the timing results.
 ;;
 ;; You can also designate a `master' function.  Profiling times will
 ;; be gathered for instrumented functions only during execution of
@@ -66,9 +65,9 @@
 ;;
 ;; and you want to find out the amount of time spent in bar and foo,
 ;; but only during execution of bar, make bar the master.  The call of
-;; foo from baz will not add to foo's total timing sums.  Use
-;; elp-set-master and elp-unset-master to utilize this feature.  Only
-;; one master function can be used at a time.
+;; foo from baz will not add to foo's total timing sums.  Use M-x
+;; elp-set-master and M-x elp-unset-master to utilize this feature.
+;; Only one master function can be set at a time.
 
 ;; You can restore any function's original function definition with
 ;; elp-restore-function.  The other instrument, restore, and reset
@@ -105,6 +104,20 @@
 ;;   elp-results
 ;;   elp-submit-bug-report
 
+;; Note that there are plenty of factors that could make the times
+;; reported unreliable, including the accuracy and granularity of your
+;; system clock, and the overhead spent in lisp calculating and
+;; recording the intervals.  I figure the latter is pretty constant,
+;; so while the times may not be entirely accurate, I think they'll
+;; give you a good feel for the relative amount of work spent in the
+;; various lisp routines you are profiling.  Note further that times
+;; are calculated using wall-clock time, so other system load will
+;; affect accuracy too.  You cannot profile anything longer than ~18
+;; hours since I throw away the most significant 16 bits of seconds
+;; returned by current-time: 2^16 == 65536 seconds == ~1092 minutes ==
+;; ~18 hours.  I doubt you will ever want to profile stuff on the
+;; order of 18 hours anyway.
+
 ;;; Background:
 
 ;; This program is based on the only two existing Emacs Lisp profilers
@@ -118,11 +131,7 @@
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
 ;; current-time to return interval times.  This obviates the need for
 ;; both an external C program and Emacs processes to communicate with
-;; such a program, and thus simplifies the package as a whole.  One
-;; small shortcut: I throw away the most significant 16 bits of
-;; seconds returned by current-time since I doubt anyone will ever
-;; want to profile stuff on the order of 18 hours.  2^16 == 65536
-;; seconds == ~1092 minutes == ~18 hours.
+;; such a program, and thus simplifies the package as a whole.
 
 ;;; Code:
 
@@ -163,7 +172,7 @@ functions will be displayed.")
 ;; end user configuration variables
 
 
-(defconst elp-version "2.22"
+(defconst elp-version "2.23"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@anthem.nlm.nih.gov"
