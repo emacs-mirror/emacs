@@ -1,6 +1,6 @@
 ;;; code-pages.el --- coding systems for assorted codepages  -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -2440,6 +2440,7 @@ Return an updated `non-iso-charset-alist'."
   nil
   nil])
 
+;;;###autoload(autoload-coding-system 'windows-1250 '(require 'code-pages))
 (cp-make-coding-system
  windows-1250
  [?\€
@@ -2571,6 +2572,7 @@ Return an updated `non-iso-charset-alist'."
   ?\ţ
   ?\˙])
 
+;;;###autoload(autoload-coding-system 'windows-1253 '(require 'code-pages))
 (cp-make-coding-system
  windows-1253
  [?\€
@@ -2703,6 +2705,7 @@ Return an updated `non-iso-charset-alist'."
   nil]
  nil ?g) ;; Greek
 
+;;;###autoload(autoload-coding-system 'windows-1254 '(require 'code-pages))
 (cp-make-coding-system
  windows-1254
  [?\€
@@ -2835,6 +2838,7 @@ Return an updated `non-iso-charset-alist'."
   ?\ÿ])
 
 ;; yi_US
+;;;###autoload(autoload-coding-system 'windows-1255 '(require 'code-pages))
 (cp-make-coding-system
  windows-1255
  [?\€
@@ -2967,6 +2971,7 @@ Return an updated `non-iso-charset-alist'."
   nil]
  nil ?h) ;; Hebrew
 
+;;;###autoload(autoload-coding-system 'windows-1256 '(require 'code-pages))
 (cp-make-coding-system
  windows-1256
  [?\€
@@ -3099,6 +3104,7 @@ Return an updated `non-iso-charset-alist'."
   ?\ے]
  nil ?a) ;; Arabic
 
+;;;###autoload(autoload-coding-system 'windows-1257 '(require 'code-pages))
 (cp-make-coding-system
  windows-1257
  [?\€
@@ -3230,6 +3236,7 @@ Return an updated `non-iso-charset-alist'."
   ?\ž
   nil])
 
+;;;###autoload(autoload-coding-system 'windows-1258 '(require 'code-pages))
 (cp-make-coding-system
  windows-1258
  [?\€
@@ -3652,6 +3659,7 @@ Return an updated `non-iso-charset-alist'."
 ;;   ISO 8859-16 was primarily designed for single-byte encoding the Romanian
 ;;   language. The UTF-8 charset is the preferred and in today's MIME software
 ;;   more widely implemented encoding suitable for Romanian.
+;;;###autoload(autoload-coding-system 'iso-8859-16 '(require 'code-pages))
 (cp-make-coding-system
  iso-latin-10				; consistent with, e.g. Latin-1
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
@@ -3823,6 +3831,7 @@ Return an updated `non-iso-charset-alist'."
  ?6)
 (define-coding-system-alias 'arabic-iso-8bit 'iso-8859-6)
 
+;;;###autoload(autoload-coding-system 'iso-8859-10 '(require 'code-pages))
 (cp-make-coding-system
  iso-latin-6
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
@@ -3929,6 +3938,7 @@ Return an updated `non-iso-charset-alist'."
 (define-coding-system-alias 'latin-6 'iso-latin-6)
 
 ;; used by lt_LT, lv_LV, mi_NZ
+;;;###autoload(autoload-coding-system 'iso-8859-13 '(require 'code-pages))
 (cp-make-coding-system
  iso-latin-7
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
@@ -4039,6 +4049,7 @@ Return an updated `non-iso-charset-alist'."
 ;; Fixme: check on the C1 characters which libiconv includes.  They
 ;; are reproduced below, but are probably wrong.  I can't find an
 ;; official definition of georgian-ps.
+;;;###autoload(autoload-coding-system 'georgian-ps '(require 'code-pages))
 (cp-make-coding-system
  georgian-ps				; used by glibc for ka_GE
  [?\

@@ -1,3 +1,8 @@
+2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/code-pages.el (windows-1250, windows-125[2-8])
+	(iso-8859-10, -13, -16, georgian-ps): Add autoload cookies.
+
 2005-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (blink-cursor-mode): `emacs-quick-startup' may not be
