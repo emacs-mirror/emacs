@@ -79,6 +79,11 @@
 	* xdisp.c (resize_mini_window): Do nothing if frame is an X
 	frame that hasn't been initialized yet.
 
+1999-09-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* intervals.c (get_local_map): Use indirect_function,
+	not Findirect_function.
+
 1999-09-27  Dave Love  <fx@gnu.org>
 
 	* cm.h: Remove unneeded declaration of ospeed.
