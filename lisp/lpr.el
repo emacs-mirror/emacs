@@ -26,7 +26,7 @@
 
 ;; Commands to send the region or a buffer your printer.  Entry points
 ;; are `lpr-buffer', `print-buffer', lpr-region', or `print-region'; option
-;; variables include `lpr-switches' and `lpr-command'.
+;; variables include `printer-name', `lpr-switches' and `lpr-command'.
 
 ;;; Code:
 
@@ -34,10 +34,30 @@
   "Print Emacs buffer on line printer"
   :group 'wp)
 
+;;;###autoload
+(defcustom printer-name
+  (if (memq system-type '(ms-dos windows-nt)) "PRN")
+  "*The name of a local printer to which data is sent for printing.
+\(Note that PostScript files are sent to `ps-printer-name', which see.\)
+
+On Unix-like systems, a string value should be a name understood by
+lpr's -P option.
+
+On MS-DOS and MS-Windows systems, it is the name of a printer device or
+port.  Typical non-default settings would be \"LPT1\" to \"LPT3\" for
+parallel printers, or \"COM1\" to \"COM4\" or \"AUX\" for serial
+printers, or \"//hostname/printer\" for a shared network printer.  You
+can also set it to a name of a file, in which case the output gets
+appended to that file.  If you want to discard the printed output, set
+this to \"NUL\"."
+  :type 'file ; could use string but then we lose completion for files.
+  :group 'lpr)
 
 ;;;###autoload
 (defcustom lpr-switches nil 
   "*List of strings to pass as extra options for the printer program.
+It is recommended to set `printer-name' instead of including an explicit
+switch on this list.
 See `lpr-command'."
   :type '(repeat (string :tag "Argument"))
   :group 'lpr)
@@ -170,6 +190,8 @@ The variable `lpr-page-header-program' specifies the program to use."
 			   ;; These belong in pr if we are using that.
 			   (and lpr-add-switches lpr-headers-switches
 				(list "-T" title))
+			   (and (stringp printer-name)
+				(list (concat "-P" printer-name)))
 			   switches)))
       (if (markerp end)
 	  (set-marker end nil))
