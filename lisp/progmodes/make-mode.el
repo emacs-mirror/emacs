@@ -18,7 +18,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.10 1993/12/23 04:57:18 rms Exp rms $
+;; $Id: makefile.el,v 1.11 1994/01/06 09:59:12 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -654,25 +654,24 @@ names to the list of known targets."
 	   (makefile-format-macro-ref macro))))
 
 (defun makefile-browser-fill (targets macros)
-  (setq buffer-read-only nil)
-  (goto-char (point-min))
-  (erase-buffer)
-  (mapconcat
-   (function
-    (lambda (item) (insert (makefile-browser-format-target-line (car item) nil) "\n")))
-   targets
-   "")
-  (mapconcat
-   (function
-    (lambda (item) (insert (makefile-browser-format-macro-line (car item) nil) "\n")))
-   macros
-   "")
-  (sort-lines nil (point-min) (point-max))
-  (goto-char (1- (point-max)))
-  (delete-char 1)			; remove unnecessary newline at eob
-  (goto-char (point-min))
-  (forward-char makefile-browser-cursor-column)
-  (setq buffer-read-only t))
+  (let ((inhibit-read-only t))
+    (goto-char (point-min))
+    (erase-buffer)
+    (mapconcat
+     (function
+      (lambda (item) (insert (makefile-browser-format-target-line (car item) nil) "\n")))
+     targets
+     "")
+    (mapconcat
+     (function
+      (lambda (item) (insert (makefile-browser-format-macro-line (car item) nil) "\n")))
+     macros
+     "")
+    (sort-lines nil (point-min) (point-max))
+    (goto-char (1- (point-max)))
+    (delete-char 1)			; remove unnecessary newline at eob
+    (goto-char (point-min))
+    (forward-char makefile-browser-cursor-column)))
 
 ;;;
 ;;; Moving up and down in the browser
@@ -719,22 +718,21 @@ from that it has been entered."
     (setq this-line (max 1 this-line))
     (makefile-browser-toggle-state-for-line this-line)
     (goto-line this-line)
-    (setq buffer-read-only nil)
-    (beginning-of-line)
-    (if (makefile-browser-on-macro-line-p)
-	(let ((macro-name (makefile-browser-this-line-macro-name)))
+    (let ((inhibit-read-only t))
+      (beginning-of-line)
+      (if (makefile-browser-on-macro-line-p)
+	  (let ((macro-name (makefile-browser-this-line-macro-name)))
+	    (kill-line)
+	    (insert
+	     (makefile-browser-format-macro-line
+		macro-name
+		(makefile-browser-get-state-for-line this-line))))
+	(let ((target-name (makefile-browser-this-line-target-name)))
 	  (kill-line)
 	  (insert
-	   (makefile-browser-format-macro-line
-	      macro-name
-	      (makefile-browser-get-state-for-line this-line))))
-      (let ((target-name (makefile-browser-this-line-target-name)))
-	(kill-line)
-	(insert
-	 (makefile-browser-format-target-line
-	    target-name
-	    (makefile-browser-get-state-for-line this-line)))))
-    (setq buffer-read-only t)
+	   (makefile-browser-format-target-line
+	      target-name
+	      (makefile-browser-get-state-for-line this-line))))))
     (beginning-of-line)
     (forward-char makefile-browser-cursor-column)
     (if makefile-browser-auto-advance-after-selection-p
