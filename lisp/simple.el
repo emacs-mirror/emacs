@@ -2769,10 +2769,11 @@ not end the comment.  Blank lines do not get comments."
 			;; this is questionable if comment-end ends in whitespace
 			;; that is pretty brain-damaged though
 			(skip-chars-backward " \t")
-			(save-excursion
-			  (backward-char (length ce))
-			  (if (looking-at (regexp-quote ce))
-			      (delete-char (length ce))))))))
+			(if (>= (- (point) (point-min)) (length ce))
+			    (save-excursion
+			      (backward-char (length ce))
+			      (if (looking-at (regexp-quote ce))
+				  (delete-char (length ce)))))))))
 		(forward-line 1))
 	    ;; Insert at beginning and at end.
             (if (looking-at "[ \t]*$") ()
