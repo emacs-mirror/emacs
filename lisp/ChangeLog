@@ -1,5 +1,11 @@
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
+	* which-func.el (which-function): Call imenu--make-index-alist
+	if necessary to get a list of functions.
+	(which-function-imenu-failed): New variable.
+	(which-func-update): Handle all visible windows.
+	(which-func-update-1): New subroutine broken out of which-func-update.
+
 	* files.el (temporary-file-directory, null-device) 
 	(small-temporary-file-directory): Definitions moved up.
 
