@@ -1747,15 +1747,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
 	}
 
-      /* Cause C-g and alarm signals to take immediate action,
-	 and cause input available signals to zero out timeout.
-
-	 It is important that we do this before checking for process
-	 activity.  If we get a SIGCHLD after the explicit checks for
-	 process activity, timeout is the only way we will know.  */
-      if (XINT (read_kbd) < 0)
-	set_waiting_for_input (&timeout);
-
       /* If status of something has changed, and no input is
 	 available, notify the user of the change right away.  After
 	 this explicit check, we'll let the SIGCHLD handler zap
@@ -1767,6 +1758,15 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (select (MAXDESC, &Atemp, 0, 0, &timeout) <= 0)
 	    status_notify ();
 	}
+
+      /* Cause C-g and alarm signals to take immediate action,
+	 and cause input available signals to zero out timeout.
+
+	 It is important that we do this before checking for process
+	 activity.  If we get a SIGCHLD after the explicit checks for
+	 process activity, timeout is the only way we will know.  */
+      if (XINT (read_kbd) < 0)
+	set_waiting_for_input (&timeout);
 
       /* Don't wait for output from a non-running process.  */
       if (wait_proc != 0 && !NILP (wait_proc->raw_status_low))
