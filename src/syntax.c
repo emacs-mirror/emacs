@@ -2308,7 +2308,9 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
    assuming that FROM has state OLDSTATE (nil means FROM is start of function),
    and return a description of the state of the parse at END.
    If STOPBEFORE is nonzero, stop at the start of an atom.
-   If COMMENTSTOP is nonzero, stop at the start of a comment.  */
+   If COMMENTSTOP is 1, stop at the start of a comment.
+   If COMMENTSTOP is -1, stop at the start or end of a comment,
+   after the beginning of a string, or after the end of a string.  */
 
 static void
 scan_sexps_forward (stateptr, from, end, targetdepth,
@@ -2569,29 +2571,29 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	  if (boundary_stop) goto done;
 	startinstring:
 	  {
-	      nofence = state.instring != ST_STRING_STYLE;
+	    nofence = state.instring != ST_STRING_STYLE;
 	    
-	      while (1)
-		  {
-		      int c;
+	    while (1)
+	      {
+		int c;
 
-		      if (from >= end) goto done;
-		      c = FETCH_CHAR (from);
-		      if (nofence && c == state.instring) break;
-		      UPDATE_SYNTAX_TABLE_FORWARD (from);
-		      switch (SWITCH_ENUM_CAST (SYNTAX (c)))
-			  {
-			  case Sstring_fence:
-			      if (!nofence) goto string_end;
-			      break;
-			  case Scharquote:
-			  case Sescape:
-			      INC_FROM;
-			    startquotedinstring:
-			      if (from >= end) goto endquoted;
-			  }
-		      INC_FROM;
+		if (from >= end) goto done;
+		c = FETCH_CHAR (from);
+		if (nofence && c == state.instring) break;
+		UPDATE_SYNTAX_TABLE_FORWARD (from);
+		switch (SWITCH_ENUM_CAST (SYNTAX (c)))
+		  {
+		  case Sstring_fence:
+		    if (!nofence) goto string_end;
+		    break;
+		  case Scharquote:
+		  case Sescape:
+		    INC_FROM;
+		  startquotedinstring:
+		    if (from >= end) goto endquoted;
 		  }
+		INC_FROM;
+	      }
 	  }
 	string_end:
 	  state.instring = -1;
