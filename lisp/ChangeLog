@@ -1,3 +1,10 @@
+2001-09-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.el (dired-move-to-filename-regexp): Allow one digit in the
+	numeric month value, and allow the Kanji character after the it to
+	be missing (happens with ls-lisp's output on Japanese versions of
+	MS-Windows).
+
 2001-09-18  Miles Bader  <miles@gnu.org>
 
 	* diff-mode.el (diff-mode): Don't make the buffer read-only if
