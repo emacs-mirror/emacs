@@ -2097,6 +2097,8 @@ DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
        doc: /* Return the window least recently selected or used for display.
 Return a full-width window if possible.
 A minibuffer window is never a candidate.
+A dedicated window is never a candidate, so if all windows are dedicated,
+the value is nil.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
@@ -2117,6 +2119,8 @@ If FRAME is a frame, search only that frame.  */)
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
        doc: /* Return the largest window in area.
 A minibuffer window is never a candidate.
+A dedicated window is never a candidate, so if all windows are dedicated,
+the value is nil.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
