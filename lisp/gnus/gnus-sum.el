@@ -6869,7 +6869,8 @@ re-spool using this method."
 (defcustom gnus-summary-respool-default-method nil
   "Default method for respooling an article.
 If nil, use to the current newsgroup method."
-  :type 'gnus-select-method-name
+  :type '(choice (gnus-select-method :value (nnml ""))
+		 (const nil))
   :group 'gnus-summary-mail)
 
 (defun gnus-summary-respool-article (&optional n method)
