@@ -59,7 +59,7 @@ extern int errno;
 extern char *egetenv ();
 extern char *strcpy ();
 
-#if defined (__bsdi__) || defined (DECLARE_GETPWUID_WITH_UID_T)
+#ifdef DECLARE_GETPWUID_WITH_UID_T
 extern struct passwd *getpwuid (uid_t);
 #else
 extern struct passwd *getpwuid ();
