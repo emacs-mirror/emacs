@@ -1876,7 +1876,9 @@ with that interpreter in `interpreter-mode-alist'.")
 		"[Hh][Tt][Mm][Ll]")) . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
-    ("\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*!DOCTYPE " . sgml-mode)
+    (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
+	(concat "\\s *<" comment-re "*!DOCTYPE ")) . sgml-mode)
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
@@ -1888,9 +1890,8 @@ called, unless it is nil (to allow `auto-mode-alist' to override).")
 
 This checks for a -*- mode tag in the buffer's text, checks the
 interpreter that runs this file against `interpreter-mode-alist',
-compares the buffer beginning against `magic-mode-alist',
-or compares the filename against the entries in
-`auto-mode-alist'.
+compares the buffer beginning against `magic-mode-alist', or
+compares the filename against the entries in `auto-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -1901,13 +1902,11 @@ If `enable-local-variables' is nil, this function does not check for a
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
 only set the major mode, if that would change it."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (end done mode modes xml)
+  (let (end done mode modes)
     ;; Find a -*- mode tag
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
-      ;; While we're at this point, check xml for later.
-      (setq xml (looking-at "<\\?xml \\|<!DOCTYPE"))
       (and enable-local-variables
 	   (setq end (set-auto-mode-1))
 	   (if (save-excursion (search-forward ":" end t))
@@ -1951,9 +1950,10 @@ only set the major mode, if that would change it."
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
 			interpreter-mode-alist))
+      ;; If we found an interpreter mode to use, invoke it now.
       (if done
 	  (set-auto-mode-0 (cdr done) keep-mode-if-same)))
-    ;; If we found an interpreter mode to use, invoke it now.
+    ;; If we didn't, match the buffer beginning against magic-mode-alist.
     (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
@@ -1961,6 +1961,7 @@ only set the major mode, if that would change it."
 				      (lambda (re dummy)
 					(looking-at re)))))
 	  (set-auto-mode-0 done keep-mode-if-same)
+	;; Compare the filename against the entries in auto-mode-alist.
 	(if buffer-file-name
 	    (let ((name buffer-file-name))
 	      ;; Remove backup-suffixes from file name.
@@ -1970,7 +1971,7 @@ only set the major mode, if that would change it."
 		(let ((case-fold-search
 		       (memq system-type '(vax-vms windows-nt cygwin))))
 		  (if (and (setq mode (assoc-default name auto-mode-alist
-						 'string-match))
+						     'string-match))
 			   (consp mode)
 			   (cadr mode))
 		      (setq mode (car mode)
@@ -1978,7 +1979,6 @@ only set the major mode, if that would change it."
 		    (setq name)))
 		(when mode
 		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
-
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
@@ -1997,7 +1997,6 @@ same, do nothing and return nil."
   (when mode
     (funcall mode)
     mode))
-
 
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.
