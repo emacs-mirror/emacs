@@ -113,6 +113,13 @@
 	"-h" switch.
 	(ls-lisp-format): Use it.
 
+2003-05-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-translate-cjk-mode): Update the
+	second extra slot of the translation table
+	utf-translation-table-for-encode.
+	(mule-utf-8): Set the property translation-table-for-encode.
+
 2003-04-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs.el (cvs-vc-command-advice): Don't parse "cvs update -p" output.
