@@ -559,6 +559,7 @@ Note that changing the size of one terminal frame automatically affects all.")
 {
   struct frame *f;
   Lisp_Object frame;
+  Lisp_Object tem;
 
 #ifdef MSDOS
   if (selected_frame->output_method != output_msdos_raw)
@@ -576,7 +577,15 @@ Note that changing the size of one terminal frame automatically affects all.")
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
-  f->face_alist = selected_frame->face_alist;
+
+  /* Make the frame face alist be frame-specific, so that each
+     frame could change its face definitions independently.  */
+  f->face_alist = Fcopy_alist (selected_frame->face_alist);
+  /* Simple Fcopy_alist isn't enough, because we need the contents of
+     the vectors which are the CDRs of associations in face_alist to
+     be copied as well.  */
+  for (tem = f->face_alist; CONSP (tem); tem = XCDR (tem))
+    XCDR (XCAR (tem)) = Fcopy_sequence (XCDR (XCAR (tem)));
   return frame;
 }
 
@@ -1952,11 +1961,15 @@ If FRAME is omitted, return information on the currently selected frame.")
     {
       int fg = FRAME_FOREGROUND_PIXEL (f);
       int bg = FRAME_BACKGROUND_PIXEL (f);
+      Lisp_Object qreverse = intern ("reverse");
+      int rv =
+	!NILP (Fassq (qreverse, alist))
+	|| !NILP (Fassq (qreverse, Vdefault_frame_alist));
 
       store_in_alist (&alist, intern ("foreground-color"),
-		      build_string (msdos_stdcolor_name (fg)));
+		      build_string (msdos_stdcolor_name (rv ? bg : fg)));
       store_in_alist (&alist, intern ("background-color"),
-		      build_string (msdos_stdcolor_name (bg)));
+		      build_string (msdos_stdcolor_name (rv ? fg : bg)));
     }
   store_in_alist (&alist, intern ("font"), build_string ("ms-dos"));
 #endif
