@@ -49,15 +49,15 @@ Date: Tue, 28 Sep 2004 16:13:13 +0100
 Fetching a url with url-retrieve can reult in an anrbitrary buffer
 being killed if a 401 (or possibly a 407) result is encountered:
 
-url-http-parse-headers calls url-http-handle-authentication, 
-which can call url-retrieve. 
+url-http-parse-headers calls url-http-handle-authentication,
+which can call url-retrieve.
 
-This results in the current buffer being killed, and a new http buffer 
-being generated. However, when the old http buffer is killed, emacs 
-picks the top buffer from the list as the new current buffer, so by the 
-time we get to the end of url-http-parse-headers, _that_ buffer is marked 
-as dead even though it is not necessarily a url buffer, so next time the 
-url libraries reap their dead buffers, an innocent bystander buffer is 
+This results in the current buffer being killed, and a new http buffer
+being generated. However, when the old http buffer is killed, emacs
+picks the top buffer from the list as the new current buffer, so by the
+time we get to the end of url-http-parse-headers, _that_ buffer is marked
+as dead even though it is not necessarily a url buffer, so next time the
+url libraries reap their dead buffers, an innocent bystander buffer is
 killed instead (and an obsolete http buffer may be left lying around too).
 
 A possible fix (which I am currently using) is to call set-buffer
@@ -74,7 +74,7 @@ on the return value of url-http-parse-headers:
 	 (set-buffer (url-http-handle-authentication nil)))
 etc ....
 
-which makes sure that it is the right http buffer that is current when 
+which makes sure that it is the right http buffer that is current when
 we come to mark the http buffers as dead.
 
 
@@ -93,16 +93,6 @@ Redisplay may loop if there is an error in some display property, e.g.
 
 A fix would be to somehow disable handling of display properties if an error
 is encountered.
-
-** Problem with cursor border around images and window-margins:
-
-The border around the image when the cursor is on the image
-flows into the right fringe and margin.
-
-     (progn
-       (auto-image-file-mode 1)
-       (find-file (concat data-directory "splash.xpm"))
-       (set-window-margins (selected-window) 25 25))
 
 
 ** Problem with modeline and window margins:
