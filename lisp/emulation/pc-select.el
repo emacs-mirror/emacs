@@ -549,7 +549,6 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (global-set-key [delete] 'delete-char) ; KDelete       Del
   (global-set-key [C-delete] 'kill-line) ; KEraseEndLine cDel
   (global-set-key [M-backspace] 'undo)	; KUndo         aBS
-  (define-key c-mode-map [M-backspace] 'undo)
   (global-set-key [C-down] 'forward-paragraph-nomark) ; KNextPara     cDn
   (global-set-key [C-up] 'backward-paragraph-nomark) ; KPrevPara     cUp
   (global-set-key [S-C-down] 'forward-paragraph-mark)
