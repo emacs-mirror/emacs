@@ -246,6 +246,11 @@ is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
 #define HAVE_TERMIOS
 #define NO_TERMIO
 
+/* Letter to use in finding device name of first pty,
+  if system supports pty's.  'p' means it is /dev/ptyp0  */
+
+#define FIRST_PTY_LETTER 'p'
+
 /*
  *	Use a Berkeley style sys/wait.h.
  *      This makes WIF* macros operate on structures instead of ints.
