@@ -394,10 +394,11 @@ make -a one of the switches, if your `man' program supports it.")
   'help-echo "RET, mouse-2: display this man page")
 
 (define-button-type 'Man-xref-header-file
-  'action (lambda (button)
-	    (unless (Man-view-header-file (button-get button 'Man-target-string))
-	      (error "Cannot find header file: %s" w)))
-  'help-echo "mouse-2: display this header file")
+    'action (lambda (button)
+              (let ((w (button-get button 'Man-target-string)))
+                (unless (Man-view-header-file w)
+                  (error "Cannot find header file: %s" w))))
+    'help-echo "mouse-2: display this header file")
 
 (define-button-type 'Man-xref-normal-file
   'action (lambda (button)
