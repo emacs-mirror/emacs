@@ -329,7 +329,7 @@ Set mark before moving, if the buffer already existed."
   "Find the definition of the FUNCTION near point.
 
 Finds the Emacs Lisp library containing the definition of the function
-near point (selected by `function-at-point') in a buffer and
+near point (selected by `function-called-at-point') in a buffer and
 places point before the definition.
 Set mark before moving, if the buffer already existed.
 
@@ -383,24 +383,24 @@ Set mark before moving, if the buffer already existed.
 The library where VARIABLE is defined is searched for in
 `find-function-source-path', if non nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
-  (interactive (find-function-read 'variable))
-  (find-function-do-it variable t 'switch-to-buffer))
+  (interactive (find-function-read 'defvar))
+  (find-function-do-it variable 'defvar 'switch-to-buffer))
 
 ;;;###autoload
 (defun find-variable-other-window (variable)
   "Find, in another window, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
-  (interactive (find-function-read 'variable))
-  (find-function-do-it variable t 'switch-to-buffer-other-window))
+  (interactive (find-function-read 'defvar))
+  (find-function-do-it variable 'defvar 'switch-to-buffer-other-window))
 
 ;;;###autoload
 (defun find-variable-other-frame (variable)
   "Find, in annother frame, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
-  (interactive (find-function-read 'variable))
-  (find-function-do-it variable t 'switch-to-buffer-other-frame))
+  (interactive (find-function-read 'defvar))
+  (find-function-do-it variable 'defvar 'switch-to-buffer-other-frame))
 
 ;;;###autoload
 (defun find-definition-noselect (symbol type &optional file)
@@ -465,7 +465,7 @@ Set mark before moving, if the buffer already existed."
 (defun find-function-at-point ()
   "Find directly the function at point in the other window."
   (interactive)
-  (let ((symb (function-at-point)))
+  (let ((symb (function-called-at-point)))
     (when symb
       (find-function-other-window symb))))
 
