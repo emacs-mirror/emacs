@@ -801,7 +801,9 @@ $(BLD)\w32inevt.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h \
-	$(SRC)\termhooks.h
+	$(SRC)\termhooks.h \
+	$(SRC)\w32heap.h \
+	$(SRC)\w32term.h
 
 $(BLD)\w32proc.obj : \
 	$(SRC)\w32proc.c \
