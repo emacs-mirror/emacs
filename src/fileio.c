@@ -4579,6 +4579,7 @@ syms_of_fileio ()
   staticpro (&Qinsert_file_contents);
   staticpro (&Qwrite_region);
   staticpro (&Qverify_visited_file_modtime);
+  staticpro (&Qset_visited_file_modtime);
 
   Qfile_name_history = intern ("file-name-history");
   Fset (Qfile_name_history, Qnil);
