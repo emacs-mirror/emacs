@@ -1,3 +1,8 @@
+2004-01-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): No need to add two bytes
+	following previous change to smtpmail-send-data.
+
 2004-01-20  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* vc.el (vc-default-previous-version): Doc enhancement.
