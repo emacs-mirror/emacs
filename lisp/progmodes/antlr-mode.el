@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
-;; Keywords: languages
+;; Keywords: languages, ANTLR, code generator
 ;; Version: (see `antlr-version' below)
 ;; X-URL: http://antlr-mode.sourceforge.net/
 
@@ -55,6 +55,9 @@
 ;;  * Probably.  Show rules/dependencies for ANT like for Makefile (does ANT
 ;;    support vocabularies and grammar inheritance?), I have to look at
 ;;    jde-ant.el: http://jakarta.apache.org/ant/manual/OptionalTasks/antlr.html
+;;  * Probably.  Make `indent-region' faster, especially in actions.  ELP
+;;    profiling in a class init action shows half the time is spent in
+;;    `antlr-next-rule', the other half in `c-guess-basic-syntax'.
 ;;  * Unlikely.  Sather as generated language with syntax highlighting etc/.
 ;;    Questions/problems: is sather-mode.el the standard mode for sather, is it
 ;;    still supported, what is its relationship to eiffel3.el?  Requirement:
@@ -173,12 +176,23 @@
 
 ;; get rid of byte-compile warnings
 (eval-when-compile			; required and optional libraries
-  (ignore-errors (require 'cc-mode))
+  (require 'cc-mode)
   (ignore-errors (require 'font-lock))
   (ignore-errors (require 'compile))
+  ;;(ignore-errors (defun c-init-language-vars))) dangerous on Emacs!
+  ;;(ignore-errors (defun c-init-c-language-vars))) dangerous on Emacs!
+  ;;(ignore-errors (defun c-basic-common-init))   dangerous on Emacs!
   (defvar outline-level) (defvar imenu-use-markers)
-  (defvar imenu-create-index-function)
-  (ignore-errors (defun c-init-language-vars)))
+  (defvar imenu-create-index-function))
+
+;; We cannot use `c-forward-syntactic-ws' directly since it is a macro since
+;; cc-mode-5.30 => antlr-mode compiled with older cc-mode would fail (macro
+;; call) when used with newer cc-mode.  Also, antlr-mode compiled with newer
+;; cc-mode would fail (undefined `c-forward-sws') when used with older cc-mode.
+;; Additional to the `defalias' below, we must set `antlr-c-forward-sws' to
+;; `c-forward-syntactic-ws' when `c-forward-sws' is not defined after requiring
+;; cc-mode.
+(defalias 'antlr-c-forward-sws 'c-forward-sws)
 
 
 ;;;;##########################################################################
@@ -193,7 +207,7 @@
   :link '(url-link "http://antlr-mode.sourceforge.net/")
   :prefix "antlr-")
 
-(defconst antlr-version "2.2b"
+(defconst antlr-version "2.2c"
   "ANTLR major mode version number.
 Check <http://antlr-mode.sourceforge.net/> for the newest.")
 
@@ -1190,7 +1204,7 @@ strings and actions/semantic predicates."
 Return position before the comments after the last expression."
   (goto-char (or (ignore-errors-x (scan-sexps (point) count)) (point-max)))
   (prog1 (point)
-    (c-forward-syntactic-ws)))
+    (antlr-c-forward-sws)))
 
 
 ;;;===========================================================================
@@ -1272,7 +1286,7 @@ header.  If SKIP-COMMENT is non-nil, also skip the comment after that
 part."
   (let ((pos (point))
 	(class nil))
-    (c-forward-syntactic-ws)
+    (antlr-c-forward-sws)
     (while (looking-at "options\\>\\|tokens\\>")
       (setq class t)
       (setq pos (antlr-skip-sexps 2)))
@@ -1298,7 +1312,7 @@ Hack: if SKIP-COMMENT is `header-only' only skip header and return
 position before the comment after the header."
   (let* ((pos (point))
 	 (pos0 pos))
-    (c-forward-syntactic-ws)
+    (antlr-c-forward-sws)
     (if skip-comment (setq pos0 (point)))
     (while (looking-at "header\\>[ \t]*\\(\"\\)?")
       (setq pos (antlr-skip-sexps (if (match-beginning 1) 3 2))))
@@ -1360,7 +1374,7 @@ Move to the beginning of the current rule if point is inside a rule."
   (let ((pos (point)))
     (antlr-next-rule -1 nil)
     (let ((between (or (bobp) (< (point) pos))))
-      (c-forward-syntactic-ws)
+      (antlr-c-forward-sws)
       (and between (> (point) pos) (goto-char pos)))))
 
 
@@ -1420,7 +1434,7 @@ prefix arg MSG, move to `:'."
 			  (or (antlr-search-forward ":") (point-max))))
 	    (goto-char orig)
 	    (error msg))
-	  (c-forward-syntactic-ws))))))
+	  (antlr-c-forward-sws))))))
 
 (defunx antlr-beginning-of-body ()
   "Move to the first element after the `:' of the current rule."
@@ -1598,7 +1612,7 @@ This command might also set the mark like \\[set-mark-command] does, see
 
 (defun antlr-insert-option-interactive (arg)
   "Interactive specification for `antlr-insert-option'.
-Use prefix argument ARG to return \(LEVEL OPTION LOCATION)."
+Return \(LEVEL OPTION LOCATION)."
   (barf-if-buffer-read-only)
   (if arg (setq arg (prefix-numeric-value arg)))
   (unless (memq arg '(nil 1 2 3 4))
@@ -1627,7 +1641,7 @@ Use prefix argument ARG to return \(LEVEL OPTION LOCATION)."
 		      :active active))
 	    (sort (mapcar 'car (elt antlr-options-alists (1- level)))
 		  'string-lessp))))
-
+    
 
 ;;;===========================================================================
 ;;;  Insert option: determine section-kind
@@ -1653,7 +1667,7 @@ like \(AREA \. PLACE), see `antlr-option-location'."
 	       (setq pos (antlr-skip-file-prelude 'header-only)))
 	      ((not (eq level 3))	; grammar or subrule options
 	       (setq pos (point))
-	       (c-forward-syntactic-ws))
+	       (antlr-c-forward-sws))
 	      ((looking-at "^\\(private[ \t\n]\\|public[ \t\n]\\|protected[ \t\n]\\)?[ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)[ \t\n]*\\(!\\)?[ \t\n]*\\(\\[\\)?")
 	       ;; rule options, with complete rule header
 	       (goto-char (or (match-end 4) (match-end 3)))
@@ -1904,7 +1918,7 @@ For OLD, see `antlr-insert-option-do'."
     ;; stuff (no =, {, } or /) at point is not followed by ";"
     (insert ";")
     (backward-char)))
-
+	
 (defun antlr-insert-option-space (area old)
   "Find appropriate place to insert option, insert newlines/spaces.
 For AREA and OLD, see `antlr-insert-option-do'."
@@ -1924,7 +1938,7 @@ For AREA and OLD, see `antlr-insert-option-do'."
 		 (setq orig (point))
 	       (goto-char orig)))
 	(skip-chars-forward " \t")
-
+	
 	(if (looking-at "$\\|//")
 	    ;; just comment after point => skip (+ lines w/ same col comment)
 	    (let ((same (if (> (match-end 0) (match-beginning 0))
@@ -1959,7 +1973,7 @@ Used by `antlr-insert-option-do'."
   (when (and antlr-options-auto-colon
 	     (memq level '(3 4))
 	     (save-excursion
-	       (c-forward-syntactic-ws)
+	       (antlr-c-forward-sws)
 	       (if (eq (char-after (point)) ?\{) (antlr-skip-sexps 1))
 	       (not (eq (char-after (point)) ?\:))))
     (insert "\n:")
@@ -2079,12 +2093,12 @@ its export vocabulary is used as an import vocabulary."
 	       (evocab (or default-vocab class))
 	       (ivocab nil))
 	  (goto-char (match-end 0))
-	  (c-forward-syntactic-ws)
+	  (antlr-c-forward-sws)
 	  (while (looking-at "options\\>\\|\\(tokens\\)\\>")
 	    (if (match-beginning 1)
 		(antlr-skip-sexps 2)
 	      (goto-char (match-end 0))
-	      (c-forward-syntactic-ws)
+	      (antlr-c-forward-sws)
 	      ;; parse grammar option sections -------------------------------
 	      (when (eq (char-after (point)) ?\{)
 		(let* ((beg (1+ (point)))
@@ -2341,7 +2355,7 @@ commentary with value `antlr-help-unknown-file-text' is added.  The
 
 (defun antlr-indent-line ()
   "Indent the current line as ANTLR grammar code.
-The indentation of non-comment lines are calculated by `c-basic-offset',
+The indentation of grammar lines are calculated by `c-basic-offset',
 multiplied by:
  - the level of the paren/brace/bracket depth,
  - plus 0/2/1, depending on the position inside the rule: header, body,
@@ -2484,20 +2498,46 @@ ANTLR's syntax and influences the auto indentation, see
 ;;;  Mode entry
 ;;;===========================================================================
 
+(defun antlr-c-init-language-vars ()
+  "Like `c-init-language-vars-for' when using cc-mode before v5.29."
+  (let ((settings			; (cdr '(setq...)) will be optimized
+	 (if (eq antlr-language 'c++-mode)
+	     (cdr '(setq		;' from `c++-mode' v5.20, v5.28
+		    c-keywords (c-identifier-re c-C++-keywords)
+		    c-conditional-key c-C++-conditional-key
+		    c-comment-start-regexp c-C++-comment-start-regexp
+		    c-class-key c-C++-class-key
+		    c-extra-toplevel-key c-C++-extra-toplevel-key
+		    c-access-key c-C++-access-key
+		    c-recognize-knr-p nil
+		    c-bitfield-key c-C-bitfield-key ; v5.28
+		    ))
+	   (cdr '(setq			; from `java-mode' v5.20, v5.28
+		  c-keywords (c-identifier-re c-Java-keywords)
+		  c-conditional-key c-Java-conditional-key
+		  c-comment-start-regexp c-Java-comment-start-regexp
+		  c-class-key c-Java-class-key
+		  c-method-key nil
+		  c-baseclass-key nil
+		  c-recognize-knr-p nil
+		  c-access-key c-Java-access-key ; v5.20
+		  c-inexpr-class-key c-Java-inexpr-class-key ; v5.28
+		  )))))
+    (while settings
+      (when (boundp (car settings))
+	(ignore-errors
+	  (set (car settings) (eval (cadr settings)))))
+      (setq settings (cddr settings)))))
+
 (defun antlr-c-common-init ()
-  "Like `c-common-init' except menu, auto-hungry and c-style stuff."
+  "Like `c-basic-common-init' when using cc-mode before v5.30."
   ;; X/Emacs 20 only
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (make-local-variable 'require-final-newline)
   (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
   (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-column)
-  (make-local-variable 'comment-start-skip)
   (make-local-variable 'comment-multi-line)
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-level)
@@ -2515,14 +2555,8 @@ ANTLR's syntax and influences the auto indentation, see
   (setq paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	paragraph-ignore-fill-prefix t
-	require-final-newline t
 	parse-sexp-ignore-comments t
-	indent-line-function 'c-indent-line
-	indent-region-function 'c-indent-region
-	outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level
 	comment-column 32
-	comment-start-skip "/\\*+ *\\|// *"
 	comment-multi-line nil
 	comment-line-break-function 'c-comment-line-break-function
 	adaptive-fill-regexp nil
@@ -2563,14 +2597,15 @@ the default language."
 	(setq r nil)))			; no result yet
     (car r)))
 
-
 ;;;###autoload
 (defun antlr-mode ()
   "Major mode for editing ANTLR grammar files.
 \\{antlr-mode-map}"
   (interactive)
-  (c-initialize-cc-mode)		; required when depending on cc-mode
   (kill-all-local-variables)
+  (c-initialize-cc-mode)		; cc-mode is required
+  (unless (fboundp 'c-forward-sws)	; see above
+    (fset 'antlr-c-forward-sws 'c-forward-syntactic-ws))
   ;; ANTLR specific ----------------------------------------------------------
   (setq major-mode 'antlr-mode
 	mode-name "Antlr")
@@ -2597,42 +2632,34 @@ the default language."
 	    (concat "Antlr."
 		    (cadr (assq antlr-language antlr-language-alist)))))
   ;; indentation, for the C engine -------------------------------------------
-  (antlr-c-common-init)
+  (setq c-buffer-is-cc-mode antlr-language)
+  (cond ((fboundp 'c-init-language-vars-for) ; cc-mode 5.30.5+
+	 (c-init-language-vars-for antlr-language))
+	((fboundp 'c-init-c-language-vars) ; cc-mode 5.30 to 5.30.4
+	 (c-init-c-language-vars)	; not perfect, but OK
+	 (setq c-recognize-knr-p nil))
+	((fboundp 'c-init-language-vars) ; cc-mode 5.29
+	 (let ((init-fn 'c-init-language-vars))
+	   (funcall init-fn)))		; is a function in v5.29
+	(t				; cc-mode upto 5.28
+	 (antlr-c-init-language-vars)))	; do it myself
+  (cond ((fboundp 'c-basic-common-init)	; cc-mode 5.30+
+	 (c-basic-common-init antlr-language (or antlr-indent-style "gnu")))
+	(t
+	 (antlr-c-common-init)))
+  (make-local-variable 'outline-regexp)
+  (make-local-variable 'outline-level)
+  (make-local-variable 'require-final-newline)
+  (make-local-variable 'indent-line-function)
+  (make-local-variable 'indent-region-function)
+  (setq outline-regexp "[^#\n\^M]"
+	outline-level 'c-outline-level)	; TODO: define own
+  (setq require-final-newline t)
   (setq indent-line-function 'antlr-indent-line
 	indent-region-function nil)	; too lazy
-  (setq c-buffer-is-cc-mode antlr-language)
-  (if (fboundp 'c-init-language-vars)
-      (c-init-language-vars)		; cc-mode >= v5.29
-    (let ((settings			; (cdr '(setq...)) will be optimized
-	   (if (eq antlr-language 'c++-mode)
-	       (cdr '(setq		;' from `c++-mode' v5.20, v5.28
-		      c-keywords (c-identifier-re c-C++-keywords)
-		      c-conditional-key c-C++-conditional-key
-		      c-comment-start-regexp c-C++-comment-start-regexp
-		      c-class-key c-C++-class-key
-		      c-extra-toplevel-key c-C++-extra-toplevel-key
-		      c-access-key c-C++-access-key
-		      c-recognize-knr-p nil
-		      c-bitfield-key c-C-bitfield-key ; v5.28
-		      ))
-	     (cdr '(setq		; from `java-mode' v5.20, v5.28
-		    c-keywords (c-identifier-re c-Java-keywords)
-		    c-conditional-key c-Java-conditional-key
-		    c-comment-start-regexp c-Java-comment-start-regexp
-		    c-class-key c-Java-class-key
-		    c-method-key nil
-		    c-baseclass-key nil
-		    c-recognize-knr-p nil
-		    c-access-key c-Java-access-key ; v5.20
-		    c-inexpr-class-key c-Java-inexpr-class-key ; v5.28
-		    )))))
-      (while settings
-	(when (boundp (car settings))
-	  (ignore-errors
-	    (set (car settings) (eval (cadr settings)))))
-	(setq settings (cddr settings)))))
   (setq comment-start "// "
- 	comment-end "")
+ 	comment-end ""
+	comment-start-skip "/\\*+ *\\|// *")
   ;; various -----------------------------------------------------------------
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults antlr-font-lock-defaults)
