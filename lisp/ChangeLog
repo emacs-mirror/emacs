@@ -1,5 +1,9 @@
 2004-11-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* vc-cvs.el (vc-cvs-annotate-command):
+	Delete extraneous lines from beginning of buffer.
+	* vc-mcvs.el (vc-mcvs-annotate-command): Likewise.
+
 	* progmodes/grep.el (grep-default-command): Take empty string
 	for tag if all other methods yield nil.  Shell-quote the tag.
 
