@@ -1,5 +1,5 @@
 ;;; mml.el --- package for parsing and validating MML documents
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -854,8 +854,10 @@ If RAW, don't highlight the article."
 	(run-hooks 'gnus-article-decode-hook)
 	(let ((gnus-newsgroup-name "dummy"))
 	  (gnus-article-prepare-display))))
-    (fundamental-mode)
+    ;; Disable article-mode-map.
+    (use-local-map nil)
     (setq buffer-read-only t)
+    (local-set-key "q" (lambda () (interactive) (kill-buffer nil)))
     (goto-char (point-min))))
 
 (defun mml-validate ()

@@ -1,5 +1,5 @@
 ;;; gnus-mlspl.el --- a group params-based mail splitting mechanism
-;; Copyright (C) 1998, 1999, 2000
+;; Copyright (C) 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Alexandre Oliva <oliva@lsd.ic.unicamp.br>

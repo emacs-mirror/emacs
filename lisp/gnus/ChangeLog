@@ -1,3 +1,10 @@
+2002-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mml.el (mml-preview): Disable local map.
+	
+	* mml.el (mml-preview): Bind `q'.
+	From: Karl Kleinpaste <karl@charcoal.com>
+
 2002-02-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-forward-rmail-make-body): Directly use
@@ -25,11 +32,6 @@
 	(mm-find-mime-charset-region): Use it.
 	* nntp.el (nntp-send-buffer): Use mm-with-unibyte-current-buffer.
 	* nnspool.el (nnspool-request-post): Ditto.
-
-2002-01-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* message.el, gnus-art.el, gnus.el, gnus-cite.el: 
-	Adapt face definitions to use :weight and :slant.
 
 2001-12-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -10778,6 +10780,6 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+    Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
