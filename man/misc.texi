@@ -1821,6 +1821,9 @@ bytes, move by short's or int's, etc.; type @kbd{C-h a hexl-
 @node Saving Emacs Sessions, Recursive Edit, Editing Binary Files, Top
 @section Saving Emacs Sessions
 @cindex saving sessions
+@cindex restore session
+@cindex remember editing session
+@cindex reload files
 @cindex desktop
 
   You can use the Desktop library to save the state of Emacs from one
