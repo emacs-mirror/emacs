@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.17) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.18) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -368,7 +368,7 @@ int read_event(log_event* event) {
 
 /* A useful function the MPS doesn't provide */
 
-size_t mps_arena_committed_and_used(mps_arena_t arena) {
+size_t arena_committed_and_used(mps_arena_t arena) {
  return mps_arena_committed(arena)-mps_arena_spare_committed(arena);
 }
 
