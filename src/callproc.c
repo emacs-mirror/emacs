@@ -200,7 +200,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
 #ifndef subprocesses
   /* Without asynchronous processes we cannot have BUFFER == 0.  */
-  if (nargs >= 3 && XTYPE (args[2]) == Lisp_Int)
+  if (nargs >= 3 && INTEGERP (args[2]))
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
 
@@ -314,7 +314,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     }
 #endif
 
-  if (XTYPE (buffer) == Lisp_Int)
+  if (INTEGERP (buffer))
     fd[1] = open (NULL_DEVICE, O_WRONLY), fd[0] = -1;
   else
     {
@@ -391,7 +391,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       report_file_error ("Doing vfork", Qnil);
     }
 
-  if (XTYPE (buffer) == Lisp_Int)
+  if (INTEGERP (buffer))
     {
       if (fd[0] >= 0)
 	close (fd[0]);
@@ -417,7 +417,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif /* not MSDOS */
 
 
-  if (XTYPE (buffer) == Lisp_Buffer)
+  if (BUFFERP (buffer))
     Fset_buffer (buffer);
 
   immediate_quit = 1;
@@ -642,8 +642,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
     new_length = 0;
     for (tem = Vprocess_environment;
-	 (XTYPE (tem) == Lisp_Cons
-	  && XTYPE (XCONS (tem)->car) == Lisp_String);
+	 CONSP (tem) && STRINGP (XCONS (tem)->car);
 	 tem = XCONS (tem)->cdr)
       new_length++;
 
@@ -657,8 +656,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
     /* Copy the Vprocess_environment strings into new_env.  */
     for (tem = Vprocess_environment;
-	 (XTYPE (tem) == Lisp_Cons
-	  && XTYPE (XCONS (tem)->car) == Lisp_String);
+	 CONSP (tem) && STRINGP (XCONS (tem)->car);
 	 tem = XCONS (tem)->cdr)
       {
 	char **ep = env;
@@ -781,7 +779,7 @@ getenv_internal (var, varlen, value, valuelen)
       Lisp_Object entry;
 
       entry = XCONS (scan)->car;
-      if (XTYPE (entry) == Lisp_String
+      if (STRINGP (entry)
 	  && XSTRING (entry)->size > varlen
 	  && XSTRING (entry)->data[varlen] == '='
 	  && ! bcmp (XSTRING (entry)->data, var, varlen))
