@@ -1,3 +1,12 @@
+2000-02-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (frame-notice-user-settings): Use assq-delete-all
+	instead of assoc-delete-all.
+	(frame-notice-user-settings): Ditto.
+
+	* subr.el (assq-delete-all): Renamed from assoc-delete-all.
+	Don't copy alist.
+
 2000-02-28  Eli Barzilay  <eli@cs.cornell.edu>
 
 	* calculator.el (calculator-use-menu): New option.

@@ -1,3 +1,14 @@
+2000-02-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* atimer.c (cancel_atimer): Handle canceling an atimer when
+	some timers are stopped.
+
+	* xfns.c (cancel_busy_cursor): Set busy_cursor_atimer to null
+	after canceling it.
+
+	* fns.c (maybe_resize_hash_table): Handle case of new size
+	coming out as being the same as old size.
+
 2000-02-27  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.nt: Add atimer.h to dependencies.
