@@ -263,7 +263,7 @@ How to customize the new indentation engine.
 @findex java-mode
 @findex idl-mode
 @findex pike-mode
-Note that the name of this package is ``@ccmode{}'', but there is no top
+Note that the name of this package is ``@ccmode{},'' but there is no top
 level @code{cc-mode} entry point.  All of the variables, commands, and
 functions in @ccmode{} are prefixed with @code{c-@var{<thing>}}, and
 @code{c-mode}, @code{c++-mode}, @code{objc-mode}, @code{java-mode},
@@ -959,7 +959,7 @@ automatically.
 hanging.  On the surface, it would seem that clean-ups overlap the
 functionality provided by the @code{c-hanging-*-alist} variables, and
 similarly, clean-ups are only enabled when auto-newline minor mode is
-enabled.  Clean-ups are used however to adjust code ``after-the-fact'',
+enabled.  Clean-ups are used however to adjust code ``after-the-fact,''
 i.e. to eliminate some whitespace that is inserted by electric
 commands, or whitespace that contains intervening constructs.
 
@@ -1145,7 +1145,7 @@ hungry-delete in @strong{all} your editing modes!
 In a nutshell, when hungry-delete mode is enabled, hitting the
 @key{Backspace} key@footnote{I say ``hit the @key{Backspace} key'' but
 what I really mean is ``when Emacs receives the @code{BackSpace} key
-event''.  The difference usually isn't significant to most users, but
+event.''  The difference usually isn't significant to most users, but
 advanced users will realize that under window systems such as X, any
 physical key (keycap) on the keyboard can be configured to generate any
 keysym, and thus any Emacs key event.  Also, the use of Emacs on TTYs
@@ -2285,14 +2285,14 @@ Whitesmiths C, an early commercial C compiler.
 @cindex Ellemtel style
 @item
 @code{ellemtel} --- Popular C++ coding standards as defined by
-``Programming in C++, Rules and Recommendations'', Erik Nyquist and Mats
+``Programming in C++, Rules and Recommendations,'' Erik Nyquist and Mats
 Henricson, Ellemtel@footnote{This document is available at
 @uref{http://www.doc.ic.ac.uk/lab/cplus/c++.rules/} among other
 places.}.
 
 @cindex Linux style
 @item
-@code{linux} --- C coding standard for Linux development.
+@code{linux} --- C coding standard for Linux (the kernel).
 
 @cindex Python style
 @item
