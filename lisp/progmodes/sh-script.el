@@ -3100,7 +3100,7 @@ This is always added to the end of the buffer."
       ( "pattern, %s: "
 	> str sh-non-closing-paren \n
 	> _ \n
-	";;" \n \n)
+	";;" \n)
       > "*" sh-non-closing-paren \n
       > _ \n
       resume:
@@ -3288,7 +3288,7 @@ t means to return a list of all possible completions of STRING.
       > _ \n
       ( "other condition, %s: "
 	>  "elif " str "; then" > \n
-	> \n \n)
+	> \n)
       "else" > \n
       > \n
       resume:
@@ -3436,7 +3436,7 @@ option followed by a colon `:' if the option accepts an argument."
 		  v2 nil)))
 	> str "|+" str sh-non-closing-paren \n
 	> _ v2 \n
-	> ";;" \n \n)
+	> ";;" \n)
       > "*" sh-non-closing-paren \n
       > "echo" " \"usage: " "`basename $0`"
       " [+-" '(setq v1 (point)) str
