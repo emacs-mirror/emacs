@@ -1371,7 +1371,7 @@ command_loop_1 ()
 	 3) we want to leave this_command_key_count non-zero, so that
 	 read_char will realize that it is re-reading a character, and
 	 not echo it a second time.  */
-      if (NILP (Vprefix_arg))
+      if (NILP (Vprefix_arg) && !current_perdisplay->prefix_partial)
 	{
 	  last_command = this_command;
 	  cancel_echoing ();
@@ -1392,7 +1392,8 @@ command_loop_1 ()
     finalize:
       /* Install chars successfully executed in kbd macro.  */
 
-      if (!NILP (current_perdisplay->defining_kbd_macro) && NILP (Vprefix_arg))
+      if (!NILP (current_perdisplay->defining_kbd_macro) && NILP (Vprefix_arg)
+	  && !current_perdisplay->prefix_partial)
 	finalize_kbd_macro_chars ();
 
 #ifdef MULTI_PERDISPLAY
