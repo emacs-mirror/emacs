@@ -126,7 +126,7 @@ that have not already been dumped will be lost."
       (let ((greeting (read (current-buffer))))
 	(if (not (= (car greeting) 1))
 	    (error "Bad ispell version: wanted 1, got %d" (car greeting)))
-	(message (car (cdr greeting))))
+	(message "%s" (car (cdr greeting))))
       (delete-region (point-min) last-char))))
   
 ;; Make sure ispell is ready for a command.
@@ -349,7 +349,8 @@ Return value is t unless exit is due to typing `q'."
 	(cond ((null ispell-bad-words)
 	       (error "Ispell has not yet been run"))
 	      ((markerp (car ispell-bad-words))
-	       (message (substitute-command-keys
+	       (message "%s"
+			(substitute-command-keys
 			   "Type \\[ispell-next] to continue")))
 	      ((eq (car ispell-bad-words) nil)
 	       (setq ispell-bad-words nil)
@@ -455,7 +456,7 @@ With a prefix argument, resume handling of the previous Ispell command."
 ;;; This just causes confusion. -- rms.
 ;;;	     (goto-char start)
 ;;;	     (sit-for 0)
-		 (message (format "Ispell checking %s" word))
+		 (message "Ispell checking %s" word)
 		 (ispell-cmd word)
 		 (let ((message (ispell-next-message)))
 		   (cond ((eq message t)
