@@ -323,6 +323,8 @@ new value.")
 	(help-echo (widget-get widget :help-echo))
 	(rear-sticky
 	 (or (not widget-field-add-space) (widget-get widget :size))))
+    (if (functionp help-echo)
+      (setq help-echo 'widget-mouse-help))    
     (when (= (char-before to) ?\n)
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
@@ -367,15 +369,27 @@ new value.")
 
 (defun widget-specify-button (widget from to)
   "Specify button for WIDGET between FROM and TO."
-  (let ((overlay (make-overlay from to nil t nil)))
+  (let ((overlay (make-overlay from to nil t nil))
+	(help-echo (widget-get widget :help-echo)))
     (widget-put widget :button-overlay overlay)
+    (if (functionp help-echo)
+      (setq help-echo 'widget-mouse-help))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'keymap (widget-get widget :keymap))
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
       (overlay-put overlay 'mouse-face widget-mouse-face))
-    (overlay-put overlay 'help-echo (widget-get widget :help-echo))))
+    (overlay-put overlay 'help-echo help-echo)))
+
+(defun widget-mouse-help (window overlay point)
+  "Help-echo callback for widgets whose :help-echo is a function."
+  (with-current-buffer (overlay-buffer overlay)
+    (let* ((widget (widget-at (overlay-start overlay)))
+	   (help-echo (if widget (widget-get widget :help-echo))))
+      (if (functionp help-echo)
+	  (funcall help-echo widget)
+	help-echo))))
 
 (defun widget-specify-sample (widget from to)
   "Specify sample for WIDGET between FROM and TO."
@@ -3389,26 +3403,12 @@ To use this type, you must define :match or :match-alternatives."
 ;;; The Help Echo
 
 (defun widget-echo-help (pos)
-  "Display the help echo for widget at POS."
+  "Display help-echo text for widget at POS."
   (let* ((widget (widget-at pos))
 	 (help-echo (and widget (widget-get widget :help-echo))))
-    (if (or (stringp help-echo)
-	    (and (functionp help-echo)
-		 ;; Kluge: help-echo originally could be a function of
-		 ;; one arg -- the widget.  It is more useful in Emacs
-		 ;; 21 to have it as a function usable also as a
-		 ;; help-echo property, when it can sort out its own
-		 ;; widget if necessary.  Try both calling sequences
-		 ;; (rather than messing around to get the function's
-		 ;; arity).
-		 (stringp
-		  (setq help-echo
-			(condition-case nil
-			    (funcall help-echo
-				     (selected-window) (current-buffer)
-				     (point))
-			  (error (funcall help-echo widget))))))
-	    (stringp (eval help-echo)))
+    (if (functionp help-echo)
+	(setq help-echo (funcall help-echo widget)))
+    (if (stringp help-echo)
 	(message "%s" help-echo))))
 
 ;;; The End:
