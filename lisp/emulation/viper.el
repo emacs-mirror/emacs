@@ -821,13 +821,8 @@ These buffers can be cycled through via :R and :P commands.")
 (defvar vip-always t
   "t means, arrange that vi-state will be a default.")
 
-(defvar vip-custom-file-name (cond (vip-vms-os-p "sys$login:.vip")
-				   ((memq system-type '(emx ms-dos))
-				    "/_vip")
-				   ((memq system-type '(windows-nt windows-95))
-				    "~/_vip")
-				   (t ; Unix
-				    "~/.vip"))
+(defvar vip-custom-file-name
+  (convert-standard-filename "~/.vip")
   "Viper customisation file.
 This variable must be set _before_ loading Viper.")
 
