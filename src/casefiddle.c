@@ -254,7 +254,8 @@ casify_region (flag, b, e)
 
 	      changed = 1;
 	      /* Handle the most likely case */
-	      if (c < 0400 && c2 < 0400)
+	      if (multibyte ? (c < 0200 && c2 < 0200)
+		  : (c < 0400 && c2 < 0400))
 		FETCH_BYTE (i) = c2;
 	      else if (fromlen = CHAR_STRING (c, str),
 		       tolen = CHAR_STRING (c2, str),
