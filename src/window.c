@@ -1920,9 +1920,12 @@ BUFFER can be a buffer or buffer name.")
 
   if (EQ (window, selected_window))
     XBUFFER (w->buffer)->last_selected_window = window;
+
+  /* Update time stamps of buffer display.  */
   if (INTEGERP (XBUFFER (buffer)->display_count))
     XSETINT (XBUFFER (buffer)->display_count,
 	     XINT (XBUFFER (buffer)->display_count) + 1);
+  XBUFFER (buffer)->display_time = Fcurrent_time ();
 
   XSETFASTINT (w->window_end_pos, 0);
   w->window_end_valid = Qnil;
@@ -1966,8 +1969,9 @@ BUFFER can be a buffer or buffer name.")
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 1, 0,
   "Select WINDOW.  Most editing will apply to WINDOW's buffer.\n\
-The main editor command loop selects the buffer of the selected window\n\
-before each command.")
+If WINDOW is not already selected, also make WINDOW's buffer current.\n\
+Note that the main editor command loop\n\
+selects the buffer of the selected window before each command.")
   (window)
      register Lisp_Object window;
 {
@@ -2345,7 +2349,8 @@ temp_output_buffer_show (buf)
       set_marker_restricted_both (w->start, buf, 1, 1);
       set_marker_restricted_both (w->pointm, buf, 1, 1);
 
-      /* Run temp-buffer-show-hook, with the chosen window selected.  */
+      /* Run temp-buffer-show-hook, with the chosen window selected
+	 and it sbuffer current.  */
       if (!NILP (Vrun_hooks))
 	{
 	  Lisp_Object tem;
@@ -2362,6 +2367,7 @@ temp_output_buffer_show (buf)
 					 Fcurrent_window_configuration (Qnil));
 
 		  Fselect_window (window);
+		  Fset_buffer (w->buffer);
 		  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
 		  unbind_to (count, Qnil);
 		}
