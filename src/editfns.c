@@ -856,12 +856,14 @@ Any other markers at the point of insertion also end up after the text.")
   return Qnil;
 }
 
-DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 2, 0,
+DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
   "Insert COUNT (second arg) copies of CHAR (first arg).\n\
 Point and all markers are affected as in the function `insert'.\n\
-Both arguments are required.")
-  (chr, count)
-       Lisp_Object chr, count;
+Both arguments are required.\n\
+The optional third arg INHERIT, if non-nil, says to inherit text properties\n\
+from adjoining text, if those properties are sticky.")
+  (chr, count, inherit)
+       Lisp_Object chr, count, inherit;
 {
   register unsigned char *string;
   register int strlen;
@@ -879,7 +881,10 @@ Both arguments are required.")
     string[i] = XFASTINT (chr);
   while (n >= strlen)
     {
-      insert (string, strlen);
+      if (!NILP (inherit))
+	insert_and_inherit (string, strlen);
+      else
+	insert (string, strlen);
       n -= strlen;
     }
   if (n > 0)
