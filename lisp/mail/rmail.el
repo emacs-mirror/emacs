@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985,86,87,88,93,94 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,93,94,95 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -121,6 +121,11 @@ Called with region narrowed to the message, including headers.")
 
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
+
+;; Some mailers use "Re(2):" or "Re^2:" or "Re: Re:".
+;; This pattern should catch all the common variants.
+(defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\^[0-9]+\\)?: *\\)*"
+  "Regexp to delete from Subject line before inserting rmail-reply-prefix.")
 
 (defvar rmail-display-summary nil
   "If non nil, the summary buffer is always displayed.")
@@ -1975,9 +1980,11 @@ use \\[mail-yank-original] to yank the original message into it."
 				(mail-fetch-field "resent-message-id" t))
 			       ((mail-fetch-field "message-id"))))))
     (and (stringp subject)
-	 (or (string-match (concat "\\`" (regexp-quote rmail-reply-prefix))
-			   subject)
-	     (setq subject (concat rmail-reply-prefix subject))))
+	 (setq subject
+	       (concat rmail-reply-prefix
+		       (if (string-match rmail-reply-regexp subject)
+			   (substring subject (match-end 0))
+			 subject))))
     (rmail-start-mail nil
       (mail-strip-quoted-names reply-to)
       subject
