@@ -52,6 +52,7 @@
    (purecopy "%n")
    (purecopy ")%]--")
    (purecopy '(line-number-mode "L%l--"))
+   (purecopy '(column-number-mode "C%c--"))
    (purecopy '(-3 . "%p"))
    (purecopy "-%-")))
 
