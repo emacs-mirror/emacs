@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.37) $
+ * $HopeName: MMsrc!arena.c(trunk.38) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.37) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.38) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -110,6 +110,7 @@ Bool ArenaCheck(Arena arena)
   CHECKL(BoolCheck(arena->clamped));
 
   /* no check on arena->actionInterval */
+  CHECKL(BoolCheck(arena->bufferLogging));
   CHECKL(arena->fillMutatorSize >= 0.0);
   CHECKL(arena->emptyMutatorSize >= 0.0);
   CHECKL(arena->allocMutatorSize >= 0.0);
@@ -245,6 +246,7 @@ void ArenaInit(Arena arena, ArenaClass class)
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < ARENA_LD_LENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
+  arena->bufferLogging = 0;
   arena->fillMutatorSize = 0.0;
   arena->emptyMutatorSize = 0.0;
   arena->allocMutatorSize = 0.0;
