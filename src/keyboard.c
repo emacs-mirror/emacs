@@ -1280,10 +1280,11 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-Lisp_Object Fcommand_execute ();
-static int read_key_sequence ();
-void safe_run_hooks ();
-static void adjust_point_for_property ();
+EXFUN (Fcommand_execute, 4);
+static int read_key_sequence P_ ((Lisp_Object *, int, Lisp_Object,
+				  int, int, int));
+void safe_run_hooks P_ ((Lisp_Object));
+static void adjust_point_for_property P_ ((int));
 
 Lisp_Object
 command_loop_1 ()
@@ -1477,6 +1478,10 @@ command_loop_1 ()
          (e.g. composition, display).  But, some commands will set
          this variable differently.  */
       Vdisable_point_adjustment = Qnil;
+
+      /* Process filters and timers may have messed with deactivate-mark.
+	 reset it before we execute the command. */
+      Vdeactivate_mark = Qnil;
 
       /* Execute the command.  */
 
