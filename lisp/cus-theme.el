@@ -32,7 +32,7 @@
   (require 'wid-edit))
 
 ;;;###autoload
-(defun custom-theme-create ()
+(defun customize-create-theme ()
   "Create a custom theme."
   (interactive)
   (if (get-buffer "*New Custom Theme*")
