@@ -199,9 +199,7 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 		 (setq bfn (if (eq buffer newbuf)
 			       (when newbuffile
 				 (expand-file-name
-				  (if (file-directory-p newbuffile)
-				      (directory-file-name newbuffile)
-				    newbuffile)))
+				  (directory-file-name newbuffile)))
 			     (uniquify-buffer-file-name buffer)))
 		 (setq rawname (uniquify-file-name-nondirectory bfn))
 		 (or (not newbuffile)
