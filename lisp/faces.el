@@ -384,7 +384,7 @@ completely specified)."
     (when (and inherit
 	       (not (eq inherit t))
 	       (face-attribute-relative-p attribute value))
-	;; We should merge with INHERIT as well
+      ;; We should merge with INHERIT as well
       (setq value (face-attribute-merged-with attribute value inherit frame)))
     value))
 
@@ -1283,19 +1283,21 @@ If SPEC is nil, return nil."
   (unless frame
     (setq frame (selected-frame)))
   (let ((tail spec)
-	result)
+	result all)
     (while tail
       (let* ((entry (pop tail))
 	     (display (car entry))
 	     (attrs (cdr entry)))
 	(when (face-spec-set-match-display display frame)
-	  (setq result (if (listp (car attrs))
+	  (setq result (if (null (cdr attrs)) ;; was (listp (car attrs))
 			   ;; Old-style entry, the attribute list is the
 			   ;; first element.
 			   (car attrs)
-			 attrs)
-		tail nil))))
-    result))
+			 attrs))
+	  (if (eq display t)
+	      (setq all result result nil)
+	    (setq tail nil)))))
+    (if all (append result all) result)))
 
 
 (defun face-spec-reset-face (face &optional frame)
@@ -1704,29 +1706,26 @@ created."
 
 (defface mode-line
   '((((type x w32 mac) (class color))
-     (:box (:line-width -1 :style released-button)
-	   :background "grey75" :foreground "black"))
+     :box (:line-width -1 :style released-button)
+     :background "grey75" :foreground "black")
     (t
-     (:inverse-video t)))
+     :inverse-video t))
   "Basic mode line face for selected window."
   :version "21.1"
   :group 'modeline
   :group 'basic-faces)
 
 (defface mode-line-inactive
-  '((((type x w32 mac) (background light) (class color))
-     :inherit mode-line
+  '((t
+     :inherit mode-line)
+    (((type x w32 mac) (background light) (class color))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
      :foreground "grey20" :background "grey90")
     (((type x w32 mac) (background dark) (class color))
-     :inherit mode-line
      :weight light
      :box (:line-width -1 :color "grey40" :style nil)
-     :foreground "grey80" :background "grey30")
-    (t
-     :inherit mode-line
-     :inverse-video t))
+     :foreground "grey80" :background "grey30"))
   "Basic mode line face for non-selected windows."
   :version "21.2"
   :group 'modeline
@@ -1737,7 +1736,9 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((((type tty))
+  '((t
+     :inherit mode-line)
+    (((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
      ;; good when combined with inverse-video mode-lines and multiple
      ;; windows.  Underlining looks better, and is more consistent with
@@ -1747,30 +1748,23 @@ created."
      ;; highlighting; this may be too confusing in general, although it
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
-     :inherit mode-line
      :underline t)
     (((class color grayscale) (background light))
-     :inherit mode-line
      :background "grey90" :foreground "grey20"
      :box nil)
     (((class color grayscale) (background dark))
-     :inherit mode-line
      :background "grey20" :foreground "grey90"
      :box nil)
     (((class mono) (background light))
-     :inherit mode-line
      :background "white" :foreground "black"
      :inverse-video nil
      :box nil
      :underline t)
     (((class mono) (background dark))
-     :inherit mode-line
      :background "black" :foreground "white"
      :inverse-video nil
      :box nil
-     :underline t)
-    (t
-     :inverse-video t))
+     :underline t))
   "Basic header-line face."
   :version "21.1"
   :group 'basic-faces)
@@ -1778,11 +1772,11 @@ created."
 
 (defface tool-bar
   '((((type x w32 mac) (class color))
-     (:box (:line-width 1 :style released-button)
-	   :background "grey75" :foreground "black"))
+     :box (:line-width 1 :style released-button)
+     :background "grey75" :foreground "black")
     (((type x) (class mono))
-     (:box (:line-width 1 :style released-button)
-	   :background "grey" :foreground "black"))
+     :box (:line-width 1 :style released-button)
+     :background "grey" :foreground "black")
     (t
      ()))
   "Basic tool-bar face."
@@ -1790,9 +1784,9 @@ created."
   :group 'basic-faces)
 
 
-(defface minibuffer-prompt '((((background dark)) (:foreground "cyan"))
-			     (((type pc)) (:foreground "magenta"))
-			     (t (:foreground "dark blue")))
+(defface minibuffer-prompt '((((background dark)) :foreground "cyan")
+			     (((type pc)) :foreground "magenta")
+			     (t :foreground "dark blue"))
   "Face for minibuffer prompts."
   :version "21.3"
   :group 'basic-faces)
@@ -1802,14 +1796,14 @@ created."
 
 (defface region
   '((((type tty) (class color))
-     (:background "blue" :foreground "white"))
+     :background "blue" :foreground "white")
     (((type tty) (class mono))
-     (:inverse-video t))
+     :inverse-video t)
     (((class color) (background dark))
-     (:background "blue3"))
+     :background "blue3")
     (((class color) (background light))
-     (:background "lightgoldenrod2"))
-    (t (:background "gray")))
+     :background "lightgoldenrod2")
+    (t :background "gray"))
   "Basic face for highlighting the region."
   :version "21.1"
   :group 'basic-faces)
@@ -1817,11 +1811,11 @@ created."
 
 (defface fringe
   '((((class color) (background light))
-       (:background "grey95"))
-      (((class color) (background dark))
-       (:background "grey10"))
-      (t
-       (:background "gray")))
+     :background "grey95")
+    (((class color) (background dark))
+     :background "grey10")
+    (t
+     :background "gray"))
   "Basic face for the fringes to the left and right of windows under X."
   :version "21.1"
   :group 'frames
@@ -1869,66 +1863,66 @@ created."
   :group 'basic-faces)
 
 
-(defface bold '((t (:weight bold)))
+(defface bold '((t :weight bold))
   "Basic bold face."
   :group 'basic-faces)
 
 
-(defface italic '((t (:slant italic)))
+(defface italic '((t :slant italic))
   "Basic italic font."
   :group 'basic-faces)
 
 
-(defface bold-italic '((t (:weight bold :slant italic)))
+(defface bold-italic '((t :weight bold :slant italic))
   "Basic bold-italic face."
   :group 'basic-faces)
 
 
-(defface underline '((t (:underline t)))
+(defface underline '((t :underline t))
   "Basic underlined face."
   :group 'basic-faces)
 
 
 (defface highlight
   '((((type tty) (class color))
-     (:background "green"))
+     :background "green")
     (((class color) (background light))
-     (:background "darkseagreen2"))
+     :background "darkseagreen2")
     (((class color) (background dark))
-     (:background "darkolivegreen"))
-    (t (:inverse-video t)))
+     :background "darkolivegreen")
+    (t :inverse-video t))
   "Basic face for highlighting."
   :group 'basic-faces)
 
 
 (defface secondary-selection
   '((((type tty) (class color))
-     (:background "cyan" :foreground "black"))
+     :background "cyan" :foreground "black")
     (((class color) (background light))
-     (:background "yellow"))
+     :background "yellow")
     (((class color) (background dark))
-     (:background "SkyBlue4"))
-    (t (:inverse-video t)))
+     :background "SkyBlue4")
+    (t :inverse-video t))
   "Basic face for displaying the secondary selection."
   :group 'basic-faces)
 
 
-(defface fixed-pitch '((t (:family "courier")))
+(defface fixed-pitch '((t :family "courier"))
   "The basic fixed-pitch face."
   :group 'basic-faces)
 
 
-(defface variable-pitch '((t (:family "helv")))
+(defface variable-pitch '((t :family "helv"))
   "The basic variable-pitch face."
   :group 'basic-faces)
 
 
 (defface trailing-whitespace
   '((((class color) (background light))
-     (:background "red"))
+     :background "red")
     (((class color) (background dark))
-     (:background "red"))
-    (t (:inverse-video t)))
+     :background "red")
+    (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
   :group 'font-lock			; like `show-trailing-whitespace'
