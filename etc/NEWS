@@ -157,13 +157,16 @@ available in `etc/calccard.tex' and `etc/calccard.ps'.
 
 The ELisp reference manual in Info format is built as part of the
 Emacs build procedure and installed together with the Emacs User
-Manual.
+Manual.  A menu item was added to the menu bar that makes it easy
+accessible (Help->More Manuals->Emacs Lisp Reference).
 
 *** The Introduction to Programming in Emacs Lisp manual is now part of
 the distribution.
 
 This manual is now part of the standard distribution and is installed,
-together with the Emacs User Manual, into the Info directory.
+together with the Emacs User Manual, into the Info directory.  A menu
+item was added to the menu bar that makes it easy accessible
+(Help->More Manuals->Introduction to Emacs Lisp).
 
 *** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
