@@ -484,6 +484,7 @@ echo "Making links to \`etc'"
    fi
  done
  cd ../${tempdir}/etc
+ rm -f fns*.el
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
