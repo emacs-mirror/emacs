@@ -86,7 +86,8 @@ Boston, MA 02111-1307, USA.
 #include "w32.h"
 #include "ndir.h"
 #include "w32heap.h"
- 
+#include "systime.h"
+
 #undef min
 #undef max
 #define min(x, y) (((x) < (y)) ? (x) : (y))
@@ -679,7 +680,6 @@ extern Lisp_Object Vsystem_configuration;
 void
 init_environment (char ** argv)
 {
-  int len;
   static const char * const tempdirs[] = {
     "$TMPDIR", "$TEMP", "$TMP", "c:/"
   };
@@ -2877,8 +2877,6 @@ sys_getservbyname(const char * name, const char * proto)
 int
 sys_shutdown (int s, int how)
 {
-  int rc;
-
   if (winsock_lib == NULL)
     {
       h_errno = ENETDOWN;
@@ -3007,7 +3005,6 @@ sys_pipe (int * phandles)
 {
   int rc;
   unsigned flags;
-  child_process * cp;
 
   /* make pipe handles non-inheritable; when we spawn a child, we
      replace the relevant handle with an inheritable one.  Also put
