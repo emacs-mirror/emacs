@@ -442,42 +442,42 @@ Other variables include those for buffer-specialised fontification functions,
 	 '((c-font-lock-keywords c-font-lock-keywords-1
 	    c-font-lock-keywords-2 c-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(c++-mode-defaults
 	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
 	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(objc-mode-defaults
 	 '((objc-font-lock-keywords objc-font-lock-keywords-1
 	    objc-font-lock-keywords-2 objc-font-lock-keywords-3)
 	   nil nil ((?_ . "w") (?$ . "w")) nil
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(java-mode-defaults
 	 '((java-font-lock-keywords java-font-lock-keywords-1
 	    java-font-lock-keywords-2 java-font-lock-keywords-3)
 	   nil nil ((?_ . "w") (?$ . "w") (?. . "w")) nil
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(lisp-mode-defaults
 	 '((lisp-font-lock-keywords
 	    lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
 	   nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
 	(scheme-mode-defaults
 	 '((scheme-font-lock-keywords
 	    scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
 	   nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
 	;; For TeX modes we could use `backward-paragraph' for the same reason.
@@ -489,7 +489,7 @@ Other variables include those for buffer-specialised fontification functions,
 	 '((tex-font-lock-keywords
 	    tex-font-lock-keywords-1 tex-font-lock-keywords-2)
 	   nil nil ((?$ . "\"")) nil
-	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . "%")
 	   (font-lock-mark-block-function . mark-paragraph)))
 	)
@@ -562,7 +562,7 @@ When called with no args it should leave point at the beginning of any
 enclosing textual block and mark at the end.
 This is normally set via `font-lock-defaults'.")
 
-;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
 ;(defvar font-lock-comment-start-regexp nil
 ;  "*Regexp to match the start of a comment.
 ;This need not discriminate between genuine comments and quoted comment
@@ -1894,7 +1894,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Function declarations.
 		   "\\(advice\\|alias\\|"
 		   "ine-\\(derived-mode\\|function\\|skeleton\\|widget\\)\\|"
-		   "macro\\|subst\\|un\\|method\\)\\|"
+		   "macro\\|method\\|subst\\|un\\)\\|"
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
 		   ;; Structure declarations.
@@ -2220,11 +2220,20 @@ The value of this variable is used when Font Lock mode is turned on."
   :type 'font-lock-extra-types-widget
   :group 'font-lock-extra-types)
 
-(defcustom c++-font-lock-extra-types '("string" "wchar_t")
+(defcustom c++-font-lock-extra-types
+  '("[io]?\\(f\\|str\\)?stream\\(buf\\)?" "ios"
+    "string" "rope"
+    "list" "slist"
+    "deque" "vector" "bit_vector"
+    "set" "multiset"
+    "map" "multimap"
+    "hash\\(_\\(m\\(ap\\|ulti\\(map\\|set\\)\\)\\|set\\)\\)?"
+    "stack" "queue" "priority_queue"
+    "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator")
   "*List of extra types to fontify in C++ mode.
 Each list item should be a regexp not containing word-delimiters.
-For example, a value of (\"string\" \"wchar_t\") means the words string and
-wchar_t are treated as type names.
+For example, a value of (\"string\") means the word string is treated as a type
+name.
 
 The value of this variable is used when Font Lock mode is turned on."
   :type 'font-lock-extra-types-widget
@@ -2315,11 +2324,11 @@ See also `c-font-lock-extra-types'.")
    ;; Fontify symbol names in #elif or #if ... defined preprocessor directives.
    '("^#[ \t]*\\(elif\\|if\\)\\>"
      ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
-      (1 font-lock-reference-face) (2 font-lock-variable-name-face nil t)))
+      (1 font-lock-builtin-face) (2 font-lock-variable-name-face nil t)))
    ;;
    ;; Fontify otherwise as symbol names, and the preprocessor directive names.
-   '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-reference-face) (2 font-lock-variable-name-face nil t))
+   '("^#[ \t]*\\(\\sw+\\)\\>[ \t!]*\\(\\sw+\\)?"
+     (1 font-lock-builtin-face) (2 font-lock-variable-name-face nil t))
    ))
 
  (setq c-font-lock-keywords-2
