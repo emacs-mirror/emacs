@@ -38,6 +38,7 @@ There is a new pretest available in
 Please report results from compiling and running the pretest to
 <emacs-pretest-bug@gnu.org>.  Your feedback is necessary for us
 to know on which platforms the pretest has been tried.
+Please say whether you built with LEIM or not.
 
 If you have the tars from the previous pretest, and you have the
 \`xdelta' utility, you can instead download the much smaller
