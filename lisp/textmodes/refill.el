@@ -56,6 +56,32 @@
 ;; some Emacs bug at the time.  ISTR maniac has problems with
 ;; whitespace at the end of paragraphs.]
 
+;;; Todo/Bugs:
+
+;; - When deleting the first word on a line, the space after that word tends
+;;   to become part of the fill-prefix, causing either wrong filling of the
+;;   remaining text, or causing the cursor to move unexpectedly.  Ex:
+;;   Start with
+;;                I>< blabla
+;;
+;;   and hit backspace.  We end up with
+;;
+;;                 ><blabla
+;;   instead of
+;;                >< blabla
+;;
+;;   Other example.  Start with
+;;
+;;     Foo bar blablabla asdgf
+;;     word>< asdfas dfasdfasd
+;;     asd asdfa sdfasd sdf
+;;
+;;   and hit M-backspace.  We end up with
+;;
+;;     Foo bar blablabla asdgf
+;;      ><asdfas dfasdfasd asd
+;;      asdfa sdfasd sdf
+
 ;;; Code:
 
 (defvar refill-ignorable-overlay nil
@@ -80,6 +106,9 @@ This is used to optimize refilling.")
   (let (fill-pfx)
     (save-excursion
       (goto-char pos)
+      ;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
+      ;; leading to excessive refilling and wrong choice of fill-prefix.
+      ;; might be a bug in my paragraphs.el.
       (forward-paragraph)
       (skip-syntax-backward "-")
       (let ((end (point))
@@ -192,7 +221,7 @@ With prefix arg, turn Refill mode on iff arg is positive.
 When Refill mode is on, the current paragraph will be formatted when
 changes are made within it.  Self-inserting characters only cause
 refilling if they would cause auto-filling."
-  nil " Refill" nil
+  nil " Refill" '(("\177" . backward-delete-char-untabify))
   ;; This provides the test for recursive paragraph filling.
   (make-local-variable 'fill-paragraph-function)
   (if refill-mode
@@ -204,6 +233,10 @@ refilling if they would cause auto-filling."
 	     fill-paragraph-function)
 	(set (make-local-variable 'fill-paragraph-function)
 	     'refill-fill-paragraph)
+	;; When using justification, doing DEL on 2 spaces should remove
+	;; both, otherwise, the subsequent refill will undo the DEL.
+	(set (make-local-variable 'backward-delete-char-untabify-method)
+	     'hungry)
 	(setq refill-ignorable-overlay (make-overlay 1 1 nil nil t))
 	(overlay-put refill-ignorable-overlay 'modification-hooks
 		     '(refill-adjust-ignorable-overlay))
@@ -213,7 +246,8 @@ refilling if they would cause auto-filling."
     (remove-hook 'after-change-functions 'refill-after-change-function t)
     (remove-hook 'post-command-hook 'refill-post-command-function t)
     (delete-overlay refill-ignorable-overlay)
-    (setq fill-paragraph-function refill-late-fill-paragraph-function)))
+    (setq fill-paragraph-function refill-late-fill-paragraph-function)
+    (kill-local-variable 'backward-delete-char-untabify-method)))
 
 (provide 'refill)
 
