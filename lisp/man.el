@@ -254,7 +254,7 @@ This regular expression should start with a `^' character.")
 
 (defun Man-build-man-command ()
   "Builds the entire background manpage and cleaning command."
-  (let ((command (concat "man " Man-switches " %s 2>&1 | "))
+  (let ((command (concat "man " Man-switches " %s 2>&1"))
 	(flist Man-filter-list))
     (while flist
       (let ((pcom (car (car flist)))
@@ -263,11 +263,9 @@ This regular expression should start with a `^' character.")
 	(if (or (not (stringp pcom))
 		(not (listp pargs)))
 	    (error "malformed Man-filter-list."))
-	(setq command (concat command pcom
+	(setq command (concat command " | " pcom
 			      (mapconcat '(lambda (phrase) phrase)
-					 pargs " "))))
-      (if flist
-	  (setq command (concat command " | " ))))
+					 pargs " ")))))
     command))
 
 (defun Man-downcase (man-args)
@@ -342,29 +340,19 @@ the current column instead of character position."
 
 (defun Man-default-man-args (manword)
   "Build the default man args from MANWORD and buffer's major mode."
-  (let ((mode major-mode)
-	(slist Man-auto-section-alist))
-    (while (and slist
-		(not (eq (car (car slist)) mode)))
-      (setq slist (cdr slist)))
-    (if (not slist)
-	manword
-      (let ((sections (cdr (car slist))))
-	(if (not (listp sections))
-	    (concat sections " " manword)
-	  (let ((manarg ""))
-	    (while sections
-	      (setq manarg (concat manarg " " (car sections) " " manword))
-	      (setq sections (cdr sections)))
-	    manarg)
-	  )))))
+  (let ((sections (cdr (assq major-mode Man-auto-section-alist))))
+    (cond
+     ((null sections) manword)
+     ((consp sections) 
+      (mapconcat (lambda (n) (concat n " " manword)) sections " "))
+     (t
+      (concat sections " " manword)))))
 
 (defun Man-default-man-entry ()
   "Make a guess at a default manual entry.
 This guess is based on the text surrounding the cursor, and the
 default section number is selected from `Man-auto-section-alist'."
-  (let ((default-section nil)
-	default-title)
+  (let (default-title)
     (save-excursion
       
       ;; Default man entry title is any word the cursor is on,
@@ -383,20 +371,16 @@ default section number is selected from `Man-auto-section-alist'."
       ;; section number in default-entry
       (if (looking-at "[ \t]*([ \t]*[0-9][a-zA-Z]?[ \t]*)")
 	  (progn (skip-chars-forward "^0-9")
-		 (setq default-section
-		       (buffer-substring
-			(point)
-			(progn
-			  (skip-chars-forward "0-9a-zA-Z")
-			  (point)))))
-	
-	;; Otherwise, assume section number to be 2 if we're
-	;; in C code
-	(and (eq major-mode 'c-mode)
-	     (setq default-section "2")))
-      (if default-section
-	  (format "%s %s" default-section default-title)
-	default-title))))
+		 (setq default-title
+		       (concat (buffer-substring
+				(point)
+				(progn
+				  (skip-chars-forward "0-9a-zA-Z")
+				  (point)))
+			       " "
+			       default-title)))
+	(setq default-title (Man-default-man-args default-title)))
+      default-title)))
 	 
 
 ;; ======================================================================
@@ -421,13 +405,10 @@ Universal argument ARG, is passed to `Man-getpage-in-background'."
 	 (if (string= default-entry "")
 	     (error "No man args given.")
 	   (setq man-args default-entry)))
+
     ;; Recognize the subject(section) syntax.
-    (if (string-match "^[ \t]*\\([^( \t]+\\)[ \t]*(\\([^)]+\\))[ \t]*$"
-		      man-args)
-	(setq man-args
-	      (concat (substring man-args (match-beginning 2) (match-end 2))
-		      " "
-		      (substring man-args (match-beginning 1) (match-end 1)))))
+    (setq man-args (Man-translate-references man-args))
+
     (if Man-downcase-section-letters-p
 	(setq man-args (Man-downcase man-args)))
     (Man-getpage-in-background man-args (consp arg))
@@ -438,7 +419,7 @@ Universal argument ARG, is passed to `Man-getpage-in-background'."
 Optional OVERRIDE-REUSE-P, when non-nil, means to
 start a background process even if a buffer already exists and
 `Man-reuse-okay-p' is non-nil."
-  (let* ((man-args (Man-default-man-args TOPIC))
+  (let* ((man-args TOPIC)
 	 (bufname (concat "*man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
     (if (and Man-reuse-okay-p
