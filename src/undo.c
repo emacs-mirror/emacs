@@ -89,6 +89,12 @@ record_delete (beg, length)
     XFASTINT (sbeg) = beg;
   XFASTINT (lbeg) = beg;
   XFASTINT (lend) = beg + length;
+
+  /* If point isn't at start of deleted range, record where it is.  */
+  if (PT != sbeg)
+    current_buffer->undo_list
+      = Fcons (make_number (PT), current_buffer->undo_list);
+
   current_buffer->undo_list
     = Fcons (Fcons (Fbuffer_substring (lbeg, lend), sbeg),
 	     current_buffer->undo_list);
@@ -258,66 +264,81 @@ Return what remains of the list.")
     {
       while (1)
 	{
-	  Lisp_Object next, car, cdr;
+	  Lisp_Object next;
 	  next = Fcar (list);
 	  list = Fcdr (list);
+	  /* Exit inner loop at undo boundary.  */
 	  if (NILP (next))
 	    break;
-	  car = Fcar (next);
-	  cdr = Fcdr (next);
-	  if (EQ (car, Qt))
+	  /* Handle an integer by setting point to that value.  */
+	  if (XTYPE (next) == Lisp_Int)
+	    SET_PT (clip_to_bounds (BEGV, XINT (next), ZV));
+	  else if (XTYPE (next) == Lisp_Cons)
 	    {
-	      Lisp_Object high, low;
-	      int mod_time;
-	      high = Fcar (cdr);
-	      low = Fcdr (cdr);
-	      mod_time = (high << 16) + low;
-	      /* If this records an obsolete save
-		 (not matching the actual disk file)
-		 then don't mark unmodified.  */
-	      if (mod_time != current_buffer->modtime)
-		break;
-#ifdef CLASH_DETECTION
-	      Funlock_buffer ();
-#endif /* CLASH_DETECTION */
-	      Fset_buffer_modified_p (Qnil);
-	    }
-	  else if (XTYPE (car) == Lisp_Int && XTYPE (cdr) == Lisp_Int)
-	    {
-	      Lisp_Object end;
-	      if (XINT (car) < BEGV
-		  || XINT (cdr) > ZV)
-		error ("Changes to be undone are outside visible portion of buffer");
-	      Fdelete_region (car, cdr);
-	      Fgoto_char (car);
-	    }
-	  else if (XTYPE (car) == Lisp_String && XTYPE (cdr) == Lisp_Int)
-	    {
-	      Lisp_Object membuf;
-	      int pos = XINT (cdr);
-	      membuf = car;
-	      if (pos < 0)
-		{
-		  if (-pos < BEGV || -pos > ZV)
-		    error ("Changes to be undone are outside visible portion of buffer");
-		  SET_PT (-pos);
-		  Finsert (1, &membuf);
-		}
-	      else
-		{
-		  if (pos < BEGV || pos > ZV)
-		    error ("Changes to be undone are outside visible portion of buffer");
-		  SET_PT (pos);
+	      Lisp_Object car, cdr;
 
-		  /* Insert before markers so that if the mark is
-		     currently on the boundary of this deletion, it
-		     ends up on the other side of the now-undeleted
-		     text from point.  Since undo doesn't even keep
-		     track of the mark, this isn't really necessary,
-		     but it may lead to better behavior in certain
-		     situations.  */
-		  Finsert_before_markers (1, &membuf);
-		  SET_PT (pos);
+	      car = Fcar (next);
+	      cdr = Fcdr (next);
+	      if (EQ (car, Qt))
+		{
+		  /* Element (t high . low) records previous modtime.  */
+		  Lisp_Object high, low;
+		  int mod_time;
+
+		  high = Fcar (cdr);
+		  low = Fcdr (cdr);
+		  mod_time = (high << 16) + low;
+		  /* If this records an obsolete save
+		     (not matching the actual disk file)
+		     then don't mark unmodified.  */
+		  if (mod_time != current_buffer->modtime)
+		    break;
+    #ifdef CLASH_DETECTION
+		  Funlock_buffer ();
+    #endif /* CLASH_DETECTION */
+		  Fset_buffer_modified_p (Qnil);
+		}
+	      else if (XTYPE (car) == Lisp_Int && XTYPE (cdr) == Lisp_Int)
+		{
+		  /* Element (BEG . END) means range was inserted.  */
+		  Lisp_Object end;
+
+		  if (XINT (car) < BEGV
+		      || XINT (cdr) > ZV)
+		    error ("Changes to be undone are outside visible portion of buffer");
+		  Fdelete_region (car, cdr);
+		  Fgoto_char (car);
+		}
+	      else if (XTYPE (car) == Lisp_String && XTYPE (cdr) == Lisp_Int)
+		{
+		  /* Element (STRING . POS) means STRING was deleted.  */
+		  Lisp_Object membuf;
+		  int pos = XINT (cdr);
+
+		  membuf = car;
+		  if (pos < 0)
+		    {
+		      if (-pos < BEGV || -pos > ZV)
+			error ("Changes to be undone are outside visible portion of buffer");
+		      SET_PT (-pos);
+		      Finsert (1, &membuf);
+		    }
+		  else
+		    {
+		      if (pos < BEGV || pos > ZV)
+			error ("Changes to be undone are outside visible portion of buffer");
+		      SET_PT (pos);
+
+		      /* Insert before markers so that if the mark is
+			 currently on the boundary of this deletion, it
+			 ends up on the other side of the now-undeleted
+			 text from point.  Since undo doesn't even keep
+			 track of the mark, this isn't really necessary,
+			 but it may lead to better behavior in certain
+			 situations.  */
+		      Finsert_before_markers (1, &membuf);
+		      SET_PT (pos);
+		    }
 		}
 	    }
 	}
