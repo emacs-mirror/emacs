@@ -47,7 +47,7 @@ enum Lisp_Type
     Lisp_String,
 
     /* Vector of Lisp objects, or something resembling it.
-       XVECTOR(object) points to a struct Lisp_Vector, which contains
+       XVECTOR (object) points to a struct Lisp_Vector, which contains
        the size and contents.  The size field also contains the type
        information, if it's not a real vector object.  */
     Lisp_Vectorlike,
@@ -55,37 +55,8 @@ enum Lisp_Type
     /* Cons.  XCONS (object) points to a struct Lisp_Cons. */
     Lisp_Cons,
 
-    /* Byte-compiled function.  A vector of 4 to 6 elements which are the
-       arglist, bytecode-string, constant vector, stack size,
-       (optional) doc string, and (optional) interactive spec.  */
-    Lisp_Compiled,
-
-    /* Editor buffer.  XBUFFER(obj) points to a struct buffer.  */
+    /* Editor buffer.  XBUFFER (obj) points to a struct buffer.  */
     Lisp_Buffer,
-
-    /* Built-in function.  XSUBR(obj) points to a struct Lisp_Subr
-       which describes how to call the function, and its documentation,
-       as well as pointing to the code. */
-    Lisp_Subr,
-
-    /* Object describing a connection to a subprocess.
-       It points to storage of type  struct Lisp_Process  */
-    Lisp_Process,
-
-#ifdef MULTI_FRAME
-    /* Pointer to a vector-like object describing a display frame
-       on which Emacs can display a window hierarchy.  We don't define
-       this unless MULTI_FRAME is defined; this helps the compiler catch
-       code that won't work on a non-MULTI_FRAME configuration.  */
-    Lisp_Frame,
-#endif
-
-    /* Window used for Emacs display.
-       Data inside looks like a Lisp_Vector.  */
-    Lisp_Window,
-
-    /* Used by save,set,restore-window-configuration */
-    OBSOLETE_Lisp_Window_Configuration,
 
 #ifdef LISP_FLOAT_TYPE
     Lisp_Float,
@@ -188,11 +159,11 @@ Lisp_Object;
 
 /* These values are overridden by the m- file on some machines.  */
 #ifndef VALBITS
-#define VALBITS 24
+#define VALBITS 28
 #endif
 
 #ifndef GCTYPEBITS
-#define GCTYPEBITS 7
+#define GCTYPEBITS 3
 #endif
 
 #ifndef VALMASK
@@ -238,6 +209,7 @@ Lisp_Object;
 #define PVEC_COMPILED	0x800
 #define PVEC_WINDOW	0x1000
 #define PVEC_WINDOW_CONFIGURATION	0x2000
+#define PVEC_SUBR       0x4000
 
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0xff
@@ -387,13 +359,12 @@ extern int pure_size;
 #define XCONS(a) ((struct Lisp_Cons *) XPNTR(a))
 #define XBUFFER(a) ((struct buffer *) XPNTR(a))
 #define XVECTOR(a) ((struct Lisp_Vector *) XPNTR(a))
-#define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
 #define XSTRING(a) ((struct Lisp_String *) XPNTR(a))
 #define XSYMBOL(a) ((struct Lisp_Symbol *) XPNTR(a))
-#define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
-#define XWINDOW(a) ((struct window *) XPNTR(a))
-#define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
 #define XFLOAT(a) ((struct Lisp_Float *) XPNTR(a))
+
+/* Misc types.  */
+#define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
 #define XMARKER(a) (&(XMISC(a)->u_marker))
 #define XINTFWD(a) (&(XMISC(a)->u_intfwd))
 #define XBOOLFWD(a) (&(XMISC(a)->u_boolfwd))
@@ -402,21 +373,32 @@ extern int pure_size;
 #define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
 #define XOVERLAY(a) (&(XMISC(a)->u_overlay))
 
+/* Pseudovector types.  */
+#define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
+#define XWINDOW(a) ((struct window *) XPNTR(a))
+#define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
+
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
 #define XSETBUFFER(a, b) XSET (a, Lisp_Buffer, b)
 #define XSETVECTOR(a, b) XSET (a, Lisp_Vectorlike, b)
-#define XSETSUBR(a, b) XSET (a, Lisp_Subr, b)
 #define XSETSTRING(a, b) XSET (a, Lisp_String, b)
 #define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
-#define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
-#define XSETWINDOW(a, b) XSET (a, Lisp_Window, b)
-#define XSETPROCESS(a, b) XSET (a, Lisp_Process, b)
 #define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
-#define XSETPSEUDOVECTOR(a, b, code) (XSETVECTOR (a, b), XVECTOR (a)->size |= PSEUDOVECTOR_FLAG | (code))
-#define XSETWINDOW_CONFIGURATION(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
-#define XSETCOMPILED(a, b) XSET (a, Lisp_Compiled, b)
+
+/* Misc types.  */
+#define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISC (a)->type = Lisp_Misc_Marker)
+
+/* Pseudovector types.  */
+#define XSETPSEUDOVECTOR(a, b, code) \
+  (XSETVECTOR (a, b), XVECTOR (a)->size |= PSEUDOVECTOR_FLAG | (code))
+#define XSETWINDOW_CONFIGURATION(a, b) \
+  (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
+#define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
+#define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
+#define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
+#define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 
 #ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h */
@@ -536,8 +518,17 @@ struct Lisp_Symbol
     struct Lisp_Symbol *next;	/* -> next symbol in this obarray bucket */
   };
 
+/* This structure describes a built-in function.
+   It is generated by the DEFUN macro only.
+   defsubr makes it into a Lisp object.
+
+   This type is treated in most respects as a pseudovector,
+   but since we never dynamically allocate or free them,
+   we don't need a next-vector field.  */
+   
 struct Lisp_Subr
   {
+    EMACS_INT size;
     Lisp_Object (*function) ();
     short min_args, max_args;
     char *symbol_name;
@@ -545,6 +536,8 @@ struct Lisp_Subr
     char *doc;
   };
 
+/* These structures are used for various misc types.  */
+
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
@@ -666,7 +659,7 @@ union Lisp_Misc
     struct Lisp_Buffer_Local_Value u_buffer_local_value;
     struct Lisp_Overlay u_overlay;
   };
-
+
 #ifdef LISP_FLOAT_TYPE
 /* Optional Lisp floating point type */
 struct Lisp_Float
@@ -695,14 +688,14 @@ typedef unsigned char UCHAR;
 
 /* Flag bits in a character.  These also get used in termhooks.h.
    Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
-   (MUlti-Lingual Emacs) might need 18 bits for the character value
-   itself, so we probably shouldn't use any bits lower than 0x040000.  */
-#define CHAR_ALT   (0x040000)
-#define CHAR_SUPER (0x080000)
-#define CHAR_HYPER (0x100000)
-#define CHAR_SHIFT (0x200000)
-#define CHAR_CTL   (0x400000)
-#define CHAR_META  (0x800000)
+   (MUlti-Lingual Emacs) might need 22 bits for the character value
+   itself, so we probably shouldn't use any bits lower than 0x0400000.  */
+#define CHAR_ALT   (0x0400000)
+#define CHAR_SUPER (0x0800000)
+#define CHAR_HYPER (0x1000000)
+#define CHAR_SHIFT (0x2000000)
+#define CHAR_CTL   (0x4000000)
+#define CHAR_META  (0x8000000)
 
 #ifdef USE_X_TOOLKIT
 #ifdef NO_UNION_TYPE
@@ -797,31 +790,9 @@ typedef unsigned char UCHAR;
 #define GC_STRINGP(x) (XGCTYPE ((x)) == Lisp_String)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 #define GC_CONSP(x) (XGCTYPE ((x)) == Lisp_Cons)
-#define COMPILEDP(x) (XTYPE ((x)) == Lisp_Compiled)
-#define GC_COMPILEDP(x) (XGCTYPE ((x)) == Lisp_Compiled)
 #define BUFFERP(x) (XTYPE ((x)) == Lisp_Buffer)
 #define GC_BUFFERP(x) (XGCTYPE ((x)) == Lisp_Buffer)
-#define SUBRP(x) (XTYPE ((x)) == Lisp_Subr)
-#define GC_SUBRP(x) (XGCTYPE ((x)) == Lisp_Subr)
-#define PROCESSP(x) (XTYPE ((x)) == Lisp_Process)
-#define GC_PROCESSP(x) (XGCTYPE ((x)) == Lisp_Process)
-#ifdef MULTI_FRAME
-#define FRAMEP(x) (XTYPE ((x)) == Lisp_Frame)
-#define GC_FRAMEP(x) (XGCTYPE ((x)) == Lisp_Frame)
-#else
-#ifdef HAVE_MOUSE
-/* We could use this in the !HAVE_MOUSE case also, but we prefer a compile-time
-   error message in case FRAMEP is used.  */
-#define FRAMEP(x) (EQ (x, Fselected_frame ()))
-#define GC_FRAMEP(x) (GC_EQ (x, Fselected_frame ()))
-#endif
-#endif
-#define WINDOWP(x) (XTYPE ((x)) == Lisp_Window)
-#define GC_WINDOWP(x) (XGCTYPE ((x)) == Lisp_Window)
-#define PSEUDOVECTORP(x, code) (VECTORLIKEP (x) && ((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code)))) == PSEUDOVECTOR_FLAG | (code))
-#define GC_PSEUDOVECTORP(x, code) (GC_VECTORLIKEP (x) && ((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code)))) == PSEUDOVECTOR_FLAG | (code))
-#define WINDOW_CONFIGURATIONP(x) PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
-#define GC_WINDOW_CONFIGURATIONP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
+
 #ifdef LISP_FLOAT_TYPE
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
 #define GC_FLOATP(x) (XGCTYPE ((x)) == Lisp_Float)
@@ -848,6 +819,45 @@ typedef unsigned char UCHAR;
 #define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 #define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 
+
+/* True if object X is a pseudo vector whose code is CODE.  */
+#define PSEUDOVECTORP(x, code)					\
+  (VECTORLIKEP (x)						\
+   && (((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code))))	\
+       == (PSEUDOVECTOR_FLAG | (code))))
+
+/* True if object X is a pseudo vector whose code is CODE.
+   This one works during GC.  */
+#define GC_PSEUDOVECTORP(x, code)				\
+  (GC_VECTORLIKEP (x)						\
+   && (((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code))))	\
+       == (PSEUDOVECTOR_FLAG | (code))))
+
+/* Test for specific pseudovector types.  */
+#define WINDOW_CONFIGURATIONP(x) PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
+#define GC_WINDOW_CONFIGURATIONP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW_CONFIGURATION)
+#define PROCESSP(x) PSEUDOVECTORP (x, PVEC_PROCESS)
+#define GC_PROCESSP(x) GC_PSEUDOVECTORP (x, PVEC_PROCESS)
+#define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
+#define GC_WINDOWP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW)
+#define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
+#define GC_SUBRP(x) GC_PSEUDOVECTORP (x, PVEC_SUBR)
+#define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
+#define GC_COMPILEDP(x) GC_PSEUDOVECTORP (x, PVEC_COMPILED)
+
+#ifdef MULTI_FRAME
+#define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
+#define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
+#else
+#ifdef HAVE_MOUSE
+/* We could use this in the !HAVE_MOUSE case also, but we prefer a compile-time
+   error message in case FRAMEP is used.  */
+#define FRAMEP(x) (EQ (x, Fselected_frame ()))
+#define GC_FRAMEP(x) (GC_EQ (x, Fselected_frame ()))
+#endif
+#endif
+
+
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
 
@@ -963,18 +973,22 @@ typedef unsigned char UCHAR;
  `doc' is documentation for the user.  */
 
 #if !defined (__STDC__) || defined (USE_NONANSI_DEFUN)
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc) \
-  Lisp_Object fnname (); \
-  struct Lisp_Subr sname = {fnname, minargs, maxargs, lname, prompt, 0}; \
+#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
+  Lisp_Object fnname ();						\
+  struct Lisp_Subr sname =						\
+    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
+      fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
 
 #else
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time. */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc) \
-  Lisp_Object fnname DEFUN_ARGS_ ## maxargs ; \
-  struct Lisp_Subr sname = {fnname, minargs, maxargs, lname, prompt, 0}; \
+#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
+  Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
+  struct Lisp_Subr sname =						\
+    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
+      fnname, minargs, maxargs, lname, prompt, 0};			\
   Lisp_Object fnname
 
 /* Note that the weird token-substitution semantics of ANSI C makes
