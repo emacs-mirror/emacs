@@ -464,8 +464,8 @@ Returns (parse-state) if line starts inside a string."
 			     (memq (char-syntax (char-after (- (point) 2)))
 				   '(?w ?_))))
 	       (if (eq (preceding-char) ?\,)
-		   (perl-backward-to-start-of-continued-exp containing-sexp))
-	       (beginning-of-line)
+		   (perl-backward-to-start-of-continued-exp containing-sexp)
+		 (beginning-of-line))
 	       (perl-backward-to-noncomment))
 	     ;; Now we get the answer.
 	     (if (not (memq (preceding-char) '(?\; ?\} ?\{)))
