@@ -8,6 +8,10 @@ For older news, see the file ONEWS
 
 * Installation Changes in Emacs 21.1
 
+See the INSTALL file for information on installing extra libraries and
+fonts to take advantage of the new graphical features and extra
+charsets in this release.
+
 ** Support for GNU/Linux on IA64 machines has been added.
 
 ** Support for LynxOS has been added.
@@ -177,6 +181,7 @@ ever-changing layouts.
 
 *** There is image support of various kinds and some sound support.
 
++++
 ** When your terminal can't display characters from some of the ISO
 8859 character sets but can display Latin-1, you can display
 more-or-less mnemonic sequences of ASCII/Latin-1 characters instead of
@@ -859,86 +864,27 @@ Default is `grow-only'.
 
 ** Changes to hideshow.el
 
-Hideshow is now at version 5.x.  It uses a new algorithms for block
-selection and traversal, includes more isearch support, and has more
-conventional keybindings.
-
 *** Generalized block selection and traversal
 
-A block is now recognized by three things: its start and end regexps
-(both strings), and a match-data selector (an integer) specifying
-which sub-expression in the start regexp serves as the place where a
-`forward-sexp'-like function can operate.  Hideshow always adjusts
-point to this sub-expression before calling `hs-forward-sexp-func'
-(which for most modes evaluates to `forward-sexp').
+A block is now recognized by its start and end regexps (both strings),
+and an integer specifying which sub-expression in the start regexp
+serves as the place where a `forward-sexp'-like function can operate.
+See the documentation of variable `hs-special-modes-alist'.
 
-If the match-data selector is not specified, it defaults to zero,
-i.e., the entire start regexp is valid, w/ no prefix.  This is
-backwards compatible with previous versions of hideshow.  Please see
-the docstring for variable `hs-special-modes-alist' for details.
+*** During incremental search, if Hideshow minor mode is active,
+hidden blocks are temporarily shown.  The variable `hs-headline' can
+be used in the mode line format to show the line at the beginning of
+the open block.
 
-*** Isearch support for updating mode line
+*** User option `hs-hide-all-non-comment-function' specifies a
+function to be called at each top-level block beginning, instead of
+the normal block-hiding function.
 
-During incremental search, if Hideshow minor mode is active, hidden
-blocks are temporarily shown.  The variable `hs-headline' records the
-line at the beginning of the opened block (preceding the hidden
-portion of the buffer), and the mode line is refreshed.  When a block
-is re-hidden, the variable is set to nil.
+*** The command `hs-show-region' has been removed.
 
-To show `hs-headline' in the mode line, you may wish to include
-something like this in your .emacs.
-
-	(add-hook 'hs-minor-mode-hook
-	  (lambda ()
-	    (add-to-list 'mode-line-format 'hs-headline)))
-
-*** New customization var: `hs-hide-all-non-comment-function'
-
-Normally, `hs-hide-all' hides everything, leaving only the
-header lines of top-level forms (and comments, unless var
-`hs-hide-comments-when-hiding-all' is non-nil).  It does this by
-moving point to each top-level block beginning and hiding the
-block there.  In some major modes (for example, Java), this
-behavior results in few blocks left visible, which may not be so
-useful.
-
-You can now set var `hs-hide-all-non-comment-function' to a
-function to be called at each top-level block beginning, instead
-of the normal block-hiding function.  For example, the following
-code defines a function to hide one level down and move point
-appropriately, and then tells hideshow to use the new function.
-
-(defun ttn-hs-hide-level-1 ()
-  (hs-hide-level 1)
-  (forward-sexp 1))
-(setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
-
-The name `hs-hide-all-non-comment-function' was chosen to
-emphasize that this function is not called for comment blocks,
-only for code blocks.
-
-*** Command deleted: `hs-show-region'
-
-Historical Note: This command was added to handle "unbalanced
-parentheses" emergencies back when hideshow.el used selective
-display for implementation.
-
-*** Commands rebound to more conventional keys
-
-The hideshow commands used to be bound to keys of the form "C-c
-LETTER".  This is contrary to the Emacs keybinding convention,
-which reserves that space for user modification.  Here are the
-new bindings (which includes the addition of `hs-toggle-hiding'):
-
-  hs-hide-block               C-c C-h
-  hs-show-block               C-c C-s
-  hs-hide-all                 C-c C-M-h
-  hs-show-all                 C-c C-M-s
-  hs-hide-level               C-c C-l
-  hs-toggle-hiding            C-c C-c
-  hs-mouse-toggle-hiding      [(shift button-2)]
-
-These were chosen to roughly imitate those used by Outline mode.
+*** The key bindings have changed to fit the Emacs conventions,
+roughly imitating those of Outline mode.  See the documentation for
+`hs-minor-mode'.
 
 ** Changes to Change Log mode and Add-Log functions
 
@@ -1539,10 +1485,10 @@ LC_ALL, LC_CTYPE, and LANG environment variables during startup.
 ** New language environments `Polish', `Latin-8' and `Latin-9'.
 Latin-8 and Latin-9 correspond respectively to the ISO character sets
 8859-14 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).
-GNU Intlfonts doesn't support these yet; there are basic 8859-14 and
-8859-15 fonts at <URL:http://czyborra.com/charsets/> and recent X
-releases have 8859-15.  There are new Latin-8 and Latin-9 prefix
-(only) and Polish slash input methods in Leim.
+GNU Intlfonts doesn't support these yet but recent X releases have
+8859-15.  See etc/INSTALL for information on obtaining extra fonts.
+There are new Latin-8 and Latin-9 prefix (only) and Polish slash input
+methods in Leim.
 
 +++
 ** New language environments `Dutch' and `Spanish'.
@@ -2447,6 +2393,9 @@ a composition at a specified position in a buffer or a string.
 
 *** The function `decompose-composite-char' is now labeled as
 obsolete.
+
+** The new coding system `mac-roman' is primarily intended for use on
+the Macintosh but may be used generally for Macintosh-encoded text.
 
 ** The new character sets `mule-unicode-0100-24ff',
 `mule-unicode-2500-33ff', and `mule-unicode-e000-ffff' have been
