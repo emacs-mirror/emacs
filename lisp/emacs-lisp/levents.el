@@ -73,6 +73,21 @@ In this emulation, it returns nil."
        (or (memq 'click (get (car obj) 'event-symbol-elements))
 	   (memq 'drag (get (car obj) 'event-symbol-elements)))))
 
+(defun button-event-p (obj)
+  "True if the argument is a mouse-button press or release event object."
+  (and (consp obj) (symbolp (car obj))
+       (or (memq 'click (get (car obj) 'event-symbol-elements))
+	   (memq 'down (get (car obj) 'event-symbol-elements))
+	   (memq 'drag (get (car obj) 'event-symbol-elements)))))
+
+(defun mouse-event-p (obj)
+  "True if the argument is a mouse-button press or release event object."
+  (and (consp obj) (symbolp (car obj))
+       (or (eq (car obj) 'mouse-movement)
+	   (memq 'click (get (car obj) 'event-symbol-elements))
+	   (memq 'down (get (car obj) 'event-symbol-elements))
+	   (memq 'drag (get (car obj) 'event-symbol-elements)))))
+
 (defun character-to-event (ch &optional event)
   "Converts a numeric ASCII value to an event structure, replete with
 bucky bits.  The character is the first argument, and the event to fill
@@ -141,6 +156,46 @@ If the event did not occur over a window, or did
 not occur over text, then this returns nil.  Otherwise, it returns an index
 into the buffer visible in the event's window."
   (posn-point (event-end event)))
+
+;; Return position of start of line LINE in WINDOW.
+;; If LINE is nil, return the last position
+;; visible in WINDOW.
+(defun event-closest-point-1 (window &optional line)
+  (let* ((total (- (window-height window)
+		   (if (window-minibuffer-p window)
+		       0 1)))
+	 (distance (or line total)))
+    (save-excursion
+      (goto-char (window-start window))
+      (if (= (vertical-motion distance) distance)
+	  (if (not line)
+	      (forward-char -1)))
+      (point))))
+
+(defun event-closest-point (event &optional start-window)
+  "Return the nearest position to where EVENT ended its motion.
+This is computed for the window where EVENT's motion started,
+or for window WINDOW if that is specified."
+  (or start-window (setq start-window (posn-window (event-start event))))
+  (if (eq start-window (posn-window (event-end event)))
+      (if (eq (event-point event) 'vertical-line)
+	  (event-closest-point-1 start-window
+				 (cdr (posn-col-row (event-end event))))
+	(if (eq (event-point event) 'mode-line)
+	    (event-closest-point-1 start-window)
+	  (event-point event)))
+    ;; EVENT ended in some other window.
+    (let* ((end-w (posn-window (event-end event)))
+	   (end-w-top)
+	   (w-top (nth 1 (window-edges start-window))))
+      (setq end-w-top
+	    (if (windowp end-w)
+		(nth 1 (window-edges end-w))
+	      (/ (cdr (posn-x-y (event-end event)))
+		 ((frame-char-height end-w)))))
+      (if (>= end-w-top w-top)
+	  (event-closest-point-1 start-window)
+	(window-start start-window)))))
 
 (defun event-process (event)
   "Returns the process of the given process-output event."
