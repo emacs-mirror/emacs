@@ -1,3 +1,8 @@
+2003-03-07  Andreas Schwab  <schwab@suse.de>
+
+	* info.el (Info-following-node-name): Skip trailing period.
+	(Info-extract-menu-node-name): Allow period in node name.
+
 2003-03-07  Kevin Rodgers  <kevin.rodgers@ihs.com>
 
 	* dired-x.el (dired-guess-shell-case-fold-search): New user option.
