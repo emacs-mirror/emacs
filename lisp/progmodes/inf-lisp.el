@@ -1,30 +1,36 @@
-;;; cmulisp.el --- improved version of standard inferior-lisp mode
+;;; inf-lisp.el --- an inferior-lisp mode
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Last-Modified: 16 Jul 1993
+;; Last-Modified: 16 Jul 1992
 ;; Keyword: processes, lisp
 
 ;;; Copyright Olin Shivers (1988).
-;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
-;;; notice appearing here to the effect that you may use this code any
-;;; way you like, as long as you don't charge money for it, remove this
-;;; notice, or hold me liable for its results.
+
+;;; This file is part of GNU Emacs.
+
+;;; GNU Emacs is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 2, or (at your option)
+;;; any later version.
+
+;;; GNU Emacs is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+
+;;; You should have received a copy of the GNU General Public License
+;;; along with GNU Emacs; see the file COPYING.  If not, write to
+;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
-;;; This replaces the standard inferior-lisp mode.
 ;;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
-;;; Please send me bug reports, bug fixes, and extensions, so that I can
-;;; merge them into the master source.
-;;;
-;;; Change log at end of file.
 
-;;; This file defines a a lisp-in-a-buffer package (cmulisp mode) built on top
-;;; of comint mode.  Cmulisp mode is similar to, and intended to replace, its
-;;; counterpart in the standard gnu emacs release. This replacements is more
-;;; featureful, robust, and uniform than the released version.  The key
-;;; bindings are also more compatible with the bindings of Hemlock and Zwei
-;;; (the Lisp Machine emacs).
+;;; This file defines a a lisp-in-a-buffer package (inferior-lisp
+;;; mode) built on top of comint mode.  This version is more
+;;; featureful, robust, and uniform than the Emacs 18 version.  The
+;;; key bindings are also more compatible with the bindings of Hemlock
+;;; and Zwei (the Lisp Machine emacs).
 
 ;;; Since this mode is built on top of the general command-interpreter-in-
 ;;; a-buffer mode (comint mode), it shares a common base functionality, 
@@ -33,7 +39,7 @@
 
 ;;; For documentation on the functionality provided by comint mode, and
 ;;; the hooks available for customising it, see the file comint.el.
-;;; For further information on cmulisp mode, see the comments below.
+;;; For further information on inferior-lisp mode, see the comments below.
 
 ;;; Needs fixin:
 ;;; The load-file/compile-file default mechanism could be smarter -- it
@@ -44,7 +50,7 @@
 ;;; because the extension for executable files varies so much (.o, .bin,
 ;;; .lbin, .mo, .vo, .ao, ...).
 ;;;
-;;; It would be nice if cmulisp (and inferior scheme, T, ...) modes
+;;; It would be nice if inferior-lisp (and inferior scheme, T, ...) modes
 ;;; had a verbose minor mode wherein sending or compiling defuns, etc.
 ;;; would be reflected in the transcript with suitable comments, e.g.
 ;;; ";;; redefining fact". Several ways to do this. Which is right?
@@ -58,24 +64,25 @@
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
 ;;
-;; ; If cmulisp lives in some non-standard directory, you must tell emacs
+;; ; If inferior-lisp lives in some non-standard directory, you must tell emacs
 ;; ; where to get it. This may or may not be necessary.
 ;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
 ;;
-;; ; Autoload cmulisp from file cmulisp.el
-;; (autoload 'cmulisp "cmulisp"
+;; ; Autoload inferior-lisp from file inf-lisp.el
+;; (autoload 'inferior-lisp "inferior-lisp"
 ;;           "Run an inferior Lisp process."
 ;;           t)
 ;;
-;; ; Define C-c t to run my favorite command in cmulisp mode:
-;; (setq cmulisp-load-hook
+;; ; Define C-c t to run my favorite command in inferior-lisp mode:
+;; (setq inferior-lisp-load-hook
 ;;       '((lambda () 
-;;           (define-key cmulisp-mode-map "\C-ct" 'favorite-cmd))))
+;;           (define-key inferior-lisp-mode-map "\C-ct" 'favorite-cmd))))
 
 
 ;;; Brief Command Documentation:
 ;;;============================================================================
-;;; Comint Mode Commands: (common to cmulisp and all comint-derived modes)
+;;; Comint Mode Commands: (common to inferior-lisp and all
+;;; comint-derived modes)
 ;;;
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
@@ -95,7 +102,7 @@
 ;;;					        top-level job.
 ;;; comint-mode-hook is the comint mode hook.
 
-;;; CMU Lisp Mode Commands:
+;;; Inferior Lisp Mode Commands:
 ;;; c-m-x   lisp-send-defun     This binding is a gnu convention.
 ;;; c-c c-l lisp-load-file  	Prompt for file name; tell Lisp to load it.
 ;;; c-c c-k lisp-compile-file	Prompt for file name; tell Lisp to kompile it.
@@ -115,14 +122,14 @@
 ;;; c-c c-f lisp-show-function-documentation Query Lisp for a function's doc.
 ;;; c-c c-v lisp-show-variable-documentation Query Lisp for a variable's doc.
 
-;;; cmulisp	    	    	    Fires up the Lisp process.
+;;; inferior-lisp	    	    	    Fires up the Lisp process.
 ;;; lisp-compile-region     	    Compile all forms in the current region.
 ;;;
-;;; CMU Lisp Mode Variables:
-;;; cmulisp-filter-regexp	    Match this => don't get saved on input hist
+;;; Inferior Lisp Mode Variables:
+;;; inferior-lisp-filter-regexp	    Match this => don't get saved on input hist
 ;;; inferior-lisp-program   	    Name of Lisp program run-lisp executes
 ;;; inferior-lisp-load-command	    Customises lisp-load-file
-;;; cmulisp-mode-hook  	    
+;;; inferior-lisp-mode-hook  	    
 ;;; inferior-lisp-prompt	    Initialises comint-prompt-regexp.
 ;;;				    Backwards compatibility.
 ;;; lisp-source-modes               Anything loaded into a buffer that's in
@@ -135,24 +142,27 @@
 
 (require 'comint)
 
-(defvar cmulisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
+(defvar inferior-lisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "*What not to save on inferior Lisp's input history
-Input matching this regexp is not saved on the input history in cmulisp
+Input matching this regexp is not saved on the input history in inferior-lisp
 mode. Default is whitespace followed by 0 or 1 single-letter :keyword 
 (as in :a, :c, etc.)")
 
-(defvar cmulisp-mode-map nil)
-(cond ((not cmulisp-mode-map)
-       (setq cmulisp-mode-map
+(defvar inferior-lisp-mode-map nil)
+(cond ((not inferior-lisp-mode-map)
+       (setq inferior-lisp-mode-map
 	     (full-copy-sparse-keymap comint-mode-map))
-       (lisp-mode-commands cmulisp-mode-map)
-       (define-key cmulisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
-       (define-key cmulisp-mode-map "\C-c\C-l" 'lisp-load-file)
-       (define-key cmulisp-mode-map "\C-c\C-k" 'lisp-compile-file)
-       (define-key cmulisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
-       (define-key cmulisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
-       (define-key cmulisp-mode-map "\C-c\C-f" 'lisp-show-function-documentation)
-       (define-key cmulisp-mode-map "\C-c\C-v" 'lisp-show-variable-documentation)))
+       (setq inferior-lisp-mode-map
+	     (nconc inferior-lisp-mode-map shared-lisp-mode-map))
+       (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
+       (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
+       (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
+       (define-key inferior-lisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
+       (define-key inferior-lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
+       (define-key inferior-lisp-mode-map "\C-c\C-f"
+	 'lisp-show-function-documentation)
+       (define-key inferior-lisp-mode-map "\C-c\C-v"
+	 'lisp-show-variable-documentation)))
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.
@@ -174,14 +184,14 @@ mode. Default is whitespace followed by 0 or 1 single-letter :keyword
 ;;; Previous versions of this package bound commands to C-c <letter>
 ;;; bindings, which is not allowed by the gnumacs standard.
 
-(defun cmulisp-install-letter-bindings ()
-  "This function binds many cmulisp commands to C-c <letter> bindings,
+(defun inferior-lisp-install-letter-bindings ()
+  "This function binds many inferior-lisp commands to C-c <letter> bindings,
 where they are more accessible. C-c <letter> bindings are reserved for the
 user, so these bindings are non-standard. If you want them, you should
-have this function called by the cmulisp-load-hook:
-    (setq cmulisp-load-hook '(cmulisp-install-letter-bindings))
+have this function called by the inferior-lisp-load-hook:
+    (setq inferior-lisp-load-hook '(inferior-lisp-install-letter-bindings))
 You can modify this function to install just the bindings you want."
-
+  
   (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
   (define-key lisp-mode-map "\C-cr" 'lisp-eval-region-and-go)
   (define-key lisp-mode-map "\C-cc" 'lisp-compile-defun-and-go)
@@ -192,17 +202,18 @@ You can modify this function to install just the bindings you want."
   (define-key lisp-mode-map "\C-cd" 'lisp-describe-sym)
   (define-key lisp-mode-map "\C-cf" 'lisp-show-function-documentation)
   (define-key lisp-mode-map "\C-cv" 'lisp-show-variable-documentation)
-
-  (define-key cmulisp-mode-map "\C-cl" 'lisp-load-file)
-  (define-key cmulisp-mode-map "\C-ck" 'lisp-compile-file)
-  (define-key cmulisp-mode-map "\C-ca" 'lisp-show-arglist)
-  (define-key cmulisp-mode-map "\C-cd" 'lisp-describe-sym)
-  (define-key cmulisp-mode-map "\C-cf" 'lisp-show-function-documentation)
-  (define-key cmulisp-mode-map "\C-cv" 'lisp-show-variable-documentation))
+  
+  (define-key inferior-lisp-mode-map "\C-cl" 'lisp-load-file)
+  (define-key inferior-lisp-mode-map "\C-ck" 'lisp-compile-file)
+  (define-key inferior-lisp-mode-map "\C-ca" 'lisp-show-arglist)
+  (define-key inferior-lisp-mode-map "\C-cd" 'lisp-describe-sym)
+  (define-key inferior-lisp-mode-map "\C-cf" 'lisp-show-function-documentation)
+  (define-key inferior-lisp-mode-map "\C-cv"
+    'lisp-show-variable-documentation))
 
 
 (defvar inferior-lisp-program "lisp"
-  "*Program name for invoking an inferior Lisp with `cmulisp'.")
+  "*Program name for invoking an inferior Lisp with `inferior-lisp'.")
 
 (defvar inferior-lisp-load-command "(load \"%s\")\n"
   "*Format-string for building a Lisp expression to load a file.
@@ -217,7 +228,7 @@ but it works only in Common Lisp.")
   "Regexp to recognise prompts in the inferior Lisp.
 Defaults to \"^[^> ]*>+:? *\", which works pretty good for Lucid, kcl,
 and franz. This variable is used to initialise comint-prompt-regexp in the 
-cmulisp buffer.
+inferior-lisp buffer.
 
 More precise choices:
 Lucid Common Lisp: \"^\\(>\\|\\(->\\)+\\) *\"
@@ -226,24 +237,24 @@ kcl: \"^>+ *\"
 
 This is a fine thing to set in your .emacs file.")
 
-(defvar cmulisp-mode-hook '()
-  "*Hook for customising cmulisp mode")
+(defvar inferior-lisp-mode-hook '()
+  "*Hook for customising inferior-lisp mode")
 
-(defun cmulisp-mode () 
+(defun inferior-lisp-mode () 
   "Major mode for interacting with an inferior Lisp process.  
 Runs a Lisp interpreter as a subprocess of Emacs, with Lisp I/O through an
 Emacs buffer.  Variable inferior-lisp-program controls which Lisp interpreter
-is run.  Variables inferior-lisp-prompt, cmulisp-filter-regexp and
+is run.  Variables inferior-lisp-prompt, inferior-lisp-filter-regexp and
 inferior-lisp-load-command can customize this mode for different Lisp
 interpreters.
 
 For information on running multiple processes in multiple buffers, see
-documentation for variable cmulisp-buffer.
+documentation for variable inferior-lisp-buffer.
 
-\\{cmulisp-mode-map}
+\\{inferior-lisp-mode-map}
 
 Customisation: Entry to this mode runs the hooks on comint-mode-hook and
-cmulisp-mode-hook (in that order).
+inferior-lisp-mode-hook (in that order).
 
 You can send text to the inferior Lisp process from other buffers containing
 Lisp source.  
@@ -272,17 +283,15 @@ to continue it."
   (interactive)
   (comint-mode)
   (setq comint-prompt-regexp inferior-lisp-prompt)
-  (setq major-mode 'cmulisp-mode)
-  (setq mode-name "CMU Lisp")
+  (setq major-mode 'inferior-lisp-mode)
+  (setq mode-name "Inferior Lisp")
   (setq mode-line-process '(": %s"))
-  (if (string-match "^18.4" emacs-version) ; hack.
-      (lisp-mode-variables)    ; This is right for 18.49  
-      (lisp-mode-variables t)) ; This is right for 18.50
-  (use-local-map cmulisp-mode-map)    ;c-c c-k for "kompile" file
+  (lisp-mode-variables t)
+  (use-local-map inferior-lisp-mode-map)    ;c-c c-k for "kompile" file
   (setq comint-get-old-input (function lisp-get-old-input))
   (setq comint-input-filter (function lisp-input-filter))
   (setq comint-input-sentinel 'ignore)
-  (run-hooks 'cmulisp-mode-hook))
+  (run-hooks 'inferior-lisp-mode-hook))
 
 (defun lisp-get-old-input ()
   "Snarf the sexp ending at point"
@@ -292,49 +301,52 @@ to continue it."
       (buffer-substring (point) end))))
 
 (defun lisp-input-filter (str)
-  "Don't save anything matching cmulisp-filter-regexp"
-  (not (string-match cmulisp-filter-regexp str)))
+  "Don't save anything matching inferior-lisp-filter-regexp"
+  (not (string-match inferior-lisp-filter-regexp str)))
 
-(defun cmulisp (cmd)
-  "Run an inferior Lisp process, input and output via buffer *cmulisp*.
-If there is a process already running in *cmulisp*, just switch to that buffer.
+(defun inferior-lisp (cmd)
+  "Run an inferior Lisp process, input and output via buffer *inferior-lisp*.
+If there is a process already running in *inferior-lisp*, just switch
+to that buffer.
 With argument, allows you to edit the command line (default is value
-of inferior-lisp-program).  Runs the hooks from cmulisp-mode-hook (after the
-comint-mode-hook is run).
+of inferior-lisp-program).  Runs the hooks from
+inferior-lisp-mode-hook (after the comint-mode-hook is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (interactive (list (if current-prefix-arg
 			 (read-string "Run lisp: " inferior-lisp-program)
-			 inferior-lisp-program)))
-  (if (not (comint-check-proc "*cmulisp*"))
-      (let ((cmdlist (cmulisp-args-to-list cmd)))
-	 (set-buffer (apply (function make-comint) "cmulisp" (car cmdlist) nil
-			    (cdr cmdlist)))
-	 (cmulisp-mode)))
-  (setq cmulisp-buffer "*cmulisp*")
-  (switch-to-buffer "*cmulisp*"))
+		       inferior-lisp-program)))
+  (if (not (comint-check-proc "*inferior-lisp*"))
+      (let ((cmdlist (inferior-lisp-args-to-list cmd)))
+	(set-buffer (apply (function make-comint)
+			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
+	(inferior-lisp-mode)))
+  (setq inferior-lisp-buffer "*inferior-lisp*")
+  (switch-to-buffer "*inferior-lisp*"))
+
+(fset 'run-lisp 'inferior-lisp)
 
 ;;; Break a string up into a list of arguments.
 ;;; This will break if you have an argument with whitespace, as in
 ;;; string = "-ab +c -x 'you lose'".
-(defun cmulisp-args-to-list (string)
+(defun inferior-lisp-args-to-list (string)
   (let ((where (string-match "[ \t]" string)))
     (cond ((null where) (list string))
 	  ((not (= where 0))
 	   (cons (substring string 0 where)
-		 (tea-args-to-list (substring string (+ 1 where)
-					      (length string)))))
+		 (inferior-lisp-args-to-list (substring string (+ 1 where)
+							(length string)))))
 	  (t (let ((pos (string-match "[^ \t]" string)))
 	       (if (null pos)
 		   nil
-		 (cmulsip-args-to-list (substring string pos
-						  (length string)))))))))
+		 (inferior-lisp-args-to-list (substring string pos
+							(length string)))))))))
 
 (defun lisp-eval-region (start end &optional and-go)
   "Send the current region to the inferior Lisp process.
 Prefix argument means switch-to-lisp afterwards."
   (interactive "r\nP")
-  (comint-send-region (cmulisp-proc) start end)
-  (comint-send-string (cmulisp-proc) "\n")
+  (comint-send-region (inferior-lisp-proc) start end)
+  (comint-send-string (inferior-lisp-proc) "\n")
   (if and-go (switch-to-lisp t)))
 
 (defun lisp-eval-defun (&optional and-go)
@@ -360,11 +372,12 @@ Prefix argument means switch-to-lisp afterwards."
   "Compile the current region in the inferior Lisp process.
 Prefix argument means switch-to-lisp afterwards."
   (interactive "r\nP")
-  (comint-send-string (cmulisp-proc)
-    (format "(funcall (compile nil `(lambda () (progn 'compile %s))))\n"
-	    (buffer-substring start end)))
+  (comint-send-string
+   (inferior-lisp-proc)
+   (format "(funcall (compile nil `(lambda () (progn 'compile %s))))\n"
+	   (buffer-substring start end)))
   (if and-go (switch-to-lisp t)))
-			 
+
 (defun lisp-compile-defun (&optional and-go)
   "Compile the current defun in the inferior Lisp process.
 Prefix argument means switch-to-lisp afterwards."
@@ -381,9 +394,9 @@ Prefix argument means switch-to-lisp afterwards."
   "Switch to the inferior Lisp process buffer.
 With argument, positions cursor at end of buffer."
   (interactive "P")
-  (if (get-buffer cmulisp-buffer)
-      (pop-to-buffer cmulisp-buffer)
-      (error "No current process buffer. See variable cmulisp-buffer."))
+  (if (get-buffer inferior-lisp-buffer)
+      (pop-to-buffer inferior-lisp-buffer)
+    (error "No current process buffer. See variable inferior-lisp-buffer."))
   (cond (eob-p
 	 (push-mark)
 	 (goto-char (point-max)))))
@@ -419,38 +432,40 @@ and switch to the process buffer."
   (lisp-compile-defun t))
 
 ;;; A version of the form in H. Shevis' soar-mode.el package. Less robust.
-;(defun lisp-compile-sexp (start end)
-;  "Compile the s-expression bounded by START and END in the inferior lisp.
-;If the sexp isn't a DEFUN form, it is evaluated instead."
-;    (cond ((looking-at "(defun\\s +")
-;	   (goto-char (match-end 0))
-;	   (let ((name-start (point)))
-;	     (forward-sexp 1)
-;	     (process-send-string "cmulisp" (format "(compile '%s #'(lambda "
-;						 (buffer-substring name-start
-;								   (point)))))
-;	   (let ((body-start (point)))
-;	     (goto-char start) (forward-sexp 1) ; Can't use end-of-defun.
-;	     (process-send-region "cmulisp" (buffer-substring body-start (point))))
-;	   (process-send-string "cmulisp" ")\n"))
-;	  (t (lisp-eval-region start end)))))
-;
-;(defun lisp-compile-region (start end)
-;  "Each s-expression in the current region is compiled (if a DEFUN)
-;or evaluated (if not) in the inferior lisp."
-;  (interactive "r")
-;  (save-excursion
-;    (goto-char start) (end-of-defun) (beginning-of-defun) ; error check
-;    (if (< (point) start) (error "region begins in middle of defun"))
-;    (goto-char start)
-;    (let ((s start))
-;      (end-of-defun)
-;      (while (<= (point) end) ; Zip through
-;	(lisp-compile-sexp s (point)) ; compiling up defun-sized chunks.
-;	(setq s (point))
-;	(end-of-defun))
-;      (if (< s end) (lisp-compile-sexp s end)))))
-;;;
+;;; (defun lisp-compile-sexp (start end)
+;;;   "Compile the s-expression bounded by START and END in the inferior lisp.
+;;; If the sexp isn't a DEFUN form, it is evaluated instead."
+;;;   (cond ((looking-at "(defun\\s +")
+;;; 	 (goto-char (match-end 0))
+;;; 	 (let ((name-start (point)))
+;;; 	   (forward-sexp 1)
+;;; 	   (process-send-string "inferior-lisp"
+;;; 				(format "(compile '%s #'(lambda "
+;;; 					(buffer-substring name-start
+;;; 							  (point)))))
+;;; 	 (let ((body-start (point)))
+;;; 	   (goto-char start) (forward-sexp 1) ; Can't use end-of-defun.
+;;; 	   (process-send-region "inferior-lisp"
+;;; 				(buffer-substring body-start (point))))
+;;; 	 (process-send-string "inferior-lisp" ")\n"))
+;;; 	(t (lisp-eval-region start end)))))
+;;; 
+;;; (defun lisp-compile-region (start end)
+;;;   "Each s-expression in the current region is compiled (if a DEFUN)
+;;; or evaluated (if not) in the inferior lisp."
+;;;   (interactive "r")
+;;;   (save-excursion
+;;;     (goto-char start) (end-of-defun) (beginning-of-defun) ; error check
+;;;     (if (< (point) start) (error "region begins in middle of defun"))
+;;;     (goto-char start)
+;;;     (let ((s start))
+;;;       (end-of-defun)
+;;;       (while (<= (point) end) ; Zip through
+;;; 	(lisp-compile-sexp s (point)) ; compiling up defun-sized chunks.
+;;; 	(setq s (point))
+;;; 	(end-of-defun))
+;;;       (if (< s end) (lisp-compile-sexp s end)))))
+;;; 
 ;;; End of HS-style code
 
 
@@ -469,11 +484,11 @@ Used by these commands to determine defaults.")
   "Load a Lisp file into the inferior Lisp process."
   (interactive (comint-get-source "Load Lisp file: " lisp-prev-l/c-dir/file
 				  lisp-source-modes nil)) ; NIL because LOAD
-                                                   ; doesn't need an exact name
+					; doesn't need an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
   (setq lisp-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				     (file-name-nondirectory file-name)))
-  (comint-send-string (cmulisp-proc)
+  (comint-send-string (inferior-lisp-proc)
 		      (format inferior-lisp-load-command file-name))
   (switch-to-lisp t))
 
@@ -482,13 +497,13 @@ Used by these commands to determine defaults.")
   "Compile a Lisp file in the inferior Lisp process."
   (interactive (comint-get-source "Compile Lisp file: " lisp-prev-l/c-dir/file
 				  lisp-source-modes nil)) ; NIL = don't need
-                                                          ; suffix .lisp
+					; suffix .lisp
   (comint-check-source file-name) ; Check to see if buffer needs saved.
   (setq lisp-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				     (file-name-nondirectory file-name)))
-  (comint-send-string (cmulisp-proc) (concat "(compile-file \""
-					     file-name
-					     "\"\)\n"))
+  (comint-send-string (inferior-lisp-proc) (concat "(compile-file \""
+						   file-name
+						   "\"\)\n"))
   (switch-to-lisp t))
 
 
@@ -532,7 +547,7 @@ Used by these commands to determine defaults.")
 (defun lisp-symprompt (prompt default)
   (list (let* ((prompt (if default
 			   (format "%s (default %s): " prompt default)
-			   (concat prompt ": ")))
+			 (concat prompt ": ")))
 	       (ans (read-string prompt)))
 	  (if (zerop (length ans)) default ans))))
 
@@ -570,60 +585,64 @@ Nil if it can't find one."
   "Send a command to the inferior Lisp to give documentation for function FN.
 See variable lisp-function-doc-command."
   (interactive (lisp-symprompt "Function doc" (lisp-fn-called-at-pt)))
-  (comint-proc-query (cmulisp-proc) (format lisp-function-doc-command fn)))
+  (comint-proc-query (inferior-lisp-proc)
+		     (format lisp-function-doc-command fn)))
 
 (defun lisp-show-variable-documentation (var)
   "Send a command to the inferior Lisp to give documentation for function FN.
 See variable lisp-var-doc-command."
   (interactive (lisp-symprompt "Variable doc" (lisp-var-at-pt)))
-  (comint-proc-query (cmulisp-proc) (format lisp-var-doc-command var)))
+  (comint-proc-query (inferior-lisp-proc) (format lisp-var-doc-command var)))
 
 (defun lisp-show-arglist (fn)
   "Sends an query to the inferior Lisp for the arglist for function FN.
 See variable lisp-arglist-command."
   (interactive (lisp-symprompt "Arglist" (lisp-fn-called-at-pt)))
-  (comint-proc-query (cmulisp-proc) (format lisp-arglist-command fn)))
+  (comint-proc-query (inferior-lisp-proc) (format lisp-arglist-command fn)))
 
 (defun lisp-describe-sym (sym)
   "Send a command to the inferior Lisp to describe symbol SYM.
 See variable lisp-describe-sym-command."
   (interactive (lisp-symprompt "Describe" (lisp-var-at-pt)))
-  (comint-proc-query (cmulisp-proc) (format lisp-describe-sym-command sym)))
+  (comint-proc-query (inferior-lisp-proc)
+		     (format lisp-describe-sym-command sym)))
 
 
-(defvar cmulisp-buffer nil "*The current cmulisp process buffer.
+(defvar inferior-lisp-buffer nil "*The current inferior-lisp process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
-Cmulisp.el supports, in a fairly simple fashion, running multiple Lisp
-processes. To run multiple Lisp processes, you start the first up with
-\\[cmulisp]. It will be in a buffer named *cmulisp*. Rename this buffer
-with \\[rename-buffer]. You may now start up a new process with another
-\\[cmulisp]. It will be in a new buffer, named *cmulisp*. You can
-switch between the different process buffers with \\[switch-to-buffer].
+Inf-lisp.el supports, in a fairly simple fashion, running multiple
+Lisp processes. To run multiple Lisp processes, you start the first up
+with \\[inferior-lisp]. It will be in a buffer named *inferior-lisp*.
+Rename this buffer with \\[rename-buffer]. You may now start up a new
+process with another \\[inferior-lisp]. It will be in a new buffer,
+named *inferior-lisp*. You can switch between the different process
+buffers with \\[switch-to-buffer].
 
 Commands that send text from source buffers to Lisp processes --
 like lisp-eval-defun or lisp-show-arglist -- have to choose a process
 to send to, when you have more than one Lisp process around. This
-is determined by the global variable cmulisp-buffer. Suppose you
+is determined by the global variable inferior-lisp-buffer. Suppose you
 have three inferior lisps running:
-    Buffer	Process
-    foo		cmulisp
-    bar		cmulisp<2>
-    *cmulisp*   cmulisp<3>
+    Buffer              Process
+    foo                 inferior-lisp
+    bar                 inferior-lisp<2>
+    *inferior-lisp*     inferior-lisp<3>
 If you do a \\[lisp-eval-defun] command on some Lisp source code, 
 what process do you send it to?
 
-- If you're in a process buffer (foo, bar, or *cmulisp*), 
+- If you're in a process buffer (foo, bar, or *inferior-lisp*), 
   you send it to that process.
 - If you're in some other buffer (e.g., a source file), you
-  send it to the process attached to buffer cmulisp-buffer.
-This process selection is performed by function cmulisp-proc.
+  send it to the process attached to buffer inferior-lisp-buffer.
+This process selection is performed by function inferior-lisp-proc.
 
-Whenever \\[cmulisp] fires up a new process, it resets cmulisp-buffer
-to be the new process's buffer. If you only run one process, this will
-do the right thing. If you run multiple processes, you can change
-cmulisp-buffer to another process buffer with \\[set-variable].
+Whenever \\[inferior-lisp] fires up a new process, it resets
+inferior-lisp-buffer to be the new process's buffer. If you only run
+one process, this will do the right thing. If you run multiple
+processes, you can change inferior-lisp-buffer to another process
+buffer with \\[set-variable].
 
 More sophisticated approaches are, of course, possible. If you find youself
 needing to switch back and forth between multiple processes frequently,
@@ -631,25 +650,29 @@ you may wish to consider ilisp.el, a larger, more sophisticated package
 for running inferior Lisp processes. The approach taken here is for a
 minimal, simple implementation. Feel free to extend it.")
 
-(defun cmulisp-proc ()
-  "Returns the current cmulisp process. See variable cmulisp-buffer."
+(defun inferior-lisp-proc ()
+  "Returns the current inferior-lisp process. See variable inferior-lisp-buffer."
   (let ((proc (get-buffer-process (if (eq major-mode 'inferior-lisp-mode)
 				      (current-buffer)
-				      cmulisp-buffer))))
+				    inferior-lisp-buffer))))
     (or proc
-	(error "No current process. See variable cmulisp-buffer"))))
+	(error "No current process. See variable inferior-lisp-buffer"))))
 
 
 ;;; Do the user's customisation...
 ;;;===============================
-(defvar cmulisp-load-hook nil
-  "This hook is run when cmulisp is loaded in.
+(defvar inferior-lisp-load-hook nil
+  "This hook is run when inferior-lisp is loaded in.
 This is a good place to put keybindings.")
-	
-(run-hooks 'cmulisp-load-hook)
+
+(run-hooks 'inferior-lisp-load-hook)
 
 ;;; CHANGE LOG
 ;;; ===========================================================================
+;;; 7/21/92 Jim Blandy
+;;; - Changed all uses of the cmulisp name or prefix to inferior-lisp;
+;;;   this is now the official inferior lisp package.  Use the global
+;;;   ChangeLog from now on.
 ;;; 5/24/90 Olin
 ;;; - Split cmulisp and cmushell modes into separate files. 
 ;;;   Not only is this a good idea, it's apparently the way it'll be rel 19.
@@ -688,6 +711,6 @@ This is a good place to put keybindings.")
 ;;; - If M-x cmulisp is invoked with a prefix arg, it allows you to
 ;;;   edit the command line.
 
-(provide 'cmulisp)
+(provide 'inf-lisp)
 
-;;; cmulisp.el ends here
+;;; inf-lisp.el ends here
