@@ -2044,7 +2044,7 @@ the inserted text.  Value is always t."
 		"\\<calendar-mode-map>\\[scroll-calendar-left]")
 	       'help-echo "mouse-2: scroll left"
 	       'keymap (make-mode-line-mouse-map 'mouse-2
-						 #'scroll-calendar-left))
+						 'mouse-scroll-calendar-left))
    "Calendar"
    (concat
     (propertize
@@ -2058,11 +2058,7 @@ the inserted text.  Value is always t."
      "\\<calendar-mode-map>\\[calendar-other-month] other")
      'help-echo "mouse-2: choose another month"
      'keymap (make-mode-line-mouse-map
-	      'mouse-2
-	      (lambda ()
-		(interactive)
-		(call-interactively
-		 'calendar-other-month))))
+	      'mouse-2 'mouse-calendar-other-month))
     "/"
     (propertize
      (substitute-command-keys
@@ -2074,7 +2070,7 @@ the inserted text.  Value is always t."
 		"\\<calendar-mode-map>\\[scroll-calendar-right]")
 	       'help-echo "mouse-2: scroll right"
 	       'keymap (make-mode-line-mouse-map
-			'mouse-2 #'scroll-calendar-right)))
+			'mouse-2 'mouse-scroll-calendar-right)))
   "The mode line of the calendar buffer.
 
 This must be a list of items that evaluate to strings--those strings are
@@ -2101,6 +2097,31 @@ under the cursor:
             (extract-calendar-year iso-date)))
        \"\"))
 ")
+
+(defun mouse-scroll-calendar-left (event)
+  "Scroll the displayed calendar left by one month.
+Maintains the relative position of the cursor
+with respect to the calendar as well as possible."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (scroll-calendar-left 1)))
+
+(defun mouse-scroll-calendar-right (event)
+  "Scroll the displayed calendar right by one month.
+Maintains the relative position of the cursor
+with respect to the calendar as well as possible."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (scroll-calendar-right 1)))
+
+(defun mouse-calendar-other-month (event)
+  "Display a three-month calendar centered around a specified month and year."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (call-interactively 'calendar-other-month)))
 
 (defun calendar-goto-info-node ()
   "Go to the info node for the calendar."
