@@ -1,3 +1,13 @@
+2000-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (pos_fully_visible_p): Removed.
+	(Fpos_visible_in_window_p): Use pos_visible_p to determine
+	if position is visible and/or fully visible.
+
+	* lisp.h (pos_visible_p): Add prototype.
+
+	* xdisp.c (pos_visible_p): New function.
+
 2000-10-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* process.c (send_process): If OBJECT is t, it means that the data
