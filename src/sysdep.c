@@ -235,7 +235,7 @@ stuff_char (c)
 #ifdef TIOCSTI
   ioctl (input_fd, TIOCSTI, &c);
 #else /* no TIOCSTI */
-  error ("Cannot stuff terminal input characters in this version of Unix.");
+  error ("Cannot stuff terminal input characters in this version of Unix");
 #endif /* no TIOCSTI */
 }
 
@@ -257,14 +257,14 @@ init_baud_rate ()
 #ifdef HAVE_TERMIOS
       struct termios sg;
 
-      sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
+      sg.c_cflag = B9600;
       tcgetattr (input_fd, &sg);
       ospeed = cfgetospeed (&sg);
 #else /* neither VMS nor TERMIOS */
 #ifdef HAVE_TERMIO
       struct termio sg;
 
-      sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
+      sg.c_cflag = B9600;
 #ifdef HAVE_TCATTR
       tcgetattr (input_fd, &sg);
 #else
