@@ -2262,8 +2262,15 @@ display_text_line (w, start, vpos, hpos, taboffset)
   if (pos < ZV)
     {
       if (FETCH_CHAR (pos) == '\n')
-	/* If stopped due to a newline, start next line after it */
-	pos++;
+	{
+	  /* If stopped due to a newline, start next line after it */
+	  pos++;
+	  /* Check again for hidden lines, in case the newline occurred exactly
+	     at the right margin.  */
+	  while (pos < ZV && selective > 0
+		 && indented_beyond_p (pos, selective))
+	    pos = find_next_newline (pos, 1);
+	}
       else
 	/* Stopped due to right margin of window */
 	{
@@ -2273,7 +2280,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      /* Truncating => start next line after next newline,
 		 and point is on this line if it is before the newline,
 		 and skip none of first char of next line */
-	      pos = find_next_newline (pos, 1);
+	      do
+		pos = find_next_newline (pos, 1);
+	      while (pos < ZV && selective > 0
+		     && indented_beyond_p (pos, selective));
 	      val.hpos = XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0;
 
 	      lastpos = pos - (FETCH_CHAR (pos - 1) == '\n');
