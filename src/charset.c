@@ -888,6 +888,7 @@ usage: (define-charset-internal ...)  */)
   if (charset.hash_index >= 0)
     {
       new_definition_p = 0;
+      id = XFASTINT (CHARSET_SYMBOL_ID (args[charset_arg_name]));
       HASH_VALUE (hash_table, charset.hash_index) = attrs;
     }
   else
@@ -903,11 +904,10 @@ usage: (define-charset-internal ...)  */)
 			 sizeof (struct charset) * charset_table_size));
 	}
       id = charset_table_used++;
-      ASET (attrs, charset_id, make_number (id));
       new_definition_p = 1;
     }
 
-
+  ASET (attrs, charset_id, make_number (id));
   charset.id = id;
   charset_table[id] = charset;
 
@@ -923,6 +923,8 @@ usage: (define-charset-internal ...)  */)
   if (charset.emacs_mule_id >= 0)
     {
       emacs_mule_charset[charset.emacs_mule_id] = CHARSET_FROM_ID (id);
+      if (charset.emacs_mule_id < 0xA0)
+	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 1;
       if (new_definition_p)
 	Vemacs_mule_charset_list = nconc2 (Vemacs_mule_charset_list,
 					   Fcons (make_number (id), Qnil));
