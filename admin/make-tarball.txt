@@ -40,18 +40,22 @@ For each step, check for possible errors.
 
 10. admin/make-announcement OLD NEW
     This creates an announcement for pretests.  OLD is the version used
-    to make deltas with respect to NEW.  *release instructions missing*
+    to make deltas with respect to NEW.  Anouncements for pretests need
+    to be crafted by hand.  Use an older announcement to start with.
 
 11. For a pretest, do:
     rsync -aP emacs-NEW.tar.gz emacs-OLD-NEW.xdelta compile-NEW.log \
     emacs-NEW.announce alpha.gnu.org:/home/alpha/gnu/emacs/pretest/.
-    *release instructions missing*
+    For a release, do:
+    rsync -aP emacs-NEW.tar.gz emacs-OLD-NEW.xdelta \
+    alpha.gnu.org:/home/ftp/gnu/emacs/.
 
-12. Verify that after five minutes at most the files appear on
-    ftp://alpha.gnu.org/gnu/emacs/pretest/.
-    *release instructions missing*
+12. Verify that the files are visible at
+    ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at
+    ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
-13. Let Richard Stallman know about the new pretest and tell him to
-    announce it using the announcement you prepared.  Remind him to set
-    a Reply-to header to <emacs-pretest-bug@gnu.org>.
-    *release instructions missing*
+13. For a pretest, let Richard Stallman know about the new pretest and
+    tell him to announce it using the announcement you prepared.  Remind
+    him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
+    For a release, Richard should prepare the announcement himself,
+    possibly starting from a previous announcment.
