@@ -1,3 +1,12 @@
+2001-05-05  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (help-xref-symbol-regexp): Recognize "source of"
+	and friends, meaning make a link to the source file.
+	(help-make-xrefs): Handle "source of" and friends
+	by constructing a link that visits the source file.
+
+	* dabbrev.el (dabbrev-select-buffers-function): Doc fix.
+
 2001-05-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/cperl-mode.el (cperl-font-lock-keywords)
