@@ -730,8 +730,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     int carryover = 0;
     int display_on_the_fly = !NILP (display) && INTERACTIVE;
     struct coding_system saved_coding;
-    int pt_orig = PT, pt_byte_orig = PT_BYTE;
-    int inserted;
 
     saved_coding = process_coding;
     while (1)
