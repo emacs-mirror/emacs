@@ -1,5 +1,8 @@
 2003-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xfns.c (Fx_send_client_event): New function as a base for
+	manipulating extended window manager hints.
+
 	* w32term.c (w32_read_socket): Remove call to x_check_fullscreen_move,
 	that function is removed.
 

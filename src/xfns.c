@@ -4275,6 +4275,126 @@ x_sync (f)
 
 
 /***********************************************************************
+                General X functions exposed to Elisp.
+ ***********************************************************************/
+
+DEFUN ("x-send-client-message", Fx_send_client_event,
+       Sx_send_client_message, 6, 6, 0,
+       doc: /* Send a client message of MESSAGE-TYPE to window DEST on DISPLAY.
+
+For DISPLAY, specify either a frame or a display name (a string).
+If DISPLAY is nil, that stands for the selected frame's display.
+DEST may be an integer, in which case it is a Window id.  The value 0 may
+be used to send to the root window of the DISPLAY.
+If DEST is a frame the event is sent to the outer window of that frame.
+Nil means the currently selected frame.
+If DEST is the string "PointerWindow" the event is sent to the window that
+contains the pointer.  If DEST is the string "InputFocus" the event is
+sent to the window that has the input focus.
+FROM is the frame sending the event.  Use nil for currently selected frame.
+MESSAGE-TYPE is the name of an Atom as a string.
+FORMAT must be one of 8, 16 or 32 and determines the size of the values in
+bits.  VALUES is a list of integer and/or strings containing the values to
+send.  If a value is a string, it is converted to an Atom and the value of
+the Atom is sent.  If more values than fits into the event is given,
+the excessive values are ignored.  */)
+     (display, dest, from, message_type, format, values)
+     Lisp_Object display, dest, from, message_type, format, values;
+{
+  struct x_display_info *dpyinfo = check_x_display_info (display);
+  Window wdest;
+  XEvent event;
+  Lisp_Object cons;
+  int i;
+  int max_nr_values = (int) sizeof (event.xclient.data.b);
+  struct frame *f = check_x_frame (from);
+  
+  CHECK_STRING (message_type);
+  CHECK_NUMBER (format);
+  CHECK_CONS (values);
+
+  for (cons = values; CONSP (cons); cons = XCDR (cons))
+    {
+      Lisp_Object o = XCAR (cons);
+
+      if (! INTEGERP (o) && ! STRINGP (o))
+        error ("Bad data in VALUES, must be integer or string");
+    }
+
+  event.xclient.type = ClientMessage;
+  event.xclient.format = XFASTINT (format);
+
+  if (event.xclient.format != 8 && event.xclient.format != 16
+      && event.xclient.format != 32)
+    error ("FORMAT must be one of 8, 16 or 32");
+  if (event.xclient.format == 16) max_nr_values /= 2;
+  if (event.xclient.format == 32) max_nr_values /= 4;
+  
+  if (FRAMEP (dest) || NILP (dest))
+    {
+      struct frame *fdest = check_x_frame (dest);
+      wdest = FRAME_OUTER_WINDOW (fdest);
+    }
+  else if (STRINGP (dest))
+    {
+      if (strcmp (SDATA (dest), "PointerWindow") == 0)
+        wdest = PointerWindow;
+      else if (strcmp (SDATA (dest), "InputFocus") == 0)
+        wdest = InputFocus;
+      else
+        error ("DEST as a string must be one of PointerWindow or InputFocus");
+    }
+  else
+    {
+      CHECK_NUMBER (dest);
+      wdest = (Window) XFASTINT (dest);
+      if (wdest == 0) wdest = dpyinfo->root_window;
+    }
+
+  BLOCK_INPUT;
+  for (cons = values, i = 0;
+       CONSP (cons) && i < max_nr_values;
+       cons = XCDR (cons), ++i)
+    {
+      Lisp_Object o = XCAR (cons);
+      long val;
+      char *s = 0;
+
+      if (INTEGERP (o))
+        val = XINT (o);
+      else if (STRINGP (o))
+          val = XInternAtom (dpyinfo->display, s = SDATA (o), False);
+
+      if (event.xclient.format == 8)
+        event.xclient.data.b[i] = (char) val;
+      else if (event.xclient.format == 16)
+        event.xclient.data.s[i] = (short) val;
+      else
+        event.xclient.data.l[i] = val;
+    }
+
+  for ( ; i < max_nr_values; ++i)
+    if (event.xclient.format == 8)
+      event.xclient.data.b[i] = 0;
+    else if (event.xclient.format == 16)
+      event.xclient.data.s[i] = 0;
+    else
+      event.xclient.data.l[i] = 0;
+
+  event.xclient.message_type
+    = XInternAtom (dpyinfo->display, SDATA (message_type), False);
+  event.xclient.display = dpyinfo->display;
+  event.xclient.window = FRAME_OUTER_WINDOW (f);
+
+  XSendEvent (dpyinfo->display, wdest, False, 0xffff, &event);
+
+  XFlush (dpyinfo->display);
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
+/***********************************************************************
 			    Image types
  ***********************************************************************/
 
@@ -10974,6 +11094,7 @@ meaning don't clear the cache.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
+  defsubr (&Sx_send_client_message);
   defsubr (&Sx_focus_frame);
   defsubr (&Sx_backspace_delete_keys_p);
 
