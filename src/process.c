@@ -1752,7 +1752,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If frame size has changed or the window is newly mapped,
 	 redisplay now, before we start to wait.  There is a race
 	 condition here; if a SIGIO arrives between now and the select
-	 and indicates that a frame is trashed, we lose.  */
+	 and indicates that a frame is trashed, the select may block
+	 displaying a trashed screen.  */
       if (frame_garbaged)
 	redisplay_preserve_echo_area ();
 
