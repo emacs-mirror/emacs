@@ -5813,7 +5813,8 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif /* F_SETOWN_BUG */
 
 #ifdef SIGIO
-  init_sigio (connection);
+  if (interrupt_input)
+    init_sigio (connection);
 #endif /* ! defined (SIGIO) */
 
   return dpyinfo;
