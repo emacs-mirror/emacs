@@ -1,3 +1,9 @@
+2000-05-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (ccl_driver) <CCL_ReadMultibyteChar2>
+	<CCL_WriteMultibyteChar2>:  Handle charsets eight-bit-control and
+	eight-bit-graphic correctly.
+
 2000-05-24  Kenichi HANDA  <handa@etl.go.jp>
 
 	* fileio.c (Finsert_file_contents): Even if a file is not found,
