@@ -1606,14 +1606,12 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
 {
   Lisp_Object result, tem, tem1;
 
-#if !NO_PROMPT_IN_BUFFER
   if (INTEGERP (current_buffer->minibuffer_prompt_length))
     {
       int len = XFASTINT (current_buffer->minibuffer_prompt_length);
       start = min (end, max (len, start));
       start_byte = CHAR_TO_BYTE (start);
     }
-#endif
 
   if (start < GPT && GPT < end)
     move_gap (start);
@@ -2432,12 +2430,7 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
   "Return the string currently displayed in the echo area, or nil if none.")
   ()
 {
-  if (STRINGP (echo_area_message))
-    return make_string (XSTRING (echo_area_message)->data,
-			echo_area_glyphs_length);
-  return (echo_area_glyphs
-	  ? make_string (echo_area_glyphs, echo_area_glyphs_length)
-	  : Qnil);
+  return current_message ();
 }
 
 /* Number of bytes that STRING will occupy when put into the result.
