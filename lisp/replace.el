@@ -630,7 +630,7 @@ which will run faster and probably do exactly what you want."
 		(and nonempty-match
 		     (or (not regexp-flag)
 			 (and (looking-at search-string)
-			      (match-data t)))))
+			      (match-data)))))
 
 	  ;; If time for a change, advance to next replacement string.
 	  (if (and (listp replacements)
@@ -727,7 +727,7 @@ which will run faster and probably do exactly what you want."
 		       ;; can match again just after this match.
 		       (if (and regexp-flag nonempty-match)
 			   (setq match-again (and (looking-at search-string)
-						  (match-data t)))))
+						  (match-data)))))
 		      ((eq def 'delete-and-edit)
 		       (delete-region (match-beginning 0) (match-end 0))
 		       (store-match-data
