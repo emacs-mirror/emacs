@@ -1,6 +1,6 @@
 # ==== W3ALMV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3almv.nmk(trunk.13) $
+# $HopeName: MMsrc!w3almv.nmk(trunk.14) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -22,6 +22,7 @@ SW  = <assert> <ring> <mpm> \
       <than> <ssan> <mpsisw> <mpsiw3> <ld> <poolepdl> \
       <action> <seg>
 AMC = <amc>
+AMS = <poolams>
 AWL = <poolawl>
 LO  = <lo>
 MRG = <poolmrg>

@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.36) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.37) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -21,6 +21,7 @@ SW  = <assert> <ring> <mpm> \
       <action> <seg>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <amc>
+AMS = <poolams>
 AWL = <poolawl>
 LO = <lo>
 MRG = <poolmrg>

@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.4) $
+# $HopeName: MMsrc!commpre.nmk(trunk.5) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -22,9 +22,10 @@
 #            and surrounded in angle brackets (<>)
 #   PLINTH   as above for the "plinth" part
 #   AMC      as above for the "amc" part
+#   AMS      as above for the "ams" part
 #   LO       as above for the "lo" part
 #   MRG      as above for the "mrg" part
-#   DW       as above for the "amc" part
+#   DW       as above for the "dw" part
 #   SW       as above for the "sw" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
@@ -63,6 +64,9 @@
 !ENDIF
 !IFNDEF AMC
 !ERROR mv.nmk: AMC not defined
+!ENDIF
+!IFNDEF AMS
+!ERROR mv.nmk: AMS not defined
 !ENDIF
 !IFNDEF MRG
 !ERROR mv.nmk: MRG not defined

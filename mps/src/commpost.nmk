@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.8) $
+# $HopeName: MMsrc!commpost.nmk(trunk.9) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -13,14 +13,14 @@
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: mpmss.exe amcss.exe lockutw3.exe lockcov.exe \
+all: mpmss.exe amcss.exe amsss.exe lockutw3.exe lockcov.exe \
      mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe \
      mpmconft.exe finalcv.exe awlut.exe arenacv.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-dwstress.exe amcss.exe lockutw3.exe lockcov.exe \
+dwstress.exe amcss.exe amsss.exe lockutw3.exe lockcov.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
      weakcv.exe mpmconft.exe finalcv.exe awlut.exe arenacv.exe \
      mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
@@ -98,6 +98,9 @@ $(PFM)\$(VARIETY)\qs.exe:  $(PFM)\$(VARIETY)\qs.obj \
 $(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\amsss.exe:  $(PFM)\$(VARIETY)\amsss.obj \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\mpsicv.exe:  $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
@@ -125,6 +128,10 @@ $(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\amc.lib: $(MPMOBJ) $(AMCOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\ams.lib: $(MPMOBJ) $(AMSOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
