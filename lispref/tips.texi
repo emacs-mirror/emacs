@@ -403,6 +403,12 @@ view the documentation.  Remember that the indentation before the
 starting double-quote is not part of the string!
 
 @item
+When the user tries to use a disabled command, Emacs displays just the
+first paragraph of its documentation string---everything through the
+first blank line.  If you wish, you can choose which information to
+include before the first blank line so as to make this display useful.
+
+@item
 A variable's documentation string should start with @samp{*} if the
 variable is one that users would often want to set interactively.  If
 the value is a long list, or a function, or if the variable would be set
