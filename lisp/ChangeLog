@@ -1,3 +1,11 @@
+2000-08-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* help.el (view-emacs-news): Rewritten for new naming scheme
+	for old NEWS files.
+
+	* startup.el (command-line): Pop to *Messages* in case an error
+	is signaled while loading user-init-file.
+
 2000-08-17  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (insert-directory): Don't lose original file name,

@@ -1,3 +1,9 @@
+2000-08-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* NEWS.1: Reintegrated into NEWS.
+
+	* OOOOONEWS...OONEWS: Renamed to NEWS.1...NEWS.4.
+
 2000-08-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired-ref.tex, dired-ref.ps: New files.
