@@ -1,5 +1,10 @@
 2002-08-28  Juanma Barranquero  <lektu@terra.es>
 
+	* replace.el (occur-hook): Renamed from `occur-mode-hook'.
+	(occur-mode): Remove call to `occur-mode-hook'.
+	(occur-rename-buffer): Fix reference to `occur-mode-hook' in docstring.
+	(occur-1): Add call to `occur-hook'.
+
 	* subr.el (make-variable-frame-localizable): Alias for
 	`make-variable-frame-local'.
 
