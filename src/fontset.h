@@ -71,7 +71,7 @@ struct font_info
      whose default value is defined in lisp/fontset.el.  Since there's
      no charset whose id is 1, we use encoding[1] to store the
      encoding information decided by the font itself.  */
-  char encoding[MAX_CHARSET];
+  char encoding[MAX_CHARSET + 1];
 
   /* The baseline position of a font is normally `ascent' value of the
      font.  However, there exists many fonts which don't set `ascent'
@@ -114,7 +114,7 @@ struct font_info
 	height).  In this case, the character is drawn beneath the
 	previous glyphs.
 
-     This value is take from a private font property
+     This value is taken from a private font property
      `_MULE_RELATIVE_COMPOSE' which is introduced by Emacs.  */
   int relative_compose;
 
@@ -142,12 +142,12 @@ struct fontset_info
   int height;
 
   /* Table of font name for each character set.  */
-  char *fontname[MAX_CHARSET];
+  char *fontname[MAX_CHARSET + 1];
 
   /* Table of index numbers of fonts indexed by charset.  If a font is
      not yet loaded, the value is -1 (FONT_NOT_OPENED).  If font
      loading is failed, the value is -2 (FONT_NOT_FOUND).  */
-  int font_indexes[MAX_CHARSET];
+  int font_indexes[MAX_CHARSET + 1];
 };
 
 /* This data type is used for the fontset_data field of struct frame.  */

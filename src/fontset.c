@@ -96,7 +96,7 @@ free_fontset_data (fontset_data)
       int j;
 
       xfree (fontset_data->fontset_table[i]->name);
-      for (j = 0; j < MAX_CHARSET; j++)
+      for (j = 0; j <= MAX_CHARSET; j++)
 	if (fontset_data->fontset_table[i]->fontname[j])
 	  xfree (fontset_data->fontset_table[i]->fontname[j]);
       xfree (fontset_data->fontset_table[i]);
@@ -172,7 +172,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
       int i;
 
       fontp->encoding[0] = fontp->encoding[1];
-      for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i < MAX_CHARSET; i++)
+      for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
 	fontp->encoding[i] = fontp->encoding[1];
     }
   else
@@ -182,7 +182,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 
       /* At first, set 1 (means 0xA0..0xFF) as the default.  */
       fontp->encoding[0] = 1;
-      for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i < MAX_CHARSET; i++)
+      for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
 	fontp->encoding[i] = 1;
       /* Then override them by a specification in Vfont_encoding_alist.  */
       for (list = Vfont_encoding_alist; CONSP (list); list = XCONS (list)->cdr)
@@ -242,7 +242,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 
 	  fontsetp->size = fontp->size;
 	  fontsetp->height = fontp->height;
-	  for (i = CHARSET_ASCII + 1; i < MAX_CHARSET; i++)
+	  for (i = CHARSET_ASCII + 1; i <= MAX_CHARSET; i++)
 	    {
 	      font_idx = fontsetp->font_indexes[i];
 	      if (font_idx >= 0)
@@ -317,7 +317,7 @@ fs_register_fontset (f, fontset_info)
 
   fontsetp->size = fontsetp->height = 0;
 
-  for (i = 0; i < MAX_CHARSET; i++)
+  for (i = 0; i <= MAX_CHARSET; i++)
     {
       fontsetp->fontname[i] = (char *) 0;
       fontsetp->font_indexes[i] = FONT_NOT_OPENED;
@@ -521,7 +521,7 @@ list_fontsets (f, pattern, size)
 		 one with SIZE.  */
 	      int j;
 
-	      for (j = 0; j < MAX_CHARSET; j++)
+	      for (j = 0; j <= MAX_CHARSET; j++)
 		if (fontsetp->fontname[j])
 		  {
 		    if ((*load_font_func) (f, fontsetp->fontname[j], size))
@@ -764,7 +764,7 @@ loading failed.")
   XVECTOR (info)->contents[0] = make_number (fontsetp->size);
   XVECTOR (info)->contents[1] = make_number (fontsetp->height);
   val = Qnil;
-  for (i = 0; i < MAX_CHARSET; i++)
+  for (i = 0; i <= MAX_CHARSET; i++)
     if (fontsetp->fontname[i])
       {
 	int font_idx = fontsetp->font_indexes[i];

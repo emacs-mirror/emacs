@@ -2146,7 +2146,7 @@ setup_coding_system (coding_system, coding)
 		  elements (if integer) is designated to REG on request,
 		  if an element is t, REG can be used by any charset,
 		nil: REG is never used.  */
-	for (charset = 0; charset < MAX_CHARSET; charset++)
+	for (charset = 0; charset <= MAX_CHARSET; charset++)
 	  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) = -1;
 	for (i = 0; i < 4; i++)
 	  {
@@ -2207,7 +2207,7 @@ setup_coding_system (coding_system, coding)
 	      default_reg_bits &= 3;
 	  }
 
-	for (charset = 0; charset < MAX_CHARSET; charset++)
+	for (charset = 0; charset <= MAX_CHARSET; charset++)
 	  if (CHARSET_VALID_P (charset)
 	      && CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) < 0)
 	    {
