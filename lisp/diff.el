@@ -197,7 +197,7 @@ With prefix arg, prompt for diff switches."
   (let ((old-alt (file-local-copy old))
 	(new-alt (file-local-copy new))
 	buf)
-    (unwind-protect
+    (save-excursion
 	(let ((command
 	       (mapconcat 'identity
 			  (append (list diff-command)
@@ -220,7 +220,7 @@ With prefix arg, prompt for diff switches."
 		(compile-internal command
 				  "No more differences" "Diff"
 				  'diff-parse-differences))
-	  (pop-to-buffer buf)
+	  (set-buffer buf)
 	  ;; Avoid frightening people with "abnormally terminated"
 	  ;; if diff finds differences.
 	  (set (make-local-variable 'compilation-exit-message-function)
