@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cyclic.com>
 ;; Maintainer: Karl Fogel <kfogel@cyclic.com>
 ;; Created: July, 1993
-;; Author's Update Number: 2.6.8
+;; Author's Update Number: 2.6.9
 ;; Keywords: bookmarks, placeholders, annotations
 
 ;;; Summary:
@@ -1706,8 +1706,11 @@ With a prefix arg, prompts for a file to save them in."
             (pop-up-windows t))
         (delete-other-windows)
         (switch-to-buffer (other-buffer))
-        (let ((buff (car (bookmark-jump-noselect bmrk))))
-          (pop-to-buffer buff))
+	(let* ((pair (bookmark-jump-noselect bmrk))
+               (buff (car pair))
+               (pos  (cdr pair)))
+          (pop-to-buffer buff)
+          (goto-char pos))
         (bury-buffer menu))))
 
 
@@ -1723,8 +1726,31 @@ With a prefix arg, prompts for a file to save them in."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (if (bookmark-bmenu-check-position)
-	(let ((buff (car (bookmark-jump-noselect bookmark))))
+	(let* ((pair (bookmark-jump-noselect bookmark))
+               (buff (car pair))
+               (pos  (cdr pair)))
 	  (switch-to-buffer-other-window buff)
+          (goto-char pos)
+          (set-window-point (get-buffer-window buff) pos)
+	  (bookmark-show-annotation bookmark)))))
+
+
+(defun bookmark-bmenu-switch-other-window ()
+  "Make the other window select this line's bookmark.
+The current window remains selected."
+  (interactive)
+  (let ((bookmark (bookmark-bmenu-bookmark)))
+    (if (bookmark-bmenu-check-position)
+	(let* ((pair (bookmark-jump-noselect bookmark))
+               (buff (car pair))
+               (pos  (cdr pair)))
+	  (display-buffer buff)
+          (let ((o-buffer (current-buffer)))
+            ;; save-excursion won't do
+            (set-buffer buff)
+            (goto-char pos)
+            (set-window-point (get-buffer-window buff) pos)
+            (set-buffer o-buffer))
 	  (bookmark-show-annotation bookmark)))))
 
 
@@ -1748,17 +1774,6 @@ With a prefix arg, prompts for a file to save them in."
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (if (bookmark-bmenu-check-position)
 	(bookmark-edit-annotation bookmark))))
-
-
-(defun bookmark-bmenu-switch-other-window ()
-  "Make the other window select this line's bookmark.
-The current window remains selected."
-  (interactive)
-  (let ((bookmark (bookmark-bmenu-bookmark)))
-    (if (bookmark-bmenu-check-position)
-	(let ((buff (car (bookmark-jump-noselect bookmark))))
-	  (display-buffer buff)
-	  (bookmark-show-annotation bookmark)))))
 
 
 (defun bookmark-bmenu-quit ()
