@@ -118,7 +118,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NO_SOCK_SIGIO
 
-
+
 /* After adding support for a new system, modify the large case
    statement in the `configure' script to recognize reasonable
    configuration names, and add a description of the system to
