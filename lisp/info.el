@@ -999,7 +999,8 @@ Bind this in case the user sets it to nil."
 	(if Info-fontify (Info-fontify-node))
 	(if Info-use-header-line
 	    (Info-setup-header-line)
-	  (setq Info-header-line nil))
+	  (setq Info-header-line nil)
+	  (setq header-line-format nil)) ; so the header line isn't displayed
 	(run-hooks 'Info-selection-hook)))))
 
 (defun Info-set-mode-line ()
@@ -2599,15 +2600,18 @@ the variable `Info-file-list-for-emacs'."
 				   'help-echo
 				   (concat "Go to node "
 					   (buffer-substring nbeg nend)))
-		(let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
-					     ("Next" . Info-next)
-					     ("Up" . Info-up))))))
-		  (when fun
-		    (let ((keymap (make-sparse-keymap)))
-		      (define-key keymap [header-line down-mouse-1] fun)
-		      (define-key keymap [header-line down-mouse-2] fun)
-		      (put-text-property tbeg nend 'local-map keymap))))
-		))))
+		;; Don't bind mouse events on the header line if we
+		;; aren't going to display the header line.
+		(when Info-use-header-line
+		  (let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
+					       ("Next" . Info-next)
+					       ("Up" . Info-up))))))
+		    (when fun
+		      (let ((keymap (make-sparse-keymap)))
+			(define-key keymap [header-line down-mouse-1] fun)
+			(define-key keymap [header-line down-mouse-2] fun)
+			(put-text-property tbeg nend 'local-map keymap))))
+		  )))))
 	(goto-char (point-min))
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
