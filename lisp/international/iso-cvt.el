@@ -1,7 +1,7 @@
 ;;; iso-cvt.-el -- translate ISO 8859-1 from/to various encodings
 ;; This file was formerly called gm-lingo.el.
 
-;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind <mike@vlsivie.tuwien.ac.at>
 ;; Keywords: tex, iso, latin, i18n
@@ -23,11 +23,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary: 
-;; This lisp code is a general framework for translating various 
+;;; Commentary:
+;; This lisp code is a general framework for translating various
 ;; representations of the same data.
 ;; among other things it can be used to translate TeX, HTML, and compressed
-;; files to ISO 8859-1.  It can also be used to translate different charsets 
+;; files to ISO 8859-1.  It can also be used to translate different charsets
 ;; such as IBM PC, Macintosh or HP Roman8.
 ;; Note that many translations use the GNU recode tool to do the actual
 ;; conversion.  So you might want to install that tool to get the full
@@ -35,13 +35,13 @@
 ;
 
 ; TO DO:
-; Cover more cases for translation (There is an infinite number of ways to 
+; Cover more cases for translation (There is an infinite number of ways to
 ; represent accented characters in TeX)
 
 ;; SEE ALSO:
-; If you are interested in questions related to using the ISO 8859-1 
+; If you are interested in questions related to using the ISO 8859-1
 ; characters set (configuring emacs, Unix, etc. to use ISO), then you
-; can get the ISO 8859-1 FAQ via anonymous ftp from 
+; can get the ISO 8859-1 FAQ via anonymous ftp from
 ; ftp.vlsivie.tuwien.ac.at in /pub/bit/FAQ-ISO-8859-1
 
 ;;; Code:
@@ -84,9 +84,13 @@
 	    (setq work-tab (cdr work-tab)))))
       (point-max))))
 
-(defun iso-spanish (from to)
-  "Translate net conventions for Spanish to ISO 8859-1 in region."
-  (interactive "r")
+;;;###autoload
+(defun iso-spanish (from to &optional buffer)
+  "Translate net conventions for Spanish to ISO 8859-1.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+  (interactive "*r")
   (iso-translate-conventions from to iso-spanish-trans-tab))
 
 (defvar iso-aggressive-german-trans-tab
@@ -100,7 +104,7 @@
     ("\"s" "ß")
     ("\\\\3" "ß")
     )
-  "German translation table. 
+  "German translation table.
 This table uses an aggressive translation approach and may erroneously
 translate too much.")
 
@@ -116,16 +120,19 @@ translate too much.")
     ("\\([-a-zA-Z\"`]\\)\\\\3" "\\1ß")
     )
   "German translation table.
-This table uses a conservative translation approach and may translate too 
+This table uses a conservative translation approach and may translate too
 little.")
 
-
-(defvar iso-german-trans-tab iso-aggressive-german-trans-tab 
+(defvar iso-german-trans-tab iso-aggressive-german-trans-tab
   "Currently active translation table for German.")
 
-(defun iso-german (from to)
- "Translate net conventions for German to ISO 8859-1 in region."
- (interactive "r")
+;;;###autoload
+(defun iso-german (from to &optional buffer)
+ "Translate net conventions for German to ISO 8859-1.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+ (interactive "*r")
  (iso-translate-conventions from to iso-german-trans-tab))
  
 (defvar iso-iso2tex-trans-tab
@@ -192,14 +199,14 @@ little.")
     )
   "Translation table for translating ISO 8859-1 characters to TeX sequences.")
 
-
-
-
-(defun iso-iso2tex (from to)
- "Translate ISO 8859-1 characters to TeX sequences in region."
- (interactive "r")
+;;;###autoload
+(defun iso-iso2tex (from to &optional buffer)
+ "Translate ISO 8859-1 characters to TeX sequences.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+ (interactive "*r")
  (iso-translate-conventions from to iso-iso2tex-trans-tab))
-
 
 (defvar iso-tex2iso-trans-tab
   '(
@@ -375,13 +382,17 @@ little.")
     ("\\?`" "¿")
     ("!`" "¡")
     )
-  "Translation table for translating TeX sequences to ISO 8859-1 characters. 
-This table is not exhaustive (and due to TeX's power can never be). It only
+  "Translation table for translating TeX sequences to ISO 8859-1 characters.
+This table is not exhaustive (and due to TeX's power can never be).  It only
 contains commonly used sequences.")
 
-(defun iso-tex2iso (from to)
- "Translate TeX sequences to ISO 8859-1 characters in region."
- (interactive "r")
+;;;###autoload
+(defun iso-tex2iso (from to &optional buffer)
+ "Translate TeX sequences to ISO 8859-1 characters.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+ (interactive "*r")
  (iso-translate-conventions from to iso-tex2iso-trans-tab))
 
 (defvar iso-gtex2iso-trans-tab
@@ -634,15 +645,22 @@ contains commonly used sequences.")
     )
   "Translation table for translating ISO 8859-1 characters to German TeX.")
 
-(defun iso-gtex2iso (from to)
- "Translate German TeX sequences to ISO 8859-1 characters in region."
- (interactive "r")
+;;;###autoload
+(defun iso-gtex2iso (from to &optional buffer)
+ "Translate German TeX sequences to ISO 8859-1 characters.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+ (interactive "*r")
  (iso-translate-conventions from to iso-gtex2iso-trans-tab))
 
-
-(defun iso-iso2gtex (from to)
- "Translate ISO 8859-1 characters to German TeX sequences in region."
- (interactive "r")
+;;;###autoload
+(defun iso-iso2gtex (from to &optional buffer)
+ "Translate ISO 8859-1 characters to German TeX sequences.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+ (interactive "*r")
  (iso-translate-conventions from to iso-iso2gtex-trans-tab))
 
 (defvar iso-iso2duden-trans-tab
@@ -654,19 +672,28 @@ contains commonly used sequences.")
     ("Ü" "Ue")
     ("ß" "ss")))
 
-(defun iso-iso2duden (from to)
- "Translate ISO 8859-1 characters to German TeX sequences in region."
- (interactive "r")
+;;;###autoload
+(defun iso-iso2duden (from to &optional buffer)
+ "Translate ISO 8859-1 characters to German TeX sequences.
+The region between FROM and TO is translated using the table TRANS-TAB.
+Optional arg BUFFER is ignored (so that the function can can be used in
+`format-alist')."
+ (interactive "*r")
  (iso-translate-conventions from to iso-iso2duden-trans-tab))
 
+;;;###autoload
 (defun iso-cvt-read-only ()
+  "Warn that format is read-only."
   (interactive)
   (error "This format is read-only; specify another format for writing"))
 
+;;;###autoload
 (defun iso-cvt-write-only ()
+  "Warn that format is write-only."
   (interactive)
   (error "This format is write-only"))
 			 
+;;;###autoload
 (defun iso-cvt-define-menu ()
   "Add submenus to the Files menu, to convert to and from various formats."
   (interactive)
@@ -698,30 +725,30 @@ contains commonly used sequences.")
   (let ((file-types (reverse format-alist))
 	name
 	str-name)
-    (while file-types 
+    (while file-types
       (setq name (car (car file-types))
 	    str-name (car (cdr (car file-types)))
 	    file-types (cdr file-types))
       (if (stringp str-name)
 	  (progn
 	    (define-key load-as-menu-map (vector name)
-	      (cons str-name		    
+	      (cons str-name
 		    (list 'lambda '(file) (list 'interactive (format "FFind file (as %s): " name))
 			  (list 'format-find-file 'file (list 'quote name)))))
 	    (define-key insert-as-menu-map (vector name)
-	      (cons str-name		    
+	      (cons str-name
 		    (list 'lambda '(file) (list 'interactive (format "FInsert file (as %s): " name))
 			  (list 'format-insert-file 'file (list 'quote name)))))
 	    (define-key write-as-menu-map (vector name)
-	      (cons str-name		    
+	      (cons str-name
 		    (list 'lambda '(file) (list 'interactive (format "FWrite file (as %s): " name))
 			  (list 'format-write-file 'file (list 'quote (list name))))))
 	    (define-key translate-to-menu-map (vector name)
-	      (cons str-name		    
+	      (cons str-name
 		    (list 'lambda '() '(interactive)
 			  (list 'format-encode-buffer (list 'quote name)))))
 	    (define-key translate-from-menu-map (vector name)
-	      (cons str-name		    
+	      (cons str-name
 		    (list 'lambda '() '(interactive)
 			  (list 'format-decode-buffer (list 'quote (list name))))))
 	    )))))
