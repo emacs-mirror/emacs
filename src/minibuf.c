@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
+#include "charset.h"
 #include "dispextern.h"
 #include "frame.h"
 #include "window.h"
@@ -322,7 +323,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     {
       Finsert (1, &initial);
       if (!NILP (backup_n) && INTEGERP (backup_n))
-	Fforward_char (backup_n);
+	Fgoto_char (make_number (PT + XFASTINT (backup_n)));
     }
 
   echo_area_glyphs = 0;
@@ -921,6 +922,7 @@ scmp (s1, s2, len)
      int len;
 {
   register int l = len;
+  register unsigned char *start = s1;
 
   if (completion_ignore_case)
     {
@@ -935,7 +937,15 @@ scmp (s1, s2, len)
   if (l == 0)
     return -1;
   else
-    return len - l;
+    {
+      int match = len - l;
+
+      /* Now *--S1 is the unmatching byte.  If it is in the middle of
+         multi-byte form, we must say that the multi-byte character
+         there doesn't match.  */
+      while (match && *--s1 >= 0xA0) match--;
+      return match;
+    }
 }
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
@@ -1536,13 +1546,22 @@ Return nil if there is no valid completion, else t.")
 
   /* Now find first word-break in the stuff found by completion.
      i gets index in string of where to stop completing.  */
+  {
+    int len, c;
 
-  completion_string = XSTRING (completion)->data;
-
-  for (; i < XSTRING (completion)->size; i++)
-    if (SYNTAX (completion_string[i]) != Sword) break;
-  if (i < XSTRING (completion)->size)
-    i = i + 1;
+    completion_string = XSTRING (completion)->data;
+    for (; i < XSTRING (completion)->size; i += len)
+      {
+	c = STRING_CHAR_AND_LENGTH (completion_string + i,
+				    XSTRING (completion)->size - i,
+				    len);
+	if (SYNTAX (c) != Sword)
+	  {
+	    i += len;
+	    break;
+	  }
+      }
+  }
 
   /* If got no characters, print help for user.  */
 
