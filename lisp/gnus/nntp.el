@@ -871,7 +871,9 @@ This function is supposed to be called from `nntp-server-opened-hook'."
 	  (set-buffer (process-buffer (car entry)))
 	  (erase-buffer)
 	  (nntp-send-string (car entry) (concat "GROUP " group))
-	  (nntp-wait-for-string "^2.*\n")
+	  ;; allow for unexpected responses, since this can be called
+	  ;; from a timer with quit inhibited
+	  (nntp-wait-for-string "^[245].*\n")
 	  (setcar (cddr entry) group)
 	  (erase-buffer))))))
 
