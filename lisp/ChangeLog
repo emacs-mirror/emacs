@@ -1,3 +1,7 @@
+2004-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-tail-mode): Doc fix for defvar.
+
 2004-12-29  Sanghyuk Suh  <han9kin@mac.com>
 
 	* term/mac-win.el (mac-drag-n-drop): Handle drag-n-drop events
