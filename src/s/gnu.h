@@ -60,6 +60,11 @@ Boston, MA 02111-1307, USA.  */
 #undef BSD_PGRPS
 #define GETPGRP_NO_ARG
 
+/* Use mmap directly for allocating larger buffers.  */
+#ifdef DOUG_LEA_MALLOC
+#undef REL_ALLOC
+#endif
+
 #define HAVE_WAIT_HEADER
 #define WAIT_USE_INT
 #define HAVE_UNION_WAIT
