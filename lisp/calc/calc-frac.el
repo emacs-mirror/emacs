@@ -1,8 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-frac.el]
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+;;; calc-frac.el --- fraction functions for Calc
 
-;; This file is part of GNU Emacs.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY.  No author or distributor
@@ -19,7 +20,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -27,7 +30,6 @@
 (require 'calc-macs)
 
 (defun calc-Need-calc-frac () nil)
-
 
 (defun calc-fdiv (arg)
   (interactive "P")
@@ -49,7 +51,12 @@
 
 
 (defun calc-over-notation (fmt)
-  (interactive "sFraction separator (:, ::, /, //, :/): ")
+  (interactive
+   (list
+    (completing-read "Fraction separator: " (mapcar (lambda (s)
+						      (cons s 0))
+						    '(":" "::" "/" "//" ":/"))
+		     nil t)))
   (calc-wrapper
    (if (string-match "\\`\\([^ 0-9][^ 0-9]?\\)[0-9]*\\'" fmt)
        (let ((n nil))
@@ -58,7 +65,7 @@
 		   fmt (math-match-substring fmt 1)))
 	 (if (eq n 0) (error "Bad denominator"))
 	 (calc-change-mode 'calc-frac-format (list fmt n) t))
-     (error "Bad fraction separator format."))))
+     (error "Bad fraction separator format"))))
 
 (defun calc-slash-notation (n)
   (interactive "P")
@@ -71,11 +78,8 @@
   (calc-wrapper
    (calc-change-mode 'calc-prefer-frac n nil t)
    (message (if calc-prefer-frac
-		"Integer division will now generate fractions."
-	      "Integer division will now generate floating-point results."))))
-
-
-
+		"Integer division will now generate fractions"
+	      "Integer division will now generate floating-point results"))))
 
 
 ;;;; Fractions.
@@ -128,8 +132,6 @@
 			(math-mul (nth 2 a) b)))
     (math-make-frac (math-mul a (nth 2 b))
 		    (nth 1 b))))
-
-
 
 
 ;;; Convert a real value to fractional form.  [T R I; T R F] [Public]

@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-funcs.el]
+;;; calc-funcs.el --- well-known functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -198,6 +203,7 @@
 
 ;;; Incomplete gamma function.
 
+(defvar math-current-gamma-value nil)
 (defun calcFunc-gammaP (a x)
   (if (equal x '(var inf var-inf))
       '(float 1 0)
@@ -248,7 +254,6 @@
 	  (math-inc-gamma-series a x)
 	(math-sub (or math-current-gamma-value (calcFunc-gamma a))
 		  (math-inc-gamma-cfrac a x))))))
-(setq math-current-gamma-value nil)
 
 (defun calcFunc-gammaG (a x)
   (if (equal x '(var inf var-inf))
@@ -371,6 +376,7 @@
 
 ;;; Incomplete beta function.
 
+(defvar math-current-beta-value nil)
 (defun calcFunc-betaI (x a b)
   (cond ((math-zerop x)
 	 '(float 0 0))
@@ -445,7 +451,6 @@
 		    (math-div (math-mul bt
 					(math-beta-cfrac b a (math-sub 1 x)))
 			      b))))))))
-(setq math-current-beta-value nil)
 
 (defun math-beta-cfrac (a b x)
   (let ((qab (math-add a b))
@@ -796,6 +801,23 @@
 		    (calcFunc-euler n '(float 5 -1)))
 		(calcFunc-euler n '(frac 1 2))))))
 
+(defvar math-bernoulli-b-cache '((frac -174611
+				       (bigpos 0 200 291 698 662 857 802))
+				 (frac 43867 (bigpos 0 944 170 217 94 109 5))
+				 (frac -3617 (bigpos 0 880 842 622 670 10))
+				 (frac 1 (bigpos 600 249 724 74))
+				 (frac -691 (bigpos 0 368 674 307 1))
+				 (frac 1 (bigpos 160 900 47))
+				 (frac -1 (bigpos 600 209 1))
+				 (frac 1 30240) (frac -1 720)
+				 (frac 1 12) 1 ))
+
+(defvar math-bernoulli-B-cache '((frac -174611 330) (frac 43867 798)
+				 (frac -3617 510) (frac 7 6) (frac -691 2730)
+				 (frac 5 66) (frac -1 30) (frac 1 42)
+				 (frac -1 30) (frac 1 6) 1 ))
+
+(defvar math-bernoulli-cache-size 11)
 (defun math-bernoulli-coefs (n)
   (let* ((coefs (list (calcFunc-bern n)))
 	 (nn (math-trunc n))
@@ -843,25 +865,6 @@
 
 ;;; A faster method would be to use "tangent numbers", c.f., Concrete
 ;;; Mathematics pg. 273.
-
-(setq math-bernoulli-b-cache '( (frac -174611
-				      (bigpos 0 200 291 698 662 857 802))
-				(frac 43867 (bigpos 0 944 170 217 94 109 5))
-				(frac -3617 (bigpos 0 880 842 622 670 10))
-				(frac 1 (bigpos 600 249 724 74))
-				(frac -691 (bigpos 0 368 674 307 1))
-				(frac 1 (bigpos 160 900 47))
-				(frac -1 (bigpos 600 209 1))
-				(frac 1 30240) (frac -1 720)
-				(frac 1 12) 1 ))
-
-(setq math-bernoulli-B-cache '( (frac -174611 330) (frac 43867 798)
-				(frac -3617 510) (frac 7 6) (frac -691 2730)
-				(frac 5 66) (frac -1 30) (frac 1 42)
-				(frac -1 30) (frac 1 6) 1 ))
-
-(setq math-bernoulli-cache-size 11)
-
 
 
 ;;; Probability distributions.
