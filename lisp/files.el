@@ -442,7 +442,10 @@ and ignores this variable."
 (or (fboundp 'file-locked-p)
     (defalias 'file-locked-p 'ignore))
 
-(defvar view-read-only)			;Declared in view.el.
+(defcustom view-read-only nil
+  "*Non-nil means buffers visiting files read-only, do it in view mode."
+  :type 'boolean
+  :group 'view)
 
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)

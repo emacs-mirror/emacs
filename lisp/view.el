@@ -53,11 +53,6 @@
   :group 'wp
   :group 'editing)
 
-(defcustom view-read-only nil
-  "*Non-nil means buffers visiting files read-only, do it in view mode."
-  :type 'boolean
-  :group 'view)
-
 (defcustom view-highlight-face 'highlight
    "*The face used for highlighting the match found by View mode search."
    :type 'face
