@@ -2466,7 +2466,7 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
 }
 
 
-DEFUN ("properties", Fproperties, Sproperties, 3, MANY, 0,
+DEFUN ("propertize", Fpropertize, Spropertize, 3, MANY, 0,
        "Return a copy of STRING with text properties added.\n\
 First argument is the string to copy.\n\
 Remaining arguments are sequences of PROPERTY VALUE pairs for text\n\
@@ -3404,7 +3404,7 @@ functions if all the text being accessed has this property.");
   DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name,
 	       "The user's name, based upon the real uid only.");
 
-  defsubr (&Sproperties);
+  defsubr (&Spropertize);
   defsubr (&Schar_equal);
   defsubr (&Sgoto_char);
   defsubr (&Sstring_to_char);
