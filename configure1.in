@@ -603,6 +603,9 @@ case "${canonical}" in
   i386-ibm-aix1.[23] | i386-ibm-aix* )
     machine=ibmps2-aix opsys=usg5-3
   ;;
+  i370-ibm-aix*)
+    machine=ibm370aix opsys=usg5-3
+  ;;
   rs6000-ibm-aix3.1 )
     machine=ibmrs6000 opsys=aix3-1
   ;;
