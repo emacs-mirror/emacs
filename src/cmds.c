@@ -38,7 +38,7 @@ On reaching end of buffer, stop and signal error.")
      Lisp_Object n;
 {
   if (NILP (n))
-    XFASTINT (n) = 1;
+    XSETFASTINT (n, 1);
   else
     CHECK_NUMBER (n, 0);
 
@@ -74,7 +74,7 @@ On attempt to pass beginning or end of buffer, stop and signal error.")
      Lisp_Object n;
 {
   if (NILP (n))
-    XFASTINT (n) = 1;
+    XSETFASTINT (n, 1);
   else
     CHECK_NUMBER (n, 0);
 
@@ -126,7 +126,7 @@ If scan reaches end of buffer, stop there without error.")
      Lisp_Object n;
 {
   if (NILP (n))
-    XFASTINT (n) = 1;
+    XSETFASTINT (n, 1);
   else
     CHECK_NUMBER (n, 0);
 
@@ -146,7 +146,7 @@ If scan reaches end of buffer, stop there without error.")
   register int stop;
 
   if (NILP (n))
-    XFASTINT (n) = 1;
+    XSETFASTINT (n, 1);
   else
     CHECK_NUMBER (n, 0);
 
