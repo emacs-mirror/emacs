@@ -392,15 +392,16 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   (rmail-summary-delete-forward t))
 
 (defun rmail-summary-mark-deleted (&optional n undel)
-  (and n (rmail-summary-goto-msg n nil t))
-  (let ((buffer-read-only nil))
-    (skip-chars-forward " ")
-    (skip-chars-forward "[0-9]")
-    (if undel
-	(if (looking-at "D")
-	    (progn (delete-char 1) (insert " ")))
-      (delete-char 1)
-      (insert "D")))
+  (and n (rmail-summary-goto-msg n t t))
+  (or (eobp)
+      (let ((buffer-read-only nil))
+	(skip-chars-forward " ")
+	(skip-chars-forward "[0-9]")
+	(if undel
+	    (if (looking-at "D")
+		(progn (delete-char 1) (insert " ")))
+	  (delete-char 1)
+	  (insert "D"))))
   (beginning-of-line))
 
 (defun rmail-summary-mark-undeleted (n)
