@@ -169,7 +169,7 @@ When called from lisp code, N may be omitted."
 	(expand-file-name file-name
 			  (and rmail-last-file
 			       (file-name-directory rmail-last-file))))
-  (if (and (file-readable-p file) (rmail-file-p file-name))
+  (if (and (file-readable-p file-name) (rmail-file-p file-name))
       (rmail-output-to-rmail-file file-name count)
     (setq rmail-last-file file-name)
     (while (> count 0)
@@ -202,6 +202,6 @@ When called from lisp code, N may be omitted."
       (if rmail-delete-after-output
 	  (rmail-delete-forward)
 	(if (> count 0)
-	    (rmail-next-undeleted-message 1)))))
+	    (rmail-next-undeleted-message 1))))))
 
 ;;; rmailout.el ends here
