@@ -312,7 +312,7 @@ calendar."
 
 (defcustom diary-file-name-prefix-function (function (lambda (str) str))
   "*The function that will take a diary file name and return the desired prefix."
-  :type 'string
+  :type 'function
   :group 'diary)
 
 ;;;###autoload
