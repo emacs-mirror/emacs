@@ -614,13 +614,13 @@ typedef struct frame *FRAME_PTR;
    (f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
 
-#define CHECK_FRAME(x, i)				\
+#define CHECK_FRAME(x)					\
      do {						\
        if (! FRAMEP (x))				\
          x = wrong_type_argument (Qframep, (x));	\
      } while (0)
 
-#define CHECK_LIVE_FRAME(x, i)				\
+#define CHECK_LIVE_FRAME(x)				\
      do {						\
        if (! FRAMEP (x)					\
 	   || ! FRAME_LIVE_P (XFRAME (x)))		\
