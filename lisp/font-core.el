@@ -230,7 +230,7 @@ this function onto `change-major-mode-hook'."
       (widen)
       (remove-list-of-text-properties (point-min) (point-max)
 				      '(font-lock-face)))
-    (set-buffer-modified-p modp)))
+    (restore-buffer-modified-p modp)))
 
 (defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
