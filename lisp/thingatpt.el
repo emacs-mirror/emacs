@@ -384,9 +384,13 @@ Signal an error if the entire string was not used."
 		(error nil))))
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
+;;;###autoload
 (defun sexp-at-point ()   (form-at-point 'sexp))
+;;;###autoload
 (defun symbol-at-point () (form-at-point 'sexp 'symbolp))
+;;;###autoload
 (defun number-at-point () (form-at-point 'sexp 'numberp))
+;;;###autoload
 (defun list-at-point ()   (form-at-point 'list 'listp))
 
 ;; thingatpt.el ends here.
