@@ -1,3 +1,8 @@
+2002-12-10  Steven Tamm  <steventamm@mac.com>
+
+	* generic-x.el (javascript-generic-mode): Added C style block
+	comments as used in ECMA-262 standard.
+
 2002-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el ("Swedish"): Change tutorial file name to

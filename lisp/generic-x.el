@@ -533,7 +533,7 @@ you must reload generic-x to enable the specified modes."
 ;; Javascript mode
 ;; Includes extra keywords from Armando Singer [asinger@MAIL.COLGATE.EDU]
 (define-generic-mode 'javascript-generic-mode
-  (list "//")
+  (list "//" '("/*" . "*/"))
   (list
    "break"
    "case"
