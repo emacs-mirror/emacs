@@ -32,23 +32,22 @@
 
 (require 'rmail)
 
+(defconst rmail-mail-separator
+  "\^_\^L\n0, unseen,,\n*** EOOH ***\n"
+  "String for separating messages in an rmail file.")
+
+
 (defconst rmail-digest-methods
   '(rmail-digest-parse-mime
     rmail-digest-parse-rfc1153strict
     rmail-digest-parse-rfc1153sloppy
     rmail-digest-parse-rfc934)
-  "List of digest parsing functions, in preference order.
+  "List of digest parsing functions, first tried first.
 
-The functions operate on the current narrowing, and take no argument.  A
-function returns nil if it cannot parse the digest.  If it can, it
+These functions operate on the current narrowing, and take no argument.
+A function returns nil if it cannot parse the digest.  If it can, it
 returns a list of cons pairs containing the start and end positions of
 each undigestified message as markers.")
-
-(defconst rmail-digest-mail-separator
-  "\^_\^L\n0, unseen,,\n*** EOOH ***\n"
-  "String substituted to the digest separator to create separate messages.")
-
-
 
 (defun rmail-digest-parse-mime ()
   (goto-char (point-min))
@@ -138,8 +137,6 @@ See rmail-digest-methods."
       ;; Return the list of marker pairs
       (nreverse result))))
 
-
-
 ;;;###autoload
 (defun undigestify-rmail-message ()
   "Break up a digest message into its constituent messages.
@@ -162,7 +159,7 @@ Leaves original message, deleted, before the undigestified messages."
 	      (delete-region (point-min)
 			     (progn (search-forward "\n*** EOOH ***\n" nil t)
 				    (point)))
-	      (insert "\n" rmail-digest-mail-separator)
+	      (insert "\n" rmail-mail-separator)
 	      (narrow-to-region (point)
 				(point-max))
 	      (let ((fill-prefix "")
@@ -193,7 +190,7 @@ Leaves original message, deleted, before the undigestified messages."
 			(end (cdar sep-list)))
 		    (delete-region start end)
 		    (goto-char start)
-		    (insert rmail-digest-mail-separator)
+		    (insert rmail-mail-separator)
 		    (search-forward "\n\n" (caar (cdr sep-list)) 'move)
 		    (save-restriction
 		      (narrow-to-region end (point))
@@ -217,7 +214,7 @@ Leaves original message, deleted, before the undigestified messages."
 	       (narrow-to-region (point-min) (1+ (point-max)))
 	       (delete-region (point-min) (point-max))
 	       (rmail-show-message rmail-current-message)))))))
-
+
 ;;;###autoload
 (defun unforward-rmail-message ()
   "Extract a forwarded message from the containing message.
@@ -225,39 +222,65 @@ This puts the forwarded message into a separate rmail message
 following the containing message."
   (interactive)
   ;; If we are in a summary buffer, switch to the Rmail buffer.
-  (with-current-buffer rmail-buffer
-    (narrow-to-region (rmail-msgbeg rmail-current-message)
-		      (rmail-msgend rmail-current-message))
-    (goto-char (point-min))
-    (let (beg end (buffer-read-only nil) msg-string who-forwarded-it)
-      (setq who-forwarded-it (mail-fetch-field "From"))
-      (if (re-search-forward "^----" nil t)
-	  nil
-	(error "No forwarded message"))
-      (forward-line 1)
-      (setq beg (point))
-      (if (re-search-forward "^----" nil t)
-	  (setq end (match-beginning 0))
-	(error "No terminator for forwarded message"))
-      (widen)
-      (setq msg-string (buffer-substring beg end))
-      (goto-char (rmail-msgend rmail-current-message))
-      (narrow-to-region (point) (point))
-      (insert "\^_\^L\n0, unseen,,\n*** EOOH ***\n")
-      (narrow-to-region (point) (point))
-      (insert "Forwarded-by: " who-forwarded-it "\n")
-      (insert msg-string)
-      (goto-char (point-min))
-      (while (not (eobp))
-	(if (looking-at "- ")
-	    (delete-region (point) (+ 2 (point))))
-	(forward-line 1))
-      (let ((n rmail-current-message))
-	(rmail-forget-messages)
-	(rmail-show-message n)
-	(if (rmail-summary-exists)
-	    (rmail-select-summary
-	     (rmail-update-summary)))))))
+  (unwind-protect
+      (with-current-buffer rmail-buffer
+	(narrow-to-region (rmail-msgbeg rmail-current-message)
+			  (rmail-msgend rmail-current-message))
+	(goto-char (point-min))
+	(let ((buffer-read-only nil)
+	      (who-forwarded-it (mail-fetch-field "From"))
+	      beg end prefix forward-msg n)
+	  (cond ((re-search-forward
+		  "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage" nil t)
+		 (forward-line 1)
+		 (setq beg (point))
+		 (setq end (if (re-search-forward "^----.*[^- \t\n]" nil t)
+			       (match-beginning 0) (point-max)))
+		 (setq forward-msg
+		       (replace-regexp-in-string
+			"^- -" "-" (buffer-substring beg end))))
+		((and (re-search-forward "^\\(> ?\\)From: .*\n" nil t)
+		      (setq beg (match-beginning 0))
+		      (setq prefix (match-string 1))
+		      (looking-at (concat "\\(" prefix ".+\n\\)*"
+					  prefix "Date: .+\n"
+					  "\\(" prefix ".+\n\\)*"
+					  "\\(> ?\\)?\n" prefix)))
+		 (re-search-forward "^[^>\n]" nil 'move)
+		 (backward-char)
+		 (skip-chars-backward " \t\n")
+		 (forward-line 1)
+		 (setq end (point))
+		 (setq forward-msg
+		       (replace-regexp-in-string
+			(if (string= prefix ">") "^>" "> ?")
+			"" (buffer-substring beg end))))
+		(t
+		 (error "No forwarded message found")))
+	  (widen)
+	  (goto-char (rmail-msgend rmail-current-message))
+	  (narrow-to-region (point) (point))
+	  (insert rmail-mail-separator)
+	  (narrow-to-region (point) (point))
+	  (insert "Forwarded-by: " who-forwarded-it "\n")
+	  (insert forward-msg)
+	  (save-restriction
+	    (goto-char (point-min))
+	    (re-search-forward "\n$" nil 'move)
+	    (narrow-to-region (point-min) (point))
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (unless (looking-at "^[a-zA-Z-]+: ")
+		(insert "\t"))
+	      (forward-line)))
+	  (goto-char (point-min))))
+    (setq n rmail-current-message)
+    (rmail-forget-messages)
+    (rmail-show-message n)
+    (if (rmail-summary-exists)
+	(rmail-select-summary
+	 (rmail-update-summary)))))
+
 
 (provide 'undigest)
 
