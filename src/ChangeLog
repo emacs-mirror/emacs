@@ -1,3 +1,7 @@
+2004-04-12  Andreas Schwab  <schwab@suse.de>
+
+	* buffer.c (Fmake_indirect_buffer): Check that NAME is a string.
+
 2004-04-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.c (Fgenerate_new_buffer_name): Return NAME argument if
