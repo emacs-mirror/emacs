@@ -1372,10 +1372,13 @@ The values of `comint-get-old-input', `comint-input-filter-functions', and
 in the buffer.  E.g.,
 
 If the interpreter is the csh,
-    comint-get-old-input is the default: either return the current
-	field, or take the current line and discard any
-	initial string matching regexp `comint-prompt-regexp', depending
-	on the value of `comint-use-prompt-regexp-instead-of-fields'.
+    comint-get-old-input is the default:
+	If `comint-use-prompt-regexp-instead-of-fields' is nil, then
+	either return the current input field, if point is on an input
+	field, or the current line, if point is on an output field.
+	If `comint-use-prompt-regexp-instead-of-fields' is non-nil, then
+	return the current line with any initial string matching the
+	regexp `comint-prompt-regexp' removed.
     comint-input-filter-functions monitors input for \"cd\", \"pushd\", and
 	\"popd\" commands. When it sees one, it cd's the buffer.
     comint-input-filter is the default: returns t if the input isn't all white
@@ -1753,21 +1756,17 @@ This function could be on `comint-output-filter-functions' or bound to a key."
 
 (defun comint-get-old-input-default ()
   "Default for `comint-get-old-input'.
-Returns either the current field, or the current line with any initial
-text matching `comint-prompt-regexp' stripped off, depending on the
-value of `comint-use-prompt-regexp-instead-of-fields'."
-  (if comint-use-prompt-regexp-instead-of-fields
-      (save-excursion
-	(beginning-of-line)
-	(comint-skip-prompt)
-	(let ((beg (point)))
-	  (end-of-line)
-	  (buffer-substring beg (point))))
-    ;; Return the contents of the field at the current point.
-    (let ((pos (field-beginning (point))))
-      (unless (eq (get-char-property pos 'field) 'input)
-	(error "Not an input field"))
-      (field-string pos))))
+If `comint-use-prompt-regexp-instead-of-fields' is nil, then either
+return the current input field, if point is on an input field, or the
+current line, if point is on an output field.
+If `comint-use-prompt-regexp-instead-of-fields' is non-nil, then return
+the current line with any initial string matching the regexp
+`comint-prompt-regexp' removed."
+  (let ((bof (field-beginning)))
+    (if (eq (get-char-property bof 'field) 'input)
+	(field-string bof)
+      (comint-bol)
+      (buffer-substring (point) (line-end-position)))))
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
