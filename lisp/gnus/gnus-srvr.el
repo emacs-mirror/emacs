@@ -174,13 +174,15 @@ The following commands are available:
   (let* ((gnus-tmp-how (car method))
 	 (gnus-tmp-where (nth 1 method))
 	 (elem (assoc method gnus-opened-servers))
-	 (gnus-tmp-status (cond ((eq (nth 1 elem) 'denied)
-				 "(denied)")
-				((or (gnus-server-opened method)
-				     (eq (nth 1 elem) 'ok))
-				 "(opened)")
-				(t
-				 "(closed)"))))
+	 (gnus-tmp-status
+	  (if (eq (nth 1 elem) 'denied)
+	      "(denied)"
+	    (condition-case nil
+		(if (or (gnus-server-opened method)
+			(eq (nth 1 elem) 'ok))
+		    "(opened)"
+		  "(closed)")
+	      ((error) "(error)")))))
     (beginning-of-line)
     (gnus-add-text-properties
      (point)
