@@ -667,11 +667,15 @@ messages, add @code{footnote-mode} to @code{mail-mode-hook} and/or
 
   This chapter describes the usual Emacs mode for editing and sending
 mail---Mail mode.  Emacs has alternative facilities for editing and
-sending mail, including MH-E and Message mode, not documented in this
-manual.  You can choose any of them as your preferred method.  The
-commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use whichever
-agent you have specified.  So do various other Emacs commands and
-facilities that send mail.
+sending mail, including 
+@cindex MH mail interface
+@cindex Message mode for sending mail
+MH-E and Message mode, not documented in this manual.
+@xref{,MH-E,,mh-e, The Emacs Interface to MH}.  @xref{,Message,,message,
+Message Manual}.  You can choose any of them as your preferred method.
+The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
+whichever agent you have specified.  So do various other Emacs commands
+and facilities that send mail.
 
 @vindex mail-user-agent
   To specify your mail-composition method, set the variable
