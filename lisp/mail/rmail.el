@@ -321,6 +321,11 @@ by substituting the new message number into the existing list.")
   "*Default file name for \\[rmail-output-to-rmail-file]."
   :type 'file
   :group 'rmail-files)
+(defcustom rmail-default-body-file "~/mailout"
+  "*Default file name for \\[rmail-output-body-to-file]."
+  :type 'file
+  :group 'rmail-files
+  :version "20.3")
 
 ;; Mule and MIME related variables.
 
