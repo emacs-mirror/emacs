@@ -436,7 +436,11 @@ set_frame_size (ew)
 
     x_compute_fringe_widths (frame, 0);
 
+#if 0 /* This can run Lisp code, and it is dangerous to give
+	 out the frame to Lisp code before it officially exists.
+	 This is handled in Fx_create_frame so not needed here.  */
     change_frame_size (frame, h, w, 1, 0, 0);
+#endif
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
     ew->core.width = pixel_width;
     ew->core.height = pixel_height;
