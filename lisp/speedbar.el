@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.7.2a
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.10 1998/08/19 21:43:56 done Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.11 1998/08/24 00:37:22 zappo Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -1237,8 +1237,10 @@ redirected into a window on the attached frame."
   (if speedbar-attached-frame (select-frame speedbar-attached-frame))
   (pop-to-buffer buffer nil)
   (other-window -1)
-  ;; Fix for using this hook: Bob Weiner
-  (cond ((fboundp 'run-hook-with-args)
+  ;; Fix for using this hook on some platforms: Bob Weiner
+  (cond ((not speedbar-xemacsp)
+	 (run-hooks 'temp-buffer-show-hook))
+	((fboundp 'run-hook-with-args)
 	 (run-hook-with-args 'temp-buffer-show-hook buffer))
 	((and (boundp 'temp-buffer-show-hook)
 	      (listp temp-buffer-show-hook))
