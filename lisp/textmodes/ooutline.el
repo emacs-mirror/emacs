@@ -179,6 +179,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat paragraph-separate "\\|^\\("
 				   outline-regexp "\\)"))
+  (make-local-variable 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
