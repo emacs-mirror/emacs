@@ -1,3 +1,14 @@
+2000-07-16  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): Use a help-echo
+	function to be more specific.
+
+	* wid-edit.el (widget-specify-field, widget-specify-button): Allow
+	non-string help-echo.
+	(widget-types-convert-widget): Defsubst it.
+	(widget-echo-help): Try to cope with a help-echo function of two
+	possible sorts.
+
 2000-07-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-enable-italics, w32-charset-to-codepage-alist):
