@@ -1610,7 +1610,7 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
 
 /* Create a brand new menu structure.  */
 XMenu *
-XMenuCreate (int foo, int bar)
+XMenuCreate (Display *foo1, Window foo2, char *foo3)
 {
   return IT_menu_create ();
 }
@@ -1619,7 +1619,7 @@ XMenuCreate (int foo, int bar)
    clear that it should be placed out there, but I don't know what else
    to do.  */
 int
-XMenuAddPane (XMenu *menu, char *txt, int enable)
+XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
 {
   int len;
 
@@ -1637,7 +1637,8 @@ XMenuAddPane (XMenu *menu, char *txt, int enable)
 
 /* Create a new item in a menu pane.  */
 int
-XMenuAddSelection (XMenu *menu, int pane, int foo, char *txt, int enable)
+XMenuAddSelection (Display *bar, XMenu *menu, int pane,
+		   int foo, char *txt, int enable)
 {
   int len;
 
@@ -1654,7 +1655,8 @@ XMenuAddSelection (XMenu *menu, int pane, int foo, char *txt, int enable)
 }
 
 /* Decide where the menu would be placed if requested at (X,Y).  */
-XMenuLocate (XMenu *menu, int foo1, int foo2, int x, int y,
+void
+XMenuLocate (Display *foo0, XMenu *menu, int foo1, int foo2, int x, int y,
 	     int *ulx, int *uly, int *width, int *height)
 {
   if (menu->count == 1 && menu->submenu[0])
@@ -1678,7 +1680,7 @@ typedef struct
 
 /* Display menu, wait for user's response, and return that response.  */
 int
-XMenuActivate (XMenu *menu, int *pane, int *selidx,
+XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	       int x0, int y0, unsigned ButtonMask, char **txt)
 {
   IT_menu_state *state;
@@ -1806,14 +1808,15 @@ XMenuActivate (XMenu *menu, int *pane, int *selidx,
 }
 
 /* Dispose of a menu.  */
-XMenuDestroy (XMenu *menu)
+void
+XMenuDestroy (Display *foo, XMenu *menu)
 {
   int i;
   if (menu->allocated)
     {
       for (i = 0; i < menu->count; i++)
 	if (menu->submenu[i])
-	  XMenuDestroy (menu->submenu[i]);
+	  XMenuDestroy (foo, menu->submenu[i]);
       xfree (menu->text);
       xfree (menu->submenu);
       xfree (menu->panenumber);
