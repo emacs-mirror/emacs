@@ -509,7 +509,8 @@ Commands for sorting the summary:
 \\[rmail-summary-sort-by-author] Sort by author.
 \\[rmail-summary-sort-by-recipient] Sort by recipient.
 \\[rmail-summary-sort-by-correspondent] Sort by correspondent.
-\\[rmail-summary-sort-by-lines] Sort by lines."
+\\[rmail-summary-sort-by-lines] Sort by lines.
+\\[rmail-summary-sort-by-keywords] Sort by keywords."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'rmail-summary-mode)
@@ -623,6 +624,8 @@ Commands for sorting the summary:
     'rmail-summary-sort-by-correspondent)
   (define-key rmail-summary-mode-map "\C-c\C-s\C-l"
     'rmail-summary-sort-by-lines)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-k"
+    'rmail-summary-sort-by-keywords)
   )
 
 ;;; Menu bar bindings.
@@ -1107,6 +1110,16 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 If prefix argument REVERSE is non-nil, sort them in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-lines) reverse))
+
+(defun rmail-summary-sort-by-keywords (reverse labels)
+  "Sort messages of current Rmail summary by keywords.
+If prefix argument REVERSE is non-nil, sort them in reverse order.
+KEYWORDS is a comma-separated list of labels."
+  (interactive "P\nsSort by labels: ")
+  (rmail-sort-from-summary
+   (function (lambda (reverse)
+	       (rmail-sort-by-keywords reverse labels)))
+   reverse))
 
 (defun rmail-sort-from-summary (sortfun reverse)
   "Sort Rmail messages from Summary buffer and update it after sorting."
