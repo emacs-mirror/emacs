@@ -1836,7 +1836,8 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  EMACS_TIME atime, mtime;
 	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
-	  EMACS_SET_UTIMES (XSTRING (newname)->data, atime, mtime);
+	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
+	    report_file_error ("I/O error", Fcons (newname, Qnil));
 	}
 #ifdef APOLLO
       if (!egetenv ("USE_DOMAIN_ACLS"))
