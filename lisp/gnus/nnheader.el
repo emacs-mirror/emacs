@@ -47,7 +47,18 @@
 (defvar nnheader-head-chop-length 2048
   "*Length of each read operation when trying to fetch HEAD headers.")
 
-(defvar nnheader-file-name-translation-alist nil
+(defvar nnheader-file-name-translation-alist 
+  (let ((case-fold-search t))
+    (cond
+     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin32"
+		    (symbol-name system-type))
+      (append (mapcar (lambda (c) (cons c ?_))
+		      '(?: ?* ?\" ?< ?> ??))
+	      (if (string-match "windows-nt\\|cygwin32"
+				(symbol-name system-type))
+		  nil
+		'((?+ . ?-)))))
+     (t nil)))
   "*Alist that says how to translate characters in file names.
 For instance, if \":\" is invalid as a file character in file names
 on your system, you could say something like:

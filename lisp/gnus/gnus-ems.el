@@ -76,17 +76,6 @@
     (defvar gnus-mouse-face-prop 'mouse-face
       "Property used for highlighting mouse regions.")))
 
-(eval-and-compile
-  (let ((case-fold-search t))
-    (cond
-     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin32"
-		    (symbol-name system-type))
-      (setq nnheader-file-name-translation-alist
-	    (append nnheader-file-name-translation-alist
-		    (mapcar (lambda (c) (cons c ?_))
-			    '(?: ?* ?\" ?< ?> ??))
-		    '((?+ . ?-))))))))
-
 (defvar gnus-tmp-unread)
 (defvar gnus-tmp-replied)
 (defvar gnus-tmp-score-char)

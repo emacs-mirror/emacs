@@ -1,3 +1,10 @@
+2002-06-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nnheader.el (nnheader-file-name-translation-alist): Set the
+	default value for MS Windows systems.
+
+	* gnus-ems.el (nnheader-file-name-translation-alist): Removed.
+
 2002-05-16  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-art.el (gnus-mime-copy-part): Fix typo.
