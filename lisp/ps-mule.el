@@ -1070,7 +1070,7 @@ the sequence."
 ;; External library support.
 
 (defvar ps-mule-bitmap-dict-list nil)
-(defvar ps-mule-bitmap-parent-table nil)
+(defvar ps-mule-bitmap-font-record nil)
 
 ;; The following three functions are to be called from external
 ;; libraries which support bitmap fonts (e.g. `bdf') to get

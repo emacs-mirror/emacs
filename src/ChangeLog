@@ -1,8 +1,3 @@
-2003-09-10  Andreas Schwab  <schwab@suse.de>
-
-	* chartab.c (map_char_table): Protect `range' from GC.
-	(map_char_table_for_charset): Likewise.
-
 2003-07-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (xg_set_icon): Rewrite to compile with GTK 2.0 and 2.2.
