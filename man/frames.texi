@@ -1327,7 +1327,7 @@ variable @code{x-stretch-cursor} to a non-nil value.
 @vindex default-indicate-empty-lines
 @cindex empty lines
   Empty display lines at the end of the buffer can be optionally marked
-with a pecial bitmap in the left fringe of the window.  This is
+with a special bitmap at the left fringe of the window.  This is
 activated by setting the buffer-local variable
 @code{indicate-empty-lines} to a non-nil value.  The default value of
 this variable is found in @code{default-indicate-empty-lines}.
