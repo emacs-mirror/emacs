@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.85.2.1 $")
+(defconst byte-compile-version "$Revision: 2.86 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1394,54 +1394,54 @@ The value is t if there were no errors, nil if errors."
 		   (file-relative-name filename)
 		   (with-current-buffer input-buffer no-byte-compile))
 	  (if (file-exists-p target-file)
-	      (condition-case nil (delete-file target-file) (error nil))))
-    (if byte-compile-verbose
-	(message "Compiling %s..." filename))
-    (setq byte-compiler-error-flag nil)
-    ;; It is important that input-buffer not be current at this call,
-    ;; so that the value of point set in input-buffer
-    ;; within byte-compile-from-buffer lingers in that buffer.
-    (setq output-buffer (byte-compile-from-buffer input-buffer filename))
-    (if byte-compiler-error-flag
-	nil
+	      (condition-case nil (delete-file target-file) (error nil)))
+	  ;; We successfully didn't compile this file.
+	  t)
       (if byte-compile-verbose
-	  (message "Compiling %s...done" filename))
-      (kill-buffer input-buffer)
-      (save-excursion
-	(set-buffer output-buffer)
-	(goto-char (point-max))
-	(insert "\n")			; aaah, unix.
-	(let ((vms-stmlf-recfm t))
-	  (if (file-writable-p target-file)
-	      ;; We must disable any code conversion here.
-	      (let ((coding-system-for-write 'no-conversion))
-		(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-		    (setq buffer-file-type t))
-		(when (file-exists-p target-file)
-		  ;; Remove the target before writing it, so that any
-		  ;; hard-links continue to point to the old file (this makes
-		  ;; it possible for installed files to share disk space with
-		  ;; the build tree, without causing problems when emacs-lisp
-		  ;; files in the build tree are recompiled).
-		  (delete-file target-file))
-		(write-region 1 (point-max) target-file))
-	    ;; This is just to give a better error message than
-	    ;; write-region
-	    (signal 'file-error
-		    (list "Opening output file"
-			  (if (file-exists-p target-file)
-			      "cannot overwrite file"
-			    "directory not writable or nonexistent")
-			  target-file))))
-	(kill-buffer (current-buffer)))
-      (if (and byte-compile-generate-call-tree
-	       (or (eq t byte-compile-generate-call-tree)
-		   (y-or-n-p (format "Report call tree for %s? " filename))))
-	  (save-excursion
-	    (display-call-tree filename)))
-      (if load
-	  (load target-file))
-      t))))
+	  (message "Compiling %s..." filename))
+      (setq byte-compiler-error-flag nil)
+      ;; It is important that input-buffer not be current at this call,
+      ;; so that the value of point set in input-buffer
+      ;; within byte-compile-from-buffer lingers in that buffer.
+      (setq output-buffer (byte-compile-from-buffer input-buffer filename))
+      (if byte-compiler-error-flag
+	  nil
+	(if byte-compile-verbose
+	    (message "Compiling %s...done" filename))
+	(kill-buffer input-buffer)
+	(with-current-buffer output-buffer
+	  (goto-char (point-max))
+	  (insert "\n")			; aaah, unix.
+	  (let ((vms-stmlf-recfm t))
+	    (if (file-writable-p target-file)
+		;; We must disable any code conversion here.
+		(let ((coding-system-for-write 'no-conversion))
+		  (if (memq system-type '(ms-dos 'windows-nt))
+		      (setq buffer-file-type t))
+		  (when (file-exists-p target-file)
+		    ;; Remove the target before writing it, so that any
+		    ;; hard-links continue to point to the old file (this makes
+		    ;; it possible for installed files to share disk space with
+		    ;; the build tree, without causing problems when emacs-lisp
+		    ;; files in the build tree are recompiled).
+		    (delete-file target-file))
+		  (write-region 1 (point-max) target-file))
+	      ;; This is just to give a better error message than write-region
+	      (signal 'file-error
+		      (list "Opening output file"
+			    (if (file-exists-p target-file)
+				"cannot overwrite file"
+			      "directory not writable or nonexistent")
+			    target-file))))
+	  (kill-buffer (current-buffer)))
+	(if (and byte-compile-generate-call-tree
+		 (or (eq t byte-compile-generate-call-tree)
+		     (y-or-n-p (format "Report call tree for %s? " filename))))
+	    (save-excursion
+	      (display-call-tree filename)))
+	(if load
+	    (load target-file))
+	t))))
 
 ;;(defun byte-compile-and-load-file (&optional filename)
 ;;  "Compile a file of Lisp code named FILENAME into a file of byte code,
