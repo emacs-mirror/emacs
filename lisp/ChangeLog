@@ -94,7 +94,6 @@
 	* ffap.el (ffap-bindings): Make interactive and add an autoload
 	cookie.
 	(ffap-bindings): Doc fix, to reflect the above change.
-======= end
 
 2000-12-27  Kenichi Handa  <handa@etl.go.jp>
 
