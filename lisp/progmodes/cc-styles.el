@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.18
+;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -572,7 +572,8 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
   (or (assoc "cc-mode" c-style-alist)
       (let (copyfunc)
 	;; use built-in copy-tree if its there.
-	(if (fboundp 'copy-tree)
+	(if (and (fboundp 'copy-tree)
+		 (functionp (symbol-function 'copy-tree)))
 	    (setq copyfunc (symbol-function 'copy-tree))
 	  (setq copyfunc (lambda (tree)
 			    (if (consp tree)
