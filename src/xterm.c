@@ -68,6 +68,7 @@ Boston, MA 02111-1307, USA.  */
 /* #include <sys/param.h>  */
 
 #include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "ccl.h"
 #include "frame.h"
@@ -1137,7 +1138,8 @@ static struct face *x_get_glyph_face_and_encoding P_ ((struct frame *,
 static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
 						      int, XChar2b *, int));
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
-static void x_encode_char P_ ((int, XChar2b *, struct font_info *));
+static void x_encode_char P_ ((int, XChar2b *, struct font_info *,
+			       struct charset *));
 static void x_append_glyph P_ ((struct it *));
 static void x_append_composite_glyph P_ ((struct it *));
 static void x_append_stretch_glyph P_ ((struct it *it, Lisp_Object,
@@ -1221,12 +1223,12 @@ x_per_char_metric (font, char2b)
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
 static INLINE void
-x_encode_char (c, char2b, font_info)
+x_encode_char (c, char2b, font_info, charset)
      int c;
      XChar2b *char2b;
      struct font_info *font_info;
+     struct charset *charset;
 {
-  int charset = CHAR_CHARSET (c);
   XFontStruct *font = font_info->font;
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
@@ -1239,17 +1241,17 @@ x_encode_char (c, char2b, font_info)
 
       if (CHARSET_DIMENSION (charset) == 1)
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = char2b->byte2;
 	}
       else
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = char2b->byte1;
 	  ccl->reg[2] = char2b->byte2;
 	}
       
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0);
       
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
@@ -1258,11 +1260,11 @@ x_encode_char (c, char2b, font_info)
       else
 	char2b->byte1 = ccl->reg[1], char2b->byte2 = ccl->reg[2];
     }
-  else if (font_info->encoding[charset])
+  else if (font_info->encoding_type)
     {
       /* Fixed encoding scheme.  See fontset.h for the meaning of the
 	 encoding numbers.  */
-      int enc = font_info->encoding[charset];
+      unsigned char enc = font_info->encoding_type;
       
       if ((enc == 1 || enc == 2)
 	  && CHARSET_DIMENSION (charset) == 2)
@@ -1303,26 +1305,20 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
       char2b->byte1 = 0;
       char2b->byte2 = c;
     }
-  else
+  else if (face->font != NULL)
     {
-      int c1, c2, charset;
+      struct font_info *font_info
+	= FONT_INFO_FROM_ID (f, face->font_info_id);
+      struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+      unsigned code = ENCODE_CHAR (charset, c);
       
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (c, charset, c1, c2);
-      if (c2 > 0)
-	char2b->byte1 = c1, char2b->byte2 = c2;
+      if (CHARSET_DIMENSION (charset) == 1)
+	char2b->byte1 = 0, char2b->byte2 = code;
       else
-	char2b->byte1 = 0, char2b->byte2 = c1;
+	char2b->byte1 = code >> 8, char2b->byte2 = code & 0xFF;
 
       /* Maybe encode the character in *CHAR2B.  */
-      if (face->font != NULL)
-	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
-	    x_encode_char (c, char2b, font_info);
-	}
+      x_encode_char (c, char2b, font_info, charset);
     }
 
   /* Make sure X resources of the face are allocated.  */
@@ -1368,24 +1364,22 @@ x_get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
     }
   else
     {
-      int c1, c2, charset;
-      
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (glyph->u.ch, charset, c1, c2);
-      if (c2 > 0)
-	char2b->byte1 = c1, char2b->byte2 = c2;
-      else
-	char2b->byte1 = 0, char2b->byte2 = c1;
-
-      /* Maybe encode the character in *CHAR2B.  */
-      if (charset != CHARSET_ASCII)
+      struct font_info *font_info
+	= FONT_INFO_FROM_ID (f, face->font_info_id);
+      if (font_info)
 	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
+	  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+	  unsigned code = ENCODE_CHAR (charset, glyph->u.ch);
+      
+	  if (CHARSET_DIMENSION (charset) == 1)
+	    char2b->byte1 = 0, char2b->byte2 = code;
+	  else
+	    char2b->byte1 = code >> 8, char2b->byte2 = code & 0xFF;
+
+	  /* Maybe encode the character in *CHAR2B.  */
+	  if (CHARSET_ID (charset) != charset_ascii)
 	    {
-	      x_encode_char (glyph->u.ch, char2b, font_info);
+	      x_encode_char (glyph->u.ch, char2b, font_info, charset);
 	      if (two_byte_p)
 		*two_byte_p
 		  = ((XFontStruct *) (font_info->font))->max_byte1 > 0;
@@ -1817,9 +1811,7 @@ x_produce_glyphs (it)
       if (!ASCII_BYTE_P (it->c))
 	{
 	  if (unibyte_display_via_language_environment
-	      && SINGLE_BYTE_CHAR_P (it->c)
-	      && (it->c >= 0240
-		  || !NILP (Vnonascii_translation_table)))
+	      && SINGLE_BYTE_CHAR_P (it->c))
 	    {
 	      it->char_to_display = unibyte_char_to_multibyte (it->c);
 	      it->multibyte_p = 1;
@@ -1985,17 +1977,15 @@ x_produce_glyphs (it)
 
 	  /* If we found a font, this font should give us the right
 	     metrics.  If we didn't find a font, use the frame's
-	     default font and calculate the width of the character
-	     from the charset width; this is what old redisplay code
-	     did.  */
+	     default font and calculate the width of the character by
+	     multiplying the width of font by the width of the
+	     character.  */
 	  pcm = x_per_char_metric (font, &char2b);
 	  if (font_not_found_p || !pcm)
 	    {
-	      int charset = CHAR_CHARSET (it->char_to_display);
-
 	      it->glyph_not_available_p = 1;
 	      it->pixel_width = (FONT_WIDTH (FRAME_FONT (it->f))
-				 * CHARSET_WIDTH (charset));
+				 * CHAR_WIDTH (it->char_to_display));
 	      it->phys_ascent = font->ascent + boff;
 	      it->phys_descent = font->descent - boff;
 	    }
@@ -2058,10 +2048,7 @@ x_produce_glyphs (it)
       /* Maybe translate single-byte characters to multibyte.  */
       it->char_to_display = it->c;
       if (unibyte_display_via_language_environment
-	  && SINGLE_BYTE_CHAR_P (it->c)
-	  && (it->c >= 0240
-	      || (it->c >= 0200
-		  && !NILP (Vnonascii_translation_table))))
+	  && it->c >= 0200)
 	{
 	  it->char_to_display = unibyte_char_to_multibyte (it->c);
 	}
@@ -9992,7 +9979,7 @@ XTread_socket (sd, bufp, numchars, expected)
   /* The input is converted to events, thus we can't handle
      composition.  Anyway, there's no XIM that gives us composition
      information.  */
-  coding.composing = COMPOSITION_DISABLED;
+  coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
@@ -10664,8 +10651,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			      event.xkey.keycode != 0
 			      /* or the current locale doesn't request
 				 decoding of the intup data, ... */
-			      || coding.type == coding_type_raw_text
-			      || coding.type == coding_type_no_conversion)
+			      || ! CODING_REQUIRE_DECODING (&coding))
 			    {
 			      /* ... we can use the input data as is.  */
 			      nchars = nbytes;
@@ -10673,17 +10659,23 @@ XTread_socket (sd, bufp, numchars, expected)
 			  else
 			    { 
 			      /* We have to decode the input data.  */
-			      int require;
-			      unsigned char *p;
-
-			      require = decoding_buffer_size (&coding, nbytes);
-			      p = (unsigned char *) alloca (require);
+			      coding.destination
+				= (unsigned char *) malloc (nbytes);
+			      if (! coding.destination)
+				break;
+			      coding.dst_bytes = nbytes;
 			      coding.mode |= CODING_MODE_LAST_BLOCK;
-			      decode_coding (&coding, copy_bufptr, p,
-					     nbytes, require);
+			      decode_coding_c_string (&coding, copy_bufptr,
+						      nbytes, Qnil);
 			      nbytes = coding.produced;
 			      nchars = coding.produced_char;
-			      copy_bufptr = p;
+			      if (copy_bufsiz < nbytes)
+				{
+				  copy_bufsiz = nbytes;
+				  copy_bufptr = (char *) alloca (nbytes);
+				}
+			      bcopy (coding.destination, copy_bufptr, nbytes);
+			      free (coding.destination);
 			    }
 
 			  /* Convert the input data to a sequence of
@@ -12198,7 +12190,7 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = FS_LOAD_FONT (f, 0, fontname, -1);
+    = FS_LOAD_FONT (f, fontname);
 
   if (!fontp)
     return Qnil;
@@ -14342,7 +14334,7 @@ x_load_font (f, fontname, size)
        uses this font.  So, we set information in fontp->encoding[1]
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
-    fontp->encoding[1]
+    fontp->encoding_type
       = (font->max_byte1 == 0
 	 /* 1-byte font */
 	 ? (font->min_char_or_byte2 < 0x80
