@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.152 2003/06/05 11:34:06 fx Exp $
+;; $Id: vc-hooks.el,v 1.153 2003/07/06 17:26:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -478,7 +478,8 @@ If FILE is not registered, this function always returns nil."
 				(and (consp template)
 				     (eq (cdr template) backend)
 				     (car template)))
-			      vc-master-templates))
+                              (with-no-warnings
+                               vc-master-templates)))
 		       (symbol-value sym))))
     (let ((result (vc-check-master-templates file (symbol-value sym))))
       (if (stringp result)
@@ -582,7 +583,7 @@ a regexp for matching all such backup files, regardless of the version."
   "Make a backup copy of FILE, which is assumed in sync with the repository.
 Before doing that, check if there are any old backups and get rid of them."
   (unless (and (fboundp 'msdos-long-file-names)
-               (not (msdos-long-file-names)))
+               (not (with-no-warnings msdos-long-file-names)))
     (vc-delete-automatic-version-backups file)
     (copy-file file (vc-version-backup-file-name file)
                nil 'keep-date)))
@@ -754,7 +755,7 @@ Used in `find-file-not-found-hook'."
       (setq default-directory (file-name-directory buffer-file-name))
       (not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
-(add-hook 'find-file-not-found-hook 'vc-file-not-found-hook)
+(add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
