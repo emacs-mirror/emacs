@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.85) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.86) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -14,8 +14,7 @@
 #ifndef mpmtypes_h
 #define mpmtypes_h
 
-#include "config.h"     /* this must come first: it defines target */
-                        /* options */
+#include "config.h"     /* this must come first: it defines target options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "mpslib.h"
 
@@ -89,11 +88,9 @@ typedef int SegPrefKind;                /* design.mps.pref, impl.c.locus */
 typedef struct ArenaClassStruct *ArenaClass; /* design.mps.arena */
 typedef ArenaClass AbstractArenaClass;  /* impl.c.arena */
 typedef struct ArenaStruct *Arena;      /* design.mps.arena */
-typedef Arena Space;                    /* until all files have been updated */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
-typedef struct ActionStruct *Action;    /* design.mps.action */
 typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* design.mps.prot */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
@@ -110,8 +107,7 @@ typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
-typedef Res (*ArenaAllocMethod)(Addr *baseReturn, 
-                                Tract *baseTractReturn,
+typedef Res (*ArenaAllocMethod)(Addr *baseReturn, Tract *baseTractReturn,
                                 SegPref pref, Size size, Pool pool);
 typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
@@ -123,6 +119,7 @@ typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
  *
  * See design.mps.message
  */
+
 typedef unsigned MessageType;
 typedef struct MessageStruct *Message;
 typedef struct MessageClassStruct *MessageClass;
@@ -201,8 +198,6 @@ typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg,
 typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
                                       Seg seg, Ref *refIO);
 typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
-typedef double (*PoolBenefitMethod)(Pool pool, Action action);
-typedef Res (*PoolActMethod)(Pool pool, Action action);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn, 
