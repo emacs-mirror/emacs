@@ -527,8 +527,9 @@ next_frame (frame, minibuf)
   while (1)
     for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
       {
-	Lisp_Object f = XCONS (tail)->car;
+	Lisp_Object f;
 
+	f = XCONS (tail)->car;
 	if (passed)
 	  {
 	    /* Decide whether this frame is eligible to be returned.  */
@@ -586,8 +587,9 @@ prev_frame (frame, minibuf)
   prev = Qnil;
   for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      Lisp_Object f = XCONS (tail)->car;
+      Lisp_Object f;
 
+      f = XCONS (tail)->car;
       if (XTYPE (f) != Lisp_Frame)
 	abort ();
 
@@ -692,8 +694,9 @@ other_visible_frames (f)
 	   CONSP (frames);
 	   frames = XCONS (frames)->cdr)
 	{
-	  Lisp_Object this = XCONS (frames)->car;
+	  Lisp_Object this;
 
+	  this = XCONS (frames)->car;
 	  /* Verify that the frame's window still exists
 	     and we can still talk to it.  And note any recent change
 	     in visibility.  */
@@ -829,14 +832,16 @@ but if the second optional argument FORCE is non-nil, you may do so.")
       Lisp_Object frames;
 
       /* The last frame we saw with a minibuffer, minibuffer-only or not.  */
-      Lisp_Object frame_with_minibuf = Qnil;
+      Lisp_Object frame_with_minibuf;
 
+      frame_with_minibuf = Qnil;
       for (frames = Vframe_list;
 	   CONSP (frames);
 	   frames = XCONS (frames)->cdr)
 	{
-	  Lisp_Object this = XCONS (frames)->car;
+	  Lisp_Object this;
 
+	  this = XCONS (frames)->car;
 	  if (XTYPE (this) != Lisp_Frame)
 	    abort ();
 	  f = XFRAME (this);
