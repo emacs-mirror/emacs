@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.368 2004/03/15 03:55:24 monnier Exp $
+;; $Id: vc.el,v 1.369 2004/03/21 15:42:14 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -435,8 +435,13 @@
 ;;
 ;; - find-file-hook ()
 ;;
-;;   Operation called in current buffer when opening a new file.  This can
+;;   Operation called in current buffer when opening a file.  This can
 ;;   be used by the backend to setup some local variables it might need.
+;
+;; - find-file-not-found-hook ()
+;;
+;;   Operation called in current buffer when opening a non-existing file.
+;;   By default, this asks the user if she wants to check out the file.
 
 ;;; Code:
 
