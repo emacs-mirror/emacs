@@ -39,7 +39,7 @@ INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
-		../info/woman ../info/eshell ../info/org \
+		../info/woman ../info/eshell ../info/org ../info/url \
 		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
 		../info/flymake
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
@@ -47,7 +47,7 @@ DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
                  gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi eshell.dvi org.el \
+		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
                  emacs-xtra.dvi
 INFOSOURCES = info.texi
@@ -290,6 +290,11 @@ woman.dvi: woman.texi
 	cd $(srcdir); $(MAKEINFO) org.texi
 org.dvi: org.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/org.texi
+
+../info/url: url.texi
+	cd $(srcdir); $(MAKEINFO) url.texi
+url.dvi: url.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/url.texi
 
 ../info/speedbar: speedbar.texi
 	cd $(srcdir); $(MAKEINFO) speedbar.texi
