@@ -1,3 +1,9 @@
+2004-07-04  John Paul Wallington  <jpw@gnu.org>
+
+	* fileio.c (read_file_name_completion_ignore_case): New variable.
+	(syms_of_fileio): Declare and initialise it.
+	(Fread_file_name): Bind `completion-ignore-case' to respect it.
+
 2004-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (dos_rawgetc): Use make_number to produce Lisp objects
