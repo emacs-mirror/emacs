@@ -1,3 +1,7 @@
+2004-12-06  Richard M. Stallman  <rms@gnu.org>
+
+	* org.texi: New file.
+
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* cmdargs.texi, doclicense.texi, xresources.texi, emacs.texi:

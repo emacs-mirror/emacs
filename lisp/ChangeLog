@@ -1,3 +1,7 @@
+2004-12-06  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/org.el: New file.
+
 2004-12-06  Kenichi Handa  <handa@m17n.org>
 
 	* ldefs-boot.el: Update international/mule-util.el section.
