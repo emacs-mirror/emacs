@@ -710,6 +710,8 @@ Assumes the tags table is the current buffer."
 	      (read-string prompt)
 	    (find-tag-tag prompt)))))
 
+(defvar find-tag-history nil)
+
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)
   "Find tag (in current tags table) whose name contains TAGNAME.
@@ -728,6 +730,7 @@ If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
 See documentation of variable `tags-file-name'."
   (interactive (find-tag-interactive "Find tag: "))
 
+  (setq find-tag-history (cons tagname find-tag-history))
   ;; Save the current buffer's value of `find-tag-hook' before selecting the
   ;; tags table buffer.
   (let ((local-find-tag-hook find-tag-hook))
