@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.50) $
+ * $HopeName: MMsrc!pool.c(trunk.51) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.50) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.51) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -767,12 +767,90 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
   /* can't check AccessSet as there is no Check method */
+  /* can't check context as there is no Check method */
 
   UNUSED(addr);
   UNUSED(context);
   TraceSegAccess(PoolArena(pool), seg, mode);
   return ResOK;
 }
+
+/* SingleAccess
+ *
+ * Handles page faults by attempting emulation.  If the faulting
+ * instruction cannot be emulated then this function returns ResFAIL.
+ *
+ * Due to the assumptions made below, pool classes should only use
+ * this function if all words in an object are tagged or traceable.
+ *
+ * .single-access.assume.ref: It currently assumes that the address
+ * being faulted on contains a plain reference or a tagged non-reference.
+ * .single-access.improve.format: * later this will be abstracted
+ * through the cleint object format interface, so that
+ * no such assumption is necessary.
+ */
+Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
+                     AccessSet mode, MutatorFaultContext context)
+{
+  Arena arena;
+
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVER(SegPool(seg) == pool);
+  /* can't check AccessSet as there is no Check method */
+  /* can't check context as there is no Check method */
+
+  arena = PoolArena(pool);
+
+  if(ProtCanStepInstruction(context)) {
+    Ref ref;
+    Res res;
+
+    ShieldExpose(arena, seg);
+
+    if(mode & SegSM(seg) & AccessREAD) {
+      /* read access */
+      /* .single-access.assume.ref */
+      /* .single-access.improve.format */
+      ref = *(Ref *)addr;
+      /* Check that the reference is aligned to a word boundary */
+      /* (we assume it is not a reference otherwise) */
+      if(WordIsAligned((Word)ref, sizeof(Word))) {
+        TraceSet ts;
+
+	ts = arena->flippedTraces;
+	/* See the note in TraceSegAccess about using RankEXACT here */
+	/* (impl.c.trace.scan.conservative) */
+        res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
+	if(res != ResOK) {
+	  TraceId ti;
+	  /* enter emergency tracing mode */
+	  for(ti = 0; ti < TRACE_MAX; ++ti) {
+	    ArenaTrace(arena, ti)->emergency = TRUE;
+	  }
+	}
+        res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
+	AVER(res == ResOK);
+      }
+    }
+    res = ProtStepInstruction(context);
+    AVER(res == ResOK);
+
+    /* update SegSummary according to the possibly changed reference */
+    ref = *(Ref *)addr;
+    SegSetSummary(seg, RefSetAdd(arena, SegSummary(seg), ref));
+
+    ShieldCover(arena, seg);
+
+    return ResOK;
+  } else {
+    /* couldn't single-step instruction */
+    return ResFAIL;
+  }
+}
+
 
 Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)
 {
