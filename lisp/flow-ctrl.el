@@ -74,7 +74,8 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
     ;; Tell emacs to pass C-s and C-q to OS.
     (set-input-mode nil t (nth 2 (current-input-mode)))
     ;; Initialize translate table, saving previous mappings, if any.
-    (let ((the-table (make-string 128 0)))
+    (let ((the-table (make-string (max 128 (length keyboard-translate-table))
+				  0)))
       (let ((i 0)
 	    (j (length keyboard-translate-table)))
 	(while (< i j)
