@@ -1,3 +1,18 @@
+2004-01-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-break-before-delimiters): Doc fix. 
+	(fortran-break-delimiters-re, fortran-no-break-re): New defconsts.
+	(fortran-fill): When filling a string, adjust re-search-backward
+	argument for special case of string just on fill-column.
+	When filling non-string, allow one extra char if
+	fortran-break-before-delimiters is non-nil.  Suggested by
+	Michael Hagemann <michael.hagemann@unibas.ch>. 
+	Use fortran-break-delimiters-re and fortran-no-break-re to
+	correctly handle cases such as "**".
+
+	* progmodes/f90.el (f90-break-delimiters): Doc fix.
+	(f90-no-break-re): Add some extra tokens.  Doc fix.
+
 2004-01-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* mail/rmail-spam-filter.el:
