@@ -1326,7 +1326,8 @@ update_frame (f, force, inhibit_hairy_id)
   if (!pause)
     {
       if (cursor_in_echo_area
-	  && FRAME_HAS_MINIBUF_P (f))
+	  && FRAME_HAS_MINIBUF_P (f)
+	  && EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window))
 	{
 	  int top = XINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top);
 	  int row, col;
