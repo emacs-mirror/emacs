@@ -145,15 +145,16 @@ This uses the variables `adapive-fill-prefix' and `adaptive-fill-function'."
     (let ((start (point))
 	  (eol (save-excursion (end-of-line) (point))))
       (if (not (looking-at paragraph-start))
-	  (cond ((looking-at adaptive-fill-regexp)
+	  (cond ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
 		 (buffer-substring-no-properties start (match-end 0)))
-		(t (funcall adaptive-fill-function)))))))
+		(adaptive-fill-function (funcall adaptive-fill-function)))))))
 
 (defun fill-region-as-paragraph (from to &optional justify nosqueeze)
   "Fill the region as one paragraph.
-Removes any paragraph breaks in the region and extra newlines at the end,
+It removes any paragraph breaks in the region and extra newlines at the end,
 indents and fills lines between the margins given by the
 `current-left-margin' and `current-fill-column' functions.
+It leaves point at the beginning of the line following the paragraph.
 
 Normally performs justification according to the `current-justification'
 function, but with a prefix arg, does full justification instead.
@@ -170,14 +171,20 @@ space does not end a sentence, so don't break a line there."
   (if (and buffer-undo-list (not (eq buffer-undo-list t)))
       (setq buffer-undo-list (cons (point) buffer-undo-list)))
 
-  ;; Make sure "to" is the endpoint.  Make sure that we end up there.
+  ;; Make sure "to" is the endpoint.
   (goto-char (min from to))
   (setq to   (max from to))
-  (setq from (point))
+  ;; Ignore blank lines at beginning of region.
+  (skip-chars-forward " \t\n")
 
-  ;; Delete all but one soft newline at end of region.
-  (goto-char to)
-  (let ((oneleft nil))
+  (let ((from-plus-indent (point))
+	(oneleft nil))
+
+    (beginning-of-line)
+    (setq from (point))
+  
+    ;; Delete all but one soft newline at end of region.
+    (goto-char to)
     (while (and (> (point) from) (eq ?\n (char-after (1- (point)))))
       (if (and oneleft
 	       (not (and use-hard-newlines
@@ -185,19 +192,16 @@ space does not end a sentence, so don't break a line there."
 	  (delete-backward-char 1)
 	(backward-char 1)
 	(setq oneleft t)))
-    ;; If there was no newline, create one.
-    (if (and (not oneleft) (> (point) from))
-	(save-excursion (newline))))
-  (setq to (point))
+    (setq to (point))
 
-  ;; Ignore blank lines at beginning of region.
-  (goto-char from)
-  (skip-chars-forward " \t\n")
-  (beginning-of-line)
-  (setq from (point))
-  
-  (if (>= from to)
-      nil ; There is no paragraph at all.
+    ;; If there was no newline, and there is text in the paragraph, then
+    ;; create a newline.
+    (if (and (not oneleft) (> to from-plus-indent))
+	(newline))
+    (goto-char from-plus-indent))
+
+  (if (not (> to (point)))
+      nil ; There is no paragraph, only whitespace: exit now.
 
     (or justify (setq justify (current-justification)))
 
@@ -300,7 +304,7 @@ space does not end a sentence, so don't break a line there."
 		;; This handles ALL BUT the first line of the paragraph.
 		(if (if (zerop prefixcol)
 			(save-excursion
-			  (skip-chars-backward " " linebeg)
+			  (skip-chars-backward " \t" linebeg)
 			  (bolp))
 		      (>= prefixcol (current-column)))
 		    ;; Ok, skip at least one word.
@@ -314,8 +318,8 @@ space does not end a sentence, so don't break a line there."
 					   (save-excursion (forward-char -1)
 							   (and (looking-at "\\. ")
 								(not (looking-at "\\.  ")))))))
-			(skip-chars-forward " ")
-			(skip-chars-forward "^ \n")
+			(skip-chars-forward " \t")
+			(skip-chars-forward "^ \n\t")
 			(setq first nil)))
 		  ;; Normally, move back over the single space between the words.
 		  (forward-char -1))
@@ -342,12 +346,12 @@ space does not end a sentence, so don't break a line there."
 					   (save-excursion (forward-char -1)
 							   (and (looking-at "\\. ")
 								(not (looking-at "\\.  ")))))))
-			(skip-chars-forward " ")
-			(skip-chars-forward "^ \n")
+			(skip-chars-forward " \t")
+			(skip-chars-forward "^ \t\n")
 			(setq first nil))))
 		;; Replace whitespace here with one newline, then indent to left
 		;; margin.
-		(skip-chars-backward " ")
+		(skip-chars-backward " \t")
 		(insert ?\n)
 		;; Give newline the properties of the space(s) it replaces
 		(set-text-properties (1- (point)) (point)
