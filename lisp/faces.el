@@ -201,7 +201,7 @@ If NAME is already a face, it is simply returned."
   "Define a new FACE on all frames.  
 You can modify the font, color, etc of this face with the set-face- functions.
 If the face already exists, it is unmodified."
-  (interactive "sMake face: ")
+  (interactive "SMake face: ")
   (or (internal-find-face name)
       (let ((face (make-vector 8 nil)))
 	(aset face 0 'face)
