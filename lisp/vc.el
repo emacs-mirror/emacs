@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.304 2001/07/30 18:25:58 spiegel Exp $
+;; $Id: vc.el,v 1.305 2001/08/07 14:48:30 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -209,9 +209,12 @@
 ;;   trunk.  If optional arg DESTFILE is given, it is an alternate
 ;;   filename to write the contents to.
 ;;
-;; * revert (file)
+;; * revert (file &optional contents-done)
 ;;
-;;   Revert FILE back to the current workfile version.
+;;   Revert FILE back to the current workfile version.  If optional
+;;   arg CONTENTS-DONE is non-nil, then the contents of FILE have
+;;   already been reverted from a version backup, and this function
+;;   only needs to update the status of FILE within the backend.
 ;;
 ;; - cancel-version (file editable)
 ;;
@@ -2465,10 +2468,10 @@ return its name; otherwise return nil."
   (with-vc-properties
    file
    (let ((backup-file (vc-version-backup-file file)))
-     (if (not backup-file)
-	 (vc-call revert file)
+     (when backup-file
        (copy-file backup-file file 'ok-if-already-exists 'keep-date)
-       (vc-delete-automatic-version-backups file)))
+       (vc-delete-automatic-version-backups file))
+     (vc-call revert file backup-file))
    `((vc-state . up-to-date)
      (vc-checkout-time . ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t))
