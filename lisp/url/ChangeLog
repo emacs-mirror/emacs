@@ -1,3 +1,8 @@
+2004-11-28  Andreas Schwab  <schwab@suse.de>
+
+	* url-http.el (url-http-create-request): Don't add newline after
+	the request data.
+
 2004-11-20  Masatake YAMATO  <jet@gyve.org>
 
 	* url.el (url-mm-callback): Delay the invocation
