@@ -514,33 +514,36 @@ found."
   (let ((other (if (eq (current-buffer) (get-buffer "*Help*"))
 		   ()
 		 (current-buffer))))
-    (set-buffer (window-buffer (posn-window (event-start event))))
-    (goto-char (posn-point (event-start event)))
-    ;; somehow when clicking with the point in another window, undoes badly
-    (undo-boundary)
-    (apropos-follow other)))
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-start event))))
+      (goto-char (posn-point (event-start event)))
+      (or (and (not (eobp)) (get-text-property (point) 'mouse-face))
+	  (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
+	  (error "There is nothing to follow here"))
+      ;; somehow when clicking with the point in another window, undoes badly
+      (undo-boundary)
+      (apropos-follow other))))
 
 
 (defun apropos-follow (&optional other)
   (interactive)
-  (let ((point (point))
-	(item
-	 (or (and (not (eobp)) (get-text-property (point) 'item))
-	     (and (not (bobp)) (get-text-property (1- (point)) 'item))))
-	action action-point)
-    (if (null item)
+  (let* (;; Properties are always found at the beginning of the line.
+	 (bol (save-excursion (beginning-of-line) (point)))
+	 ;; If there is no `item' property here, look behind us.
+	 (item (get-text-property bol 'item))
+	 (item-at (if item nil (previous-single-property-change bol 'item)))
+	 ;; Likewise, if there is no `action' property here, look in front.
+	 (action (get-text-property bol 'action))
+	 (action-at (if action nil (next-single-property-change bol 'action))))
+    (and (null item) item-at
+	 (setq item (get-text-property (1- item-at) 'item)))
+    (and (null action) action-at
+	 (setq action (get-text-property action-at 'action)))
+    (if (not (and item action))
 	(error "There is nothing to follow here"))
-    (if (consp item)
-	(error "There is nothing to follow in `%s'" (car item)))
-    (while (if (setq action-point
-		     (next-single-property-change (point) 'action))
-	       (<= action-point point))
-      (goto-char (1+ action-point))
-      (setq action action-point))
-    (funcall
-     (prog1 (get-text-property (or action action-point (point)) 'action)
-       (if other (set-buffer other)))
-     item)))
+    (if (consp item) (error "There is nothing to follow in `%s'" (car item)))
+    (if other (set-buffer other))
+    (funcall action item)))
 
 
 
