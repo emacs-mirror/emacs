@@ -1,5 +1,5 @@
-% test set for daily builds of mmdw on PC
-%
+% test set for daily tests of Dylan on Unix
+% $HopeName$
 
 function/0.c
 function/1.c
@@ -51,7 +51,6 @@ function/62.c
 function/63.c
 function/64.c
 function/65.c
-function/66.c
 function/67.c
 function/69.c
 function/70.c
