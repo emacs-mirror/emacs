@@ -7565,12 +7565,10 @@ pbm_load (f, img)
 
 #if HAVE_PNG
 
-#ifdef HAVE_PNG_H
-# include <png.h>
+#if defined HAVE_LIBPNG_PNG_H
+# include <libpng/png.h>
 #else
-# ifdef HAVE_LIBPNG_PNG_H
-#  include <libpng/png.h>
-# endif
+# include <png.h>
 #endif
 
 /* Function prototypes.  */
