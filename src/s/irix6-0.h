@@ -24,5 +24,8 @@
 
 #undef SA_RESTART
 
+/* It turns out that the #define in irix5-0.h is needed in Irix 6 as well.  */
+#if 0
 /* Canced the #define that is in irix5-0.h.  */
 #undef ospeed
+#endif
