@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 25 July 1997
+@set lastupdate 27 August 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -540,10 +540,6 @@ finger -l fortran@@gnu.ai.mit.edu
 Video-oriented games that work with the X window system.
 
 @itemize @bullet
-@item
-A Doom-compatible display game engine, for running the many free
-levels people have written for Doom.
-
 @item
 Empire (there is a free version but it needs upgrading)
 
