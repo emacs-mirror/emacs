@@ -1997,6 +1997,35 @@ one of the properties on the list.  */)
   return Qnil;
 }
 
+DEFUN ("safe-plist-get", Fsafe_plist_get, Ssafe_plist_get, 2, 2, 0,
+       doc: /* Extract a value from a property list.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+corresponding to the given PROP, or nil if PROP is not
+one of the properties on the list.
+This function never signals an error.  */)
+     (plist, prop)
+     Lisp_Object plist;
+     Lisp_Object prop;
+{
+  Lisp_Object tail, halftail;
+
+  /* halftail is used to detect circular lists.  */
+  tail = halftail = plist;
+  while (CONSP (tail) && CONSP (XCDR (tail)))
+    {
+      if (EQ (prop, XCAR (tail)))
+	return XCAR (XCDR (tail));
+
+      tail = XCDR (XCDR (tail));
+      halftail = XCDR (halftail);
+      if (EQ (tail, halftail))
+	break;
+    }
+
+  return Qnil;
+}
+
 DEFUN ("get", Fget, Sget, 2, 2, 0,
        doc: /* Return the value of SYMBOL's PROPNAME property.
 This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
@@ -5734,6 +5763,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Sreverse);
   defsubr (&Ssort);
   defsubr (&Splist_get);
+  defsubr (&Ssafe_plist_get);
   defsubr (&Sget);
   defsubr (&Splist_put);
   defsubr (&Sput);
