@@ -244,6 +244,10 @@ Accept any number of arguments, but ignore them."
 (fset 'backward-delete-char 'delete-backward-char)
 (fset 'search-forward-regexp (symbol-function 're-search-forward))
 (fset 'search-backward-regexp (symbol-function 're-search-backward))
+
+;;; Should this be an obsolete name?  If you decide it should, you get
+;;; to go through all the sources and change them.
+(fset 'string-to-int 'string-to-number)
 
 ;;; global-map, esc-map, and ctl-x-map have their values set up
 ;;; in keymap.c.
