@@ -352,6 +352,7 @@ Otherwise, M-x compile just uses the value of `compile-command'."
   :type 'boolean
   :group 'compilation)
 
+;;;###autoload
 (defcustom compilation-ask-about-save t
   "*If not nil, M-x compile asks which buffers to save before compiling.
 Otherwise, it saves all modified buffers without asking."
