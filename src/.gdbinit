@@ -176,5 +176,6 @@ break abort
 # If we are running in synchronous mode, we want a chance to look around
 # before Emacs exits.  Perhaps we should put the break somewhere else
 # instead...
-break _XPrintDefaultError
+break x_error_quitter
+
 
