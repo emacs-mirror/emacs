@@ -4227,7 +4227,7 @@ mmap_free_1 (r)
   else
     mmap_regions = r->next;
   
-  if (munmap (r, r->nbytes_mapped) == -1)
+  if (munmap ((POINTER_TYPE *) r, r->nbytes_mapped) == -1)
     {
       fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
       return 0;
