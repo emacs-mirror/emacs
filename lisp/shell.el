@@ -248,7 +248,7 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-last-dir nil
   "Keep track of last directory for ksh `cd -' command.")
 
-(defvar shell-dirstack-query "dirs"
+(defvar shell-dirstack-query nil
   "Command used by `shell-resync-dir' to query the shell.")
 
 (defvar shell-mode-map nil)
@@ -339,13 +339,15 @@ buffer."
   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; shell-dependent assignments.
-  (let ((shell (car (process-command (get-buffer-process (current-buffer))))))
+  (let ((shell (file-name-nondirectory (car
+		 (process-command (get-buffer-process (current-buffer)))))))
     (setq comint-input-ring-file-name
 	  (or (getenv "HISTFILE")
-	      (cond ((string-match "csh$" shell) "~/.history")
-		    ((string-match "bash$" shell) "~/.bash_history")
-		    ((string-match "ksh$" shell) "~/.sh_history")
-		    (t "~/.history")))))
+	      (cond ((string-equal shell "bash") "~/.bash_history")
+		    ((string-equal shell "ksh") "~/.sh_history")
+		    (t "~/.history"))))
+    (setq shell-dirstack-query
+	  (if (string-match "^k?sh$" shell) "pwd" "dirs")))
   (run-hooks 'shell-mode-hook)
   (comint-read-input-ring t))
 
