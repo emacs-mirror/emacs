@@ -342,9 +342,6 @@ internal_self_insert (c, noautofill)
   int chars_to_delete = 0;
   int spaces_to_insert = 0;
 
-  if (! NILP (current_buffer->enable_multibyte_characters))
-    c = unibyte_char_to_multibyte (c);
-
   overwrite = current_buffer->overwrite_mode;
   if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function)
       || !NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
@@ -352,7 +349,10 @@ internal_self_insert (c, noautofill)
 
   /* At first, get multi-byte form of C in STR.  */
   if (!NILP (current_buffer->enable_multibyte_characters))
-    len = CHAR_STRING (c, workbuf, str);
+    {
+      c = unibyte_char_to_multibyte (c);
+      len = CHAR_STRING (c, workbuf, str);
+    }
   else
     workbuf[0] = c, str = workbuf, len = 1;
 
