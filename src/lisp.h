@@ -1589,7 +1589,7 @@ typedef unsigned char UCHAR;
       || SUBRP (OBJ))
      
 /* defsubr (Sname);
- is how we define the symbol for function `name' at start-up time.  */
+   is how we define the symbol for function `name' at start-up time.  */
 extern void defsubr P_ ((struct Lisp_Subr *));
 
 #define MANY -2
