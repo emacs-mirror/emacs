@@ -447,7 +447,11 @@ get_section_info (file_data *p_infile)
     - bss_section_static->SizeOfRawData;
 
   /* Combine the bss sections into one if they overlap.  */
+#ifdef _ALPHA_
+  overlap = 1;			/* force all bss data to be dumped */
+#else
   overlap = 0;
+#endif
   if (bss_start < bss_start_static)
     {
       if (bss_start_static < bss_start + bss_size)
