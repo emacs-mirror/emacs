@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+;; Make sure the help-xref button type is defined.
+(require 'help-funs)
+
 ;;; General utility function
 
 ;; Print all arguments with single space separator in one line.
