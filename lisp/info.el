@@ -218,7 +218,11 @@ Optional argument FILE specifies the file to examine;
 the default is the top-level directory of Info.
 
 In interactive use, a prefix argument directs this command
-to read a file name from the minibuffer."
+to read a file name from the minibuffer.
+
+The search path for Info files is in the variable `Info-directory-list'.
+The top-level Info directory is made by combining all the files named `dir' 
+in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
   (if file
