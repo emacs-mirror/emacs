@@ -625,20 +625,23 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   int left = -1, right = -1;
   int window_width = -1, window_height;
 
-  /* See if W had a header line that has disappeared now, or vice versa.  */
+  /* See if W had a header line that has disappeared now, or vice versa.
+     Get W's size.  */
   if (w)
     {
+      window_box (w, -1, 0, 0, &window_width, &window_height);
+
       header_line_p = WINDOW_WANTS_HEADER_LINE_P (w);
       header_line_changed_p = header_line_p != matrix->header_line_p;
     }
   matrix->header_line_p = header_line_p;
 
-  /* Do nothing if MATRIX' size, position, vscroll, and marginal areas
+  /* If POOL is null, MATRIX is a window matrix for window-based redisplay.
+     Do nothing if MATRIX' size, position, vscroll, and marginal areas
      haven't changed.  This optimization is important because preserving
      the matrix means preventing redisplay.  */
   if (matrix->pool == NULL)
     {
-      window_box (w, -1, 0, 0, &window_width, &window_height);
       left = margin_glyphs_to_reserve (w, dim.width, w->left_margin_cols);
       right = margin_glyphs_to_reserve (w, dim.width, w->right_margin_cols);
       xassert (left >= 0 && right >= 0);
@@ -723,7 +726,8 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   else
     {
       /* If MATRIX->pool is null, MATRIX is responsible for managing
-	 its own memory.  Allocate glyph memory from the heap.  */
+	 its own memory.  It is a window matrix for window-based redisplay.
+	 Allocate glyph memory from the heap.  */
       if (dim.width > matrix->matrix_w
 	  || new_rows
 	  || header_line_changed_p
