@@ -1085,9 +1085,12 @@ direct_output_for_insert (g)
     return 0;
 
   {
+    int face = 0;
 #ifdef HAVE_X_WINDOWS
     int dummy;
-    int face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point);
+
+    if (FRAME_X_P (frame))
+      face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
     current_frame->charstarts[vpos][hpos] = point - 1;
