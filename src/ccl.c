@@ -1720,8 +1720,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
     }
 
  ccl_error_handler:
-  if (ccl->suppress_error
-      && destination)
+  /* The suppress_error member is set when e.g. a CCL-based coding
+     system is used for terminal output.  */
+  if (!ccl->suppress_error && destination)
     {
       /* We can insert an error message only if DESTINATION is
          specified and we still have a room to store the message
