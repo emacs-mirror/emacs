@@ -59,10 +59,14 @@ Called from a program, takes three arguments, START, END and ARG."
     (goto-char start)
     (or (bolp) (forward-line 1))
     (while (< (point) end)
-      (let ((indent (current-indentation)))
-	(delete-region (point) (progn (skip-chars-forward " \t") (point)))
-	(or (eolp)
-	    (indent-to (max 0 (+ indent arg)) 0)))
+      (let ((indent (current-indentation))
+	    eol-flag)
+	(save-excursion
+	  (skip-chars-forward " \t")
+	  (setq eol-flag (eolp)))
+	(or eol-flag
+	    (indent-to (max 0 (+ indent arg)) 0))
+	(delete-region (point) (progn (skip-chars-forward " \t") (point))))
       (forward-line 1))
     (move-marker end nil)))
 
