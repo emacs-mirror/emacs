@@ -1,3 +1,8 @@
+1999-11-15  Markus Rost  <rost@ias.edu>
+
+	* ispell.el (ispell-dictionary-alist): Fix type by adding koi8-r
+	as in ispell-local-dictionary-alist.
+
 1999-11-15  Alex Schroeder  <alex@gnu.org>
 
 	* ansi-color.el (ansi-color-apply): Updated regexps to include

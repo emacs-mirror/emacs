@@ -1,3 +1,7 @@
+1999-11-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (indicate-empty-lines): Doc-fix.
+
 1999-11-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.c (term_init): If "op" isn't available, don't support color

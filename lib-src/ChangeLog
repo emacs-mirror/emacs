@@ -1,3 +1,7 @@
+1999-11-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (b2m): Add dependency on GETOPTDEPS.
+
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* etags.c (print_help): Change email address to send bugs to.
