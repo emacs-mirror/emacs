@@ -14,6 +14,8 @@
 
 	* dired-aux.el (dired-touch-initial): New fun.
 	(dired-do-chxxx): Call it for op-symbol `touch'.
+	(dired-diff): Use `dired-dwim-target-directory'
+	if current dired buffer has no buffer mark.
 
 	* bindings.el (propertized-buffer-identification):
 	Replace `(:weight bold)' by `Buffer-menu-buffer-face'.
