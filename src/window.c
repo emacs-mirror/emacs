@@ -2305,7 +2305,14 @@ struct save_window_data
     /* A vector, interpreted as a struct saved_window */
     Lisp_Object saved_windows;
   };
-#define SAVE_WINDOW_DATA_SIZE 7 /* Arg to Fmake_vector */
+
+/* Arg to Fmake_vector */
+#define SAVE_WINDOW_DATA_SIZE						\
+  ((sizeof (struct save_window_data)					\
+    - (sizeof (struct Lisp_Vector)					\
+       /* Don't count the contents member of the struct Lisp_Vector */	\
+       - sizeof (Lisp_Object)))						\
+   / sizeof (Lisp_Object))
 
 /* This is saved as a Lisp_Vector */
 struct saved_window
@@ -2494,7 +2501,7 @@ by `current-window-configuration' (which see).")
      selected window too, but that doesn't make the call to
      Fselect_window above totally superfluous; it still sets f's
      selected window.  */
-  Fselect_frame (d->selected_frame);
+  Fselect_frame (data->selected_frame);
 
   if (!NILP (new_current_buffer))
     Fset_buffer (new_current_buffer);
