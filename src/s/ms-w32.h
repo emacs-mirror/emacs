@@ -352,7 +352,6 @@ Boston, MA 02111-1307, USA.  */
 #define fileno	  _fileno
 #define flushall  _flushall
 #define fputchar  _fputchar
-#define getcwd	  _getcwd
 #define getw	  _getw
 #define getpid    _getpid
 #define isatty    _isatty
@@ -397,7 +396,11 @@ Boston, MA 02111-1307, USA.  */
 
 /* For integration with MSDOS support.  */
 #define getdisk()               (_getdrive () - 1)
+#ifdef emacs
+#define getdefdir(_drv, _buf)   ((_buf[0] = (_drv + 'A' - 1), _buf[1] = ':', _buf[2] = '/', _buf[3] = 0), 1)
+#else
 #define getdefdir(_drv, _buf)   _getdcwd (_drv, _buf, MAXPATHLEN)
+#endif
 
 #define EMACS_CONFIGURATION 	get_emacs_configuration ()
 #define EMACS_CONFIG_OPTIONS	"NT"	/* Not very meaningful yet.  */
