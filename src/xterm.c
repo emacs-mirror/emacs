@@ -4521,6 +4521,13 @@ x_set_window_size (f, cols, rows)
   int pixelwidth, pixelheight;
   int mask;
 
+#ifdef USE_X_TOOLKIT
+  BLOCK_INPUT;
+  EmacsFrameSetCharSize (f->display.x->edit_widget, cols, rows);
+  UNBLOCK_INPUT;
+
+#else /* not USE_X_TOOLKIT */
+
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
@@ -4531,11 +4538,6 @@ x_set_window_size (f, cols, rows)
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
-#if 0
-#ifdef USE_X_TOOLKIT
-  EmacsFrameSetCharSize (f->display.x->edit_widget, cols, rows);
-#endif /* USE_X_TOOLKIT */
-#endif
 #ifdef HAVE_X11
   x_wm_set_size_hint (f, 0, 0, 0);
 #endif /* ! defined (HAVE_X11) */
@@ -4563,6 +4565,7 @@ x_set_window_size (f, cols, rows)
 
   XFlushQueue ();
   UNBLOCK_INPUT;
+#endif /* not USE_X_TOOLKIT */
 }
 
 #ifndef HAVE_X11
