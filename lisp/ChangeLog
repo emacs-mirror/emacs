@@ -1,3 +1,18 @@
+2000-04-01  Dave Love  <fx@gnu.org>
+
+	* cpp.el: Change customization group to `c' from `C'.
+
+	* vcursor.el (vcursor-move): Use display-color-p.
+
+	* international/mule-util.el: Provide mule-utils.
+	(string-to-sequence): Simplify and speed up.
+
+	* international/mule.el (make-coding-system): Purecopy doc-string.
+
+	* international/mule-cmds.el: Various menu changes.
+	(describe-specified-language-support): Handle `Default'.
+	(set-language-info): Purecopy `info'.
+
 2000-03-31  Andrew Innes  <andrewi@gnu.org>
 
 	* vc.el (vc-backend-diff): Return the correct status if we had to
