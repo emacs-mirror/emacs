@@ -1327,6 +1327,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
       thismap = Fcdr (Fcar (tail));
       last = make_number (XINT (Flength (thisseq)) - 1);
       is_metized = (XINT (last) >= 0
+		    /* Don't metize the last char of PREFIX.  */
+		    && XINT (last) >= prefixlen
 		    && EQ (Faref (thisseq, last), meta_prefix_char));
 
       for (; CONSP (thismap); thismap = XCONS (thismap)->cdr)
@@ -1406,9 +1408,12 @@ then the value includes only maps for prefixes that start with PREFIX.")
 			 turn it into a meta-ized keystroke.  */
 		      if (is_metized && INTEGERP (elt))
 			{
-			  tem = Fcopy_sequence (thisseq);
-			  Faset (tem, last,
-				 make_number (XINT (elt) | meta_modifier));
+			  Lisp_Object element;
+
+			  element = thisseq;
+			  tem = Fvconcat (1, &element);
+			  XVECTOR (tem)->contents[XINT (last)]
+			    = XINT (elt) | meta_modifier;
 
 			  /* This new sequence is the same length as
 			     thisseq, so stick it in the list right
