@@ -70,7 +70,7 @@ Boston, MA 02111-1307, USA.  */
 /* This is safe since we already assumed HAVE_SOCKET
    if using X windows.  */
 #undef LIBX11_SYSTEM
-#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc_s -lsocket
+#define LIBX11_SYSTEM -lpt -lnls -lnsl -lc -lsocket
 
 #undef LIB_X11_LIB
 #define LIB_X11_LIB -lX11
