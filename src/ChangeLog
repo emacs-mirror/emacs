@@ -1,5 +1,8 @@
 1999-10-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/freebsd.h (HAVE_GETLOADAVG): Define as 1 because config.h
+	defines it that way.
+	
 	* xdisp.c (echo_area_display) [HAVE_X_WINDOWS]: Do nothing
 	if selected_frame is equal to Vterminal_frame.
 
