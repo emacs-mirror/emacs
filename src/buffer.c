@@ -2993,15 +2993,58 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   return value;
 }
 
+/* Subroutine of report_overlay_modification.  */
+
+/* Lisp vector holding overlay hook functions to call.
+   Vector elements come in pairs.
+   Each even-index element is a list of hook functions.
+   The following odd-index element is the overlay they came from.
+
+   Before the buffer change, we fill in this vector
+   as we call overlay hook functions.
+   After the buffer change, we get the functions to call from this vector.
+   This way we always call the same functions before and after the change.  */
+static Lisp_Object last_overlay_modification_hooks;
+
+/* Number of elements actually used in last_overlay_modification_hooks.  */
+static int last_overlay_modification_hooks_used;
+
+/* Add one functionlist/overlay pair
+   to the end of last_overlay_modification_hooks.  */
+
+static void
+add_overlay_mod_hooklist (functionlist, overlay)
+     Lisp_Object functionlist, overlay;
+{
+  int oldsize = XVECTOR (last_overlay_modification_hooks)->size;
+
+  if (last_overlay_modification_hooks_used == oldsize)
+    {
+      Lisp_Object old;
+      old = last_overlay_modification_hooks;
+      last_overlay_modification_hooks
+	= Fmake_vector (make_number (oldsize * 2), Qnil);
+      bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
+	     XVECTOR (old)->contents,
+	     sizeof (Lisp_Object) * oldsize);
+    }
+  XVECTOR (last_overlay_modification_hooks)->contents[last_overlay_modification_hooks_used++] = functionlist;
+  XVECTOR (last_overlay_modification_hooks)->contents[last_overlay_modification_hooks_used++] = overlay;
+}
+
 /* Run the modification-hooks of overlays that include
    any part of the text in START to END.
-   Run the insert-before-hooks of overlay starting at END,
+   If this change is an insertion, also
+   run the insert-before-hooks of overlay starting at END,
    and the insert-after-hooks of overlay ending at START.
 
    This is called both before and after the modification.
    AFTER is nonzero when we call after the modification.
 
-   ARG1, ARG2, ARG3 are arguments to pass to the hook functions.  */
+   ARG1, ARG2, ARG3 are arguments to pass to the hook functions.
+   When AFTER is nonzero, they are the start position,
+   the position after the inserted new text,
+   and the length of deleted or replaced old text.  */
 
 void
 report_overlay_modification (start, end, after, arg1, arg2, arg3)
@@ -3010,7 +3053,8 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
      Lisp_Object arg1, arg2, arg3;
 {
   Lisp_Object prop, overlay, tail;
-  int insertion = EQ (start, end);
+  /* 1 if this change is an insertion.  */
+  int insertion = (after ? XFASTINT (arg3) == 0 : EQ (start, end));
   int tail_copied;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
@@ -3018,6 +3062,35 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
   tail = Qnil;
   GCPRO5 (overlay, tail, arg1, arg2, arg3);
 
+  if (after)
+    {
+      /* Call the functions recorded in last_overlay_modification_hooks
+	 rather than scanning the overlays again.
+	 First copy the vector contents, in case some of these hooks
+	 do subsequent modification of the buffer.  */
+      int size = last_overlay_modification_hooks_used;
+      Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
+      int i;
+
+      bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
+	     copy, size * sizeof (Lisp_Object));
+      gcpro1.var = copy;
+      gcpro1.nvars = size;
+
+      for (i = 0; i < size;)
+	{
+	  Lisp_Object prop, overlay;
+	  prop = copy[i++];
+	  overlay = copy[i++];
+	  call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	}
+      UNGCPRO;
+      return;
+    }
+
+  /* We are being called before a change.
+     Scan the overlays to find the functions to call.  */
+  last_overlay_modification_hooks_used = 0;
   tail_copied = 0;
   for (tail = current_buffer->overlays_before;
        CONSP (tail);
@@ -3034,7 +3107,8 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
       if (XFASTINT (start) > endpos)
 	break;
       startpos = OVERLAY_POSITION (ostart);
-      if (XFASTINT (end) == startpos && insertion)
+      if (insertion && (XFASTINT (start) == startpos
+			|| XFASTINT (end) == startpos))
 	{
 	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
 	  if (!NILP (prop))
@@ -3046,7 +3120,8 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
 	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
-      if (XFASTINT (start) == endpos && insertion)
+      if (insertion && (XFASTINT (start) == endpos
+			|| XFASTINT (end) == endpos))
 	{
 	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
 	  if (!NILP (prop))
@@ -3088,7 +3163,8 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
       endpos = OVERLAY_POSITION (oend);
       if (XFASTINT (end) < startpos)
 	break;
-      if (XFASTINT (end) == startpos && insertion)
+      if (insertion && (XFASTINT (start) == startpos
+			|| XFASTINT (end) == startpos))
 	{
 	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
 	  if (!NILP (prop))
@@ -3099,7 +3175,8 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
 	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
-      if (XFASTINT (start) == endpos && insertion)
+      if (insertion && (XFASTINT (start) == endpos
+			|| XFASTINT (end) == endpos))
 	{
 	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
 	  if (!NILP (prop))
@@ -3135,7 +3212,11 @@ call_overlay_mod_hooks (list, overlay, after, arg1, arg2, arg3)
      Lisp_Object arg1, arg2, arg3;
 {
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
   GCPRO4 (list, arg1, arg2, arg3);
+  if (! after)
+    add_overlay_mod_hooklist (list, overlay);
+
   while (!NILP (list))
     {
       if (NILP (arg3))
@@ -3375,6 +3456,10 @@ init_buffer ()
 syms_of_buffer ()
 {
   extern Lisp_Object Qdisabled;
+
+  staticpro (&last_overlay_modification_hooks);
+  last_overlay_modification_hooks
+    = Fmake_vector (make_number (10), Qnil);
 
   staticpro (&Vbuffer_defaults);
   staticpro (&Vbuffer_local_symbols);
