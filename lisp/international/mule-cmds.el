@@ -2051,8 +2051,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (when codeset
 	    (unless (locale-charset-match-p (symbol-name coding-system)
 					    (langinfo 'codeset))
-	      (message "\
-Warning: Default coding system `%s' doesn't agree with
+	      (message "Warning: Default coding system `%s' doesn't agree with
 the system code set `%s' for this locale." coding-system codeset))))))))
 
 ;;; Character code property
