@@ -103,7 +103,8 @@ extern char *x_id_name;
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline. */
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_cross_pointer_shape;
+/* The shape when over mouse-sensitive text.  */
+Lisp_Object Vx_sensitive_text_pointer_shape;
 
 /* Color of chars displayed in cursor box. */
 Lisp_Object Vx_cursor_fore_pixel;
@@ -803,11 +804,12 @@ x_set_mouse_color (f, arg, oldval)
     mode_cursor = XCreateFontCursor (x_current_display, XC_xterm);
   x_check_errors ("bad modeline pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_cross_pointer_shape))
+  if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
-      CHECK_NUMBER (Vx_cross_pointer_shape, 0);
-      cross_cursor = XCreateFontCursor (x_current_display,
-                                          XINT (Vx_cross_pointer_shape));
+      CHECK_NUMBER (Vx_sensitive_text_pointer_shape, 0);
+      cross_cursor
+	= XCreateFontCursor (x_current_display,
+			     XINT (Vx_sensitive_text_pointer_shape));
     }
   else
     cross_cursor = XCreateFontCursor (x_current_display, XC_crosshair);
@@ -4334,19 +4336,28 @@ was invoked, or to the value specified with the `-name' or `-rn'\n\
 switches, if present.");
   Vx_resource_name = Qnil;
 
-#if 0
+#if 0 /* This doesn't really do anything.  */
   DEFVAR_INT ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
-	      "The shape of the pointer when not over text.");
+	      "The shape of the pointer when not over text.\n\
+This variable takes effect when you create a new frame\n\
+or when you set the mouse color.");
 #endif
   Vx_nontext_pointer_shape = Qnil;
 
-#if 0
+#if 0 /* This doesn't really do anything.  */
   DEFVAR_INT ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
-	      "The shape of the pointer when over the mode line.");
+	      "The shape of the pointer when over the mode line.\n\
+This variable takes effect when you create a new frame\n\
+or when you set the mouse color.");
 #endif
   Vx_mode_pointer_shape = Qnil;
 
-  Vx_cross_pointer_shape = Qnil;
+  DEFVAR_INT ("x-sensitive-text-pointer-shape",
+	      &Vx_sensitive_text_pointer_shape,
+	      "The shape of the pointer when over mouse-sensitive text.\n\
+This variable takes effect when you create a new frame\n\
+or when you set the mouse color.");
+  Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       "A string indicating the foreground color of the cursor box.");
