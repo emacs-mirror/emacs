@@ -1,6 +1,6 @@
 /* impl.c.vmi5: VIRTUAL MEMORY MAPPING FOR IRIX 5 (AND 6)
  *
- * $HopeName$
+ * $HopeName: MMsrc!vmi5.c(trunk.4) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * Design: design.mps.vm
@@ -51,7 +51,7 @@
 #define MAP_FAILED ((void *)-1)
 #endif
 
-SRCID(vmi5, "$HopeName: MMsrc!vmi5.c(trunk.3) $");
+SRCID(vmi5, "$HopeName: MMsrc!vmi5.c(trunk.4) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -237,6 +237,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   vm->mapped += size;
 
+  EVENT_PAA(VMMap, vm, base, limit);
   return ResOK;
 }
 
@@ -269,4 +270,6 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(addr == (void *)base);
 
   vm->mapped -= size;
+
+  EVENT_PAA(VMUnmap, vm, base, limit);
 }
