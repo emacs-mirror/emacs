@@ -323,7 +323,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 (define-ibuffer-op query-replace (&rest args)
   "Perform a `query-replace' in marked buffers."
   (:interactive
-   (query-replace-read-args "Query replace" t)
+   (query-replace-read-args "Query replace" t t)
    :opstring "replaced in"
    :complex t
    :modifier-p :maybe)
@@ -338,7 +338,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 (define-ibuffer-op query-replace-regexp (&rest args)
   "Perform a `query-replace-regexp' in marked buffers."
   (:interactive
-   (query-replace-read-args "Query replace regexp" t)
+   (query-replace-read-args "Query replace regexp" t t)
    :opstring "replaced in"
    :complex t
    :modifier-p :maybe)
