@@ -1429,8 +1429,12 @@ If FRAME is omitted, return information on the currently selected frame.")
     x_report_frame_params (f, &alist);
   else
 #endif
-    /* This ought to be correct in f->param_alist for an X frame.  */
-    store_in_alist (&alist, Qmenu_bar_lines, FRAME_MENU_BAR_LINES (f));
+    {
+      /* This ought to be correct in f->param_alist for an X frame.  */
+      Lisp_Object lines;
+      XFASTINT (lines) = FRAME_MENU_BAR_LINES (f);
+      store_in_alist (&alist, Qmenu_bar_lines, lines);
+    }
   return alist;
 }
 
