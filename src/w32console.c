@@ -341,6 +341,8 @@ write_glyphs (register struct glyph *string, register int len)
   int produced, consumed, i;
   struct frame * f = PICK_FRAME ();
   WORD char_attr;
+  unsigned char conversion_buffer[1024];
+  int conversion_buffer_size = sizeof conversion_buffer;
 
   if (len <= 0)
     return;
@@ -364,9 +366,9 @@ write_glyphs (register struct glyph *string, register int len)
 
       while (n > 0)
         {
-	  /* We use a shared conversion buffer of the current size
-	     (1024 bytes at least).  Usually it is sufficient, but if
-	     not, we just repeat the loop.  */
+	  /* We use a fixed size (1024 bytes) of conversion buffer.
+	     Usually it is sufficient, but if not, we just repeat the
+	     loop.  */
 	  produced = encode_terminal_code (string, conversion_buffer,
 					   n, conversion_buffer_size,
 					   &consumed);
