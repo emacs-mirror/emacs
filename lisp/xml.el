@@ -325,10 +325,8 @@ Returns one of:
 	      (push (cons (cdar attr) (intern (concat ":" (cdr attr))))
 		    xml-ns))))
 
-        ;; expand element names
-        (setq node-name (list (xml-maybe-do-ns node-name "" xml-ns)))
+        (setq children (list attrs (xml-maybe-do-ns node-name "" xml-ns)))
 
-        (setq children (list attrs node-name))
 	;; is this an empty element ?
 	(if (looking-at "/>")
 	(progn
