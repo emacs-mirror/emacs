@@ -130,7 +130,15 @@ NOTE-END */
 #endif /* GCC */
 #define HAVE_VFORK
 
-#endif
+#else /* SOLARIS2_4 */
+#ifndef __GNUC__
+#undef  C_SWITCH_SYSTEM
+#define C_SWITCH_SYSTEM -Xa
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif /* HAVE_ALLOCA_H */
+#endif /* not __GNUC__ */
+#endif /* SOLARIS2_4 */
 
 /* configure thinks solaris X86 has gethostname, but it does not work,
    so undefine it.  */
