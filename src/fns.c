@@ -516,6 +516,37 @@ with the original.")
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
 }
 
+/* In string STR of length LEN, see if bytes before STR[I] combine
+   with bytes after STR[I] to form a single character.  If so, return
+   the number of bytes after STR[I] which combine in this way.
+   Otherwize, return 0.  */
+
+static int
+count_combining (str, len, i)
+     unsigned char *str;
+     int len, i;
+{
+  int j = i - 1;
+
+  if (i == 0 || i == len || CHAR_HEAD_P (str[i]))
+    return 0;
+  while (j >= 0 && !CHAR_HEAD_P (str[j])) j--;
+  if (j < 0 || ! BASE_LEADING_CODE_P (str[j]))
+    return 0;
+  j = i + 1;
+  while (j < len && ! CHAR_HEAD_P (str[j])) j++;
+  return j - i;
+}
+
+/* This structure holds information of an argument of `concat' that is
+   a string and has text properties to be copied.  */
+struct textproc_rec
+{
+  int argnum;			/* refer to ARGS (arguments of `concat') */
+  int from;			/* refer to ARGS[argnum] (argument string) */
+  int to;			/* refer to VAL (the target string) */
+};
+
 static Lisp_Object
 concat (nargs, args, target_type, last_special)
      int nargs;
@@ -534,11 +565,14 @@ concat (nargs, args, target_type, last_special)
   Lisp_Object last_tail;
   Lisp_Object prev;
   int some_multibyte;
-  /* When we make a multibyte string, we must pay attention to the
-     byte combining problem, i.e., a byte may be combined with a
-     multibyte charcter of the previous string.  This flag tells if we
-     must consider such a situation or not.  */
-  int maybe_combine_byte;
+  /* When we make a multibyte string, we can't copy text properties
+     while concatinating each string because the length of resulting
+     string can't be decided until we finish the whole concatination.
+     So, we record strings that have text properties to be copied
+     here, and copy the text properties after the concatination.  */
+  struct textproc_rec  *textprocs;
+  /* Number of elments in textprocs.  */
+  int num_textprocs = 0;
 
   /* In append, the last arg isn't treated like the others */
   if (last_special && nargs > 0)
@@ -642,13 +676,15 @@ concat (nargs, args, target_type, last_special)
 
   /* Copy the contents of the args into the result.  */
   if (CONSP (val))
-    tail = val, toindex = -1;		/* -1 in toindex is flag we are making a list */
+    tail = val, toindex = -1; /* -1 in toindex is flag we are making a list */
   else
     toindex = 0, toindex_byte = 0;
 
   prev = Qnil;
+  if (STRINGP (val))
+    textprocs
+      = (struct textproc_rec *) alloca (sizeof (struct textproc_rec) * nargs);
 
-  maybe_combine_byte = 0;
   for (argnum = 0; argnum < nargs; argnum++)
     {
       Lisp_Object thislen;
@@ -660,29 +696,40 @@ concat (nargs, args, target_type, last_special)
       if (!CONSP (this))
 	thislen = Flength (this), thisleni = XINT (thislen);
 
-      if (STRINGP (this) && STRINGP (val)
-	  && ! NULL_INTERVAL_P (XSTRING (this)->intervals))
-	copy_text_properties (make_number (0), thislen, this,
-			      make_number (toindex), val, Qnil);
-
       /* Between strings of the same kind, copy fast.  */
       if (STRINGP (this) && STRINGP (val)
 	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
 	  int thislen_byte = STRING_BYTES (XSTRING (this));
+	  int combined;
+
 	  bcopy (XSTRING (this)->data, XSTRING (val)->data + toindex_byte,
 		 STRING_BYTES (XSTRING (this)));
-	  if (some_multibyte
-	      && toindex_byte > 0
-	      && !ASCII_BYTE_P (XSTRING (val)->data[toindex_byte - 1])
-	      && !CHAR_HEAD_P (XSTRING (this)->data[0]))
-	    maybe_combine_byte = 1;
+	  combined =  (some_multibyte && toindex_byte > 0
+		       ? count_combining (XSTRING (val)->data,
+					  toindex_byte + thislen_byte,
+					  toindex_byte)
+		       : 0);
+	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
+	    {
+	      textprocs[num_textprocs].argnum = argnum;
+	      /* We ignore text properties on characters being combined.  */
+	      textprocs[num_textprocs].from = combined;
+	      textprocs[num_textprocs++].to = toindex;
+	    }
 	  toindex_byte += thislen_byte;
-	  toindex += thisleni;
+	  toindex += thisleni - combined;
+	  XSTRING (val)->size -= combined;
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
 	{
+	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
+	    {
+	      textprocs[num_textprocs].argnum = argnum;
+	      textprocs[num_textprocs].from = 0;
+	      textprocs[num_textprocs++].to = toindex;
+	    }
 	  toindex_byte += copy_text (XSTRING (this)->data,
 				     XSTRING (val)->data + toindex_byte,
 				     XSTRING (this)->size, 0, 1);
@@ -752,13 +799,14 @@ concat (nargs, args, target_type, last_special)
 		CHECK_NUMBER (elt, 0);
 		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
 		  {
+		    XSTRING (val)->data[toindex_byte++] = XINT (elt);
 		    if (some_multibyte
 			&& toindex_byte > 0
-			&& !ASCII_BYTE_P (XSTRING (val)->data[toindex_byte - 1])
-			&& !CHAR_HEAD_P (XINT (elt)))
-		      maybe_combine_byte = 1;
-		    XSTRING (val)->data[toindex_byte++] = XINT (elt);
-		    toindex++;
+			&& count_combining (XSTRING (val)->data,
+					    toindex_byte, toindex_byte - 1))
+		      XSTRING (val)->size--;
+		    else
+		      toindex++;
 		  }
 		else
 		  /* If we have any multibyte characters,
@@ -781,12 +829,16 @@ concat (nargs, args, target_type, last_special)
   if (!NILP (prev))
     XCONS (prev)->cdr = last_tail;
 
-  if (maybe_combine_byte)
-    /* Character counter of the multibyte string VAL may be wrong
-       because of byte combining problem.  We must re-calculate it.  */
-    XSTRING (val)->size = multibyte_chars_in_text (XSTRING (val)->data,
-						   XSTRING (val)->size_byte);
-
+  if (num_textprocs > 0)
+    {
+      for (argnum = 0; argnum < num_textprocs; argnum++)
+	{
+	  this = args[textprocs[argnum].argnum];
+	  copy_text_properties (make_number (textprocs[argnum].from),
+				XSTRING (this)->size, this,
+				make_number (textprocs[argnum].to), val, Qnil);
+	}
+    }
   return val;
 }
 
