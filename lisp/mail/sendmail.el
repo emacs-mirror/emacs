@@ -425,16 +425,20 @@ Here are commands that move to a header field (and create it if there isn't):
   (setq fill-paragraph-function 'mail-mode-fill-paragraph)
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
-	(concat "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|" adaptive-fill-regexp))
+	(concat "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)+"
+		"\\|[ \t]*[-a-z0-9A-Z]*>+[ \t]*"
+		"\\|[ \t]*"))
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp
-	(concat "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|" adaptive-fill-first-line-regexp))
+	(concat adaptive-fill-first-line-regexp
+		"\\|[ \t]*[-a-z0-9A-Z]*>+[ \t]*"))
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
+				"$\\|[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)*$"
+				"\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
 				"-- $\\|---+$\\|"
 				page-delimiter))
   (setq paragraph-separate paragraph-start)
