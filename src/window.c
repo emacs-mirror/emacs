@@ -2445,6 +2445,7 @@ size_window (window, size, width_p, nodelete_p)
       sideward = &w->hchild;
       forward = &w->vchild;
       w->height = make_number (size);
+      w->orig_height = Qnil;
     }
 
   if (!NILP (*sideward))
@@ -3803,6 +3804,8 @@ shrink_mini_window (w)
     }
   else if (XFASTINT (w->height) > 1)
     {
+      /* Distribute the additional lines of the mini-window
+	 among the other windows.  */
       Lisp_Object window;
       XSETWINDOW (window, w);
       enlarge_window (window, 1 - XFASTINT (w->height), 0);
