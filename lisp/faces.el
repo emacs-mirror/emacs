@@ -232,9 +232,24 @@ If called interactively, prompts for a face name and face attributes."
 	  (background	(modify-face-read-string
 			 face (face-background (intern face))
 			 "background" colors))
-	  (stipple	(modify-face-read-string
-			 face (face-stipple (intern face))
-			 "stipple" stipples))
+	  ;; If the stipple value is a list (WIDTH HEIGHT DATA),
+	  ;; represent that as a string by printing it out.
+	  (old-stipple-string
+	   (if (stringp (face-stipple (intern face)))
+	       (face-stipple (intern face))
+	     (prin1-to-string (face-stipple (intern face)))))
+	  (new-stipple-string
+	   (modify-face-read-string
+	    face old-stipple-string
+	    "stipple" stipples))
+	  ;; Convert the stipple value text we read
+	  ;; back to a list if it looks like one.
+	  ;; This makes the assumption that a pixmap file name
+	  ;; won't start with an open-paren.
+	  (stipple
+	   (if (string-match "^(" new-stipple-string)
+	       (read new-stipple-string)
+	     new-stipple-string))
 	  (bold-p	(y-or-n-p (concat "Set face " face " bold ")))
 	  (italic-p	(y-or-n-p (concat "Set face " face " italic ")))
 	  (underline-p	(y-or-n-p (concat "Set face " face " underline ")))
@@ -244,7 +259,7 @@ If called interactively, prompts for a face name and face attributes."
        (delq nil
 	(list (and foreground (concat (downcase foreground) " foreground"))
 	      (and background (concat (downcase background) " background"))
-	      (and stipple (concat (downcase stipple) " stipple"))
+	      (and stipple (concat (downcase new-stipple-string) " stipple"))
 	      (and bold-p "bold") (and italic-p "italic")
 	      (and underline-p "underline"))) ", "))
      (list (intern face) foreground background stipple
