@@ -316,9 +316,8 @@ Return (USAGE . DOC) or nil if there's no usage info."
 	  (princ (if (stringp (car obsolete)) (car obsolete)
 		   (format "use `%s' instead." (car obsolete))))
 	  (terpri)))
-      (if doc
-	  (progn (terpri) (princ doc))
-	(princ "Not documented.")))))
+      (terpri)
+      (princ (or doc "Not documented.")))))
 
 
 ;; Variables
