@@ -578,42 +578,29 @@ The value must be a valid color name, and you can do completion with
 
 @node Composite Types
 @subsection Composite Types
+@cindex arguments (of composite type)
 
   When none of the simple types is appropriate, you can use composite
-types, which build new types from other types.  Here are several ways of
-doing that:
-
-@table @code
-@item (restricted-sexp :match-alternatives @var{criteria})
-The value may be any Lisp object that satisfies one of @var{criteria}.
-@var{criteria} should be a list, and each element should be
-one of these possibilities:
-
-@itemize @bullet
-@item
-A predicate---that is, a function of one argument that has no side
-effects, and returns either @code{nil} or non-@code{nil} according to
-the argument.  Using a predicate in the list says that objects for which
-the predicate returns non-@code{nil} are acceptable.
-
-@item
-A quoted constant---that is, @code{'@var{object}}.  This sort of element
-in the list says that @var{object} itself is an acceptable value.
-@end itemize
-
-For example,
+types, which build new types from other types or from specified data.
+The specified types or data are called the @dfn{arguments} of the
+composite type.  The composite type normally looks like this:
 
 @example
-(restricted-sexp :match-alternatives
-                 (integerp 't 'nil))
+(@var{constructor} @var{arguments}@dots{})
 @end example
 
 @noindent
-allows integers, @code{t} and @code{nil} as legitimate values.
+but you can also add keyword-value pairs before the arguments, like
+this:
 
-The customization buffer shows all legitimate values using their read
-syntax, and the user edits them textually.
+@example
+(@var{constructor} @r{@{}@var{keyword} @var{value}@r{@}}@dots{} @var{arguments}@dots{})
+@end example
 
+  Here is a table of constructors and how to use them to write
+composite types:
+
+@table @code
 @item (cons @var{car-type} @var{cdr-type})
 The value must be a cons cell, its @sc{car} must fit @var{car-type}, and
 its @sc{cdr} must fit @var{cdr-type}.  For example, @code{(cons string
@@ -761,6 +748,58 @@ The value must be a list and each element of the list must fit the type
 @var{element-type}.  This appears in the customization buffer as a
 list of elements, with @samp{[INS]} and @samp{[DEL]} buttons for adding
 more elements or removing elements.
+
+@item (restricted-sexp :match-alternatives @var{criteria})
+This is the most general composite type construct.  The value may be
+any Lisp object that satisfies one of @var{criteria}.  @var{criteria}
+should be a list, and each element should be one of these
+possibilities:
+
+@itemize @bullet
+@item
+A predicate---that is, a function of one argument that has no side
+effects, and returns either @code{nil} or non-@code{nil} according to
+the argument.  Using a predicate in the list says that objects for which
+the predicate returns non-@code{nil} are acceptable.
+
+@item
+A quoted constant---that is, @code{'@var{object}}.  This sort of element
+in the list says that @var{object} itself is an acceptable value.
+@end itemize
+
+For example,
+
+@example
+(restricted-sexp :match-alternatives
+                 (integerp 't 'nil))
+@end example
+
+@noindent
+allows integers, @code{t} and @code{nil} as legitimate values.
+
+The customization buffer shows all legitimate values using their read
+syntax, and the user edits them textually.
+@end table
+
+  Here is a table of the keywords you can use in keyword-value pairs
+in a composite type:
+
+@table @code
+@item :tag @var{tag}
+Use @var{tag} as the name of this alternative, for user communication
+purposes.  This is useful for a type that appears inside of a
+@code{choice}.
+
+@item :match-alternatives @var{criteria}
+Use @var{criteria} to match possible values.  This is used only in
+@code{restricted-sexp}.
+
+@item :args @var{argumentlist}
+Use the elements of @var{argumentlist} as the arguments of the type
+construct.  For instance, @code{(const :args (foo))} is equivalent to
+@code{(const foo)}.  You rarely need to write @code{:args} explicitly,
+because normally the arguments are recognized automatically as
+whatever follows the last keyword-value pair.
 @end table
 
 @node Splicing into Lists
