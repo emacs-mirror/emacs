@@ -113,8 +113,11 @@ position to pop up the tooltip."
 
 (defface tooltip
   '((((class color))
-     (:background "lightyellow" :foreground "black"))
-    (t ()))
+     :background "lightyellow"
+     :foreground "black"
+     :inherit variable-pitch)
+    (t
+     :inherit variable-pitch))
   "Face for tooltips."
   :group 'tooltip)
 
