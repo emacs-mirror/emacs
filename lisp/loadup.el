@@ -72,6 +72,7 @@
 (load "language/european")
 (load "language/czech")
 (load "language/slovak")
+(load "language/romanian")
 (load "language/greek")
 (load "language/hebrew")
 (load "language/japanese")
