@@ -22,6 +22,8 @@
 
 2000-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* xrdb.c (x_load_resources): Use the class name in the defaults.
+
 	* regex.c (re_iswctype, re_wctype_to_bit): Fix braino.
 	(regex_compile): Catch bogus \(\1\).
 
