@@ -109,12 +109,13 @@ use this command, and then save the file."
   With prefix argument, enters recursive edit, reading keyboard
 commands even within a kbd macro.  You can give different commands
 each time the macro executes.
-  Without prefix argument, reads a character.  Your options are:
-Space -- execute the rest of the macro.
-DEL -- skip the rest of the macro; start next repetition.
-C-d -- skip rest of the macro and don't repeat it any more.
-C-r -- enter a recursive edit, then on exit ask again for a character
-C-l -- redisplay screen and ask again."
+  Without prefix argument, asks whether to continue running the macro.
+Your options are: \\<query-replace-map>
+\\[act]	Finish this iteration normally and continue with the next.
+\\[skip]	Skip the rest of this iteration, and start the next.
+\\[exit]	Stop the macro entirely right now.
+\\[recenter]	Redisplay the screen, then ask again.
+\\[edit]	Enter recursive edit; ask again when you exit from that."
   (interactive "P")
   (or executing-macro
       defining-kbd-macro
