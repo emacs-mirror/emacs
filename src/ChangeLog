@@ -1,12 +1,17 @@
+2000-03-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (read1): Accept `.' (period) as symbol start like in CL
+	and earlier Emacs versions.
+
+	* keyboard.c (Ftop_level): Cancel busy-cursor.
+
+	* eval.c (call_debugger): Cancel busy-cursor.
+
 2000-03-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* search.c (Freplace_match): Adjust multibyteness of the current
 	buffer and NEWTEXT.  Free allocated memory before signaling an
 	error.
-
-2000-03-29  Gerd Moellmann  <gerd@gnu.org>
-
-	* eval.c (call_debugger): Cancel busy-cursor.
 
 2000-03-28  Stefan Monnier  <monnier@cs.yale.edu>
 
