@@ -1,6 +1,6 @@
 /* impl.c.abq: AVAILABLE BLOCK QUEUE
  *
- * $HopeName: MMsrc!abq.c(trunk.2) $
+ * $HopeName: MMsrc!abq.c(trunk.3) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -10,11 +10,12 @@
  * .design: See design.mps.poolmv2
  */
 
-#include "mpm.h"
 #include "meter.h"
 #include "abq.h"
+#include "cbs.h"
+#include "mpm.h"
 
-SRCID(abq, "$HopeName: MMsrc!abq.c(trunk.2) $");
+SRCID(abq, "$HopeName: MMsrc!abq.c(trunk.3) $");
 
 
 /* Private prototypes */
@@ -29,7 +30,7 @@ static Index ABQNextIndex(ABQ abq, Index index);
  *
  * items is the number of items the queue can hold
  */
-Res ABQInit(Arena arena, ABQ abq, Count items)
+Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
 {
   Count elements;
   void *p;
@@ -50,10 +51,10 @@ Res ABQInit(Arena arena, ABQ abq, Count items)
   abq->out = 0;
   abq->queue = (CBSBlock *)p;
 
-  METER_INIT(abq->push, "push");
-  METER_INIT(abq->pop, "pop");
-  METER_INIT(abq->peek, "peek");
-  METER_INIT(abq->delete, "delete");
+  METER_INIT(abq->push, "push", owner);
+  METER_INIT(abq->pop, "pop", owner);
+  METER_INIT(abq->peek, "peek", owner);
+  METER_INIT(abq->delete, "delete", owner);
   
   abq->sig = ABQSig;
 
@@ -89,6 +90,10 @@ void ABQFinish(Arena arena, ABQ abq)
   AVERT(Arena, arena);
   AVERT(ABQ, abq);
 
+  METER_EMIT(&abq->push);
+  METER_EMIT(&abq->pop);
+  METER_EMIT(&abq->peek);
+  METER_EMIT(&abq->delete);
   ArenaFree(arena, abq->queue, ABQQueueSize(abq->elements));
   
   abq->elements = 0;
@@ -230,10 +235,18 @@ Res ABQDescribe(ABQ abq, mps_lib_FILE *stream)
   if(res != ResOK)
     return res;
 
-  METER_WRITE(abq->push, stream);
-  METER_WRITE(abq->pop, stream);
-  METER_WRITE(abq->peek, stream);
-  METER_WRITE(abq->delete, stream);
+  res = METER_WRITE(abq->push, stream);
+  if(res != ResOK)
+    return res;
+  res = METER_WRITE(abq->pop, stream);
+  if(res != ResOK)
+    return res;
+  res = METER_WRITE(abq->peek, stream);
+  if(res != ResOK)
+    return res;
+  res = METER_WRITE(abq->delete, stream);
+  if(res != ResOK)
+    return res;
   
   res = WriteF(stream, "}\n", NULL);
   if(res != ResOK)
@@ -296,4 +309,3 @@ static Index ABQNextIndex(ABQ abq, Index index)
     next = 0;
   return next;
 }
-
