@@ -1511,7 +1511,7 @@ previously killed text on the kill-ring is reinserted.
 
 The value of the yank-handler property must be a list with one to five
 elements with the following format:
-  (FUNCTION PARAM NOEXCLUDE UNDO COMMAND).
+  (FUNCTION PARAM NOEXCLUDE UNDO).
 
 The `insert-for-yank' function looks for a yank-handler property on
 the first character on its string argument (typically the first
@@ -1532,10 +1532,6 @@ if FUNCTION adjusts point before or after inserting the object.
 by `yank-pop' to undo the insertion of the current object.  It is
 called with two arguments, the start and end of the current region. 
 FUNCTION may set `yank-undo-function' to override the UNDO value.
-  If COMMAND is present and non-nil, `this-command' is set to COMMAND
-after calling FUNCTION (or insert).  Note that setting `this-command'
-to a value different from `yank' will prevent `yank-pop' from undoing
-this yank.
 
 *** The functions kill-new, kill-append, and kill-region now has an
 optional third argument to specify the yank-handler text property
