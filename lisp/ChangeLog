@@ -1,3 +1,12 @@
+2005-02-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-trig-inverses, math-div-trig)
+	(math-div-non-trig): New variables.
+	(math-combine-prod-trig, math-div-new-trig, math-div-new-non-trig)
+	(math-div-isolate-trig, math-div-isolate-trig-term): New functions.
+	(math-combine-prod, math-div-symb-fancy): Add simplifications for
+	trig expressions.
+
 2005-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-update-handler)
