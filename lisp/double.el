@@ -75,7 +75,7 @@ Each entry is a list with three elements:
 
 (defcustom double-prefix-only t
   "*Non-nil means that Double mode mapping only works for prefix keys.
-That is, for any key `X' in `double-map',  `X' alone will be mapped
+That is, for any key `X' in `double-map', `X' alone will be mapped
 but not `C-u X' or `ESC X' since the X is not the prefix key."
   :group 'double
   :type 'boolean)
