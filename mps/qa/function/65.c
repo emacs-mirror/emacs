@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!65.c(trunk.5) $
+ id = $HopeName: MMQA_test_function!65.c(trunk.6) $
  summary = sort-of-leak in arena_collect
  language = c
  link = testlib.o exfmt.o
@@ -12,9 +12,16 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "exfmt.h"
 
 #define MAGICSIZE ((size_t) 10342)
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 
 void *stackpointer;
 long int appcount;
@@ -46,12 +53,13 @@ static void test_apply(mps_addr_t addr, void *V, size_t S)
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t poolamc;
  mps_thr_t thread;
  mps_root_t root, root2, root3, root4, root5, root6, root7, root1;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t apamc;
 
  typedef mycell * myroot;
@@ -62,50 +70,49 @@ static void test(void)
 
  RC;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
-
- cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&a, 1),
-  "root");
- cdie(
-  mps_root_create_table(&root2, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&b, 1),
-  "root");
- cdie(
-  mps_root_create_table(&root3, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&c, 1),
-  "root");
- cdie(
-  mps_root_create_table(&root4, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&d, 1),
-  "root");
- cdie(
-  mps_root_create_table(&root5, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&e, 1),
-  "root");
- cdie(
-  mps_root_create_table(&root6, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&f, 1),
-  "root");
- cdie(
-  mps_root_create_table(&root7, space, MPS_RANK_EXACT, 0, (mps_addr_t*)&g, 1),
-  "root");
+ die(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, &exfmt_root, 1),
+  mps_root_create_table(&root1, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&a, 1),
+  "root");
+ cdie(
+  mps_root_create_table(&root2, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&b, 1),
+  "root");
+ cdie(
+  mps_root_create_table(&root3, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&c, 1),
+  "root");
+ cdie(
+  mps_root_create_table(&root4, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&d, 1),
+  "root");
+ cdie(
+  mps_root_create_table(&root5, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&e, 1),
+  "root");
+ cdie(
+  mps_root_create_table(&root6, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&f, 1),
+  "root");
+ cdie(
+  mps_root_create_table(&root7, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&g, 1),
+  "root");
+
+ cdie(
+  mps_root_create_table(&root, arena, MPS_RANK_EXACT, 0, &exfmt_root, 1),
   "create exfmt root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(
-  mps_pool_create(&poolamc, space, mps_class_amc(), format),
-  "create pool");
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(
   mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
   "create ap");
 
  comment("parking...");
- mps_arena_park(space);
+ mps_arena_park(arena);
  
  b = allocone(apamc, 1, 1);
 
@@ -153,9 +160,9 @@ static void test(void)
   f = c;
   g = c;
   exfmt_root = c;
-  mps_arena_collect(space);
-  comment(" reserved: %lu", (unsigned long) mps_arena_reserved(space));
-  comment("committed: %lu", (unsigned long) mps_arena_committed(space));
+  mps_arena_collect(arena);
+  comment(" reserved: %lu", (unsigned long) mps_arena_reserved(arena));
+  comment("committed: %lu", (unsigned long) mps_arena_committed(arena));
   comment("calling amc_apply:");
   checkfrom(c);
   appcount = 0;
@@ -169,17 +176,13 @@ static void test(void)
   RC;
  }
 
- mps_arena_release(space);
+ mps_arena_release(arena);
  comment("released.");
 
  mps_ap_destroy(apamc);
- comment("Destroyed aps.");
-
  mps_pool_destroy(poolamc);
- comment("Destroyed pools.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
 
  mps_root_destroy(root);
  mps_root_destroy(root1);
@@ -192,10 +195,8 @@ static void test(void)
  comment("Destroyed roots.");
 
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 
