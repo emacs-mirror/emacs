@@ -1045,7 +1045,8 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   XMISCTYPE (val) = Lisp_Misc_Marker;
   p = XMARKER (val);
   p->buffer = 0;
-  p->bufpos = 0;
+  p->bytepos = 0;
+  p->charpos = 0;
   p->chain = Qnil;
   p->insertion_type = 0;
   return val;
