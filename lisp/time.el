@@ -36,7 +36,8 @@
 
 (defcustom display-time-mode nil
   "Toggle display of time, load level, and mail flag in mode lines.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `display-time-mode'.
   :set (lambda (symbol value)
 	 (display-time-mode (or value 0)))
   :initialize 'custom-initialize-default
