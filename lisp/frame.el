@@ -788,6 +788,15 @@ This function is provided only for compatibility with Emacs 18; new code
 should use `set-frame-height' instead."
   (set-frame-height (selected-frame) lines pretend))
 
+(defun delete-other-frames (&optional frame)
+  "Delete all frames except FRAME.
+FRAME nil or omitted means delete all frames except the selected frame."
+  (interactive)
+  (unless frame
+    (setq frame (selected-frame)))
+  (mapcar 'delete-frame (delq frame (frame-list))))
+
+
 (make-obsolete 'screen-height 'frame-height)
 (make-obsolete 'screen-width  'frame-width)
 (make-obsolete 'set-screen-width 'set-frame-width)
@@ -916,6 +925,7 @@ itself as a pre-command hook."
 ;;;; Key bindings
 
 (define-key ctl-x-5-map "2" 'make-frame-command)
+(define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
 
