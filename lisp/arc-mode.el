@@ -235,7 +235,7 @@ expected to extract to a file junking the directory part of the name."
 (defcustom archive-zip-expunge
   (if (locate-file "zip" nil 'file-executable-p)
       '("zip" "-d" "-q")
-    (if (locate-file "zip" nil 'file-executable-p)
+    (if (locate-file "pkzip" nil 'file-executable-p)
 	 '("pkzip" "-d")
       '("zip" "-d" "-q")))
   "*Program and its options to run in order to delete zip file members.
@@ -249,7 +249,7 @@ Archive and member names will be added."
 (defcustom archive-zip-update
   (if (locate-file "zip" nil 'file-executable-p)
       '("zip" "-q")
-    (if (locate-file "zip" nil 'file-executable-p)
+    (if (locate-file "pkzip" nil 'file-executable-p)
 	 '("pkzip" "-u" "-P")
       '("zip" "-q")))
   "*Program and its options to run in order to update a zip file member.
@@ -264,7 +264,7 @@ file.  Archive and member name will be added."
 (defcustom archive-zip-update-case
   (if (locate-file "zip" nil 'file-executable-p)
       '("zip" "-q" "-k")
-    (if (locate-file "zip" nil 'file-executable-p)
+    (if (locate-file "pkzip" nil 'file-executable-p)
 	 '("pkzip" "-u" "-P")
       '("zip" "-q" "-k")))
   "*Program and its options to run in order to update a case fiddled zip member.
