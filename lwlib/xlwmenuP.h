@@ -37,7 +37,7 @@ typedef struct _XlwMenu_part
   Pixmap	bottom_shadow_pixmap;
   Cursor	cursor_shape;
   XtCallbackList	open;
-  XtCallbackList	select;
+  XtCallbackList	select, highlight;
   widget_value*	contents;
   int		horizontal;
   
