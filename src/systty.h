@@ -138,22 +138,13 @@ static struct sensemode {
 #if defined (HPUX) && defined (HAVE_PTYS)
 #include <sys/ptyio.h>
 #endif
-  
+
 #ifdef AIX
 #include <sys/pty.h>
-#include <unistd.h>
-#define UNISTD_H_INCLUDED
 #endif /* AIX */
 
-#ifdef IRIX4
-/* Get _getpty prototype */
+#if (defined (POSIX) || defined (NEED_UNISTD_H)) && defined (HAVE_UNISTD_H)
 #include <unistd.h>
-#define UNISTD_H_INCLUDED
-#endif
-
-#if defined (POSIX) && !defined (UNISTD_H_INCLUDED) && defined (HAVE_UNISTD_H)
-#include <unistd.h>
-#define UNISTD_H_INCLUDED
 #endif
 
 #ifdef SYSV_PTYS
