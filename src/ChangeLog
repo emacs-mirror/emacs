@@ -1,3 +1,7 @@
+2003-03-14  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (read1): After #!, exit loop on eof.
+
 2003-03-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h: Add declaration for xg_frame_cleared.
