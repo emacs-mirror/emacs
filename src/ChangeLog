@@ -1,3 +1,12 @@
+2003-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (init_jpeg_functions, jpeg_resync_to_restart_wrapper):
+	New functions.
+	(jpeg_load): Sync with xfns.c version. Adjust colors for Windows.
+	Disable color table lookups. Call jpeg library functions
+	through pointers determined at runtime.
+	(init_external_image_libraries): Try to load jpeg.dll.
+
 2003-01-25  Richard M. Stallman  <rms@gnu.org>
 
 	* lisp.h: Declare format2 instead of format1.

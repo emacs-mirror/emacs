@@ -1,3 +1,7 @@
+2003-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Automatically detect jpeglib.
+
 2003-01-25  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Automatically detect libpng.
