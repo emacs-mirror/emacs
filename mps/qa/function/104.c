@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!104.c(trunk.2) $
  summary = test of mps_arena_formatted_objects_walk, inc AMCZ
  language = c
  link = testlib.o rankfmt.o
@@ -101,10 +101,9 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
 static void test(void) {
 /* a is a table of exact roots
    b    a table of ambiguous roots
-   f    a table of non-roots
 */
 
- mycell *a[4], *b[4], *f[4];
+ mycell *a[4], *b[4];
  int i, j, k;
 
  cdie(mps_space_create(&space), "create space");
@@ -237,6 +236,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
- report("result", "unknown");
+ pass();
  return 0;
 }
