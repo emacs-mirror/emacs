@@ -250,7 +250,7 @@ echo "Updating version number in README"
 
 echo "Creating subdirectories"
 for subdir in lisp site-lisp leim real-leim real-leim/CXTERM-DIC \
-	      real-leim/SKK real-leim/skk real-leim/quail \
+	      real-leim/SKK-DIC real-leim/skk real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
 	      etc etc/e lock cpp info man msdos vms; do
@@ -307,7 +307,7 @@ echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
  ln ChangeLog.? README ../${tempdir}/real-leim
 
  ln CXTERM-DIC/*.tit ../${tempdir}/real-leim/CXTERM-DIC
- ln SKK/README SKK/SKK-JISYO.L ../${tempdir}/real-leim/SKK
+ ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/real-leim/SKK-DIC
  ln skk/*.el skk/*.elc ../${tempdir}/real-leim/skk
  ln quail/*.el quail/*.elc ../${tempdir}/real-leim/quail
 
