@@ -1375,6 +1375,15 @@ init_sys_modes ()
       tty.main.c_cc[VSUSP] = 255;
       tty.main.c_cc[VDSUSP] = 255;
 #endif /* IBMR2AIX */
+      if (flow_control)
+	{
+#ifdef VSTART
+	  tty.main.c_cc[VSTART] = '\021';
+#endif /* VSTART */
+#ifdef VSTOP
+	  tty.main.c_cc[VSTOP] = '\023';
+#endif /* VSTOP */
+	}
       /* Also, PTY overloads NUL and BREAK.
 	 don't ignore break, but don't signal either, so it looks like NUL.
 	 This really serves a purpose only if running in an XTERM window
