@@ -51,29 +51,33 @@
 ;; SS3 sequences - those that start with "\eO".
 (if (boundp 'vt100-SS3-prefix)
     nil
-  (define-prefix-command 'vt100-SS3-prefix)
-  (define-key function-key-map "\eO" 'vt100-SS3-prefix)
+  ;; The terminal initialization should already have set up some keys
+  (setq vt100-SS3-prefix (lookup-key function-key-map "\eO"))
+  (if (not (keymapp vt100-SS3-prefix))
+      (error "What?  Your VT100 termcap/terminfo has no keycaps in it."))
 
   ;; These will typically be set up automatically by termcap or terminfo
   ;;   (define-key vt100-SS3-prefix "A" [up]) ; up-arrow
   ;;   (define-key vt100-SS3-prefix "B" [down]) ; down-arrow
   ;;   (define-key vt100-SS3-prefix "C" [right]) ; right-arrow
   ;;   (define-key vt100-SS3-prefix "D" [left]) ; left-arrow
-  ;;   (define-key vt100-SS3-prefix "M" [kp-enter]) ; Enter
   ;;   (define-key vt100-SS3-prefix "P" [kp-f1]) ; PF1  
   ;;   (define-key vt100-SS3-prefix "Q" [kp-f2]) ; PF2  
   ;;   (define-key vt100-SS3-prefix "R" [kp-f3]) ; PF3  
   ;;   (define-key vt100-SS3-prefix "S" [kp-f4]) ; PF4  
-  ;;   (define-key vt100-SS3-prefix "p" [kp-0]) ; 0
-  ;;   (define-key vt100-SS3-prefix "q" [kp-1]) ; 1
-  ;;   (define-key vt100-SS3-prefix "r" [kp-2]) ; 2
-  ;;   (define-key vt100-SS3-prefix "s" [kp-3]) ; 3
-  ;;   (define-key vt100-SS3-prefix "t" [kp-4]) ; 4
-  ;;   (define-key vt100-SS3-prefix "u" [kp-5]) ; 5
-  ;;   (define-key vt100-SS3-prefix "v" [kp-6]) ; 6
-  ;;   (define-key vt100-SS3-prefix "w" [kp-7]) ; 7
-  ;;   (define-key vt100-SS3-prefix "x" [kp-8]) ; 8
-  ;;   (define-key vt100-SS3-prefix "y" [kp-9]) ; 9
+
+  ;; Terminfo might set these
+  (define-key vt100-SS3-prefix "M" [kp-enter]) ; Enter
+  (define-key vt100-SS3-prefix "p" [kp-0]) ; 0
+  (define-key vt100-SS3-prefix "q" [kp-1]) ; 1
+  (define-key vt100-SS3-prefix "r" [kp-2]) ; 2
+  (define-key vt100-SS3-prefix "s" [kp-3]) ; 3
+  (define-key vt100-SS3-prefix "t" [kp-4]) ; 4
+  (define-key vt100-SS3-prefix "u" [kp-5]) ; 5
+  (define-key vt100-SS3-prefix "v" [kp-6]) ; 6
+  (define-key vt100-SS3-prefix "w" [kp-7]) ; 7
+  (define-key vt100-SS3-prefix "x" [kp-8]) ; 8
+  (define-key vt100-SS3-prefix "y" [kp-9]) ; 9
 
   ;; Neither termcap nor terminfo will set these
   (define-key vt100-SS3-prefix "l" [kp-separator]) ; ,
