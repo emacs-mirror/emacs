@@ -1,3 +1,9 @@
+2004-06-30  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (Fface_font): If frame is not on a window system,
+	ignore CHARACTER arg.  If HAVE_WINDOW_SYSTEM is not defined, don't
+	refer to face->font.
+
 2004-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (BUILD_GLYPH_STRINGS): Check if s is NULL.
