@@ -311,7 +311,7 @@ interned in the initial obarray.  */)
      Lisp_Object object;
 {
   if (SYMBOLP (object)
-      && XSYMBOL (object)->name->data[0] == ':'
+      && XSTRING (SYMBOL_NAME (object))->data[0] == ':'
       && SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (object))
     return Qt;
   return Qnil;
@@ -679,7 +679,7 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   register Lisp_Object name;
 
   CHECK_SYMBOL (symbol);
-  XSETSTRING (name, XSYMBOL (symbol)->name);
+  name = SYMBOL_NAME (symbol);
   return name;
 }
 
@@ -869,7 +869,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
 	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
 	    error ("Value out of range for variable `%s'",
-		   XSYMBOL (symbol)->name->data);
+		   XSTRING (SYMBOL_NAME (symbol))->data);
 	  break;
 
 	case Lisp_Misc_Boolfwd:
@@ -887,7 +887,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 
 	    type = PER_BUFFER_TYPE (offset);
 	    if (XINT (type) == -1)
-	      error ("Variable %s is read-only", XSYMBOL (symbol)->name->data);
+	      error ("Variable %s is read-only", XSTRING (SYMBOL_NAME (symbol))->data);
 
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
@@ -1443,7 +1443,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
-    error ("Symbol %s may not be buffer-local", XSYMBOL (variable)->name->data);
+    error ("Symbol %s may not be buffer-local", XSTRING (SYMBOL_NAME (variable))->data);
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     return variable;
@@ -1496,7 +1496,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
-    error ("Symbol %s may not be buffer-local", XSYMBOL (variable)->name->data);
+    error ("Symbol %s may not be buffer-local", XSTRING (SYMBOL_NAME (variable))->data);
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     {
@@ -1639,7 +1639,7 @@ See `modify-frame-parameters'.  */)
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
       || BUFFER_OBJFWDP (valcontents))
-    error ("Symbol %s may not be frame-local", XSYMBOL (variable)->name->data);
+    error ("Symbol %s may not be frame-local", XSTRING (SYMBOL_NAME (variable))->data);
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
