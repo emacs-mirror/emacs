@@ -372,6 +372,16 @@ property of the major mode name.")
       (define-key map "\M-\t" #'flyspell-auto-correct-word)))
     map))
 
+;;;###autoload
+(defvar flyspell-mode-map (make-sparse-keymap))
+
+;; mouse, keyboard bindings and misc definition
+(when (or (assoc 'flyspell-mode minor-mode-map-alist)
+	  (setq minor-mode-map-alist
+		(cons (cons 'flyspell-mode flyspell-mode-map)
+		      minor-mode-map-alist)))
+  (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word))
+
 ;; the name of the overlay property that defines the keymap
 (defvar flyspell-overlay-keymap-property-name 'keymap)
 
@@ -452,7 +462,7 @@ in your .emacs file.
 ;;;###autoload
 (add-minor-mode 'flyspell-mode
 		'flyspell-mode-line-string
-		nil
+		flyspell-mode-map
 		nil
 		'flyspell-mode)
 
