@@ -193,7 +193,7 @@ printchar (ch, fun)
 
   if (EQ (fun, Qt))
     {
-      struct frame *mini_frame
+      FRAME_PTR mini_frame
 	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
 
       if (noninteractive)
@@ -244,7 +244,7 @@ strout (ptr, size, printcharfun)
     }
   if (EQ (printcharfun, Qt))
     {
-      struct frame *mini_frame
+      FRAME_PTR mini_frame
 	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
 
       i = size >= 0 ? size : strlen (ptr);
