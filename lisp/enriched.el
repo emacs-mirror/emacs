@@ -558,7 +558,7 @@ Commands:
 (define-key enriched-mode-map "\M-j" 'enriched-justification-menu-map)
 
 ;;; These extend the "Face" menu.
-(let ((menu (car (where-is-internal facemenu-menu))))
+(let ((menu (and window-system (car (where-is-internal facemenu-menu)))))
   (if (null menu)
       nil
     (define-key enriched-mode-map 
