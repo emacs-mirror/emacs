@@ -37,6 +37,7 @@ Boston, MA 02111-1307, USA.  */
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 #include <stdio.h>
 
+int
 main ()
 {
   fprintf (stderr, "Sorry, the Emacs server is supported only on systems\n");
@@ -45,6 +46,9 @@ main ()
 }
 
 #else /* HAVE_SOCKETS or HAVE_SYSVIPC */
+
+void perror_1 ();
+void fatal_error ();
 
 #if defined (HAVE_SOCKETS) && ! defined (NO_SOCKETS_IN_FILE_SYSTEM)
 /* BSD code is very different from SYSV IPC code */
@@ -56,6 +60,10 @@ main ()
 #include <stdio.h>
 #include <errno.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 extern int errno;
 
@@ -104,6 +112,7 @@ delete_socket (sig)
 
 /* Set up to handle all the signals.  */
 
+void
 handle_signals ()
 {
   signal (SIGHUP, delete_socket);
@@ -414,6 +423,7 @@ msgcatch ()
    Its stderr always exists--rms.  */
 #include <stdio.h>
 
+int
 main ()
 {
   int s, infd, fromlen, ioproc;
@@ -547,6 +557,7 @@ main ()
 
 /* This is like perror but puts `Error: ' at the beginning.  */
 
+void
 perror_1 (string)
      char *string;
 {
@@ -559,6 +570,7 @@ perror_1 (string)
   perror (copy);
 }
 
+void
 fatal_error (string)
      char *string;
 {
