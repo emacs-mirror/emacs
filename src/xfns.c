@@ -767,7 +767,6 @@ x_create_bitmap_mask(f, id)
   unsigned long x, y, xp, xm, yp, ym;
   GC gc;
 
-  int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   if (!(id > 0))
@@ -1841,7 +1840,6 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
 {
   int result = string_xstring_p (string);
   struct coding_system coding;
-  extern Lisp_Object Qcompound_text_with_extensions;
 
   if (result == 0)
     {
