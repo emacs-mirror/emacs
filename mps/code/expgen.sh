@@ -86,6 +86,7 @@ mpscawl.h
 mpsclo.h
 mpscmv.h
 mpscsnc.h
+mpslibcb.h
 mpstd.h'
 
 tu $f
