@@ -42,6 +42,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "blockinput.h"
 #include "puresize.h"
 
+#ifdef MSDOS
+#include "msdos.h"
+#endif
+
 #ifdef HAVE_X_WINDOWS
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
