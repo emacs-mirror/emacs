@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/11/15 16:56:44 $|$Revision: 1.77 $
+;; |$Date: 94/11/15 19:41:36 $|$Revision: 1.78 $
 
 ;; This file is part of GNU Emacs.
 
@@ -209,6 +209,8 @@ Default value, nil, means edit the string instead.")
       (define-key map "\C-r" 'isearch-repeat-backward)
       (define-key map "\177" 'isearch-delete-char)
       (define-key map "\C-g" 'isearch-abort)
+      (define-key map "\e\e\e" 'isearch-cancel)
+      (define-key map  [escape escape escape] 'isearch-cancel)
     
       (define-key map "\C-q" 'isearch-quote-char)
 
@@ -773,6 +775,12 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
   (setq isearch-new-forward nil)
   (exit-minibuffer))
 
+(defun isearch-cancel ()
+  "Terminate the search and go back to the starting point."
+  (interactive)
+  (goto-char isearch-opoint)
+  (isearch-done t)
+  (signal 'quit nil))  ; and pass on quit signal
 
 (defun isearch-abort ()
   "Abort incremental search mode if searching is successful, signalling quit.
