@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
 ;;	Dan Nicolaescu <done@ece.arizona.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 4.20
+;; Maintainer-Version: 4.21
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -497,19 +497,21 @@ If `hs-special-modes-alist' has information associated with the
 current buffer's major mode, use that.
 Otherwise, guess start, end and comment-start regexps; forward-sexp
 function; and adjust-block-beginning function."
-  (when (and (boundp 'comment-start)
-	     (boundp 'comment-end))
-    (let ((lookup (assoc major-mode hs-special-modes-alist)))
-      (setq hs-block-start-regexp (or (nth 1 lookup) "\\s\(")
-	    hs-block-end-regexp (or (nth 2 lookup) "\\s\)")
-	    hs-c-start-regexp (or (nth 3 lookup)
-				  (let ((c-start-regexp
-					 (regexp-quote comment-start)))
-				    (if (string-match " +$" c-start-regexp)
-					 (substring c-start-regexp 0 (1- (match-end 0)))
-				      c-start-regexp)))
-	    hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
-	    hs-adjust-block-beginning (nth 5 lookup)))))
+  (if (and (boundp 'comment-start)
+	   (boundp 'comment-end)
+	   comment-start comment-end)
+      (let ((lookup (assoc major-mode hs-special-modes-alist)))
+	(setq hs-block-start-regexp (or (nth 1 lookup) "\\s\(")
+	      hs-block-end-regexp (or (nth 2 lookup) "\\s\)")
+	      hs-c-start-regexp (or (nth 3 lookup)
+				    (let ((c-start-regexp
+					   (regexp-quote comment-start)))
+				      (if (string-match " +$" c-start-regexp)
+					  (substring c-start-regexp 0 (1- (match-end 0)))
+					c-start-regexp)))
+	      hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
+	      hs-adjust-block-beginning (nth 5 lookup)))
+    (error "% Mode doesn't support Hideshow Mode" mode-name)))
 
 (defun hs-find-block-beginning ()
   "Reposition point at block-start.
