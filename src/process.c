@@ -1566,6 +1566,8 @@ Return non-nil iff we received any output before the timeout expired.")
 	  }
       }
     }
+  else
+    useconds = 0;
 
   if (! NILP (timeout))
     {
