@@ -1,3 +1,8 @@
+2001-03-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (x_update_menu_appearance): Use local variable
+	popup_path for setting font resources.
+
 2001-03-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fframe_list): Don't reference tip_frame if
