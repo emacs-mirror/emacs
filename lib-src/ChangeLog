@@ -1,3 +1,9 @@
+2000-03-19  Dave Love  <fx@gnu.org>
+
+	* etags.c (Texinfo_functions): New function.
+	(lang_names): Install it.
+	(Texinfo_suffixes): New variable.
+
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (xmalloc, xrealloc): Rewritten.
