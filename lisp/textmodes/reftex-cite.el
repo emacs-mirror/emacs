@@ -528,7 +528,7 @@
   "Make a citation using BibTeX database files.
 After prompting for a regular expression, scans the buffers with
 bibtex entries (taken from the \\bibliography command) and offers the
-matching entries for selection.  The selected entry is formated according
+matching entries for selection.  The selected entry is formatted according
 to `reftex-cite-format' and inserted into the buffer.
 
 If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
