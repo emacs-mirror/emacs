@@ -1,3 +1,13 @@
+2002-09-07  Colin Walters  <walters@debian.org>
+
+	* progmodes/compile.el (compile-internal): Add optional argument
+	no-async.
+	
+	* diff.el (diff): Add optional argument no-async, and use the
+	above argument.
+	
+	* files.el (diff-buffer-with-file): Use it.
+
 2002-09-07  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* emacs-lisp/cl-indent.el (extended-loop-p): Doc fix.
