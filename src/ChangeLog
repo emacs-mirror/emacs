@@ -1,5 +1,11 @@
 2001-05-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (enum image_value_type): New enumerator
+	IMAGE_STRING_OR_NIL_VALUE.
+	(parse_image_spec): Handle it.
+	(xbm_format, pbm_format): Use it for :foreground and :background.
+	(xbm_load, pbm_load): Check for nil color names.
+
 	* xterm.c (note_mouse_highlight): If an overlapping overlay
 	exists, but we find that we highlight the same overlay as before,
 	don't do the highlighting again.
