@@ -2159,6 +2159,72 @@ If @var{image} is a single image specification, Emacs draws the tool bar
 button in disabled state by applying an edge-detection algorithm to the
 image.
 
+The default tool bar is defined so that items specific to editing do not
+appear for major modes whose command symbol has a @code{mode-class}
+property of @code{special} (@pxref{Major Mode Conventions}).  Major
+modes may add items to the global bar by binding @code{[tool-bar
+@var{foo}]} in their local map.  It makes sense for some major modes to
+replace the default tool bar items completely, since not many can be
+accommodated conveniently, and the default bindings make this easy by
+using an indirection through @code{tool-bar-map}.
+
+@defvar tool-bar-map
+@tindex tool-bar-map
+By default, the global map binds @code{[tool-bar]} as follows:
+@example
+(global-set-key [tool-bar]
+		'(menu-item "tool bar" ignore
+			    :filter (lambda (ignore) tool-bar-map)))
+@end example
+@noindent
+Thus the tool bar map is derived dynamically from the value of variable
+@code{tool-bar-map} and you should normally adjust the default (global)
+tool bar by changing that map.  Major modes may replace the global bar
+completely by making @code{tool-bar-map} buffer-local and set to a
+keymap containing only the desired items.  Info mode provides an
+example.
+@end defvar
+
+There are two convenience functions for defining tool bar items, as
+follows.
+
+@defun tool-bar-add-item icon def key &rest props
+@tindex tool-bar-add-item
+This function adds an item to the tool bar by modifying
+@code{tool-bar-map}.  The image to use is defined by @var{icon}, which
+is the base name of an XPM, XBM or PBM image file to located by
+@code{find-image}.  Given a value @samp{"exit"}, say, @file{exit.xpm},
+@file{exit.pbm} and @file{exit.xbm} would be searched for in that order
+on a color display.  On a monochrome display, the search order is
+@samp{.pbm}, @samp{.xbm} and @samp{.xpm}.  The binding to use is the
+command @var{def}, and @var{key} is the fake function key symbol in the
+prefix keymap.  The remaining arguments @var{props} are additional
+property list elements to add to the menu item specification.
+
+To define items in some local map, bind @code{`tool-bar-map} with
+@code{let} around calls of this function:
+@example
+(defvar foo-tool-bar-map 
+  (let ((tool-bar-map (make-sparse-keymap)))
+    (tool-bar-add-item @dots{})
+    @dots{}
+    tool-bar-map))
+@end example
+@end defun
+
+@defun tool-bar-add-item-from-menu command icon &optional map &rest props
+@tindex tool-bar-add-item-from-menu
+This command is a convenience for defining tool bar items which are
+consistent with existing menu bar bindings.  The binding of
+@var{command} is looked up in the menu bar in @var{map} (default
+@code{global-map}) and modified to add an image specification for
+@var{icon}, which is looked for in the same way as by
+@code{tool-bar-add-item}.  The resulting binding is then placed in
+@code{tool-bar-map}.  @var{map} must contain an appropriate keymap bound
+to @code{[menu-bar]}.  The remaining arguments @var{props} are
+additional property list elements to add to the menu item specification.
+@end defun
+
 @tindex auto-resize-tool-bar
 @defvar auto-resize-tool-bar
 If this variable is non-@code{nil}, the tool bar automatically resizes to
