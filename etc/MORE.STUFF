@@ -240,5 +240,6 @@ An unpacked current source tree may be available from
 
 Local Variables:
 mode: text
+mode: view
 eval: (goto-address)
 End:
