@@ -528,7 +528,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       {
 	if (fd[0] >= 0)
 	  close (fd[0]);
-#if defined(USG) && !defined(BSD_PGRPS)
+#ifdef HAVE_SETSID
+        setsid ();
+#endif
+#if defined (USG) && !defined (BSD_PGRPS)
         setpgrp ();
 #else
         setpgrp (pid, pid);
