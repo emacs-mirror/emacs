@@ -1,3 +1,27 @@
+2000-08-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (x_display_info_for_display): Remove as this function
+	does not exist on W32.
+
+	* w32term.c (help_echo_window): New variable.
+	(syms_of_w32term): staticpro it.
+	(note_mode_line_highlight): Set it.
+	(XTextExtents16): Removed as there is no equivalent on W32.
+	(x_compute_glyph_string_overhangs): Incomplete body removed, as
+	the X way of doing this will not work for W32.
+	(w32_intersect_rectangles): Removed. Use IntersectRect API call.
+	(x_draw_image_foreground):  Avoid drawing outside of the clip area
+	when image doesn't have a mask.
+	(note_mouse_highlight): Process overlays in the right order of
+	priority. Set help_echo_window.
+	(x_draw_bar_cursor): If cursor is on an image, draw a box cursor
+	because that's more visible for large images.
+
+	* w32menu.c (keymap_panes): Pass the keymap's prompt as the pane
+	name to single_keymap_panes.
+	(w32_menu_show): Set wv->title when dealing with titles.
+	(w32_menu_display_help): Call show_help_echo with OBJECT and POS.
+
 2000-08-21  Miles Bader  <miles@gnu.org>
 
 	* minibuf.c (do_completion): Try again if we rewrite the input
