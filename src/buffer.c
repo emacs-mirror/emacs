@@ -684,7 +684,6 @@ reset_buffer_local_variables (b, permanent_too)
      We ignore it here.  */
   b->major_mode = Qfundamental_mode;
   b->keymap = Qnil;
-  b->abbrev_table = Vfundamental_mode_abbrev_table;
   b->mode_name = QSFundamental;
   b->minor_modes = Qnil;
 
