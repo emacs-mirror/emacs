@@ -1,3 +1,15 @@
+2005-02-28  Chong Yidong" <cyd@stupidchicken.com> (tiny change)
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le): Fix
+	BUFFER_MAGNIFICATION to 2.
+	(ccl-encode-mule-utf-16be): Likewise.
+
+2005-02-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le-with-signature):
+	Fix BUFFER_MAGNIFICATION to 4.
+	(ccl-encode-mule-utf-16be-with-signature): Likewise.
+
 2005-02-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.el (speedbar-update-flag): Doc fix.
