@@ -1203,8 +1203,9 @@ read_multibyte (c, readcharfun)
 /* Read a \-escape sequence, assuming we already read the `\'.  */
 
 static int
-read_escape (readcharfun)
+read_escape (readcharfun, stringp)
      Lisp_Object readcharfun;
+     int stringp;
 {
   register int c = READCHAR;
   switch (c)
@@ -1233,7 +1234,9 @@ read_escape (readcharfun)
     case '\n':
       return -1;
     case ' ':
-      return -1;
+      if (stringp)
+	return -1;
+      return ' ';
 
     case 'M':
       c = READCHAR;
@@ -1241,7 +1244,7 @@ read_escape (readcharfun)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun);
+	c = read_escape (readcharfun, 0);
       return c | meta_modifier;
 
     case 'S':
@@ -1250,7 +1253,7 @@ read_escape (readcharfun)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun);
+	c = read_escape (readcharfun, 0);
       return c | shift_modifier;
 
     case 'H':
@@ -1259,7 +1262,7 @@ read_escape (readcharfun)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun);
+	c = read_escape (readcharfun, 0);
       return c | hyper_modifier;
 
     case 'A':
@@ -1268,7 +1271,7 @@ read_escape (readcharfun)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun);
+	c = read_escape (readcharfun, 0);
       return c | alt_modifier;
 
     case 's':
@@ -1277,7 +1280,7 @@ read_escape (readcharfun)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun);
+	c = read_escape (readcharfun, 0);
       return c | super_modifier;
 
     case 'C':
@@ -1287,7 +1290,7 @@ read_escape (readcharfun)
     case '^':
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun);
+	c = read_escape (readcharfun, 0);
       if ((c & 0177) == '?')
 	return 0177 | c;
       /* ASCII control chars are made from letters (both cases),
@@ -1662,7 +1665,7 @@ read1 (readcharfun, pch, first_in_list)
 	if (c < 0) return Fsignal (Qend_of_file, Qnil);
 
 	if (c == '\\')
-	  c = read_escape (readcharfun);
+	  c = read_escape (readcharfun, 0);
 	else if (BASE_LEADING_CODE_P (c))
 	  c = read_multibyte (c, readcharfun);
 
@@ -1674,7 +1677,14 @@ read1 (readcharfun, pch, first_in_list)
 	register char *p = read_buffer;
 	register char *end = read_buffer + read_buffer_size;
 	register int c;
+	/* Nonzero if we saw an escape sequence specifying
+	   a multibyte character.  */
+	int force_multibyte = 0;
+	/* Nonzero if we saw an escape sequence specifying
+	   a single-byte character.  */
+	int force_singlebyte = 0;
 	int cancel = 0;
+	int nchars;
 
 	while ((c = READCHAR) >= 0
 	       && c != '\"')
@@ -1688,7 +1698,7 @@ read1 (readcharfun, pch, first_in_list)
 	      }
 	    if (c == '\\')
 	      {
-		c = read_escape (readcharfun);
+		c = read_escape (readcharfun, 1);
 		if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_META)))
 		  {
 		    unsigned char workbuf[4];
@@ -1696,6 +1706,8 @@ read1 (readcharfun, pch, first_in_list)
 		    int length;
 
 		    length = non_ascii_char_to_string (c, workbuf, &str);
+		    if (length > 1)
+		      force_multibyte = 1;
 
 		    if (p + length > end)
 		      {
@@ -1709,6 +1721,8 @@ read1 (readcharfun, pch, first_in_list)
 		    p += length;
 		    continue;
 		  }
+		else if (! ASCII_BYTE_P (c))
+		  force_singlebyte = 1;
 	      }
 
 	    /* c is -1 if \ newline has just been seen */
@@ -1742,13 +1756,20 @@ read1 (readcharfun, pch, first_in_list)
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
-	if (read_pure)
-	  return make_pure_string (read_buffer, p - read_buffer,
-				   p - read_buffer);
-	else if (! NILP (current_buffer->enable_multibyte_characters))
-	  return make_string (read_buffer, p - read_buffer);
+	if (force_singlebyte && force_multibyte)
+	  error ("Multibyte and single-byte escapes in one string constant");
+
+	if (force_singlebyte)
+	  nchars = p - read_buffer;
+	else if (! NILP (buffer_defaults.enable_multibyte_characters)
+		 || force_multibyte)
+	  nchars = chars_in_text (read_buffer, p - read_buffer);
 	else
-	  return make_unibyte_string (read_buffer, p - read_buffer);
+	  nchars = p - read_buffer;
+
+	if (read_pure)
+	  return make_pure_string (read_buffer, nchars, p - read_buffer);
+	return make_multibyte_string (read_buffer, nchars, p - read_buffer);
       }
 
     case '.':
