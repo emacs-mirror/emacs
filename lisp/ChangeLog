@@ -40,7 +40,6 @@
 	* progmodes/etags.el (find-tag-default): Copy text at point without
 	properties.
 
->>>>>>> 1.2776.2.248
 2002-11-11  Fabrice Bauzac  <fabrice.bauzac@wanadoo.fr>  (tiny change)
 
 	* dired-aux.el (dired-show-file-type): Format filename with "%s" to
