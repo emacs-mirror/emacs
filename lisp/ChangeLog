@@ -1,3 +1,7 @@
+2000-10-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-find-file-name): Fix regex subgroup number.
+
 2000-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* dirtrack.el (dirtrack): Fix call to run-hooks.
@@ -12,13 +16,12 @@
 	eval-and-compile.
 
 	* play/doctor.el (doctor-death): Update the Samaritans'
-        anonymous address, and add a website for Befrienders
-        International.
+	anonymous address, and add a website for Befrienders International.
 	
 2000-10-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: Even/odd pages fix.  Fix little bug on XEmacs.  Avoid
-	compilation gripes.  Doc fix.
+	* ps-print.el: Even/odd pages fix.  Fix little bug on XEmacs.
+	Avoid compilation gripes.  Doc fix.
 	(ps-print-version): New version number (6.2).
 	(ps-x-color-instance-p, ps-x-color-instance-rgb-components)
 	(ps-x-color-name, ps-x-color-specifier-p, ps-x-copy-coding-system)
@@ -51,18 +54,15 @@
 
 2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* term/tty-colors.el (color-name-rgb-alist): Add a comment
-	explaining why some "light*" colors are deliberately absent from
-	the alist.
+	* term/tty-colors.el (color-name-rgb-alist): Add a comment explaining
+	why some "light*" colors are deliberately absent from the alist.
 
-	* info.el (Info-title-1-face, Info-title-2-face)
-	(Info-title-3-face): Change colors for tty's, as suggested by
-	Miles Bader.
+	* info.el (Info-title-1-face, Info-title-2-face, Info-title-3-face):
+	Change colors for tty's, as suggested by Miles Bader.
 
 2000-10-19  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/fontset.el: Use registry "MuleTibetan-2" for
-	Tibetan.
+	* international/fontset.el: Use registry "MuleTibetan-2" for Tibetan.
 	(ccl-encode-mule-unicode-0100-24ff): New CCL program.  Register it
 	for ISO10646-1 fonts.
 	(x-font-name-charset-alist): Add an entry for "iso10646-1".

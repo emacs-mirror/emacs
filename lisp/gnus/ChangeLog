@@ -11,6 +11,10 @@
 	* gnus-nocem.el (gnus-nocem-check-article-limit): New variable.
 	(gnus-nocem-scan-groups): Obey `gnus-nocem-check-article-limit'.
 
+2000-10-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* ietf-drums.el (mm-util): Require CL when compiling.
+
 2000-10-15  Dave Love  <fx@gnu.org>
 
 	* qp.el: Require mm-util.
