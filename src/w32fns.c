@@ -9535,7 +9535,7 @@ slurp_file (file, size)
   struct stat st;
 
   if (stat (file, &st) == 0
-      && (fp = fopen (file, "r")) != NULL
+      && (fp = fopen (file, "rb")) != NULL
       && (buf = (char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
@@ -11402,7 +11402,7 @@ pbm_read_file (file, size)
   struct stat st;
 
   if (stat (SDATA (file), &st) == 0
-      && (fp = fopen (SDATA (file), "r")) != NULL
+      && (fp = fopen (SDATA (file), "rb")) != NULL
       && (buf = (char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
@@ -12495,7 +12495,7 @@ jpeg_load (f, img)
 	  return 0;
 	}
 
-      fp = fopen (SDATA (file), "r");
+      fp = fopen (SDATA (file), "rb");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
