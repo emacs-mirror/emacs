@@ -36,6 +36,8 @@
 
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
+	* fileio.c (Ffile_name_as_directory): Fix argument name in docstring.
+
 	* xdisp.c (syms_of_xdisp): Remove redundant deprecation info.
 
 	* fileio.c (syms_of_fileio): Likewise.
