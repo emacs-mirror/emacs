@@ -1,3 +1,7 @@
+2000-12-01  Miles Bader  <miles@gnu.org>
+
+	* window.el (fit-window-to-buffer): Handle non-nil `truncate-lines'.
+
 2000-12-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (describe-char-after): Fix typo.
