@@ -172,14 +172,12 @@ attempting to do so has no effect.  This means that you don't have to
 calculate the argument precisely for @w{@kbd{C-x >}}; any sufficiently large
 argument will restore the normal display.
 
-@cindex Hscroll mode
-@cindex mode, Hscroll
-@findex hscroll-mode
-  You can request automatic horizontal scrolling by enabling Hscroll
-mode.  When this mode is enabled, Emacs scrolls a window horizontally
-whenever that is necessary to keep point visible and not too far from
-the left or right edge.  The command to enable or disable this mode is
-@kbd{M-x hscroll-mode}.
+@cindex horizontal scrolling
+@vindex automatic-hscrolling
+  Emacs automatically scrolls a window horizontally whenever that is
+necessary to keep point visible and not too far from the left or right
+edge.  If you don't want this, customize the variable
+@code{automatic-hscrolling} and set it to nil.
 
 @node Follow Mode
 @section Follow Mode
