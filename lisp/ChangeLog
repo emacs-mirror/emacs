@@ -1,3 +1,11 @@
+2002-12-20  Francesco Potorti`  <pot@gnu.org>
+
+	* mail/undigest.el (rmail-mail-separator): Renamed from
+	rmail-digest-mail-separator.  All users changed.
+	(unforward-rmail-message): Rewritten to be more robust and to
+	additionally account for the common style of forwarding messages
+	by citing them entirely with headers.
+
 2002-12-18  Dave Love  <fx@gnu.org>
 
 	* international/utf-8-subst.el: Deleted.
