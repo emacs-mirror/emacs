@@ -1,3 +1,9 @@
+2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cc-mode.texi (Text Filling and Line Breaking): Put period after
+	@xref.
+	(Font Locking): Avoid @strong{Note:}.
+
 2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.46.
