@@ -653,7 +653,8 @@ This follows the rule [28] in the XML specifications."
 						xml-validating-parser
 						parse-ns))))))))
 	   (t
-	    (error "XML: (Validity) Invalid DTD item")))))
+	    (when xml-validating-parser
+	      (error "XML: (Validity) Invalid DTD item")))))
       (if (looking-at "\\s-*]>")
 	  (goto-char (nth 1 (match-data)))))
     (nreverse dtd)))
@@ -724,9 +725,10 @@ This follows the rule [28] in the XML specifications."
 		    (entity
 		     (cdr entity))
 		    ((eq (length this-part) 0)
-		     (error "XML: (Validity) No entity given"))
+		     (when xml-validating-parser
+		       (error "XML: (Validity) No entity given")))
 		    (t
-		     (if xml-validating-parser
+		     (when xml-validating-parser
 			 (error "XML: (Validity) Undefined entity `%s'"
 				this-part))))))
 
