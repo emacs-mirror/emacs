@@ -553,7 +553,7 @@ spreadsheet files with invalid formatting."
 	       (let ((curcell '(A1 . A2))) (ses-sort-column "B"))
 	       (let ((curcell '(C1 . D2))) (ses-sort-column "B"))
 	       (execute-kbd-macro "jB10\n2")
-	       (execute-kbd-macro [?j ?B ?9 ?\n ?C-@ ?C-f ?C-f cut])
+	       (execute-kbd-macro [?j ?B ?9 ?\n ?\C-@ ?\C-f ?\C-f cut])
 	       (progn (kill-new "x") (execute-kbd-macro ">n"))
 	       (execute-kbd-macro "\0w")))
     (condition-case nil
