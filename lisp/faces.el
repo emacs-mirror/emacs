@@ -846,21 +846,56 @@ of the default face.  Value is FACE."
 ;;; Interactively modifying faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun read-face-name (prompt)
-  "Read and return a face symbol, prompting with PROMPT.
-PROMPT should not end with a blank, since this function appends one.
-Value is a symbol naming a known face."
-  (let ((face-list (mapcar #'(lambda (x) (cons (symbol-name x) x))
-			   (face-list)))
-	(def (thing-at-point 'symbol))
-	face)
-    (cond ((assoc def face-list)
-	   (setq prompt (concat prompt " (default " def "): ")))
-	  (t (setq def nil)
-	     (setq prompt (concat prompt ": "))))
-    (while (equal "" (setq face (completing-read
-				 prompt face-list nil t nil nil def))))
-    (intern face)))
+(defun read-face-name (prompt &optional string-describing-default multiple)
+  "Read a face, defaulting to the face or faces on the char after point.
+If it has a `read-face-name' property, that overrides the `face' property.
+PROMPT describes what you will do with the face (don't end in a space).
+STRING-DESCRIBING-DEFAULT describes what default you will use
+if this function returns nil.
+If MULTIPLE is non-nil, return a list of faces (possibly only one).
+Otherwise, return a single face."
+  (let ((faceprop (or (get-char-property (point) 'read-face-name)
+		      (get-char-property (point) 'face)))
+	faces)
+    ;; Make a list of the named faces that the `face' property uses.
+    (if (listp faceprop)
+	(dolist (f faceprop)
+	  (if (symbolp f)
+	      (push f faces)))
+      (if (symbolp faceprop)
+	  (setq faces (list faceprop))))
+    ;; If there are none, try to get a face name from the buffer.
+    (if (and (null faces)
+	     (memq (intern-soft (thing-at-point 'symbol)) (face-list)))
+	(setq faces (list (intern-soft (thing-at-point 'symbol)))))
+
+    ;; If we only want one, and the default is more than one,
+    ;; discard the unwanted ones now.
+    (unless multiple
+      (if faces
+	  (setq faces (list (car faces)))))
+    (let* ((input
+	    ;; Read the input.
+	    (completing-read
+	     (if (or faces string-describing-default)
+		 (format "%s (default %s): " prompt
+			 (if faces (mapconcat 'symbol-name faces ", ")
+			   string-describing-default))
+	       prompt)
+	     obarray 'custom-facep t))
+	   ;; Canonicalize the output.
+	   (output
+	    (if (equal input "")
+		faces
+	      (if (stringp input)
+		  (list (intern input))
+		input))))
+      ;; Return either a list of faces or just one face.
+      (if multiple
+	  output
+	(car output)))))
+
+
 
 
 (defun face-valid-attribute-values (attribute &optional frame)
@@ -1137,8 +1172,9 @@ The sample text is a string that comes from the variable
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
-	      (help-xref-button 0 'help-customize-face face-name)))
-	  (let ((beg (point)))
+	      (help-xref-button 0 'help-customize-face face)))
+	  (let ((beg (point))
+		(line-beg (line-beginning-position)))
 	    (insert list-faces-sample-text)
 	    ;; Hyperlink to a help buffer for the face.
 	    (save-excursion
@@ -1147,6 +1183,9 @@ The sample text is a string that comes from the variable
 		(help-xref-button 0 'help-face face)))
 	    (insert "\n")
 	    (put-text-property beg (1- (point)) 'face face)
+	    ;; Make all face commands default to the proper face
+	    ;; anywhere in the line.
+	    (put-text-property line-beg (1- (point)) 'read-face-name face)
 	    ;; If the sample text has multiple lines, line up all of them.
 	    (goto-char beg)
 	    (forward-line 1)
@@ -1167,13 +1206,15 @@ The sample text is a string that comes from the variable
 	    (copy-face (car faces) (car faces) frame disp-frame)
 	    (setq faces (cdr faces)))))))
 
-
 (defun describe-face (face &optional frame)
   "Display the properties of face FACE on FRAME.
+Interactevely, FACE defaults to the faces of the character after point
+and FRAME defaults to the selected frame.
+
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face")))
+  (interactive (list (read-face-name "Describe face" "= `default' face" t)))
   (let* ((attrs '((:family . "Family")
 		  (:width . "Width")
 		  (:height . "Height")
@@ -1192,25 +1233,33 @@ If FRAME is omitted or nil, use the selected frame."
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
     (help-setup-xref (list #'describe-face face) (interactive-p))
+    (unless face
+      (setq face 'default))
+    (if (not (listp face))
+	(setq face (list face)))
     (with-output-to-temp-buffer (help-buffer)
       (save-excursion
 	(set-buffer standard-output)
-	(dolist (a attrs)
-	  (let ((attr (face-attribute face (car a) frame)))
-	    (insert (make-string (- max-width (length (cdr a))) ?\ )
-		    (cdr a) ": " (format "%s" attr) "\n")))
-	(insert "\nDocumentation:\n\n"
-		(or (face-documentation face)
-		    "not documented as a face."))
-	(let ((customize-label "customize"))
-	  (terpri)
-	  (terpri)
-	  (princ (concat "You can " customize-label " this face."))
-	  (with-current-buffer standard-output
-	    (save-excursion
-	      (re-search-backward
-	       (concat "\\(" customize-label "\\)") nil t)
-	      (help-xref-button 1 'help-customize-face face)))))
+	(dolist (f face)
+	  (insert "Face: " (symbol-name f))
+	  (if (not (facep f))
+	      (insert "   undefined face.\n")
+	    (let ((customize-label "customize this face"))
+	      (princ (concat " (" customize-label ")\n"))
+	      (insert "Documentation: "
+		      (or (face-documentation f)
+			  "not documented as a face.")
+		      "\n\n")
+	      (with-current-buffer standard-output
+		(save-excursion
+		  (re-search-backward
+		   (concat "\\(" customize-label "\\)") nil t)
+		  (help-xref-button 1 'help-customize-face f)))
+	      (dolist (a attrs)
+		(let ((attr (face-attribute f (car a) frame)))
+		  (insert (make-string (- max-width (length (cdr a))) ?\ )
+			  (cdr a) ": " (format "%s" attr) "\n")))))
+	  (terpri)))
       (print-help-return-message))))
 
 
