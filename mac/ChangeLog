@@ -1,3 +1,9 @@
+2002-01-28  Kim F. Storm  <storm@cua.dk>
+
+	* src/macterm.c (x_erase_phys_cursor): Don't erase cursor if
+	cursor row is invisible.  This can happen if cursor is on top line
+	of a window, and we switch to a buffer with a header line.
+
 2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
