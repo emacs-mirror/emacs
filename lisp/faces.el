@@ -938,6 +938,24 @@ selected frame."
 ;; Like x-create-frame but also set up the faces.
 
 (defun x-create-frame-with-faces (&optional parameters)
+  ;; Read this frame's geometry resource, if it has an explicit name,
+  ;; and put the specs into PARAMETERS.
+  (let* ((name (or (cdr (assq 'name parameters))
+		   (cdr (assq 'name default-frame-alist))
+		   (cdr (assq 'name initial-frame-alist))))
+	 (x-resource-name name)
+	 (res-geometry (x-get-resource "geometry" "Geometry"))
+	 parsed)
+    (if res-geometry
+	(progn
+	  (setq parsed (x-parse-geometry res-geometry))
+	  ;; If the resource specifies a position,
+	  ;; call the position and size "user-specified".
+	  (if (or (assq 'top parsed) (assq 'left parsed))
+	      (setq parsed (cons '(user-position . t)
+				 (cons '(user-size . t) parsed))))
+	  ;; All geometry parms apply to the initial frame.
+	  (setq parameters (append parameters parsed)))))
   (if (null global-face-data)
       (x-create-frame parameters)
     (let* ((visibility-spec (assq 'visibility parameters))
