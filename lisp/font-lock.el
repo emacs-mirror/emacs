@@ -3095,8 +3095,13 @@ See also `java-font-lock-extra-types'.")
     '("\\<\\(false\\|null\\|true\\)\\>" . font-lock-constant-face)
     ;;
     ;; Javadoc tags within comments.
-    '("@\\(author\\|deprecated\\|link\\|return\\|see\\|version\\)\\>"
-      (1 font-lock-constant-face prepend))
+    (list
+     (concat "@\\("
+	     "author\\|deprecated\\|exception"
+	     "\\|link\\|return\\|see\\|serial\\|serialData\\|serialField"
+	     "\\|since\\|throws"
+	     "\\|version"
+	     "\\)\\>"))
     '("@\\(param\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-constant-face prepend)
       (2 font-lock-variable-name-face prepend t))
