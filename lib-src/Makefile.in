@@ -205,7 +205,7 @@ MOVE_FLAGS=
 # ifdef HAVE_LIBCOM_ERR
 	COM_ERRLIB = -lcom_err
 # endif
-#endif /* KERBEROS
+#endif /* KERBEROS */
 
 /* If HESIOD is defined, set this to "-lhesiod". */
 HESIODLIB=
