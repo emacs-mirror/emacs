@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.69) $
+ * $HopeName: MMsrc!trace.c(trunk.70) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.69) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.70) $");
 
 
 /* Types
@@ -238,7 +238,6 @@ Res TraceAddWhite(Trace trace, Seg seg)
   if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
     trace->white = RefSetUnion(trace->white,
                                RefSetOfSeg(trace->arena, seg));
-    trace->condemned += SegSize(seg);
     /* if the pool is a moving GC, then condemned objects may move */
     if(pool->class->attr & AttrMOVINGGC) {
       trace->mayMove = RefSetUnion(trace->mayMove, 
