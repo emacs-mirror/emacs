@@ -27,8 +27,7 @@ all: $(ALL)
 SQUOTE='
 # '
 
-#lisp=$(MAKEDIR:\=/)
-lisp=.
+lisp = $(CURDIR)
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
