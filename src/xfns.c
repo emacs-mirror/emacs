@@ -42,6 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include <epaths.h>
+#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "fontset.h"
@@ -2362,46 +2363,27 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
      int *text_bytes, *stringp;
      int selectionp;
 {
-  unsigned char *str = XSTRING (string)->data;
-  int chars = XSTRING (string)->size;
-  int bytes = STRING_BYTES (XSTRING (string));
-  int charset_info;
-  int bufsize;
-  unsigned char *buf;
+  int result = string_xstring_p (string);
   struct coding_system coding;
 
-  charset_info = find_charset_in_text (str, chars, bytes, NULL, Qnil);
-  if (charset_info == 0)
+  if (result == 0)
     {
       /* No multibyte character in OBJ.  We need not encode it.  */
-      *text_bytes = bytes;
+      *text_bytes = STRING_BYTES (XSTRING (string));
       *stringp = 1;
-      return str;
+      return XSTRING (string)->data;
     }
 
   setup_coding_system (coding_system, &coding);
-  if (selectionp
-      && SYMBOLP (coding.pre_write_conversion)
-      && !NILP (Ffboundp (coding.pre_write_conversion)))
-    {
-      string = run_pre_post_conversion_on_str (string, &coding, 1);
-      str = XSTRING (string)->data;
-      chars = XSTRING (string)->size;
-      bytes = STRING_BYTES (XSTRING (string));
-    }
-  coding.src_multibyte = 1;
-  coding.dst_multibyte = 0;
-  coding.mode |= CODING_MODE_LAST_BLOCK;
-  if (coding.type == coding_type_iso2022)
-    coding.flags |= CODING_FLAG_ISO_SAFE;
+  coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
   /* We suppress producing escape sequences for composition.  */
-  coding.composing = COMPOSITION_DISABLED;
-  bufsize = encoding_buffer_size (&coding, bytes);
-  buf = (unsigned char *) xmalloc (bufsize);
-  encode_coding (&coding, str, buf, bytes, bufsize);
+  coding.common_flags &= ~CODING_ANNOTATION_MASK;
+  encode_coding_object (&coding, string, 0, 0,
+			XSTRING (string)->size,
+			STRING_BYTES (XSTRING (string)), Qt);
   *text_bytes = coding.produced;
-  *stringp = (charset_info == 1 || !EQ (coding_system, Qcompound_text));
-  return buf;
+  *stringp = (result == 1 || !EQ (coding_system, Qcompound_text));
+  return XSTRING (coding.dst_object)->data;
 }
 
 
