@@ -302,6 +302,7 @@ This is to work around a bug in Emacs process signalling.")
 (defvar comint-input-ring nil)
 (defvar comint-last-input-start)
 (defvar comint-last-input-end)
+(defvar comint-last-output-start)
 (defvar comint-input-ring-index nil
   "Index of last matched history element.")
 (defvar comint-matching-input-from-input-string ""
@@ -1838,6 +1839,8 @@ Completion is dependent on the value of `comint-completion-addsuffix' and
 dependent on the value of `comint-completion-autolist'."
   (interactive)
   (let* ((completion-ignore-case nil)
+	 ;; For shell completion, treat all files as equally interesting.
+	 (completion-ignored-extensions nil)
 	 (filename (comint-match-partial-filename))
          (pathdir (file-name-directory filename))
          (pathnondir (file-name-nondirectory filename))
@@ -1990,6 +1993,8 @@ See also `comint-dynamic-complete-filename'."
   "List in help buffer possible completions of the filename at point."
   (interactive)
   (let* ((completion-ignore-case nil)
+	 ;; For shell completion, treat all files as equally interesting.
+	 (completion-ignored-extensions nil)
 	 (filename (comint-match-partial-filename))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
@@ -2007,12 +2012,24 @@ Typing SPC flushes the help buffer."
   (let ((conf (current-window-configuration)))
     (with-output-to-temp-buffer " *Completions*"
       (display-completion-list (sort completions 'string-lessp)))
-    (sit-for 0)
     (message "Hit space to flush")
-    (let ((ch (read-event)))
-      (if (eq ch ?\ )
-	  (set-window-configuration conf)
-	(setq unread-command-events (list ch))))))
+    (let (key first)
+      (if (save-excursion
+	    (set-buffer (get-buffer " *Completions*"))
+	    (setq key (read-key-sequence nil)
+		  first (aref key 0))
+	    (and (consp first)
+		 (eq (window-buffer (posn-window (event-start first)))
+		     (get-buffer " *Completions*"))
+		 (eq (key-binding key) 'mouse-choose-completion)))
+	  ;; If the user does mouse-choose-completion with the mouse,
+	  ;; execute the command, then delete the completion window.
+	  (progn
+	    (mouse-choose-completion first)
+	    (set-window-configuration conf))
+	(if (eq first ?\ )
+	    (set-window-configuration conf)
+	  (setq unread-command-events (append key nil)))))))
 
 ;;; Converting process modes to use comint mode
 ;;; ===========================================================================
