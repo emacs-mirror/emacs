@@ -116,46 +116,7 @@ Lisp_Object Vmouse_depressed;
 extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
 
 /* Atom for indicating window state to the window manager. */
-Atom Xatom_wm_change_state;
-
-/* When emacs became the selection owner. */
-extern Time x_begin_selection_own;
-
-/* Emacs' selection property identifier. */
-extern Atom Xatom_emacs_selection;
-
-/* Clipboard selection atom. */
-extern Atom Xatom_clipboard_selection;
-
-/* Clipboard atom. */
-extern Atom Xatom_clipboard;
-
-/* Atom for indicating incremental selection transfer. */
-extern Atom Xatom_incremental;
-
-/* Atom for indicating multiple selection request list */
-extern Atom Xatom_multiple;
-
-/* Atom for what targets emacs handles. */
-extern Atom Xatom_targets;
-
-/* Atom for indicating timstamp selection request */
-extern Atom Xatom_timestamp;
-
-/* Atom requesting we delete our selection. */
-extern Atom Xatom_delete;
-
-/* Selection magic. */
-extern Atom Xatom_insert_selection;
-
-/* Type of property for INSERT_SELECTION. */
-extern Atom Xatom_pair;
-
-/* More selection magic. */
-extern Atom Xatom_insert_property;
-
-/* Atom for indicating property type TEXT */
-extern Atom Xatom_text;
+extern Atom Xatom_wm_change_state;
 
 /* Communication with window managers. */
 extern Atom Xatom_wm_protocols;
@@ -3724,33 +3685,8 @@ arg XRM_STRING is a string of resources in xrdb format.")
   Vx_screen_visual = intern (x_visual_strings [screen_visual->class]);
 
   /* X Atoms used by emacs. */
+  Xatoms_of_xselect ();
   BLOCK_INPUT;
-  Xatom_emacs_selection =  XInternAtom (x_current_display, "_EMACS_SELECTION_",
-					False);
-  Xatom_clipboard =	   XInternAtom (x_current_display, "CLIPBOARD",
-					False);
-  Xatom_clipboard_selection = XInternAtom (x_current_display, "_EMACS_CLIPBOARD_",
-					False);
-  Xatom_wm_change_state =  XInternAtom (x_current_display, "WM_CHANGE_STATE",
-					False);
-  Xatom_incremental =	   XInternAtom (x_current_display, "INCR",
-					False);
-  Xatom_multiple =	   XInternAtom (x_current_display, "MULTIPLE",
-					False);
-  Xatom_targets =	   XInternAtom (x_current_display, "TARGETS",
-					False);
-  Xatom_timestamp =	   XInternAtom (x_current_display, "TIMESTAMP",
-					False);
-  Xatom_delete =	   XInternAtom (x_current_display, "DELETE",
-					False);
-  Xatom_insert_selection = XInternAtom (x_current_display, "INSERT_SELECTION",
-					False);
-  Xatom_pair =             XInternAtom (x_current_display, "XA_ATOM_PAIR",
-					False);
-  Xatom_insert_property =  XInternAtom (x_current_display, "INSERT_PROPERTY",
-					False);
-  Xatom_text =             XInternAtom (x_current_display, "TEXT",
-					False);
   Xatom_wm_protocols =     XInternAtom (x_current_display, "WM_PROTOCOLS",
 					False);
   Xatom_wm_take_focus =    XInternAtom (x_current_display, "WM_TAKE_FOCUS",
