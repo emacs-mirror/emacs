@@ -78,15 +78,16 @@ create_root_interval (parent)
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
       BUF_INTERVALS (XBUFFER (parent)) = new;
+      new->position = 1;
     }
   else if (STRINGP (parent))
     {
       new->total_length = XSTRING (parent)->size;
       XSTRING (parent)->intervals = new;
+      new->position = 0;
     }
 
   new->parent = (INTERVAL) XFASTINT (parent);
-  new->position = 1;
 
   return new;
 }
@@ -540,10 +541,34 @@ split_interval_left (interval, offset)
   return new;
 }
 
+/* Return the proper position for the first character
+   described by the interval tree SOURCE.
+   This is 1 if the parent is a buffer,
+   0 if the parent is a string or if there is no parent.
+
+   Don't use this function on an interval which is the child
+   of another interval!  */
+
+int
+interval_start_pos (source)
+     INTERVAL source;
+{
+  Lisp_Object parent;
+
+  if (NULL_INTERVAL_P (source))
+    return 0;
+
+  XSETFASTINT (parent, (EMACS_INT) source->parent);
+  if (BUFFERP (parent))
+    return BUF_BEG (XBUFFER (parent));
+  return 0;
+}
+
 /* Find the interval containing text position POSITION in the text
    represented by the interval tree TREE.  POSITION is a buffer
-   position; the earliest position is 1.  If POSITION is at the end of
-   the buffer, return the interval containing the last character.
+   position (starting from 1) or a string index (starting from 0).
+   If POSITION is at the end of the buffer or string,
+   return the interval containing the last character.
 
    The `position' field, which is a cache of an interval's position,
    is updated in the interval found.  Other functions (e.g., next_interval)
@@ -556,10 +581,16 @@ find_interval (tree, position)
 {
   /* The distance from the left edge of the subtree at TREE
                     to POSITION.  */
-  register int relative_position = position - BEG;
+  register int relative_position;
+  Lisp_Object parent;
 
   if (NULL_INTERVAL_P (tree))
     return NULL_INTERVAL;
+
+  XSETFASTINT (parent, (EMACS_INT) tree->parent);
+  relative_position = position;
+  if (BUFFERP (parent))
+    relative_position -= BUF_BEG (XBUFFER (parent));
 
   if (relative_position > TOTAL_LENGTH (tree))
     abort ();			/* Paranoia */
@@ -582,9 +613,9 @@ find_interval (tree, position)
 	}
       else
 	{
-	  tree->position =
-	    (position - relative_position /* the left edge of *tree */
-	     + LEFT_TOTAL_LENGTH (tree)); /* the left edge of this interval */
+	  tree->position
+	    = (position - relative_position /* the left edge of *tree */
+	       + LEFT_TOTAL_LENGTH (tree)); /* the left edge of this interval */
 
 	  return tree;
 	}
@@ -800,16 +831,22 @@ adjust_intervals_for_insertion (tree, position, length)
   register INTERVAL i;
   register INTERVAL temp;
   int eobp = 0;
+  Lisp_Object parent;
+  int offset;
   
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
     abort ();
 
+  XSETFASTINT (parent, (EMACS_INT) tree->parent);
+  offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
+
   /* If inserting at point-max of a buffer, that position will be out
      of range.  Remember that buffer positions are 1-based.  */
-  if (position >= BEG + TOTAL_LENGTH (tree)){
-    position = BEG + TOTAL_LENGTH (tree);
-    eobp = 1;
-  }
+  if (position >= TOTAL_LENGTH (tree) + offset)
+    {
+      position = TOTAL_LENGTH (tree) + offset;
+      eobp = 1;
+    }
 
   i = find_interval (tree, position);
 
@@ -1249,12 +1286,17 @@ adjust_intervals_for_deletion (buffer, start, length)
   register int left_to_delete = length;
   register INTERVAL tree = BUF_INTERVALS (buffer);
   register int deleted;
+  Lisp_Object parent;
+  int offset;
+
+  XSETFASTINT (parent, (EMACS_INT) tree->parent);
+  offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
 
   if (NULL_INTERVAL_P (tree))
     return;
 
-  if (start > BEG + TOTAL_LENGTH (tree)
-      || start + length > BEG + TOTAL_LENGTH (tree))
+  if (start > offset + TOTAL_LENGTH (tree)
+      || start + length > offset + TOTAL_LENGTH (tree))
     abort ();
 
   if (length == TOTAL_LENGTH (tree))
@@ -1269,11 +1311,11 @@ adjust_intervals_for_deletion (buffer, start, length)
       return;
     }
 
-  if (start > BEG + TOTAL_LENGTH (tree))
-    start = BEG + TOTAL_LENGTH (tree);
+  if (start > offset + TOTAL_LENGTH (tree))
+    start = offset + TOTAL_LENGTH (tree);
   while (left_to_delete > 0)
     {
-      left_to_delete -= interval_deletion_adjustment (tree, start - 1,
+      left_to_delete -= interval_deletion_adjustment (tree, start - offset,
 						      left_to_delete);
       tree = BUF_INTERVALS (buffer);
       if (left_to_delete == tree->total_length)
@@ -1481,6 +1523,11 @@ make_new_interval (intervals, start, length)
 /* Insert the intervals of SOURCE into BUFFER at POSITION.
    LENGTH is the length of the text in SOURCE.
 
+   The `position' field of the SOURCE intervals is assumed to be
+   consistent with its parent; therefore, SOURCE must be an
+   interval tree made with copy_interval or must be the whole
+   tree of a buffer or a string.
+
    This is used in insdel.c when inserting Lisp_Strings into the
    buffer.  The text corresponding to SOURCE is already in the buffer
    when this is called.  The intervals of new tree are a copy of those
@@ -1551,7 +1598,9 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
 	  BUF_INTERVALS (buffer) = reproduce_tree (source, buf);
-	  /* Explicitly free the old tree here.  */
+	  BUF_INTERVALS (buffer)->position = 1;
+
+	  /* Explicitly free the old tree here?  */
 
 	  return;
 	}
@@ -1571,6 +1620,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
        about inserting properly.  For now, just waste the old intervals.  */
     {
       BUF_INTERVALS (buffer) = reproduce_tree (source, tree->parent);
+      BUF_INTERVALS (buffer)->position = 1;
       /* Explicitly free the old tree here.  */
 
       return;
@@ -1583,7 +1633,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
   this = under = find_interval (tree, position);
   if (NULL_INTERVAL_P (under))	/* Paranoia */
     abort ();
-  over = find_interval (source, 1);
+  over = find_interval (source, interval_start_pos (source));
 
   /* Here for insertion in the middle of an interval.
      Split off an equivalent interval to the right,
@@ -2017,7 +2067,8 @@ get_local_map (position, buffer)
 }
 
 /* Produce an interval tree reflecting the intervals in
-   TREE from START to START + LENGTH.  */
+   TREE from START to START + LENGTH.
+   The new interval tree has no parent and has a starting-position of 0.  */
 
 INTERVAL
 copy_intervals (tree, start, length)
@@ -2040,7 +2091,7 @@ copy_intervals (tree, start, length)
     return NULL_INTERVAL;
 
   new = make_interval ();
-  new->position = 1;
+  new->position = 0;
   got = (LENGTH (i) - (start - i->position));
   new->total_length = length;
   copy_properties (i, new);
@@ -2076,7 +2127,7 @@ copy_intervals_to_string (string, buffer, position, length)
   XSTRING (string)->intervals = interval_copy;
 }
 
-/* Return 1 if string S1 and S2 have identical properties; 0 otherwise.
+/* Return 1 if strings S1 and S2 have identical properties; 0 otherwise.
    Assume they have identical characters.  */
 
 int
@@ -2084,13 +2135,11 @@ compare_string_intervals (s1, s2)
      Lisp_Object s1, s2;
 {
   INTERVAL i1, i2;
-  int pos = 1;
-  int end = XSTRING (s1)->size + 1;
+  int pos = 0;
+  int end = XSTRING (s1)->size;
 
-  /* We specify 1 as position because the interval functions
-     always use positions starting at 1.  */
-  i1 = find_interval (XSTRING (s1)->intervals, 1);
-  i2 = find_interval (XSTRING (s2)->intervals, 1);
+  i1 = find_interval (XSTRING (s1)->intervals, 0);
+  i2 = find_interval (XSTRING (s2)->intervals, 0);
 
   while (pos < end)
     {
