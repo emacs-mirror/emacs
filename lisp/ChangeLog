@@ -1,9 +1,18 @@
+2004-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-edit.el (fill) <defgroup>: Move to fill.el.
+
+	* textmodes/fill.el (fill) <defgroup>: Move from cus-edit.el.
+	(enable-kinsoku): Make it a defcustom.
+	(fill-comment-paragraph): Don't rely on fill-prefix to bound the
+	paragraph to same-comment-start-marker.
+
 2004-03-07  Dave Love  <fx@gnu.org>
 
 	* net/browse-url.el (rfc2368-parse-mailto-url): Autoload.
 	(browse-url-mail): Use it.
 
-	* mail/rfc2368.el (rfc2368-unhexify-char): Deleted.
+	* mail/rfc2368.el (rfc2368-unhexify-char): Delete.
 	(rfc2368-unhexify-string): Use replace-regexp-in-string.
 
 2004-03-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
@@ -21,13 +30,16 @@
 	* gdb-ui.el (gdb-overlay-arrow-position): Add defvar.
 	(gdb-reset): Reset gdb-overlay-arrow-position marker and remove it
 	from overlay-arrow-variable-list.
-	(gdb-assembler-mode): Use add-to-list for
-	gdb-overlay-arrow-position.
+	(gdb-assembler-mode): Use add-to-list for gdb-overlay-arrow-position.
 
 2004-03-06  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-assembler-mode, gdb-assembler-custom): Set up
 	overlay arrow string properly for the assembler buffer.
+
+2004-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (mail-mode): Fix last change.
 
 2004-03-05  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -37,6 +49,11 @@
 	(gdb-put-arrow, gdb-remove-arrow): Delete functions.
 
 2004-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Add @ in case patterns.
+
+	* pcvs-info.el (cvs-fileinfo->backup-file): Use a more constraining
+	regexp to distinguish .#ChangeLog.9.1.400 and .#ChangeLog.1.400.
 
 	* mail/sendmail.el (mail-mode): Set comment-start-skip.
 
@@ -95,6 +112,11 @@
 
 	* textmodes/fill.el (fill-comment-paragraph): Be more careful when
 	recognizing leading comment on code line.
+
+2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (setwins, setwins_almost): Skip .arch-ids and other
+	hidden files/directories.
 
 2004-03-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
