@@ -1,6 +1,6 @@
 /* impl.c.fmthe: DYLAN-LIKE OBJECT FORMAT WITH HEADERS
  *
- * $HopeName$
+ * $HopeName: MMsrc!fmthe.c(trunk.1) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .source: This was derived from impl.c.fmtdy -- it's probably a good idea to
@@ -42,18 +42,12 @@
  *  WW+4        (0 << 3) | 0    wrappers have a non-traceable vector
  *  WW+5        (1 << 2) | 1    one pattern word follows
  *  WW+6        0b001           only field 0 is traceable
- *
- *
- * TRANSGRESSIONS
- *
- * .assert: Test code really shouldn't use assert.
  */
 
 
 #include "fmthe.h"
 #include "mps.h"
 
-#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -71,6 +65,7 @@
 #include "testlib.h"
 
 
+#define assert(cond) Insist(cond)
 #define notreached()    assert(0)
 #define unused(param)   ((void)(param))
 
