@@ -37,10 +37,39 @@ static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
-/* timings */
+#ifdef MPS_OS_W3
+
+static HANDLE currentProcess;
+
+static void prepare_clock(void)
+{
+  me = GetCurrentProcess();
+}
+
+static double my_clock(void)
+{
+    HANDLE me;
+    FILETIME ctime, etime, ktime, utime;
+    double dk, du;
+    me = GetCurrentProcess();
+    GetProcessTimes(me, &ctime, &etime, &ktime, &utime);
+    dk = ktime.dwHighDateTime * 4096.0 * 1024.0 * 1024.0 + ktime.dwLowDateTime;
+    dk /= 10.0;
+    du = utime.dwHighDateTime * 4096.0 * 1024.0 * 1024.0 + utime.dwLowDateTime;
+    du /= 10.0;
+    return (du+dk);
+}
+
+#else
+/* on Posix systems, we can use getrusage. */
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+
+static void prepare_clock(void)
+{
+}
 
 static double myclock(void)
 {
@@ -51,6 +80,7 @@ static double myclock(void)
             (ru.ru_utime.tv_usec) +
             (ru.ru_stime.tv_usec));
 }
+#endif
 
 double alloc_time, step_time, no_step_time, max_step_time, max_no_step_time, max_alloc_time;
 
@@ -230,6 +260,8 @@ int main(int argc, char **argv)
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+
+  prepare_clock();
 
   randomize(argc, argv);
 
