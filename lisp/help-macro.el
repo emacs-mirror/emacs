@@ -93,14 +93,14 @@ and then returns."
 		  (substitute-command-keys (, help-line))))
 	     (if three-step-help
 		 (message line-prompt))
-	     (let* ((overriding-local-map (make-sparse-keymap))
+	     (let* ((help-screen (documentation (quote (, fname))))
+		    (overriding-local-map (make-sparse-keymap))
 		    (minor-mode-map-alist nil)
-		    config key char help-screen)
+		    config key char)
 	       (unwind-protect
 		   (progn
 		     (setcdr overriding-local-map (, helped-map))
 		     (define-key overriding-local-map [t] 'undefined)
-		     (setq help-screen (documentation (quote (, fname))))
 		     (if three-step-help
 			 (setq key (read-key-sequence nil)
 			       char (aref key 0))
