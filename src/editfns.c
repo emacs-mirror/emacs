@@ -900,7 +900,7 @@ Lisp_Object
 make_buffer_string (start, end)
      int start, end;
 {
-  Lisp_Object result, tem;
+  Lisp_Object result, tem, tem1;
 
   if (start < GPT && GPT < end)
     move_gap (start);
@@ -909,9 +909,10 @@ make_buffer_string (start, end)
   bcopy (&FETCH_CHAR (start), XSTRING (result)->data, end - start);
 
   tem = Fnext_property_change (make_number (start), Qnil, make_number (end));
+  tem1 = Ftext_properties_at (make_number (start), Qnil);
 
 #ifdef USE_TEXT_PROPERTIES
-  if (XINT (tem) != end)
+  if (XINT (tem) != end || !NILP (tem1))
     copy_intervals_to_string (result, current_buffer, start, end - start);
 #endif
 
