@@ -1,11 +1,11 @@
-;;; cal-x.el --- calendar windows in dedicated frames in x-windows
+;;; cal-x.el --- calendar windows in dedicated frames in X
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
-;; Human-Keywords: calendar, dedicated frames, x-windows
+;; Human-Keywords: calendar, dedicated frames, X Window System
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements dedicated frames in x-windows for
+;; This collection of functions implements dedicated frames in X for
 ;; calendar.el.
 
 ;; Comments, corrections, and improvements should be sent to
