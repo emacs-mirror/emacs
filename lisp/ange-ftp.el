@@ -1008,7 +1008,7 @@ only return the directory part of FILE."
   "Read a password, echoing `.' for each character typed.
 End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
 Optional DEFAULT is password to start with."
-  (let ((pass (if default default ""))
+  (let ((pass nil)
 	(c 0)
 	(echo-keystrokes 0)
 	(cursor-in-echo-area t))
@@ -1025,7 +1025,7 @@ Optional DEFAULT is password to start with."
 	      (setq pass (substring pass 0 -1))))))
     (message "")
     (ange-ftp-repaint-minibuffer)
-    pass))
+    (or pass default "")))
 
 (defmacro ange-ftp-generate-passwd-key (host user)
   (` (concat (, host) "/" (, user))))
@@ -1102,7 +1102,7 @@ Optional DEFAULT is password to start with."
 			    ;; found another machine with the same user.
 			    ;; Try that account.
 			    (ange-ftp-read-passwd
-			     (format "passwd for %s@%s (same as %s@%s): "
+			     (format "passwd for %s@%s (default same as %s@%s): "
 				     user host user other)
 			     (ange-ftp-lookup-passwd other user))
 			  
