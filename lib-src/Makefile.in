@@ -248,7 +248,7 @@ TAGS: etags
    distribute Emacs.  If they were clobbered, all the .elc files were
    clobbered too.  */
 test-distrib: ${srcdir}/test-distrib.c
-	$(CC) -o test-distrib ${srcdir}/test-distrib.c
+	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
 GETOPTOBJS = getopt.o getopt1.o $(ALLOCA)
