@@ -48,11 +48,6 @@ and this notice must be preserved on all copies.  */
 
 /* #define WORD_MACHINE */
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (c)
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    vax, m68000, ns16000, pyramid, orion, tahoe and APOLLO

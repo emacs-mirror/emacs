@@ -41,11 +41,6 @@ NOTE-END  */
 
 /* #define BIG_ENDIAN */  /* So don't define this.  */
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (c)
-
 /* Say this machine is a 16000 */
 
 #define ns16000 1

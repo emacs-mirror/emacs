@@ -48,14 +48,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* #define WORD_MACHINE */
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-/* The 3b20 doesn't sign extend characters OR ints, so
-   right shifting an int loses the sign bit */
-#define SIGN_EXTEND_CHAR(c) (((sign_extend_temp=(c)) & 0x80) \
-			     ? (sign_extend_temp | 0xFFFFFF00) \
-			     : (sign_extend_temp))
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically */
 #define ATT3B

@@ -36,11 +36,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define BIG_ENDIAN
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (c)
-
 #define EXPLICIT_SIGN_EXTEND
 
 /* Use type int rather than a union, to represent Lisp_Object */

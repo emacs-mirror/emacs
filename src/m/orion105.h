@@ -45,8 +45,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define WORD_MACHINE if addresses and such have
  * to be corrected before they can be used as byte counts.  */
 
-#define SIGN_EXTEND_CHAR(c) ((int)(c))
-
 /* Use type int rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
 

@@ -53,13 +53,6 @@ compiler is so brain damaged that it is not even worth trying to use it.
 
 #define WORD_MACHINE /* not actually used anywhere yet! */
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (((sign_extend_temp=(c)) & 0x80) \
-			     ? (sign_extend_temp | 0xFFFFFF00) \
-			     : (sign_extend_temp))
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    vax, m68000, ns16000, pyramid, orion, tahoe and APOLLO

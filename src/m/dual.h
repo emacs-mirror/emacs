@@ -51,11 +51,6 @@ NOTE-END */
 
 #define EXPLICIT_SIGN_EXTEND
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (c)
-
 /* Use type int rather than a union, to represent Lisp_Object */
 
 #define NO_UNION_TYPE

@@ -37,11 +37,6 @@ and this notice must be preserved on all copies.  */
 
 #define BIG_ENDIAN
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (c)
-
 /* Say this machine is a 68000 */
 
 #ifndef m68000
