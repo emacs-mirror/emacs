@@ -696,7 +696,7 @@ Key translation rules are:
 
 (quail-define-package
  "polish-slash" "Polish" "PL>" nil
- "Polish diacritics in Latin-2 encoding are input as `/[acelnosxzACELNOSXZ]'.
+ "Polish diacritics are input as `/[acelnosxzACELNOSXZ]'.
 For example, the character named `aogonek' is obtained by `/a'."
  nil t t t nil nil nil nil nil nil t)
 
