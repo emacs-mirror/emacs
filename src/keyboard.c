@@ -1199,6 +1199,16 @@ cmd_error_internal (data, context)
       Fdiscard_input ();
       bitch_at_user ();
       stream = Qt;
+
+      /* If we know from where the error was signaled, show it in
+	 *Messages*.  */
+      if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
+	{
+	  char *name = XSTRING (SYMBOL_NAME (Vsignaling_function))->data;
+	  message_dolog (name, strlen (name), 0, 0);
+	  message_dolog (": ", 2, 0, 0);
+	  Vsignaling_function = Qnil;
+	}
     }
 
   if (context != 0)
@@ -1349,30 +1359,35 @@ command_loop_1 ()
   this_command_key_count = 0;
   this_single_command_key_start = 0;
 
-  /* Make sure this hook runs after commands that get errors and
-     throw to top level.  */
-  /* Note that the value cell will never directly contain nil
-     if the symbol is a local variable.  */
-  if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-    safe_run_hooks (Qpost_command_hook);
-
-  /* If displaying a message, resize the echo area window to fit
-     that message's size exactly.  */
-  if (!NILP (echo_area_buffer[0]))
-    resize_echo_area_exactly ();
-
-  if (!NILP (Vdeferred_action_list))
-    call0 (Vdeferred_action_function);
-
-  if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
+  if (! NILP (Vmemory_full))
     {
-      if (NILP (Vunread_command_events)
-	  && NILP (Vunread_input_method_events)
-	  && NILP (Vunread_post_input_method_events)
-	  && NILP (Vexecuting_macro)
-	  && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
-	safe_run_hooks (Qpost_command_idle_hook);
+      /* Make sure this hook runs after commands that get errors and
+	 throw to top level.  */
+      /* Note that the value cell will never directly contain nil
+	 if the symbol is a local variable.  */
+      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
+	safe_run_hooks (Qpost_command_hook);
+
+      /* If displaying a message, resize the echo area window to fit
+	 that message's size exactly.  */
+      if (!NILP (echo_area_buffer[0]))
+	resize_echo_area_exactly ();
+
+      if (!NILP (Vdeferred_action_list))
+	call0 (Vdeferred_action_function);
+
+      if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
+	{
+	  if (NILP (Vunread_command_events)
+	      && NILP (Vunread_input_method_events)
+	      && NILP (Vunread_post_input_method_events)
+	      && NILP (Vexecuting_macro)
+	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
+	    safe_run_hooks (Qpost_command_idle_hook);
+	}
     }
+
+  Vmemory_full = Qnil;
 
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
