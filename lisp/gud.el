@@ -234,7 +234,8 @@ we're in the GUD buffer)."
   "Make sure the current local map has a [menu-bar debug] submap.
 If it doesn't, replace it with a new map that inherits it,
 and create such a submap in that new map."
-  (if (lookup-key (current-local-map) [menu-bar debug])
+  (if (and (current-local-map)
+	   (lookup-key (current-local-map) [menu-bar debug]))
       nil
     (use-local-map (gud-new-keymap (current-local-map)))
     (define-key (current-local-map) [menu-bar debug]
