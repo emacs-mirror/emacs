@@ -76,6 +76,7 @@ Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
+Lisp_Object Qwin32;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
 
@@ -111,6 +112,8 @@ syms_of_frame_1 ()
   staticpro (&Qwidth);
   Qx = intern ("x");
   staticpro (&Qx);
+  Qwin32 = intern ("win32");
+  staticpro (&Qwin32);
   Qvisible = intern ("visible");
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
@@ -201,6 +204,8 @@ See also `frame-live-p'.")
       return Qt;
     case output_x_window:
       return Qx;
+    case output_win32:
+      return Qwin32;
       /* The `pc' case is in the Fframep below.  */
     default:
       abort ();
@@ -547,8 +552,8 @@ do_switch_frame (frame, no_enter, track)
     }
 #else /* ! 0 */
   /* Instead, apply it only to the frame we're pointing to.  */
-#ifdef HAVE_X_WINDOWS
-  if (track && FRAME_X_P (XFRAME (frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (track && (FRAME_WINDOW_P (XFRAME (frame))))
     {
       Lisp_Object focus, xfocus;
 
@@ -968,8 +973,8 @@ other_visible_frames (f)
 	  /* Verify that the frame's window still exists
 	     and we can still talk to it.  And note any recent change
 	     in visibility.  */
-#ifdef HAVE_X_WINDOWS
-	  if (FRAME_X_P (XFRAME (this)))
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (FRAME_WINDOW_P (XFRAME (this)))
 	    {
 	      x_sync (XFRAME (this));
 	      FRAME_SAMPLE_VISIBILITY (XFRAME (this));
@@ -980,7 +985,7 @@ other_visible_frames (f)
 	      || FRAME_ICONIFIED_P (XFRAME (this))
 	      /* Allow deleting the terminal frame when at least
 		 one X frame exists!  */
-	      || (FRAME_X_P (XFRAME (this)) && !FRAME_X_P (f)))
+	      || (FRAME_WINDOW_P (XFRAME (this)) && !FRAME_WINDOW_P (f)))
 	    count++;
 	}
       return count > 1;
@@ -1112,8 +1117,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
      called the window-system-dependent frame destruction routine.  */
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     x_destroy_window (f);
 #endif
 
@@ -1289,8 +1294,8 @@ before calling this function on it, like this.\n\
   CHECK_NUMBER (y, 1);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (XFRAME (frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_position (XFRAME (frame), x, y);
 #endif
@@ -1313,8 +1318,8 @@ before calling this function on it, like this.\n\
   CHECK_NUMBER (y, 1);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (XFRAME (frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_pixel_position (XFRAME (frame), x, y);
 #endif
@@ -1335,8 +1340,8 @@ If omitted, FRAME defaults to the currently selected frame.")
   CHECK_LIVE_FRAME (frame, 0);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (XFRAME (frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (frame)))
     {
       FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
       x_make_frame_visible (XFRAME (frame));
@@ -1381,8 +1386,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     }
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (XFRAME (frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (frame)))
     x_make_frame_invisible (XFRAME (frame));
 #endif
 
@@ -1419,8 +1424,8 @@ If omitted, FRAME defaults to the currently selected frame.")
     }
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (XFRAME (frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (frame)))
       x_iconify_frame (XFRAME (frame));
 #endif
 
@@ -1556,9 +1561,9 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
   XFRAME (frame)->focus_frame = focus_frame;
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (!NILP (focus_frame) && ! EQ (focus_frame, frame)
-      && FRAME_X_P (XFRAME (focus_frame)))
+      && (FRAME_WINDOW_P (XFRAME (focus_frame))))
     Ffocus_frame (focus_frame);
 #endif
 
@@ -1639,7 +1644,7 @@ store_frame_param (f, prop, val)
   if (EQ (prop, Qbuffer_predicate))
     f->buffer_predicate = val;
 
-  if (! FRAME_X_P (f))
+  if (! FRAME_WINDOW_P (f))
     if (EQ (prop, Qmenu_bar_lines))
       set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
 
@@ -1690,8 +1695,8 @@ If FRAME is omitted, return information on the currently selected frame.")
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     x_report_frame_params (f, &alist);
   else
 #endif
@@ -1725,8 +1730,8 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
     }
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     x_set_frame_parameters (f, alist);
   else
 #endif
@@ -1759,8 +1764,8 @@ For a terminal frame, the value is always 1.")
       f = XFRAME (frame);
     }
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     return make_number (x_char_height (f));
   else
 #endif
@@ -1788,8 +1793,8 @@ For a terminal screen, the value is always 1.")
       f = XFRAME (frame);
     }
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     return make_number (x_char_width (f));
   else
 #endif
@@ -1814,8 +1819,8 @@ If FRAME is omitted, the selected frame is used.")
       f = XFRAME (frame);
     }
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     return make_number (x_pixel_height (f));
   else
 #endif
@@ -1840,8 +1845,8 @@ If FRAME is omitted, the selected frame is used.")
       f = XFRAME (frame);
     }
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     return make_number (x_pixel_width (f));
   else
 #endif
@@ -1867,8 +1872,8 @@ but that the idea of the actual height of the frame should not be changed.")
     }
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     {
       if (XINT (rows) != f->height)
 	x_set_window_size (f, 1, f->width, XINT (rows));
@@ -1897,8 +1902,8 @@ but that the idea of the actual width of the frame should not be changed.")
     }
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     {
       if (XINT (cols) != f->width)
 	x_set_window_size (f, 1, XINT (cols), f->height);
@@ -1923,8 +1928,8 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     {
       if (XINT (rows) != f->height || XINT (cols) != f->width)
 	x_set_window_size (f, 1, XINT (cols), XINT (rows));
@@ -1954,8 +1959,8 @@ the rightmost or bottommost possible position (that stays within the screen).")
   f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     x_set_offset (f, XINT (xoffset), XINT (yoffset), 1);
 #endif
 
