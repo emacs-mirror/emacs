@@ -1637,6 +1637,9 @@ with references to further information.
 @item keymapp
 @xref{Creating Keymaps, keymapp}.
 
+@item keywordp
+@xref{Constant Variables}.
+
 @item listp
 @xref{List-related Predicates, listp}.
 

@@ -128,6 +128,13 @@ whose names start with @samp{:} however you wish.  This is to make it
 possible to run old Lisp programs which do that.
 @end defvar
 
+@defun keywordp object
+@tindex keywordp
+function returns @code{t} if @var{object} is a symbol whose name
+starts with @samp{:}, interned in the standard obarray, and returns
+@code{nil} otherwise.
+@end defun
+
 @node Local Variables
 @section Local Variables
 @cindex binding local variables
@@ -556,10 +563,12 @@ variable intended to be set by the user for customization---and
 @code{nil} otherwise.  (Variables other than user options exist for the
 internal purposes of Lisp programs, and users need not know about them.)
 
-User option variables are distinguished from other variables by the
-first character of the @code{variable-documentation} property.  If the
-property exists and is a string, and its first character is @samp{*},
-then the variable is a user option.
+User option variables are distinguished from other variables either
+though being declared using @code{defcustom}@footnote{They may also be
+declared equivalently in @file{cus-start.el}.} or by the first character
+of their @code{variable-documentation} property.  If the property exists
+and is a string, and its first character is @samp{*}, then the variable
+is a user option.
 @end defun
 
 @kindex variable-interactive
