@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;;
-;; Todo: add directory tracking using ange-ftp style patchnames for the cwd.
 
 ;;; Code:
 
@@ -63,9 +61,7 @@ the minibuffer using the command `rlogin-password' explicitly.")
 ;;;###autoload
 (defvar rlogin-mode-map '())
 (cond ((not rlogin-mode-map)
-       (setq rlogin-mode-map (full-copy-sparse-keymap comint-mode-map))
-       ;(define-key rlogin-mode-map "\M-\t" 'comint-dynamic-complete)
-       ;(define-key rlogin-mode-map "\M-?"  'comint-dynamic-list-completions)
+       (setq rlogin-mode-map (cons 'keymap shell-mode-map)) 
        (define-key rlogin-mode-map "\C-c\C-c" 'rlogin-send-Ctrl-C)
        (define-key rlogin-mode-map "\C-c\C-z" 'rlogin-send-Ctrl-Z)
        (define-key rlogin-mode-map "\C-c\C-\\" 'rlogin-send-Ctrl-backslash)
@@ -105,7 +101,15 @@ the rlogin when starting."
           ;; buffer from a previous exited process.
           (set-marker (process-mark proc) (point-max))
           (set-process-filter proc 'rlogin-filter)
-          (rlogin-mode)))))
+          (rlogin-mode)
+	  ;; Set the prefix for filename completion and directory tracking
+	  ;; to find the remote machine's files by ftp.
+	  (set (make-local-variable 'comint-filename-prefix)
+	       (concat "/" host ":"))
+	  ;; Presume the user will start in his remote home directory.
+	  ;; If this is wrong, M-x dirs will fix it.
+	  (cd-absolute (concat "/" host ":~/"))
+	  ))))
 
 ;;;###autoload
 (defun rlogin-with-args (host args)
@@ -156,8 +160,7 @@ is intended primarily for use by `rlogin-filter'."
 If `rlogin-mode-hook' is set, run it."
   (interactive)
   (kill-all-local-variables)
-  (comint-mode)
-  (setq comint-prompt-regexp shell-prompt-pattern)
+  (shell-mode)
   (setq major-mode 'rlogin-mode)
   (setq mode-name "rlogin")
   (use-local-map rlogin-mode-map)
