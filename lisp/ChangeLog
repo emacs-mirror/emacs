@@ -1,5 +1,16 @@
 2002-05-14  Dave Love  <fx@gnu.org>
 
+	* mail/sendmail.el (sendmail-send-it): Use :mime-charset, not
+	mime-charset.
+
+	* language/vietnamese.el, language/korean.el, language/japanese.el: 
+	* language/hebrew.el, language/greek.el, language/chinese.el: 
+	Fix :mime-charset properties.
+
+	* language/cyrillic.el (cyrillic-iso-8bit, cyrillic-koi8) 
+	(cyrillic-alternativnyj): Fix :mime-charset.
+	(cp878, cp866): New alias.
+
 	* language/european.el: Fix mime-charset properties.
 
 	* international/mule-cmds.el (sort-coding-systems) 
