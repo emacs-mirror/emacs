@@ -1,3 +1,13 @@
+2001-10-08  Andrew Innes  <andrewi@gnu.org>
+
+	* lisp.h [max]: Undef min and max before redefining them.
+
+	* w32gui.h: Do not undef min and max.
+
+	* w32heap.h: Do not undef min and max.
+
+	* s/ms-w32.h: Do not undef min and max.
+
 2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xdisp.c (handle_fontified_prop): Don't bind after-change-functions.
