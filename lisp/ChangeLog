@@ -1,3 +1,14 @@
+2004-04-28  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-frame-breakpoints-buffer)
+	(gdb-frame-stack-buffer, gdb-frame-threads-buffer)
+	(gdb-frame-registers-buffer, gdb-frame-locals-buffer)
+	(gdb-frame-gdb-buffer, gdb-frame-assembler-buffer): Use
+	selected-window.
+
+	* progmodes/gud.el (gud-common-init): Throw an error if program is
+	already running under gdb.
+
 2004-04-28  John Paul Wallington  <jpw@gnu.org>
 
 	* thumbs.el (thumbs-delete-images): Fix formatting of prompt.
