@@ -1,7 +1,8 @@
-;; Quail packages for inputting various European characters.
+;; Quail packages for inputting various European characters. -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, input method, latin
 
@@ -1523,4 +1524,94 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  ("u\"\"" ["u\""])
  ("U^^" ["U^"])
  ("u^^" ["u^"])
+ )
+
+;; Dutch Quail input method derived from the one in Yudit by Roman
+;; Czyborra.
+(quail-define-package
+ "dutch" "Latin" "NL" t
+ "Dutch character mixfix input method.
+Uses the `mule-unicode-0100-24ff' charset to supplement Latin-1.
+
+             |         | examples
+ ------------+---------+----------
+  others     |         | fl. -> $,1!R(B  eur. -> $,1tL(B  ij -> $,1 S(B  IJ -> $,1 R(B
+ ------------+---------+----------
+             | postfix |
+ ------------+---------+----------
+  acute      |    '    | a' -> ,Aa(B
+  grave      |    `    | a` -> ,A`(B
+  circumflex |    ^    | a^ -> ,Ab(B
+  Turkish    | various | i/ -> $,1 Q(B  s, -> $,1 (B  g^ -> $,1 ?(B   I/ -> $,1 P(B
+             |         |  S, -> $,1 ~(B  G^ -> $,1 >(B
+ ------------+---------+----------
+             | prefix  |
+ ------------+---------+----------
+  diaeresis  |    \"    | \"a -> ,Ad(B
+ 
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("fl." "$,1!R(B") ;; LATIN SMALL LETTER F WITH HOOK (florin currency symbol)
+ ("eur." "$,1tL(B") ;; EURO SIGN
+ ;; `The 25th letter of the Dutch alphabet.'
+ ("ij" "$,1 S(B") ;; LATIN SMALL LIGATURE IJ   
+ ("IJ" "$,1 R(B") ;; LATIN CAPITAL LIGATURE IJ   
+ ;; `Trema on the second letter of vowel pair.'  Yudit uses `:', not `"'.
+ ("\"a" ",Ad(B") ;; LATIN SMALL LETTER A WITH DIAERESIS 
+ ("\"e" ",Ak(B") ;; LATIN SMALL LETTER E WITH DIAERESIS 
+ ("\"i" ",Ao(B") ;; LATIN SMALL LETTER I WITH DIAERESIS 
+ ("\"o" ",Av(B") ;; LATIN SMALL LETTER O WITH DIAERESIS 
+ ("\"u" ",A|(B") ;; LATIN SMALL LETTER U WITH DIAERESIS 
+ ("\"A" ",AD(B") ;; LATIN CAPITAL LETTER A WITH DIAERESIS 
+ ("\"E" ",AK(B") ;; LATIN CAPITAL LETTER E WITH DIAERESIS 
+ ("\"I" ",AO(B") ;; LATIN CAPITAL LETTER I WITH DIAERESIS 
+ ("\"O" ",AV(B") ;; LATIN CAPITAL LETTER O WITH DIAERESIS 
+ ("\"U" ",A\(B") ;; LATIN CAPITAL LETTER U WITH DIAERESIS 
+ ;; `Acute, marking emphasis on long vowels':
+ ("a'" ",Aa(B") ;; LATIN SMALL LETTER A WITH ACUTE 
+ ("e'" ",Ai(B") ;; LATIN SMALL LETTER E WITH ACUTE 
+ ("i'" ",Am(B") ;; LATIN SMALL LETTER I WITH ACUTE 
+ ("o'" ",As(B") ;; LATIN SMALL LETTER O WITH ACUTE 
+ ("u'" ",Az(B") ;; LATIN SMALL LETTER U WITH ACUTE 
+ ("A'" ",AA(B") ;; LATIN CAPITAL LETTER A WITH ACUTE 
+ ("E'" ",AI(B") ;; LATIN CAPITAL LETTER E WITH ACUTE 
+ ("I'" ",AM(B") ;; LATIN CAPITAL LETTER I WITH ACUTE 
+ ("O'" ",AS(B") ;; LATIN CAPITAL LETTER O WITH ACUTE 
+ ("U'" ",AZ(B") ;; LATIN CAPITAL LETTER U WITH ACUTE 
+ ;; `Grave, marking emphasis on short vowels':
+ ("a`" ",A`(B") ;; LATIN SMALL LETTER A WITH GRAVE
+ ("e`" ",Ah(B") ;; LATIN SMALL LETTER E WITH GRAVE 
+ ("i`" ",Al(B") ;; LATIN SMALL LETTER I WITH GRAVE 
+ ("o`" ",Ar(B") ;; LATIN SMALL LETTER O WITH GRAVE 
+ ("u`" ",Ay(B") ;; LATIN SMALL LETTER U WITH GRAVE 
+ ("A`" ",A@(B") ;; LATIN CAPITAL LETTER A WITH GRAVE 
+ ("E`" ",AH(B") ;; LATIN CAPITAL LETTER E WITH GRAVE 
+ ("I`" ",AL(B") ;; LATIN CAPITAL LETTER I WITH GRAVE 
+ ("O`" ",AR(B") ;; LATIN CAPITAL LETTER O WITH GRAVE 
+ ("U`" ",AY(B") ;; LATIN CAPITAL LETTER U WITH GRAVE
+ ;; `Cater for the use of many French words and use of the circumflex
+ ;; in Frisian.'  Yudit used `;' for cedilla.
+ ("c," ",Ag(B") ;; LATIN SMALL LETTER C WITH CEDILLA 
+ ("C," ",AG(B") ;; LATIN CAPITAL LETTER C WITH CEDILLA 
+ ("a^" ",Ab(B") ;; LATIN SMALL LETTER A WITH CIRCUMFLEX 
+ ("e^" ",Aj(B") ;; LATIN SMALL LETTER E WITH CIRCUMFLEX 
+ ("i^" ",An(B") ;; LATIN SMALL LETTER I WITH CIRCUMFLEX 
+ ("o^" ",At(B") ;; LATIN SMALL LETTER O WITH CIRCUMFLEX 
+ ("u^" ",A{(B") ;; LATIN SMALL LETTER U WITH CIRCUMFLEX 
+ ("A^" ",AB(B") ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX 
+ ("E^" ",AJ(B") ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX 
+ ("I^" ",AN(B") ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX 
+ ("O^" ",AT(B") ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX 
+ ("U^" ",A[(B") ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
+ ;; `Follow the example of the Dutch POSIX locale, using ISO-8859-9 to
+ ;; cater to the many Turks in Dutch society.'  Perhaps German methods
+ ;; should do so too.  Follow turkish-alt-postfix here.
+ ("i/" "$,1 Q(B") ;; LATIN SMALL LETTER I WITH NO DOT
+ ("s," "$,1 (B") ;; LATIN SMALL LETTER S WITH CEDILLA 
+ ("g^" "$,1 ?(B") ;; LATIN SMALL LETTER G WITH BREVE 
+ ("I/" "$,1 P(B") ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
+ ("S," "$,1 ~(B") ;; LATIN CAPITAL LETTER S WITH CEDILLA 
+ ("G^" "$,1 >(B") ;; LATIN CAPITAL LETTER G WITH BREVE 
  )
