@@ -574,7 +574,7 @@ See variable `lisp-describe-sym-command'."
 				      (current-buffer)
 				    inferior-lisp-buffer))))
     (or proc
-	(error "No current process. See variable inferior-lisp-buffer"))))
+	(error "No Lisp subprocess; see variable `inferior-lisp-buffer'"))))
 
 
 ;;; Do the user's customisation...
