@@ -1,3 +1,8 @@
+2001-01-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* toolbar/save.xpm, toolbar/undo.xpm: Use the same colors as
+	exit.xpm.
+
 2001-01-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/etags.el (find-tag-interactive): If last-tag is nil,

@@ -1,3 +1,8 @@
+2001-01-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (x_free_colors, x_free_dpy_colors) [DEBUG_X_COLORS]: Do
+	the unregister_colors before calling XFreeColors.
+
 2001-01-10  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (${etc}DOC): Depend on ${shortlisp} and
