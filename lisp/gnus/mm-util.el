@@ -42,6 +42,8 @@
     (iso-8859-7 greek-iso8859-7)
     (iso-8859-8 hebrew-iso8859-8)
     (iso-8859-9 latin-iso8859-9)
+    (iso-8859-14 latin-iso8859-14)
+    (iso-8859-15 latin-iso8859-15)
     (viscii vietnamese-viscii-lower)
     (iso-2022-jp latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978)
     (euc-kr korean-ksc5601)
