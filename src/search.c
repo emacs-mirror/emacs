@@ -2711,9 +2711,10 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
       *out++ = *in;
     }
 
-  return make_multibyte_string (temp,
+  return make_specified_string (temp,
 				XSTRING (string)->size + backslashes_added,
-				out - temp);
+				out - temp,
+				STRING_MULTIBYTE (string));
 }
   
 syms_of_search ()
