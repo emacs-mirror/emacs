@@ -276,7 +276,7 @@ characters.  You can disable the wildcard feature by customizing
 or that is marked read-only, Emacs makes the buffer read-only too, so
 that you won't go ahead and make changes that you'll have trouble
 saving afterward.  You can make the buffer writable with @kbd{C-x C-q}
-(@code{vc-toggle-read-only}).  @xref{Misc Buffer}.
+(@code{toggle-read-only}).  @xref{Misc Buffer}.
 
 @kindex C-x C-r
 @findex find-file-read-only
@@ -1285,30 +1285,29 @@ instance, @samp{jim}), that is displayed as @samp{RCS:jim:1.3}.
 either locking or check-in, depending on the situation.
 
 @table @kbd
-@item C-x C-q
 @itemx C-x v v
 Perform the next logical version control operation on this file.
 @end table
 
 @findex vc-next-action
-@findex vc-toggle-read-only
 @kindex C-x v v
-@kindex C-x C-q @r{(Version Control)}
-  Strictly speaking, the command for this job is @code{vc-next-action},
-bound to @kbd{C-x v v}.  However, the normal meaning of @kbd{C-x C-q} is
-to make a read-only buffer writable, or vice versa; we have extended it
-to do the same job properly for files managed by version control, by
-performing the appropriate version control operations.  When you type
-@kbd{C-x C-q} on a registered file, it acts like @kbd{C-x v v}.
-
   The precise action of this command depends on the state of the file,
 and whether the version control system uses locking or not.  SCCS and
 RCS normally use locking; CVS normally does not use locking.
 
+@findex vc-toggle-read-only
+@kindex C-x C-q @r{(Version Control)}
+  As a special convenience that is particularly useful for files with
+locking, you can let Emacs check a file in or out whenever you change
+its read-only flag.  This means, for example, that you cannot
+accidentally edit a file without properly checking it out first.  To
+achieve this, bind the key @kbd{C-x C-q} to @kbd{vc-toggle-read-only}
+in your @file{~/.emacs} file.  (@xref{Init Rebinding}.)
+
 @menu
 * VC with Locking::     RCS in its default mode, SCCS, and optionally CVS.
 * Without Locking::     Without locking: default mode for CVS.
-* Advanced C-x C-q::    Advanced features available with a prefix argument.
+* Advanced C-x v v::    Advanced features available with a prefix argument.
 * Log Buffer::          Features available in log entry buffers.
 @end menu
                
@@ -1316,25 +1315,25 @@ RCS normally use locking; CVS normally does not use locking.
 @subsubsection Basic Version Control with Locking
 
   If locking is used for the file (as with SCCS, and RCS in its default
-mode), @kbd{C-x C-q} can either lock a file or check it in:
+mode), @kbd{C-x v v} can either lock a file or check it in:
 
 @itemize @bullet
 @item
-If the file is not locked, @kbd{C-x C-q} locks it, and
+If the file is not locked, @kbd{C-x v v} locks it, and
 makes it writable so that you can change it.
 
 @item
-If the file is locked by you, and contains changes, @kbd{C-x C-q} checks
+If the file is locked by you, and contains changes, @kbd{C-x v v} checks
 in the changes.  In order to do this, it first reads the log entry
 for the new version.  @xref{Log Buffer}.
 
 @item
 If the file is locked by you, but you have not changed it since you
-locked it, @kbd{C-x C-q} releases the lock and makes the file read-only
+locked it, @kbd{C-x v v} releases the lock and makes the file read-only
 again.
 
 @item
-If the file is locked by some other user, @kbd{C-x C-q} asks you whether
+If the file is locked by some other user, @kbd{C-x v v} asks you whether
 you want to ``steal the lock'' from that user.  If you say yes, the file
 becomes locked by you, but a message is sent to the person who had
 formerly locked the file, to inform him of what has happened.
@@ -1352,7 +1351,7 @@ file.  The status indicator on the mode line is @samp{-} if the file is
 unmodified; it flips to @samp{:} as soon as you save any changes in the
 work file.
 
-  Here is what @kbd{C-x C-q} does when using CVS:
+  Here is what @kbd{C-x v v} does when using CVS:
 
 @itemize @bullet
 @item
@@ -1365,12 +1364,12 @@ to commit your own changes, type @kbd{C-x v m @key{RET}}.)
 
 @item
 If there are no new changes in the master file, but you have made
-modifications in your work file, @kbd{C-x C-q} checks in your changes.
+modifications in your work file, @kbd{C-x v v} checks in your changes.
 In order to do this, it first reads the log entry for the new version.
 @xref{Log Buffer}.
 
 @item
-If the file is not modified, the @kbd{C-x C-q} does nothing.
+If the file is not modified, the @kbd{C-x v v} does nothing.
 @end itemize
 
   These rules also apply when you use RCS in the mode that does not
@@ -1385,15 +1384,15 @@ changes.  We hope to eliminate this risk and provide automatic merging
 with RCS in a future Emacs version.
 
   In addition, locking is possible with RCS even in this mode, although
-it is not required; @kbd{C-x C-q} with an unmodified file locks the
+it is not required; @kbd{C-x v v} with an unmodified file locks the
 file, just as it does with RCS in its normal (locking) mode.
 
-@node Advanced C-x C-q
-@subsubsection Advanced Control in @kbd{C-x C-q}
+@node Advanced C-x v v
+@subsubsection Advanced Control in @kbd{C-x v v}
 
 @cindex version number to check in/out
   When you give a prefix argument to @code{vc-next-action} (@kbd{C-u
-C-x C-q}), it still performs the next logical version control
+C-x v v}), it still performs the next logical version control
 operation, but accepts additional arguments to specify precisely how
 to do the operation.
 
@@ -1408,7 +1407,7 @@ If the file is not modified (and unlocked), you can specify the
 version to select; this lets you start working from an older version,
 or on another branch.  If you do not enter any version, that takes you
 to the highest version on the current branch; therefore @kbd{C-u C-x
-C-q @key{RET}} is a convenient way to get the latest version of a file from
+v v @key{RET}} is a convenient way to get the latest version of a file from
 the repository.
 
 @item
@@ -1422,7 +1421,7 @@ Version Control}).
 @node Log Buffer
 @subsubsection Features of the Log Entry Buffer
 
-  When you check in changes, @kbd{C-x C-q} first reads a log entry.  It
+  When you check in changes, @kbd{C-x v v} first reads a log entry.  It
 pops up a buffer called @samp{*VC-Log*} for you to enter the log entry.
 When you are finished, type @kbd{C-c C-c} in the @samp{*VC-Log*} buffer.
 That is when check-in really happens.
@@ -1574,9 +1573,9 @@ there are any files under CVS, SCCS if any files are under SCCS, or
 RCS as the ultimate default.
 
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
-read-only.  Type @kbd{C-x C-q} if you wish to start editing it.  After
+read-only.  Type @kbd{C-x v v} if you wish to start editing it.  After
 registering a file with CVS, you must subsequently commit the initial
-version by typing @kbd{C-x C-q}.
+version by typing @kbd{C-x v v}.
 
 @vindex vc-default-init-version
 @cindex initial version number to register
@@ -1815,7 +1814,7 @@ example above have branch numbers 1.2.1 and 1.2.2.
 @node Switching Branches
 @subsubsection Switching between Branches
 
-  To switch between branches, type @kbd{C-u C-x C-q} and specify the
+  To switch between branches, type @kbd{C-u C-x v v} and specify the
 version number you want to select.  This version is then visited
 @emph{unlocked} (write-protected), so you can examine it before locking
 it.  Switching branches in this way is allowed only when the file is not
@@ -1834,8 +1833,8 @@ other branch.
 
   To create a new branch from a head version (one that is the latest in
 the branch that contains it), first select that version if necessary,
-lock it with @kbd{C-x C-q}, and make whatever changes you want.  Then,
-when you check in the changes, use @kbd{C-u C-x C-q}.  This lets you
+lock it with @kbd{C-x v v}, and make whatever changes you want.  Then,
+when you check in the changes, use @kbd{C-u C-x v v}.  This lets you
 specify the version number for the new version.  You should specify a
 suitable branch number for a branch starting at the current version.
 For example, if the current version is 2.5, the branch number should be
@@ -1844,12 +1843,12 @@ that point.
 
   To create a new branch at an older version (one that is no longer the
 head of a branch), first select that version (@pxref{Switching
-Branches}), then lock it with @kbd{C-x C-q}.  You'll be asked to
+Branches}), then lock it with @kbd{C-x v v}.  You'll be asked to
 confirm, when you lock the old version, that you really mean to create a
 new branch---if you say no, you'll be offered a chance to lock the
 latest version instead.
 
-  Then make your changes and type @kbd{C-x C-q} again to check in a new
+  Then make your changes and type @kbd{C-x v v} again to check in a new
 version.  This automatically creates a new branch starting from the
 selected version.  You need not specially request a new branch, because
 that's the only way to add a new version at a point that is not the head
@@ -1858,7 +1857,7 @@ of a branch.
   After the branch is created, you ``stay'' on it.  That means that
 subsequent check-ins create new versions on that branch.  To leave the
 branch, you must explicitly select a different version with @kbd{C-u C-x
-C-q}.  To transfer changes from one branch to another, use the merge
+v v}.  To transfer changes from one branch to another, use the merge
 command, described in the next section.
 
 @node Merging
@@ -1895,9 +1894,9 @@ merges them into the current version of the current file.
   As an example, suppose that you have finished a certain feature on
 branch 1.3.1.  In the meantime, development on the trunk has proceeded
 to version 1.5.  To merge the changes from the branch to the trunk,
-first go to the head version of the trunk, by typing @kbd{C-u C-x C-q
+first go to the head version of the trunk, by typing @kbd{C-u C-x v v
 @key{RET}}.  Version 1.5 is now current.  If locking is used for the file,
-type @kbd{C-x C-q} to lock version 1.5 so that you can change it.  Next,
+type @kbd{C-x v v} to lock version 1.5 so that you can change it.  Next,
 type @kbd{C-x v m 1.3.1 @key{RET}}.  This takes the entire set of changes on
 branch 1.3.1 (relative to version 1.3, where the branch started, up to
 the last version on the branch) and merges it into the current version
@@ -1961,7 +1960,7 @@ present in the work file.
 
   If the files do not have version headers, you must instead tell Emacs
 explicitly in each session which branch you are working on.  To do this,
-first find the file, then type @kbd{C-u C-x C-q} and specify the correct
+first find the file, then type @kbd{C-u C-x v v} and specify the correct
 branch number.  This ensures that Emacs knows which branch it is using
 during this particular editing session.
 
@@ -2519,7 +2518,7 @@ for files that use version control, set the variable
 @vindex vc-keep-workfiles
   Normally the work file exists all the time, whether it is locked or
 not.  If you set @code{vc-keep-workfiles} to @code{nil}, then checking
-in a new version with @kbd{C-x C-q} deletes the work file; but any
+in a new version with @kbd{C-x v v} deletes the work file; but any
 attempt to visit the file with Emacs creates it again.  (With CVS, work
 files are always kept.)
 
@@ -2539,7 +2538,7 @@ this in the echo area.  If the value is @code{ask} (the default), VC
 asks you each time whether to follow the link.
 
 @vindex vc-suppress-confirm
-  If @code{vc-suppress-confirm} is non-@code{nil}, then @kbd{C-x C-q}
+  If @code{vc-suppress-confirm} is non-@code{nil}, then @kbd{C-x v v}
 and @kbd{C-x v i} can save the current buffer without asking, and
 @kbd{C-x v u} also operates without asking for confirmation.  (This
 variable does not affect @kbd{C-x v c}; that operation is so drastic
@@ -2615,7 +2614,7 @@ locking.
   For one thing, you can set the @env{CVSREAD} environment variable
 (the value you use makes no difference).  If this variable is defined,
 CVS makes your work files read-only by default.  In Emacs, you must
-type @kbd{C-x C-q} to make the file writable, so that editing works
+type @kbd{C-x v v} to make the file writable, so that editing works
 in fact similar as if locking was used.  Note however, that no actual
 locking is performed, so several users can make their files writable
 at the same time.  When setting @env{CVSREAD} for the first time, make
@@ -2626,7 +2625,7 @@ are set correctly.
 @cindex watching files (CVS)
   Another way to achieve something similar to locking is to use the
 @dfn{watch} feature of CVS.  If a file is being watched, CVS makes it
-read-only by default, and you must also use @kbd{C-x C-q} in Emacs to
+read-only by default, and you must also use @kbd{C-x v v} in Emacs to
 make it writable.  VC calls @code{cvs edit} to make the file writable,
 and CVS takes care to notify other developers of the fact that you
 intend to change the file.  See the CVS documentation for details on
