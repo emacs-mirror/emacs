@@ -1,141 +1,51 @@
-; Like all the other files in this dir, this one needs to be redone
-; for the new way of handling function keys.
+;;;; Terminal mode for Wyse 50
+;;;; Should work well for Televideo TVI 925 although it's overkill
+;;;; Author Daniel Pfieffer (pfieffer@cix.cict.fr) January 1991
+;;;; Rewritten for Emacs 19 by Jim Blandy (jimb@occs.cs.oberlin.edu)
+;;;;   January 1992
 
-; Terminal mode for Wyse 50
-; should work well for Televideo Tvi 925 though it's an overkill
-; Author Daniel Pfeiffer <pfeiffer@cix.cict.fr> january 1991
+
+;;; Functions especially for this terminal.
 
-(require 'keypad)
-
-; at least some of these should be transferred to keypad.el
-(keypad-default "A" '(lambda () (interactive)
-		       ; actually insert an empty line
-		       (beginning-of-line)
-		       (open-line 1)))
-(keypad-default "E" 'kill-line)
-; (keypad-default "h" 'execute-extended-command)
-(define-key function-keymap "h" 'execute-extended-command)  ; bad, bad !!
-(keypad-default "H" 'shell-command)
-(keypad-default "I" '(lambda () (interactive)
-		       (insert ? ))) ; works even in overwrite-mode
-(keypad-default "L" '(lambda () (interactive)
-		       ; delete the whole line
-		       (beginning-of-line)
-		       (kill-line 1)))
-(keypad-default "M" 'overwrite-mode)
-(keypad-default "\^e" 'shell)			; F5
-(keypad-default "\^f" 'dired)			; F6
-(keypad-default "\^g" 'rnews)			; F7
-(keypad-default "\^h" 'rmail)			; F8
-
-(keypad-default "\^i" 'delete-other-windows)	; F9
-(keypad-default "\^j" 'other-window)		; F10
-(keypad-default "\^k" 'split-window-vertically)	; F11
-
-(keypad-default "\^m" 'help-for-help)		; F13
-(keypad-default "\^n" 'toggle-screen-width)	; F14
-(keypad-default "\^o" 'set-function-key)	; F15
-
-
-; Keys that don't conflict with Emacs defaults
-; I write \M-x and \C-x for what the user types, \ex and \^x for key sequences
-(setup-terminal-keymap global-map
-      '(("\M-?" . ?\?)	; Esc ?
-	("\eI" . ?T)	; Shift Tab
-	("\eJ" . ?P)	; Shift Prev PAGE
-	("\eK" . ?N)	; PAGE Next
-	("\eY" . ?C)	; Shift Scrn CLR
-	("\eT" . ?E)	; CLR Line
-	("\^^" . ?h)	; Home
-	("\M-\^^" . ?H)	; Esc Home
-	("\eQ" . ?I)	; INS Char
-	("\eE" . ?A)	; Shift Line INS
-	("\eW" . ?D)	; DEL Char
-	("\eR" . ?L)))	; Shift Line DEL
-
-; Print -- put in some extra security
-(global-set-key "\eP" '(lambda () (interactive)
-			  (if (y-or-n-p
-			       (concat "Print buffer "
-				       (buffer-name) "? "))
-			      (print-buffer))))
-
-
-; this is an ugly hack for a nasty problem:
-; Wyse 50 takes one character cell to store video attributes (which seems to
-; explain width 79 rather than 80, column 1 is not used!!!).
-; On killing (C-x C-c) the end inverse code (on column 1 of line 24)
-; of the mode line is overwritten AFTER all the y-or-n questions.
-; This causes the attribute to remain in effect until the mode line has
-; scrolled of the screen.  Suspending (C-z) does not cause this problem.
-; On such terminals, Emacs should sacrifice the first and last character of
-; each mode line, rather than a whole screen column!
-(setq kill-emacs-hook '(lambda () (interactive)
-			 (send-string-to-terminal
-			  (concat "\ea23R" (1+ (screen-width)) "C\eG0"))))
-
-
-; This function does more than its name which was copied from term/vt100.el
-; Some more neutral name should be used thru-out term/*.el to simplify
-; programming term-setup-hook
-(defun enable-arrow-keys ()
-  "To be called by term-setup-hook. Overrides 6 Emacs standard keys
-whose functions are then typed as follows:
-C-a	Funct left-arrow, C-a C-a
-C-h	M-?
-LFD	Funct Return, some modes override down-arrow via LFD
-C-k	CLR Line
-C-l	Shift Scrn CLR
-M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
-All special keys except Send, Shift Ins, Shift Home and shifted functions keys
-are assigned some hopefully useful meaning."
+(defun wyse-50-insert-line ()
+  "Insert an empty line."
   (interactive)
+  (beginning-of-line)
+  (open-line 1))
 
-  ; Function keys
-  (define-key global-map "\^a" (define-prefix-command 'Funct-prefix))
+(defun wyse-50-delete-line ()
+  "Delete all of the current line."
+  (interactive)
+  (beginning-of-line)
+  (kill-line 1))
 
-  ; Arrow keys
-  (setup-terminal-keymap global-map
-      '(("\C-a\C-a" . beginning-of-line)	; for auld lang syne
-	("\^a\^m\^m" . newline-and-indent)
+(defun wyse-50-insert-char ()
+  "Insert a space, even in overwrite mode."
+  (interactive)
+  (insert ? ))
 
-	("\^k" . ?u)	; up-arrow
-	("\^j" . ?d)	; down-arrow
-	("\^l" . ?r)	; right-arrow
-	("\^h" . ?l)	; left-arrow
+(defun wyse-50-print-buffer ()
+  "Like ``print-buffer'', but verifies before printing.
+The `print' key is easy to hit on a Wyse 50."
+  (interactive)
+  (if (y-or-n-p
+       (concat "Print buffer "
+	       (buffer-name) "? "))
+      (print-buffer)))
 
-	; Terminal needs both Ins and Repl but Emacs knows how to toggle
-	; with just one key. No need to override Ins which is "\eq".
-	("\er" . ?M)		; Repl
+(defun wyse-50-top-of-window (n)
+  "Move point to the top line of the current window.
+With an argument N, move to the Nth line of the window."
+  (interactive "p")
+  (move-to-window-line (1- n)))
 
-	("\^a\^i\^m" . ?t)	; Funct Tab
+(defun wyse-50-bottom-of-window (n)
+  "Move point to the last line of the current window.
+With an argument N, move to the Nth line from the bottom of the window."
+  (interactive "p")
+  (move-to-window-line (- n)))
 
-	; Function keys F1 thru F16  (we don't define shifted function keys,
-	; they send the same code with the middle character in lowercase.
-	; eg. "Shift F2" is the same as "Funct a" which is more mnemonic but
-	; keypad.el doesn't provide enough codes to accomodate all these)
-	("\^a@\^m" . 1)		("\^aH\^m" . 9)
-	("\^aA\^m" . 2)		("\^aI\^m" . 10)
-	("\^aB\^m" . 3)		("\^aJ\^m" . 11)
-	("\^aC\^m" . 4)		("\^aK\^m" . 12)
-	("\^aD\^m" . 5)		("\^aL\^m" . 13)
-	("\^aE\^m" . 6)		("\^aM\^m" . 14)
-	("\^aF\^m" . 7)		("\^aN\^m" . 15)
-	("\^aG\^m" . 8)		("\^aO\^m" . 16)
-
-	; Funct Arrow keys
-	("\^a\^k\^m" . (lambda (n) (interactive "p")
-			    (move-to-window-line (1- n))))
-	("\^a\^j\^m" . (lambda (n) (interactive "p")
-			    (move-to-window-line (- n))))
-	("\^a\^h\^m" . beginning-of-line)
-	("\^a\^l\^m" . end-of-line)))
-
-  ; forget self to put memory to some serious use
-  (fmakunbound 'enable-arrow-keys))
-
-
-(defun toggle-screen-width ()
+(defun wyse-50-toggle-screen-width ()
   "Alternate between 80 and 132 columns."
   (interactive)
   (if (<= (screen-width) 80)
@@ -145,91 +55,138 @@ are assigned some hopefully useful meaning."
     (send-string-to-terminal "\e`:")
     (set-screen-width 79)))
 
-;-----------------------------------------------------------------------------
-; this function is completely independent of wyse, it should be auto-loadable
-; (presumably from keypad.el) for use in ~/emacs.  It should be the only thing
-; users need to know about all this unintelligible "forwarding" gibberish.
-; This paves the way for a save-function-keys (some day or sleepless night)
-; that will edit calls like (set-function-key ?x 'do-whatever) in ~/.emacs.
-(defun set-function-key (key &optional def)
-  "Prompt for a function or other special key and assign it a meaning.
-The key must have been \"forwarded\" to a character by term/*.el.
+
+;;; Define the escape sequences for the function keys.
+(define-key function-key-map "\C-a" (make-keymap))
+(mapcar (function (lambda (key-definition)
+		    (define-key function-key-map
+		      (car key-definition) (nth 1 key-definition))))
+	'(("\eI" [S-tab])
+	  ("\eJ" [S-prior])
+	  ("\eK" [next])
+	  ("\eY" [clear])
+	  ("\eT" [clear-eol])
+	  ("\^^" [home])
+	  ("\e\^^" [home-down])
+	  ("\eQ" [insert])
+	  ("\eE" [insertline])
+	  ("\eW" [?\C-?])
+	  ("\eR" [deleteline])
+	  ("\eP" [print])
+	  ("\C-k" [up])
+	  ("\C-j" [down])
+	  ("\C-l" [right])
+	  ("\C-h" [left])
+	  ("\C-a\C-k\C-m" [funct-up])
+	  ("\C-a\C-j\C-m" [funct-down])
+	  ("\C-a\C-l\C-m" [funct-right])
+	  ("\C-a\C-h\C-m" [funct-left])
+	  ("\er" [replace])
+	  ("\^a\^m\^m" [funct-return])
+	  ("\^a\^i\^m" [funct-tab])
+	  ("\^a@\^m" [f1])
+	  ("\^a`\^m" [S-f1])
+	  ("\^aA\^m" [f2])
+	  ("\^aa\^m" [S-f2])
+	  ("\^aB\^m" [f3])
+	  ("\^ab\^m" [S-f3])
+	  ("\^aC\^m" [f4])
+	  ("\^ac\^m" [S-f4])
+	  ("\^aD\^m" [f5])
+	  ("\^ad\^m" [S-f5])
+	  ("\^aE\^m" [f6])
+	  ("\^ae\^m" [S-f6])
+	  ("\^aF\^m" [f7])
+	  ("\^af\^m" [S-f7])
+	  ("\^aG\^m" [f8])
+	  ("\^ag\^m" [S-f8])
+	  ("\^aH\^m" [f9])
+	  ("\^ah\^m" [S-f9])
+	  ("\^aI\^m" [f10])
+	  ("\^ai\^m" [S-f10])
+	  ("\^aJ\^m" [f11])
+	  ("\^aj\^m" [S-f11])
+	  ("\^aK\^m" [f12])
+	  ("\^ak\^m" [S-f12])
+	  ("\^aL\^m" [f13])
+	  ("\^al\^m" [S-f13])
+	  ("\^aM\^m" [f14])
+	  ("\^am\^m" [S-f14])
+	  ("\^aN\^m" [f15])
+	  ("\^an\^m" [S-f15])
+	  ("\^aO\^m" [f16])
+	  ("\^ao\^m" [S-f16])))
 
-As a function takes two args CHAR and DEF, with DEF as in define-key.
-If your terminals term/*.el forwards a physical key to CHAR (before or after
-calling this function), then that key will mean DEF, else it is ignored.
-CHAR is one of the following:
-For numbered function keys
-	0, 1, ..., 24  (or ?\\^@, ?\\^a, ..., ?\\^x which is the same)
-For keypad keys in application mode
-	?0, ?1, ..., ?9  --  keypad key labelled with that digit,
-		but only if that key is not an arrow key (see ?u, ?d, ?r, ?l).
-	?-  --  keypad key labelled `-'.
-	?.  --  keypad key labelled `.'.
-	?,  --  keypad key labelled `,'.
-	?e  --  key labelled enter.
-For keys labelled with some words or a symbol
-	?a  --  clear all tabs key.
-	?A  --  insert line key.
-	?C  --  clear screen key.
-	?c  --  erase key.
-	?D  --  delete character key.
-	?d  --  down-arrow.
-	?E  --  clear to end of line key.
-	?e  --  key labelled enter.
-	?f  --  find key or search key.
-	?F  --  scroll forward key.
-	?H  --  home-down.
-	?h  --  home-position key.
-	?I  --  insert character key
-		If there is just an \"insert\" key, it should be this.
-	?k  --  delete key or remove key.
-	?L  --  delete line key.
-	?l  --  left-arrow.
-	?M  --  exit insert mode key.
-	?N  --  next page key.
-	?p  --  portrait mode.
-	?P  --  previous page key.
-	?q  --  landscape mode.
-	?r  --  right-arrow.
-	?R  --  scroll reverse key.
-	?S  --  clear to end of screen key.
-	?s  --  select key.
-	?t  --  clear tab this column key.
-	?T  --  set tab this column key.
-	?u  --  up-arrow.
-	?x  --  do key.
-	?\\?  --  help."
-  (interactive "kHit key to redefine")
-  (let ((map function-keymap))
-    (if (integerp key)
-	()
-      ; reinvent lookup-key to get (map . char) instead of def of char in map
-      (setq map (or (lookup-key global-map
-				(substring key 0 (1- (length key))))
-		    global-map)
-	    key (string-to-char (substring key (1- (length key)))))
-      (while (symbolp map)
-	(setq map (symbol-function map)))
-      (setq map (if (listp map)
-		    (cdr (assq key (cdr map)))
-		  (aref map key)))
-      (if (and (consp map)
-	       (integerp (cdr map)))
-	  (setq key (cdr map)
-		map (car map))	; function-keymap usually
-        (error "Key is not a \"forwarded\" definition.")))
-    (if def
-        ()
-      (setq def (read-command "command (default last keyboard macro): "))
-      (if (string-equal (symbol-name def) "")
-          (setq def last-kbd-macro))
-      (setq command-history	; nonsense really, since you don't see
-	    (cons		; key as in a function call (?char)
-	     (list 'set-function-key key
-		   (if (stringp def) def (list 'quote def)))
-	     command-history)))
-    ; all we do when called as a function
-    (define-key map (char-to-string key) def)))
+
+;;; Define some of the function keys.
+(mapcar (function (lambda (key-definition)
+		    (global-set-key (car key-definition)
+		     (nth 1 key-definition))))
+	'(([insertline]	 wyse-50-insert-line)
+	  ([clear]	 recenter)
+	  ([clear-eol]   kill-line)
+	  ([home]        execute-extended-command)
+	  ([home-down]	 shell-command)
+	  ([insert]	 wyse-50-insert-char)
+	  ([deleteline]	 wyse-50-delete-line)
+	  ([replace]	 overwrite-mode)
+	  ([print]	 wyse-50-print-buffer)
+	  ([funct-up]	 wyse-50-top-of-window)
+	  ([funct-down]  wyse-50-bottom-of-window)
+	  ([funct-left]  beginning-of-line)
+	  ([funct-right] end-of-line)
+	  ([f5]		 shell)
+	  ([f6]		 dired)
+	  ([f7]		 rnews)
+	  ([f8]		 rmail)
+	  ([f9]		 delete-othe-windows)
+	  ([f10]	 other-window)
+	  ([f11]	 split-window-vertically)
+	  ([f13]	 help-for-help)
+	  ([f14]	 wyse-50-toggle-screen-width)
+	  ([f15]	 global-set-key)
+	  ("\M-?"	 help-for-help)))
 
+
+;;; Miscellaneous hacks
 
+;;; This is an ugly hack for a nasty problem:
+;;; Wyse 50 takes one character cell to store video attributes (which seems to
+;;; explain width 79 rather than 80, column 1 is not used!!!).
+;;; On killing (C-x C-c) the end inverse code (on column 1 of line 24)
+;;; of the mode line is overwritten AFTER all the y-or-n questions.
+;;; This causes the attribute to remain in effect until the mode line has
+;;; scrolled of the screen.  Suspending (C-z) does not cause this problem.
+;;; On such terminals, Emacs should sacrifice the first and last character of
+;;; each mode line, rather than a whole screen column!
+(setq kill-emacs-hook
+      (function (lambda () (interactive)
+		  (send-string-to-terminal
+		   (concat "\ea23R" (1+ (screen-width)) "C\eG0")))))
+
+(defun enable-arrow-keys ()
+  "To be called by term-setup-hook. Overrides 6 Emacs standard keys
+whose functions are then typed as follows:
+C-a	Funct Left-arrow
+C-h	M-?
+LFD	Funct Return, some modes override down-arrow via LFD
+C-k	CLR Line
+C-l	Scrn CLR
+M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
+All special keys except Send, Shift Ins, Shift Home and shifted functions keys
+are assigned some hopefully useful meaning."
+  (interactive)
+  (mapcar (function (lambda (key-definition)
+		      (global-set-key (car key-definition)
+				      (nth 1 key-definition))))
+	  ;; By unsetting C-a and then binding it to a prefix, we
+	  ;; allow the rest of the function keys which start with C-a
+	  ;; to be recognized.
+	  '(("\C-a"	nil)
+	    ("\C-a\C-a"	beginning-of-line)
+	    ("\C-k"	nil)
+	    ("\C-j"	nil)
+	    ("\C-l"	nil)
+	    ("\C-h"	nil)
+	    ("\er"	nil)))
+  (fset 'enable-arrow-keys nil))
