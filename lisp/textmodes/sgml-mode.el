@@ -234,15 +234,30 @@ Any terminating `>' or `/' is not matched.")
 (defconst sgml-font-lock-keywords-1
   '(("<\\([!?][a-z][-.a-z0-9]*\\)" 1 font-lock-keyword-face)
     ("<\\(/?[a-z][-.a-z0-9]*\\)" 1 font-lock-function-name-face)
-    ("[&%][a-z][-.a-z0-9]*;?" . font-lock-variable-name-face)
-    ("<! *--.*-- *>" . font-lock-comment-face)))
+    ("[&%][a-z][-.a-z0-9]*;?" . font-lock-variable-name-face)))
 
-(defconst sgml-font-lock-keywords-2 ())
+(defconst sgml-font-lock-keywords-2
+  (append
+   sgml-font-lock-keywords-1
+   '((eval
+      . (cons (concat "<"
+		      (regexp-opt (mapcar 'car sgml-tag-face-alist) t)
+		      "\\([ \t][^>]*\\)?>\\([^<]+\\)</\\1>")
+	      '(3 (cdr (assoc (downcase (match-string 1))
+			      sgml-tag-face-alist))))))))
 
 ;; for font-lock, but must be defvar'ed after
 ;; sgml-font-lock-keywords-1 and sgml-font-lock-keywords-2 above
 (defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
   "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
+
+(defvar sgml-font-lock-syntactic-keywords
+  ;; Use the `b' style of comments to avoid interference with the -- ... --
+  ;; comments recognized when `sgml-specials' includes ?-.
+  ;; FIXME: beware of <!--> blabla <!--> !!
+  '(("\\(<\\)!--" (1 "< b"))
+    ("--[ \t\n]*\\(>\\)" (1 "> b")))
+  "Syntactic keywords for `sgml-mode'.")
 
 ;; internal
 (defvar sgml-face-tag-alist ()
@@ -303,13 +318,8 @@ an optional alist of possible values."
 
 (defvar v2)				; free for skeleton
 
-(defun sgml-mode-common (sgml-tag-face-alist sgml-display-text)
-  "Common code for setting up `sgml-mode' and derived modes.
-SGML-TAG-FACE-ALIST is used for calculating `sgml-font-lock-keywords-2'.
-SGML-DISPLAY-TEXT sets up alternate text for when tags are invisible (see
-varables of same name)."
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table sgml-mode-syntax-table)
+(defun sgml-mode-common ()
+  "Common code for setting up `sgml-mode' and derived modes."
   (make-local-variable 'indent-line-function)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
@@ -318,25 +328,13 @@ varables of same name)."
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-indent-function)
-  (make-local-variable 'comment-indent-function)
-  (make-local-variable 'sgml-tags-invisible)
   (make-local-variable 'skeleton-transformation)
   (make-local-variable 'skeleton-further-elements)
   (make-local-variable 'skeleton-end-hook)
   (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'sgml-font-lock-keywords-1)
-  (make-local-variable 'sgml-font-lock-keywords-2)
   (make-local-variable 'facemenu-add-face-function)
   (make-local-variable 'facemenu-end-add-face)
   ;;(make-local-variable 'facemenu-remove-face-function)
-  (and sgml-tag-face-alist
-       (not (assq 1 sgml-tag-face-alist))
-       (nconc sgml-tag-face-alist
-	      `((1 (,(concat "<\\("
-			     (mapconcat 'car sgml-tag-face-alist "\\|")
-			     "\\)\\([ \t].+\\)?>\\(.+\\)</\\1>")
-		    3 (cdr (assoc (downcase (match-string 1))
-                                  ',sgml-tag-face-alist)))))))
   (setq indent-line-function 'indent-relative-maybe
 	;; A start or end tag by itself on a line separates a paragraph.
 	;; This is desirable because SGML discards a newline that appears
@@ -356,21 +354,17 @@ varables of same name)."
 				(not (or (eq v2 '\n)
 					 (eq (car-safe v2) '\n)))
 				(newline-and-indent)))
-	sgml-font-lock-keywords-2 (append
-				   sgml-font-lock-keywords-1
-				   (cdr (assq 1 sgml-tag-face-alist)))
 	font-lock-defaults '((sgml-font-lock-keywords
 			      sgml-font-lock-keywords-1
 			      sgml-font-lock-keywords-2)
-			     nil
-			     t)
+			     nil t nil nil
+			     (font-lock-syntactic-keywords
+			      . sgml-font-lock-syntactic-keywords))
 	facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
   ;; This will allow existing comments within declarations to be
   ;; recognized.
   (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
-  (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?")
-  (dolist (pair sgml-display-text)
-    (put (car pair) 'before-string (cdr pair))))
+  (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?"))
 
 
 (defun sgml-mode-facemenu-add-face-function (face end)
@@ -383,7 +377,7 @@ varables of same name)."
 
 
 ;;;###autoload
-(defun sgml-mode ()
+(define-derived-mode sgml-mode text-mode "SGML"
   "Major mode for editing SGML documents.
 Makes > match <.  Makes / blink matching /.
 Keys <, &, SPC within <>, \" and ' can be electric depending on
@@ -401,18 +395,12 @@ Use \\[sgml-validate] to validate your document with an SGML parser.
 Do \\[describe-variable] sgml- SPC to see available variables.
 Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq mode-name "SGML"
-	major-mode 'sgml-mode)
-  (sgml-mode-common sgml-tag-face-alist sgml-display-text)
+  (sgml-mode-common)
   ;; Set imenu-generic-expression here, rather than in sgml-mode-common,
   ;; because this definition probably is not useful in HTML mode.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression
-	"<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)")
-  (use-local-map sgml-mode-map)
-  (run-hooks 'text-mode-hook 'sgml-mode-hook))
+	"<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)"))
 
 
 (defun sgml-comment-indent ()
@@ -747,8 +735,9 @@ With prefix argument ARG, repeat this ARG times."
 	(buffer-file-name nil)
 	;; This is needed in case font lock gets called,
 	;; since it moves point and might call sgml-point-entered.
+	;; How could it get called?  -stef
 	(inhibit-point-motion-hooks t)
-	symbol)
+	string)
     (unwind-protect
 	(save-excursion
 	  (goto-char (point-min))
@@ -758,21 +747,22 @@ With prefix argument ARG, repeat this ARG times."
 		      (not sgml-tags-invisible)))
 	      (while (re-search-forward "<\\([!/?A-Za-z][-A-Za-z0-9]*\\)"
 					nil t)
-		(setq symbol (intern-soft (downcase (match-string 1))))
+		(setq string
+		      (cdr (assq (intern-soft (downcase (match-string 1)))
+				 sgml-display-text)))
 		(goto-char (match-beginning 0))
-		(and (get symbol 'before-string)
+		(and (stringp string)
 		     (not (overlays-at (point)))
 		     (overlay-put (make-overlay (point)
 						(match-beginning 1))
-				  'category symbol))
+				  'before-string string))
 		(put-text-property (point)
 				   (progn (forward-list) (point))
 				   'category 'sgml-tag))
-	    (let ((pos (point)))
+	    (let ((pos (point-min)))
 	      (while (< (setq pos (next-overlay-change pos)) (point-max))
 		(delete-overlay (car (overlays-at pos)))))
-	    (remove-text-properties (point-min) (point-max)
-				    '(category sgml-tag intangible t))))
+	    (remove-text-properties (point-min) (point-max) '(category nil))))
       (restore-buffer-modified-p modified))
     (run-hooks 'sgml-tags-invisible-hook)
     (message "")))
@@ -854,6 +844,22 @@ See `sgml-tag-alist' for info about attributerules.."
       (if alist
 	  (insert (skeleton-read '(completing-read "Value: " alist))))
       (insert ?\"))))
+
+(defun sgml-quote (start end &optional unquotep)
+  "Quote SGML text in region.
+With prefix argument, unquote the region."
+  (interactive "r\np")
+  (if (< start end)
+      (goto-char start)
+    (goto-char end)
+    (setq end start))
+  (if unquotep
+      (while (re-search-forward "&\\(amp\\|\\(l\\|\\(g\\)\\)t\\);" end t)
+	(replace-match (if (match-end 3) ">" (if (match-end 2) "<" "&"))))
+    (while (re-search-forward "[&<>]" end t)
+      (replace-match (cdr (assq (char-before) '((?& . "&amp;")
+						(?< . "&lt;")
+						(?> . "&gt;"))))))))
 
 
 ;;; HTML mode
@@ -1098,7 +1104,17 @@ This takes effect when first loading the library.")
       ("s")
       ("samp")
       ("small")
-      ("span")
+      ("span" nil
+	("class"
+	 ("builtin")
+	 ("comment")
+	 ("constant")
+	 ("function-name")
+	 ("keyword")
+	 ("string")
+	 ("type")
+	 ("variable-name")
+	 ("warning")))
       ("strong")
       ("sub")
       ("sup")
@@ -1202,7 +1218,7 @@ This takes effect when first loading the library.")
 "*Value of `sgml-tag-help' for HTML mode.")
 
 ;;;###autoload
-(defun html-mode ()
+(define-derived-mode html-mode sgml-mode "HTML"
   "Major mode based on SGML mode for editing HTML documents.
 This allows inserting skeleton constructs used in hypertext documents with
 completion.  See below for an introduction to HTML.  Use
@@ -1238,12 +1254,8 @@ To work around that, do:
    (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?' nil))
 
 \\{html-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq mode-name "HTML"
-        major-mode 'html-mode)
-  (sgml-mode-common html-tag-face-alist html-display-text)
-  (use-local-map html-mode-map)
+  (set (make-local-variable 'sgml-display-text) html-display-text)
+  (set (make-local-variable 'sgml-tag-face-alist) html-tag-face-alist)
   (make-local-variable 'sgml-tag-alist)
   (make-local-variable 'sgml-face-tag-alist)
   (make-local-variable 'sgml-tag-help)
@@ -1254,8 +1266,7 @@ To work around that, do:
   (setq sentence-end
 	(if sentence-end-double-space
 	    "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
-
-	  "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| \\|\t\\)[ \t\n]*"))
+	  "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\|[ \t]\\)[ \t\n]*"))
   (setq sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
 	sgml-tag-help html-tag-help
@@ -1267,7 +1278,7 @@ To work around that, do:
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
-  (run-hooks 'text-mode-hook 'sgml-mode-hook 'html-mode-hook))
+  )
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
