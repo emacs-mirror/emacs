@@ -3950,6 +3950,8 @@ directory, so that Emacs will know its current contents."
       (let ((tryfiles (if nosuffix
 			  (list file)
 			(list (concat file ".elc") (concat file ".el") file)))
+	    ;; make sure there are no references to temp files
+	    (load-force-doc-strings t)
 	    copy)
 	(while (and tryfiles (not copy))
 	  (catch 'ftp-error
