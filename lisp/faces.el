@@ -1047,7 +1047,14 @@ If FRAME is nil, the current FRAME is used."
 	    match (cond ((eq req 'type)
 			 (or (memq window-system options)
 			     (and (null window-system)
-				  (memq 'tty options))))
+				  (memq 'tty options))
+			     (and (memq 'motif options)
+				  (featurep 'motif))
+			     (and (memq 'lucid options)
+				  (featurep 'x-toolkit)
+				  (not (featurep 'motif)))
+			     (and (memq 'x-toolkit options)
+				  (featurep 'x-toolkit))))
 			((eq req 'class)
 			 (memq (frame-parameter frame 'display-type) options))
 			((eq req 'background)
@@ -1423,6 +1430,14 @@ created."
 
 (defface scroll-bar '()
   "Basic face for the scroll bar colors under X."
+  :version "21.1"
+  :group 'basic-faces)
+
+
+(defface menu
+  '((((type x-toolkit)) ())
+    (t (:inverse-video t)))
+  "Basic menu face."
   :version "21.1"
   :group 'basic-faces)
 
