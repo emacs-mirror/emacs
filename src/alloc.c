@@ -20,6 +20,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
+#include <stdio.h>
 
 /* Note that this declares bzero on OSF/1.  How dumb.  */
 
@@ -58,7 +59,7 @@ extern char *sbrk ();
 
 /* The following come from gmalloc.c.  */
 
-#if defined (__STDC__) && __STDC__
+#if defined (STDC_HEADERS)
 #include <stddef.h>
 #define	__malloc_size_t		size_t
 #else
