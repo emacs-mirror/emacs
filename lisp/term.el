@@ -148,7 +148,9 @@
 ;;		top-most line(s); and nil if scrolling should be implemented
 ;;		by moving term-home-marker.  It is set to t iff there is a
 ;;		(non-default) scroll-region OR the alternate buffer is used.
-(defvar term-pending-delete-marker)
+(defvar term-pending-delete-marker) ;; New user input in line mode needs to
+;;		be deleted, because it gets echoed by the inferior.
+;;		To reduce flicker, we defer the delete until the next output.
 (defvar term-old-mode-map nil) ;; Saves the old keymap when in char mode.
 (defvar term-old-mode-line-format) ;; Saves old mode-line-format while paging.
 (defvar term-pager-old-local-map nil) ;; Saves old keymap while paging.
@@ -262,6 +264,10 @@ Usually this is just 'term-simple-send, but if your mode needs to
 massage the input string, this is your hook. This is called from
 the user command term-send-input. term-simple-send just sends
 the string plus a newline.")
+
+(defvar term-eol-on-send t
+  "*Non-nil means go to the end of the line before sending input.
+See `term-send-input'.")
 
 (defvar term-mode-hook '()
   "Called upon entry into term-mode
@@ -429,6 +435,7 @@ Entry to this mode runs the hooks on term-mode-hook"
     (make-local-variable 'term-input-filter-functions)
     (make-local-variable 'term-input-filter)  
     (make-local-variable 'term-input-sender)
+    (make-local-variable 'term-eol-on-send)
     (make-local-variable 'term-scroll-to-bottom-on-output)
     (make-local-variable 'term-scroll-show-maximum-output)
     (make-local-variable 'term-ptyp)
@@ -1407,6 +1414,9 @@ of `term-input-filter-functions' is called on the input before sending it.
 The input is entered into the input history ring, if the value of variable
 `term-input-filter' returns non-nil when called on the input.
 
+If variable `term-eol-on-send' is non-nil, then point is moved to the
+end of line before sending the input.
+
 The values of `term-get-old-input', `term-input-filter-functions', and
 `term-input-filter' are chosen according to the command interpreter running
 in the buffer.  E.g.,
@@ -1432,14 +1442,10 @@ Similarly for Soar, Scheme, etc."
     (if (not proc) (error "Current buffer has no process")
       (let* ((pmark (process-mark proc))
 	     (pmark-val (marker-position pmark))
-	     (intxt (if (>= (point) pmark-val)
-			(progn (end-of-line)
-			       (let ((copy (buffer-substring pmark (point))))
-				 ;; Delete, because inferior should echo.
-				 (set-marker term-pending-delete-marker
-					     pmark-val)
-				 (set-marker (process-mark proc) (point))
-				 copy))
+	     (input-is-new (>= (point) pmark-val))
+	     (intxt (if input-is-new
+			(progn (if term-eol-on-send (end-of-line))
+			       (buffer-substring pmark (point)))
 		      (funcall term-get-old-input)))
 	     (input (if (not (eq term-input-autoexpand 'input))
 			;; Just whatever's already there
@@ -1473,11 +1479,19 @@ Similarly for Soar, Scheme, etc."
 	    (funcall (car functions) (concat input "\n"))
 	    (setq functions (cdr functions))))
 	(setq term-input-ring-index nil)
-	(goto-char pmark)
+
 	;; Update the markers before we send the input
 	;; in case we get output amidst sending the input.
 	(set-marker term-last-input-start pmark)
 	(set-marker term-last-input-end (point))
+	(if input-is-new
+	    (progn
+	      ;; Set up to delete, because inferior should echo.
+	      (if (marker-buffer term-pending-delete-marker)
+		  (delete-region term-pending-delete-marker pmark))
+	      (set-marker term-pending-delete-marker pmark-val)
+	      (set-marker (process-mark proc) (point))))
+	(goto-char pmark)
 	(funcall term-input-sender proc input)))))
 
 (defun term-get-old-input-default ()
