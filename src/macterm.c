@@ -129,9 +129,12 @@ int x_use_underline_position_properties;
 struct x_display_info *x_display_list;
 
 /* This is a list of cons cells, each of the form (NAME
-   . FONT-LIST-CACHE), one for each element of x_display_list and in
-   the same order.  NAME is the name of the frame.  FONT-LIST-CACHE
-   records previous values returned by x-list-fonts.  */
+   FONT-LIST-CACHE . RESOURCE-DATABASE), one for each element of
+   x_display_list and in the same order.  NAME is the name of the
+   frame.  FONT-LIST-CACHE records previous values returned by
+   x-list-fonts.  RESOURCE-DATABASE preserves the X Resource Database
+   equivalent, which is implemented with a Lisp object, for the
+   display. */
 
 Lisp_Object x_display_name_list;
 
@@ -6447,7 +6450,7 @@ x_list_fonts (struct frame *f,
 
   if (dpyinfo)
     {
-      tem = XCDR (dpyinfo->name_list_element);
+      tem = XCAR (XCDR (dpyinfo->name_list_element));
       key = Fcons (pattern, make_number (maxnames));
 
       newlist = Fassoc (key, tem);
@@ -6466,9 +6469,9 @@ x_list_fonts (struct frame *f,
 
   if (dpyinfo)
     {
-      XSETCDR (dpyinfo->name_list_element,
+      XSETCAR (XCDR (dpyinfo->name_list_element),
 	       Fcons (Fcons (key, newlist),
-		      XCDR (dpyinfo->name_list_element)));
+		      XCAR (XCDR (dpyinfo->name_list_element))));
     }
  label_cached:
 
@@ -9371,59 +9374,18 @@ mac_initialize_display_info ()
   dpyinfo->mouse_face_hidden = 0;
 }
 
-/* Create an xrdb-style database of resources to supercede registry settings.
-   The database is just a concatenation of C strings, finished by an additional
-   \0.  The string are submitted to some basic normalization, so
 
-     [ *]option[ *]:[ *]value...
-
-   becomes
-
-     option:value...
-
-   but any whitespace following value is not removed.  */
-
-static char *
+static XrmDatabase
 mac_make_rdb (xrm_option)
      char *xrm_option;
 {
-  char *buffer = xmalloc (strlen (xrm_option) + 2);
-  char *current = buffer;
-  char ch;
-  int in_option = 1;
-  int before_value = 0;
+  XrmDatabase database;
 
-  do {
-    ch = *xrm_option++;
+  database = xrm_get_preference_database (NULL);
+  if (xrm_option)
+    xrm_merge_string_database (database, xrm_option);
 
-    if (ch == '\n')
-      {
-        *current++ = '\0';
-        in_option = 1;
-        before_value = 0;
-      }
-    else if (ch != ' ')
-      {
-        *current++ = ch;
-        if (in_option && (ch == ':'))
-          {
-            in_option = 0;
-            before_value = 1;
-          }
-        else if (before_value)
-          {
-            before_value = 0;
-          }
-      }
-    else if (!(in_option || before_value))
-      {
-        *current++ = ch;
-      }
-  } while (ch);
-
-  *current = '\0';
-
-  return buffer;
+  return database;
 }
 
 struct mac_display_info *
@@ -9449,14 +9411,15 @@ mac_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo = &one_mac_display_info;
 
-  dpyinfo->xrdb = xrm_option ? mac_make_rdb (xrm_option) : NULL;
+  dpyinfo->xrdb = mac_make_rdb (xrm_option);
 
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;
   x_display_list = dpyinfo;
 
   /* Put it on x_display_name_list.  */
-  x_display_name_list = Fcons (Fcons (display_name, Qnil),
+  x_display_name_list = Fcons (Fcons (display_name,
+				      Fcons (Qnil, dpyinfo->xrdb)),
                                x_display_name_list);
   dpyinfo->name_list_element = XCAR (x_display_name_list);
 
