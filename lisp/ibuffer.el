@@ -1,13 +1,10 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Created: 8 Sep 2000
-;; X-RCS: $Id: ibuffer.el,v 1.271 2002/01/12 23:10:48 walters Exp $
-;; URL: http://cvs.verbum.org/ibuffer
 ;; Keywords: buffer, convenience
-;; Compatibility: Emacs 21
 
 ;; This file is not currently part of GNU Emacs.
 

@@ -1,11 +1,9 @@
 ;;; ibuf-ext.el --- extended features for ibuffer
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Created: 2 Dec 2001
-;; X-RCS: $Id: ibuf-ext.el,v 1.30 2001/12/17 08:44:43 walters Exp $
-;; URL: http://cvs.verbum.org/ibuffer
 ;; Keywords: buffer, convenience
 
 ;; This file is not currently part of GNU Emacs.
