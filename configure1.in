@@ -735,13 +735,13 @@ case "${canonical}" in
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
-  rs6000-ibm-aix3.1* )
+  rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
     machine=ibmrs6000 opsys=aix3-1
   ;;
-  rs6000-ibm-aix3.2.5)
+  rs6000-ibm-aix3.2.5 | powerpc-ibm-aix3.2.5 )
     machine=ibmrs6000 opsys=aix3-2-5
   ;;
-  rs6000-ibm-aix3.2* | rs6000-ibm-aix* )
+  rs6000-ibm-aix* | powerpc-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
   romp-ibm-bsd4.3* )
