@@ -1,3 +1,14 @@
+2001-12-13  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-version): 3.2
+	* whitespace.el (whitespace-force-mode-line-update): Replace with
+	`whitespace-mode-line-update', which is an alias to the correct
+	function in various emacsen.
+	* whitespace.el (whitespace-{un,}highlight-the-space): Add
+	colorized highlighting of the bogus whitespaces in a buffer/file,
+	using the `whitespace-highlight-face' if
+	`whitespace-display-spaces-in-color' is set.
+
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule.el (set-auto-coding): Don't search for

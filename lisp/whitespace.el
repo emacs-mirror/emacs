@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.17 2001/08/20 10:05:03 gerd Exp $
+;; $Id: whitespace.el,v 1.18 2001/08/20 20:56:08 rv Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.1" "Version of the whitespace library.")
+(defvar whitespace-version "3.2" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -86,6 +86,11 @@ visited by the buffers.")
 (make-variable-buffer-local 'whitespace-check-buffer-ateol)
 (put 'whitespace-check-buffer-ateol 'permanent-local nil)
 
+(defvar whitespace-highlighted-space nil
+  "The variable to store the extent to highlight")
+(make-variable-buffer-local 'whitespace-highlighted-space)
+(put 'whitespace-highlighted-space 'permanent-local nil)
+
 ;; For flavors of Emacs which don't define `defgroup' and `defcustom'.
 (eval-when-compile
   (if (not (fboundp 'defgroup))
@@ -98,6 +103,21 @@ defgroup"
 	"Macro to alias defcustom to defvar in all versions of Emacs that
 don't define defcustom"
 	`(defvar ,sym ,val ,doc))))
+
+(if (fboundp 'make-overlay)
+    (progn
+      (defalias 'whitespace-make-overlay 'make-overlay)
+      (defalias 'whitespace-overlay-put 'overlay-put)
+      (defalias 'whitespace-delete-overlay 'delete-overlay)
+      (defalias 'whitespace-overlay-start 'overlay-start)
+      (defalias 'whitespace-overlay-end 'overlay-end)
+      (defalias 'whitespace-mode-line-update 'force-mode-line-update))
+  (defalias 'whitespace-make-overlay 'make-extent)
+  (defalias 'whitespace-overlay-put 'set-extent-property)
+  (defalias 'whitespace-delete-overlay 'delete-extent)
+  (defalias 'whitespace-overlay-start 'extent-start)
+  (defalias 'whitespace-overlay-end 'extent-end)
+  (defalias 'whitespace-mode-line-update 'redraw-modeline))
 
 (if (featurep 'xemacs)
 (defgroup whitespace nil
@@ -131,7 +151,7 @@ It can be overriden by setting a buffer local variable
   :type 'boolean
   :group 'whitespace)
 
-(defcustom whitespace-spacetab-regexp " \t"
+(defcustom whitespace-spacetab-regexp "[ ]+\t"
   "Regexp to match a space followed by a TAB."
   :type 'regexp
   :group 'whitespace)
@@ -155,7 +175,8 @@ It can be overriden by setting a buffer local variable
   :type 'boolean
   :group 'whitespace)
 
-(defcustom whitespace-ateol-regexp "[ \t]$"
+;; (defcustom whitespace-ateol-regexp "[ \t]$"
+(defcustom whitespace-ateol-regexp "[ \t]+$"
   "Regexp to match a TAB or a space at the EOL."
   :type 'regexp
   :group 'whitespace)
@@ -229,6 +250,31 @@ To disable timer scans, set this to zero."
   "Display whitespace errors on the modeline."
   :type 'boolean
   :group 'whitespace)
+
+(defcustom whitespace-display-spaces-in-color t
+  "Display the bogus whitespaces by coloring them with
+`whitespace-highlight-face'."
+  :type 'boolean
+  :group 'whitespace)
+
+(defgroup whitespace-faces nil
+  "Faces used in whitespace."
+  :prefix "whitespace-"
+  :group 'whitespace
+  :group 'faces)
+
+(defface whitespace-highlight-face '((((class color) (background light))
+				    (:background "green"))
+				   (((class color) (background dark))
+				    (:background "sea green"))
+				   (((class grayscale monochrome)
+				     (background light))
+				    (:background "black"))
+				   (((class grayscale monochrome)
+				     (background dark))
+				    (:background "white")))
+  "Face used for highlighting the bogus whitespaces that exist in the buffer."
+  :group 'whitespace-faces)
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)
@@ -329,6 +375,7 @@ and:
 	(progn
 	  (whitespace-check-buffer-list (buffer-name) buffer-file-name)
 	  (whitespace-tickle-timer)
+	  (whitespace-unhighlight-the-space)
 	  (if whitespace-auto-cleanup
 	      (if buffer-read-only
 		  (if (not quiet)
@@ -498,7 +545,9 @@ whitespace problems."
       (end-of-line)
       (setq pmax (point))
       (if (equal pmin pmax)
-	  t
+	  (progn
+	    (whitespace-highlight-the-space pmin pmax)
+	    t)
 	nil))))
 
 (defun whitespace-buffer-leading-cleanup ()
@@ -534,7 +583,9 @@ whitespace problems."
 	    (end-of-line)
 	    (setq pmax (point))
 	    (if (equal pmin pmax)
-		t
+		(progn
+		  (whitespace-highlight-the-space pmin pmax)
+		  t)
 	      nil))
 	nil))))
 
@@ -568,8 +619,10 @@ whitespace problems."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward regexp nil t)
-	(setq whitespace-retval (format "%s %s" whitespace-retval
-					(match-beginning 0))))
+	(progn
+	  (setq whitespace-retval (format "%s %s" whitespace-retval
+					(match-beginning 0)))
+	(whitespace-highlight-the-space (match-beginning 0) (match-end 0))))
       (if (equal "" whitespace-retval)
 	  nil
 	whitespace-retval))))
@@ -621,14 +674,30 @@ Also with whitespaces whose testing has been turned off."
 	(setq whitespace-mode-line (if whitespace-mode-line
 				       (concat " W:" whitespace-mode-line)
 				     nil))
-	(whitespace-force-mode-line-update))))
+	(whitespace-mode-line-update))))
 
-;; Force mode line updation for different Emacs versions
-(defun whitespace-force-mode-line-update ()
-  "Force the mode line update for different flavors of Emacs."
-  (if (fboundp 'redraw-modeline)
-      (redraw-modeline)			; XEmacs
-    (force-mode-line-update)))		; Emacs
+(defun whitespace-highlight-the-space (b e)
+  "Highlight the current line, unhighlighting a previously jumped to line."
+  (if whitespace-display-spaces-in-color
+      (progn
+	(whitespace-unhighlight-the-space)
+	(add-to-list 'whitespace-highlighted-space
+		     (whitespace-make-overlay b e))
+	(whitespace-overlay-put (whitespace-make-overlay b e) 'face
+				'whitespace-highlight-face))))
+;;  (add-hook 'pre-command-hook 'whitespace-unhighlight-the-space))
+
+(defun whitespace-unhighlight-the-space ()
+  "Unhighlight the currently highlight line."
+  (if (and whitespace-display-spaces-in-color whitespace-highlighted-space)
+      (let ((whitespace-this-space nil))
+	(while whitespace-highlighted-space
+	  (setq whitespace-this-space (car whitespace-highlighted-space))
+	  (setq whitespace-highlighted-space
+		(cdr whitespace-highlighted-space))
+	  (whitespace-delete-overlay whitespace-this-space))
+	(setq whitespace-highlighted-space nil))
+    (remove-hook 'pre-command-hook 'whitespace-unhighlight-the-space)))
 
 (defun whitespace-check-buffer-list (buf-name buf-file)
   "Add a buffer and its file to the whitespace monitor list.
@@ -803,5 +872,4 @@ whitespaces during the process of your editing)."
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)
-
 ;;; whitespace.el ends here
