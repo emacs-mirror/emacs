@@ -2968,7 +2968,8 @@ this also returns nil."
 (defun ange-ftp-wipe-file-entries (host user)
   "Get rid of entry for HOST, USER pair from file entry information hashtable."
   (let ((new-tbl (make-hash-table :test 'equal
-				  :size (length ange-ftp-files-hashtable))))
+				  :size (hash-table-size
+					 ange-ftp-files-hashtable))))
     (maphash
      (lambda (key val)
        (let ((parsed (ange-ftp-ftp-name key)))
