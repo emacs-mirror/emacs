@@ -1,3 +1,7 @@
+2002-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-no-upper-case-p): \\ only quotes one character.
+
 2002-12-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mwheel.el (mouse-wheel-scroll-amount): Revert previous change -

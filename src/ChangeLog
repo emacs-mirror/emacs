@@ -1,3 +1,8 @@
+2002-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fget_buffer_create): Call Qucs_set_table_for_input
+	as the last thing.
+
 2002-12-09  Dave Love  <fx@gnu.org>
 
 	* s/sol2-8: Removed.  (Not necessary.)
