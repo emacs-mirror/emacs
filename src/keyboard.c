@@ -1335,6 +1335,18 @@ start_polling ()
 #endif
 }
 
+/* Nonzero if we are using polling to handle input asynchronously.  */
+
+int
+input_polling_used ()
+{
+#ifdef POLL_FOR_INPUT
+  return read_socket_hook && !interrupt_input;
+#else
+  return 0;
+#endif
+}
+
 /* Turn off polling.  */
 
 stop_polling ()
