@@ -104,10 +104,11 @@ to future sessions."
    (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
        (delete-region
 	(progn (beginning-of-line) (point))
-	(progn (forward-line 1) (point)))
-     ;; Must have been disabled by default.
-     (goto-char (point-max))
-     (insert "\n(put '" (symbol-name command) " 'disabled nil)\n"))
+	(progn (forward-line 1) (point))))
+   ;; Explicitly enable, in case this command is disabled by default
+   ;; or in case the code we deleted was actually a comment.
+   (goto-char (point-max))
+   (insert "\n(put '" (symbol-name command) " 'disabled nil)\n")
    (save-buffer)))
 
 ;;;###autoload
@@ -128,7 +129,7 @@ to future sessions."
 	(progn (beginning-of-line) (point))
 	(progn (forward-line 1) (point))))
    (goto-char (point-max))
-   (insert "(put '" (symbol-name command) " 'disabled t)\n")
+   (insert "\n(put '" (symbol-name command) " 'disabled t)\n")
    (save-buffer)))
 
 ;;; novice.el ends here
