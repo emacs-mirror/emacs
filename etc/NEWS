@@ -911,27 +911,35 @@ so I will know I still need to look at it -- rms.
 ** The function `clear-this-command-keys' now also clears the vector
 returned by function `recent-keys'.
 
-** New function `keyword-p' is an efficient type predicate for keyword
-symbols.
++++
+** Variables `beginning-of-defun-function' and `end-of-defun-function'
+can be used to define handlers for the functions that find defuns.
+Major modes can define these locally instead of rebinding M-C-a
+etc. if the normal conventions for defuns are not appropriate for the
+mode.
 
-** Variables `beginning-of-defun' and `end-of-defun', can be used to
-define handlers for the functions of the same names.  Major modes can
-define these locally instead of rebinding M-C-a etc. if the normal
-definitions of the functions are not appropriate for the mode.
-
++++
 ** easy-mmode-define-minor-mode now takes an additional BODY argument
 and is renamed `define-minor-mode'.
 
-** If an abbrev has only a hook, and that hook has a non-nil
-`no-self-insert' property, the return value of the hook specifies
-whether an expansion has been done or not.  If it returns nil, no
-expansion has been performed.  The character leading to the call of
-the hook will then be self-inserted.
++++
+** If an abbrev has a hook function which is a symbol, and that symbol
+has a non-nil `no-self-insert' property, the return value of the hook
+function specifies whether an expansion has been done or not.  If it
+returns nil, abbrev-expand also returns nil, meaning "no expansion has
+been performed."
 
+When abbrev expansion is done by typing a self-inserting character,
+and the abbrev has a hook with the `no-self-insert' property, and the
+hook function returns non-nil meaning expansion has been done,
+then the self-inserting character is not inserted.
+
++++
 ** The function `intern-soft' now accepts a symbol as first argument.
 In this case, that exact symbol is looked up in the specified obarray,
 and the function's value is nil if it is not found.
 
++++
 ** The new macro `with-syntax-table' can be used to evaluate forms
 with the syntax table of the current buffer temporarily set to a
 specified table.
@@ -943,18 +951,23 @@ TABLE.  The current syntax table is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.  Value is
 what BODY returns.
 
++++
 ** Regular expressions now support Perl's non-greedy *? +? and ??
 operators.
 
++++
 ** The optional argument BUFFER of function file-local-copy has been
 removed since it wasn't used by anything.
 
++++
 ** The file name argument of function `file-locked-p' is now required
 instead of being optional.
 
++++
 ** The new built-in error `text-read-only' is signaled when trying to
 modify read-only text.
 
++++
 ** New functions and variables for locales.
 
 The new variable `locale-coding-system' specifies how to encode and
@@ -971,14 +984,17 @@ not be invoked thereafter.  It uses the new variables
 `locale-language-names', `locale-charset-language-names', and
 `locale-preferred-coding-systems' to make its decisions.
 
++++
 ** syntax tables now understand nested comments.
 To declare a comment syntax as allowing nesting, just add an `n'
 modifier to either of the characters of the comment end and the comment
 start sequences.
 
++++
 ** The function `pixmap-spec-p' has been renamed `bitmap-spec-p'
 because `bitmap' is more in line with the usual X terminology.
 
++++
 ** New function `propertize'
 
 The new function `propertize' can be used to conveniently construct
@@ -996,13 +1012,27 @@ specified value of that property.  Example:
 +++
 ** push and pop macros.
 
-A simple version of the push and pop macros of Common Lisp
-is now defined in Emacs Lisp.  These macros allow only symbols
+Simple versions of the push and pop macros of Common Lisp
+are now defined in Emacs Lisp.  These macros allow only symbols
 as the place that holds the list to be changed.
 
 (push NEWELT LISTNAME)  add NEWELT to the front of LISTNAME's value.
 (pop LISTNAME)          return first elt of LISTNAME, and remove it
 			(thus altering the value of LISTNAME).
+
+** New dolist and dotimes macros.
+
+The dolist and dotimes macros of Common Lisp are now available.
+
+(dolist (VAR LIST [RESULT]) BODY...)
+      Execute body once for each element of LIST,
+      using the variable VAR to hold the current element.
+      Then return the value of RESULT, or nil if RESULT is omitted.
+
+(dotimes (VAR COUNT [RESULT]) BODY...)
+      Execute BODY with VAR bound to successive integers running from 0,
+      inclusive, to COUNT, exclusive.
+      Then return the value of RESULT, or nil if RESULT is omitted.
 
 +++
 ** Regular expressions now support Posix character classes such

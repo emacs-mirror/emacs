@@ -1,5 +1,7 @@
 2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
+	* subr.el (with-syntax-table): Use make-symbol, not gensym.
+
 	* emacs-lisp/lisp.el (beginning-of-defun-function):
 	Variable renamed from beginning-of-defun.
 	Do not call make-variable-buffer-local.
@@ -9,9 +11,8 @@
 	Do not call make-variable-buffer-local.
 	(end-of-defun): Use new variable name; doc fix.
 
-	* emacs-lisp/cl-macs.el (dolist, dotimes): Moved to subr.el.
-
-	* subr.el (dolist, dotimes): Moved from cl-macs.el.
+	* subr.el (dolist, dotimes): Copied from cl-macs.el
+	and made to work.
 
 	* mail/undigest.el (rmail-digest-end-regexps): 
 	Variable replaces rmail-digest-end-regexp.

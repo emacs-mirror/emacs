@@ -678,6 +678,20 @@ match for this regular expression, followed by a character with
 open-parenthesis syntax.
 @end defopt
 
+@defvar beginning-of-defun-function
+@tindex beginning-of-defun-function
+If non-@code{nil}, this variable holds a function for finding the
+beginning of a defun.  The function @code{beginning-of-defun}
+calls this function instead of using its normal method.
+@end defvar
+
+@defvar end-of-defun-function
+@tindex end-of-defun-function
+If non-@code{nil}, this variable holds a function for finding the end of
+a defun.  The function @code{end-of-defun} calls this function instead
+of using its normal method.
+@end defvar
+
 @node Skipping Characters
 @comment  node-name,  next,  previous,  up
 @subsection Skipping Characters

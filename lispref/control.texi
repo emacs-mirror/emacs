@@ -471,6 +471,39 @@ reaches an empty line.  It is peculiar in that the @code{while} has no
 body, just the end test (which also does the real work of moving point).
 @end defspec
 
+  The @code{dolist} and @code{dotimes} macros provide convenient ways to
+write two common kinds of loops.
+
+@defmac dolist (var list [result]) body@dots{}
+@tindex dolist
+This construct executes @var{body} once for each element of @var{list},
+using the variable @var{var} to hold the current element.  Then it
+returns the value of evaluating @var{result}, or @code{nil} if
+@var{result} is omitted.  For example, here is how you could use
+@code{dolist} to define the @code{reverse} function:
+
+@example
+(defun reverse (list)
+  (let (value)
+    (dolist (elt list value)
+      (setq value (cons elt value)))))
+@end example
+@end defmac
+
+@defmac dotimes (var count [result]) body@dots{}
+@tindex dotimes
+This construct executes @var{body} once for each integer from 0
+(inclusive) to @var{count} (exclusive), using the variable @var{var} to
+hold the integer for the current iteration.  Then it returns the value
+of evaluating @var{result}, or @code{nil} if @var{result} is omitted.
+Here is an example of using @code{dotimes} do something 100 times:
+
+@example
+(dotimes (i 100)
+  (insert "I will not obey absurd orders\n"))
+@end example
+@end defmac
+
 @node Nonlocal Exits
 @section Nonlocal Exits
 @cindex nonlocal exits

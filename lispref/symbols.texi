@@ -326,6 +326,10 @@ Therefore, you can use @code{intern-soft} to test whether a symbol with
 a given name is already interned.  If @var{obarray} is omitted, the
 value of the global variable @code{obarray} is used.
 
+The argument @var{name} may also be a symbol; in that case,
+the function returns @var{name} if @var{name} is interned
+in the specified obarray, and otherwise @code{nil}.
+
 @smallexample
 (intern-soft "frazzle")        ; @r{No such symbol exists.}
      @result{} nil
