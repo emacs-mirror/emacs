@@ -787,17 +787,18 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 				(save-excursion (skip-chars-forward " \t")
 						(point))))
 			     fill-prefix-regexp (regexp-quote fill-prefix)))
-		   (move-to-left-margin 1)
+		   (forward-line 1)
+		   (move-to-left-margin)
 		   ;; Now stop the loop if end of paragraph.
 		   (and (not (eobp))
 			(if fill-individual-varying-indent
 			    ;; If this line is a separator line, with or
 			    ;; without prefix, end the paragraph.
 			    (and 
-			(not (looking-at paragraph-separate))
-			(save-excursion
-			  (not (and (looking-at fill-prefix-regexp)
-				    (progn (forward-char (length fill-prefix))
+			     (not (looking-at paragraph-separate))
+			     (save-excursion
+			       (not (and (looking-at fill-prefix-regexp)
+					 (progn (forward-char (length fill-prefix))
 						(looking-at paragraph-separate))))))
 			  ;; If this line has more or less indent
 			  ;; than the fill prefix wants, end the paragraph.
