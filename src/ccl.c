@@ -771,6 +771,34 @@ while(0)
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);	\
     } while (0)
 
+/* Decode CODE by a charset whose id is ID.  If ID is 0, return CODE
+   as is for backward compatibility.  Assume that we can use the
+   variable `charset'.  */
+
+#define CCL_DECODE_CHAR(id, code)	\
+  ((id) == 0 ? (code)			\
+   : (charset = CHARSET_FROM_ID ((id)), DECODE_CHAR (charset, (code))))
+
+
+/* Encode character C by some of charsets in CHARSET_LIST.  Set ID to
+   the id of the used charset, ENCODED to the resulf of encoding.
+   Assume that we can use the variable `charset'.  */
+
+#define CCL_ENCODE_CHAR(c, charset_list, id, encoded)			\
+  do {									\
+    unsigned code;							\
+									\
+    charset = char_charset ((c), (charset_list), &code);		\
+    if (! charset && ! NILP (charset_list))				\
+      charset = char_charset ((c), Qnil, &code);		  	\
+    if (charset)							\
+      {									\
+	(id) = CHARSET_ID (charset);					\
+	(encoded) = code;						\
+      }									\
+  } while (0)
+
+
 
 /* Execute CCL code on characters at SOURCE (length SRC_SIZE).  The
    resulting text goes to a place pointed by DESTINATION, the length
@@ -796,10 +824,11 @@ struct ccl_prog_stack
 static struct ccl_prog_stack ccl_prog_stack_struct[256];
 
 void
-ccl_driver (ccl, source, destination, src_size, dst_size)
+ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
      struct ccl_program *ccl;
      int *source, *destination;
      int src_size, dst_size;
+     Lisp_Object charset_list;
 {
   register int *reg = ccl->reg;
   register int ic = ccl->ic;
@@ -1194,37 +1223,28 @@ ccl_driver (ccl, source, destination, src_size, dst_size)
 	      if (!src)
 		CCL_INVALID_CMD;
 	      CCL_READ_CHAR (i);
-	      charset = CHAR_CHARSET (i);
-	      reg[rrr] = CHARSET_ID (charset);
-	      reg[RRR] = ENCODE_CHAR (charset, i);
+	      CCL_ENCODE_CHAR (i, charset_list, reg[RRR], reg[rrr]);
 	      break;
 
 	    case CCL_WriteMultibyteChar2:
 	      if (! dst)
 		CCL_INVALID_CMD;
-	      charset = CHARSET_FROM_ID (reg[RRR]);
-	      i = DECODE_CHAR (charset, reg[rrr]);
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 	      CCL_WRITE_CHAR (i);
 	      break;
 
 	    case CCL_TranslateCharacter:
-	      charset = CHARSET_FROM_ID (reg[RRR]);
-	      i = DECODE_CHAR (charset, reg[rrr]);
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 	      op = translate_char (GET_TRANSLATION_TABLE (reg[Rrr]), i);
-	      charset = CHAR_CHARSET (op);
-	      reg[RRR] = CHARSET_ID (charset);
-	      reg[rrr] = ENCODE_CHAR (charset, op);
+	      CCL_ENCODE_CHAR (op, charset_list, reg[RRR], reg[rrr]);
 	      break;
 
 	    case CCL_TranslateCharacterConstTbl:
 	      op = XINT (ccl_prog[ic]); /* table */
 	      ic++;
-	      charset = CHARSET_FROM_ID (reg[RRR]);
-	      i = DECODE_CHAR (charset, reg[rrr]);
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 	      op = translate_char (GET_TRANSLATION_TABLE (op), i);
-	      charset = CHAR_CHARSET (op);
-	      reg[RRR] = CHARSET_ID (charset);
-	      reg[rrr] = ENCODE_CHAR (charset, op);
+	      CCL_ENCODE_CHAR (op, charset_list, reg[RRR], reg[rrr]);
 	      break;
 
 	    case CCL_LookupIntConstTbl:
@@ -1240,8 +1260,8 @@ ccl_driver (ccl, source, destination, src_size, dst_size)
 		    opl = HASH_VALUE (h, op);
 		    if (!CHARACTERP (opl))
 		      CCL_INVALID_CMD;
-		    reg[rrr] = ENCODE_CHAR (CHAR_CHARSET (charset_unicode),
-					    op);
+		    reg[RRR] = charset_unicode;
+		    reg[rrr] = op;
 		    reg[7] = 1; /* r7 true for success */
 		  }
 		else
@@ -1252,8 +1272,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size)
 	    case CCL_LookupCharConstTbl:
 	      op = XINT (ccl_prog[ic]); /* table */
 	      ic++;
-	      charset = CHARSET_FROM_ID (reg[RRR]);
-	      i = DECODE_CHAR (charset, reg[rrr]);
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 	      {		
 		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
 
@@ -1909,7 +1928,7 @@ programs.  */)
 		  ? XINT (AREF (reg, i))
 		  : 0);
 
-  ccl_driver (&ccl, NULL, NULL, 0, 0);
+  ccl_driver (&ccl, NULL, NULL, 0, 0, Qnil);
   QUIT;
   if (ccl.status != CCL_STAT_SUCCESS)
     error ("Error in CCL program at %dth code", ccl.ic);
@@ -2011,7 +2030,8 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
       src_size = i;
       while (1)
 	{
-	  ccl_driver (&ccl, src, destination, src_size, CCL_EXECUTE_BUF_SIZE);
+	  ccl_driver (&ccl, src, destination, src_size, CCL_EXECUTE_BUF_SIZE,
+		      Qnil);
 	  if (ccl.status != CCL_STAT_SUSPEND_BY_DST)
 	    break;
 	  produced_chars += ccl.produced;
