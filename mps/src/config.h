@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.12) $
+ * $HopeName: MMsrc!config.h(trunk.13) $
  */
 
 #ifndef config_h
@@ -46,8 +46,16 @@
  *
  * Convert CONFIG_PROD_* defined on compiler command line into
  * internal configuration parameters.  See design.mps.config.prod.
- *
- * .prod.arena-size: ARENA_SIZE is currently set larger for the
+ */
+
+/* .ams-size: POOLAMS_MINIMUM_BENEFIT_SIZE is the size at which an AMS
+ * pool will first be recommended for condemnation. See
+ * design.mps.poolams.benefit.guess. This benefit computation is bogus
+ * and will go away in time. */
+
+#define POOLAMS_MINIMUM_BENEFIT_SIZE (1024ul * 1024)
+ 
+/* .prod.arena-size: ARENA_SIZE is currently set larger for the
  * MM/Dylan product as an interim solution.
  * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
  *
@@ -62,8 +70,7 @@
  * ARENA_CLIENT_DEFAULT_SEG_HIGH is a Bool governing whether segments default
  * 'high' (TRUE) or 'low' (FALSE). For EP-core, non-DL segments should be high
  * to reduce fragmentation of DL pools (See req.epcore.attr.footprint
- * and change 170193/trapping.beta.3
- */
+ * and change 170193/trapping.beta.3 */
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
 #define ARENA_CLIENT_DEFAULT_SEG_HIGH   TRUE
