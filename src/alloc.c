@@ -1280,7 +1280,8 @@ compact_small_strings ()
 	      /* Copy, and update the string's `data' pointer.  */
 	      if (from != to)
 		{
-		  bcopy (from, to, nbytes);
+		  xassert (tb != b || to <= from);
+		  safe_bcopy ((char *) from, (char *) to, nbytes);
 		  to->string->data = to->u.data;
 		}
 
