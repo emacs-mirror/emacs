@@ -502,12 +502,8 @@
 
 ;; Tibetan character set
 
-(let ((row 33))
-  (while (< row 38)
-    (modify-category-entry (make-char 'tibetan row) ?q)
-    (setq row (1+ row))))
-
-(modify-category-entry (make-char 'tibetan-1-column 33) ?q)
+(modify-category-entry (make-char 'tibetan) ?q)
+(modify-category-entry (make-char 'tibetan-1-column) ?q)
 
 (let ((deflist	'(;; chars             syntax category
 		  ("$(7"!(B-$(7"J(B"        	"w"	?0) ; consonant
