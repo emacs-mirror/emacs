@@ -20,24 +20,14 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifdef emacs
 #include <config.h>
-#endif
 
 #include <stdio.h>
-
-#ifdef emacs
 
 #include "lisp.h"
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
-
-#else  /* not emacs */
-
-#include "mulelib.h"
-
-#endif /* not emacs */
 
 /* This contains all code conversion map available to CCL.  */
 Lisp_Object Vcode_conversion_map_vector;
@@ -862,7 +852,7 @@ while(0)
 
 #ifdef CCL_DEBUG
 #define CCL_DEBUG_BACKTRACE_LEN 256
-int ccl_backtrace_table[CCL_BACKTRACE_TABLE];
+int ccl_backtrace_table[CCL_DEBUG_BACKTRACE_LEN];
 int ccl_backtrace_idx;
 #endif
 
@@ -1434,10 +1424,11 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		op = hash_lookup (h, make_number (reg[RRR]), NULL);
 		if (op >= 0)
 		  {
-		    op = HASH_VALUE (h, op);
-		    if (!CHAR_VALID_P (op, 0))
+		    Lisp_Object opl;
+		    opl = HASH_VALUE (h, op);
+		    if (!CHAR_VALID_P (XINT (opl), 0))
 		      CCL_INVALID_CMD;
-		    SPLIT_CHAR (XINT (op), reg[RRR], i, j);
+		    SPLIT_CHAR (XINT (opl), reg[RRR], i, j);
 		    if (j != -1)
 		      i = (i << 7) | j;
 		    reg[rrr] = i;
@@ -1458,10 +1449,11 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		op = hash_lookup (h, make_number (i), NULL);
 		if (op >= 0)
 		  {
-		    op = HASH_VALUE (h, op);
-		    if (!INTEGERP (op))
+		    Lisp_Object opl;
+		    opl = HASH_VALUE (h, op);
+		    if (!INTEGERP (opl))
 		      CCL_INVALID_CMD;
-		    reg[RRR] = XINT (op);
+		    reg[RRR] = XINT (opl);
 		    reg[7] = 1; /* r7 true for success */
 		  }
 		else
@@ -2071,8 +2063,6 @@ setup_ccl_program (ccl, ccl_prog)
   return 0;
 }
 
-#ifdef emacs
-
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a CCL program name or a compiled CCL program code.
 See the documentation of  `define-ccl-program' for the detail of CCL program.  */)
@@ -2412,5 +2402,3 @@ used by CCL.  */);
   defsubr (&Sregister_ccl_program);
   defsubr (&Sregister_code_conversion_map);
 }
-
-#endif  /* emacs */
