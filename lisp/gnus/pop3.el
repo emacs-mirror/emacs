@@ -1,10 +1,11 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface
 
-;; Copyright (C) 1996,1997,1998 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999 Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
-;; Keywords: mail, pop3
-;; Version: 1.3m
+;; Maintainer: FSF
+;; Keywords: mail
+;; Version: 1.3s
 
 ;; This file is part of GNU Emacs.
 
@@ -35,9 +36,8 @@
 ;;; Code:
 
 (require 'mail-utils)
-(provide 'pop3)
 
-(defconst pop3-version "1.3m")
+(defconst pop3-version "1.3s")
 
 (defvar pop3-maildrop (or (user-login-name) (getenv "LOGNAME") (getenv "USER") nil)
   "*POP3 maildrop.")
@@ -61,7 +61,7 @@ values are 'apop.")
 Used for APOP authentication.")
 
 (defvar pop3-movemail-file-coding-system nil
-  "Crashbox made by pop3-movemail with this coding system.")
+  "Crashbox made by `pop3-movemail' with this coding system.")
 
 (defvar pop3-read-point nil)
 (defvar pop3-debug nil)
@@ -86,32 +86,32 @@ Used for APOP authentication.")
 	  ((equal 'pass pop3-authentication-scheme)
 	   (pop3-user process pop3-maildrop)
 	   (pop3-pass process))
-	  (t (error "Invalid POP3 authentication scheme.")))
+	  (t (error "Invalid POP3 authentication scheme")))
     (setq message-count (car (pop3-stat process)))
-    (while (<= n message-count)
-      (message (format "Retrieving message %d of %d from %s..."
-		       n message-count pop3-mailhost))
-      (pop3-retr process n crashbuf)
-      (save-excursion
-	(set-buffer crashbuf)
-	(let ((coding-system-for-write pop3-movemail-file-coding-system))
-	  (append-to-file (point-min) (point-max) crashbox))
-	(set-buffer (process-buffer process))
-	(while (> (buffer-size) 5000)
-	  (goto-char (point-min))
-	  (forward-line 50)
-	  (delete-region (point-min) (point))))
-      (pop3-dele process n)
-      (setq n (+ 1 n))
-      (if pop3-debug (sit-for 1) (sit-for 0.1))
-      )
-    (pop3-quit process)
+    (unwind-protect
+	(while (<= n message-count)
+	  (message (format "Retrieving message %d of %d from %s..."
+			   n message-count pop3-mailhost))
+	  (pop3-retr process n crashbuf)
+	  (save-excursion
+	    (set-buffer crashbuf)
+	    (write-region (point-min) (point-max) crashbox t 'nomesg)
+	    (set-buffer (process-buffer process))
+	    (while (> (buffer-size) 5000)
+	      (goto-char (point-min))
+	      (forward-line 50)
+	      (delete-region (point-min) (point))))
+	  (pop3-dele process n)
+	  (setq n (+ 1 n))
+	  (if pop3-debug (sit-for 1) (sit-for 0.1))
+	  )
+      (pop3-quit process))
     (kill-buffer crashbuf)
     )
-  )
+  t)
 
 (defun pop3-open-server (mailhost port)
-  "Open TCP connection to MAILHOST.
+  "Open TCP connection to MAILHOST on PORT.
 Returns the process associated with the connection."
   (let ((process-buffer
 	 (get-buffer-create (format "trace of POP session to %s" mailhost)))
@@ -149,8 +149,7 @@ Returns the process associated with the connection."
 ;;      (insert command "\r\n"))
     (setq pop3-read-point (point))
     (goto-char (point-max))
-    (process-send-string process command)
-    (process-send-string process "\r\n")
+    (process-send-string process (concat command "\r\n"))
     )
 
 (defun pop3-read-response (process &optional return)
@@ -252,7 +251,15 @@ Return the response string if optional second argument is non-nil."
 	      (setq From_ (concat (substring From_ 0 (match-beginning 0))
 				  (substring From_ (match-end 0)))))
 	    (goto-char (point-min))
-	    (insert From_))))))
+	    (insert From_)
+	    (re-search-forward "\n\n")
+	    (narrow-to-region (point) (point-max))
+	    (let ((size (- (point-max) (point-min))))
+	      (goto-char (point-min))
+	      (widen)
+	      (forward-line -1)
+	      (insert (format "Content-Length: %s\n" size)))
+	    )))))
 
 ;; The Command Set
 
@@ -470,3 +477,7 @@ and close the connection."
 ;; Restrictions: none
 ;; Possible responses:
 ;;  +OK [TCP connection closed]
+
+(provide 'pop3)
+
+;;; pop3.el ends here
