@@ -1,18 +1,14 @@
 /* impl.h.meter: METER INTERFACE
  *
- * $HopeName: MMsrc!meter.h(trunk.2) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!meter.h(trunk.3) $
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
- * Defines an interface for creating "meters" that accumulate the
- * number, total and mean^2 of a set of data points.  These
- * accumulators can be used to report on the number, total, average,
- * and variance of the data set.
+ * .sources: mps.design.metrics.
  *
- * .limitation: This computation accumulates a running mean^2,
- * minimizing overflow, but sacrificing numerical stablity for small
- * variances.  For more accuracy, the data set should be emitted using
- * a telemetry stream and analyzed off line.
- *
+ * .purpose: Defines an interface for creating "meters" that accumulate
+ * the number, total and mean^2 of a set of data points.  These
+ * accumulators can be used to report on the number, total, average, and
+ * variance of the data set.
  */
 
 #ifndef meter_h
@@ -42,37 +38,13 @@ extern void MeterAccumulate(Meter meter, Size amount);
 extern Res MeterWrite(Meter meter, mps_lib_FILE *stream);
 extern void MeterEmit(Meter meter);
 
-
-#define METER_IGNORE(expr) \
-  BEGIN \
-    (void)sizeof(expr); \
-  END
-
-#if defined(MPS_HOT_WHITE)
-
-#define METER_DECL(meter) struct MeterStruct meter
+#define METER_DECL(meter) STATISTIC_DECL(struct MeterStruct meter)
 #define METER_INIT(meter, init, owner) \
-  METER_IGNORE(meter); METER_IGNORE(init); METER_IGNORE(owner)
+  STATISTIC(MeterInit(&(meter), init, owner))
 #define METER_ACC(meter, delta) \
-  METER_IGNORE(meter); METER_IGNORE(delta)
-#define METER_WRITE(meter, stream) \
-  (UNUSED(meter), UNUSED(stream), ResOK)
-#define METER_EMIT(meter) \
-  METER_IGNORE(meter)
+  STATISTIC(MeterAccumulate(&(meter), delta))
+#define METER_WRITE(meter, stream) MeterWrite(&(meter), stream)
+#define METER_EMIT(meter) STATISTIC(MeterEmit(meter))
 
-
-#elif defined (MPS_HOT_RED) || defined(MPS_COOL)
-
-#define METER_DECL(meter) struct MeterStruct meter
-#define METER_INIT(meter, init, owner) MeterInit(&(meter), init, owner)
-#define METER_ACC(meter, delta) MeterAccumulate(&(meter), delta)
-#define METER_WRITE(meter, stream) (MeterWrite(&(meter), stream))
-#define METER_EMIT(meter) MeterEmit(meter)
-
-#else
-
-#error "No heat defined."
-
-#endif
 
 #endif /* meter_h */
