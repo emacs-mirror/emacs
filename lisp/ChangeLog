@@ -1,3 +1,7 @@
+2000-11-20  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (DONTCOMPILE): Omit bindings.el.
+
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* calculator.el: New version from author.
