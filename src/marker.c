@@ -888,6 +888,23 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
 
   return Qnil;
 }
+
+/* For debugging -- count the markers in buffer BUF.  */
+
+int
+count_markers (buf)
+     struct buffer *buf;
+{
+  int total = 0;
+  Lisp_Object tail;
+
+  for (tail = BUF_MARKERS (buf);
+       !NILP (tail);
+       tail = XMARKER (tail)->chain)
+    total++;
+
+  return total;
+}
 
 void
 syms_of_marker ()
