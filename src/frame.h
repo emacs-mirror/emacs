@@ -57,6 +57,16 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
+enum text_cursor_kinds
+{
+  DEFAULT_CURSOR = -2,
+  NO_CURSOR = -1,
+  FILLED_BOX_CURSOR,
+  HOLLOW_BOX_CURSOR,
+  BAR_CURSOR,
+  HBAR_CURSOR
+};
+
 #if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(MAC_OS)
 
 #if !defined(HAVE_X_WINDOWS)
@@ -322,6 +332,20 @@ struct frame
      actually display them on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
 
+  /* What kind of text cursor should we draw in the future?
+     This should always be filled_box_cursor or bar_cursor.  */
+  enum text_cursor_kinds desired_cursor;
+
+  /* Width of bar cursor (if we are using that).  */
+  int cursor_width;
+
+  /* What kind of text cursor should we draw when the cursor blinks off?
+     This can be filled_box_cursor or bar_cursor or no_cursor.  */
+  enum text_cursor_kinds blink_off_cursor;
+
+  /* Width of bar cursor (if we are using that) for blink-off state.  */
+  int blink_off_cursor_width;
+
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
 
@@ -570,6 +594,11 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
+
+#define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)
+#define FRAME_BLINK_OFF_CURSOR(f) ((f)->blink_off_cursor)
+#define FRAME_CURSOR_WIDTH(f) ((f)->cursor_width)
+#define FRAME_BLINK_OFF_CURSOR_WIDTH(f) ((f)->blink_off_cursor_width)
 
 /* Return a pointer to the face cache of frame F.  */
 
