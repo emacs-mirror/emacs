@@ -9,9 +9,9 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.9
-@set EDITION 4.9
-@set DATE December 1999
+@set VERSION 4.10
+@set EDITION 4.10
+@set DATE January 2000
 @set AUTHOR Carsten Dominik
 @set AUTHOR-EMAIL dominik@@strw.leidenuniv.nl
 @set MAINTAINER Carsten Dominik
@@ -38,7 +38,7 @@ citations and indices for LaTeX documents with Emacs.@refill
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}@refill
 
-Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim
 copies of this manual provided the copyright notice and
@@ -72,7 +72,7 @@ translation approved by the Free Software Foundation.
 
 @author by Carsten Dominik
 @page
-Copyright @copyright{} 1997, 1998, 1999 Free Software Foundation, Inc.
+Copyright @copyright{} 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 @sp 2
 This is edition @value{EDITION} of the @cite{Ref@TeX{} User Manual} for
@@ -2840,6 +2840,7 @@ try@refill
 @b{Saving Parser Information}@*
 @cindex Saving parser information
 @cindex Parse information, saving to a file
+@vindex reftex-parse-file-extension
 Even with partial scans enabled, @b{Ref@TeX{}} still has to make one full
 scan, when you start working with a document.  To avoid this, parsing
 information can be stored in a file.  The file @file{MASTER.rel} is used
@@ -4301,6 +4302,11 @@ math delimiters (e.g. @samp{$}) to the string.  Requires the
 @file{texmathp.el} library which is part of AUCTeX.@refill
 @end defopt
 
+@defopt reftex-index-phrase-file-extension
+File extension for the index phrase file.  This extension will be added
+to the base name of the master file.
+@end defopt
+
 @defopt reftex-index-phrases-logical-and-regexp
 Regexp matching the @samp{and} operator for index arguments in phrases
 file.  When several index arguments in a phrase line are separated by
@@ -4629,6 +4635,11 @@ document.@refill
 exiting Emacs or killing a buffer in reftex-mode will cause a new
 version of the file to be written.@refill
 @end itemize
+@end defopt
+
+@defopt reftex-parse-file-extension
+File extension for the file in which parser information is stored.
+This extension is added to the base name of the master file.
 @end defopt
 
 @defopt reftex-allow-automatic-rescan
@@ -5376,6 +5387,15 @@ default stuff which has been moved to a constant.@refill
 Environments like theorems can be placed into the TOC by putting
 entries for @samp{"begin@{theorem@}"} in
 @code{reftex-setion-levels}.@refill 
+@end itemize
+@noindent @b{Version 4.10}
+@itemize @bullet
+@item
+Renamed @file{reftex-vcr.el} to @file{reftex-dcr.el} because of conflict
+with @file{reftex-vars.el} on DOS machines.
+@item
+New options @code{reftex-parse-file-extension} and
+@code{reftex-index-phrase-file-extension}.
 @end itemize
 
 @node Index,  , , Top
