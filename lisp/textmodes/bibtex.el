@@ -782,19 +782,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 
 ;; Helper Functions
 
-(defun assoc-ignore-case (string alist)
-  ;; Return non-nil if STRING is `equal' to the car of an element of
-  ;; LIST. Comparison is done with case ignored. The value is actually
-  ;; the element of LIST whose car is `equal' to STRING.
-  (or (assoc string alist)
-      (while (and alist
-		  (not (string-equal
-                        (downcase string)
-                        (downcase (car (car alist))))))
-	(setq alist (cdr alist)))
-      (car alist)))
-
-(defun member-of-regexp (string list)
+(defun bibtex-member-of-regexp (string list)
   ;; Return non-nil if STRING is exactly matched by an element of
   ;; LIST. This function is influenced by the actual value of
   ;; `case-fold-search'. The value is actually the tail of LIST whose
@@ -1230,7 +1218,7 @@ The generation algorithm works as follows:
                           (< counter bibtex-autokey-titlewords))
                          (if (and
                               first
-                              (member-of-regexp
+                              (bibtex-member-of-regexp
                                titleword
                                bibtex-autokey-titleword-first-ignore))
                              (setq counter -1)
