@@ -122,10 +122,13 @@ static int echoing;
 int immediate_quit;
 
 /* Character to recognize as the help char.  */
-Lisp_Object help_char;
+Lisp_Object Vhelp_char;
 
 /* Form to execute when help char is typed.  */
 Lisp_Object Vhelp_form;
+
+/* Command to run when the help character follows a prefix key.  */
+Lisp_Object Vprefix_help_command;
 
 /* Character that causes a quit.  Normally C-g.
 
@@ -505,7 +508,7 @@ echo_char (c)
 	  ptr += name->size;
 	}
 
-      if (echoptr == echobuf && EQ (c, help_char))
+      if (echoptr == echobuf && EQ (c, Vhelp_char))
 	{
 	  strcpy (ptr, " (Type ? for further options)");
 	  ptr += strlen (ptr);
@@ -1480,7 +1483,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		 consing going on to make it worthwhile.  */
 	      if (!detect_input_pending ()
 		  && consing_since_gc > gc_cons_threshold / 2)
-		Fgarbage_collect ();
+		{
+		  Fgarbage_collect ();
+		  redisplay ();
+		}
 	    }
 	}
     }
@@ -1587,7 +1593,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   num_input_chars++;
 
   /* Process the help character specially if enabled */
-  if (EQ (c, help_char) && !NILP (Vhelp_form))
+  if (EQ (c, Vhelp_char) && !NILP (Vhelp_form))
     {
       Lisp_Object tem0;
       count = specpdl_ptr - specpdl;
@@ -1914,7 +1920,7 @@ kbd_buffer_get_event ()
     }
   else if (do_mouse_tracking && mouse_moved)
     {
-      FRAME_PTR f;
+      FRAME_PTR f = 0;
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
@@ -3802,6 +3808,9 @@ read_key_sequence (keybuf, bufsize, prompt)
       this_command_key_count = keys_local_start;
       first_binding = local_first_binding;
 
+      /* By default, assume each event is "real".  */
+      last_real_key_start = t;
+
       /* Does mock_input indicate that we are re-reading a key sequence?  */
       if (t < mock_input)
 	{
@@ -3814,8 +3823,6 @@ read_key_sequence (keybuf, bufsize, prompt)
       else
 	{
 	  struct buffer *buf = current_buffer;
-
-	  last_real_key_start = t;
 
 	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
 			   &used_mouse_menu);
@@ -3830,125 +3837,131 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    }
 	  
 	  Vquit_flag = Qnil;
+	}
 
-	  /* Clicks in non-text areas get prefixed by the symbol 
-	     in their CHAR-ADDRESS field.  For example, a click on
-	     the mode line is prefixed by the symbol `mode-line'.
+      /* Clicks in non-text areas get prefixed by the symbol 
+	 in their CHAR-ADDRESS field.  For example, a click on
+	 the mode line is prefixed by the symbol `mode-line'.
 
-	     Furthermore, key sequences beginning with mouse clicks
-	     are read using the keymaps of the buffer clicked on, not
-	     the current buffer.  So we may have to switch the buffer
-	     here.
+	 Furthermore, key sequences beginning with mouse clicks
+	 are read using the keymaps of the buffer clicked on, not
+	 the current buffer.  So we may have to switch the buffer
+	 here.
 
-	     If the event was obtained from the unread_command_events
-	     queue, then don't expand it; we did that the first time
-	     we read it.  */
-	  if (EVENT_HAS_PARAMETERS (key))
+	 When we turn one event into two events, we must make sure
+	 that neither of the two looks like the original--so that,
+	 if we replay the events, they won't be expanded again.
+	 If not for this, such reexpansion could happen either here
+	 or when user programs play with this-command-keys.  */
+      if (EVENT_HAS_PARAMETERS (key))
+	{
+	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
+
+	  if (EQ (kind, Qmouse_click))
 	    {
-	      Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
+	      Lisp_Object window = POSN_WINDOW      (EVENT_START (key));
+	      Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
 
-	      if (EQ (kind, Qmouse_click))
+	      if (XTYPE (posn) == Lisp_Cons)
 		{
-		  Lisp_Object window = POSN_WINDOW      (EVENT_START (key));
-		  Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
-
-		  /* Key sequences beginning with mouse clicks are
-		     read using the keymaps in the buffer clicked on,
-		     not the current buffer.  If we're at the
-		     beginning of a key sequence, switch buffers.  */
-		  if (t == 0
-		      && XTYPE (window) == Lisp_Window
-		      && XTYPE (XWINDOW (window)->buffer) == Lisp_Buffer
-		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
-		    {
-		      keybuf[t] = key;
-		      mock_input = t + 1;
-
-		      /* Arrange to go back to the original buffer once we're
-			 done reading the key sequence.  Note that we can't
-			 use save_excursion_{save,restore} here, because they
-			 save point as well as the current buffer; we don't
-			 want to save point, because redisplay may change it,
-			 to accommodate a Fset_window_start or something.  We
-			 don't want to do this at the top of the function,
-			 because we may get input from a subprocess which
-			 wants to change the selected window and stuff (say,
-			 emacsclient).  */
-		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-			 
-		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		      goto replay_sequence;
-		    }
-		  else if (XTYPE (posn) == Lisp_Symbol)
-		    {
-		      if (t + 1 >= bufsize)
-			error ("key sequence too long");
-		      keybuf[t] = posn;
-		      keybuf[t+1] = key;
-		      mock_input = t + 2;
-
-		      /* Zap the position in key, so we know that we've
-			 expanded it, and don't try to do so again.  */
-		      POSN_BUFFER_POSN (EVENT_START (key))
-			= Fcons (posn, Qnil);
-
-		      /* If we switched buffers while reading the first event,
-			 replay in case we switched keymaps too.  */
-		      if (buf != current_buffer && t == 0)
-			goto replay_sequence;
-		      goto replay_key;
-		    }
-		  else if (XTYPE (posn) == Lisp_Cons)
-		    {
-		      /* We're looking at the second event of a
-			 sequence which we expanded before.  Set
-			 last_real_key_start appropriately.  */
-		      if (last_real_key_start == t && t > 0)
-			last_real_key_start = t - 1;
-		    }
-		}
-	      else if (EQ (kind, Qswitch_frame))
-		{
-		  /* If we're at the beginning of a key sequence, go
-		     ahead and return this event.  If we're in the
-		     midst of a key sequence, delay it until the end. */
+		  /* We're looking at the second event of a
+		     sequence which we expanded before.  Set
+		     last_real_key_start appropriately.  */
 		  if (t > 0)
-		    {
-		      delayed_switch_frame = key;
-		      goto replay_key;
-		    }
+		    last_real_key_start = t - 1;
 		}
-	      else
-		{
-		  Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
 
-		  /* Handle menu-bar events:
-		     insert the dummy prefix char `menu-bar'.  */
-		  if (EQ (posn, Qmenu_bar))
-		    {
-		      if (t + 1 >= bufsize)
-			error ("key sequence too long");
-		      /* Run the Lucid hook.  */
-		      call1 (Vrun_hooks, Qactivate_menubar_hook);
-		      /* If it has changed current-menubar from previous value,
-			 really recompute the menubar from the value.  */
-		      if (! NILP (Vlucid_menu_bar_dirty_flag))
-			call0 (Qrecompute_lucid_menubar);
-		      keybuf[t] = posn;
-		      keybuf[t+1] = key;
-		      mock_input = t + 2;
-		      goto replay_sequence;
-		    }
+	      /* Key sequences beginning with mouse clicks are
+		 read using the keymaps in the buffer clicked on,
+		 not the current buffer.  If we're at the
+		 beginning of a key sequence, switch buffers.  */
+	      if (last_real_key_start == 0
+		  && XTYPE (window) == Lisp_Window
+		  && XTYPE (XWINDOW (window)->buffer) == Lisp_Buffer
+		  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+		{
+		  keybuf[t] = key;
+		  mock_input = t + 1;
+
+		  /* Arrange to go back to the original buffer once we're
+		     done reading the key sequence.  Note that we can't
+		     use save_excursion_{save,restore} here, because they
+		     save point as well as the current buffer; we don't
+		     want to save point, because redisplay may change it,
+		     to accommodate a Fset_window_start or something.  We
+		     don't want to do this at the top of the function,
+		     because we may get input from a subprocess which
+		     wants to change the selected window and stuff (say,
+		     emacsclient).  */
+		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
+		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		  goto replay_sequence;
+		}
+	      else if (XTYPE (posn) == Lisp_Symbol)
+		{
+		  /* Expand mode-line and scroll-bar events into two events:
+		     use posn as a fake prefix key.  */
+
+		  if (t + 1 >= bufsize)
+		    error ("key sequence too long");
+		  keybuf[t] = posn;
+		  keybuf[t+1] = key;
+		  mock_input = t + 2;
+
+		  /* Zap the position in key, so we know that we've
+		     expanded it, and don't try to do so again.  */
+		  POSN_BUFFER_POSN (EVENT_START (key))
+		    = Fcons (posn, Qnil);
+		  goto replay_key;
 		}
 	    }
-
-	  /* If we switched buffers while reading the first event,
-	     replay in case we switched keymaps too.  */
-	  if (buf != current_buffer && t == 0)
+	  else if (EQ (kind, Qswitch_frame))
 	    {
-	      keybuf[t++] = key;
-	      mock_input = t;
-	      goto replay_sequence;
+	      /* If we're at the beginning of a key sequence, go
+		 ahead and return this event.  If we're in the
+		 midst of a key sequence, delay it until the end. */
+	      if (t > 0)
+		{
+		  delayed_switch_frame = key;
+		  goto replay_key;
+		}
+	    }
+	  else
+	    {
+	      Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
+
+	      /* Handle menu-bar events:
+		 insert the dummy prefix event `menu-bar'.  */
+	      if (EQ (posn, Qmenu_bar))
+		{
+		  if (t + 1 >= bufsize)
+		    error ("key sequence too long");
+		  /* Run the Lucid hook.  */
+		  call1 (Vrun_hooks, Qactivate_menubar_hook);
+		  /* If it has changed current-menubar from previous value,
+		     really recompute the menubar from the value.  */
+		  if (! NILP (Vlucid_menu_bar_dirty_flag))
+		    call0 (Qrecompute_lucid_menubar);
+		  keybuf[t] = posn;
+		  keybuf[t+1] = key;
+
+		  /* Zap the position in key, so we know that we've
+		     expanded it, and don't try to do so again.  */
+		  POSN_BUFFER_POSN (EVENT_START (key))
+		    = Fcons (posn, Qnil);
+
+		  mock_input = t + 2;
+		  goto replay_sequence;
+		}
+	      else if (XTYPE (posn) == Lisp_Cons)
+		{
+		  /* We're looking at the second event of a
+		     sequence which we expanded before.  Set
+		     last_real_key_start appropriately.  */
+		  if (last_real_key_start == t && t > 0)
+		    last_real_key_start = t - 1;
+		}
 	    }
 	}
 
@@ -3965,6 +3978,14 @@ read_key_sequence (keybuf, bufsize, prompt)
       if (first_binding >= nmaps)
 	{
 	  Lisp_Object head = EVENT_HEAD (key);
+
+	  if (EQ (head, Vhelp_char))
+	    {
+	      read_key_sequence_cmd = Vprefix_help_command;
+	      keybuf[t++] = key;
+	      last_nonmenu_event = key;
+	      goto done;
+	    }
 
 	  if (XTYPE (head) == Lisp_Symbol)
 	    {
@@ -5081,17 +5102,23 @@ If the last event came from a keyboard macro, this is set to `macro'.");
   Vlast_event_frame = Qnil;
 #endif
 
-  DEFVAR_LISP ("help-char", &help_char,
+  DEFVAR_LISP ("help-char", &Vhelp_char,
     "Character to recognize as meaning Help.\n\
 When it is read, do `(eval help-form)', and display result if it's a string.\n\
 If the value of `help-form' is nil, this char can be read normally.");
-  XSET (help_char, Lisp_Int, Ctl ('H'));
+  XSET (Vhelp_char, Lisp_Int, Ctl ('H'));
 
   DEFVAR_LISP ("help-form", &Vhelp_form,
-    "Form to execute when character help-char is read.\n\
+    "Form to execute when character `help-char' is read.\n\
 If the form returns a string, that string is displayed.\n\
 If `help-form' is nil, the help char is not recognized.");
   Vhelp_form = Qnil;
+
+  DEFVAR_LISP ("prefix-help-command", &Vprefix_help_command,
+    "Command to run when `help-char' character follows a prefix key.\n\
+This command is used only when there is no actual binding\n\
+for that character after that prefix key.");
+  Vprefix_help_command = Qnil;
 
   DEFVAR_LISP ("top-level", &Vtop_level,
     "Form to evaluate when Emacs starts up.\n\
@@ -5144,7 +5171,7 @@ Buffer modification stores t in this variable.");
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
-    "Normal hook run before each command is executed.");
+    "Normal hook run after each command is executed.");
   Vpost_command_hook = Qnil;
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
