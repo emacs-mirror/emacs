@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988,'89,'90,'91,'92,'93,'94,'95,'97
+;; Copyright (C) 1988,'89,'90,'91,'92,'93,'94,'95,1997
 ;;       Free Software Foundation, Inc
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
@@ -2104,7 +2104,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec condition-case
   (symbolp
    form
-   &rest (symbolp body)))
+   &rest ([&or symbolp (&rest symbolp)] body)))
 
 
 (def-edebug-spec \` (backquote-form))
