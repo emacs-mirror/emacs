@@ -3351,7 +3351,7 @@ w32_createwindow (f)
   FRAME_W32_WINDOW (f) = hwnd
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
-		    f->output_data.w32->dwStyle,
+		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
 		    f->output_data.w32->left_pos,
 		    f->output_data.w32->top_pos,
 		    rect.right - rect.left,
