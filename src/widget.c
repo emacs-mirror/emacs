@@ -318,17 +318,17 @@ set_frame_size (ew)
      treat that as the geometry of the frame.  (Is this bogus?
      I'm not sure.) */
   if (ew->emacs_frame.geometry == 0)
-    XtVaGetValues (wmshell, XtNgeometry, &ew->emacs_frame.geometry, 0);
+    XtVaGetValues (wmshell, XtNgeometry, &ew->emacs_frame.geometry, NULL);
 
   /* If the Shell is iconic, then the EmacsFrame is iconic.  (Is
      this bogus? I'm not sure.) */
   if (!ew->emacs_frame.iconic)
-    XtVaGetValues (wmshell, XtNiconic, &ew->emacs_frame.iconic, 0);
+    XtVaGetValues (wmshell, XtNiconic, &ew->emacs_frame.iconic, NULL);
   
   
   {
     char *geom = 0;
-    XtVaGetValues (app_shell, XtNgeometry, &geom, 0);
+    XtVaGetValues (app_shell, XtNgeometry, &geom, NULL);
     if (geom)
       app_flags = XParseGeometry (geom, &app_x, &app_y, &app_w, &app_h);
   }
@@ -378,7 +378,7 @@ set_frame_size (ew)
 
       /* If the AppShell is iconic, then the EmacsFrame is iconic. */
       if (!ew->emacs_frame.iconic)
-	XtVaGetValues (app_shell, XtNiconic, &ew->emacs_frame.iconic, 0);
+	XtVaGetValues (app_shell, XtNiconic, &ew->emacs_frame.iconic, NULL);
 
       first_frame_p = False;
     }
@@ -456,7 +456,7 @@ set_frame_size (ew)
 	len = strlen (shell_position) + 1;
 	tem = (char *) xmalloc (len);
 	strncpy (tem, shell_position, len);
-	XtVaSetValues (wmshell, XtNgeometry, tem, 0);
+	XtVaSetValues (wmshell, XtNgeometry, tem, NULL);
       }
     else if (flags & (WidthValue | HeightValue))
       {
@@ -466,7 +466,7 @@ set_frame_size (ew)
 	len = strlen (shell_position) + 1;
 	tem = (char *) xmalloc (len);
 	strncpy (tem, shell_position, len);
-	XtVaSetValues (wmshell, XtNgeometry, tem, 0);
+	XtVaSetValues (wmshell, XtNgeometry, tem, NULL);
       }
 
     /* If the geometry spec we're using has W/H components, mark the size
@@ -476,7 +476,7 @@ set_frame_size (ew)
 
     /* Also assign the iconic status of the frame to the Shell, so that
        the WM sees it. */
-    XtVaSetValues (wmshell, XtNiconic, ew->emacs_frame.iconic, 0);
+    XtVaSetValues (wmshell, XtNiconic, ew->emacs_frame.iconic, NULL);
 #endif /* 0 */
   }
 }
@@ -530,7 +530,7 @@ update_wm_hints (ew)
 		 XtNheightInc, ch,
 		 XtNminWidth, base_width + min_cols * cw,
 		 XtNminHeight, base_height + min_rows * ch,
-		 0);
+		 NULL);
 }
 
 #if 0
@@ -855,7 +855,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
   if (cur->emacs_frame.iconic != new->emacs_frame.iconic)
     {
       Widget wmshell = get_wm_shell ((Widget) cur);
-      XtVaSetValues (wmshell, XtNiconic, new->emacs_frame.iconic, 0);
+      XtVaSetValues (wmshell, XtNiconic, new->emacs_frame.iconic, NULL);
     }
 
   return needs_a_refresh;
