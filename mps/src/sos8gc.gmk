@@ -1,7 +1,7 @@
 # impl.gmk.sos8gc: BUILD FOR SOLARIS/SPARC v8/GCC PLATFORM
 #
-# $HopeName$
-# Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+# $HopeName: MMsrc!sos8gc.gmk(trunk.26) $
+# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
 #
 # This is the GNU makefile for platform.sos8gc.
 #
@@ -11,7 +11,6 @@ PFM = sos8gc
 MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
         protso.c prmcan.c span.c
 MPMS = sssos8.s
-DW = fmtdy.c dw.c
 SWPF = lockan.c than.c vmso.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 

@@ -1,7 +1,7 @@
 # impl.gmk.o1algc: BUILD FOR OSF/1, ALPHA, GCC PLATFORM
 #
-# $HopeName$
-# Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+# $HopeName: MMsrc!o1algc.gmk(trunk.22) $
+# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
 #
 # This is the GNU makefile for platform.o1algc.
 #
@@ -15,7 +15,6 @@ PFMDEFS = -D_ANSI_C_SOURCE
 MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmo1.c \
         proto1.c prmcan.c span.c
 MPMS = sso1al.s
-DW = dw.c fmtdy.c
 
 LIBS = -lm
 
