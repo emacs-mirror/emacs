@@ -1,5 +1,7 @@
 2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lread.c (Fload): Print a message if package is obsolete.
+
 	* window.c (Fselect_window): Add optional `norecord' arg.
 	(select_window_1): Fold into Fselect_window.
 	(select_window_norecord): New function.
@@ -78,7 +80,6 @@
 2003-05-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (apply_modifiers): Don't fill the other cache.
-======= end
 
 2003-05-14  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -3,10 +3,10 @@
 	* gud.el (gdb): Define gud-nexti.
 	(gud-menu-map): Add gud-nexti to map.
 	(gud-tool-bar-map): Add gud-nexti and gud-stepi to toolbar.
-	
-	* toolbar/gud-stepi.xpm, toolbar/gud-stepi.pbm, 
+
+	* toolbar/gud-stepi.xpm, toolbar/gud-stepi.pbm,
 	toolbar/gud-nexti.xpm, toolbar/gud-nexti.pbm: New icons for debugger.
-	
+
 2003-05-17  John Paul Wallington  <jpw@gnu.org>
 
 	* international/ja-dic-cnv.el (skkdic-okuri-nasi-entries)
@@ -16,6 +16,36 @@
 	of `string-to-int'.
 
 2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el: Don't require vc.el anymore.
+	(log-edit-mode-map): Fold vc-log-mode-map into it.
+	(vc-log-mode-map): Redefine as an alias.
+	(vc-previous-comment): Don't widen.
+	(vc-comment-to-change-log): Don't redundantly set paragraph-separate.
+	Don't require `add-log' since it's already required at toplevel.
+
+	* vc.el (vc-log-mode-map, vc-maximum-comment-ring-size)
+	(vc-comment-ring, vc-comment-ring-index, vc-last-comment-match):
+	Move vars to log-edit.el.
+	(vc-new-comment-index, vc-previous-comment, vc-next-comment)
+	(vc-comment-search-reverse, vc-comment-search-forward)
+	(vc-comment-to-change-log): Move funs to log-edit.el.
+	(vc-clear-context): Don't empty the comment-ring.
+	(vc-finish-logentry): Don't add the comment onto the comment-ring.
+
+	* log-edit.el (vc-log-mode-map, vc-maximum-comment-ring-size)
+	(vc-comment-ring, vc-comment-ring-index, vc-last-comment-match):
+	Move vars from vc.el.
+	(vc-new-comment-index, vc-previous-comment, vc-next-comment)
+	(vc-comment-search-reverse, vc-comment-search-forward)
+	(vc-comment-to-change-log): Move funs from vc.el.
+	(log-edit-show-files): Remove unused var `editbuf'.
+
+	* progmodes/tcl.el (tcl-indent-exp): Remove dead code.
+	(tcl-tab-always-indent): Default to tab-always-indent.
+
+	* progmodes/perl-mode.el (perl-end-of-function): Remove unused var.
+	(perl-tab-always-indent): Default to tab-always-indent.
 
 	* which-func.el (which-func-format): Make it risky-local-variable.
 	(which-func-table): New var.
@@ -32,6 +62,7 @@
 	(listify-key-sequence): Don't allocate unnecessarily.
 	(read-quoted-char): Allow up to base 36.
 	(prepare-change-group): Remove unimplemented argument.
+	(macro-declaration-function): Avoid `dolist' and `cadr'.
 
 	* wid-edit.el (pp-to-string, Info-goto-node): Don't autoload.
 	(widget-choose, widget-map-buttons): Use with-current-buffer.
