@@ -465,7 +465,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (define-key bibtex-mode-map [menu-bar move/edit]
   (cons "BibTeX-Edit" (make-sparse-keymap "BibTeX-Edit")))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-print-help-message]
-  '("Help about current field" . bibtex-print-help-message))
+  '("Help about Current Field" . bibtex-print-help-message))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-complete-string]
   '("String Complete" . bibtex-complete-string))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-next-field]
@@ -481,7 +481,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-double-quotes-or-braces]
   '("Remove Quotes or Braces" . bibtex-remove-double-quotes-or-braces))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-clean-entry]
-  '("Clean up Entry" . bibtex-clean-entry))
+  '("Clean Up Entry" . bibtex-clean-entry))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-sort-entries]
   '("Sort Entries" . bibtex-sort-entries))
 (define-key bibtex-mode-map [menu-bar move/edit bibtex-validate-buffer]
