@@ -1217,7 +1217,7 @@ DEFUN ("set-text-properties", Fset_text_properties,
   "Completely replace properties of text from START to END.\n\
 The third argument PROPERTIES is the new property list.\n\
 The optional fourth argument, OBJECT,\n\
-is the string or buffer containing the text.
+is the string or buffer containing the text.\n\
 If OBJECT is omitted or nil, it defaults to the current buffer.")
   (start, end, properties, object)
      Lisp_Object start, end, properties, object;
