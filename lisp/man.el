@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/10/27 19:08:03 $
-;; Version:		$Revision: 1.56 $
+;; Last-Modified:	$Date: 1994/11/07 12:13:16 $
+;; Version:		$Revision: 1.57 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -948,15 +948,13 @@ Actually the section moved to is described by `Man-see-also-regexp'."
       (error (concat "No " Man-see-also-regexp
 		     " section found in the current manpage"))))
 
-(defun Man-follow-manual-reference (arg reference)
+(defun Man-follow-manual-reference (reference)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
-Specify which reference to use; default is based on word at point.
-Prefix argument ARG is passed to `Man-getpage-in-background'."
+Specify which reference to use; default is based on word at point."
   (interactive
    (if (not Man-refpages-alist)
        (error "There are no references in the current man page")
-     (list current-prefix-arg
-	   (let* ((default (or
+     (list (let* ((default (or
 			     (car (all-completions
 				   (save-excursion
 				     (skip-syntax-backward "w()")
@@ -980,8 +978,7 @@ Prefix argument ARG is passed to `Man-getpage-in-background'."
       (error "Can't find any references in the current manpage")
     (aput 'Man-refpages-alist reference)
     (Man-getpage-in-background
-     (Man-translate-references (aheadsym Man-refpages-alist))
-     arg)))
+     (Man-translate-references (aheadsym Man-refpages-alist)))))
 
 (defun Man-kill ()
   "Kill the buffer containing the manpage."
