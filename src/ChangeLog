@@ -1,3 +1,8 @@
+2000-10-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (decode_coding_emacs_mule): If coding->eol_type is CR
+	or CRLF, decode EOLs.
+
 2000-10-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* window.c (Fdisplay_buffer): Fix doc.
@@ -32,7 +37,7 @@
 	that when a font can't be exactly centered, it errs up rather than
 	down.
 
-2000-10-22  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2000-10-23  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* fns.c (Fbase64_decode_string): The decoded result should be
 	unibyte.
