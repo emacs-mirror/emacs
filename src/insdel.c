@@ -456,7 +456,7 @@ del_range (from, to)
     }
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  offset_intervals (current_buffer, point, - numdel);
+  offset_intervals (current_buffer, from, - numdel);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.  */
@@ -495,6 +495,9 @@ modify_region (buffer, start, end)
   if (Z - end < end_unchanged
       || unchanged_modified == MODIFF)
     end_unchanged = Z - end;
+
+  if (MODIFF <= current_buffer->save_modified)
+    record_first_change ();
   MODIFF++;
 
   if (buffer != old_buffer)
