@@ -641,7 +641,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight t)
-  (isearch-lazy-highlight-cleanup)
+  (isearch-lazy-highlight-cleanup isearch-lazy-highlight-cleanup)
   (let ((found-start (window-start (selected-window)))
 	(found-point (point)))
     (if isearch-window-configuration
@@ -1895,90 +1895,96 @@ If this is nil, extra highlighting can be \"manually\" removed with
 (defvar isearch-lazy-highlight-face 'isearch-lazy-highlight-face)
 
 (defvar isearch-lazy-highlight-overlays nil)
-(defvar isearch-lazy-highlight-wrapped nil)
+(defvar isearch-lazy-highlight-window nil)
 (defvar isearch-lazy-highlight-start nil)
 (defvar isearch-lazy-highlight-end nil)
 (defvar isearch-lazy-highlight-timer nil)
 (defvar isearch-lazy-highlight-last-string nil)
 
-(defun isearch-lazy-highlight-cleanup (&optional force)
-  "Stop lazy highlighting and remove extra highlighting from current buffer.
-FORCE non-nil means do it whether or not `isearch-lazy-highlight-cleanup'
-is nil.  This function is called when exiting an incremental search if
-`isearch-lazy-highlight-cleanup' is non-nil."
+(defun isearch-lazy-highlight-cleanup (&optional remove)
+  "Stop lazy highlighting and maybe remove existing highlighting.
+REMOVE non-nil means remove all the existing lazy highlighting.
+
+This function is called when exiting an incremental search."
   (interactive '(t))
-  (if (or force isearch-lazy-highlight-cleanup)
+  (if remove
       (isearch-lazy-highlight-remove-overlays))
   (if isearch-lazy-highlight-timer
       (progn
         (cancel-timer isearch-lazy-highlight-timer)
         (setq isearch-lazy-highlight-timer nil))))
 
-(defun isearch-lazy-highlight-remove-overlays ()
-  "Remove lazy highlight overlays from the current buffer."
-  (while isearch-lazy-highlight-overlays
-    (delete-overlay (car isearch-lazy-highlight-overlays))
-    (setq isearch-lazy-highlight-overlays
-          (cdr isearch-lazy-highlight-overlays))))
+(defun isearch-lazy-highlight-remove-overlays (&optional keep-start keep-end)
+  "Remove lazy highlight overlays from the current buffer.
+With optional arguments KEEP-START and KEEP-END,
+prserve any overlays in that range."
+  (let ((tem isearch-lazy-highlight-overlays))
+    (while tem
+      (if (or (null keep-start)
+	      (let ((pos (overlay-start (car tem))))
+		(or (< pos keep-start) (> pos keep-end))))
+	  (progn
+	    (delete-overlay (car tem))
+	    (setq isearch-lazy-highlight-overlays
+		  (delq (car tem) isearch-lazy-highlight-overlays))))
+      (setq tem (cdr tem)))))
 
 (defun isearch-lazy-highlight-new-loop ()
-  "Cleanup any previous `isearch-lazy-highlight' loop and begin a new one.
+  "Clear obsolete highlighting, and queue up to do new highlighting.
 This happens when `isearch-update' is invoked (which can cause the
 search string to change)."
-  (if (and isearch-lazy-highlight
-           (not (equal isearch-string isearch-lazy-highlight-last-string)))
-      ;; the search string did indeed change
-      (progn
-        (isearch-lazy-highlight-cleanup t) ;kill old loop & remove overlays
-        (if (and isearch-overlay
-                 (not (overlay-get isearch-overlay 'priority)))
-            ;; make sure the isearch-overlay takes priority
-            (overlay-put isearch-overlay 'priority 1))
-        (setq isearch-lazy-highlight-start isearch-opoint
-              isearch-lazy-highlight-end isearch-opoint
-              isearch-lazy-highlight-last-string isearch-string
-              isearch-lazy-highlight-wrapped nil)
-        (setq isearch-lazy-highlight-timer
-              (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
-                                   'isearch-lazy-highlight-update)))))
+  (when (and isearch-lazy-highlight
+	     (not isearch-invalid-regexp)
+	     (not (equal isearch-string "")))
 
-(defun isearch-lazy-highlight-search ()
-  "Search ahead for the next or previous match, for lazy highlighting.
-Attempt to do the search exactly the way the pending isearch would."
-  (let ((case-fold-search isearch-case-fold-search))
-    (funcall (cond (isearch-word (if isearch-forward
-                                     'word-search-forward
-                                   'word-search-backward))
-                   (isearch-regexp (if isearch-forward
-                                       're-search-forward
-                                     're-search-backward))
-                   (t (if isearch-forward
-                          'search-forward
-                        'search-backward)))
-             isearch-string
-             (if isearch-forward
-                 (if isearch-lazy-highlight-wrapped
-                     isearch-lazy-highlight-start
-                   nil)
-               (if isearch-lazy-highlight-wrapped
-                   isearch-lazy-highlight-end
-                 nil))
-             t)))
+    ;; If the search string has changed, remove all old overlays.
+    (unless (equal isearch-string isearch-lazy-highlight-last-string)
+      (isearch-lazy-highlight-remove-overlays)
+      (setq isearch-lazy-highlight-window nil))
+
+    (if (and isearch-overlay
+	     (not (overlay-get isearch-overlay 'priority)))
+	;; Make sure the isearch-overlay takes priority
+	;; over any other matches.
+	(overlay-put isearch-overlay 'priority 1))
+
+    ;; Queue up to display other matches after a short pause.
+    (setq isearch-lazy-highlight-timer
+	  (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
+			       'isearch-lazy-highlight-update))))
 
 (defun isearch-lazy-highlight-update ()
-  "Find and highlight the next match in the lazy highlighting loop."
-  (when (and (not isearch-invalid-regexp)
-	     (or (null isearch-lazy-highlight-max)
-		 (< (length isearch-lazy-highlight-overlays)
-		    isearch-lazy-highlight-max)))
-    (save-excursion
-      (save-match-data
-        (goto-char (if isearch-forward
-                       isearch-lazy-highlight-end
-                     isearch-lazy-highlight-start))
-        (let ((found (isearch-lazy-highlight-search))) ;do search
-          (if found
-	      ;; found the next match
+  "Update highlighting of possible other matchesfor isearch."
+  (unless (and (eq isearch-lazy-highlight-window (selected-window))
+	       (equal isearch-lazy-highlight-start (window-start)))
+
+    ;; The search string or the visible window has changed.
+
+    (setq isearch-lazy-highlight-window (selected-window)
+	  isearch-lazy-highlight-start (window-start)
+	  isearch-lazy-highlight-end (window-end nil t)
+	  isearch-lazy-highlight-last-string isearch-string)
+
+    ;; If the string is the same, the old overlays are still usable
+    ;; if they are still visible in the window.
+    (isearch-lazy-highlight-remove-overlays (window-start)
+					    (window-end nil t))
+
+    (when (or (null isearch-lazy-highlight-max)
+	      (< (length isearch-lazy-highlight-overlays)
+		 isearch-lazy-highlight-max))
+      (save-excursion
+	(save-match-data
+	  (let (found)
+	    (goto-char isearch-lazy-highlight-start)
+	    (while (let ((case-fold-search isearch-case-fold-search))
+		     (funcall (cond (isearch-word 'word-search-forward)
+				    (isearch-regexp 're-search-forward)
+				    (t 'search-forward))
+			      isearch-string
+			      isearch-lazy-highlight-end
+			      t))
+	      ;; Found the next match.
 	      (let ((ov (make-overlay (match-beginning 0)
 				      (match-end 0))))
 		;; If OV overlaps the current isearch overlay, suppress
@@ -1989,26 +1995,10 @@ Attempt to do the search exactly the way the pending isearch would."
 		  (overlay-put ov 'face isearch-lazy-highlight-face))
 
 		(overlay-put ov 'priority 0)
+		;; Don't highlight on any other windows.
+		(overlay-put ov 'window isearch-lazy-highlight-window)
 
-		(push ov isearch-lazy-highlight-overlays)
-
-		(setq isearch-lazy-highlight-timer
-		      (run-at-time isearch-lazy-highlight-interval nil
-				   'isearch-lazy-highlight-update))
-		(if isearch-forward
-		    (setq isearch-lazy-highlight-end (point))
-		  (setq isearch-lazy-highlight-start (point))))
-
-            ;; found no next match
-            (when (not isearch-lazy-highlight-wrapped)
-              ;; let's try wrapping around the end of the buffer
-              (setq isearch-lazy-highlight-wrapped t)
-              (setq isearch-lazy-highlight-timer
-                    (run-at-time isearch-lazy-highlight-interval nil
-                                 'isearch-lazy-highlight-update))
-              (if isearch-forward
-                  (setq isearch-lazy-highlight-end (point-min))
-                (setq isearch-lazy-highlight-start (point-max))))))))))
+		(push ov isearch-lazy-highlight-overlays)))))))))
 
 (defun isearch-resume (search regexp word forward message case-fold)
   "Resume an incremental search.
