@@ -677,7 +677,7 @@ remains active.  Otherwise, it remains until the next input event."
 			 (mouse-set-region-1))))
 	      (delete-overlay mouse-drag-overlay)
 	      ;; Run the binding of the terminating up-event.
-	      (when (and (fboundp fun)
+	      (when (and (functionp fun)
 			 (= start-hscroll (window-hscroll start-window)))
 		(setq unread-command-events
 		      (cons event unread-command-events)))))
