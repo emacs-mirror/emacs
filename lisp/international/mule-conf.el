@@ -1166,7 +1166,7 @@ is treated as a character."
   :charset-list '(emacs))
 
 (define-coding-system 'utf-16le
-  "UTF-16, little endian."
+  "UTF-16LE (little endian, no signature (BOM))."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1175,7 +1175,7 @@ is treated as a character."
   :mime-charset 'utf-16le)
 
 (define-coding-system 'utf-16be
-  "UTF-16, big endian."
+  "UTF-16BE (big endian, no signature (BOM))."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1184,7 +1184,7 @@ is treated as a character."
   :mime-charset 'utf-16be)
 
 (define-coding-system 'utf-16le-with-signature
-  "UTF-16, little endian, with signature."
+  "UTF-16 (little endian, with signature (BOM))."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1194,7 +1194,7 @@ is treated as a character."
   :mime-charset 'utf-16)
 
 (define-coding-system 'utf-16be-with-signature
-  "UTF-16, big endian, with signature."
+  "UTF-16 (big endian, with signature)."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1204,7 +1204,7 @@ is treated as a character."
   :mime-charset 'utf-16)
 
 (define-coding-system 'utf-16
-  "UTF-16"
+  "UTF-16 (detect endian on decoding, use big endian on encoding with BOM)."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
@@ -1215,10 +1215,9 @@ is treated as a character."
 
 ;; Backwards compatibility (old names, also used by Mule-UCS).  We
 ;; prefer the MIME names.
-(define-coding-system-alias 'utf-16-le 'utf-16le)
-(define-coding-system-alias 'utf-16-be 'utf-16be)
-(define-coding-system-alias 'utf-16-le-with-signature 'utf-16le-with-signature)
-(define-coding-system-alias 'utf-16-be-with-signature 'utf-16be-with-signature)
+(define-coding-system-alias 'utf-16-le 'utf-16le-with-signature)
+(define-coding-system-alias 'utf-16-be 'utf-16be-with-signature)
+
 
 (define-coding-system 'iso-2022-7bit
   "ISO 2022 based 7-bit encoding using only G0."
