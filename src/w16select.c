@@ -224,7 +224,7 @@ free_xfer_buf ()
     }
 }
 
-/* Copy data into the clipboard, return non-zero if successfull.  */
+/* Copy data into the clipboard, return zero if successfull.  */
 unsigned
 set_clipboard_data (Format, Data, Size, Raw)
      unsigned Format;
@@ -243,7 +243,7 @@ set_clipboard_data (Format, Data, Size, Raw)
   /* need to know final size after '\r' chars are inserted (the
      standard CF_OEMTEXT clipboard format uses CRLF line endings,
      while Emacs uses just LF internally).  */
-  truelen = Size;
+  truelen = Size + 1;		/* +1 for the terminating null */
 
   if (!Raw)
     {
@@ -271,11 +271,19 @@ set_clipboard_data (Format, Data, Size, Raw)
       _farsetsel (_dos_ds);
       while (Size--)
 	{
+	  /* Don't allow them to put binary data into the clipboard, since
+	     it will cause yanked data to be truncated at the first null.  */
+	  if (*dp == '\0')
+	    return 2;
 	  if (*dp == '\n')
 	    _farnspokeb (buf_offset++, '\r');
 	  _farnspokeb (buf_offset++, *dp++);
 	}
     }
+
+  /* Terminate with a null, otherwise Windows does strange things when
+     the text size is an integral multiple of 32 bytes. */
+  _farnspokeb (buf_offset, *dp);
 
   /* Calls Int 2Fh/AX=1703h with:
 	             DX = WinOldAp-Supported Clipboard format
@@ -293,7 +301,8 @@ set_clipboard_data (Format, Data, Size, Raw)
 
   free_xfer_buf ();
 
-  return regs.x.ax;
+  /* Zero means success, otherwise (1 or 2) it's an error.  */
+  return regs.x.ax > 0 ? 0 : 1;
 }
 
 /* Return the size of the clipboard data of format FORMAT.  */
@@ -326,9 +335,12 @@ get_clipboard_data (Format, Data, Size, Raw)
      int Raw;
 {
   __dpmi_regs regs;
-  unsigned datalen = 0;
   unsigned long xbuf_addr;
   unsigned char *dp = Data;
+  /* The last 32-byte aligned block of data.  See commentary below.  */
+  unsigned char *last_block = dp + ((Size & 0x1f)
+				    ? (Size & 0x20)
+				    : Size - 0x20);
 
   if (Format != CF_OEMTEXT)
     return 0;
@@ -364,21 +376,20 @@ get_clipboard_data (Format, Data, Size, Raw)
 	      dp--;
 	      *dp++ = '\n';
 	      xbuf_addr++;
+	      last_block--;	/* adjust the beginning of the last 32 bytes */
 	    }
 	  /* Windows reportedly rounds up the size of clipboard data
 	     (passed in SIZE) to a multiple of 32.  We therefore bail
-	     out when we see the first null character.  */
-	  else if (c == '\0')
-	    {
-	      datalen = dp - (unsigned char *)Data - 1;
-	      break;
-	    }
+	     out when we see the first null character in the last 32-byte
+	     block.  */
+	  else if (c == '\0' && dp > last_block)
+	    break;
 	}
     }
 
   free_xfer_buf ();
 
-  return datalen;
+  return (unsigned) (dp - (unsigned char *)Data - 1);
 }
 
 /* Close clipboard, return non-zero if successfull.  */
@@ -415,13 +426,15 @@ clipboard_compact (Size)
 
 static char no_mem_msg[] =
   "(Not enough DOS memory to put saved text into clipboard.)";
+static char binary_msg[] =
+  "(Binary characters in saved text; clipboard data not set.)";
 
 DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
        "This sets the clipboard data to the given text.")
     (string, frame)
     Lisp_Object string, frame;
 {
-  int ok = 1, ok1 = 1;
+  unsigned ok = 1, put_status = 0;
   int nbytes;
   unsigned char *src, *dst = NULL;
   int charsets[MAX_CHARSET + 1];
@@ -482,7 +495,9 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
     goto error;
   
   ok = empty_clipboard ()
-    && (ok1 = set_clipboard_data (CF_OEMTEXT, src, nbytes, no_crlf_conversion));
+    && ((put_status
+	 = set_clipboard_data (CF_OEMTEXT, src, nbytes, no_crlf_conversion))
+	== 0);
 
   if (!no_crlf_conversion)
     Vlast_coding_system_used = Qraw_text;
@@ -504,15 +519,23 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
      depending on user system configuration.)  If we just silently
      fail the function, people might wonder why their text sometimes
      doesn't make it to the clipboard.  */
-  if (ok1 == 0)
+  if (put_status)
     {
-      message2 (no_mem_msg, sizeof (no_mem_msg) - 1, 0);
+      switch (put_status)
+	{
+	  case 1:
+	    message2 (no_mem_msg, sizeof (no_mem_msg) - 1, 0);
+	    break;
+	  case 2:
+	    message2 (binary_msg, sizeof (binary_msg) - 1, 0);
+	    break;
+	}
       sit_for (2, 0, 0, 1, 1);
     }
   
  done:
 
-  return (ok ? string : Qnil);
+  return (ok && put_status == 0 ? string : Qnil);
 }
 
 DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_data, 0, 1, 0,
