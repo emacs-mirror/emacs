@@ -1,3 +1,12 @@
+2000-11-13  Miles Bader  <miles@gnu.org>
+
+	* lread.c (openp): Return -2 instead of 0 for the `remote file' case.
+	(Fload): Use new openp return protocol.
+	Don't try to use Vload_source_file_function to load .elc files.
+	* xfns.c (x_create_bitmap_from_file, x_find_image_file): Use new
+	openp return protocol.
+	* w32fns.c (x_create_bitmap_from_file, x_find_image_file): Likewise.
+
 2000-11-11  Kenichi Handa  <handa@etl.go.jp>
 
 	* syssignal.h: Pay attention to BROKEN_SIGAIO and BROKEN_SIGPTY.

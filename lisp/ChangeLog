@@ -1,3 +1,9 @@
+2000-11-13  Miles Bader  <miles@gnu.org>
+
+	* textmodes/fill.el (skip-line-prefix): New function.
+	(fill-region-as-paragraph, fill-region):  Return the fill-prefix.
+	(fill-paragraph): Don't leave point inside the fill-prefix.
+
 2000-11-13  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* calendar/calendar.el (generate-calendar-window): Use
