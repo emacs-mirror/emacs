@@ -1,7 +1,7 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
+;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -1766,7 +1766,8 @@ parent node."
 		 (search-forward "\n* Menu:"
 				 current-point
 				 t)))))
-    (if (or virtual-end (pos-visible-in-window-p (point-min)))
+    (if (or virtual-end 
+	    (pos-visible-in-window-p (point-min) t)))
 	(Info-last-preorder)
       (scroll-down))))
 
