@@ -1,3 +1,7 @@
+2003-06-05  Dave Love  <fx@gnu.org>
+
+	* vc-hooks.el (vc-make-backup-files): Add :group backup.
+
 2003-06-05  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-fontify-node): Individually refill menus and
