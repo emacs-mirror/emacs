@@ -651,8 +651,8 @@ it is used to test each possible match.\n\
 The match is a candidate only if PREDICATE returns non-nil.\n\
 The argument given to PREDICATE is the alist element\n\
 or the symbol from the obarray.")
-  (string, alist, pred)
-     Lisp_Object string, alist, pred;
+  (string, alist, predicate)
+     Lisp_Object string, alist, predicate;
 {
   Lisp_Object bestmatch, tail, elt, eltstring;
   int bestmatchsize;
@@ -665,7 +665,7 @@ or the symbol from the obarray.")
 
   CHECK_STRING (string, 0);
   if (!list && !VECTORP (alist))
-    return call3 (alist, string, pred, Qnil);
+    return call3 (alist, string, predicate, Qnil);
 
   bestmatch = Qnil;
 
@@ -739,14 +739,14 @@ or the symbol from the obarray.")
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
 
-	  if (!NILP (pred))
+	  if (!NILP (predicate))
 	    {
-	      if (EQ (pred, Qcommandp))
+	      if (EQ (predicate, Qcommandp))
 		tem = Fcommandp (elt);
 	      else
 		{
 		  GCPRO4 (tail, string, eltstring, bestmatch);
-		  tem = call1 (pred, elt);
+		  tem = call1 (predicate, elt);
 		  UNGCPRO;
 		}
 	      if (NILP (tem)) continue;
@@ -864,8 +864,8 @@ or the symbol from the obarray.\n\
 If the optional fourth argument HIDE-SPACES is non-nil,\n\
 strings in ALIST that start with a space\n\
 are ignored unless STRING itself starts with a space.")
-  (string, alist, pred, hide_spaces)
-     Lisp_Object string, alist, pred, hide_spaces;
+  (string, alist, predicate, hide_spaces)
+     Lisp_Object string, alist, predicate, hide_spaces;
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
@@ -877,7 +877,7 @@ are ignored unless STRING itself starts with a space.")
   CHECK_STRING (string, 0);
   if (!list && !VECTORP (alist))
     {
-      return call3 (alist, string, pred, Qt);
+      return call3 (alist, string, predicate, Qt);
     }
   allmatches = Qnil;
 
@@ -956,14 +956,14 @@ are ignored unless STRING itself starts with a space.")
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
 
-	  if (!NILP (pred))
+	  if (!NILP (predicate))
 	    {
-	      if (EQ (pred, Qcommandp))
+	      if (EQ (predicate, Qcommandp))
 		tem = Fcommandp (elt);
 	      else
 		{
 		  GCPRO4 (tail, eltstring, allmatches, string);
-		  tem = call1 (pred, elt);
+		  tem = call1 (predicate, elt);
 		  UNGCPRO;
 		}
 	      if (NILP (tem)) continue;
@@ -986,7 +986,6 @@ Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
 
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   "Read a string in the minibuffer, with completion.\n\
-Args: PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST.\n\
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
 PREDICATE limits completion to a subset of TABLE.\n\
@@ -1015,14 +1014,14 @@ Completion ignores case if the ambient value of\n\
 */
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   0 /* See immediately above */)
-  (prompt, table, pred, require_match, init, hist)
-     Lisp_Object prompt, table, pred, require_match, init, hist;
+  (prompt, table, predicate, require_match, init, hist)
+     Lisp_Object prompt, table, predicate, require_match, init, hist;
 {
   Lisp_Object val, histvar, histpos, position;
   int pos = 0;
   int count = specpdl_ptr - specpdl;
   specbind (Qminibuffer_completion_table, table);
-  specbind (Qminibuffer_completion_predicate, pred);
+  specbind (Qminibuffer_completion_predicate, predicate);
   specbind (Qminibuffer_completion_confirm,
 	    EQ (require_match, Qt) ? Qnil : Qt);
   last_exact_completion = Qnil;
