@@ -952,6 +952,23 @@ particular, this has been reported when trying to compile a Java
 program in JDEE when javac.exe is installed, but not on the system
 PATH.
 
+* Pressing the mouse button on MS-Windows does not give a mouse-2 event.
+
+This is usually a problem with the mouse driver. Because most Windows
+programs do not do anything useful with the middle mouse button, many
+mouse drivers allow you to define the wheel press to do something
+different. Some drivers do not even have the option to generate a
+middle button press. In such cases, setting the wheel press to
+"scroll" sometimes works if you press the button twice. Trying a
+generic mouse driver might help.
+
+* Scrolling the mouse wheel on MS-Windows always scrolls the top window.
+
+This is another common problem with mouse drivers. Instead of
+generating scroll events, some mouse drivers try to fake scroll bar
+movement. But they are not intelligent enough to handle multiple
+scroll bars within a frame. Trying a generic mouse driver might help.
+
 * Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
 exactly what happens, but it isn't an Emacs problem in cases we've
