@@ -213,7 +213,12 @@ actually occur.")
 	  (insert cc "\n")
 	  (fill-region-as-paragraph address-start (point-max))))
     (if in-reply-to
-	(insert "In-reply-to: " in-reply-to "\n"))
+        (let ((fill-prefix "\t")
+	      address-start)
+	  (insert "In-reply-to: ")
+	  (setq address-start (point))
+          (insert in-reply-to "\n")
+	  (fill-region-as-paragraph address-start (point-max))))
     (insert "Subject: " (or subject "") "\n")
     (if mail-default-headers
 	(insert mail-default-headers))
