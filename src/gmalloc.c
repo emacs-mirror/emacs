@@ -36,7 +36,8 @@ Cambridge, MA 02139, USA.
 #include <config.h>
 #endif
 
-#if defined __cplusplus || (defined (__STDC__) && __STDC__) || defined STDC_HEADERS
+#if defined __cplusplus || (defined (__STDC__) && __STDC__) || \
+  defined STDC_HEADERS || defined PROTOTYPES
 #undef	PP
 #define	PP(args)	args
 #undef	__ptr_t
