@@ -349,8 +349,8 @@ MODE should be an integer which is a file mode value."
     (format "%c%c%s%8s/%-8s%7s%s %s%s"
 	    (if mod-p ?* ? )
 	    (cond ((or (eq type nil) (eq type 0)) ?-)
-		  ((eq type 1) ?l)	; link
-		  ((eq type 2) ?s)	; symlink
+		  ((eq type 1) ?h)	; link
+		  ((eq type 2) ?l)	; symlink
 		  ((eq type 3) ?c)	; char special
 		  ((eq type 4) ?b)	; block special
 		  ((eq type 5) ?d)	; directory
