@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.106 1998/04/20 02:00:00 done Exp spiegel $
+;; $Id: vc-hooks.el,v 1.107 1998/05/02 16:41:44 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -433,10 +433,11 @@ similarly for other version control systems."
       (cond  
        ;; search for $Id or $Header
        ;; -------------------------
-       ((or (and (search-forward "$Id: " nil t)
+       ;; The ':\ 's below avoid an RCS 5.7 bug when checking in this file.
+       ((or (and (search-forward "$Id:\ " nil t)
 		 (looking-at "[^ ]+ \\([0-9.]+\\) "))
 	    (and (progn (goto-char (point-min))
-			(search-forward "$Header: " nil t))
+			(search-forward "$Header:\ " nil t))
 		 (looking-at "[^ ]+ \\([0-9.]+\\) ")))
 	(goto-char (match-end 0))
 	;; if found, store the revision number ...
