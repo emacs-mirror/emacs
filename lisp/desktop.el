@@ -108,7 +108,7 @@
   (convert-standard-filename ".emacs.desktop")
   "File for Emacs desktop, not including the directory name.")
 
-(defvar desktop-missing-file-warning t
+(defvar desktop-missing-file-warning nil
   "*If non-nil then desktop warns when a file no longer exists.
 Otherwise it simply ignores that file.")
 
