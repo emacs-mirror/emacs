@@ -1,6 +1,6 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- * $HopeName: MMsrc!vmw3.c(trunk.27) $
+ * $HopeName: MMsrc!vmw3.c(trunk.28) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  *  Design: design.mps.vm
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.27) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.28) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -125,44 +125,37 @@ static Res VMSetCollectionStrategy(VM vm)
   /* Note that the RAM size returned is actually slightly less */
   /* than the total RAM size (for some reason) - so there needs to */
   /* be a comparison against a lower value than the optimal size */
+  /* Source: request.dylan.160112.sol.more-asg */
   if (ResOK == res) {
     if (vmRAMSize >= 110*1024*1024) {
-      /* Parameters optimized for 128 MB machines */
-      /* Source: drj's test data, 1998-03-30 */
-      AMCGen0Frequency = 16;
-      AMCGen1Frequency = 160;
-      AMCGen2Frequency = 1000;
-      /* random defaults */
-      AMCGen0RampmodeFrequency = 16;
-      AMCGen1RampmodeFrequency = 160;
-      AMCRampGenFrequency = 700;
-      AMCGen2RampmodeFrequency = 4000;
+      AMCGen0Frequency = 6;
+      AMCGen1Frequency = 48;
+      AMCGen2Frequency = 576;
+      AMCGen0RampmodeFrequency = 12;
+      AMCGen1RampmodeFrequency = 96;
+      AMCRampGenFrequency = 1152;
+      AMCGen2RampmodeFrequency = 10368;
     } else if (vmRAMSize >= 60*1024*1024) {
-      /* Parameters optimized for 64 MB machines */
-      /* Source: RIT's test data, 1998-03-26 */
       AMCGen0Frequency = 6;
       AMCGen1Frequency = 48;
       AMCGen2Frequency = 480;
-      /* random defaults */
       AMCGen0RampmodeFrequency = 6;
-      AMCGen1RampmodeFrequency = 36;
-      AMCRampGenFrequency = 360;
-      AMCGen2RampmodeFrequency = 1600;
+      AMCGen1RampmodeFrequency = 48;
+      AMCRampGenFrequency = 288;
+      AMCGen2RampmodeFrequency = 1152;
     } else {
-      /* Parameters optimized for 32 MB machines */
-      /* Source: Tony's test data, 1998-03-26 */
       AMCGen0Frequency = 4;
       AMCGen1Frequency = 20;
       AMCGen2Frequency = 300;
-      /* random defaults */
       AMCGen0RampmodeFrequency = 4;
       AMCGen1RampmodeFrequency = 20;
-      AMCRampGenFrequency = 200;
-      AMCGen2RampmodeFrequency = 1000;
+      AMCRampGenFrequency = 120;
+      AMCGen2RampmodeFrequency = 480;
     }
   }
   return res;
 }
+
 
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
