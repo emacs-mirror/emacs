@@ -1,3 +1,10 @@
+2003-07-07  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-source-info): Display current frame when
+	attaching to an existing process.
+	(gdb-setup-windows, gdb-source-info): Start with gud-comint-buffer
+	while laying out windows when attaching to an existing process.
+
 2003-07-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-menu): Use Info-menu-entry-name-re.
