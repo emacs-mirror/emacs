@@ -1,5 +1,8 @@
 2002-03-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* process.c (wait_reading_process_input): Move variables `pname'
+	and `pnamelen' down where they are used.
+
 	* bytecode.c (Fbyte_code): Discard unused computed value to
 	prevent gcc warning.
 
