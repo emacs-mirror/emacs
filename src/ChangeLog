@@ -1,3 +1,16 @@
+2000-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c: Use AREF, ASET and ASIZE macros.
+	(Fmake_sparse_keymap): Docstring fix.
+	(synkey): Remove.
+	(shadow_lookup): Move up.
+	Handle the case where lookup-key returns an integer.
+	(where_is_internal_1): Drop arg `keymap'. Don't check shadowing.
+	(where_is_internal_2): Adapt to fewer args for where_is_internal_1.
+	(Fwhere_is_internal): Allow `xkeymap' to be a list of keymaps.
+	Simplify/rewrite the keymap-finding code.
+	Add check for command shadowing, using shadow_lookup.
+
 2000-10-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (fix_submap_inheritance): Use get_keymap_1 on parent_entry
