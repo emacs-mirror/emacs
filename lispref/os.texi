@@ -118,7 +118,7 @@ that with @code{inhibit-startup-echo-area-message}.
 It processes the action arguments from the command line.
 
 @item 
-It runs @code{term-setup-hook}.
+It runs @code{emacs-startup-hook} and then @code{term-setup-hook}.
 
 @item
 It calls @code{frame-notice-user-settings}, which modifies the
@@ -231,7 +231,21 @@ This normal hook is run, once, just before loading all the init files
 @defvar after-init-hook
 This normal hook is run, once, just after loading all the init files
 (the user's init file, @file{default.el}, and/or @file{site-start.el}),
-before the terminal-specific initialization.
+before loading the terminal-specific library and processing the
+command-line arguments.
+@end defvar
+
+@defvar emacs-startup-hook
+@tindex emacs-startup-hook
+This normal hook is run, once, just after handling the command line
+arguments, just before @code{term-setup-hook}.
+@end defvar
+
+@defvar user-init-file
+@tindex user-init-file
+This variable holds the file name of the user's init file.  If the
+actual init file loaded is a compiled file, such as @file{.emacs.elc},
+the value refers to the corresponding source file.
 @end defvar
 
 @node Terminal-Specific
