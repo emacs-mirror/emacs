@@ -93,18 +93,15 @@ C-w  Describe how there is no warranty for Calc."
 
 (defun calc-describe-copying ()
   (interactive)
-  (calc-info)
-  (Info-goto-node "Copying"))
+  (calc-info-goto-node "Copying"))
 
 (defun calc-describe-distribution ()
   (interactive)
-  (calc-info)
-  (Info-goto-node "Reporting Bugs"))
+  (calc-info-goto-node "Reporting Bugs"))
 
 (defun calc-describe-no-warranty ()
   (interactive)
-  (calc-info)
-  (Info-goto-node "Copying")
+  (calc-info-goto-node "Copying")
   (let ((case-fold-search nil))
     (search-forward "     NO WARRANTY"))
   (beginning-of-line)
@@ -190,13 +187,13 @@ C-w  Describe how there is no warranty for Calc."
 			     (message "Reading Calc summary from manual...")
 			     (save-window-excursion
 			       (save-excursion
-				 (calc-info)
-				 (Info-goto-node "Summary")
+				 (calc-info-goto-node "Summary")
 				 (goto-char (point-min))
 				 (forward-line 1)
 				 (copy-to-buffer "*Calc Summary*"
 						 (point) (point-max))
-				 (Info-last)))
+                                 (if Info-history
+                                     (Info-last))))
 			     (setq case-fold-search nil)
 			     (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
 			     (setq calc-summary-indentation
@@ -326,8 +323,7 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-describe-thing (thing where &optional target not-quoted)
   (message "Looking for `%s' in %s..." thing where)
   (let ((savewin (current-window-configuration)))
-    (calc-info)
-    (Info-goto-node where)
+    (calc-info-goto-node where)
     (or (let ((case-fold-search nil))
 	  (re-search-forward (format "\n\\* +%s: \\(.*\\)\\."
 				     (regexp-quote thing))
@@ -338,7 +334,8 @@ C-w  Describe how there is no warranty for Calc."
 				nil t)
 	     (setq thing (format "%s9" (substring thing 0 -1))))
 	(progn
-	  (Info-last)
+          (if Info-history
+              (Info-last))
 	  (set-window-configuration savewin)
 	  (error "Can't find `%s' in %s" thing where)))
     (let (Info-history)

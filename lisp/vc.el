@@ -646,9 +646,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :group 'vc)
 
 ;; vc-annotate functionality (CVS only).
-(defvar vc-annotate-mode nil
-  "Variable indicating if VC-Annotate mode is active.")
-
 (defvar vc-annotate-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m [menu-bar] (make-sparse-keymap "VC-Annotate"))
@@ -3004,7 +3001,7 @@ use; you may override this using the second optional arg MODE."
   (when buffer
     (set-buffer buffer)
     (display-buffer buffer))
-  (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
+  (if (not vc-annotate-parent-ref)
       (vc-annotate-mode))
   (cond ((null vc-annotate-display-mode)
 	 (vc-annotate-display-default vc-annotate-ratio))

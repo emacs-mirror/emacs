@@ -2421,7 +2421,7 @@ Return nil if no complete line has arrived."
 
 (defun imap-parse-flag-list ()
   (let (flag-list start)
-    (assert (eq (char-after) ?\() t "In imap-parse-flag-list")
+    (assert (eq (char-after) ?\() nil "In imap-parse-flag-list")
     (while (and (not (eq (char-after) ?\)))
 		(setq start (progn
 			      (imap-forward)
@@ -2430,7 +2430,7 @@ Return nil if no complete line has arrived."
 			      (point)))
 		(> (skip-chars-forward "^ )" (imap-point-at-eol)) 0))
       (push (buffer-substring start (point)) flag-list))
-    (assert (eq (char-after) ?\)) t "In imap-parse-flag-list")
+    (assert (eq (char-after) ?\)) nil "In imap-parse-flag-list")
     (imap-forward)
     (nreverse flag-list)))
 
@@ -2515,7 +2515,7 @@ Return nil if no complete line has arrived."
 	(while (eq (char-after) ?\ )
 	  (imap-forward)
 	  (push (imap-parse-body-extension) b-e))
-	(assert (eq (char-after) ?\)) t "In imap-parse-body-extension")
+	(assert (eq (char-after) ?\)) nil "In imap-parse-body-extension")
 	(imap-forward)
 	(nreverse b-e))
     (or (imap-parse-number)
@@ -2641,7 +2641,7 @@ Return nil if no complete line has arrived."
 		(push (and (imap-parse-nil) nil) body))
 	      (setq body
 		    (append (imap-parse-body-ext) body))) ;; body-ext-...
-	    (assert (eq (char-after) ?\)) t "In imap-parse-body")
+	    (assert (eq (char-after) ?\)) nil "In imap-parse-body")
 	    (imap-forward)
 	    (nreverse body))
 
@@ -2701,7 +2701,7 @@ Return nil if no complete line has arrived."
 	  (push (imap-parse-nstring) body) ;; body-fld-md5
 	  (setq body (append (imap-parse-body-ext) body))) ;; body-ext-1part..
 
-	(assert (eq (char-after) ?\)) t "In imap-parse-body 2")
+	(assert (eq (char-after) ?\)) nil "In imap-parse-body 2")
 	(imap-forward)
 	(nreverse body)))))
 

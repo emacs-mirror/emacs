@@ -4514,9 +4514,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	       1))
     (apply 'call-process program nil (not discard) nil arguments)))
 
-(defvar ange-ftp-remote-shell "rsh"
-  "Remote shell to use for chmod, if FTP server rejects the `chmod' command.")
-
 ;; Handle an attempt to run chmod on a remote file
 ;; by using the ftp chmod command.
 (defun ange-ftp-call-chmod (args)
@@ -4541,7 +4538,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
                                                        abbr))))
                (or (car result)
                    (call-process
-                    ange-ftp-remote-shell
+                    remote-shell-program
                     nil t nil host dired-chmod-program mode name))))))
      rest))
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.

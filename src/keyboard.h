@@ -326,8 +326,6 @@ extern void swallow_events P_ ((int));
 extern int help_char_p P_ ((Lisp_Object));
 extern void quit_throw_to_read_char P_ ((void)) NO_RETURN;
 extern void cmd_error_internal P_ ((Lisp_Object, char *));
-extern void timer_start_idle P_ ((void));
-extern void timer_stop_idle P_ ((void));
 extern int lucid_event_type_list_p P_ ((Lisp_Object));
 extern void kbd_buffer_store_event P_ ((struct input_event *));
 extern void kbd_buffer_store_event_hold P_ ((struct input_event *,

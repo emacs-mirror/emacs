@@ -500,6 +500,11 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	 1 font-lock-function-name-face))))
   "Subdued expressions to highlight in TeX modes.")
 
+(defun tex-font-lock-append-prop (prop)
+  (unless (memq (get-text-property (match-end 1) 'face)
+		'(font-lock-comment-face tex-verbatim-face))
+    prop))
+
 (defconst tex-font-lock-keywords-2
   (append tex-font-lock-keywords-1
    (eval-when-compile
@@ -553,16 +558,19 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	;;
 	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
 	;; since we might not be able to display those fonts.
-	(list (concat slash bold " *" arg) 2 '(quote bold) 'append)
-	(list (concat slash italic " *" arg) 2 '(quote italic) 'append)
+	(list (concat slash bold " *" arg) 2
+	      '(tex-font-lock-append-prop 'bold) 'append)
+	(list (concat slash italic " *" arg) 2
+	      '(tex-font-lock-append-prop 'italic) 'append)
 	;; (list (concat slash type arg) 2 '(quote bold-italic) 'append)
 	;;
 	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
 	(list (concat "\\\\\\(em\\|it\\|sl\\)\\>" args)
-	      2 '(quote italic) 'append)
+	      2 '(tex-font-lock-append-prop 'italic) 'append)
 	;; This is separate from the previous one because of cases like
 	;; {\em foo {\bf bar} bla} where both match.
-	(list (concat "\\\\bf\\>" args) 1 '(quote bold) 'append)))))
+	(list (concat "\\\\\\(bf\\)\\>" args)
+	      2 '(tex-font-lock-append-prop 'bold) 'append)))))
    "Gaudy expressions to highlight in TeX modes.")
 
 (defun tex-font-lock-suscript (pos)
@@ -604,11 +612,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defvar tex-font-lock-syntactic-keywords
   (let ((verbs (regexp-opt tex-verbatim-environments t)))
     `((,(concat "^\\\\begin *{" verbs "}.*\\(\n\\)") 2 "|")
-      (,(concat "^\\\\end *{" verbs "}\\(.?\\)") 2
-       (unless (<= (match-beginning 0) (point-min))
-	 (put-text-property (1- (match-beginning 0)) (match-beginning 0)
-			    'syntax-table (string-to-syntax "|"))
-	 "<"))
+      ;; Technically, we'd like to put the "|" property on the \n preceding
+      ;; the \end, but this would have 2 disadvantages:
+      ;; 1 - it's wrong if the verbatim env is empty (the same \n is used to
+      ;;     start and end the fenced-string).
+      ;; 2 - font-lock considers the preceding \n as being part of the
+      ;;     preceding line, so things gets screwed every time the previous
+      ;;     line is re-font-locked on its own.
+      (,(concat "^\\(\\\\\\)end *{" verbs "}\\(.?\\)") (1 "|") (3 "<"))
       ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
       ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
       ("\\\\verb\\**\\([^a-z@*]\\)" 1 "\""))))

@@ -1,6 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: convenience patch diff
@@ -171,75 +172,73 @@ when editing big diffs)."
 
 (defface diff-header-face
   '((((class color) (min-colors 88) (background light))
-     (:background "grey85"))
+     :background "grey85")
     (((class color) (min-colors 88) (background dark))
-     (:background "grey45"))
+     :background "grey45")
     (((class color) (background light))
-     (:foreground "blue1" :weight bold))
+     :foreground "blue1" :weight bold)
     (((class color) (background dark))
-     (:foreground "green" :weight bold))
-    (t (:weight bold)))
+     :foreground "green" :weight bold)
+    (t :weight bold))
   "`diff-mode' face inherited by hunk and index header faces.")
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
   '((((class color) (min-colors 88) (background light))
-     (:background "grey70" :weight bold))
+     :background "grey70" :weight bold)
     (((class color) (min-colors 88) (background dark))
-     (:background "grey60" :weight bold))
+     :background "grey60" :weight bold)
     (((class color) (background light))
-     (:foreground "yellow" :weight bold))
+     :foreground "yellow" :weight bold)
     (((class color) (background dark))
-     (:foreground "cyan" :weight bold))
-    (t (:weight bold)))			; :height 1.3
+     :foreground "cyan" :weight bold)
+    (t :weight bold))			; :height 1.3
   "`diff-mode' face used to highlight file header lines.")
 (defvar diff-file-header-face 'diff-file-header-face)
 
 (defface diff-index-face
-  '((t (:inherit diff-file-header-face)))
+  '((t :inherit diff-file-header-face))
   "`diff-mode' face used to highlight index header lines.")
 (defvar diff-index-face 'diff-index-face)
 
 (defface diff-hunk-header-face
-  '((t (:inherit diff-header-face)))
+  '((t :inherit diff-header-face))
   "`diff-mode' face used to highlight hunk header lines.")
 (defvar diff-hunk-header-face 'diff-hunk-header-face)
 
 (defface diff-removed-face
-  '((t (:inherit diff-changed-face)))
+  '((t :inherit diff-changed-face))
   "`diff-mode' face used to highlight removed lines.")
 (defvar diff-removed-face 'diff-removed-face)
 
 (defface diff-added-face
-  '((t (:inherit diff-changed-face)))
+  '((t :inherit diff-changed-face))
   "`diff-mode' face used to highlight added lines.")
 (defvar diff-added-face 'diff-added-face)
 
 (defface diff-changed-face
   '((((type tty pc) (class color) (background light))
-     (:foreground "magenta" :weight bold :slant italic))
+     :foreground "magenta" :weight bold :slant italic)
     (((type tty pc) (class color) (background dark))
-     (:foreground "yellow" :weight bold :slant italic))
-    (t ()))
+     :foreground "yellow" :weight bold :slant italic))
   "`diff-mode' face used to highlight changed lines.")
 (defvar diff-changed-face 'diff-changed-face)
 
 (defface diff-function-face
-  '((t (:inherit diff-context-face)))
+  '((t :inherit diff-context-face))
   "`diff-mode' face used to highlight function names produced by \"diff -p\".")
 (defvar diff-function-face 'diff-function-face)
 
 (defface diff-context-face
   '((((class color) (background light))
-     (:foreground "grey50"))
+     :foreground "grey50")
     (((class color) (background dark))
-     (:foreground "grey70"))
-    (t ))
+     :foreground "grey70"))
   "`diff-mode' face used to highlight context and other side-information.")
 (defvar diff-context-face 'diff-context-face)
 
 (defface diff-nonexistent-face
-  '((t (:inherit diff-file-header-face)))
+  '((t :inherit diff-file-header-face))
   "`diff-mode' face used to highlight nonexistent files in recursive diffs.")
 (defvar diff-nonexistent-face 'diff-nonexistent-face)
 
@@ -1255,7 +1254,7 @@ For use in `add-log-current-defun-function'."
   (save-excursion
     (when (looking-at diff-hunk-header-re)
       (forward-line 1)
-      (while (and (looking-at " ") (not (zerop (forward-line 1))))))
+      (re-search-forward "^[^ ]" nil t))
     (destructuring-bind (buf line-offset pos src dst &optional switched)
 	(diff-find-source-location)
       (beginning-of-line)
@@ -1355,5 +1354,5 @@ For use in `add-log-current-defun-function'."
 ;; use `combine-after-change-calls' to minimize the slowdown of font-lock.
 ;;
 
-;;; arch-tag: 2571d7ff-bc28-4cf9-8585-42e21890be66
+;; arch-tag: 2571d7ff-bc28-4cf9-8585-42e21890be66
 ;;; diff-mode.el ends here

@@ -1,3 +1,45 @@
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-insert-counter, kmacro-add-counter): Use and
+	reset kmacro-initial-counter-value if set.
+	(kmacro-set-counter): Only set kmacro-counter if defining or executing
+	macro.  Set kmacro-initial-counter-value otherwise. Never set both.
+	(kmacro-display): Show macro counter if non-zero.
+
+	* subr.el (substitute-key-definition): Mention command remapping
+	in doc string.
+
+2004-10-11  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-open-stream): Look for
+	starttls-gnutls-program instead of starttls-program iff
+	starttls-use-gnutls is non-nil.
+	(smtpmail-open-stream): Don't overwrite user settings of
+	starttls-extra-arguments and starttls-extra-args.
+
+2004-10-10  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/ange-ftp.el (ange-ftp-remote-shell): Remove variable.
+	(ange-ftp-call-chmod): Reference remote-shell-program instead of
+	ange-ftp-remote-shell.
+
+2004-10-10  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-backward-word): Optimize
+	`(backward-word)' to `(forward-word -1)', not `(forward-char -1)'.
+	Reported by <sri@asu.edu>.
+
+2004-10-10  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* vc.el (vc-annotate-mode): Remove variable.
+	(vc-annotate-display-select): Only call vc-annotate-mode
+	if we're not in that mode already.
+
+2004-10-09  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (progress-reporter-update): Define before first usage.
+	(make-progress-reporter): Doc fix.
+
 2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/paragraphs.el (sentence-end-double-space)

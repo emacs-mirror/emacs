@@ -535,12 +535,9 @@ Marking Articles
 * Unread Articles::             Marks for unread articles.
 * Read Articles::               Marks for read articles.
 * Other Marks::                 Marks that do not affect readedness.
-
-Marking Articles
-
-* Setting Marks::             How to set and remove marks.
-* Generic Marking Commands::  How to customize the marking.
-* Setting Process Marks::     How to mark articles for later processing.
+* Setting Marks::               How to set and remove marks.
+* Generic Marking Commands::    How to customize the marking.
+* Setting Process Marks::       How to mark articles for later processing.
 
 Threading
 
@@ -5686,20 +5683,17 @@ neologism ohoy!) of the article.  Alphabetic marks generally mean
 
 In addition, you also have marks that do not affect readedness.
 
+@ifinfo
+There's a plethora of commands for manipulating these marks.
+@end ifinfo
+
 @menu
 * Unread Articles::             Marks for unread articles.
 * Read Articles::               Marks for read articles.
 * Other Marks::                 Marks that do not affect readedness.
-@end menu
-
-@ifinfo
-There's a plethora of commands for manipulating these marks:
-@end ifinfo
-
-@menu
-* Setting Marks::             How to set and remove marks.
-* Generic Marking Commands::  How to customize the marking.
-* Setting Process Marks::     How to mark articles for later processing.
+* Setting Marks::               How to set and remove marks.
+* Generic Marking Commands::    How to customize the marking.
+* Setting Process Marks::       How to mark articles for later processing.
 @end menu
 
 

@@ -942,7 +942,8 @@ If nil, selections displayed but ignored.")
     calcDigit-algebraic calcDigit-edit)
 
  ("calc-misc" another-calc calc-big-or-small calc-dispatch-help
-    calc-help calc-info calc-info-summary calc-inv calc-last-args-stub
+    calc-help calc-info calc-info-goto-node calc-info-summary calc-inv 
+    calc-last-args-stub
     calc-missing-key calc-mod calc-other-window calc-over calc-percent
     calc-pop-above calc-power calc-roll-down calc-roll-up
     calc-shift-Y-prefix-help calc-tutorial calcDigit-letter

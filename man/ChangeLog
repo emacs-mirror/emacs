@@ -1,3 +1,8 @@
+2004-10-10  Juri Linkov  <juri@jurta.org>
+
+	* gnus.texi (Top, Marking Articles): Join two menus in one node
+	because a node can have only one menu.
+
 2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi (Misc File Ops): View mode is a minor mode.

@@ -665,6 +665,9 @@ static void clear_event P_ ((struct input_event *));
 static void any_kboard_state P_ ((void));
 static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void handle_interrupt P_ ((void));
+static void timer_start_idle P_ ((void));
+static void timer_stop_idle P_ ((void));
+static void timer_resume_idle P_ ((void));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -2383,7 +2386,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   volatile Lisp_Object also_record;
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
-  EMACS_TIME last_idle_start;
   int polling_stopped_here = 0;
 
   also_record = Qnil;
@@ -2890,9 +2892,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  non_reread:
 
-  /* Record the last idle start time so that we can reset it
-     should the next event read be a help-echo.  */
-  last_idle_start = timer_idleness_start_time;
   timer_stop_idle ();
   RESUME_POLLING;
 
@@ -2932,7 +2931,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	   prevents automatic window selection (under
 	   mouse_autoselect_window from acting as a real input event, for
 	   example banishing the mouse under mouse-avoidance-mode.  */
-	timer_idleness_start_time = last_idle_start;
+	timer_resume_idle ();
 
       /* Resume allowing input from any kboard, if that was true before.  */
       if (!was_locked)
@@ -3131,7 +3130,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       show_help_echo (help, window, object, position, 0);
 
       /* We stopped being idle for this event; undo that.  */
-      timer_idleness_start_time = last_idle_start;
+      timer_resume_idle ();
       goto retry;
     }
 
@@ -4252,7 +4251,7 @@ swallow_events (do_display)
 /* Record the start of when Emacs is idle,
    for the sake of running idle-time timers.  */
 
-void
+static void
 timer_start_idle ()
 {
   Lisp_Object timers;
@@ -4280,10 +4279,21 @@ timer_start_idle ()
 
 /* Record that Emacs is no longer idle, so stop running idle-time timers.  */
 
-void
+static void
 timer_stop_idle ()
 {
   EMACS_SET_SECS_USECS (timer_idleness_start_time, -1, -1);
+}
+
+/* Resume idle timer from last idle start time.  */
+
+static void
+timer_resume_idle ()
+{
+  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+    return;
+
+  timer_idleness_start_time = timer_last_idleness_start_time;
 }
 
 /* This is only for debugging.  */
@@ -8918,14 +8928,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	     keymap may have changed, so replay the sequence.  */
 	  if (BUFFERP (key))
 	    {
-	      EMACS_TIME initial_idleness_start_time;
-	      EMACS_SET_SECS_USECS (initial_idleness_start_time,
-				    EMACS_SECS (timer_last_idleness_start_time),
-				    EMACS_USECS (timer_last_idleness_start_time));
-
-	      /* Resume idle state, using the same start-time as before.  */
-	      timer_start_idle ();
-	      timer_idleness_start_time = initial_idleness_start_time;
+	      timer_resume_idle ();
 
 	      mock_input = t;
 	      /* Reset the current buffer from the selected window
