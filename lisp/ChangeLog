@@ -38,6 +38,28 @@
 	paragraph with `fill-nobreak-invisible' let-bound to t.
 	Don't use `display' property; insert "see" directly in buffer.
 
+2002/11/14  Nick Roberts <nick@nick.uklinux.net>
+
+	* gdb-ui.el: New file, User Interface for running GDB
+
+	* gud.el:(gud-find-file): Set up GDB tool bar.
+	(gud-menu-map): New commands: run, goto.
+	Enable some commands for gdba.
+	(gud-query-cmdline): Pass default directory to gdba.
+	(gdb): Defune gud-goto and gud-run.
+	(gud-gdb-complete-command): Maybe use gdba-complete-filter.
+	(gud-mode): Set up local tool bar.
+	(gud-display-line): For gdba, call gdb-display-source-buffer.
+	(gud-basic-call): For gdba, maybe delete the current prompt.
+	(gud-tool-bar-map): New variable.
+	(gud-read-address): Correction.
+
+	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-display.xpm,
+	toolbar/gud-down.xpm, toolbar/gud-finish.xpm, toolbar/gud-goto.xpm, 
+	toolbar/gud-next.xpm, toolbar/gud-print.xpm, toolbar/gud-remove.xpm,
+	toolbar/gud-run.xpm, toolbar/gud-step.xpm, toolbar/gud-up.xpm:
+	Icons for debugger.
+
 2002-11-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs.el (cvs-mode-run): Don't pass "." if not needed.
