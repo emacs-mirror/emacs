@@ -118,7 +118,9 @@ another display, use the command @code{make-frame-on-display} or specify
 the @code{display} frame parameter when you create the frame.
 
   Emacs treats each X server as a separate terminal, giving each one its
-own selected frame and its own minibuffer windows.
+own selected frame and its own minibuffer windows.  However, only one of
+those frames is ``@emph{the} selected frame'' at any given moment, see
+@ref{Input Focus}.
 
   A few Lisp variables are @dfn{terminal-local}; that is, they have a
 separate binding for each terminal.  The binding in effect at any time
@@ -564,7 +566,9 @@ frame parameters @code{left}, @code{top}, @code{height}, and
 @code{width}.  Whatever geometry parameters you don't specify are chosen
 by the window manager in its usual fashion.
 
-  Here are some special features for working with sizes and positions:
+  Here are some special features for working with sizes and positions.
+(For the precise meaning of ``selected frame'' used by these functions,
+see @ref{Input Focus}.)
 
 @defun set-frame-position frame left top
 This function sets the position of the top left corner of @var{frame} to
@@ -778,7 +782,7 @@ This function returns a list of just the currently visible frames.
 The function @code{next-frame} lets you cycle conveniently through all
 the frames from an arbitrary starting point.  It returns the ``next''
 frame after @var{frame} in the cycle.  If @var{frame} is omitted or
-@code{nil}, it defaults to the selected frame.
+@code{nil}, it defaults to the selected frame (@pxref{Input Focus}).
 
 The second argument, @var{minibuf}, says which frames to consider:
 
@@ -873,6 +877,17 @@ buffer-local.  @xref{Multiple Displays}.
 At any time, one frame in Emacs is the @dfn{selected frame}.  The selected
 window always resides on the selected frame.
 
+When Emacs displays its frames on several terminals (@pxref{Multiple
+Displays}), each terminal has its own selected frame.  But only one of
+these is ``@emph{the} selected frame'': it's the frame that belongs to
+the terminal from which the most recent input came.  That is, when Emacs
+runs a command that came from a certain terminal, the selected frame is
+the one of that terminal.  Since Emacs runs only a single command at any
+given time, it needs to consider only one selected frame at a time; this
+frame is what we call @dfn{the selected frame} in this manual.  The
+display on which the selected frame is displayed is the @dfn{selected
+frame's display}.
+
 @defun selected-frame
 This function returns the selected frame.
 @end defun
@@ -899,7 +914,12 @@ in the mode line before the buffer name (@pxref{Mode Line Variables}).
 This function selects frame @var{frame}, temporarily disregarding the
 focus of the X server if any.  The selection of @var{frame} lasts until
 the next time the user does something to select a different frame, or
-until the next time this function is called.
+until the next time this function is called.  The specified @var{frame}
+becomes the selected frame, as explained above, and the terminal that
+@var{frame} is on becomes the selected terminal.
+
+In general, you should never use @code{select-frame} in a way that could
+switch to a different terminal without switching back when you're done.
 @end defun
 
 Emacs cooperates with the window system by arranging to select frames as
@@ -1415,7 +1435,9 @@ but @code{t} on MS-Windows.
 @section Color Names
 
   These functions provide a way to determine which color names are
-valid, and what they look like.
+valid, and what they look like.  In some cases, the value depends on the
+@dfn{selected frame}, as described below; see @ref{Input Focus}, for the
+meaning of the term ``selected frame''.
 
 @defun color-defined-p color &optional frame
 @tindex color-defined-p
@@ -1523,8 +1545,8 @@ principle from 0 to 65535, but in practice the largest value used is
 terminal) as an optional argument.  We hope in the future to make Emacs
 support more than one text-only terminal at one time; then this argument
 will specify which terminal to operate on (the default being the
-selected frame's terminal).  At present, though, the @var{display}
-argument has no effect.
+selected frame's terminal; @pxref{Input Focus}).  At present, though,
+the @var{display} argument has no effect.
 
 @defun tty-color-define name number &optional rgb display
 @tindex tty-color-define
@@ -1613,7 +1635,7 @@ a popup menu could use the minibuffer if popup menus are not supported.
   The optional argument @var{display} in these functions specifies which
 display to ask the question about.  It can be a display name, a frame
 (which designates the display that frame is on), or @code{nil} (which
-refers to the selected frame's display).
+refers to the selected frame's display, @pxref{Input Focus}).
 
   @xref{Color Names}, @ref{Text Terminal Colors}, for other functions to
 obtain information about displays.
