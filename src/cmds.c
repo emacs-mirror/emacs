@@ -31,10 +31,17 @@ Lisp_Object Vuse_hard_newlines;
 /* A possible value for a buffer's overwrite-mode variable.  */
 Lisp_Object Qoverwrite_mode_binary;
 
+/* Non-nil means put this face on the next self-inserting character.  */
+Lisp_Object Vself_insert_face;
+
+/* This is the command that set up Vself_insert_face.  */
+Lisp_Object Vself_insert_face_command;
+
 #ifdef USE_TEXT_PROPERTIES 
 Lisp_Object Qhard;
 #endif
 
+extern Lisp_Object Qface;
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
   "Move point right ARG characters (left if ARG negative).\n\
@@ -366,6 +373,17 @@ internal_self_insert (c1, noautofill)
     }
   else
     insert_and_inherit (&c1, 1);
+
+  /* If previous command specified a face to use, use it.  */
+  if (!NILP (Vself_insert_face)
+      && EQ (last_command, Vself_insert_face_command))
+    {
+      Lisp_Object before, after;
+      XSETINT (before, PT - 1);
+      XSETINT (after, PT);
+      Fput_text_property (before, after, Qface, Vself_insert_face, Qnil);
+      Vself_insert_face = Qnil;
+    }
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
       && !NILP (Vblink_paren_function) && INTERACTIVE)
@@ -393,14 +411,24 @@ syms_of_cmds ()
   staticpro (&Qhard);
 
   DEFVAR_BOOL ("use-hard-newlines", &Vuse_hard_newlines,
-    "Non-nil means to distinguish hard and soft newlines.
-When this is non-nil, the functions `newline' and `open-line' add the
-text-property `hard' to newlines that they insert.  Also, a line is
-only considered as a candidate to match `paragraph-start' or
-`paragraph-separate' if it follows a hard newline.  Newlines not
-marked hard are called \"soft\", and are always internal to
+    "Non-nil means to distinguish hard and soft newlines.\n\
+When this is non-nil, the functions `newline' and `open-line' add the\n\
+text-property `hard' to newlines that they insert.  Also, a line is\n\
+only considered as a candidate to match `paragraph-start' or\n\
+`paragraph-separate' if it follows a hard newline.  Newlines not\n\
+marked hard are called \"soft\", and are always internal to\n\
 paragraphs.  The fill functions always insert soft newlines.");
   Vuse_hard_newlines = 0;
+
+  DEFVAR_LISP ("self-insert-face", &Vself_insert_face,
+    "If non-nil, set the face of the next self-inserting character to this.\n\
+See also `self-insert-face-command'.");
+  Vself_insert_face = Qnil;
+
+  DEFVAR_LISP ("self-insert-face-command", &Vself_insert_face_command,
+    "This is the command that set up `self-insert-face'.\n\
+If `last-command' does not equal this value, we ignore `self-insert-face'.");
+  Vself_insert_face_command = Qnil;
 
   DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
     "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
