@@ -156,7 +156,7 @@ copyright, if any, are updated as well."
       str)
   '(if (> (point) copyright-limit)
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
-  comment-end)
+  comment-end \n)
 
 (provide 'copyright)
 
