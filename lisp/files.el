@@ -706,7 +706,9 @@ run `normal-mode' explicitly."
 				  ("\\.mss\\'" . scribe-mode)
 				  ("\\.pl\\'" . prolog-mode)
 				  ("\\.cc\\'" . c++-mode)
+				  ("\\.hh\\'" . c++-mode)
 				  ("\\.C\\'" . c++-mode)
+				  ("\\.H\\'" . c++-mode)
 ;;;				  ("\\.mk\\'" . makefile-mode)
 ;;;				  ("[Mm]akefile" . makefile-mode)
 ;;; Less common extensions come here
