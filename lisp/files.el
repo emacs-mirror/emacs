@@ -3238,7 +3238,8 @@ Before and after saving the buffer, this function runs
   (if save-buffer-coding-system
       (let ((coding-system-for-write save-buffer-coding-system))
 	(basic-save-buffer-2))
-    (basic-save-buffer-2)))
+    (basic-save-buffer-2))
+  (setq explicit-buffer-file-coding-system last-coding-system-used))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -3708,11 +3709,11 @@ non-nil, it is called instead of rereading visited file contents."
 			 (unlock-buffer)))
 		   (widen)
 		   (let ((coding-system-for-read
-			  ;; Auto-saved file shoule be read without
-			  ;; any code conversion.
-			  (if auto-save-p 'emacs-mule-unix
+			  ;; Auto-saved file shoule be read by Emacs'
+			  ;; internal coding.
+			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
-				buffer-file-coding-system))))
+				explicit-buffer-file-coding-system))))
 		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.
