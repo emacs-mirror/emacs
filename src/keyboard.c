@@ -4023,6 +4023,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  
 		  mock_input = t;
 		  fkey_start = fkey_end = t;
+		  fkey_map = Vfunction_key_map;
 
 		  goto replay_sequence;
 		}
