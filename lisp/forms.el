@@ -54,11 +54,11 @@
 ;; The second file holds the actual data.  The buffer of this file
 ;; will be buried, for it is never accessed directly.
 ;;
-;; Forms mode is invoked using M-x forms-find-file control-file .
+;; Forms mode is invoked using M-x `forms-find-file' control-file.
 ;; Alternatively `forms-find-file-other-window' can be used.
 ;;
 ;; You may also visit the control file, and switch to forms mode by hand
-;; with M-x forms-mode .
+;; with M-x `forms-mode'.
 ;;
 ;; Automatic mode switching is supported if you specify 
 ;; "-*- forms -*-" in the first line of the control file.
@@ -110,14 +110,14 @@
 ;;			of fields specified by `forms-number-of-fields'.
 ;;
 ;;	forms-multi-line			[string, default "^K"]
-;;			If non-null the records of the data file may
+;;			If non-null, the records of the data file may
 ;;			contain fields that can span multiple lines in
 ;;			the form.
-;;			This variable denotes the separator character
+;;			This variable denotes the separator string
 ;;			to be used for this purpose.  Upon display, all
-;;			occurrences of this character are translated
+;;			occurrences of this string are translated
 ;;			to newlines.  Upon storage they are translated
-;;			back to the separator character.
+;;			back to the separator string.
 ;;
 ;;	forms-forms-scroll			[bool, default nil]
 ;;			Non-nil means: rebind locally the commands that
@@ -125,12 +125,17 @@
 ;;			`forms-next-field' resp. `forms-prev-field'.
 ;;
 ;;	forms-forms-jump			[bool, default nil]
-;;			Non-nil means: rebind locally the commands that
+;;			Non-nil means: rebind locally the commands
+;;			`beginning-of-buffer' and `end-of-buffer' to
+;;			perform, respectively, `forms-first-record' and
+;;			`forms-last-record' instead.
 ;;
 ;;	forms-insert-after			[bool, default nil]
-;;			Non-nil means: inserts of new records go after
-;;			current record, also initial position is at last
-;;			record.
+;;			Non-nil means: insertions of new records go after
+;;			current record, also initial position is at the
+;;			last record.  The default is to insert before the
+;;			current record and the initial position is at the
+;;			first record.
 ;;
 ;;	forms-read-file-filter			[symbol, default nil]
 ;;			If not nil: this should be the name of a 
@@ -166,14 +171,14 @@
 ;;			distinct face, if possible.
 ;;			As of emacs 19.29, the `intangible' text property
 ;;			is used to prevent moving into read-only fields.
-;;			This variable defaults to t if running Emacs 19
-;;			with text properties.
+;;			This variable defaults to t if running Emacs 19 or
+;;			later with text properties.
 ;;			The default face to show read-write fields is
 ;;			copied from face `region'.
 ;;
 ;;	forms-ro-face 				[symbol, default 'default]
 ;;			This is the face that is used to show
-;;			read-only text on the screen.If used, this
+;;			read-only text on the screen.  If used, this
 ;;			variable should be set to a symbol that is a
 ;;			valid face.
 ;;			E.g.
@@ -187,7 +192,7 @@
 ;; After evaluating the control file, its buffer is cleared and used
 ;; for further processing.
 ;; The data file (as designated by `forms-file') is visited in a buffer
-;; `forms--file-buffer' which will not normally be shown.
+;; `forms--file-buffer' which normally will not be shown.
 ;; Great malfunctioning may be expected if this file/buffer is modified
 ;; outside of this package while it is being visited!
 ;;
@@ -208,7 +213,7 @@
 ;;
 ;; Two exit functions exist: `forms-exit' and `forms-exit-no-save'.
 ;; `forms-exit' saves the data to the file, if modified.
-;; `forms-exit-no-save` does not.  However, if `forms-exit-no-save'
+;; `forms-exit-no-save' does not.  However, if `forms-exit-no-save'
 ;; is executed and the file buffer has been modified, Emacs will ask
 ;; questions anyway.
 ;;
@@ -222,12 +227,12 @@
 ;;	switching edit <-> view mode v.v.
 ;;	jumping from field to field
 ;;
-;; As an documented side-effect: jumping to the last record in the
+;; As a documented side-effect: jumping to the last record in the
 ;; file (using forms-last-record) will adjust forms--total-records if
 ;; needed.
 ;;
-;; The forms buffer can be in on eof two modes: edit mode or view
-;; mode.  View mode is a read-only mode, you cannot modify the
+;; The forms buffer can be in one of two modes: edit mode or view
+;; mode.  View mode is a read-only mode, whereby you cannot modify the
 ;; contents of the buffer.
 ;;
 ;; Edit mode commands:
@@ -252,7 +257,7 @@
 ;; SPC 	 forms-next-record
 ;; DEL	 forms-prev-record
 ;; ?	 describe-mode
-;; \C-q forms-toggle-read-only
+;; \C-q  forms-toggle-read-only
 ;; l	 forms-jump-record
 ;; n	 forms-next-record
 ;; p	 forms-prev-record
@@ -270,18 +275,18 @@
 ;; [begin]	  forms-first-record
 ;; [end]	  forms-last-record
 ;; [S-TAB]	  forms-prev-field
-;; [backtab] forms-prev-field
+;; [backtab]	  forms-prev-field
 ;;
 ;; For convenience, TAB is always bound to `forms-next-field', so you
 ;; don't need the C-c prefix for this command.
 ;;
-;; As mentioned above (see `forms-forms-scroll' and `forms-forms-jump')
+;; As mentioned above (see `forms-forms-scroll' and `forms-forms-jump'),
 ;; the bindings of standard functions `scroll-up', `scroll-down',
 ;; `beginning-of-buffer' and `end-of-buffer' can be locally replaced with
 ;; forms mode functions next/prev record and first/last
 ;; record.
 ;;
-;; `local-write-file hook' is defined to save the actual data file
+;; `local-write-file-hooks' is defined to save the actual data file
 ;; instead of the buffer data, `revert-file-hook' is defined to
 ;; revert a forms to original.
 
@@ -296,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.36 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.37 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.36 1998/10/06 23:19:46 kwzh Exp rms $")
+  $Id: forms.el,v 2.37 1999/01/15 16:19:53 rms Exp kwzh $")
 
 (defcustom forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode."
@@ -711,11 +716,11 @@ Commands:                        Equivalent keys in read-only mode:
     (if (< forms--current-record 1)
 	(setq forms--current-record 1))
     (forms-jump-record forms--current-record)
-    )
 
-  (if forms-insert-after
-      (forms-last-record)
-    (forms-first-record))
+    (if forms-insert-after
+	(forms-last-record)
+      (forms-first-record))
+    )
 
   ;; user customising
   ;;(message "forms: proceeding setup (user hooks)...")
