@@ -1061,7 +1061,7 @@ Copied from `icomplete-exhibit' with two changes:
 2. It calls my completion routine rather than the standard completion."
 
   (if iswitchb-use-mycompletion
-      (let ((contents (buffer-substring (point-min)(point-max)))
+      (let ((contents (buffer-string))
 	    (buffer-undo-list t))
 	(save-excursion
 	  (goto-char (point-max))
