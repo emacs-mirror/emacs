@@ -16,7 +16,7 @@ is to use the @code{editres} program.  Select @samp{Get Tree} from the
 @samp{Commands} menu, then click on an Emacs frame.  This will display
 a tree showing the structure of X toolkit widgets used in an Emacs
 frame.  Select one of them, such as @samp{menubar}, then select
-@samp{Show Resource Box form the @samp{Commands} menu.  This displays
+@samp{Show Resource Box} from the @samp{Commands} menu.  This displays
 a list of all the meaningful X resources and allows you to edit them.
 Changes take effect immediately if you click on the @samp{Apply} button.
 
