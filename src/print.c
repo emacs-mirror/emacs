@@ -1,5 +1,6 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 1998
+	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -257,9 +258,9 @@ glyph_to_str_cpy (glyphs, str)
        Lisp_Object string;					\
        if (print_buffer != 0)					\
 	 {							\
-	   string = make_multibyte_string (print_buffer,	\
-					   print_buffer_pos,	\
-					   print_buffer_pos_byte); \
+	   string = make_string_from_bytes (print_buffer,	\
+					    print_buffer_pos,	\
+					    print_buffer_pos_byte); \
 	   record_unwind_protect (print_unwind, string);	\
 	 }							\
        else							\
