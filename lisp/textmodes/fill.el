@@ -947,7 +947,7 @@ Arguments BEGIN and END are optional; default is the whole buffer."
 	(forward-line 1)))))
 
 
-(defun fill-nonuniform-paragraphs (min max &optional justifyp mailp)
+(defun fill-nonuniform-paragraphs (min max &optional justifyp citation-regexp)
   "Fill paragraphs within the region, allowing varying indentation within each.
 This command divides the region into \"paragraphs\",
 only at paragraph-separator lines, then fills each paragraph
@@ -958,13 +958,16 @@ When calling from a program, pass range to fill as first two arguments.
 
 Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
 JUSTIFY to justify paragraphs (prefix arg),
-MAIL-FLAG for a mail message, i. e. don't fill header lines."
+When filling a mail message, pass a regexp for CITATION-REGEXP
+which will match the prefix of a line which is a citation marker
+plus whitespace, but no other kind of prefix.
+Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
   (interactive (list (region-beginning) (region-end)
 		     (if current-prefix-arg 'full)))
   (let ((fill-individual-varying-indent t))
-    (fill-individual-paragraphs min max justifyp mailp)))
+    (fill-individual-paragraphs min max justifyp citation-regexp)))
 
-(defun fill-individual-paragraphs (min max &optional justify mailp)
+(defun fill-individual-paragraphs (min max &optional justify citation-regexp)
   "Fill paragraphs of uniform indentation within the region.
 This command divides the region into \"paragraphs\", 
 treating every change in indentation level or prefix as a paragraph boundary,
@@ -983,7 +986,10 @@ as the first two arguments.
 
 Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
 JUSTIFY to justify paragraphs (prefix arg),
-MAIL-FLAG for a mail message, i. e. don't fill header lines."
+When filling a mail message, pass a regexp for CITATION-REGEXP
+which will match the prefix of a line which is a citation marker
+plus whitespace, but no other kind of prefix.
+Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
   (interactive (list (region-beginning) (region-end)
 		     (if current-prefix-arg 'full)))
   (save-restriction
@@ -991,7 +997,7 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
       (goto-char min)
       (beginning-of-line)
       (narrow-to-region (point) max)
-      (if mailp 
+      (if citation-regexp
 	  (while (and (not (eobp))
 		      (or (looking-at "[ \t]*[^ \t\n]+:")
 			  (looking-at "[ \t]*$")))
@@ -1020,45 +1026,7 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 		   (if (not (and fill-prefix
 				 (looking-at fill-prefix-regexp)))
 		       (setq fill-prefix
-			     ;; Get the prefix from just the first line
-			     ;; ordinarily.
-			     ;; But if using two lines gives us a shorter
-			     ;; result, lacking some whitespace at the end,
-			     ;; use that.
-			     (or (let ((adaptive-fill-first-line-regexp "")
-				       just-one-line-prefix
-				       two-lines-prefix
-				       adjusted-two-lines-prefix)
-				   (setq just-one-line-prefix
-					 (fill-context-prefix
-					  (point)
-					  (save-excursion (forward-line 1)
-							  (point))))
-				   (setq two-lines-prefix
-					 (fill-context-prefix
-					  (point)
-					  (save-excursion (forward-line 2)
-							  (point))))
-				   (when two-lines-prefix
-				     (setq adjusted-two-lines-prefix
-					   (substring two-lines-prefix 0
-						      (string-match "[ \t]*\\'"
-								    two-lines-prefix))))
-				   ;; See if JUST-ONE-LINE-PREFIX
-				   ;; is the same as TWO-LINES-PREFIX
-				   ;; except perhaps with longer whitespace.
-				   (if (and just-one-line-prefix
-					    two-lines-prefix
-					    (string-match (concat "\\`"
-								  (regexp-quote adjusted-two-lines-prefix)
-								  "[ \t]*\\'")
-							  just-one-line-prefix))
-				       two-lines-prefix
-				     just-one-line-prefix))
-				 (buffer-substring 
-				  (point)
-				  (save-excursion (skip-chars-forward " \t")
-						  (point))))
+			     (fill-individual-paragraphs-prefix citation-regexp)
 			     fill-prefix-regexp (regexp-quote fill-prefix)))
 		   (forward-line 1)
 		   (if (bolp)
@@ -1088,5 +1056,61 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 	  (let ((had-newline (bolp)))
 	    (fill-region-as-paragraph start (point) justify)
 	    (or had-newline (delete-char -1))))))))
+
+(defun fill-individual-paragraphs-prefix (citation-regexp)
+  (or (let ((adaptive-fill-first-line-regexp "")
+	    just-one-line-prefix
+	    two-lines-prefix
+	    one-line-citation-part
+	    two-lines-citation-part
+	    adjusted-two-lines-citation-part)
+	(setq just-one-line-prefix
+	      (fill-context-prefix
+	       (point)
+	       (save-excursion (forward-line 1)
+			       (point))))
+	(setq two-lines-prefix
+	      (fill-context-prefix
+	       (point)
+	       (save-excursion (forward-line 2)
+			       (point))))
+	(when just-one-line-prefix
+	  (setq one-line-citation-part
+		(if citation-regexp
+		    (fill-individual-paragraphs-citation just-one-line-prefix
+							 citation-regexp)
+		  just-one-line-prefix)))
+	(when two-lines-prefix
+	  (setq two-lines-citation-part
+		(if citation-regexp
+		    (fill-individual-paragraphs-citation two-lines-prefix
+							 citation-regexp)
+		  just-one-line-prefix))
+	  (setq adjusted-two-lines-citation-part
+		(substring two-lines-citation-part 0
+			   (string-match "[ \t]*\\'"
+					 two-lines-citation-part))))
+	;; See if the citation part of JUST-ONE-LINE-PREFIX
+	;; is the same as that of TWO-LINES-PREFIX,
+	;; except perhaps with longer whitespace.
+	(if (and just-one-line-prefix
+		 two-lines-prefix
+		 (string-match (concat "\\`"
+				       (regexp-quote adjusted-two-lines-citation-part)
+				       "[ \t]*\\'")
+			       one-line-citation-part)
+		 (>= (string-width one-line-citation-part)
+		     (string-width two-lines-citation-part)))
+	    two-lines-prefix
+	  just-one-line-prefix))
+      (buffer-substring 
+       (point)
+       (save-excursion (skip-chars-forward " \t")
+		       (point)))))
+
+(defun fill-individual-paragraphs-citation (string citation-regexp)
+  (string-match citation-regexp
+		string)
+  (match-string 0 string))  
 
 ;;; fill.el ends here
