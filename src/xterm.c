@@ -6469,12 +6469,6 @@ x_list_fonts (f, pattern, size, maxnames)
   if (maxnames == 1 && !size)
     /* We can return any single font matching PATTERN.  */
     try_XLoadQueryFont = 1;
-  else
-    {
-      /* We try at least 10 fonts because XListFonts will return
-	 auto-scaled fonts at the head.  */
-      if (maxnames < 10) maxnames = 10;
-    }
 
   for (; CONSP (patterns); patterns = XCONS (patterns)->cdr)
     {
@@ -6535,7 +6529,9 @@ x_list_fonts (f, pattern, size, maxnames)
 	}
 
       if (!try_XLoadQueryFont)
-	names = XListFonts (dpy, XSTRING (pattern)->data, maxnames,
+	/* We try at least 10 fonts because XListFonts will return
+	   auto-scaled fonts at the head.  */
+	names = XListFonts (dpy, XSTRING (pattern)->data, max (maxnames, 10),
 			    &num_fonts);
       UNBLOCK_INPUT;
 
