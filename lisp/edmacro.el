@@ -609,23 +609,30 @@ If START or END is negative, it counts from the end."
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
 
-(defun edmacro-fix-menu-commands (macro)
-  (when (vectorp macro)
-    (let ((i 0) ev)
-      (while (< i (length macro))
-	(when (consp (setq ev (aref macro i)))
-	  (cond ((equal (cadadr ev) '(menu-bar))
-		 (setq macro (vconcat (edmacro-subseq macro 0 i)
-				      (vector 'menu-bar (car ev))
-				      (edmacro-subseq macro (1+ i))))
-		 (incf i))
+(defun edmacro-fix-menu-commands (macro &optional noerror)
+  (if (vectorp macro)
+      (let (result)
+	;; Make a list of the elements.
+	(setq macro (append macro nil))
+	(dolist (ev macro)
+	  (cond ((atom ev)
+		 (push ev result))
+		((eq (car ev) 'help-echo))
+		((equal ev '(menu-bar))
+		 (push 'menu-bar result))
+		((equal (cadadr ev) '(menu-bar))
+		 (push (vector 'menu-bar (car ev)) result))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.
+		(noerror
+		 ;; Just ignore mouse events.
+		 nil)
 		(t
 		 (error "Macros with mouse clicks are not %s"
 			"supported by this command"))))
-	(incf i))))
-  macro)
+	;; Reverse them again and make them back into a vector.
+	(vconcat (nreverse result)))
+    macro))
 
 ;;; Parsing a human-readable keyboard macro.
 
