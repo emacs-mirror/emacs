@@ -144,17 +144,11 @@
 
 ;; Runs viper-after-change-functions inside after-change-functions
 (defun viper-after-change-sentinel (beg end len)
-  (let ((list viper-after-change-functions))
-    (while list
-      (funcall (car list) beg end len)
-      (setq list (cdr list)))))
+  (run-hook-with-args 'viper-after-change-functions beg end len))
       
 ;; Runs viper-before-change-functions inside before-change-functions
 (defun viper-before-change-sentinel (beg end)
-  (let ((list viper-before-change-functions))
-    (while list
-      (funcall (car list) beg end)
-      (setq list (cdr list)))))
+  (run-hook-with-args 'viper-before-change-functions beg end))
 
 (defsubst viper-post-command-sentinel ()
   (run-hooks 'viper-post-command-hooks))
@@ -264,15 +258,21 @@
   ;; We remove then add viper-post/pre-command-sentinel since it is very
   ;; desirable that viper-pre-command-sentinel is the last hook and
   ;; viper-post-command-sentinel is the first hook.
+
+  (make-local-hook 'viper-after-change-functions)
+  (make-local-hook 'viper-before-change-functions)
+  (make-local-hook 'viper-post-command-hooks)
+  (make-local-hook 'viper-pre-command-hooks)
+
   (remove-hook 'post-command-hook 'viper-post-command-sentinel)
   (add-hook 'post-command-hook 'viper-post-command-sentinel)
   (remove-hook 'pre-command-hook 'viper-pre-command-sentinel)
   (add-hook 'pre-command-hook 'viper-pre-command-sentinel t)
   ;; These hooks will be added back if switching to insert/replace mode
-  (viper-remove-hook 'viper-post-command-hooks
-		     'viper-insert-state-post-command-sentinel)
-  (viper-remove-hook 'viper-pre-command-hooks
-		     'viper-insert-state-pre-command-sentinel)
+  (remove-hook 'viper-post-command-hooks
+	       'viper-insert-state-post-command-sentinel 'local)
+  (remove-hook 'viper-pre-command-hooks
+	       'viper-insert-state-pre-command-sentinel 'local)
   (setq viper-intermediate-command nil)
   (cond ((eq new-state 'vi-state)
 	 (cond ((member viper-current-state '(insert-state replace-state))
@@ -314,10 +314,10 @@
 	     (viper-move-marker-locally 'viper-insert-point (point)))
 	 (viper-move-marker-locally
 	  'viper-last-posn-while-in-insert-state (point))
-	 (viper-add-hook 'viper-post-command-hooks
-			 'viper-insert-state-post-command-sentinel t)
-	 (viper-add-hook 'viper-pre-command-hooks
-			 'viper-insert-state-pre-command-sentinel t))
+	 (add-hook 'viper-post-command-hooks
+		   'viper-insert-state-post-command-sentinel t 'local)
+	 (add-hook 'viper-pre-command-hooks
+		   'viper-insert-state-pre-command-sentinel t 'local))
 	) ; outermost cond
   
   ;; Nothing needs to be done to switch to emacs mode! Just set some
@@ -958,23 +958,25 @@ as a Meta key and any number of multiple escapes is allowed."
 
 ;; Compute numeric prefix arg value. 
 ;; Invoked by EVENT. COM is the command part obtained so far.
-(defun viper-prefix-arg-value (event com)
+(defun viper-prefix-arg-value (event-char com)
   (let ((viper-intermediate-command 'viper-digit-argument)
 	value func)
     ;; read while number
-    (while (and (viper-characterp event) (>= event ?0) (<= event ?9))
-      (setq value (+ (* (if (integerp value) value 0) 10) (- event ?0)))
-      (setq event (viper-read-event-convert-to-char)))
+    (while (and (viper-characterp event-char)
+		(>= event-char ?0) (<= event-char ?9))
+      (setq value (+ (* (if (integerp value) value 0) 10) (- event-char ?0)))
+      (setq event-char (viper-read-event-convert-to-char)))
     
     (setq prefix-arg value)
     (if com (setq prefix-arg (cons prefix-arg com)))
-    (while (eq event ?U)
+    (while (eq event-char ?U)
       (viper-describe-arg prefix-arg)
-      (setq event (viper-read-event-convert-to-char)))
+      (setq event-char (viper-read-event-convert-to-char)))
     
     (if (or com (and (not (eq viper-current-state 'vi-state))
 		     ;; make sure it is a Vi command
-		     (viper-characterp event) (viper-vi-command-p event)
+		     (viper-characterp event-char)
+		     (viper-vi-command-p event-char)
 		     ))
 	;; If appears to be one of the vi commands,
 	;; then execute it with funcall and clear prefix-arg in order to not
@@ -986,21 +988,21 @@ as a Meta key and any number of multiple escapes is allowed."
 	  ;; etc., i.e., the user typed, say, d2. In this case, `com' would be
 	  ;; `d', `w', etc.  If viper-digit-argument was invoked by
 	  ;; viper-escape-to-vi (which is indicated by the fact that the
-	  ;; current state is not vi-state), then `event' represents the vi
-	  ;; command to be executed (e.g., `d', `w', etc). Again,
+	  ;; current state is not vi-state), then `event-char' represents the
+	  ;; vi command to be executed (e.g., `d', `w', etc). Again,
 	  ;; last-command-char must make emacs believe that this is the command
 	  ;; we typed.
-	  (cond ((eq event 'return) (setq event ?\C-m))
-		((eq event 'delete) (setq event ?\C-?))
-		((eq event 'backspace) (setq event ?\C-h))
-		((eq event 'space) (setq event ?\ )))
-	  (setq last-command-char (or com event))
+	  (cond ((eq event-char 'return) (setq event-char ?\C-m))
+		((eq event-char 'delete) (setq event-char ?\C-?))
+		((eq event-char 'backspace) (setq event-char ?\C-h))
+		((eq event-char 'space) (setq event-char ?\ )))
+	  (setq last-command-char (or com event-char))
 	  (setq func (viper-exec-form-in-vi 
-		      (` (key-binding (char-to-string (, event))))))
+		      (` (key-binding (char-to-string (, event-char))))))
 	  (funcall func prefix-arg)
 	  (setq prefix-arg nil))
       ;; some other command -- let emacs do it in its own way
-      (viper-set-unread-command-events event))
+      (viper-set-unread-command-events event-char))
     ))
 		     
 
@@ -1239,6 +1241,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	(setq viper-use-register nil)))
   (setq last-command
 	(if (eq last-command 'd-command) 'kill-region nil))
+  (message "Deleted %d characters" (abs (- (point) viper-com-point)))
   (kill-region viper-com-point (point))
   (setq this-command 'd-command)
   (if viper-ex-style-motion
@@ -1261,10 +1264,12 @@ as a Meta key and any number of multiple escapes is allowed."
 	  (setq viper-use-register nil)))
     (setq last-command
 	  (if (eq last-command 'D-command) 'kill-region nil))
+    (message "Deleted %d lines" (count-lines (point) viper-com-point))
     (kill-region (mark t) (point))
     (if (eq m-com 'viper-line) (setq this-command 'D-command)))
   (back-to-indentation))
 
+;; save region
 (defun viper-exec-yank (m-com com)
   (or (and (markerp viper-com-point) (marker-position viper-com-point))
       (set-marker viper-com-point (point) (current-buffer)))
@@ -1281,8 +1286,10 @@ as a Meta key and any number of multiple escapes is allowed."
 	(setq viper-use-register nil)))
   (setq last-command nil)
   (copy-region-as-kill viper-com-point (point))
+  (message "Saved %d characters" (abs (- (point) viper-com-point)))
   (goto-char viper-com-point))
 
+;; save lines
 (defun viper-exec-Yank (m-com com)
   (save-excursion
     (set-mark viper-com-point)
@@ -1299,7 +1306,8 @@ as a Meta key and any number of multiple escapes is allowed."
 		   (error viper-InvalidRegister  viper-use-register)))
 	  (setq viper-use-register nil)))
     (setq last-command nil)
-    (copy-region-as-kill (mark t) (point)))
+    (copy-region-as-kill (mark t) (point))
+    (message "Saved %d lines" (count-lines (mark t) (point))))
   (viper-deactivate-mark)
   (goto-char viper-com-point))
 
@@ -2110,22 +2118,23 @@ problems."
   (setq viper-began-as-replace t
 	viper-sitting-in-replace t
 	viper-replace-chars-to-delete 0)
-  (viper-add-hook
-   'viper-after-change-functions 'viper-replace-mode-spy-after t)
-  (viper-add-hook
-   'viper-before-change-functions 'viper-replace-mode-spy-before t)
+  (add-hook
+   'viper-after-change-functions 'viper-replace-mode-spy-after t 'local)
+  (add-hook
+   'viper-before-change-functions 'viper-replace-mode-spy-before t 'local)
   ;; this will get added repeatedly, but no harm
   (add-hook 'after-change-functions 'viper-after-change-sentinel t)
   (add-hook 'before-change-functions 'viper-before-change-sentinel t)
-  (viper-move-marker-locally 'viper-last-posn-in-replace-region
-			     (viper-replace-start))
-  (viper-add-hook
-   'viper-post-command-hooks 'viper-replace-state-post-command-sentinel t)
-  (viper-add-hook
-   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t)
+  (viper-move-marker-locally
+   'viper-last-posn-in-replace-region (viper-replace-start))
+  (add-hook
+   'viper-post-command-hooks 'viper-replace-state-post-command-sentinel
+   t 'local)
+  (add-hook
+   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t 'local)
   ;; guard against a smartie who switched from R-replace to normal replace
-  (viper-remove-hook
-   'viper-post-command-hooks 'viper-R-state-post-command-sentinel)
+  (remove-hook
+   'viper-post-command-hooks 'viper-R-state-post-command-sentinel 'local)
   (if overwrite-mode (overwrite-mode nil))
   )
   
@@ -2210,14 +2219,14 @@ problems."
 ;; the overlay and current point is before the end of the overlay.
 ;; Don't delete anything if current point is past the end of the overlay.
 (defun viper-finish-change ()
-  (viper-remove-hook
-   'viper-after-change-functions 'viper-replace-mode-spy-after)
-  (viper-remove-hook
-   'viper-before-change-functions 'viper-replace-mode-spy-before)
-  (viper-remove-hook
-   'viper-post-command-hooks 'viper-replace-state-post-command-sentinel) 
-  (viper-remove-hook
-   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel) 
+  (remove-hook
+   'viper-after-change-functions 'viper-replace-mode-spy-after 'local)
+  (remove-hook
+   'viper-before-change-functions 'viper-replace-mode-spy-before 'local)
+  (remove-hook
+   'viper-post-command-hooks 'viper-replace-state-post-command-sentinel 'local) 
+  (remove-hook
+   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel 'local) 
   (viper-restore-cursor-color-after-replace)
   (setq viper-sitting-in-replace nil) ; just in case we'll need to know it
   (save-excursion
@@ -2246,22 +2255,22 @@ problems."
   (setq kill-ring-yank-pointer kill-ring))
 
 (defun viper-finish-R-mode ()
-  (viper-remove-hook
-   'viper-post-command-hooks 'viper-R-state-post-command-sentinel)
-  (viper-remove-hook
-   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel)
+  (remove-hook
+   'viper-post-command-hooks 'viper-R-state-post-command-sentinel 'local)
+  (remove-hook
+   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel 'local)
   (viper-downgrade-to-insert))
   
 (defun viper-start-R-mode ()
   ;; Leave arg as 1, not t: XEmacs insists that it must be a pos number
   (overwrite-mode 1)
-  (viper-add-hook
-   'viper-post-command-hooks 'viper-R-state-post-command-sentinel t)
-  (viper-add-hook
-   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t)
+  (add-hook
+   'viper-post-command-hooks 'viper-R-state-post-command-sentinel t 'local)
+  (add-hook
+   'viper-pre-command-hooks 'viper-replace-state-pre-command-sentinel t 'local)
   ;; guard against a smartie who switched from R-replace to normal replace
-  (viper-remove-hook
-   'viper-post-command-hooks 'viper-replace-state-post-command-sentinel)
+  (remove-hook
+   'viper-post-command-hooks 'viper-replace-state-post-command-sentinel 'local)
   )
 
 
@@ -2907,21 +2916,37 @@ On reaching beginning of line, stop and signal error."
 	(cmd (if (eq viper-intermediate-command 'viper-repeat)
 		 (nth 5 viper-d-com)
 	       (viper-array-to-string (this-command-keys))))
-	point)
+	point region-beg region-end)
     (save-excursion
       (save-restriction
-	(if (> arg 0)
-	    (narrow-to-region
-	     ;; forward search begins here
-	     (if (eolp) (error "Command `%s':  At end of line" cmd) (point))
-	     ;; forward search ends here
-	     (progn (end-of-line) (point)))
-	  (narrow-to-region
-	   ;; backward search begins from here
-	   (if (bolp)
-	       (error "Command `%s':  At beginning of line" cmd) (point))
-	   ;; backward search ends here
-	   (progn (beginning-of-line) (point))))
+	(if (> arg 0) ; forward
+	    (progn
+	      (setq region-beg (point))
+	      (if viper-allow-multiline-replace-regions
+		  (viper-forward-paragraph 1)
+		(end-of-line))
+	      (setq region-end (point)))
+	  (setq region-end (point))
+	      (if viper-allow-multiline-replace-regions
+		  (viper-backward-paragraph 1)
+		(beginning-of-line))
+	      (setq region-beg (point)))
+	(if (or (and (< arg 0)
+		     (< (- region-end region-beg)
+			(if viper-allow-multiline-replace-regions
+			    2 1))
+		     (bolp))
+		(and (> arg 0)
+		     (< (- region-end region-beg)
+			(if viper-allow-multiline-replace-regions
+			    3 2))
+		     (eolp)))
+	    (error "Command `%s':  At %s of %s"
+		   cmd
+		   (if (> arg 0) "end" "beginning")
+		   (if viper-allow-multiline-replace-regions
+		       "paragraph" "line")))
+	(narrow-to-region region-beg region-end)
 	;; if arg > 0, point is forwarded before search.
 	(if (> arg 0) (goto-char (1+ (point-min)))
 	  (goto-char (point-max)))
@@ -3242,7 +3267,7 @@ controlled by the sign of prefix numeric value."
 	  (if viper-parse-sexp-ignore-comments "" "NOT "))))
 
 
-;; sentence ,paragraph and heading
+;; sentence, paragraph and heading
 
 (defun viper-forward-sentence (arg)
   "Forward sentence."
@@ -3272,7 +3297,9 @@ controlled by the sign of prefix numeric value."
   (or (eq last-command this-command)
       (push-mark nil t))
   (let ((val (viper-p-val arg))
-	(com (viper-getCom arg)))
+	;; if you want d} operate on whole lines, change viper-getcom to
+	;; viper-getCom below
+	(com (viper-getcom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     (forward-paragraph val)
     (if com
@@ -3286,7 +3313,9 @@ controlled by the sign of prefix numeric value."
   (or (eq last-command this-command)
       (push-mark nil t))
   (let ((val (viper-p-val arg))
-	(com (viper-getCom arg)))
+	;; if you want d{ operate on whole lines, change viper-getcom to
+	;; viper-getCom below
+	(com (viper-getcom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     (backward-paragraph val)
     (if com
@@ -3768,7 +3797,8 @@ Null string will repeat previous search."
 			((viper-valid-register viper-use-register)
 			 (get-register (downcase viper-use-register)))
 			(t (error viper-InvalidRegister viper-use-register)))
-		(current-kill 0))))
+		(current-kill 0)))
+	sv-point)
     (if (null text)
 	(if viper-use-register
 	    (let ((reg viper-use-register))
@@ -3787,7 +3817,11 @@ Null string will repeat previous search."
     (set-marker (viper-mark-marker) (point) (current-buffer))
     (viper-set-destructive-command
      (list 'viper-put-back val nil viper-use-register nil nil))
-    (viper-loop val (viper-yank text)))
+    (setq sv-point (point))
+    (viper-loop val (viper-yank text))
+    (message "Inserted %d character(s), %d line(s)"
+	     (abs (- (point) sv-point)) 
+	     (abs (count-lines (point) sv-point))))
   ;; Vi puts cursor on the last char when the yanked text doesn't contain a
   ;; newline; it leaves the cursor at the beginning when the text contains 
   ;; a newline

@@ -46,6 +46,7 @@
     (or (featurep 'ediff-help)
 	(load "ediff-help.el" nil nil 'nosuffix))
     (or (featurep 'ediff-tbar)
+	ediff-emacs-p
 	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
     ))
 ;; end pacifier
@@ -932,7 +933,7 @@ into icons, regardless of the window manager."
     
     ;; In XEmacs, buffer menubar needs to be killed before frame parameters
     ;; are changed. 
-    (if ediff-xemacs-p
+    (if (ediff-has-toolbar-support-p)
 	(progn
 	  (set-specifier top-toolbar-height (list ctl-frame 2))
 	  (sit-for 0)

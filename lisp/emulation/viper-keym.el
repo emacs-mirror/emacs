@@ -530,7 +530,7 @@ Arguments: (major-mode viper-state keymap)"
     ;; Normalization usually doesn't help here, since one needs to
     ;; normalize in the actual buffer where changes to the keymap are
     ;; to take place. However, it doesn't hurt, and it helps whenever this
-    ;; function is actually called from within the right buffer.
+    ;; function is actually called from within the affected buffer.
     (viper-normalize-minor-mode-map-alist)
     
     (viper-set-mode-vars-for viper-current-state)))

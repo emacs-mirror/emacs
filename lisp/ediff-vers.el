@@ -338,7 +338,7 @@
 	 (tmp-file
 	  (cvs-retrieve-revision-to-tmpfile fileinfo))
 	 (default-directory
- 	   (file-name-as-directory (cvs-fileinfo->dir fileinfo)))
+	   (file-name-as-directory (cvs-fileinfo->dir fileinfo)))
 	 ancestor-file)
     
     (or (memq type '(MERGED CONFLICT MODIFIED))

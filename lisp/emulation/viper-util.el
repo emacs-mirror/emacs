@@ -110,32 +110,12 @@
       (cdr (assoc 'cursor-color (frame-parameters)))
     (color-instance-name (frame-property (selected-frame) 'cursor-color))))
   
-;;(defun viper-set-face-pixmap (face pixmap)
-;;  "Set face pixmap on a monochrome display."
-;;  (if (and (viper-window-display-p) (not (viper-color-display-p)))
-;;      (condition-case nil
-;;	  (set-face-background-pixmap face pixmap)
-;;	(error
-;;	 (message "Pixmap not found for %S: %s" (face-name face) pixmap)
-;;	 (sit-for 1)))))
 
-  
 ;; OS/2
 (cond ((eq (viper-device-type) 'pm)
        (fset 'viper-color-defined-p
 	     (function (lambda (color) (assoc color pm-color-alist))))))
     
-;; needed to smooth out the difference between Emacs and XEmacs
-;;(defsubst viper-italicize-face (face)
-;;  (if viper-xemacs-p
-;;      (make-face-italic face)
-;;    (make-face-italic face nil 'noerror)))
-    
-;; test if display is color and the colors are defined
-;;(defsubst viper-can-use-colors (&rest colors)
-;;  (if (viper-color-display-p)
-;;      (not (memq nil (mapcar 'viper-color-defined-p colors)))
-;;    ))
 
 ;; cursor colors
 (defun viper-change-cursor-color (new-color)
@@ -620,13 +600,69 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
   (let ((buf (find-file-noselect (substitute-in-file-name custom-file))))
     (save-excursion
       (set-buffer buf)
-      (goto-char (point-min))
-      (if pattern (delete-matching-lines pattern))
-      (goto-char (point-max))
-      (if string (insert string))
-      (save-buffer))
+      (let (buffer-read-only)
+	(goto-char (point-min))
+	(if pattern (delete-matching-lines pattern))
+	(goto-char (point-max))
+	(if string (insert string))
+	(save-buffer)))
     (kill-buffer buf)
     ))
+
+
+;; define remote file test
+(or (fboundp 'viper-file-remote-p) ; user supplied his own function: use it
+    (defun viper-file-remote-p (file-name)
+      (car (cond ((featurep 'efs-auto) (efs-ftp-path file-name))
+		 ((fboundp 'file-remote-p) (file-remote-p file-name))
+		 (t (require 'ange-ftp)
+		    ;; Can happen only in Emacs, since XEmacs has file-remote-p
+		    (ange-ftp-ftp-name file-name))))))
+
+    
+
+;; This is a simple-minded check for whether a file is under version control.
+;; If file,v exists but file doesn't, this file is considered to be not checked
+;; in and not checked out for the purpose of patching (since patch won't be
+;; able to read such a file anyway).
+;; FILE is a string representing file name
+;;(defun viper-file-under-version-control (file)
+;;  (let* ((filedir (file-name-directory file))
+;;	 (file-nondir (file-name-nondirectory file))
+;;	 (trial (concat file-nondir ",v"))
+;;	 (full-trial (concat filedir trial))
+;;	 (full-rcs-trial (concat filedir "RCS/" trial)))
+;;    (and (stringp file)
+;;	 (file-exists-p file)
+;;	 (or
+;;	  (and
+;;	   (file-exists-p full-trial)
+;;	   ;; in FAT FS, `file,v' and `file' may turn out to be the same!
+;;	   ;; don't be fooled by this!
+;;	   (not (equal (file-attributes file)
+;;		       (file-attributes full-trial))))
+;;	  ;; check if a version is in RCS/ directory
+;;	  (file-exists-p full-rcs-trial)))
+;;       ))
+
+
+(defsubst viper-file-checked-in-p (file)
+  (and (vc-backend file)
+       (not (vc-locking-user file))))
+;; checkout if visited file is checked in
+(defun viper-maybe-checkout (buf)
+  (let ((file (expand-file-name (buffer-file-name buf)))
+	(checkout-function (key-binding "\C-x\C-q")))
+    (if (and (viper-file-checked-in-p file)
+	     (or (beep 1) t)
+	     (y-or-n-p
+	      (format
+	       "File %s is checked in. Check it out? "
+	       (viper-abbreviate-file-name file))))
+	(with-current-buffer buf
+	  (command-execute checkout-function)))))
+	 
+
     
 
 ;;; Overlays
@@ -737,7 +773,8 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 
 
 (defsubst viper-is-in-minibuffer ()
-  (string-match "\*Minibuf-" (buffer-name)))
+  (save-match-data
+    (string-match "\*Minibuf-" (buffer-name))))
   
 
 
@@ -814,50 +851,6 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
   (cond (viper-xemacs-p (events-to-keys events))
 	(t events)))
 		  
-	
-;; This is here because Emacs changed the way local hooks work.
-;;
-;;Add to the value of HOOK the function FUNCTION.
-;;FUNCTION is not added if already present.
-;;FUNCTION is added (if necessary) at the beginning of the hook list
-;;unless the optional argument APPEND is non-nil, in which case
-;;FUNCTION is added at the end.
-;;
-;;HOOK should be a symbol, and FUNCTION may be any valid function.  If
-;;HOOK is void, it is first set to nil.  If HOOK's value is a single
-;;function, it is changed to a list of functions."
-(defun viper-add-hook (hook function &optional append)
-  (if (not (boundp hook)) (set hook nil))
-  ;; If the hook value is a single function, turn it into a list.
-  (let ((old (symbol-value hook)))
-    (if (or (not (listp old)) (eq (car old) 'lambda))
-	(setq old (list old)))
-    (if (member function old)
-	nil
-      (set hook (if append
-		    (append old (list function)) ; don't nconc
-		  (cons function old))))))
-
-;; This is here because of Emacs's changes in the semantics of add/remove-hooks
-;; and due to the bugs they introduced.
-;;
-;; Remove from the value of HOOK the function FUNCTION.
-;; HOOK should be a symbol, and FUNCTION may be any valid function.  If
-;; FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
-;; list of hooks to run in HOOK, then nothing is done.  See `viper-add-hook'."
-(defun viper-remove-hook (hook function)
-  (if (or (not (boundp hook))		;unbound symbol, or
-	  (null (symbol-value hook))	;value is nil, or
-	  (null function))		;function is nil, then
-      nil				;Do nothing.
-    (let ((hook-value (symbol-value hook)))
-      (if (consp hook-value)
-	  ;; don't side-effect the list
-	  (setq hook-value (delete function (copy-sequence hook-value)))
-	(if (equal hook-value function)
-	    (setq hook-value nil)))
-      (set hook hook-value))))
-
     
 ;; it is suggested that an event must be copied before it is assigned to
 ;; last-command-event in XEmacs

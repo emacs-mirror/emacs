@@ -6,9 +6,9 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
-(defconst viper-version "3.004 (Polyglot) of November 11, 1997"
+(defconst viper-version "3.02 (Polyglot) of March 7, 1998"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -304,7 +304,8 @@
 (defvar mark-even-if-inactive)
 (defvar quail-mode)
 (defvar viper-expert-level)
-(defvar viper-expert-level)
+(defvar viper-mode-string)
+(defvar viper-major-mode-modifier-list)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -369,16 +370,122 @@ widget."
   :tag "Set Viper Mode on Loading"
   :group 'viper-misc)
 
-(defcustom viper-non-vi-major-modes
-  '(custom-mode dired-mode efs-mode internal-ange-ftp-mode tar-mode
-		mh-folder-mode gnus-group-mode gnus-summary-mode Info-mode
-		Buffer-menu-mode view-mode vm-mode vm-summary-mode)
-  "*A list of major modes that should never come up in Vi command mode.
-Viper automatically augments this list with some obvious modes, such as
-`dired-mode', `tar-mode', etc.  So, don't put a mode on this list, unless 
-it comes up in a wrong Viper state."
+(defcustom viper-vi-state-mode-list
+  '(fundamental-mode
+    makefile-mode
+    help-mode
+    
+    awk-mode
+    m4-mode
+    
+    html-mode html-helper-mode
+    emacs-lisp-mode lisp-mode lisp-interaction-mode
+				  
+    java-mode cc-mode c-mode c++-mode
+    fortran-mode f90-mode
+    basic-mode
+    bat-mode
+    asm-mode
+    prolog-mode
+
+    text-mode indented-text-mode
+    tex-mode latex-mode bibtex-mode
+				  
+    completion-list-mode
+    compilation-mode
+    
+    perl-mode
+    javascript-mode
+    tcl-mode
+    python-mode
+				  
+    sh-mode ksh-mode csh-mode
+				  
+    gnus-article-mode
+    mh-show-mode
+    )
+  "Major modes that require Vi command state."
   :type '(repeat symbol)
   :group 'viper-misc)
+
+(defcustom viper-emacs-state-mode-list
+  '(custom-mode
+
+    dired-mode
+    efs-mode
+    tar-mode
+
+    mh-folder-mode
+    gnus-group-mode
+    gnus-summary-mode
+    
+    Info-mode
+    Buffer-menu-mode
+    
+    view-mode
+    vm-mode
+    vm-summary-mode)
+  "*A list of major modes that should come up in Emacs state.
+Normally, Viper would bring buffers up in Emacs state, unless the corresponding
+major mode has been placed on `viper-vi-state-mode-list' or
+`viper-insert-state-mode-list'. So, don't place a new mode on this list, unless
+it is coming up in a wrong Viper state."
+  :type '(repeat symbol)
+  :group 'viper-misc)
+
+(defcustom viper-insert-state-mode-list
+  '(internal-ange-ftp-mode comint-mode shell-mode)
+  "*A list of major modes that should come up in Vi Insert state."
+  :type '(repeat symbol)
+  :group 'viper-misc)
+
+
+;; used to set viper-major-mode-modifier-list in defcustom
+(defun viper-apply-major-mode-modifiers (&optional symbol value)
+  (if symbol
+      (set symbol value))
+  (mapcar (function
+	   (lambda (triple)
+	     (viper-modify-major-mode
+	      (nth 0 triple) (nth 1 triple) (eval (nth 2 triple)))))
+	  viper-major-mode-modifier-list))
+
+(defcustom viper-major-mode-modifier-list
+  '((help-mode emacs-state viper-slash-and-colon-map)
+    (comint-mode insert-state viper-comint-mode-modifier-map)
+    (comint-mode vi-state viper-comint-mode-modifier-map)
+    (shell-mode insert-state viper-comint-mode-modifier-map)
+    (shell-mode vi-state viper-comint-mode-modifier-map)
+    (ange-ftp-shell-mode insert-state viper-comint-mode-modifier-map)
+    (ange-ftp-shell-mode vi-state viper-comint-mode-modifier-map)
+    (internal-ange-ftp-mode insert-state viper-comint-mode-modifier-map)
+    (internal-ange-ftp-mode vi-state viper-comint-mode-modifier-map)
+    (dired-mode emacs-state viper-dired-modifier-map)
+    (tar-mode emacs-state viper-slash-and-colon-map)
+    (mh-folder-mode emacs-state viper-slash-and-colon-map)
+    (gnus-group-mode emacs-state viper-slash-and-colon-map)
+    (gnus-summary-mode emacs-state viper-slash-and-colon-map)
+    (Info-mode emacs-state viper-slash-and-colon-map)
+    (Buffer-menu-mode emacs-state viper-slash-and-colon-map)
+    )
+  "List specifying how to modify the various major modes to enable some Viperisms.
+The list has the structure: ((mode viper-state keymap) (mode viper-state
+keymap) ...). If `mode' is on the list, the `kemap' will be made active (on the
+minor-mode-map-alist) in the specified viper state.
+If you change this list, have to restart emacs for the change to take effect.
+However, if you did the change through the customization widget, then emacs
+needs to be restarted only if you deleted a triple mode-state-keymap from the
+list. No need to restart emacs in case of insertion or modification of an
+existing triple."
+  :type '(repeat
+	  (list symbol
+		(choice (const emacs-state)
+			(const vi-state)
+			(const insert-state))
+		symbol))
+  :set 'viper-apply-major-mode-modifiers
+  :group 'viper-misc)
+
 
 
 
@@ -472,7 +579,8 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 		    ))
 	      (viper-set-expert-level 'dont-change-unless)))
 
-	(or (memq major-mode viper-non-vi-major-modes) ; don't switch to Vi
+	(or (memq major-mode viper-emacs-state-mode-list) ; don't switch to Vi
+	    (memq major-mode viper-insert-state-mode-list) ; don't switch
 	    (viper-change-state-to-vi)))))
    
 
@@ -517,8 +625,6 @@ remains buffer-local."
 
   ;; restore non-viper vars
   (setq-default
-   default-major-mode
-   (viper-standard-value 'default-major-mode viper-saved-non-viper-variables) 
    next-line-add-newlines
    (viper-standard-value 
     'next-line-add-newlines viper-saved-non-viper-variables) 
@@ -614,6 +720,7 @@ remains buffer-local."
   (mapatoms 'viper-remove-hooks)
   (remove-hook 'comint-mode-hook 'viper-comint-mode-hook)
   (remove-hook 'minibuffer-setup-hook 'viper-minibuffer-setup-sentinel)
+  (remove-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
 
   ;; unbind Viper mouse bindings
   (viper-unbind-mouse-search-key)
@@ -626,94 +733,65 @@ remains buffer-local."
   ) ; end viper-go-away
 
 
+;; list of buffers that just changed their major mode
+;; used in a hack that triggers vi command mode whenever needed
+(defvar viper-new-major-mode-buffer-list nil)
+
+;; set appropriate Viper state in buffers that changed major mode
+(defun set-viper-state-in-major-mode ()
+  (mapcar
+   (function
+    (lambda (buf)
+      (if (viper-buffer-live-p buf)
+	  (with-current-buffer buf
+	    (cond ((and (memq major-mode viper-vi-state-mode-list)
+			(eq viper-current-state 'emacs-state))
+		   (viper-mode))
+		  ((memq major-mode viper-emacs-state-mode-list)
+		   ;; not checking (eq viper-current-state 'emacs-state)
+		   ;; because viper-current-state could have gotten it by
+		   ;; default. we need viper-change-state-to-emacs here to have
+		   ;; the keymaps take effect.
+		   (viper-change-state-to-emacs))
+		  ((and (memq major-mode viper-insert-state-mode-list)
+			(not (eq viper-current-state 'insert-state)))
+		   (viper-change-state-to-insert))
+		  )) ; with-current-buffer
+	))) ; function
+   viper-new-major-mode-buffer-list)
+  ;; clear the list of bufs that changed major mode
+  (setq viper-new-major-mode-buffer-list nil)
+  ;; change the global value of hook
+  (remove-hook 'viper-post-command-hooks 'set-viper-state-in-major-mode))
+
+;; sets up post-command-hook to turn viper-mode, if the current mode is
+;; fundamental
+(defun viper-major-mode-change-sentinel ()
+  (save-match-data
+    (or (string-match "\*Minibuf-" (buffer-name))
+	(setq viper-new-major-mode-buffer-list 
+	      (cons (current-buffer) viper-new-major-mode-buffer-list))))
+  ;; change the global value of hook
+  (add-hook 'viper-post-command-hooks 'set-viper-state-in-major-mode t))
+
 
 
 ;; This sets major mode hooks to make them come up in vi-state.
 (defun viper-set-hooks ()
-  
   ;; It is of course a misnomer to call viper-mode a `major mode'.
   ;; However, this has the effect that if the user didn't specify the
   ;; default mode, new buffers that fall back on the default will come up
   ;; in Fundamental Mode and Vi state.
-  (setq default-major-mode 'viper-mode)
+  (if (eq default-major-mode 'fundamental-mode)
+      (setq default-major-mode 'viper-mode))
   
-  ;; The following major modes should come up in vi-state
-  (defadvice fundamental-mode (after viper-fundamental-mode-ad activate)
-    "Run `viper-change-state-to-vi' on entry."
-    (viper-change-state-to-vi))
+  (add-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
+  (add-hook 'find-file-hooks 'set-viper-state-in-major-mode)
 
-  (defvar makefile-mode-hook)
-  (add-hook 'makefile-mode-hook 'viper-mode)
-
-  ;; Help mode is now for viewing only
-  (defvar help-mode-hook)
-  (add-hook 'help-mode-hook 'viper-change-state-to-emacs)
-  (viper-modify-major-mode 'help-mode 'emacs-state viper-slash-and-colon-map)
-
-  (defvar awk-mode-hook)
-  (add-hook 'awk-mode-hook 'viper-mode)
-  
-  (defvar html-mode-hook)
-  (add-hook 'html-mode-hook 'viper-mode)
-  (defvar html-helper-mode-hook)
-  (add-hook 'html-helper-mode-hook 'viper-mode)
-
-  (defvar java-mode-hook)
-  (add-hook 'java-mode-hook 'viper-mode)
-  
-  (defvar javascript-mode-hook)
-  (add-hook 'javascript-mode-hook 'viper-mode)
-  
-  (defvar emacs-lisp-mode-hook)
-  (add-hook 'emacs-lisp-mode-hook 'viper-mode)
-  (defvar lisp-mode-hook)
-  (add-hook 'lisp-mode-hook 'viper-mode)
-  (defvar lisp-interaction-mode-hook)
-  (add-hook 'lisp-interaction-mode-hook 'viper-mode)
-  
-  (defvar bibtex-mode-hook)
-  (add-hook 'bibtex-mode-hook 'viper-mode) 	  
-      
-  (defvar cc-mode-hook)
-  (add-hook 'cc-mode-hook 'viper-mode)
-      
-  (defvar c-mode-hook)
-  (add-hook 'c-mode-hook 'viper-mode)
-      
-  (defvar c++-mode-hook)
-  (add-hook 'c++-mode-hook 'viper-mode)
-
-  (defvar fortran-mode-hook)
-  (add-hook 'fortran-mode-hook 'viper-mode)
-  (defvar f90-mode-hook)
-  (add-hook 'f90-mode-hook 'viper-mode)
-
-  (defvar basic-mode-hook)
-  (add-hook 'basic-mode-hook 'viper-mode)
-  (defvar bat-mode-hook)
-  (add-hook 'bat-mode-hook 'viper-mode)
-  
-  (defvar asm-mode-hook)
-  (add-hook 'asm-mode-hook 'viper-mode)
-
-  (defvar prolog-mode-hook)
-  (add-hook 'prolog-mode-hook 'viper-mode)
-      
+  ;; keep this because many modes we don't know about use this hook
   (defvar text-mode-hook)
   (add-hook 'text-mode-hook 'viper-mode)
       
-  (add-hook 'completion-list-mode-hook 'viper-mode)  
-  (add-hook 'compilation-mode-hook     'viper-mode)  
-
-  (defvar perl-mode-hook)
-  (add-hook 'perl-mode-hook 'viper-mode)  
-
-  (defvar tcl-mode-hook)
-  (add-hook 'tcl-mode-hook 'viper-mode)  
-  
-  (defvar python-mode-hook)
-  (add-hook 'python-mode-hook 'viper-mode)  
-  
   (defvar emerge-startup-hook)
   (add-hook 'emerge-startup-hook 'viper-change-state-to-emacs)
 
@@ -747,92 +825,18 @@ remains buffer-local."
       (viper-change-state-to-emacs)))
   
   ;; Emacs shell, ange-ftp, and comint-based modes
-  (defvar comint-mode-hook)
-  (viper-modify-major-mode 
-   'comint-mode 'insert-state viper-comint-mode-modifier-map)
-  (viper-modify-major-mode 
-   'comint-mode 'vi-state viper-comint-mode-modifier-map)
-  (viper-modify-major-mode 
-   'shell-mode 'insert-state viper-comint-mode-modifier-map)
-  (viper-modify-major-mode 
-   'shell-mode 'vi-state viper-comint-mode-modifier-map)
-  ;; ange-ftp in XEmacs
-  (viper-modify-major-mode 
-   'ange-ftp-shell-mode 'insert-state viper-comint-mode-modifier-map)
-  (viper-modify-major-mode 
-   'ange-ftp-shell-mode 'vi-state viper-comint-mode-modifier-map)
-  ;; ange-ftp in Emacs
-  (viper-modify-major-mode 
-   'internal-ange-ftp-mode 'insert-state viper-comint-mode-modifier-map)
-  (viper-modify-major-mode 
-   'internal-ange-ftp-mode 'vi-state viper-comint-mode-modifier-map)
-  ;; set hook
-  (add-hook 'comint-mode-hook 'viper-comint-mode-hook)
-  
-  ;; Shell scripts
-  (defvar sh-mode-hook)
-  (add-hook 'sh-mode-hook 'viper-mode)
-  (defvar ksh-mode-hook)
-  (add-hook 'ksh-mode-hook 'viper-mode)
-  
-  ;; Dired
-  (viper-modify-major-mode 'dired-mode 'emacs-state viper-dired-modifier-map)
-  (viper-set-emacs-state-searchstyle-macros nil 'dired-mode)
-  (add-hook 'dired-mode-hook 'viper-change-state-to-emacs)
+  (add-hook 'comint-mode-hook 'viper-comint-mode-hook) ; comint
 
-  ;; Tar
-  (viper-modify-major-mode 'tar-mode 'emacs-state viper-slash-and-colon-map)
-  (viper-set-emacs-state-searchstyle-macros nil 'tar-mode)
-
-  ;; MH-E
-  (viper-modify-major-mode 
-   'mh-folder-mode 'emacs-state viper-slash-and-colon-map)
-  (viper-set-emacs-state-searchstyle-macros nil 'mh-folder-mode)
-  ;; changing state to emacs is needed so the preceding will take hold
-  (add-hook 'mh-folder-mode-hook 'viper-change-state-to-emacs)
-  (add-hook 'mh-show-mode-hook 'viper-mode)
-
-  ;; Gnus
-  (viper-modify-major-mode
-   'gnus-group-mode 'emacs-state viper-slash-and-colon-map)
-  (viper-set-emacs-state-searchstyle-macros nil 'gnus-group-mode)
-  (viper-modify-major-mode 
-   'gnus-summary-mode 'emacs-state viper-slash-and-colon-map)
+  (viper-set-emacs-state-searchstyle-macros nil 'dired-mode) ; dired
+  (viper-set-emacs-state-searchstyle-macros nil 'tar-mode) ; tar
+  (viper-set-emacs-state-searchstyle-macros nil 'mh-folder-mode) ; mhe
+  (viper-set-emacs-state-searchstyle-macros nil 'gnus-group-mode) ; gnus
   (viper-set-emacs-state-searchstyle-macros nil 'gnus-summary-mode)
-  ;; changing state to emacs is needed so the preceding will take hold
-  (add-hook 'gnus-group-mode-hook 'viper-change-state-to-emacs)
-  (add-hook 'gnus-summary-mode-hook 'viper-change-state-to-emacs)
-  (add-hook 'gnus-article-mode-hook 'viper-mode)
+  (viper-set-emacs-state-searchstyle-macros nil 'Info-mode) ; info
+  (viper-set-emacs-state-searchstyle-macros nil 'Buffer-menu-mode) ;buffer-menu
 
-  ;; Info
-  (viper-modify-major-mode 'Info-mode 'emacs-state viper-slash-and-colon-map)
-  (viper-set-emacs-state-searchstyle-macros nil 'Info-mode)
-  ;; Switching to emacs is needed  so the above will take hold
-  (defadvice Info-mode (after viper-Info-ad activate)
-    "Switch to emacs mode."
-    (viper-change-state-to-emacs))
-
-  ;; Buffer menu
-  (viper-modify-major-mode 
-   'Buffer-menu-mode 'emacs-state viper-slash-and-colon-map)
-  (viper-set-emacs-state-searchstyle-macros nil 'Buffer-menu-mode)
-  ;; Switching to emacs is needed  so the above will take hold
-  (defadvice Buffer-menu-mode (after viper-Buffer-menu-ad activate)
-    "Switch to emacs mode."
-    (viper-change-state-to-emacs))
-
-  ;; View mode
-  (defvar view-mode-hook)
-  (defvar view-hook)
-  (add-hook 'view-hook 'viper-change-state-to-emacs)
-  (add-hook 'view-mode-hook 'viper-change-state-to-emacs)
-  
-  ;; For VM users.
-  ;; Put summary and other VM buffers in Emacs state.
-  (defvar vm-mode-hooks)
-  (defvar vm-summary-mode-hooks)
-  (add-hook 'vm-mode-hooks   'viper-change-state-to-emacs)
-  (add-hook 'vm-summary-mode-hooks   'viper-change-state-to-emacs)
+  ;; Modify major modes according to viper-major-mode-modifier-list
+  (viper-apply-major-mode-modifiers)
   
   ;; For RMAIL users.
   ;; Put buf in Emacs state after edit.
@@ -968,12 +972,6 @@ remains buffer-local."
 			(read-key-sequence "Describe key briefly: ")))))
   
   
-  ;; This is now done in viper-minibuffer-exit-hook
-  ;;;; Advice for use in find-file and read-file-name commands.
-  ;;(defadvice exit-minibuffer (before viper-exit-minibuffer-advice activate)
-  ;;  "Run `viper-minibuffer-exit-hook' just before exiting the minibuffer."
-  ;;  (run-hooks 'viper-minibuffer-exit-hook))
-  
   (defadvice find-file (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
     (interactive (cons (read-file-name "Find file: " nil default-directory)
@@ -1029,7 +1027,8 @@ remains buffer-local."
   (defadvice read-file-name (around viper-suffix-advice activate)
     "Tell `exit-minibuffer' to run `viper-file-add-suffix' as a hook."
     (let ((viper-minibuffer-exit-hook
-	   (append viper-minibuffer-exit-hook '(viper-file-add-suffix))))
+	   (append viper-minibuffer-exit-hook
+		   '(viper-minibuffer-trim-tail viper-file-add-suffix))))
       ad-do-it))
   
   (defadvice start-kbd-macro (after viper-kbd-advice activate)
@@ -1081,7 +1080,7 @@ These two lines must come in the order given.
 
       ;; If viper-mode is t, then just continue. Viper will kick in.
       ((eq viper-mode t))
-      ;; Otherwise, it was asking mode and Viper was not loaded through .emacs
+      ;; Otherwise, it was asking Viper was not loaded through .emacs
       ;; In this case, it was either through M-x viper-mode or via something
       ;; else, like the custom widget. If Viper was loaded through 
       ;; M-x viper-mode, then viper will kick in anyway.
@@ -1109,7 +1108,6 @@ These two lines must come in the order given.
 (if (null viper-saved-non-viper-variables)
     (setq viper-saved-non-viper-variables
 	  (list
-	   (cons 'default-major-mode (list default-major-mode))
 	   (cons 'next-line-add-newlines (list next-line-add-newlines))
 	   (cons 'require-final-newline (list require-final-newline))
 	   (cons 'scroll-step (list scroll-step))
@@ -1198,6 +1196,7 @@ These two lines must come in the order given.
       (viper-harness-minor-mode "russian")
       (viper-harness-minor-mode "view-less")
       (viper-harness-minor-mode "view")
+      (viper-harness-minor-mode "reftex")
       ))
 
 
@@ -1251,7 +1250,9 @@ These two lines must come in the order given.
       (viper-change-state-to-emacs)
       (setq-default minor-mode-map-alist minor-mode-map-alist)
       ))
-    
+
+(if (and viper-mode (memq major-mode viper-vi-state-mode-list))
+    (viper-mode))
 
 
 (run-hooks 'viper-load-hook) ; the last chance to change something

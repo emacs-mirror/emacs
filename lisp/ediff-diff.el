@@ -1110,7 +1110,7 @@ one optional arguments, diff-number to refine.")
 	      (set-process-sentinel proc 'ediff-process-sentinel)
 	      (set-process-filter proc 'ediff-process-filter)
 	      )))
-      (set-match-data data))))
+      (store-match-data data))))
       
 ;; This is shell-command-filter from simple.el in FSF Emacs.
 ;; Copied here because XEmacs doesn't have it.

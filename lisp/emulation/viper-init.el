@@ -30,6 +30,9 @@
 (defvar viper-current-state)
 (defvar viper-version)
 (defvar viper-expert-level)
+(defvar current-input-method)
+(defvar default-input-method)
+(defvar describe-current-input-method-function)
 ;; end pacifier
 
 
@@ -302,6 +305,7 @@ Use `M-x viper-set-expert-level' to change this.")
 			     (or current-input-method default-input-method))
 		   "")))
     ))
+
 ;; viper hook to run on input-method deactivation
 (defun viper-inactivate-input-method-action ()
   (if (null viper-mule-hook-flag)
@@ -367,14 +371,7 @@ it better fits your working style."
 
 ;; Replace mode and changing text
 
-;; Viper's own after/before change functions, which get viper-add-hook'ed to
-;; Emacs's
-(viper-deflocalvar viper-after-change-functions nil "")
-(viper-deflocalvar viper-before-change-functions nil "")
-(viper-deflocalvar viper-post-command-hooks nil "")
-(viper-deflocalvar viper-pre-command-hooks nil "")
-
-;; Can be used to pass global states around for short period of time
+;; Hack used to pass global states around for short period of time
 (viper-deflocalvar viper-intermediate-command nil "")
 
 ;; This is used to pass the right Vi command key sequence to
@@ -542,7 +539,9 @@ programs and LaTeX documents."
   :group 'viper)
 
 (defcustom viper-shift-width 8
-  "*The shiftwidth variable."
+  "*The value of the shiftwidth.
+This determines the number of columns by which the Ctl-t moves the cursor in
+the Insert state."
   :type 'integer
   :group 'viper)
 
@@ -791,15 +790,6 @@ Related buffers can be cycled through via :R and :P commands."
 
 ;;; Face-saving tricks
 
-;;(defcustom viper-replace-overlay-pixmap "gray3"
-;;  "Pixmap to use for search face on non-color displays."
-;;  :type 'string
-;;  :group 'viper)
-;;(defcustom viper-search-face-pixmap "gray3"
-;;  "Pixmap to use for search face on non-color displays."
-;;  :type 'string
-;;  :group 'viper)
-
 (defun viper-hide-face (face)
   (if (and (viper-has-face-support-p) viper-emacs-p)
       (add-to-list 'facemenu-unlisted-faces face)))
@@ -810,21 +800,6 @@ Related buffers can be cycled through via :R and :P commands."
   :prefix "viper-"
   :group 'viper)
 
-;;(defvar viper-search-face
-;;  (if (viper-has-face-support-p)
-;;      (progn
-;;	(make-face 'viper-search-face)
-;;	(or (face-differs-from-default-p 'viper-search-face)
-;;	    ;; face wasn't set in .viper or .Xdefaults
-;;	    (if (viper-can-use-colors "Black" "khaki")
-;;		(progn
-;;		  (set-face-background 'viper-search-face "khaki")
-;;		  (set-face-foreground 'viper-search-face "Black"))
-;;	      (set-face-underline-p 'viper-search-face t)
-;;	      (viper-set-face-pixmap 'viper-search-face
-;;				     viper-search-face-pixmap))) 
-;;	'viper-search-face))
-;;  "*Face used to flash out the search pattern.")
 
 (defface viper-search-face
   '((((class color)) (:foreground "Black" :background "khaki"))
@@ -839,22 +814,6 @@ to customize the actual face object `viper-search-face'
 this variable represents.")
 (viper-hide-face 'viper-search-face)
   
-;;(defvar viper-replace-overlay-face
-;;  (if (viper-has-face-support-p)
-;;      (progn
-;;	(make-face 'viper-replace-overlay-face)
-;;	(or (face-differs-from-default-p 'viper-replace-overlay-face)
-;;	    (progn
-;;	      (if (viper-can-use-colors "darkseagreen2" "Black")
-;;		  (progn
-;;		    (set-face-background
-;;		     'viper-replace-overlay-face "darkseagreen2")
-;;		    (set-face-foreground 'viper-replace-overlay-face "Black")))
-;;	      (set-face-underline-p 'viper-replace-overlay-face t)
-;;	      (viper-set-face-pixmap
-;;	       'viper-replace-overlay-face viper-replace-overlay-pixmap)))
-;;	'viper-replace-overlay-face))
-;;  "*Face for highlighting replace regions on a window display.")
 
 (defface viper-replace-overlay-face
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
@@ -869,31 +828,6 @@ to customize the actual face object `viper-replace-overlay-face'
 this variable represents.")
 (viper-hide-face 'viper-replace-overlay-face)
 
-;;(defvar viper-minibuffer-emacs-face
-;;  (if (viper-has-face-support-p)
-;;      (progn
-;;	(make-face 'viper-minibuffer-emacs-face)
-;;	(or (face-differs-from-default-p 'viper-minibuffer-emacs-face)
-;;	    ;; face wasn't set in .viper or .Xdefaults
-;;	    (if viper-vi-style-in-minibuffer
-;;		;; emacs state is an exception in the minibuffer
-;;		(if (viper-can-use-colors "darkseagreen2" "Black")
-;;		    (progn
-;;		      (set-face-background
-;;		       'viper-minibuffer-emacs-face "darkseagreen2")
-;;		      (set-face-foreground
-;;		       'viper-minibuffer-emacs-face "Black"))
-;;		  (copy-face 'modeline 'viper-minibuffer-emacs-face))
-;;	      ;; emacs state is the main state in the minibuffer
-;;	      (if (viper-can-use-colors "Black" "pink")
-;;		  (progn
-;;		    (set-face-background 'viper-minibuffer-emacs-face "pink") 
-;;		    (set-face-foreground
-;;		     'viper-minibuffer-emacs-face "Black"))
-;;		(copy-face 'italic 'viper-minibuffer-emacs-face))
-;;	      ))
-;;	'viper-minibuffer-emacs-face))
-;;  "Face used in the Minibuffer when it is in Emacs state.")
 
 (defface viper-minibuffer-emacs-face
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
@@ -908,29 +842,6 @@ to customize the actual face object `viper-minibuffer-emacs-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-emacs-face)
     
-;;(defvar viper-minibuffer-insert-face
-;;  (if (viper-has-face-support-p)
-;;      (progn
-;;	(make-face 'viper-minibuffer-insert-face)
-;;	(or (face-differs-from-default-p 'viper-minibuffer-insert-face)
-;;	    (if viper-vi-style-in-minibuffer
-;;		(if (viper-can-use-colors "Black" "pink")
-;;		    (progn
-;;		      (set-face-background 'viper-minibuffer-insert-face "pink") 
-;;		      (set-face-foreground
-;;		       'viper-minibuffer-insert-face "Black"))
-;;		  (copy-face 'italic 'viper-minibuffer-insert-face))
-;;	      ;; If Insert state is an exception
-;;	      (if (viper-can-use-colors "darkseagreen2" "Black")
-;;		  (progn
-;;		    (set-face-background
-;;		     'viper-minibuffer-insert-face "darkseagreen2")
-;;		    (set-face-foreground
-;;		     'viper-minibuffer-insert-face "Black"))
-;;		(copy-face 'modeline 'viper-minibuffer-insert-face))
-;;	      (viper-italicize-face 'viper-minibuffer-insert-face)))
-;;	'viper-minibuffer-insert-face))
-;;  "Face used in the Minibuffer when it is in Insert state.")
 
 (defface viper-minibuffer-insert-face
   '((((class color)) (:foreground "Black" :background "pink"))
@@ -945,21 +856,6 @@ to customize the actual face object `viper-minibuffer-insert-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-insert-face)
     
-;;(defvar viper-minibuffer-vi-face
-;;  (if (viper-has-face-support-p)
-;;      (progn
-;;	(make-face 'viper-minibuffer-vi-face)
-;;	(or (face-differs-from-default-p 'viper-minibuffer-vi-face)
-;;	    (if viper-vi-style-in-minibuffer
-;;		(if (viper-can-use-colors "Black" "grey")
-;;		    (progn
-;;		      (set-face-background 'viper-minibuffer-vi-face "grey")
-;;		      (set-face-foreground 'viper-minibuffer-vi-face "Black"))
-;;		  (copy-face 'bold 'viper-minibuffer-vi-face))
-;;	      (copy-face 'bold 'viper-minibuffer-vi-face)
-;;	      (invert-face 'viper-minibuffer-vi-face)))
-;;	'viper-minibuffer-vi-face))
-;;  "Face used in the Minibuffer when it is in Vi state.")
 
 (defface viper-minibuffer-vi-face
   '((((class color)) (:foreground "DarkGreen" :background "grey"))
@@ -1006,9 +902,9 @@ Should be set in `~/.viper' file."
 (viper-deflocalvar viper-minibuffer-overlay nil)
 
 ;; Hook, specific to Viper, which is run just *before* exiting the minibuffer.
-;; Beginning with Emacs 19.26, the standard `minibuffer-exit-hook' is run
-;; *after* exiting the minibuffer
-(defvar viper-minibuffer-exit-hook '(viper-minibuffer-trim-tail))
+;; This is needed because beginning with Emacs 19.26, the standard
+;; `minibuffer-exit-hook' is run *after* exiting the minibuffer
+(defvar viper-minibuffer-exit-hook nil)
        
 
 ;; Mode line

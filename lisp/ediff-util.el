@@ -52,9 +52,11 @@
     (or (featurep 'ediff)
 	(load "ediff.el" nil nil 'nosuffix))
     (or (featurep 'ediff-tbar)
+	ediff-emacs-p
 	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
     ))
 ;; end pacifier
+
 
 (require 'ediff-init)
 (require 'ediff-help)
@@ -63,14 +65,8 @@
 (require 'ediff-diff)
 (require 'ediff-merg)
 
-
-;; be careful with ediff-tbar
 (if ediff-xemacs-p
-    (condition-case nil
-	(require 'ediff-tbar)
-      (error
-       (defun ediff-use-toolbar-p () nil)))
-  (defun ediff-use-toolbar-p () nil))
+    (require 'ediff-tbar))
 
 
 ;;; Functions
@@ -1053,7 +1049,7 @@ of the current buffer."
 
 ;; checkout if visited file is checked in
 (defun ediff-maybe-checkout (buf)
-  (let ((file (buffer-file-name buf))
+  (let ((file (expand-file-name (buffer-file-name buf)))
 	(checkout-function (key-binding "\C-x\C-q")))
     (if (and (ediff-file-checked-in-p file)
 	     (or (beep 1) t)
@@ -1070,31 +1066,42 @@ of the current buffer."
 ;; in and not checked out for the purpose of patching (since patch won't be
 ;; able to read such a file anyway).
 ;; FILE is a string representing file name
-(defun ediff-file-under-version-control (file)
-  (let* ((filedir (file-name-directory file))
-	 (file-nondir (file-name-nondirectory file))
-	 (trial (concat file-nondir ",v"))
-	 (full-trial (concat filedir trial))
-	 (full-rcs-trial (concat filedir "RCS/" trial)))
-    (and (stringp file)
-	 (file-exists-p file)
-	 (or
-	  (and
-	   (file-exists-p full-trial)
-	   ;; in FAT FS, `file,v' and `file' may turn out to be the same!
-	   ;; don't be fooled by this!
-	   (not (equal (file-attributes file)
-		       (file-attributes full-trial))))
-	  ;; check if a version is in RCS/ directory
-	  (file-exists-p full-rcs-trial)))
-       ))
+;;(defun ediff-file-under-version-control (file)
+;;  (let* ((filedir (file-name-directory file))
+;;	 (file-nondir (file-name-nondirectory file))
+;;	 (trial (concat file-nondir ",v"))
+;;	 (full-trial (concat filedir trial))
+;;	 (full-rcs-trial (concat filedir "RCS/" trial)))
+;;    (and (stringp file)
+;;	 (file-exists-p file)
+;;	 (or
+;;	  (and
+;;	   (file-exists-p full-trial)
+;;	   ;; in FAT FS, `file,v' and `file' may turn out to be the same!
+;;	   ;; don't be fooled by this!
+;;	   (not (equal (file-attributes file)
+;;		       (file-attributes full-trial))))
+;;	  ;; check if a version is in RCS/ directory
+;;	  (file-exists-p full-rcs-trial)))
+;;       ))
 
-(defun ediff-file-checked-out-p (file)
-  (and (ediff-file-under-version-control file)
-       (file-writable-p file)))
-(defun ediff-file-checked-in-p (file)
-  (and (ediff-file-under-version-control file)
-       (not (file-writable-p file))))
+
+(defsubst ediff-file-checked-out-p (file)
+  (or (not (featurep 'vc-hooks))
+      (and (vc-backend file)
+	   (vc-locking-user file))))
+(defsubst ediff-file-checked-in-p (file)
+  (and (featurep 'vc-hooks)
+       (vc-backend file)
+       (not (vc-locking-user file))))
+
+(defun ediff-file-compressed-p (file)
+  (condition-case nil
+      (require 'jka-compr)
+    (error))
+  (if (featurep 'jka-compr)
+      (string-match (jka-compr-build-file-regexp) file)))
+
       
 (defun ediff-swap-buffers ()
   "Rotate the display of buffers A, B, and C."
@@ -1312,7 +1319,7 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
 	       (set-specifier bottom-toolbar-visible-p (list frame t)) 
 	       (set-specifier bottom-toolbar-height
 			      (list frame ediff-toolbar-height)))
-	      (ediff-xemacs-p
+	      ((ediff-has-toolbar-support-p)
 	       (set-specifier bottom-toolbar-height (list frame 0)))
 	      ))
     ))
@@ -1572,18 +1579,19 @@ the width of the A/B/C windows."
 	lines
 	))))
 
-;; get number of lines from window end to region start
-(defun ediff-get-lines-to-region-start (buf-type &optional n ctl-buf)
-  (or n (setq n ediff-current-difference))
+;; Calculate the number of lines from window end to the start of diff region
+(defun ediff-get-lines-to-region-start (buf-type &optional diff-num ctl-buf)
+  (or diff-num (setq diff-num ediff-current-difference))
   (or ctl-buf (setq ctl-buf ediff-control-buffer))
   (ediff-with-current-buffer ctl-buf
     (let* ((buf (ediff-get-buffer buf-type))
 	   (wind (eval (ediff-get-symbol-from-alist
 			buf-type ediff-window-alist)))
-	   (end (window-end wind))
-	   (beg (ediff-get-diff-posn buf-type 'beg)))
+	   (end (or (window-end wind) (window-end wind t)))
+	   (beg (ediff-get-diff-posn buf-type 'beg diff-num)))
       (ediff-with-current-buffer buf
-	(if (< beg end) (count-lines beg end) 0))
+	(if (< beg end)
+	    (count-lines (max beg (point-min)) (min end (point-max))) 0))
       )))
 
 
@@ -2973,10 +2981,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	  (revert-buffer t t))
       (error "Buffer out of sync for file %s" buffer-file-name))))
 
-
-(defun ediff-file-compressed-p (file)
-  (require 'jka-compr)
-  (string-match (jka-compr-build-file-regexp) file))
 
 (defun ediff-filename-magic-p (file)
   (or (ediff-file-compressed-p file)
