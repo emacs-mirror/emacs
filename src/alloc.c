@@ -644,16 +644,22 @@ lisp_free (block)
 
 /* BLOCK_ALIGN has to be a power of 2.  */
 #define BLOCK_ALIGN (1 << 10)
-#define BLOCK_BYTES \
-  (BLOCK_ALIGN - sizeof (struct alinged_block *) - ABLOCKS_PADDING)
-
-/* Internal data structures and constants.  */
 
 /* Padding to leave at the end of a malloc'd block.  This is to give
    malloc a chance to minimize the amount of memory wasted to alignment.
    It should be tuned to the particular malloc library used.
-   The current setting is based on glibc-2.3.2.  */
-#define ABLOCKS_PADDING 0
+   On glibc-2.3.2, malloc never tries to align, so a padding of 0 is best.
+   posix_memalign on the other hand would ideally prefer a value of 4
+   because otherwise, there's 1020 bytes wasted between each ablocks.
+   But testing shows that those 1020 will most of the time be efficiently
+   used by malloc to place other objects, so a value of 0 is still preferable
+   unless you have a lot of cons&floats and virtually nothing else.  */
+#define BLOCK_PADDING 0
+#define BLOCK_BYTES \
+  (BLOCK_ALIGN - sizeof (struct aligned_block *) - BLOCK_PADDING)
+
+/* Internal data structures and constants.  */
+
 #define ABLOCKS_SIZE 16
 
 /* An aligned block of memory.  */
@@ -676,8 +682,8 @@ struct ablock
   struct ablocks *abase;
   /* The padding of all but the last ablock is unused.  The padding of
      the last ablock in an ablocks is not allocated.  */
-#if ABLOCKS_PADDING
-  char padding[ABLOCKS_PADDING];
+#if BLOCK_PADDING
+  char padding[BLOCK_PADDING];
 #endif
 };
 
@@ -688,7 +694,7 @@ struct ablocks
 };
 
 /* Size of the block requested from malloc or memalign.  */
-#define ABLOCKS_BYTES (sizeof (struct ablocks) - ABLOCKS_PADDING)
+#define ABLOCKS_BYTES (sizeof (struct ablocks) - BLOCK_PADDING)
 
 #define ABLOCK_ABASE(block) \
   (((unsigned long) (block)->abase) <= (1 + 2 * ABLOCKS_SIZE)   \
@@ -699,8 +705,12 @@ struct ablocks
 #define ABLOCKS_BUSY(abase) ((abase)->blocks[0].abase)
 
 /* Pointer to the (not necessarily aligned) malloc block.  */
+#ifdef HAVE_POSIX_MEMALIGN
+#define ABLOCKS_BASE(abase) (abase)
+#else
 #define ABLOCKS_BASE(abase) \
   (1 & (int) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
+#endif
 
 /* The list of free ablock.   */
 static struct ablock *free_ablock;
@@ -735,8 +745,15 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, 0);
 #endif
 
+#ifdef HAVE_POSIX_MEMALIGN
+      {
+	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
+	abase = err ? (base = NULL) : base;
+      }
+#else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+#endif
 
       aligned = (base == abase);
       if (!aligned)
@@ -757,6 +774,7 @@ lisp_align_malloc (nbytes, type)
 	}
       ABLOCKS_BUSY (abase) = (struct ablocks *) aligned;
 
+      eassert (0 == ((EMACS_UINT)abase) % BLOCK_ALIGN);
       eassert (ABLOCK_ABASE (&abase->blocks[3]) == abase); /* 3 is arbitrary */
       eassert (ABLOCK_ABASE (&abase->blocks[0]) == abase);
       eassert (ABLOCKS_BASE (abase) == base);
@@ -1311,7 +1329,7 @@ struct sblock
 /* Number of Lisp strings in a string_block structure.  The 1020 is
    1024 minus malloc overhead.  */
 
-#define STRINGS_IN_STRING_BLOCK \
+#define STRING_BLOCK_SIZE \
   ((1020 - sizeof (struct string_block *)) / sizeof (struct Lisp_String))
 
 /* Structure describing a block from which Lisp_String structures
@@ -1320,7 +1338,7 @@ struct sblock
 struct string_block
 {
   struct string_block *next;
-  struct Lisp_String strings[STRINGS_IN_STRING_BLOCK];
+  struct Lisp_String strings[STRING_BLOCK_SIZE];
 };
 
 /* Head and tail of the list of sblock structures holding Lisp string
@@ -1515,14 +1533,14 @@ allocate_string ()
       string_blocks = b;
       ++n_string_blocks;
 
-      for (i = STRINGS_IN_STRING_BLOCK - 1; i >= 0; --i)
+      for (i = STRING_BLOCK_SIZE - 1; i >= 0; --i)
 	{
 	  s = b->strings + i;
 	  NEXT_FREE_LISP_STRING (s) = string_free_list;
 	  string_free_list = s;
 	}
 
-      total_free_strings += STRINGS_IN_STRING_BLOCK;
+      total_free_strings += STRING_BLOCK_SIZE;
     }
 
   /* Pop a Lisp_String off the free-list.  */
@@ -1673,7 +1691,7 @@ sweep_strings ()
 
       next = b->next;
 
-      for (i = 0; i < STRINGS_IN_STRING_BLOCK; ++i)
+      for (i = 0; i < STRING_BLOCK_SIZE; ++i)
 	{
 	  struct Lisp_String *s = b->strings + i;
 
@@ -1728,8 +1746,8 @@ sweep_strings ()
 
       /* Free blocks that contain free Lisp_Strings only, except
 	 the first two of them.  */
-      if (nfree == STRINGS_IN_STRING_BLOCK
-	  && total_free_strings > STRINGS_IN_STRING_BLOCK)
+      if (nfree == STRING_BLOCK_SIZE
+	  && total_free_strings > STRING_BLOCK_SIZE)
 	{
 	  lisp_free (b);
 	  --n_string_blocks;
