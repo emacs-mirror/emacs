@@ -79,7 +79,7 @@ FILE *outfile;
 /* Name this program was invoked with.  */
 char *progname;
 
-/* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+/* Print error message.  `s1' is printf control string, `s2' is arg for it.  */
 
 /* VARARGS1 */
 void
@@ -201,7 +201,7 @@ char buf[128];
 /* Some state during the execution of `read_c_string_or_comment'.  */
 struct rcsoc_state
 {
-  /* A count of spaces and newlines that have been read, but not output. */
+  /* A count of spaces and newlines that have been read, but not output.  */
   unsigned pending_spaces, pending_newlines;
 
   /* Where we're reading from.  */
@@ -280,7 +280,7 @@ scan_keyword_or_put_char (ch, state)
 	  /* Reset the scanning pointer.  */
 	  state->cur_keyword_ptr = state->keyword;
 
-	  /* Canonicalize whitespace preceding a usage string. */
+	  /* Canonicalize whitespace preceding a usage string.  */
 	  state->pending_newlines = 2;
 	  state->pending_spaces = 0;
 
@@ -526,7 +526,7 @@ scan_c_file (filename, mode)
       return 0;
     }
 
-  /* Reset extension to be able to detect duplicate files. */
+  /* Reset extension to be able to detect duplicate files.  */
   filename[strlen (filename) - 1] = extension;
 
   c = '\n';
