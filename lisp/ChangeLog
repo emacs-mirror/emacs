@@ -1,3 +1,7 @@
+2000-08-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* hi-lock.el (toplevel): Require font-lock.
+
 2000-08-03  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ebnf2ps.el: Get around a bug on skip-chars-forward.
@@ -3117,7 +3121,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Janík ml..
+	* time.el: Small doc fixes from Pavel Jank ml..
 
 2000-05-05  Dave Love  <fx@gnu.org>
 
