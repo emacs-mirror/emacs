@@ -130,13 +130,14 @@ main ()
   for (;;)
     {
       int rmask = (1 << s) + 1;
-      if (select (s + 1, &rmask, 0, 0, 0) < 0)
+      if (select (s + 1, (fd_set *)&rmask, 0, 0, 0) < 0)
 	perror ("select");
       if (rmask & (1 << s))	/* client sends list of filenames */
 	{
 	  fromlen = sizeof (fromunix);
 	  fromunix.sun_family = AF_UNIX;
-	  infd = accept (s, (struct sockaddr *) &fromunix, &fromlen); /* open socket fd */
+	  infd = accept (s, (struct sockaddr *) &fromunix,
+			 (size_t *) &fromlen);
 	  if (infd < 0)
 	    {
 	      if (errno == EMFILE || errno == ENFILE)
