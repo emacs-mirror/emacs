@@ -67,7 +67,11 @@ Optional argument FOLDER specifies folder name."
 		   t))))
 	(errbuf (gnus-get-buffer-create " *Gnus rcvstore*"))
 	;; Find the rcvstore program.
-	(exec-path (if mh-lib (cons mh-lib exec-path) exec-path)))
+	(exec-path (cond
+		    ((and (boundp 'mh-lib-progs) mh-lib-progs)
+		     (cons mh-lib-progs exec-path))
+		    (mh-lib (cons mh-lib exec-path))
+		    (t exec-path))))
     (with-current-buffer gnus-original-article-buffer
       (save-restriction
 	(widen)
