@@ -66,17 +66,6 @@
   :button-face-get :button-face :value-face :keymap :entry-from
   :entry-to :help-echo :documentation-property :tab-order) 
 
-;; These autoloads should be deleted when the file is added to Emacs.
-(unless (fboundp 'load-gc)
-  (autoload 'widget-apply "wid-edit")
-  (autoload 'widget-create "wid-edit")
-  (autoload 'widget-insert "wid-edit")
-  (autoload 'widget-prompt-value "wid-edit")
-  (autoload 'widget-browse "wid-browse" nil t)
-  (autoload 'widget-browse-other-window "wid-browse" nil t)
-  (autoload 'widget-browse-at "wid-browse" nil t)
-  (autoload 'widget-minor-mode "wid-browse" nil t))
-
 (defun define-widget (name class doc &rest args)
   "Define a new widget type named NAME from CLASS.
 
