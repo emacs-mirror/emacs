@@ -9290,12 +9290,16 @@ Buffer modification stores t in this variable.");
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
     "Normal hook run before each command is executed.\n\
-Errors running the hook are caught and ignored.");
+If an unhandled error happens in running this hook,\n\
+the hook value is set to nil, since otherwise the error\n\
+might happen repeatedly and make Emacs nonfunctional.");
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
     "Normal hook run after each command is executed.\n\
-Errors running the hook are caught and ignored.");
+If an unhandled error happens in running this hook,\n\
+the hook value is set to nil, since otherwise the error\n\
+might happen repeatedly and make Emacs nonfunctional.");
   Vpost_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-idle-hook", &Vpost_command_idle_hook,
