@@ -344,7 +344,7 @@ This command does not delete or overwrite any existing text."
 (defun replace-rectangle (start end string)
   "Like `string-rectangle', but replace the original region."
   (interactive "*r\nsString rectangle: ")
-  (apply-on-rectangle 'string-rectangle-line start end string t))
+  (apply-on-rectangle 'string-rectangle-line start end string))
 
 ;;;###autoload
 (defun clear-rectangle (start end &optional fill)
