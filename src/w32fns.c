@@ -1266,6 +1266,38 @@ w32_to_x_color (rgb)
     return Qnil;
 }
 
+COLORREF
+w32_color_map_lookup (colorname)
+     char *colorname;
+{
+  Lisp_Object tail, ret = Qnil;
+
+  BLOCK_INPUT;
+
+  for (tail = Vw32_color_map; !NILP (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object elt, tem;
+
+      elt = Fcar (tail);
+      if (!CONSP (elt)) continue;
+
+      tem = Fcar (elt);
+
+      if (lstrcmpi (XSTRING (tem)->data, colorname) == 0)
+	{
+	  ret = XUINT (Fcdr (elt));
+	  break;
+	}
+
+      QUIT;
+    }
+
+
+  UNBLOCK_INPUT;
+
+  return ret;
+}
+
 COLORREF 
 x_to_w32_color (colorname)
      char * colorname;
@@ -1430,27 +1462,30 @@ x_to_w32_color (colorname)
   /* I am not going to attempt to handle any of the CIE color schemes
      or TekHVC, since I don't know the algorithms for conversion to
      RGB.  */
-  
-  for (tail = Vw32_color_map; !NILP (tail); tail = Fcdr (tail))
+
+  /* If we fail to lookup the color name in w32_color_map, then check the
+     colorname to see if it can be crudely approximated: If the X color 
+     ends in a number (e.g., "darkseagreen2"), strip the number and
+     return the result of looking up the base color name.  */
+  ret = w32_color_map_lookup (colorname);
+  if (NILP (ret)) 
     {
-      register Lisp_Object elt, tem;
+      int len = strlen (colorname);
 
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-
-      tem = Fcar (elt);
-
-      if (lstrcmpi (XSTRING (tem)->data, colorname) == 0)
+      if (isdigit (colorname[len - 1])) 
 	{
-	  ret = XUINT(Fcdr (elt));
-	  break;
-	}
+	  char *ptr, *approx = alloca (len);
 
-      QUIT;
+	  strcpy (approx, colorname);
+	  ptr = &approx[len - 1];
+	  while (ptr > approx && isdigit (*ptr)) 
+	      *ptr-- = '\0';
+
+	  ret = w32_color_map_lookup (approx);
+	}
     }
   
   UNBLOCK_INPUT;
-  
   return ret;
 }
 
