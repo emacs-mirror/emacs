@@ -50,21 +50,22 @@ conveniently adding tool bar items."
   :global t
   :group 'mouse
   :group 'frames
-  (let ((lines (if tool-bar-mode 1 0)))
-    ;; Alter existing frames...
-    (mapc (lambda (frame)
-	    (modify-frame-parameters frame
-				     (list (cons 'tool-bar-lines lines))))
-	  (frame-list))
-    ;; ...and future ones.
-    (let ((elt (assq 'tool-bar-lines default-frame-alist)))
-      (if elt
-	  (setcdr elt lines)
-	(add-to-list 'default-frame-alist (cons 'tool-bar-lines lines)))))
-  (if (and tool-bar-mode
-	   (display-graphic-p)
-	   (= 1 (length (default-value 'tool-bar-map)))) ; not yet setup
-      (tool-bar-setup)))
+  (and (display-images-p)
+       (let ((lines (if tool-bar-mode 1 0)))
+	 ;; Alter existing frames...
+	 (mapc (lambda (frame)
+		 (modify-frame-parameters frame
+					  (list (cons 'tool-bar-lines lines))))
+	       (frame-list))
+	 ;; ...and future ones.
+	 (let ((elt (assq 'tool-bar-lines default-frame-alist)))
+	   (if elt
+	       (setcdr elt lines)
+	     (add-to-list 'default-frame-alist (cons 'tool-bar-lines lines)))))
+       (if (and tool-bar-mode
+		(display-graphic-p)
+		(= 1 (length (default-value 'tool-bar-map)))) ; not yet setup
+	   (tool-bar-setup))))
 
 (defvar tool-bar-map (make-sparse-keymap)
   "Keymap for the tool bar.
