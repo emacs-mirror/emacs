@@ -984,11 +984,21 @@ Bind this in case the user sets it to nil."
 ;; should be called when the node is already narrowed.
 (defun Info-setup-header-line ()
   (goto-char (point-min))
-  (forward-line 1)
-  (set (make-local-variable 'Info-header-line)
-       (buffer-substring (point-min) (1- (point))))
-  (setq header-line-format 'Info-header-line)
-  (narrow-to-region (point) (point-max)))
+  (let* ((case-fold-search t)
+	 (header-end (save-excursion (forward-line 1) (1- (point))))
+	 ;; If we find neither Next: nor Prev: link, show the entire
+	 ;; node header.  Otherwise, don't show the File: and Node:
+	 ;; parts, to avoid wasting precious space on information that
+	 ;; is available in the mode line.
+	 (header-beg (if (re-search-forward
+			  "\\(next\\|prev[ious]*\\): "
+			  header-end t)
+			 (match-beginning 1)
+		       (point))))
+    (set (make-local-variable 'Info-header-line)
+	 (buffer-substring header-beg header-end))
+    (setq header-line-format 'Info-header-line)
+    (narrow-to-region (1+ header-end) (point-max))))
 
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
