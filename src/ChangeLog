@@ -1,3 +1,8 @@
+2002-03-09  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Fcopy_file) [WINDOWS_NT]: Ensure file is not
+	read-only when setting modified time.
+
 2002-03-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): At the end of the
