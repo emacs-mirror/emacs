@@ -5125,6 +5125,24 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
   Lisp_Object patterns, key, tem;
   Lisp_Object list = Qnil, newlist = Qnil, second_best = Qnil;
 
+  /* If we don't have a frame, we can't use the Windows API to list
+     fonts, as it requires a device context for the Window.  This will
+     only happen during startup if the user specifies a font on the
+     command line.  Print a message on stderr and return nil.  */
+  if (!f)
+    {
+      char buffer[256];
+
+      sprintf (buffer, 
+	       "Emacs cannot get a list of fonts before the initial frame "
+	       "is created.\nThe font specified on the command line may not "
+	       "be found.\n");
+      MessageBox (NULL, buffer, "Emacs Warning Dialog",
+		  MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
+      return Qnil;
+    }
+
+
   patterns = Fassoc (pattern, Valternate_fontname_alist);
   if (NILP (patterns))
     patterns = Fcons (pattern, Qnil);
