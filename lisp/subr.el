@@ -884,7 +884,7 @@ Optional DEFAULT is a default password to use instead of empty input."
       (while (progn (message "%s%s"
 			     prompt
 			     (make-string (length pass) ?.))
-		    (setq c (read-char nil t))
+		    (setq c (read-char-exclusive nil t))
 		    (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
 	(if (= c ?\C-u)
 	    (setq pass "")
