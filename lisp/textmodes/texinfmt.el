@@ -3739,7 +3739,6 @@ The command  `@value{foo}'  expands to the value."
       ;; In this case flag is neither set nor cleared.  
       ;; Act as if clear, i.e. do nothing.
       ()))))
-
 
 ;;; @ifeq
 
