@@ -1,3 +1,8 @@
+2000-12-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* ps-bdf.el (bdf-read-font-info): Modify the kludgy code for fonts
+	of wrong SIZE record.
+
 2000-12-06  Dave Love  <fx@gnu.org>
 
 	* newcomment.el (comment-region, comment-dwim): Doc fix.
