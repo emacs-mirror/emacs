@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.10) $
+ * $HopeName: MMsrc!poolmv.c(MMdevel_restr.3) $
  * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -22,41 +22,35 @@
  *  4. Spans with no blocks could be freed.  richard 1994-11-09
  *  5. An MFS pool for the block descriptors is justified, but not really
  *     for the spans, which are much rarer. richard 1994-11-09
- *  7. IsValid should check pointer destinations are in the right pools.
+ *  7. Check should check pointer destinations are in the right pools.
  *     richard 1994-11-10
- *  8. By changing SpanAlloc it might be possible to keep track of all
+ *  8. By changing MVSpanAlloc it might be possible to keep track of all
  *     allocated blocks using descriptors, for debugging purposes.  richard
  *     1994-11-10
- *  9. (See note 7.) IsValid methods can't easily get hold of the relevant
+ *  9. (See note 7.) Check methods can't easily get hold of the relevant
  *     pools in ordr to check pointers using PoolAddrPool.
  *     1995-01-19 drj
  */
- 
-#include "std.h"
-#include "lib.h"
-#include "poolar.h"
-#include "pool.h"
-#include "poolst.h"
+
+#include "mpm.h"
 #include "poolmv.h"
-#include "poolmvst.h"
 #include "poolmfs.h"
 #include "mpscmv.h"
-#include <stdarg.h>
 
-SRCID("$HopeName: MMsrc!poolmv.c(trunk.10) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(MMdevel_restr.3) $");
 
 
-#define BLOCKPOOL(mv)   (PoolMFSPool(&(mv)->blockPoolStruct))
-#define SPANPOOL(mv)    (PoolMFSPool(&(mv)->spanPoolStruct))
+#define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
+#define SPANPOOL(mv)    (MFSPool(&(mv)->spanPoolStruct))
 
 
 /*  == Class Structure ==  */
 
-static Error create(Pool *poolReturn, Space space, va_list arg);
+static Res create(Pool *poolReturn, Space space, va_list arg);
 static void  destroy(Pool pool);
-static Error alloc(Addr *pReturn, Pool pool, Size size);
+static Res alloc(Addr *pReturn, Pool pool, Size size);
 static void free_(Pool pool, Addr old, Size size);
-static Error describe(Pool pool, LibStream stream);
+static Res describe(Pool pool, Lib_FILE *stream);
 
 static PoolClassStruct PoolClassMVStruct;
 
@@ -64,12 +58,12 @@ PoolClass PoolClassMV(void)
 {
   PoolClassInit(&PoolClassMVStruct,
                 "MV",
-                sizeof(PoolMVStruct), offsetof(PoolMVStruct, poolStruct),
+                sizeof(MVStruct), offsetof(MVStruct, poolStruct),
                 create, destroy,
                 alloc, free_,
                 NULL, NULL,             /* bufferCreate, bufferDestroy */
-                NULL, NULL,		/* bufferFill, bufferTrip */
-                NULL, NULL,		/* bufferExpose, bufferCover */
+                NULL, NULL,             /* bufferFill, bufferTrip */
+                NULL, NULL,             /* bufferExpose, bufferCover */
                 NULL, NULL,             /* mark, scan */
                 NULL, NULL,             /* fix, relcaim */
                 NULL, NULL,             /* access, poll */
@@ -86,24 +80,24 @@ mps_class_t mps_class_mv(void)
 }
 
 
-/*  == Block descriptor ==
+/* MVBlockStruct -- block structure
  *
- *  The pool maintains a descriptor structure for each contiguous
- *  allocated block of memory it manages.  The descriptor is on a simple
- *  linked-list of such descriptors, which is in ascending order of
- *  address.
+ * The pool maintains a descriptor structure for each contiguous
+ * allocated block of memory it manages.  The descriptor is on a simple
+ * linked-list of such descriptors, which is in ascending order of
+ * address.
  */
 
-typedef struct BlockStruct
-{
-  struct BlockStruct *next;
+typedef struct MVBlockStruct *MVBlock;
+typedef struct MVBlockStruct {
+  MVBlock next;
   Addr base, limit;
-} BlockStruct, *Block;
+} MVBlockStruct;
 
 
-#ifdef DEBUG
+/* MVBlockCheck -- check the consistency of a block structure */
 
-static Bool BlockIsValid(Block block, ValidationType validParam)
+static Bool MVBlockCheck(MVBlock block)
 {
   AVER(block != NULL);
   AVER(block->limit >= block->base);
@@ -113,241 +107,228 @@ static Bool BlockIsValid(Block block, ValidationType validParam)
   return TRUE;
 }
 
-#endif
 
-
-/*  == Span descriptor ==
+/* MVSpanStruct -- span structure
  *
- *  The pool maintains a wrapper for each allocated segment which
- *  contains a chain of descriptors for the allocated memory in that
- *  segment.  It also contains sentinel block descriptors which mark the
- *  start and end of the span.  These blocks considerably simplify
- *  allocation, and may be zero-sized.
+ * The pool maintains a wrapper for each allocated segment which
+ * contains a chain of descriptors for the allocated memory in that
+ * segment.  It also contains sentinel block descriptors which mark the
+ * start and end of the span.  These blocks considerably simplify
+ * allocation, and may be zero-sized.
  */
 
-typedef struct SpanStruct
-{
-  struct SpanStruct *next;
-  Addr seg;                     /* segment underlying the span */
-  BlockStruct base;             /* sentinel at base of span */
-  BlockStruct limit;            /* sentinel at limit of span */
-  Block blocks;                 /* allocated blocks */
-  Addr space;                   /* total free space in segment */
+typedef struct MVSpanStruct *MVSpan;
+typedef struct MVSpanStruct {
+  MVSpan next;                  /* link to next span */
+  MV mv;                        /* owning MV pool */
+  Seg seg;                      /* segment underlying the span */
+  MVBlockStruct base;           /* sentinel at base of span */
+  MVBlockStruct limit;          /* sentinel at limit of span */
+  MVBlock blocks;               /* allocated blocks */
+  Size space;                   /* total free space in segment */
   unsigned blockCount;          /* number of blocks on chain */
-} SpanStruct, *Span;
+} MVSpanStruct;
 
 
-#ifdef DEBUG
+/* MVSpanCheck -- check the consistency of a span structure */
 
-static Bool SpanIsValid(Span span, ValidationType validParam)
+static Bool MVSpanCheck(MVSpan span)
 {
-  AVER(span != NULL);
-  /* seg */
-  AVER(ISVALIDNESTED(Block, &span->base));
-  AVER(ISVALIDNESTED(Block, &span->limit));
-
+  CHECKL(span != NULL);
+  CHECKU(MV, span->mv);
+  CHECKL(MVBlockCheck(&span->base));
+  CHECKL(MVBlockCheck(&span->limit));
   /* The block chain starts with the base sentinel. */
-  AVER(span->blocks == &span->base);
+  CHECKL(span->blocks == &span->base);
   /* Since there is a limit sentinel, the chain can't end just after the */
   /* base sentinel... */
-  AVER(span->base.next != NULL);
+  CHECKL(span->base.next != NULL);
   /* ...and it's sure to have at least two blocks on it. */
-  AVER(span->blockCount >= 2);
+  CHECKL(span->blockCount >= 2);
   /* This is just defined this way.  It shouldn't change. */
-  AVER(span->limit.next == NULL);
+  CHECKL(span->limit.next == NULL);
   /* The sentinels should mark the ends of the segment. */
-  AVER(span->base.base == span->seg);
-  /* we used to be able to find out where the end of a seg was.
-   * Now we need the arena as well, and we can't get that from
-   * the span */
-/*
-  AVER(span->limit.limit == span->seg + ArenaSegSize(arena, span->seg));
-*/
+  CHECKL(span->base.base == SegBase(PoolSpace(MVPool(span->mv)), span->seg));
+  CHECKL(span->limit.limit == SegLimit(PoolSpace(MVPool(span->mv)), span->seg));
   /* The sentinels mustn't overlap. */
-  AVER(span->base.limit <= span->limit.base);
+  CHECKL(span->base.limit <= span->limit.base);
   /* The remaining space can't be more than the gap between the sentinels. */
-  AVER(span->space <= span->limit.base - span->base.limit);
-
+  CHECKL(span->space <= AddrOffset(span->base.limit, span->limit.base));
   /* Check that it is in the span pool.  See note 7. */
-
   return TRUE;
 }
 
-#endif
 
+/* MVCheck -- check the consistency of an MV structure */
 
-#ifdef DEBUG
-
-Bool PoolMVIsValid(PoolMV poolMV, ValidationType validParam)
+Bool MVCheck(MV mv)
 {
-  AVER(ISVALIDNESTED(Pool, &poolMV->poolStruct));
-  AVER(ISVALIDNESTED(PoolMFS, &poolMV->blockPoolStruct));
-  AVER(ISVALIDNESTED(PoolMFS, &poolMV->spanPoolStruct));
-  AVER(poolMV->extendBy > 0);
-  AVER(poolMV->avgSize > 0);
-  AVER(poolMV->extendBy >= poolMV->avgSize);
-
+  CHECKS(MV, mv);
+  CHECKD(Pool, &mv->poolStruct);
+  CHECKD(MFS, &mv->blockPoolStruct);
+  CHECKD(MFS, &mv->spanPoolStruct);
+  CHECKL(mv->extendBy > 0);
+  CHECKL(mv->avgSize > 0);
+  CHECKL(mv->extendBy >= mv->avgSize);
   /* Could do more checks here. */
-
   return TRUE;
 }
 
-#endif /* DEBUG */
 
-
-Pool PoolMVPool(PoolMV poolMV)
+Pool MVPool(MV mv)
 {
-  AVER(ISVALID(PoolMV, poolMV));
-  return &poolMV->poolStruct;
+  AVERT(MV, mv);
+  return &mv->poolStruct;
 }
 
 
-Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
+Res MVCreate(MV *mvReturn, Space space,
                    Size extendBy, Size avgSize, Size maxSize)
 {
-  Error e;
-  PoolMV poolMV;
+  Res res;
+  MV mv;
 
-  AVER(poolMVReturn != NULL);
-  AVER(ISVALID(Space, space));
+  AVER(mvReturn != NULL);
+  AVERT(Space, space);
 
-  e = PoolAlloc((Addr *)&poolMV, SpaceControlPool(space),
-    sizeof(PoolMVStruct));
-  if(e != ErrSUCCESS)
-    return e;
-  
-  e = PoolMVInit(poolMV, space, extendBy, avgSize, maxSize);
-  if(e != ErrSUCCESS) {
-    PoolFree(SpaceControlPool(space), (Addr)poolMV, sizeof(PoolMVStruct));
-    return e;
+  res = SpaceAlloc((Addr *)&mv, space, sizeof(MVStruct));
+  if(res != ResOK)
+    return res;
+
+  res = MVInit(mv, space, extendBy, avgSize, maxSize);
+  if(res != ResOK) {
+    SpaceFree(space, (Addr)mv, sizeof(MVStruct));
+    return res;
   }
-  
-  *poolMVReturn = poolMV;
-  return ErrSUCCESS;
+
+  *mvReturn = mv;
+  return ResOK;
 }
 
-static Error create(Pool *poolReturn, Space space, va_list arg)
+static Res create(Pool *poolReturn, Space space, va_list arg)
 {
   Size extendBy, avgSize, maxSize;
-  PoolMV poolMV;
-  Error e;
+  MV mv;
+  Res res;
 
   AVER(poolReturn != NULL);
-  AVER(ISVALID(Space, space));
-  
+  AVERT(Space, space);
+
   extendBy = va_arg(arg, Size);
   avgSize = va_arg(arg, Size);
   maxSize = va_arg(arg, Size);
-  
-  e = PoolMVCreate(&poolMV, space, extendBy, avgSize, maxSize);
-  if(e != ErrSUCCESS)
-    return e;
-  
-  *poolReturn = PoolMVPool(poolMV);
-  return ErrSUCCESS;
+
+  res = MVCreate(&mv, space, extendBy, avgSize, maxSize);
+  if(res != ResOK)
+    return res;
+
+  *poolReturn = MVPool(mv);
+  return ResOK;
 }
 
 
-void PoolMVDestroy(PoolMV poolMV)
+void MVDestroy(MV mv)
 {
-  Pool control;
-  AVER(ISVALID(PoolMV, poolMV));
-  control = SpaceControlPool(PoolSpace(PoolMVPool(poolMV)));
-  PoolMVFinish(poolMV);
-  PoolFree(control, (Addr)poolMV, sizeof(PoolMVStruct));
+  Space space;
+  AVERT(MV, mv);
+  space = PoolSpace(MVPool(mv));
+  MVFinish(mv);
+  SpaceFree(space, (Addr)mv, sizeof(MVStruct));
 }
 
 static void destroy(Pool pool)
 {
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(pool->class == &PoolClassMVStruct);
-  PoolMVDestroy(PARENT(PoolMVStruct, poolStruct, pool));
+  MVDestroy(PARENT(MVStruct, poolStruct, pool));
 }
 
 
-Error PoolMVInit(PoolMV poolMV, Space space, Size extendBy,
+Res MVInit(MV mv, Space space, Size extendBy,
                  Size avgSize, Size maxSize)
 {
-  Error e;
+  Res res;
   Size blockExtendBy, spanExtendBy;
 
-  AVER(poolMV != NULL);
-  AVER(ISVALID(Space, space));
+  AVER(mv != NULL);
+  AVERT(Space, space);
   AVER(extendBy > 0);
   AVER(avgSize > 0);
   AVER(avgSize <= extendBy);
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
-  PoolInit(&poolMV->poolStruct, space, PoolClassMV());
+  PoolInit(&mv->poolStruct, space, PoolClassMV());
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
+  blockExtendBy = sizeof(MVBlockStruct) * (extendBy/avgSize)/2;
 
-  blockExtendBy = sizeof(BlockStruct) * (extendBy/avgSize)/2;
+  res = MFSInit(&mv->blockPoolStruct, space,
+    blockExtendBy, sizeof(MVBlockStruct));
+  if(res != ResOK)
+    return res;
 
-  e = PoolMFSInit(&poolMV->blockPoolStruct, space,
-    blockExtendBy, sizeof(BlockStruct));
-  if(e != ErrSUCCESS)
-    return e;
+  spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
-  spanExtendBy = sizeof(SpanStruct) * (maxSize/extendBy);
+  res = MFSInit(&mv->spanPoolStruct, space,
+    spanExtendBy, sizeof(MVSpanStruct));
+  if(res != ResOK)
+    return res;
 
-  e = PoolMFSInit(&poolMV->spanPoolStruct, space,
-    spanExtendBy, sizeof(SpanStruct));
-  if(e != ErrSUCCESS)
-    return e;
+  mv->extendBy = extendBy;
+  mv->avgSize  = avgSize;
+  mv->maxSize  = maxSize;
+  mv->spans = NULL;
+  mv->space = 0;
+  mv->lost = 0;
+  mv->sig = MVSig;
 
-  poolMV->extendBy = extendBy;
-  poolMV->avgSize  = avgSize;
-  poolMV->maxSize  = maxSize;
-  poolMV->spans = NULL;
-  poolMV->space = 0;
-  poolMV->lost = 0;
+  AVERT(MV, mv);
 
-  AVER(ISVALID(PoolMV, poolMV));
-
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 
-void PoolMVFinish(PoolMV poolMV)
+void MVFinish(MV mv)
 {
   Pool pool;
-  Span span;
+  MVSpan span;
 
-  AVER(ISVALID(PoolMV, poolMV));
+  AVERT(MV, mv);
+
+  pool = MVPool(mv);
 
   /* Destroy all the segments attached to the pool. */
-
-  pool = PoolMVPool(poolMV);
-  span = poolMV->spans;
+  span = mv->spans;
   while(span != NULL) {
-    AVER(ISVALID(Span, span));
-    PoolSegFree(pool, span->seg, span->limit.limit - span->base.base);
+    AVERT(MVSpan, span);
+    PoolSegFree(pool, span->seg);
     span = span->next;
   }
 
-  PoolFinish(&poolMV->poolStruct);
-  PoolMFSFinish(&poolMV->blockPoolStruct);
-  PoolMFSFinish(&poolMV->spanPoolStruct);
+  mv->sig = SigInvalid;
+
+  MFSFinish(&mv->blockPoolStruct);
+  MFSFinish(&mv->spanPoolStruct);
+  PoolFinish(pool);
 }
 
 
-/*  == Allocate space in span ==
+/* MVSpanAlloc -- allocate space from a span of memory
  *
- *  SpanAlloc searches a span for a free block of the requested size.  If it
- *  finds one it allocates it from the span, updates *addrReturn to point
- *  to it, and returns TRUE.
+ * MVSpanAlloc searches a span for a free block of the requested size.  If it
+ * finds one it allocates it from the span, updates *addrReturn to point
+ * to it, and returns TRUE.
  */
 
-static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
-                      Pool blockPool)
+static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
+                        Pool blockPool)
 {
-  Addr gap;
-  Block block;
+  Size gap;
+  MVBlock block;
 
-  AVER(ISVALID(Span, span));
+  AVERT(MVSpan, span);
   AVER(size > 0);
   AVER(addrReturn != NULL);
 
@@ -356,31 +337,25 @@ static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
 
   /* We're guaranteed at least one gap between sentinels, and therefore at */
   /* least one iteration of this loop.  So, the test is at the end.  */
-
-  do
-  {
+  do {
     AVER(block->next != NULL);
 
-    gap = block->next->base - block->limit;
+    gap = AddrOffset(block->limit, block->next->base);
 
-    if(gap >= size)
-    {
+    if(gap >= size) {
       Addr new = block->limit;
 
       /* If the gap is exactly the right size then the preceeding and */
       /* following blocks can be merged, into the preceeding one, */
       /* unless the following block is the end sentinel. */
-
-      if(gap == size && block->next != &span->limit)
-      {
-        Block old = block->next;
+      if(gap == size && block->next != &span->limit) {
+        MVBlock old = block->next;
         block->limit = old->limit;
         block->next = old->next;
-        PoolFree(blockPool, (Addr)old, sizeof(BlockStruct));
+        PoolFree(blockPool, (Addr)old, sizeof(MVBlockStruct));
         --span->blockCount;
-      }
-      else
-        block->limit += size;
+      } else
+        block->limit = AddrAdd(block->limit, size);
 
       span->space -= size;
       *addrReturn = new;
@@ -395,72 +370,62 @@ static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
 }
 
 
-/*  == Free area in span ==
+/* MVSpanFree -- free an area in a span of memory
  *
- *  Searches a span for a block which contains the area specified by the
- *  base and limit, and frees it within that span.  This may involve
- *  allocating a block descriptor, which may fail, in which case an error is
- *  returned.
+ * Searches a span for a block which contains the area specified by the
+ * base and limit, and frees it within that span.  This may involve
+ * allocating a block descriptor, which may fail, in which case an error is
+ * returned.
  */
 
-static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
+static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 {
-  Block *prev, block;
+  MVBlock *prev, block;
 
-  AVER(ISVALID(Span, span));
+  AVERT(MVSpan, span);
   AVER(span->base.base <= base && limit <= span->limit.limit);
-  AVER(ISVALID(Pool, blockPool));
+  AVERT(Pool, blockPool);
 
   prev = &span->blocks;
   block = span->blocks;
   AVER(block == &span->base); /* should be base sentinel */
-  do
-  {
+  do {
     int isBase = block == &span->base;
     int isLimit = block == &span->limit;
     int isSentinel = isBase || isLimit;
 
-    AVER(ISVALID(Block, block));
+    AVERT(MVBlock, block);
 
     /* Is the freed area within the block? */
-
-    if(block->base <= base && limit <= block->limit)
-    {
-      if(!isSentinel && block->base == base && limit == block->limit)
-      {
+    if(block->base <= base && limit <= block->limit) {
+      if(!isSentinel && block->base == base && limit == block->limit) {
         AVER(block->next != NULL); /* should at least be a sentinel */
         *prev = block->next;
-        PoolFree(blockPool, (Addr)block, sizeof(BlockStruct));
+        PoolFree(blockPool, (Addr)block, sizeof(MVBlockStruct));
         --span->blockCount;
-      }
-      else if(!isBase && block->base == base)
+      } else if(!isBase && block->base == base)
         block->base = limit;
       else if(!isLimit && limit == block->limit)
         block->limit = base;
-      else
-      {
-        Error e;
-        Block new;
+      else {
+        Res res;
+        MVBlock new;
 
         /* The freed area is buried in the middle of the block, so the */
         /* block must be split into two parts.  */
-
-        e = PoolAlloc((Addr *)&new, blockPool, sizeof(BlockStruct));
-        if(e != ErrSUCCESS) return e;
+        res = PoolAlloc((Addr *)&new, blockPool, sizeof(MVBlockStruct));
+        if(res != ResOK) return res;
 
         /* If the freed area is in the base sentinel then insert the new */
         /* descriptor after it, otherwise insert before. */
-        if(isBase)
-        {
+        if(isBase) {
           new->base = limit;
           new->limit = block->limit;
           block->limit = base;
           new->next = block->next;
           AVER(new->next != NULL); /* should at least be a sentinel */
           block->next = new;
-        }
-        else
-        {
+        } else {
           new->base = block->base;
           new->limit = base;
           block->base = limit;
@@ -468,15 +433,15 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
           *prev = new;
         }
 
-        AVER(ISVALID(Block, new));
+        AVERT(MVBlock, new);
         ++span->blockCount;
       }
 
-      AVER(ISVALID(Block, block));
+      AVERT(MVBlock, block);
 
-      span->space += limit - base;
+      span->space += AddrOffset(base, limit);
 
-      return ErrSUCCESS;
+      return ResOK;
     }
 
     prev = &block->next;
@@ -487,45 +452,41 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
   /* The freed area is in the span, but not within a block. */
   NOTREACHED;
 
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 
 /*  == Allocate ==  */
 
-static Error alloc(Addr *pReturn, Pool pool, Size size)
+static Res alloc(Addr *pReturn, Pool pool, Size size)
 {
-  Error e;
-  Arena arena;
-  Span span;
-  PoolMV poolMV;
+  Res res;
+  MVSpan span;
+  Space space;
+  MV mv;
   Size segSize;
 
   AVER(pReturn != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(pool->class == &PoolClassMVStruct);
   AVER(size > 0);
 
-  poolMV = PARENT(PoolMVStruct, poolStruct, pool);
+  mv = PARENT(MVStruct, poolStruct, pool);
 
-  size = AlignUp(pool->alignment, size);
+  size = SizeAlignUp(size, pool->alignment);
 
-  if(size <= poolMV->space)
-  {
-    span = poolMV->spans;
+  if(size <= mv->space) {
+    span = mv->spans;
 
-    while(span != NULL)
-    {
-      if(size <= span->space)
-      {
+    while(span != NULL) {
+      if(size <= span->space) {
         Addr new;
 
-        if(SpanAlloc(&new, span, size, BLOCKPOOL(poolMV)))
-        {
-          poolMV->space -= size;
-          AVER(IsAligned(pool->alignment, new));
+        if(MVSpanAlloc(&new, span, size, BLOCKPOOL(mv))) {
+          mv->space -= size;
+          AVER(AddrIsAligned(new, pool->alignment));
           *pReturn = new;
-          return ErrSUCCESS;
+          return ResOK;
         }
       }
 
@@ -533,182 +494,173 @@ static Error alloc(Addr *pReturn, Pool pool, Size size)
     }
   }
 
-/*  There is no block large enough in any of the spans, so extend the
- *  pool with a new segment which will hold the requested allocation.
- *  Allocate a new span descriptor and initialize it to point at the
- *  segment.
- */
+  /* There is no block large enough in any of the spans, so extend the */
+  /* pool with a new segment which will hold the requested allocation. */
+  /* Allocate a new span descriptor and initialize it to point at the */
+  /* segment. */
+  res = PoolAlloc((Addr *)&span, SPANPOOL(mv), sizeof(MVSpanStruct));
+  if(res != ResOK)
+    return res;
 
-  e = PoolAlloc((Addr *)&span, SPANPOOL(poolMV), sizeof(SpanStruct));
-  if(e != ErrSUCCESS)
-    return e;
-
-  if(size <= poolMV->extendBy)
-    segSize = poolMV->extendBy;
+  if(size <= mv->extendBy)
+    segSize = mv->extendBy;
   else
     segSize = size;
 
-  arena = SpaceArena(PoolSpace(pool));
-  segSize = AlignUp(ArenaGrain(arena), segSize);
+  space = PoolSpace(pool);
+  segSize = SizeAlignUp(segSize, ArenaAlign(space));
 
-  e = PoolSegAlloc(&span->seg, pool, segSize);
-  if(e != ErrSUCCESS)
-  {
-    PoolFree(SPANPOOL(poolMV), (Addr)span, sizeof(SpanStruct));
-    return e;
+  res = PoolSegAlloc(&span->seg, pool, segSize);
+  if(res != ResOK) {
+    PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
+    return res;
   }
-  ArenaPut(arena, span->seg, ARENA_CLASS, (void *)span);
 
-
-  span->next = poolMV->spans;
-  span->base.base = span->base.limit = span->seg;
-  span->limit.base =
-    span->limit.limit = span->seg + ArenaSegSize(arena, span->seg);
-  span->space = span->limit.base - span->base.limit;
+  span->mv = mv;
+  span->seg->p = (void *)span;
+  span->next = mv->spans;
+  span->base.base = span->base.limit = SegBase(space, span->seg);
+  span->limit.base = span->limit.limit = SegLimit(space, span->seg);
+  span->space = AddrOffset(span->base.limit, span->limit.base);
   span->limit.next = NULL;
   span->base.next = &span->limit;
   span->blocks = &span->base;
   span->blockCount = 2;
 
-  span->base.limit += size;
+  span->base.limit = AddrAdd(span->base.limit, size);
   span->space -= size;
 
-  AVER(ISVALID(Span, span));
+  AVERT(MVSpan, span);
 
-  poolMV->space += span->space;
-  poolMV->spans = span;
+  mv->space += span->space;
+  mv->spans = span;
 
   *pReturn = span->base.base;
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 
 static void free_(Pool pool, Addr old, Size size)
 {
   Addr base, limit;
-  Arena arena;
-  Span span;
-  PoolMV poolMV;
-  Error e;
+  MVSpan span;
+  MV mv;
+  Res res;
+  Bool b;
+  Seg seg;
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(pool->class == &PoolClassMVStruct);
   AVER(old != (Addr)0);
   AVER(size > 0);
 
-  arena = SpaceArena(PoolSpace(pool));
-
-  poolMV = PARENT(PoolMVStruct, poolStruct, pool);
-  size = AlignUp(pool->alignment, size);
+  mv = PARENT(MVStruct, poolStruct, pool);
+  size = SizeAlignUp(size, pool->alignment);
   base = old;
-  limit = base + size;
+  limit = AddrAdd(base, size);
 
   /* Map the pointer onto the segment which contains it, and thence */
   /* onto the span. */
+  b = SegOfAddr(&seg, PoolSpace(pool), old);
+  AVER(b);
+  span = (MVSpan)seg->p;
+  AVERT(MVSpan, span);
 
-  span = ArenaGet(arena, base, ARENA_CLASS);
-  AVER(ISVALID(Span, span));
-  
   /* the to be freed area should be within the span just found */
   AVER(span->base.base <= base && limit <= span->limit.limit);
-  
+
   /* Unfortunately, if allocating the new block descriptor fails we */
   /* can't do anything, and the memory is lost.  See note 2. */
-  e = SpanFree(span, base, limit, BLOCKPOOL(poolMV));
-  if(e != ErrSUCCESS)
-    poolMV->lost += size;
+  res = MVSpanFree(span, base, limit, BLOCKPOOL(mv));
+  if(res != ResOK)
+    mv->lost += size;
   else
-    poolMV->space += size;
-  
+    mv->space += size;
+
   return;                   /* should free spans.  See note 4. */
 }
 
 
-static Error describe(Pool pool, LibStream stream)
+static Res describe(Pool pool, Lib_FILE *stream)
 {
-  PoolMV poolMV;
-  Span span;
-  Addr step, length;
+  MV mv;
+  MVSpan span;
+  Align step;
+  Size length;
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(pool->class == &PoolClassMVStruct);
   AVER(stream != NULL);
 
-  poolMV = PARENT(PoolMVStruct, poolStruct, pool);
+  mv = PARENT(MVStruct, poolStruct, pool);
 
-  LibFormat(stream,
-    "  blockPool = %p  spanPool = %p\n"
-    "  extendBy = %lX\n"
-    "  avgSize  = %lX\n"
-    "  maxSize  = %lX\n"
-    "  space    = %lX\n",
-    BLOCKPOOL(poolMV), SPANPOOL(poolMV),
-    (unsigned long)poolMV->extendBy,
-    (unsigned long)poolMV->avgSize,
-    (unsigned long)poolMV->maxSize,
-    poolMV->space);
+  Lib_fprintf(stream,
+              "  blockPool = %p  spanPool = %p\n"
+              "  extendBy = %lX\n"
+              "  avgSize  = %lX\n"
+              "  maxSize  = %lX\n"
+              "  space    = %lX\n",
+              BLOCKPOOL(mv), SPANPOOL(mv),
+              (unsigned long)mv->extendBy,
+              (unsigned long)mv->avgSize,
+              (unsigned long)mv->maxSize,
+              mv->space);
 
-  LibFormat(stream,
-    "  Spans\n"
-    "      desc      seg    space blockCount\n");
-  span = poolMV->spans;
-  while(span != NULL)
-  {
-    AVER(ISVALID(Span, span));
+  Lib_fprintf(stream,
+              "  Spans\n"
+              "      desc      seg    space blockCount\n");
+  span = mv->spans;
+  while(span != NULL) {
+    AVERT(MVSpan, span);
 
-    LibFormat(stream, "  %8lX %8lX %8lX %d\n",
-      (unsigned long)span,
-      (unsigned long)span->seg,
-      span->space, span->blockCount);
+    Lib_fprintf(stream, "  %8lX %8lX %8lX %d\n",
+                (unsigned long)span,
+                (unsigned long)span->seg,
+                span->space, span->blockCount);
 
     span = span->next;
   }
 
-  LibFormat(stream, "  Span allocation maps\n");
+  Lib_fprintf(stream, "  Span allocation maps\n");
 
   step = pool->alignment;
   length = 0x40 * step;
 
-  span = poolMV->spans;
-  while(span != NULL)
-  {
+  span = mv->spans;
+  while(span != NULL) {
     Addr i, j;
-    Block block;
-    LibFormat(stream, "    Span %8lX\n", (unsigned long)span);
+    MVBlock block;
+    Lib_fprintf(stream, "    MVSpan %8lX\n", (unsigned long)span);
 
     block = span->blocks;
     AVER(block == &span->base); /* should be start sentinel */
 
-    for(i=span->base.base; i<span->limit.limit; i+=length)
-    {
-      LibFormat(stream, "    %8lX ", (unsigned long)i);
+    for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
+      Lib_fprintf(stream, "    %8lX ", (unsigned long)i);
 
-      for(j=i; j<i+length && j<span->limit.limit; j+=step)
-      {
+      for(j = i; j < AddrAdd(i, length) && j < span->limit.limit; j = AddrAdd(j, step)) {
         if(j == block->base) {
-          if(j+step == block->limit)
-            LibPutChar(stream, '@');
+          if(AddrAdd(j, step) == block->limit)
+            Lib_fputc('@', stream);
           else
-            LibPutChar(stream, '[');
-        }
-        else if(j+step == block->limit)
-          LibPutChar(stream, ']');
+            Lib_fputc('[', stream);
+        } else if(AddrAdd(j, step) == block->limit)
+          Lib_fputc(']', stream);
         else if(j > block->base && j < block->limit)
-          LibPutChar(stream, '=');
+          Lib_fputc('=', stream);
         else
-          LibPutChar(stream, '.');
+          Lib_fputc('.', stream);
 
-        if(j >= block->limit)
-        {
+        if(j >= block->limit) {
           block = block->next;
           AVER(block != NULL);  /* shouldn't pass limit sentinel */
         }
       }
-      LibPutChar(stream, '\n');
+      Lib_fputc('\n', stream);
     }
 
     span = span->next;
   }
 
-  return ErrSUCCESS;
+  return ResOK;
 }

@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.7) $
+ *  $HopeName: MMsrc!vmnt.c(MMdevel_restr.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -30,10 +30,13 @@
  *  .assume.dword-addr:  We assume that the windows type DWORD and
  *    the MM type Addr are the same size.
  *
+ *  .assume.dword-align:  We assume that the windows type DWORD and
+ *    the MM type Align are the same size.
+ *
  *  .assume.lpvoid-addr:  We assume that the windows type LPVOID and
  *    the MM type Addr are the same size.
  *
- *  .assume.sysgrain:  The assume that the page size on the system
+ *  .assume.sysalign:  The assume that the page size on the system
  *    is a power of two.
  *
  *  Notes
@@ -44,115 +47,109 @@
  *      richard 1995-02-15
  */
 
-#include "std.h"
-#include "vm.h"
+#include "mpm.h"
 
 #ifndef MPS_OS_W3
 #error "vmnt.c is Win32 specific, but MPS_OS_W3 is not set"
 #endif
 
-#include <stddef.h>
 #include <windows.h>
 
-SRCID("$HopeName: MMsrc!vmnt.c(trunk.7) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(MMdevel_restr.3) $");
 
-#define VMSig	((Sig)0x519FEE33)
 
-typedef struct VMStruct
+#define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
+
+Align VMAlign(void)
 {
-  Sig sig;
-  Addr grain;		/* page size */
-  Addr base, limit;     /* boundaries of reserved space */
-} VMStruct;
-
-
-Addr VMGrain(void)
-{
-  Addr grain;
+  Align align;
   SYSTEM_INFO si;
 
-  /* See .assume.dword-addr */
-  AVER(sizeof(DWORD) == sizeof(Addr));
+  /* See .assume.dword-align */
+  AVER(sizeof(DWORD) == sizeof(Align));
 
   GetSystemInfo(&si);
-  grain = (Addr)si.dwPageSize;
-  AVER(IsPoT(grain));    /* see .assume.sysgrain */
+  align = (Align)si.dwPageSize;
+  AVER(SizeIsP2(align));    /* see .assume.sysalign */
 
-  return(grain);
+  return align;
 }
 
 
-#ifdef DEBUG
-
-Bool VMIsValid(VM vm, ValidationType validParam)
+Bool VMCheck(VM vm)
 {
-  AVER(vm != NULL);
-  AVER(vm->sig == VMSig);
-  AVER(vm->base != 0);
-  AVER(vm->limit != 0);
-  AVER(vm->base < vm->limit);
-  AVER(IsAligned(vm->grain, vm->base));
-  AVER(IsAligned(vm->grain, vm->limit));
-  return(TRUE);
+  CHECKS(VM, vm);
+  CHECKL(vm->base != 0);
+  CHECKL(vm->limit != 0);
+  CHECKL(vm->base < vm->limit);
+  CHECKL(vm->mapped <= vm->reserved);
+  CHECKL(AddrIsAligned(vm->base, vm->align));
+  CHECKL(AddrIsAligned(vm->limit, vm->align));
+  return TRUE;
 }
 
-#endif /* DEBUG */
 
-
-Error VMCreate(VM *vmReturn, Addr size)
+Res VMCreate(Space *spaceReturn, size_t size)
 {
   LPVOID base;
-  Addr grain;
+  Align align;
   VM vm;
+  Space space;
 
-  AVER(vmReturn != NULL);
+  AVER(spaceReturn != NULL);
   AVER(sizeof(LPVOID) == sizeof(Addr));  /* .assume.lpvoid-addr */
 
   /* See .assume.dword-addr */
   AVER(sizeof(DWORD) == sizeof(Addr));
 
-  grain = VMGrain();
-  AVER(IsPoT(grain));    /* see .assume.sysgrain */
+  align = VMAlign();
+  AVER(SizeIsP2(align));    /* see .assume.sysalign */
 
-  AVER(IsAligned(grain, size));
+  AVER(SizeIsAligned(size, align));
 
-  /* Allocate some store for the descriptor.
+  /* Allocate some store for the space descriptor.
    * This is likely to be wasteful see issue.vmnt.waste */
-  base = VirtualAlloc(NULL, AlignUp(grain, sizeof(VMStruct)),
+  base = VirtualAlloc(NULL, SizeAlignUp(sizeof(SpaceStruct), align),
           MEM_COMMIT, PAGE_READWRITE);
   if(base == NULL)
-    return(ErrRESMEM);
-  vm = (VM)base;
+    return ResMEMORY;
+  space = (Space)base;
+  vm = SpaceVM(space);
 
   /* Allocate the address space. */
   base = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
   if(base == NULL)
-    return(ErrRESOURCE);
+    return ResRESOURCE;
 
-  AVER(IsAligned(grain, (Addr)base));
+  AVER(AddrIsAligned(base, align));
 
-  vm->grain = grain;
+  vm->align = align;
   vm->base = (Addr)base;
   vm->limit = (Addr)base + size;
+  vm->reserved = size;
+  vm->mapped = 0;
   AVER(vm->base < vm->limit);  /* .assume.not-last */
-  
+
   vm->sig = VMSig;
 
-  AVER(ISVALID(VM, vm));
+  AVERT(VM, vm);
 
-  *vmReturn = vm;
-  return(ErrSUCCESS);
+  *spaceReturn = space;
+  return ResOK;
 }
 
 
-void VMDestroy(VM vm)
+void VMDestroy(Space space)
 {
   BOOL b;
-  Addr grain;
+  Align align;
+  VM vm;
 
-  AVER(ISVALID(VM, vm));
+  vm = SpaceVM(space);
+  AVERT(VM, vm);
+  AVER(vm->mapped == 0);
 
-  grain = vm->grain;
+  align = vm->align;
 
   /* This appears to be pretty pointless, since the vm descriptor page
    * is about to vanish completely.  However, the VirtaulFree might
@@ -161,33 +158,38 @@ void VMDestroy(VM vm)
 
   b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
   AVER(b == TRUE);
-  
-  b = VirtualFree((LPVOID)vm, (DWORD)0, MEM_RELEASE);
+
+  b = VirtualFree((LPVOID)space, (DWORD)0, MEM_RELEASE);
   AVER(b == TRUE);
 }
 
 
-Addr VMBase(VM vm)
+Addr VMBase(Space space)
 {
-  AVER(ISVALID(VM, vm));
-  return(vm->base);
+  VM vm = SpaceVM(space);
+
+  AVERT(VM, vm);
+  return vm->base;
 }
 
-Addr VMLimit(VM vm)
+Addr VMLimit(Space space)
 {
-  AVER(ISVALID(VM, vm));
-  return(vm->limit);
+  VM vm = SpaceVM(space);
+
+  AVERT(VM, vm);
+  return vm->limit;
 }
 
 
-Error VMMap(VM vm, Addr base, Addr limit)
+Res VMMap(Space space, Addr base, Addr limit)
 {
+  VM vm = SpaceVM(space);
   LPVOID b;
-  Addr grain = vm->grain;
+  Align align = vm->align;
 
-  AVER(ISVALID(VM, vm));
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
+  AVERT(VM, vm);
+  AVER(AddrIsAligned(base, align));
+  AVER(AddrIsAligned(limit, align));
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
@@ -197,22 +199,25 @@ Error VMMap(VM vm, Addr base, Addr limit)
   b = VirtualAlloc((LPVOID)base, (DWORD)(limit - base),
        MEM_COMMIT, PAGE_EXECUTE_READWRITE);
   if(b == NULL)
-    return(ErrRESMEM);
+    return ResMEMORY;
 
   AVER((Addr)b == base);        /* base should've been aligned */
 
-  return(ErrSUCCESS);
+  vm->mapped += (limit - base);
+
+  return ResOK;
 }
 
 
-void VMUnmap(VM vm, Addr base, Addr limit)
+void VMUnmap(Space space, Addr base, Addr limit)
 {
-  Addr grain = vm->grain;
+  VM vm = SpaceVM(space);
+  Align align = vm->align;
   BOOL b;
 
-  AVER(ISVALID(VM, vm));
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
+  AVERT(VM, vm);
+  AVER(AddrIsAligned(base, align));
+  AVER(AddrIsAligned(limit, align));
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
@@ -221,4 +226,5 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   b = VirtualFree((LPVOID)base, (DWORD)(limit - base), MEM_DECOMMIT);
   AVER(b == TRUE);  /* .assume.free.success */
+  vm->mapped -= (limit - base);
 }

@@ -2,7 +2,7 @@
  *
  *                  ANSI RECURSIVE LOCKS
  *
- *  $HopeName: MMsrc!lockan.c(trunk.3) $
+ *  $HopeName: MMsrc!lockan.c(MMdevel_restr.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -17,61 +17,55 @@
  *  The limit on the number of recursive claims is ULONG_MAX.
  */
 
-#include "std.h"
-#include "lock.h"
-#include "lockst.h"
+#include "mpm.h"
 
-SRCID("$HopeName: MMsrc!lockan.c(trunk.3) $");
+SRCID(lockan, "$HopeName: MMsrc!lockan.c(MMdevel_restr.2) $");
 
-#ifdef DEBUG
-
-Bool LockIsValid(Lock lock, ValidationType validParam)
+Bool LockCheck(Lock lock)
 {
-  AVER(lock->sig == LockSig);
+  CHECKS(Lock, lock);
   return TRUE;
-}  
-
-#endif
+}
 
 void LockInit(Lock lock)
 {
   AVER(lock != NULL);
-  lock->claims = 0; 
+  lock->claims = 0;
   lock->sig = LockSig;
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
 }
 
 void LockFinish(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   AVER(lock->claims == 0);
   lock->sig = SigInvalid;
 }
 
 void LockClaim(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   AVER(lock->claims == 0);
-  lock->claims = 1;        
+  lock->claims = 1;
 }
 
 void LockRelease(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   AVER(lock->claims == 1);
   lock->claims = 0;
 }
 
 void LockClaimRecursive(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   ++lock->claims;
   AVER(lock->claims>0);
 }
 
 void LockReleaseRecursive(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   AVER(lock->claims > 0);
   --lock->claims;
 }

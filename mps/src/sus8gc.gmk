@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SUNOS/SPARC/GCC PLATFORM
 #
-#  $HopeName: MMsrc!suspgc.gmk(trunk.15) $
+#  $HopeName: MMsrc!suspgc.gmk(MMdevel_restr.3) $
 #
 #  Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -10,8 +10,8 @@
 
 PFM = suspgc
 
-STD = assert.c deque.c error.c liban.c meter.c misc.c
-MPM = poolarvm.c vmsu.c space.c pool.c poolclas.c poolmfs.c \
+MPM = assert.c ring.c liban.c mpm.c \
+      arenavm.c vmsu.c space.c pool.c poolclas.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
       trace.c than.c protsu.c shield.c mpsi.c ld.c
 MPMS = sssusp.s

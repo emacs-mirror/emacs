@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.8) $
+ * $HopeName: MMsrc!amcss.c(MMdevel_restr.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -19,7 +19,7 @@
 #define NR_AMBIG_ROOTS  50
 #define FIELDS_MAX      2000
 #define OBJECTS         40000
-#define OBJNULL		((mps_addr_t)0xDECEA5ED)
+#define OBJNULL         ((mps_addr_t)0xDECEA5ED)
 
 static mps_pool_t pool;
 static mps_ap_t ap;
@@ -75,7 +75,7 @@ static void *test(void *arg, size_t s)
 
   for(i=0; i<NR_AMBIG_ROOTS; ++i)
     ambig_roots[i] = (mps_addr_t)rnd();
-    
+
   collections = 0;
 
   for(i=0; i<OBJECTS; ++i) {
@@ -101,11 +101,12 @@ static void *test(void *arg, size_t s)
     if(exact_roots[r] != OBJNULL)
       assert(dylan_check(exact_roots[r]));
   }
-  
+
   mps_ap_destroy(ap);
   mps_root_destroy(exact_root);
   mps_root_destroy(ambig_root);
   mps_pool_destroy(pool);
+  mps_fmt_destroy(format);
 
   return NULL;
 }
@@ -115,12 +116,12 @@ int main(void)
   mps_space_t space;
   mps_thr_t thread;
   void *r;
-  
+
   die(mps_space_create(&space), "space_create");
   die(mps_thread_reg(&thread, space), "thread_reg");
   mps_tramp(&r, test, space, 0);
   mps_thread_dereg(thread);
   mps_space_destroy(space);
-  
+
   return 0;
 }

@@ -1,35 +1,25 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.11) $
+ * $HopeName: MMsrc!pool.c(MMdevel_restr.5) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
  * functions here dispatch to pool-specific methods.
  */
 
-#include "std.h"
-#include "lib.h"
-#include "error.h"
-#include "pool.h"
-#include "poolst.h"
-#include "space.h"
-#include "ref.h"
-#include "trace.h"
-#include "prot.h"
-#include <stddef.h>
-#include <stdarg.h>
+#include "mpm.h"
 
-SRCID("$HopeName: MMsrc!pool.c(trunk.11) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_restr.5) $");
 
 
-Bool PoolIsValid(Pool pool, ValidationType validParam)
+Bool PoolCheck(Pool pool)
 {
-  AVER(pool != NULL);
-  AVER(pool->sig == PoolSig);
-  AVER(ISVALIDNESTED(DequeNode, &pool->spaceDeque));
-  AVER(ISVALIDNESTED(Deque, &pool->segDeque));
-  AVER(ISVALIDNESTED(Deque, &pool->bufferDeque));
-  AVER(IsPoT(pool->alignment));
+  CHECKS(Pool, pool);
+  CHECKU(Space, pool->space);
+  CHECKL(pool->serial < pool->space->poolSerial);
+  CHECKL(RingCheck(&pool->spaceRing));
+  CHECKL(RingCheck(&pool->bufferRing));
+  CHECKL(AlignCheck(pool->alignment));
   return TRUE;
 }
 
@@ -37,81 +27,82 @@ Bool PoolIsValid(Pool pool, ValidationType validParam)
 void PoolInit(Pool pool, Space space, PoolClass class)
 {
   AVER(pool != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
 
   pool->class = class;
-  DequeNodeInit(&pool->spaceDeque);
-  DequeInit(&pool->segDeque);
-  DequeInit(&pool->bufferDeque);
-  pool->alignment = ARCH_ALIGNMOD;
+  pool->space = space;
+  RingInit(&pool->spaceRing);
+  RingInit(&pool->bufferRing);
+  pool->alignment = ARCH_ALIGN;
 
   pool->sig = PoolSig;
+  pool->serial = space->poolSerial;
+  ++space->poolSerial;
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
 
-  DequeAppend(SpacePoolDeque(space), &pool->spaceDeque);
+  RingAppend(SpacePoolRing(space), &pool->spaceRing);
 }
 
 
 void PoolFinish(Pool pool)
 {
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
 
-  DequeNodeRemove(&pool->spaceDeque);
-  DequeNodeFinish(&pool->spaceDeque);
+  RingRemove(&pool->spaceRing);
+  RingFinish(&pool->spaceRing);
 
-  DequeFinish(&pool->bufferDeque);
-  DequeFinish(&pool->segDeque);
+  RingFinish(&pool->bufferRing);
 
   pool->sig = SigInvalid;
 }
-  
 
-Error PoolCreate(Pool *poolReturn, PoolClass class, Space space, ...)
+
+Res PoolCreate(Pool *poolReturn, PoolClass class, Space space, ...)
 {
-  Error e;
+  Res res;
   va_list arg;
   va_start(arg, space);
-  e = PoolCreateV(poolReturn, class, space, arg);
+  res = PoolCreateV(poolReturn, class, space, arg);
   va_end(arg);
-  return e;
+  return res;
 }
 
-Error PoolCreateV(Pool *poolReturn, PoolClass class,
+Res PoolCreateV(Pool *poolReturn, PoolClass class,
                   Space space, va_list arg)
 {
   AVER(poolReturn != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
   return (*class->create)(poolReturn, space, arg);
 }
 
 void PoolDestroy(Pool pool)
 {
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   (*pool->class->destroy)(pool);
 }
 
 
-Error (PoolAlloc)(Addr *pReturn, Pool pool, Size size)
+Res (PoolAlloc)(Addr *pReturn, Pool pool, Size size)
 {
-  Error e;
+  Res res;
 
   AVER(pReturn != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(size > 0);
 
-  e = (*pool->class->alloc)(pReturn, pool, size);
-  if(e != ErrSUCCESS) return e;
+  res = (*pool->class->alloc)(pReturn, pool, size);
+  if(res != ResOK) return res;
 
-  /* Make sure that the allocated address was in the pool's memory. */  
-  AVER(PoolHasAddr(pool, (Addr)*pReturn));
+  /* Make sure that the allocated address was in the pool's memory. */
+  AVER(PoolHasAddr(pool, *pReturn));
 
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 void PoolFree(Pool pool, Addr old, Size size)
 {
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(old != (Addr)0);
   AVER(PoolHasAddr(pool, old));
 
@@ -119,14 +110,14 @@ void PoolFree(Pool pool, Addr old, Size size)
     (*pool->class->free)(pool, old, size);
 }
 
-Error PoolCondemn(RefSet *condemnedReturn, Pool pool,
+Res PoolCondemn(RefSet *condemnedReturn, Pool pool,
                   Space space, TraceId ti)
 {
   if(pool->class->condemn != NULL)
     return (*pool->class->condemn)(condemnedReturn, pool, space, ti);
 
   *condemnedReturn = RefSetEmpty;
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 void PoolGrey(Pool pool, Space space, TraceId ti)
@@ -135,21 +126,20 @@ void PoolGrey(Pool pool, Space space, TraceId ti)
     (*pool->class->grey)(pool, space, ti);
 }
 
-Error PoolScan(ScanState ss, Pool pool, Bool *finishedReturn)
+Res PoolScan(ScanState ss, Pool pool, Bool *finishedReturn)
 {
   if(pool->class->scan != NULL)
     return (*pool->class->scan)(ss, pool, finishedReturn);
   else {
     *finishedReturn = TRUE;
-    return ErrSUCCESS;
+    return ResOK;
   }
 }
 
-Error PoolFix(Pool pool, ScanState ss, Arena arena, Addr *refIO)
+Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
-  if(pool->class->fix != NULL)
-    return (*pool->class->fix)(pool, ss, arena, refIO);
-  return ErrSUCCESS;
+  AVERT(Pool, pool);
+  return PoolFix(pool, ss, seg, refIO);
 }
 
 void PoolReclaim(Pool pool, Space space, TraceId ti)
@@ -159,126 +149,89 @@ void PoolReclaim(Pool pool, Space space, TraceId ti)
 }
 
 
-void PoolAccess(Pool pool, Addr seg, ProtMode mode)
+void PoolAccess(Pool pool, Seg seg, AccessSet mode)
 {
   if(pool->class->access != NULL)
     (*pool->class->access)(pool, seg, mode);
 }
 
 
-Error PoolDescribe(Pool pool, LibStream stream)
+Res PoolDescribe(Pool pool, Lib_FILE *stream)
 {
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(stream != NULL);
 
-  LibFormat(stream,
-          "Pool %p {\n"
-          "  Class %s\n"
-          "  alignment %lu\n",
-          pool,
-          pool->class->name,
-          (unsigned long)pool->alignment);
-
-  if(DequeLength(&pool->bufferDeque) > 0)
-  {
-    DequeNode node = DequeFirst(&pool->bufferDeque);
-    
-    LibFormat(stream, "  Buffers\n");
-    
-    while(node != DequeSentinel(&pool->bufferDeque))
-    {
-      node = DequeNodeNext(node);
-    }
-  }
+  Lib_fprintf(stream,
+              "Pool %p {\n"
+              "  Class %s\n"
+              "  alignment %lu\n",
+              pool,
+              pool->class->name,
+              (unsigned long)pool->alignment);
 
   if(pool->class->describe == NULL)
-    LibFormat(stream, "  No class-specific description available.\n");
+    Lib_fprintf(stream, "  No class-specific description available.\n");
   else
     (void)(*pool->class->describe)(pool, stream);
 
-  LibFormat(stream, "} Pool %p\n", pool);
+  Lib_fprintf(stream, "} Pool %p\n", pool);
 
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 
 /* Thread safe */
 Space (PoolSpace)(Pool pool)
 {
-  return PARENT(SpaceStruct, poolDeque, pool->spaceDeque.deque);
-}
-
-PoolClass (PoolGetClass)(Pool pool)
-{
-  AVER(ISVALID(Pool, pool));
-  return pool->class;
+  return pool->space;
 }
 
 
-Error PoolSegAlloc(Addr *segReturn, Pool pool, Addr size)
+Res PoolSegAlloc(Seg *segReturn, Pool pool, Size size)
 {
-  Error e;
-  Arena arena;
-  Pool arpool;
-  Addr seg;
+  Res res;
+  Seg seg;
+  Space space;
 
   AVER(segReturn != NULL);
-  AVER(ISVALID(Pool, pool));
-  arena = SpaceArena(PoolSpace(pool));
-  AVER(IsAligned(ArenaGrain(arena), size));
+  AVERT(Pool, pool);
+  space = PoolSpace(pool);
+  AVER(SizeIsAligned(size, ArenaAlign(space)));
 
-  arpool = PoolArenaPool(arena);
-  e = PoolAlloc(&seg, arpool, size);
-  if(e != ErrSUCCESS)
-    return e;
+  res = SegAlloc(&seg, space, size, pool);
+  if(res != ResOK)
+    return res;
 
-  ArenaPut(arena, seg, ARENA_POOL, (void *)pool);
+  seg->pool = pool;
 
   *segReturn = seg;
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 
-void PoolSegFree(Pool pool, Addr seg, Addr size)
+void PoolSegFree(Pool pool, Seg seg)
 {
-  Arena arena;
-  Pool arpool;
+  Space space;
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
 
-  arena = SpaceArena(PoolSpace(pool));
-  arpool = PoolArenaPool(arena);
-
-  ArenaPut(arena, seg, ARENA_POOL, (void *)arpool);
-
-  PoolFree(arpool, (Addr)seg, (Size)size);
+  space = PoolSpace(pool);
+  ShieldFlush(space);
+  SegFree(space, seg);
 }
 
 
-Pool PoolOfSeg(Arena arena, Addr seg)
+Bool PoolOfAddr(Pool *poolReturn, Space space, Addr addr)
 {
-  Pool pool;
+  Seg seg;
 
-  pool = (Pool)ArenaGet(arena, seg, ARENA_POOL);
-  AVER(ISVALID(Pool, pool));
-
-  return pool;
-}
-
-Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
-{
-  Addr seg;
-  
   AVER(poolReturn != NULL);
-  AVER(ISVALID(Arena, arena));
 
-  if(ArenaSegBase(&seg, arena, addr))
-  {
-    Pool pool = PoolOfSeg(arena, seg);
-    *poolReturn = pool;
+  if(SegOfAddr(&seg, space, addr)) {
+    *poolReturn = seg->pool;
     return TRUE;
   }
-  
+
   return FALSE;
 }
 
@@ -286,34 +239,20 @@ Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 Bool PoolHasAddr(Pool pool, Addr addr)
 {
   Pool addrPool;
-  Arena arena;
+  Space space;
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
 
-  arena = SpaceArena(PoolSpace(pool));
-  if(PoolOfAddr(&addrPool, arena, addr) && addrPool == pool)
+  space = PoolSpace(pool);
+  if(PoolOfAddr(&addrPool, space, addr) && addrPool == pool)
     return TRUE;
   else
     return FALSE;
 }
 
-     
-DequeNode (PoolSpaceDeque)(Pool pool)
+
+Align (PoolAlignment)(Pool pool)
 {
-  AVER(ISVALID(Pool, pool));
-
-  return &pool->spaceDeque;
-}
-
-
-Deque (PoolBufferDeque)(Pool pool)
-{
-  AVER(ISVALID(Pool, pool));
-  return &pool->bufferDeque;
-}
-
-Addr (PoolAlignment)(Pool pool)
-{
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   return pool->alignment;
 }

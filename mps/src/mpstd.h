@@ -17,10 +17,10 @@
 #define MPS_OS_W3
 #define MPS_ARCH_I3
 #define MPS_BUILD_MV
-#define MPS_T_WORD	unsigned long
-#define MPS_WORD_WIDTH	32
-#define MPS_WORD_SHIFT	5
-#define MPS_PF_ALIGN	4
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
 
 /* MW C/C++/ASM Lang Ref, pp175-176.  Metrowerks does not document */
 /* a way to determine the OS -- we assume MacOS 7.  */
@@ -30,10 +30,10 @@
 #define MPS_OS_S7
 #define MPS_ARCH_M6
 #define MPS_BUILD_MW
-#define MPS_T_WORD	unsigned long
-#define MPS_WORD_WIDTH	32
-#define MPS_WORD_SHIFT	5
-#define MPS_PF_ALIGN	1
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    1
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
@@ -43,10 +43,10 @@
 #define MPS_OS_SU
 #define MPS_ARCH_SP
 #define MPS_BUILD_GC
-#define MPS_T_WORD	unsigned long
-#define MPS_WORD_WIDTH	32
-#define MPS_WORD_SHIFT	5
-#define MPS_PF_ALIGN	8
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8
 
 /* GCC 2.6.3, gcc -E -dM */
 
@@ -55,11 +55,11 @@
 #define MPS_OS_O1
 #define MPS_ARCH_AL
 #define MPS_BUILD_GC
-#define MPS_T_WORD	unsigned long
-#define MPS_T_SHORT	unsigned
-#define MPS_WORD_WIDTH	64
-#define MPS_WORD_SHIFT	6
-#define MPS_PF_ALIGN	8
+#define MPS_T_WORD      unsigned long
+#define MPS_T_SHORT     unsigned
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
 
 /* GCC 2.6.3, gcc -E -dM */
 
@@ -68,10 +68,10 @@
 #define MPS_OS_LI
 #define MPS_ARCH_I3
 #define MPS_BUILD_GC
-#define MPS_T_WORD	unsigned long
-#define MPS_WORD_WIDTH	32
-#define MPS_WORD_SHIFT	5
-#define MPS_PF_ALIGN	4
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
 
 #else
 #error "Unable to detect target platform"

@@ -1,57 +1,51 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.7) $
+ *  $HopeName: MMsrc!format.c(MMdevel_restr.2) $
  */
 
-#include "std.h"
-#include "space.h"
-#include "format.h"
-#include "pool.h"
+#include "mpm.h"
 
-SRCID("$HopeName: MMsrc!format.c(trunk.7) $");
+SRCID(format, "$HopeName: MMsrc!format.c(MMdevel_restr.2) $");
 
 
-#ifdef DEBUG
-
-Bool FormatIsValid(Format format, ValidationType validParam)
+Bool FormatCheck(Format format)
 {
-  AVER(format != NULL);
-  AVER(format->sig == FormatSig);
-  AVER(ISVALIDNESTED(Space, format->space));
-  AVER(IsPoT(format->alignment));
-  /* **** alignment should be less than maximum allowed */
-  AVER(format->scan != NULL);
-  AVER(format->skip != NULL);
-  AVER(format->move != NULL);
-  AVER(format->isMoved != NULL);
-  AVER(format->copy != NULL);
-  AVER(format->pad != NULL);
+  CHECKS(Format, format);
+  CHECKU(Space, format->space);
+  CHECKL(format->serial < format->space->formatSerial);
+  CHECKL(RingCheck(&format->spaceRing));
+  CHECKL(AlignCheck(format->alignment));
+  /* @@@@ alignment should be less than maximum allowed */
+  CHECKL(format->scan != NULL);
+  CHECKL(format->skip != NULL);
+  CHECKL(format->move != NULL);
+  CHECKL(format->isMoved != NULL);
+  CHECKL(format->copy != NULL);
+  CHECKL(format->pad != NULL);
   return TRUE;
 }
 
-#endif /* DEBUG */
 
-
-Error FormatCreate(Format *formatReturn, Space space,
-                   Addr alignment,
-                   FormatScanMethod scan,
-                   FormatSkipMethod skip,
-                   FormatMoveMethod move,
-                   FormatIsMovedMethod isMoved,
-                   FormatCopyMethod copy,
-                   FormatPadMethod pad)
+Res FormatCreate(Format *formatReturn, Space space,
+                 Align alignment,
+                 FormatScanMethod scan,
+                 FormatSkipMethod skip,
+                 FormatMoveMethod move,
+                 FormatIsMovedMethod isMoved,
+                 FormatCopyMethod copy,
+                 FormatPadMethod pad)
 {
   Format format;
-  Error e;
+  Res res;
 
   AVER(formatReturn != NULL);
 
-  e = PoolAlloc((Addr *)&format, SpaceControlPool(space),
-                 sizeof(FormatStruct));
-  if(e != ErrSUCCESS)
-    return e;
+  res = SpaceAlloc((Addr *)&format, space, sizeof(FormatStruct));
+  if(res != ResOK)
+    return res;
 
   format->space = space;
+  RingInit(&format->spaceRing);
   format->alignment = alignment;
   format->scan = scan;
   format->skip = skip;
@@ -61,21 +55,29 @@ Error FormatCreate(Format *formatReturn, Space space,
   format->pad = pad;
 
   format->sig = FormatSig;
+  format->serial = space->formatSerial;
+  ++space->formatSerial;
 
-  AVER(ISVALID(Format, format));
+  AVERT(Format, format);
   
+  RingAppend(&space->formatRing, &format->spaceRing);
+
   *formatReturn = format;
-  return ErrSUCCESS;
+  return ResOK;
 }
 
 
 void FormatDestroy(Format format)
 {
-  AVER(ISVALID(Format, format));
-  format->sig = SigInvalid;
+  AVERT(Format, format);
 
-  PoolFree(SpaceControlPool(format->space),
-           (Addr)format, sizeof(FormatStruct));
+  RingRemove(&format->spaceRing);
+
+  format->sig = SigInvalid;
+  
+  RingFinish(&format->spaceRing);
+
+  SpaceFree(format->space, (Addr)format, sizeof(FormatStruct));
 }
 
 /* Must be thread safe.  See impl.c.mpsi.thread-safety. */

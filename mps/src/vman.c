@@ -1,156 +1,141 @@
-/*  impl.c.vman
+/* impl.c.vman: ANSI VM: MALLOC-BASED PSUEDO MEMORY MAPPING
  *
- *           MALLOC-BASED PSUEDO-VIRTUAL MEMORY MAPPING
- *
- *  $HopeName: MMsrc!vman.c(trunk.7) $
- *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
- *  Design: design.mps.vm
- *
- *  This is an implementation of the virtual memory mapping
- *  interface (vm.h) based on ANSI malloc.  It doesn't actually
- *  provide the mapping services described in the interface, but
- *  rather simulates then using malloc.  VMCreate simply mallocs
- *  a large block of memory to simulate the reserved address space.
- *  Map and Unmap overwrite the memory as an aid to debugging.
- *
- *  .grain: Since the memory manager needs a maximum granularity
- *  of about a page, this module restricts Map and Unmap artificially
- *  to the granularity defined as VMAN_GRAIN in mpmconf.h.
+ * $HopeName: MMsrc!vman.c(MMdevel_restr.4) $
+ * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
-#include "std.h"
-#include "mpmconf.h"
-#include "vm.h"
+#include "mpm.h"
+#include <stdlib.h>     /* for malloc and free */
+#include <string.h>     /* for memset */
 
-#include <stdlib.h>
-#include <string.h>
+SRCID(vman, "$HopeName: MMsrc!vman.c(MMdevel_restr.4) $");
 
-SRCID("$HopeName: MMsrc!vman.c(trunk.7) $");
+#define SpaceVM(_space) (&(_space)->arenaStruct.vmStruct)
 
-#define VMSig	((Sig)0x519FEE33)
-
-typedef struct VMStruct
+Bool VMCheck(VM vm)
 {
-  Sig sig;
-  Addr base, limit;	/* boundaries of malloc'd memory */
-  void *block;		/* pointer to malloc'd block, for free() */
-} VMStruct;
-
-
-Addr VMGrain(void)
-{
-  return VMAN_GRAIN;	/* see .grain */
-}
-
-
-#ifdef DEBUG
-
-Bool VMIsValid(VM vm, ValidationType validParam)
-{
-  AVER(vm != NULL);
-  AVER(vm->sig == VMSig);
-  AVER(vm->base != 0);
-  AVER(vm->limit != 0);
-  AVER(vm->base < vm->limit);
-  AVER(IsAligned(VMAN_GRAIN, vm->base));
-  AVER(IsAligned(VMAN_GRAIN, vm->limit));
-  AVER(vm->block != NULL);
-  AVER(vm->block <= (void *)vm->base);
+  CHECKS(VM, vm);
+  CHECKL(vm->base != (Addr)0);
+  CHECKL(vm->limit != (Addr)0);
+  CHECKL(vm->base < vm->limit);
+  CHECKL(AddrIsAligned(vm->base, VMAN_ALIGN));
+  CHECKL(AddrIsAligned(vm->limit, VMAN_ALIGN));
+  CHECKL(vm->block != NULL);
+  CHECKL((Addr)vm->block <= vm->base);
+  CHECKL(vm->mapped <= vm->reserved);
   return TRUE;
 }
 
-#endif /* DEBUG */
-
-
-Error VMCreate(VM *vmReturn, Addr size)
+Align VMAlign()
 {
+  return VMAN_ALIGN;
+}
+
+Res VMCreate(Space *spaceReturn, Size size)
+{
+  Space space;
   VM vm;
 
-  AVER(IsAligned(VMAN_GRAIN, size));
-  AVER(size != 0);
-  AVER(sizeof(Addr) == sizeof(size_t));	/* must conform */
+  AVER(size > 0);
+  AVER(SizeIsAligned(size, VMAN_ALIGN));
+  
+  space = (Space)malloc(sizeof(SpaceStruct));
+  if(space == NULL)
+    return ResMEMORY;
+  vm = SpaceVM(space);
 
-  vm = (VM)malloc(sizeof(VMStruct));
-  if(vm == NULL) return ErrRESMEM;
-    
-  /* Note that because we add VMAN_GRAIN rather than VMAN_GRAIN-1 */
-  /* we are not in danger of overflowing vm->limit even if malloc */
-  /* were peverse enough to give us a block at the end of memory. */
+  /* Note that because we add VMAN_ALIGN rather than */
+  /* VMAN_ALIGN-1 we are not in danger of overflowing */
+  /* vm->limit even if malloc were peverse enough to give us */
+  /* a block at the end of memory. */
 
-  vm->block = malloc((size_t)(size + VMAN_GRAIN));
+  vm->block = malloc((Size)(size + VMAN_ALIGN));
   if(vm->block == NULL) {
     free(vm);
-    return ErrRESMEM;
+    return ResMEMORY;
   }
 
-  vm->base  = AlignUp(VMAN_GRAIN, (Addr)vm->block);
-  vm->limit = vm->base + size;
-  AVER(vm->limit < (Addr)vm->block + size + VMAN_GRAIN);
+  vm->base  = AddrAlignUp((Addr)vm->block, VMAN_ALIGN);
+  vm->limit = AddrAdd(vm->base, size);
+  AVER(vm->limit < AddrAdd((Addr)vm->block, size + VMAN_ALIGN));
 
-  memset((void *)vm->base, VM_JUNKBYTE, (size_t)size);
-
+  memset((void *)vm->base, VM_JUNKBYTE, size);
+  
+  /* Lie about the reserved address space, to simulate real */
+  /* virtual memory. */
+  vm->reserved = size;
+  vm->mapped = (Size)0;
+  
   vm->sig = VMSig;
 
-  AVER(ISVALID(VM, vm));
-  
-  *vmReturn = vm;
-  return ErrSUCCESS;
+  AVERT(VM, vm);
+
+  *spaceReturn = space;  
+  return ResOK;
 }
 
-
-void VMDestroy(VM vm)
+void VMDestroy(Space space)
 {
-  AVER(ISVALID(VM, vm));
+  VM vm = SpaceVM(space);
+  
+  /* All vm areas should have been unmapped. */
+  AVER(vm->mapped == (Size)0);
+  AVER(vm->reserved == AddrOffset(vm->base, vm->limit));
+
+  memset((void *)vm->base, VM_JUNKBYTE, AddrOffset(vm->base, vm->limit));
+  free(vm->block);
   
   vm->sig = SigInvalid;
-
-  memset((void *)vm->base, VM_JUNKBYTE, (size_t)(vm->limit - vm->base));
-
-  free(vm->block);
-  free(vm);
+  free(space);
 }
 
-
-Addr VMBase(VM vm)
+Addr (VMBase)(Space space)
 {
-  AVER(ISVALID(VM, vm));
+  VM vm = SpaceVM(space);
   return vm->base;
 }
 
-Addr VMLimit(VM vm)
+Addr (VMLimit)(Space space)
 {
-  AVER(ISVALID(VM, vm));
+  VM vm = SpaceVM(space);
   return vm->limit;
 }
 
-
-Error VMMap(VM vm, Addr base, Addr limit)
+Res VMMap(Space space, Addr base, Addr limit)
 {
-  AVER(ISVALID(VM, vm));
+  VM vm = SpaceVM(space);
+  Size size;
+
+  AVER(base != (Addr)0);
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(base != 0);
-  AVER(IsAligned(VMAN_GRAIN, base));
-  AVER(IsAligned(VMAN_GRAIN, limit));
+  AVER(AddrIsAligned(base, VMAN_ALIGN));
+  AVER(AddrIsAligned(limit, VMAN_ALIGN));
   
-  memset((void *)base, (int)0, (size_t)(limit - base));
+  size = AddrOffset(base, limit);
+  memset((void *)base, (int)0, size);
+  
+  vm->mapped += size;
 
-  return ErrSUCCESS;
+  return ResOK;
 }
 
-
-void VMUnmap(VM vm, Addr base, Addr limit)
+void VMUnmap(Space space, Addr base, Addr limit)
 {
-  AVER(ISVALID(VM, vm));
+  VM vm = SpaceVM(space);
+  Size size;
+
+  AVER(base != (Addr)0);
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(base != 0);
-  AVER(IsAligned(VMAN_GRAIN, base));
-  AVER(IsAligned(VMAN_GRAIN, limit));
+  AVER(AddrIsAligned(base, VMAN_ALIGN));
+  AVER(AddrIsAligned(limit, VMAN_ALIGN));
   
-  memset((void *)base, VM_JUNKBYTE, (size_t)(limit - base));
+  size = AddrOffset(base, limit);
+  memset((void *)base, VM_JUNKBYTE, size);
+
+  AVER(vm->mapped >= size);
+  vm->mapped -= size;
 }

@@ -2,7 +2,7 @@
  *
  *                    THREAD MANAGER
  *
- *  $HopeName: MMsrc!th.h(trunk.3) $
+ *  $HopeName: MMsrc!th.h(MMdevel_restr.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -14,54 +14,39 @@
 #ifndef th_h
 #define th_h
 
-#include "std.h"
+#include "mpm.h"
 
-
-/*  == Thread Type ==
- *
- *  A Thread is a handle returned by ThreadRegister which must be
- *  used for deregistration.
- */
-
-typedef struct ThreadStruct *Thread;
-
-
-#include "pool.h"
-#include "trace.h"
-#include "ref.h"
-
-
-extern Bool ThreadIsValid(Thread thread, ValidationType validParam);
+extern Bool ThreadCheck(Thread thread);
 
 
 /*  == Register/Deregister ==
- * 
- *  Explicitly register/deregister a thread on the space threadDeque.
+ *
+ *  Explicitly register/deregister a thread on the space threadRing.
  *  Register returns a "Thread" value which needs to be used
  *  for deregistration.
  *
  *  Threads must not be multiply registered in the same space.
  */
 
-extern Error ThreadRegister(Thread *threadReturn, Space space);
+extern Res ThreadRegister(Thread *threadReturn, Space space);
 
 extern void ThreadDeregister(Thread thread, Space space);
 
 
-/*  == ThreadDequeSuspend/Resume ==
+/*  == ThreadRingSuspend/Resume ==
  *
- *  These functions suspend/resume the threads on the deque.
+ *  These functions suspend/resume the threads on the ring.
  *  If the current thread is among them, it is not suspended,
  *  nor is any attempt to resume it made.
  */
 
-extern void ThreadDequeSuspend(Deque threadDeque);
-extern void ThreadDequeResume(Deque threadDeque);
+extern void ThreadRingSuspend(Ring threadRing);
+extern void ThreadRingResume(Ring threadRing);
 
 
 extern Space ThreadSpace(Thread thread);
 
-extern Error ThreadScan(ScanState ss, Thread thread, void *stackBot);
+extern Res ThreadScan(ScanState ss, Thread thread, void *stackBot);
 
 
 #endif /* th_h */

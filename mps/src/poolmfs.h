@@ -2,7 +2,7 @@
  *
  *                    MANUAL FIXED SMALL UNIT POOL
  *
- *  $HopeName: MMsrc/!poolmfs.h(trunk.1)$
+ *  $HopeName: MMsrc!poolmfs.h(MMdevel_restr.2) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -30,36 +30,26 @@
 #ifndef poolmfs_h
 #define poolmfs_h
 
+#include "mpm.h"
 
-#include "std.h"
-#include "pool.h"
-#include "space.h"
-#include <stddef.h>
-
-
-typedef struct PoolMFSStruct *PoolMFS;
-
+typedef struct MFSStruct *MFS;
 
 extern PoolClass PoolClassMFS(void);
 
-extern Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
-  Size extendBy, Size unitSize);
-extern void PoolMFSDestroy(PoolMFS poolMFS);
-extern Error PoolMFSInit(PoolMFS poolMFS, Space space,
-  Size extendBy, Size unitSize);
-extern void PoolMFSFinish(PoolMFS poolMFS);
-extern Bool PoolMFSIsValid(PoolMFS poolMFS, ValidationType validParam);
-extern Pool (PoolMFSPool)(PoolMFS poolMFS);
+extern Res MFSCreate(MFS *mfsReturn, Space space, Size extendBy, Size unitSize);
+extern void MFSDestroy(MFS mfs);
+extern Res MFSInit(MFS mfs, Space space, Size extendBy, Size unitSize);
+extern void MFSFinish(MFS mfs);
+extern Bool MFSCheck(MFS mfs);
+extern Pool (MFSPool)(MFS mfs);
 
 
-typedef const struct PoolMFSInfoStruct *PoolMFSInfo;
+typedef const struct MFSInfoStruct *MFSInfo;
 
-struct PoolMFSInfoStruct
-{
-  Size unitSizeMin;		/* minimum unit size */
+struct MFSInfoStruct {
+  Size unitSizeMin;             /* minimum unit size */
 };
 
-extern PoolMFSInfo PoolMFSGetInfo(void);
-
+extern MFSInfo MFSGetInfo(void);
 
 #endif /* poolmfs_h */

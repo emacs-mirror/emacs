@@ -2,7 +2,7 @@
  *
  *            Leaf Object Pool Class Coverage Test
  *
- *  $HopeName: MMsrc!locv.c(trunk.5) $
+ *  $HopeName: MMsrc!locv.c(MMdevel_restr.3) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -24,7 +24,7 @@ static mps_addr_t isMoved(mps_addr_t object);
 static void copy(mps_addr_t old, mps_addr_t new);
 static void pad(mps_addr_t base, size_t size);
 
-static mps_fmt_A_s locv_fmt = 
+static mps_fmt_A_s locv_fmt =
   {
     (mps_align_t)4,
     scan,
@@ -79,6 +79,7 @@ main(void)
 
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
+  mps_fmt_destroy(format);
   mps_root_destroy(root);
   mps_space_destroy(space);
 
@@ -90,7 +91,7 @@ mps_res_t
 scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
   assert(0);
-  return ErrFAILURE;
+  return ResFAIL;
 }
 
 static

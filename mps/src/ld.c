@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.1) $
+ * $HopeName: MMsrc!ld.c(MMdevel_restr.2) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -21,7 +21,7 @@
  * increasing notion of time) and a reference set.  The epoch records
  * when the location dependency started, and the reference set
  * accumulates an approximation to the set of references which are
- * depended on.  The client can check to see if any of these 
+ * depended on.  The client can check to see if any of these
  * references have moved since the epoch.
  *
  * .history: The current epoch, and a history of object movement
@@ -30,7 +30,7 @@
  * LDAge).  To see if a dependency has become stale all that
  * is needed is to see whether its reference set intersects with the
  * movement since its epoch.
- * 
+ *
  * .mod: SPACE_LD_LENGTH is used as a modulus to calculate the offset
  * of an epoch in the history, so it's best if this is a power of two.
  * (impl.h.mpmconf)
@@ -40,12 +40,9 @@
  * (32 bits only gives 50 days at 1ms frequency)
  */
 
-#include "std.h"
-#include "space.h"
-#include "ld.h"
-#include "ref.h"
+#include "mpm.h"
 
-SRCID("$HopeName: MMsrc!ld.c(trunk.1) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(MMdevel_restr.2) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -58,7 +55,7 @@ SRCID("$HopeName: MMsrc!ld.c(trunk.1) $");
 void LDReset(LD ld, Space space)
 {
   AVER(ld != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
 
   ld->epoch = space->epoch;
   ld->rs = RefSetEmpty;
@@ -88,7 +85,7 @@ void LDAdd(LD ld, Space space, Addr addr)
 {
   AVER(ld->epoch <= space->epoch);
   /* .add.lock-free
-   * AVER(ISVALID(Space, space)); */
+   * AVERT(Space, space) */
 
   ld->rs = RefSetAdd(space, ld->rs, addr);
 }
@@ -123,9 +120,9 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
 
   AVER(ld->epoch <= space->epoch);
   /* .stale.thread-safe
-   * AVER(ISVALID(Space, space)); */
+   * AVERT(Space, space) */
 
-  if(space->epoch == ld->epoch)	/* .stale.current */
+  if(space->epoch == ld->epoch) /* .stale.current */
     return FALSE;
 
   /* Load the history refset, _then_ check to see if it's recent.
@@ -135,7 +132,7 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
   /* .stale.recent */
   /* .stale.recent.conservative */
   if(space->epoch - ld->epoch > SPACE_LD_LENGTH) {
-    rs = space->prehistory;	/* .stale.old */
+    rs = space->prehistory;     /* .stale.old */
   }
 
   return RefSetInter(ld->rs, rs) != RefSetEmpty;
@@ -152,7 +149,7 @@ void LDAge(Space space, RefSet rs)
 {
   Size i;
 
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
   AVER(rs != RefSetEmpty);
 
   /* Replace the entry for epoch - SPACE_LD_LENGTH by an empty */
@@ -171,5 +168,5 @@ void LDAge(Space space, RefSet rs)
 
   /* Advance the epoch by one. */
   ++space->epoch;
-  AVER(space->epoch != 0);	/* .epoch-size */
+  AVER(space->epoch != 0);      /* .epoch-size */
 }

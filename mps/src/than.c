@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.8) $
+ *  $HopeName: MMsrc!than.c(MMdevel_restr.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -10,104 +10,88 @@
  *  Has stubs for thread suspension.
  *  See design.mps.thread-manager.
  *
- *  .single: We only expect at most one thread on the deque.
+ *  .single: We only expect at most one thread on the ring.
  *
  *  This supports the impl.h.th
  */
 
-#include "std.h"
-#include "space.h"
-#include "trace.h"
-#include "ref.h"
-#include "th.h"
-#include "ss.h"
+#include "mpm.h"
 
-SRCID("$HopeName: MMsrc!than.c(trunk.8) $");
+SRCID(than, "$HopeName: MMsrc!than.c(MMdevel_restr.2) $");
 
-#define ThreadSig	((Sig)0x51924EAD)
 
-typedef struct ThreadStruct
+Bool ThreadCheck(Thread thread)
 {
-  Sig sig;
-  DequeNodeStruct spaceDeque;  /* attaches to space */
-} ThreadStruct;
-
-
-#ifdef DEBUG
-
-Bool ThreadIsValid(Thread thread, ValidationType validParam)
-{
-  AVER(thread->sig == ThreadSig);
+  CHECKS(Thread, thread);
+  CHECKU(Space, thread->space);
+  CHECKL(thread->serial < thread->space->threadSerial);
+  CHECKL(RingCheck(&thread->spaceRing));
   return TRUE;
 }
 
-#endif /* DEBUG */
 
-
-Error ThreadRegister(Thread *threadReturn, Space space)
+Res ThreadRegister(Thread *threadReturn, Space space)
 {
-  Error e;
+  Res res;
   Thread thread;
-  Deque deque;
+  Ring ring;
 
   AVER(threadReturn != NULL);
 
-  e = PoolAlloc((Addr *)&thread, SpaceControlPool(space),
-                sizeof(ThreadStruct));
-  if(e != ErrSUCCESS)
-    goto return_e;
+  res = SpaceAlloc((Addr *)&thread, space, sizeof(ThreadStruct));
+  if(res != ResOK) return res;
 
-  DequeNodeInit(&thread->spaceDeque);
+  thread->space = space;
+  RingInit(&thread->spaceRing);
 
   thread->sig = ThreadSig;
+  thread->serial = space->threadSerial;
+  ++space->threadSerial;
 
-  AVER(ISVALID(Thread, thread));
+  AVERT(Thread, thread);
 
-  deque = SpaceThreadDeque(space);
-  AVER(DequeIsEmpty(deque));  /* .single */
+  ring = SpaceThreadRing(space);
+  AVER(RingCheckSingle(ring));  /* .single */
 
-  DequeAppend(deque, &thread->spaceDeque);
+  RingAppend(ring, &thread->spaceRing);
 
   *threadReturn = thread;
-  e = ErrSUCCESS;
-return_e:
-  /* single exit point.  Will release lock here. */
-  return e;
+  return ResOK;
 }
 
 void ThreadDeregister(Thread thread, Space space)
 {
-  AVER(ISVALID(Thread, thread));
-  AVER(ISVALID(Space, space));
+  AVERT(Thread, thread);
+  AVERT(Space, space);
 
-  DequeNodeRemove(&thread->spaceDeque);
+  RingRemove(&thread->spaceRing);
 
   thread->sig = SigInvalid;
 
-  DequeNodeFinish(&thread->spaceDeque);
+  RingFinish(&thread->spaceRing);
 
-  PoolFree(SpaceControlPool(space), (Addr)thread, sizeof(ThreadStruct));
+  SpaceFree(space, (Addr)thread, sizeof(ThreadStruct));
 }
 
-void ThreadDequeSuspend(Deque threadDeque)
+void ThreadRingSuspend(Ring threadRing)
 {
-  AVER(ISVALID(Deque, threadDeque));
+  AVERT(Ring, threadRing);
   return;
 }
 
-void ThreadDequeResume(Deque threadDeque)
+void ThreadRingResume(Ring threadRing)
 {
-  AVER(ISVALID(Deque, threadDeque));
+  AVERT(Ring, threadRing);
   return;
 }
 
 /* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Space ThreadSpace(Thread thread)
 {
-  return PARENT(SpaceStruct, threadDeque, thread->spaceDeque.deque);
+  return thread->space;
 }
 
-Error ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 {
   return StackScan(ss, stackBot);
 }
