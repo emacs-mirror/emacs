@@ -382,7 +382,8 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		 (shell-extract-num arg))))
     (if (and num (< num (length shell-dirstack)))
 	(if (= num 0) ; condition-case because the CD could lose.
-	    (condition-case nil (progn (cd (car shell-dirstack))
+	    (condition-case nil (progn (cd (concat comint-filename-prefix
+						   (car shell-dirstack)))
 				       (setq shell-dirstack
 					     (cdr shell-dirstack))
 				       (shell-dirstack-message))
@@ -403,7 +404,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
                       ((string-equal "-" arg) shell-last-dir)
                       (t arg))))
        (setq shell-last-dir default-directory)
-       (cd new-dir)
+       (cd (concat comint-filename-prefix new-dir))
        (shell-dirstack-message))
     (error (message "Couldn't cd."))))
 
@@ -413,7 +414,8 @@ Environment variables are expanded, see function `substitute-in-file-name'."
       ;; no arg -- swap pwd and car of shell stack
       (condition-case nil (if shell-dirstack
 			      (let ((old default-directory))
-				(cd (car shell-dirstack))
+				(cd (concat comint-filename-prefix
+					    (car shell-dirstack)))
 				(setq shell-dirstack
 				      (cons old (cdr shell-dirstack)))
 				(shell-dirstack-message))
@@ -431,7 +433,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		       (back (reverse (nthcdr (- dslen num) (reverse ds))))
 		       (new-ds (append front back)))
 		  (condition-case nil
-		      (progn (cd (car new-ds))
+		      (progn (cd (concat comint-filename-prefix (car new-ds)))
 			     (setq shell-dirstack (cdr new-ds))
 			     (shell-dirstack-message))
 		    (error (message "Couldn't cd.")))))
@@ -439,7 +441,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	    ;; pushd <dir>
 	    (let ((old-wd default-directory))
 	      (condition-case nil
-		  (progn (cd arg)
+		  (progn (cd (concat comint-filename-prefix arg))
 			 (setq shell-dirstack
 			       (cons old-wd shell-dirstack))
 			 (shell-dirstack-message))
@@ -501,7 +503,7 @@ command again."
 	(setq i (match-end 0)))
       (let ((ds (reverse ds)))
 	(condition-case nil
-	    (progn (cd (car ds))
+	    (progn (cd (concat comint-filename-prefix (car ds)))
 		   (setq shell-dirstack (cdr ds))
 		   (shell-dirstack-message))
 	  (error (message "Couldn't cd.")))))))
