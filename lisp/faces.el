@@ -1308,22 +1308,27 @@ this won't have the expected effect."
   (let* ((bg-resource
 	  (and window-system
 	       (x-get-resource ".backgroundMode" "BackgroundMode")))
+	 (bg-color (frame-parameter frame 'background-color))
 	 (bg-mode
 	  (cond (frame-background-mode)
-		((null window-system)
-		 ;; No way to determine this automatically (?).
-		 'dark)
 		(bg-resource
 		 (intern (downcase bg-resource)))
-		((< (apply '+ (x-color-values
-			       (frame-parameter frame 'background-color)
-			       frame))
+		((and (null window-system) (null bg-color))
+		 ;; No way to determine this automatically (?).
+		 'dark)
+		;; Unspecified frame background color can only happen
+		;; on tty's.
+		((memq bg-color '("unspecified" "unspecified-bg"))
+		 'dark)
+		((eq bg-color "unspecified-fg") ; inverted colors
+		 'light)
+		((>= (apply '+ (x-color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
 		    ;; values add up to .6 of the white total
 		    ;; still look dark to me.
 		    (* (apply '+ (x-color-values "white" frame)) .6))
-		 'dark)
-		(t 'light)))
+		 'light)
+		(t 'dark)))
 	 (display-type
 	  (cond ((null window-system)
 		 (if (tty-display-color-p frame) 'color 'mono))
