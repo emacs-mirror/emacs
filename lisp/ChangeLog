@@ -1,3 +1,12 @@
+2002-11-13  Tim Van Holder  <tim.vanholder@anubex.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist): Don't
+	include colon and space after a file name as part of the name.
+
+2002-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* gud.el (gdb): Undo 10-26 change.
+
 2002-11-13  Kenichi Handa  <handa@m17n.org>
 
 	* replace.el (occur-engine): Set buffer-file-coding-system of
