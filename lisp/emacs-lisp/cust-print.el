@@ -9,7 +9,6 @@
 ;; LCD Archive Entry:
 ;; cust-print|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Handle print-level, print-circle and more.
-;; |$Date: 1994/04/05 21:05:09 $|$Revision: 1.14 $|
 
 ;; This file is part of GNU Emacs.
 
@@ -24,54 +23,10 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;; ===============================
-;;; $Header:  $
-;;; $Log: cust-print.el,v $
-;;; Revision 1.14  1994/04/05  21:05:09  liberte
-;;; Change install- and uninstall- to -install and -uninstall.
-;;;
-;;; Revision 1.13  1994/03/24  20:26:05  liberte
-;;; Change "internal" to "original" throughout.
-;;;         (add-custom-printer, delete-custom-printer) replace customizers.
-;;;         (with-custom-print) new
-;;;         (custom-prin1-to-string) Made it more robust.
-;;;
-;;; Revision 1.4  1994/03/23  20:34:29  liberte
-;;; * Change "emacs" to "original" - I just can't decide. 
-;;;
-;;; Revision 1.3  1994/02/21  21:25:36  liberte
-;;; * Make custom-prin1-to-string more robust when errors occur.
-;;; * Change "internal" to "emacs".
-;;;
-;;; Revision 1.2  1993/11/22  22:36:36  liberte
-;;; * Simplified and generalized printer customization.
-;;;     custom-printers is an alist of (PREDICATE . PRINTER) pairs
-;;;     for any data types.  The PRINTER function should print to
-;;;     `standard-output'  add-custom-printer and delete-custom-printer
-;;;     change custom-printers.
-;;;
-;;; * Installation function now called install-custom-print.  The
-;;;     old name is still around for now.
-;;;
-;;; * New macro with-custom-print (added earlier) - executes like
-;;;     progn but with custom-print activated temporarily.
-;;;
-;;; * Cleaned up comments for replacements of standardard printers.
-;;;
-;;; * Changed custom-prin1-to-string to use a temporary buffer.
-;;;
-;;; * Option custom-print-vectors (added earlier) - controls whether
-;;;     vectors should be printed according to print-length and
-;;;     print-length.  Emacs doesnt do this, but cust-print would
-;;;     otherwise do it only if custom printing is required.
-;;;
-;;; * Uninterned symbols are treated as non-read-equivalent.
-;;;
-
-
 ;;; Commentary:
 
 ;; This package provides a general print handler for prin1 and princ
@@ -127,7 +82,12 @@
 
 
 ;;; Code:
-;;=========================================================
+
+(defgroup cust-print nil
+  "Handles print-level and print-circle."
+  :prefix "print-"
+  :group 'lisp
+  :group 'extensions)
 
 ;; If using cl-packages:
 
@@ -157,9 +117,7 @@
 
 '(in-package cust-print)
 
-(require 'backquote)
-
-;; Emacs 18 doesnt have defalias.
+;; Emacs 18 doesn't have defalias.
 ;; Provide def for byte compiler.
 (eval-and-compile
   (or (fboundp 'defalias) (fset 'defalias 'fset)))
@@ -172,7 +130,7 @@
 ;;  "*Controls how many elements of a list, at each level, are printed.
 ;;This is defined by emacs.")
 
-(defvar print-level nil
+(defcustom print-level nil
   "*Controls how many levels deep a nested data object will print.  
 
 If nil, printing proceeds recursively and may lead to
@@ -183,10 +141,12 @@ Also see `print-length' and `print-circle'.
 If non-nil, components at levels equal to or greater than `print-level'
 are printed simply as `#'.  The object to be printed is at level 0,
 and if the object is a list or vector, its top-level components are at
-level 1.")
+level 1."
+  :type '(choice (const nil) integer)
+  :group 'cust-print)
 
 
-(defvar print-circle nil
+(defcustom print-circle nil
   "*Controls the printing of recursive structures.  
 
 If nil, printing proceeds recursively and may lead to
@@ -200,15 +160,19 @@ representation) and `#N#' in place of each subsequent occurrence,
 where N is a positive decimal integer.
 
 There is no way to read this representation in standard Emacs,
-but if you need to do so, try the cl-read.el package.")
+but if you need to do so, try the cl-read.el package."
+  :type 'boolean
+  :group 'cust-print)
 
 
-(defvar custom-print-vectors nil
+(defcustom custom-print-vectors nil
   "*Non-nil if printing of vectors should obey print-level and print-length.
 
 For Emacs 18, setting print-level, or adding custom print list or
 vector handling will make this happen anyway.  Emacs 19 obeys
-print-level, but not for vectors.")
+print-level, but not for vectors."
+  :type 'boolean
+  :group 'cust-print)
 
 
 ;; Custom printers
@@ -227,7 +191,7 @@ Don't modify this variable directly.  Use `add-custom-printer' and
 `delete-custom-printer'")
 ;; Should cust-print-original-princ and cust-print-prin be exported symbols?
 ;; Or should the standard printers functions be replaced by
-;; CP ones in elisp so that CP internal functions need not be called?
+;; CP ones in Emacs Lisp so that CP internal functions need not be called?
 
 (defun add-custom-printer (pred printer)
   "Add a pair of PREDICATE and PRINTER to `custom-printers'.
@@ -252,20 +216,20 @@ Any pair that has the same PREDICATE is first removed."
 (defun cust-print-update-custom-printers ()
   ;; Modify the definition of cust-print-use-custom-printer
   (defalias 'cust-print-use-custom-printer
-    ;; We dont really want to require the byte-compiler.
+    ;; We don't really want to require the byte-compiler.
     ;; (byte-compile
-     (` (lambda (object)
-	  (cond
-	   (,@ (mapcar (function 
-			(lambda (pair)
-			  (` (((, (car pair)) object) 
-			      ((, (cdr pair)) object)))))
-		       custom-printers))
-	   ;; Otherwise return nil.
-	   (t nil)
-	   )))
-     ;; )
-  ))
+    `(lambda (object)
+       (cond
+	,@(mapcar (function 
+		   (lambda (pair)
+		     `((,(car pair) object) 
+		       (,(cdr pair) object))))
+		  custom-printers)
+	;; Otherwise return nil.
+	(t nil)
+	))
+    ;; )
+    ))
 
 
 ;; Saving and restoring emacs printing routines.
@@ -330,11 +294,11 @@ by running `custom-print-uninstall'."
 (defalias 'with-custom-print-funcs 'with-custom-print)
 (defmacro with-custom-print (&rest body)
   "Temporarily install the custom print package while executing BODY."
-  (` (unwind-protect
-	 (progn
-	   (custom-print-install)
-	   (,@ body))
-       (custom-print-uninstall))))
+  `(unwind-protect
+       (progn
+	 (custom-print-install)
+	 ,@body)
+     (custom-print-uninstall)))
 
 
 ;; Lisp replacements for prin1 and princ, and for some subrs that use them
@@ -363,20 +327,23 @@ This is the custom-print replacement for the standard `princ'."
   (cust-print-top-level object stream 'cust-print-original-princ))
 
 
-(defun custom-prin1-to-string (object)
+(defun custom-prin1-to-string (object &optional noescape)
   "Return a string containing the printed representation of OBJECT,
 any Lisp object.  Quoting characters are used when needed to make output
-that `read' can handle, whenever this is possible.
+that `read' can handle, whenever this is possible, unless the optional
+second argument NOESCAPE is non-nil.
 
 This is the custom-print replacement for the standard `prin1-to-string'."
   (let ((buf (get-buffer-create " *custom-print-temp*")))
     ;; We must erase the buffer before printing in case an error 
-    ;; occured during the last prin1-to-string and we are in debugger.
+    ;; occurred during the last prin1-to-string and we are in debugger.
     (save-excursion
       (set-buffer buf)
       (erase-buffer))
     ;; We must be in the current-buffer when the print occurs.
-    (custom-prin1 object buf)
+    (if noescape
+	(custom-princ object buf)
+      (custom-prin1 object buf))
     (save-excursion
       (set-buffer buf)
       (buffer-string)

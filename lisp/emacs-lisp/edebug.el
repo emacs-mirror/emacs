@@ -266,7 +266,7 @@ If the result is non-nil, then break.  Errors are ignored."
   "Set the edebug-form-spec property of SYMBOL according to SPEC.
 Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
 \(naming a function), or a list."
-  (` (put (quote (, symbol)) 'edebug-form-spec (quote (, spec)))))
+  `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro def-edebug-form-spec (symbol spec-form)
   "For compatibility with old version.  Use `def-edebug-spec' instead."
@@ -398,13 +398,13 @@ save-restriction.  BODY may change the current buffer,
 and the restriction will be restored to the original buffer,
 and the current buffer remains current.
 Return the result of the last expression in BODY."
-  (` (let ((edebug:s-r-beg (point-min-marker))
-	   (edebug:s-r-end (point-max-marker)))
-       (unwind-protect
-	   (progn (,@ body))
-	 (save-excursion
-	   (set-buffer (marker-buffer edebug:s-r-beg))
-	   (narrow-to-region edebug:s-r-beg edebug:s-r-end))))))
+  `(let ((edebug:s-r-beg (point-min-marker))
+	 (edebug:s-r-end (point-max-marker)))
+     (unwind-protect
+	 (progn ,@body)
+       (save-excursion
+	 (set-buffer (marker-buffer edebug:s-r-beg))
+	 (narrow-to-region edebug:s-r-beg edebug:s-r-end)))))
 
 ;;; Display
 
@@ -850,11 +850,11 @@ or if an error occurs, leave point after it with mark at the original point."
 (put 'edebug-storing-offsets 'lisp-indent-hook 1)
 
 (defmacro edebug-storing-offsets (point &rest body)
-  (` (unwind-protect
-	 (progn 
-	   (edebug-store-before-offset (, point))
-	   (,@ body)) 
-       (edebug-store-after-offset (point)))))
+  `(unwind-protect
+       (progn 
+	 (edebug-store-before-offset ,point)
+	 ,@body) 
+     (edebug-store-after-offset (point))))
 
 
 ;;; Reader for Emacs Lisp.
@@ -1214,9 +1214,9 @@ This controls how we read comma constructs.")
 (defun edebug-wrap-def-body (forms)
   "Wrap the FORMS of a definition body."
   (if edebug-def-interactive
-      (` (let (((, (edebug-interactive-p-name))
-		(interactive-p)))
-	   (, (edebug-make-enter-wrapper forms))))
+      `(let ((,(edebug-interactive-p-name)
+	      (interactive-p)))
+	 ,(edebug-make-enter-wrapper forms))
     (edebug-make-enter-wrapper forms)))
 
 
@@ -1228,16 +1228,15 @@ This controls how we read comma constructs.")
   ;; Do this after parsing since that may find a name.
   (setq edebug-def-name 
 	(or edebug-def-name edebug-old-def-name (edebug-gensym "edebug-anon")))
-  (` (edebug-enter
-      (quote (, edebug-def-name))
-      (, (if edebug-inside-func  
-	     (` (list (,@ 
-		       ;; Doesn't work with more than one def-body!!
-		       ;; But the list will just be reversed.
-		       (nreverse edebug-def-args))))
-	   'nil))
-      (function (lambda () (,@ forms)))
-      )))
+  `(edebug-enter
+    (quote ,edebug-def-name)
+    ,(if edebug-inside-func  
+	 `(list (;; Doesn't work with more than one def-body!!
+		 ;; But the list will just be reversed.
+		 ,@(nreverse edebug-def-args)))
+       'nil)
+    (function (lambda () ,@forms))
+    ))
 
 
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented
@@ -2333,12 +2332,12 @@ error is signaled again."
 (defmacro edebug-tracing (msg &rest body)
   "Print MSG in *edebug-trace* before and after evaluating BODY.
 The result of BODY is also printed."
-  (` (let ((edebug-stack-depth (1+ edebug-stack-depth))
-	   edebug-result)
-       (edebug-print-trace-before (, msg))
-       (prog1 (setq edebug-result (progn (,@ body)))
-	 (edebug-print-trace-after 
-	  (format "%s result: %s" (, msg) edebug-result))))))
+  `(let ((edebug-stack-depth (1+ edebug-stack-depth))
+	 edebug-result)
+     (edebug-print-trace-before ,msg)
+     (prog1 (setq edebug-result (progn ,@body))
+       (edebug-print-trace-after 
+	(format "%s result: %s" ,msg edebug-result)))))
 
 (defun edebug-print-trace-before (msg)
   "Function called to print trace info before expression evaluation.
@@ -2998,14 +2997,14 @@ configurations become the same as the current configuration."
 	   (if edebug-save-windows "on" "off")))
 
 (defmacro edebug-changing-windows (&rest body)
-  (` (let ((window (selected-window)))
-       (setq edebug-inside-windows (edebug-current-windows t))
-       (edebug-set-windows edebug-outside-windows)
-       (,@ body) ;; Code to change edebug-save-windows
-       (setq edebug-outside-windows (edebug-current-windows 
-				     edebug-save-windows))
-       ;; Problem: what about outside windows that are deleted inside?
-       (edebug-set-windows edebug-inside-windows))))
+  `(let ((window (selected-window)))
+     (setq edebug-inside-windows (edebug-current-windows t))
+     (edebug-set-windows edebug-outside-windows)
+     ,@body;; Code to change edebug-save-windows
+     (setq edebug-outside-windows (edebug-current-windows 
+				   edebug-save-windows))
+     ;; Problem: what about outside windows that are deleted inside?
+     (edebug-set-windows edebug-inside-windows)))
 
 (defun edebug-toggle-save-selected-window ()
   "Toggle the saving and restoring of the selected window. 
@@ -3542,89 +3541,89 @@ edebug-mode."
 (defmacro edebug-outside-excursion (&rest body)
   "Evaluate an expression list in the outside context.
 Return the result of the last expression."
-  (` (save-excursion			; of current-buffer
-       (if edebug-save-windows
-	   (progn
-	     ;; After excursion, we will 
-	     ;; restore to current window configuration.
-	     (setq edebug-inside-windows
-		   (edebug-current-windows edebug-save-windows))
-	     ;; Restore outside windows.
-	     (edebug-set-windows edebug-outside-windows)))
+  `(save-excursion			; of current-buffer
+     (if edebug-save-windows
+	 (progn
+	   ;; After excursion, we will 
+	   ;; restore to current window configuration.
+	   (setq edebug-inside-windows
+		 (edebug-current-windows edebug-save-windows))
+	   ;; Restore outside windows.
+	   (edebug-set-windows edebug-outside-windows)))
 
-       (set-buffer edebug-buffer)  ; why?
-       ;; (use-local-map edebug-outside-map)
-       (set-match-data edebug-outside-match-data)
-       ;; Restore outside context.
-       (let (;; (edebug-inside-map (current-local-map)) ;; restore map??
-	     (last-command-char edebug-outside-last-command-char)
-	     (last-command-event edebug-outside-last-command-event)
-	     (last-command edebug-outside-last-command)
-	     (this-command edebug-outside-this-command)
-	     (unread-command-char edebug-outside-unread-command-char)
-	     (unread-command-event edebug-outside-unread-command-event)
-	     (unread-command-events edebug-outside-unread-command-events)
-	     (current-prefix-arg edebug-outside-current-prefix-arg)
-	     (last-input-char edebug-outside-last-input-char)
-	     (last-input-event edebug-outside-last-input-event)
-	     (last-event-frame edebug-outside-last-event-frame)
-	     (last-nonmenu-event edebug-outside-last-nonmenu-event)
-	     (track-mouse edebug-outside-track-mouse)
-	     (standard-output edebug-outside-standard-output)
-	     (standard-input edebug-outside-standard-input)
+     (set-buffer edebug-buffer)		; why?
+     ;; (use-local-map edebug-outside-map)
+     (set-match-data edebug-outside-match-data)
+     ;; Restore outside context.
+     (let (;; (edebug-inside-map (current-local-map)) ;; restore map??
+	   (last-command-char edebug-outside-last-command-char)
+	   (last-command-event edebug-outside-last-command-event)
+	   (last-command edebug-outside-last-command)
+	   (this-command edebug-outside-this-command)
+	   (unread-command-char edebug-outside-unread-command-char)
+	   (unread-command-event edebug-outside-unread-command-event)
+	   (unread-command-events edebug-outside-unread-command-events)
+	   (current-prefix-arg edebug-outside-current-prefix-arg)
+	   (last-input-char edebug-outside-last-input-char)
+	   (last-input-event edebug-outside-last-input-event)
+	   (last-event-frame edebug-outside-last-event-frame)
+	   (last-nonmenu-event edebug-outside-last-nonmenu-event)
+	   (track-mouse edebug-outside-track-mouse)
+	   (standard-output edebug-outside-standard-output)
+	   (standard-input edebug-outside-standard-input)
 
-	     (executing-kbd-macro edebug-outside-executing-macro)
-	     (defining-kbd-macro edebug-outside-defining-kbd-macro)
-	     (pre-command-hook edebug-outside-pre-command-hook)
-	     (post-command-hook edebug-outside-post-command-hook)
+	   (executing-kbd-macro edebug-outside-executing-macro)
+	   (defining-kbd-macro edebug-outside-defining-kbd-macro)
+	   (pre-command-hook edebug-outside-pre-command-hook)
+	   (post-command-hook edebug-outside-post-command-hook)
 
-	     ;; See edebug-display
-	     (overlay-arrow-position edebug-outside-o-a-p)
-	     (overlay-arrow-string edebug-outside-o-a-s)
-	     (cursor-in-echo-area edebug-outside-c-i-e-a)
-	     )
-	 (unwind-protect
-	     (save-excursion		; of edebug-buffer
-	       (set-buffer edebug-outside-buffer)
-	       (goto-char edebug-outside-point)
-	       (if (marker-buffer (edebug-mark-marker))
-		   (set-marker (edebug-mark-marker) edebug-outside-mark))
-	       (,@ body))
+	   ;; See edebug-display
+	   (overlay-arrow-position edebug-outside-o-a-p)
+	   (overlay-arrow-string edebug-outside-o-a-s)
+	   (cursor-in-echo-area edebug-outside-c-i-e-a)
+	   )
+       (unwind-protect
+	   (save-excursion		; of edebug-buffer
+	     (set-buffer edebug-outside-buffer)
+	     (goto-char edebug-outside-point)
+	     (if (marker-buffer (edebug-mark-marker))
+		 (set-marker (edebug-mark-marker) edebug-outside-mark))
+	     ,@body)
 
-	   ;; Back to edebug-buffer.  Restore rest of inside context.
-	   ;; (use-local-map edebug-inside-map)
-	   (if edebug-save-windows
-	       ;; Restore inside windows.
-	       (edebug-set-windows edebug-inside-windows))
+	 ;; Back to edebug-buffer.  Restore rest of inside context.
+	 ;; (use-local-map edebug-inside-map)
+	 (if edebug-save-windows
+	     ;; Restore inside windows.
+	     (edebug-set-windows edebug-inside-windows))
 
-	   ;; Save values that may have been changed.
-	   (setq 
-	    edebug-outside-last-command-char last-command-char
-	    edebug-outside-last-command-event last-command-event
-	    edebug-outside-last-command last-command
-	    edebug-outside-this-command this-command
-	    edebug-outside-unread-command-char unread-command-char
-	    edebug-outside-unread-command-event unread-command-event
-	    edebug-outside-unread-command-events unread-command-events
-	    edebug-outside-current-prefix-arg current-prefix-arg
-	    edebug-outside-last-input-char last-input-char
-	    edebug-outside-last-input-event last-input-event
-	    edebug-outside-last-event-frame last-event-frame
-	    edebug-outside-last-nonmenu-event last-nonmenu-event
-	    edebug-outside-track-mouse track-mouse
-	    edebug-outside-standard-output standard-output
-	    edebug-outside-standard-input standard-input
+	 ;; Save values that may have been changed.
+	 (setq 
+	  edebug-outside-last-command-char last-command-char
+	  edebug-outside-last-command-event last-command-event
+	  edebug-outside-last-command last-command
+	  edebug-outside-this-command this-command
+	  edebug-outside-unread-command-char unread-command-char
+	  edebug-outside-unread-command-event unread-command-event
+	  edebug-outside-unread-command-events unread-command-events
+	  edebug-outside-current-prefix-arg current-prefix-arg
+	  edebug-outside-last-input-char last-input-char
+	  edebug-outside-last-input-event last-input-event
+	  edebug-outside-last-event-frame last-event-frame
+	  edebug-outside-last-nonmenu-event last-nonmenu-event
+	  edebug-outside-track-mouse track-mouse
+	  edebug-outside-standard-output standard-output
+	  edebug-outside-standard-input standard-input
 
-	    edebug-outside-executing-macro executing-kbd-macro
-	    edebug-outside-defining-kbd-macro defining-kbd-macro
-	    edebug-outside-pre-command-hook pre-command-hook
-	    edebug-outside-post-command-hook post-command-hook
+	  edebug-outside-executing-macro executing-kbd-macro
+	  edebug-outside-defining-kbd-macro defining-kbd-macro
+	  edebug-outside-pre-command-hook pre-command-hook
+	  edebug-outside-post-command-hook post-command-hook
 
-	    edebug-outside-o-a-p overlay-arrow-position
-	    edebug-outside-o-a-s overlay-arrow-string
-	    edebug-outside-c-i-e-a cursor-in-echo-area
-	    )))				; let
-       )))
+	  edebug-outside-o-a-p overlay-arrow-position
+	  edebug-outside-o-a-s overlay-arrow-string
+	  edebug-outside-c-i-e-a cursor-in-echo-area
+	  )))				; let
+     ))
 
 (defvar cl-debug-env nil) ;; defined in cl; non-nil when lexical env used.
 
