@@ -448,11 +448,13 @@ It serves as a menu to find any of the occurrences in this buffer.
 	    ;; Put positions in increasing order to go with buffer.
 	    (setq occur-pos-list (nreverse occur-pos-list))
 	    (goto-char (point-min))
-	    (if (= (length occur-pos-list) 1)
-		(insert "1 line")
-	      (insert (format "%d lines" (length occur-pos-list))))
-	    (if (interactive-p)
-		(message "%d matching lines." (length occur-pos-list)))))))))
+	    (let ((message-string
+		   (if (= (length occur-pos-list) 1)
+		       "1 line"
+		     (format "%d lines" (length occur-pos-list)))))
+	      (insert message-string)
+	      (if (interactive-p)
+		  (message "%s matched" message-string)))))))))
 
 ;; It would be nice to use \\[...], but there is no reasonable way
 ;; to make that display both SPC and Y.
