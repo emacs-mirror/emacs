@@ -19734,9 +19734,9 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Lisp_Object string, help, map, pos;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
-    string = mode_line_string (w, x, y, area, &charpos);
+    string = mode_line_string (w, &x, &y, area, &charpos);
   else
-    string = marginal_area_string (w, x, y, area, &charpos);
+    string = marginal_area_string (w, &x, &y, area, &charpos);
 
   if (STRINGP (string))
     {
