@@ -433,6 +433,10 @@ were changed.
 ** On terminals whose erase-char is ^H (Backspace), Emacs
 now uses normal-erase-is-backspace-mode.
 
+** The variable `auto-save-file-name-transforms' now has a third element that
+controls whether or not the function `make-auto-save-file-name' will
+attempt to construct a unique auto-save name (e.g. for remote files).
+
 ** VC Changes
 
 *** There is a new user option `vc-cvs-global-switches' that allows
