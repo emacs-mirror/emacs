@@ -99,6 +99,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** `set-auto-mode' now gives the interpreter magic line (if present)
+precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
+will give the buffer XML or SGML mode, unless the file name leads to a mode in
+`xml-based-modes'.
+
++++
 ** New function `looking-back' checks whether a regular expression matches
 the text before point.  Specifying the LIMIT argument bounds how far
 back the match can start; this is a way to keep it from taking too long.
@@ -863,6 +869,9 @@ You can augment/amend the CJK translation via hash tables
 coding system now also encodes characters from most of Emacs's
 one-dimensional internal charsets, specifically the ISO-8859 ones.
 The utf-16 coding system is affected similarly.
+
+** New variable `utf-translate-cjk-unicode-range' controls which
+Unicode characters to translate in `utf-translate-cjk-mode'.
 
 ** iso-10646-1 (`Unicode') fonts can be used to display any range of
 characters encodable by the utf-8 coding system.  Just specify the
@@ -2289,6 +2298,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** An interactive specification may now use the code letter 'U' to get
+the up-event that was discarded in case the last key sequence read for a
+previous 'k' or 'K' argument was a down-event; otherwise nil is used.
+
 ** Function `translate-region' accepts also a char-table as TABLE
 argument.
 
@@ -3092,11 +3106,13 @@ KEEP-MARGINS which will preserve the window's current margin, fringe,
 and scroll-bar settings if non-nil.
 
 +++
-** Renamed file hooks to follow the convention:
+** Renamed hooks to better follow the naming convention:
 find-file-hooks to find-file-hook,
 find-file-not-found-hooks to find-file-not-found-functions,
 write-file-hooks to write-file-functions,
-write-contents-hooks to write-contents-functions.
+write-contents-hooks to write-contents-functions,
+x-lost-selection-hooks to x-lost-selection-functions,
+x-sent-selection-hooks to x-sent-selection-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
 +++

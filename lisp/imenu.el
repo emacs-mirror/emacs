@@ -62,6 +62,8 @@
 
 ;;; Code:
 
+(require 'newcomment)
+
 (eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -159,16 +161,17 @@ element should come before the second.  The arguments are cons cells;
   :type 'integer
   :group 'imenu)
 
-(defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
-  "*Progress message during the index scanning of the buffer.
-If non-nil, user gets a message during the scanning of the buffer.
-
-Relevant only if the mode-specific function that creates the buffer
-index use `imenu-progress-message', and not useful if that is fast, in
-which case you might as well set this to nil."
-  :type '(choice string
-		 (const :tag "None" nil))
-  :group 'imenu)
+;; No longer used.  KFS 2004-10-27
+;; (defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
+;;   "*Progress message during the index scanning of the buffer.
+;; If non-nil, user gets a message during the scanning of the buffer.
+;;
+;; Relevant only if the mode-specific function that creates the buffer
+;; index use `imenu-progress-message', and not useful if that is fast, in
+;; which case you might as well set this to nil."
+;;   :type '(choice string
+;;  		 (const :tag "None" nil))
+;;   :group 'imenu)
 
 (defcustom imenu-space-replacement "."
   "*The replacement string for spaces in index names.
@@ -298,16 +301,22 @@ The function in this variable is called when selecting a normal index-item.")
 ;; is calculated.
 ;; PREVPOS is the variable in which we store the last position displayed.
 (defmacro imenu-progress-message (prevpos &optional relpos reverse)
-  `(and
-    imenu-scanning-message
-    (let ((pos ,(if relpos
-		    relpos
-		  `(imenu--relative-position ,reverse))))
-      (if ,(if relpos t
-	     `(> pos (+ 5 ,prevpos)))
-	  (progn
-	    (message imenu-scanning-message pos)
-	    (setq ,prevpos pos))))))
+
+;; Made obsolete/empty, as computers are now faster than the eye, and
+;; it had problems updating the messages correctly, and could shadow
+;; more important messages/prompts in the minibuffer.  KFS 2004-10-27.
+
+;;  `(and
+;;    imenu-scanning-message
+;;    (let ((pos ,(if relpos
+;; 		    relpos
+;; 		  `(imenu--relative-position ,reverse))))
+;;      (if ,(if relpos t
+;; 	     `(> pos (+ 5 ,prevpos)))
+;; 	  (progn
+;; 	    (message imenu-scanning-message pos)
+;; 	    (setq ,prevpos pos)))))
+)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -763,7 +772,7 @@ the alist look like:
  (INDEX-NAME . INDEX-POSITION)
 or like:
  (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...)
-They may also be nested index alists like: 
+They may also be nested index alists like:
  (INDEX-NAME . INDEX-ALIST)
 depending on PATTERNS."
 
@@ -796,32 +805,37 @@ depending on PATTERNS."
 		  (regexp (nth 1 pat))
 		  (index (nth 2 pat))
 		  (function (nth 3 pat))
-		  (rest (nthcdr 4 pat)))
+		  (rest (nthcdr 4 pat))
+		  cs)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
 	      (while (re-search-backward regexp nil t)
-		(imenu-progress-message prev-pos nil t)
+		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		;; Add this sort of submenu only when we've found an
-		;; item for it, avoiding empty, duff menus.
-		(unless (assoc menu-title index-alist)
-		  (push (list menu-title) index-alist))
-		(if imenu-use-markers
-		    (setq beg (copy-marker beg)))
-		(let ((item
-		       (if function
-			   (nconc (list (match-string-no-properties index)
-					beg function)
-				  rest)
-			 (cons (match-string-no-properties index)
-			       beg)))
-		      ;; This is the desired submenu,
-		      ;; starting with its title (or nil).
-		      (menu (assoc menu-title index-alist)))
-		  ;; Insert the item unless it is already present.
-		  (unless (member item (cdr menu))
-		    (setcdr menu
-			    (cons item (cdr menu))))))))
+		(if (setq cs (save-match-data (comment-beginning)))
+		    (goto-char cs)	; skip this one, it's in a comment
+		  (goto-char beg)
+		  (imenu-progress-message prev-pos nil t)
+		  ;; Add this sort of submenu only when we've found an
+		  ;; item for it, avoiding empty, duff menus.
+		  (unless (assoc menu-title index-alist)
+		    (push (list menu-title) index-alist))
+		  (if imenu-use-markers
+		      (setq beg (copy-marker beg)))
+		  (let ((item
+			 (if function
+			     (nconc (list (match-string-no-properties index)
+					  beg function)
+				    rest)
+			   (cons (match-string-no-properties index)
+				 beg)))
+			;; This is the desired submenu,
+			;; starting with its title (or nil).
+			(menu (assoc menu-title index-alist)))
+		    ;; Insert the item unless it is already present.
+		    (unless (member item (cdr menu))
+		      (setcdr menu
+			      (cons item (cdr menu)))))))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.

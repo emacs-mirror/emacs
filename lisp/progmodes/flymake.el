@@ -94,7 +94,7 @@
 (defun flymake-split-string(str pattern)
     (cond
 	((equal flymake-emacs 'xemacs)  (flymake-split-string-remove-empty-edges str pattern))
-	(t                              (split-string str pattern))
+	(t                              (flymake-split-string-remove-empty-edges str pattern))
     )
 )
 
@@ -1243,7 +1243,8 @@ Whenether a buffer for master-file-name exists, use it as a source instead of re
 	   (" *\\(\\[javac\\]\\)? *\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[ \t\n]*\\(.+\\)"
 	2 4 nil 5)
       )
-     compilation-error-regexp-alist)
+     ;; compilation-error-regexp-alist)
+     (mapcar (lambda (x) (cdr x)) compilation-error-regexp-alist-alist)) 
     "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx)"
 )
 ;(defcustom flymake-err-line-patterns

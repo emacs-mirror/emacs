@@ -48,6 +48,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_GTK_MULTIDISPLAY
 
 /* Return the GdkDisplay that corresponds to the X display DPY.  */
+
 static GdkDisplay *
 xg_get_gdk_display (dpy)
      Display *dpy;
@@ -58,6 +59,7 @@ xg_get_gdk_display (dpy)
 /* When the GTK widget W is to be created on a display for F that
    is not the default display, set the display for W.
    W can be a GtkMenu or a GtkWindow widget.  */
+
 static void
 xg_set_screen (w, f)
      GtkWidget *w;
@@ -80,6 +82,7 @@ xg_set_screen (w, f)
 
 /* Make some defines so we can use the GTK 2.2 functions when
    compiling with GTK 2.0.  */
+
 #define xg_set_screen(w, f)
 #define gdk_xid_table_lookup_for_display(dpy, w)    gdk_xid_table_lookup (w)
 #define gdk_pixmap_foreign_new_for_display(dpy, p)  gdk_pixmap_foreign_new (p)
@@ -95,6 +98,7 @@ xg_set_screen (w, f)
    Returns non-zero if display could be opened, zero if display could not
    be opened, and less than zero if the GTK version doesn't support
    multipe displays.  */
+
 int
 xg_display_open (display_name, dpy)
      char *display_name;
@@ -114,6 +118,8 @@ xg_display_open (display_name, dpy)
 #endif /* not HAVE_GTK_MULTIDISPLAY */
 }
 
+
+/* Close display DPY.  */
 
 void
 xg_display_close (Display *dpy)
@@ -176,6 +182,7 @@ static int malloc_cpt;
    widget_value_free_list or by malloc:ing a new one.
 
    Return a pointer to the allocated structure.  */
+
 widget_value *
 malloc_widget_value ()
 {
@@ -197,6 +204,7 @@ malloc_widget_value ()
 
 /* This is analogous to free.  It frees only what was allocated
    by malloc_widget_value, and no substructures.  */
+
 void
 free_widget_value (wv)
      widget_value *wv;
@@ -221,6 +229,7 @@ free_widget_value (wv)
 
 /* Create and return the cursor to be used for popup menus and
    scroll bars on display DPY.  */
+
 GdkCursor *
 xg_create_default_cursor (dpy)
      Display *dpy;
@@ -239,6 +248,7 @@ xg_create_default_cursor (dpy)
    WIDGET is used to find the GdkColormap to use for the GdkPixbuf.
    If OLD_WIDGET is NULL, a new widget is constructed and returned.
    If OLD_WIDGET is not NULL, that widget is modified.  */
+
 static GtkWidget *
 xg_get_image_for_pixmap (f, img, widget, old_widget)
      FRAME_PTR f;
@@ -373,6 +383,7 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
 /* Set CURSOR on W and all widgets W contain.  We must do like this
    for scroll bars and menu because they create widgets internally,
    and it is those widgets that are visible.  */
+
 static void
 xg_set_cursor (w, cursor)
      GtkWidget *w;
@@ -400,6 +411,7 @@ xg_set_cursor (w, cursor)
     has expired by calling the GTK event loop.
     Also, when a menu is active, it has a small timeout before it
     pops down the sub menu under it.  */
+
 static void
 xg_process_timeouts (timer)
      struct atimer *timer;
@@ -415,6 +427,7 @@ xg_process_timeouts (timer)
 /* Start the xg_timer with an interval of 0.1 seconds, if not already started.
    xg_process_timeouts is called when the timer expires.  The timer
    started is continuous, i.e. runs until xg_stop_timer is called.  */
+
 static void
 xg_start_timer ()
 {
@@ -430,6 +443,7 @@ xg_start_timer ()
 }
 
 /* Stop the xg_timer if started.  */
+
 static void
 xg_stop_timer ()
 {
@@ -441,6 +455,7 @@ xg_stop_timer ()
 }
 
 /* Insert NODE into linked LIST.  */
+
 static void
 xg_list_insert (xg_list_node *list, xg_list_node *node)
 {
@@ -453,6 +468,7 @@ xg_list_insert (xg_list_node *list, xg_list_node *node)
 }
 
 /* Remove NODE from linked LIST.  */
+
 static void
 xg_list_remove (xg_list_node *list, xg_list_node *node)
 {
@@ -473,6 +489,7 @@ xg_list_remove (xg_list_node *list, xg_list_node *node)
    utf8 or NULL, just return STR.
    If not, a new string is allocated and the caller must free the result
    with g_free.  */
+
 static char *
 get_utf8_string (str)
      char *str;
@@ -496,6 +513,7 @@ get_utf8_string (str)
    only way to get geometry position right if the user explicitly
    asked for a position when starting Emacs.
    F is the frame we shall set geometry for.  */
+
 static void
 xg_set_geometry (f)
      FRAME_PTR f;
@@ -529,6 +547,7 @@ xg_set_geometry (f)
 /* Resize the outer window of frame F after chainging the height.
    This happend when the menu bar or the tool bar is added or removed.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
+
 static void
 xg_resize_outer_widget (f, columns, rows)
      FRAME_PTR f;
@@ -555,6 +574,7 @@ xg_resize_outer_widget (f, columns, rows)
    manually.
    F is the frame to resize.
    PIXELWIDTH, PIXELHEIGHT is the new size in pixels.  */
+
 void
 xg_resize_widgets (f, pixelwidth, pixelheight)
      FRAME_PTR f;
@@ -591,6 +611,7 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
 
 
 /* Update our widget size to be COLS/ROWS characters for frame F.  */
+
 void
 xg_frame_set_char_size (f, cols, rows)
      FRAME_PTR f;
@@ -630,6 +651,7 @@ xg_frame_set_char_size (f, cols, rows)
    X Window that aren't accessible.
 
    Return 0 if no widget match WDESC.  */
+
 GtkWidget *
 xg_win_to_widget (dpy, wdesc)
      Display *dpy;
@@ -655,6 +677,7 @@ xg_win_to_widget (dpy, wdesc)
 
 /* Fill in the GdkColor C so that it represents PIXEL.
    W is the widget that color will be used for.  Used to find colormap.  */
+
 static void
 xg_pix_to_gcolor (w, pixel, c)
      GtkWidget *w;
@@ -667,6 +690,7 @@ xg_pix_to_gcolor (w, pixel, c)
 
 /* Create and set up the GTK widgets for frame F.
    Return 0 if creation failed, non-zero otherwise.  */
+
 int
 xg_create_frame_widgets (f)
      FRAME_PTR f;
@@ -802,6 +826,7 @@ xg_create_frame_widgets (f)
    that the window now has.
    If USER_POSITION is nonzero, we set the User Position
    flag (this is useful when FLAGS is 0).  */
+
 void
 x_wm_set_size_hint (f, flags, user_position)
      FRAME_PTR f;
@@ -900,6 +925,7 @@ x_wm_set_size_hint (f, flags, user_position)
    keep the GTK and X colors in sync.
    F is the frame to change,
    BG is the pixel value to change to.  */
+
 void
 xg_set_background_color (f, bg)
      FRAME_PTR f;
@@ -923,6 +949,7 @@ xg_set_background_color (f, bg)
  ***********************************************************************/
 /* Return the dialog title to use for a dialog of type KEY.
    This is the encoding used by lwlib.  We use the same for GTK.  */
+
 static char *
 get_dialog_title (char key)
 {
@@ -963,6 +990,7 @@ get_dialog_title (char key)
    user_data is NULL (not used).
 
    Returns TRUE to end propagation of event.  */
+
 static gboolean
 dialog_delete_callback (w, event, user_data)
      GtkWidget *w;
@@ -979,6 +1007,7 @@ dialog_delete_callback (w, event, user_data)
    DEACTIVATE_CB is the callback to use when the dialog pops down.
 
    Returns the GTK dialog widget.  */
+
 static GtkWidget *
 create_dialog (wv, select_cb, deactivate_cb)
      widget_value *wv;
@@ -1101,6 +1130,7 @@ enum
    a file dialog.
    W is the file dialog widget,
    ARG points to an integer where we record what has happend.  */
+
 static void
 xg_file_sel_ok (w, arg)
      GtkWidget *w;
@@ -1113,6 +1143,7 @@ xg_file_sel_ok (w, arg)
    a file dialog.
    W is the file dialog widget,
    ARG points to an integer where we record what has happend.  */
+
 static void
 xg_file_sel_cancel (w, arg)
      GtkWidget *w;
@@ -1127,6 +1158,7 @@ xg_file_sel_cancel (w, arg)
    the dialog is popped down, but the dialog widget is not destroyed.
    W is the file dialog widget,
    ARG points to an integer where we record what has happend.  */
+
 static void
 xg_file_sel_destroy (w, arg)
      GtkWidget *w;
@@ -1144,6 +1176,7 @@ xg_file_sel_destroy (w, arg)
 
    Returns a file name or NULL if no file was selected.
    The returned string must be freed by the caller.  */
+
 char *
 xg_get_file_name (f, prompt, default_filename, mustmatch_p)
      FRAME_PTR f;
@@ -1234,6 +1267,7 @@ static xg_list_node xg_menu_item_cb_list;
 
    Returns CL_DATA if CL_DATA is not NULL,  or a pointer to a newly
    allocated xg_menu_cb_data if CL_DATA is NULL.  */
+
 static xg_menu_cb_data *
 make_cl_data (cl_data, f, highlight_cb)
      xg_menu_cb_data *cl_data;
@@ -1267,6 +1301,7 @@ make_cl_data (cl_data, f, highlight_cb)
    HIGHLIGHT_CB could change, there is no check that the same
    function is given when modifying a menu bar as was given when
    creating the menu bar.  */
+
 static void
 update_cl_data (cl_data, f, highlight_cb)
      xg_menu_cb_data *cl_data;
@@ -1284,6 +1319,7 @@ update_cl_data (cl_data, f, highlight_cb)
 
 /* Decrease reference count for CL_DATA.
    If reference count is zero, free CL_DATA.  */
+
 static void
 unref_cl_data (cl_data)
      xg_menu_cb_data *cl_data;
@@ -1300,6 +1336,7 @@ unref_cl_data (cl_data)
 }
 
 /* Function that marks all lisp data during GC.  */
+
 void
 xg_mark_data ()
 {
@@ -1321,6 +1358,7 @@ xg_mark_data ()
 /* Callback called when a menu item is destroyed.  Used to free data.
    W is the widget that is being destroyed (not used).
    CLIENT_DATA points to the xg_menu_item_cb_data associated with the W.  */
+
 static void
 menuitem_destroy_callback (w, client_data)
      GtkWidget *w;
@@ -1340,6 +1378,7 @@ menuitem_destroy_callback (w, client_data)
    CLIENT_DATA points to the xg_menu_item_cb_data associated with the W.
 
    Returns FALSE to tell GTK to keep processing this event.  */
+
 static gboolean
 menuitem_highlight_callback (w, event, client_data)
      GtkWidget *w;
@@ -1364,6 +1403,7 @@ menuitem_highlight_callback (w, event, client_data)
 /* Callback called when a menu is destroyed.  Used to free data.
    W is the widget that is being destroyed (not used).
    CLIENT_DATA points to the xg_menu_cb_data associated with W.  */
+
 static void
 menu_destroy_callback (w, client_data)
      GtkWidget *w;
@@ -1379,6 +1419,7 @@ menu_destroy_callback (w, client_data)
    W is the widget that does the grab (not used).
    UNGRAB_P is TRUE if this is an ungrab, FALSE if it is a grab.
    CLIENT_DATA is NULL (not used).  */
+
 static void
 menu_grab_callback (GtkWidget *widget,
                     gboolean ungrab_p,
@@ -1398,6 +1439,7 @@ menu_grab_callback (GtkWidget *widget,
    must be non-NULL) and can be inserted into a menu item.
 
    Returns the GtkHBox.  */
+
 static GtkWidget *
 make_widget_for_menu_item (utf8_label, utf8_key)
      char *utf8_label;
@@ -1437,6 +1479,7 @@ make_widget_for_menu_item (utf8_label, utf8_key)
 
    Unfortunately, keys don't line up as nicely as in Motif,
    but the MacOS X version doesn't either, so I guess that is OK.  */
+
 static GtkWidget *
 make_menu_item (utf8_label, utf8_key, item, group)
      char *utf8_label;
@@ -1486,6 +1529,7 @@ make_menu_item (utf8_label, utf8_key, item, group)
 
 /* Return non-zero if LABEL specifies a separator (GTK only has one
    separator type)  */
+
 static int
 xg_separator_p (char *label)
 {
@@ -1534,6 +1578,7 @@ xg_separator_p (char *label)
 static int xg_detached_menus;
 
 /* Returns non-zero if there are detached menus.  */
+
 int
 xg_have_tear_offs ()
 {
@@ -1544,6 +1589,7 @@ xg_have_tear_offs ()
    decrease the xg_detached_menus count.
    WIDGET is the top level window that is removed (the parent of the menu).
    CLIENT_DATA is not used.  */
+
 static void
 tearoff_remove (widget, client_data)
      GtkWidget *widget;
@@ -1556,6 +1602,7 @@ tearoff_remove (widget, client_data)
    xg_detached_menus count.
    WIDGET is the GtkTearoffMenuItem.
    CLIENT_DATA is not used.  */
+
 static void
 tearoff_activate (widget, client_data)
      GtkWidget *widget;
@@ -1585,6 +1632,7 @@ tearoff_activate (widget, client_data)
    in the group.  On exit, *GROUP contains the radio item group.
 
    Returns the created GtkWidget.  */
+
 static GtkWidget *
 xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
      widget_value *item;
@@ -1802,6 +1850,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
 
    Returns the widget created.  */
+
 GtkWidget *
 xg_create_widget (type, name, f, val,
                   select_cb, deactivate_cb, highlight_cb)
@@ -1859,6 +1908,7 @@ xg_create_widget (type, name, f, val,
 }
 
 /* Return the label for menu item WITEM.  */
+
 static const char *
 xg_get_menu_item_label (witem)
      GtkMenuItem *witem;
@@ -1868,6 +1918,7 @@ xg_get_menu_item_label (witem)
 }
 
 /* Return non-zero if the menu item WITEM has the text LABEL.  */
+
 static int
 xg_item_label_same_p (witem, label)
      GtkMenuItem *witem;
@@ -1887,10 +1938,10 @@ xg_item_label_same_p (witem, label)
   return is_same;
 }
 
-/* Remove widgets in LIST from container WCONT.  */
+/* Destroy widgets in LIST.  */
+
 static void
-remove_from_container (wcont, list)
-     GtkWidget *wcont;
+xg_destroy_widgets (list)
      GList *list;
 {
   GList *iter;
@@ -1899,15 +1950,7 @@ remove_from_container (wcont, list)
     {
       GtkWidget *w = GTK_WIDGET (iter->data);
 
-      /* Add a ref to w so we can explicitly destroy it later.  */
-      gtk_widget_ref (w);
-      gtk_container_remove (GTK_CONTAINER (wcont), w);
-
-      /* If there is a menu under this widget that has been detached,
-         there is a reference to it, and just removing w from the
-         container does not destroy the submenu.  By explicitly
-         destroying w we make sure the submenu is destroyed, thus
-         removing the detached window also if there was one.  */
+      /* Destroying the widget will remove it from the container it is in.  */
       gtk_widget_destroy (w);
     }
 }
@@ -1923,6 +1966,7 @@ remove_from_container (wcont, list)
    CL_DATA points to the callback data to be used for this menu bar.
 
    This function calls itself to walk through the menu bar names.  */
+
 static void
 xg_update_menubar (menubar, f, list, iter, pos, val,
                    select_cb, highlight_cb, cl_data)
@@ -1941,7 +1985,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
   else if (iter && ! val)
     {
       /* Item(s) have been removed.  Remove all remaining items.  */
-      remove_from_container (menubar, iter);
+      xg_destroy_widgets (iter);
 
       /* All updated.  */
       val = 0;
@@ -2095,6 +2139,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
    CL_DATA is the data to set in the widget for menu invokation.  */
+
 static void
 xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
      widget_value *val;
@@ -2229,6 +2274,7 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
 }
 
 /* Update the toggle menu item W so it corresponds to VAL.  */
+
 static void
 xg_update_toggle_item (val, w)
      widget_value *val;
@@ -2238,6 +2284,7 @@ xg_update_toggle_item (val, w)
 }
 
 /* Update the radio menu item W so it corresponds to VAL.  */
+
 static void
 xg_update_radio_item (val, w)
      widget_value *val;
@@ -2367,8 +2414,8 @@ xg_update_submenu (submenu, f, val,
     {
       /* If we are adding new menu items below, we must remove from
          first radio button so that radio groups become correct.  */
-      if (cur && first_radio) remove_from_container (submenu, first_radio);
-      else remove_from_container (submenu, iter);
+      if (cur && first_radio) xg_destroy_widgets (first_radio);
+      else xg_destroy_widgets (iter);
     }
 
   if (cur)
@@ -2400,6 +2447,7 @@ xg_update_submenu (submenu, f, val,
    SELECT_CB is the callback to use when a menu item is selected.
    DEACTIVATE_CB is the callback to use when a sub menu is not shown anymore.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.  */
+
 void
 xg_modify_menubar_widgets (menubar, f, val, deep_p,
                            select_cb, deactivate_cb, highlight_cb)
@@ -2544,12 +2592,14 @@ free_frame_menubar (f)
 
 /* Setting scroll bar values invokes the callback.  Use this variable
    to indicate that callback should do nothing.  */
+
 int xg_ignore_gtk_scrollbar;
 
 /* SET_SCROLL_BAR_X_WINDOW assumes the second argument fits in
    32 bits.  But we want to store pointers, and they may be larger
    than 32 bits.  Keep a mapping from integer index to widget pointers
    to get around the 32 bit limitation.  */
+
 static struct
 {
   GtkWidget **widgets;
@@ -2558,9 +2608,11 @@ static struct
 } id_to_widget;
 
 /* Grow this much every time we need to allocate more  */
+
 #define ID_TO_WIDGET_INCR  32
 
 /* Store the widget pointer W in id_to_widget and return the integer index.  */
+
 static int
 xg_store_widget_in_map (w)
      GtkWidget *w;
@@ -2599,6 +2651,7 @@ xg_store_widget_in_map (w)
 
 /* Remove pointer at IDX from id_to_widget.
    Called when scroll bar is destroyed.  */
+
 static void
 xg_remove_widget_from_map (idx)
      int idx;
@@ -2611,6 +2664,7 @@ xg_remove_widget_from_map (idx)
 }
 
 /* Get the widget pointer at IDX from id_to_widget. */
+
 static GtkWidget *
 xg_get_widget_from_map (idx)
      int idx;
@@ -2623,6 +2677,7 @@ xg_get_widget_from_map (idx)
 
 /* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
+
 int
 xg_get_scroll_id_for_window (dpy, wid)
      Display *dpy;
@@ -2646,6 +2701,7 @@ xg_get_scroll_id_for_window (dpy, wid)
 /* Callback invoked when scroll bar WIDGET is destroyed.
    DATA is the index into id_to_widget for WIDGET.
    We free pointer to last scroll bar values here and remove the index.  */
+
 static void
 xg_gtk_scroll_destroy (widget, data)
      GtkWidget *widget;
@@ -2668,6 +2724,7 @@ xg_gtk_scroll_destroy (widget, data)
 
    Returns FALSE to tell GTK that it shall continue propagate the event
    to widgets.  */
+
 static gboolean
 scroll_bar_button_cb (widget, event, user_data)
      GtkWidget *widget;
@@ -2692,6 +2749,7 @@ scroll_bar_button_cb (widget, event, user_data)
    bar changes.
    SCROLL_BAR_NAME is the name we use for the scroll bar.  Can be used
    to set resources for the widget.  */
+
 void
 xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
      FRAME_PTR f;
@@ -2753,6 +2811,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
 }
 
 /* Make the scroll bar represented by SCROLLBAR_ID visible.  */
+
 void
 xg_show_scroll_bar (scrollbar_id)
      int scrollbar_id;
@@ -2763,6 +2822,7 @@ xg_show_scroll_bar (scrollbar_id)
 }
 
 /* Remove the scroll bar represented by SCROLLBAR_ID from the frame F.  */
+
 void
 xg_remove_scroll_bar (f, scrollbar_id)
      FRAME_PTR f;
@@ -2782,6 +2842,7 @@ xg_remove_scroll_bar (f, scrollbar_id)
    in frame F.
    TOP/LEFT are the new pixel positions where the bar shall appear.
    WIDTH, HEIGHT is the size in pixels the bar shall have.  */
+
 void
 xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
      FRAME_PTR f;
@@ -2810,6 +2871,7 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
 
 /* Set the thumb size and position of scroll bar BAR.  We are currently
    displaying PORTION out of a whole WHOLE, and our position POSITION.  */
+
 void
 xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      struct scroll_bar *bar;
@@ -2902,6 +2964,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
    W is the button widget in the tool bar that got pressed,
    CLIENT_DATA is an integer that is the index of the button in the
    tool bar.  0 is the first button.  */
+
 static void
 xg_tool_bar_callback (w, client_data)
      GtkWidget *w;
@@ -2938,6 +3001,7 @@ xg_tool_bar_callback (w, client_data)
    WBOX is the handle box widget that enables detach/attach of the tool bar.
    W is the tool bar widget.
    CLIENT_DATA is a pointer to the frame the tool bar belongs to.  */
+
 static void
 xg_tool_bar_detach_callback (wbox, w, client_data)
      GtkHandleBox *wbox;
@@ -2966,6 +3030,7 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
    WBOX is the handle box widget that enables detach/attach of the tool bar.
    W is the tool bar widget.
    CLIENT_DATA is a pointer to the frame the tool bar belongs to.  */
+
 static void
 xg_tool_bar_attach_callback (wbox, w, client_data)
      GtkHandleBox *wbox;
@@ -2995,6 +3060,7 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
    tool bar.  0 is the first button.
 
    Returns FALSE to tell GTK to keep processing this event.  */
+
 static gboolean
 xg_tool_bar_help_callback (w, event, client_data)
      GtkWidget *w;
@@ -3040,6 +3106,7 @@ xg_tool_bar_help_callback (w, event, client_data)
    CLIENT_DATA is unused.
 
    Returns FALSE to tell GTK to keep processing this event.  */
+
 static gboolean
 xg_tool_bar_item_expose_callback (w, event, client_data)
      GtkWidget *w;
@@ -3070,6 +3137,7 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
    CLIENT_DATA is pointing to the frame for this tool bar.
 
    Returns FALSE to tell GTK to keep processing this event.  */
+
 static gboolean
 xg_tool_bar_expose_callback (w, event, client_data)
      GtkWidget *w;
@@ -3079,6 +3147,8 @@ xg_tool_bar_expose_callback (w, event, client_data)
   update_frame_tool_bar ((FRAME_PTR) client_data);
   return FALSE;
 }
+
+/* Create a tool bar for frame F.  */
 
 static void
 xg_create_tool_bar (f)
@@ -3132,6 +3202,8 @@ xg_create_tool_bar (f)
 
   SET_FRAME_GARBAGED (f);
 }
+
+/* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
 void
 update_frame_tool_bar (f)
@@ -3299,6 +3371,9 @@ update_frame_tool_bar (f)
 
   UNBLOCK_INPUT;
 }
+
+/* Deallocate all resources for the tool bar on frame F.
+   Remove the tool bar.  */
 
 void
 free_frame_tool_bar (f)

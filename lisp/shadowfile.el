@@ -518,8 +518,9 @@ Pending copies are stored in variable `shadow-files-to-copy', and in
 `shadow-save-buffers-kill-emacs', so it is not usually necessary to
 call it manually."
   (interactive "P")
-  (if (and (not shadow-files-to-copy) (interactive-p))
-      (message "No files need to be shadowed.")
+  (if (not shadow-files-to-copy)
+      (if (interactive-p)
+	  (message "No files need to be shadowed."))
     (save-excursion
       (map-y-or-n-p (function
 		     (lambda (pair)

@@ -3265,7 +3265,7 @@ extern Lisp_Object Vdirectory_sep_char;
 extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 #define USE_SAFE_ALLOCA			\
-  int sa_count = SPECPDL_INDEX ()
+  int sa_count = SPECPDL_INDEX (), sa_must_free = 0
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 
@@ -3276,6 +3276,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
     else						  \
       {							  \
 	buf = (type) xmalloc (size);			  \
+	sa_must_free++;					  \
 	record_unwind_protect (safe_alloca_unwind,	  \
 			       make_save_value (buf, 0)); \
       }							  \
@@ -3283,10 +3284,12 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 /* SAFE_FREE frees xmalloced memory and enables GC as needed.  */
 
-#define SAFE_FREE(size)			\
+#define SAFE_FREE()			\
   do {					\
-    if ((size) >= MAX_ALLOCA)		\
+    if (sa_must_free) {			\
+      sa_must_free = 0;			\
       unbind_to (sa_count, Qnil);	\
+    }					\
   } while (0)
 
 
@@ -3303,16 +3306,10 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 	buf = (Lisp_Object *) xmalloc (size_);		  \
 	arg_ = make_save_value (buf, nelt);		  \
 	XSAVE_VALUE (arg_)->dogc = 1;			  \
+	sa_must_free++;					  \
 	record_unwind_protect (safe_alloca_unwind, arg_); \
       }							  \
   } while (0)
-
-#define SAFE_FREE_LISP(nelt)				\
-  do {							\
-    if (((nelt) * sizeof (Lisp_Object)) >= MAX_ALLOCA)	\
-      unbind_to (sa_count, Qnil);			\
-  } while (0)
-
 
 
 #endif /* EMACS_LISP_H */

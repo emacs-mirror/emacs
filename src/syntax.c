@@ -2799,12 +2799,23 @@ do { prev_from = from;				\
       INC_FROM;
       code = prev_from_syntax & 0xff;
 
-      if (code == Scomment)
+      if (from < end
+	  && SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax)
+	  && (c1 = FETCH_CHAR (from_byte),
+	      SYNTAX_COMSTART_SECOND (c1)))
+	/* Duplicate code to avoid a complex if-expression
+	   which causes trouble for the SGI compiler.  */
 	{
-	  state.comstyle = SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax);
-	  state.incomment = (SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax) ?
-			     1 : -1);
+	  /* Record the comment style we have entered so that only
+	     the comment-end sequence of the same style actually
+	     terminates the comment section.  */
+	  state.comstyle = SYNTAX_COMMENT_STYLE (c1);
+	  comnested = SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax);
+	  comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
+	  state.incomment = comnested ? 1 : -1;
 	  state.comstr_start = prev_from;
+	  INC_FROM;
+	  code = Scomment;
 	}
       else if (code == Scomment_fence)
 	{
@@ -2816,24 +2827,13 @@ do { prev_from = from;				\
 	  state.comstr_start = prev_from;
 	  code = Scomment;
 	}
-     else if (from < end)
-	if (SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax))
-	  if (c1 = FETCH_CHAR (from_byte),
-	      SYNTAX_COMSTART_SECOND (c1))
-	    /* Duplicate code to avoid a complex if-expression
-	       which causes trouble for the SGI compiler.  */
-	    {
-	      /* Record the comment style we have entered so that only
-		 the comment-end sequence of the same style actually
-		 terminates the comment section.  */
-	      state.comstyle = SYNTAX_COMMENT_STYLE (c1);
-	      comnested = SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax);
-	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
-	      state.incomment = comnested ? 1 : -1;
-	      state.comstr_start = prev_from;
-	      INC_FROM;
-	      code = Scomment;
-	    }
+      else if (code == Scomment)
+	{
+	  state.comstyle = SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax);
+	  state.incomment = (SYNTAX_FLAGS_COMMENT_NESTED (prev_from_syntax) ?
+			     1 : -1);
+	  state.comstr_start = prev_from;
+	}
 
       if (SYNTAX_FLAGS_PREFIX (prev_from_syntax))
 	continue;

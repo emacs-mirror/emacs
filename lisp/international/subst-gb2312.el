@@ -32,9 +32,9 @@
  (lambda (pair)
    (let ((unicode (car pair))
 	 (char (cadr pair)))
-     (if (or (and (>= unicode #x2e80) (<= unicode #xd7a3))
-	     (and (>= unicode #xff00) (<= unicode #xffef)))
-	 (puthash unicode  char ucs-unicode-to-mule-cjk))
+     ;; exclude non-supporting components from decode table
+     (if (utf-translate-cjk-substitutable-p unicode)
+	 (puthash unicode char ucs-unicode-to-mule-cjk))
      (puthash char unicode ucs-mule-cjk-to-unicode)))
  '((#xa4 ?¡è)
    (#xa7 ?¡ì)

@@ -1,7 +1,221 @@
+2004-10-30  Simon Josefsson  <jas@extundo.com>
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Recognize
+	AS_* too.
+
+2004-10-29  Simon Josefsson  <jas@extundo.com>
+
+	* subr.el (read-passwd): Move back from password.el.
+
+	* password.el: Remove, not ready yet.
+
+2004-10-29  Andreas Schwab  <schwab@suse.de>
+
+	* speedbar.el (speedbar-frame-parameters): Improve customize type.
+
+2004-10-29  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-show-mark): Replace the last occurrence of
+	x-lost-selection-hooks with x-lost-selection-functions.
+
+2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-show-mark): Adjust to new name and don't assume
+	x-lost-selection-functions is bound.
+
+	* mouse-sel.el (mouse-sel-mode):
+	* emacs-lisp/lselect.el: Adjust to new names for
+	x-(lost|sent)-selection-functions.
+
+	* subr.el (x-lost-selection-hooks, x-sent-selection-hooks):
+	New obsolete aliases of x-lost-selection-functions and
+	x-sent-selection-functions.
+
+2004-10-28  Kim F. Storm  <storm@cua.dk>
+
+	* imenu.el (imenu-scanning-message): Remove.
+	(imenu-progress-message): Make it a no-op.
+
+2004-10-28  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (set-auto-mode): Call `throw' correctly.
+
+2004-10-28  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-list-for-emacs): Add ("Info" . "info")
+	to search `Info-...' commands in `info' manual.
+	(Info-goto-emacs-command-node, Info-goto-emacs-key-command-node):
+	Add 'info-file "emacs" property.
+	(Info-find-emacs-command-nodes): Fix index line number regexp.
+	Set real line number (instead of fake 0) in first element of the
+	returned list.
+	(Info-goto-emacs-command-node): Use line number of first element
+	to set point in the first found Info node.
+
+	* progmodes/grep.el (grep-regexp-alist): Move match highlighting
+	code to `grep-mode-font-lock-keywords'.
+	(grep-mode-font-lock-keywords): Delete grep markers instead
+	of making them invisible.
+
+2004-10-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mail/emacsbug.el (report-emacs-bug): Insert x-server-vendor
+	and x-server-version in bug report.
+
+2004-10-28  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (set-auto-mode-0): New function.
+	(set-auto-mode): Use it to handle aliased modes and to
+	be consistent between C-x C-f and C-x C-w.
+
+2004-10-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-translate-cjk-charsets): Add
+	katakana-jisx0201.
+
+	* international/subst-jis.el: Add data for JISX0201.
+
+2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/hilit19.el (hilit-mode): New function.
+	Move all the toplevel side-effecting stuff into it, so that loading
+	hilit19 doesn't mess everything up any more.
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* add-log.el (add-change-log-entry): Set up mailing address
+	and full name later, and don't alter add-log-mailing-address
+	or add-log-full-name.
+
+	* elide-head.el (elide-head): Change error to message.
+	(elide-head-show): Likewise.
+
+	* apropos.el (apropos-macrop): Doc fix.
+
+	* mouse.el (mouse-show-mark): Do most processing the same
+	regardless of transient-mark-mode.
+
+	* shadowfile.el (shadow-copy-files): Use interactive-p
+	only to control whether to print a message.
+
+	* tar-mode.el (tar-mode): Use write-contents-functions,
+	not write-contents-hooks.
+
+	* eshell/em-unix.el (eshell-du-sum-directory): Don't use
+	directory-sep-char.
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* strokes.el (strokes-unload-hook): Fix previous change.
+
+	* type-break.el (type-break-run-at-time): Always use run-at-time;
+	forget the alternatives.
+	(type-break-cancel-function-timers): Always use cancel-function-timers;
+	forget the alternatives.
+
+	* pcomplete.el (pcomplete-entries): Don't use directory-sep-char.
+
+2004-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/subst-jis.el: Use utf-translate-cjk-substitutable-p.
+
+	* international/subst-gb2312.el: Likewise.
+
+	* international/subst-big5.el: Likewise.
+
+	* international/subst-ksc.el: Likewise.
+
+	* international/utf-8.el (utf-translate-cjk-unicode-range-string):
+	New variable.
+	(utf-translate-cjk-set-unicode-range): New function.
+	(utf-translate-cjk-unicode-range): Make it customizable.
+	(utf-8-post-read-conversion):
+	Use utf-translate-cjk-unicode-range-string.
+	(ccl-decode-mule-utf-8): Check utf-subst-table-for-decode for more
+	Unicode ranges.
+
+2004-10-26  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Add pod, js, xbm and xpm and group
+	trivial variants to shorten the list.
+	(xml-based-modes): New var.
+	(set-auto-mode): Give interpreter-mode-alist or <?xml or <!DOCTYPE
+	declaration higher priority than auto-mode-alist.
+
+	* find-file.el (cc-other-file-alist): Bring it in line with
+	cc-mode's auto-mode-alist entries and use \' instead of $.
+
+	* textmodes/sgml-mode.el (sgml-mode): Fix imenu-generic-expression
+	and add "Id" and "Name" submenus to it.
+
+	* imenu.el (imenu--generic-function): Skip matches in comments.
+
+2004-10-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc,full-calc, calc-quit, calc-keypad)
+	(full-calc-keypad, calc-trail-display):  Use an extra argument
+	instead of `interactive-p'.
+
+	* calc/calc-misc.el (calc-other-window): Use an extra argument
+	instead of `interactive-p'.
+
+	* calc/calc-rewr.el (calc-match): Use an extra argument instead of
+	`interactive-p'.
+
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (describe-key): Describe both down-event and up-event
+	for a mouse click.
+
+2004-10-26  Richard M. Stallman  <rms@gnu.org>
+
+	* woman.el (woman): Don't call interactive-p.
+
+	* pcomplete.el (pcomplete): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+	* menu-bar.el (menu-bar-make-toggle): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+	* man.el (Man-cleanup-manpage): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+2004-10-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-split-string):
+	Use `flymake-split-string-remove-empty-edges' in any case.
+
+2004-10-26  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Use `compilation-error-regexp-alist-alist' instead of
+	`compilation-error-regexp-alist'.
+
+2004-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Fix up the spurious
+	verbatim face on the \ of \end{verbatim}.
+
+2004-10-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-incom.el (calc-digit-dots):  Inhibit read-only before
+	erasing minibuffer.
+
+2004-10-25  Simon Josefsson  <jas@extundo.com>
+
+	* subr.el (read-passwd): Move to net/password.el.
+
+	* net/password.el (read-passwd): Add.  Autoload it.
+
+2004-10-25  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* mouse-sel.el (mouse-sel-mode): Specify custom group.
+
+	* simple.el (process-file): Fix logic.
+
 2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* indent.el (set-left-margin, set-right-margin): Delete redundant
-	code.
+	* indent.el (set-left-margin, set-right-margin): Delete redundant code.
 	(increase-right-margin): Remove erroneous call to `interactive-p'.
 
 2004-10-24  Kim F. Storm  <storm@cua.dk>
@@ -22,24 +236,23 @@
 
 2004-10-24  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/gdb-ui.el (gdb-assembler-font-lock-keywords): Handle
-	periods and underscores in a function name.
+	* progmodes/gdb-ui.el (gdb-assembler-font-lock-keywords):
+	Handle periods and underscores in a function name.
 	Remove the address fontification.
 
 2004-10-24 Masatake YAMATO <jet@gyve.org>
 
-	* progmodes/asm-mode.el (asm-font-lock-keywords): Use
-	font-lock-variable-name-face for registers.
+	* progmodes/asm-mode.el (asm-font-lock-keywords):
+	Use font-lock-variable-name-face for registers.
 
 2004-10-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-get-create-buffer): Allow modes to run
 	kill-all-local-variables.
 	(gdb-breakpoints-mode, gdb-frames-mode, gdb-threads-mode)
-	(gdb-registers-mode, gdb-locals-mode, gdb-assembler-mode): Use
-	kill-all-local-variables and provide mode-hooks.
-	(gdb-assembler-font-lock-keywords): New font lock keywords
-	definition.
+	(gdb-registers-mode, gdb-locals-mode, gdb-assembler-mode):
+	Use kill-all-local-variables and provide mode-hooks.
+	(gdb-assembler-font-lock-keywords): New font lock keywords definition.
 	(gdb-assembler-mode): Use 'gdb-assembler-font-lock-keywords'.
 	Suggested by Masatake YAMATO <jet@gyve.org>.
 
@@ -84,12 +297,15 @@
 2004-10-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calc-alg-ent-map, calc-alg-ent-esc-map):
-	Declared these variables with defvar.
+	Declare these variables with defvar.
 
 	* calc/calc-aent.el (calc-do-alg-entry): Since `calc-alg-ent-map'
 	is bound, only check to see if it is bound.
 
 2004-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors):
+	Don't output messages.
 
 	* calc/calc-help.el (calc-describe-bindings): Fix last change.
 

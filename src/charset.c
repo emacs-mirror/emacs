@@ -1673,7 +1673,7 @@ usage: (string &rest CHARACTERS)  */)
     }
 
   ret = make_string_from_bytes (buf, n, p - buf);
-  SAFE_FREE (bufsize);
+  SAFE_FREE ();
 
   return ret;
 }

@@ -183,7 +183,8 @@
 	(if calc-prev-prev-char
 	    (calcDigit-nondigit)
 	  (setq calc-digit-value nil)
-	  (erase-buffer)
+          (let ((inhibit-read-only t))
+            (erase-buffer))
 	  (exit-minibuffer)))
     ;; just ignore extra decimal point, anticipating ".."
     (delete-backward-char 1)))

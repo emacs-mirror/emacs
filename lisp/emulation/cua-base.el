@@ -1,6 +1,7 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997,98,99,200,01,02,03,04  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;        Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulation convenience cua

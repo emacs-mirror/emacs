@@ -453,10 +453,22 @@ Do \\[describe-key] on the following bindings to discover what they do.
   ;; recognized.
   (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
   (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?")
-  ;; This definition probably is not useful in derived modes.
-  (set (make-local-variable 'imenu-generic-expression)
-       (concat "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\("
-	       sgml-name-re "\\)")))
+  ;; This definition has an HTML leaning but probably fits well for other modes.
+  (setq imenu-generic-expression
+	`((nil
+	   ,(concat "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\("
+		    sgml-name-re "\\)")
+	   2)
+	  ("Id"
+	   ,(concat "<[^>]+[ \t\n]+[Ii][Dd]=\\(['\"]"
+		    (if sgml-xml-mode "" "?")
+		    "\\)\\(" sgml-name-re "\\)\\1")
+	   2)
+	  ("Name"
+	   ,(concat "<[^>]+[ \t\n]+[Nn][Aa][Mm][Ee]=\\(['\"]"
+		    (if sgml-xml-mode "" "?")
+		    "\\)\\(" sgml-name-re "\\)\\1")
+	   2))))
 
 ;; Some programs (such as Glade 2) generate XML which has
 ;; -*- mode: xml -*-.

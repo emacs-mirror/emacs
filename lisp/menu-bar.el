@@ -596,10 +596,12 @@ PROPS are additional properties."
 
 (defmacro menu-bar-make-toggle (name variable doc message help &rest body)
   `(progn
-     (defun ,name ()
+     (defun ,name (&optional interactively)
        ,(concat "Toggle whether to " (downcase (substring help 0 1))
-		(substring help 1) ".")
-       (interactive)
+		(substring help 1) ".\
+In an interactive call, record this option as a candidate for saving
+by \"Save Options\" in Custom buffers.")
+       (interactive "p")
        (if ,(if body `(progn . ,body)
 	      `(progn
 		 (custom-load-symbol ',variable)
@@ -612,7 +614,7 @@ PROPS are additional properties."
        ;; a variable is set interactively, as the purpose is to mark it as
        ;; a candidate for "Save Options", and we do not want to save options
        ;; the user have already set explicitly in his init file.
-       (if (interactive-p) (customize-mark-as-set ',variable)))
+       (if interactively (customize-mark-as-set ',variable)))
      '(menu-item ,doc ,name
 		 :help ,help
                  :button (:toggle . (and (default-boundp ',variable)

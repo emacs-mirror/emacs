@@ -98,7 +98,7 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
 	    (if rest (setq rest (cdr rest))))
 	  (if (not (and beg end))
 	      (if (interactive-p)
-		  (error "No header found"))
+		  (message "No header found"))
 	    (goto-char beg)
 	    (end-of-line)
 	    (if (overlayp elide-head-overlay)
@@ -115,7 +115,7 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
 	   (overlay-buffer elide-head-overlay))
       (delete-overlay elide-head-overlay)
     (if (interactive-p)
-	(error "No header hidden"))))
+	(message "No header hidden"))))
 
 (provide 'elide-head)
 

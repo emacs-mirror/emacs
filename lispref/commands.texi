@@ -360,6 +360,9 @@ until a command (or undefined command) is found in the current key
 maps.  The key sequence argument is represented as a string or vector.
 The cursor does not move into the echo area.  Prompt.
 
+If the key sequence is a down-event, the following up-event is discarded,
+but can be read via the @code{U} code character.
+
 This kind of input is used by commands such as @code{describe-key} and
 @code{global-set-key}.
 
@@ -379,15 +382,14 @@ method, and returned as a string (@pxref{Input Methods,,, emacs, The GNU
 Emacs Manual}).  Prompt.
 
 @item n
-A number read with the minibuffer.  If the input is not a number, the
-user is asked to try again.  The prefix argument, if any, is not used.
+A number, read with the minibuffer.  If the input is not a number, the
+user has to try again.  @samp{n} never uses the prefix argument.
 Prompt.
 
 @item N
-@cindex raw prefix argument usage
-The numeric prefix argument; but if there is no prefix argument, read a
-number as with @kbd{n}.  Requires a number.  @xref{Prefix Command
-Arguments}.  Prompt.
+The numeric prefix argument; but if there is no prefix argument, read
+a number as with @kbd{n}.  The value is always a number.  @xref{Prefix
+Command Arguments}.  Prompt.
 
 @item p
 @cindex numeric prefix argument usage
@@ -395,6 +397,7 @@ The numeric prefix argument.  (Note that this @samp{p} is lower case.)
 No I/O.
 
 @item P
+@cindex raw prefix argument usage
 The raw prefix argument.  (Note that this @samp{P} is upper case.)  No
 I/O.
 
@@ -415,6 +418,11 @@ An interned symbol whose name is read in the minibuffer.  Any whitespace
 character terminates the input.  (Use @kbd{C-q} to include whitespace in
 the string.)  Other characters that normally terminate a symbol (e.g.,
 parentheses and brackets) do not do so here.  Prompt.
+
+@item U
+A key sequence or nil.  May be used after a @code{k} or @code{K}
+argument to get the up-event that was discarded in case the key
+sequence read for that argument was a down-event.  No I/O.
 
 @item v
 A variable declared to be a user option (i.e., satisfying the
@@ -605,25 +613,23 @@ part of the prompt.
 @end deffn
 
 @defun interactive-p
-This function returns @code{t} if the containing function (the one whose
-code includes the call to @code{interactive-p}) was called
-interactively, with the function @code{call-interactively}.  (It makes
-no difference whether @code{call-interactively} was called from Lisp or
-directly from the editor command loop.)  If the containing function was
-called by Lisp evaluation (or with @code{apply} or @code{funcall}), then
-it was not called interactively.
+This function returns @code{t} if the containing function (the one
+whose code includes the call to @code{interactive-p}) was called in
+direct response to user input.  This means that it was called with the
+function @code{call-interactively}, and that a keyboard macro is
+not running.
+
+If the containing function was called by Lisp evaluation (or with
+@code{apply} or @code{funcall}), then it was not called interactively.
 @end defun
 
-  The most common use of @code{interactive-p} is for deciding whether to
-print an informative message.  As a special exception,
-@code{interactive-p} returns @code{nil} whenever a keyboard macro is
-being run.  This is to suppress the informative messages and speed
-execution of the macro.
-
-  For example:
+  The most common use of @code{interactive-p} is for deciding whether
+to give the user additional visual feedback (such as by printing an
+informative message).  For example:
 
 @example
 @group
+;; @r{Here's the usual way to use @code{interactive-p}.}
 (defun foo ()
   (interactive)
   (when (interactive-p)
@@ -632,6 +638,7 @@ execution of the macro.
 @end group
 
 @group
+;; @r{This function is just to illustrate the behavior.}
 (defun bar ()
   (interactive)
   (setq foobar (list (foo) (interactive-p))))
@@ -645,7 +652,7 @@ execution of the macro.
 
 @group
 ;; @r{Type @kbd{M-x bar}.}
-;; @r{This does not print anything.}
+;; @r{This does not display a message.}
 @end group
 
 @group
@@ -654,10 +661,11 @@ foobar
 @end group
 @end example
 
-  The other way to do this sort of job is to make the command take an
-argument @code{print-message} which should be non-@code{nil} in an
-interactive call, and use the @code{interactive} spec to make sure it is
-non-@code{nil}.  Here's how:
+  If you want to test @emph{only} whether the function was called
+using @code{call-interactively}, add an optional argument
+@code{print-message} which should be non-@code{nil} in an interactive
+call, and use the @code{interactive} spec to make sure it is
+non-@code{nil}.  Here's an example:
 
 @example
 (defun foo (&optional print-message)
@@ -667,10 +675,9 @@ non-@code{nil}.  Here's how:
 @end example
 
 @noindent
-Defined in this way, the function does display the message when
-called from a keyboard macro.
-
-  The numeric prefix argument, provided by @samp{p}, is never @code{nil}.
+Defined in this way, the function does display the message when called
+from a keyboard macro.  We use @code{"p"} because the numeric prefix
+argument is never @code{nil}.
 
 @node Command Loop Info
 @comment  node-name,  next,  previous,  up
@@ -1505,16 +1512,17 @@ frame has already been made visible, Emacs has no work to do.
 @cindex @code{wheel-down} event
 @item (wheel-up @var{position})
 @item (wheel-down @var{position})
-This kind of event is generated by moving a wheel on a mouse.  Its
-effect is typically a kind of scroll or zoom.
+These kinds of event are generated by moving a mouse wheel.  Their
+usual meaning is a kind of scroll or zoom.
 
 The element @var{position} is a list describing the position of the
 event, in the same format as used in a mouse-click event.
 
-This kind of event is generated only on some kinds of systems. On
-other systems, mouse-4 and mouse-5 may be used instead.  For portable
-code, the variables @code{mouse-wheel-up-event} and
-@code{mouse-wheel-down-event} defined in @file{mwheel.el} can be used.
+This kind of event is generated only on some kinds of systems. On some
+systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
+portable code, use the variables @code{mouse-wheel-up-event} and
+@code{mouse-wheel-down-event} defined in @file{mwheel.el} to determine
+what event types to expect for the mouse wheel.
 
 @cindex @code{drag-n-drop} event
 @item (drag-n-drop @var{position} @var{files})
