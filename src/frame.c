@@ -23,11 +23,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "frame.h"
 #include "termhooks.h"
+#include "window.h"
 
 #ifdef MULTI_FRAME
 
 #include "buffer.h"
-#include "window.h"
 
 /* These help us bind and responding to switch-frame events.  */
 #include "commands.h"
@@ -1337,7 +1337,7 @@ If FRAME is omitted, return information on the currently selected frame.")
      Lisp_Object frame;
 {
   Lisp_Object alist;
-  struct frame *f;
+  FRAME_PTR f;
 
   if (EQ (frame, Qnil))
     f = selected_frame;
@@ -1347,19 +1347,19 @@ If FRAME is omitted, return information on the currently selected frame.")
       f = XFRAME (frame);
     }
 
-  if (f->display.nothing == 0)
+  if (!FRAME_LIVE_P (f))
     return Qnil;
 
   alist = Fcopy_alist (f->param_alist);
   store_in_alist (&alist, Qname, f->name);
-  store_in_alist (&alist, Qheight, make_number (f->height));
-  store_in_alist (&alist, Qwidth, make_number (f->width));
-  store_in_alist (&alist, Qmodeline, (f->wants_modeline ? Qt : Qnil));
+  store_in_alist (&alist, Qheight, make_number (FRAME_HEIGHT (f)));
+  store_in_alist (&alist, Qwidth, make_number (FRAME_WIDTH (f)));
+  store_in_alist (&alist, Qmodeline, (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qminibuffer,
 		  (! FRAME_HAS_MINIBUF_P (f) ? Qnil
-		   : (FRAME_MINIBUF_ONLY_P (f) ? Qonly
-                   : FRAME_MINIBUF_WINDOW (f))));
-  store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
+		   : FRAME_MINIBUF_ONLY_P (f) ? Qonly
+		   : FRAME_MINIBUF_WINDOW (f)));
+  store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qmenu_bar_lines, (FRAME_MENU_BAR_LINES (f)));
 
   /* I think this should be done with a hook.  */
@@ -1768,6 +1768,14 @@ keys_of_frame ()
 /* If we're not using multi-frame stuff, we still need to provide some
    support functions.  */
 
+Lisp_Object Qheight;
+Lisp_Object Qminibuffer;
+Lisp_Object Qmodeline;
+Lisp_Object Qname;
+Lisp_Object Qunsplittable;
+Lisp_Object Qmenu_bar_lines;
+Lisp_Object Qwidth;
+
 Lisp_Object Vterminal_frame;
 
 /* Unless this function is defined, providing set-frame-height and
@@ -1934,6 +1942,20 @@ DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
   return Fcons (Qnil, Fcons (Qnil, Qnil));
 }
 
+void
+store_in_alist (alistptr, prop, val)
+     Lisp_Object *alistptr, val;
+     Lisp_Object prop;
+{
+  register Lisp_Object tem;
+
+  tem = Fassq (prop, *alistptr);
+  if (EQ (tem, Qnil))
+    *alistptr = Fcons (Fcons (prop, val), *alistptr);
+  else
+    Fsetcdr (tem, val);
+}
+
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
   /* Don't confuse make-docfile by having two doc strings for this function.
      make-docfile does not pay attention to #if, for good reason!  */
@@ -1941,7 +1963,30 @@ DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
   (frame)
      Lisp_Object frame;
 {
-  return Qnil;
+  Lisp_Object alist;
+  FRAME_PTR f;
+
+  if (EQ (frame, Qnil))
+    f = selected_frame;
+  else
+    {
+      CHECK_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+
+  if (!FRAME_LIVE_P (f))
+    return Qnil;
+
+  alist = Qnil;
+  store_in_alist (&alist, Qname, build_string ("emacs"));
+  store_in_alist (&alist, Qheight, make_number (FRAME_HEIGHT (f)));
+  store_in_alist (&alist, Qwidth, make_number (FRAME_WIDTH (f)));
+  store_in_alist (&alist, Qmodeline, (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil));
+  store_in_alist (&alist, Qminibuffer, FRAME_MINIBUF_WINDOW (f));
+  store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
+  store_in_alist (&alist, Qmenu_bar_lines, (FRAME_MENU_BAR_LINES (f)));
+
+  return alist;
 }
 
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters, 
@@ -1957,6 +2002,21 @@ DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
 
 syms_of_frame ()
 {
+  Qheight = intern ("height");
+  staticpro (&Qheight);
+  Qminibuffer = intern ("minibuffer");
+  staticpro (&Qminibuffer);
+  Qmodeline = intern ("modeline");
+  staticpro (&Qmodeline);
+  Qname = intern ("name");
+  staticpro (&Qname);
+  Qunsplittable = intern ("unsplittable");
+  staticpro (&Qunsplittable);
+  Qmenu_bar_lines = intern ("menu-bar-lines");
+  staticpro (&Qmenu_bar_lines);
+  Qwidth = intern ("width");
+  staticpro (&Qwidth);
+
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
     "The initial frame-object, which represents Emacs's stdout.");
   XFASTINT (Vterminal_frame) = 0;
