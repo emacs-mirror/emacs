@@ -1293,6 +1293,7 @@ The default status is as follows:
 
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'iso-latin-1)
+  (setq default-process-coding-system '(undecided . iso-latin-1))
 
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
@@ -1302,6 +1303,8 @@ The default status is as follows:
 
   (setq nonascii-translation-table nil
 	nonascii-insert-offset 0))
+
+(reset-language-environment)
 
 (defun set-display-table-and-terminal-coding-system (language-name)
   "Set up the display table and terminal coding system for LANGUAGE-NAME."
