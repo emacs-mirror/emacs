@@ -131,9 +131,12 @@ for `jka-compr-compression-info-list')."
      "compressing"    "compress"     ("-c")
      "uncompressing"  "uncompress"   ("-c")
      nil t]
+     ;; Formerly, these had an additional arg "-c", but that fails with
+     ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and
+     ;; "Version 0.9.0b, 9-Sept-98".
     ["\\.bz2\\'"
-     "bzip2ing"        "bzip2"         ("-c")
-     "bunzip2ing"      "bzip2"         ("-d" "-c")
+     "bzip2ing"        "bzip2"         nil
+     "bunzip2ing"      "bzip2"         ("-d")
      nil t]
     ["\\.tgz\\'"
      "zipping"        "gzip"         ("-c" "-q")
