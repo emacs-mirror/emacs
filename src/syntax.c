@@ -746,6 +746,7 @@ between them, return t; otherwise return nil.")
 		int comment_end = from;
 		int comstart_pos = 0;
 		int comstart_parity = 0;
+		int scanstart = from - 1;
 
 		/* At beginning of range to scan, we're outside of strings;
 		   that determines quote parity to the comment-end.  */
@@ -764,15 +765,15 @@ between them, return t; otherwise return nil.")
 		      {
 			code = Sendcomment;
 			from--;
+		        c = FETCH_CHAR (from);
 		      }
 			
-		    else if (from > stop && SYNTAX_COMSTART_SECOND (c)
-			     && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
-			     && comstyle == SYNTAX_COMMENT_STYLE (c))
-		      {
-			code = Scomment;
-			from--;
-		      }
+		    /* If this char starts a 2-char comment start sequence,
+		       treat it like a 1-char comment starter.  */
+		    if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
+			&& SYNTAX_COMSTART_SECOND (FETCH_CHAR (from + 1))
+			&& comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (from + 1)))
+		      code = Scomment;
 
 		    /* Ignore escaped characters.  */
 		    if (char_quoted (from))
@@ -1150,6 +1151,7 @@ scan_lists (from, count, depth, sexpflag)
 		int comment_end = from;
 		int comstart_pos = 0;
 		int comstart_parity = 0;
+		int scanstart = from - 1;
 
 		/* At beginning of range to scan, we're outside of strings;
 		   that determines quote parity to the comment-end.  */
@@ -1168,15 +1170,15 @@ scan_lists (from, count, depth, sexpflag)
 		      {
 			code = Sendcomment;
 			from--;
+		        c = FETCH_CHAR (from);
 		      }
 			
-		    else if (from > stop && SYNTAX_COMSTART_SECOND (c)
-			     && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
-			     && comstyle == SYNTAX_COMMENT_STYLE (c))
-		      {
-			code = Scomment;
-			from--;
-		      }
+		    /* If this char starts a 2-char comment start sequence,
+		       treat it like a 1-char comment starter.  */
+		    if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
+			&& SYNTAX_COMSTART_SECOND (FETCH_CHAR (from + 1))
+			&& comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (from + 1)))
+		      code = Scomment;
 
 		    /* Ignore escaped characters.  */
 		    if (char_quoted (from))
