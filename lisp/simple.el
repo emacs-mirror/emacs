@@ -4313,11 +4313,22 @@ Returns nil if PROCESS has already terminated."
 ;; - syntax-table
 ;; - overlays
 (defun clone-buffer (&optional newname display-flag)
-  "Create a twin copy of the current buffer.
-If NEWNAME is nil, it defaults to the current buffer's name;
-NEWNAME is modified by adding or incrementing <N> at the end as necessary.
+  "Create and return a twin copy of the current buffer.
+Unlike an indirect buffer, the new buffer can be edited
+independently of the old one (if it is not read-only).
+NEWNAME is the name of the new buffer.  It may be modified by
+adding or incrementing <N> at the end as necessary to create a
+unique buffer name.  If nil, it defaults to the name of the
+current buffer, with the proper suffix.  If DISPLAY-FLAG is
+non-nil, the new buffer is shown with `pop-to-buffer'.  Trying to
+clone a file-visiting buffer, or a buffer whose major mode symbol
+has a non-nil `no-clone' property, results in an error.
 
-If DISPLAY-FLAG is non-nil, the new buffer is shown with `pop-to-buffer'.
+Interactively, DISPLAY-FLAG is t and NEWNAME is the name of the
+current buffer with appropriate suffix.  However, if a prefix
+argument is given, then the command prompts for NEWNAME in the
+minibuffer.
+
 This runs the normal hook `clone-buffer-hook' in the new buffer
 after it has been set up properly in other respects."
   (interactive
