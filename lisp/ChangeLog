@@ -1,3 +1,14 @@
+2004-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frame-parameters): Match height and
+	width to those for special frames.
+	(gdb-frame-breakpoints-buffer): Use gdb-frame-parameters.
+	Use display-buffer.
+	(gdb-frame-stack-buffer, gdb-frame-threads-buffer)
+	(gdb-frame-registers-buffer, gdb-frame-locals-buffer)
+	(gdb-frame-assembler-buffer): Rework like
+	gdb-frame-breakpoints-buffer.
+
 2004-11-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-alg.el: Added comment.
