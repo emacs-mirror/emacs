@@ -1869,7 +1869,7 @@ key		binding
 	    (if (integerp translation)
 		(insert translation)
 	      (if (consp translation)
-		  (insert (aref (cdr translation) (car translation)))
+		  (insert (aref (cdr translation) (car (car translation))))
 		(let ((last-command-event ch))
 		  (self-insert-command 1)))))))
       (setq i (1+ i))))
