@@ -76,7 +76,6 @@ OBJ1 =  $(BLD)\abbrev.obj       \
 	$(BLD)\macros.obj       \
 	$(BLD)\marker.obj       \
 	$(BLD)\minibuf.obj      \
-	$(BLD)\xfaces.obj       \
 	$(BLD)\mocklisp.obj
 
 OBJ2 =  $(BLD)\nt.obj           \
@@ -253,7 +252,8 @@ $(BLD)\buffer.obj : \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
 	$(SRC)\indent.h \
-	$(SRC)\blockinput.h
+	$(SRC)\blockinput.h \
+	$(SRC)\region-cache.h
 
 $(BLD)\bytecode.obj : \
 	$(SRC)\bytecode.c \
@@ -558,7 +558,8 @@ $(BLD)\indent.obj : \
 	$(SRC)\termopts.h \
 	$(SRC)\disptab.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\intervals.h
+	$(SRC)\intervals.h \
+	$(SRC)\region-cache.h
 
 $(BLD)\insdel.obj : \
 	$(SRC)\insdel.c \
@@ -789,6 +790,15 @@ $(BLD)\regex.obj : \
 	$(SRC)\syntax.h \
 	$(SRC)\regex.h
 
+$(BLD)\region-cache.obj : \
+	$(SRC)\region-cache.c \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\lisp.h \
+	$(SRC)\buffer.h \
+	$(SRC)\region-cache.h
+
 $(BLD)\scroll.obj : \
 	$(SRC)\scroll.c \
 	$(EMACS_ROOT)\src\s\windowsnt.h \
@@ -809,7 +819,8 @@ $(BLD)\search.obj : \
 	$(SRC)\buffer.h \
 	$(SRC)\commands.h \
 	$(SRC)\blockinput.h \
-	$(SRC)\regex.h
+	$(SRC)\regex.h \
+	$(SRC)\region-cache.h
 
 $(BLD)\strftime.obj : \
 	$(SRC)\strftime.c \
@@ -924,6 +935,13 @@ $(BLD)\undo.obj : \
 $(BLD)\unexnt.obj : \
 	$(SRC)\unexnt.c \
 	$(SRC)\ntheap.h
+
+$(BLD)\vm-limit.obj : \
+	$(SRC)\vm-limit.c \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\mem-limits.h	
 
 $(BLD)\widget.obj : \
 	$(SRC)\widget.c \
