@@ -608,7 +608,8 @@ If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
    (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 The `posn-' functions access elements of such lists."
-  (nth 1 event))
+  (if (consp event) (nth 1 event)
+    (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-end (event)
   "Return the ending location of EVENT.  EVENT should be a click or drag event.
@@ -616,12 +617,13 @@ If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
    (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 The `posn-' functions access elements of such lists."
-  (nth (if (consp (nth 2 event)) 2 1) event))
+  (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
+    (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
 The return value is a positive integer."
-  (if (integerp (nth 2 event)) (nth 2 event) 1))
+  (if (and (consp event) (integerp (nth 2 event))) (nth 2 event) 1))
 
 (defsubst posn-window (position)
   "Return the window in POSITION.
@@ -1033,6 +1035,13 @@ Legitimate radix values are 8, 10 and 16."
   :type '(choice (const 8) (const 10) (const 16))
   :group 'editing-basics)
 
+(defun read-key (&optional prompt)
+  "Read a key from the keyboard.
+Contrary to `read-event' this will not return a raw event but will
+obey `function-key-map' and `key-translation-map' instead."
+  (let ((overriding-terminal-local-map (make-sparse-keymap)))
+    (aref (read-key-sequence prompt nil t) 0)))
+
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
 Also, if the first character read is an octal digit,
@@ -1054,16 +1063,11 @@ for numeric input."
 or the octal character code.
 RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
-	(setq char (read-event (and prompt (format "%s-" prompt)) t))
+	(setq char (read-key (and prompt (format "%s-" prompt))))
 	(if inhibit-quit (setq quit-flag nil)))
-      ;; Translate TAB key into control-I ASCII character, and so on.
-      (and char
-	   (let ((translated (lookup-key function-key-map (vector char))))
-	     (if (arrayp translated)
-		 (setq char (aref translated 0)))))
       (cond ((null char))
 	    ((not (integerp char))
-	     (setq unread-command-events (list char)
+	     (setq unread-command-events (this-single-command-raw-keys)
 		   done t))
 	    ((/= (logand char ?\M-\^@) 0)
 	     ;; Turn a meta-character into a character with the 0200 bit set.
@@ -1080,7 +1084,7 @@ any other non-digit terminates the character code and is then used as input."))
 	    ((and (not first) (eq char ?\C-m))
 	     (setq done t))
 	    ((not first)
-	     (setq unread-command-events (list char)
+	     (setq unread-command-events (this-single-command-raw-keys)
 		   done t))
 	    (t (setq code char
 		     done t)))
@@ -1952,7 +1956,7 @@ Return the modified alist."
 (defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.
 The returned file name (created by appending some random characters at the end
-of PREFIX, and expanding against `temporary-file-directory' if necessary,
+of PREFIX, and expanding against `temporary-file-directory' if necessary),
 is guaranteed to point to a newly created empty file.
 You can then use `write-region' to write new data into the file.
 
