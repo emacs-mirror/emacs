@@ -647,6 +647,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	       (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0)))
       (menu-bar-mode t))
 
+  ;; Can't do this init in defcustom because window-system isn't set.
+  (when (and (not noninteractive)
+	     (not (eq system-type 'ms-dos))
+	     (memq window-system '(x w32)))
+    (setq-default blink-cursor t)
+    (blink-cursor-mode 1))
+
   (run-hooks 'before-init-hook)
 
   ;; Run the site-start library if it exists.  The point of this file is
