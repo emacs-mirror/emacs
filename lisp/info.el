@@ -408,12 +408,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	    (end (save-excursion (search-forward "\^_" nil t) (point))))
 	(while nodes
 	  (let ((nodename (car (car nodes))))
-	    (or (member (downcase nodename) menu-items)
-		(re-search-forward (concat "^\\* " (regexp-quote nodename) ":")
-				   end t)
-		(progn
-		  (insert "* " nodename "::" "\n")
-		  (setq menu-items (cons nodename menu-items)))))
+	    (save-excursion
+	      (or (member (downcase nodename) menu-items)
+		  (re-search-forward (concat "^\\* "
+					     (regexp-quote nodename)
+					     "::")
+				     end t)
+		  (progn
+		    (insert "* " nodename "::" "\n")
+		    (setq menu-items (cons nodename menu-items))))))
 	  (setq nodes (cdr nodes))))
       ;; Now take each node of each of the other buffers
       ;; and merge it into the main buffer.
