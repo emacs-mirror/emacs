@@ -2446,7 +2446,7 @@ Attempt to do the search exactly the way the pending isearch would."
 			(goto-char (window-end)))))))
 	    (unless nomore
 	      (setq isearch-lazy-highlight-timer
-		    (run-at-time isearch-lazy-highlight-interval nil
+		    (run-at-time lazy-highlight-interval nil
 				 'isearch-lazy-highlight-update)))))))))
 
 (defun isearch-resume (search regexp word forward message case-fold)
