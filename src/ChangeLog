@@ -1,5 +1,10 @@
 2001-01-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fset_window_hscroll): Don't set window's min_hscroll
+	here.
+	(Fscroll_right, Fscroll_left): Set it here instead, if called
+	interactively.
+
 	* buffer.c (Fset_buffer_modified_p): Set buffer's
 	prevent_redisplay_optimizations_p flag.
 

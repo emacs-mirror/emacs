@@ -1,3 +1,8 @@
+2001-01-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/flyspell.el (mail-mode-flyspell-verify): Check in
+	Subject line only if point is after the `Subject:'.
+
 2001-01-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/japanese.el ("Japanese"): Add japanese-jisx0213-1 and
