@@ -294,7 +294,9 @@ Normally auto-save files are written under other names."
 
 (defcustom auto-save-file-name-transforms
   `(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
-     ,(expand-file-name "\\2" temporary-file-directory)))
+     ;; Don't put "\\2" inside expand-file-name, since it will be
+     ;; transformed to "/2" on DOS/Windows.
+     ,(concat (expand-file-name temporary-file-directory) "\\2")))
   "*Transforms to apply to buffer file name before making auto-save file name.
 Each transform is a list (REGEXP REPLACEMENT):
 REGEXP is a regular expression to match against the file name.
