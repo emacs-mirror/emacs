@@ -1,3 +1,9 @@
+2003-02-25  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/make-mode.el (makefile-font-lock-keywords): Protect
+	shell variable references by requireing that $ is not preceded by
+	another $.
+
 2003-02-25  Kenichi Handa  <handa@m17n.org>
 
 	* env.el (setenv): Fix previous change.
