@@ -1,3 +1,9 @@
+2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (XTerm Mouse): Delete apparently false info.
+	The GNU/Linux console currently does not appear to support
+	`xterm-mouse-mode'.
+
 2005-04-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Change Calc version number.
