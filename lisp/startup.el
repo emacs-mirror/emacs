@@ -178,7 +178,7 @@ This is normally copied from `default-directory' when Emacs starts.")
 
 ;;; This is here, rather than in x-win.el, so that we can ignore these
 ;;; options when we are not using X.
-(defvar command-line-x-option-alist
+(defconst command-line-x-option-alist
   '(("-bw" 1 x-handle-numeric-switch border-width)
     ("-d" 1 x-handle-display)
     ("-display" 1 x-handle-display)
@@ -677,6 +677,17 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		    ;; don't let it be set from default.el.
 		    (if (eq user-init-file t)
 			(setq user-init-file nil))
+		    ;; If we loaded a compiled file, set
+		    ;; `user-init-file' to the source version if that
+		    ;; exists.
+		    (if (and user-init-file
+			     (equal (file-name-extension user-init-file)
+				    "elc"))
+			(let ((el (concat (file-name-sans-extension
+					   user-init-file)
+					  ".el")))
+			  (if (file-exists-p el)
+			      (setq user-init-file el))))
 		    (or inhibit-default-init
 			(let ((inhibit-startup-message nil))
 			  ;; Users are supposed to be told their rights.
@@ -764,12 +775,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t)))
 
-(defcustom initial-scratch-message "\
+(defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
 ;; If you want to create a file, visit that file with C-x C-f,
 ;; then enter the text in that file's own buffer.
 
-"
+")
   "Initial message displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed."
   :type 'string)
