@@ -1,3 +1,80 @@
+2004-11-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc-misc.el (calc-last-why-command): Declare it.
+
+	* calc-vec.el (math-grade-vec): New variable.
+	(calcFunc-grade, calcFunc-rgrade, math-grade-beforep):
+	Replace variable grade-vec by declared variable.
+	(math-rb-close): New variable.
+	(math-read-brackets, math-read-vector): Replace variable close by
+	declared variable.
+
+	* calc/calc-yank.el (calc-original-buffer, calc-return-buffer)
+	(calc-one-window, calc-edit-handler, calc-restore-trail)
+	(calc-allow-ret): Declare them.
+
+	* calc/calc-stuff.el (calc-flush-caches): Remove unnecessary
+	variables.
+	(math-lud-cache, math-log2-cache, math-radix-digits-cache)
+	(math-radix-float-cache-tag, math-random-cache)
+	(math-max-digits-cache, math-integral-cache, math-units-table)
+	(math-format-date-cache, math-holidays-cache-tag): Declare them.
+	(math-moc-func): New variable.
+	(math-map-over-constants, math-map-over-constants-rec):
+	Replace variable func by declared variable.
+
+	* calc/calc-store.el (calc-given-value, calc-store-opers):
+	Declare them.
+	(calc-var-name-map): Move declaration to earlier in the file.
+	(calc-pv-pos): New variable.
+	(calc-permanent-variable, calc-insert-permanent-variable):
+	Replace variable pos by declared variable.
+
+	* calc/calc-mtx.el (calc-det-lu): New variable.
+	(math-det-raw, math-det-step): Replace variable lu by declared
+	variable.
+
+	* calc/calc-map.el (math-ms-temp, math-ms-args): New variables.
+	(math-multi-subst, math-multi-subst-rec): Replace variables temp
+	and arg by declared variables.
+	(calcFunc-reducer): Fix incorrect variable.
+	(math-inner-mul-func, math-inner-add-func): New variables.
+	(calcFunc-inner, math-inner-mats): Replace variables mul-func
+	and add-func by declared variables.
+
+	* calc/calc-incom.el (calc-prev-char, calc-prev-prev-char)
+	(calc-digit-value): Declare them.
+
+	* calc/calc-help.el (Info-history): Declare it.
+	(calc-describe-key): Make calc-summary-indentation a local
+	variable.
+	(calc-help-long-names): Move declaration to earlier in file.
+
+	* calc/calc-embed.el (calc-original-buffer): Declare it.
+	(calc-embed-outer-top, calc-embed-outer-bot, calc-embed-top)
+	(calc-embed-bot): New variables.
+	(calc-do-embedded, calc-embedded-mark-formula)
+	(calc-embedded-find-bounds, calc-embedded-duplicate)
+	(calc-embedded-new-formula, calc-embedded-make-info): Replace
+	variables outer-top, outer-bot, bot and top by declared
+	variables.
+	(calc-embed-prev-modes): New variable.
+	(calc-embedded-set-modes, calc-embedded-update): Replace variable
+	prev-modes with declared variable.
+	(calc-embed-vars-used): New variable.
+	(calc-embedded-make-info, calc-embedded-evaluate-expr)
+	(calc-embedded-update, calc-embedded-find-vars): Replace variable
+	vars-used by declared variable.
+
+	* calc/calc-bin.el (math-format-radix-float): Make pos a local
+	variable.
+	(math-format-radix-float): Remove unnecessary setq.
+	(math-radix-float-cache): Declare it.
+
+	* calc/calcsel2.el (calc-keep-selection): Declare it.
+
+	* calc/calc-maint.el: Remove file.
+
 2004-11-26  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-sort-entry-class)
