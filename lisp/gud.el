@@ -65,7 +65,7 @@ This association list has elements of the form
 (defun gud-visit-file (f)
   (error "GUD not properly entered."))
 
-(defun gud-set-break (proc f n)
+(defun gud-set-break (proc f n rest)
   (error "GUD not properly entered."))
 
 ;; This macro is used below to define some basic debugger interface commands.
@@ -121,8 +121,12 @@ This association list has elements of the form
 ;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
 ;; something else.
 ;;
-;; The job of the gud-set-break method is to send the commands necessary
-;; to set a breakpoint at a given line in a given source file.
+;; The job of the gud-set-break method is to send the commands
+;; necessary to set a breakpoint at a given line in a given source
+;; file.  If its third argument TEMP is non-nil, the breakpoint set
+;; should be temporary - it should be deleted when it is reached.  If
+;; the debugger doesn't support such breakpoints, it should set an
+;; ordinary breakpoint.
 ;;
 ;; Debugger-specific information begins here:
 
@@ -151,8 +155,8 @@ This association list has elements of the form
 (defun gud-gdb-visit-file (f)
   (find-file-noselect f))
 
-(defun gud-gdb-set-break (proc f n) 
-  (gud-call "break %s:%d" f n))
+(defun gud-gdb-set-break (proc f n temp) 
+  (gud-call "%s %s:%d" (if temp "tbreak" "break") f n))
 
 ;;;###autoload
 (defun gdb (path)
@@ -200,7 +204,10 @@ and source-file directory for your debugger."
 (defun gud-sdb-visit-file (f)
   (find-tag-noselect f))
 
-(defun gud-sdb-set-break (proc f n)
+;;; We'll just ignore the TEMP argument for now; I don't know how to
+;;; set temporary breakpoints in sdb.  (See the description of the
+;;; gud-set-break method for details.)
+(defun gud-sdb-set-break (proc f n temp)
   (gud-queue-send (format "e %s" f) (format "%d b" n)))
 
 ;;;###autoload
@@ -246,7 +253,10 @@ and source-file directory for your debugger."
 (defun gud-dbx-visit-file (f)
   (find-file-noselect f))
 
-(defun gud-dbx-set-break (proc f n)
+;;; We'll just ignore the TEMP argument for now; I don't know how to
+;;; set temporary breakpoints in dbx.  (See the description of the
+;;; gud-set-break method for details.)
+(defun gud-dbx-set-break (proc f n temp)
   (gud-call "stop at \"%s\":%d" f n))
 
 ;;;###autoload
@@ -564,25 +574,30 @@ Obeying it means displaying in another window the specified file and line."
   (gud-call (car cmdlist))
   (setq gud-command-queue (append gud-command-queue (cdr cmdlist))))
 
-(defun gud-apply-from-source (func)
-  ;; Apply a method from the gud buffer environment, passing it file and line.
-  ;; This is intended to be used for gud commands called from a source file.
+(defun gud-apply-from-source (func &rest args)
+  ;; Apply a method from the gud buffer environment, passing it file
+  ;; and line, then ARGS.  This is intended to be used for gud
+  ;; commands called from a source file.
   (if (not buffer-file-name)
       (error "There is no file associated with this buffer")) 
   (let ((file (file-name-nondirectory buffer-file-name))
 	(line (save-restriction (widen) (1+ (count-lines 1 (point))))))
     (save-excursion
       (gud-set-buffer)
-      (funcall func
-	       (get-buffer-process current-gud-buffer)
-	       file
-	       line)
+      (apply func
+	     (get-buffer-process current-gud-buffer)
+	     file
+	     line
+	     args)
       )))
 
-(defun gud-break ()
-  "Set breakpoint at this source line."
-  (interactive)
-  (gud-apply-from-source 'gud-set-break))
+(defun gud-break (arg)
+  "Set breakpoint at this source line.
+With prefix argument, set a temporary breakpoint, if the debugger in
+use supports such things.  (A temporary breakpoint is one which will
+be deleted when it is reached.)"
+  (interactive "P")
+  (gud-apply-from-source 'gud-set-break arg))
 
 (defun gud-read-address ()
   "Return a string containing the core-address found in the buffer at point."
