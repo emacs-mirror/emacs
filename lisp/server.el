@@ -326,6 +326,8 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	 (select-window server-window))
 	((framep server-window)
 	 (select-window (frame-selected-window server-window))))
+  (if (window-minibuffer-p (selected-window))
+      (select-window (next-window nil 'nomini t)))
   (if next-buffer
       (if (and (bufferp next-buffer)
 	       (buffer-name next-buffer))
