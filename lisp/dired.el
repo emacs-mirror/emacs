@@ -59,7 +59,8 @@ may contain even `F', `b', `i' and `s'.  See also the variable
 ;;;###autoload
 (defvar dired-ls-F-marks-symlinks nil
   "*Informs dired about how `ls -lF' marks symbolic links.
-Set this to t if `insert-directory-program' with `-lF' marks the symbolic link
+Set this to t if `ls' (or whatever program is specified by
+`insert-directory-program') with `-lF' marks the symbolic link
 itself with a trailing @ (usually the case under Ultrix).
 
 Example: if `ln -s foo bar; ls -F bar' gives `bar -> foo', set it to
