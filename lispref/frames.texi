@@ -293,7 +293,8 @@ Just what parameters a frame has depends on what display mechanism it
 uses.  Here is a table of the parameters that have special meanings in a
 window frame; of these, @code{name}, @code{title}, @code{height},
 @code{width}, @code{buffer-list} and @code{buffer-predicate} provide
-meaningful information in terminal frames.
+meaningful information in terminal frames, and @code{tty-color-mode}
+is meaningful @emph{only} in terminal frames.
 
 @table @code
 @item display
@@ -478,12 +479,26 @@ The color for the mouse pointer.  Changing this parameter is equivalent
 to changing the background color of face @code{mouse}.
 
 @item cursor-color
-The color for the cursor that shows point. Changing this parameter is
+The color for the cursor that shows point.  Changing this parameter is
 equivalent to changing the background color of face @code{cursor}.
 
 @item border-color
-The color for the border of the frame. Changing this parameter is
+The color for the border of the frame.  Changing this parameter is
 equivalent to changing the background color of face @code{border}.
+
+@item tty-color-mode
+@cindex standard colors for character terminals
+This parameter overrides the terminal's color support as given by the
+system's terminal capabilities database in that this parameter's value
+specifies the color mode to use in terminal frames.  The value can be
+either a symbol or a number.  A number specifies the number of colors
+to use (and, indirectly, what commands to issue to produce each
+color).  For example, @code{(tty-color-mode . 8)} forces Emacs to use
+the ANSI escape sequences for 8 standard text colors; and a value of
+-1 means Emacs should turn off color support.  If the parameter's
+value is a symbol, that symbol is looked up in the alist
+@code{tty-color-mode-alist}, and if found, the associated number is
+used as the color support mode.
 
 @item scroll-bar-foreground
 If non-@code{nil}, the color for the foreground of scroll bars.
