@@ -59,7 +59,7 @@ Argument is a character, naming the register."
 	   (progn
 	     (switch-to-buffer (marker-buffer val))
 	     (goto-char val))
-	 (error "Register doesn't contain a buffer position or screen configuration")))))
+	 (error "Register doesn't contain a buffer position or screen configuration"))))))
 
 ;(defun number-to-register (arg char)
 ;  "Store a number in a register.
