@@ -3,13 +3,13 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/streams
-@node Streams, Minibuffers, Debugging, Top
+@node Read and Print, Minibuffers, Debugging, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reading and Printing Lisp Objects
 
   @dfn{Printing} and @dfn{reading} are the operations of converting Lisp
 objects to textual form and vice versa.  They use the printed
-representations and read syntax described in @ref{Types of Lisp Object}.
+representations and read syntax described in @ref{Lisp Data Types}.
 
   This chapter describes the Lisp functions for reading and printing.
 It also describes @dfn{streams}, which specify where to get the text (if

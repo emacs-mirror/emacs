@@ -450,7 +450,7 @@ equally well a name for the same function.
 these two uses of a symbol are independent and do not conflict.
 
 @node Defining Functions
-@section Defining Named Functions
+@section Defining Functions
 @cindex defining a function
 
   We usually give a name to a function when it is first created.  This

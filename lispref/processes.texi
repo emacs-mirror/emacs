@@ -80,9 +80,9 @@ Expansion}).
 argument which specifies where the standard output from the program will
 go.  If @var{buffer-or-name} is @code{nil}, that says to discard the
 output unless a filter function handles it.  (@xref{Filter Functions},
-and @ref{Streams}.)  Normally, you should avoid having multiple
-processes send output to the same buffer because their output would be
-intermixed randomly.
+and @ref{Streams, Reading and Printing}.)  Normally, you should avoid
+having multiple processes send output to the same buffer because their
+output would be intermixed randomly.
 
 @cindex program arguments
   All three of the subprocess-creating functions have a @code{&rest}
