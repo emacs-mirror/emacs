@@ -608,7 +608,7 @@ save your changes to disk."
 
 
 (defun tar-extract (&optional other-window-p)
-  "*In Tar mode, extract this entry of the tar file into its own buffer."
+  "In Tar mode, extract this entry of the tar file into its own buffer."
   (interactive)
   (let* ((view-p (eq other-window-p 'view))
 	 (descriptor (tar-current-descriptor))
@@ -1087,7 +1087,7 @@ Leaves the region wide."
 	   (data-end (+ start size))
 	   (bbytes (ash tar-anal-blocksize 9))
 	   (pad-to (+ bbytes (* bbytes (/ (1- data-end) bbytes))))
-	   (buffer-read-only nil) ; ##
+	   (inhibit-read-only t) ; ##
 	   )
       ;; If the padding after the last data is too long, delete some;
       ;; else insert some until we are padded out to the right number of blocks.
