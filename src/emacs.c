@@ -332,6 +332,67 @@ __main ()
 #endif /* __GNUC__ */
 #endif /* ORDINARY_LINK */
 
+/* Test whether the next argument in ARGV matches SSTR or a prefix of
+   LSTR (at least MINLEN characters).  If so, then if VALPTR is non-null
+   (the argument is supposed to have a value) store in *VALPTR either
+   the next argument or the portion of this one after the equal sign.
+   ARGV is read starting at position *SKIPPTR; this index is advanced
+   by the number of arguments used.
+
+   Too bad we can't just use getopt for all of this, but we don't have
+   enough information to do it right.  */
+static int
+argmatch (argv, sstr, lstr, minlen, valptr, skipptr)
+     char **argv;
+     char *sstr;
+     char *lstr;
+     int minlen;
+     char **valptr;
+     int *skipptr;
+{
+  char *p;
+  int arglen;
+  char *arg = argv[*skipptr+1];
+  if (arg == NULL)
+    return 0;
+  if (strcmp (arg, sstr) == 0)
+    {
+      if (valptr != NULL)
+	{
+	  *valptr = argv[*skipptr+2];
+	  *skipptr += 2;
+	}
+      else
+	*skipptr += 1;
+      return 1;
+    }
+  arglen = (valptr != NULL && (p = index (arg, '=')) != NULL
+	    ? p - arg : strlen (arg));
+  if (arglen < minlen || strncmp (arg, lstr, arglen) != 0)
+    return 0;
+  else if (valptr == NULL)
+    {
+      *skipptr += 1;
+      return 1;
+    }
+  else if (p != NULL)
+    {
+      *valptr = p+1;
+      *skipptr += 1;
+      return 1;
+    }
+  else if (argv[*skipptr+2] != NULL)
+    {
+      *valptr = argv[*skipptr+2];
+      *skipptr += 2;
+      return 1;
+    }
+  else
+    {
+      return 0;
+    }
+}
+
 /* ARGSUSED */
 main (argc, argv, envp)
      int argc;
@@ -345,7 +406,7 @@ main (argc, argv, envp)
 
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
-  if (argc > 1 && !strcmp (argv[1], "-nl"))
+  if (argmatch (argv, "-nl", "--no-shared-memory", 6, NULL, &skip_args))
     {
       map_in_data (0);
       /* The shared memory was just restored, which clobbered this.  */
@@ -376,6 +437,8 @@ main (argc, argv, envp)
   {
     int i;
 
+    /* We don't check for a long option --display here, since the X code
+       won't be able to recognize that form anyway.  */
     for (i = 1; (i < argc && ! display_arg); i++)
       if (!strcmp (argv[i], "-d") || !strcmp (argv[i], "-display"))
 	display_arg = 1;
@@ -384,11 +447,11 @@ main (argc, argv, envp)
 
 #ifdef VMS
   /* If -map specified, map the data file in */
-  if (argc > 2 && ! strcmp (argv[1], "-map"))
-    {
-      skip_args = 2;
-      mapin_data (argv[2]);
-    }
+  {
+    char *file;
+    if (argmatch (argv, "-map", "--map-data", 3, &mapin_file, &skip_args))
+      mapin_data (file);
+  }
 
 #ifdef LINK_CRTL_SHARE
 #ifdef SHAREABLE_LIB_BUG
@@ -463,44 +526,50 @@ main (argc, argv, envp)
   inhibit_window_system = 0;
 
   /* Handle the -t switch, which specifies filename to use as terminal */
-  if (skip_args + 2 < argc && !strcmp (argv[skip_args + 1], "-t"))
-    {
-      int result;
-      skip_args += 2;
-      close (0);
-      close (1);
-      result = open (argv[skip_args], O_RDWR, 2 );
-      if (result < 0)
-	{
-	  char *errstring = strerror (errno);
-	  fprintf (stderr, "emacs: %s: %s\n", argv[skip_args], errstring);
-	  exit (1);
-	}
-      dup (0);
-      if (! isatty (0))
-	{
-	  fprintf (stderr, "emacs: %s: not a tty\n", argv[skip_args]);
-	  exit (1);
-	}
-      fprintf (stderr, "Using %s\n", argv[skip_args]);
+  {
+    char *term;
+    if (argmatch (argv, "-t", "--terminal", 4, &term, &skip_args))
+      {
+	int result;
+	close (0);
+	close (1);
+	result = open (term, O_RDWR, 2 );
+	if (result < 0)
+	  {
+	    char *errstring = strerror (errno);
+	    fprintf (stderr, "emacs: %s: %s\n", term, errstring);
+	    exit (1);
+	  }
+	dup (0);
+	if (! isatty (0))
+	  {
+	    fprintf (stderr, "emacs: %s: not a tty\n", term);
+	    exit (1);
+	  }
+	fprintf (stderr, "Using %s\n", term);
 #ifdef HAVE_X_WINDOWS
-      inhibit_window_system = 1;	/* -t => -nw */
+	inhibit_window_system = 1; /* -t => -nw */
 #endif
-    }
+      }
+  }
+  if (argmatch (argv, "-nw", "--no-windows", 6, NULL, &skip_args))
+    inhibit_window_system = 1;
 
-  if (skip_args + 1 < argc
-      && (!strcmp (argv[skip_args + 1], "-nw")))
-    {
-      skip_args += 1;
-      inhibit_window_system = 1;
-    }
-
-/* Handle the -batch switch, which means don't do interactive display.  */
+  /* Handle the -batch switch, which means don't do interactive display.  */
   noninteractive = 0;
-  if (skip_args + 1 < argc && !strcmp (argv[skip_args + 1], "-batch"))
+  if (argmatch (argv, "-batch", "--batch", 5, NULL, &skip_args))
+    noninteractive = 1;
+
+  /* Handle the --help option, which gives a usage message..  */
+  if (argmatch (argv, "-help", "--help", 3, NULL, &skip_args))
     {
-      skip_args += 1;
-      noninteractive = 1;
+      printf ("\
+Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
+      [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
+\(Arguments above this line must be first; those below may be in any order)\n\
+      [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
+      file-to-visit  [--kill]\n", argv[0]);
+      exit (0);
     }
 
   if (! noninteractive)
@@ -739,13 +808,14 @@ main (argc, argv, envp)
 
   if (!initialized)
     {
+      char *file;
       /* Handle -l loadup-and-dump, args passed by Makefile. */
-      if (argc > 2 + skip_args && !strcmp (argv[1 + skip_args], "-l"))
+      if (argmatch (argv, "-l", "--load", 3, &file, &skip_args))
 	Vtop_level = Fcons (intern ("load"),
-			    Fcons (build_string (argv[2 + skip_args]), Qnil));
+			    Fcons (build_string (file), Qnil));
 #ifdef CANNOT_DUMP
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
-      if (!(argc > 1 + skip_args && !strcmp (argv[1 + skip_args], "-nl")))
+      if (!argmatch (argv, "-nl", "--no-loadup", 6, NULL, &skip_args))
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string ("loadup.el"), Qnil));
 #endif /* CANNOT_DUMP */
@@ -761,6 +831,16 @@ main (argc, argv, envp)
      This flushes the new TZ value into localtime. */
   tzset ();
 #endif /* defined (sun) || defined (LOCALTIME_CACHE) */
+
+  /* Handle the GNU standard option --version.  */
+  if (argmatch (argv, "-version", "--version", 3, NULL, &skip_args))
+    {
+      Lisp_Object ver;
+      ver = call0 (intern ("emacs-version"));
+      if (STRINGP (ver))
+	printf ("%s\n", XSTRING (ver)->data);
+      exit (0);
+    }
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
