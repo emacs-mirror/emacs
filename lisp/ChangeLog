@@ -2,11 +2,10 @@
 
 	* progmodes/gdb-ui.el (gdb-resync): New function.
 	(gdb-pre-prompt, gdb-prompt, gdb-starting, gdb-stopping)
-	(gdb-frame-begin, gdb-stopped, gdb-post-prompt): 
+	(gdb-frame-begin, gdb-stopped, gdb-post-prompt):
 	Use it to fail more gracefully.
 	(gdb-variables): Delete variable.
 	Re-order variables to reduce byte-compiler warnings.
-
 
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -32,23 +31,18 @@
 	(math-read-big-bigp): Replace variable h2 with math-rb-h2.
 
 	* calc/calc-lang.el (math-read-big-rec): Fix typo.
-
 	(math-read-big-balance): Replace unbound variable by value.
-
 	(math-read-big-lines): New variable.
 	(math-read-big-rec, math-read-big-char, math-read-big-emptyp)
 	(math-read-big-error, math-read-big-balance): Replace variable
 	`lines' by declared variable.
-
 	(math-read-big-baseline, math-read-big-h2): New variables.
 	(math-read-big-rec): Replace variables the-baseline and the-h2
 	by declared variables.
-
 	(math-rb-h1, math-rb-h2, math-rb-v1, math-rb-v2): New variables.
 	(math-read-big-rec, math-read-big-char, math-read-big-emptyp)
 	(math-read-big-balance): Replace variables h1, h2, v1 and v2 by
 	declared variables.
-
 	(math-read-big-err-msg): New variable.
 	(math-read-big-error): Replace variable err-msg by declared variable.
 
@@ -89,47 +83,35 @@
 
 	* calc/calc-prog.el (math-integral-cache-state, calc-lang)
 	(calc-original-buffer): Declare them.
-
 	(calc-user-formula-alist): New variable.
 	(calc-user-define-formula, calc-fix-user-formula)
 	(calc-user-define-composition, calc-finish-formula-edit):
 	Replace variable `alist' by declared variable.
-
 	(var-q0, var-q1, var-q2, var-q3, var-q4, var-q5, var-q6)
 	(var-q7, var-q7, var-q8, var-q9): Declare them.
 	(calc-kbd-push): Don't check to see if var-q0 through var-q9
 	are bound.
-
 	(calcFunc-typeof): Replace undeclared variable by expression.
-
 	(math-exp-env): New variable.
 	(math-define-body, math-define-exp): Replace exp-env by declared var.
-
 	(math-define-exp): Replace misplaced variable by expression.
 
 	* calc/calcalg3.el (calc-curve-nvars, calc-curve-varnames)
 	(calc-curve-model, calc-curve-coefnames): New variables.
 	(calc-curve-fit, calc-get-fit-variables): Replace variables nvars,
 	varnames, model and coefnames by declared variables.
-
 	(math-root-widen): New variable.
 	(math-search-root, math-find-root): Replace variable root-widen by
 	declared variable.
-
 	(var-DUMMY): Declare it.
 	(math-root-vars, math-min-vars): Move the declarations to earlier in
 	the file.
-
 	(math-brent-min): Make d a local variable.
-
 	(math-find-minimum): Replace non-existent variable.
-
 	(math-ninteg-romberg): Remove unnecessary variable.
-
 	(math-ninteg-temp): New variable.
 	(math-ninteg-romberg, math-ninteg-midpoint): Replace variable
 	integ-temp by declared variable.
-
 	(math-fit-first-var, math-fit-first-coef, math-fit-new-coefs):
 	New variables.
 	(math-general-fit): Replace variables first-var, first-coef and
@@ -137,7 +119,6 @@
 	(calcFunc-fitvar): Replace variable first-var by declared variable.
 	(calcFunc-fitparam): Replace variable first-coef by declared variable.
 	(calcFunc-fitdummy): Replace variable new-coefs by declared variable.
-
 	(math-all-vars-vars, math-all-vars-found): New variables.
 	(math-all-vars-in, math-all-vars-rec): Replace variables vars and
 	found by declared variable math-all-vars-vars.
@@ -211,22 +192,17 @@
 	* calc/calc-sel.el (calc-edit-disp-trail): Declare it.
 	(calc-finish-selection-edit):  Replace variable disp-trail by
 	declared variable.
-
 	(calc-selection-cache-entry): Move declaration to earlier in the file.
-
 	(calc-selection-cache-num, calc-selection-cache-comp)
 	(calc-selection-cache-offset, calc-selection-true-num)
 	(calc-final-point-line, calc-final-point-column)
 	(calc-original-buffer): Declare them.
-
 	(calc-fnp-op, calc-fnp-num): New variables.
 	(calc-find-nth-part, calc-find-nth-part-rec)
 	(calc-select-previous): Replace op and num by declared variables.
-
 	(calc-rsf-old, calc-rsf-new): New variables.
 	(calc-replace-sub-formula, calc-replace-sub-formula-rec):
 	Replace variables old and new by declared variables.
-
 	(calc-sel-reselect): New variable.
 	(calc-auto-selection, calc-enter-selection, calc-edit-selection)
 	(calc-sel-evaluate, calc-sel-expand-formula, calc-sel-expand-formula)
@@ -237,38 +213,29 @@
 	(math-bound-vars, math-conds, math-copy-neg, math-rhs)
 	(math-pattern, math-remembering, math-aliased-vars, math-mt-many)
 	(math-import-list, math-rewrite-phase): Declare them.
-
 	(math-rewrite):  Use let* to declare variables.
-
 	(calc-rewrite-selection): Make rules a local variable.
-
 	(calc-rewr-sel): New variable.
 	(calc-rewrite-selection, calc-locate-selection-marker)
 	(calc-rewrite): Use the declared variable calc-rewr-sel instead
 	of sel.
-
 	(math-rewrite-whole-expr): New variable.
 	(math-rewrite, math-rewrite-phase): Replace variable expr by
 	declared variable.
-
 	(math-rewrite-heads-heads, math-rewrite-heads-skips)
 	(math-rewrite-heads-blanks ): New variables.
 	(math-rewrite-heads, math-rewrite-heads-rec): Replace variables
 	heads, skips and blanks by declared variables.
-
 	(math-rwcomp-subst-old, math-rwcomp-subst-new)
 	(math-rwcomp-subst-old-func, math-rwcomp-subst-new-func):
 	New variables.
 	(math-rwcomp-substitute, math-rwcomp-subst-rec): Replace variables
 	old, new, old-func and new-func by declared variables.
-
 	(math-rwcomp-assoc-args, math-rwcomp-addsub-args):
 	Remove unnecessary variable.
-
 	(math-apply-rw-regs): New variable.
 	(math-apply-rewrites, math-rwapply-replace-regs)
 	(math-rwapply-reg-looks-negp): Replace variable regs by declared var.
-
 	(math-apply-rw-ruleset): New variable.
 	(math-apply-rewrites, math-rwapply-remember): Replace variable
 	ruleset by declared variable.
@@ -337,38 +304,30 @@
 
 	* calc/calc-alg.el (calc-poly-div): Make calc-poly-div-remainder
 	a local variable.
-
 	(math-eval-rules-cache, math-eval-rules-cache-other): Declare them.
-
 	(math-top-only): New variable.
 	(math-simplify, math-simplify-step): Replace variable top-only by
 	declared variable math-top-only.
-
 	(math-simplify-expr): Declare it.
-	Replaced argument expr in all calls of math-defsimplify by
+	Replace argument expr in all calls of math-defsimplify by
 	math-simplify-expr.
 	(math-simplify-plus, math-simplify-times, math-simplify-divide)
 	(math-simplify-divisor, math-simplify-one-divisor)
 	(math-simplify-mod, math-simplify-ineq, math-simplify-sqrt)
 	(math-simplify-pow): Replace variable expr by declared variable
 	math-simplify-expr.
-
 	(math-simplify-divisor): Remove local variables temp and op.
 	(math-simplify-one-divisor): Make temp and op local variables.
-
 	(math-simplify-divisor-nover, math-simplify-divisor-dover):
 	New variables.
 	(math-simplify-divisor, math-simplify-one-divisor):
 	Replace variables nover and dover by declared variables.
-
 	(math-expr-subst-new, math-expr-subst-old): New variables.
 	(math-expr-subst, math-expr-subst-rec): Replace variables new
 	and old by declared variables.
-
 	(math-is-poly-degree, math-is-poly-loose): New variables.
 	(math-is-polynomial, math-is-poly-rec): Replace variables degree
 	and loose by declared variables.
-
 	(math-poly-base-const-ok, math-poly-base-pred): New variables.
 	(math-polynomial-base, math-polynomial-base-rec):
 	Replace variables const-ok and mpb-pred by declared variables.
@@ -398,7 +357,7 @@
 
 	* progmodes/idlwave.el, progmodes/idlw-toolbar.el
 	* progmodes/idlw-shell.el, progmodes/idlw-rinfo.el:
-	Updated to IDLWAVE version 5.5.  Too many changes to list them here.
+	Update to IDLWAVE version 5.5.  Too many changes to list them here.
 	* progmodes/idlw-help.el: New file.
 
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
@@ -489,7 +448,6 @@
 
 	* calc/calcalg2.el (math-integrate-by-parts):  Remove unused
 	variable var-thing.
-
 	(math-integ-depth, math-integ-level, math-integral-limit)
 	(math-enable-subst, math-any-substs, math-integ-msg)
 	(math-prev-parts-v, math-good-parts, math-max-integral-limit)
@@ -497,10 +455,8 @@
 	(math-solve-simplifying, var-IntegLimit, math-solve-sign)
 	(var-GenCount):  Declare these variables.
 	(calcFunc-integ):  Don't check if var-IntegLimit is bound.
-
 	(math-integral-cache, math-integral-cache-state):
 	Move declarations to earlier in the file.
-
 	(math-deriv-var, math-deriv-total, math-deriv-symb)
 	(math-cur-record, math-has-rules, math-t1, math-t2, math-t3)
 	(math-so-far, math-integ-expr, math-expr-parts, calc-low)
@@ -1232,7 +1188,7 @@
 	Use `flymake-reformat-err-line-patterns-from-compile-el' to convert
 	`compilation-error-regexp-alist-alist' to internal Flymake format.
 
-	* progmodes/flymake.el: eliminated byte-compiler warnings.
+	* progmodes/flymake.el: Eliminate byte-compiler warnings.
 
 2004-11-01  Jay Belanger  <belanger@truman.edu>
 
@@ -2412,7 +2368,7 @@
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-graph.el (calc-graph-add-curve): Moved the call to
+	* calc/calc-graph.el (calc-graph-add-curve): Move the call to
 	`calc-graph-set-styles' so the gnuplot buffer will appear in a
 	separate window.
 
@@ -2432,7 +2388,7 @@
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc-mode-var-list): Removed unnecessary quotes.
+	* calc/calc.el (calc-mode-var-list): Remove unnecessary quotes.
 
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -2585,8 +2541,8 @@
 	(calc-invocation-macro, calc-show-banner): Give these values as
 	part of `calc-mode-var-list's initialization after the variables
 	are declared with defvar.
-	(calc-bug-address):  Changed email address to send bug
-	reports to. Also changed the maintainer address at the top.
+	(calc-bug-address):  Change email address to send bug reports to.
+	Change the maintainer address at the top.
 	(calc-mode): Compare `calc-settings-file' to `user-init-file' rather
 	than "\\.emacs" to determine if it is the user-init-file.
 
@@ -3144,9 +3100,9 @@
 	* progmodes/grep.el (grep-default-command): Use find-tag-default.
 	(grep-tag-default): Function deleted.
 
-	* subr.el (find-tag-default): Moved from etags.el.
+	* subr.el (find-tag-default): Move from etags.el.
 
-	* progmodes/etags.el (find-tag-default): Moved to subr.el.
+	* progmodes/etags.el (find-tag-default): Move to subr.el.
 
 	* emacs-lisp/lisp-mode.el (prin1-char): Put `shift' modifier
 	into the basic character if it has an uppercase form.
@@ -3202,7 +3158,7 @@
 	* whitespace.el (global-whitespace-mode): New alias
 	for whitespace-global-mode.
 
-	* speedbar.el (speedbar-file-regexp): Definition moved up.
+	* speedbar.el (speedbar-file-regexp): Move definition up.
 	(speedbar-mode, speedbar-set-mode-line-format):
 	Use with-no-warnings.
 	(speedbar-emacs-popup-kludge): Delete Emacs 19 alternative.
@@ -3440,7 +3396,7 @@
 
 	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
 	Fix bug so that it doesn't go past the closing paren when PAREN-LEVEL
-	is used.  Reordered the syntax checks to get more efficient
+	is used.  Reorder the syntax checks to get more efficient
 	skipping in some situations.
 
 	* progmodes/cc-cmds.el (c-electric-brace): Don't trip up on a line
@@ -3451,7 +3407,7 @@
 
 	* progmodes/cc-fonts.el (c-font-lock-declarators): Handle array
 	size specs correctly.  Only fontify identifiers in front of '('
-	with as functions - don't accept any paren char.  Tightened up
+	with as functions - don't accept any paren char.  Tighten up
 	initializer skipping to stop before function and class blocks.
 
 	* progmodes/cc-engine.el (c-beginning-of-decl-1): Fix bug where
@@ -3785,7 +3741,7 @@
 	functions that are not erroneous if either 1-valued or
 	multi-valued.  Detect functions in this class.
 	(testcover-1value-functions, testcover-compose-functions)
-	(testcover-progn-functions) Added some additional functions to lists.
+	(testcover-progn-functions) Add some additional functions to lists.
 	(testcover-mark): Bugfix when marking up the definition for an
 	empty function.
 
@@ -4451,7 +4407,7 @@
 	* toolbar/lc-saveas.xpm, toolbar/lc-search.xpm
 	* toolbar/lc-spell.xpm, toolbar/lc-undo.xpm
 	* toolbar/lc-up_arrow.xpm:
-	Renamed from *-locol.xpm.
+	Rename from *-locol.xpm.
 
 2004-06-09  Rajesh Vaidheeswarran  <rv@gnu.org>
 
