@@ -1257,6 +1257,11 @@ basic Devanagari character string."
     (devanagari-compose-region (point-min) (point-max))))
 
 ;;;###autoload
+(defun in-is13194-devanagari-post-read-conversion (len)
+  (let ((pos (point)))
+    (devanagari-compose-from-is13194-region pos (+ pos len))))
+
+;;;###autoload
 (defun devanagari-decompose-to-is13194-region (from to)
   "Decompose Devanagari characters in the region to IS 13194 characters."
   (interactive "r")
@@ -1265,6 +1270,18 @@ basic Devanagari character string."
     (devanagari-decompose-region (point-min) (point-max))
     (devanagari-to-indian-region (point-min) (point-max))))
 
+;;;###autoload
+(defun in-is13194-devanagari-pre-write-conversion (from to)
+  (let ((old-buf (current-buffer))
+	(work-buf (get-buffer-create " *devanagari-work*")))
+    (set-buffer work-buf)
+    (erase-buffer)
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring old-buf from to))
+    (devanagari-decompose-to-is13194-region (point-min) (point-max))
+    ;; Should return nil as annotations.
+    nil))
 
 ;; For input/output of ITRANS
 
