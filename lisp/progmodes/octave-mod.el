@@ -308,7 +308,8 @@ parenthetical grouping.")
 (defcustom octave-auto-indent nil
   "*Non-nil means indent line after a semicolon or space in Octave mode."
   :type 'boolean
-  :group 'octave)
+  :group 'octave
+  :version "20.3")
 
 (defcustom octave-auto-newline nil
   "*Non-nil means automatically newline after a semicolon in Octave mode."

@@ -110,7 +110,8 @@ Otherwise, `find-tag-default' is used."
 (defcustom find-tag-marker-ring-length 16
   "*Length of marker rings `find-tag-marker-ring' and `tags-location-ring'."
   :group 'etags
-  :type 'integer)
+  :type 'integer
+  :version "20.3")
 
 (defvar find-tag-marker-ring (make-ring find-tag-marker-ring-length)
   "Ring of markers which are locations from which \\[find-tag] was invoked.")

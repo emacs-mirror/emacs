@@ -104,7 +104,8 @@
 Most commonly used to specify `-g' to enable GSS-API authentication
 or `-k' to enable Kerberos authentication."
   :type '(repeat string)
-  :group 'rmail-retrieve)
+  :group 'rmail-retrieve
+  :version "20.3")
 
 (defvar rmail-pop-password-error "invalid usercode or password"
   "Regular expression matching incorrect-password POP server error messages.

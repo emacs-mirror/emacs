@@ -412,7 +412,8 @@ If you want to run a special decoding program like nkf, use this hook."
 (defcustom gnus-article-hide-pgp-hook nil
   "*A hook called after successfully hiding a PGP signature."
   :type 'hook
-  :group 'gnus-article-various)
+  :group 'gnus-article-various
+  :version "20.3")
 
 (defcustom gnus-article-button-face 'bold
   "Face used for highlighting buttons in the article buffer.

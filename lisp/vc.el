@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.222 1998/04/15 09:48:04 schwab Exp spiegel $
+;; $Id: vc.el,v 1.223 1998/04/15 10:13:07 spiegel Exp done $
 
 ;; This file is part of GNU Emacs.
 
@@ -116,7 +116,8 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
   "*A string used as the default version number when a new file is registered.
 This can be overriden by giving a prefix argument to \\[vc-register]."
   :type 'string
-  :group 'vc)
+  :group 'vc
+  :version "20.3")
 
 (defcustom vc-command-messages nil
   "*If non-nil, display run messages from back-end commands."

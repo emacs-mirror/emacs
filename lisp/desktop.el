@@ -113,7 +113,8 @@
   :group 'desktop
   :type 'boolean
   :require 'desktop
-  :initialize 'custom-initialize-default)
+  :initialize 'custom-initialize-default
+  :version "20.3")
 
 (defcustom desktop-basefilename
   (convert-standard-filename ".emacs.desktop")

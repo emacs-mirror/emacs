@@ -199,7 +199,8 @@ all the other buffers, except those named in `dabbrev-ignored-buffer-names'."
 (defcustom dabbrev-ignored-buffer-names '("*Messages")
   "*List of buffer names that dabbrev should not check."
   :type '(repeat (string :tag "Buffer name"))
-  :group 'dabbrev)
+  :group 'dabbrev
+  :version "20.3")
 
 (defcustom dabbrev-check-other-buffers t
   "*Should \\[dabbrev-expand] look in other buffers?\

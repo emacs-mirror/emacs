@@ -337,12 +337,14 @@ This will cause text insertion to be much slower.  Note that no special
 interpretation of strings is done: \"\C-x\" is a string of four
 characters.  The default is simply to copy strings."
   :type 'boolean
-  :group 'vcursor)
+  :group 'vcursor
+  :version "20.3")
 
 (defcustom vcursor-string "**>"
   "String used to show the vcursor position on dumb terminals."
   :type 'string
-  :group 'vcursor)
+  :group 'vcursor
+  :version "20.3")
 
 (defvar vcursor-overlay nil 
   "Overlay for the virtual cursor.

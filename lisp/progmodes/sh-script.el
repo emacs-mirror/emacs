@@ -170,7 +170,8 @@ shell it really is."
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       regexp))
-  :group 'sh-script)
+  :group 'sh-script
+  :version "20.3")
 
 (defvar sh-shell-variables nil
   "Alist of shell variable names that should be included in completion.

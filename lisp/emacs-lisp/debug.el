@@ -36,7 +36,8 @@
 (defcustom debugger-mode-hook nil
   "*Hooks run when `debugger-mode' is turned on."
   :type 'hook
-  :group 'debugger)
+  :group 'debugger
+  :version "20.3")
 
 
 (defcustom debug-function-list nil
@@ -412,7 +413,8 @@ Applies to the frame whose line point is on in the backtrace."
 (defcustom debugger-record-buffer "*Debugger-record*"
   "*Buffer name for expression values, for \\[debugger-record-expression]."
   :type 'string
-  :group 'debugger)
+  :group 'debugger
+  :version "20.3")
 
 (defun debugger-record-expression  (exp)
   "Display a variable's value and record it in `*Backtrace-record*' buffer."

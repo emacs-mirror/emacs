@@ -176,7 +176,8 @@
    ]
   "Vector of CCL extended compiled codes (symbols)."
   :type '(vector (repeat :inline t symbol))
-  :group 'ccl)
+  :group 'ccl
+  :version "20.3")
 
 ;; Put a property to each symbol of CCL codes for the disassembler.
 (let (code (i 0) (len (length ccl-code-table)))

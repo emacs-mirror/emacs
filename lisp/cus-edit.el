@@ -1781,7 +1781,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Default form of displaying variable values."
   :type '(choice (const edit)
 		 (const lisp))
-  :group 'custom-buffer)
+  :group 'custom-buffer
+  :version "20.3")
 
 (define-widget 'custom-variable 'custom
   "Customize variable."
@@ -2226,7 +2227,8 @@ Match frames with dark backgrounds.")
   :type '(choice (const all)
 		 (const selected)
 		 (const lisp))
-  :group 'custom-buffer)
+  :group 'custom-buffer
+  :version "20.3")
 
 (define-widget 'custom-face 'custom
   "Customize face."

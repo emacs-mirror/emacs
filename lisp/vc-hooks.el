@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.104 1998/04/04 05:21:44 rms Exp spiegel $
+;; $Id: vc-hooks.el,v 1.105 1998/04/05 18:44:35 spiegel Exp done $
 
 ;; This file is part of GNU Emacs.
 
@@ -125,7 +125,8 @@ It may be useful to set this if (say) you edit files in a directory
 containing corresponding RCS files but don't have RCS available;
 similarly for other version control systems."
   :type 'boolean
-  :group 'vc)
+  :group 'vc
+  :version "20.3")
 
 (defun vc-mistrust-permissions (file)
   ;; Access function to the above.

@@ -91,7 +91,8 @@ and \"-de\" when dehexlifying a buffer."
 (defcustom hexl-follow-ascii t
   "If non-nil then highlight the ASCII character corresponding to point."
   :type 'boolean
-  :group 'hexl)
+  :group 'hexl
+  :version "20.3")
 
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")

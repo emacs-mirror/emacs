@@ -43,7 +43,8 @@ The value of this variable should be a symbol; that symbol
 is used as a variable to hold a history list for the strings
 or patterns to be replaced."
   :group 'matching
-  :type 'symbol)
+  :type 'symbol
+  :version "20.3")
 
 (defcustom query-replace-to-history-variable 'query-replace-history
   "History list to use for the TO argument of query-replace commands.
@@ -51,7 +52,8 @@ The value of this variable should be a symbol; that symbol
 is used as a variable to hold a history list for replacement
 strings or patterns."
   :group 'matching
-  :type 'symbol)
+  :type 'symbol
+  :version "20.3")
 
 (defun query-replace-read-args (string regexp-flag)
   (let (from to)

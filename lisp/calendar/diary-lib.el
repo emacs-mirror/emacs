@@ -948,7 +948,8 @@ The default value -9999 causes entries with no recognizable time to be placed
 before those with times; 9999 would place entries with no recognizable time
 after those with times."
   :type 'integer
-  :group 'diary)
+  :group 'diary
+  :version "20.3")
  
 (defun diary-entry-time (s)
   "Time at the beginning of the string S in a military-style integer.  For
