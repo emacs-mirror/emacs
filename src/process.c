@@ -2037,6 +2037,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
+#ifdef hpux
+  /* AlainF 5-Jul-1996
+     HP-UX 10.10 seem to have problems with signals coming in
+     Causes "poll: interrupted system call" messages when Emacs is run
+     in an X window
+     Turn off periodic alarms (in case they are in use) */
+  stop_polling ();
+#endif
 
   while (1)
     {
@@ -2391,7 +2399,15 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       clear_input_pending ();
       QUIT;
     }
-
+#ifdef hpux
+  /* AlainF 5-Jul-1996
+     HP-UX 10.10 seems to have problems with signals coming in
+     Causes "poll: interrupted system call" messages when Emacs is run
+     in an X window
+     Turn periodic alarms back on */
+  start_polling();
+#endif
+   
   return got_some_input;
 }
 
