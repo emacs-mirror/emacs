@@ -114,18 +114,22 @@ main (argc, argv)
 
   progname = argv[0];
 
+  outfile = stdout;
+
   /* Don't put CRs in the DOC file.  */
 #ifdef MSDOS
+#if 0  /* Suspicion is that this causes hanging.
+	  So instead we require people to use -o on MSDOS.  */
   _fmode = O_BINARY;
   (stdout)->_flag &= ~_IOTEXT;
   _setmode (fileno (stdout), O_BINARY);
+#endif
+  outfile = 0;
 #endif /* MSDOS */
 #ifdef WINDOWSNT
   _fmode = O_BINARY;
   _setmode (fileno (stdout), O_BINARY);
 #endif /* WINDOWSNT */
-
-  outfile = stdout;
 
   /* If first two args are -o FILE, output to FILE.  */
   i = 1;
@@ -144,6 +148,9 @@ main (argc, argv)
       chdir (argv[i + 1]);
       i += 2;
     }
+
+  if (outfile == 0)
+    fatal ("No output file specified", "");
 
   first_infile = i;
   for (; i < argc; i++)
