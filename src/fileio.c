@@ -5628,13 +5628,17 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH . LOW), like the time values
+The value is a list of the form (HIGH LOW), like the time values
 that `file-attributes' returns.  If the current buffer has no recorded
 file modification time, this function returns 0.
 See Info node `(elisp)Modification Time' for more details.  */)
      ()
 {
-  return long_to_cons ((unsigned long) current_buffer->modtime);
+  Lisp_Object tcons;
+  tcons = long_to_cons ((unsigned long) current_buffer->modtime);
+  if (CONSP (tcons))
+    return list2 (XCAR (tcons), XCDR (tcons));
+  return tcons;
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
