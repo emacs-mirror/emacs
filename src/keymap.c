@@ -2471,7 +2471,7 @@ You type        Translation\n\
   shadow = Qnil;
   GCPRO1 (shadow);
 
-  outbuf = Fcurrent_buffer();
+  outbuf = Fcurrent_buffer ();
 
   /* Report on alternates for keys.  */
   if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
@@ -2508,63 +2508,83 @@ You type        Translation\n\
     describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
 		       "Key translations", nomenu, 1, 0);
 
-  {
-    int i, nmaps;
-    Lisp_Object *modes, *maps;
-
-    /* Temporarily switch to `buffer', so that we can get that buffer's
-       minor modes correctly.  */
-    Fset_buffer (buffer);
-
-    if (!NILP (current_kboard->Voverriding_terminal_local_map)
-	|| !NILP (Voverriding_local_map))
-      nmaps = 0;
-    else
-      nmaps = current_minor_maps (&modes, &maps);
-    Fset_buffer (outbuf);
-
-    /* Print the minor mode maps.  */
-    for (i = 0; i < nmaps; i++)
-      {
-	/* The title for a minor mode keymap
-	   is constructed at run time.
-	   We let describe_map_tree do the actual insertion
-	   because it takes care of other features when doing so.  */
-	char *title, *p;
-
-	if (!SYMBOLP (modes[i]))
-	  abort();
-
-	p = title = (char *) alloca (42 + XSYMBOL (modes[i])->name->size);
-	*p++ = '\f';
-	*p++ = '\n';
-	*p++ = '`';
-	bcopy (XSYMBOL (modes[i])->name->data, p,
-	       XSYMBOL (modes[i])->name->size);
-	p += XSYMBOL (modes[i])->name->size;
-	*p++ = '\'';
-	bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
-	p += sizeof (" Minor Mode Bindings") - 1;
-	*p = 0;
-
-	describe_map_tree (maps[i], 1, shadow, prefix, title, nomenu, 0, 0);
-	shadow = Fcons (maps[i], shadow);
-      }
-  }
 
   /* Print the (major mode) local map.  */
+  start1 = Qnil;
   if (!NILP (current_kboard->Voverriding_terminal_local_map))
     start1 = current_kboard->Voverriding_terminal_local_map;
   else if (!NILP (Voverriding_local_map))
     start1 = Voverriding_local_map;
-  else
-    start1 = XBUFFER (buffer)->keymap;
 
   if (!NILP (start1))
     {
       describe_map_tree (start1, 1, shadow, prefix,
-			 "\f\nMajor Mode Bindings", nomenu, 0, 0);
+			 "\f\nOverriding Bindings", nomenu, 0, 0);
       shadow = Fcons (start1, shadow);
+    }
+  else
+    {
+      /* Print the minor mode and major mode keymaps.  */
+      int i, nmaps;
+      Lisp_Object *modes, *maps;
+
+      /* Temporarily switch to `buffer', so that we can get that buffer's
+	 minor modes correctly.  */
+      Fset_buffer (buffer);
+
+      nmaps = current_minor_maps (&modes, &maps);
+      Fset_buffer (outbuf);
+
+      /* Print the minor mode maps.  */
+      for (i = 0; i < nmaps; i++)
+	{
+	  /* The title for a minor mode keymap
+	     is constructed at run time.
+	     We let describe_map_tree do the actual insertion
+	     because it takes care of other features when doing so.  */
+	  char *title, *p;
+
+	  if (!SYMBOLP (modes[i]))
+	    abort();
+
+	  p = title = (char *) alloca (42 + XSYMBOL (modes[i])->name->size);
+	  *p++ = '\f';
+	  *p++ = '\n';
+	  *p++ = '`';
+	  bcopy (XSYMBOL (modes[i])->name->data, p,
+		 XSYMBOL (modes[i])->name->size);
+	  p += XSYMBOL (modes[i])->name->size;
+	  *p++ = '\'';
+	  bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
+	  p += sizeof (" Minor Mode Bindings") - 1;
+	  *p = 0;
+
+	  describe_map_tree (maps[i], 1, shadow, prefix, title, nomenu, 0, 0);
+	  shadow = Fcons (maps[i], shadow);
+	}
+
+      start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
+			      XBUFFER (buffer), Qkeymap);
+      if (!NILP (start1))
+	{
+	  describe_map_tree (start1, 1, shadow, prefix,
+			     "\f\nChar Property Bindings", nomenu, 0, 0);
+	  shadow = Fcons (start1, shadow);
+	}
+
+      start1 = get_local_map (BUF_PT (XBUFFER (buffer)),
+			      XBUFFER (buffer), Qlocal_map);
+      if (!NILP (start1))
+	{
+	  if (EQ (start1, XBUFFER (buffer)->keymap))
+	    describe_map_tree (start1, 1, shadow, prefix,
+			       "\f\nMajor Mode Bindings", nomenu, 0, 0);
+	  else
+	    describe_map_tree (start1, 1, shadow, prefix,
+			       "\f\nChar Property Bindings", nomenu, 0, 0);
+
+	  shadow = Fcons (start1, shadow);
+	}
     }
 
   describe_map_tree (current_global_map, 1, shadow, prefix,
