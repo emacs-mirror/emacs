@@ -171,7 +171,7 @@ init_cmdargs (argc, argv, skip_args)
       Lisp_Object found;
       int yes = openp (Vexec_path, Vinvocation_name,
 		       EXEC_SUFFIXES, &found, 1);
-      if (yes)
+      if (yes == 1)
 	Vinvocation_directory = Ffile_name_directory (found);
     }
 
