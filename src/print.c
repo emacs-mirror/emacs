@@ -1452,7 +1452,8 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte
-		       && (CHAR_BYTE8_P (c) || print_escape_multibyte))
+		       && (CHAR_BYTE8_P (c) 
+			   || (! ASCII_CHAR_P (c) && print_escape_multibyte)))
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.
