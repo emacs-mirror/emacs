@@ -1,3 +1,7 @@
+2002-02-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* hi-lock.el (hi-lock-find-patterns): Save restriction.
+
 2002-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/time-date.el: Moved from lisp/gnus.
@@ -37,7 +41,7 @@
 	(compile-always): Renamed from compile-files.
 	(compile-after-backup): Renamed from compile.
 	(bootstrap): Depend on compile-always, not compile-files.
-	
+
 	* emulation/pc-select.el (pc-select-save-and-set-mode):
 	Properly use MODE-VAR.
 
