@@ -42,7 +42,10 @@ Second arg is file name of change log.  If nil, uses `change-log-default-name'.
 Third arg OTHER-WINDOW non-nil means visit in other window."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
-  (let* ((full-name (if whoami
+  (let* ((default (if (eq system-type 'vax-vms)
+			   "$CHANGE_LOG$.TXT"
+			 "ChangeLog"))
+	 (full-name (if whoami
 			(read-input "Full name: " (user-full-name))
 		      (user-full-name)))
 	 ;; Note that some sites have room and phone number fields in
@@ -54,7 +57,16 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 		       (user-login-name)))
 	 (site-name (if whoami
 			(read-input "Site name: " (system-name))
-		      (system-name))))
+		      (system-name)))
+	 (defun (add-log-current-defun))
+	 (entry (and buffer-file-name
+		     (file-name-nondirectory buffer-file-name)))
+	 entry-position entry-boundary empty-entry)
+    ;; Never want to add a change log entry for the ChangeLog buffer itself:
+    (if (equal default entry)
+	(setq entry nil
+	      formatted-revision nil
+	      defun nil))
     (or file-name
 	(setq file-name (or change-log-default-name
 			    default-directory)))
@@ -74,17 +86,59 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 		       "  (" login-name
 		       "@" site-name ")\n\n")))
     (goto-char (point-min))
-    (forward-line 1)
-    (while (looking-at "\\sW")
-      (forward-line 1))
-    (delete-region (point)
-		   (progn
-		     (skip-chars-backward "\n")
-		     (point)))
-    (open-line 3)
-    (forward-line 2)
-    (indent-to left-margin)
-    (insert "* ")))
+    (setq empty-entry
+	  (and (search-forward "\n\t* \n" nil t)
+	       (1- (point))))
+    (if (and entry
+	     (not empty-entry))
+	;; Look for today's entry for same file
+	;; If there is an empty entry (just a `*'), take the hint and
+	;; use it.  This is so that C-x a from the ChangeLog buffer
+	;; itself can be used to force the next entry to be added at
+	;; the beginning, even if there are today's entries for the
+	;; same file (but perhaps different revisions).
+	(setq entry-boundary (save-excursion
+			       (and (re-search-forward "\n[A-Z]" nil t)
+				    (point)))
+	      entry-position (save-excursion
+			       (and (re-search-forward
+				     (concat
+				      (regexp-quote (concat "* " entry))
+				      ;; don't accept `foo.bar' when
+				      ;; looking for `foo':
+				      "[ \n\t,]")
+				     entry-boundary
+				     t)
+				    (1- (match-end 0))))))
+    (cond (entry-position
+	    ;; Move to existing entry for same file.
+	    (goto-char entry-position)
+	    (search-forward "\n\n")
+	    (forward-line -1))
+	  (empty-entry
+	   ;; Put this file name into existing empty entry.
+	    (goto-char empty-entry)
+	    (insert (or entry "")))
+	  (t
+	    ;; Make a new entry
+	    (forward-line 1)
+	    (while (looking-at "\\sW")
+	      (forward-line 1))
+	    (delete-region (point)
+			   (progn
+			     (skip-chars-backward "\n")
+			     (point)))
+	    (open-line 3)
+	    (forward-line 2)
+	    (indent-to left-margin)
+	    (insert "* " (or entry ""))))
+    ;; Point is at the entry for this file,
+    ;; either at the end of the line or at the first blank line.
+    (if defun
+	(progn
+	  ;; Make it easy to get rid of the defun name.
+	  (undo-boundary)
+	  (insert "(" defun "): ")))))
 
 ;;;###autoload
 (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
@@ -99,5 +153,83 @@ Interactively, with a prefix argument, the file name is prompted for."
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
   (add-change-log-entry whoami file-name t))
+
+(defun change-log-mode ()
+  (interactive)
+  (kill-all-local-variables)
+  (indented-text-mode)
+  (setq major-mode 'change-log-mode)
+  (setq mode-name "Change Log")
+  ;; Let each entry behave as one paragraph:
+  (set (make-local-variable 'paragraph-start) "^$\\|^^L")
+  (set (make-local-variable 'paragraph-separate) "^$\\|^^L")
+  ;; Let all entries for one day behave as one page.
+  ;; Note that a page boundary is also a paragraph boundary.
+  ;; Unfortunately the date line of a page actually belongs to
+  ;; the next day, but I don't see how to avoid that since
+  ;; page moving cmds go to the end of the match, and Emacs
+  ;; regexps don't have a context feature.
+  (set (make-local-variable 'page-delimiter) "^[A-Z][a-z][a-z] .*\n\\|^")
+  (run-hooks 'change-log-mode-hook))
+
+(defvar add-log-current-defun-header-regexp
+  "^\\([A-Z][A-Z_ ]+\\|[a-z_---A-Z]+\\)[ \t]*[:=]"
+  "*Heuristic regexp used by `add-log-current-defun' for unknown major modes.")
+
+(defun add-log-current-defun ()
+  "Return name of function definition point is in, or nil.
+
+Understands Lisp, LaTeX (\"functions\" are chapters, sections, ...),
+Texinfo (@node titles), and C.
+
+Other modes are handled by a heuristic that looks in the 10K before
+point for uppercase headings starting in the first column or
+identifiers followed by `:' or `=', see variable
+`add-log-current-defun-header-regexp'.
+
+Has a preference of looking backwards."
+  (save-excursion
+    (cond ((memq major-mode '(emacs-lisp-mode lisp-mode))
+	   (beginning-of-defun)
+	   (forward-word 1)
+	   (skip-chars-forward " ")
+	   (buffer-substring (point)
+			     (progn (forward-sexp 1) (point))))
+	  ((eq major-mode 'c-mode)
+	   ;; must be inside function body for this to work
+	   (beginning-of-defun)
+	   (forward-line -1)
+	   (while (looking-at "[ \t\n]") ; skip typedefs of arglist
+	     (forward-line -1))
+	   (down-list 1)		; into arglist
+	   (backward-up-list 1)
+	   (skip-chars-backward " \t")
+	   (buffer-substring (point)
+			     (progn (backward-sexp 1)
+				    (point))))
+	  ((memq major-mode
+		 '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
+			    plain-tex-mode latex-mode;; cmutex.el
+			    ))
+	   (if (re-search-backward
+		"\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
+	       (progn
+		 (goto-char (match-beginning 0))
+		 (buffer-substring (1+ (point));; without initial backslash
+				   (progn
+				     (end-of-line)
+				     (point))))))
+	  ((eq major-mode 'texinfo-mode)
+	   (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
+	       (buffer-substring (match-beginning 1)
+				 (match-end 1))))
+	  (t
+	   ;; If all else fails, try heuristics
+	   (let (case-fold-search)
+	     (if (re-search-backward add-log-current-defun-header-regexp
+				     (- (point) 10000)
+				     t)
+		 (buffer-substring (match-beginning 1)
+				   (match-end 1))))))))
 
 ;;; add-log.el ends here
