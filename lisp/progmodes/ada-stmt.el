@@ -1,8 +1,8 @@
 ;;; ada-stmt.el - An extension to Ada mode for inserting statement templates.
 
-;; Copyright (C) 1987, 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright(C) 1987, 1993-1994, 1996-1998, 1999 Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.1 $ 
+;; Ada Core Technologies's version:   $Revision: 1.10 $ 
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Rolf Ebert <ebert@waporo.muc.de>
@@ -38,7 +38,7 @@
 ;; General cleanup and bug fixes.
 ;;
 ;; 1995/12/20  John Hutchison <hutchiso@epi.syr.ge.com>
-;; made it work with skeleton.el from emacs-19.30. Several
+;; made it work with skeleton.el from Emacs-19.30. Several
 ;; enhancements and bug fixes.
 
 ;; BUGS:
@@ -163,7 +163,7 @@
 
 (define-skeleton ada-array
   "Insert array type definition.
-Uses the minibuffer to prompt for component type and index subtypes."
+Prompt for component type and index subtypes."
   ()
   "array (" ("index definition: " str ", " ) -2 ") of " _ ?\;)
 
