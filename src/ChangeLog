@@ -1,3 +1,7 @@
+2000-10-25  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (pos_visible_p): Don't add `it.current_y' twice.
+
 2000-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (pos_fully_visible_p): Removed.
