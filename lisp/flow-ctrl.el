@@ -21,7 +21,7 @@
 ;;;
 
 ;;;; Terminals that use XON/XOFF flow control can cause problems with
-;;;; GNU Emacs users.  This file contains elisp code that makes it
+;;;; GNU Emacs users.  This file contains Emacs Lisp code that makes it
 ;;;; easy for a user to deal with this problem, when using such a
 ;;;; terminal. 
 ;;;;      

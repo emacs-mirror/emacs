@@ -1,4 +1,4 @@
-;;; upd-copyr.el --- update the copyright notice in a GNU Emacs elisp file
+;;; upd-copyr.el --- update the copyright notice in a GNU Emacs Lisp file
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Last-Modified: 03 Jun 1991

@@ -1,10 +1,10 @@
-;; Incremental search minor mode.
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; isearch-mode.el --- incremental search minor mode.
 
-;; LCD Archive Entry:
-;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
-;; |A minor mode replacement for isearch.el.
-;; |$Date: 92/05/27 11:33:57 $|$Revision: 1.2 $|~/modes/isearch-mode.el
+;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Version: 1.2
+;; Last-Modified: 27 May 1992
+
+;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,29 +23,7 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;;;====================================================================
-;;; Change History
-
-;;; $Header: /import/kaplan/kaplan/liberte/Isearch/RCS/isearch-mode.el,v 1.2 92/05/27 11:33:57 liberte Exp Locker: liberte $
-;;; $Log:	isearch-mode.el,v $
-;;; Revision 1.2  92/05/27  11:33:57  liberte
-;;; Several new commands and features have been added.  Emacs version
-;;; 19 has a search ring, which is supported here.  Other fixes found
-;;; in the version 19 isearch are included here.  Also see variables
-;;; search-caps-disable-folding, search-nonincremental-instead,
-;;; search-whitespace-regexp, and commands isearch-toggle-regexp,
-;;; isearch-edit-string,
-;;; 
-;;; Semi-modal searching is supported, using a recursive edit. If
-;;; isearching is started non-interactively by calling one of the
-;;; isearch commands (e.g. isearch-forward), it does not return
-;;; until the search is completed.  You should still be able switch
-;;; buffers, so be careful not to get things confused.
-;;; 
-
-;;; Changes for 1.1
-;;; 3/18/92 Fixed invalid-regexp.
-;;; 3/18/92 Fixed yanking in regexps.
+;;; Commentary:
 
 ;;;====================================================================
 ;; Instructions
@@ -79,6 +57,33 @@
 ;; Also, I am not sure what happens when you return to an isearching
 ;; buffer; ideally, the echo area should redisplay the searching status.
 ;; A select-window-hook might be useful.
+
+;;; Change Log:
+
+;;;====================================================================
+
+;;; $Header: /import/kaplan/kaplan/liberte/Isearch/RCS/isearch-mode.el,v 1.2 92/05/27 11:33:57 liberte Exp Locker: liberte $
+;;; $Log:	isearch-mode.el,v $
+;;; Revision 1.2  92/05/27  11:33:57  liberte
+;;; Several new commands and features have been added.  Emacs version
+;;; 19 has a search ring, which is supported here.  Other fixes found
+;;; in the version 19 isearch are included here.  Also see variables
+;;; search-caps-disable-folding, search-nonincremental-instead,
+;;; search-whitespace-regexp, and commands isearch-toggle-regexp,
+;;; isearch-edit-string,
+;;; 
+;;; Semi-modal searching is supported, using a recursive edit. If
+;;; isearching is started non-interactively by calling one of the
+;;; isearch commands (e.g. isearch-forward), it does not return
+;;; until the search is completed.  You should still be able switch
+;;; buffers, so be careful not to get things confused.
+;;; 
+
+;;; Changes for 1.1
+;;; 3/18/92 Fixed invalid-regexp.
+;;; 3/18/92 Fixed yanking in regexps.
+
+;;; Code:
 
 ;;;=========================================================================
 ;;; The following, defined in loaddefs.el, are still used with isearch-mode.

@@ -63,7 +63,7 @@
 ;; It may be good style to put a set of redundant braces around your
 ;; main program.  This will let you reindent it with meta-^q.
 
-;; Known problems (these are all caused by limitations in the elisp
+;; Known problems (these are all caused by limitations in the Emacs Lisp
 ;; parsing routine (parse-partial-sexp), which was not designed for such
 ;; a rich language; writing a more suitable parser would be a big job):
 ;; 1)  Regular expression delimitors do not act as quotes, so special

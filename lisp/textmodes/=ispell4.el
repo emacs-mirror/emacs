@@ -1,5 +1,8 @@
 ;;; ispell.el --- this is the GNU EMACS interface to GNU ISPELL version 3.
 
+;; Maintainer: FSF
+;; Last-Modified: 02 Jun 1992
+
 ;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 ;;
 ;;This file is part of GNU Emacs.
@@ -17,6 +20,8 @@
 ;;You should have received a copy of the GNU General Public License
 ;;along with GNU Emacs; see the file COPYING.  If not, write to
 ;;the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 (defvar ispell-have-new-look t
   "T if default 'look' program has the -r flag.")

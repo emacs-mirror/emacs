@@ -1,4 +1,4 @@
-;;; profile.el -- generate run time measurements of elisp functions
+;;; profile.el -- generate run time measurements of Emacs Lisp functions
 
 ;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 ;; Created: 7 Feb 1992
@@ -28,7 +28,7 @@
 
 ; DESCRIPTION:
 ; ------------
-;   This program can be used to monitor running time performance of elisp 
+;   This program can be used to monitor running time performance of Emacs Lisp
 ; functions. It takes a list of functions and report the real time spent 
 ; inside these functions. It runs a process with a separate timer program.
 ;   Caveat: the C code included with this package requires BSD-compatible

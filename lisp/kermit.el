@@ -1,5 +1,9 @@
-;;Additions to shell mode for use with kermit, etc.
-;;Feb 1988, Jeff Norden - jeff@colgate.csnet
+;;; kermit.el --- additions to shell mode for use with kermit, etc.
+
+;; Author: Jeff Norden <jeff@colgate.csnet>
+;; Created: 15 Feb 1988
+;; Last-modified: 12 Mar 1992
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(require 'shell)
+;;; Commentary
 
 ;; I'm not sure, but I think somebody asked about running kermit under shell
 ;; mode a while ago.  Anyway, here is some code that I find useful.  The result
@@ -68,6 +72,8 @@
 
 ;; Please let me know if any bugs turn up.
 ;; Feb 1988, Jeff Norden - jeff@colgate.csnet
+
+(require 'shell)
 
 (defvar kermit-esc-char "\C-\\" "*Kermit's escape char")
 
@@ -136,4 +142,4 @@ command `kermit | tr -d '\\015''."
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer)) nil))
 
-
+;;; kermit.el ends here

@@ -48,7 +48,7 @@
 ;; modified: 12-Apr-1989 baw (incorp other mail yank features seen on net)
 ;; created : 16-Feb-1989 baw (mod vanilla fn indent-rigidly mail-yank-original)
 
-;; Though I wrote this package basically from scratch, as an elisp
+;; Though I wrote this package basically from scratch, as an Emacs Lisp
 ;; learning exercise, it was inspired by postings of similar packages to
 ;; the gnu.emacs newsgroup over the past month or so.
 ;;
