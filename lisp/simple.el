@@ -569,8 +569,7 @@ If N is negative, find the previous or Nth previous match."
   (next-history-element (- n)))
 
 (defun next-complete-history-element (n)
-  "\
-Get previous element of history which is a completion of minibuffer contents."
+  "Get next element of history which is a completion of minibuffer contents."
   (interactive "p")
   (let ((point-at-start (point)))
     (next-matching-history-element
@@ -581,7 +580,8 @@ Get previous element of history which is a completion of minibuffer contents."
     (goto-char point-at-start)))
 
 (defun previous-complete-history-element (n)
-  "Get next element of history which is a completion of minibuffer contents."
+  "\
+Get previous element of history which is a completion of minibuffer contents."
   (interactive "p")
   (next-complete-history-element (- n)))
 
