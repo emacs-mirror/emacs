@@ -1383,8 +1383,12 @@ domain is undefined, the domain name is got from it."
 
 (defun gnus-inews-date ()
   "Current time string."
-  (timezone-make-date-arpa-standard 
-   (current-time-string) (current-time-zone)))
+  ;; We call (current-time) once, rather than letting current-time-string and
+  ;; current-time-zone default to it, because that avoids a rare race
+  ;; condition when the time zone changes between those two calls.
+  (let ((now (current-time)))
+    (timezone-make-date-arpa-standard 
+     (current-time-string now) (current-time-zone now))))
 
 (defun gnus-inews-organization ()
   "Return user's organization.
