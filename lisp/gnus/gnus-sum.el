@@ -3,6 +3,7 @@
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -37,6 +38,7 @@
 (require 'gnus-util)
 (require 'mm-decode)
 (autoload 'gnus-summary-limit-include-cached "gnus-cache" nil t)
+(autoload 'gnus-cache-write-active "gnus-cache")
 
 (defcustom gnus-kill-summary-on-exit t
   "*If non-nil, kill the summary buffer when you exit from it.
@@ -2103,7 +2105,7 @@ The following commands are available:
   (make-local-hook 'pre-command-hook)
   (add-hook 'pre-command-hook 'gnus-set-global-variables nil t)
   (gnus-run-hooks 'gnus-summary-mode-hook)
-  (mm-enable-multibyte)
+  (mm-enable-multibyte-mule4)
   (gnus-update-format-specifications nil 'summary 'summary-mode 'summary-dummy)
   (gnus-update-summary-mark-positions))
 
@@ -4302,7 +4304,9 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		    (if (string-match "^[ \t]*$" input)
 			number input)))
 		 (t number))
-	      (quit nil))))))
+	      (quit
+	       (message "Quit getting the articles to read")
+	       nil))))))
     (setq select (if (stringp select) (string-to-number select) select))
     (if (or (null select) (zerop select))
 	select
@@ -4742,7 +4746,8 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	    ;; From.
 	    (progn
 	      (goto-char p)
-	      (if (search-forward "\nfrom: " nil t)
+	      (if (or (search-forward "\nfrom: " nil t)
+		      (search-forward "\nfrom:" nil t))
 		  (funcall gnus-decode-encoded-word-function
 			   (nnheader-header-value))
 		"(nobody)"))
@@ -5843,6 +5848,9 @@ Given a prefix, will force an `article' buffer configuration."
 
 (defun gnus-summary-display-article (article &optional all-header)
   "Display ARTICLE in article buffer."
+  (when (gnus-buffer-live-p gnus-article-buffer)
+    (with-current-buffer gnus-article-buffer
+      (mm-enable-multibyte-mule4)))
   (gnus-set-global-variables)
   (if (null article)
       nil
@@ -5892,14 +5900,11 @@ be displayed."
 	      force)
 	  ;; The requested article is different from the current article.
 	  (progn
-	    (when (gnus-buffer-live-p gnus-article-buffer)
-	      (with-current-buffer gnus-article-buffer
-		(mm-enable-multibyte)))
 	    (gnus-summary-display-article article all-headers)
 	    (when (gnus-buffer-live-p gnus-article-buffer)
-	      (with-current-buffer gnus-article-buffer
+	       (with-current-buffer gnus-article-buffer
 		(if (not gnus-article-decoded-p) ;; a local variable
-		    (mm-disable-multibyte))))
+		    (mm-disable-multibyte-mule4))))
 	    (when (or all-headers gnus-show-all-headers)
 	      (gnus-article-show-all-headers))
 	    (gnus-article-set-window-start
@@ -6878,7 +6883,8 @@ of what's specified by the `gnus-refer-thread-limit' variable."
    ((eq 'current gnus-refer-article-method)
     (list gnus-current-select-method))
    ;; List of select methods.
-   ((not (stringp (cadr gnus-refer-article-method)))
+   ((not (and (symbolp (car gnus-refer-article-method))
+	      (assq (car gnus-refer-article-method) nnoo-definition-alist)))
     (let (out)
       (dolist (method gnus-refer-article-method)
 	(push (if (eq 'current method)
@@ -6928,7 +6934,10 @@ to guess what the document format is."
 	;; the parent article.
 	(when (setq to-address (or (message-fetch-field "reply-to")
 				   (message-fetch-field "from")))
-	  (setq params (append (list (cons 'to-address to-address)))))
+	  (setq params (append 
+			(list (cons 'to-address 
+				    (funcall gnus-decode-encoded-word-function
+					     to-address))))))
 	(setq dig (nnheader-set-temp-buffer " *gnus digest buffer*"))
 	(insert-buffer-substring gnus-original-article-buffer)
 	;; Remove lines that may lead nndoc to misinterpret the
@@ -7828,7 +7837,7 @@ groups."
 	(gnus-summary-show-article t)
 	(when (and (not raw) (gnus-buffer-live-p gnus-article-buffer))
 	  (with-current-buffer gnus-article-buffer
-	    (mm-enable-multibyte)))
+	    (mm-enable-multibyte-mule4)))
 	(if (equal gnus-newsgroup-name "nndraft:drafts")
 	    (setq raw t))
 	(gnus-article-edit-article
@@ -9120,7 +9129,7 @@ save those articles instead."
 	(set-buffer gnus-original-article-buffer)
 	(save-restriction
 	  (nnheader-narrow-to-headers)
-	  (while methods
+	  (while (and methods (not split-name))
 	    (goto-char (point-min))
 	    (setq method (pop methods))
 	    (setq match (car method))
@@ -9139,7 +9148,7 @@ save those articles instead."
 		    (save-restriction
 		      (widen)
 		      (setq result (eval match)))))
-	      (setq split-name (append (cdr method) split-name))
+	      (setq split-name (cdr method))
 	      (cond ((stringp result)
 		     (push (expand-file-name
 			    result gnus-article-save-directory)
