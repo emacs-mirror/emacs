@@ -537,6 +537,7 @@ Note that changing the size of one terminal frame automatically affects all.")
   remake_frame_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
+  Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
   f->face_alist = selected_frame->face_alist;
   return frame;
