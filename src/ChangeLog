@@ -6,6 +6,10 @@
 	client processes in :local property of contact info.
 	(format-network-address): Added arg OMIT-PORT.  Callers changed.
 
+2003-01-07  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (fns.o): Depend on coding.h.
+
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* minibuf.c (Fread_variable): Doc fix.
