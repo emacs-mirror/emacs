@@ -143,30 +143,31 @@ been generated automatically, with a reference to the keymap."
   (setq docstring (or docstring (derived-mode-make-docstring parent child)))
 
   (` (progn 
-       (derived-mode-init-mode-variables (quote (, child)))
+       (derived-mode-init-mode-variables '(, child))
+       (put '(, child) 'derived-mode-parent '(, parent))
        (defun (, child) ()
 	 (, docstring)
 	 (interactive)
 					; Run the parent.
 	 ((, parent))
 					; Identify special modes.
-	 (if (get (quote (, parent)) 'special)
-	     (put (quote (, child)) 'special t))
+	 (if (get '(, parent) 'special)
+	     (put '(, child) 'special t))
 					; Identify the child mode.
-	 (setq major-mode (quote (, child)))
+	 (setq major-mode '(, child))
 	 (setq mode-name (, name))
 					; Set up maps and tables.
-	 (derived-mode-set-keymap (quote (, child)))
-	 (derived-mode-set-syntax-table (quote (, child)))
-	 (derived-mode-set-abbrev-table (quote (, child)))
+	 (derived-mode-set-keymap '(, child))
+	 (derived-mode-set-syntax-table '(, child))
+	 (derived-mode-set-abbrev-table '(, child))
 					; Splice in the body (if any).
 	 (,@ body)
 ;;;					; Run the setup function, if
 ;;;					; any -- this will soon be
 ;;;					; obsolete.
-;;;	 (derived-mode-run-setup-function (quote (, child)))
+;;;	 (derived-mode-run-setup-function '(, child))
 					; Run the hooks, if any.
-	 (derived-mode-run-hooks (quote (, child)))))))
+	 (derived-mode-run-hooks '(, child))))))
 
 
 ;; PUBLIC: find the ultimate class of a derived mode.
