@@ -1185,8 +1185,7 @@ everything on input operations."
 	ucs-mule-to-mule-unicode)
       (dolist (coding coding-list)
 	(set-char-table-parent (coding-system-get coding 'safe-chars)
-			       ucs-mule-to-mule-unicode)
-	(register-char-codings coding ucs-mule-to-mule-unicode)))
+			       ucs-mule-to-mule-unicode)))
 
     ;; Adjust the 8859 coding systems to fragment the unified characters
     ;; on encoding.
@@ -1200,11 +1199,8 @@ everything on input operations."
 	;; used after they've been registered, but we might as well
 	;; record them.  Setting the parent here is a convenience.
 	(set-char-table-parent safe table)
-	;; Update the table of what encodes to what.
-	(register-char-codings coding-system table)
 	(coding-system-put coding-system 'translation-table-for-encode table)))
-    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
-  (optimize-char-coding-system-table))
+    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-fragment-8859 (for-encode for-decode)
   "Undo the unification done by `ucs-unify-8859'.
@@ -1227,48 +1223,21 @@ unification on input operations."
 	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
       (dolist (coding coding-list)
 	(set-char-table-parent (coding-system-get coding 'safe-chars) nil))
-      ;; Here we assume that all mule-utf-* have the same character
-      ;; repertory, thus we can use SAFE for all of them.
-      (map-char-table
-       (lambda (key val)
-	 (if (and (>= key 128) val
-		  (not (aref safe key)))
-	     (aset char-coding-system-table key
-		   (remq 'mule-utf-8
-			 (remq 'mule-utf-16-le
-			       (remq 'mule-utf-16-be
-				     (aref char-coding-system-table key)))))))
-       ucs-mule-to-mule-unicode)
-
       (if (not utf-fragment-on-decoding)
 	  (define-translation-table 'utf-translation-table-for-encode)
 	(define-translation-table 'utf-translation-table-for-encode
-	  utf-defragmentation-table)
-	(dolist (coding coding-list)
-	  (register-char-codings coding utf-defragmentation-table))))
+	  utf-defragmentation-table)))
 
-    ;; For each charset, remove the entries in
-    ;; `char-coding-system-table' added to its safe-chars table (as
-    ;; its parent).
+    ;; For each charset, remove the parent of `safe-chars' property of
+    ;; the corresponding coding system.
     (dolist (n '(1 2 3 4 5 7 8 9 14 15))
       (let* ((coding-system
 	      (coding-system-base (intern (format "iso-8859-%d" n))))
-	     (table (symbol-value
-		     (intern (format "ucs-8859-%d-encode-table" n))))
 	     (safe (coding-system-get coding-system 'safe-chars)))
-	(when (char-table-parent safe)
-	  (map-char-table
-	   (lambda (key val)
-	     (if (and (>= key 128) val)
-		 (let ((codings (aref char-coding-system-table key)))
-		   (aset char-coding-system-table key
-			 (remq coding-system codings)))))
-	   (char-table-parent safe))
-	  (set-char-table-parent safe nil))
+	(if (char-table-parent safe)
+	    (set-char-table-parent safe nil))
 	(coding-system-put coding-system 'translation-table-for-encode nil)))
-    (optimize-char-coding-system-table)
-    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
-  (optimize-char-coding-system-table))
+    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
