@@ -5455,8 +5455,8 @@ Lisp_Object Qxbm;
 /* Keywords.  */
 
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
-extern Lisp_Object QCdata;
-Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
+extern Lisp_Object QCdata, QCtype;
+Lisp_Object QCascent, QCmargin, QCrelief;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
@@ -12121,8 +12121,6 @@ meaning don't clear the cache.  */);
   /* Images.  */
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
-  QCtype = intern (":type");
-  staticpro (&QCtype);
   QCconversion = intern (":conversion");
   staticpro (&QCconversion);
   QCheuristic_mask = intern (":heuristic-mask");
