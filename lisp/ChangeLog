@@ -1,5 +1,10 @@
 2002-01-24  Richard M. Stallman  <rms@gnu.org>
 
+	* cus-edit.el (custom-save-all): Bind file-precious-flag to t
+	for saving .emacs.
+
+	* files.el (basic-save-buffer-2): Ignore file-error in delete-file.
+
 	* calendar/calendar.el (generate-calendar-month): Doc fix.
 
 2002-01-23  Richard M. Stallman  <rms@gnu.org>
