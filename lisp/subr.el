@@ -1062,6 +1062,38 @@ Wildcards and redirection are handled as usual in the shell."
    (t
     (start-process name buffer shell-file-name shell-command-switch
 		   (mapconcat 'identity args " ")))))
+
+(defun call-process-shell-command (command &optional infile buffer display
+					   &rest args)
+  "Execute the shell command COMMAND synchronously in separate process.
+The remaining arguments are optional.
+The program's input comes from file INFILE (nil means `/dev/null').
+Insert output in BUFFER before point; t means current buffer;
+ nil for BUFFER means discard it; 0 means discard and don't wait.
+BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
+REAL-BUFFER says what to do with standard output, as above,
+while STDERR-FILE says what to do with standard error in the child.
+STDERR-FILE may be nil (discard standard error output),
+t (mix it with ordinary output), or a file name string.
+
+Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
+Remaining arguments are strings passed as additional arguments for COMMAND.
+Wildcards and redirection are handled as usual in the shell.
+
+If BUFFER is 0, `call-process-shell-command' returns immediately with value nil.
+Otherwise it waits for COMMAND to terminate and returns a numeric exit
+status or a signal description string.
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
+  (cond
+   ((eq system-type 'vax-vms)
+    (apply 'call-process command infile buffer display args))
+   ;; We used to use `exec' to replace the shell with the command,
+   ;; but that failed to handle (...) and semicolon, etc.
+   (t
+    (call-process shell-file-name
+		  infile buffer display
+		  shell-command-switch
+		  (mapconcat 'identity (cons command args) " ")))))
 
 (defmacro with-current-buffer (buffer &rest body)
   "Execute the forms in BODY with BUFFER as the current buffer.
