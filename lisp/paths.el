@@ -51,7 +51,9 @@
 		      (not (string= configure-info-directory usrdir))
 		      (list usrdir)))
 	 (configdir (file-name-as-directory configure-info-directory)))
-    (setq start (nconc start sysdir (list configdir)))
+    ;; configdir comes last so that we can identify it as such, but we
+    ;; also we override sysdir, hence the two occurrences.
+    (setq start (nconc start (list configdir) sysdir (list configdir)))
     start)
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
