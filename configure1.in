@@ -815,8 +815,8 @@ case "${canonical}" in
   ;;
 
   ## Tektronix XD88
-  m88k-tektronix-sysv3 )
-  machine=tekXD88 opsys=usg5-3
+  m88k-tektronix-sysv3* )
+  machine=tekxd88 opsys=usg5-3
   ;;
 
   ## Tektronix 16000 box (6130?)
