@@ -1,5 +1,8 @@
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (select-safe-coding-system): Fix typo
+	in the comment.
+
 	* language/european.el (compound-text): Force katakana-jisx0201 to
 	be designated to G1.
 
