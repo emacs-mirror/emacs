@@ -447,7 +447,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   ;; window.  (Commands like save-some-buffers can make this false.)
   (if (eq (get-buffer-window (current-buffer))
 	  (selected-window))
-      (recenter (if arg arg t))))
+      (recenter (if arg arg '(4)))))
 
 
 (defun mh-delete-line (lines)
