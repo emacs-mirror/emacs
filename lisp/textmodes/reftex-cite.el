@@ -1,5 +1,5 @@
 ;;; reftex-cite.el --- creating citations with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.18
@@ -177,39 +177,15 @@
 
 ;; Parse bibtex buffers
 
-(defun reftex-extract-bib-entries (buffers)
+(defun reftex-extract-bib-entries (buffers re-list)
   ;; Extract bib entries which match regexps from BUFFERS.
   ;; BUFFERS is a list of buffers or file names.
   ;; Return list with entries."
-  (let* (re-list first-re rest-re
-                 (buffer-list (if (listp buffers) buffers (list buffers)))
-                 found-list entry buffer1 buffer alist
-                 key-point start-point end-point default)
-
-    ;; Read a regexp, completing on known citation keys.
-    (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list
-	  (split-string
-	   (completing-read
-	    (concat
-	     "Regex { && Regex...}: "
-	     "[" default "]: ")
-	    (if reftex-mode
-		(if (fboundp 'LaTeX-bibitem-list)
-		    (LaTeX-bibitem-list)
-		  (cdr (assoc 'bibview-cache
-			      (symbol-value reftex-docstruct-symbol))))
-	      nil)
-	    nil nil nil 'reftex-cite-regexp-hist)
-	   "[ \t]*&&[ \t]*"))
-
-    (if (or (null re-list ) (equal re-list '("")))
-	(setq re-list (list default)))
-
-    (setq first-re (car re-list)    ; We'll use the first re to find things,
-          rest-re  (cdr re-list))   ; the others to narrow down.
-    (if (string-match "\\`[ \t]*\\'" (or first-re ""))
-        (error "Empty regular expression"))
+  (let* ((buffer-list (if (listp buffers) buffers (list buffers)))
+	 (first-re (car re-list))   ; We'll use the first re to find things,
+	 (rest-re (cdr re-list))    ; the others to narrow down.
+	 found-list entry buffer1 buffer alist
+	 key-point start-point end-point default)
 
     (save-excursion
       (save-window-excursion
@@ -235,7 +211,7 @@
 	       (catch 'search-again
 		 (setq key-point (point))
 		 (unless (re-search-backward
-			  "\\(\\`\\|[\n\r]\\)[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
+			  "^[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
 		   (throw 'search-again nil))
 		 (setq start-point (point))
 		 (goto-char (match-end 0))
@@ -247,17 +223,15 @@
 
 		 ;; Ignore @string, @comment and @c entries or things
 		 ;; outside entries
-		 (when (or (string= (downcase (match-string 2)) "string")
-			   (string= (downcase (match-string 2)) "comment")
-			   (string= (downcase (match-string 2)) "c")
+		 (when (or (member-ignore-case (match-string 1)
+					       '("string" "comment" "c"))
 			   (< (point) key-point)) ; this means match not in {}
 		   (goto-char key-point)
 		   (throw 'search-again nil))
 
 		 ;; Well, we have got a match
-		 (setq entry (concat
-			      (buffer-substring start-point (point)) "\n"))
-
+		 (setq entry (buffer-substring start-point (point)))
+		 
 		 ;; Check if other regexp match as well
 		 (setq re-list rest-re)
 		 (while re-list
@@ -336,12 +310,12 @@
           nil)))))
 
 ;; Parse the bibliography environment
-(defun reftex-extract-bib-entries-from-thebibliography (files)
+(defun reftex-extract-bib-entries-from-thebibliography (files re-list)
   ;; Extract bib-entries from the \begin{thebibliography} environment.
   ;; Parsing is not as good as for the BibTeX database stuff.
   ;; The environment should be located in file FILE.
 
-  (let* (start end buf entries re re-list file default)
+  (let* (start end buf entries re file default)
     (unless files
       (error "Need file name to find thebibliography environment"))
     (while (setq file (pop files))
@@ -376,29 +350,6 @@
 	    (goto-char end)))))
     (unless entries
       (error "No bibitems found"))
-
-    ;; Read a regexp, completing on known citation keys.
-    (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list
-	  (split-string
-	   (completing-read
-	    (concat
-	     "Regex { && Regex...}: "
-	     "[" default "]: ")
-	    (if reftex-mode
-		(if (fboundp 'LaTeX-bibitem-list)
-		    (LaTeX-bibitem-list)
-		  (cdr (assoc 'bibview-cache
-			      (symbol-value reftex-docstruct-symbol))))
-	      nil)
-	    nil nil nil 'reftex-cite-regexp-hist)
-	   "[ \t]*&&[ \t]*"))
-
-    (if (or (null re-list ) (equal re-list '("")))
-	(setq re-list (list default)))
-
-    (if (string-match "\\`[ \t]*\\'" (car re-list))
-        (error "Empty regular expression"))
 
     (while (and (setq re (pop re-list)) entries)
       (setq entries
@@ -757,17 +708,37 @@ While entering the regexp, completion on knows citation keys is possible.
   ;; Offer bib menu and return list of selected items
 
   (let ((bibtype (reftex-bib-or-thebib))
-	found-list rtn key data selected-entries)
+	found-list rtn key data selected-entries re-list)
     (while
 	(not
 	 (catch 'done
+	   ;; Get the search regexps, completing on known citation keys.
+	   (setq re-list
+		 (let ((default (regexp-quote (reftex-get-bibkey-default))))
+		   (split-string 
+		    (completing-read 
+		     (concat
+		      "Regex { && Regex...}: "
+		      "[" default "]: ")
+		     (if reftex-mode
+			 (if (fboundp 'LaTeX-bibitem-list)
+			     (LaTeX-bibitem-list)
+			   (cdr (assoc 'bibview-cache 
+				       (symbol-value reftex-docstruct-symbol))))
+		       nil)
+		     nil nil nil 'reftex-cite-regexp-hist default)
+		    "[ \t]*&&[ \t]*")))
+
+	   (if (string-match "\\`[ \t]*\\'" (car re-list))
+	       (error "Empty regular expression"))
+
 	   ;; Scan bibtex files
 	   (setq found-list
 	      (cond
 	       ((eq bibtype 'bib)
 ;	       ((assq 'bib (symbol-value reftex-docstruct-symbol))
 		;; using BibTeX database files.
-		(reftex-extract-bib-entries (reftex-get-bibfile-list)))
+		(reftex-extract-bib-entries (reftex-get-bibfile-list) re-list))
 	       ((eq bibtype 'thebib)
 ;	       ((assq 'thebib (symbol-value reftex-docstruct-symbol))
 		;; using thebibliography environment.
@@ -775,10 +746,12 @@ While entering the regexp, completion on knows citation keys is possible.
 		 (reftex-uniquify
 		  (mapcar 'cdr
 			  (reftex-all-assq
-			   'thebib (symbol-value reftex-docstruct-symbol))))))
+			   'thebib (symbol-value reftex-docstruct-symbol))))
+		 re-list))
 	       (reftex-default-bibliography
 		(message "Using default bibliography")
-		(reftex-extract-bib-entries (reftex-default-bibliography)))
+		(reftex-extract-bib-entries (reftex-default-bibliography)
+					    re-list))
 	       (t (error "No valid bibliography in this document, and no default available"))))
 
 	   (unless found-list
