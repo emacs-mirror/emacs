@@ -700,7 +700,7 @@ This cannot be done asynchronously."
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer 
 					    shell-file-name "-c" command))
-		  (setq mode-line-process '(": %s"))
+		  (setq mode-line-process '(":%s"))
 		  (set-process-sentinel proc 'shell-command-sentinel)
 		  (set-process-filter proc 'shell-command-filter)
 		  ))
