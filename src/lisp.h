@@ -3086,3 +3086,9 @@ extern Lisp_Object Vdirectory_sep_char;
 #endif
 #define min(a, b)	((a) < (b) ? (a) : (b))
 #define max(a, b)	((a) > (b) ? (a) : (b))
+
+/* Return a fixnum or float, depending on whether VAL fits in a Lisp
+   fixnum.  */
+
+#define make_fixnum_or_float(val) \
+   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number (val))
