@@ -245,6 +245,11 @@ extern Lisp_Object Vfunction_key_map;
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
 
+/* Menu bar specified in Lucid Emacs fashion.  */
+
+Lisp_Object Vlucid_menu_bar_dirty_flag;
+Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
+
 /* Hooks to run before and after each command.  */
 Lisp_Object Qpre_command_hook, Qpost_command_hook;
 Lisp_Object Vpre_command_hook, Vpost_command_hook;
@@ -835,7 +840,7 @@ static int read_key_sequence ();
 Lisp_Object
 command_loop_1 ()
 {
-  Lisp_Object cmd;
+  Lisp_Object cmd, tem;
   int lose;
   int nonundocount;
   Lisp_Object keybuf[30];
@@ -916,6 +921,28 @@ command_loop_1 ()
 	Fselect_frame (internal_last_event_frame, Qnil);
 #endif
 #endif
+      /* If it has changed current-menubar from previous value,
+	 really recompute the menubar from the value.  */
+      if (! NILP (Vlucid_menu_bar_dirty_flag))
+	call0 (Qrecompute_lucid_menubar);
+
+#ifdef MULTI_FRAME
+      for (tem = Vframe_list; CONSP (tem); tem = XCONS (tem)->cdr)
+	{
+	  struct frame *f = XFRAME (XCONS (tem)->car);
+	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+	  if (windows_or_buffers_changed
+	      || (XFASTINT (w->last_modified) < MODIFF
+		  && (XFASTINT (w->last_modified)
+		      <= XBUFFER (w->buffer)->save_modified)))
+	    {
+	      struct buffer *prev = current_buffer;
+	      current_buffer = XBUFFER (w->buffer);
+	      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
+	      current_buffer = prev;
+	    }
+	}
+#endif /* MULTI_FRAME */
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), 0);
@@ -1678,6 +1705,7 @@ kbd_buffer_get_event ()
       return obj;
     }
 
+ retry:
   /* Wait until there is input available.  */
   for (;;)
     {
@@ -1728,6 +1756,22 @@ kbd_buffer_get_event ()
       last_event_timestamp = event->timestamp;
 
       obj = Qnil;
+
+      /* These two kinds of events get special handling
+	 and don't actually appear to the command loop.  */
+      if (event->kind == selection_request_event)
+	{
+	  x_handle_selection_request (event);
+	  kbd_fetch_ptr = event + 1;
+	  goto retry;
+	}
+
+      if (event->kind == selection_clear_event)
+	{
+	  x_handle_selection_clear (event);
+	  kbd_fetch_ptr = event + 1;
+	  goto retry;
+	}
 
 #ifdef MULTI_FRAME
       /* If this event is on a different frame, return a switch-frame this
@@ -1805,6 +1849,11 @@ kbd_buffer_get_event ()
     /* We were promised by the above while loop that there was
        something for us to read!  */
     abort ();
+
+  /* If something gave back nil as the Lispy event,
+     it means the event was discarded, so try again.  */
+  if (NILP (obj))
+    goto retry;
 
   input_pending = readable_events ();
 
@@ -2096,19 +2145,22 @@ make_lispy_event (event)
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {
-	    /* Is there a start position stored at all for this
-	       button?
+	    /* If we did not see a down before this up,
+	       ignore the up.  Probably this happened because
+	       the down event chose a menu item.
+	       It would be an annoyance to treat the release
+	       of the button that chose the menu item
+	       as a separate event.  */
 
-	       It would be nice if we could assume that if we're
-	       getting a button release, we must therefore have gotten
-	       a button press.  Unfortunately, the X menu code thwarts
-	       this assumption, so we'll have to be more robust.  We
-	       treat a button release with no stored start position as
-	       a click.  */
+	    if (XTYPE (start_pos) != Lisp_Cons)
+	      return Qnil;
+
 	    event->modifiers &= ~up_modifier;
+#if 0 /* Formerly we treated an up with no down as a click event.  */
 	    if (XTYPE (start_pos) != Lisp_Cons)
 	      event->modifiers |= click_modifier;
 	    else
+#endif
 	      {
 		/* The third element of every position should be the (x,y)
 		   pair.  */
@@ -2149,7 +2201,7 @@ make_lispy_event (event)
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
-      abort();
+      abort ();
     }
 }
 
@@ -2879,7 +2931,7 @@ menu_bar_items ()
 	result = menu_bar_one_keymap (def, result);
     }
 
-  return result;
+  return Fnreverse (result);
 }
 
 /* Scan one map KEYMAP, accumulating any menu items it defines
@@ -3286,6 +3338,7 @@ follow_key (key, nmaps, current, defs, next)
    If the user switches frames in the midst of a key sequence, we put
    off the switch-frame event until later; the next call to
    read_char will return it.  */
+
 static int
 read_key_sequence (keybuf, bufsize, prompt)
      Lisp_Object *keybuf;
@@ -3568,6 +3621,12 @@ read_key_sequence (keybuf, bufsize, prompt)
 		    {
 		      if (t + 1 >= bufsize)
 			error ("key sequence too long");
+		      /* Run the Lucid hook.  */
+		      call1 (Vrun_hooks, Qactivate_menubar_hook);
+		      /* If it has changed current-menubar from previous value,
+			 really recompute the menubar from the value.  */
+		      if (! NILP (Vlucid_menu_bar_dirty_flag))
+			call0 (Qrecompute_lucid_menubar);
 		      keybuf[t] = posn;
 		      keybuf[t+1] = key;
 		      mock_input = t + 2;
@@ -4489,6 +4548,11 @@ syms_of_keyboard ()
   Qmodifier_cache = intern ("modifier-cache");
   staticpro (&Qmodifier_cache);
 
+  Qrecompute_lucid_menubar = intern ("recompute-lucid-menubar");
+  staticpro (&Qrecompute_lucid_menubar);
+  Qactivate_menubar_hook = intern ("activate-menubar-hook");
+  staticpro (&Qactivate_menubar_hook);
+
   {
     struct event_head *p;
 
@@ -4692,6 +4756,10 @@ Buffer modification stores t in this variable.");
   DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
     "Normal hook run before each command is executed.");
   Vpost_command_hook = Qnil;
+
+  DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
+    "t means menu bar, specified Lucid style, needs to be recomputed.");
+  Vlucid_menu_bar_dirty_flag = Qnil;
 }
 
 keys_of_keyboard ()
