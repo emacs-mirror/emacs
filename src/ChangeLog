@@ -1,5 +1,8 @@
 2001-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* xfaces.c (Fclear_face_cache): Rename the `thorougly' argument
+	into `thoroughly', to make it consistent with the doc string.
+
 	* window.c (Fenlarge_window, Fshrink_window): Doc fix.
 
 2001-02-01  Gerd Moellmann  <gerd@gnu.org>
