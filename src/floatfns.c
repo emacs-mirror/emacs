@@ -73,9 +73,9 @@ Lisp_Object Qarith_error;
 #include <math.h>
 
 /* This declaration is omitted on some systems, like Ultrix.  */
-#if !defined (HPUX) && defined (HAVE_LOGB)
+#if !defined (HPUX) && defined (HAVE_LOGB) && !defined (logb)
 extern double logb ();
-#endif /* not HPUX and HAVE_LOGB */
+#endif /* not HPUX and HAVE_LOGB and no logb macro */
 
 #if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
     /* If those are defined, then this is probably a `matherr' machine. */
