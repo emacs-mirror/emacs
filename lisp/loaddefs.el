@@ -10492,6 +10492,26 @@ See \\[compile]." t nil)
 
 ;;;***
 
+;;;### (autoloads (recentf-cleanup recentf-save-list recentf-mode)
+;;;;;;  "recentf" "recentf.el" (14339 41278))
+;;; Generated autoloads from recentf.el
+
+(autoload (quote recentf-mode) "recentf" "\
+Toggle recentf mode.
+With prefix ARG, turn recentf mode on if and only if ARG is positive.
+Returns the new status of recentf mode (non-nil means on).
+
+When recentf mode is enabled, it maintains a menu for visiting files that
+were operated on recently." t nil)
+
+(autoload (quote recentf-save-list) "recentf" "\
+Save the current `recentf-list' to the file `recentf-save-file'." t nil)
+
+(autoload (quote recentf-cleanup) "recentf" "\
+Remove all non-readable files from `recentf-list'." t nil)
+
+;;;***
+
 ;;;### (autoloads (clear-rectangle string-rectangle delete-whitespace-rectangle
 ;;;;;;  open-rectangle insert-rectangle yank-rectangle kill-rectangle
 ;;;;;;  extract-rectangle delete-extract-rectangle delete-rectangle
