@@ -3507,7 +3507,7 @@ check_windows_init_file ()
       objs[1] = decode_env_path (0, (getenv ("EMACSLOADPATH")));
       full_load_path = Fappend (2, objs);
       init_file = build_string ("term/w32-win");
-      fd = openp (full_load_path, init_file, Vload_suffixes, NULL, 0);
+      fd = openp (full_load_path, init_file, Vload_suffixes, NULL, Qnil);
       if (fd < 0) 
 	{
 	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
