@@ -6,9 +6,6 @@
 ;;;
 ;;;
 ;;; Authors         : Ken Stevens et. al.
-;;; Last Modified By: Ken Stevens <k.stevens@ieee.org>
-;;; Last Modified On: Fri May 20 15:58:52 MDT 1994
-;;; Update Revision : 2.30
 ;;; Syntax          : emacs-lisp
 ;;; Status	    : Release with 3.1.05 ispell.
 ;;; Version	    : International Ispell Version 3.1 by Geoff Kuenning.
@@ -408,7 +405,8 @@ For example, '(\"-W\" \"3\") to cause it to accept all 1-3 character
 words as correct.  See also `ispell-dictionary-alist', which may be used
 for language-specific arguments.")
 
-(defvar ispell-dictionary-alist		; sk  9-Aug-1991 18:28
+;;;###autoload
+(defvar ispell-dictionary-alist-1	; sk  9-Aug-1991 18:28
   '((nil				; default (english.aff)
      "[A-Za-z]" "[^A-Za-z]" "[---']" nil ("-B") nil)
     ("english"				; make english explicitly selectable
@@ -422,8 +420,11 @@ for language-specific arguments.")
     ("nederlands8"				; dutch8.aff
      "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
      "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-     "[---']" t ("-C") nil)
-    ("svenska"				;7 bit swedish mode
+     "[---']" t ("-C") nil)))
+
+;;;###autoload
+(defvar ispell-dictionary-alist-2
+  '(("svenska"				;7 bit swedish mode
      "[A-Za-z}{|\\133\\135\\\\]" "[^A-Za-z}{|\\133\\135\\\\]"
      "[---']" nil ("-C") nil)
     ("svenska8"				;8 bit swedish mode
@@ -437,7 +438,13 @@ for language-specific arguments.")
     ("dansk"				; dansk.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
      "[---]" nil ("-C") nil)
-    )
+    ))
+
+;; ispell-dictionary-alist is set up from two subvariables above
+;; to avoid having very long lines in loaddefs.el.
+;;;###autoload
+(defvar ispell-dictionary-alist
+  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2)
   "An alist of dictionaries and their associated parameters.
 
 Each element of this list is also a list:
@@ -479,7 +486,64 @@ Note that the CASECHARS and OTHERCHARS slots of the alist should
 contain the same character set as casechars and otherchars in the
 language.aff file \(e.g., english.aff\).")
 
+;;;###autoload
+(defvar ispell-menu-map nil)
 
+;;; Set up the map.
+;;;###autoload
+(defconst ispell-menu-map-needed
+  ;; Verify this is not Lucid Emacs.
+  (and (not ispell-menu-map) (boundp 'system-key-alist)))
+
+;;;###autoload
+(if ispell-menu-map-needed
+    (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
+	  name)
+      ;; Can put in defvar when external defines are removed.
+      (setq ispell-menu-map (make-sparse-keymap "Spell"))
+      (while dicts
+	(setq name (car (car dicts))
+	      dicts (cdr dicts))
+	(if (stringp name)
+	    (define-key ispell-menu-map (vector (intern name))
+	      (cons (concat "Select " (capitalize name))
+		    (list 'lambda () '(interactive)
+			  (list 'ispell-change-dictionary name))))))))
+
+;;;###autoload
+(if ispell-menu-map-needed
+    (progn
+      ;; Define commands in opposite order you want them to appear in menu.
+      (define-key ispell-menu-map [ispell-change-dictionary]
+	'("Change Dictionary" . ispell-change-dictionary))
+      (define-key ispell-menu-map [ispell-kill-ispell]
+	'("Kill Process" . ispell-kill-ispell))
+      (define-key ispell-menu-map [ispell-pdict-save]
+	'("Save Dictionary" . (lambda () (interactive) (ispell-pdict-save t))))
+      (define-key ispell-menu-map [ispell-complete-word]
+	'("Complete Word" . ispell-complete-word))
+      (define-key ispell-menu-map [ispell-complete-word-interior-frag]
+	'("Complete Word Frag" . ispell-complete-word-interior-frag))))
+
+;;;###autoload
+(if ispell-menu-map-needed
+    (progn
+      (define-key ispell-menu-map [ispell-continue]
+	'("Continue Check" . ispell-continue))
+      (define-key ispell-menu-map [ispell-region]
+	'("Check Region" . ispell-region))
+      (define-key ispell-menu-map [ispell-word]
+	'("Check Word" . ispell-word))
+      (define-key ispell-menu-map [ispell-buffer]
+	'("Check Buffer" . ispell-buffer))
+      (define-key ispell-menu-map [ispell-message]
+	'("Check Message" . ispell-message))
+      (define-key ispell-menu-map [ispell-help]
+	'("Help" . (lambda () (interactive) (describe-function 'ispell-help))))
+      (put 'ispell-region 'menu-enable 'mark-active)))
+
+;;;###autoload
+(fset 'ispell-menu-map (symbol-value 'ispell-menu-map))
 
 (cond
  ((and (string-lessp "19" emacs-version)
@@ -514,53 +578,7 @@ language.aff file \(e.g., english.aff\).")
     (if current-menubar
 	(progn
 	  (delete-menu-item '("Edit" "Spell")) ; in case already defined
-	  (add-menu '("Edit") "Spell" ispell-menu-lucid)))))
-
- ;; cond-case:
- ((and (featurep 'menu-bar)
-       (string-lessp "19" emacs-version))
-  (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
-	name)
-    (defvar ispell-menu-map nil)
-    ;; Can put in defvar when external defines are removed.
-    (setq ispell-menu-map (make-sparse-keymap "Spell"))
-    (while dicts
-      (setq name (car (car dicts))
-	    dicts (cdr dicts))
-      (if (stringp name)
-	  (define-key ispell-menu-map (vector (intern name))
-	    (cons (concat "Select " (capitalize name))
-		  (list 'lambda () '(interactive)
-			(list 'ispell-change-dictionary name))))))
-    ;; Why do we need an alias here?
-    (defalias 'ispell-menu-map ispell-menu-map)
-    ;; Define commands in opposite order you want them to appear in menu.
-    (define-key ispell-menu-map [ispell-change-dictionary]
-      '("Change Dictionary" . ispell-change-dictionary))
-    (define-key ispell-menu-map [ispell-kill-ispell]
-      '("Kill Process" . ispell-kill-ispell))
-    (define-key ispell-menu-map [ispell-pdict-save]
-      '("Save Dictionary" . (lambda () (interactive) (ispell-pdict-save t))))
-    (define-key ispell-menu-map [ispell-complete-word]
-      '("Complete Word" . ispell-complete-word))
-    (define-key ispell-menu-map [ispell-complete-word-interior-frag]
-      '("Complete Word Frag" . ispell-complete-word-interior-frag))
-    (define-key ispell-menu-map [ispell-continue]
-      '("Continue Check" . ispell-continue))
-    (define-key ispell-menu-map [ispell-region]
-      '("Check Region" . ispell-region))
-    (define-key ispell-menu-map [ispell-word]
-      '("Check Word" . ispell-word))
-    (define-key ispell-menu-map [ispell-buffer]
-      '("Check Buffer" . ispell-buffer))
-    (define-key ispell-menu-map [ispell-message]
-      '("Check Message" . ispell-message))
-    (define-key ispell-menu-map [ispell-help]
-      '("Help" . (lambda () (interactive)
-		   (describe-function 'ispell-help)
-		   ;(x-popup-menu last-nonmenu-event(list "" ispell-help-list))
-		   ))))
-  (put 'ispell-region 'menu-enable 'mark-active)))
+	  (add-menu '("Edit") "Spell" ispell-menu-lucid))))))
 
 
 ;;; **********************************************************************
@@ -957,8 +975,8 @@ used."
 				   (read-char-exclusive)
 				 (read-char))
 			  skipped 0)
-		    (if (or quit-flag (= char ?\C-g)) ; C-g is like typing q
-			(setq char ?q
+		    (if (or quit-flag (= char ?\C-g)) ; C-g is like typing X
+			(setq char ?X
 			      quit-flag nil)))
 		  ;; Adjust num to array offset skipping command characters.
 		  (let ((com-chars command-characters))
