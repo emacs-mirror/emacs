@@ -487,7 +487,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef HAVE_X_WINDOWS
-#define X_WINDOWS_SUPPORT ${lispdir}term/x-win.elc
+#define X_WINDOWS_SUPPORT
 #else
 #define X_WINDOWS_SUPPORT
 #endif
