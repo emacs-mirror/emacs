@@ -221,7 +221,11 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC.src.paths.h
 
 src:	lib-src FRC.src
 
-lib-src: FRC.lib-src src/paths.h
+# This ought to depend on src/paths.h, so that in parallel make
+# src/paths.h will be available for the compilations in lib-src.
+# But that causes trouble in `make install' if a different prefix
+# is specified at that time.
+lib-src: FRC.lib-src
 
 .RECURSIVE: ${SUBDIR}
 
