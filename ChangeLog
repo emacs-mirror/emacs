@@ -1,3 +1,7 @@
+2002-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Fix previous LessTif change.
+
 2002-09-09  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in (powerpcle-*-solaris2.5*): New configuration.

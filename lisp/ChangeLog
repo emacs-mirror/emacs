@@ -1,3 +1,44 @@
+2002-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (diff-buffer-with-file): Simplify.
+	Don't signal an error if buffer has no file.
+	Call sit-for after `diff' returns.
+
+	* play/gamegrid.el (gamegrid-make-color-tty-face):
+	Handle string as COLOR arg.
+	(gamegrid-display-type): Don't assume display-color-p
+	implies a color-x terminal.
+	(gamegrid-hide-cursor): Set `cursor-type' local variable.
+
+	* descr-text.el (describe-text-mode): Add font-lock-defontify to
+	change-major-mode-hook.
+
+	* ibuffer.el (ibuffer-mode): Add font-lock-defontify to
+	change-major-mode-hook.
+
+	* comint.el (comint-mode): Add font-lock-defontify to
+	change-major-mode-hook.
+
+	* info.el (Info-mode):  Add font-lock-defontify to
+	change-major-mode-hook.
+
+	* replace.el (occur-mode): Add font-lock-defontify to
+	change-major-mode-hook.
+
+	* font-core.el (font-lock-defontify): New function.
+
+2002-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* ps-print.el (ps-printer-name-option): Doc fix.
+
+2002-09-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Adjust ps-postscript-code-directory setting.  XEmacs
+	version check was adjusted.
+	(ps-print-version): New version number (6.5.6).
+	(ps-print-color-p, ps-page-dimensions-database): Autoload var.
+	(ps-print-code, ps-print-preprint-region): Adjust code.
+
 2002-09-10  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* files.el (auto-mode-alist): ~/.gnus, ~/.viper are in
