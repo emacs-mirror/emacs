@@ -76,7 +76,8 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
-(require 'fontset)
+(if (fboundp 'new-fontset)
+    (require 'fontset))
 
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
