@@ -1,3 +1,9 @@
+2002-07-26  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* eshell/eshell.el (eshell): Numeric prefix arg means to switch
+	to the session with that number.  Old behavior still available
+	with nonumeric prefix args.
+
 2002-07-08  Simon Josefsson  <jas@extundo.com>
 
 	* mail/mail-extr.el (mail-extr-all-top-level-domains): Update names.

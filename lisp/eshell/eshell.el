@@ -352,13 +352,20 @@ the tasks accomplished by such tools."
 The buffer used for Eshell sessions is determined by the value of
 `eshell-buffer-name'.  If there is already an Eshell session active in
 that buffer, Emacs will simply switch to it.  Otherwise, a new session
-will begin.  A new session is always created if the prefix
-argument ARG is specified.  Returns the buffer selected (or created)."
+will begin.  A numeric prefix arg (as in `C-u 42 M-x eshell RET')
+switches to the session with that number, creating it if necessary.  A
+nonnumeric prefix arg means to create a new session.  Returns the
+buffer selected (or created)."
   (interactive "P")
   (assert eshell-buffer-name)
-  (let ((buf (if arg
-		 (generate-new-buffer eshell-buffer-name)
-	       (get-buffer-create eshell-buffer-name))))
+  (let ((buf (cond ((numberp arg)
+		    (get-buffer-create (format "%s<%d>"
+					       eshell-buffer-name
+					       arg)))
+		   (arg
+		    (generate-new-buffer eshell-buffer-name))
+		   (t
+		    (get-buffer-create eshell-buffer-name)))))
     ;; Simply calling `pop-to-buffer' will not mimic the way that
     ;; shell-mode buffers appear, since they always reuse the same
     ;; window that that command was invoked from.  To achieve this,
