@@ -1475,16 +1475,13 @@ specifies the value of ERROR-BUFFER."
 					 nil shell-command-switch command)))
 	  (setq success (and exit-status (equal 0 exit-status)))
 	  ;; Report the output.
+	  (with-current-buffer buffer
+	    (setq mode-line-process 
+		  (if (not success)
+		    (concat (format " - Exit [%d]" exit-status)))))
 	  (if (with-current-buffer buffer (> (point-max) (point-min)))
 	      ;; There's some output, display it
-	      (progn
-		(if (not success)
-		    (with-current-buffer buffer
-		      (save-excursion
-			(goto-char (point-max))
-			(insert (format "...Shell command failed with code %d"
-					exit-status)))))
-		(display-message-or-buffer buffer))
+	      (display-message-or-buffer buffer)
 	    ;; No output; error?
 	    (let ((output
 		   (if (and error-file
