@@ -630,8 +630,10 @@ This is in addition to the primary selection.")
  latin-iso8859-2:-*-Courier New CE-normal-r-*-*-13-*-*-*-c-*-iso8859-2,
  latin-iso8859-3:-*-Courier New Tur-normal-r-*-*-13-*-*-*-c-*-iso8859-3,
  latin-iso8859-4:-*-Courier New Baltic-normal-r-*-*-13-*-*-*-c-*-iso8859-4,
- cyrillic-iso8859-5:-*-Courier New Cyr-normal-r-*-*-13-*-*-*-c-*-iso8859-5,
- greek-iso8859-7:-*-Courier New Greek-normal-r-*-*-13-*-*-*-c-*-iso8859-7"
+ cyrillic-iso8859-5:-*-Courier New Cyr-normal-r-*-*-13-*-*-*-c-*-koi8-r,
+ greek-iso8859-7:-*-Courier New Greek-normal-r-*-*-13-*-*-*-c-*-iso8859-7,
+ latin-iso8859-9:-*-Courier New Tur-normal-r-*-*-13-*-*-*-c-*-iso8859-9"
+
  "String of fontset spec of the standard fontset. This defines a
 fontset consisting of the Courier New variations for European
 languages which are distributed with Windows as \"Multilanguage Support\".
