@@ -352,8 +352,8 @@ Go to the @code{To} header (@code{message-goto-to}).
 @findex message-goto-bcc
 Go to the @code{Bcc} header (@code{message-goto-bcc}).
 
-@item C-c C-f C-f
-@kindex C-c C-f C-f
+@item C-c C-f C-w
+@kindex C-c C-f C-w
 @findex message-goto-fcc
 Go to the @code{Fcc} header (@code{message-goto-fcc}).
 
@@ -382,8 +382,8 @@ Go to the @code{Newsgroups} header (@code{message-goto-newsgroups}).
 @findex message-goto-distribution
 Go to the @code{Distribution} header (@code{message-goto-distribution}).
 
-@item C-c C-f C-o
-@kindex C-c C-f C-o
+@item C-c C-f C-f
+@kindex C-c C-f C-f
 @findex message-goto-followup-to
 Go to the @code{Followup-To} header (@code{message-goto-followup-to}).
 
