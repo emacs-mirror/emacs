@@ -2333,7 +2333,7 @@ DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
      register Lisp_Object number;
 {
   CHECK_NUMBER (number, 0);
-  XSETINT (num, ~XINT (number));
+  XSETINT (number, ~XINT (number));
   return number;
 }
 
