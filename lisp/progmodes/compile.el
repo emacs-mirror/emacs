@@ -1265,6 +1265,7 @@ Compilation major mode are available but bound to keys that don't
 collide with Shell mode.  See `compilation-mode'.
 Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
   nil " Shell-Compile" nil
+  :group 'compilation
   (let (mode-line-process)
     (compilation-setup)))
 
@@ -1276,6 +1277,7 @@ In this minor mode, all the error-parsing commands of the
 Compilation major mode are available.  See `compilation-mode'.
 Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
   nil " Compilation" nil
+  :group 'compilation
   (let ((mode-line-process))
     (compilation-setup)))
 
