@@ -1,3 +1,12 @@
+2002-05-30  Miles Bader  <miles@gnu.org>
+
+	* calc/calc.el (calc-show-banner): New variable.
+	(calc-refresh): Only show banner if `calc-show-banner' is non-nil.
+	(calc-mode-var-list): Add `calc-show-banner'.
+	* calc/calc-ext.el (calc-init-extensions): Add binding for `d@'.
+	(calc-toggle-banner): New function.
+	* calc/calc-help.el (calc-d-prefix-help): Add `@'.
+
 2002-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/cl-indent.el (common-lisp-indent-function-1):
