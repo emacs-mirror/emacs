@@ -1048,11 +1048,9 @@ POS defaults to the value of (point)."
 	    widget))
       nil)))
 
-(defcustom widget-use-overlay-change (string-match "XEmacs" emacs-version)
+(defvar widget-use-overlay-change t
   "If non-nil, use overlay change functions to tab around in the buffer.
-This is much faster, but doesn't work reliably on Emacs 19.34."
-  :type 'boolean
-  :group 'widgets)
+This is much faster, but doesn't work reliably on Emacs 19.34.")
 
 (defun widget-move (arg)
   "Move point to the ARG next field or button.
