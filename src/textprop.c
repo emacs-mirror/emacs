@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1111,6 +1111,8 @@ containing the text.")
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
+  if (NULL_INTERVAL_P (i))
+    return (!NILP (value) || EQ (start, end) ? Qnil : start);
   e = XINT (end);
 
   while (! NULL_INTERVAL_P (i))
