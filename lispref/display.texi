@@ -403,7 +403,7 @@ temporarily modifying their invisible and intangible properties.  If you
 want this to be done differently for a certain overlay, give it an
 @code{isearch-open-invisible-temporary} property which is a function.
 The function is called with two arguments: the first is the overlay, and
-the second is @code{t} to make the overlay visible, or @code{nil} to
+the second is @code{nil} to make the overlay visible, or @code{t} to
 make it invisible again.
 
 @node Selective Display
