@@ -236,6 +236,7 @@ update-subdirs-CMD: doit
 	echo ))>> subdirs.el
 
 update-subdirs-SH: doit
+	$(srcdir)/update-subdirs $(lisp); \
 	for file in $(WINS); do \
 	   $(srcdir)/update-subdirs $$file; \
 	done;
