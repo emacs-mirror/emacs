@@ -1,3 +1,15 @@
+2004-03-26  Masatake YAMATO  <jet@gyve.org>
+
+	* insdel.c (adjust_markers_for_insert): Call
+	fix_start_end_in_overlays.
+
+	* buffer.c (fix_start_end_in_overlays): Rename
+	fix_overlays_in_range.
+
+	* editfns.c (Ftranspose_regions): Likewise.
+
+	* lisp.h (top_level): Likewise.
+
 2004-03-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Do not pass key press events to

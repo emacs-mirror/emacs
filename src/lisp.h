@@ -2656,7 +2656,7 @@ EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
 extern void adjust_overlays_for_insert P_ ((EMACS_INT, EMACS_INT));
 extern void adjust_overlays_for_delete P_ ((EMACS_INT, EMACS_INT));
-extern void fix_overlays_in_range P_ ((int, int));
+extern void fix_start_end_in_overlays P_ ((int, int));
 extern void report_overlay_modification P_ ((Lisp_Object, Lisp_Object, int,
 					     Lisp_Object, Lisp_Object, Lisp_Object));
 extern int overlay_touches_p P_ ((int));

@@ -3293,7 +3293,7 @@ adjust_overlays_for_delete (pos, length)
    If so, we'll reverse the endpoints.  Can you think of anything
    better to do in this situation?  */
 void
-fix_overlays_in_range (start, end)
+fix_start_end_in_overlays (start, end)
      register int start, end;
 {
   Lisp_Object overlay;
