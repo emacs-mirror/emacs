@@ -46,9 +46,9 @@ install:;	- mkdir $(INSTALL_DIR)\lisp
 		if not exist .\same-dir.tst for %%f in ( $(topdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp
 		if not exist .\same-dir.tst for %%f in ( $(maildontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\mail
 		if not exist .\same-dir.tst for %%f in ( $(playdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\play
-!endif
 		if not exist .\same-dir.tst for %%f in ( $(interdontcompile) ) do $(CP) %%f $(INSTALL_DIR)\lisp\international
 		- $(DEL) $(INSTALL_DIR)\lisp\same-dir.tst
+!endif
 
 #
 # Maintenance
