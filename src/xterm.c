@@ -4740,6 +4740,13 @@ x_calc_absolute_position (f)
   Window win, child;
   int win_x = 0, win_y = 0;
   int flags = f->display.x->size_hint_flags;
+  int this_window;
+
+#ifdef USE_X_TOOLKIT
+  this_window = XtWindow (f->display.x->widget);
+#else
+  this_window = FRAME_X_WINDOW (f);
+#endif
 
   /* Find the position of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
@@ -4749,7 +4756,7 @@ x_calc_absolute_position (f)
       XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 			     /* From-window, to-window.  */
-			     f->display.x->window_desc,
+			     this_window,
 			     f->display.x->parent_desc,
 
 			     /* From-position, to-position.  */
@@ -4772,6 +4779,8 @@ x_calc_absolute_position (f)
     f->display.x->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
 			     - 2 * f->display.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
+			     - (FRAME_EXTERNAL_MENU_BAR (f)
+				? f->display.x->menubar_height : 0)
 			     + f->display.x->top_pos);
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
@@ -5026,10 +5035,8 @@ x_make_frame_visible (f)
 
   if (! FRAME_VISIBLE_P (f))
     {
-#ifndef USE_X_TOOLKIT
       if (! FRAME_ICONIFIED_P (f))
 	x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
-#endif
 
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
