@@ -19,7 +19,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA.	 */
 
-/* TODO:
+/* BUGS:
+   - (x?)*y\1z should match both xxxxyxz and xxxyz.
+   TODO:
    - structure the opcode space into opcode+flag.
    - merge with glibc's regex.[ch].
    - replace (succeed_n + jump_n + set_number_at) with something that doesn't
@@ -1682,17 +1684,9 @@ static re_char *skip_one_char _RE_ARGS ((re_char *p));
 static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 				    char *fastmap, const int multibyte));
 
-/* Fetch the next character in the uncompiled pattern---translating it
-   if necessary.  */
-#define PATFETCH(c)							\
-  do {									\
-    PATFETCH_RAW (c);							\
-    c = TRANSLATE (c);							\
-  } while (0)
-
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
-#define PATFETCH_RAW(c)							\
+#define PATFETCH(c)							\
   do {									\
     int len;								\
     if (p == pend) return REG_EEND;					\
@@ -1914,12 +1908,13 @@ struct range_table_work_area
 #define BIT_UPPER	0x10
 #define BIT_MULTIBYTE	0x20
 
-/* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
-#define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
-  do {									\
-    EXTEND_RANGE_TABLE_WORK_AREA ((work_area), 2);			\
-    (work_area).table[(work_area).used++] = (range_start);		\
-    (work_area).table[(work_area).used++] = (range_end);		\
+/* Set a range START..END to WORK_AREA.
+   The range is passed through TRANSLATE, so START and END
+   should be untranslated.  */
+#define SET_RANGE_TABLE_WORK_AREA(work_area, start, end)	\
+  do {								\
+    EXTEND_RANGE_TABLE_WORK_AREA ((work_area), 2);		\
+    set_image_of_range (&work_area, start, end, translate);	\
   } while (0)
 
 /* Free allocated memory for WORK_AREA.	 */
@@ -2076,6 +2071,31 @@ re_wctype_to_bit (cc)
     }
 }
 #endif
+
+
+
+/* We need to find the image of the range start..end when passed through
+   TRANSLATE.  This is not necessarily TRANSLATE(start)..TRANSLATE(end)
+   and is not even necessarily contiguous.
+   We approximate it with the smallest contiguous range that contains
+   all the chars we need.  */
+static void
+set_image_of_range (work_area, start, end, translate)
+     RE_TRANSLATE_TYPE translate;
+     struct range_table_work_area *work_area;
+     re_wchar_t start, end;
+{
+  re_wchar_t cmin = TRANSLATE (start), cmax = TRANSLATE (end);
+  if (RE_TRANSLATE_P (translate))
+    for (; start <= end; start++)
+      {
+	re_wchar_t c = TRANSLATE (start);
+	cmin = MIN (cmin, c);
+	cmax = MAX (cmax, c);
+      }
+  work_area->table[work_area->used++] = (cmin);
+  work_area->table[work_area->used++] = (cmax);
+}
 
 /* Explicit quit checking is only used on NTemacs.  */
 #if defined WINDOWSNT && defined emacs && defined QUIT
@@ -2525,6 +2545,10 @@ regex_compile (pattern, size, syntax, bufp)
 
 		if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
+		/* Don't translate yet.  The range TRANSLATE(X..Y) cannot
+		   always be determined from TRANSLATE(X) and TRANSLATE(Y)
+		   So the translation is done later in a loop.  Example:
+		   (let ((case-fold-search t)) (string-match "[A-_]" "A"))  */
 		PATFETCH (c);
 
 		/* \ might escape characters inside [...] and [^...].  */
@@ -2584,7 +2608,7 @@ regex_compile (pattern, size, syntax, bufp)
 		       them).  */
 		    if (c == ':' && *p == ']')
 		      {
-			int ch;
+			re_wchar_t ch;
 			re_wctype_t cc;
 
 			cc = re_wctype (str);
@@ -2653,8 +2677,8 @@ regex_compile (pattern, size, syntax, bufp)
 			       starting at the smallest character in
 			       the charset of C1 and ending at C1.  */
 			    int charset = CHAR_CHARSET (c1);
-			    int c2 = MAKE_CHAR (charset, 0, 0);
-			    
+			    re_wchar_t c2 = MAKE_CHAR (charset, 0, 0);
+
 			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
 						       c2, c1);
 			    c1 = 0377;
@@ -2672,7 +2696,7 @@ regex_compile (pattern, size, syntax, bufp)
 		  /* ... into bitmap.  */
 		  {
 		    re_wchar_t this_char;
-		    int range_start = c, range_end = c1;
+		    re_wchar_t range_start = c, range_end = c1;
 
 		    /* If the start is after the end, the range is empty.  */
 		    if (range_start > range_end)
@@ -2769,7 +2793,7 @@ regex_compile (pattern, size, syntax, bufp)
 	  /* Do not translate the character after the \, so that we can
 	     distinguish, e.g., \B from \b, even if we normally would
 	     translate, e.g., B to b.  */
-	  PATFETCH_RAW (c);
+	  PATFETCH (c);
 
 	  switch (c)
 	    {
@@ -3129,13 +3153,13 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    case 'c':
 	      laststart = b;
-	      PATFETCH_RAW (c);
+	      PATFETCH (c);
 	      BUF_PUSH_2 (categoryspec, c);
 	      break;
 
 	    case 'C':
 	      laststart = b;
-	      PATFETCH_RAW (c);
+	      PATFETCH (c);
 	      BUF_PUSH_2 (notcategoryspec, c);
 	      break;
 #endif /* emacs */
@@ -3225,7 +3249,6 @@ regex_compile (pattern, size, syntax, bufp)
 	      /* You might think it would be useful for \ to mean
 		 not to translate; but if we don't translate it
 		 it will never match anything.  */
-	      c = TRANSLATE (c);
 	      goto normal_char;
 	    }
 	  break;
@@ -3234,7 +3257,7 @@ regex_compile (pattern, size, syntax, bufp)
 	default:
 	/* Expects the character in `c'.  */
 	normal_char:
-	      /* If no exactn currently being built.  */
+	  /* If no exactn currently being built.  */
 	  if (!pending_exact
 
 	      /* If last exactn not at current position.  */
@@ -3265,6 +3288,7 @@ regex_compile (pattern, size, syntax, bufp)
 	  {
 	    int len;
 
+	    c = TRANSLATE (c);
 	    if (multibyte)
 	      len = CHAR_STRING (c, b);
 	    else
@@ -4427,7 +4451,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	     they don't overlap.  The union of the two sets of excluded
 	     chars should cover all possible chars, which, as a matter of
 	     fact, is virtually impossible in multibyte buffers.  */
-	  ;
+	  break;
 	}
       break;
 
