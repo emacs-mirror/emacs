@@ -79,7 +79,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #ifdef HAVE_SOCKETS
-#define LIBS_SYSTEM -lsocket
+#define LIBS_SYSTEM -lsocket -lPW
 
 /* SCO has gettimeofday in socket library */
 /* Autoconf should determine this, but for now, 
@@ -88,6 +88,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef HAVE_GETTIMEOFDAY
 #define HAVE_GETTIMEOFDAY
 #endif
+#endif
+
+/* This enables configure to tell that we have alloca.  */
+#ifndef LIBS_SYSTEM
+#define LIBS_SYSTEM -lPW
 #endif
 
 #ifdef HAVE_X11R5
