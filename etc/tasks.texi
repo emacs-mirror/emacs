@@ -611,6 +611,9 @@ and all the other standard project progress reports.
 Grammar and style checking programs.
 
 @item
+A diagnostic program to test a hard disk.
+
+@item
 A fast emulator for the i386, which would make it possible
 to emulate x86 code on other CPUs, and also to more easily
 debug kernels such as Linux more conveniently.
