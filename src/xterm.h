@@ -292,6 +292,7 @@ struct x_display_info
 #ifdef MULTI_KBOARD
   KBOARD *kboard;
 #endif
+  int cut_buffers_initialized; /* Whether we're sure they all exist */
 };
 
 /* This is a chain of structures for all the X displays currently in use.  */
