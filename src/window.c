@@ -2767,8 +2767,7 @@ BUFFER can be a buffer or buffer name.  */)
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 1, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, also make WINDOW's buffer current.
-If WINDOW's frame is the selected frame, also make WINDOW the frame's
-selected window.
+Also make WINDOW the frame's selected window.
 
 Note that the main editor command loop
 selects the buffer of the selected window before each command.  */)
@@ -2810,7 +2809,16 @@ select_window_1 (window, recordflag)
 
   selected_window = window;
   sf = SELECTED_FRAME ();
-  if (XFRAME (WINDOW_FRAME (w)) == sf)
+  if (XFRAME (WINDOW_FRAME (w)) != sf)
+    {
+      XFRAME (WINDOW_FRAME (w))->selected_window = window;
+      /* Use this rather than Fhandle_switch_frame
+	 so that FRAME_FOCUS_FRAME is moved appropriately as we
+	 move around in the state where a minibuffer in a separate
+	 frame is active.  */
+      Fselect_frame (WINDOW_FRAME (w), Qnil);
+    }
+  else
     sf->selected_window = window;
 
   if (recordflag)
