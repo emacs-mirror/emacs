@@ -1,7 +1,7 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!check.h(trunk.14) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
  * These macros should be used to instrument and annotate code with
@@ -14,6 +14,8 @@
  * .disable: When assertions are disabled, AVER expands to something
  * which evaluates the condition but discards the result. Compilers
  * will throw the code away, but check its syntax.
+ *
+ * .trans.level-check: CheckLevel itself is not checked anywhere.
  */
 
 #ifndef check_h
@@ -65,13 +67,18 @@ extern unsigned CheckLevel;
 
 #endif
 
+
+/* AssertHandler -- the assert handler */
+
 typedef void (*AssertHandler)(const char *cond, const char *id,
                               const char *file, unsigned line);
 extern AssertHandler AssertInstall(AssertHandler handler);
 extern AssertHandler AssertDefault(void);
 
-extern void AssertFail1(const char *s);
 
+/* internals for actually asserting */
+
+extern void AssertFail1(const char *s);
 
 #define ASSERT(cond, condstring) \
   BEGIN \
@@ -80,15 +87,11 @@ extern void AssertFail1(const char *s);
   END
 
 
+/* NOTREACHED -- control should never reach this statement */
+
 #define NOTREACHED \
   BEGIN \
     AssertFail1("unreachable statement" "\n" __FILE__ "\n" STR(__LINE__)); \
-  END
-
-#define CHECKC(cond, condstring) \
-  BEGIN \
-    if(cond) NOOP; else \
-      AssertFail1(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
   END
 
 
@@ -100,9 +103,11 @@ extern void AssertFail1(const char *s);
 
 #define CHECKT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
 
+
 #if defined(MPS_HOT_WHITE)
 
-/* In white hot varieties, check methods should never be called.
+
+/* In white-hot varieties, check methods should never be called.
  * To verify this, we have NOTREACHED in the expansions.
  */
 
@@ -118,24 +123,31 @@ extern void AssertFail1(const char *s);
 #define CHECKU(type, val) \
   BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
 
+
 #elif defined(MPS_HOT_RED)
 
-/* CHECKS -- Check Signature */
-#define CHECKS(type, val)       CHECKC(CHECKT(type, val), \
+
+#define CHECKS(type, val)       ASSERT(CHECKT(type, val), \
 	"SigCheck " #type ": " #val)
 
 #define CHECKL(cond)       DISCARD(cond)
 #define CHECKD(type, val)  DISCARD(CHECKT(type, val))
 #define CHECKU(type, val)  DISCARD(CHECKT(type, val))
 
+
 #elif defined(MPS_COOL)
 
+
 /* CHECKS -- Check Signature */
-#define CHECKS(type, val)       CHECKC(CHECKT(type, val), \
+
+#define CHECKS(type, val)       ASSERT(CHECKT(type, val), \
 	"SigCheck " #type ": " #val)
 
-/* CHECKL -- Check Local Invariant */
-/* Could make this an expression using ?: */
+/* CHECKL -- Check Local Invariant
+ *
+ * Could make this an expression using ?:
+ */
+
 #define CHECKL(cond) \
   BEGIN \
     switch(CheckLevel) { \
@@ -144,15 +156,14 @@ extern void AssertFail1(const char *s);
       break; \
     case CheckSHALLOW: \
     case CheckDEEP: \
-      CHECKC(cond, #cond); \
-      break; \
-    default: \
-      NOTREACHED; \
+      ASSERT(cond, #cond); \
       break; \
     } \
   END
 
+
 /* CHECKD -- Check Down */
+
 #define CHECKD(type, val) \
   BEGIN \
     switch(CheckLevel) { \
@@ -160,20 +171,39 @@ extern void AssertFail1(const char *s);
       NOOP; \
       break; \
     case CheckSHALLOW: \
-      CHECKC(CHECKT(type, val), \
+      ASSERT(CHECKT(type, val), \
              "SigCheck " #type ": " #val); \
       break; \
     case CheckDEEP: \
-      CHECKC(type ## Check(val), \
+      ASSERT(type ## Check(val), \
              "TypeCheck " #type ": " #val); \
-      break; \
-    default: \
-      NOTREACHED; \
       break; \
     } \
   END
 
+
+/* CHECKD_NOSIG -- Check Down for a type with no signature */
+
+#define CHECKD_NOSIG(type, val) \
+  BEGIN \
+    switch(CheckLevel) { \
+    case CheckNONE: \
+      NOOP; \
+      break; \
+    case CheckSHALLOW: \
+      ASSERT((val) != NULL, \
+             "NullCheck " #type ": " #val); \
+      break; \
+    case CheckDEEP: \
+      ASSERT(type ## Check(val), \
+             "TypeCheck " #type ": " #val); \
+      break; \
+    } \
+  END
+
+
 /* CHECKU -- Check Up */
+
 #define CHECKU(type, val) \
   BEGIN \
     switch(CheckLevel) { \
@@ -182,17 +212,34 @@ extern void AssertFail1(const char *s);
       break; \
     case CheckSHALLOW: \
     case CheckDEEP: \
-      CHECKC(CHECKT(type, val), \
+      ASSERT(CHECKT(type, val), \
              "SigCheck " #type ": " #val); \
-      break; \
-    default: \
-      NOTREACHED; \
       break; \
     } \
   END
 
+
+/* CHECKU_NOSIG -- Check Up for a type with no signature */
+
+#define CHECKU_NOSIG(type, val) \
+  BEGIN \
+    switch(CheckLevel) { \
+    case CheckNONE: \
+      NOOP; \
+      break; \
+    case CheckSHALLOW: \
+    case CheckDEEP: \
+      ASSERT((val) != NULL, \
+             "NullCheck " #type ": " #val); \
+      break; \
+    } \
+  END
+
+
 #else
+
 #error "No heat defined."
+
 #endif
 
 
