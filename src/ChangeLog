@@ -1,3 +1,15 @@
+2001-01-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (font_family_registry): Even if FONTNAME conform to
+	XLFD, if it specifies other fields than family and registry,
+	return FONTANME.  New argument FORCE if nonzero cancel that
+	feature.
+	(fontset_font_pattern): Call font_family_registry with FORCE 1 for
+	a signle byte character.  Don't set FAMILY part to nil here.  It
+	is handled by the caller choose_face_font.
+	(Fnew_fontset): Call font_family_registry with FORCE 0.
+	(Fset_fontset_font): Likewise.
+
 2001-01-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): Don't treat a newline as fitting
