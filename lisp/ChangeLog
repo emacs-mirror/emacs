@@ -2,7 +2,8 @@
 
 	* progmodes/compile.el (compilation-start): In the
 	no-async-subprocesses branch, call sit-for to give redisplay a
-	chance to show the updated process status in the mode line.
+	chance to show the updated process status in the mode line, and
+	fontify the buffer explicitly after the process exits.
 
 2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
