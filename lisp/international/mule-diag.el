@@ -288,7 +288,7 @@ at the place of `..':
 	(print-coding-system-briefly (cdr process-coding-systems))
 	(princ "  decoding output from the process: ")
 	(print-coding-system-briefly (car process-coding-systems)))
-      (princ "Defaults for subprocess I/O:")
+      (princ "Defaults for subprocess I/O:\n")
       (princ "  decoding: ")
       (print-coding-system-briefly (car default-process-coding-system))
       (princ "  encoding: ")
@@ -712,7 +712,7 @@ system)."
       (insert "\n")
       (if default-input-method
 	  (insert "Default input method: " default-input-method "\n")
-	(insert "No default input method is specified.\n"))
+	(insert "No default input method is specified\n"))
 
       (insert-section 4 "Coding systems")
       (save-excursion (list-coding-systems t))
