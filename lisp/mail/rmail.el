@@ -2253,6 +2253,11 @@ see the documentation of `rmail-resend'."
 	    (forward-line 1)
 	    (insert "------- Start of forwarded message -------\n")
 	    (insert-buffer-substring forward-buffer)
+	    (let ((end (point)))
+	      (skip-chars-backward "\n")
+	      (if (< (point) end)
+		  (forward-char 1))
+	      (delete-region (point) end))
 	    (insert "------- End of forwarded message -------\n")
 	    (push-mark))))))
 
