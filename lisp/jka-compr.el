@@ -755,34 +755,6 @@ It is not recommended to set this variable permanently to anything but nil.")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
-;;;###autoload
-(define-minor-mode auto-compression-mode
-  "Toggle automatic file compression and uncompression.
-With prefix argument ARG, turn auto compression on if positive, else off.
-Returns the new status of auto compression (non-nil means on)."
-  nil nil nil :global t :group 'jka-compr
-  (let* ((installed (jka-compr-installed-p))
-	 (flag auto-compression-mode))
-    (cond
-     ((and flag installed) t)		; already installed
-     ((and (not flag) (not installed)) nil) ; already not installed
-     (flag (jka-compr-install))
-     (t (jka-compr-uninstall)))))
-
-
-(defmacro with-auto-compression-mode (&rest body)
-  "Evalutes BODY with automatic file compression and uncompression enabled."
-  (let ((already-installed (make-symbol "already-installed")))
-    `(let ((,already-installed (jka-compr-installed-p)))
-       (unwind-protect
-	   (progn
-	     (unless ,already-installed
-	       (jka-compr-install))
-	     ,@body)
-	 (unless ,already-installed
-	   (jka-compr-uninstall))))))
-(put 'with-auto-compression-mode 'lisp-indent-function 0)
-
 
 (defun jka-compr-build-file-regexp ()
   (mapconcat
@@ -899,6 +871,36 @@ The return value is the entry in `file-name-handler-alist' for jka-compr."
       (setq fnha (cdr fnha)))
 
     installed))
+
+
+;;;###autoload
+(define-minor-mode auto-compression-mode
+  "Toggle automatic file compression and uncompression.
+With prefix argument ARG, turn auto compression on if positive, else off.
+Returns the new status of auto compression (non-nil means on)."
+  nil nil nil :global t :group 'jka-compr
+  (let* ((installed (jka-compr-installed-p))
+	 (flag auto-compression-mode))
+    (cond
+     ((and flag installed) t)		; already installed
+     ((and (not flag) (not installed)) nil) ; already not installed
+     (flag (jka-compr-install))
+     (t (jka-compr-uninstall)))))
+
+
+;;;###autoload
+(defmacro with-auto-compression-mode (&rest body)
+  "Evalutes BODY with automatic file compression and uncompression enabled."
+  (let ((already-installed (make-symbol "already-installed")))
+    `(let ((,already-installed (jka-compr-installed-p)))
+       (unwind-protect
+	   (progn
+	     (unless ,already-installed
+	       (jka-compr-install))
+	     ,@body)
+	 (unless ,already-installed
+	   (jka-compr-uninstall))))))
+(put 'with-auto-compression-mode 'lisp-indent-function 0)
 
 
 ;;; Add the file I/O hook if it does not already exist.
