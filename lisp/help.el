@@ -108,7 +108,7 @@
     (if (listp type) (setq type (car type)))
     (and (symbolp type)
 	 (memq 'down (event-modifiers type))
-	 (setq foo (read-event))))
+	 (read-event)))
   (let ((defn (key-binding key)))
     (if (or (null defn) (integerp defn))
         (message "%s is undefined" (key-description key))
