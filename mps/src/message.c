@@ -1,7 +1,7 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
  * $HopeName: MMsrc!message.c(trunk.6) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All Rights Reserved.
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All Rights Reserved.
  *
  * READERSHIP
  *
@@ -117,9 +117,9 @@ void MessageInit(Arena arena, Message message, MessageClass class,
                  MessageType type)
 {
   AVERT(Arena, arena);
-  /* we are initialising the message so we can't check it */
+  AVER(message != NULL);
   AVERT(MessageClass, class);
-  AVER(type < MessageTypeMAX);
+  AVERT(MessageType, type);
 
   message->arena = arena;
   message->class = class;
