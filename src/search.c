@@ -129,7 +129,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
      int posix;
      int multibyte;
 {
-  char *raw_pattern;
+  unsigned char *raw_pattern;
   int raw_pattern_size;
   char *val;
   reg_syntax_t old;
@@ -140,14 +140,14 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
 
   if (multibyte == STRING_MULTIBYTE (pattern))
     {
-      raw_pattern = (char *) XSTRING (pattern)->data;
+      raw_pattern = (unsigned char *) XSTRING (pattern)->data;
       raw_pattern_size = STRING_BYTES (XSTRING (pattern));
     }
   else if (multibyte)
     {
       raw_pattern_size = count_size_as_multibyte (XSTRING (pattern)->data,
 						  XSTRING (pattern)->size);
-      raw_pattern = (char *) alloca (raw_pattern_size + 1);
+      raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
       copy_text (XSTRING (pattern)->data, raw_pattern,
 		 XSTRING (pattern)->size, 0, 1);
     }
@@ -160,7 +160,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
 	 so that only the multibyte chars which really correspond to
 	 the chosen single-byte character set can possibly match.  */
       raw_pattern_size = XSTRING (pattern)->size;
-      raw_pattern = (char *) alloca (raw_pattern_size + 1);
+      raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
       copy_text (XSTRING (pattern)->data, raw_pattern,
 		 STRING_BYTES (XSTRING (pattern)), 1, 0);
     }
@@ -172,7 +172,8 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
-  val = (char *) re_compile_pattern (raw_pattern, raw_pattern_size, &cp->buf);
+  val = (char *) re_compile_pattern ((char *)raw_pattern,
+				     raw_pattern_size, &cp->buf);
   re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
@@ -1135,7 +1136,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
       if (multibyte == STRING_MULTIBYTE (string))
 	{
-	  raw_pattern = (char *) XSTRING (string)->data;
+	  raw_pattern = (unsigned char *) XSTRING (string)->data;
 	  raw_pattern_size = XSTRING (string)->size;
 	  raw_pattern_size_byte = STRING_BYTES (XSTRING (string));
 	}
@@ -1145,7 +1146,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	  raw_pattern_size_byte
 	    = count_size_as_multibyte (XSTRING (string)->data,
 				       raw_pattern_size);
-	  raw_pattern = (char *) alloca (raw_pattern_size_byte + 1);
+	  raw_pattern = (unsigned char *) alloca (raw_pattern_size_byte + 1);
 	  copy_text (XSTRING (string)->data, raw_pattern,
 		     XSTRING (string)->size, 0, 1);
 	}
@@ -1159,7 +1160,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	     the chosen single-byte character set can possibly match.  */
 	  raw_pattern_size = XSTRING (string)->size;
 	  raw_pattern_size_byte = XSTRING (string)->size;
-	  raw_pattern = (char *) alloca (raw_pattern_size + 1);
+	  raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
 	  copy_text (XSTRING (string)->data, raw_pattern,
 		     STRING_BYTES (XSTRING (string)), 1, 0);
 	}
