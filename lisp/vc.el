@@ -1301,7 +1301,9 @@ and two version designators specifying which versions to compare."
 If FILE is a directory, generate diffs between versions for all registered
 files in or below it."
   (interactive 
-   (let ((file (read-file-name "File or directory to diff: "
+   (let ((file (read-file-name (if buffer-file-name
+				   "File or dir to diff: (default visited file) "
+				 "File or dir to diff: ")
                                 default-directory buffer-file-name t))
          (rel1-default nil) (rel2-default nil))
      ;; compute default versions based on the file state
