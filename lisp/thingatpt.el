@@ -85,8 +85,22 @@ of the textual entity that was found."
 			(or (get thing 'beginning-op) 
 			    (function (lambda () (forward-thing thing -1)))))
 		       (point))))
-	    (if (and beg end (<= beg orig) (< orig end))
-		(cons beg end))))
+	    (if (and beg end (<= beg orig) (<= orig end))
+		(cons beg end)
+	      ;; Try a second time, moving backward first and forward after,
+	      ;; so that we can find a thing that ends at ORIG.
+	      (let ((beg (progn 
+			   (funcall 
+			    (or (get thing 'beginning-op) 
+				(function (lambda () (forward-thing thing -1)))))
+			   (point)))
+		    (end (progn 
+			   (funcall 
+			    (or (get thing 'end-op) 
+				(function (lambda () (forward-thing thing 1)))))
+			   (point))))
+		(if (and beg end (<= beg orig) (<= orig end))
+		    (cons beg end))))))
       (error nil))))
 
 ;;;###autoload
@@ -156,12 +170,12 @@ a symbol as a valid THING."
 (put 'filename 'beginning-op
      '(lambda () (skip-chars-backward thing-at-point-file-name-chars)))
 
-(defvar thing-at-point-url-chars "~/A-Za-z0-9---_$%&=.,"
+(defvar thing-at-point-url-chars "~/A-Za-z0-9---_@$%&=.,"
   "Characters allowable in a URL.")
 
 (put 'url 'end-op    
-     '(lambda () (skip-chars-forward thing-at-point-url-chars)
-	(skip-chars-backward ".,")))
+     '(lambda () (skip-chars-forward (concat ":" thing-at-point-url-chars))
+	(skip-chars-backward ".,:")))
 (put 'url 'beginning-op
      '(lambda ()
 	(skip-chars-backward thing-at-point-url-chars)
