@@ -70,12 +70,13 @@ but still shows the full information."
 	;; Insert header.
 	(insert
 	 (substitute-command-keys
-	  (concat
-	   "Use "
-	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
-	   "\\[help-follow] on a title of column\nto sort by that title.")))
+	  (concat "Use "
+		  (if (display-mouse-p) "\\[help-follow-mouse] or ")
+		  "\\[help-follow]:\n")))
+	(insert "  on a column title to sort by that title,")
 	(indent-to 56)
 	(insert "+----DIMENSION\n")
+	(insert "  on a charset name to list characters.")
 	(indent-to 56)
 	(insert "| +--CHARS\n")
 	(let ((columns '(("ID-NUM" . id) "\t"
@@ -83,6 +84,10 @@ but still shows the full information."
 			 ("MULTIBYTE-FORM" . id) "\t"
 			 ("D CH FINAL-CHAR" . iso-spec)))
 	      (help-highlight-face 'region)
+	      (help-echo
+	       (substitute-command-keys
+		(concat (if (display-mouse-p) "\\[help-follow-mouse], ")
+			"\\[help-follow]: sort on this column")))
 	      pos)
 	  (while columns
 	    (if (stringp (car columns))
@@ -91,7 +96,7 @@ but still shows the full information."
 	      (search-backward (car (car columns)))
 	      (help-xref-button 0 'sort-listed-character-sets
 				(cdr (car columns))
-				"mouse-2, C-c: sort on this column")
+				help-echo)
 	      (goto-char (point-max)))
 	    (setq columns (cdr columns)))
 	  (insert "\n"))
@@ -112,8 +117,8 @@ but still shows the full information."
 	  (re-search-forward "[0-9][0-9][0-9]")
 	  (beginning-of-line)
 	  (delete-region (point) (point-max))
-	  (list-character-sets-1 sort-key)))))
-
+	  (list-character-sets-1 sort-key)
+	  (help-setup-xref (list #'list-character-sets nil) t)))))
 
 ;; Insert a list of character sets sorted by SORT-KEY.  SORT-KEY
 ;; should be one of `id', `name', and `iso-spec'.  If SORT-KEY is nil,
@@ -123,6 +128,10 @@ but still shows the full information."
   (or sort-key
       (setq sort-key 'id))
   (let ((tail (charset-list))
+	(help-echo
+	 (substitute-command-keys
+	  (concat (if (display-mouse-p) "\\[help-follow-mouse], ")
+		  "\\[help-follow]: show table of this character set")))
 	charset-info-list elt charset info sort-func)
     (while tail
       (setq charset (car tail) tail (cdr tail)
@@ -177,8 +186,7 @@ but still shows the full information."
       (indent-to 8)
       (insert (symbol-name (nth 1 elt))) ; CHARSET-NAME
       (search-backward (symbol-name (nth 1 elt)))
-      (help-xref-button 0 'list-charset-chars (nth 1 elt)
-			"mouse-2, RET: show table of this character set")
+      (help-xref-button 0 'list-charset-chars (nth 1 elt) help-echo)
       (goto-char (point-max))
       (insert "\t")
       (indent-to 40)
