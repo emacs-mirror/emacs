@@ -941,6 +941,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(if (file-exists-p abbrev-file-name)
 	    (quietly-read-abbrev-file abbrev-file-name))
 
+	;; If the abbrevs came entirely from the init file or the
+	;; abbrevs file, they do not need saving.
+	(setq abbrevs-changed nil)
+
 	;; If we can tell that the init file altered debug-on-error,
 	;; arrange to preserve the value that it set up.
 	(or (eq debug-on-error debug-on-error-initial)
