@@ -629,6 +629,15 @@ prepare_to_modify_buffer (start, end)
 
   signal_before_change (start, end);
 
+  if (current_buffer->newline_cache)
+    invalidate_region_cache (current_buffer,
+                             current_buffer->newline_cache,
+                             start - BEG, Z - end);
+  if (current_buffer->width_run_cache)
+    invalidate_region_cache (current_buffer,
+                             current_buffer->width_run_cache,
+                             start - BEG, Z - end);
+
   Vdeactivate_mark = Qt;
 }
 
