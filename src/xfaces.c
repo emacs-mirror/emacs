@@ -4692,13 +4692,15 @@ x_update_menu_appearance (f)
 	{
 #ifdef USE_MOTIF
 	  const char *suffix = "List";
+	  Bool motif = True;
 #else
 	  const char *suffix = "";
+	  Bool motif = False;
 #endif
-#if defined HAVE_X_I18N && defined USE_MOTIF
+#if defined HAVE_X_I18N
 	  extern char *xic_create_fontsetname
 	    P_ ((char *base_fontname, Bool motif));
-	  char *fontsetname = xic_create_fontsetname (face->font_name, True);
+	  char *fontsetname = xic_create_fontsetname (face->font_name, motif);
 #else
 	  char *fontsetname = face->font_name;
 #endif
@@ -4709,6 +4711,8 @@ x_update_menu_appearance (f)
 		   myname, popup_path, suffix, fontsetname);
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
+	  if (fontsetname != face->font_name)
+	    xfree (fontsetname);
 	}
 
       if (changed_p && f->output_data.x->menubar_widget)

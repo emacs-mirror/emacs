@@ -1,3 +1,11 @@
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (x_update_menu_appearance) [HAVE_X_I18N]:
+	Use xic_create_fontsetname even for non-Motif menus.
+	Don't forget to free the fontsetname.
+
+	* xfns.c (xic_create_fontsetname): Add a final catch-all font pattern.
+
 2005-03-17  Richard M. Stallman  <rms@gnu.org>
 
 	* dispnew.c (mirror_line_dance): Set W2 according to FRAME_FROM.
