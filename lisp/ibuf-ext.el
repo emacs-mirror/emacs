@@ -1406,7 +1406,7 @@ defaults to one."
   (interactive (occur-read-primary-args))
   (if (or (not (integerp nlines))
 	  (< nlines 0))
-      (setq nlines 1))
+      (setq nlines 0))
   (when (zerop (ibuffer-count-marked-lines))
     (ibuffer-set-mark ibuffer-marked-char))
   (let ((ibuffer-do-occur-bufs nil))
