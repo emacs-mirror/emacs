@@ -269,45 +269,35 @@ With argument FLIST, use the list FLIST instead."
 (defun profile-fix-fun (fun def)
   "Take function FUN and return it fixed for profiling.
 DEF is (symbol-function FUN)."
-  (let (prefix first second third (count 2) inter suffix)
-    (if (< (length def) 3)
-	nil		; nothing to see
-      (setq first (car def) second (car (cdr def))
-	    third (car (nthcdr 2 def)))
-      (setq prefix (list first second))
+  (if (< (length def) 3)
+      def		; nothing to see
+    (let ((prefix (list (car def) (car (cdr def))))
+	  (suffix (cdr (cdr def))))
       ;; Skip the doc string, if there is a string
       ;; which serves only as a doc string,
       ;; and put it in PREFIX.
-      (if (or (not (stringp third)) (not (nthcdr 3 def)))
-	  ;; Either no doc string, or it is also the function value.
-	  (setq inter third) 
-	;; Skip the doc string,
-	(setq count 3
-	      prefix (nconc prefix (list third))
-	      inter (car (nthcdr 3 def))))
+      (if (and (stringp (car suffix)) (cdr suffix))
+	  (setq prefix (nconc prefix (list (car suffix)))
+		suffix (cdr suffix)))
       ;; Check for an interactive spec.
-      ;; If found, put it inu  PREFIX and skip it.
-      (if (not (and (listp inter) 
-		    (eq (car inter) 'interactive)))
-	  nil
-	(setq prefix (nconc prefix (list inter)))
-	(setq count (1+ count)))	; skip this sexp for suffix
-      ;; Set SUFFIX to the function body forms.
-      (setq suffix (nthcdr count def))
+      ;; If found, put it into PREFIX and skip it.
+      (if (and (listp (car suffix)) 
+	       (eq (car (car suffix)) 'interactive))
+	  (setq prefix (nconc prefix (list (car suffix)))
+		suffix (cdr suffix)))
       (if (equal (car suffix) '(profile-get-time))
-	  nil
+	  def				; already profiled
 	;; Prepare new function definition.
 	(nconc prefix
-	       (list '(profile-get-time)) ; read time
-	       (list (list 'profile-start-function 
-			   (list 'quote fun)))
-	       (list (list 'setq 'profile-temp-result- 
-			   (nconc (list 'progn) suffix)))
-	       (list '(profile-get-time)) ; read time
-	       (list (list 'profile-update-function 
-			   (list 'quote fun)))
-	       (list 'profile-temp-result-)
-	       )))))
+	       (list '(profile-get-time) ; read time
+		     (list 'profile-start-function 
+			   (list 'quote fun))
+		     (list 'setq 'profile-temp-result- 
+			   (cons 'progn suffix))
+		     '(profile-get-time) ; read time
+		     (list 'profile-update-function 
+			   (list 'quote fun))
+		     'profile-temp-result-))))))
 
 (defun profile-restore-fun (fun)
   "Restore profiled function FUN to its original state."
