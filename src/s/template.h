@@ -151,6 +151,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    this to be what the system's include files want.  */
 /* #define SIGTYPE int */
 
+/* If the character used to separate elements of the executable path
+   is not ':', #define this to be the appropriate character constant.  */
+/* #define SEPCHAR ':' */
+
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
    you might define certain system call names that don't
