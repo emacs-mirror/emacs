@@ -1,3 +1,19 @@
+2004-01-23  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (get_composition_id): Handle xoff and yoff in a
+	composition rule.
+
+	* composite.h (COMPOSITION_DECODE_RULE): New arg xoff and yoff.
+	(struct composition): New member lbearing and rbearing.
+
+	* xdisp.c (move_it_to): Optimize for the case (op & MOVE_TO_Y).
+	(x_get_glyph_overhangs): Handle a composition glyph.
+	(x_produce_glyphs): Setup lbearing and rbreaing for a composition
+	glyph.
+
+	* xterm.c (x_compute_glyph_string_overhangs): Handle also a
+	composition glyph.
+
 2004-01-18  Kenichi Handa  <handa@m17n.org>
 
 	* print.c: Include charset.h.

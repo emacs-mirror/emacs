@@ -1,3 +1,9 @@
+2004-01-23  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (reference-point-alist): Doc fixed.
+	(encode-composition-rule): Handle a rule (GREF NREF XOFF YOFF).
+	(decode-composition-rule): Likewise.
+
 2004-01-20  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el (diacritic-composition-function): Fix for
