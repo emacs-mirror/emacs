@@ -20,8 +20,13 @@ MMQA_MPS_LINK_OBJ
 
 MMQA_INTERFACE_VERSION
  the version of the MM interface to use. Default is
- GR (grotesque), which should be correct for honeybee.3 and later.
- Older interfaces were known as MO (modern) and OS (oldstyle).
+ GR (grotesque), which should be correct for honeybee.3 and later
+ releases to Dylan. Older interfaces were known as MO (modern) and
+ OS (oldstyle). For testing the MM as supplied to Scriptworks,
+ use version SW (this does not try to use the trampoline, as it
+ doesn't seem to be supported in the mmsw library.
+ Note: if you change this setting, it may be necessary to recompile
+ the test libraries (qa clib).
 
 MMQA_LOG_DIR
  the directory in which log files should be saved.
