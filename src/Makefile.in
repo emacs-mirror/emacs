@@ -74,8 +74,6 @@ SHELL=/bin/sh
 /* On some systems we may not be able to use the system make command. */
 #ifdef MAKE_COMMAND
 MAKE = MAKE_COMMAND
-#else
-MAKE=make
 #endif
 
 #ifdef C_COMPILER
@@ -395,7 +393,7 @@ LD=ld
 #endif /* not COFF_ENCAPSULATE */
 #endif /* not ORDINARY_LINK */
 
-ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE
+ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 
 /* A macro which other sections of ymakefile can redefine to munge the
    flags before they're passed to LD.  This is helpful if you have
