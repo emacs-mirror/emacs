@@ -79,10 +79,15 @@ ALTERNATIVE2 etc."
 
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
-  '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk*")
-    ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
-    ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
-    ("muletibetan-2" "muletibetan-0"))
+  (if (eq system-type 'windows-nt)
+      '(("gb2312.1980" "gb2312")
+	("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
+	("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
+	("muletibetan-2" "muletibetan-0"))
+    '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk*")
+      ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
+      ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
+      ("muletibetan-2" "muletibetan-0")))
   "*Alist of alternative font registry names.
 Each element has the the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
