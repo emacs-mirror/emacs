@@ -147,7 +147,8 @@ pathname elements.  Arguments cause only a subset of buffers to be renamed."
       (while buffers
 	(let* ((buffer (car buffers))
 	       (bfn (if (eq buffer newbuf)
-			(expand-file-name newbuffile)
+			(and newbuffile
+			     (expand-file-name newbuffile))
 		      (uniquify-buffer-file-name buffer)))
 	       (rawname (and bfn (file-name-nondirectory bfn)))
 	       (deserving (and rawname
