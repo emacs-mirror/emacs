@@ -3454,7 +3454,7 @@ dos_rawgetc ()
 		? help_echo_window : selected_frame;
 	      event.y = help_echo;
 	      event.timestamp = event_timestamp ();
-	      event.code = make_number (help_echo_pos);
+	      event.code = help_echo_pos;
 	      kbd_buffer_store_event (&event);
 	    }
 	}
