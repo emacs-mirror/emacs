@@ -156,6 +156,7 @@ echo "Making links to \`lisp'."
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
+ ln [a-zA-Z]*.dat forms.README ../${tempdir}/lisp
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog README ../${tempdir}/lisp
@@ -181,13 +182,6 @@ echo "Making links to \`lisp/term'."
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
  ln README ../../${tempdir}/lisp/term
- rm -f =* TAGS)
-
-echo "Making links to \`lisp/forms-mode'."
-(cd lisp/forms-mode
- ln [a-zA-Z]*.el ../../${tempdir}/lisp/forms-mode
- ln [a-zA-Z]*.elc ../../${tempdir}/lisp/forms-mode
- ln forms.README forms-d2.dat ../../${tempdir}/lisp/forms-mode
  rm -f =* TAGS)
 
 ### echo "Making links to \`external-lisp'."
@@ -336,7 +330,7 @@ if [ "${make_tar}" = yes ]; then
   fi
   case "${default_gzip}" in
     compress* ) gzip_extension=.Z ;;
-    * )         gzip_extension=.z ;;
+    * )         gzip_extension=.gz ;;
   esac
   echo "Creating tar file."
   (cd ${tempparent} ; tar cvf - ${emacsname} ) \
