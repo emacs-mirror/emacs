@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.21 $")
+(defconst ange-ftp-version "$Revision: 1.22 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1762,17 +1762,17 @@ on the gateway machine to do the ftp instead."
     (process-kill-without-query proc)
     (save-excursion
       (set-buffer (process-buffer proc))
-      (ange-ftp-mode))
+      (internal-ange-ftp-mode))
     (set-process-sentinel proc (function ange-ftp-process-sentinel))
     (set-process-filter proc (function ange-ftp-process-filter))
     (accept-process-output proc)	;wait for ftp startup message
     proc))
 
-(defun ange-ftp-mode ()
+(defun internal-ange-ftp-mode ()
   (interactive)
   (comint-mode)
-  (setq major-mode 'ange-ftp-mode)
-  (setq mode-name "Ange-ftp")
+  (setq major-mode 'internal-ange-ftp-mode)
+  (setq mode-name "Internal Ange-ftp")
   (let ((proc (get-buffer-process (current-buffer))))
     (goto-char (point-max))
     (set-marker (process-mark proc) (point))
