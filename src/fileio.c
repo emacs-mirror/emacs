@@ -1363,14 +1363,15 @@ barf_or_query_if_file_exists (absname, querystring, interactive)
 }
 
 DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 4,
-  "fCopy file: \nFCopy %s to file: \np",
+  "fCopy file: \nFCopy %s to file: \np\nP",
   "Copy FILE to NEWNAME.  Both args must be strings.\n\
 Signals a `file-already-exists' error if file NEWNAME already exists,\n\
 unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.\n\
 A number as third arg means request confirmation if NEWNAME already exists.\n\
 This is what happens in interactive use with M-x.\n\
-Fourth arg non-nil means give the new file the same last-modified time\n\
-that the old one has.  (This works on only some systems.)")
+Fourth arg KEEP-TIME non-nil means give the new file the same\n\
+last-modified time as the old one.  (This works on only some systems.)\n\
+A prefix arg makes KEEP-TIME non-nil.")
   (filename, newname, ok_if_already_exists, keep_date)
      Lisp_Object filename, newname, ok_if_already_exists, keep_date;
 {
@@ -1956,7 +1957,7 @@ before the error is signaled.")
 
 #ifndef APOLLO
   if (stat (XSTRING (filename)->data, &st) < 0
-	|| (fd = open (XSTRING (filename)->data, 0)) < 0)
+      || (fd = open (XSTRING (filename)->data, 0)) < 0)
 #else
   if ((fd = open (XSTRING (filename)->data, 0)) < 0
       || fstat (fd, &st) < 0)
