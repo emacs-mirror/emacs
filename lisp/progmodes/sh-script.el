@@ -699,7 +699,7 @@ This adds rules for comments and assignments."
 			 (mapconcat 'identity (sh-feature sh-builtins) "\\|")
 			 "\\)\\>")
 		(2 font-lock-keyword-face nil t)
-		(6 font-lock-function-name-face))
+		(6 font-lock-builtin-face))
 	       ,@(sh-feature sh-font-lock-keywords-2)))
 	 (,(concat keywords "\\)\\>")
 	  2 font-lock-keyword-face)
