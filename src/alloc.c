@@ -1469,11 +1469,6 @@ mark_object (objptr)
 {
   register Lisp_Object obj;
 
-#ifdef DEBUG_MOLE
-  if (*(int *) ((char *)__builtin_frame_address (0) - 16) == 0)
-    abort ();
-#endif
-
   obj = *objptr;
   XUNMARK (obj);
 
@@ -1531,17 +1526,19 @@ mark_object (objptr)
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
 	register int size = ptr->size;
+	/* The reason we use ptr1 is to avoid an apparent hardware bug
+	   that happens occasionally on the FSF's HP 300s.
+	   The bug is that a2 gets clobbered by recursive calls to mark_object.
+	   The clobberage seems to happen during function entry,
+	   perhaps in the moveml instruction.
+	   Yes, this is a crock, but we have to do it.  */
 	struct Lisp_Vector *volatile ptr1 = ptr;
 	register int i;
 
 	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	for (i = 0; i < size; i++)     /* and then mark its elements */
-	  {
-	    if (ptr != ptr1)
-	      abort ();
-	    mark_object (&ptr->contents[i]);
-	  }
+	  mark_object (&ptr1->contents[i]);
       }
       break;
 
@@ -1552,6 +1549,7 @@ mark_object (objptr)
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
 	register int size = ptr->size;
+	/* See comment above under Lisp_Vector.  */
 	struct Lisp_Vector *volatile ptr1 = ptr;
 	register int i;
 
@@ -1559,12 +1557,10 @@ mark_object (objptr)
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	for (i = 0; i < size; i++)     /* and then mark its elements */
 	  {
-	    if (ptr != ptr1)
-	      abort ();
 	    if (i != COMPILED_CONSTANTS)
-	      mark_object (&ptr->contents[i]);
+	      mark_object (&ptr1->contents[i]);
 	  }
-	objptr = &ptr->contents[COMPILED_CONSTANTS];
+	objptr = &ptr1->contents[COMPILED_CONSTANTS];
 	obj = *objptr;
 	goto loop;
       }
@@ -1572,7 +1568,8 @@ mark_object (objptr)
 #ifdef MULTI_FRAME
     case Lisp_Frame:
       {
-	register struct frame *ptr = XFRAME (obj);
+	/* See comment above under Lisp_Vector for why this is volatile.  */
+	register struct frame *volatile ptr = XFRAME (obj);
 	register int size = ptr->size;
 
 	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
@@ -1595,24 +1592,17 @@ mark_object (objptr)
 
     case Lisp_Symbol:
       {
-	register struct Lisp_Symbol *ptr = XSYMBOL (obj);
+	/* See comment above under Lisp_Vector for why this is volatile.  */
+	register struct Lisp_Symbol *volatile ptr = XSYMBOL (obj);
 	struct Lisp_Symbol *ptrx;
 
 	if (XMARKBIT (ptr->plist)) break;
 	XMARK (ptr->plist);
 	mark_object ((Lisp_Object *) &ptr->value);
-	if ((unsigned int) ptr <= 4)
-	  abort ();
 	mark_object (&ptr->function);
-	if ((unsigned int) ptr <= 4)
-	  abort ();
 	mark_object (&ptr->plist);
-	if ((unsigned int) ptr <= 4)
-	  abort ();
 	XSETTYPE (*(Lisp_Object *) &ptr->name, Lisp_String);
 	mark_object (&ptr->name);
-	if ((unsigned int) ptr <= 4)
-	  abort ();
 	ptr = ptr->next;
 	if (ptr)
 	  {
@@ -1646,12 +1636,9 @@ mark_object (objptr)
 	    XUNMARK (obj);
 	    goto loop;
 	  }
-	if (ptr == 0)
-	  abort ();
 	mark_object (&ptr->car);
-	if (ptr == 0)
-	  abort ();
-	objptr = &ptr->cdr;
+	/* See comment above under Lisp_Vector for why not use ptr here.  */
+	objptr = &XCONS (obj)->cdr;
 	obj = ptr->cdr;
 	goto loop;
       }
