@@ -78,8 +78,6 @@
 ;; `desktop-globals-to-save' (by default it isn't).  This may result in saving
 ;; things you did not mean to keep.  Use M-x desktop-clear RET.
 
-;; To submit a bug report, please use the command desktop-bug-report
-
 ;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)     for useful ideas.
 ;;            avk@rtsg.mot.com (Andrew V. Klein)    for a dired tip.
 ;;            chris@tecc.co.uk (Chris Boucher)      for a mark tip.
@@ -469,24 +467,6 @@ autoloaded files."
 			       (cons 'case-fold-search cfs)
 			       (cons 'case-replace cr)
 			       (cons 'overwrite-mode (car mim)))))
-;; ----------------------------------------------------------------------------
-(defun desktop-bug-report ()
-  "Submit a bug report on the desktop package to the maintainer."
-  (interactive)
-  (require 'reporter)
-  (and (y-or-n-p "Do you really want to submit a report on desktop.el? ")
-       (reporter-submit-bug-report
-	"terra@diku.dk"
-	"desktop.el version 2.07"
-	'(desktop-basefilename
-	  desktop-dirname
-	  desktop-globals-to-save	  
-	  desktop-buffer-handlers)
-	()
-	()
-	"Hi Morten!\n\nI have a problem with your desktop.el package, that\
-you might\nwant to take a look at:"
-	)))
 ;; ----------------------------------------------------------------------------
 (provide 'desktop)
 
