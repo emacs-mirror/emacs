@@ -142,9 +142,9 @@ M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
 ;;; scrolled of the screen.  Suspending (C-z) does not cause this problem.
 ;;; On such terminals, Emacs should sacrifice the first and last character of
 ;;; each mode line, rather than a whole screen column!
-(setq kill-emacs-hook
-      (function (lambda () (interactive)
-		  (send-string-to-terminal
-		   (concat "\ea23R" (1+ (frame-width)) "C\eG0")))))
+(add-hook 'kill-emacs-hook
+	  (function (lambda () (interactive)
+		      (send-string-to-terminal
+		       (concat "\ea23R" (1+ (frame-width)) "C\eG0")))))
 
 ;;; wyse50.el ends here
