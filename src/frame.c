@@ -62,6 +62,7 @@ Lisp_Object Qtool_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qw32;
+Lisp_Object Qw32_console;
 Lisp_Object Qpc;
 Lisp_Object Qmac;
 Lisp_Object Qvisible;
@@ -166,6 +167,8 @@ See also `frame-live-p'.")
       return Qx;
     case output_w32:
       return Qw32;
+    case output_w32_console:
+      return Qw32_console;
     case output_msdos_raw:
       return Qpc;
     case output_mac:
@@ -483,11 +486,16 @@ make_terminal_frame ()
   else
     f->output_method = output_termcap;
 #else
+#ifdef WINDOWSNT
+  f->output_method = output_w32_console;
+  f->output_data.x = &tty_display;
+#else
 #ifdef macintosh
   make_mac_terminal_frame (f);
 #else
   f->output_data.x = &tty_display;
 #endif /* macintosh */
+#endif /* WINDOWSNT */
 #endif /* MSDOS */
 
   if (!noninteractive)
@@ -1993,7 +2001,9 @@ If FRAME is omitted, return information on the currently selected frame.")
       store_in_alist (&alist, intern ("font"),
 		      build_string (FRAME_MSDOS_P (f)
 				    ? "ms-dos"
-				    : FRAME_W32_P (f) ? "w32term" : "tty"));
+				    : FRAME_W32_P (f) ? "w32term"
+				    : FRAME_W32_CONSOLE_P (f) ? "w32console"
+				    :"tty"));
     }
   store_in_alist (&alist, Qname, f->name);
   height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
@@ -2417,6 +2427,8 @@ syms_of_frame ()
   staticpro (&Qx);
   Qw32 = intern ("w32");
   staticpro (&Qw32);
+  Qw32_console = intern ("w32-console");
+  staticpro (&Qw32_console);
   Qpc = intern ("pc");
   staticpro (&Qpc);
   Qmac = intern ("mac");
