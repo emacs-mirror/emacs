@@ -1,6 +1,6 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
- * $HopeName: MMsrc!tract.h(trunk.5) $
+ * $HopeName: MMsrc!tract.h(trunk.6) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -23,28 +23,29 @@
 
 typedef struct TractStruct { /* Tract structure */
   Pool pool;      /* MUST BE FIRST (design.mps.arena.tract.field pool) */
-  void *p;                    /* pointer for use of owning pool */
-  Addr base;                  /* Base address of the tract */
+  void *p;                     /* pointer for use of owning pool */
+  Addr base;                   /* Base address of the tract */
   TraceSet white : TraceLIMIT; /* traces for which tract is white */
-  unsigned int hasSeg : 1;    /* does tract have a seg in p? See .bool */
+  unsigned int hasSeg : 1;     /* does tract have a seg in p? See .bool */
 } TractStruct;
 
 
 extern Addr (TractBase)(Tract tract);
-#define TractBase(tract)        ((tract)->base)
+#define TractBase(tract)         ((tract)->base)
 extern Addr TractLimit(Tract tract);
 
-#define TractPool(tract)        ((tract)->pool)
-#define TractP(tract)           ((tract)->p)
-#define TractSetP(tract, pp)    ((void)((tract)->p = (pp)))
-#define TractHasSeg(tract)      ((Bool)(tract)->hasSeg)
+#define TractPool(tract)         ((tract)->pool)
+#define TractP(tract)            ((tract)->p)
+#define TractSetP(tract, pp)     ((void)((tract)->p = (pp)))
+#define TractHasSeg(tract)       ((Bool)(tract)->hasSeg)
 #define TractSetHasSeg(tract, b) ((void)((tract)->hasSeg = (b)))
-#define TractWhite(tract)       ((tract)->white)
-#define TractSetWhite(tract, w) ((void)((tract)->white = w))
+#define TractWhite(tract)        ((tract)->white)
+#define TractSetWhite(tract, w)  ((void)((tract)->white = (w)))
 
 extern Bool TractCheck(Tract tract);
 extern void TractInit(Tract tract, Pool pool, Addr base);
 extern void TractFinish(Tract tract);
+
 
 /* TRACT_*SEG -- Test / set / unset seg->tract associations
  *
@@ -141,8 +142,6 @@ typedef struct ChunkStruct {
   Shift pageShift;      /* log2 of page size, for shifts */
   Addr base;            /* base address of chunk */
   Addr limit;           /* limit address of chunk */
-  Size ullageSize;      /* size unusable for allocation to pools X */
-  Count ullagePages;    /* number of pages occupied by ullage X */
   Index allocBase;      /* index of first page allocatable to clients */
   Index pages;          /* index of the page after the last allocatable page */
   BT allocTable;        /* page allocation table */
@@ -218,7 +217,7 @@ extern Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
  */
 
 #define INDEX_OF_ADDR(chunk, addr) \
-  ((Index)ChunkSizeToPages(chunk, AddrOffset((chunk)->base, (addr))))
+  ((Index)ChunkSizeToPages(chunk, AddrOffset((chunk)->base, addr)))
 
 extern Index IndexOfAddr(Chunk chunk, Addr addr);
 

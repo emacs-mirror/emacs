@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.20) $
+ * $HopeName: MMsrc!arenacl.c(trunk.21) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.arena.client.
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsacl.h"
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.20) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.21) $");
 
 
 /* ClientArenaStruct -- Client Arena Structure */
@@ -29,16 +29,8 @@ typedef struct ClientArenaStruct {
 } ClientArenaStruct;
 typedef struct ClientArenaStruct *ClientArena;
 
-
-/* ArenaClientArena -- find the ClientArena given a generic Arena */
-
-#define ArenaClientArena(arena) \
-  PARENT(ClientArenaStruct, arenaStruct, (arena))
-
-
-/* ClientArenaArena -- find the generic Arena given a ClientArena */
-
-#define ClientArenaArena(ClientArena) (&(ClientArena)->arenaStruct)
+#define Arena2ClientArena(arena) PARENT(ClientArenaStruct, arenaStruct, arena)
+#define ClientArena2Arena(clArena) (&(clArena)->arenaStruct)
 
 
 /* CLChunk -- chunk structure */
@@ -54,14 +46,14 @@ typedef struct ClientChunkStruct {
   Sig sig;                     /* design.mps.sig */
 } ClientChunkStruct;
 
-#define ClientChunkChunk(clchunk) (&(clchunk)->chunkStruct)
-#define ChunkClientChunk(chunk) PARENT(ClientChunkStruct, chunkStruct, chunk)
+#define ClientChunk2Chunk(clchunk) (&(clchunk)->chunkStruct)
+#define Chunk2ClientChunk(chunk) PARENT(ClientChunkStruct, chunkStruct, chunk)
 
 
 /* ClientChunkClientArena -- get the client arena from a client chunk */
 
 #define ClientChunkClientArena(clchunk) \
-  ArenaClientArena(ChunkArena(ClientChunkChunk(clchunk)))
+  Arena2ClientArena(ChunkArena(ClientChunk2Chunk(clchunk)))
 
 
 /* ClientChunkCheck -- check the consistency of a client chunk */
@@ -71,7 +63,7 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
   Chunk chunk;
 
   CHECKS(ClientChunk, clChunk);
-  chunk = ClientChunkChunk(clChunk);
+  chunk = ClientChunk2Chunk(clChunk);
   CHECKL(ChunkCheck(chunk));
   CHECKL(clChunk->freePages <= chunk->pages);
   /* check they don't overlap (knowing the order) */
@@ -85,7 +77,7 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 static Bool ClientArenaCheck(ClientArena clientArena)
 {
   CHECKS(ClientArena, clientArena);
-  CHECKD(Arena, ClientArenaArena(clientArena));
+  CHECKD(Arena, ClientArena2Arena(clientArena));
   return TRUE;
 }
 
@@ -96,6 +88,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
                              ClientArena clientArena)
 {
   ClientChunk clChunk;
+  Chunk chunk;
   Addr alignedBase;
   BootBlockStruct bootStruct;
   BootBlock boot = &bootStruct;
@@ -121,19 +114,21 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
   res = BootAlloc(&p, boot, sizeof(ClientChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
-  clChunk = p;
+  clChunk = p;  chunk = ClientChunk2Chunk(clChunk);
 
-  res = ChunkInit(ClientChunkChunk(clChunk), ClientArenaArena(clientArena),
+  res = ChunkInit(chunk, ClientArena2Arena(clientArena),
                   alignedBase, AddrAlignDown(limit, ARENA_CLIENT_PAGE_SIZE),
                   ARENA_CLIENT_PAGE_SIZE, boot);
   if (res != ResOK)
     goto failChunkInit;
 
+  ClientArena2Arena(clientArena)->committed +=
+    AddrOffset(base, PageIndexBase(chunk, chunk->allocBase));
   BootBlockFinish(boot);
 
   clChunk->sig = ClientChunkSig;
   AVERT(ClientChunk, clChunk);
-  *chunkReturn = ClientChunkChunk(clChunk);
+  *chunkReturn = chunk;
   return ResOK;
 
 failChunkInit:
@@ -150,7 +145,7 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
   ClientChunk clChunk;
 
   /* chunk is supposed to be uninitialized, so don't check it. */
-  clChunk = ChunkClientChunk(chunk);
+  clChunk = Chunk2ClientChunk(chunk);
   AVERT(BootBlock, boot);
   UNUSED(boot);
 
@@ -166,7 +161,7 @@ static void clientChunkDestroy(Chunk chunk)
 {
   ClientChunk clChunk;
 
-  clChunk = ChunkClientChunk(chunk);
+  clChunk = Chunk2ClientChunk(chunk);
   AVERT(ClientChunk, clChunk);
 
   clChunk->sig = SigInvalid;
@@ -223,7 +218,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
     return ResMEMORY;
 
   lock = (Lock)PointerAdd(base, clArenaSize);
-  arena = ClientArenaArena(clientArena);
+  arena = ClientArena2Arena(clientArena);
   /* impl.c.arena.init.caller */
   ArenaInit(arena, lock, class);
 
@@ -234,14 +229,13 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   if (res != ResOK)
     return res;
   arena->primary = chunk;
-  arena->committed = chunk->ullageSize;
 
   /* Set the zone shift to divide the initial chunk into the same */
   /* number of zones as will fit into a reference set (the number of */
   /* bits in a word). Note that some zones are discontiguous in the */
   /* arena if the size is not a power of 2. */
   arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
-  
+
   EVENT_PWA(ArenaCreateCL, arena, size, base);
   AVERT(ClientArena, clientArena);
   *arenaReturn = arena;
@@ -256,7 +250,7 @@ static void ClientArenaFinish(Arena arena)
   ClientArena clientArena;
   Ring node, next;
 
-  clientArena = ArenaClientArena(arena);
+  clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
 
   /* destroy all chunks */
@@ -285,7 +279,7 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
   AVER(size > 0);
   limit = AddrAdd(base, size);
   
-  clientArena = ArenaClientArena(arena);
+  clientArena = Arena2ClientArena(arena);
   res = clientChunkCreate(&chunk, base, limit, clientArena);
   return res;
 }
@@ -324,9 +318,7 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 
   AVER(baseReturn != NULL);
   AVER(baseTractReturn != NULL);
-  AVERT(Chunk, chunk);
-  clChunk = ChunkClientChunk(chunk);
-  AVERT(ClientChunk, clChunk);
+  clChunk = Chunk2ClientChunk(chunk);
 
   if (pages > clChunk->freePages)
     return ResRESOURCE;
@@ -334,15 +326,11 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
   arena = chunk->arena;
 
   if (pref->high)
-    b = BTFindShortResRangeHigh(&baseIndex, &limitIndex,
-				chunk->allocTable,
-				chunk->ullagePages, chunk->pages,
-				pages);
+    b = BTFindShortResRangeHigh(&baseIndex, &limitIndex, chunk->allocTable,
+				chunk->allocBase, chunk->pages, pages);
   else 
-    b = BTFindShortResRange(&baseIndex, &limitIndex,
-			    chunk->allocTable,
-			    chunk->ullagePages, chunk->pages,
-			    pages);
+    b = BTFindShortResRange(&baseIndex, &limitIndex, chunk->allocTable,
+			    chunk->allocBase, chunk->pages, pages);
 
   if (!b)
     return ResRESOURCE;
@@ -426,14 +414,14 @@ static void ClientFree(Addr base, Size size, Pool pool)
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-  clientArena = ArenaClientArena(arena);
+  clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
   AVER(AddrIsAligned(base, ChunkPageSize(arena->primary)));
 
   foundChunk = ChunkOfAddr(&chunk, arena, base);
   AVER(foundChunk);
-  clChunk = ChunkClientChunk(chunk);
+  clChunk = Chunk2ClientChunk(chunk);
   AVERT(ClientChunk, clChunk);
 
   pages = ChunkSizeToPages(chunk, size);
