@@ -50,6 +50,9 @@ extern int change_frame_size (FRAME_PTR, int, int, int, int);
 /* from w32fns.c */
 extern Lisp_Object Vw32_alt_is_meta;
 
+/* from w32term */
+extern Lisp_Object Vw32_capslock_is_shiftlock;
+
 /* Event queue */
 #define EVENT_QUEUE_SIZE 50
 static INPUT_RECORD event_queue[EVENT_QUEUE_SIZE];
@@ -96,7 +99,7 @@ get_frame (void)
 /* Translate console modifiers to emacs modifiers.  
    German keyboard support (Kai Morgan Zeise 2/18/95).  */
 int
-w32_kbd_mods_to_emacs (DWORD mods)
+w32_kbd_mods_to_emacs (DWORD mods, WORD key)
 {
   int retval = 0;
 
@@ -116,9 +119,23 @@ w32_kbd_mods_to_emacs (DWORD mods)
 	retval |= meta_modifier;
     }
 
+  /* Just in case someone wanted the original behaviour, make it
+     optional by setting w32-capslock-is-shiftlock to t.  */
+  if (NILP (Vw32_capslock_is_shiftlock)
+      && ((key == VK_INSERT)
+	  || (key == VK_DELETE)
+	  || ((key >= VK_F1) && (key <= VK_F24))
+	  || ((key >= VK_PRIOR) && (key <= VK_DOWN))))
+    {
+      if ( (mods & SHIFT_PRESSED) == SHIFT_PRESSED)
+	retval |= shift_modifier;
+    }
+  else
+    {
   if (((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) == SHIFT_PRESSED)
       || ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) == CAPSLOCK_ON))
     retval |= shift_modifier;
+    }
 
   return retval;
 }
@@ -288,11 +305,13 @@ static int map_virt_key[256] =
 /* return code -1 means that event_queue_ptr won't be incremented. 
    In other word, this event makes two key codes.   (by himi)       */
 int 
-key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
+key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 {
   int map;
   int key_flag = 0;
   static BOOL map_virt_key_init_done;
+
+  *isdead = 0;
   
   /* Skip key-up events.  */
   if (!event->bKeyDown)
@@ -334,6 +353,8 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
       key_flag = w32_kbd_patch_key (event); /* 95.7.25 by himi */
       if (key_flag == 0) 
 	return 0;
+      if (key_flag < 0)
+	*isdead = 1;
       XSETINT (emacs_ev->code, event->uChar.AsciiChar);
     }
 #ifdef MULE
@@ -375,7 +396,8 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 #else
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
 #endif
-  emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState);
+  emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState,
+					       event->wVirtualKeyCode);
   emacs_ev->timestamp = GetTickCount ();
   if (key_flag == 2) return -1; /* 95.7.25 by himi */
   return 1;
@@ -482,7 +504,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   
   button_state = event->dwButtonState;
   emacs_ev->timestamp = GetTickCount ();
-  emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState) |
+  emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState, 0) |
     ((event->dwButtonState & mask) ? down_modifier : up_modifier);
   
   XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
@@ -512,7 +534,8 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 {
   BOOL no_events = TRUE;
   int nev, ret = 0, add;
-  
+  int isdead;
+
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
@@ -539,7 +562,7 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 	  switch (queue_ptr->EventType)
             {
             case KEY_EVENT:
-	      add = key_event (&queue_ptr->Event.KeyEvent, bufp);
+	      add = key_event (&queue_ptr->Event.KeyEvent, bufp, &isdead);
 	      if (add == -1) /* 95.7.25 by himi */
 		{ 
 		  queue_ptr--;
