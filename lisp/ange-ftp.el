@@ -656,7 +656,8 @@ parenthesized expressions in REGEXP for the components (in that order).")
   (concat "^200 \\(PORT\\|Port\\) \\|^331 \\|^150 \\|^350 \\|^[0-9]+ bytes \\|"
 	  "^Connected \\|^$\\|^Remote system\\|^Using\\|^ \\|Password:\\|"
 	  "^Data connection \\|"
-	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye")
+	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
+	  "^227 .*[Pp]assive")
   "*Regular expression matching ftp messages that can be ignored.")
 
 (defvar ange-ftp-fatal-msgs
