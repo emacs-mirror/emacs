@@ -1,3 +1,10 @@
+2001-03-29  Eli Zaretskii  <a34785@is.elta.co.il>
+
+	* Makefile.in (SUBDIR): Remove leim.
+	(all, .RECURSIVE, extraclean): Add leim explicitly.
+	(leim): Provide separate rule which exports PARALLEL=0 into the
+	environment.
+
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (HAVE_XPM): Don't print the result of the check for

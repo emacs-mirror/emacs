@@ -2222,6 +2222,9 @@ probably not be read correctly by Emacs 21.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The new function `interactive-form' can be used to obtain the
+interactive form of a function.
+
 ** The keyword :set-after in defcustom allows to specify dependencies
 between custom options.  Example:
 
