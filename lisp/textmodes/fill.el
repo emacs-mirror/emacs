@@ -146,41 +146,45 @@ Leave one space between words, two at end of sentences or after colons
 and `sentence-end-without-period').
 Remove indentation from each line."
   (interactive "*r")
-  (save-excursion
-    (goto-char beg)
-    ;; Nuke tabs; they get screwed up in a fill.
-    ;; This is quick, but loses when a tab follows the end of a sentence.
-    ;; Actually, it is difficult to tell that from "Mr.\tSmith".
-    ;; Blame the typist.
-    (subst-char-in-region beg end ?\t ?\ )
-    (while (and (< (point) end)
-		(re-search-forward "  +" end t))
-      (delete-region
-       (+ (match-beginning 0)
-	  ;; Determine number of spaces to leave:
-	  (save-excursion
-	    (skip-chars-backward " ]})\"'")
-	    (cond ((and sentence-end-double-space
-			(or (memq (preceding-char) '(?. ?? ?!))
-			    (and sentence-end-without-period
-				 (= (char-syntax (preceding-char)) ?w)))) 2)
-		  ((and colon-double-space
-			(= (preceding-char) ?:))  2)
-		  ((char-equal (preceding-char) ?\n)  0)
-		  (t 1))))
-       (match-end 0)))
-    ;; Make sure sentences ending at end of line get an extra space.
-    ;; loses on split abbrevs ("Mr.\nSmith")
-    (goto-char beg)
-    (let ((eol-double-space-re (if colon-double-space
-                                   "[.?!:][])}\"']*$"
-                                 "[.?!][])}\"']*$")))
+  (let ((end-spc-re (concat "\\(" sentence-end "\\) *\\|  +")))
+    (save-excursion
+      (goto-char beg)
+      ;; Nuke tabs; they get screwed up in a fill.
+      ;; This is quick, but loses when a tab follows the end of a sentence.
+      ;; Actually, it is difficult to tell that from "Mr.\tSmith".
+      ;; Blame the typist.
+      (subst-char-in-region beg end ?\t ?\ )
       (while (and (< (point) end)
-		  (re-search-forward eol-double-space-re end t))
-	;; We insert before markers in case a caller such as
-	;; do-auto-fill has done a save-excursion with point at the end
-	;; of the line and wants it to stay at the end of the line.
-	(insert-before-markers-and-inherit ? )))))
+		  (re-search-forward end-spc-re end t))
+	(delete-region
+	 (cond
+	  ;; `sentence-end' matched and did not match all spaces.
+	  ;; I.e. it only matched the number of spaces it needs: drop the rest.
+	  ((and (match-end 1) (> (match-end 0) (match-end 1)))  (match-end 1))
+	  ;; `sentence-end' matched but with nothing left.  Either that means
+	  ;; nothing should be removed, or it means it's the "old-style"
+	  ;; sentence-end which matches all it can.  Keep only 2 spaces.
+	  ;; We probably don't even need to check `sentence-end-double-space'.
+	  ((match-end 1)
+	   (min (match-end 0)
+		(+ (if sentence-end-double-space 2 1)
+		   (save-excursion (goto-char (match-end 0))
+				   (skip-chars-backward " ")
+				   (point)))))
+	  (t ;; It's not an end of sentence.
+	   (+ (match-beginning 0)
+	      ;; Determine number of spaces to leave:
+	      (save-excursion
+		(skip-chars-backward " ]})\"'")
+		(cond ((and sentence-end-double-space
+			    (or (memq (preceding-char) '(?. ?? ?!))
+				(and sentence-end-without-period
+				     (= (char-syntax (preceding-char)) ?w)))) 2)
+		      ((and colon-double-space
+			    (= (preceding-char) ?:))  2)
+		      ((char-equal (preceding-char) ?\n)  0)
+		      (t 1))))))
+	 (match-end 0))))))
 
 (defun fill-common-string-prefix (s1 s2)
   "Return the longest common prefix of strings S1 and S2, or nil if none."
@@ -444,10 +448,9 @@ Point is moved to just past the fill prefix on the first line."
 
 (defun fill-move-to-break-point (linebeg)
   "Move to the position where the line should be broken.
-The break position will normally be after LINEBEG and before point."
-  ;; If the fill column is before linebeg, we have an insanely
-  ;; wide prefix and might as well ignore it.
-  (if (> linebeg (point)) (setq linebeg (line-beginning-position)))
+The break position will be always after LINEBEG and generally before point."
+  ;; If the fill column is before linebeg, move to linebeg.
+  (if (> linebeg (point)) (goto-char linebeg))
   ;; Move back to the point where we can break the line
   ;; at.  We break the line between word or after/before
   ;; the character which has character category `|'.  We
@@ -651,10 +654,10 @@ space does not end a sentence, so don't break a line there."
 		  (fill-newline)))
 	      ;; Justify the line just ended, if desired.
 	      (if justify
-                (if (save-excursion (skip-chars-forward " \t") (eobp))
-                    (progn
-                      (delete-horizontal-space)
-                      (justify-current-line justify t t))
+		  (if (save-excursion (skip-chars-forward " \t") (>= (point) to))
+		      (progn
+			(delete-horizontal-space)
+			(justify-current-line justify t t))
 		    (forward-line -1)
 		    (justify-current-line justify nil t)
 		    (forward-line 1))))))
@@ -692,11 +695,8 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 		 fill-paragraph-function)
 	     (funcall function arg)))
       (let ((before (point))
-	    ;; Fill prefix used for filling the paragraph
-	    fill-pfx
-	    ;; If fill-paragraph is called recursively,
-	    ;; don't give fill-paragraph-function a second chance.
-	    fill-paragraph-function)
+	    ;; Fill prefix used for filling the paragraph.
+	    fill-pfx)
 	(save-excursion
 	  (forward-paragraph)
 	  (or (bolp) (newline 1))
