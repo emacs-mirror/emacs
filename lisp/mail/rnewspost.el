@@ -217,14 +217,16 @@ summary (abstract) of the message."
   (mail-position-on-field "Summary"))
 
 (defun news-reply-signature ()
-  "The inews program appends ~/.signature automatically."
+  "The inews program appends `~/.signature' automatically."
   (interactive)
-  (message "~/.signature will be appended automatically."))
+  (message "`~/.signature' will be appended automatically."))
 
 (defun news-setup (to subject in-reply-to newsgroups replybuffer)
   "Set up the news reply or posting buffer with the proper headers and mode."
   (setq mail-reply-buffer replybuffer)
-  (let ((mail-setup-hook nil))
+  (let ((mail-setup-hook nil)
+	;; Avoid inserting a signature.
+       	(mail-signature))
     (if (null to)
 	;; this hack is needed so that inews wont be confused by 
 	;; the fcc: and bcc: fields
