@@ -508,8 +508,15 @@ struct x_output
 #define FRAME_DEFAULT_FACE(f) ((f)->output_data.x->computed_faces[0])
 #define FRAME_MODE_LINE_FACE(f) ((f)->output_data.x->computed_faces[1])
 
-/* Return the window associated with the frame F.  */
+/* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
+
+/* Return the outermost X window associated with the frame F.  */
+#ifdef USE_X_TOOLKIT
+#define FRAME_OUTER_WINDOW(f) (XtWindow ((f)->output_data.x->widget))
+#else
+#define FRAME_OUTER_WINDOW(f) (FRAME_X_WINDOW (f))
+#endif
 
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
