@@ -364,7 +364,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "True when TPU-edt is operating in the forward direction.")
 (defvar tpu-reverse nil
   "True when TPU-edt is operating in the backward direction.")
-(defvar tpu-control-keys t
+(defvar tpu-control-keys nil
   "If non-nil, control keys are set to perform TPU functions.")
 (defvar tpu-xkeys-file nil
   "File containing TPU-edt X key map.")
@@ -983,7 +983,7 @@ This is useful for inserting control characters."
 	        	  (scroll-other-window -8)
 	        	(error nil)))
 	             (t
-	              (backward-page 2)
+	              (backward-page)
 	              (forward-line 1)
 	              (tpu-line-to-top-of-window))))
 	      ((not (equal tpu-help-return fkey))
@@ -2261,26 +2261,25 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 
 
 ;;;
-;;;  Map control keys
+;;;  Functions to set, reset, and toggle the control key bindings
 ;;;
-(define-key global-map "\C-\\" 'quoted-insert)                ; ^\
-(define-key global-map "\C-a" 'tpu-toggle-overwrite-mode)     ; ^A
-(define-key global-map "\C-b" 'repeat-complex-command)        ; ^B
-(define-key global-map "\C-e" 'tpu-current-end-of-line)       ; ^E
-(define-key global-map "\C-h" 'tpu-next-beginning-of-line)    ; ^H (BS)
-(define-key global-map "\C-j" 'tpu-delete-previous-word)      ; ^J (LF)
-(define-key global-map "\C-k" 'tpu-define-macro-key)          ; ^K
-(define-key global-map "\C-l" 'tpu-insert-formfeed)           ; ^L (FF)
-(define-key global-map "\C-r" 'recenter)                      ; ^R
-(define-key global-map "\C-u" 'tpu-delete-to-bol)             ; ^U
-(define-key global-map "\C-v" 'tpu-quoted-insert)             ; ^V
-(define-key global-map "\C-w" 'redraw-display)                ; ^W
-(define-key global-map "\C-z" 'tpu-exit)                      ; ^Z
+(defun tpu-set-control-keys nil
+  "Set control keys to TPU style functions."
+  (define-key global-map "\C-\\" 'quoted-insert)                ; ^\
+  (define-key global-map "\C-a" 'tpu-toggle-overwrite-mode)     ; ^A
+  (define-key global-map "\C-b" 'repeat-complex-command)        ; ^B
+  (define-key global-map "\C-e" 'tpu-current-end-of-line)       ; ^E
+  (define-key global-map "\C-h" 'tpu-next-beginning-of-line)    ; ^H (BS)
+  (define-key global-map "\C-j" 'tpu-delete-previous-word)      ; ^J (LF)
+  (define-key global-map "\C-k" 'tpu-define-macro-key)          ; ^K
+  (define-key global-map "\C-l" 'tpu-insert-formfeed)           ; ^L (FF)
+  (define-key global-map "\C-r" 'recenter)                      ; ^R
+  (define-key global-map "\C-u" 'tpu-delete-to-bol)             ; ^U
+  (define-key global-map "\C-v" 'tpu-quoted-insert)             ; ^V
+  (define-key global-map "\C-w" 'redraw-display)                ; ^W
+  (define-key global-map "\C-z" 'tpu-exit)                      ; ^Z
+  (setq tpu-control-keys t))
 
-
-;;;
-;;;  Functions to reset and toggle the control key bindings
-;;;
 (defun tpu-reset-control-keys (tpu-style)
   "Set control keys to TPU or emacs style functions."
   (let* ((tpu   (and tpu-style (not tpu-control-keys)))
@@ -2444,7 +2443,7 @@ If FILE is nil, try to load a default file.  The default file names are
    ((not tpu-edt-mode)
     ;; we use picture-mode functions
     (require 'picture)
-    (tpu-reset-control-keys t)
+    (tpu-set-control-keys)
     (cond (tpu-emacs19-p
 	   (and window-system (tpu-load-xkeys nil))
 	   (tpu-arrow-history))
