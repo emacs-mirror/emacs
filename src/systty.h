@@ -298,8 +298,8 @@ static struct sensemode {
 /* GNU libc by default defines getpgrp with no args on all systems.  */
 #if __GLIBC__  >= 2
 /* glibc-2.1 adds the BSD compatibility getpgrp function
-   if you use __BSD_SOURCE, which Emacs does on GNU/Linux systems.  */
-#if __GLIBC_MINOR__ < 1 || ! defined (_BSD_SOURCE)
+   if you use _BSD_SOURCE, which Emacs does on GNU/Linux systems.  */
+#if __GLIBC_MINOR__ < 1 || ! defined (__FAVOR_BSD)
 #define GETPGRP_NO_ARG
 #endif
 #else /* __GLIBC__ < 2 */
