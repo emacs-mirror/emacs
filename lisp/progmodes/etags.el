@@ -1114,10 +1114,11 @@ See documentation of variable `tags-file-name'."
     (goto-char (point-min))
     (while (search-forward "\f\n" nil t)
       (setq beg (point))
-      (skip-chars-forward "^,\n")
-      (or (looking-at ",include$")
+      (end-of-line)
+      (skip-chars-backward "^," beg)
+      (or (looking-at "include$")
 	  ;; Expand in the default-directory of the tags table buffer.
-	  (setq files (cons (expand-file-name (buffer-substring beg (point)))
+	  (setq files (cons (expand-file-name (buffer-substring beg (1- (point))))
 			    files))))
     (nreverse files)))
 
@@ -1127,10 +1128,11 @@ See documentation of variable `tags-file-name'."
     (goto-char (point-min))
     (while (search-forward "\f\n" nil t)
       (setq beg (point))
-      (skip-chars-forward "^,\n")
-      (if (looking-at ",include$")
+      (end-of-line)
+      (skip-chars-backward "^," beg)
+      (if (looking-at "include$")
 	  ;; Expand in the default-directory of the tags table buffer.
-	  (setq files (cons (expand-file-name (buffer-substring beg (point)))
+	  (setq files (cons (expand-file-name (buffer-substring beg (1- (point))))
 			    files))))
     (nreverse files)))
 
