@@ -125,6 +125,18 @@ AC_ARG_ENABLE(carbon-app,
                           specify install directory for Emacs.app on Mac OS X]],
 [ carbon_appdir_x=${enableval}])
 
+AC_ARG_ENABLE(maintainer-mode,
+[  --enable-maintainer-mode enable make rules and dependencies not useful
+                          (and sometimes confusing) to the casual installer],
+      USE_MAINTAINER_MODE=$enableval,
+      USE_MAINTAINER_MODE=no)
+if test $USE_MAINTAINER_MODE = yes; then
+  MAINT=
+else
+  MAINT=#
+fi
+AC_SUBST(MAINT)
+
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
