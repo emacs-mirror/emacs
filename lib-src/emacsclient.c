@@ -253,7 +253,10 @@ main (argc, argv)
   int s, i;
   FILE *out, *in;
   struct sockaddr_un server;
-  char *homedir, *cwd, *str;
+#ifdef SERVER_HOME_DIR
+  char *homedir;
+#endif
+  char *cwd, *str;
   char string[BUFSIZ];
 
   progname = argv[0];
@@ -297,7 +300,6 @@ main (argc, argv)
 
 #ifndef SERVER_HOME_DIR
   {
-    struct stat statbfr;
     int sock_status = 0;
 
     sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
