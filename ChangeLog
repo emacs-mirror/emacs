@@ -1,3 +1,8 @@
+2000-05-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist: Make a link for lib-src/grep-changelog.  Copy
+	install-sh.
+
 2000-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* config.bat: Identify the beginning of the cpp stuff in

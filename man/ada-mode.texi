@@ -1,6 +1,10 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename ../info/ada-mode
 @settitle Ada Mode
+@dircategory Editors
+@direntry
+* Ada mode: (ada-mode). The GNU Emacs mode for editing Ada.
+@end direntry
 
 @ifinfo
 This file documents Ada mode.

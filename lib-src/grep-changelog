@@ -1,5 +1,5 @@
-#! /usr/local/bin/perl
-# $Id: grep-changelog,v 1.19 1999/08/10 13:22:23 gerd Exp $
+#! /usr/bin/perl
+# $Id: grep-changelog,v 1.1 1999/08/10 13:33:49 gerd Exp $
 
 # Copyright (C) 1999 Free Software Foundation, Inc.
 #

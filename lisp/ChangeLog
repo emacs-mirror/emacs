@@ -1,3 +1,7 @@
+2000-05-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* abbrev.el (abbrev-mode): Make ARG optional.
+
 2000-05-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse.el: Change file name `EBROWSE' to `BROWSE'.

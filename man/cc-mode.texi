@@ -9,6 +9,11 @@
 
 @setfilename  ../info/ccmode
 @settitle     CC Mode Version 5 Documentation
+@dircategory Editors
+@direntry
+* CC mode: (ccmode).	The GNU Emacs mode for editing C, C++, Objective-C
+			  and Java code.
+@end direntry
 @footnotestyle end
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
