@@ -2277,6 +2277,7 @@ setup_coding_system (coding_system, coding)
 
  label_invalid_coding_system:
   coding->type = coding_type_no_conversion;
+  coding->eol_type = CODING_EOL_LF;
   coding->symbol = coding->pre_write_conversion = coding->post_read_conversion
     = Qnil;
   return -1;
