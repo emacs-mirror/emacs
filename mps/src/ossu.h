@@ -1,6 +1,6 @@
 /*  ==== SUNOS ANSI COMPATABILITY HEADER ====
  *
- *  $HopeName: MMsrc!ossu.h(trunk.7) $
+ *  $HopeName: MMsrc!ossu.h(trunk.8) $
  *
  *  Copyright (C) 1994,1995,1997 Harlequin Group, all rights reserved
  *
@@ -76,6 +76,8 @@ extern int system(const char *string);
 extern long strtol(const char *, char **, int);
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
+/* @@@@ This doesn't do quite the right thing, but will get by */
+#define strtoul(a,b,c) (unsigned long)strtol((a), (b), (c))
 
 /* string.h things */
 
