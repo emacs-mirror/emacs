@@ -947,7 +947,8 @@ relock:
 ctagsfiles = [a-zA-Z]*.[hc]
 lisptagsfiles = ../lisp/[a-zA-Z]*.el ../lisp/term/[a-zA-Z]*.el
 TAGS: $(ctagsfiles)
-	../lib-src/etags --include=../lisp/TAGS $(ctagsfiles)
+	../lib-src/etags --include=../lisp/TAGS \
+	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
 ../lisp/TAGS: $(lisptagsfiles)
 	cd ../lisp; $(MAKE) TAGS
 tags: TAGS ../lisp/TAGS
