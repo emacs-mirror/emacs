@@ -38,9 +38,12 @@
 
 (defvar electric-buffer-menu-mode-map nil)
 
+(defvar electric-buffer-menu-mode-hook nil
+  "Normal hook run by `electric-buffer-list'.")
+
 ;;;###autoload
 (defun electric-buffer-list (arg)
-  "Pops up a buffer describing the set of Emacs buffers.
+  "Pop up a buffer describing the set of Emacs buffers.
 Vaguely like ITS lunar select buffer; combining typeoutoid buffer
 listing with menuoid buffer selection.
 
@@ -50,9 +53,9 @@ window, marking buffers to be selected, saved or deleted.
 
 To exit and select a new buffer, type a space when the cursor is on
 the appropriate line of the buffer-list window.  Other commands are
-much like those of buffer-menu-mode.
+much like those of `Buffer-menu-mode'.
 
-Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
+Run hooks in `electric-buffer-menu-mode-hook' on entry.
 
 \\{electric-buffer-menu-mode-map}"
   (interactive "P")
@@ -144,8 +147,8 @@ Letters do not insert themselves; instead, they are commands.
 
 \\{electric-buffer-menu-mode-map}
 
-Entry to this mode via command electric-buffer-list calls the value of
-electric-buffer-menu-mode-hook if it is non-nil."
+Entry to this mode via command `electric-buffer-list' calls the value of
+`electric-buffer-menu-mode-hook'."
   (kill-all-local-variables)
   (use-local-map electric-buffer-menu-mode-map)
   (setq mode-name "Electric Buffer Menu")
@@ -223,8 +226,8 @@ electric-buffer-menu-mode-hook if it is non-nil."
 
 (defun Electric-buffer-menu-select ()
   "Leave Electric Buffer Menu, selecting buffers and executing changes.
-Saves buffers marked \"S\".  Deletes buffers marked \"K\".
-Selects buffer at point and displays buffers marked \">\" in other windows."
+Save buffers marked \"S\".  Delete buffers marked \"K\".
+Select buffer at point and display buffers marked \">\" in other windows."
   (interactive)
   (throw 'electric-buffer-menu-select (point)))
 
@@ -237,7 +240,7 @@ Selects buffer at point and displays buffers marked \">\" in other windows."
 
 (defun Electric-buffer-menu-quit ()
   "Leave Electric Buffer Menu, restoring previous window configuration.
-Does not execute select, save, or delete commands."
+Skip execution of select, save, and delete commands."
   (interactive)
   (throw 'electric-buffer-menu-select nil))
 
@@ -258,7 +261,7 @@ Type \\[Electric-buffer-menu-quit] to exit, \
 
 (defun Electric-buffer-menu-mode-view-buffer ()
   "View buffer on current line in Electric Buffer Menu.
-Returns to Electric Buffer Menu when done."
+Return to Electric Buffer Menu when done."
   (interactive)
   (let ((bufnam (Buffer-menu-buffer nil)))
     (if bufnam
