@@ -346,6 +346,9 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (setq normal-auto-fill-function 'mail-mode-auto-fill)
   (make-local-variable 'fill-paragraph-function)
   (setq fill-paragraph-function 'mail-mode-fill-paragraph)
+  (make-local-variable 'adaptive-fill-regexp)
+  (setq adaptive-fill-regexp
+	(concat "[ \t]+[a-z0-9A-Z]+> *\\|" adaptive-fill-regexp))
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
@@ -1008,22 +1011,26 @@ Numeric argument means justify as well."
 				justifyp
 				t)))
 
-(defun mail-indent-citation ()
+(defun mail-indent-citation (beg end)
   "Modify text just inserted from a message to be cited.
 The inserted text should be the region.
 When this function returns, the region is again around the modified text.
 
 Normally, indent each nonblank line `mail-indentation-spaces' spaces.
 However, if `mail-yank-prefix' is non-nil, insert that prefix on each line."
-  (mail-yank-clear-headers (region-beginning) (region-end))
+  (if (> beg end)
+      (let ((temp beg))
+	(setq beg end end temp)))
+  (mail-yank-clear-headers beg end)
   (if (null mail-yank-prefix)
-      (indent-rigidly (region-beginning) (region-end)
-		      mail-indentation-spaces)
+      (indent-rigidly beg end mail-indentation-spaces)
     (save-excursion
-      (goto-char (region-beginning))
-      (while (< (point) (region-end))
+      (goto-char beg)
+      (setq end (set-marker (make-marker) end))
+      (while (< (point) end)
 	(insert mail-yank-prefix)
-	(forward-line 1)))))
+	(forward-line 1))
+      (set-marker end nil))))
 
 (defun mail-yank-original (arg)
   "Insert the message being replied to, if any (in rmail).
@@ -1055,7 +1062,7 @@ and don't delete any header fields."
 		(run-hooks 'mail-citation-hook)
 	      (if mail-yank-hooks
 		  (run-hooks 'mail-yank-hooks)
-		(mail-indent-citation)))))
+		(mail-indent-citation (point) (mark))))))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
 	;; loop would deactivate the mark because we inserted text.
@@ -1108,7 +1115,7 @@ and don't delete any header fields."
 		 (run-hooks 'mail-citation-hook)
 	       (if mail-yank-hooks
 		   (run-hooks 'mail-yank-hooks)
-		 (mail-indent-citation))))))))
+		 (mail-indent-citation (point) (mark)))))))))
 
 (defun mail-attach-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."
