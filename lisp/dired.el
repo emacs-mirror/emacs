@@ -437,8 +437,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 			      (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
 		   nil
 		 (message "%s"
-		  (substitute-command-keys
-		   "Directory has changed on disk; type \\[revert-buffer] to update Dired")))))
+			  (substitute-command-keys
+			   "Directory has changed on disk; type \\[revert-buffer] to update Dired")))))
       ;; Else a new buffer
       (setq default-directory
 	    (if (file-directory-p dirname)
