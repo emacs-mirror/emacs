@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = destroy a pool though containining an AP
  language = c
  link = testlib.o

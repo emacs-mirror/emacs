@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create a pool in a destroyed space
  language = c
  link = testlib.o

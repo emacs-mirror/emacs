@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = destroy root though uncreated
  language = c
  link = myfmt.o testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = reserve and commit with different sizes
  language = c
  link = myfmt.o testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = is_stale without resetting
  language = c
  link = myfmt.o testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = destroy a space which isn't a space, with a pointer in
  language = c
  link = testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = register thread in destroyed space
  language = c
  link = myfmt.o testlib.o
