@@ -139,6 +139,13 @@ You might want to change this to \"*\", for instance."
   :type 'regexp
   :group 'fortran-comment)
 
+(defcustom fortran-preprocessor-re
+  "^[ \t]*#.*"
+  "*Regexp to match the whole of a preprocessor line."
+  :version "21.3"
+  :type 'regexp
+  :group 'fortran-indent)
+
 (defcustom fortran-minimum-statement-indent-fixed 6
   "*Minimum statement indentation for fixed format continuation style."
   :type 'integer
@@ -368,7 +375,8 @@ These get fixed-format comments fontified.")
           '("^\t\\([1-9]\\)" 1 font-lock-string-face))
 	 (list
 	  ;; cpp stuff (ugh)
-	  '("^# *[a-z]+" . font-lock-keyword-face))
+;;;	  '("^# *[a-z]+" . font-lock-keyword-face))
+          `(,fortran-preprocessor-re (0 font-lock-keyword-face t)))
          ;; The list `fortran-font-lock-keywords-2' less that for types
          ;; (see above).
          (cdr (nthcdr (length fortran-font-lock-keywords-1)
@@ -970,20 +978,23 @@ Auto-indent does not happen if a numeric ARG is used."
 
 (defun fortran-previous-statement ()
   "Move point to beginning of the previous Fortran statement.
-Returns `first-statement' if that statement is the first
-non-comment Fortran statement in the file, and nil otherwise."
+Returns 'first-statement if that statement is the first
+non-comment Fortran statement in the file, and nil otherwise.
+Preprocessor lines are treated as comments."
   (interactive)
   (let (not-first-statement continue-test)
     (beginning-of-line)
     (setq continue-test
 	  (and
 	   (not (looking-at fortran-comment-line-start-skip))
+           (not (looking-at fortran-preprocessor-re))
 	   (or (looking-at
 	        (concat "[ \t]*"
 			(regexp-quote fortran-continuation-string)))
 	       (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))))
     (while (and (setq not-first-statement (= (forward-line -1) 0))
 		(or (looking-at fortran-comment-line-start-skip)
+                    (looking-at fortran-preprocessor-re)
 		    (looking-at "[ \t]*$\\| \\{5\\}[^ 0\n]\\|\t[1-9]")
 		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (cond ((and continue-test
@@ -996,8 +1007,9 @@ non-comment Fortran statement in the file, and nil otherwise."
 
 (defun fortran-next-statement ()
   "Move point to beginning of the next Fortran statement.
-Returns `last-statement' if that statement is the last
-non-comment Fortran statement in the file, and nil otherwise."
+Returns 'last-statement if that statement is the last
+non-comment Fortran statement in the file, and nil otherwise.
+Preprocessor lines are treated as comments."
   (interactive)
   (let (not-last-statement)
     (beginning-of-line)
@@ -1005,6 +1017,7 @@ non-comment Fortran statement in the file, and nil otherwise."
 		      (and (= (forward-line 1) 0)
 			   (not (eobp))))
  		(or (looking-at fortran-comment-line-start-skip)
+                    (looking-at fortran-preprocessor-re)
  		    (looking-at "[ \t]*$\\|     [^ 0\n]\\|\t[1-9]")
  		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (if (not not-last-statement)
@@ -1356,7 +1369,7 @@ Return point or nil."
 				      fortran-continuation-string)))
 		 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
 	     (setq icol (+ icol fortran-continuation-indent)))
-	    ((looking-at "[ \t]*#")	; Check for cpp directive.
+	    ((looking-at fortran-preprocessor-re) ; Check for cpp directive.
 	     (setq fortran-minimum-statement-indent 0 icol 0))
 	    (first-statement)
 	    ((and fortran-check-all-num-for-matching-do
