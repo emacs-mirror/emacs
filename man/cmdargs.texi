@@ -208,7 +208,7 @@ explicitly requested.
 @cindex init file, not loading
 @cindex @file{default.el} file, not loading
 Do not load your Emacs init file @file{~/.emacs}, or @file{default.el}
-either.  When invoked like this, Emacs does not allow to save options
+either.  When invoked like this, Emacs does not allow saving options
 changed with the @kbd{M-x customize} command and its variants.
 @xref{Easy Customization}.
 
