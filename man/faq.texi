@@ -526,8 +526,7 @@ USA@*
 
 @cindex Ordering GNU software
 For details on how to order items directly from the FSF, see the
-@uref{http://www.gnu.org/order/order.html, GNU Web site}, and also the
-files @file{etc/ORDERS}, @file{ORDERS.EUROPE}, and @file{ORDERS.JAPAN}.
+@uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 @c ------------------------------------------------------------
 @node Getting help, Status of Emacs, General questions, Top
@@ -658,8 +657,7 @@ information.  To get a list of these commands, type @samp{?} after
 @cindex Emacs manual, obtaining a printed or HTML copy of
 
 You can order a printed copy of the Emacs manual from the FSF.  For
-details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}
-and the file @file{etc/ORDERS}.
+details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 @c The number 620 below is version-dependent!
 The full Texinfo source for the manual also comes in the @file{man}
@@ -692,8 +690,7 @@ function, @kbd{C-h v} for a variable.
 
 For more information, obtain the Emacs Lisp Reference Manual.  Details
 on ordering it from FSF are on the
-@uref{http://www.gnu.org/order/order.html, GNU Web site} and in the file
-@file{etc/ORDERS}.
+@uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 The Emacs Lisp Reference Manual is also available on-line, in Info
 format.  Texinfo source for the manual (along with pregenerated Info
@@ -3500,10 +3497,9 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 @cindex Distribution, retrieving Emacs
 @cindex Internet, retrieving from
 
-Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for information
-on nearby archive sites and @file{etc/ORDERS} for mail orders.  If you
-don't already have Emacs, see @ref{Informational files for Emacs}, for how
-to get these files.
+Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for
+information on nearby archive sites.  If you don't already have Emacs,
+see @ref{Informational files for Emacs}, for how to get these files.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
