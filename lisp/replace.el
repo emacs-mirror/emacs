@@ -209,6 +209,7 @@ Applies to lines after point."
 (if occur-mode-map
     ()
   (setq occur-mode-map (make-sparse-keymap))
+  (define-key occur-mode-map [mouse-2] 'occur-mode-mouse-goto)
   (define-key occur-mode-map "\C-c\C-c" 'occur-mode-goto-occurrence))
 
 (defvar occur-buffer nil)
@@ -230,31 +231,52 @@ in the buffer that the occurrences were found in.
   (make-local-variable 'occur-pos-list)
   (run-hooks 'occur-mode-hook))
 
-(defun occur-mode-goto-occurrence ()
-  "Go to the line this occurrence was found in, in the buffer it was found in."
-  (interactive)
+(defun occur-mode-mouse-goto (event)
+  "In Occur mode, go to the occurrence whose line you click on."
+  (interactive "e")
+  (let (buffer pos)
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-end event))))
+      (save-excursion
+	(goto-char (posn-point (event-end event)))
+	(setq pos (occur-mode-find-occurrence))
+	(setq buffer occur-buffer)))
+    (pop-to-buffer buffer)
+    (goto-char (marker-position pos))))
+
+(defun occur-mode-find-occurrence ()
   (if (or (null occur-buffer)
 	  (null (buffer-name occur-buffer)))
       (progn
 	(setq occur-buffer nil
 	      occur-pos-list nil)
 	(error "Buffer in which occurrences were found is deleted")))
-  (let* ((occur-number (save-excursion
+  (let* ((line-count
+	  (count-lines (point-min)
+		       (save-excursion
 			 (beginning-of-line)
-			 (/ (1- (count-lines (point-min)
-					     (save-excursion
-					       (beginning-of-line)
-					       (point))))
+			 (point))))
+	 (occur-number (save-excursion
+			 (beginning-of-line)
+			 (/ (1- line-count)
 			    (cond ((< occur-nlines 0)
 				   (- 2 occur-nlines))
 				  ((> occur-nlines 0)
 				   (+ 2 (* 2 occur-nlines)))
 				  (t 1)))))
 	 (pos (nth occur-number occur-pos-list)))
+    (if (< line-count 1)
+	(error "No occurrence on this line"))
     (or pos
 	(error "No occurrence on this line"))
+    pos))
+
+(defun occur-mode-goto-occurrence ()
+  "Go to the occurrence the current line describes."
+  (interactive)
+  (let ((pos (occur-mode-find-occurrence)))
     (pop-to-buffer occur-buffer)
-    (goto-char (marker-position pos))))
+    (goto-char (marker-position pos)))))
 
 (defvar list-matching-lines-default-context-lines 0
   "*Default number of context lines to include around a `list-matching-lines'
