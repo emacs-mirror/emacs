@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;; Set default REGISTRY property of charset to find an appropriate
+;; Set standard REGISTRY property of charset to find an appropriate
 ;; font for each charset.  This is used to generate a font name in a
 ;; fontset.  If the value contains a character `-', the string before
 ;; that is embeded in `CHARSET_REGISTRY' field, and the string after
@@ -363,10 +363,10 @@ by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
     ))
 
 
-;; Create default fontset from 16 dots fonts which are the most widely
+;; Create standard fontset from 16 dots fonts which are the most widely
 ;; installed fonts.
-(defvar default-fontset-spec
-  "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-default,
+(defvar standard-fontset-spec
+  "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-standard,
 	chinese-gb2312:-*-medium-r-normal-*-16-*-gb2312*-*,
 	korean-ksc5601:-*-medium-r-normal-*-16-*-ksc5601*-*,
 	chinese-cns11643-1:-*-medium-r-normal-*-16-*-cns11643*-1,
@@ -376,13 +376,15 @@ by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
 	chinese-cns11643-5:-*-medium-r-normal-*-16-*-cns11643*-5,
 	chinese-cns11643-6:-*-medium-r-normal-*-16-*-cns11643*-6,
 	chinese-cns11643-7:-*-medium-r-normal-*-16-*-cns11643*-7"
-  "String of fontset spec of a default fontset.
+  "String of fontset spec of the standard fontset.
+You have the biggest chance to display international characters
+with correct glyphs by using the standard fontset.
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Create fontsets from X resources of the name `fontset-N (class
 ;; Fontset-N)' where N is integer 0, 1, ...
 ;; The values of the resources the string of the same format as
-;; `default-fontset-spec'.
+;; `standard-fontset-spec'.
 
 (defun create-fontset-from-x-resource ()
   (let ((idx 0)
