@@ -1,3 +1,14 @@
+2000-03-01  Dave Love  <fx@gnu.org>
+
+	* help.el (help-xref-button): Add help-echo arg.
+	(describe-function-1, describe-variable, help-make-xrefs): Use it.
+
+	* faces.el (list-faces-display): Supply help-echo with
+	help-make-xrefs.
+
+	* facemenu.el (list-text-properties-at): Set help-xref-stack to
+	nil.
+
 2000-03-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* image.el (defimage): Look for image files in load-path.
