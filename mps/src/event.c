@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.2) $
+ * $HopeName: MMsrc!event.c(trunk.3) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.2) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.3) $");
 
 #ifdef EVENT /* .trans.ifdef */
 
@@ -34,9 +34,11 @@ static Bool eventInited = FALSE;
 static mps_io_t eventIO;
 static char eventBuffer[EVENT_BUFFER_SIZE];
 static Count eventUserCount;
+static Word EventKindControlBuffer[BTSize(EventKindNumber)]; 
 
 EventUnion Event; /* Used by macros in impl.h.event */
 char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
+BT EventKindControl; /* Used to control output. */
 
 Res EventFlush(void)
 {
@@ -68,6 +70,8 @@ Res (EventInit)(void)
     EventLimit = &eventBuffer[EVENT_BUFFER_SIZE];
     eventUserCount = 0;
     eventInited = TRUE;
+    EventKindControl = (BT)EventKindControlBuffer;
+    BTSetRange(EventKindControl, 0, EventKindNumber);
   }
 
   ++eventUserCount;

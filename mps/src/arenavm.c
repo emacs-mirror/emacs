@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.23) $
+ * $HopeName: MMsrc!arenavm.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -37,7 +37,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.23) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.24) $");
 
 
 /* Space Arena Projection
@@ -540,7 +540,7 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Space space, Size size, Pool pool)
   
   AVERT(Seg, seg);
   
-  EVENT_PPAUP(SegAlloc, arena, seg, addr, size, pool);
+  EVENT_PPAWP(SegAlloc, arena, seg, addr, size, pool);
 
   *segReturn = seg;
   return ResOK;
