@@ -419,6 +419,12 @@ selection into the search string rather than giving an error.
 names cleanly.  It is appended to the host name, separated by a hash
 sign, e.g. `/foo@bar.org#666:mumble'.  (This syntax comes from EFS.)
 
+** Shell script mode changes.
+
+Shell script mode (sh-script) can now indent scripts for shells
+derived from sh and rc.  The indentation style is customizeable, and
+sh-script can attempt to "learn" the current buffer's style.
+
 ** New modes and packages
 
 *** 5x5.el is a simple puzzle game.
