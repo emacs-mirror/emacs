@@ -248,6 +248,7 @@ support them, then @code{message-box} uses the echo area, like
 @end defun
 
 @defun display-message-or-buffer message &optional buffer-name not-this-window frame
+@tindex display-message-or-buffer
 This function displays the message @var{message}, which may be either a
 string or a buffer.  If it is shorter than the maximum height of the
 echo area, as defined by @code{max-mini-window-height}, it is displayed
