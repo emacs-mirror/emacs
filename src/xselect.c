@@ -249,7 +249,10 @@ x_own_selection (selection_name, selection_value)
   selection_atom = symbol_to_x_atom (display, selection_name);
 
   BLOCK_INPUT;
+  x_catch_errors ();
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
+  x_check_errors ("Can't set selection: %s");
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
