@@ -2985,10 +2985,11 @@ setup_coding_system (coding_system, coding)
   Lisp_Object val;
   int i;
 
+  /* At first, zero clear all members.  */
+  bzero (coding, sizeof (struct coding_system));
+
   /* Initialize some fields required for all kinds of coding systems.  */
   coding->symbol = coding_system;
-  coding->common_flags = 0;
-  coding->mode = 0;
   coding->heading_ascii = -1;
   coding->post_read_conversion = coding->pre_write_conversion = Qnil;
   coding->composing = COMPOSITION_DISABLED;
