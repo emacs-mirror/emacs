@@ -1,3 +1,7 @@
+2000-12-19  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el (mm-charset-synonym-alist): Fix a typo.
+
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* *.xpm, *.pbm: Convert icons icons to size 24x24.

@@ -121,20 +121,20 @@
   (or mm-coding-system-list
       (setq mm-coding-system-list (mm-coding-system-list))))
 
+(defun mm-coding-system-p (sym)
+  "Return non-nil if SYM is a coding system."
+  (or (and (fboundp 'coding-system-p) (coding-system-p sym))
+      (memq sym (mm-get-coding-system-list))))
+
 (defvar mm-charset-synonym-alist
   `((big5 . cn-big5)
     (gb2312 . cn-gb-2312)
     ;; Windows-1252 is actually a superset of Latin-1.  See also
     ;; `gnus-article-dumbquotes-map'.
-    (unless (mm-coding-system-p 'windows-1252) ; should be defined eventually
-      (windows-1252 . iso-8859-1))
+    ,(unless (mm-coding-system-p 'windows-1252) ; should be defined eventually
+       '(windows-1252 . iso-8859-1))
     (x-ctext . ctext))
   "A mapping from invalid charset names to the real charset names.")
-
-(defun mm-coding-system-p (sym)
-  "Return non-nil if SYM is a coding system."
-  (or (and (fboundp 'coding-system-p) (coding-system-p sym))
-      (memq sym (mm-get-coding-system-list))))
 
 (defvar mm-binary-coding-system
   (cond 
