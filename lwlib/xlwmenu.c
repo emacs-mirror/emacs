@@ -37,9 +37,39 @@ XFontStruct *xlwmenu_default_font;
 
 static char 
 xlwMenuTranslations [] = 
-"<BtnDown>:	start()\n\
-<Motion>:	drag()\n\
-<BtnUp>:	select()\n\
+"<BtnDown>:	  start()\n\
+<Motion>:	  drag()\n\
+<BtnUp>:	  select()\n\
+<Key>Shift_L:     nothing()\n\
+<Key>Shift_R:     nothing()\n\
+<Key>Meta_L:      nothing()\n\
+<Key>Meta_R:      nothing()\n\
+<Key>Control_L:   nothing()\n\
+<Key>Control_R:   nothing()\n\
+<Key>Hyper_L:     nothing()\n\
+<Key>Hyper_R:     nothing()\n\
+<Key>Super_L:     nothing()\n\
+<Key>Super_R:     nothing()\n\
+<Key>Alt_L:       nothing()\n\
+<Key>Alt_R:       nothing()\n\
+<Key>Caps_Lock:   nothing()\n\
+<Key>Shift_Lock:  nothing()\n\
+<KeyUp>Shift_L:   nothing()\n\
+<KeyUp>Shift_R:   nothing()\n\
+<KeyUp>Meta_L:    nothing()\n\
+<KeyUp>Meta_R:    nothing()\n\
+<KeyUp>Control_L: nothing()\n\
+<KeyUp>Control_R: nothing()\n\
+<KeyUp>Hyper_L:   nothing()\n\
+<KeyUp>Hyper_R:   nothing()\n\
+<KeyUp>Super_L:   nothing()\n\
+<KeyUp>Super_R:   nothing()\n\
+<KeyUp>Alt_L:     nothing()\n\
+<KeyUp>Alt_R:     nothing()\n\
+<KeyUp>Caps_Lock: nothing()\n\
+<KeyUp>Shift_Lock:nothing()\n\
+<Key>:            key()\n\
+<KeyUp>:          key()\n\
 ";
 
 #define offset(field) XtOffset(XlwMenuWidget, field)
@@ -97,6 +127,8 @@ static void XlwMenuClassInitialize();
 static void Start();
 static void Drag();
 static void Select();
+static void Key();
+static void Nothing();
 
 static XtActionsRec 
 xlwMenuActionsList [] =
@@ -104,6 +136,8 @@ xlwMenuActionsList [] =
   {"start",		Start},
   {"drag",		Drag},
   {"select",		Select},
+  {"key",		Key},
+  {"nothing",		Nothing},
 };
 
 #define SuperClass ((CoreWidgetClass)&coreClassRec)
@@ -1251,6 +1285,11 @@ XlwMenuSetValues (current, request, new)
       && newmw->menu.contents->contents
       && newmw->menu.contents->contents->change >= VISIBLE_CHANGE)
     redisplay = True;
+  /* Do redisplay if the contents are entirely eliminated.  */
+  if (newmw->menu.contents
+      && newmw->menu.contents->contents == 0
+      && newmw->menu.contents->change >= VISIBLE_CHANGE)
+    redisplay = True;
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
@@ -1378,7 +1417,50 @@ Drag (w, ev, params, num_params)
     handle_motion_event (mw, &ev->xmotion);
 }
 
-static void 
+/* Do nothing.
+   This is how we handle presses and releases of modifier keys.  */
+static void
+Nothing (w, ev, params, num_params)
+     Widget w;
+     XEvent *ev;
+     String *params;
+     Cardinal *num_params;
+{
+}
+
+/* Handle key press and release events while menu is popped up.
+   Our action is to get rid of the menu.  */
+static void
+Key (w, ev, params, num_params)
+     Widget w;
+     XEvent *ev;
+     String *params;
+     Cardinal *num_params;
+{
+  XlwMenuWidget mw = (XlwMenuWidget)w;
+
+  /* Pop down everything.  */
+  mw->menu.new_depth = 1;
+  remap_menubar (mw);
+
+  if (mw->menu.popped_up)
+    {
+      mw->menu.popped_up = False;
+      XtUngrabPointer ((Widget)mw, ev->xmotion.time);
+      if (XtIsShell (XtParent ((Widget) mw)))
+	XtPopdown (XtParent ((Widget) mw));
+      else
+	{
+	  XtRemoveGrab ((Widget) mw);
+	  display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+	}
+    }
+
+  /* callback */
+  XtCallCallbackList ((Widget)mw, mw->menu.select, (XtPointer)0);
+}
+
+static void
 Select (w, ev, params, num_params)
      Widget w;
      XEvent *ev;
