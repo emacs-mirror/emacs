@@ -2271,6 +2271,8 @@ read1 (readcharfun, pch, first_in_list)
 	      if (c == '\\')
 		{
 		  c = READCHAR;
+		  if (c == -1)
+		    end_of_file_error ();
 		  quoted = 1;
 		}
 
