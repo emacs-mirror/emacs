@@ -153,8 +153,8 @@ you release it).
 Dragging the Mouse-1 inside a link still performs the original
 drag-mouse-1 action, typically copy the text.
 
-You can customize the new Mouse-1 behavior via the new user option
-`mouse-1-click-follows-link'.
+You can customize the new Mouse-1 behavior via the new user options
+`mouse-1-click-follows-link' and `mouse-1-click-in-non-selected-windows'.
 
 +++
 ** require-final-newline now has two new possible values:
