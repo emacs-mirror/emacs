@@ -472,21 +472,26 @@ C-w Display information on absence of warranty for GNU Emacs."
 ;; If that gives no function, return a function whose name is around point.
 ;; If that doesn't give a function, return nil.
 (defun function-called-at-point ()
-  (or (condition-case ()
-	  (save-excursion
-	    (save-restriction
-	      (narrow-to-region (max (point-min) (- (point) 1000)) (point-max))
-	      (backward-up-list 1)
-	      (forward-char 1)
-	      (let (obj)
-		(setq obj (read (current-buffer)))
-		(and (symbolp obj) (fboundp obj) obj))))
-	(error nil))
-      (condition-case ()
-	  (let ((stab (syntax-table)))
-	    (unwind-protect
+  (let ((stab (syntax-table)))
+    (set-syntax-table emacs-lisp-mode-syntax-table)
+    (unwind-protect
+	(or (condition-case ()
 		(save-excursion
-		  (set-syntax-table emacs-lisp-mode-syntax-table)
+		  (save-restriction
+		    (narrow-to-region (max (point-min) (- (point) 1000)) (point-max))
+		    ;; Move up to surrounding paren, then after the open.
+		    (backward-up-list 1)
+		    (forward-char 1)
+		    ;; If there is space here, this is probably something
+		    ;; other than a real Lisp function call, so ignore it.
+		    (if (looking-at "[ \t]")
+			(error "Probably not a Lisp function call"))
+		    (let (obj)
+		      (setq obj (read (current-buffer)))
+		      (and (symbolp obj) (fboundp obj) obj))))
+	      (error nil))
+	    (condition-case ()
+		(save-excursion
 		  (or (not (zerop (skip-syntax-backward "_w")))
 		      (eq (char-syntax (following-char)) ?w)
 		      (eq (char-syntax (following-char)) ?_)
@@ -494,8 +499,8 @@ C-w Display information on absence of warranty for GNU Emacs."
 		  (skip-chars-forward "'")
 		  (let ((obj (read (current-buffer))))
 		    (and (symbolp obj) (fboundp obj) obj)))
-	      (set-syntax-table stab)))
-	(error nil))))
+	      (error nil)))
+      (set-syntax-table stab))))
 
 (defun describe-function-find-file (function)
   (let ((files load-history)
