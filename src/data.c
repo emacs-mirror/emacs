@@ -30,14 +30,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 
-#if 0 /* That is untrue--XINT is used below, and it uses INTBITS.
-	 What in the world is values.h, anyway?  */
 #ifdef MSDOS
-/* These are redefined in values.h and not used here */
+/* These are redefined (correctly, but differently) in values.h.  */
 #undef INTBITS
 #undef LONGBITS
 #undef SHORTBITS
-#endif
 #endif
 
 #ifdef LISP_FLOAT_TYPE

@@ -53,14 +53,11 @@ Lisp_Object Qarith_error;
 
 #ifdef LISP_FLOAT_TYPE
 
-#if 0 /* That is untrue--XINT is used below, and it uses INTBITS.
-	 What in the world is values.h, anyway?  */
 #ifdef MSDOS
-/* These are redefined in <values.h> and not used here */
+/* These are redefined (correctly, but differently) in values.h.  */
 #undef INTBITS
 #undef LONGBITS
 #undef SHORTBITS
-#endif
 #endif
 
 /* Work around a problem that happens because math.h on hpux 7
