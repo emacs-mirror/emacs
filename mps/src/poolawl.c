@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.7) $
+ * $HopeName: MMsrc!poolawl.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.7) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.8) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -175,7 +175,7 @@ static Bool AWLGroupAlloc(Addr *baseReturn, Addr *limitReturn,
   }
   bits = SegSize(space, group->seg) >> awl->alignShift;
   n = size >> awl->alignShift;
-  if(BTFindResRange(&i, &j, group->alloc, 0, bits, n)) {
+  if(BTFindLongResRange(&i, &j, group->alloc, 0, bits, n)) {
     *baseReturn = AddrAdd(SegBase(space, group->seg), i << awl->alignShift);
     *limitReturn = AddrAdd(SegBase(space, group->seg), j << awl->alignShift);
     return TRUE;
