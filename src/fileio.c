@@ -1379,7 +1379,8 @@ See also the function `substitute-in-file-name'.")
 	{
 	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
 	    ;
-	  if (o == target && IS_ANY_SEP (*o))
+	  /* Keep initial / only if this is the whole name.  */
+	  if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
 	    ++o;
 	  p += 3;
 	}
