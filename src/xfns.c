@@ -90,6 +90,9 @@ extern void free_frame_menubar ();
 /* X Resource data base */
 static XrmDatabase xrdb;
 
+/* 1 if using a toolkit, 0 otherwise.  */
+static int x_toolkit;
+
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
@@ -4442,7 +4445,15 @@ or when you set the mouse color.");
   Vmouse_depressed = Qnil;
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
-	       "t if no X window manager is in use.");
+	       "Non-nil if no X window manager is in use.");
+
+  DEFVAR_BOOL ("x-toolkit", &x_toolkit,
+	       "Non-nil if this Emacs was built to use an X toolkit.");
+#ifdef USE_X_TOOLKIT
+  x_toolkit = 1;
+#else
+  x_toolkit = 0;
+#endif
 
 #ifdef HAVE_X11
   defsubr (&Sx_get_resource);
