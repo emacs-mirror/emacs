@@ -228,6 +228,10 @@ be last in the list.")
 				       (- ext-len ext-left)))
 	      suffix))))
 
+(defun info-file-exists-p (filename)
+  (and (file-exists-p filename)
+       (not (file-directory-p filename))))
+
 (defun info-insert-file-contents (filename &optional visit)
   "Insert the contents of an info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
@@ -246,8 +250,8 @@ Do the right thing if the file has been compressed or zipped."
 		decoder (cdr (car tail))))
       ;; Try adding suffixes to FILENAME and see if we can find something.
       (while (and tail
-		  (not (file-exists-p (info-insert-file-contents-1
-				       filename (car (car tail))))))
+		  (not (info-file-exists-p (info-insert-file-contents-1
+					    filename (car (car tail))))))
 	(setq tail (cdr tail)))
       ;; If we found a file with a suffix, set DECODER according to the suffix
       ;; and set FULLNAME to the file's actual name.
@@ -342,11 +346,11 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      ;; Try several variants of specified name.
 	      (let ((suffix-list Info-suffix-list))
 		(while (and suffix-list (not found))
-		  (cond ((file-exists-p
+		  (cond ((info-file-exists-p
 			  (info-insert-file-contents-1
 			   temp (car (car suffix-list))))
 			 (setq found temp))
-			((file-exists-p
+			((info-file-exists-p
 			  (info-insert-file-contents-1
 			   temp-downcase (car (car suffix-list))))
 			 (setq found temp-downcase)))
