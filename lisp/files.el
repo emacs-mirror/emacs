@@ -3031,7 +3031,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		(and enable-multibyte-characters
 		     (or file-name-coding-system
 			 default-file-name-coding-system)))
-	       ;; This binding is for encoding arguements by call-process.
+	       ;; This is to control encoding the arguments in call-process.
 	       (coding-system-for-write coding-system-for-read)
 	       (result
 		(if wildcard
@@ -3081,10 +3081,13 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			    (append list
 				    ;; Avoid lossage if FILE starts with `-'.
 				    '("--")
-				    (list
-				     (if full-directory-p
-					 (concat (file-name-as-directory file) ".")
-				       file))))))))
+				    (progn
+				      (if (string-match "\\`~" file)
+					  (setq file (expand-file-name file)))
+				      (list
+				       (if full-directory-p
+					   (concat (file-name-as-directory file) ".")
+					 file)))))))))
 	  (if (/= result 0)
 	      ;; We get here if ls failed.
 	      ;; Access the file to get a suitable error.
