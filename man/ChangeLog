@@ -1,9 +1,9 @@
 2004-08-23  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* display.texi (Font Lock): Correct invalid @xref.
+	* display.texi (Font Lock): Correct invalid (for hardcopy) @xref.
 
-	* search.texi (Regexps): Correct cryptic @ref.
-	(Configuring Scrolling): Correct invalid @xref.
+	* search.texi (Regexps): Correct cryptic (in hardcopy) @ref.
+	(Configuring Scrolling): Correct invalid (for hardcopy) @xref.
 	(Regexp Replace): Standardize reference to hardcopy Elisp Manual
 	in @pxref.
 
