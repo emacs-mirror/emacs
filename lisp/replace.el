@@ -63,7 +63,7 @@ strings or patterns."
 				       nil t)))
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
-				   query-replace-to-history-variable nil t))
+				   query-replace-to-history-variable from t))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional arg)
@@ -142,7 +142,7 @@ before rotating to the next."
 	       (format "Query replace %s with (space-separated strings): "
 		       from)
 	       nil nil nil
-	       'query-replace-history nil t))
+	       'query-replace-history from t))
      (list from to current-prefix-arg)))
   (let (replacements)
     (if (listp to-strings)
@@ -423,7 +423,8 @@ the matching is case-sensitive."
 			      default)
 		    "List lines matching regexp: ")
 		  nil nil nil 'regexp-history default t)))
-	   (set-text-properties 0 (length input) nil input)
+	   (and (equal input "") default
+		(setq input default))
 	   input)
 	 current-prefix-arg))
   (let ((nlines (if nlines
