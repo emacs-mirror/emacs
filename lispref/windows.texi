@@ -478,7 +478,7 @@ consider.  See @code{get-lru-window}, above.
 @defun get-window-with-predicate predicate &optional minibuf all-frames default
 This function returns a window satisfying @var{predicate}.  It cycles
 through all visible windows using @code{walk-windows} (@pxref{Cyclic
-Window Ordering}), calling @var{predicate} on each one one of them
+Window Ordering}), calling @var{predicate} on each one of them
 with that window as its argument.  The function returns the first
 window for which @var{predicate} returns a non-@code{nil} value; if
 that never happens, it returns @var{default}.
