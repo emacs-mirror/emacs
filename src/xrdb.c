@@ -348,7 +348,8 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
 	  if (path)
 	    return path;
 
-	  s = p + 1;
+	  /* Skip the first colon.  */
+	  p++;
 	  continue;
 	}
 
