@@ -1,3 +1,8 @@
+2000-11-02  Miles Bader  <miles@gnu.org>
+
+	* calendar/calendar.el (diary-face, calendar-today-face) 
+	(holiday-face): Remove dependency on `window-system'.
+
 2000-11-02  Ken Raeburn  <raeburn@gnu.org>
 
 	* Makefile.in (emacs): Set EMACSLOADPATH always.
