@@ -1944,7 +1944,7 @@ EndDSCPage\n"))
 (defun ps-article-subject ()
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward "^Subject:[ \t]+\\(.*\\)$")
+    (if (re-search-forward "^Subject:[ \t]+\\(.*\\)$" nil t)
 	(buffer-substring (match-beginning 1) (match-end 1))
       "Subject ???")))
 
