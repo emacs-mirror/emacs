@@ -1,3 +1,9 @@
+2001-11-22  Colin Walters  <walters@debian.org>
+
+	* calc/calc-misc.el (report-calc-bug): Use `reporter-prompt-for-summary-p'.
+
+	* calc/INSTALL, calc/Makefile: Remove.
+
 2001-11-22  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/re-builder.el (reb-match-0, reb-match-1) 
