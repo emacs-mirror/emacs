@@ -1655,6 +1655,7 @@ error (m, a1, a2, a3)
     xfree (buffer);
 
   Fsignal (Qerror, Fcons (string, Qnil));
+  abort ();
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 1, 0,
