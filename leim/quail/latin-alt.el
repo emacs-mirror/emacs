@@ -1,7 +1,8 @@
-;;; latin-alt.el --- Quail packages for inputting various European characters
+;; latin-alt.el --- Quail package for inputting various European characters -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, input method, latin
 
@@ -1527,6 +1528,96 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  ("u\"\"" ["u\""])
  ("U^^" ["U^"])
  ("u^^" ["u^"])
+ )
+
+;; Dutch Quail input method derived from the one in Yudit by Roman
+;; Czyborra.
+(quail-define-package
+ "dutch" "Latin" "NL" t
+ "Dutch character mixfix input method.
+Uses the `mule-unicode-0100-24ff' charset to supplement Latin-1.
+
+             |         | examples
+ ------------+---------+----------
+  others     |         | fl. -> $,1!R(B  eur. -> $,1tL(B  ij -> $,1 S(B  IJ -> $,1 R(B
+ ------------+---------+----------
+             | postfix |
+ ------------+---------+----------
+  acute      |    '    | a' -> ,Aa(B
+  grave      |    `    | a` -> ,A`(B
+  circumflex |    ^    | a^ -> ,Ab(B
+  Turkish    | various | i/ -> $,1 Q(B  s, -> $,1 (B  g^ -> $,1 ?(B   I/ -> $,1 P(B
+             |         |  S, -> $,1 ~(B  G^ -> $,1 >(B
+ ------------+---------+----------
+             | prefix  |
+ ------------+---------+----------
+  diaeresis  |    \"    | \"a -> ,Ad(B
+ 
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("fl." "$,1!R(B") ;; (florin currency symbol)
+ ("eur." "$,1tL(B")
+ ;; $,1r|(BThe 25th letter of the Dutch alphabet.$,1r}(B
+ ("ij" "$,1 S(B")
+ ("IJ" "$,1 R(B")
+ ;; $,1r|(BTrema on the second letter of vowel pair.$,1r}(B  Yudit uses `:', not `"'.
+ ("\"a" ",Ad(B")
+ ("\"e" ",Ak(B")
+ ("\"i" ",Ao(B")
+ ("\"o" ",Av(B")
+ ("\"u" ",A|(B")
+ ("\"A" ",AD(B")
+ ("\"E" ",AK(B")
+ ("\"I" ",AO(B")
+ ("\"O" ",AV(B")
+ ("\"U" ",A\(B")
+ ;; $,1r|(BAcute, marking emphasis on long vowels$,1r}(B:
+ ("a'" ",Aa(B")
+ ("e'" ",Ai(B")
+ ("i'" ",Am(B")
+ ("o'" ",As(B")
+ ("u'" ",Az(B")
+ ("A'" ",AA(B")
+ ("E'" ",AI(B")
+ ("I'" ",AM(B")
+ ("O'" ",AS(B")
+ ("U'" ",AZ(B")
+ ;; $,1r|(BGrave, marking emphasis on short vowels$,1r}(B:
+ ("a`" ",A`(B")
+ ("e`" ",Ah(B")
+ ("i`" ",Al(B")
+ ("o`" ",Ar(B")
+ ("u`" ",Ay(B")
+ ("A`" ",A@(B") 
+ ("E`" ",AH(B") 
+ ("I`" ",AL(B") 
+ ("O`" ",AR(B") 
+ ("U`" ",AY(B")
+ ;; $,1r|(BCater for the use of many French words and use of the circumflex
+ ;; in Frisian.$,1r}(B  Yudit used `;' for cedilla.
+ ("c," ",Ag(B")
+ ("C," ",AG(B")
+ ("a^" ",Ab(B")
+ ("e^" ",Aj(B")
+ ("i^" ",An(B")
+ ("o^" ",At(B")
+ ("u^" ",A{(B")
+ ("A^" ",AB(B") 
+ ("E^" ",AJ(B") 
+ ("I^" ",AN(B") 
+ ("O^" ",AT(B") 
+ ("U^" ",A[(B")
+ ;; $,1r|(BFollow the example of the Dutch POSIX locale, using ISO-8859-9 to
+ ;; cater to the many Turks in Dutch society.$,1r}(B  Perhaps German methods
+ ;; should do so too.  Follow turkish-alt-postfix here.
+ ("i/" "$,1 Q(B")
+ ("s," "$,1 (B")
+ ("g^" "$,1 ?(B")
+ ("I/" "$,1 P(B")
+ ("S," "$,1 ~(B")
+ ("G^" "$,1 >(B")
  )
 
 ;;; latin-alt.el ends here
