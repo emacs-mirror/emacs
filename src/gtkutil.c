@@ -1178,8 +1178,24 @@ xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
 
   if (default_filename)
-    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                   default_filename);
+    {
+      Lisp_Object file;
+      struct gcpro gcpro1;
+      GCPRO1 (file);
+
+      /* File chooser does not understand ~/... in the file name.  It must be
+         an absolute name starting with /.  */
+      if (default_filename[0] != '/')
+        {
+          file = Fexpand_file_name (build_string (default_filename), Qnil);
+          default_filename = SDATA (file);
+        }
+
+      gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                     default_filename);
+
+      UNGCPRO;
+    }
 
   gtk_widget_show (filewin);
 
