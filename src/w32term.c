@@ -752,7 +752,7 @@ w32_frame_up_to_date (f)
 /* Draw truncation mark bitmaps, continuation mark bitmaps, overlay
    arrow bitmaps, or clear the fringes if no bitmaps are required
    before DESIRED_ROW is made current.  The window being updated is
-   found in updated_window.  This function It is called from
+   found in updated_window.  This function is called from
    update_window_line only if it is known that there are differences
    between bitmaps to be drawn between current row and DESIRED_ROW.  */
 
@@ -8464,7 +8464,7 @@ w32_read_socket (sd, bufp, numchars, expected)
   if (numchars <= 0)
     abort ();                   /* Don't think this happens. */
 
-  /* TODO: tooltips, tool-bars, ghostscript integration, mouse
+  /* TODO: tool-bars, ghostscript integration, mouse
      cursors. */
   while (get_next_msg (&msg, FALSE))
     {
@@ -8789,6 +8789,15 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  break;
 
 	case WM_SHOWWINDOW:
+	  /* wParam non-zero means Window is about to be shown, 0 means
+	     about to be hidden.  */
+	  /* Redo the mouse-highlight after the tooltip has gone.  */
+	  if (!msg.msg.wParam && msg.msg.hwnd == tip_window)
+	    {
+	      tip_window = NULL;
+	      redo_mouse_highlight ();
+	    }
+
 	  /* If window has been obscured or exposed by another window
 	     being maximised or minimised/restored, then recheck
 	     visibility of all frames.  Direct changes to our own
@@ -9068,6 +9077,11 @@ w32_read_socket (sd, bufp, numchars, expected)
       FOR_EACH_FRAME (tail, frame)
 	{
 	  FRAME_PTR f = XFRAME (frame);
+	  /* The tooltip has been drawn already.  Avoid the
+	     SET_FRAME_GARBAGED below.  */
+	  if (f == XFRAME (tip_frame))
+	    continue;
+
 	  /* Check "visible" frames and mark each as obscured or not.
 	     Note that async_visible is nonzero for unobscured and
 	     obscured frames, but zero for hidden and iconified frames.  */
