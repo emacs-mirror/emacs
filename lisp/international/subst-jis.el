@@ -47,7 +47,8 @@
    (let ((unicode (car pair))
 	 (char (cadr pair)))
      ;; exclude non-CJK components from decode table
-     (if (and (>= unicode #x2e80) (<= unicode #xd7a3))
+     (if (or (and (>= unicode #x2e80) (<= unicode #xd7a3))
+	     (and (>= unicode #xff00) (<= unicode #xffef)))
 	 (puthash unicode  char ucs-unicode-to-mule-cjk))
      (puthash char unicode ucs-mule-cjk-to-unicode)))
  '(
