@@ -557,9 +557,9 @@ You may also type up to 3 octal digits, to insert a character with that code"
        (+ (* (/ address 16) 68) 52 (% address 16)))
       (delete-char 1)
       (insert (hexl-printable-character ch))
-      (if (eq address hexl-max-address)
-	  (hexl-goto-address address)
-	(hexl-goto-address (1+ address)))
+      (or (eq address hexl-max-address)
+	  (setq address (1+ address)))
+      (hexl-goto-address address)
       (setq num (1- num)))))
 
 ;; hex conversion
