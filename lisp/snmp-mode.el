@@ -91,7 +91,7 @@
 (defgroup snmp nil
   "Mode for editing SNMP MIB files."
   :group 'data
-  :version "20.3")
+  :version "20.4")
 
 (defcustom snmp-special-indent t
   "*If non-nil, use a simple heuristic to try to guess the right indentation.
