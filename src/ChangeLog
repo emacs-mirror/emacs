@@ -1,3 +1,9 @@
+2004-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Fix MOVE_TO_POS case when
+	to_charpos corresponds to newline in right fringe.  Use local
+	BUFFER_POS_REACHED_P macro.
+
 2004-03-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (calc_pixel_width_or_height): Add ifdef HAVE_WINDOW_SYSTEM
