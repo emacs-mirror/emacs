@@ -15,8 +15,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Added by Kevin Gallo */
 
@@ -49,6 +48,8 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 
 extern void free_frame_menubar ();
+
+extern Lisp_Object Vwindow_system;
 
 #define x_any_window_to_frame x_window_to_frame
 #define x_top_window_to_frame x_window_to_frame
@@ -97,6 +98,10 @@ HANDLE hMainThread = NULL;
 /* Where the mouse was last time we reported a mouse event.  */
 static FRAME_PTR last_mouse_frame;
 static RECT last_mouse_glyph;
+
+Lisp_Object Vwin32_num_mouse_buttons;
+
+Lisp_Object Vwin32_swap_mouse_buttons;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -195,7 +200,6 @@ win32_fill_rect (f, _hdc, pix, lprect)
 {
   HDC hdc;
   HBRUSH hb;
-  HANDLE oldobj;
   RECT rect;
   
   if (_hdc)
@@ -203,18 +207,15 @@ win32_fill_rect (f, _hdc, pix, lprect)
   else 
     {
       if (!f) return;
-      hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+      hdc = get_frame_dc (f);
     }
   
   hb = CreateSolidBrush (pix);
-  oldobj = SelectObject (hdc, hb);
-  
   FillRect (hdc, lprect, hb);
-  SelectObject (hdc, oldobj);
   DeleteObject (hb);
   
   if (!_hdc)
-    ReleaseDC (FRAME_WIN32_WINDOW (f), hdc);
+    release_frame_dc (f, hdc);
 }
 
 void 
@@ -222,7 +223,7 @@ win32_clear_window (f)
      FRAME_PTR f;
 {
   RECT rect;
-    
+
   GetClientRect (FRAME_WIN32_WINDOW (f), &rect);
   win32_clear_rect (f, NULL, &rect);
 }
@@ -248,6 +249,14 @@ win32_update_begin (f)
   highlight = 0;
 
   BLOCK_INPUT;
+
+  /* Regenerate display palette before drawing if list of requested
+     colors has changed. */
+  if (FRAME_WIN32_DISPLAY_INFO (f)->regen_palette)
+  {
+    win32_regenerate_palette (f);
+    FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = FALSE;
+  }
 
   if (f == FRAME_WIN32_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
@@ -418,7 +427,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
   int orig_left = left;
   HDC hdc;
 
-  hdc = my_get_dc (window);
+  hdc = get_frame_dc (f);
 
   while (n > 0)
     {
@@ -571,7 +580,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
       }
     }
 
-  ReleaseDC (window, hdc);
+  release_frame_dc (f, hdc);
 }
 
 
@@ -828,7 +837,7 @@ do_line_dance ()
 
   x_display_cursor (updating_frame, 0);
 
-  hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+  hdc = get_frame_dc (f);
 
   for (i = 0; i < ht; ++i)
     if (line_dance[i] != -1 && (distance = line_dance[i]-i) > 0)
@@ -862,7 +871,7 @@ do_line_dance ()
 	i = j+1;
       }
 
-  ReleaseDC (FRAME_WIN32_WINDOW (f), hdc);
+  release_frame_dc (f, hdc);
 
   for (i = 0; i < ht; ++i)
     if (line_dance[i] == -1)
@@ -1098,6 +1107,14 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
      RECT *bounds;
      int noclip;
 {
+  /* Support tty mode: if Vwindow_system is nil, behave correctly. */
+  if (NILP (Vwindow_system))
+    {
+      *x = pix_x;
+      *y = pix_y;
+      return;
+    }
+
   /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to round down
      even for negative values.  */
   if (pix_x < 0)
@@ -1139,6 +1156,14 @@ glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
      register int x, y;
      register int *pix_x, *pix_y;
 {
+  /* Support tty mode: if Vwindow_system is nil, behave correctly. */
+  if (NILP (Vwindow_system))
+    {
+      *pix_x = x;
+      *pix_y = y;
+      return;
+    }
+
   *pix_x = CHAR_TO_PIXEL_COL (f, x);
   *pix_y = CHAR_TO_PIXEL_ROW (f, y);
 }
@@ -1163,19 +1188,31 @@ parse_button (message, pbutton, pup)
       up = 1;
       break;
     case WM_MBUTTONDOWN:
-      button = 1;
+      if (NILP (Vwin32_swap_mouse_buttons))
+	button = 1;
+      else
+	button = 2;
       up = 0;
       break;
     case WM_MBUTTONUP:
-      button = 1;
+      if (NILP (Vwin32_swap_mouse_buttons))
+	button = 1;
+      else
+	button = 2;
       up = 1;
       break;
     case WM_RBUTTONDOWN:
-      button = 2;
+      if (NILP (Vwin32_swap_mouse_buttons))
+	button = 2;
+      else
+	button = 1;
       up = 0;
       break;
     case WM_RBUTTONUP:
-      button = 2;
+      if (NILP (Vwin32_swap_mouse_buttons))
+	button = 2;
+      else
+	button = 1;
       up = 1;
       break;
     default:
@@ -1770,6 +1807,36 @@ my_create_scrollbar (f, bar)
   return ((HWND) msg.wParam);
 }
 
+//#define ATTACH_THREADS
+
+void
+my_show_window (HWND hwnd, int how)
+{
+#ifndef ATTACH_THREADS
+  SendMessage (hwnd, WM_EMACS_SHOWWINDOW, (WPARAM) how, 0);
+#else
+  ShowWindow (hwnd , how);
+#endif
+}
+
+void
+my_set_window_pos (HWND hwnd, HWND hwndAfter,
+		   int x, int y, int cx, int cy, int flags)
+{
+#ifndef ATTACH_THREADS
+  Win32WindowPos pos;
+  pos.hwndAfter = hwndAfter;
+  pos.x = x;
+  pos.y = y;
+  pos.cx = cx;
+  pos.cy = cy;
+  pos.flags = flags;
+  SendMessage (hwnd, WM_EMACS_SETWINDOWPOS, (WPARAM) &pos, 0);
+#else
+  SetWindowPos (hwnd, hwndAfter, x, y, cx, cy, flags);
+#endif
+}
+
 void
 my_destroy_window (f, hwnd)
      struct frame * f;
@@ -1877,6 +1944,7 @@ x_scroll_bar_move (bar, top, left, width, height)
 
   MoveWindow (w, left, top, width, height, TRUE);
   SetScrollRange (w, SB_CTL, 0, height, FALSE);
+  InvalidateRect (w, NULL, FALSE);
 
   XSETINT (bar->left, left);
   XSETINT (bar->top, top);
@@ -2069,7 +2137,7 @@ win32_judge_scroll_bars (f)
 
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
-static void
+static int
 x_scroll_bar_handle_click (bar, msg, emacs_event)
      struct scroll_bar *bar;
      Win32Msg *msg;
@@ -2078,12 +2146,10 @@ x_scroll_bar_handle_click (bar, msg, emacs_event)
   if (! GC_WINDOWP (bar->window))
     abort ();
 
-  emacs_event->kind = scroll_bar_click;
+  emacs_event->kind = win32_scroll_bar_click;
   emacs_event->code = 0;
-  emacs_event->modifiers = (msg->dwModifiers
-			   | ((LOWORD (msg->msg.wParam) == SB_ENDSCROLL)
-			      ? up_modifier
-			      : down_modifier));
+  /* not really meaningful to distinguish up/down */
+  emacs_event->modifiers = msg->dwModifiers;
   emacs_event->frame_or_window = bar->window;
   emacs_event->timestamp = msg->msg.time;
 
@@ -2096,18 +2162,17 @@ x_scroll_bar_handle_click (bar, msg, emacs_event)
 
     switch (LOWORD (msg->msg.wParam))
     {
-    case SB_THUMBPOSITION:
     case SB_THUMBTRACK:
 	emacs_event->part = scroll_bar_handle;
 	if (VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height)) <= 0xffff)
 	    y = HIWORD (msg->msg.wParam);
 	break;
     case SB_LINEDOWN:
-	emacs_event->part = scroll_bar_handle;
+	emacs_event->part = scroll_bar_down_arrow;
 	if (y < top_range) y++;
 	break;
     case SB_LINEUP:
-	emacs_event->part = scroll_bar_handle;
+	emacs_event->part = scroll_bar_up_arrow;
 	if (y) y--;
 	break;
     case SB_PAGEUP:
@@ -2124,17 +2189,20 @@ x_scroll_bar_handle_click (bar, msg, emacs_event)
 	emacs_event->part = scroll_bar_handle;
 	y = top_range;
 	break;
+    case SB_THUMBPOSITION:
+	emacs_event->part = scroll_bar_handle;
+	break;
     case SB_ENDSCROLL:
-	emacs_event->part = scroll_bar_handle;
-	x_scroll_bar_set_handle (bar, y , y, 0);
-	break;
     default:
-	emacs_event->part = scroll_bar_handle;
-	break;
+	return FALSE;
     }
+
+    x_scroll_bar_set_handle (bar, y , y, 0);
 
     XSETINT (emacs_event->x, y);
     XSETINT (emacs_event->y, top_range);
+
+    return TRUE;
   }
 }
 
@@ -2196,13 +2264,34 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 x_scroll_bar_clear (f)
      FRAME_PTR f;
 {
-#if 0
   Lisp_Object bar;
 
   for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
        bar = XSCROLL_BAR (bar)->next)
-    UpdateWindow (SCROLL_BAR_WIN32_WINDOW (XSCROLL_BAR (bar)));
-#endif
+    {
+      HWND window = SCROLL_BAR_WIN32_WINDOW (XSCROLL_BAR (bar));
+      HDC hdc = GetDC (window);
+      RECT rect;
+
+      GetClientRect (window, &rect);
+      select_palette (f, hdc);
+      win32_clear_rect (f, hdc, &rect);
+      deselect_palette (f, hdc);
+    }
+}
+
+show_scroll_bars (f, how)
+     FRAME_PTR f;
+     int how;
+{
+  Lisp_Object bar;
+
+  for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
+       bar = XSCROLL_BAR (bar)->next)
+    {
+      HWND window = SCROLL_BAR_WIN32_WINDOW (XSCROLL_BAR (bar));
+      my_show_window (window, how);
+    }
 }
 
 
@@ -2303,7 +2392,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
   if (numchars <= 0)
     abort ();                   /* Don't think this happens. */
 
-  while (get_next_msg (&msg, 0))
+  while (get_next_msg (&msg, FALSE))
     {
       switch (msg.msg.message)
 	{
@@ -2339,6 +2428,12 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	  }
 	  
 	  break;
+	case WM_PALETTECHANGED:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    /* Realize palette - will force update if needed. */
+	    release_frame_dc (f, get_frame_dc (f));
+	  break;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
@@ -2350,7 +2445,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 	      bufp->kind = non_ascii_keystroke;
 	      bufp->code = msg.msg.wParam;
- 	      bufp->modifiers = win32_kbd_mods_to_emacs (msg.dwModifiers);
+	      bufp->modifiers = win32_kbd_mods_to_emacs (msg.dwModifiers);
 	      XSETFRAME (bufp->frame_or_window, f);
 	      bufp->timestamp = msg.msg.time;
 	      bufp++;
@@ -2462,10 +2557,12 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	      
 	    if (bar && numchars >= 1)
 	      {
-		x_scroll_bar_handle_click (bar, &msg, bufp);
-		bufp++;
-		count++;
-		numchars--;
+		if (x_scroll_bar_handle_click (bar, &msg, bufp))
+		  {
+		    bufp++;
+		    count++;
+		    numchars--;
+		  }
 	      }
 	  }
 	  
@@ -2684,25 +2781,19 @@ x_draw_box (f)
   HBRUSH hb;
   HDC hdc;
   
-  hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+  hdc = get_frame_dc (f);
   
   hb = CreateSolidBrush (f->output_data.win32->cursor_pixel);
   
   rect.left = CHAR_TO_PIXEL_COL (f, curs_x);
   rect.top  = CHAR_TO_PIXEL_ROW (f, curs_y);
-  rect.right = rect.left + FONT_WIDTH (f->output_data.win32->font) - 1;
-  rect.bottom = rect.top + f->output_data.win32->line_height - 1;
-  
-  /*    rect.left++; */
-  /*    rect.top++; */
-  rect.right--;
-  rect.bottom--;
-  
+  rect.right = rect.left + FONT_WIDTH (f->output_data.win32->font);
+  rect.bottom = rect.top + f->output_data.win32->line_height;
+
   FrameRect (hdc, &rect, hb);
-  
   DeleteObject (hb);
-  
-  ReleaseDC (FRAME_WIN32_WINDOW (f), hdc);
+
+  release_frame_dc (f, hdc);
 }
 
 /* Clear the cursor of frame F to background color,
@@ -3130,11 +3221,11 @@ x_set_offset (f, xoff, yoff, change_gravity)
       modified_top += f->output_data.win32->border_width;
     }
 
-  SetWindowPos (FRAME_WIN32_WINDOW (f),
-		NULL,
-		modified_left, modified_top,
-		0,0,
-		SWP_NOZORDER | SWP_NOSIZE);
+  my_set_window_pos (FRAME_WIN32_WINDOW (f),
+		     NULL,
+		     modified_left, modified_top,
+		     0,0,
+		     SWP_NOZORDER | SWP_NOSIZE);
   UNBLOCK_INPUT;
 }
 
@@ -3177,12 +3268,12 @@ x_set_window_size (f, change_gravity, cols, rows)
       
     /* All windows have an extra pixel */
 
-    SetWindowPos (FRAME_WIN32_WINDOW (f),
-		  NULL, 
-		  0, 0,
-		  rect.right - rect.left + 1,
-		  rect.bottom - rect.top + 1,
-		  SWP_NOZORDER | SWP_NOMOVE);
+    my_set_window_pos (FRAME_WIN32_WINDOW (f),
+		       NULL, 
+		       0, 0,
+		       rect.right - rect.left + 1,
+		       rect.bottom - rect.top + 1,
+		       SWP_NOZORDER | SWP_NOMOVE);
   }
   
   /* Now, strictly speaking, we can't be sure that this is accurate,
@@ -3272,13 +3363,13 @@ x_unfocus_frame (f)
 x_raise_frame (f)
      struct frame *f;
 {
-  if (f->async_visible)
+//  if (f->async_visible)
     {
       BLOCK_INPUT;
-      SetWindowPos (FRAME_WIN32_WINDOW (f),
-		    HWND_TOP,
-		    0, 0, 0, 0,
-		    SWP_NOSIZE | SWP_NOMOVE);
+      my_set_window_pos (FRAME_WIN32_WINDOW (f),
+		         HWND_TOP,
+		         0, 0, 0, 0,
+		         SWP_NOSIZE | SWP_NOMOVE);
       UNBLOCK_INPUT;
     }
 }
@@ -3288,13 +3379,13 @@ x_raise_frame (f)
 x_lower_frame (f)
      struct frame *f;
 {
-  if (f->async_visible)
+//  if (f->async_visible)
     {
       BLOCK_INPUT;
-      SetWindowPos (FRAME_WIN32_WINDOW (f),
-		    HWND_BOTTOM,
-		    0, 0, 0, 0,
-		    SWP_NOSIZE | SWP_NOMOVE);
+      my_set_window_pos (FRAME_WIN32_WINDOW (f),
+		         HWND_BOTTOM,
+		         0, 0, 0, 0,
+		         SWP_NOSIZE | SWP_NOMOVE);
       UNBLOCK_INPUT;
     }
 }
@@ -3331,14 +3422,15 @@ x_make_frame_visible (f)
 	 if we get to x_make_frame_visible a second time
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
- 	  && ! f->output_data.win32->asked_for_visible) 
-	{
-	  x_set_offset (f, f->output_data.win32->left_pos, 
-			f->output_data.win32->top_pos, 0);
-	}
+	  && ! f->output_data.win32->asked_for_visible)
+      {
+	x_set_offset (f, f->output_data.win32->left_pos, f->output_data.win32->top_pos, 0);
+//	SetForegroundWindow (FRAME_WIN32_WINDOW (f));
+      }
 
       f->output_data.win32->asked_for_visible = 1;
-      ShowWindow (FRAME_WIN32_WINDOW (f), SW_SHOW);
+
+      my_show_window (FRAME_WIN32_WINDOW (f), SW_SHOWNORMAL);
     }
 
   /* Synchronize to ensure Emacs knows the frame is visible
@@ -3401,7 +3493,7 @@ x_make_frame_invisible (f)
   
   BLOCK_INPUT;
   
-  ShowWindow (FRAME_WIN32_WINDOW (f), SW_HIDE);
+  my_show_window (FRAME_WIN32_WINDOW (f), SW_HIDE);
   
   /* We can't distinguish this from iconification
      just by the event that we get from the server.
@@ -3418,7 +3510,8 @@ x_make_frame_invisible (f)
 
 /* Change window state from mapped to iconified. */
 
-void x_iconify_frame (f)
+void
+x_iconify_frame (f)
      struct frame *f;
 {
   int result;
@@ -3432,7 +3525,9 @@ void x_iconify_frame (f)
 
   BLOCK_INPUT;
 
-  ShowWindow (FRAME_WIN32_WINDOW (f), SW_SHOWMINIMIZED);
+  my_show_window (FRAME_WIN32_WINDOW (f), SW_SHOWMINIMIZED);
+  /* The frame doesn't seem to be lowered automatically. */
+  x_lower_frame (f);
 
   f->async_iconified = 1;
 
@@ -3597,7 +3692,7 @@ win32_term_init (display_name, xrm_option, resource_name)
      all versions.  */
   dpyinfo->xrdb = xrdb;
 #endif
-  hdc = my_get_dc (GetDesktopWindow ());
+  hdc = GetDC (GetDesktopWindow ());
   
   dpyinfo->height = GetDeviceCaps (hdc, VERTRES);
   dpyinfo->width = GetDeviceCaps (hdc, HORZRES);
@@ -3606,6 +3701,7 @@ win32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->n_cbits = GetDeviceCaps (hdc, BITSPIXEL);
   dpyinfo->height_in = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->width_in = GetDeviceCaps (hdc, LOGPIXELSY);
+  dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
   dpyinfo->n_fonts = 0;
@@ -3626,6 +3722,18 @@ win32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->win32_highlight_frame = 0;
   
   ReleaseDC (GetDesktopWindow (), hdc);
+
+  /* Determine if there is a middle mouse button, to allow parse_button
+     to decide whether right mouse events should be mouse-2 or
+     mouse-3. */
+  XSETINT (Vwin32_num_mouse_buttons, GetSystemMetrics (SM_CMOUSEBUTTONS));
+
+  /* initialise palette with white and black */
+  {
+    COLORREF color;
+    defined_color (0, "white", &color, 1);
+    defined_color (0, "black", &color, 1);
+  }
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -3676,6 +3784,21 @@ x_delete_display (dpyinfo)
 	}
     }
 
+  /* free palette table */
+  {
+    struct win32_palette_entry * plist;
+
+    plist = dpyinfo->color_list;
+    while (plist)
+    {
+      struct win32_palette_entry * pentry = plist;
+      plist = plist->next;
+      xfree(pentry);
+    }
+    dpyinfo->color_list = NULL;
+    if (dpyinfo->palette)
+      DeleteObject(dpyinfo->palette);
+  }
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->win32_id_name);
 }
@@ -3744,8 +3867,17 @@ win32_initialize ()
     GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
   }
   
+  /* It is desirable that mainThread should have the same notion of
+     focus window and active window as winThread.  Unfortunately, the
+     following call to AttachThreadInput, which should do precisely what
+     we need, causes major problems when Emacs is linked as a console
+     program.  Unfortunately, we have good reasons for doing that, so
+     instead we need to send messages to winThread to make some API
+     calls for us (ones that affect, or depend on, the active/focus
+     window state.  */
+#ifdef ATTACH_THREADS
   AttachThreadInput (dwMainThreadId, dwWinThreadId, TRUE);
-
+#endif
 }
 
 void
@@ -3759,4 +3891,15 @@ syms_of_win32term ()
 
   staticpro (&Qvendor_specific_keysyms);
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
+
+  DEFVAR_INT ("win32-num-mouse-buttons",
+	      &Vwin32_num_mouse_buttons,
+	      "Number of physical mouse buttons.");
+  Vwin32_num_mouse_buttons = Qnil;
+
+  DEFVAR_LISP ("win32-swap-mouse-buttons",
+	      &Vwin32_swap_mouse_buttons,
+	      "Swap the mapping of middle and right mouse buttons.\n\
+When nil, middle button is mouse-2 and right button is mouse-3.");
+  Vwin32_swap_mouse_buttons = Qnil;
 }
