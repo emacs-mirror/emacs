@@ -336,6 +336,8 @@ Called from a program, takes three args: START, END and COLUMN."
 (defun indent-relative (&optional unindented-ok)
   "Space out to under next indent point in previous nonblank line.
 An indent point is a non-whitespace character following whitespace.
+The following line shows the indentation points in this line.
+    ^         ^    ^     ^   ^           ^      ^  ^    ^
 If the previous nonblank line has no indent points beyond the
 column point starts at, `tab-to-tab-stop' is done instead."
   (interactive "P")
