@@ -1040,6 +1040,10 @@ Bind this in case the user sets it to nil."
 
 (defun Info-goto-node (nodename &optional fork)
   "Go to info node named NODENAME.  Give just NODENAME or (FILENAME)NODENAME.
+If NODENAME is of the form (FILENAME)NODENAME, the node is in the Info file
+FILENAME; otherwise, NODENAME should be in the current Info file (or one of
+its sub-files).
+Completion is available, but only for node names in the current Info file.
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new info buffer.
 If FORK is a string, it is the name to use for the new buffer."
@@ -1449,8 +1453,9 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 
 
 (defun Info-menu (menu-item &optional fork)
-  "Go to node for menu item named (or abbreviated) NAME.
-Completion is allowed, and the menu item point is on is the default.
+  "Go to the node pointed to by the menu item named (or abbreviated) MENU-ITEM.
+The menu item should one of those listed in the current node's menu.
+Completion is allowed, and the default menu item is the one point is on.
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new info buffer.  If FORK is a string, it is the name to use for the
 new buffer."
