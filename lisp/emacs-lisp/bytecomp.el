@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.124 $")
+(defconst byte-compile-version "$Revision: 2.125 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -949,7 +949,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (and (not (equal byte-compile-current-file byte-compile-last-logged-file))
        (not noninteractive)
        (save-excursion
-	 (byte-goto-log-buffer)
+	 (set-buffer (get-buffer-create "*Compile-Log*"))
 	 (goto-char (point-max))
 	 (let* ((dir (and byte-compile-current-file
 			  (file-name-directory byte-compile-current-file)))
@@ -973,6 +973,9 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	     (unless was-same
 	       (insert (format "Entering directory `%s'\n" default-directory))))
 	   (setq byte-compile-last-logged-file byte-compile-current-file)
+	   ;; Do this after setting default-directory.
+	   (unless (eq major-mode 'compilation-mode)
+	     (compilation-mode))
 	   pt))))
 
 ;; Log a message STRING in *Compile-Log*.
@@ -1424,8 +1427,11 @@ recompile every `.el' file that already has a `.elc' file."
     (save-some-buffers)
     (force-mode-line-update))
   (save-current-buffer
-    (byte-goto-log-buffer)
+    (set-buffer (get-buffer-create "*Compile-Log*"))
     (setq default-directory (expand-file-name directory))
+    ;; compilation-mode copies value of default-directory.
+    (unless (eq major-mode 'compilation-mode)
+      (compilation-mode))
     (let ((directories (list (expand-file-name directory)))
 	  (default-directory default-directory)
 	  (skip-count 0)
@@ -1727,6 +1733,9 @@ With argument, insert value in current buffer after the form."
 	    (byte-compile-file-form form)))
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)
+	;; Make warnings about unresolved functions
+	;; give the end of the file as their position.
+	(setq byte-compile-last-position (point-max))
 	(byte-compile-warn-about-unresolved-functions)
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have
