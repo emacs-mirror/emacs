@@ -1510,7 +1510,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 		'(t)))))
   (make-local-variable 'cperl-old-style)
   (set (make-local-variable 'normal-auto-fill-function)
-       #'cperl-old-auto-fill-mode)
+       #'cperl-do-auto-fill)
   (if (cperl-enable-font-lock)
       (if (cperl-val 'cperl-font-lock)
 	  (progn (or cperl-faces-init (cperl-init-faces))
