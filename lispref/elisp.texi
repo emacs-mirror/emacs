@@ -698,7 +698,7 @@ Frames
 * Pop-Up Menus::	    Displaying a menu for the user to select from.
 * Dialog Boxes::            Displaying a box to ask yes or no.
 * Pointer Shapes::          Specifying the shape of the mouse pointer.
-* Window System Selections::Transferring text to and from other window.
+* Window System Selections::Transferring text to and from other windows.
 * Color Names::	            Getting the definitions of color names.
 * Resources::		    Getting resource values from the server.
 * Server Data::		    Getting info about the X server.

@@ -253,7 +253,7 @@ characters; see @ref{Display Tables}.
 
 @deffn Command split-window-vertically size
 This function splits the selected window into two windows, one above the
-other, leaving the upper of the two window selected, with @var{size}
+other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
 gets @minus{} @var{size} lines and the upper window gets the rest, but
 the upper window is still the one selected.)

@@ -335,7 +335,7 @@ overlaps the overlay on exit from the search.
 
   During the search, such overlays are made temporarily visible by
 temporarily modifying their invisible and intangible properties.  If you
-want this to be done differently for a certain overlay, give it a
+want this to be done differently for a certain overlay, give it an
 @code{isearch-open-invisible-temporary} property which is a function.
 The function is called with two arguments: the first is the overlay, and
 the second is @code{t} to make the overlay visible, or @code{nil} to

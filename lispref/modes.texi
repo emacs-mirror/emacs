@@ -1182,8 +1182,8 @@ frame at a time.
 
 @defvar mode-line-buffer-identification
 This variable identifies the buffer being displayed in the window.  Its
-default value is @code{("%12b")}, which means that it usually displays
-twelve characters of the buffer name.
+default value is @code{("%12b")}, which displays the buffer name, padded
+with spaces to at least 12 columns.
 @end defvar
 
 @defvar global-mode-string
@@ -1484,7 +1484,8 @@ For example, Fortran mode uses it this way:
 The @code{imenu-generic-expression} patterns can then use @samp{\\sw+}
 instead of @samp{\\(\\sw\\|\\s_\\)+}.  Note that this technique may be
 inconvenient to use when the mode needs to limit the initial character
-of a name to a smaller set of characters
+of a name to a smaller set of characters than are allowed in the rest
+of a name.
 
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar

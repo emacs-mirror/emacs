@@ -704,13 +704,13 @@ systems used for I/O to a subprocess.
 
 @tindex select-safe-coding-system
 @defun select-safe-coding-system from to &optional preferred-coding-system
-This function selects a coding system for encoding the between
+This function selects a coding system for encoding the text between
 @var{from} and @var{to}, asking the user to choose if necessary.
 
 The optional argument @var{preferred-coding-system} specifies a coding
-system try first.  If it can handle the text in the specified region,
-then it is used.  If this argument is omitted, the current buffer's
-value of @code{buffer-file-coding-system} is tried first.
+system to try first.  If that one can handle the text in the specified
+region, then it is used.  If this argument is omitted, the current
+buffer's value of @code{buffer-file-coding-system} is tried first.
 
 If the region contains some multibyte characters that the preferred
 coding system cannot encode, this function asks the user to choose from

@@ -576,10 +576,10 @@ The argument @var{pretend} has the same meaning as in
 
 @findex set-screen-height
 @findex set-screen-width
-  The old-fashioned functions @code{set-screen-height} and
-@code{set-screen-width}, which were used to specify the height and width
-of the screen in Emacs versions that did not support multiple frames,
-are still usable.  They apply to the selected frame.
+  The older functions @code{set-screen-height} and
+@code{set-screen-width} were used to specify the height and width of the
+screen, in Emacs versions that did not support multiple frames.  They
+are semi-obsolete, but still work; they apply to the selected frame.
 
 @defun x-parse-geometry geom
 @cindex geometry specification

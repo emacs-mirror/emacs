@@ -867,9 +867,10 @@ correctly; Edebug will tell you when you have tried enough different
 conditions that each form has returned two different values.
 
   Coverage testing makes execution slower, so it is only done if
-@code{edebug-test-coverage} is non-@code{nil}.  Whether or not coverage
-testing is enabled, frequency counting is performed for all execution of
-an instrumented function, even if the execution mode is Go-nonstop.
+@code{edebug-test-coverage} is non-@code{nil}.  Frequency counting is
+performed for all execution of an instrumented function, even if the
+execution mode is Go-nonstop, and regardless of whether coverage testing
+is enabled.
 
   Use @kbd{M-x edebug-display-freq-count} to display both the
 coverage information and the frequency counts for a definition.
@@ -1185,8 +1186,9 @@ elements must all match or none, use @code{&optional
 @item &rest
 @kindex &rest @r{(Edebug)}
 All following elements in the specification list are repeated zero or
-more times.  In the last repetition, however, it is ok if the expression
-runs out before matching all of the elements of the specification list.
+more times.  In the last repetition, however, it is not a problem if the
+expression runs out before matching all of the elements of the
+specification list.
 
 To repeat only a few elements, use @code{[&rest @var{specs}@dots{}]}.
 To specify several elements that must all match on every repetition, use

@@ -321,8 +321,8 @@ $2^{26}$
 @end ifinfo
 bit as well as the code for the corresponding non-control
 character.  Ordinary terminals have no way of generating non-@sc{ASCII}
-control characters, but you can generate them straightforwardly using an
-X terminal.
+control characters, but you can generate them straightforwardly using X
+and other window systems.
 
   For historical reasons, Emacs treats the @key{DEL} character as
 the control equivalent of @kbd{?}:
@@ -433,7 +433,7 @@ important than the @sc{ASCII} representation.
 and the hexadecimal character code.  You can use any number of hex
 digits, so you can represent any character code in this way.
 Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
-character @kbd{C-a}, and @code{?\x8c0} for the character
+character @kbd{C-a}, and @code{?\x8e0} for the character
 @iftex
 @samp{@`a}.
 @end iftex
@@ -553,17 +553,21 @@ same object, @code{nil}.
 @subsection Cons Cell and List Types
 @cindex address field of register
 @cindex decrement field of register
+@cindex pointers
 
-  A @dfn{cons cell} is an object comprising two pointers named the
-@sc{car} and the @sc{cdr}.  Each of them can point to any Lisp object.
+  A @dfn{cons cell} is an object that consists of two pointers or slots,
+called the @sc{car} slot and the @sc{cdr} slot.  Each slot can
+@dfn{point to} or hold to any Lisp object.  We also say that the ``the
+@sc{car} of this cons cell is'' whatever object its @sc{car} slot
+currently points to, and likewise for the @sc{cdr}.
 
   A @dfn{list} is a series of cons cells, linked together so that the
-@sc{cdr} of each cons cell points either to another cons cell or to the
+@sc{cdr} slot of each cons cell holds either the next cons cell or the
 empty list.  @xref{Lists}, for functions that work on lists.  Because
 most cons cells are used as part of lists, the phrase @dfn{list
 structure} has come to refer to any structure made out of cons cells.
 
-  The names @sc{car} and @sc{cdr} have only historical meaning now.  The
+  The names @sc{car} and @sc{cdr} derive from the history of Lisp.  The
 original Lisp implementation ran on an @w{IBM 704} computer which
 divided words into two parts, called the ``address'' part and the
 ``decrement''; @sc{car} was an instruction to extract the contents of
@@ -584,18 +588,19 @@ right parenthesis.
 
    Upon reading, each object inside the parentheses becomes an element
 of the list.  That is, a cons cell is made for each element.  The
-@sc{car} of the cons cell points to the element, and its @sc{cdr} points
-to the next cons cell of the list, which holds the next element in the
-list.  The @sc{cdr} of the last cons cell is set to point to @code{nil}.
+@sc{car} slot of the cons cell points to the element, and its @sc{cdr}
+slot points to the next cons cell of the list, which holds the next
+element in the list.  The @sc{cdr} slot of the last cons cell is set to
+point to @code{nil}.
 
 @cindex box diagrams, for lists
 @cindex diagrams, boxed, for lists
   A list can be illustrated by a diagram in which the cons cells are
-shown as pairs of boxes.  (The Lisp reader cannot read such an
-illustration; unlike the textual notation, which can be understood by
-both humans and computers, the box illustrations can be understood only
-by humans.)  The following represents the three-element list @code{(rose
-violet buttercup)}:
+shown as pairs of boxes, like dominoes.  (The Lisp reader cannot read
+such an illustration; unlike the textual notation, which can be
+understood by both humans and computers, the box illustrations can be
+understood only by humans.)  This picture represents the three-element
+list @code{(rose violet buttercup)}:
 
 @example
 @group
@@ -608,18 +613,18 @@ violet buttercup)}:
 @end group
 @end example
 
-  In this diagram, each box represents a slot that can refer to any Lisp
+  In this diagram, each box represents a slot that can point to any Lisp
 object.  Each pair of boxes represents a cons cell.  Each arrow is a
-reference to a Lisp object, either an atom or another cons cell.
+pointer to a Lisp object, either an atom or another cons cell.
 
-  In this example, the first box, the @sc{car} of the first cons cell,
-refers to or ``contains'' @code{rose} (a symbol).  The second box, the
-@sc{cdr} of the first cons cell, refers to the next pair of boxes, the
-second cons cell.  The @sc{car} of the second cons cell refers to
-@code{violet} and the @sc{cdr} refers to the third cons cell.  The
-@sc{cdr} of the third (and last) cons cell refers to @code{nil}.
+  In this example, the first box, which holds the @sc{car} of the first
+cons cell, points to or ``contains'' @code{rose} (a symbol).  The second
+box, holding the @sc{cdr} of the first cons cell, points to the next
+pair of boxes, the second cons cell.  The @sc{car} of the second cons
+cell is @code{violet}, and its @sc{cdr} is the third cons cell.  The
+@sc{cdr} of the third (and last) cons cell is @code{nil}.
 
-Here is another diagram of the same list, @code{(rose violet
+  Here is another diagram of the same list, @code{(rose violet
 buttercup)}, sketched in a different manner:
 
 @smallexample
@@ -683,13 +688,13 @@ that represents the @sc{car} and @sc{cdr} explicitly.  In this syntax,
 the object @var{a}, and whose @sc{cdr} is the object @var{b}.  Dotted
 pair notation is therefore more general than list syntax.  In the dotted
 pair notation, the list @samp{(1 2 3)} is written as @samp{(1 .  (2 . (3
-. nil)))}.  For @code{nil}-terminated lists, the two notations produce
-the same result, but list notation is usually clearer and more
-convenient when it is applicable.  When printing a list, the dotted pair
-notation is only used if the @sc{cdr} of a cell is not a list.
+. nil)))}.  For @code{nil}-terminated lists, you can use either
+notation, but list notation is usually clearer and more convenient.
+When printing a list, the dotted pair notation is only used if the
+@sc{cdr} of a cons cell is not a list.
 
-  Here's how box notation can illustrate dotted pairs.  This example
-shows the pair @code{(rose . violet)}:
+  Here's an example using boxes to illustrate dotted pair notation.
+This example shows the pair @code{(rose . violet)}:
 
 @example
 @group
@@ -702,10 +707,12 @@ shows the pair @code{(rose . violet)}:
 @end group
 @end example
 
-  Dotted pair notation can be combined with list notation to represent a
-chain of cons cells with a non-@code{nil} final @sc{cdr}.  For example,
-@code{(rose violet . buttercup)} is equivalent to @code{(rose . (violet
-. buttercup))}.  The object looks like this:
+  You can combine dotted pair notation with list notation to represent
+conveniently a chain of cons cells with a non-@code{nil} final @sc{cdr}.
+You write a dot after the last element of the list, followed by the
+@sc{cdr} of the final cons cell.  For example, @code{(rose violet
+. buttercup)} is equivalent to @code{(rose . (violet . buttercup))}.
+The object looks like this:
 
 @example
 @group
@@ -718,11 +725,12 @@ chain of cons cells with a non-@code{nil} final @sc{cdr}.  For example,
 @end group
 @end example
 
-  These diagrams make it evident why @w{@code{(rose .@: violet .@:
-buttercup)}} is invalid syntax; it would require a cons cell that has
-three parts rather than two.
+  The syntax @code{(rose .@: violet .@: buttercup)} is invalid because
+there is nothing that it could mean.  If anything, it would say to put
+@code{buttercup} in the @sc{cdr} of a cons cell whose @sc{cdr} is already
+used for @code{violet}.
 
-  The list @code{(rose violet)} is equivalent to @code{(rose . (violet))}
+  The list @code{(rose violet)} is equivalent to @code{(rose . (violet))},
 and looks like this:
 
 @example
@@ -783,7 +791,7 @@ functions that work on alists.
 @subsection Array Type
 
   An @dfn{array} is composed of an arbitrary number of slots for
-referring to other Lisp objects, arranged in a contiguous block of
+pointing to other Lisp objects, arranged in a contiguous block of
 memory.  Accessing any element of an array takes approximately the same
 amount of time.  In contrast, accessing an element of a list requires
 time proportional to the position of the element in the list.  (Elements
@@ -883,8 +891,9 @@ character code, using a hex escape, @samp{\x@var{nnnnnnn}}, with as many
 digits as necessary.  (Multibyte non-@sc{ASCII} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
 terminates this construct.  If the character that would follow is a hex
-digit, write @w{@samp{\ }} to terminate the hex escape---for example,
-@w{@samp{\x8c0\ }} represents one character, @samp{a} with grave accent.
+digit, write @w{@samp{\ }} (backslash and space)
+to terminate the hex escape---for example,
+@w{@samp{\x8e0\ }} represents one character, @samp{a} with grave accent.
 @w{@samp{\ }} in a string constant is just like backslash-newline; it does
 not contribute any character to the string, but it does terminate the
 preceding hex escape.
@@ -914,7 +923,7 @@ distinguish case in @sc{ASCII} control characters.
 
   Properly speaking, strings cannot hold meta characters; but when a
 string is to be used as a key sequence, there is a special convention
-that allows the meta versions of @sc{ASCII} characters to be put in a
+that provides a way to represent meta versions of @sc{ASCII} characters in a
 string.  If you use the @samp{\M-} syntax to indicate a meta character
 in a string constant, this sets the
 @tex
@@ -965,7 +974,7 @@ that range.  For example,
 represents a string whose textual contents are @samp{foo bar}, in which
 the first three characters have a @code{face} property with value
 @code{bold}, and the last three have a @code{face} property with value
-@code{italic}.  (The fourth character has no text properties so its
+@code{italic}.  (The fourth character has no text properties, so its
 property list is @code{nil}.  It is not actually necessary to mention
 ranges with @code{nil} as the property list, since any characters not
 mentioned in any range will default to having no properties.)
@@ -1032,8 +1041,8 @@ that it begins with @samp{#&} followed by the length.  The string
 constant that follows actually specifies the contents of the bool-vector
 as a bitmap---each ``character'' in the string contains 8 bits, which
 specify the next 8 elements of the bool-vector (1 stands for @code{t},
-and 0 for @code{nil}).  The least significant bits of the character are
-the lowest-numbered elements of the bool-vector.  If the length is not a
+and 0 for @code{nil}).  The least significant bits of the character 
+correspond to the lowest indices in the bool-vector.  If the length is not a
 multiple of 8, the printed representation shows extra elements, but
 these extras really make no difference.
 

@@ -512,7 +512,7 @@ is @code{nil}, the process will be deleted silently.
 Otherwise, Emacs will query about killing it.
 
 The value is @code{t} if the process was formerly set up to require
-query.  @code{nil} otherwise.  A newly-created process always requires
+query, @code{nil} otherwise.  A newly-created process always requires
 query.
 
 @smallexample

@@ -194,9 +194,10 @@ loads this @emph{before} the user's init file.  You can inhibit the
 loading of this file with the option @samp{-no-site-file}.
 
 @defvar site-run-file
-This variable specifies the site-customization file to load
-before the user's init file.  Its normal value is @code{"site-start"}.
-(The only way to change it with real effect is before dumping Emacs.)
+This variable specifies the site-customization file to load before the
+user's init file.  Its normal value is @code{"site-start"}.  The only
+way you can change it with real effect is to do so before dumping
+Emacs.
 @end defvar
 
   If there is a great deal of code in your @file{.emacs} file, you

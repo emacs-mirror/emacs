@@ -1200,7 +1200,7 @@ non-@code{nil}.
 
 If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
 other than line breaks untouched.  If @var{to-eop} is non-@code{nil},
-that means to keep filling to the end of the paragraph---or next hard
+that means to keep filling to the end of the paragraph---or the next hard
 newline, if @code{use-hard-newlines} is enabled (see below).
 
 The variable @code{paragraph-separate} controls how to distinguish
@@ -1243,7 +1243,7 @@ In an interactive call, any prefix argument requests justification.
 
 If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
 other than line breaks untouched.  If @var{squeeze-after} is
-non-@code{nil}, specifies a position in the region, and means don't
+non-@code{nil}, it specifies a position in the region, and means don't
 canonicalize spaces before that position.
 
 In Adaptive Fill mode, this command calls @code{fill-context-prefix} to
@@ -1434,15 +1434,16 @@ variables described below.
 
 @defopt adaptive-fill-regexp
 This variable holds a regular expression to control Adaptive Fill mode.
-Whichever characters starting after the line's left margin match this
-regular expression, those are the candidate for the fill prefix.
+Adaptive Fill mode matches this regular expression against the text
+starting after the left margin whitespace (if any) on a line; the
+characters it matches are that line's candidate for the fill prefix.
 @end defopt
 
 @defopt adaptive-fill-first-line-regexp
-In a one-line paragraph, if the candidate fill prefix matches
-this regular expression, or if it matches @code{comment-start-skip},
-then it is used---otherwise, it is replaced with an equivalent
-number of spaces.
+In a one-line paragraph, if the candidate fill prefix matches this
+regular expression, or if it matches @code{comment-start-skip}, then it
+is used---otherwise, spaces amounting to the same width are used
+instead.
 
 However, the fill prefix is never taken from a one-line paragraph
 if it would act as a paragraph starter on subsequent lines.
