@@ -36,63 +36,6 @@ Boston, MA 02111-1307, USA.  */
 #include "msdos.h"
 #include <go32.h>
 
-DEFUN ("mode25", Fmode25, Smode25, 0, 0, "", "\
-Changes the number of rows to 25.")
-  ()
-{
-  union REGS regs;
-
-#ifdef HAVE_X_WINDOWS
-  if (!inhibit_window_system)
-    return Qnil;
-#endif
-  mouse_off ();
-  regs.x.ax = 3;
-  int86 (0x10, &regs, &regs);
-  regs.x.ax = 0x1101;
-  regs.h.bl = 0;
-  int86 (0x10, &regs, &regs);
-  regs.x.ax = 0x1200;
-  regs.h.bl = 32;
-  int86 (0x10, &regs, &regs);
-  regs.x.ax = 3;
-  int86 (0x10, &regs, &regs);
-  Fset_frame_size (Fselected_frame (), ScreenCols (), ScreenRows ());
-  Frecenter (Qnil);
-  Fredraw_display ();
-  if (have_mouse) mouse_init ();
-  return Qnil;
-}
-
-DEFUN ("mode4350", Fmode4350, Smode4350, 0, 0, "", "\
-Changes the number of rows to 43 (EGA) or 50 (VGA).")
-  ()
-{
-  union REGS regs;
-
-#ifdef HAVE_X_WINDOWS
-  if (!inhibit_window_system)
-    return Qnil;
-#endif
-  mouse_off ();
-  regs.x.ax = 3;
-  int86 (0x10, &regs, &regs);
-  regs.x.ax = 0x1112;
-  regs.h.bl = 0;
-  int86 (0x10, &regs, &regs);
-  regs.x.ax = 0x1200;
-  regs.h.bl = 32;
-  int86 (0x10, &regs, &regs);
-  regs.x.ax = 0x0100;
-  regs.x.cx = 7;
-  int86 (0x10, &regs, &regs);
-  Fset_frame_size (Fselected_frame (), ScreenCols (), ScreenRows ());
-  Frecenter (Qnil);
-  Fredraw_display ();
-  if (have_mouse) mouse_init ();
-  return Qnil;
-}
-
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
   "Call specific MSDOS interrupt number INTERRUPT with REGISTERS.\n\
 Return the updated REGISTER vector.\n\
@@ -369,8 +312,6 @@ init_dosfns ()
  */
 syms_of_dosfns ()
 {
-  defsubr (&Smode25);
-  defsubr (&Smode4350);
   defsubr (&Sint86);
   defsubr (&Sdos_memget);
   defsubr (&Sdos_memput);
