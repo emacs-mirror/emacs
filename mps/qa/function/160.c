@@ -1,12 +1,12 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!160.c(trunk.1) $
  summary = MV fenceposting check
  language = c
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile = .\dbgpool.c
+ assertfile P= dbgpool.c
 END_HEADER
 */
 
