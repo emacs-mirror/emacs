@@ -889,10 +889,14 @@ a diff with \\[diff-reverse-direction]."
   	 (substring buffer-file-name 0 (match-beginning 0))))
   ;; Be careful not to change compilation-last-buffer when we're just
   ;; doing a C-x v = (for example).
-  (let ((compilation-last-buffer
-	 (and (boundp 'compilation-last-buffer)
-	      compilation-last-buffer)))
-    (compilation-shell-minor-mode 1))
+  (if (boundp 'compilation-last-buffer)
+      (let ((compilation-last-buffer compilation-last-buffer))
+	(compilation-minor-mode 1))
+    (compilation-minor-mode 1))
+  ;; M-RET and RET should be done by diff-mode because the `compile'
+  ;; support is significantly less good.
+  (add-to-list 'minor-mode-overriding-map-alist
+  	       (cons 'compilation-minor-mode (make-sparse-keymap)))
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
@@ -903,7 +907,7 @@ a diff with \\[diff-reverse-direction]."
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (add-to-list (make-local-variable 'minor-mode-overriding-map-alist)
+  (add-to-list 'minor-mode-overriding-map-alist
   	       (cons 'buffer-read-only diff-mode-shared-map))
   ;; add-log support
   (set (make-local-variable 'add-log-current-defun-function)
