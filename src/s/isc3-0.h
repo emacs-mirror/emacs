@@ -22,3 +22,8 @@
 #undef LIB_X11_LIB
 #undef LIBX11_SYSTEM
 #define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc
+
+/* marko@tekelec.com (Marko Rauhamaa) says that his linker couldn't
+   find memmove, but that sounds crazy - I thought all SYSV
+   descendants had that.  Let us know if this turns out to be wrong.  */
+#define	memmove(d, s, n) safe_bcopy ((s), (d), (n))
