@@ -107,7 +107,6 @@
 	("jisx0213.2004-1" . japanese-jisx0213.2004-1)
 	("abobe-symbol" . symbol)
 	("iso10646-1$" . (unicode-bmp . nil))
-	("iso10646-2$" . (unicode-sip . nil))
 	("iso10646.indian-1" . (unicode-bmp . nil))))
 
 
