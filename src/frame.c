@@ -141,13 +141,15 @@ make_frame (mini_p)
   register struct frame *f;
   register Lisp_Object root_window;
   register Lisp_Object mini_window;
+  register struct Lisp_Vector *vec;
+  int i;
 
-  frame = Fmake_vector (((sizeof (struct frame) - (sizeof (Lisp_Vector)
-						     - sizeof (Lisp_Object)))
-			  / sizeof (Lisp_Object)),
-			 make_number (0));
-  XSETTYPE (frame, Lisp_Frame);
-  f = XFRAME (frame);
+  vec = allocate_vectorlike ((EMACS_INT) VECSIZE (struct frame));
+  for (i = 0; i < VECSIZE (struct frame); i++)
+    XSETFASTINT (vec->contents[i], 0);
+  vec->size = VECSIZE (struct frame);
+  f = (struct frame *)vec;
+  XSETFRAME (frame, f);
 
   f->cursor_x = 0;
   f->cursor_y = 0;
