@@ -1,3 +1,8 @@
+2001-12-28  Simon Josefsson  <jas@extundo.com>
+
+	* mail/sendmail.el (mail-envelope-from): Fix :type.
+	(sendmail-send-it): Copy `mail-envelope-from' from calling buffer.
+
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
 	* net/ldap.el (ldap-search-internal): Handle <file://...> in results.
