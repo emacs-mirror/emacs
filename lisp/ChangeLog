@@ -1,6 +1,16 @@
 2001-02-11  Dave Love  <fx@gnu.org>
 
+	* shadowfile.el: Doc fixes.
+	(shadow) <defgroup>: Add :link.
+	(shadowfile-unload-hook): New function.
+	(shadow-initialize): Use defalias, not fset.
+	(shadow-define-cluster, shadow-define-literal-group)
+	(shadow-define-regexp-group, shadow-initialize): Add autoload
+	cookie.
+
 	* international/mule.el: Doc and message fixes.
+
+	* international/ccl.el (define-ccl-program): Doc fix.
 
 2001-02-11  Kenichi Handa  <handa@etl.go.jp>
 
