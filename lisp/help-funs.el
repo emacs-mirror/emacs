@@ -438,10 +438,10 @@ it is displayed along with the global value."
 
 ;;;###autoload
 (defun describe-syntax (&optional buffer)
-  (interactive)
   "Describe the syntax specifications in the syntax table of BUFFER.
 The descriptions are inserted in a help buffer, which is then displayed.
 BUFFER defaults to the current buffer."
+  (interactive)
   (setq buffer (or buffer (current-buffer)))
   (help-setup-xref (list #'describe-syntax buffer) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
