@@ -449,7 +449,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 
 	;; remove ~ if we do already have a space
 	(when (and (= ?~ (string-to-char form))
-		   (member (preceding-char) '(?\ ?\t ?\n)))
+		   (member (preceding-char) '(?\  ?\t ?\n)))
 	  (setq form (substring form 1)))
 	;; do we have a special format?
 	(setq reftex-format-ref-function
