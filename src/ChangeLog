@@ -1,5 +1,19 @@
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_hide_tip): Avoid unnecessary work when there's
+	nothing to do.  Bind inhibit-quit.
+	(tip_frame): Make it a Lisp_Object.
+	(x_create_tip_frame): Set tip_frame after it has been added to
+	Vframe_list.
+	(Fx_show_tip): Don't set tip_frame here.
+
+	* xterm.c (clear_mouse_face): Treat tip_frame as a Lisp_Object.
+
+	* xdisp.c (prepare_menu_bars): Changes for tip_frame being a
+	Lisp_Object.
+
+	* dispextern.h: Change external declaration of tip_frame.
+
 	* keymap.c (Fkey_description): If KEYS is an empty key sequence,
 	return an empty string.
 
