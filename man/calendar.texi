@@ -1116,8 +1116,11 @@ is, you can use @samp{11/12/1989} or @samp{11/12/89}.
 
   Dates can also have the form @samp{@var{monthname} @var{day}} or
 @samp{@var{monthname} @var{day}, @var{year}}, where the month's name can
-be spelled in full or abbreviated to three characters (with or without a
-period).  Case is not significant.
+be spelled in full or abbreviated (with or without a period).  The
+preferred abbreviations can be controlled using the variables
+@code{calendar-abbrev-length}, @code{calendar-month-abbrev-array}, and
+@code{calendar-day-abbrev-array}.  The default is to use the first three
+letters of a name as its abbreviation.  Case is not significant.
 
   A date may be @dfn{generic}; that is, partially unspecified.  Then the
 entry applies to all dates that match the specification.  If the date
