@@ -1,3 +1,14 @@
+2002-03-18  Colin Walters  <walters@verbum.org>
+
+	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Remove `find-if' so
+	we don't require `cl' at runtime.
+	(sorting mode mode-name): Don't take the symbol-name of a string.
+
+	* ibuffer.el (ibuffer-set-mark): Go back to the beginning of the
+	line after setting the mark.
+	(ibuffer-insert-buffers-and-marks): Invert the test for
+	`ibuffer-sorting-reversep'.
+
 2002-03-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/ucs-tables.el (unify-8859-on-decoding-mode)
