@@ -1206,8 +1206,8 @@ x_set_menu_bar_lines_1 (window, n)
 {
   struct window *w = XWINDOW (window);
 
-  XFASTINT (w->top) += n;
-  XFASTINT (w->height) -= n;
+  XSETFASTINT (w->top, XFASTINT (w->top) + n);
+  XSETFASTINT (w->height, XFASTINT (w->height) - n);
 
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
