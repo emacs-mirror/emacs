@@ -620,11 +620,11 @@ cached information about equivalent key sequences.")
      Lisp_Object position, menu;
 {
   Lisp_Object keymap, tem;
-  int xpos, ypos;
+  int xpos = 0, ypos = 0;
   Lisp_Object title;
   char *error_name;
   Lisp_Object selection;
-  FRAME_PTR f;
+  FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
@@ -825,7 +825,7 @@ on the left of the dialog box and all following items on the right.\n\
   (position, contents)
      Lisp_Object position, contents;
 {
-  FRAME_PTR f;
+  FRAME_PTR f = NULL;
   Lisp_Object window;
 
   check_w32 ();
@@ -2201,7 +2201,7 @@ w32_menu_display_help (HMENU menu, UINT item, UINT flags)
         pane_name = first_item[MENU_ITEMS_PANE_NAME];
       else if (EQ (first_item[0], Qquote))
         /* This shouldn't happen, see w32_menu_show.  */
-        pane_name = build_string ("");
+        pane_name = empty_string;
       else
         pane_name = first_item[MENU_ITEMS_ITEM_NAME];
 
