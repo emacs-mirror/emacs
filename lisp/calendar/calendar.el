@@ -1084,7 +1084,7 @@ Use M-x describe-mode for details of the key bindings in the calendar window.
 The Gregorian calendar is assumed.
 
 After loading the calendar, the hooks given by the variable
-`calendar-load-hook' are run.  This the place to add key bindings to the
+`calendar-load-hook' are run.  This is the place to add key bindings to the
 calendar-mode-map.
 
 After preparing the calendar window initially, the hooks given by the variable
