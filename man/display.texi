@@ -388,6 +388,12 @@ at the end of the line containing the whitespace.  (Doing that looks
 ugly while you are typing in new text, and the location of point is
 enough in that case to show you that the spaces are present.)
 
+@findex delete-trailing-whitespace
+  To delete all trailing whitespace within the current buffer's
+restriction (@pxref{Narrowing}), type @kbd{M-x
+delete-trailing-whitespace @key{RET}}.  (This command does not remove
+the form-feed characters.)
+
 @vindex indicate-empty-lines
 @vindex default-indicate-empty-lines
 @cindex empty lines
