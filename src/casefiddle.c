@@ -160,10 +160,10 @@ These arguments specify the starting and ending character numbers of\n\
 the region to operate on.  When used as a command, the text between\n\
 point and the mark is operated on.\n\
 See also `capitalize-region'.")
-  (b, e)
-     Lisp_Object b, e;
+  (beg, end)
+     Lisp_Object beg, end;
 {
-  casify_region (CASE_UP, b, e);
+  casify_region (CASE_UP, beg, end);
   return Qnil;
 }
 
@@ -172,10 +172,10 @@ DEFUN ("downcase-region", Fdowncase_region, Sdowncase_region, 2, 2, "r",
 These arguments specify the starting and ending character numbers of\n\
 the region to operate on.  When used as a command, the text between\n\
 point and the mark is operated on.")
-  (b, e)
-     Lisp_Object b, e;
+  (beg, end)
+     Lisp_Object beg, end;
 {
-  casify_region (CASE_DOWN, b, e);
+  casify_region (CASE_DOWN, beg, end);
   return Qnil;
 }
 
@@ -185,10 +185,10 @@ Capitalized form means each word's first character is upper case\n\
 and the rest of it is lower case.\n\
 In programs, give two arguments, the starting and ending\n\
 character positions to operate on.")
-  (b, e)
-     Lisp_Object b, e;
+  (beg, end)
+     Lisp_Object beg, end;
 {
-  casify_region (CASE_CAPITALIZE, b, e);
+  casify_region (CASE_CAPITALIZE, beg, end);
   return Qnil;
 }
 
@@ -200,10 +200,10 @@ DEFUN ("upcase-initials-region", Fupcase_initials_region,
 Subsequent letters of each word are not changed.\n\
 In programs, give two arguments, the starting and ending\n\
 character positions to operate on.")
-  (b, e)
-     Lisp_Object b, e;
+  (beg, end)
+     Lisp_Object beg, end;
 {
-  casify_region (CASE_CAPITALIZE_UP, b, e);
+  casify_region (CASE_CAPITALIZE_UP, beg, end);
   return Qnil;
 }
 
