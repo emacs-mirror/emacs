@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multibyte character, character set, syntax, category
 
@@ -574,10 +574,10 @@
 (modify-syntax-entry (make-char 'japanese-jisx0208 33) "_")
 (modify-syntax-entry (make-char 'japanese-jisx0208 34) "_")
 (modify-syntax-entry (make-char 'japanese-jisx0208 40) "_")
-;; (let ((chars '(?ー ?゛ ?゜ ?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
-;;   (while chars
-;;     (modify-syntax-entry (car chars) "w")
-;;     (setq chars (cdr chars))))
+(let ((chars '(?ー ?゛ ?゜ ?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
+  (while chars
+    (modify-syntax-entry (car chars) "w")
+    (setq chars (cdr chars))))
 (modify-syntax-entry ?\（ "(）")
 (modify-syntax-entry ?\［ "(］")
 (modify-syntax-entry ?\｛ "(｝")
