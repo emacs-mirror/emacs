@@ -39,6 +39,8 @@ Lisp_Object Qenable_recursive_minibuffers;
    even if mark_active is 0.  */
 Lisp_Object Vmark_even_if_inactive;
 
+Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
+
 Lisp_Object Qlist;
 Lisp_Object preserved_fns;
 
@@ -336,6 +338,11 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	      if (MINI_WINDOW_P (XWINDOW (event))
 		  && ! (minibuf_level > 0 && EQ (event, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
+
+	      /* If the current buffer wants to clean up, let it.  */
+	      if (!NILP (Vmouse_leave_buffer_hook))
+		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
+
 	      Fselect_window (event);
 	    }
 	  string++;
@@ -639,6 +646,9 @@ syms_of_callint ()
   Qenable_recursive_minibuffers = intern ("enable-recursive-minibuffers");
   staticpro (&Qenable_recursive_minibuffers);
 
+  Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
+  staticpro (&Qmouse_leave_buffer_hook);
+
   DEFVAR_LISP ("prefix-arg", &Vprefix_arg,
     "The value of the prefix argument for the next editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
@@ -677,6 +687,12 @@ When the option is non-nil, deactivation of the mark\n\
 turns off region highlighting, but commands that use the mark\n\
 behave as if the mark were still active.");
   Vmark_even_if_inactive = Qnil;
+
+  DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
+    "Hook to run when about to switch windows with a mouse command.\n\
+Its purpose is to give temporary modes such as Isearch mode\n\
+a way to turn themselves off when a mouse command switches windows.");
+  Vmouse_leave_buffer_hook = Qnil;
 
   defsubr (&Sinteractive);
   defsubr (&Scall_interactively);
