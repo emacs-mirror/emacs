@@ -1,8 +1,8 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
-;; Author: Michael Albinus <Michael.Albinus@alcatel.de>
+;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 
 ;; This file is part of GNU Emacs.
@@ -75,7 +75,7 @@
   :group 'tramp
   :type 'string)
 
-(defconst tramp-smb-prompt "^smb: \\S-+> \\|^\\s-+Server\\s-+Comment$"
+(defconst tramp-smb-prompt "^smb: .+> \\|^\\s-+Server\\s-+Comment$"
   "Regexp used as prompt in smbclient.")
 
 (defconst tramp-smb-errors
@@ -235,10 +235,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 		 (file-exists-p newname))
 	(error "copy-file: file %s already exists" newname))
 
-;      (with-parsed-tramp-file-name newname nil
-      (let (user host localname)
-	(with-parsed-tramp-file-name newname l
-	  (setq user l-user host l-host localname l-localname))
+      (with-parsed-tramp-file-name newname nil
 	(save-excursion
 	  (let ((share (tramp-smb-get-share localname))
 		(file (tramp-smb-get-localname localname t)))
@@ -258,59 +255,46 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 (defun tramp-smb-handle-delete-directory (directory)
   "Like `delete-directory' for tramp files."
   (setq directory (directory-file-name (expand-file-name directory)))
-  (unless (file-exists-p directory)
-    (error "Cannot delete non-existing directory `%s'" directory))
-;  (with-parsed-tramp-file-name directory nil
-  (let (user host localname)
-    (with-parsed-tramp-file-name directory l
-      (setq user l-user host l-host localname l-localname))
-    (save-excursion
-      (let ((share (tramp-smb-get-share localname))
-	    (dir (tramp-smb-get-localname (file-name-directory localname) t))
-	    (file (file-name-nondirectory localname)))
-	(tramp-smb-maybe-open-connection user host share)
-	(if (and
-	     (tramp-smb-send-command user host (format "cd \"%s\"" dir))
-	     (tramp-smb-send-command user host (format "rmdir \"%s\"" file)))
-	    ;; Go Home
+  (when (file-exists-p directory)
+    (with-parsed-tramp-file-name directory nil
+      (save-excursion
+	(let ((share (tramp-smb-get-share localname))
+	      (dir (tramp-smb-get-localname (file-name-directory localname) t))
+	      (file (file-name-nondirectory localname)))
+	  (tramp-smb-maybe-open-connection user host share)
+	  (if (and
+	       (tramp-smb-send-command user host (format "cd \"%s\"" dir))
+	       (tramp-smb-send-command user host (format "rmdir \"%s\"" file)))
+	      ;; Go Home
+	      (tramp-smb-send-command user host (format "cd \\"))
+	    ;; Error
 	    (tramp-smb-send-command user host (format "cd \\"))
-	  ;; Error
-	  (tramp-smb-send-command user host (format "cd \\"))
-	  (error "Cannot delete directory `%s'" directory))))))
+	    (error "Cannot delete directory `%s'" directory)))))))
 
 (defun tramp-smb-handle-delete-file (filename)
   "Like `delete-file' for tramp files."
   (setq filename (expand-file-name filename))
-  (unless (file-exists-p filename)
-    (error "Cannot delete non-existing file `%s'" filename))
-;  (with-parsed-tramp-file-name filename nil
-  (let (user host localname)
-    (with-parsed-tramp-file-name filename l
-      (setq user l-user host l-host localname l-localname))
-    (save-excursion
-      (let ((share (tramp-smb-get-share localname))
-	    (dir (tramp-smb-get-localname (file-name-directory localname) t))
-	    (file (file-name-nondirectory localname)))
-	(unless (file-exists-p filename)
-	  (error "Cannot delete non-existing file `%s'" filename))
-	(tramp-smb-maybe-open-connection user host share)
-	(if (and
-	     (tramp-smb-send-command user host (format "cd \"%s\"" dir))
-	     (tramp-smb-send-command user host (format "rm \"%s\"" file)))
-	    ;; Go Home
+  (when (file-exists-p filename)
+    (with-parsed-tramp-file-name filename nil
+      (save-excursion
+	(let ((share (tramp-smb-get-share localname))
+	      (dir (tramp-smb-get-localname (file-name-directory localname) t))
+	      (file (file-name-nondirectory localname)))
+	  (tramp-smb-maybe-open-connection user host share)
+	  (if (and
+	       (tramp-smb-send-command user host (format "cd \"%s\"" dir))
+	       (tramp-smb-send-command user host (format "rm \"%s\"" file)))
+	      ;; Go Home
+	      (tramp-smb-send-command user host (format "cd \\"))
+	    ;; Error
 	    (tramp-smb-send-command user host (format "cd \\"))
-	  ;; Error
-	  (tramp-smb-send-command user host (format "cd \\"))
-	  (error "Cannot delete file `%s'" filename))))))
+	    (error "Cannot delete file `%s'" filename)))))))
 
 (defun tramp-smb-handle-directory-files
   (directory &optional full match nosort)
   "Like `directory-files' for tramp files."
   (setq directory (directory-file-name (expand-file-name directory)))
-;  (with-parsed-tramp-file-name directory nil
-  (let (user host localname)
-    (with-parsed-tramp-file-name directory l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name directory nil
     (save-excursion
       (let* ((share (tramp-smb-get-share localname))
 	     (file (tramp-smb-get-localname localname nil))
@@ -340,17 +324,14 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
   (mapcar
    (lambda (x)
      ;; We cannot call `file-attributes' for backward compatibility reasons.
-     ;; Its optional parameter ID-FORMAT is introduced with Emacs 22.1.
+     ;; Its optional parameter ID-FORMAT is introduced with Emacs 22.
      (cons x (tramp-smb-handle-file-attributes
 	(if full x (concat (file-name-as-directory directory) x)) id-format)))
    (directory-files directory full match nosort)))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for tramp files."
-;  (with-parsed-tramp-file-name filename nil
-  (let (user host localname)
-    (with-parsed-tramp-file-name filename l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name filename nil
     (save-excursion
       (let* ((share (tramp-smb-get-share localname))
 	     (file (tramp-smb-get-localname localname nil))
@@ -380,10 +361,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 
 (defun tramp-smb-handle-file-directory-p (filename)
   "Like `file-directory-p' for tramp files."
-;  (with-parsed-tramp-file-name filename nil
-  (let 	(user host localname)
-    (with-parsed-tramp-file-name filename l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name filename nil
     (save-excursion
       (let* ((share (tramp-smb-get-share localname))
 	     (file (tramp-smb-get-localname localname nil))
@@ -396,10 +374,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 
 (defun tramp-smb-handle-file-exists-p (filename)
   "Like `file-exists-p' for tramp files."
-;  (with-parsed-tramp-file-name filename nil
-  (let 	(user host localname)
-    (with-parsed-tramp-file-name filename l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name filename nil
     (save-excursion
       (let* ((share (tramp-smb-get-share localname))
 	     (file (tramp-smb-get-localname localname nil))
@@ -433,10 +408,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 ;; files.
 (defun tramp-smb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for tramp files."
-;  (with-parsed-tramp-file-name directory nil
-  (let (user host localname)
-    (with-parsed-tramp-file-name directory l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name directory nil
     (save-match-data
       (save-excursion
 	(let* ((share (tramp-smb-get-share localname))
@@ -467,10 +439,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
       (let ((dir (file-name-directory filename)))
 	(and (file-exists-p dir)
 	     (file-writable-p dir)))
-;    (with-parsed-tramp-file-name filename nil
-    (let (user host localname)
-      (with-parsed-tramp-file-name filename l
-	(setq user l-user host l-host localname l-localname))
+    (with-parsed-tramp-file-name filename nil
       (save-excursion
 	(let* ((share (tramp-smb-get-share localname))
 	       (file (tramp-smb-get-localname localname nil))
@@ -490,10 +459,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
     ;; This check is a little bit strange, but in `dired-add-entry'
     ;; this function is called with a non-directory ...
     (setq filename (file-name-as-directory filename)))
-;  (with-parsed-tramp-file-name filename nil
-  (let 	(user host localname)
-    (with-parsed-tramp-file-name filename l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name filename nil
     (save-match-data
       (let* ((share (tramp-smb-get-share localname))
 	     (file (tramp-smb-get-localname localname nil))
@@ -543,10 +509,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
   (setq dir (directory-file-name (expand-file-name dir)))
   (unless (file-name-absolute-p dir)
     (setq dir (concat default-directory dir)))
-;  (with-parsed-tramp-file-name dir nil
-  (let 	(user host localname)
-    (with-parsed-tramp-file-name dir l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name dir nil
     (save-match-data
       (let* ((share (tramp-smb-get-share localname))
 	     (ldir (file-name-directory dir)))
@@ -564,10 +527,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
   (setq directory (directory-file-name (expand-file-name directory)))
   (unless (file-name-absolute-p directory)
     (setq directory (concat default-directory directory)))
-;  (with-parsed-tramp-file-name directory nil
-  (let 	(user host localname)
-    (with-parsed-tramp-file-name directory l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name directory nil
     (save-match-data
       (let* ((share (tramp-smb-get-share localname))
 	     (file (tramp-smb-get-localname localname nil)))
@@ -597,10 +557,7 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
 		 (file-exists-p newname))
 	  (error "rename-file: file %s already exists" newname))
 
-;      (with-parsed-tramp-file-name newname nil
-      (let (user host localname)
-	(with-parsed-tramp-file-name newname l
-	  (setq user l-user host l-host localname l-localname))
+      (with-parsed-tramp-file-name newname nil
 	(save-excursion
 	  (let ((share (tramp-smb-get-share localname))
 		(file (tramp-smb-get-localname localname t)))
@@ -636,10 +593,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
     (unless (y-or-n-p (format "File %s exists; overwrite anyway? "
                               filename))
       (error "File not overwritten")))
-;  (with-parsed-tramp-file-name filename nil
-  (let (user host localname)
-    (with-parsed-tramp-file-name filename l
-      (setq user l-user host l-host localname l-localname))
+  (with-parsed-tramp-file-name filename nil
     (save-excursion
       (let ((share (tramp-smb-get-share localname))
 	    (file (tramp-smb-get-localname localname t))
@@ -968,6 +922,10 @@ for a remote password prompt.  It queries the user for the password,
 then sends the password to the remote host.
 
 Domain names in USER and port numbers in HOST are acknowledged."
+
+  (when (and (fboundp 'executable-find)
+	     (not (funcall 'executable-find tramp-smb-program)))
+    (error "Cannot find command %s in %s" tramp-smb-program exec-path))
 
   (save-match-data
     (let* ((buffer (tramp-get-buffer nil tramp-smb-method user host))

@@ -1775,8 +1775,10 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.pro\\'" . idlwave-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|ear\\|jar\\|war\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|EAR\\|JAR\\|WAR\\)\\'" . archive-mode)
+     ;; The list of archive file extensions should be in sync with
+     ;; `auto-coding-alist' with `no-conversion' coding system.
+     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\)\\'" . archive-mode)
      ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
@@ -2687,6 +2689,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			      backup-by-copying
 			      ;; Don't rename a suid or sgid file.
 			      (and modes (< 0 (logand modes #o6000)))
+			      (not (file-writable-p (file-name-directory real-file-name)))
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
 			      (and (or backup-by-copying-when-mismatch
@@ -3103,18 +3106,19 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
             ancestor))))))
 
 (defun save-buffer (&optional args)
-  "Save current buffer in visited file if modified.  Versions described below.
+  "Save current buffer in visited file if modified.  Variations are described below.
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
-With 1 \\[universal-argument], marks this version
+Prefixed with one \\[universal-argument], marks this version
  to become a backup when the next save is done.
-With 2 \\[universal-argument]'s,
+Prefixed with two \\[universal-argument]'s,
  unconditionally makes the previous version into a backup file.
-With 3 \\[universal-argument]'s, marks this version
+Prefixed with three \\[universal-argument]'s, marks this version
  to become a backup when the next save is done,
  and unconditionally makes the previous version into a backup file.
 
-With argument of 0, never make the previous version into a backup file.
+With a numeric argument of 0, never make the previous version
+into a backup file.
 
 If a file's name is FOO, the names of its numbered backup versions are
  FOO.~i~ for various integers i.  A non-numbered backup file is called FOO~.

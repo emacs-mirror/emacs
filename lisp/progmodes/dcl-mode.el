@@ -78,7 +78,7 @@
 (defvar dcl-font-lock-keywords
   '(("\\<\\(if\\|then\\|else\\|endif\\)\\>"
      1 font-lock-keyword-face)
-    ("\\<f[$][a-z]+\\>"
+    ("\\<f[$][a-z_]+\\>"
      0 font-lock-builtin-face)
     ("[.]\\(eq\\|not\\|or\\|and\\|lt\\|gt\\|le\\|ge\\|eqs\\|nes\\)[.]"
      0 font-lock-builtin-face))

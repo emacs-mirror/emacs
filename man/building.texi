@@ -14,10 +14,10 @@ in the larger process of developing and maintaining programs.
 @menu
 * Compilation::         Compiling programs in languages other
                           than Lisp (C, Pascal, etc.).
-* Grep Searching::      Running grep as if it were a compiler.
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
+* Grep Searching::      Searching with grep.
 * Debuggers::	        Running symbolic debuggers for non-Lisp programs.
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
@@ -147,36 +147,6 @@ of environment variable settings; each element should be a string of
 the form @code{"@var{envvarname}=@var{value}"}.  These environment
 variable settings override the usual ones.
 
-@node Grep Searching
-@section Searching with Grep under Emacs
-
-@findex grep
-  Just as you can run a compiler from Emacs and then visit the lines
-where there were compilation errors, you can also run @code{grep} and
-then visit the lines on which matches were found.  This works by
-treating the matches reported by @code{grep} as if they were ``errors.''
-
-  To do this, type @kbd{M-x grep}, then enter a command line that
-specifies how to run @code{grep}.  Use the same arguments you would give
-@code{grep} when running it normally: a @code{grep}-style regexp
-(usually in single-quotes to quote the shell's special characters)
-followed by file names, which may use wildcards.  The output from
-@code{grep} goes in the @samp{*grep*} buffer.  You can find the
-corresponding lines in the original files using @kbd{C-x `} and
-@key{RET}, as with compilation errors.
-
-  If you specify a prefix argument for @kbd{M-x grep}, it figures out
-the tag (@pxref{Tags}) around point, and puts that into the default
-@code{grep} command.
-
-@findex grep-find
-@findex find-grep
-  The command @kbd{M-x grep-find} (also available as @kbd{M-x
-find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
-initial default for the command---one that runs both @code{find} and
-@code{grep}, so as to search every file in a directory tree.  See also
-the @code{find-grep-dired} command, in @ref{Dired and Find}.
-
 @node Compilation Mode
 @section Compilation Mode
 
@@ -199,6 +169,21 @@ Visit the locus of the error message that point is on.
 This command is used in the compilation buffer.
 @item Mouse-2
 Visit the locus of the error message that you click on.
+@item M-n
+Find and highlight the locus of the next error message, without
+selecting the source buffer.
+@item M-p
+Find and highlight the locus of the previous error message, without
+selecting the source buffer.
+@item M-@}
+Move point to the next error for a different file than the current
+one.
+@item M-@{
+Move point to the previous error for a different file than the current
+one.
+@item C-c C-f
+Toggle Next Error Follow minor mode, which makes cursor motion in the
+compilation buffer produce automatic source display.
 @end table
 
 @kindex C-x `
@@ -209,12 +194,15 @@ typing @key{RET} (@code{compile-goto-error}).  Alternatively, you can
 click @kbd{Mouse-2} on the error message; you need not switch to the
 @samp{*compilation*} buffer first.
 
+@vindex next-error-highlight
   To parse the compiler error messages sequentially, type @kbd{C-x `}
 (@code{next-error}).  The character following the @kbd{C-x} is the
 backquote or ``grave accent,'' not the single-quote.  This command is
-available in all buffers, not just in @samp{*compilation*}; it displays
-the next error message at the top of one window and source location of
-the error in another window.
+available in all buffers, not just in @samp{*compilation*}; it
+displays the next error message at the top of one window and source
+location of the error in another window.  It also momentarily
+highlights the relevant source line.  You can change the behavior of
+this highlighting with the variable @code{next-error-highlight}.
 
   The first time @kbd{C-x `} is used after the start of a compilation,
 it moves to the first error's location.  Subsequent uses of @kbd{C-x `}
@@ -245,10 +233,25 @@ supported, you can tailor Compilation mode to it by adding elements to
 that list.  A similar variable @code{grep-regexp-alist} tells Emacs how
 to parse output of a @code{grep} command.
 
+@findex compilation-next-error
+@findex compilation-previous-error
+@findex compilation-next-file
+@findex compilation-previous-file
   Compilation mode also redefines the keys @key{SPC} and @key{DEL} to
-scroll by screenfuls, and @kbd{M-n} and @kbd{M-p} to move to the next or
-previous error message.  You can also use @kbd{M-@{} and @kbd{M-@}} to
-move up or down to an error message for a different source file.
+scroll by screenfuls, and @kbd{M-n} (@code{compilation-next-error})
+and @kbd{M-p} (@code{compilation-previous-error}) to move to the next
+or previous error message.  You can also use @kbd{M-@{}
+(@code{compilation-next-file} and @kbd{M-@}}
+(@code{compilation-previous-file}) to move up or down to an error
+message for a different source file.
+
+@cindex Next Error Follow mode
+@findex next-error-follow-minor-mode
+  You can type @kbd{C-c C-f} to toggle Next Error Follow mode.  In
+this minor mode, ordinary cursor motion in the compilation buffer
+automatically updates the source buffer.  For instance, moving the
+cursor to the next error message causes the location of that error to
+be displayed immediately.
 
   The features of Compilation mode are also available in a minor mode
 called Compilation Minor mode.  This lets you parse error messages in
@@ -298,6 +301,42 @@ compilation command synchronously on MS-DOS.  As a consequence, you must
 wait until the command finishes before you can do anything else in
 Emacs.  @xref{MS-DOS}.
 
+@node Grep Searching
+@section Searching with Grep under Emacs
+
+@findex grep
+  Just as you can run a compiler from Emacs and then visit the lines
+where there were compilation errors, you can also run @code{grep} and
+then visit the lines on which matches were found.  This works by
+treating the matches reported by @code{grep} as if they were ``errors.''
+
+  To do this, type @kbd{M-x grep}, then enter a command line that
+specifies how to run @code{grep}.  Use the same arguments you would give
+@code{grep} when running it normally: a @code{grep}-style regexp
+(usually in single-quotes to quote the shell's special characters)
+followed by file names, which may use wildcards.  If you specify a
+prefix argument for @kbd{M-x grep}, it figures out the tag
+(@pxref{Tags}) around point, and puts that into the default
+@code{grep} command.
+
+  The output from @code{grep} goes in the @samp{*grep*} buffer.  You
+can find the corresponding lines in the original files using @kbd{C-x
+`}, @key{RET}, and so forth, just like compilation errors.
+
+  Some grep programs accept a @samp{--color} option to output special
+markers around matches for the purpose of highlighting.  You can make
+use of this feature by setting @code{grep-highlight-matches} to t.
+When displaying a match in the source buffer, the exact match will be
+highlighted, instead of the entire source line.
+
+@findex grep-find
+@findex find-grep
+  The command @kbd{M-x grep-find} (also available as @kbd{M-x
+find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
+initial default for the command---one that runs both @code{find} and
+@code{grep}, so as to search every file in a directory tree.  See also
+the @code{find-grep-dired} command, in @ref{Dired and Find}.
+
 @node Debuggers
 @section Running Debuggers Under Emacs
 @cindex debuggers
@@ -307,6 +346,7 @@ Emacs.  @xref{MS-DOS}.
 @cindex SDB
 @cindex XDB
 @cindex Perldb
+@cindex bashdb
 @cindex JDB
 @cindex PDB
 
@@ -365,6 +405,10 @@ If you have not visited a tags table or the tags table doesn't list one
 of the functions, you get a message saying @samp{The sdb support
 requires a valid tags table to work}.  If this happens, generate a valid
 tags table in the working directory and try again.
+
+@item M-x bashdb @key{RET} @var{file} @key{RET}
+@findex bashdb
+Run the bash debugger to debug @var{file}, a shell script.
 
 @item M-x perldb @key{RET} @var{file} @key{RET}
 @findex perldb
@@ -1045,6 +1089,10 @@ the face according to the @code{defface} specification.
 expression preceding point in the buffer, and displays the value in the
 echo area.  It is available in all major modes, not just Emacs-Lisp
 mode.  It does not treat @code{defvar} specially.
+
+  When the result of an evaluation is an integer, you can type
+@kbd{C-x C-e} a second time to display the value of the integer result
+in additional formats (octal, hexadecimal, and character).
 
   If @kbd{C-M-x}, @kbd{C-x C-e}, or @kbd{M-:} is given a numeric
 argument, it inserts the value into the current buffer at point, rather

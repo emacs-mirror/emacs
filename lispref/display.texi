@@ -753,8 +753,8 @@ major mode should use the mode's own name as an element of
   Ordinarily, functions that operate on text or move point do not care
 whether the text is invisible.  The user-level line motion commands
 explicitly ignore invisible newlines if
-@code{line-move-ignore-invisible} is non-@code{nil}, but only because
-they are explicitly programmed to do so.
+@code{line-move-ignore-invisible} is non-@code{nil} (the default), but
+only because they are explicitly programmed to do so.
 
   However, if a command ends with point inside or immediately after
 invisible text, the main editing loop moves point further forward or
@@ -1136,6 +1136,18 @@ This is the only valid way to change the endpoints of an overlay.  Do
 not try modifying the markers in the overlay by hand, as that fails to
 update other vital data structures and can cause some overlays to be
 ``lost''.
+@end defun
+
+@defun remove-overlays &optional start end name value
+This function removes all the overlays between @var{start} and
+@var{end} whose property @var{name} has the value @var{value}.  It can
+move the endpoints of the overlays in the region, or split them.
+
+If @var{name} is omitted or nil, it means to delete all overlays in
+the specified region.  If @var{start} and/or @var{end} are omitted or
+nil, that means the beginning and end of the buffer respectively.
+Therefore, @code{(remove-overlays)} removes all the overlays in the
+current buffer.
 @end defun
 
   Here are some examples:
@@ -1718,6 +1730,10 @@ This face is meant to be used for highlighting for various purposes.
 @kindex trailing-whitespace @r{(face name)}
 This face is used to display excess whitespace at the end of a line,
 if @code{show-trailing-whitespace} is non-@code{nil}.
+
+@item escape-glyph
+@kindex escape-glyph @r{(face name)}
+This face is used to display control characters and escape glyphs.
 @end table
 
   In contrast, these faces are provided to change the appearance of text

@@ -7926,7 +7926,7 @@ If we do not know about MODULE, just return KEYWORD literally."
 		     "\n          Source information truncated to %d entries."
 		     idlwave-rinfo-max-source-lines))
 	    (setq all nil)))
-	(beginning-of-buffer)
+	(goto-char (point-min))
 	(setq buffer-read-only t))
       (display-buffer "*Help*")
       (if (and (setq win (get-buffer-window "*Help*"))

@@ -1928,6 +1928,13 @@ another directory by typing @kbd{M-x desktop-change-dir}.  Typing
   Specify the option @samp{--no-desktop} on the command line when you
 don't want it to reload any saved desktop.
 
+@vindex desktop-restore-eager
+  By default, all the buffers in the desktop are restored at one go.
+However, this may be slow if there are a lot of buffers in the
+desktop.  You can specify the maximum number of buffers to restore
+immediately with the variable @code{desktop-restore-eager}; the
+remaining buffers are restored ``lazily,'' when Emacs is idle.
+
 @findex desktop-clear
 @vindex desktop-globals-to-clear
 @vindex desktop-clear-preserve-buffers-regexp
@@ -2048,41 +2055,28 @@ Emacs key bindings are still available.  The EDT emulation rebindings
 are done in the global keymap, so there is no problem switching
 buffers or major modes while in EDT emulation.
 
-@item ``PC'' bindings
-@findex pc-bindings-mode
-@cindex ``PC'' key bindings
-The command @kbd{M-x pc-bindings-mode} sets up certain key bindings
-for ``PC compatibility''---what people are often used to on PCs---as
-follows: @kbd{M-Backspace} does undo, and @kbd{C-Escape} does
-@code{list-buffers}.
+@item CUA bindings
+@findex cua-mode
+@vindex cua-mode
+@cindex CUA key bindings
+@vindex cua-enable-cua-keys
+The command @kbd{M-x cua-mode} sets up key bindings that are
+compatible with the Common User Access (CUA) system used in many other
+applications.  @kbd{C-x} means cut (kill), @kbd{C-c} copy, @kbd{C-v}
+paste (yank), and @kbd{C-z} undo.  Standard Emacs commands like
+@kbd{C-x C-c} still work, because @kbd{C-x} and @kbd{C-c} only take
+effect when the mark is active.  However, if you don't want these
+bindings at all, set @code{cua-enable-cua-keys} to nil.
 
-@item PC Selection mode
-@findex pc-selection-mode
-@cindex PC Selection minor mode
-@cindex mode, PC selection
-@cindex selection, PC
-The command @kbd{M-x pc-selection-mode} toggles a global minor mode
-that emulates the mark, copy, cut and paste commands of various other
-systems---an interface known as CUA.  It establishes the key bindings
-of PC mode, and also modifies the bindings of the cursor keys and the
-@kbd{next}, @kbd{prior}, @kbd{home} and @kbd{end} keys.  It does not
-provide the full set of CUA key bindings---the fundamental Emacs keys
-@kbd{C-c}, @kbd{C-v} and @kbd{C-x} are not changed.
+In CUA mode, using @kbd{Shift} together with the movement keys
+activates the region over which they move.  The standard (unshifted)
+movement keys deactivate the mark, and typed text replaces the active
+region as in Delete-Selection mode (@pxref{Graphical Kill}).
 
-The standard keys for moving around (@kbd{right}, @kbd{left},
-@kbd{up}, @kbd{down}, @kbd{home}, @kbd{end}, @kbd{prior}, @kbd{next},
-called ``move-keys'') deactivate the mark in PC selection mode.
-However, using @kbd{Shift} together with the ``move keys'' activates
-the region over which they move.  The copy, cut and paste functions
-are available on @kbd{C-insert}, @kbd{S-delete} and @kbd{S-insert}
-respectively.
-
-Turning @code{pc-selection-mode} off restores the old key bindings of
-these keys.
-
-@cindex s-region package
-The @code{s-region} package provides similar, but less complete,
-facilities.
+CUA mode also provides enhanced rectangle support with visible
+rectangle highlighting.  Use @kbd{Shift-RET} to start a rectangle,
+extend it using the movement commands, and cut or copy it using
+@kbd{C-x} or @kbd{C-c}.
 
 @item TPU (DEC VMS editor)
 @findex tpu-edt-on

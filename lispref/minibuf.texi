@@ -1289,6 +1289,13 @@ If the user types @key{RET}, @code{read-file-name} returns the file name
 as the string @code{"/gp/gnu/elisp/manual.texi"}.
 @end defun
 
+@defvar read-file-name-function
+If non-@code{nil}, this should be a function that accepts the same
+arguments as @code{read-file-name}.  When @code{read-file-name} is
+called, it calls this function with the supplied arguments instead of
+doing its usual work.
+@end defvar
+
 @defun read-directory-name prompt &optional directory default existing initial
 This function is like @code{read-file-name} but allows only directory
 names as completion possibilities.

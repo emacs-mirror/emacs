@@ -1160,20 +1160,24 @@ static char *magick[] = {
      (define-fringe-bitmap 'breakpoint
        "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
-(defface breakpoint-enabled-bitmap-face
+(defface breakpoint-enabled
   '((t
      :inherit fringe
+     :weight bold
      :foreground "red"))
   "Face for enabled breakpoint icon in fringe."
   :group 'gud)
+;; compatibility alias for old name
+(put 'breakpoint-enabled-bitmap-face 'face-alias 'breakpoint-enabled)
 
-(defface breakpoint-disabled-bitmap-face
+(defface breakpoint-disabled
   '((t
      :inherit fringe
      :foreground "grey60"))
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
-
+;; compatibility alias for old name
+(put 'breakpoint-disabled-bitmap-face 'face-alias 'breakpoint-disabled)
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
@@ -2194,8 +2198,8 @@ BUFFER nil or omitted means use the current buffer."
 	     nil (1+ start)
 	     `(left-fringe breakpoint
 			   ,(if enabled
-				'breakpoint-enabled-bitmap-face
-			      'breakpoint-disabled-bitmap-face)))
+				'breakpoint-enabled
+			      'breakpoint-disabled)))
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
@@ -2232,7 +2236,10 @@ BUFFER nil or omitted means use the current buffer."
 	      (set-window-margins
 	       (get-buffer-window (current-buffer) 0)
 	       left-margin-width right-margin-width))))
-      (gdb-put-string putstring (1+ start)))))
+      (gdb-put-string
+       (propertize putstring
+		   'face (if enabled 'breakpoint-enabled 'breakpoint-disabled))
+       (1+ start)))))
 
 (defun gdb-remove-breakpoint-icons (start end &optional remove-margin)
   (gdb-remove-strings start end)

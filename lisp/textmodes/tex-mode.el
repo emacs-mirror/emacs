@@ -2237,6 +2237,9 @@ because there is no standard value that would generally work."
   (interactive)
   (or tex-dvi-view-command
       (error "You must set `tex-dvi-view-command'"))
+  ;; Restart the TeX shell if necessary.
+  (or (tex-shell-running)
+      (tex-start-shell))
   (let ((tex-dvi-print-command (eval tex-dvi-view-command)))
     (tex-print)))
 

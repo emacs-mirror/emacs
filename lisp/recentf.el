@@ -255,6 +255,11 @@ It is passed a filename to give a chance to transform it.
 If it returns nil, the filename is left unchanged."
   :group 'recentf
   :type 'function)
+
+(defcustom recentf-cleanup-remote t
+  "*non-nil means to auto cleanup remote files."
+  :group 'recentf
+  :type  'boolean)
 
 ;;; Utilities
 ;;
@@ -1169,7 +1174,10 @@ empty `file-name-history' with the recent list."
   (message "Cleaning up the recentf list...")
   (let (newlist)
     (dolist (f recentf-list)
-      (if (and (recentf-include-p f) (recentf-file-readable-p f))
+      (if (and (recentf-include-p f)
+	       (or (and (file-remote-p f)
+			(not recentf-cleanup-remote))
+		   (recentf-file-readable-p f)))
           (push f newlist)
         (message "File %s removed from the recentf list" f)))
     (setq recentf-list (nreverse newlist))

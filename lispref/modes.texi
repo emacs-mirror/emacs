@@ -2381,6 +2381,14 @@ comments differently.  It is also sometimes abused together with
 multiple lines, but this is too obscure to document in this manual.
 @end defvar
 
+@defvar font-lock-lines-before
+This variable specifies the number of extra lines to consider when
+refontifying the buffer after each text change.  Font lock begins
+refontifying from that number of lines before the changed region.  The
+default is 1, but using a larger value can be useful for coping with
+multi-line patterns.
+@end defvar
+
 @node Levels of Font Lock
 @subsection Levels of Font Lock
 

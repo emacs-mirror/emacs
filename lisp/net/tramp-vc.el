@@ -1,6 +1,6 @@
 ;;; tramp-vc.el --- Version control integration for TRAMP.el
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004 by Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@danann.net>
 ;; Keywords: comm, processes
@@ -409,7 +409,7 @@ filename we are thinking about..."
   ;; boundness-checking into this function?
   (let* ((file (symbol-value 'file))
 	 (remote-uid
-	  ;; With Emacs 22.1, `file-attributes' has got an optional parameter
+	  ;; With Emacs 22, `file-attributes' has got an optional parameter
 	  ;; ID-FORMAT. Handle this case backwards compatible.
 	  (if (and (functionp 'subr-arity)
 		   (= 2 (cdr (funcall (symbol-function 'subr-arity)

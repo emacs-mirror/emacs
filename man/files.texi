@@ -207,15 +207,6 @@ While in the minibuffer, you can abort @kbd{C-x C-f} by typing
 @kbd{C-g}.  File-name completion ignores certain filenames; for more
 about this, see @ref{Completion Options}.
 
-@cindex file selection dialog
-  When Emacs is built with a suitable GUI toolkit, commands invoked
-with the mouse or the menu bar use the toolkit's standard File
-Selection dialog instead of prompting for the file name in the
-minibuffer.  On Unix and GNU/Linux platforms, Emacs does that when
-built with GTK, LessTif, and Motif toolkits; on MS-Windows, the GUI
-version does that by default.  @xref{Dialog Boxes}, for info
-on customization of this.
-
   Your confirmation that @kbd{C-x C-f} has completed successfully is the
 appearance of new text on the screen and a new buffer name in the mode
 line.  If the specified file does not exist and could not be created, or
@@ -228,11 +219,33 @@ However, before doing so, it checks that the file itself has not changed
 since you visited or saved it last.  If the file has changed, a warning
 message is shown.  @xref{Interlocking,,Simultaneous Editing}.
 
+@vindex large-file-warning-threshold
 @cindex maximum buffer size exceeded, error message
-  Since Emacs reads the visited file in its entirety, files whose size
-is larger than the maximum Emacs buffer size (@pxref{Buffers}) cannot be
-visited; if you try, Emacs will display an error message saying that the
-maximum buffer size has been exceeded.
+  If you try to visit a file larger than
+@code{large-file-warning-threshold} (the default is 10000000, which is
+about 10 megabytes), Emacs will ask you for confirmation first.  You
+can answer @kbd{y} to proceed with visiting the file.  Note, however,
+that Emacs cannot visit files that are larger than the maximum Emacs
+buffer size, which is around 256 megabytes on 32-bit machines
+(@pxref{Buffers}).  If you try, Emacs will display an error message
+saying that the maximum buffer size has been exceeded.
+
+@cindex file selection dialog
+  On graphical terminals, there are two additional methods for
+visiting files.  Firstly, when Emacs is built with a suitable GUI
+toolkit, commands invoked with the mouse (by clicking on the menu bar
+or tool bar) use the toolkit's standard File Selection dialog instead
+of prompting for the file name in the minibuffer.  On Unix and
+GNU/Linux platforms, Emacs does that when built with GTK, LessTif, and
+Motif toolkits; on MS-Windows, the GUI version does that by default.
+For information on how to customize this, see @xref{Dialog Boxes}.
+
+  Secondly, Emacs supports the ``drag and drop'' protocol on the X
+window system.  Dropping a file into an ordinary Emacs window visits
+the file using that window.  However, dropping a file into a window
+displaying a Dired buffer moves or copies the file into the displayed
+directory.  For details, see @xref{Drag and Drop} and @xref{Misc Dired
+Features}.
 
 @cindex creating files
   What if you want to create a new file?  Just visit it.  Emacs displays
@@ -905,15 +918,27 @@ discard your changes.)
 @cindex mode, Auto-Revert
 @findex global-auto-revert-mode
 @findex auto-revert-mode
+@findex auto-revert-tail-mode
+
+  You may find it useful to have Emacs revert files automatically when
+they change.  Three minor modes are available to do this.
+
+  @kbd{M-x global-auto-revert-mode} runs Global Auto-Revert mode,
+which periodically checks all file buffers and reverts when the
+corresponding file has changed.  @kbd{M-x auto-revert-mode} runs a
+local version, Auto-Revert mode, which applies only to the buffer in
+which it was activated.  Auto-Revert mode can be used to ``tail'' a
+file, such as a system log, so that changes made to that file by other
+programs are continuously displayed.  To do this, just move the point
+to the end of the buffer, and it will stay there as the file contents
+change.  However, if you are sure that the file will only change by
+growing at the end, you can tail the file more efficiently using
+Auto-Revert Tail mode, @kbd{M-x auto-revert-tail-mode}.
+
 @vindex auto-revert-interval
-You may find it useful to have Emacs revert files automatically when
-they change.  Two minor modes are available to do this.  In Global
-Auto-Revert mode, Emacs periodically checks all file buffers and
-reverts any when the corresponding file has changed.  The local
-variant, Auto-Revert mode, applies only to buffers in which it was
-activated.  The variable @code{auto-revert-interval} controls how
-often to check for a changed file.  Since checking a remote file is
-too slow, these modes do not check or revert remote files.
+  The variable @code{auto-revert-interval} controls how often to check
+for a changed file.  Since checking a remote file is too slow, these
+modes do not check or revert remote files.
 
 @node Auto Save
 @section Auto-Saving: Protection Against Disasters
@@ -1225,7 +1250,7 @@ and deletes.  It can be used via http or via its own protocol.
 
 @cindex MCVS
 @cindex Meta-CVS
-  Meta-CVS is another attempt to solve problems, arising in CVS.  It
+  Meta-CVS is another attempt to solve problems arising in CVS.  It
 supports directory structure versioning, improved branching and
 merging, and use of symbolic links and meta-data in repositories.
 
@@ -2839,14 +2864,12 @@ running the @code{diff} program, using options taken from the variable
 @code{diff-switches}.  The value of @code{diff-switches} should be a
 string; the default is @code{"-c"} to specify a context diff.
 
-  The buffer @samp{*diff*} has Compilation mode as its major mode, so
-you can use @kbd{C-x `} to visit successive changed locations in the two
-source files.  You can also move to a particular hunk of changes and
-type @key{RET} or @kbd{C-c C-c}, or click @kbd{Mouse-2} on it, to move
-to the corresponding source location.  You can also use the other
-special commands of Compilation mode: @key{SPC} and @key{DEL} for
-scrolling, and @kbd{M-p} and @kbd{M-n} for cursor motion.
-@xref{Compilation}.
+@findex diff-goto-source
+  After running @kbd{M-x diff}, you can use @kbd{C-x `} to visit
+successive changed locations in the two source files, as in
+Compilation mode (@pxref{Compilation}.)  In the @samp{*diff*} buffer,
+you can move to a particular hunk of changes and type @kbd{C-c C-c}
+(@code{diff-goto-source}) to visit the corresponding source location.
 
 @findex diff-backup
   The command @kbd{M-x diff-backup} compares a specified file with its most
@@ -2864,9 +2887,13 @@ the command is finished.  For more information about windows in Emacs,
 @ref{Windows}.
 
 @vindex compare-ignore-case
+@vindex compare-ignore-whitespace
   With a numeric argument, @code{compare-windows} ignores changes in
 whitespace.  If the variable @code{compare-ignore-case} is
-non-@code{nil}, it ignores differences in case as well.
+non-@code{nil}, the comparison ignores differences in case as well.
+If the variable @code{compare-ignore-whitespace} is non-nil,
+@code{compare-windows} normally ignores changes in whitespace, and a
+prefix argument turns that off.
 
 @findex diff-mode
 @cindex diffs
@@ -2943,36 +2970,40 @@ done; this is because renaming causes the old meaning of the name @var{new}
 to be lost.  If @var{old} and @var{new} are on different file systems, the
 file @var{old} is copied and deleted.
 
+  If the argument @var{new} is just a directory name, the real new
+name is in that directory, with the same non-directory component as
+@var{old}.  For example, @kbd{M-x rename-file RET ~/foo RET /tmp RET}
+renames @file{~/foo} to @file{/tmp/foo}.  The same rule applies to all
+the remaining commands in this section.  All of them ask for
+confirmation when the new file name already exists, too.
+
 @findex add-name-to-file
 @cindex hard links (creation)
   The similar command @kbd{M-x add-name-to-file} is used to add an
 additional name to an existing file without removing its old name.
 The new name is created as a ``hard link'' to the existing file.
 The new name must belong on the same file system that the file is on.
-On Windows, this command works only if the file resides in an NTFS
+On MS-Windows, this command works only if the file resides in an NTFS
 file system.  On MS-DOS, it works by copying the file.
 
 @findex copy-file
 @cindex copying files
-  @kbd{M-x copy-file} reads the file @var{old} and writes a new file named
-@var{new} with the same contents.  Confirmation is required if a file named
-@var{new} already exists, because copying has the consequence of overwriting
-the old contents of the file @var{new}.
+  @kbd{M-x copy-file} reads the file @var{old} and writes a new file
+named @var{new} with the same contents.
 
 @findex make-symbolic-link
 @cindex symbolic links (creation)
   @kbd{M-x make-symbolic-link} reads two file names @var{target} and
-@var{linkname}, then creates a symbolic link named @var{linkname}, which
-points at @var{target}.  The effect is that future attempts to open file
-@var{linkname} will refer to whatever file is named @var{target} at the
-time the opening is done, or will get an error if the name @var{target} is
-not in use at that time.  This command does not expand the argument
-@var{target}, so that it allows you to specify a relative name
-as the target of the link.
+@var{linkname}, then creates a symbolic link named @var{linkname},
+which points at @var{target}.  The effect is that future attempts to
+open file @var{linkname} will refer to whatever file is named
+@var{target} at the time the opening is done, or will get an error if
+the name @var{target} is nonexistent at that time.  This command does
+not expand the argument @var{target}, so that it allows you to specify
+a relative name as the target of the link.
 
-  Confirmation is required when creating the link if @var{linkname} is
-in use.  Note that not all systems support symbolic links; on systems
-that don't support them, this command is not defined.
+  Not all systems support symbolic links; on systems that don't
+support them, this command is not defined.
 
 @node Compressed Files
 @section Accessing Compressed Files

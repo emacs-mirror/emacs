@@ -765,32 +765,6 @@ to that frame.  */)
   return do_switch_frame (event, 0, 0);
 }
 
-DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
-       doc: /* Do nothing.
-This is a suitable binding for `iconify-frame' and `make-frame-visible'.  */)
-     ()
-{
-  /* Contrary to `handle-switch-frame', `ignore-event' is used from
-     `special-event-map'.  Commands from that map are run in a special
-     way that automatically preserves the prefix-arg.  Restoring
-     the prefix arg here is not just redundant but harmful:
-     - C-u C-x v =
-     - current-prefix-arg is set to non-nil, prefix-arg is set to nil.
-     - after the first prompt, the exit-minibuffer-hook is run which may
-       iconify a frame and thus push a `iconify-frame' event.
-     - after running exit-minibuffer-hook, current-prefix-arg is
-       restored to the non-nil value it had before the prompt.
-     - we enter the second prompt.
-       current-prefix-arg is non-nil, prefix-arg is nil.
-     - before running the first real event, we run the special iconify-frame
-       event, but we pass the `special' arg to execute-command so
-       current-prefix-arg and prefix-arg are left untouched.
-     - here we foolishly copy the non-nil current-prefix-arg to prefix-arg.
-     - the next key event will have a spuriously non-nil current-prefix-arg.
-  current_kboard->Vprefix_arg = Vcurrent_prefix_arg; */
-  return Qnil;
-}
-
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
        doc: /* Return the frame that is now selected.  */)
      ()
@@ -4127,7 +4101,6 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
   defsubr (&Sframe_live_p);
   defsubr (&Smake_terminal_frame);
   defsubr (&Shandle_switch_frame);
-  defsubr (&Signore_event);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
   defsubr (&Swindow_frame);

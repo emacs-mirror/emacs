@@ -227,10 +227,13 @@ This is not required to be present for user-written mode annotations.")
 	(calc-wrapper
 	 (let* ((okay nil)
 		(calc-no-refresh-evaltos t))
-	   (setq chg (calc-embedded-set-modes
-		      (aref info 15) (aref info 12) (aref info 13)))
 	   (if (aref info 8)
-	       (calc-push (calc-normalize (aref info 8)))
+               (progn
+                 (calc-push (calc-normalize (aref info 8)))
+                 (setq chg (calc-embedded-set-modes
+                            (aref info 15) (aref info 12) (aref info 13))))
+             (setq chg (calc-embedded-set-modes
+                        (aref info 15) (aref info 12) (aref info 13)))
 	     (calc-alg-entry)))
 	 (setq calc-undo-list nil
 	       calc-redo-list nil
