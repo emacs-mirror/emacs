@@ -102,12 +102,13 @@
  
 
 ;;;###autoload
-(define-minor-mode scroll-all-mode " *SL*"
+(define-minor-mode scroll-all-mode
   "Toggle Scroll-All minor mode.
 With ARG, turn Scroll-All minor mode on if ARG is positive, off otherwise.
 When Scroll-All mode is on, scrolling commands entered in one window
 apply to all visible windows in the same frame."
- :global t
+  nil " *SL*" nil
+  :global t
   (if scroll-all-mode
       (add-hook 'post-command-hook 'scroll-all-check-to-scroll)
     (remove-hook 'post-command-hook 'scroll-all-check-to-scroll)))
