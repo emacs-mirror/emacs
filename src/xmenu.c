@@ -2251,7 +2251,6 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       break;
 
     case XM_FAILURE:
-      XMenuDestroy (XDISPLAY menu);
       *error = "Can't activate menu";
     case XM_IA_SELECT:
     case XM_NO_SELECT:
