@@ -5584,7 +5584,9 @@ decode_coding (coding)
       coding->annotated = 0;
       (*(coding->decoder)) (coding);
       if (!NILP (CODING_ATTR_DECODE_TBL (attrs)))
-	translate_chars (CODING_ATTR_DECODE_TBL (attrs), coding);
+	translate_chars (coding, CODING_ATTR_DECODE_TBL (attrs));
+      else if (!NILP (Vstandard_translation_table_for_decode))
+	translate_chars (coding, Vstandard_translation_table_for_decode);
       coding_set_destination (coding);
       produce_chars (coding);
       if (coding->annotated)
@@ -5768,7 +5770,9 @@ encode_coding (coding)
     consume_chars (coding);
 
     if (!NILP (CODING_ATTR_ENCODE_TBL (attrs)))
-      translate_chars (CODING_ATTR_ENCODE_TBL (attrs), coding);
+      translate_chars (coding, CODING_ATTR_ENCODE_TBL (attrs));
+    else if (!NILP (Vstandard_translation_table_for_encode))
+      translate_chars (coding, Vstandard_translation_table_for_encode);
 
     coding_set_destination (coding);
     (*(coding->encoder)) (coding);
