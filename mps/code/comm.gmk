@@ -194,7 +194,6 @@ TESTLIB = testlib.c
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
-FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
@@ -264,8 +263,6 @@ FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -405,9 +402,6 @@ $(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
-$(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
-        $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
-
 $(PFM)/$(VARIETY)/epdss: $(PFM)/$(VARIETY)/epdss.o \
         $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
 
@@ -455,11 +449,6 @@ $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
   $(MPMOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
-
-$(PFM)/$(VARIETY)/replaysw: $(PFM)/$(VARIETY)/replay.o \
-  $(PFM)/$(VARIETY)/eventrep.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
-  $(FMTPSOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mpsliban.o $(SWOBJ)
 
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
 
@@ -536,7 +525,7 @@ ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
-  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
+  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) \
   $(PLINTHDEP) $(EVENTPROCDEP)
 endif
 endif
