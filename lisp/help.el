@@ -319,7 +319,7 @@ With numeric argument, display information on correspondingly older changes."
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
   (interactive)
-;;;  (find-file-read-only (expand-file-name "FAQ" data-directory))
+  ;; (find-file-read-only (expand-file-name "FAQ" data-directory))
   (info "(efaq)"))
 
 (defun view-emacs-problems ()
@@ -367,6 +367,21 @@ to display (default, the current buffer)."
   (with-current-buffer "*Help*"
     (help-setup-xref (list #'describe-bindings prefix buffer)
 		     (interactive-p))))
+
+;; This function used to be in keymap.c.
+(defun describe-bindings-internal (&optional menus prefix)
+  "Show a list of all defined keys, and their definitions.
+We put that list in a buffer, and display the buffer.
+
+The optional argument MENUS, if non-nil, says to mention menu bindings.
+\(Ordinarily these are omitted from the output.)
+The optional argument PREFIX, if non-nil, should be a key sequence;
+then we display only bindings that start with that prefix."
+  (interactive)
+  (let ((buf (current-buffer)))
+    (with-output-to-temp-buffer "*Help*"
+      (with-current-buffer standard-output
+	(describe-buffer-bindings buf prefix menus)))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.
@@ -463,10 +478,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	      (memq 'drag modifiers))
 	  (setq window (posn-window (event-start (aref key 0)))
 		position (posn-point (event-start (aref key 0)))))
-      (if (windowp window)
-	  (progn
+      (when (windowp window)
 	    (set-buffer (window-buffer window))
-	    (goto-char position)))
+	(goto-char position))
       (let ((defn (or (string-key-binding key) (key-binding key))))
 	(if (or (null defn) (integerp defn))
 	    (message "%s is undefined" (key-description key))
