@@ -980,7 +980,10 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
   (frame, focus_frame)
     Lisp_Object frame, focus_frame;
 {
-  CHECK_LIVE_FRAME (frame, 0);
+  /* Note that we don't check for a live frame here.  It's reasonable
+     to redirect the focus of a frame you're about to delete, if you
+     know what other frame should receive those keystrokes.  */
+  CHECK_FRAME (frame, 0);
 
   if (! NILP (focus_frame))
     CHECK_LIVE_FRAME (focus_frame, 1);
