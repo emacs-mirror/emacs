@@ -1,5 +1,8 @@
 2001-03-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (Fcurrent_time_zone) [HAVE_TM_ZONE || HAVE_TZNAME]: 
+	Accept only alphanumeric time zone names.
+
 	* xterm.c (XTset_vertical_scroll_bar): Don't clear a zero height
 	or width area.
 	(XTset_vertical_scroll_bar, x_scroll_bar_create): Don't configure
