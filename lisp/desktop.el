@@ -447,7 +447,11 @@ autoloaded files."
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-rmail () "Load an RMAIL file."
   (if (eq 'rmail-mode mam)
-      (progn (rmail-input fn) t)))
+      (condition-case error
+        (progn (rmail-input fn) t)
+      (file-locked
+       (kill-buffer (current-buffer))
+       'ignored))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-mh () "Load a folder in the mh system."
   (if (eq 'mh-folder-mode mam)
