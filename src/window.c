@@ -1980,9 +1980,13 @@ display_buffer_1 (window)
 #ifdef MULTI_FRAME
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   FRAME_SAMPLE_VISIBILITY (f);
-  if (FRAME_ICONIFIED_P (f)
-      && f != selected_frame)
-    Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+  if (f != selected_frame)
+    {
+      if (FRAME_ICONIFIED_P (f))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+      else (FRAME_VISIBLE_P (f))
+	Fraise_frame (WINDOW_FRAME (XWINDOW (window)));
+    }
 #endif
   return window;
 }
