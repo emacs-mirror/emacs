@@ -1,5 +1,7 @@
 2001-01-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* xselect.c (x_reply_selection_request): Add a comment.
+
 	* xfns.c (Fx_backspace_delete_keys_p): Use XkbGetMap and
 	XkbGetNames instead of XkbGetKeyboard.
 
