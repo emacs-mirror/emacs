@@ -50,12 +50,12 @@ This searches for commands whose names match @var{topic}, which should
 be a regular expression (@pxref{Regexps}).  Browse the buffer popped
 up by Emacs, to find what you are looking for.  @xref{Apropos}.
 
-@item M-x apropos @var{topic} @key{RET}
+@item M-x apropos @key{RET} @var{topic} @key{RET}
 This works like @kbd{C-h a}, but it also searches for user options and
 other variables, in case the feature you are looking for is controlled
 by an option, not a command.  @xref{Apropos}.
 
-@item M-x apropos-documentation @var{topic} @key{RET}
+@item M-x apropos-documentation @key{RET} @var{topic} @key{RET}
 This searches the @emph{documentation strings} (the built-in short
 descriptions) of all variables and functions (not their names) for a
 match for @var{topic}, a regular expression.  @xref{Apropos}.
