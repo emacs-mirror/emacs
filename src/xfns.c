@@ -3746,15 +3746,21 @@ syms_of_xfns ()
   mouse_buffer_offset = 0;
 
   DEFVAR_INT ("x-pointer-shape", &Vx_pointer_shape,
-	      "The shape of the pointer when over text.");
+	      "The shape of the pointer when over text.\n\
+Changing the value does not affect existing frames\n\
+unless you set the mouse color.");
   Vx_pointer_shape = Qnil;
 
+#if 0
   DEFVAR_INT ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
 	      "The shape of the pointer when not over text.");
+#endif
   Vx_nontext_pointer_shape = Qnil;
 
+#if 0
   DEFVAR_INT ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
 	      "The shape of the pointer when over the mode line.");
+#endif
   Vx_mode_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
