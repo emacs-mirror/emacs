@@ -309,7 +309,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     (".*: WARNING File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
 
     ;; Sun F90 error messages:
-    ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3 
+    ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
     (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
      1 2 3)
     )
@@ -343,7 +343,7 @@ The default value matches lines printed by the `-w' option of GNU Make.")
 Note that the match is done at the beginning of lines.
 Each elt has the form (REGEXP IDX).
 If REGEXP matches, the IDX'th subexpression gives the name of the directory
-being moved from. If IDX is nil, the last directory entered \(by a line
+being moved from.  If IDX is nil, the last directory entered \(by a line
 matching `compilation-enter-directory-regexp-alist'\) is assumed.
 
 The default value matches lines printed by the `-w' option of GNU Make.")
@@ -357,7 +357,7 @@ The default value matches lines printed by the `-w' option of GNU Make.")
   "Alist specifying how to match lines that indicate a new current file.
 Note that the match is done at the beginning of lines.
 Each elt has the form (REGEXP IDX).
-If REGEXP matches, the IDX'th subexpression gives the file name. This is
+If REGEXP matches, the IDX'th subexpression gives the file name.  This is
 used with compilers that don't indicate file name in every error message.")
 
 ;; There is no generally useful regexp that will match non messages, but
@@ -369,7 +369,7 @@ used with compilers that don't indicate file name in every error message.")
     )
   "Alist specifying how to match lines that have no message.
 Note that the match is done at the beginning of lines.
-Each elt has the form (REGEXP). This alist is by default empty, but if
+Each elt has the form (REGEXP).  This alist is by default empty, but if
 you have some good regexps here, the parsing of messages will be faster.")
 
 (defcustom compilation-error-screen-columns t
@@ -384,14 +384,14 @@ especially the TAB character."
   :version "20.4")
 
 (defcustom compilation-read-command t
-  "*If not nil, M-x compile reads the compilation command to use.
-Otherwise, M-x compile just uses the value of `compile-command'."
+  "*Non-nil means \\[compile] reads the compilation command to use.
+Otherwise, \\[compile] just uses the value of `compile-command'."
   :type 'boolean
   :group 'compilation)
 
 ;;;###autoload
 (defcustom compilation-ask-about-save t
-  "*If not nil, M-x compile asks which buffers to save before compiling.
+  "*Non-nil means \\[compile] asks which buffers to save before compiling.
 Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
@@ -653,7 +653,8 @@ if that history list is empty)."
 
 ;;;###autoload
 (defun grep-find (command-args)
-  "Run grep via find, with user-specified args, and collect output in a buffer.
+  "Run grep via find, with user-specified args COMMAND-ARGS.
+Collect output in a buffer.
 While find runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
@@ -836,8 +837,8 @@ exited abnormally with code %d\n"
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
-;; Set the height of WINDOW according to compilation-window-height.
 (defun compilation-set-window-height (window)
+  "Set the height of WINDOW according to `compilation-window-height'."
   (and compilation-window-height
        (= (window-width window) (frame-width (window-frame window)))
        ;; If window is alone in its frame, aside from a minibuffer,
@@ -947,8 +948,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
       (apply 'compile-internal compilation-arguments)))
 
-;; Prepare the buffer for the compilation parsing commands to work.
 (defun compilation-setup ()
+  "Prepare the buffer for the compilation parsing commands to work."
   ;; Make the buffer's mode line show process state.
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'compilation-error-list) nil)
@@ -959,7 +960,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (setq compilation-last-buffer (current-buffer)))
 
 (defvar compilation-shell-minor-mode nil
-  "Non-nil when in compilation-shell-minor-mode.
+  "Non-nil when in `compilation-shell-minor-mode'.
 In this minor mode, all the error-parsing commands of the
 Compilation major mode are available but bound to keys that don't
 collide with Shell mode.")
@@ -975,7 +976,7 @@ collide with Shell mode.")
 				     minor-mode-map-alist)))
 
 (defvar compilation-minor-mode nil
-  "Non-nil when in compilation-minor-mode.
+  "Non-nil when in `compilation-minor-mode'.
 In this minor mode, all the error-parsing commands of the
 Compilation major mode are available.")
 (make-variable-buffer-local 'compilation-minor-mode)
@@ -1016,8 +1017,8 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 	(compilation-setup)
 	(run-hooks 'compilation-minor-mode-hook))))
 
-;; Write msg in the current buffer and hack its mode-line-process.
 (defun compilation-handle-exit (process-status exit-status msg)
+  "Write msg in the current buffer and hack its mode-line-process."
   (let ((buffer-read-only nil)
 	(status (if compilation-exit-message-function
 		    (funcall compilation-exit-message-function
@@ -1098,8 +1099,8 @@ Just inserts the text, but uses `insert-before-markers'."
 	    ;;(set-marker (process-mark proc) (point))
 	    )))))
 
-;; Return the cdr of compilation-old-error-list for the error containing point.
 (defun compile-error-at-point ()
+  "Return the cdr of `compilation-old-error-list' for error containing point."
   (compile-reinitialize-errors nil (point))
   (let ((errors compilation-old-error-list))
     (while (and errors
@@ -1115,10 +1116,12 @@ Just inserts the text, but uses `insert-before-markers'."
 
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
 Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer."))
+      (error "Not in a compilation buffer"))
   (setq compilation-last-buffer (current-buffer))
 
   (let ((errors (compile-error-at-point)))
@@ -1142,6 +1145,8 @@ Does NOT find the source line like \\[next-error]."
 
 (defun compilation-previous-error (n)
   "Move point to the previous error in the compilation buffer.
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
 Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (compilation-next-error (- n)))
@@ -1168,7 +1173,7 @@ Does NOT find the source line like \\[next-error]."
   "Move point to the next error for a different file than the current one."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer."))
+      (error "Not in a compilation buffer"))
   (setq compilation-last-buffer (current-buffer))
 
   (let ((reversed (< n 0))
@@ -1232,7 +1237,7 @@ Does NOT find the source line like \\[next-error]."
   (let ((buffer (compilation-find-buffer)))
     (if (get-buffer-process buffer)
 	(interrupt-process (get-buffer-process buffer))
-      (error "The compilation process is not running."))))
+      (error "The compilation process is not running"))))
 
 
 ;; Parse any new errors in the compilation buffer,
@@ -1304,7 +1309,7 @@ at the end of the line."
     (goto-char (posn-point (event-end event)))
 
     (or (compilation-buffer-p (current-buffer))
-	(error "Not in a compilation buffer."))
+	(error "Not in a compilation buffer"))
     (setq compilation-last-buffer (current-buffer))
     ;; `compile-reinitialize-errors' needs to see the complete filename
     ;; on the line where they clicked the mouse.  Since it only looks
@@ -1340,7 +1345,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there.
 other kinds of prefix arguments are ignored."
   (interactive "P")
   (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer."))
+      (error "Not in a compilation buffer"))
   (setq compilation-last-buffer (current-buffer))
   (compile-reinitialize-errors (consp argp) (point))
 
@@ -1632,13 +1637,13 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
     (set-window-start w (car next-error))
     (compilation-set-window-height w)))
 
-;; Find a buffer for file FILENAME.
-;; Search the directories in compilation-search-path.
-;; A nil in compilation-search-path means to try the
-;; current directory, which is passed in DIR.
-;; If FILENAME is not found at all, ask the user where to find it.
-;; Pop up the buffer containing MARKER and scroll to MARKER if we ask the user.
 (defun compilation-find-file (marker filename dir &rest formats)
+  "Find a buffer for file FILENAME.
+Search the directories in compilation-search-path.
+A nil in compilation-search-path means to try the
+current directory, which is passed in DIR.
+If FILENAME is not found at all, ask the user where to find it.
+Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
 	buffer thisdir fmts name)
@@ -1728,7 +1733,7 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
     groupings))
 
 (defvar compilation-current-file nil
-  "Used by compilation-parse-errors to store filename for file being compiled")
+  "Used by `compilation-parse-errors' to store filename for file being compiled.")
 
 ;; This variable is not used as a global variable. It's defined here just to
 ;; shut up the byte compiler. It's bound and used by compilation-parse-errors
@@ -1815,7 +1820,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			;; No file name in message, we must have seen it before
 			(setq filename compilation-current-file)
 			(error "\
-An error message with no file name and no file name has been seen earlier."))
+An error message with no file name and no file name has been seen earlier"))
 
 		    ;; Check for a comint-file-name-prefix and prepend it if
 		    ;; appropriate.  (This is very useful for
@@ -1970,7 +1975,7 @@ An error message with no file name and no file name has been seen earlier."))
 	 (setq this (cdr this)))))
 
 (defun compile-buffer-substring (index)
-  ;; Get substring matched by INDEXth subexpression.
+  "Get substring matched by INDEXth subexpression."
   (if index
       (let ((beg (match-beginning index)))
 	(if beg (buffer-substring beg (match-end index))))))
