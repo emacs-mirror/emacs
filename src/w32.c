@@ -1,5 +1,5 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1819,8 +1819,14 @@ sys_mktemp (char * template)
 int
 sys_open (const char * path, int oflag, int mode)
 {
-  /* Force all file handles to be non-inheritable. */
-  return _open (map_w32_filename (path, NULL), oflag | _O_NOINHERIT, mode);
+  const char* mpath = map_w32_filename (path, NULL);
+  /* Try to open file without _O_CREAT, to be able to write to hidden
+     and system files. Force all file handles to be
+     non-inheritable. */
+  int res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
+  if (res >= 0)
+    return res;
+  return _open (mpath, oflag | _O_NOINHERIT, mode);
 }
 
 int
