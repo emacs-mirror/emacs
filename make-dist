@@ -127,7 +127,7 @@ mkdir ${tempdir}
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
-ln ChangeLog Makefile.in build-install.in configure configure.in ${tempdir}
+ln ChangeLog Makefile.in build-ins.in configure configure.in ${tempdir}
 ln make-dist vpath.sed ${tempdir}
 ### Copy config.guess and config.sub; they're cross-filesystem symlinks.
 cp config.sub ${tempdir}
@@ -208,9 +208,6 @@ echo "Making links to \`src'."
  ln *.opt vms-pp.trans ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile
- if [ -z "${newer}" ]; then
-   etags *.h *.c ../lisp/*.el
- fi
  rm -f =* TAGS)
 
 echo "Making links to \`src/bitmaps'."
