@@ -5520,18 +5520,28 @@ window-systems.  */);
   
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
-		     doc: /* *If a number, scroll display up aggressively.
-If scrolling a window because point is below the window end, choose
-a new window start so that point ends up that fraction of the window's
-height from the bottom of the window.  Meaningful values are
+		     doc: /* How far to scroll windows upward.
+If you move point off the bottom, the window scrolls automatically.
+This variable controls how far it scrolls.  nil, the default,
+means scroll to center point.  A fraction means scroll to put point
+that fraction of the window's height from the bottom of the window.
+When the value is 0.0, point goes at the bottom line, which in the simple
+case that you moved off with C-f means scrolling just one line.  1.0 means
+point goes at the top, so that in that simple case, the window
+window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
   
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
 		     &current_buffer->scroll_down_aggressively, Qnil,
-		     doc: /* *If a number, scroll display down aggressively.
-If scrolling a window because point is above the window start, choose
-a new window start so that point ends up that fraction of the window's
-height from the top of the window.  Meaningful values are
+		     doc: /* How far to scroll windows downward.
+If you move point off the top, the window scrolls automatically.
+This variable controls how far it scrolls.  nil, the default,
+means scroll to center point.  A fraction means scroll to put point
+that fraction of the window's height from the top of the window.
+When the value is 0.0, point goes at the top line, which in the simple
+case that you moved off with C-b means scrolling just one line.  1.0 means
+point goes at the bottom, so that in that simple case, the window
+window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
   
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
