@@ -76,12 +76,28 @@ reinserts the fill prefix in each resulting line."
   :type 'boolean
   :group 'fill)
 
-(defcustom adaptive-fill-regexp "[ \t]*\\([#;>*]+ +\\)?"
+(defcustom adaptive-fill-regexp "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)*"
   "*Regexp to match text at start of line that constitutes indentation.
-If Adaptive Fill mode is enabled, whatever text matches this pattern
-on the second line of a paragraph is used as the standard indentation
-for the paragraph.  If the paragraph has just one line, the indentation
-is taken from that line."
+If Adaptive Fill mode is enabled, a prefix matching this pattern
+on the first and second lines of a paragraph is used as the
+standard indentation for the whole paragraph.
+
+If the paragraph has just one line, the indentation is taken from that
+line, but in that case `adaptive-fill-first-line-regexp' also plays
+a role."
+  :type 'regexp
+  :group 'fill)
+
+(defcustom adaptive-fill-first-line-regexp "\\`[ \t]*$`//'"
+  "*Regexp specifying whether to set fill prefix from a one-line paragraph.
+When a paragraph has just one line, then after `adaptive-fill-regexp'
+finds the prefix at the beginning of the line, if it doesn't
+match this regexp, it is replaced with whitespace.
+
+By default, this regexp matches sequences of just spaces and tabs.
+
+However, we never use a prefix from a one-line paragraph
+if it would act as a paragraph-starter on the second line."
   :type 'regexp
   :group 'fill)
 
@@ -156,9 +172,12 @@ Remove indentation from each line."
 
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
-This uses the variables `adaptive-fill-prefix' and `adaptive-fill-function'.
-If FIRST-LINE-REGEXP is non-nil, then when taking a prefix from the
-first line, insist it must match FIRST-LINE-REGEXP."
+This uses the variables `adaptive-fill-prefix' and `adaptive-fill-function'
+and `adaptive-fill-first-line-regexp'.  `paragraph-start' also plays a role;
+we reject a prefix based on a one-line paragraph if that prefix would
+act as a paragraph-separator."
+  (or first-line-regexp
+      (setq first-line-regexp adaptive-fill-first-line-regexp))
   (save-excursion
     (goto-char from)
     (if (eolp) (forward-line 1))
@@ -178,11 +197,30 @@ first line, insist it must match FIRST-LINE-REGEXP."
 		  (cond ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
 			 (buffer-substring-no-properties start (match-end 0)))
 			(adaptive-fill-function (funcall adaptive-fill-function)))))
-	(and result
-	     (or at-second
-		 (null first-line-regexp)
-		 (string-match first-line-regexp result))
-	     result)))))
+	(if at-second
+	    ;; If we get a fill prefix from the second line,
+	    ;; make sure it's on the first line too.
+	    (save-excursion
+	      (forward-line -1)
+	      (if (looking-at (regexp-quote result))
+		  result))
+	  ;; If we get a fill prefix from a one-line paragraph,
+	  ;; maybe change it to whitespace,
+	  ;; and check that it isn't a paragraph starter.
+	  (if result
+	      (progn
+		;; If RESULT comes from the first line,
+		;; see if it seems reasonable to use for all lines.
+		;; If not, replace it with whitespace.
+		(or (and first-line-regexp
+			 (string-match first-line-regexp result))
+		    (and comment-start-skip
+			 (string-match comment-start-skip result))
+		    (setq result (make-string (string-width result) ?\ )))
+		;; But either way, reject it if it indicates
+		;; the start of a paragraph.
+		(if (not (eq 0 (string-match paragraph-start result)))
+		    result))))))))
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
