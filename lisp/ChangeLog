@@ -1,3 +1,13 @@
+2001-03-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (info-insert-file-contents-1): Accept an additional
+	argument `lfn': if it is non-nil, concatenate `filename' and
+	`suffix'; otherwise use the complicated MS-DOS code.  All callers
+	changed.
+	(info-insert-file-contents, Info-find-node): If the MS-DOS port
+	can access long file names, try the long file-name version of
+	`info-insert-file-contents-1', then the short file-name version.
+
 2001-02-28  TAKAHASHI Naoto  <ntakahas@m17n.org>
 
 	* language/ethio-util.el (setup-ethiopic-environment-internal):
