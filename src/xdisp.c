@@ -18708,7 +18708,7 @@ x_produce_glyphs (it)
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  lh = Fget_text_property (IT_CHARPOS (*it), Qline_height, it->w->buffer);
+	  lh = Fget_text_property (IT_CHARPOS (*it), Qline_height, it->object);
 
 	  if (EQ (lh, Qt))
 	    {
@@ -18760,7 +18760,7 @@ x_produce_glyphs (it)
 		it->ascent = explicit_height - it->descent;
 	    }
 
-	  lsp = Fget_text_property (IT_CHARPOS (*it), Qline_spacing, it->w->buffer);
+	  lsp = Fget_text_property (IT_CHARPOS (*it), Qline_spacing, it->object);
 	  if (INTEGERP (lsp))
 	    extra_line_spacing = XINT (lsp);
 	  else if (FLOATP (lsp))
