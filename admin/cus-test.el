@@ -73,45 +73,40 @@
 ;; bugs/problems.  Therefore this file contains a "Workaround"
 ;; section, to be edited once in a while.
 ;;
-;; There is an additional experimental option
-;; `cus-test-include-changed-variables'.
-;;
 ;; Options with a custom-get property, usually defined by a :get
-;; declararation, are stored in the variable
-;; `cus-test-variables-with-custom-get', just in case one wants to
-;; investigate them further.
+;; declaration, are stored in the variable
+;;
+;; `cus-test-vars-with-custom-get'
+;;
+;; Options with a state of 'changed ("changed outside the customize
+;; buffer") are stored in the variable
+;;
+;; `cus-test-vars-with-changed-state'
+;;
+;; These lists are prepared just in case one wants to investigate
+;; those options further.
+;;
+;; Current result (Oct 6, 2002) of cus-test-all:
+;;
+;; Cus Test tested 4514 variables.
+;; The following variables might have problems:
+;; (ps-mule-font-info-database-default)
 
 ;;; Code:
 
 ;;; User variables:
 
-(defvar cus-test-strange-variables nil
+(defvar cus-test-strange-vars nil
   "*List of variables to disregard by `cus-test-apropos'.")
 
 (defvar cus-test-strange-libs nil
   "*List of libraries to avoid by `cus-test-load-libs'.")
 
-(defvar cus-test-after-load-libraries-hook nil
+(defvar cus-test-after-load-libs-hook nil
   "*Hook to repair the worst side effects of loading buggy libraries.
 It is run after `cus-test-load-custom-loads' and `cus-test-load-libs'")
 
-(defvar cus-test-include-changed-variables nil
-  "*If non-nil, consider variables with state 'changed as buggy.")
-
 ;;; Workarounds:
-
-;; avoid error when loading speedbar.el
-;; bug in speedbar.el in 20.3:
-;; (define-key speedbar-key-map "Q" 'delete c-frame)
-;; (setq speedbar-key-map (make-keymap))
-
-;; avoid binding of M-x to `save-buffers-exit-emacs' after loading
-;; crisp.el (in 20.3):
-;; (setq crisp-override-meta-x nil)
-
-;; Work around bugs in 21.0:
-
-;; (defvar msb-after-load-hooks)
 
 ;; The file eudc-export.el loads libraries "bbdb" and "bbdb-com" which
 ;; are not part of GNU Emacs.
@@ -119,39 +114,29 @@ It is run after `cus-test-load-custom-loads' and `cus-test-load-libs'")
 (provide 'bbdb-com)
 ;; (locate-library "bbdb")
 
-;; Work around bugs in 21.3.50:
+;; reftex must be loaded before reftex-vars.
+(load "reftex")
 
-;; ada load problems are fixed now.
-;; (add-to-list 'cus-test-strange-libs "ada-xref")
+;; eshell must be loaded before em-script.  eshell loads esh-util,
+;; which must be loaded before em-cmpl, em-dirs and similar libraries.
+(load "eshell")
+
+;; Loading dunnet in batch mode leads to a dead end.
+(when noninteractive
+  (let (noninteractive) (load "dunnet"))
+  (add-to-list 'cus-test-strange-libs "dunnet"))
 
 ;; Loading filesets.el currently disables mini-buffer echoes.
 ;; (add-to-list 'cus-test-strange-libs "filesets")
 (add-hook
- 'cus-test-after-load-libraries-hook
+ 'cus-test-after-load-libs-hook
  (lambda nil
    (remove-hook 'menu-bar-update-hook 'filesets-build-menu-maybe)
    (remove-hook 'kill-emacs-hook 'filesets-exit)
    (remove-hook 'kill-buffer-hook 'filesets-remove-from-ubl)
    (remove-hook 'first-change-hook 'filesets-reset-filename-on-change)
    ))
-;; (setq cus-test-after-load-libraries-hook nil)
-
-;; After loading many libraries there appears an error:
-;; Loading filesets...
-;; tpu-current-line: Args out of range: 44, 84185
-
-;; vc-cvs-registered in loaddefs.el runs a loop if vc-cvs.el is
-;; already loaded.
-(eval-after-load "loaddefs" '(load-library "vc-cvs"))
-
-;; reftex must be loaded before reftex-vars.
-(require 'reftex)
-
-;;; Current result (Oct 6, 2002) of cus-test-all:
-
-;; Cus Test tested 4514 variables.
-;; The following variables might have problems:
-;; (ps-mule-font-info-database-default)
+;; (setq cus-test-after-load-libs-hook nil)
 
 ;;; Silencing:
 
@@ -183,9 +168,12 @@ It is run after `cus-test-load-custom-loads' and `cus-test-load-libs'")
 
 ;; I haven't understood this :get stuff.  However, there are only very
 ;; few variables with a custom-get property.  Such symbols are stored
-;; in `cus-test-variables-with-custom-get'.
-(defvar cus-test-variables-with-custom-get nil
+;; in `cus-test-vars-with-custom-get'.
+(defvar cus-test-vars-with-custom-get nil
   "Set by `cus-test-apropos' to a list of options with :get property.")
+
+(defvar cus-test-vars-with-changed-state nil
+  "Set by `cus-test-apropos' to a list of options with state 'changed.")
 
 (require 'cus-edit)
 (require 'cus-load)
@@ -226,19 +214,19 @@ The detected problematic options are stored in `cus-test-errors'."
 		   values)
 
 	   ;; Changed outside the customize buffer?
-	   (when cus-test-include-changed-variables
-	     (let ((c-value
-		    (or (get symbol 'customized-value)
-			(get symbol 'saved-value)
-			(get symbol 'standard-value))))
-	       (if c-value
-		   (unless (equal (eval (car c-value))
-				  (symbol-value symbol))
-		     (setq mismatch 'changed)))))
+	   ;; This routine is not very much tested.
+	   (let ((c-value
+		  (or (get symbol 'customized-value)
+		      (get symbol 'saved-value)
+		      (get symbol 'standard-value))))
+	     (and (consp c-value)
+		  (boundp symbol)
+		  (not (equal (eval (car c-value)) (symbol-value symbol)))
+		  (add-to-list 'cus-test-vars-with-changed-state symbol)))
 
 	   ;; Store symbols with a custom-get property.
 	   (when (get symbol 'custom-get)
-	     (add-to-list 'cus-test-variables-with-custom-get symbol)
+	     (add-to-list 'cus-test-vars-with-custom-get symbol)
 	     ;; No need anymore to ignore them.
 	     ;; (setq mismatch nil)
 	     )
@@ -258,7 +246,6 @@ The detected problematic options are stored in `cus-test-errors'."
 	   (length cus-test-tested-variables))
   ;; (describe-variable 'cus-test-errors)
   (cus-test-errors-display)
-  ;; (describe-variable 'cus-test-variables-with-custom-get)
   )
 
 (defun cus-test-get-options (regexp)
@@ -273,7 +260,7 @@ The detected problematic options are stored in `cus-test-errors'."
 	 ;; (get symbol 'saved-value)
 	 (get symbol 'custom-type))
 	(string-match regexp (symbol-name symbol))
-	(not (member symbol cus-test-strange-variables))
+	(not (member symbol cus-test-strange-vars))
 	(push symbol found))))
     found))
 
@@ -301,7 +288,7 @@ The detected problematic options are stored in `cus-test-errors'."
   "Call `custom-load-symbol' on all atoms."
   (interactive)
   (mapatoms 'custom-load-symbol)
-  (run-hooks 'cus-test-after-load-libraries-hook))
+  (run-hooks 'cus-test-after-load-libs-hook))
 
 (defun cus-test-load-libs ()
   "Load the libraries with autoloads in loaddefs.el.
@@ -331,7 +318,7 @@ This function is useful to detect load problems of libraries."
 			 file alpha))
 		(error "Load Error for %s: %s" file alpha))))
       ))
-  (run-hooks 'cus-test-after-load-libraries-hook))
+  (run-hooks 'cus-test-after-load-libs-hook))
 
 (defun cus-test-all nil
   "Run a maximal test by cus-test.
@@ -346,7 +333,8 @@ in the emacs source directory."
   ;;  (cus-test-load-libs)
   (message "Running %s" 'cus-test-load-custom-loads)
   (cus-test-load-custom-loads)
-  ;; A second call increases the number of tested options.
+  ;; If the second call loads libraries, this indicates that there
+  ;; were load errors in the first run.
   (message "Running %s again" 'cus-test-load-custom-loads)
   (cus-test-load-custom-loads)
   (message "Running %s" 'cus-test-apropos)
