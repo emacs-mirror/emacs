@@ -153,7 +153,7 @@ decode_options (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:s:d:f", longopts, 0);
+			     "VHnea:s:d:t", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -192,7 +192,7 @@ decode_options (argc, argv)
 	  exit (0);
 	  break;
 
-        case 'f':
+        case 't':
           frame = 1;
           break;
           
@@ -225,7 +225,7 @@ Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 The following OPTIONS are accepted:\n\
 -V, --version           Just print a version info and return\n\
 -H, --help              Print this usage information message\n\
--f, --frame             Open a new Emacs frame on the current terminal\n\
+-t, --tty               Open a new Emacs frame on the current terminal\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\
@@ -300,7 +300,7 @@ xmalloc (size)
   defined-- exit with an errorcode.
 */
 void
-fail ()
+fail (void)
 {
   if (alternate_editor)
     {
@@ -720,14 +720,14 @@ init_pty ()
 }
 
 int
-copy_from_to (int in, int out, int sigio)
+copy_from_to (int in, int out)
 {
   static char buf[BUFSIZ];
   int nread = read (in, &buf, BUFSIZ);
   if (nread == 0)
     return 1;                   /* EOF */
   else if (nread < 0 && errno != EAGAIN)
-    return 0;                   /* Error */
+    return 0;
   else if (nread > 0)
     {
       int r = 0;
@@ -735,16 +735,11 @@ copy_from_to (int in, int out, int sigio)
 
       do {
         r = write (out, &buf, nread);
-      } while ((r < 0 && errno == EAGAIN)
+      } while ((r < 0 && errno == EINTR)
                || (r > 0 && (written += r) && written != nread));
       
       if (r < 0)
-        return 0;               /* Error */
-
-      if (emacs_pid && sigio)
-        {
-          kill (emacs_pid, SIGIO);
-        }
+        return 0;
     }
   return 1;
 }
@@ -754,53 +749,85 @@ pty_conversation (FILE *in)
 {
   char *str;
   char string[BUFSIZ];              
-  fd_set set;
+  fd_set set, rset;
+  int res;
+
+  FD_ZERO (&set);
+  FD_SET (master, &set);
+  FD_SET (1, &set);
+  FD_SET (fileno (in), &set);
 
   in_conversation = 1;
   
   while (! quit_conversation) {
-    int res;
-    
-    FD_ZERO (&set);
-    FD_SET (master, &set);
-    FD_SET (1, &set);
-    FD_SET (fileno (in), &set);
-    res = select (FD_SETSIZE, &set, NULL, NULL, NULL);
-    if (res < 0)
+    rset = set;
+    res = select (FD_SETSIZE, &rset, NULL, NULL, NULL);
+    if (res < 0 && errno != EINTR)
       {
-        if (errno != EINTR)
-          return 0;
+          reset_tty ();
+          fprintf (stderr, "%s: ", progname);
+          perror ("select");
+          return 0;             /* Error */
       }
     else if (res > 0)
       {
-        if (FD_ISSET (master, &set))
+        if (FD_ISSET (master, &rset))
           {
             /* Copy Emacs output to stdout. */
-            if (! copy_from_to (master, 0, 0))
-              return 1;
+            if (! copy_from_to (master, 0))
+              {
+                FD_CLR (master, &set);
+              }
           }
-        if (FD_ISSET (1, &set))
+        if (FD_ISSET (1, &rset))
           {
             /* Forward user input to Emacs. */
-            if (! copy_from_to (1, master, 1))
-              return 1;
+            if (! copy_from_to (1, master))
+              {
+                FD_CLR (master, &set);
+              }
           }
-        if (FD_ISSET (fileno (in), &set))
+        if (FD_ISSET (fileno (in), &rset))
           {
+            do {
+              res = read (fileno (in), string, BUFSIZ-1);
+            } while (res == EINTR);
+            if (res < 0)
+              {
+                reset_tty ();
+                fprintf (stderr, "%s: ", progname);
+                perror ("read");
+                return 0;
+              }
+            if (!res)
+              {
+                return 1;
+              }
+            
+            string[res] = 0;
+            if (string[res-1] == '\n')
+              string[res-1] = 0;
+            
             if (! emacs_pid)
               {
                 /* Get the pid of the Emacs process.
-                   XXX Is there is some nifty libc/kernel feature for doing this?
+                   XXX Is there some nifty libc/kernel feature for doing this?
                 */
-                str = fgets (string, BUFSIZ, in);
-                if (! str)
+                if (! string[0])
                   {
                     reset_tty ();
-                    fprintf (stderr, "%s: %s\n", progname, str);
-                    fail ();
+                    fprintf (stderr, "%s: could not get Emacs process id\n"
+                             "Maybe this Emacs does not support multiple terminals.\n", progname);
+                    return 0;
                   }
-                
-                emacs_pid = atoi (str);
+                emacs_pid = strtol (string, NULL, 10);
+              }
+            
+            if (! emacs_pid)    /* emacs_pid should be set above */
+              {
+                reset_tty ();
+                fprintf (stderr, "%s: %s\n", progname, string);
+                return 0;
               }
           }
       }
@@ -822,7 +849,7 @@ main (argc, argv)
 	   argv[0]);
   fprintf (stderr, "on systems with Berkeley sockets.\n");
 
-  fail (argc, argv);
+  fail ();
 }
 
 #else /* HAVE_SOCKETS */
@@ -891,7 +918,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("socket");
-      fail (argc, argv);
+      fail ();
     }
 
   server.sun_family = AF_UNIX;
@@ -922,7 +949,8 @@ main (argc, argv)
 
   {
     int sock_status = 0;
-
+    int oerrno = 0;
+    
     if (! socket_name)
       {
 	socket_name = alloca (system_name_length + 100);
@@ -933,11 +961,15 @@ main (argc, argv)
     if (strlen (socket_name) < sizeof (server.sun_path))
       strcpy (server.sun_path, socket_name);
     else
-      fprintf (stderr, "%s: socket-name %s too long",
-	       argv[0], socket_name);
+      {
+        fprintf (stderr, "%s: socket-name %s too long",
+                 argv[0], socket_name);
+        fail ();
+      }
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
+    oerrno = errno;
     if (sock_status)
       {
 	/* Failing that, see if LOGNAME or USER exist and differ from
@@ -958,6 +990,7 @@ main (argc, argv)
 		sprintf (server.sun_path, "/tmp/esrv%d-%s",
 			 (int) pw->pw_uid, system_name);
 		sock_status = socket_status (server.sun_path);
+                oerrno = errno;
 	      }
 	  }
       }
@@ -970,7 +1003,7 @@ main (argc, argv)
 	 if (0 != geteuid ())
 	   {
 	     fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
-	     fail (argc, argv);
+	     fail ();
 	   }
 	 break;
 
@@ -978,13 +1011,13 @@ main (argc, argv)
 	 /* `stat' failed */
 	 if (errno == ENOENT)
 	   fprintf (stderr,
-		    "%s: can't find socket; have you started the server?\n\
+		    "%s: Can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		    argv[0]);
 	 else
-	   fprintf (stderr, "%s: can't stat %s: %s\n",
-		    argv[0], server.sun_path, strerror (errno));
-	 fail (argc, argv);
+	   fprintf (stderr, "%s: Can't stat %s: %s\n",
+		    argv[0], server.sun_path, strerror (oerrno));
+	 fail ();
 	 break;
        }
   }
@@ -994,7 +1027,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("connect");
-      fail (argc, argv);
+      fail ();
     }
 
   /* We use the stream OUT to send our command to the server.  */
@@ -1002,7 +1035,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("fdopen");
-      fail (argc, argv);
+      fail ();
     }
 
   /* We use the stream IN to read the response.
@@ -1014,7 +1047,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("fdopen");
-      fail (argc, argv);
+      fail ();
     }
 
 #ifdef HAVE_GETCWD
@@ -1032,7 +1065,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 #else
       fprintf (stderr, "%s: %s (%s)\n", argv[0], string, strerror (errno));
 #endif
-      fail (argc, argv);
+      fail ();
     }
 
   if (nowait)
@@ -1054,7 +1087,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         {
           fprintf (stderr, "%s: ", argv[0]);
           perror ("fdopen");
-          fail (argc, argv);
+          fail ();
         }
         
       if (! init_tty ())
@@ -1062,7 +1095,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
           reset_tty ();
           fprintf (stderr, "%s: ", argv[0]);
           perror ("fdopen");
-          fail (argc, argv);
+          fail ();
         }
       
       if (! init_pty ())
@@ -1070,10 +1103,10 @@ To start the server in Emacs, type \"M-x server-start\".\n",
           reset_tty ();
           fprintf (stderr, "%s: ", argv[0]);
           perror ("fdopen");
-          fail (argc, argv);
+          fail ();
         }
       
-      fprintf (out, "-pty ");
+      fprintf (out, "-tty ");
       quote_file_name (pty_name, out);
       fprintf (out, " ");
       quote_file_name (getenv("TERM"), out);
@@ -1133,11 +1166,8 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       if (! pty_conversation (out))
         {
           reset_tty ();
-          fprintf (stderr, "%s: ", argv[0]);
-          perror ("fdopen");
-          fail (argc, argv);
+          fail ();
         }
-      close (master);
       reset_tty ();
       return 0;
     }

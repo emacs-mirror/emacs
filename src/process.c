@@ -275,11 +275,11 @@ extern int keyboard_bit_set P_ ((SELECT_TYPE *));
 
 static SELECT_TYPE input_wait_mask;
 
-/* Mask that excludes keyboard input descriptor (s).  */
+/* Mask that excludes keyboard input descriptor(s).  */
 
 static SELECT_TYPE non_keyboard_wait_mask;
 
-/* Mask that excludes process input descriptor (s).  */
+/* Mask that excludes process input descriptor(s).  */
 
 static SELECT_TYPE non_process_wait_mask;
 
@@ -6430,20 +6430,10 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
-/* The first time this is called, assume keyboard input comes from DESC
-   instead of from where we used to expect it.
-   Subsequent calls mean assume input keyboard can come from DESC
-   in addition to other places.  */
-
-static int add_keyboard_wait_descriptor_called_flag;
-
 void
 add_keyboard_wait_descriptor (desc)
      int desc;
 {
-  if (! add_keyboard_wait_descriptor_called_flag)
-    FD_CLR (0, &input_wait_mask);
-  add_keyboard_wait_descriptor_called_flag = 1;
   FD_SET (desc, &input_wait_mask);
   FD_SET (desc, &non_process_wait_mask);
   if (desc > max_keyboard_desc)

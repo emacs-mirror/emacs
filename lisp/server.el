@@ -185,9 +185,6 @@ are done with it in the server.")
     ;; Remove PROC from the list of clients.
     (when client
       (setq server-clients (delq client server-clients))
-      (let ((frame (assq (car client) server-frames)))
-	(setq server-frames (delq frame server-frames))
-	(when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force)))
       (dolist (buf (cdr client))
 	(with-current-buffer buf
 	  ;; Remove PROC from the clients of each buffer.
@@ -197,8 +194,23 @@ are done with it in the server.")
 		     (or (and server-kill-new-buffers
 			      (not server-existing-buffer))
 			 (server-temp-file-p)))
-	    (kill-buffer (current-buffer)))))))
+	    (kill-buffer (current-buffer)))))
+      (let ((frame (assq (car client) server-frames)))
+	(when frame
+	  (setq server-frames (delq frame server-frames))
+	  (when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force))))))
   (server-log (format "Status changed to %s" (process-status proc)) proc))
+
+(defun server-handle-delete-frame (frame)
+  (dolist (entry server-frames)
+    (let ((proc (nth 0 entry))
+	  (f (nth 1 entry)))
+      (when (eq f frame)
+	(let ((client (assq proc server-clients)))
+	  (if (and (cdr client) (not (yes-or-no-p "Frame has pending buffers; close anyway? ")))
+	      (error "Frame deletion cancelled")
+	    (setq server-frames (delq entry server-frames))
+	    (delete-process (car client))))))))
 
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
@@ -276,6 +288,7 @@ Prefix arg means just kill any existing server communications subprocess."
     (if server-process
 	(server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
+      (add-to-list 'delete-frame-functions 'server-handle-delete-frame)
       (setq server-process
 	    (make-network-process
 	     :name "server" :family 'local :server t :noquery t
@@ -335,18 +348,18 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
 	   ;; Open a new frame at the client.  ARG is the name of the pseudo tty.
-	   ((and (equal "-pty" arg) (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
-	    (setq newframe t)
-	    (let ((pty (server-unquote-arg (match-string 1 request)))
+	   ((and (equal "-tty" arg) (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
+	    (let ((tty (server-unquote-arg (match-string 1 request)))
 		  (type (server-unquote-arg (match-string 2 request))))
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
-		  (let ((frame (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))))
+		  (let ((frame (make-frame-on-tty tty type)))
 		    (setq server-frames (cons (list (car client) frame) server-frames))
 		    (sit-for 0)
 		    (process-send-string proc (concat (number-to-string (emacs-pid)) "\n"))
-		    (select-frame frame))
-		(error (process-send-string proc (nth 1 err))
+		    (select-frame frame)
+		    (setq newframe t))
+		(error (ignore-errors (process-send-string proc (concat (nth 1 err) "\n")))
 		       (setq request "")))))
 	   ;; ARG is a line number option.
 	   ((string-match "\\`\\+[0-9]+\\'" arg)
@@ -386,19 +399,19 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
       (if (and (not newframe) (null (cdr client)))
 	  ;; This client is empty; get rid of it immediately.
 	  (progn
-	    (let ((frame (assq (car client) server-frames)))
-	      (setq server-frames (delq frame server-frames))
-	      (when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force)))
 	    (delete-process proc)
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
 	(or nowait (push client server-clients))
 	(unless (or isearch-mode (minibufferp))
-	  (server-switch-buffer (nth 1 client))
-	  (run-hooks 'server-switch-hook)
-	  (unless nowait
-	    (message (substitute-command-keys
-		      "When done with a buffer, type \\[server-edit]")))))))
+	  (if (and newframe (null (cdr client)))
+	      (message (substitute-command-keys
+			"When done with this frame, type \\[delete-frame]"))
+	    (server-switch-buffer (nth 1 client))
+	    (run-hooks 'server-switch-hook)
+	    (unless nowait
+	      (message (substitute-command-keys
+			"When done with a buffer, type \\[server-edit]"))))))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
     (process-put proc 'previous-string string)))
@@ -475,9 +488,6 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	;; If client now has no pending buffers,
 	;; tell it that it is done, and forget it entirely.
 	(unless (cdr client)
-	  (let ((frame (assq (car client) server-frames)))
-	    (setq server-frames (delq frame server-frames))
-	    (when (frame-live-p (cadr frame)) (delete-frame (cadr frame) 'force)))
 	  (delete-process (car client))
 	  (server-log "Close" (car client))
 	  (setq server-clients (delq client server-clients))))

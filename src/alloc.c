@@ -256,6 +256,7 @@ EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
 extern void mark_kboards P_ ((void));
+extern void mark_ttys P_ ((void));
 static void gc_sweep P_ ((void));
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
@@ -4441,6 +4442,7 @@ returns nil, because real GC can't be done.  */)
 	mark_object (backlist->args[i]);
     }
   mark_kboards ();
+  mark_ttys ();
 
   /* Look thru every buffer's undo list
      for elements that update markers that were not marked,

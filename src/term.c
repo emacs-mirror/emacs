@@ -109,7 +109,9 @@ struct tty_output *tty_list;
    pages, where one page is used for Emacs and another for all
    else. */
 int no_redraw_on_reenter;
-  
+
+Lisp_Object Qframe_tty_name, Qframe_tty_type;
+
 /* Hook functions that you can set to snap out the functions in this file.
    These are all extern'd in termhooks.h  */
 
@@ -2107,6 +2109,60 @@ get_named_tty (name)
 }
 
 
+
+DEFUN ("frame-tty-name", Fframe_tty_name, Sframe_tty_name, 0, 1, 0,
+       doc: /* Return the name of the TTY device that FRAME is displayed on. */)
+  (frame)
+     Lisp_Object frame;
+{
+  struct frame *f;
+
+  if (NILP (frame))
+    {
+      f = XFRAME (selected_frame);
+    }
+  else
+    {
+      CHECK_LIVE_FRAME (frame);
+      f = XFRAME (frame);
+    }
+
+  if (f->output_method != output_termcap)
+    wrong_type_argument (Qframe_tty_name, frame);
+
+  if (f->output_data.tty->name)
+    return build_string (f->output_data.tty->name);
+  else
+    return Qnil;
+}
+
+DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
+       doc: /* Return the type of the TTY device that FRAME is displayed on. */)
+  (frame)
+     Lisp_Object frame;
+{
+  struct frame *f;
+  
+  if (NILP (frame))
+    {
+      f = XFRAME (selected_frame);
+    }
+  else
+    {
+      CHECK_LIVE_FRAME (frame);
+      f = XFRAME (frame);
+    }
+
+  if (f->output_method != output_termcap)
+    wrong_type_argument (Qframe_tty_type, frame);
+
+  if (f->output_data.tty->type)
+    return build_string (f->output_data.tty->type);
+  else
+    return Qnil;
+}
+
+
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -2186,6 +2242,8 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
 
   TTY_TYPE (tty) = xstrdup (terminal_type);
 
+  add_keyboard_wait_descriptor (fileno (tty->input));
+  
 #ifdef WINDOWSNT
   initialize_w32_display ();
 
@@ -2665,27 +2723,31 @@ fatal (str, arg1, arg2)
   exit (1);
 }
 
-void
-syms_of_term ()
+
+
+DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
+       doc: /* Delete all frames on the terminal named TTY, and close the device. */)
+  (tty)
+     Lisp_Object tty;
 {
-  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
-    doc: /* Non-nil means the system uses terminfo rather than termcap.
-This variable can be used by terminal emulator packages.  */);
-#ifdef TERMINFO
-  system_uses_terminfo = 1;
-#else
-  system_uses_terminfo = 0;
-#endif
+  struct tty_output *t;
+  char *name = 0;
 
-  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
-    doc: /* Non-nil means call this function to ring the bell.
-The function should accept no arguments.  */);
-  Vring_bell_function = Qnil;
+  CHECK_STRING (tty);
+  
+  if (SBYTES (tty) > 0)
+    {
+      name = (char *) alloca (SBYTES (tty) + 1);
+      strncpy (name, SDATA (tty), SBYTES (tty));
+      name[SBYTES (tty)] = 0;
+    }
 
-  defsubr (&Stty_display_color_p);
-  defsubr (&Stty_display_color_cells);
+  t = get_named_tty (name);
 
-  Fprovide (intern ("multi-tty"), Qnil);
+  if (! t)
+    error ("No such tty device: %s", name);
+  
+  delete_tty (t);
 }
 
 static int deleting_tty = 0;
@@ -2734,10 +2796,14 @@ delete_tty (struct tty_output *tty)
     xfree (tty->name);
   if (tty->type)
     xfree (tty->type);
-
+  
   if (tty->input)
-    fclose (tty->input);
-  if (tty->output && tty->output != tty->input)
+    {
+      delete_keyboard_wait_descriptor (fileno (tty->input));
+      if (tty->input != stdin)
+        fclose (tty->input);
+    }
+  if (tty->output && tty->output != stdout && tty->output != tty->input)
     fclose (tty->output);
   if (tty->termscript)
     fclose (tty->termscript);
@@ -2754,23 +2820,56 @@ delete_tty (struct tty_output *tty)
 }
 
 
-struct tty_output *
-get_current_tty ()
-{
-  return CURTTY();
-}
+
 
+/* Mark the pointers in the tty_output objects.
+   Called by the Fgarbage_collector.  */
 void
-print_all_frames ()
+mark_ttys ()
 {
-  /* XXX Debug function. */
-  Lisp_Object frame, tail;
-  FOR_EACH_FRAME (tail, frame)
+  struct tty_output *tty;
+  Lisp_Object *p;
+  for (tty = tty_list; tty; tty = tty->next)
     {
-      fprintf (stderr, "Frame: %x\n", XFRAME (frame));
-      fflush (stderr);
+      if (tty->top_frame)
+        mark_object (tty->top_frame);
     }
 }
+
+
+
+void
+syms_of_term ()
+{
+  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+    doc: /* Non-nil means the system uses terminfo rather than termcap.
+This variable can be used by terminal emulator packages.  */);
+#ifdef TERMINFO
+  system_uses_terminfo = 1;
+#else
+  system_uses_terminfo = 0;
+#endif
+
+  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
+    doc: /* Non-nil means call this function to ring the bell.
+The function should accept no arguments.  */);
+  Vring_bell_function = Qnil;
+
+  Qframe_tty_name = intern ("frame-tty-name");
+  staticpro (&Qframe_tty_name);
+
+  Qframe_tty_type = intern ("frame-tty-type");
+  staticpro (&Qframe_tty_type);
+
+  defsubr (&Stty_display_color_p);
+  defsubr (&Stty_display_color_cells);
+  defsubr (&Sframe_tty_name);
+  defsubr (&Sframe_tty_type);
+  defsubr (&Sdelete_tty);
+  
+  Fprovide (intern ("multi-tty"), Qnil);
+}
+
 
 
 /* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193

@@ -1990,7 +1990,6 @@ shut_down_emacs (sig, no_x, stuff)
     if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
 	&& tpgrp == pgrp)
       {
-	fflush (stdout);
 	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
 	  fprintf (stderr, "Fatal error (%d)", sig);

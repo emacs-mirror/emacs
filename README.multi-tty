@@ -45,15 +45,13 @@ You'll hopefully have two fully working, independent frames on
 separate terminals.  (This seems to be very useful, emacsclient starts
 up even faster than vi!) :-) You can close the newly opened frame and
 return to the shell without exiting Emacs by pressing C-x 5 0, i.e.,
-delete-frame.  (Note that this does not seem to work yet on the
-original terminal.)  Creating new frames on the same tty with C-x 5 2
+delete-frame.  Creating new frames on the same tty with C-x 5 2
 works exactly as before.  Suspending Emacs is disabled at the moment.
 If you exit emacs, all terminals should be restored to their previous
 states.
 
 X, Mac, Windows and DOS support is broken, probably doesn't even
-compile -- this will be solved later.  Please see the attached README
-for other issues, implementation notes and sub-TODO items.
+compile -- this will be solved later.
 
 Only tested on my GNU/Linux box.
 
@@ -74,6 +72,10 @@ For the NEWS file:
 
 ** A make-frame-on-tty function has been added to make it easier to
    create frames on new terminals.
+
+** New functions: frame-tty-name, frame-tty-type for accessing
+   terminal parameters, and delete-tty for closing the terminal
+   device.
 
 ** Emacsclient has been extended to support opening a new terminal
    frame.
@@ -107,6 +109,8 @@ DIARY OF CHANGES
    (Done, read_avail_input tries to read from each terminal, until one
    succeeds.  MULTIKBOARD is not used.  Secondary terminals don't send
    SIGIO!)
+
+   (Update: They do, now.)
 
 -- other-frame should cycle through the frames on the `current'
    terminal only.  
@@ -158,6 +162,10 @@ DIARY OF CHANGES
 
    (Update: This is bullshit.  There is a read_input_waiting function,
    extend that somehow.)
+
+   (Update of update: The first update was not right either, extending
+   read_input_waiting was not necessary.  Secondary ttys do seem to
+   send signals on input.)
 
 -- Make make-terminal-frame look up the `tty' and `tty-type' frame
    parameters from the currently selected terminal before the global
@@ -231,56 +239,67 @@ DIARY OF CHANGES
    free()ing memory.  Utterly trivial matter.  I love the C's memory
    management, it puts hair on your chest.)
 
-THINGS TO DO
-------------
+-- Support raw secondary terminals.  (Note that SIGIO works only on
+   the controlling terminal.) Hint: extend read_input_waiting() for
+   multiple ttys and hopefully this will be fixed.
 
-** Understand Emacs's low-level input system (it seems complicated) :-)
-   and maybe rewrite multi-tty input in terms of MULTIKBOARD.
+   (Done, it seems to have been working already for some time.  It
+   seems F_SETOWN does work, after all.  Not sure what made it fail
+   earlier, but it seems to be fixed (there were several changes
+   around request_sigio, maybe one of them did it).
+   read_input_waiting() is only used in sys_select(), don't change
+   it.)
 
-** Find out why does Emacs abort when it wants to close its
+-- Find out why does Emacs abort when it wants to close its
    controlling tty.  Hint: chan_process[] array.  Hey, maybe
    noninterrupt-IO would work, too?  Update: no, there is no process
    for stdin/out.
 
-** Support raw secondary terminals.  (Note that SIGIO works only on
-   the controlling terminal.) Hint: extend read_input_waiting() for
-   multiple ttys and hopefully this will be fixed.
+   (Done.  Added add/delete_keyboard_wait_descriptor to
+   term_init/delete_tty.  The hint was right, in a way.)
 
-** What does interrupt_input do?  I tried to disable it for raw
-   secondary tty support, but it does not seem to do anything useful.
-
-** Issue with SIGIO: it needs to be disabled during redisplay.  See if
+-- Issue with SIGIO: it needs to be disabled during redisplay.  See if
    fcntl() kernel behaviour could be emulated by emacsclient.
 
-** Get rid of the accessor macros in termchar.h, or define macros for
-   all members.
+   (Done.  Simply disabled the SIGIO emulation hack in emacsclient.)
 
-** Make parts of struct tty_output accessible from Lisp.  The device
-   name and the type is sufficient.
-
-** server.el: There are issues with saving files in buffers of closed
+-- server.el: There are issues with saving files in buffers of closed
    clients.  Try editing a file with emacsclient -f, and (without
    saving it) do a delete-frame.  The frame is closed without
    question, and a surprising confirmation prompt appears in another
    frame.
 
-** emacsclient.el, server.el: Handle eval or file open errors when
+   (Done.  delete-frame now asks for confirmation if it still has
+   pending buffers, and modified buffers don't seem to be deleted.)
+
+-- emacsclient.el, server.el: Handle eval or file open errors when
    doing -f.
 
-** Export delete_tty to the Lisp environment, for emacsclient.
+   (Done.)
 
-** Make sure C-g goes to the right frame.  This is hard, as SIGINT
-   doesn't have a tty parameter. :-(
+-- Make parts of struct tty_output accessible from Lisp.  The device
+   name and the type is sufficient.
 
-** Implement support for starting an interactive Emacs session without
-   an initial frame.  (The user would connect to it and open frames
-   later, with emacsclient.)  Not necessarily a good idea.
+   (Done, see frame-tty-name and frame-tty-type.)
 
-** Move optimalization parameters (costs) from union output_data to
-   a backend-neutral per-device structure.
+-- Export delete_tty to the Lisp environment, for emacsclient.
+
+   (Done, see delete-tty.)
+
+
+THINGS TO DO
+------------
 
 ** Find out the best way to support suspending Emacs with multiple
-   ttys.
+   ttys.  My guess: disable it on the controlling tty, but other ttys
+   should pass it on to emacsclient somehow.  (It is (I hope) trivial
+   to extend emacsclient to handle suspend/resume.  A `kill -STOP'
+   almost works right now.)
+
+** Move baud_rate to tty_output.
+
+** Move device-specific parameters (like costs) commonly used by
+   device backends to a common, device-dependent structure.
 
 ** Do tty output through term_hooks, like graphical display backends.
 
@@ -289,6 +308,10 @@ THINGS TO DO
 ** Allow simultaneous X and tty frames.  (Handling input could be
    tricky.)
 
+** Implement support for starting an interactive Emacs session without
+   an initial frame.  (The user would connect to it and open frames
+   later, with emacsclient.)  Not necessarily a good idea.
+
 ** Fix Mac support (I can't do this myself).
 
 ** Fix W32 support (I can't do this myself).
@@ -296,5 +319,36 @@ THINGS TO DO
 ** Fix DOS support (I can't do this myself).
 
 ** Do a grep on XXX and ?? for more issues.
+
+** Get rid of the accessor macros in termchar.h, or define macros for
+   all members.
+
+** Understand Emacs's low-level input system (it seems complicated) :-)
+   and maybe rewrite multi-tty input in terms of MULTIKBOARD.
+
+** What does interrupt_input do?  I tried to disable it for raw
+   secondary tty support, but it does not seem to do anything useful.
+
+** Make sure C-g goes to the right frame.  This is hard, as SIGINT
+   doesn't have a tty parameter. :-(
+
+** I have seen a case when Emacs with multiple ttys went ate 100% of
+   CPU time.  Strace showed this loop:
+
+
+	getpid()                                = 30284
+	kill(30284, SIGIO)                      = 0
+	--- SIGIO (I/O possible) @ 0 (0) ---
+	ioctl(6, FIONREAD, [0])                 = -1 EIO (Input/output error)
+	ioctl(5, FIONREAD, [0])                 = -1 EIO (Input/output error)
+	ioctl(0, FIONREAD, [0])                 = 0
+	sigreturn()                             = ? (mask now [])
+	gettimeofday({1072842297, 747760}, NULL) = 0
+	gettimeofday({1072842297, 747806}, NULL) = 0
+	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
+	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
+	gettimeofday({1072842297, 748245}, NULL) = 0
+
+   I have not been able to reproduce this.
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

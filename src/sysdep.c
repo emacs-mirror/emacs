@@ -45,6 +45,8 @@ extern void srandom P_ ((unsigned int));
 #endif
 #endif
 
+#include "sysselect.h"
+
 #include "blockinput.h"
 #undef NULL
 
@@ -913,16 +915,15 @@ restore_signal_handlers (saved_handlers)
 
 #ifdef F_SETFL
 
-int old_fcntl_flags;
+int old_fcntl_flags[MAXDESC];
 
 void
 init_sigio (fd)
      int fd;
 {
 #ifdef FASYNC
-  /* XXX What if we get called with more than one fds? */
-  old_fcntl_flags = fcntl (fd, F_GETFL, 0) & ~FASYNC;
-  fcntl (fd, F_SETFL, old_fcntl_flags | FASYNC);
+  old_fcntl_flags[fd] = fcntl (fd, F_GETFL, 0) & ~FASYNC;
+  fcntl (fd, F_SETFL, old_fcntl_flags[fd] | FASYNC);
 #endif
   interrupts_deferred = 0;
 }
@@ -931,7 +932,7 @@ void
 reset_sigio (fd)
      int fd;
 {
-  fcntl (fd, F_SETFL, old_fcntl_flags);
+  fcntl (fd, F_SETFL, old_fcntl_flags[fd]);
 }
 
 #ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
@@ -1086,11 +1087,12 @@ narrow_foreground_group (int fd)
 {
   int me = getpid ();
 
-  setpgrp (0, inherited_pgroup);
+  if (! inherited_pgroup)
+    inherited_pgroup = getpgid (0);
   /* XXX This only works on the controlling tty. */
   if (inherited_pgroup != me)
     EMACS_SET_TTY_PGRP (fd, &me);
-  setpgrp (0, me);
+  setpgid (0, me);
 }
 
 /* Set the tty to our original foreground group.  */
@@ -1099,7 +1101,7 @@ widen_foreground_group (int fd)
 {
   if (inherited_pgroup != getpid ())
     EMACS_SET_TTY_PGRP (fd, &inherited_pgroup);
-  setpgrp (0, inherited_pgroup);
+  setpgid (0, inherited_pgroup);
 }
 
 #endif /* BSD_PGRPS */
@@ -1265,7 +1267,7 @@ int lmode;
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
-int old_fcntl_owner;
+int old_fcntl_owner[MAXDESC];
 #endif /* F_SETOWN */
 #endif /* F_SETOWN_BUG */
 
@@ -1614,7 +1616,8 @@ nil means don't delete them until `list-processes' is run.  */);
   if (interrupt_input
       && ! read_socket_hook && EQ (Vwindow_system, Qnil))
     {
-      old_fcntl_owner = fcntl (fileno (TTY_INPUT (tty_out)), F_GETOWN, 0);
+      old_fcntl_owner[fileno (TTY_INPUT (tty_out))] =
+        fcntl (fileno (TTY_INPUT (tty_out)), F_GETOWN, 0);
       fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN, getpid ());
       init_sigio (fileno (TTY_INPUT (tty_out)));
     }
@@ -1823,9 +1826,12 @@ reset_sys_modes (tty_out)
       )
     return;
 #endif
+
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   tty_clear_end_of_line (tty_out, FrameCols (tty_out));
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
+  fflush (tty_out->output);
+  
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to
@@ -1842,7 +1848,7 @@ reset_sys_modes (tty_out)
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1
   /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (TTY_OUTPUT (tty_out));
+  fsync (fileno (TTY_OUTPUT (tty_out)));
 #endif
 #endif
 
@@ -1851,8 +1857,9 @@ reset_sys_modes (tty_out)
 #ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
   if (interrupt_input)
     {
-      reset_sigio (tty_out);
-      fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN, old_fcntl_owner);
+      reset_sigio (fileno (TTY_INPUT (tty_out)));
+      fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN,
+             old_fcntl_owner[fileno (TTY_INPUT (tty_out))]);
     }
 #endif /* F_SETOWN */
 #endif /* F_SETOWN_BUG */
@@ -1863,7 +1870,7 @@ reset_sys_modes (tty_out)
 #endif /* F_SETFL */
 #ifdef BSD4_1
   if (interrupt_input)
-    reset_sigio (tty_out);
+    reset_sigio (fileno (TTY_INPUT (tty_out)));
 #endif /* BSD4_1 */
 
   if (tty_out->old_tty)
@@ -2703,6 +2710,10 @@ read_input_waiting ()
 	}
     }
 }
+
+#if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
+#define select sys_select
+#endif
 
 #endif /* not HAVE_SELECT */
 #endif /* not VMS */
