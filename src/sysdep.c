@@ -1388,7 +1388,9 @@ init_sys_modes ()
 #endif
 
 #if defined (HAVE_TERMIOS) || defined (HPUX9)
+#ifdef TCOON
       if (!flow_control) tcflow (input_fd, TCOON);
+#endif
 #endif
 
 #ifdef AIXHFT
@@ -2639,84 +2641,6 @@ sys_sigsetmask (sigset_t new_mask)
 }
 
 #endif /* POSIX_SIGNALS */
-
-#ifndef BSTRING
-
-#ifndef bzero
-
-void
-bzero (b, length)
-     register char *b;
-     register int length;
-{
-#ifdef VMS
-  short zero = 0;
-  long max_str = 65535;
-
-  while (length > max_str) {
-    (void) LIB$MOVC5 (&zero, &zero, &zero, &max_str, b);
-    length -= max_str;
-    b += max_str;
-  }
-  max_str = length;
-  (void) LIB$MOVC5 (&zero, &zero, &zero, &max_str, b);
-#else
-  while (length-- > 0)
-    *b++ = 0;
-#endif /* not VMS */
-}
-
-#endif /* no bzero */
-
-#ifndef bcopy
-/* Saying `void' requires a declaration, above, where bcopy is used
-   and that declaration causes pain for systems where bcopy is a macro.  */
-bcopy (b1, b2, length)
-     register char *b1;
-     register char *b2;
-     register int length;
-{
-#ifdef VMS
-  long max_str = 65535;
-
-  while (length > max_str) {
-    (void) LIB$MOVC3 (&max_str, b1, b2);
-    length -= max_str;
-    b1 += max_str;
-    b2 += max_str;
-  }
-  max_str = length;
-  (void) LIB$MOVC3 (&length, b1, b2);
-#else
-  while (length-- > 0)
-    *b2++ = *b1++;
-#endif /* not VMS */
-}
-#endif /* no bcopy */
-
-#ifndef bcmp
-int
-bcmp (b1, b2, length)	/* This could be a macro! */
-     register char *b1;
-     register char *b2;
-     register int length;
-{
-#ifdef VMS
-  struct dsc$descriptor_s src1 = {length, DSC$K_DTYPE_T, DSC$K_CLASS_S, b1};
-  struct dsc$descriptor_s src2 = {length, DSC$K_DTYPE_T, DSC$K_CLASS_S, b2};
-
-  return STR$COMPARE (&src1, &src2);
-#else
-  while (length-- > 0)
-    if (*b1++ != *b2++)
-      return 1;
-
-  return 0;
-#endif /* not VMS */
-}
-#endif /* no bcmp */
-
-#endif /* not BSTRING */
 
 #ifndef HAVE_RANDOM
 #ifdef random
@@ -5038,3 +4962,84 @@ dlclose ()
 }
 
 #endif /* USE_DL_STUBS */
+
+#ifndef BSTRING
+
+#ifndef bzero
+
+void
+bzero (b, length)
+     register char *b;
+     register int length;
+{
+#ifdef VMS
+  short zero = 0;
+  long max_str = 65535;
+
+  while (length > max_str) {
+    (void) LIB$MOVC5 (&zero, &zero, &zero, &max_str, b);
+    length -= max_str;
+    b += max_str;
+  }
+  max_str = length;
+  (void) LIB$MOVC5 (&zero, &zero, &zero, &max_str, b);
+#else
+  while (length-- > 0)
+    *b++ = 0;
+#endif /* not VMS */
+}
+
+#endif /* no bzero */
+#endif /* BSTRING */
+
+#if (defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY)
+#undef bcopy
+
+/* Saying `void' requires a declaration, above, where bcopy is used
+   and that declaration causes pain for systems where bcopy is a macro.  */
+bcopy (b1, b2, length)
+     register char *b1;
+     register char *b2;
+     register int length;
+{
+#ifdef VMS
+  long max_str = 65535;
+
+  while (length > max_str) {
+    (void) LIB$MOVC3 (&max_str, b1, b2);
+    length -= max_str;
+    b1 += max_str;
+    b2 += max_str;
+  }
+  max_str = length;
+  (void) LIB$MOVC3 (&length, b1, b2);
+#else
+  while (length-- > 0)
+    *b2++ = *b1++;
+#endif /* not VMS */
+}
+#endif /* (defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY) */
+
+#ifdef BSTRING
+#ifndef bcmp
+int
+bcmp (b1, b2, length)	/* This could be a macro! */
+     register char *b1;
+     register char *b2;
+     register int length;
+{
+#ifdef VMS
+  struct dsc$descriptor_s src1 = {length, DSC$K_DTYPE_T, DSC$K_CLASS_S, b1};
+  struct dsc$descriptor_s src2 = {length, DSC$K_DTYPE_T, DSC$K_CLASS_S, b2};
+
+  return STR$COMPARE (&src1, &src2);
+#else
+  while (length-- > 0)
+    if (*b1++ != *b2++)
+      return 1;
+
+  return 0;
+#endif /* not VMS */
+}
+#endif /* no bcmp */
+#endif /* not BSTRING */
