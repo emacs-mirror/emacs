@@ -1,3 +1,42 @@
+2004-11-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (math-integrate-by-parts):  Removed unused
+	variable var-thing. 
+
+	(math-integ-depth, math-integ-level, math-integral-limit) 
+	(math-enable-subst, math-any-substs, math-integ-msg)
+	(math-prev-parts-v, math-good-parts, math-max-integral-limit)
+	(math-int-threshold, math-int-factors, math-double-roots)
+	(math-solve-simplifying, var-IntegLimit, math-solve-sign)
+	(var-GenCount):  Declare these variables.
+	(calcFunc-integ):  Don't check if var-IntegLimit is bound.
+
+	(math-integral-cache, math-integral-cache-state):  Move
+	declarations to earlier in the file.
+
+	(math-deriv-var, math-deriv-total, math-deriv-symb)
+	(math-cur-record, math-has-rules, math-t1, math-t2, math-t3)
+	(math-so-far, math-integ-expr, math-expr-parts, calc-low)
+	(calc-high, math-solve-var, math-solve-full, math-solve-vars)
+	(math-try-solve-sign, math-solve-b, math-solve-system-vv)
+	(math-solve-res):  New variables
+	(math-derivative, calcFunc-deriv, calcFunc-tderiv)
+	(math-integral, math-replace-integral-parts)
+	(math-integrate-by-parts, calc-dump-integral-cache)
+	(math-try-integral, math-do-integral, math-do-integral)
+	(math-do-integral-methods, math-try-solve-for) 
+	(math-try-solve-prod, math-solve-poly-funny-powers)
+	(math-solve-crunch-poly, math-decompose-poly)
+	(math-solve-find-root-term, math-find-root-in-prod)
+	(math-integ-try-linear-substitutions)
+	(math-integ-try-substitutions, math-expr-rational-in)
+	(math-expr-rational-in-rec, calcFunc-table, math-scan-for-limits) 
+	(math-solve-prod, math-solve-quartic, math-poly-all-roots)
+	(math-solve-for, math-solve-system, math-solve-system-rec)
+	(math-solve-get-sign, math-solve-get-int)
+	(math-solve-system-subst): Replace undeclared variables with newly
+	declared variables.
+
 2004-11-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (convert-standard-filename): Doc fix.
