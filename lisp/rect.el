@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1999, 2000, 2001 Free Software Foundation, Inc.
 
-;; Maintainer: Didier Verna <verna@inf.enst.fr>
+;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
@@ -28,7 +28,7 @@
 ;; in the Emacs manual.
 
 ;; ### NOTE: this file has been almost completely rewritten by Didier Verna
-;; <verna@inf.enst.fr> in July 1999. The purpose of this rewrite is to be less
+;; <didier@xemacs.org> in July 1999. The purpose of this rewrite is to be less
 ;; intrusive and fill lines with whitespaces only when needed. A few functions
 ;; are untouched though, as noted above their definition.
 
