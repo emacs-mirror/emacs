@@ -2046,7 +2046,8 @@ handle_invisible_prop (it)
       XSETFASTINT (charpos, IT_STRING_CHARPOS (*it));
       prop = Fget_text_property (charpos, Qinvisible, it->string);
 
-      if (!NILP (prop))
+      if (!NILP (prop)
+	  && IT_STRING_CHARPOS (*it) < it->end_charpos)
 	{
 	  handled = HANDLED_RECOMPUTE_PROPS;
 	  
@@ -2100,7 +2101,8 @@ handle_invisible_prop (it)
       prop = Fget_char_property (pos, Qinvisible, it->window);
       
       /* If we are on invisible text, skip over it.  */
-      if (TEXT_PROP_MEANS_INVISIBLE (prop))
+      if (TEXT_PROP_MEANS_INVISIBLE (prop)
+	  && IT_CHARPOS (*it) < it->end_charpos)
 	{
 	  /* Record whether we have to display an ellipsis for the
 	     invisible text.  */
