@@ -404,7 +404,7 @@ r_re_alloc (ptr, size)
 
   /* Zero out the new space in the bloc, to help catch bugs faster.  */
   bzero (bloc->data + bloc->size, size - bloc->size);
-  
+
   /* Indicate that this block has a new size.  */
   bloc->size = size;
 
