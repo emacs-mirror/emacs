@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-#	$Id: rcs2log,v 1.5 1992/04/01 08:57:55 eggert Exp eggert $
+#	$Id: rcs2log,v 1.6 1992/05/08 21:45:00 eggert Exp eggert $
 
 # Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
 # Output the new prefix to standard output.
@@ -69,34 +69,49 @@ rlog "$datearg" "$@" >$rlogout || exit
 # Warning: foreign authors (i.e. not known in the passwd file) are mishandled;
 # you have to fix the resulting output by hand.
 
+initialize_fullname=
 authors=`
 	sed -n 's|^date: *[0-9]*/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]; *author: *\([^; ]*\).*|\1|p' <$rlogout |
 	sort -u
 `
+case $authors in
+?*)
+	initialize_author=
+	for author in $authors
+	do
+		initialize_author="$initialize_author
+			author[\"$author\"] = 1
+		"
+	done
 
-initialize_fullname=
-for author in $authors
-do
-	fullname=`
-		(grep "^$author:" /etc/passwd || ypmatch "$author" passwd) |
-		sed -n 's/^[^:]*:[^:]*:[^:]*:[^:]*:\([^,:]*\).*$/\1/;p;q'
+	awkscript='
+		BEGIN {
+			alphabet = "abcdefghijklmnopqrstuvwxyz"
+			ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			'"$initialize_author"'
+		}
+		{
+			if (author[$1]) {
+				fullname = $5
+				abbr = index(fullname, "&")
+				if (abbr) {
+					a = substr($1, 1, 1)
+					A = a
+					i = index(alphabet, a)
+					if (i) A = substr(ALPHABET, i, 1)
+					fullname = substr(fullname, 1, abbr-1) A substr($1, 2) substr(fullname, abbr+1)
+				}
+				printf "fullname[\"%s\"] = \"%s\"\n", $1, fullname
+				author[$1] = 0
+			}
+		}
+	'
+
+	initialize_fullname=`
+		(cat /etc/passwd; ypmatch $authors passwd) 2>/dev/null |
+		awk -F: "$awkscript"
 	`
-	case $fullname in
-	*\&*)
-		User=`
-			expr " $author" : ' \(.\)' |
-			tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		``
-			expr " $author" : ' .\(.*\)'
-		`
-		fullname=`echo "$fullname" | sed "s:&:$User:"`
-	esac
-	case $fullname in
-	?*)
-		initialize_fullname="$initialize_fullname
-			fullname[\"$author\"] = \"$fullname\""
-	esac
-done
+esac
 
 
 # Function to print a single log line.
@@ -162,7 +177,7 @@ awk <$rlogout '
 # FILENAME YYYY/MM/DD HH:MM:SS AUTHOR \rLOG
 #	where \r stands for a carriage return,
 #	and each line of the log is terminated by \r instead of \n.
-# Sort the log entries, first by date (in reverse order),
+# Sort the log entries, first by date+time (in reverse order),
 # then by author, then by log entry, and finally by file name (just in case).
 sort +1 -3r +3 +0 |
 
