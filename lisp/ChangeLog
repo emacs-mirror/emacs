@@ -1,3 +1,9 @@
+2003-01-02  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-edit.el (customize-group, customize-group-other-window): 
+	Call custom-load-symbol unconditionally.
+	(customize-face, customize-face-other-window): Fix format arg.
+
 2003-01-02  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* menu-bar.el (menu-bar-left-scroll-bar): Set `scroll-bar-mode'
