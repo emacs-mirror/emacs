@@ -34,21 +34,98 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title{Emacs SMTP Library}
 @subtitle{An Emacs package for sending mail via SMTP}
-@author{Simon Josefsson}
+@author{Simon Josefsson, Alex Schroeder}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 
-@node Top
-@chapter Sending mail via SMTP
-@cindex SMTP
+@contents
 
-   On the Internet, mail is sent from host to host using the simple
-mail transfer protocol (SMTP).  When you read and write mail you are
-using a mail program that does not use SMTP --- it just reads mails
-from files.  This is called a mail user agent (MUA).  The mail
-transfer agent (MTA) is the program that accepts mails via SMTP and
-stores them in files.  You also need a mail transfer agent when you
-send mails.  Your mail program has to send its mail to a MTA that can
-pass it on using SMTP.
+@ifnottex
+@node Top
+@top Emacs SMTP Library
+
+@insertcopying
+@end ifnottex
+
+@menu
+* How Mail Works::	Brief introduction to mail concepts.
+* Emacs Speaks SMTP::   How to use the SMTP library in Emacs.
+* Authentication::	Authenticating yourself to the server.
+* Queued delivery::	Sending mail without an Internet connection.
+* Server workarounds::	Mail servers with special requirements.
+* Debugging::		Tracking down problems.
+
+Indices
+
+* Index::		Index over variables and functions.
+@end menu
+
+@node How Mail Works
+@chapter How Mail Works
+
+@cindex SMTP
+@cindex MTA
+   On the Internet, mail is sent from mail host to mail host using the
+simple mail transfer protocol (SMTP).  To send and receive mail, you
+must get it from and send it to a mail host.  Every mail host runs a
+mail transger agent (MTA) such as Exim that accepts mails and passes
+them on.  The communication between a mail host and other clients does
+not necessarily involve SMTP, however.  Here is short overview of what
+is involved.
+
+@cindex MUA
+   The mail program --- also called a mail user agent (MUA) ---
+usually sends outgoing mail to a mail host.  When your computer is
+permanently connected to the internet, it might even be a mail host
+itself.  In this case, the MUA will pipe mail to the
+@file{/usr/lib/sendmail} application.  It will take care of your mail
+and pass it on to the next mail host.
+
+@cindex ISP
+   When you are only connected to the internet from time to time, your
+internet service provider (ISP) has probably told you which mail host
+to use.  You must configure your MUA to use that mail host.  Since you
+are reading this manual, you probably want to configure Emacs to use
+SMTP to send mail to that mail host.  More on that in the next
+section.
+
+@cindex MDA
+   Things are different when reading mail.  The mail host responsible
+for your mail keeps it in a file somewhere.  The messages get into the
+file by way of a mail delivery agent (MDA) such as procmail.  These
+delivery agents often allow you to filter and munge your mails before
+you get to see it.  When your computer is that mail host, this file is
+called a spool, and sometimes located in the directory
+/var/spool/mail/.  All your MUA has to do is read mail from the spool,
+then.
+
+@cindex POP3
+@cindex IMAP
+   When your computer is not always connected to the Internet, you
+must get the mail from the remote mail host using a protocol such as
+POP3 or IMAP.  POP3 essentially downloads all your mail from the mail
+host to your computer.  The mail is stored in some file on your
+computer, and again, all your MUA has to do is read mail from the
+spool.
+
+   When you read mail from various machines, downloading mail from the
+mail host to your current machine is not convenient.  In that case,
+you will probably want to use the IMAP protocol.  Your mail is kept on
+the mail host, and you can read it while you are connected via IMAP to
+the mail host.
+
+@cindex Webmail
+   So how does reading mail via the web work, you ask.  In that case,
+the web interface just allows you to remote-control a MUA on the web
+host.  Whether the web host is also a mail host, and how all the
+pieces interact is completely irrelevant.  You usually cannot use
+Emacs to read mail via the web, unless you use software that parses
+the ever-changing HTML of the web interface.
+
+@node Emacs Speaks SMTP
+@chapter Emacs Speaks SMTP
 
    Emacs includes a package for sending your mail to a SMTP server and
 have it take care of delivering it to the final destination, rather
@@ -126,17 +203,14 @@ The following example illustrates what you could put in
 (setq smtpmail-smtp-service 587)
 @end example
 
-@menu
-* Authentication::	Authenticating yourself to the server.
-* Queued delivery::	Sending mail without an Internet connection.
-* Server workarounds::	Mail servers with special requirements.
-* Debugging::		Tracking down problems.
-* Index::		Index over variables and functions.
-@end menu
-
 @node Authentication
-@section Authentication
+@chapter Authentication
 
+@cindex SASL
+@cindex CRAM-MD5
+@cindex PLAIN
+@cindex LOGIN
+@cindex STARTTLS
 Many environments require SMTP clients to authenticate themselves
 before they are allowed to route mail via a server.  The two following
 variables contains the authentication information needed for this.
@@ -198,8 +272,9 @@ respectively.
 @end example
 
 @node Queued delivery
-@section Queued delivery
+@chapter Queued delivery
 
+@cindex Dialup connection
 If you connect to the Internet via a dialup connection, or for some
 other reason doesn't have permanent Internet connection, sending mail
 will fail when you are not connected.  The SMTP library implements
@@ -233,7 +308,7 @@ smtpmail-send-queued-mail RET} when you are connected to the Internet.
 
 
 @node Server workarounds
-@section Server workarounds
+@chapter Server workarounds
 
 Some SMTP servers have special requirements.  The following variables
 implement support for common requirements.
@@ -272,7 +347,7 @@ an error such as:
 
 
 @node Debugging
-@section Debugging
+@chapter Debugging
 
 Sometimes delivery fails, often with the generic error message
 @samp{Sending failed; SMTP protocol error}.  Enabling one or both of
@@ -302,7 +377,14 @@ cannot accept mail.
 @end table
 
 @node Index
+@chapter Index
+
+@section Concept Index
+
+@printindex cp
+
 @section Function and Variable Index
+
 @printindex fn
 
 @contents
