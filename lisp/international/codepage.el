@@ -119,7 +119,7 @@ variety is actually just an alias for the -unix variety)."
        (concat "8-bit encoding of " (symbol-name iso-name)
 	       " characters using IBM codepage " coding-name)
        (cons ccl-decoder-unix ccl-encoder-unix)
-       `((safe-charsets ascii ,iso-name)
+       `((safe-charsets ascii eight-bit-control eight-bit-graphic ,iso-name)
 	 (valid-codes (0 . 255))
 	 (charset-origin-alist ,(list iso-name (symbol-name coding) encoder))))
       ;;; Make coding systems CODING-unix, CODING-dos, CODING-mac.
