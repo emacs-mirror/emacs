@@ -1062,7 +1062,7 @@ as designated in the variable `c-file-style'.")
 (defvar c-syntactic-context nil
   "Variable containing syntactic analysis list during indentation.
 This is always bound dynamically.  It should never be set statically
-(e.g. with `setq').")
+\(e.g. with `setq').")
 
 (defvar c-indentation-style nil
   "Name of the currently installed style.
