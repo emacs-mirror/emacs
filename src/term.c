@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 98, 2000, 2001
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 98, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1991,7 +1991,8 @@ turn_off_face (f, face_id)
    capabilities in CAPS simultaneously, with foreground and background
    colors FG and BG.  */
 
-int tty_capable_p (f, caps, fg, bg)
+int
+tty_capable_p (f, caps, fg, bg)
      struct frame *f;
      unsigned caps;
      unsigned long fg, bg;
