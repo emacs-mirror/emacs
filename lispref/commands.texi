@@ -90,6 +90,10 @@ and also when the command loop is first entered.  At that time,
 these hooks, it terminates execution of the hook, and clears the hook
 variable to @code{nil} so as to prevent an infinite loop of errors.
 
+  A request coming into the Emacs server (@pxref{Emacs Server,,,
+emacs, The GNU Emacs Manual}) runs these two hooks just as a keyboard
+command does.
+
 @node Defining Commands
 @section Defining Commands
 @cindex defining commands
@@ -2247,7 +2251,7 @@ the middle of a computation to allow the user time to view the display.
 input comes in, while @code{sleep-for} pauses without updating the
 screen.
 
-@defun sit-for seconds &optional millisec nodisp
+@defun sit-for seconds &optional nodisp
 This function performs redisplay (provided there is no pending input
 from the user), then waits @var{seconds} seconds, or until input is
 available.  The value is @code{t} if @code{sit-for} waited the full
@@ -2258,11 +2262,6 @@ The argument @var{seconds} need not be an integer.  If it is a floating
 point number, @code{sit-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
-
-The optional argument @var{millisec} specifies an additional waiting
-period measured in milliseconds.  This adds to the period specified by
-@var{seconds}.  If the system doesn't support waiting fractions of a
-second, you get an error if you specify nonzero @var{millisec}.
 
 The expression @code{(sit-for 0)} is a convenient way to request a
 redisplay, without any delay.  @xref{Forcing Redisplay}.
@@ -2276,6 +2275,10 @@ that generates an event.  @xref{Misc Events}.
 
 The usual purpose of @code{sit-for} is to give the user time to read
 text that you display.
+
+It is also possible to call @code{sit-for} with three arguments,
+as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},
+but that is considered obsolete.
 @end defun
 
 @defun sleep-for seconds &optional millisec
