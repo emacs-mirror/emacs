@@ -380,12 +380,12 @@ Do the same for the keys of the same name."
 (defun delete-frame-enabled-p ()
   "Return non-nil if `delete-frame' should be enabled in the menu bar."
   (let ((frames (frame-list))
-	      (count 0))
-	  (while frames
-	    (if (frame-visible-p (car frames))
-		(setq count (1+ count)))
-	    (setq frames (cdr frames)))
-	  (> count 1)))
+	(count 0))
+    (while frames
+      (if (frame-visible-p (car frames))
+	  (setq count (1+ count)))
+      (setq frames (cdr frames)))
+    (> count 1)))
 
 (put 'advertised-undo 'menu-enable
      '(and (not (eq t buffer-undo-list))
