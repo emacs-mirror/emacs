@@ -47,5 +47,8 @@ For each step, check for possible errors.
 11. rsync emacs-NEW.tar.gz emacs-OLD-NEW.xdelta compile-NEW.log \
     emacs-new.announce alpha.gnu.org:/home/ftp/gnu/emacs/pretest/
 
-12. Let Richard Stallman know about the new pretest and tell him to
+12. Verify that after five minutes at most the files appear on
+    ftp://alpha.gnu.org/gnu/emacs/pretest/.
+
+13. Let Richard Stallman know about the new pretest and tell him to
     announce it using the announcement you prepared.
