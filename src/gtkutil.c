@@ -1200,6 +1200,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                           GTK_STOCK_OPEN : GTK_STOCK_OK),
                                          GTK_RESPONSE_OK,
                                          NULL);
+  gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (filewin), TRUE);
 
   if (default_filename)
     {
@@ -1207,16 +1208,20 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       struct gcpro gcpro1;
       GCPRO1 (file);
 
+      file = build_string (default_filename);
+
       /* File chooser does not understand ~/... in the file name.  It must be
          an absolute name starting with /.  */
       if (default_filename[0] != '/')
-        {
-          file = Fexpand_file_name (build_string (default_filename), Qnil);
-          default_filename = SDATA (file);
-        }
+        file = Fexpand_file_name (file, Qnil);
 
-      gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                     default_filename);
+      default_filename = SDATA (file);
+      if (Ffile_directory_p (file))
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
+                                             default_filename);
+      else
+        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                       default_filename);
 
       UNGCPRO;
     }

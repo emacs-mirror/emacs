@@ -1,3 +1,9 @@
+2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Handle local files only.
+	Set current folder in file chooser if default_filename is a
+	directory.
+
 2004-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* regex.c (GET_UNSIGNED_NUMBER): Signal an error when reaching the end.
