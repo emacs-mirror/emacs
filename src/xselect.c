@@ -45,6 +45,9 @@ Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
 
 static Lisp_Object Vx_lost_selection_hooks;
 static Lisp_Object Vx_sent_selection_hooks;
+/* Coding system for communicating with other X clients via cutbuffer,
+   selection, and clipboard.  */
+static Lisp_Object Vclipboard_coding_system;
 
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
@@ -1491,10 +1494,10 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  int bufsize, dummy;
 	  unsigned char *buf;
 	  struct coding_system coding;
-	  Lisp_Object sym = intern ("iso-latin-1");
 
-	  setup_coding_system (Fcheck_coding_system (sym), &coding);
-	  coding.last_block = 1;
+	  setup_coding_system
+            (Fcheck_coding_system(Vclipboard_coding_system), &coding);
+          coding.last_block = 1;
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
 	  size = decode_coding (&coding, data, buf, size, bufsize, &dummy);
@@ -1624,16 +1627,16 @@ lisp_data_to_selection_data (display, obj,
 	  int bufsize, dummy;
 	  unsigned char *buf;
 	  struct coding_system coding;
-	  Lisp_Object sym = intern ("iso-latin-1");
 
-	  setup_coding_system (Fcheck_coding_system (sym), &coding);
+	  setup_coding_system
+            (Fcheck_coding_system (Vclipboard_coding_system), &coding);
 	  coding.last_block = 1;
 	  bufsize = encoding_buffer_size (&coding, *size_ret);
 	  buf = (unsigned char *) xmalloc (bufsize);
 	  *size_ret = encode_coding (&coding, *data_ret, buf,
 				     *size_ret, bufsize, &dummy);
 	  *data_ret = buf;
-	  if (charsets[charset_latin_iso8859_1]
+          if (charsets[get_charset_id(charset_latin_iso8859_1)]
 	      && (num == 1 || (num == 2 && charsets[CHARSET_ASCII])))
 	    {
 	      /* Ok, we can return it as `STRING'.  */
@@ -2260,6 +2263,14 @@ to convert into a type that we don't know about or that is inappropriate.\n\
 This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vx_sent_selection_hooks = Qnil;
+
+  DEFVAR_LISP("clipboard-coding-system", &Vclipboard_coding_system,
+  "Coding system for communicating with other X clients.
+When sending or receiving text via cut_buffer, selection, and clipboard,
+the text is encoded or decoded by this coding system.
+A default value is `iso-latin-1'");
+  Vclipboard_coding_system=intern ("iso-latin-1");
+  staticpro(&Vclipboard_coding_system);
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
    "Number of milliseconds to wait for a selection reply.\n\
