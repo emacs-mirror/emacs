@@ -900,9 +900,12 @@ openp (path, str, suffix, storeptr, exec_only)
   int want_size;
   Lisp_Object filename;
   struct stat st;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object string;
 
-  GCPRO1 (str);
+  string = Qnil;
+  GCPRO2 (str, string);
+  
   if (storeptr)
     *storeptr = Qnil;
 
@@ -967,7 +970,6 @@ openp (path, str, suffix, storeptr, exec_only)
 	    handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	  if (! NILP (handler) && ! exec_only)
 	    {
-	      Lisp_Object string;
 	      int exists;
 
 	      string = build_string (fn);
