@@ -94,8 +94,10 @@
  '((ascii t) (tibetan t) nil nil
    nil ascii-eol))
 
-(put 'tibetan 'post-read-conversion 'tibetan-post-read-conversion)
-(put 'tibetan 'pre-write-conversion 'tibetan-pre-write-conversion)
+(coding-system-put 'tibetan 'post-read-conversion
+		   'tibetan-post-read-conversion)
+(coding-system-put 'tibetan 'pre-write-conversion
+		   'tibetan-pre-write-conversion)
 
 (set-language-info-alist
  "Tibetan" '((setup-function . setup-tibetan-environment)

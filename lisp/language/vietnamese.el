@@ -218,8 +218,10 @@ Both tables are indexed by the position code of Vietnamese characters.")
  'vietnamese-viqr 0 ?q
  "Vietnamese latin transcription (VIQR)"
  nil)
-(put 'vietnamese-viqr 'post-read-conversion 'viqr-post-read-conversion)
-(put 'vietnamese-viqr 'pre-write-conversion 'viqr-pre-write-conversion)
+(coding-system-put 'vietnamese-viqr 'post-read-conversion
+		   'viqr-post-read-conversion)
+(coding-system-put 'vietnamese-viqr 'pre-write-conversion
+		   'viqr-pre-write-conversion)
 
 (define-coding-system-alias 'viqr 'vietnamese-viqr)
 
