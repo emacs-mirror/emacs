@@ -3018,7 +3018,7 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
 {
   check_x ();
 
-  return (x_screen_planes > 2
+  return (x_screen_planes > 1
 	  && (screen_visual->class == StaticGray
 	      || screen_visual->class == GrayScale));
 }
