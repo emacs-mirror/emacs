@@ -1150,6 +1150,9 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 	(forward-char -1))
     (insert " at " (substring (current-time-string) 0 19))
     (goto-char (point-max))
+    ;; Prevent that message from being recognized as a compilation error.
+    (add-text-properties omax (point)
+			 (append '(compilation-handle-exit t) nil))
     (setq mode-line-process (format ":%s [%s]" process-status (cdr status)))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
@@ -1928,7 +1931,10 @@ See variable `compilation-parse-errors-function' for the interface it uses."
       (forward-line 2))
 
     ;; Parse messages.
-    (while (not (or found-desired (eobp)))
+    (while (not (or found-desired (eobp)
+		    ;; Don't parse the "compilation finished" message
+		    ;; as a compilation error.
+		    (get-text-property (point) 'compilation-handle-exit)))
       (let ((this compilation-regexps) (prev nil) (alist nil) type)
 	;; Go through the regular expressions. If a match is found,
 	;; variable alist is set to the corresponding alist and the
@@ -2117,9 +2123,9 @@ An error message with no file name and no file name has been seen earlier"))
 	       ;; Use floating-point because (* 100 (point)) frequently
 	       ;; exceeds the range of Emacs Lisp integers.
 	       (/ (* 100.0 (point)) (point-max)))
-	      ))
+	      )))
 
-	(forward-line 1)))		; End of while loop. Look at next line.
+      (forward-line 1))		; End of while loop. Look at next line.
 
     (set-marker compilation-parsing-end (point))
     (setq compilation-error-list (nreverse compilation-error-list))
