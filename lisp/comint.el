@@ -587,10 +587,11 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  ;; Some programs that use terminfo get very confused
 	  ;; if TERM is not a valid terminal type.
 	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
-	      (list "EMACS=t" "TERM=unknown"
+	      (list "TERM=unknown"
 		    (format "COLUMNS=%d" (frame-width)))
-	    (list "EMACS=t" "TERM=emacs"
+	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (frame-width))))
+	  (if (getenv "EMACS") nil (list "EMACS=t"))
 	  process-environment))
 	(default-directory
 	  (if (file-directory-p default-directory)
