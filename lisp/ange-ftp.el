@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.6 $")
+(defconst ange-ftp-version "$Revision: 1.7 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1345,7 +1345,7 @@ file."
 	(auto-save-mode ange-ftp-auto-save))))
 
 (defun ange-ftp-kill-ftp-process (buffer)
-  "Kill the FTP process associated with BUFFER."
+  "Kill the FTP process associated with BUFFER.
 If the BUFFER's visited filename or default-directory is an ftp filename
 then kill the related ftp process."
   (interactive "bKill FTP process associated with buffer: ")
