@@ -1,8 +1,13 @@
+2001-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/rmailsum.el (rmail-summary-font-lock-keywords): Fix the
+	regexps due to 5-digit message IDs.
+
 2001-10-21  Jason Rumney  <jasonr@gnu.org>
 
-	* term/w32-win.el: (redisplay-dont-pause): Don't set.
+	* term/w32-win.el (redisplay-dont-pause): Don't set.
 
-2001-10-22  Miles Bader  <miles@gnu.org>
+2001-10-21  Miles Bader  <miles@gnu.org>
 
 	* help-funs.el (help-manyarg-func-alist): Variable removed.
 
