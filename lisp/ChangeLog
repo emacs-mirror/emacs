@@ -1,3 +1,8 @@
+2003-06-05  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-fontify-node): Individually refill menus and
+	paragraphs to preserve menu items and varying indentation.
+
 2003-06-05  Juanma Barranquero  <lektu@terra.es>
 
 	* desktop.el: Add new maintainer.
