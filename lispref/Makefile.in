@@ -1,26 +1,43 @@
 # Makefile for the GNU Emacs Lisp Reference Manual.
-#
-# 2 September 2001
+
+# Copyright (C) 1990,1991,1992,1993,1994,1995,1996,1998,1999,2000,2001
+#  Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to
+# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
 
 # Standard configure variables.
-prefix = @prefix@
-infodir = @infodir@
 srcdir = @srcdir@
+
+# Tell make where to find source files; this is needed for the makefiles.
+VPATH=@srcdir@
+
+infodir = ../info
 
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
 TEX=tex
-MAKE=make
 SHELL=/bin/sh
 INSTALL_INFO = install-info
 MAKEINFO=makeinfo
 
-# Where the TeX macros are kept:
-texmacrodir = /usr/local/lib/tex/macros
-
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.
-texinputdir = TEXINPUTS=$(srcdir):
+texinputdir = TEXINPUTS=$(srcdir):"$(TEXINPUTS)"
 
 # The name of the manual:
 VERSION=2.8
@@ -92,9 +109,8 @@ srcs = \
 
 # The info file is named `elisp'.
 
-elisp: $(srcs) index.texi
-	rm -f elisp-*
-	$(MAKEINFO) -I $(srcdir) $(srcdir)/elisp.texi
+$(infodir)/elisp: $(srcs) index.texi
+	cd $(srcdir); $(MAKEINFO) -I. elisp.texi -o $(infodir)/elisp
 
 elisp.dvi: $(srcs) index.texi
 	# Avoid losing old contents of aux file entirely.
@@ -123,9 +139,6 @@ install: elisp
 	$(srcdir)/mkinstalldirs $(infodir)
 	cp elisp elisp-* $(infodir)
 	${INSTALL_INFO} --info-dir=${infodir} ${infodir}/elisp
-
-installall: install
-	install -c $(srcdir)/../man/texinfo.tex $(texmacrodir)
 
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
