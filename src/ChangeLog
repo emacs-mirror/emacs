@@ -3,10 +3,6 @@
 	* w32term.c (x_draw_glyphs): Don't call notice_overwritten_cursor
 	if OVERLAPS_P.
 
-2002-01-04  Richard M. Stallman  <rms@gnu.org>
-
-	* xmenu.c (menu_highlight_callback): Hide any tooltip window.
-
 2001-12-30  Richard M. Stallman  <rms@gnu.org>
 
 	* s/sco5.h (sigprocmask_set): Conditionalize decl on ! NOT_C_CODE.
