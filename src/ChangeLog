@@ -1,3 +1,7 @@
+2002-06-29  Ken Raeburn  <raeburn@gnu.org>
+
+	* xdisp.c (store_mode_line_string): Lisp_Object/int mixup.
+
 2002-06-28  Jan D.  <jan.h.d@swipnet.se>
 
 	* keyboard.c (readable_filtered_events): New function that filters
