@@ -2649,60 +2649,65 @@ Setting this variable automatically makes it local to the current buffer.")
 
       (while (and (not give-up) (> (current-column) fc))
 	;; Determine where to split the line.
-	(let ((fill-point
-	       (let ((opoint (point))
-		     bounce
-		     (first t)
-		     after-prefix)
-		 (save-excursion
-		   (beginning-of-line)
-		   (setq after-prefix (point))
-		   (and fill-prefix
-			(looking-at (regexp-quote fill-prefix))
-			(setq after-prefix (match-end 0)))
-		   (move-to-column (1+ fc))
-		   ;; Move back to the point where we can break the
-		   ;; line at.  We break the line between word or
-		   ;; after/before the character which has character
-		   ;; category `|'.  We search space, \c| followed by
-		   ;; a character, or \c| follwoing a character.  If
-		   ;; not found, place the point at beginning of line.
-		   (while (or first
-			      ;; If this is after period and a single space,
-			      ;; move back once more--we don't want to break
-			      ;; the line there and make it look like a
-			      ;; sentence end.
-			      (and (not (bobp))
-				   (not bounce)
-				   sentence-end-double-space
-				   (save-excursion (forward-char -1)
-						   (and (looking-at "\\. ")
-							(not (looking-at "\\.  "))))))
-		     (setq first nil)
-		     (re-search-backward "[ \t]\\|\\c|.\\|.\\c|\\|^")
-		     ;; If we find nowhere on the line to break it,
-		     ;; break after one word.  Set bounce to t
-		     ;; so we will not keep going in this while loop.
-		     (if (<= (point) after-prefix)
-			 (progn
-			   (re-search-forward "[ \t]" opoint t)
-			   (setq bounce t))
-		       (if (looking-at "[ \t]")
-			   ;; Break the line at word boundary.
-			   (skip-chars-backward " \t")
-			 ;; Break the line after/before \c|.
-			 (forward-char 1))))
-		   (if (and enable-kinsoku enable-multibyte-characters)
-		       (kinsoku (save-excursion
-				  (forward-line 0) (point))))
-		   ;; Let fill-point be set to the place where we end up.
-		   (point)))))
+	(let* (after-prefix
+	       (fill-point
+		(let ((opoint (point))
+		      bounce
+		      (first t))
+		  (save-excursion
+		    (beginning-of-line)
+		    (setq after-prefix (point))
+		    (and fill-prefix
+			 (looking-at (regexp-quote fill-prefix))
+			 (setq after-prefix (match-end 0)))
+		    (move-to-column (1+ fc))
+		    ;; Move back to the point where we can break the
+		    ;; line at.  We break the line between word or
+		    ;; after/before the character which has character
+		    ;; category `|'.  We search space, \c| followed by
+		    ;; a character, or \c| follwoing a character.  If
+		    ;; not found, place the point at beginning of line.
+		    (while (or first
+			       ;; If this is after period and a single space,
+			       ;; move back once more--we don't want to break
+			       ;; the line there and make it look like a
+			       ;; sentence end.
+			       (and (not (bobp))
+				    (not bounce)
+				    sentence-end-double-space
+				    (save-excursion (forward-char -1)
+						    (and (looking-at "\\. ")
+							 (not (looking-at "\\.  "))))))
+		      (setq first nil)
+		      (re-search-backward "[ \t]\\|\\c|.\\|.\\c|\\|^")
+		      ;; If we find nowhere on the line to break it,
+		      ;; break after one word.  Set bounce to t
+		      ;; so we will not keep going in this while loop.
+		      (if (<= (point) after-prefix)
+			  (progn
+			    (goto-char after-prefix)
+			    (re-search-forward "[ \t]" opoint t)
+			    (setq bounce t))
+			(if (looking-at "[ \t]")
+			    ;; Break the line at word boundary.
+			    (skip-chars-backward " \t")
+			  ;; Break the line after/before \c|.
+			  (forward-char 1))))
+		    (if (and enable-kinsoku enable-multibyte-characters)
+			(kinsoku (save-excursion
+				   (forward-line 0) (point))))
+		    ;; Let fill-point be set to the place where we end up.
+		    (point)))))
 
-	  ;; If that place is not the beginning of the line,
-	  ;; break the line there.
+	  ;; See whether the place we found is any good.
 	  (if (save-excursion
 		(goto-char fill-point)
 		(and (not (bolp))
+		     ;; There is no use breaking at end of line.
+		     (not (save-excursion (skip-chars-forward " ") (eolp)))
+		     ;; It is futile to split at the end of the prefix
+		     ;; since we would just insert the prefix again.
+		     (not (and after-prefix (<= (point) after-prefix)))
 		     ;; Don't split right after a comment starter
 		     ;; since we would just make another comment starter.
 		     (not (and comment-start-skip
@@ -2711,6 +2716,7 @@ Setting this variable automatically makes it local to the current buffer.")
 				 (and (re-search-forward comment-start-skip
 							 limit t)
 				      (eq (point) limit)))))))
+	      ;; Ok, we have a useful place to break the line.  Do it.
 	      (let ((prev-column (current-column)))
 		;; If point is at the fill-point, do not `save-excursion'.
 		;; Otherwise, if a comment prefix or fill-prefix is inserted,
@@ -2732,7 +2738,7 @@ Setting this variable automatically makes it local to the current buffer.")
 		;; trying again will not help.
 		(if (>= (current-column) prev-column)
 		    (setq give-up t)))
-	    ;; No place to break => stop trying.
+	    ;; No good place to break => stop trying.
 	    (setq give-up t))))
       ;; Justify last line.
       (justify-current-line justify t t)
