@@ -1,5 +1,9 @@
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (popup_activate_callback, popup_deactivate_callback): 
+	Remove special handling for LessTif/Motif.
+	(toplevel): Don't include Xm/Xm.h.
+
 	* xterm.c (XTread_socket) <LeaveNotify, EnterNotify>: Remove
 	workaround code for LessTif; it doesn't work anymore.
 	
