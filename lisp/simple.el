@@ -44,11 +44,12 @@ With arg N, insert N newlines."
 	  (if (and buffer-undo-list (not (eq buffer-undo-list t)))
 	      (setq buffer-undo-list (cons (point) buffer-undo-list)))
 	  (forward-char -1)))
-    (while (> arg 0)
-      (save-excursion
-        (insert ?\n)
-	(if do-fill-prefix (insert fill-prefix)))
-      (setq arg (1- arg)))
+    (save-excursion
+      (while (> arg 0)
+	(if do-fill-prefix (insert fill-prefix))
+	(insert ?\n)
+	(setq arg (1- arg))))
+    (end-of-line)
     (if flag (forward-char 1))))
 
 (defun split-line ()
