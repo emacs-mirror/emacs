@@ -24,13 +24,6 @@
 #undef _setjmp
 #undef _longjmp
 
-/* The character-composition stuff is broken in X11R5.
-   Even with XIMStatusNothing aliased to XIMStatusNone,
-   tranle@intellicorp.com (Minh Tran-Le) reports that enabling
-   the internationalization code causes the modifier keys C, M and Shift
-   to beep after a mouse click.  */
-#define X11R5_INHIBIT_I18N
-
 /* Bill Woodward <wpwood@austin.ibm.com> says:
    libIM *must* precede libXm, to avoid getting aixLoadIM error messages.  */
 #define LIB_MOTIF -lIM -lXm
