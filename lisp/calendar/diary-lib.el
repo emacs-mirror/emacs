@@ -409,7 +409,6 @@ These hooks have the following distinct roles:
                    'list-diary-entries-hook)
         (if diary-display-hook
             (run-hooks 'diary-display-hook)
-          ;; FIXME Error if calendar-setup 'calendar-only -- gm.
           (simple-diary-display))
         (run-hooks 'diary-hook)
         diary-entries-list))))
@@ -466,17 +465,19 @@ changing the variable `diary-include-string'."
   "Display the diary buffer if there are any relevant entries or holidays."
   (let* ((holiday-list (if holidays-in-diary-buffer
                            (check-calendar-holidays original-date)))
-         (msg (format "No diary entries for %s %s"
-                      (concat date-string (if holiday-list ":" ""))
-                      (mapconcat 'identity holiday-list "; "))))
-    (calendar-set-mode-line
-     (concat "Diary for " date-string
-             (if holiday-list ": " "")
-             (mapconcat 'identity holiday-list "; ")))
+         (hol-string (format "%s%s%s"
+                             date-string
+                             (if holiday-list ": " "")
+                             (mapconcat 'identity holiday-list "; ")))
+         (msg (format "No diary entries for %s" hol-string))
+         ;; If selected window is dedicated (to the calendar),
+         ;; need a new one to display the diary.
+         (pop-up-frames (window-dedicated-p (selected-window))))
+    (calendar-set-mode-line (format "Diary for %s" hol-string))
     (if (or (not diary-entries-list)
             (and (not (cdr diary-entries-list))
                  (string-equal (car (cdr (car diary-entries-list))) "")))
-        (if (<= (length msg) (frame-width))
+        (if (< (length msg) (frame-width))
             (message "%s" msg)
           (set-buffer (get-buffer-create holiday-buffer))
           (setq buffer-read-only nil)
@@ -1589,7 +1590,8 @@ Do nothing if DATE or STRING is nil."
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to `diary-file'."
-  (find-file-other-window (substitute-in-file-name (or file diary-file)))
+  (let ((pop-up-frames (window-dedicated-p (selected-window))))
+    (find-file-other-window (substitute-in-file-name (or file diary-file))))
   (widen)
   (goto-char (point-max))
   (when (let ((case-fold-search t))
