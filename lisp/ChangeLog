@@ -1,3 +1,14 @@
+2001-07-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/rcompile.el (remote-compile): Use make-local-variable.
+
+	* progmodes/hideshow.el (hs-minor-mode): Use make-local-variable.
+
+	* progmodes/make-mode.el (makefile-browse): Use make-local-variable.
+
+	* mail/reporter.el (reporter-submit-bug-report):
+	Don't abuse make-variable-buffer-local.  Fix call to add-hook.
+
 2001-07-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el,
