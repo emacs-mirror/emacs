@@ -1,3 +1,7 @@
+2000-10-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (term.o): Depend on dispextern.h.
+
 2000-10-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (keymap_memberp): Ensure that nil is not a member.
