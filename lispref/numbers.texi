@@ -571,10 +571,10 @@ either argument is floating point.
 @section Rounding Operations
 @cindex rounding without conversion
 
-The functions @code{ffloor}, @code{fceil}, @code{fround} and
+The functions @code{ffloor}, @code{fceiling}, @code{fround} and
 @code{ftruncate} take a floating point argument and return a floating
 point result whose value is a nearby integer.  @code{ffloor} returns the
-nearest integer below; @code{fceil}, the nearest integer above;
+nearest integer below; @code{fceiling}, the nearest integer above;
 @code{ftruncate}, the nearest integer in the direction towards zero;
 @code{fround}, the nearest integer.
 
@@ -583,7 +583,7 @@ This function rounds @var{float} to the next lower integral value, and
 returns that value as a floating point number.
 @end defun
 
-@defun fceil float
+@defun fceiling float
 This function rounds @var{float} to the next higher integral value, and
 returns that value as a floating point number.
 @end defun
