@@ -1,3 +1,8 @@
+2001-09-28  Andreas Schwab  <schwab@suse.de>
+
+	* s/gnu-linux.h (LD_SWITCH_SYSTEM_TEMACS): Link temacs with -z
+	nocombreloc, in case -z combreloc is the default.
+
 2001-09-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* m/macppc.h [DATA_SEG_BITS]: Put in #if 0 until we know what's
