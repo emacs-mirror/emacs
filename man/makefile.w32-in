@@ -207,13 +207,13 @@ $(infodir)/emacs-mime: emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-mime.texi
 ../info/sieve: sieve.texi
-	cd $(srcdir); $(MAKEINFO) sieve.texi
+	$(MAKEINFO) sieve.texi
 sieve.dvi: sieve.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/sieve.texi
 ../info/pgg: pgg.texi
-	cd $(srcdir); $(MAKEINFO) pgg.texi
+	$(MAKEINFO) pgg.texi
 pgg.dvi: pgg.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/pgg.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/pgg.texi
 
 $(infodir)/mh-e: mh-e.texi
 	$(MAKEINFO) mh-e.texi
