@@ -28,11 +28,11 @@ Boston, MA 02111-1307, USA.
 #include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
+#include <string.h>
 
 /* Disable features in headers that require a Window System for
    console mode.  */
 #undef HAVE_WINDOW_SYSTEM
-
 #include "lisp.h"
 #include "charset.h"
 #include "coding.h"
@@ -70,18 +70,16 @@ static void set_terminal_modes (void);
 static void set_terminal_window (int size);
 static void update_begin (struct frame * f);
 static void update_end (struct frame * f);
-static int  hl_mode (int new_highlight);
-static void turn_on_face P_ ((struct frame *, int face_id));
-static void turn_off_face P_ ((struct frame *, int face_id));
+static WORD w32_face_attributes (struct frame *f, int face_id);
+static int hl_mode (int new_highlight);
 
-COORD	cursor_coords;
-HANDLE	prev_screen, cur_screen;
-UCHAR	char_attr, char_attr_normal, char_attr_reverse;
-HANDLE  keyboard_handle;
-DWORD   prev_console_mode;
+static COORD	cursor_coords;
+static HANDLE	prev_screen, cur_screen;
+static WORD	char_attr_normal;
+static DWORD   prev_console_mode;
 
 #ifndef USE_SEPARATE_SCREEN
-CONSOLE_CURSOR_INFO prev_console_cursor;
+static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
 /* Determine whether to make frame dimensions match the screen buffer,
@@ -89,6 +87,7 @@ CONSOLE_CURSOR_INFO prev_console_cursor;
    over telnet, while the latter is more useful when working directly at
    the console with a large scroll-back buffer.  */
 int w32_use_full_screen_buffer;
+HANDLE  keyboard_handle;
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
@@ -142,12 +141,12 @@ clear_frame (void)
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 
   hl_mode (0);
-  
+
   /* Remember that the screen buffer might be wider than the window.  */
   n = FRAME_HEIGHT (f) * info.dwSize.X;
   dest.X = dest.Y = 0;
 
-  FillConsoleOutputAttribute (cur_screen, char_attr, n, dest, &r);
+  FillConsoleOutputAttribute (cur_screen, char_attr_normal, n, dest, &r);
   FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
 
   move_cursor (0, 0);
@@ -203,7 +202,7 @@ ins_del_lines (int vpos, int n)
   save_highlight = hl_mode (0);
   
   fill.Char.AsciiChar = 0x20;
-  fill.Attributes = char_attr;
+  fill.Attributes = char_attr_normal;
   
   ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
 
@@ -254,14 +253,7 @@ hl_mode (int new_highlight)
   
   old_highlight = highlight;
   highlight = (new_highlight != 0);
-  if (highlight)
-    {
-      char_attr = char_attr_reverse;
-    }
-  else
-    {
-      char_attr = char_attr_normal;
-    }
+
   return old_highlight;
 }
 
@@ -318,8 +310,8 @@ scroll_line (int dist, int direction)
   dest.Y = cursor_coords.Y;
   
   fill.Char.AsciiChar = 0x20;
-  fill.Attributes = char_attr;
-  
+  fill.Attributes = char_attr_normal;
+
   ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
 }
 
@@ -349,6 +341,10 @@ write_glyphs (register struct glyph *string, register int len)
 {
   int produced, consumed, i;
   struct frame * f = PICK_FRAME ();
+  WORD char_attr;
+
+  if (len <= 0)
+    return;
 
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
@@ -365,7 +361,7 @@ write_glyphs (register struct glyph *string, register int len)
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
-      turn_on_face (f, face_id);
+      char_attr = w32_face_attributes (f, face_id);
 
       while (n > 0)
         {
@@ -402,9 +398,6 @@ write_glyphs (register struct glyph *string, register int len)
           n -= consumed;
           string += consumed;
         }
-
-      /* Turn appearance modes off.  */
-      turn_off_face (f, face_id);
     }
 
   /* We may have to output some codes to terminate the writing.  */
@@ -415,7 +408,7 @@ write_glyphs (register struct glyph *string, register int len)
 		     0, conversion_buffer_size);
       if (terminal_coding.produced > 0)
         {
-          if (!FillConsoleOutputAttribute (cur_screen, char_attr,
+          if (!FillConsoleOutputAttribute (cur_screen, char_attr_normal,
                                            terminal_coding.produced,
                                            cursor_coords, &i)) 
             {
@@ -499,6 +492,8 @@ SOUND is nil to use the normal beep.")
 void
 reset_terminal_modes (void)
 {
+  hl_mode (0);
+
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
@@ -511,6 +506,8 @@ void
 set_terminal_modes (void)
 {
   CONSOLE_CURSOR_INFO cci;
+
+  hl_mode (0);
 
   /* make cursor big and visible (100 on Win95 makes it disappear)  */
   cci.dwSize = 99;
@@ -533,11 +530,13 @@ set_terminal_modes (void)
 void
 update_begin (struct frame * f)
 {
+  hl_mode (0);
 }
 
 void
 update_end (struct frame * f)
 {
+  hl_mode (0);
   SetConsoleCursorPosition (cur_screen, cursor_coords);
 }
 
@@ -553,43 +552,68 @@ set_terminal_window (int size)
 
 /* Turn appearances of face FACE_ID on tty frame F on.  */
 
-static void
-turn_on_face (f, face_id)
+static WORD
+w32_face_attributes (f, face_id)
      struct frame *f;
      int face_id;
 {
+  WORD char_attr;
+  int highlight_on_p;
   struct face *face = FACE_FROM_ID (f, face_id);
+
+  highlight_on_p = hl_mode (0);
+  hl_mode (highlight_on_p);
 
   xassert (face != NULL);
 
   char_attr = char_attr_normal;
 
-  if (face->foreground != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xf0) + face->foreground;
+  if (face->foreground != FACE_TTY_DEFAULT_FG_COLOR
+      && face->foreground != FACE_TTY_DEFAULT_COLOR)
+    char_attr = (char_attr & 0xfff0) + (face->foreground % 16);
 
-  if (face->background != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (face->background << 4) + char_attr & 0x0f;
+  if (face->background != FACE_TTY_DEFAULT_BG_COLOR
+      && face->background != FACE_TTY_DEFAULT_COLOR)
+    char_attr = (char_attr & 0xff0f) + ((face->background % 16) * 16); 
 
-  if (face->tty_reverse_p)
-    char_attr = ((char_attr & 0x0f) << 4) + ((char_attr & 0xf0) >> 4);
 
-  /* Ensure readability */
-  if (((char_attr & 0xf0) >> 4) == (char_attr * 0x0f))
-    char_attr ^= 0x0f;
+  /* Ensure readability (temporary measure until this all works) */
+  if (((char_attr & 0x00f0) >> 4) == (char_attr & 0x000f))
+    char_attr ^= 0x0007;
+
+  if (face->tty_reverse_p || highlight_on_p)
+    char_attr = (char_attr & 0xff00) + ((char_attr & 0x000f) << 4)
+      + ((char_attr & 0x00f0) >> 4);
+
+  return char_attr;
 }
 
 
-/* Turn off appearances of face FACE_ID on tty frame F.  */
+/* Emulation of some X window features from xfns.c and xfaces.c.  */
 
-static void
-turn_off_face (f, face_id)
-     struct frame *f;
-     int face_id;
+extern char unspecified_fg[], unspecified_bg[];
+
+
+/* Given a color index, return its standard name.  */
+Lisp_Object
+vga_stdcolor_name (int idx)
 {
-  if (hl_mode (0))
-    hl_mode (1);
+  /* Standard VGA colors, in the order of their standard numbering
+     in the default VGA palette.  */
+  static char *vga_colors[16] = {
+    "black", "blue", "green", "cyan", "red", "magenta", "brown",
+    "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
+    "lightred", "lightmagenta", "yellow", "white"
+  };
+
+  extern Lisp_Object Qunspecified;
+
+  if (idx >= 0 && idx < sizeof (vga_colors) / sizeof (vga_colors[0]))
+    return build_string (vga_colors[idx]);
+  else
+    return Qunspecified;	/* meaning the default */
 }
-  
+
 typedef int (*term_hook) ();
 
 void
@@ -683,9 +707,8 @@ initialize_w32_display (void)
   GetConsoleScreenBufferInfo (cur_screen, &info);
   
   meta_key = 1;
-  char_attr = info.wAttributes & 0xFF;
-  char_attr_normal = char_attr;
-  char_attr_reverse = ((char_attr & 0xf) << 4) + ((char_attr & 0xf0) >> 4);
+  char_attr_normal = info.wAttributes;
+  hl_mode (0);
 
   if (w32_use_full_screen_buffer)
     {
@@ -710,7 +733,6 @@ DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
     Lisp_Object background;
 {
   char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
-  char_attr_reverse = XFASTINT (background) + (XFASTINT (foreground) << 4);
 
   Frecenter (Qnil);
   return Qt;
