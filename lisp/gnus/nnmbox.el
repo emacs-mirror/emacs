@@ -61,9 +61,9 @@
 (defvoo nnmbox-group-alist nil)
 (defvoo nnmbox-active-timestamp nil)
 
-(defvoo nnmbox-file-coding-system mm-text-coding-system)
+(defvoo nnmbox-file-coding-system mm-binary-coding-system)
 (defvoo nnmbox-file-coding-system-for-write nil)
-(defvoo nnmbox-active-file-coding-system mm-text-coding-system)
+(defvoo nnmbox-active-file-coding-system mm-binary-coding-system)
 (defvoo nnmbox-active-file-coding-system-for-write nil)
 
 

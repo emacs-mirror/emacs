@@ -32,10 +32,7 @@
 (require 'mm-decode)
 (require 'mailcap)
 (require 'uudecode)
-
-(eval-and-compile
-  (autoload 'binhex-decode-region "binhex")
-  (autoload 'binhex-decode-region-external "binhex"))
+(require 'binhex)
 
 (defun mm-uu-copy-to-buffer (from to)
   "Copy the contents of the current buffer to a fresh buffer.

@@ -721,23 +721,8 @@ If POST, post instead of mail."
     (gnus-setup-message 'forward
       (gnus-summary-select-article)
       (let ((mail-parse-charset gnus-newsgroup-charset)
-	    (mail-parse-ignored-charsets gnus-newsgroup-ignored-charsets)
-	    text)
-	(save-excursion
-	  (set-buffer gnus-original-article-buffer)
-	  (setq text (buffer-string)))
-	(set-buffer 
-	 (gnus-get-buffer-create
-	  (generate-new-buffer-name " *Gnus forward*")))
-	(erase-buffer)
-	(unless message-forward-show-mml
-	  (mm-disable-multibyte))
-	(insert text)
-	(goto-char (point-min))
-	(when (looking-at "From ")
-	  (replace-match "X-From-Line: ") )
-	(when message-forward-show-mml
-	  (mime-to-mml))
+	    (mail-parse-ignored-charsets gnus-newsgroup-ignored-charsets))
+	(set-buffer gnus-original-article-buffer)
 	(message-forward post)))))
 
 (defun gnus-summary-resend-message (address n)

@@ -270,7 +270,23 @@ default charset will be used instead.")
 			   (symbol :tag "Face" 
 				   gnus-emphasis-highlight-words))))
      "highlight regexps.
-See gnus-emphasis-alist."))
+See gnus-emphasis-alist.")
+
+    (posting-style
+     (choice :tag "Posting style"
+	     :value nil
+	     (repeat (list
+ 		      (choice :tag "Type"
+			      :value nil
+			      (const signature)
+ 			      (const signature-file) 
+ 			      (const organization) 
+ 			      (const address)
+ 			      (const name)
+ 			      (const body))
+		      (string :format "%v"))))
+     "post style.
+See gnus-posting-styles."))
   "Alist of valid group or topic parameters.
 
 Each entry has the form (NAME TYPE DOC), where NAME is the parameter

@@ -1242,16 +1242,20 @@ Return the number of headers removed."
      (point-max)))
   (goto-char (point-min)))
 
-(defun message-narrow-to-head ()
-  "Narrow the buffer to the head of the message.
-Point is left at the beginning of the narrowed-to region."
-  (widen)
+(defun message-narrow-to-head-1 ()
+  "Like `message-narrow-to-head'. Don't widen."
   (narrow-to-region
    (goto-char (point-min))
    (if (search-forward "\n\n" nil 1)
        (1- (point))
      (point-max)))
   (goto-char (point-min)))
+
+(defun message-narrow-to-head ()
+  "Narrow the buffer to the head of the message.
+Point is left at the beginning of the narrowed-to region."
+  (widen)
+  (message-narrow-to-head-1))
 
 (defun message-narrow-to-headers-or-head ()
   "Narrow the buffer to the head of the message."
@@ -3758,7 +3762,7 @@ OTHER-HEADERS is an alist of header/value pairs."
 	(message-this-is-mail t)
 	gnus-warning)
     (save-restriction
-      (message-narrow-to-head)
+      (message-narrow-to-head-1)
       ;; Allow customizations to have their say.
       (if (not wide)
 	  ;; This is a regular reply.
@@ -3932,7 +3936,7 @@ If ARG, allow editing of the cancellation message."
       (save-excursion
 	;; Get header info from original article.
 	(save-restriction
-	  (message-narrow-to-head)
+	  (message-narrow-to-head-1)
 	  (setq from (message-fetch-field "from")
 		sender (message-fetch-field "sender")
 		newsgroups (message-fetch-field "newsgroups")
@@ -3994,7 +3998,7 @@ header line with the old Message-ID."
     (message-pop-to-buffer (message-buffer-name "supersede"))
     (insert-buffer-substring cur)
     (mime-to-mml)
-    (message-narrow-to-head)
+    (message-narrow-to-head-1)
     ;; Remove unwanted headers.
     (when message-ignored-supersedes-headers
       (message-remove-header message-ignored-supersedes-headers t))
@@ -4082,13 +4086,15 @@ the message."
   "Return a Subject header suitable for the message in the current buffer."
   (save-excursion
     (save-restriction
-      (current-buffer)
-      (message-narrow-to-head)
+      (message-narrow-to-head-1)
       (let ((funcs message-make-forward-subject-function)
-	    (subject (if message-wash-forwarded-subjects
-			 (message-wash-subject
-			  (or (message-fetch-field "Subject") ""))
-		       (or (message-fetch-field "Subject") ""))))
+	    (subject (message-fetch-field "Subject")))
+	(setq subject
+	      (if subject
+		  (mail-decode-encoded-word-string subject)
+		""))
+	(if message-wash-forwarded-subjects
+	    (setq subject (message-wash-subject subject)))
 	;; Make sure funcs is a list.
 	(and funcs
 	     (not (listp funcs))
@@ -4108,10 +4114,7 @@ Optional NEWS will use news to forward instead of mail.
 Optional DIGEST will use digest to forward."
   (interactive "P")
   (let* ((cur (current-buffer))
-	 (subject (if message-forward-show-mml
-		      (message-make-forward-subject)
-		    (mail-decode-encoded-word-string
-		     (message-make-forward-subject))))
+	 (subject (message-make-forward-subject))
 	 art-beg)
     (if news
 	(message-news nil subject)
@@ -4134,8 +4137,29 @@ Optional DIGEST will use digest to forward."
 	      (insert-buffer-substring cur)
 	    (mml-insert-buffer cur))
 	(if message-forward-show-mml
-	    (insert-buffer-substring cur)
-	  (mml-insert-buffer cur)))
+	    (let ((target (current-buffer)) tmp)
+	      (with-temp-buffer
+		(mm-disable-multibyte) ;; Must copy buffer in unibyte mode
+		(setq tmp (current-buffer))
+		(set-buffer cur)
+		(mm-with-unibyte-current-buffer
+		  (set-buffer tmp)
+		  (insert-buffer-substring cur))
+		(set-buffer tmp)
+		(mm-enable-multibyte)
+		(mime-to-mml)
+		(goto-char (point-min))
+		(when (looking-at "From ")
+		  (replace-match "X-From-Line: "))
+		(set-buffer target)
+		(insert-buffer-substring tmp)
+		(set-buffer tmp))
+	      (goto-char (point-max)))
+	  (mml-insert-buffer cur)
+	  (goto-char (point-min))
+	  (when (looking-at "From ")
+	    (replace-match "X-From-Line: "))
+	  (goto-char (point-max))))
       (setq e (point))
       (if message-forward-as-mime
 	  (if digest
@@ -4241,7 +4265,7 @@ you."
     (mm-enable-multibyte)
     (mime-to-mml)
     (save-restriction
-      (message-narrow-to-head)
+      (message-narrow-to-head-1)
       (message-remove-header message-ignored-bounced-headers t)
       (goto-char (point-max))
       (insert mail-header-separator))

@@ -1,5 +1,38 @@
 2000-12-20  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
+	* message.el (message-narrow-to-head-1): New function.
+	(message-narrow-to-head): Use it.
+	(message-reply): Ditto.
+	(message-cancel-news): Ditto.
+	(message-supersede): Ditto.
+	(message-make-forward-subject): Ditto.
+	(message-bounce): Ditto.
+
+	* gnus-msg.el (gnus-summary-mail-forward): Use original buffer.
+
+	* message.el (message-forward): Copy buffer in unibyte mode.
+	(message-make-forward-subject): Don't widen. Decode.
+	(message-forward): Don't decode subject.
+
+	* mml.el (gnus-ems): Require it.
+
+	* gnus-msg.el (gnus-summary-mail-forward):
+	
+	* message.el (message-forward):  Move mime-to-mml here.
+
+	* nnmbox.el (nnmbox-file-coding-system): Use binary.
+	(nnmbox-active-file-coding-system): Ditto.
+
+	* gnus-cus.el (gnus-group-parameters): Add posting-style.
+
+	* mm-uu.el: Require binhex.
+
+2000-12-20  Christoph Conrad <C.Conrad@cli.de>
+
+	* qp.el (quoted-printable-encode-region): Upcase QP.
+
+2000-12-20  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
 	* gnus-util.el (gnus-add-text-properties-when): New function.
 	(gnus-remove-text-properties-when): Ditto.
 
