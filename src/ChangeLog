@@ -1,3 +1,10 @@
+2002-02-24  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Flookup_key): Fixed problem in 2001-12-28 patch:
+	The validation of the event type was too strict as it didn't
+	allow string events; buffer names are used in bindings for
+	menu-bar-select-buffer (see `menu-bar-update-buffers').
+
 2002-02-23  Kim F. Storm  <storm@cua.dk>
 
 	The following changes rework my patch of 2002-02-06 which 
