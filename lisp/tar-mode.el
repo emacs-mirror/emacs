@@ -81,6 +81,20 @@
 ;;; o  Block files, sparse files, continuation files, and the various header 
 ;;;    types aren't editable.  Actually I don't know that they work at all.
 
+;;; Rationale:
+
+;;; Why does tar-mode edit the file itself instead of using tar?
+
+;;; That means that you can edit tar files which you don't have room for
+;;; on your local disk.
+
+;;; I don't know about recent features in gnu tar, but old versions of tar
+;;; can't replace a file in the middle of a tar file with a new version.
+;;; Tar-mode can.  I don't think tar can do things like chmod the subfiles.
+;;; An implementation which involved unpacking and repacking the file into
+;;; some scratch directory would be very wasteful, and wouldn't be able to
+;;; preserve the file owners.
+
 ;;; Code:
 
 (defvar tar-anal-blocksize 20
