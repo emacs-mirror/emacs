@@ -151,12 +151,12 @@ problems).  The problems include:
   . No redisplay as long as help echo is displayed in the echo area,
     e.g. if the mouse is on a mouse-sensitive part of the mode line.
 
-  . When mode line is dragged with the mouse, multiple copies of the
+  . When the mode line is dragged with the mouse, multiple copies of the
     mode line are left behind, until the mouse button is released and
     the next input event occurs.
 
-  . Window contents is not updated when text is selected by dragging
-    the mouse and the mouse is dragged below the bottom line of the
+  . Window contents are not updated when text is selected by dragging
+    the mouse, and the mouse is dragged below the bottom line of the
     window.  When the mouse button is released, the window display is
     correctly updated.
 
@@ -173,8 +173,8 @@ Manager driven switch of the focus, until a key is pressed.
 This can happen because the linker by default only looks for shared
 libraries, but jpeg distribution by default doesn't build and doesn't
 install a shared version of the library, `libjpeg.so'.  One system
-where this is known to happen is Compaq/DEC Alpha OSF/1 v4.0, but it
-probably isn't limited to that system alone.
+where this is known to happen is Compaq OSF/1 (`Tru64'), but it
+probably isn't limited to that system.
 
 It is possible to build Emacs linked statically, but that makes the
 binary much larger.
@@ -289,39 +289,39 @@ Emacs so that it isn't compiled with `-O5'.
 
 * The PSGML package uses the obsolete variables
 `before-change-function' and `after-change-function', which are no
-longer used by Emacs.  These changes to PSGML 1.2.1 fix that.
+longer used by Emacs.  These changes to PSGML 1.2.2 fix that.
 
---- psgml-edit.el	1999/12/17 10:55:07	1.1
-+++ psgml-edit.el	1999/12/17 11:36:37
-@@ -263,4 +263,4 @@
+--- psgml-edit.el	2001/03/03 00:23:31	1.1
++++ psgml-edit.el	2001/03/03 00:24:22
+@@ -264,4 +264,4 @@
  					; inhibit-read-only
 -	(before-change-function nil)
 -	(after-change-function nil))
 +	(before-change-functions nil)
 +	(after-change-functions nil))
      (setq selective-display t)
-@@ -1474,3 +1474,3 @@
+@@ -1544,3 +1544,3 @@
  	(buffer-read-only nil)
 -	(before-change-function nil)
 +	(before-change-functions nil)
  	(markup-index			; match-data index in tag regexp
-@@ -1526,3 +1526,3 @@
+@@ -1596,3 +1596,3 @@
  (defun sgml-expand-shortref-to-text (name)
 -  (let (before-change-function
 +  (let (before-change-functions
  	(entity (sgml-lookup-entity name (sgml-dtd-entities sgml-dtd-info))))
-@@ -1543,3 +1543,3 @@
+@@ -1613,3 +1613,3 @@
  	(re-found nil)
 -	before-change-function)
 +	before-change-functions)
      (goto-char sgml-markup-start)
-@@ -1576,3 +1576,3 @@
+@@ -1646,3 +1646,3 @@
      (goto-char (sgml-element-end element)) 
 -    (let ((before-change-function nil))
 +    (let ((before-change-functions nil))
        (sgml-normalize-content element only-one)))
---- psgml-other.el	1999/12/17 10:40:02	1.1
-+++ psgml-other.el	1999/12/17 11:30:43
+--- psgml-other.el	2001/03/03 00:23:42	1.1
++++ psgml-other.el	2001/03/03 00:30:05
 @@ -32,2 +32,3 @@
  (require 'easymenu)
 +(eval-when-compile (require 'cl))
@@ -338,29 +338,30 @@ longer used by Emacs.  These changes to PSGML 1.2.1 fix that.
 +					    new) nil)
 +			    new)))
  		     (setq entries (nthcdr sgml-max-menu-size entries))
-@@ -113,7 +119,10 @@
+@@ -113,9 +119,10 @@
        (let ((inhibit-read-only t)
 -	    (after-change-function nil)	; obsolete variable
 -	    (before-change-function nil) ; obsolete variable
  	    (after-change-functions nil)
 -	    (before-change-functions nil))
--	(put-text-property start end 'face face)))
 +	    (before-change-functions nil)
 +	    (modified (buffer-modified-p))
 +	    (buffer-undo-list t)
 +	    deactivate-mark)
-+	(put-text-property start end 'face face)
+ 	(put-text-property start end 'face face)
+-        (when (< start end)
+-          (put-text-property (1- end) end 'rear-nonsticky '(face)))))
 +	(when (and (not modified) (buffer-modified-p))
-+	   (set-buffer-modified-p nil))))
++	  (set-buffer-modified-p nil))))
       (t
---- psgml-parse.el	1999/12/17 10:32:45	1.1
-+++ psgml-parse.el	2000/12/05 17:12:34
+--- psgml-parse.el	2001/03/03 00:23:57	1.1
++++ psgml-parse.el	2001/03/03 00:29:56
 @@ -40,2 +40,4 @@
  
 +(eval-when-compile (require 'cl))
 +
  
-@@ -2474,8 +2476,8 @@
+@@ -2493,8 +2495,8 @@
        (setq sgml-scratch-buffer nil))
 -    (when after-change-function		;***
 -      (message "OOPS: after-change-function not NIL in scratch buffer %s: %s"
@@ -374,7 +375,7 @@ longer used by Emacs.  These changes to PSGML 1.2.1 fix that.
 +      (setq before-change-functions nil
 +	    after-change-functions nil))
      (setq sgml-last-entity-buffer (current-buffer))
-@@ -2846,6 +2848,5 @@
+@@ -2878,6 +2880,5 @@
    "Set initial state of parsing"
 -  (make-local-variable 'before-change-function)
 -  (setq before-change-function 'sgml-note-change-at)
@@ -384,18 +385,18 @@ longer used by Emacs.  These changes to PSGML 1.2.1 fix that.
 +  (set (make-local-variable 'after-change-functions)
 +       '(sgml-set-face-after-change))
    (sgml-set-active-dtd-indicator (sgml-dtd-doctype dtd))
-@@ -3887,7 +3888,7 @@
- 
+@@ -3925,7 +3926,7 @@
+   (sgml-need-dtd)
 -  (unless before-change-function
 -    (message "WARN: before-change-function has been lost, restoring (%s)"
 +  (unless before-change-functions
 +    (message "WARN: before-change-functions has been lost, restoring (%s)"
  	     (current-buffer))
 -    (setq before-change-function 'sgml-note-change-at)
--    (setq after-change-function 'sgml-set-face-after-change)
+-    (setq after-change-function 'sgml-set-face-after-change))
 +    (setq before-change-functions '(sgml-note-change-at))
-+    (setq after-change-functions '(sgml-set-face-after-change))
-     )
++    (setq after-change-functions '(sgml-set-face-after-change)))
+   (sgml-with-parser-syntax-ro
 
 * The Calc package fails to build and signals errors with Emacs 21.
 
