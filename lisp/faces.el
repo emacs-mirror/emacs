@@ -219,8 +219,19 @@ A face is considered to be ``the same'' as the default face if it is
 actually specified in the same way (equal attributes) or if it is
 fully-unspecified, and thus inherits the attributes of any face it
 is displayed on top of."
-  (or (internal-lisp-face-empty-p face frame)
-      (not (internal-lisp-face-equal-p face 'default frame))))
+  (cond ((eq frame t) (setq frame nil))
+	((null frame) (setq frame (selected-frame))))
+  (let* ((v1 (internal-lisp-face-p face frame))
+	 (n (if v1 (length v1) 0))
+	 (v2 (internal-lisp-face-p 'default frame))
+	 (i 1))
+    (unless v1
+      (error "Not a face: %S" face))
+    (while (and (< i n)
+		(or (eq 'unspecified (aref v1 i))
+		    (equal (aref v1 i) (aref v2 i))))
+      (setq i (1+ i)))
+    (< i n)))
 
 
 (defun face-nontrivial-p (face &optional frame)
