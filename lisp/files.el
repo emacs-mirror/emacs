@@ -2171,6 +2171,7 @@ This command is used in the special Dired buffer created by
   (interactive)
   ;; Get the name of the session file to recover from.
   (let ((file (dired-get-filename))
+	files
 	(buffer (get-buffer-create " *recover*")))
     (dired-do-flagged-delete t)
     (unwind-protect
@@ -2179,48 +2180,58 @@ This command is used in the special Dired buffer created by
 	  (set-buffer buffer)
 	  (erase-buffer)
 	  (insert-file-contents file)
+	  ;; Loop thru the text of that file
+	  ;; and get out the names of the files to recover.
+	  (while (not (eobp))
+	    (let (thisfile autofile)
+	      (if (eolp)
+		  ;; This is a pair of lines for a non-file-visiting buffer.
+		  ;; Get the auto-save file name and manufacture
+		  ;; a "visited file name" from that.
+		  (progn
+		    (forward-line 1)
+		    (setq autofile
+			  (buffer-substring-no-properties
+			   (point)
+			   (save-excursion
+			     (end-of-line)
+			     (point))))
+		    (setq thisfile
+			  (expand-file-name
+			   (substring
+			    (file-name-nondirectory autofile)
+			    1 -1)
+			   (file-name-directory autofile)))
+		    (forward-line 1))
+		;; This pair of lines is a file-visiting
+		;; buffer.  Use the visited file name.
+		(progn
+		  (setq thisfile
+			(buffer-substring-no-properties
+			 (point) (progn (end-of-line) (point))))
+		  (forward-line 1)
+		  (setq autofile
+			(buffer-substring-no-properties
+			 (point) (progn (end-of-line) (point))))
+		  (forward-line 1)))
+	      ;; Ignore a file if its auto-save file does not exist now.
+	      (if (file-exists-p autofile)
+		  (setq files (cons thisfile files)))))
+	  (setq files (nreverse files))
 	  ;; The file contains a pair of line for each auto-saved buffer.
 	  ;; The first line of the pair contains the visited file name
 	  ;; or is empty if the buffer was not visiting a file.
 	  ;; The second line is the auto-save file name.
-	  (map-y-or-n-p  "Recover %s? "
-			 (lambda (file)
-			   (condition-case nil
-			       (save-excursion (recover-file file))
-			     (error 
-			      "Failed to recover `%s'" file)))
-			 (lambda ()
-			   (if (eobp)
-			       nil
-			     (prog1
-				 (if (eolp)
-				     ;; If the first line of the pair is empty,
-				     ;; it means this was a non-file buffer
-				     ;; that was autosaved.
-				     ;; Make a file name from 
-				     ;; the auto-save file name.
-				     (let ((autofile
-					    (buffer-substring-no-properties
-					     (save-excursion
-					       (forward-line 1)
-					       (point))
-					     (save-excursion
-					       (forward-line 1)
-					       (end-of-line)
-					       (point)))))
-				       (expand-file-name
-					(concat "temp"
-						(substring
-						 (file-name-nondirectory autofile)
-						 1 -1))
-					(file-name-directory autofile)))
-				   ;; This pair of lines is a file-visiting
-				   ;; buffer.  Use the visited file name.
-				   (buffer-substring-no-properties
-				    (point) (progn (end-of-line) (point))))
-			       (while (and (eolp) (not (eobp)))
-				 (forward-line 2)))))
-			 '("file" "files" "recover")))
+	  (if files
+	      (map-y-or-n-p  "Recover %s? "
+			     (lambda (file)
+			       (condition-case nil
+				   (save-excursion (recover-file file))
+				 (error 
+				  "Failed to recover `%s'" file)))
+			     files
+			     '("file" "files" "recover"))
+	    (message "No files can be recovered from this session now")))
       (kill-buffer buffer))))
 
 (defun kill-some-buffers ()
