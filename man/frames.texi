@@ -715,10 +715,11 @@ argument is positive, off if the argument is not positive.  You can use
 the X resource @samp{menuBarLines} to control the initial setting of
 Menu Bar mode.  @xref{Resources X}.
 
+@kindex C-Mouse-3@r{, when menu bar is turned off}
 Expert users often turn off the menu bar, especially on text-only
 terminals, where this makes one additional line available for text.  If
 the menu bar is off, you can still pop up a menu of its contents with
-@kbd{c-mouse-3} on a display which supports popup menus.  @xref{Menu
+@kbd{C-mouse-3} on a display which supports popup menus.  @xref{Menu
 Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
@@ -780,6 +781,15 @@ how to specify the foreground and background color.
   To alter the appearance of a face, use the customization buffer.
 @xref{Face Customization}.  You can also use X resources to specify
 attributes of particular faces (@pxref{Resources X}).
+
+@cindex face colors, setting
+@findex set-face-foreground
+@findex set-face-background
+  Alternatively, you could change the foreground and background colors
+of a specific face with @kbd{M-x set-face-foreground} and @kbd{M-x
+set-face-background}.  These commands prompt in the minibuffer for a
+face name and a color name, with completion, and then setup that face to
+use the specified color.
 
 @findex list-faces-display
   To see what faces are currently defined, and what they look like, type
@@ -894,6 +904,22 @@ function @code{global-font-lock-mode}, like this:
 @example
 (global-font-lock-mode 1)
 @end example
+
+  To change the colors or the fonts used by Font Lock mode to fontify
+different parts of text, you can use one of the following:
+
+@itemize @bullet
+@item
+Invoke @kbd{M-x set-face-foreground} or @kbd{M-x set-face-background} to
+change the colors of a particular face, such as
+@code{font-lock-variable-name-face}, used by Font Lock.  @xref{Faces}.
+The command @kbd{M-x list-faces-display} displays all the faces
+currently known to Emacs, including those used by Font Lock.
+
+@item
+Customize the faces interactively with @kbd{M-x customize-face}, as
+described in @ref{Face Customization}.
+@end itemize
 
 @kindex M-g M-g
 @findex font-lock-fontify-block
