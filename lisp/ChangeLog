@@ -1,3 +1,8 @@
+2000-08-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line): If user's init file had an error,
+	add explanatory text to *Messages*.
+
 2000-08-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* man.el (Man-getpage-in-background): Decode the process output by

@@ -32,6 +32,7 @@ emacs-30
 emacs-31
 emacs-32
 emacs-33
+emacs-34
 ccmode
 ccmode-1
 ccmode-2
@@ -108,3 +109,4 @@ idlwave-1
 idlwave-2
 ebrowse
 pcl-cvs
+woman
