@@ -1,3 +1,10 @@
+2002-04-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (MMAP_ALLOCATED_P): New macro to be set from system
+	configuration files.
+	(mmap_enlarge): Enlarge mapped regions only if MMAP_ALLOCATED_P
+	returns 0.
+
 2002-04-15  Andreas Schwab  <schwab@suse.de>
 
 	* config.in: Regenerated using autoheader.
