@@ -300,11 +300,12 @@ for \\[find-tag] (which see)."
 ;; that we will not need to keep permanently.
 (garbage-collect)
 
-;; Make Latin-1, Latin-2, Latin-3 and Latin-4 characters self-insert.
-(aset (nth 1 global-map) (make-char 'latin-iso8859-1) 'self-insert-command)
-(aset (nth 1 global-map) (make-char 'latin-iso8859-2) 'self-insert-command)
-(aset (nth 1 global-map) (make-char 'latin-iso8859-3) 'self-insert-command)
-(aset (nth 1 global-map) (make-char 'latin-iso8859-4) 'self-insert-command)
+;; Make all multibyte characters self-insert.
+(let ((l (generic-character-list))
+      (table (nth 1 global-map)))
+  (while l
+    (set-char-table-default table (car l) 'self-insert-command)
+    (setq l (cdr l))))
 
 (setq help-event-list '(help f1))
 
