@@ -1,3 +1,7 @@
+2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* info.el (Info-mode-map): Bind `c' to Info-copy-current-node-name.
+
 2002-05-08  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/smtpmail.el (netrc-machine, netrc-get): Add autoloads.
