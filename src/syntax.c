@@ -3173,7 +3173,7 @@ See the info node `(elisp)Syntax Properties' for a description of the
 	       doc: /* Non-nil means `forward-word', etc., should treat escape chars part of words.  */);
 
   DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
-	       doc: /* Non-nil means `scan-sexps' treats all multibyte characters as symbol.  */);
+	       doc: /* Non-nil means `scan-sexps' treats all multibyte characters as symbol constituents.  */);
   multibyte_syntax_as_symbol = 0;
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
