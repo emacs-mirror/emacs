@@ -1,3 +1,12 @@
+2002-12-12  Dave Love  <fx@gnu.org>
+
+	* custom.el (defcustom, custom-set-variables): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-if): Suppress warnings from
+	things protected by `(if (fboundp ...' or `(if (boundp ...'.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-featurep): New.
+
 2002-12-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-mode-abbrev-table): Handle
