@@ -1,3 +1,7 @@
+2000-01-11  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (code_convert_region): Initialize total_skip.
+
 2000-01-08  Dave Love  <fx@gnu.org>
 
 	* eval.c (Fuser_variable_p): Check customizability too.
