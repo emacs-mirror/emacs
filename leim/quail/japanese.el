@@ -78,7 +78,8 @@
     (let ((result (kkc-region from to)))
       (move-overlay quail-conv-overlay from (point))
       (if (= (+ from result) (point))
-	  (setq quail-converting nil)))))
+	  (setq quail-converting nil))
+      (setq quail-translating nil))))
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
