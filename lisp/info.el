@@ -910,7 +910,9 @@ a case-insensitive match is tried."
 		    nodename end)
 		(re-search-backward "^\^_")
 		(search-forward "Node: ")
-		(setq nodename (Info-following-node-name))
+		(setq nodename
+		      (and (looking-at (Info-following-node-name-re))
+			   (match-string 1)))
 		(search-forward "\n\^_" nil 'move)
 		(beginning-of-line)
 		(setq end (point))
@@ -1209,8 +1211,8 @@ If FORK is a string, it is the name to use for the new buffer."
 		  nodename)
     (setq filename (if (= (match-beginning 1) (match-end 1))
 		       ""
-		     (substring nodename (match-beginning 2) (match-end 2)))
-	  nodename (substring nodename (match-beginning 3) (match-end 3)))
+		     (match-string 2 nodename))
+	  nodename (match-string 3 nodename))
     (let ((trim (string-match "\\s *\\'" filename)))
       (if trim (setq filename (substring filename 0 trim))))
     (let ((trim (string-match "\\s *\\'" nodename)))
@@ -1393,35 +1395,33 @@ If FORK is a string, it is the name to use for the new buffer."
 (defun Info-extract-pointer (name &optional errorname)
   "Extract the value of the node-pointer named NAME.
 If there is none, use ERRORNAME in the error message;
-if ERRORNAME is nil, just return nil.
-Bind this in case the user sets it to nil."
+if ERRORNAME is nil, just return nil."
+  ;; Bind this in case the user sets it to nil.
   (let ((case-fold-search t))
     (save-excursion
-      (save-restriction
-	(goto-char (point-min))
-	(let ((bound (point)))
-	  (forward-line 1)
-	  (cond ((re-search-backward (concat name ":") bound t)
-		 (goto-char (match-end 0))
-		 (Info-following-node-name))
-		((not (eq errorname t))
-		 (error "Node has no %s"
-			(capitalize (or errorname name))))))))))
+      (goto-char (point-min))
+      (let ((bound (point)))
+	(forward-line 1)
+	(cond ((re-search-backward
+		(concat name ":" (Info-following-node-name-re)) bound t)
+	       (match-string 1))
+	      ((not (eq errorname t))
+	       (error "Node has no %s"
+		      (capitalize (or errorname name)))))))))
 
-(defun Info-following-node-name (&optional allowedchars)
-  "Return the node name in the buffer following point.
+(defun Info-following-node-name-re (&optional allowedchars)
+  "Return a regexp matching a node name.
 ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
-saying which chars may appear in the node name."
-  (skip-chars-forward " \t")
-  (buffer-substring-no-properties
-   (point)
-   (progn
-     (while (looking-at (concat "[" (or allowedchars "^,\t\n") "]"))
-       (skip-chars-forward (concat (or allowedchars "^,\t\n") "("))
-       (if (looking-at "(")
-	   (skip-chars-forward "^)")))
-     (skip-chars-backward " ")
-     (point))))
+saying which chars may appear in the node name.
+Submatch 1 is the complete node name.
+Submatch 2 if non-nil is the parenthesized file name part of the node name.
+Submatch 3 is the local part of the node name.
+End of submatch 0, 1, and 3 are the same, so you can safely concat."
+  (concat "[ \t]*"			;Skip leading space.
+	  "\\(\\(([^)]+)\\)?"	;Node name can start with a file name.
+	  "\\([" (or allowedchars "^,\t\n") "]*" ;Any number of allowed chars.
+	  "[" (or allowedchars "^,\t\n") " ]" ;The last char can't be a space.
+	  "\\|\\)\\)"))			      ;Allow empty node names.
 
 (defun Info-next ()
   "Go to the next node of this node."
@@ -1480,9 +1480,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 
        (goto-char (point-min))
        (while (re-search-forward "\\*note[ \n\t]*\\([^:]*\\):" nil t)
-	 (setq str (buffer-substring-no-properties
-		    (match-beginning 1)
-		    (1- (point))))
+	 (setq str (match-string-no-properties 1))
 	 ;; See if this one should be the default.
 	 (and (null default)
 	      (<= (match-beginning 0) start-point)
@@ -1502,23 +1500,14 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	 (if (eq default t) (setq default str))
 	 (if (eq alt-default t) (setq alt-default str))
 	 ;; Don't add this string if it's a duplicate.
-	 ;; We use a loop instead of "(assoc str completions)" because
-	 ;; we want to do a case-insensitive compare.
-	 (let ((tail completions)
-	       (tem (downcase str)))
-	   (while (and tail
-		       (not (string-equal tem (downcase (car (car tail))))))
-	     (setq tail (cdr tail)))
-	   (or tail
-	       (setq completions
-		     (cons (cons str nil)
-			   completions))))))
+	 (or (assoc-string str completions t)
+	     (push str completions))))
      ;; If no good default was found, try an alternate.
      (or default
 	 (setq default alt-default))
      ;; If only one cross-reference found, then make it default.
      (if (eq (length completions) 1)
-         (setq default (car (car completions))))
+         (setq default (car completions)))
      (if completions
 	 (let ((input (completing-read (if default
 					   (concat
@@ -1551,20 +1540,21 @@ FOOTNOTENAME may be an abbreviation of the reference name."
       (setq i (+ i 1)))
     (Info-goto-node target)))
 
+(defconst Info-menu-entry-name-re "\\(?:[^:\n]+\\|:[^,.;() \t\n]\\)*"
+  "Regexp that matches a menu entry name upto but not including the colon.
+Because of ambiguities, this should be concatenated with something like
+`:' and `Info-following-node-name-re'.")
+
 (defun Info-extract-menu-node-name (&optional multi-line)
   (skip-chars-forward " \t\n")
-  (let ((beg (point))
-	str)
-    (while (progn
-	     (skip-chars-forward "^:")
-	     (forward-char 1)
-	     (not (looking-at ":*[,.;() \t\n]"))))
-    (setq str
-	  (if (looking-at ":")
-	      (buffer-substring-no-properties beg (1- (point)))
-	    (skip-chars-forward " \t\n")
-	    (Info-following-node-name (if multi-line "^.,\t" "^.,\t\n"))))
-    (replace-regexp-in-string "[ \n]+" " " str)))
+  (when (looking-at (concat Info-menu-entry-name-re ":\\(:\\|"
+			    (Info-following-node-name-re
+			     (if multi-line "^.,\t" "^.,\t\n")) "\\)"))
+    (replace-regexp-in-string
+     "[ \n]+" " "
+     (or (match-string 2)
+	 ;; If the node name is the menu entry name (using `entry::').
+	 (buffer-substring (match-beginning 0) (1- (match-beginning 1)))))))
 
 ;; No one calls this.
 ;;(defun Info-menu-item-sequence (list)
@@ -1576,7 +1566,8 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 (defvar Info-complete-next-re nil)
 (defvar Info-complete-cache nil)
 
-(defconst Info-node-spec-re "[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:.]"
+(defconst Info-node-spec-re
+  (concat (Info-following-node-name-re "^.,:") "[,:.]")
   "Regexp to match the text after a : until the terminating `.'.")
 
 (defun Info-complete-menu-item (string predicate action)
@@ -1603,7 +1594,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	   (concat "\n\\* +" (regexp-quote string) ":") nil t)
 	(let ((pattern (concat "\n\\* +\\("
 			       (regexp-quote string)
-			       "[^\t\n]*?\\):" Info-node-spec-re))
+			       Info-menu-entry-name-re "\\):" Info-node-spec-re))
 	      completions)
 	  ;; Check the cache.
 	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
@@ -2382,9 +2373,7 @@ if point is in a menu item description, follow that menu item."
 	  (save-excursion
 	    (goto-char (point-min))
 	    (while (re-search-forward "\\*note[ \n\t]*\\([^:]*\\):" nil t)
-	      (setq str (buffer-substring
-			 (match-beginning 1)
-			 (1- (point))))
+	      (setq str (match-string 1))
 	      (setq i 0)
 	      (while (setq i (string-match "[ \n\t]+" str i))
 		(setq str (concat (substring str 0 i) " "
@@ -2807,7 +2796,7 @@ the variable `Info-file-list-for-emacs'."
 	    (let* ((nbeg (match-beginning 2))
 		   (nend (match-end 2))
 		   (tbeg (match-beginning 1))
-		   (tag (buffer-substring tbeg (match-end 1))))
+		   (tag (match-string 1)))
 	      (if (string-equal tag "Node")
 		  (put-text-property nbeg nend 'font-lock-face 'info-header-node)
 		(put-text-property nbeg nend 'font-lock-face 'info-header-xref)
@@ -2826,7 +2815,7 @@ the variable `Info-file-list-for-emacs'."
 				    ((equal tag "Up") Info-up-link-keymap))))))
 	  (when Info-use-header-line
 	    (goto-char (point-min))
-	    (let ((header-end (save-excursion (end-of-line) (point)))
+	    (let ((header-end (line-end-position))
 		  header)
 	      ;; If we find neither Next: nor Prev: link, show the entire
 	      ;; node header.  Otherwise, don't show the File: and Node:
@@ -2838,7 +2827,7 @@ the variable `Info-file-list-for-emacs'."
 		  (progn
 		    (goto-char (match-beginning 1))
 		    (setq header (buffer-substring (point) header-end)))
-		(if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" nil t)
+		(if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" header-end t)
 		    (setq header
 			  (concat "No next, prev or up links  --  "
 				  (buffer-substring (point) header-end)))
@@ -2945,10 +2934,10 @@ the variable `Info-file-list-for-emacs'."
 		   (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
 	  (let ((n 0)
 		cont)
-	    (while (re-search-forward (concat "^\\* +\\([^:\t\n]*\\)\\(:"
-					      Info-node-spec-re
-					      "\\([ \t]*\\)\\)")
-				      nil t)
+	    (while (re-search-forward
+		    (concat "^\\* +\\(" Info-menu-entry-name-re "\\)\\(:"
+			    Info-node-spec-re "\\([ \t]*\\)\\)")
+		    nil t)
 	      (setq n (1+ n))
 	      (if (and (<= n 9) (zerop (% n 3))) ; visual aids to help with 1-9 keys
 		  (put-text-property (match-beginning 0)
@@ -2964,11 +2953,11 @@ the variable `Info-file-list-for-emacs'."
 		      '(font-lock-face info-xref
 			mouse-face highlight))))
 	      (when (eq Info-hide-note-references t)
-		(put-text-property (match-beginning 2) (1- (match-end 4))
+		(put-text-property (match-beginning 2) (1- (match-end 6))
 				   'invisible t)
 		;; We need a stretchable space like :align-to but with
 		;; a minimum value.
-		(put-text-property (1- (match-end 4)) (match-end 4) 'display
+		(put-text-property (1- (match-end 6)) (match-end 6) 'display
 				   (if (>= 22 (- (match-end 1)
 						 (match-beginning 0)))
 				       '(space :align-to 24)
