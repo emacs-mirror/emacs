@@ -1,3 +1,9 @@
+2005-03-02  Miles Bader  <miles@gnu.org>
+
+	* button.el (make-text-button): If the user doesn't specify a
+	type, use the default.  Rewrite to use `add-text-properties' and
+	plist functions.
+
 2005-03-01  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* textmodes/texinfmt.el: (texinfo-no-refill-regexp): Comment out
