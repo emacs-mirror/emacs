@@ -723,7 +723,7 @@ See also `minibuffer-history-case-insensitive-variables'."
 	   (prefix-numeric-value current-prefix-arg))))
   (if (and (zerop minibuffer-history-position)
 	   (null minibuffer-text-before-history))
-      (setq minibuffer-text-before-history (buffer-string)))
+      (setq minibuffer-text-before-history (field-string (point-max))))
   (let ((history (symbol-value minibuffer-history-variable))
 	(case-fold-search
 	 (if (isearch-no-upper-case-p regexp t)	; assume isearch.el is dumped
@@ -751,13 +751,14 @@ See also `minibuffer-history-case-insensitive-variables'."
 			  (nth (1- pos) history)))
 	  (setq n (+ n (if (< n 0) 1 -1)))))
     (setq minibuffer-history-position pos)
-    (erase-buffer)
+    (goto-char (point-max))
+    (erase-field)
     (let ((elt (nth (1- pos) history)))
       (insert (if (eq minibuffer-history-sexp-flag (minibuffer-depth))
 		  (let ((print-level nil))
 		    (prin1-to-string elt))
 		elt)))
-      (goto-char (point-min)))
+      (goto-char (field-beginning)))
   (if (or (eq (car (car command-history)) 'previous-matching-history-element)
 	  (eq (car (car command-history)) 'next-matching-history-element))
       (setq command-history (cdr command-history))))
@@ -792,14 +793,15 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	    elt minibuffer-returned-to-present)
 	(if (and (zerop minibuffer-history-position)
 		 (null minibuffer-text-before-history))
-	    (setq minibuffer-text-before-history (buffer-string)))
+	    (setq minibuffer-text-before-history (field-string (point-max))))
 	(if (< narg minimum)
 	    (if minibuffer-default
 		(error "End of history; no next item")
 	      (error "End of history; no default available")))
 	(if (> narg (length (symbol-value minibuffer-history-variable)))
 	    (error "Beginning of history; no preceding item"))
-	(erase-buffer)
+	(goto-char (point-max))
+	(erase-field)
 	(setq minibuffer-history-position narg)
 	(cond ((= narg -1)
 	       (setq elt minibuffer-default))
@@ -815,7 +817,7 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	     (let ((print-level nil))
 	       (prin1-to-string elt))
 	   elt))
-	(goto-char (minibuffer-prompt-end)))))
+	(goto-char (field-beginning)))))
 
 (defun previous-history-element (n)
   "Inserts the previous element of the minibuffer history into the minibuffer."
@@ -823,11 +825,15 @@ An uppercase letter in REGEXP makes the search case-sensitive."
   (next-history-element (- n)))
 
 (defun next-complete-history-element (n)
-  "Get next element of history which is a completion of minibuffer contents."
+  "Get next history element which completes the minibuffer before the point.
+The contents of the minibuffer after the point are deleted, and replaced
+by the new completion."
   (interactive "p")
   (let ((point-at-start (point)))
     (next-matching-history-element
-     (concat "^" (regexp-quote (buffer-substring (point-min) (point)))) n)
+     (concat
+      "^" (regexp-quote (buffer-substring (field-beginning) (point))))
+     n)
     ;; next-matching-history-element always puts us at (point-min).
     ;; Move to the position we were at before changing the buffer contents.
     ;; This is still sensical, because the text before point has not changed.
@@ -835,9 +841,31 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 
 (defun previous-complete-history-element (n)
   "\
-Get previous element of history which is a completion of minibuffer contents."
+Get previous history element which completes the minibuffer before the point.
+The contents of the minibuffer after the point are deleted, and replaced
+by the new completion."
   (interactive "p")
   (next-complete-history-element (- n)))
+
+;; These two functions are for compatibility with the old subrs of the
+;; same name.
+
+(defun minibuffer-prompt-width ()
+  "Return the display width of the minibuffer prompt.
+Return 0 if current buffer is not a mini-buffer."
+  ;; Return the width of everything before the field at the end of
+  ;; the buffer; this should be 0 for normal buffers.
+  (1- (field-beginning (point-max))))
+
+(defun minibuffer-prompt-end ()
+  "Return the buffer position of the end of the minibuffer prompt.
+Return 0 if current buffer is not a mini-buffer."
+  ;; Return the width of everything before the field at the end of
+  ;; the buffer; this should be 0 for normal buffers.
+  ;; XXX This definition doesn't seem very useful; why does one care
+  ;; about the last character of the prompt?  The beginning of the
+  ;; user-text seems more useful (e.g., this value + 1).
+  (1- (field-beginning (point-max))))
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
@@ -2403,7 +2431,7 @@ Outline mode sets this."
       ;; with intangibility and point-motion hooks enabled this time.
       (goto-char opoint)
       (setq inhibit-point-motion-hooks nil)
-      (goto-char new)
+      (goto-char (constrain-to-field new opoint t t))
       ;; If intangibility processing moved us to a different line,
       ;; readjust the horizontal position within the line we ended up at.
       (when (or (< (point) line-beg) (> (point) line-end))
@@ -2418,7 +2446,7 @@ Outline mode sets this."
 	    (setq new (point)))
 	(goto-char (point-min))
 	(setq inhibit-point-motion-hooks nil)
-	(goto-char new)
+	(goto-char (constrain-to-field new opoint t t))
 	)))
   nil)
 
@@ -3816,7 +3844,7 @@ With prefix argument N, move N items (negative N means move backward)."
 	   ;; If this is reading a file name, and the file name chosen
 	   ;; is a directory, don't exit the minibuffer.
 	   (if (and (eq minibuffer-completion-table 'read-file-name-internal)
-		    (file-directory-p (buffer-string)))
+		    (file-directory-p (field-string (point-max))))
 	       (select-window (active-minibuffer-window))
 	     (exit-minibuffer))))))
 
