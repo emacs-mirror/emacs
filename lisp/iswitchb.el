@@ -295,6 +295,11 @@ See also `iswitchb-newbuffer'."
   :type 'boolean
   :group 'iswitchb)
 
+(defcustom iswitchb-use-frame-buffer-list nil
+  "*Non-nil means use the currently selected frame's buffer list."
+  :type 'boolean
+  :group 'iswitchb)
+
 (defcustom iswitchb-make-buflist-hook  nil
   "*Hook to run when list of matching buffers is created."
   :type 'hook
@@ -677,7 +682,8 @@ it is put to the start of the list."
 				(iswitchb-ignore-buffername-p b-name)
 				(memq b-name iswitchb-current-buffers)))
 			      b-name)))
-		      (buffer-list)))))
+		      (buffer-list (and iswitchb-use-frame-buffer-list
+					(selected-frame)))))))
 	  (nconc iswitchb-temp-buflist iswitchb-current-buffers)
 	  (run-hooks 'iswitchb-make-buflist-hook)
 	  ;; Should this be after the hooks, or should the hooks be the
