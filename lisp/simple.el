@@ -3183,7 +3183,7 @@ Outline mode sets this."
 (defun line-move (arg &optional noerror to-end)
   (if auto-window-vscroll
       (let ((forward (> arg 0))
-	    (pvis (pos-visible-in-window-p (window-start) nil t)))
+	    (pvis (pos-visible-in-window-p (point) nil t)))
 	(if (and pvis (null (nth 2 pvis))
 		 (> (nth (if forward 4 3) pvis) 0))
 	    (set-window-vscroll nil
