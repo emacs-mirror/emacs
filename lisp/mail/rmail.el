@@ -250,6 +250,12 @@ before obeying `rmail-ignored-headers'.")
 (defvar rmail-inbox-list nil)
 (defvar rmail-keywords nil)
 
+(defvar rmail-buffer nil
+  "The RMAIL buffer related to the current buffer.
+In an RMAIL buffer, this holds the RMAIL buffer itself.
+In a summary buffer, this holds the RMAIL buffer it is a summary for.")
+(put 'rmail-buffer 'permanent-local t)
+
 ;; Message counters and markers.  Deleted flags.
 
 (defvar rmail-current-message nil)
@@ -289,7 +295,9 @@ by substituting the new message number into the existing list.")
 ;; These are used by autoloaded rmail-summary.
 
 (defvar rmail-summary-buffer nil)
+(put 'rmail-summary-buffer 'permanent-local t)
 (defvar rmail-summary-vector nil)
+(put 'rmail-summary-vector 'permanent-local t)
 
 ;; `Sticky' default variables.
 
@@ -387,7 +395,7 @@ by substituting the new message number into the existing list.")
        (rmail-maybe-display-summary))))
 
 (defvar rmail-view-buffer nil
-  "Buffer which holds RMAIL message for displaying.")
+  "Buffer which holds RMAIL message for MIME displaying.")
 
 ;; Mule and MIME related variables.
 
