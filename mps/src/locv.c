@@ -1,26 +1,16 @@
-/* impl.c.locv: Leaf Object Pool Class Coverage Test
+/* impl.c.locv: LEAF OBJECT POOL CLASS COVERAGE TEST
  *
- * $HopeName: MMsrc!locv.c(trunk.14) $
- *
- * Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!locv.c(trunk.15) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * This is (not much of) a coverage test for the Leaf Object
  * pool (PoolClassLO).
- *
- * .hack.stdio: On platform.sus8lc the assert macro in assert.h uses
- * stderr without declaring it.  Therefore using the assert macro will
- * not work unless stderr has been declared by #including <stdio.h>.
  */
 
 #include "testlib.h"
 #include "mps.h"
 #include "mpsclo.h"
 #include "mpsavm.h"
-
-#include <assert.h>
-#ifdef MPS_PF_SUS8LC
-#include <stdio.h>	/* .hack.stdio */
-#endif
 
 
 #define testArenaSIZE   ((size_t)16<<20)
@@ -53,7 +43,6 @@ int main(void)
   mps_fmt_t format;
   mps_ap_t ap;
   mps_addr_t p;
-  mps_bool_t b;
   mps_root_t root;
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
@@ -69,23 +58,19 @@ int main(void)
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
 
-  die(mps_reserve(&p, ap, (size_t)4), "mps_reserve");
+  die(mps_reserve(&p, ap, (size_t)4), "mps_reserve 4");
   *(mps_word_t *)p = 4;
-  b = mps_commit(ap, p, (size_t)4);
-  assert(b);
-  die(mps_reserve(&roots[1], ap, (size_t)8), "mps_reserve");
+  cdie(mps_commit(ap, p, (size_t)4), "commit 4");
+  die(mps_reserve(&roots[1], ap, (size_t)8), "mps_reserve 8");
   p = roots[1];
   *(mps_word_t *)p = 8;
-  b = mps_commit(ap, p, (size_t)8);
-  assert(b);
-  die(mps_reserve(&p, ap, (size_t)4096), "mps_reserve");
+  cdie(mps_commit(ap, p, (size_t)8), "commit 8");
+  die(mps_reserve(&p, ap, (size_t)4096), "mps_reserve 4096");
   *(mps_word_t *)p = 4096;
-  b = mps_commit(ap, p, (size_t)4096);
-  assert(b);
-  die(mps_reserve(&p, ap, (size_t)4), "mps_reserve");
+  cdie(mps_commit(ap, p, (size_t)4096), "commit 4096");
+  die(mps_reserve(&p, ap, (size_t)4), "mps_reserve last");
   *(mps_word_t *)p = 4;
-  b = mps_commit(ap, p, (size_t)4);
-  assert(b);
+  cdie(mps_commit(ap, p, (size_t)4), "commit last");
 
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
@@ -93,6 +78,8 @@ int main(void)
   mps_root_destroy(root);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
 
@@ -121,14 +108,14 @@ static void move(mps_addr_t object, mps_addr_t to)
 {
   testlib_unused(object);
   testlib_unused(to);
-  assert(0);
+  cdie(0, "move");
 }
 
 
 static mps_addr_t isMoved(mps_addr_t object)
 {
   testlib_unused(object);
-  assert(0);
+  cdie(0, "isMoved");
   return (mps_addr_t)NULL;
 }
 
@@ -137,7 +124,7 @@ static void copy(mps_addr_t old, mps_addr_t new)
 {
   testlib_unused(old);
   testlib_unused(new);
-  assert(0);
+  cdie(0, "copy");
 }
 
 
@@ -145,5 +132,5 @@ static void pad(mps_addr_t base, size_t size)
 {
   testlib_unused(base);
   testlib_unused(size);
-  assert(0);
+  cdie(0, "pad");
 }
