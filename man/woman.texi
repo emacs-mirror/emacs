@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.9 2002/07/01 08:05:00 rms Exp $
+@c $Id: woman.texi,v 1.10 2002/07/01 08:06:37 rms Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
@@ -295,7 +295,7 @@ advantage of the display capabilities available to it, and I hope to
 develop WoMan to take advantage of developments in Emacs itself.  At
 present, WoMan uses several display faces to support bold and italic
 text, to indicate other fonts, etc.  The default faces are also
-coloured, but the choice of faces is customizable.  WoMan provides menu
+colored, but the choice of faces is customizable.  WoMan provides menu
 support for navigation and mouse support for following references, in
 addition to the navigation facilities provided by @code{man} mode.
 WoMan has (this) texinfo documentation!
@@ -344,7 +344,7 @@ the @file{site-lisp} directory in your Emacs file tree, e.g.@:
 @var{version} is your Emacs version), provided you have write access to
 it.  If you use a directory that is not included by default in your
 Emacs load path then you need to add something like this to your
-@file{.emacs} initialisation file:
+@file{.emacs} initialization file:
 
 @lisp
 (add-to-list 'load-path "my-lisp")
@@ -365,7 +365,7 @@ harm.)
 @heading Setup
 
 Setup that is either necessary or desirable consists of adding a small
-amount of Emacs Lisp code to your @file{.emacs} initialisation file.  It
+amount of Emacs Lisp code to your @file{.emacs} initialization file.  It
 may be necessary (or at least convenient) to make WoMan autoload (if you
 are not running GNU Emacs 21 or later) and to set the search path used
 by the @code{woman} interface.  You may also find it convenient to make
@@ -453,7 +453,7 @@ loaded, then add the following to your @file{.emacs} file:
 
 (By default, WoMan will automatically define the dired keys @kbd{W} and
 @kbd{w} when it loads, but only if they are not already defined.  This
-behaviour is controlled by the user option @code{woman-dired-keys}.
+behavior is controlled by the user option @code{woman-dired-keys}.
 Note that the @code{dired-x} (dired extra) package binds
 @code{dired-copy-filename-as-kill} to the key @kbd{w}, although @kbd{W}
 appears to be unused.  The @code{dired-x} package will over-write the
@@ -488,7 +488,7 @@ file:
 If you really want to square the man-woman circle then you can!  If you
 run the GNU command interpreter @code{bash} then you might care to
 define the following @code{bash} function in your @code{bash}
-initialisation file @file{.bashrc}:
+initialization file @file{.bashrc}:
 
 @example
 man() @{ gnudoit -q '(raise-frame (selected-frame)) (woman' \"$1\" ')' ; @}
@@ -1396,11 +1396,11 @@ formatting.
 @item woman-bold-headings
 A boolean value.  If non-@code{nil} then embolden section and subsection
 headings.  Default is @code{t}.  [Heading emboldening is @emph{not} standard
-@code{man} behaviour.]
+@code{man} behavior.]
 
 @item woman-ignore
 A boolean value.  If non-@code{nil} then unrecognised requests etc. are
-ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behaviour.
+ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behavior.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 
 @item woman-preserve-ascii
@@ -1428,7 +1428,7 @@ man page.
 @item woman-fontify
 A boolean value.  If non-@code{nil} then WoMan assumes that face support is
 available.  It defaults to a non-@code{nil} value if the display supports
-either colours or different fonts.
+either colors or different fonts.
 
 @item woman-italic-face
 Face for italic font in man pages.  Default: italic, underlined,
@@ -1496,7 +1496,7 @@ Under MS-Windows, the default is
 @cindex log buffer
 @cindex buffer, log
 
-This is modelled on the Emacs byte-compiler.  It logs all files
+This is modeled on the Emacs byte-compiler.  It logs all files
 formatted by WoMan and the time taken.  If WoMan finds anything that it
 cannot handle then it writes a warning to this buffer.  If the variable
 @code{woman-show-log} is non-@code{nil} (by default it is @code{nil}) then

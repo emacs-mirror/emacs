@@ -1108,7 +1108,7 @@ Use the contents of the file in the body of the part
 
 @item charset
 The contents of the body of the part are to be encoded in the character
-set speficied (@samp{Content-Type}).
+set specified (@samp{Content-Type}).
 
 @item name
 Might be used to suggest a file name if the part is to be saved

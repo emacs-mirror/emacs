@@ -1826,7 +1826,7 @@ of the following elements:@refill
 @table @asis
 @item the symbol @code{continue}
 This tells Regi to continue processing entries after a match, instead of
-reseting the frame and moving @samp{point}. In this way, lines of text
+resetting the frame and moving @samp{point}. In this way, lines of text
 can have multiple matches, but you have to be careful to avoid entering
 infinite loops.
 

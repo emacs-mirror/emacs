@@ -568,7 +568,7 @@ Article Treatment
 * Article Buttons::         Click on URLs, Message-IDs, addresses and the like.
 * Article Date::            Grumble, UT!
 * Article Signature::       What is a signature?
-* Article Miscellania::     Various other stuff.
+* Article Miscellanea::     Various other stuff.
 
 Alternative Approaches
 
@@ -6988,7 +6988,7 @@ these articles easier.
 * Article Buttons::         Click on URLs, Message-IDs, addresses and the like.
 * Article Date::            Grumble, UT!
 * Article Signature::       What is a signature?
-* Article Miscellania::     Various other stuff.
+* Article Miscellanea::     Various other stuff.
 @end menu
 
 
@@ -7816,8 +7816,8 @@ the regular expression @samp{^---*Forwarded article}, then it isn't a
 signature after all.
 
 
-@node Article Miscellania
-@subsection Article Miscellania
+@node Article Miscellanea
+@subsection Article Miscellanea
 
 @table @kbd
 @item A t
@@ -10486,8 +10486,8 @@ server:
 @vindex nntp-server-opened-hook
 @cindex @sc{mode reader}
 @cindex authinfo
-@cindex authentification
-@cindex nntp authentification
+@cindex authentication
+@cindex nntp authentication
 @findex nntp-send-authinfo
 @findex nntp-send-mode-reader
 is run after a connection has been made.  It can be used to send
@@ -10706,7 +10706,7 @@ This works for Solaris @code{telnet}, for instance.
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use this
-you must have SSLay installed
+you must have SSLeay installed
 (@uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL}, and you also need
 @file{ssl.el} (from the W3 distribution, for instance).  You then
 define a server as follows:
@@ -16088,7 +16088,7 @@ each instance of a word should add given a mark.
         (,gnus-del-mark . -15)))
 @end lisp
 
-This is the default value.  If you have adaption on words enabled, every
+This is the default value.  If you adapt on words, every
 word that appears in subjects of articles marked with
 @code{gnus-read-mark} will result in a score rule that increase the
 score with 30 points.
@@ -16974,7 +16974,7 @@ four days, Gnus will decay the scores four times, for instance.
 * Compilation::                How to speed Gnus up.
 * Mode Lines::                 Displaying information in the mode lines.
 * Highlighting and Menus::     Making buffers look all nice and cozy.
-* Buttons::                    Get tendonitis in ten easy steps!
+* Buttons::                    Get tendinitis in ten easy steps!
 * Daemons::                    Gnus can do things behind your back.
 * NoCeM::                      How to avoid spam and other fatty foods.
 * Undo::                       Some actions can be undone.
@@ -19890,7 +19890,7 @@ considered home score and adapt files (@pxref{Home Score File}) have
 been added.
 
 @item
-@code{nndoc} was rewritten to be easily extendable (@pxref{Document
+@code{nndoc} was rewritten to be easily extensible (@pxref{Document
 Server Internals}).
 
 @item
@@ -19997,7 +19997,7 @@ More hooks and functions have been added to remove junk from incoming
 mail before saving the mail (@pxref{Washing Mail}).
 
 @item
-Emphasized text can be properly fontisized:
+Emphasized text can be properly fontified:
 
 @end itemize
 
@@ -20423,7 +20423,7 @@ original.
 @cindex ephemeral groups
 Most groups store data on what articles you have read.  @dfn{Ephemeral}
 groups are groups that will have no data stored---when you exit the
-group, it'll disappear into the aether.
+group, it'll disappear into the ether.
 
 @item solid groups
 @cindex solid groups

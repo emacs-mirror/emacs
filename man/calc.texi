@@ -2330,7 +2330,7 @@ trail-related commands.  Each entry on the line shows one command,
 with a single capital letter showing which letter you press to get
 that command.  We have used @kbd{t n}, @kbd{t p}, @kbd{t ]}, and
 @kbd{t y} so far.  The @samp{[MORE]} means you can press @kbd{?}
-again to see more @kbd{t}-prefix comands.  Notice that the commands
+again to see more @kbd{t}-prefix commands.  Notice that the commands
 are roughly divided (by semicolons) into related groups.
 
 When you are in the help display for a prefix key, the prefix is
@@ -4485,7 +4485,7 @@ infinity again.  Finally, we add this plus infinity to the minus
 infinity we had earlier.  If you work it out, you might expect
 the answer to be @i{-72} for this.  But the 72 has been completely
 lost next to the infinities; by the time we compute @w{@samp{inf - inf}}
-the finite difference between them, if any, is indetectable.
+the finite difference between them, if any, is undetectable.
 So we say the result is @dfn{indeterminate}, which Calc writes
 with the symbol @code{nan} (for Not A Number).
 
@@ -8236,14 +8236,8 @@ argument is exactly what we want to map over:
 @end group
 @end smallexample
 
-@ifinfo
 @noindent
-Et voila, September 13, 1991 is a Friday.
-@end ifinfo
-@tex
-\noindent
-{\it Et voil{\accent"12 a}}, September 13, 1991 is a Friday.
-@end tex
+Et voil@`a, September 13, 1991 is a Friday.
 
 @smallexample
 @group
@@ -10071,7 +10065,7 @@ Bugs'' sections of the manual.
 @noindent
 @cindex Stack basics
 @c [fix-tut RPN Calculations and the Stack]
-Calc uses RPN notation.  If you are not familar with RPN, @pxref{RPN
+Calc uses RPN notation.  If you are not familiar with RPN, @pxref{RPN
 Tutorial}.
 
 To add the numbers 1 and 2 in Calc you would type the keys:
@@ -11130,7 +11124,7 @@ precision is 15, the seconds will keep three digits after the
 decimal point.  Decreasing the precision below 12 may cause the
 time part of a date form to become inaccurate.  This can also happen
 if astronomically high years are used, though this will not be an
-issue in everyday (or even everymillenium) use.  Note that date
+issue in everyday (or even everymillennium) use.  Note that date
 forms without times are stored as exact integers, so roundoff is
 never an issue for them.
 
@@ -17174,7 +17168,7 @@ falls in this hour results in a time value for the following hour,
 from 3 a.m.@: to 4 a.m.  At the end of daylight savings time, the
 hour from 1 a.m.@: to 2 a.m.@: repeats itself; converting a date/time
 form that falls in in this hour results in a time value for the first
-manifestion of that time (@emph{not} the one that occurs one hour later).
+manifestation of that time (@emph{not} the one that occurs one hour later).
 
 If @code{math-daylight-savings-hook} is @code{nil}, then the
 daylight savings adjustment is always taken to be zero.
@@ -17971,7 +17965,7 @@ flag keys must be used to get some of these functions from the keyboard.
 @cindex @code{phi} variable
 @cindex Phi, golden ratio
 @cindex Golden ratio
-One miscellanous command is shift-@kbd{P} (@code{calc-pi}), which pushes
+One miscellaneous command is shift-@kbd{P} (@code{calc-pi}), which pushes
 the value of @c{$\pi$}
 @cite{pi} (at the current precision) onto the stack.  With the
 Hyperbolic flag, it pushes the value @cite{e}, the base of natural logarithms.
@@ -19927,7 +19921,7 @@ the integer 4 and the float 4.0 are considered equal even though they
 are not ``identical.''  Variables are treated like plain symbols without
 attached values by the set operations; subtracting the set @samp{[b]}
 from @samp{[a, b]} always yields the set @samp{[a]} even though if
-the variables @samp{a} and @samp{b} both equalled 17, you might
+the variables @samp{a} and @samp{b} both equaled 17, you might
 expect the answer @samp{[]}.
 
 If a set contains interval forms, then it is assumed to be a set of
@@ -23379,7 +23373,7 @@ list of numerical roots, however, provided that symbolic mode (@kbd{m s})
 is not turned on.  (If you work with symbolic mode on, recall that the
 @kbd{N} (@code{calc-eval-num}) key is a handy way to reevaluate the
 formula on the stack with symbolic mode temporarily off.)  Naturally,
-@kbd{a P} can only provide numerical roots if the polynomial coefficents
+@kbd{a P} can only provide numerical roots if the polynomial coefficients
 are all numbers (real or complex).
 
 @node Solving Systems of Equations, Decomposing Polynomials, Multiple Solutions, Solving Equations
@@ -24145,7 +24139,7 @@ is simply scaled uniformly by @c{$1 / \sigma^2$}
 where it has a minimum).  But there @emph{will} be a difference
 in the estimated errors of the coefficients reported by @kbd{H a F}.
 
-Consult any text on statistical modelling of data for a discussion
+Consult any text on statistical modeling of data for a discussion
 of where these error estimates come from and how they should be
 interpreted.
 
@@ -26017,7 +26011,7 @@ binding one summand to @cite{x} and the other to @cite{y}, and it
 matches anything else by binding the whole expression to @cite{x} and
 zero to @cite{y}.  The other operators above work similarly.@refill
 
-For general miscellanous functions, the default value @code{def}
+For general miscellaneous functions, the default value @code{def}
 must be specified.  Optional arguments are dropped starting with
 the rightmost one during matching.  For example, the pattern
 @samp{f(opt(a,0), b, opt(c,b))} will match @samp{f(b)}, @samp{f(a,b)},
@@ -26499,7 +26493,7 @@ f(!!!a, a)  :=  g(a)
 will be careful to bind @samp{a} to the second argument of @code{f}
 before testing the first argument.  If Calc had tried to match the
 first argument of @code{f} first, the results would have been
-disasterous:  Since @code{a} was unbound so far, the pattern @samp{a}
+disastrous: since @code{a} was unbound so far, the pattern @samp{a}
 would have matched anything at all, and the pattern @samp{!!!a}
 therefore would @emph{not} have matched anything at all!
 
@@ -27050,7 +27044,7 @@ This will simplify the formula whenever @cite{b} and/or @cite{c} can
 be made simpler by squaring.  For example, applying this rule to
 @samp{2 / (sqrt(2) + 3)} yields @samp{6:7 - 2:7 sqrt(2)} (assuming
 Symbolic Mode has been enabled to keep the square root from being
-evaulated to a floating-point approximation).  This rule is also
+evaluated to a floating-point approximation).  This rule is also
 useful when working with symbolic complex numbers, e.g.,
 @samp{(a + b i) / (c + d i)}.
 
@@ -27903,7 +27897,7 @@ names rather than prompting for the variable name.
 @pindex calc-permanent-variable
 @cindex Storing variables
 @cindex Permanent variables
-@cindex @file{.emacs} file, veriables
+@cindex @file{.emacs} file, variables
 The @kbd{s p} (@code{calc-permanent-variable}) command saves a
 variable's value permanently in your @file{.emacs} file, so that its
 value will still be available in future Emacs sessions.  You can
@@ -29874,7 +29868,7 @@ Subformulas}, to see how this works).
 @kindex M-# j
 @pindex calc-embedded-select
 The @kbd{M-# j} (@code{calc-embedded-select}) command provides an
-easy way to operate on assigments.  It is just like @kbd{M-# e},
+easy way to operate on assignments.  It is just like @kbd{M-# e},
 except that if the enabled formula is an assignment, it uses
 @kbd{j 2} to select the righthand side.  If the enabled formula
 is an evaluates-to, it uses @kbd{j 1} to select the lefthand side.
@@ -31736,7 +31730,7 @@ The strategy is to ensure that @cite{x} is nonnegative before calling
 to a suitable range, namely, plus-or-minus @c{$\pi \over 4$}
 @cite{pi/4}.  Note that each
 test, and particularly the first comparison against 7, is designed so
-that small roundoff errors cannnot produce an infinite loop.  (Suppose
+that small roundoff errors cannot produce an infinite loop.  (Suppose
 we compared with @samp{(two-pi)} instead; if due to roundoff problems
 the modulo operator ever returned @samp{(two-pi)} exactly, an infinite
 recursion could result!)  We use modulo only for arguments that will
@@ -31911,7 +31905,7 @@ treat them as ``black box'' objects with no important internal
 structure.
 
 There is also a @code{rawnum} symbol, which is a combination of
-@code{raw} (returning a raw Calc object) and @code{num} (signalling
+@code{raw} (returning a raw Calc object) and @code{num} (signaling
 an error if that object is not a constant).
 
 You can pass a raw Calc object to @code{calc-eval} in place of a

@@ -251,7 +251,7 @@ In La@TeX{} text, the argument of any of the commands @code{\chapter},
 @code{\section}, @code{\subsection}, @code{\subsubsection},
 @code{\eqno}, @code{\label}, @code{\ref}, @code{\cite},
 @code{\bibitem}, @code{\part}, @code{\appendix}, @code{\entry},
-@code{\index}, @code{\def}, @code{\newcomand}, @code{\renewcommand},
+@code{\index}, @code{\def}, @code{\newcommand}, @code{\renewcommand},
 @code{\newenvironment} or @code{\renewenvironment} is a tag.@refill
 
 Other commands can make tags as well, if you specify them in the

@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.14 2002/02/13 22:30:34 monnier Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.15 2002/04/09 18:41:56 monnier Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001  Free Software Foundation, Inc.
@@ -235,7 +235,7 @@ on both the functionality and the documentation.@refill
 @file{pcl-cvs-xemacs.el}.@refill
 
 @item
-Leif Lonnblad contributed RCVS support (since superceded by the new
+Leif Lonnblad contributed RCVS support (since superseded by the new
 remote CVS support).
 
 @item

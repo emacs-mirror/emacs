@@ -1891,7 +1891,7 @@ returns a non-@code{nil} value succeeds and the evaluation stops.  If
 none of the list elements return a non-@code{nil} value, then an offset
 of 0 (zero) is used@footnote{There is however a variable
 @code{c-strict-syntax-p} that, when set to non-@code{nil}, will cause an
-error to be signalled in that case.  It's now considered obsolete since
+error to be signaled in that case.  It's now considered obsolete since
 it doesn't work well with some of the alignment functions that now
 returns @code{nil} instead of zero to be more usable in lists.  You
 should therefore leave @code{c-strict-syntax-p} set to @code{nil}.}.
@@ -2301,7 +2301,7 @@ for C code in GNU programs.
 @item
 @code{bsd} --- Also known as ``Allman style'' after Eric Allman.
 
-@cindex Whitesmith style
+@cindex Whitesmiths style
 @item
 @code{whitesmith} --- Popularized by the examples that came with
 Whitesmiths C, an early commercial C compiler.
@@ -4163,7 +4163,7 @@ construct.
 @findex c-lineup-whitesmith-in-block
 @findex lineup-whitesmith-in-block (c-)
 @item c-lineup-whitesmith-in-block
-Line up lines inside a block in Whitesmith style.  It's done in a way
+Line up lines inside a block in Whitesmiths style.  It's done in a way
 that works both when the opening brace hangs and when it doesn't.  E.g:
 @example
 @group
@@ -4305,7 +4305,7 @@ As mentioned previous, @ccmode{} always trades speed for accuracy,
 however it is recognized that sometimes you need speed and can sacrifice
 some accuracy in indentation.  The file @file{cc-lobotomy.el} contains
 hacks that will ``dumb down'' @ccmode{} in some specific ways, making
-that trade-off of accurancy for speed.  I won't go into details of its
+that trade-off of accuracy for speed.  I won't go into details of its
 use here; you should read the comments at the top of the file, and look
 at the variable @code{cc-lobotomy-pith-list} for details.
 

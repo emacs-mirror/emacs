@@ -409,7 +409,7 @@ files insert a skeleton with the usual frame.
 source files insert the usual header, with a copyright of your
 environment variable @env{$ORGANIZATION} or else the FSF, and prompt
 for valid keywords describing the contents.  Files in a @file{bin}
-directory for which Emacs could determine no specialised mode
+directory for which Emacs could determine no specialized mode
 (@pxref{(emacs)Choosing Modes}) are set to Shell script mode.
 
 @findex define-auto-insert

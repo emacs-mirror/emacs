@@ -262,8 +262,8 @@ utility to change the original files on disk.  This is not that
 dangerous, since you will always have the original contents of the file
 saved in another file that has the extension @file{.orig}.
 Furthermore, if the file is under version control, then you can always back
-out to one of the previous versions (see the section on Version Countrol in
-Emacs manual).
+out to one of the previous versions (see the section on Version Control in
+the Emacs manual).
 
 @code{ediff-patch-file} is careful about versions control: if the file
 to be patched is checked in, then Ediff will offer to check it out, because
@@ -897,7 +897,7 @@ reduce the risk of developing a cataract.
 In other situations, the currently highlighted region might be big and you
 might want to reconcile of them interactively.
 
-All of this can be done with the above comand, @kbd{=}, which
+All of this can be done with the above command, @kbd{=}, which
 compares regions within Ediff buffers.  Typing @kbd{=} creates a
 child Ediff session for comparing regions in buffers A, B, or
 C as follows.

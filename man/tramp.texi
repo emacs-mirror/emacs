@@ -455,7 +455,7 @@ recognizes.  One can be found in a default install at
 @file{/usr/info/dir}.  Copy the top of this file down to the first
 occurrence of `* Menu' including that line plus one more blank line,
 to your working directory @file{texi/dir}, or use the sample provided
-in the @file{texi} directroy of this distribution.  See
+in the @file{texi} directory of this distribution.  See
 @file{texi/dir_sample}
 
 Once a @file{dir} file is in place, this command will make the entry.
@@ -541,9 +541,9 @@ differ.
 @cindex methods, external transfer
 @cindex methods, out-of-band
 Loading or saving a remote file requires that the content of the file
-be transfered between the two machines. The content of the file can be
-transfered over the same connection used to log in to the remote
-machine or the file can be transfered through another connection using
+be transferred between the two machines. The content of the file can be
+transferred over the same connection used to log in to the remote
+machine or the file can be transferred through another connection using
 a remote copy program such as @command{rcp}, @command{scp} or
 @command{rsync}.  The former are called @dfn{inline methods}, the
 latter are called @dfn{out-of-band methods} or @dfn{external transfer
@@ -643,7 +643,7 @@ There are also two variants, @option{sm-ssh1} and @option{sm-ssh2}
 that use the @command{ssh1} and @command{ssh2} commands explicitly. If
 you don't know what these are, you do not need these options.
 
-All the methods based on @command{ssh} have an additional kludgy
+All the methods based on @command{ssh} have an additional kludgey
 feature: you can specify a host name which looks like @file{host#42}
 (the real host name, then a hash sign, then a port number).  This
 means to connect to the given host but to also pass @code{-p 42} as
@@ -901,7 +901,7 @@ The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
 
-All the @command{ssh} based methods support the kludgy @samp{-p}
+All the @command{ssh} based methods support the kludgey @samp{-p}
 feature where you can specify a port number to connect to in the host
 name.  For example, the host name @file{host#42} tells Tramp to
 specify @samp{-p 42} in the argument list for @command{ssh}.

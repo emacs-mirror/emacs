@@ -1632,9 +1632,9 @@ logic @code{and} for regular expressions. For example
 @samp{Einstein&&Bose} will match all articles which mention
 Bose-Einstein condensation, or which are co-authored by Bose and
 Einstein.  When entering the regular expression, you can complete on
-known citation keys.  RefTeX also offeres a default when prompting for a
+known citation keys.  RefTeX also offers a default when prompting for a
 regular expression.  This default is the word before the cursor or the
-word before the current @samp{\cite} comand.  Sometimes this may be a
+word before the current @samp{\cite} command.  Sometimes this may be a
 good search key.@refill
 
 @cindex @code{\bibliography}
@@ -3439,7 +3439,7 @@ Make a citation using BibTeX database files.  After prompting for a regular
 expression, scans the buffers with BibTeX entries (taken from the
 @code{\bibliography} command or a @code{thebibliography} environment)
 and offers the matching entries for selection.  The selected entry is
-formated according to @code{reftex-cite-format} and inserted into the
+formatted according to @code{reftex-cite-format} and inserted into the
 buffer.@refill @*
 When called with one or two @kbd{C-u} prefixes, first rescans the
 document.  When called with a numeric prefix, make that many citations.
@@ -5448,7 +5448,7 @@ New option @code{reftex-toc-max-level} to limit the depth of the toc.
 New key binding @kbd{t} in the @file{*toc*} buffer to change this
 setting.@refill 
 @item
-RefTeX maintaines an @file{Index Phrases} file in which phrases can be 
+RefTeX maintains an @file{Index Phrases} file in which phrases can be 
 collected.  When the document is ready, RefTeX can search all
 these phrases and assist indexing all matches.@refill
 @item

@@ -338,7 +338,7 @@ If the variable @code{forms-forms-scrolls} is set to a value other
 than @code{nil} (which it is, by default), the Emacs functions
 @code{scroll-up} and @code{scroll-down} will perform a
 @code{forms-next-record} and @code{forms-prev-record} when in forms
-mode.  So you can use your favourite page commands to page through the
+mode.  So you can use your favorite page commands to page through the
 data file.
 
 @vindex forms-forms-jump

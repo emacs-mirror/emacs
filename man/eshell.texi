@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.13 2002/06/17 11:50:12 kai Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.14 2002/06/17 15:55:51 kai Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
@@ -13,7 +13,7 @@
 @c your option) any later version.
 
 @c GNU Emacs is distributed in the hope that it will be useful, but
-@c WITHOUT ANY WARRANTY; without even the implied warraonty of
+@c WITHOUT ANY WARRANTY; without even the implied warranty of
 @c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 @c General Public License for more details.
 
@@ -762,7 +762,7 @@ scrolls back.
 
 @item Using C-p and C-n with rebind gets into a locked state
 
-This happened a few times in Emacs 21, but has been unreproducable
+This happened a few times in Emacs 21, but has been unreproducible
 since.
 
 @item If an interactive process is currently running, @kbd{M-!} doesn't work
@@ -1008,7 +1008,7 @@ from @samp{!:1*}.
 
 This would allow for an ``output translators'', that take a function to
 modify output with, and a target.  Devise a syntax that works well with
-pipes, and can accomodate multiple functions (i.e., @samp{>'(upcase
+pipes, and can accommodate multiple functions (i.e., @samp{>'(upcase
 regexp-quote)} or @samp{>'upcase}).
 
 @item Allow Eshell to read/write to/from standard input and output

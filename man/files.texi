@@ -2646,7 +2646,7 @@ pick up any recent changes from the repository first, using @kbd{C-x v m
 
 @vindex vc-cvs-global-switches
   The variable @code{vc-cvs-global-switches} should be a string
-specifyng switches to pass to CVS for all CVS operations.
+specifying switches to pass to CVS for all CVS operations.
 
   When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are

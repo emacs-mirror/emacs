@@ -1162,7 +1162,7 @@ and are now included with the standard distribution.
 @cindex Toolbar support
 Emacs 21 features a thorough rewrite of the display engine.  The new
 display engine supports variable-size fonts, images, and can play sounds
-on platforms which support that.  As a result, the visual appearence of
+on platforms which support that.  As a result, the visual appearance of
 Emacs, when it runs on a windowed display, is much more reminiscent of
 modern GUI programs, and includes 3D widgets (used for the mode line and
 the scroll bars), a configurable and extensible toolbar, tooltips
@@ -2595,7 +2595,7 @@ consult the documentation of the variables @code{ps-printer-name},
 @node Scrolling only one line, Replacing highlighted text, Turning on syntax highlighting, Common requests
 @section How can I force Emacs to scroll only one line when I move past the bottom of the screen?
 @cindex Scrolling only one line
-@cindex Reducing the increment when scrollng
+@cindex Reducing the increment when scrolling
 
 Place the following Lisp form in your @file{.emacs} file:
 
@@ -2609,7 +2609,7 @@ Place the following Lisp form in your @file{.emacs} file:
 @section How can I replace highlighted text with what I type?
 @cindex @code{delete-selection-mode}
 @cindex Replacing highlighted text
-@cindex Highlighing and replacing text
+@cindex Highlighting and replacing text
 
 Use @code{delete-selection-mode}, which you can start automatically by
 placing the following Lisp form in your @file{.emacs} file:
@@ -3512,7 +3512,7 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 @cindex Snail mail, ordering Emacs via
 @cindex Postal service, ordering Emacs via
 @cindex Distribution, retrieving Emacs 
-@cindex Internet, retreiving from
+@cindex Internet, retrieving from
 
 Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for information
 on nearby archive sites and @file{etc/ORDERS} for mail orders.  If you

@@ -982,8 +982,8 @@ Carpenter, Hans Chalupsky, Bob Chassell, James Clark, Mike Clarkson,
 Glynn Clements, Andrew Csillag, Doug Cutting, Michael DeCorte, Gary
 Delp, Matthieu Devin, Eri Ding, Carsten Dominik, Scott Draves, Viktor
 Dukhovni, John Eaton, Rolf Ebert, Stephen Eglen, Torbj@"orn Einarsson,
-Tsugumoto Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
-Frederick Farnback, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
+Tsugutomo Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
+Frederick Farnbach, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
 Keith Gabryelski, Kevin Gallagher, Kevin Gallo, Howard Gayle, Stephen
 Gildea, David Gillespie, Bob Glickstein, Boris Goldowsky, Michelangelo
 Grigni, Michael Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa,

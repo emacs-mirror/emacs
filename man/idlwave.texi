@@ -1084,7 +1084,7 @@ When you ask for routine information about an object method, and the
 method exists in several classes, IDLWAVE queries for the class of the
 object, unless the class is already known through a text property on the
 @samp{->} operator (@pxref{Object Method Completion and Class
-Ambiguity}), or by having been explicity included in the call
+Ambiguity}), or by having been explicitly included in the call
 (e.g. @code{a->myclass::Foo}).
 
 @cindex Calling sequences
@@ -1594,7 +1594,7 @@ entire class inheritance chain.  This is often referred to as
 @emph{chaining}, and is characterized by chained method calls like
 @w{@code{self->MySuperClass::SetProperty,_EXTRA=e}}.
 
-IDLWAVE can accomodate this special synergy between class and keyword
+IDLWAVE can accommodate this special synergy between class and keyword
 inheritance: if @code{_EXTRA} or @code{_REF_EXTRA} are detected among a
 method's keyword parameters, all keywords of superclass versions of the
 method being considered are included in completion.  The completion
@@ -2053,7 +2053,7 @@ expansion.
 @cindex Modification timestamp
 @cindex Header, for file documentation
 @cindex Timestamp, in doc header.
-@cindex Changelog, in doc header.
+@cindex ChangeLog, in doc header.
 
 @kindex C-c C-h
 @kindex C-c C-m
@@ -2627,7 +2627,7 @@ execution is stopped in a buffer due to a triggered breakpoint or error,
 or while composing a long command in the IDLWAVE shell.  In the latter
 case, the command is sent to the shell and its output is visible, but
 point remains unmoved in the command being composed --- you can inspect
-the contituents of a command you're building without interrupting the
+the constituents of a command you're building without interrupting the
 process of building it!  You can even print arbitrary expressions from
 older input or output further up in the shell window --- any expression,
 variable, number, or function you see can be examined.

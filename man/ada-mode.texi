@@ -84,7 +84,7 @@ license to the document, as described in section 6 of the license.
                                      defined in your application
 * File Browser::                  Easy access to your files
 * Automatic Smart Indentation::   Indenting your code automatically as you type
-* Formatting Parameter Lists::    Formating subprograms parameter lists
+* Formatting Parameter Lists::    Formatting subprograms' parameter lists
                                      automatically
 * Automatic Casing::              Adjusting the case of words automatically
 * Statement Templates::           Inserting code templates
@@ -149,7 +149,7 @@ automatic color highlighting of the various entities in Ada code.
 switching between spec and body files with eventually
 auto-generation of body files,
 @item
-automatic formating of subprograms parameter lists.
+automatic formatting of subprograms' parameter lists.
 @item
 automatic smart indentation according to Ada syntax,
 @item
@@ -702,7 +702,7 @@ you  can directly click  on them  to open  the right  file at  the right
 place.
 
 You can activate  this mode by typing @key{M-x  speedbar} in the editor.
-This  will open  a new  frame. A  better way  might be  to  assicate the
+This  will open  a new  frame. A  better way  might be  to  associate the
 following key binding
 
 @example
