@@ -105,7 +105,7 @@ predictable appearance of the displayed text.
 
 @item
 Emacs 20 has simpler support for multi-lingual editing.  While not as
-radical a simplification as Emacs 19 was, it goes a long way toward
+radical a simplification as Emacs 19 will be, it goes a long way toward
 eliminating some of the annoying features:
 
 @itemize @minus
