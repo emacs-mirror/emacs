@@ -2109,25 +2109,6 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
 
   /* We don't have an entry for the symbol; we have to build it.   */
 
-  /* Make sure there's an assoc for the unmodified symbol.
-     Any non-empty alist should contain an entry for the unmodified symbol.  */
-  XFASTINT (temp) = 0;
-
-  if (NILP (*slot))
-    {
-      unmodified = intern (name_table [symbol_num]);
-      *slot = Fcons (Fcons (temp, unmodified), Qnil);
-      Fput (unmodified, Qevent_kind, symbol_kind);
-      Fput (unmodified, Qevent_symbol_elements, Fcons (unmodified, Qnil));
-    }
-  else
-    {
-      temp = Fassq (temp, *slot);
-      if (NILP (temp))
-	abort ();
-      unmodified = XCONS (temp)->cdr;
-    }
-
   /* Create a modified version of the symbol, and add it to the alist.  */
   {
     Lisp_Object modified;
@@ -2153,8 +2134,27 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
 	  modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
 				 modifier_list);
 
-      Fput (modified, Qevent_symbol_elements,
-	    Fcons (unmodified, modifier_list));
+      /* Put an unmodified version of the symbol at the head of the 
+	 list of symbol elements.  */
+      {
+	/* We recurse to get the unmodified symbol; this allows us to
+	   write out the code to build event headers only once.
+
+	   Note that we put ourselves in the symbol_table before we
+	   recurse, so when an unmodified symbol calls this code
+	   to put itself on its Qevent_symbol_elements property, we do
+	   terminate.  */
+	Lisp_Object unmodified =
+	  modify_event_symbol (symbol_num,
+			       ((modifiers & (down_modifier | drag_modifier))
+				? click_modifier
+				: 0),
+			       symbol_kind,
+			       name_table, symbol_table, table_size);
+	
+	Fput (modified, Qevent_symbol_elements,
+	      Fcons (unmodified, modifier_list));
+      }
     }
 
     return modified;
@@ -3607,7 +3607,7 @@ syms_of_keyboard ()
 
   Qfunction_key = intern ("function-key");
   staticpro (&Qfunction_key);
-  Qmouse_movement = intern ("mouse-click");
+  Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
   Qmouse_movement = intern ("scrollbar-click");
   staticpro (&Qmouse_movement);
