@@ -84,13 +84,13 @@
 	(set-buffer-modified-p buffer-modified-p)
 	(- (point-max) (point-min))))))
 
-(defun range (from to)
+(defun devanagari-range (from to)
   "Make the list of the integers of range FROM to TO."
   (let (result) 
     (while (<= from to) (setq result (cons to result) to (1- to))) result))
 
-(defun regexp-of-hashtbl-keys (hashtbl)
-  "Returns the regular expression of hashtable keys."
+(defun devanagari-regexp-of-hashtbl-keys (hashtbl)
+  "Return a regular expression that matches all keys in hashtable HASHTBL."
   (let ((max-specpdl-size 1000))
     (regexp-opt
      (sort 
@@ -113,7 +113,7 @@ PATTERN regexp."
    (aset composition-function-table (decode-char 'ucs ucs)
 	 (list (cons devanagari-composable-pattern 
                      'devanagari-composition-function)))))
- (nconc '(#x0903) (range #x0905 #x0939) (range #x0958 #x0961)))
+ (nconc '(#x0903) (devanagari-range #x0905 #x0939) (devanagari-range #x0958 #x0961)))
 
 ;; Notes on conversion steps.
 
@@ -433,7 +433,7 @@ preferred rule from the sanskrit fonts."  )
     hash))
 
 (defvar dev-char-glyph-regexp
-  (regexp-of-hashtbl-keys dev-char-glyph-hash))
+  (devanagari-regexp-of-hashtbl-keys dev-char-glyph-hash))
 
 ;; glyph-to-glyph conversion table.
 ;; it is supposed that glyphs are ordered in 
@@ -473,7 +473,7 @@ preferred rule from the sanskrit fonts."  )
 	  dev-glyph-glyph)
     hash))
 (defvar dev-glyph-glyph-regexp
-  (regexp-of-hashtbl-keys dev-glyph-glyph-hash))
+  (devanagari-regexp-of-hashtbl-keys dev-glyph-glyph-hash))
 
 
 ;; yet another glyph-to-glyph conversions.
@@ -488,13 +488,13 @@ preferred rule from the sanskrit fonts."  )
 	  dev-glyph-glyph-2)
     hash))
 (defvar dev-glyph-glyph-2-regexp
-  (regexp-of-hashtbl-keys dev-glyph-glyph-2-hash))
+  (devanagari-regexp-of-hashtbl-keys dev-glyph-glyph-2-hash))
 
 
 (defun dev-charseq (from &optional to)
   (if (null to) (setq to from))
   (mapcar (function (lambda (x) (indian-glyph-char x 'devanagari)))
-          (range from to)))
+          (devanagari-range from to)))
 
 (defvar dev-glyph-cvn
   (append 
