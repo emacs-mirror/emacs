@@ -817,8 +817,10 @@ init_x_parm_symbols ()
 }
 
 /* Change the parameters of frame F as specified by ALIST.
-   If a parameter is not specially recognized, do nothing;
-   otherwise call the `x_set_...' function for that parameter.  */
+   If a parameter is not specially recognized, do nothing special;
+   otherwise call the `x_set_...' function for that parameter.
+   Except for certain geometry properties, always call store_frame_param
+   to store the new value in the parameter alist.  */
 
 void
 x_set_frame_parameters (f, alist)
