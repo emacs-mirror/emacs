@@ -10,6 +10,7 @@ emacsserver
 etags
 fakemail
 fns-*
+fns.el
 hexl
 make-docfile
 movemail
