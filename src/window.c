@@ -2262,7 +2262,7 @@ showing that buffer, popping the buffer up if necessary.")
     }
 
   Fset_marker (w->pointm, make_number (point), Qnil);
-  unbind_to (count);
+  unbind_to (count, Qnil);
 
   return Qnil;
 }
@@ -2632,7 +2632,7 @@ by `current-window-configuration' (which see).")
      Fselect_window above totally superfluous; it still sets f's
      selected window.  */
   if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-    Fselect_frame (data->selected_frame);
+    Fselect_frame (data->selected_frame, Qnil);
 #endif
 
   if (!NILP (new_current_buffer))
