@@ -13,8 +13,8 @@
 
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* marker.c: Change doc-string comments to `new style' [w/`doc:'
-	keyword].
+	* marker.c, mocklisp.c: Change doc-string comments to `new style'
+	[w/`doc:' keyword].
 
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
 
