@@ -67,7 +67,6 @@ ENVADD = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 
 EMACSSOURCES= \
 	$(srcdir)/emacs.texi \
-	$(srcdir)/emacs-xtra.texi \
 	$(srcdir)/doclicense.texi \
 	$(srcdir)/screen.texi \
 	$(srcdir)/commands.texi \
