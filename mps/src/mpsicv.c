@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.18) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.19) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -28,6 +28,10 @@
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
 #define FILLER_OBJECT_SIZE 1023
+
+#define genCOUNT          2
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 150, 0.85 }, { 170, 0.45 } };
 
 
 static mps_pool_t amcpool;
@@ -264,6 +268,7 @@ static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
+  mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot, singleRoot, fmtRoot;
   unsigned long i;
   size_t j;
@@ -279,11 +284,12 @@ static void *test(void *arg, size_t s)
   testlib_unused(s);
 
   die(dylan_fmt(&format, arena), "fmt_create");
+  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
   die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
       "pool_create(mv)");
   
-  pool_create_v_test(arena, format); /* creates amc pool */
+  pool_create_v_test(arena, format, chain); /* creates amc pool */
 
   ap_create_v_test(amcpool);
 
@@ -381,6 +387,7 @@ static void *test(void *arg, size_t s)
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
   mps_pool_destroy(amcpool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;
