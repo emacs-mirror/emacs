@@ -159,15 +159,12 @@
 ;;;###autoload (autoload '2C-command "two-column" () t 'keymap)
 (fset '2C-command 2C-mode-map)
 
-;;;###autoload
 ;; This one is for historical reasons and simple keyboards, it is not
 ;; at all mnemonic.  All usual sequences containing 2 were used, and
 ;; f2 could not be set up in a standard way under Emacs 18.
-(global-set-key "\C-x6" '2C-command)
+;;;###autoload (global-set-key "\C-x6" '2C-command)
 
-
-;;;###autoload
-(global-set-key [f2] '2C-command)
+;;;###autoload (global-set-key [f2] '2C-command)
 
 
 (defvar 2C-minor-mode-map
