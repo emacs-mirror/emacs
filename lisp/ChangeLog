@@ -6,7 +6,6 @@
 	and fboundp instead.
 	(iswitchb-completions): Remove two redundant arguments and local
 	variables. (All above from Stefan Monnier).
-	Commentary fix (from Markus Rost).
 
 2003-06-20  Masatake YAMATO  <jet@gyve.org>
 
