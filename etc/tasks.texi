@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 04 July 1997
+@set lastupdate 18 July 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -30,6 +30,7 @@ last updated on @value{lastupdate}.
 * Kernel Projects::
 * Extensions::
 * X Windows Projects::
+* Encryption Projects::
 * Other Projects::
 * Compilers::
 * Games and Recreations::
@@ -294,17 +295,8 @@ about the level of @code{cxref}.)  We also could use something like
 An emulator for Macintosh graphics calls on top of X Windows.
 
 @item
-A music playing and editing system.
-
-@item
-High-quality music compression software.
-(Talk with phr@@netcom.com for relevant suggestions.)
-
-@item
-A program to play sound distributed in ``Real Audio'' format.
-
-@item
-A program to generate ``Real Audio'' format from audio input.
+A music playing and editing system.  This should work with LilyPond, a
+free program for music typesetting.
 
 @item
 A program to edit dance notation (such as labanotation) and display
@@ -332,21 +324,27 @@ An interactive 3D modeling utility with rendering/raytracing capabilities.
 A program for graphic morphing of scanned photographs.
 @end itemize
 
-@node Other Projects
-@chapter Other Projects
+@node Encryption Projects
+@chapter Encryption Projects
 
-If you think of others that should be added, please
-send them to @code{gnu@@prep.ai.mit.edu}.
+These projects need to be written outside the US by people who are not
+US citizens, to avoid problems with US export control law.
 
 @itemize @bullet
 @item
-A free program for public-key encryption.
+A free library for public-key encryption.
 
-This program should use the Diffie-Helman algorithm for public key
+This library should use the Diffie-Helman algorithm for public key
 encryption, not the RSA algorithm, because the Diffie-Helman patent in
-the US will expire in 1997.  It should use triple-DES, not IDEA, for
-block encryption, because IDEA is patented in many countries and the
-patents will not expire soon.
+the US will expire in 1997.
+
+@item
+A free program for sended encrypted mail using public-key encryption.
+
+This program should use the library described above for the public-key
+encryption.  It should use triple-DES, not IDEA, for block encryption,
+because IDEA is patented in many countries and the patents will not
+expire soon.
 
 In other respects, it should be like PGP.  If the new version of PGP
 no longer uses RSA and IDEA, compatibility with it may be feasible.
@@ -354,9 +352,6 @@ no longer uses RSA and IDEA, compatibility with it may be feasible.
 There is a suggestion that the Blowfish algorithm might be a good choice
 for the non-public-key block encryption.  I'm not an encryption expert
 so I don't have an opinion about that.
-
-This program needs to be written by someone who is not a US citizen,
-outside the US, to avoid problems with US export control law.
 
 Many people believe that PGP is free software, but that is not actually
 true.  The distribution terms do not allow everyone to use and
@@ -381,7 +376,15 @@ alternatives.
 @item
 Free software for doing secure commercial transactions on the web.
 This too needs public key encryption.
+@end itemize
 
+@node Other Projects
+@chapter Other Projects
+
+If you think of others that should be added, please
+send them to @code{gnu@@prep.ai.mit.edu}.
+
+@itemize @bullet
 @item
 A free program that can transfer files on a serial line
 using the same protocol that Kermit uses.
@@ -425,6 +428,20 @@ LaTeX, Texinfo, or some other format that free software can edit.
 A free replacement for the semi-free Qt library.
 
 @item
+High-quality music compression software.
+(Talk with phr@@netcom.com for relevant suggestions.)
+
+@item
+A program to play sound distributed in ``Real Audio'' format.
+
+@item
+A program to generate ``Real Audio'' format from audio input.
+
+@item
+An MPEG III audio encoder/decoder (but it is necessary to check, first,
+whether patents make this impossible).
+
+@item
 Speech-generation programs (there is a program from Brown U that you
 could improve).
 
@@ -446,6 +463,11 @@ perhaps something like Scientific Workbench and/or Khoros,
 Software to replace card catalogues in libraries.
 
 @item
+A project-scheduling package that accepts a list of project sub-tasks
+with their interdependencies, and generates Gantt charts and Pert charts
+and all the other standard project progress reports.
+
+@item
 Grammar and style checking programs.
 
 @item
@@ -460,6 +482,9 @@ A fast emulator for the i386 which works by translating
 machine instructions into the machine language of the host machine.
 (Support for emulation of other machines would enhance the program
 but might make it much more difficult.)
+
+@item
+A map display or geographic information system.
 
 @item
 Optical character recognition programs; especially if suitable for
@@ -477,6 +502,10 @@ A pen based interface.
 
 @item
 CAD software, such as a vague imitation of Autocad.
+
+@item
+A program to receive data from a serial-line tap to facilitate the
+reverse-engineering of communication protocols.
 @end itemize
 
 @node Compilers
