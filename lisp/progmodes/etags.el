@@ -785,7 +785,10 @@ Assumes the tags table is the current buffer."
 
 ;; Read a tag name from the minibuffer with defaulting and completion.
 (defun find-tag-tag (string)
-  (let* ((default (funcall (or find-tag-default-function
+  (let* ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
+				     tags-case-fold-search
+				   case-fold-search))
+	 (default (funcall (or find-tag-default-function
 			       (get major-mode 'find-tag-default-function)
 			       'find-tag-default)))
 	 (spec (completing-read (if default
@@ -1910,7 +1913,10 @@ for \\[find-tag] (which see)."
       (error "%s"
 	     (substitute-command-keys
 	      "No tags table loaded; try \\[visit-tags-table]")))
-  (let ((pattern (funcall (or find-tag-default-function
+  (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
+				    tags-case-fold-search
+				  case-fold-search))
+	(pattern (funcall (or find-tag-default-function
 			      (get major-mode 'find-tag-default-function)
 			      'find-tag-default)))
 	beg
