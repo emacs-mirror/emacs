@@ -7,6 +7,7 @@
 2001-01-25  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-mode-line-string): Doc & comment fix.
+	Require vc.
 
 2001-01-25  Stefan Monnier  <monnier@cs.yale.edu>
 
