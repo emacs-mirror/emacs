@@ -49,14 +49,14 @@
 
 ;;; Definitions of character sets.
 
-;; The charsets `ascii' and `unicode' are already defined in charset.c
-;; as below:
+;; The charsets `ascii', `unicode' and `eight-bit' are already defined
+;; in charset.c as below:
 ;;
 ;; (define-charset 'ascii
 ;;   ""
 ;;   :dimension 1
 ;;   :code-space [0 127]
-;;   :iso-final-char ?A
+;;   :iso-final-char ?B
 ;;   :ascii-compatible-p t
 ;;   :emacs-mule-id 0
 ;;   :code-offset 0)
@@ -67,6 +67,12 @@
 ;;   :code-space [0 255 0 255 0 16]
 ;;   :ascii-compatible-p t
 ;;   :code-offset 0)
+;;
+;; (define-charset 'eight-bit
+;;   ""
+;;   :dimension 1
+;;   :code-space [128 255]
+;;   :code-offset #x3FFF80)
 ;;
 ;; We now set :docstring, :short-name, and :long-name properties.
 
@@ -88,6 +94,8 @@
  'unicode :short-name "Unicode")
 (put-charset-property
  'unicode :long-name "Unicode (ISO10646)")
+(put-charset-property 'eight-bit :docstring "Raw bytes 0-255")
+(put-charset-property 'eight-bit :short-name "Raw bytes")
 
 (define-charset-alias 'ucs 'unicode)
 
@@ -201,6 +209,7 @@
 (fmakunbound 'define-iso-single-byte-charset)
 
 ;; Can this be shared with 8859-11?
+;; N.b. not all of these are defined unicodes.
 (define-charset 'thai-tis620
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -639,7 +648,7 @@
   :map "cp775")
 
 (define-charset 'cp851
-  "CP851"
+  "CP851 (Greek)"
   :short-name "CP851"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -762,6 +771,7 @@
 
 ;; Lao script.
 ;; Codes 0x21..0x7E are mapped to Unicode U+0E81..U+0EDF.
+;; Not all of them are defined unicodes.
 (define-charset 'lao
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"
@@ -874,6 +884,12 @@
   :emacs-mule-id 244
   :code-space [#x20 #x7F #x20 #x7F]
   :code-offset #x100)
+
+(define-charset 'unicode-bmp
+  "Unicode Basic Multilingual Plane"
+  :short-name "Unicode BMP"
+  :code-space [0 255 0 255]
+  :subset '(unicode 0 #xFFFF 0))
 
 (define-charset 'ethiopic
   "Ethiopic characters for Amharic and Tigrigna."
