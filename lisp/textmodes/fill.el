@@ -175,12 +175,15 @@ Remove indentation from each line."
     ;; Make sure sentences ending at end of line get an extra space.
     ;; loses on split abbrevs ("Mr.\nSmith")
     (goto-char beg)
-    (while (and (< (point) end)
-		(re-search-forward "[.?!][])}\"']*$" end t))
+    (let ((eol-double-space-re (if colon-double-space
+                                   "[.?!:][])}\"']*$"
+                                 "[.?!][])}\"']*$")))
+      (while (and (< (point) end)
+                (re-search-forward eol-double-space-re end t))
       ;; We insert before markers in case a caller such as
       ;; do-auto-fill has done a save-excursion with point at the end
       ;; of the line and wants it to stay at the end of the line.
-      (insert-before-markers-and-inherit ? ))))
+      (insert-before-markers-and-inherit ? )))))
 
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
@@ -422,8 +425,11 @@ space does not end a sentence, so don't break a line there."
 
 	  ;; Make sure sentences ending at end of line get an extra space.
 	  ;; loses on split abbrevs ("Mr.\nSmith")
-	  (while (re-search-forward "[.?!][])}\"']*$" nil t)
-	    (or (eobp) (insert-and-inherit ?\ )))
+          (let ((eol-double-space-re (if colon-double-space
+                                         "[.?!:][])}\"']*$"
+                                       "[.?!][])}\"']*$")))
+            (while (re-search-forward eol-double-space-re nil t)
+              (or (eobp) (insert-and-inherit ?\ ))))
 
 	  (goto-char from)	  
 	  (if enable-multibyte-characters
