@@ -1,7 +1,7 @@
-/* impl.c.tract: PAGE TABLES
+/* tract.c: PAGE TABLES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
  * free but never allocated as alloc starts searching after the tables.
@@ -412,14 +412,14 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
   Index i;
   Chunk chunk;
  
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVER_CRITICAL(tractReturn != NULL); /* .tract.critical */
   AVERT_CRITICAL(Arena, arena);
 
   b = ChunkOfAddr(&chunk, arena, addr);
   if (!b)
     return FALSE;
-  /* design.mps.trace.fix.tractofaddr */
+  /* <design/trace/#fix.tractofaddr> */
   i = INDEX_OF_ADDR(chunk, addr);
   /* .addr.free: If the page is recorded as being free then */
   /* either the page is free or it is */
@@ -447,7 +447,7 @@ Tract TractOfBaseAddr(Arena arena, Addr addr)
   AVERT_CRITICAL(Arena, arena);
   AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
 
-  /* Check first in the cache, see design.mps.arena.tract.cache. */
+  /* Check first in the cache, see <design/arena/#tract.cache>. */
   if (arena->lastTractBase == addr) {
     tract = arena->lastTract;
   } else {
@@ -614,3 +614,45 @@ void PageFree(Chunk chunk, Index pi)
   PageInit(chunk, pi);
   return;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

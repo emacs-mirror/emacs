@@ -1,16 +1,16 @@
-/* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
+/* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
- * impl.h.mps.  Several macros forming part of impl.h.mps should be
+ * <code/mps.h>.  Several macros forming part of <code/mps.h> should be
  * consistent with the macros and functions in this module.
  *
  * DESIGN
  *
- * .design: See design.mps.buffer.
+ * .design: See <design/buffer/>.
  *
  * .ap.async: The mutator is allowed to change certain AP fields
  * asynchronously.  Functions that can be called on buffers not
@@ -20,7 +20,7 @@
  * TRANSGRESSIONS
  *
  * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module because impl.c.pool does not provide
+ * directly accessed by this module because <code/pool.c> does not provide
  * an adequate (or adequately documented) interface.  They bear this
  * tag.  */
 
@@ -44,7 +44,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKU(Arena, buffer->arena);
   CHECKU(Pool, buffer->pool);
   CHECKL(buffer->arena == buffer->pool->arena);
-  CHECKL(RingCheck(&buffer->poolRing)); /* design.mps.check.type.no-sig */
+  CHECKL(RingCheck(&buffer->poolRing)); /* <design/check/#type.no-sig> */
   CHECKL(BoolCheck(buffer->isMutator));
   CHECKL(buffer->fillSize >= 0.0);
   CHECKL(buffer->emptySize >= 0.0);
@@ -102,7 +102,7 @@ Bool BufferCheck(Buffer buffer)
 
     /* .lwcheck: If LW frames are enabled, the buffer may become */
     /* trapped asynchronously. It can't become untrapped */
-    /* asynchronously, though. See design.mps.alloc-frame.lw-frame.pop. */
+    /* asynchronously, though. See <design/alloc-frame/#lw-frame.pop>. */
     /* Read a snapshot value of the limit field. Use this to determine */
     /* if we are trapped, and to permit more useful checking when not */
     /* yet trapped. */
@@ -142,7 +142,7 @@ Bool BufferCheck(Buffer buffer)
 
 /* BufferDescribe -- write out description of buffer
  *
- * See impl.h.mpmst for structure definitions.  */
+ * See <code/mpmst.h> for structure definitions.  */
 
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
@@ -198,7 +198,7 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
  
   arena = PoolArena(pool);
-  /* Initialize the buffer.  See impl.h.mpmst for a definition of */
+  /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
   /* the structure.  sig and serial comes later .init.sig-serial */
   buffer->arena = arena;
   buffer->class = class;
@@ -252,7 +252,7 @@ failInit:
 
 /* BufferCreate -- create an allocation buffer
  *
- * See design.mps.buffer.method.create.  */
+ * See <design/buffer/#method.create>.  */
 
 Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                  Pool pool, Bool isMutator, ...)
@@ -269,7 +269,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
 
 /* BufferCreateV -- create an allocation buffer, with varargs
  *
- * See design.mps.buffer.method.create.  */
+ * See <design/buffer/#method.create>.  */
 
 Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
                   Pool pool, Bool isMutator, va_list args)
@@ -360,7 +360,7 @@ void BufferDetach(Buffer buffer, Pool pool)
 
 /* BufferDestroy -- destroy an allocation buffer
  *
- * See design.mps.buffer.method.destroy.  */
+ * See <design/buffer/#method.destroy>.  */
 
 void BufferDestroy(Buffer buffer)
 {
@@ -390,7 +390,7 @@ void BufferFinish(Buffer buffer)
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
   AVER(BufferIsReady(buffer));
 
-  /* design.mps.alloc-frame.lw-frame.sync.trip */
+  /* <design/alloc-frame/#lw-frame.sync.trip> */
   if (BufferIsTrappedByMutator(buffer)) {
     BufferFrameNotifyPopPending(buffer);
   }
@@ -473,7 +473,7 @@ static void BufferSetUnflipped(Buffer buffer)
 /* BufferFrameState
  *
  * Returns the frame state of a buffer.  See
- * design.mps.alloc-frame.lw-frame.states.  */
+ * <design/alloc-frame/#lw-frame.states>.  */
 
 FrameState BufferFrameState(Buffer buffer)
 {
@@ -496,7 +496,7 @@ FrameState BufferFrameState(Buffer buffer)
 /* BufferFrameSetState
  *
  * Sets the frame state of a buffer.  Only the mutator may set the
- * PopPending state.  See design.mps.alloc-frame.lw-frame.states.  */
+ * PopPending state.  See <design/alloc-frame/#lw-frame.states>.  */
 
 void BufferFrameSetState(Buffer buffer, FrameState state)
 {
@@ -529,7 +529,7 @@ void BufferSetAllocAddr(Buffer buffer, Addr addr)
  *
  * Notifies the pool when a lightweight frame pop operation has been
  * deferred and needs to be processed.  See
- * design.mps.alloc-frame.lw-frame.sync.trip.  */
+ * <design/alloc-frame/#lw-frame.sync.trip>.  */
 
 static void BufferFrameNotifyPopPending(Buffer buffer)
 {
@@ -553,7 +553,7 @@ static void BufferFrameNotifyPopPending(Buffer buffer)
 
 /* BufferFramePush
  *
- * See design.mps.alloc-frame.  */
+ * See <design/alloc-frame/>.  */
 
 Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 {
@@ -581,7 +581,7 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 
 /* BufferFramePop
  *
- * See design.mps.alloc-frame.  */
+ * See <design/alloc-frame/>.  */
 
 Res BufferFramePop(Buffer buffer, AllocFrame frame)
 {
@@ -597,7 +597,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
 
 /* BufferReserve -- reserve memory from an allocation buffer
  *
- * .reserve: Keep in sync with impl.h.mps.reserve.  */
+ * .reserve: Keep in sync with <code/mps.h#reserve>.  */
 
 Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                   Bool withReservoirPermit)
@@ -659,7 +659,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   filled = AddrOffset(init, limit);
   buffer->fillSize += filled;
   if (buffer->isMutator) {
-    if (base != init) { /* see design.mps.buffer.count.alloc.how */
+    if (base != init) { /* see <design/buffer/#count.alloc.how> */
       Size prealloc = AddrOffset(base, init);
       ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
@@ -708,7 +708,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
       BufferSetUnflipped(buffer);
     }
 
-    /* design.mps.alloc-frame.lw-frame.sync.trip */
+    /* <design/alloc-frame/#lw-frame.sync.trip> */
     if (BufferIsTrappedByMutator(buffer)) {
       BufferFrameNotifyPopPending(buffer);
     }
@@ -755,7 +755,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
 /* BufferCommit -- commit memory previously reserved
  *
- * .commit: Keep in sync with impl.h.mps.commit.  */
+ * .commit: Keep in sync with <code/mps.h#commit>.  */
 
 Bool BufferCommit(Buffer buffer, Addr p, Size size)
 {
@@ -764,7 +764,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(!BufferIsReady(buffer));
 
-  /* See design.mps.collection.flip. */
+  /* See <design/collection/#flip>. */
   /* .commit.before: If a flip occurs before this point, when the */
   /* pool reads "initAtFlip" it will point below the object, so it */
   /* will be trashed and the commit must fail when trip is called.  */
@@ -972,7 +972,7 @@ Bool BufferIsTrapped(Buffer buffer)
 /* BufferIsTrappedByMutator
  *
  * Indicates whether the mutator trapped the buffer.  See
- * design.mps.alloc-frame.lw-frame.sync.trip and .ap.async.  */
+ * <design/alloc-frame/#lw-frame.sync.trip> and .ap.async.  */
 
 Bool BufferIsTrappedByMutator(Buffer buffer)
 {
@@ -1004,7 +1004,7 @@ static Bool AllocPatternCheck(AllocPattern pattern)
 {
   CHECKL(pattern == &AllocPatternRampCollectAllStruct
          || pattern == &AllocPatternRampStruct);
-  UNUSED(pattern); /* impl.c.mpm.check.unused */
+  UNUSED(pattern); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -1207,7 +1207,7 @@ Bool BufferClassCheck(BufferClass class)
 
 /* BufferClass -- the vanilla buffer class definition
  *
- * See design.mps.buffer.class.hierarchy.buffer.  */
+ * See <design/buffer/#class.hierarchy.buffer>.  */
 
 DEFINE_CLASS(BufferClass, class)
 {
@@ -1458,7 +1458,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
 /* SegBufClass -- SegBuf class definition
  *
  * Supports an association with a single segment when attached.  See
- * design.mps.buffer.class.hierarchy.segbuf.  */
+ * <design/buffer/#class.hierarchy.segbuf>.  */
 
 typedef BufferClassStruct SegBufClassStruct;
 
@@ -1487,7 +1487,7 @@ DEFINE_CLASS(SegBufClass, class)
 static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
 {
   /* Assumes pun compatibility between Rank and mps_rank_t */
-  /* Which is checked by mpsi_check in impl.c.mpsi */
+  /* Which is checked by mpsi_check in <code/mpsi.c> */
   Rank rank = va_arg(args, Rank);
   BufferClass super;
   Res res;
@@ -1524,3 +1524,45 @@ DEFINE_CLASS(RankBufClass, class)
   class->name = "RANKBUF";
   class->init = rankBufInit;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

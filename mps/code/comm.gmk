@@ -1,7 +1,7 @@
-# impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
+# comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -186,7 +186,6 @@ TESTLIB = testlib.c
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
-FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
@@ -252,8 +251,6 @@ FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -433,11 +430,6 @@ $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
   $(MPMOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
 
-$(PFM)/$(VARIETY)/replaysw: $(PFM)/$(VARIETY)/replay.o \
-  $(PFM)/$(VARIETY)/eventrep.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
-  $(FMTPSOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mpsliban.o $(SWOBJ)
-
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
 
 $(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
@@ -513,7 +505,7 @@ ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
-  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
+  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) \
   $(PLINTHDEP) $(EVENTPROCDEP)
 endif
 endif
@@ -538,4 +530,43 @@ $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
 	$(CC) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
-# End of makefile.
+
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# All rights reserved.  This is an open source license.  Contact
+# Ravenbrook for commercial licensing options.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 
+# 3. Redistributions in any form must be accompanied by information on how
+# to obtain complete source code for this software and any accompanying
+# software that uses this software.  The source code must either be
+# included in the distribution or be available for no more than the cost
+# of distribution plus a nominal fee, and must be freely redistributable
+# under reasonable conditions.  For an executable file, complete source
+# code means the source code for all modules it contains. It does not
+# include source code for modules or files that typically accompany the
+# major components of the operating system on which the executable file
+# runs.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

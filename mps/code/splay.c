@@ -1,12 +1,12 @@
-/* impl.c.splay: SPLAY TREE IMPLEMENTATION
+/* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.
  *
- * .source: design.mps.splay
+ * .source: <design/splay/>
  *
  * .note.stack: It's important that the MPS have a bounded stack
  * size, and this is a problem for tree algorithms.  Basically,
@@ -116,7 +116,7 @@ static void SplayNodeUpdate(SplayTree tree, SplayNode node)
  * Link the current top node into the left child of the right tree,
  * leaving the top node as the left child of the old top node.
  *
- * See design.mps.splay.impl.link.right.
+ * See <design/splay/#impl.link.right>.
  */
 
 static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
@@ -144,7 +144,7 @@ static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
  * Link the current top node into the right child of the left tree,
  * leaving the top node as the right child of the old top node.
  *
- * See design.mps.splay.impl.link.left.
+ * See <design/splay/#impl.link.left>.
  */
 
 static void SplayLinkLeft(SplayNode *topIO, SplayNode *leftIO) {
@@ -171,7 +171,7 @@ static void SplayLinkLeft(SplayNode *topIO, SplayNode *leftIO) {
  * Rotates node, right child of node, and left child of right
  * child of node, leftwards in the order stated.
  *
- * See design.mps.splay.impl.rotate.left.
+ * See <design/splay/#impl.rotate.left>.
  */
 
 static void SplayRotateLeft(SplayNode *nodeIO, SplayTree tree) {
@@ -203,7 +203,7 @@ static void SplayRotateLeft(SplayNode *nodeIO, SplayTree tree) {
  * Rotates node, left child of node, and right child of left
  * child of node, leftwards in the order stated.
  *
- * See design.mps.splay.impl.rotate.right.
+ * See <design/splay/#impl.rotate.right>.
  */
 
 static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
@@ -240,7 +240,7 @@ static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
  * left and right trees and their last and first nodes respectively
  * will have out of date client properties.
  *
- * See design.mps.splay.impl.assemble.
+ * See <design/splay/#impl.assemble>.
  */
 
 static void SplayAssemble(SplayTree tree, SplayNode top,
@@ -330,7 +330,7 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
  * Returns whether key was found.  This is the real logic behind
  * splay trees.
  *
- * See design.mps.splay.impl.splay.
+ * See <design/splay/#impl.splay>.
  */
 
 static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
@@ -477,8 +477,8 @@ assemble:
 
 /* SplayTreeInsert -- Insert a node into a splay tree
  *
- * See design.mps.splay.function.splay.tree.insert and
- * design.mps.splay.impl.insert.
+ * See <design/splay/#function.splay.tree.insert> and
+ * <design/splay/#impl.insert>.
  */
 
 Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key) {
@@ -529,8 +529,8 @@ Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key) {
 
 /* SplayTreeDelete -- Delete a node from a splay tree
  *
- * See design.mps.splay.function.splay.tree.delete and
- * design.mps.splay.impl.delete.
+ * See <design/splay/#function.splay.tree.delete> and
+ * <design/splay/#impl.delete>.
  */
 
 Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key) {
@@ -571,8 +571,8 @@ Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key) {
 
 /* SplayTreeSearch -- Search for a node in a splay tree matching a key
  *
- * See design.mps.splay.function.splay.tree.search and
- * design.mps.splay.impl.search.
+ * See <design/splay/#function.splay.tree.search> and
+ * <design/splay/#impl.search>.
  */
 
 Res SplayTreeSearch(SplayNode *nodeReturn, SplayTree tree, void *key) {
@@ -669,8 +669,8 @@ static SplayNode SplayTreeSuccessor(SplayTree tree, void *key) {
  *
  * Search for the two nodes in a splay tree neighbouring a key.
  *
- * See design.mps.splay.function.splay.tree.neighbours and
- * design.mps.splay.impl.neighbours.
+ * See <design/splay/#function.splay.tree.neighbours> and
+ * <design/splay/#impl.neighbours>.
  */
 
 
@@ -714,12 +714,12 @@ Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn,
  * SplayTreeFirst receives a key that must precede all
  * nodes in the tree.  It returns NULL if the tree is empty.
  * Otherwise, it splays the tree to the first node, and returns the
- * new root.  See design.mps.splay.function.splay.tree.first.
+ * new root.  See <design/splay/#function.splay.tree.first>.
  *
  * SplayTreeNext takes a tree and splays it to the successor of the
  * old root, and returns the new root.  Returns NULL is there are
  * no successors.  It takes a key for the old root.  See
- * design.mps.splay.function.splay.tree.next.
+ * <design/splay/#function.splay.tree.next>.
  */
 
 SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey) {
@@ -998,7 +998,7 @@ void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key)
 
 /* SplayTreeDescribe -- Describe a splay tree
  *
- * See design.mps.splay.function.splay.tree.describe.
+ * See <design/splay/#function.splay.tree.describe>.
  */
 
 Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
@@ -1025,3 +1025,45 @@ Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
   res = WriteF(stream, "\n}\n", NULL);
   return res;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

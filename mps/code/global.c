@@ -1,10 +1,10 @@
-/* impl.c.global: ARENA-GLOBAL INTERFACES
+/* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  *
- * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
+ * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.
  *
  *
@@ -12,10 +12,10 @@
  *
  * .static: Static data is used in ArenaAccess (in order to find the
  * appropriate arena) and GlobalsInit.  It's checked in GlobalsCheck.
- * See design.mps.arena.static.
+ * See <design/arena/#static>.
  *
  * .non-mod: The Globals structure has many fields which properly belong
- * to other modules (see impl.h.mpmst); GlobalsInit contains code which
+ * to other modules (see <code/mpmst.h>); GlobalsInit contains code which
  * breaks the usual module abstractions.  Such instances are documented
  * with a tag to the relevant module implementation.  Most of the
  * functions should be in some other module, they just ended up here by
@@ -32,9 +32,9 @@ SRCID(global, "$Id$");
 
 /* All static data objects are declared here. See .static */
 
-/* design.mps.arena.static.ring.init */
+/* <design/arena/#static.ring.init> */
 static Bool arenaRingInit = FALSE;
-static RingStruct arenaRing;       /* design.mps.arena.static.ring */
+static RingStruct arenaRing;       /* <design/arena/#static.ring> */
 
 
 /* ArenaControlPool -- get the control pool */
@@ -44,7 +44,7 @@ static RingStruct arenaRing;       /* design.mps.arena.static.ring */
 
 /* arenaClaimRingLock, arenaReleaseRingLock -- lock/release the arena ring
  *
- * See design.mps.arena.static.ring.lock.  */
+ * See <design/arena/#static.ring.lock>.  */
 
 static void arenaClaimRingLock(void)
 {
@@ -171,11 +171,11 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(TraceSetSuper(arena->busyTraces, arena->flippedTraces));
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
-    /* design.mps.arena.trace */
+    /* <design/arena/#trace> */
     if (TraceSetIsMember(arena->busyTraces, trace)) {
       CHECKD(Trace, trace);
     } else {
-      /* design.mps.arena.trace.invalid */
+      /* <design/arena/#trace.invalid> */
       CHECKL(trace->sig == SigInvalid);
     }
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
@@ -197,7 +197,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   /* the oldest history entry must be a subset of the prehistory */
   CHECKL(RefSetSub(rs, arena->prehistory));
 
-  /* we also check the statics now. design.mps.arena.static.check */
+  /* we also check the statics now. <design/arena/#static.check> */
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
 
@@ -221,7 +221,7 @@ Res GlobalsInit(Globals arenaGlobals)
   /* Ensure static things are initialized. */
   if (!arenaRingInit) {
     /* there isn't an arena ring yet */
-    /* design.mps.arena.static.init */
+    /* <design/arena/#static.init> */
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
     ProtSetup();
@@ -259,9 +259,9 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->enabledMessageTypes = NULL;
   arena->isFinalPool = FALSE;
   arena->finalPool = NULL;
-  arena->busyTraces = TraceSetEMPTY;    /* impl.c.trace */
-  arena->flippedTraces = TraceSetEMPTY; /* impl.c.trace */
-  arena->insideShield = FALSE;          /* impl.c.shield */
+  arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
+  arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
+  arena->insideShield = FALSE;          /* <code/shield.c> */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
   arena->shDepth = (Size)0;
@@ -270,7 +270,7 @@ Res GlobalsInit(Globals arenaGlobals)
     arena->shCache[i] = NULL;
 
   for (i=0; i < TraceLIMIT; i++) {
-    /* design.mps.arena.trace.invalid */
+    /* <design/arena/#trace.invalid> */
     arena->trace[i].sig = SigInvalid;
   }
   for(rank = 0; rank < RankLIMIT; ++rank)
@@ -278,7 +278,7 @@ Res GlobalsInit(Globals arenaGlobals)
   STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
 
-  arena->epoch = (Epoch)0;              /* impl.c.ld */
+  arena->epoch = (Epoch)0;              /* <code/ld.c> */
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < LDHistoryLENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
@@ -303,7 +303,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   AVERT(Globals, arenaGlobals);
   arena = GlobalsArena(arenaGlobals);
 
-  /* initialize the message stuff, design.mps.message */
+  /* initialize the message stuff, <design/message/> */
   {
     void *v;
 
@@ -388,7 +388,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     arena->enabledMessageTypes = NULL;
   }
 
-  /* destroy the final pool (see design.mps.finalize) */
+  /* destroy the final pool (see <design/finalize/>) */
   if (arena->isFinalPool) {
     /* All this subtlety is because PoolDestroy will call */
     /* ArenaCheck several times.  The invariant on finalPool */
@@ -437,7 +437,7 @@ void ArenaLeave(Arena arena)
 {
   AVERT(Arena, arena);
   ShieldLeave(arena);
-  ProtSync(arena);              /* design.mps.prot.if.sync */
+  ProtSync(arena);              /* <design/prot/#if.sync> */
   LockReleaseMPM(ArenaGlobals(arena)->lock);
 }
 #endif
@@ -464,7 +464,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Ring node, nextNode;
   Res res;
 
-  arenaClaimRingLock();    /* design.mps.arena.lock.ring */
+  arenaClaimRingLock();    /* <design/arena/#lock.ring> */
   mps_exception_info = context;
   AVER(RingCheck(&arenaRing));
 
@@ -473,7 +473,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     Arena arena = GlobalsArena(arenaGlobals);
     Root root;
 
-    ArenaEnter(arena);     /* design.mps.arena.lock.arena */
+    ArenaEnter(arena);     /* <design/arena/#lock.arena> */
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
     /* It will fall over (in TraceSegAccess probably) if there is a */
     /* protected root on a segment. */
@@ -573,7 +573,7 @@ Bool ArenaStep(Globals globals, double interval)
 
 /* ArenaFinalize -- registers an object for finalization
  *
- * See design.mps.finalize.  */
+ * See <design/finalize/>.  */
 
 Res ArenaFinalize(Arena arena, Ref obj)
 {
@@ -714,7 +714,7 @@ Ref ArenaRead(Arena arena, Addr addr)
 
   /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
   /* not RankEXACT which is conservative.  See also */
-  /* impl.c.trace.scan.conservative for a similar nasty. */
+  /* <code/trace.c#scan.conservative> for a similar nasty. */
   TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
                      seg, (Ref *)addr);
   /* get the possibly fixed reference */
@@ -809,3 +809,45 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
   /* @@@@ What about grey rings? */
   return res;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

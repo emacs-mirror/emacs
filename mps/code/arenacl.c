@@ -1,9 +1,9 @@
-/* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
+/* arenacl.c: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See design.mps.arena.client.
+ * .design: See <design/arena/#client>.
  *
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
@@ -26,7 +26,7 @@ SRCID(arenacl, "$Id$");
 
 typedef struct ClientArenaStruct {
   ArenaStruct arenaStruct; /* generic arena structure */
-  Sig sig;                 /* design.mps.sig */
+  Sig sig;                 /* <design/sig/> */
 } ClientArenaStruct;
 typedef struct ClientArenaStruct *ClientArena;
 
@@ -44,7 +44,7 @@ typedef struct ClientChunkStruct {
   ChunkStruct chunkStruct;     /* generic chunk */
   Size freePages;              /* number of free pages in chunk */
   Addr pageBase;               /* base of first managed page in chunk */
-  Sig sig;                     /* design.mps.sig */
+  Sig sig;                     /* <design/sig/> */
 } ClientChunkStruct;
 
 #define ClientChunk2Chunk(clchunk) (&(clchunk)->chunkStruct)
@@ -111,7 +111,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
     goto failBootInit;
 
   /* Allocate the chunk. */
-  /* See design.mps.arena.@@@@ */
+  /* See <design/arena/>.@@@@ */
   res = BootAlloc(&p, boot, sizeof(ClientChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -217,7 +217,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
     return ResMEMORY;
 
   arena = ClientArena2Arena(clientArena);
-  /* impl.c.arena.init.caller */
+  /* <code/arena.c#init.caller> */
   res = ArenaInit(arena, class);
   if (res != ResOK)
     return res;
@@ -265,7 +265,7 @@ static void ClientArenaFinish(Arena arena)
 
   clientArena->sig = SigInvalid;
 
-  ArenaFinish(arena); /* impl.c.arena.finish.caller */
+  ArenaFinish(arena); /* <code/arena.c#finish.caller> */
 }
 
 
@@ -341,7 +341,7 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 
   /* Check commit limit.  Note that if there are multiple reasons */
   /* for failing the allocation we attempt to return other result codes */
-  /* in preference to ResCOMMIT_LIMIT.  See design.mps.arena.commit-limit */
+  /* in preference to ResCOMMIT_LIMIT.  See <design/arena/#commit-limit> */
   if (ArenaCommitted(arena) + pages * ChunkPageSize(chunk)
       > arena->commitLimit) {
     return ResCOMMIT_LIMIT;
@@ -383,7 +383,7 @@ static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
   /* All chunks have same pageSize. */
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
   /* NULL is used as a discriminator (see */
-  /* design.mps.arenavm.table.disc), therefore the real pool */
+  /* <design/arenavm/#table.disc>), therefore the real pool */
   /* must be non-NULL. */
   AVER(pool != NULL);
 
@@ -474,3 +474,45 @@ mps_arena_class_t mps_arena_class_cl(void)
 {
   return (mps_arena_class_t)EnsureClientArenaClass();
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

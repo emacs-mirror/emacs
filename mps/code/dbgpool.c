@@ -1,7 +1,7 @@
-/* impl.c.dbgpool: POOL DEBUG MIXIN
+/* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
@@ -76,7 +76,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
     /* Nothing to check about missingTags */
     CHECKL(SplayTreeCheck(&debug->index));
   }
-  UNUSED(debug); /* see impl.c.mpm.check.unused */
+  UNUSED(debug); /* see <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -142,7 +142,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
   /* fencepost init */
   /* @@@@ This parses a user argument, options, so it should really */
   /* go through the MPS interface.  The template needs to be copied */
-  /* into Addr memory, to avoid breaking design.mps.type.addr.use. */
+  /* into Addr memory, to avoid breaking <design/type/#addr.use>. */
   debug->fenceSize = options->fenceSize;
   if (debug->fenceSize != 0) {
     if (debug->fenceSize % PoolAlignment(pool) != 0) {
@@ -541,7 +541,7 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 {
   SplayNode node;
   PoolDebugMixin debug;
-  Addr dummy = NULL; /* Breaks design.mps.type.addr.use, but it's */
+  Addr dummy = NULL; /* Breaks <design/type/#addr.use>, but it's */
                      /* only temporary until SplayTreeFirst is fixed. */
 
   AVERT(Pool, pool);
@@ -667,3 +667,45 @@ void PoolClassMixInDebug(PoolClass class)
   class->alloc = DebugPoolAlloc;
   class->free = DebugPoolFree;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

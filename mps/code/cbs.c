@@ -1,7 +1,7 @@
-/* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
+/* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -9,7 +9,7 @@
  * .purpose: CBSs are used to manage potentially unbounded
  * collections of memory blocks.
  *
- * .sources: design.mps.cbs.
+ * .sources: <design/cbs/>.
  */
 
 #include "cbs.h"
@@ -21,7 +21,7 @@
 SRCID(cbs, "$Id$");
 
 
-/* See design.mps.cbs.align */
+/* See <design/cbs/#align> */
 #define cbsMinimumAlignment ((Align)sizeof(void *))
 
 #define cbsOfSplayTree(tree) PARENT(CBSStruct, splayTree, (tree))
@@ -33,7 +33,7 @@ SRCID(cbs, "$Id$");
 
 /* CBSEmergencyBlock* -- Getters and setters for emergency blocks
  *
- * See design.mps.cbs.impl.low-mem.inline.block.
+ * See <design/cbs/#impl.low-mem.inline.block>.
  */
 
 #define CBSEmergencyBlockBase(block) ((Addr)(block))
@@ -50,7 +50,7 @@ SRCID(cbs, "$Id$");
 
 /* CBSEmergencyGrain* -- Getters and setters for emergency grains
  *
- * See design.mps.cbs.impl.low-mem.inline.grain.
+ * See <design/cbs/#impl.low-mem.inline.grain>.
  */
 
 #define CBSEmergencyGrainBase(grain) ((Addr)(grain))
@@ -124,7 +124,7 @@ Bool CBSCheck(CBS cbs)
   CHECKL(cbs->shrink == NULL || FUNCHECK(cbs->shrink));
   CHECKL(cbs->mayUseInline || cbs->emergencyBlockList == NULL);
   CHECKL(cbs->mayUseInline || cbs->emergencyGrainList == NULL);
-  /* See design.mps.cbs.align */
+  /* See <design/cbs/#align> */
   CHECKL(!cbs->mayUseInline ||
          AlignIsAligned(cbs->alignment, cbsMinimumAlignment));
   /* can't check emergencyBlockList or emergencyGrainList more */
@@ -135,7 +135,7 @@ Bool CBSCheck(CBS cbs)
 }
 
 
-/* CBSBlockCheck -- See design.mps.cbs.function.cbs.block.check */
+/* CBSBlockCheck -- See <design/cbs/#function.cbs.block.check> */
 
 Bool CBSBlockCheck(CBSBlock block)
 {
@@ -152,7 +152,7 @@ Bool CBSBlockCheck(CBSBlock block)
 }
 
 
-/* CBSBlockSize -- see design.mps.cbs.function.cbs.block.size */
+/* CBSBlockSize -- see <design/cbs/#function.cbs.block.size> */
 
 Size (CBSBlockSize)(CBSBlock block)
 {
@@ -163,7 +163,7 @@ Size (CBSBlockSize)(CBSBlock block)
 
 /* cbsSplayCompare -- Compare key to [base,limit)
  *
- * See design.mps.splay.type.splay.compare.method
+ * See <design/splay/#type.splay.compare.method>
  */
 
 static Compare cbsSplayCompare(void *key, SplayNode node)
@@ -267,7 +267,7 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
 
 /* CBSInit -- Initialise a CBS structure
  *
- * See design.mps.cbs.function.cbs.init.
+ * See <design/cbs/#function.cbs.init>.
  */
 
 Res CBSInit(Arena arena, CBS cbs, void *owner,
@@ -283,7 +283,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
   AVER(delete == NULL || FUNCHECK(delete));
   AVER(BoolCheck(mayUseInline));
   if (mayUseInline) {
-    /* See design.mps.cbs.align */
+    /* See <design/cbs/#align> */
     if (!AlignIsAligned(alignment, cbsMinimumAlignment))
       return ResPARAM;
   }
@@ -326,7 +326,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
 
 /* CBSFinish -- Finish a CBS structure
  *
- * See design.mps.cbs.function.cbs.finish.
+ * See <design/cbs/#function.cbs.finish>.
  */
 
 void CBSFinish(CBS cbs)
@@ -520,7 +520,7 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
       Size oldRightSize = CBSBlockSize(rightCBS);
 
       /* must block larger neighbour and destroy smaller neighbour; */
-      /* see design.mps.cbs.function.cbs.insert.callback */
+      /* see <design/cbs/#function.cbs.insert.callback> */
       if (oldLeftSize >= oldRightSize) {
         Addr rightLimit = rightCBS->limit;
         cbsBlockDelete(cbs, rightCBS);
@@ -699,7 +699,7 @@ static Res cbsAddToEmergencyLists(CBS cbs, Addr base, Addr limit)
   AVER(cbs->mayUseInline);
 
   size = AddrOffset(base, limit);
-  /* Use the block list if possible.  See design.mps.cbs.align. */
+  /* Use the block list if possible.  See <design/cbs/#align>. */
   if (size > cbsMinimumAlignment) {
     CBSEmergencyBlock prev, block, new;
     new = CBSEmergencyBlockInit(base, limit);
@@ -833,7 +833,7 @@ static void cbsFlushEmergencyLists(CBS cbs)
 
 /* CBSInsert -- Insert a range into the CBS
  *
- * See design.mps.cbs.functions.cbs.insert.
+ * See <design/cbs/#functions.cbs.insert>.
  */
 
 Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
@@ -945,7 +945,7 @@ static Res cbsDeleteFromTree(CBS cbs, Addr base, Addr limit)
       Size leftNewSize = AddrOffset(cbsBlock->base, base);
       Size rightNewSize = AddrOffset(limit, cbsBlock->limit);
       /* must shrink larger fragment and create smaller; */
-      /* see design.mps.cbs.function.cbs.delete.callback */
+      /* see <design/cbs/#function.cbs.delete.callback> */
       if (leftNewSize >= rightNewSize) {
         Addr oldLimit = cbsBlock->limit;
         AVER(limit < cbsBlock->limit);
@@ -1089,7 +1089,7 @@ static Res cbsDeleteFromEmergencyGrainList(CBS cbs, Addr base, Addr limit)
 
 /* CBSDelete -- Remove a range from a CBS
  *
- * See design.mps.cbs.function.cbs.delete.
+ * See <design/cbs/#function.cbs.delete>.
  */
 
 Res CBSDelete(CBS cbs, Addr base, Addr limit)
@@ -1156,7 +1156,7 @@ static Res CBSSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
 /* CBSIterate -- Iterate all blocks in CBS
  *
  * This is not necessarily efficient.
- * See design.mps.cbs.function.cbs.iterate.
+ * See <design/cbs/#function.cbs.iterate>.
  */
 
 /* Internal version without enter/leave checking. */
@@ -1245,7 +1245,7 @@ void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, void *closureP)
 /* CBSSetMinSize -- Set minimum interesting size for cbs
  *
  * This function may invoke the shrink and grow methods as
- * appropriate.  See design.mps.cbs.function.cbs.set.min-size.
+ * appropriate.  See <design/cbs/#function.cbs.set.min-size>.
  */
 
 typedef struct {
@@ -1309,7 +1309,7 @@ static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
   CHECKL(findDelete == CBSFindDeleteNONE || findDelete == CBSFindDeleteLOW
          || findDelete == CBSFindDeleteHIGH
          || findDelete == CBSFindDeleteENTIRE);
-  UNUSED(findDelete); /* impl.c.mpm.check.unused */
+  UNUSED(findDelete); /* <code/mpm.c#check.unused> */
 
   return TRUE;
 }
@@ -1627,7 +1627,7 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
 
 /* CBSDescribe -- describe a CBS
  *
- * See design.mps.cbs.function.cbs.describe.
+ * See <design/cbs/#function.cbs.describe>.
  */
 
 Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
@@ -1658,3 +1658,45 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
   res = WriteF(stream, "}\n", NULL);
   return res;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

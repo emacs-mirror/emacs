@@ -1,13 +1,13 @@
-/* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
+/* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  * 
  * 
  * DESIGN
  *
- * .design: See design.mps.poolmrg.
+ * .design: See <design/poolmrg/>.
  *
  * NOTES
  *
@@ -19,7 +19,7 @@
  *
  * TRANSGRESSIONS
  *
- * .addr.void-star: Breaks design.mps.type.addr.use all over the place,
+ * .addr.void-star: Breaks <design/type/#addr.use> all over the place,
  * accessing the segments acquired from SegAlloc with C pointers.  It
  * would not be practical to use ArenaPeek/Poke everywhere.  Blocks
  * acquired from ControlAlloc must be directly accessible from C, or else
@@ -112,11 +112,11 @@ static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
 
 typedef struct MRGStruct {
   PoolStruct poolStruct;    /* generic pool structure */
-  RingStruct entryRing;     /* design.mps.poolmrg.poolstruct.entry */
-  RingStruct freeRing;      /* design.mps.poolmrg.poolstruct.free */
-  RingStruct refRing;       /* design.mps.poolmrg.poolstruct.refring */
-  Size extendBy;            /* design.mps.poolmrg.extend */
-  Sig sig;                  /* impl.h.mps.sig */
+  RingStruct entryRing;     /* <design/poolmrg/#poolstruct.entry> */
+  RingStruct freeRing;      /* <design/poolmrg/#poolstruct.free> */
+  RingStruct refRing;       /* <design/poolmrg/#poolstruct.refring> */
+  Size extendBy;            /* <design/poolmrg/#extend> */
+  Sig sig;                  /* <code/mps.h#sig> */
 } MRGStruct;
 
 #define Pool2MRG(pool) PARENT(MRGStruct, poolStruct, pool)
@@ -146,15 +146,15 @@ typedef struct MRGRefSegStruct *MRGRefSeg;
 
 typedef struct MRGLinkSegStruct {
   SegStruct segStruct;      /* superclass fields must come first */
-  MRGRefSeg refSeg;         /* design.mps.poolmrg.mrgseg.link.refseg */
-  Sig sig;                  /* impl.h.misc.sig */
+  MRGRefSeg refSeg;         /* <design/poolmrg/#mrgseg.link.refseg> */
+  Sig sig;                  /* <code/misc.h#sig> */
 } MRGLinkSegStruct;
 
 typedef struct MRGRefSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
-  RingStruct mrgRing;       /* design.mps.poolmrg.mrgseg.ref.segring */
-  MRGLinkSeg linkSeg;       /* design.mps.poolmrg.mrgseg.ref.linkseg */
-  Sig sig;                  /* impl.h.misc.sig */
+  RingStruct mrgRing;       /* <design/poolmrg/#mrgseg.ref.segring> */
+  MRGLinkSeg linkSeg;       /* <design/poolmrg/#mrgseg.ref.linkseg> */
+  Sig sig;                  /* <code/misc.h#sig> */
 } MRGRefSegStruct;
 
 /* macros to get between child and parent seg structures */
@@ -176,7 +176,7 @@ static SegClass MRGRefSegClassGet(void);
  *
  * .link.nullref: During initialization of a link segment the refSeg
  * field will be NULL. This will be initialized when the reference
- * segment is initialized.  See design.mps.poolmrg.mrgseg.link.refseg.
+ * segment is initialized.  See <design/poolmrg/#mrgseg.link.refseg>.
  */
 static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
 {
@@ -270,7 +270,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   if (res != ResOK)
     return res;
 
-  /* design.mps.seg.field.rankset.start, .improve.rank */
+  /* <design/seg/#field.rankset.start>, .improve.rank */
   SegSetRankSet(seg, RankSetSingle(RankFINAL));
 
   RingInit(&refseg->mrgRing);
@@ -323,7 +323,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
 }
 
 
-/* design.mps.poolmrg.guardian.assoc */
+/* <design/poolmrg/#guardian.assoc> */
 
 
 #define refPartOfIndex(refseg, index) \
@@ -395,7 +395,7 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
   RingInit(&link->the.linkRing);
   link->state = MRGGuardianFREE;
   RingAppend(&mrg->freeRing, &link->the.linkRing);
-  /* design.mps.poolmrg.free.overwrite */
+  /* <design/poolmrg/#free.overwrite> */
   MRGRefPartSetRef(PoolArena(&mrg->poolStruct), refPart, 0);
 }
 
@@ -464,7 +464,7 @@ static MessageClassStruct MRGMessageClassStruct = {
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
-  MessageClassSig              /* design.mps.message.class.sig.double */
+  MessageClassSig              /* <design/message/#class.sig.double> */
 };
 
 
@@ -665,7 +665,7 @@ static void MRGFinish(Pool pool)
   /* Guardians are in the FINAL state and hence on the Arena Message */
   /* Queue.  We are guaranteed this because MRGFinish is only called */
   /* from ArenaDestroy, and the message queue has been emptied prior */
-  /* to the call.  See impl.c.arena.message.queue.empty */
+  /* to the call.  See <code/arena.c#message.queue.empty> */
 
   if (!RingIsSingle(&mrg->entryRing)) {
     RingRemove(&mrg->entryRing);
@@ -681,7 +681,7 @@ static void MRGFinish(Pool pool)
 
   mrg->sig = SigInvalid;
   RingFinish(&mrg->refRing);
-  /* design.mps.poolmrg.trans.no-finish */
+  /* <design/poolmrg/#trans.no-finish> */
 }
 
 
@@ -706,7 +706,7 @@ Res MRGRegister(Pool pool, Ref ref)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  /* design.mps.poolmrg.alloc.grow */
+  /* <design/poolmrg/#alloc.grow> */
   if (RingIsSingle(&mrg->freeRing)) {
     /* @@@@ Should the client be able to use the reservoir for this? */
     res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);  
@@ -718,12 +718,12 @@ Res MRGRegister(Pool pool, Ref ref)
 
   link = linkOfRing(freeNode);
   AVER(link->state == MRGGuardianFREE);
-  /* design.mps.poolmrg.alloc.pop */
+  /* <design/poolmrg/#alloc.pop> */
   RingRemove(freeNode);
   link->state = MRGGuardianPREFINAL;
   RingAppend(&mrg->entryRing, freeNode);
 
-  /* design.mps.poolmrg.guardian.ref.alloc */
+  /* <design/poolmrg/#guardian.ref.alloc> */
   refPart = MRGRefPartOfLink(link, arena);
   MRGRefPartSetRef(arena, refPart, ref);
 
@@ -861,3 +861,45 @@ PoolClass PoolClassMRG(void)
 {
   return MRGPoolClassGet();
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

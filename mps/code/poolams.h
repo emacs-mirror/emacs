@@ -1,7 +1,7 @@
-/* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
+/* poolams.h: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: Internal interface to AMS functionality.  */
@@ -49,7 +49,7 @@ typedef struct AMSStruct {
   AMSSegsDestroyFunction segsDestroy;
   AMSSegClassFunction segClass;/* fn to get the class for segments */
   Bool shareAllocTable;        /* the alloc table is also used as white table */
-  Sig sig;                     /* design.mps.pool.outer-structure.sig */
+  Sig sig;                     /* <design/pool/#outer-structure.sig> */
 } AMSStruct;
 
 
@@ -63,7 +63,7 @@ typedef struct AMSSegStruct {
   Bool allocTableInUse;  /* allocTable is used */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */
-  /* design.mps.poolams.colour.single */
+  /* <design/poolams/#colour.single> */
   Bool marksChanged;     /* seg has been marked since last scan */
   Bool ambiguousFixes;   /* seg has been ambiguously marked since last scan */
   Bool colourTablesInUse;/* the colour tables are in use */
@@ -83,7 +83,7 @@ typedef struct AMSSegStruct {
 
 
 /* macros for abstracting index/address computations */
-/* design.mps.poolams.addr-index.slow */
+/* <design/poolams/#addr-index.slow> */
 
 /* only use when size is a multiple of the grain size */
 #define AMSGrains(ams, size) ((size) >> (ams)->grainShift)
@@ -193,3 +193,45 @@ extern AMSPoolClass AMSDebugPoolClassGet(void);
 
 
 #endif /* poolams_h */
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

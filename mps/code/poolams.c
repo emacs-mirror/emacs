@@ -1,11 +1,11 @@
-/* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
+/* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (c) 2002 Global Graphics Software.
  *
  *
- * .design: See design.mps.poolams.
+ * .design: See <design/poolams/>.
  *
  *
  * TRANSGRESSSIONS
@@ -63,7 +63,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKL(amsseg->allocTable != NULL);
 
   if (SegWhite(seg) != TraceSetEMPTY) {
-    /* design.mps.poolams.colour.single */
+    /* <design/poolams/#colour.single> */
     CHECKL(TraceSetIsSingle(SegWhite(seg)));
     CHECKL(amsseg->colourTablesInUse);
   }
@@ -229,7 +229,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   amsseg->grains = size >> ams->grainShift;
   amsseg->free = amsseg->grains;
   amsseg->newAlloc = (Count)0;
-  amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
+  amsseg->marksChanged = FALSE; /* <design/poolams/#marked.unused> */
   amsseg->ambiguousFixes = FALSE;
 
   res = amsCreateTables(ams, &amsseg->allocTable,
@@ -238,7 +238,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   if (res != ResOK)
     goto failCreateTables;
 
-  /* start off using firstFree, see design.mps.poolams.no-bit */
+  /* start off using firstFree, see <design/poolams/#no-bit> */
   amsseg->allocTableInUse = FALSE;
   amsseg->firstFree = 0;
   amsseg->colourTablesInUse = FALSE;
@@ -299,15 +299,15 @@ static void AMSSegFinish(Seg seg)
  *
  * .empty: segment merging and splitting is limited to simple cases
  * where the high segment is empty.
- * See design.mps.poolams.split-merge.constrain.
+ * See <design/poolams/#split-merge.constrain>.
  *
  * .grain-align: segment merging and splitting is limited to cases
  * where the join is aligned with the grain alignment
- * See design.mps.poolams.split-merge.constrain.
+ * See <design/poolams/#split-merge.constrain>.
  *
  * .alloc-early: Allocations are performed before calling the
  * next method to simplify the fail cases. See
- * design.mps.seg.split-merge.fail
+ * <design/seg/#split-merge.fail>
  *
  * .table-names: The names of local variables holding the new
  * allocation and colour tables are chosen to have names which
@@ -474,10 +474,10 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amsseg->free -= hiGrains;
   amssegHi->free = hiGrains;
   amssegHi->newAlloc = (Count)0;
-  amssegHi->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
+  amssegHi->marksChanged = FALSE; /* <design/poolams/#marked.unused> */
   amssegHi->ambiguousFixes = FALSE;
 
-  /* start off using firstFree, see design.mps.poolams.no-bit */
+  /* start off using firstFree, see <design/poolams/#no-bit> */
   amssegHi->allocTableInUse = FALSE;
   amssegHi->firstFree = 0;
   /* use colour tables if the segment is white */
@@ -692,7 +692,8 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   }
 
   PoolGenUpdateZones(&ams->pgen, seg);
-  /* see design.mps.seg.field.rankset */
+
+  /* see <design/seg/#field.rankset> */
   if (rankSet != RankSetEMPTY) {
     SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
   } else {
@@ -730,7 +731,7 @@ static void AMSSegsDestroy(AMS ams)
 /* AMSInit -- the pool class initialization method
  *
  *  Takes one additional argument: the format of the objects
- *  allocated in the pool.  See design.mps.poolams.init.
+ *  allocated in the pool.  See <design/poolams/#init>.
  */
 static Res AMSInit(Pool pool, va_list args)
 {
@@ -874,7 +875,7 @@ static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
 /* AMSBufferFill -- the pool class buffer fill method
  *
  * Iterates over the segments looking for space.  See
- * design.mps.poolams.fill.
+ * <design/poolams/#fill>.
  */
 static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size,
@@ -902,12 +903,12 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BoolCheck(withReservoirPermit));
 
   /* Check that we're not in the grey mutator phase (see */
-  /* design.mps.poolams.fill.colour). */
+  /* <design/poolams/#fill.colour>). */
   AVER(PoolArena(pool)->busyTraces == PoolArena(pool)->flippedTraces);
 
   rankSet = BufferRankSet(buffer);
   ring = (ams->allocRing)(ams, rankSet, size);
-  /* design.mps.poolams.fill.slow */
+  /* <design/poolams/#fill.slow> */
   RING_FOR(node, ring, nextNode) {
     AMSSeg amsseg = RING_ELT(AMSSeg, segRing, node);
     AVERT_CRITICAL(AMSSeg, amsseg);
@@ -949,7 +950,7 @@ found:
 /* AMSBufferEmpty -- the pool class buffer empty method
  *
  * Frees the unused part of the buffer.  The colour of the area doesn't
- * need to be changed.  See design.mps.poolams.empty.
+ * need to be changed.  See <design/poolams/#empty>.
  */
 static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
@@ -1048,7 +1049,7 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg)
   amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
 
-  /* design.mps.poolams.colour.single */
+  /* <design/poolams/#colour.single> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
   AVER(!amsseg->colourTablesInUse);
 
@@ -1076,7 +1077,7 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg)
   }
 
   buffer = SegBuffer(seg);
-  if (buffer != NULL) { /* design.mps.poolams.condemn.buffer */
+  if (buffer != NULL) { /* <design/poolams/#condemn.buffer> */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMS_ADDR_INDEX(seg, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(seg, BufferLimit(buffer));
@@ -1096,7 +1097,7 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg)
   /* The unused part of the buffer is new allocation by definition. */
   ams->pgen.newSize -= AMSGrainsSize(ams, amsseg->newAlloc - uncondemned);
   amsseg->newAlloc = uncondemned;
-  amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
+  amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
   amsseg->ambiguousFixes = FALSE;
 
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
@@ -1256,7 +1257,7 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
 /* AMSScan -- the pool class segment scanning method
  *
- * See design.mps.poolams.scan
+ * See <design/poolams/#scan>
  */
 Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
@@ -1279,7 +1280,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVERT(AMSSeg, amsseg);
 
   /* Check that we're not in the grey mutator phase (see */
-  /* design.mps.poolams.not-req.grey). */
+  /* <design/poolams/#not-req.grey>). */
   AVER(TraceSetSub(ss->traces, arena->flippedTraces));
 
   closureStruct.scanAllObjects =
@@ -1300,13 +1301,13 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     format = pool->format;
     AVERT(Format, format);
     alignment = PoolAlignment(AMS2Pool(ams));
-    do { /* design.mps.poolams.scan.iter */
-      amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.scan */
-      /* design.mps.poolams.ambiguous.middle */
+    do { /* <design/poolams/#scan.iter> */
+      amsseg->marksChanged = FALSE; /* <design/poolams/#marked.scan> */
+      /* <design/poolams/#ambiguous.middle> */
       if (amsseg->ambiguousFixes) {
         res = amsIterate(seg, amsScanObject, &closureStruct);
         if (res != ResOK) {
-          /* design.mps.poolams.marked.scan.fail */
+          /* <design/poolams/#marked.scan.fail> */
           amsseg->marksChanged = TRUE;
           *totalReturn = FALSE;
           return res;
@@ -1331,7 +1332,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
           j = AMS_ADDR_INDEX(seg, next);
           res = (*format->scan)(ss, clientP, clientNext);
           if (res != ResOK) {
-            /* design.mps.poolams.marked.scan.fail */
+            /* <design/poolams/#marked.scan.fail> */
             amsseg->marksChanged = TRUE;
             *totalReturn = FALSE;
             return res;
@@ -1378,7 +1379,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(amsseg->colourTablesInUse);
 
   /* @@@@ We should check that we're not in the grey mutator phase */
-  /* (see design.mps.poolams.not-req.grey), but there's no way of */
+  /* (see <design/poolams/#not-req.grey>), but there's no way of */
   /* doing that here (this can be called from RootScan, during flip). */
 
   clientRef = *refIO;
@@ -1421,7 +1422,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       } else {
         ++ss->preservedInPlaceCount; /* Size updated on reclaim */
         if (SegRankSet(seg) == RankSetEMPTY && ss->rank != RankAMBIG) {
-          /* design.mps.poolams.fix.to-black */
+          /* <design/poolams/#fix.to-black> */
           Addr clientNext, next;
 
           ShieldExpose(PoolArena(pool), seg);
@@ -1434,7 +1435,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         } else { /* turn it grey */
           AMS_WHITE_GREYEN(seg, i);
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-          /* mark it for scanning - design.mps.poolams.marked.fix */
+          /* mark it for scanning - <design/poolams/#marked.fix> */
           amsseg->marksChanged = TRUE;
         }
       }
@@ -1605,7 +1606,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
 /* AMSPoolClass -- the class definition */
 
-/* impl.h.poolams contains the type definition.  Hence the use */
+/* <code/poolams.h> contains the type definition.  Hence the use */
 /* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
 DEFINE_CLASS(AMSPoolClass, this)
@@ -1677,3 +1678,45 @@ Bool AMSCheck(AMS ams)
 
   return TRUE;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
