@@ -1,10 +1,11 @@
 ;;; hideshow.el --- minor mode cmds to selectively display blocks of code
 
-;; Copyright (C) 1994,1995,1996 Free Software Foundation
+;; Copyright (C) 1994,1995,1996,1997 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
-;; Version: 3.4
-;; Keywords: C C++ lisp tools editing
+;; Maintainer: Dan Nicolaescu <done@ece.arizona.edu>
+;; Version: 4.0
+;; Keywords: C C++ java lisp tools editing comments blocks hiding
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -46,14 +47,7 @@
 ;; Suggested usage:
 
 ;; (load-library "hideshow")
-;; (defun my-hs-setup () "enables hideshow and binds some commands"
-;;   (hs-minor-mode 1)
-;;   (define-key hs-minor-mode-map "\C-ch" 'hs-hide-block)
-;;   (define-key hs-minor-mode-map "\C-cs" 'hs-show-block)
-;;   (define-key hs-minro-mode-map "\C-cH" 'hs-hide-all)
-;;   (define-key hs-minro-mode-map "\C-cS" 'hs-show-all)
-;;   (define-key hs-minor-mode-map "\C-cR" 'hs-show-region))
-;; (add-hook 'X-mode-hook 'my-hs-setup t)   ; other modes similarly
+;; (add-hook 'X-mode-hook 'hs-minor-mode)   ; other modes similarly
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  See the doc for the variable
 ;; `hs-special-modes-alist' if you'd like to use hideshow w/ other modes.
@@ -88,10 +82,13 @@ This error is usually signaled by `hs-show-block'.  One of four values:
 - `signal' -- Pass the error through, stopping execution.
 - `ignore' -- Ignore the error, continuing execution.
 
-Values other than these four will be interpreted as `signal'.")
+Values other than these four will be interpreted as `signal'.") 
 
-(defvar hs-special-modes-alist '((c-mode "{" "}")
-				 (c++-mode "{" "}"))
+;;;#autoload
+(defvar hs-special-modes-alist 
+  '((c-mode "{" "}")
+    (c++-mode "{" "}")
+    (java-mode "\\(\\(public\\|private\\|protected\\|static\\|\\s-\\)+\\([a-zA-Z0-9_:]+[ \t]+\\)\\([a-zA-Z0-9_:]+\\)[ \t]*([^)]*)[ \t\n]*\\([ \t\n]throws[ \t]+[^{]+\\)*[ \t]*\\){" "}" java-hs-forward-sexp))
   "*Alist of the form (MODE START-RE END-RE FORWARD-SEXP-FUNC).
 If present, hideshow will use these values for the start and end regexps,
 respectively.  Since Algol-ish languages do not have single-character
@@ -109,6 +106,11 @@ For example:
 \t	hs-special-modes-alist :test 'equal)
 
 Note that the regexps should not contain leading or trailing whitespace.")
+
+(defvar hs-minor-mode-hook 'hs-hide-initial-comment-block
+  "Hook called when `hs-minor-mode' is installed.
+A good value for this would be `hs-hide-initial-comment-block' to
+hide all the comments at the beginning of the file.")
 
 (defvar hs-hide-hook nil
   "*Hooks called at the end of `hs-hide-all' and `hs-hide-block'.")
@@ -135,64 +137,98 @@ Use the command `hs-minor-mode' to toggle this variable.")
   "Menu bar for hideshow minor mode (Xemacs only).")
 
 (defvar hs-c-start-regexp nil
-  "Regexp for beginning of comments.  Buffer-local.
-Differs from mode-specific comment regexps in that surrounding
-whitespace is stripped.")
+  "Regexp for beginning of comments.  
+Differs from mode-specific comment regexps in that 
+surrounding whitespace is stripped.")
 
 (defvar hs-c-end-regexp nil
-  "Regexp for end of comments.  Buffer-local.
+  "Regexp for end of comments.
 See `hs-c-start-regexp'.")
 
 (defvar hs-block-start-regexp nil
-  "Regexp for beginning of block.  Buffer-local.")
+  "Regexp for beginning of block.")
 
 (defvar hs-block-end-regexp nil
-  "Regexp for end of block.  Buffer-local.")
+  "Regexp for end of block.")
 
 (defvar hs-forward-sexp-func 'forward-sexp
-  "Function used to do a forward-sexp.  Should change for Algol-ish modes.
-For single-character block delimiters -- ie, the syntax table regexp for the
-character is either `(' or `)' -- `hs-forward-sexp-func' would just be
-`forward-sexp'.  For other modes such as simula, a more specialized function
+  "Function used to do a forward-sexp.
+Should change for Algol-ish modes.  For single-character block
+delimiters -- ie, the syntax table regexp for the character is
+either `(' or `)' -- `hs-forward-sexp-func' would just be `forward-sexp'.
+For other modes such as simula, a more specialized function
 is necessary.")
 
-(defvar hs-emacs-type 'fsf
-  "Used to support both Emacs and XEmacs.")
+(defvar hs-hide-comments-when-hiding-all t 
+  "Hide the comments too when you do an `hs-hide-all'." )
 
-(eval-when-compile
-  (if (string-match "xemacs\\|lucid" emacs-version)
-      (progn
-	(defvar current-menubar nil "")
-	(defun set-buffer-menubar (arg1))
-	(defun add-menu (arg1 arg2 arg3)))))
+;(defvar hs-emacs-type 'fsf
+;  "Used to support both Emacs and Xemacs.")
 
+;(eval-when-compile
+;  (if (string-match "xemacs\\|lucid" emacs-version)
+;      (progn
+;	(defvar current-menubar nil "")
+;	(defun set-buffer-menubar (arg1))
+;	(defun add-menu (arg1 arg2 arg3)))))
 
 ;;;----------------------------------------------------------------------------
 ;;; support funcs
 
-;; snarfed from outline.el, but added buffer-read-only
+;; snarfed from noutline.el;
 (defun hs-flag-region (from to flag)
   "Hides or shows lines from FROM to TO, according to FLAG.
-If FLAG is `?\\n' (the newline character) then show the text;
-if FLAG is `?\\^M' \(control-M) then hide the text."
-  (let ((modp (buffer-modified-p))
-	buffer-read-only)		; nothing is immune
-    (unwind-protect (progn
-		      (subst-char-in-region
-		       from to
-		       (if (= flag ?\n) ?\C-m ?\n)
-		       flag t))
-      (set-buffer-modified-p modp))))
+If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
+    (save-excursion
+      (goto-char from)
+      (end-of-line)
+      (hs-discard-overlays (point) to 'invisible 'hs)
+      (if flag
+	  (let ((overlay (make-overlay (point) to)))
+	    ;; Make overlay hidden and intangible.
+	    (overlay-put overlay 'invisible 'hs)
+	    (overlay-put overlay 'hs t)
+	    (overlay-put overlay 'intangible t)))))
 
-(defun hs-hide-block-at-point (&optional end)
-  "Hide block iff on block beginning, optional END means reposition at end." 
-  (if (looking-at hs-block-start-regexp)
-      (let* ((p (point))
-	     (q (progn (funcall hs-forward-sexp-func 1) (point))))
-	(forward-line -1) (end-of-line)
-	(if (and (< p (point)) (> (count-lines p q) 1))
-	    (hs-flag-region p (point) ?\C-m))
-	(goto-char (if end q p)))))
+;; Remove from the region BEG ... END all overlays
+;; with a PROP property equal to VALUE.
+;; Overlays with a PROP property different from VALUE are not touched.
+(defun hs-discard-overlays (beg end prop value)
+  (if (< end beg)
+      (setq beg (prog1 end (setq end beg))))
+  (save-excursion
+    (goto-char beg)
+    (while (< (point) end)
+      (let ((overlays (overlays-at (point))))
+	(while overlays
+	  (let ((o (car overlays)))
+	    (if (eq (overlay-get o prop) value)
+		(if (or 
+		     (and (> (overlay-end o) beg) (< (overlay-end o) end))
+		     (and (< (overlay-start o) beg) (< (overlay-start o) end)))
+		    (delete-overlay o))))
+	  (setq overlays (cdr overlays))))
+      (goto-char (next-overlay-change (point))))))
+
+(defun hs-hide-block-at-point (&optional end comment c-reg)
+  "Hide block iff on block beginning, optional END means reposition at end.
+COMMENT true means that it should hide a comment block, C-REG is a list
+of the forme (BEGIN . END) and specifies the limits of the comment." 
+  (if comment
+      (let ((reg (if c-reg  c-reg (hs-inside-comment-p))))
+	(goto-char (nth 1 reg))
+	(forward-line -1)
+	(end-of-line)
+	(hs-flag-region (car reg)  (point) t)
+	(goto-char (if end (nth 1 reg) (car reg)))
+	)
+      (if (looking-at hs-block-start-regexp)
+	  (let* ((p (point))
+		 (q (progn (funcall hs-forward-sexp-func 1) (point))))
+	    (forward-line -1) (end-of-line)
+	    (if (and (< p (point)) (> (count-lines p q) 1))
+	    (hs-flag-region p (point) t))
+	(goto-char (if end q p))))))
 
 (defun hs-show-block-at-point (&optional end)
   "Show block iff on block beginning.  Optional END means reposition at end."
@@ -222,40 +258,68 @@ if FLAG is `?\\^M' \(control-M) then hide the text."
 		  (t
 		   ;; pass error through -- this applies to `signal', too
 		   (signal (car error) (cdr error))))))))
-	(hs-flag-region p q ?\n)
+	(hs-flag-region p q nil)
 	(goto-char (if end (1+ (point)) p)))))
 
 (defun hs-safety-is-job-n ()
-  "Warn if `selective-display' or `selective-display-ellipses' is nil."
-  (let ((str ""))
-    (or selective-display
-	(setq str "selective-display nil "))
-    (or selective-display-ellipses
-	(setq str (concat str "selective-display-ellipses nil")))
-    (if (= (length str) 0)
+  "Warn `buffer-invisibility-spec' does not contain hs."
+    (if (or buffer-invisibility-spec (assq hs buffer-invisibility-spec) )
 	nil
-      (message "warning: %s" str)
-      (sit-for 2))))
+      (message "Warning: `buffer-invisibility-spec' does not contain hs!!")
+      (sit-for 2)))
+
+(defun hs-hide-initial-comment-block ()
+  (interactive)
+  "Hides the first block of comments in a file.
+The best usage is in `hs-minor-mode-hook', it hides all the comments at the
+file beginning, so if you have huge RCS logs you won't see them!"
+      (let ((p (point))
+	    c-reg)
+	(goto-char (point-min))
+	(skip-chars-forward " \t\n")
+	(setq c-reg (hs-inside-comment-p))
+	(if (and c-reg (> (count-lines (car c-reg) (nth 1 c-reg)) 2))
+	    (hs-hide-block)
+	  (goto-char p))))
+
+(defun hs-inside-single-line-comment-p ()
+  "Look to see if we are on a single line comment."
+  (save-excursion
+    (beginning-of-line)
+    (looking-at (concat "^[ \t]*" hs-c-start-regexp))))
 
 (defun hs-inside-comment-p ()
   "Returns non-nil if point is inside a comment, otherwise nil.
-Actually, for multi-line-able comments, returns a list containing
-the buffer position of the start and the end of the comment."
-  ;; is it single-line-only or multi-line-able?
+Actually, returns a list containing the buffer position of the start 
+and the end of the comment."
   (save-excursion
     (let ((p (point))
-	  q)
+	  q
+	  p-aux)
       (if (string= comment-end "")	; single line
-	  (let (found)
-	    (beginning-of-line)
-	    (setq found (re-search-forward hs-c-start-regexp p t))
-	    (and found (not (search-forward "\"" p t))))
+	    (if (not (hs-inside-single-line-comment-p))
+		nil
+	      ;;find-beginning-of-the-chained-single-line-comments
+	      (beginning-of-line)
+	      (forward-comment (- (buffer-size)))
+	      (skip-chars-forward " \t\n")
+	      (beginning-of-line)
+	      (setq q (point))
+	      (goto-char p)
+	      ;;find-end-of-the-chained-single-line-comments
+	      (forward-comment (buffer-size))
+	      (skip-chars-backward " \t\n")
+	      (list q   (point)))
 	(re-search-forward hs-c-end-regexp (point-max) 1)
+	(forward-comment (buffer-size))
+	(skip-chars-backward " \t\n")
+	(end-of-line)
 	(setq q (point))
-	(forward-comment -1)
+	(forward-comment (- 0 (buffer-size)))
 	(re-search-forward hs-c-start-regexp (point-max) 1)
-	(if (< (- (point) (length comment-start)) p)
-	    (list (match-beginning 0) q)))))) 
+	(setq p-aux (- (point) (length comment-start)))
+	(if (and (>= p-aux 0) (< p-aux p))
+	    (list (match-beginning 0) q))))))
 
 (defun hs-grok-mode-type ()
   "Setup variables for new buffers where applicable."
@@ -277,7 +341,8 @@ the buffer position of the start and the end of the comment."
 		hs-forward-sexp-func (or (nth 3 lookup) 'forward-sexp))))))
 
 (defun hs-find-block-beginning ()
-  "Repositions point at block-start.  Return point, or nil if top-level." 
+  "Repositions point at block-start.  
+Return point, or nil if top-level." 
   (let (done
 	(here (point))
 	(both-regexps (concat "\\(" hs-block-start-regexp "\\)\\|\\("
@@ -295,6 +360,27 @@ the buffer position of the start and the end of the comment."
   "Executes optional BODY iff variable `hs-minor-mode' is non-nil."
   (list 'if 'hs-minor-mode (cons 'progn body)))
 
+(defun hs-already-hidden-p ()
+  "Return non-nil if point is in an already-hidden block otherwise nil."
+  (save-excursion
+    (end-of-line)
+    (let ((overlays (overlays-at (point)))
+	  (found nil))
+      (while (and (not found) (overlayp (car overlays)))
+	   (setq found (overlay-get (car overlays) 'hs)
+		 overlays (cdr overlays)))
+      found)))
+
+(defun java-hs-forward-sexp (arg)
+  "Function used by `hs-minor-mode' for `forward-sexp' in Java mode."
+  (if (< arg 0)
+      (backward-sexp 1)
+    (if (looking-at hs-block-start-regexp)
+	(progn
+	  (goto-char (match-end 0))
+	  (forward-char -1)
+	  (forward-sexp 1))
+      (forward-sexp 1))))
 
 ;;;----------------------------------------------------------------------------
 ;;; commands
@@ -303,24 +389,48 @@ the buffer position of the start and the end of the comment."
 (defun hs-hide-all ()
   "Hides all top-level blocks, displaying only first and last lines.
 It moves point to the beginning of the line, and it runs the normal hook
-`hs-hide-hook'.  See documentation for `run-hooks'."
+`hs-hide-hook'.  See documentation for `run-hooks'. 
+If `hs-hide-comments-when-hiding-all' is t also hides the comments."
   (interactive)
   (hs-life-goes-on
-   (message "hiding all blocks ...")
+   (message "Hiding all blocks ...")
    (save-excursion
-     (hs-flag-region (point-min) (point-max) ?\n) ; eliminate weirdness
+     (hs-flag-region (point-min) (point-max) nil) ; eliminate weirdness
      (goto-char (point-min))
-     (let ((count 0)
-	   (top-level-re (concat "^" hs-block-start-regexp)))
-       (while (progn
-		(forward-comment (buffer-size))
-		(re-search-forward top-level-re (point-max) t))
-	 (goto-char (match-beginning 0))
-	 (hs-hide-block-at-point t)
-	 (message "hiding ... %d" (setq count (1+ count)))))
-     (hs-safety-is-job-n))
+     (if hs-hide-comments-when-hiding-all 
+	 (let ((count 0)
+	       (block-and-comment-re  ;; this should match 
+		(concat "\\(^"        ;; the block beginning and comment start
+			hs-block-start-regexp  
+			"\\)\\|\\(" hs-c-start-regexp "\\)")))
+	   (while (re-search-forward block-and-comment-re (point-max) t)
+	     (if (match-beginning 1) ;; we have found a block beginning
+		 (progn
+		   (goto-char (match-beginning 1))
+		   (hs-hide-block-at-point t)
+		   (message "Hiding ... %d" (setq count (1+ count))))
+	       ;;found a comment
+	       (setq c-reg (hs-inside-comment-p))
+	       (if c-reg 
+		   (progn 
+		     (goto-char (nth 1 c-reg))
+		     (if (> (count-lines (car c-reg) (nth 1 c-reg)) 2)
+			 (progn
+			   (hs-hide-block-at-point t t c-reg)
+			   (message "Hiding ... %d" 
+				    (setq count (1+ count))))))))))
+       (let ((count 0)
+	     (top-level-re (concat "^" hs-block-start-regexp)))
+	 (while 
+	     (progn
+	       (forward-comment (buffer-size))
+	       (re-search-forward top-level-re (point-max) t))
+	   (goto-char (match-beginning 0))
+	   (hs-hide-block-at-point t)
+	   (message "Hiding ... %d" (setq count (1+ count))))))
+   (hs-safety-is-job-n))
    (beginning-of-line)
-   (message "hiding all blocks ... done")
+   (message "Hiding all blocks ... done")
    (run-hooks 'hs-hide-hook)))
 
 (defun hs-show-all ()
@@ -329,32 +439,29 @@ This does not change point; it runs the normal hook `hs-show-hook'.
 See documentation for `run-hooks'."
   (interactive)
   (hs-life-goes-on
-   (message "showing all blocks ...")
-   (hs-flag-region (point-min) (point-max) ?\n)
-   (message "showing all blocks ... done")
+   (message "Showing all blocks ...")
+   (hs-flag-region (point-min) (point-max) nil)
+   (message "Showing all blocks ... done")
    (run-hooks 'hs-show-hook)))
 
-;;;###autoload
 (defun hs-hide-block (&optional end)
-  "Selects a block and hides it.  With prefix arg, reposition at end.
-Block is defined as a sexp for lispish modes, mode-specific otherwise.
-Comments are blocks, too.  Upon completion, point is at repositioned and
-the normal hook `hs-hide-hook' is run.  See documentation for `run-hooks'."
+  "Selects a block and hides it.  
+With prefix arg, reposition at end.  Block is defined as a sexp for
+lispish modes, mode-specific otherwise.  Comments are blocks, too.  
+Upon completion, point is at repositioned and the normal hook 
+`hs-hide-hook' is run.  See documentation for `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
    (let ((c-reg (hs-inside-comment-p)))
      (if c-reg
-	 (cond ((string= comment-end "")
-		(message "can't hide a single-line comment"))
-	       ((< (count-lines (car c-reg) (nth 1 c-reg)) 2)
-		(message "not enough comment lines to hide"))
-	       (t
-		(goto-char (nth 1 c-reg))
-		(forward-line -1)
-		(hs-flag-region (car c-reg) (point) ?\C-m)
-		(goto-char (if end (nth 1 c-reg) (car c-reg)))
-		(hs-safety-is-job-n)
-		(run-hooks 'hs-hide-hook)))
+	 (cond 
+	  ((<= (count-lines (car c-reg) (nth 1 c-reg)) 2)
+	   (message "Not enough comment lines to hide!"))
+	  (t
+	   (goto-char (nth 1 c-reg))
+	   (hs-hide-block-at-point end t c-reg)
+	   (hs-safety-is-job-n)
+	   (run-hooks 'hs-hide-hook)))
        (if (or (looking-at hs-block-start-regexp)
 	       (hs-find-block-beginning))
 	   (progn
@@ -363,18 +470,18 @@ the normal hook `hs-hide-hook' is run.  See documentation for `run-hooks'."
 	     (run-hooks 'hs-hide-hook)))))))
 
 (defun hs-show-block (&optional end)
-  "Selects a block and shows it.  With prefix arg, reposition at end.
-Upon completion, point is repositioned and the normal hook
-`hs-show-hook' is run.  See documentation for `hs-hide-block' and `run-hooks'."
+  "Selects a block and shows it.
+With prefix arg, reposition at end.  Upon completion, point is 
+repositioned and the normal hook `hs-show-hook' is run.  
+See documentation for `hs-hide-block' and `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
    (let ((c-reg (hs-inside-comment-p)))
      (if c-reg
-	 (cond ((string= comment-end "")
-		(message "already looking at the entire comment"))
-	       (t
-		(hs-flag-region (car c-reg) (nth 1 c-reg) ?\n)
-		(goto-char (if end (nth 1 c-reg) (car c-reg)))))
+	 (progn
+	   (hs-flag-region (car c-reg) (nth 1 c-reg) nil)
+	   (hs-safety-is-job-n)
+	   (goto-char (if end (nth 1 c-reg) (car c-reg))))
        (if (or (looking-at hs-block-start-regexp)
 	       (hs-find-block-beginning))
 	   (progn
@@ -384,14 +491,24 @@ Upon completion, point is repositioned and the normal hook
 
 (defun hs-show-region (beg end)
   "Shows all lines from BEG to END, without doing any block analysis.
-Note:` hs-show-region' is intended for use when when `hs-show-block' signals
+Note:`hs-show-region' is intended for use when `hs-show-block' signals
 `unbalanced parentheses' and so is an emergency measure only.  You may
 become very confused if you use this command indiscriminately."
   (interactive "r")
   (hs-life-goes-on
-   (hs-flag-region beg end ?\n)
+   (hs-flag-region beg end nil)
    (hs-safety-is-job-n)
    (run-hooks 'hs-show-hook)))
+
+;;;###autoload
+(defun hs-mouse-toggle-hiding (e)
+  "Toggles hiding/showing of a block. 
+Should be bound to a mouse key."
+  (interactive "@e")
+  (mouse-set-point e)
+  (if (hs-already-hidden-p)
+      (hs-show-block)
+    (hs-hide-block)))
 
 ;;;###autoload
 (defun hs-minor-mode (&optional arg)
@@ -400,7 +517,8 @@ With ARG, turn hideshow minor mode on if ARG is positive, off otherwise.
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.  The variables
 `selective-display' and `selective-display-ellipses' are set to t.
-Last, the normal hook `hs-minor-mode-hook' is run; see the doc for `run-hooks'.
+Last, the normal hook `hs-minor-mode-hook' is run; see the doc 
+for `run-hooks'.
 
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands."
@@ -411,54 +529,56 @@ variables to default values and disables the hideshow commands."
           (> (prefix-numeric-value arg) 0)))
   (if hs-minor-mode
       (progn
- 	(if (eq hs-emacs-type 'lucid)
-	    (progn
-	      (set-buffer-menubar (copy-sequence current-menubar))
-	      (add-menu nil (car hs-menu-bar) (cdr hs-menu-bar))))
-	(setq selective-display t
-	      selective-display-ellipses t)
+; 	(if (eq hs-emacs-type 'lucid)
+;	    (progn
+;	      (set-buffer-menubar (copy-sequence current-menubar))
+;	      (add-menu nil (car hs-menu-bar) (cdr hs-menu-bar))))
+	(make-variable-buffer-local 'line-move-ignore-invisible)
+	(setq  line-move-ignore-invisible t)
+	(add-to-invisibility-spec '(hs . t)) ;;hs invisible
 	(hs-grok-mode-type)
 	(run-hooks 'hs-minor-mode-hook))
-    (if (eq hs-emacs-type 'lucid)
-	(set-buffer-menubar (delete hs-menu-bar current-menubar)))
-    (kill-local-variable 'selective-display)
-    (kill-local-variable 'selective-display-ellipses)))
+;    (if (eq hs-emacs-type 'lucid)
+;	(set-buffer-menubar (delete hs-menu-bar current-menubar)))
+    (remove-from-invisibility-spec '(hs . t))))
 
 
 ;;;----------------------------------------------------------------------------
 ;;; load-time setup routines
 
 ;; which emacs being used?
-(setq hs-emacs-type
-      (if (string-match "xemacs\\|lucid" emacs-version)
-	  'lucid
-	'fsf))
+;(setq hs-emacs-type
+;      (if (string-match "xemacs\\|lucid" emacs-version)
+;	  'lucid
+;	'fsf))
 
 ;; keymaps and menus
-(if (not hs-minor-mode-map)
-    (setq hs-minor-mode-map (make-sparse-keymap))
-  (cond
-   ((eq hs-emacs-type 'lucid)
-    (setq hs-menu-bar			; build top down for lucid
-	  '("hideshow"
-	    ["Hide Block" hs-hide-block t]
-	    ["Show Block" hs-show-block t]
-	    ["Hide All" hs-hide-all t]
-	    ["Show All" hs-show-all t]
-	    ["Show Region" hs-show-region t])))
-   (t					; build bottom up for others
-    (define-key hs-minor-mode-map [menu-bar hideshow]
-      (cons "hideshow" (make-sparse-keymap "hideshow")))
-    (define-key hs-minor-mode-map [menu-bar hideshow hs-show-region]
-      '("Show Region" . hs-show-region))
-    (define-key hs-minor-mode-map [menu-bar hideshow hs-show-all]
-      '("Show All" . hs-show-all))
-    (define-key hs-minor-mode-map [menu-bar hideshow hs-hide-all]
-      '("Hide All" . hs-hide-all))
-    (define-key hs-minor-mode-map [menu-bar hideshow hs-show-block]
-      '("Show Block" . hs-show-block))
-    (define-key hs-minor-mode-map [menu-bar hideshow hs-hide-block]
-      '("Hide Block" . hs-hide-block)))))
+(if hs-minor-mode-map
+    nil
+  (setq hs-minor-mode-map (make-sparse-keymap))
+  ;; I beleive there is nothing bound on this keys
+  (define-key hs-minor-mode-map "\C-ch" 'hs-hide-block)
+  (define-key hs-minor-mode-map "\C-cs" 'hs-show-block)
+  (define-key hs-minor-mode-map "\C-cH" 'hs-hide-all)
+  (define-key hs-minor-mode-map "\C-cS" 'hs-show-all)
+  (define-key hs-minor-mode-map "\C-cR" 'hs-show-region)
+  
+  (define-key hs-minor-mode-map [S-mouse-2] 'hs-mouse-toggle-hiding)
+
+  ;; should we use easymenu here?
+  (define-key hs-minor-mode-map [menu-bar Hide/Show]
+    (cons "Hide/Show" (make-sparse-keymap "Hide/Show")))
+  (define-key hs-minor-mode-map [menu-bar Hide/Show  hs-show-region]
+    '("Show Region" . hs-show-region))
+  (define-key hs-minor-mode-map [menu-bar Hide/Show hs-show-all]
+    '("Show All" . hs-show-all))
+  (define-key hs-minor-mode-map [menu-bar Hide/Show hs-hide-all]
+    '("Hide All" . hs-hide-all))
+  (define-key hs-minor-mode-map [menu-bar Hide/Show hs-show-block]
+    '("Show Block" . hs-show-block))
+  (define-key hs-minor-mode-map [menu-bar Hide/Show hs-hide-block]
+    '("Hide Block" . hs-hide-block))
+  )
 
 ;; some housekeeping
 (or (assq 'hs-minor-mode minor-mode-map-alist)
