@@ -33,26 +33,26 @@
 ;; INTRODUCTION:
 
 ;; Generic-mode is a meta-mode which can be used to define small modes
-;; which provide basic comment and font-lock support. These modes are
+;; which provide basic comment and font-lock support.  These modes are
 ;; intended for the many configuration files and such which are too small
 ;; for a "real" mode, but still have a regular syntax, comment characters
 ;; and the like.
 ;;
 ;; Each generic mode can define the following:
 ;;
-;; * List of comment-characters. The entries in this list should be
+;; * List of comment-characters.  The entries in this list should be
 ;;   either a character, a one or two character string or a cons pair.
 ;;   If the entry is a character or a one-character string
 ;;   LIMITATIONS:  Emacs does not support comment strings of more than
 ;;   two characters in length.
 ;;
-;; * List of keywords to font-lock. Each keyword should be a string.
+;; * List of keywords to font-lock.  Each keyword should be a string.
 ;;   If you have additional keywords which should be highlighted in a face
 ;;   different from 'font-lock-keyword-face', you can use the convenience
 ;;   function 'generic-make-keywords-list' (which see), and add the
 ;;   result to the following list:
 ;; 
-;; * Additional expressions to font-lock. This should be a list of
+;; * Additional expressions to font-lock.  This should be a list of
 ;;   expressions, each of which should be of the same form
 ;;   as those in 'font-lock-defaults-alist'.
 ;;   
@@ -88,7 +88,7 @@
 ;;			  (list 'foo-setup-function))
 ;;
 ;; defines a new generic-mode 'foo-generic-mode', which has '%' as a
-;; comment character, and "keyword" as a keyword. When files which end in
+;; comment character, and "keyword" as a keyword.  When files which end in
 ;; '.FOO' are loaded, Emacs will go into foo-generic-mode and call
 ;; foo-setup-function.  You can also use the function 'foo-generic-mode'
 ;; (which is interactive) to put a buffer into foo-generic-mode.
@@ -97,57 +97,21 @@
 ;;
 ;; Generic-mode provides a hook which automatically puts a
 ;; file into default-generic-mode if the first few lines of a file in
-;; fundamental mode start with a hash comment character. To disable
+;; fundamental mode start with a hash comment character.  To disable
 ;; this functionality, set the variable 'generic-use-find-file-hook'
-;; to nil BEFORE loading generic-mode. See the variables
+;; to nil BEFORE loading generic-mode.  See the variables
 ;; 'generic-lines-to-scan' and 'generic-find-file-regexp' for customization
 ;; options.
 ;; 
 ;; GOTCHAS:
 ;;
-;; Be careful that your font-lock definitions are correct. Getting them
+;; Be careful that your font-lock definitions are correct.  Getting them
 ;; wrong can cause emacs to continually attempt to fontify! This problem
 ;; is not specific to generic-mode.
 ;; 
 
 ;; Credit for suggestions, brainstorming, patches and bug-fixes:
 ;;   ACorreir@pervasive-sw.com (Alfred Correira)
-
-;;; Change log:
-;; $Log: generic.el,v $
-;; Revision 1.2  1997/12/12 16:53:45  fx
-;; Use imenu-case-fold-search.
-;;
-;; Revision 1.1  1997/06/15 07:01:26  rms
-;; Initial revision
-;;
-;; Revision 1.6  1996/11/01 17:27:47  peter
-;; Changed the function generic-function-name to return a string instead
-;; of a symbol. Generic-mode now uses this for the mode's name
-;;
-;; Revision 1.5  1996/11/01 16:45:20  peter
-;; Added GPL and LCD information.
-;; Updated documentation
-;; Added generic-find-file-regexp variable
-;; Added generic-make-keywords-list function
-;;
-;; Revision 1.4  1996/10/19 12:16:59  peter
-;; Small bug fixes: fontlock -> font-lock
-;; New entries are added to the end of auto-mode-alist
-;; Generic-font-lock-defaults are set to nil, not (list nil)
-;; Comment-regexp in generic-mode-find-file-hook changed to allow optional
-;; blank lines
-;;
-;; Revision 1.3  1996/10/17 08:24:25  peter
-;; Added generic-mode-find-file-hook and associated variables
-;;
-;; Revision 1.2  1996/10/17 01:00:45  peter
-;; Moved from a data-centered approach (generic-mode-alist) to
-;; a function-based one (define-generic-mode)
-;;
-;; Revision 1.1  1996/10/10 11:37:36  peter
-;; Initial revision
-;;
 
 ;;; Code:
 
@@ -266,12 +230,11 @@ in the list should have the same form as an entry in `font-lock-defaults-alist'
 
 AUTO-MODE-LIST is a list of regular expressions to add to auto-mode-alist.
 These regexps are added to auto-mode-alist as soon as `define-generic-mode' 
-is called; any old regexps with the same name are removed. To modify the 
-auto-mode-alist expressions, use `alter-generic-mode-auto-mode' (which see).
+is called; any old regexps with the same name are removed.
 
 FUNCTION-LIST is a list of functions to call to do some additional setup.
 
-See the file generic-extras.el for some examples of `define-generic-mode'."
+See the file generic-x.el for some examples of `define-generic-mode'."
 
   ;; Basic sanity check
   (generic-mode-sanity-check name 
@@ -388,9 +351,7 @@ for files which are too small to warrant their own mode, but have
 comment characters, keywords, and the like.
 
 To define a generic-mode, use the function `define-generic-mode'.
-To alter an existing generic-mode, use the `alter-generic-mode-'
-convenience functions. 
-Some generic modes are defined in generic-extras.el" 
+Some generic modes are defined in `generic-x.el'." 
   (interactive
    (list (generic-read-type)))
   (generic-mode-with-type (intern type)))
