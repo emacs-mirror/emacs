@@ -2798,13 +2798,29 @@ See also `comint-dynamic-complete-filename'."
        (mapcar 'comint-quote-filename completions)))))
 
 
+;; This is bound locally in a *Completions* buffer to the list of
+;; completions displayed, and is used to detect the case where the same
+;; command is repeatedly used without the set of completions changing.
+(defvar comint-displayed-dynamic-completions nil)
+
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
   (let ((window (get-buffer-window "*Completions*")))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)
-	     (buffer-name (window-buffer window)))
+	     (buffer-name (window-buffer window))
+	     ;; The above tests are not sufficient to detect the case where we
+	     ;; should scroll, because the top-level interactive command may
+	     ;; not have displayed a completions window the last time it was
+	     ;; invoked, and there may be such a window left over from a
+	     ;; previous completion command with a different set of
+	     ;; completions.  To detect that case, we also test that the set
+	     ;; of displayed completions is in fact the same as the previously
+	     ;; displayed set.
+	     (equal completions
+		    (buffer-local-value 'comint-displayed-dynamic-completions
+					(window-buffer window))))
 	;; If this command was repeated, and
 	;; there's a fresh completion window with a live buffer,
 	;; and this command is repeated, scroll that window.
@@ -2822,6 +2838,9 @@ Typing SPC flushes the help buffer."
 	(let (key first)
 	  (if (save-excursion
 		(set-buffer (get-buffer "*Completions*"))
+		(set (make-local-variable
+		      'comint-displayed-dynamic-completions)
+		     completions)
 		(setq key (read-key-sequence nil)
 		      first (aref key 0))
 		(and (consp first) (consp (event-start first))
