@@ -1899,9 +1899,8 @@ or a function symbol which, when called, returns such a cons cell."
 		   (cons (cons regexp coding-system)
 			 network-coding-system-alist)))))))
 
-(defun decode-coding-region-as-inserted-from-file (from to filename
-							&optional
-							visit beg end replace)
+(defun decode-coding-inserted-region (from to filename
+					   &optional visit beg end replace)
   "Decode the region between FROM and TO as if it is read from file FILENAME.
 Optional arguments VISIT, BEG, END, and REPLACE are the same as those
 of the function `insert-file-contents'."
