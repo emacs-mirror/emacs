@@ -1,3 +1,10 @@
+2001-06-09  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-cmd.el (eshell-exit-success-p): Use a string-match to
+	test if the last command was Lisp or not.
+	(eshell-rewrite-if-command): "if" syntax is "if A B C", not "if A
+	B x C".
+
 2001-06-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dos-w32.el (grep-regexp-alist): Remove definition, since the
