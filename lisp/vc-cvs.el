@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.53 2003/04/05 15:51:14 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.54 2003/04/19 22:40:18 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -81,15 +81,24 @@ This is only meaningful if you don't use the implicit checkout model
   :version "21.1"
   :group 'vc)
 
-(defcustom vc-cvs-stay-local t
+(defcustom vc-cvs-stay-local '(except "^\\(localhost\\)$")
   "*Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
-The value can also be a regular expression to match against the host name
-of a repository; then VC only stays local for hosts that match it."
+The value can also be a regular expression or list of regular
+expressions to match against the host name of a repository; then VC
+only stays local for hosts that match it.
+This is useful in a setup, where most CVS servers should be contacted
+directly, and only a few CVS servers cannot be reached easily.
+For the opposite scenario, when only a few CVS servers are to be
+queried directly, a list of regular expressions can be specified,
+whose first element is the symbol `except'."
   :type '(choice (const :tag "Always stay local" t)
-		 (string :tag "Host regexp")
-		 (const :tag "Don't stay local" nil))
+                (const :tag "Don't stay local" nil)
+                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..." 
+                       (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
+                       (regexp :format " stay local,\n%t: %v" :tag "if it matches")
+                       (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
   :version "21.1"
   :group 'vc)
 
@@ -715,7 +724,8 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
                    flags))))
 
 (defun vc-cvs-stay-local-p (file)
-  "Return non-nil if VC should stay local when handling FILE."
+  "Return non-nil if VC should stay local when handling FILE.
+See `vc-cvs-stay-local'."
   (if vc-cvs-stay-local
       (let* ((dirname (if (file-directory-p file)
 			  (directory-file-name file)
@@ -726,18 +736,99 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
 		    (vc-file-setprop
 		     dirname 'vc-cvs-stay-local-p
 		     (when (file-readable-p rootname)
-		       (with-temp-buffer
-			 (vc-insert-file rootname)
-			 (goto-char (point-min))
-			 (if (looking-at "\\([^:]*\\):")
-			     (if (not (stringp vc-cvs-stay-local))
-				 'yes
-			       (let ((hostname (match-string 1)))
-				 (if (string-match vc-cvs-stay-local hostname)
-				     'yes
-				   'no)))
-			   'no))))))))
-	(if (eq prop 'yes) t nil))))
+                      (with-temp-buffer
+                        (vc-insert-file rootname)
+                        (goto-char (point-min))
+                         (looking-at "\\([^\n]*\\)")
+                         (let* ((cvs-root-members
+                                 (vc-cvs-parse-root (match-string 1)))
+                                (hostname (nth 2 cvs-root-members)))
+                           (if (not hostname)
+                               'no
+                             (let ((stay-local t) rx)
+                               (cond
+                                ;; vc-cvs-stay-local: rx
+                                ((stringp vc-cvs-stay-local)
+                                 (setq rx vc-cvs-stay-local))
+                                ;; vc-cvs-stay-local: '( [except] rx ... )
+                                ((consp vc-cvs-stay-local)
+                                 (setq rx (mapconcat
+                                           (function
+                                            (lambda (elt)
+                                              elt))
+                                           (if (not (eq (car vc-cvs-stay-local)
+                                                        'except))
+                                               vc-cvs-stay-local
+                                             (setq stay-local nil)
+                                             (cdr vc-cvs-stay-local))
+                                           "\\|"))))
+                               (if (not rx)
+                                'yes
+                                 (if (not (string-match rx hostname))
+                                     (setq stay-local (not stay-local)))
+                                 (if stay-local
+                                    'yes
+                                   'no))))))))))))
+       (if (eq prop 'yes) t nil))))
+
+(defun vc-cvs-parse-root ( root )
+  "Split CVS ROOT specification string into a list of fields.
+A CVS root specification of the form
+  [:METHOD:][[USER@]HOSTNAME:]/path/to/repository
+is converted to a normalized record with the following structure:
+  \(METHOD USER HOSTNAME CVS-ROOT).
+The default METHOD for a CVS root of the form
+  /path/to/repository
+is `local'.
+The default METHOD for a CVS root of the form
+  [USER@]HOSTNAME:/path/to/repository
+is `ext'.
+For an empty string, nil is returned (illegal CVS root)."
+  ;; Split CVS root into colon separated fields (0-4).
+  ;; The `x:' makes sure, that leading colons are not lost;
+  ;; `HOST:/PATH' is then different from `:METHOD:/PATH'.
+  (let* ((root-list (cdr (split-string (concat "x:" root) ":")))
+         (len (length root-list))
+         ;; All syntactic varieties will get a proper METHOD.
+         (root-list
+          (cond
+           ((= len 0)
+            ;; Invalid CVS root
+            nil)
+           ((= len 1)
+            ;; Simple PATH => method `local'
+            (cons "local"
+                  (cons nil root-list)))
+           ((= len 2)
+            ;; [USER@]HOST:PATH => method `ext'
+            (and (not (equal (car root-list) ""))
+                 (cons "ext" root-list)))
+           ((= len 3)
+            ;; :METHOD:PATH
+            (cons (cadr root-list)
+                  (cons nil (cddr root-list))))
+           (t
+            ;; :METHOD:[USER@]HOST:PATH
+            (cdr root-list)))))
+    (if root-list
+        (let ((method (car root-list))
+              (uhost (or (cadr root-list) ""))
+              (root (nth 2 root-list))
+              user host)
+          ;; Split USER@HOST
+          (if (string-match "\\(.*\\)@\\(.*\\)" uhost)
+              (setq user (match-string 1 uhost)
+                    host (match-string 2 uhost))
+            (setq host uhost))
+          ;; Remove empty HOST
+          (and (equal host "")
+               (setq host))
+          ;; Fix windows style CVS root `:local:C:\\project\\cvs\\some\\dir'
+          (and host
+               (equal method "local")
+               (setq root (concat host ":" root) host))
+          ;; Normalize CVS root record
+          (list method user host root)))))
 
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
