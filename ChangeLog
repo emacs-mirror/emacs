@@ -1,3 +1,10 @@
+2000-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist: Handle the Mac port.  Distribute all makefile.w32-in.
+	Distribute more files from the nt/ subdir.  Distribute PBM
+	image files from subdirs of lisp/.  Distribute old change logs
+	from subdirs of lisp/.  Distribute play/5x5.el.
+
 2000-11-11  Dave Love  <fx@gnu.org>
 
 	* config.sub, config.guess: Updated from master source.
