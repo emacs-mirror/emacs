@@ -4265,7 +4265,6 @@ interrupt_signal ()
   char c;
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-  extern Lisp_Object Vwindow_system;
 
 #ifdef USG
   /* USG systems forget handlers when they are used;
@@ -4357,6 +4356,12 @@ quit_throw_to_read_char ()
 
   unread_command_events = Qnil;
   unread_command_char = -1;
+
+#ifdef POLL_FOR_INPUT
+  /* May be > 1 if in recursive minibuffer.  */
+  if (poll_suppress_count == 0)
+    abort ();
+#endif
 
   _longjmp (getcjmp, 1);
 }
