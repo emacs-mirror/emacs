@@ -4925,7 +4925,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   if (mapno >= nmaps)
     return Qnil;
 
-#if (defined (HAVE_X_WINDOWS) && defined (HAVE_X_MENU)) || defined (MSDOS) || defined (HAVE_NTGUI)
+#ifdef HAVE_MENUS
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
   if (EVENT_HAS_PARAMETERS (prev_event)
@@ -4975,7 +4975,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	*used_mouse_menu = 1;
       return value;
     }
-#endif /* (HAVE_X_WINDOWS && HAVE_X_MENU) || MSDOS || HAVE_NTGUI */
+#endif /* HAVE_MENUS */
   return Qnil ;
 }
 
@@ -6491,6 +6491,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   function = Fcompleting_read (build_string (buf),
 			       Vobarray, Qcommandp,
 			       Qt, Qnil, Qextended_command_history);
+
+  if (STRINGP (function) && XSTRING (function)->size == 0)
+    error ("No command name given");
 
   /* Set this_command_keys to the concatenation of saved_keys and
      function, followed by a RET.  */
