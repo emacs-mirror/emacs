@@ -80,6 +80,26 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
   :type 'hook
   :group 'gomoku)
 
+;;; 
+;;; CONSTANTS FOR BOARD
+;;;
+
+;; You may change these values if you have a small screen or if the squares
+;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
+
+(defconst gomoku-square-width 4
+  "*Horizontal spacing between squares on the Gomoku board.")
+
+(defconst gomoku-square-height 2
+  "*Vertical spacing between squares on the Gomoku board.")
+
+(defconst gomoku-x-offset 3
+  "*Number of columns between the Gomoku board and the side of the window.")
+
+(defconst gomoku-y-offset 1
+  "*Number of lines between the Gomoku board and the top of the window.")
+
+
 (defvar gomoku-mode-map nil
   "Local keymap to use in Gomoku mode.")
 
@@ -926,22 +946,6 @@ If the game is finished, this command requests for another game."
 ;;;
 ;;; DISPLAYING THE BOARD.
 ;;;
-
-;; You may change these values if you have a small screen or if the squares
-;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
-
-(defconst gomoku-square-width 4
-  "*Horizontal spacing between squares on the Gomoku board.")
-
-(defconst gomoku-square-height 2
-  "*Vertical spacing between squares on the Gomoku board.")
-
-(defconst gomoku-x-offset 3
-  "*Number of columns between the Gomoku board and the side of the window.")
-
-(defconst gomoku-y-offset 1
-  "*Number of lines between the Gomoku board and the top of the window.")
-
 
 (defun gomoku-max-width ()
   "Largest possible board width for the current window."
