@@ -1,3 +1,7 @@
+2000-11-22 ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-send-mail): Use buffer-substring-no-properties.
+
 2000-11-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gnus-win.el (gnus-configure-windows): switch-to-buffer -> set-buffer.

@@ -2318,10 +2318,8 @@ It should typically alter the sending method in some way or other."
 	  (set-buffer tembuf)
 	  (erase-buffer)
 	  ;; Avoid copying text props.
-	  (insert (format
-		   "%s" (save-excursion
-			  (set-buffer mailbuf)
-			  (buffer-string))))
+	  (insert (with-current-buffer mailbuf
+		    (buffer-substring-no-properties (point-min) (point-max))))
 	  ;; Remove some headers.
 	  (message-encode-message-body)
 	  (save-restriction
