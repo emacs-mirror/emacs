@@ -1181,9 +1181,6 @@ IT_write_glyphs (struct glyph *str, int str_len)
 			  Mouse Highlight (and friends..)
  ************************************************************************/
 
-/* This is used for debugging, to turn off note_mouse_highlight.  */
-int disable_mouse_highlight;
-
 /* If non-nil, dos_rawgetc generates an event to display that string.
    (The display is done in keyboard.c:read_char, by calling
    show_help_echo.)  */
@@ -1242,6 +1239,9 @@ show_mouse_face (struct display_info *dpyinfo, int hl)
   /* There's no sense to do anything if the mouse face isn't realized.  */
   if (hl > 0)
     {
+      if (dpyinfo->mouse_face_hidden)
+	goto set_cursor_shape;
+
       fp = FACE_FROM_ID (SELECTED_FRAME(), dpyinfo->mouse_face_face_id);
       if (!fp)
 	goto set_cursor_shape;
@@ -1496,7 +1496,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
   if (mouse_preempted)
     return;
 
-  if (disable_mouse_highlight
+  if (NILP (Vmouse_highlight)
       || !f->glyphs_initialized_p)
     return;
 
@@ -2591,6 +2591,7 @@ internal_terminal_init ()
   the_only_x_display.display_info.mouse_face_mouse_x =
     the_only_x_display.display_info.mouse_face_mouse_y = 0;
   the_only_x_display.display_info.mouse_face_defer = 0;
+  the_only_x_display.display_info.mouse_face_hidden = 0;
 
   init_frame_faces (sf);
 
@@ -3161,6 +3162,7 @@ dos_rawgetc ()
 {
   struct input_event event;
   union REGS regs;
+  struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (SELECTED_FRAME());
   
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
@@ -3370,7 +3372,13 @@ dos_rawgetc ()
     make_event:
       if (code == 0)
 	continue;
-      
+
+      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+	{
+	  dpyinfo->mouse_face_hidden = 1;
+	  clear_mouse_face (dpyinfo);
+	}
+
       if (code >= 0x100)
 	event.kind = non_ascii_keystroke;
       else
@@ -3395,6 +3403,12 @@ dos_rawgetc ()
          might need to update mouse highlight.  */
       if (mouse_last_x != mouse_prev_x || mouse_last_y != mouse_prev_y)
 	{
+	  if (dpyinfo->mouse_face_hidden)
+	    {
+	      dpyinfo->mouse_face_hidden = 0;
+	      clear_mouse_face (dpyinfo);
+	    }
+
 	  if (x_autoselect_window_p)
 	    {
 	      int mouse_area;
@@ -3419,6 +3433,7 @@ dos_rawgetc ()
 	    }
 	  else
 	    last_mouse_window = Qnil;
+
 	  previous_help_echo = help_echo;
 	  help_echo = help_echo_object = help_echo_window = Qnil;
 	  help_echo_pos = -1;
