@@ -91,6 +91,9 @@
 
 2003-07-05  John Paul Wallington  <jpw@gnu.org>
 
+	* cus-theme.el (customize-create-theme): 
+	Call `customize-create-theme' in Reset widget's notify function.
+
 	* ibuffer.el (ibuffer-backward-line, ibuffer-forward-line)
 	(ibuffer-mark-interactive): Use `or' instead of `unless'.
 	(define-ibuffer-column name): Add summarizer.
