@@ -747,12 +747,26 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	  }
 	else
 	  {
-	    font = FACE_FONT (face);
-	    if (font == (XFontStruct *) FACE_DEFAULT)
-	      font = f->output_data.x->font;
-	    baseline = FONT_BASE (font);
 	  font_not_found:
-	    gc = FACE_GC   (face);
+	    if (charset == CHARSET_ASCII || charset == charset_latin_iso8859_1)
+	      {
+		font = FACE_FONT (face);
+		if (font == (XFontStruct *) FACE_DEFAULT)
+		  font = f->output_data.x->font;
+		baseline = FONT_BASE (font);
+		if (charset == charset_latin_iso8859_1)
+		  {
+		    if (font->max_char_or_byte2 < 0x80)
+		      /* This font can't display Latin1 characters.  */
+		      font = NULL;
+		    else
+		      {
+			for (cp = buf; cp < buf + len; cp++)
+			  cp->byte2 |= 0x80;
+		      }
+		  }
+	      }
+	    gc = FACE_GC (face);
 	  }
 
 	/* Now override that if the cursor's on this character.  */
@@ -763,7 +777,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	    if (font == f->output_data.x->font
 		&& face->background == f->output_data.x->background_pixel
-		&& face->foreground == f->output_data.x->foreground_pixel)
+		&& face->foreground == f->output_data.x->foreground_pixel
+		&& !cmpcharp)
 	      {
 		gc = f->output_data.x->cursor_gc;
 	      }
@@ -846,19 +861,15 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    unsigned long mask = GCForeground | GCBackground;
 	    unsigned long fore, back;
 
-	    /* The current code at first exchange foreground and
-	      background of GC, fill the area, then recover the
-	      original foreground and background of GC.
+	    /* The current code at first set foreground to background,
+	      fill the area, then recover the original foreground.
 	      Aren't there any more smart ways?  */
 
 	    XGetGCValues (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
-	    fore = xgcv.foreground, back = xgcv.background;
-	    xgcv.foreground = back, xgcv.background = fore;
-	    XChangeGC (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
+	    XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
 	    XFillRectangle (FRAME_X_DISPLAY (f), window, gc,
 			    left, top, run_width, line_height);
-	    xgcv.foreground = fore, xgcv.background = back;
-	    XChangeGC (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
+	    XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 
 	    background_filled = 1;
 	    if (cmpcharp)
