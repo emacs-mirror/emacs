@@ -12,6 +12,10 @@
 	was done in C; however the previous attempt to do a halfway-proper
 	job for non-tty displays in lisp didn't work properly because of
 	funny conditions during emacs startup.
+	(face-differs-from-default-p): Simplify, now that
+	display-supports-face-attributes-p works properly on all display
+	types.  Remove :stipple from comparison; it doesn't really work
+	in emacs anyway.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
