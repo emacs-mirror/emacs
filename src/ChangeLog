@@ -1,3 +1,12 @@
+2003-08-15  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (better_font_p): Prefer a real scalable font; i.e. not
+	what autoscaled.
+	(best_matching_font): Once we find a better scalable font, set
+	non_scalable_has_exact_height_p to 1.
+	(try_font_list): Call try_alternative_families to try any family
+	with the given registry.
+
 2003-08-09  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (mark_object): Handle Lisp_Misc_Save_Value.
