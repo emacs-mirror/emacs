@@ -269,10 +269,10 @@ returns @code{nil} even though expansion did occur.
 @end deffn
 
 @deffn Command abbrev-prefix-mark &optional arg
-This command marks current point as the beginning of an abbrev.  The
-next call to @code{expand-abbrev} will use the text from here to point
-(where it is then) as the abbrev to expand, rather than using the
-previous word as usual.
+This command marks the current location of point as the beginning of
+an abbrev.  The next call to @code{expand-abbrev} will use the text
+from here to point (where it is then) as the abbrev to expand, rather
+than using the previous word as usual.
 
 First, this command expands any abbrev before point, unless @var{arg}
 is non-@code{nil}.  (Interactively, @var{arg} is the prefix argument.)
@@ -363,7 +363,7 @@ definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
 			nil t)))
 @end smallexample
 
-Note that @code{foo-mode-pre-abbrex-expand} just returns @code{nil}
+Note that @code{foo-mode-pre-abbrev-expand} just returns @code{nil}
 without doing anything for lines not starting with @samp{#}.  Hence
 abbrevs expand normally using @code{foo-mode-abbrev-table} as local
 abbrev table for such lines.
