@@ -135,8 +135,286 @@
 
 2003-03-05  Reto Zimmermann  <reto@gnu.org>
 
-	* progmodes/vhdl-mode.el: Version 3.32.12 released.  Major
-	revision.
+	* progmodes/vhdl-mode.el: Version 3.32.12 released.  Modifications
+	for displaying all projects in hierarchy browser and case
+	insensitive hierarchy browsing.  Change Rod's email address.
+	Include `itimer.el' patch for XEmacs.  Backquote fix.  Change some
+	documentation strings.  Add "ERROR: " prefix to all error
+	messages.  Enhanced usage of hideshow.
+	(vhdl-in-literal): Remove unused argument LIM.
+	(vhdl-compiler-alist): Enhanced customization for compilers; add
+	"Speedwave", "Simili", "Synopsys Design Compiler", "Cadence NC",
+	"Savant", "ProVHDL" and "VeriBest" compilers.
+	(vhdl-compiler-alist): Add new error message syntax for Modelsim.
+	(vhdl-compiler-alist): Add Synplify, column no in error regexp.
+	(vhdl-compiler-alist): Include library name in library command.
+	(vhdl-compiler-alist): Add unit-to-file name mapping for Savant.
+	(vhdl-compiler-alist): Add library option in Makefile generation
+	command.
+	(vhdl-compiler-alist): Add command to create library directory.
+	(vhdl-compiler-alist): Built-in Makefile generation is always default.
+	(vhdl-create-mode-menu): Split menues for compilers, projects, models.
+	(vhdl-create-mode-menu): Add customization for `global-font-lock-mode'.
+	(vhdl-create-mode-menu): Fix `customize-group' entries for XEmacs and
+	change "Gen." to "Generate".
+	(vhdl-create-mode-menu): Get *Messages* buffer.
+	(vhdl-create-mode-menu): Fix "Auto Load Setup File" menu entry.
+	(vhdl-create-mode-menu): Add faces customization to "Options".
+	(vhdl-create-mode-menu): Include `speedbar-indentation-width'.
+	(vhdl-create-mode-menu): Add "Options" entry.
+	(vhdl-replace-string): Allow casing (use `vhdl-file-name-case').
+	(vhdl-template-exit, vhdl-template-next, vhdl-template-return): Fix
+	template abortion.
+	(vhdl-speedbar-port-copy): Add subprogram copy; copy port of component
+	in package.
+	(vhdl-fixup-whitespace-region): No whitespace after '(' and before ')'.
+	(vhdl-fixup-whitespace-region): Better treat comments and strings.
+	(vhdl-fixup-whitespace-region): Fix "=> ," alignment.
+	(vhdl-port-paste-testbench): Print file names created.
+	(vhdl-port-paste-testbench): Better handling when file exist/open.
+	(vhdl-port-paste-testbench): Additional comments in code.
+	(vhdl-port-paste-testbench): Replace keywords in testbench entity and
+	architecture file headers.
+	(vhdl-port-paste-testbench): Adjust case in testbench configuration.
+	(vhdl-port-paste-instance): Special case: no number in instance name.
+	(vhdl-speedbar-expand-units): Fix speedbar frame switching oddity.
+	(vhdl-font-lock-keywords-2): Enhance highlighting of instantiation;
+	highlight instantiations without map.
+	(vhdl-font-lock-keywords-2): Fix label highlighting for signal asst.
+	(vhdl-font-lock-keywords-2): Highlight formal parameters.
+	(vhdl-font-lock-keywords-2): Highlight quantity declaration names.
+	(vhdl-mode): `comment-padding' for Emacs 21 only.
+	(vhdl-mode): Remove forced `turn-on-font-lock'.
+	(vhdl-mode): Remove `hippie-expand-only-buffers' setting.
+	(vhdl-mode): Update online documentation and web address.
+	(vhdl-comment-uncomment-region): Remove usage of `commend-dwim' again.
+	(vhdl-comment-uncomment-region): Change ARG for uncommenting.
+	(vhdl-speedbar-make-*-line): Fix for displaying XEmacs speedbar images.
+	(vhdl-fontify-buffer): Toggle font-lock-mode for better recovery.
+	(vhdl-port-list): Add context clause.
+	(vhdl-port-paste-signals): Include direction comments.
+	(vhdl-testbench-declarations, vhdl-testbench-statements): New default.
+	(vhdl-port-*): Include name in status messages.
+	(vhdl-package-alist): Scan for and display subprogram body.
+	(vhdl-package-alist): Change key to lower case, add original case
+	identifier.
+	(vhdl-package-alist): Scan for packages used by package body.
+	(vhdl-speedbar-find-file): Always jump to design unit if buffer open.
+	(vhdl-speedbar-insert-hierarchy): Mark non-existing entities/packages.
+	(vhdl-speedbar-insert-hierarchy): Message "No VHDL design units!".
+	(vhdl-compile-init): Allow fourth element (column no) in error regexp.
+	(vhdl-compile-init): Fix `nconc' bug.
+	(vhdl-compile-init): Eliminate redundant regexps.
+	(vhdl-minibuffer-tab): No indentation.
+	(vhdl-minibuffer-tab): Use `hippie-expand-only-buffers' to take
+	expansions from VHDL buffers only; don't overwrite non-nil default of
+	`hippie-expand-only-buffers'; check whether
+	`hippie-expand-only-buffers' is bound.
+	(vhdl-ams-types, vhdl-ams-enum-values): Add identifiers from
+	`nature_pkg' package.
+	(vhdl-align-alist): Fix "when/else ... =>" case.
+	(vhdl-align-alist): Align declaration keywords only at beg. of line.
+	(vhdl-align-alist): Align <=, := and == among each other.
+	(vhdl-port-copy): Extended identifiers for signal names.
+	(vhdl-port-copy): Fix on empty generic/port clause.
+	(vhdl-port-copy): Fix parsing of comment on first line.
+	(vhdl-port-copy): Allow generic clause begin on first line.
+	(vhdl-port-copy): Add "inout" and "linkage" to direction modes.
+	(vhdl-font-lock-function-face): Change DarkCyan to Cyan4.
+	(vhdl-file-header): Insert VHDL language standard string.
+	(vhdl-instance-name): Unique numbers in instance names.
+	(vhdl-compile): Check for existing compile directory.
+	(vhdl-compile): Print out file name if compiler does not; put it in
+	quotes if contains spaces.
+	(vhdl-compile): Check compiler name.
+	(vhdl-compiler): Changed empty value from "" to nil.
+	(vhdl-make): Check for existing compile directory.
+	(vhdl-make): Fix missing options if there is a target.
+	(vhdl-make): Check compiler name.
+	(vhdl-template-field): Fix case on all VHDL words.
+	(vhdl-template-others): Re-electrified "others".
+	(vhdl-speedbar-expand-architecture): Give user control over displayed
+	hierarchy depth.
+	(vhdl-project-alist): Insert library name in Makefile name.
+	(vhdl-project-alist): Sources exclude regexp.
+	(vhdl-project-alist): Add file-specific compile exceptions.
+	(vhdl-project-alist): Enhanced customization of projects.
+	(vhdl-get-hierarchy): Include configurations in hierarchy list.
+	(vhdl-get-hierarchy): Fix bug with configurations.
+	(vhdl-get-hierarchy): Consider configurations; also at lower levels.
+	(vhdl-speedbar-item-info): Enhanced displaying.
+	(vhdl-scan-file-contents): Fix skipping of comments in scanning.
+	(vhdl-scan-file-contents): Sources exclude regexp.
+	(vhdl-scan-file-contents): Allow comment lines in instantiations.
+	(vhdl-scan-file-contents): Fix used packages in package body scanning.
+	(vhdl-scan-file-contents): Allow code before first block configuration.
+	(vhdl-scan-file-contents): Scan also for "is" keyword of design units.
+	(vhdl-scan-file-contents): Scan configuration specification.
+	(vhdl-scan-file-contents): Clear directory alists first.
+	(vhdl-scan-file-contents): Consistency check.
+	(vhdl-scan-file-contents): Check for multiply scanned design units.
+	(vhdl-scan-file-contents): Scan components/subprograms in package.
+	(vhdl-scan-file-contents): Scan library clauses and subconfigurations.
+	(vhdl-scan-file-contents): Limit file size for scanning.
+	(vhdl-entity-alist): Change key to lower case, add original case
+	identifier.
+	(vhdl-electric-tab): Not overwrite non-nil default of
+	`hippie-expand-only-buffers'.
+	(vhdl-electric-tab): Check whether `hippie-expand-only-buffers' is
+	bound; use it to take expansions from VHDL buffers only.
+	(vhdl-electric-tab): Toggle comment indent.
+	(vhdl-generate-makefile): Check compiler name.
+	(vhdl-generate-makefile): Add library option in Makefile generation
+	command.
+	(vhdl-generate-makefile): Add dependencies for components in package.
+	(vhdl-template-elsif): No expansion in concurrent part (except AMS).
+	(vhdl-insert-string-or-file): Resolve environment variables.
+	(vhdl-insert-string-or-file): Fix NTEmacs `file-exists-p' problem.
+	(vhdl-submit-bug-report): Prompt for summary.
+	(vhdl-resolve-paths): Rearrange environment variable resolution.
+	(vhdl-scan-project-contents): Rearrange environment variable
+	resolution.
+	(vhdl-scan-project-contents): Allow absolute paths.
+	(vhdl-doc-coding-style): Update RMM URL.
+	(vhdl-end-of-leader): Consider "is" keyword in VHDL'93.
+	(vhdl-model-insert): Replace header prompts too.
+	(vhdl-template-header): New argument `is-model'.
+	(vhdl-template-generate-body): Remove "begin" for VHDL'93.
+	(vhdl-actual-port-name): Change default value (no "_i" extension).
+	(vhdl-template-modify): Delete date instead of kill.
+	(vhdl-get-source-files): Don't match source files beginning with ".".
+	(vhdl-project-*-alist): Merged with variables `vhdl-*-alist'.
+	(vhdl-speedbar-*): Many enhancements and fixes in hierarchy browser.
+	(vhdl-speedbar-expand-*): Display used packages.
+	(vhdl-sequential-statement-p): Better algorithm.
+	(vhdl-electric-mode, vhdl-stutter-mode): Changed key bindings.
+	(vhdl-electric-...): No stuttering within literals.
+	(vhdl-template-footer): Replace keywords in footer as in header.
+	(vhdl-align-...): Enhance alignment, add progress reporting.
+	(vhdl-beautify-region): Bug fix.
+	(vhdl-comment-insert-inline): Remove wrapping to next line if too long.
+	(vhdl-testbench-configuration-name,
+	vhdl-update-sensitivity-list-buffer): Fix starting cursor position.
+	(vhdl-prepare-search-[12]): Fix search within hidden code.
+	(vhdl-speedbar-jump-to-unit): Disable cursor re-positioning.
+	(vhdl-template-for): Fix sequential statement part detection.
+	(vhdl-electric-space): Fix wrapping for non-word characters.
+	(vhdl-template-standard-package): Don't insert "std" library.
+	(vhdl-template-architecture): Code optimization.
+	(vhdl-template-package): Search for existing package name.
+	(vhdl-template-component-decl, vhdl-port-paste-declaration): Insert
+	"is" in VHDL'93.
+	(match-string-no-properties, vhdl-forward-comment): New aliases.
+	(vhdl-speedbar-library-face, vhdl-speedbar-subprogram-face): New faces.
+	(file-expand-wildcards, regexp-opt, subst-char-in-string)
+	(vhdl-add-modified-file, vhdl-align-buffer, vhdl-align-declarations)
+	(vhdl-align-list, vhdl-align-region-2, vhdl-align-region-groups)
+	(vhdl-align-same-indent, vhdl-aput, vhdl-auto-load-project)
+	(vhdl-backward-same-indent, vhdl-beginning-of-block)
+	(vhdl-character-to-event, vhdl-compile-directory)
+	(vhdl-compile-print-file-name, vhdl-compose-components-package)
+	(vhdl-compose-insert-generic, vhdl-compose-insert-port)
+	(vhdl-compose-insert-signal, vhdl-compose-new-component)
+	(vhdl-compose-place-component, vhdl-compose-wire-components)
+	(vhdl-default-directory, vhdl-delete, vhdl-delete-indentation)
+	(vhdl-do-group, vhdl-do-list, vhdl-do-same-indent)
+	(vhdl-duplicate-project, vhdl-end-of-block, vhdl-expand-abbrev)
+	(vhdl-expand-paren, vhdl-export-project, vhdl-fill-group)
+	(vhdl-fill-list, vhdl-fill-region, vhdl-fill-same-indent)
+	(vhdl-fix-case-word, vhdl-fix-clause, vhdl-forward-comment)
+	(vhdl-forward-same-indent, vhdl-generate-makefile-1)
+	(vhdl-get-compile-options, vhdl-get-components-package-name)
+	(vhdl-get-end-of-unit, vhdl-get-make-options, vhdl-get-packages)
+	(vhdl-get-visible-signals, vhdl-goto-marker)
+	(vhdl-hs-forward-sexp-func, vhdl-hs-minor-mode, vhdl-import-project)
+	(vhdl-indent-group, vhdl-insert-file-contents, vhdl-load-cache)
+	(vhdl-makefile-name, vhdl-match-string-downcase, vhdl-max-marker)
+	(vhdl-parse-group-comment, vhdl-paste-group-comment)
+	(vhdl-port-paste-context-clause, vhdl-port-paste-initializations)
+	(vhdl-port-reverse-direction, vhdl-process-command-line-option)
+	(vhdl-project-p, vhdl-re-search-backward, vhdl-re-search-forward)
+	(vhdl-remove-trailing-spaces, vhdl-require-hierarchy-info)
+	(vhdl-resolve-env-variable, vhdl-run-when-idle, vhdl-save-cache)
+	(vhdl-save-caches, vhdl-scan-context-clause)
+	(vhdl-scan-directory-contents, vhdl-set-compiler, vhdl-set-project)
+	(vhdl-show-messages, vhdl-sort-alist, vhdl-speedbar-check-unit)
+	(vhdl-speedbar-contract-all, vhdl-speedbar-contract-level)
+	(vhdl-speedbar-display-directory, vhdl-speedbar-display-projects)
+	(vhdl-speedbar-expand-all, vhdl-speedbar-expand-config)
+	(vhdl-speedbar-expand-package, vhdl-speedbar-expand-project)
+	(vhdl-speedbar-generate-makefile, vhdl-speedbar-insert-projects)
+	(vhdl-speedbar-insert-subpackages, vhdl-speedbar-line-key)
+	(vhdl-speedbar-line-project, vhdl-speedbar-line-text)
+	(vhdl-speedbar-make-design, vhdl-speedbar-make-subpack-line)
+	(vhdl-speedbar-make-subprogram-line, vhdl-speedbar-place-component)
+	(vhdl-speedbar-refresh, vhdl-speedbar-set-depth)
+	(vhdl-speedbar-update-current-project, vhdl-statistics-buffer)
+	(vhdl-subprog-copy, vhdl-subprog-flatten, vhdl-subprog-paste-body)
+	(vhdl-subprog-paste-call, vhdl-subprog-paste-declaration)
+	(vhdl-subprog-paste-specification, vhdl-template-others-hook)
+	(vhdl-template-replace-header-keywords, vhdl-toggle-project)
+	(vhdl-uniquify, vhdl-update-file-contents, vhdl-update-hierarchy)
+	(vhdl-update-progress-info, vhdl-update-sensitivity-list)
+	(vhdl-update-sensitivity-list-buffer)
+	(vhdl-update-sensitivity-list-process, vhdl-use-direct-instantiation)
+	(vhdl-warning, vhdl-warning-when-idle)
+	(vhdl-widget-directory-validate, vhdl-work-library)
+	(vhdl-write-file-hooks-init): New functions.
+	(vhdl-aappend, vhdl-add-warning, vhdl-align-noindent-buffer)
+	(vhdl-align-noindent-region, vhdl-create-customize-menu)
+	(vhdl-forward-unit, vhdl-modify-date-init, vhdl-project-switch)
+	(vhdl-scan-file-contents, vhdl-speedbar-display-hierarchy)
+	(vhdl-speedbar-toggle-hierarchy): Functions deleted.
+	(vhdl-in-comment-p, vhdl-in-string-p, vhdl-standard-p): Define as
+	functions, not defsubsts.
+	(vhdl-in-comment-or-string-p, vhdl-speedbar-project-p): Defsubsts
+	deleted.
+	(vhdl-compose, vhdl-naming, vhdl-speedbar, vhdl-template)
+	(vhdl-testbench): New customization groups.
+	(vhdl-electric): Customization group deleted.
+	(vhdl-align-alist, vhdl-doc-coding-style, vhdl-doc-keywords)
+	(vhdl-imenu-generic-expression): Define as constants instead of
+	variables.
+	(vhdl-ams-packages, vhdl-doc-release-notes, vhdl-emacs-21)
+	(vhdl-hs-start-regexp, vhdl-time-stamp, vhdl-xemacs): New constants.
+	(vhdl-font-lock-keywords-0): Constants deleted.
+	(vhdl-prepare-search-1, vhdl-prepare-search-2, vhdl-visit-file): New
+	macros.
+	(vhdl-ext-syntax-table): Macro deleted.
+	(vhdl-align-group-separate, vhdl-align-same-indent)
+	(vhdl-architecture-file-name, vhdl-compile-use-local-error-regexp)
+	(vhdl-components-package-name, vhdl-compose-architecture-name)
+	(vhdl-compose-create-files, vhdl-compose-include-header)
+	(vhdl-copyright-string, vhdl-default-library, vhdl-directive-keywords)
+	(vhdl-entity-file-name, vhdl-file-name-case)
+	(vhdl-include-group-comments, vhdl-include-type-comments)
+	(vhdl-indent-syntax-based, vhdl-makefile-generation-hook)
+	(vhdl-package-file-name, vhdl-project-auto-load)
+	(vhdl-project-file-name, vhdl-project-sort, vhdl-speedbar-auto-open)
+	(vhdl-speedbar-cache-file-name, vhdl-speedbar-display-mode)
+	(vhdl-speedbar-jump-to-unit, vhdl-speedbar-save-cache)
+	(vhdl-speedbar-scan-limit, vhdl-speedbar-update-on-saving)
+	(vhdl-testbench-configuration-name)
+	(vhdl-testbench-include-configuration, vhdl-testbench-include-header)
+	(vhdl-testbench-include-library, vhdl-use-components-package)
+	(vhdl-use-direct-instantiation): New options.
+	(vhdl-compiler-options, vhdl-speedbar, vhdl-speedbar-hierarchy-indent)
+	(vhdl-speedbar-show-hierarchy, vhdl-testbench-architecture-header)
+	(vhdl-testbench-entity-header): Options deleted.
+	(speedbar-indentation-width, vhdl-compile-file-name)
+	(vhdl-config-alist, vhdl-directive-keywords-regexp)
+	(vhdl-directory-alist, vhdl-font-lock-keywords-0, vhdl-menu-max-size)
+	(vhdl-mode-ext-syntax-table, vhdl-modified-file-list)
+	(vhdl-port-flattened, vhdl-port-reversed-direction)
+	(vhdl-speedbar-hierarchy-depth, vhdl-speedbar-last-selected-project)
+	(vhdl-speedbar-show-projects, vhdl-speedbar-shown-project-list)
+	(vhdl-speedbar-shown-unit-alist, vhdl-speedbar-update-current-unit)
+	(vhdl-subprog-flattened, vhdl-subprog-list, vhdl-updated-project-list)
+	(vhdl-warnings): New variables.
+	(vhdl-project-ent-inst-list, vhdl-project-entity-alist)
+	(vhdl-project-package-alist, vhdl-speedbar-last-file-name)
+	(vhdl-speedbar-shown-units-alist, vhdl-startup-warnings): Variables
+	deleted.
 
 2003-03-04  Rob Kaut  <rob@siworks.com>  (tiny change)
 
