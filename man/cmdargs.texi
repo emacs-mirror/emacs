@@ -77,6 +77,8 @@ the action arguments in the order they are written.
 
 @table @samp
 @item @var{file}
+@itemx --visit @var{file}
+@itemx --file @var{file}
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
 
 @item +@var{linenum} @var{file}
@@ -96,6 +98,7 @@ with @code{EMACSLOADPATH} (@pxref{General Variables}).
 Call Lisp function @var{function} with no arguments.
 
 @item --eval @var{expression}
+@itemx --execute @var{expression}
 Evaluate Lisp expression @var{expression}.
 
 @item --insert=@var{file}
