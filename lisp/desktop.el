@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.01
+;; Version: 2.02
 
 ;; This file is part of GNU Emacs.
 
@@ -23,139 +23,129 @@
 
 ;;; Commentary:
 
-; Save the Desktop, i.e.,
-;	- some global variables
-; 	- the list of buffers with associated files. For each buffer also
-;		- the major mode
-;		- the default directory
-;		- the point
-;		- the mark
-;		- buffer-read-only
-;		- truncate-lines
-;		- case-fold-search
-;		- case-replace
-;		- fill-column
+;; Save the Desktop, i.e.,
+;;	- some global variables
+;; 	- the list of buffers with associated files.  For each buffer also
+;;		- the major mode
+;;		- the default directory
+;;		- the point
+;;		- the mark & mark-active
+;;		- buffer-read-only
+;;		- truncate-lines
+;;		- case-fold-search
+;;		- case-replace
+;;		- fill-column
 
-; To use this, first put these three lines in the bottom of your .emacs 
-; file (the later the better):
-;
-;	(load "desktop")
-;	(desktop-load-default)
-;	(desktop-read)
-;
+;; To use this, first put these three lines in the bottom of your .emacs
+;; file (the later the better):
+;;
+;;	(load "desktop")
+;;	(desktop-load-default)
+;;	(desktop-read)
+;;
 
-; Start Emacs in the root directory of your "project". The desktop saver
-; is inactive by default. You activate it by M-X desktop-save RET. When 
-; you exit the next time the above data will be saved. This ensures that
-; all the files you were editing will be reloaded the next time you start
-; Emacs from the same directory and that points will be set where you
-; left them.
-;
-; PLEASE NOTE: When the kill ring is saved as specified by the variable 
-; `desktop-globals-to-save' (by default it isn't).  This may result in saving
-; things you did not mean to keep.  Use M-X desktop-clear RET.
-;
-; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)  for useful ideas.
-; ---------------------------------------------------------------------------
-; HISTORY:
-;
-; Dec   , 1992: Version 1.0 written; never released.
-; Jan   , 1993: Minor modes now saved: auto-fill-mode, overwrite-mode.
-; Apr 26, 1993: Version 1.1 released.
-; Apr 29, 1993: Now supports RMAIL, Info, and dired modes.
-;               Will now search home directory for desktop file.
-;               desktop-save asks for directory to save in.
-; May 31, 1993: Version 1.3
-;		Now works with Emacs 19.
-; Jun  1, 1993: Minor bug fix.
-;
-; TODO:
-;
-; Save window configuration.
-; Recognize more minor modes.
-; Save mark rings.
-; Start-up with buffer-menu???
+;; Start Emacs in the root directory of your "project". The desktop saver
+;; is inactive by default.  You activate it by M-x desktop-save RET.  When
+;; you exit the next time the above data will be saved.  This ensures that
+;; all the files you were editing will be reloaded the next time you start
+;; Emacs from the same directory and that points will be set where you
+;; left them.
+;;
+;; PLEASE NOTE: The kill ring can be saved as specified by the variable
+;; `desktop-globals-to-save' (by default it isn't).  This may result in saving
+;; things you did not mean to keep.  Use M-x desktop-clear RET.
+;;
+;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)   for useful ideas.
+;;            avk@rtsg.mot.com (Andrew V. Klein)  for a dired tip.
+;;            chris@tecc.co.uk (Chris Boucher)    for a mark tip.
+;; ---------------------------------------------------------------------------
+;; TODO:
+;;
+;; Save window configuration.
+;; Recognize more minor modes.
+;; Save mark rings.
+;; Start-up with buffer-menu???
 
 ;;; Code:
 
-; USER OPTIONS -- settings you might want to play with.
-; -----------------------------------------------------------------------------
-(defconst desktop-basefilename 
+;; USER OPTIONS -- settings you might want to play with.
+;; ----------------------------------------------------------------------------
+(defconst desktop-basefilename
   (if (equal system-type 'ms-dos)
       "emacs.dsk" ; Ms-Dos does not support multiple dots in file name
     ".emacs.desktop")
   "File for Emacs desktop.  A directory name will be prepended to this name.")
 
-(defvar desktop-missing-file-warning t 
+(defvar desktop-missing-file-warning t
   "*If non-nil then issue warning if a file no longer exists.
 Otherwise simply ignore the file.")
 
-(defvar desktop-globals-to-save 
+(defvar desktop-globals-to-save
   (list 'desktop-missing-file-warning
-	; 'kill-ring ; Feature: Also saves kill-ring-yank-pointer
-	'desktop-globals-to-save) ; Itself!
+	;; Feature: saving kill-ring implies saving kill-ring-yank-pointer
+	;; 'kill-ring			
+	'tags-file-name
+	'tags-table-list
+	;; 'desktop-globals-to-save	; Itself!
+	) 
   "List of global variables to save when killing Emacs.")
 
+;; We skip .log files because they are normally temporary.
+;;         (ftp) files because they require passwords and whatsnot.
+;;         TAGS files to save time (tags-file-name is saved instead).
 (defvar desktop-buffers-not-to-save
- "\\(\\.log\\|(ftp)\\)$"
+ "\\(\\.log\\|(ftp)\\|^tags\\|^TAGS\\)$"
  "Regexp identifying buffers that are to be excluded from saving.")
 
 (defvar desktop-buffer-handlers
-  '(desktop-buffer-dired 
+  '(desktop-buffer-dired
     desktop-buffer-rmail
     desktop-buffer-info
     desktop-buffer-file)
-  "*List of functions to call in order to create a buffer.
-The functions are called without parameters
-but may access the the major mode as `mam', 
-the file name as `fn', the buffer name as `bn', the default directory as 
-`dd'.  If some function returns non-nil no further functions are called.  
+  "*List of functions to call in order to create a buffer.  The functions are
+called without explicit parameters but may access the the major mode as `mam',
+the file name as `fn', the buffer name as `bn', the default directory as
+`dd'.  If some function returns non-nil no further functions are called.
 If the function returns t then the buffer is considered created.")
-; ---------------------------------------------------------------------------
-(defvar desktop-dirname nil 
+;; ----------------------------------------------------------------------------
+(defvar desktop-dirname nil
   "The directory in which the current desktop file resides.")
 
 (defconst desktop-header
-"; ---------------------------------------------------------------------------
-; Desktop File for Emacs
-; ---------------------------------------------------------------------------
+";; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
 " "*Header to place in Desktop file.")
-; ---------------------------------------------------------------------------
-(defconst postv18 
+;; ----------------------------------------------------------------------------
+(defconst postv18
   (string-lessp "19" emacs-version)
-  "t is Emacs version 19 or later.")
+  "t if Emacs version 19 or later.")
 
 (defun desktop-clear () "Empty the Desktop."
   (interactive)
   (setq kill-ring nil)
   (setq kill-ring-yank-pointer nil)
   (mapcar (function kill-buffer) (buffer-list)))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; This is a bit dirty for version 18 because that version of Emacs was not
+;; toilet-trained considering hooks.
 (if (not (boundp 'desktop-kill))
     (if postv18
 	(add-hook 'kill-emacs-hook 'desktop-kill)
       (setq old-kill-emacs kill-emacs-hook)
-      (setq kill-emacs-hook 
-	    (function (lambda () (progn (desktop-kill)
-					(run-hooks old-kill-emacs)))))))
-; ---------------------------------------------------------------------------
+      (setq kill-emacs-hook
+	    (function (lambda ()
+			(progn (desktop-kill)
+			       (if (or (null old-kill-emacs)
+				       (symbolp old-kill-emacs))
+				   (run-hooks old-kill-emacs)
+				 (funcall old-kill-emacs))))))))
+;; ----------------------------------------------------------------------------
 (defun desktop-kill ()
-  (if desktop-dirname 
+  (if desktop-dirname
       (progn
 	(desktop-save desktop-dirname))))
-
-;(defun kill-emacs (&optional query)
-;  "End this Emacs session.
-;Prefix ARG or optional first ARG non-nil means exit with no questions asked,
-;even if there are unsaved buffers.  If Emacs is running non-interactively
-;and ARG is an integer, then Emacs exits with ARG as its exit code.
-;
-;If the variable `desktop-dirname' is non-nil,
-;the function desktop-save will be called first."
-;  (interactive "P")
-;  (if desktop-dirname (desktop-save desktop-dirname))
-;  (original-kill-emacs query))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-outvar (VAR)
   "Output a setq statement for VAR to the desktop file."
   (if (boundp VAR)
@@ -165,53 +155,58 @@ If the function returns t then the buffer is considered created.")
 	(insert " '")
 	(prin1 (symbol-value VAR) (current-buffer))
 	(insert ")\n"))))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-save-buffer-p (filename bufname mode)
   "Return t if should record a particular buffer for next startup.
-FILENAME is the visited file name, BUFNAME is the buffer name, and 
+FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode."
-  
+
   (or (and filename
 	   (not (string-match desktop-buffers-not-to-save bufname)))
       (and (null filename)
 	   (memq mode '(Info-mode dired-mode rmail-mode)))))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-save (dirname)
   "Save the Desktop file.  Parameter DIRNAME specifies where to save desktop."
   (interactive "DDirectory to save desktop file in: ")
   (save-excursion
-    (let ((filename (expand-file-name 
+    (let ((filename (expand-file-name
 		     (concat dirname desktop-basefilename)))
-	  (info (nreverse 
-		 (mapcar 
+	  (info (nreverse
+		 (mapcar
 		  (function (lambda (b)
 			      (set-buffer b)
-			      (list 
+			      (list
 			       (buffer-file-name)
 			       (buffer-name)
 			       (list 'quote major-mode)
 			       (list 'quote
-				     (list overwrite-mode 
-					   (not (null 
+				     (list overwrite-mode
+					   (not (null
 						 (if postv18
 						     auto-fill-function
 						   auto-fill-hook)))))
 			       (point)
 			       (if postv18
-				   (mark t)
+				   (list 'quote (mark t) mark-active)
 				 (mark))
 			       buffer-read-only
 			       truncate-lines
 			       fill-column
 			       case-fold-search
 			       case-replace
-			       (list 
+			       (list
 				'quote
 				(cond ((equal major-mode 'Info-mode)
 				       (list Info-current-file
 					     Info-current-node))
 				      ((equal major-mode 'dired-mode)
-				       (list default-directory))
+				       (if postv18
+					   (nreverse
+					    (mapcar
+					     (function car)
+					     dired-subdir-alist))
+					 (list default-directory)))
 				      ))
 			       )))
 		  (buffer-list))))
@@ -219,27 +214,27 @@ MODE is the major mode."
       (set-buffer buf)
       (erase-buffer)
 
-      (insert desktop-header 
-	      "; Created " (current-time-string) "\n"
-	      "; Emacs version " emacs-version "\n\n"
-	      "; Global section:\n")
+      (insert desktop-header
+	      ";; Created " (current-time-string) "\n"
+	      ";; Emacs version " emacs-version "\n\n"
+	      ";; Global section:\n")
       (mapcar (function desktop-outvar) desktop-globals-to-save)
       (if (memq 'kill-ring desktop-globals-to-save)
-	  (insert "(setq kill-ring-yank-pointer (nthcdr " 
-		  (int-to-string 
+	  (insert "(setq kill-ring-yank-pointer (nthcdr "
+		  (int-to-string
 		   (- (length kill-ring) (length kill-ring-yank-pointer)))
 		  " kill-ring))\n"))
 
-      (insert "\n; Buffer section:\n")
-      (mapcar 
+      (insert "\n;; Buffer section:\n")
+      (mapcar
        (function (lambda (l)
-		   (if (desktop-save-buffer-p 
-			(car l) 
+		   (if (desktop-save-buffer-p
+			(car l)
 			(nth 1 l)
 			(nth 1 (nth 2 l)))
 		       (progn
 			 (insert "(desktop-buffer")
-			 (mapcar 
+			 (mapcar
 			  (function (lambda (e)
 				      (insert "\n  ")
 				      (prin1 e (current-buffer))))
@@ -250,7 +245,7 @@ MODE is the major mode."
       (if (file-exists-p filename) (delete-file filename))
       (write-region (point-min) (point-max) filename nil 'nomessage)))
   (setq desktop-dirname dirname))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-remove ()
   "Delete the Desktop file and inactivate the desktop system."
   (interactive)
@@ -258,7 +253,7 @@ MODE is the major mode."
       (let ((filename (concat desktop-dirname desktop-basefilename)))
 	(if (file-exists-p filename) (delete-file filename))
 	(setq desktop-dirname nil))))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-read ()
   "Read the Desktop file and the files it specifies."
   (interactive)
@@ -273,43 +268,48 @@ MODE is the major mode."
 	  (load (concat desktop-dirname desktop-basefilename) t t t)
 	  (message "Desktop loaded."))
       (desktop-clear))))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-load-default ()
-  "Load the `default' start-up library manually.
-Also inhibit further loading of it.
-Call this from your `.emacs' file
-provide correct modes for autoloaded files."
-  (if (not inhibit-default-init)
+  "Load the `default' start-up library manually.  Also inhibit further loading
+of it.  Call this from your `.emacs' file to provide correct modes for 
+autoloaded files."
+  (if (not inhibit-default-init)	; safety check
       (progn
 	(load "default" t t)
 	(setq inhibit-default-init t))))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; Note: the following functions use the dynamic variable binding in Lisp.
+;;       The byte compiler may therefore complain of undeclared variables.
+;;
 (defun desktop-buffer-info () "Load an info file."
   (if (equal 'Info-mode mam)
       (progn
 	(require 'info)
 	(Info-find-node (nth 0 misc) (nth 1 misc))
 	t)))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-buffer-rmail () "Load a RMAIL file."
   (if (equal 'rmail-mode mam)
       (progn (rmail-input fn) t)))
-; ---------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
   (if (equal 'dired-mode mam)
-      (progn (dired (nth 0 misc)) t)))
-; ---------------------------------------------------------------------------
+      (progn
+	(dired (car misc))
+	(mapcar (function dired-maybe-insert-subdir) (cdr misc))
+	t)))
+;; ----------------------------------------------------------------------------
 (defun desktop-buffer-file () "Load a file."
   (if fn
       (if (or (file-exists-p fn)
 	      (and desktop-missing-file-warning
-		   (y-or-n-p (format 
-			      "File \"%s\" no longer exists. Re-create? " 
+		   (y-or-n-p (format
+			      "File \"%s\" no longer exists. Re-create? "
 			      fn))))
 	  (progn (find-file fn) t)
 	'ignored)))
-; ---------------------------------------------------------------------------
-;;Create a buffer, load its file, set is mode, ...;  called from Desktop file
+;; ----------------------------------------------------------------------------
+;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
 ;; only.
 (defun desktop-buffer (fn bn mam mim pt mk ro tl fc cfs cr misc)
   (let ((hlist desktop-buffer-handlers)
@@ -330,15 +330,20 @@ provide correct modes for autoloaded files."
 	      (auto-fill-mode 1)
 	    (overwrite-mode 0))
 	  (goto-char pt)
-	  (set-mark mk)
-	  (setq buffer-read-only ro)
+	  (if (consp mk)
+	      (progn
+		(set-mark (car mk))
+		(setq mark-active (car (cdr mk))))
+	    (set-mark mk))
+	  ;; Never override file system if the file really is read-only marked.
+	  (if ro (setq buffer-read-only ro))
 	  (setq truncate-lines tl)
 	  (setq fill-column fc)
 	  (setq case-fold-search cfs)
 	  (setq case-replace cr)
 	  ))))
-; ---------------------------------------------------------------------------
-
+;; ----------------------------------------------------------------------------
 (provide 'desktop)
 
 ;; desktop.el ends here.
+
