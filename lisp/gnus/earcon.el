@@ -28,9 +28,6 @@
 
 ;;; Code:
 
-(if (null (boundp 'running-xemacs))
-    (defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)))
-
 (eval-when-compile (require 'cl))
 (require 'gnus)
 (require 'gnus-audio)
