@@ -149,8 +149,7 @@ variable to see if its value is t or nil.
 This variable has an effect only when the value of
 `dabbrev-case-fold-search' evaluates to t.")
 
-;; I recommend that you set this to "\\sw\\|\\s_"
-(defvar dabbrev-abbrev-char-regexp nil
+(defvar dabbrev-abbrev-char-regexp "\\sw\\|\\s_"
   "*Regexp to recognize a character in an abbreviation or expansion.
 This regexp will be surrounded with \\\\( ... \\\\) when actually used.
 
