@@ -1259,7 +1259,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
 	      RETURN_UNGCPRO (value);
 	  }
 
-      local = get_local_map (PT, current_buffer, keymap);
+      local = get_local_map (PT, current_buffer, Qkeymap);
       if (! NILP (local))
 	{
 	  value = Flookup_key (local, key, accept_default);
@@ -1267,7 +1267,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
 	    RETURN_UNGCPRO (value);
 	}
 
-      local = get_local_map (PT, current_buffer, local_map);
+      local = get_local_map (PT, current_buffer, Qlocal_map);
 
       if (! NILP (local))
 	{
@@ -2239,8 +2239,8 @@ and entirely reject menu bindings.\n\
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
 to other keymaps or slots.  This makes it possible to search for an\n\
 indirect definition itself.")
-  (definition, xkeymap, firstonly, noindirect)
-     Lisp_Object definition, xkeymap;
+  (definition, keymap, firstonly, noindirect)
+     Lisp_Object definition, keymap;
      Lisp_Object firstonly, noindirect;
 {
   Lisp_Object sequences, keymaps;
@@ -2249,21 +2249,22 @@ indirect definition itself.")
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
 
   /* Find the relevant keymaps.  */
-  if (CONSP (xkeymap) && KEYMAPP (XCAR (xkeymap)))
-    keymaps = xkeymap;
-  else if (! NILP (xkeymap))
-    keymaps = Fcons (xkeymap, Fcons (current_global_map, Qnil));
+  if (CONSP (keymap) && KEYMAPP (XCAR (keymap)))
+    keymaps = keymap;
+  else if (! NILP (keymap))
+    keymaps = Fcons (keymap, Fcons (current_global_map, Qnil));
   else
     keymaps =
       Fdelq (Qnil,
 	     nconc2 (Fcurrent_minor_mode_maps (),
-		     Fcons (get_local_map (PT, current_buffer, keymap),
-			    Fcons (get_local_map (PT, current_buffer, local_map),
+		     Fcons (get_local_map (PT, current_buffer, Qkeymap),
+			    Fcons (get_local_map (PT, current_buffer,
+						  Qlocal_map),
 				   Fcons (current_global_map, Qnil)))));
 
   /* Only use caching for the menubar (i.e. called with (def nil t nil).
-     We don't really need to check `xkeymap'.  */
-  if (nomenus && NILP (noindirect) && NILP (xkeymap))
+     We don't really need to check `keymap'.  */
+  if (nomenus && NILP (noindirect) && NILP (keymap))
     {
       /* Check heuristic-consistency of the cache.  */
       if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
