@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, charset, coding system, fontset, diagnosis, i18n
 
@@ -1213,9 +1214,9 @@ No input method is available, perhaps because you have not yet
 installed LEIM (Libraries of Emacs Input Method).
 
 LEIM is available from the same ftp directory as Emacs.  For instance,
-if there exists an archive file `emacs-20.N.tar.gz', there should also
-be a file `leim-20.N.tar.gz'.  When you extract this file, LEIM files
-are put under the subdirectory `emacs-20.N/leim'.  When you install
+if there exists an archive file `emacs-M.N.tar.gz', there should also
+be a file `leim-M.N.tar.gz'.  When you extract this file, LEIM files
+are put under the subdirectory `emacs-M.N/leim'.  When you install
 Emacs again, you should be able to use various input methods."))
     (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
