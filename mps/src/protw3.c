@@ -1,6 +1,6 @@
 /*  impl.c.protw3: PROTECTION FOR WIN32
  *
- *  $HopeName: MMsrc!protw3.c(trunk.12) $
+ *  $HopeName: MMsrc!protw3.c(trunk.13) $
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  */
 
@@ -18,7 +18,7 @@
 
 #include "mpswin.h"
 
-SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.12) $");
+SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.13) $");
 
 
 void ProtSetup(void)
@@ -63,7 +63,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
   
-  context.er = er;
+  context.ep = info;
 
   /* assert that the exception is continuable */
   /* Note that Microsoft say that this field should be 0 or */
