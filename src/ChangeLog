@@ -1,3 +1,7 @@
+2000-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_set_face): Obey inverse_video.
+
 2000-12-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* dired.c (directory_files_internal): Always return decoded filenames.

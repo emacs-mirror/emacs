@@ -1,3 +1,7 @@
+2000-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/codepage.el (cp866-decode-table): New table.
+
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* version.el (emacs-version): Remove `%a' from the time format
