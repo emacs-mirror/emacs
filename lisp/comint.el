@@ -1192,7 +1192,9 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))
 	  (funcall comint-input-sender proc input)
-	  (comint-output-filter proc "")))))
+	  ;; This used to call comint-output-filter-functions,
+	  ;; but that scrolled the buffer in undesirable ways.
+	  (run-hook-with-args 'comint-output-filter-functions "")))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
