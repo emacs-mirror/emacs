@@ -1,3 +1,10 @@
+2002-12-22  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (XTread_socket): Call KeyTranslate for control and
+	meta to deal correctly shifted non-alpha characters, like C-S-5
+	being treated like C-%.  Does not look for shift key to deal
+	with masking off control-key with mac-reverse-ctrl-meta.
+
 2002-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* xmenu.c (popup_get_selection): Now static.  New arg DO_TIMERS.

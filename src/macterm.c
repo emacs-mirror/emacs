@@ -12931,26 +12931,19 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	      bufp->code = 0xff00 | xkeysym;
 	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
 	    }	   
-	  else if (!NILP (Vmac_reverse_ctrl_meta) && (er.modifiers & controlKey))
-	    {
-	      /* This is a special case to deal with converting from
-		 a control character to non-control character */
-	      int new_modifiers = er.modifiers & ~controlKey;
-	      int new_keycode = keycode | new_modifiers;	      
-	      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-	      unsigned long some_state = 0;
-	      bufp->code = KeyTranslate (kchr_ptr, new_keycode, &some_state) & 0xff;
-	      bufp->kind = ASCII_KEYSTROKE_EVENT;
-	    }
 	  else
 	    {
-	      if (er.modifiers & macMetaKey)
+	      if (er.modifiers & (controlKey | 
+				  (NILP (Vmac_command_key_is_meta) ? optionKey 
+				   : cmdKey)))
 		{
 		  /* This code comes from Keyboard Resource, Appendix
 		     C of IM - Text.  This is necessary since shift is
 		     ignored in KCHR table translation when option or
-		     command is pressed. */
-		  int new_modifiers = er.modifiers & 0xf600;
+		     command is pressed.  It also does not translate 
+		     correctly control-shift chars like C-% so mask off
+		     shift here also */
+		  int new_modifiers = er.modifiers & 0xe600;
 		  /* mask off option and command */
 		  int new_keycode = keycode | new_modifiers;
 		  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
