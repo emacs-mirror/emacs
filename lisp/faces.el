@@ -80,7 +80,8 @@ ALTERNATIVE2 etc."
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
   (if (eq system-type 'windows-nt)
-      '(("gb2312.1980" "gb2312")
+      '(("iso8859-1" "ms-oemlatin")
+	("gb2312.1980" "gb2312")
 	("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
 	("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
 	("muletibetan-2" "muletibetan-0"))
