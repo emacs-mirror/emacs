@@ -1,7 +1,7 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.34) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!arenavm.c(trunk.35) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
  * abstraction.  Use of this arena implies use of a VM.
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.34) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.35) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -149,7 +149,7 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKL(vmArena->base < vmArena->limit);
   CHECKL(ShiftCheck(vmArena->pageShift));
   CHECKL(vmArena->pageSize == 1uL << vmArena->pageShift);
-  CHECKL(VMAlign() == vmArena->pageSize);
+  CHECKL(VMAlign(vmArena->vm) == vmArena->pageSize);
   CHECKL(vmArena->pages == 
          AddrOffset(vmArena->base, vmArena->limit) >> 
          vmArena->pageShift);
@@ -162,8 +162,8 @@ static Bool VMArenaCheck(VMArena vmArena)
            AddrAdd(vmArena->base, vmArena->tablesSize));
   CHECKL(vmArena->allocTable != NULL);
   CHECKL((Addr)vmArena->allocTable >= vmArena->base);
-  CHECKL(AddrAdd((Addr)vmArena->allocTable, BTSize(vmArena->pages)) <=
-         vmArena->limit);
+  CHECKL(AddrAdd((Addr)vmArena->allocTable, BTSize(vmArena->pages))
+         <= vmArena->limit);
   /* .improve.check-table: Could check the consistency of the tables. */
   return TRUE;
 }
@@ -193,10 +193,6 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   AVER(arenaReturn != NULL);
   AVER(size > 0);
 
-  /* VMCreate requires aligned size */
-  size = SizeAlignUp(size, VMAlign());
-  AVER(size != 0);
-
   res = VMCreate(&vm, size);
   if(res != ResOK) goto failVMCreate;
 
@@ -206,7 +202,7 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   initArena->base = base;
   initArena->limit = VMLimit(vm);
   AVER(AddrOffset(initArena->base, initArena->limit) == size);
-  initArena->pageSize = VMAlign();
+  initArena->pageSize = VMAlign(vm);
   initArena->pageShift = SizeLog2(initArena->pageSize);
   initArena->pages = size >> initArena->pageShift;
   /* We generally assume that a page is aligned enough for any */
@@ -219,16 +215,16 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   /* table (a PageStruct array).  Only the free table is mapped now. */
   /* .vm.addr-is-star: In this file, Addr is compatible with C */
   /* pointers. */
-  initArena->allocTable = (BT)AddrAlignUp(AddrAdd(base,
-       	                  (Size)sizeof(VMArenaStruct)),
-                                          MPS_PF_ALIGN);
+  initArena->allocTable =
+    (BT)AddrAlignUp(AddrAdd(base, (Size)sizeof(VMArenaStruct)),
+                    MPS_PF_ALIGN);
   initArena->pageTable = 
     (Page)AddrAlignUp(AddrAdd((Addr)initArena->allocTable,
     BTSize(initArena->pages)), initArena->pageSize);
   pageTableSize = SizeAlignUp(initArena->pages * sizeof(PageStruct),
                               initArena->pageSize);
   initArena->tablesSize = AddrOffset(base,
-                                AddrAdd((Addr)initArena->pageTable,
+                                     AddrAdd((Addr)initArena->pageTable,
                                              pageTableSize));
   res = VMMap(vm, base, (Addr)initArena->pageTable);
   if(res != ResOK) goto failTableMap;
@@ -625,7 +621,8 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* we fail. */
   addr = PageIndexBase(vmArena, base);
   res = VMMap(vmArena->vm, addr, AddrAdd(addr, size));
-  if(res) goto failSegMap;
+  if(res)
+    goto failSegMap;
 
   /* Compute number of pages to be allocated. */
   pages = size >> vmArena->pageShift;
@@ -634,7 +631,8 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   if(unusedTablePages(&unmappedPagesBase, &unmappedPagesLimit,
 		      vmArena, base, base + pages)) {
     res = VMMap(vmArena->vm, unmappedPagesBase, unmappedPagesLimit);
-    if(res) goto failTableMap;
+    if(res)
+      goto failTableMap;
   }
 
   /* Initialize the generic segment structure. */
@@ -777,15 +775,32 @@ static Addr VMSegLimit(Seg seg)
 
 /* VMSegSize -- return the size (limit - base) of a segment
  *
- * .improve.redundant-calc: There is scope for optimizing this,
- * because both base and limit calls do roughly the same thing twice.
  */
 
 static Size VMSegSize(Seg seg)
 {
+  VMArena vmArena;
+  Page page;
+  Index i;
+  Addr base, limit;
+
   AVERT_CRITICAL(Seg, seg); /* .seg.critical */
 
-  return AddrOffset(VMSegBase(seg), VMSegLimit(seg));
+  vmArena = SegVMArena(seg);
+  AVERT_CRITICAL(VMArena, vmArena);
+
+  page = PageOfSeg(seg);
+  i = page - vmArena->pageTable;
+  base = PageIndexBase(vmArena, i);
+
+  if(SegSingle(seg)) {
+    limit = AddrAdd(VMSegBase(seg), vmArena->pageSize);
+  } else {
+    page = PageOfSeg(seg);
+    limit = PageTail(page+1)->limit;
+  }
+
+  return AddrOffset(base, limit);
 }
 
 
