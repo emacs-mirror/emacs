@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.40 2002/09/13 18:25:26 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.41 2002/09/13 19:09:45 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -976,9 +976,11 @@ Optional argument NOSHOW if non-nil means not to display the buffer."
 (defun cvs-update (directory flags)
   "Run a `cvs update' in the current working DIRECTORY.
 Feed the output to a *cvs* buffer and run `cvs-mode' on it.
-With a prefix argument, prompt for a directory and cvs FLAGS to use.
+With a \\[universal-argument] prefix argument, prompt for a directory to use.
 A prefix arg >8 (ex: \\[universal-argument] \\[universal-argument]),
-  prevents reuse of an existing *cvs* buffer."
+  prevents reuse of an existing *cvs* buffer.
+The prefix is also passed to `cvs-flags-query' to select the FLAGS
+  passed to cvs."
   (interactive (list (cvs-query-directory "CVS Update (directory): ")
 		     (cvs-flags-query 'cvs-update-flags "cvs update flags")))
   (when (eq flags t)
@@ -1888,7 +1890,7 @@ This command ignores files that are not flagged as `Unknown'."
 With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
   (when (ignore-errors (mouse-set-point e) t)	;for invocation via the mouse
-    (unless (memq (get-text-property (1- (line-end-position)) 'face)
+    (unless (memq (get-text-property (1- (line-end-position)) 'font-lock-face)
 		  '(cvs-header-face cvs-filename-face))
       (error "Not a file name")))
   (cvs-mode!
