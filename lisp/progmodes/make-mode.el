@@ -1364,17 +1364,16 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 (defun makefile-define-space-face ()
   (make-face 'makefile-space-face)
   (or (face-differs-from-default-p 'makefile-space-face)
-      (let* ((light-bg (eq font-lock-background-mode 'light))
-	     (bg-color
-	      (cond ((memq font-lock-display-type '(mono monochrome))
-		     (if light-bg "black" "white"))
-		    ((memq font-lock-display-type '(grayscale greyscale
-						    grayshade greyshade))
-		     (if light-bg "black" "white"))
-		    (light-bg		; Light color background.
-		     "hotpink")
-		    (t			; Dark color background.
-		     "hotpink"))))
+      (let* ((params (frame-parameters))
+	     (light-bg (cdr (assq 'background-mode params)))
+	     (bg-color (cond ((eq (cdr (assq 'display-type params)) 'mono)
+			      (if light-bg "black" "white"))
+			     ((eq (cdr (assq 'display-type params)) 'grayscale)
+			      (if light-bg "black" "white"))
+			     (light-bg		; Light color background.
+			      "hotpink")
+			     (t			; Dark color background.
+			      "hotpink"))))
 	(set-face-background 'makefile-space-face bg-color))))
 
 ;;; makefile.el ends here
