@@ -1269,6 +1269,7 @@ other_menu_bar_item_p (f, x, y)
      int x, y;
 {
   return (y >= 0
+	  && f->display.x->menubar_widget != 0
 	  && y < f->display.x->menubar_widget->core.height
 	  && x >= 0
 	  && x < last_menu_bar_item_end
