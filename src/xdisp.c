@@ -3138,8 +3138,6 @@ static int
 single_display_prop_string_p (prop, string)
      Lisp_Object prop, string;
 {
-  extern Lisp_Object Qwhen, Qmargin;
-
   if (EQ (string, prop))
     return 1;
   
@@ -3175,8 +3173,6 @@ static int
 display_prop_string_p (prop, string)
      Lisp_Object prop, string;
 {
-  extern Lisp_Object Qwhen, Qmargin;
-  
   if (CONSP (prop)
       && CONSP (XCAR (prop))
       && !EQ (Qmargin, XCAR (XCAR (prop))))
@@ -3222,7 +3218,6 @@ string_buffer_position (w, string, around_charpos)
      Lisp_Object string;
      int around_charpos;
 {
-  Lisp_Object around = make_number (around_charpos);
   Lisp_Object limit, prop, pos;
   const int MAX_DISTANCE = 1000;
   int found = 0;
@@ -7140,7 +7135,7 @@ store_frame_title (str, field_width, precision)
      int field_width, precision;
 {
   int n = 0;
-  int dummy, nbytes, width;
+  int dummy, nbytes;
 
   /* Copy at most PRECISION chars from STR.  */
   nbytes = strlen (str);
