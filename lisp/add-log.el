@@ -103,7 +103,9 @@ current buffer to the complete file name."
 			 (not (string= (file-name-directory file1)
 				       parent-dir))))
 	;; Move up to the parent dir and try again.
-	(setq file1 (expand-file-name (change-log-name) parent-dir)))
+	(setq file1 (expand-file-name 
+		     (file-name-nondirectory (change-log-name))
+	     parent-dir)))
       ;; If we found a change log in a parent, use that.
       (if (or (get-file-buffer file1) (file-exists-p file1))
 	  (setq file-name file1)))
@@ -150,6 +152,8 @@ never append to an existing entry."
     (if (and other-window (not (equal file-name buffer-file-name)))
 	(find-file-other-window file-name)
       (find-file file-name))
+    (or (eq major-mode 'change-log-mode)
+	(change-log-mode))
     (undo-boundary)
     (goto-char (point-min))
     (if (looking-at (concat (regexp-quote (substring (current-time-string)
