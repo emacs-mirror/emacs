@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -155,6 +155,9 @@ Lisp_Object last_input_char;
 /* If not Qnil, a list of objects to be read as subsequent command input.  */
 Lisp_Object unread_command_events;
 
+/* If not -1, an event to be read as subsequent command input.  */
+int unread_command_char;
+
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
    next command input, after any unread_command_events.
@@ -237,6 +240,13 @@ Lisp_Object Vkeyboard_translate_table;
 
 /* Keymap mapping ASCII function key sequences onto their preferred forms.  */
 extern Lisp_Object Vfunction_key_map;
+
+/* Non-nil means deactivate the mark at end of this command.  */
+Lisp_Object Vdeactivate_mark;
+
+/* Hooks to run before and after each command.  */
+Lisp_Object Qpre_command_hook, Qpost_command_hook;
+Lisp_Object Vpre_command_hook, Vpost_command_hook;
 
 /* File in which we write all commands we read.  */
 FILE *dribble;
@@ -828,8 +838,11 @@ command_loop_1 ()
   int i;
   int no_redisplay;
   int no_direct;
+  int prev_modiff;
+  struct buffer *prev_buffer;
 
   Vprefix_arg = Qnil;
+  Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
   cancel_echoing ();
 
@@ -859,6 +872,8 @@ command_loop_1 ()
 	display_malloc_warning ();
 
       no_direct = 0;
+
+      Vdeactivate_mark = Qnil;
 
       /* If minibuffer on and echo area in use,
 	 wait 2 sec and redraw minibufer.  */
@@ -926,7 +941,14 @@ command_loop_1 ()
 	 cases identified below that set no_redisplay to 1.  */
       no_redisplay = 0;
 
+      prev_buffer = current_buffer;
+      prev_modiff = MODIFF;
+
       /* Execute the command.  */
+
+      this_command = cmd;
+      if (!NILP (Vpre_command_hook))
+	call1 (Vrun_hooks, Qpre_command_hook);
 
       if (NILP (cmd))
 	{
@@ -935,10 +957,10 @@ command_loop_1 ()
 	  defining_kbd_macro = 0;
 	  update_mode_lines = 1;
 	  Vprefix_arg = Qnil;
+
 	}
       else
 	{
-	  this_command = cmd;
 	  if (NILP (Vprefix_arg) && ! no_direct)
 	    {
 	      /* Recognize some common commands in common situations and
@@ -1042,6 +1064,9 @@ command_loop_1 ()
 	}
     directly_done: ;
 
+      if (!NILP (Vpost_command_hook))
+	call1 (Vrun_hooks, Qpost_command_hook);
+
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
 	 (that would be dumb), so don't set last_command,
@@ -1056,6 +1081,17 @@ command_loop_1 ()
 	  last_command = this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
+	}
+
+      if (!NILP (current_buffer->mark_active))
+	{
+	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
+	    {
+	      current_buffer->mark_active = Qnil;
+	      call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+	    }
+	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
+	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
 	}
     }
 }
@@ -1166,6 +1202,17 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	goto reread;
     }
 
+  if (unread_command_char != -1)
+    {
+      XSET (c, Lisp_Int, unread_command_char);
+      unread_command_char = -1;
+
+      if (this_command_key_count == 0)
+	goto reread_first;
+      else
+	goto reread;
+    }
+
   if (!NILP (Vexecuting_macro))
     {
 #ifdef MULTI_FRAME
@@ -1189,6 +1236,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
       
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
+      if (XTYPE (Vexecuting_macro) == Lisp_String
+	  && (XINT (c) & 0x80))
+	XFASTINT (c) = CHAR_META | (XINT (c) & ~0x80);
+
       executing_macro_index++;
 
       goto from_macro;
@@ -1343,11 +1394,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (XTYPE (c) == Lisp_Int)
     {
       /* If kbd_buffer_get_event gave us an EOF, return that.  */
-      if (XINT (c) < 0)
+      if (XINT (c) == -1)
 	return c;
-
-      /* Strip the high bits, and maybe the meta bit too.  */
-      XSETINT (c, XINT (c) & (meta_key ? 0377 : 0177));
 
       if (XTYPE (Vkeyboard_translate_table) == Lisp_String
 	  && XSTRING (Vkeyboard_translate_table)->size > XFASTINT (c))
@@ -1537,8 +1585,7 @@ kbd_buffer_store_event (event)
     {
       register int c = XFASTINT (event->code) & 0377;
 
-      if (c == quit_char
-	  || ((c == (0200 | quit_char)) && !meta_key))
+      if (c == quit_char)
 	{
 	  extern SIGTYPE interrupt_signal ();
 
@@ -1694,8 +1741,6 @@ kbd_buffer_get_event ()
       if (NILP (obj))
 	{
 	  obj = make_lispy_event (event);
-	  if (XTYPE (obj) == Lisp_Int)
-	    XSET (obj, Lisp_Int, XINT (obj) & (meta_key ? 0377 : 0177));
       
 	  /* Wipe out this event, to catch bugs.  */
 	  event->kind = no_event;
@@ -1766,6 +1811,23 @@ static char *lispy_function_keys[] =
   {
     /* X Keysym value */
 
+    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xff00 */
+    "backspace",
+    "tab",
+    "linefeed",
+    "clear",
+    0,
+    "return",
+    0, 0,
+    0, 0, 0,			/* 0xff10 */
+    "pause",
+    0, 0, 0, 0, 0, 0, 0,
+    "escape",
+    0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff20...2f */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff30...3f */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff40...4f */
+
     "home",			/* 0xff50 */	/* IsCursorKey */
     "left",
     "up",
@@ -1829,11 +1891,15 @@ static char *lispy_function_keys[] =
     0, 0,
     "kp-equal",			/* 0xffbd */
     "f1",			/* 0xffbe */	/* IsFunctionKey */
-    "f2",	"f3",	"f4",
-    "f5",	"f6",	"f7",	"f8",	"f9",	"f10",	"f11",	"f12",
-    "f13",	"f14",	"f15",	"f16",	"f17",	"f18",	"f19",	"f20",
-    "f21",	"f22",	"f23",	"f24",	"f25",	"f26",	"f27",	"f28",
-    "f29",	"f30",	"f31",	"f32",	"f33",	"f34",	"f35"	/* 0xffe0 */
+    "f2",
+    "f3", "f4", "f5", "f6", "f7", "f8",	"f9", "f10", /* 0xffc0 */
+    "f11", "f12", "f13", "f14", "f15", "f16", "f17", "f18",
+    "f19", "f20", "f21", "f22", "f23", "f24", "f25", "f26", /* 0xffd0 */
+    "f27", "f28", "f29", "f30", "f31", "f32", "f33", "f34",
+    "f35", 0, 0, 0, 0, 0, 0, 0,	/* 0xffe0 */
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,     /* 0xfff0 */
+    0, 0, 0, 0, 0, 0, 0, "delete"
     };
 
 static char *lispy_mouse_names[] = 
@@ -1883,8 +1949,21 @@ make_lispy_event (event)
     {
       /* A simple keystroke.  */
     case ascii_keystroke:
-      return XFASTINT (event->code);
-      break;
+      {
+	int c = XFASTINT (event->code);
+	/* Include the bits for control and shift
+	   only if the basic ASCII code can't indicate them.  */
+	if ((event->modifiers & ctrl_modifier)
+	    && c >= 040)
+	  c |= ctrl_modifier;
+	if (XFASTINT (event->code) < 040
+	    && (event->modifiers & shift_modifier))
+	  c |= shift_modifier;
+	c |= (event->modifiers
+	      & (meta_modifier | alt_modifier
+		 | hyper_modifier | super_modifier));
+	return c;
+      }
 
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
@@ -2159,11 +2238,7 @@ parse_modifiers_uncached (symbol, modifier_end)
 	break;
 
       case 's':
-	if (i + 6 > name->size
-	    || strncmp (name->data + i, "super-", 6))
-	  goto no_more_modifiers;
-	modifiers |= super_modifier;
-	i += 6;
+	SINGLE_LETTER_MOD (super_modifier);
 	break;
 
       case 'd':
@@ -2217,7 +2292,7 @@ apply_modifiers_uncached (modifiers, base, base_len)
      to use Fintern, which expects a genuine Lisp_String, and keeps a
      reference to it.  */
   char *new_mods =
-    (char *) alloca (sizeof ("A-C-H-M-S-super-down-drag-"));
+    (char *) alloca (sizeof ("A-C-H-M-S-s-down-drag-"));
   int mod_len;
 
   {
@@ -2233,7 +2308,7 @@ apply_modifiers_uncached (modifiers, base, base_len)
     if (modifiers & hyper_modifier) { *p++ = 'H'; *p++ = '-'; }
     if (modifiers & meta_modifier)  { *p++ = 'M'; *p++ = '-'; }
     if (modifiers & shift_modifier) { *p++ = 'S'; *p++ = '-'; }
-    if (modifiers & super_modifier) { strcpy (p, "super-"); p += 6; }
+    if (modifiers & super_modifier) { *p++ = 's'; *p++ = '-'; }
     if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
     if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
     /* The click modifier is denoted by the absence of other modifiers.  */
@@ -2256,8 +2331,9 @@ apply_modifiers_uncached (modifiers, base, base_len)
 
 static char *modifier_names[] =
 {
-  "up", "alt", "control", "hyper", "meta", "shift", "super", "down", "drag",
-  "click"
+  "up", 0, 0, 0, 0, 0, 0, "down",
+  "drag", "click", 0, 0, 0, 0, 0, 0,
+  0, 0, "alt", "super", "hyper", "shift", "control", "meta"
 };
 
 static Lisp_Object modifier_symbols;
@@ -2608,6 +2684,11 @@ read_avail_input (expected)
       for (i = 0; i < nread; i++)
 	{
 	  buf[i].kind = ascii_keystroke;
+	  buf[i].modifiers = 0;
+	  if (meta_key && (cbuf[i] & 0x80))
+	    buf[i].modifiers = meta_modifier;
+	  cbuf[i] &= ~0x80;
+	    
 	  XSET (buf[i].code,		Lisp_Int,   cbuf[i]);
 #ifdef MULTI_FRAME
 	  XSET (buf[i].frame_or_window, Lisp_Frame, selected_frame);
@@ -2928,8 +3009,7 @@ follow_key (key, nmaps, current, defs, next)
 
   /* If KEY is a meta ASCII character, treat it like meta-prefix-char
      followed by the corresponding non-meta character.  */
-  if (XTYPE (key) == Lisp_Int
-      && XINT (key) >= 0200)
+  if (XTYPE (key) == Lisp_Int && (XINT (key) & CHAR_META))
     {
       for (i = 0; i < nmaps; i++)
 	if (! NILP (current[i]))
@@ -2946,7 +3026,7 @@ follow_key (key, nmaps, current, defs, next)
 	  next[i] = Qnil;
 
       current = next;
-      XSET (key, Lisp_Int, XFASTINT (key) & 0177);
+      XSET (key, Lisp_Int, XFASTINT (key) & ~CHAR_META);
     }
 
   first_binding = nmaps;
@@ -2967,9 +3047,13 @@ follow_key (key, nmaps, current, defs, next)
      lower-case letter, return the bindings for the lower-case letter.  */
   if (first_binding == nmaps
       && XTYPE (key) == Lisp_Int
-      && UPPERCASEP (XINT (key)))
+      && (UPPERCASEP (XINT (key) & 0x3ffff)
+	  || (XINT (key) & shift_modifier)))
     {
-      XSETINT (key, DOWNCASE (XINT (key)));
+      if (XINT (key) & shift_modifier)
+	XSETINT (key, XINT (key) & ~shift_modifier);
+      else
+	XSETINT (key, DOWNCASE (XINT (key)));
 
       first_binding = nmaps;
       for (i = nmaps - 1; i >= 0; i--)
@@ -2984,7 +3068,7 @@ follow_key (key, nmaps, current, defs, next)
 	    defs[i] = Qnil;
 	}
     }
-  
+
   /* Given the set of bindings we've found, produce the next set of maps.  */
   if (first_binding < nmaps)
     for (i = 0; i < nmaps; i++)
@@ -3218,7 +3302,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
 	     zero, so that's what we'll do.  */
-	  if (XTYPE (key) == Lisp_Int && XINT (key) < 0)
+	  if (XTYPE (key) == Lisp_Int && XINT (key) == -1)
 	    {
 	      t = 0;
 	      goto done;
@@ -3529,7 +3613,7 @@ sequences, where they wouldn't conflict with ordinary bindings.  See\n\
 			 NILP (prompt) ? 0 : XSTRING (prompt)->data);
 
   UNGCPRO;
-  return make_array (i, keybuf);
+  return make_event_array (i, keybuf);
 }
 
 DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 2, 0,
@@ -3695,7 +3779,7 @@ DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
 Actually, the value is nil only if we can be sure that no input is available.")
   ()
 {
-  if (!NILP (unread_command_events))
+  if (!NILP (unread_command_events) || unread_command_char != -1)
     return (Qt);
 
   return detect_input_pending () ? Qt : Qnil;
@@ -3727,8 +3811,8 @@ DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
   "Return string of the keystrokes that invoked this command.")
   ()
 {
-  return make_array (this_command_key_count,
-		     XVECTOR (this_command_keys)->contents);
+  return make_event_array (this_command_key_count,
+			   XVECTOR (this_command_keys)->contents);
 }
 
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
@@ -3769,6 +3853,7 @@ Also cancel any kbd macro being defined.")
   update_mode_lines++;
 
   unread_command_events = Qnil;
+  unread_command_char = -1;
 
   discard_tty_input ();
 
@@ -4022,6 +4107,7 @@ quit_throw_to_read_char ()
   input_pending = 0;
 
   unread_command_events = Qnil;
+  unread_command_char = -1;
 
   _longjmp (getcjmp, 1);
 }
@@ -4076,6 +4162,7 @@ init_keyboard ()
   immediate_quit = 0;
   quit_char = Ctl ('g');
   unread_command_events = Qnil;
+  unread_command_char = -1;
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
@@ -4167,6 +4254,12 @@ syms_of_keyboard ()
   Qdisabled = intern ("disabled");
   staticpro (&Qdisabled);
 
+  Qpre_command_hook = intern ("pre-command-hook");
+  staticpro (&Qpre_command_hook);
+
+  Qpost_command_hook = intern ("post-command-hook");
+  staticpro (&Qpost_command_hook);
+
   Qfunction_key = intern ("function-key");
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
@@ -4218,7 +4311,8 @@ syms_of_keyboard ()
 
     modifier_symbols = Fmake_vector (make_number (len), Qnil);
     for (i = 0; i < len; i++)
-      XVECTOR (modifier_symbols)->contents[i] = intern (modifier_names[i]);
+      if (modifier_names[i])
+	XVECTOR (modifier_symbols)->contents[i] = intern (modifier_names[i]);
     staticpro (&modifier_symbols);
   }
 
@@ -4263,19 +4357,28 @@ syms_of_keyboard ()
 \(has a non-nil `disabled' property).");
 
   DEFVAR_LISP ("last-command-char", &last_command_char,
-    "Last terminal input key that was part of a command.");
+    "Last input event that was part of a command.");
+
+  DEFVAR_LISP ("last-command-event", &last_command_char,
+    "Last input event that was part of a command.");
 
   DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
-    "Last terminal input key in a command, except for mouse menus.\n\
+    "Last input event in a command, except for mouse menu events.\n\
 Mouse menus give back keys that don't look like mouse events;\n\
 this variable holds the actual mouse event that led to the menu,\n\
 so that you can determine whether the command was run by mouse or not.");
 
   DEFVAR_LISP ("last-input-char", &last_input_char,
-    "Last terminal input key.");
+    "Last input event.");
+
+  DEFVAR_LISP ("last-input-event", &last_input_char,
+    "Last input event.");
 
   DEFVAR_LISP ("unread-command-events", &unread_command_events,
     "List of objects to be read as next command input events.");
+
+  DEFVAR_INT ("unread-command-char", &unread_command_char,
+    "If not -1, an object to be read as next command input event.");
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
     "Meta-prefix character code.  Meta-foo as command input\n\
@@ -4373,6 +4476,21 @@ but the control and meta bits work even when you are not using X:\n\
   1 -- shift bit      2 -- lock bit\n\
   4 -- control bit    8 -- meta bit.");
   extra_keyboard_modifiers = 0;
+
+  DEFVAR_LISP ("deactivate-mark", &Vdeactivate_mark,
+    "If an editing command sets this to t, deactivate the mark afterward.\n\
+The command loop sets this to nil before each command,\n\
+and tests the value when the command returns.\n\
+Buffer modification stores t in this variable.");
+  Vdeactivate_mark = Qnil;
+
+  DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
+    "Normal hook run before each command is executed.");
+  Vpre_command_hook = Qnil;
+
+  DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
+    "Normal hook run before each command is executed.");
+  Vpost_command_hook = Qnil;
 }
 
 keys_of_keyboard ()
