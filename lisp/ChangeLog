@@ -1,5 +1,10 @@
 2001-08-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* image.el (image-type-regexps): Allow predicates.  Change the way
+	JPEG images are recognized.
+	(image-jpeg-p): New function.
+	(image-type-from-data): Handle predicates in image-type-regexps.
+
 	* emacs-lisp/edebug.el (edebug-read-function): Fix handling of
 	#:, #x, #o, and similar constructs.
 
