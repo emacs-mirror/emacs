@@ -1,6 +1,7 @@
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
 	* buffer.c (syms_of_buffer) <line-spacing>: Allow float value.
+	(syms_of_buffer) <cursor-type>: Doc fix.
 
 	* dispextern.h (struct it): Remove member use_default_face.
 	Add members override_ascent, override_descent, override_boff.

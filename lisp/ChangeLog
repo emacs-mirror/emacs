@@ -1,5 +1,13 @@
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-base.el: Add support for changing cursor types;
+	based on patch from Michael Mauger.
+	(cua-normal-cursor-color, cua-read-only-cursor-color)
+	(cua-overwrite-cursor-color, cua-global-mark-cursor-color):
+	Customization cursor type and/or cursor color.
+	(cua--update-indications): Handle cursor type changes.
+	(cua-mode): Update cursor indications if enabled.
+
 	* menu-bar.el (menu-bar-options-menu): Change menu text for CUA.
 
 	* mouse.el (mouse-drag-copy-region): New defcustom.
