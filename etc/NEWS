@@ -148,8 +148,19 @@ appropriate sql-interactive-mode wrapper for the current setting of
 ** M-x view-file and commands that use it now avoid interfering
 with special modes such as Tar mode.
 
-** The apropos commands don't sort by scores unless they show scores.
-The option apropos-show-scores controls both uses of scores.
+** Enhancements to apropos commands:
+
+*** The apropos commands will now accept a list of words to match.
+When more than one word is specified, at least two of those words must
+be present for an item to match.  Regular expression matching is still
+available.
+
+*** The new option `apropos-sort-by-scores' causes the matching items
+to be sorted according to their score.  The score for an item is a
+number calculated to indicate how well the item matches the words or
+regular expression that you entered to the apropos command.  The best
+match is listed first, and the calculated score is shown for each
+matching item.
 
 +++
 ** The old bindings C-M-delete and C-M-backspace have been deleted,
