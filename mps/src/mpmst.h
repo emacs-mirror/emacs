@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.71) $
+ * $HopeName: MMsrc!mpmst.h(trunk.72) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -227,15 +227,12 @@ typedef struct MessageClassStruct {
   MessageDeleteMethod delete;   /* terminates a message */
 
   /* methods specific to MessageTypeFinalization */
-  MessageFinalizationRefMethod
-    finalizationRef;        
+  MessageFinalizationRefMethod finalizationRef;        
 
-  /* methods specific to MessageTypeCollectionStats */
-  MessageCollectionStatsLiveSizeMethod collectionStatsLiveSize;
-  MessageCollectionStatsCondemnedSizeMethod 
-    collectionStatsCondemnedSize;
-  MessageCollectionStatsNotCondemnedSizeMethod 
-    collectionStatsNotCondemnedSize;
+  /* methods specific to MessageTypeGC */
+  MessageGCLiveSizeMethod gcLiveSize;
+  MessageGCCondemnedSizeMethod gcCondemnedSize;
+  MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
 
   Sig endSig;                   /* design.mps.message.class.sig.double */
 } MessageClassStruct;
