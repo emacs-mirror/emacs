@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.1 2000/09/04 19:47:43 gerd Exp $
+;; $Id: vc-rcs.el,v 1.2 2000/09/05 20:08:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -37,14 +37,15 @@ If nil, VC itself computes this value when it is first needed."
   :group 'vc)
 
 (defcustom vc-rcs-register-switches nil
-  "*A string or list of strings; extra switches for registering a file
-in RCS.  These are passed to the checkin program by
-\\[vc-rcs-register]."
+  "*Extra switches for registering a file in RCS.
+A string or list of strings.  These are passed to the checkin program
+by \\[vc-rcs-register]."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcs-checkin-switches nil
@@ -55,6 +56,7 @@ These are passed to the checkin program by \\[vc-rcs-checkin]."
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcs-checkout-switches nil
@@ -65,11 +67,13 @@ These are passed to the checkout program by \\[vc-rcs-checkout]."
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcs-header (or (cdr (assoc 'RCS vc-header-alist)) '("\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'."
   :type 'string
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcsdiff-knows-brief nil
@@ -89,7 +93,7 @@ For a description of possible values, see `vc-check-master-templates'."
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))
-  :version "20.5"
+  :version "21.1"
   :group 'vc)
 
 ;;;###autoload
@@ -104,12 +108,12 @@ For a description of possible values, see `vc-check-master-templates'."
          ;; vc-workfile-version might not be known; in that case the
          ;; property is nil.  vc-rcs-fetch-master-state knows how to
          ;; handle that.
-         (vc-rcs-fetch-master-state file 
-                                    (vc-file-getprop file 
+         (vc-rcs-fetch-master-state file
+                                    (vc-file-getprop file
                                                      'vc-workfile-version))))
     (if (eq state 'up-to-date)
-        (if (vc-workfile-unchanged-p file) 
-            'up-to-date 
+        (if (vc-workfile-unchanged-p file)
+            'up-to-date
           'unlocked-changes)
       state)))
 
@@ -117,7 +121,7 @@ For a description of possible values, see `vc-check-master-templates'."
   "State heuristic for RCS."
   (let (vc-rcs-headers-result)
     (if (and vc-consult-headers
-             (setq vc-rcs-headers-result 
+             (setq vc-rcs-headers-result
                    (vc-rcs-consult-headers file))
              (eq vc-rcs-headers-result 'rev-and-lock))
         (let ((state (vc-file-getprop file 'vc-state)))
@@ -181,8 +185,8 @@ For a description of possible values, see `vc-check-master-templates'."
     value))
 
 (defun vc-rcs-fetch-master-state (file &optional workfile-version)
-  "Compute the master file's idea of the state of FILE.  If a
-WORKFILE-VERSION is given, compute the state of that version,
+  "Compute the master file's idea of the state of FILE.
+If a WORKFILE-VERSION is given, compute the state of that version,
 otherwise determine the workfile version based on the master file.
 This function sets the properties `vc-workfile-version' and
 `vc-checkout-model' to their correct values, based on the master
@@ -227,7 +231,7 @@ file."
 	(cond
 	 ;; not locked
 	 ((not locking-user)
-          (if (or workfile-is-latest 
+          (if (or workfile-is-latest
                   (vc-rcs-latest-on-branch-p file workfile-version))
               ;; workfile version is latest on branch
               'up-to-date
@@ -516,11 +520,11 @@ WRITABLE non-nil means previous version should be locked."
   (vc-rename-master (vc-name old) new vc-rcs-master-templates))
 
 (defun vc-release-greater-or-equal (r1 r2)
-  "Compare release numbers, represented as strings.  Release
-components are assumed cardinal numbers, not decimal fractions \(5.10
-is a higher release than 5.9\).  Omitted fields are considered lower
-\(5.6.7 is earlier than 5.6.7.1\).  Comparison runs till the end of
-the string is found, or a non-numeric component shows up \(5.6.7 is
+  "Compare release numbers, represented as strings.
+Release components are assumed cardinal numbers, not decimal fractions
+\(5.10 is a higher release than 5.9\).  Omitted fields are considered
+lower \(5.6.7 is earlier than 5.6.7.1\).  Comparison runs till the end
+of the string is found, or a non-numeric component shows up \(5.6.7 is
 earlier than \"5.6.7 beta\", which is probably not what you want in
 some cases\).  This code is suitable for existing RCS release numbers.
 CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
@@ -544,7 +548,7 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 	      (throw 'done t)))))
 
 (defun vc-rcs-release-p (release)
-  "Return t if we have RELEASE or better"
+  "Return t if we have RELEASE or better."
   (let ((installation (vc-rcs-system-release)))
     (if (and installation
 	     (not (eq installation 'unknown)))
@@ -668,11 +672,11 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
             (vc-file-setprop file 'vc-name
                              (if (file-name-absolute-p name)
                                  name
-                               (expand-file-name 
-                                name 
+                               (expand-file-name
+                                name
                                 (file-name-directory file))))))
         (vc-file-setprop file 'vc-workfile-version
-                         (if (re-search-forward 
+                         (if (re-search-forward
                               "^initial revision: \\([0-9.]+\\).*\n"
                               nil t)
                              (match-string 1))))))
@@ -714,11 +718,11 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
                                  (if writable "-l")
                                  (concat "-p" rev)
                                  switches)))
-                      (set-file-modes filename 
+                      (set-file-modes filename
 				      (logior (file-modes (vc-name file))
 					      (if writable 128 0)))
 		      (setq failed nil))
-		  (and failed (file-exists-p filename) 
+		  (and failed (file-exists-p filename)
 		       (delete-file filename))))
 	    (let (new-version)
 	      ;; if we should go to the head of the trunk,
