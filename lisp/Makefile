@@ -115,8 +115,24 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 # Compile all Lisp files, except those from DONTCOMPILE.  This
 # compiles files unconditionally.  All .elc files are made writable
 # before compilation in case we checked out read-only (CVS option -r).
+# Files must be compiled one by one, otherwise apparently
+# eval-when-compile's in some Lisp files make problems in files being
+# compiled later.  We also set the load-path of the Emacs used for
+# compilation to the current directory and its subdirectories, to
+# make sure require's and load's in the files being compiled find
+# the right files.
 
 compile: doit
+	wd=`pwd`;						\
+	find $$wd -name "*.elc" | xargs chmod +w;		\
+	subdirs=`find $$wd -type d -print`; 			\
+	for dir in $$subdirs; do 				\
+	   case $$dir in 					\
+	     */Old | */RCS | */CVS | */=* ) ;; 			\
+	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
+	   esac; 						\
+        done; 							\
+	loadpath="(setq load-path '($$loadpath))";		\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
 	  compile_it=y;						\
@@ -126,14 +142,11 @@ compile: doit
             fi;							\
           done;							\
           if test $$compile_it = y; then			\
-            els="$$el $$els";					\
-            echo "Compile $$el";				\
+            $(emacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
           else							\
             echo "Don't compile $$el";				\
           fi;							\
-	done;							\
-	chmod +w $$els;						\
-        $(emacs) -f batch-byte-compile $$els;
+	done
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
