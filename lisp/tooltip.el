@@ -100,14 +100,19 @@ when it pops up."
 
 (defcustom tooltip-frame-parameters
   '((name . "tooltip")
-    (foreground-color . "black")
-    (background-color . "lightyellow")
     (internal-border-width . 5)
-    (border-color . "lightyellow")
     (border-width . 1))
   "Frame parameters used for tooltips."
   :type 'sexp
   :tag "Frame Parameters"
+  :group 'tooltip)
+
+
+(defface tooltip
+  '((((class color))
+     (:background "lightyellow" :foreground "black"))
+    (t ()))
+  "Face for tooltips."
   :group 'tooltip)
 
 
@@ -306,17 +311,36 @@ ACTIVATEP non-nil means activate mouse motion events."
 
 ;;; Displaying tips
 
+(defun tooltip-set-param (alist key value)
+  "Change the value of KEY in alist ALIAS to VALUE.
+If there's no association for KEY in ALIST, add one, otherwise 
+change the existing association.  Value is the resulting alist."
+  (let ((param (assq key alist)))
+    (if (consp param)
+	(setcdr param value)
+      (push (cons key value) alist))
+    alist))
+
+
 (defun tooltip-show (text)
   "Show a tooltip window at the current mouse position displaying TEXT."
   (if tooltip-use-echo-area
       (message "%s" text)
     (condition-case error
-	(x-show-tip text
-		    (selected-frame)
-		    tooltip-frame-parameters
-		    nil
-		    tooltip-x-offset
-		    tooltip-y-offset)
+	(let ((params (copy-sequence tooltip-frame-parameters))
+	      (fg (face-attribute 'tooltip :foreground))
+	      (bg (face-attribute 'tooltip :background)))
+	  (unless (eq 'unspecified fg)
+	    (tooltip-set-param params 'foreground-color fg))
+	  (unless (eq 'unspecified bg)
+	    (tooltip-set-param params 'background-color bg)
+	    (tooltip-set-param params 'border-color bg))
+	  (x-show-tip (propertize text 'face 'tooltip)
+		      (selected-frame)
+		      tooltip-frame-parameters
+		      nil
+		      tooltip-x-offset
+		      tooltip-y-offset))
       (error 
        (message "Error while displaying tooltip: %s" error)
        (sit-for 1)
