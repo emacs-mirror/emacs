@@ -1,4 +1,4 @@
-/* machine description file for Iris-4D machines.  Use with s/iris[45]-*.h.
+/* machine description file for Iris-4D machines.  Use with s/irix[45]-*.h.
    Copyright (C) 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -145,10 +145,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define this if you have a fairly recent system,
    in which crt1.o and crt1.n should be used.  */
 #define HAVE_CRTN
-
-/* When you *do* link with -lbsd, you *still* get System V getpgrp, unless:
-   you define _BSD_COMPAT, -or- you call `BSDgetpgrp' explicitly.
-   Emacs does the latter.  */
 
 #ifndef USG5_4
 #ifdef HAVE_CRTN
