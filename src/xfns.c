@@ -8615,7 +8615,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
@@ -8891,11 +8891,11 @@ png_load (f, img)
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
 
-      if (! NILP (specified_bg))
+      if (STRINGP (specified_bg))
 	/* The user specified `:background', use that.  */
 	{
 	  XColor color;
-	  if (x_defined_color (f, specified_bg, &color, 0))
+	  if (x_defined_color (f, XSTRING (specified_bg)->data, &color, 0))
 	    {
 	      png_color_16 user_bg;
 
@@ -9031,7 +9031,7 @@ png_load (f, img)
       png_color_16 *bg;
       if (png_get_bKGD (png_ptr, info_ptr, &bg))
 	{
-	  img->background = lookup_rgb_color (f, bg.red, bg.green, bg.blue);
+	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
 	  img->background_valid = 1;
 	}
     }
@@ -9854,7 +9854,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
+  {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
