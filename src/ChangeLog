@@ -1,5 +1,11 @@
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (Qinhibit_menubar_update, inhibit_menubar_update): 
+	New variables.
+	(syms_of_xdisp): Initialize new variables.
+	(update_menu_bar): Do nothing if inhibit_menubar_update is set.
+	Specbind `inhibit-menubar-update' when updating the menu bar.
+
 	* xmenu.c (set_frame_menubar): Run activate-menu-bar-hook with
 	safe_run_hooks.
 
