@@ -1,3 +1,17 @@
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* lisp.h (truncate_undo_list): Update decl.
+
+	* alloc.c (undo_outer_limit): New variable.
+	(syms_of_alloc): Defvar it.
+	(Fgarbage_collect): Pass undo_outer_limit to truncate_undo_list.
+
+	* undo.c (truncate_undo_list): New arg LIMITSIZE.
+
+	* alloc.c (lisp_align_malloc): Check for base == 0
+	regardless of HAVE_POSIX_MEMALIGN.
+	Clean up HAVE_POSIX_MEMALIGN handling of `err'.
+
 2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c: Undo Kim's recent changes and fix the same bug differently.

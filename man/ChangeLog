@@ -1,3 +1,39 @@
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Init File): Two dashes start --no-site-file.
+
+	* cl.texi (Top): Call this chapter `Introduction'.
+	(Overview): In TeX, no section heading here.
+
+	* cc-mode.texi: Put commas after i.e. and e.g.  Minor cleanups.
+
+2004-05-29  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi: Updated for CC Mode 5.30 and incidental amendments.
+	("AWK"): is consistently thus spelt throughout.
+	(AWK, Pike): documented as "C-like modes".
+	(@kbd{M-j}): documented as alternative to @kbd{C-M-j}.
+	(M-x man): supersedes M-x manual-entry.
+	Added numerous index entries.  Corrected "ESC a/e" to "M-a/e".
+
+	("Comments in C"): Node deleted; the info is in CC Mode manual.
+	(c-comment-only-line-offset): Description removed.
+
+	(C-c ., C-c C-c): New C Mode bindings described.
+
+	(C-u TAB, indent-code-rigidly, c-indent-exp, c-tab-always-indent)
+	(@dfn{Style}, c-default-style, comment-column, comment-padding)
+	(c-up-conditional, c-beginning-of-statement, c-end-of-statement):
+	Definitions amended.
+
+	(c-beginning-of-defun, c-end-of-defun, c-context-line-break):
+	Functions described.
+	
+	(c-comment-start-regexp, c-hanging-comment-ender-p)
+	(c-hanging-comment-starter-p): obsolete definitions removed.
+
+	* emacs.texi: Remove the menu entry "Comments in C".
+
 2004-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (../info/flymake, flymake.dvi): New targets.

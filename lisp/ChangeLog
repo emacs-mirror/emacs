@@ -1,3 +1,56 @@
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* net/browse-url.el (browse-url-interactive-arg): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (prin1-char): Catch errors from `string'.
+	(eval-last-sexp-print-value): Print char equivalent regardless
+	of standard-output value.
+
+	* thumbs.el (thumbs-subst-char-in-string): Deleted.
+	(thumbs-thumbname): Use subst-char-in-string.
+	(thumbs-resize-image): Use condition-case, not ignore-errors.
+	(thumbs-kill-buffer): Likewise.
+
+	* thumbs.el: Don't include cl.  Don't bother with old Emacs versions.
+	(thumbs-mode): Make buffer read-only.
+	(thumbs-make-thumb): Unconditionally accept an existing file.
+	(thumbs-insert-thumb): Add thumb-image-file property to the image.
+	(thumbs-do-thumbs-insertion): Be smarter about where to put newlines.
+	(thumbs-show-thumbs-list): Error if images not supported.
+	(thumbs-save-current-image): Improve prompt string.
+	(thumbs-mode-map): Define u, R, x.
+	(thumbs-unmark): New command.
+	(thumbs-emboss-image): Minor cleanup.
+	(thumbs-forward-char, thumbs-backward-char): Skip chars with no image.
+	(thumbs-rename-images): New command.
+	(thumbs-show-image-num): Rewrite.  Don't rename the buffer.
+
+	* thumbs.el (thumbs-current-image): New function.
+	(thumbs-file-list, thumbs-file-alist): New functions.
+	(thumbs-find-image): Delete arg L.
+	Don't set up thumbs-fileL as buffer-local global var.
+	(thumbs-find-image-at-point): Use thumbs-current-image.
+	(thumbs-set-image-at-point-to-root-window): Likewise.
+	(thumbs-delete-images): Use thumbs-current-image, thumbs-file-alist.
+	Record and warn about errors.  Update thumbs-markedL for deletions.
+	(thumbs-next-image, thumbs-previous-image): Use thumbs-file-alist.
+	(thumbs-redraw-buffer): Use thumbs-file-list.
+	(thumbs-mark): Use thumbs-current-image.
+	(thumbs-show-name): Use thumbs-current-image.
+
+	* imenu.el (imenu--menubar-select): Set imenu-menubar-modified-tick
+	and imenu--last-menubar-index-alist.
+
+	* subr.el (with-selected-window): Undo previous change.
+
+2004-05-29  John Paul Wallington  <jpw@gnu.org>
+
+	* thumbs.el (thumbs-show-name): Do nothing if no image at point.
+	(thumbs-mouse-find-image): New command.
+	(thumbs-mode-map): Bind it to mouse-2.
+	(thumbs-mode):  Make mode-class special.
+	(thumbs-view-image-mode): Likewise.
+
 2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
 	* flymake.el: New file.
@@ -97,6 +150,7 @@
 	(starttls-negotiate, starttls-open-stream): Check `starttls-use-gnutls'
 	and pass on to corresponding *-gnutls function if it is set.
 
+>>>>>>> 1.6105
 2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-handler): Disable auto-reverting of
@@ -238,6 +292,7 @@
 	* progmodes/grep.el (grep-tree): Ensure that DIR argument is
 	interpreted as a directory.
 
+>>>>>>> 1.6097
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes

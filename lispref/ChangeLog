@@ -1,3 +1,8 @@
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Minor Mode Conventions): (-) has no special meaning
+	as arg to a minor mode command.
+
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
 	* syntax.texi (Syntax Class Table): Word syntax not just for English.
