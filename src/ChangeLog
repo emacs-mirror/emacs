@@ -1,3 +1,10 @@
+2001-09-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (init_from_display_pos): Put some code in #if 0.
+	(add_to_log): Use bcopy instead of strcpy.
+	(init_from_display_pos): Use an explicit loop over bytes in
+	overlay strings instead of calling index.
+
 2001-09-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (allocate_buffer): Call VALIDATE_LISP_STORAGE.
@@ -35,7 +42,8 @@
 	
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
-	* w32term.c (w32_read_socket): Add more information to debugging output.
+	* w32term.c (w32_read_socket): Add more information to debugging
+	output.
 
 	* w32fns.c (w32_createwindow): Remove the WS_CLIPCHILDREN style
 	from Emacs frames, so that calls to GetClipBox in w32term.c

@@ -1,3 +1,8 @@
+2001-09-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/outline.el (outline-mode): Use `^' and a shy group
+	when constructing imenu-generic-expression from outline-regexp.
+
 2001-09-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/em-unix.el (eshell-shuffle-files): Compare inodes with
