@@ -173,34 +173,33 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 For this to work correctly for a minor mode, the mode's indicator variable
 \(listed in `minor-mode-alist') must also be a function whose documentation
 describes the minor mode."
-  (interactive "p")
+  (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (if minor
-	(let ((minor-modes minor-mode-alist)
-	      (locals (buffer-local-variables)))
-	  (while minor-modes
-	    (let* ((minor-mode (car (car minor-modes)))
-		   (indicator (car (cdr (car minor-modes))))
-		   (local-binding (assq minor-mode locals)))
-	      ;; Document a minor mode if it is listed in minor-mode-alist,
-	      ;; bound locally in this buffer, non-nil, and has a function
-	      ;; definition.
-	      (if (and local-binding
-		       (cdr local-binding)
-		       (fboundp minor-mode))
-		  (let ((pretty-minor-mode minor-mode))
-		    (if (string-match "-mode$" (symbol-name minor-mode))
-			(setq pretty-minor-mode
-			      (capitalize
-			       (substring (symbol-name minor-mode)
-					  0 (match-beginning 0)))))
-		    (while (and indicator (symbolp indicator))
-		      (setq indicator (symbol-value indicator)))
-		    (princ (format "%s minor mode (indicator%s):\n"
-				   pretty-minor-mode indicator))
-		    (princ (documentation minor-mode))
-		    (princ "\n\n"))))
-	    (setq minor-modes (cdr minor-modes)))))
+    (let ((minor-modes minor-mode-alist)
+	  (locals (buffer-local-variables)))
+      (while minor-modes
+	(let* ((minor-mode (car (car minor-modes)))
+	       (indicator (car (cdr (car minor-modes))))
+	       (local-binding (assq minor-mode locals)))
+	  ;; Document a minor mode if it is listed in minor-mode-alist,
+	  ;; bound locally in this buffer, non-nil, and has a function
+	  ;; definition.
+	  (if (and local-binding
+		   (cdr local-binding)
+		   (fboundp minor-mode))
+	      (let ((pretty-minor-mode minor-mode))
+		(if (string-match "-mode$" (symbol-name minor-mode))
+		    (setq pretty-minor-mode
+			  (capitalize
+			   (substring (symbol-name minor-mode)
+				      0 (match-beginning 0)))))
+		(while (and indicator (symbolp indicator))
+		  (setq indicator (symbol-value indicator)))
+		(princ (format "%s minor mode (indicator%s):\n"
+			       pretty-minor-mode indicator))
+		(princ (documentation minor-mode))
+		(princ "\n\n"))))
+	(setq minor-modes (cdr minor-modes))))
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
