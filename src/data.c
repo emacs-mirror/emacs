@@ -801,7 +801,8 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
       if ((current_buffer
 	   != XBUFFER (XCONS (XCONS (valcontents)->cdr)->car))
 	  || (XTYPE (valcontents) == Lisp_Buffer_Local_Value
-	      && XCONS (current_alist_element)->car == current_alist_element))
+	      && EQ (XCONS (current_alist_element)->car,
+		     current_alist_element)))
 	{
 	  /* Write out the cached value for the old buffer; copy it
 	     back to its alist element.  This works if the current
@@ -1467,6 +1468,8 @@ DEFUN ("string-to-int", Fstring_to_int, Sstring_to_int, 1, 1, 0,
   
 enum arithop
   { Aadd, Asub, Amult, Adiv, Alogand, Alogior, Alogxor, Amax, Amin };
+
+extern Lisp_Object float_arith_driver ();
 
 Lisp_Object
 arith_driver
