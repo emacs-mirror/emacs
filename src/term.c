@@ -828,6 +828,12 @@ encode_terminal_code (src, src_len, consumed)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   struct coding_system *coding;
+  Lisp_Object attrs, charset_list;
+
+#if 1
+  /* GLYPH-TABLE is not supported anymore in xdisp.c.  */
+  tlen = 0;
+#endif
 
   /* If terminal_coding does any conversion, use it, otherwise use
      safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
@@ -838,6 +844,8 @@ encode_terminal_code (src, src_len, consumed)
   coding->destination = terminal_encode_buffer;
   coding->dst_bytes = terminal_encode_buf_size;
   coding->mode |= CODING_MODE_LAST_BLOCK;
+  attrs = CODING_ID_ATTRS (coding->id);
+  charset_list = CODING_ATTR_CHARSET_LIST (attrs);
 
   workbuf = buf = alloca (MAX_MULTIBYTE_LENGTH * src_len);
   for (nchars = 0; src < src_end; src++)
@@ -867,9 +875,20 @@ encode_terminal_code (src, src_len, consumed)
 
 	  if (NILP (string))
 	    {
-	      /* Store the multibyte form of C at BUF.  */
-	      buf += CHAR_STRING (c, buf);
-	      nchars++;
+	      if (! char_charset (c, charset_list, NULL))
+		{
+		  /* C is not encodable.  */
+		  int i;
+
+		  for (i = CHAR_WIDTH (c) - 1; i >= 0; i--, nchars++)
+		    *buf++ = '?';
+		}
+	      else
+		{
+		  /* Store the multibyte form of C at BUF.  */
+		  buf += CHAR_STRING (c, buf);
+		  nchars++;
+		}
 	    }
 	  else
 	    {
@@ -890,8 +909,10 @@ encode_terminal_code (src, src_len, consumed)
       encode_coding_object (coding, Qnil, 0, 0, nchars,
 			    buf - workbuf, Qnil);
     }
+  /* coding->destination may have been reallocated.  */
   terminal_encode_buffer = coding->destination;
-  terminal_encode_buf_size = coding->dst_bytes;
+  if (terminal_encode_buf_size < coding->dst_bytes)
+    terminal_encode_buf_size = coding->dst_bytes;
 
   *consumed = src - src_start;
   return (coding->produced);
@@ -1676,13 +1697,12 @@ produce_glyphs (it)
       it->pixel_width = nspaces;
       it->nglyphs = nspaces;
     }
-  else if (SINGLE_BYTE_CHAR_P (it->c))
+  else if (CHAR_BYTE8_P (it->c))
     {
-      /* Coming here means that it->c is from display table, thus we
-	 must send the code as is to the terminal.  Although there's
-	 no way to know how many columns it occupies on a screen, it
-	 is a good assumption that a single byte code has 1-column
-	 width.  */
+      /* We must send the raw 8-bit byte as is to the terminal.
+	 Although there's no way to know how many columns it occupies
+	 on a screen, it is a good assumption that a single byte code
+	 has 1-column width.  */
       it->pixel_width = it->nglyphs = 1;
       if (it->glyph_row)
 	append_glyph (it);
