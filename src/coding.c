@@ -4392,7 +4392,11 @@ encoding_buffer_size (coding, src_bytes)
   int magnification;
 
   if (coding->type == coding_type_ccl)
-    magnification = coding->spec.ccl.encoder.buf_magnification;
+    {
+      magnification = coding->spec.ccl.encoder.buf_magnification;
+      if (coding->eol_type == CODING_EOL_CRLF)
+	magnification *= 2;
+    }
   else if (CODING_REQUIRE_ENCODING (coding))
     magnification = 3;
   else
