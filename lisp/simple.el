@@ -757,41 +757,47 @@ deleted."
 	(and interactive swap (exchange-point-and-mark)))
     ;; No prefix argument: put the output in a temp buffer,
     ;; replacing its entire contents.
-    (let ((buffer (get-buffer-create "*Shell Command Output*")))
-      (if (eq buffer (current-buffer))
-	  ;; If the input is the same buffer as the output,
-	  ;; delete everything but the specified region,
-	  ;; then replace that region with the output.
-	  (progn (delete-region end (point-max))
-		 (delete-region (point-min) start)
-		 (call-process-region (point-min) (point-max)
-				      shell-file-name t t nil
-				      "-c" command))
-	;; Clear the output buffer, then run the command with output there.
-	(save-excursion
-	  (set-buffer buffer)
-	  (erase-buffer))
-	(call-process-region start end shell-file-name
-			     nil buffer nil
-			     "-c" command))
-      ;; Report the amount of output.
-      (let ((lines (save-excursion
-		     (set-buffer buffer)
-		     (if (= (buffer-size) 0)
-			 0
-		       (count-lines (point-min) (point-max))))))
-	(cond ((= lines 0)
-	       (message "(Shell command completed with no output)")
-	       (kill-buffer "*Shell Command Output*"))
-	      ((= lines 1)
-	       (message "%s"
-			(save-excursion
-			  (set-buffer buffer)
-			  (goto-char (point-min))
-			  (buffer-substring (point)
-					    (progn (end-of-line) (point))))))
-	      (t 
-	       (set-window-start (display-buffer buffer) 1)))))))
+    (let ((buffer (get-buffer-create "*Shell Command Output*"))
+	  (success nil))
+      (unwind-protect
+	  (if (eq buffer (current-buffer))
+	      ;; If the input is the same buffer as the output,
+	      ;; delete everything but the specified region,
+	      ;; then replace that region with the output.
+	      (progn (delete-region end (point-max))
+		     (delete-region (point-min) start)
+		     (call-process-region (point-min) (point-max)
+					  shell-file-name t t nil
+					  "-c" command)
+		     (setq success t))
+	    ;; Clear the output buffer, then run the command with output there.
+	    (save-excursion
+	      (set-buffer buffer)
+	      (erase-buffer))
+	    (call-process-region start end shell-file-name
+				 nil buffer nil
+				 "-c" command)
+	    (setq success t))
+	;; Report the amount of output.
+	(let ((lines (save-excursion
+		       (set-buffer buffer)
+		       (if (= (buffer-size) 0)
+			   0
+			 (count-lines (point-min) (point-max))))))
+	  (cond ((= lines 0)
+		 (if success
+		     (message "(Shell command completed with no output)"))
+		 (kill-buffer buffer))
+		((and success (= lines 1))
+		 (message "%s"
+			  (save-excursion
+			    (set-buffer buffer)
+			    (goto-char (point-min))
+			    (buffer-substring (point)
+					      (progn (end-of-line) (point)))))
+		 (kill-buffer buffer))
+		(t 
+		 (set-window-start (display-buffer buffer) 1))))))))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
