@@ -1,3 +1,11 @@
+2004-04-16  Masatake YAMATO  <jet@gyve.org>
+
+	* simple.el (completion-setup-function): Set an initial value
+	to `element-common-end' before entering loop. Set a value
+	to `element-common-end' at the end of loop.
+	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel
+	list.
+
 2004-04-16  Juanma Barranquero  <lektu@terra.es>
 
 	* bookmark.el (bookmark-send-edited-annotation): Fix docstring.
