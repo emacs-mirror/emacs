@@ -4133,7 +4133,8 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
      built with a vscroll and then make_cursor_line_fully_visible shifts 
      the matrix.  Make sure to make such rows current anyway, since
      we need the correct y-position, for example, in the current matrix.  */
-  if (desired_row->visible_height > 0)
+  if (desired_row->mode_line_p
+      || desired_row->visible_height > 0)
     {
       xassert (desired_row->enabled_p);
 
