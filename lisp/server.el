@@ -664,8 +664,11 @@ The following commands are accepted by the client:
 		    (server-client-set client 'frame frame)
 		    (server-client-set client 'tty (display-name frame))
 		    (server-client-set client 'display (frame-display frame))
+
 		    ;; Set up display for the remote locale.
-		    (configure-display-for-locale)
+		    ;; XXX This function has been removed from mule-cmds.el, we need to find another way.
+		    ;; (configure-display-for-locale)
+
 		    ;; Reply with our pid.
 		    (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
 		    (setq dontkill t)))
