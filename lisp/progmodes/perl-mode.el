@@ -207,11 +207,11 @@ The expansion is entirely correct because it uses the C preprocessor."
     '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
     ;;
     ;; Fontify function, variable and file name references.
-    '("&\\(\\sw+\\)" 1 font-lock-function-name-face)
+    '("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("[$*]{?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("\\([@%]\\|\\$#\\)\\(\\sw+\\)"
+    '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+    '("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
     '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
