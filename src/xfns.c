@@ -2901,6 +2901,8 @@ This function is an internal primitive--use `make-frame' instead.")
 
   f->display.x->icon_name
     = x_get_arg (parms, Qicon_name, "iconName", "Title", string);
+  if (! STRINGP (f->display.x->icon_name))
+    f->display.x->icon_name = Qnil;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #ifdef MULTI_KBOARD
