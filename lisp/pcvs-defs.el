@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.2 2000/03/15 21:28:58 gerd Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.3 2000/03/22 02:56:51 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -135,12 +135,12 @@ useful to be able to tag a single file.  The normal way to do that is to use
 Normally they run on the files that are marked (with `cvs-mode-mark'),
 or the file under the cursor if no files are marked.  If this variable
 is set to a non-nil value they will by default run on the file on the
-current line.  See also `cvs-ignore-marks'"
+current line.  See also `cvs-invert-ignore-marks'"
   :group 'pcl-cvs
   :type '(boolean))
 
 (defvar cvs-diff-ignore-marks t
-  "Obsolete variable: use cvs-ignore-marks instead.")
+  "Obsolete: use `cvs-invert-ignore-marks' instead.")
 
 (defcustom cvs-invert-ignore-marks
   (let ((l ()))
@@ -178,7 +178,7 @@ If set to NIL, `cvs-mode-add' will always prompt for a message."
 (defvar cvs-diff-buffer-name "*cvs-diff*"
   "Obsolete variable: use `cvs-buffer-name-alist' instead.")
 
-(defcustom cvs-find-file-and-jump t
+(defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
 If non-nil, `cvs-mode-file-file' will place the cursor at the beginning of
 the modified area.  If the file is not locally modified, this will obviously
@@ -340,6 +340,9 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("e" .	cvs-mode-idiff)
     ("E" .	cvs-mode-imerge))
   "Keymap for diff-related operations in `cvs-mode'.")
+;; This is necessary to allow correct handling of \\[cvs-mode-diff-map] 
+;; in substitute-command-keys.
+(fset 'cvs-mode-diff-map cvs-mode-diff-map)
 
 (easy-mmode-defmap cvs-mode-map
   ;;(define-prefix-command 'cvs-mode-map-diff-prefix)
@@ -380,7 +383,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("\M-s".	cvs-status)
     ;; diff commands
     ("=" .	cvs-mode-diff)
-    ("d" .	,cvs-mode-diff-map)
+    ("d" .	cvs-mode-diff-map)
     ;; keys that operate on individual files
     ("\C-k".	cvs-mode-acknowledge)
     ("A" .	cvs-mode-add-change-log-entry-other-window)
@@ -406,6 +409,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ;; cvstree bindings
     ("+" .	cvs-mode-tree)
     ;; mouse bindings
+    ([mouse-2] . cvs-mode-find-file)
     ([(down-mouse-3)] . cvs-menu)
     ;; Emacs-21 toolbar
     ;;([tool-bar item1] . (menu-item "Examine" cvs-examine :image (image :file "/usr/share/icons/xpaint.xpm" :type xpm)))
