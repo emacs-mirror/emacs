@@ -1114,7 +1114,9 @@ graft_intervals_into_buffer (source, position, buffer)
 	 simply copy over the interval structure. */
       if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
 	{
-	  buffer->intervals = reproduce_tree (source, tree->parent);
+	  Lisp_Object buf;
+	  XSET (buf, Lisp_Buffer, buffer);
+	  buffer->intervals = reproduce_tree (source, buf);
 	  /* Explicitly free the old tree here. */
 
 	  return;
