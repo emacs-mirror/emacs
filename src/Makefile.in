@@ -635,6 +635,7 @@ lisp= \
 	${lispsource}subr.elc \
 	${lispsource}text-mode.elc \
 	${lispsource}vc-hooks.elc \
+	${lispsource}ediff-hook.elc \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
