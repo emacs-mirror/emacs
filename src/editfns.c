@@ -1381,6 +1381,7 @@ from adjoining text, if those properties are sticky.")
     string[i] = str[i % len];
   while (n >= strlen)
     {
+      QUIT;
       if (!NILP (inherit))
 	insert_and_inherit (string, strlen);
       else
