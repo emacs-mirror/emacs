@@ -7,3 +7,6 @@
 #define EXTRA_INITIALIZE __setostype (0)
 
 #define LIBS_SYSTEM -linet
+
+#define ISC4_0
+#define NEED_SIOCTL
