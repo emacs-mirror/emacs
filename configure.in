@@ -381,13 +381,13 @@ case "${canonical}" in
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
-  rs6000-ibm-aix3.1* )
+  rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
     machine=ibmrs6000 opsys=aix3-1
   ;;
-  rs6000-ibm-aix3.2.5)
+  rs6000-ibm-aix3.2.5 | powerpc-ibm-aix3.2.5 )
     machine=ibmrs6000 opsys=aix3-2-5
   ;;
-  rs6000-ibm-aix3.2* | rs6000-ibm-aix* )
+  rs6000-ibm-aix* | powerpc-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
   romp-ibm-bsd4.3* )
@@ -1060,7 +1060,7 @@ AC_ALLOCA
 # logb and frexp are found in -lm on most systems.
 AC_CHECK_LIB(m, logb)
 AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
-random rand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
+random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
 fpathconf)
 
 ok_so_far=yes
