@@ -23,7 +23,7 @@ dnl  along with GNU Emacs; see the file COPYING.  If not, write to the
 dnl  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 dnl  Boston, MA 02111-1307, USA.
 
-AC_PREREQ(2.50)dnl
+AC_PREREQ(2.51)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
@@ -2014,11 +2014,11 @@ if test "${with_kerberos+set}" = set; then
     AC_CHECK_HEADERS(krb5.h)
   else
     AC_CHECK_HEADERS(des.h,,
-		     AC_CHECK_HEADERS(kerberosIV/des.h,,
-				      AC_CHECK_HEADERS(kerberos/des.h)))
+		     [AC_CHECK_HEADERS(kerberosIV/des.h,,
+				       [AC_CHECK_HEADERS(kerberos/des.h)])])
     AC_CHECK_HEADERS(krb.h,,
-		     AC_CHECK_HEADERS(kerberosIV/krb.h,,
-				      AC_CHECK_HEADERS(kerberos/krb.h)))
+		     [AC_CHECK_HEADERS(kerberosIV/krb.h,,
+				       [AC_CHECK_HEADERS(kerberos/krb.h)])])
   fi
   AC_CHECK_HEADERS(com_err.h)
 fi
@@ -2148,7 +2148,7 @@ else
   AC_MSG_RESULT(no)
 fi
 
-AC_FUNC_VFORK
+AC_FUNC_FORK
 
 # Fixme: This should be replaced when we have autoconf 2.14.
 AC_SIZE_T
