@@ -1,3 +1,8 @@
+2004-07-01  Kenichi Handa  <handa@m17n.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Update `nbytes' correctly
+	after getting a new string by pre-write-conversion.
+
 2004-06-30  Stefan  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_detect_focus_change): Remove unused var `nr_events'.
