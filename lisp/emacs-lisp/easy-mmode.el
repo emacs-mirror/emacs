@@ -83,13 +83,26 @@ Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
 BODY contains code that will be executed each time the mode is (dis)activated.
   It will be executed after any toggling but before running the hooks.
   BODY can start with a list of CL-style keys specifying additional arguments.
-  Currently two such keyword arguments are supported:
-:group followed by the group name to use for any generated `defcustom'.
-:global if non-nil specifies that the minor mode is not meant to be
-  buffer-local.  By default, the variable is made buffer-local."
+  Currently three such keyword arguments are supported:
+    :group, followed by the group name to use for any generated `defcustom'.
+    :global, followed by a value, which --
+      If `t' specifies that the minor mode is not meant to be
+	buffer-local (by default, the variable is made buffer-local).
+      If non-nil, but not `t' (for instance, `:global optionally'), then
+	specifies that the minor mode should be buffer-local, but that a
+	corresponding `global-MODE' function should also be added, which can
+	be used to turn on MODE in every buffer.
+    :conditional-turn-on, followed by a function-name which turns on MODE
+	only when applicable to the current buffer.  This is used in
+	conjunction with any `global-MODE' function (see :global above) when
+	turning on the buffer-local minor mode.  By default, any generated
+	`global-MODE' function unconditionally turns on the minor mode in
+	every new buffer."
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
+	 (define-global-mode-p nil)
+	 (conditional-turn-on nil)
 	 ;; We might as well provide a best-guess default group.
 	 (group
 	  (list 'quote
@@ -109,7 +122,12 @@ BODY contains code that will be executed each time the mode is (dis)activated.
       (case (pop body)
 	(:global (setq globalp (pop body)))
 	(:group (setq group (pop body)))
+	(:conditional-turn-on (setq conditional-turn-on (pop body)))
 	(t (setq body (cdr body)))))
+
+    (when (and globalp (not (eq globalp t)))
+      (setq globalp nil)
+      (setq define-global-mode-p t))
 
     ;; Add default properties to LIGHTER.
     (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
@@ -176,6 +194,30 @@ With zero or negative ARG turn mode off.
 		      (if ,mode "en" "dis")))
 	 ,mode)
 
+       ,(unless globalp
+	  (let ((turn-on (intern (concat "turn-on-" mode-name)))
+		(turn-off (intern (concat "turn-off-" mode-name))))
+	    `(progn
+	       (defun ,turn-on ()
+		 ,(format "Turn on %s.
+
+This function is designed to be added to hooks, for example:
+  (add-hook 'text-mode-hook '%s)"
+			  pretty-name
+			  turn-on)
+		 (interactive)
+		 (,mode t))
+	       (defun ,turn-off ()
+		 ,(format "Turn off %s." pretty-name)
+		 (interactive)
+		 (,mode -1))
+	       ,(when define-global-mode-p
+		  `(easy-mmode-define-global-mode
+		    ,(intern (concat "global-" mode-name))
+		    ,mode
+		    ,(or conditional-turn-on turn-on)
+		    :group ,group)))))
+
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
        ;; everything up-to-here.
        :autoload-end
@@ -193,7 +235,7 @@ With zero or negative ARG turn mode off.
 		       ,(if keymap keymap-sym
 			  `(if (boundp ',keymap-sym)
 			       (symbol-value ',keymap-sym))))
-       
+
        ;; If the mode is global, call the function according to the default.
        ,(if globalp `(if ,mode (,mode 1))))))
 
