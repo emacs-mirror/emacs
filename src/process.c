@@ -2381,11 +2381,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     {
       int timeout_reduced_for_timers = 0;
 
-#ifdef HAVE_X_WINDOWS
-      if (display_busy_cursor_p)
-	Fx_hide_busy_cursor (Qnil);
-#endif
-
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
@@ -2809,12 +2804,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   start_polling ();
 #endif
 
-#ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    if (!inhibit_busy_cursor)
-      Fx_show_busy_cursor ();
-#endif
-   
   return got_some_input;
 }
 
