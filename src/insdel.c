@@ -425,6 +425,9 @@ del_range (from, to)
 
   prepare_to_modify_buffer (from, to);
 
+  record_delete (from, numdel);
+  MODIFF++;
+
   /* Relocate point as if it were a marker.  */
   if (from < point)
     {
@@ -433,9 +436,6 @@ del_range (from, to)
       else
 	SET_PT (point - numdel);
     }
-
-  record_delete (from, numdel);
-  MODIFF++;
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.  */
