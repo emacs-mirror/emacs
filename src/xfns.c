@@ -2707,6 +2707,9 @@ This function is an internal primitive--use `make-frame' instead.")
   f->display.x->icon_bitmap = -1;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+#ifdef MULTI_KBOARD
+  FRAME_KBOARD (f) = dpyinfo->kboard;
+#endif
 
   /* Specify the parent under which to make this X window.  */
 
