@@ -769,7 +769,7 @@ which will run faster and probably do exactly what you want."
 		(setq replacement-index (% (1+ replacement-index) (length replacements)))))
 	  (if (not query-flag)
 	      (progn
-		(store-match-data real-match-data)
+		(set-match-data real-match-data)
 		(replace-match next-replacement nocasify literal)
 		(setq replace-count (1+ replace-count)))
 	    (undo-boundary)
@@ -777,7 +777,7 @@ which will run faster and probably do exactly what you want."
 	      ;; Loop reading commands until one of them sets done,
 	      ;; which means it has finished handling this occurrence.
 	      (while (not done)
-		(store-match-data real-match-data)
+		(set-match-data real-match-data)
 		(replace-highlight (match-beginning 0) (match-end 0))
 		;; Bind message-log-max so we don't fill up the message log
 		;; with a bunch of identical messages.
@@ -786,7 +786,7 @@ which will run faster and probably do exactly what you want."
 		(setq key (read-event))
 		;; Necessary in case something happens during read-event
 		;; that clobbers the match data.
-		(store-match-data real-match-data)
+		(set-match-data real-match-data)
 		(setq key (vector key))
 		(setq def (lookup-key map key))
 		;; Restore the match data while we process the command.
@@ -811,7 +811,7 @@ which will run faster and probably do exactly what you want."
 			     (goto-char (car elt))
 			     (setq replaced (eq t (cdr elt)))
 			     (or replaced
-				 (store-match-data (cdr elt)))
+				 (set-match-data (cdr elt)))
 			     (setq stack (cdr stack)))
 			 (message "No previous match")
 			 (ding 'no-terminate)
@@ -846,7 +846,7 @@ which will run faster and probably do exactly what you want."
 		      ((eq def 'recenter)
 		       (recenter nil))
 		      ((eq def 'edit)
-		       (store-match-data
+		       (set-match-data
 			(prog1 (match-data)
 			  (save-excursion (recursive-edit))))
 		       ;; Before we make the replacement,
@@ -857,7 +857,7 @@ which will run faster and probably do exactly what you want."
 						  (match-data)))))
 		      ((eq def 'delete-and-edit)
 		       (delete-region (match-beginning 0) (match-end 0))
-		       (store-match-data
+		       (set-match-data
 			(prog1 (match-data)
 			  (save-excursion (recursive-edit))))
 		       (setq replaced t))
