@@ -1,7 +1,15 @@
 2003-06-06  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (set-coding-priority): Re-written.
+	* international/mule.el (coding-system-category): New function.
+	(set-coding-priority): Re-written.
 	(make-translation-table): Re-written.
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Check the coding system type `undecided', not `t'.
+	(sort-coding-systems): Fix for iso-2022 coding systems.
+	(find-multibyte-characters): Fix for eight-bit chars.
+	(set-language-environment): Set charset priorities according to
+	the charsets supported by the coding systems of higher priorities.
 
 2003-06-05  Kenichi Handa  <handa@m17n.org>
 
