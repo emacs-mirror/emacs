@@ -84,7 +84,11 @@ Lisp_Object Vsystem_type;
 
 /* Variable whose value is string giving configuration built for.  */
 Lisp_Object Vsystem_configuration;
-  
+
+/* Variable whose value is string giving configuration options,
+   for use when reporting bugs.  */
+Lisp_Object Vsystem_configuration_options;
+
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
 int inhibit_window_system;
@@ -1024,6 +1028,10 @@ syms_of_emacs ()
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
     "Value is string indicating configuration Emacs was built for.");
   Vsystem_configuration = build_string (EMACS_CONFIGURATION);
+
+  DEFVAR_LISP ("system-configuration-options", &Vsystem_configuration_options,
+    "String containing the configuration options Emacs was built with.");
+  Vsystem_configuration_options = build_string (EMACS_CONFIG_OPTIONS);
 
   DEFVAR_BOOL ("noninteractive", &noninteractive1,
     "Non-nil means Emacs is running without interactive terminal.");
