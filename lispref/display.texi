@@ -4759,7 +4759,7 @@ display by sending @var{string} to the terminal.
 screen) to attract the user's attention.  Be conservative about how
 often you do this; frequent bells can become irritating.  Also be
 careful not to use just beeping when signaling an error is more
-appropriate.  (@pxref{Errors}.)
+appropriate.  (@xref{Errors}.)
 
 @defun ding &optional do-not-terminate
 @cindex keyboard macro termination
