@@ -8,6 +8,15 @@
 	(archive-lzh-summarize): Rename local var `path' to `dir'.
 	(archive-unique-fname) [!MSDOS]: Avoid byte-compiler warning.
 
+	* dired.el: Doc fixes.
+	* dired-aux.el: Rename `whole-path' to `whole-name' throughout.
+	(dired-mark-read-regexp): Use "Abs." prefix instead of "Path".
+	* dired-x.el: Doc fixes.
+
+	* fast-lock.el (fast-lock-cache-name): Doc fix.
+
+	* net/browse-url.el (browse-url-filename-alist): Doc fix.
+
 2003-01-14  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* apropos.el (apropos): Restore autoload cookie.  Fix typo in 
@@ -30,27 +39,15 @@
 
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-ignore-directories-merge): Doc fix.
+	* ido.el: Doc fixes.
 	(ido-max-file-prompt-width): Renamed from ido-max-prompt-path.
-	(ido-enable-last-directory-history): Doc fix.
-	(ido-work-directory-list-ignore-regexps): Doc fix.
-	(ido-enable-tramp-completion): Doc fix.
-	(ido-record-ftp-work-directories): Doc fix.
-	(ido-merge-ftp-work-directories): Doc fix.
 	(ido-rewrite-file-prompt-functions): Renamed from
 	ido-make-file-prompt-hook.  Directory name is now in dynamic
 	variable `dirname' (instead of `path').
 	(ido-rewrite-file-prompt-rules): Renamed from
 	ido-rewrite-prompt-path-rules.
-	(ido-read-file-name-as-directory-commands): Doc fix.
-	(ido-last-directory-list): Doc fix.
-	(ido-work-directory-list): Doc fix.
-	(ido-work-file-list): Doc fix.
 	(ido-make-prompt): Directory name now in `dirname' var.
-	(ido-edit-input): Doc fix.
 	(ido-complete): Fix error message.
-	(ido-copy-current-word): Doc fix.
-	(ido-find-file): Doc fix.
 
 2003-01-13  John Paul Wallington  <jpw@shootybangbang.com>
 
