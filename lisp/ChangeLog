@@ -1,5 +1,8 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/sh-script.el (sh-indent-line): Add optional PREFIX-ARG
+	parameter.
+
 	* faces.el (menu): Doc fix.
 
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
