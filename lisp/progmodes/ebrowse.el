@@ -899,14 +899,6 @@ this is the first progress message displayed."
 
 ;;; Reading a tree from disk
 
-(defun ebrowse-find-file ()
-  "Function installed as `find-file hook'.
-This loads a tree when it sees a special signature at the beginning of
-the file loaded."
-  (when (looking-at "\\[ebrowse-hs")
-    (ebrowse-load buffer-file-name 'switch)))
-
-
 (defun ebrowse-read ()
   "Read `ebrowse-hs' and `ebrowse-ts' structures in the current buffer.  
 Return a list (HEADER TREE) where HEADER is the file header read
@@ -935,6 +927,7 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
     (list header tree)))
 
 
+;;;###autoload
 (defun ebrowse-load (file &optional switch)
   "Load an Ebrowse file FILE into memory and make a tree buffer.
 Optional SWITCH non-nil means switch to the tree buffer afterwards.
@@ -4553,11 +4546,6 @@ EVENT is the mouse event."
 	   (mark
 	    (ebrowse-toggle-mark-at-point 1)))))))
 
-
-
-;;; Hooks installed
-
-(add-hook 'find-file-hooks 'ebrowse-find-file)
 
 
 (provide 'ebrowse)
