@@ -1,3 +1,13 @@
+2005-03-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed (calc-embedded-original-modes): New variable.
+	(calc-embedded-save-original-modes)
+	(calc-embedded-restore-original-modes): New functions.
+	(calc-do-embedded): Save original modes when entering embedded mode
+	and restore when leaving embedded mode.
+	(calc-embedded-modes-change): Change the value of
+	calc-embedded-original-modes to reflect permanent changes.
+
 2005-03-22  Lute Kamstra  <lute@gnu.org>
 
 	* generic-x.el: Require generic again.

@@ -1,3 +1,8 @@
+2005-03-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Embedded Mode): Add new information on changing
+	modes.
+
 2005-03-21  Richard M. Stallman  <rms@gnu.org>
 
 	* building.texi (Starting GUD): Add bashdb.
