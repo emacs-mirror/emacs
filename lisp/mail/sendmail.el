@@ -542,10 +542,10 @@ If within the headers, this makes the new lines into continuation lines."
   ;; Do something special only if within the headers.
   (if (< (point) (mail-header-end))
       (let (beg end fieldname) 
-	(re-search-backward "^[-a-zA-Z]+:" nil 'yes)
-	(setq beg (point))
+	(when (prog1 (re-search-backward "^[-a-zA-Z]+:" nil 'yes)
+		(setq beg (point)))
 	(setq fieldname
-	      (downcase (buffer-substring beg (1- (match-end 0)))))
+		(downcase (buffer-substring beg (1- (match-end 0))))))
 	(forward-line 1)
 	;; Find continuation lines and get rid of their continuation markers.
 	(while (looking-at "[ \t]")
