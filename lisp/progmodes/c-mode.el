@@ -1034,7 +1034,7 @@ ENDPOS is encountered."
 The arguments are a string representing the desired style
 and a flag which, if non-nil, means to set the style globally.
 \(Interactively, the flag comes from the prefix argument.)
-Available styles are GNU, K&R, BSD and Whitesmith.
+Available styles are GNU, K&R, BSD and Whitesmith."
   (interactive (list (completing-read "Use which C indentation style? "
                                       c-style-alist nil t)
 		     current-prefix-arg))

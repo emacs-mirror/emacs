@@ -116,9 +116,9 @@
 ;;;     comint-prompt-regexp    - string       comint-bol uses to match prompt.
 ;;;     comint-last-input-start - marker       Handy if inferior always echos
 ;;;     comint-last-input-end   - marker       For comint-kill-output command
-;;;     input-ring-size         - integer      For the input history
-;;;     input-ring              - ring             mechanism
-;;;     input-ring-index        - marker           ...
+;;;     comint-input-ring-size  - integer      For the input history
+;;;     comint-input-ring       - ring             mechanism
+;;;     comint-input-ring-index - marker           ...
 ;;;     comint-last-input-match - string           ...
 ;;;     comint-get-old-input    - function     Hooks for specific 
 ;;;     comint-input-sentinel   - function         process-in-a-buffer
@@ -140,7 +140,7 @@ Good choices:
 
 This is a good thing to set in mode hooks.")
 
-(defvar input-ring-size 30
+(defvar comint-input-ring-size 30
   "Size of input history ring.")
 
 ;;; Here are the per-interpreter hooks.
@@ -185,6 +185,9 @@ executed once when the buffer is created.")
 
 (defvar comint-mode-map nil)
 
+(defvar comint-last-input-start)
+(defvar comint-last-input-end)
+
 (defun comint-mode ()
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
@@ -199,7 +202,7 @@ comint-input-sentinel, comint-input-filter, comint-input-sender and
 comint-get-old-input to appropriate functions, and the variable
 comint-prompt-regexp to the appropriate regular expression.
 
-An input history is maintained of size input-ring-size, and
+An input history is maintained of size comint-input-ring-size, and
 can be accessed with the commands comint-next-input [\\[comint-next-input]] and 
 comint-previous-input [\\[comint-previous-input]]. Commands not keybound by
 default are send-invisible, comint-dynamic-complete, and 
@@ -212,9 +215,9 @@ to continue it.
 
 Entry to this mode runs the hooks on comint-mode-hook"
   (interactive)
-  (let ((old-ring (and (assq 'input-ring (buffer-local-variables))
-		       (boundp 'input-ring)
-		       input-ring))
+  (let ((old-ring (and (assq 'comint-input-ring (buffer-local-variables))
+		       (boundp 'comint-input-ring)
+		       comint-input-ring))
 	(old-ptyp comint-ptyp)) ; preserve across local var kill. gross.
 ;   (kill-all-local-variables) ; Removed 1/15/90 Olin
     (setq major-mode 'comint-mode)
@@ -228,10 +231,10 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (make-local-variable 'comint-last-input-match)
     (setq comint-last-input-match "")
     (make-local-variable 'comint-prompt-regexp) ; Don't set; default
-    (make-local-variable 'input-ring-size)      ; ...to global val.
-    (make-local-variable 'input-ring)
-    (make-local-variable 'input-ring-index)
-    (setq input-ring-index 0)
+    (make-local-variable 'comint-input-ring-size)      ; ...to global val.
+    (make-local-variable 'comint-input-ring)
+    (make-local-variable 'comint-input-ring-index)
+    (setq comint-input-ring-index 0)
     (make-local-variable 'comint-get-old-input)
     (make-local-variable 'comint-input-sentinel)
     (make-local-variable 'comint-input-filter)  
@@ -241,11 +244,11 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (setq comint-ptyp old-ptyp)
     (make-local-variable 'comint-exec-hook)
     (run-hooks 'comint-mode-hook)
-    ;Do this after the hook so the user can mung INPUT-RING-SIZE w/his hook.
+    ;Do this after the hook so the user can mung COMINT-INPUT-RING-SIZE w/his hook.
     ;The test is so we don't lose history if we run comint-mode twice in
     ;a buffer.
-    (setq input-ring (if (ring-p old-ring) old-ring
-			 (make-ring input-ring-size)))))
+    (setq comint-input-ring (if (ring-p old-ring) old-ring
+			      (make-ring comint-input-ring-size)))))
 
 ;;; The old-ptyp stuff above is because we have to preserve the value of
 ;;; comint-ptyp across calls to comint-mode, in spite of the
@@ -444,7 +447,7 @@ item to make room."
   "Remove the oldest item retained on the ring."
   (if (ring-empty-p ring) (error "Ring empty")
       (let ((tl (car (cdr ring)))  (vec (cdr (cdr ring))))
-	(set-car (cdr ring) (ring-minus1 tl (length vec)))
+	(setcar (cdr ring) (ring-minus1 tl (length vec)))
 	(aref vec tl))))
 
 ;;; This isn't actually used in this package. I just threw it in in case
@@ -469,8 +472,8 @@ item to make room."
 		(aset vec hd (aref vec tl))
 		(setq tl (ring-minus1 tl len))
 		(setq n (- n 1))))
-	    (set-car ring hd)
-	    (set-car (cdr ring) tl)))))
+	    (setcar ring hd)
+	    (setcar (cdr ring) tl)))))
 
 (defun comint-mod (n m)
   "Returns N mod M. M is positive. Answer is guaranteed to be non-negative, 
@@ -498,7 +501,7 @@ and less than m."
 (defun comint-previous-input (arg)
   "Cycle backwards through input history."
   (interactive "*p")
-  (let ((len (ring-length input-ring)))
+  (let ((len (ring-length comint-input-ring)))
     (cond ((<= len 0)
 	   (message "Empty input ring")
 	   (ding))
@@ -513,13 +516,13 @@ and less than m."
 		   (process-mark (get-buffer-process (current-buffer)))
 		   (point)))
 		 (t                          
-		  (setq input-ring-index
+		  (setq comint-input-ring-index
 			(if (> arg 0) -1
 			    (if (< arg 0) 1 0)))
 		  (push-mark (point))))
-	   (setq input-ring-index (comint-mod (+ input-ring-index arg) len))
-	   (message "%d" (1+ input-ring-index))
-	   (insert (ring-ref input-ring input-ring-index))
+	   (setq comint-input-ring-index (comint-mod (+ comint-input-ring-index arg) len))
+	   (message "%d" (1+ comint-input-ring-index))
+	   (insert (ring-ref comint-input-ring comint-input-ring-index))
 	   (setq this-command 'comint-previous-input)))))
 	 
 (defun comint-next-input (arg)
@@ -541,14 +544,14 @@ Buffer local variable.")
 ; (interactive "sCommand substring: ")
   (setq comint-last-input-match str) ; update default
   (if (not (eq last-command 'comint-previous-input))
-      (setq input-ring-index -1))
+      (setq comint-input-ring-index -1))
   (let ((str (regexp-quote str))
-        (len (ring-length input-ring))
-	(n (+ input-ring-index 1)))
-    (while (and (< n len) (not (string-match str (ring-ref input-ring n))))
+        (len (ring-length comint-input-ring))
+	(n (+ comint-input-ring-index 1)))
+    (while (and (< n len) (not (string-match str (ring-ref comint-input-ring n))))
       (setq n (+ n 1)))
     (cond ((< n len)
-	   (comint-previous-input (- n input-ring-index)))
+	   (comint-previous-input (- n comint-input-ring-index)))
 	  (t (if (eq last-command 'comint-previous-input) 
 		 (setq this-command 'comint-previous-input))
 	     (message "Not found.")
@@ -624,28 +627,28 @@ in the history, if -1 it will go forward."
   (if (not (comint-after-pmark-p))
       (error "Not after process mark"))
   (if (not (eq last-command 'comint-previous-similar-input))
-      (setq input-ring-index -1
+      (setq comint-input-ring-index -1
 	    comint-last-similar-string 
 	    (buffer-substring 
 	     (process-mark (get-buffer-process (current-buffer)))
 	     (point))))
   (let* ((size (length comint-last-similar-string))
-	 (len (ring-length input-ring))
-	 (n (+ input-ring-index arg))
+	 (len (ring-length comint-input-ring))
+	 (n (+ comint-input-ring-index arg))
 	 entry)
     (while (and (< n len) 
-		(or (< (length (setq entry (ring-ref input-ring n))) size)
+		(or (< (length (setq entry (ring-ref comint-input-ring n))) size)
 		    (not (equal comint-last-similar-string 
 				(substring entry 0 size)))))
       (setq n (+ n arg)))
     (cond ((< n len)
-	   (setq input-ring-index n)
+	   (setq comint-input-ring-index n)
 	   (if (eq last-command 'comint-previous-similar-input)
 	       (delete-region (mark) (point)) ; repeat
 	       (push-mark (point)))	      ; 1st time
 	   (insert (substring entry size)))
 	  (t (message "Not found.") (ding) (sit-for 1)))
-    (message "%d" (1+ input-ring-index))))
+    (message "%d" (1+ comint-input-ring-index))))
 
 
 (defun comint-send-input () 
@@ -692,7 +695,8 @@ Similarly for Soar, Scheme, etc.."
 			  (insert copy)
 			  copy))))
 	  (insert ?\n)
-	  (if (funcall comint-input-filter input) (ring-insert input-ring input))
+	  (if (funcall comint-input-filter input)
+	      (ring-insert comint-input-ring input))
 	  (funcall comint-input-sentinel input)
 	  (funcall comint-input-sender proc input)
 	  (set-marker comint-last-input-start pmark)
