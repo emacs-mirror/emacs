@@ -828,7 +828,7 @@ NAME may be an abbreviation of the reference name."
 	   (list (if (equal input "")
 		     default input)))
        (error "No cross-references in this node"))))
-  (let (target beg i (str (concat "\\*note " footnotename)))
+  (let (target beg i (str (concat "\\*note " (regexp-quote footnotename))))
     (while (setq i (string-match " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
       (setq i (+ i 6)))
