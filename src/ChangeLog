@@ -1,3 +1,8 @@
+2002-11-06  Dave Love  <fx@gnu.org>
+
+	* xterm.c (XTread_socket): Check Lisp types for Vx_keysym_table
+	and fix C types.
+
 2002-11-06  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_utf_8): When eol_type is Qdos, handle
