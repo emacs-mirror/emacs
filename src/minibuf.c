@@ -241,6 +241,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
   extern Lisp_Object Qinvisible, Qintangible, Qread_only, Qfront_sticky;
+  extern Lisp_Object Qrear_nonsticky;
 
   specbind (Qminibuffer_default, defalt);
 
@@ -396,12 +397,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   XSETFASTINT (current_buffer->minibuffer_prompt_length, PT);
   if (PT > BEG)
     {
-      Fput_text_property (make_number (BEG), make_number (PT - 1),
+      Fput_text_property (make_number (BEG), make_number (PT),
 			  Qfront_sticky, Qt, Qnil);
-      Fput_text_property (make_number (BEG), make_number (PT - 1),
-			  Qread_only, Qt, Qnil);
-      Fput_text_property (make_number (PT - 1), make_number (Z),
+      Fput_text_property (make_number (BEG), make_number (PT),
 			  Qrear_nonsticky, Qt, Qnil);
+      Fput_text_property (make_number (BEG), make_number (PT),
+			  Qread_only, Qt, Qnil);
     }
       
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
