@@ -152,8 +152,8 @@ It is a copy of the TABLE, which defaults to the standard syntax table.")
      Lisp_Object table;
 {
   Lisp_Object size, val;
-  XFASTINT (size) = 0400;
-  XFASTINT (val) = 0;
+  XSETFASTINT (size, 0400);
+  XSETFASTINT (val, 0);
   val = Fmake_vector (size, val);
   if (!NILP (table))
     table = check_syntax_table (table);
@@ -309,7 +309,7 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   if (match) p++;
   if (match == ' ') match = 0;
 
-  XFASTINT (val) = (match << 8) + (int) code;
+  XSETFASTINT (val, (match << 8) + (int) code);
   while (*p)
     switch (*p++)
       {
@@ -1273,7 +1273,7 @@ scan_lists (from, count, depth, sexpflag)
 
 
   immediate_quit = 0;
-  XFASTINT (val) = from;
+  XSETFASTINT (val, from);
   return val;
 
  lose:
@@ -1692,28 +1692,28 @@ init_syntax_once ()
   v = XVECTOR (Vstandard_syntax_table);
 
   for (i = 'a'; i <= 'z'; i++)
-    XFASTINT (v->contents[i]) = (int) Sword;
+    XSETFASTINT (v->contents[i], (int) Sword);
   for (i = 'A'; i <= 'Z'; i++)
-    XFASTINT (v->contents[i]) = (int) Sword;
+    XSETFASTINT (v->contents[i], (int) Sword);
   for (i = '0'; i <= '9'; i++)
-    XFASTINT (v->contents[i]) = (int) Sword;
-  XFASTINT (v->contents['$']) = (int) Sword;
-  XFASTINT (v->contents['%']) = (int) Sword;
+    XSETFASTINT (v->contents[i], (int) Sword);
+  XSETFASTINT (v->contents['$'], (int) Sword);
+  XSETFASTINT (v->contents['%'], (int) Sword);
 
-  XFASTINT (v->contents['(']) = (int) Sopen + (')' << 8);
-  XFASTINT (v->contents[')']) = (int) Sclose + ('(' << 8);
-  XFASTINT (v->contents['[']) = (int) Sopen + (']' << 8);
-  XFASTINT (v->contents[']']) = (int) Sclose + ('[' << 8);
-  XFASTINT (v->contents['{']) = (int) Sopen + ('}' << 8);
-  XFASTINT (v->contents['}']) = (int) Sclose + ('{' << 8);
-  XFASTINT (v->contents['"']) = (int) Sstring;
-  XFASTINT (v->contents['\\']) = (int) Sescape;
+  XSETFASTINT (v->contents['('], (int) Sopen + (')' << 8));
+  XSETFASTINT (v->contents[')'], (int) Sclose + ('(' << 8));
+  XSETFASTINT (v->contents['['], (int) Sopen + (']' << 8));
+  XSETFASTINT (v->contents[']'], (int) Sclose + ('[' << 8));
+  XSETFASTINT (v->contents['{'], (int) Sopen + ('}' << 8));
+  XSETFASTINT (v->contents['}'], (int) Sclose + ('{' << 8));
+  XSETFASTINT (v->contents['"'], (int) Sstring);
+  XSETFASTINT (v->contents['\\'], (int) Sescape);
 
   for (i = 0; i < 10; i++)
-    XFASTINT (v->contents["_-+*/&|<>="[i]]) = (int) Ssymbol;
+    XSETFASTINT (v->contents["_-+*/&|<>="[i]], (int) Ssymbol);
 
   for (i = 0; i < 12; i++)
-    XFASTINT (v->contents[".,;:?!#@~^'`"[i]]) = (int) Spunct;
+    XSETFASTINT (v->contents[".,;:?!#@~^'`"[i]], (int) Spunct);
 }
 
 syms_of_syntax ()
