@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1997,2000,01,02,03,2004  Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -433,14 +433,13 @@ found, do widen first and then call NARROWFUN with no args after moving."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next")))
-         (check-narrow-maybe (when narrowfun
-                               '(setq was-narrowed-p
-                                      (prog1 (or (/= (point-min) 1)
-                                                 (/= (point-max)
-                                                     (1+ (buffer-size))))
-                                        (widen)))))
+         (check-narrow-maybe
+	  (when narrowfun
+	    '(setq was-narrowed
+		   (prog1 (or (< (- (point-max) (point-min)) (buffer-size)))
+		     (widen)))))
          (re-narrow-maybe (when narrowfun
-                            `(when was-narrowed-p (,narrowfun)))))
+                            `(when was-narrowed (,narrowfun)))))
     (unless name (setq name base-name))
     `(progn
        (add-to-list 'debug-ignored-errors
@@ -451,7 +450,7 @@ found, do widen first and then call NARROWFUN with no args after moving."
 	 (unless count (setq count 1))
 	 (if (< count 0) (,prev-sym (- count))
 	   (if (looking-at ,re) (setq count (1+ count)))
-           (let (was-narrowed-p)
+           (let (was-narrowed)
              ,check-narrow-maybe
              (if (not (re-search-forward ,re nil t count))
                  (if (looking-at ,re)
@@ -472,7 +471,7 @@ found, do widen first and then call NARROWFUN with no args after moving."
 	 (interactive)
 	 (unless count (setq count 1))
 	 (if (< count 0) (,next-sym (- count))
-           (let (was-narrowed-p)
+           (let (was-narrowed)
              ,check-narrow-maybe
              (unless (re-search-backward ,re nil t count)
                (error "No previous %s" ,name))
