@@ -467,22 +467,18 @@ Lisp_Object
 make_process (name)
      Lisp_Object name;
 {
+  struct Lisp_Vector *vec;
   register Lisp_Object val, tem, name1;
   register struct Lisp_Process *p;
   char suffix[10];
   register int i;
 
-  /* size of process structure includes the vector header,
-     so deduct for that.  But struct Lisp_Vector includes the first
-     element, thus deducts too much, so add it back.  */
-  val = Fmake_vector (make_number ((sizeof (struct Lisp_Process)
-				    - sizeof (struct Lisp_Vector)
-				    + sizeof (Lisp_Object))
-				   / sizeof (Lisp_Object)),
-		      Qnil);
-  XSETTYPE (val, Lisp_Process);
+  vec = allocate_vectorlike ((EMACS_INT) VECSIZE (struct Lisp_Process));
+  for (i = 0; i < VECSIZE (struct Lisp_Process); i++)
+    vec->contents[i] = Qnil;
+  vec->size = VECSIZE (struct Lisp_Process);
+  p = (struct Lisp_Process *)vec;
 
-  p = XPROCESS (val);
   XSETINT (p->infd, -1);
   XSETINT (p->outfd, -1);
   XSETFASTINT (p->pid, 0);
@@ -505,6 +501,7 @@ make_process (name)
     }
   name = name1;
   p->name = name;
+  XSETPROCESS (val, p);
   Vprocess_alist = Fcons (Fcons (name, val), Vprocess_alist);
   return val;
 }
