@@ -1,7 +1,7 @@
 2005-01-12  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
 
 	* custom.el (custom-declare-variable): Just put symbol instead
-	of (defvar . symbol) on `current-load-list'.
+	of (defvar . symbol) in `current-load-list'.
 
 2005-01-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
