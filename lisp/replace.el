@@ -568,7 +568,10 @@ which will run faster and probably do exactly what you want."
 	      (while (not done)
 		(store-match-data real-match-data)
 		(replace-highlight (match-beginning 0) (match-end 0))
-		(message message from-string next-replacement)
+		;; Bind message-log-max so we don't fill up the message log
+		;; with a bunch of identical messages.
+		(let ((message-log-max nil))
+		  (message message from-string next-replacement))
 		(setq key (read-event))
 		(setq key (vector key))
 		(setq def (lookup-key map key))
