@@ -1,4 +1,4 @@
-;;; decipher.el --- Cryptanalyze monoalphabetic substitution ciphers
+;;; decipher.el --- cryptanalyze monoalphabetic substitution ciphers
 ;;
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 ;;
@@ -687,7 +687,7 @@ ciphertext."
       (set-buffer (decipher-stats-buffer))
       (goto-char (point-min))
       (or (re-search-forward (format "^%c: " cipher-char) nil t)
-          (error "Character `%c' is not used in ciphertext." cipher-char))
+          (error "Character `%c' is not used in ciphertext" cipher-char))
       (forward-line -1)
       (setq start (point))
       (forward-line 3)

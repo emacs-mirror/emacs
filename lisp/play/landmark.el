@@ -30,7 +30,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 
-;;;_* Commentary
+;;; Commentary:
 ;;; Lm is a relatively non-participatory game in which a robot
 ;;; attempts to maneuver towards a tree at the center of the window
 ;;; based on unique olfactory cues from each of the 4 directions. If
@@ -61,6 +61,8 @@
 (eval-when-compile (require 'cl))
 
 ;;;_* From Gomoku
+
+;;; Code:
 
 (defgroup lm nil
   "Neural-network robot that learns landmarks."

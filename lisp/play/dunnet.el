@@ -1,4 +1,4 @@
-;;; dunnet.el --- Text adventure for Emacs
+;;; dunnet.el --- text adventure for Emacs
 
 ;; Copyright (C) 1992, 1993, 2001 Free Software Foundation, Inc.
 
@@ -32,6 +32,8 @@
 ;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ;;;  The log file should be set for your system, and it must
 ;;;  be writable by all.
+
+;;; Code:
 
 (defgroup dunnet nil
   "Text adventure for Emacs."
@@ -2912,7 +2914,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
       (setq dun-badcd nil)
       (condition-case nil
 	  (setq path-elements (dun-get-path (car args) nil))
-	(error (dun-mprincl "Invalid path.")
+	(error (dun-mprincl "Invalid path")
 	       (setq dun-badcd t)))
       (dolist (pe path-elements)
 	      (unless dun-badcd
@@ -3367,5 +3369,4 @@ File not found")))
 
 (provide 'dunnet)
 
-;; dunnet.el ends here
-
+;;; dunnet.el ends here

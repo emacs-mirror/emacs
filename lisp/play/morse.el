@@ -1,4 +1,4 @@
-;;; morse.el --- Convert text to morse code and back.
+;;; morse.el --- convert text to morse code and back
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 

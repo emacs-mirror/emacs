@@ -458,3 +458,5 @@ pong-mode keybindings:\\<pong-mode-map>
 
 
 (provide 'pong)
+
+;;; pong.el ends here

@@ -1,4 +1,4 @@
-;;; tetris.el -- Implementation of Tetris for Emacs
+;;; tetris.el --- implementation of Tetris for Emacs
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -25,6 +25,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
+
+;;; Code:
 
 (eval-when-compile
   (require 'cl))

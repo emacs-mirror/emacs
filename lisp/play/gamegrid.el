@@ -1,4 +1,4 @@
-;;; gamegrid.el -- Library for implementing grid-based games on Emacs
+;;; gamegrid.el --- library for implementing grid-based games on Emacs
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
@@ -25,6 +25,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
+
+;;; Code:
 
 (eval-when-compile
   (require 'cl))
@@ -425,3 +427,5 @@ static char *noname[] = {
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'gamegrid)
+
+;;; gamegrid.el ends here

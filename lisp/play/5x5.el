@@ -1,4 +1,4 @@
-;;; 5x5.el -- Simple little puzzle game.
+;;; 5x5.el --- simple little puzzle game
 
 ;; Copyright (C) 1999,2000 Free Software Foundation, Inc.
 
@@ -44,6 +44,8 @@
 ;;
 ;; Pascal Q. Porcupine <joshagam@cs.nmsu.edu> for inspiring the animated
 ;; solver.
+
+;;; Code:
 
 ;; Things we need.
 

@@ -1,10 +1,10 @@
-;;; fortune.el --- Use fortune to create signatures
+;;; fortune.el --- use fortune to create signatures
 ;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
 
-;; This file is part of Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -340,4 +340,3 @@ and choose the directory as the fortune-file."
 (provide 'fortune)
 
 ;;; fortune.el ends here
-
