@@ -285,6 +285,11 @@ or when the frame is resized.
 These functions return the current locations of the vertical and
 horisontal scroll bars in a frame or window.
 
+---
+** Emacs now supports drag and drop for X.  Dropping a file on a window
+   opens it, dropping text inserts the text.  Dropping a file on a dired
+   buffer copies or moves the file to that directory.
+
 ** Under X, mouse-wheel-mode is turned on by default.
 
 ** The X resource useXIM can be used to turn off use of XIM, which may
