@@ -94,7 +94,7 @@ typedef char *pointer;
 
    Callers below should use malloc.  */
 
-#  ifndef emacs
+#  ifdef emacs
 #   undef malloc
 #   define malloc xmalloc
 #   ifdef EMACS_FREE
