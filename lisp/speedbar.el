@@ -414,7 +414,7 @@ form:
 where each ELT is of the form
   (TAG-NAME-STRING . NUMBER-OR-MARKER)
 or
-  (GROUP-NAME-STRING ELT1 EL2... ELTn)"
+  (GROUP-NAME-STRING ELT1 ELR2... ELTn)"
   :group 'speedbar
   :type 'hook
   :options '(speedbar-sort-tag-hierarchy
@@ -1924,13 +1924,13 @@ variable `speedbar-obj-alist'."
     (speedbar-enable-update)))
 
 (defun speedbar-toggle-images ()
-  "Toggle automatic update for the speedbar frame."
+  "Toggle images for the speedbar frame."
   (interactive)
   (setq speedbar-use-images (not speedbar-use-images))
   (speedbar-refresh))
 
 (defun speedbar-toggle-sorting ()
-  "Toggle automatic update for the speedbar frame."
+  "Toggle sorting for the speedbar frame."
   (interactive)
   (setq speedbar-sort-tags (not speedbar-sort-tags)))
 
