@@ -796,6 +796,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
   Boolean has_to_recompute_size;
   Boolean has_to_recompute_gcs;
   Boolean has_to_update_hints;
+  Boolean has_to_update_internal_border_width;
 
   int char_width, char_height;
   Dimension pixel_width;
@@ -813,6 +814,10 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
 			   && cur->core.height == new->core.height);
 
   has_to_update_hints = (cur->emacs_frame.font != new->emacs_frame.font);
+
+  has_to_update_internal_border_width
+    = (cur->emacs_frame.internal_border_width
+       != new->emacs_frame.internal_border_width);
 
   if (has_to_recompute_gcs)
     {
@@ -838,6 +843,12 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
 
   if (has_to_update_hints)
     update_wm_hints (new);
+
+  /* Don't clobber the internal_border_width
+     if the caller did not try to change it.  */
+  if (! has_to_update_internal_border_width)
+    new->emacs_frame.internal_border_width
+      = new->emacs_frame.frame->output_data.x->internal_border_width;
 
   update_various_frame_slots (new);
 
