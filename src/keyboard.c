@@ -1718,8 +1718,14 @@ command_loop_1 ()
 	{
 	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
 	    {
-	      current_buffer->mark_active = Qnil;
-	      call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+	      /* We could also call `deactivate'mark'.  */
+	      if (EQ (Vtransient_mark_mode, Qlambda))
+		Vtransient_mark_mode = Qnil;
+	      else
+		{
+		  current_buffer->mark_active = Qnil;
+		  call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+		}
 	    }
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
@@ -3444,25 +3450,17 @@ gen_help_event (bufp, size, help, frame, window, object, pos)
      Lisp_Object help, frame, object, window;
      int pos;
 {
-  int nevents_stored = 0;
-  
-  if (size >= 2)
+  if (size >= 1)
     {
       bufp->kind = HELP_EVENT;
       bufp->frame_or_window = frame;
       bufp->arg = object;
-      bufp->x = make_number (pos);
-      bufp->code = 0;
-
-      ++bufp;
-      bufp->kind = HELP_EVENT;
-      bufp->frame_or_window = WINDOWP (window) ? window : frame;
-      bufp->arg = help;
-      bufp->code = 1;
-      nevents_stored = 2;
+      bufp->x = WINDOWP (window) ? window : frame;
+      bufp->y = help;
+      bufp->code = make_number (pos);
+      return 1;
     }
-
-  return nevents_stored;
+  return 0;
 }
 
 
@@ -3477,15 +3475,9 @@ kbd_buffer_store_help_event (frame, help)
   event.kind = HELP_EVENT;
   event.frame_or_window = frame;
   event.arg = Qnil;
-  event.x = make_number (0);
+  event.x = Qnil;
+  event.y = help;
   event.code = 0;
-  kbd_buffer_store_event (&event);
-  
-  event.kind = HELP_EVENT;
-  event.frame_or_window = frame;
-  event.arg = help;
-  event.x = make_number (0);
-  event.code = 1;
   kbd_buffer_store_event (&event);
 }
 
@@ -3758,28 +3750,20 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	kbd_fetch_ptr = event + 1;
       else if (event->kind == HELP_EVENT)
 	{
-	  /* There are always two HELP_EVENTs in the input queue.  */
 	  Lisp_Object object, position, help, frame, window;
 
-	  xassert (event->code == 0);
 	  frame = event->frame_or_window;
 	  object = event->arg;
-	  position = event->x;
+	  position = make_number (event->code);
+	  window = event->x;
+	  help = event->y;
 	  clear_event (event);
 
 	  kbd_fetch_ptr = event + 1;
-	  event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
-		   ? kbd_fetch_ptr
-		   : kbd_buffer);
-	  xassert (event->code == 1);
-	  help = event->arg;
-	  window = event->frame_or_window;
 	  if (!WINDOWP (window))
 	    window = Qnil;
 	  obj = Fcons (Qhelp_echo,
 		       list5 (frame, help, window, object, position));
-	  clear_event (event);
-	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == FOCUS_IN_EVENT)
 	{
@@ -7129,8 +7113,6 @@ tool_bar_items (reuse, nitems)
   int nmaps, i;
   Lisp_Object oquit;
   Lisp_Object *tmaps;
-  extern Lisp_Object Voverriding_local_map_menu_flag;
-  extern Lisp_Object Voverriding_local_map;
 
   *nitems = 0;
 
@@ -9355,14 +9337,17 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 {
   Lisp_Object function;
   char buf[40];
-  Lisp_Object saved_keys;
+  int saved_last_point_position;
+  Lisp_Object saved_keys, saved_last_point_position_buffer;
   Lisp_Object bindings, value;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   saved_keys = Fvector (this_command_key_count,
 			XVECTOR (this_command_keys)->contents);
+  saved_last_point_position_buffer = last_point_position_buffer;
+  saved_last_point_position = last_point_position;
   buf[0] = 0;
-  GCPRO2 (saved_keys, prefixarg);
+  GCPRO3 (saved_keys, prefixarg, saved_last_point_position_buffer);
 
   if (EQ (prefixarg, Qminus))
     strcpy (buf, "- ");
@@ -9424,6 +9409,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
     add_command_key (make_number ('\015'));
   }
+
+  last_point_position = saved_last_point_position;
+  last_point_position_buffer = saved_last_point_position_buffer;
 
   UNGCPRO;
 
