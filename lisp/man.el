@@ -144,7 +144,7 @@ the associated section number.")
       "-e '/[Nn]o such file or directory/d'"
       "-e '/Reformatting page.  Wait/d'"
       "-e '/Reformatting entry.  Wait/d'"
-      "-e '/^\\([A-Z][A-Z.]*([0-9A-Za-z][-0-9A-Za-z+]*)\\).*\\1$/d'"
+      "-e '/^ *\\([A-Za-z][A-Za-z.]*([0-9A-Za-z][-0-9A-Za-z+]*)\\).*\\1$/d'"
       "-e '/^[ \\t]*Hewlett-Packard Company[ \\t]*- [0-9]* -.*$/d'"
       "-e '/^[ \\t]*Hewlett-Packard[ \\t]*- [0-9]* -.*$/d'"
       "-e '/^ *Page [0-9]*.*(printed [0-9\\/]*)$/d'"
@@ -188,6 +188,10 @@ the manpage buffer.")
 
 (defvar Man-mode-hook nil
   "*Normal hook run when Man mode is enabled.")
+
+(defvar Man-cooked-hook nil
+  "*Hooks run after removing backspace characters from man page
+but before Man-mode.")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
@@ -530,6 +534,7 @@ See the variable `Man-notify' for the different notification behaviors."
 	  (save-excursion
 	    (set-buffer Man-buffer)
 	    (Man-set-fonts)
+	    (run-hooks 'Man-cooked-hook)
 	    (Man-mode)
 	    (set-buffer-modified-p nil)))
 	(Man-notify-when-ready Man-buffer))
