@@ -1,3 +1,19 @@
+2005-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (auto_window_vscroll_p): New boolean.
+	(syms_of_window): DEFVAR_BOOL it.
+	(Fpos_visible_in_window_p): Extend return value to include RTOP
+	and RBOT values if FULLY is nil.
+	(window_scroll_pixel_based): Adjust vscroll for partially visible
+	rows if auto_window_vscroll_p is set.
+	(Fset_window_vscroll): Do nothing if vscroll is not modified.
+
+	* xdisp.c (pos_visible_p): Replace FULLY arg by RTOP and RBOT args
+	to return number of partially invisible pixels at top and bottom
+	of the dislay row at POS.
+
+	* lisp.h (pos_visible_p): Fix prototype.
+
 2005-01-21  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fcopy_file): Doc fix.
@@ -23,7 +39,7 @@
 	(init_editfns): Assign new variable operating-system-release
 	based on call to uname if available.
 	(get_operating_system_release): Added function to
-	allow c-level access to operating system release.	
+	allow c-level access to operating system release.
 
 	* config.h: Regenerated.
 

@@ -1,3 +1,9 @@
+2005-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-1): Rename from line-move.
+	(line-move): New function that adjusts vscroll for partially
+	visible rows, and calls line-move-1 otherwise.
+
 2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
 
 	* pcomplete.el: define pcomplete-read-event instead of read-event,
