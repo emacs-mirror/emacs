@@ -1,4 +1,4 @@
-/* impl.h.mpslib: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE
+/* impl.h.mpslib: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.

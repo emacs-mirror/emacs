@@ -1,4 +1,4 @@
-/* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
+/* impl.h.mps: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
