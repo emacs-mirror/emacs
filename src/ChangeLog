@@ -1,3 +1,8 @@
+2004-01-08  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_preprocess) <case Lisp_Vectorlike>: Only mask
+	size if PSEUDOVECTOR_FLAG is set.
+
 2004-01-07  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fdeclare_equiv_charset): Fix docstring.
