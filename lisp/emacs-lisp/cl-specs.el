@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 1996/01/14 07:34:30 $|1.1|
+;; |$Date: 2000/01/30 01:50:41 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -202,7 +202,7 @@
     [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
     [&optional ["&rest" arg]]
     [&optional ["&key" [cl-&key-arg &rest cl-&key-arg]
-		&optional "&allow-other-keywords"]]
+		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
 		&or (symbolp &optional def-form) symbolp]]
     )))
@@ -227,7 +227,7 @@
 			[&or ([&or (symbolp cl-macro-arg) arg] 
 			      &optional def-form cl-macro-arg)
 			     arg]]
-		&optional "&allow-other-keywords"]]
+		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
 		&or (symbolp &optional def-form) symbolp]]
     [&optional "&environment" arg]
@@ -246,7 +246,7 @@
 			[&or ([&or (symbolp cl-macro-arg) arg] 
 			      &optional def-form cl-macro-arg)
 			     arg]]
-		&optional "&allow-other-keywords"]]
+		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
 		&or (symbolp &optional def-form) symbolp]]
     . [&or arg nil])))
