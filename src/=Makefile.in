@@ -10,6 +10,7 @@ MAKE = make
 CC=cc
 CPP=cc -E
 CFLAGS=-g
+C_SWITCH_SYSTEM=
 srcdir=@srcdir@/src
 VPATH=@srcdir@/src
 LN_S=ln -s
@@ -79,7 +80,7 @@ relock:
 xmakefile: ymakefile config.h ../config.status
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ${srcdir}/ymakefile junk.c
-	${CPP} -I${srcdir} ${CFLAGS} junk.c > junk.cpp
+	${CPP} -I${srcdir} ${CFLAGS} ${C_SWITCH_SYSTEM} junk.c > junk.cpp
 	< junk.cpp					\
 	sed	-e 's/^#.*//'				\
 		-e 's/^[ \f\t][ \f\t]*$$//'		\
