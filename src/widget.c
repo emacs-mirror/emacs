@@ -36,6 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/ObjectP.h>
 #include <X11/Shell.h>
 #include <X11/ShellP.h>
+#include "../lwlib/lwlib.h"
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -901,8 +902,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
       int old_left = f->display.x->widget->core.x;
       int old_top = f->display.x->widget->core.y;
 
-      XawPanedSetRefigureMode (f->display.x->column_widget, False);
-
+      lw_refigure_widget (f->display.x->column_widget, False);
       ac = 0;
       XtSetArg (al[ac], XtNheight, pixel_height); ac++;
       XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
@@ -912,8 +912,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
       XtSetArg (al[ac], XtNheight, column_widget_height + hdelta); ac++;
       XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
       XtSetValues (f->display.x->column_widget, al, ac);
-
-      XawPanedSetRefigureMode (f->display.x->column_widget, True);
+      lw_refigure_widget (f->display.x->column_widget, True);
 
       /* These seem to get clobbered.  I don't know why. - rms.  */
       f->display.x->widget->core.x = old_left;
