@@ -196,6 +196,7 @@ main (argc, argv)
   char gwdirb[BUFSIZ];
   char *cwd;
   char *temp;
+  char *progname = argv[0];
 
   if (argc < 2)
     {
@@ -291,7 +292,7 @@ main (argc, argv)
   msgp->mtype = 1;
   if (msgsnd (s, msgp, strlen (msgp->mtext)+1, 0) < 0)
     {
-      fprintf (stderr, "%s: ", argv[0]);
+      fprintf (stderr, "%s: ", progname);
       perror ("msgsnd");
       exit (1);
     }
