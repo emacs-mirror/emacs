@@ -57,7 +57,7 @@ get_time ()
     exit (1);  /* call reset_watch first ! */
   EMACS_GET_TIME (TV2);
   EMACS_SUB_TIME (TV2, TV2, TV1);
-  sprintf (time_string, "%lu.%06lu", EMACS_SECS(TV2), EMACS_USECS(TV2));
+  sprintf (time_string, "%lu.%06lu", EMACS_SECS (TV2), EMACS_USECS (TV2));
   return time_string;
 }
 
