@@ -625,13 +625,12 @@ The text matches the regular expression PATTERN.
 Optional 4th argument STRING, if non-nil, is a string containing text
 to compose.
 
-The return value is number of composed characters."
-  (if (< (1+ from) to)
-      (prog1 (- to from)
-	(if string
-	    (compose-string string from to)
-	  (compose-region from to))
-	(- to from))))
+The return value is the number of composed characters."
+  (when (< (1+ from) to)
+      (if string
+	  (compose-string string from to)
+	(compose-region from to))
+      (- to from)))
 
 ;; Register a function to compose Unicode diacrtics and marks.
 (let ((patterns '(("\\C^\\c^+" . diacritic-composition-function))))
