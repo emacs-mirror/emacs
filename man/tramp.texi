@@ -8,6 +8,12 @@
 @c This is *so* much nicer :)
 @footnotestyle end
 
+@c In the Tramp CVS, the version number is auto-frobbed from the
+@c Makefile, so you should edit the top-level Makefile to change
+@c the version number.
+@macro trampver{}
+2.0.20
+@end macro
 
 @c Entries for @command{install-info} to use
 @dircategory Emacs
@@ -21,39 +27,46 @@
 @sc{tramp}
 @end macro
 
-@c Copying permissions, et al
-@copying
-This file documents @tramp{}, a remote file editing package for Emacs and
-XEmacs.
-     
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
-Foundation, Inc.
+@c Distinguish between GNU Emacs and XEmacs.  Derived from the
+@c Makefile variable $(EMACS-ID).  Valid values are `emacs' and `xemacs'.
+@set emacs
 
-@quotation     
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
+@c Some flags which make the text independent on the (X)Emacs flavor.
+@c GNU Emacs values.
+@ifset emacs
+@set emacs-name               Emacs
+@set emacs-dir                emacs
+@set ftp-package-name         Ange-FTP
+@set tramp-prefix             /
+@set tramp-prefix-single-hop
+@set tramp-postfix            :
+@set tramp-postfix-single-hop :
+@set tramp-postfix-multi-hop  :
+@end ifset
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+@c XEmacs counterparts.
+@ifset xemacs
+@set emacs-name               XEmacs
+@set emacs-dir                xemacs
+@set ftp-package-name         EFS
+@set tramp-prefix             /[
+@set tramp-prefix-single-hop  [
+@set tramp-postfix            ]
+@set tramp-postfix-single-hop /
+@set tramp-postfix-multi-hop  :
+@end ifset
 
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-@end quotation
-@end copying
-
+@c Macros for formatting a filename.
+@c trampfn is for a full filename, trampfnmhp means method, host, path
+@c were given, and so on.
+@macro trampfn(method, user, host, path)
+@value{tramp-prefix}@value{method}@value{user}@@@value{host}@value{tramp-postfix}@value{path}
+@end macro
 
 @tex
 
 @titlepage
-@title @tramp{} User Manual
+@title @tramp{} version @trampver{} User Manual
 
 @author by Daniel Pittman
 @author based on documentation by Kai Gro@ss{}johann
@@ -66,16 +79,19 @@ license to the document, as described in section 6 of the license.
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
-@top @tramp{} User Manual
+@top @tramp{} version @trampver{} User Manual
+
+This file documents @tramp{} version @trampver{}, a remote file
+editing package for @value{emacs-name}.
 
 @tramp{} stands for `Transparent Remote (file) Access, Multiple
 Protocol'.  This package provides remote file editing, similar to
-@cite{Ange-FTP} and @cite{EFS}.
+@value{ftp-package-name}.
 
-The difference is that Ange-FTP uses FTP to transfer files between the
-local and the remote host, whereas @tramp{} uses a combination of
-@command{rsh} and @command{rcp} or other work-alike programs, such as
-@command{ssh}/@command{scp}.
+The difference is that @value{ftp-package-name} uses FTP to transfer
+files between the local and the remote host, whereas @tramp{} uses a
+combination of @command{rsh} and @command{rcp} or other work-alike
+programs, such as @command{ssh}/@command{scp}.
 
 You can find the latest version of this document on the web at
 @uref{http://www.freesoftware.fsf.org/tramp/}.
@@ -102,20 +118,21 @@ well as the usual Savannah archives.
 
 @menu
 * Overview::                    What @tramp{} can and cannot do.
+* Copying::                     The license for this documentation.
 
 For the end user:
 * Obtaining @tramp{}::          How to obtain @tramp{}.
-* History::                     History of @tramp{}
-* Installation::                Installing @tramp{} with your (X)Emacs.
+* History::                     History of @tramp{}.
+* Installation::                Installing @tramp{} with your @value{emacs-name}.
 * Configuration::               Configuring @tramp{} for use.
 * Usage::                       An overview of the operation of @tramp{}.
-* Bug Reports::                 Reporting Bugs and Problems
+* Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
 
 For the developer:
 * Version Control::             The inner workings of remote version control.
 * Files directories and paths::  How file names, directories and paths are mangled and managed.
-* Issues::                      
+* Issues::                      Debatable Issues and What Was Decided.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -128,14 +145,17 @@ Configuring @tramp{} for use
 * Multi-hop Methods::           Connecting to a remote host using multiple hops.
 * Default Method::              Selecting a default method.
 * Customizing Methods::         Using Non-Standard Methods.
+* Customizing Completion::      Selecting config files for user/host name completion.
 * Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
-* Remote shell setup::          
+* Remote shell setup::          Remote shell setup hints.
+* Windows setup hints::         Issues with Cygwin ssh.
 
 Using @tramp
 
 * Filename Syntax::             @tramp{} filename conventions.
-* Multi-hop filename syntax::   Multi-hop filename conventions
-* Dired::                       Dired and filename completion.
+* Multi-hop filename syntax::   Multi-hop filename conventions.
+* Filename completion::         Filename completion.
+* Dired::                       Dired.
 
 The inner workings of remote version control
 
@@ -143,7 +163,7 @@ The inner workings of remote version control
 * Remote Commands::             Executing the version control commands on the remote machine.
 * Changed workfiles::           Detecting if the working file has changed.
 * Checking out files::          Bringing the workfile out of the repository.
-* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere
+* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere.
 
 Things related to Version Control that don't fit elsewhere
 
@@ -157,15 +177,14 @@ How file names, directories and paths are mangled and managed.
 @end detailmenu
 @end menu
 
-
 @node Overview
 @chapter An overview of @tramp
 @cindex overview
 
-After the installation of @tramp{} into your Emacs, you will be able
-to access files on remote machines as though they were local.  Access
-to the remote file system for editing files, version control, and
-@command{dired} are transparently enabled.
+After the installation of @tramp{} into your @value{emacs-name}, you
+will be able to access files on remote machines as though they were
+local.  Access to the remote file system for editing files, version
+control, and @command{dired} are transparently enabled.
 
 Your access to the remote machine can be with the @command{rsh},
 @command{rlogin}, @command{telnet} programs or with any similar
@@ -229,8 +248,9 @@ what happens:
 @tramp{} discovers that it needs a connection to the host.  So it
 invokes @samp{telnet @var{host}} or @samp{rsh @var{host} -l
 @var{user}} or a similar tool to connect to the remote host.
-Communication with this process happens through an Emacs buffer, that
-is, the output from the remote end goes into a buffer.
+Communication with this process happens through an
+@value{emacs-name} buffer, that is, the output from the remote end
+goes into a buffer.
 
 @item
 The remote host may prompt for a login name (for @command{telnet}).  The
@@ -254,8 +274,8 @@ If @tramp{} sees neither of them after a certain period of time (a minute,
 say), then it issues an error message saying that it couldn't find the
 remote shell prompt and shows you what the remote host has sent.
 
-If @tramp{} sees a `login failed' message, it tells you so, aborts the
-login attempt and allows you to try again.
+If @tramp{} sees a @samp{login failed} message, it tells you so,
+aborts the login attempt and allows you to try again.
 
 @item
 Suppose that the login was successful and @tramp{} sees the shell prompt
@@ -293,10 +313,12 @@ For inline transfers, @tramp{} issues a command like @samp{mimencode -b
 buffer that's used for communication, then decodes that output to
 produce the file contents.
 
-For out-of-band transfers, @tramp{} issues a command like @samp{rcp
-user@@host:/path/to/remote/file /tmp/tramp.4711} and then reads the local
-temporary file @file{/tmp/tramp.4711} into a buffer and deletes the
-temporary file.
+For out-of-band transfers, @tramp{} issues a command like the following:
+@example
+rcp user@@host:/path/to/remote/file /tmp/tramp.4711
+@end example
+It then reads the local temporary file @file{/tmp/tramp.4711} into a
+buffer and deletes the temporary file.
 
 @item
 You now edit the buffer contents, blithely unaware of what has happened
@@ -312,6 +334,36 @@ the file.
 
 I hope this has provided you with a basic overview of what happens
 behind the scenes when you open a file with @tramp{}.
+
+
+@c Copying permissions, et al
+@node Copying
+@chapter Copying.
+@cindex copying
+
+@copying
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
+Foundation, Inc.
+
+@quotation     
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
 
 
 @c For the end user
@@ -333,13 +385,18 @@ is the latest version of the code and may contain incomplete features or
 new issues. Use these versions at your own risk.
 
 Instructions for obtaining the latest development version of @tramp{}
-from CVS can be found by going to the Savannah project page at
-@uref{http://savannah.gnu.org/projects/tramp/} and then clicking on the
-CVS link in the navigation bar at the top.  Or follow the example
-session below:
+from CVS can be found by going to the Savannah project page at the
+following URL and then clicking on the CVS link in the navigation bar at
+the top.
+
+@noindent
+@uref{http://savannah.gnu.org/projects/tramp/}
+
+@noindent
+Or follow the example session below:
 
 @example
-] @strong{cd ~/lisp}
+] @strong{cd ~/@value{emacs-dir}}
 ] @strong{cvs -d:pserver:anoncvs@@subversions.gnu.org:/cvsroot/tramp login}
 
 (Logging in to anoncvs@@subversions.gnu.org)
@@ -349,12 +406,13 @@ CVS password: @strong{(just hit RET here)}
 ] @strong{cvs -z3 -d:pserver:anoncvs@@subversions.gnu.org:/cvsroot/tramp co tramp}
 @end example
 
-You should now have a directory @file{~/lisp/tramp} containing the latest
+@noindent
+You should now have a directory @file{~/@value{emacs-dir}/tramp} containing the latest
 version of @tramp{}. You can fetch the latest updates from the repository
 by issuing the command:
 
 @example
-] @strong{cd ~/lisp/tramp}
+] @strong{cd ~/@value{emacs-dir}/tramp}
 ] @strong{cvs update -d}
 @end example
 
@@ -378,111 +436,122 @@ filenames in July 2002.
 
 
 @node Installation
-@chapter Installing @tramp{} into Emacs or XEmacs
+@chapter Installing @tramp{} into @value{emacs-name}.
 @cindex installation
 
-If you use the version that comes with your Emacs or the XEmacs
-package, the following information is not necessary.  Installing
-@tramp{} into your Emacs or XEmacs is a relatively easy process, at
-least compared to rebuilding your machine from scratch. ;)
+If you use the version that comes with your @value{emacs-name}, the
+following information is not necessary.  Installing @tramp{} into your
+@value{emacs-name} is a relatively easy process, at least compared
+to rebuilding your machine from scratch. ;)
 
 Seriously though, the installation should be a fairly simple matter.
 
 The easiest way to proceed is as follows:
 
-@itemize
+@itemize @bullet
 @item
-Choose a directory, say @file{~/emacs/}.  Change into that directory and
+Choose a directory, say @file{~/@value{emacs-dir}/}.  Change into that directory and
 unpack the tarball.  This will give you a directory
-@file{~/emacs/tramp/} which contains subdirectories @file{lisp} for the
+@file{~/@value{emacs-dir}/tramp/} which contains subdirectories @file{lisp} for the
 Lisp code and @file{texi} for the documentation.
 
 @item
 Optionally byte-compile all files in the Lisp directory,
-@file{~/emacs/tramp/lisp/}, by issuing a command like the following from
-the top level directory @file{~/emacs/tramp/}:
+@file{~/@value{emacs-dir}/tramp/lisp/}, by issuing a command like the following from
+the top level directory @file{~/@value{emacs-dir}/tramp/}:
+
 @example
-make EMACS=emacs all            # for Emacs users
-make EMACS=xemacs all           # for XEmacs users
+make EMACS=@value{emacs-dir} all
 @end example
 
 @item
-NOTE:
-@example
-If you run into problems running the example @command{make}
-commands, don't dispare.  You can still byte compile the
-@file{*.el} files by opening emacs in @command{dired}
-(@command{C-x d}) mode, at @file{~/tramp/lisp}.  Mark the lisp
-files with @kbd{m}, then press @kbd{B} to byte compile
-your selections.
+NOTE: If you run into problems running the example @command{make}
+command, don't dispare.  You can still byte compile the @file{*.el}
+files by opening @value{emacs-name} in @command{dired} (@command{C-x
+d}) mode, at @file{~/@value{emacs-dir}/tramp/lisp}.  Mark the lisp files with
+@kbd{m}, then press @kbd{B} to byte compile your selections.
 
-Something similar can be done to create the info manual.  
-Just cd to @file{~/emacs/tramp/texi} and load the @file{tramp.texi}
-file in emacs.  Then press @kbd{M-x makeinfo-buffer <RET>}
-to generate @file{tramp.info}.
-@end example     
+Something similar can be done to create the info manual.  Just change
+to directory @file{~/@value{emacs-dir}/tramp/texi} and load the
+@file{tramp.texi} file in @value{emacs-name}.  Then press @kbd{M-x
+makeinfo-buffer @key{RET}} to generate @file{tramp.info}.
 
 @item
-Tell Emacs about the new Lisp directory and the @tramp{} package 
-with the following lines in @file{~/.emacs}:
+Tell @value{emacs-name} about the new Lisp directory and the
+@tramp{} package with the following lines in @file{~/.emacs}:
+
 @lisp
-(add-to-list 'load-path "~/emacs/tramp/lisp/")
+(add-to-list 'load-path "~/@value{emacs-dir}/tramp/lisp/")
 (require 'tramp)
 @end lisp
 
 @item
 To be able to read the Info documentation, create a file
-@file{~/emacs/tramp/texi/dir} using for example the
-@command{install-info} command, and add the directory to the search 
+@file{~/@value{emacs-dir}/tramp/texi/dir} using the
+@command{install-info} command, and add the directory to the search
 path for Info.
 
-@item
 NOTE:
+On systems using the @cite{gnu} version of @command{install-info}, the
+@command{install-info} syntax is very direct and simple.  One can
+change to directory @file{~/@value{emacs-dir}/tramp/texi} and type:
+
 @example
-On systems using `gnu' @command{install-info}, the
-@command{install-info} syntax is very direct and simple.  One can 
-cd to @file{~/emacs/tramp/texi} and type:
-    @kbd{install-info tramp.info dir}
+install-info tramp.info dir
+@end example
+
 and a @file{dir} file will be created with the @tramp{}
 entry.  The info reader will know how to interpret it, but must
 be told where to find it (see below).  If you want anything fancier
 you'll need to look through @kbd{man install-info}.
 
-Debian gnu/linux doesn't default to `gnu' @command{install-info} and
-uses its own version.  This version does not create a @file{dir} file
-for you from scratch.  You must provide a skeleton dir file it
-recognizes.  One can be found in a default install at
-@file{/usr/info/dir}.  Copy the top of this file down to the first
-occurrence of `* Menu' including that line plus one more blank line,
-to your working directory @file{texi/dir}, or use the sample provided
-in the @file{texi} directory of this distribution.  See
-@file{texi/dir_sample}
+Debian gnu/linux doesn't default to @cite{gnu} @command{install-info}
+and uses its own version.  This version does not create a @file{dir}
+file for you from scratch.  You must provide a skeleton @file{dir}
+file it recognizes.  One can be found in a default installation of
+@value{emacs-name} at @file{/usr/info/dir}.  Copy the top of this file
+down to the first occurrence of @code{* Menu} including that line plus
+one more blank line, to your working directory
+@file{~/@value{emacs-dir}/tramp/texi}, or use the sample
+@file{~/@value{emacs-dir}/tramp/texi/dir_sample}.
 
-Once a @file{dir} file is in place, this command will make the entry.
-     install-info --infodir=. tramp.info
-If you want it in a specific category
-   (see @kbd{man install-info} for further details)
+Once a @file{dir} file is in place, this command will make the entry:
+
+@example
+install-info --infodir=. tramp.info
 @end example
 
+If you want it in a specific category see @kbd{man install-info} for
+further details.
+
 If the environment variable @env{INFOPATH} is set, add the directory
-@file{~/emacs/tramp/texi/} to it.  Else, add the directory to
+@file{~/@value{emacs-dir}/tramp/texi/} to it.  Else, add the directory to
+@ifset emacs
 @code{Info-default-directory-list}, as follows:
+
 @lisp
-(add-to-list 'Info-default-directory-list "~/emacs/tramp/texi/")
+(add-to-list 'Info-default-directory-list "~/@value{emacs-dir}/tramp/texi/")
 @end lisp
-XEmacs 21 users should use @code{Info-directory-list} rather than
-@code{Info-default-directory-list}.
+@end ifset
+@ifset xemacs
+@code{Info-directory-list}, as follows:
+@lisp
+(add-to-list 'Info-directory-list "~/@value{emacs-dir}/tramp/texi/")
+@end lisp
+@end ifset
 
 @end itemize
 
-
-For XEmacs users, the package @file{fsf-compat} must be installed.
+@ifset xemacs
+For @value{emacs-name}, the package @file{fsf-compat} must be installed.
 For details on package installation, see @ref{Packages, , ,xemacs}.
 @ifhtml
-(If the previous link doesn't work, try the XEmacs documentation at
-@uref{http://www.xemacs.org/Documentation/packageGuide.html,the XEmacs
-site}.)
+(If the previous link doesn't work, try the @value{emacs-name}
+documentation at
+@uref{http://www.xemacs.org/Documentation/packageGuide.html,the
+@value{emacs-name} site}.)
 @end ifhtml
+@end ifset
 
 @node Configuration
 @chapter Configuring @tramp{} for use
@@ -490,7 +559,7 @@ site}.)
 
 @cindex default configuration
 @tramp{} is (normally) fully functional when it is initially
-installed.  It is initially configured to use the @command{sh} program
+installed.  It is initially configured to use the @command{ssh} program
 to connect to the remote host and to use base-64 encoding (on the
 remote host, via @command{mimencode}, and on the local host via the
 built-in support for base-64 encoding in Emacs).
@@ -513,6 +582,7 @@ can use to connect to remote machines and transfer files
 * Multi-hop Methods::           Connecting to a remote host using multiple hops.
 * Default Method::              Selecting a default method.
 * Customizing Methods::         Using Non-Standard Methods.
+* Customizing Completion::      Selecting config files for user/host name completion.
 * Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
 * Windows setup hints::         Issues with Cygwin ssh.
@@ -541,9 +611,9 @@ differ.
 @cindex methods, external transfer
 @cindex methods, out-of-band
 Loading or saving a remote file requires that the content of the file
-be transferred between the two machines. The content of the file can be
-transferred over the same connection used to log in to the remote
-machine or the file can be transferred through another connection using
+be transfered between the two machines. The content of the file can be
+transfered over the same connection used to log in to the remote
+machine or the file can be transfered through another connection using
 a remote copy program such as @command{rcp}, @command{scp} or
 @command{rsync}.  The former are called @dfn{inline methods}, the
 latter are called @dfn{out-of-band methods} or @dfn{external transfer
@@ -643,7 +713,7 @@ There are also two variants, @option{sm-ssh1} and @option{sm-ssh2}
 that use the @command{ssh1} and @command{ssh2} commands explicitly. If
 you don't know what these are, you do not need these options.
 
-All the methods based on @command{ssh} have an additional kludgey
+All the methods based on @command{ssh} have an additional kludgy
 feature: you can specify a host name which looks like @file{host#42}
 (the real host name, then a hash sign, then a port number).  This
 means to connect to the given host but to also pass @code{-p 42} as
@@ -776,7 +846,7 @@ rather than @command{su} to become a different user.
 As you expect, this is similar to @option{sm}, only a little
 different.  Whereas @option{sm} opens a normal interactive shell on
 the remote host, this option uses @samp{ssh -t -t @var{host} -l
-@var{user} /bin/sh} tp open a connection.  This is useful for users
+@var{user} /bin/sh} to open a connection.  This is useful for users
 where the normal login shell is set up to ask them a number of
 questions when logging in.  This procedure avoids these questions, and
 just gives @tramp{} a more-or-less `standard' login shell to work
@@ -901,7 +971,7 @@ The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
 
-All the @command{ssh} based methods support the kludgey @samp{-p}
+All the @command{ssh} based methods support the kludgy @samp{-p}
 feature where you can specify a port number to connect to in the host
 name.  For example, the host name @file{host#42} tells Tramp to
 specify @samp{-p 42} in the argument list for @command{ssh}.
@@ -1097,11 +1167,12 @@ also be accomplished within Tramp, by adding a multi-hop method.  For
 example:
 
 @lisp
-(add-to-list 'tramp-multi-connection-function-alist
-             '("sshf" tramp-multi-connect-rlogin "ssh %h -l %u -p 4400%n"))
+(add-to-list
+ 'tramp-multi-connection-function-alist
+ '("sshf" tramp-multi-connect-rlogin "ssh %h -l %u -p 4400%n"))
 @end lisp
 
-Now you can use a @code{sshf} hop which connects to port 4400 instead of
+Now you can use an @code{sshf} hop which connects to port 4400 instead of
 the standard port.
 
 
@@ -1175,6 +1246,105 @@ For the time being, I'll refer you to the Lisp documentation of that
 variable, accessible with @kbd{C-h v tramp-methods @key{RET}}.
 
 
+@node Customizing Completion
+@section Selecting config files for user/host name completion
+@cindex customizing completion
+@cindex selecting config files
+@vindex tramp-completion-function-alist
+
+The variable @code{tramp-completion-function-alist} is intended to
+customize, which files are taken into account for user and host name
+completion (@pxref{Filename completion}).  For every method, it keeps
+a set of configuration files, accompanied by a Lisp function able to
+parse that file.  Entries in @code{tramp-completion-function-alist}
+have the form (@var{method} @var{pair1} @var{pair2} ...).
+
+Each @var{pair} is composed of (@var{function} @var{file}).
+@var{function} is responsible to extract user names and host names
+from @var{file} for completion.  There are two functions which access
+this variable:
+
+@defun tramp-get-completion-function method
+This function returns the list of completion functions for @var{method}.
+
+Example:
+@example
+(tramp-get-completion-function "rsh")
+
+     @result{} ((tramp-parse-rhosts "/etc/hosts.equiv")
+         (tramp-parse-rhosts "~/.rhosts"))
+@end example
+@end defun
+
+@defun tramp-set-completion-function method function-list
+This function sets @var{function-list} as list of completion functions
+for @var{method}. 
+
+Example:
+@example
+(tramp-set-completion-function "ssh"
+ '((tramp-parse-shosts "/etc/ssh_known_hosts")
+   (tramp-parse-shosts "~/.ssh/known_hosts")))
+
+     @result{} ((tramp-parse-shosts "/etc/ssh_known_hosts")
+         (tramp-parse-shosts "~/.ssh/known_hosts"))
+@end example
+@end defun
+
+The following predefined functions parsing configuration files exists:
+
+@table @asis
+@item @code{tramp-parse-rhosts}
+@findex tramp-parse-rhosts
+
+This function parses files which are syntactical equivalent to
+@file{~/.rhosts}.  It returns both host names and user names, if
+specified.
+
+@item @code{tramp-parse-shosts}
+@findex tramp-parse-shosts
+
+This function parses files which are syntactical equivalent to
+@file{/etc/ssh_known_hosts}.  Since there are no user names specified
+in such files, it can return host names only.
+
+@item @code{tramp-parse-hosts}
+@findex tramp-parse-hosts
+
+A function dedicated to @file{/etc/hosts} style files.  It returns
+host names only.
+
+@item @code{tramp-parse-passwd}
+@findex tramp-parse-passwd
+
+Finally a method which parses @file{/etc/passwd} like files.
+Obviously, it can return user names only.
+@end table
+
+@ifset emacs
+A function which parses @file{~/.netrc"} file syntax doesn't exist in
+@tramp{}, because this task is delegated to
+@value{ftp-package-name}. Its customization should be used instead.
+@end ifset
+
+If you want to keep your own data in a file, with your own structure,
+you might provide such a function as well.  This function must meet
+the following conventions:
+
+@defun my-tramp-parse file
+@var{file} must be either a file name on your host, or @code{nil}. The
+function must return a list of (@var{user} @var{host}), which are
+taken as candidates for user and host name completion.
+
+Example:
+@example
+(my-tramp-parse "~/.my-tramp-hosts")
+
+     @result{} ((nil "toto") ("daniel" "melancholia"))
+@end example
+@end defun
+
+
 @node Remote Programs
 @section How @tramp{} finds and uses programs on the remote machine.
 
@@ -1209,13 +1379,13 @@ found.
 To add a directory to the remote search path, you could use code such
 as:
 
-@example
-(require 'tramp)                @i{; @tramp{} must be loaded before this}
-                                @i{; happens.}
-
-@i{; We have @command{perl} in "/usr/local/perl/bin"}
+@lisp
+@i{;; We load @tramp{} to define the variable.}
+(require 'tramp)
+@i{;; We have @command{perl} in "/usr/local/perl/bin"}
 (add-to-list 'tramp-remote-path "/usr/local/perl/bin")
-@end example
+@end lisp
+
 
 @node Remote shell setup
 @comment  node-name,  next,  previous,  up
@@ -1228,7 +1398,7 @@ as:
 As explained in the @ref{Overview} section, @tramp{} connects to the
 remote host and talks to the shell it finds there.  Of course, when you
 log in, the shell executes its init files.  Suppose your init file
-requires you to enter the birthdate of your mother; clearly @tramp{}
+requires you to enter the birth date of your mother; clearly @tramp{}
 does not know this and hence fails to log you in to that host.
 
 There are different possible strategies for pursuing this problem.  One
@@ -1270,25 +1440,39 @@ suppose your shell prompt is @code{a <b> c $ }.  In this case, Tramp
 recognizes the @code{>} character as the end of the prompt, but it is
 not at the end of the buffer.
 
+@item @var{tramp-shell-prompt-pattern}
+@vindex tramp-shell-prompt-pattern
+
+This regular expression is used by @tramp{} in the same way as
+@code{shell-prompt-pattern}, to match prompts from the remote shell.
+This second variable exists because the prompt from the remote shell
+might be different from the prompt from a local shell --- after all,
+the whole point of @tramp{} is to log in to remote hosts as a
+different user.  The default value of
+@code{tramp-shell-prompt-pattern} is the same as the default value of
+@code{shell-prompt-pattern}, which is reported to work well in many
+circumstances.
+
 @item @code{tset} and other questions
 @cindex Unix command tset
 @cindex tset Unix command
 
 Some people invoke the @code{tset} program from their shell startup
-scripts which asks the user about the terminal type of the shell.  Maybe
-some shells ask other questions when they are started.  @tramp{} does
-not know how to answer these questions.  (A facility for enabling
-@tramp{} to answer these questions is planned for some future version,
-but don't hold your breath.)
-
-Therefore, you should take care that the shell does not ask any
-questions when invoked from @tramp{}.  You can do this by checking the
-@code{TERM} environment variable, it will be set to @code{dumb} when
-connecting.
+scripts which asks the user about the terminal type of the shell.
+Maybe some shells ask other questions when they are started.  @tramp{}
+does not know how to answer these questions.  There are two approaches
+for dealing with this problem.  One approach is to take care that the
+shell does not ask any questions when invoked from @tramp{}.  You can
+do this by checking the @code{TERM} environment variable, it will be
+set to @code{dumb} when connecting.
 
 @vindex tramp-terminal-type
 The variable @code{tramp-terminal-type} can be used to change this value
-@code{dumb}.
+to @code{dumb}.
+
+The other approach is to teach @tramp{} about these questions.  See
+the variables @code{tramp-actions-before-shell} and
+@code{tramp-multi-actions} (for multi-hop connections).
 
 @end table
 
@@ -1317,13 +1501,24 @@ to as though they were local.
 
 Files are specified to @tramp{} using a formalized syntax specifying the
 details of the system to connect to.  This is similar to the syntax used
-by the @command{EFS} and @command{Ange-FTP} packages.
+by the @value{ftp-package-name} package.
 
+@cindex type-ahead
+Something that might happen which surprises you is that Emacs
+remembers all your keystrokes, so if you see a password prompt from
+Emacs, say, and hit @kbd{@key{RET}} twice instead of once, then the
+second keystroke will be processed by Emacs after @tramp{} has done
+its thing.  Why, this type-ahead is normal behavior, you say.  Right
+you are, but be aware that opening a remote file might take quite a
+while, maybe half a minute when a connection needs to be opened.
+Maybe after half a minute you have already forgotten that you hit that
+key!
 
 @menu
 * Filename Syntax::             @tramp{} filename conventions.
-* Multi-hop filename syntax::   Multi-hop filename conventions
-* Dired::                       Dired and filename completion.
+* Multi-hop filename syntax::   Multi-hop filename conventions.
+* Filename completion::         Filename completion.
+* Dired::                       Dired.
 @end menu
 
 
@@ -1332,79 +1527,70 @@ by the @command{EFS} and @command{Ange-FTP} packages.
 @cindex filename syntax
 @cindex filename examples
 
-On Emacs, the Ange-FTP and Tramp filenames use a unified syntax.  On
-XEmacs, EFS and Tramp use different formats for the filenames.
-Therefore, the following will describe the Emacs and XEmacs cases
-separately.
+To access the file @var{path} on the remote machine @var{machine} you
+would specify the filename
+@file{@value{tramp-prefix}@var{machine}@value{tramp-postfix}@var{path}}.
+This will connect to @var{machine} and transfer the file using the
+default method.  @xref{Default Method}.
 
-On Emacs, to access the file @var{path} on the remote machine
-@var{machine} you would specify the filename
-@file{/@var{machine}:@var{path}}.  This will connect to @var{machine}
-and transfer the file using the default method.  @xref{Default
-Method}.  On XEmacs, use @file{/[@var{machine}]@var{path}}.  (The
-square brackets are part of the file name.)
-
-Some examples of @tramp{} filenames are shown below.  In each case,
-the Emacs-style filename is shown first, then the XEmacs-style
-filename.
+Some examples of @tramp{} filenames are shown below.
 
 @table @file
-@item /melancholia:.emacs
-@itemx /[melancholia].emacs
+@item @value{tramp-prefix}melancholia@value{tramp-postfix}.emacs
 Edit the file @file{.emacs} in your home directory on the machine
 @code{melancholia}.
 
-@item /melancholia.danann.net:.emacs
-@itemx /[melancholia.danann.net].emacs
+@item @value{tramp-prefix}melancholia.danann.net@value{tramp-postfix}.emacs
 This edits the same file, using the fully qualified domain name of
 the machine.
 
-@item /melancholia:~/.emacs
-@itemx /[melancholia]~/.emacs
+@item @value{tramp-prefix}melancholia@value{tramp-postfix}~/.emacs
 This also edits the same file --- the @file{~} is expanded to your
 home directory on the remote machine, just like it is locally.
 
-@item /melancholia:~daniel/.emacs
-@itemx /[melancholia]~daniel/.emacs
+@item @value{tramp-prefix}melancholia@value{tramp-postfix}~daniel/.emacs
 This edits the file @file{.emacs} in the home directory of the user
 @code{daniel} on the machine @code{melancholia}. The @file{~<user>}
 construct is expanded to the home directory of that user on the remote
 machine.
 
-@item /melancholia:/etc/squid.conf
-@itemx /[melancholia]/etc/squid.conf
+@item @value{tramp-prefix}melancholia@value{tramp-postfix}/etc/squid.conf
 This edits the file @file{/etc/squid.conf} on the machine
 @code{melancholia}.
 
 @end table
 
-Unless you specify a different name to use, @tramp{} will use the current
-local user name as the remote user name to log in with. If you need to
-log in as a different user, you can specify the user name as part of the
-filename.
+Unless you specify a different name to use, @tramp{} will use the
+current local user name as the remote user name to log in with. If you
+need to log in as a different user, you can specify the user name as
+part of the filename.
 
-On Emacs, to log in to the remote machine as a specific user, you use
-the syntax @file{/@var{user}@@@var{machine}:/path/to.file}.  On
-XEmacs, use @file{/[@var{user}@@@var{machine}]/path/to.file}.  That
-means that connecting to @code{melancholia} as @code{daniel} and
+To log in to the remote machine as a specific user, you use the syntax
+@file{@value{tramp-prefix}@var{user}@@@var{machine}@value{tramp-postfix}/@var{path/to.file}}.
+That means that connecting to @code{melancholia} as @code{daniel} and
 editing @file{.emacs} in your home directory you would specify
-@file{/daniel@@melancholia:.emacs} on Emacs and
-@file{/[daniel@@melancholia].emacs} on XEmacs.
-
+@file{@value{tramp-prefix}daniel@@melancholia@value{tramp-postfix}.emacs}.
 
 It is also possible to specify other file transfer methods
-(@pxref{Default Method}) as part of the filename.  On Emacs, this is
-done by puttig the method before the user and host name, as in
-@file{/@var{method}:} (note the trailing colon).  On XEmacs, it is
-done by replacing the initial @file{/[} with @file{/[<method>/}.
-(Note the trailing slash!)  The user, machine and file specification
-remain the same.
+(@pxref{Default Method}) as part of the filename.
+@ifset emacs
+This is done by putting the method before the user and host name, as
+in
+@file{@value{tramp-prefix}@var{method}@value{tramp-postfix-single-hop}}
+(note the trailing colon).
+@end ifset
+@ifset xemacs
+This is done by replacing the initial
+@file{@value{tramp-prefix}} with
+@file{@value{tramp-prefix}<method>@value{tramp-postfix-single-hop}}.
+(Note the trailing slash!).
+@end ifset
+The user, machine and file specification remain the same.
 
 So, to connect to the machine @code{melancholia} as @code{daniel},
 using the @option{su} method to transfer files, and edit @file{.emacs}
 in my home directory I would specify the filename
-@file{/su:daniel@@melancholia:.emacs} on Emacs and
-@file{/[su/daniel@@melancholia].emacs} on XEmacs.
+@file{@value{tramp-prefix}su@value{tramp-postfix-single-hop}daniel@@melancholia@value{tramp-postfix}.emacs}.
 
 
 @node Multi-hop filename syntax
@@ -1413,63 +1599,115 @@ in my home directory I would specify the filename
 @cindex multi-hop filename syntax
 
 The syntax of multi-hop file names is necessarily slightly different
-than the syntax of other @tramp{} file names.  Here's an example multi-hop
-file name, first in Emacs syntax and then in XEmacs syntax:
+than the syntax of other @tramp{} file names.  Here's an example
+multi-hop file name, first in Emacs syntax and then in XEmacs syntax:
 
-@file{/multi:rsh:out@@gate:telnet:kai@@real.host:/path/to.file}
-@file{/[multi/rsh:out@@gate/telnet:kai@@real.host]/path/to.file}
+@example
+@value{tramp-prefix}multi@value{tramp-postfix-single-hop}rsh@value{tramp-postfix-multi-hop}out@@gate@value{tramp-postfix-single-hop}telnet@value{tramp-postfix-multi-hop}kai@@real.host@value{tramp-postfix}/path/to.file
+@end example
 
 This is quite a mouthful.  So let's go through it step by step.  The
-file name consists of three parts.  On Emacs, the parts are separated
-by colons, on XEmacs they are separated by slashes and square
-brackets.  The first part is @file{/multi:} (or @file{/[multi}), the
-method specification.  The second part is
-@file{rsh:out@@gate:telnet:kai@@real.host} (or
-@file{rsh:out@@gate/telnet:kai@@real.host}) and specifies the hops.
-(Yes, on Emacs the second part may contain even more colons, so that's why
-this file name has more than two colons in it.)  The final part is
-@file{/path/to.file} and specifies the file name on the remote host.
+file name consists of three parts.
+@ifset emacs
+The parts are separated by colons
+@end ifset
+@ifset xemacs
+The parts are separated by slashes and square brackets.
+@end ifset
+The first part is @file{@value{tramp-prefix}multi}, the method
+specification.  The second part is
+@file{rsh@value{tramp-postfix-multi-hop}out@@gate@value{tramp-postfix-single-hop}telnet@value{tramp-postfix-multi-hop}kai@@real.host}
+and specifies the hops.  The final part is @file{/path/to.file} and
+specifies the file name on the remote host.
 
 The first part and the final part should be clear.  @ref{Multi-hop
 Methods}, for a list of alternatives for the method specification.
 
-The second part can be subdivided again into components, so-called hops.
-In the above file name, there are two hops, @file{rsh:out@@gate} and
-@file{telnet:kai@@real.host}.
+The second part can be subdivided again into components, so-called
+hops.  In the above file name, there are two hops,
+@file{rsh@value{tramp-postfix-multi-hop}out@@gate} and
+@file{telnet@value{tramp-postfix-multi-hop}kai@@real.host}.
 
 Each hop can @emph{again} be subdivided into (three) components, the
 @dfn{hop method}, the @dfn{user name} and the @dfn{host name}.  The
 meaning of the second and third component should be clear, and the hop
 method says what program to use to perform that hop.
 
-The first hop, @file{rsh:out@@gate}, says to use @command{rsh} to log in
-as user @code{out} to the host @code{gate}.  Starting at that host, the
-second hop, @file{telnet:kai@@real.host}, says to use @command{telnet}
-to log in as user @code{kai} to host @code{real.host}.
+The first hop, @file{rsh@value{tramp-postfix-multi-hop}out@@gate},
+says to use @command{rsh} to log in as user @code{out} to the host
+@code{gate}.  Starting at that host, the second hop,
+@file{telnet@value{tramp-postfix-multi-hop}kai@@real.host}, says to
+use @command{telnet} to log in as user @code{kai} to host
+@code{real.host}.
 
-@xref{Multi-hop Methods}, for a list of possible hop method values.  The
-variable @var{tramp-multi-connection-function-alist} contains the list of
-possible hop methods and information on how to execute them, should you
-want to add your own.
+@xref{Multi-hop Methods}, for a list of possible hop method values.
+The variable @code{tramp-multi-connection-function-alist} contains the
+list of possible hop methods and information on how to execute them,
+should you want to add your own.
+
+
+@node Filename completion
+@section Filename completion
+@cindex filename completion
+
+Filename completion works with @tramp{} for both completing methods,
+user names and machine names (except multi hop methods) as well as for
+files on remote machines.
+
+If you, for example, type @kbd{C-x C-f @value{tramp-prefix}t
+@key{TAB}}, @tramp{} might give you as result the choice for
+
+@example
+@ifset emacs
+@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}				   tmp/
+@value{tramp-prefix-single-hop}toto@value{tramp-postfix}
+@end ifset
+@ifset xemacs
+@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}				   @value{tramp-prefix-single-hop}toto@value{tramp-postfix}
+@end ifset
+@end example
+     
+@samp{@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}}
+is a possible completion for the respective method,
+@ifset emacs
+@samp{tmp/} stands for the directory @file{/tmp} on your local
+machine,
+@end ifset
+and @samp{@value{tramp-prefix-single-hop}toto@value{tramp-postfix}}
+might be a host @tramp has detected in your @file{~/.ssh/known_hosts}
+file (given you're using default method @option{ssh}).
+
+If you go on to type @kbd{e @key{TAB}}, the minibuffer is completed to
+@samp{@value{tramp-prefix}telnet@value{tramp-postfix-single-hop}}.
+Next @kbd{@key{TAB}} brings you all machine names @tramp{} detects in
+your @file{/etc/hosts} file, let's say
+
+@example
+@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}127.0.0.1@value{tramp-postfix}		   @value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}192.168.0.1@value{tramp-postfix}
+@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}localhost@value{tramp-postfix}		   @value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}melancholia.danann.net@value{tramp-postfix}
+@value{tramp-prefix-single-hop}telnet@value{tramp-postfix-single-hop}melancholia@value{tramp-postfix}
+@end example
+
+Now you can choose the desired machine, and you can continue to
+complete file names on that machine.
+
+As filename completion needs to fetch the listing of files from the
+remote machine, this feature is sometimes fairly slow.  As @tramp{}
+does not yet cache the results of directory listing, there is no gain
+in performance the second time you complete filenames.
+
+If the configuration files (@pxref{Customizing Completion}), which
+@tramp{} uses for analysis of completion, offer user names, those user
+names will be taken into account as well.
 
 
 @node Dired
-@section Dired and filename completion
+@section Dired
 @cindex dired
-@cindex filename completion
 
 @tramp{} works transparently with dired, enabling you to use this powerful
 file management tool to manage files on any machine you have access to
 over the Internet.
-
-Filename completion also works with @tramp{} for files on remote machines
-although there is no completion for user names or machine names at this
-stage.
-
-As filename completion needs to fetch the listing of files from the
-remote machine, this feature is sometimes fairly slow.  As @tramp{} does not
-yet cache the results of directory listing, there is no gain in
-performance the second time you complete filenames.
 
 If you need to browse a directory tree, Dired is a better choice, at
 present, than filename completion.  Dired has its own cache mechanism
@@ -1516,11 +1754,16 @@ development team to analyze and correct the problem.
 @item
 Where can I get the latest @tramp{}?
 
-@tramp{} is available at
-@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}.
-There is also a Savannah project page, at
-@uref{https://savannah.gnu.org/projects/tramp/}.
+@tramp{} is available under the URL below.
 
+@noindent
+@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}
+
+@noindent
+There is also a Savannah project page.
+
+@noindent
+@uref{https://savannah.gnu.org/projects/tramp/}
 
 @item
 Which systems does it work on?
@@ -1555,10 +1798,10 @@ first thing to do is to make sure that you have the latest version of
 @tramp{} installed.
 
 If you do, please try and find out exactly the conditions required for
-the @code{EFS} handlers to fire. If you can, putting a breakpoint on
+the EFS handlers to fire. If you can, putting a breakpoint on
 @code{efs-ftp-path} and sending in the stack trace along with your bug
-report would make it easier for the developers to work out what is going
-wrong.
+report would make it easier for the developers to work out what is
+going wrong.
 
 
 @item
@@ -1657,9 +1900,9 @@ fi
 @node Version Control
 @chapter The inner workings of remote version control
 
-Unlike EFS and Ange-FTP, @tramp{} has full shell access to the remote
-machine. This makes it possible to provide version control for files
-accessed under @tramp{}.
+Unlike @value{ftp-package-name}, @tramp{} has full shell access to the
+remote machine. This makes it possible to provide version control for
+files accessed under @tramp{}.
 
 The actual version control binaries must be installed on the remote
 machine, accessible in the directories specified in
@@ -1674,7 +1917,7 @@ Work is ongoing to improve the transparency of the system.
 * Remote Commands::             Executing the version control commands on the remote machine.
 * Changed workfiles::           Detecting if the working file has changed.
 * Checking out files::          Bringing the workfile out of the repository.
-* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere
+* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere.
 @end menu
 
 
@@ -1880,3 +2123,7 @@ would have to be installed from the start, too.
 @c * Make terminology "inline" vs "out-of-band" consistent.
 @c   It seems that "external" is also used instead of "out-of-band".
 
+@c * M. Albinus
+@c ** Use `filename' resp. `file name' consistently.
+@c ** Use `host' resp. `machine' consistently.
+@c ** Consistent small or capitalized words especially in menues.

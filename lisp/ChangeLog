@@ -1,5 +1,454 @@
 2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
+	Version 2.0.20 released.
+
+2002-09-20  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+
+	* net/tramp.el (tramp-completion-function-alist): Escape open
+	paren in docstring.
+	(tramp-user-regexp, tramp-host-regexp): Allow empty strings.
+	(tramp-handle-insert-file-contents): Call tramp-message-for-buffer
+	instead of tramp-message.
+	(tramp-open-connection-rsh): Handle empty string as user name.
+	(tramp-open-connection-su): Handle empty string as host name.
+	Handle nil user name.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-open-connection-telnet, tramp-open-connection-rsh)
+	(tramp-open-connection-su, tramp-post-connection)
+	(tramp-maybe-open-connection, tramp-method-out-of-band-p)
+	(tramp-get-connection-function, tramp-get-remote-sh)
+	(tramp-get-rsh-program, tramp-get-rsh-args)
+	(tramp-get-rcp-program, tramp-get-rcp-args)
+	(tramp-get-rcp-keep-date-arg, tramp-get-su-program)
+	(tramp-get-su-args, tramp-get-telnet-program)
+	(tramp-get-telnet-args): Use `tramp-find-method', perhaps require
+	additional args USER, HOST.
+	(tramp-action-password, tramp-open-connection-telnet)
+	(tramp-open-connection-su, tramp-open-connection-multi)
+	(tramp-method-out-of-band-p): `tramp-method-out-of-band-p' now
+	takes USER and HOST arguments, to be able to use
+	`tramp-find-method'.  Update callers.
+	(tramp-find-method): New function.
+
+2002-09-20  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-handle-insert-directory): Handle "--dired"
+	in SWITCHES (by removing it).
+
+2002-09-18  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-file-name-handler): Add `file-remote-p'
+	property.
+
+2002-09-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (top-level): Maybe autoload uudecode-decode-region.
+
+2002-09-16  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-bug): Add tramp-methods.
+
+2002-09-16  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-methods): Update docstring:
+	tramp-encoding-command, tramp-decoding-command,
+	tramp-encoding-function and tramp-decoding-function are not
+	parameters anymore.
+	(tramp-uuencode-region): Autoload it.
+
+2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	Version 2.0.19 released.
+
+	* net/tramp-uu.el: New file, implements uuencode in Lisp.
+
+	* net/tramp.el (tramp-coding-commands): Use
+	`tramp-uuencode-region' as local encoder for the uuencode based
+	entries.
+
+2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-handle-write-region): Wrong parens.
+
+2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	Version 2.0.18 released.
+
+	* net/tramp.el (tramp-perl-decode): Perl changes to accomodate
+	older versions of Perl.  Now tested with 5.004.  Suggestion from
+	Michael Albinus.
+
+2002-09-12  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-find-inline-encoding): Call
+	tramp-call-local-coding-command with nil for INPUT and OUTPUT.
+	(tramp-call-local-coding-command): OUTPUT equals nil means to
+	discard the output.  INPUT equals nil means /dev/null.
+
+2002-09-12  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-encoding-shell): Default to environment
+	variable COMSPEC on Windows.
+	(tramp-handle-write-region): More debugging output.
+	(tramp-find-inline-encoding): Ditto.
+
+2002-09-11  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-handle-file-name-all-completions):
+	Define `result1'.
+	(tramp-parse-hosts-group): Discard IPv6 entries.
+
+2002-09-11  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+
+	* net/tramp.el (tramp-post-connection): Only send Perl
+	mime-encode/decode implementations when using inline method.
+	(tramp-handle-file-local-copy)
+	(tramp-handle-write-region, tramp-post-connection)
+	(tramp-coding-commands, tramp-find-inline-encoding): For the
+	inline encodings, distinguish between local and remote commands,
+	instead of between commands and functions.  (The local commands
+	can be functions, too.)  If the local host is a Windows machine,
+	we can't expect the same commands to work there as on the remote
+	host.
+	(tramp-call-local-coding-command): New function for calling local
+	encoding and decoding commands.
+	(tramp-set-remote-encoding, tramp-get-remote-encoding)
+	(tramp-set-remote-decoding, tramp-get-remote-decoding)
+	(tramp-set-local-encoding, tramp-get-local-encoding)
+	(tramp-set-local-decoding, tramp-get-local-decoding): New
+	functions.
+	(tramp-get-encoding-command, tramp-set-encoding-command)
+	(tramp-get-decoding-command, tramp-set-decoding-command)
+	(tramp-get-encoding-function, tramp-set-encoding-function)
+	(tramp-get-decoding-function, tramp-set-decoding-function): Old
+	functions, removed.
+
+2002-09-10  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
+	Change command to invoke /bin/sh slightly to make it compatible
+	with the `rc' shell.  Suggested by Daniel Pittman.
+
+2002-09-10  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-handle-write-region): Added missing
+	`)'. Hope it's the right place.
+
+2002-09-09  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell): Do
+	"exec env PS1='$ ' /bin/sh" instead of just "exec /bin/sh" in
+	order to get a sane shell prompt.  If people have ${CWD}, say, in
+	their shell prompt, then the default login shell might display
+	something harmless, but the /bin/sh will display a dollar sign
+	which confused the subsequent prompt recognition.
+	(tramp-multi-action-password): More debugging output.
+	(tramp-encoding-shell): Renamed from tramp-sh-program.  More
+	documentation.  Default to cmd.exe on Windows NT.
+	(tramp-encoding-command-switch): New variable.  Use instead of
+	hard-wired "-c" which is only good for /bin/sh.
+	(tramp-encoding-reads-stdin): New variable.  If t, commands are
+	called like "/bin/sh -c COMMAND <INPUT", if nil, they are called
+	like "/bin/sh -c COMMAND INPUT", ie the input file is the last
+	argument.
+	(tramp-multi-sh-program): Always default to tramp-encoding-shell.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): Respect
+	tramp-encoding-shell and friends.
+	(tramp-find-inline-encoding): Use new-style calls for checking if
+	the local commands work.
+
+2002-09-07  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-methods): Remove `tramp-completion-function'
+	entries. They are handled now by
+	`tramp-completion-function-alist'.
+	(tramp-completion-function): Defvar removed. I've never used
+	it. Hmm.
+	(tramp-get-completion-function)
+	(tramp-get-completion-rsh, tramp-get-completion-ssh)
+	(tramp-get-completion-telnet, tramp-get-completion-su): Functions
+	removed as well. Not necessary any longer due to extended
+	customization means.
+	(tramp-completion-function-alist): New defcustom. Holds all
+	FUNCTION FILE pairs used for user and host name completion
+	relevant for METHOD.
+	(tramp-completion-function-alist-rsh)
+	(tramp-completion-function-alist-ssh)
+	(tramp-completion-function-alist-telnet)
+	(tramp-completion-function-alist-su): Defconst for initializing
+	`tramp-completion-function-alist'. Unfortunately, mainly UNIX-like
+	values are known for me until now. Needs to be completed for at
+	least VMS++ like operating systems.
+	(tramp-set-completion-function)
+	(tramp-get-completion-function): New functions for configuration
+	of `tramp-completion-function-alist'. The old definition of
+	`tramp-get-completion-function' has been discarded.
+	(tramp-completion-handle-file-name-all-completions): Change
+	function call for user/host completion according to definition in
+	`tramp-completion-function-alist'.
+	(tramp-parse-passwd): Added exception handling for "root", because
+	`tramp-get-completion-su' (the previous place for this stuff)
+	doesn't exist any longer.
+	
+2002-09-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-enter-password): Use
+	`tramp-password-end-of-line' to terminate the line.
+	(tramp-bug): Include new variable `tramp-password-end-of-line'.
+	(tramp-password-end-of-line): New variable.  People who use plink
+	under Windows might have to issue "\r\n" after the password, but
+	they need to send just "\n" after the other commands.  So this
+	variable was introduced to complement `tramp-rsh-end-of-line'.
+	(tramp-wait-for-output, tramp-post-connection): Allow "\r" at end
+	of line of the output delimiter.
+
+2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-handle-file-local-copy, tramp-find-shell)
+	(tramp-open-connection-setup-interactive-shell): Add some comments
+	about Douglas Grey Stephen's suggestions to make Tramp work better
+	with plink under Windows.  I'm not sure what to think of them, but
+	now I have a guinea pig to try it out on.  Said guinea pig is
+	having other problems, though...  Also remove some commented-out
+	code.
+
+2002-09-06  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-get-completion-methods): Algorithm slightly
+	tuned.
+	(tramp-get-completion-user-host): Accept user names as they are if
+	typed until "@".
+	(tramp-completion-mode): Replace `last-input-char' by modern
+	`last-input-event'. Check for `event-modifiers'.
+
+2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (file-expand-wildcards): Corrected check to see if
+	advising is necessary.
+
+2002-09-05  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-postfix-single-method-format)
+	(tramp-postfix-multi-method-format)
+	(tramp-postfix-multi-hop-format)
+	(tramp-postfix-user-format): New format strings.
+	(tramp-postfix-single-method-regexp)
+	(tramp-postfix-multi-method-regexp)
+	(tramp-postfix-multi-hop-regexp)
+	(tramp-postfix-user-regexp)
+	(tramp-make-multi-tramp-file-format)
+	(tramp-make-tramp-file-name): Apply them.
+	(tramp-completion-handle-file-name-all-completions): Fix for
+	invoking ange-ftp in case of "/ftp:xxx" file names.
+
+2002-09-04  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-prefix-format)
+	(tramp-postfix-host-format): New format strings.
+	(tramp-prefix-regexp, tramp-method-regexp)
+	(tramp-postfix-single-method-regexp)
+	(tramp-postfix-multi-method-regexp)
+	(tramp-postfix-multi-hop-regexp)
+	(tramp-user-regexp, tramp-postfix-user-regexp)
+	(tramp-host-regexp, tramp-postfix-host-regexp)
+	(tramp-path-regexp): New atomar regular expressions. If
+	corresponding format strings exist, derived from them.
+	(tramp-file-name-structure)
+	(tramp-multi-file-name-structure)
+	(tramp-multi-file-name-hop-structure)
+	(tramp-make-multi-tramp-file-format)
+	(tramp-completion-mode)
+	(tramp-completion-dissect-file-name)
+	(tramp-parse-rhosts-group)
+	(tramp-parse-shosts-group)
+	(tramp-parse-hosts-group)
+	(tramp-parse-passwd-group): Apply these expressions.
+	(tramp-file-name-structure-unified)
+	(tramp-file-name-structure-separate)
+	(tramp-make-tramp-file-format-unified)
+	(tramp-make-tramp-file-format-separate)
+	(tramp-make-tramp-file-format)
+	(tramp-make-tramp-file-user-nil-format-unified)
+	(tramp-make-tramp-file-user-nil-format-separate)
+	(tramp-make-tramp-file-user-nil-format)
+	(tramp-multi-file-name-structure-unified)
+	(tramp-multi-file-name-structure-separate)
+	(tramp-multi-file-name-hop-structure-unified)
+	(tramp-multi-file-name-hop-structure-separate)
+	(tramp-make-multi-tramp-file-format-unified)
+	(tramp-make-multi-tramp-file-format-separate): Removed.
+	(tramp-make-tramp-file-name): Allow partial tramp file
+	names. Generate tramp file format on-the-fly depending on
+	parameters. Apply atomar format strings resp expressions.
+	(tramp-get-completion-methods)
+	(tramp-get-completion-user-host): Apply
+	`tramp-make-tramp-file-name'.
+	(tramp-parse-hosts-group): Take all host names and IP addresses
+	into account.
+	(tramp-bug): Remove `tramp-make-tramp-file-format'.
+
+2002-09-01  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-methods): Add `tramp-completion-function'
+	for "su" and "sudo".
+	(tramp-get-completion-telnet): Implement it.
+	(tramp-parse-hosts)
+	(tramp-parse-hosts-group)
+	(tramp-get-completion-su)
+	(tramp-parse-passwd)
+	(tramp-parse-passwd-group): New functions.
+
+2002-08-31  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-mode): Check for
+	`last-input-char'.
+	(tramp-completion-file-name-handler-alist): Add handler for
+	`file-exists-p.
+	(tramp-completion-handle-file-exists-p): New function.
+	(tramp-completion-handle-file-name-completion): Simplified.
+	(tramp-completion-dissect-file-name): Regexp's reorganised.
+	(tramp-completion-handle-file-name-all-completions): Call
+	completion-function only if `user' or `host' is given.
+	(tramp-get-completion-user-host): New function.
+	(tramp-get-completion-rsh)
+	(tramp-get-completion-ssh): Apply it.
+	
+2002-08-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-file-name-handler-alist): Add
+	handler for `expand-file-name'.
+	(tramp-completion-handle-expand-file-name): New function.
+
+2002-08-26  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-mode): New function.
+	(tramp-completion-handle-file-name-directory)
+	(tramp-completion-handle-file-name-all-completions): Apply it.
+	(tramp-methods): Remove double definition of `ssh1-old' and
+	`ssh2-old'.
+	(tramp-point-at-eol): New defalias.
+	(tramp-parse-rhosts-group)
+	(tramp-parse-shosts-group):: Apply it.
+
+2002-08-25  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-get-completion-methods)
+	(tramp-get-completion-rsh)
+	(tramp-get-completion-ssh): Add "[" for Xemacs.
+	(tramp-completion-file-name-regexp-separate): Expression adapted.
+	(tramp-completion-file-name-handler-alist): Add handler for
+	`file-name-directory' and `file-name-nondirectory'.
+	(tramp-completion-handle-file-name-directory)
+	(tramp-completion-handle-file-name-nondirectory)
+	(tramp-completion-run-real-handler): New functions.
+	(tramp-completion-file-name-handler)
+	(tramp-completion-handle-file-name-all-completions): Apply
+	`tramp-completion-run-real-handler'.
+	(tramp-parse-rhosts)
+	(tramp-parse-shosts): Use `with-temp-buffer'. `result,b4(B renamed to
+	`res' (otherwise side effects in XEmacs).
+
+2002-08-24  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-file-name-regexp)
+	(tramp-completion-file-name-handler-alist)
+	(tramp-flatten-list)
+	(tramp-completion-dissect-file-name)
+	(tramp-get-completion-rsh)
+	(tramp-parse-rhosts)
+	(tramp-parse-rhosts-group)
+	(tramp-get-completion-ssh): Doc string tuned.
+	(tramp-methods): Doc string and custom type extended for
+	`tramp-completion-function'.
+	(tramp-completion-function): Variable added. Is it really used?
+	Other variables like `tramp-completion-function' aren't used.
+	(tramp-completion-file-name-handler-alist): Add handler for
+	`file-name-completion'.
+	(tramp-completion-handle-file-name-completion): New function.
+
+2002-08-18  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-parse-rhosts)
+	(tramp-parse-rhosts-group)
+	(tramp-parse-shosts)
+	(tramp-parse-shosts-group): New functions.
+
+2002-08-17  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-dissect-file-name)
+	(tramp-completion-dissect-file-name1): New functions.
+
+2002-08-16  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-get-completion-function)
+	(tramp-get-completion-rsh)
+	(tramp-get-completion-ssh)
+	(tramp-get-completion-telnet): New functions.
+	(tramp-methods): Add `tramp-completion-function' for all methods.
+
+2002-08-15  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-get-completion-methods): New function.
+	(tramp-find-default-method): Allow host to be nil (like user).
+
+2002-08-14  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-completion-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-separate)
+	(tramp-completion-file-name-regexp)
+	(tramp-completion-file-name-handler-alist): New defcustoms.
+	(tramp-completion-file-name-handler): New function. Add
+	`tramp-completion-file-name-handler' to `file-name-handler-alist'.
+	(tramp-run-real-handler): Add `tramp-completion-file-name-handler'
+	to `inhibit-file-name-handlers'.
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): New functions.
+	
+2002-08-12  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-invoke-ange-ftp): `tramp-disable-ange-ftp'
+	must be called again after activating `ange-ftp'.
+	(tramp-ange-ftp-file-name-p): Check for Xemacs.
+
+2002-08-08  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file): Don't pass
+	KEEP-DATE to tramp-invoke-ange-ftp 'rename.
+	(tramp-handle-write-region): Don't pass LOCKNAME and CONFIRM to
+	tramp-invoke-ange-ftp 'write-region.
+	(tramp-handle-set-file-modes): Change order of FILENAME and MODE
+	passing to tramp-invoke-ange-ftp 'set-file-modes.
+	(tramp-flatten-list): New function. Maybe this functionality does
+	exist already elsewhere in the libraries.
+	(tramp-invoke-ange-ftp): Apply `tramp-flatten-list' to parameter
+	list in order to avoid nested lists, f.e. when invoked from
+	`tramp-handle-dired-call-process'.
+
+2002-09-05  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-chunksize): New kluge variable.
+	(tramp-send-region): If tramp-chunksize is non-nil, send region in
+	parts and sleep 0.1 seconds between chunks.
+
+2002-09-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-handle-insert-directory): Use
+	`insert-buffer-substring' instead of `insert-buffer', which is not
+	supposed to be used from Lisp.  Remember old point in a variable
+	instead of using `mark'.  Suggestion from Stefan Monnier.
+	(tramp-unified-filenames): New variable.  Use it in default value
+	of other filename variables.
+	(file-expand-wildcards): Don't advise unless "[" and "]" are used
+	in the filename format.
+
+2002-09-01  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-methods): Remove duplicate definition of
+	ssh1-old and ssh2-old.
+
+2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+
 	* dired.el (dired-insert-directory): Always add "--dired" to to
 	SWITCHES for remote files.
 	* files.el (insert-directory): Comment saying that "--dired"
