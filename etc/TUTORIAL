@@ -179,10 +179,10 @@ to type M-< also; without the shift key, you would be typing M-comma.
 You can also move the cursor with the arrow keys, if your terminal has
 arrow keys.  We recommend learning C-b, C-f, C-n and C-p for three
 reasons.  First, they work on all kinds of terminals.  Second, once
-you gain practice at using Emacs, you will find that typing these CTRL
+you gain practice at using Emacs, you will find that typing these Control
 characters is faster than typing the arrow keys (because you do not
 have to move your hands away from touch-typing position).  Third, once
-you form the habit of using these CTRL character commands, you can
+you form the habit of using these Control character commands, you can
 easily learn to use other advanced cursor motion commands as well.
 
 Most Emacs commands accept a numeric argument; for most commands, this
@@ -278,6 +278,12 @@ other windows.
    to display documentation on the Control-f command.
 
 >> Type C-x 1 and see the documentation listing window disappear.
+
+This command is unlike the other commands you have learned in that it
+consists of two characters.  It starts with the character Control-x.
+There is a whole series of commands that start with Control-x; many of
+them have to do with windows, files, buffers, and related things.
+These commands are two, three or four characters long.
 
 
 * INSERTING AND DELETING
@@ -429,7 +435,7 @@ C-_ is an alternative undo command; it works just the same as C-x u,
 but it is easier to type several times in a row.  The disadvantage of
 C-_ is that on some keyboards it is not obvious how to type it.  That
 is why we provide C-x u as well.  On some terminals, you can type C-_
-by typing / while holding down CTRL.
+by typing / while holding down CONTROL.
 
 A numeric argument to C-_ or C-x u acts as a repeat count.
 
@@ -439,8 +445,8 @@ A numeric argument to C-_ or C-x u acts as a repeat count.
 
 In order to make the text you edit permanent, you must put it in a
 file.  Otherwise, it will go away when your invocation of Emacs goes
-away.  You put your editing in a file by "finding" the file.  (This is
-also called "visiting" the file.)
+away.  In order to put your text in a file, you must "find" the file
+before you enter the text.  (This is also called "visiting" the file.)
 
 Finding a file means that you see the contents of the file within
 Emacs.  In many ways, it is as if you were editing the file itself.
@@ -458,17 +464,10 @@ called "TUTORIAL" which is your personal scratch copy of the Emacs
 tutorial.  When you find a file with Emacs, that file's name will
 appear in that precise spot.
 
-The commands for finding and saving files are unlike the other
-commands you have learned in that they consist of two characters.
-They both start with the character Control-x.  There is a whole series
-of commands that start with Control-x; many of them have to do with
-files, buffers, and related things.  These commands are two, three or
-four characters long.
-
-Another thing about the command for finding a file is that you have
-to say what file name you want.  We say the command "reads an argument
-from the terminal" (in this case, the argument is the name of the
-file).  After you type the command
+One special thing about the command for finding a file is that you
+have to say what file name you want.  We say the command "reads an
+argument from the terminal" (in this case, the argument is the name of
+the file).  After you type the command
 
 	C-x C-f   Find a file
 
@@ -777,7 +776,7 @@ for reverse search.  BUT WAIT!  Don't try them now.
 When you type C-s you'll notice that the string "I-search" appears as
 a prompt in the echo area.  This tells you that Emacs is in what is
 called an incremental search waiting for you to type the thing that
-you want to search for.  <RET> terminates a search.
+you want to search for.  <Return> terminates a search.
 
 >> Now type C-s to start a search.  SLOWLY, one letter at a time,
    type the word 'cursor', pausing after you type each
@@ -785,7 +784,7 @@ you want to search for.  <RET> terminates a search.
    Now you have searched for "cursor", once.
 >> Type C-s again, to search for the next occurrence of "cursor".
 >> Now type <Delete> four times and see how the cursor moves.
->> Type <RET> to terminate the search.
+>> Type <Return> to terminate the search.
 
 Did you see what happened?  Emacs, in an incremental search, tries to
 go to the occurrence of the string that you've typed out so far.  To
@@ -852,14 +851,14 @@ the cursor always in the window where you are editing, and advance
 through the other window sequentially with C-M-v.
 
 C-M-v is an example of a CONTROL-META character.  If you have a real
-META key, you can type C-M-v by holding down both CTRL and META while
-typing v.  It does not matter whether CTRL or META "comes first,"
+META key, you can type C-M-v by holding down both CONTROL and META while
+typing v.  It does not matter whether CONTROL or META "comes first,"
 because both of these keys act by modifying the characters you type.
 
 If you do not have a real META key, and you use ESC instead, the order
-does matter: you must type ESC followed by CTRL-v; CTRL-ESC v will not
-work.  This is because ESC is a character in its own right, not a
-modifier key.
+does matter: you must type ESC followed by Control-v, because
+Control-ESC v will not work.  This is because ESC is a character in
+its own right, not a modifier key.
 
 >> Type C-x 1 (in the top window) to get rid of the bottom window.
 
@@ -922,7 +921,7 @@ type C-g to cancel it.
 should not do this as a blanket measure for all users, so you have
 grounds to complain to the system administrator.  Meanwhile, if C-h
 does not display a message about help at the bottom of the screen, try
-typing the F1 key or M-x help RET instead.)
+typing the F1 key or M-x help <Return> instead.)
 
 The most basic HELP feature is C-h c.  Type C-h, the character c, and
 a command character or sequence; then Emacs displays a very brief
