@@ -177,7 +177,6 @@ Upon exit, point is at the far edge of the newly visible text."
 		     (goto-char (window-start window)))
 		   (if overlay
 		       (move-overlay overlay start (point)))
-		   (setq eobp (eobp))
 		   ;; Now that we have scrolled WINDOW properly,
 		   ;; put point back where it was for the redisplay
 		   ;; so that we don't mess up the selected window.
