@@ -1,3 +1,13 @@
+2000-03-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (busy-cursor-delay-seconds): Change type to 
+	`number'.
+
+2000-02-29  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
+
+	* diary-lib.el (list-diary-entries): Don't try to go forward at
+	the end of the buffer.
+
 2000-02-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (list-character-sets): Completely
@@ -17,6 +27,10 @@
 	(dump-charsets): Likewise.
 
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired-x.el (dired-filename-at-point): Add `@' to valid
+	file name characters.
+	(dired-filename-at-point): Handle ange-ftp file names.
 
 	* frame.el (frame-notice-user-settings): Use assq-delete-all
 	instead of assoc-delete-all.

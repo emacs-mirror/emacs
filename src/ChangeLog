@@ -1,3 +1,7 @@
+2000-03-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (start_busy_cursor): Allow floats for busy-cursor-delay.
+
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* atimer.c (start_atimer): Don't abort when timers are stopped.
