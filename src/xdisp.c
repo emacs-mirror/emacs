@@ -12252,11 +12252,13 @@ highlight_trailing_whitespace (f, row)
       struct glyph *start = row->glyphs[TEXT_AREA];
       struct glyph *glyph = start + used - 1;
 
-      /* Skip over the space glyph inserted to display the
-	 cursor at the end of a line.  */
-      if (glyph->type == CHAR_GLYPH
-	  && glyph->u.ch == ' '
-	  && INTEGERP (glyph->object))
+      /* Skip over space glyphs inserted to display the cursor at the
+	 end of a line, and for extending the face of the last glyph
+	 to the end of the line on terminals.  */
+      while (glyph >= start
+	     && glyph->type == CHAR_GLYPH
+	     && glyph->u.ch == ' '
+	     && INTEGERP (glyph->object))
 	--glyph;
 
       /* If last glyph is a space or stretch, and it's trailing
