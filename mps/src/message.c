@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.4) $
+ * $HopeName: MMsrc!message.c(trunk.5) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.4) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.5) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -113,15 +113,18 @@ MessageClass MessageGetClass(Message message)
 
 
 /* Initialises a message */
-void MessageInit(Arena arena, Message message, MessageClass class)
+void MessageInit(Arena arena, Message message, MessageClass class,
+                 MessageType type)
 {
   AVERT(Arena, arena);
   /* we are initialising the message so we can't check it */
   AVERT(MessageClass, class);
+  AVER(type < MessageTypeMAX);
 
   message->arena = arena;
   message->class = class;
   RingInit(&message->queueRing);
+  message->type = type;
   message->sig = MessageSig;
 
   AVERT(Message, message);

@@ -1,6 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.30) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.31) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -34,7 +34,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.30) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.31) $");
 
 
 /* Types */
@@ -446,7 +446,8 @@ static void MRGFinalize(Arena arena, MRGGroup group, Index index)
     RingFinish(&link->the.linkRing);
     link->state = MRGGuardianFINAL;
     message = &link->the.messageStruct;
-    MessageInit(arena, message, &MRGMessageClassStruct);
+    MessageInit(arena, message, &MRGMessageClassStruct, 
+                MessageTypeFinalization);
     MessagePost(arena, message);
   }
 }
