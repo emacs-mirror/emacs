@@ -1,3 +1,8 @@
+2004-10-06  Karl Berry  <karl@gnu.org>
+
+	* info.texi (@kbd{1}--@kbd{9}): no space around --, for
+	consistency with other uses of dashes.
+
 2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Starting GUD): Note that multiple debugging

@@ -971,7 +971,7 @@ the node @samp{Top} in the Info file @file{dir}.  Likewise,
 all of the current file by typing @kbd{g*@key{RET}} or all of any
 other file with @kbd{g(@var{filename})@key{RET}}.
 
-@subheading @kbd{1} -- @kbd{9} choose a menu subtopic by its number
+@subheading @kbd{1}--@kbd{9} choose a menu subtopic by its number
 
 @kindex 1 @r{through} 9 @r{(Info mode)}
 @findex Info-nth-menu-item
