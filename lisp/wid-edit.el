@@ -59,11 +59,6 @@
 				   'next-event
 				 'read-event))
 
-  ;; The following should go away when bundled with Emacs.
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-
   (unless (and (featurep 'custom) (fboundp 'custom-declare-variable))
     ;; We have the old custom-library, hack around it!
     (defmacro defgroup (&rest args) nil)
@@ -188,17 +183,6 @@ This exists as a variable so it can be set locally in certain buffers.")
 ;;; Utility functions.
 ;;
 ;; These are not really widget specific.
-
-(defsubst widget-plist-member (plist prop)
-  ;; Return non-nil if PLIST has the property PROP.
-  ;; PLIST is a property list, which is a list of the form
-  ;; (PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol.
-  ;; Unlike `plist-get', this allows you to distinguish between a missing
-  ;; property and a property with the value nil.
-  ;; The value is actually the tail of PLIST whose car is PROP.
-  (while (and plist (not (eq (car plist) prop)))
-    (setq plist (cdr (cdr plist))))
-  plist)
 
 (defun widget-princ-to-string (object)
   ;; Return string representation of OBJECT, any Lisp object.
@@ -487,27 +471,6 @@ new value."
   "Return the type of WIDGET, a symbol."
   (car widget))
 
-(defun widget-put (widget property value)
-  "In WIDGET set PROPERTY to VALUE.
-The value can later be retrived with `widget-get'."
-  (setcdr widget (plist-put (cdr widget) property value)))
-
-(defun widget-get (widget property)
-  "In WIDGET, get the value of PROPERTY.
-The value could either be specified when the widget was created, or
-later with `widget-put'."
-  (let ((missing t)
-	value tmp)
-    (while missing
-      (cond ((setq tmp (widget-plist-member (cdr widget) property))
-	     (setq value (car (cdr tmp))
-		   missing nil))
-	    ((setq tmp (car widget))
-	     (setq widget (get tmp 'widget-type)))
-	    (t 
-	     (setq missing nil))))
-    value))
-
 (defun widget-get-indirect (widget property)
   "In WIDGET, get the value of PROPERTY.
 If the value is a symbol, return its binding.  
@@ -524,12 +487,6 @@ Otherwise, just return the value."
 	((car widget)
 	 (widget-member (get (car widget) 'widget-type) property))
 	(t nil)))
-
-;;;###autoload
-(defun widget-apply (widget property &rest args)
-  "Apply the value of WIDGET's PROPERTY to the widget itself.
-ARGS are passed as extra arguments to the function."
-  (apply (widget-get widget property) widget args))
 
 (defun widget-value (widget)
   "Extract the current value of WIDGET."
