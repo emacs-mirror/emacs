@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(trunk.12) $
+# $HopeName: MMQA_harness!script:headread(trunk.13) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -75,13 +75,20 @@ sub readheader {
   &get_parmdefs();
  }
  if (! exists $test_header{"id"}) {
-  $test_header{"id"} = "<none given>";
+  $test_header{"id"} = "<no id given>";
+  $testid = "$infile";
+ } else {
+  $testid = $test_header{"id"};
  }
  if (! exists $test_header{"harness"}) {
   $test_header{"harness"} = "1.0";
  }
  if (-w $infile) {
   $test_header{"id"} .= " (but the file is writeable)";
+  $testid = "$infile (writeable)";
+ }
+ if ($testid =~ /^\$HopeName:/) {
+  $testid =~ s/^\$HopeName:\s*(.*?)\s*\$/$1/;
  }
 #
 # Compatibility with old tests
