@@ -1837,28 +1837,39 @@ copy_part_of_rope (f, to, s, from, len, face)
   int last_code = -1;
   int last_merged = 0;
 
-  while (n--)
-    {
-      int glyph = XFASTINT (*fp);
-      int facecode;
+#ifdef HAVE_X_WINDOWS
+  if (! FRAME_TERMCAP_P (f))
+    while (n--)
+      {
+	int glyph = XFASTINT (*fp);
+	int facecode;
 
-      if (GLYPH_FACE (glyph) == 0)
-	/* If GLYPH has no face code, use FACE.  */
-	facecode = face;
-      else if (GLYPH_FACE (glyph) == last_code)
-	/* If it's same as previous glyph, use same result.  */
-	facecode = last_merged;
-      else
-	{
-	  /* Merge this glyph's face and remember the result.  */
-	  last_code = GLYPH_FACE (glyph);
-	  last_merged = facecode = compute_glyph_face (f, last_code, face);
-	}
+	if (FAST_GLYPH_FACE (glyph) == 0)
+	  /* If GLYPH has no face code, use FACE.  */
+	  facecode = face;
+	else if (FAST_GLYPH_FACE (glyph) == last_code)
+	  /* If it's same as previous glyph, use same result.  */
+	  facecode = last_merged;
+	else
+	  {
+	    /* Merge this glyph's face and remember the result.  */
+	    last_code = FAST_GLYPH_FACE (glyph);
+	    last_merged = facecode = compute_glyph_face (f, last_code, face);
+	  }
 
-      if (to >= s) *to = MAKE_GLYPH (GLYPH_CHAR (glyph), facecode);
-      ++to;
-      ++fp;
-    }
+	if (to >= s)
+	  *to = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), facecode);
+	++to;
+	++fp;
+      }
+  else
+#endif
+    while (n--)
+      {
+	if (to >= s) *to = XFASTINT (*fp);
+	++to;
+	++fp;
+      }
   return to;
 }
 
@@ -1871,10 +1882,13 @@ fix_glyph (f, glyph, current_face)
      GLYPH glyph;
      int current_face;
 {
-  if (GLYPH_FACE (glyph) == 0)
-    return glyph;
-  return MAKE_GLYPH (GLYPH_CHAR (glyph),
-		     compute_glyph_face (f, GLYPH_FACE (glyph), current_face));
+#ifdef HAVE_X_WINDOWS
+  if (! FRAME_TERMCAP_P (f) && FAST_GLYPH_FACE (glyph) != 0)
+    return FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph),
+			    compute_glyph_face (f, FAST_GLYPH_FACE (glyph),
+						current_face));
+#endif
+  return glyph;
 }
 
 /* Display one line of window w, starting at position START in W's buffer.
@@ -2109,7 +2123,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
 	{
 	  if (p1 >= startp)
-	    *p1 = MAKE_GLYPH (c, current_face);
+	    *p1 = MAKE_GLYPH (f, c, current_face);
 	  p1++;
 	}
       else if (c == '\n')
@@ -2132,12 +2146,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
-#if 1
+#ifdef HAVE_X_WINDOWS
 	  /* Draw the face of the newline character as extending all the 
 	     way to the end of the frame line.  */
 	  if (current_face)
 	    while (p1 < endp)
-	      *p1++ = MAKE_GLYPH (' ', current_face);
+	      *p1++ = FAST_MAKE_GLYPH (' ', current_face);
 #endif
 	  break;
 	}
@@ -2146,7 +2160,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  do
 	    {
 	      if (p1 >= startp && p1 < endp)
-		*p1 = MAKE_GLYPH (' ', current_face);
+		*p1 = MAKE_GLYPH (f, ' ', current_face);
 	      p1++;
 	    }
 	  while ((p1 - startp + taboffset + hscroll - (hscroll > 0))
@@ -2165,12 +2179,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
-#if 1
+#ifdef HAVE_X_WINDOWS
 	  /* Draw the face of the newline character as extending all the 
 	     way to the end of the frame line.  */
 	  if (current_face)
 	    while (p1 < endp)
-	      *p1++ = MAKE_GLYPH (' ', current_face);
+	      *p1++ = FAST_MAKE_GLYPH (' ', current_face);
 #endif
 	  break;
 	}
@@ -2189,7 +2203,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 			     current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH (c ^ 0100, current_face);
+	    *p1 = MAKE_GLYPH (f, c ^ 0100, current_face);
 	  p1++;
 	}
       else
@@ -2200,13 +2214,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 			     current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH ((c >> 6) + '0', current_face);
+	    *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH ((7 & (c >> 3)) + '0', current_face);
+	    *p1 = MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face);
 	  p1++;
 	  if (p1 >= startp && p1 < endp)
-	    *p1 = MAKE_GLYPH ((7 & c) + '0', current_face);
+	    *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face);
 	  p1++;
 	}
 
@@ -2452,14 +2466,16 @@ display_mode_line (w)
   if (XFASTINT (w->width) == FRAME_WIDTH (f)
       || XFASTINT (XWINDOW (w->parent)->width) == FRAME_WIDTH (f))
     FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
+#ifdef HAVE_X_WINDOWS
   else if (! FRAME_TERMCAP_P (f))
     {
       /* For a partial width window, explicitly set face of each glyph. */
       int i;
       GLYPH *ptr = FRAME_DESIRED_GLYPHS (f)->glyphs[vpos];
       for (i = left; i < right; ++i)
-	ptr[i] = MAKE_GLYPH (GLYPH_CHAR (ptr[i]), 1);
+	ptr[i] = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (ptr[i]), 1);
     }
+#endif
 
 #ifdef HAVE_X_WINDOWS
   if (w == XWINDOW (f->selected_window))
