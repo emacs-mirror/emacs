@@ -1,3 +1,12 @@
+2003-07-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/timeclock.el (timeclock-relative)
+	(timeclock-ask-before-exiting, timeclock-use-display-time): Doc
+	changes.
+	(timeclock-modeline-display): Give a message if
+	`timeclock-use-display-time' is non-nil but `display-time-mode'
+	is not active.
+
 2003-07-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-language-environment): Set
