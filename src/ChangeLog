@@ -5,6 +5,13 @@
 	* xfns.c (x_create_tip_frame): Use unwind_create_tip_frame,
 	not unwind_create_frame.
 
+2000-12-15  Dave Love  <fx@gnu.org>
+
+	* s/usg5-4.h (bcopy) [IRIX6]: Don't special-case definition of
+	bcopy & al.
+
+	* s/irix6-5.h: #undef bcopy & al here.  Include strings.h.
+
 2000-12-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (setup_coding_system): Clear all members of the struct
