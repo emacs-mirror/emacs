@@ -192,7 +192,7 @@ Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
       (send-string-to-terminal "\e[?1000h")))
 
 (defun turn-off-xterm-mouse-tracking ()
-  "Disable disable Emacs mouse tracking in xterm."
+  "Disable Emacs mouse tracking in xterm."
   (if xterm-mouse-mode
       (send-string-to-terminal "\e[?1000l")))
 
