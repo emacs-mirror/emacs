@@ -424,7 +424,9 @@ alternative printed representations that can be displayed."
   (interactive)
   (let ((value (get-text-property (point) 'printed-value)))
     (when value
-      (let ((beg (or (previous-single-property-change (point) 'printed-value) (point)))
+      (let ((beg (or (previous-single-property-change (min (point-max) (1+ (point)))
+						      'printed-value)
+		     (point)))
 	    (end (or (next-single-char-property-change (point) 'printed-value) (point)))
 	    (standard-output (current-buffer))
 	    (point (point)))
@@ -435,7 +437,6 @@ alternative printed representations that can be displayed."
 			       (nth 2 value)
 			       (nth 1 value))
 	(goto-char (min (point-max) point))))))
-
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
