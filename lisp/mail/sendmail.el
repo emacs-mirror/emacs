@@ -619,20 +619,7 @@ the user from the mailer."
 	  (forward-char -5)
 	  (insert ?>)))
       (while fcc-list
-	(let* ((truename (file-truename (car fcc-list)))
-	       (buffer
-		(or (get-file-buffer (car fcc-list))
-		    (get-file-buffer truename)
-		    ;; Look for a buffer whose truename
-		    ;; matches that of the file we want.
-		    (let ((buflist (buffer-list)))
-		      (save-excursion
-			(while buflist
-			  (set-buffer (car buflist))
-			  (if (equal buffer-file-truename truename)
-			      (setq buflist nil))
-			  (setq buflist (cdr buflist)))
-			(current-buffer)))))
+	(let* ((buffer (find-buffer-visiting (car fcc-list)))
 	       (curbuf (current-buffer))
 	       (beg (point-min)) (end (point-max))
 	       (beg2 (save-excursion (goto-char (point-min))
