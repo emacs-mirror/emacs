@@ -1243,7 +1243,7 @@ static char *magick[] = {
     (define-key map "d" 'gdb-delete-breakpoint)
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-goto-breakpoint)
-    (define-key map [mouse-2] 'gdb-mouse-goto-breakpoint)
+    (define-key map [mouse-2] 'gdb-goto-breakpoint)
     map))
 
 (defun gdb-breakpoints-mode ()
@@ -1291,9 +1291,10 @@ static char *magick[] = {
 	(concat gdb-server-prefix "delete " (match-string 1) "\n") 'ignore))
     (error "Not recognized as break/watchpoint line")))
 
-(defun gdb-goto-breakpoint ()
+(defun gdb-goto-breakpoint (&optional event)
   "Display the breakpoint location specified at current line."
-  (interactive)
+  (interactive (list last-input-event))
+  (if event (mouse-set-point event))
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
@@ -1311,14 +1312,8 @@ static char *magick[] = {
 		(goto-line (string-to-number line))
 		(set-window-point window (point))))))
       (error "Not recognized as break/watchpoint line"))))
-
-(defun gdb-mouse-goto-breakpoint (event)
-  "Display the breakpoint location that you click on."
-  (interactive "e")
-  (mouse-set-point event)
-  (gdb-goto-breakpoint))
 
-;;
+
 ;; Frames buffer.  This displays a perpetually correct bactracktrace
 ;; (from the command `where').
 ;;
@@ -1372,7 +1367,7 @@ static char *magick[] = {
     (suppress-keymap map)
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-frames-select)
-    (define-key map [mouse-2] 'gdb-frames-mouse-select)
+    (define-key map [mouse-2] 'gdb-frames-select)
     map))
 
 (defun gdb-frames-mode ()
@@ -1396,20 +1391,15 @@ static char *magick[] = {
 	   (n (or (and pos (match-string-no-properties 1)) "0")))
       n)))
 
-(defun gdb-frames-select ()
+(defun gdb-frames-select (&optional event)
   "Select the frame and display the relevant source."
-  (interactive)
+  (interactive (list last-input-event))
+  (if event (mouse-set-point event))
   (gdb-enqueue-input
    (list (concat gdb-server-prefix "frame " (gdb-get-frame-number) "\n") 'ignore))
   (gud-display-frame))
-
-(defun gdb-frames-mouse-select (event)
-  "Select the frame you click on and display the relevant source."
-  (interactive "e")
-  (mouse-set-point event)
-  (gdb-frames-select))
 
-;;
+
 ;; Threads buffer.  This displays a selectable thread list.
 ;;
 (gdb-set-buffer-rules 'gdb-threads-buffer
@@ -1454,7 +1444,7 @@ static char *magick[] = {
     (suppress-keymap map)
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-threads-select)
-    (define-key map [mouse-2] 'gdb-threads-mouse-select)
+    (define-key map [mouse-2] 'gdb-threads-select)
     map))
 
 (defun gdb-threads-mode ()
@@ -1474,20 +1464,15 @@ static char *magick[] = {
     (re-search-backward "^\\s-*\\([0-9]*\\)" nil t)
     (match-string-no-properties 1)))
 
-(defun gdb-threads-select ()
+(defun gdb-threads-select (&optional event)
   "Select the thread and display the relevant source."
-  (interactive)
+  (interactive (list last-input-event))
+  (if event (mouse-set-point event))
   (gdb-enqueue-input
    (list (concat "thread " (gdb-get-thread-number) "\n") 'ignore))
   (gud-display-frame))
-
-(defun gdb-threads-mouse-select (event)
-  "Select the thread you click on and display the relevant source."
-  (interactive "e")
-  (mouse-set-point event)
-  (gdb-threads-select))
 
-;;
+
 ;; Registers buffer.
 ;;
 (gdb-set-buffer-rules 'gdb-registers-buffer
