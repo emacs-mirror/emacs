@@ -3249,7 +3249,9 @@ send_process_trap ()
    is sent.  But if the data ends at the middle of multi-byte
    representation, that incomplete sequence of bytes are sent without
    being encoded.  Should we store them in a buffer to prepend them to
-   the data send later?  */
+   the data send later? 
+
+   This function can evaluate Lisp code and can garbage collect.  */
 
 void
 send_process (proc, buf, len, object)
