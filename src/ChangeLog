@@ -1,3 +1,7 @@
+2001-02-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (reseat_1): Set iterator's end_charpos to ZV.
+
 2001-02-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* insdel.c (del_range_1, del_range_byte, del_range_both): Handle
