@@ -974,7 +974,7 @@ text property.  */)
 */
 DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
   "cSet syntax for character: \nsSet syntax for %s to: ",
-       doc: /* Set syntax for character C according to string NEWENTRY.
+       doc: /* Set syntax for character CHAR according to string NEWENTRY.
 The syntax is changed only for table SYNTAX_TABLE, which defaults to
  the current buffer's syntax table.
 The first character of NEWENTRY should be one of the following:
@@ -993,22 +993,23 @@ The second character of NEWENTRY is the matching parenthesis,
  used only if the first character is `(' or `)'.
 Any additional characters are flags.
 Defined flags are the characters 1, 2, 3, 4, b, p, and n.
- 1 means C is the start of a two-char comment start sequence.
- 2 means C is the second character of such a sequence.
- 3 means C is the start of a two-char comment end sequence.
- 4 means C is the second character of such a sequence.
+ 1 means CHAR is the start of a two-char comment start sequence.
+ 2 means CHAR is the second character of such a sequence.
+ 3 means CHAR is the start of a two-char comment end sequence.
+ 4 means CHAR is the second character of such a sequence.
 
 There can be up to two orthogonal comment sequences.  This is to support
 language modes such as C++.  By default, all comment sequences are of style
 a, but you can set the comment sequence style to b (on the second character
 of a comment-start, or the first character of a comment-end sequence) using
 this flag:
- b means C is part of comment sequence b.
- n means C is part of a nestable comment sequence.
+ b means CHAR is part of comment sequence b.
+ n means CHAR is part of a nestable comment sequence.
 
- p means C is a prefix character for `backward-prefix-chars';
+ p means CHAR is a prefix character for `backward-prefix-chars';
    such characters are treated as whitespace when they occur
-   between expressions.  */)
+   between expressions.
+usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
      (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {
