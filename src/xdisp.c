@@ -1784,6 +1784,7 @@ handle_fontified_prop (it)
 {
   Lisp_Object prop, pos;
   enum prop_handled handled = HANDLED_NORMALLY;
+  struct gcpro gcpro1;
 
   /* Get the value of the `fontified' property at IT's current buffer
      position.  (The `fontified' property doesn't have a special
@@ -1798,6 +1799,7 @@ handle_fontified_prop (it)
     {
       Lisp_Object args[2];
 
+      GCPRO1 (pos);
       /* Run the hook functions.  */
       args[0] = Qfontification_functions;
       args[1] = pos;
@@ -1808,6 +1810,7 @@ handle_fontified_prop (it)
 	 fontify the text for which reason ever.  */
       if (!NILP (Fget_char_property (pos, Qfontified, Qnil)))
 	handled = HANDLED_RECOMPUTE_PROPS;
+      UNGCPRO;
     }
 
   return handled;
