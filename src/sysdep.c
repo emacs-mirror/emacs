@@ -1362,14 +1362,15 @@ nil means don't delete them until `list-processes' is run.  */);
   if (!read_socket_hook && EQ (Vwindow_system, Qnil))
 #endif
     {
-      EMACS_GET_TTY (fileno (TTY_INPUT (tty_out)), &tty_out->old_tty);
+      if (! tty_out->old_tty)
+        tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
+      
+      EMACS_GET_TTY (fileno (TTY_INPUT (tty_out)), tty_out->old_tty);
 
-      tty_out->old_tty_valid = 1;
-
-      tty = tty_out->old_tty;
+      tty = *tty_out->old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
-      XSETINT (Vtty_erase_char, tty_out->old_tty.main.c_cc[VERASE]);
+      XSETINT (Vtty_erase_char, tty.main.c_cc[VERASE]);
 
 #ifdef DGUX
       /* This allows meta to be sent on 8th bit.  */
@@ -1403,7 +1404,7 @@ nil means don't delete them until `list-processes' is run.  */);
 					   on output */
       tty.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
 #ifdef CS8
-      if (meta_key)
+      if (tty_out->meta_key)
 	{
 	  tty.main.c_cflag |= CS8;	/* allow 8th bit on input */
 	  tty.main.c_cflag &= ~PARENB;/* Don't check parity */
@@ -1641,7 +1642,6 @@ nil means don't delete them until `list-processes' is run.  */);
 #endif
       )
 #endif
-    set_terminal_modes (tty_out);
 
   if (!tty_out->term_initted)
     {
@@ -1838,7 +1838,7 @@ reset_sys_modes (tty_out)
   }
 #endif
 
-  reset_terminal_modes (tty_out);
+  tty_reset_terminal_modes (tty_out);
   fflush (TTY_OUTPUT (tty_out));
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1
@@ -1867,9 +1867,9 @@ reset_sys_modes (tty_out)
     reset_sigio ();
 #endif /* BSD4_1 */
 
-  if (tty_out->old_tty_valid)
+  if (tty_out->old_tty)
     while (EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)),
-                          &tty_out->old_tty, 0) < 0 && errno == EINTR)
+                          tty_out->old_tty, 0) < 0 && errno == EINTR)
       ;
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */

@@ -478,14 +478,21 @@ make_minibuffer_frame ()
 static int terminal_frame_count;
 
 struct frame *
-make_terminal_frame (tty, tty_type)
-     char *tty;
+make_terminal_frame (tty_name, tty_type)
+     char *tty_name;
      char *tty_type;
 {
   register struct frame *f;
   Lisp_Object frame;
   char name[20];
+  struct tty_output *tty;
 
+  /* init_term may throw an error, so create the tty first. */
+  if (initialized)
+    tty = term_init (tty_name, tty_type);
+  else
+    tty = term_dummy_init ();
+  
 #ifdef MULTI_KBOARD
   if (!initial_kboard)
     {
@@ -544,10 +551,7 @@ make_terminal_frame (tty, tty_type)
   make_mac_terminal_frame (f);
 #else
   f->output_method = output_termcap;
-  if (initialized)
-    f->output_data.tty = term_init (tty, tty_type);
-  else
-    f->output_data.tty = term_dummy_init ();
+  f->output_data.tty = tty;
   f->output_data.tty->top_frame = frame;
 #ifdef CANNOT_DUMP
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
@@ -608,6 +612,8 @@ Note that changing the size of one terminal frame automatically affects all.  */
     /* XXX Ugh, there must be a better way to do this. */
     tty = Fassq (Qtty, parms);
     if (EQ (tty, Qnil))
+      tty = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
+    if (EQ (tty, Qnil))
       tty = Fassq (Qtty, Vdefault_frame_alist);
     if (! EQ (tty, Qnil))
       tty = XCDR (tty);
@@ -617,6 +623,8 @@ Note that changing the size of one terminal frame automatically affects all.  */
     tty_type = Fassq (Qtty_type, parms);
     if (EQ (tty_type, Qnil))
       tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
+    if (EQ (tty_type, Qnil))
+      tty_type = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
     if (! EQ (tty_type, Qnil))
       tty_type = XCDR (tty_type);
     if (EQ (tty_type, Qnil) || !STRINGP (tty_type))
@@ -1300,7 +1308,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 	{
 	  FOR_EACH_FRAME (tail, frame1)
 	    {
-	      if (! EQ (frame, frame1))
+	      if (! EQ (frame, frame1) && FRAME_LIVE_P (XFRAME (frame1)))
 		break;
 	    }
 	}

@@ -2724,15 +2724,15 @@ extern Lisp_Object Qredisplay_dont_pause;
 /* Defined in term.c */
 
 extern void ring_bell P_ ((void));
-extern void set_terminal_modes P_ (());
-extern void reset_terminal_modes P_ (());
+extern void set_terminal_modes P_ ((void));
+extern void reset_terminal_modes P_ ((void));
 extern void update_begin P_ ((struct frame *));
 extern void update_end P_ ((struct frame *));
 extern void set_terminal_window P_ ((int));
 extern void set_scroll_region P_ ((int, int));
-extern void turn_off_insert P_ ((void));
-extern void turn_off_highlight P_ ((void));
-extern void background_highlight P_ ((void));
+extern void turn_off_insert P_ ((struct tty_output *));
+extern void turn_off_highlight P_ ((struct tty_output *));
+extern void background_highlight P_ ((struct tty_output *));
 extern void clear_frame P_ ((void));
 extern void clear_end_of_line P_ ((int));
 extern void clear_end_of_line_raw P_ ((int));
@@ -2742,12 +2742,12 @@ extern int string_cost P_ ((char *));
 extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
-extern void tty_setup_colors P_ ((int));
+extern void tty_setup_colors P_ ((struct tty_output *, int));
 extern struct tty_output *term_init P_ ((char *, char *));
 extern struct tty_output *term_dummy_init P_ ((void));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));
-extern int tty_capable_p P_ ((struct frame *, unsigned, unsigned long, unsigned long));
+extern int tty_capable_p P_ ((struct tty_output *, unsigned, unsigned long, unsigned long));
 
 /* Defined in scroll.c */
 

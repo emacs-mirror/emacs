@@ -3313,7 +3313,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
 
   update_begin (f);
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes (0);
+    set_terminal_modes ();
   clear_frame ();
   clear_current_matrices (f);
   update_end (f);
@@ -6485,7 +6485,6 @@ init_display ()
   SET_CHAR_GLYPH_FROM_GLYPH (space_glyph, ' ');
   space_glyph.charpos = -1;
 
-  meta_key = 0;
   inverse_video = 0;
   cursor_in_echo_area = 0;
   terminal_type = (char *) 0;

@@ -345,12 +345,15 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (if coding-system
 		(setq arg (decode-coding-string arg coding-system)))
 	    (if eval
-		(let ((v (eval (car (read-from-string arg)))))
-		  (when v
-		    (with-temp-buffer
-		      (let ((standard-output (current-buffer)))
-			(pp v)
-			(process-send-region proc (point-min) (point-max))))))
+		(condition-case err
+		    (let ((v (eval (car (read-from-string arg)))))
+		      (when v
+			(with-temp-buffer
+			  (let ((standard-output (current-buffer)))
+			    (pp v)
+			    (process-send-region proc (point-min) (point-max))))))
+		  (error (process-send-string proc (concat "*Error* " (error-message-string err)))))
+
 	      ;; ARG is a file name.
 	      ;; Collapse multiple slashes to single slashes.
 	      (setq arg (command-line-normalize-file-name arg))

@@ -83,9 +83,9 @@ cmputc (c)
  */
 
 static
-at (row, col) {
-    curY = row;
-    curX = col;
+at (tty, row, col) {
+  curY (tty) = row;
+  curX (tty)  = col;
 }
 
 /*
@@ -93,8 +93,8 @@ at (row, col) {
  */
 
 static
-addcol (n) {
-    curX += n;
+addcol (tty, n) {
+  curX (tty) += n;
 
     /*
      * If cursor hit edge of screen, what happened?
@@ -104,21 +104,21 @@ addcol (n) {
      * of the last line.
      */
 
-    if (curX == Wcm.cm_cols) {
+  if (curX (tty) == tty->Wcm->cm_cols) {
 	/*
 	 * Well, if magicwrap, still there, past the edge of the
 	 * screen (!).  If autowrap, on the col 0 of the next line.
 	 * Otherwise on last column.
 	 */
 
-	if (Wcm.cm_magicwrap)
+	if (tty->Wcm->cm_magicwrap)
 	    ;			/* "limbo" */
-	else if (Wcm.cm_autowrap) {
-	    curX = 0;
-	    curY++;		/* Beware end of screen! */
+	else if (tty->Wcm->cm_autowrap) {
+          curX (tty) = 0;
+          curY (tty) ++;		/* Beware end of screen! */
 	}
 	else
-	    curX--;
+          curX (tty)--;
     }
 }
 #endif

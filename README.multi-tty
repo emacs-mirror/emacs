@@ -27,8 +27,8 @@ STATUS
 Basic support is there; there are some rough edges, but it already
 seems to be usable.  Input is read from all terminals (NOT via
 MULTIKBOARD!).  At the moment, the type of the new terminals must be
-the same as the initial terminal.  Emacsclient was extended to support
-opening a new terminal frame.
+the same as the initial terminal.  Emacsclient has been extended to
+support opening a new terminal frame.
 
 To try it out, start up the emacs server (M-x server-start), and then
 (from a shell prompt on another terminal) start emacsclient with
@@ -147,38 +147,68 @@ DIARY OF CHANGES
    (Done, emacsclient signals Emacs after writing to the proxy pseudo
    terminal.  This means that multi-tty does not work with raw ttys!)
 
-THINGS TO DO
-------------
 
-** Implement sane error handling after initialization.  (Currently
+-- Make make-terminal-frame look up the `tty' and `tty-type' frame
+   parameters from the currently selected terminal before the global
+   default.
+
+   (Done.)
+
+-- Put all cached terminal escape sequences into struct tty_output.
+   Currently, they are still stored in global variables, so we don't
+   really support multiple terminal types.
+
+   (Done.)
+
+-- Implement sane error handling after initialization.  (Currently
    emacs exits if you specify a bad terminal type.)  The helpful error
    messages must still be provided when Emacs starts.
 
-** C-g should work on secondary terminals.
+   (Done.)
 
-** Make make-terminal-frame look up the tty and tty-type parameters
-   from the currently selected terminal before the global default.
+-- Implement terminal deletion, i.e., deleting local frames, closing
+   the tty device and restoring its previous state without exiting
+   Emacs.
+
+   (Done, but at the moment only called when an error happens during
+   initialization.  There is a memory corruption error around this
+   somewhere.)
+
+
+THINGS TO DO
+------------
+
+** Fix mysterious memory corruption error with tty deletion.  To
+   trigger it, try the following shell command:
+
+	while true; do TERM=no-such-terminal-definition emacsclient -h; done
+
+   Emacs usually dumps core after a few dozen iterations.  (The bug
+   seems to be related to the xfree()ing or bzero()ing of
+   tty_output.Wcm.  Maybe there are outside references to struct Wcm?
+   Sounds logical, otherwise these vars would not have been collected
+   into a struct.  But where?)
+
+   This does not seem to happen if the error occurs before terminal
+   initialization or if I comment out all xfree()s in delete_frame.
+   Update: yes it does, although it is much rarer.
+
+** C-g should work on secondary terminals.
 
 ** Move optimalization parameters (costs) from union output_data to
    a backend-neutral per-device structure.
 
-** Implement terminal deletion, i.e., deleting local frames, closing
-   the tty device and restoring its previous state without exiting
-   Emacs.  This should be exported to the Lisp environment.
-
 ** Implement automatic deletion of terminals when the last frame on
    that terminal is closed.
-
-** Put all cached terminal escape sequences into struct tty_output.
-   Currently, they are still stored in global variables, so we don't
-   really support multiple terminal types.
 
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
 
+** Export delete_tty to the Lisp environment.
+
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
-   later, with emacsclient.)  Not necessary a good idea.
+   later, with emacsclient.)  Not necessarily a good idea.
 
 ** Support raw secondary terminals.  (This one is tricky, SIGIO works
    only on the controlling terminal.)

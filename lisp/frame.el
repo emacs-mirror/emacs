@@ -558,6 +558,24 @@ The optional second argument PARAMETERS specifies additional frame parameters."
       (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
   (make-frame (cons (cons 'display display) parameters)))
 
+;;;###autoload
+(defun make-frame-on-tty (device type &optional parameters)
+  "Make a frame on terminal DEVICE which is of type TYPE (e.g., \"xterm\").
+The optional third argument PARAMETERS specifies additional frame parameters.
+
+DEVICE must be a proxy psudo terminal created by emacsclient,
+otherwise there will be problems with terminal input and window
+resizes. (The kernel notifies processes about pending input or
+terminal resizes only on the controlling terminal, so we need
+emacsclient to sit on the real terminal device, create SIGIO
+signals upon terminal input, and forward SIGWINCH signals to
+us.)"
+  (unless device
+    (error "Invalid terminal device"))
+  (unless type
+    (error "Invalid terminal type"))
+  (make-frame `((tty . ,device) (tty-type . ,type) . ,parameters)))
+
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."
   (interactive)

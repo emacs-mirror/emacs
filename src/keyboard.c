@@ -461,11 +461,6 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-/* 1 if should obey 0200 bit in input chars as "Meta", 2 if should
-   keep 0200 bit in input chars.  0 to ignore the 0200 bit.  */
-
-int meta_key;
-
 /* Non-zero means force key bindings update in parse_menu_item.  */
 
 int update_menu_bindings;
@@ -6593,7 +6588,9 @@ read_avail_input (expected)
 	 of characters on some systems when input is stuffed at us.  */
       unsigned char cbuf[KBD_BUFFER_SIZE - 1];
       int n_to_read;
-
+      struct tty_output *tty;
+      Lisp_Object frame;
+      
 #ifdef WINDOWSNT
       return 0;
 #else /* not WINDOWSNT */
@@ -6607,12 +6604,14 @@ read_avail_input (expected)
 
 #else /* not MSDOS */
 
-      struct tty_output *tty;
       nread = 0;
 
       /* Try to read from each available tty, until one succeeds. */
       for (tty = tty_list; tty; tty = tty->next) {
-      
+
+        if (! tty->term_initted)
+          continue;
+        
         /* Determine how many characters we should *try* to read.  */
 #ifdef FIONREAD
         /* Find out how much input is available.  */
@@ -6720,15 +6719,15 @@ read_avail_input (expected)
       /* Select frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
          to temporarily change it.  But tty should always be non-NULL. */
-      Lisp_Object frame = (tty ? tty->top_frame : selected_frame);
-      
+      frame = (tty ? tty->top_frame : selected_frame);
+
       for (i = 0; i < nread; i++)
 	{
 	  buf[i].kind = ASCII_KEYSTROKE_EVENT;
 	  buf[i].modifiers = 0;
-	  if (meta_key == 1 && (cbuf[i] & 0x80))
+	  if (tty->meta_key == 1 && (cbuf[i] & 0x80))
 	    buf[i].modifiers = meta_modifier;
-	  if (meta_key != 2)
+	  if (tty->meta_key != 2)
 	    cbuf[i] &= ~0x80;
 
           buf[i].code = cbuf[i];
@@ -10109,7 +10108,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
   record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_sys_modes,
-			 Qnil);
+			 (Lisp_Object)CURTTY()); /* XXX */
   stuff_buffered_input (stuffstring);
   if (cannot_suspend)
     sys_subshell ();
@@ -10438,14 +10437,14 @@ See also `current-input-mode'.  */)
 
   flow_control = !NILP (flow);
   if (NILP (meta))
-    meta_key = 0;
+    FRAME_TTY (SELECTED_FRAME ())->meta_key = 0;
   else if (EQ (meta, Qt))
-    meta_key = 1;
+    FRAME_TTY (SELECTED_FRAME ())->meta_key = 1;
   else
-    meta_key = 2;
+    FRAME_TTY (SELECTED_FRAME ())->meta_key = 2;
   if (!NILP (quit))
     /* Don't let this value be out of range.  */
-    quit_char = XINT (quit) & (meta_key ? 0377 : 0177);
+    quit_char = XINT (quit) & (FRAME_TTY (SELECTED_FRAME ())->meta_key ? 0377 : 0177);
 
 #ifndef DOS_NT
   init_all_sys_modes ();
@@ -10478,7 +10477,9 @@ The elements of this list correspond to the arguments of
 
   val[0] = interrupt_input ? Qt : Qnil;
   val[1] = flow_control ? Qt : Qnil;
-  val[2] = meta_key == 2 ? make_number (0) : meta_key == 1 ? Qt : Qnil;
+  val[2] = FRAME_TTY (SELECTED_FRAME ())->meta_key == 2
+    ? make_number (0)
+    : FRAME_TTY (SELECTED_FRAME ())->meta_key == 1 ? Qt : Qnil;
   XSETFASTINT (val[3], quit_char);
 
   return Flist (sizeof (val) / sizeof (val[0]), val);

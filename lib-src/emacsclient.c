@@ -1095,7 +1095,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       if (emacs_pid == 0)
         {
           reset_tty ();
-          fprintf (stderr, "%s: Could not get process id of Emacs\n", argv[0]);
+          fprintf (stderr, "%s: %s\n", argv[0], str);
           fail (argc, argv);
         }
       
