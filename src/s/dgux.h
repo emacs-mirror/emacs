@@ -251,6 +251,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *      Use BSD and POSIX-style signals.  This is crucial!
  */
 
+/* pmr@rock.concert.net says Emacs fails without this.  We don't know why.  */
+#define SYSTEM_MALLOC
+
 /* MAKING_MAKEFILE must be defined in "ymakefile" before including config.h */
 #ifndef MAKING_MAKEFILE
 
@@ -260,9 +263,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <signal.h>
 
 #define POSIX_SIGNALS
-
-/* pmr@rock.concert.net says Emacs fails without this.  We don't know why.  */
-#define SYSTEM_MALLOC
 
 /* Define this if you use System 5 Release 4 Streams */
 #define SYSV4_PTYS
