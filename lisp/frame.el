@@ -838,7 +838,7 @@ window blinks."
     (if on-p
 	(progn
 	  ;; Hide the cursor.
-	  (show-cursor 0)
+	  (internal-show-cursor 0)
 	  (setq blink-cursor-idle-timer
 		(run-with-idle-timer blink-cursor-delay
 				     blink-cursor-delay
@@ -863,14 +863,14 @@ Arranges to cancel that timer by installing a pre command hook."
     (add-hook 'pre-command-hook 'blink-cursor-end)
     (setq blink-cursor-timer
 	  (run-with-timer blink-cursor-interval blink-cursor-interval
-			  'show-cursor))))
+			  'internal-show-cursor))))
 
 (defun blink-cursor-end ()
   "Stop cursor blinking.
 Installed as a pre-command hook by blink-cursor-start.  Cancels
 the timer blink-cursor-timer and removes itself from the hook."
   (remove-hook 'pre-command-hook 'blink-cursor-end)
-  (show-cursor 0)
+  (internal-show-cursor 0)
   (cancel-timer blink-cursor-timer)
   (setq blink-cursor-timer nil))
 
