@@ -420,7 +420,12 @@ unload_color (f, pixel)
 
 /* Initializing face arrays for frames. */
 
-/* Set up faces 0 and 1 based on the normal text and modeline GC's.  */
+/* Set up faces 0 and 1 based on the normal text and modeline GC's.
+   This gets called whenever the parameters stored in the frame itself
+   (i.e. font, background color, etcetera) change.
+
+   Note that the first two faces just contain references to the
+   frame's own resources.  We shouldn't free them.  */
 void
 init_frame_faces (f)
      struct frame *f;
@@ -547,16 +552,32 @@ ensure_face_ready (f, id)
 
 /* Computing faces appropriate for a given piece of text in a buffer.  */
 
+/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
+   We assume that they're both character-cell fonts.  */
+static int
+same_size_fonts (font1, font2)
+     XFontStruct *font1, *font2;
+{
+  XCharStruct *bounds1 = font1->min_bounds;
+  XCharStruct *bounds2 = font2->min_bounds;
+
+  return (bounds1->width == bounds2->width
+	  && bounds1->ascent == bounds2->ascent
+	  && bounds1->descent == bounds2->descent);
+}
+
+
 /* Modify face TO by copying from FROM all properties which have
    nondefault settings.  */
 static void 
 merge_faces (from, to)
      struct face *from, *to;
 {
-  if (from->font != (XFontStruct *)FACE_DEFAULT)
-    {
-      to->font = from->font;
-    }
+  /* Only merge the font if it's the same size as the base font.  */
+  if (from->font != (XFontStruct *) FACE_DEFAULT
+      && ! from->font->per_char
+      && same_size_fonts (from->font, to->font))
+    to->font = from->font;
   if (from->foreground != FACE_DEFAULT)
     to->foreground = from->foreground;
   if (from->background != FACE_DEFAULT)
