@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 1.1 $")
+(defconst byte-compile-version "$Revision: 2.68 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1807,7 +1807,7 @@ list that represents a doc string reference.
        (eval (nth 5 form))		;Macro
        (eval form))			;Define the autoload.
   ;; Avoid undefined function warnings for the autoload.
-  (if (and nil (consp (nth 1 form))
+  (if (and (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
 	   (symbolp (nth 1 (nth 1 form))))
