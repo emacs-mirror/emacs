@@ -122,8 +122,41 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
      int posix;
      int multibyte;
 {
+  char *raw_pattern;
+  int raw_pattern_size;
   char *val;
   reg_syntax_t old;
+
+  /* MULTIBYTE says whether the text to be searched is multibyte.
+     We must convert PATTERN to match that, or we will not really
+     find things right.  */
+
+  if (multibyte == STRING_MULTIBYTE (pattern))
+    {
+      raw_pattern = (char *) XSTRING (pattern)->data;
+      raw_pattern_size = XSTRING (pattern)->size_byte;
+    }
+  else if (multibyte)
+    {
+      raw_pattern_size = count_size_as_multibyte (XSTRING (pattern)->data,
+						  XSTRING (pattern)->size);
+      raw_pattern = (char *) alloca (raw_pattern_size + 1);
+      copy_text (XSTRING (pattern)->data, raw_pattern,
+		 XSTRING (pattern)->size, 0, 1);
+    }
+  else
+    {
+      /* Converting multibyte to single-byte.
+
+	 ??? Perhaps this conversion should be done in a special way
+	 by subtracting nonascii-insert-offset from each non-ASCII char,
+	 so that only the multibyte chars which really correspond to
+	 the chosen single-byte character set can possibly match.  */
+      raw_pattern_size = XSTRING (pattern)->size;
+      raw_pattern = (char *) alloca (raw_pattern_size + 1);
+      copy_text (XSTRING (pattern)->data, raw_pattern,
+		 XSTRING (pattern)->size, 1, 0);
+    }
 
   cp->regexp = Qnil;
   cp->buf.translate = translate;
@@ -132,8 +165,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
-  val = (char *) re_compile_pattern ((char *) XSTRING (pattern)->data,
-				     XSTRING (pattern)->size, &cp->buf);
+  val = (char *) re_compile_pattern (raw_pattern, raw_pattern_size, &cp->buf);
   re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
@@ -423,7 +455,7 @@ fast_c_string_match_ignore_case (regexp, string)
   re_match_object = Qt;
   bufp = compile_pattern (regexp, 0,
 			  XCHAR_TABLE (Vascii_downcase_table)->contents, 0,
-			  1);
+			  0);
   immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
   immediate_quit = 0;
@@ -1078,8 +1110,46 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
       BM_tab = (int *) alloca (0400 * sizeof (int));
 #endif
       {
-	unsigned char *patbuf = (unsigned char *) alloca (len_byte);
+	unsigned char *raw_pattern;
+	int raw_pattern_size;
+	unsigned char *patbuf;
+	int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+
+	/* MULTIBYTE says whether the text to be searched is multibyte.
+	   We must convert PATTERN to match that, or we will not really
+	   find things right.  */
+
+	if (multibyte == STRING_MULTIBYTE (string))
+	  {
+	    raw_pattern = (char *) XSTRING (string)->data;
+	    raw_pattern_size = XSTRING (string)->size_byte;
+	  }
+	else if (multibyte)
+	  {
+	    raw_pattern_size = count_size_as_multibyte (XSTRING (string)->data,
+							XSTRING (string)->size);
+	    raw_pattern = (char *) alloca (raw_pattern_size + 1);
+	    copy_text (XSTRING (string)->data, raw_pattern,
+		       XSTRING (string)->size, 0, 1);
+	  }
+	else
+	  {
+	    /* Converting multibyte to single-byte.
+
+	       ??? Perhaps this conversion should be done in a special way
+	       by subtracting nonascii-insert-offset from each non-ASCII char,
+	       so that only the multibyte chars which really correspond to
+	       the chosen single-byte character set can possibly match.  */
+	    raw_pattern_size = XSTRING (string)->size;
+	    raw_pattern = (char *) alloca (raw_pattern_size + 1);
+	    copy_text (XSTRING (string)->data, raw_pattern,
+		       XSTRING (string)->size, 1, 0);
+	  }
+
+	len_byte = raw_pattern_size;
+	patbuf = (unsigned char *) alloca (len_byte);
 	pat = patbuf;
+	base_pat = raw_pattern;
 	while (--len_byte >= 0)
 	  {
 	    /* If we got here and the RE flag is set, it's because we're
