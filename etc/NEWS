@@ -28,6 +28,18 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
++++
+** The new option `Info-scroll-prefer-subnodes' causes Info to behave
+like the stand-alone Info reader (from the GNU Texinfo package) as far
+as motion between nodes and their subnodes is concerned.  If it is t
+(the default), Emacs behaves as before when you type SPC in a menu: it
+visits the subnode pointed to by the first menu entry.  If this option
+is nil, SPC scrolls to the end of the current node, and only then goes
+to the first menu item, like the stand-alone reader does.
+
+This change was already in Emacs 21.1, but wasn't advertised in the
+NEWS.
+
 ---
 ** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
 
