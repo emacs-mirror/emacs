@@ -1,3 +1,8 @@
+2001-10-19  Miles Bader  <miles@gnu.org>
+
+	* positions.texi (Text Lines): Describe behavior of
+	`beginning-of-line'/`end-of-line' in the presence of field properties.
+
 2001-10-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (VERSION): Set to 2.7.
