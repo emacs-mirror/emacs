@@ -670,8 +670,8 @@ information.  To get a list of these commands, type @samp{?} after
 @node Getting a printed manual, Emacs Lisp documentation, Learning how to do something, Getting help
 @section How do I get a printed copy of the Emacs manual?
 @cindex Printed Emacs manual, obtaining
-@cindex Manual, obtaining a printed copy of
-@cindex Emacs manual, obtaining a printed copy of
+@cindex Manual, obtaining a printed or HTML copy of
+@cindex Emacs manual, obtaining a printed or HTML copy of
 
 You can order a printed copy of the Emacs manual from the FSF.  For
 details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}
@@ -688,6 +688,7 @@ you can get a PostScript version from
 
 @uref{http://www.gnu.org/manual/emacs/ps/emacs.ps.gz}
 
+@cindex HTML version of Emacs manual, obtaining
 An HTML version of the manual is at
 
 @uref{www.gnu.org/manual/emacs/index.html}
