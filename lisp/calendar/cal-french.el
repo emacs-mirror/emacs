@@ -64,25 +64,25 @@
   ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
    "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"])
 
-(defun french-calendar-month-name-array ()
-  (if (french-calendar-accents)
-      french-calendar-multibyte-month-name-array
-    french-calendar-month-name-array))
-
 (defconst french-calendar-day-name-array
   ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
    "Octidi" "Nonidi" "Decadi"])
 
 (defconst french-calendar-multibyte-special-days-array
-  ["de la Vertu" "du Génie" "du Labour" "de la Raison"
-   "de la Récompense" "de la Révolution"])
-
-(defun french-calendar-day-name-array ()
-  french-calendar-day-name-array)
+  ["de la Vertu" "du Génie" "du Labour" "de la Raison" "de la Récompense"
+   "de la Révolution"])
 
 (defconst french-calendar-special-days-array
   ["de la Vertu" "du Ge'nie" "du Labour" "de la Raison" "de la Re'compense"
    "de la Re'volution"])
+
+(defun french-calendar-month-name-array ()
+  (if (french-calendar-accents)
+      french-calendar-multibyte-month-name-array
+    french-calendar-month-name-array))
+
+(defun french-calendar-day-name-array ()
+  french-calendar-day-name-array)
 
 (defun french-calendar-special-days-array ()
   (if (french-calendar-accents)
@@ -196,64 +196,81 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
 
+;; Convert a multibyte string to a singlebyte string
+;; that represents the same characters in Latin-1.
+(defun calendar-french-single-byteify (string)
+  (if enable-multibyte-characters
+      string
+    (apply 'concat-chars
+	   (mapcar (function (lambda (char) (logand char 255)))
+		   (let ((enable-multibyte-characters t))
+		     (string-to-list string))))))
+
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is t."
   (interactive
-   (let* ((oldval enable-multibyte-characters)
-	  (year (unwind-protect
-		    (progn
-		      (setq-default enable-multibyte-characters t)
+   (let ((oldval enable-multibyte-characters)
+	 (accents (french-calendar-accents))
+	 (months (french-calendar-month-name-array))
+	 (special-days (french-calendar-special-days-array)))
+     (setq months (mapcar 'calendar-french-single-byteify months))
+     (setq special-days
+	   (mapcar 'calendar-french-single-byteify special-days))
+     (let* ((year
+	     (progn
+	       (calendar-read
+		(if accents
+		    (calendar-french-single-byteify
+		     "Année de la Révolution (>0): ")
+		   "Anne'e de la Re'volution (>0): ")
+		'(lambda (x) (> x 0))
+		(int-to-string
+		 (extract-calendar-year
+		  (calendar-french-from-absolute
+		   (calendar-absolute-from-gregorian
+		    (calendar-current-date))))))))
+	    (month-list
+	     (mapcar 'list
+		     (append months
+			     (if (french-calendar-leap-year-p year)
+				 (mapcar
+				  '(lambda (x) (concat "Jour " x))
+				  french-calendar-special-days-array)
+			       (reverse
+				(cdr;; we don't want rev. day in a non-leap yr.
+				 (reverse
+				  (mapcar
+				   '(lambda (x)
+				      (concat "Jour " x))
+				   special-days))))))))
+	    (completion-ignore-case t)
+	    (month (cdr (assoc
+			 (capitalize
+			  (completing-read
+			   "Mois ou Sansculottide: "
+			   month-list
+			   nil t))
+			 (calendar-make-alist
+			  month-list
+			  1
+			  '(lambda (x) (capitalize (car x)))))))
+	    (decade (if (> month 12)
+			1
 		      (calendar-read
-		       (if (french-calendar-accents)
-			   "Année de la Révolution (>0): "
-			 "Anne'e de la Re'volution (>0): ")
-		       '(lambda (x) (> x 0))
-		       (int-to-string
-			(extract-calendar-year
-			 (calendar-french-from-absolute
-			  (calendar-absolute-from-gregorian
-			   (calendar-current-date)))))))
-		  (setq-default enable-multibyte-characters oldval)))
-          (month-list
-           (mapcar 'list
-                   (append (french-calendar-month-name-array)
-                           (if (french-calendar-leap-year-p year)
-                               (mapcar
-                                '(lambda (x) (concat "Jour " x))
-                                (french-calendar-special-days-array))
-                             (reverse
-                              (cdr;; we don't want rev. day in a non-leap yr.
-                               (reverse
-                                (mapcar
-                                 '(lambda (x) (concat "Jour " x))
-                                 (french-calendar-special-days-array)))))))))
-          (completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
-                        (completing-read
-                         "Mois ou Sansculottide: "
-                         month-list
-                         nil t))
-                       (calendar-make-alist
-                        month-list
-                        1
-                        '(lambda (x) (capitalize (car x)))))))
-          (decade (if (> month 12)
-                      1
-                    (calendar-read
-                     (if (french-calendar-accents)
-                         "Décade (1-3): "
-                       "De'cade (1-3): ")
-                     '(lambda (x) (memq x '(1 2 3))))))
-          (day (if (> month 12)
-                   (- month 12)
-                 (calendar-read
-                  "Jour (1-10): "
-                  '(lambda (x) (and (<= 1 x) (<= x 10))))))
-          (month (if (> month 12) 13 month))
-          (day (+ day (* 10 (1- decade)))))
-     (list (list month day year))))
+		       (if accents
+			   (calendar-french-single-byteify
+			    "Décade (1-3): ")
+			 "De'cade (1-3): ")
+		       '(lambda (x) (memq x '(1 2 3))))))
+	    (day (if (> month 12)
+		     (- month 12)
+		   (calendar-read
+		    "Jour (1-10): "
+		    '(lambda (x) (and (<= 1 x) (<= x 10))))))
+	    (month (if (> month 12) 13 month))
+	    (day (+ day (* 10 (1- decade)))))
+       (list (list month day year)))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-french date)))
   (or noecho (calendar-print-french-date)))
