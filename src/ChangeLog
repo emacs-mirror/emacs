@@ -1,3 +1,8 @@
+1999-12-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_update_begin): Don't dereference members of struct
+	window for deleted windows.
+
 1999-12-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* abbrev.c (Fexpand_abbrev): If expanding an abbrev which has only
