@@ -3,6 +3,9 @@
 	* ido.el (ido-read-internal): Fix call to read-file-name for edit.
 	Must expand directory for completion to work; and don't mess with
 	process-environment.
+	(ido-read-file-name): If command has ido property, don't use ido
+	if value is ignore, or read as directory if value is dir.
+	Set ido ignore property for dired-do-rename command.
 
 2004-05-04  Juanma Barranquero  <lektu@terra.es>
 
