@@ -2834,7 +2834,6 @@ read_process_output_error_handler (error)
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
-  return Qt;
 }
 
 /* Read pending output from the process channel,
@@ -4263,7 +4262,6 @@ exec_sentinel_error_handler (error)
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
-  return Qt;
 }
 
 static void
