@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
-;; Copyright (C) 1986,87,92,94,95,96,97,98,99,2000,01,02,2003
+;; Copyright (C) 1986,87,92,94,95,96,97,98,99,2000,01,02,03,2004
 ;;	 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -160,8 +160,7 @@ are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
 (defvar server-socket-name
-  (format "/tmp/emacs%d-%s/server" (user-uid)
-	  (substring (system-name) 0 (string-match "\\." (system-name)))))
+  (format "/tmp/emacs%d/server" (user-uid)))
 
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes."
