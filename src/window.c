@@ -850,6 +850,7 @@ minibuffer does not count, only windows from WINDOW's frame count.\n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
 above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
+ALL-FRAMES = 0 means include windows on all visible and iconified frames.\n\
 Anything else means restrict to WINDOW's frame.\n\
 \n\
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
@@ -890,10 +891,14 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 		   : Qnil);
   else if (EQ (all_frames, Qvisible))
     ;
+  else if (XFASTINT (all_frames) == 0)
+    ;
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
   /* Now all_frames is t meaning search all frames,
      nil meaning search just current frame,
+     visible meaning search just visible frames,
+     0 meaning search visible and iconified frames,
      or a window, meaning search the frame that window belongs to.  */
 #endif
 
@@ -967,6 +972,7 @@ the minibuffer does not count, only windows from WINDOW's frame count\n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
 above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
+ALL-FRAMES = 0 means include windows on all visible and iconified frames.\n\
 Anything else means restrict to WINDOW's frame.\n\
 \n\
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
@@ -1008,10 +1014,14 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 		   : Qnil);
   else if (EQ (all_frames, Qvisible))
     ;
+  else if (XFASTINT (all_frames) == 0)
+    ;
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
   /* Now all_frames is t meaning search all frames,
      nil meaning search just current frame,
+     visible meaning search just visible frames,
+     0 meaning search visible and iconified frames,
      or a window, meaning search the frame that window belongs to.  */
 #endif
 
@@ -1154,6 +1164,8 @@ window_loop (type, obj, mini, frames)
     frame = 0;
   if (frame)
     frame_arg = Qlambda;
+  else if (XFASTINT (frames) == 0)
+    frame_arg = frames;
   else if (EQ (frames, Qvisible))
     frame_arg = frames;
 #else
@@ -1332,6 +1344,7 @@ If FRAME is a frame, search only that frame.")
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
   "Return a window currently displaying BUFFER, or nil if none.\n\
 If optional argument FRAME is `visible', search all visible frames.\n\
+If optional argument FRAME is 0, search all visible and iconified frames.\n\
 If FRAME is t, search all frames.\n\
 If FRAME is nil, search only the selected frame.\n\
 If FRAME is a frame, search only that frame.")
@@ -1752,14 +1765,18 @@ Returns the window displaying BUFFER.")
 
 #ifdef MULTI_FRAME
   /* If pop_up_frames,
-     look for a window showing BUFFER on any visible frame.  */
-  window = Fget_buffer_window (buffer, pop_up_frames ? Qvisible : Qnil);
+     look for a window showing BUFFER on any visible or iconified frame.  */
+  window = Fget_buffer_window (buffer, pop_up_frames ? make_number (0) : Qnil);
 #else
   window = Fget_buffer_window (buffer, Qnil);
 #endif
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
-    return window;
+    {
+      if (FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (window)))))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+      return window;
+    }
 
   /* Certain buffer names get special handling.  */
   if (! NILP (Vspecial_display_function))
