@@ -1,3 +1,9 @@
+2001-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (info-initialize): If installation-directory is nil, for
+	DOS/Windows systems try looking in a sibling of
+	invocation-directory.
+
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* wid-edit.el (widget-button-click): Fix last change.
