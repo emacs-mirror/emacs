@@ -415,17 +415,17 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 
 @c Emacs 19 feature
 @defvar write-contents-functions
-This works just like @code{write-file-functions}, but it is intended for
-hooks that pertain to the contents of the file, as opposed to hooks that
-pertain to the file's name or location.  Such hooks are usually set up by
-major modes, as buffer-local bindings for this variable.  If any of the
-functions in this hook returns non-@code{nil}, the file is considered
-already written and the rest are not called and neither are the functions
-in @code{write-file-functions}.
+This works just like @code{write-file-functions}, but it is intended
+for hooks that pertain to the buffer's contents, not to the particular
+visited file or its location.  Such hooks are usually set up by major
+modes, as buffer-local bindings for this variable.  This variable
+automatically becomes buffer-local whenever it is set; switching to a
+new major mode always resets this variable, but calling
+@code{set-visited-file-name} does not.
 
-This variable automatically becomes buffer-local whenever it is set;
-switching to a new major mode always resets this variable, but
-calling @code{set-visited-file-name} does not.
+If any of the functions in this hook returns non-@code{nil}, the file
+is considered already written and the rest are not called and neither
+are the functions in @code{write-file-functions}.
 @end defvar
 
 @defopt before-save-hook
@@ -2646,23 +2646,22 @@ of the local copy file.
 @end defun
 
 @defun file-remote-p filename
-This function tests whether @var{filename} is a remote file.  The
-return value is an identifier of the remote system, if @var{filename}
-is indeed remote.  Besides the host name, the identifier may comprise
-a user name and a method used to access that system.
+This function tests whether @var{filename} is a remote file.  If
+@var{filename} is local (not remote), the return value is @code{nil}.
+If @var{filename} is indeed remote, the return value is a string that
+identifies the remote system.
 
-To illustrate, for the filename @code{/ssh:user@@host:/some/file}, the
-identifier is @code{/ssh:user@@host:}.
-
-If @var{filename} is local (not remote), then the return value is
-@code{nil}.
+This identifier string may include a host name, a user name, and
+characters designating the method used to access the remote system.
+For example, the remote identifier string for the filename
+@code{/ssh:user@@host:/some/file} is @code{/ssh:user@@host:}.
 
 If @code{file-remote-p} returns the same identifier for two different
-filenames, then the file handler is the same, and also the files can
+filenames, that means they are stored on the same file system and can
 be accessed locally with respect to each other.  This means, for
-example, that it is possible to start a (remote) process accessing
-both files at the same time.  Implementors of file handlers need to
-ensure this.
+example, that it is possible to start a remote process accessing both
+files at the same time.  Implementors of file handlers need to ensure
+this principle is valid.
 @end defun
 
 @defun unhandled-file-name-directory filename
