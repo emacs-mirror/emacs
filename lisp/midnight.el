@@ -104,7 +104,7 @@ displayed more than this many seconds ago."
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
 `clean-buffer-list' when is it in `midnight-hook'.
-If a member of the list is a cons, it's `car' is the regexp and its `cdr' is
+If a member of the list is a cons, its `car' is the regexp and its `cdr' is
 the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-buffer-names',
 `clean-buffer-list-kill-never-regexps' and
@@ -119,7 +119,7 @@ See also `clean-buffer-list-kill-buffer-names',
 Buffers with names in this list, which were not displayed in the last
 `clean-buffer-list-delay-special' seconds, are killed by `clean-buffer-list'
 when is it in `midnight-hook'.
-If a member of the list is a cons, it's `car' is the name and its `cdr' is
+If a member of the list is a cons, its `car' is the name and its `cdr' is
 the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-regexps',
 `clean-buffer-list-kill-never-regexps' and
