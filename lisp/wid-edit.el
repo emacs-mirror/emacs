@@ -290,17 +290,35 @@ minibuffer."
 	       (error "None of the choices is currently meaningful"))
 	   (define-key map [?\C-g] 'keyboard-quit)
 	   (define-key map [t] 'keyboard-quit)
+	   (define-key map [?\M-\C-v] 'scroll-other-window)
+	   (define-key map [?\M--] 'negative-argument)
 	   (setcdr map (nreverse (cdr map)))
-	   ;; Unread a SPC to lead to our new menu.
-	   (setq unread-command-events (cons ?\ unread-command-events))
 	   ;; Read a char with the menu, and return the result
 	   ;; that corresponds to it.
 	   (save-window-excursion
-	     (display-buffer (get-buffer " widget-choose"))
-	     (let ((cursor-in-echo-area t))
-	       (setq value
-		     (lookup-key overriding-terminal-local-map
-				 (read-key-sequence title) t))))
+	     (let ((buf (get-buffer " widget-choose")))
+	       (display-buffer buf)
+	       (let ((cursor-in-echo-area t)
+		     keys
+		     (char 0)
+		     (arg 1))
+		 (while (not (or (and (>= char ?0) (< char next-digit))
+				 (eq value 'keyboard-quit)))
+		   ;; Unread a SPC to lead to our new menu.
+		   (setq unread-command-events (cons ?\ unread-command-events))
+		   (setq keys (read-key-sequence title))
+		   (setq value (lookup-key overriding-terminal-local-map keys t)
+			 char (string-to-char (substring keys 1)))
+		   (cond ((eq value 'scroll-other-window)
+			  (let ((minibuffer-scroll-window (get-buffer-window buf)))
+			    (if (> 0 arg)
+				(scroll-other-window-down (window-height minibuffer-scroll-window))
+			      (scroll-other-window))
+			    (setq arg 1)))
+			 ((eq value 'negative-argument)
+			  (setq arg -1))
+			 (t
+			  (setq arg 1)))))))
 	   (when (eq value 'keyboard-quit)
 	     (error "Canceled"))
 	   value))))
