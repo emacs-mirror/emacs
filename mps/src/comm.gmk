@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.64) $
+# $HopeName: MMsrc!comm.gmk(trunk.65) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -255,13 +255,16 @@ endif
 
 # == Pseudo-targets ==
 
-# %%TARGET: Add the target to the all dependencies.
-# Not all targets need be specified in the "all" target.  It is
-# just a convenient set of targets to build.
+# %%TARGET: Add the target to the all dependencies, if it uses the
+# CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
 
-all: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
-     locv qs finalcv arenacv bttest teletest abqtest cbstest \
-     btcv mv2eptst mv2test messtest
+all: mpmss sacss amcss amcsshe amsss segsmss awlut \
+     mpsicv lockcov poolncv locv qs apss \
+     finalcv arenacv bttest teletest \
+     abqtest cbstest btcv mv2test messtest \
+     eventcnv mps.a
+
+swall: mmsw.a epvmss replaysw
 
 # Runs the automatic tests that are built with CONFIG_PROD_MPS
 # These tests are run overnight (see design.buildsys.overnight).
@@ -272,7 +275,6 @@ testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut mpsicv lockcov \
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
-#   mv2eptst cannot be run unattended
 testrunep: epvmss
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
@@ -282,9 +284,12 @@ testrunep: epvmss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss apss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth mpsicv \
-  lockcov poolncv locv qs finalcv arenacv bttest teletest epvmss \
-  abqtest cbstest btcv mv2eptst mv2test messtest eventcnv replay replaysw \
+mpmss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth \
+  mpsicv lockcov poolncv locv qs apss \
+  finalcv arenacv bttest teletest epvmss \
+  abqtest cbstest btcv mv2test \
+  messtest \
+  eventcnv replay replaysw \
   mps.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
