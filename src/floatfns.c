@@ -684,8 +684,9 @@ This is the same as the exponent of a float.")
       IN_FLOAT (value = logb (f), "logb", arg);
 #else
 #ifdef HAVE_FREXP
-      IN_FLOAT (frexp (f, &value), "logb", arg);
-      value--;
+      int ivalue;
+      IN_FLOAT (frexp (f, &ivalue), "logb", arg);
+      value = ivalue - 1;
 #else
       int i;
       double d;
