@@ -1,3 +1,8 @@
+2000-08-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* undo.c (record_first_change, record_marker_adjustment): Don'use
+	XBUFFER on last_undo_buffer which might not be a buffer.
+
 2000-08-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (decode_coding_string): Set members consumed,

@@ -1,3 +1,8 @@
+2000-08-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* hilit-chg.el: General cleanup of doc strings, comments and
+	code formatting.
+
 2000-08-19  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-beginning-of-line):
