@@ -1,3 +1,8 @@
+2001-01-07  Dave Love  <d.love@dl.ac.uk>
+
+	* keyboard.c (Fread_key_sequence_vector):  Avoid newline in
+	arglist, for documentation's sake.
+
 2001-01-06  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (clean): Delete $(COMPILER_TEMP_FILES) instead
@@ -28,6 +33,8 @@
 	(syms_of_xfns): Initialize and staticpro last_show_tip_args.
 
 2001-01-04  Dave Love  <fx@gnu.org>
+
+	* editfns.c (Fformat): Doc fix.
 
 	* systime.h (set_file_times): Prototype.
 
