@@ -6881,15 +6881,12 @@ If FILE is nil, close any open dribble file.")
   (file)
      Lisp_Object file;
 {
-  if (NILP (file))
+  if (dribble)
     {
-      if (dribble)
-	{
-	  fclose (dribble);
-	  dribble = 0;
-	}
+      fclose (dribble);
+      dribble = 0;
     }
-  else
+  if (!NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
       dribble = fopen (XSTRING (file)->data, "w");
