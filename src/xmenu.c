@@ -1093,7 +1093,7 @@ free_menubar_widget_value_tree (wv)
 extern void EmacsFrameSetCharSize ();
 
 static void
-update_one_frame_psheets (f)
+update_frame_menubar (f)
      FRAME_PTR f;
 {
   struct x_display *x = f->display.x;
@@ -1162,7 +1162,8 @@ set_frame_menubar (f)
   wv->enabled = 1;
   save_wv = first_wv = wv;
 
-  items = FRAME_MENU_BAR_ITEMS (f);
+  if (NILP (items = FRAME_MENU_BAR_ITEMS (f)))
+    items = FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
   for (i = 0; i < XVECTOR (items)->size; i += 3)
     {
@@ -1202,7 +1203,7 @@ set_frame_menubar (f)
   
   free_menubar_widget_value_tree (first_wv);
 
-  update_one_frame_psheets (f);
+  update_frame_menubar (f);
 
   UNBLOCK_INPUT;
 }
@@ -1223,6 +1224,16 @@ free_frame_menubar (f)
       lw_destroy_all_widgets (id);
       UNBLOCK_INPUT;
     }
+}
+/* Called from Fx_create_frame to create the inital menubar of a frame
+   before it is mapped, so that the window is mapped with the menubar already
+   there instead of us tacking it on later and thrashing the window after it
+   is visible.  */
+void
+initialize_frame_menubar (f)
+     FRAME_PTR f;
+{
+  set_frame_menubar (f);
 }
 
 /* Nonzero if position X, Y relative to inside of frame F
