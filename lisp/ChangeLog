@@ -1,5 +1,8 @@
 2002-05-14  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-rect.el (cua--rectangle-operation): 
+	Don't highlight empty lines in rectangles.
+
 	* emulation/keypad.el: Improved commentary.
 	(keypad-setup, keypad-shifted-setup): Added choice to setup
 	Numeric keypad with decimal key; value is selected character.
