@@ -447,7 +447,7 @@ xm_update_radiobox (instance, widget, val)
       toggle = XtNameToWidget (widget, cur->value);
       if (toggle)
 	{
-	  XtVaSetValues (toggle, XmNsensitive, cur->enabled, NULL);
+	  XtSetSensitive (toggle, cur->enabled);
 	  if (!val->value && cur->selected)
 	    XtVaSetValues (toggle, XmNset, cur->selected, NULL);
 	  if (val->value && strcmp (val->value, cur->value))
@@ -655,10 +655,8 @@ update_one_menu_entry (instance, widget, val, deep_p)
 
   /* update the sensitivity and userdata */
   /* Common to all widget types */
-  XtVaSetValues (widget,
-		 XmNsensitive, val->enabled,
-		 XmNuserData, val->call_data,
-		 NULL);
+  XtSetSensitive (widget, val->enabled);
+  XtVaSetValues (widget, XmNuserData, val->call_data, NULL);
 
   /* update the menu button as a label. */
   if (val->this_one_change >= VISIBLE_CHANGE)
@@ -858,10 +856,8 @@ xm_update_one_widget (instance, widget, val, deep_p)
   val->edited = False;
 
   /* Common to all widget types */
-  XtVaSetValues (widget,
-		 XmNsensitive, val->enabled,
-		 XmNuserData, val->call_data,
-		 NULL);
+  XtSetSensitive (widget, val->enabled);
+  XtVaSetValues (widget, XmNuserData, val->call_data, NULL);
   
   /* Common to all label like widgets */
   if (XtIsSubclass (widget, xmLabelWidgetClass))
@@ -1414,7 +1410,7 @@ xm_create_dialog (instance)
   Widget	widget;
   Boolean 	pop_up_p = instance->pop_up_p;
   char*		shell_name = 0;
-  char* 	icon_name;
+  char* 	icon_name = 0;
   Boolean	text_input_slot = False;
   Boolean	radio_box = False;
   Boolean	list = False;
