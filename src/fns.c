@@ -3075,6 +3075,18 @@ particular subfeatures supported in this version of FEATURE.  */)
 
   return feature;
 }
+
+/* `require' and its subroutines.  */
+
+/* List of features currently being require'd, innermost first.  */
+
+Lisp_Object require_nesting_list;
+
+require_unwind (old_value)
+     Lisp_Object old_value;
+{
+  require_nesting_list = old_value;
+}
 
 DEFUN ("require", Frequire, Srequire, 1, 3, 0,
        doc: /* If feature FEATURE is not loaded, load it from FILENAME.
@@ -3091,7 +3103,10 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
      Lisp_Object feature, filename, noerror;
 {
   register Lisp_Object tem;
+  struct gcpro gcpro1, gcpro2;
+
   CHECK_SYMBOL (feature, 0);
+
   tem = Fmemq (feature, Vfeatures);
 
   LOADHIST_ATTACH (Fcons (Qrequire, feature));
@@ -3099,26 +3114,50 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   if (NILP (tem))
     {
       int count = specpdl_ptr - specpdl;
+      int nesting = 0;
+      
+      /* A certain amount of recursive `require' is legitimate,
+	 but if we require the same feature recursively 3 times,
+	 signal an error.  */
+      tem = require_nesting_list;
+      while (! NILP (tem))
+	{
+	  if (! NILP (Fequal (feature, XCAR (tem))))
+	    nesting++;
+	  tem = XCDR (tem);
+	}
+      if (nesting > 2)
+	error ("Recursive `require' for feature `%s'",
+	       XSYMBOL (feature)->name->data);
+
+      /* Update the list for any nested `require's that occur.  */
+      record_unwind_protect (require_unwind, require_nesting_list);
+      require_nesting_list = Fcons (feature, require_nesting_list);
 
       /* Value saved here is to be restored into Vautoload_queue */
       record_unwind_protect (un_autoload, Vautoload_queue);
       Vautoload_queue = Qt;
 
+      /* Load the file.  */
+      GCPRO2 (feature, filename);
       tem = Fload (NILP (filename) ? Fsymbol_name (feature) : filename,
 		   noerror, Qt, Qnil, (NILP (filename) ? Qt : Qnil));
+      UNGCPRO;
+
       /* If load failed entirely, return nil.  */
       if (NILP (tem))
 	return unbind_to (count, Qnil);
 
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
-	error ("Required feature %s was not provided",
+	error ("Required feature `%s' was not provided",
 	       XSYMBOL (feature)->name->data);
 
       /* Once loading finishes, don't undo it.  */
       Vautoload_queue = Qt;
       feature = unbind_to (count, feature);
     }
+
   return feature;
 }
 
@@ -5275,6 +5314,9 @@ syms_of_fns ()
 
   staticpro (&string_char_byte_cache_string);
   string_char_byte_cache_string = Qnil;
+
+  require_nesting_list = Qnil;
+  staticpro (&require_nesting_list);
 
   Fset (Qyes_or_no_p_history, Qnil);
 
