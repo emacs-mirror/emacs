@@ -1,3 +1,8 @@
+2001-02-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* wid-edit.el (widget-button-click): Save the selected window
+	around the code handling clicks on buttons.
+
 2001-02-18  Dave Love  <fx@gnu.org>
 
 	* imenu.el (imenu--generic-function): Use mapc to iterate over
