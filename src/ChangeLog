@@ -1,5 +1,9 @@
 2000-12-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (init_from_display_pos): Pop until the iterator's
+	stack is empty; there may be frames for stretch or images
+	on the stack.
+
 	* dispnew.c (save_frame_matrix, restore_frame_matrix): Removed.
 	(save_or_restore_current_matrix): New function for the same
 	purpose, but more efficient.
