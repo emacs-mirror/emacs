@@ -645,6 +645,15 @@ whose name consists of the library source file with @samp{c} appended.
 Thus, the compiled code for @file{foo.el} goes in @file{foo.elc}.
 That's why @code{load-library} searches for @samp{.elc} files first.
 
+@vindex load-dangerous-libraries
+@cindex Lisp files byte-compiled by XEmacs
+  By default, Emacs refuses to load compiled Lisp files which weren't
+compiled with Emacs.  This is because an incompatible change was
+introduced into XEmacs' byte compiler, which could produce files with
+byte codes that cause Emacs to crash.  Set the variable
+@code{load-dangerous-libraries} to t if you want to change this
+behavior.
+
 @node Lisp Eval
 @section Evaluating Emacs-Lisp Expressions
 @cindex Emacs-Lisp mode
