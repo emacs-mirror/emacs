@@ -262,6 +262,9 @@ Boston, MA 02111-1307, USA.  */
    option to use it.  */
 #ifdef HAVE_LIBNCURSES
 #define LIBS_TERMCAP -lncurses
+/* This prevents crashes when running Emacs in Terminal.app under
+   10.2.  */
+#define TERMINFO
 #endif
 
 /* Link this program just by running cc.  */
