@@ -980,7 +980,7 @@ Auto-indent does not happen if a numeric ARG is used."
 The marks are pushed."
   (interactive)
   (end-of-fortran-subprogram)
-  (push-mark (point))
+  (push-mark (point) nil t)
   (beginning-of-fortran-subprogram))
 
 (defun fortran-previous-statement ()
@@ -1034,9 +1034,8 @@ non-comment Fortran statement in the file, and nil otherwise."
 The subprogram visible is the one that contains or follows point."
   (interactive)
   (save-excursion
-    (let ((mark-active t))
-      (mark-fortran-subprogram)
-      (narrow-to-region (point) (mark)))))
+    (mark-fortran-subprogram)
+    (narrow-to-region (point) (mark))))
 
 (defmacro fortran-with-subprogram-narrowing (&rest forms)
   "Execute FORMS with buffer temporarily narrowed to current subprogram.
@@ -1344,10 +1343,9 @@ An abbrev before point is expanded if variable `abbrev-mode' is non-nil."
   "Properly indent the Fortran subprogram which contains point."
   (interactive)
   (save-excursion
-    (let ((mark-active t))
-      (mark-fortran-subprogram)
-      (message "Indenting subprogram...")
-      (indent-region (point) (mark) nil)))
+    (mark-fortran-subprogram)
+    (message "Indenting subprogram...")
+    (indent-region (point) (mark) nil))
   (message "Indenting subprogram...done."))
 
 (defun fortran-calculate-indent ()
