@@ -1,7 +1,14 @@
 ;;; unused.el --- editing commands in GNU Emacs that turned out not to be used.
 
+;; Maintainer: FSF
+;; Last-Modified: 14 Dec 1985
+
+;;; Commentary:
+
 ;; These were added with an eye to making possible a more CCA-compatible
 ;; command set; but that turned out not to be interesting.
+
+;;; Code:
 
 (defun mark-beginning-of-buffer ()
   "Set mark at the beginning of the buffer."

@@ -1,7 +1,7 @@
 ;;; xscheme.el --- run Scheme under Emacs
 
-;;; Maintainer: FSF
-;;; Last-Modified: 21 Jan 1987
+;; Maintainer: FSF
+;; Last-Modified: 21 Jan 1987
 
 ;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 

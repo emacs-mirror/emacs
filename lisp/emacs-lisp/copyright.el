@@ -1,7 +1,9 @@
 ;;; upd-copyr.el --- update the copyright notice in a GNU Emacs elisp file
 
+;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Last-Modified: 03 Jun 1991
+
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
-;;; Written by Roland McGrath.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -17,6 +19,8 @@
 ;;; program's author (send electronic mail to roland@ai.mit.edu) or from
 ;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
 ;;; 02139, USA.
+
+;;; Code:
 
 (defconst current-year (substring (current-time-string) -4)
   "String representing the current year.")

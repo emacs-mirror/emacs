@@ -1,5 +1,8 @@
 ;;; x-menu.el --- menu support for X 
 
+;; Maintainer: FSF
+;; Last-Modified: 15 Sep 1987
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defmacro caar (conscell)
   (list 'car (list 'car conscell)))

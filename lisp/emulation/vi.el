@@ -1,5 +1,11 @@
 ;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs.
 
+;; Author: Neal Ziring <nz@rsch.wisc.edu>
+;;	Felix S. T. Wu <wu@crys.wisc.edu>
+;; Last-Modified: 7 Jan 1987
+
+;;; Commentary: 
+
 ; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
 ; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)
 ; Last revision: 01/07/87 Wed (for GNU Emacs 18.33)
@@ -26,6 +32,7 @@
 ; 2). In operator handling, should allow other point moving Emacs commands
 ;     (such as ESC <, ESC >) to be used as arguments.
 ;
+;;; Code:
 
 (defun vi-switch-mode (arg mode-char)
   "Switch the major mode of current buffer as specified by the following char \\{vi-tilde-map}"

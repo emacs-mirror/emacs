@@ -1,12 +1,20 @@
-;; VIP: A VI Package for GNU Emacs (version 3.5 of September 15, 1987)
+;;; vip.el --- a VI Package for GNU Emacs
 
-;; Author: Masahiko Sato (ms@sail.stanford.edu).  In Japan, the author's
-;; address is: masahiko@sato.riec.tohoku.junet
+;; Author: Masahiko Sato <ms@sail.stanford.edu>
+;; Version: 3.5
+;; Last-Modified: 15 Sep 1987
+
+;;; Commentary:
+
+;; In Japan, the author's address is: masahiko@sato.riec.tohoku.junet
+;;
 ;; Send suggestions and bug reports to one of the above addresses.
 ;; When you report a bug, be sure to include the version number of VIP and
 ;; Emacs you are using.
 
 ;; Execute info command by typing "M-x info" to get information on VIP.
+
+;;; Code:
 
 ;; external variables
 
@@ -1653,9 +1661,9 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   (let ((val (vip-p-val arg))
 	(text (if vip-use-register
 		  (if (and (<= ?1 vip-use-register) (<= vip-use-register ?9))
-		      (nth (- vip-use-register 49) kill-ring-yank-pointer)
+		      (current-kill (- vip-use-register ?1) 'do-not-rotate)
 		    (get-register vip-use-register))
-		(car kill-ring-yank-pointer))))
+		(current-kill 0))))
     (if (null text)
 	(if vip-use-register
 	    (let ((reg vip-use-register))
@@ -1677,9 +1685,9 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   (let ((val (vip-p-val arg))
 	(text (if vip-use-register
 		  (if (and (<= ?1 vip-use-register) (<= vip-use-register ?9))
-		      (nth (- vip-use-register 49) kill-ring-yank-pointer)
+		      (current-kill (- vip-use-register ?1) 'do-not-rotate)
 		    (get-register vip-use-register))
-		(car kill-ring-yank-pointer))))
+		(current-kill 0))))
     (if (null text)
 	(if vip-use-register
 	    (let ((reg vip-use-register))
@@ -2603,7 +2611,7 @@ a token has type \(command, address, end-mark\) and value."
 (defun ex-goto ()
   "ex goto command"
   (if (null ex-addresses)
-      (setq ex-addresses (cons (dot) nil)))
+      (setq ex-addresses (cons (point) nil)))
   (push-mark (point))
   (goto-char (car ex-addresses))
   (beginning-of-line))
@@ -2624,7 +2632,7 @@ a token has type \(command, address, end-mark\) and value."
 	    (with-output-to-temp-buffer "*copy text*"
 	      (princ
 	       (if (or del-flag ex-g-flag ex-g-variant)
-		   (car kill-ring-yank-pointer)
+		   (current-kill 0)
 		 (buffer-substring (point) (mark)))))
 	    (condition-case nil
 		(progn
@@ -2637,7 +2645,7 @@ a token has type \(command, address, end-mark\) and value."
 	  (goto-char (point-min))
 	(goto-char address)
 	(forward-line 1))
-      (insert (car kill-ring-yank-pointer))))
+      (insert (current-kill 0))))
 
 (defun ex-delete ()
   "ex delete"
@@ -2956,7 +2964,7 @@ vip-s-string"
 	  (goto-char (min (point) (mark)))
 	  (while (< (point) limit)
 	    (end-of-line)
-	    (setq eol-mark (dot-marker))
+	    (setq eol-mark (point-marker))
 	    (beginning-of-line)
 	    (if opt-g
 		(progn
@@ -3072,4 +3080,4 @@ vip-s-string"
 
 (if (file-exists-p "~/.vip") (load "~/.vip"))
 
-;; End of VIP
+;;; vip.el ends here

@@ -1,7 +1,7 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
 
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
-;; Created: 13 Feb 1991
+;; Last-Modified: 13 Feb 1991
 ;; Version: 0.7
 
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
