@@ -185,6 +185,7 @@ POS defaults to point; WINDOW, to the selected window.")
   register int posint;
   register struct buffer *buf;
   struct position posval;
+  int hscroll;
 
   if (NILP (pos))
     posint = point;
@@ -196,6 +197,7 @@ POS defaults to point; WINDOW, to the selected window.")
 
   w = decode_window (window);
   top = marker_position (w->start);
+  hscroll = XINT (w->hscroll);
 
   if (posint < top)
     return Qnil;
@@ -218,9 +220,10 @@ POS defaults to point; WINDOW, to the selected window.")
 	return Qnil;
 
       /* If that info is not correct, calculate afresh */
-      posval = *compute_motion (top, 0, 0, posint, height, 0,
+      posval = *compute_motion (top, 0, (hscroll ? 1 - hscroll : 0),
+				posint, height, 0,
 				window_internal_width (w) - 1,
-				XINT (w->hscroll), 0);
+				hscroll, 0);
 
       return posval.vpos < height ? Qt : Qnil;
     }
