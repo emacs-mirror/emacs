@@ -1585,7 +1585,7 @@ DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 2,
 BUFFER can be a buffer or a buffer name.\n\
 If BUFFER is shown already in some window, just use that one,\n\
 unless the window is the selected window and the optional second\n\
-argument NOT_THIS_WINDOW is non-nil.\n\
+argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).\n\
 Returns the window displaying BUFFER.")
   (buffer, not_this_window)
      register Lisp_Object buffer, not_this_window;
