@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000, 01, 2003
+   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000, 01, 2003, 2005
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1745,17 +1745,21 @@ replace_range_2 (from, from_byte, to, to_byte, ins, inschars, insbytes, markers)
 
   /* Adjust markers for the deletion and the insertion.  */
   if (markers
-      && ! (nchars_del == 1 && inschars == 1))
+      && ! (nchars_del == 1 && inschars == 1 && nbytes_del == insbytes))
     adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
 				inschars, insbytes);
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
 
   /* Relocate point as if it were a marker.  */
-  if (from < PT && nchars_del != inschars)
-    adjust_point ((from + inschars - (PT < to ? PT : to)),
-		  (from_byte + insbytes
-		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
+  if (from < PT && (nchars_del != inschars || nbytes_del != insbytes))
+    {
+      if (PT < to)
+	/* PT was within the deleted text.  Move it to FROM.  */
+	adjust_point (from - PT, from_byte - PT_BYTE);
+      else
+	adjust_point (inschars - nchars_del, insbytes - nbytes_del);
+    }
 
   if (insbytes == 0)
     evaporate_overlays (from);
