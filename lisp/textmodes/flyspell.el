@@ -340,7 +340,7 @@ property of the major mode name.")
      ((eq flyspell-emacs 'xemacs)
       (define-key map [(button2)]
       #'flyspell-correct-word/mouse-keymap)
-      (define-key flyspell-mouse-map "\M-\t" #'flyspell-auto-correct-word))
+      (define-key map "\M-\t" #'flyspell-auto-correct-word))
      (flyspell-use-local-map
       (define-key map [(mouse-2)] #'flyspell-correct-word/mouse-keymap)
       (define-key map "\M-\t" #'flyspell-auto-correct-word)))
