@@ -1,5 +1,7 @@
 2002-12-07  Markus Rost  <rost@math.ohio-state.edu>
 
+	* loading.texi (Unloading): Fix last change for load-history.
+
 	* customize.texi (Simple Types): Clarify decription of custom type
 	'number. Describe new custom type 'float.
 
