@@ -926,9 +926,13 @@ libraries may be supported in future.
 ---
 ** Sound is now supported on MS Windows.
 WAV format is supported on all versions of Windows, other formats such
-as AU, AIFF and MP3 may be supported in the m ore recent versions of
+as AU, AIFF and MP3 may be supported in the more recent versions of
 Windows, or when other software provides hooks into the system level
 sound support for those formats.
+
+---
+** Different shaped mouse pointers are supported on MS Windows.
+The mouse pointer changes shape depending on what is under the pointer.
 
 ---
 ** Pointing devices with more than 3 buttons are now supported on MS Windows.
