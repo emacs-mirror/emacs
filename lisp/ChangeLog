@@ -1,5 +1,9 @@
 2001-05-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (command-line): If parameters have been changed in
+	the init files which influence font selection, clear the face
+	cache so that faces get realized with the new parameters.
+
 	* Makefile.in (compile-files): Redirect output of chmod to
 	/dev/null.
 
