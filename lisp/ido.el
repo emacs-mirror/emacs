@@ -344,11 +344,11 @@
 (defcustom ido-mode nil
   "Determines for which functional group \(buffer and files) ido behavior
 should be enabled. The following values are possible:
-- 'buffer: Turn only on ido buffer behavior \(switching, killing,
+- `buffer': Turn only on ido buffer behavior \(switching, killing,
   displaying...) 
-- 'file: Turn only on ido file behavior \(finding, writing, inserting...)
-- 'both: Turn on ido buffer and file behavior.
-- nil: Turn off any ido switching.
+- `file': Turn only on ido file behavior \(finding, writing, inserting...)
+- `both': Turn on ido buffer and file behavior.
+- `nil': Turn off any ido switching.
 
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
@@ -560,12 +560,12 @@ A tramp file name uses the following syntax: /method:user@host:filename."
   :group 'ido)
 
 (defcustom ido-record-ftp-work-directories t
-  "*Non-nil means that remote directories are recorded in work directory list."
+  "*Non-nil means record ftp file names in the work directory list."
   :type 'boolean
   :group 'ido)
 
 (defcustom ido-merge-ftp-work-directories nil
-  "*Nil means that remote directories in work directory list are ignored during merge."
+  "*If nil means merging ignores ftp file names in the work directory list."
   :type 'boolean
   :group 'ido)
 
@@ -739,15 +739,17 @@ Each function on the list may modify the dynamically bound variable
   "*List of functions to run when the find-file prompt is created.
 Each function on the list may modify the following dynamically bound
 variables:
-  dirname   - the (abbreviated) directory name to be modified by the hook functions
-  max-width - the max width of the resulting dirname; set to nil to inhibit truncation
-  prompt - the basic prompt (e.g. \"Find File: \")
-  literal - the string shown if doing `literal' find; set to nil to omit
-  vc-off  - the string shown if version control is inhibited; set to nit to omit
-  prefix  - normally nil, but may be set to a fixed prefix for the dirname
+  dirname   - the (abbreviated) directory name
+		 to be modified by the hook functions
+  max-width - the max width of the resulting dirname; nil means no limit
+  prompt    - the basic prompt (e.g. \"Find File: \")
+  literal   - the string shown if doing \"literal\" find; set to nil to omit
+  vc-off    - the string shown if version control is inhibited; set to nit to omit
+  prefix    - either nil or a fixed prefix for the dirname
+
 The following variables are available, but should not be changed:
   ido-current-directory - the unabbreviated directory name
-  item - equals 'file or 'dir depending on the current mode."
+  item - equals `file' or `dir' depending on the current mode."
   :type 'hook
   :group 'ido)
 
@@ -841,12 +843,13 @@ file is opened with ido-find-file and family.")
 
 (defvar ido-work-file-list nil
   "List of actual work file names.
-The current file name (sans directory) is inserted at the front of this list
-whenever a file is opened with ido-find-file and family.")
+Opening a file with `ido-find-file' and similar functions
+inserts the current file name (relative to its containing directory)
+at the front of this list.")
 
 (defvar ido-dir-file-cache nil
-  "List of file-name-all-completions results.
-Each element in the list is of the form (dir (mtime) file...).")
+  "List of `file-name-all-completions' results.
+Each element in the list is of the form (DIR (MTIME) FILE...).")
 
 (defvar ido-ignore-item-temp-list nil
   "List of items to ignore in current ido invocation.
@@ -1958,7 +1961,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	   (string-match "[$]" ido-text))
       (let ((evar (substitute-in-file-name (concat ido-current-directory ido-text))))
 	(if (not (file-exists-p (file-name-directory evar)))
-	    (message "Expansion generates non-existing directory")
+	    (message "Expansion generates non-existing directory name")
 	  (if (file-directory-p evar)
 	      (ido-set-current-directory evar)
 	    (let ((d (or (file-name-directory evar) "/"))
