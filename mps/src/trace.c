@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.43) $
+ * $HopeName: MMsrc!trace.c(trunk.44) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.43) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.44) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -608,7 +608,9 @@ static Res TraceScan(TraceSet ts, Rank rank,
       white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
 
   /* only scan a segment if it refers to the white set */
-  if (RefSetInter(white, SegSummary(seg)) != RefSetEMPTY) {
+  if (RefSetInter(white, SegSummary(seg)) == RefSetEMPTY) { /* blacken it */
+    PoolBlacken(SegPool(seg), ts, seg);
+  } else {  /* scan it */
     ss.rank = rank;
     ss.traces = ts;
     ss.fix = TraceFix;
@@ -644,7 +646,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
     ss.sig = SigInvalid;                  /* just in case */
   }
 
-  /* The segment has been scanned, so remove the greyness from it. */
+  /* The segment is now black, so remove the greyness from it. */
   SegSetGrey(seg, TraceSetDiff(SegGrey(seg), ts));
 
   return ResOK;

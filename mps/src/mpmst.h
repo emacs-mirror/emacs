@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.32) $
+ * $HopeName: MMsrc!mpmst.h(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -88,6 +88,7 @@ typedef struct PoolClassStruct {
   PoolTraceBeginMethod traceBegin;
   PoolCondemnMethod condemn;    /* condemn (some or all) objects */
   PoolGreyMethod grey;          /* grey non-white objects */
+  PoolBlackenMethod blacken;    /* blacken grey objects without scanning */
   PoolScanMethod scan;          /* find references during tracing */
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
