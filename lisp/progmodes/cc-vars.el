@@ -1504,14 +1504,9 @@ as designated in the variable `c-file-style'.")
 (cc-bytecomp-defvar c-syntactic-context)
 (defvar c-syntactic-context)
 ;; Variable containing the syntactic analysis list during indentation.
-;; It is a list with one element for each found syntactic symbol.
-;; Each element is a list with the symbol name in the first position,
-;; followed by zero or more elements containing any additional info
-;; associated with the syntactic symbol.  Specifically, the second
-;; element is the relpos (a.k.a. anchor position), or nil if there
-;; isn't any.  See the comments in the `c-offsets-alist' variable for
-;; more detailed info about the data each syntactic symbol provides.
-;; 
+;; It is a list with one element for each found syntactic symbol.  See
+;; `c-syntactic-element' for further info.
+;;
 ;; This is always bound dynamically.  It should never be set
 ;; statically (e.g. with `setq').
 
@@ -1519,7 +1514,17 @@ as designated in the variable `c-file-style'.")
 (defvar c-syntactic-element)
 ;; Variable containing the info regarding the current syntactic
 ;; element during calls to the lineup functions.  The value is one of
-;; the elements in the list in `c-syntactic-context'.
+;; the elements in the list in `c-syntactic-context' and is a list
+;; with the symbol name in the first position, followed by zero or
+;; more elements containing any additional info associated with the
+;; syntactic symbol.  There are accessor functions `c-langelem-sym',
+;; `c-langelem-pos', `c-langelem-col', and `c-langelem-2nd-pos' to
+;; access the list.
+;;
+;; Specifically, the element returned by `c-langelem-pos' is the
+;; relpos (a.k.a. anchor position), or nil if there isn't any.  See
+;; the comments in the `c-offsets-alist' variable for more detailed
+;; info about the data each syntactic symbol provides.
 ;; 
 ;; This is always bound dynamically.  It should never be set
 ;; statically (e.g. with `setq').
