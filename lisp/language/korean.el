@@ -53,7 +53,7 @@
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment)
 	    (exit-function . exit-korean-environment)
-	    (tutorial . "TUTORIAL.kr")
+	    (tutorial . "TUTORIAL.ka")
 	    (charset korean-ksc5601)
 	    (coding-system iso-2022-kr korean-iso-8bit)
 	    (coding-priority korean-iso-8bit iso-2022-kr)
