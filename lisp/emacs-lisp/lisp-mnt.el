@@ -128,6 +128,9 @@
   :prefix "lm-"
   :group 'maint)
 
+;; At least some of these defcustoms should probably be defconsts,
+;; since they define, or are defined by, the header format.  -- fx
+
 (defcustom lm-header-prefix "^;+[ \t]+\\(@(#)\\)?[ \t]*\\$?"
   "Prefix that is ignored before the tag.
 For example, you can write the 1st line synopsis string and headers like this
@@ -142,8 +145,9 @@ then $identifier: doc string $ is used by GNU ident(1)"
   :type 'regexp
   :group 'lisp-mnt)
 
-(defcustom lm-copyright-prefix "^;+[ \t]+Copyright (C) "
-  "Prefix that is ignored before the dates in a copyright."
+(defcustom lm-copyright-prefix "^\\(;+[ \t]\\)+Copyright (C) "
+  "Prefix that is ignored before the dates in a copyright.
+Leading comment characters and whitespace should be in regexp group 1."
   :type 'regexp
   :group 'lisp-mnt)
 
@@ -265,6 +269,9 @@ If FILE isn't in a buffer, load it in, and kill it after BODY is executed."
 (put 'lm-with-file 'lisp-indent-function 1)
 (put 'lm-with-file 'edebug-form-spec t)
 
+;; Fixme: Probably this should be amalgamated with copyright.el; also
+;; we need a check for ranges in copyright years.
+
 (defun lm-crack-copyright (&optional file)
   "Return the copyright holder, and a list of copyright years.
 Use the current buffer if FILE is nil.
@@ -273,13 +280,33 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
     (goto-char (lm-copyright-mark))
     (let ((holder nil)
 	  (years nil)
+	  (start (point))
 	  (end (line-end-position)))
-      (while (re-search-forward "\\([0-9]+\\),? +" end t)
-	(setq years (cons (match-string-no-properties 1) years)))
-      (if (looking-at ".*$")
-	  (setq holder (match-string-no-properties 0)))
-      (cons holder (nreverse years))
-    )))
+      ;; Cope with multi-line copyright `lines'.  Assume the second
+      ;; line is indented (with the same commenting style).
+      (save-excursion
+	(beginning-of-line 2)
+	(let ((str (concat (match-string-no-properties 1) "[ \t]+")))
+	  (beginning-of-line)
+	  (while (looking-at str)
+	    (setq end (line-end-position))
+	    (beginning-of-line 2))))
+      ;; Make a single line and parse that.
+      (let ((buff (current-buffer)))
+	(with-temp-buffer
+	  (insert-buffer-substring buff start end)
+	  (goto-char (point-min))
+	  (while (re-search-forward "^;+[ \t]+" nil t)
+	    (replace-match ""))
+	  (goto-char (point-min))
+	  (while (re-search-forward " *\n" nil t)
+	    (replace-match " "))
+	  (goto-char (point-min))
+	  (while (re-search-forward "\\([0-9]+\\),? +" nil t)
+	    (setq years (cons (match-string-no-properties 1) years)))
+	  (if (looking-at ".*$")
+	      (setq holder (match-string-no-properties 0)))))
+      (cons holder (nreverse years)))))
 
 (defun lm-summary (&optional file)
   "Return the one-line summary of file FILE, or current buffer if FILE is nil."
