@@ -371,14 +371,13 @@ get_keyelt (object)
 	  if (XTYPE (object) == Lisp_Cons
 	      && XTYPE (XCONS (object)->car) == Lisp_String)
 	    object = XCONS (object)->cdr;
-	  /* Also remove the vector that caches key equivalences, if any.  */
-	  if (XTYPE (object) == Lisp_Cons
-	      && XTYPE (XCONS (object)->car) == Lisp_Vector)
+	  /* Also remove the sublist that caches key equivalences, if any.  */
+	  if (CONSP (object)
+	      && CONSP (XCONS (object)->car))
 	    {
-	      object = XCONS (object)->cdr;
-	      /* Also remove the key's description.  */
-	      if (XTYPE (object) == Lisp_Cons
-		  && XTYPE (XCONS (object)->car) == Lisp_String)
+	      Lisp_Object carcar;
+	      carcar = XCONS (XCONS (object)->car)->car;
+	      if (NILP (carcar) || VECTORP (carcar))
 		object = XCONS (object)->cdr;
 	    }
 	}
