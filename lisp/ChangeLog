@@ -1,5 +1,9 @@
 1999-12-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Change
+	outline-regexp, add outline-level.
+	(lisp-outline-level): New.
+
 	* calendar/appt.el (appt-convert-time): Handle "12:MMam", 
 	remove extraneous string-match.
 
