@@ -12,9 +12,9 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.25 1995/07/07 22:47:57 eggert Exp eggert $
+# $Id: rcs2log,v 1.27 1996/01/15 01:17:03 eggert Exp $
 
-# Copyright 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+# Copyright 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -364,7 +364,13 @@ EOF
 	'
 
 	initialize_fullname=`
-		(cat /etc/passwd; ypmatch $authors passwd) 2>/dev/null |
+		(
+			cat /etc/passwd
+			for author in $authors
+			do nismatch $author passwd.org_dir
+			done
+			ypmatch $authors passwd
+		) 2>/dev/null |
 		$AWK -F: "$awkscript"
 	`$initialize_fullname
 esac
@@ -414,6 +420,15 @@ case $hostname in
 		echo >&2 "$0: cannot deduce hostname"
 		exit 1
 	}
+
+	case $hostname in
+	*.*) ;;
+	*)
+		domainname=`(domainname) 2>/dev/null` &&
+		case $domainname in
+		*.*) hostname=$hostname.$domainname
+		esac
+	esac
 esac
 
 
