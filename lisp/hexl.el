@@ -269,13 +269,20 @@ Ask the user for confirmation."
 	(set-buffer-modified-p modified)
 	(goto-char original-point))))
 
-(defun hexl-current-address ()
+(defun hexl-current-address (&optional validate)
   "Return current hexl-address."
   (interactive)
   (let ((current-column (- (% (point) 68) 11)) 
 	(hexl-address 0))
-    (setq hexl-address (+ (* (/ (point) 68) 16)
-			  (/ (- current-column  (/ current-column 5)) 2)))
+    (if (< current-column 0)
+	(if validate
+	    (error "Point is not on a character in the file")
+	  (setq current-column 0)))
+    (setq hexl-address
+	  (+ (* (/ (point) 68) 16)
+	     (if (>= current-column 41)
+		 (- current-column 41)
+	       (/ (- current-column  (/ current-column 5)) 2))))
     hexl-address))
 
 (defun hexl-address-to-marker (address)
@@ -577,17 +584,32 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
 (defun hexl-insert-char (ch num)
   "Insert a character in a hexl buffer."
-  (let ((address (hexl-current-address)))
+  (let ((address (hexl-current-address t)))
     (while (> num 0)
-      (delete-char 2)
-      (insert (format "%02x" ch))
-      (goto-char
-       (+ (* (/ address 16) 68) 52 (% address 16)))
-      (delete-char 1)
-      (insert (hexl-printable-character ch))
-      (or (eq address hexl-max-address)
-	  (setq address (1+ address)))
-      (hexl-goto-address address)
+      (let ((hex-position
+	     (+ (* (/ address 16) 68)
+		11
+		(* 2 (% address 16))
+		(/ (% address 16) 2)))
+	    (ascii-position
+	     (+ (* (/ address 16) 68) 52 (% address 16)))
+	    at-ascii-position)
+	(if (= (point) ascii-position)
+	    (setq at-ascii-position t))
+	(goto-char hex-position)
+	(delete-char 2)
+	(insert (format "%02x" ch))
+	(goto-char ascii-position)
+	(delete-char 1)
+	(insert (hexl-printable-character ch))
+	(or (eq address hexl-max-address)
+	    (setq address (1+ address)))
+	(hexl-goto-address address)
+	(if at-ascii-position
+	    (progn
+	      (beginning-of-line)
+	      (forward-char 51)
+	      (forward-char (% address 16)))))
       (setq num (1- num)))))
 
 ;; hex conversion
