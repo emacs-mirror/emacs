@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -778,49 +778,49 @@ This is relative to `smtpmail-queue-dir'.")
 	(response-continue t)
 	(return-value '(nil ()))
 	match-end)
+    (catch 'done
+      (while response-continue
+	(goto-char smtpmail-read-point)
+	(while (not (search-forward "\r\n" nil t))
+	  (unless (memq (process-status process) '(open run))
+	    (throw 'done nil))
+	  (accept-process-output process)
+	  (goto-char smtpmail-read-point))
 
-    (while response-continue
-      (goto-char smtpmail-read-point)
-      (while (not (search-forward "\r\n" nil t))
-	(accept-process-output process)
-	(goto-char smtpmail-read-point))
+	(setq match-end (point))
+	(setq response-strings
+	      (cons (buffer-substring smtpmail-read-point (- match-end 2))
+		    response-strings))
 
-      (setq match-end (point))
-      (setq response-strings
-	    (cons (buffer-substring smtpmail-read-point (- match-end 2))
-		  response-strings))
+	(goto-char smtpmail-read-point)
+	(if (looking-at "[0-9]+ ")
+	    (let ((begin (match-beginning 0))
+		  (end (match-end 0)))
+	      (if smtpmail-debug-info
+		  (message "%s" (car response-strings)))
 
-      (goto-char smtpmail-read-point)
-      (if (looking-at "[0-9]+ ")
-	  (let ((begin (match-beginning 0))
-		(end (match-end 0)))
-	    (if smtpmail-debug-info
-		(message "%s" (car response-strings)))
+	      (setq smtpmail-read-point match-end)
 
-	    (setq smtpmail-read-point match-end)
+	      ;; ignore lines that start with "0"
+	      (if (looking-at "0[0-9]+ ")
+		  nil
+		(setq response-continue nil)
+		(setq return-value
+		      (cons (string-to-int
+			     (buffer-substring begin end))
+			    (nreverse response-strings)))))
 
-	    ;; ignore lines that start with "0"
-	    (if (looking-at "0[0-9]+ ")
-		nil
+	  (if (looking-at "[0-9]+-")
+	      (progn (if smtpmail-debug-info
+			 (message "%s" (car response-strings)))
+		     (setq smtpmail-read-point match-end)
+		     (setq response-continue t))
+	    (progn
+	      (setq smtpmail-read-point match-end)
 	      (setq response-continue nil)
 	      (setq return-value
-		    (cons (string-to-int
-			   (buffer-substring begin end))
-			  (nreverse response-strings)))))
-
-	(if (looking-at "[0-9]+-")
-	    (progn (if smtpmail-debug-info
-		     (message "%s" (car response-strings)))
-		   (setq smtpmail-read-point match-end)
-		   (setq response-continue t))
-	  (progn
-	    (setq smtpmail-read-point match-end)
-	    (setq response-continue nil)
-	    (setq return-value
-		  (cons nil (nreverse response-strings)))
-	    )
-	  )))
-    (setq smtpmail-read-point match-end)
+		    (cons nil (nreverse response-strings)))))))
+      (setq smtpmail-read-point match-end))
     return-value))
 
 
