@@ -1,3 +1,13 @@
+2003-09-15  David Ponce  <david@dponce.com>
+
+	* recentf.el: (recentf-exclude): Accept predicates too.
+	(recentf-file-readable-p): New function.
+	(recentf-include-p): Handle predicates in recentf-exclude.
+	(recentf-add-file): Doc fix.  Use recentf-file-readable-p.
+	(recentf-cleanup): Likewise.
+	(recentf-save-list): Use write-file to handle backup of
+	recentf-save-file.
+
 2003-09-15  Miles Bader  <miles@gnu.ai.mit.edu>
 
 	* loaddefs-boot.el: Renamed from `loaddefs.el'
