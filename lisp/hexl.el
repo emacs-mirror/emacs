@@ -254,10 +254,8 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq require-final-newline nil)
 
     ;; Add hooks to rehexlify or dehexlify on various events.
-    (make-local-hook 'after-revert-hook)
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
-    (make-local-hook 'change-major-mode-hook)
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     (if hexl-follow-ascii (hexl-follow-ascii 1)))
@@ -835,8 +833,6 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 		  (> (prefix-numeric-value arg) 0)
 	       (not hexl-ascii-overlay))))
 
-    (make-local-hook 'post-command-hook)
-		    
     (if on-p
       ;; turn it on
       (if (not hexl-ascii-overlay)
