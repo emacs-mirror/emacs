@@ -126,6 +126,8 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ("([ \t]*\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
 
     ;; Ultrix 3.0 f77:
+    ;;  fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
+    ("\nfort: [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 1 2)
     ;;  Error on line 3 of t.f: Execution error unclassifiable statement    
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofel undefined
