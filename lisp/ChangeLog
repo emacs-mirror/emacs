@@ -4,6 +4,10 @@
 
 	* thumbs.el: New file.
 
+2004-02-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ebnf-abn.el: Doc fix.
+
 2004-02-28  Juri Linkov  <juri@jurta.org>
 
 	* ffap.el (dired-at-point): Additional writability test for
