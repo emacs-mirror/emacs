@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.113 $")
+(defconst byte-compile-version "$Revision: 2.114 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1924,7 +1924,18 @@ list that represents a doc string reference.
 	   (while (setq form (cdr form))
 	     (setq index (1+ index))
 	     (insert " ")
-	     (cond ((and (numberp specindex) (= index specindex))
+	     (cond ((and (numberp specindex) (= index specindex)
+			 ;; Don't handle the definition dynamically
+			 ;; if it refers (or might refer)
+			 ;; to objects already output
+			 ;; (for instance, gensyms in the arg list).
+			 (let (non-nil)
+			   (dotimes (i (length print-number-table))
+			     (if (aref print-number-table i)
+				 (setq non-nil t)))
+			   (not non-nil)))
+		    ;; Output the byte code and constants specially
+		    ;; for lazy dynamic loading.
 		    (let ((position
 			   (byte-compile-output-as-comment
 			    (cons (car form) (nth 1 form))
