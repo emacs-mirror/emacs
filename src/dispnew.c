@@ -3839,14 +3839,22 @@ update_window (w, force_p)
 
       /* Update the rest of the lines.  */
       for (; row < end && (force_p || !input_pending); ++row)
-	if (row->enabled_p
-	    /* A row can be completely invisible in case a desired
-	       matrix was built with a vscroll and then
-	       make_cursor_line_fully_visible shifts the matrix.  */
-	    && row->visible_height > 0)
+	if (row->enabled_p)
 	  {
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
 	    int i;
+	    
+	    /* A row can be completely invisible in case a desired
+	       matrix was built with a vscroll and then
+	       make_cursor_line_fully_visible shifts the matrix.
+	       Make sure to make such rows current anyway, since
+	       we need the correct y-position, for example, in the
+	       current matrix.  */
+	    if (row->visible_height <= 0)
+	      {
+		make_current (w->desired_matrix, w->current_matrix, vpos);
+		continue;
+	      }
 	    
 	    /* We'll Have to play a little bit with when to
 	       detect_input_pending.  If it's done too often,
