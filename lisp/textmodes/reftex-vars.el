@@ -96,22 +96,22 @@
 
       ("enumerate" ?i "item:" "~\\ref{%s}" item
        (regexp "items?" "Punkte?"))
-      
+
       ("equation"  ?e "eq:" "~(\\ref{%s})" t
        (regexp "equations?" "eqs?\\." "eqn\\." "Gleichung\\(en\\)?"  "Gl\\."))
       ("eqnarray"  ?e "eq:" nil eqnarray-like)
-      
+
       ("figure"    ?f "fig:" "~\\ref{%s}" caption
        (regexp "figure?[sn]?" "figs?\\." "Abbildung\\(en\\)?" "Abb\\."))
       ("figure*"   ?f nil nil caption)
-      
+
       ("table"     ?t "tab:" "~\\ref{%s}" caption
        (regexp "tables?" "tab\\." "Tabellen?"))
       ("table*"    ?t nil nil caption)
-      
+
       ("\\footnote[]{}" ?n "fn:" "~\\ref{%s}" 2
        (regexp "footnotes?" "Fussnoten?"))
-      
+
       ("any"       ?\  " "   "~\\ref{%s}" nil)
 
       ;; The label macro is hard coded, but it *could* be defined like this:
@@ -174,7 +174,7 @@ The following conventions are valid for all alist entries:
 `?t'    should point to a textual citation (citation as a noun).
 `?p'    should point to a parenthetical citation.")
 
-(defconst reftex-index-macros-builtin 
+(defconst reftex-index-macros-builtin
   '((default "Default \\index and \\glossary macros"
       (("\\index{*}" "idx" ?i "" nil t)
        ("\\glossary{*}" "glo" ?g "" nil t)))
@@ -186,7 +186,7 @@ The following conventions are valid for all alist entries:
     (Index-Shortcut "index.sty with \\shortindexingon"
        (("\\index[]{*}" 1 ?i "" nil t)
 	("\\index*[]{*}" 1 ?I "" nil nil)
-	("^[]{*}" 1 ?^ "" texmathp t)   
+	("^[]{*}" 1 ?^ "" texmathp t)
 	("_[]{*}" 1 ?_ "" texmathp nil))))
   "Builtin stuff for reftex-index-macros.
 Lower-case symbols correspond to a style file of the same name in the LaTeX
@@ -198,7 +198,7 @@ distribution.  Mixed-case symbols are convenience aliases.")
 (defgroup reftex nil
   "LaTeX label and citation support."
   :tag "RefTeX"
-  :link '(url-link :tag "Home Page" 
+  :link '(url-link :tag "Home Page"
 		   "http://strw.leidenuniv.nl/~dominik/Tools/")
   :link '(emacs-commentary-link :tag "Commentary in reftex.el" "reftex.el")
   :link '(custom-manual "(reftex)Top")
@@ -285,7 +285,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
   '(amsmath endnotes fancybox floatfig longtable picinpar
 	    rotating sidecap subfigure supertab wrapfig LaTeX)
   "Default label alist specifications.  LaTeX should always be the last entry.
-The value of this variable is a list of symbols with associations in the 
+The value of this variable is a list of symbols with associations in the
 constant `reftex-label-alist-builtin'.  Check that constant for a full list
 of options."
   :group 'reftex-defining-label-environments
@@ -519,7 +519,7 @@ to after the section-re matched to determine the level."
 (defcustom reftex-section-prefixes '((0 . "part:") (1 . "cha:") (t . "sec:"))
   "Prefixes for section labels.
 When the label prefix given in an entry in `reftex-label-alist' contains `%S',
-this list is used to determine the correct prefix string depending on the 
+this list is used to determine the correct prefix string depending on the
 current section level.
 The list is an alist, with each entry of the form (KEY . PREFIX)
 Possible keys are sectioning macro names like `chapter', section levels
@@ -544,7 +544,7 @@ the final regular expression - so %s will be replaced with the environment
 or macro."
   :group 'reftex-defining-label-environments
   :type '(repeat (cons (symbol) (regexp))))
-  
+
 (defcustom reftex-special-environment-functions nil
   "List of functions to be called when trying to figure out current environment.
 These are special functions to detect \"environments\" which do not
@@ -590,7 +590,7 @@ And here is the setup for RefTeX:
      (let ((pos (point)) p1)
        (save-excursion
          ;; Search for any of the linguex item macros at the beginning of a line
-         (if (re-search-backward 
+         (if (re-search-backward
               \"^[ \\t]*\\\\(\\\\\\\\\\\\(ex\\\\|a\\\\|b\\\\|c\\\\|d\\\\|e\\\\|f\\\\)g?\\\\.\\\\)\" bound t)
              (progn
                (setq p1 (match-beginning 1))
@@ -600,7 +600,7 @@ And here is the setup for RefTeX:
                    nil
                  ;; OK, we got it
                  (cons \"linguex\" p1)))
-           ;; Return nil for not found 
+           ;; Return nil for not found
            nil))))
 
 3. Tell RefTeX to use this function
@@ -793,13 +793,13 @@ When marking is used in the selection buffer to select several references,
 this variable associates the 3 marking characters `,-+' with prefix strings
 to be inserted into the buffer before the corresponding \\ref macro.
 This is used to string together whole reference sets, like
-`eqs. 1,2,3-5,6 and 7' in a single call to `reftex-reference'. See manual."
+`eqs. 1,2,3-5,6 and 7' in a single call to `reftex-reference'.  See manual."
   :group 'reftex-referencing-labels
   :type '(repeat (cons (character) (string))))
 
 (defcustom reftex-vref-is-default nil
   "*Non-nil means, the varioref macro \\vref is used as default.
-In the selection buffer, the `v' key toggles the reference macro between 
+In the selection buffer, the `v' key toggles the reference macro between
 `\\ref' and `\\vref'.  The value of this variable determines the default
 which is active when entering the selection process.
 Instead of nil or t, this may also be a string of type letters indicating
@@ -809,7 +809,7 @@ the label types for which it should be true."
 
 (defcustom reftex-fref-is-default nil
   "*Non-nil means, the fancyref macro \\fref is used as default.
-In the selection buffer, the `V' key toggles the reference macro between 
+In the selection buffer, the `V' key toggles the reference macro between
 `\\ref', `\\fref' and `\\Fref'.  The value of this variable determines
 the default which is active when entering the selection process.
 Instead of nil or t, this may also be a string of type letters indicating
@@ -833,7 +833,7 @@ a label type.  If you set this variable to nil, RefTeX will always prompt."
 
 (defcustom reftex-format-ref-function nil
   "Function which produces the string to insert as a reference.
-Normally should be nil, because the format to insert a reference can 
+Normally should be nil, because the format to insert a reference can
 already be specified in `reftex-label-alist'.
 This hook also is used by the special commands to insert `\\vref' and `\\fref'
 references, so even if you set this, your setting will be ignored by
@@ -908,13 +908,13 @@ It is also possible to access all other BibTeX database fields:
 %i institution   %j journal        %k key        %m month
 %n number        %o organization   %p pages      %P first page
 %r address       %s school         %u publisher  %t title
-%v volume        %y year          
+%v volume        %y year
 %B booktitle, abbreviated          %T title, abbreviated
 
 Usually, only %l is needed.  The other stuff is mainly for the echo area
 display, and for (setq reftex-comment-citations t).
 
-%< as a special operator kills punctuation and space around it after the 
+%< as a special operator kills punctuation and space around it after the
 string has been formatted.
 
 Beware that all this only works with BibTeX database files.  When
@@ -926,7 +926,7 @@ will be prompted for a character to select one of the possible format
 strings.
   In order to configure this variable, you can either set
 `reftex-cite-format' directly yourself or set it to the SYMBOL of one of
-the predefined styles.  The predefined symbols are those which have an 
+the predefined styles.  The predefined symbols are those which have an
 association in the constant `reftex-cite-format-builtin'.
 E.g.: (setq reftex-cite-format 'natbib)"
   :group 'reftex-citation-support
@@ -984,7 +984,7 @@ This is a list of 3 strings.
 
 (defcustom reftex-format-cite-function nil
   "Function which produces the string to insert as a citation.
-Normally should be nil, because the format to insert a reference can 
+Normally should be nil, because the format to insert a reference can
 already be specified in `reftex-cite-format'.
 The function will be called with two arguments, the CITATION KEY and the
 DEFAULT FORMAT, which is taken from `reftex-cite-format'.  The function
@@ -1067,7 +1067,7 @@ package here."
   :group 'reftex-index-support
   :set 'reftex-set-dirty
   :type `(list
-	  (repeat 
+	  (repeat
 	   :inline t
 	   (list :value ("" "idx" ?a "" nil)
 		 (string  :tag "Macro with args")
@@ -1094,7 +1094,7 @@ package here."
 This is a list with (MACRO-KEY DEFAULT-TAG).
 
 MACRO-KEY:   Character identifying an index macro - see `reftex-index-macros'.
-DEFAULT-TAG: This is the tag to be used if the macro requires a TAG argument.  
+DEFAULT-TAG: This is the tag to be used if the macro requires a TAG argument.
              When this is nil and a TAG is needed, RefTeX will ask for it.
              When this is the empty string and the TAG argument of the index
              macro is optional, the TAG argument will be omitted."
@@ -1225,7 +1225,7 @@ to that section."
 
 (defcustom reftex-index-include-context nil
   "*Non-nil means, display the index definition context in the index buffer.
-This flag may also be toggled from the index buffer with the `c' key." 
+This flag may also be toggled from the index buffer with the `c' key."
   :group 'reftex-index-support
   :type 'boolean)
 
@@ -1248,7 +1248,7 @@ This is used when `reftex-view-crossref' is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
 is only to configure additional structures for which crossreference
-viewing can be useful.  Each entry has the structure 
+viewing can be useful.  Each entry has the structure
 
 (MACRO-RE SEARCH-RE HIGHLIGHT).
 
@@ -1269,7 +1269,7 @@ other message is being displayed, the echo area will display
 information about that cross reference.  You can also set the variable
 to the symbol `window'.  In this case a small temporary window is
 used for the display.
-This feature can be turned on and of from the menu 
+This feature can be turned on and of from the menu
 (Ref->Options)."
   :group 'reftex-viewing-cross-references
   :type '(choice (const :tag "off" nil)
@@ -1314,7 +1314,7 @@ Several entries are possible.
 - If an element is the name of an environment variable, its content is used.
 - If an element starts with an exclamation mark, it is used as a command
   to retrieve the path.  A typical command with the kpathsearch library would
-  be `!kpsewhich -show-path=.tex'. 
+  be `!kpsewhich -show-path=.tex'.
 - Otherwise the element itself is interpreted as a path.
 Multiple directories can be separated by the system dependent `path-separator'.
 Directories ending in `//' or `!!' will be expanded recursively.
@@ -1329,7 +1329,7 @@ Several entries are possible.
 - If an element is the name of an environment variable, its content is used.
 - If an element starts with an exclamation mark, it is used as a command
   to retrieve the path.  A typical command with the kpathsearch library would
-  be `!kpsewhich -show-path=.bib'. 
+  be `!kpsewhich -show-path=.bib'.
 - Otherwise the element itself is interpreted as a path.
 Multiple directories can be separated by the system dependent `path-separator'.
 Directories ending in `//' or `!!' will be expanded recursively.
@@ -1374,7 +1374,7 @@ Normally, RefTeX searches the paths given in the environment variables
 TEXINPUTS and BIBINPUTS to find TeX files and BibTeX database files.
 With this option turned on, it calls an external program specified in the
 option `reftex-external-file-finders' instead.  As a side effect,
-the variables `reftex-texpath-environment-variables' and 
+the variables `reftex-texpath-environment-variables' and
 `reftex-bibpath-environment-variables' will be ignored."
   :group 'reftex-finding-files
   :type 'boolean)
@@ -1465,7 +1465,7 @@ list."
 (defcustom reftex-save-parse-info nil
   "*Non-nil means, save information gathered with parsing in a file.
 The file MASTER.rel in the same directory as MASTER.tex is used to save the
-information.  When this variable is t, 
+information.  When this variable is t,
 - accessing the parsing information for the first time in an editing session
   will read that file (if available) instead of parsing the document.
 - exiting Emacs or killing a buffer in reftex-mode will cause a new version
@@ -1658,7 +1658,7 @@ RefTeX uses `fset' to take over the function calls.  Changing the variable
 may require a restart of Emacs in order to become effective."
   :group 'reftex-miscellaneous-configurations
   :group 'LaTeX
-  :type '(choice 
+  :type '(choice
 	  (const :tag "No plug-ins" nil)
 	  (const :tag "All possible plug-ins" t)
 	  (list
