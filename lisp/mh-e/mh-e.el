@@ -5,7 +5,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.3+cvs
+;; Version: 7.3
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -102,7 +102,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.3+cvs" "Version number of MH-E.")
+(defconst mh-version "7.3" "Version number of MH-E.")
 
 ;;; Autoloads
 (autoload 'Info-goto-node "info")
