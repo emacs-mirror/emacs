@@ -1,3 +1,8 @@
+2001-10-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* search.c (scan_newline): Remove unused variable
+	`selective_display'.
+
 2001-10-25  Miles Bader  <miles@gnu.org>
 
 	* dispextern.h (struct image): Add `background',
