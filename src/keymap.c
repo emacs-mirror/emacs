@@ -2594,9 +2594,8 @@ describe_command (definition)
   if (SYMBOLP (definition))
     {
       XSETSTRING (tem1, XSYMBOL (definition)->name);
-      insert_string ("`");
       insert1 (tem1);
-      insert_string ("'\n");
+      insert_string ("\n");
     }
   else if (STRINGP (definition) || VECTORP (definition))
     insert_string ("Keyboard Macro\n");
