@@ -418,14 +418,7 @@ If the third argument is incorrect, Emacs may crash.")
 		}
 	    }
 #endif
-	  /* The frobbing of gcpro3 was lost by jwz's changes in June 91
-	     and then reinserted by jwz in Nov 91.  */
-	  /* Remove protection from the args we are giving to Ffuncall.
-	     FFuncall will protect them, and double protection would
-	     cause disasters.  */
-	  gcpro3.nvars = &TOP - stack - 1;
 	  TOP = Ffuncall (op + 1, &TOP);
-	  gcpro3.nvars = XFASTINT (maxdepth);
 	  break;
 
 	case Bunbind+6:

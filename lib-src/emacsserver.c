@@ -59,6 +59,7 @@ extern int errno;
 
 main ()
 {
+  char system_name[32];
   int s, infd, fromlen;
   struct sockaddr_un server, fromunix;
   char *homedir;
@@ -85,21 +86,27 @@ main ()
       exit (1);
     }
   server.sun_family = AF_UNIX;
-  homedir = getenv ("HOME");
-  if (homedir == NULL)
+#ifndef SERVER_HOME_DIR
+  gethostname (system_name, sizeof (system_name));
+  sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
+
+  if (unlink (server.sun_path) == -1 && errno != ENOENT)
+    {
+      perror ("unlink");
+      exit (1);
+    }
+#else  
+  if ((homedir = getenv ("HOME")) == NULL)
     {
       fprintf (stderr,"No home directory\n");
       exit (1);
     }
-  sprintf (server.sun_path, "/tmp/esrv%d", geteuid ());
-
-#if 0
   strcpy (server.sun_path, homedir);
   strcat (server.sun_path, "/.emacs_server");
-#endif
-
   /* Delete anyone else's old server.  */
   unlink (server.sun_path);
+#endif
+
   if (bind (s, &server, strlen (server.sun_path) + 2) < 0)
     {
       perror ("bind");
@@ -294,6 +301,7 @@ main ()
       if ((fromlen = msgrcv (s, msgp, BUFSIZ - 1, 1, 0)) < 0)
         {
 	  perror ("msgrcv");
+	  exit (1);
         }
       else
         {
