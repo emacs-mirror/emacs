@@ -161,3 +161,6 @@ extern int sign_extend_temp;
 /* It is safe to have no parens around the args in the safe_bcopy call,
    and parens would screw up the prototype decl for memmove.  */
 #define	memmove(d, s, n) safe_bcopy (s, d, n)
+
+/* This affects filemode.c.  */
+#define NO_MODE_T
