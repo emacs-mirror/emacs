@@ -41,6 +41,8 @@ Boston, MA 02111-1307, USA.
 #include "w32inevt.h"
 #include "dispextern.h"
 
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
 /* from window.c */
 extern Lisp_Object Frecenter ();
 
@@ -134,7 +136,8 @@ clear_frame (void)
 {
   struct frame *  f = PICK_FRAME ();
   COORD	     dest;
-  int        n, r;
+  int        n;
+  DWORD      r;
   CONSOLE_SCREEN_BUFFER_INFO info;
 
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
@@ -338,7 +341,8 @@ insert_glyphs (register struct glyph *start, register int len)
 void
 write_glyphs (register struct glyph *string, register int len)
 {
-  int produced, consumed, i;
+  int produced, consumed;
+  DWORD r;
   struct frame * f = PICK_FRAME ();
   WORD char_attr;
   unsigned char conversion_buffer[1024];
@@ -376,7 +380,7 @@ write_glyphs (register struct glyph *string, register int len)
 	    {
               /* Set the attribute for these characters.  */
               if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-                                               produced, cursor_coords, &i)) 
+                                               produced, cursor_coords, &r)) 
                 {
                   printf ("Failed writing console attributes: %d\n",
                           GetLastError ());
@@ -385,7 +389,7 @@ write_glyphs (register struct glyph *string, register int len)
 
               /* Write the characters.  */
               if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-                                                produced, cursor_coords, &i))
+                                                produced, cursor_coords, &r))
                 {
                   printf ("Failed writing console characters: %d\n",
                           GetLastError ());
@@ -411,7 +415,7 @@ write_glyphs (register struct glyph *string, register int len)
         {
           if (!FillConsoleOutputAttribute (cur_screen, char_attr_normal,
                                            terminal_coding.produced,
-                                           cursor_coords, &i)) 
+                                           cursor_coords, &r)) 
             {
               printf ("Failed writing console attributes: %d\n",
                       GetLastError ());
@@ -420,7 +424,7 @@ write_glyphs (register struct glyph *string, register int len)
 
           /* Write the characters.  */
           if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-                                            produced, cursor_coords, &i))
+                                            produced, cursor_coords, &r))
             {
               printf ("Failed writing console characters: %d\n",
                       GetLastError ());
