@@ -80,6 +80,7 @@
 (define-coding-system-alias 'euc-cn 'chinese-iso-8bit)
 (define-coding-system-alias 'cn-gb 'chinese-iso-8bit)
 (define-coding-system-alias 'gb2312 'chinese-iso-8bit)
+(define-coding-system-alias 'cp936 'chinese-iso-8bit)
 
 (make-coding-system
  'chinese-hz 0 ?z
@@ -137,6 +138,7 @@
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
+(define-coding-system-alias 'cp950 'chinese-big5)
 
 ;; Big5 font requires special encoding.
 (define-ccl-program ccl-encode-big5-font
