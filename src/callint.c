@@ -480,7 +480,10 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
         case 'c':		/* Character */
-	  message1_nolog (callint_message);
+	  /* Use message_nolog rather than message1_nolog here,
+	     so that nothing bad happens if callint_message is changed
+	     within Fread_char (by a timer, for example).  */
+	  message_nolog ("%s", callint_message);
 	  args[i] = Fread_char ();
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
