@@ -1351,6 +1351,7 @@ command_loop_1 ()
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
+  int already_adjusted;
 
   current_kboard->Vprefix_arg = Qnil;
   current_kboard->Vlast_prefix_arg = Qnil;
@@ -1557,6 +1558,8 @@ command_loop_1 ()
       if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpre_command_hook);
       
+      already_adjusted = 0;
+
       if (NILP (Vthis_command))
 	{
 	  /* nil means key is undefined.  */
@@ -1580,12 +1583,15 @@ command_loop_1 ()
 		    = window_display_table (XWINDOW (selected_window));
 		  lose = FETCH_CHAR (PT_BYTE);
 		  SET_PT (PT + 1);
-		  if ((dp
-		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
-			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
-                          : (NILP (DISP_CHAR_VECTOR (dp, lose))
-                             && (lose >= 0x20 && lose < 0x7f)))
-		       : (lose >= 0x20 && lose < 0x7f))
+		  adjust_point_for_property (last_point_position);
+		  already_adjusted = 1;
+		  if (PT == last_point_position + 1
+		      && (dp
+			  ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
+			     ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
+			     : (NILP (DISP_CHAR_VECTOR (dp, lose))
+				&& (lose >= 0x20 && lose < 0x7f)))
+			  : (lose >= 0x20 && lose < 0x7f))
 		      /* To extract the case of continuation on
                          wide-column characters.  */
 		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT_BYTE)) == 1)
@@ -1609,12 +1615,15 @@ command_loop_1 ()
 		    = window_display_table (XWINDOW (selected_window));
 		  SET_PT (PT - 1);
 		  lose = FETCH_CHAR (PT_BYTE);
-		  if ((dp
-		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
-			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
-                          : (NILP (DISP_CHAR_VECTOR (dp, lose))
-                             && (lose >= 0x20 && lose < 0x7f)))
-		       : (lose >= 0x20 && lose < 0x7f))
+		  adjust_point_for_property (last_point_position);
+		  already_adjusted = 1;
+		  if (PT == last_point_position - 1
+		      && (dp
+			  ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
+			     ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
+			     : (NILP (DISP_CHAR_VECTOR (dp, lose))
+				&& (lose >= 0x20 && lose < 0x7f)))
+			  : (lose >= 0x20 && lose < 0x7f))
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -1769,7 +1778,8 @@ command_loop_1 ()
       if (current_buffer == prev_buffer
 	  && last_point_position != PT
 	  && NILP (Vdisable_point_adjustment)
-	  && NILP (Vglobal_disable_point_adjustment))
+	  && NILP (Vglobal_disable_point_adjustment)
+	  && !already_adjusted)
 	adjust_point_for_property (last_point_position);
 
       /* Install chars successfully executed in kbd macro.  */
