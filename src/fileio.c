@@ -225,6 +225,7 @@ Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
 Lisp_Object Qverify_visited_file_modtime;
 Lisp_Object Qset_visited_file_modtime;
+Lisp_Object Qsubstitute_in_file_name;
 
 DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
   "Return FILENAME's handler function for OPERATION, if it has one.\n\
@@ -1555,8 +1556,15 @@ duplicates what `expand-file-name' does.")
   int total = 0;
   int substituted = 0;
   unsigned char *xnm;
+  Lisp_Object handler;
 
   CHECK_STRING (string, 0);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (string, Qsubstitute_in_file_name);
+  if (!NILP (handler))
+    return call2 (handler, Qsubstitute_in_file_name, string);
 
   nm = XSTRING (string)->data;
 #ifdef MSDOS
@@ -3935,7 +3943,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 {
   Lisp_Object name, specdir, realdir, val, orig_string;
   int changed;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   realdir = dir;
   name = string;
@@ -3943,7 +3951,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   specdir = Qnil;
   changed = 0;
   /* No need to protect ACTION--we only compare it with t and nil.  */
-  GCPRO4 (string, realdir, name, specdir);
+  GCPRO5 (string, realdir, name, specdir, orig_string);
 
   if (XSTRING (string)->size == 0)
     {
@@ -4183,6 +4191,7 @@ syms_of_fileio ()
   Qwrite_region = intern ("write-region");
   Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
   Qset_visited_file_modtime = intern ("set-visited-file-modtime");
+  Qsubstitute_in_file_name = intern ("substitute-in-file-name");
 
   staticpro (&Qexpand_file_name);
   staticpro (&Qdirectory_file_name);
@@ -4210,6 +4219,7 @@ syms_of_fileio ()
   staticpro (&Qinsert_file_contents);
   staticpro (&Qwrite_region);
   staticpro (&Qverify_visited_file_modtime);
+  staticpro (&Qsubstitute_in_file_name);
 
   Qfile_name_history = intern ("file-name-history");
   Fset (Qfile_name_history, Qnil);
