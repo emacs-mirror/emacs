@@ -928,57 +928,6 @@ or nil.  If nil, highlighting keywords are removed for the current buffer."
 ;; loading a file tells you nothing about the feature or how to control it.  It
 ;; would also be contrary to the Principle of Least Surprise.  sm.
 
-(defvar font-lock-buffers nil)		; For remembering buffers.
-
-;;;###autoload
-(defun global-font-lock-mode (&optional arg message)
-  "Toggle Global Font Lock mode.
-(Font Lock is also known as \"syntax highlighting\".)
-With prefix ARG, turn Global Font Lock mode on if and only if ARG is positive.
-Displays a message saying whether the mode is on or off if MESSAGE is non-nil.
-Returns the new status of Global Font Lock mode (non-nil means on).
-
-When Global Font Lock mode is enabled, Font Lock mode is automagically
-turned on in a buffer if its major mode is one of `font-lock-global-modes'.
-
-To customize the faces (colors, fonts, etc.) used by Font Lock for
-highlighting different parts of buffer text, use \\[customize-face]."
-  (interactive "P\np")
-  (let ((on-p (if arg
-		  (> (prefix-numeric-value arg) 0)
-		(not global-font-lock-mode))))
-    (cond (on-p
-	   (add-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
-	   (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-	   (setq font-lock-buffers (buffer-list)))
-	  (t
-	   (remove-hook 'find-file-hooks 'turn-on-font-lock-if-enabled)
-	   (mapc (function (lambda (buffer)
-			     (with-current-buffer buffer
-			       (when font-lock-mode
-				 (font-lock-mode)))))
-		   (buffer-list))))
-    (when message
-      (message "Global Font Lock mode %s." (if on-p "enabled" "disabled")))
-    (setq global-font-lock-mode on-p)))
-
-;; This variable was originally a `defvar' to keep track of
-;; whether Global Font Lock mode was turned on or not.  As a `defcustom' with
-;; special `:set' and `:require' forms, we can provide custom mode control.
-;;;###autoload
-(defcustom global-font-lock-mode nil
-  "Toggle Global Font Lock mode.
-When Global Font Lock mode is enabled, Font Lock mode is automagically
-turned on in a buffer if its major mode is one of `font-lock-global-modes'.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `global-font-lock-mode'."
-  :set (lambda (symbol value)
-	 (global-font-lock-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'font-lock
-  :require 'font-lock)
-
 (defcustom font-lock-global-modes t
   "*Modes for which Font Lock mode is automagically turned on.
 Global Font Lock mode is controlled by the command `global-font-lock-mode'.
@@ -997,38 +946,20 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 		      (repeat :inline t (symbol :tag "mode"))))
   :group 'font-lock)
 
-(defun font-lock-change-major-mode ()
-  ;; Turn off Font Lock mode if it's on.
-  (when font-lock-mode
-    (font-lock-mode))
-  ;; Gross hack warning: Delicate readers should avert eyes now.
-  ;; Something is running `kill-all-local-variables', which generally means the
-  ;; major mode is being changed.  Run `turn-on-font-lock-if-enabled' after the
-  ;; file is visited or the current command has finished.
-  (when global-font-lock-mode
-    (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-    (add-to-list 'font-lock-buffers (current-buffer))))
-
 (defun turn-on-font-lock-if-enabled ()
-  ;; Gross hack warning: Delicate readers should avert eyes now.
-  ;; Turn on Font Lock mode if it's supported by the major mode and enabled by
-  ;; the user.
-  (remove-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
-  (while font-lock-buffers
-    (when (buffer-live-p (car font-lock-buffers))
-      (save-excursion
-	(set-buffer (car font-lock-buffers))
-	(when (and (or font-lock-defaults
-		       (assq major-mode font-lock-defaults-alist))
-		   (or (eq font-lock-global-modes t)
-		       (if (eq (car-safe font-lock-global-modes) 'not)
-			   (not (memq major-mode (cdr font-lock-global-modes)))
-			 (memq major-mode font-lock-global-modes))))
-	  (let (inhibit-quit)
-	    (turn-on-font-lock)))))
-    (setq font-lock-buffers (cdr font-lock-buffers))))
+  (when (and (or font-lock-defaults
+		 (assq major-mode font-lock-defaults-alist))
+	     (or (eq font-lock-global-modes t)
+		 (if (eq (car-safe font-lock-global-modes) 'not)
+		     (not (memq major-mode (cdr font-lock-global-modes)))
+		   (memq major-mode font-lock-global-modes))))
+    (let (inhibit-quit)
+      (turn-on-font-lock))))
 
-(add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
+;;;###autoload
+(easy-mmode-define-global-mode
+ global-font-lock-mode font-lock-mode turn-on-font-lock-if-enabled
+ :extra-args (dummy))
 
 ;;; End of Global Font Lock mode.
 
@@ -1238,10 +1169,14 @@ The value of this variable is used when Font Lock mode is turned on."
 	    ;; We are just after or in a multiline match.
 	    (setq beg (or (previous-single-property-change
 			   beg 'font-lock-multiline)
-			  (point-min))))
+			  (point-min)))
+	    (goto-char beg)
+	    (setq beg (line-beginning-position)))
 	  (setq end (or (text-property-any end (point-max)
 					   'font-lock-multiline nil)
 			(point-max)))
+	  (goto-char end)
+	  (setq end (line-end-position))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
 	  (when font-lock-syntactic-keywords
@@ -1589,13 +1524,13 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
     (if (not (and (numberp pre-match-value) (> pre-match-value (point))))
 	(setq limit (line-end-position))
       (setq limit pre-match-value)
-      (when (and font-lock-multiline
-		 (funcall (if (eq font-lock-multiline t) '>= '>)
-			  pre-match-value
-			  (line-beginning-position 2)))
+      (when (and font-lock-multiline (>= limit (line-beginning-position 2)))
 	;; this is a multiline anchored match
-	(setq font-lock-multiline t)
-	(put-text-property (min lead-start (point)) limit
+	;; (setq font-lock-multiline t)
+	(put-text-property (if (= limit (line-beginning-position 2))
+			       (1- limit)
+			     (min lead-start (point)))
+			   limit
 			   'font-lock-multiline t)))
     (save-match-data
       ;; Find an occurrence of `matcher' before `limit'.
@@ -1635,13 +1570,18 @@ START should be at the beginning of a line."
 		    (funcall matcher end)))
 	(when (and font-lock-multiline
 		   (match-beginning 0)
-		   (funcall (if (eq font-lock-multiline t) '>= '>)
-			    (point)
-			    (save-excursion (goto-char (match-beginning 0))
-					    (forward-line 1) (point))))
+		   (>= (point)
+		       (save-excursion (goto-char (match-beginning 0))
+				       (forward-line 1) (point))))
 	  ;; this is a multiline regexp match
-	  (setq font-lock-multiline t)
-	  (put-text-property (match-beginning 0) (point)
+	  ;; (setq font-lock-multiline t)
+	  (put-text-property (if (= (point)
+				    (save-excursion
+				      (goto-char (match-beginning 0))
+				      (forward-line 1) (point)))
+				 (1- (point))
+			       (match-beginning 0))
+			     (point)
 			     'font-lock-multiline t))
 	;; Apply each highlight to this instance of `matcher', which may be
 	;; specific highlights or more keywords anchored to `matcher'.
