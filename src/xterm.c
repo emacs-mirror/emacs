@@ -3422,7 +3422,9 @@ x_alloc_nearest_color (f, cmap, color)
       
       if (dpyinfo->color_cells
 	  && (cached_color = &dpyinfo->color_cells[color->pixel],
-	      cached_color->pixel != color->pixel))
+	      (cached_color->red != color->red
+	       || cached_color->blue != color->blue
+	       || cached_color->green != color->green)))
 	{
 	  xfree (dpyinfo->color_cells);
 	  dpyinfo->color_cells = NULL;
