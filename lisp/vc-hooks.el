@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.119 2000/09/12 13:00:30 fx Exp $
+;; $Id: vc-hooks.el,v 1.120 2000/09/21 13:15:26 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -241,9 +241,10 @@ exist."
 (defun vc-registered (file)
   "Return non-nil if FILE is registered in a version control system.
 
-This function does not cache its result; it performs the test each
-time it is invoked on a file.  For a caching check whether a file is
-registered, use `vc-backend'."
+This function performs the check each time it is called.  To rely
+on the result of a previous call, use `vc-backend' instead.  If the
+file was previously registered under a certain backend, then that
+backend is tried first."
   (let (handler)
     (if (boundp 'file-name-handler-alist)
   	(setq handler (find-file-name-handler file 'vc-registered)))
@@ -253,13 +254,15 @@ registered, use `vc-backend'."
       ;; There is no file name handler.
       ;; Try vc-BACKEND-registered for each handled BACKEND.
       (catch 'found
-        (mapcar
-         (lambda (b)
-           (and (vc-call-backend b 'registered file)
-                (vc-file-setprop file 'vc-backend b)
-                (throw 'found t)))
-         (unless vc-ignore-vc-files
-	   vc-handled-backends))
+	(let ((backend (vc-file-getprop file 'vc-backend)))
+	  (mapcar
+	   (lambda (b)
+	     (and (vc-call-backend b 'registered file)
+		  (vc-file-setprop file 'vc-backend b)
+		  (throw 'found t)))
+	   (if (or (not backend) (eq backend 'none)) 
+	       vc-handled-backends
+	     (cons backend vc-handled-backends))))
         ;; File is not registered.
         (vc-file-setprop file 'vc-backend 'none)
         nil))))
