@@ -32,7 +32,7 @@ so that you can use many of the features described in this chapter.
 @cindex MS Windows
   Emacs compiled for MS Windows mostly supports the same features as
 under X.  However, images, tool bars, and tooltips are not yet
-available on MS Windows as of Emacs version 21.1.
+available in Emacs version 21.1 on MS-Windows.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -179,9 +179,13 @@ Under X, this also sets the @dfn{primary selection}.  Then use the
 ``paste'' or ``yank'' command of the program operating the other window
 to insert the text from the selection.
 
-  To copy text from another X window, use the ``cut'' or ``copy'' command
-of the program operating the other window, to select the text you want.
-Then yank it in Emacs with @kbd{C-y} or @kbd{Mouse-2}.
+  To copy text from another X window, use the ``cut'' or ``copy''
+command of the program operating the other window, to select the text
+you want.  Then yank it in Emacs with @kbd{C-y} or @kbd{Mouse-2}.
+
+  The standard coding system for X selections is @code{compound-text}.
+To specify another coding system for X selections, use @kbd{C-x
+@key{RET} x} or @kbd{C-x @key{RET} X}.  @xref{Specify Coding}.
 
   These cutting and pasting commands also work on MS-Windows.
 
