@@ -375,7 +375,7 @@ MODE should be an integer which is a file mode value."
 	      ""))))
 
 (defun tar-untar-buffer ()
-  "Extract all archive members in the tar-file."
+  "Extract all archive members in the tar-file into the current directory."
   (interactive)
   (let ((multibyte enable-multibyte-characters))
     (unwind-protect
@@ -386,13 +386,15 @@ MODE should be an integer which is a file mode value."
 	    (let* ((tokens (tar-desc-tokens descriptor))
 		   (name (tar-header-name tokens))
 		   (dir (file-name-directory name))
-		   (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+		   (start (+ (tar-desc-data-start descriptor)
+			     (- tar-header-offset (point-min))))
 		   (end (+ start (tar-header-size tokens))))
 	      (unless (file-directory-p name)
 		(message "Extracting %s" name)
 		(if (and dir (not (file-exists-p dir)))
 		    (make-directory dir t))
-		(write-region start end name)
+		(unless (file-directory-p name)
+		  (write-region start end name))
 		(set-file-modes name (tar-header-mode tokens))))))
       (set-buffer-multibyte multibyte))))
 
@@ -404,7 +406,7 @@ is visible (and the real data of the buffer is hidden)."
   (set-buffer-multibyte nil)
   (message "Parsing tar file...")
   (let* ((result '())
-	 (pos 1)
+	 (pos (point-min))
 	 (bs (max 1 (- (buffer-size) 1024))) ; always 2+ empty blocks at end.
 	 (bs100 (max 1 (/ bs 100)))
 	 tokens)
@@ -463,7 +465,7 @@ is visible (and the real data of the buffer is hidden)."
 	(insert total-summaries))
       (make-local-variable 'tar-header-offset)
       (setq tar-header-offset (point))
-      (narrow-to-region 1 tar-header-offset)
+      (narrow-to-region (point-min) tar-header-offset)
       (if enable-multibyte-characters
 	  (setq tar-header-offset (position-bytes tar-header-offset)))
       (set-buffer-modified-p nil))))
@@ -582,7 +584,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (set (make-local-variable 'write-contents-hooks) '(tar-mode-write-file))
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
-      (narrow-to-region 1 (byte-to-position tar-header-offset))
+      (narrow-to-region (point-min) (byte-to-position tar-header-offset))
     (tar-summarize-buffer)
     (tar-next-line 0)))
 
@@ -595,10 +597,10 @@ appear on disk when you save the tar-file's buffer."
   (interactive "P")
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file"))
-;;; Don't do this, because it is redundant and wastes mode line space.
-;;;  (or (assq 'tar-subfile-mode minor-mode-alist)
-;;;      (setq minor-mode-alist (append minor-mode-alist
-;;;				     (list '(tar-subfile-mode " TarFile")))))
+  ;; Don't do this, because it is redundant and wastes mode line space.
+  ;;  (or (assq 'tar-subfile-mode minor-mode-alist)
+  ;;      (setq minor-mode-alist (append minor-mode-alist
+  ;;				     (list '(tar-subfile-mode " TarFile")))))
   (make-local-variable 'tar-subfile-mode)
   (setq tar-subfile-mode
 	(if (null p)
@@ -690,7 +692,8 @@ appear on disk when you save the tar-file's buffer."
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+	 (start (+ (tar-desc-data-start descriptor)
+		   (- tar-header-offset (point-min))))
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (tar-buffer-multibyte enable-multibyte-characters)
@@ -736,7 +739,8 @@ appear on disk when you save the tar-file's buffer."
 					   name (- (point-max) (point)))))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
-				 1 (min 16384 (point-max)) t)))
+				 (point-min)
+				 (min (+ (point-min) 16384) (point-max)) t)))
 		  (if coding
 		      (or (numberp (coding-system-eol-type coding))
 			  (setq coding (coding-system-change-eol-conversion
@@ -757,7 +761,7 @@ appear on disk when you save the tar-file's buffer."
 		      (setq coding
 			    (coding-system-change-text-conversion
 			     coding 'raw-text)))
-		  (decode-coding-region 1 (point-max) coding)
+		  (decode-coding-region (point-min) (point-max) coding)
 		  (set-buffer-file-coding-system coding))
 		;; Set the default-directory to the dir of the
 		;; superior buffer. 
@@ -775,7 +779,7 @@ appear on disk when you save the tar-file's buffer."
 		(set-buffer-modified-p nil)
 		(tar-subfile-mode 1))
 	      (set-buffer tar-buffer))
-	  (narrow-to-region 1 tar-header-offset)
+	  (narrow-to-region (point-min) tar-header-offset)
 	  (set-buffer-multibyte tar-buffer-multibyte)))
       (if view-p
 	  (view-buffer buffer (and just-created 'kill-buffer))
@@ -831,7 +835,8 @@ the current tar-entry."
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+	 (start (+ (tar-desc-data-start descriptor)
+		   (- tar-header-offset (point-min))))
 	 (end (+ start size))
 	 (multibyte enable-multibyte-characters)
 	 (inhibit-file-name-handlers inhibit-file-name-handlers)
@@ -922,7 +927,7 @@ With a prefix argument, un-mark that many files backward."
 	  (tar-setf (tar-desc-data-start desc)
 		    (- (tar-desc-data-start desc) data-length))))
       ))
-  (narrow-to-region 1 tar-header-offset))
+  (narrow-to-region (point-min) tar-header-offset))
 
 
 (defun tar-expunge (&optional noconfirm)
@@ -944,7 +949,7 @@ for this to be permanent."
 		(forward-line 1)))
 	  ;; after doing the deletions, add any padding that may be necessary.
 	  (tar-pad-to-blocksize)
-	  (narrow-to-region 1 tar-header-offset))
+	  (narrow-to-region (point-min) tar-header-offset))
 	(set-buffer-multibyte multibyte)
 	(if (zerop n)
 	    (message "Nothing to expunge.")
@@ -1084,7 +1089,7 @@ for this to be permanent."
 	        (buffer-substring start (+ start 512))
 	        chk (tar-header-name tokens))
 	      )))
-      (narrow-to-region 1 tar-header-offset)
+      (narrow-to-region (point-min) tar-header-offset)
       (set-buffer-multibyte multibyte)
       (tar-next-line 0))))
 
@@ -1134,7 +1139,7 @@ to make your changes permanent."
 	(widen)
 	(set-buffer-multibyte nil)
 	;; delete the old data...
-	(let* ((data-start (+ start tar-header-offset -1))
+	(let* ((data-start (+ start (- tar-header-offset (point-min))))
 	       (data-end (+ data-start (ash (ash (+ size 511) -9) 9))))
 	  (delete-region data-start data-end)
 	  ;; insert the new data...
@@ -1203,7 +1208,7 @@ to make your changes permanent."
 	      )))
 	;; after doing the insertion, add any final padding that may be necessary.
 	(tar-pad-to-blocksize))
-       (narrow-to-region 1 tar-header-offset)
+       (narrow-to-region (point-min) tar-header-offset)
        (set-buffer-multibyte tar-buffer-multibyte)))
     (set-buffer-modified-p t)   ; mark the tar file as modified
     (tar-next-line 0)
@@ -1266,7 +1271,7 @@ Leaves the region wide."
 			buffer-file-name nil t))
 	(tar-clear-modification-flags)
 	(set-buffer-modified-p nil))
-    (narrow-to-region 1 (byte-to-position tar-header-offset)))
+    (narrow-to-region (point-min) (byte-to-position tar-header-offset)))
   ;; Return t because we've written the file.
   t)
 
