@@ -635,8 +635,8 @@
 	(Fload): Handle errors in Fsubstitute_in_file_name.
 	Don't expect Fsignal to return.
 
-	* Errors and throws work right with interrupt blocking.
-	* eval.c (struct catchtag): New elt interrupt_input_blocked.
+	* eval.c: Errors and throws work right with interrupt blocking.
+	(struct catchtag): New elt interrupt_input_blocked.
 	(unwind_to_catch): Restore interrupt_input_blocked from saved value.
 	(internal_catch, Fcondition_case, internal_condition_case)
 	(internal_condition_case_1, internal_condition_case_2): Save it.
@@ -659,8 +659,7 @@
 
 2002-12-17  Ben Key  <bkey1@tampabay.rr.com>
 
-	* Revisited my earlier fix for the following entry in
-	etc/PROBLEMS:
+	Revisited my earlier fix for the following entry in etc/PROBLEMS:
 	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
 	or Emacs builtpart of on XP crashes at startup on Windows 9x/ME."
 
@@ -804,7 +803,7 @@
 
 2002-12-09  Dave Love  <fx@gnu.org>
 
-	* s/sol2-8: Removed.  (Not necessary.)
+	* s/sol2-8.h: Removed.  (Not necessary.)
 
 2002-12-09  Matthew Swift  <swift@alum.mit.edu>
 

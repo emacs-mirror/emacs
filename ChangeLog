@@ -4299,7 +4299,7 @@
 
 	* config.guess: New file.
 	* configure.in: Use it, tentatively.
-	* INSTNALL: Mention its usage.
+	* INSTALL: Mention its usage.
 
 	* configure.in (hppa-hp-hpux): Use uname -r instead of uname -m;
 	the former gives you the operating system rev directly.  Use

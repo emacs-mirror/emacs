@@ -3833,8 +3833,8 @@
 
 1998-04-29  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* Many small changes that mostly eliminate the explicit mail
-	separator variable and use the new rfc822-goto-eoh primitive instead:
+	Many small changes that mostly eliminate the explicit mail separator
+	variable and use the new rfc822-goto-eoh primitive instead:
 
 	* ispell4.el (ispell-message): Use rfc822-goto-eoh.
 
@@ -4909,7 +4909,7 @@
 
 1998-04-07  Dave Love  <d.love@dl.ac.uk>
 
-	* progmodes/fortran.el Use regexp-opt and eval-and-compile to
+	* progmodes/fortran.el: Use regexp-opt and eval-and-compile to
 	build font-lock patterns.
 	(fortran-mode): Define indent-region-function,
 	indent-line-function.
@@ -5788,7 +5788,7 @@
 
 1998-03-06  Dave Love  <d.love@dl.ac.uk>
 
-	* browse-url.el Various doc fixes, mainly to remove innappropriate
+	* browse-url.el: Various doc fixes, mainly to remove innappropriate
 	leading "*"s.
 	(browse-url-new-window-p, browse-url-netscape-display)
 	(browse-url-save-file, browse-url-generic-program):
@@ -8403,7 +8403,7 @@
 
 1997-10-24  Carsten Dominik  <dominik@strw.LeidenUniv.nl>
 
-	* reftex.el  The menu now used toggle and radio for some items.
+	* reftex.el:  The menu now used toggle and radio for some items.
 	(reftex-default-context-regexps): `caption' now prefers the
 	optional short caption.
 	(reftex-offer-label-menu): Fixed bug which could kill master
@@ -9591,34 +9591,34 @@
 
 1997-10-21  Kim-Minh Kaplan  <kimminh.kaplan@utopia.eunet.fr>
 
-	* gnus-picon.el: * gnus-picons-clear-cache-on-shutdown: new variable.
-	* gnus-picons-piconsearch-cache-user: variable deleted.
-	* gnus-picons-clear-cache: new function.
-	* gnus-picons-close: only clear cache if
+	* gnus-picon.el (gnus-picons-clear-cache-on-shutdown): new variable.
+	(gnus-picons-piconsearch-cache-user): variable deleted.
+	(gnus-picons-clear-cache): new function.
+	(gnus-picons-close): only clear cache if
 	gnus-picons-clear-cache-on-shutdown.
-	* gnus-picons-url-retrieve: set url-package-name and
+	(gnus-picons-url-retrieve): set url-package-name and
 	url-package-version.
-	* gnus-picons-users-image-alist: new variable.
-	* gnus-picons-retrieve-user-callback: use it.
-	* Added support for network retrieval of picons.
-	* gnus-picons-map: removed.
-	* gnus-picons-remove: removed case to handle processes.
-	* gnus-picons-processes-alist: new variable
-	* gnus-picons-x-face-sentinel: simplified.  Use processes alist.
-	* gnus-picons-display-x-face: explicitly request an xface image.
+	(gnus-picons-users-image-alist): new variable.
+	(gnus-picons-retrieve-user-callback): use it.
+	Added support for network retrieval of picons.
+	(gnus-picons-map): removed.
+	(gnus-picons-remove): removed case to handle processes.
+	(gnus-picons-processes-alist): new variable
+	(gnus-picons-x-face-sentinel): simplified.  Use processes alist.
+	(gnus-picons-display-x-face): explicitly request an xface image.
 	Always call gnus-picons-prepare-for-annotations.  Use processes
 	alist.
-	* gnus-picons-lookup-internal: new function.
-	* gnus-picons-lookup: use it.
-	* gnus-picons-lookup-user-internal: ditto.
-	* gnus-picons-display-picon-or-name: no more xface-p argument.
-	* gnus-picons-try-suffixes: removed.
-	* gnus-picons-try-face: new function.  Does the caching in
+	(nus-picons-lookup-internal): new function.
+	(gnus-picons-lookup): use it.
+	(gnus-picons-lookup-user-internal): ditto.
+	(gnus-picons-display-picon-or-name): no more xface-p argument.
+	(gnus-picons-try-suffixes): removed.
+	(gnus-picons-try-face): new function.  Does the caching in
 	gnus-picons-glyph-alist.
-	* gnus-picons-try-to-find-face: take a glyph argument instead of a
+	(gnus-picons-try-to-find-face): take a glyph argument instead of a
 	path.  No more xface-p argument.  Only use one annotation even if
 	gnus-picons-display-as-address.
-	* gnus-picons-toggle-extent: changed into an annotation action.
+	(gnus-picons-toggle-extent): changed into an annotation action.
 
 1997-10-21  Lars Magne Ingebrigtsen  <larsi@menja.ifi.uio.no>
 
@@ -12843,7 +12843,7 @@
 	(viper-bind-mouse-search-key,viper-bind-mouse-insert-key,
 	viper-unbind-mouse-search-key,viper-unbind-mouse-insert-key):
 	New functions.
-	* viper*el: vip-style names changed to viper-style names.
+	* viper*.el: vip-style names changed to viper-style names.
 
 1997-08-01  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -12909,7 +12909,7 @@
 
 1997-07-31  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff*el: (ediff-eval-in-buffer): changed macro and renamed
+	* ediff*.el: (ediff-eval-in-buffer): changed macro and renamed
 	ediff-with-current-buffer.
 	Eliminated inefficient calls to `intern'.
 	* ediff-diff.el: (ediff-exec-process): changed to work with buffers
@@ -13455,7 +13455,7 @@
 
 	* viper*.el: Adapted to use custom.el
 	* ediff*.el: Improved customization.
-	* ediff-ptch (ediff-default-backup-extension): New variable.
+	* ediff-ptch.el (ediff-default-backup-extension): New variable.
 	(ediff-backup-extension,ediff-backup-specs): Change in initialization.
 
 1997-07-17  Geoff Voelker  <voelker@cs.washington.edu>
@@ -18062,7 +18062,7 @@
 	Setting of syntax and category for Devanagari characters are moved
 	to characters.el.
 
-	* language/english (setup-english-environment): Set
+	* language/english.el (setup-english-environment): Set
 	sendmail-coding-system and rmail-file-coding-system to nil.
 
 	* language/ethio-util.el (fidel-to-tex-map): Name changed to

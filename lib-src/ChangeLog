@@ -296,7 +296,7 @@
 
 2002-06-06  Francesco Potorti`  <pot@gnu.org>
 
-	* etags.c New option --parse-stdin=FILE.
+	* etags.c: New option --parse-stdin=FILE.
 	(enum arg_type): New label at_stdin.
 	(STDIN): New constant.
 	(parsing_stdin): New flag.
@@ -306,7 +306,7 @@
 	(process_file): Split into process_file and process_file_name.
 	(process_file_name): New function.
 
-	* etags.c Improvements and bug squashing in TeX handling.
+	* etags.c: Improvements and bug squashing in TeX handling.
 	(TeX_commands): Skip comments.
 	(TEX_defenv): Now contains more contructs.
 	(TEX_cmt): Make it a static char and move it before TeX_commands.
@@ -3804,9 +3804,10 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* profile.c: New file.
 
 1994-01-16  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
-
-	* Make the argument list output look more like the Lisp docstrings do.
-	make-docfile.c (write_c_args): Take new arg FUNC.  Make output
+	
+	* make-docfile.c: Make the argument list output look more like the
+	Lisp docstrings do.  
+	(write_c_args): Take new arg FUNC.  Make output
 	look like lisp call prototypes: (function ARG1 ARG2), upcasing args.
 	(scan_c_file): Pass BUF to write_c_args for FUNC arg.
 
@@ -4026,10 +4027,10 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1993-09-10  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* Support configuring in a different directory when ${srcdir} has
-	already been configured.
-	* Makefile.in (ALL_CFLAGS, CPP_CFLAGS): Put -I. -I../src before
-	-I${srcdir} -I${srcdir}/../src.
+	* Makefile.in: Support configuring in a different directory when
+	${srcdir} has already been configured.
+	(ALL_CFLAGS, CPP_CFLAGS): Put -I. -I../src before -I${srcdir}
+	-I${srcdir}/../src.
 	(b2m, movemail, fakemail, env, emacsserver, emacsclient,
 	getdate.o, timer.o, timer): Remove `-I${srcdir}/../src', since it
 	is already in CPP_FLAGS.

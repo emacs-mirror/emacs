@@ -792,7 +792,7 @@
 	bit-fields.
 	(init_obarray): Likewise for t and nil.
 
-	* eval.c Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
+	* eval.c: Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
 	(Fdefvaralias): New function.
 	(specbind): Simplify the test if symbol is a constant.
 	(syms_of_eval): Defsubr Fdefvaralias.
@@ -2348,7 +2348,7 @@
 	(redisplay_internal): Avoid duplicate mark_window_display_accurate
 	for the selected frame.
 
-	* xdisp.c  Use make_number, for readability.
+	* xdisp.c: Use make_number, for readability.
 	(try_window_id): Disable rows below the window end.
 	(try_window_reusing_current_matrix): Use cursor_row_p.
 	(try_window_reusing_current_matrix) <scrolling up>: Fix disabling
@@ -12085,7 +12085,7 @@
 
 2000-03-04  Jason Rumney  <jasonr@gnu.org>
 
-	* xfaces.c Change many FRAME_X... macros to FRAME_WINDOW... or
+	* xfaces.c: Change many FRAME_X... macros to FRAME_WINDOW... or
 	other non-platform-specific equivalents.
 	[WINDOWSNT]: Include w32term.h, fontset.h and define X
 	specific functions and macros as their w32 equivalents where

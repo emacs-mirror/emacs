@@ -2093,7 +2093,7 @@
 
 	* ediff.el: Date of last update, copyright years.
 
-	* ediff-wind (ediff-setup-control-frame): Nill->nil.
+	* ediff-wind.el (ediff-setup-control-frame): Nill->nil.
 
 	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
 	of Scott Bronson.
@@ -5017,8 +5017,8 @@
 	(vc-print-log): Don't switch to the *vc* buffer before the
 	command, so that local variable bindings are preserved.
 
-	* vc-{cvs,rcs,sccs}.el (vc-*-print-log): Output to buffer *vc*,
-	not the current buffer.
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el (vc-*-print-log): Output to
+	buffer *vc*, not the current buffer.
 	(vc-*-diff): Output to buffer *vc-diff*, not the current buffer.
 
 	* vc-cvs.el (vc-cvs-checkin): When removing the sticky tag,
@@ -6999,7 +6999,7 @@
 
 2000-12-25  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-init (viper-restore-cursor-type): Added condition-case guard.
+	* viper-init.el (viper-restore-cursor-type): Added condition-case guard.
 
 	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook):
 	Changed initialization; use add-hook.
@@ -15499,7 +15499,7 @@
 
 2000-07-17  Emmanuel Briot  <briot@act-europe.fr>
 
-	* ada-mode.el Got rid of all byte-compiler warnings on Emacs Load
+	* ada-mode.el: Got rid of all byte-compiler warnings on Emacs Load
 	ada-xref.el before ada-prj.el, so that the Project menu is created
 	when ada-prj tries to add to it.
 	(ada-activate-keys-for-case): Suppress the characters that are not
@@ -16625,7 +16625,7 @@
 
 	* image.el (insert-image): Default STRING to a space.
 
-	* info.el Doc fixes.
+	* info.el: Doc fixes.
 	(Info-build-node-completions): Match Ref tags.
 
 2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
@@ -17846,8 +17846,8 @@
 
 	* faces.el: Declare more functions obsolete.
 
-	* viet-util.el, thai-util.el, tibet-util.el.elc, slovak.el
-	* misc-lang.el, romanian.el, korea-util.el.elc, lao-util.el
+	* viet-util.el, thai-util.el, tibet-util.el, slovak.el
+	* misc-lang.el, romanian.el, korea-util.el, lao-util.el
 	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
 	* english.el, czech.el, devan-util.el, cyril-util.el, china-util.el:
 	Remove all the setup-...-environment functions.
@@ -18887,7 +18887,7 @@
 
 2000-03-23  Dave Pearson  <davep@davep.org>
 
-	* net/quickurl.el Changed the type of parameter passed to the
+	* net/quickurl.el: Changed the type of parameter passed to the
 	function defined by `quickurl-format-function'. Before only the
 	text of the URL was passed. Now the whole URL structure is passed
 	and the function is responsible for extracting the parts it requires.
@@ -19204,7 +19204,7 @@
 	(font-lock-fontify-anchored-keywords): Properly handle the case when
 	the matcher goes past the limit.
 
-	* cvs-status, log-edit.el, log-view.el, pcvs-defs.el, pcvs-info.el,
+	* cvs-status.el, log-edit.el, log-view.el, pcvs-defs.el, pcvs-info.el,
 	pcvs-parse.el, pcvs-util.el, pcvs.el: New files.
 
 	* emacs-lisp/ewoc.el: New file.  This is a merge of elib-node.el,

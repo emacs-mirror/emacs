@@ -4328,7 +4328,7 @@
 
 1998-01-01  Richard Stallman  <rms@psilocin.gnu.org>
 
-	* Markers now have an ordinary bytepos, not including the gap:
+	Markers now have an ordinary bytepos, not including the gap:
 
 	* marker.c (buf_bytepos_to_charpos): Use marker bytepos, not bufpos.
 	(buf_charpos_to_bytepos, marker_byte_position): Likewise.
@@ -10824,7 +10824,7 @@ Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* editfns.c (Fencode_time) [_NEXT_SOURCE]: Use ZONE, not ABSZONE.
 
-	* Make region highlighting show in just one window.
+	Make region highlighting show in just one window.
 	* xdisp.c (redisplay_internal): Test last_selected_window slot.
 	(mark_window_display_accurate, display_text_line): Likewise.
 	* window.c (unshow_buffer): Clear last_selected_window slot, maybe.
@@ -11011,7 +11011,7 @@ Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 
 1996-08-24  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
-	* Renamings to avoid conflicting names on MSDOS.
+	Renamings to avoid conflicting names on MSDOS.
 	* s/riscix12.h: Renamed from s/riscix12.h.
 	* s/sunos413.h: Renamed from s/sunos4-1-3.h.
 	* s/dgux5-4-3.h: Renamed from s/dgux5-4r3.h.

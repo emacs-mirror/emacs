@@ -403,9 +403,8 @@
 	 `t' command key can change `reftex-toc-max-level'
 	 (eval-when-compile (require 'cl)) added.
 
-	 * textmode/reftex-sel (reftex-insert-docstruct): Respect
-	 `reftex-toc-max-level'
-	 (eval-when-compile (require 'cl)) added.
+	 * textmode/reftex-sel.el (reftex-insert-docstruct): Respect
+	 `reftex-toc-max-level'.  (eval-when-compile (require 'cl)) added.
 
 	 * textmodes/reftex-auc.el (eval-when-compile (require 'cl))
 	 added.
@@ -586,8 +585,7 @@
 
 1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* Fixes to IDL mode after input from Eric Eide
-	<eeide@cs.utah.edu>:
+	Fixes to IDL mode after input from Eric Eide <eeide@cs.utah.edu>:
 	* cc-engine.el (c-beginning-of-statement-1): Allow
 	`c-conditional-key' to be nil, for the benefit of IDL mode.
 	* cc-engine.el (c-guess-basic-syntax): Ditto.
@@ -625,7 +623,7 @@
 
 1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* Changes for new style variable init system:
+	Changes for new style variable init system:
 	* cc-langs.el (c-common-init): Dito.
 	* cc-styles.el: c-offsets-alist moved to cc-vars.el since it's
 	now customizable.
@@ -1333,15 +1331,15 @@
 
 1999-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper*el: Replaced old-style backquotes.
+	* viper*.el: Replaced old-style backquotes.
 
-	* ediff*el: Replaced old-style backquotes.
+	* ediff*.el: Replaced old-style backquotes.
 
-	* ediff-merge
-	(ediff-looks-like-combined-merge,ediff-get-combined-region):
+	* ediff-merge.el (ediff-looks-like-combined-merge)
+	(ediff-get-combined-region):
 	Changed to support the new format for ediff-combination-pattern.
 
-	* ediff-diff (ediff-set-fine-overlays-in-one-buffer):
+	* ediff-diff.el (ediff-set-fine-overlays-in-one-buffer):
 	Changed to support the new format for ediff-combination-pattern.
 
 1999-11-24  Dave Love  <fx@gnu.org>
@@ -1512,7 +1510,7 @@
 
 1999-11-18  Dave Pearson  <davep@hagbard.demon.co.uk>
 
-	* quickurl.el Added defcustom of quickurl-completion-ignore-case.
+	* quickurl.el: Added defcustom of quickurl-completion-ignore-case.
 	(quickurl-ask): completion-ignore-case is set to the value of
 	quickurl-completion-ignore-case for the duration of the call to
 	completing-read.
@@ -5085,7 +5083,7 @@
 
 1999-05-31  Dave Love  <fx@gnu.org>
 
-	* msb.el Add to minor-mode-map-alist.  Remove hook installation
+	* msb.el: Add to minor-mode-map-alist.  Remove hook installation
 	and keymap munging on load.
 	(msb-mode): New option.
 	(msb-files-by-directory, msb-sort-by-name, msb-sort-by-directory):
@@ -8236,7 +8234,7 @@
 
 1998-11-16  Dave Love  <fx@gnu.org>
 
-	* textmodes/sgml-mode.el Require skeleton when compiling.
+	* textmodes/sgml-mode.el: Require skeleton when compiling.
 	(sgml-font-lock-keywords-1): Accept single-letter tags.
 	(v2): Defvar free variable.
 
@@ -8510,7 +8508,8 @@
 
 1998-11-02  Dave Love  <fx@gnu.org>
 
-	* progmodes/fortran.el Fix for fontification of strings lost somehow:
+	* progmodes/fortran.el:
+	Fix for fontification of strings lost somehow:
 	(fortran-fontify-string): New function.
 	(fortran-font-lock-keywords-1): Use it.
 

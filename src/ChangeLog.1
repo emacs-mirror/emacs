@@ -238,7 +238,7 @@
 	Make it return a pointer to a global structure,
 	not a struct itself.  Change caller (Fparse_partial_sexp).
 
-	* s-usg*: #define static as nothing.
+	* s-usg*.h: #define static as nothing.
 	* m-hp200.h: No longer needs to #define static.
 
 	* unexec.c (adjust_lnnoptrs):
@@ -254,7 +254,7 @@
 	* crt0.c (BOGUS case):
 	Move "start:" from non-tower32 case to unconditional.
 
-	* unexec.c for COFF:
+	* unexec.c [COFF]:
 	Put the rounding-to-page-boundaries of section positions
 	within the file into a UMAX conditional.  (See Feb 19).
 
@@ -737,7 +737,7 @@
 	no need to call redisplay_window.
 
 
-	* Problem: standard sysV has no file ioctl.h.
+	Problem: standard sysV has no file ioctl.h.
 
 	* process.c, keyboard.c, dispnew.c, sysdep.c:
 	Include ioctl.h in BSD, termio.h and/or fcntl.h in sysV.
@@ -781,7 +781,7 @@
 	Make one sun3 fix machine-independent.
 	(Prevent a_bss from being negative).
 
-	* casefiddle (casify_region):
+	* casefiddle.c (casify_region):
 	New flag value CAPITALIZE_UP which is like CAPITALIZE
 	but changes only the initials.  Function upcase_initials_region
 	is an interface to this mode.
@@ -862,7 +862,7 @@
 	* process.c (pty):
 	On UNIPLUS, don't try opening other side.
 
-	* filelock.l (lock_file_1):
+	* filelock.c (lock_file_1):
 	If lock file is invalid, delete it and continue.
 	If delete fails, ignore the lock.
 
@@ -2762,7 +2762,7 @@
 	work now done in Fredraw_display.
 	Minor changes in InitDsp and in minibuf.
 
-	* TrmAmb.c flushed.
+	* TrmAmb.c: flushed.
 	* Trm*.c: tt.t_init routine now passed no arguments.
 
 1985-06-23  Richard M. Stallman  (rms@mit-prep)

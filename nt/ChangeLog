@@ -936,7 +936,7 @@
 
 1995-04-10  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* src: Removed.
+	* src: Remove directory.
 
 	* src\config.h, src\paths.h: Moved to parent dir, src removed.
 
@@ -971,7 +971,7 @@
 
 	* todo: New file.
 
-	* readme: New file.
+	* README: New file.
 
 	* makefile.nt: New file.
 
@@ -979,7 +979,7 @@
 
         * install.cmd: New file.
 
-        * install: New file.
+        * INSTALL: New file.
 
         * fast-install.cmd: New file.
 

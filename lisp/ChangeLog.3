@@ -2169,7 +2169,7 @@
 	  other keysyms are now default-bound to a function which explains
 	  that the key is not bound to anything, then raises an error.
 
-	* term/READ.ME: terminal package conventions and standard keysym
+	* term/README: terminal package conventions and standard keysym
 	  cookies are now documented here.
 
 	* term/AT386.el: new package installed.	 Handles IBM-AT style
@@ -3589,7 +3589,7 @@
 	* files.el (file-truename): Check for root by seeing if
 	directory-file-name returns same as DIR.
 	Look for a file-truename handler for the file name.
-	* vc-hooks (vc-registered): Look for a vc-registered handler.
+	* vc-hooks.el (vc-registered): Look for a vc-registered handler.
 	But only if file-name-handler-alist is bound.
 	* ange-ftp.el: Add dummy handlers for file-truename and vc-registered.
 	(ange-ftp-add-vms-host, ange-ftp-add-dl-dir, ange-ftp-add-mts-host):
@@ -4681,7 +4681,7 @@
 	(byte-compile-ca*d*r): Deleted.
 	(caar, cadr, ..., cddddr): Define these using defsubst.
 
-	* Installed changes from Zawinski-Furuseth 2.04 to 2.07:
+	Installed changes from Zawinski-Furuseth 2.04 to 2.07:
 	* byte-run.el (dont-compile): Doc fix.
 	(make-obsolete-variable): New function.
 	* bytecomp.el (byte-compile-log-1): Added new optional argument,
@@ -4975,7 +4975,7 @@
 	terminal-dependent file has been loaded.
 
 	* cl.el (byte-compile-named-list-accessors, byte-compile-ca*d*r):
-	Changed these to work correctly with the Zawinski-Furuseth byte
+	Change these to work correctly with the Zawinski-Furuseth byte
 	compiler.
 
 1992-07-31  Robert J. Chassell	(bob@churchy.gnu.ai.mit.edu)
@@ -5712,7 +5712,7 @@
 	* bytecomp.el: Style corrected in calls to error.
 	Many doc strings corrected in style.
 
-	* Repeated the following changes:
+	Repeated the following changes:
 	* bytecomp.el (byte-compile-file): Don't put file name in minibuffer.
 	(byte-compile-buffer): Function commented out.
 
@@ -6720,13 +6720,12 @@
 
 1992-02-27  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
 
-	* hack-local-variables: Don't take a FORCE argument; it's as easy
-	to bind enable-local-variables to t for a while as it is to pass
-	an extra argument, and it's cleaner.
-	* normal-mode: Instead of passing the FORCE argument, bind
+	* files.el (hack-local-variables): Don't take a FORCE argument;
+	it's as easy to bind enable-local-variables to t for a while as it
+	is to pass an extra argument, and it's cleaner.
+	(normal-mode): Instead of passing the FORCE argument, bind
 	enable-local-variables.
-
-	* set-auto-mode: Don't check for the -*- mode tag if
+	(set-auto-mode): Don't check for the -*- mode tag if
 	enable-local-variables is nil.
 
 	* loaddefs.el (auto-mode-alist): There's no reason for this
@@ -6850,7 +6849,7 @@
 
 	* etags.el: support new (find-tag-noselect) entry point.
 
-	* info: patched to restore point on `up' to previously visited buffer.
+	* info.el: patched to restore point on `up' to previously visited buffer.
 
 	* sccs.el: installed 3.5
 
@@ -9056,9 +9055,10 @@
 	* bytecomp.el (symbol-function, fset, read-char): Don't open code them.
 
 1990-10-11  Richard Stallman  (rms@mole.ai.mit.edu)
-
-	* Kill commands on read-only buffers, just copy to kill-ring.
-	* simple.el (kill-region): If read-only, just copy to kill-ring.
+	
+	* simple.el: Kill commands on read-only buffers, just copy to
+	kill-ring.
+	(kill-region): If read-only, just copy to kill-ring.
 	(zap-to-char, kill-line, kill-comment, kill-word):
 	(backward-kill-word, kill-paragraph, backward-kill-paragraph):
 	Allow read-only buffers.

@@ -864,7 +864,7 @@
 	* xterm.c (XTread_socket) [USE_X_TOOLKIT]: Never pass motion
 	events to the toolkit.
 
-	* CONFIGURATION now comes via config.h.
+	CONFIGURATION now comes via config.h.
 	* Makefile.in.in (emacs.o): Use the default .c.o command.
 	(configuration): Make variable deleted.
 	* config.h.in (CONFIGURATION): Add #undef.
@@ -1389,7 +1389,7 @@
 
 	* xterm.c (x_new_font): Fix setting line_height.
 
-	* Support fonts of different heights, using tallest as line height:
+	Support fonts of different heights, using tallest as line height:
 
 	* xfaces.c (frame_update_line_height): New function.
 	(Fset_face_attribute_internal): Call that.
@@ -2790,11 +2790,12 @@
 
 1994-02-09  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* Implement a Motif behavior for the menubar. Now, if you move the 
-	pointer on another menubar item while displaying the contents of a
-	selected menubar item, the current pulldown menu is closed and the new
-	one corresponding to the new pointed item is displayed.
-	* xmenu.c (xmenu_show) [USE_X_TOOLKIT]: Clean up code.
+	* xmenu.c: Implement a Motif behavior for the menubar.
+	Now, if you move the pointer on another menubar item while
+	displaying the contents of a selected menubar item, the current
+	pulldown menu is closed and the new one corresponding to the new
+	pointed item is displayed.
+	(xmenu_show) [USE_X_TOOLKIT]: Clean up code.
 	Handle the MotionNotify events in the XEvent loop.
 
 1994-02-08  Karl Heuer  (kwzh@mole.gnu.ai.mit.edu)
@@ -3122,8 +3123,8 @@
 
 1993-01-18  Frederic Pierresteguy  (F.Pierresteguy@frcl.bull.fr)
 
-	* Support use of X toolkit.
-	(USE_X_TOOLKIT): New macro to conditionalize the use of Xt.
+	Support use of X toolkit.
+	* (USE_X_TOOLKIT): New macro to conditionalize the use of Xt.
 	* widget.c, widgetP.h, widget.h: New files.
 	* frame.h (struct frame): New field external_menu_bar.
 	(FRAME_EXTERNAL_MENU_BAR): New macro.
@@ -4520,7 +4521,7 @@
 
 1993-09-10  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* Support configuring in a different directory when ${srcdir} has
+	Support configuring in a different directory when ${srcdir} has
 	already been configured.
 	* frame.c, xfns.c, xdisp.c, casetab.c, cm.c, casefiddle.c, xterm.c,
 	xrdb.c, eval.c, doc.c, lread.c, callint.c, cmds.c, term.c, fns.c,
@@ -4616,11 +4617,11 @@
 	* sysdep.c (read_input_waiting): If the user specifies
 	`meta-flag', then notice characters with high-bit set.
 
-	* Added fixes from Karl Berry for ISC-2.2.
-	    * s/isc2-2.h (MEMMOVE_MISSING): Define.
-	    (SIGNALS_VIA_CHARACTERS): Define.
-	    (LIB_STANDARD): Do not include -lcposix.
-	    (C_SWITCH_SYSTEM) [__GNUC__]: Do not use -traditional.
+	Added fixes from Karl Berry for ISC-2.2.
+	* s/isc2-2.h (MEMMOVE_MISSING): Define.
+	(SIGNALS_VIA_CHARACTERS): Define.
+	(LIB_STANDARD): Do not include -lcposix.
+	(C_SWITCH_SYSTEM) [__GNUC__]: Do not use -traditional.
 
 1993-08-17  Brian Fox  (bfox@ai.mit.edu)
 
@@ -4969,7 +4970,7 @@
 
 1993-08-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* From daveg@synaptics.com:
+	From daveg@synaptics.com:
 	* keyboard.c (last_mouse_button): Renamed from button_up_button.
 	(last_mouse_x, last_mouse_y): Likewise.
 	(button_down_time): Replaces button_up_time.
@@ -6188,10 +6189,10 @@
 	* window.c (Fdelete_window): Mostly undo last change.
 	Don't initialize `frame' in the declaration.
 
-	* Make prefix keys work with keymap inheritance
+	* keymap.c: Make prefix keys work with keymap inheritance
 	by creating an inheritance structure for each subkeymap
 	that we create in the inheriting keymap.
-	* keymap.c (access_keymap): New arg NOINHERIT.  All calls changed.
+	(access_keymap): New arg NOINHERIT.  All calls changed.
 	(define_as_prefix): New function.
 	(Fdefine_key): Use them.
 
@@ -6273,7 +6274,7 @@
 	Dyke out code requesting -lXbsd and HAVE_RANDOM for XFREE386.
 	* xfns.c (Fx_open_connection): Test HAVE_XRMSETDATABASE instead of
 	NO_XRM_SET_DATABASE; the latter isn't used any more.
-	* m/delta88k, m/tekXD88.h, s/linux.h, s/usg5-4-2.h (HAVE_RANDOM):
+	* m/delta88k.h, m/tekXD88.h, s/linux.h, s/usg5-4-2.h (HAVE_RANDOM):
 	Dyke out these #definitions; to avoid conflict with autoconf.
 
 	* ymakefile (really-oldXMenu): Explicitly pass CC, CFLAGS, and

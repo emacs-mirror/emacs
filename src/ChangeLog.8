@@ -1187,10 +1187,10 @@
 	* alloc.c, buffer.c, editfns.c, xdisp.c: Remove conditional
 	compilation on USE_TEXT_PROPERTIES.
 
-	* Fbyte_code: Use block statements in cases and declare v1 and v2
-	locally there.  Rearrange case statements so that those most
-	frequently executed come first.  Avoid goto's in frequently
-	executed cases.
+	* bytecode.c (Fbyte_code): Use block statements in cases and
+	declare v1 and v2 locally there.  Rearrange case statements so
+	that those most frequently executed come first.  Avoid goto's in
+	frequently executed cases.
 
 1999-11-05  Gerd Moellmann  <gerd@gnu.org>
 

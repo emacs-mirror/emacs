@@ -1865,7 +1865,7 @@
 
 	* mail-source.el (mail-sources): Revert to nil.
 
-	* nnmail (nnmail-spool-file): Revert to `((file))'.
+	* nnmail.el (nnmail-spool-file): Revert to `((file))'.
 
 	* qp.el: Don't require mm-util.
 	(quoted-printable-decode-region): Rewritten.
@@ -2131,7 +2131,7 @@
 
 2000-09-11  Dave Love  <fx@gnu.org>
 
-	* Changelog: Use iso-2022 coding.
+	* ChangeLog: Use iso-2022 coding.
 
 	* gnus-msg.el (gnus-msg-mail): New function.
 	(gnus-user-agent): New mail agent.
@@ -5656,7 +5656,7 @@
 
 1999-10-20  David S. Goldberg  <dsg@mitre.org>
 
-	* mm-decode.el mm-inline-override-types: New variable
+	* mm-decode.el (mm-inline-override-types): New variable
 
 	* mm-decode.el (mm-inline-override-p): New function
 
