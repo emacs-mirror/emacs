@@ -1672,7 +1672,14 @@ C_entries (c_ext)
       /* Detect end of line, after having handled the last token on the line.  */
       if (c == 0)
 	{
-	  CNL;
+	  if (incomm)
+	    {
+	      CNL_SAVE_DEFINEDEF;
+	    }
+	  else
+	    {
+	      CNL;
+	    }
 	  gotone = FALSE;
 	}
       if (c == ';' && tydef == end)	/* clean with typedefs */
