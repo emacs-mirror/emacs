@@ -1507,6 +1507,12 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
+AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+
 dnl checks for structure members
 AC_STRUCT_TM
 AC_STRUCT_TIMEZONE
@@ -1516,7 +1522,14 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr, 
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
-		  struct ifreq.ifr_addr], , ,[#include <net/if.h>])
+		  struct ifreq.ifr_addr], , ,
+		 [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_NET_IF_H
+#include <net/if.h>
+#endif])
 
 dnl checks for compiler characteristics
 
@@ -2510,7 +2523,7 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
 	    [Define to 1 if you have inet sockets.])
 fi
 
-AC_CHECK_HEADERS(sys/ioctl.h net/if.h)
+AC_CHECK_HEADERS(sys/ioctl.h)
 
 if test -f /usr/lpp/X11/bin/smt.exp; then
   AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
