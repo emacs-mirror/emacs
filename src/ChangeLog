@@ -1,3 +1,10 @@
+2002-09-08  Kim F. Storm  <storm@cua.dk>
+
+	* macros.c (executing_macro_index): Change type to EMACS_INT.
+	(syms_of_macros): DEFVAR_INT it  (needed by kmacro).
+
+	* macros.h (executing_macro_index): Change type to EMACS_INT.
+	
 2002-09-06  Richard M. Stallman  <rms@gnu.org>
 
 	* casetab.c (set_case_table): Make canon table point to eqv table.

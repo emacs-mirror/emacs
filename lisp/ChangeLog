@@ -1,5 +1,19 @@
 2002-09-08  Kim F. Storm  <storm@cua.dk>
 
+	* kmacro.el (kmacro-end-and-call-macro): New command to end and
+	call keyboard macro in one step. Bind it to C-x e by default.
+	(kmacro-call-macro): Use format-kbd-macro.
+	(kmacro-step-edit-macro): New command to interactively step edit
+	and execute last keyboard macro.
+	(kmacro-keymap): Bind SPC [C-x C-k SPC] to kmacro-step-edit-macro.
+	(kmacro-step-edit-mini-window-height): New custom var.
+	(kmacro-step-edit-map): New keymap (parent is query-replace-map).
+	(kmacro-step-edit-prefix-commands): New var.
+	(kmacro-step-edit-prompt, kmacro-step-edit-query)
+	(kmacro-step-edit-insert, kmacro-step-edit-pre-command)
+	(kmacro-step-edit-minibuf-setup, kmacro-step-edit-post-command):
+	New aux functions for step editing keyboard macros.
+
 	* subr.el (read-quoted-char): Apply listify-key-sequence to vector
 	returned by this-single-command-raw-keys before appending it to
 	unread-command-event.
