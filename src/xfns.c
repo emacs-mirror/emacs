@@ -192,8 +192,6 @@ extern Lisp_Object Vwindow_system_version;
 /* Mouse map for clicks in windows.  */
 extern Lisp_Object Vglobal_mouse_map;
 
-/* Points to table of defined typefaces.  */
-struct face *x_face_table[MAX_FACES_AND_GLYPHS];
 
 /* Error if we are not connected to X.  */
 static void
@@ -355,14 +353,15 @@ x_set_frame_parameters (f, alist)
 	left = val;
       else
 	{
-	  register Lisp_Object tem;
-	  tem = Fget (prop, Qx_frame_parameter);
-	  if (XTYPE (tem) == Lisp_Int
-	      && XINT (tem) >= 0
-	      && XINT (tem) < sizeof (x_frame_parms)/sizeof (x_frame_parms[0]))
-	    (*x_frame_parms[XINT (tem)].setter)(f, val,
-						get_frame_param (f, prop));
+	  register Lisp_Object param_index = Fget (prop, Qx_frame_parameter);
+	  register Lisp_Object old_value = get_frame_param (f, prop);
+
 	  store_frame_param (f, prop, val);
+	  if (XTYPE (param_index) == Lisp_Int
+	      && XINT (param_index) >= 0
+	      && (XINT (param_index)
+		  < sizeof (x_frame_parms)/sizeof (x_frame_parms[0])))
+	    (*x_frame_parms[XINT (param_index)].setter)(f, val, old_value);
 	}
     }
 
@@ -493,6 +492,7 @@ x_set_foreground_color (f, arg, oldval)
 		      f->display.x->foreground_pixel);
       UNBLOCK_INPUT;
 #endif				/* HAVE_X11 */
+      recompute_basic_faces (f);
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
@@ -526,6 +526,8 @@ x_set_background_color (f, arg, oldval)
       XFreePixmap (temp);
 #endif				/* not HAVE_X11 */
       UNBLOCK_INPUT;
+
+      recompute_basic_faces (f);
 
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -799,25 +801,32 @@ x_set_icon_type (f, arg, oldval)
   UNBLOCK_INPUT;
 }
 
+extern Lisp_Object x_new_font ();
+
 void
 x_set_font (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  unsigned char *name;
-  int result;
+  Lisp_Object result;
 
   CHECK_STRING (arg, 1);
-  name = XSTRING (arg)->data;
 
   BLOCK_INPUT;
-  result = x_new_font (f, name);
+  result = x_new_font (f, XSTRING (arg)->data);
   UNBLOCK_INPUT;
   
-  if (result == 1)
-    error ("Font \"%s\" is not defined", name);
-  if (result == 2)
+  if (EQ (result, Qnil))
+    error ("Font \"%s\" is not defined", XSTRING (arg)->data);
+  else if (EQ (result, Qt))
     error ("the characters of the given font have varying widths");
+  else if (STRINGP (result))
+    {
+      recompute_basic_faces (f);
+      store_frame_param (f, Qfont, result);
+    }
+  else
+    abort ();
 }
 
 void
@@ -1049,240 +1058,6 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	x_set_window_size (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
-
-#ifdef HAVE_X11
-int n_faces;
-
-#if 0
-/* I believe this function is obsolete with respect to the new face display
-   changes.  */
-x_set_face (scr, font, background, foreground, stipple)
-     struct frame *scr;
-     XFontStruct *font;
-     unsigned long background, foreground;
-     Pixmap stipple;
-{
-  XGCValues gc_values;
-  GC temp_gc;
-  unsigned long gc_mask;
-  struct face *new_face;
-  unsigned int width = 16;
-  unsigned int height = 16;
-
-  if (n_faces == MAX_FACES_AND_GLYPHS)
-    return 1;
-
-  /* Create the Graphics Context. */
-  gc_values.font = font->fid;
-  gc_values.foreground = foreground;
-  gc_values.background = background;
-  gc_values.line_width = 0;
-  gc_mask = GCLineWidth | GCFont | GCForeground | GCBackground;
-  if (stipple)
-    {
-      gc_values.stipple
-	= XCreateBitmapFromData (x_current_display, ROOT_WINDOW,
-				 (char *) stipple, width, height);
-      gc_mask |= GCStipple;
-    }
-
-  temp_gc = XCreateGC (x_current_display, FRAME_X_WINDOW (scr),
-		       gc_mask, &gc_values);
-  if (!temp_gc)
-    return 1;
-  new_face = (struct face *) xmalloc (sizeof (struct face));
-  if (!new_face)
-    {
-      XFreeGC (x_current_display, temp_gc);
-      return 1;
-    }
-
-  new_face->font = font;
-  new_face->foreground = foreground;
-  new_face->background = background;
-  new_face->face_gc = temp_gc;
-  if (stipple)
-    new_face->stipple = gc_values.stipple;
-
-  x_face_table[++n_faces] = new_face;
-  return 1;
-}
-#endif
-
-x_set_glyph (scr, glyph)
-{
-}
-
-#if 0
-DEFUN ("x-set-face-font", Fx_set_face_font, Sx_set_face_font, 4, 2, 0,
-  "Specify face table entry FACE-CODE to be the font named by FONT,\n\
-   in colors FOREGROUND and BACKGROUND.")
-  (face_code, font_name, foreground, background)
-     Lisp_Object face_code;
-     Lisp_Object font_name;
-     Lisp_Object foreground;
-     Lisp_Object background;
-{
-  register struct face *fp;	/* Current face info. */
-  register int fn;		/* Face number. */
-  register FONT_TYPE *f;	/* Font data structure. */
-  unsigned char *newname;
-  int fg, bg;
-  GC temp_gc;
-  XGCValues gc_values;
-
-  /* Need to do something about this. */
-  Drawable drawable = FRAME_X_WINDOW (selected_frame);
-
-  CHECK_NUMBER (face_code, 1);
-  CHECK_STRING (font_name,  2);
-
-  if (EQ (foreground, Qnil) || EQ (background, Qnil))
-    {
-      fg = selected_frame->display.x->foreground_pixel;
-      bg = selected_frame->display.x->background_pixel;
-    }
-  else
-    {
-      CHECK_NUMBER (foreground, 0);
-      CHECK_NUMBER (background, 1);
-
-      fg = x_decode_color (XINT (foreground), BLACK_PIX_DEFAULT);
-      bg = x_decode_color (XINT (background), WHITE_PIX_DEFAULT);
-    }
-
-  fn = XINT (face_code);
-  if ((fn < 1) || (fn > 255))
-    error ("Invalid face code, %d", fn);
-
-  newname = XSTRING (font_name)->data;
-  BLOCK_INPUT;
-  f = (*newname == 0 ? 0 : XGetFont (newname));
-  UNBLOCK_INPUT;
-  if (f == 0)
-    error ("Font \"%s\" is not defined", newname);
-
-  fp = x_face_table[fn];
-  if (fp == 0)
-    {
-      x_face_table[fn] = fp = (struct face *) xmalloc (sizeof (struct face));
-      bzero (fp, sizeof (struct face));
-      fp->face_type = x_pixmap;
-    }
-  else if (FACE_IS_FONT (fn))
-    {
-      BLOCK_INPUT;
-      XFreeGC (FACE_FONT (fn));
-      UNBLOCK_INPUT;
-    }
-  else if (FACE_IS_IMAGE (fn)) /* This should not happen... */
-    {
-      BLOCK_INPUT;
-      XFreePixmap (x_current_display, FACE_IMAGE (fn));
-      fp->face_type = x_font;
-      UNBLOCK_INPUT;
-    }
-  else
-    abort ();
-
-  fp->face_GLYPH.font_desc.font = f;
-  gc_values.font = f->fid;
-  gc_values.foreground = fg;
-  gc_values.background = bg;
-  fp->face_GLYPH.font_desc.face_gc = XCreateGC (x_current_display,
-					       drawable, GCFont | GCForeground
-					       | GCBackground, &gc_values);
-  fp->face_GLYPH.font_desc.font_width = FONT_WIDTH (f);
-  fp->face_GLYPH.font_desc.font_height = FONT_HEIGHT (f);
-
-  return face_code;
-}
-#endif
-#else	/* X10 */
-DEFUN ("x-set-face", Fx_set_face, Sx_set_face, 4, 4, 0,
-  "Specify face table entry FACE-CODE to be the font named by FONT,\n\
-   in colors FOREGROUND and BACKGROUND.")
-  (face_code, font_name, foreground, background)
-     Lisp_Object face_code;
-     Lisp_Object font_name;
-     Lisp_Object foreground;
-     Lisp_Object background;
-{
-  register struct face *fp;	/* Current face info. */
-  register int fn;		/* Face number. */
-  register FONT_TYPE *f;	/* Font data structure. */
-  unsigned char *newname;
-
-  CHECK_NUMBER (face_code, 1);
-  CHECK_STRING (font_name,  2);
-
-  fn = XINT (face_code);
-  if ((fn < 1) || (fn > 255))
-    error ("Invalid face code, %d", fn);
-
-  /* Ask the server to find the specified font.  */
-  newname = XSTRING (font_name)->data;
-  BLOCK_INPUT;
-  f = (*newname == 0 ? 0 : XGetFont (newname));
-  UNBLOCK_INPUT;
-  if (f == 0)
-    error ("Font \"%s\" is not defined", newname);
-
-  /* Get the face structure for face_code in the face table.
-     Make sure it exists.  */
-  fp = x_face_table[fn];
-  if (fp == 0)
-    {
-      x_face_table[fn] = fp = (struct face *) xmalloc (sizeof (struct face));
-      bzero (fp, sizeof (struct face));
-    }
-
-  /* If this face code already exists, get rid of the old font.  */
-  if (fp->font != 0 && fp->font != f)
-    {
-      BLOCK_INPUT;
-      XLoseFont (fp->font);
-      UNBLOCK_INPUT;
-    }
-
-  /* Store the specified information in FP.  */
-  fp->fg = x_decode_color (foreground, BLACK_PIX_DEFAULT);
-  fp->bg = x_decode_color (background, WHITE_PIX_DEFAULT);
-  fp->font = f;
-
-  return face_code;
-}
-#endif	/* X10 */
-
-#if 0
-/* This is excluded because there is no painless way
-   to get or to remember the name of the font.  */
-
-DEFUN ("x-get-face", Fx_get_face, Sx_get_face, 1, 1, 0,
-  "Get data defining face code FACE.  FACE is an integer.\n\
-The value is a list (FONT FG-COLOR BG-COLOR).")
-  (face)
-     Lisp_Object face;
-{
-  register struct face *fp;	/* Current face info. */
-  register int fn;		/* Face number. */
-
-  CHECK_NUMBER (face, 1);
-  fn = XINT (face);
-  if ((fn < 1) || (fn > 255))
-    error ("Invalid face code, %d", fn);
-
-  /* Make sure the face table exists and this face code is defined.  */
-  if (x_face_table == 0 || x_face_table[fn] == 0)
-    return Qnil;
-
-  fp = x_face_table[fn];
-
-  return Fcons (build_string (fp->name),
-       	 Fcons (make_number (fp->fg),
-       		Fcons (make_number (fp->bg), Qnil)));
-}
-#endif /* 0 */
 
 /* Subroutines of creating an X frame.  */
 
@@ -1819,8 +1594,6 @@ x_make_gc (f)
 	f->display.x->background_pixel,
 	DefaultDepth (x_current_display, XDefaultScreen (x_current_display))));
 
-  init_frame_faces (f);
-
   UNBLOCK_INPUT;
 }
 #endif /* HAVE_X11 */
@@ -1925,6 +1698,7 @@ be shared by the new frame.")
   x_window (f);
   x_icon (f, parms);
   x_make_gc (f);
+  init_frame_faces (f);
 
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
@@ -2325,23 +2099,6 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
 }
 #endif /* not HAVE_X11 */
 
-extern int face_name_id_number ();
-
-/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
-   We assume that they're both character-cell fonts.  */
-int
-same_size_fonts (font1, font2)
-     XFontStruct *font1, *font2;
-{
-  XCharStruct *bounds1 = &font1->min_bounds;
-  XCharStruct *bounds2 = &font2->min_bounds;
-
-  return (bounds1->width == bounds2->width
-	  && bounds1->ascent == bounds2->ascent
-	  && bounds1->descent == bounds2->descent);
-}
-
-
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 3, 0,
   "Return a list of the names of available fonts matching PATTERN.\n\
 If optional arguments FACE and FRAME are specified, return only fonts\n\
@@ -2384,13 +2141,13 @@ fonts), even if they match PATTERN and FACE.")
 	face_id = 0;
       size_ref = FRAME_FACES (f) [face_id]->font;
       if (size_ref == (XFontStruct *) (~0))
-	size_ref = FRAME_DEFAULT_FACE (f)->font;
+	size_ref = f->display.x->font;
     }
 
   BLOCK_INPUT;
   names = XListFontsWithInfo (x_current_display,
 			      XSTRING (pattern)->data,
-			      30000, /* maxnames */
+			      2000, /* maxnames */
 			      &num_fonts, /* count_return */
 			      &info); /* info_return */
   UNBLOCK_INPUT;
@@ -2402,10 +2159,8 @@ fonts), even if they match PATTERN and FACE.")
     list = Qnil;
     tail = &list;
     for (i = 0; i < num_fonts; i++)
-      /* Is this an acceptable font?  */
-      if (! info[i].per_char
-	  && (! size_ref 
-	      || same_size_fonts (&info[i], size_ref)))
+      if (! size_ref 
+	  || same_size_fonts (&info[i], size_ref))
 	{
 	  *tail = Fcons (build_string (names[i]), Qnil);
 	  tail = &XCONS (*tail)->cdr;
@@ -3939,7 +3694,6 @@ unless you set the mouse color.");
   defsubr (&Sx_get_default);
   defsubr (&Sx_store_cut_buffer);
   defsubr (&Sx_get_cut_buffer);
-  defsubr (&Sx_set_face);
 #endif
   defsubr (&Sx_parse_geometry);
   defsubr (&Sx_create_frame);
