@@ -2,6 +2,10 @@
 
 	* coding.c (code_convert_region): Be sure to initialize
 	coding->category_idx.
+	(decode_coding_string): Set coding->src_multibyte and
+	coding->dst_multibyte before using CODING_REQUIRE_DECODING.
+	(encode_coding_string): Set coding->src_multibyte and
+	coding->dst_multibyte before using CODING_REQUIRE_ENCODING.
 
 2000-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
