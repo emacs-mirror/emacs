@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1998, 1999  Free Software Foundation, Inc.
 
-;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.4.6
+;; Author: Alex Schroeder <alex@gnu.org>
+;; Maintainer: Alex Schroeder <alex@gnu.org>
+;; Version: 1.4.7
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -27,9 +27,9 @@
 ;;; Commentary:
 
 ;; Please send bug reports and bug fixes to the mailing list at
-;; sql.el@gnu.org (or sql.el@bsiag.com).  If you want to subscribe to
-;; the mailing list, send mail to sql.el-request@gnu.org with
-;; `subscribe sql.el FIRSTNAME LASTNAME' in the subject line.
+;; sql.el@gnu.org. If you want to subscribe to the mailing list, send
+;; mail to sql.el-request@gnu.org with 'subscribe sql.el FIRSTNAME
+;; LASTNAME' in the mail body.
 
 ;; You can get the latest version of this file from my homepage
 ;; <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>.
@@ -160,12 +160,6 @@ buffer is shown using `display-buffer'."
 
 (defcustom sql-input-ring-file-name nil
   "*If non-nil, name of the file to read/write input history.
-
-You have to set this variable if you want the history of your commands
-saved from one Emacs session to the next.  If this variable is set,
-exiting the SQL interpreter in an SQLi buffer will write the input
-history to the specified file.  Starting a new process in a SQLi buffer
-will read the input history from the specified file.
 
 You have to set this variable if you want the history of your commands
 saved from one Emacs session to the next.  If this variable is set,
@@ -711,6 +705,7 @@ function like this: (sql-get-login 'user 'password 'database)."
       (setq sql-database 
 	    (read-from-minibuffer "Database: " sql-database nil nil
 				  sql-database-history))))
+
 (defun sql-set-sqli-buffer ()
   "Set the SQLi buffer SQL strings are sent to.
 
@@ -1083,7 +1078,7 @@ If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
 Interpreter used comes from variable `sql-sybase-program'.  Login uses
-the variables `sql-user', `sql-password', and `sql-database' as
+the variables `sql-user', `sql-password', and `sql-server' as
 defaults, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
@@ -1100,15 +1095,15 @@ The default comes from `process-coding-system-alist' and
   (interactive)
   (if (comint-check-proc "*SQL*")
       (pop-to-buffer "*SQL*")
-    (sql-get-login 'user 'password 'database)
+    (sql-get-login 'user 'password 'server)
     (message "Login...")
     ;; Put all parameters to the program (if defined) in a list and call
     ;; make-comint.
     (let ((params '("-w" "2048" "-n")))
-      ;; I had a zillion versions of this using nconc and mapcar,
-      ;; mixtures of eval, list and quotes -- you have been warned.
-      (if (not (string= "" sql-database))
-	  (setq params (append (list "-S" sql-database) params)))
+      ;; There is no way to specify the database via command line
+      ;; parameters.  The -S option specifies the server.
+      (if (not (string= "" sql-server))
+	  (setq params (append (list "-S" sql-server) params)))
       (if (not (string= "" sql-password))
 	  (setq params (append (list "-P" sql-password) params)))
       (if (not (string= "" sql-user))
