@@ -435,6 +435,7 @@ current_lock_owner (owner, lfname)
     {
       bufsize *= 2;
       lfinfo = (char *) xrealloc (lfinfo, bufsize);
+      errno = 0;
       len = readlink (lfname, lfinfo, bufsize);
 #ifdef ERANGE
       /* HP-UX reports ERANGE if the buffer is too small.  */
