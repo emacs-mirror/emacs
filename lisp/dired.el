@@ -775,10 +775,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map [mouse-2] 'dired-mouse-find-file-other-window)
     ;; Commands to mark or flag certain categories of files
     (define-key map "#" 'dired-flag-auto-save-files)
-    (define-key map "*" 'dired-mark-executables)
     (define-key map "." 'dired-clean-directory)
-    (define-key map "/" 'dired-mark-directories)
-    (define-key map "@" 'dired-mark-symlinks)
     (define-key map "~" 'dired-flag-backup-files)
     ;; Upper case keys (except !) for operating on the marked files
     (define-key map "A" 'dired-do-search)
@@ -823,8 +820,21 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "%H" 'dired-do-hardlink-regexp)
     (define-key map "%R" 'dired-do-rename-regexp)
     (define-key map "%S" 'dired-do-symlink-regexp)
+    ;; Commands for marking and unmarking.
+    (define-key map "*" nil)
+    (define-key map "**" 'dired-mark-executables)
+    (define-key map "*/" 'dired-mark-directories)
+    (define-key map "*@" 'dired-mark-symlinks)
+    (define-key map "*%" 'dired-mark-files-regexp)
+    (define-key map "*c" 'dired-change-marks)
+    (define-key map "*m" 'dired-mark)
+    (define-key map "*u" 'dired-unmark)
+    (define-key map "*?" 'dired-unmark-all-files)
+    (define-key map "*!" 'dired-unmark-all-files-noquery)
+    (define-key map "*\177" 'dired-unmark-backward)
+    (define-key map "*\C-n" 'dired-next-marked-file)
+    (define-key map "*\C-p" 'dired-prev-marked-file)
     ;; Lower keys for commands not operating on all the marked files
-    (define-key map "c" 'dired-change-marks)
     (define-key map "d" 'dired-flag-file-deletion)
     (define-key map "e" 'dired-find-file)
     (define-key map "f" 'dired-find-file)
