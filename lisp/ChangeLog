@@ -1,3 +1,10 @@
+2003-05-06  Lute Kamstra  <lute@occarina.pna.cwi.nl>
+
+	* hl-line.el: Removed an erroneous comment.
+	(hl-line-mode): Use buffer local hooks.
+	(global-hl-line-mode): Turn local modes on unconditionally.
+	(hl-line-highlight): Comment fix.
+
 2003-05-06  Richard M. Stallman  <rms@gnu.org>
 
 	* newcomment.el (comment-search-forward): Delete autoload cookie.
