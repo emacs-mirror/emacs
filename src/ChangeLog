@@ -1,3 +1,20 @@
+2005-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (fringe_faces): Change to Lisp_Object pointer.
+	(draw_fringe_bitmap_1): Lookup user defined fringe faces here.
+	(destroy_fringe_bitmap): Set fringe_faces element to nil.
+	(Fdefine_fringe_bitmap, init_fringe): Change allocation of
+	fringe_faces array and init elements to nil.
+	(Fset_fringe_bitmap_face): Set fringe_faces to face name instead of
+	non-persistent face id.
+	(mark_fringe_data): New function for GC.
+
+	* alloc.c (mark_fringe_data): Declare extern.
+	(Fgarbage_collect): Call mark_fringe_data.
+
+	* alloc.c (overrun_check_free): Invalidate freed memory if
+	XMALLOC_CLEAR_FREE_MEMORY is defined.
+
 2005-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c: Include sys/param.h.

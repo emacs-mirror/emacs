@@ -1,3 +1,10 @@
+2005-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (completion-list-mode-map): Map follow-link to mouse-face.
+
+	* man.el (Man-xref-man-page, Man-xref-header-file)
+	(Man-xref-normal-file): Add follow-link property.
+
 2005-01-06  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-units.el: Make sure the proper macro definitions are
