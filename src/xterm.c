@@ -3631,12 +3631,10 @@ x_bitmap_icon (f)
     return 1;
 
 #ifdef HAVE_X11
-  if (icon_bitmap)
-    XFreePixmap (x_current_display, icon_bitmap);
-  
-  icon_bitmap =
-    XCreateBitmapFromData (x_current_display, FRAME_X_WINDOW (f),
-			   gnu_bits, gnu_width, gnu_height);
+  if (! icon_bitmap)
+    icon_bitmap =
+      XCreateBitmapFromData (x_current_display, FRAME_X_WINDOW (f),
+			     gnu_bits, gnu_width, gnu_height);
   x_wm_set_icon_pixmap (f, icon_bitmap);
   f->display.x->icon_bitmap_flag = 1;
 #else /* ! defined (HAVE_X11) */
