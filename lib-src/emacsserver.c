@@ -69,8 +69,9 @@ main ()
   FILE **openfiles;
   int openfiles_size;
 
-  int geteuid ();
+#ifndef convex
   char *getenv ();
+#endif
 
   openfiles_size = 20;
   openfiles = (FILE **) malloc (openfiles_size * sizeof (FILE *));
