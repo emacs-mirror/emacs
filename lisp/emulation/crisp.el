@@ -1,9 +1,9 @@
-;;; crisp.el --- Emulator for CRiSP and Brief key bindings
+;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
-;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
-;; Keywords: emulations
+;; Author: Gary D. Foster <gfoster@suzieq.ml.org>
+;; Keywords: emulations brief crisp
 
 ;; This file is part of GNU Emacs.
 
@@ -22,26 +22,31 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;; CRiSP is a registered trademark of Foxtrot Systems Ltd.
+
 ;;; Commentary:
 
-;; This file provides keybindings and minor functions to duplicate the
-;; functionality and finger-feel of the CRiSP/Brief editor.  This
-;; package is designed to facilitate transitioning from Brief to Emacs
-;; with a minimum amount of hassles.
+;; Keybindings and minor functions to duplicate the functionality and
+;; finger-feel of the CRiSP/Brief editor.  This package is designed to
+;; facilitate transitioning from Brief to (XE|E)macs with a minimum
+;; amount of hassles.
 
-;; Enable this package by putting the following in your .emacs
-;; (require 'crisp)
-;; and use M-x crisp-mode to toggle it on or off.
+;; Enable this package by putting (require 'crisp) in your .emacs and
+;; use M-x crisp-mode to toggle it on or off.
 
-;; This package will automatically default to loading the scroll-all.el
-;; package unless you put (setq crisp-load-scroll-lock nil) in your
-;; .emacs.  If this feature is enabled, it will bind Meta-F1 to the
-;; scroll-all mode toggle.
+;; This package will automatically load the scroll-all.el package if
+;; you put (setq crisp-load-scroll-all t) in your .emacs before
+;; loading this package.  If this feature is enabled, it will bind
+;; meta-f1 to the scroll-all mode toggle.  The scroll-all package
+;; duplicates the scroll-alling feature in CRiSP.
 
-;; Also, the default keybindings for this mode override the Meta-x key to
-;; make it exit the editor.  If you don't like this change, you can
-;; prevent this key from being rebound with
-;; (setq crisp-override-meta-x nil) in your .emacs.
+;; Also, the default keybindings for brief/CRiSP override the M-x
+;; key to exit the editor.  If you don't like this functionality, you
+;; can prevent this behavior (or redefine it dynamically) by setting
+;; the value of `crisp-override-meta-x' either in your .emacs or
+;; interactively.  The default setting is nil, which means that M-x will
+;; by default run `execute-extended-command' instead of the command
+;; `save-buffers-kill-emacs'.
 
 ;; Finally, if you want to change the string displayed in the modeline
 ;; when this mode is in effect, override the definition of
@@ -51,23 +56,30 @@
 
 ;; All these overrides should go *before* the (require 'crisp) statement.
 
+;; Code:
+
+(require 'cl)
+
+;; local variables
+
 (defgroup crisp nil
   "Emulator for CRiSP and Brief key bindings."
   :prefix "crisp-"
   :group 'emulations)
 
-;; local variables
-
-(defvar crisp-mode-map (copy-keymap (current-global-map))
+(defvar crisp-mode-map (let ((map (make-sparse-keymap)))
+			 (set-keymap-parent map (current-global-map))
+			 map)
   "Local keymap for CRiSP emulation mode.
-All the emulation bindings are done here instead of globally.")
+All the bindings are done here instead of globally to try and be
+nice to the world.")
 
 (defcustom crisp-mode-modeline-string " *CRiSP*"
-  "String to display in the modeline when CRiSP emulation mode is enabled."
+  "*String to display in the modeline when CRiSP emulation mode is enabled."
   :type 'string
   :group 'crisp)
 
-(defvar crisp-mode-original-keymap (copy-keymap (current-global-map))
+(defvar crisp-mode-original-keymap (current-global-map)
   "The original keymap before CRiSP emulation mode remaps anything.
 This keymap is restored when CRiSP emulation mode is disabled.")
 
@@ -79,41 +91,89 @@ indicates CRiSP mode is enabled."
   :group 'crisp)
 
 (defcustom crisp-override-meta-x t
-  "Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
-Normally the CRiSP emulator rebinds M-x to save-buffers-exit-emacs
-and provides the usual M-x functionality on the F10 key.
-
-If this variable is nil when you start the CRiSP emulator, it
-does not alter the binding of M-x."
+  "*Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
+Normally the CRiSP emulator rebinds M-x to save-buffers-exit-emacs and
+provides the usual M-x functionality on the F10 key.  If this variable
+is non-nil, M-x will exit Emacs."
   :type 'boolean
   :group 'crisp)
 
-(defcustom crisp-load-scroll-all t
-  "Controls loading of the Scroll All mode in the CRiSP emulator.
-Its Default behavior is to load and enable the Scroll All minor mode
+(defcustom crisp-load-scroll-all nil
+  "Controls loading of the Scroll Lock in the CRiSP emulator.
+Its default behavior is to load and enable the Scroll Lock minor mode
 package when enabling the CRiSP emulator.
 
 If this variable is nil when you start the CRiSP emulator, it
-does not load Scroll All."
+does not load the scroll-all package."
   :type 'boolean
   :group 'crisp)
 
 (defcustom crisp-load-hook nil
-  "Hooks to run after loadint the CRiSP emulator package."
+  "Hooks to run after loading the CRiSP emulator package."
   :type 'hook
   :group 'crisp)
 
-(defvar crisp-version "crisp.el release 1.1/$Revision: 1.6 $"
-  "The release number and RCS version for the CRiSP emulator.")
+(defconst crisp-version "1.33"
+  "The version of the CRiSP emulator.")
 
+(defconst crisp-mode-help-address "gfoster@suzieq.ml.org"
+  "The email address of the CRiSP mode author/maintainer.")
+
+;; Silence the byte-compiler.
 (defvar crisp-last-last-command nil
-  "The command *before* the last command.")
+  "The previous value of last-command.")
 
-(if (string-match "XEmacs\\Lucid" emacs-version)
-    (add-minor-mode 'crisp-mode-enabled crisp-mode-modeline-string)
-  (or (assq 'crisp-mode-enabled minor-mode-alist)
-      (setq minor-mode-alist
-	    (cons '(crisp-mode-enabled crisp-mode-modeline-string) minor-mode-alist))))
+;; The cut and paste routines are different between XEmacs and Emacs
+;; so we need to set up aliases for the functions.
+
+(if (and (not (fboundp 'copy-primary-selection))
+	 (fboundp 'clipboard-kill-ring-save))
+    (defalias 'copy-primary-selection 'clipboard-kill-ring-save))
+
+(if (and (not (fboundp 'kill-primary-selection))
+	 (fboundp 'clipboard-kill-region))
+    (defalias 'kill-primary-selection 'clipboard-kill-region))
+
+(if (and (not (fboundp 'yank-clipboard-selection))
+	 (fboundp 'clipboard-yank))
+    (defalias 'yank-clipboard-selection 'clipboard-yank))
+
+;; 'mark-something is very useful for marking arbitrary areas
+;; so I stole it from simple.el in XEmacs.
+
+(if (not (fboundp 'mark-something))
+    (defun mark-something (mark-fn movement-fn arg)
+  "Compatibility function swiped from XEmacs."
+  (let (newmark (pushp t))
+    (save-excursion
+      (if (and (eq last-command mark-fn) (mark))
+	  ;; Extend the previous state in the same direction:
+	  (progn
+	    (if (< (mark) (point)) (setq arg (- arg)))
+	    (goto-char (mark))
+	    (setq pushp nil)))
+      (funcall movement-fn arg)
+      (setq newmark (point)))
+    (if pushp
+	(push-mark newmark nil t)
+      ;; Do not mess with the mark stack, but merely adjust the previous state:
+      (set-mark newmark)
+      (activate-region)))))
+
+;; force transient-mark-mode in Emacs, so that the marking routines
+;; work as expected.  If the user turns off transient mark mode,
+;; most things will still work fine except the crisp-(copy|kill)
+;; functions won't work quite as nicely when regions are marked
+;; differently and could really confuse people.  Caveat emptor.
+
+(if (fboundp 'transient-mark-mode)
+    (transient-mark-mode t))
+
+(defun region-active ()
+  "Compatibility function to test for an active region."
+  (if (boundp 'zmacs-region-active-p)
+      zmacs-region-active-p
+    mark-active))
 
 ;; and now the keymap defines
 
@@ -131,65 +191,139 @@ does not load Scroll All."
 
 (define-key crisp-mode-map [(f5)]           'search-forward-regexp)
 (define-key crisp-mode-map [(f19)]          'search-forward-regexp)
-(define-key crisp-mode-map [(meta f5)]       'search-backward-regexp)
+(define-key crisp-mode-map [(meta f5)]      'search-backward-regexp)
 
 (define-key crisp-mode-map [(f6)]           'query-replace)
 
 (define-key crisp-mode-map [(f7)]           'start-kbd-macro)
-(define-key crisp-mode-map [(meta f7)]       'end-kbd-macro)
+(define-key crisp-mode-map [(meta f7)]      'end-kbd-macro)
 
 (define-key crisp-mode-map [(f8)]           'call-last-kbd-macro)
 (define-key crisp-mode-map [(meta f8)]      'save-kbd-macro)
 
 (define-key crisp-mode-map [(f9)]           'find-file)
-(define-key crisp-mode-map [(meta f9)]       'load-library)
+(define-key crisp-mode-map [(meta f9)]      'load-library)
 
 (define-key crisp-mode-map [(f10)]          'execute-extended-command)
-(define-key crisp-mode-map [(meta f10)]      'compile)
+(define-key crisp-mode-map [(meta f10)]     'compile)
 
-(define-key crisp-mode-map [(SunF37)]          'kill-buffer)
-(define-key crisp-mode-map [(kp-add)]       'x-copy-primary-selection)
-(define-key crisp-mode-map [(kp-subtract)]  'x-kill-primary-selection)
-(define-key crisp-mode-map [(insert)]       'x-yank-clipboard-selection)
-(define-key crisp-mode-map [(f16)]          'x-copy-primary-selection) ; copy on Sun5 kbd
-(define-key crisp-mode-map [(f20)]          'x-kill-primary-selection) ; cut on Sun5 kbd 
-(define-key crisp-mode-map [(f18)]          'x-yank-clipboard-selection) ; paste on Sun5 kbd
+(define-key crisp-mode-map [(SunF37)]       'kill-buffer)
+(define-key crisp-mode-map [(kp-add)]       'crisp-copy-line)
+(define-key crisp-mode-map [(kp-subtract)]  'crisp-kill-line)
+;; just to cover all the bases (GNU Emacs, for instance)
+(define-key crisp-mode-map [(f24)]          'crisp-kill-line)
+(define-key crisp-mode-map [(insert)]       'yank-clipboard-selection)
+(define-key crisp-mode-map [(f16)]          'copy-primary-selection) ; copy on Sun5 kbd
+(define-key crisp-mode-map [(f20)]          'kill-primary-selection) ; cut on Sun5 kbd 
+(define-key crisp-mode-map [(f18)]          'yank-clipboard-selection) ; paste on Sun5 kbd
 
-(define-key crisp-mode-map [(meta d)]       (lambda () (interactive) (beginning-of-line) (kill-line)))
+(define-key crisp-mode-map [(control f)]    'fill-paragraph-or-region)
+(define-key crisp-mode-map [(meta d)]       (lambda ()
+					      (interactive)
+					      (beginning-of-line) (kill-line)))
 (define-key crisp-mode-map [(meta e)]       'find-file)
 (define-key crisp-mode-map [(meta g)]       'goto-line)
 (define-key crisp-mode-map [(meta h)]       'help)
 (define-key crisp-mode-map [(meta i)]       'overwrite-mode)
 (define-key crisp-mode-map [(meta j)]       'bookmark-jump)
+(define-key crisp-mode-map [(meta l)]       'crisp-mark-line)
+(define-key crisp-mode-map [(meta m)]       'set-mark-command)
+(define-key crisp-mode-map [(meta n)]       'bury-buffer)
+(define-key crisp-mode-map [(meta p)]       'crisp-unbury-buffer)
 (define-key crisp-mode-map [(meta u)]       'advertised-undo)
 (define-key crisp-mode-map [(f14)]          'advertised-undo)
 (define-key crisp-mode-map [(meta w)]       'save-buffer)
-(if
- (eq crisp-override-meta-x 't)
-  (define-key crisp-mode-map [(meta x)]     'save-buffers-kill-emacs))
-(define-key crisp-mode-map [(meta ?0)]      (lambda () (interactive) (bookmark-set "0")))
-(define-key crisp-mode-map [(meta ?1)]      (lambda () (interactive) (bookmark-set "1")))
-(define-key crisp-mode-map [(meta ?2)]      (lambda () (interactive) (bookmark-set "2")))
-(define-key crisp-mode-map [(meta ?3)]      (lambda () (interactive) (bookmark-set "3")))
-(define-key crisp-mode-map [(meta ?4)]      (lambda () (interactive) (bookmark-set "4")))
-(define-key crisp-mode-map [(meta ?5)]      (lambda () (interactive) (bookmark-set "5")))
-(define-key crisp-mode-map [(meta ?6)]      (lambda () (interactive) (bookmark-set "6")))
-(define-key crisp-mode-map [(meta ?7)]      (lambda () (interactive) (bookmark-set "7")))
-(define-key crisp-mode-map [(meta ?8)]      (lambda () (interactive) (bookmark-set "8")))
-(define-key crisp-mode-map [(meta ?9)]      (lambda () (interactive) (bookmark-set "9")))
+(define-key crisp-mode-map [(meta x)]       'crisp-meta-x-wrapper)
+(define-key crisp-mode-map [(meta ?0)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "0")))
+(define-key crisp-mode-map [(meta ?1)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "1")))
+(define-key crisp-mode-map [(meta ?2)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "2")))
+(define-key crisp-mode-map [(meta ?3)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "3")))
+(define-key crisp-mode-map [(meta ?4)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "4")))
+(define-key crisp-mode-map [(meta ?5)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "5")))
+(define-key crisp-mode-map [(meta ?6)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "6")))
+(define-key crisp-mode-map [(meta ?7)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "7")))
+(define-key crisp-mode-map [(meta ?8)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "8")))
+(define-key crisp-mode-map [(meta ?9)]      (lambda ()
+					      (interactive)
+					      (bookmark-set "9")))
 
-(define-key crisp-mode-map [(shift right)]  'fkey-forward-word)
-(define-key crisp-mode-map [(shift left)]   'fkey-backward-word)
-(define-key crisp-mode-map [(shift delete)] 'kill-word)
+(define-key crisp-mode-map [(shift delete)]    'kill-word)
 (define-key crisp-mode-map [(shift backspace)] 'backward-kill-word)
-(define-key crisp-mode-map [(control left)] 'backward-word)
-(define-key crisp-mode-map [(control right)] 'forward-word)
+(define-key crisp-mode-map [(control left)]    'backward-word)
+(define-key crisp-mode-map [(control right)]   'forward-word)
 
-(define-key crisp-mode-map [(home)] 'crisp-home)
-(define-key crisp-mode-map [(end)] 'crisp-end)
+(define-key crisp-mode-map [(home)]            'crisp-home)
+(define-key crisp-mode-map [(control home)]    (lambda ()
+						 (interactive)
+						 (move-to-window-line 0)))
+(define-key crisp-mode-map [(meta home)]       'beginning-of-line)
+(define-key crisp-mode-map [(end)]             'crisp-end)
+(define-key crisp-mode-map [(control end)]     (lambda ()
+						 (interactive)
+						 (move-to-window-line -1)))
+(define-key crisp-mode-map [(meta end)]        'end-of-line)
+
+(define-key crisp-mode-map [(control c) (b)]   'crisp-submit-bug-report)
+
+(defun crisp-version (&optional arg)
+  "Version number of the CRiSP emulator package.
+If ARG, insert results at point."
+  (interactive "P")
+  (let ((foo (concat "CRiSP version " crisp-version)))
+    (if arg
+	(insert (message foo))
+      (message foo))))
+
+(defun crisp-mark-line (arg)
+  "Put mark at the end of line.  Arg works as in `end-of-line'."
+  (interactive "p")
+  (mark-something 'crisp-mark-line 'end-of-line arg))
+
+(defun crisp-kill-line (arg)
+  "Mark and kill line(s).
+Marks from point to end of the current line (honoring prefix arguments),
+copies the region to the kill ring and clipboard, and then deletes it."
+  (interactive "*p")
+  (if (region-active)
+      (call-interactively 'kill-primary-selection)
+    (crisp-mark-line arg)
+    (call-interactively 'kill-primary-selection)))
+
+(defun crisp-copy-line (arg)
+  "Mark and copy line(s).
+Marks from point to end of the current line (honoring prefix arguments),
+copies the region to the kill ring and clipboard, and then deactivates
+the region."
+  (interactive "*p")
+    (if (region-active)
+	(call-interactively 'copy-primary-selection)
+      (crisp-mark-line arg)
+      (call-interactively 'copy-primary-selection))
+    ;; clear the region after the operation is complete
+    ;; XEmacs does this automagically, Emacs doesn't.
+    (if (boundp 'mark-active)
+	(setq mark-active nil)))
 
 (defun crisp-home ()
-  "\"Home\" point, the way CRiSP would do it.
+  "\"Home\" the point, the way CRiSP would do it.
 The first use moves point to beginning of the line.  Second
 consecutive use moves point to beginning of the screen.  Third
 consecutive use moves point to the beginning of the buffer."
@@ -205,13 +339,14 @@ consecutive use moves point to the beginning of the buffer."
   (setq crisp-last-last-command last-command))
 
 (defun crisp-end ()
-  "\"End\" point, the way CRiSP would do it.
+  "\"End\" the point, the way CRiSP would do it.
 The first use moves point to end of the line.  Second
 consecutive use moves point to the end of the screen.  Third
 consecutive use moves point to the end of the buffer."
   (interactive nil)
   (cond
-    ((and (eq last-command 'crisp-end) (eq crisp-last-last-command 'crisp-end))
+    ((and (eq last-command 'crisp-end)
+	  (eq crisp-last-last-command 'crisp-end))
      (goto-char (point-max)))
     ((eq last-command 'crisp-end)
      (move-to-window-line -1)
@@ -220,13 +355,51 @@ consecutive use moves point to the end of the buffer."
      (end-of-line)))
   (setq crisp-last-last-command last-command))
 
+(defun crisp-unbury-buffer ()
+  "Go back one buffer"
+  (interactive)
+  (switch-to-buffer (car (last (buffer-list)))))
+ 
+(defun crisp-meta-x-wrapper ()
+  "Wrapper function to conditionally override the normal M-x bindings.
+When `crisp-override-meta-x' is non-nil, M-x will exit Emacs (the
+normal CRiSP binding) and when it is nil M-x will run
+`execute-extended-command' (the normal Emacs binding)."
+  (interactive)
+  (if crisp-override-meta-x
+      (save-buffers-kill-emacs)
+    (call-interactively 'execute-extended-command)))
+
+;; bug reporter
+
+(defun crisp-submit-bug-report ()
+  "Submit via mail a bug report on CRiSP Mode."
+  (interactive)
+  ;; load in reporter
+  (let ((reporter-prompt-for-summary-p t)
+	(reporter-dont-compact-list '(c-offsets-alist)))
+    (and
+     (if (y-or-n-p "Do you want to submit a report on CRiSP Mode? ")
+	 t (message "") nil)
+     (require 'reporter)
+     (reporter-submit-bug-report
+      crisp-mode-help-address
+      (concat "CRiSP Mode [" crisp-version "]")
+      nil
+      nil
+      nil
+      "Dear Gary,"
+      ))))
+
 ;; Now enable the mode
 
-;;;###autoload
-(defun crisp-mode ()
-  "Toggle CRiSP emulation minor mode."
-  (interactive nil)
-  (setq crisp-mode-enabled (not crisp-mode-enabled))
+(defun crisp-mode (&optional arg)
+  "Toggle CRiSP emulation minor mode.
+With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
+  (interactive "P")
+  (setq crisp-mode-enabled (if (null arg)
+			       (not crisp-mode-enabled)
+			     (> (prefix-numeric-value arg) 0)))
   (cond
    ((eq crisp-mode-enabled 't)
     (use-global-map crisp-mode-map)
@@ -238,8 +411,13 @@ consecutive use moves point to the end of the buffer."
    ((eq crisp-mode-enabled 'nil)
     (use-global-map crisp-mode-original-keymap))))
 
+(if (fboundp 'add-minor-mode)
+    (add-minor-mode 'crisp-mode-enabled 'crisp-mode-modeline-string
+		    nil nil 'crisp-mode)
+  (or (assq 'crisp-mode-enabled minor-mode-alist)
+      (setq minor-mode-alist
+	    (cons '(crisp-mode-enabled crisp-mode-modeline-string) minor-mode-alist))))
+
 (provide 'crisp)
 
 ;;; crisp.el ends here
-
-
