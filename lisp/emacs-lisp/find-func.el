@@ -243,7 +243,7 @@ Point is saved in the buffer if it is one of the current buffers."
       (funcall switch-fn new-buf)
       (goto-char new-point)
       (recenter find-function-recenter-line)
-      (run-hooks find-function-after-hook))))
+      (run-hooks 'find-function-after-hook))))
 
 ;;;###autoload
 (defun find-function (function)
