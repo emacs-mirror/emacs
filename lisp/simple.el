@@ -3008,10 +3008,10 @@ Does not set point.  Does nothing if mark ring is empty."
   (when mark-ring
     (setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
     (set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
-    (deactivate-mark)
     (move-marker (car mark-ring) nil)
     (if (null (mark t)) (ding))
-    (setq mark-ring (cdr mark-ring))))
+    (setq mark-ring (cdr mark-ring)))
+  (deactivate-mark))
 
 (defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark (&optional arg)
