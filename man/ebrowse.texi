@@ -440,7 +440,7 @@ An example of a tree buffer display is shown below.
 
 @cindex mouse highlight in tree buffers
 When you run Emacs on a display which supports colors and the mouse, you
-will notice that that certain areas in the tree buffer are highlighted
+will notice that certain areas in the tree buffer are highlighted
 when you move the mouse over them.  This highlight marks mouse-sensitive
 regions in the buffer.  Please notice the help strings in the echo area
 when the mouse moves over a sensitive region.
@@ -1064,7 +1064,7 @@ These commands are also found in the buffer's context menu.
 @item D a
 Toggle the display of member attributes (default is on).
 
-The nine member attributes Ebrowse knows about are are displayed
+The nine member attributes Ebrowse knows about are displayed
 as a list a single-characters flags enclosed in angle brackets in front
 the of the member's name.  A @samp{-} at a given position means that
 the attribute is false.  The list of attributes from left to right is
