@@ -2478,6 +2478,41 @@ xdialog_show (f, keymaps, title, error)
 }
 #else /* not USE_X_TOOLKIT */
 
+/* The frame of the last activated non-toolkit menu bar.
+   Used to generate menu help events.  */
+
+static struct frame *menu_help_frame;
+
+
+/* Show help HELP_STRING, or clear help if HELP_STRING is null.  This
+   cannot be done with generating a HELP_EVENT because XMenuActivate
+   contains a loop that doesn't let Emacs process keyboard events.  */
+
+static void
+menu_help_callback (help_string)
+     char *help_string;
+{
+  Lisp_Object msg;
+  extern Lisp_Object Vshow_help_function;
+  struct gcpro gcpro1;
+
+  msg = help_string ? build_string (help_string) : Qnil;
+  GCPRO1 (msg);
+  
+  if (!NILP (Vshow_help_function))
+    call1 (Vshow_help_function, msg);
+  else if (!MINI_WINDOW_P (XWINDOW (selected_window)))
+    {
+      if (STRINGP (msg))
+	message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
+      else
+	message (0);
+    }
+
+  UNGCPRO;
+}
+
+
 static Lisp_Object
 xmenu_show (f, x, y, for_click, keymaps, title, error)
      FRAME_PTR f;
@@ -2609,13 +2644,17 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       else
 	{
 	  /* Create a new item within current pane.  */
-	  Lisp_Object item_name, enable, descrip;
+	  Lisp_Object item_name, enable, descrip, help;
 	  unsigned char *item_data;
+	  char *help_string;
 
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
+	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
+	  help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
+	  
 	  if (!NILP (descrip))
 	    {
 	      int gap = maxwidth - STRING_BYTES (XSTRING (item_name));
@@ -2645,7 +2684,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 	  if (XMenuAddSelection (FRAME_X_DISPLAY (f),
 				 menu, lpane, 0, item_data,
-				 !NILP (enable))
+				 !NILP (enable), help_string)
 	      == XM_FAILURE)
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
@@ -2684,9 +2723,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   XMenuSetAEQ (menu, TRUE);
   XMenuSetFreeze (menu, TRUE);
   pane = selidx = 0;
-  
+
+  /* Help display under X won't work because XMenuActivate contains
+     a loop that doesn't give Emacs a chance to process it.  */
+  menu_help_frame = f;
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
-			  x, y, ButtonReleaseMask, &datap);
+			  x, y, ButtonReleaseMask, &datap,
+			  menu_help_callback);
 
 
 #ifdef HAVE_X_WINDOWS
