@@ -2034,7 +2034,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  clear_waiting_for_input ();
 	  redisplay_preserve_echo_area ();
 	  if (XINT (read_kbd) < 0)
-	    set_waiting_for_input ();
+	    set_waiting_for_input (&timeout);
 	}
 
       if (XINT (read_kbd) && detect_input_pending ())
