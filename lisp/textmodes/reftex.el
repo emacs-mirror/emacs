@@ -1234,7 +1234,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-;; This file corresponds to RefTeX version 3.21.0.3
+;; This file corresponds to RefTeX version 3.22
 
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
@@ -5448,7 +5448,7 @@ With argument, actually select the window showing the cross reference."
       (font-lock-mode 1)))
    ((fboundp 'font-lock-set-defaults-1)
     ;; Looks like the XEmacs font-lock stuff.
-    ;; FIXME: this is still kind of a hack, but might go away with XEmacs 20.4
+    ;; FIXME: this is still kind of a hack, but might go away some day.
     (set (make-local-variable 'font-lock-keywords) nil)
     (let ((major-mode 'latex-mode)
 	  (font-lock-defaults-computed nil))
@@ -5760,6 +5760,15 @@ This enforces rescanning the buffer on next use."
 (define-key reftex-mode-map  "\C-c)"     'reftex-reference)
 (define-key reftex-mode-map  "\C-c["     'reftex-citation)
 (define-key reftex-mode-map  "\C-c&"     'reftex-view-crossref)
+
+;; Bind `reftex-mouse-view-crossref' only when the key is still free
+(if (string-match "XEmacs" emacs-version)
+    (unless (key-binding [(shift button2)])
+      (define-key reftex-mode-map [(shift button2)] 
+	'reftex-mouse-view-crossref))
+  (unless (key-binding [(shift mouse-2)])
+    (define-key reftex-mode-map [(shift mouse-2)] 
+      'reftex-mouse-view-crossref)))
 
 ;; If the user requests so, she can have a few more bindings:
 (cond
