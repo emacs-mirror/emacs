@@ -1,3 +1,9 @@
+2005-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_vertically_backward): Eliminate two xasserts.
+	I think those asserts are bogus if buffer contains invisible text
+	or images.
+
 2005-02-21  David Kastrup <dak@gnu.org>
 
 	* gtkutil.c (xg_create_frame_widgets): UNBLOCK_INPUT on error.
