@@ -1235,7 +1235,10 @@ Leaves point at end of replacement text.")
       if (! some_lowercase && some_multiletter_word)
 	case_action = all_caps;
       /* Capitalize each word, if the old text has all capitalized words.  */
-      else if (!some_lowercase_initial && some_multiletter_word)
+      /* We used to insist on some_multiletter_word here,
+	 but that screwed query replacing x with y, acting on X.
+	 Even what we have now is more strict than what 19.22 had.  */
+      else if (!some_lowercase_initial)
 	case_action = cap_initial;
       else
 	case_action = nochange;
