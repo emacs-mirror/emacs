@@ -534,6 +534,7 @@ If FRAME is nil or omitted, initialize them for all frames."
 		(initialize-face-resources symbol frame))))
 	  (face-list)))
 
+;;;###autoload
 (defun custom-initialize-frame (&optional frame)
   "Initialize local faces for FRAME if necessary.
 If FRAME is missing or nil, the first member of (frame-list) is used."
