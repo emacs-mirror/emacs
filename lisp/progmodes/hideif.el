@@ -122,7 +122,7 @@
 
 ;; Set up the submap that goes after the prefix key.
 (if hide-ifdef-mode-submap
-    ()				; dont redefine it.
+    ()				; Don't redefine it.
   (setq hide-ifdef-mode-submap (make-sparse-keymap))
   (define-key hide-ifdef-mode-submap "d" 'hide-ifdef-define)
   (define-key hide-ifdef-mode-submap "u" 'hide-ifdef-undef)
