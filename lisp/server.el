@@ -258,12 +258,19 @@ Prefix arg means just kill any existing server communications subprocess."
 		      (setq lineno 1)))))
 	      (server-visit-files files client nowait)
 	      ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
-	      (or nowait
-		  (setq server-clients (cons client server-clients)))
-	      (server-switch-buffer (nth 1 client))
-	      (run-hooks 'server-switch-hook)
-	      (message (substitute-command-keys
-			"When done with a buffer, type \\[server-edit]")))))))
+	      (if (null (cdr client))
+		  ;; This client is empty; get rid of it immediately.
+		  (progn
+		    (send-string server-process 
+				 (format "Close: %s Done\n" (car client)))
+		    (server-log (format "Close empty client: %s Done\n" (car client))))
+		;; We visited some buffer for this client.
+		(or nowait
+		    (setq server-clients (cons client server-clients)))
+		(server-switch-buffer (nth 1 client))
+		(run-hooks 'server-switch-hook)
+		(message (substitute-command-keys
+			  "When done with a buffer, type \\[server-edit]"))))))))
   ;; Save for later any partial line that remains.
   (setq server-previous-string string))
 
