@@ -678,7 +678,8 @@ only for the specified option.
 
 @findex customize-face
   Likewise, you can modify a specific face, chosen by name, using
-@kbd{M-x customize-face}.
+@kbd{M-x customize-face}.  By default it operates on the face used
+on the character after point.
 
 @findex customize-group
   You can also set up the customization buffer with a specific group,
