@@ -796,7 +796,9 @@ applies to the archive file as a whole.
   If Emacs recognizes the encoding of a file incorrectly, you can
 reread the file using the correct coding system by typing @kbd{C-x
 @key{RET} c @var{coding-system} @key{RET} M-x revert-buffer
-@key{RET}}.
+@key{RET}}.  To see what coding system did Emacs use to decode the
+file, look at the coding system mnemonic letter near the left edge of
+the mode line (@pxref{Mode Line}), or type @kbd{C-h C @key{RET}}.
 
 @vindex buffer-file-coding-system
   Once Emacs has chosen a coding system for a buffer, it stores that
