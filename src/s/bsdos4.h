@@ -2,6 +2,12 @@
 
 #include "bsdos3.h"
 
+/* BSD/OS 4.1 and later have ncurses */
+#ifdef	HAVE_LIBNCURSES
+#define	TERMINFO
+#define	LIBS_TERMCAP -lncurses
+#endif	/* HAVE_LIBNCURSES */
+
 /* copied from freebsd.h */
 #ifdef __ELF__
 
