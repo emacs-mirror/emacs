@@ -1,26 +1,30 @@
+2001-06-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dos-w32.el (grep-regexp-alist): Remove definition, since the
+	general one on compile.el supports drive letters.
 
 2001-06-08  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* textmodes/reftex-ref.el (reftex-select-label-help): Added "z"
- 	key description.
+	key description.
 
 	* textmodes/reftex-sel.el (reftex-select-jump): New command.
 
 	* textmodes/reftex-toc.el (reftex-toc-help): Added "z" key
- 	description.
+	description.
 	(reftex-toc-jump): New command.
 
 	* textmodes/reftex-cite.el (reftex-parse-bibitem): Regexp changed
- 	to parse international characters as well.
+	to parse international characters as well.
 
 	* textmodes/reftex.el: Added autoloads for `reftex-varioref-vref',
- 	`reftex-fancyref-fref', `reftex-fancyref-Fref'
+	`reftex-fancyref-fref', `reftex-fancyref-Fref'.
 
 	* textmodes/reftex-vars.el: Protected single backslash in many
- 	docstrings.
+	docstrings.
 	
 	* textmodes/reftex-dcr.el (reftex-view-crossref): added SPACE and
- 	TAB to the key separaotrs.
+	TAB to the key separators.
 
 2001-06-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
