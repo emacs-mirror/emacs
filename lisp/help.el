@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'help-screen)
+
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
 
@@ -202,7 +204,8 @@ describes the minor mode."
 	(insert "\n")))
     (print-help-return-message)))
 
-(defun help-for-help ()
+(make-help-screen help-for-help
+  "A B C F I K L M N P S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "
   "You have typed \\[help-for-help], the help character.  Type a Help option:
 
 A  command-apropos.   Give a substring, and see a list of commands
@@ -230,30 +233,7 @@ C-c print Emacs copying permission (General Public License).
 C-d print Emacs ordering information.
 C-n print news of recent Emacs changes.
 C-w print information on absence of warranty for GNU Emacs."
-  (interactive)
-  (message (substitute-command-keys
- "A B C F I K L M N P S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: "))
-  (let ((char (read-char)))
-    (if (or (= char help-char) (= char ??))
-	(save-window-excursion
-	  (switch-to-buffer "*Help*")
-	  (delete-other-windows)
-	  (erase-buffer)
-	  (insert (documentation 'help-for-help))
-	  (goto-char (point-min))
-	  (while (memq char (cons help-char '(?? ?\C-v ?\  ?\177 ?\M-v)))
-	    (if (memq char '(?\C-v ?\ ))
-		(scroll-up))
-	    (if (memq char '(?\177 ?\M-v))
-		(scroll-down))
-	    (message "A B C F I K L M N P S T V W C-c C-d C-n C-w%s: "
-		     (if (pos-visible-in-window-p (point-max))
-			 "" " or Space to scroll"))
-	    (let ((cursor-in-echo-area t))
-	      (setq char (read-char))))))
-    (let ((defn (cdr (assq (downcase char) (cdr help-map)))))
-      (if defn (call-interactively defn) (ding)))))
-
+  help-map)
 
 ;; Return a function which is called by the list containing point.
 ;; If that gives no function, return a function whose name is around point.
