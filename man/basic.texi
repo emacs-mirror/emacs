@@ -677,36 +677,58 @@ point=26957 of 26956(100%)  column 0
 @cindex character set of character at point
 @cindex font of character at point
 @cindex text properties at point
-  @w{@kbd{C-u C-x =}} displays additional information about a
-character, including the character set name and the codes that
-identify the character within that character set; @acronym{ASCII} characters are
-identified as belonging to the @code{ascii} character set.  It also
-shows the character's syntax, categories, and encodings both
-internally in the buffer and externally if you save the file.  It also
-shows the character's text properties (@pxref{Text Properties,,,
+  @w{@kbd{C-u C-x =}} displays these additional information about a
+character.
+
+@itemize @bullet
+@item
+The character set name and the codes that identify the character
+within that character set; @acronym{ASCII} characters are identified
+as belonging to the @code{ascii} character set.
+
+@item
+The character's syntax and categories.
+
+@item
+The cahracter's encodings both internally in the buffer and externally
+if you save the file.
+
+@item
+What to type to input the character if an input method is activated
+and it supports the character.
+
+@item
+If you are running Emacs on a window system, the font name and glyph
+code for the character.  If you are running Emacs on a terminal, the
+code(s) sent to the terminal.
+
+@item
+The character's text properties (@pxref{Text Properties,,,
 elisp, the Emacs Lisp Reference Manual}), and any overlays containing it
 (@pxref{Overlays,,, elisp, the same manual}).
 
+@end itemize
+
   Here's an example showing the Latin-1 character A with grave accent,
-in a buffer whose coding system is @code{iso-2022-7bit}, whose
+in a buffer whose coding system is @code{iso-latin-1}, whose
 terminal coding system is @code{iso-latin-1} (so the terminal actually
 displays the character as @samp{@`A}), and which has font-lock-mode
 (@pxref{Font Lock}) enabled:
 
 @smallexample
-    character: @`A (04300, 2240, 0x8c0)
-      charset: latin-iso8859-1
-	       (Right-Hand Part of Latin Alphabet 1@dots{}
-   code point: 64
-       syntax: w 	which means: word
-     category: l:Latin
-  buffer code: 0x81 0xC0
-    file code: ESC 2C 41 40 (encoded by coding system iso-2022-7bit)
-terminal code: C0
+  character: @`A (04300, 2240, 0x8c0, U+00C0)
+    charset: latin-iso8859-1
+             (Right-Hand Part of Latin Alphabet 1@dots{}
+ code point: 64
+     syntax: w 	which means: word
+   category: l:Latin
+   to input: type "`A"
+buffer code: 0x81 0xC0
+  file code: ESC 2C 41 40 (encoded by coding system iso-2022-7bit)
+    display: terminal code 0xC0
 
-Text properties
-  font-lock-face: font-lock-variable-name-face
-  fontified: t
+There are text properties here:
+  fontified            t
 @end smallexample
 
 @node Arguments
