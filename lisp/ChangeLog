@@ -1,3 +1,16 @@
+2001-01-03  Dave Love  <fx@gnu.org>
+
+	* dired-x.el: Doc fixes.  Maintainer change.
+	(dired-guess-shell-gnutar, dired-guess-shell-znew-switches): Fix
+	:type.
+	(dired-guess-shell-alist-default): Don't use xloadimage for PNG.
+	(dired-guess-shell-alist-user): Customize.
+	(dired-x-help-address): Set to bug-gnu-emacs.
+	(dired-x-maintainer, dired-x-file, dired-x-version): Deleted.
+	(dired-default-directory): Renamed from default-directory.
+
+	* hl-line.el (hl-line): Doc fix.
+
 2001-01-03  Karl Fogel  <kfogel@red-bean.com>
 
 	* mail/mail-hist.el (mail-hist-text-too-long-p): Doc fix.
