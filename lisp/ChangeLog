@@ -1,3 +1,8 @@
+2001-09-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* tar-mode.el (tar-mode-write-file): Don't signal an error by
+	calling byte-to-position with a nil tar-header-offset.
+
 2001-09-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-on-current-buffer): Default arg to "Top".

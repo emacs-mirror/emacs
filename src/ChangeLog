@@ -1,3 +1,8 @@
+2001-09-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_mode_element): One more case where a string's
+	multibyteness should be used for display.
+
 2001-09-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Finsert_file_contents): If REPLACE is non-nil, stop
