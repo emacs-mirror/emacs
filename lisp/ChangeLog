@@ -1,3 +1,8 @@
+2005-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
+	Don't inherit from fringe face (now happens automatically).
+
 2005-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* tooltip.el (tooltip-show-help-function): Ignore negative mouse

@@ -1,3 +1,15 @@
+2005-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (lookup_derived_face): Add arg SIGNAL_P.
+	* dispextern.h (lookup_derived_face): Fix prototype.
+	* msdos.c (XMenuActivate): Fix call to lookup_derived_face.
+
+	* xdisp.c (handle_single_display_spec): Derive left-fringe and
+	right-fringe face from fringe face.
+
+	* fringe.c (draw_fringe_bitmap_1, Fset_fringe_bitmap_face):
+	Derive face from fringe face.
+
 2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xrdb.c (x_load_resources): Undo previous change (2005-03-18).
