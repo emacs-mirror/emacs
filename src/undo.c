@@ -86,6 +86,7 @@ record_insert (beg, length)
 /* Record that a deletion is about to take place,
    for LENGTH characters at location BEG.  */
 
+void
 record_delete (beg, length)
      int beg, length;
 {
@@ -134,6 +135,7 @@ record_delete (beg, length)
    because that's the only case where an automatic marker adjustment
    won't be inverted automatically by undoing the buffer modification.  */
 
+void
 record_marker_adjustment (marker, adjustment)
      Lisp_Object marker;
      int adjustment;
@@ -158,6 +160,7 @@ record_marker_adjustment (marker, adjustment)
    for LENGTH characters at location BEG.
    The replacement does not change the number of characters.  */
 
+void
 record_change (beg, length)
      int beg, length;
 {
