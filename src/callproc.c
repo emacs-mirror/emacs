@@ -797,13 +797,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		
 		TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
 				  PT_BYTE + process_coding.produced);
-		nread -= process_coding.consumed;
-		carryover = nread;
+		carryover = process_coding.carryover_bytes;
 		if (carryover > 0)
 		  /* As CARRYOVER should not be that large, we had
 		     better avoid overhead of bcopy.  */
-		  BCOPY_SHORT (bufptr + process_coding.consumed, bufptr,
-			       carryover);
+		  BCOPY_SHORT (process_coding.carryover, bufptr,
+			       process_coding.carryover_bytes);
 	      }
 	  }
 
