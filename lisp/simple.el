@@ -857,7 +857,9 @@ In either case, the output is inserted after point (leaving mark after it)."
 		      (read-from-minibuffer "Shell command on region: "
 					    nil nil nil
 					    'shell-command-history)))
-		 (list (point) (mark)
+		 ;; call-interactively recognizes region-beginning and
+		 ;; region-end specially, leaving them in the history.
+		 (list (region-beginning) (region-end)
 		       string
 		       current-prefix-arg
 		       current-prefix-arg)))
@@ -2328,23 +2330,10 @@ Setting this variable automatically makes it local to the current buffer.")
       ;; Choose a fill-prefix automatically.
       (if (and adaptive-fill-mode
 	       (or (null fill-prefix) (string= fill-prefix "")))
-	  (let (start end temp)
-	    (save-excursion
-	      (end-of-line)
-	      (setq end (point))
-	      (beginning-of-line)
-	      (setq start (point))
-	      (move-to-left-margin)
-	      ;; Don't do it if this line is a paragraph-starter line
-	      ;; because then the next line will probably also become one.
-	      ;; In text mode, when the user indents the first line of a
-	      ;; paragraph, we don't want all the lines to be indented.
-	      (if (not (looking-at paragraph-start))
-		  (cond ((re-search-forward adaptive-fill-regexp end t)
-			 (setq fill-prefix
-			       (buffer-substring-no-properties start (point))))
-			((setq temp (funcall adaptive-fill-function))
-			 (setq fill-prefix temp)))))))
+	  (setq fill-prefix
+		(fill-context-prefix 
+		 (save-excursion (backward-paragraph 1) (point))
+		 (point))))
 
       (while (and (not give-up) (> (current-column) fc))
 	;; Determine where to split the line.
