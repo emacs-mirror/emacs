@@ -40,23 +40,23 @@ Lisp_Object Vself_insert_face_command;
 extern Lisp_Object Qface;
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
-  "Move point right ARG characters (left if ARG negative).\n\
+  "Move point right N characters (left if N is negative).\n\
 On reaching end of buffer, stop and signal error.")
-  (arg)
-     Lisp_Object arg;
+  (n)
+     Lisp_Object n;
 {
-  if (NILP (arg))
-    XSETFASTINT (arg, 1);
+  if (NILP (n))
+    XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (arg, 0);
+    CHECK_NUMBER (n, 0);
 
-  /* This used to just set point to point + XINT (arg), and then check
+  /* This used to just set point to point + XINT (n), and then check
      to see if it was within boundaries.  But now that SET_PT can
      potentially do a lot of stuff (calling entering and exiting
      hooks, etcetera), that's not a good approach.  So we validate the
      proposed position, then set point.  */
   {
-    int new_point = point + XINT (arg);
+    int new_point = point + XINT (n);
 
     if (new_point < BEGV)
       {
@@ -76,27 +76,27 @@ On reaching end of buffer, stop and signal error.")
 }
 
 DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "p",
-  "Move point left ARG characters (right if ARG negative).\n\
+  "Move point left N characters (right if N is negative).\n\
 On attempt to pass beginning or end of buffer, stop and signal error.")
-  (arg)
-     Lisp_Object arg;
+  (n)
+     Lisp_Object n;
 {
-  if (NILP (arg))
-    XSETFASTINT (arg, 1);
+  if (NILP (n))
+    XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (arg, 0);
+    CHECK_NUMBER (n, 0);
 
-  XSETINT (arg, - XINT (arg));
-  return Fforward_char (arg);
+  XSETINT (n, - XINT (n));
+  return Fforward_char (n);
 }
 
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "p",
-  "Move ARG lines forward (backward if ARG is negative).\n\
-Precisely, if point is on line I, move to the start of line I + ARG.\n\
+  "Move N lines forward (backward if N is negative).\n\
+Precisely, if point is on line I, move to the start of line I + N.\n\
 If there isn't room, go as far as possible (no error).\n\
 Returns the count of lines left to move.  If moving forward,\n\
-that is ARG - number of lines moved; if backward, ARG + number moved.\n\
-With positive ARG, a non-empty line at the end counts as one line\n\
+that is N - number of lines moved; if backward, N + number moved.\n\
+With positive N, a non-empty line at the end counts as one line\n\
   successfully moved (for the return value).")
   (n)
      Lisp_Object n;
@@ -128,7 +128,7 @@ With positive ARG, a non-empty line at the end counts as one line\n\
 DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line,
   0, 1, "p",
   "Move point to beginning of current line.\n\
-With argument ARG not nil or 1, move forward ARG - 1 lines first.\n\
+With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, stop there without error.")
   (n)
      Lisp_Object n;
@@ -145,7 +145,7 @@ If scan reaches end of buffer, stop there without error.")
 DEFUN ("end-of-line", Fend_of_line, Send_of_line,
   0, 1, "p",
   "Move point to end of current line.\n\
-With argument ARG not nil or 1, move forward ARG - 1 lines first.\n\
+With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, stop there without error.")
   (n)
      Lisp_Object n;
@@ -164,10 +164,10 @@ If scan reaches end of buffer, stop there without error.")
 }
 
 DEFUN ("delete-char", Fdelete_char, Sdelete_char, 1, 2, "p\nP",
-  "Delete the following ARG characters (previous, with negative arg).\n\
+  "Delete the following N characters (previous if N is negative).\n\
 Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).\n\
-Interactively, ARG is the prefix arg, and KILLFLAG is set if\n\
-ARG was explicitly specified.")
+Interactively, N is the prefix arg, and KILLFLAG is set if\n\
+N was explicitly specified.")
   (n, killflag)
      Lisp_Object n, killflag;
 {
@@ -199,10 +199,10 @@ ARG was explicitly specified.")
 
 DEFUN ("delete-backward-char", Fdelete_backward_char, Sdelete_backward_char,
   1, 2, "p\nP",
-  "Delete the previous ARG characters (following, with negative ARG).\n\
+  "Delete the previous N characters (following if N is negative).\n\
 Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).\n\
-Interactively, ARG is the prefix arg, and KILLFLAG is set if\n\
-ARG was explicitly specified.")
+Interactively, N is the prefix arg, and KILLFLAG is set if\n\
+N was explicitly specified.")
   (n, killflag)
      Lisp_Object n, killflag;
 {
@@ -213,32 +213,32 @@ ARG was explicitly specified.")
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
   "Insert the character you type.\n\
 Whichever character you type to run this command is inserted.")
-  (arg)
-     Lisp_Object arg;
+  (n)
+     Lisp_Object n;
 {
-  CHECK_NUMBER (arg, 0);
+  CHECK_NUMBER (n, 0);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!INTEGERP (last_command_char))
     bitch_at_user ();
-  else if (XINT (arg) >= 2 && NILP (current_buffer->overwrite_mode))
+  else if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
     {
-      XSETFASTINT (arg, XFASTINT (arg) - 2);
+      XSETFASTINT (n, XFASTINT (n) - 2);
       /* The first one might want to expand an abbrev.  */
       internal_self_insert (XINT (last_command_char), 1);
       /* The bulk of the copies of this char can be inserted simply.
 	 We don't have to handle a user-specified face specially
 	 because it will get inherited from the first char inserted.  */
-      Finsert_char (last_command_char, arg, Qt);
+      Finsert_char (last_command_char, n, Qt);
       /* The last one might want to auto-fill.  */
       internal_self_insert (XINT (last_command_char), 0);
     }
   else
-    while (XINT (arg) > 0)
+    while (XINT (n) > 0)
       {
 	/* Ok since old and new vals both nonneg */
-	XSETFASTINT (arg, XFASTINT (arg) - 1);
-	internal_self_insert (XINT (last_command_char), XFASTINT (arg) != 0);
+	XSETFASTINT (n, XFASTINT (n) - 1);
+	internal_self_insert (XINT (last_command_char), XFASTINT (n) != 0);
       }
 
   return Qnil;
