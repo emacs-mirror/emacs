@@ -84,23 +84,6 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
-/* Macro to verify that storage intended for Lisp objects is not
-   out of range to fit in the space for a pointer.
-   ADDRESS is the start of the block, and SIZE
-   is the amount of space within which objects can start.  */
-
-#define VALIDATE_LISP_STORAGE(address, size)			\
-do								\
-  {								\
-    Lisp_Object val;						\
-    XSETCONS (val, (char *) address + size);		\
-    if ((char *) XCONS (val) != (char *) address + size)	\
-      {								\
-	xfree (address);					\
-	memory_full ();						\
-      }								\
-  } while (0)
-
 /* Value of _bytes_used, when spare_memory was freed.  */
 
 static __malloc_size_t bytes_used_when_full;
@@ -584,6 +567,8 @@ xstrdup (s)
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
 
+static void *lisp_malloc_loser;
+
 static POINTER_TYPE *
 lisp_malloc (nbytes, type)
      size_t nbytes;
@@ -598,6 +583,21 @@ lisp_malloc (nbytes, type)
 #endif
 
   val = (void *) malloc (nbytes);
+
+  /* If the memory just allocated cannot be addressed thru a Lisp
+     object's pointer, and it needs to be,
+     that's equivalent to running out of memory.  */
+  if (val && type != MEM_TYPE_NON_LISP)
+    {
+      Lisp_Object tem;
+      XSETCONS (tem, (char *) val + nbytes - 1);
+      if ((char *) XCONS (tem) != (char *) val + nbytes - 1)
+	{
+	  lisp_malloc_loser = val;
+	  free (val);
+	  val = 0;
+	}
+    }
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
@@ -620,7 +620,6 @@ allocate_buffer ()
   struct buffer *b
     = (struct buffer *) lisp_malloc (sizeof (struct buffer),
 				     MEM_TYPE_BUFFER);
-  VALIDATE_LISP_STORAGE (b, sizeof *b);
   return b;
 }
 
@@ -932,7 +931,6 @@ make_interval ()
 	  newi = (struct interval_block *) lisp_malloc (sizeof *newi,
 							MEM_TYPE_NON_LISP);
 
-	  VALIDATE_LISP_STORAGE (newi, sizeof *newi);
 	  newi->next = interval_block;
 	  interval_block = newi;
 	  interval_block_index = 0;
@@ -1315,7 +1313,6 @@ allocate_string ()
       int i;
 
       b = (struct string_block *) lisp_malloc (sizeof *b, MEM_TYPE_STRING);
-      VALIDATE_LISP_STORAGE (b, sizeof *b);
       bzero (b, sizeof *b);
       b->next = string_blocks;
       string_blocks = b;
@@ -1983,7 +1980,6 @@ make_float (float_value)
 
 	  new = (struct float_block *) lisp_malloc (sizeof *new,
 						    MEM_TYPE_FLOAT);
-	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = float_block;
 	  float_block = new;
 	  float_block_index = 0;
@@ -2090,7 +2086,6 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  register struct cons_block *new;
 	  new = (struct cons_block *) lisp_malloc (sizeof *new,
 						   MEM_TYPE_CONS);
-	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
@@ -2250,7 +2245,6 @@ allocate_vectorlike (len, type)
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
-  VALIDATE_LISP_STORAGE (p, 0);
   consing_since_gc += nbytes;
   vector_cells_consed += len;
 
@@ -2548,7 +2542,6 @@ Its value and function definition are void, and its property list is nil.  */)
 	  struct symbol_block *new;
 	  new = (struct symbol_block *) lisp_malloc (sizeof *new,
 						     MEM_TYPE_SYMBOL);
-	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
@@ -2629,7 +2622,6 @@ allocate_misc ()
 	  struct marker_block *new;
 	  new = (struct marker_block *) lisp_malloc (sizeof *new,
 						     MEM_TYPE_MISC);
-	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = marker_block;
 	  marker_block = new;
 	  marker_block_index = 0;
