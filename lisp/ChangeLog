@@ -2,6 +2,7 @@
 
 	* vc.el (vc-annotate-display-autoscale): Add prefix-arg
 	spec in `interactive' form, and mention it in the docstring.
+	Also, make sure point is at bol after calling `annotate-time'.
 
 2004-11-02  Richard M. Stallman  <rms@gnu.org>
 
