@@ -2096,11 +2096,10 @@ the STRINGS are just concatenated and the result truncated."
   "Get out of the calendar window and hide it and related buffers."
   (interactive)
   (let* ((diary-buffer (get-file-buffer diary-file)))
-    (if (and diary-buffer (buffer-modified-p diary-buffer)
-	     (not
-	      (yes-or-no-p
-	       "Diary modified; do you really want to exit the calendar? ")))
-	(beep)
+    (if (or (not diary-buffer)
+            (not (buffer-modified-p diary-buffer))
+            (yes-or-no-p
+             "Diary modified; do you really want to exit the calendar? "))
       ;; Need to do this multiple times because one time can replace some
       ;; calendar-related buffers with other calendar-related buffers
       (mapcar (lambda (x)
