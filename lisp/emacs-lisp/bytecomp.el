@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.39 $")
+(defconst byte-compile-version "$Revision: 2.40 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1282,6 +1282,9 @@ The value is t if there were no errors, nil if errors."
       (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (set-buffer input-buffer)
       (erase-buffer)
+      ;; Always compile an Emacs Lisp file as multibyte
+      ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-x
+      (set-buffer-multibyte t)
       (insert-file-contents filename)
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
