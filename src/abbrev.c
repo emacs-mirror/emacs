@@ -462,8 +462,8 @@ DEFUN ("define-abbrev-table", Fdefine_abbrev_table, Sdefine_abbrev_table,
   "Define TABLENAME (a symbol) as an abbrev table name.\n\
 Define abbrevs in it according to DEFINITIONS, which is a list of elements\n\
 of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
-  (tablename, defns)
-     Lisp_Object tablename, defns;
+  (tablename, definitions)
+     Lisp_Object tablename, definitions;
 {
   Lisp_Object name, exp, hook, count;
   Lisp_Object table, elt;
@@ -474,12 +474,11 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
     {
       table = Fmake_abbrev_table ();
       Fset (tablename, table);
-      Vabbrev_table_name_list =
-	Fcons (tablename, Vabbrev_table_name_list);
+      Vabbrev_table_name_list = Fcons (tablename, Vabbrev_table_name_list);
     }
   CHECK_VECTOR (table, 0);
 
-  for (;!NILP (definitions); definitions = Fcdr (definitions))
+  for (; !NILP (definitions); definitions = Fcdr (definitions))
     {
       elt = Fcar (definitions);
       name  = Fcar (elt);	elt = Fcdr (elt);
