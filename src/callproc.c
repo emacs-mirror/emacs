@@ -248,9 +248,15 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     /* If arguments are supplied, we may have to encode them.  */
     if (nargs >= 5)
       {
+	int must_encode = 0;
+
+	for (i = 0; i < nargs; i++)
+	  if (STRING_MULTIBYTE (args[i]))
+	    must_encode = 1;
+
 	if (!NILP (Vcoding_system_for_write))
 	  val = Vcoding_system_for_write;
-	else if (NILP (current_buffer->enable_multibyte_characters))
+	else if (! must_encode)
 	  val = Qnil;
 	else
 	  {
@@ -439,7 +445,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  for (i = 4; i < nargs; i++)
 	    {
 	      int size = encoding_buffer_size (&argument_coding,
-					       XSTRING (args[i])->size);
+					       XSTRING (args[i])->size_byte);
 	      unsigned char *dummy1 = (unsigned char *) alloca (size);
 	      int produced, dummy;
 
@@ -448,7 +454,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      produced = encode_coding (&argument_coding,
 					XSTRING (args[i])->data,
 					new_argv[i - 3],
-					XSTRING (args[i])->size, size, &dummy);
+					XSTRING (args[i])->size_byte,
+					size, &dummy);
 	      new_argv[i - 3][produced] = 0;
 	    }
 	  UNGCPRO;
@@ -824,9 +831,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   strcat (tempfile, "detmp.XXX");
 #endif
 #else /* not DOS_NT */
-  char *tempfile = (char *) alloca (XSTRING (Vtemp_file_name_pattern)->size + 1);
+  char *tempfile = (char *) alloca (XSTRING (Vtemp_file_name_pattern)->size_byte + 1);
   bcopy (XSTRING (Vtemp_file_name_pattern)->data, tempfile,
-	 XSTRING (Vtemp_file_name_pattern)->size + 1);
+	 XSTRING (Vtemp_file_name_pattern)->size_byte + 1);
 #endif /* not DOS_NT */
 
   mktemp (tempfile);
@@ -964,7 +971,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     register char *temp;
     register int i;
 
-    i = XSTRING (current_dir)->size;
+    i = XSTRING (current_dir)->size_byte;
     pwd_var = (char *) alloca (i + 6);
     temp = pwd_var + 4;
     bcopy ("PWD=", pwd_var, 4);
@@ -1159,7 +1166,7 @@ getenv_internal (var, varlen, value, valuelen)
 
       entry = XCONS (scan)->car;
       if (STRINGP (entry)
-	  && XSTRING (entry)->size > varlen
+	  && XSTRING (entry)->size_byte > varlen
 	  && XSTRING (entry)->data[varlen] == '='
 #ifdef WINDOWSNT
 	  /* NT environment variables are case insensitive.  */
@@ -1170,7 +1177,7 @@ getenv_internal (var, varlen, value, valuelen)
 	  )
 	{
 	  *value    = (char *) XSTRING (entry)->data + (varlen + 1);
-	  *valuelen = XSTRING (entry)->size - (varlen + 1);
+	  *valuelen = XSTRING (entry)->size_byte - (varlen + 1);
 	  return 1;
 	}
     }
@@ -1189,7 +1196,7 @@ This function consults the variable ``process-environment'' for its value.")
   int valuelen;
 
   CHECK_STRING (var, 0);
-  if (getenv_internal (XSTRING (var)->data, XSTRING (var)->size,
+  if (getenv_internal (XSTRING (var)->data, XSTRING (var)->size_byte,
 		       &value, &valuelen))
     return make_string (value, valuelen);
   else
