@@ -44,10 +44,10 @@
 ;; Note that any number of clients may dispatch files to emacs to be edited.
 
 ;; When you finish editing a Server buffer, again call server-edit
-;; to mark that buffer as done for the client and switch to the next 
-;; Server buffer.  When all the buffers for a client have been edited 
+;; to mark that buffer as done for the client and switch to the next
+;; Server buffer.  When all the buffers for a client have been edited
 ;; and exited with server-edit, the client "editor" will return
-;; to the program that invoked it.  
+;; to the program that invoked it.
 
 ;; Your editing commands and Emacs's display output go to and from
 ;; the terminal in the usual way.  Thus, server operation is possible
@@ -69,8 +69,8 @@
 ;; brought into the foreground for editing.  When done editing, Emacs is
 ;; suspended again, and the client program is brought into the foreground.
 
-;; The buffer local variable "server-buffer-clients" lists 
-;; the clients who are waiting for this buffer to be edited.  
+;; The buffer local variable "server-buffer-clients" lists
+;; the clients who are waiting for this buffer to be edited.
 ;; The global variable "server-clients" lists all the waiting clients,
 ;; and which files are yet to be edited for each.
 
@@ -97,8 +97,8 @@
   :group 'server
   :type 'hook)
 
-(defvar server-process nil 
-  "The current server process")
+(defvar server-process nil
+  "The current server process.")
 
 (defvar server-previous-strings nil)
 
@@ -131,7 +131,7 @@ by the programs that invoke the Emacs server."
 (defcustom server-kill-new-buffers t
   "*Whether to kill buffers when done with them.
 If non-nil, kill a buffer unless it already existed before editing
-it with Emacs server. If nil, kill only buffers as specified by
+it with Emacs server.  If nil, kill only buffers as specified by
 `server-temp-file-regexp'.
 Please note that only buffers are killed that still have a client,
 i.e. buffers visited which \"emacsclient --no-wait\" are never killed in
@@ -326,7 +326,7 @@ Prefix arg means just kill any existing server communications subprocess."
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
 	(or nowait (push client server-clients))
-	(unless (or isearch-mode (minibuffer-active))
+	(unless (or isearch-mode (minibufferp))
 	  (server-switch-buffer (nth 1 client))
 	  (run-hooks 'server-switch-hook)
 	  (unless nowait
@@ -522,7 +522,7 @@ inhibits a backup; you can set it locally in a particular buffer to
 prevent a backup for it.)  The variable `server-temp-file-regexp' controls
 which filenames are considered temporary.
 
-If invoked with a prefix argument, or if there is no server process running, 
+If invoked with a prefix argument, or if there is no server process running,
 starts server process and that is all.  Invoked by \\[server-edit]."
   (interactive "P")
   (if (or arg

@@ -1,3 +1,9 @@
+2003-01-13  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* server.el (server-process-filter): Use `minibufferp' to test
+	whether we are inside a minibuffer.
+	(server-process, server-kill-new-buffers): Doc fixes.
+
 2003-01-13  Dave Love  <fx@gnu.org>
 
 	* international/utf-16.el (mule-utf-16-be, mule-utf-16-le): Remove
