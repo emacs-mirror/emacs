@@ -2304,10 +2304,7 @@ font_resizing_ratio (char *name)
 	  elt = XCAR (tail);
 	  if (STRINGP (XCAR (elt)) && FLOATP (XCDR (elt))
 	      && fast_c_string_match_ignore_case (XCAR (elt), name) >= 0)
-	    {
-	      fprintf (stderr, "resized: %s\n", name);
-	      return XFLOAT_DATA (XCDR (elt));
-	    }
+	    return XFLOAT_DATA (XCDR (elt));
 	}
     }
   return 1.0;
