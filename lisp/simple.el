@@ -1532,43 +1532,35 @@ at the start of current run of vertical motion commands.
 When the `track-eol' feature is doing its job, the value is 9999.")
 
 (defun line-move (arg)
-  (let ((signal
-	 (catch 'exit
-	   (if (not (or (eq last-command 'next-line)
-			(eq last-command 'previous-line)))
-	       (setq temporary-goal-column
-		     (if (and track-eol (eolp)
-			      ;; Don't count beg of empty line as end of line
-			      ;; unless we just did explicit end-of-line.
-			      (or (not (bolp)) (eq last-command 'end-of-line)))
-			 9999
-		       (current-column))))
-	   (if (not (integerp selective-display))
-	       (or (and (zerop (forward-line arg))
-			(bolp))
-		   (throw 'exit (if (bobp)
-				    'beginning-of-buffer
-				  'end-of-buffer)))
-	     ;; Move by arg lines, but ignore invisible ones.
-	     (while (> arg 0)
-	       (end-of-line)
-	       (and (zerop (vertical-motion 1))
-		    (throw 'exit 'end-of-buffer))
-	       (setq arg (1- arg)))
-	     (while (< arg 0)
-	       (beginning-of-line)
-	       (and (zerop (vertical-motion -1))
-		    (throw 'exit 'beginning-of-buffer))
-	       (setq arg (1+ arg))))
-	   (move-to-column (or goal-column temporary-goal-column))
-	   nil)))
-    (cond
-     ((eq signal 'beginning-of-buffer)
-      (message "Beginning of buffer")
-      (ding))
-     ((eq signal 'end-of-buffer)
-      (message "End of buffer")
-      (ding)))))
+  (if (not (or (eq last-command 'next-line)
+	       (eq last-command 'previous-line)))
+      (setq temporary-goal-column
+	    (if (and track-eol (eolp)
+		     ;; Don't count beg of empty line as end of line
+		     ;; unless we just did explicit end-of-line.
+		     (or (not (bolp)) (eq last-command 'end-of-line)))
+		9999
+	      (current-column))))
+  (if (not (integerp selective-display))
+      (or (and (zerop (forward-line arg))
+	       (bolp))
+	  (signal (if (bobp)
+		      'beginning-of-buffer
+		    'end-of-buffer)
+		  nil))
+    ;; Move by arg lines, but ignore invisible ones.
+    (while (> arg 0)
+      (end-of-line)
+      (and (zerop (vertical-motion 1))
+	   (signal 'end-of-buffer nil))
+      (setq arg (1- arg)))
+    (while (< arg 0)
+      (beginning-of-line)
+      (and (zerop (vertical-motion -1))
+	   (signal 'beginning-of-buffer nil))
+      (setq arg (1+ arg))))
+  (move-to-column (or goal-column temporary-goal-column))
+  nil)
 
 ;;; Many people have said they rarely use this feature, and often type
 ;;; it by accident.  Maybe it shouldn't even be on a key.
