@@ -955,7 +955,7 @@ NAME is nil if the statement has no label."
                   (looking-at "then\\>")))
             (list struct label))))))
 
-(defun f90-looking-at-where-or-forall ()
+(defsubst f90-looking-at-where-or-forall ()
   "Return (KIND NAME) if a where or forall block starts after point.
 NAME is nil if the statement has no label."
   (save-excursion
