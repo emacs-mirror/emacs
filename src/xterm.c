@@ -10313,24 +10313,33 @@ x_draw_bar_cursor (w, row, width)
      struct glyph_row *row;
      int width;
 {
-  /* If cursor hpos is out of bounds, don't draw garbage.  This can
-     happen in mini-buffer windows when switching between echo area
-     glyphs and mini-buffer.  */
-  if (w->phys_cursor.hpos < row->used[TEXT_AREA])
-    {
-      struct frame *f = XFRAME (w->frame);
-      struct glyph *cursor_glyph;
-      GC gc;
-      int x;
-      unsigned long mask;
-      XGCValues xgcv;
-      Display *dpy;
-      Window window;
+  struct frame *f = XFRAME (w->frame);
+  struct glyph *cursor_glyph;
+  GC gc;
+  int x;
+  unsigned long mask;
+  XGCValues xgcv;
+  Display *dpy;
+  Window window;
       
-      cursor_glyph = get_phys_cursor_glyph (w);
-      if (cursor_glyph == NULL)
-	return;
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
+  cursor_glyph = get_phys_cursor_glyph (w);
+  if (cursor_glyph == NULL)
+    return;
 
+  /* If on an image, draw like a normal cursor.  That's usually better
+     visible than drawing a bar, esp. if the image is large so that
+     the bar might not be in the window.  */
+  if (cursor_glyph->type == IMAGE_GLYPH)
+    {
+      struct glyph_row *row;
+      row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+      x_draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
+    }
+  else
+    {
       xgcv.background = f->output_data.x->cursor_pixel;
       xgcv.foreground = f->output_data.x->cursor_pixel;
       xgcv.graphics_exposures = 0;
@@ -10338,7 +10347,7 @@ x_draw_bar_cursor (w, row, width)
       dpy = FRAME_X_DISPLAY (f);
       window = FRAME_X_WINDOW (f);
       gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
-      
+  
       if (gc)
 	XChangeGC (dpy, gc, mask, &xgcv);
       else
@@ -10346,10 +10355,10 @@ x_draw_bar_cursor (w, row, width)
 	  gc = XCreateGC (dpy, window, mask, &xgcv);
 	  FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc = gc;
 	}
-
+  
       if (width < 0)
 	width = f->output_data.x->cursor_width;
-
+  
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       x_clip_to_row (w, row, gc, 0);
       XFillRectangle (dpy, window, gc,
