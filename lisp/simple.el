@@ -472,10 +472,8 @@ character safely.  If the character is encoded into one byte, that
 code is shown in hex.  If the character is encoded into more than one
 byte, just \"...\" is shown.
 
-With prefix argument, print additional details about that character,
-instead of the cursor position.  This includes the character set name,
-the codes that identify the character within that character set.  In
-addition, the encoding is fully shown."
+In addition, with prefix argument, show details about that character
+in *Help* buffer.  See also the command `describe-char-after'."
   (interactive "P")
   (let* ((char (following-char))
 	 (beg (point-min))
@@ -507,34 +505,26 @@ addition, the encoding is fully shown."
 	  (setq encoded (and (>= char 128) (encode-coding-char char coding)))
 	  (setq encoding-msg
 		(if encoded
-		    (format "(0%o, %d, 0x%x, ext %s)"
+		    (format "(0%o, %d, 0x%x, file %s)"
 			    char char char
-			    (if (and (not detail)
-				     (> (length encoded) 1))
+			    (if (> (length encoded) 1)
 				"..."
-			      (concat
-			       (encoded-string-description encoded coding)
-			       (if (nth 2 (find-composition (point)))
-				   " (composed)" ""))))
+			      (encoded-string-description encoded coding)))
 		  (format "(0%o, %d, 0x%x)" char char char))))
 	(if detail
-	    ;; We show the detailed information of CHAR.
-	    (message "Char: %s %s %s"
+	    ;; We show the detailed information about CHAR.
+	    (describe-char-after (point)))
+	(if (or (/= beg 1) (/= end (1+ total)))
+	    (message "Char: %s %s point=%d of %d (%d%%) <%d - %d> column %d %s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (buffer-substring-no-properties (point) (1+ (point))))
-		     encoding-msg (split-char char))
-	  (if (or (/= beg 1) (/= end (1+ total)))
-	      (message "Char: %s %s point=%d of %d (%d%%) <%d - %d> column %d %s"
-		       (if (< char 256)
-			   (single-key-description char)
-			 (buffer-substring-no-properties (point) (1+ (point))))
-		       encoding-msg pos total percent beg end col hscroll)
-	    (message "Char: %s %s point=%d of %d (%d%%) column %d %s"
-		     (if (< char 256)
-			 (single-key-description char)
-		       (buffer-substring-no-properties (point) (1+ (point))))
-		     encoding-msg pos total percent col hscroll)))))))
+		     encoding-msg pos total percent beg end col hscroll)
+	  (message "Char: %s %s point=%d of %d (%d%%) column %d %s"
+		   (if (< char 256)
+		       (single-key-description char)
+		     (buffer-substring-no-properties (point) (1+ (point))))
+		   encoding-msg pos total percent col hscroll))))))
 
 (defvar read-expression-map (cons 'keymap minibuffer-local-map)
   "Minibuffer keymap used for reading Lisp expressions.")
@@ -4204,28 +4194,29 @@ the front of the list of recently selected ones."
 ;;; Syntax stuff.
 
 (defconst syntax-code-table
-    '((?\ . 0)
-      (?- . 0)				;whitespace
-      (?. . 1)				;punctuation
-      (?w . 2)				;word
-      (?_ . 3)				;symbol
-      (?\( . 4)				;open parenthesis
-      (?\) . 5)				;close parenthesis
-      (?\' . 6)				;expression prefix
-      (?\" . 7)				;string quote
-      (?$ . 8)				;paired delimiter
-      (?\\ . 9)				;escape
-      (?/ . 10)				;character quote
-      (?< . 11)				;comment start
-      (?> . 12)				;comment end
-      (?@ . 13)				;inherit
-      (nil . 14)			;comment fence
-      (nil . 15))			;string fence
-    "Alist of pairs (CHAR . CODE) mapping characters to syntax codes.
+    '((?\ 0 "whitespace")
+      (?- 0 "whitespace")
+      (?. 1 "punctuation")
+      (?w 2 "word")
+      (?_ 3 "symbol")
+      (?\( 4 "open parenthesis")
+      (?\) 5 "close parenthesis")
+      (?\' 6 "expression prefix")
+      (?\" 7 "string quote")
+      (?$ 8 "paired delimiter")
+      (?\\ 9 "escape")
+      (?/ 10 "character quote")
+      (?< 11 "comment start")
+      (?> 12 "comment end")
+      (?@ 13 "inherit")
+      (nil 14 "comment fence")
+      (nil 15 "string fence"))
+    "Alist of forms (CHAR CODE DESCRIPTION) mapping characters to syntax info.
 CHAR is a character that is allowed as first char in the string
 specifying the syntax when calling `modify-syntax-entry'.  CODE is the
 corresponing syntax code as it is stored in a syntax cell, and
-can be used as value of a `syntax-table' property..")
+can be used as value of a `syntax-table' property.
+DESCRIPTION is the descriptive string for the syntax.")
 
 (defconst syntax-flag-table
   '((?1 . #b10000000000000000)
@@ -4248,7 +4239,7 @@ STRING should be a string as it is allowed as argument of
 \(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
 text property."
   (let* ((first-char (aref string 0))
-	 (code (or (cdr (assq first-char syntax-code-table))
+	 (code (or (nth 1 (assq first-char syntax-code-table))
 		   (error "Invalid syntax specification `%s'" string)))
 	 (length (length string))
 	 (i 1)
