@@ -447,8 +447,18 @@ struct interval
   unsigned int position;	/* Cache of interval's character position  */
   struct interval *left;	/* Intervals which precede me. */
   struct interval *right;	/* Intervals which succeed me. */
-  struct interval *parent;	/* Parent in the tree, or the Lisp_Object
-				   containing this interval tree. */
+
+  /* Parent in the tree, or the Lisp_Object containing this interval tree.
+
+     The mark bit on the root interval of an interval tree says
+     whether we have started (and possibly finished) marking the
+     tree.  If GC comes across an interval tree whose root's parent
+     field has its markbit set, it leaves the tree alone.
+
+     You'd think we could store this information in the parent object
+     somewhere (after all, that should be visited once and then
+     ignored too, right?), but strings are GC'd strangely.  */
+  struct interval *parent;
 
   /* The remaining components are `properties' of the interval.
      The first four are duplicates for things which can be on the list,
@@ -460,7 +470,11 @@ struct interval
 				       before this interval goes into it. */
   unsigned char rear_sticky;	    /* Likewise for just after it. */
 
-  Lisp_Object plist;		    /* Properties of this interval. */
+  /* Properties of this interval.
+     The mark bit on this field says whether this particular interval
+     tree node has been visited.  Since intervals should never be
+     shared, GC aborts if it seems to have visited an interval twice.  */
+  Lisp_Object plist;
 };
 
 typedef struct interval *INTERVAL;

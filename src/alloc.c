@@ -349,14 +349,23 @@ static void
 mark_interval_tree (tree)
      register INTERVAL tree;
 {
-  if (XMARKBIT (tree->plist))
-    return;
+  /* No need to test if this tree has been marked already; this
+     function is always called through the MARK_INTERVAL_TREE macro,
+     which takes care of that.  */
+
+  /* XMARK expands to an assignment; the LHS of an assignment can't be
+     a cast.  */
+  XMARK (* (Lisp_Object *) &tree->parent);
 
   traverse_intervals (tree, 1, 0, mark_interval, Qnil);
 }
 
-#define MARK_INTERVAL_TREE(i) \
-  { if (!NULL_INTERVAL_P (i)) mark_interval_tree (i); }
+#define MARK_INTERVAL_TREE(i)				\
+  do {							\
+    if (!NULL_INTERVAL_P (i)				\
+	&& ! XMARKBIT ((Lisp_Object) i->parent))	\
+      mark_interval_tree (i);				\
+  } while (0)
 
 /* The oddity in the call to XUNMARK is necessary because XUNMARK
    expands to an assignment to its argument, and most C compilers don't
@@ -1957,25 +1966,30 @@ gc_sweep ()
   /* Free all "large strings" not marked with ARRAY_MARK_FLAG.  */
   {
     register struct string_block *sb = large_string_blocks, *prev = 0, *next;
+    struct Lisp_String *s;
 
     while (sb)
-      if (!(((struct Lisp_String *)(&sb->chars[0]))->size & ARRAY_MARK_FLAG))
-	{
-	  if (prev)
-	    prev->next = sb->next;
-	  else
-	    large_string_blocks = sb->next;
-	  next = sb->next;
-	  xfree (sb);
-	  sb = next;
-	}
-      else
-	{
-	  ((struct Lisp_String *)(&sb->chars[0]))->size
-	    &= ~ARRAY_MARK_FLAG & ~MARKBIT;
-	  total_string_size += ((struct Lisp_String *)(&sb->chars[0]))->size;
-	  prev = sb, sb = sb->next;
-	}
+      {
+	s = (struct Lisp_String *) &sb->chars[0];
+	if (s->size & ARRAY_MARK_FLAG)
+	  {
+	    ((struct Lisp_String *)(&sb->chars[0]))->size
+	      &= ~ARRAY_MARK_FLAG & ~MARKBIT;
+	    UNMARK_BALANCE_INTERVALS (s->intervals);
+	    total_string_size += ((struct Lisp_String *)(&sb->chars[0]))->size;
+	    prev = sb, sb = sb->next;
+	  }
+	else
+	  {
+	    if (prev)
+	      prev->next = sb->next;
+	    else
+	      large_string_blocks = sb->next;
+	    next = sb->next;
+	    xfree (sb);
+	    sb = next;
+	  }
+      }
   }
 }
 
@@ -2067,6 +2081,16 @@ compact_strings ()
 		}
 	      /* Store the actual size in the size field.  */
 	      newaddr->size = size;
+
+	      /* Now that the string has been relocated, rebalance its
+                 interval tree, and update the tree's parent pointer. */
+	      if (! NULL_INTERVAL_P (newaddr->intervals))
+		{
+		  UNMARK_BALANCE_INTERVALS (newaddr->intervals);
+		  XSET (* (Lisp_Object *) &newaddr->intervals->parent,
+			Lisp_String,
+			newaddr);
+		}
 	    }
 	  pos += STRING_FULLSIZE (size);
 	}
