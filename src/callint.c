@@ -221,7 +221,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  function = wrong_type_argument (Qcommandp, function);
 	  goto retry;
 	}
-      if ((int) string == 1)
+      if ((EMACS_INT) string == 1)
 	/* Let SPECS (which is nil) be used as the args.  */
 	string = 0;
     }
