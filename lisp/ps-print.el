@@ -100,7 +100,7 @@ Please send all bug fixes and enhancements to
 ;; your output at the printer (it's easier to pick up one 50-page
 ;; printout than to find 50 single-page printouts).
 ;;
-;; Ps-print has a hook in the `kill-emacs-hooks' so that you won't
+;; Ps-print has a hook in the `kill-emacs-hook' so that you won't
 ;; accidentally quit from Emacs while you have unprinted PostScript
 ;; waiting in the spool buffer.  If you do attempt to exit with
 ;; spooled PostScript, you'll be asked if you want to print it, and if
