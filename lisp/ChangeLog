@@ -1,3 +1,8 @@
+2001-01-16  Dave Love  <fx@gnu.org>
+
+	* simple.el (backward-delete-char-untabify-method)
+	(next-line-add-newlines): Add :version.
+
 2001-01-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify): Check in
