@@ -22,8 +22,19 @@ Boston, MA 02111-1307, USA.  */
    so that we do not need to conditionalize the places in Emacs
    that set them.  */
 
+#include <config.h>
+
+#ifdef USG
+# include <string.h>
+#endif
+
 char *UP, *BC, PC;
-short ospeed;
+#ifdef HAVE_TERMIOS_H
+# include <termios.h>
+  speed_t ospeed;
+#else
+  short ospeed;
+#endif
 
 static buffer[512];
 
