@@ -187,15 +187,37 @@ accepts Big5 for input also (which is then converted to CNS)."))
 
 (set-language-info-alist
  "Chinese-GBK" '((charset chinese-gbk)
-		  (coding-system chinese-gbk)
-		  (coding-priority gbk iso-2022-cn chinese-big5
-				   chinese-iso-8bit) ; fixme?
-		  (input-method . "chinese-py-punct") ; fixme?
-		  (features china-util)
-		  (documentation . "Support for Chinese GBK character set."))
+		 (coding-system chinese-gbk)
+		 (coding-priority gbk iso-2022-cn chinese-big5
+				  chinese-iso-8bit) ; fixme?
+		 (input-method . "chinese-py-punct") ; fixme?
+		 (features china-util)
+		 (documentation . "Support for Chinese GBK character set."))
  '("Chinese"))
 
-;; Fixme: add HKSCS, GB18030
+;;; Chinese GB18030
+
+(define-coding-system 'chinese-gb18030
+  "GB18030 encoding for Chinese (MIME:GB18030)."
+  :coding-type 'charset
+  :mnemonic ?c
+  :charset-list '(chinese-gb18030)
+  :mime-charset 'gb18030
+  )
+(define-coding-system-alias 'gb18030 'chinese-gb18030)
+
+(set-language-info-alist
+ "Chinese-GB18030" '((charset chinese-gb18030)
+		     (coding-system chinese-gb18030)
+		     (coding-priority gb18030 gbk iso-2022-cn chinese-big5
+				      chinese-iso-8bit) ; fixme?
+		     (input-method . "chinese-py-punct") ; fixme?
+		     (features china-util)
+		     (documentation
+		      . "Support for Chinese GB18030 character set."))
+ '("Chinese"))
+
+;; Fixme: add HKSCS
 
 (provide 'chinese)
 
