@@ -49,6 +49,9 @@ variables, including buffer-local and frame-local variables.
 ** Functions from `post-gc-hook' are run at the end of garbage
 collection.  The hook is run with GC inhibited, so use it with care.
 
+** If the second argument to `copy-file' is the name of a directory,
+copy the file to that directory.
+
 
 * Installation Changes in Emacs 21.1
 
