@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.19) $
+ * $HopeName: MMsrc!arena.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -14,12 +14,8 @@
  * ArenaLeave in this file.
  * 
  * .req: The arena is required to support all per-instantiation
- * behaviour of the memory manager.  [I've just made up this
- * requirement, can you tell?  NickB 1997-07-21]
+ * behaviour of the memory manager.
  * 
- * .where.type: The Arena type is defined in impl.h.mpmtypes.
- * .where.struct: The ArenaStruct type is defined in impl.h.mpmst.
- *
  * NOTES
  *
  * .non-mod: The Arena structure has many fields which properly belong
@@ -34,13 +30,12 @@
  * number). See design.mps.arena.static.
  */
 
-
 #include "mpm.h"
 
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.19) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.20) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -53,6 +48,7 @@ static LockStruct arenaRingLock;
 static Serial arenaSerial;         /* design.mps.arena.static.serial */
 
 #define SegArena(seg) PoolArena(SegPool(seg))
+
 
 /* ArenaClassCheck -- check the consistency of an arena class */
 
@@ -782,6 +778,10 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
  *
  * .arena.control-pool: Actually the block will be allocated from the
  * control pool, which is an MV pool embedded in the arena itself.
+ *
+ * .arenaalloc.addr: In implementations where Addr is not compatible
+ * with void* (design.mps.type.addr.use), ArenaAlloc must take care of
+ * allocating so that the block can be addressed with a void*.
  */
 
 Res ArenaAlloc(void **baseReturn, Arena arena, Size size)
@@ -798,10 +798,7 @@ Res ArenaAlloc(void **baseReturn, Arena arena, Size size)
   res = PoolAlloc(&base, pool, size);
   if(res != ResOK) return res;
 
-  /* .arenaalloc.addr-conv: This is the place where we go from */
-  /* the managed  addresses of PoolAlloc to the unmanaged */
-  /* addresses of ArenaAlloc. */
-  *baseReturn = (void *)base;
+  *baseReturn = (void *)base; /* see .arenaalloc.addr */
   return ResOK;
 }
 
@@ -857,61 +854,6 @@ void SegFree(Seg seg)
   (*arena->class->segFree)(seg);
 }
 
-
-Size ArenaReserved(Arena arena)
-{
-  AVERT(Arena, arena);
-  return (*arena->class->reserved)(arena);
-}
-
-
-Size ArenaCommitted(Arena arena)
-{
-  AVERT(Arena, arena);
-  return (*arena->class->committed)(arena);
-}
-
-
-Res ArenaExtend(Arena arena, Addr base, Size size)
-{
-  Res res;
-
-  AVERT(Arena, arena);
-  AVER(base != (Addr)0);
-  AVER(size > 0);
-
-  res = (*arena->class->extend)(arena, base, size);
-  if(res != ResOK) return res;
-  
-  EVENT_PAW(ArenaExtend, arena, base, size);
-
-  return ResOK;
-}
-
-
-Res ArenaRetract(Arena arena, Addr base, Size size)
-{
-  Res res;
-
-  AVERT(Arena, arena);
-  AVER(base != (Addr)0);
-  AVER(size > 0);
-
-  res = (*arena->class->retract)(arena, base, size);
-  if(res != ResOK) return res;
-  
-  EVENT_PAW(ArenaRetract, arena, base, size);
-
-  return ResOK;
-}
-
-Bool ArenaIsReservedAddr(Arena arena, Addr addr)
-{
-  AVERT(Arena, arena);
-  /* addr is arbitrary */
-
-  return (*arena->class->isReserved)(arena, addr);
-}
 
 /* .seg.critical: These segment functions are low-level and used 
  * through-out. They are therefore on the critical path and their 
@@ -996,6 +938,63 @@ Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
   AVERT_CRITICAL(Arena, arena);
 
   return (*arena->class->segNext)(segReturn, arena, addr);
+}
+
+
+Size ArenaReserved(Arena arena)
+{
+  AVERT(Arena, arena);
+  return (*arena->class->reserved)(arena);
+}
+
+
+Size ArenaCommitted(Arena arena)
+{
+  AVERT(Arena, arena);
+  return (*arena->class->committed)(arena);
+}
+
+
+Res ArenaExtend(Arena arena, Addr base, Size size)
+{
+  Res res;
+
+  AVERT(Arena, arena);
+  AVER(base != (Addr)0);
+  AVER(size > 0);
+
+  res = (*arena->class->extend)(arena, base, size);
+  if(res != ResOK) return res;
+  
+  EVENT_PAW(ArenaExtend, arena, base, size);
+
+  return ResOK;
+}
+
+
+Res ArenaRetract(Arena arena, Addr base, Size size)
+{
+  Res res;
+
+  AVERT(Arena, arena);
+  AVER(base != (Addr)0);
+  AVER(size > 0);
+
+  res = (*arena->class->retract)(arena, base, size);
+  if(res != ResOK) return res;
+  
+  EVENT_PAW(ArenaRetract, arena, base, size);
+
+  return ResOK;
+}
+
+
+Bool ArenaIsReservedAddr(Arena arena, Addr addr)
+{
+  AVERT(Arena, arena);
+  /* addr is arbitrary */
+
+  return (*arena->class->isReserved)(arena, addr);
 }
 
 
@@ -1097,19 +1096,17 @@ Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
 }
 
 
-
-/* Finalization
+/* ArenaFinalize -- registers an object for finalization
  *
- * registers an object for finalization.
- * see design.mps.finalize
+ * See design.mps.finalize.
  */
 
-Res ArenaFinalize(Arena arena, Addr obj)
+Res ArenaFinalize(Arena arena, Ref obj)
 {
   Res res;
 
   AVERT(Arena, arena);
-  AVER(obj != NULL);
+  /* Could consider checking that Ref is valid. */
 
   if(!arena->isFinalPool) {
     Pool pool;
@@ -1204,8 +1201,12 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
   ShieldCover(arena, seg);
 }
 
-/* Read.  This forms part of a software barrier.  It provides
- * fine-grain access to single words of segments */
+
+/* ArenaRead -- read a single reference, possibly through a barrier
+ *
+ * This forms part of a software barrier.  It provides fine-grain access
+ * to single references in segments.
+ */
 
 Ref ArenaRead(Arena arena, Addr addr)
 {
