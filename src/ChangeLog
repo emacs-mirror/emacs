@@ -1,3 +1,8 @@
+2002-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (get_window_cursor_type): Don't use x_highlight_frame
+	member of x_display_info unless we compile for some window system.
+
 2002-08-31  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (Valternate_cursor_type, Qalternate_cursor_type): Removed.
