@@ -19,12 +19,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _CODING_H
-#define _CODING_H
+#ifndef EMACS_CODING_H
+#define EMACS_CODING_H
 
-#ifndef _CCL_H
 #include "ccl.h"
-#endif
 
 /*** EMACS' INTERNAL FORMAT (emacs-mule) section ***/
 
@@ -708,4 +706,4 @@ extern Lisp_Object Vw32_system_coding_system;
 #endif
 #endif
 
-#endif /* _CODING_H */
+#endif /* EMACS_CODING_H */
