@@ -1,3 +1,7 @@
+2001-10-31  Pavel Janík  <Pavel@Janik.cz>
+
+	* tips.texi (Coding Conventions): Fix typo.
+
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (srcs): Add gpl.texi and doclicense.texi.
