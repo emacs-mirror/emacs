@@ -561,7 +561,7 @@ and sometimes other things."
 	    (princ (format "  %s (`%c' in mode line):\n\t%s\n"
 			   (car l)
 			   (coding-system-mnemonic (car l))
-			   (coding-system-docstring (car l))))
+			   (coding-system-doc-string (car l))))
 	    (setq l (cdr l))))))))
 
 ;;; Charset property
