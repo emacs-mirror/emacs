@@ -2511,6 +2511,12 @@ init_display ()
 #else
       Vwindow_system_version = make_number (10);
 #endif
+#if defined (LINUX) && defined (HAVE_LIBNCURSES)
+      /* In some versions of ncurses,
+	 tparm crashes if we have not called tgetent.
+	 So call tgetent.  */
+      { char b[2044]; tgetent (b, "xterm");}
+#endif
       return;
     }
 #endif /* HAVE_X_WINDOWS */
