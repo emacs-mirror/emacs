@@ -1,5 +1,32 @@
 2002-08-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* help-fns.el (locate-library): Use locate-file(-completion).
+	(help-split-fundoc): Tighten the regexp and recognize a usage-info
+	where the function name is `fn'.
+	(help-function-arglist): Follow aliases and macros.
+	(describe-function-1): Use keymapp.
+	If the docstring contains a usage info, use it even if the function is
+	not a subroutine.  Find usage info in aliases' docstring if necessary.
+	(describe-variable): Get the value before setting up the *Help* buffer.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode):
+	Use find-file-hook instead of find-file-hooks.
+	(define-minor-mode): Get rid of this silly `togglep'.
+	Add an explicit `toggle' argument (used for interactive calls).
+	Emit a warning when a nil argument turns the mode off.
+
+	* language/ethio-util.el (setup-ethiopic-environment-internal)
+	(exit-ethiopic-environment): Use find-file-hook and
+	write-file-functions instead of find-file-hooks and write-file-hooks.
+
+	* window.el (handle-select-window): Don't do anything if the window
+	has disappeared since the event was generated.
+	(split-window-save-restore-data): Use push and with-current-buffer.
+
+	* saveplace.el:
+	* play/meese.el:
+	* obsolete/hilit19.el:
+	* completion.el (dynamic-completion-mode):
 	* emacs-lisp/find-func.el (find-function-search-for-symbol):
 	Use find-file-hook instead of find-file-hooks.
 
