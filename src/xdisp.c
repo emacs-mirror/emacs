@@ -9332,13 +9332,16 @@ try_cursor_movement (window, startp, scroll_step)
 	    }
 	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
 	    {
-	      /* If we end up in a partially visible line, let's make it
-		 fully visible, except when it's taller than the window,
-		 in which case we can't do much about it.  */
-	      if (scroll_p)
+	      if (PT == MATRIX_ROW_END_CHARPOS (row)
+		  && !row->ends_at_zv_p
+		  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
 		rc = -1;
 	      else if (row->height > window_box_height (w))
 		{
+		  /* If we end up in a partially visible line, let's
+		     make it fully visible, except when it's taller
+		     than the window, in which case we can't do much
+		     about it.  */
 		  *scroll_step = 1;
 		  rc = -1;
 		}
