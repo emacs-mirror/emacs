@@ -170,7 +170,8 @@
 	  (arglist nil)
 	  (is-lambda (and (eq (car-safe form) 'calcFunc-lambda)
 			  (>= (length form) 2)))
-	  odef key keyname cmd cmd-base func calc-user-formula-alist is-symb)
+	  odef key keyname cmd cmd-base cmd-base-default
+          func calc-user-formula-alist is-symb)
      (if is-lambda
 	 (setq arglist (mapcar (function (lambda (x) (nth 1 x)))
 			       (nreverse (cdr (reverse (cdr form)))))
@@ -189,18 +190,25 @@
 			    (char-to-string key)
 			  (format "%03d" key)))
 	   odef (assq key (calc-user-key-map)))
+     (unless keyname
+       (setq keyname (format "%05d" (abs (% (random) 10000)))))
      (while
 	 (progn
-	   (setq cmd (completing-read "Define M-x command name: "
-				      obarray 'commandp nil
-				      (if (and odef (symbolp (cdr odef)))
-					  (symbol-name (cdr odef))
-					"calc-"))
-		 cmd-base (and (string-match "\\`calc-\\(.+\\)\\'" cmd)
-			       (math-match-substring cmd 1))
-		 cmd (and (not (or (string-equal cmd "")
-				   (string-equal cmd "calc-")))
-			  (intern cmd)))
+	   (setq cmd-base-default (concat "User-" keyname))
+           (setq cmd (completing-read 
+                      (concat "Define M-x command name (default: calc-"
+                              cmd-base-default
+                              "): ")
+                      obarray 'commandp nil
+                      (if (and odef (symbolp (cdr odef)))
+                          (symbol-name (cdr odef))
+                        "calc-")))
+           (if (or (string-equal cmd "")
+                   (string-equal cmd "calc-"))
+               (setq cmd (concat "calc-User-" keyname)))
+           (setq cmd-base (and (string-match "\\`calc-\\(.+\\)\\'" cmd)
+			       (math-match-substring cmd 1)))
+           (setq cmd (intern cmd))
 	   (and cmd
 		(fboundp cmd)
 		odef
@@ -210,30 +218,33 @@
 		      (concat "Replace previous definition for "
 			      (symbol-name cmd) "? ")
 		    "That name conflicts with a built-in Emacs function.  Replace this function? "))))))
-     (if (and key (not cmd))
-	 (setq cmd (intern (concat "calc-User-" keyname))))
      (while
 	 (progn
+           (setq cmd-base-default     
+                 (if cmd-base
+                     (if (string-match
+                          "\\`User-.+" cmd-base)
+                         (concat
+                          "User"
+                          (substring cmd-base 5))
+                       cmd-base)
+                   (concat "User" keyname)))
 	   (setq func 
                  (concat "calcFunc-"
-                         (completing-read "Define algebraic function name: "
-                                          (mapcar (lambda (x) (substring x 9))
-                                                  (all-completions "calcFunc-"
-                                                                   obarray))
-                                          (lambda (x) 
-                                            (fboundp 
-                                             (intern (concat "calcFunc-" x))))
-                                          nil
-                                          (if cmd-base
-                                              (if (string-match
-                                                   "\\`User-.+" cmd-base)
-                                                  (concat
-                                                   "User"
-                                                   (substring cmd-base 5))
-                                                cmd-base)
-                                            "")))
-                 func (and (not (string-equal func "calcFunc-"))
-			   (intern func)))
+                         (completing-read 
+                          (concat "Define algebraic function name (default: "
+                                  cmd-base-default "): ")
+                          (mapcar (lambda (x) (substring x 9))
+                                  (all-completions "calcFunc-"
+                                                   obarray))
+                          (lambda (x) 
+                            (fboundp 
+                             (intern (concat "calcFunc-" x))))
+                          nil)))
+           (setq func
+                 (if (string-equal func "calcFunc-")
+                     (intern (concat "calcFunc-" cmd-base-default))
+                   (intern func)))
 	   (and func
 		(fboundp func)
 		(not (fboundp cmd))
@@ -244,11 +255,13 @@
 		      (concat "Replace previous definition for "
 			      (symbol-name func) "? ")
 		    "That name conflicts with a built-in Emacs function.  Replace this function? "))))))
+
      (if (not func)
 	 (setq func (intern (concat "calcFunc-User"
 				    (or keyname
 					(and cmd (symbol-name cmd))
 					(format "%05d" (% (random) 10000)))))))
+
      (if is-lambda
 	 (setq calc-user-formula-alist arglist)
        (while
