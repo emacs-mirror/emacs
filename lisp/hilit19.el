@@ -786,7 +786,9 @@ non-nil."
   "Highlight a buffer containing a news article or mail message."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward "^$" nil 'noerr)
+    ;; find separation between headers and body (either a blank line or
+    ;; the message separator line in mail-mode)
+    (re-search-forward "^\\(\\|--text follows this line--\\)$" nil 'noerr)
     (hilit-unhighlight-region (point-min) (point-max) quietly)
     (hilit-highlight-region (point-min) (point) 'msg-header quietly)
     (hilit-highlight-region (point) (point-max) 'msg-body quietly)))
