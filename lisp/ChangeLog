@@ -1,3 +1,7 @@
+2003-02-06  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* language/european.el ("Italian"): New.
+
 2003-02-06  Matthew Swift  <swift@alum.mit.edu>
 
 	* dired.el (dired-move-to-filename-regexp): Support "K" suffix on
