@@ -597,7 +597,7 @@ to `reftex-cite-format' and inserted into the buffer.
 
 If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
 
-FORAT-KEY can be used to pre-select a citation format.
+FORMAT-KEY can be used to pre-select a citation format.
 
 When called with one or two `C-u' prefixes, first rescans the document.
 When called with a numeric prefix, make that many citations.  When
