@@ -138,6 +138,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	    (rmail-next-undeleted-message 1))))))
 
 ;; Returns t if file FILE is an Rmail file.
+;;;###autoload
 (defun rmail-file-p (file)
   (let ((buf (generate-new-buffer " *rmail-file-p*")))
     (unwind-protect
