@@ -949,6 +949,13 @@ built-in primitive beginning with Emacs 21.1.  We don't have a patch
 for epop3 that fixes this, but perhaps a newer version of epop3
 corrects that.
 
+* The arrow indicating the current execution line in GUD is invisible.
+
+This was reported to happen when Emacs 21 is run on an xterm, and the
+python-mode package was loaded.  It appears that python-mode is
+incompatible with Emacs 21; newer versions of python-mode are likely
+to fix that.
+
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
 shared libraries, for instance those for Xaw3d or image support.
