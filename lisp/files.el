@@ -136,7 +136,7 @@ Some modes set this non-nil in particular buffers.")
   "*Control use of version numbers for backup files.
 t means make numeric backup versions unconditionally.
 nil means make them for files that have some already.
-never means do not make them.")
+`never' means do not make them.")
 
 (defvar dired-kept-versions 2
   "*When cleaning directory, number of versions to keep.")
