@@ -1,4 +1,4 @@
-;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision$
+;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision: 1.2 $
 ;;;; Copyright (C) 1991 Sebastian Kremer <sk@thp.uni-koeln.de>
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
@@ -24,41 +24,29 @@
 
 ;;;; WARNING:
 
-;;;; I initially used file-name-all-completions instead of
-;;;; directory-files and got an internal Emacs error:
+;;;; Sometimes I get an internal Emacs error:
 
 ;;;;   Signalling: (wrong-type-argument natnump #<EMACS BUG: ILLEGAL
 ;;;;   DATATYPE (#o37777777727) Save your buffers immediately and please
 ;;;;   report this bug>)
 
-;;;; It has never happened again and had no bad aftereffects, but do be
-;;;; careful!
+;;;;  Sometimes emacs just crashes with a fatal error.
 
 ;;;  RESTRICTIONS:
 ;;;; Always sorts by name (ls switches are completely ignored for now)
 ;;;; Cannot display date of file, displays a fake date "Jan 00 00:00" instead
 ;;;; Only numeric uid/gid
+;;;; Loading ange-ftp breaks it
 
 ;;;; It is surprisingly fast, though!
 
 ;;;; TODO:
 ;;;; Recognize at least some ls switches: l R g F i
 
-(require 'dired)
-
-(or (fboundp 'tree-dired-ls)		; save original function definition
-    (fset 'tree-dired-ls (symbol-function 'dired-ls)))
-
-;; perhaps buffer-local (he he)
-(defvar dired-ls-function 'dired-lisp-ls
-  "*Function dired uses to obtain ls output.
-Possible values 'tree-dired-ls and 'dired-lisp-ls.
-Arglist is (FILE &optional SWITCHES WILDCARD FULL-DIRECTORY-P).")
+(require 'dired)			; we will redefine this function:
 
 (defun dired-ls (file &optional switches wildcard full-directory-p)
-  (funcall dired-ls-function file switches wildcard full-directory-p))
-
-(defun dired-lisp-ls (file &optional switches wildcard full-directory-p)
+  "dired-lisp.el's version of dired-ls."
 ;  "Insert ls output of FILE, optionally formatted with SWITCHES.
 ;Optional third arg WILDCARD means treat FILE as shell wildcard.
 ;Optional fourth arg FULL-DIRECTORY-P means file is a directory and
