@@ -214,8 +214,10 @@ support other types of selections."
 ;; it, no matter which variety they've asked for.
 (defun x-frob-font-slant (font which)
   font)
+(make-obsolete 'x-frob-font-slant 'make-face-... "21.1")
 (defun x-frob-font-weight (font which)
   font)
+(make-obsolete 'x-frob-font-weight 'make-face-... "21.1")
 (defun x-font-family-list ()
   "Return a list of available font families on FRAME.\n\
 If FRAME is omitted or nil, use the selected frame.\n\
