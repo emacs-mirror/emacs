@@ -25,14 +25,6 @@
 ;;; Commentary:
 ;;
 ;; Purpose of this package:
-;;
-;; Installation instructions
-;;
-;; Usage instructions:
-;;
-;; Known bugs:
-;;
-;; Purpose of this package:
 ;;   To present a framework for mode-specific buffer indexes.
 ;;   A buffer index is an alist of names and buffer positions.
 ;;   For instance all functions in a C-file and their positions.
@@ -49,16 +41,6 @@
 ;;   Lisp/Emacs Lisp but it is easy to customize for other modes.  A
 ;;   function for jumping to the chosen index position is also
 ;;   supplied.
-;;
-;; Installation:
-;;   Put this file in your load-path and insert the following in .emacs
-;;
-;;   (autoload 'imenu-choose-buffer-index "imenu" "Menu of buffer index." t)
-;;   (autoload 'goto-index-pos "imenu" "Goto buffer index position." t)
-;;   (define-key global-map "\C-cj" 'goto-index-pos) ;; Or some other key
-;;   (cond (window-system 
-;;          (define-key global-map [S-down-mouse-3] 'goto-index-pos)))
-;;   Also run the 'add-hook' examples at the bottom of imenu.el.
 
 ;;; Change Log:
 ;;    v1.7 Apr 12 1994 Ake Stenhoff
@@ -111,7 +93,7 @@
 
 Non-nil means always display the index in a completion buffer.
 Nil means display the index as a mouse menu when the mouse was
-used to trigger `goto-index-pos'.")
+used to invoke `imenu'.")
 
 (defvar imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
@@ -166,7 +148,7 @@ This function is called within a `save-excursion'.
 The variable is buffer-local.")
 (make-variable-buffer-local 'imenu-create-index-function)
 
-(defvar prev-index-position-function 'beginning-of-defun
+(defvar imenu-prev-index-position-function 'beginning-of-defun
   "Function for finding the next index position.
 
 If `imenu-create-index-function' is set to
@@ -176,14 +158,14 @@ file.
 
 The function should leave point at the place to be connected to the
 index and it should return nil when it doesn't find another index. ")
-(make-variable-buffer-local 'prev-index-position-function)
+(make-variable-buffer-local 'imenu-prev-index-position-function)
 
-(defvar extract-index-name-function nil
+(defvar imenu-extract-index-name-function nil
   "Function for extracting the index name.
 
 This function is called after the function pointed out by
-`prev-index-position-function'.")
-(make-variable-buffer-local 'extract-index-name-function)
+`imenu-prev-index-position-function'.")
+(make-variable-buffer-local 'imenu-extract-index-name-function)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -306,11 +288,11 @@ This function is called after the function pointed out by
   "*Wrapper for index searching functions.
 
 Moves point to end of buffer and then repeatedly calls
-`prev-index-position-function' and `extract-index-name-function'.
+`imenu-prev-index-position-function' and `imenu-extract-index-name-function'.
 Their results are gathered into an index alist."
 
-  (or (and (fboundp prev-index-position-function)
-	   (fboundp extract-index-name-function))
+  (or (and (fboundp imenu-prev-index-position-function)
+	   (fboundp imenu-extract-index-name-function))
       (error "The mode \"%s\" does not take full advantage of imenu.el yet."
 	     mode-name))      
   (let ((index-alist '())
@@ -318,10 +300,10 @@ Their results are gathered into an index alist."
     (goto-char (point-max))
     (imenu-progress-message 0 t)
     ;; Search for the function
-    (while (funcall prev-index-position-function) 
+    (while (funcall imenu-prev-index-position-function) 
       (imenu-progress-message nil t)
       (save-excursion
-	(setq name (funcall extract-index-name-function)))
+	(setq name (funcall imenu-extract-index-name-function)))
       (and (stringp name)
 	   (push (cons name (point)) index-alist)))
     (imenu-progress-message 100 t)
@@ -400,6 +382,7 @@ Returns t for rescan and otherwise a position number."
 	(imenu--completion-buffer (cdr choice) prompt))
        (t
 	choice))))))
+
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.
 
@@ -471,9 +454,9 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 	   (setq imenu--index-alist nil)))
     result))
 
-(defun goto-index-pos ()
-  "Jump to selected part of buffer, using a buffer menu or mouse menu.
-
+;;;###autoload
+(defun imenu ()
+  "Jump to a place in the buffer chosen using a buffer menu or mouse menu.
 See `imenu-choose-buffer-index' for more information."
   (interactive)
   (let ((index-item (imenu-choose-buffer-index)))
