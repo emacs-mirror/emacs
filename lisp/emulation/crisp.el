@@ -385,6 +385,12 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
       (setq minor-mode-map-alist (cons (cons 'crisp-mode crisp-mode-map)
 				       minor-mode-map-alist))))
 
+;; Interaction with other packages.
+(eval-after-load 'cua
+  (progn
+    (add-to-list 'cua--standard-movement-commands 'crisp-home)
+    (add-to-list 'cua--standard-movement-commands 'crisp-end)))
+
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)
 

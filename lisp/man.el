@@ -623,21 +623,19 @@ all sections related to a subject, put something appropriate into the
 	     (start-process manual-program buffer "sh" "-c"
 			    (format (Man-build-man-command) man-args))
 	     'Man-bgproc-sentinel)
-	  (let ((process-environment
-		 (cons "GROFF_NO_SGR=1" process-environment)))
-
-	    (let ((exit-status
-		   (call-process shell-file-name nil (list buffer nil) nil "-c"
-				 (format (Man-build-man-command) man-args)))
-		  (msg ""))
-	      (or (and (numberp exit-status)
-		       (= exit-status 0))
-		  (and (numberp exit-status)
-		       (setq msg
-			     (format "exited abnormally with code %d"
-				     exit-status)))
-		  (setq msg exit-status))
-	      (Man-bgproc-sentinel bufname msg))))))))
+	  (setenv "GROFF_NO_SGR" "1")
+	  (let ((exit-status
+		 (call-process shell-file-name nil (list buffer nil) nil "-c"
+			       (format (Man-build-man-command) man-args)))
+		(msg ""))
+	    (or (and (numberp exit-status)
+		     (= exit-status 0))
+		(and (numberp exit-status)
+		     (setq msg
+			   (format "exited abnormally with code %d"
+				   exit-status)))
+		(setq msg exit-status))
+	    (Man-bgproc-sentinel bufname msg)))))))
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.

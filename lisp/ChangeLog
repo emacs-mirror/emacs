@@ -1,3 +1,13 @@
+2003-03-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* man.el (Man-getpage-in-background): Always use `setenv' for
+	environment variables, instead of modifying process-environment
+	directly.  The previous version let-bound process-environment --
+	the let-binding is skipped for GROFF_NO_SGR because there is
+	already a let-binding in effect in some outer scope.
+
+	* emulation/crisp.el (top-level): Interoperate with cua.
+
 2003-03-08  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el: Provide `cua' feature.
