@@ -1,3 +1,14 @@
+2004-11-23  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (math-read-replacement-list)
+	(math-read-superscripts): New variables.
+	(math-read-preprocess-string): New function.
+	(math-read-expr): Filter input through
+	math-read-preprocess-string.
+
+	* calc/calc-aent.el (math-read-exprs): Filter input through
+	math-read-preprocess-string.
+
 2004-11-23  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-start): In cd command use
