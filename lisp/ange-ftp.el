@@ -859,7 +859,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.16 $")
+(defconst ange-ftp-version "$Revision: 1.17 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1682,7 +1682,15 @@ been queued with no result.  CONT will still be called, however."
       (save-excursion
 	(set-buffer (process-buffer proc))
 	(while ange-ftp-process-busy
-	  (accept-process-output))
+	  ;; This is a kludge to let user quit in case ftp gets hung.
+	  ;; It matters because this function can be called from the filter.
+	  ;; It is bad to allow quitting in a filter, but getting hung
+	  ;; is worse.  By binding quit-flag to nil, we might avoid
+	  ;; most of the probability of getting screwed because the user
+	  ;; wants to quit some command.
+	  (let ((quit-flag nil)
+		(inhibit-quit nil))
+	    (accept-process-output)))
 	(setq ange-ftp-process-string ""
 	      ange-ftp-process-result-line ""
 	      ange-ftp-process-busy t
@@ -1708,7 +1716,11 @@ been queued with no result.  CONT will still be called, however."
 	    nil
 	  ;; hang around for command to complete
 	  (while ange-ftp-process-busy
-	    (accept-process-output proc))
+	    ;; This is a kludge to let user quit in case ftp gets hung.
+	    ;; It matters because this function can be called from the filter.
+	    (let ((quit-flag nil)
+		  (inhibit-quit nil))
+	      (accept-process-output proc)))
 	  (if cont
 	      nil			;cont has already been called
 	    (cons ange-ftp-process-result ange-ftp-process-result-line))))))
