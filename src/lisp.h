@@ -589,7 +589,7 @@ struct interval
 typedef struct interval *INTERVAL;
 
 /* Complain if object is not string or buffer type */
-#define CHECK_STRING_OR_BUFFER(x, i) \
+#define CHECK_STRING_OR_BUFFER(x) \
   { if (!STRINGP ((x)) && !BUFFERP ((x))) \
       x = wrong_type_argument (Qbuffer_or_string_p, (x)); }
 
@@ -1003,7 +1003,7 @@ struct Lisp_Hash_Table
 #define HASH_TABLE_P(OBJ)  PSEUDOVECTORP (OBJ, PVEC_HASH_TABLE)
 #define GC_HASH_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_HASH_TABLE)
 
-#define CHECK_HASH_TABLE(x, i)					\
+#define CHECK_HASH_TABLE(x)					\
      do								\
        {							\
 	 if (!HASH_TABLE_P ((x)))				\
@@ -1416,34 +1416,34 @@ typedef unsigned char UCHAR;
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
 
-#define CHECK_LIST(x, i) \
+#define CHECK_LIST(x) \
   do { if (!CONSP ((x)) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); } while (0)
 
-#define CHECK_STRING(x, i) \
+#define CHECK_STRING(x) \
   do { if (!STRINGP ((x))) x = wrong_type_argument (Qstringp, (x)); } while (0)
 
-#define CHECK_CONS(x, i) \
+#define CHECK_CONS(x) \
   do { if (!CONSP ((x))) x = wrong_type_argument (Qconsp, (x)); } while (0)
 
-#define CHECK_SYMBOL(x, i) \
+#define CHECK_SYMBOL(x) \
   do { if (!SYMBOLP ((x))) x = wrong_type_argument (Qsymbolp, (x)); } while (0)
 
-#define CHECK_CHAR_TABLE(x, i) \
+#define CHECK_CHAR_TABLE(x) \
   do { if (!CHAR_TABLE_P ((x)))	\
 	 x = wrong_type_argument (Qchar_table_p, (x)); } while (0)
 
-#define CHECK_VECTOR(x, i) \
+#define CHECK_VECTOR(x) \
   do { if (!VECTORP ((x))) x = wrong_type_argument (Qvectorp, (x)); } while (0)
 
-#define CHECK_VECTOR_OR_CHAR_TABLE(x, i)				\
+#define CHECK_VECTOR_OR_CHAR_TABLE(x)				\
   do { if (!VECTORP ((x)) && !CHAR_TABLE_P ((x)))			\
 	 x = wrong_type_argument (Qvector_or_char_table_p, (x));	\
      } while (0)
 
-#define CHECK_BUFFER(x, i) \
+#define CHECK_BUFFER(x) \
   do { if (!BUFFERP ((x))) x = wrong_type_argument (Qbufferp, (x)); } while (0)
 
-#define CHECK_WINDOW(x, i) \
+#define CHECK_WINDOW(x) \
   do { if (!WINDOWP ((x))) x = wrong_type_argument (Qwindowp, (x)); } while (0)
 
 /* This macro rejects windows on the interior of the window tree as
@@ -1453,60 +1453,60 @@ typedef unsigned char UCHAR;
    A window of any sort, leaf or interior, is dead iff the buffer,
    vchild, and hchild members are all nil.  */
 
-#define CHECK_LIVE_WINDOW(x, i)				\
+#define CHECK_LIVE_WINDOW(x)				\
   do {							\
     if (!WINDOWP ((x))					\
 	|| NILP (XWINDOW ((x))->buffer))		\
       x = wrong_type_argument (Qwindow_live_p, (x));	\
   } while (0)
 
-#define CHECK_PROCESS(x, i) \
+#define CHECK_PROCESS(x) \
   do { if (!PROCESSP ((x))) x = wrong_type_argument (Qprocessp, (x)); } while (0)
 
-#define CHECK_NUMBER(x, i) \
+#define CHECK_NUMBER(x) \
   do { if (!INTEGERP ((x))) x = wrong_type_argument (Qintegerp, (x)); } while (0)
 
-#define CHECK_NATNUM(x, i) \
+#define CHECK_NATNUM(x) \
   do { if (!NATNUMP (x)) x = wrong_type_argument (Qwholenump, (x)); } while (0)
 
-#define CHECK_MARKER(x, i) \
+#define CHECK_MARKER(x) \
   do { if (!MARKERP ((x))) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
 
-#define CHECK_NUMBER_COERCE_MARKER(x, i) \
+#define CHECK_NUMBER_COERCE_MARKER(x) \
   do { if (MARKERP ((x))) XSETFASTINT (x, marker_position (x)); \
     else if (!INTEGERP ((x))) x = wrong_type_argument (Qinteger_or_marker_p, (x)); } while (0)
 
 #define XFLOATINT(n) extract_float((n))
 
-#define CHECK_FLOAT(x, i)		\
+#define CHECK_FLOAT(x)		\
   do { if (!FLOATP (x))			\
     x = wrong_type_argument (Qfloatp, (x)); } while (0)
 
-#define CHECK_NUMBER_OR_FLOAT(x, i)	\
+#define CHECK_NUMBER_OR_FLOAT(x)	\
   do { if (!FLOATP (x) && !INTEGERP (x))	\
     x = wrong_type_argument (Qnumberp, (x)); } while (0)
 
-#define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x, i) \
+#define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x) \
   do { if (MARKERP (x)) XSETFASTINT (x, marker_position (x));	\
   else if (!INTEGERP (x) && !FLOATP (x))		\
     x = wrong_type_argument (Qnumber_or_marker_p, (x)); } while (0)
 
-#define CHECK_OVERLAY(x, i) \
+#define CHECK_OVERLAY(x) \
   do { if (!OVERLAYP ((x))) x = wrong_type_argument (Qoverlayp, (x));} while (0)
 
 /* Since we can't assign directly to the CAR or CDR fields of a cons
    cell, use these when checking that those fields contain numbers.  */
-#define CHECK_NUMBER_CAR(x, i) \
+#define CHECK_NUMBER_CAR(x) \
   do {					\
     Lisp_Object tmp = XCAR (x);		\
-    CHECK_NUMBER (tmp, (i));		\
+    CHECK_NUMBER (tmp);			\
     XSETCAR ((x), tmp);			\
   } while (0)
 
-#define CHECK_NUMBER_CDR(x, i) \
+#define CHECK_NUMBER_CDR(x) \
   do {					\
     Lisp_Object tmp = XCDR (x);		\
-    CHECK_NUMBER (tmp, (i));		\
+    CHECK_NUMBER (tmp);			\
     XSETCDR ((x), tmp);			\
   } while (0)
 
