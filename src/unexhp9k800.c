@@ -60,7 +60,7 @@ int
 run_time_remap (ignored)
      char *ignored;
 {
-  brk (brk_on_dump);
+  brk ((char *) brk_on_dump);
 }
 
 #undef roundup
@@ -100,13 +100,13 @@ unexec (new_name, old_name, new_end_of_text, dummy1, dummy2)
   /* Read the old headers */
   read_header (old, &hdr, &auxhdr);
 
-  brk_on_dump = sbrk (0);
+  brk_on_dump = (long) sbrk (0);
   
   /* Decide how large the new and old data areas are */
   old_size = auxhdr.exec_dsize;
   /* I suspect these two statements are separate
      to avoid a compiler bug in hpux version 8.  */
-  i = sbrk (0);
+  i = (long) sbrk (0);
   new_size = i - auxhdr.exec_dmem;
   
   /* Copy the old file to the new, up to the data space */
