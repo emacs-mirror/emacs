@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
+/* Copyright (C) 1985, 86, 87, 93, 94, 96 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,189 +26,297 @@ Boston, MA 02111-1307, USA.  */
 #include "vms-pwd.h"
 #else
 #include <pwd.h>
-#endif
+#endif /* not VMS */
 
-#include <errno.h>
 #include <sys/file.h>
 #ifdef USG
 #include <fcntl.h>
+#include <string.h>
 #endif /* USG */
 
 #include "lisp.h"
-#include <paths.h>
 #include "buffer.h"
 
-#ifdef SYSV_SYSTEM_DIR
-#include <dirent.h>
-#else /* not SYSV_SYSTEM_DIR */
-#ifdef NONSYSTEM_DIR_LIBRARY
-#include "ndir.h"
-#else /* not NONSYSTEM_DIR_LIBRARY */
-#ifdef MSDOS
-#include <dirent.h>
-#else
-#include <sys/dir.h>
-#endif
-#endif /* not NONSYSTEM_DIR_LIBRARY */
-#ifndef MSDOS
-extern DIR *opendir ();
-#endif /* not MSDOS */
-#endif /* not SYSV_SYSTEM_DIR */
-
+#include <errno.h>
+#ifndef errno
 extern int errno;
-
-extern char *egetenv ();
-extern char *strcpy ();
-
-#ifdef DECLARE_GETPWUID_WITH_UID_T
-extern struct passwd *getpwuid (uid_t);
-#else
-extern struct passwd *getpwuid ();
 #endif
 
 #ifdef CLASH_DETECTION
   
-/* If system does not have symbolic links, it does not have lstat.
-   In that case, use ordinary stat instead.  */
+/* The strategy: to lock a file FN, create a symlink .#FN in FN's
+   directory, with link data `user@host.pid'.  This avoids a single
+   mount (== failure) point for lock files.
 
-#ifndef S_IFLNK
-#define lstat stat
-#endif
+   When the host in the lock data is the current host, we can check if
+   the pid is valid with kill.
+   
+   Otherwise, we could look at a separate file that maps hostnames to
+   reboot times to see if the remote pid can possibly be valid, since we
+   don't want Emacs to have to communicate via pipes or sockets or
+   whatever to other processes, either locally or remotely; rms says
+   that's too unreliable.  Hence the separate file, which could
+   theoretically be updated by daemons running separately -- but this
+   whole idea is unimplemented; in practice, at least in our
+   environment, it seems such stale locks arise fiarly infrequently, and
+   Emacs' standard methods of dealing with clashes suffice.
 
+   We use symlinks instead of normal files because (1) they can be
+   stored more efficiently on the filesystem, since the kernel knows
+   they will be small, and (2) all the info about the lock can be read
+   in a single system call (readlink).  Although we could use regular
+   files to be useful on old systems lacking symlinks, noawdays
+   virtually all such systems are probably single-user anyway, so it
+   didn't seem worth the complication.
+   
+   Similarly, we don't worry about a possible 14-character limit on
+   file names, because those are all the same systems that don't have
+   symlinks.
+   
+   This is compatible with the locking scheme used by Interleaf (which
+   has contributed this implementation for Emacs), and was designed by
+   Ethan Jacobson, Kimbo Mundy, and others.
+   
+   --karl@cs.umb.edu/karl@hq.ileaf.com.  */
 
-/* The name of the directory in which we keep lock files, with a '/'
-   appended.  */  
-char *lock_dir;
+
+/* Here is the structure that stores information about a lock.  */
 
-/* The name of the file in the lock directory which is used to
-   arbitrate access to the entire directory.  */
-#define SUPERLOCK_NAME "!!!SuperLock!!!"
-
-/* The name of the superlock file.  This is SUPERLOCK_NAME appended to
-   lock_dir.  */
-char *superlock_file;
-
-/* Set LOCK to the name of the lock file for the filename FILE.
-   char *LOCK; Lisp_Object FILE;  */
-
-#ifndef HAVE_LONG_FILE_NAMES
-
-#define MAKE_LOCK_NAME(lock, file) \
-  (lock = (char *) alloca (14 + strlen (lock_dir) + 1), \
-   fill_in_lock_short_file_name (lock, (file)))
-
-
-fill_in_lock_short_file_name (lockfile, fn)
-     register char *lockfile;
-     register Lisp_Object fn;
+typedef struct
 {
-  register union
-    {
-      unsigned int  word [2];
-      unsigned char byte [8];
-    } crc;
-  register unsigned char *p, new;
-  
-  /* 7-bytes cyclic code for burst correction on byte-by-byte basis.
-     the used polynomial is D^7 + D^6 + D^3 +1. pot@cnuce.cnr.it */
+  char *user;
+  char *host;
+  int pid;
+} lock_info_type;
 
-  crc.word[0] = crc.word[1] = 0;
+/* When we read the info back, we might need this much more.  */
+#define LOCK_PID_MAX 21 /* enough for signed 64 bits plus null */
 
-  for (p = XSTRING (fn)->data; new = *p++; )
-    {
-      new += crc.byte[6];
-      crc.byte[6] = crc.byte[5] + new;
-      crc.byte[5] = crc.byte[4];
-      crc.byte[4] = crc.byte[3];
-      crc.byte[3] = crc.byte[2] + new;
-      crc.byte[2] = crc.byte[1];
-      crc.byte[1] = crc.byte[0];
-      crc.byte[0] = new;
-    }
-  sprintf (lockfile, "%s%.2x%.2x%.2x%.2x%.2x%.2x%.2x", lock_dir,
-	   crc.byte[0], crc.byte[1], crc.byte[2], crc.byte[3],
-	   crc.byte[4], crc.byte[5], crc.byte[6]);
-}
+/* Free the two dynamically-allocated pieces in PTR.  */
+#define FREE_LOCK_INFO(i) do { xfree ((i).user); xfree ((i).host); } while (0)
 
-#else /* defined HAVE_LONG_FILE_NAMES */
 
+/* Write the name of the lock file for FN into LFNAME.  Length will be
+   that of FN plus two more for the leading `.#' plus one for the null.  */
 #define MAKE_LOCK_NAME(lock, file) \
-  (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_dir) + 1), \
+  (lock = (char *) alloca (XSTRING (file)->size + 2 + 1), \
    fill_in_lock_file_name (lock, (file)))
 
-
+static void
 fill_in_lock_file_name (lockfile, fn)
      register char *lockfile;
      register Lisp_Object fn;
 {
   register char *p;
 
-  strcpy (lockfile, lock_dir);
+  strcpy (lockfile, XSTRING (fn)->data);
 
-  p = lockfile + strlen (lockfile);
-
-  strcpy (p, XSTRING (fn)->data);
-
-  for (; *p; p++)
-    {
-      if (*p == '/')
-	*p = '!';
-    }
+  /* Shift the nondirectory part of the file name (including the null)
+     right two characters.  Here is one of the places where we'd have to
+     do something to support 14-character-max file names.  */
+  for (p = lockfile + strlen (lockfile); p != lockfile && *p != '/'; p--)
+    p[2] = *p;
+  
+  /* Insert the `.#'.  */
+  p[1] = '.';
+  p[2] = '#';
 }
-#endif /* !defined HAVE_LONG_FILE_NAMES */
 
-static Lisp_Object
-lock_file_owner_name (lfname)
+/* Lock the lock file named LFNAME.
+   If FORCE is nonzero, we do so even if it is already locked.
+   Return 1 if successful, 0 if not.  */
+
+static int
+lock_file_1 (lfname, force)
+     char *lfname; 
+     int force;
+{
+  register int err;
+  char *user_name = XSTRING (Fuser_login_name (Qnil))->data;
+  char *host_name = XSTRING (Fsystem_name ())->data;
+  char *lock_info_str = alloca (strlen (user_name) + strlen (host_name) + 21);
+
+  sprintf (lock_info_str, "%s@%s.%d", user_name, host_name, getpid ());
+
+  err = symlink (lock_info_str, lfname);
+  if (errno == EEXIST && force)
+    {
+      unlink (lfname);
+      err = symlink (lock_info_str, lfname);
+    }
+
+  return err == 0;
+}
+
+
+
+/* Return 0 if nobody owns the lock file LFNAME or the lock is obsolete,
+   1 if another process owns it (and set OWNER (if non-null) to info),
+   2 if the current process owns it,
+   or -1 if something is wrong with the locking mechanism.  */
+
+static int
+current_lock_owner (owner, lfname)
+     lock_info_type *owner;
      char *lfname;
 {
-  struct stat s;
-  struct passwd *the_pw;
+#ifndef index
+  extern char *rindex (), *index ();
+#endif
+  int o, p, len, ret;
+  int local_owner = 0;
+  char *at, *dot;
+  char *lfinfo = 0;
+  int bufsize = 50;
+  /* Read arbitrarily-long contents of symlink.  Similar code in
+     file-symlink-p in fileio.c.  */
+  do
+    {
+      bufsize *= 2;
+      lfinfo = (char *) xrealloc (lfinfo, bufsize);
+      len = readlink (lfname, lfinfo, bufsize);
+    }
+  while (len >= bufsize);
+  
+  /* If nonexistent lock file, all is well; otherwise, got strange error. */
+  if (len == -1)
+    {
+      xfree (lfinfo);
+      return errno == ENOENT ? 0 : -1;
+    }
 
-  if (lstat (lfname, &s) == 0)
-    the_pw = getpwuid (s.st_uid);
+  /* Link info exists, so `len' is its length.  Null terminate.  */
+  lfinfo[len] = 0;
+  
+  /* Even if the caller doesn't want the owner info, we still have to
+     read it to determine return value, so allocate it.  */
+  if (!owner)
+    {
+      owner = alloca (sizeof (lock_info_type));
+      local_owner = 1;
+    }
+  
+  /* Parse USER@HOST.PID.  If can't parse, return -1.  */
+  /* The USER is everything before the first @.  */
+  at = index (lfinfo, '@');
+  dot = rindex (lfinfo, '.');
+  if (!at || !dot) {
+    xfree (lfinfo);
+    return -1;
+  }
+  len = at - lfinfo;
+  owner->user = (char *) xmalloc (len + 1);
+  strncpy (owner->user, lfinfo, len);
+  owner->user[len] = 0;
+  
+  /* The PID is everything after the last `.'.  */
+  owner->pid = atoi (dot + 1);
+
+  /* The host is everything in between.  */
+  len = dot - at - 1;
+  owner->host = (char *) xmalloc (len + 1);
+  strncpy (owner->host, at + 1, len);
+  owner->host[len] = 0;
+
+  /* We're done looking at the link info.  */
+  xfree (lfinfo);
+  
+  /* On current host?  */
+  if (strcmp (owner->host, XSTRING (Fsystem_name ())->data) == 0)
+    {
+      if (owner->pid == getpid ())
+        ret = 2; /* We own it.  */
+      
+      if (owner->pid > 0
+               && (kill (owner->pid, 0) >= 0 || errno == EPERM))
+        ret = 1; /* An existing process on this machine owns it.  */
+      
+      /* The owner process is dead or has a strange pid (<=0), so try to
+         zap the lockfile.  */
+      if (unlink (lfname) < 0)
+        ret = -1;
+      
+      ret = 0;
+    }
   else
-    the_pw = 0;
-
-  return (the_pw == 0 ? Qnil : build_string (the_pw->pw_name));
+    { /* If we wanted to support the check for stale locks on remote machines,
+         here's where we'd do it.  */
+      ret = 1;
+    }
+  
+  /* Avoid garbage.  */
+  if (local_owner || ret <= 0)
+    {
+      FREE_LOCK_INFO (*owner);
+    }
+  return ret;
 }
 
+
+/* Lock the lock named LFNAME if possible.
+   Return 0 in that case.
+   Return positive if some other process owns the lock, and info about
+     that process in CLASHER.
+   Return -1 if cannot lock for any other reason.  */
 
-/* lock_file locks file fn,
+static int
+lock_if_free (clasher, lfname)
+     lock_info_type *clasher;
+     register char *lfname; 
+{
+  while (lock_file_1 (lfname, 0) == 0)
+    {
+      int locker;
+
+      if (errno != EEXIST)
+	return -1;
+      
+      locker = current_lock_owner (clasher, lfname);
+      if (locker == 2)
+        {
+          FREE_LOCK_INFO (*clasher);
+          return 0;   /* We ourselves locked it.  */
+        }
+      else if (locker == 1)
+        return 1;  /* Someone else has it.  */
+      else if (locker == -1)
+        return -1; /* Something's wrong.  */
+
+       /* If some other error, or no such lock, try to lock again.  */
+       /* Is there a case where we loop forever?  */
+    }
+  return 0;
+}
+
+/* lock_file locks file FN,
    meaning it serves notice on the world that you intend to edit that file.
    This should be done only when about to modify a file-visiting
    buffer previously unmodified.
-   Do not (normally) call lock_buffer for a buffer already modified,
+   Do not (normally) call this for a buffer already modified,
    as either the file is already locked, or the user has already
    decided to go ahead without locking.
 
-   When lock_buffer returns, either the lock is locked for us,
+   When this returns, either the lock is locked for us,
    or the user has said to go ahead without locking.
 
-   If the file is locked by someone else, lock_buffer calls
+   If the file is locked by someone else, this calls
    ask-user-about-lock (a Lisp function) with two arguments,
-   the file name and the name of the user who did the locking.
+   the file name and info about the user who did the locking.
    This function can signal an error, or return t meaning
    take away the lock, or return nil meaning ignore the lock.  */
 
-/* The lock file name is the file name with "/" replaced by "!"
-   and put in the Emacs lock directory.  */
-/* (ie., /ka/king/junk.tex -> /!/!ka!king!junk.tex). */
-
-/* If HAVE_LONG_FILE_NAMES is not defined, the lock file name is the hex
-   representation of a 14-bytes CRC generated from the file name
-   and put in the Emacs lock directory (not very nice, but it works).
-   (ie., /ka/king/junk.tex -> /!/12a82c62f1c6da). */
-
 void
 lock_file (fn)
-     register Lisp_Object fn;
+    register Lisp_Object fn;
 {
   register Lisp_Object attack, orig_fn;
-  register char *lfname;
+  register char *lfname, *locker;
+  lock_info_type lock_info;
 
   orig_fn = fn;
   fn = Fexpand_file_name (fn, Qnil);
 
+  /* Create the name of the lock-file for file fn */
   MAKE_LOCK_NAME (lfname, fn);
 
   /* See if this file is visited and has changed on disk since it was
@@ -223,113 +331,27 @@ lock_file (fn)
   }
 
   /* Try to lock the lock. */
-  if (lock_if_free (lfname) <= 0)
-    /* Return now if we have locked it, or if lock dir does not exist */
+  if (lock_if_free (&lock_info, lfname) <= 0)
+    /* Return now if we have locked it, or if lock creation failed */
     return;
 
   /* Else consider breaking the lock */
-  attack = call2 (intern ("ask-user-about-lock"), fn,
-		  lock_file_owner_name (lfname));
+  locker = alloca (strlen (lock_info.user) + strlen (lock_info.host)
+                   + LOCK_PID_MAX + 9);
+  sprintf (locker, "%s@%s (pid %d)", lock_info.user, lock_info.host,
+           lock_info.pid);
+  FREE_LOCK_INFO (lock_info);
+  
+  attack = call2 (intern ("ask-user-about-lock"), fn, build_string (locker));
   if (!NILP (attack))
     /* User says take the lock */
     {
-      lock_superlock (lfname);
-      lock_file_1 (lfname, O_WRONLY) ;
-      unlink (superlock_file);
+      lock_file_1 (lfname, 1);
       return;
     }
   /* User says ignore the lock */
 }
 
-/* Lock the lock file named LFNAME.
-   If MODE is O_WRONLY, we do so even if it is already locked.
-   If MODE is O_WRONLY | O_EXCL | O_CREAT, we do so only if it is free.
-   Return 1 if successful, 0 if not.  */
-
-int
-lock_file_1 (lfname, mode)
-     int mode; char *lfname; 
-{
-  register int fd;
-  char buf[20];
-
-  if ((fd = open (lfname, mode, 0666)) >= 0)
-    {
-#ifdef USG
-      chmod (lfname, 0666);
-#else
-      fchmod (fd, 0666);
-#endif
-      sprintf (buf, "%d ", getpid ());
-      write (fd, buf, strlen (buf));
-      close (fd);
-      return 1;
-    }
-  else
-    return 0;
-}
-
-/* Lock the lock named LFNAME if possible.
-   Return 0 in that case.
-   Return positive if lock is really locked by someone else.
-   Return -1 if cannot lock for any other reason.  */
-
-int
-lock_if_free (lfname)
-     register char *lfname; 
-{
-  register int clasher;
-
-  while (lock_file_1 (lfname, O_WRONLY | O_EXCL | O_CREAT) == 0)
-    {
-      if (errno != EEXIST)
-	return -1;
-      clasher = current_lock_owner (lfname);
-      if (clasher != 0)
-	if (clasher != getpid ())
-	  return (clasher);
-	else return (0);
-      /* Try again to lock it */
-    }
-  return 0;
-}
-
-/* Return the pid of the process that claims to own the lock file LFNAME,
-   or 0 if nobody does or the lock is obsolete,
-   or -1 if something is wrong with the locking mechanism.  */
-
-int
-current_lock_owner (lfname)
-     char *lfname;
-{
-  int owner = current_lock_owner_1 (lfname);
-  if (owner == 0 && errno == ENOENT)
-    return (0);
-  /* Is it locked by a process that exists?  */
-  if (owner != 0 && (kill (owner, 0) >= 0 || errno == EPERM))
-    return (owner);
-  if (unlink (lfname) < 0)
-    return (-1);
-  return (0);
-}
-
-int
-current_lock_owner_1 (lfname)
-     char *lfname;
-{
-  register int fd;
-  char buf[20];
-  int tem;
-
-  fd = open (lfname, O_RDONLY, 0666);
-  if (fd < 0)
-    return 0;
-  tem = read (fd, buf, sizeof buf);
-  close (fd);
-  return (tem <= 0 ? 0 : atoi (buf));
-}
-
-
 void
 unlock_file (fn)
      register Lisp_Object fn;
@@ -340,77 +362,8 @@ unlock_file (fn)
 
   MAKE_LOCK_NAME (lfname, fn);
 
-  lock_superlock (lfname);
-
-  if (current_lock_owner_1 (lfname) == getpid ())
+  if (current_lock_owner (0, lfname) == 2)
     unlink (lfname);
-
-  unlink (superlock_file);
-}
-
-lock_superlock (lfname)
-     char *lfname;
-{
-  register int i, fd;
-  DIR *lockdir;
-  struct stat first_stat, last_stat;
-
-  for (i = -20; i < 0;
-       i++)
-    {
-      fd = open (superlock_file,
-		 O_WRONLY | O_EXCL | O_CREAT, 0666);
-
-      /* If we succeeded in creating the superlock, we win.
-	 Fill in our info and return.  */
-      if (fd >= 0)
-	{
-#ifdef USG
-	  chmod (superlock_file, 0666);
-#else
-	  fchmod (fd, 0666);
-#endif
-	  write (fd, lfname, strlen (lfname));
-	  close (fd);
-	  return;
-	}
-
-      /* If the problem is not just that it is already locked,
-	 give up.  */
-      if (errno != EEXIST)
-	return;
-
-      message ("Superlock file exists, retrying...");
-
-      if (i == -20)
-	stat (superlock_file, &first_stat);
-
-      if (i == -1)
-	stat (superlock_file, &last_stat);
-
-      /* This seems to be necessary to prevent Emacs from hanging when the
-	 competing process has already deleted the superlock, but it's still
-	 in the NFS cache.  So we force NFS to synchronize the cache.  */
-      lockdir = opendir (lock_dir);
-
-      if (lockdir)
-	closedir (lockdir);
-
-      sleep (1);
-    }
-
-  if (first_stat.st_ctime == last_stat.st_ctime)
-    {
-      int value;
-      value = unlink (superlock_file);
-
-      if (value != -1)
-	message ("Superlock file deleted");
-      else
-	message ("Failed to delete superlock file");
-    }
-  else
-    message ("Giving up on the superlock file");
 }
 
 void
@@ -426,7 +379,6 @@ unlock_all_files ()
 	unlock_file (b->file_truename);
     }
 }
-
 
 DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
   0, 1, 0,
@@ -458,7 +410,6 @@ if it should normally be locked.")
   return Qnil;
 }
 
-
 /* Unlock the file visited in buffer BUFFER.  */
 
 unlock_buffer (buffer)
@@ -475,20 +426,27 @@ t if it is locked by you, else a string of the name of the locker.")
   (filename)
   Lisp_Object filename;
 {
+  Lisp_Object ret;
   register char *lfname;
   int owner;
+  lock_info_type locker;
 
   filename = Fexpand_file_name (filename, Qnil);
 
   MAKE_LOCK_NAME (lfname, filename);
 
-  owner = current_lock_owner (lfname);
+  owner = current_lock_owner (&locker, lfname);
   if (owner <= 0)
-    return (Qnil);
-  else if (owner == getpid ())
-    return (Qt);
-  
-  return (lock_file_owner_name (lfname));
+    ret = Qnil;
+  else if (owner == 2)
+    ret = Qt;
+  else
+    ret = build_string (locker.user);
+
+  if (owner > 0)
+    FREE_LOCK_INFO (locker);
+
+  return ret;
 }
 
 
@@ -496,6 +454,7 @@ t if it is locked by you, else a string of the name of the locker.")
 
 init_filelock ()
 {
+#if 0
   char *new_name;
 
   lock_dir = egetenv ("EMACSLOCKDIR");
@@ -515,6 +474,7 @@ init_filelock ()
 				      + sizeof (SUPERLOCK_NAME)));
   strcpy (superlock_file, lock_dir);
   strcat (superlock_file, SUPERLOCK_NAME);
+#endif
 }
 
 syms_of_filelock ()
