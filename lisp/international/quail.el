@@ -676,14 +676,70 @@ If it is a vector, each element (string or character) is a candidate
 In these cases, a key specific Quail map is generated and assigned to KEY.
 
 If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
- it is used to handle KEY."
-  `(quail-install-map
-    ',(let ((l rules)
-	    (map (list nil)))
+ it is used to handle KEY.
+
+The first argument may be an alist of annotations for the following
+rules.  Each element has the form (ANNOTATION . VALUE), where
+ANNOTATION is a symbol indicating the annotation type.  Currently
+the following annotation types are supported.
+
+  append -- the value non-nil means that the following rules should
+	be appended to the rules of the current Quail package.
+
+  face -- the value is a face to use for displaying TRANSLATIONs in
+	candidate list.
+
+  advice -- the value is a function to call after one of RULES is
+	selected.  The function is called with one argument, the
+	selected TRANSLATION string, after the TRANSLATION is
+	inserted.
+
+  no-decode-map --- the value non-nil means that decoding map is not
+	generated for the following translations."
+  (let ((l rules)
+	append no-decode-map props)
+    ;; If the first argument is an alist of annotations, handle them.
+    (if (consp (car (car l)))
+	(let ((annotations (car l)))
+	  (setq append (assq 'append annotations))
+	  (if append
+	      (setq annotations (delete append annotations)
+		    append (cdr append)))
+	  (setq no-decode-map (assq 'no-decode-map annotations))
+	  (if no-decode-map
+	      (setq annotations (delete no-decode-map annotations)
+		    no-decode-map (cdr no-decode-map)))
+	  ;; Convert the remaining annoations to property list PROPS.
+	  (while annotations
+	    (setq props
+		  (cons (car (car annotations))
+			(cons (cdr (car annotations))
+			      props))
+		  annotations (cdr annotations)))
+	  (setq l (cdr l))))
+    ;; Process the remaining arguments one by one.
+    (if append
+	;; There's no way to add new rules at compiling time.
+	`(let ((tail ',l)
+	       (map (quail-map))
+	       (decode-map (and (quail-decode-map) (not ,no-decode-map)))
+	       (properties ',props)
+	       key trans)
+	   (while tail
+	     (setq key (car (car tail)) trans (car (cdr (car tail)))
+		   tail (cdr tail))
+	     (quail-defrule-internal key trans map t decode-map properties)))
+      ;; We can build up quail map and decode map at compiling time.
+      (let ((map (list nil))
+	    (decode-map (if (not no-decode-map) (list 'decode-map)))
+	    key trans)
 	(while l
-	  (quail-defrule-internal (car (car l)) (car (cdr (car l))) map t)
-	  (setq l (cdr l)))
-	map)))
+	  (setq key (car (car l)) trans (car (cdr (car l))) l (cdr l))
+	  (quail-defrule-internal key trans map t decode-map props))
+	`(if (not (quail-decode-map))
+	     (quail-install-map ',map)
+	   (quail-install-map ',map)
+	   (quail-install-decode-map ',decode-map))))))
 
 ;;;###autoload
 (defun quail-install-map (map &optional name)
@@ -698,6 +754,20 @@ The installed map can be referred by the function `quail-map'."
   (if (null (quail-map-p map))
       (error "Invalid Quail map `%s'" map))
   (setcar (cdr (cdr quail-current-package)) map))
+
+;;;###autoload
+(defun quail-install-decode-map (decode-map &optional name)
+  "Install the Quail decode map DECODE-MAP in the current Quail package.
+
+Optional 2nd arg NAME, if non-nil, is a name of Quail package for
+which to install MAP.
+
+The installed decode map can be referred by the function `quail-decode-map'."
+  (if (null quail-current-package)
+      (error "No current Quail package"))
+  (if (not (and (consp decode-map) (eq (car decode-map) 'decode-map)))
+      (error "Invalid Quail decode map `%s'" decode-map))
+  (setcar (nthcdr 10 quail-current-package) decode-map))
 
 ;;;###autoload
 (defun quail-defrule (key translation &optional name append)
@@ -732,8 +802,16 @@ to the current translations for KEY instead of replacing them."
   (quail-defrule-internal key translation (quail-map) append))
 
 ;;;###autoload
-(defun quail-defrule-internal (key trans map &optional append)
-  "Define KEY as TRANS in a Quail map MAP."
+(defun quail-defrule-internal (key trans map &optional append decode-map props)
+  "Define KEY as TRANS in a Quail map MAP.
+
+If Optional 4th arg APPEND is non-nil, TRANS is appended to the
+current translations for KEY instead of replacing them.
+
+Optional 5th arg DECODE-MAP is a Quail decode map.
+
+Optional 6th arg PROPS is a property list annotating TRANS.  See the
+function `quail-define-rules' for the detail."
   (if (null (stringp key))
       "Invalid Quail key `%s'" key)
   (if (not (or (numberp trans) (stringp trans) (vectorp trans)
@@ -782,6 +860,28 @@ to the current translations for KEY instead of replacing them."
 		    (error "Quail key %s is too short" key)
 		  (setcdr entry trans))
 	      (setcdr entry (append trans (cdr map)))))
+	;; If PROPS is non-nil or DECODE-MAP is non-nil, convert TRANS
+	;; to a vector of strings, add PROPS to each string and record
+	;; this rule in DECODE-MAP.
+	(when (and (or props decode-map)
+		   (not (consp trans)) (not (symbolp trans)))
+	  (if (integerp trans)
+	      (setq trans (vector trans))
+	    (if (stringp trans)
+		(setq trans (string-to-vector trans))))
+	  (let ((len (length trans))
+		elt)
+	    (while (> len 0)
+	      (setq len (1- len))
+	      (setq elt (aref trans len))
+	      (if (integerp elt)
+		  (setq elt (char-to-string elt)))
+	      (aset trans len elt)
+	      (if props
+		  (add-text-properties 0 (length elt) props elt))
+	      (if decode-map
+		  (setcdr decode-map
+			  (cons (cons elt key) (cdr decode-map)))))))
 	(if (and (car map) append)
 	    (let ((prev (quail-get-translation (car map) key len)))
 	      (if (integerp prev)
@@ -984,7 +1084,14 @@ The returned value is a Quail map specific to KEY."
 	    (let* ((len (length quail-current-str))
 		   (idx 0)
 		   (val (find-composition 0 len quail-current-str))
+		   (advice (get-text-property idx 'advice quail-current-str))
 		   char)
+	      ;; If the selected input has `advice' function, generate
+	      ;; a special event (quail-advice QUAIL-CURRENT-STR).
+	      (if advice
+		  (setq generated-events
+			(cons (list 'quail-advice quail-current-str)
+			      generated-events)))
 	      ;; Push characters in quail-current-str one by one to
 	      ;; generated-events while interleaving it with a special
 	      ;; event (compose-last-chars LEN) at each composition
@@ -2251,6 +2358,22 @@ of each directory."
       (save-buffer 0))
     (kill-buffer list-buf)
     (message "Updating %s ... done" leim-list)))
+
+(defun quail-advice (args)
+  "Advice users about the characters input by the current Quail package.
+The argument is a parameterized event of the form:
+   (quail-advice STRING)
+where STRING is a string containing the input characters.
+If STRING has property `advice' and the value is a function,
+call it with one argument STRING."
+  (interactive "e")
+  (let* ((string (nth 1 args))
+	 (func (get-text-property 0 'advice string)))
+    (if (functionp func)
+	(funcall func string))))
+
+(global-set-key [quail-advice] 'quail-advice)
+
 ;;
 (provide 'quail)
 
