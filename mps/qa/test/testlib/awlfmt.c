@@ -231,7 +231,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        commentif(deathcomments, "fixed %li[assoc] to NULL", obj->data.id);
        INCCOUNTIF(obj->data.countflag, DYING_REFERENCE_COUNT);
       }
-      obj->data.ref[i].addr = p;
+      obj->data.assoc = p;
      }
 
      for (i=0; i<(obj->data.numrefs); i++)
