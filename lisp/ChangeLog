@@ -1,5 +1,13 @@
-2001-12-03  Stefan Monnier  <monnier@cs.yale.edu>
+2001-12-04  Colin Walters  <walters@debian.org>
+	
+	* emacs-lisp/autoload.el (make-autoload): Also generate autoloads
+	for `defmacro*' forms.
 
+	* emacs-lisp/lisp-mode.el (toplevel): Define docstring offset for
+	`defmacro*'.
+	
+2001-12-03  Stefan Monnier  <monnier@cs.yale.edu>
+	
 	* progmodes/antlr-mode.el (antlr-c-common-init): Undo last change.
 
 2001-12-02  Richard M. Stallman  <rms@gnu.org>
