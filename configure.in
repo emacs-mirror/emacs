@@ -1218,7 +1218,8 @@ else
   for bmd in `echo ${x_includes} | sed -e "s/:/ /g"`; do
     if test -d "${bmd}/X11/bitmaps"; then
       bmd_acc="${bmd_acc}:${bmd}/X11/bitmaps"
-    elif test -d "${bmd}/bitmaps"; then
+    fi
+    if test -d "${bmd}/bitmaps"; then
       bmd_acc="${bmd_acc}:${bmd}/bitmaps"
     fi
   done
