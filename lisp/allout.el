@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.32 2002/03/27 20:13:03 pj Exp $||
+;; Version: $Id: allout.el,v 1.33 2002/07/03 13:19:13 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.32 $"))
+  (let ((rcs-rev "$Revision: 1.33 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -4729,9 +4729,9 @@ function.  If HOOK is void, it is first set to nil."
 	       (if append
 		   (nconc (symbol-value hook) (list function))
 		 (cons function (symbol-value hook)))))))
-;;;_  : my-mark-marker to accomodate divergent emacsen:
+;;;_  : my-mark-marker to accommodate divergent emacsen:
 (defun my-mark-marker (&optional force buffer)
-  "Accomodate the different signature for mark-marker across emacsen.
+  "Accommodate the different signature for mark-marker across emacsen.
 
 GNU XEmacs takes two optional args, while mainline GNU Emacs does not,
 so pass them along when appropriate."
