@@ -1,5 +1,11 @@
 2003-01-11  Kenichi Handa  <handa@m17n.org>
 
+	* charset.h (ENCODE_CHAR): If the method is SUBSET or SUPERSET,
+	call encode_char.
+
+	* charset.c (encode_char): Fix handling of methods SUBSET and
+	SUPERSET.
+
 	* xterm.c (x_new_fontset): Fix previous change.
 
 2003-01-10  Dave Love  <fx@gnu.org>
