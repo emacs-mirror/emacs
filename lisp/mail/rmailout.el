@@ -76,7 +76,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		      (file-name-nondirectory default-file)
 		      ") ")
 	      (file-name-directory default-file)
-	      default-file)
+	      (abbreviate-file-name default-file))
 	     (file-name-directory default-file))))
        ;; If the user enters just a directory,
        ;; use the name within that directory chosen by the default.
@@ -241,12 +241,14 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	     (or answer rmail-default-file))))
      (list (setq rmail-default-file
 		 (let ((read-file
-			(read-file-name
-			 (concat "Output message to Unix mail file: (default "
-				 (file-name-nondirectory default-file)
-				 ") ")
-			 (file-name-directory (expand-file-name default-file))
-			 (expand-file-name default-file))))
+			(expand-file-name
+			 (read-file-name
+			  (concat "Output message to Unix mail file: (default "
+				  (file-name-nondirectory default-file)
+				  ") ")
+			  (file-name-directory default-file)
+			  (abbreviate-file-name default-file))
+			 (file-name-directory default-file))))
 		   (if (file-directory-p read-file)
 		       (expand-file-name (file-name-nondirectory default-file)
 					 read-file)
