@@ -1,3 +1,13 @@
+2001-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-reformat-message): Bind inhibit-read-only to t.
+	(rmail-msg-restore-non-pruned-header): Likewise.
+	If point was in the old pruned header, put it at the top.
+	(rmail-msg-prune-header): If point was at the top, keep it there.
+	
+	* mail/rmail.el (rmail-narrow-to-non-pruned-header): New function.
+	(rmail-retry-failure): Use rmail-narrow-to-non-pruned-header.
+
 2001-06-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-clone-buffer-hook): Unconditionally copy marker.
