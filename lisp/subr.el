@@ -2188,6 +2188,46 @@ and replace a sub-expression, e.g.
       ;; Reconstruct a string from the pieces.
       (setq matches (cons (substring string start l) matches)) ; leftover
       (apply #'concat (nreverse matches)))))
+
+(defun subregexp-context-p (regexp pos &optional start)
+  "Return non-nil if POS is in a normal subregexp context in REGEXP.
+A subregexp context is one where a sub-regexp can appear.
+A non-subregexp context is for example within brackets, or within a repetition
+bounds operator \\{..\\}, or right after a \\.
+If START is non-nil, it should be a position in REGEXP, smaller than POS,
+and known to be in a subregexp context."
+  ;; Here's one possible implementation, with the great benefit that it
+  ;; reuses the regexp-matcher's own parser, so it understands all the
+  ;; details of the syntax.  A disadvantage is that it needs to match the
+  ;; error string.
+  (condition-case err
+      (progn
+        (string-match (substring regexp (or start 0) pos) "")
+        t)
+    (invalid-regexp
+     (not (member (cadr err) '("Unmatched [ or [^"
+                               "Unmatched \\{"
+                               "Trailing backslash")))))
+  ;; An alternative implementation:
+  ;; (defconst re-context-re
+  ;;   (let* ((harmless-ch "[^\\[]")
+  ;;          (harmless-esc "\\\\[^{]")
+  ;;          (class-harmless-ch "[^][]")
+  ;;          (class-lb-harmless "[^]:]")
+  ;;          (class-lb-colon-maybe-charclass ":\\([a-z]+:]\\)?")
+  ;;          (class-lb (concat "\\[\\(" class-lb-harmless
+  ;;                            "\\|" class-lb-colon-maybe-charclass "\\)"))
+  ;;          (class
+  ;;           (concat "\\[^?]?"
+  ;;                   "\\(" class-harmless-ch
+  ;;                   "\\|" class-lb "\\)*"
+  ;;                   "\\[?]"))     ; special handling for bare [ at end of re
+  ;;          (braces "\\\\{[0-9,]+\\\\}"))
+  ;;     (concat "\\`\\(" harmless-ch "\\|" harmless-esc
+  ;;             "\\|" class "\\|" braces "\\)*\\'"))
+  ;;   "Matches any prefix that corresponds to a normal subregexp context.")
+  ;; (string-match re-context-re (substring regexp (or start 0) pos))
+  )
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
