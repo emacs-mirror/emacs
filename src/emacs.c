@@ -50,6 +50,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 
 #include "systty.h"
+#include "syssignal.h"
 
 #ifndef O_RDWR
 #define O_RDWR 2
@@ -125,17 +126,21 @@ fatal_error_signal (sig)
   signal (sig, SIG_DFL);
 
   /* If fatal error occurs in code below, avoid infinite recursion.  */
-  if (fatal_error_in_progress)
-    kill (getpid (), fatal_error_code);
+  if (! fatal_error_in_progress)
+    {
+      fatal_error_in_progress = 1;
 
-  fatal_error_in_progress = 1;
-
-  shut_down_emacs (sig);
+      shut_down_emacs (sig);
+    }
 
 #ifdef VMS
   LIB$STOP (SS$_ABORT);
 #else
-  /* Signal the same code; this time it will really be fatal.  */
+  /* Signal the same code; this time it will really be fatal.
+     Remember that since we're in a signal handler, the signal we're
+     going to send is probably blocked, so we have to unblock it if we
+     want to really receive it.  */
+  sigblock(SIGEMPTYMASK);
   kill (getpid (), fatal_error_code);
 #endif /* not VMS */
 }
