@@ -365,7 +365,7 @@ and KILLP is t if a prefix arg was specified."
   "Kill up to and including ARG'th occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
-  (interactive "p\ncZap to char: ")
+  (interactive "*p\ncZap to char: ")
   (kill-region (point) (progn
 			 (search-forward (char-to-string char) nil nil arg)
 ;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
@@ -1515,7 +1515,7 @@ If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
 by typing \\[beginning-of-line] \\[kill-line]."
-  (interactive "P")
+  (interactive "*P")
   (kill-region (point)
 	       ;; It is better to move point to the other end of the kill
 	       ;; before killing.  That way, in a read-only buffer, point
@@ -1743,7 +1743,7 @@ Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring."
-  (interactive "r")
+  (interactive "*r")
   (condition-case nil
       ;; Don't let the undo list be truncated before we can even access it.
       (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100))
@@ -1959,6 +1959,7 @@ START and END specify the portion of the current buffer to be copied."
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (get-buffer-create buffer))
+      (barf-if-buffer-read-only)
       (insert-buffer-substring oldbuf start end))))
 
 (defun prepend-to-buffer (buffer start end)
@@ -1972,6 +1973,7 @@ START and END specify the portion of the current buffer to be copied."
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (get-buffer-create buffer))
+      (barf-if-buffer-read-only)
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
 
@@ -1986,6 +1988,7 @@ START and END specify the portion of the current buffer to be copied."
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (get-buffer-create buffer))
+      (barf-if-buffer-read-only)
       (erase-buffer)
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
@@ -2845,7 +2848,7 @@ not end the comment.  Blank lines do not get comments."
   ;; comment-end at the end then typing it, C-x C-x, closing it, C-x C-x
   ;; is easy enough.  No option is made here for other than commenting
   ;; every line.
-  (interactive "r\nP")
+  (interactive "*r\nP")
   (or comment-start (error "No comment syntax is defined"))
   (if (> beg end) (let (mid) (setq mid beg beg end end mid)))
   (save-excursion
@@ -2940,13 +2943,13 @@ In programs, it is faster to call `forward-word' with negative arg."
 (defun kill-word (arg)
   "Kill characters forward until encountering the end of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (kill-region (point) (progn (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
   "Kill characters backward until encountering the end of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (kill-word (- arg)))
 
 (defun current-word (&optional strict)
