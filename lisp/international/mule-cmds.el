@@ -42,7 +42,9 @@
 (define-key mule-keymap "c" 'universal-coding-system-argument)
 
 (define-key help-map "\C-L" 'describe-language-environment)
+(define-key help-map "L" 'describe-language-environment)
 (define-key help-map "\C-\\" 'describe-input-method)
+(define-key help-map "I" 'describe-input-method)
 (define-key help-map "C" 'describe-coding-system)
 (define-key help-map "h" 'view-hello-file)
 
