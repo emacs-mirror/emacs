@@ -1824,8 +1824,12 @@ push_key_description (c, p)
      register unsigned int c;
      register char *p;
 {
+  unsigned c2;
+  
   /* Clear all the meaningless bits above the meta bit.  */
   c &= meta_modifier | ~ - meta_modifier;
+  c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
+	     | meta_modifier | shift_modifier | super_modifier);
 
   if (c & alt_modifier)
     {
@@ -1833,11 +1837,12 @@ push_key_description (c, p)
       *p++ = '-';
       c -= alt_modifier;
     }
-  if (c & ctrl_modifier)
+  if ((c & ctrl_modifier) != 0
+      || (c2 < ' ' && c2 != 27 && c2 != '\t' && c2 != Ctl ('M')))
     {
       *p++ = 'C';
       *p++ = '-';
-      c -= ctrl_modifier;
+      c &= ~ctrl_modifier;
     }
   if (c & hyper_modifier)
     {
@@ -1885,8 +1890,7 @@ push_key_description (c, p)
 	}
       else
 	{
-	  *p++ = 'C';
-	  *p++ = '-';
+	  /* `C-' already added above.  */
 	  if (c > 0 && c <= Ctl ('Z'))
 	    *p++ = c + 0140;
 	  else
