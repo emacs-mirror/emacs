@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -344,20 +344,24 @@ void mps_arena_expose(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
   ArenaEnter(arena);
-  ArenaExpose(ArenaGlobals(arena));
+  ArenaExposeRemember(ArenaGlobals(arena), 0);
   ArenaLeave(arena);
 }
 
 /* Null implementations of remember and restore */
 void mps_arena_unsafe_expose_remember_protection(mps_arena_t mps_arena)
 {
-  mps_arena_expose(mps_arena);
+  Arena arena = (Arena)mps_arena;
+  ArenaEnter(arena);
+  ArenaExposeRemember(ArenaGlobals(arena), 1);
+  ArenaLeave(arena);
 }
 
 void mps_arena_unsafe_restore_protection(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
   ArenaEnter(arena);
+  ArenaRestoreProtection(ArenaGlobals(arena));
   ArenaLeave(arena);
 }
 
@@ -1943,7 +1947,7 @@ void mps_chain_destroy(mps_chain_t mps_chain)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

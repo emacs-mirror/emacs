@@ -1,7 +1,7 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .design: <design/trace/>.  */
@@ -18,6 +18,19 @@ SRCID(trace, "$Id$");
 enum {traceAccountingPhaseRootScan = 1, traceAccountingPhaseSegScan,
       traceAccountingPhaseSingleScan};
 typedef int traceAccountingPhase;
+
+struct RememberedSummaryBlockStruct {
+  RingStruct globalRing;        /* link on globals->rememberedSummaryRing */
+  struct SummaryPair {
+    Addr base;
+    RefSet summary;
+  } the[RememberedSummaryBLOCK];
+};
+
+/* Forward Declarations -- avoid compiler warning. */
+Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary);
+void arenaForgetProtection(Globals globals);
+void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block);
 
 
 /* TraceMessage -- type of GC end messages */
@@ -1644,6 +1657,7 @@ void ArenaClamp(Globals globals)
 void ArenaRelease(Globals globals)
 {
   AVERT(Globals, globals);
+  arenaForgetProtection(globals);
   globals->clamped = FALSE;
   (void)TracePoll(globals);
 }
@@ -1672,9 +1686,67 @@ void ArenaPark(Globals globals)
   }
 }
 
-/* ArenaExpose -- park arena and then lift all protection barriers. */
+/* Low level stuff for Expose / Remember / Restore */
 
-void ArenaExpose(Globals globals)
+typedef struct RememberedSummaryBlockStruct *RememberedSummaryBlock;
+
+void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block)
+{
+  size_t i;
+
+  RingInit(&block->globalRing);
+  for(i = 0; i < RememberedSummaryBLOCK; ++ i) {
+    block->the[i].base = (Addr)0;
+    block->the[i].summary = RefSetUNIV;
+  }
+  return;
+}
+
+Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
+{
+  Arena arena;
+  RememberedSummaryBlock block;
+
+  AVER(summary != RefSetUNIV);
+
+  arena = GlobalsArena(global);
+
+  if(global->rememberedSummaryIndex == 0) {
+    void *p;
+    RememberedSummaryBlock newBlock;
+    int res;
+
+    res = ControlAlloc(&p, arena, sizeof *newBlock, 0);
+    if(res != ResOK) {
+      return res;
+    }
+    newBlock = p;
+    rememberedSummaryBlockInit(newBlock);
+    RingAppend(GlobalsRememberedSummaryRing(global),
+      &newBlock->globalRing);
+  }
+  block = RING_ELT(RememberedSummaryBlock, globalRing,
+    RingPrev(GlobalsRememberedSummaryRing(global)));
+  AVER(global->rememberedSummaryIndex < RememberedSummaryBLOCK);
+  AVER(block->the[global->rememberedSummaryIndex].base == (Addr)0);
+  AVER(block->the[global->rememberedSummaryIndex].summary == RefSetUNIV);
+  block->the[global->rememberedSummaryIndex].base = base;
+  block->the[global->rememberedSummaryIndex].summary = summary;
+  ++ global->rememberedSummaryIndex;
+  if(global->rememberedSummaryIndex >= RememberedSummaryBLOCK) {
+    AVER(global->rememberedSummaryIndex == RememberedSummaryBLOCK);
+    global->rememberedSummaryIndex = 0;
+  }
+
+  return ResOK;
+}
+
+/* ArenaExposeRemember -- park arena and then lift all protection
+   barriers.  Parameter 'rememember' specifies whether to remember the
+   protection state or not (for later restoration with
+   ArenaRestoreProtection).
+   */
+void ArenaExposeRemember(Globals globals, int remember)
 {
   Seg seg;
   Arena arena;
@@ -1690,11 +1762,76 @@ void ArenaExpose(Globals globals)
     do {
       base = SegBase(seg);
       if((SegPool(seg)->class->attr & AttrSCAN) != 0) {
+	if(remember) {
+	  RefSet summary;
+
+	  summary = SegSummary(seg);
+	  if(summary != RefSetUNIV) {
+	    Res res = arenaRememberSummaryOne(globals, base, summary);
+	    if(res != ResOK) {
+	      /* If we got an error then stop trying to remember any
+	      protections. */
+	      remember = 0;
+	    }
+	  }
+	}
 	SegSetSummary(seg, RefSetUNIV);
 	AVER(SegSM(seg) == AccessSetEMPTY);
       }
     } while(SegNext(&seg, arena, base));
   }
+  return;
+}
+
+void ArenaRestoreProtection(Globals globals)
+{
+  Ring node, next;
+  Arena arena;
+
+  arena = GlobalsArena(globals);
+
+  RING_FOR(node, GlobalsRememberedSummaryRing(globals), next) {
+    RememberedSummaryBlock block =
+      RING_ELT(RememberedSummaryBlock, globalRing, node);
+    size_t i;
+
+    for(i = 0; i < RememberedSummaryBLOCK; ++ i) {
+      Seg seg;
+      Bool b;
+
+      if(block->the[i].base == (Addr)0) {
+	AVER(block->the[i].summary == RefSetUNIV);
+	continue;
+      }
+      b = SegOfAddr(&seg, arena, block->the[i].base);
+      if(b && SegBase(seg) == block->the[i].base) {
+	SegSetSummary(seg, block->the[i].summary);
+      } else {
+	/* Either seg has gone or moved, both of which are
+	   client errors. */
+	NOTREACHED;
+      }
+    }
+  }
+
+  arenaForgetProtection(globals);
+  return;
+}
+
+void arenaForgetProtection(Globals globals)
+{
+  Ring node, next;
+  Arena arena;
+
+  arena = GlobalsArena(globals);
+  RING_FOR(node, GlobalsRememberedSummaryRing(globals), next) {
+    RememberedSummaryBlock block =
+      RING_ELT(RememberedSummaryBlock, globalRing, node);
+
+    RingRemove(node);
+    ControlFree(arena, block, sizeof *block);
+  }
+  globals->rememberedSummaryIndex = 0;
   return;
 }
 
@@ -1739,7 +1876,7 @@ Res ArenaCollect(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -142,6 +142,11 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(BoolCheck(arenaGlobals->bufferLogging));
   CHECKL(RingCheck(&arenaGlobals->poolRing));
   CHECKL(RingCheck(&arenaGlobals->rootRing));
+  CHECKL(RingCheck(&arenaGlobals->rememberedSummaryRing));
+  CHECKL(arenaGlobals->rememberedSummaryIndex < RememberedSummaryBLOCK);
+  /* RingIsSingle imples index == 0 */
+  CHECKL(!RingIsSingle(&arenaGlobals->rememberedSummaryRing) ||
+    arenaGlobals->rememberedSummaryIndex == 0);
   CHECKL(RingCheck(&arena->formatRing));
   CHECKL(RingCheck(&arena->messageRing));
   /* Don't check enabledMessageTypes */
@@ -257,6 +262,8 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->poolSerial = (Serial)0;
   RingInit(&arenaGlobals->rootRing);
   arenaGlobals->rootSerial = (Serial)0;
+  RingInit(&arenaGlobals->rememberedSummaryRing);
+  arenaGlobals->rememberedSummaryIndex = 0;
 
   RingInit(&arena->threadRing);
   arena->threadSerial = (Serial)0;
@@ -410,6 +417,13 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     arena->finalPool = NULL;
     PoolDestroy(pool);
   }
+}
+
+Ring GlobalsRememberedSummaryRing(Globals global)
+{
+  AVERT(Globals, global);
+
+  return &global->rememberedSummaryRing;
 }
 
 
@@ -953,7 +967,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
