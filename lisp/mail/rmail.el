@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -177,6 +177,10 @@ before obeying `rmail-ignored-headers'.")
 (defvar rmail-total-messages nil)
 (defvar rmail-message-vector nil)
 (defvar rmail-deleted-vector nil)
+(defvar rmail-msgref-vector nil
+  "In an Rmail buffer, a vector whose Nth element is a list (N).
+When expunging renumbers messages, these lists are modified
+by substituting the new message number into the existing list.")
 
 (defvar rmail-overlay-list nil)
 
@@ -777,6 +781,7 @@ Instead, these commands are available:
   (make-local-variable 'file-precious-flag)
   (setq file-precious-flag t)
   (make-local-variable 'rmail-message-vector)
+  (make-local-variable 'rmail-msgref-vector)
   (make-local-variable 'rmail-inbox-list)
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   ;; Provide default set of inboxes for primary mail file ~/RMAIL.
@@ -1675,6 +1680,7 @@ change the invisible header text."
 	      (move-marker (aref v i)  nil)
 	      (setq i (1+ i)))))
     (setq rmail-message-vector nil)
+    (setq rmail-msgref-vector nil)
     (setq rmail-deleted-vector nil)))
 
 (defun rmail-maybe-set-message-counters ()
@@ -1709,6 +1715,13 @@ change the invisible header text."
 	  (concat rmail-deleted-vector deleted-head))
     (setq rmail-summary-vector
 	  (vconcat rmail-summary-vector (make-vector total-messages nil)))
+    (setq rmail-msgref-vector
+	  (vconcat rmail-msgref-vector (make-vector total-messages nil)))
+    ;; Fill in the new elements of rmail-msgref-vector.
+    (let ((i (- rmail-total-messages old-total-messages)))
+      (while (<= i rmail-total-messages)
+	(aset rmail-msgref-vector i (list i))
+	(setq i (1+ i))))
     (goto-char (point-min))
     (or nomsg (message "Counting new messages...done (%d)" total-messages))))
 
@@ -1741,7 +1754,12 @@ change the invisible header text."
 	(setq rmail-message-vector
 	      (apply 'vector (cons (point-min-marker) messages-head))
 	      rmail-deleted-vector (concat "D" deleted-head)
-	      rmail-summary-vector (make-vector rmail-total-messages nil))
+	      rmail-summary-vector (make-vector rmail-total-messages nil)
+	      rmail-msgref-vector (make-vector (1+ rmail-total-messages) nil))
+	(let ((i 0))
+	  (while (<= i rmail-total-messages)
+	    (aset rmail-msgref-vector i (list i))
+	    (setq i (1+ i))))
 	(message "Counting messages...done")))))
 	
 (defun rmail-set-message-counters-counter (&optional stop)
@@ -2208,6 +2226,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 		(total rmail-total-messages)
 		(new-message-number rmail-current-message)
 		(new-summary nil)
+		(new-msgref (list (list 0)))
 		(rmailbuf (current-buffer))
 		(buffer-read-only nil)
 		(messages rmail-message-vector)
@@ -2218,25 +2237,6 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 		  rmail-message-vector nil
 		  rmail-deleted-vector nil
 		  rmail-summary-vector nil)
-
-	    ;; Find each sendmail buffer that is set to reply
-	    ;; to a message in this buffer, and update its
-	    ;; message number.
-	    (let ((bufs (buffer-list)))
-	      (while bufs
-		(save-excursion
-		  (set-buffer (car bufs))
-		  (let ((tail mail-send-actions) action)
-		    (while tail
-		      (setq action (car tail)
-			    tail (cdr tail))
-		      (and (eq (car action) 'rmail-mark-message)
-			   (eq (nth 1 action) rmailbuf)
-			   (setcar (nthcdr 2 action)
-				   (rmail-msg-number-after-expunge
-				    deleted
-				    (nth 2 action)))))))
-		(setq bufs (cdr bufs))))
 
 	    (while (<= number total)
 	      (if (= (aref deleted number) ?D)
@@ -2253,7 +2253,11 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 			      (cons (aref messages number) nil)))
 		(setq new-summary
 		      (cons (if (= counter number) (aref summary (1- number)))
-			    new-summary)))
+			    new-summary))
+		(setq new-msgref
+		      (cons (aref rmail-msgref-vector number)
+			    new-msgref))
+		(setcar (car new-msgref) counter))
 	      (if (zerop (% (setq number (1+ number)) 20))
 		  (message "Expunging deleted messages...%d" number)))
 	    (setq messages-tail
@@ -2264,6 +2268,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 		  rmail-message-vector (apply 'vector messages-head)
 		  rmail-deleted-vector (make-string (1+ counter) ?\ )
 		  rmail-summary-vector (vconcat (nreverse new-summary))
+		  rmail-msgref-vector (apply 'vector (nreverse new-msgref))
 		  win t)))
       (message "Expunging deleted messages...done")
       (if (not win)
@@ -2390,19 +2395,21 @@ use \\[mail-yank-original] to yank the original message into it."
       rmail-view-buffer
       (list (list 'rmail-mark-message
 		  rmail-view-buffer
-		  msgnum
+		  (aref rmail-msgref-vector msgnum)
 		  "answered"))
       nil
       (list (cons "References" (concat (mapconcat 'identity references " ")
 				       " " message-id))))))
 
-(defun rmail-mark-message (buffer msgnum attribute)
-  "Give BUFFER's message number MSGNUM the attribute ATTRIBUTE.
-This is use in the send-actions for message buffers."
+(defun rmail-mark-message (buffer msgnum-list attribute)
+  "Give BUFFER's message number in MSGNUM-LIST the attribute ATTRIBUTE.
+This is use in the send-actions for message buffers.
+MSGNUM-LIST is a list of the form (MSGNUM)
+which is an element of rmail-msgref-vector."
   (save-excursion
     (set-buffer buffer)
-    (if msgnum
-	(rmail-set-attribute attribute t msgnum))))
+    (if (car msgnum-list)
+	(rmail-set-attribute attribute t (car msgnum-list)))))
 
 (defun rmail-make-in-reply-to-field (from date message-id)
   (cond ((not from)
@@ -2481,7 +2488,8 @@ see the documentation of `rmail-resend'."
       (if (rmail-start-mail
 	   nil nil subject nil nil nil
 	   (list (list 'rmail-mark-message
-		       forward-buffer msgnum
+		       forward-buffer
+		       (aref rmail-msgref-vector msgnum)
 		       "forwarded"))
 	   ;; If only one window, use it for the mail buffer.
 	   ;; Otherwise, use another window for the mail buffer
@@ -2700,7 +2708,9 @@ specifying headers which should not be copied into the new message."
     (let (mail-signature mail-setup-hook)
       (if (rmail-start-mail nil nil nil nil nil rmail-buffer
 			    (list (list 'rmail-mark-message
-					rmail-buffer msgnum "retried")))
+					rmail-buffer
+					(aref rmail-msgref-vector msgnum)
+					"retried")))
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter
 	  ;; of the previous message was probably read-only.
