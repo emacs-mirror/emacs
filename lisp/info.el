@@ -286,11 +286,10 @@ The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
+  (pop-to-buffer "*info*")
   (if file
       (Info-goto-node (concat "(" file ")"))
-    (if (get-buffer "*info*")
-	(pop-to-buffer "*info*")
-      (Info-directory))))
+    (Info-directory)))
 
 ;;;###autoload
 (defun info-standalone ()
