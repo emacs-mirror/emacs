@@ -1021,7 +1021,8 @@ This must be bound to a mouse drag event."
 (defun mouse-drag-secondary (start-event)
   "Set the secondary selection to the text that the mouse is dragged over.
 Highlight the drag area as you move the mouse.
-This must be bound to a button-down mouse event."
+This must be bound to a button-down mouse event.
+The function returns a non-nil value if it creates a secondary selection."
   (interactive "e")
   (mouse-minibuffer-check start-event)
   (let* ((echo-keystrokes 0)
@@ -1092,9 +1093,6 @@ This must be bound to a button-down mouse event."
                                        mouse-secondary-overlay start-point)))))))))
 
 	(if (consp event)
-;;;		 (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
-;;;		 (eq (posn-window (event-end event)) start-window)
-;;;		 (numberp (posn-point (event-end event)))
 	    (if (marker-position mouse-secondary-start)
 		(save-window-excursion
 		  (delete-overlay mouse-secondary-overlay)
@@ -1102,7 +1100,8 @@ This must be bound to a button-down mouse event."
 		  (select-window start-window)
 		  (save-excursion
 		    (goto-char mouse-secondary-start)
-		    (sit-for 1)))
+		    (sit-for 1)
+		    nil))
 	      (x-set-selection
 	       'SECONDARY
 	       (buffer-substring (overlay-start mouse-secondary-overlay)
