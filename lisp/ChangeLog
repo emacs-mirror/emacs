@@ -1,3 +1,9 @@
+2000-11-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired-aux.el (dired-add-entry): Don't call dired-get-filename
+	with `no-dir'; we want the directory part to be able to remove
+	it.
+
 2000-11-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/outline.el (outline-flag-region):
