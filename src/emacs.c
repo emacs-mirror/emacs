@@ -516,6 +516,12 @@ main (argc, argv, envp)
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */
   set_process_environment ();
+  /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
+     if this is not done.  Do it after set_process_environment so that we
+     don't pollute Vprocess_environment.  */
+#ifdef AIX
+  putenv ("LANG=C");
+#endif
 
   init_buffer ();	/* Init default directory of main buffer */
 
