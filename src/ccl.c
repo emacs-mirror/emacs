@@ -1894,8 +1894,6 @@ is a unibyte string.  By default it is a multibyte string.")
     }
   outbufsize = STRING_BYTES (XSTRING (str)) * ccl.buf_magnification + 256;
   outbuf = (char *) xmalloc (outbufsize);
-  if (!outbuf)
-    error ("Not enough memory");
   ccl.last_block = NILP (contin);
   produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
 			 STRING_BYTES (XSTRING (str)), outbufsize, (int *)0);
@@ -1908,7 +1906,7 @@ is a unibyte string.  By default it is a multibyte string.")
     val = make_string (outbuf, produced);
   else
     val = make_unibyte_string (outbuf, produced);
-  free (outbuf);
+  xfree (outbuf);
   QUIT;
   if (ccl.status != CCL_STAT_SUCCESS
       && ccl.status != CCL_STAT_SUSPEND_BY_SRC
