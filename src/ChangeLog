@@ -1,3 +1,7 @@
+2000-03-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* lread.c (syms_of_lread): Doc fix for load-convert-to-unibyte.
+
 2000-03-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (read_integer): Unread the last char not consumed.
