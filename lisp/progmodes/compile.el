@@ -121,7 +121,19 @@ will be parsed and highlighted as soon as you try to move to them."
                          find-program grep-command))
 		(t (cons (format "%s . -type f -exec %s {} %s \\;"
 				 find-program grep-command null-device)
-			 (+ 22 (length grep-command))))))))
+			 (+ 22 (length grep-command)))))))
+  (unless grep-tree-command
+    (setq grep-tree-command
+	  (let* ((glen (length grep-program))
+		 (gcmd (concat grep-program " <C>" (substring grep-command glen))))
+	    (cond ((eq grep-find-use-xargs 'gnu)
+		   (format "%s <D> <X> -type f <F> -print0 | xargs -0 -e %s <R>"
+			   find-program gcmd))
+		  (grep-find-use-xargs
+		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
+			   find-program gcmd))
+		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
+			     find-program gcmd null-device)))))))
 
 (defcustom grep-command nil
   "The default grep command for \\[grep].
@@ -160,6 +172,46 @@ call that function before using this variable in your program."
   :get (lambda (symbol)
 	 (or grep-find-command
 	     (progn (grep-compute-defaults) grep-find-command)))
+  :group 'compilation)
+
+(defcustom grep-tree-command nil
+  "The default find command for \\[grep-tree].
+The default value of this variable is set up by `grep-compute-defaults';
+call that function before using this variable in your program.
+The following place holders should be present in the string:
+ <D> - base directory for find
+ <X> - find options to restrict or expand the directory list
+ <F> - find options to limit the files matched
+ <C> - place to put -i if case insensitive grep
+ <R> - the regular expression searched for."
+  :type 'string
+  :version "21.4"
+  :get (lambda (symbol)
+	 (or grep-tree-command
+	     (progn (grep-compute-defaults) grep-tree-command)))
+  :group 'compilation)
+
+(defcustom grep-tree-files-aliases '(
+	("ch" .	"*.[ch]")
+	("c" .	"*.c")
+	("h" .	"*.h")
+	("m" .	"[Mm]akefile*")
+	("asm" . "*.[sS]")
+	("all" . "*")
+	("el" .	"*.el")
+	)
+  "*Alist of aliases for the FILES argument to `grep-tree'."
+  :type 'alist
+  :group 'compilation)
+
+(defcustom grep-tree-ignore-case t
+  "*If non-nil, `grep-tree' ignores case in matches."
+  :type 'boolean
+  :group 'compilation)
+
+(defcustom grep-tree-ignore-CVS-directories t
+  "*If non-nil, `grep-tree' does no recurse into CVS directories."
+  :type 'boolean
   :group 'compilation)
 
 (defvar compilation-error-list nil
@@ -783,6 +835,72 @@ easily repeat a find command."
 				 grep-find-command nil nil
 				 'grep-find-history))))
   (let ((null-device nil))		; see grep
+    (grep command-args)))
+
+(defun grep-expand-command-macros (command &optional regexp files dir excl case-fold)
+  "Patch grep COMMAND replacing <D>, etc."
+  (setq command
+	(replace-regexp-in-string "<D>"
+				  (or dir ".") command t t))
+  (setq command
+	(replace-regexp-in-string "<X>"
+				  (or excl "") command t t))
+  (setq command
+	(replace-regexp-in-string "<F>"
+				  (or files "") command t t))
+  (setq command
+	(replace-regexp-in-string "<C>"
+				  (if case-fold "-i" "") command t t))
+  (setq command
+	(replace-regexp-in-string "<R>"
+				  (or regexp "") command t t))
+  command)
+
+;;;###autoload
+(defvar grep-tree-last-regexp "")
+(defvar grep-tree-last-files (car (car grep-tree-files-aliases)))
+
+(defun grep-tree (regexp files dir)
+  "Grep in directory tree with simplified prompting for search parameters.
+Collect output in a buffer.
+While find runs asynchronously, you can use the \\[next-error] command
+to find the text that grep hits refer to.
+
+This command uses a special history list for its arguments, so you can
+easily repeat a find command."
+  (interactive
+   (let* ((regexp
+	   (if current-prefix-arg
+	       grep-tree-last-regexp
+	     (let* ((default (current-word))
+		    (spec (read-string
+			   (concat "Search for"
+				   (if (and default (> (length default) 0))
+				       (format " (default %s): " default) ": ")))))
+	       (if (equal spec "") default spec))))
+	  (files
+	   (read-string (concat "Search for \"" regexp "\" in files (default "   grep-tree-last-files  "): ")))
+	  (dir
+	   (read-directory-name "Base directory: " nil default-directory t)))
+     (list regexp files dir)))
+  (unless grep-tree-command
+    (grep-compute-defaults))
+  (unless (and (stringp files) (> (length files) 0))
+    (setq files grep-tree-last-files))
+  (when files
+    (setq grep-tree-last-files files)
+    (let ((mf (assoc files match-files-aliases)))
+      (if mf
+	  (setq files (cdr mf)))))
+  (let ((command-args (grep-expand-command-macros
+		       grep-tree-command
+		       (setq grep-tree-last-regexp regexp)
+		       (and files (concat "-name '" files "'"))
+		       nil  ;; we change default-directory to dir 
+		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
+		       grep-tree-ignore-case))
+	(default-directory dir)
+	(null-device nil))		; see grep
     (grep command-args)))
 
 (defcustom compilation-scroll-output nil
