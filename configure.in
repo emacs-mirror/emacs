@@ -236,7 +236,7 @@ case "${canonical}" in
       *-*-bsdi2.0* )		opsys=bsdos2 ;;
       *-*-bsdi2* )		opsys=bsdos2-1 ;;
       *-*-bsdi3* )		opsys=bsdos3 ;;
-      *-*-bsdi4* )		opsys=bsdos4 ;;
+      *-*-bsdi[45]* )		opsys=bsdos4 ;;
     esac
   ;;
 
