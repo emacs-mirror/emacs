@@ -37,6 +37,7 @@
 ;;; Code:
 
 (define-key calendar-mode-map [menu-bar edit] 'undefined)
+(define-key calendar-mode-map [menu-bar search] 'undefined)
 
 (define-key calendar-mode-map [down-mouse-2] 'calendar-mouse-2-date-menu)
 (define-key calendar-mode-map [mouse-2] 'ignore)
@@ -197,10 +198,11 @@
 (put 'cal-tex-cursor-day 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-week 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-week2 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week3 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week4 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week5 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week6 'menu-enable '(calendar-cursor-to-date))
+(put 'cal-tex-cursor-week-iso 'menu-enable '(calendar-cursor-to-date))
+(put 'cal-tex-cursor-week-monday 'menu-enable '(calendar-cursor-to-date))
+(put 'cal-tex-cursor-week-filofax-2week
+     'menu-enable '(calendar-cursor-to-date))
+(put 'cal-tex-cursor-week-filofax-week 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-month 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-month-landscape 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-year 'menu-enable '(calendar-cursor-to-date))
@@ -306,34 +308,34 @@ The printed output will be on two pages."
     (calendar-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week2 nil)))
 
-(defun cal-tex-mouse-week3 ()
+(defun cal-tex-mouse-week-iso ()
   "One page calendar for week indicated by cursor.
 Holidays are included if `cal-tex-holidays' is t."
   (interactive)
   (save-excursion
     (calendar-goto-date (calendar-event-to-date))
-    (cal-tex-cursor-week3 nil)))
+    (cal-tex-cursor-week-iso nil)))
 
-(defun cal-tex-mouse-week4 ()
+(defun cal-tex-mouse-week-monday ()
   "One page calendar for week indicated by cursor."
   (interactive)
   (save-excursion
     (calendar-goto-date (calendar-event-to-date))
-    (cal-tex-cursor-week4 nil)))
+    (cal-tex-cursor-week-monday nil)))
 
-(defun cal-tex-mouse-week5 ()
+(defun cal-tex-mouse-week-filofax-2week ()
   "One page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
     (calendar-goto-date (calendar-event-to-date))
-    (cal-tex-cursor-week5 nil)))
+    (cal-tex-cursor-week-filofax-2week nil)))
 
-(defun cal-tex-mouse-week6 ()
+(defun cal-tex-mouse-week-filofax-week ()
   "Two page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
     (calendar-goto-date (calendar-event-to-date))
-    (cal-tex-cursor-week6 nil)))
+    (cal-tex-cursor-week-filofax-week nil)))
 
 (defun cal-tex-mouse-month ()
   "Make a buffer with LaTeX commands for the month cursor is on.
