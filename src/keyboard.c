@@ -3659,7 +3659,8 @@ follow_key (key, nmaps, current, defs, next)
       if (XINT (key) & shift_modifier)
 	XSETINT (key, XINT (key) & ~shift_modifier);
       else
-	XSETINT (key, DOWNCASE (XINT (key)));
+	XSETINT (key, (DOWNCASE (XINT (key) & 0x3ffff)
+		       | (XINT (key) & ~0x3ffff)));
 
       first_binding = nmaps;
       for (i = nmaps - 1; i >= 0; i--)
