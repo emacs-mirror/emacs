@@ -1,5 +1,7 @@
 2004-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.c (window_list_1): YAILOM.
+
 	* fileio.c (make_temp_name): Handle multibyte prefixes.
 
 2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
