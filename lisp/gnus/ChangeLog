@@ -1,3 +1,35 @@
+2000-10-27  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-send-mail-partially): Replace the header
+	delimiter with a blank line.
+	(message-sending-message): New variable.
+	(message-send): Use it.
+	(message-default-charset): Default value for non-Mule Emacsen.
+	(message-alternative-emails): New.
+	(message-use-alternative-email-as-from): New.
+	(message-setup): Use them.
+	(message-default-charset): Set default value in non-MULE XEmacsen
+	as iso-8859-1.
+
+2000-10-27 Emerick Rogul <emerick@csa.bu.edu>
+
+	* message.el (message-setup-fill-variables): New variable.
+	(message-mode): Use it.
+
+2000-10-27  Bjorn Torkelsson  <torkel@hpc2n.umu.se>
+
+	* message.el: xemacs cleanup (use featurep ' xemacs)
+
+2000-10-27  Stanislav Shalunov <shalunov@internet2.edu>
+
+	* message.el (message-make-in-reply-to): In-Reply-To is message-id
+	(see DRUMS).
+	
+2000-10-27  Simon Josefsson  <simon@josefsson.org>
+
+	* message.el (message-send): Make sure error is signalled if no
+	send method is specified.
+
 2000-10-27  Dave Love  <fx@gnu.org>
 
 	* gnus-group.el (gnus-group-make-menu-bar): Add some :help
