@@ -588,7 +588,7 @@ init_float ()
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  *(struct Lisp_Float **)&ptr->type = float_free_list;
+  *(struct Lisp_Float **)&ptr->data = float_free_list;
   float_free_list = ptr;
 }
 
@@ -600,8 +600,10 @@ make_float (float_value)
 
   if (float_free_list)
     {
+      /* We use the data field for chaining the free list
+	 so that we won't use the same field that has the mark bit.  */
       XSETFLOAT (val, float_free_list);
-      float_free_list = *(struct Lisp_Float **)&float_free_list->type;
+      float_free_list = *(struct Lisp_Float **)&float_free_list->data;
     }
   else
     {
@@ -668,7 +670,7 @@ init_cons ()
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  *(struct Lisp_Cons **)&ptr->car = cons_free_list;
+  *(struct Lisp_Cons **)&ptr->cdr = cons_free_list;
   cons_free_list = ptr;
 }
 
@@ -681,8 +683,10 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 
   if (cons_free_list)
     {
+      /* We use the cdr for chaining the free list
+	 so that we won't use the same field that has the mark bit.  */
       XSETCONS (val, cons_free_list);
-      cons_free_list = *(struct Lisp_Cons **)&cons_free_list->car;
+      cons_free_list = *(struct Lisp_Cons **)&cons_free_list->cdr;
     }
   else
     {
@@ -2134,7 +2138,7 @@ gc_sweep ()
 	  if (!XMARKBIT (cblk->conses[i].car))
 	    {
 	      num_free++;
-	      *(struct Lisp_Cons **)&cblk->conses[i].car = cons_free_list;
+	      *(struct Lisp_Cons **)&cblk->conses[i].cdr = cons_free_list;
 	      cons_free_list = &cblk->conses[i];
 	    }
 	  else
@@ -2164,7 +2168,7 @@ gc_sweep ()
 	  if (!XMARKBIT (fblk->floats[i].type))
 	    {
 	      num_free++;
-	      *(struct Lisp_Float **)&fblk->floats[i].type = float_free_list;
+	      *(struct Lisp_Float **)&fblk->floats[i].data = float_free_list;
 	      float_free_list = &fblk->floats[i];
 	    }
 	  else
