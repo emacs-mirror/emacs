@@ -295,30 +295,7 @@ The backup file is the first file given to `diff'."
   (let ((handler (find-file-name-handler fn 'diff-latest-backup-file)))
     (if handler
 	(funcall handler 'diff-latest-backup-file fn)
-      ;; First try simple backup, then the highest numbered of the
-      ;; numbered backups.
-      ;; Ignore the value of version-control because we look for existing
-      ;; backups, which maybe were made earlier or by another user with
-      ;; a different value of version-control.
-      (setq fn (file-chase-links (expand-file-name fn)))
-      (or
-       (let ((bak (make-backup-file-name fn)))
-	 (if (file-exists-p bak) bak))
-       ;; We use BACKUPNAME to cope with backups stored in a different dir.
-       (let* ((backupname (car (find-backup-file-name fn)))
-	      (dir (file-name-directory backupname))
-	      (base-versions (concat (file-name-sans-versions
-				      (file-name-nondirectory backupname))
-				     ".~"))
-	      ;; This is a fluid var for backup-extract-version.
-	      (backup-extract-version-start (length base-versions)))
-	 (concat dir
-		 (car (sort
-		       (file-name-all-completions base-versions dir)
-		       (function
-			(lambda (fn1 fn2)
-			  (> (backup-extract-version fn1)
-			     (backup-extract-version fn2))))))))))))
+      (file-newest-backup fn))))
 
 (provide 'diff)
 
