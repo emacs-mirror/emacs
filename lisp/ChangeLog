@@ -1,3 +1,12 @@
+2005-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (define-ccl-program): Fix docstring about
+	extra 256 bytes assured for the output buffer.
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le-with-signature):
+	Fix BUFFER_MAGNIFICATION to 2.
+	(ccl-encode-mule-utf-16be-with-signature): Likewise.
+
 2005-03-07  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* align.el (align-rules-list): Added an alignment rule for CSS
