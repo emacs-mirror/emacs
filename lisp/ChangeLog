@@ -1,5 +1,35 @@
 2004-11-24  Jay Belanger  <belanger@truman.edu>
 
+	* calc/calc.el (calc-embedded-active): Removed unnecessary
+	declaration.
+	(calc-show-banner): Removed redundant declaration.
+
+	* calc/calc-graph.el (calc-gnuplot-default-device)
+	(calc-gnuplot-default-output, calc-gnuplot-print-device)
+	(calc-gnuplot-print-output, calc-gnuplot-geometry)
+	(calc-graph-default-resolution, calc-graph-default-resolution-3d):
+	Remove redundant initial values.
+
+	* calc/calc-arith.el (math-scalar-functions)
+	(math-nonscalar-functions, math-scalar-if-args-functions)
+	(math-real-functions, math-positive-functions)
+	(math-nonnegative-functions, math-real-scalar-functions)
+	(math-real-if-arg-functions, math-integer-functions)
+	(math-num-integer-functions, math-rounding-functions)
+	(math-float-rounding-functions, math-integer-if-args-functions)
+	(math-super-types): Move declarations to earlier in file.
+	(math-unit-prefixes): Declared it.
+	(math-floor-prec, math-trunc-prec): New variables.
+	(math-trunc-fancy): Replace variable prec by declared variable.
+	(math-floor-fancy): Replace variable prec by declared variable.
+	(math-com-bterms): New variable.
+	(math-commutative-equal, math-commutative-collect):
+	Replace variable bterms by declared variable.
+
+	* calc/calc-misc.el (math-trunc): Replace variable prec by
+	math-trunc-prec.
+	(math-floor): Replace variable prec by math-floor-prec.
+
 	* calc/calc-forms.el (math-fd-date, math-fd-dt, math-fd-year)
 	(math-fd-month, math-fd-day, math-fd-weekday, math-fd-hour)
 	(math-fd-minute, math-fd-second, math-fd-bc-flag): New variables.
