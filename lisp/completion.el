@@ -214,7 +214,7 @@
 ;;
 ;;
 ;;-----------------------------------------------
-;; Change Log:
+;;; Change Log:
 ;;-----------------------------------------------
 ;;    Sometime in '84 Brewster implemented a somewhat buggy version for 
 ;; Symbolics LISPMs.

@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Change Log:
+;;; Change Log:
 
 ;; moved posting and mail code from rnews.el
 ;;	tower@prep.ai.mit.edu Wed Oct 29 1986

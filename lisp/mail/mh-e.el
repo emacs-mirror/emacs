@@ -54,7 +54,7 @@
 ;; (global-set-key "\C-xm" 'mh-smail)
 ;; (global-set-key "\C-x4m" 'mh-smail-other-window)
 
-;; Change Log:
+;;; Change Log:
 
 ;; Original version for Gosling emacs by Brian Reid, Stanford, 1982.
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.

@@ -45,7 +45,7 @@
 
 ;; See the documentation for the function `time-stamp' for more details.
 
-;; Change Log:
+;;; Change Log:
 
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
