@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.45) $
+ * $HopeName: MMsrc!poolamc.c(trunk.46) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.45) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.46) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -1588,6 +1588,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   RefSet summary;       /* summary of object being relocated */
   RefSet toSummary;     /* summary of object's destination */
   Seg toSeg;            /* segment to which object is being relocated */
+  Bool shieldUp;        /* whether we have exposed seg */
 
   /* design.mps.trace.fix.noaver */
   AVERT_CRITICAL(Pool, pool);
@@ -1629,19 +1630,14 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   ref = *refIO;
   AVER_CRITICAL(SegBase(seg) <= ref);
   AVER_CRITICAL(ref < SegLimit(seg));
-
   arena = pool->arena;
 
-  if (SegNailed(seg) != TraceSetEMPTY) {
-    /* If segment is nailed then may have grey and white */
-    /* objects on same segment, hence segment may be protected */
-    /* hence we need to expose it to examine the broken heart. */
-    /* @@@@ This assumes a particular style of barrier. */
+  /* .access.read: Make sure seg isn't behind a read barrier. */
+  shieldUp = FALSE;
+  if (SegPM(seg) & AccessREAD) {
     ShieldExpose(arena, seg);
-  } else {
-    AVER_CRITICAL((SegPM(seg) & AccessREAD) == AccessSetEMPTY);
+    shieldUp = TRUE;
   }
-  /* .fix.ismoved: test for a broken heart */
   newRef = (*format->isMoved)(ref);
 
   if (newRef == (Addr)0) {
@@ -1674,10 +1670,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(buffer != NULL);
 
     length = AddrOffset(ref, (*format->skip)(ref));
-
-    ++ss->forwardedCount;
+    STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
-
     do {
       res = BUFFER_RESERVE(&newRef, buffer, length, FALSE);
       if (res != ResOK)
@@ -1690,8 +1684,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
       toGrey = SegGrey(toSeg);
-      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY
-          && SegRankSet(seg) != RankSetEMPTY) {
+      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY) {
+        AVER_CRITICAL(SegRankSet(seg) != RankSetEMPTY);
         SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
       }
       summary = SegSummary(seg);
@@ -1706,17 +1700,17 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     } while (!BUFFER_COMMIT(buffer, newRef, length));
     ss->copiedSize += length;
 
-    /* @@@@ Must expose the old segment because it might be */
-    /* write protected.  However, in the read barrier phase */
-    /* nothing white is accessible, so this could be optimized */
-    /* away. */
-    ShieldExpose(arena, seg);
-    (*format->move)(ref, newRef);       /* install broken heart */
-    ShieldCover(arena, seg);
+    /* We know seg is readable, because we made sure in .access.read. */
+    /* Now make sure there's no write barrier. */
+    if (!shieldUp && (SegPM(seg) & AccessWRITE)) {
+      ShieldExpose(arena, seg);
+      shieldUp = TRUE;
+    }
+    (*format->move)(ref, newRef);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existant) snap-out cache here) */
-    ++ss->snapCount;
+    STATISTIC_STAT(++ss->snapCount);
   }
 
   /* .fix.update: update the reference to whatever the above code */
@@ -1726,9 +1720,8 @@ updateReference:
   res = ResOK;
 
 returnRes:
-  if(SegNailed(seg) != TraceSetEMPTY) {
+  if (shieldUp)
     ShieldCover(arena, seg);
-  }
   return res;
 }
 
@@ -1755,6 +1748,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   RefSet summary;       /* summary of object being relocated */
   RefSet toSummary;     /* summary of object's destination */
   Seg toSeg;            /* segment to which object is being relocated */
+  Bool shieldUp;        /* whether we have exposed seg */
 
   /* design.mps.trace.fix.noaver */
   AVERT_CRITICAL(Pool, pool);
@@ -1796,19 +1790,14 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   ref = *refIO;
   AVER_CRITICAL(AddrAdd(SegBase(seg), pool->format->headerSize) <= ref);
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
-
   arena = pool->arena;
 
-  if (SegNailed(seg) != TraceSetEMPTY) {
-    /* If segment is nailed then may have grey and white */
-    /* objects on same segment, hence segment may be protected */
-    /* hence we need to expose it to examine the broken heart. */
-    /* @@@@ This assumes a particular style of barrier. */
+  /* .access.read.header: Make sure seg isn't behind a read barrier. */
+  shieldUp = FALSE;
+  if (SegPM(seg) & AccessREAD) {
     ShieldExpose(arena, seg);
-  } else {
-    AVER_CRITICAL((SegPM(seg) & AccessREAD) == AccessSetEMPTY);
+    shieldUp = TRUE;
   }
-  /* .fix.ismoved: test for a broken heart */
   newRef = (*format->isMoved)(ref);
 
   if (newRef == (Addr)0) {
@@ -1841,10 +1830,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(buffer != NULL);
 
     length = AddrOffset(ref, (*format->skip)(ref));
-
-    ++ss->forwardedCount;
+    STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
-
     do {
       Size headerSize = format->headerSize;
 
@@ -1860,8 +1847,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
       toGrey = SegGrey(toSeg);
-      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY
-          && SegRankSet(seg) != RankSetEMPTY) {
+      if (TraceSetDiff(grey, toGrey) != TraceSetEMPTY) {
+        AVER_CRITICAL(SegRankSet(seg) != RankSetEMPTY);
         SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
       }
       summary = SegSummary(seg);
@@ -1876,17 +1863,17 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     } while (!BUFFER_COMMIT(buffer, newBase, length));
     ss->copiedSize += length;
 
-    /* @@@@ Must expose the old segment because it might be */
-    /* write protected.  However, in the read barrier phase */
-    /* nothing white is accessible, so this could be optimized */
-    /* away. */
-    ShieldExpose(arena, seg);
-    (*format->move)(ref, newRef);       /* install broken heart */
-    ShieldCover(arena, seg);
+    /* We know seg is readable, because we made sure in .access.read.header. */
+    /* Now make sure there's no write barrier. */
+    if (!shieldUp && (SegPM(seg) & AccessWRITE)) {
+      ShieldExpose(arena, seg);
+      shieldUp = TRUE;
+    }
+    (*format->move)(ref, newRef);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
-    ++ss->snapCount;
+    STATISTIC_STAT(++ss->snapCount);
   }
 
   /* .fix.update: update the reference to whatever the above code */
@@ -1896,9 +1883,8 @@ updateReference:
   res = ResOK;
 
 returnRes:
-  if (SegNailed(seg) != TraceSetEMPTY) {
+  if (shieldUp)
     ShieldCover(arena, seg);
-  }
   return res;
 }
 
