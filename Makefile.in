@@ -350,7 +350,7 @@ install-arch-indep: mkdir
 	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
 	   fi ; \
-	   for f in cl* dired-x* emacs* forms* gnus* info* sc* vip* ; do \
+	   for f in cl* dired-x* emacs* forms* gnus* info* mh-e* sc* vip*; do \
 	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f); \
 	   done); \
 	else true; fi
@@ -391,7 +391,7 @@ uninstall:
 	    esac ;					\
 	  fi ;						\
 	done
-	(cd ${infodir} && rm -f cl* emacs* forms* info* vip*)
+	(cd ${infodir} && rm -f cl* dired-x* emacs* forms* gnus* info* mh-e* sc* vip*)
 	(cd ${mandir}  && rm -f emacs.1 etags.1 ctags.1)
 	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
 
