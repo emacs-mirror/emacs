@@ -31,7 +31,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.12";
+char pot_etags_version[] = "@(#) pot revision number is 11.14";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -185,7 +185,7 @@ char *relative_filename (), *absolute_filename (), *absolute_dirname ();
 char *xmalloc (), *xrealloc ();
 
 typedef void Lang_function ();
-#if 0				/* many compilers barf on this */
+#if FALSE				/* many compilers barf on this */
 Lang_function Asm_labels;
 Lang_function default_C_entries;
 Lang_function C_entries;
@@ -224,7 +224,7 @@ void add_regex ();
 #endif
 void add_node ();
 void error ();
-void fatal ();
+void fatal (), pfatal ();
 logical find_entries ();
 void free_tree ();
 void getit ();
@@ -949,10 +949,7 @@ main (argc, argv)
       else
 	tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
       if (tagf == NULL)
-	{
-	  perror (tagfile);
-	  exit (BAD);
-	}
+	pfatal (tagfile);
     }
 
   /*
@@ -1308,10 +1305,7 @@ free_tree (node)
  *	add_node is the only function allowed to add nodes, so it can
  *	maintain state.
  */
-/* Must avoid static vars within functions since some systems
-   #define static as nothing.  */
 NODE *last_node = NULL;
-
 void
 add_node (node, cur_node_p)
      NODE *node, **cur_node_p;
@@ -1703,7 +1697,7 @@ DEFINEST definedef;
 
 /*
  * Set this to TRUE, and the next token considered is called a function.
- * Used only for GNUmacs's function-defining macros.
+ * Used only for GNU emacs's function-defining macros.
  */
 logical next_token_is_func;
 
@@ -3739,6 +3733,14 @@ fatal (s1, s2)
   exit (BAD);
 }
 
+void
+pfatal (s1)
+     char *s1;
+{
+  perror (s1);
+  exit (BAD);
+}
+
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 void
 error (s1, s2)
@@ -3766,70 +3768,53 @@ concat (s1, s2, s3)
   return result;
 }
 
-#ifdef DOS_NT
+/* Does the same work as the system V getcwd, but does not need to
+   guess buffer size in advance. */
 char *
 etags_getcwd ()
+#ifdef DOS_NT
 {
-  char *p, cwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
-  getwd (cwd);
-  p = cwd;
+  char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
+
+  getwd (path);
+  p = path;
   while (*p)
     if (*p == '\\')
       *p++ = '/';
     else
       *p++ = tolower (*p);
-  return strdup (cwd);
-}
-#else /* not DOS_NT */
-/* Does the same work as the system V getcwd, but does not need to
-   guess buffer size in advance. */
-char *
-etags_getcwd ()
-{
-  char *buf;
-  int bufsize = 256;
 
-#ifdef HAVE_GETCWD
-  buf = xnew (bufsize, char);
-  while (getcwd (buf, bufsize / 2) == NULL)
+  return strdup (path);
+}
+#elif HAVE_GETCWD /* not DOS_NT */
+{
+  int bufsize = 200;
+  char *path = xnew (bufsize, char);
+
+  while (getcwd (path, bufsize) == NULL)
     {
       if (errno != ERANGE)
-	{
-	  perror ("pwd");
-	  exit (BAD);
-	}
+	pfatal ("pwd");
       bufsize *= 2;
-      buf = xnew (bufsize, char);
+      path = xnew (bufsize, char);
     }
-#else
-  do
-    {
-      FILE *pipe;
 
-      buf = xnew (bufsize, char);
-
-      pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
-      if (pipe == NULL)
-	{
-	  perror ("pwd");
-	  exit (BAD);
-	}
-      if (fgets (buf, bufsize, pipe) == NULL)
-	{
-	  perror ("pwd");
-	  exit (BAD);
-	}
-      pclose (pipe);
-
-      bufsize *= 2;
-
-    } while (buf[strlen (buf) - 1] != '\n');
-#endif
-
-  buf[strlen (buf) - 1] = '\0';
-  return buf;
+  return path;
 }
-#endif /* not DOS_NT */
+#else /* not DOS_NT and not HAVE_GETCWD */
+{
+  struct linebuffer path;
+  FILE *pipe;
+
+  initbuffer (&path);
+  pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
+  if (pipe == NULL || readline_internal (&path, pipe) == 0)
+    pfatal ("pwd");
+  pclose (pipe);
+
+  return path.buffer;
+}
+#endif /* not DOS_NT and not HAVE_GETCWD */
 
 /* Return a newly allocated string containing the filename
    of FILE relative to the absolute directory DIR (which
