@@ -281,7 +281,8 @@ value of this flag.")
 	    ;; Add vc-path to PATH for the execution of this command.
 	    (process-environment
 	     (cons (concat "PATH=" (getenv "PATH")
-			   ":" (mapconcat 'identity vc-path ":"))
+			   path-separator 
+			   (mapconcat 'identity vc-path path-separator))
 		   process-environment)))
 	(apply 'call-process "cvs" nil "*vc-info*" nil 
 	       (list "status" (file-name-nondirectory file))))
@@ -336,6 +337,7 @@ value of this flag.")
 	    (and (progn (goto-char (point-min))
 			(search-forward "$Header: " nil t))
 		 (looking-at "[^ ]+ \\([0-9.]+\\) ")))
+	(goto-char (match-end 0))
 	;; if found, store the revision number ...
 	(let ((rev (buffer-substring (match-beginning 1)
 				     (match-end 1))))
@@ -567,24 +569,19 @@ value of this flag.")
 (defun vc-fetch-properties (file)
   ;; Fetch vc-latest-version and vc-your-latest-version
   ;; if that wasn't already done.
-  (vc-backend-dispatch
-   file
-   ;; SCCS
-   (vc-fetch-master-properties file)
-   ;; RCS
-   (progn
-     (set-buffer (get-buffer-create "*vc-info*"))
-     (vc-insert-file (vc-name file) "^desc")
-     (vc-parse-buffer 
-      (list '("^\\([0-9]+\\.[0-9.]+\\)\ndate[ \t]+\\([0-9.]+\\);" 1 2)
-	    (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
-			  "date[ \t]+\\([0-9.]+\\);[ \t]+"
-			  "author[ \t]+"
-			  (regexp-quote (user-login-name)) ";") 1 2))
-      file
-      '(vc-latest-version vc-your-latest-version)))
-   ;; CVS
-   (vc-fetch-master-properties file)
+  (cond
+   ((eq (vc-backend file) 'RCS)
+    (set-buffer (get-buffer-create "*vc-info*"))
+    (vc-insert-file (vc-name file) "^desc")
+    (vc-parse-buffer 
+     (list '("^\\([0-9]+\\.[0-9.]+\\)\ndate[ \t]+\\([0-9.]+\\);" 1 2)
+	   (list (concat "^\\([0-9]+\\.[0-9.]+\\)\n"
+			 "date[ \t]+\\([0-9.]+\\);[ \t]+"
+			 "author[ \t]+"
+			 (regexp-quote (user-login-name)) ";") 1 2))
+     file
+     '(vc-latest-version vc-your-latest-version)))
+   (t (vc-fetch-master-properties file))
    ))
 
 (defun vc-workfile-version (file)
@@ -652,7 +649,8 @@ value of this flag.")
   ;; checks for this condition.  This function returns nil if 
   ;; DIRNAME/BASENAME is not handled by CVS.
   (if (and (file-directory-p (concat dirname "CVS/"))
-	   (file-readable-p (concat dirname "CVS/Entries")))
+	   (file-readable-p (concat dirname "CVS/Entries"))
+	   (file-readable-p (concat dirname "CVS/Repository")))
       (let ((bufs nil) (fold case-fold-search))
 	(unwind-protect
 	    (save-excursion
