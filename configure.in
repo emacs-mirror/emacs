@@ -1778,6 +1778,7 @@ if test "${HAVE_X11}" = "yes"; then
     AC_CHECK_HEADER(X11/xpm.h,
       AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
     if test "${HAVE_XPM}" = "yes"; then
+       AC_MSG_CHECKING(for XpmReturnAllocPixels preprocessor define)
        AC_EGREP_CPP(no_return_alloc_pixels,
        [#include "X11/xpm.h"
 #ifndef XpmReturnAllocPixels
@@ -1786,6 +1787,11 @@ no_return_alloc_pixels
 	], HAVE_XPM=no, HAVE_XPM=yes)
     fi
     CFLAGS="${old_c_flags}"
+    if test "${HAVE_XPM}" = "yes"; then
+       AC_MSG_RESULT(yes)
+    else
+       AC_MSG_RESULT(no)
+    fi
   fi
 
   if test "${HAVE_XPM}" = "yes"; then
