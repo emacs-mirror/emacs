@@ -1,3 +1,20 @@
+2002-10-13  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Treat `ignore' specially--prevent warnings about functions
+	called for effect, in its args.
+	Don't warn when `pop' is used for effect.
+
+	* emacs-lisp/autoload.el (autoload-print-form): Cleanup.
+
+	* uniquify.el (uniquify-get-proposed-name):
+	Don't use directory-sep-char.
+
+	* thingatpt.el (read-from-whole-string): Add call to `ignore'.
+
+	* find-file.el (ff-related-file-alist): New alias.
+	(ff-find-related-file): New alias.
+
 2002-10-13  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el (dired-insert-directory): When looking for existing
