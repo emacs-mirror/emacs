@@ -795,7 +795,7 @@ external program defined by `sendmail-program'."
 	(coding (and (local-variable-p 'buffer-file-coding-system)
 		     buffer-file-coding-system))
 	selected-coding
-	resend-to-addresses
+;;;	resend-to-addresses
 	delimline
 	fcc-was-found
 	(mailbuf (current-buffer)))
@@ -823,23 +823,23 @@ external program defined by `sendmail-program'."
 	    (replace-match "\n"))
 	  (goto-char (point-min))
 	  (let ((case-fold-search t))
-	    (goto-char (point-min))
-	    (while (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" delimline t)
-	      (setq resend-to-addresses
-		    (save-restriction
-		      (narrow-to-region (point)
-					(save-excursion
-					  (forward-line 1)
-					  (while (looking-at "^[ \t]")
-					    (forward-line 1))
-					  (point)))
-		      (append (mail-parse-comma-list)
-			      resend-to-addresses)))
-	      ;; Delete Resent-BCC ourselves
-	      (if (save-excursion (beginning-of-line)
-				  (looking-at "resent-bcc"))
-		  (delete-region (save-excursion (beginning-of-line) (point))
-				 (save-excursion (end-of-line) (1+ (point))))))
+;;;	    (goto-char (point-min))
+;;;	    (while (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" delimline t)
+;;;	      (setq resend-to-addresses
+;;;		    (save-restriction
+;;;		      (narrow-to-region (point)
+;;;					(save-excursion
+;;;					  (forward-line 1)
+;;;					  (while (looking-at "^[ \t]")
+;;;					    (forward-line 1))
+;;;					  (point)))
+;;;		      (append (mail-parse-comma-list)
+;;;			      resend-to-addresses)))
+;;;	      ;; Delete Resent-BCC ourselves
+;;;	      (if (save-excursion (beginning-of-line)
+;;;				  (looking-at "resent-bcc"))
+;;;		  (delete-region (save-excursion (beginning-of-line) (point))
+;;;				 (save-excursion (end-of-line) (1+ (point))))))
 ;;; Apparently this causes a duplicate Sender.
 ;;;	    ;; If the From is different than current user, insert Sender.
 ;;;	    (goto-char (point-min))
@@ -980,13 +980,16 @@ external program defined by `sendmail-program'."
 				;; These mean "report errors by mail"
 				;; and "deliver in background".
 				'("-oem" "-odb"))
-			      ;; Get the addresses from the message
-			      ;; unless this is a resend.
-			      ;; We must not do that for a resend
-			      ;; because we would find the original addresses.
-			      ;; For a resend, include the specific addresses.
-			      (or resend-to-addresses
-				  '("-t"))))
+;;;			      ;; Get the addresses from the message
+;;;			      ;; unless this is a resend.
+;;;			      ;; We must not do that for a resend
+;;;			      ;; because we would find the original addresses.
+;;;			      ;; For a resend, include the specific addresses.
+;;;			      (or resend-to-addresses
+				  '("-t")
+;;;				  )
+			      )
+		      )
 		     (exit-value (apply 'call-process-region args)))
 		(or (null exit-value) (zerop exit-value)
 		    (error "Sending...failed with exit value %d" exit-value)))
