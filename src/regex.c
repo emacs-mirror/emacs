@@ -2795,6 +2795,8 @@ re_compile_fastmap (bufp)
 	      path_can_be_null = true;
 
 	      p = fail_stack.stack[--fail_stack.avail];
+
+	      continue;
 	    }
 	  else
 	    break;
