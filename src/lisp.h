@@ -1344,6 +1344,12 @@ extern Lisp_Object make_float ();
 extern Lisp_Object Ffloat ();
 #endif /* LISP_FLOAT_TYPE */
 
+/* Defined in cmds.c */
+extern Lisp_Object Fend_of_line (), Fforward_char (), Fforward_line ();
+
+/* Defined in syntax.c */
+extern Lisp_Object Fforward_word ();
+
 /* Defined in fns.c */
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object Vfeatures;
@@ -1352,7 +1358,7 @@ extern Lisp_Object Flength ();
 extern Lisp_Object Fappend (), Fconcat (), Fvconcat (), Fcopy_sequence ();
 extern Lisp_Object Fsubstring ();
 extern Lisp_Object Fnth (), Fnthcdr (), Fmemq (), Fassq (), Fassoc ();
-extern Lisp_Object Fmember (), Frassq (), Fdelq (), Fsort ();
+extern Lisp_Object Felt (), Fmember (), Frassq (), Fdelq (), Fsort ();
 extern Lisp_Object Freverse (), Fnreverse (), Fget (), Fput (), Fequal ();
 extern Lisp_Object Ffillarray (), Fnconc (), Fmapcar (), Fmapconcat ();
 extern Lisp_Object Fy_or_n_p (), do_yes_or_no_p ();
@@ -1476,8 +1482,10 @@ extern Lisp_Object Fstring_equal (), Fstring_lessp (), Fbuffer_substring_lessp (
 extern Lisp_Object save_excursion_save (), save_restriction_save ();
 extern Lisp_Object save_excursion_restore (), save_restriction_restore ();
 extern Lisp_Object Fchar_to_string ();
+extern Lisp_Object Fdelete_region (), Fnarrow_to_region (), Fwiden ();
 
 /* defined in buffer.c */
+extern Lisp_Object Foverlay_start (), Foverlay_end ();
 extern void adjust_overlays_for_insert ();
 extern void adjust_overlays_for_delete ();
 extern void fix_overlays_in_range ();
@@ -1506,6 +1514,7 @@ extern Lisp_Object Fsubstitute_in_file_name ();
 extern Lisp_Object Ffile_symlink_p ();
 extern Lisp_Object Fverify_visited_file_modtime ();
 extern Lisp_Object Ffile_exists_p ();
+extern Lisp_Object Ffile_name_absolute_p ();
 extern Lisp_Object Fdirectory_file_name ();
 extern Lisp_Object Ffile_name_directory ();
 extern Lisp_Object expand_and_dir_to_file ();
@@ -1521,6 +1530,8 @@ extern Lisp_Object Fstring_match ();
 extern Lisp_Object Fscan_buffer ();
 extern void restore_match_data ();
 extern Lisp_Object Fmatch_data (), Fstore_match_data ();
+extern Lisp_Object Fmatch_beginning (), Fmatch_end ();
+extern Lisp_Object Fskip_chars_forward (), Fskip_chars_backward ();
 
 /* defined in minibuf.c */
 
@@ -1570,6 +1581,7 @@ extern Lisp_Object Fkey_description (), Fsingle_key_description ();
 extern Lisp_Object Fwhere_is_internal ();
 extern Lisp_Object access_keymap (), store_in_keymap ();
 extern Lisp_Object get_keyelt (), get_keymap ();
+extern void describe_map_tree ();
 
 /* defined in indent.c */
 extern Lisp_Object Fvertical_motion (), Findent_to (), Fcurrent_column ();
@@ -1585,6 +1597,8 @@ extern int window_internal_height (), window_internal_width ();
 
 /* defined in frame.c */
 extern Lisp_Object Qvisible;
+extern void store_frame_param (), store_in_alist ();
+extern Lisp_Object get_frame_param();
 extern Lisp_Object frame_buffer_predicate ();
 extern Lisp_Object Fframep ();
 extern Lisp_Object Fselect_frame ();
@@ -1644,6 +1658,7 @@ extern Lisp_Object Vdoc_directory;
 extern Lisp_Object Vdoc_file_name;
 extern Lisp_Object Fsubstitute_command_keys ();
 extern Lisp_Object Fdocumentation (), Fdocumentation_property ();
+extern Lisp_Object read_doc_string ();
 
 /* defined in bytecode.c */
 extern Lisp_Object Qbytecode;
@@ -1663,6 +1678,7 @@ extern Lisp_Object Qrear_nonsticky;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
 extern Lisp_Object Fnext_property_change ();
 extern Lisp_Object Fnext_single_property_change ();
+extern Lisp_Object Fprevious_single_property_change ();
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
