@@ -1,6 +1,6 @@
 ;;; profile.el --- generate run time measurements of Emacs Lisp functions
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 ;; Created: 07 Feb 1992

@@ -1,6 +1,6 @@
 ;;; iso-transl.el --- keyboard input definitions for ISO 8859/1.
 
-;; Copyright (C) 1987, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

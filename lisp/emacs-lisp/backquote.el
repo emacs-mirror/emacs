@@ -1,5 +1,5 @@
 ;;; New backquote for GNU Emacs.
-;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1990, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF

@@ -1,10 +1,10 @@
 ;;; isearch.el --- incremental search minor mode.
 
-;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/04/07 20:28:23 $|$Revision: 1.65 $
+;; |$Date: 1994/05/03 08:27:40 $|$Revision: 1.66 $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,5 +1,5 @@
 ;;; x-win.el --- parse switches controlling interface with X window system
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals

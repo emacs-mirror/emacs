@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
 
-;; Copyright (C) 1985, 1986, 1989, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1989, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: tex

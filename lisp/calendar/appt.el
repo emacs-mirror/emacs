@@ -1,6 +1,6 @@
 ;;; appt.el --- appointment notification functions.
 
-;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1994 Free Software Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Maintainer: FSF

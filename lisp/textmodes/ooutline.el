@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993, 1994 Free Software Foundation, Inc.
 
 ;; 7-Feb-94	Kevin Broadey
 ;; Fix show-children so it doesn't try to narrow to (1+ (point-max)) when
