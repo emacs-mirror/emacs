@@ -602,7 +602,13 @@ struct coding_system
    && XFASTINT (Vw32_system_coding_system) != 0				   \
    ? code_convert_string_norecord (str, Vw32_system_coding_system, 0)	   \
    : str)
-#endif
+
+#else /* WINDOWSNT */
+
+#define ENCODE_SYSTEM(str) string_make_unibyte(str)
+#define DECODE_SYSTEM(name) name
+
+#endif /* !WINDOWSNT */
 
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, unsigned char *,
