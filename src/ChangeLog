@@ -1,3 +1,19 @@
+2002-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (CURRENT_MODE_LINE_FACE_ID): New macro.
+	(CURRENT_MODE_LINE_HEIGHT): Use it.
+	(enum face_id): Add MODE_LINE_INACTIVE_FACE_ID.
+
+	* xdisp.c (window_box_height): Use CURRENT_MODE_LINE_FACE_ID.
+	(pos_visible_p, handle_face_prop): Likewise.
+	(display_mode_lines): Likewise, but for the real selected window.
+	(init_iterator) [row == NULL]: Handle MODE_LINE_INACTIVE_FACE_ID.
+
+	* xfaces.c (Qmode_line_inactive): New face variable for mode-line
+	in non-selected windows.
+	(realize_basic_faces): Realize it.
+	(syms_of_term): Intern and staticpro it.
+
 2002-02-08  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK): 

@@ -1,3 +1,9 @@
+2002-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* faces.el (mode-line-inactive): New face for mode-line for
+	non-selected windows.
+	(mode-line): Doc fix: Only used for selected window.
+
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/cal-menu.el (calendar-mode-map): Change the menu item's
