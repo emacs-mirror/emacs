@@ -23,6 +23,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;; Really cool code to lookup info indexes.
+;; Try especially info-lookup-symbol (aka C-h TAB).
+
 ;;; Code:
 
 (require 'info)
@@ -50,10 +55,8 @@ Setting this variable to nil disables highlighting."
   "Overlay object used for highlighting.")
 
 (defcustom info-lookup-file-name-alist
-  '(("\\`configure\\.in\\'" . autoconf-mode)
-    ("\\`aclocal\\.m4\\'" . autoconf-mode)
-    ("\\`acsite\\.m4\\'" . autoconf-mode)
-    ("\\`acinclude\\.m4\\'" . autoconf-mode))
+  '(("\\`configure\\.in\\'" . autoconf-mode) ;already covered by auto-mode-alist
+    ("\\`ac\\(local\\|site\\|include\\)\\.m4\\'" . autoconf-mode))
   "Alist of file names handled specially.
 List elements are cons cells of the form
 
@@ -124,13 +127,6 @@ OTHER-MODES is a list of cross references to other help modes.")
 (defsubst info-lookup->other-modes (topic mode)
   (nth 5 (info-lookup->mode-value topic mode)))
 
-(eval-and-compile
-  (mapcar (lambda (keyword)
-	    (or (boundp keyword)
-		(set keyword keyword)))
-	  '(:topic :mode :regexp :ignore-case
-	    :doc-spec :parse-rule :other-modes)))
-
 (defun info-lookup-add-help (&rest arg)
   "Add or update a help specification.
 Function arguments are one or more options of the form
@@ -147,7 +143,7 @@ to `symbol', and the help mode defaults to the current major mode."
   (apply 'info-lookup-add-help* nil arg))
 
 (defun info-lookup-maybe-add-help (&rest arg)
-  "Add a help specification iff no one is defined.
+  "Add a help specification iff none is defined.
 See the documentation of the function `info-lookup-add-help'
 for more details."
   (apply 'info-lookup-add-help* t arg))
@@ -728,6 +724,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :parse-rule "[$@%]?\\([_a-zA-Z0-9]+\\|[^a-zA-Z]\\)")
 
 (info-lookup-maybe-add-help
+ :mode 'cperl-mode
+ :regexp "[$@%][^a-zA-Z]\\|\\$\\^[A-Z]\\|[$@%]?[a-zA-Z][_a-zA-Z0-9]*"
+ :other-modes '(perl-mode))
+
+(info-lookup-maybe-add-help
  :mode 'latex-mode
  :regexp "\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)"
  :doc-spec '(("(latex)Command Index" nil
@@ -735,33 +736,26 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
- :regexp "[^()' \t\n]+"
+ :regexp "[^][()'\" \t\n]+"
  :doc-spec '(("(emacs)Command Index")
 	     ("(emacs)Variable Index")
-	     ("(elisp)Index"
-	      (lambda (item)
-		(let ((sym (intern-soft item)))
-		  (cond ((null sym)
-			 (if (string-equal item "nil") item))
-			((or (boundp sym) (fboundp sym))
-			 item))))
-	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
+	     ("(elisp)Index")))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
- :regexp "[^()' \t\n]+"
+ :regexp "[^][()'\" \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-mode
- :regexp "[^()' \t\n]+"
+ :regexp "[^()'\" \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'scheme-mode
- :regexp "[^()' \t\n]+"
+ :regexp "[^()'\" \t\n]+"
  :ignore-case t
  ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
  :doc-spec '(("(r5rs)Index" nil
