@@ -293,23 +293,9 @@ which will run faster and will not set the mark or print anything."
 (defun keep-lines-read-args (prompt)
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
-
-Value is a list (REGEXP START END).
-
-If in Transient Mark mode, and the mark is active, START is the
-start of the region, and END is a marker for the end of the region.
-Otherwise, START is the current point, and END is the value of
-function `point-max-marker'."
-  (let ((regexp (read-from-minibuffer prompt nil nil nil
-				      'regexp-history nil t))
-	start end)
-    (if (and transient-mark-mode mark-active)
-	(setq start (region-beginning)
-	      end (copy-marker (region-end)))
-      (setq start (point)
-	    end (point-max-marker)))
-    (list regexp start end)))
-
+Value is a list, (REGEXP)."
+  (list (read-from-minibuffer prompt nil nil nil
+			      'regexp-history nil t)))
 
 (defun keep-lines (regexp &optional rstart rend)
   "Delete all lines except those containing matches for REGEXP.
@@ -321,13 +307,20 @@ the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
 
-In Transient Mark mode, if the mark is active, operate on the contents
-of the region.  Otherwise, operate from point to the end of the buffer."
+Interactively, in Transient Mark mode when the mark is active, operate
+on the contents of the region.  Otherwise, operate from point to the
+end of the buffer."
+
   (interactive
    (keep-lines-read-args "Keep lines (containing match for regexp): "))
   (if rstart
       (goto-char (min rstart rend))
-    (setq rstart (point) rend (point-max-marker)))
+    (if (and transient-mark-mode mark-active)
+	(setq rstart (region-beginning)
+	      rend (copy-marker (region-end)))
+      (setq rstart (point)
+	    rend (point-max-marker)))
+    (goto-char rstart))
   (save-excursion
     (or (bolp) (forward-line 1))
     (let ((start (point))
@@ -361,13 +354,20 @@ the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
 
-In Transient Mark mode, if the mark is active, operate on the contents
-of the region.  Otherwise, operate from point to the end of the buffer."
+Interactively, in Transient Mark mode when the mark is active, operate
+on the contents of the region.  Otherwise, operate from point to the
+end of the buffer."
+
   (interactive
    (keep-lines-read-args "Flush lines (containing match for regexp): "))
   (if rstart
       (goto-char (min rstart rend))
-    (setq rstart (point) rend (point-max-marker)))
+    (if (and transient-mark-mode mark-active)
+	(setq rstart (region-beginning)
+	      rend (copy-marker (region-end)))
+      (setq rstart (point)
+	    rend (point-max-marker)))
+    (goto-char rstart))
   (let ((case-fold-search (and case-fold-search
 			       (isearch-no-upper-case-p regexp t))))
     (save-excursion
@@ -387,14 +387,21 @@ the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
 
-In Transient Mark mode, if the mark is active, operate on the contents
-of the region.  Otherwise, operate from point to the end of the buffer."
+Interactively, in Transient Mark mode when the mark is active, operate
+on the contents of the region.  Otherwise, operate from point to the
+end of the buffer."
+
   (interactive
    (keep-lines-read-args "How many matches for (regexp): "))
   (save-excursion
     (if rstart
 	(goto-char (min rstart rend))
-      (setq rstart (point) rend (point-max-marker)))
+      (if (and transient-mark-mode mark-active)
+	  (setq rstart (region-beginning)
+		rend (copy-marker (region-end)))
+	(setq rstart (point)
+	      rend (point-max-marker)))
+      (goto-char rstart))
     (let ((count 0)
 	  opoint
 	  (case-fold-search (and case-fold-search
