@@ -70,11 +70,18 @@ This association list has elements of the form
 
 ;; This macro is used below to define some basic debugger interface commands.
 ;; Of course you may use `gud-def' with any other debugger command, including
-;; user defined ones.   
+;; user defined ones.
+
+;; A macro call like (gud-def FUNC NAME KEY DOC) expands to a form
+;; which defines FUNC to send the command NAME to the debugger, gives
+;; it the docstring DOC, and binds that function to KEY.  NAME should
+;; be a string.  If a numeric prefix argument is given to FUNC, it
+;; gets sent after NAME.
 
 (defmacro gud-def (func name key &optional doc)
   (let* ((cstr (list 'if '(not (= 1 arg))
-		     (list 'format "%s %s" name 'arg) name)))
+		     (list 'format "%s %s" name 'arg)
+		     name)))
     (list 'progn
  	  (list 'defun func '(arg)
 		(or doc "")
@@ -120,8 +127,8 @@ This association list has elements of the form
 (defun gud-gdb-debugger-startup (f d)
   (make-comint (concat "gud-" f) "gdb" nil "-fullname" "-cd" d f))
 
-(defun gud-gdb-marker-filter (proc s)
-  (if (string-match  "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n" s)
+(defun gud-gdb-marker-filter (proc string)
+  (if (string-match  "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n" string)
       (progn
 	(setq gud-last-frame
 	      (cons
@@ -156,7 +163,7 @@ and source-file directory for your debugger."
   (gud-def gud-step   "step"   "\C-c\C-s" "Step one source line with display")
   (gud-def gud-stepi  "stepi"  "\C-c\C-i" "Step one instruction with display")
   (gud-def gud-next   "next"   "\C-c\C-n" "Step one line (skip functions)")
-  (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
+  (gud-def gud-cont   "cont"   "\C-c\C-r" "Continue with display")
 
   (gud-def gud-finish "finish" "\C-c\C-f" "Finish executing current function")
   (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
@@ -175,9 +182,9 @@ and source-file directory for your debugger."
 (defun gud-sdb-debugger-startup (f d)
   (make-comint (concat "gud-" f) "sdb" nil f "-" d))
 
-(defun gud-sdb-marker-filter (proc str)
+(defun gud-sdb-marker-filter (proc string)
   (if (string-match "\\(^0x\\w* in \\|^\\|\n\\)\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-		    str)
+		    string)
       (setq gud-last-frame
 	    (cons
 	     (substring string (match-beginning 2) (match-end 2))
@@ -207,11 +214,11 @@ and source-file directory for your debugger."
   (gud-def gud-step  "s"   "\C-c\C-s"	"Step one source line with display")
   (gud-def gud-stepi "i"   "\C-c\C-i"	"Step one instruction with display")
   (gud-def gud-next  "S"   "\C-c\C-n"	"Step one source line (skip functions)")
-  (gud-def gud-cont  "c"   "\C-c\C-c"	"Continue with display")
+  (gud-def gud-cont  "c"   "\C-c\C-r"	"Continue with display (`resume')")
 
   (gud-common-init path)
 
-  (setq comint-prompt-pattern  "\\(^\\|\n\\)\\*")
+  (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (run-hooks 'sdb-mode-hook)
   )
 
@@ -219,11 +226,11 @@ and source-file directory for your debugger."
 ;; dbx functions
 
 (defun gud-dbx-debugger-startup (f d)
-  (make-comint (concat "gud-" file) "dbx" nil f))
+  (make-comint (concat "gud-" f) "dbx" nil f))
 
-(defun gud-dbx-marker-filter (proc str)
+(defun gud-dbx-marker-filter (proc string)
   (if (string-match
-       "stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\"" str)
+       "stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\"" string)
       (setq gud-last-frame
 	    (cons
 	     (substring string (match-beginning 2) (match-end 2))
@@ -251,7 +258,7 @@ and source-file directory for your debugger."
   (gud-def gud-step   "step"   "\C-c\C-s" "Step one source line with display")
   (gud-def gud-stepi  "stepi"  "\C-c\C-i" "Step one instruction with display")
   (gud-def gud-next   "next"   "\C-c\C-n" "Step one line (skip functions)")
-  (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
+  (gud-def gud-cont   "cont"   "\C-c\C-r" "Continue with display (`resume')")
 
   (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
   (gud-def gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
@@ -278,7 +285,7 @@ It is for customization by you.")
 (if gud-mode-map
    nil
   (setq gud-mode-map (copy-keymap comint-mode-map))
-  (define-key gud-mode-map "\C-cl" 'gud-refresh))
+  (define-key gud-mode-map "\C-c\C-l" 'gud-refresh))
 
 ;; Global mappings --- we'll invoke these from a source buffer.
 (define-key ctl-x-map " " 'gud-break)
@@ -386,28 +393,20 @@ comint mode, which see."
 
 (defun gud-filter-insert (proc string)
   ;; Here's where the actual buffer insertion is done
-  (let ((moving (= (point) (process-mark proc)))
-	(output-after-point (< (point) (process-mark proc)))
-	(old-buffer (current-buffer))
-	start)
+  (save-excursion
     (set-buffer (process-buffer proc))
-    (unwind-protect
-	(save-excursion
-	  ;; Insert the text, moving the process-marker.
-	  (goto-char (process-mark proc))
-	  (setq start (point))
-	  (insert-before-markers string)
-	  (set-marker (process-mark proc) (point))
-	  ;; Check for a filename-and-line number.
-	  ;; Don't display the specified file
-	  ;; unless (1) point is at or after the position where output appears
-	  ;; and (2) this buffer is on the screen.
-	  (if (and gud-last-frame (not output-after-point)
-		  (get-buffer-window (current-buffer)))
-	      (gud-display-frame))
-	  )
-      (set-buffer old-buffer))
-    (if moving (goto-char (process-mark proc)))))
+    (let ((output-after-point (< (point) (process-mark proc))))
+      ;; Insert the text, moving the process-marker.
+      (goto-char (process-mark proc))
+      (insert-before-markers string)
+      ;; Check for a filename-and-line number.
+      ;; Don't display the specified file
+      ;; unless (1) point is at or after the position where output appears
+      ;; and (2) this buffer is on the screen.
+      (if (and gud-last-frame
+	       (not output-after-point)
+	       (get-buffer-window (current-buffer)))
+	  (gud-display-frame)))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
@@ -522,23 +521,24 @@ Obeying it means displaying in another window the specified file and line."
   (interactive)
   (gud-apply-from-source 'gud-set-break))
 
-(defun gud-read-address()
+(defun gud-read-address ()
   "Return a string containing the core-address found in the buffer at point."
   (save-excursion
-   (let ((pt (point)) found begin)
-     (setq found (if (search-backward "0x" (- pt 7) t)(point)))
-     (cond (found (forward-char 2)
-		  (setq result
-			(buffer-substring found
-				 (progn (re-search-forward "[^0-9a-f]")
-					(forward-char -1)
-					(point)))))
-	   (t (setq begin (progn (re-search-backward "[^0-9]") (forward-char 1)
-				 (point)))
-	      (forward-char 1)
-	      (re-search-forward "[^0-9]")
-	      (forward-char -1)
-	      (buffer-substring begin (point)))))))
+    (let ((pt (point)) found begin)
+      (setq found (if (search-backward "0x" (- pt 7) t)(point)))
+      (cond
+       (found (forward-char 2)
+	      (buffer-substring found
+				(progn (re-search-forward "[^0-9a-f]")
+				       (forward-char -1)
+				       (point))))
+       (t (setq begin (progn (re-search-backward "[^0-9]") 
+			     (forward-char 1)
+			     (point)))
+	  (forward-char 1)
+	  (re-search-forward "[^0-9]")
+	  (forward-char -1)
+	  (buffer-substring begin (point)))))))
 
 
 (defun send-gud-command (arg)
