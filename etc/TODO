@@ -165,6 +165,9 @@ Other features we would like:
 
 * Adapt the gnuserv/gnudoit features for server/emacsclient.
 
+* Re-implement emacs-server in lisp as an internal server using
+  make-network-process instead of using an external program.
+
 * Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
   programs to native code is probably the first thing to try, though.
