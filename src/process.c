@@ -126,11 +126,15 @@ Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
 Lisp_Object Qlocal;
-Lisp_Object QCname, QCbuffer, QChost, QCservice, QCfamily;
+Lisp_Object QCname, QCbuffer, QChost, QCservice;
 Lisp_Object QClocal, QCremote, QCcoding;
 Lisp_Object QCserver, QCdatagram, QCnowait, QCnoquery, QCstop;
-Lisp_Object QCfilter, QCsentinel, QClog, QCoptions, QCfeature;
+Lisp_Object QCsentinel, QClog, QCoptions, QCfeature;
 Lisp_Object Qlast_nonmenu_event;
+/* QCfamily is declared and initialized in xfaces.c,
+   QCfilter in keyboard.c.  */
+extern Lisp_Object QCfamily, QCfilter;
+
 /* Qexit is declared and initialized in eval.c.  */
 
 /* a process object is a network connection when its childp field is neither
@@ -6174,8 +6178,6 @@ syms_of_process ()
   staticpro (&QChost);
   QCservice = intern (":service");
   staticpro (&QCservice);
-  QCfamily = intern (":family");
-  staticpro (&QCfamily);
   QClocal = intern (":local");
   staticpro (&QClocal);
   QCremote = intern (":remote");
@@ -6188,8 +6190,6 @@ syms_of_process ()
   staticpro (&QCdatagram);
   QCnowait = intern (":nowait");
   staticpro (&QCnowait);
-  QCfilter = intern (":filter");
-  staticpro (&QCfilter);
   QCsentinel = intern (":sentinel");
   staticpro (&QCsentinel);
   QClog = intern (":log");
