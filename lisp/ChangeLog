@@ -1,3 +1,21 @@
+2002-03-28  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-toggle-marks): Renamed from dired-do-toggle.
+	Bindings changed.
+
+	* progmodes/compile.el (compilation-handle-exit):
+	If compilation-window-height is 0, display status in echo area.
+
+	* simple.el (line-move-to-column): Don't call move-to-column if COL=0.
+
+	* rect.el (replace-rectangle): Add autoload.
+
+	* files.el: Mark many more variables as risky.
+	(hack-one-local-variable): Recognize several additional
+	patterns as risky.
+
+	* bindings.el (mode-line-mule-info): Use :propertize, not :eval.
+
 2002-03-28  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-global-switches): New user option.
@@ -60,6 +78,16 @@
 
 	* Makefile.in (compile, compile-always): Don't try to compile
 	non-existent files or files in empty directories.
+
+2002-03-26  Michael Ernst  <mernst@alum.mit.edu>
+
+	* compare-w.el (compare-windows-whitespace): Match all whitespace.
+
+	* emacs-lisp/shadow.el (list-load-path-shadows): Only ignore last
+	copy of standard Lisp directories.
+
+	* tar-mode.el (tar-header-block-summarize, tar-get-descriptor):
+	Support "next has longname" link type.
 
 2002-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
