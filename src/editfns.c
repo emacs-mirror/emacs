@@ -593,20 +593,23 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.")
       else
 	field_bound = Ffield_beginning (old_pos, escape_from_edge);
 
-      if (/* If ONLY_IN_LINE is non-nil, we only constrain NEW_POS if doing
-	     so would remain within the same line.  */
-	  NILP (only_in_line)
-	  /* In that case, see if ESCAPE_FROM_EDGE caused FIELD_BOUND
-             to jump to the other side of NEW_POS, which would mean
-             that NEW_POS is already acceptable, and that we don't
-             have to do the line-check.  */
-	  || ((XFASTINT (field_bound) < XFASTINT (new_pos)) ? !fwd : fwd)
-	  /* If not, see if there's no newline intervening between
-             NEW_POS and FIELD_BOUND.  */
-	  || (scan_buffer ('\n',
-			   XFASTINT (new_pos), XFASTINT (field_bound),
-			   fwd ? -1 : 1, &shortage, 1),
-	      shortage != 0))
+      if (/* See if ESCAPE_FROM_EDGE caused FIELD_BOUND to jump to the
+             other side of NEW_POS, which would mean that NEW_POS is
+             already acceptable, and it's not necessary to constrain it
+             to FIELD_BOUND.  */
+	  ((XFASTINT (field_bound) < XFASTINT (new_pos)) ? fwd : !fwd)
+	  /* NEW_POS should be constrained, but only if either
+	     ONLY_IN_LINE is nil (in which case any constraint is OK),
+	     or NEW_POS and FIELD_BOUND are on the same line (in which
+	     case the constraint is OK even if ONLY_IN_LINE is non-nil). */
+	  && (NILP (only_in_line)
+	      /* This is the ONLY_IN_LINE case, check that NEW_POS and
+		 FIELD_BOUND are on the same line by seeing whether
+		 there's an intervening newline or not.  */
+	      || (scan_buffer ('\n',
+			       XFASTINT (new_pos), XFASTINT (field_bound),
+			       fwd ? -1 : 1, &shortage, 1),
+		  shortage != 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */
 	new_pos = field_bound;
 
