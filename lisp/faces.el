@@ -634,6 +634,7 @@ If NOERROR is non-nil, return nil on failure."
   (make-face 'bold-italic)
   (make-face 'region)
   (make-face 'secondary-selection)
+  (make-face 'underline)
 
   (setq region-face (face-id 'region))
 
@@ -697,31 +698,42 @@ If NOERROR is non-nil, return nil on failure."
       )
 
   (or (face-differs-from-default-p 'highlight frame)
-      (condition-case ()
-	  (condition-case ()
-	      (set-face-background 'highlight "darkseagreen2" frame)
-	    (error (set-face-background 'highlight "green" frame)))
+      (if (or (not (x-display-color-p))
+	      (= (x-display-planes) 1))
+	  (invert-face 'highlight frame)
+	(condition-case ()
+	    (condition-case ()
+		(set-face-background 'highlight "darkseagreen2" frame)
+	      (error (set-face-background 'highlight "green" frame)))
 ;;;	    (set-face-background-pixmap 'highlight "gray1" frame)
-	(error (invert-face 'highlight frame))))
+	  (error (invert-face 'highlight frame)))))
 
   (or (face-differs-from-default-p 'region frame)
-      (condition-case ()
-	  (set-face-background 'region "gray" frame)
-	(error (invert-face 'region frame))))
+      (if (= (x-display-planes) 1)
+	  (invert-face 'region frame)
+	(condition-case ()
+	    (set-face-background 'region "gray" frame)
+	  (error (invert-face 'region frame)))))
 
   (or (face-differs-from-default-p 'modeline frame)
       (invert-face 'modeline frame))
 
+  (or (face-differs-from-default-p 'underline frame)
+      (set-face-underline-p 'underline t frame))
+
   (or (face-differs-from-default-p 'secondary-selection frame)
-      (condition-case ()
-	  (condition-case ()
-	      ;; some older X servers don't have this one.
-	      (set-face-background 'secondary-selection "paleturquoise"
-				   frame)
-	    (error
-	     (set-face-background 'secondary-selection "green" frame)))
+      (if (or (not (x-display-color-p))
+	      (= (x-display-planes) 1))
+	  (invert-face 'secondary-selection frame)
+	(condition-case ()
+	    (condition-case ()
+		;; some older X servers don't have this one.
+		(set-face-background 'secondary-selection "paleturquoise"
+				     frame)
+	      (error
+	       (set-face-background 'secondary-selection "green" frame)))
 ;;;	    (set-face-background-pixmap 'secondary-selection "gray1" frame)
-	(error (invert-face 'secondary-selection frame))))
+	  (error (invert-face 'secondary-selection frame)))))
   )
 
 (defun internal-x-complain-about-font (face frame)
