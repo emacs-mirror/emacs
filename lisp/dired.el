@@ -152,6 +152,21 @@ The target is used in the prompt for file copy, rename etc."
   :type 'boolean
   :group 'dired)
 
+(defcustom dired-free-space-program "df"
+  "*Program to get the amount of free space on a file system.
+We assume the output has the format of `df'.
+The value of this variable must be just a command name or file name;
+if you want to specify options, use `dired-free-space-args'.
+
+A value of nil disables this feature."
+  :type '(choice (string :tag "Program") (const :tag "None" nil))
+  :group 'dired)
+
+(defcustom dired-free-space-args "-Pk"
+  "*Options to use when running `dired-free-space-program'."
+  :type 'string
+  :group 'dired)
+
 ;;; Hook variables
 
 (defvar dired-load-hook nil
@@ -658,7 +673,25 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	 (cdr dir-or-list))
       ;; Expand the file name here because it may have been abbreviated
       ;; in dired-noselect.
-      (insert-directory (expand-file-name dir-or-list) switches wildcard full-p))
+      (insert-directory (expand-file-name dir-or-list) switches wildcard full-p)
+      (when (and full-p dired-free-space-program)
+	(save-excursion
+	  (goto-char (point-min))
+	  (when (re-search-forward "total [0-9]+$" nil t)
+	    (insert "  free ")
+	    (let ((beg (point)))
+	      (call-process dired-free-space-program nil t nil
+			    dired-free-space-args
+			    (expand-file-name dir-or-list))
+	      (goto-char beg)
+	      (forward-line 1)
+	      (skip-chars-forward "^ \t")
+	      (forward-word 2)
+	      (skip-chars-forward " \t")
+	      (delete-region beg (point))
+	      (forward-word 1)
+	      (delete-region (point)
+			     (progn (forward-line 1) (point))))))))
     ;; Quote certain characters, unless ls quoted them for us.
     (if (not (string-match "b" dired-actual-switches))
 	(save-excursion
