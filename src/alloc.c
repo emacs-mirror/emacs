@@ -1730,6 +1730,8 @@ Garbage collection happens automatically if you cons more than\n\
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
+  shrink_regexp_cache ();
+
   /* Don't keep undo information around forever.  */
   {
     register struct buffer *nextb = all_buffers;
