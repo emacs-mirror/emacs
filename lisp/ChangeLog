@@ -1,3 +1,7 @@
+2002-08-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Fix categories ?A and ?C.
+
 2002-08-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (fontset-plain-name): If the fontset
