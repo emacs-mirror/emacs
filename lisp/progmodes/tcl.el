@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.24 $
+;; Version: $Revision: 1.25 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/08/21 20:33:05 $|$Revision: 1.24 $|~/modes/tcl.el.Z|
+;; $Date: 1994/08/22 15:56:24 $|$Revision: 1.25 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.25  1994/08/22  15:56:24  tromey
+;; tcl-load-file default to current buffer.
+;;
 ;; Revision 1.24  1994/08/21  20:33:05  tromey
 ;; Fixed bug in tcl-guess-application.
 ;;
@@ -273,7 +276,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.24 $")
+(defconst tcl-version "$Revision: 1.25 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -463,6 +466,9 @@ quoted for Tcl.")
 	(define-key tcl-mode-map [S-down-mouse-2] 'tcl-popup-menu))))
 
 (defun tcl-fill-inferior-map ()
+  (define-key inferior-tcl-mode-map "\t" 'comint-dynamic-complete)
+  (define-key inferior-tcl-mode-map "\M-?"
+    'comint-dynamic-list-filename-completions)
   (define-key inferior-tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
   (define-key inferior-tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
   (define-key inferior-tcl-mode-map "\177" 'backward-delete-char-untabify)
