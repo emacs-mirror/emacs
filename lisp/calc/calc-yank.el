@@ -464,10 +464,13 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
                                   (let ((calc-edit-handler nil))
                                     (calc-edit-finish t))
                                   (message "(Cancelled)")) t t)
-    (insert (or title title "Calc Edit Mode. ")
-	    "Press `C-c C-c'"
-            (if allow-ret "" " or RET")
-	    " to finish, `C-x k RET' to cancel.\n\n")))
+    (insert (propertize
+             (concat 
+              (or title title "Calc Edit Mode. ")
+              "Press `C-c C-c'"
+              (if allow-ret "" " or RET")
+              " to finish, `C-x k RET' to cancel.\n\n")
+             'font-lock-face 'italic))))
 (put 'calc-edit-mode 'mode-class 'special)
 
 (defun calc-show-edit-buffer ()
