@@ -953,12 +953,16 @@
 	    (goto-char (match-end 0)))
 	(if (looking-at "\\cH+")
 	    (goto-char (match-end 0)))
+	(if (looking-at "\\ck+")
+	    (goto-char (match-end 0)))
 	(point))
     (let ((category-set (char-category-set (char-after pos)))
 	  category)
-      (if (aref category-set ?K)
+      (if (or (aref category-set ?K) (aref category-set ?k))
 	  (while (and (> pos limit)
-		      (aref (char-category-set (char-after (1- pos))) ?K))
+		      (setq category-set 
+			    (char-category-set (char-after (1- pos))))
+		      (or (aref category-set ?K) (aref category-set ?k)))
 	    (setq pos (1- pos)))
 	(while (and (> pos limit)
 		    (aref (setq category-set
