@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
-;; Time-stamp: <2000-10-04 01:32:16 pbreton>
+;; Time-stamp: <2000-10-04 22:39:05 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -227,54 +227,51 @@ These options can be used to limit how many ICMP packets are emitted."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst nslookup-font-lock-keywords
-  (and window-system
-       (progn
-	 (require 'font-lock)
-	 (list
-	  (list nslookup-prompt-regexp 0 font-lock-reference-face)
-	  (list "^[A-Za-z0-9 _]+:"     0 font-lock-type-face)
-	  (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
-		1 font-lock-keyword-face)
-	  ;; Dotted quads
-	  (list
-	   (mapconcat 'identity
-		      (make-list 4 "[0-9]+")
-		      "\\.")
-	   0 font-lock-variable-name-face)
-	  ;; Host names
-	  (list
-	   (let ((host-expression "[-A-Za-z0-9]+"))
-	     (concat
-	      (mapconcat 'identity
-			 (make-list 2 host-expression)
-			 "\\.")
-	      "\\(\\." host-expression "\\)*")
-	     )
-	   0 font-lock-variable-name-face)
-	  )))
-	 "Expressions to font-lock for nslookup.")
+  (progn
+    (require 'font-lock)
+    (list
+     (list nslookup-prompt-regexp 0 font-lock-reference-face)
+     (list "^[A-Za-z0-9 _]+:"     0 font-lock-type-face)
+     (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
+	   1 font-lock-keyword-face)
+     ;; Dotted quads
+     (list
+      (mapconcat 'identity
+		 (make-list 4 "[0-9]+")
+		 "\\.")
+      0 font-lock-variable-name-face)
+     ;; Host names
+     (list
+      (let ((host-expression "[-A-Za-z0-9]+"))
+	(concat
+	 (mapconcat 'identity
+		    (make-list 2 host-expression)
+		    "\\.")
+	 "\\(\\." host-expression "\\)*")
+	)
+      0 font-lock-variable-name-face)
+     ))
+  "Expressions to font-lock for nslookup.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FTP goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst ftp-font-lock-keywords
-  (and window-system
-       (progn
-	 (require 'font-lock)
-	 (list
-	  (list ftp-prompt-regexp 0 font-lock-reference-face)))))
+  (progn
+    (require 'font-lock)
+    (list
+     (list ftp-prompt-regexp 0 font-lock-reference-face))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smbclient goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst smbclient-font-lock-keywords
-  (and window-system
-       (progn
-	 (require 'font-lock)
-	 (list
-	  (list smbclient-prompt-regexp 0 font-lock-reference-face)))))
+  (progn
+    (require 'font-lock)
+    (list
+     (list smbclient-prompt-regexp 0 font-lock-reference-face))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
