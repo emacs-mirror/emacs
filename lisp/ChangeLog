@@ -1,3 +1,9 @@
+2001-04-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* ps-mule.el (ps-mule-font-info-database-bdf): Change
+	`isci24-etl.bdf' to `isci24-mule.bdf'.  From: Kenichi Handa
+	<handa@etl.go.jp>.
+
 2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/titdic-cnv.el (miscdic-convert): Fix a typo in the
