@@ -41,13 +41,15 @@
 /*                                                             */
 /***************************************************************/
 
+#include <sys/signal.h>
+#include <errno.h>
+
+#include <config.h>
 
 #include <stdio.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <setjmp.h>
 #include <sys/ioctl.h>
-#include <sys/signal.h>
 #include <sys/devinfo.h>
 #include <termios.h>
 #include <termio.h>
@@ -55,8 +57,6 @@
 #include <sys/uio.h>
 #include <sys/tty.h>
 /* #include <sys/pty.h> */
-
-#include <config.h>
 
 #define REMOTE 0x01
 
