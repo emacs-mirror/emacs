@@ -64,21 +64,20 @@ strings or patterns."
   :group 'matching
   :version "21.4")
 
-(defun query-replace-read-args (string regexp-flag &optional noerror)
-  (unless noerror
-    (barf-if-buffer-read-only))
-  (let (from to)
-    (if query-replace-interactive
-        (setq from (car (if regexp-flag regexp-search-ring search-ring)))
-      ;; The save-excursion here is in case the user marks and copies
-      ;; a region in order to specify the minibuffer input.
-      ;; That should not clobber the region for the query-replace itself.
-      (save-excursion
-        (setq from (read-from-minibuffer
-                    (format "%s: " string)
-                    nil nil nil
-                    query-replace-from-history-variable
-                    nil t)))
+(defun query-replace-read-from (string regexp-flag)
+  "Query and return the `from' argument of a query-replace operation."
+  (if query-replace-interactive
+      (car (if regexp-flag regexp-search-ring search-ring))
+    (let* ((from
+	    ;; The save-excursion here is in case the user marks and copies
+	    ;; a region in order to specify the minibuffer input.
+	    ;; That should not clobber the region for the query-replace itself.
+	    (save-excursion
+	      (read-from-minibuffer
+	       (format "%s: " string)
+	       nil nil nil
+	       query-replace-from-history-variable
+	       nil t))))
       ;; Warn if user types \n or \t, but don't reject the input.
       (and regexp-flag
 	   (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
@@ -88,13 +87,16 @@ strings or patterns."
 	       (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
 	      ((string= match "\\t")
 	       (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
-	     (sit-for 2))))
+	     (sit-for 2)))
+      from)))
 
-    (save-excursion
-      (setq to (read-from-minibuffer
-                (format "%s %s with: " string from)
-                nil nil nil
-                query-replace-to-history-variable from t)))
+(defun query-replace-read-to (from string regexp-flag)
+  "Query and return the `from' argument of a query-replace operation."
+  (let ((to (save-excursion
+	      (read-from-minibuffer
+	       (format "%s %s with: " string from)
+	       nil nil nil
+	       query-replace-to-history-variable from t))))
     (when (and regexp-flag
 	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to))
       (let (pos list char)
@@ -129,6 +131,13 @@ strings or patterns."
 		     (if (> (length to) 1)
 			 (cons 'concat to)
 		       (car to)))))
+    to))
+
+(defun query-replace-read-args (string regexp-flag &optional noerror)
+  (unless noerror
+    (barf-if-buffer-read-only))
+  (let* ((from (query-replace-read-from string regexp-flag))
+	 (to (query-replace-read-to from string regexp-flag)))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional delimited start end)
