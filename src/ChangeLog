@@ -1,3 +1,8 @@
+2002-03-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* process.c (set-network-process-options): Add usage.
+	(make-network-process): Doc fix.
+
 2002-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs.c (Fdump_emacs): Fix a typo in "command-line-processed".
