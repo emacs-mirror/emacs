@@ -51,6 +51,10 @@
 (defun define-keymap (name)
   (fset (intern name) (make-keymap)))
 
+;; Make it work to use ml-use-...-map on "esc" and such.
+(fset 'esc-map esc-map)
+(fset 'ctl-x-map ctl-x-map)
+
 (defun ml-use-local-map (name)
   (use-local-map (intern (concat name "-map"))))
 
