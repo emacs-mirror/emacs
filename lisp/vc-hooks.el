@@ -568,16 +568,8 @@ For CVS, the full name of CVS/Entries is returned."
 	      (nil)))))
 
 (defun vc-file-owner (file)
-  ;; The expression below should return the username of the owner
-  ;; of the file.  It doesn't.  It returns the username if it is
-  ;; you, or otherwise the UID of the owner of the file.  The UID
-  ;; is returned as a string, so that the rest of VC doesn't notice 
-  ;; the difference.
-  ;; The *proper* way to fix this would be to implement a built-in
-  ;; function in Emacs, say, (username UID), that returns the
-  ;; username of a given UID.
-  (let ((uid (nth 2 (file-attributes file))))
-    (if (= uid (user-uid)) (user-login-name) (number-to-string uid))))
+  ;; Return who owns FILE (user name, as a string).
+  (user-login-name (nth 2 (file-attributes file))))
 
 (defun vc-rcs-lock-from-diff (file)
   ;; Diff the file against the master version.  If differences are found,
@@ -600,8 +592,7 @@ For CVS, the full name of CVS/Entries is returned."
 
 (defun vc-locking-user (file)
   ;; Return the name of the person currently holding a lock on FILE.
-  ;; Return nil if there is no such person.  (Sometimes, not the name
-  ;; of the locking user but his uid will be returned.)
+  ;; Return nil if there is no such person.
   ;;   Under CVS, a file is considered locked if it has been modified since
   ;; it was checked out.
   ;;   The property is cached.  It is only looked up if it is currently nil.
@@ -621,10 +612,7 @@ For CVS, the full name of CVS/Entries is returned."
 	    (and (equal (vc-file-getprop file 'vc-checkout-time)
 			(nth 5 (file-attributes file)))
 		 (vc-file-setprop file 'vc-locking-user 'none))
-	    (let ((locker (vc-file-owner file)))
-	      (vc-file-setprop file 'vc-locking-user
-			       (if (stringp locker) locker
-				 (format "%d" locker))))))
+	    (vc-file-setprop file 'vc-locking-user (vc-file-owner file))))
 
        ((eq (vc-backend file) 'RCS)
 	(let (p-lock)
@@ -926,9 +914,7 @@ control system name."
 	   " @@")
 	  ((not locker)
 	   (concat "-" rev))
-	  ((if (stringp locker)
-	       (string= locker (user-login-name))
-	     (= locker (user-uid)))
+	  ((string= locker (user-login-name))
 	   (concat ":" rev))
 	  (t 
 	   (concat ":" locker ":" rev)))))
