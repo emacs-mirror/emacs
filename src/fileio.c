@@ -3840,12 +3840,13 @@ actually used.  */)
 		  buffer = Fget_buffer_create (build_string (" *code-converting-work*"));
 		  buf = XBUFFER (buffer);
 
+		  delete_all_overlays (buf);
 		  buf->directory = current_buffer->directory;
 		  buf->read_only = Qnil;
 		  buf->filename = Qnil;
 		  buf->undo_list = Qt;
-		  buf->overlays_before = NULL;
-		  buf->overlays_after = NULL;
+		  eassert (buf->overlays_before == NULL);
+		  eassert (buf->overlays_after == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
