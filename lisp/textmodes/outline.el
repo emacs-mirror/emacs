@@ -82,6 +82,7 @@ in the file it applies to."
     (define-key map "\C-o" 'hide-other)
     (define-key map "\C-^" 'outline-promote)
     (define-key map "\C-v" 'outline-demote)
+    ;; Where to bind toggle and insert-heading ?
     map))
 
 (defvar outline-mode-menu-bar-map
@@ -497,10 +498,10 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
-(defun outline-reveal-toggle-invisible (o revealp)
+(defun outline-reveal-toggle-invisible (o hidep)
   (save-excursion
     (goto-char (overlay-start o))
-    (if (null revealp)
+    (if hidep
 	;; When hiding the area again, we could just clean it up and let
 	;; reveal do the rest, by simply doing:
 	;; (remove-overlays (overlay-start o) (overlay-end o)
@@ -522,7 +523,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
       ;; inside one of the sublevels, reveal will call us again.
       ;; But we need to preserve the original overlay.
       (let ((o1 (copy-overlay o)))
-	(overlay-put o1 'invisible 'outline) ;We rehide some of the text.
+	(overlay-put o 'invisible nil)	;Show (most of) the text.
 	(while (progn
 		 (show-entry)
 		 (show-children)
