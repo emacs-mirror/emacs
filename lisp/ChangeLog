@@ -1,3 +1,8 @@
+2002-05-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (fontset-plain-name): Handle the case
+	that size, weight, slant are not specified in the fontset name.
+
 2002-05-10  Yong Lu <lyongu@asia-infonet.com>
 
 	* language/greek.el (greek-iso-8bit): Fix typo.

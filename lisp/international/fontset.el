@@ -415,7 +415,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	  (if (not (string-match "^fontset-\\(.*\\)$" nickname))
 	      fontset
 	    (setq nickname (match-string 1 nickname))
-	    (if (and (integerp size) (> (string-to-int size) 0))
+	    (if (and size (> (string-to-int size) 0))
 		(setq name (format "%s: %s-dot" nickname size))
 	      (setq name nickname))
 	    (and weight
