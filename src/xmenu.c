@@ -1891,6 +1891,8 @@ free_frame_menubar (f)
   int id;
 
   menubar_widget = f->output_data.x->menubar_widget;
+
+  f->output_data.x->menubar_height = 0;
   
   if (menubar_widget)
     {
