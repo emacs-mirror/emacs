@@ -1,6 +1,6 @@
 2005-03-05  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* simple.el (goto-line): Remove unbalanced final parentheses.
+	* simple.el (goto-line): Remove unbalanced final parenthesis.
 
 2005-03-05  Richard M. Stallman  <rms@gnu.org>
 
