@@ -45,6 +45,7 @@ extern __malloc_size_t _bytes_used;
 extern int __malloc_extra_blocks;
 
 #define max(A,B) ((A) > (B) ? (A) : (B))
+#define min(A,B) ((A) < (B) ? (A) : (B))
 
 /* Macro to verify that storage intended for Lisp objects is not
    out of range to fit in the space for a pointer.
@@ -69,7 +70,7 @@ static __malloc_size_t bytes_used_when_full;
 int consing_since_gc;
 
 /* Number of bytes of consing since gc before another gc should be done. */
-EMACS_INT gc_cons_threshold;
+int gc_cons_threshold;
 
 /* Nonzero during gc */
 int gc_in_progress;
@@ -1321,8 +1322,9 @@ inhibit_garbage_collection ()
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object number;
+  int nbits = min (VALBITS, INTBITS);
 
-  XSETINT (number, ((EMACS_INT) 1 << (VALBITS - 1)) - 1);
+  XSETINT (number, ((EMACS_INT) 1 << (nbits - 1)) - 1);
 
   specbind (Qgc_cons_threshold, number);
 
