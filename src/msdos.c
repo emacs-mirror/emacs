@@ -2196,12 +2196,13 @@ dos_ttcooked ()
 
 
 /* Run command as specified by ARGV in directory DIR.
-   The command is run with input from TEMPIN and output to file TEMPOUT.  */
+   The command is run with input from TEMPIN, output to
+   file TEMPOUT and stderr to TEMPERR.  */
 int
-run_msdos_command (argv, dir, tempin, tempout)
+run_msdos_command (argv, dir, tempin, tempout, temperr)
      unsigned char **argv;
      Lisp_Object dir;
-     int tempin, tempout;
+     int tempin, tempout, temperr;
 {
   char *saveargv1, *saveargv2, **envv;
   char oldwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
@@ -2272,7 +2273,7 @@ run_msdos_command (argv, dir, tempin, tempout)
   
   dup2 (tempin, 0);
   dup2 (tempout, 1);
-  dup2 (tempout, 2);
+  dup2 (temperr, 2);
 
   result = spawnve (P_WAIT, argv[0], argv, envv);
   
