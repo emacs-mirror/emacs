@@ -663,7 +663,10 @@ CODING-SYSTEM as a general one which can encode all characters."
 			       (generic-char-p key))
 		     (push charset partials)))))))
        safe-chars)
-      (optimize-char-coding-system-table)
+      ;; This is probably too expensive (e.g. multiple calls in
+      ;; ucs-tables), and only really relevant in certain cases, so do
+      ;; it explicitly where appropriate.
+      ;; (optimize-char-coding-system-table)
       (set-char-table-extra-slot char-coding-system-table 1 partials))))
 
 (defun make-subsidiary-coding-system (coding-system)
@@ -1295,6 +1298,8 @@ If you set this on a terminal which can't distinguish Meta keys from
 8-bit characters, you will have to use ESC to type Meta characters.
 See Info node `Specify Coding' and Info node `Single-Byte Character Support'.
 
+On non-windowing terminals, this is set from the locale by default.
+
 Setting this variable directly does not take effect;
 use either M-x customize or \\[set-keyboard-coding-system]."
   :type '(coding-system :tag "Coding system")
@@ -1305,7 +1310,7 @@ use either M-x customize or \\[set-keyboard-coding-system]."
 	 (if (or value (boundp 'encoded-kbd-mode))
 	     (set-keyboard-coding-system value)
 	   (set-default 'keyboard-coding-system nil))) ; must initialize
-  :version "21.1"
+  :version "21.4"
   :group 'keyboard
   :group 'mule)
 
