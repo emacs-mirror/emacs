@@ -1181,7 +1181,7 @@ See `font-lock-make-face' and `list-faces-display'."
 		       'dark))
 		    ((< (apply '+ (x-color-values
 				   (cdr (assq 'background-color params))))
-			(/ (apply '+ (x-color-values "white")) 3))
+			(* (apply '+ (x-color-values "white")) .6))
 		     'dark)
 		    (t 'light)))))
   (if (null font-lock-face-attributes)
