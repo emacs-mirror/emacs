@@ -1,3 +1,8 @@
+2001-07-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_list_fonts): Make sure XFreeFont is called
+	with input blocked.
+
 2001-06-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c (main): Remove extern declaration for sys_nerr, which
