@@ -604,7 +604,10 @@
 	 (condition-case ()
 	     (eval form)
 	   (error form)))
-	((null (cdr (cdr form))) (nth 1 form))
+;;; It is not safe to delete the function entirely
+;;; (actually, it would be safe if we know the sole arg
+;;; is not a marker).
+;;	((null (cdr (cdr form))) (nth 1 form))
 	(t form)))
 
 (defun byte-optimize-minus (form)
@@ -621,19 +624,27 @@
 		(numberp last))
 	   (setq form (nconc (list '- (- (nth 1 form) last) (nth 2 form))
 			     (delq last (copy-sequence (nthcdr 3 form))))))))
-  (if (eq (nth 2 form) 0)
-      (nth 1 form)			; (- x 0)  -->  x
+;;; It is not safe to delete the function entirely
+;;; (actually, it would be safe if we know the sole arg
+;;; is not a marker).
+;;;  (if (eq (nth 2 form) 0)
+;;;      (nth 1 form)			; (- x 0)  -->  x
     (byte-optimize-predicate
      (if (and (null (cdr (cdr (cdr form))))
 	      (eq (nth 1 form) 0))	; (- 0 x)  -->  (- x)
 	 (cons (car form) (cdr (cdr form)))
-       form))))
+       form))
+;;;    )
+  )
 
 (defun byte-optimize-multiply (form)
   (setq form (byte-optimize-delay-constants-math form 1 '*))
   ;; If there is a constant in FORM, it is now the last element.
   (cond ((null (cdr form)) 1)
-	((null (cdr (cdr form))) (nth 1 form))
+;;; It is not safe to delete the function entirely
+;;; (actually, it would be safe if we know the sole arg
+;;; is not a marker or if it appears in other arithmetic).
+;;;	((null (cdr (cdr form))) (nth 1 form))
 	((let ((last (car (reverse form))))
 	   (cond ((eq 0 last)  (list 'progn (cdr form)))
 		 ((eq 1 last)  (delq 1 (copy-sequence form)))
@@ -659,8 +670,9 @@
 				(cons (/ (nth 1 form) last)
 				      (byte-compile-butlast (cdr (cdr form)))))
 		     last nil))))
-    (cond ((null (cdr (cdr form)))
-	   (nth 1 form))
+    (cond 
+;;;	  ((null (cdr (cdr form)))
+;;;	   (nth 1 form))
 	  ((eq (nth 1 form) 0)
 	   (append '(progn) (cdr (cdr form)) '(0)))
 	  ((eq last -1)
