@@ -66,6 +66,137 @@
       (setq list (cdr list)))
     (switch-to-buffer found)))
 
+;;; next-error support framework
+(defvar next-error-last-buffer nil
+  "The most recent next-error buffer.
+A buffer becomes most recent when its compilation, grep, or
+similar mode is started, or when it is used with \\[next-error]
+or \\[compile-goto-error].")
+
+(defvar next-error-function nil
+  "The next-error vehicle for other modes.
+This variable can be bound to a function by a mode.  It is
+buffer-local by default.  Together with
+`next-error-last-buffer', this variable lets modes hook into
+\\[next-error].")
+
+(make-variable-buffer-local 'next-error-function)
+
+(defsubst next-error-buffer-p (buffer &optional extra-test)
+  "Test if BUFFER is a next-error capable buffer."
+  (with-current-buffer buffer
+    (or (and extra-test (funcall extra-test))
+	next-error-function)))
+
+;; Return a next-error capable buffer.
+;; If the current buffer is such, return it.
+;; If next-error-last-buffer is set to a live buffer, use that.
+;; Otherwise, look for a next-error capable buffer and signal an error
+;; if there are none.
+(defun next-error-find-buffer (&optional other-buffer extra-test)
+  (if (and (not other-buffer)
+	   (next-error-buffer-p (current-buffer) extra-test))
+      ;; The current buffer is a next-error capable buffer.
+      (current-buffer)
+    (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
+	     (next-error-buffer-p next-error-last-buffer extra-test)
+	     (or (not other-buffer) (not (eq next-error-last-buffer
+					     (current-buffer)))))
+	next-error-last-buffer
+      (let ((buffers (buffer-list)))
+	(while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
+				(and other-buffer
+				     (eq (car buffers) (current-buffer)))))
+	  (setq buffers (cdr buffers)))
+	(if buffers
+	    (car buffers)
+	  (or (and other-buffer
+		   (next-error-buffer-p (current-buffer) extra-test)
+		   ;; The current buffer is a next-error capable buffer.
+		   (progn
+		     (if other-buffer
+			 (message "This is the only next-error capable buffer."))
+		     (current-buffer)))
+	      (error "No next-error capable buffer found!")))))))
+
+(defun next-error (argp &optional reset)
+  "Visit next next-error message and corresponding source code.
+
+If all the error messages parsed so far have been processed already,
+the message buffer is checked for new ones.
+
+A prefix ARGP specifies how many error messages to move;
+negative means move back to previous error messages.
+Just \\[universal-argument] as a prefix means reparse the error message buffer
+and start at the first error.
+
+The RESET argument specifies that we should restart from the beginning
+
+\\[next-error] normally uses the most recently started
+compilation, grep, or occur buffer.  It can also operate on any
+buffer with output from the \\[compile], \\[grep] commands, or,
+more generally, on any buffer in Compilation mode or with
+Compilation Minor mode enabled, or any buffer in which
+`next-error-function' is bound to an appropriate
+function.  To specify use of a particular buffer for error
+messages, type \\[next-error] in that buffer.
+
+Once \\[next-error] has chosen the buffer for error messages,
+it stays with that buffer until you use it in some other buffer which
+uses Compilation mode or Compilation Minor mode.
+
+See variables `compilation-parse-errors-function' and
+\`compilation-error-regexp-alist' for customization ideas."
+  (interactive "P")
+  (when (setq next-error-last-buffer (next-error-find-buffer))
+    ;; we know here that next-error-function is a valid symbol we can funcall
+    (with-current-buffer next-error-last-buffer
+      (funcall next-error-function argp reset))))
+
+(defalias 'goto-next-locus 'next-error)
+(defalias 'next-match 'next-error)
+
+(define-key ctl-x-map "`" 'next-error)
+
+(defun previous-error (n)
+  "Visit previous next-error message and corresponding source code.
+
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
+
+This operates on the output from the \\[compile] and \\[grep] commands."
+  (interactive "p")
+  (next-error (- n)))
+
+(defun first-error (n)
+  "Restart at the first error.
+Visit corresponding source code.
+With prefix arg N, visit the source code of the Nth error.
+This operates on the output from the \\[compile] command, for instance."
+  (interactive "p")
+  (next-error n t))
+
+(defun next-error-no-select (n)
+  "Move point to the next error in the next-error buffer and highlight match.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
+Finds and highlights the source line like \\[next-error], but does not
+select the source buffer."
+  (interactive "p")
+  (next-error n)
+  (pop-to-buffer next-error-last-buffer))
+
+(defun previous-error-no-select (n)
+  "Move point to the previous error in the next-error buffer and highlight match.
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
+Finds and highlights the source line like \\[previous-error], but does not
+select the source buffer."
+  (interactive "p")
+  (next-error-no-select (- n)))
+
+;;;
+
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
 Other major modes are defined by comparison with this one."
