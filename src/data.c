@@ -134,7 +134,7 @@ make_number (num)
      int num;
 {
   register Lisp_Object val;
-  XSET (val, Lisp_Int, num);
+  XSETINT (val, num);
   return val;
 }
 
@@ -537,7 +537,7 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0, "Return SYMBOL's name
   register Lisp_Object name;
 
   CHECK_SYMBOL (sym, 0);
-  XSET (name, Lisp_String, XSYMBOL (sym)->name);
+  XSETSTRING (name, XSYMBOL (sym)->name);
   return name;
 }
 
@@ -636,7 +636,7 @@ do_symval_forwarding (valcontents)
 #endif
     {
     case Lisp_Intfwd:
-      XSET (val, Lisp_Int, *XINTPTR (valcontents));
+      XSETINT (val, *XINTPTR (valcontents));
       return val;
 
     case Lisp_Boolfwd:
@@ -743,7 +743,7 @@ swap_in_symval_forwarding (sym, valcontents)
       if (NILP (tem1))
 	tem1 = XCONS (XCONS (valcontents)->cdr)->cdr;
       XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car = tem1;
-      XSET (XCONS (XCONS (valcontents)->cdr)->car, Lisp_Buffer, current_buffer);
+      XSETBUFFER (XCONS (XCONS (valcontents)->cdr)->car, current_buffer);
       store_symval_forwarding (sym, XCONS (valcontents)->car, Fcdr (tem1));
     }
   return XCONS (valcontents)->car;
@@ -777,7 +777,7 @@ find_symbol_value (sym)
       goto retry;
 
     case Lisp_Intfwd:
-      XSET (val, Lisp_Int, *XINTPTR (valcontents));
+      XSETINT (val, *XINTPTR (valcontents));
       return val;
 
     case Lisp_Boolfwd:
@@ -910,8 +910,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 	  XCONS (XCONS (XCONS (valcontents)->cdr)->cdr)->car = tem1;
 
 	  /* Set BUFFER, now that CURRENT-ALIST-ELEMENT is accurate.  */
-	  XSET (XCONS (XCONS (valcontents)->cdr)->car,
-		Lisp_Buffer, current_buffer);
+	  XSETBUFFER (XCONS (XCONS (valcontents)->cdr)->car, current_buffer);
 	}
       valcontents = XCONS (valcontents)->car;
     }
@@ -1678,7 +1677,7 @@ arith_driver (code, nargs, args)
 	}
     }
 
-  XSET (val, Lisp_Int, accum);
+  XSETINT (val, accum);
   return val;
 }
 
@@ -1811,7 +1810,7 @@ Both must be integers or markers.")
   if (XFASTINT (num2) == 0)
     Fsignal (Qarith_error, Qnil);
 
-  XSET (val, Lisp_Int, XINT (num1) % XINT (num2));
+  XSETINT (val, XINT (num1) % XINT (num2));
   return val;
 }
 
@@ -1874,7 +1873,7 @@ Both X and Y must be numbers or markers.")
   if ((i1 < 0) != (i2 < 0))
     i1 += i2;
 
-  XSET (val, Lisp_Int, i1);
+  XSETINT (val, i1);
   return val;
 }
 
@@ -1941,9 +1940,9 @@ In this case, the sign bit is duplicated.")
   CHECK_NUMBER (num2, 1);
 
   if (XINT (num2) > 0)
-    XSET (val, Lisp_Int, XINT (num1) << XFASTINT (num2));
+    XSETINT (val, XINT (num1) << XFASTINT (num2));
   else
-    XSET (val, Lisp_Int, XINT (num1) >> -XINT (num2));
+    XSETINT (val, XINT (num1) >> -XINT (num2));
   return val;
 }
 
@@ -1960,9 +1959,9 @@ In this case,  zeros are shifted in on the left.")
   CHECK_NUMBER (num2, 1);
 
   if (XINT (num2) > 0)
-    XSET (val, Lisp_Int, (unsigned) XFASTINT (num1) << XFASTINT (num2));
+    XSETINT (val, (unsigned) XFASTINT (num1) << XFASTINT (num2));
   else
-    XSET (val, Lisp_Int, (unsigned) XFASTINT (num1) >> -XINT (num2));
+    XSETINT (val, (unsigned) XFASTINT (num1) >> -XINT (num2));
   return val;
 }
 
