@@ -1,3 +1,8 @@
+2002-09-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (try_font_list): Pay attention to the case that FAMILY
+	is nil.
+
 2002-09-26  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.h (__restrict_arr): Don't define if already defined.
