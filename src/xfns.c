@@ -104,15 +104,6 @@ extern void free_frame_menubar ();
 #define MAXREQUEST(dpy) ((dpy)->max_request_size)
 #endif
 
-#ifdef AIX
-#ifdef HAVE_X11R5
-/* AIX uses an incompatible name for this, at least in X11R5.
-   I'm guessing that in X11R6 it will be compatible.  */
-#undef XIMStatusNothing
-#define XIMStatusNothing XIMStatusNone
-#endif
-#endif
-
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
