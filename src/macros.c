@@ -35,7 +35,7 @@ Lisp_Object Vexecuting_macro;
 
 /* Index of next character to fetch from that macro.  */
 
-int executing_macro_index;
+EMACS_INT executing_macro_index;
 
 /* Number of successful iterations so far
    for innermost keyboard macro.
@@ -379,6 +379,9 @@ syms_of_macros ()
 
   DEFVAR_LISP ("executing-macro", &Vexecuting_macro,
 	       doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);
+
+  DEFVAR_INT ("executing-macro-index", &executing_macro_index,
+	      doc: /* Index in currently executing keyboard macro; undefined if none executing.  */);
 
   DEFVAR_LISP_NOPRO ("executing-kbd-macro", &Vexecuting_macro,
 		     doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);
