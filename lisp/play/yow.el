@@ -1,4 +1,4 @@
-;;; yow.el --- generate random zippyisms
+;;; yow.el --- quote random zippyisms
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
@@ -63,8 +63,6 @@
   "Zippy goes to the analyst."
   (interactive)
   (doctor)				; start the psychotherapy
-  (if (null yow-vector)
-      (setq yow-vector (snarf-yows)))
   (message "")
   (switch-to-buffer "*doctor*")
   (sit-for 0)
