@@ -1577,10 +1577,9 @@ changequote(,)dnl The horror, the horror.
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-undefs="`echo $top_srcdir $configuration | 
-sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/  */ -U/g'  \
-    -e 's/ -U$//' -e 's/^[^ ]/-U/' \
-    -e 's/-U[0-9][^ ]*//g' \
+undefs="`echo $top_srcdir $configuration |
+sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
+    -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g' \
 `"
 changequote([,])dnl
 
@@ -1591,7 +1590,7 @@ echo creating lib-src/Makefile
       -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
       < Makefile.in > junk.c
   $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c |
-  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
+  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
   rm -f junk.c
   chmod 444 Makefile.new;
   mv -f Makefile.new Makefile;
@@ -1604,7 +1603,7 @@ echo creating src/Makefile
       -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
       < Makefile.in > junk.c
   $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c |
-  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
+  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
   rm -f junk.c
   chmod 444 Makefile.new;
   mv -f Makefile.new Makefile;
