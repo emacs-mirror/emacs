@@ -54,7 +54,7 @@ extern long timezone;
 
 /* EMACS_TIME is the type to use to represent temporal intervals -
    struct timeval on some systems, int on others.  It can be passed as
-   the timeout argument to the select () system call.
+   the timeout argument to the select  system call.
 
    EMACS_SECS (TIME) is an rvalue for the seconds component of TIME.
    EMACS_SET_SECS (TIME, SECONDS) sets that to SECONDS.
@@ -218,7 +218,7 @@ extern long timezone;
   } while (0)
 #endif /* ! defined (HAVE_TIMEVAL) */
 
-/* The following sane systems have a tzname array.  The timezone() function
+/* The following sane systems have a tzname array.  The timezone function
    is a stupid idea; timezone names can only be determined geographically,
    not by Greenwich offset.  */
 #if defined (ultrix) || defined (hpux) || defined (_AIX) || defined (USG) || defined(VMS)
@@ -232,7 +232,7 @@ extern long timezone;
 
 #else /* ! defined (ultrix) || defined (hpux) || defined (_AIX) */
 /* If we are running SunOS, Mt. Xinu BSD, or MACH 2.5, these systems have a
-   timezone() function.  */
+   timezone function.  */
 #if (defined (hp9000) && ! defined (hpux) && defined (unix)) || defined (MACH) || defined (sun)
 
 #define EMACS_GET_TZ_NAMES(standard, savings)				\
