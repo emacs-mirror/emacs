@@ -990,8 +990,9 @@ exited abnormally with code %d\n"
 	 ;; buffer, which might not be the same as the selected window's buffer.
 	 (save-current-buffer
 	   (save-selected-window
-	     (select-window window)
-	     (enlarge-window (- height (window-height))))))))
+	     (save-excursion
+	       (select-window window)
+	       (enlarge-window (- height (window-height)))))))))
 
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))
