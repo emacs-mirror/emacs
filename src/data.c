@@ -45,6 +45,7 @@ Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 Lisp_Object Qintegerp, Qnatnump, Qsymbolp, Qlistp, Qconsp;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
+Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qcdr;
 
@@ -1859,6 +1860,7 @@ syms_of_data ()
   Qvectorp = intern ("vectorp");
   Qchar_or_string_p = intern ("char-or-string-p");
   Qmarkerp = intern ("markerp");
+  Qbuffer_or_string_p = intern ("buffer-or-string-p");
   Qinteger_or_marker_p = intern ("integer-or-marker-p");
   Qboundp = intern ("boundp");
   Qfboundp = intern ("fboundp");
@@ -1998,6 +2000,7 @@ syms_of_data ()
   staticpro (&Qvectorp);
   staticpro (&Qchar_or_string_p);
   staticpro (&Qmarkerp);
+  staticpro (&Qbuffer_or_string_p);
   staticpro (&Qinteger_or_marker_p);
 #ifdef LISP_FLOAT_TYPE
   staticpro (&Qfloatp);
