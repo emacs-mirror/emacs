@@ -737,7 +737,7 @@ If you want them to stand for years in this century, you must do that yourself."
       char **oldenv = environ, **newenv;
       
       if (STRINGP (zone))
-	tzstring = XSTRING (zone)->data;
+	tzstring = (char *) XSTRING (zone)->data;
       else if (INTEGERP (zone))
 	{
 	  int abszone = abs (XINT (zone));
@@ -893,7 +893,7 @@ If TZ is nil, use implementation-defined default time zone information.")
   else
     {
       CHECK_STRING (tz, 0);
-      tzstring = XSTRING (tz)->data;
+      tzstring = (char *) XSTRING (tz)->data;
     }
 
   set_time_zone_rule (tzstring);
