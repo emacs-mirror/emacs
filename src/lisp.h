@@ -623,7 +623,7 @@ struct Lisp_String
   {
     EMACS_INT size;
     EMACS_INT size_byte;
-    DECLARE_INTERVALS		/* `data' field must be last.  */
+    INTERVAL intervals;		/* text properties in this string */
     unsigned char *data;
   };
 
