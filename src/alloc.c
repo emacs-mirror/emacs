@@ -1816,6 +1816,46 @@ Garbage collection happens automatically if you cons more than\n\
     }  
   mark_kboards ();
 
+  /* Look thru every buffer's undo list
+     for elements that update markers that were not marked,
+     and delete them.  */
+  {
+    register struct buffer *nextb = all_buffers;
+
+    while (nextb)
+      {
+	/* If a buffer's undo list is Qt, that means that undo is
+	   turned off in that buffer.  Calling truncate_undo_list on
+	   Qt tends to return NULL, which effectively turns undo back on.
+	   So don't call truncate_undo_list if undo_list is Qt.  */
+	if (! EQ (nextb->undo_list, Qt))
+	  {
+	    Lisp_Object tail, prev;
+	    tail = nextb->undo_list;
+	    prev = Qnil;
+	    while (CONSP (tail))
+	      {
+		if (GC_CONSP (XCONS (tail)->car)
+		    && GC_MARKERP (XCONS (XCONS (tail)->car)->car)
+		    && ! XMARKBIT (XMARKER (XCONS (XCONS (tail)->car)->car)->chain))
+		  {
+		    if (NILP (prev))
+		      nextb->undo_list = tail = XCONS (tail)->cdr;
+		    else
+		      tail = XCONS (prev)->cdr = XCONS (tail)->cdr;
+		  }
+		else
+		  {
+		    prev = tail;
+		    tail = XCONS (tail)->cdr;
+		  }
+	      }
+	  }
+
+	nextb = nextb->next;
+      }
+  }
+
   gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */
@@ -2227,6 +2267,39 @@ mark_buffer (buf)
   XMARK (buffer->name);
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
+
+  if (CONSP (buffer->undo_list))
+    {
+      Lisp_Object tail;
+      tail = buffer->undo_list;
+
+      while (CONSP (tail))
+	{
+	  register struct Lisp_Cons *ptr = XCONS (tail);
+
+	  if (XMARKBIT (ptr->car))
+	    break;
+	  XMARK (ptr->car);
+	  if (GC_CONSP (ptr->car)
+	      && ! XMARKBIT (XCONS (ptr->car)->car)
+	      && GC_MARKERP (XCONS (ptr->car)->car))
+	    {
+	      XMARK (XCONS (ptr->car)->car);
+	      mark_object (&XCONS (ptr->car)->cdr);
+	    }
+	  else
+	    mark_object (&ptr->car);
+
+	  if (CONSP (ptr->cdr))
+	    tail = ptr->cdr;
+	  else
+	    break;
+	}
+
+      mark_object (&XCONS (tail)->cdr);
+    }
+  else
+    mark_object (&buffer->undo_list);
 
 #if 0
   mark_object (buffer->syntax_table);
