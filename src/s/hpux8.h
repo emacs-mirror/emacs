@@ -18,23 +18,23 @@
    Note GCC automatically passes -a archive to ld, and it has its own
    conflicting -a.  */
 #ifdef __GNUC__
-#define LD_SWITCH_SYSTEM -Xlinker -a -Xlinker archive
-
 /* No need to specify roundabout way of linking temacs.  */
 #define ORDINARY_LINK
-#else
-#if defined(hp9000s700) || defined(__hp9000s700)
-#define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1
-#else
-#define LD_SWITCH_SYSTEM -a archive
-#endif
 #endif
 
-#if 0 /* This should no longer be necessary now that
-	 C_SWITCH_... are passed down when compiling oldXMenu.  */
-/* Specify compiler options for compiling oldXMenu.  */
-#define OLDXMENU_OPTIONS CFLAGS="-I/usr/include/X11R5 -I/usr/include/X11R4"
+#if ! defined (__GNUC__) && (defined(hp9000s700) || defined(__hp9000s700))
+#ifdef HPUX_USE_SHLIBS
+#define LD_SWITCH_SYSTEM -L/lib/pa1.1 -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#else
+#define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1 -L/usr/lib/X11R5 -L/usr/lib/X11R4
 #endif
+#else /* __GNUC__ or not (defined(hp9000s700) || defined(__hp9000s700)) */
+#ifdef HPUX_USE_SHLIBS
+#define LD_SWITCH_SYSTEM -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#else
+#define LD_SWITCH_SYSTEM -a archive -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#endif
+#endif /* __GNUC__ or not (defined(hp9000s700) || defined(__hp9000s700)) */
 
 /* Some hpux 8 machines seem to have TIOCGWINSZ,
    and none have sioctl.h, so might as well define this.  */
