@@ -446,7 +446,16 @@ This returns ARGS with the arguments that have been processed removed."
 (setq suspend-hook
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))
-(setq interprogram-cut-function 'x-own-selection)
+(setq interprogram-cut-function 'x-select-text)
+
+;; Make TEXT, a string, the primary and clipboard X selections.
+;; If you are running xclipboard, this means you can effectively
+;; have a window on a copy of the kill-ring.
+(defun x-select-text (text)
+  (if (eq window-system 'x)
+      (progn
+	(x-own-selection text 'clipboard)
+	(x-own-selection text))))
 
 ;;; Turn off window-splitting optimization; X is usually fast enough
 ;;; that this is only annoying.
