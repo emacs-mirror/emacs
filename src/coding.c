@@ -401,12 +401,6 @@ Lisp_Object Vdefault_process_coding_system;
 /* Char table for translating Quail and self-inserting input.  */
 Lisp_Object Vtranslation_table_for_input;
 
-/* Global flag to tell that we can't call post-read-conversion and
-   pre-write-conversion functions.  Usually the value is zero, but it
-   is set to 1 temporarily while such functions are running.  This is
-   to avoid infinite recursive call.  */
-static int inhibit_pre_post_conversion;
-
 /* Two special coding systems.  */
 Lisp_Object Vsjis_coding_system;
 Lisp_Object Vbig5_coding_system;
@@ -972,7 +966,7 @@ coding_alloc_by_making_gap (coding, bytes)
 static unsigned char *
 alloc_destination (coding, nbytes, dst)
      struct coding_system *coding;
-     int nbytes;
+     EMACS_INT nbytes;
      unsigned char *dst;
 {
   EMACS_INT offset = dst - coding->destination;
@@ -5018,12 +5012,11 @@ Lisp_Object
 coding_inherit_eol_type (coding_system, parent)
      Lisp_Object coding_system, parent;
 {
-  Lisp_Object spec, attrs, eol_type;
+  Lisp_Object spec, eol_type;
 
   if (NILP (coding_system))
     coding_system = Qraw_text;
   spec = CODING_SYSTEM_SPEC (coding_system);
-  attrs = AREF (spec, 0);
   eol_type = AREF (spec, 2);
   if (VECTORP (eol_type)
       && ! NILP (parent))
@@ -5371,7 +5364,7 @@ detect_coding (coding)
       && ! EQ (coding_type, Qccl))
     {
       int eol_seen = detect_eol (coding->source, coding->src_bytes,
-				 XINT (CODING_ATTR_CATEGORY (attrs)));
+				 (enum coding_category) XINT (CODING_ATTR_CATEGORY (attrs)));
 
       if (eol_seen != EOL_SEEN_NONE)
 	adjust_coding_eol_type (coding, eol_seen);
@@ -5477,8 +5470,8 @@ produce_chars (coding)
   if (! coding->chars_at_source)
     {
       /* Characters are in coding->charbuf.  */
-      int *buf = coding->charbuf;
-      int *buf_end = buf + coding->charbuf_used;
+      EMACS_INT *buf = coding->charbuf;
+      EMACS_INT *buf_end = buf + coding->charbuf_used;
       unsigned char *adjusted_dst_end;
 
       if (BUFFERP (coding->src_object)
@@ -8636,8 +8629,6 @@ init_coding_once ()
   iso_code_class[ISO_CODE_SS2] = ISO_single_shift_2;
   iso_code_class[ISO_CODE_SS3] = ISO_single_shift_3;
   iso_code_class[ISO_CODE_CSI] = ISO_control_sequence_introducer;
-
-  inhibit_pre_post_conversion = 0;
 
   for (i = 0; i < 256; i++)
     {
