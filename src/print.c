@@ -1370,10 +1370,10 @@ print (obj, printcharfun, escapeflag)
 	  PRINTCHAR ('(');
 	  {
 	    register int i = 0;
-	    register int max = 0;
+	    register int print_length = 0;
 
 	    if (INTEGERP (Vprint_length))
-	      max = XINT (Vprint_length);
+	      print_length = XINT (Vprint_length);
 	    /* Could recognize circularities in cdrs here,
 	       but that would make printing of long lists quadratic.
 	       It's not worth doing.  */
@@ -1381,7 +1381,7 @@ print (obj, printcharfun, escapeflag)
 	      {
 		if (i++)
 		  PRINTCHAR (' ');
-		if (max && i > max)
+		if (print_length && i > print_length)
 		  {
 		    strout ("...", 3, 3, printcharfun, 0);
 		    break;
