@@ -123,3 +123,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #else
 #define MAIL_PROGRAM_NAME "/usr/lib/mail/execmail"
 #endif
+
+/* miano@acosta.enet.dec.com says these are needed.  */
+#define bcopy(b1,b2,len) memmove (b2, b1, len)
+#define bzero(b,len) memset (b, 0, len)
+#define bcmp(b1,b2,len) memcmp (b1, b2, len)
