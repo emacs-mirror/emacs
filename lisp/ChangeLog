@@ -1,5 +1,9 @@
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* progmodes/grep.el (grep-mode): Use normal autoload cookie.
+
+2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* emacs-lisp/autoload.el (make-autoload):
 	Handle `define-compilation-mode'.
 
