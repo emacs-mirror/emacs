@@ -192,18 +192,6 @@ against the file name, and TYPE is nil for text, t for binary.")
 (defsubst intdos (regs)
   (int86 33 regs))
 
-;; Extra stub to functions in src/frame.c
-;; Emacs aborts during dump if the following don't have a doc string.
-(defun window-frame (window)
-  "Return the frame that WINDOW resides on."
-  (selected-frame))
-(defun raise-frame (frame)
-  "Raise FRAME to the top of the desktop."
-  nil)
-(defun select-frame (frame &optional no-enter)
-  "Select FRAME for input events."
-  (selected-frame))
-
 ;; Support for printing under MS-DOS, see lpr.el and ps-print.el.
 (defvar dos-printer "PRN"
   "*The name of a local MS-DOS device to which data is sent for printing.
