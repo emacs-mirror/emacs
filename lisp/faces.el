@@ -828,14 +828,15 @@ value to return if no new value is entered.  NAME is a descriptive
 name of the attribute for prompting.  Value is the new attribute value."
   (let ((new-value
 	 (face-read-string face
-			   (if (memq
-				default
-				'(unspecified unspecified-fg unspecified-bg))
+			   (if (memq default
+				     '(unspecified
+				       "unspecified-fg"
+				       "unspecified-bg"))
 			       default
 			     (int-to-string default))
 			   name
 			   (list (cons "unspecified" 'unspecified)))))
-    (if (memq new-value '(unspecified unspecified-fg unspecified-bg))
+    (if (memq new-value '(unspecified "unspecified-fg" "unspecified-bg"))
 	new-value
       (string-to-int new-value))))
 
@@ -866,7 +867,9 @@ of a global face.  Value is the new attribute value."
 	   (if (and (memq attribute '(:foreground :background))
 		    (not (memq window-system '(x w32 mac)))
 		    (not (memq new-value
-			       '(unspecified unspecified-fg unspecified-bg))))
+			       '(unspecified
+				 "unspecified-fg"
+				 "unspecified-bg"))))
 	       (setq new-value (car (tty-color-desc new-value frame))))
 	   (unless (eq new-value 'unspecified)
 	     (setq new-value (cdr (assoc new-value valid)))))
@@ -1168,9 +1171,9 @@ If FRAME doesn't support colors, the value is nil."
 (defun color-defined-p (color &optional frame)
   "Return non-nil if color COLOR is supported on frame FRAME.
 If FRAME is omitted or nil, use the selected frame.
-If COLOR is one of the symbols `unspecified', `unspecified-fg', or
-`unspecified-bg', the value is nil."
-  (if (memq color '(unspecified unspecified-bg unspecified-fg))
+If COLOR is the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", the value is nil."
+  (if (memq color '(unspecified "unspecified-bg" "unspecified-fg"))
       nil
     (if (memq (framep (or frame (selected-frame))) '(x w32))
 	(xw-color-defined-p color frame)
@@ -1184,9 +1187,9 @@ These values appear to range from 0 to 65280 or 65535, depending
 on the system; white is \(65280 65280 65280\) or \(65535 65535 65535\).
 If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, the value is nil.
-If COLOR is one of the symbols `unspecified', `unspecified-fg', or
-`unspecified-bg', the value is nil."
-  (if (memq color '(unspecified unspecified-fg unspecified-bg))
+If COLOR is the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", the value is nil."
+  (if (memq color '(unspecified "unspecified-fg" "unspecified-bg"))
       nil
     (if (memq (framep (or frame (selected-frame))) '(x w32))
 	(xw-color-values color frame)
