@@ -40,7 +40,7 @@
 	* eshell/eshell.el (eshell-non-interactive-p): Moved this variable
 	here.
 
-2001-04-22  John Wiegley  <johnw@gnu.org>
+2001-04-23  John Wiegley  <johnw@gnu.org>
 
 	* calendar/timeclock.el: Updated copyright.
 	(timeclock-generate-report): Don't report the daily or two-week
@@ -49,7 +49,7 @@
 	final computational form, which was unnecessary; corrected a
 	parsing problem when timeclock-relative was nil.
 
-2001-04-22  Kahlil Hodgson <kahlil@discus.anu.edu.au>
+2001-04-23  Kahlil Hodgson <kahlil@discus.anu.edu.au>
 
 	* calendar/timeclock.el (timeclock-modeline-display): Check if
 	`list-entry' is null.
