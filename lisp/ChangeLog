@@ -1,3 +1,13 @@
+2003-02-02  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/asm-mode.el (asm-font-lock-keywords): Allow arbitrary
+	words separated by dots.  Match optional parenthesized word at
+	start of line.
+
+	* font-lock.el
+	(font-lock-match-c-style-declaration-item-and-skip-to-next):
+	Don't require underscore in word before double open-paren.
+
 2003-02-02  John Paul Wallington  <jpw@gnu.org>
 
 	* hexl.el (hexl-mode-map): Bind C-m to `hexl-self-insert-command'.
