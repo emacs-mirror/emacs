@@ -6504,7 +6504,7 @@ frame_to_window_pixel_xy (w, x, y)
 }
 
 
-/* Take proper action when mouse has moved to the mode or top line of
+/* Take proper action when mouse has moved to the mode or header line of
    window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
    mode line.  X is relative to the start of the text display area of
    W, so the width of bitmap areas and scroll bars must be subtracted
@@ -6524,7 +6524,7 @@ note_mode_line_highlight (w, x, mode_line_p)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
     row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
-  
+
   if (row->enabled_p)
     {
       struct glyph *glyph, *end;
@@ -6536,6 +6536,7 @@ note_mode_line_highlight (w, x, mode_line_p)
       end = glyph + row->used[TEXT_AREA];
       x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
 	      + FRAME_X_LEFT_FLAGS_AREA_WIDTH (f));
+      
       while (glyph < end
 	     && x >= x0 + glyph->pixel_width)
 	{
@@ -6648,6 +6649,9 @@ note_mouse_highlight (f, x, y)
       note_mode_line_highlight (w, x, portion == 1);
       return;
     }
+  else if (portion == 2)
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		   f->output_data.x->horizontal_drag_cursor);
   else
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   f->output_data.x->text_cursor);
