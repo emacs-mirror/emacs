@@ -72,3 +72,10 @@
    which is what OSF1 uses.  */
 #define LD_SWITCH_SYSTEM `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
 #endif /* __ELF__ */
+
+/* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
+   the library search parth, i.e. it won't search /usr/lib
+   for libc and friends. Using -nostartfiles instead avoids
+   this problem, and will also work on earlier NetBSD releases */
+
+#define LINKER $(CC) -nostartfiles
