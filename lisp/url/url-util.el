@@ -192,13 +192,13 @@ Will not do anything if `url-show-status' is nil."
 						(nth 1 (current-time-zone))
 						"GMT"))
 	 (parsed (timezone-parse-date gmt))
-	 (day (cdr-safe (assoc (substring raw 0 3) weekday-alist)))
+	 (day (cdr-safe (assoc (substring raw 0 3) url-weekday-alist)))
 	 (year nil)
 	 (month (car
 		 (rassoc
-		  (string-to-int (aref parsed 1)) monthabbrev-alist)))
+		  (string-to-int (aref parsed 1)) url-monthabbrev-alist)))
 	 )
-    (setq day (or (car-safe (rassoc day weekday-alist))
+    (setq day (or (car-safe (rassoc day url-weekday-alist))
 		  (substring raw 0 3))
 	  year (aref parsed 0))
     ;; This is needed for plexus servers, or the server will hang trying to
