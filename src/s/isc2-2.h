@@ -45,9 +45,6 @@
 
 #define NO_X_DESTROY_DATABASE
 
-/* This communicates with m-intel386.h.  */
-#define DONT_DEFINE_SIGNAL
-
 /* May be needed to avoid undefined symbols such as gethostname,
    inet_addr, gethostbyname, socket, connect, ...  But if we are not
    compiling with X support, it's not needed.  */
