@@ -4043,7 +4043,7 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCfont))
     {
 #ifdef HAVE_WINDOW_SYSTEM
-      if (FRAME_WINDOW_P (f))
+      if (FRAME_WINDOW_P (XFRAME (frame)))
 	{
 	  /* Set font-related attributes of the Lisp face from an XLFD
 	     font name.  */
