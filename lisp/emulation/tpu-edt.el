@@ -803,6 +803,8 @@ This is useful for inserting control characters."
 (fset 'replace 'tpu-lm-replace)
 (fset 'REPLACE 'tpu-lm-replace)
 
+;; Apparently TPU users really expect to do M-x help RET to get help.
+;; So it is really necessary to redefine this.
 (fset 'help 'tpu-help)
 (fset 'HELP 'tpu-help)
 
