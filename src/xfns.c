@@ -1,5 +1,5 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 1997, 1998, 1999
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 1997, 1998, 1999, 2000
      Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -5213,6 +5213,38 @@ image_spec_value (spec, key, found)
   return Qnil;
 }
      
+
+DEFUN ("image-size", Fimage_size, Simage_size, 1, 3, 0,
+  "Return the size of image SPEC as pair (WIDTH . HEIGHT).\n\
+PIXELS non-nil means return the size in pixels, otherwise return the\n\
+size in canonical character units.\n\
+FRAME is the frame on which the image will be displayed.  FRAME nil\n\
+or omitted means use the selected frame.")
+  (spec, pixels, frame)
+     Lisp_Object spec, pixels, frame;
+{
+  Lisp_Object size;
+
+  size = Qnil;
+  if (valid_image_p (spec))
+    {
+      struct frame *f = check_x_frame (frame);
+      int id = lookup_image (f, spec);
+      struct image *img = IMAGE_FROM_ID (f, id);
+      int width = img->width + 2 * img->margin;
+      int height = img->height + 2 * img->margin;
+  
+      if (NILP (pixels))
+	size = Fcons (make_float ((double) width / CANON_X_UNIT (f)),
+		      make_float ((double) height / CANON_Y_UNIT (f)));
+      else
+	size = Fcons (make_number (width), make_number (height));
+    }
+  else
+    error ("Invalid image specification");
+
+  return size;
+}
 
 
 
@@ -10457,6 +10489,7 @@ meaning don't clear the cache.");
 #endif
 
   defsubr (&Sclear_image_cache);
+  defsubr (&Simage_size);
 
   busy_cursor_atimer = NULL;
   busy_cursor_shown_p = 0;
