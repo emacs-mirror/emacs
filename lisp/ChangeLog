@@ -1,3 +1,8 @@
+2001-12-26  Markus Rost  <rost@math.ohio-state.edu>
+
+	* find-dired.el (find-dired-sentinel): Precede exit message by
+	two spaces, to match the regexp in dired-between-files.
+
 2001-12-26  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compile-internal):
