@@ -779,7 +779,7 @@ See also `multi-occur'."
 				 curstring
 				 "\n"))
 			       (data
-				(if (= nlines 1)
+				(if (= nlines 0)
 				    ;; The simple display style
 				    out-line
 				 ;; The complex multi-line display
@@ -787,14 +787,14 @@ See also `multi-occur'."
 				 ;; concatenate them all together.
 				 (apply #'concat
 					(nconc
-					 (add-prefix (nreverse (cdr (occur-accumulate-lines (- nlines) t))))
+					 (add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ nlines)) t))))
 					 (list out-line)
-					 (add-prefix (cdr (occur-accumulate-lines nlines t))))))))
+					 (add-prefix (cdr (occur-accumulate-lines (1+ nlines) t))))))))
 			  ;; Actually insert the match display data
 			  (with-current-buffer out-buf
 			    (let ((beg (point))
 				  (end (insert-get-point data)))
-			      (unless (= nlines 1)
+			      (unless (= nlines 0)
 				(insert-get-point "-------\n"))
 			      (add-text-properties
 			       beg (1- end)
