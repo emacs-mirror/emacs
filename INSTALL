@@ -152,6 +152,9 @@ configure should avoid such old versions.  If that happens, use the
 
 * Extra fonts
 
+At first, Emacs does not include fonts and does not install them.  You
+must do this yourself.
+
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
 a Unicode font.  For information on Unicode fonts for X, see
 <URL:http://czyborra.com/unifont/>,
