@@ -118,6 +118,7 @@
 ;;;     comint-last-input-match - string           ...
 ;;;     comint-dynamic-complete-functions - hook   For the completion mechanism
 ;;;     comint-completion-fignore - list           ...
+;;;	comint-file-name-quote-list - list	   ...
 ;;;     comint-get-old-input    - function     Hooks for specific 
 ;;;     comint-input-filter-functions - hook     process-in-a-buffer
 ;;;     comint-output-filter-functions - hook    function modes.
@@ -130,7 +131,7 @@
 ;;;     comint-scroll-show-maximum-output - boolean...
 ;;;
 ;;; Comint mode non-buffer local variables:
-;;;     comint-completion-addsuffix - boolean  For file name completion
+;;;     comint-completion-addsuffix - boolean/cons  For file name completion
 ;;;     comint-completion-autolist  - boolean      behavior
 ;;;     comint-completion-recexact  - boolean      ...
 
@@ -391,6 +392,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
+  (make-local-variable 'comint-file-name-quote-list)
   (run-hooks 'comint-mode-hook))
 
 (if comint-mode-map
@@ -1406,23 +1408,23 @@ applications."
       ;; Use this instead of `read-char' to avoid "Non-character input-event".
       (setq c (read-char-exclusive))
       (cond ((= c ?\C-g)
-             ;; This function may get called from a process filter, where
-             ;; inhibit-quit is set.  In later versions of emacs read-char
-             ;; may clear quit-flag itself and return C-g.  That would make
-             ;; it impossible to quit this loop in a simple way, so
-             ;; re-enable it here (for backward-compatibility the check for
-             ;; quit-flag below would still be necessary, so this seems
-             ;; like the simplest way to do things).
-             (setq quit-flag t
-                   done t))
-            ((or (= c ?\r) (= c ?\n) (= c ?\e))
-             (setq done t))
-            ((= c ?\C-u)
-             (setq ans ""))
-            ((and (/= c ?\b) (/= c ?\177))
-             (setq ans (concat ans (char-to-string c))))
-            ((> (length ans) 0)
-             (setq ans (substring ans 0 -1)))))
+	     ;; This function may get called from a process filter, where
+	     ;; inhibit-quit is set.  In later versions of emacs read-char
+	     ;; may clear quit-flag itself and return C-g.  That would make
+	     ;; it impossible to quit this loop in a simple way, so
+	     ;; re-enable it here (for backward-compatibility the check for
+	     ;; quit-flag below would still be necessary, so this seems
+	     ;; like the simplest way to do things).
+	     (setq quit-flag t
+		   done t))
+	    ((or (= c ?\r) (= c ?\n) (= c ?\e))
+	     (setq done t))
+	    ((= c ?\C-u)
+	     (setq ans ""))
+	    ((and (/= c ?\b) (/= c ?\177))
+	     (setq ans (concat ans (char-to-string c))))
+	    ((> (length ans) 0)
+	     (setq ans (substring ans 0 -1)))))
     (if quit-flag
         ;; Emulate a true quit, except that we have to return a value.
         (prog1
@@ -1802,6 +1804,8 @@ This mirrors the optional behavior of tcsh.")
 
 (defvar comint-completion-addsuffix t
   "*If non-nil, add a `/' to completed directories, ` ' to file names.
+If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
+DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact completion.
 This mirrors the optional behavior of tcsh.")
 
 (defvar comint-completion-recexact nil
@@ -1821,6 +1825,11 @@ Note that this applies to `comint-dynamic-complete-filename' only.")
 This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
+(defvar comint-file-name-quote-list nil
+  "List of characters to quote with `\' when in a file name.
+
+This is a good thing to set in mode hooks.")
+
 
 (defun comint-directory (directory)
   ;; Return expanded DIRECTORY, with `comint-file-name-prefix' if absolute.
@@ -1834,23 +1843,43 @@ directory tracking functions.")
 Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward')."
   (save-excursion
-    (let ((limit (point))
-	  (word (concat "[" word-chars "]"))
-	  (non-word (concat "[^" word-chars "]")))
-      (if (re-search-backward non-word nil 'move)
-	  (forward-char 1))
-      ;; Anchor the search forwards.
-      (if (or (eolp) (looking-at non-word))
-	  nil
-	(re-search-forward (concat word "+") limit)
-	(buffer-substring (match-beginning 0) (match-end 0))))))
+    (let ((non-word-chars (concat "[^\\\\" word-chars "]")) (here (point)))
+      (while (and (re-search-backward non-word-chars nil 'move)
+		  ;(memq (char-after (point)) shell-file-name-quote-list)
+		  (not (bolp)) (eq (char-after (1- (point))) ?\\))
+	(backward-char 1))
+      (forward-char 1)
+      (and (< (point) here) (buffer-substring (point) here)))))
 
 
 (defun comint-match-partial-filename ()
   "Return the filename at point, or nil if non is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint-word "~/A-Za-z0-9+@:_.$#%,={}-")))
-    (and filename (substitute-in-file-name filename))))
+    (and filename (substitute-in-file-name (comint-unquote-filename filename)))))
+
+
+(defun comint-quote-filename (filename)
+  "Return FILENAME with magic characters quoted.
+Magic characters are those in `comint-file-name-quote-list'."
+  (if (null comint-file-name-quote-list)
+      filename
+    (let ((regexp
+	   (format "\\(^\\|[^\\]\\)\\([%s]\\)"
+	    (mapconcat 'char-to-string comint-file-name-quote-list ""))))
+      (save-match-data
+	(while (string-match regexp filename)
+	  (setq filename (replace-match "\\1\\\\\\2" nil nil filename)))
+	filename))))
+
+(defun comint-unquote-filename (filename)
+  "Return FILENAME with quoted characters unquoted."
+  (if (null comint-file-name-quote-list)
+      filename
+    (save-match-data
+      (while (string-match "\\\\\\(.\\)" filename)
+	(setq filename (replace-match "\\1" nil nil filename)))
+      filename)))
 
 
 (defun comint-dynamic-complete ()
@@ -1893,6 +1922,12 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 (file-name-handler-alist nil)
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (success t)
+	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
+			  ((not (consp comint-completion-addsuffix)) "/")
+			  (t (car comint-completion-addsuffix))))
+	 (filesuffix (cond ((not comint-completion-addsuffix) "")
+			   ((not (consp comint-completion-addsuffix)) " ")
+			   (t (cdr comint-completion-addsuffix))))
 	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
@@ -1902,24 +1937,24 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
            (message "No completions of %s" filename)
 	   (setq success nil))
           ((eq completion t)            ; Means already completed "file".
-           (if comint-completion-addsuffix (insert " "))
+           (insert filesuffix)
            (or minibuffer-p (message "Sole completion")))
           ((string-equal completion "") ; Means completion on "directory/".
            (comint-dynamic-list-filename-completions))
           (t                            ; Completion string returned.
            (let ((file (concat (file-name-as-directory directory) completion)))
-             (insert (substring (directory-file-name completion)
-                                (length pathnondir)))
+	     (insert (comint-quote-filename
+		      (substring (directory-file-name completion)
+				 (length pathnondir))))
              (cond ((symbolp (file-name-completion completion directory))
                     ;; We inserted a unique completion.
-                    (if comint-completion-addsuffix
-                        (insert (if (file-directory-p file) "/" " ")))
+		    (insert (if (file-directory-p file) dirsuffix filesuffix))
                     (or minibuffer-p (message "Completed")))
                    ((and comint-completion-recexact comint-completion-addsuffix
                          (string-equal pathnondir completion)
                          (file-exists-p file))
                     ;; It's not unique, but user wants shortest match.
-                    (insert (if (file-directory-p file) "/" " "))
+                    (insert (if (file-directory-p file) dirsuffix filesuffix))
                     (or minibuffer-p (message "Completed shortest")))
                    ((or comint-completion-autolist
                         (string-equal pathnondir completion))
@@ -1957,6 +1992,9 @@ Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
   (let* ((completion-ignore-case nil)
+	 (suffix (cond ((not comint-completion-addsuffix) "")
+		       ((not (consp comint-completion-addsuffix)) " ")
+		       (t (cdr comint-completion-addsuffix))))
 	 (candidates (mapcar (function (lambda (x) (list x))) candidates))
 	 (completions (all-completions stub candidates)))
     (cond ((null completions)
@@ -1968,7 +2006,7 @@ See also `comint-dynamic-complete-filename'."
  		 (message "Sole completion")
  	       (insert (substring completion (length stub)))
  	       (message "Completed"))
-	     (if comint-completion-addsuffix (insert " "))
+	     (insert suffix)
 	     'sole))
  	  (t				; There's no unique completion.
  	   (let ((completion (try-completion stub candidates)))
@@ -1978,7 +2016,7 @@ See also `comint-dynamic-complete-filename'."
  			 (string-equal stub completion)
  			 (member completion completions))
  		    ;; It's not unique, but user wants shortest match.
- 		    (insert " ")
+ 		    (insert suffix)
  		    (message "Completed shortest")
 		    'shortest)
  		   ((or comint-completion-autolist
@@ -2001,9 +2039,10 @@ See also `comint-dynamic-complete-filename'."
 	 (pathnondir (file-name-nondirectory filename))
 	 (directory (if pathdir (comint-directory pathdir) default-directory))
 	 (completions (file-name-all-completions pathnondir directory)))
-    (if completions
-	(comint-dynamic-list-completions completions)
-      (message "No completions of %s" filename))))
+    (if (not completions)
+	(message "No completions of %s" filename)
+      (comint-dynamic-list-completions
+       (mapcar 'comint-quote-filename completions)))))
 
 
 (defun comint-dynamic-list-completions (completions)
