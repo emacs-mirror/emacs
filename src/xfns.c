@@ -859,7 +859,7 @@ x_real_positions (f, xptr, yptr)
 
                                  /* Child of win.  */
                                  &child);
-    }
+	}
 
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
     }
@@ -870,10 +870,11 @@ x_real_positions (f, xptr, yptr)
 
   if (had_errors) return;
 
-  f->output_data.x->x_pixels_diff = -win_x;
-  f->output_data.x->y_pixels_diff = -win_y;
-  f->output_data.x->x_pixels_outer_diff = -outer_x;
-  f->output_data.x->y_pixels_outer_diff = -outer_y;
+  f->x_pixels_diff = -win_x;
+  f->y_pixels_diff = -win_y;
+
+  FRAME_X_OUTPUT (f)->x_pixels_outer_diff = -outer_x;
+  FRAME_X_OUTPUT (f)->y_pixels_outer_diff = -outer_y;
 
   *xptr = real_x;
   *yptr = real_y;
@@ -1296,7 +1297,7 @@ x_set_border_pixel (f, pix)
   unload_color (f, f->output_data.x->border_pixel);
   f->output_data.x->border_pixel = pix;
 
-  if (FRAME_X_WINDOW (f) != 0 && f->output_data.x->border_width > 0)
+  if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       BLOCK_INPUT;
       XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -1519,7 +1520,7 @@ x_set_tool_bar_lines (f, value, oldval)
 
   /* Don't resize the tool-bar to more than we have room for.  */
   root_window = FRAME_ROOT_WINDOW (f);
-  root_height = XINT (XWINDOW (root_window)->height);
+  root_height = WINDOW_TOTAL_LINES (XWINDOW (root_window));
   if (root_height - delta < 1)
     {
       delta = root_height - 1;
@@ -1550,8 +1551,8 @@ x_set_tool_bar_lines (f, value, oldval)
   if (delta < 0)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
-      int width = PIXEL_WIDTH (f);
-      int y = nlines * CANON_Y_UNIT (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int y = nlines * FRAME_LINE_HEIGHT (f);
 
       BLOCK_INPUT;
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -1956,21 +1957,21 @@ void
 x_set_scroll_bar_default_width (f)
      struct frame *f;
 {
-  int wid = FONT_WIDTH (f->output_data.x->font);
+  int wid = FRAME_COLUMN_WIDTH (f);
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
   int width = 16 + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
-  FRAME_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = width;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = width;
 #else
   /* Make the actual width at least 14 pixels and a multiple of a
      character width.  */
-  FRAME_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
 
   /* Use all of that space (aside from required margins) for the
      scroll bar.  */
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 0;
 #endif
 }
 
@@ -2369,8 +2370,8 @@ xic_set_statusarea (f)
 
   area.width  = needed->width;
   area.height = needed->height;
-  area.x = PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
-  area.y = (PIXEL_HEIGHT (f) - area.height
+  area.x = FRAME_PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
+  area.y = (FRAME_PIXEL_HEIGHT (f) - area.height
 	    - FRAME_MENUBAR_HEIGHT (f)
 	    - FRAME_TOOLBAR_HEIGHT (f)
             - FRAME_INTERNAL_BORDER_WIDTH (f));
@@ -2448,7 +2449,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
-  XtSetArg (al[ac], XtNborderWidth, f->output_data.x->border_width); ac++;
+  XtSetArg (al[ac], XtNborderWidth, f->border_width); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
@@ -2533,9 +2534,9 @@ x_window (f, window_prompting, minibuffer_only)
        is a user-specified or program-specified one.
        We pass that information later, in x_wm_set_size_hints.  */
     {
-      int left = f->output_data.x->left_pos;
+      int left = f->left_pos;
       int xneg = window_prompting & XNegative;
-      int top = f->output_data.x->top_pos;
+      int top = f->top_pos;
       int yneg = window_prompting & YNegative;
       if (xneg)
 	left = -left;
@@ -2544,14 +2545,14 @@ x_window (f, window_prompting, minibuffer_only)
 
       if (window_prompting & USPosition)
 	sprintf (shell_position, "=%dx%d%c%d%c%d",
-		 PIXEL_WIDTH (f) + extra_borders,
-		 PIXEL_HEIGHT (f) + menubar_size + extra_borders,
+		 FRAME_PIXEL_WIDTH (f) + extra_borders,
+		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders,
 		 (xneg ? '-' : '+'), left,
 		 (yneg ? '-' : '+'), top);
       else
 	sprintf (shell_position, "=%dx%d",
-		 PIXEL_WIDTH (f) + extra_borders,
-		 PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+		 FRAME_PIXEL_WIDTH (f) + extra_borders,
+		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
     }
 
     len = strlen (shell_position) + 1;
@@ -2711,10 +2712,10 @@ x_window (f)
   FRAME_X_WINDOW (f)
     = XCreateWindow (FRAME_X_DISPLAY (f),
 		     f->output_data.x->parent_desc,
-		     f->output_data.x->left_pos,
-		     f->output_data.x->top_pos,
-		     PIXEL_WIDTH (f), PIXEL_HEIGHT (f),
-		     f->output_data.x->border_width,
+		     f->left_pos,
+		     f->top_pos,
+		     FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+		     f->border_width,
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
 		     FRAME_X_VISUAL (f),
@@ -2859,7 +2860,7 @@ x_make_gc (f)
      Note that many default values are used.  */
 
   /* Normal video */
-  gc_values.font = f->output_data.x->font->fid;
+  gc_values.font = FRAME_FONT (f)->fid;
   gc_values.foreground = f->output_data.x->foreground_pixel;
   gc_values.background = f->output_data.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
@@ -3065,7 +3066,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
-  f->output_data.x->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -3193,7 +3194,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
-  xlwmenu_default_font = f->output_data.x->font;
+  xlwmenu_default_font = FRAME_FONT (f);
 #endif
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
@@ -3305,14 +3306,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "scrollBarWidth", "ScrollBarWidth",
 		       RES_TYPE_NUMBER);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
 
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+  SET_FRAME_COLS (f, 0);
+  FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Set up faces after all frame parameters are known.  This call
@@ -3763,28 +3764,28 @@ int
 x_pixel_width (f)
      register struct frame *f;
 {
-  return PIXEL_WIDTH (f);
+  return FRAME_PIXEL_WIDTH (f);
 }
 
 int
 x_pixel_height (f)
      register struct frame *f;
 {
-  return PIXEL_HEIGHT (f);
+  return FRAME_PIXEL_HEIGHT (f);
 }
 
 int
 x_char_width (f)
      register struct frame *f;
 {
-  return FONT_WIDTH (f->output_data.x->font);
+  return FRAME_COLUMN_WIDTH (f);
 }
 
 int
 x_char_height (f)
      register struct frame *f;
 {
-  return f->output_data.x->line_height;
+  return FRAME_LINE_HEIGHT (f);
 }
 
 int
@@ -4475,8 +4476,8 @@ or omitted means use the selected frame.  */)
       int height = img->height + 2 * img->vmargin;
 
       if (NILP (pixels))
-	size = Fcons (make_float ((double) width / CANON_X_UNIT (f)),
-		      make_float ((double) height / CANON_Y_UNIT (f)));
+	size = Fcons (make_float ((double) width / FRAME_COLUMN_WIDTH (f)),
+		      make_float ((double) height / FRAME_LINE_HEIGHT (f)));
       else
 	size = Fcons (make_number (width), make_number (height));
     }
@@ -9632,7 +9633,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   current_buffer->truncate_lines = Qnil;
@@ -9651,7 +9652,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
-  f->output_data.x->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -9832,13 +9833,13 @@ x_create_tip_frame (dpyinfo, parms, text)
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
+  SET_FRAME_COLS (f, 0);
+  FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
@@ -10027,8 +10028,8 @@ Text larger than the specified size is clipped.  */)
 	    }
 
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, PIXEL_WIDTH (f),
-			  PIXEL_HEIGHT (f), &root_x, &root_y);
+	  compute_tip_xy (f, parms, dx, dy, FRAME_PIXEL_WIDTH (f),
+			  FRAME_PIXEL_HEIGHT (f), &root_x, &root_y);
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       root_x, root_y);
 	  UNBLOCK_INPUT;
@@ -10063,7 +10064,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left = w->top = make_number (0);
+  w->left_col = w->top_line = make_number (0);
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -10071,16 +10072,16 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      w->width = XCAR (Vx_max_tooltip_size);
-      w->height = XCDR (Vx_max_tooltip_size);
+      w->total_cols = XCAR (Vx_max_tooltip_size);
+      w->total_lines = XCDR (Vx_max_tooltip_size);
     }
   else
     {
-      w->width = make_number (80);
-      w->height = make_number (40);
+      w->total_cols = make_number (80);
+      w->total_lines = make_number (40);
     }
 
-  f->window_width = XINT (w->width);
+  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
