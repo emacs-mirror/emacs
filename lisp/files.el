@@ -2709,7 +2709,9 @@ After saving the buffer, this function runs `after-save-hook'."
 	      ;; delete the temp file.
 	      (or succeed
 		  (progn
-		    (delete-file tempname)
+		    (condition-case nil
+			(delete-file tempname)
+		      (file-error nil))
 		    (set-visited-file-modtime old-modtime))))
 	    ;; Since we have created an entirely new file
 	    ;; and renamed it, make sure it gets the
