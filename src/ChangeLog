@@ -1,5 +1,8 @@
 2000-10-30  Kenichi Handa  <handa@etl.go.jp>
 
+	* search.c (Fset_match_data): Be sure to make search_regs always
+	sane.
+
 	* puresize.h (BASE_PURESIZE): Increase to 680000.
 
 	* fns.c (Foptimize_char_table): Fix arg for CHARSET_DIMENSION.
