@@ -1,3 +1,9 @@
+2001-02-12  Eric M. Ludlam  <zappo@choochoo.ultranet.com>
+
+	* speedbar.el (speedbar-frame-parameters): No toolbar lines.
+	(speedbar-line-file): Return nil if not a file.
+	(speedbar-buffers-line-path): Return file for tags, and dir for files.
+
 2001-02-12  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el (ediff-make-diff2-buffer): Removed bogus checks
