@@ -4924,6 +4924,13 @@ read_avail_input (expected)
 #else
 	  nread = read (input_fd, cbuf, n_to_read);
 #endif
+	  /* POSIX infers that processes which are not in the session leader's
+	     process group won't get SIGHUP's at logout time.  BSDI adheres to
+	     this part standard and returns -1 from read(0) with errno==EIO
+	     when the control tty is taken away.
+	     Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
+	  if (nread == -1 && errno == EIO)
+	    kill (0, SIGHUP);
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
 	     This looks incorrect, but it isn't, because _BSD causes
