@@ -1,5 +1,8 @@
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (x_face_list_fonts): Call x_list_fonts with SIZE -1,
+	so that scalable fonts are included.
+
 	* xterm.c (x_list_fonts): Allow scalable fonts if SIZE is < 0,
 	In the cache, use a key containing the information if scalable
 	fonts are included.
@@ -7,6 +10,9 @@
 
 2001-01-17  Kim F. Storm  <storm@filanet.dk>
 	
+	* xfaces.c (x_face_list_fonts): Use x_list_fonts instead of
+	XListFonts to take advantage of font caching.
+
 	* xterm.c (x_list_fonts): Ensure caching font information when
 	called for a null frame, which is the case frequently when Emacs
 	starts.
