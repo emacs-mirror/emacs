@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2000, 2001, 2004
+@c 2000, 2001, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/text
@@ -1305,7 +1305,6 @@ You cannot specify any other buffer.
 @end deffn
 
 @deffn Command buffer-disable-undo &optional buffer-or-name
-@deffnx Command buffer-flush-undo &optional buffer-or-name
 @cindex disable undo
 This function discards the undo list of @var{buffer-or-name}, and disables
 further recording of undo information.  As a result, it is no longer
@@ -1314,9 +1313,6 @@ the undo list of @var{buffer-or-name} is already disabled, this function
 has no effect.
 
 This function returns @code{nil}.
-
-The name @code{buffer-flush-undo} is not considered obsolete, but the
-preferred name is @code{buffer-disable-undo}.
 @end deffn
 
   As editing continues, undo lists get longer and longer.  To prevent
