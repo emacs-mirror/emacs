@@ -230,6 +230,10 @@
      (("sidewaysfigure" ?f nil nil caption)
       ("sidewaystable"  ?t nil nil caption)))
 
+    (sidecap      "CSfigure and SCtable"
+     (("SCfigure"       ?f nil nil caption)
+      ("SCtable"        ?t nil nil caption)))
+
     (subfigure   "Subfigure environments/macro"
      (("subfigure"   ?f nil nil caption)
       ("subfigure*"  ?f nil nil caption)
@@ -403,7 +407,7 @@ The following conventions are valid for all alist entries:
 
 (defcustom reftex-default-label-alist-entries
   '(amsmath endnotes fancybox floatfig longtable picinpar
-	    rotating subfigure supertab wrapfig LaTeX)
+	    rotating sidecap subfigure supertab wrapfig LaTeX)
   "Default label alist specifications.  LaTeX should be the last entry.
 This list describes the default label environments RefTeX should always use.
 It is probably a mistake to remove the LaTeX symbol from this list.
@@ -752,13 +756,13 @@ NO-CONTEXT         Non-nil means do NOT show the short context.
 FOLLOW             Follow full context in other window.
 SHOW-COMMENTED     Show labels from regions which are commented out.
 MATCH-IN-TOC       Searches in label menu will also match in toc lines.
-SHOW FILES         Show Begin and end of included files.
+SHOW FILES         Show begin and end of included files.
 
 Each of these flags can be set to t or nil, or to a string of type letters
 indicating the label types for which it should be true.  These strings work
 like character classes in regular expressions.  Thus, setting one of the
 flags to \"sf\" makes the flag true for section and figure labels, nil
-for everything else.  Setting it to \"^ft\" makes it the other way round.
+for everything else.  Setting it to \"^sf\" makes it the other way round.
 The available label types are: s (section), f (figure), t (table), i (item),
 e (equation), n (footnote), plus any definitions in `reftex-label-alist'.
 
@@ -1125,6 +1129,25 @@ Font-lock must be loaded as well to actually get fontified display."
   :group 'reftex-miscellaneous-configurations
   :type '(boolean))
 
+(defcustom reftex-highlight-selection 'cursor
+  "*Non-nil mean, highlight selected text in selection and *toc* buffers.
+Normally, the text near the cursor is the selected text, and it is
+highlighted.  This is the entry most keys in the selction and *toc*
+buffers act on.  However, if you mainly use the mouse to select an
+item, you may find it nice to have mouse-triggered highlighting
+instead or as well. The varaiable may have one of these values:
+
+   nil      No highlighting.
+   cursor   Highlighting is cursor driven.
+   mouse    Highlighting is mouse driven.
+   both     Both cursor and mouse trigger highlighting."
+  :group 'reftex-miscellaneous-configurations
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "Cursor driven" cursor)
+	  (const :tag "Mouse driven" mouse)
+	  (const :tag "Mouse and Cursor driven." both)))
+
 (defcustom reftex-auto-show-entry 'copy
   "*Non-nil means, do something when context in other window is hidden.
 Some modes like `outline-mode' or `folding-mode' hide parts of buffers.
@@ -1161,7 +1184,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-;; This file corresponds to RefTeX version 3.17
+;; This file corresponds to RefTeX version 3.18.0.2
 
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
@@ -1609,9 +1632,11 @@ labels."
 (defvar reftex-default-context-position nil)
 (defvar reftex-location-start nil)
 (defvar reftex-call-back-to-this-buffer nil)
+(defvar reftex-select-return-marker (make-marker))
 (defvar reftex-active-toc nil)
 (defvar reftex-tex-path nil)
 (defvar reftex-bib-path nil)
+(defvar reftex-last-follow-point nil)
 (defvar reftex-prefix)
 
 ;; List of buffers created temporarily for lookup, which should be killed.
@@ -2313,14 +2338,35 @@ This function is controlled by the settings of reftex-insert-label-flags."
  t i c # %  Toggle: [i]ncl. file borders, [t]able of contents,  [c]ontext
                     [#] label counters,   [%] labels in comments
  SPC / f    Show full context in other window / Toggle follow mode
- v / e      Toggle \\ref <-> \\vref  / Recursive Edit into other window
+ v   / .    Toggle \\ref <-> \\vref / Show insertion point in other window
  TAB        Enter a label with completion
- q / RET    Quit without accepting label / Accept current label")
+ q / RET    Quit without referencing / Accept current label (also on mouse-2)")
 
 (defvar reftex-select-label-map nil
   "Keymap used for *RefTeX Select* buffer, when selecting a label.
 This keymap can be used to configure the label selection process which is
 started with the command \\[reftex-reference].")
+
+(defun reftex-select-label-mode ()
+  "Major mode for selecting a label in a LaTeX document.
+This buffer was created with RefTeX.
+It only has a meaningful keymap when you are in the middle of a 
+selection process.
+To select a label, move the cursor to it and press RET.
+Press `?' for a summary of important key bindings.
+
+During a selection process, these are the local bindings.
+
+\\{reftex-select-label-map}"
+
+  (interactive)
+  (kill-all-local-variables)
+  (make-local-hook 'pre-command-hook)
+  (make-local-hook 'post-command-hook)
+  (setq major-mode 'reftex-select-label-mode
+	mode-name "RefTeX Select Label")
+  ;; We do not set a local map - reftex-select-item does this.
+  (run-hooks 'reftex-select-label-mode-hook))
 
 (defun reftex-reference (&optional type no-insert cut)
   "Make a LaTeX reference.  Look only for labels of a certain TYPE.
@@ -2355,8 +2401,10 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	 label pair)
 
     ;; Have the user select a label
+    (set-marker reftex-select-return-marker (point))
     (setq pair (save-excursion
 		 (reftex-offer-label-menu type)))
+    (set-marker reftex-select-return-marker nil)
     (setq label (car pair)
 	  type  (cdr pair)
 	  form (or (cdr (assoc type reftex-typekey-to-format-alist))
@@ -2430,13 +2478,16 @@ When called with 2 C-u prefix args, disable magic word recognition."
             (save-window-excursion
 	      (delete-other-windows)
 	      (setq reftex-call-back-to-this-buffer buf)
-	      (if reftex-use-multiple-selection-buffers
-		  (switch-to-buffer-other-window
-		   (save-excursion
-		     (set-buffer buf)
-		     (reftex-make-selection-buffer-name typekey)))
-		(switch-to-buffer-other-window "*RefTeX Select*")
-		(erase-buffer))
+	      (let ((default-major-mode 'reftex-select-label-mode))
+		(if reftex-use-multiple-selection-buffers
+		    (switch-to-buffer-other-window
+		     (save-excursion
+		       (set-buffer buf)
+		       (reftex-make-selection-buffer-name typekey)))
+		  (switch-to-buffer-other-window "*RefTeX Select*")
+		  (reftex-erase-buffer)))
+	      (unless (eq major-mode 'reftex-select-label-mode)
+		(reftex-select-label-mode))
 	      (add-to-list 'selection-buffers (current-buffer))
               (setq truncate-lines t)
 	      (setq mode-line-format
@@ -2447,12 +2498,14 @@ When called with 2 C-u prefix args, disable magic word recognition."
 			  " -%-"))
 	      (cond
 	       ((= 0 (buffer-size))
-		(setq offset (reftex-make-and-insert-label-list
-			      typekey buf toc files context counter commented
-			      (or here-I-am offset) prefix)))
+		(let ((buffer-read-only nil))
+		  (setq offset (reftex-make-and-insert-label-list
+				typekey buf toc files context counter commented
+				(or here-I-am offset) prefix))))
 	       (here-I-am
 		(setq offset (reftex-get-offset buf here-I-am typekey)))
 	       (t (setq offset t)))
+	      (setq buffer-read-only t)
 	      (setq offset (or offset t))
 
               (setq here-I-am nil) ; turn off determination of offset
@@ -2472,15 +2525,15 @@ When called with 2 C-u prefix args, disable magic word recognition."
               (cond
 	       ((eq key ?g)
 		;; update buffer
-		(erase-buffer))
+		(reftex-erase-buffer))
                ((or (eq key ?r)
                     (eq key ?R))
                 ;; rescan buffer
-		(erase-buffer)
+		(reftex-erase-buffer)
                 (reftex-parse-document buf last-data key))
                ((eq key ?c)
                 ;; toggle context mode
-		(erase-buffer)
+		(reftex-erase-buffer)
                 (setq context (not context)))
                ((eq key ?s)
                 ;; switch type
@@ -2488,19 +2541,19 @@ When called with 2 C-u prefix args, disable magic word recognition."
                 (setq typekey (reftex-query-label-type)))
                ((eq key ?t)
                 ;; toggle table of contents display
-		(erase-buffer)
+		(reftex-erase-buffer)
                 (setq toc (not toc)))
                ((eq key ?i)
                 ;; toggle display of included file borders
-		(erase-buffer)
+		(reftex-erase-buffer)
                 (setq files (not files)))
                ((eq key ?#)
                 ;; toggle counter display
-		(erase-buffer)
+		(reftex-erase-buffer)
                 (setq counter (not counter)))
                ((eq key ?%)
                 ;; toggle display of commented labels
-		(erase-buffer)
+		(reftex-erase-buffer)
                 (setq commented (not commented)))
                ((eq key ?l)
                 ;; reuse the last referenced label again
@@ -2614,6 +2667,10 @@ When called with 2 C-u prefix args, disable magic word recognition."
          (context-indent
           (concat ".   "
                   (if toc (make-string (* 7 reftex-level-indent) ?\ ) "")))
+	 (mouse-face 
+	  (cond ((eq reftex-highlight-selection 'mouse) 'highlight)
+		((eq reftex-highlight-selection 'both) 'secondary-selection)
+		(t nil)))
          all cell text label typekey note comment master-dir-re
          offset from to docstruct-symbol)
 
@@ -2711,6 +2768,9 @@ When called with 2 C-u prefix args, disable magic word recognition."
             (insert context-indent text "\n")
             (setq to (point)))
           (put-text-property from to ':data cell)
+	  (when mouse-face
+	    (put-text-property from (1- to)
+			       'mouse-face mouse-face))	  
           (goto-char to)))))
 
     (when (reftex-refontify)
@@ -3362,6 +3422,28 @@ When called with 2 C-u prefix args, disable magic word recognition."
 (defvar reftex-toc-map (make-sparse-keymap)
   "Keymap used for *toc* buffer.")
 
+(defun reftex-toc-mode ()
+  "Major mode for managing Table of Contents for LaTeX files.
+This buffer was created with RefTeX.
+Press `?' for a summary of important key bindings.
+
+Here are all local bindings.
+
+\\{reftex-toc-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'reftex-toc-mode
+	mode-name "RefTeX Table of Contents")
+  (use-local-map reftex-toc-map)
+  (set (make-local-variable 'revert-buffer-function) 'reftex-toc-revert)
+  (setq truncate-lines t)
+  (make-local-hook 'post-command-hook)
+  (make-local-hook 'pre-command-hook)
+  (make-local-variable 'reftex-last-follow-point)
+  (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
+  (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)
+  (run-hooks 'reftex-toc-mode-hook))
+
 (defvar reftex-last-toc-master nil
   "Stores the name of the tex file that `reftex-toc' was last run on.")
 
@@ -3393,7 +3475,7 @@ When called with a raw C-u prefix, rescan the document first."
 
   (if (or (not (string= reftex-last-toc-master (reftex-TeX-master-file)))
           current-prefix-arg)
-      (reftex-empty-toc-buffer))
+      (reftex-erase-buffer "*toc*"))
 
   (setq reftex-last-toc-file   (buffer-file-name))
   (setq reftex-last-toc-master (reftex-TeX-master-file))
@@ -3411,7 +3493,11 @@ When called with a raw C-u prefix, rescan the document first."
 	 (xr-data (assq 'xr all))
 	 (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
          (where (reftex-nearest-section))
-         toc1 cell startpos)
+	 (mouse-face 
+ 	  (cond ((eq reftex-highlight-selection 'mouse) 'highlight)
+		((eq reftex-highlight-selection 'both) 'secondary-selection)
+		(t nil)))
+	 toc1 cell startpos)
 
     (if (get-buffer-window "*toc*")
         (select-window (get-buffer-window "*toc*"))
@@ -3419,21 +3505,17 @@ When called with a raw C-u prefix, rescan the document first."
 	(delete-other-windows))
       (setq reftex-last-window-height (window-height))  ; remember
       (split-window)
-      (switch-to-buffer (get-buffer-create "*toc*")))
+      (let ((default-major-mode 'reftex-toc-mode))
+	(switch-to-buffer "*toc*")))
+
+    (or (eq major-mode 'reftex-toc-mode) (reftex-toc-mode))
 
     (cond
      ;; buffer is empty - fill it with the table of contents
      ((= (buffer-size) 0)
       (message "Building *toc* buffer...")
-      (make-local-variable 'revert-buffer-function)
-      (setq revert-buffer-function 'reftex-toc-revert)
-      (setq truncate-lines t)
-      (make-local-hook 'post-command-hook)
-      (make-local-hook 'pre-command-hook)
-      (setq post-command-hook '(reftex-toc-post-command-hook))
-      (setq pre-command-hook  '(reftex-toc-pre-command-hook))
-      (use-local-map reftex-toc-map)
 
+      (setq buffer-read-only nil)
       (insert (format
 "TABLE-OF-CONTENTS on %s
 SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
@@ -3452,6 +3534,9 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
         (when (eq (car cell) 'toc)
           (setq toc1 (concat (nth 2 cell) "\n"))
           (put-text-property 0 (length toc1) 'toc cell toc1)
+	  (when mouse-face
+	    (put-text-property 0 (1- (length toc1))
+			       'mouse-face mouse-face toc1))
           (insert toc1)))
 
       (backward-delete-char 1)
@@ -3468,7 +3553,8 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
     (beginning-of-line)
     (while (and (> (point) startpos)
                 (not (eq (get-text-property (point) 'toc) where)))
-      (beginning-of-line 0))))
+      (beginning-of-line 0))
+    (setq reftex-last-follow-point (point))))
 
 (defun reftex-nearest-section ()
   ;; Return (file . find) of nearest section command
@@ -3484,6 +3570,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
 (defun reftex-toc-post-command-hook ()
   ;; used in the post-command-hook for the *toc* buffer
   (and (> (point) 1)
+       (memq reftex-highlight-selection '(cursor both))
        (save-excursion
          (reftex-highlight 1
                           (progn (beginning-of-line) (point))
@@ -3492,18 +3579,13 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
    ((integerp reftex-toc-follow-mode)
     ;; remove delayed action
     (setq reftex-toc-follow-mode t))
-   (reftex-toc-follow-mode
+   ((and reftex-toc-follow-mode
+	 (not (equal reftex-last-follow-point (point))))
     ;; show context in other window
+    (setq reftex-last-follow-point (point))
     (condition-case nil
         (reftex-toc-visit-line nil (not reftex-revisit-to-follow))
       (error t)))))
-
-(defun reftex-empty-toc-buffer ()
-  (if (get-buffer "*toc*")
-      (save-excursion
-        (set-buffer "*toc*")
-        (setq buffer-read-only nil)
-        (erase-buffer))))
 
 (defun reftex-re-enlarge ()
   (enlarge-window
@@ -3526,6 +3608,11 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
 (defun reftex-toc-view-line ()
   "View document location in other window."
   (interactive)
+  (reftex-toc-visit-line))
+(defun reftex-toc-mouse-view-line (ev)
+  "View document location in other window."
+  (interactive "e")
+  (mouse-set-point ev)
   (reftex-toc-visit-line))
 (defun reftex-toc-goto-line-and-hide ()
   "Go to document location in other window.  Hide the *toc* window."
@@ -3580,7 +3667,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
   (interactive)
   (switch-to-buffer-other-window
    (reftex-get-file-buffer-force reftex-last-toc-file))
-  (reftex-empty-toc-buffer)
+  (reftex-erase-buffer "*toc*")
   (setq current-prefix-arg nil)
   (reftex-toc))
 (defun reftex-toc-external (&rest ignore)
@@ -3694,15 +3781,36 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [f]ollow-mode e[x]tern [?]Help
  g   / r    Start over with new regexp / Refine with additional regexp.
  SPC        Show full database entry in other window.
  f          Toggle follow mode: Other window will follow with full db entry.
+ .          Show insertion point.
  q          Quit without inserting \\cite macro into buffer.
- e          Recursive edit into other window.
  TAB        Enter citation key with completion.
- RET  / a   Accept current entry / Accept all entries.")
+ RET        Accept current entry (also on mouse-2)
+ a          Accept all entries.")
 
 (defvar reftex-select-bib-map nil
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
 This keymap can be used to configure the BibTeX selection process which is
 started with the command \\[reftex-citation].")
+
+(defun reftex-select-bib-mode ()
+  "Major mode for selecting a citation key in a LaTeX document.
+This buffer was created with RefTeX.
+It only has a meaningful keymap when you are in the middle of a 
+selection process.
+In order to select a citation, move the cursor to it and press RET.
+Press `?' for a summary of important key bindings.
+
+During a selection process, these are the local bindings.
+
+\\{reftex-select-label-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (make-local-hook 'pre-command-hook)
+  (make-local-hook 'post-command-hook)
+  (setq major-mode 'reftex-select-bib-mode
+	mode-name "RefTeX Select Bib")
+  ;; We do not set a local map - reftex-select-item does this.
+  (run-hooks 'reftex-select-bib-mode-hook))
 
 ;; Find bibtex files
 
@@ -4255,13 +4363,19 @@ bibliography statement (e.g. if it was changed)."
 
       ;; remember where we came from
       (setq reftex-call-back-to-this-buffer (current-buffer))
+      (set-marker reftex-select-return-marker (point))
 
       ;; offer selection
       (save-window-excursion
 	(delete-other-windows)
-        (switch-to-buffer-other-window "*RefTeX Select*")
-        (erase-buffer)
-        (reftex-insert-bib-matches found-list)
+	(let ((default-major-mode 'reftex-select-bib-mode))
+	  (switch-to-buffer-other-window "*RefTeX Select*")
+	  (unless (eq major-mode 'reftex-select-bib-mode)
+	    (reftex-select-bib-mode))
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (reftex-insert-bib-matches found-list)))
+	(setq buffer-read-only t)
         (if (= 0 (buffer-size))
             (error "Sorry, no matches found"))
         (setq truncate-lines t)
@@ -4285,8 +4399,9 @@ bibliography statement (e.g. if it was changed)."
                           (set-buffer reftex-call-back-to-this-buffer)
                           (reftex-extract-bib-entries
                            (reftex-get-bibfile-list))))
-                  (erase-buffer)
-                  (reftex-insert-bib-matches found-list)
+		  (let ((buffer-read-only nil))
+		    (erase-buffer)
+		    (reftex-insert-bib-matches found-list))
                   (if (= 0 (buffer-size))
                       (error "Sorry, no matches found"))
                   (goto-char 1))
@@ -4314,8 +4429,9 @@ bibliography statement (e.g. if it was changed)."
                   (if found-list-r
                       (setq found-list found-list-r)
                     (ding))
-                  (erase-buffer)
-                  (reftex-insert-bib-matches found-list)
+		  (let ((buffer-read-only nil))
+		    (erase-buffer)
+		    (reftex-insert-bib-matches found-list))
                   (goto-char 1))
                  ((eq key ?a)
                   (setq entry 'all)
@@ -4352,6 +4468,7 @@ bibliography statement (e.g. if it was changed)."
 			(reftex-format-citation entry format)))))
           (setq ins-string "")
           (message "Quit")))
+      (set-marker reftex-select-return-marker (point))
       (kill-buffer "*RefTeX Select*")
 
       (unless no-insert
@@ -4376,12 +4493,18 @@ bibliography statement (e.g. if it was changed)."
 
 (defun reftex-insert-bib-matches (list)
   ;; Insert the bib matches and number them correctly
-  (let (tmp)
+  (let ((mouse-face 
+	 (cond ((eq reftex-highlight-selection 'mouse) 'highlight)
+	       ((eq reftex-highlight-selection 'both) 'secondary-selection)
+	       (t nil)))
+	tmp len)    
     (mapcar 
      (function
       (lambda (x)
-	(setq tmp (cdr (assoc "&formatted" x)))
-	(put-text-property 0 (length tmp) ':data x tmp)
+	(setq tmp (cdr (assoc "&formatted" x))
+	      len (length tmp))
+	(put-text-property 0 len ':data x tmp)
+	(put-text-property 0 (1- len) 'mouse-face mouse-face tmp)
 	(insert tmp)))
      list)))
 
@@ -4509,7 +4632,7 @@ bibliography statement (e.g. if it was changed)."
   (if (marker-position reftex-recursive-edit-marker)
       (error
        (substitute-command-keys
-        "In unfinished recursive edit. Finish (\\[exit-recursive-edit]) or abort (\\[abort-recursive-edit])."))))
+        "In unfinished selection process. Finish, or abort with \\[abort-recursive-edit]."))))
 
 (defun reftex-select-item (prompt help-string keymap
 				  &optional offset
@@ -4528,12 +4651,10 @@ bibliography statement (e.g. if it was changed)."
 ;; When MATCH-EVERYWHERE is t, searches will also match in non-selectable
 ;; places.
 
-  (let* (key-sq b e ev data last-data cmd skip-callback
-		(orig-buffer (current-buffer))
-		(search-str "") last-cmd callback-fwd)
+  (let* (ev data last-data callback-fwd)
 
     (setq ev
-          (catch 'exit
+          (catch 'myexit
             (save-window-excursion
               (setq truncate-lines t)
 
@@ -4556,130 +4677,101 @@ bibliography statement (e.g. if it was changed)."
 		     (point-min))))
 	       (t (goto-char (point-min))))
               (beginning-of-line 1)
+	      (set (make-local-variable 'reftex-last-follow-point) (point))
 
       (unwind-protect
 	  (progn
 	    (use-local-map keymap)
-	    (while t
-	      (setq data (get-text-property (point) ':data))
-	      (setq last-data (or data last-data))
+	    (add-hook 'pre-command-hook 'reftex-select-pre-command-hook nil t)
+	    (add-hook 'post-command-hook 'reftex-select-post-command-hook nil t)
+	    (princ prompt)
+	    (set-marker reftex-recursive-edit-marker (point))
+	    (run-hooks 'post-command-hook)  ;; because XEmacs does not do it
+	    (recursive-edit))
 
-	      (if (and data cb-flag call-back (not skip-callback))
-		  (funcall call-back data callback-fwd 
-			   (not reftex-revisit-to-follow)))
-	      (setq skip-callback nil)
-	      (if data
-		  (setq b (or (previous-single-property-change
-			       (1+ (point)) ':data)
-			      (point-min))
-			e (or (next-single-property-change
-			       (point) ':data)
-			      (point-max)))
-		(setq b (point) e (point)))
-	      (reftex-highlight 1 b e)
-	      (if (or (not (pos-visible-in-window-p b))
-		      (not (pos-visible-in-window-p e)))
-		  (recenter (/ (window-height) 2)))
-	      
-	      (setq last-cmd cmd
-		    cmd nil)
-
-	      (setq key-sq (read-key-sequence prompt))
-	      (setq cmd (lookup-key keymap key-sq))
-
-	      (reftex-unhighlight 2)
-	      (reftex-unhighlight 1)
-	      (reftex-unhighlight 0)
-
-	      (if cmd
-		  (condition-case nil
-		      (progn
-			(command-execute cmd)
-			;FIXME: (run-hooks 'post-command-hook)
-			)
-		    (error (ding)))
-		(ding))
-
-	      (unless (equal (current-buffer) orig-buffer)
-		(error "Selection commands must return to *RefTeX Select* buffer."))))
-	(use-local-map nil)))))
+	(use-local-map nil)
+	(remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
+	(remove-hook 'post-command-hook 'reftex-select-post-command-hook t)
+	(set-marker reftex-recursive-edit-marker nil)))))
 
     (set (make-local-variable 'reftex-last-line)
 	 (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
     (set (make-local-variable 'reftex-last-data) last-data)
-    (and (get-buffer "*RefTeX Help*") (kill-buffer "*RefTeX Help*"))
+    (reftex-kill-buffer "*RefTeX Help*")
     (message "")
     (list ev data last-data)))
 
 ;; The following variables are all bound dynamically in `reftex-select-item'.
 ;; The defvars are here only to silence the byte compiler.
 
-(defvar last-cmd)
 (defvar found-list)
 (defvar cb-flag)
 (defvar data)
+(defvar prompt)
+(defvar last-data)
 (defvar call-back)
 (defvar help-string)
-(defvar skip-callback)
-(defvar search-str)
 (defvar match-everywhere)
-(defvar forward)
-(defvar keymap)
 (defvar callback-fwd)
 (defvar varioref)
-(defconst reftex-select-search-minibuffer-map
-  (let ((map (copy-keymap minibuffer-local-map)))
-    (define-key map "\C-s"
-      (function (lambda() (interactive) (setq forward t) (exit-minibuffer))))
-    (define-key map "\C-r"
-      (function (lambda() (interactive) (setq forward nil) (exit-minibuffer))))
-    (define-key map "\C-m" 'exit-minibuffer)
-    map))
 
 ;; The selection commands
 
-(defun reftex-select-next ()
-  (interactive)
+(defun reftex-select-pre-command-hook ()
+  (reftex-unhighlight 1)
+  (reftex-unhighlight 0))
+
+(defun reftex-select-post-command-hook ()
+  (let (b e)
+    (setq data (get-text-property (point) ':data))
+    (setq last-data (or data last-data))
+  
+    (when (and data cb-flag
+	       (not (equal reftex-last-follow-point (point))))
+      (setq reftex-last-follow-point (point))
+      (funcall call-back data callback-fwd 
+	       (not reftex-revisit-to-follow)))
+    (if data
+	(setq b (or (previous-single-property-change
+		     (1+ (point)) ':data)
+		    (point-min))
+	      e (or (next-single-property-change
+		     (point) ':data)
+		    (point-max)))
+      (setq b (point) e (point)))
+    (and (memq reftex-highlight-selection '(cursor both))
+	 (reftex-highlight 1 b e))
+    (if (or (not (pos-visible-in-window-p b))
+	    (not (pos-visible-in-window-p e)))
+	(recenter (/ (window-height) 2)))
+    (when (and (fboundp 'current-message)
+	       (not (current-message)))
+      (princ prompt))))
+
+(defun reftex-select-next (&optional arg)
+  (interactive "p")
   (setq callback-fwd t)
   (or (eobp) (forward-char 1))
-  (re-search-forward "^[^. \t\n\r]" nil t 1)
+  (re-search-forward "^[^. \t\n\r]" nil t arg)
   (beginning-of-line 1))
-(defun reftex-select-previous ()
-  (interactive)
+(defun reftex-select-previous (&optional arg)
+  (interactive "p")
   (setq callback-fwd nil)
-  (re-search-backward "^[^. \t\n\r]" nil t))
-(defun reftex-select-scroll-up ()
-  (interactive)
-  (setq callback-fwd t)
-  (while (and (pos-visible-in-window-p)
-	      (re-search-forward "^[^. \t\n\r]" nil t)))
-  (beginning-of-line 1)
-  (recenter 1))
-(defun reftex-select-scroll-down ()
-  (interactive)
-  (setq callback-fwd nil)
-  (while (and (pos-visible-in-window-p)
-	      (re-search-backward "^[^. \t\n\r]" nil t)))
-  (recenter (- (window-height) 4)))
-(defun reftex-select-next-heading ()
-  (interactive)
+  (re-search-backward "^[^. \t\n\r]" nil t arg))
+(defun reftex-select-next-heading (&optional arg)
+  (interactive "p")
   (end-of-line)
-  (re-search-forward "^ " nil t)
+  (re-search-forward "^ " nil t arg)
   (beginning-of-line))
-(defun reftex-select-previous-heading ()
-  (interactive)
-  (re-search-backward "^ " nil t))
-(defun reftex-select-scroll-other-window ()
-  (interactive)
-  (setq skip-callback t)
-  (scroll-other-window))
-(defun reftex-select-scroll-other-window-down ()
-  (interactive)
-  (setq skip-callback t)
-  (scroll-other-window-down nil))
+(defun reftex-select-previous-heading (&optional arg)
+  (interactive "p")
+  (re-search-backward "^ " nil t arg))
 (defun reftex-select-quit ()
   (interactive)
-  (throw 'exit nil))
+  (throw 'myexit nil))
+(defun reftex-select-keyboard-quit ()
+  (interactive)
+  (throw 'exit t))
 (defun reftex-select-jump-to-previous ()
   (interactive)
   (let (pos)
@@ -4702,19 +4794,35 @@ bibliography statement (e.g. if it was changed)."
       (setq varioref "\\vref")
     (setq varioref "\\ref"))
   (force-mode-line-update))
+(defun reftex-select-show-insertion-point ()
+  (interactive)
+  (let ((this-window (selected-window)))
+    (unwind-protect
+	(progn
+	  (switch-to-buffer-other-window
+	   (marker-buffer reftex-select-return-marker))
+	  (goto-char (marker-position reftex-select-return-marker))
+	  (recenter (/ (window-height) 2)))
+      (select-window this-window))))
 (defun reftex-select-callback ()
   (interactive)
   (if data (funcall call-back data callback-fwd nil) (ding)))
 (defun reftex-select-accept ()
   (interactive)
-  (throw 'exit 'return))
+  (throw 'myexit 'return))
+(defun reftex-select-mouse-accept (ev)
+  (interactive "e")
+  (mouse-set-point ev)
+  (setq data (get-text-property (point) ':data))
+  (setq last-data (or data last-data))
+  (throw 'myexit 'return))
 (defun reftex-select-read-label ()
   (interactive)
   (let ((label (completing-read 
 		"Label: " (symbol-value reftex-docstruct-symbol)
 		nil nil reftex-prefix)))
     (unless (or (equal label "") (equal label reftex-prefix))
-      (throw 'exit label))))
+      (throw 'myexit label))))
 (defun reftex-select-read-cite ()
   (interactive)
   (let* ((list (mapcar (lambda (x) 
@@ -4722,70 +4830,12 @@ bibliography statement (e.g. if it was changed)."
 		       found-list))
 	 (key (completing-read "Citation key: " list)))
     (unless (equal key "")
-      (throw 'exit key))))
+      (throw 'myexit key))))
 (defun reftex-select-help ()
   (interactive)
   (with-output-to-temp-buffer "*RefTeX Help*"
     (princ help-string))
-  (reftex-enlarge-to-fit "*RefTeX Help*" t)
-  (setq skip-callback t))
-(defun reftex-select-recursive-edit ()
-  (interactive)
-  (set-marker reftex-recursive-edit-marker (point))
-  (unwind-protect
-      (progn
-	(save-window-excursion
-	  (save-excursion
-	    (other-window 1)
-	    (message
-	     (substitute-command-keys
-	      "Recursive edit.  Return to selection with \\[exit-recursive-edit]"))
-	    (recursive-edit)))
-	(unless (equal (marker-buffer
-			reftex-recursive-edit-marker)
-		       (current-buffer))
-	  (error "Cannot continue RefTeX from this buffer."))
-	(goto-char reftex-recursive-edit-marker))
-    (set-marker reftex-recursive-edit-marker nil)))
-
-(defun reftex-select-search-forward ()
-  (interactive)
-  (reftex-select-search t))
-(defun reftex-select-search-backward ()
-  (interactive)
-  (reftex-select-search nil))
-(defun reftex-select-search (forward)
-  (let (tmp search-start matched)
-    (if (or (and (not (eq last-cmd 'reftex-select-search-forward))
-		 (not (eq last-cmd 'reftex-select-search-backward)))
-	    (string= search-str ""))
-	(setq tmp				; get a new string
-	      (read-from-minibuffer
-	       (if (string= search-str "")
-		   "Search: "
-		 (format "Search [%s]:" search-str))
-	       nil reftex-select-search-minibuffer-map)
-	      search-str (if (string= tmp "")
-			     search-str tmp)))
-    (setq search-start (point))
-    (and (not (string= search-str ""))
-	 (progn
-	   (while
-	       (and (setq matched
-			  (if forward
-			      (search-forward search-str nil 1)
-			    (search-backward search-str nil 1)))
-		    (or (>= (save-excursion
-			      (goto-char (match-beginning 0))
-			      (current-column))
-			    (window-width))
-			(not (or (get-text-property (point) ':data)
-				 match-everywhere)))))
-	   (if matched
-	       (reftex-highlight 2 (match-beginning 0)
-				 (match-end 0))
-	     (ding)
-	     (goto-char search-start))))))
+  (reftex-enlarge-to-fit "*RefTeX Help*" t))
 
 ;;; ===========================================================================
 ;;;
@@ -5033,16 +5083,22 @@ With argument, actually select the window showing the cross reference."
     (buffer-substring-no-properties (match-beginning n) (match-end n))))
 
 (defun reftex-kill-buffer (buffer)
-;; Kill buffer if it exists.
+  ;; Kill buffer if it exists.
   (and (setq buffer (get-buffer buffer))
        (kill-buffer buffer)))
 
-(defun reftex-erase-buffer (buffer)
-;; Erase buffer if it exists.
-  (and (setq buffer (get-buffer buffer))
-       (save-excursion
-	 (set-buffer buffer)
-	 (erase-buffer))))
+(defun reftex-erase-buffer (&optional buffer)
+  ;; Erase BUFFER if it exists.  BUFFER defaults to current buffer.
+  ;; This even erases read-only buffers.
+  (cond
+   ((null buffer)
+    ;; erase current buffer
+    (let ((buffer-read-only nil)) (erase-buffer)))
+   ((setq buffer (get-buffer buffer))
+    ;; buffer exists
+    (save-excursion
+      (set-buffer buffer)
+      (let ((buffer-read-only nil)) (erase-buffer))))))
 
 (defun reftex-this-word (&optional class)
   ;; Grab the word around point.
@@ -5269,6 +5325,7 @@ With argument, actually select the window showing the cross reference."
              (let ((format-alist nil)
                    (auto-mode-alist (reftex-auto-mode-alist))
                    (default-major-mode 'fundamental-mode)
+		   (enable-local-variables nil)
                    (after-insert-file-functions nil))
                (setq buf (find-file-noselect file)))
 
@@ -5371,16 +5428,13 @@ With argument, actually select the window showing the cross reference."
         (error "RefTeX needs overlay emulation (available in XEmacs 19.15)"))))
 
 ;; We keep a vector with several different overlays to do our highlighting.
-(defvar reftex-highlight-overlays [nil nil nil])
+(defvar reftex-highlight-overlays [nil nil])
 
 ;; Initialize the overlays
 (aset reftex-highlight-overlays 0 (make-overlay 1 1))
 (overlay-put (aref reftex-highlight-overlays 0) 'face 'highlight)
 (aset reftex-highlight-overlays 1 (make-overlay 1 1))
 (overlay-put (aref reftex-highlight-overlays 1) 'face 'highlight)
-(aset reftex-highlight-overlays 2 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 2) 'face
-             (if (string-match "XEmacs" emacs-version) 'zmacs-region 'region))
 
 ;; Two functions for activating and deactivation highlight overlays
 (defun reftex-highlight (index begin end &optional buffer)
@@ -5442,7 +5496,7 @@ these variables."
   "Reset the symbols containing information from buffer scanning.
 This enforces rescanning the buffer on next use."
   (if (string= reftex-last-toc-master (reftex-TeX-master-file))
-      (reftex-empty-toc-buffer))
+      (reftex-erase-buffer "*toc*"))
   (let ((symlist reftex-multifile-symbols)
         symbol)
     (while symlist
@@ -5673,23 +5727,9 @@ This enforces rescanning the buffer on next use."
   (substitute-key-definition
    'previous-line 'reftex-select-previous	       map global-map)
   (substitute-key-definition
-   'scroll-up 'reftex-select-scroll-up		       map global-map)
-  (substitute-key-definition
-   'scroll-down 'reftex-select-scroll-down	       map global-map)
-  (substitute-key-definition
-   'scroll-other-window 'reftex-select-scroll-other-window map global-map)
-  (substitute-key-definition
-   'scroll-other-window-down 'reftex-select-scroll-other-window-down map global-map)
-  (substitute-key-definition
-   'beginning-of-buffer 'beginning-of-buffer	       map global-map)
-  (substitute-key-definition
-   'end-of-buffer 'end-of-buffer		       map global-map)
-  (substitute-key-definition
-   'keyboard-quit 'keyboard-quit                       map global-map)
+   'keyboard-quit 'reftex-select-keyboard-quit         map global-map)
   (substitute-key-definition
    'newline 'reftex-select-accept		       map global-map)
-  (substitute-key-definition
-   'delete-other-windows 'delete-other-windows	       map global-map)
   (define-key map " "        'reftex-select-callback)
   (define-key map "n"        'reftex-select-next)
   (define-key map [(down)]   'reftex-select-next)
@@ -5698,11 +5738,16 @@ This enforces rescanning the buffer on next use."
   (define-key map "f"        'reftex-select-toggle-follow)
   (define-key map "\C-m"     'reftex-select-accept)
   (define-key map [(return)] 'reftex-select-accept) 
-  (define-key map "\C-s"     'reftex-select-search-forward)
-  (define-key map "\C-r"     'reftex-select-search-backward)
-  (define-key map "e"        'reftex-select-recursive-edit)
   (define-key map "q"        'reftex-select-quit)
+  (define-key map "."        'reftex-select-show-insertion-point)
   (define-key map "?"        'reftex-select-help)
+  (if (string-match "XEmacs" emacs-version)
+      (define-key map [(button2)] 'reftex-select-mouse-accept) ; XEmacs
+    (define-key map [(mouse-2)] 'reftex-select-mouse-accept))  ; Emacs
+
+  (loop for key across "0123456789" do
+	(define-key map (vector (list key)) 'digit-argument))
+  (define-key map "-" 'negative-argument)
 
   (setq reftex-select-label-map map)
   (setq reftex-select-bib-map (copy-keymap map))
@@ -5711,7 +5756,7 @@ This enforces rescanning the buffer on next use."
 
   (loop for key across "cgilrRstx#%" do
 	(define-key reftex-select-label-map (vector (list key))
-	  (list 'lambda '() '(interactive) (list 'throw '(quote exit) key))))
+	  (list 'lambda '() '(interactive) (list 'throw '(quote myexit) key))))
   (define-key reftex-select-label-map "b"     'reftex-select-jump-to-previous)
   (define-key reftex-select-label-map "v"     'reftex-select-toggle-varioref)
   (define-key reftex-select-label-map [(tab)] 'reftex-select-read-label)
@@ -5721,14 +5766,15 @@ This enforces rescanning the buffer on next use."
 
   (loop for key across "grRa" do
 	(define-key reftex-select-bib-map (vector (list key))
-	  (list 'lambda '() '(interactive) (list 'throw '(quote exit) key))))
+	  (list 'lambda '() '(interactive) (list 'throw '(quote myexit) key))))
   (define-key reftex-select-bib-map "\C-i" 'reftex-select-read-cite)
   (define-key reftex-select-bib-map [(tab)] 'reftex-select-read-cite))
 
 ;; Table of Contents map
 (let ((map reftex-toc-map))
-  (define-key map  [(mouse-2)] 'reftex-toc-mouse-goto-line-and-hide); Emacs
-  (define-key map  [(button2)] 'reftex-toc-mouse-goto-line-and-hide); XEmacs
+  (if (string-match "XEmacs" emacs-version)
+      (define-key map  [(button2)] 'reftex-toc-mouse-goto-line-and-hide);XEmacs
+    (define-key map  [(mouse-2)] 'reftex-toc-mouse-goto-line-and-hide)) ;Emacs
   (define-key map  "n"         'next-line)
   (define-key map  "p"         'previous-line)
   (define-key map  "?"         'reftex-toc-show-help)
