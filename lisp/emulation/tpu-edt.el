@@ -783,51 +783,55 @@ This is useful for inserting control characters."
 ;;;  Command and Function Aliases
 ;;;
 ;;;###autoload
-(fset 'tpu-edt-mode 'tpu-edt-on)
-(fset 'TPU-EDT-MODE 'tpu-edt-on)
+(defalias 'tpu-edt-mode 'tpu-edt-on)
+(defalias 'TPU-EDT-MODE 'tpu-edt-on)
 
 ;;;###autoload
-(fset 'tpu-edt 'tpu-edt-on)
-(fset 'TPU-EDT 'tpu-edt-on)
+(defalias 'tpu-edt 'tpu-edt-on)
+(defalias 'TPU-EDT 'tpu-edt-on)
 
-(fset 'exit 'tpu-exit)
-(fset 'EXIT 'tpu-exit)
+;; Note:  The following functions have no `tpu-' prefix.  This is unavoidable.
+;;        The real TPU/edt editor has interactive commands with these names,
+;;        so tpu-edt.el users expect things like M-x exit RET and M-x help RET
+;;        to work.  Therefore it really is necessary to define these functions,
+;;        even in cases where they redefine existing Emacs functions.
 
-(fset 'Get 'tpu-get)
-(fset 'GET 'tpu-get)
+(defalias 'exit 'tpu-exit)
+(defalias 'EXIT 'tpu-exit)
 
-(fset 'include 'tpu-include)
-(fset 'INCLUDE 'tpu-include)
+(defalias 'Get 'tpu-get)
+(defalias 'GET 'tpu-get)
 
-(fset 'quit 'tpu-quit)
-(fset 'QUIT 'tpu-quit)
+(defalias 'include 'tpu-include)
+(defalias 'INCLUDE 'tpu-include)
 
-(fset 'spell 'tpu-spell-check)
-(fset 'SPELL 'tpu-spell-check)
+(defalias 'quit 'tpu-quit)
+(defalias 'QUIT 'tpu-quit)
 
-(fset 'what\ line 'tpu-what-line)
-(fset 'WHAT\ LINE 'tpu-what-line)
+(defalias 'spell 'tpu-spell-check)
+(defalias 'SPELL 'tpu-spell-check)
 
-(fset 'replace 'tpu-lm-replace)
-(fset 'REPLACE 'tpu-lm-replace)
+(defalias 'what\ line 'tpu-what-line)
+(defalias 'WHAT\ LINE 'tpu-what-line)
 
-;; Apparently TPU users really expect to do M-x help RET to get help.
-;; So it is really necessary to redefine this.
-(fset 'help 'tpu-help)
-(fset 'HELP 'tpu-help)
+(defalias 'replace 'tpu-lm-replace)
+(defalias 'REPLACE 'tpu-lm-replace)
+
+(defalias 'help 'tpu-help)
+(defalias 'HELP 'tpu-help)
+
+(defalias 'set\ cursor\ free 'tpu-set-cursor-free)
+(defalias 'SET\ CURSOR\ FREE 'tpu-set-cursor-free)
+
+(defalias 'set\ cursor\ bound 'tpu-set-cursor-bound)
+(defalias 'SET\ CURSOR\ BOUND 'tpu-set-cursor-bound)
+
+(defalias 'set\ scroll\ margins 'tpu-set-scroll-margins)
+(defalias 'SET\ SCROLL\ MARGINS 'tpu-set-scroll-margins)
 
 ;; Real TPU error messages end in periods.
 ;; Define this to avoid openly flouting Emacs coding standards.
 (defalias 'tpu-error 'error)
-
-(fset 'set\ cursor\ free 'tpu-set-cursor-free)
-(fset 'SET\ CURSOR\ FREE 'tpu-set-cursor-free)
-
-(fset 'set\ cursor\ bound 'tpu-set-cursor-bound)
-(fset 'SET\ CURSOR\ BOUND 'tpu-set-cursor-bound)
-
-(fset 'set\ scroll\ margins 'tpu-set-scroll-margins)
-(fset 'SET\ SCROLL\ MARGINS 'tpu-set-scroll-margins)
 
 
 ;; Around emacs version 18.57, function line-move was renamed to
