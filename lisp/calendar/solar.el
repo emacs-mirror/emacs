@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events.
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -400,6 +400,7 @@ latitude, time zone, and date.
 
 This function is suitable for execution in a .emacs file."
  (interactive "p")
+ (or arg (setq arg 1))
  (if (and (< arg 16)
           (not (and calendar-latitude calendar-longitude calendar-time-zone)))
      (solar-setup))
@@ -455,8 +456,7 @@ Accurate to +/- 2 minutes."
   (interactive)
   (if (not (and calendar-latitude calendar-longitude calendar-time-zone))
       (solar-setup))
-  (let ((date (or (calendar-cursor-to-date)
-                  (error "Cursor is not on a date!"))))
+  (let ((date (calendar-cursor-to-date t)))
     (message "%s: %s"
              (calendar-date-string date t t)
              (solar-sunrise-sunset date))))
