@@ -1,3 +1,8 @@
+2001-04-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* splash8.xpm: New image from Luis Fernandes <elf@ee.ryerson.ca>
+	for color depth 8.
+
 2001-04-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: Line and paragraph spacing feature.

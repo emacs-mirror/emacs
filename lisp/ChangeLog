@@ -1,5 +1,8 @@
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-head): Use splash8.xpm for color
+	depth 8.
+
 	* emacs-lisp/checkdoc.el (checkdoc-common-verbs-wrong-voice): Add
 	an antry for ``converts''.
 

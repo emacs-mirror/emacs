@@ -1,5 +1,7 @@
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacsclient.c (fail, main): Don't use implicit int return type.
+
 	* b2m.c (main): Always return a value.
 
 2001-03-02  Gerd Moellmann  <gerd@gnu.org>
