@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support.
 
-;;; Copyright (C) 1988, 1992, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware
@@ -21,59 +21,7 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
 ;;; Utility functions.
-
-(defsubst mouse-movement-p (object)
-  "Return non-nil if OBJECT is a mouse movement event."
-  (and (consp object)
-       (eq (car object) 'mouse-movement)))
-
-(defsubst event-start (event)
-  "Return the starting position of EVENT.
-If EVENT is a mouse press or a mouse click, this returns the location
-of the event.
-If EVENT is a drag, this returns the drag's starting position.
-The return value is of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-The `posn-' functions access elements of such lists."
-  (nth 1 event))
-
-(defsubst event-end (event)
-  "Return the ending location of EVENT.  EVENT should be a click or drag event.
-If EVENT is a click event, this function is the same as `event-start'.
-The return value is of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-The `posn-' functions access elements of such lists."
-  (nth (1- (length event)) event))
-
-(defsubst posn-window (position)
-  "Return the window in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
-  (nth 0 position))
-
-(defsubst posn-point (position)
-  "Return the buffer location in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
-  (nth 1 position))
-
-(defsubst posn-col-row (position)
-  "Return the row and column in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
-  (nth 2 position))
-
-(defsubst posn-timestamp (position)
-  "Return the timestamp of POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-nas returned by the `event-start' and `event-end' functions."
-  (nth 3 position))
 
 ;;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
