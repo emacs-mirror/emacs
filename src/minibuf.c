@@ -1196,7 +1196,7 @@ scroll the window of possible completions.")
       tem = Fpos_visible_in_window_p (make_number (ZV), window);
       if (! NILP (tem))
 	/* If end is in view, scroll up to the beginning.  */
-	Fset_window_start (window, BEGV);
+	Fset_window_start (window, BEGV, Qnil);
       else
 	/* Else scroll down one screen.  */
 	Fscroll_other_window (Qnil);
