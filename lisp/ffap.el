@@ -1216,6 +1216,10 @@ which may actually result in an url rather than a filename."
      (t t))))
 
 (defun ffap-read-file-or-url-internal (string dir action)
+  (unless dir
+    (setq dir default-directory))
+  (unless string
+    (setq string default-directory))
   (if (ffap-url-p string)
       (ffap-read-url-internal string dir action)
     (read-file-name-internal string dir action)))
