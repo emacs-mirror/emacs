@@ -34,4 +34,7 @@ xm_pop_instance (widget_instance* instance, Boolean up);
 void
 xm_set_main_areas (Widget parent, Widget menubar, Widget work_area);
 
+void
+xm_manage_resizing (Widget w, Boolean flag);
+
 #endif /* LWLIB_XM_H */
