@@ -1240,6 +1240,14 @@ font.  (This works only on certain systems.)
 This face controls the colors of window fringes, the thin areas on
 either side that are used to display continuation and truncation glyphs.
 
+@item minibuffer-prompt
+@kindex minibuffer-prompt @r{(face name)}
+@vindex minibuffer-prompt-properties
+This face is used for the text of minibuffer prompts.  By default,
+Emacs automatically adds this face to the value of
+@code{minibuffer-prompt-properties}, which is a list of text
+properties used to display the prompt text.
+
 @item scroll-bar
 @kindex scroll-bar @r{(face name)}
 This face controls the colors for display of scroll bars.
