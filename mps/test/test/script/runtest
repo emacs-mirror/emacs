@@ -23,7 +23,7 @@ sub mpslibvers {
 
  if (open(STRINGS, $_)) {
   while (<STRINGS>) {
-   if (/HQNMPS/) {
+   if (/HQNMPS/ || /Ravenbrook MPS/) {
     if (/product\.(\w+)/) { $mpslibvers{"product"} = $1; }
     if (/variety\.(\w+)/) { $mpslibvers{"variety"} = $1; }
     if (/platform\.(\w+)/) { $mpslibvers{"platform"} = $1; }
