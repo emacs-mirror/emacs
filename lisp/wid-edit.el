@@ -2804,6 +2804,7 @@ link for that string."
 		(widget-create-child-and-convert
 		 widget 'visibility
 		 :help-echo "Show or hide rest of the documentation."
+		 :on "Hide Rest"
 		 :off "More"
 		 :always-active t
 		 :action 'widget-parent-action
