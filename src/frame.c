@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -554,6 +554,14 @@ If omitted, FRAME defaults to the currently selected frame.")
 	abort ();
     }
   return w;
+}
+
+DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
+       Sactive_minibuffer_window, 0, 0, 0,
+       "Return the currently active minibuffer window, or nil if none.")
+  ()
+{
+  return minibuf_level ? minibuf_window : Qnil;
 }
 
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
@@ -1867,6 +1875,7 @@ The `menu-bar-lines' element of the list controls whether new frames\n\
  have menu bars; `menu-bar-mode' works by altering this element.");
   Vdefault_frame_alist = Qnil;
 
+  defsubr (&Sactive_minibuffer_window);
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
   defsubr (&Smake_terminal_frame);
