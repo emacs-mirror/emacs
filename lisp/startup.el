@@ -1274,7 +1274,10 @@ where FACE is a valid face specification, as it can be used with
 
 
 (defun fancy-splash-default-action ()
-  "Default action for events in the splash screen buffer."
+  "Stop displaying the splash screen buffer.
+This is an internal function used to turn off the splash screen after
+the user caused an input event by hitting a key or clicking with the
+mouse."
   (interactive)
   (push last-command-event unread-command-events)
   (throw 'exit nil))
