@@ -1013,8 +1013,10 @@ See also the function `signal' for more info.")
     {
       Lisp_Object tem;
       tem = Fcar (val);
-      if ((!NILP (tem)) &&
-	  (!CONSP (tem) || (XTYPE (XCONS (tem)->car) != Lisp_Symbol)))
+      if (! (NILP (tem)
+	     || (CONSP (tem)
+		 && (SYMBOLP (XCONS (tem)->car)
+		     || CONSP (XCONS (tem)->car)))))
 	error ("Invalid condition handler", tem);
     }
 
@@ -1195,7 +1197,6 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 {
   register Lisp_Object h;
   register Lisp_Object tem;
-  register Lisp_Object tem1;
 
   if (EQ (handlers, Qt))  /* t is used by handlers for all conditions, set up by C code.  */
     return Qt;
@@ -1220,12 +1221,30 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
     }
   for (h = handlers; CONSP (h); h = Fcdr (h))
     {
-      tem1 = Fcar (h);
-      if (!CONSP (tem1))
+      Lisp_Object handler, condit;
+
+      handler = Fcar (h);
+      if (!CONSP (handler))
 	continue;
-      tem = Fmemq (Fcar (tem1), conditions);
-      if (!NILP (tem))
-        return tem1;
+      condit = Fcar (handler);
+      /* Handle a single condition name in handler HANDLER.  */
+      if (SYMBOLP (condit))
+	{
+	  tem = Fmemq (Fcar (handler), conditions);
+	  if (!NILP (tem))
+	    return handler;
+	}
+      /* Handle a list of condition names in handler HANDLER.  */
+      else if (CONSP (condit))
+	{
+	  while (CONSP (condit))
+	    {
+	      tem = Fmemq (Fcar (condit), conditions);
+	      if (!NILP (tem))
+		return handler;
+	      condit = XCONS (condit)->cdr;
+	    }
+	}
     }
   return Qnil;
 }
