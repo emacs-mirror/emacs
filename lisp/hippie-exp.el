@@ -1,6 +1,8 @@
-;;; hippie.el --- expand a word trying various ways to find its expansion.
+;;; hippie-exp.el --- expand text trying various ways to find its expansion.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
+;; Last change: 22 June 1993
+;; Version: 1.2
 ;; Keywords: extensions
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
@@ -20,8 +22,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-;; 
-;;  Last change: 4 January 1993
 
 ;;; Commentary:
 ;;  
@@ -40,6 +40,9 @@
 ;;  outputs in a message which try-function in the list that is used
 ;;  currently (ie. was used currently and will be tried first the next
 ;;  time).
+;;  The variable `hippie-expand-max-buffers' determines in how many
+;;  buffers, apart from the current, to search for expansions in.  It
+;;  is used by the try-functions named "-all-buffers".
 ;;  See also the macro `make-hippie-expand-function' below.
 ;;  
 ;;  A short description of the current try-functions in this file:
@@ -50,18 +53,21 @@
 ;;    `try-complete-file-name-partially' : To insert in the list just
 ;;      before `try-complete-file-name' for those who want first to get
 ;;      a file name completed only as many characters as is unique.
-;;      (NOTE: Not by default in `hippie-expand-try-functions-list'.)
 ;;    `try-expand-all-abbrevs' : can be removed if you don't use abbrevs.
 ;;      Otherwise it looks through all abbrev-tables, starting with
 ;;      the local followed by the global. 
 ;;    `try-expand-line' : Searches the buffer for an entire line that 
 ;;      begins exactly as the current line.  Convenient sometimes, for 
 ;;      example as a substitute for (or complement to) the history
-;;      list in shell-like buffers.  Remove it if you find it confusing.
+;;      list in shell-like buffers.  At other times, only confusing.
 ;;    `try-expand-line-all-buffers' : Like `try-expand-line' but searches
 ;;      in all buffers (except the current).  (This may be a little
-;;      slow, don't use it unless you are really fond of `hippie-expand'.
-;;      NOTE: Not by default in hippie-expand-try-functions-list.)
+;;      slow, don't use it unless you are really fond of `hippie-expand'.)
+;;    `try-expand-list' : Tries to expand the text back to the nearest
+;;      open delimiter, to a whole list from the buffer. Convenient for
+;;      example when writing lisp or TeX.
+;;    `try-expand-list-all-buffers' : Like `try-expand-list' but searches 
+;;      in all buffers (except the current).  
 ;;    `try-expand-dabbrev' : works exactly as dabbrev-expand (but of
 ;;      course in a way compatible with the other try-functions).
 ;;    `try-expand-dabbrev-all-buffers' : perhaps the most useful of them,
@@ -75,8 +81,18 @@
 ;;      already has a key of its own, you might want to remove this.
 ;;    `try-complete-lisp-symbol-partially' : To insert in the list just
 ;;      before `try-complete-lisp-symbol' for those who first want to get
-;;      completion of what is unique in the name.  (NOTE: Not by
-;;      default in hippie-expand-try-functions-list.)
+;;      completion of what is unique in the name.  
+;;
+;;  Not all of the above functions are by default in
+;;  `hippie-expand-try-functions-list'.  This variable is better set
+;;  in ".emacs" to make `hippie-expand' behave maximally convenient
+;;  according to personal taste.  Also, instead of loading the
+;;  variable with all kinds of try-functions above, it might be an
+;;  idea to use `make-hippie-expand-function' to construct different
+;;  `hippie-expand'-like functions, with different try-lists and bound
+;;  to different keys. It is also possible to make
+;;  `hippie-expand-try-functions-list' a buffer local variable, and
+;;  let it depend on the mode (by setting it in the mode-hooks).
 ;;
 ;;  To write new try-functions, consider the following:
 ;;  Each try-function takes one argument OLD which is nil the first
@@ -104,8 +120,7 @@
 ;;  variable to see whether an expansion has already been tried
 ;;  (hint: `he-string-member'), and add its own tried expansions to it.
 ;;
-;;
-;;  KNOWN BUGS
+;;  Known bugs
 ;;
 ;;  It may happen that some completion suggestion occurs twice, in
 ;;  spite of the use of `he-tried-table' to prevent that.  This is 
@@ -116,8 +131,7 @@
 ;;  opposite situation to occur, that `hippie-expand' misses some
 ;;  suggestion because it thinks it has already tried it.
 ;;
-;;  
-;;  ACKNOWLEDGEMENT
+;;  Acknowledgement
 ;;
 ;;  I want to thank Mikael Djurfeldt in discussions with whom the idea
 ;;  of this function took form.
@@ -129,9 +143,9 @@
 
 (defvar he-num -1)
 
-(defvar he-string-beg ())
+(defvar he-string-beg (make-marker))
 
-(defvar he-string-end ())
+(defvar he-string-end (make-marker))
 
 (defvar he-search-string ())
 
@@ -139,12 +153,15 @@
 
 (defvar he-tried-table ())
 
-(defvar he-search-loc ())
+(defvar he-search-loc (make-marker))
 
 (defvar he-search-bw ())
 
 (defvar he-search-bufs ())
 
+(defvar he-searched-n-bufs ())
+
+;;;###autoload
 (defvar hippie-expand-try-functions-list '(try-complete-file-name
 					   try-expand-all-abbrevs
 					   try-expand-line
@@ -155,9 +172,16 @@
 To change the behavior of `hippie-expand', remove, change the order of,
 or insert functions in this list.")
 
+;;;###autoload
 (defvar hippie-expand-verbose t
   "*Non-nil makes `hippie-expand' output which function it is trying.")
 
+;;;###autoload
+(defvar hippie-expand-max-buffers ()
+  "*The maximum number of buffers (apart from the current) searched.
+If nil, all buffers are searched.")
+
+;;;###autoload
 (defun hippie-expand (arg)
   "Try to expand text before point, using multiple methods.
 The expansion functions in `hippie-expand-try-functions-list' are
@@ -192,7 +216,8 @@ undoes the expansion."
 		  (message "No expansion found")
 		  (message "No further expansions found"))
 	      (ding))
-	    (if hippie-expand-verbose
+	    (if (and hippie-expand-verbose
+                     (not (window-minibuffer-p (selected-window))))
 		(message (concat "Using "
 				 (prin1-to-string (nth he-num 
 				   hippie-expand-try-functions-list)))))))
@@ -200,20 +225,26 @@ undoes the expansion."
 	  (progn
 	    (setq he-num -1)
 	    (he-reset-string)
-	    (if hippie-expand-verbose
+	    (if (and hippie-expand-verbose
+                     (not (window-minibuffer-p (selected-window))))
 		(message "Undoing expansions"))))))
-      
+
 ;; Initializes the region to expand (to between BEG and END).
 (defun he-init-string (beg end)
-  (setq he-string-beg beg)
-  (setq he-string-end end)
+  (set-marker he-string-beg beg)
+  (set-marker he-string-end end)
   (setq he-search-string (buffer-substring beg end)))
 
 ;; Resets the expanded region to its original contents.
 (defun he-reset-string ()
-  (delete-region he-string-beg he-string-end)
-  (insert he-search-string)
-  (setq he-string-end (point)))
+  (let ((newpos (point-marker)))
+    (delete-region he-string-beg he-string-end)
+    (goto-char he-string-beg)
+    (insert he-search-string)
+    (set-marker he-string-end (point))
+    (if (= newpos he-string-beg)
+	(goto-char he-string-end)
+	(goto-char newpos))))
 
 ;; Substitutes an expansion STR into the correct region (the region
 ;; initialized with `he-init-string'). 
@@ -224,14 +255,18 @@ undoes the expansion."
   (let ((trans-case (and trans-case
 			 case-replace
 			 case-fold-search
-			 (he-transfer-case-ok str he-search-string))))
+			 (he-transfer-case-ok str he-search-string)))
+	(newpos (point-marker)))
     (he-reset-string)
     (goto-char he-string-beg)
     (search-forward he-search-string)
     (replace-match (if trans-case (downcase str) str)
 		   (not trans-case)
 		   'literal)
-    (setq he-string-end (point))))
+    (set-marker he-string-end (point))
+    (if (= newpos he-string-beg)
+	(goto-char he-string-end)
+	(goto-char newpos))))
 
 (defun he-ordinary-case-p (str)
   (or (string= str (downcase str))
@@ -239,7 +274,8 @@ undoes the expansion."
       (string= str (capitalize str))))
 
 (defun he-transfer-case-ok (to-str from-str)
-  (and (not (string= from-str (substring to-str 0 (length from-str))))
+  (and (not (string= from-str (substring to-str 0 (min (length from-str)
+                                                       (length to-str)))))
          ;; otherwise transfer is not needed (and this also solves
 	 ;; some obscure situations)
        (he-ordinary-case-p to-str)
@@ -270,18 +306,19 @@ undoes the expansion."
 ;;                             '(try-expand-line
 ;;                               try-expand-line-all-buffers)))
 ;;  
+;;;###autoload
 (defmacro make-hippie-expand-function (try-list &optional verbose)
   "Construct a function similar to `hippie-expand'.
 Make it use the expansion functions in TRY-LIST.  An optional second
 argument VERBOSE non-nil makes the function verbose."
-  (` '(lambda (arg)
+  (` (function (lambda (arg)
        (, (concat 
            "Try to expand text before point, using the following functions: \n"
 	   (mapconcat 'prin1-to-string (eval try-list) ", ")))
        (interactive "P")
        (let ((hippie-expand-try-functions-list (, try-list))
 	     (hippie-expand-verbose (, verbose)))
-	 (hippie-expand arg)))))
+	 (hippie-expand arg))))))
 
 
 ;;;  Here follows the try-functions and their requisites:
@@ -312,7 +349,7 @@ string).  It returns t if a new completion is found, nil otherwise."
     (setq he-expand-list (cdr he-expand-list)))
   (if (null he-expand-list)
       (progn
-	(he-reset-string)
+        (if old (he-reset-string))
 	())
       (let ((filename (concat (file-name-directory he-search-string)
 			      (car he-expand-list))))
@@ -343,7 +380,7 @@ otherwise."
 
     (if (not expansion)
 	(progn
-	  (he-reset-string)
+          (if old (he-reset-string))
 	  ())
 	(let ((filename (concat (file-name-directory he-search-string)
 				expansion)))
@@ -380,7 +417,7 @@ string).  It returns t if a new completion is found, nil otherwise."
     (setq he-expand-list (cdr he-expand-list)))
   (if (null he-expand-list)
       (progn
-	(he-reset-string)
+        (if old (he-reset-string))
 	())
       (progn
 	(he-substitute-string (car he-expand-list))
@@ -410,7 +447,7 @@ otherwise."
 
   (if (not expansion)
       (progn
-	(he-reset-string)
+        (if old (he-reset-string))
 	())
       (progn
 	(he-substitute-string expansion)
@@ -430,11 +467,11 @@ for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
-			   shell-prompt-pattern)))
+			   comint-prompt-regexp)))
     (if (not old)
 	(progn
 	  (he-init-string (he-line-beg strip-prompt) (point))
-	  (setq he-search-loc he-string-beg)
+	  (set-marker he-search-loc he-string-beg)
 	  (setq he-search-bw t)))
 
     (if (not (equal he-search-string ""))
@@ -445,10 +482,10 @@ string).  It returns t if a new completion is found, nil otherwise."
 		(goto-char he-search-loc)
 		(setq expansion (he-line-search he-search-string
 						strip-prompt t))
-		(setq he-search-loc (point-marker))
+		(set-marker he-search-loc (point))
 		(if (not expansion)
 		    (progn
-		      (setq he-search-loc he-string-end)
+		      (set-marker he-search-loc he-string-end)
 		      (setq he-search-bw ())))))
 	  
 	  (if (not expansion) ; Then look forward.
@@ -456,11 +493,11 @@ string).  It returns t if a new completion is found, nil otherwise."
 		(goto-char he-search-loc)
 		(setq expansion (he-line-search he-search-string 
 						strip-prompt nil))
-		(setq he-search-loc (point-marker))))))
+		(set-marker he-search-loc (point))))))
 
     (if (not expansion)
 	(progn
-	  (he-reset-string)
+          (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
@@ -474,35 +511,45 @@ for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
-			   shell-prompt-pattern))
+			   comint-prompt-regexp))
 	(buf (current-buffer)))
     (if (not old)
 	(progn
 	  (he-init-string (he-line-beg strip-prompt) (point))
-	  (setq he-search-loc 0)
-	  (setq he-search-bufs (buffer-list))))
+	  (setq he-search-bufs (buffer-list))
+          (setq he-searched-n-bufs 0)
+	  (set-marker he-search-loc 1 (car he-search-bufs))))
 
     (if (not (equal he-search-string ""))
-	(while (and he-search-bufs (not expansion))
+	(while (and he-search-bufs 
+                    (not expansion)
+                    (or (not hippie-expand-max-buffers)
+                        (< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
+                   (not (string-match " \\*Minibuf-[0-9]+\\*"
+                                      (buffer-name (current-buffer))))
 		   (not (eq major-mode 'dired-mode)))
-		   ;; dont search dired buffers
+		   ;; Dont search minibuffers nor dired buffers
 	      (save-excursion
 		(goto-char he-search-loc)
+                (setq strip-prompt (and (get-buffer-process (current-buffer))
+                                        comint-prompt-regexp))
 		(setq expansion (he-line-search he-search-string
 						strip-prompt nil))
-		(setq he-search-loc (point-marker))))
-	  (if expansion
-	      (setq he-tried-table (cons expansion he-tried-table))
-	      (progn
-		(setq he-search-loc 0)
-		(setq he-search-bufs (cdr he-search-bufs))))))
+		(set-marker he-search-loc (point))
+                (if expansion
+                    (setq he-tried-table (cons expansion he-tried-table))
+                  (setq he-search-bufs (cdr he-search-bufs))
+                  (setq he-searched-n-bufs (1+ he-searched-n-bufs))
+                  (set-marker he-search-loc 1 (car he-search-bufs))))
+            (setq he-search-bufs (cdr he-search-bufs))
+            (set-marker he-search-loc 1 (car he-search-bufs)))))
 
     (set-buffer buf)
     (if (not expansion)
 	(progn
-	  (he-reset-string)
+          (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
@@ -535,12 +582,127 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (defun he-line-search-regexp (pat strip-prompt)
   (if strip-prompt
-      (concat "\\(" shell-prompt-pattern "\\|^\\s-*\\)\\("
+      (concat "\\(" comint-prompt-regexp "\\|^\\s-*\\)\\("
 	      (regexp-quote pat)
 	      "[^\n]*[^ \t\n]\\)")
       (concat "^\\(\\s-*\\)\\(" 
 	      (regexp-quote pat)
 	      "[^\n]*[^ \t\n]\\)")))
+
+(defun try-expand-list (old)
+  "Try to complete the current beginning of a list.
+The argument OLD has to be nil the first call of this function, and t
+for subsequent calls (for further possible completions of the same
+string).  It returns t if a new completion is found, nil otherwise."
+  (let ((expansion ()))
+    (if (not old)
+	(progn
+	  (he-init-string (he-list-beg) (point))
+	  (set-marker he-search-loc he-string-beg)
+	  (setq he-search-bw t)))
+
+    (if (not (equal he-search-string ""))
+	(save-excursion
+	  ;; Try looking backward unless inhibited.
+	  (if he-search-bw
+	      (progn 
+		(goto-char he-search-loc)
+		(setq expansion (he-list-search he-search-string t))
+		(set-marker he-search-loc (point))
+		(if (not expansion)
+		    (progn
+		      (set-marker he-search-loc he-string-end)
+		      (setq he-search-bw ())))))
+	  
+	  (if (not expansion) ; Then look forward.
+	      (progn 
+		(goto-char he-search-loc)
+		(setq expansion (he-list-search he-search-string nil))
+		(set-marker he-search-loc (point))))))
+
+    (if (not expansion)
+	(progn
+	  (if old (he-reset-string))
+	  ())
+	(progn
+	  (he-substitute-string expansion t)
+	  (setq he-tried-table (cons expansion he-tried-table))
+	  t))))
+
+(defun try-expand-list-all-buffers (old)
+  "Try to complete the current list, searching all other buffers.
+The argument OLD has to be nil the first call of this function, and t
+for subsequent calls (for further possible completions of the same
+string).  It returns t if a new completion is found, nil otherwise."
+  (let ((expansion ())
+	(buf (current-buffer)))
+    (if (not old)
+	(progn
+	  (he-init-string (he-list-beg) (point))
+	  (setq he-search-bufs (buffer-list))
+          (setq he-searched-n-bufs 0)
+	  (set-marker he-search-loc 1 (car he-search-bufs))))
+
+    (if (not (equal he-search-string ""))
+	(while (and he-search-bufs 
+                    (not expansion)
+                    (or (not hippie-expand-max-buffers)
+                        (< he-searched-n-bufs hippie-expand-max-buffers)))
+	  (set-buffer (car he-search-bufs))
+	  (if (and (not (eq (current-buffer) buf))
+                   (not (string-match " \\*Minibuf-[0-9]+\\*"
+                                      (buffer-name (current-buffer))))
+		   (not (eq major-mode 'dired-mode)))
+		   ;; Dont search minibuffers nor dired buffers
+	      (save-excursion
+		(goto-char he-search-loc)
+		(setq expansion (he-list-search he-search-string nil))
+		(set-marker he-search-loc (point))
+                (if expansion
+                    (setq he-tried-table (cons expansion he-tried-table))
+                  (setq he-search-bufs (cdr he-search-bufs))
+                  (setq he-searched-n-bufs (1+ he-searched-n-bufs))
+                  (set-marker he-search-loc 1 (car he-search-bufs))))
+            (setq he-search-bufs (cdr he-search-bufs))
+            (set-marker he-search-loc 1 (car he-search-bufs)))))
+
+    (set-buffer buf)
+    (if (not expansion)
+	(progn
+          (if old (he-reset-string))
+	  ())
+	(progn
+	  (he-substitute-string expansion t)
+	  t))))
+
+(defun he-list-search (str reverse) 
+  (let ((result ())
+        beg pos err)
+    (while (and (not result)
+		(if reverse
+		    (search-backward str nil t)
+		    (search-forward str nil t)))
+      (setq pos (point))
+      (setq beg (match-beginning 0))
+      (goto-char beg)
+      (setq err ())
+      (condition-case ()
+          (forward-list 1)
+        (error (setq err t)))
+      (if (not err)
+          (progn
+            (setq result (buffer-substring beg (point)))
+            (if (he-string-member result he-tried-table)
+                (setq result nil))))	       ; if already in table, ignore
+      (goto-char pos))
+    result))
+
+(defun he-list-beg ()
+  (save-excursion
+    (condition-case ()
+        (backward-up-list 1)
+      (error ()))
+    (point)))
 
 (defun try-expand-all-abbrevs (old)
   "Try to expand word before point according to all abbrev tables.
@@ -553,7 +715,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	(setq he-expand-list 
 	      (and (not (equal he-search-string ""))
 		   (mapcar (function (lambda (sym)
-			     (abbrev-expansion he-search-string 
+			     (abbrev-expansion (downcase he-search-string)
 					       (eval sym))))
 			   (append '(local-abbrev-table 
 				     global-abbrev-table)
@@ -564,10 +726,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (setq he-expand-list (cdr he-expand-list)))
   (if (null he-expand-list)
       (progn
-	(he-reset-string)
+        (if old (he-reset-string))
 	())
       (progn
-	(he-substitute-string (car he-expand-list))
+	(he-substitute-string (car he-expand-list) t)
 	(setq he-tried-table (cons (car he-expand-list) he-tried-table))
 	(setq he-expand-list (cdr he-expand-list))
 	t)))
@@ -581,7 +743,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (if (not old)
 	(progn
 	  (he-init-string (he-dabbrev-beg) (point))
-	  (setq he-search-loc he-string-beg)
+	  (set-marker he-search-loc he-string-beg)
 	  (setq he-search-bw t)))
 
     (if (not (equal he-search-string ""))
@@ -591,21 +753,21 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	      (progn 
 		(goto-char he-search-loc)
 		(setq expansion (he-dab-search he-search-string t))
-		(setq he-search-loc (point-marker))
+		(set-marker he-search-loc (point))
 		(if (not expansion)
 		    (progn
-		      (setq he-search-loc he-string-end)
+		      (set-marker he-search-loc he-string-end)
 		      (setq he-search-bw ())))))
 	  
 	  (if (not expansion) ; Then look forward.
 	      (progn 
 		(goto-char he-search-loc)
 		(setq expansion (he-dab-search he-search-string nil))
-		(setq he-search-loc (point-marker))))))
+		(set-marker he-search-loc (point))))))
 	
     (if (not expansion)
 	(progn
-	  (he-reset-string)
+          (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
@@ -622,29 +784,37 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (if (not old)
 	(progn
 	  (he-init-string (he-dabbrev-beg) (point))
-	  (setq he-search-loc 0)
-	  (setq he-search-bufs (buffer-list))))
+	  (setq he-search-bufs (buffer-list))
+          (setq he-searched-n-bufs 0)
+	  (set-marker he-search-loc 1 (car he-search-bufs))))
 
     (if (not (equal he-search-string ""))
-	(while (and he-search-bufs (not expansion))
+	(while (and he-search-bufs 
+                    (not expansion)
+                    (or (not hippie-expand-max-buffers)
+                        (< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
-		   (not (eq major-mode 'dired-mode))) 
-		   ;; dont search dired buffers
+                   (not (string-match " \\*Minibuf-[0-9]+\\*"
+                                      (buffer-name (current-buffer))))
+		   (not (eq major-mode 'dired-mode)))
+		   ;; Dont search minibuffers nor dired buffers
 	      (save-excursion
 		(goto-char he-search-loc)
 		(setq expansion (he-dab-search he-search-string nil))
-		(setq he-search-loc (point-marker))))
-	  (if expansion
-	      (setq he-tried-table (cons expansion he-tried-table))
-	      (progn
-		(setq he-search-loc 0)
-		(setq he-search-bufs (cdr he-search-bufs))))))
+		(set-marker he-search-loc (point))
+                (if expansion
+                    (setq he-tried-table (cons expansion he-tried-table))
+                  (setq he-search-bufs (cdr he-search-bufs))
+                  (setq he-searched-n-bufs (1+ he-searched-n-bufs))
+                  (set-marker he-search-loc 1 (car he-search-bufs))))
+            (setq he-search-bufs (cdr he-search-bufs))
+            (set-marker he-search-loc 1 (car he-search-bufs)))))
 
     (set-buffer buf)
     (if (not expansion)
 	(progn
-	  (he-reset-string)
+          (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
@@ -668,10 +838,11 @@ string).  It returns t if a new expansion is found, nil otherwise."
     result))
 
 (defun he-dabbrev-beg ()
-  (let ((skips "-a-zA-Z0-9_."))
-    (save-excursion
-      (skip-chars-backward skips)
-      (skip-chars-forward "-_.")
-      (point))))
+  (save-excursion
+    (skip-syntax-backward "w_")
+    (skip-syntax-forward "_")
+    (point)))
 
-;;; hippie.el ends here
+(provide 'hippie-exp)
+
+;;; hippie-exp.el ends here
