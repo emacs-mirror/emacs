@@ -26,7 +26,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef __DGUX
 #include <sys/ioctl.h>
 #endif
+#ifndef NO_TERMIO
 #include <termio.h>
+#endif /* not NO_TERMIO */
 #include <fcntl.h>
 #else
 #ifdef HAVE_TERMIOS
