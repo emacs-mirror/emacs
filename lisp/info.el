@@ -3248,7 +3248,8 @@ The locations are of the format used in `Info-history', i.e.
 \(FILENAME NODENAME BUFFERPOS\)."
   (let ((where '())
 	(cmd-desc (concat "^\\* +" (regexp-quote (symbol-name command))
-			  "\\( <[0-9]+>\\)?:\\s *\\(.*\\)\\.$"))
+			  "\\( <[0-9]+>\\)?:\\s *\\(.*\\)\\."
+			  "\\([ \t]*(line[ \t]*[0-9]*)\\)?$"))
 	(info-file "emacs"))		;default
     ;; Determine which info file this command is documented in.
     (if (get command 'info-file)
