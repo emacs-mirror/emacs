@@ -1,3 +1,11 @@
+2004-06-03  David Kastrup  <dak@gnu.org>
+
+	* woman.el (woman-mapcan): More concise code.
+	(woman-topic-all-completions, woman-topic-all-completions-1)
+	(woman-topic-all-completions-merge): Replace by a simpler and
+	much faster implementation based on O(n log n) sort/merge instead
+	of the old O(n^2) behavior.
+
 2004-06-03  Miles Bader  <miles@gnu.org>
 
 	* subr.el (read-number): Use canonical format for default in prompt.
