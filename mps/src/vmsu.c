@@ -1,6 +1,6 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.12) $
+ * $HopeName: MMsrc!vmsu.c(trunk.13) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
@@ -47,7 +47,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.12) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.13) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -135,8 +135,9 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   vm->none_fd = none_fd;
   vm->align = align;
 
-  /* See .assume.not-last. */
-  addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd, (off_t)0);
+  /* .map.reserve: See .assume.not-last. */
+  addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd,
+              (off_t)0);
   if((int)addr == -1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
@@ -266,12 +267,13 @@ void VMUnmap(Space space, Addr base, Addr limit)
   /* Map /etc/passwd onto the area, allowing no access.  This */
   /* effectively depopulates the area from memory, but keeps */
   /* it "busy" as far as the OS is concerned, so that it will not */
-  /* be re-used by other calls to mmap which do not specify MAP_FIXED. */
-
+  /* be re-used by other calls to mmap which do not specify */
+  /* MAP_FIXED.  The offset is specified to mmap so that */
+  /* the OS merges this mapping with .map.reserve. */
   size = AddrOffset(base, limit);
-
   addr = mmap((caddr_t)base, (int)size,
-              PROT_NONE, MAP_SHARED, vm->none_fd, (off_t)0);
+              PROT_NONE, MAP_SHARED | MAP_FIXED,
+              vm->none_fd, (off_t)AddrOffset(vm->base, base));
   AVER((int)addr != -1);
 
   vm->mapped -= size;
