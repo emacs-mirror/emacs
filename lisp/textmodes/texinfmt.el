@@ -1825,4 +1825,6 @@ For example, invoke
 	   (setq error 1))))
       (kill-emacs error))))
 
+(provide 'texinfmt)
+
 ;;; texinfmt.el ends here
