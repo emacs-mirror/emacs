@@ -289,11 +289,47 @@ An error message should start with a capital letter but should not end
 with a period.
 
 @item
+In @code{interactive}, if you use a Lisp expression to produce a list
+of arguments, don't try to provide the ``correct'' default values for
+region or position arguments.  Instead, provide @code{nil} for those
+arguments if they were not specified, and have the function body
+compute the default value when the argument is @code{nil}.  For
+instance, write this:
+
+@example
+(defun foo (pos)
+  (interactive
+   (list (if @var{specified} @var{specified-pos})))
+  (unless pos (setq pos @var{default-pos}))
+  ...)
+@end example
+
+@noindent
+rather than this:
+
+@example
+(defun foo (pos)
+  (interactive
+   (list (if @var{specified} @var{specified-pos}
+             @var{default-pos})))
+  ...)
+@end example
+
+@noindent
+This is so that repetition of the command will recompute
+these defaults based on the current circumstances.
+
+You do not need to take such precautions when you use interactive
+specs @samp{d}, @samp{m} and @samp{r}, because they make special
+arrangements to recompute the argument values on repetition of the
+command.
+
+@item
 Many commands that take a long time to execute display a message that
-says @samp{Operating...} when they start, and change it to
+says something like @samp{Operating...} when they start, and change it to
 @samp{Operating...done} when they finish.  Please keep the style of
 these messages uniform: @emph{no} space around the ellipsis, and
-@emph{no} period at the end.
+@emph{no} period after @samp{done}.
 
 @item
 Try to avoid using recursive edits.  Instead, do what the Rmail @kbd{e}
