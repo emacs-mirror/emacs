@@ -152,7 +152,7 @@ normal variables."
                               " (regexp): "))
                      current-prefix-arg))
   (apropos-command regexp nil
-		   (if arg 
+		   (if (or do-all apropos-do-all)
 		       #'(lambda (symbol)
 			   (and (boundp symbol)
 				(get symbol 'variable-documentation)))
@@ -182,8 +182,8 @@ satisfy the predicate VAR-PREDICATE."
     (or do-all (setq do-all apropos-do-all))
     (setq apropos-accumulator
 	  (apropos-internal apropos-regexp
-			    (if do-all 'functionp
-			      (or var-predicate 'commandp))))
+			    (or var-predicate
+				(if do-all 'functionp 'commandp))))
     (let ((tem apropos-accumulator))
       (while tem
 	(if (get (car tem) 'apropos-inhibit)
