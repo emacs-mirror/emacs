@@ -185,7 +185,7 @@ The following interactive lisp functions help control operation :
       (dolist (var gdb-var-list)
 	(if (string-equal expr (car var)) (throw 'already-watched nil)))
       (gdb-enqueue-input
-       (list (concat "interpreter mi \"-var-create - * "  expr "\"\n")
+       (list (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	     `(lambda () (gdb-var-create-handler ,expr))))))
   (select-window (get-buffer-window gud-comint-buffer)))
 
@@ -205,7 +205,7 @@ The following interactive lisp functions help control operation :
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
-	       (list (concat "interpreter mi \"-var-evaluate-expression " 
+	       (list (concat "server interpreter mi \"-var-evaluate-expression " 
 			     (nth 1 var) "\"\n") 
 		     `(lambda () (gdb-var-evaluate-expression-handler 
 				  ,(nth 1 var)))))
@@ -223,8 +223,7 @@ The following interactive lisp functions help control operation :
 	(dolist (var gdb-var-list)
 	  (if (string-equal varnum (cadr var))
 	      (progn
-		(setcar (nthcdr 4 var) 
-			(match-string-no-properties 1))
+		(setcar (nthcdr 4 var) (match-string-no-properties 1))
 		(setcar (nthcdr num gdb-var-list) var)
 		(throw 'var-found nil)))
 	  (setq num (+ num 1))))))
@@ -232,7 +231,7 @@ The following interactive lisp functions help control operation :
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
-   (list (concat "interpreter mi \"-var-list-children "  varnum "\"\n")
+   (list (concat "server interpreter mi \"-var-list-children "  varnum "\"\n")
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
@@ -260,7 +259,8 @@ The following interactive lisp functions help control operation :
 		   (if (equal (nth 2 varchild) "0")
 		       (gdb-enqueue-input
 			(list 
-			 (concat "interpreter mi \"-var-evaluate-expression "
+			 (concat 
+			  "server interpreter mi \"-var-evaluate-expression "
 				 (nth 1 varchild) "\"\n") 
 			 `(lambda () (gdb-var-evaluate-expression-handler 
 				      ,(nth 1 varchild)))))))))
@@ -283,7 +283,7 @@ The following interactive lisp functions help control operation :
     (while (re-search-forward gdb-var-update-regexp nil t)
 	(let ((varnum (match-string-no-properties 1)))
 	  (gdb-enqueue-input
-	   (list (concat "interpreter mi \"-var-evaluate-expression " 
+	   (list (concat "server interpreter mi \"-var-evaluate-expression " 
 			 varnum "\"\n") 
 		     `(lambda () (gdb-var-evaluate-expression-handler 
 				  ,varnum)))))))
@@ -299,7 +299,7 @@ The following interactive lisp functions help control operation :
 	   (var (assoc expr gdb-var-list))
 	   (varnum (cadr var)))
       (gdb-enqueue-input
-       (list (concat "interpreter mi \"-var-delete "  varnum "\"\n")
+       (list (concat "server interpreter mi \"-var-delete "  varnum "\"\n")
 	     'ignore))
       (setq gdb-var-list (delq var gdb-var-list))
       (dolist (varchild gdb-var-list)
