@@ -657,7 +657,9 @@ the user from the mailer."
 		    (save-restriction
 		      (narrow-to-region (point)
 					(save-excursion
-					  (end-of-line)
+					  (forward-line 1)
+					  (while (looking-at "^[ \t]")
+					    (forward-line 1))
 					  (point)))
 		      (append (mail-parse-comma-list)
 			      resend-to-addresses)))
