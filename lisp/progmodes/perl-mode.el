@@ -730,4 +730,3 @@ With argument, repeat that many times; negative args move backward."
 (provide 'perl-mode)
 
 ;;; perl-mode.el ends here
-
