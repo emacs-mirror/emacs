@@ -581,14 +581,17 @@ Texinfo (@node titles), Perl, and Fortran.
 
 Other modes are handled by a heuristic that looks in the 10K before
 point for uppercase headings starting in the first column or
-identifiers followed by `:' or `=', see variable
-`add-log-current-defun-header-regexp'.
+identifiers followed by `:' or `=', see variables
+`add-log-current-defun-header-regexp' and
+`add-log-current-defun-function'
 
 Has a preference of looking backwards."
   (condition-case nil
       (save-excursion
 	(let ((location (point)))
-	  (cond ((memq major-mode add-log-lisp-like-modes)
+	  (cond ((functionp add-log-current-defun-function)
+		 (funcall add-log-current-defun-function))
+		((memq major-mode add-log-lisp-like-modes)
 		 ;; If we are now precisely at the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
 		 ;; rather than the previous one.
@@ -771,13 +774,22 @@ Has a preference of looking backwards."
 		     "main")))
 		(t
 		 ;; If all else fails, try heuristics
-		 (let (case-fold-search)
+		 (let (case-fold-search
+		       result)
 		   (end-of-line)
-		   (if (re-search-backward add-log-current-defun-header-regexp
-					   (- (point) 10000)
-					   t)
-		       (buffer-substring (match-beginning 1)
-					 (match-end 1))))))))
+		   (when (re-search-backward
+			  add-log-current-defun-header-regexp
+			  (- (point) 10000)
+			  t)
+		     (setq result (or (buffer-substring (match-beginning 1)
+							(match-end 1))
+				      (buffer-substring (match-beginning 0)
+							(match-end 0))))
+		     ;; Strip whitespace away
+		     (when (string-match "\\([^ \t\n\r\f].*[^ \t\n\r\f]\\)"
+					 result)
+		       (setq result (match-string 1 result)))
+		     result))))))
     (error nil)))
 
 (defvar change-log-get-method-definition-md)
