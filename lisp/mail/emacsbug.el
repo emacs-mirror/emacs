@@ -47,4 +47,6 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (insert "\nIn " (emacs-version) "\n\n")
   (message (substitute-command-keys "Type \\[mail-send] to send bug report.")))
 
+(provide 'emacsbug)
+
 ;;; emacsbug.el ends here
