@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.14
+;; Version: 4.15
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -598,7 +598,7 @@ With prefix arg 1, restrict index to the section at point."
    ["External Document TOC  " reftex-toc-external t]
    "--"
    ("Update"
-    ["Rebuild *toc* Buffer" revert-buffer t]
+    ["Rebuilt *toc* Buffer" revert-buffer t]
     ["Rescan One File" reftex-toc-rescan reftex-enable-partial-scans]
     ["Rescan Entire Document" reftex-toc-Rescan t])
    ("Options"

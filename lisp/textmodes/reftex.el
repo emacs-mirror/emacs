@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.14
+;; Version:    4.15
 ;; Keywords:   tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.14"
+(defconst reftex-version "RefTeX version 4.15"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -506,6 +506,7 @@ on the menu bar.
 	  (condition-case nil 
 	      (TeX-master-file t)
 	    (error (buffer-file-name))))
+	 ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
          ((boundp 'TeX-master)       ; The variable is defined - lets use it.
           (cond
            ((eq TeX-master t)
@@ -1209,6 +1210,14 @@ This enforces rescanning the buffer on next use."
     ;; Scan whatever was required by the caller.
     (reftex-do-parse rescan file))))
 
+(defun reftex-scanning-info-available-p ()
+  "Is the scanning info about the current document available?"
+  (unless reftex-docstruct-symbol
+    (reftex-tie-multifile-symbols))
+  (and (symbolp reftex-docstruct-symbol)
+       (symbol-value reftex-docstruct-symbol)
+       t))
+  
 (defun reftex-silence-toc-markers (list n)
   ;; Set all toc markers in the first N entries in list to nil
   (while (and list (> (decf n) -1))

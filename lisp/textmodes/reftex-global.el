@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.14
+;; Version: 4.15
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -36,7 +36,7 @@ The TAGS file is also immediately visited with `visit-tags-table'."
          (files  (reftex-all-document-files))
          (cmd    (format "etags %s" (mapconcat 'identity files " "))))
     (save-excursion
-      (set-buffer (reftex-get-buffer-visiting master))
+      (set-buffer (reftex-get-file-buffer-force master))
       (message "Running etags to create TAGS file...")
       (shell-command cmd)
       (visit-tags-table "TAGS"))))

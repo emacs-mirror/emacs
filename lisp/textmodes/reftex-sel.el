@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.14
+;; Version: 4.15
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -113,7 +113,7 @@ During a selection process, these are the local bindings.
   ;; BUF is the buffer which has the correct docstruct-symbol.
   ;; LABELS non-nil means to include labels into the list.
   ;;        When a string, indicates the label type to include
-  ;; FILES non-nil menas to display file boundaries.
+  ;; FILES non-nil means to display file boundaries.
   ;; CONTEXT non-nil means to include label context.
   ;; COUNTER means to count the labels.
   ;; SHOW-COMMENTED means to include also labels which are commented out.
