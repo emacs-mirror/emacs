@@ -809,7 +809,8 @@ update_window_fringes (w, force_p)
 	    arrow_bot = XCDR (pos);
 	}
       else
-	ind = Qnil;
+	/* Anything else means boundary on left and no arrows.  */
+	boundary_top = boundary_bot = Qleft;
     }
 
   if (!NILP (ind))
