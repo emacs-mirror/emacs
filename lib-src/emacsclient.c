@@ -285,9 +285,6 @@ main (argc, argv)
   int s, i, needlf = 0;
   FILE *out, *in;
   struct sockaddr_un server;
-#ifdef SERVER_HOME_DIR
-  char *homedir;
-#endif
   char *cwd, *str;
   char string[BUFSIZ];
 
