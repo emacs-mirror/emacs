@@ -811,8 +811,10 @@ selected frame."
 	     (list (cons 'foreground-color (cdr (assq 'background-color params)))
 		   (cons 'background-color (cdr (assq 'foreground-color params)))
 		   (cons 'mouse-color (cdr (assq 'background-color params)))
-		   (cons 'cursor-color (cdr (assq 'background-color params)))
-		   (cons 'border-color (cdr (assq 'background-color params)))))))
+		   (cons 'border-color (cdr (assq 'background-color params)))))
+	    (modify-frame-parameters
+	     frame
+	     (list (cons 'cursor-color (cdr (assq 'background-color params)))))))
 
       ;; Copy the vectors that represent the faces.
       ;; Also fill them in from X resources.
