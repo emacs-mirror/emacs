@@ -1,5 +1,8 @@
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (mmap_enlarge): Don't print a message on stderr
+	if mapping new memory at the end of the existing region fails.
+
 	* dispnew.c (update_text_area): Don't skip over equal glyphs
 	when the last current glyph overlaps the glyph to its right.
 
