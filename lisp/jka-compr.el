@@ -757,6 +757,7 @@ There should be no more than seven characters after the final `/'."
 Lisp programs can bind this to t to do that.
 It is not recommended to set this variable permanently to anything but nil.")
 
+(put 'jka-compr-handler 'safe-magic t)
 (defun jka-compr-handler (operation &rest args)
   (save-match-data
     (let ((jka-op (get operation 'jka-compr)))
