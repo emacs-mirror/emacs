@@ -475,6 +475,29 @@ extern int width_by_char_head[256];
   ((c) >= 0				\
    && (SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, genericp)))
 
+/* This default value is used when nonascii-translate-table or
+   nonascii-insert-offset fail to convert unibyte character to a valid
+   multibyte character.  This makes a Latin-1 character.  */
+
+#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
+
+/* Check if the character C is valid as a multibyte character.  */
+
+#define VALID_MULTIBYTE_CHAR_P(c)					  \
+  ((c) < MIN_CHAR_OFFICIAL_DIMENSION2					  \
+   ? (!NILP (XCHAR_TABLE (Vcharset_table)->contents[CHAR_FIELD2 (c)	  \
+						   + 0xF0])		  \
+      && CHAR_FIELD3 (c) >= 32)						  \
+   : ((c) < MIN_CHAR_PRIVATE_DIMENSION2					  \
+      ? (!NILP (XCHAR_TABLE (Vcharset_table)->contents[CHAR_FIELD1 (c)	  \
+						      + 0x10F])		  \
+	 && CHAR_FIELD2 (c) >= 32 && CHAR_FIELD3 (c) >= 32)		  \
+      : ((c) < MIN_CHAR_COMPOSITION					  \
+	 ? (!NILP (XCHAR_TABLE (Vcharset_table)->contents[CHAR_FIELD1 (c) \
+							 + 0x160])	  \
+	    && CHAR_FIELD2 (c) >= 32 && CHAR_FIELD3 (c) >= 32)		  \
+	 : (c) < MIN_CHAR_COMPOSITION + n_cmpchars)))
+
 /* The charset of non-ASCII character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
    We store -1 in C2 if the character is just 2 bytes.
