@@ -900,4 +900,11 @@ EmacsFrameSetCharSize (widget, columns, rows)
      for, then the event won't cause the screen to become garbaged, so
      we have to make sure to do it here.  */
   SET_FRAME_GARBAGED (f);
+
+  /* Coordinates of the toplevel widget seem to have been lost.
+     So set it to the rignt values.  */
+  XtVaSetValues (f->display.x->widget, 
+	        XtNx, f->display.x->left_pos,
+	        XtNy, f->display.x->top_pos,
+	        0);
 }
