@@ -391,15 +391,6 @@ to that frame.")
     last_nonminibuf_frame = selected_frame;
 
   Fselect_window (XFRAME (frame)->selected_window);
-
-  /* I think this should be done with a hook.  */
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (XFRAME (frame))
-      && NILP (no_enter))
-    {
-      Ffocus_frame (frame);
-    }
-#endif
   choose_minibuf_frame ();
 
   /* We want to make sure that the next event generates a frame-switch
@@ -832,6 +823,18 @@ If omitted, FRAME defaults to the currently selected frame.")
 
   CHECK_LIVE_FRAME (frame, 0);
 
+  /* Don't let the frame remain selected.  */
+  if (XFRAME (frame) == selected_frame)
+    Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+
+  /* Don't allow minibuf_window to remain on a deleted frame.  */
+  if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
+    {
+      Fset_window_buffer (selected_frame->minibuffer_window,
+			  XWINDOW (minibuf_window)->buffer);
+      minibuf_window = selected_frame->minibuffer_window;
+    }
+
   /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (XFRAME (frame)))
@@ -852,6 +855,18 @@ If omitted, FRAME defaults to the currently selected frame.")
     XSET (frame, Lisp_Frame, selected_frame);
   
   CHECK_LIVE_FRAME (frame, 0);
+
+  /* Don't let the frame remain selected.  */
+  if (XFRAME (frame) == selected_frame)
+    Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+
+  /* Don't allow minibuf_window to remain on a deleted frame.  */
+  if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
+    {
+      Fset_window_buffer (selected_frame->minibuffer_window,
+			  XWINDOW (minibuf_window)->buffer);
+      minibuf_window = selected_frame->minibuffer_window;
+    }
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
@@ -970,6 +985,13 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
     CHECK_LIVE_FRAME (focus_frame, 1);
 
   XFRAME (frame)->focus_frame = focus_frame;
+
+  /* I think this should be done with a hook.  */
+#ifdef HAVE_X_WINDOWS
+  if (!NILP (focus_frame) && ! EQ (focus_frame, frame)
+      && FRAME_X_P (XFRAME (focus_frame)))
+    Ffocus_frame (focus_frame);
+#endif
 
   if (frame_rehighlight_hook)
     (*frame_rehighlight_hook) ();
