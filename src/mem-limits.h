@@ -30,7 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define BSD4_2			/* Tell code below to use getrlimit.  */
 
 /* Old Linux startup code won't define __data_start.  */
-extern int __data_start; weak_symbol (__data_start)
+extern int etext, __data_start; weak_symbol (__data_start)
 #define start_of_data()	(&__data_start ?: &etext)
 
 #else /* not _LIBC */
