@@ -3686,10 +3686,10 @@ Each buffer has its own value of this variable.");
   DEFVAR_PER_BUFFER ("auto-fill-function", &current_buffer->auto_fill_function,
 		     Qnil,
     "Function called (if non-nil) to perform auto-fill.\n\
-It is called after self-inserting a space at a column beyond `fill-column'.\n\
+It is called after self-inserting a space or newline.\n\
 Each buffer has its own value of this variable.\n\
-NOTE: This variable is not an ordinary hook;\n\
-It may not be a list of functions.");
+NOTE: This variable is not a hook;\n\
+its value may not be a list of functions.");
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &current_buffer->filename,
 		     make_number (Lisp_String),
