@@ -29,7 +29,7 @@
 (quail-define-package
  "cyrillic-jcuken" "Cyrillic" ",L69(B" nil
  ",L9FC:5=(B keyboard layout widely used in Russia (ISO 8859-5 encoding)"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2@ 3# 4" 5: 6, 7. 8* 9( 0) -_ =+ ,L!(B
 ;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,Lj(B
@@ -138,7 +138,7 @@
 (quail-define-package
  "cyrillic-macedonian" "Cyrillic" ",L6(BM" nil
  ",L)*5@B7(B-,L#,(B keyboard layout based on JUS.I.K1.004 (ISO 8859-5 encoding)"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
 ;;   ,L)(B  ,L*(B  ,L5(B  ,L@(B  ,LB(B  ,L7(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,L#(B
@@ -247,7 +247,7 @@
 (quail-define-package
  "cyrillic-serbian" "Cyrillic" ",L6(BS" nil
  ",L)*5@B7(B-,L"+(B keyboard layout based on JUS.I.K1.005 (ISO 8859-5 encoding)"
-		      nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
 ;;   ,L)(B  ,L*(B  ,L5(B  ,L@(B  ,LB(B  ,L7(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,L"(B
@@ -356,7 +356,7 @@
 (quail-define-package
  "cyrillic-beylorussian" "Cyrillic" ",L6(BB" nil
  ",L)*5@B7(B-,L&.(B BEYLORUSSIAN (ISO 8859-5 encoding)"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
 ;;   ,L)(B  ,L*(B  ,L5(B  ,L@(B  ,LB(B  ,L7(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,L&(B
@@ -467,7 +467,7 @@
  ",L$'5@B7(B-,L&.(B UKRAINIAN (ISO 8859-5 encoding)
 
 Sorry, but 'ghe with upturn' is not included in ISO 8859-5"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
 ;;   ,L$(B  ,L'(B  ,L5(B  ,L@(B  ,LB(B  ,L7(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,L&(B
@@ -584,7 +584,7 @@ as follows.
   keytop | Q  W  E  R  T  Y  U  I  O  P  A  S  D
  --------+---------------------------------------
   input  | ,L"(B  ,L#(B  ,L$(B  ,L%(B  ,L&(B  ,L'(B  ,L((B  ,L)(B  ,L*(B  ,L+(B  ,L,(B  ,L.(B  ,L/(B"
-		      nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2,Lq(B 3,Lj(B 4,L!(B 5% 6^ 7& 8* 9( 0) -_ ,LG(B  ,LN(B
 ;;   ,LO(B  ,L2(B  ,L5(B  ,L@(B  ,LB(B  ,LK(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,LI(B
@@ -745,7 +745,7 @@ Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\",
 Macedonian ,Ls(B (GJE) = \"/g\", ,Lu(B (DZE) = \"/s\", ,L|(B (KJE) = \"/k\",
 cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\", 
 ,Ly(B (LJE) = \"/l\", ,Lz(B (NJE) = \"/n\" and ,L(B (DZE) =\"/z\"."
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
  ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B) 
@@ -793,7 +793,8 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  "cyrillic-translit-bulgarian" "Cyrillic" ",L6(Btb" nil
  "Intuitively transliterated keyboard layout optimized for Bulgarian.
 The only difference with cyrillic-translit is that \"sht\" translates as
-,Li(B (SHCHA = Bulgarian SHT) insteat of ,Lhb(B (SH+T)."  nil t t t t)
+,Li(B (SHCHA = Bulgarian SHT) insteat of ,Lhb(B (SH+T)."
+ nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
  ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B) 

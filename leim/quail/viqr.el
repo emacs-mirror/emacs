@@ -61,7 +61,7 @@
   no compose |    \    | a\. -> a.
  ------------+---------+----------
   combination|   (~    | a(~ -> ,1G(B
-" nil t t nil nil t)
+" nil t t nil nil t nil nil nil nil t)
 
 
 (viet-quail-define-rules)

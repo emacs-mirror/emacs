@@ -400,7 +400,8 @@
    ("^" . lrt-handle-tone-mark)
    ("+" . lrt-handle-tone-mark)
    ("~" . lrt-handle-tone-mark))
- 'forget-last-selection 'deterministic 'kbd-translate 'show-layout)
+ 'forget-last-selection 'deterministic 'kbd-translate 'show-layout
+  nil nil nil nil nil t)
 
 (lrt-generate-quail-map)
 

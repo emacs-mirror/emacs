@@ -32,7 +32,7 @@
 
 The layout is same as greek, but uses JIS characters.
 Sorry, accents and terminal sigma are not supported in JIS."
-		      nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
  ("1" ?１)
@@ -146,7 +146,7 @@ e.g.
  ,Fa + ,F4 -> ,F\
  ,Fi + ,F( -> ,Fz
  ,Fi + ,F( + ,F4 -> ,F@"
-		      nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2@  3#  4$  5%  6^  7&  8*  9(  0)  -_  =+  `~
 ;;  ,F7/  ,FrS  ,FeE  ,FqQ  ,FtT  ,FuU  ,FhH  ,FiI  ,FoO  ,FpP  [{  ]}

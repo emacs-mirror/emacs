@@ -33,7 +33,7 @@
 (quail-define-package
  "cyrillic-jis-russian" "Cyrillic" "ЖЙ" nil
  "ЙЦУКЕН keyboard layout same as JCUKEN (JIS X0208.1983 encoding)"
-		      nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2@ 3# 4" 5: 6, 7. 8* 9( 0) -_ =+ ,L!
 ;;   ,L9  ,LF  ,LC  ,L:  ,L5  ,L=  ,L3  ,LH  ,LI  ,L7  ,LE  ,Lj

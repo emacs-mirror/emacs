@@ -31,7 +31,7 @@
  "International Phonetic Alphabet for English, French, German and Italian
 
 Upside-down characters are obtained by a preceding slash (/)."
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("i" ?,0 (B)
