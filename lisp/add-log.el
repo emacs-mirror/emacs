@@ -355,10 +355,11 @@ Runs `change-log-mode-hook'."
   "Fill the paragraph, but preserve open parentheses at beginning of lines.
 Prefix arg means justify as well."
   (interactive "P")
-  (let ((end (save-excursion (forward-paragraph) (point)))
-	(beg (save-excursion (backward-paragraph)(point)))
+  (let ((end (progn (forward-paragraph) (point)))
+	(beg (progn (backward-paragraph) (point)))
 	(paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
-    (fill-region beg end justify)))
+    (fill-region beg end justify)
+    t))
 
 (defvar add-log-current-defun-header-regexp
   "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
