@@ -69,8 +69,7 @@ otherwise)."
 
 (defface show-paren-match-face
   '((((class color)) (:background "turquoise"))
-    (((class grayscale)) (:background "gray"))
-    (t (:reverse-video t)))
+    (t (:background "gray")))
   "Show Paren mode face used for a matching paren."
   :group 'faces
   :group 'paren-showing)
