@@ -4570,7 +4570,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		       before this event; any subsequent mouse-movement
 		       Emacs events should reflect only motion after
 		       the ButtonPress.  */
-		    f->mouse_moved = 0;
+		    if (f != 0)
+		      f->mouse_moved = 0;
 		  }
 		else
 		  {
