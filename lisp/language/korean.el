@@ -51,7 +51,7 @@
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 
 (set-language-info-alist
- "Korean" '((setup-function . setup-korean-environment)
+ "Korean" '((setup-function . setup-korean-environment-internal)
 	    (exit-function . exit-korean-environment)
 	    (tutorial . "TUTORIAL.ko")
 	    (charset korean-ksc5601)
