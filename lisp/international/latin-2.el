@@ -33,11 +33,7 @@
 
 (require 'case-table)
 
-(let ((tbl (standard-case-table))
-      (set-case-syntax-offset
-       (if set-case-syntax-set-multibyte
-	   (- (make-char 'latin-iso8859-2) 128)
-	 0)))
+(let ((tbl (standard-case-table)))
   (set-case-syntax 160 " " tbl)		;no-break space
   (set-case-syntax-pair 161 177 tbl)	;latin letter a with ogonek
   (set-case-syntax 162 "w" tbl)		;breve

@@ -42,11 +42,7 @@
 
 (require 'case-table)
 
-(let ((tbl (standard-case-table))
-      (set-case-syntax-offset
-       (if set-case-syntax-set-multibyte
-	   (- (make-char 'latin-iso8859-14) 128)
-	 0)))
+(let ((tbl (standard-case-table)))
   (set-case-syntax-pair 161 162 tbl)	;latin letter b with dot above *
   (set-case-syntax 163 "w" tbl)		;pound sign
   (set-case-syntax-pair 164 165 tbl)	;latin letter c with dot above *
