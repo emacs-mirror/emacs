@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.53) $
+ * $HopeName: MMsrc!mpm.h(trunk.54) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -291,8 +291,8 @@ extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
 extern void PoolTrivFree(Pool pool, Addr old, Size size);
-extern Res PoolNoBufferInit(Pool pool, Buffer buf);
-extern Res PoolTrivBufferInit(Pool pool, Buffer buf);
+extern Res PoolNoBufferInit(Pool pool, Buffer buf, va_list args);
+extern Res PoolTrivBufferInit(Pool pool, Buffer buf, va_list args);
 extern void PoolNoBufferFinish(Pool pool, Buffer buf);
 extern void PoolTrivBufferFinish(Pool pool, Buffer buf);
 extern Res PoolNoBufferFill(Seg *segReturn,
@@ -561,7 +561,8 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 
 /* Buffer Interface -- see impl.c.buffer */
 
-extern Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank);
+extern Res BufferCreate(Buffer *bufferReturn, Pool pool, ...);
+extern Res BufferCreateV(Buffer *bufferReturn, Pool pool, va_list args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
@@ -569,7 +570,7 @@ extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
-extern Res BufferInit(Buffer buffer, Pool pool, Rank rank);
+extern Res BufferInitV(Buffer buffer, Pool pool, va_list args);
 extern void BufferFinish(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
