@@ -170,7 +170,7 @@ echo "Making links to \`lisp'."
  ln [a-zA-Z]*.dat ../${tempdir}/lisp
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
- ln ChangeLog OChangeLog README dired.todo ../${tempdir}/lisp
+ ln ChangeLog ChangeLog.? README dired.todo ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f TAGS =*
  rm -f site-init site-init.el site-init.elc
@@ -213,7 +213,7 @@ echo "Making links to \`src'."
  test -f ../${tempdir}/src/gmalloc.c || cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
- ln README Makefile.in.in ChangeLog OChangeLog config.h.in paths.h.in \
+ ln README Makefile.in.in ChangeLog ChangeLog.? config.h.in paths.h.in \
     ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.opt vms-pp.trans ../${tempdir}/src
