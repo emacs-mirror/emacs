@@ -1250,6 +1250,10 @@ init_sys_modes ()
 #endif
       tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
       tty.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
+#ifdef INLCR  /* I'm just being cautious,
+		 since I can't check how widespread INLCR is--rms.  */
+      tty.main.c_iflag &= ~INLCR;	/* Disable map of NL to CR on input */
+#endif
 #ifdef ISTRIP
       tty.main.c_iflag &= ~ISTRIP;	/* don't strip 8th bit on input */
 #endif
