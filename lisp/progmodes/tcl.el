@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.20 $
+;; Version: $Revision: 1.21 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/06/05 16:57:22 $|$Revision: 1.20 $|~/modes/tcl.el.Z|
+;; $Date: 1994/07/14 22:49:21 $|$Revision: 1.21 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.21  1994/07/14  22:49:21  tromey
+;; Added ";;;###autoload" comments where appropriate.
+;;
 ; Revision 1.20  1994/06/05  16:57:22  tromey
 ; tcl-current-word does the right thing in inferior-tcl-mode.
 ;
@@ -185,6 +188,8 @@
 ;; h9118101@hkuxa.hku.hk (Yip Chi Lap [Beta])
 ;; Pertti Tapio Kasanen <ptk@delta.hut.fi>
 ;; schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid)
+;; warsaw@nlm.nih.gov (Barry A. Warsaw)
+;; Carl Witty <cwitty@ai.mit.edu>
 
 ;; KNOWN BUGS:
 ;; * indent-region should skip blank lines.  (It does in v19, so I'm
@@ -240,9 +245,9 @@
   "Nil unless using Emacs 19 (Lucid or FSF).")
 
 ;; FIXME this will break on Emacs 19.100.
-(defconst tcl-using-emacs-19.23
+(defconst tcl-using-emacs-19-23
   (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
-  "Nil unless using Emacs 19.23 or later.")
+  "Nil unless using Emacs 19-23 or later.")
 
 (defconst tcl-using-lemacs-19 (string-match "Lucid" emacs-version)
   "Nil unless using Lucid Emacs).")
@@ -258,7 +263,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.20 $")
+(defconst tcl-version "$Revision: 1.21 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -721,10 +726,10 @@ An end of a defun is found by moving forward from the beginning of one."
   (tcl-beginning-of-defun)
   (backward-paragraph))
 
-;; In GNU Emacs 19.23 and later, mark-defun works as advertised.  I
+;; In GNU Emacs 19-23 and later, mark-defun works as advertised.  I
 ;; don't know about Lucid Emacs, so for now it and Emacs 18 just lose.
 (fset 'tcl-mark-defun
-      (if tcl-using-emacs-19.23
+      (if tcl-using-emacs-19-23
 	  'mark-defun
 	'tcl-internal-mark-defun))
 
@@ -1330,7 +1335,9 @@ Returns nil if line starts inside a string, t if in a comment."
 	  (progn
 	    (delete-region (point) inferior-tcl-delete-prompt-marker)
 	    (set-marker inferior-tcl-delete-prompt-marker nil)))))
-  (comint-output-filter proc string))
+  (if tcl-using-emacs-19
+      (comint-output-filter proc string)
+    (funcall comint-output-filter string)))
 
 (defun tcl-send-string (proc string)
   (save-excursion
@@ -1927,7 +1934,7 @@ The first line is assumed to look like \"#!.../program ...\"."
   (interactive "@e")
   (and tcl-using-emacs-19
        (not tcl-using-lemacs-19)
-       (if tcl-using-emacs-19.23
+       (if tcl-using-emacs-19-23
 	   (require 'lmenu)
 	 ;; CAVEATS:
 	 ;; * lmenu.el provides 'menubar, which is bogus.
@@ -1987,7 +1994,7 @@ The first line is assumed to look like \"#!.../program ...\"."
       tcl-prompt-regexp
       inferior-tcl-source-command
       tcl-using-emacs-19
-      tcl-using-emacs-19.23
+      tcl-using-emacs-19-23
       tcl-using-lemacs-19
       tcl-proc-list
       tcl-proc-regexp
