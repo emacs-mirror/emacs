@@ -80,7 +80,7 @@ See definition of `print-region-1' for calling conventions."
 
 ;; Berkeley systems support -F, and GNU pr supports both -f and -F,
 ;; So it looks like -F is a better default.
-(defcustom lpr-page-header-switches '("-F"))
+(defcustom lpr-page-header-switches '("-F")
   "*List of strings to use as options for the page-header-generating program.
 The variable `lpr-page-header-program' specifies the program to use."
   :type '(repeat string)
