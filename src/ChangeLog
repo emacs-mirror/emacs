@@ -1,3 +1,8 @@
+2000-10-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (redisplay_tool_bar): Don't set fonts_changed_p if
+	window height hasn't changed.
+
 2000-10-31  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_produce_glyphs): Handle composite characters.
