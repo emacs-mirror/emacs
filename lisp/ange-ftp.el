@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.29 $")
+(defconst ange-ftp-version "$Revision: 1.30 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3750,12 +3750,19 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 
 ;;; This regexp takes care of real ange-ftp file names (with a slash
-;;; and colon), and absolute filenames with only one component, for
-;;; the sake of hostname completion.
+;;; and colon).
 ;;;###autoload
-(or (assoc "^/[^/:]*\\([^/:]:\\|\\'\\)" file-name-handler-alist)
+(or (assoc "^/[^/:]*[^/:]:" file-name-handler-alist)
     (setq file-name-handler-alist
-	  (cons '("^/[^/:]*\\([^/:]:\\|\\'\\)" . ange-ftp-hook-function)
+	  (cons '("^/[^/:]*[^/:]:" . ange-ftp-hook-function)
+		file-name-handler-alist)))
+
+;;; This regexp recognizes and absolute filenames with only one component,
+;;; for the sake of hostname completion.
+;;;###autoload
+(or (assoc "^/[^/:]*\\'" file-name-handler-alist)
+    (setq file-name-handler-alist
+	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
 		file-name-handler-alist)))
 
 ;;; The above two forms are sufficient to cause this file to be loaded
