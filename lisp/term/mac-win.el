@@ -1,6 +1,6 @@
 ;;; mac-win.el --- support for "Macintosh windows"
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 
@@ -104,18 +104,20 @@
 ;; Don't have this yet.
 (fset 'x-get-resource 'ignore)
 
-;; This variable specifies the Unix program to call (as a process) to
-;; deteremine the amount of free space on a file system (defaults to
-;; df).  If it is not set to nil, ls-lisp will not work correctly
-;; unless an external application df is implemented on the Mac.
-(require 'dired)
+(if (eq system-type 'darwin)
+    ;; df on Darwin does not understand -P
+    (setq directory-free-space-args "-k")
 
-(setq dired-free-space-program nil)
+  ;; This variable specifies the Unix program to call (as a process) to
+  ;; deteremine the amount of free space on a file system (defaults to
+  ;; df).  If it is not set to nil, ls-lisp will not work correctly
+  ;; unless an external application df is implemented on the Mac.
+  (setq directory-free-space-program nil)
 
-;; Set this so that Emacs calls subprocesses with "sh" as shell to
-;; expand filenames Note no subprocess for the shell is actually
-;; started (see run_mac_command in sysdep.c).
-(setq shell-file-name "sh")
+  ;; Set this so that Emacs calls subprocesses with "sh" as shell to
+  ;; expand filenames Note no subprocess for the shell is actually
+  ;; started (see run_mac_command in sysdep.c).
+  (setq shell-file-name "sh"))
 
 ;; X Window emulation in macterm.c is not complete enough to start a
 ;; frame without a minibuffer properly.  Call this to tell ediff
@@ -211,19 +213,23 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 		(set-fontset-font "fontset-mac" key monaco-font))))
 	 (get 'mac-roman-encoder 'translation-table)))))
 
-;; To display filenames in Chinese or Japanese, replace mac-roman with
-;; big5 or sjis
-(setq file-name-coding-system 'mac-roman)
+(if (eq system-type 'darwin)
+    ;; On Darwin filenames are encoded in UTF-8
+    (setq file-name-coding-system 'utf-8)
+  ;; To display filenames in Chinese or Japanese, replace mac-roman with
+  ;; big5 or sjis
+  (setq file-name-coding-system 'mac-roman))
 
 ;; If Emacs is started from the Finder, change the default directory
 ;; to the user's home directory.
 (if (string= default-directory "/")
     (cd "~"))
 
-;; Tell Emacs to use pipes instead of pty's for processes because the
-;; latter sometimes lose characters.  Pty support is compiled in since
-;; ange-ftp will not work without it.
-(setq process-connection-type nil)
+(unless (eq system-type 'darwin)
+  ;; Tell Emacs to use pipes instead of pty's for processes because the
+  ;; latter sometimes lose characters.  Pty support is compiled in since
+  ;; ange-ftp will not work without it.
+  (setq process-connection-type nil))
 
 ;; Assume that fonts are always scalable on the Mac.  This sometimes
 ;; results in characters with jagged edges.  However, without it,
