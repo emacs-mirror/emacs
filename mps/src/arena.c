@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.50) $
+ * $HopeName: MMsrc!arena.c(trunk.51) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.50) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.51) $");
 
 
 /* Forward declarations */
@@ -620,7 +620,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   }
 
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
-  res = (*class->init)(&arena, args);
+  res = (*class->init)(&arena, class, args);
   if(res != ResOK)
     goto failInit;
   
