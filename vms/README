@@ -5,3 +5,8 @@ version of Emacs (currently based on version 19.28, but soon moving to
 on both VAX and Alpha architectures.  For more information see
 
   http://vms.gnu.org/software/released1/emacs.html#get_emacs_1928_kit
+
+
+[Update 2003-11-24: I am working on integrating VMS-specific bits
+ back into the repository.  There are some work-in-progress files
+ in this directory as a result.  Do not be alarmed!  --ttn]
