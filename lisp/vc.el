@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.287 2000/11/16 15:26:37 spiegel Exp $
+;; $Id: vc.el,v 1.288 2000/11/16 16:40:59 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -74,60 +74,91 @@
 
 ;;;;;;;;;;;;;;;;; Backend-specific functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; for each operation FUN, the backend should provide a function vc-BACKEND-FUN.
-;; Operations marked with a `-' instead of a `*' are optional.
+;; For each operation FUN, the backend should provide a function 
+;; vc-BACKEND-FUN.  Operations marked with a `-' instead of a `*' 
+;; are optional.
+
+;;;
+;;; State-querying functions
+;;;
 
 ;; * registered (file)
 ;; * state (file)
 ;; - state-heuristic (file)
 ;;     The default behavior delegates to `state'.
 ;; - dir-state (dir)
-;; * checkout-model (file)
-;; - mode-line-string (file)
 ;; * workfile-version (file)
-;; * revert (file)
-;; - merge-news (file)
-;;     Only needed if state `needs-merge' is possible.
-;; - merge (file rev1 rev2)
-;; - steal-lock (file &optional version)
-;;     Only required if files can be locked by somebody else.
-;; * register (file rev comment)
-;; * unregister (file backend)
-;; - receive-file (file rev)
-;; - responsible-p (file)
-;;     Should also work if FILE is a directory (ends with a slash).
-;; - could-register (file)
-;; * checkout (file writable &optional rev destfile)
-;;     Checkout revision REV of FILE into DESTFILE.
-;;     DESTFILE defaults to FILE.
-;;     The file should be made writable if WRITABLE is non-nil.
-;;     REV can be nil (BASE) or "" (HEAD) or any other revision.
-;; * checkin (file rev comment)
-;; - logentry-check ()
-;; * diff (file &optional rev1 rev2)
-;;     Insert the diff for FILE into the current buffer.
-;;     REV1 should default to workfile-version.
-;;     REV2 should default to the current workfile
-;;     Return a status of either 0 (i.e. no diff) or 1 (i.e. either non-empty
-;;     diff or the diff is run asynchronously).
+;; * latest-on-branch-p (file)
+;; * checkout-model (file)
 ;; - workfile-unchanged-p (file)
 ;;     Return non-nil if FILE is unchanged from its current workfile version.
 ;;     This function should do a brief comparison of FILE's contents
 ;;     with those of the master version.  If the backend does not have
 ;;     such a brief-comparison feature, the default implementation of this
 ;;     function can be used, which delegates to a full vc-BACKEND-diff.
-;; - clear-headers ()
-;; * check-headers ()
+;; - mode-line-string (file)
 ;; - dired-state-info (file)
+
+;;; 
+;;; State-changing functions
+;;;
+
+;; * register (file rev comment)
+;; - responsible-p (file)
+;;     Should also work if FILE is a directory (ends with a slash).
+;; - could-register (file)
+;; - receive-file (file rev)
+;; - unregister (file backend)
+;; * checkin (file rev comment)
+;; * checkout (file writable &optional rev destfile)
+;;     Checkout revision REV of FILE into DESTFILE.
+;;     DESTFILE defaults to FILE.
+;;     The file should be made writable if WRITABLE is non-nil.
+;;     REV can be nil (BASE) or "" (HEAD) or any other revision.
+;; * revert (file)
+;; - cancel-version (file writable)
+;; - merge (file rev1 rev2)
+;; - merge-news (file)
+;;     Only needed if state `needs-merge' is possible.
+;; - steal-lock (file &optional version)
+;;     Only required if files can be locked by somebody else.
+
+;;;
+;;; History functions
+;;;
+
+;; * print-log (file)
+;;     Insert the revision log of FILE into the current buffer.
+;; - show-log-entry (version)
+;; - wash-log (file)
+;;     Remove all non-comment information from the output of print-log
+;; - logentry-check ()
+;; - comment-history (file)
+;; - update-changelog (files)
+;;     Find changelog entries for FILES, or for all files at or below
+;;     the default-directory if FILES is nil.
+;; * diff (file &optional rev1 rev2)
+;;     Insert the diff for FILE into the current buffer.
+;;     REV1 should default to workfile-version.
+;;     REV2 should default to the current workfile
+;;     Return a status of either 0 (i.e. no diff) or 1 (i.e. either non-empty
+;;     diff or the diff is run asynchronously).
+;; - annotate-command (file buf rev)
+;; - annotate-difference (pos)
+;;     Only required if `annotate-command' is defined for the backend.
+
+;;;
+;;; Snapshot system
+;;;
+
 ;; - create-snapshot (dir name branchp)
-;;     Take a snapshot of the current state of files under DIR and name it NAME.
-;;     This should make sure that files are up-to-date before proceeding
-;;     with the action.
-;;     DIR can also be a file and if BRANCHP is specified, NAME
-;;     should be created as a branch and DIR should be checked out under
-;;     this new branch.  The default behavior does not support branches
-;;     but does a sanity check, a tree traversal and for each file calls
-;;     `assign-name'.
+;;     Take a snapshot of the current state of files under DIR and
+;;     name it NAME.  This should make sure that files are up-to-date
+;;     before proceeding with the action.  DIR can also be a file and
+;;     if BRANCHP is specified, NAME should be created as a branch and
+;;     DIR should be checked out under this new branch.  The default
+;;     behavior does not support branches but does a sanity check, a
+;;     tree traversal and for each file calls `assign-name'.
 ;; * assign-name (file name)
 ;;     Give name NAME to the current version of FILE, assuming it is
 ;;     up-to-date.  Only used by the default version of `create-snapshot'.
@@ -135,21 +166,18 @@
 ;;     Retrieve a named snapshot of all registered files at or below DIR.
 ;;     If UPDATE is non-nil, then update buffers of any files in the snapshot
 ;;     that are currently visited.
-;; * print-log (file)
-;;     Insert the revision log of FILE into the current buffer.
-;; - show-log-entry (version)
-;; - wash-log (file)
-;;     Remove all non-comment information from the output of print-log
-;; - comment-history (file)
-;; - update-changelog (files)
-;;     Find changelog entries for FILES, or for all files at or below
-;;     the default-directory if FILES is nil.
-;; * latest-on-branch-p (file)
-;; - cancel-version (file writable)
+
+;;;
+;;; Miscellaneous
+;;;
+
+;; - make-version-backups-p (file)
+;; - check-headers ()
+;; - clear-headers ()
 ;; - rename-file (old new)
-;; - annotate-command (file buf rev)
-;; - annotate-difference (pos)
-;;     Only required if `annotate-command' is defined for the backend.
+
+
+;;;;;;;;;;;;;;; End of backend-specific functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'vc-hooks)
 (require 'ring)
@@ -2761,6 +2789,10 @@ This function is destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
   "Check if the current file has any headers in it."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
+
+(defun vc-default-check-headers (backend)
+  "Default implementation of check-headers; always returns nil."
+  nil)
 
 ;; Back-end-dependent stuff ends here.
 
