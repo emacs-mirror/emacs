@@ -677,6 +677,8 @@ typedef unsigned char UCHAR;
 /* Return a glyph's face ID.  */
 #define GLYPH_FACE(glyph) (((glyph) >> 8) & ((1 << 24) - 1))
 
+/* The ID of the mode line highlighting face.  */
+#define GLYPH_MODE_LINE_FACE 1
 
 /* Data type checking */
 
