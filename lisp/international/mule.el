@@ -1695,7 +1695,11 @@ function by default."
 (setq set-auto-coding-function 'set-auto-coding)
 
 (defun after-insert-file-set-coding (inserted)
-  "Set `buffer-file-coding-system' of current buffer after text is inserted."
+  "Set `buffer-file-coding-system' of current buffer after text is inserted.
+INSERTED is the number of characters that were inserted, as figured
+in the situation before this function.  Return the number of characters
+inserted, as figured in the situation after.  The two numbers can be
+different if the buffer has become unibyte."
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
@@ -1711,9 +1715,9 @@ function by default."
 		   (= (buffer-size) inserted))
 	      ;; For coding systems no-conversion and raw-text...,
 	      ;; edit the buffer as unibyte.
-	      (let ((pos-byte (position-bytes (+ (point) inserted))))
+	      (let ((pos-marker (copy-marker (+ (point) inserted))))
 		(set-buffer-multibyte nil)
-		(setq inserted (- pos-byte (position-bytes (point))))))
+		(setq inserted (- pos-marker (point)))))
 	  (set-buffer-modified-p modified-p))))
   inserted)
 
