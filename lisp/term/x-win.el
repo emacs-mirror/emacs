@@ -89,7 +89,7 @@
 		("-reverse" .	x-handle-switch)
 		("-fn" .	x-handle-switch)
 		("-font" .	x-handle-switch)
-		("-ib" .	x-handle-switch)
+		("-ib" .	x-handle-numeric-switch)
 		("-g" .		x-handle-geometry)
 		("-geometry" .	x-handle-geometry)
 		("-fg" .	x-handle-switch)
