@@ -946,7 +946,11 @@ update_menu_bar (window, just_this_one)
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
   if (!NILP (w->update_mode_line)
+#ifdef USE_X_TOOLKIT
+      && FRAME_EXTERNAL_MENU_BAR (f) 
+#else
       && FRAME_MENU_BAR_LINES (f) > 0
+#endif
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
       /* If the user has switched buffers or windows, we need to
