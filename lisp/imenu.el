@@ -650,7 +650,7 @@ cdr is a syntax description appropriate fo `modify-syntax-entry'.  For
 a string, all the characters in the string get the specified syntax.
 
 This is typically used to give word syntax to characters which
-normallsymbol syntax to simplify `imenu-expression'
+normally have symbol syntax to simplify `imenu-expression'
 and speed-up matching.")
 (make-variable-buffer-local 'imenu-syntax-alist)
 
