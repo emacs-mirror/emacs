@@ -391,8 +391,9 @@ If SCOPE is nil, the user is asked to specify the scope."
 			  (if (stringp macro-body) "  ....\"" "  ....]"))
 			 state-name))
 		  t)))
-	  (if (y-or-n-p (format "Save this macro in %s? "
-				(abbreviate-file-name vip-custom-file-name)))
+	  (if (y-or-n-p
+	       (format "Save this macro in %s? "
+		       (vip-abbreviate-file-name vip-custom-file-name)))
 	      (vip-save-string-in-file 
 	       (format "\n(vip-record-kbd-macro %S '%S %s '%S)"
 		       (vip-display-macro macro-name)
@@ -903,7 +904,7 @@ there."
 	       (setq vip-last-macro-reg reg)
 	       (vip-set-register-macro reg))))
 	  (t
-	   (error "`%c': Unknown register" reg)))))
+	   (error (format "`%c': Unknown register" reg))))))
 	   
 
 (defun vip-global-execute ()

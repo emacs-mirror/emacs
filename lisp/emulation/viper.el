@@ -4839,8 +4839,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	  ((vip-valid-register reg '(letter))
 	   (let* ((val (get-register (1+ (- reg ?a))))
 		  (buf (if (not val) 
-			   (error 
-			    (format vip-EmptyTextmarker reg))
+			   (error vip-EmptyTextmarker reg)
 			 (marker-buffer val)))
 		  (pos (marker-position val))
 		  line-no text (s pos) (e pos))

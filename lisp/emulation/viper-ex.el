@@ -489,7 +489,7 @@ reversed.")
 		      ))
 		   ))
 	    ((eq ex-token-type 'non-command)
-	     (error "`%s': %s" ex-token vip-BadExCommand))
+	     (error (format "`%s': %s" ex-token vip-BadExCommand)))
 	    ((eq ex-token-type 'whole)
 	     (setq address nil)
 	     (setq ex-addresses
@@ -839,9 +839,23 @@ reversed.")
   (setq vip-keep-reading-filename t) 
   ;; don't exit if directory---ex-commands don't 
   (cond ((ex-cmd-accepts-multiple-files-p ex-token) (exit-minibuffer))
-	(t (minibuffer-complete-word))))
-     
-	       
+	;; apparently the argument to an Ex command is
+	;; supposed to be a shell command
+	((vip-looking-back "^[ \t]*!.*")
+	 (setq ex-cmdfile t)
+	 (insert " "))
+	(t
+	 (setq ex-cmdfile nil)
+	 (minibuffer-complete-word))))
+
+(defun vip-handle-! ()
+  (interactive)
+  (if (and (string=
+	    (buffer-string) (vip-abbreviate-file-name default-directory))
+	   (member ex-token '("read" "write")))
+      (erase-buffer))
+  (insert "!"))
+
 (defun ex-cmd-accepts-multiple-files-p (token)
   (member token '("edit" "next" "Next")))
 
@@ -853,7 +867,10 @@ reversed.")
 	  (copy-keymap minibuffer-local-completion-map))
 	 beg end cont val)
     
-    (vip-add-keymap ex-read-filename-map minibuffer-local-completion-map) 
+    (vip-add-keymap ex-read-filename-map
+		    (if vip-emacs-p 
+			minibuffer-local-completion-map
+		      read-file-name-map)) 
 		    
     (setq cont (setq vip-keep-reading-filename t))
     (while cont
@@ -944,19 +961,22 @@ reversed.")
 	     (string= ex-token "change")
 	     (string= ex-token "insert")
 	     (string= ex-token "open"))
-	 (error "`%s': Obsolete command, not supported by Viper"
-		ex-token))
+	 (error
+	  (format "`%s': Obsolete command, not supported by Viper"
+		  ex-token)))
 	((or (string= ex-token "abbreviate")
 	     (string= ex-token "unabbreviate"))
 	 (error
+	  (format
 	   "`%s': Vi-style abbrevs are obsolete. Use the more powerful Emacs abbrevs"
-	   ex-token))
+	   ex-token)))
 	((or (string= ex-token "list")
 	     (string= ex-token "print")
 	     (string= ex-token "z")
 	     (string= ex-token "#"))
-	 (error "`%s': Command not implemented in Viper" ex-token))
-	(t (error "`%s': %s" ex-token vip-BadExCommand))))
+	 (error
+	  (format "`%s': Command not implemented in Viper" ex-token)))
+	(t (error (format "`%s': %s" ex-token vip-BadExCommand)))))
 
 (defun vip-undisplayed-files ()
   (mapcar
@@ -1081,7 +1101,7 @@ reversed.")
   (if (not file)
       (vip-get-ex-file))
   (cond ((and (string= ex-file "") buffer-file-name)
-	 (setq ex-file  (abbreviate-file-name (buffer-file-name))))
+	 (setq ex-file  (vip-abbreviate-file-name (buffer-file-name))))
 	((string= ex-file "")
 	 (error vip-NoFileSpecified)))
       
@@ -1361,7 +1381,8 @@ reversed.")
     (if (not (vip-buffer-live-p buf))
 	(error "Didn't find buffer %S or file %S"
 	       file-or-buffer-name
-	       (abbreviate-file-name (expand-file-name file-or-buffer-name))))
+	       (vip-abbreviate-file-name
+		(expand-file-name file-or-buffer-name))))
 	  
     (if (equal buf (current-buffer))
 	(or no-recursion
@@ -1425,7 +1446,8 @@ reversed.")
 ;; Ex read command
 (defun ex-read ()
   (vip-get-ex-file)
-  (let ((point (if (null ex-addresses) (point) (car ex-addresses))))
+  (let ((point (if (null ex-addresses) (point) (car ex-addresses)))
+	command)
     (goto-char point)
     (vip-add-newline-at-eob-if-necessary)
     (if (not (or (bobp) (eobp))) (forward-line 1))
@@ -1435,7 +1457,9 @@ reversed.")
 	      (error vip-NoFileSpecified))
 	  (setq ex-file buffer-file-name)))
     (if ex-cmdfile
-	(shell-command ex-file t)
+	(progn
+	  (setq command (ex-expand-filsyms ex-file (current-buffer)))
+	  (shell-command command t))
       (insert-file-contents ex-file)))
   (ex-fixup-history vip-last-ex-prompt ex-file))
   
@@ -1675,7 +1699,7 @@ reversed.")
   (condition-case nil
       (progn
 	(pop-to-buffer (get-buffer-create "*info*"))
-	(info "viper.info")
+	(info (if vip-xemacs-p "viper.info" "viper"))
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *vip-info*"
@@ -1875,7 +1899,7 @@ Please contact your system administrator. "
 
 (defun ex-write-info (exists file-name beg end)
   (message "`%s'%s %d lines, %d characters"
-	   (abbreviate-file-name file-name)
+	   (vip-abbreviate-file-name file-name)
 	   (if exists "" " [New file]")
 	   (count-lines beg (min (1+ end) (point-max)))
 	   (- end beg)))
@@ -1947,7 +1971,7 @@ Please contact your system administrator. "
 	lines file info)
     (setq lines (count-lines (point-min) (vip-line-pos 'end))
 	  file (if (buffer-file-name)
-		   (concat (abbreviate-file-name (buffer-file-name)) ":")
+		   (concat (vip-abbreviate-file-name (buffer-file-name)) ":")
 		 (concat (buffer-name) " [Not visiting any file]:"))
 	  info (format "line=%d/%d pos=%d/%d col=%d %s"
 		       (if (= pos1 pos2)
