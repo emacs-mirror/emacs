@@ -2354,7 +2354,8 @@ property.
 display specification of the form @code{(margin right-margin)} or
 @code{(margin left-margin)} on it.  To put an image in a display margin,
 use that display specification along with the display specification for
-the image.
+the image.  Unfortunately, there is currently no way to make
+text or images in the margin mouse-sensitive.
 
   If you put such a display specification directly on text in the
 buffer, the specified margin display appears @emph{instead of} that
