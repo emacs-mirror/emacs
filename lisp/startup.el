@@ -163,22 +163,37 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 			   (delete (concat "PWD=" pwd)
 				   process-environment)))))))
     (setq default-directory (abbreviate-file-name default-directory))
-    (unwind-protect
-	(command-line)
-      ;; Do this again, in case .emacs defined more abbreviations.
-      (setq default-directory (abbreviate-file-name default-directory))
-      (run-hooks 'emacs-startup-hook)
-      (and term-setup-hook
-	   (run-hooks 'term-setup-hook))
-      ;; Modify the initial frame based on what .emacs puts into
-      ;; ...-frame-alist.
-      (if (fboundp 'frame-notice-user-settings)
-	  (frame-notice-user-settings))
-      ;; Now we know the user's default font, so add it to the menu.
-      (if (fboundp 'font-menu-add-default)
-	  (font-menu-add-default))
-      (and window-setup-hook
-	   (run-hooks 'window-setup-hook)))))
+    (let ((menubar-bindings-done nil))
+      (unwind-protect
+	  (command-line)
+	;; Do this again, in case .emacs defined more abbreviations.
+	(setq default-directory (abbreviate-file-name default-directory))
+	(run-hooks 'emacs-startup-hook)
+	(and term-setup-hook
+	     (run-hooks 'term-setup-hook))
+	;; Modify the initial frame based on what .emacs puts into
+	;; ...-frame-alist.
+	(if (fboundp 'frame-notice-user-settings)
+	    (frame-notice-user-settings))
+	;; Now we know the user's default font, so add it to the menu.
+	(if (fboundp 'font-menu-add-default)
+	    (font-menu-add-default))
+	(and window-setup-hook
+	     (run-hooks 'window-setup-hook))
+	(or menubar-bindings-done
+	    (precompute-menubar-bindings))))))
+
+;; Precompute the keyboard equivalents in the menu bar items.
+(defun precompute-menubar-bindings ()
+  (if (fboundp 'x-popup-menu)
+      (let ((submap (lookup-key global-map [menu-bar])))
+	(while submap
+	  (and (consp (car submap))
+	       (symbolp (car (car submap)))
+	       (stringp (car-safe (cdr (car submap))))
+	       (keymapp (cdr (cdr (car submap))))
+	       (x-popup-menu nil (cdr (cdr (car submap)))))
+	  (setq submap (cdr submap))))))
 
 (defun command-line ()
   (setq command-line-default-directory default-directory)
@@ -422,6 +437,11 @@ GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for f
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
 Type \\[describe-distribution] for information on getting the latest version.")))
 		   (set-buffer-modified-p nil)
+		   ;; Do this now to avoid an annoying delay if the user
+		   ;; clicks the menu bar during the sit-for.
+		   (sit-for 0)
+		   (precompute-menubar-bindings)
+		   (setq menubar-bindings-done t)
 		   (sit-for 120))
 	       (save-excursion
 		 ;; In case the Emacs server has already selected
