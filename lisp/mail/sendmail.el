@@ -248,6 +248,9 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
 (define-key mail-mode-map [menu-bar mail signature]
   '("Insert Signature" . mail-signature))
 
+(define-key mail-mode-map [menu-bar mail cancel]
+  '("Cancel" . mail-dont-send))
+
 (define-key mail-mode-map [menu-bar mail send-stay]
   '("Send, Keep Editing" . mail-send))
 
@@ -283,6 +286,16 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
 Prefix arg means don't delete this window."
   (interactive "P")
   (mail-send)
+  (mail-bury arg))
+
+(defun mail-dont-send (arg)
+  "Don't send the message you have been editing.
+Prefix arg means don't delete this window."
+  (interactive "P")
+  (mail-bury arg))
+
+(defun mail-bury (arg)
+  "Bury this mail buffer."
   (let ((newbuf (other-buffer (current-buffer))))
     (bury-buffer (current-buffer))
     (if (and (not arg)
