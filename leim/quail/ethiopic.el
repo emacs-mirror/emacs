@@ -1,6 +1,6 @@
 ;; quail/ethiopic.el --- Quail package for inputting Ethiopic characters
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1997, 1998 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multilingual, input method, ethiopic
@@ -785,20 +785,20 @@ C-' or `M-x ethio-gemination'
  ("GWE" ?$(3%S(B)
  ("GW'" ?$(3%c(B)
 
- ("te" ?$(3$'(B)
- ("tu" ?$(3$((B)
- ("ti" ?$(3$)(B)
- ("ta" ?$(3$*(B)
- ("tE" ?$(3$+(B)
- ("t" ?$(3$,(B)
- ("to" ?$(3$-(B)
- ("tW" ?$(3$.(B)
- ("tWa" ?$(3$.(B)
- ("tWe" ["$(3$,%n(B"])
- ("tWu" ["$(3$,%r(B"])
- ("tWi" ["$(3$,%o(B"])
- ("tWE" ["$(3$,%q(B"])
- ("tW'" ["$(3$,%r(B"])
+ ("Te" ?$(3$'(B)
+ ("Tu" ?$(3$((B)
+ ("Ti" ?$(3$)(B)
+ ("Ta" ?$(3$*(B)
+ ("TE" ?$(3$+(B)
+ ("T" ?$(3$,(B)
+ ("To" ?$(3$-(B)
+ ("TW" ?$(3$.(B)
+ ("TWa" ?$(3$.(B)
+ ("TWe" ["$(3$,%n(B"])
+ ("TWu" ["$(3$,%r(B"])
+ ("TWi" ["$(3$,%o(B"])
+ ("TWE" ["$(3$,%q(B"])
+ ("TW'" ["$(3$,%r(B"])
 
  ("Ce" ?$(3$/(B)
  ("Cu" ?$(3$0(B)
