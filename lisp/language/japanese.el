@@ -41,10 +41,10 @@
   :coding-type 'iso-2022
   :mnemonic ?J
   :designation [(ascii japanese-jisx0208-1978 japanese-jisx0208
-		       latin-jisx0201 japanese-jisx0212)
+		       latin-jisx0201)
 		nil nil nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation)
-  :charset-list '(ascii japanese-jisx0208 japanese-jisx0212
+  :charset-list '(ascii japanese-jisx0208
 			japanese-jisx0208-1978 latin-jisx0201)
   :mime-charset 'iso-2022-jp)
 
@@ -78,11 +78,11 @@
 	 (#x00AC . #xFFE2)	; NOT SIGN		FULLWIDTH NOT SIGN
 	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
 	 )))
-  (define-translation-table 'japanese-ucs-cp932-to-jis-map map)
+  (define-translation-table 'japanese-ucs-jis-to-cp932-map map)
   (mapc #'(lambda (x) (let ((tmp (car x)))
 			(setcar x (cdr x)) (setcdr x tmp)))
 	map)
-  (define-translation-table 'japanese-ucs-jis-to-cp932-map map))
+  (define-translation-table 'japanese-ucs-cp932-to-jis-map map))
 
 ;; U+2014 (EM DASH) vs U+2015 (HORIZONTAL BAR)
 (define-translation-table 'japanese-ucs-glibc-to-jis-map '((#x2015 . #x2014)))
@@ -148,16 +148,60 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
   :decode-translation-table 'eucjp-ms-decode
   :encode-translation-table 'eucjp-ms-encode)
 
+(define-coding-system 'iso-2022-jp-2004
+  "ISO 2022 based 7bit encoding for JIS X 0213:2004 (MIME:ISO-2022-JP-2004)."
+  :coding-type 'iso-2022
+  :mnemonic ?J
+  :designation [(ascii japanese-jisx0208 japanese-jisx0213.2004-1
+		       japanese-jisx0213-1 japanese-jisx0213-2)
+		nil nil nil]
+  :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation)
+		 ;; init-at-bol)
+  :charset-list '(ascii japanese-jisx0208 japanese-jisx0213.2004-1
+			japanese-jisx0213-1 japanese-jisx0213-2)
+  :mime-charset 'iso-2022-jp-2004)
+
+(define-coding-system-alias 'iso-2022-jp-3 'iso-2022-jp-2004)
+
+(define-coding-system 'euc-jis-2004
+  "ISO 2022 based EUC encoding for JIS X 0213 (MIME:EUC-JIS-2004)."
+  :coding-type 'iso-2022
+  :mnemonic ?E
+  :designation [ascii japanese-jisx0213.2004-1 katakana-jisx0201
+                      japanese-jisx0213-2]
+  :flags '(short ascii-at-eol ascii-at-cntl single-shift)
+  :charset-list '(ascii latin-jisx0201 japanese-jisx0213.2004-1
+                        japanese-jisx0213-1 katakana-jisx0201
+                        japanese-jisx0213-2)
+  :mime-charset 'euc-jis-2004)
+
+(define-coding-system-alias 'euc-jisx0213 'euc-jis-2004)
+
+(define-coding-system 'japanese-shift-jis-2004
+  "Shift_JIS 8-bit encodinf for Japanese (MIME:SHIFT_JIS-2004)"
+  :coding-type 'shift-jis
+  :mnemonic ?S
+  :charset-list '(ascii katakana-jisx0201 
+                        japanese-jisx0213.2004-1 japanese-jisx0213-2))
+
+(define-coding-system-alias 'shift_jis-2004 'japanese-shift-jis-2004)
+
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208 japanese-jisx0208-1978
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201
-		       japanese-jisx0213-1 japanese-jisx0213-2)
+		       japanese-jisx0213.2004-1 japanese-jisx0213-1 
+                       japanese-jisx0213-2)
 	      (coding-system iso-2022-jp japanese-iso-8bit
-			     japanese-shift-jis japanese-iso-7bit-1978-irv)
+			     japanese-shift-jis japanese-iso-7bit-1978-irv
+                             iso-2022-jp-2004 japanese-shift-jis-2004
+                             euc-jis-2004)
 	      (coding-priority iso-2022-jp japanese-iso-8bit
-			       japanese-shift-jis iso-2022-jp-2)
+			       japanese-shift-jis 
+                               iso-2022-jp-2004 euc-jis-2004 
+                               japanese-shift-jis-2004
+                               iso-2022-jp-2)
 	      (input-method . "japanese")
 	      (features japan-util)
 	      (sample-text . "Japanese (日本語)	こんにちは, ｺﾝﾆﾁﾊ")
