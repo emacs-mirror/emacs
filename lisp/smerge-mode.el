@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.13 2001/07/31 08:26:47 gerd Exp $
+;; Revision: $Id: smerge-mode.el,v 1.14 2001/07/31 08:28:43 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -332,7 +332,7 @@ An error is raised if not inside a conflict."
 				  (when base-start (1- base-start)) base-start
 				  (1- other-start) other-start))
 	  t)
-      (error "Point not in conflict region"))))
+      (search-failed (error "Point not in conflict region")))))
 
 (defun smerge-find-conflict (&optional limit)
   "Find and match a conflict region.  Intended as a font-lock MATCHER.
@@ -350,12 +350,18 @@ The point is moved to the end of the conflict."
   (smerge-ensure-match n2)
   (let ((name1 (aref smerge-match-names n1))
 	(name2 (aref smerge-match-names n2))
+	;; Read them before the match-data gets clobbered.
+	(beg1 (match-beginning n1))
+	(end1 (match-end n1))
+	(beg2 (match-beginning n2))
+	(end2 (match-end n2))
 	(file1 (make-temp-file "smerge1"))
 	(file2 (make-temp-file "smerge2"))
 	(dir default-directory)
-	(file (file-relative-name buffer-file-name)))
-    (write-region (match-beginning n1) (match-end n1) file1)
-    (write-region (match-beginning n2) (match-end n2) file2)
+	(file (file-relative-name buffer-file-name))
+	(coding-system-for-read buffer-file-coding-system))
+    (write-region beg1 end1 file1)
+    (write-region beg2 end2 file2)
     (unwind-protect
 	(with-current-buffer (get-buffer-create smerge-diff-buffer-name)
 	  (setq default-directory dir)
