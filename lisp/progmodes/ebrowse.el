@@ -255,11 +255,6 @@ This is a destructive operation."
     result))
 
 
-(defun ebrowse-copy-list (list)
-  "Return a shallow copy of LIST."
-  (apply #'list list))
-
-
 (defmacro ebrowse-output (&rest body)
   "Eval BODY with a writable current buffer.
 Preserve buffer's modified state."
@@ -1836,7 +1831,7 @@ TREE denotes the class shown."
   "Display a single class and recursively it's subclasses.
 This function may look weird, but this is faster than recursion."
   (setq stack1 (make-list (length ebrowse--tree) 0)
-	stack2 (ebrowse-copy-list ebrowse--tree))
+	stack2 (copy-sequence ebrowse--tree))
   (loop while stack2
 	as level = (pop stack1)
 	as tree = (pop stack2)
@@ -1879,7 +1874,7 @@ This function may look weird, but this is faster than recursion."
 	;; Push subclasses, if any.
 	(when (ebrowse-ts-subclasses tree)
 	  (setq stack2
-		(nconc (ebrowse-copy-list (ebrowse-ts-subclasses tree)) stack2)
+		(nconc (copy-sequence (ebrowse-ts-subclasses tree)) stack2)
 		stack1
 		(nconc (make-list (length (ebrowse-ts-subclasses tree))
 				  (1+ level)) stack1)))))
