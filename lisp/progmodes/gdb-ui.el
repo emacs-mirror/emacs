@@ -62,8 +62,6 @@
 (defvar gdb-current-frame nil)
 (defvar gdb-current-stack-level nil)
 (defvar gdb-current-language nil)
-(defvar gdb-view-source t "Non-nil means that source code can be viewed.")
-(defvar gdb-selected-view 'source "Code type that user wishes to view.")
 (defvar gdb-var-list nil "List of variables in watch window.")
 (defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
 (defvar gdb-buffer-type nil)
@@ -224,8 +222,6 @@ detailed description of this mode.
   (setq gdb-previous-frame nil)
   (setq gdb-current-frame nil)
   (setq gdb-current-stack-level nil)
-  (setq gdb-view-source t)
-  (setq gdb-selected-view 'source)
   (setq gdb-var-list nil)
   (setq gdb-var-changed nil)
   (setq gdb-first-prompt nil)
@@ -248,8 +244,6 @@ detailed description of this mode.
   (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
-  ;;
-  (set-window-dedicated-p (get-buffer-window gud-comint-buffer) t)
   ;;
   (run-hooks 'gdba-mode-hook))
 
@@ -277,7 +271,7 @@ detailed description of this mode.
 	    (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	  (concat"-var-create - * "  expr "\n"))
 	     `(lambda () (gdb-var-create-handler ,expr))))))
-  (select-window (get-buffer-window gud-comint-buffer 'visible)))
+  (select-window (get-buffer-window gud-comint-buffer 0)))
 
 (defun gdb-goto-info ()
   "Go to Emacs info node: GDB Graphical Interface."
@@ -730,7 +724,6 @@ This filter may simply queue input for a later time."
 	 (match-string 1 args)
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
-  (setq gdb-view-source t)
   ;; cover for auto-display output which comes *before*
   ;; stopped annotation
   (if (eq gdb-output-sink 'inferior) (setq gdb-output-sink 'user)))
@@ -1279,7 +1272,7 @@ static char *magick[] = {
 	    (let* ((buf (find-file-noselect (if (file-exists-p file)
 						file
 					      (expand-file-name file gdb-cdir))))
-		   (window (gdb-display-buffer buf)))
+		   (window (display-buffer buf)))
 	      (with-current-buffer buf
 		(goto-line (string-to-number line))
 		(set-window-point window (point))))))
@@ -1595,29 +1588,23 @@ static char *magick[] = {
   (let ((answer (get-buffer-window buf 0))
 	(must-split nil))
     (if answer
-	(display-buffer answer)		;Raise the frame if necessary.
+	(display-buffer buf)		;Raise the frame if necessary.
       ;; The buffer is not yet displayed.
       (pop-to-buffer gud-comint-buffer)	;Select the right frame.
-	(let ((window (get-lru-window)))
-	  (if window
-	      (progn
-		(set-window-buffer window buf)
-		(setq answer window))
+      (let ((window (get-lru-window)))
+	(if window
+	    (progn
+	      (set-window-buffer window buf)
+	      (setq answer window))
 	  (setq must-split t)))
-    (if must-split
-	(let* ((largest (get-largest-window))
-	       (cur-size (window-height largest))
-	       (new-size (and size (< size cur-size) (- cur-size size))))
-	  (setq answer (split-window largest new-size))
-	  (set-window-buffer answer buf)))
-    (set-window-dedicated-p answer t)
+      (if must-split
+	  (let* ((largest (get-largest-window))
+		 (cur-size (window-height largest))
+		 (new-size (and size (< size cur-size) (- cur-size size))))
+	    (setq answer (split-window largest new-size))
+	    (set-window-buffer answer buf)
+	    (set-window-dedicated-p answer t)))
       answer)))
-
-(defun gdb-display-source-buffer (buffer)
-  (if (eq gdb-selected-view 'source)
-	(gdb-display-buffer buffer)
-    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer)))
-    (get-buffer-window buffer 'visible))
 
 
 ;;; Shared keymap initialization:
@@ -1644,19 +1631,6 @@ static char *magick[] = {
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer)))
 
-(let ((menu (make-sparse-keymap "View")))
-   (define-key gud-menu-map [view]
-     `(menu-item "View" ,menu :visible (eq gud-minor-mode 'gdba)))
-;  (define-key menu [both] '(menu-item "Both" gdb-view-both
-;	       :help "Display both source and assembler"
-;	       :button (:radio . (eq gdb-selected-view 'both))))
-   (define-key menu [assembler] '(menu-item "Machine" gdb-view-assembler
-	       :help "Display assembler only"
-	       :button (:radio . (eq gdb-selected-view 'assembler))))
-   (define-key menu [source] '(menu-item "Source" gdb-view-source-function
-	       :help "Display source only"
-	       :button (:radio . (eq gdb-selected-view 'source)))))
-
 (let ((menu (make-sparse-keymap "GDB-UI")))
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
@@ -1682,27 +1656,6 @@ static char *magick[] = {
 
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
-(defun gdb-view-source-function ()
-  "Select source view."
-  (interactive)
-  (if gdb-view-source
-      (gdb-display-buffer
-       (gud-find-file (if gud-last-last-frame
-			  (car gud-last-last-frame)
-			gdb-main-file))))
-  (setq gdb-selected-view 'source))
-
-(defun gdb-view-assembler()
-  "Select disassembly view."
-  (interactive)
-  (gdb-display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
-  (gdb-invalidate-assembler)
-  (setq gdb-selected-view 'assembler))
-
-;(defun gdb-view-both()
-;(interactive)
-;(setq gdb-selected-view 'both))
-
 (defcustom gdb-show-main nil
   "Nil means don't display source file containing the main routine."
   :type 'boolean
@@ -1720,20 +1673,18 @@ static char *magick[] = {
   (delete-other-windows)
   (gdb-display-breakpoints-buffer)
   (delete-other-windows)
-  (gdb-set-window-buffer gud-comint-buffer)
+  ; Don't dedicate.
+  (pop-to-buffer gud-comint-buffer)
   (split-window nil ( / ( * (window-height) 3) 4))
   (split-window nil ( / (window-height) 3))
   (split-window-horizontally)
   (other-window 1)
   (gdb-set-window-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (gdb-set-window-buffer
-   (if (and gdb-view-source
-	    (eq gdb-selected-view 'source))
+  (switch-to-buffer
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file))
-     (gdb-get-create-buffer 'gdb-assembler-buffer)))
+	 (gud-find-file gdb-main-file)))
   (when gdb-use-inferior-io-buffer
     (split-window-horizontally)
     (other-window 1)
@@ -1776,13 +1727,10 @@ This arrangement depends on the value of `gdb-many-windows'."
       (gdb-setup-windows)
     (split-window)
     (other-window 1)
-    (gdb-set-window-buffer
-     (if (and gdb-view-source
-	      (eq gdb-selected-view 'source))
+    (switch-to-buffer
 	 (if gud-last-last-frame
 	     (gud-find-file (car gud-last-last-frame))
-	   (gud-find-file gdb-main-file))
-       (gdb-get-create-buffer 'gdb-assembler-buffer)))
+	   (gud-find-file gdb-main-file)))
     (other-window 1)))
 
 (defun gdb-reset ()
@@ -1796,7 +1744,6 @@ Kills the gdb buffers and resets the source buffers."
 		(kill-buffer nil)
 	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
 	      (setq gud-minor-mode nil)
-	      (set-window-dedicated-p (get-buffer-window buffer) nil)
 	      (kill-local-variable 'tool-bar-map)
 	      (setq gud-running nil))))))
   (when (markerp gdb-overlay-arrow-position)
@@ -1816,17 +1763,13 @@ buffers."
 	(setq gdb-cdir (match-string 0))))
   (if (search-forward "Located in " nil t)
       (if (looking-at "\\S-*")
-	  (setq gdb-main-file (match-string 0)))
-    (setq gdb-view-source nil))
-  (if gdb-many-windows
+	  (setq gdb-main-file (match-string 0))))
+ (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-get-create-buffer 'gdb-breakpoints-buffer)
-    (when gdb-show-main
+    (if gdb-show-main
       (let ((pop-up-windows t))
-	(display-buffer
-       (if gdb-view-source
-	   (gud-find-file gdb-main-file)
-	   (gdb-get-create-buffer 'gdb-assembler-buffer)))))))
+	(display-buffer (gud-find-file gdb-main-file))))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop)
@@ -1872,9 +1815,9 @@ BUFFER nil or omitted means use the current buffer."
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
-	      (if (get-buffer-window (current-buffer) 'visible)
+	      (if (get-buffer-window (current-buffer) 0)
 		  (set-window-margins
-		   (get-buffer-window (current-buffer) 'visible)
+		   (get-buffer-window (current-buffer) 0)
 		   left-margin-width right-margin-width))))
 	  (put-image
 	   (if enabled
@@ -1899,9 +1842,9 @@ BUFFER nil or omitted means use the current buffer."
       (when (< left-margin-width 2)
 	(save-current-buffer
 	  (setq left-margin-width 2)
-	  (if (get-buffer-window (current-buffer) 'visible)
+	  (if (get-buffer-window (current-buffer) 0)
 	      (set-window-margins
-	       (get-buffer-window (current-buffer) 'visible)
+	       (get-buffer-window (current-buffer) 0)
 	       left-margin-width right-margin-width))))
       (gdb-put-string (if enabled "B" "b") (1+ start)))))
 
@@ -1911,9 +1854,9 @@ BUFFER nil or omitted means use the current buffer."
       (remove-images start end))
   (when remove-margin
     (setq left-margin-width 0)
-    (if (get-buffer-window (current-buffer) 'visible)
+    (if (get-buffer-window (current-buffer) 0)
 	(set-window-margins
-	 (get-buffer-window (current-buffer) 'visible)
+	 (get-buffer-window (current-buffer) 0)
 	 left-margin-width right-margin-width))))
 
 
@@ -1965,7 +1908,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (re-search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y))))))))
     (if (not (equal gdb-current-address "main"))
-	(set-window-point (get-buffer-window buffer 'visible) pos))))
+	(set-window-point (get-buffer-window buffer 0) pos))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2077,14 +2020,9 @@ BUFFER nil or omitted means use the current buffer."
 		(setq gdb-current-address
 		      (concat "0x" (match-string 1 address)))
 	      (setq gdb-current-address (concat "0x" address))))
-	  (if (or (if (not (re-search-forward "(\\S-*:[0-9]*);" nil t))
-		      (progn (setq gdb-view-source nil) t))
-		  (eq gdb-selected-view 'assembler))
-	      (progn
-		(gdb-display-buffer
-		 (gdb-get-create-buffer 'gdb-assembler-buffer))
+	  (if (not (re-search-forward "(\\S-*:[0-9]*);" nil t))
 		;;update with new frame for machine code if necessary
-		(gdb-invalidate-assembler))))))
+		(gdb-invalidate-assembler)))))
     (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
 	(setq gdb-current-language (match-string 1))))
 
