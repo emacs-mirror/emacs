@@ -4026,7 +4026,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  coding->produced_char = len;
 	}
       else
-	coding->produced_char = len_byte;
+	{
+	  if (!replace)
+	    adjust_after_insert (from, from_byte, to, to_byte, len_byte);
+	  coding->produced_char = len_byte;
+	}
       return 0;
     }
 
