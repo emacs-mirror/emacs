@@ -1724,6 +1724,7 @@ Advanced commands:
   (kill-all-local-variables)
   (setq major-mode 'Info-mode)
   (setq mode-name "Info")
+  (setq tab-width 8)
   (use-local-map Info-mode-map)
   (make-local-hook 'activate-menubar-hook)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
