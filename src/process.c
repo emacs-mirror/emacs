@@ -2134,14 +2134,19 @@ read_process_output (proc, channel)
 	 it up.  */
       int count = specpdl_ptr - specpdl;
       Lisp_Object odeactivate;
+      Lisp_Object obuffer;
 
       odeactivate = Vdeactivate_mark;
+      obuffer = Fcurrent_buffer ();
 
       specbind (Qinhibit_quit, Qt);
       call2 (outstream, proc, make_string (chars, nchars));
 
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
+
+      if (! EQ (Fcurrent_buffer (), obuffer))
+	record_asynch_buffer_change ();
 
 #ifdef VMS
       start_vms_process_read (vs);
