@@ -221,7 +221,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	      {
 		union { double d; char *half[2]; } u;
 		if (cnt + 1 == nargs)
-		  error ("not enough arguments for format string");
+		  error ("Not enough arguments for format string");
 		u.half[0] = args[cnt++];
 		u.half[1] = args[cnt++];
 		sprintf (sprintf_buffer, fmtcpy, u.d);
@@ -234,7 +234,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	      string[-1] = 's';
 	    case 's':
 	      if (cnt == nargs)
-		error ("not enough arguments for format string");
+		error ("Not enough arguments for format string");
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
 	      if (lispstrings)
@@ -297,7 +297,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 
 	    case 'c':
 	      if (cnt == nargs)
-		error ("not enough arguments for format string");
+		error ("Not enough arguments for format string");
 	      tem = CHAR_STRING ((int) (EMACS_INT) args[cnt], charbuf);
 	      string = charbuf;
 	      cnt++;
