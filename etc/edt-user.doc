@@ -763,7 +763,7 @@ directions.
   F10: Cut Rectangle
 G-F10: Paste Rectangle
   F11: ESC                       
-  F12: Begining of Line           +----------+----------+----------+----------+
+  F12: Beginning of Line          +----------+----------+----------+----------+
 G-F12: Delete Other Windows       |   GOLD   |   HELP   |  FNDNXT  |  DEL L   |
   F13: Delete to Begin of Word    |   (PF1)  |   (PF2)  |   (PF3)  |  (PF4)   |
  HELP: Keypad Help                |Mark Wisel|Desc Funct|   FIND   |  UND L   |
@@ -920,7 +920,7 @@ G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
   F10: Cut Rectangle
 G-F10: Paste Rectangle
   F11: ESC                        +----------+----------+----------+----------+
-  F12: Begining of Line           |   GOLD   |Query Repl|  FNDNXT  |Del Ent L |
+  F12: Beginning of Line          |   GOLD   |Query Repl|  FNDNXT  |Del Ent L |
 G-F12: Delete Other Windows       |   (PF1)  |   (PF2)  |   (PF3)  |   (PF4)  |
   F13: Delete to Begin of Word    |Mark Wisel|Other Wind|   FIND   |  UND L   |
  HELP: Keypad Help                +----------+----------+----------+----------+
