@@ -1,3 +1,12 @@
+2001-10-28  Miles Bader  <miles@gnu.org>
+
+	* faces.el (face-attribute): Add INHERIT argument, consider face
+	inheritance if it's non-nil.
+	(face-attribute-merged-with): New function.
+	(face-attribute-specified-or): New macro.
+	(face-foreground, face-background, face-stipple): Add INHERIT
+	argument.  Use `face-attribute-specified-or'.
+
 2001-10-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el: Require `syntax'.
