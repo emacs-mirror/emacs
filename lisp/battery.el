@@ -90,7 +90,7 @@ string are substituted as defined by the current value of the variable
 ;;;###autoload
 (defun battery ()
   "Display battery status information in the echo area.
-The text beeing displayed in the echo area is controlled by the variables
+The text being displayed in the echo area is controlled by the variables
 `battery-echo-area-format' and `battery-status-function'."
   (interactive)
   (message "%s" (if (and battery-echo-area-format battery-status-function)
