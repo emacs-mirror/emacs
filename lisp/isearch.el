@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/05/29 06:27:47 $|$Revision: 1.38 $
+;; |$Date: 1993/06/01 04:52:28 $|$Revision: 1.39 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -500,10 +500,12 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-small-window nil
 
 	isearch-opoint (point)
-	isearch-window-configuration (current-window-configuration)
 	isearch-old-local-map (current-local-map)
 	search-ring-yank-pointer nil
 	regexp-search-ring-yank-pointer nil)
+  (if isearch-slow-terminal-mode
+      (setq isearch-window-configuration (current-window-configuration)))
+
 ;; This was for Lucid Emacs.  But now that we have pre-command-hook,
 ;; it causes trouble.
 ;;  (if isearch-pre-command-hook-exists
@@ -581,7 +583,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (isearch-dehighlight t)
   (let ((found-start (window-start (selected-window)))
 	(found-point (point)))
-    (set-window-configuration isearch-window-configuration)
+    (if isearch-window-configuration
+	(set-window-configuration isearch-window-configuration))
 
     ;; If there was movement, mark the starting position.
     ;; Maybe should test difference between and set mark iff > threshold.
@@ -1006,9 +1009,19 @@ and the meta character is unread so that it applies to editing the string."
 	   (apply 'isearch-unread (listify-key-sequence key)))
 	 (isearch-edit-string))
 	(search-exit-option
-	 (let ((key (this-command-keys)))
-	   (apply 'isearch-unread (listify-key-sequence key)))
-	 (isearch-done))
+	 (let ((key (this-command-keys))
+	       window)
+	   (apply 'isearch-unread (listify-key-sequence key))
+	   ;; If we got a mouse click, maybe it was read with the buffer
+	   ;; it was clicked on.  If so, that buffer, not the current one,
+	   ;; is in isearch mode.  So end the search in that buffer.
+	   (if (and (listp (aref key 0))
+		    (setq window (posn-window (event-start (aref key 0))))
+		    (windowp window))
+	       (save-excursion
+		 (set-buffer (window-buffer window))
+		 (isearch-done))
+	     (isearch-done))))
 	(t;; otherwise nil
 	 (isearch-process-search-string (this-command-keys)
 					(this-command-keys)))))
