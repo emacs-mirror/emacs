@@ -13695,15 +13695,28 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 
 		aelt = Fassoc (elt, mode_line_proptrans_alist);
 		if (! NILP (aelt) && !NILP (Fequal (props, XCDR (aelt))))
-		  elt = XCAR (aelt);
+		  {
+		    mode_line_proptrans_alist
+		      = Fcons (aelt, Fdelq (aelt, mode_line_proptrans_alist));
+		    elt = XCAR (aelt);
+		  }
 		else
 		  {
+		    Lisp_Object tem;
+
 		    elt = Fcopy_sequence (elt);
 		    Fset_text_properties (make_number (0), Flength (elt),
 					  props, elt);
+		    /* Add this item to mode_line_proptrans_alist.  */
 		    mode_line_proptrans_alist
 		      = Fcons (Fcons (elt, props),
 			       mode_line_proptrans_alist);
+		    /* Truncate mode_line_proptrans_alist
+		       to at most 50 elements.  */
+		    tem = Fnthcdr (make_number (50),
+				   mode_line_proptrans_alist);
+		    if (! NILP (tem))
+		      XSETCDR (tem, Qnil);
 		  }
 	      }
 	  }
