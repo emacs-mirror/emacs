@@ -1,5 +1,5 @@
 /* The emacs frame widget.
-   Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1993, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -757,10 +757,7 @@ EmacsFrameDestroy (widget)
   if (! s->output_data.x->normal_gc) abort ();
 
   BLOCK_INPUT;
-  /* need to be careful that the face-freeing code doesn't free these too */
-  XFreeGC (XtDisplay (widget), s->output_data.x->normal_gc);
-  XFreeGC (XtDisplay (widget), s->output_data.x->reverse_gc);
-  XFreeGC (XtDisplay (widget), s->output_data.x->cursor_gc);
+  x_free_gcs (s);
   if (s->output_data.x->white_relief.gc)
     XFreeGC (XtDisplay (widget), s->output_data.x->white_relief.gc);
   if (s->output_data.x->black_relief.gc)
