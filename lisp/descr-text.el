@@ -434,6 +434,19 @@ otherwise."
 ;;; 						   (string-to-number
 ;;; 						    (nth 13 fields) 16))
 ;;; 						  ??)))))))))))
+
+;; Return information about how CHAR is displayed at the buffer
+;; position POS.  If the selected frame is on a graphic display,
+;; return a cons (FONTNAME . GLYPH-CODE).  Otherwise, return a string
+;; describing the terminal codes for the character.
+(defun describe-char-display (pos char)
+  (if (display-graphic-p (selected-frame))
+      (internal-char-font pos char)
+    (let* ((coding (terminal-coding-system))
+	   (encoded (encode-coding-char char coding)))
+      (if encoded
+	  (encoded-string-description encoded coding)))))
+
 
 ;;;###autoload
 (defun describe-char (pos)
@@ -449,8 +462,11 @@ as well as widgets, buttons, overlays, and text properties."
 	 (charset (char-charset char))
 	 (buffer (current-buffer))
 	 (composition (find-composition pos nil nil t))
-	 (composed (if composition (buffer-substring (car composition)
-						     (nth 1 composition))))
+	 (component-chars nil)
+	 (display-table (or (window-display-table)
+			    buffer-display-table
+			    standard-display-table))
+	 (disp-vector (and display-table (aref display-table char)))
 	 (multibyte-p enable-multibyte-characters)
 	 item-list max-width unicode)
     (if (eq charset 'unknown)
@@ -514,15 +530,46 @@ as well as widgets, buttons, overlays, and text properties."
 			     (format "(encoded by coding system %S)" coding))
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
-	      ,(if (display-graphic-p (selected-frame))
-		   (list "font" (or (internal-char-font pos)
-				    "-- none --"))
-		 (list "terminal code"
-		       (let* ((coding (terminal-coding-system))
-			      (encoded (encode-coding-char char coding)))
-			 (if encoded
-			     (encoded-string-description encoded coding)
-			   "not encodable"))))
+	      ("display"
+	       ,(cond
+		 (disp-vector
+		  (setq disp-vector (copy-sequence disp-vector))
+		  (dotimes (i (length disp-vector))
+		    (setq char (aref disp-vector i))
+		    (aset disp-vector i
+			  (cons char (describe-char-display pos char))))
+		  (format "by display table entry [%s] (see below)"
+			  (mapconcat #'(lambda (x) (format "?%c" (car x)))
+				     disp-vector " ")))
+		 (composition
+		  (let ((from (car composition))
+			(to (nth 1 composition))
+			(next (1+ pos))
+			(components (nth 2 composition))
+			ch)
+		    (setcar composition
+			    (and (< from pos) (buffer-substring from pos)))
+		    (setcar (cdr composition)
+			    (and (< next to) (buffer-substring next to)))
+		    (dotimes (i (length components))
+		      (if (integerp (setq ch (aref components i)))
+			  (push (cons ch (describe-char-display pos ch))
+				component-chars)))
+		    (setq component-chars (nreverse component-chars))
+		    (format "composed to form \"%s\" (see below)"
+			    (buffer-substring from to))))
+		 (t
+		  (let ((display (describe-char-display pos char)))
+		    (if (display-graphic-p (selected-frame))
+			(if display
+			    (concat
+			     "by this font (glyph code)\n"
+			     (format "     %s (0x%02X)"
+				     (car display) (cdr display)))
+			  "no font avairable")
+		      (if display
+			  (format "terminal code %s" display)
+			"not encodable for terminal"))))))
 	      ,@(let ((unicodedata (and unicode
 					(describe-char-unicode-data unicode))))
 		  (if unicodedata
@@ -547,31 +594,63 @@ as well as widgets, buttons, overlays, and text properties."
 		  (indent-to (1+ max-width)))
 		(insert " " clm))
 	      (insert "\n"))))
-	(when composition
-	  (insert "\nComposed with the "
-		  (cond
-		   ((eq pos (car composition)) "following ")
-		   ((eq (1+ pos) (cadr composition)) "preceding ")
-		   (t ""))
-		  "character(s) `"
-		  (cond
-		   ((eq pos (car composition)) (substring composed 1))
-		   ((eq (1+ pos) (cadr composition)) (substring composed 0 -1))
-		   (t (concat (substring composed 0 (- pos (car composition)))
-			      "' and `"
-			      (substring composed (- (1+ pos) (car composition))))))
 
-		  "' to form `" composed "'")
-	  (if (nth 3 composition)
-	      (insert ".\n")
-	    (insert "\nby the rule ("
-		    (mapconcat (lambda (x)
-				 (format (if (consp x) "%S" "?%c") x))
-			       (nth 2 composition)
-			       " ")
-		    ").\n"
-		    "See the variable `reference-point-alist' for "
-		    "the meaning of the rule.\n")))
+	(when disp-vector
+	  (insert
+	   "\nThe display table entry is displayed by ")
+	  (if (display-graphic-p (selected-frame))
+	      (progn
+		(insert "these fonts (glyph codes):\n")
+		(dotimes (i (length disp-vector))
+		  (insert (car (aref disp-vector i)) ?:
+			  (propertize " " 'display '(space :align-to 5))
+			  (if (cdr (aref disp-vector i))
+			      (format "%s (0x%02X)" (cadr (aref disp-vector i))
+				      (cddr (aref disp-vector i)))
+			    "-- no font --")
+			  "\n ")))
+	    (insert "these terminal codes:\n")
+	    (dotimes (i (length disp-vector))
+	      (insertf(car (aref disp-vector i)) 
+		      (propertize " " 'display '(space :align-to 5))
+		      (or (cdr (aref disp-vector i)) "-- not encodable --")
+		      "\n"))))
+
+	(when composition
+	  (insert "\nComposed")
+	  (if (car composition)
+	      (if (cadr composition)
+		  (insert " with the surrounding characters \""
+			  (car composition) "\" and \""
+			  (cadr composition) "\"")
+		(insert " with the preceding character(s) \""
+			(car composition) "\""))
+	    (if (cadr composition)
+		(insert " with the following character(s) \""
+			(cadr composition) "\"")))
+	  (insert " by the rule:\n\t("
+		  (mapconcat (lambda (x)
+			       (format (if (consp x) "%S" "?%c") x))
+			     (nth 2 composition)
+			     " ")
+		  ")")
+	  (insert  "\nThe component character(s) are displayed by ")
+	  (if (display-graphic-p (selected-frame))
+	      (progn
+		(insert "these fonts (glyph codes):")
+		(dolist (elt component-chars)
+		  (insert "\n " (car elt) ?:
+			  (propertize " " 'display '(space :align-to 5))
+			  (if (cdr elt)
+			      (format "%s (0x%02X)" (cadr elt) (cddr elt))
+			    "-- no font --"))))
+	    (insert "these terminal codes:")
+	    (dolist (elt component-chars)
+	      (insert "\n  " (car elt) ":"
+		      (propertize " " 'display '(space :align-to 5))
+		      (or (cdr elt) "-- not encodable --"))))
+	  (insert "\nSee the variable `reference-point-alist' for "
+		  "the meaning of the rule.\n"))
 
 	(let ((output (current-buffer)))
 	  (with-current-buffer buffer
