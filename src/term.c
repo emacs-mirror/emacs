@@ -507,7 +507,7 @@ void
 update_end (f)
      FRAME_PTR f;
 {
-  if (! FRAME_TERMCAP_P (updating_frame))
+  if (! FRAME_TERMCAP_P (f))
     {
       (*update_end_hook) (f);
       updating_frame = 0;
