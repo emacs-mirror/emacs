@@ -1310,38 +1310,6 @@ w32_color_map_lookup (colorname)
   return ret;
 }
 
-COLORREF
-w32_color_map_lookup (colorname)
-     char *colorname;
-{
-  Lisp_Object tail, ret = Qnil;
-
-  BLOCK_INPUT;
-
-  for (tail = Vw32_color_map; !NILP (tail); tail = Fcdr (tail))
-    {
-      register Lisp_Object elt, tem;
-
-      elt = Fcar (tail);
-      if (!CONSP (elt)) continue;
-
-      tem = Fcar (elt);
-
-      if (lstrcmpi (XSTRING (tem)->data, colorname) == 0)
-	{
-	  ret = XUINT (Fcdr (elt));
-	  break;
-	}
-
-      QUIT;
-    }
-
-
-  UNBLOCK_INPUT;
-
-  return ret;
-}
-
 COLORREF 
 x_to_w32_color (colorname)
      char * colorname;
