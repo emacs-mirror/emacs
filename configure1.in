@@ -507,6 +507,10 @@ case "${canonical}" in
     machine=alliant-2800 opsys=bsd4-3
   ;;
 
+  alpha-dec-osf* )
+    machine=alpha opsys=osf1
+  ;;
+
   ## Altos 3068
   m68*-altos-sysv* )
     machine=altos opsys=usg5-2
