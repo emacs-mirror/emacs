@@ -396,6 +396,18 @@ x_set_frame_parameters (f, alist)
 	}
     }
 
+  /* Don't die if just one of these was set.  */
+  if (EQ (left, Qunbound))
+    XSET (left, Lisp_Int, f->display.x->left_pos);
+  if (EQ (top, Qunbound))
+    XSET (top, Lisp_Int, f->display.x->top_pos);
+
+  /* Don't die if just one of these was set.  */
+  if (EQ (width, Qunbound))
+    XSET (width, Lisp_Int, FRAME_WIDTH (f));
+  if (EQ (height, Qunbound))
+    XSET (height, Lisp_Int, FRAME_HEIGHT (f));
+
   /* Don't set these parameters these unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
      this function, and we don't want to override that unless the lisp
@@ -408,6 +420,7 @@ x_set_frame_parameters (f, alist)
     Lisp_Object frame;
 
     XSET (frame, Lisp_Frame, f);
+
     if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
 	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f)))
       Fset_frame_size (frame, width, height);
