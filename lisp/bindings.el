@@ -201,42 +201,37 @@ Menu of mode operations in the mode line.")
     (let ((map (make-sparse-keymap "Minor Modes")))
       (define-key map [abbrev-mode]
 	'(menu-item "Abbrev" abbrev-mode
-		    :active t :style toggle :selected abbrev-mode))
+		    :button (:toggle . abbrev-mode)))
       (define-key map [auto-revert-mode]
 	'(menu-item "Auto revert" auto-revert-mode
-		    :active t :style toggle
-		    :selected (bound-and-true-p auto-revert-mode)))
+		    :button (:toggle . (bound-and-true-p auto-revert-mode))))
       (define-key map [auto-fill-mode]
 	'(menu-item "Auto-fill" auto-fill-mode
-		    :active t :style toggle :selected auto-fill-function))
+		    :button (:toggle . auto-fill-function)))
       (define-key map [column-number-mode]
 	'(menu-item "Column number" column-number-mode
-		    :active t :style toggle :selected column-number-mode))
+		    :button (:toggle . column-number-mode)))
       (define-key map [flyspell-mode]
 	'(menu-item "Flyspell" flyspell-mode
-		    :active t :style toggle
-		    :selected (bound-and-true-p flyspell-mode)))
+		    :button (:toggle . (bound-and-true-p flyspell-mode))))
       (define-key map [font-lock-mode]
 	'(menu-item "Font-lock" font-lock-mode
-		    :active t :style toggle :selected font-lock-mode))
+		    :button (:toggle . font-lock-mode)))
       (define-key map [hide-ifdef-mode]
 	'(menu-item "Hide ifdef" hide-ifdef-mode
-		    :active t :style toggle
-		    :selected (bound-and-true-p hide-ifdef-mode)))
+		    :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
       (define-key map [highlight-changes-mode]
 	'(menu-item "Highlight changes" highlight-changes-mode
-		    :active t :style toggle
-		    :selected (bound-and-true-p highlight-changes-mode)))
+		    :button (:toggle . (bound-and-true-p highlight-changes-mode))))
       (define-key map [line-number-mode]
 	'(menu-item "Line number" line-number-mode
-		    :active t :style toggle :selected line-number-mode))
+		    :button (:toggle . line-number-mode)))
       (define-key map [outline-minor-mode]
 	'(menu-item "Outline" outline-minor-mode
-		    :active t :style toggle
-		    :selected (bound-and-true-p outline-minor-mode)))
+		    :button (:toggle . (bound-and-true-p outline-minor-mode))))
       (define-key map [overwrite-mode]
 	'(menu-item "Overwrite" overwrite-mode
-		    :active t :style toggle :selected overwrite-mode))
+		    :button (:toggle . overwrite-mode)))
       (setq mode-line-mode-menu (copy-keymap map))
       (defun mode-line-mode-menu (event)
 	(interactive "@e")
