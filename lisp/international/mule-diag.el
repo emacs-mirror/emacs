@@ -510,7 +510,7 @@ but contains full information about each coding systems."
 ;;;###autoload
 (defun describe-font (fontname)
   "Display information about fonts which partially match FONTNAME."
-  (interactive "sFontname (default, current choise for ASCII chars): ")
+  (interactive "sFontname (default, current choice for ASCII chars): ")
   (or window-system
       (error "No window system being used"))
   (when (or (not fontname) (= (length fontname) 0))
