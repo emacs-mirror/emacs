@@ -7,7 +7,7 @@
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
 ;; Maintainer: Kenichi HANDA <handa@etl.go.jp>
-;; Keywords: mule, multilingual, input method
+;; Keywords: mule, multilingual, input method, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -41,6 +41,14 @@
 ;; alphabets) to Hiragana text, which is then converted to
 ;; Kanji-and-Kana mixed text or Katakana text by commands specified in
 ;; CONVERSION-KEYS argument of the Quail package.
+
+;; [There was an input method for Mule 2.3 called `Tamago' from the
+;; Japanese `TAkusan MAtasete GOmenasai', or `Sorry for having you
+;; wait so long'; this couldn't be included in Emacs 20.  `Tamago' is
+;; Japanese for `egg' (implicitly a hen's egg).  Handa-san made a
+;; smaller and simpler system; the smaller quail egg is also eaten in
+;; Japan.  Maybe others will be egged on to write more sorts of input
+;; methods.]
 
 ;;; Code:
 
@@ -661,6 +669,13 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
   aAsSdDfFgGhHjJkKlL;+:*]}    \
   zZxXcCvVbBnNmM,<.>/?\\_      \
                               ")
+   '("pc105-uk" . "\
+                              \
+`\2541!2\3\243$5%6^7&8*9(0)-_=+    \
+  qQwWeErRtTyYuUiIoOpP[{]}    \
+  aAsSdDfFgGhHjJkKlL;:'@#~    \
+\\|zZxXcCvVbBnNmM,<.>/?        \
+                              ")
    )
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
@@ -705,7 +720,9 @@ the layout string.")
   "Type of keyboard layout used in Quail base input method.
 Available types are listed in the variable `quail-keyboard-layout-alist'."
   :group 'quail
-  :type 'string
+  :type (cons 'choice (mapcar (lambda (elt)
+				(list 'const (car elt)))
+			      quail-keyboard-layout-alist))
   :set #'(lambda (symbol value)
 	   (quail-update-keyboard-layout value)
 	   (set symbol value)))
@@ -1248,13 +1265,17 @@ The returned value is a Quail map specific to KEY."
 (defun quail-error (&rest args)
   (signal 'quail-error (apply 'format args)))
 
-
 (defun quail-input-string-to-events (str)
   "Convert input string STR to a list of events.
 Do so while interleaving with the following special events:
 \(compose-last-chars LEN COMPONENTS)
 \(quail-advice INPUT-STRING)"
-  (let* ((events (string-to-list str))
+  (let* ((events (lambda (c)
+		    ;; This gives us the chance to unify on input
+		    ;; (e.g. using ucs-tables.el).
+		    (or (and translation-table-for-input
+			     (aref translation-table-for-input c))
+			c)))
 	 (len (length str))
 	 (idx len)
 	 composition from to)
@@ -2172,8 +2193,6 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  (setq i (1+ i)))
 	(insert "\n")))))
 
-;; Choose a completion in *Quail Completions* buffer with mouse-2.
-
 (defun quail-mouse-choose-completion (event)
   "Click on an alternative in the `*Quail Completions*' buffer to choose it."
   (interactive "e")
@@ -2181,7 +2200,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   ;; `mouse-choose-completion' except that we:
   ;; 1) add two lines from `choose-completion' in simple.el to give
   ;;    the `mouse-2' click a little more leeway.
-  ;; 2) don't bury *Quail Completions* buffer so comment a section, and 
+  ;; 2) don't bury *Quail Completions* buffer, so comment a section, and
   ;; 3) delete/terminate the current quail selection here.
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
@@ -2218,40 +2237,11 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
     (quail-choose-completion-string choice buffer base-size)
     (quail-terminate-translation)))
 
-;; Modify the simple.el function `choose-completion-string', because
-;; the simple.el function `choose-completion-delete-max-match' breaks
-;; on Mule data, since the semantics of `forward-char' have changed.
-
+;; BASE-SIZE here is for compatibility with an (unused) arg of a
+;; previous implementation.
 (defun quail-choose-completion-string (choice &optional buffer base-size)
-  (let ((buffer (or buffer completion-reference-buffer)))
-    ;; If BUFFER is a minibuffer, barf unless it's the currently
-    ;; active minibuffer.
-    (if (and (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))
-	     (or (not (active-minibuffer-window))
-		 (not (equal buffer
-			     (window-buffer (active-minibuffer-window))))))
-	(quail-error "Minibuffer is not active for completion")
-      ;; Store the completion in `quail-current-str', which will later
-      ;; be converted to a character event list, then inserted into
-      ;; the buffer where completion was requested.
-      (set-buffer buffer)
-;      (if base-size
-;	  (delete-region (+ base-size (point-min)) (point))
-;	(choose-completion-delete-max-match choice))
-      (setq quail-current-str choice)
-      ;; Update point in the window that BUFFER is showing in.
-      (let ((window (get-buffer-window buffer t)))
-	(set-window-point window (point)))
-      ;; If completing for the minibuffer, exit it with this choice.
-      (and (not completion-no-auto-exit)
-	   (equal buffer (window-buffer (minibuffer-window)))
-	   minibuffer-completion-table
-	   ;; If this is reading a file name, and the file name chosen
-	   ;; is a directory, don't exit the minibuffer.
-	   (if (and (eq minibuffer-completion-table 'read-file-name-internal)
-		    (file-directory-p (buffer-string)))
-	       (select-window (active-minibuffer-window))
-	     (exit-minibuffer))))))
+  (setq quail-current-str choice)
+  (choose-completion-string choice buffer))
 
 (defun quail-build-decode-map (map-list key decode-map num
 					&optional maxnum ignores)
@@ -2790,7 +2780,8 @@ of each directory."
 	  (with-temp-buffer
 	    (insert-file-contents (car pkg-list))
 	    (goto-char (point-min))
-	    (while (search-forward "(quail-define-package" nil t)
+	    ;; Don't get fooled by commented-out code.
+	    (while (re-search-forward "^[ \t]*(quail-define-package" nil t)
 	      (goto-char (match-beginning 0))
 	      (condition-case nil
 		  (let ((form (read (current-buffer))))
