@@ -877,6 +877,7 @@ displayed, by setting the variable @code{hourglass-delay}.
 @section Displaying the Cursor
 
 @findex hl-line-mode
+@cindex highlight current line
 @findex blink-cursor-mode
 @cindex cursor, locating visually
 @cindex cursor, blinking
