@@ -840,6 +840,7 @@ AC_HAVE_FUNCS(gettimeofday gethostname dup2)
 
 dnl checks for structure members
 AC_STRUCT_TM
+AC_TIMEZONE
 
 dnl checks for compiler characteristics
 AC_CONST
