@@ -96,9 +96,9 @@ Used to grey out relevant toolbar icons.")
     ([run]	menu-item "Run" gud-run
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb dbx jdb))))
-    ([goto]	menu-item "Continue to selection" gud-until
+    ([until]	menu-item "Continue to selection" gud-until
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb))))
+				  (memq gud-minor-mode '(gdba gdb perldb))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                      :enable (not gud-running))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
@@ -1254,7 +1254,7 @@ and source-file directory for your debugger."
   (set (make-local-variable 'gud-minor-mode) 'perldb)
 
   (gud-def gud-break  "b %l"         "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-remove "d %l"         "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-remove "B %l"         "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "s"            "\C-s" "Step one source line with display.")
   (gud-def gud-next   "n"            "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "c"            "\C-r" "Continue with display.")
@@ -1262,6 +1262,8 @@ and source-file directory for your debugger."
 ;  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
 ;  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "p %e"          "\C-p" "Evaluate perl expression at point.")
+  (gud-def gud-until  "c %l"          "\C-u" "Continue to current line.")
+
 
   (setq comint-prompt-regexp "^  DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
