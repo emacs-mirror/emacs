@@ -2389,6 +2389,11 @@ If summary buffer is currently displayed, update current message there also."
 	    (search-forward "\n*** EOOH ***\n" end t)
 	    (narrow-to-region (point) end)))
 	(goto-char (point-min))
+	(walk-windows
+	 (function (lambda (window)
+		     (if (eq (window-buffer window) (current-buffer))
+			 (set-window-point window (point)))))
+	 nil t)
 	(rmail-display-labels)
 	(if (eq rmail-enable-mime t)
 	    (funcall rmail-show-mime-function)
