@@ -578,13 +578,13 @@ case "${canonical}" in
   m68*-sony-bsd4.3* )
     machine=news opsys=bsd4-3
   ;;
-  m68*-sony-newsos3*)
+  m68*-sony-newsos3* | m68*-sony-news3*)
     machine=news opsys=bsd4-3
   ;;
-  mips-sony-bsd* | mips-sony-newsos4* )
+  mips-sony-bsd* | mips-sony-newsos4* | mips-sony-news4*)
     machine=news-risc opsys=bsd4-3
   ;;
-  mips-sony-newsos* )
+  mips-sony-news* )
     machine=news-risc opsys=newsos5
   ;;
 
