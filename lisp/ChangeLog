@@ -1,3 +1,9 @@
+2000-01-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
+	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
+	progmodes/ebnf-yac.el: New files.
+
 2000-01-26  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-interactive-loop): Don't lose
