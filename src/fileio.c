@@ -2623,6 +2623,7 @@ and (2) it puts less data in the undo list.")
       if (same_at_start == ZV)
 	{
 	  close (fd);
+	  specpdl_ptr = specpdl + count;
 	  goto handled;
 	}
       immediate_quit = 1;
