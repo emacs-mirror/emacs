@@ -1,10 +1,9 @@
 ;;; uce.el --- facilitate reply to unsolicited commercial email
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998 Free Software Foundation, Inc.
 
-;; Author: stanislav shalunov <shalunov@math.wisc.edu>
+;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996
-;; Version: 1.0
 ;; Keywords: uce, unsolicited commercial email
 
 ;; This file is part of GNU Emacs.
@@ -27,13 +26,11 @@
 ;;; Commentary:
 
 ;; Code in this file provides semi-automatic means of replying to
-;; UCE's you might get.  It works currently only with Rmail.  If you
-;; would like to make it work with other mail readers, Rmail-specific
-;; section is marked below.  If you want to play with code, would you
-;; please grab the newest version from
-;; http://math.wisc.edu/~shalunov/uce.el and let me know, if you would
-;; like, about your changes so I can incorporate them.  I'd appreciate
-;; it.
+;; UCE's you might get.  It works currently only with Rmail and Gnus.
+;; If you would like to make it work with other mail readers,
+;; Rmail-specific section is marked below.  If you want to play with
+;; code, please let me know about your changes so I can incorporate
+;; them.  I'd appreciate it.
 
 ;; Function uce-reply-to-uce, if called when current message in RMAIL
 ;; buffer is a UCE, will setup *mail* buffer in the following way: it
@@ -75,11 +72,22 @@
 ;; Dec 17, 1996 -- made scanning for host names little bit more clever
 ;; (obviously bogus stuff like localhost is now ignored).
 
+;; Nov 11, 1997 -- incorporated changes from Mikael Djurfeldt
+;; <mdj@nada.kth.se> to make uce.el work with Gnus.  Changed the text
+;; of message that is sent.
+
+;; Dec 3, 1997 -- changes from Gareth Jones <gdj1@gdjones.demon.co.uk>
+;; handling Received headers following some line like `From:'.
+
 ;;; Setup:
 
 ;; put in your ~./emacs the following line:
 
 ;; (autoload 'uce-reply-to-uce "uce" "Reply to UCEs" t nil)
+
+;; If you want to use it with Gnus also use
+
+;; (setq uce-mail-reader 'gnus)
 
 ;; store this file (uce.el) somewhere in load-path and byte-compile it.
 
@@ -102,7 +110,13 @@
 ;;; Code:
 
 (require 'sendmail)
-(require 'rmail)
+;; Those sections of code which are dependent upon
+;; RMAIL are only evaluated if we have received a message with RMAIL...
+;;(require 'rmail) 
+
+(defvar uce-mail-reader 'rmail
+  "A symbol indicating which mail reader you are using.
+Choose from: gnus, rmail.")
 
 (defgroup uce nil
   "Facilitate reply to unsolicited commercial email."
@@ -130,15 +144,25 @@ If you have any list of people you send unsolicited commercial emails to,
 REMOVE me from such list immediately.  I suggest that you make this list 
 just empty.
 
+	----------------------------------------------------
+
+If you are not an administrator of any site and still have received
+this message then your email address is being abused by some spammer.
+They fake your address in From: or Reply-To: header.  In this case,
+you might want to show this message to your system administrator, and
+ask him/her to investigate this matter.
+
 Note to the postmaster(s): I append the text of UCE in question to
-this message, I would like to hear from you about action(s) taken.
+this message; I would like to hear from you about action(s) taken.
 This message has been sent to postmasters at the host that is
-mentioned as original sender's host and to the postmaster whose host
-was used as mail relay for this message.  If message was sent not by
-your user, could you please compare time when this message was sent
-(use time in Received: field of the envelope rather than Date: field)
-with your sendmail logs and see what host was using your sendmail at
-this moment of time.
+mentioned as original sender's host (I do realize that it may be
+faked, but I think that if your domain name is being abused this way
+you might want to learn about it, and take actions) and to the
+postmaster whose host was used as mail relay for this message.  If
+message was sent not by your user, could you please compare time when
+this message was sent (use time in Received: field of the envelope
+rather than Date: field) with your sendmail logs and see what host was
+using your sendmail at this moment of time.
 
 Thank you."
 
@@ -185,127 +209,165 @@ These are mostly meant for headers that prevent delivery errors reporting."
 UCE stands for unsolicited commercial email.  Function will set up reply
 buffer with default To: to the sender, his postmaster, his abuse@
 address, and postmaster of the mail relay used."
-  (interactive "P")
-  (let ((to (mail-strip-quoted-names (mail-fetch-field "from" t)))
-	(reply-to (mail-fetch-field "reply-to"))
-	temp)
-    ;; Initial setting of the list of recipients of our message; that's
-    ;; what they are pretending to be (and in many cases, really are).
-    (if to
-	(setq to (format "%s" (mail-strip-quoted-names to)))
-      (setq to ""))
-    (if reply-to
-	(setq to (format "%s, %s" to (mail-strip-quoted-names reply-to))))
-    (let (first-at-sign end-of-hostname sender-host)
-      (setq first-at-sign (string-match "@" to)
-	    end-of-hostname (string-match "[ ,>]" to first-at-sign)
-	    sender-host (substring to first-at-sign end-of-hostname))
-      (if (string-match "\\." sender-host)
-          (setq to (format "%s, postmaster%s, abuse%s" 
-                           to sender-host sender-host))))
-    (setq mail-send-actions nil)
-    (setq mail-reply-buffer nil)
-    ;; Begin of Rmail dependant section.
-    (or (get-buffer "RMAIL")
-	(error "No buffer RMAIL, cannot find UCE"))
-    (switch-to-buffer "RMAIL")
-    (save-excursion
-      (save-restriction
-	(widen)
-	(rmail-maybe-set-message-counters)
-	(copy-region-as-kill (rmail-msgbeg rmail-current-message) 
-			     (rmail-msgend rmail-current-message))))
-    (switch-to-buffer "*mail*")
-    (erase-buffer)
-    (setq temp (point))
-    (yank)
-    (goto-char temp)
-    (forward-line 2)
-    (while (looking-at "Summary-Line:\\|Mail-From:")
-      (forward-line 1))
-    (delete-region temp (point))
-    ;; Now find the mail hub that first accepted this message.
-    (while (or (looking-at "Received:")
-               (looking-at " ")
-               (looking-at "\t"))
-      (forward-line 1))
-    (while (or (looking-at " ")
-               (looking-at "\t"))
-      (forward-line -1))
-    ;; Is this always good?  It's the only thing I saw when I checked
-    ;; a few messages.
-    (search-forward ": from ")
-    (setq temp (point))
-    (search-forward " ")
-    (forward-char -1)
-    ;; And add its postmaster to the list of addresses.
-    (if (string-match "\\." (buffer-substring temp (point)))
-        (setq to (format "%s, postmaster@%s" 
-                         to (buffer-substring temp (point)))))
-    ;; Also look at the message-id, it helps *very* often.
-    (search-forward "\nMessage-Id: ")
-    (search-forward "@")
-    (setq temp (point))
-    (search-forward ">")
-    (forward-char -1)
-    (if (string-match "\\." (buffer-substring temp (point)))
-        (setq to (format "%s, postmaster@%s" 
-                         to (buffer-substring temp (point)))))
-    (search-forward "\n*** EOOH ***\n")
-    (forward-line -1)
-    (setq temp (point))
-    (search-forward "\n\n" nil t)
-    (delete-region temp (point))
-    ;; End of Rmail dependent section.
-    (auto-save-mode auto-save-default)
-    (mail-mode)
-    (goto-char (point-min))
-    (insert "To: ")
-    (save-excursion
+  (interactive)
+  (let ((message-buffer
+	 (cond ((eq uce-mail-reader 'gnus) "*Article*")
+	       ((eq uce-mail-reader 'rmail) "RMAIL")
+	       (t (error 
+		   "Variable uce-mail-reader set to unrecognized value")))))
+    (or (get-buffer message-buffer)
+	(error (concat "No buffer " message-buffer ", cannot find UCE")))
+    (switch-to-buffer message-buffer)
+    (let ((to (mail-strip-quoted-names (mail-fetch-field "from" t)))
+	  (reply-to (mail-fetch-field "reply-to"))
+	  temp)
+      ;; Initial setting of the list of recipients of our message; that's
+      ;; what they are pretending to be.
       (if to
-	  (let ((fill-prefix "\t")
-		(address-start (point)))
-	    (insert to "\n")
-	    (fill-region-as-paragraph address-start (point)))
-	(newline))
-      (insert "Subject: " uce-subject-line "\n")
-      (if uce-default-headers
-	  (insert uce-default-headers))
-      (if mail-default-headers
-          (insert mail-default-headers))
-      (if mail-default-reply-to
-	  (insert "Reply-to: " mail-default-reply-to "\n\n"))
-      (mail-sendmail-delimit-header)
-      ;; Insert all our text.  Then go back to the place where we started.
-      (if to (setq to (point)))
-      ;; Text of ranting.
-      (if uce-message-text
-	  (insert uce-message-text))
-      ;; Signature.
-      (cond ((eq uce-signature t)
-	     (if (file-exists-p "~/.signature")
-		 (progn
-		   (insert "\n\n-- \n")
-		   (insert-file "~/.signature")
-		   ;; Function insert-file leaves point where it was,
-		   ;; while we want to place signature in the ``middle''
-		   ;; of the message.
-		   (exchange-point-and-mark))))
-	    (uce-signature
-	     (insert "\n\n-- \n" uce-signature)))
-      ;; And text of the original message.
-      (if uce-uce-separator
-	  (insert "\n\n" uce-uce-separator "\n"))
-      ;; If message doesn't end with a newline, insert it.
-      (goto-char (point-max))
-      (or (bolp) (newline)))
-    ;; And go back to the beginning of text.
-    (if to (goto-char to))
-    (or to (set-buffer-modified-p nil))
-    ;; Run hooks before we leave buffer for editing.  Reasonable usage
-    ;; might be to set up special key bindings, replace standart
-    ;; functions in mail-mode, etc.
-    (run-hooks 'mail-setup-hook 'uce-setup-hook)))
+	  (setq to (format "%s" (mail-strip-quoted-names to)))
+	(setq to ""))
+      (if reply-to
+	  (setq to (format "%s, %s" to (mail-strip-quoted-names reply-to))))
+      (let (first-at-sign end-of-hostname sender-host)
+	(setq first-at-sign (string-match "@" to)
+	      end-of-hostname (string-match "[ ,>]" to first-at-sign)
+	      sender-host (substring to first-at-sign end-of-hostname))
+	(if (string-match "\\." sender-host)
+	    (setq to (format "%s, postmaster%s, abuse%s" 
+			     to sender-host sender-host))))
+      (setq mail-send-actions nil)
+      (setq mail-reply-buffer nil)
+      (cond ((eq uce-mail-reader 'gnus)
+	     (article-hide-headers -1)
+	     (copy-region-as-kill (point-min) (point-max))
+	     (article-hide-headers))
+	    ((eq uce-mail-reader 'rmail)
+	     (save-excursion
+	       (save-restriction
+		 (widen)
+		 (rmail-maybe-set-message-counters)
+		 (copy-region-as-kill (rmail-msgbeg rmail-current-message) 
+				      (rmail-msgend rmail-current-message))))))
+      (switch-to-buffer "*mail*")
+      (erase-buffer)
+      (setq temp (point))
+      (yank)
+      (goto-char temp)
+      (if (eq uce-mail-reader 'rmail)
+	  (progn
+	    (forward-line 2)
+	    (while (looking-at "Summary-Line:\\|Mail-From:")
+	      (forward-line 1))
+	    (delete-region temp (point))))
+      ;; Now find the mail hub that first accepted this message.
+      ;; This should try to find the last Received: header.
+      ;; Sometimes there may be other headers inbetween Received: headers.
+      (cond ((eq uce-mail-reader 'gnus)
+	     ;; Does Gnus always have Lines: in the end?
+	     (re-search-forward "^Lines:")
+	     (beginning-of-line))
+	    ((eq uce-mail-reader 'rmail)
+	     (beginning-of-buffer)
+	     (search-forward "*** EOOH ***\n")
+	     (beginning-of-line)
+	     (forward-line -1)))      
+      (re-search-backward "^Received:")
+      (beginning-of-line)
+      ;; Is this always good?  It's the only thing I saw when I checked
+      ;; a few messages.
+      (let ((eol (save-excursion (end-of-line) (point))))
+	;;(if (not (re-search-forward ": \\(from\\|by\\) " eol t))
+	(if (not (re-search-forward "\\(from\\|by\\) " eol t))
+	    (progn
+	      (goto-char eol)
+	      (if (looking-at "[ \t\n]+\\(from\\|by\\) ")
+		  (goto-char (match-end 0))
+		(error "Failed to extract hub address")))))
+      (setq temp (point))
+      (search-forward " ")
+      (forward-char -1)
+      ;; And add its postmaster to the list of addresses.
+      (if (string-match "\\." (buffer-substring temp (point)))
+	  (setq to (format "%s, postmaster@%s" 
+			   to (buffer-substring temp (point)))))
+      ;; Also look at the message-id, it helps *very* often.
+      (if (and (search-forward "\nMessage-Id: " nil t)
+	       ;; Not all Message-Id:'s have an `@' sign.
+	       (let ((bol (point))
+		     eol)
+		 (end-of-line)
+		 (setq eol (point))
+		 (goto-char bol)
+		 (search-forward "@" eol t)))
+	  (progn
+	    (setq temp (point))
+	    (search-forward ">")
+	    (forward-char -1)
+	    (if (string-match "\\." (buffer-substring temp (point)))
+		(setq to (format "%s, postmaster@%s" 
+				 to (buffer-substring temp (point)))))))
+      (cond ((eq uce-mail-reader 'gnus)
+	     ;; Does Gnus always have Lines: in the end?
+	     (re-search-forward "^Lines:")
+	     (beginning-of-line))
+	    ((eq uce-mail-reader 'rmail)
+	     (search-forward "\n*** EOOH ***\n")
+	     (forward-line -1)))
+      (setq temp (point))
+      (search-forward "\n\n" nil t)
+      (if (eq uce-mail-reader 'gnus)
+	  (forward-line -1))
+      (delete-region temp (point))
+      ;; End of Rmail dependent section.
+      (auto-save-mode auto-save-default)
+      (mail-mode)
+      (goto-char (point-min))
+      (insert "To: ")
+      (save-excursion
+	(if to
+	    (let ((fill-prefix "\t")
+		  (address-start (point)))
+	      (insert to "\n")
+	      (fill-region-as-paragraph address-start (point)))
+	  (newline))
+	(insert "Subject: " uce-subject-line "\n")
+	(if uce-default-headers
+	    (insert uce-default-headers))
+	(if mail-default-headers
+	    (insert mail-default-headers))
+	(if mail-default-reply-to
+	    (insert "Reply-to: " mail-default-reply-to "\n"))
+	(insert mail-header-separator "\n")
+	;; Insert all our text.  Then go back to the place where we started.
+	(if to (setq to (point)))
+	;; Text of ranting.
+	(if uce-message-text
+	    (insert uce-message-text))
+	;; Signature.
+	(cond ((eq uce-signature t)
+	       (if (file-exists-p "~/.signature")
+		   (progn
+		     (insert "\n\n-- \n")
+		     (insert-file "~/.signature")
+		     ;; Function insert-file leaves point where it was,
+		     ;; while we want to place signature in the ``middle''
+		     ;; of the message.
+		     (exchange-point-and-mark))))
+	      (uce-signature
+	       (insert "\n\n-- \n" uce-signature)))
+	;; And text of the original message.
+	(if uce-uce-separator
+	    (insert "\n\n" uce-uce-separator "\n"))
+	;; If message doesn't end with a newline, insert it.
+	(goto-char (point-max))
+	(or (bolp) (newline)))
+      ;; And go back to the beginning of text.
+      (if to (goto-char to))
+      (or to (set-buffer-modified-p nil))
+      ;; Run hooks before we leave buffer for editing.  Reasonable usage
+      ;; might be to set up special key bindings, replace standart
+      ;; functions in mail-mode, etc.
+      (run-hooks 'mail-setup-hook 'uce-setup-hook))))
   
 (defun uce-insert-ranting (&optional ignored)
   "Insert text of the usual reply to UCE into current buffer."
