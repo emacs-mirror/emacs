@@ -1,3 +1,9 @@
+2004-12-07  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/holidays.el (holiday-easter-etc): Make arguments
+	optional for backwards compatability.  Doc fix.  Remove
+	un-necessary local vars mandatory, output-list.
+
 2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* paren.el (show-paren-function): Fix last change (2004-12-02).
