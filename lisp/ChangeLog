@@ -1,5 +1,7 @@
 2002-03-31  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (kill-new): Doc fix.
+
 	* emacs-lisp/byte-opt.el (side-effect-free-fns)
 	(side-effect-and-error-free-fns): Add many functions, remove some.
 
