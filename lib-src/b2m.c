@@ -92,13 +92,14 @@ main (argc, argv)
   (stdout)->_flag &= ~_IOTEXT;
   (stdin)->_flag &= ~_IOTEXT;
 #endif
+  progname = argv[0];
+
   if (argc != 1)
     {
       fprintf (stderr, "Usage: %s <babylmailbox >unixmailbox\n", progname);
       exit (GOOD);
     }
   labels_saved = printing = header = FALSE;
-  progname = argv[0];
   ltoday = time (0);
   today = ctime (&ltoday);
   data.size = 200;
@@ -113,7 +114,7 @@ main (argc, argv)
       if (streq (data.buffer, "*** EOOH ***") && !printing)
 	{
 	  printing = header = TRUE;
-	  printf ("From Babyl to mail by %s %s", progname, today);
+	  printf ("From \"Babyl to mail by %s\" %s", progname, today);
 	  continue;
 	}
 
