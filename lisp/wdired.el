@@ -30,7 +30,7 @@
 ;; renaming files.
 ;;
 ;; Have you ever wished to use C-x r t (string-rectangle), M-%
-;; (query-replace), M-c (capitalize-word), etc to change the name of
+;; (query-replace), M-c (capitalize-word), etc. to change the name of
 ;; the files in a "dired" buffer? Now you can do this. All the power
 ;; of emacs commands are available to renaming files!
 ;; 
@@ -113,7 +113,7 @@
 ;; - Another alternative way of editing permissions allowed, see
 ;;   `wdired-allow-to-change-permissions' for details.
 ;;
-;; - Now wdired doesn`t relies in regexp so much. As a consequence of
+;; - Now wdired doesn't rely on regexp so much. As a consequence of
 ;;   this, you can add newlines to filenames and symlinks targets
 ;;   (although this is not very usual, IMHO). Please note that dired
 ;;   (at least in Emacs 21.1 and previous) does not work very well
@@ -121,8 +121,8 @@
 ;;   wdired mode. But you can activate it if you want.
 ;;
 ;; - Now `upcase-word' `capitalize-word' and `downcase-word' are not
-;;   advised to work better with wdired mode, but the keys binded to
-;;   them use wdired versions of that commands.
+;;   advised to work better with wdired mode, but the keys bound to
+;;   them use wdired versions of those commands.
 ;;
 ;; - Now "undo" actions are not inherited from wdired mode when
 ;;   changing to dired mode.
@@ -158,7 +158,6 @@
 
 (eval-when-compile
   (require 'advice)
-  (defvar make-symbolic-link) ;Avoid a compilation warning in NTEmacs
   (defvar dired-backup-overwrite) ; Only in emacs 20.x this is a custom var
   (set (make-local-variable 'byte-compile-dynamic) t))
 
@@ -238,49 +237,45 @@ intelligible value.
 Anyway, the real change of the permissions is done with the external
 program `dired-chmod-program', which must exist."
   :type '(choice (const :tag "Not allowed" nil)
-		 (const :tag "Toggle/set bits" t)
+                 (const :tag "Toggle/set bits" t)
 		 (other :tag "Bits freely editable" advanced))
   :group 'wdired)
 
-(define-key dired-mode-map [menu-bar immediate wdired-change-to-wdired-mode]
-  '("Edit File Names" . wdired-change-to-wdired-mode))
+(defvar wdired-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-x\C-s" 'wdired-finish-edit)
+    (define-key map "\C-c\C-c" 'wdired-finish-edit)
+    (define-key map "\C-c\C-k" 'wdired-abort-changes)
+    (define-key map "\C-c\C-[" 'wdired-abort-changes)
+    (define-key map "\C-m"     'wdired-newline)
+    (define-key map "\C-j"     'wdired-newline)
+    (define-key map "\C-o"     'wdired-newline)
+    (define-key map [up]       'wdired-previous-line)
+    (define-key map "\C-p"     'wdired-previous-line)
+    (define-key map [down]     'wdired-next-line)
+    (define-key map "\C-n"     'wdired-next-line)
 
-(defvar wdired-mode-map nil)
-(unless wdired-mode-map
-  (setq wdired-mode-map (make-sparse-keymap))
-  (define-key wdired-mode-map "\C-x\C-s" 'wdired-finish-edit)
-  (define-key wdired-mode-map "\C-c\C-c" 'wdired-finish-edit)
-  (define-key wdired-mode-map "\C-c\C-k" 'wdired-abort-changes)
-  (define-key wdired-mode-map "\C-c\C-[" 'wdired-abort-changes)
-  (define-key wdired-mode-map [return]   'wdired-newline)
-  (define-key wdired-mode-map "\C-j"     'wdired-newline)
-  (define-key wdired-mode-map "\C-o"     'wdired-newline)
-  (define-key wdired-mode-map [up]       'wdired-previous-line)
-  (define-key wdired-mode-map "\C-p"     'wdired-previous-line)
-  (define-key wdired-mode-map [down]     'wdired-next-line)
-  (define-key wdired-mode-map "\C-n"     'wdired-next-line)
-  (define-key wdired-mode-map [menu-bar wdired]
-    (cons "WDired" (make-sparse-keymap "WDired")))
-  (define-key wdired-mode-map [menu-bar wdired wdired-customize]
-    '("Options" . wdired-customize))
-  (define-key wdired-mode-map [menu-bar wdired dashes]
+    (define-key map [menu-bar wdired]
+      (cons "WDired" (make-sparse-keymap "WDired")))
+    (define-key map [menu-bar wdired wdired-customize]
+      '("Options" . wdired-customize))
+    (define-key map [menu-bar wdired dashes]
       '("--"))
-  (define-key wdired-mode-map [menu-bar wdired wdired-abort-changes]
-    '("Abort Changes" . wdired-abort-changes))
-  (define-key wdired-mode-map [menu-bar wdired wdired-finish-edit]
-    '("Validate Changes" . wdired-finish-edit))
-  (substitute-key-definition 'upcase-word 'wdired-upcase-word
-			     wdired-mode-map global-map)
-  (substitute-key-definition 'capitalize-word 'wdired-capitalize-word
-			     wdired-mode-map global-map)
-  (substitute-key-definition 'downcase-word 'wdired-downcase-word
-			     wdired-mode-map global-map))
+    (define-key map [menu-bar wdired wdired-abort-changes]
+      '("Abort Changes" . wdired-abort-changes))
+    (define-key map [menu-bar wdired wdired-finish-edit]
+      '("Commit Changes" . wdired-finish-edit))
+    ;; FIXME: Use the new remap trick.
+    (substitute-key-definition 'upcase-word 'wdired-upcase-word
+			       map global-map)
+    (substitute-key-definition 'capitalize-word 'wdired-capitalize-word
+			       map global-map)
+    (substitute-key-definition 'downcase-word 'wdired-downcase-word
+			       map global-map)
+    map))
 
-(defvar wdired-mode-hooks nil
-  "Hooks run when changing to wdired mode.")
-
-(defvar wdired-load-hooks nil
-  "Hooks run after loading wdired code.")
+(defvar wdired-mode-hook nil
+  "Hook run when changing to wdired mode.")
 
 ;; Local variables (put here to avoid compilation gripes)
 (defvar wdired-col-perm) ;; Column where the permission bits start
@@ -307,7 +302,7 @@ not allowed, because the rest of the buffer is read-only."
 ;;;###autoload
 (defun wdired-change-to-wdired-mode ()
   "Put a dired buffer in a mode in which filenames are editable.
-In this mode the names of the files can be changed, and after 
+In this mode the names of the files can be changed, and after
 typing C-c C-c the files and directories in disk are renamed.
 
 See `wdired-mode'."
@@ -315,10 +310,9 @@ See `wdired-mode'."
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
   (use-local-map wdired-mode-map)
-  (menu-bar-mode (or menu-bar-mode -1)) ;Force redisplay menu
+  (force-mode-line-update)
   (setq buffer-read-only nil)
   (dired-unadvertise default-directory)
-  (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'wdired-check-kill-buffer nil t)
   (setq major-mode 'wdired-mode)
   (setq mode-name "Edit filenames")
@@ -335,7 +329,7 @@ See `wdired-mode'."
   (buffer-enable-undo) ; Performance hack. See above.
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
-  (run-hooks wdired-mode-hooks)
+  (run-hooks wdired-mode-hook)
   (message "Press C-c C-c when finished"))
 
 
@@ -349,24 +343,24 @@ See `wdired-mode'."
 	  filename)
       (while (not (eobp))
 	(setq filename (dired-get-filename nil t))
-        (if (and filename (not (string-match "/\\.\\.?$" filename)))
-            (progn
-	      (dired-move-to-filename)
-	      (put-text-property (- (point) 2) (1- (point)) 'old-name filename)
-              (put-text-property b-protection (1- (point)) 'read-only t)
-              (setq b-protection (dired-move-to-end-of-filename t))))
-              (put-text-property (point) (1+ (point)) 'end-name t)
+        (when (and filename
+		   (not (member (file-name-nondirectory filename) '("." ".."))))
+	  (dired-move-to-filename)
+	  (put-text-property (- (point) 2) (1- (point)) 'old-name filename)
+	  (put-text-property b-protection (1- (point)) 'read-only t)
+	  (setq b-protection (dired-move-to-end-of-filename t)))
+	(put-text-property (point) (1+ (point)) 'end-name t)
         (forward-line))
       (put-text-property b-protection (point-max) 'read-only t))))
 
 ;; This code is a copy of some dired-get-filename lines.
 (defsubst wdired-normalize-filename (file)
   (setq file
+	;; FIXME: shouldn't we check for a `b' argument or somesuch before
+	;; doing such unquoting?  --Stef
 	(read (concat
-	       "\"" (or (dired-string-replace-match
-			 "\\([^\\]\\|\\`\\)\"" file
-			 "\\1\\\\\"" nil t)
-			file)
+	       "\"" (replace-regexp-in-string
+		     "\\([^\\]\\|\\`\\)\"" "\\1\\\\\"" file)
 	       "\"")))
   (and file buffer-file-coding-system
        (not file-name-coding-system)
@@ -376,22 +370,22 @@ See `wdired-mode'."
 
 (defun wdired-get-filename (&optional no-dir old)
   "Return the filename at line.
-Similar to `dired-get-filename' but it doesn't relies in regexps.  It
-relies in wdired buffer's properties.  Optional arg NO-DIR with value
+Similar to `dired-get-filename' but it doesn't rely on regexps.  It
+relies on wdired buffer's properties.  Optional arg NO-DIR with value
 non-nil means don't include directory.  Optional arg OLD with value
 non-nil means return old filename."
+  ;; FIXME: Use dired-get-filename's new properties.
   (let (beg end file)
     (save-excursion
       (setq end (progn (end-of-line) (point)))
       (beginning-of-line)
       (setq beg (next-single-property-change (point) 'old-name nil end))
-      (if (not (eq beg end))
-	  (progn
-	    (if old
-		(setq file (get-text-property beg 'old-name))
-	      (setq end (next-single-property-change (1+ beg) 'end-name))
-	      (setq file (buffer-substring-no-properties (+ 2 beg) end)))
-	    (and file (setq file (wdired-normalize-filename file)))))
+      (unless (eq beg end)
+	(if old
+	    (setq file (get-text-property beg 'old-name))
+	  (setq end (next-single-property-change (1+ beg) 'end-name))
+	  (setq file (buffer-substring-no-properties (+ 2 beg) end)))
+	(and file (setq file (wdired-normalize-filename file))))
       (if (or no-dir old)
 	  file
 	(and file (> (length file) 0)
@@ -405,7 +399,7 @@ non-nil means return old filename."
 			    '(read-only nil local-map nil)))
   (put-text-property 1 2 'front-sticky nil)
   (use-local-map dired-mode-map)
-  (menu-bar-mode (or menu-bar-mode -1)) ;Force redisplay menu
+  (force-mode-line-update)
   (setq buffer-read-only t)
   (setq major-mode 'dired-mode)
   (setq mode-name "Dired")
@@ -533,6 +527,7 @@ non-nil means return old filename."
   (wdired-change-to-wdired-mode))
 
 (defun wdired-check-kill-buffer ()
+  ;; FIXME: Can't we use the normal mechanism for that?  --Stef
   (if (and
        (buffer-modified-p)
        (not (y-or-n-p "Buffer changed. Discard changes and kill buffer? ")))
@@ -872,9 +867,6 @@ commands.  This advice only has effect in wdired mode."
     (cons changes errors)))
 
 (provide 'wdired)
-(run-hooks wdired-load-hooks)
 
+;; arch-tag: bc00902e-526f-4305-bc7f-8862a559184f
 ;;; wdired.el ends here
-
-
-;;; arch-tag: bc00902e-526f-4305-bc7f-8862a559184f
