@@ -1,5 +1,8 @@
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Fread_file_name): Handle case that DIR contains a 
+	file name.
+
 	* window.c (Fsave_window_excursion): Doc fix.
 
 	* xfns.c (x_defined_color): Rewritten to use
