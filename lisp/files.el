@@ -1357,41 +1357,42 @@ that are visiting the various files."
 				rawfile truename number))))))
 
 (defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
-  (let ((inhibit-read-only t)
-	error)
+  (let (error)
     (with-current-buffer buf
       (kill-local-variable 'find-file-literally)
       ;; Needed in case we are re-visiting the file with a different
       ;; text representation.
       (kill-local-variable 'buffer-file-coding-system)
       (kill-local-variable 'cursor-type)
-      (erase-buffer)
-      (and (default-value 'enable-multibyte-characters)
-	   (not rawfile)
-	   (set-buffer-multibyte t))
-      (if rawfile
-	  (condition-case ()
-	      (insert-file-contents-literally filename t)
-	    (file-error
-	     (when (and (file-exists-p filename)
-			(not (file-readable-p filename)))
-	       (kill-buffer buf)
-	       (signal 'file-error (list "File is not readable"
-					 filename)))
-	     ;; Unconditionally set error
-	     (setq error t)))
-	(condition-case ()
-	    (insert-file-contents filename t)
-	  (file-error
-	   (when (and (file-exists-p filename)
-		      (not (file-readable-p filename)))
-	     (kill-buffer buf)
-	     (signal 'file-error (list "File is not readable"
-				       filename)))
-	   ;; Run find-file-not-found-hooks until one returns non-nil.
-	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
-	       ;; If they fail too, set error.
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(and (default-value 'enable-multibyte-characters)
+	     (not rawfile)
+	     (set-buffer-multibyte t))
+	(if rawfile
+	    (condition-case ()
+		(insert-file-contents-literally filename t)
+	      (file-error
+	       (when (and (file-exists-p filename)
+			  (not (file-readable-p filename)))
+		 (kill-buffer buf)
+		 (signal 'file-error (list "File is not readable"
+					   filename)))
+	       ;; Unconditionally set error
 	       (setq error t)))))
+      (condition-case ()
+	  (let ((inhibit-read-only t))
+	    (insert-file-contents filename t))
+	(file-error
+	 (when (and (file-exists-p filename)
+		    (not (file-readable-p filename)))
+	   (kill-buffer buf)
+	   (signal 'file-error (list "File is not readable"
+				     filename)))
+	 ;; Run find-file-not-found-hooks until one returns non-nil.
+	 (or (run-hook-with-args-until-success 'find-file-not-found-functions)
+	     ;; If they fail too, set error.
+	     (setq error t))))
       ;; Record the file's truename, and maybe use that as visited name.
       (if (equal filename buffer-file-name)
 	  (setq buffer-file-truename truename)
