@@ -1811,10 +1811,13 @@ region is chosen.  If it is @code{default-B} then B's region is chosen.
 If it is @code{combined} then the region in buffer C will look like
 this:
 
+@comment Use @set to avoid triggering merge conflict detectors like CVS.
+@set seven-left <<<<<<<
+@set seven-right >>>>>>>
 @example
-<<<<<<< variant A
+@value{seven-left} variant A
 the difference region from buffer A
->>>>>>> variant B
+@value{seven-right} variant B
 the difference region from buffer B
 ####### Ancestor
 the difference region from the ancestor buffer, if available
@@ -1837,7 +1840,7 @@ template determine the text that separates the aforesaid regions. The
 default template is
 
 @example
-("<<<<<<< variant A" A ">>>>>>> variant B" B  "####### Ancestor" Ancestor "======= end")
+("@value{seven-left} variant A" A "@value{seven-right} variant B" B  "####### Ancestor" Ancestor "======= end")
 @end example
 
 and the corresponding combined region is shown above. The order in which 
@@ -2229,7 +2232,7 @@ Boris Goldowsky <boris@@cs.rochester.edu> made it possible to highlight
 fine differences in Ediff buffers.  Alastair Burt <burt@@dfki.uni-kl.de>
 ported Ediff to XEmacs, Eric Freudenthal <freudent@@jan.ultra.nyu.edu>
 made it work with VC, Marc Paquette <marcpa@@cam.org> wrote the
-toolbar support package for Ediff, and Hrvoje Niksic <hniksic@@srce.hr>
+toolbar support package for Ediff, and Hrvoje Niksic <hniksic@@xemacs.org>
 adapted it to the Emacs customization package.
 
 Many people provided help with bug reports, patches, and advice.
@@ -2313,7 +2316,7 @@ Raymond Toy (toy@@rtp.ericsson.se),
 Jan Vroonhof (vroonhof@@math.ethz.ch),
 Philippe Waroquiers (philippe.waroquiers@@eurocontrol.be),
 Klaus Weber (gizmo@@zork.north.de),
-Ben Wing (wing@@666.com),
+Ben Wing (ben@@xemacs.org),
 Ilya Zakharevich (ilya@@math.ohio-state.edu),
 Eli Zaretskii (eliz@@is.elta.co.il)
 @end example
