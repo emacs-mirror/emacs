@@ -1,5 +1,7 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xdisp.c (Fdump_tool_bar_row): Reindent.
+
 	* minibuf.c (Fminibuffer_complete_word): Reindent.
 	(Fminibuffer_complete_and_exit): Likewise.
 	(Fminibuffer_completion_help): Likewise.  
