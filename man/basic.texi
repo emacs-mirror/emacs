@@ -569,7 +569,8 @@ Display the number of lines in the current region (@code{count-lines-region}).
 Display the character code of character after point, character position of
 point, and column of point (@code{what-cursor-position}).
 @item M-x hl-line-mode
-Enable or disable highlighting of the current line.
+Enable or disable highlighting of the current line.  @xref{Cursor
+Display}.
 @end table
 
 @findex what-page
