@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.61) $
+ * $HopeName: MMsrc!pool.c(trunk.62) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.61) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.62) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -1060,10 +1060,11 @@ failCreate:
 }
 
 
-void PoolNoRampBegin(Pool pool, Buffer buf)
+void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
+  AVERT(Bool, collectAll);
   NOTREACHED;
 }
 
@@ -1076,10 +1077,11 @@ void PoolNoRampEnd(Pool pool, Buffer buf)
 }
 
 
-void PoolTrivRampBegin(Pool pool, Buffer buf)
+void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
+  AVERT(Bool, collectAll);
 }
 
 
@@ -1097,7 +1099,7 @@ void PoolNoWalk(Pool pool, Seg seg,
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(FUNCHECK(f));
-  /* p and s are arbitrary closures, hence can't be checked */
+  /* p and s are arbitrary, hence can't be checked */
   UNUSED(p);
   UNUSED(s);
 
