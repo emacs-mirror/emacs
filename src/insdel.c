@@ -1423,13 +1423,6 @@ replace_range (from, to, new, prepare, inherit, markers)
   if (! EQ (current_buffer->undo_list, Qt))
     deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
-  if (markers)
-    /* Relocate all markers pointing into the new, larger gap
-       to point at the end of the text before the gap.
-       Do this before recording the deletion,
-       so that undo handles this after reinserting the text.  */
-    adjust_markers_for_delete (from, from_byte, to, to_byte);
-
   GAP_SIZE += nbytes_del;
   ZV -= nchars_del;
   Z -= nchars_del;
@@ -1489,10 +1482,11 @@ replace_range (from, to, new, prepare, inherit, markers)
      adjusting the markers that bound the overlays.  */
   adjust_overlays_for_delete (from, nchars_del);
   adjust_overlays_for_insert (from, inschars);
+
+  /* Adjust markers for the deletion and the insertion.  */
   if (markers)
-    adjust_markers_for_insert (from, from_byte,
-			       from + inschars, from_byte + outgoing_insbytes,
-			       0);
+    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+				inschars, outgoing_insbytes);
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
 
