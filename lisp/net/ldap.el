@@ -554,7 +554,7 @@ an alist of attribute/value pairs."
 	  (setq arglist (nconc arglist (list (format "-z%s" sizelimit)))))
       (eval `(call-process ldap-ldapsearch-prog
 			   nil
-			   buf
+			   `(,buf nil)
 			   nil
 			   ,@arglist
 			   ,@ldap-ldapsearch-args
