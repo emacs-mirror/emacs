@@ -573,6 +573,10 @@ Subroutine tags are named from their package.  You can jump to sub tags
 as you did before, by the sub name, or additionally by looking for
 package::sub.
 
+*** New default keywords for TeX.
+The new keywords are def, newcommand, renewcommand, newenvironment and
+renewenvironment.
+
 *** New language PHP: tags are functions, classes and defines.
 If the --members option is specified to etags, tags are vars also.
 
@@ -584,10 +588,10 @@ created from Cweb source files.  When Etags tags the generated file, it
 writes tags pointing to the source file.
 
 *** New option --parse-stdin=FILE
-This option is mostly useful when calling etags from programs.  It may
+This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
-will read from standard input and produce tags marking them as belonging
-to the file FILE.
+will read from standard input and mark the produced tags as belonging to
+the file FILE.
 
 +++
 ** The command line option --no-windows has been changed to
