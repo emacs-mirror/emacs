@@ -1067,7 +1067,7 @@ See `try-completion' and `all-completions' for more details
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless\n\
  the input is (or completes to) an element of TABLE or is null.\n\
  If it is also not t, Return does not exit if it does non-null completion.\n\
-If the input is null, `completing-read' returns nil,\n\
+If the input is null, `completing-read' returns an empty string,\n\
  regardless of the value of REQUIRE-MATCH.\n\
 \n\
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.\n\
