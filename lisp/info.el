@@ -288,6 +288,8 @@ Do the right thing if the file has been compressed or zipped."
   "Enter Info, the documentation browser.
 Optional argument FILE specifies the file to examine;
 the default is the top-level directory of Info.
+Called from a program, FILE may specify an Info node of the form
+`(FILENAME)NODENAME'.
 
 In interactive use, a prefix argument directs this command
 to read a file name from the minibuffer.
