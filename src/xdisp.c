@@ -630,16 +630,15 @@ static struct glyph_row *row_containing_pos P_ ((struct window *, int,
 static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
 static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
 static int with_echo_area_buffer P_ ((struct window *, int,
-				      int (*) (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT),
-				      EMACS_INT, EMACS_INT, EMACS_INT,
-				      EMACS_INT));
+				      int (*) (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT),
+				      EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
 static void clear_garbaged_frames P_ ((void));
-static int current_message_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
-static int truncate_message_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
-static int set_message_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
+static int current_message_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
+static int truncate_message_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
+static int set_message_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
 static int display_echo_area P_ ((struct window *));
-static int display_echo_area_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
-static int resize_mini_window_1 P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
+static int display_echo_area_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
+static int resize_mini_window_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
 static Lisp_Object unwind_redisplay P_ ((Lisp_Object));
 static int string_char_and_length P_ ((unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
@@ -4899,9 +4898,18 @@ message_dolog (m, len, nlflag, multibyte)
       Lisp_Object old_deactivate_mark, tem;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
+      static Lisp_Object messages_buffer_name;
+      static int buffer_name_initialized;
+
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
-      Fset_buffer (Fget_buffer_create (build_string ("*Messages*")));
+      if (!buffer_name_initialized)
+	{
+	  messages_buffer_name = build_string ("*Messages*");
+	  staticpro (&messages_buffer_name);
+	  buffer_name_initialized = 1;
+	}
+      Fset_buffer (Fget_buffer_create (messages_buffer_name));
       current_buffer->undo_list = Qt;
 
       oldpoint = Fpoint_marker ();
@@ -5483,8 +5491,10 @@ static int
 with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
      struct window *w;
      int which;
-     int (*fn) P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT));
-     EMACS_INT a1, a2, a3, a4;
+     int (*fn) P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
+     EMACS_INT a1;
+     Lisp_Object a2;
+     EMACS_INT a3, a4;
 {
   Lisp_Object buffer;
   int this_one, the_other, clear_buffer_p, rc;
@@ -5722,7 +5732,7 @@ display_echo_area (w)
   window_height_changed_p
     = with_echo_area_buffer (w, display_last_displayed_message_p,
 			     display_echo_area_1,
-			     (EMACS_INT) w, 0, 0, 0);
+			     (EMACS_INT) w, Qnil, 0, 0);
 
   if (no_message_p)
     echo_area_buffer[i] = Qnil;
@@ -5740,7 +5750,9 @@ display_echo_area (w)
 
 static int
 display_echo_area_1 (a1, a2, a3, a4)
-     EMACS_INT a1, a2, a3, a4;
+     EMACS_INT a1;
+     Lisp_Object a2;
+     EMACS_INT a3, a4;
 {
   struct window *w = (struct window *) a1;
   Lisp_Object window;
@@ -5774,7 +5786,7 @@ resize_echo_area_axactly ()
       int resized_p;
       
       resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
-					 (EMACS_INT) w, 0, 0, 0);
+					 (EMACS_INT) w, Qnil, 0, 0);
       if (resized_p)
 	{
 	  ++windows_or_buffers_changed;
@@ -5792,7 +5804,9 @@ resize_echo_area_axactly ()
 
 static int
 resize_mini_window_1 (a1, a2, a3, a4)
-     EMACS_INT a1, a2, a3, a4;
+     EMACS_INT a1;
+     Lisp_Object a2;
+     EMACS_INT a3, a4;
 {
   return resize_mini_window ((struct window *) a1, 1);
 }
@@ -5904,7 +5918,7 @@ current_message ()
   else
     {
       with_echo_area_buffer (0, 0, current_message_1,
-			     (EMACS_INT) &msg, 0, 0, 0);
+			     (EMACS_INT) &msg, Qnil, 0, 0);
       if (NILP (msg))
 	echo_area_buffer[0] = Qnil;
     }
@@ -5915,7 +5929,9 @@ current_message ()
 
 static int
 current_message_1 (a1, a2, a3, a4)
-     EMACS_INT a1, a2, a3, a4;
+     EMACS_INT a1;
+     Lisp_Object a2;
+     EMACS_INT a3, a4;
 {
   Lisp_Object *msg = (Lisp_Object *) a1;
   
@@ -5998,7 +6014,7 @@ truncate_echo_area (nchars)
     {
       struct frame *sf = SELECTED_FRAME ();
       if (FRAME_MESSAGE_BUF (sf))
-	with_echo_area_buffer (0, 0, truncate_message_1, nchars, 0, 0, 0);
+	with_echo_area_buffer (0, 0, truncate_message_1, nchars, Qnil, 0, 0);
     }
 }
 
@@ -6008,7 +6024,9 @@ truncate_echo_area (nchars)
 
 static int
 truncate_message_1 (nchars, a2, a3, a4)
-     EMACS_INT nchars, a2, a3, a4;
+     EMACS_INT nchars;
+     Lisp_Object a2;
+     EMACS_INT a3, a4;
 {
   if (BEG + nchars < Z)
     del_range (BEG + nchars, Z);
@@ -6051,10 +6069,12 @@ set_message (s, string, nbytes, multibyte_p)
 
 static int
 set_message_1 (a1, a2, nbytes, multibyte_p)
-     EMACS_INT a1, a2, nbytes, multibyte_p;
+     EMACS_INT a1;
+     Lisp_Object a2;
+     EMACS_INT nbytes, multibyte_p;
 {
   char *s = (char *) a1;
-  Lisp_Object string = (Lisp_Object) a2;
+  Lisp_Object string = a2;
   
   xassert (BEG == Z);
   
