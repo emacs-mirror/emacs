@@ -17,4 +17,5 @@
 
 #undef BROKEN_FIONREAD
 
-#define HAVE_ALLOCA
+#define C_ALLOCA
+
