@@ -140,7 +140,7 @@ Major/minor modes can set this variable if they know which option applies.")
   "A function which is called when `font-lock-mode' is toggled.
 It will be passed one argument, which is the current value of
 `font-lock-mode'.")
-(make-variable-buffer-local 'font-lock-default-function)
+(make-variable-buffer-local 'font-lock-function)
 
 (define-minor-mode font-lock-mode
   "Toggle Font Lock mode.
