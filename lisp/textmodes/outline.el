@@ -28,6 +28,10 @@
 ;; An outline can be `abstracted' to show headers at any given level,
 ;; with all stuff below hidden.  See the Emacs manual for details.
 
+;;; Todo:
+
+;; - subtree-terminators
+
 ;;; Code:
 
 (defgroup outlines nil
@@ -140,15 +144,6 @@ in the file it applies to."
   (define-key outline-mode-map "\C-c" outline-mode-prefix-map)
   (define-key outline-mode-map [menu-bar] outline-mode-menu-bar-map))
 
-(defcustom outline-minor-mode nil
-  "Non-nil if using Outline mode as a minor mode of some other mode."
-  :type 'boolean
-  :group 'outlines)
-(make-variable-buffer-local 'outline-minor-mode)
-(or (assq 'outline-minor-mode minor-mode-alist)
-    (setq minor-mode-alist (append minor-mode-alist
-				   (list '(outline-minor-mode " Outl")))))
-
 (defvar outline-font-lock-keywords
   '(;;
     ;; Highlight headings according to the level.
@@ -181,7 +176,7 @@ in the file it applies to."
   "Normal hook to be run after outline visibility changes.")
 
 ;;;###autoload
-(defun outline-mode ()
+(define-derived-mode outline-mode text-mode "Outline"
   "Set major mode for editing outlines with selective display.
 Headings are lines which start with asterisks: one for major headings,
 two for subheadings, etc.  Lines not starting with asterisks are body lines.
@@ -220,34 +215,21 @@ beginning of the line.  The longer the match, the deeper the level.
 
 Turning on outline mode calls the value of `text-mode-hook' and then of
 `outline-mode-hook', if they are non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map outline-mode-map)
-  (setq mode-name "Outline")
-  (setq major-mode 'outline-mode)
-  (define-abbrev-table 'text-mode-abbrev-table ())
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
   ;; Cause use of ellipses for invisible text.
   (add-to-invisibility-spec '(outline . t))
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat paragraph-start "\\|\\("
-				outline-regexp "\\)"))
+  (set (make-local-variable 'paragraph-start)
+       (concat paragraph-start "\\|\\(" outline-regexp "\\)"))
   ;; Inhibit auto-filling of header lines.
-  (make-local-variable 'auto-fill-inhibit-regexp)
-  (setq auto-fill-inhibit-regexp outline-regexp)
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (concat paragraph-separate "\\|\\("
-				   outline-regexp "\\)"))
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(outline-font-lock-keywords t))
-  (make-local-variable 'change-major-mode-hook)
+  (set (make-local-variable 'auto-fill-inhibit-regexp) outline-regexp)
+  (set (make-local-variable 'paragraph-separate)
+       (concat paragraph-separate "\\|\\(" outline-regexp "\\)"))
+  (set (make-local-variable 'font-lock-defaults)
+       '(outline-font-lock-keywords t))
   (setq imenu-generic-expression
 	(list (list nil (concat outline-regexp ".*$") 0)))
-  (add-hook 'change-major-mode-hook 'show-all)
-  (run-hooks 'text-mode-hook 'outline-mode-hook))
+  (add-hook 'change-major-mode-hook 'show-all nil t))
 
 (defcustom outline-minor-mode-prefix "\C-c@"
   "*Prefix key to use for Outline commands in Outline minor mode.
@@ -256,48 +238,28 @@ After that, changing the prefix key requires manipulating keymaps."
   :type 'string
   :group 'outlines)
 
-(defvar outline-minor-mode-map nil)
-(if outline-minor-mode-map
-    nil
-  (setq outline-minor-mode-map (make-sparse-keymap))
-  (define-key outline-minor-mode-map [menu-bar]
-    outline-mode-menu-bar-map)
-  (define-key outline-minor-mode-map outline-minor-mode-prefix
-    outline-mode-prefix-map))
-
-(or (assq 'outline-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'outline-minor-mode outline-minor-mode-map)
-		minor-mode-map-alist)))
-
 ;;;###autoload
-(defun outline-minor-mode (&optional arg)
+(define-minor-mode outline-minor-mode
   "Toggle Outline minor mode.
 With arg, turn Outline minor mode on if arg is positive, off otherwise.
 See the command `outline-mode' for more information on this mode."
-  (interactive "P")
-  (setq outline-minor-mode
-	(if (null arg) (not outline-minor-mode)
-	  (> (prefix-numeric-value arg) 0)))
+  nil " Outl" (list (cons [menu-bar] outline-mode-menu-bar-map)
+		    (cons outline-minor-mode-prefix outline-mode-prefix-map))
   (if outline-minor-mode
       (progn
-	(make-local-hook 'change-major-mode-hook)
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
 		  nil t)
-	(make-local-variable 'line-move-ignore-invisible)
-	(setq line-move-ignore-invisible t)
+	(set (make-local-variable 'line-move-ignore-invisible) t)
 	;; Cause use of ellipses for invisible text.
-	(add-to-invisibility-spec '(outline . t))
-	(run-hooks 'outline-minor-mode-hook))
+	(add-to-invisibility-spec '(outline . t)))
     (setq line-move-ignore-invisible nil)
     ;; Cause use of ellipses for invisible text.
     (remove-from-invisibility-spec '(outline . t)))
   ;; When turning off outline mode, get rid of any outline hiding.
   (or outline-minor-mode
-      (show-all))
-  (force-mode-line-update))
+      (show-all)))
 
 (defcustom outline-level 'outline-level
   "*Function of no args to compute a header's nesting level in an outline.
