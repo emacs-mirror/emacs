@@ -1935,6 +1935,8 @@ x_set_internal_border_width (f, arg, oldval)
       SET_FRAME_GARBAGED (f);
       do_pending_window_change (0);
     }
+  else
+    SET_FRAME_GARBAGED (f);
 }
 
 void
