@@ -7148,7 +7148,7 @@ static void
 build_desired_tool_bar_string (f)
      struct frame *f;
 {
-  int i, size, size_needed, string_idx;
+  int i, size, size_needed;
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object image, plist, props;
 
@@ -7163,11 +7163,8 @@ build_desired_tool_bar_string (f)
 	  ? XSTRING (f->desired_tool_bar_string)->size
 	  : 0);
 
-  /* Each image in the string we build is preceded by a space,
-     and there is a space at the end.  */
-  size_needed = f->n_tool_bar_items + 1;
-
   /* Reuse f->desired_tool_bar_string, if possible.  */
+  size_needed = f->n_tool_bar_items;
   if (size < size_needed)
     f->desired_tool_bar_string = Fmake_string (make_number (size_needed),
 					       make_number (' '));
@@ -7181,15 +7178,13 @@ build_desired_tool_bar_string (f)
   /* Put a `display' property on the string for the images to display,
      put a `menu_item' property on tool-bar items with a value that
      is the index of the item in F's tool-bar item vector.  */
-  for (i = 0, string_idx = 0;
-       i < f->n_tool_bar_items;
-       ++i, string_idx += 1)
+  for (i = 0; i < f->n_tool_bar_items; ++i)
     {
 #define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
-      int margin, relief, idx;
+      int margin, relief, idx, end;
       extern Lisp_Object QCrelief, QCmargin, QCalgorithm, Qimage;
       extern Lisp_Object Qlaplace;
 
@@ -7262,9 +7257,16 @@ build_desired_tool_bar_string (f)
 	 vector.  */
       image = Fcons (Qimage, plist);
       props = list4 (Qdisplay, image,
-		     Qmenu_item, make_number (i * TOOL_BAR_ITEM_NSLOTS)),
-      Fadd_text_properties (make_number (string_idx),
-			    make_number (string_idx + 1),
+		     Qmenu_item, make_number (i * TOOL_BAR_ITEM_NSLOTS));
+
+      /* Let the last image hide all remaining spaces in the tool bar
+         string.  The string can be longer than needed when we reuse a
+         previous string.  */
+      if (i + 1 == f->n_tool_bar_items)
+	end = XSTRING (f->desired_tool_bar_string)->size;
+      else
+	end = i + 1;
+      Fadd_text_properties (make_number (i), make_number (end),
 			    props, f->desired_tool_bar_string);
 #undef PROP
     }
