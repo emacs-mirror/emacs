@@ -1,4 +1,4 @@
-;;; european.el --- European languages -*- coding: iso-2022-7bit; -*-
+;;; european.el --- support for European languages -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -525,7 +525,38 @@ and it selects the Dutch tutorial."))
  'mac-roman 4 ?M "Mac Roman Encoding"
  '(decode-mac-roman . encode-mac-roman)
  '((safe-chars . mac-roman-encoder)
-   (valid-codes (0 . 255))))
+   (valid-codes (0 . 255))
+   (mime-charset . macintosh)))		; per IANA, rfc1345
+
+;; Probably not the best place for this...
+(set-language-info-alist
+ "UTF-8" `((coding-system utf-8)	; could be from Mule-UCS
+	   (coding-priority mule-utf-8)
+	   ;; Is this necessary/appropriate?
+	   (charset ,@(coding-system-get 'utf-8 'safe-charsets))
+	   ;; NB.  Emacs 21.1's `set-language-environment' needs
+	   ;; fixing to allow lambdas here.
+	   (setup-function
+	    . (lambda ()
+	       ;; Use Unicode font under Windows.  Jason Rumney fecit.
+		(if (and (fboundp 'w32-add-charset-info)
+			 (not (boundp 'w32-unicode-charset-defined)))
+		    (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))))
+	   (exit-function
+	    . (lambda ()
+		(if (and (fboundp 'w32-add-charset-info)
+			 (not (boundp 'w32-unicode-charset-defined)))
+		    (setq w32-charset-info-alist
+			  (delete (assoc "iso10646-1")
+				  w32-charset-info-alist)))))
+	   (input-method . "rfc1345")
+	   (documentation . "\
+This language environment is a generic one for a subset of the Unicode
+character set encoded in UTF-8."))
+ nil)
+
+;; This is conventional.
+(push '("\\.utf\\(-8\\)?\\'" . utf-8) file-coding-system-alist)
 
 (provide 'european)
 
