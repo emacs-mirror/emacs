@@ -1,7 +1,7 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.15) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!testlib.h(trunk.16) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */
@@ -111,6 +111,14 @@ extern void die_expect(mps_res_t res, mps_res_t expected, const char *s);
  */
 
 extern void cdie(int res, const char *s);
+
+
+/* Insist -- like assert, but even in release varieties */
+
+#define Insist(cond) insist1(cond, #cond)
+
+#define insist1(cond, condstring) \
+  cdie(cond, condstring "\n" __FILE__ "\n" STR(__LINE__))
 
 
 /* rnd -- random number generator
