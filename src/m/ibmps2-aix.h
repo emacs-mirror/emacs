@@ -231,3 +231,17 @@ so disable it for them.  */
 #undef LIBX10_SYSTEM
 #undef LIBX11_SYSTEM
 #endif
+
+/* Shared libraries are supported in a patch release of ps/2 1.2.1.
+   If the system has them, the user can turn them on, and this code
+   will make them work.  */
+#define USG_SHARED_LIBRARIES /* Assume that by 19's release everyone has this.  */
+
+#ifdef USG_SHARED_LIBRARIES
+#define ORDINARY_LINK
+#undef LIB_STANDARD
+#undef LD_SWITCH_MACHINE
+#if __GNUC__ > 1
+#define LD_SWITCH_MACHINE -shlib
+#endif
+#endif
