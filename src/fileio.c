@@ -3771,6 +3771,9 @@ This does code conversion according to the value of\n\
     {
       if (CODING_MAY_REQUIRE_DECODING (&coding))
 	{
+	  /* Here, we don't have to consider byte combining (see the
+             comment below) because code_convert_region takes care of
+             it.  */
 	  code_convert_region (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
 			       &coding, 0, 0);
 	  inserted = (NILP (current_buffer->enable_multibyte_characters)
@@ -3780,8 +3783,11 @@ This does code conversion according to the value of\n\
 	{
 	  int inserted_byte = inserted;
 
-	  /* At first, reset positions to the state of before
-             insertion.  */
+	  /* There's a possibility that we must combine bytes at the
+	     head (resp. the tail) of the just inserted text with the
+	     bytes before (resp. after) the gap to form a single
+	     character.  Thus, we, at first, rewind the adjusted
+	     character positions (GPT, ZV, Z), then adjust them again.  */
 	  GAP_SIZE += inserted;
 	  GPT_BYTE -= inserted;
 	  ZV_BYTE -= inserted;
@@ -3790,10 +3796,9 @@ This does code conversion according to the value of\n\
 	  ZV -= inserted;
 	  Z -= inserted;
 
-	  /* Then adjust positions.  */
 	  inserted = multibyte_chars_in_text (GPT_ADDR, inserted);
 	  adjust_after_replace (PT, PT_BYTE, PT, PT_BYTE,
-				inserted, inserted_byte);
+				inserted, inserted_byte, 0);
 	}
 
 #ifdef DOS_NT
