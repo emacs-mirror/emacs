@@ -264,10 +264,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; E, file.cc(35,52) Illegal operation on pointers
     ("[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
-;;; This seems to be superfluous because the first pattern matches it.
-;;;    ;; GNU messages with program name and optional column number.
-;;;    ("[a-zA-Z]?:?[^0-9 \n\t:]+[^ \n\t:]*:[ \t]*\\([^ \n\t:]+\\):\
-;;;\\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
+    ;; This seems to be superfluous because the first pattern matches it.
+    ;; ;; GNU messages with program name and optional column number.
+    ;; ("[a-zA-Z]?:?[^0-9 \n\t:]+[^ \n\t:]*:[ \t]*\\([^ \n\t:]+\\):\
+    ;;\\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
     ;; Cray C compiler error messages
     ("\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \
@@ -407,13 +407,13 @@ Otherwise, it saves all modified buffers without asking."
   ;; Currently zgrep has trouble.  It runs egrep instead of grep,
   ;; and it doesn't pass along long options right.
   "grep"
-;;;  (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
-;;;		 (call-process "zgrep" nil nil nil
-;;;			       "foo" null-device)
-;;;	       (error nil))
-;;;	     1)
-;;;      "zgrep"
-;;;    "grep")
+  ;; (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
+  ;; 		 (call-process "zgrep" nil nil nil
+  ;; 			       "foo" null-device)
+  ;; 	       (error nil))
+  ;; 	     1)
+  ;;     "zgrep"
+  ;;   "grep")
   "The default grep program for `grep-command' and `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
@@ -453,14 +453,12 @@ Sometimes it is useful for files to supply local values for this variable.
 You might also use mode hooks to specify it in certain modes, like this:
 
     (add-hook 'c-mode-hook
-      (function
        (lambda ()
 	 (unless (or (file-exists-p \"makefile\")
 		     (file-exists-p \"Makefile\"))
-	   (make-local-variable 'compile-command)
-	   (setq compile-command
-		 (concat \"make -k \"
-			 (file-name-sans-extension buffer-file-name)))))))"
+	   (set (make-local-variable 'compile-command)
+		(concat \"make -k \"
+		        (file-name-sans-extension buffer-file-name))))))"
   :type 'string
   :group 'compilation)
 
@@ -535,19 +533,20 @@ to a function that generates a unique name."
   (interactive
    (if (or compilation-read-command current-prefix-arg)
        (list (read-from-minibuffer "Compile command: "
-                                 compile-command nil nil
+                                 (eval compile-command) nil nil
                                  '(compile-history . 1)))
-     (list compile-command)))
-  (setq compile-command command)
+     (list (eval compile-command))))
+  (unless (equal command (eval compile-command))
+    (setq compile-command command))
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (compile-internal compile-command "No more errors"))
+  (compile-internal command "No more errors"))
 
-;;; run compile with the default command line
+;; run compile with the default command line
 (defun recompile ()
   "Re-compile the program including the current buffer."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (compile-internal compile-command "No more errors"))
+  (compile-internal (eval compile-command) "No more errors"))
 
 (defun grep-process-setup ()
   "Set up `compilation-exit-message-function' for `grep'."
@@ -773,7 +772,8 @@ Returns the compilation buffer created."
       (save-excursion
 	(set-buffer outbuf)
 	(compilation-mode name-of-mode)
-	;; (setq buffer-read-only t)  ;;; Non-ergonomic.
+	;; In what way is it non-ergonomic ?  -stef
+	;; (toggle-read-only 1) ;;; Non-ergonomic.
 	(set (make-local-variable 'compilation-parse-errors-function) parser)
 	(set (make-local-variable 'compilation-error-message) error-message)
 	(set (make-local-variable 'compilation-error-regexp-alist)
@@ -1663,11 +1663,11 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
     (let ((dirs compilation-search-path)
 	  buffer thisdir fmts name)
       (if (file-name-absolute-p filename)
-	;; The file name is absolute.  Use its explicit directory as
-	;; the first in the search path, and strip it from FILENAME.
-	(setq filename (abbreviate-file-name (expand-file-name filename))
-	      dirs (cons (file-name-directory filename) dirs)
-	      filename (file-name-nondirectory filename)))
+	  ;; The file name is absolute.  Use its explicit directory as
+	  ;; the first in the search path, and strip it from FILENAME.
+	  (setq filename (abbreviate-file-name (expand-file-name filename))
+		dirs (cons (file-name-directory filename) dirs)
+		filename (file-name-nondirectory filename)))
       ;; Now search the path.
       (while (and dirs (null buffer))
 	(setq thisdir (or (car dirs) dir)
@@ -1898,9 +1898,17 @@ An error message with no file name and no file name has been seen earlier"))
 					  find-at-least))
 				 (and limit-search
 				      (>= end-of-match limit-search)))
-			     (not (equal ; Same filename?
-				   (car (cdr (car compilation-error-list)))
-				   (car (cdr this-error)))))
+			     ;; `this-error' could contain a pair of
+			     ;; markers already.
+			     (let ((thispos (cdr this-error))
+				   (lastpos (cdar compilation-error-list)))
+			       (not (equal
+				     (if (markerp thispos)
+					 (marker-buffer thispos)
+				       (car thispos))
+				     (if (markerp lastpos)
+					 (marker-buffer lastpos)
+				       (car lastpos))))))
 			;; We are past the limits and the last error
 			;; parsed, didn't belong to the same source file
 			;; as the earlier ones i.e. we have seen all the
@@ -1981,9 +1989,9 @@ An error message with no file name and no file name has been seen earlier"))
 
     (set-marker compilation-parsing-end (point))
     (setq compilation-error-list (nreverse compilation-error-list))
-;;; (message "Parsing error messages...done. %d found. %.0f%% of buffer seen."
-;;;	     compilation-num-errors-found
-;;;	     (/ (* 100.0 (point)) (point-max)))
+    ;; (message "Parsing error messages...done. %d found. %.0f%% of buffer seen."
+    ;;	     compilation-num-errors-found
+    ;;	     (/ (* 100.0 (point)) (point-max)))
     (message "Parsing error messages...done.")))
 
 (defun compile-collect-regexps (type this)
