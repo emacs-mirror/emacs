@@ -3,6 +3,7 @@
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
+;; Maintainer: Brian D. Carlstrom <bdc@ai.mit.edu>
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +26,6 @@
 ;;; Commentary:
 
 ;; Send Mail to smtp host from smtpmail temp buffer.
-;; alfa release
 
 ;; Please add these lines in your .emacs(_emacs).
 ;;
@@ -36,6 +36,7 @@
 ;;(setq smtpmail-debug-info t)
 ;;(load-library "smtpmail")
 ;;(setq smtpmail-code-conv-from nil)
+;;(setq user-full-name "YOUR NAME HERE")
 
 ;;; Code:
 
@@ -103,12 +104,7 @@ don't define this value.")
 	    (replace-match "\n"))
 	  (let ((case-fold-search t))
 	    (goto-char (point-min))
-	    ;; Find and handle any FCC fields.
 	    (goto-char (point-min))
-	    (if (re-search-forward "^FCC:" delimline t)
-		(mail-do-fcc delimline))
-	    (goto-char (point-min))
-	    (require 'mail-utils)
 	    (while (re-search-forward "^Resent-to:" delimline t)
 	      (setq resend-to-addresses
 		    (save-restriction
@@ -133,19 +129,65 @@ don't define this value.")
 ;;;		 (progn
 ;;;		   (forward-line 1)
 ;;;		   (insert "Sender: " (user-login-name) "\n")))
-	    ;; "S:" is an abbreviation for "Subject:".
-	    (goto-char (point-min))
-	    (if (re-search-forward "^S:" delimline t)
-		(replace-match "Subject:"))
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
 		(replace-match ""))
+	    ;; Put the "From:" field in unless for some odd reason
+	    ;; they put one in themselves.
+	    (goto-char (point-min))
+	    (if (not (re-search-forward "^From:" delimline t))
+		(let* ((login user-mail-address)
+		       (fullname (user-full-name)))
+		  (cond ((eq mail-from-style 'angles)
+			 (insert "From: " fullname)
+			 (let ((fullname-start (+ (point-min) 6))
+			       (fullname-end (point-marker)))
+			   (goto-char fullname-start)
+			   ;; Look for a character that cannot appear unquoted
+			   ;; according to RFC 822.
+			   (if (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
+						  fullname-end 1)
+			       (progn
+				 ;; Quote fullname, escaping specials.
+				 (goto-char fullname-start)
+				 (insert "\"")
+				 (while (re-search-forward "[\"\\]"
+							   fullname-end 1)
+				   (replace-match "\\\\\\&" t))
+				 (insert "\""))))
+			 (insert " <" login ">\n"))
+			((eq mail-from-style 'parens)
+			 (insert "From: " login " (")
+			 (let ((fullname-start (point)))
+			   (insert fullname)
+			   (let ((fullname-end (point-marker)))
+			     (goto-char fullname-start)
+			     ;; RFC 822 says \ and nonmatching parentheses
+			     ;; must be escaped in comments.
+			     ;; Escape every instance of ()\ ...
+			     (while (re-search-forward "[()\\]" fullname-end 1)
+			       (replace-match "\\\\\\&" t))
+			     ;; ... then undo escaping of matching parentheses,
+			     ;; including matching nested parentheses.
+			     (goto-char fullname-start)
+			     (while (re-search-forward 
+				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
+				     fullname-end 1)
+			       (replace-match "\\1(\\3)" t)
+			       (goto-char fullname-start))))
+			 (insert ")\n"))
+			((null mail-from-style)
+			 (insert "From: " login "\n")))))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
 	    (if (eval mail-mailer-swallows-blank-line)
 		(newline))
+	    ;; Find and handle any FCC fields.
+	    (goto-char (point-min))
+	    (if (re-search-forward "^FCC:" delimline t)
+		(mail-do-fcc delimline))
 	    (if mail-interactive
 		(save-excursion
 		  (set-buffer errbuf)
