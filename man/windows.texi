@@ -360,56 +360,49 @@ heights of all the windows in the selected frame.
 @cindex mode, Winner
 @cindex undoing window configuration changes
 @cindex window configuration changes, undoing
-@kbd{M-x winner-mode} provides a global minor mode that records the
-changes in the window configuration (i.e. how the frames are partitioned
-into windows) so that the changes can be `undone' using the command
-@kbd{M-x winner-undo}, bound to @kbd{C-x left} by default.  If you
-change your mind (while undoing), you can use @kbd{M-x winner-redo}
-(@kbd{C-x right}).  You can also turn on Winner mode by customizing
-@code{winner-mode}.
-
-@vindex scroll-all-mode
-@cindex scrolling windows together
-@cindex Scroll-all mode
-@cindex mode, Scroll-all
-@kbd{M-x scroll-all-mode} provides commands to scroll all visible
-windows together as in CRiSP/Brief emulation (@pxref{Emulation}).  You
-can also turn it on by customizing @code{scroll-all-mode}.  The commands
-provided are @kbd{M-x scroll-all-scroll-down-all}, @kbd{M-x
-scroll-all-page-down-all} and their `up' equivalents.  You would
-probably want to bind these to appropriate keys.
+  @kbd{M-x winner-mode} is a global minor mode that records the
+changes in the window configuration (i.e. how the frames are
+partitioned into windows), so that you can ``undo'' them.  To undo,
+use @kbd{C-x left} (@code{winner-undo}).  If you change your mind
+while undoing, you can redo the changes you had undone using @kbd{C-x
+right} (@code{M-x winner-redo}).  Another way to enable Winner mode is
+by customizing the variable @code{winner-mode}.
 
 @cindex Windmove package
 @cindex directional window selection
 @findex windmove-right
 @findex windmove-default-keybindings
-There are commands to move directionally between neighbouring windows in
+  The Windmode commands move directionally between neighbouring windows in
 a frame.  @kbd{M-x windmove-right} selects the window immediately to the
-right of the currently-selected one and similarly for the `left', `up'
-and `down' counterparts.  @kbd{M-x windmove-default-keybindings} binds
-these commands to @kbd{S-right} etc.  (These bindings will only work if
-your terminal supports shifted arrow keys.)
+right of the currently selected one, and similarly for the ``left,'' ``up,''
+and ``down'' counterparts.  @kbd{M-x windmove-default-keybindings} binds
+these commands to @kbd{S-right} etc.  (Not all terminals support shifted
+arrow keys, however.)
 
 @cindex Follow mode
 @cindex mode, Follow
 @findex follow-mode
 @cindex windows, synchronizing
 @cindex synchronizing windows
-Follow minor mode (@kbd{M-x follow-mode}) synchronizes several windows
-on the same buffer so that they always display adjacent sections of that
-buffer.  Also if point moves outside a window, another window displaying
-that point is selected if possible, so that you can move between windows
-with normal movement commands.  You can use this facility, for instance,
-to operate effectively with double the number of lines of a file visible
-in a given screen height using side-by-side windows on the same buffer:
-split the window with @kbd{C-x 3} and then use @kbd{M-x follow-mode} to
-synchronize the windows.
+  Follow minor mode (@kbd{M-x follow-mode}) synchronizes several
+windows on the same buffer so that they always display adjacent
+sections of that buffer.  Also if point moves outside a window, it
+moves automatically to another window which shows that part of the
+buffer, if any.  Thus, the windows act like one large window on
+the buffer.
 
-@cindex cursor in non-selected windows
-@vindex show-cursor-in-non-selected-windows
-@vindex cursor-in-non-selected-windows
-Normally, the cursor in non-selected windows is shown as a hollow box.
-If you want Emacs not to display the cursor in non-selected windows,
-customize the option @code{show-cursor-in-non-selected-windows}, or set
-the variable @code{cursor-in-non-selected-windows} to a non-@code{nil}
-value.
+  One use of this feature is to effectively double the number of lines
+in a given screen height, using side-by-side windows on the same
+buffer.  First split a window into side-by-side windows with @kbd{C-x
+3}, then use @kbd{M-x follow-mode} to synchronize the windows.
+
+@vindex scroll-all-mode
+@cindex scrolling windows together
+@cindex Scroll-all mode
+@cindex mode, Scroll-all
+  @kbd{M-x scroll-all-mode} provides commands to scroll all visible
+windows together.  You can also turn it on by customizing the variable
+@code{scroll-all-mode}.  The commands provided are @kbd{M-x
+scroll-all-scroll-down-all}, @kbd{M-x scroll-all-page-down-all} and
+their corresponding ``up'' equivalents.  To make this mode useful,
+you should bind these commands to appropriate keys.
