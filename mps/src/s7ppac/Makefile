@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.15) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.16) $
 #
 # Copyright (C) 1996, 1998 Harlequin Group plc.  All rights reserved.
 #
@@ -12,7 +12,7 @@
 #  directory {...}s7ppac
 #  BuildProgram -d Variety mmsw
 #
-# (this builds mmsw_HE.o and mmsw_CI.o)
+# (this builds mmsw_TI.o, mmsw_HI.o, and mmsw_WE.o)
 #
 # to clean everything else away:
 #
@@ -24,9 +24,6 @@
 # .dep.accum: If several single-f rules all produce the same product 
 #  (left-hand-side of the f), they act together: at most one may have a 
 #  body, the others only add additional dependencies.
-#
-# .he.untested: The variety.he build hasn't been tested; see 
-#  .obsolete.zz below.
 
 
 # Options cribbed from SWbuild!macos:rules:rulemrc4.make(trunk.3)
@@ -62,9 +59,9 @@ PRODDEFINES= -d CONFIG_VAR_{Variety} -d CONFIG_PROD_EPCORE
 
 OSffx     = .c.{Variety}.o
 
-.c.CI.o  Ä  .c
+.c.TI.o  Ä  .c
         {MPWCommands96}MrC2.0.2d1 ¶
-                -o {TargDir}{Default}.c.CI.o ¶
+                -o {Targ} ¶
                 {CC_OPTT} ¶
                 {CC_OPTR_Dbg} ¶
                 {CC_OPT_CONTROL} {CC_OPT_SOURCE} {CC_OPT_OBJECT} ¶
@@ -72,9 +69,39 @@ OSffx     = .c.{Variety}.o
                 {SYS_CINCLUDES} ¶
                 {DepDir}{Default}.c
 
+.c.CI.o  Ä  .c
+        {MPWCommands96}MrC2.0.2d1 ¶
+                -o {Targ} ¶
+                {CC_OPTT} ¶
+                {CC_OPTR_Dbg} ¶
+                {CC_OPT_CONTROL} {CC_OPT_SOURCE} {CC_OPT_OBJECT} ¶
+                {ENVDEFINES} {PRODDEFINES} ¶
+                {SYS_CINCLUDES} ¶
+                {DepDir}{Default}.c
+
+.c.HI.o  Ä  .c
+        {MPWCommands96}MrC2.0.2d1 ¶
+                -o {Targ} ¶
+                {CC_OPTT} ¶
+                {CC_OPTR_} ¶
+                {CC_OPT_CONTROL} {CC_OPT_SOURCE} {CC_OPT_OBJECT} ¶
+                {ENVDEFINES} {PRODDEFINES} ¶
+                {SYS_CINCLUDES} ¶
+                {DepDir}{Default}.c
+
 .c.HE.o  Ä  .c
         {MPWCommands96}MrC2.0.2d1 ¶
-                -o {TargDir}{Default}.c.HE.o ¶
+                -o {Targ} ¶
+                {CC_OPTT} ¶
+                {CC_OPTR_} ¶
+                {CC_OPT_CONTROL} {CC_OPT_SOURCE} {CC_OPT_OBJECT} ¶
+                {ENVDEFINES} {PRODDEFINES} ¶
+                {SYS_CINCLUDES} ¶
+                {DepDir}{Default}.c
+
+.c.WE.o  Ä  .c
+        {MPWCommands96}MrC2.0.2d1 ¶
+                -o {Targ} ¶
                 {CC_OPTT} ¶
                 {CC_OPTR_} ¶
                 {CC_OPT_CONTROL} {CC_OPT_SOURCE} {CC_OPT_OBJECT} ¶
@@ -123,10 +150,24 @@ mmsw_{Variety}.o  Ä  ¶
                 cbs{OSffx} ¶
                 message{OSffx}
 
+mmsw_TI.o  Ä  # .dep.accum
+        {MPWCommands97}PPCLink1.5 ¶
+                -o {Targ} ¶
+                {BB_OPTR_Dbg} ¶
+                {BB_OPT_CONTROL} {BB_OPT_SOURCE} {BB_OPT_OBJECT} ¶
+                {Deps}
+
 mmsw_CI.o  Ä  # .dep.accum
         {MPWCommands97}PPCLink1.5 ¶
                 -o {Targ} ¶
                 {BB_OPTR_Dbg} ¶
+                {BB_OPT_CONTROL} {BB_OPT_SOURCE} {BB_OPT_OBJECT} ¶
+                {Deps}
+
+mmsw_HI.o  Ä  # .dep.accum
+        {MPWCommands97}PPCLink1.5 ¶
+                -o {Targ} ¶
+                {BB_OPTR_} ¶
                 {BB_OPT_CONTROL} {BB_OPT_SOURCE} {BB_OPT_OBJECT} ¶
                 {Deps}
 
@@ -137,29 +178,12 @@ mmsw_HE.o  Ä  # .dep.accum
                 {BB_OPT_CONTROL} {BB_OPT_SOURCE} {BB_OPT_OBJECT} ¶
                 {Deps}
 
-
-## .obsolete.zz: In trunk.11 this makefile was changed radically, but 
-##  could not be tested because Mac Release ScriptWorks was broken.  
-##  When SW is mended, it might be nice to test and compare the new and 
-##  old builds of the MPS.  
-##  It is easy to make the old HE build: just use the following "ZZ" 
-##  pseudo-variety, which uses the old compiler, linker, and 
-##  command-line options to build the HE variety.  
-##  To build it: BuildProgram -d Variety=ZZ mmsw_ZZ.o
-##  richardk 1998-05-28
-.c.ZZ.o  Ä  .c
-  {MPWCommands96}MrC1.0 ¶
-    -o {TargDir}{Default}.c.ZZ.o ¶
-    -d CONFIG_VAR_HE -d CONFIG_PROD_EPCORE ¶
-    -ansi strict -proto strict -typecheck strict -w error ¶
-    -sym full ¶
-    -i "{CIncludes96}" ¶
-    {DepDir}{Default}.c
-mmsw_ZZ.o  Ä  # .dep.accum
-  {MPWCommands96}PPCLink ¶
-    -o {Targ} ¶
-    -xm l -sym on ¶
-    {Deps} "{SharedLibraries96}InterfaceLib"
+mmsw_WE.o  Ä  # .dep.accum
+        {MPWCommands97}PPCLink1.5 ¶
+                -o {Targ} ¶
+                {BB_OPTR_} ¶
+                {BB_OPT_CONTROL} {BB_OPT_SOURCE} {BB_OPT_OBJECT} ¶
+                {Deps}
 
 
 cleanall Ä
@@ -169,5 +193,6 @@ clean Ä
         Delete Å.c.Å.o
 
 mmsw Ä
-        BuildProgram -d Variety=HE mmsw_HE.o
-        BuildProgram -d Variety=CI mmsw_CI.o
+        BuildProgram -d Variety=TI mmsw_TI.o
+        BuildProgram -d Variety=HI mmsw_HI.o
+        BuildProgram -d Variety=WE mmsw_WE.o
