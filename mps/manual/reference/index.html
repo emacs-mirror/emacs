@@ -118,6 +118,7 @@ also no overview or protocol-oriented sections.</strong></p>
 <li> Function <code><a href="#mps_arena_committed">mps_arena_committed</a></code> </li>
 <li> function <code><a href="#mps_arena_create">mps_arena_create</a></code> </li>
 <li> function <code><a href="#mps_arena_create_v">mps_arena_create_v</a></code> </li>
+<li> function <code><a href="#mps_arena_expose">mps_arena_expose</a</code> </li>
 <li> function <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code> </li>
 <li> function <code><a href="#mps_arena_park">mps_arena_park</a></code> </li>
 <li> function <code><a href="#mps_arena_release">mps_arena_release</a></code> </li>
@@ -2594,7 +2595,9 @@ href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></c
 
 <h4>Internal Notes</h4>
 
-<p>Does "You must call it when the arena is parked" mean that (a) parking an arena requiresthat you call this function, or (b) you can only call this function when the arena is in the parkedstate? LMB</p>
+<p>Does "You must call it when the arena is parked" mean that (a) parking an arena requires
+that you call this function, or (b) you can only call this function when the arena is in the parked
+state? LMB</p>
 
 <p>(b). Changed "must call" to "may only call" drj 1998-08-25</p>
 
@@ -3028,7 +3031,7 @@ protocol.mps.alloc-point.stack</p>
 
 <h4>Arguments</h4>
 
-<p>arena -- the arena to be put i nto the clamped state</p>
+<p>arena -- the arena to be put into the clamped state</p>
 
 
 <h4>Returned Values</h4>
@@ -3043,9 +3046,13 @@ protocol.mps.alloc-point.stack</p>
 
 <h4>Description</h4>
 
-<p><code><a href="#mps_arena_clamp">mps_arena_clamp</a></code> puts the specified arena into the clamped state. In the clamped state, noobject motion will occur and the staleness of location dependencies will not change. All referencesto objects loaded while the arena is clamped will keep the same binary representation until after itis released.</p>
+<p><code><a href="#mps_arena_clamp">mps_arena_clamp</a></code> puts the specified arena into the clamped state. In the clamped state, no
+object motion will occur and the staleness of location dependencies will not change. All references
+to objects loaded while the arena is clamped will keep the same binary representation until after itis released.</p>
 
-<p>In a clamped arena, incremental collection may still occur, but it will not be visible tothe mutator and no new collections will begin. Space used by unreachable objects will not berecycled until the arena becomes unclamped.</p>
+<p>In a clamped arena, incremental collection may still occur, but it will not be visible to
+the mutator and no new collections will begin. Space used by unreachable objects will not be
+recycled until the arena becomes unclamped.</p>
 
 
 <h4>Example</h4>
@@ -3851,6 +3858,86 @@ int main(void)
 
 <code><a href="#mps_arena_destroy">mps_arena_destroy</a></code></p>
 
+<h3>function <code><a id="mps_arena_expose"
+name="mps_arena_expose">mps_arena_expose</a></code></h3>
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_arena_expose">mps_arena_expose</a></code></p>
+
+<h4>Summary</h4>
+
+<p><code><a href="#mps_arena_expose">mps_arena_expose</a></code> ensures
+that the MPS is not protecting any pages in the arena with read- or
+write-memory protection barriers.</p>
+
+<h4>Associated Protocols</h4>
+
+<p>
+Arena, clamp, park, protection
+</p>
+
+<h4>Syntax</h4>
+
+<p><code>mps_arena_expose(mps_arena);</code></p>
+
+<h4>Type</h4>
+
+<pre>
+extern void mps_arena_expose(mps_arena_t);
+</pre>
+
+<h4>Arguments</h4>
+
+<p><code>(mps_arena_t mps_arena)</code></p>
+
+<p><code><a href="#mps_arena">mps_arena</a></code> is an MPS arena object.</p>
+
+<h4>Returned Values</h4>
+
+<p>None.</p>
+
+<h4>Resources</h4>
+
+<p>mps.h</p>
+
+<h4>Description</h4>
+
+<p>
+This function will ensure that the MPS is not protecting (with memory
+read/write barriers) any page in the arena.
+This is expected to only be useful for debugging.
+The arena is left in the clamped state (see <code><a
+href="#mps_arena_clamp">mps_arena_clamp</a></code>).
+</p>
+
+<p>
+Since barriers are used during a collection, calling this function has
+the same effect as calling <code><a
+href="#mps_arena_park">mps_arena_park</a></code>; all collections are
+run to completion and the arena is clamped so that no new collections
+begin.  The MPS also uses barriers to maintain remembered sets (an
+optimisation to help avoid scanning work); calling
+this function will effectively destroy the remembered sets and any
+optimisation gains.  Not only is there a performance hit from having to
+finish any active collections, but future collections will be a lot more
+expensive until the remembered set information has been restored (which
+will usually take one collection cycle).
+</p>
+
+<h4>Example</h4>
+
+<p>None.</p>
+
+<h4>Error Handling</h4>
+
+<p>There can be no errors.</p>
+
+<h4>See Also</h4>
+
+<code><a href="#mps_arena_clamp">mps_arena_clamp</a></code>, <code><a
+href="#mps_arena_park">mps_arena_park</a></code>
+
 
 <h3>function <code><a id="mps_arena_formatted_objects_walk" name="mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code></h3>
 
@@ -3888,7 +3975,7 @@ extern void mps_arena_formatted_objects_walk(mps_arena_t,
 
 <p><code>(mps_arena_t mps_arena, mps_formatted_objects_stepper_t stepper, void *p, size_t s)</code></p>
 
-<p><code><a href="#mps_arena">mps_arena</a></code> in an MPS arena object.</p>
+<p><code><a href="#mps_arena">mps_arena</a></code> is an MPS arena object.</p>
 
 <p><code>stepper</code> is a client-supplied function (pointer) of
 the right type (see <code><a
