@@ -290,24 +290,34 @@ This function is called after the function pointed out by
 Moves point to end of buffer and then repeatedly calls
 `imenu-prev-index-position-function' and `imenu-extract-index-name-function'.
 Their results are gathered into an index alist."
-
-  (or (and (fboundp imenu-prev-index-position-function)
-	   (fboundp imenu-extract-index-name-function))
-      (error "The mode \"%s\" does not take full advantage of imenu.el yet."
-	     mode-name))      
-  (let ((index-alist '())
-	name)
-    (goto-char (point-max))
-    (imenu-progress-message 0 t)
-    ;; Search for the function
-    (while (funcall imenu-prev-index-position-function) 
-      (imenu-progress-message nil t)
-      (save-excursion
-	(setq name (funcall imenu-extract-index-name-function)))
-      (and (stringp name)
-	   (push (cons name (point)) index-alist)))
-    (imenu-progress-message 100 t)
-    index-alist))
+  ;; These should really be done by setting imenu-create-index-function
+  ;; in these major modes.  But save that change for later.
+  (cond ((eq major-mode 'emacs-lisp-mode)
+	 (imenu-example--create-lisp-index))
+	((eq major-mode 'lisp-mode)
+	 (imenu-example--create-lisp-index))
+	((eq major-mode 'c++-mode)
+	 (imenu-example--create-c++-index))
+	((eq major-mode 'c-mode)
+	 (imenu-example--create-c-index))
+	(t
+	 (or (and (fboundp imenu-prev-index-position-function)
+		  (fboundp imenu-extract-index-name-function))
+	     (error "The mode \"%s\" does not take full advantage of imenu.el yet."
+		    mode-name))      
+	 (let ((index-alist '())
+	       name)
+	   (goto-char (point-max))
+	   (imenu-progress-message 0 t)
+	   ;; Search for the function
+	   (while (funcall imenu-prev-index-position-function) 
+	     (imenu-progress-message nil t)
+	     (save-excursion
+	       (setq name (funcall imenu-extract-index-name-function)))
+	     (and (stringp name)
+		  (push (cons name (point)) index-alist)))
+	   (imenu-progress-message 100 t)
+	   index-alist))))
 
 (defun imenu--replace-spaces (name replacement)
   ;; Replace all spaces in NAME with REPLACEMENT.
@@ -366,22 +376,25 @@ Returns t for rescan and otherwise a position number."
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list
 	 (all-completions "" prepared-index-alist )))
-      ;; Make a completion question
-      (setq name (completing-read (or prompt "Index item: ")
+      (let ((minibuffer-setup-hook
+	     (function (lambda ()
+			 (let ((buffer (current-buffer)))
+			   (save-excursion
+			     (set-buffer "*Completions*")
+			     (setq completion-reference-buffer buffer)))))))
+	;; Make a completion question
+	(setq name (completing-read (or prompt "Index item: ")
 				    prepared-index-alist
-				    nil t nil 'imenu--history-list)))
-    (cond
-     ((not (stringp name))
-      nil)
-     ((string= name (car imenu--rescan-item))
-      t)
-     (t
-      (setq choice (assoc name prepared-index-alist))
-      (cond
-       ((listp (cdr choice))
-	(imenu--completion-buffer (cdr choice) prompt))
-       (t
-	choice))))))
+				    nil t nil 'imenu--history-list))))
+    (cond ((not (stringp name))
+	   nil)
+	  ((string= name (car imenu--rescan-item))
+	   t)
+	  (t
+	   (setq choice (assoc name prepared-index-alist))
+	   (if (listp (cdr choice))
+	       (imenu--completion-buffer (cdr choice) prompt)
+	     choice)))))
 
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.
@@ -599,35 +612,6 @@ See `imenu-choose-buffer-index' for more information."
    ))
 (defun imenu-example--create-c++-index ()
   (imenu-example--create-c-index imenu-example--function-name-regexp-c++))
-
-
-;;;
-;;; Example of hooks for the examples above
-;;; Put this in your .emacs.
-;;;
-;; (add-hook 'emacs-lisp-mode-hook
-;; 	  (function
-;; 	   (lambda ()
-;; 	     (setq imenu-create-index-function
-;; 		   (function imenu-example--create-lisp-index)))))
-
-;; (add-hook 'lisp-mode-hook
-;; 	  (function
-;; 	   (lambda ()
-;; 	     (setq imenu-create-index-function
-;; 		   (function imenu-example--create-lisp-index)))))
-
-;; (add-hook 'c++-mode-hook
-;; 	  (function
-;; 	   (lambda ()
-;; 	     (setq imenu-create-index-function
-;; 		   (function imenu-example--create-c++-index)))))
-
-;; (add-hook 'c-mode-hook
-;; 	  (function
-;; 	   (lambda ()
-;; 	     (setq imenu-create-index-function
-;; 		   (function imenu-example--create-c-index)))))
 
 (provide 'imenu)
 
