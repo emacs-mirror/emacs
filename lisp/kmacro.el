@@ -506,7 +506,7 @@ Displays the selected macro in the echo area."
   "Record subsequent keyboard input, defining a keyboard macro.
 The commands are recorded even as they are executed.
 Use \\[kmacro-end-macro] to finish recording and make the macro available.
-Use \\[call-last-kbd-macro] to execute the macro.
+Use \\[kmacro-end-and-call-macro] to execute the macro.
 Use \\[name-last-kbd-macro] to give it a permanent name.
 Non-nil arg (prefix arg) means append to last macro defined;
 
