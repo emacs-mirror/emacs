@@ -688,7 +688,7 @@ If the current buffer now contains an empty file that you just visited
 	     (rename-buffer oname))))
     (or (eq (current-buffer) obuf)
 	(kill-buffer obuf))))
-
+
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
@@ -799,31 +799,7 @@ If there is no such live buffer, return nil."
 		       (setq found (car list))))
 		 (setq list (cdr list))))
 	  found))))
-
-(defun insert-file-contents-literally (filename &optional visit beg end replace)
-  "Like `insert-file-contents', but only reads in the file literally.
-A buffer may be modified in several ways after reading into the buffer,
-to Emacs features such as format decoding, character code
-conversion, find-file-hooks, automatic uncompression, etc.
-
-This function ensures that none of these modifications will take place."
-  (let ((format-alist nil)
-	(after-insert-file-functions nil)
-	(coding-system-for-read 'no-conversion)
-	(coding-system-for-write 'no-conversion)
-	(jka-compr-compression-info-list nil)
-	(find-buffer-file-type-function
-	 (if (fboundp 'find-buffer-file-type)
-	     (symbol-function 'find-buffer-file-type)
-	   nil)))
-    (unwind-protect
-	(progn
-	  (fset 'find-buffer-file-type (lambda (filename) t))
-	  (insert-file-contents filename visit beg end replace))
-      (if find-buffer-file-type-function
-	  (fset 'find-buffer-file-type find-buffer-file-type-function)
-	(fmakunbound 'find-buffer-file-type)))))
-
+
 (defun find-file-noselect (filename &optional nowarn rawfile)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -890,7 +866,11 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 			 (file-name-nondirectory filename)
 			 (buffer-name buf))))
 		     (with-current-buffer buf
-		       (revert-buffer t t)))))
+		       (revert-buffer t t)))
+		    ((not (eq rawfile (not (null find-file-literally))))
+		     (if rawfile
+			 (message "File is already visited, and not literally")
+		       (message "File is already visited, and visited literally")))))
 	(save-excursion
 ;;; The truename stuff makes this obsolete.
 ;;;	  (let* ((link-name (car (file-attributes filename)))
@@ -941,10 +921,55 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 		 (make-local-variable 'backup-inhibited)
 		 (setq backup-inhibited t)))
 	  (if rawfile
-	      nil
+	      (progn
+		(setq enable-multibyte-characters nil)
+		(make-local-variable 'find-file-literally)
+		(setq find-file-literally t))
 	    (after-find-file error (not nowarn))
 	    (setq buf (current-buffer)))))
       buf)))
+
+(defun insert-file-contents-literally (filename &optional visit beg end replace)
+  "Like `insert-file-contents', but only reads in the file literally.
+A buffer may be modified in several ways after reading into the buffer,
+to Emacs features such as format decoding, character code
+conversion, find-file-hooks, automatic uncompression, etc.
+
+This function ensures that none of these modifications will take place."
+  (let ((format-alist nil)
+	(after-insert-file-functions nil)
+	(coding-system-for-read 'no-conversion)
+	(coding-system-for-write 'no-conversion)
+	(jka-compr-compression-info-list nil)
+	(find-buffer-file-type-function
+	 (if (fboundp 'find-buffer-file-type)
+	     (symbol-function 'find-buffer-file-type)
+	   nil)))
+    (unwind-protect
+	(progn
+	  (fset 'find-buffer-file-type (lambda (filename) t))
+	  (insert-file-contents filename visit beg end replace))
+      (if find-buffer-file-type-function
+	  (fset 'find-buffer-file-type find-buffer-file-type-function)
+	(fmakunbound 'find-buffer-file-type)))))
+
+(defun insert-file-literally (filename)
+  "Insert contents of file FILENAME into buffer after point with no conversion.
+
+This function is meant for the user to run interactively.
+Don't call it from programs!  Use `insert-file-contents-literally' instead.
+\(Its calling sequence is different; see its documentation)."
+  (interactive "*fInsert file literally: ")
+  (if (file-directory-p filename)
+      (signal 'file-error (list "Opening input file" "file is a directory"
+				filename)))
+  (let ((tem (insert-file-contents-literally filename)))
+    (push-mark (+ (point) (car (cdr tem))))))
+
+(defvar find-file-literally nil
+  "Non-nil if this buffer was made by `find-file-literally' or equivalent.
+This is a permanent local.")
+(put 'find-file-literally 'permanent-local t)
 
 (defun find-file-literally (filename) 
   "Visit file FILENAME with no conversion of any kind.
@@ -952,11 +977,18 @@ Format conversion and character code conversion are both disabled,
 and multibyte characters are disabled in the resulting buffer.
 The major mode used is Fundamental mode regardless of the file name,
 and local variable specifications in the file are ignored.
-Automatic uncompression is also disabled."
+Automatic uncompression is also disabled.
+
+You cannot absolutely rely on this function to result in
+visiting the file literally.  If Emacs already has a buffer \
+which is visiting the file, you get the existing buffer,
+regardless of whether it was created literally or not.
+
+In a Lisp program, if you want to be sure of accessing a file's
+contents literally, you should create a temporary buffer and then read
+the file contents into it using `insert-file-contents-literally'."
   (interactive "FFind file literally: ")
-  (prog1
-      (switch-to-buffer (find-file-noselect filename nil t))
-    (setq enable-multibyte-characters nil)))
+  (switch-to-buffer (find-file-noselect filename nil t)))
 
 (defvar after-find-file-from-revert-buffer nil)
 
