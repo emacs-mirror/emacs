@@ -115,7 +115,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Here override various assumptions in ymakefile */
 
+#ifdef AIXHFT
 #define OBJECTS_MACHINE hftctl.o
+#endif
+
 #define C_SWITCH_MACHINE -D_BSD
 
 #ifdef AIX3_2
