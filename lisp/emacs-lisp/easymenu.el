@@ -514,11 +514,9 @@ NAME should be a string, the name of the element to be removed."
   "In menu MENU try to look for menu item with name NAME.
 If a menu item is found, return (NAME . item), otherwise return nil.
 If item is an old format item, a new format item is returned."
-  (let ((item (lookup-key menu (vector (intern name))))
+  (let ((item (lookup-key menu (vector (intern name))))b
 	ret enable cache label)
     (cond
-     ((or (keymapp item) (eq (car-safe item) 'menu-item))
-      (cons name item))			; Keymap or new menu format
      ((stringp (car-safe item))
       ;; This is the old menu format. Convert it to new format.
       (setq label (car item))
@@ -532,7 +530,9 @@ If item is an old format item, a new format item is returned."
       (and (symbolp item) (setq enable (get item 'menu-enable))	; Got enable
 	   (setq ret (cons :enable (cons enable ret))))
       (if cache (setq ret (cons cache ret)))
-      (cons name (cons 'menu-enable (cons label (cons item ret))))))))
+      (cons name (cons 'menu-enable (cons label (cons item ret)))))
+     (item ; (or (symbolp item) (keymapp item) (eq (car-safe item) 'menu-item))
+      (cons name item)))))
 
 (defun easy-menu-get-map-look-for-name (name submap)
   (while (and submap (not (or (equal (car-safe (cdr-safe (car submap))) name)
