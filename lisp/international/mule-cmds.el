@@ -415,7 +415,8 @@ For invalid characters, CHARs are actually strings."
 		  charset (char-charset char))
 	    (if (eq charset 'unknown)
 		(setq char (match-string 0)))
-	    (if (or (eq charset 'unknown)
+	    (if (or (memq charset '(unknown
+				    eight-bit-control eight-bit-graphic))
 		    (not (or (eq excludes t) (memq charset excludes))))
 		(let ((slot (assq charset chars)))
 		  (if slot
@@ -433,7 +434,7 @@ For invalid characters, CHARs are actually strings."
 		charset (char-charset char))
 	  (if (eq charset 'unknown)
 	      (setq char (match-string 0)))
-	  (if (or (eq charset 'unknown)
+	  (if (or (memq charset '(unknown eight-bit-control eight-bit-graphic))
 		  (not (or (eq excludes t) (memq charset excludes))))
 	      (let ((slot (assq charset chars)))
 		(if slot
