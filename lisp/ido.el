@@ -2511,6 +2511,12 @@ for first matching file."
 		      res t))))))
     (if (and res (not (eq res t)))
 	(setq res (ido-sort-merged-list res auto)))
+    (when (and (or ido-rotate-temp ido-rotate-file-list-default)
+	       (> (length text) 0))
+      (let ((elt (assoc text res)))
+	(unless (eq elt (car res))
+	  (setq res (delq elt res))
+	  (setq res (cons elt res)))))
     (message nil)
     res))
 
