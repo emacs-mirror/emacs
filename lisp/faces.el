@@ -1146,9 +1146,14 @@ If FRAME is nil, the current FRAME is used."
 	    options (cdr conjunct)
 	    match (cond ((eq req 'type)
 			 (or (memq window-system options)
-			     (if (display-graphic-p frame)
-				 (memq 'graphic options)
-			       (memq 'tty options))
+			     ;; FIXME: This should be revisited to use
+			     ;; display-graphic-p, provided that the
+			     ;; color selection depends on the number
+			     ;; of supported colors, and all defface's
+			     ;; are changed to look at number of colors
+			     ;; instead of (type graphic) etc.
+			     (and (null window-system)
+				  (memq 'tty options))
 			     (and (memq 'motif options)
 				  (featurep 'motif))
 			     (and (memq 'lucid options)
