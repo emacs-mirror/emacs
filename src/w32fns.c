@@ -52,6 +52,7 @@ Boston, MA 02111-1307, USA.  */
 #include <shellapi.h>
 #include <ctype.h>
 
+#define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 extern void free_frame_menubar ();
