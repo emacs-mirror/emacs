@@ -599,10 +599,6 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
 {
   Lisp_Object val;
   
-  /* Tag val as an integer, so the rest of the assignments
-     may use XSETINT.  */
-  XFASTINT (val) = 0;
-
   if (NILP (raw))
     XFASTINT (val) = 1;
   else if (EQ (raw, Qminus))
