@@ -67,8 +67,6 @@ Please send all bug fixes and enhancements to
 ;; Using ps-print
 ;; --------------
 ;;
-;; The Commands
-;;
 ;; ps-print provides eight commands for generating PostScript images
 ;; of Emacs buffers:
 ;;
