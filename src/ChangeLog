@@ -1,3 +1,15 @@
+2003-01-20  David Ponce  <david@dponce.com>
+
+	* w32menu.c (digest_single_submenu): Declare all args.
+
+	Sync with 2002-12-23  Richard M. Stallman  <rms@gnu.org>
+	changes in xmenu.c:
+
+	(parse_single_submenu): Use individual keymap's prompt
+	string as pane name, if there is one.
+	(set_frame_menubar): Save menu_items_n_panes from each call to
+	parse_single_submenu and use it when calling digest_single_submenu.
+
 2003-01-20  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (XTread_socket): Checks for valid, visible window
