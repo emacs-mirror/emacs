@@ -1589,8 +1589,7 @@ With argument, insert value in current buffer after the form."
 			  (list 'cons ''macro code))
 			 ((list 'quote (if macrop
 					   (cons 'macro new-one)
-					 new-one)))))
-	     'byte-compile-two-args)
+					 new-one))))))
 	  ;; Output the form by hand, that's much simpler than having
 	  ;; b-c-output-file-form analyze the defalias.
 	  (byte-compile-flush-pending)
