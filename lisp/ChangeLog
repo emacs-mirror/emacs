@@ -1,5 +1,8 @@
 2000-05-22  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/sregex.el: Rewritten to take advantage of shy-groups and
+	intervals which makes it heaps simpler.
+
 	* newcomment.el (comment-region-internal): Go back to BEG after quoting
 	the nested comment markers.
 
