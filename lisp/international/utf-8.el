@@ -420,7 +420,6 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
    (mime-charset . utf-8)
    (coding-category . coding-category-utf-8)
    (valid-codes (0 . 255))
-   (post-read-conversion . utf-8-post-read-conversion)
    (dependency unify-8859-on-encoding-mode
 	       unify-8859-on-decoding-mode)))
 
