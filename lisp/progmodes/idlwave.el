@@ -2,7 +2,7 @@
 ;; Copyright (c) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
-;;          Carsten Dominik <dominik@astro.uva.nl>
+;;          Carsten Dominik <dominik@science.uva.nl>
 ;;          Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 5.5

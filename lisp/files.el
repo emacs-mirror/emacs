@@ -2247,10 +2247,11 @@ is specified, returning t if it is specified."
 		endpos
 		(thisbuf (current-buffer)))
 	    (save-excursion
-	      (if (not (re-search-forward
-			(concat prefix "[ \t]*End:[ \t]*" suffix)
-			nil t))
-		  (error "Local variables list is not properly terminated"))
+	      (unless (let ((case-fold-search t))
+			(re-search-forward
+			 (concat prefix "[ \t]*End:[ \t]*" suffix)
+			 nil t))
+		(error "Local variables list is not properly terminated"))
 	      (beginning-of-line)
 	      (setq endpos (point)))
 

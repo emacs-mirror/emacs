@@ -202,10 +202,17 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   :group 'info)
 
 (defcustom Info-isearch-search t
-  "*If non-nil, isearch invoked in Info mode uses `Info-search' function.
-This allows isearch to search through multiple nodes.
-When isearch fails, it wraps and restarts the search from the
-top/final node depending on search direction."
+  "*If non-nil, isearch in Info searches through multiple nodes.
+Before leaving the initial Info node, where isearch was started,
+it fails once with the error message [initial node], and with
+subsequent C-s/C-r continues through other nodes without failing
+with this error message in other nodes.  When isearch fails for
+the rest of the manual, it wraps aroung the whole manual and
+restarts the search from the top/final node depending on
+search direction.
+
+Setting this option to nil restores the default isearch behavior
+with wrapping around the current Info node."
   :version "22.1"
   :type 'boolean
   :group 'info)
@@ -625,13 +632,13 @@ NO-GOING-BACK is non-nil if recovering from an error in this function;
 it says do not attempt further (recursive) error recovery."
   (info-initialize)
   (setq filename (Info-find-file filename))
+  ;; Go into info buffer.
+  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   ;; Record the node we are leaving.
   (if (and Info-current-file (not no-going-back))
       (setq Info-history
             (cons (list Info-current-file Info-current-node (point))
                   Info-history)))
-  ;; Go into info buffer.
-  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   (Info-find-node-2 filename nodename no-going-back))
 
 (defun Info-on-current-buffer (&optional nodename)
@@ -3616,7 +3623,7 @@ Preserve text properties."
       ;; Fontify titles
       (goto-char (point-min))
       (when not-fontified-p
-        (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
+        (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
                                   nil t)
           (let* ((c (preceding-char))
                  (face
@@ -3793,7 +3800,8 @@ Preserve text properties."
               (add-text-properties
                (match-beginning 1) (match-end 1)
                (list
-                'help-echo (if (match-end 3)
+                'help-echo (if (and (match-end 3)
+                                    (not (equal (match-string 3) "")))
                                (concat "mouse-2: go to " (match-string 3))
                              "mouse-2: go to this node")
                 'mouse-face 'highlight)))
@@ -4071,12 +4079,24 @@ BUFFER is the buffer speedbar is requesting buttons for."
   (Info-speedbar-hierarchy-buttons nil 0)
   )
 
-(dolist (mess '("^Node has no Previous$"
+(dolist (mess '("^First node in file$"
+		"^No `.*' in index$"
+		"^No cross-reference named"
+		"^No cross.references in this node$"
+		"^No current info node$"
 		"^No menu in this node$"
-		"^Node has no Next$"
-                "^No cross-references in this node^"
-                search-failed
-		"^No \".*\" in index$"))
+		"^No more items in menu$"
+		"^No more nodes$"
+		"^No pointer \\(?:forward\\|backward\\) from this node$"
+		"^No previous `i' command$"
+		"^No previous items in menu$"
+		"^No previous nodes$"
+		"^No such item in menu$"
+		"^No such node or anchor"
+		"^Node has no"
+		"^Point neither on reference nor in menu item description$"
+		"^This is the \\(?:first\\|last\\) Info node you looked at$"
+		search-failed))
   (add-to-list 'debug-ignored-errors mess))
 
 ;;;;  Desktop support

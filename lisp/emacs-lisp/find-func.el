@@ -63,7 +63,8 @@
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 ine-minor-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
-\\|easy-mmode-define-global-mode\\)" find-function-space-re
+\\|easy-mmode-define-global-mode\\|menu-bar-make-toggle\\)"
+   find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'

@@ -3540,9 +3540,11 @@ boundaries bind `inhibit-field-text-motion' to t."
   (or arg (setq arg 1))
   (if (/= arg 1)
       (line-move (1- arg) t))
+  (beginning-of-line 1)
   (let ((orig (point)))
     (vertical-motion 0)
-    (goto-char (constrain-to-field (point) orig (/= arg 1) t nil))))
+    (if (/= orig (point))
+	(goto-char (constrain-to-field (point) orig (/= arg 1) t nil)))))
 
 
 ;;; Many people have said they rarely use this feature, and often type
@@ -3929,6 +3931,7 @@ Setting this variable automatically makes it local to the current buffer.")
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
 Some major modes set this.")
 
+(put 'auto-fill-function :minor-mode-function 'auto-fill-mode)
 ;; FIXME: turn into a proper minor mode.
 ;; Add a global minor mode version of it.
 (defun auto-fill-mode (&optional arg)

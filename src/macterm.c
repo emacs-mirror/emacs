@@ -129,9 +129,12 @@ int x_use_underline_position_properties;
 struct x_display_info *x_display_list;
 
 /* This is a list of cons cells, each of the form (NAME
-   . FONT-LIST-CACHE), one for each element of x_display_list and in
-   the same order.  NAME is the name of the frame.  FONT-LIST-CACHE
-   records previous values returned by x-list-fonts.  */
+   FONT-LIST-CACHE . RESOURCE-DATABASE), one for each element of
+   x_display_list and in the same order.  NAME is the name of the
+   frame.  FONT-LIST-CACHE records previous values returned by
+   x-list-fonts.  RESOURCE-DATABASE preserves the X Resource Database
+   equivalent, which is implemented with a Lisp object, for the
+   display. */
 
 Lisp_Object x_display_name_list;
 
@@ -290,9 +293,6 @@ static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
 
-void activate_scroll_bars (FRAME_PTR);
-void deactivate_scroll_bars (FRAME_PTR);
-
 static int is_emacs_window (WindowPtr);
 
 int x_bitmap_icon (struct frame *, Lisp_Object);
@@ -350,8 +350,12 @@ mac_set_backcolor (unsigned long color)
    commands.  Assume that the graphic port has already been set.  */
 
 static void
-mac_set_colors (GC gc)
+mac_set_colors (gc, bg_save)
+     GC gc;
+     RGBColor *bg_save;
 {
+  if (bg_save)
+    GetBackColor (bg_save);
   mac_set_forecolor (gc->foreground);
   mac_set_backcolor (gc->background);
 }
@@ -365,12 +369,16 @@ XDrawLine (display, w, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
+  RGBColor old_bg;
+
   SetPortWindowPort (w);
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, &old_bg);
 
   MoveTo (x1, y1);
   LineTo (x2, y2);
+
+  RGBBackColor (&old_bg);
 }
 
 void
@@ -386,7 +394,7 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, NULL);
 
   LockPixels (GetGWorldPixMap (p));
   MoveTo (x1, y1);
@@ -409,16 +417,19 @@ XClearArea (display, w, x, y, width, height, exposures)
   struct mac_output *mwp = (mac_output *) GetWRefCon (w);
   Rect r;
   XGCValues xgc;
+  RGBColor old_bg;
 
   xgc.foreground = mwp->x_compatible.foreground_pixel;
   xgc.background = mwp->x_compatible.background_pixel;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (&xgc);
+  mac_set_colors (&xgc, &old_bg);
   SetRect (&r, x, y, x + width, y + height);
 
   EraseRect (&r);
+
+  RGBBackColor (&old_bg);
 }
 
 /* Mac version of XClearWindow.  */
@@ -436,7 +447,7 @@ XClearWindow (display, w)
 
   SetPortWindowPort (w);
 
-  mac_set_colors (&xgc);
+  mac_set_colors (&xgc, NULL);
 
 #if TARGET_API_MAC_CARBON
   {
@@ -464,6 +475,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 {
   BitMap bitmap;
   Rect r;
+  RGBColor old_bg;
 
   bitmap.rowBytes = sizeof(unsigned short);
   bitmap.baseAddr = (char *)bits;
@@ -471,7 +483,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, &old_bg);
   SetRect (&r, x, y, x + width, y + height);
 
 #if TARGET_API_MAC_CARBON
@@ -483,6 +495,8 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
   CopyBits (&bitmap, &(w->portBits), &(bitmap.bounds), &r,
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
+
+  RGBBackColor (&old_bg);
 }
 
 
@@ -631,13 +645,16 @@ XFillRectangle (display, w, gc, x, y, width, height)
      unsigned int width, height;
 {
   Rect r;
+  RGBColor old_bg;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, &old_bg);
   SetRect (&r, x, y, x + width, y + height);
 
   PaintRect (&r); /* using foreground color of gc */
+
+  RGBBackColor (&old_bg);
 }
 
 
@@ -656,7 +673,7 @@ mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
-  mac_set_colors (gc);
+  mac_set_colors (gc, NULL);
   SetRect (&r, x, y, x + width, y + height);
 
   LockPixels (GetGWorldPixMap (p));
@@ -679,13 +696,16 @@ mac_draw_rectangle (display, w, gc, x, y, width, height)
      unsigned int width, height;
 {
   Rect r;
+  RGBColor old_bg;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, &old_bg);
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   FrameRect (&r); /* using foreground color of gc */
+
+  RGBBackColor (&old_bg);
 }
 
 
@@ -706,7 +726,7 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
-  mac_set_colors (gc);
+  mac_set_colors (gc, NULL);
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   LockPixels (GetGWorldPixMap (p));
@@ -728,6 +748,8 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      char *buf;
      int nchars, mode, bytes_per_char;
 {
+  RGBColor old_bg;
+
   SetPortWindowPort (w);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   UInt32 textFlags, savedFlags;
@@ -737,7 +759,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
   }
 #endif
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, &old_bg);
 
   TextFont (gc->font->mac_fontnum);
   TextSize (gc->font->mac_fontsize);
@@ -746,6 +768,8 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+
+  RGBBackColor (&old_bg);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
@@ -933,7 +957,7 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
 
   SetPort (w);
 #if 0
-  mac_set_colors (gc);
+  mac_set_colors (gc, NULL);
 #endif
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
@@ -955,7 +979,7 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   BackColor (whiteColor);
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
 
-  mac_set_colors (gc);
+  mac_set_colors (gc, NULL);
 #endif
 #endif /* not TARGET_API_MAC_CARBON */
 }
@@ -1395,13 +1419,6 @@ x_update_end (f)
   FRAME_MAC_DISPLAY_INFO (f)->mouse_face_defer = 0;
 
   BLOCK_INPUT;
-  /* Reset the background color of Mac OS Window to that of the frame after
-     update so that it is used by Mac Toolbox to clear the update region before
-     an update event is generated.  */
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
-  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
-
 #if TARGET_API_MAC_CARBON
   EnableScreenUpdates ();
 #endif
@@ -4471,50 +4488,6 @@ XTjudge_scroll_bars (f)
 }
 
 
-void
-activate_scroll_bars (frame)
-     FRAME_PTR frame;
-{
-  Lisp_Object bar;
-  ControlHandle ch;
-
-  bar = FRAME_SCROLL_BARS (frame);
-  while (! NILP (bar))
-    {
-      ch = SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (bar));
-#if 1 /* TARGET_API_MAC_CARBON */
-      ActivateControl (ch);
-#else
-      SetControlMaximum (ch,
-			 VERTICAL_SCROLL_BAR_TOP_RANGE (frame,
-							XINT (XSCROLL_BAR (bar)
-							      ->height)) - 1);
-#endif
-      bar = XSCROLL_BAR (bar)->next;
-    }
-}
-
-
-void
-deactivate_scroll_bars (frame)
-     FRAME_PTR frame;
-{
-  Lisp_Object bar;
-  ControlHandle ch;
-
-  bar = FRAME_SCROLL_BARS (frame);
-  while (! NILP (bar))
-    {
-      ch = SCROLL_BAR_CONTROL_HANDLE (XSCROLL_BAR (bar));
-#if 1 /* TARGET_API_MAC_CARBON */
-      DeactivateControl (ch);
-#else
-      SetControlMaximum (ch, -1);
-#endif
-      bar = XSCROLL_BAR (bar)->next;
-    }
-}
-
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
    is set to something other than NO_EVENT, it is enqueued.
 
@@ -4845,11 +4818,7 @@ mac_define_frame_cursor (f, cursor)
      struct frame *f;
      Cursor cursor;
 {
-#if TARGET_API_MAC_CARBON
   SetThemeCursor (cursor);
-#else
-  SetCursor (*cursor);
-#endif
 }
 
 
@@ -5274,6 +5243,11 @@ x_set_window_size (f, change_gravity, cols, rows)
   x_wm_set_size_hint (f, (long) 0, 0);
 
   SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
+#if TARGET_API_MAC_CARBON
+  if (f->output_data.mac->hourglass_control)
+    MoveControl (f->output_data.mac->hourglass_control,
+		 pixelwidth - HOURGLASS_WIDTH, 0);
+#endif
 
   /* Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
@@ -6476,7 +6450,7 @@ x_list_fonts (struct frame *f,
 
   if (dpyinfo)
     {
-      tem = XCDR (dpyinfo->name_list_element);
+      tem = XCAR (XCDR (dpyinfo->name_list_element));
       key = Fcons (pattern, make_number (maxnames));
 
       newlist = Fassoc (key, tem);
@@ -6495,9 +6469,9 @@ x_list_fonts (struct frame *f,
 
   if (dpyinfo)
     {
-      XSETCDR (dpyinfo->name_list_element,
+      XSETCAR (XCDR (dpyinfo->name_list_element),
 	       Fcons (Fcons (key, newlist),
-		      XCDR (dpyinfo->name_list_element)));
+		      XCAR (XCDR (dpyinfo->name_list_element))));
     }
  label_cached:
 
@@ -7185,11 +7159,6 @@ Lisp_Object drag_and_drop_file_list;
 
 Point saved_menu_event_location;
 
-#if !TARGET_API_MAC_CARBON
-/* Place holder for the default arrow cursor.  */
-CursPtr arrow_cursor;
-#endif
-
 /* Apple Events */
 static void init_required_apple_events (void);
 static pascal OSErr
@@ -7392,8 +7361,6 @@ do_init_managers (void)
   InitCursor ();
 
 #if !TARGET_API_MAC_CARBON
-  arrow_cursor = &qd.arrow;
-
   /* set up some extra stack space for use by emacs */
   SetApplLimit ((Ptr) ((long) GetApplLimit () - EXTRA_STACK_ALLOC));
 
@@ -7454,15 +7421,16 @@ do_window_update (WindowPtr win)
 	    RgnHandle region = NewRgn ();
 
 	    GetPortVisibleRegion (GetWindowPort (win), region);
-	    UpdateControls (win, region);
 	    GetRegionBounds (region, &r);
+	    expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	    UpdateControls (win, region);
 	    DisposeRgn (region);
 	  }
 #else
-	  UpdateControls (win, win->visRgn);
 	  r = (*win->visRgn)->rgnBBox;
-#endif
 	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	  UpdateControls (win, win->visRgn);
+#endif
 
           handling_window_update = 0;
         }
@@ -7955,8 +7923,6 @@ mac_handle_window_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  extern Lisp_Object Qcontrol;
-
   WindowPtr wp;
   OSStatus result;
   UInt32 attributes;
@@ -8226,7 +8192,6 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
 	  Rect r;
 	  struct frame *f = mac_window_to_frame (window);
 
-	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  GetWindowPortBounds (window, &r);
 	  OffsetRect (&r, -r.left, -r.top);
 	  RectRgn (hilite_rgn, &r);
@@ -8244,7 +8209,6 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
 	{
 	  struct frame *f = mac_window_to_frame (window);
 
-	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  HideDragHilite (theDrag);
 	  SetThemeCursor (kThemeArrowCursor);
 	}
@@ -8736,12 +8700,9 @@ XTread_socket (sd, expected, hold_quit)
 		    /* ticks to milliseconds */
 
 		    if (dpyinfo->grabbed && tracked_scroll_bar
-#if TARGET_API_MAC_CARBON
-			|| ch != 0
-#else
-			|| control_part_code != 0
-#endif
-			)
+			/* control_part_code becomes kControlNoPart if
+			   a progress indicator is clicked.  */
+			|| ch != 0 && control_part_code != kControlNoPart)
 		      {
 			struct scroll_bar *bar;
 
@@ -8910,6 +8871,7 @@ XTread_socket (sd, expected, hold_quit)
 	case activateEvt:
 	  {
 	    WindowPtr window_ptr = (WindowPtr) er.message;
+	    ControlRef root_control;
 
 #if USE_CARBON_EVENTS
 	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
@@ -8926,6 +8888,7 @@ XTread_socket (sd, expected, hold_quit)
 	      break;
 
 	    f = mac_window_to_frame (window_ptr);
+	    GetRootControl (window_ptr, &root_control);
 
 	    if ((er.modifiers & activeFlag) != 0)
 	      {
@@ -8933,7 +8896,7 @@ XTread_socket (sd, expected, hold_quit)
 		Point mouse_loc = er.where;
 
 		x_new_focus_frame (dpyinfo, f);
-		activate_scroll_bars (f);
+		ActivateControl (root_control);
 
 		SetPortWindowPort (window_ptr);
 		GlobalToLocal (&mouse_loc);
@@ -8950,7 +8913,7 @@ XTread_socket (sd, expected, hold_quit)
 		if (f == dpyinfo->x_focus_frame)
 		  {
 		    x_new_focus_frame (dpyinfo, 0);
-		    deactivate_scroll_bars (f);
+		    DeactivateControl (root_control);
 		  }
 
 
@@ -9288,21 +9251,12 @@ make_mac_terminal_frame (struct frame *f)
   f->output_data.mac->mouse_pixel = 0xff00ff;
   f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
 
-#if TARGET_API_MAC_CARBON
   f->output_data.mac->text_cursor = kThemeIBeamCursor;
   f->output_data.mac->nontext_cursor = kThemeArrowCursor;
   f->output_data.mac->modeline_cursor = kThemeArrowCursor;
   f->output_data.mac->hand_cursor = kThemePointingHandCursor;
   f->output_data.mac->hourglass_cursor = kThemeWatchCursor;
   f->output_data.mac->horizontal_drag_cursor = kThemeResizeLeftRightCursor;
-#else
-  f->output_data.mac->text_cursor = GetCursor (iBeamCursor);
-  f->output_data.mac->nontext_cursor = &arrow_cursor;
-  f->output_data.mac->modeline_cursor = &arrow_cursor;
-  f->output_data.mac->hand_cursor = &arrow_cursor;
-  f->output_data.mac->hourglass_cursor = GetCursor (watchCursor);
-  f->output_data.mac->horizontal_drag_cursor = &arrow_cursor;
-#endif
 
   FRAME_FONTSET (f) = -1;
   f->output_data.mac->explicit_parent = 0;
@@ -9420,59 +9374,18 @@ mac_initialize_display_info ()
   dpyinfo->mouse_face_hidden = 0;
 }
 
-/* Create an xrdb-style database of resources to supercede registry settings.
-   The database is just a concatenation of C strings, finished by an additional
-   \0.  The string are submitted to some basic normalization, so
 
-     [ *]option[ *]:[ *]value...
-
-   becomes
-
-     option:value...
-
-   but any whitespace following value is not removed.  */
-
-static char *
+static XrmDatabase
 mac_make_rdb (xrm_option)
      char *xrm_option;
 {
-  char *buffer = xmalloc (strlen (xrm_option) + 2);
-  char *current = buffer;
-  char ch;
-  int in_option = 1;
-  int before_value = 0;
+  XrmDatabase database;
 
-  do {
-    ch = *xrm_option++;
+  database = xrm_get_preference_database (NULL);
+  if (xrm_option)
+    xrm_merge_string_database (database, xrm_option);
 
-    if (ch == '\n')
-      {
-        *current++ = '\0';
-        in_option = 1;
-        before_value = 0;
-      }
-    else if (ch != ' ')
-      {
-        *current++ = ch;
-        if (in_option && (ch == ':'))
-          {
-            in_option = 0;
-            before_value = 1;
-          }
-        else if (before_value)
-          {
-            before_value = 0;
-          }
-      }
-    else if (!(in_option || before_value))
-      {
-        *current++ = ch;
-      }
-  } while (ch);
-
-  *current = '\0';
-
-  return buffer;
+  return database;
 }
 
 struct mac_display_info *
@@ -9498,14 +9411,15 @@ mac_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo = &one_mac_display_info;
 
-  dpyinfo->xrdb = xrm_option ? mac_make_rdb (xrm_option) : NULL;
+  dpyinfo->xrdb = mac_make_rdb (xrm_option);
 
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;
   x_display_list = dpyinfo;
 
   /* Put it on x_display_name_list.  */
-  x_display_name_list = Fcons (Fcons (display_name, Qnil),
+  x_display_name_list = Fcons (Fcons (display_name,
+				      Fcons (Qnil, dpyinfo->xrdb)),
                                x_display_name_list);
   dpyinfo->name_list_element = XCAR (x_display_name_list);
 

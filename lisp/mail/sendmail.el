@@ -107,7 +107,7 @@ nil means let mailer mail back a message to report errors."
   :group 'sendmail)
 
 ;;;###autoload
-(defcustom mail-yank-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^remailed\\|^received:\\|^message-id:\\|^summary-line:\\|^to:\\|^subject:\\|^in-reply-to:\\|^return-path:" "\
+(defcustom mail-yank-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^remailed\\|^received:\\|^message-id:\\|^summary-line:\\|^to:\\|^subject:\\|^in-reply-to:\\|^return-path:\\|^mail-reply-to:\\|^mail-followup-to:" "\
 *Delete these headers from old message when it's inserted in a reply."
   :type 'regexp
   :group 'sendmail)
@@ -213,6 +213,7 @@ text as modified.
 This is a normal hook, misnamed for historical reasons.
 It is semi-obsolete and mail agents should no longer use it.")
 
+;;;###autoload
 (defcustom mail-citation-hook nil
   "*Hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t),
@@ -363,7 +364,7 @@ actually occur.")
 	   (cite-prefix "[:alpha:]")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(To\\|Newsgroups\\):" . font-lock-function-name-face)
-	    '("^\\(B?CC\\|Reply-to\\):" . font-lock-keyword-face)
+	    '("^\\(B?CC\\|Reply-to\\|Mail-\\(reply\\|followup\\)-to\\):" . font-lock-keyword-face)
 	    '("^\\(Subject:\\)[ \t]*\\(.+\\)?"
 	      (1 font-lock-comment-face) (2 font-lock-type-face nil t))
 	    ;; Use EVAL to delay in case `mail-header-separator' gets changed.
@@ -492,6 +493,8 @@ Here are commands that move to a header field (and create it if there isn't):
 	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subject:
 	 \\[mail-cc]  move to CC:	\\[mail-bcc]  move to BCC:
 	 \\[mail-fcc]  move to FCC:	\\[mail-reply-to] move to Reply-To:
+         \\[mail-mail-reply-to]  move to Mail-Reply-To:
+         \\[mail-mail-followup-to] move to Mail-Followup-To:
 \\[mail-text]  mail-text (move to beginning of message text).
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
@@ -599,6 +602,7 @@ If within the headers, this makes the new lines into continuation lines."
 	;; make sure we can fill after each address.
 	(if (member fieldname
 		    '("to" "cc" "bcc" "from" "reply-to"
+		      "mail-reply-to" "mail-followup-to"
 		      "resent-to" "resent-cc" "resent-bcc"
 		      "resent-from" "resent-reply-to"))
 	    (while (search-forward "," end t)
@@ -627,6 +631,8 @@ If within the headers, this makes the new lines into continuation lines."
   (define-key mail-mode-map "\C-c\C-f\C-c" 'mail-cc)
   (define-key mail-mode-map "\C-c\C-f\C-s" 'mail-subject)
   (define-key mail-mode-map "\C-c\C-f\C-r" 'mail-reply-to)
+  (define-key mail-mode-map "\C-c\C-f\C-a" 'mail-mail-reply-to) ; author
+  (define-key mail-mode-map "\C-c\C-f\C-l" 'mail-mail-followup-to) ; list
   (define-key mail-mode-map "\C-c\C-t" 'mail-text)
   (define-key mail-mode-map "\C-c\C-y" 'mail-yank-original)
   (define-key mail-mode-map "\C-c\C-r" 'mail-yank-region)
@@ -673,6 +679,12 @@ If within the headers, this makes the new lines into continuation lines."
 
 (define-key mail-mode-map [menu-bar headers sent-via]
   '("Sent Via" . mail-sent-via))
+
+(define-key mail-mode-map [menu-bar headers mail-reply-to]
+  '("Mail Reply To" . mail-mail-reply-to))
+
+(define-key mail-mode-map [menu-bar headers mail-followup-to]
+  '("Mail Followup To" . mail-mail-followup-to))
 
 (define-key mail-mode-map [menu-bar headers reply-to]
   '("Reply-To" . mail-reply-to))
@@ -745,6 +757,16 @@ Prefix arg means don't delete this window."
   :options '(flyspell-mode-off)
   :group 'sendmail)
 
+;;;###autoload
+(defcustom mail-mailing-lists nil "\
+*List of mailing list addresses the user is subscribed to.
+
+The variable is used to trigger insertion of the \"Mail-Followup-To\"
+header when sending a message to a mailing list."
+  :type '(repeat string)
+  :group 'sendmail)
+
+
 (defun mail-send ()
   "Send the message in the current buffer.
 If `mail-interactive' is non-nil, wait for success indication
@@ -757,7 +779,45 @@ the user from the mailer."
 	(or (buffer-modified-p)
 	    (y-or-n-p "Message already sent; resend? ")))
       (let ((inhibit-read-only t)
-	    (opoint (point)))
+	    (opoint (point))
+	    (ml (when mail-mailing-lists
+                ;; The surrounding regexp assumes the use of
+                ;; `mail-strip-quoted-names' on addresses before matching
+                ;; Cannot deal with full RFC 822 freedom, but that is
+                ;; unlikely to be problematic.
+                (concat "\\(?:[[:space:];,]\\|\\`\\)"
+                        (regexp-opt mail-mailing-lists t)
+                        "\\(?:[[:space:];,]\\|\\'\\)"))))
+	;; If there are mailing lists defined
+	(when ml
+	  (save-excursion
+	    (let* ((to (mail-fetch-field "to" nil t))
+		   (cc (mail-fetch-field "cc" nil t))
+		   (new-header-values	; To: and Cc:
+		    (mail-strip-quoted-names
+		     (concat to (when cc (concat ", " cc))))))
+	      ;; If message goes to known mailing list ...
+	      (when (string-match ml new-header-values)
+		;; Add Mail-Followup-To if none yet
+		(unless (mail-fetch-field "mail-followup-to")
+		  (goto-char (mail-header-end))
+		  (insert "Mail-Followup-To: "
+			  (let ((l))
+			    (mapc
+			     ;; remove duplicates
+			     '(lambda (e)
+				(unless (member e l)
+				  (push e l)))
+			     (split-string new-header-values ", +" t))
+			    (mapconcat 'identity l ", "))
+			  "\n"))
+		;; Add Mail-Reply-To if none yet
+		(unless (mail-fetch-field "mail-reply-to")
+		  (goto-char (mail-header-end))
+		  (insert "Mail-Reply-To: "
+			  (or (mail-fetch-field "reply-to")
+			      user-mail-address)
+			  "\n"))))))
 	(unless (memq mail-send-nonascii '(t mime))
 	  (goto-char (point-min))
 	  (skip-chars-forward "\0-\177")
@@ -833,7 +893,7 @@ external program defined by `sendmail-program'."
 	(multibyte enable-multibyte-characters)
 	(case-fold-search nil)
 	(selected-coding (select-message-coding-system))
-;;;	resend-to-addresses
+	resend-to-addresses
 	delimline
 	fcc-was-found
 	(mailbuf (current-buffer))
@@ -869,39 +929,42 @@ external program defined by `sendmail-program'."
 		      (< (point) delimline))
 	    (replace-match "\n"))
 	  (goto-char (point-min))
+	  ;; Look for Resent- headers.  They require sending
+	  ;; the message specially.
 	  (let ((case-fold-search t))
-;;;	    (goto-char (point-min))
-;;;	    (while (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" delimline t)
-;;;	      (setq resend-to-addresses
-;;;		    (save-restriction
-;;;		      (narrow-to-region (point)
-;;;					(save-excursion
-;;;					  (forward-line 1)
-;;;					  (while (looking-at "^[ \t]")
-;;;					    (forward-line 1))
-;;;					  (point)))
-;;;		      (append (mail-parse-comma-list)
-;;;			      resend-to-addresses)))
-;;;	      ;; Delete Resent-BCC ourselves
-;;;	      (if (save-excursion (beginning-of-line)
-;;;				  (looking-at "resent-bcc"))
-;;;		  (delete-region (save-excursion (beginning-of-line) (point))
-;;;				 (save-excursion (end-of-line) (1+ (point))))))
-;;; Apparently this causes a duplicate Sender.
-;;;	    ;; If the From is different than current user, insert Sender.
-;;;	    (goto-char (point-min))
-;;;	    (and (re-search-forward "^From:"  delimline t)
-;;;		 (progn
-;;;		   (require 'mail-utils)
-;;;		   (not (string-equal
-;;;			 (mail-strip-quoted-names
-;;;			  (save-restriction
-;;;			    (narrow-to-region (point-min) delimline)
-;;;			    (mail-fetch-field "From")))
-;;;			 (user-login-name))))
-;;;		 (progn
-;;;		   (forward-line 1)
-;;;		   (insert "Sender: " (user-login-name) "\n")))
+	    (goto-char (point-min))
+	    (while (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" delimline t)
+	      ;; Put a list of such addresses in resend-to-addresses.
+	      (setq resend-to-addresses
+		    (save-restriction
+		      (narrow-to-region (point)
+					(save-excursion
+					  (forward-line 1)
+					  (while (looking-at "^[ \t]")
+					    (forward-line 1))
+					  (point)))
+		      (append (mail-parse-comma-list)
+			      resend-to-addresses)))
+	      ;; Delete Resent-BCC ourselves
+	      (if (save-excursion (beginning-of-line)
+				  (looking-at "resent-bcc"))
+		  (delete-region (save-excursion (beginning-of-line) (point))
+				 (save-excursion (end-of-line) (1+ (point))))))
+;;;  Apparently this causes a duplicate Sender.
+;;; 	    ;; If the From is different than current user, insert Sender.
+;;; 	    (goto-char (point-min))
+;;; 	    (and (re-search-forward "^From:"  delimline t)
+;;; 		 (progn
+;;; 		   (require 'mail-utils)
+;;; 		   (not (string-equal
+;;; 			 (mail-strip-quoted-names
+;;; 			  (save-restriction
+;;; 			    (narrow-to-region (point-min) delimline)
+;;; 			    (mail-fetch-field "From")))
+;;; 			 (user-login-name))))
+;;; 		 (progn
+;;; 		   (forward-line 1)
+;;; 		   (insert "Sender: " (user-login-name) "\n")))
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
@@ -1000,9 +1063,9 @@ external program defined by `sendmail-program'."
 		  (erase-buffer))))
 	  (goto-char (point-min))
 	  (if (let ((case-fold-search t))
-		(re-search-forward "^To:\\|^cc:\\|^bcc:\\|^resent-to:\
-\\|^resent-cc:\\|^resent-bcc:"
-				   delimline t))
+		(or resend-to-addresses
+		    (re-search-forward "^To:\\|^cc:\\|^bcc:"
+				       delimline t)))
 	      (let* ((default-directory "/")
 		     (coding-system-for-write selected-coding)
 		     (args
@@ -1023,14 +1086,14 @@ external program defined by `sendmail-program'."
 				;; These mean "report errors by mail"
 				;; and "deliver in background".
 				'("-oem" "-odb"))
-;;;			      ;; Get the addresses from the message
-;;;			      ;; unless this is a resend.
-;;;			      ;; We must not do that for a resend
-;;;			      ;; because we would find the original addresses.
-;;;			      ;; For a resend, include the specific addresses.
-;;;			      (or resend-to-addresses
+			      ;; Get the addresses from the message
+			      ;; unless this is a resend.
+			      ;; We must not do that for a resend
+			      ;; because we would find the original addresses.
+			      ;; For a resend, include the specific addresses.
+			      (or resend-to-addresses
 				  '("-t")
-;;;				  )
+				  )
 			      (if mail-use-dsn
 				  (list "-N" (mapconcat 'symbol-name
 							mail-use-dsn ",")))
@@ -1248,6 +1311,24 @@ external program defined by `sendmail-program'."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "Reply-To"))
+
+(defun mail-mail-reply-to ()
+  "Move point to end of Mail-Reply-To field.
+Create a Mail-Reply-To field if none."
+  (interactive)
+  (expand-abbrev)
+  (or (mail-position-on-field "mail-reply-to" t)
+      (progn (mail-position-on-field "to")
+           (insert "\nMail-Reply-To: "))))
+
+(defun mail-mail-followup-to ()
+  "Move point to end of Mail-Followup-To field.
+Create a Mail-Followup-To field if none."
+  (interactive)
+  (expand-abbrev)
+  (or (mail-position-on-field "mail-followup-to" t)
+      (progn (mail-position-on-field "to")
+           (insert "\nMail-Followup-To: "))))
 
 (defun mail-position-on-field (field &optional soft)
   (let (end

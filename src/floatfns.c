@@ -1,5 +1,5 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994, 1999, 2003  Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2003, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -861,7 +861,7 @@ With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */
 
 DEFUN ("floor", Ffloor, Sfloor, 1, 2, 0,
        doc: /* Return the largest integer no greater than ARG.
-This rounds the value towards +inf.
+This rounds the value towards -inf.
 With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  */)
      (arg, divisor)
      Lisp_Object arg, divisor;

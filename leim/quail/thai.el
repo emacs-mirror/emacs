@@ -2,6 +2,9 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Thai
 
@@ -29,46 +32,16 @@
 (require 'quail)
 (require 'thai-util)
 
-(defun quail-thai-update-translation (control-flag)
-  (if (integerp control-flag)
-      ;; Non-composable character typed.
-      (setq quail-current-str
-	    (buffer-substring (overlay-start quail-overlay)
-			      (overlay-end quail-overlay))
-	    unread-command-events
-	    (string-to-list
-	     (substring quail-current-key control-flag)))
-    (setq quail-current-str
-	  (compose-string (quail-lookup-map-and-concat quail-current-key))))
-  control-flag)
-
-(defun thai-generate-quail-map (translation-table)
-  (let ((i 0)
-	consonant vowel tone voweltone others)
-    ;; Categorize Thai characters into one of above.
-    (while (< i 128)
-      (let ((trans (aref translation-table i))
-	    ptype)
-	(if (eq trans 0)
-	    nil
-	  (if (> (length trans) 1)
-	      (setq ptype 'voweltone
-		    trans (vector (compose-string trans)))
-	    (setq ptype (get-char-code-property (aref trans 0) 'phonetic-type))
-	    (cond ((memq ptype '(vowel-upper vowel-lower))
-		   (setq ptype 'vowel))
-		  ((not (memq ptype '(consonant tone)))
-		   (setq ptype 'others))))
-	  (set ptype (cons (cons (char-to-string i) trans)
-			   (symbol-value ptype)))))
-      (setq i (1+ i)))
-
-    (quail-map-from-table
-     '((base-state (consonant . vt-state)
-		   vowel tone voweltone others)
-       (vt-state (vowel . t-state)
-		 voweltone tone)
-       (t-state tone)))))
+(defmacro thai-generate-quail-map (translation-table)
+  (let (map)
+     (dotimes (i (length translation-table))
+       (let ((trans (aref translation-table i)))
+	 (when (not (eq trans 0))
+	   (if (> (length trans) 1)
+	       (setq trans (vector trans))
+	     (setq trans (aref trans 0)))
+	   (setq map (cons (list (char-to-string i) trans) map)))))
+     `(quail-define-rules ,@map)))
 
 ;; Thai Kesmanee keyboard support.
 
@@ -80,7 +53,7 @@ The difference from the ordinal Thai keyboard:
     ',T_(B' and ',To(B' are assigned to '\\' and '|' respectively,
     ',T#(B' and ',T%(B' are assigned to '`' and '~' respectively,
     Don't know where to assign characters ',Tz(B' and ',T{(B'."
- nil t t t t nil nil nil 'quail-thai-update-translation nil t)
+ nil t t t t nil nil nil nil nil t)
 
 (quail-install-map
  (thai-generate-quail-map
@@ -122,7 +95,7 @@ The difference from the ordinal Thai keyboard:
 (quail-define-package
  "thai-pattachote" "Thai" ",T!;(B>" t
  "Thai Pattachote input method with TIS620 keyboard layout"
- nil t t t t nil nil nil 'quail-thai-update-translation nil t)
+ nil t t t t nil nil nil nil nil t)
 
 (quail-install-map
  (thai-generate-quail-map

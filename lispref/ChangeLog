@@ -1,3 +1,26 @@
+2005-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Undo): Document extensible undo entries.
+
+	* searching.texi (String Search, Regexp Search, Regexp Search):
+	Cleanups.
+
+	* nonascii.texi (Character Codes): Minor fix.
+
+	* display.texi (Display Property): Explain the significance
+	of having text properties that are eq.
+	(Other Display Specs): Explain string as display spec.
+
+	* commands.texi (Interactive Codes): Document G option.
+
+2005-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Filling): Add sentence-end-without-period and
+	sentence-end-without-space.
+	(Changing Properties): Minor fix.
+
+	* anti.texi: Total rewrite.
+
 2005-03-15  Lute Kamstra  <lute@gnu.org>
 
 	* edebug.texi (Instrumenting Macro Calls): Fix typos.
@@ -42,11 +65,6 @@
 	and calendar-today-marker are strings, not chars.
 	(Holiday Customizing): Minor fix.
 
-	* nonascii.texi (Text Representations): Clarify position-bytes.
-	(Character Sets): Add list-charset-chars.
-	(Scanning Charsets): Add charset-after.
-	(Encoding and I/O): Minor fix.
-
 	* internals.texi (Writing Emacs Primitives): Update `or' example.
 	Update limit on # args of subr.
 
@@ -58,6 +76,12 @@
 	Mention :version here.
 	(Variable Definitions, Group Definitions): Not here.
 	(Variable Definitions): Clarify symbol arg to :initialize and :set fns.
+
+2005-03-07  Chong Yidong  <cyd@stupidchicken.com>
+	* nonascii.texi (Text Representations): Clarify position-bytes.
+	(Character Sets): Add list-charset-chars.
+	(Scanning Charsets): Add charset-after.
+	(Encoding and I/O): Minor fix.
 
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
 

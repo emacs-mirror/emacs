@@ -862,7 +862,7 @@ See the Gnus manual for details."
 
 (eval-when-compile
   (if (featurep 'xemacs)
-      (require 'itimer)
+      (require 'timer-funcs)
     (require 'timer)))
 
 (defun mail-source-start-idle-timer ()

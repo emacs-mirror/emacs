@@ -2150,16 +2150,12 @@ the inserted text.  Value is always t."
 	  (forward-line 1))))
   t)
 
-(defvar calendar-redrawing nil
-  "Internal calendar variable, non-nil if inside redraw-calendar.")
-
 (defun redraw-calendar ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
   (if (get-buffer calendar-buffer)
       (with-current-buffer calendar-buffer
-        (let ((cursor-date (calendar-cursor-to-nearest-date))
-              (calendar-redrawing t))
+        (let ((cursor-date (calendar-cursor-to-nearest-date)))
           (generate-calendar-window displayed-month displayed-year)
           (calendar-cursor-to-visible-date cursor-date)))))
 

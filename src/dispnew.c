@@ -3153,7 +3153,7 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
 		  struct glyph_matrix *m2;
 		  int m2_from;
 
-		  w2 = frame_row_to_window (root, frame_to);
+		  w2 = frame_row_to_window (root, frame_from);
 		  m2 = w2->current_matrix;
 		  m2_from = frame_from - m2->matrix_y;
 		  copy_row_except_pointers (m->rows + window_to,

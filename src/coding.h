@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2004  Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005  Free Software Foundation, Inc.
    Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
@@ -591,9 +591,8 @@ struct coding_system
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
-#ifdef WINDOWSNT
 /* Encode the string STR using the specified coding system
-   for w32 system functions, if any.  */
+   for system functions, if any.  */
 #define ENCODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
    && !EQ (Vlocale_coding_system, make_number (0))			   \
@@ -601,19 +600,12 @@ struct coding_system
    : str)
 
 /* Decode the string STR using the specified coding system
-   for w32 system functions, if any.  */
+   for system functions, if any.  */
 #define DECODE_SYSTEM(name)						   \
   (! NILP (Vlocale_coding_system)					   \
    && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
-
-#else /* WINDOWSNT */
-
-#define ENCODE_SYSTEM(str) string_make_unibyte(str)
-#define DECODE_SYSTEM(name) name
-
-#endif /* !WINDOWSNT */
 
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 

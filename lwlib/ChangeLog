@@ -1,3 +1,26 @@
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add support for I18N to Lucid menus.
+
+	* xlwmenuP.h (struct _XlwMenu_part) [HAVE_X_I18N]: Change `font' to be
+	a fontset.  Add a `font_extents' element.
+
+	* xlwmenu.c (xlwMenuResources) [HAVE_X_I18N]: Use a fontset for the
+	`font' resource.
+	(string_width) [HAVE_X_I18N]: Use XmbTextExtents;
+	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): New macros.
+	(arrow_width, toggle_button_width, size_menu_item, draw_arrow)
+	(draw_toggle, draw_radio, display_menu_item): Use them.
+	(display_menu_item) [HAVE_X_I18N]: Use XmbDrawString.
+	(make_drawing_gcs) [HAVE_X_I18N]: Don't mess with fonts.
+	(XlwMenuInitialize) [HAVE_X_I18N]: Initialize font_extents.
+	(XlwMenuSetValues) [HAVE_X_I18N]: Refresh font_extents if font changes.
+
+	* lwlib-Xm.c (xm_update_label, xm_update_list): Use the recommended
+	XmStringCreateLocalized function.  Add missing copyright.
+
+	* lwlib-Xm.h: Add missing copyright and license notice.
+
 2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xlwmenuP.h:

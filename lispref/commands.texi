@@ -350,6 +350,11 @@ Prompt.
 @item F
 A file name.  The file need not exist.  Completion, Default, Prompt.
 
+@item G
+A file name.  The file need not exist.  If the user enters just a
+directory name, then the value is just that directory name, with no
+file name within the directory added.  Completion, Default, Prompt.
+
 @item i
 An irrelevant argument.  This code always supplies @code{nil} as
 the argument's value.  No I/O.

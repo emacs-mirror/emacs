@@ -227,6 +227,7 @@ height of the image; integer values are taken as pixel values."
 				      image) rear-nonsticky (display)))))
 
 
+;;;###autoload
 (defun insert-sliced-image (image &optional string area rows cols)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
