@@ -1715,9 +1715,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   start_polling ();
 
-  /* Don't wipe the echo area for a trivial event.  */
-  if (XTYPE (c) != Lisp_Buffer)
-    echo_area_glyphs = 0;
+  /* Buffer switch events are only for internal wakeups
+     so don't show them to the user.  */
+  if (XTYPE (c) == Lisp_Buffer)
+    return c;
+
+  /* Wipe the echo area.  */
+  echo_area_glyphs = 0;
 
   /* Handle things that only apply to characters.  */
   if (XTYPE (c) == Lisp_Int)
@@ -1742,7 +1746,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (dribble)
     {
       if (XTYPE (c) == Lisp_Int)
-	putc (XINT (c), dribble);
+	{
+	  if (XUINT (c) < 0x100)
+	    putc (XINT (c), dribble);
+	  else
+	    fprintf (dribble, " 0x%x", XUINT (c));
+	}
       else
 	{
 	  Lisp_Object dribblee;
