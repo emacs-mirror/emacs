@@ -60,7 +60,8 @@ static int freeze=0;
 
    The wrapper begins with a wrapper-wrapper pointer, and the third word
    of the wrapper object has bit 0 set and bit 1 clear and at least one higher
-   bit also set.
+   bit also set. The fourth word is the same, to cater for the new Dylan
+   object format used by honeybee.3 and later releases.
 
    The wrapper-wrapper's first word points to itself.
 
@@ -72,12 +73,14 @@ struct wrapper {
  struct wrapper *ww;
  mps_word_t tag;
  mps_word_t fixedlen;
+ mps_word_t newfixedlen;
 };
 
 struct wrapper wrapobj = {
  &wrapobj,
  0x36ABBE6,
- 0x5 
+ 0x5, 
+ 0x5
 };
 
 mycell *wrapper = (mycell *) &wrapobj;
