@@ -18,7 +18,7 @@
 	(ps-print-duplex-feature): Variable eliminated.
 	(ps-even-or-odd-pages): New variable.
 
-	* ebnf2ps.el: Doc fix.
+	* progmodes/ebnf2ps.el: Doc fix.
 	(ebnf-version): New version (3.3).
 	(ebnf-user-arrow): Change variable customization to sexp.
 	(ebnf-user-arrow): Function eliminated.
@@ -1017,7 +1017,7 @@
 
 2000-08-03  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Get around a bug on skip-chars-forward.
+	* progmodes/ebnf2ps.el: Get around a bug on skip-chars-forward.
 	(ebnf-8-bit-chars): New var for bug fix.
 	(ebnf-string): Bug fix.
 
@@ -1062,8 +1062,8 @@
 
 2000-08-01  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Update ps-print functions call.  Indentation fix.  Doc
-	fix.
+	* progmodes/ebnf2ps.el: Update ps-print functions call.
+	Indentation fix.  Doc fix.
 	(ebnf-version): New version number (3.2).
 	(ebnf-format-color, ebnf-begin-job): Code fix.
 
