@@ -1135,7 +1135,7 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "p" 'Info-prev)
   (define-key Info-mode-map "q" 'Info-exit)
   (define-key Info-mode-map "s" 'Info-search)
-  (define-key Info-mode-map "t" 'Info-top)
+  (define-key Info-mode-map "t" 'Info-top-node)
   (define-key Info-mode-map "u" 'Info-up)
   (define-key Info-mode-map "," 'Info-index-next)
   (define-key Info-mode-map "\177" 'Info-scroll-down)
