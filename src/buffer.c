@@ -184,7 +184,7 @@ Lisp_Object Qinsert_behind_hooks;
 static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
 static struct Lisp_Overlay * copy_overlays P_ ((struct buffer *, struct Lisp_Overlay *));
-static void modify_overlay P_ ((struct buffer *, int, int));
+static void modify_overlay P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 
 
 /* For debugging; temporary.  See set_buffer_internal.  */
