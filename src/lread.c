@@ -2033,10 +2033,7 @@ intern (str)
   tem = oblookup (obarray, str, len);
   if (SYMBOLP (tem))
     return tem;
-  return Fintern ((!NILP (Vpurify_flag)
-		   ? make_pure_string (str, len)
-		   : make_string (str, len)),
-		  obarray);
+  return Fintern (make_string (str, len), obarray);
 }
 
 /* Create an uninterned symbol with name STR.  */
