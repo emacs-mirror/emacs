@@ -1,3 +1,8 @@
+2004-12-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Types Tutorial): Emphasized that you can't divide by
+	zero.
+
 2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cc-mode.texi (Text Filling and Line Breaking): Put period after
