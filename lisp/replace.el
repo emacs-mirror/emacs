@@ -736,6 +736,7 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "n" 'skip)
 (define-key query-replace-map "Y" 'act)
 (define-key query-replace-map "N" 'skip)
+(define-key query-replace-map "e" 'edit-replacement)
 (define-key query-replace-map "E" 'edit-replacement)
 (define-key query-replace-map "," 'act-and-show)
 (define-key query-replace-map "q" 'exit)
