@@ -1136,17 +1136,19 @@ Headers in `gnus-required-headers' will be generated."
     ;; Insert new Sender if the From is strange. 
     (let ((from (mail-fetch-field "from"))
 	  (sender (mail-fetch-field "sender")))
-      (if (and from 
+      (if (and from
 	       (not (string=
-		     (downcase (car (gnus-extract-address-components from)))
+		     (downcase
+		      (car (cdr (gnus-extract-address-components from))))
 		     (downcase (gnus-inews-real-user-address))))
 	       (or (null sender)
-		   (not 
+		   (not
 		    (string=
-		     (downcase (car (gnus-extract-address-components sender)))
+		     (downcase
+		      (car (cdr (gnus-extract-address-components sender))))
 		     (downcase (gnus-inews-real-user-address))))))
 	  (progn
-	    (goto-char (point-min))    
+	    (goto-char (point-min))
 	    (and (re-search-forward "^Sender:" nil t)
 		 (progn
 		   (beginning-of-line)
