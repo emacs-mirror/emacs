@@ -67,6 +67,9 @@ and \"-de\" when dehexlfying a buffer.")
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
+(defvar help-key "\C-h"
+  "*Key used to invoke electric help.")
+
 (defvar hexl-mode-map nil)
 
 ;; routines
@@ -586,8 +589,8 @@ You may also type up to 3 octal digits, to insert a character with that code"
     (define-key hexl-mode-map "\C-e" 'hexl-end-of-line)
     (define-key hexl-mode-map "\C-f" 'hexl-forward-char)
 
-    (if (not (eq (key-binding "\C-h") 'help-command))
-	(define-key hexl-mode-map "\C-h" 'undefined))
+    (if (not (eq (key-binding help-key) 'help-command))
+	(define-key hexl-mode-map help-key 'undefined))
 
     (define-key hexl-mode-map "\C-i" 'hexl-self-insert-command)
     (define-key hexl-mode-map "\C-j" 'hexl-self-insert-command)

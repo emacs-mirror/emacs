@@ -226,7 +226,7 @@ Does not execute select, save, or delete commands."
 		    (eq (key-binding " ") 'Electric-buffer-menu-select)
 		    (eq (key-binding help-key) 'Helper-help)
 		    (eq (key-binding "?") 'Helper-describe-bindings))
-	       "Type C-c C-c to exit, Space to select, C-h for help, ? for commands"
+	       (substitute-command-keys "Type C-c C-c to exit, Space to select, \\[Helper-help] for help, ? for commands")
 	     (substitute-command-keys "\
 Type \\[Electric-buffer-menu-quit] to exit, \
 \\[Electric-buffer-menu-select] to select, \
