@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,89,93,94,95,96 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -585,7 +585,7 @@ name, or \"unknown\" if no such user could be found.")
     error ("Invalid UID specification");
 
   if (!pw)
-    return make_string ("unknown");
+    return build_string ("unknown");
   
   p = (unsigned char *) USER_FULL_NAME;
   /* Chop off everything after the first comma. */
