@@ -65,7 +65,7 @@ Source buffer                     | Input/Output (of debuggee) buffer
                                   |
 ---------------------------------------------------------------------
 Stack buffer                      | Breakpoints buffer
-\[mouse-2\]   gdb-frames-select     | SPC    gdb-toggle-bp-this-line
+\[mouse-2\] gdb-frames-mouse-select | SPC    gdb-toggle-bp-this-line
                                   |   g    gdb-goto-bp-this-line
                                   |   d    gdb-delete-bp-this-line
 ---------------------------------------------------------------------
@@ -256,7 +256,7 @@ program."
 ;; Each buffer has a TYPE -- a symbol that identifies the function
 ;; of that particular buffer.
 ;;
-;; The usual gdb interaction buffer is given the type `gdb' and
+;; The usual gdb interaction buffer is given the type `gdba' and
 ;; is constructed specially.
 ;;
 ;; Others are constructed by gdb-get-create-instance-buffer and
@@ -755,7 +755,8 @@ output from the current command if that happens to be appropriate."
 	  (set-buffer gdb-expression-buffer-name)
 	  (setq buffer-read-only nil)
 	  (delete-region (point-min) (point-max))
-	  (insert-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
+	  (insert-buffer-substring
+	   (gdb-get-instance-buffer 'gdb-partial-output-buffer))
 	  (setq buffer-read-only t)))
     ;; display expression name...
     (goto-char (point-min))
@@ -1222,7 +1223,7 @@ buffer."
 	      (let ((p (point))
 		    (buffer-read-only nil))
 		(delete-region (point-min) (point-max))
-		(insert-buffer (gdb-get-create-instance-buffer
+		(insert-buffer-substring (gdb-get-create-instance-buffer
 				'gdb-partial-output-buffer))
 		(goto-char p)))))
      ;; put customisation here
@@ -1299,46 +1300,49 @@ buffer."
 		(looking-at "\\([0-9]*\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)")
 		(setq flag (char-after (match-beginning 2)))
 		(beginning-of-line)
-		(re-search-forward "in\\s-+\\S-+\\s-+at\\s-+")
-		(looking-at "\\(\\S-*\\):\\([0-9]+\\)")
-		(let ((line (match-string 2))
-		      (file (match-string 1)))
-		  (save-excursion
-		    (set-buffer
-		     (find-file-noselect (if (file-exists-p file)
-					     file
-					   (expand-file-name file gdb-cdir))))
-		    (save-current-buffer
-		      (set (make-local-variable 'gud-minor-mode) 'gdba)
-		      (set (make-local-variable 'tool-bar-map)
-			   gud-tool-bar-map)
-		      (setq left-margin-width 2)
-		      (if (get-buffer-window (current-buffer))
-			  (set-window-margins (get-buffer-window
-					       (current-buffer))
-					      left-margin-width
-					      right-margin-width)))
-		    ;; only want one breakpoint icon at each location
-		    (save-excursion
-		      (goto-line (string-to-number line))
-		      (let ((start (progn (beginning-of-line) (- (point) 1)))
-			    (end (progn (end-of-line) (+ (point) 1))))
-			(if (display-graphic-p)
-			    (progn
-			      (remove-images start end)
-			      (if (eq ?y flag)
-				  (put-image breakpoint-enabled-icon (point)
-					     "breakpoint icon enabled"
-					     'left-margin)
-				(put-image breakpoint-disabled-icon (point)
-					   "breakpoint icon disabled"
-					   'left-margin)))
-			  (remove-strings start end)
-			  (if (eq ?y flag)
-			      (put-string "B" (point) "enabled"
-					  'left-margin)
-			    (put-string "b" (point) "disabled"
-					'left-margin)))))))))
+		(if (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
+		    (progn
+		      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")
+		      (let ((line (match-string 2))
+			    (file (match-string 1)))
+			(save-excursion
+			  (set-buffer
+			   (find-file-noselect 
+			    (if (file-exists-p file) file
+			      (expand-file-name file gdb-cdir))))
+			  (save-current-buffer
+			    (set (make-local-variable 'gud-minor-mode) 'gdba)
+			    (set (make-local-variable 'tool-bar-map)
+				 gud-tool-bar-map)
+			    (setq left-margin-width 2)
+			    (if (get-buffer-window (current-buffer))
+				(set-window-margins (get-buffer-window
+						     (current-buffer))
+						    left-margin-width
+						    right-margin-width)))
+			  ;; only want one breakpoint icon at each location
+			  (save-excursion
+			    (goto-line (string-to-number line))
+			    (let ((start (progn (beginning-of-line) 
+						(- (point) 1)))
+				  (end (progn (end-of-line) (+ (point) 1))))
+			      (if (display-graphic-p)
+				  (progn
+				    (remove-images start end)
+				    (if (eq ?y flag)
+					(put-image breakpoint-enabled-icon 
+						   (point)
+						   "breakpoint icon enabled"
+						   'left-margin)
+				      (put-image breakpoint-disabled-icon (point)
+						 "breakpoint icon disabled"
+						 'left-margin)))
+				(remove-strings start end)
+				(if (eq ?y flag)
+				    (put-string "B" (point) "enabled"
+						'left-margin)
+				  (put-string "b" (point) "disabled"
+					      'left-margin)))))))))))
 	  (end-of-line))))))
 
 (defun gdb-breakpoints-buffer-name ()
@@ -1417,17 +1421,18 @@ buffer."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
-    (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+")
+    (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
     (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
-  (let ((line (match-string 2))
-	(file (match-string 1)))
-    (save-selected-window
-      (select-window gdb-source-window)
-      (switch-to-buffer (find-file-noselect
-			 (if (file-exists-p file)
-			     file
-			   (expand-file-name file gdb-cdir))))
-      (goto-line (string-to-number line)))))
+  (if (match-string 2)
+      (let ((line (match-string 2))
+	    (file (match-string 1)))
+	(save-selected-window
+	  (select-window gdb-source-window)
+	  (switch-to-buffer (find-file-noselect
+			     (if (file-exists-p file)
+				 file
+			       (expand-file-name file gdb-cdir))))
+	  (goto-line (string-to-number line))))))
 
 ;;
 ;; Frames buffers.  These display a perpetually correct bactracktrace
@@ -1477,7 +1482,7 @@ buffer."
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map [mouse-2]'gdb-frames-select-by-mouse)
+    (define-key map [mouse-2] 'gdb-frames-mouse-select)
     map))
 
 (defun gdb-frames-mode ()
@@ -1496,7 +1501,7 @@ buffer."
 	   (n (or (and pos (string-to-int (match-string 1))) 0)))
       n)))
 
-(defun gdb-frames-select-by-mouse (e)
+(defun gdb-frames-mouse-select (e)
 "Display the source of the selected frame."
   (interactive "e")
   (let (selection)
@@ -1592,7 +1597,7 @@ buffer."
 	       (let ((p (point))
 		     (buffer-read-only nil))
 		 (delete-region (point-min) (point-max))
-		 (insert-buffer (gdb-get-create-instance-buffer
+		 (insert-buffer-substring (gdb-get-create-instance-buffer
 				 'gdb-partial-output-buffer))
 		 (goto-char p)))))
   (run-hooks 'gdb-info-locals-hook))
@@ -1824,14 +1829,9 @@ buffer."
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdba)))
 
-;; FIXME: changing GUD's behavior: bad bad bad!!!
-(define-key gud-minor-mode-map "\C-c\M-\C-r" 'gdb-display-registers-buffer)
-(define-key gud-minor-mode-map "\C-c\M-\C-f" 'gdb-display-stack-buffer)
-(define-key gud-minor-mode-map "\C-c\M-\C-b" 'gdb-display-breakpoints-buffer)
-
 (let ((menu (make-sparse-keymap "GDB-Windows")))
   (define-key gud-menu-map [displays]
-    `(menu-item "GDB-Windows" ,menu :visible (memq gud-minor-mode '(gdba))))
+    `(menu-item "GDB-Windows" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
   (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
@@ -1847,7 +1847,7 @@ buffer."
 
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
-    `(menu-item "GDB-Frames" ,menu :visible (memq gud-minor-mode '(gdba))))
+    `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
