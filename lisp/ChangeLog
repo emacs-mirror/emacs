@@ -1,3 +1,12 @@
+2002-02-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* menu-bar.el (menu-bar-help-menu): Use different text for
+	tool-tip.
+	(menu-bar-options-save): Save also the value of
+	`display-time-mode'.
+	(showhide-date-time): New function.
+	(menu-bar-showhide-menu): New menu-item "Date and time".
+
 2002-02-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/rmail.el (rmail): Use find-buffer-visiting instead of
