@@ -41,7 +41,7 @@
   "Command for running Ispell.")
 (defvar ispell-command-options nil
   "*String (or list of strings) to pass to Ispell as command arguments.
-You can use this to specify the name of your private dictionary.
+You can specify your private dictionary via the -p <filename> option.
 The -S option is always passed to Ispell as the last parameter,
 and need not be mentioned here.")
 
@@ -163,7 +163,7 @@ that have not already been dumped will be lost."
 ;; 
 ;; :dump		write out the current private dictionary, if necessary.
 ;; 
-;; :reload		reread `~/ispell.words'
+;; :reload		reread private dictionary (default: `~/ispell.words')
 ;; 
 ;; :tex
 ;; :troff
@@ -253,7 +253,7 @@ DIGIT	Near miss selector.  If the misspelled word is close to
 	some words in the dictionary, they are offered as near misses.
 r	Replace.  Replace the word with a string you type.  Each word
 	of your new string is also checked.
-i	Insert.  Insert this word in your private dictionary (kept in
+i	Insert.  Insert this word in your private dictionary (by default,
 	`$HOME/ispell.words').
 a	Accept.  Accept this word for the rest of this editing session,
  	but don't put it in your private dictionary.
@@ -378,8 +378,8 @@ With a prefix argument, resume handling of the previous Ispell command."
 	      (load-library "spell")
 	      (define-key esc-map "$" 'spell-word)
 	      (spell-word)))))))
-;;;###autoload
-(define-key esc-map "$" 'ispell-word)
+
+;;;###autoload (define-key esc-map "$" 'ispell-word)
 
 ;;;###autoload
 (defun ispell-region (start &optional end)
