@@ -22,7 +22,7 @@ static void test(void)
  mps_fmt_t format;
  mps_ap_t apamc, apawl;
 
- mycell *a, *b, *c, *d;
+ mycell *a, *b, *c;
 
  int i;
  int j;
@@ -102,5 +102,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

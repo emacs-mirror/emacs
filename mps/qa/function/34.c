@@ -26,7 +26,7 @@ static void test(void)
 
  int i;
  int j;
- int k,n,z;
+ int k,z;
 
  alloccomments = 1;
  formatcomments = 1;
@@ -104,5 +104,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }

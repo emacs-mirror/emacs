@@ -2,6 +2,8 @@
  summary = try to allocate as large an object as will succeed
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ maxsize > 100000000
 END_HEADER
 */
 
@@ -47,6 +49,8 @@ static void test(void) {
 
  for (try = inf-4; try < inf+4; try++)
   (void) trysize(try);
+
+ report("maxsize", "%lu", (unsigned long) inf);
 }
 
 int main(void) {

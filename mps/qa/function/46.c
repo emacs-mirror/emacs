@@ -39,7 +39,6 @@ static void test(void)
  mps_fmt_t format;
  mps_ap_t apamc;
 
- size_t size0, size1;
  mycell *a, *b, *c, *d, *e, *f, *g;
 
  int i;
@@ -157,5 +156,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ report("result", "unknown");
  return 0;
 }

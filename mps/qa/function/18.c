@@ -2,6 +2,8 @@
  summary = create lots of pools at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o
+OUTPUT_SPEC
+ errtext = create pool: MEMORY
 END_HEADER
 */
 

@@ -14,12 +14,12 @@ void *stackpointer;
 static void test(void)
 {
  mps_space_t space;
- mps_pool_t poolamc1, poolamc2;
+ mps_pool_t poolamc1;
  mps_thr_t thread;
  mps_root_t root;
 
  mps_fmt_t format;
- mps_ap_t ap1, ap2;
+ mps_ap_t ap1;
 
  mycell *a, *b;
 
@@ -92,5 +92,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
+ pass();
  return 0;
 }
