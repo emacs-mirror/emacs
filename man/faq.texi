@@ -613,7 +613,7 @@ command-apropos}).
 
 @cindex Command description in the manual
 @item
-The command @kbd{C-h C-f} (@code{Info-goto-emacs-command-node}) prompts
+The command @kbd{C-h F} (@code{Info-goto-emacs-command-node}) prompts
 for the name of a command, and then attempts to find the section in the
 Emacs manual where that command is described.
 
@@ -980,7 +980,7 @@ The Emacs FAQ is available in several ways:
 @item
 Inside of Emacs itself.  You can get it from selecting the @samp{Emacs
 FAQ} option from the @samp{Help} menu of the Emacs menu bar at the top
-of any Emacs frame, or by typing @kbd{C-h F} (@kbd{M-x view-emacs-FAQ}).
+of any Emacs frame, or by typing @kbd{C-h C-f} (@kbd{M-x view-emacs-FAQ}).
 
 @item
 Via USENET.  If you can read news, the FAQ should be available in your
@@ -1110,7 +1110,7 @@ Emacs @value{VER} is the current version as of this writing.
 @cindex Differences between Emacs 19 and Emacs 20
 @cindex Emacs 20, new features in
 
-To find out what has changed in recent versions, type @kbd{C-h n}
+To find out what has changed in recent versions, type @kbd{C-h C-n}
 (@kbd{M-x view-emacs-news}).  The oldest changes are at the bottom of
 the file, so you might want to read it starting there, rather than at
 the top.
@@ -2687,7 +2687,7 @@ instructions how to do that.
 
 The file @file{etc/PROBLEMS} in the Emacs distribution lists various
 known problems with building and using Emacs on specific platforms;
-type @kbd{C-h P} to read it.
+type @kbd{C-h C-e} to read it.
 
 @menu
 * Problems with very large files::
