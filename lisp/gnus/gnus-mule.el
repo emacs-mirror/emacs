@@ -209,11 +209,12 @@ coding-system for reading and writing respectively."
 	    'gnus-mule-message-send-mail-function))
 
 (gnus-mule-add-group "" 'undecided)
-(gnus-mule-add-group "fj" 'iso-2022-7)
-(gnus-mule-add-group "alt.chinese.text" 'hz-gb-2312)
-(gnus-mule-add-group "alt.hk" 'hz-gb-2312)
-(gnus-mule-add-group "alt.chinese.text.big5" 'cn-big5)
-(gnus-mule-add-group "soc.culture.vietnamese" '(nil . viqr))
+(gnus-mule-add-group "fj" 'iso-2022-7bit)
+(gnus-mule-add-group "alt.chinese.text" 'chinese-hz)
+(gnus-mule-add-group "alt.hk" 'chinese-hz)
+(gnus-mule-add-group "alt.chinese.text.big5" 'chinese-big5)
+(gnus-mule-add-group "soc.culture.vietnamese" '(nil . vietnamese-viqr))
+(gnus-mule-add-group "relcom" 'cyrillic-koi8)
 
 (add-hook 'gnus-startup-hook 'gnus-mule-initialize)
 
