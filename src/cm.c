@@ -188,6 +188,7 @@ cmcostinit ()
 
 static int
 calccost (srcy, srcx, dsty, dstx, doit)
+     int srcy, srcx, dsty, dstx, doit;
 {
     register int    deltay,
                     deltax,
@@ -323,6 +324,7 @@ losecursor ()
 
 void
 cmgoto (row, col)
+     int row, col;
 {
     int     homecost,
             crcost,
