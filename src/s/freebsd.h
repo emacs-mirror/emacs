@@ -194,3 +194,8 @@
    buffer text.  This overrides REL_ALLOC.  */
 
 #define USE_MMAP_FOR_BUFFERS	1
+
+/* Use sigprocmask(2) and friends instead of sigblock(2); the man page
+   of sigblock says it is obsolete.  */
+
+#define POSIX_SIGNALS		1
