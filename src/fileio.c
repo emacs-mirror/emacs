@@ -130,6 +130,11 @@ close_file_unwind (fd)
   close (XFASTINT (fd));
 }
 
+Lisp_Object Qexpand_file_name;
+Lisp_Object Qdirectory_file_name;
+Lisp_Object Qfile_name_directory;
+Lisp_Object Qfile_name_nondirectory;
+Lisp_Object Qfile_name_as_directory;
 Lisp_Object Qcopy_file;
 Lisp_Object Qmake_directory;
 Lisp_Object Qdelete_directory;
@@ -188,8 +193,15 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 {
   register unsigned char *beg;
   register unsigned char *p;
+  Lisp_Object handler;
 
   CHECK_STRING (file, 0);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (file);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_name_directory, file);
 
   beg = XSTRING (file)->data;
   p = beg + XSTRING (file)->size;
@@ -215,8 +227,15 @@ or the entire name if it contains no slash.")
      Lisp_Object file;
 {
   register unsigned char *beg, *p, *end;
+  Lisp_Object handler;
 
   CHECK_STRING (file, 0);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (file);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_name_nondirectory, file);
 
   beg = XSTRING (file)->data;
   end = p = beg + XSTRING (file)->size;
@@ -316,10 +335,18 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
      Lisp_Object file;
 {
   char *buf;
+  Lisp_Object handler;
 
   CHECK_STRING (file, 0);
   if (NILP (file))
     return Qnil;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (file);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_name_as_directory, file);
+
   buf = (char *) alloca (XSTRING (file)->size + 10);
   return build_string (file_name_as_directory (buf, XSTRING (file)->data));
 }
@@ -481,11 +508,19 @@ it returns a file name such as \"[X]Y.DIR.1\".")
      Lisp_Object directory;
 {
   char *buf;
+  Lisp_Object handler;
 
   CHECK_STRING (directory, 0);
 
   if (NILP (directory))
     return Qnil;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (directory);
+  if (!NILP (handler))
+    return call2 (handler, Qdirectory_file_name, directory);
+
 #ifdef VMS
   /* 20 extra chars is insufficient for VMS, since we might perform a
      logical name translation. an equivalence string can be up to 255
@@ -541,8 +576,15 @@ See also the function `substitute-in-file-name'.")
   int lbrack = 0, rbrack = 0;
   int dots = 0;
 #endif /* VMS */
+  Lisp_Object handler;
   
   CHECK_STRING (name, 0);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = find_file_handler (name);
+  if (!NILP (handler))
+    return call2 (handler, Qexpand_file_name, name);
 
 #ifdef VMS
   /* Filenames on VMS are always upper case.  */
@@ -1452,9 +1494,13 @@ A prefix arg makes KEEP-TIME non-nil.")
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
-  /* If the file name has special constructs in it,
+  /* If the input file name has special constructs in it,
      call the corresponding file handler.  */
   handler = find_file_handler (filename);
+  if (!NILP (handler))
+    return call3 (handler, Qcopy_file, filename, newname);
+  /* Likewise for output file name.  */
+  handler = find_file_handler (newname);
   if (!NILP (handler))
     return call3 (handler, Qcopy_file, filename, newname);
 
@@ -3075,6 +3121,11 @@ DIR defaults to current buffer's directory default.")
 
 syms_of_fileio ()
 {
+  Qexpand_file_name = intern ("expand-file-name");
+  Qdirectory_file_name = intern ("directory-file-name");
+  Qfile_name_directory = intern ("file-name-directory");
+  Qfile_name_nondirectory = intern ("file-name-nondirectory");
+  Qfile_name_as_directory = intern ("file-name-as-directory");
   Qcopy_file = intern ("copy-file");
   Qmake_directory = intern ("make-directory");
   Qdelete_directory = intern ("delete-directory");
