@@ -284,6 +284,7 @@ static Time last_mouse_movement_time;
    redraw anything on its account.  */
 static int mouse_face_beg_row, mouse_face_beg_col;
 static int mouse_face_end_row, mouse_face_end_col;
+static int mouse_face_past_end;
 static Lisp_Object mouse_face_window;
 static int mouse_face_face_id;
 
@@ -2184,7 +2185,8 @@ note_mouse_highlight (f, x, y)
 		  && row >= mouse_face_beg_row
 		  && row <= mouse_face_end_row
 		  && (row > mouse_face_beg_row || column >= mouse_face_beg_col)
-		  && (row < mouse_face_end_row || column < mouse_face_end_col)))
+		  && (row < mouse_face_end_row || column < mouse_face_end_col
+		      || mouse_face_past_end)))
 	{
 	  Lisp_Object mouse_face, overlay, position;
 	  Lisp_Object *overlay_vec;
@@ -2246,10 +2248,11 @@ note_mouse_highlight (f, x, y)
 	      before = Foverlay_start (overlay);
 	      after = Foverlay_end (overlay);
 	      /* Record this as the current active region.  */
-	      fast_find_position (window, before,
-				  &mouse_face_beg_col, &mouse_face_beg_row);
-	      fast_find_position (window, after,
-				  &mouse_face_end_col, &mouse_face_end_row);
+	      fast_find_position (window, before, &mouse_face_beg_col,
+				  &mouse_face_beg_row);
+	      mouse_face_past_end
+		= !fast_find_position (window, after, &mouse_face_end_col,
+				       &mouse_face_end_row);
 	      mouse_face_window = window;
 	      mouse_face_face_id = compute_char_face (f, w, pos, 0, 0,
 						      &ignore, pos + 1, 1);
@@ -2277,10 +2280,11 @@ note_mouse_highlight (f, x, y)
 		= Fnext_single_property_change (position, Qmouse_face,
 						w->buffer, end);
 	      /* Record this as the current active region.  */
-	      fast_find_position (window, before,
-				  &mouse_face_beg_col, &mouse_face_beg_row);
-	      fast_find_position (window, after,
-				  &mouse_face_end_col, &mouse_face_end_row);
+	      fast_find_position (window, before, &mouse_face_beg_col,
+				  &mouse_face_beg_row);
+	      mouse_face_past_end
+		= !fast_find_position (window, after, &mouse_face_end_col,
+				       &mouse_face_end_row);
 	      mouse_face_window = window;
 	      mouse_face_face_id
 		= compute_char_face (f, w, pos, 0, 0,
@@ -2301,7 +2305,9 @@ note_mouse_highlight (f, x, y)
    This assumes display in WINDOW is up to date.
    If POS is above start of WINDOW, return coords
    of start of first screen line.
-   If POS is after end of WINDOW, return coords of end of last screen line.  */
+   If POS is after end of WINDOW, return coords of end of last screen line.
+
+   Value is 1 if POS is in range, 0 if it was off screen.  */
 
 static int
 fast_find_position (window, pos, columnp, rowp)
@@ -2312,7 +2318,7 @@ fast_find_position (window, pos, columnp, rowp)
   struct window *w = XWINDOW (window);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
-  int row;
+  int row = 0;
   int left = w->left;
   int top = w->top;
   int height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
@@ -2320,6 +2326,7 @@ fast_find_position (window, pos, columnp, rowp)
   int *charstarts;
   int lastcol;
 
+  /* Find the right row.  */
   for (i = 0;
        i < height;
        i++)
@@ -2331,6 +2338,7 @@ fast_find_position (window, pos, columnp, rowp)
 	row = i;
     }
 
+  /* Find the right column with in it.  */
   charstarts = FRAME_CURRENT_GLYPHS (f)->charstarts[top + row];
   lastcol = left;
   for (i = 0; i < width; i++)
@@ -2342,6 +2350,8 @@ fast_find_position (window, pos, columnp, rowp)
 	  return 1;
 	}
       else if (charstarts[left + i] > pos)
+	break;
+      else if (charstarts[left + i] > 0)
 	lastcol = left + i;
     }
 
@@ -5318,6 +5328,14 @@ x_set_window_size (f, change_gravity, cols, rows)
   change_frame_size (f, rows, cols, 0, 0);
   PIXEL_WIDTH (f) = pixelwidth;
   PIXEL_HEIGHT (f) = pixelheight;
+
+  /* If cursor was outside the new size, mark it as off.  */
+  if (f->phys_cursor_y >= rows
+      || f->phys_cursor_x >= cols)
+    {
+      f->phys_cursor_x = -1;
+      f->phys_cursor_y = -1;
+    }
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
      receive in the ConfigureNotify event; if we get what we asked
