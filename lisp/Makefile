@@ -102,12 +102,11 @@ $(DONTCOMPILE:.el=.elc):
 # Compile all Lisp files, except those from DONTCOMPILE.  This
 # compiles files unconditionally.  All .elc files are made writable
 # before compilation in case we checked out read-only (CVS option -r).
-# Files must be compiled one by one, otherwise apparently
-# eval-when-compile's in some Lisp files make problems in files being
-# compiled later.  We also set the load-path of the Emacs used for
-# compilation to the current directory and its subdirectories, to
-# make sure require's and load's in the files being compiled find
-# the right files.
+# Files MUST be compiled one by one.  If we compile several files in a
+# row we can't make sure that the compilation environment is clean.
+# We also set the load-path of the Emacs used for compilation to the
+# current directory and its subdirectories, to make sure require's and
+# load's in the files being compiled find the right files.
 
 compile-files: subdirs.el doit
 	find . -name "*.elc" -print | xargs chmod +w;		\
@@ -115,8 +114,10 @@ compile-files: subdirs.el doit
 	elpat=`echo $$wins | tr ' 	' '\012\012' | 	\
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
 	els=`echo $$elpat $(DONTCOMPILE) | tr '	 ' '\012\012' | sort | uniq -u`; \
-	echo $$els; \
-	EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$els
+	for el in $$els; do \
+	  echo Compiling $$el; \
+	  EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$el ;\
+	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
 # exists, make a backup of it.
