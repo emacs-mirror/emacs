@@ -745,6 +745,7 @@ really-lwlib:
     "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-lwlib.  */
+.PHONY: really-lwlib
 #else /* not USE_X_TOOLKIT */
 #ifdef HAVE_X_MENU
 $(OLDXMENU): really-oldXMenu
@@ -767,6 +768,7 @@ really-oldXMenu:
     "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
+.PHONY: really-oldXMenu
 #endif /* HAVE_X_MENU */
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X11 */
