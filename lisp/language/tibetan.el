@@ -101,7 +101,7 @@
 	     (sample-text 
 	      . (tibetan-compose-string
 		 (copy-sequence
-"Tibetan (4$(7"7r'"]0"7"]14"20"21!;4%P0"G#!"Q14"20"21!;(B) $(7!4!5!5!>4"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>4"Ir'"]r'"_0"I"]"_1!;4"90"9"Q1!;4"/r'"S0"/"S1!;4"50"5"Q14#2x!#9r'"[0"2#9"[1!;4"Hx!"Rx!"Ur'"c0"H"A"U"c1!>(B")))))
+"Tibetan ($(7"7"]"2!;"G#!"Q"2!;(B) $(7!4!5!5!>"7"!#C"Q!;"E"S"G!;"7"2"[!;"D"["#"G!>"I"]"_!;"9"Q!;"/"S!;"5"Q"2#9"[!;"H"A"U"c!>(B")))))
 
 
 ;; `$(7"A(B' is included in the pattern for subjoined consonants because we
@@ -115,13 +115,6 @@
 (defconst tibetan-composable-pattern
   "[$(7"!(B-$(7"J"K(B][$(7#!(B-$(7#J#K#L#M(B]*[$(7"Q"R"S(B-$(7"^"a"b"e(B]*[$(7"_"c"d"g(B-$(7"l!I!e!g(B]*"
   "Regexp matching a composable sequence of Tibetan characters.")
-
-;; Register a function to compose Tibetan characters.
-(set-char-table-range composition-function-table
-		      (cons (decode-char 'tibetan #x2121)
-			    (decode-char 'tibetan #x7E7E))
-		      (list (cons tibetan-composable-pattern
-				  'tibetan-composition-function)))
 
 ;;;
 ;;; Definitions of conversion data.
@@ -557,13 +550,13 @@
     ("$(7"G#9(B" . "$(7%Y(B")))
 
 (defconst tibetan-obsolete-glyphs
-  `(("$(7!=(B" . "$(8!=(B")			; 2 col <-> 1 col
-    ("$(7!?(B" . "$(8!?(B")
-    ("$(7!@(B" . "$(8!@(B")
-    ("$(7!A(B" . "$(8!A(B")
-    ("$(7"`(B" . "$(8"`(B")
-    ("$(7!;(B" . "$(8!;(B")
-    ("$(7!D(B" . "$(8!D(B")
+  `(("$(7!=(B" . "$(7!=(B")			; 2 col <-> 1 col
+    ("$(7!?(B" . "$(7!?(B")
+    ("$(7!@(B" . "$(7!@(B")
+    ("$(7!A(B" . "$(7!A(B")
+    ("$(7"`(B" . "$(7"`(B")
+    ("$(7!;(B" . "$(7!;(B")
+    ("$(7!D(B" . "$(7!D(B")
     ;; Yes these are dirty. But ...
     ("$(7!>(B $(7!>(B" . ,(compose-string "$(7!>(B $(7!>(B" 0 3 [?$(7!>(B (Br . Bl) ?  (Br . Bl) ?$(7!>(B]))
     ("$(7!4!5!5(B" . ,(compose-string
@@ -625,6 +618,15 @@ This also matches some punctuation characters which need conversion.")
 
 (defvar tibetan-decomposed nil)
 (defvar tibetan-decomposed-temp nil)
+
+;; For automatic composition.
+(dolist (range '((?$(7#!(B . ?$(7#J(B) "$(7#K#L#M"Q"R(B" (?$(7"S(B . ?$(7"^(B) "$(7"a"b"e"_"c"d(B" (?$(7"g(B . ?$(7"l(B) "$(7!I!e!g(B"))
+  (if (stringp range)
+      (dotimes (i (length range))
+	(aset composition-function-table (aref range i)
+	      'tibetan-composition-function))
+    (set-char-table-range composition-function-table range
+			  'tibetan-composition-function)))
 
 (provide 'tibetan)
 
