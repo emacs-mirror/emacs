@@ -1,3 +1,8 @@
+2001-01-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (locale-language-names): Map "es" to
+	"Spanish" and "nl" to "Dutch".
+
 2001-01-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* bindings.el (global-map): Bind <home> to beginning-of-line,
