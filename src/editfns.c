@@ -2042,13 +2042,11 @@ Both characters must have the same length of multi-byte form.")
 	      pos_byte_next = CHAR_TO_BYTE (pos);
 	      if (pos_byte_next > pos_byte)
 		/* Before combining happened.  We should not increment
-		   POS because now it points the next character.  */
-		pos_byte = pos_byte_next;
+		   POS.  So, to cancel the later increment of POS,
+		   decrease it now.  */
+		pos--;
 	      else
-		{
-		  pos++;
-		  INC_POS (pos_byte_next);
-		}
+		INC_POS (pos_byte_next);
 		
 	      if (! NILP (noundo))
 		current_buffer->undo_list = tem;
@@ -2060,15 +2058,10 @@ Both characters must have the same length of multi-byte form.")
 	      if (NILP (noundo))
 		record_change (pos, 1);
 	      for (i = 0; i < len; i++) *p++ = tostr[i];
-	      pos_byte = pos_byte_next;
-	      pos++;
 	    }
 	}
-      else
-	{
-	  pos_byte = pos_byte_next;
-	  pos++;
-	}
+      pos_byte = pos_byte_next;
+      pos++;
     }
 
   if (changed)
@@ -2141,36 +2134,23 @@ It returns the number of characters changed.")
 		  pos_byte_next = CHAR_TO_BYTE (pos);
 		  if (pos_byte_next > pos_byte)
 		    /* Before combining happened.  We should not
-		       increment POS because now it points the next
-		       character.  */
-		    pos_byte = pos_byte_next;
+		       increment POS.  So, to cancel the later
+		       increment of POS, we decrease it now.  */
+		    pos--;
 		  else
-		    {
-		      pos++;
-		      INC_POS (pos_byte_next);
-		    }
+		    INC_POS (pos_byte_next);
 		}
 	      else
 		{
 		  record_change (pos, 1);
 		  *p = nc;
 		  signal_after_change (pos, 1, 1);
-		  pos_byte++;
-		  pos++;
 		}
 	      ++cnt;
 	    }
-	  else
-	    {
-	      pos_byte++;
-	      pos++;
-	    }
 	}
-      else
-	{
-	  pos_byte += len;
-	  pos++;
-	}
+      pos_byte = pos_byte_next;
+      pos++;
     }
 
   return make_number (cnt);
