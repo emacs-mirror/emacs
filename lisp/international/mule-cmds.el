@@ -1054,7 +1054,7 @@ For a list of useful values for KEY and their meanings,
 see `language-info-alist'."
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
-  (let ((lang-slot (assoc-ignore-case lang-env language-info-alist)))
+  (let ((lang-slot (assoc-string lang-env language-info-alist t)))
     (if lang-slot
 	(cdr (assq key (cdr lang-slot))))))
 
@@ -1597,11 +1597,11 @@ to using the function `set-language-environment'."
   :link '(custom-manual "(emacs)Language Environments")
   :set (lambda (symbol value) (set-language-environment value))
   :get (lambda (x)
-	 (or (car-safe (assoc-ignore-case
+	 (or (car-safe (assoc-string
 			(if (symbolp current-language-environment)
 			    (symbol-name current-language-environment)
 			  current-language-environment)
-			language-info-alist))
+			language-info-alist t))
 	     "English"))
   ;; custom type will be updated with `set-language-info'.
   :type (if language-info-alist
@@ -1749,7 +1749,7 @@ specifies the character set for the major languages of Western Europe."
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
     (setq language-name "English"))
-  (let ((slot (assoc-ignore-case language-name language-info-alist)))
+  (let ((slot (assoc-string language-name language-info-alist t)))
     (unless slot
       (error "Language environment not defined: %S" language-name))
     (setq language-name (car slot)))
@@ -2282,7 +2282,7 @@ matches are looked for in the coding system list, treating case and
 the characters `-' and `_' as insignificant.  The coding system base
 is returned.  Thus, for instance, if charset \"ISO8859-2\",
 `iso-latin-2' is returned."
-  (or (car (assoc-ignore-case charset locale-charset-alist))
+  (or (car (assoc-string charset locale-charset-alist t))
       (let ((cs coding-system-alist)
 	    c)
 	(while (and (not c) cs)
