@@ -2417,9 +2417,6 @@ extern void map_char_table P_ ((void (*) (Lisp_Object, Lisp_Object,
 					  Lisp_Object),
 				Lisp_Object, Lisp_Object, Lisp_Object, int,
 				Lisp_Object *));
-extern void map_charset_chars P_ ((void (*) (Lisp_Object, Lisp_Object,
-					     Lisp_Object),
-				   Lisp_Object, Lisp_Object, Lisp_Object));
 extern void syms_of_chartab P_ ((void));
 
 /* Defined in print.c */
