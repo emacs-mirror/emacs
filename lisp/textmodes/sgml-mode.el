@@ -921,9 +921,8 @@ This takes effect when first loading the library.")
     (hr . "----------")
     (li . "o "))
   "Value of `sgml-display-text' for HTML mode.")
-
-
-; should code exactly HTML 3 here when that is finished
+
+;; should code exactly HTML 3 here when that is finished
 (defvar html-tag-alist
   (let* ((1-7 '(("1") ("2") ("3") ("4") ("5") ("6") ("7")))
 	 (1-9 '(,@1-7 ("8") ("9")))
@@ -1142,9 +1141,7 @@ This takes effect when first loading the library.")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
 "*Value of `sgml-tag-help' for HTML mode.")
-
-
-
+
 ;;;###autoload
 (defun html-mode ()
   "Major mode based on SGML mode for editing HTML documents.
@@ -1203,9 +1200,48 @@ To work around that, do:
 	outline-heading-end-regexp "</[Hh][1-6]>"
 	outline-level (lambda ()
 			(char-after (1- (match-end 0)))))
+  (setq imenu-create-index-function 'html-imenu-index)
+  (make-local-variable 'imenu-sort-function)
+  (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   (run-hooks 'html-mode-hook))
+
+(defvar html-imenu-regexp
+  "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
+  "*A regular expression matching a head line to be added to the menu.
+The first `match-string' should be a number from 1-9.
+The second `match-string' matches extra tags and is ignored.
+The third `match-string' will be the used in the menu.")
 
+(defun html-imenu-index ()
+  "Return an table of contents for an HTML buffer for use with Imenu."
+  (let (toc-index)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward html-imenu-regexp nil t)
+	(setq toc-index
+	      (cons (cons (concat (make-string
+				   (* 2 (1- (string-to-number (match-string 1))))
+				   ?\ )
+				  (match-string 3))
+			  (save-excursion (beginning-of-line) (point)))
+		    toc-index))))
+    (nreverse toc-index)))
 
+(defun html-autoview-mode (&optional arg)
+  "Toggle automatic viewing via `html-viewer' upon saving buffer.
+With positive prefix ARG always turns viewing on, with negative ARG always off.
+Can be used as a value for `html-mode-hook'."
+  (interactive "P")
+  (if (setq arg (if arg
+		    (< (prefix-numeric-value arg) 0)
+		  (and (boundp 'after-save-hook)
+		       (memq 'browse-url-of-buffer after-save-hook))))
+      (setq after-save-hook (delq 'browse-url-of-buffer after-save-hook))
+    (make-local-hook 'after-save-hook)
+    (add-hook 'after-save-hook 'browse-url-of-buffer nil t))
+  (message "Autoviewing turned %s."
+	   (if arg "off" "on")))
+
 (define-skeleton html-href-anchor
   "HTML anchor tag with href attribute."
   "URL: "
@@ -1321,21 +1357,5 @@ To work around that, do:
 			       (funcall skeleton-transformation "<br>")
 			     "")))
    \n))
-
-
-(defun html-autoview-mode (&optional arg)
-  "Toggle automatic viewing via `html-viewer' upon saving buffer.
-With positive prefix ARG always turns viewing on, with negative ARG always off.
-Can be used as a value for `html-mode-hook'."
-  (interactive "P")
-  (if (setq arg (if arg
-		    (< (prefix-numeric-value arg) 0)
-		  (and (boundp 'after-save-hook)
-		       (memq 'browse-url-of-buffer after-save-hook))))
-      (setq after-save-hook (delq 'browse-url-of-buffer after-save-hook))
-    (make-local-hook 'after-save-hook)
-    (add-hook 'after-save-hook 'browse-url-of-buffer nil t))
-  (message "Autoviewing turned %s."
-	   (if arg "off" "on")))
 
 ;;; sgml-mode.el ends here
