@@ -185,8 +185,9 @@ xlw_pop_instance (instance, up)
 }
 
 void
-xlw_popup_menu (widget)
+xlw_popup_menu (widget, event)
      Widget widget;
+     XEvent *event;
 {
   XButtonPressedEvent dummy;
   XlwMenuWidget mw;
@@ -196,18 +197,23 @@ xlw_popup_menu (widget)
 
   mw = (XlwMenuWidget)((CompositeWidget)widget)->composite.children [0];
 
-  dummy.type = ButtonPress;
-  dummy.serial = 0;
-  dummy.send_event = 0;
-  dummy.display = XtDisplay (widget);
-  dummy.window = XtWindow (XtParent (widget));
-  dummy.time = CurrentTime;
-  dummy.button = 0;
-  XQueryPointer (dummy.display, dummy.window, &dummy.root,
-		 &dummy.subwindow, &dummy.x_root, &dummy.y_root,
-		 &dummy.x, &dummy.y, &dummy.state);
+  if (event)
+    pop_up_menu (mw, event);
+  else
+    {
+      dummy.type = ButtonPress;
+      dummy.serial = 0;
+      dummy.send_event = 0;
+      dummy.display = XtDisplay (widget);
+      dummy.window = XtWindow (XtParent (widget));
+      dummy.time = CurrentTime;
+      dummy.button = 0;
+      XQueryPointer (dummy.display, dummy.window, &dummy.root,
+		     &dummy.subwindow, &dummy.x_root, &dummy.y_root,
+		     &dummy.x, &dummy.y, &dummy.state);
 
-  pop_up_menu (mw, &dummy);
+      pop_up_menu (mw, &dummy);
+    }
 }
 
 /* Destruction of instances */
