@@ -41,15 +41,15 @@
 \(Note that PostScript files are sent to `ps-printer-name', which see.\)
 
 On Unix-like systems, a string value should be a name understood by
-lpr's -P option.
+lpr's -P option; otherwise the value should be nil.
 
-On MS-DOS and MS-Windows systems, it is the name of a printer device or
-port.  Typical non-default settings would be \"LPT1\" to \"LPT3\" for
-parallel printers, or \"COM1\" to \"COM4\" or \"AUX\" for serial
-printers, or \"//hostname/printer\" for a shared network printer.  You
-can also set it to a name of a file, in which case the output gets
-appended to that file.  If you want to discard the printed output, set
-this to \"NUL\"."
+On MS-DOS and MS-Windows systems, a string value is taken as the name of
+a printer device or port, provided `lpr-command' is set to \"\".
+Typical non-default settings would be \"LPT1\" to \"LPT3\" for parallel
+printers, or \"COM1\" to \"COM4\" or \"AUX\" for serial printers, or
+\"//hostname/printer\" for a shared network printer.  You can also set
+it to the name of a file, in which case the output gets appended to that
+file.  If you want to discard the printed output, set this to \"NUL\"."
   :type '(choice ; could use string but then we lose completion for files.
 		 (file :tag "Name")
 		 (const :tag "Default" nil))
@@ -74,9 +74,22 @@ this variable should be nil."
 
 ;;;###autoload
 (defcustom lpr-command
-  (if (memq system-type '(usg-unix-v dgux hpux irix))
-      "lp" "lpr")
-  "*Name of program for printing a file."
+  (cond
+   ((memq system-type '(ms-dos windows-nt))
+    "")
+   ((memq system-type '(usg-unix-v dgux hpux irix))
+    "lp")
+   (t
+    "lpr"))
+  "*Name of program for printing a file.
+
+On MS-DOS and MS-Windows systems, if the value is an empty string then
+Emacs will write directly to the printer port named by `printer-name'.
+The programs `print' and `nprint' (the standard print programs on
+Windows NT and Novell Netware respectively) are handled specially, using
+`printer-name' as the destination for output; any other program is
+treated like `lpr' except that an explicit filename is given as the last
+argument."
   :type 'string
   :group 'lpr)
 
