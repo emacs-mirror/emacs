@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.138) $
+ * $HopeName: MMsrc!mpm.h(trunk.139) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -433,37 +433,16 @@ extern void TraceDestroy(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet);
 extern void TraceStart(Trace trace, double mortality, double finishingTime);
-extern Res TraceStep(Trace trace);
 extern void TracePoll(Arena arena);
 
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
-extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
 
 /* Collection control parameters */
 
-/* There are two sets of sizes, for inside and outside ramp */
-/* mode (except for the ramp generation itself). */
-
-extern unsigned long TraceGen0Size;
-extern unsigned long TraceGen1Size;
-extern unsigned long TraceGen2Size;
-extern unsigned long TraceGen2plusSizeMultiplier;
-extern unsigned long TraceRampGenSize;
-extern unsigned long TraceGen0RampmodeSize;
-extern unsigned long TraceGen1RampmodeSize;
-extern unsigned long TraceGen2RampmodeSize;
-extern unsigned long TraceGen2plusRampmodeSizeMultiplier;
-
-extern Serial TraceRampGenFollows;
-extern Serial TraceTopGen; /* highest generation to use */
-extern Serial TraceFinalGen;
-
-extern double TraceEphemeralMortality;
 extern double TraceTopGenMortality;
-extern double TraceGen0IncrementalityMultiple;
 extern double TraceWorkFactor;
 
 
@@ -622,6 +601,7 @@ extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
 extern void ArenaNoSpareCommitExceeded(Arena arena);
 
 extern double ArenaMutatorAllocSize(Arena arena);
+extern Size ArenaAvail(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
@@ -645,9 +625,8 @@ extern Res ArenaAlloc(Addr *baseReturn, SegPref pref,
                       Size size, Pool pool, Bool withReservoirPermit);
 extern void ArenaFree(Addr base, Size size, Pool pool);
 
-
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
-extern Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream);
+
 
 extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
