@@ -1,3 +1,7 @@
+2003-10-07  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (produce_chars): Revert last change.
+
 2003-10-06  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (charset_unicode): Extern it.
