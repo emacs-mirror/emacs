@@ -196,7 +196,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define SEPCHAR ';'
 
 #define NULL_DEVICE "nul"
-#define EXEC_SUFFIXES ".exe:.com:.bat:"
 
 #if __DJGPP__ < 2
 #define O_RDONLY        0x0001

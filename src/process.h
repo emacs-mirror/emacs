@@ -123,9 +123,3 @@ extern int synch_process_retcode;
 #ifndef NULL_DEVICE
 #define NULL_DEVICE "/dev/null"
 #endif
-
-/* A string listing the possible suffixes used for executable files,
-   separated by colons.  VMS, MS-DOS, and OS/2 redefine this.  */
-#ifndef EXEC_SUFFIXES
-#define EXEC_SUFFIXES ""
-#endif

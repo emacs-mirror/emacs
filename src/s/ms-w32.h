@@ -212,7 +212,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* The null device on Windows NT. */
 #define NULL_DEVICE     "NUL:"
-#define EXEC_SUFFIXES   ".exe:.com:.bat:.cmd:"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      _MAX_PATH
