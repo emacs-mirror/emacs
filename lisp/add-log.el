@@ -432,10 +432,10 @@ non-nil, otherwise in local time."
   (let* ((defun (add-log-current-defun))
 	 (version (and change-log-version-info-enabled
 		       (change-log-version-number-search)))
-	 (buffer-file
-	  (expand-file-name (if add-log-buffer-file-name-function
-				(funcall add-log-buffer-file-name-function)
-			      buffer-file-name)))
+	 (buf-file-name (if add-log-buffer-file-name-function
+			    (funcall add-log-buffer-file-name-function)
+			  buffer-file-name))
+	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
 	 (file-name (expand-file-name
 		     (or file-name (find-change-log file-name buffer-file))))
 	 ;; Set ENTRY to the file name to use in the new entry.
