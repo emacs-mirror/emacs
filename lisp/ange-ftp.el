@@ -2690,7 +2690,9 @@ this also returns nil."
 	(ange-ftp-error host user (concat "BINARY failed: " (cdr result)))
       (save-excursion
 	(set-buffer (process-buffer (ange-ftp-get-process host user)))
-	(setq ange-ftp-hash-mark-unit (ash ange-ftp-binary-hash-mark-size -4))))))
+	(and ange-ftp-binary-hash-mark-size
+	     (setq ange-ftp-hash-mark-unit
+		   (ash ange-ftp-binary-hash-mark-size -4)))))))
 
 (defun ange-ftp-set-ascii-mode (host user)
   "Tell the ftp process for the given HOST & USER to switch to ascii mode."
@@ -2699,7 +2701,9 @@ this also returns nil."
 	(ange-ftp-error host user (concat "ASCII failed: " (cdr result)))
       (save-excursion
 	(set-buffer (process-buffer (ange-ftp-get-process host user)))
-	(setq ange-ftp-hash-mark-unit (ash ange-ftp-ascii-hash-mark-size -4))))))
+	(and ange-ftp-ascii-hash-mark-size
+	     (setq ange-ftp-hash-mark-unit
+		   (ash ange-ftp-ascii-hash-mark-size -4)))))))
 
 (defun ange-ftp-cd (host user dir)
   (let ((result (ange-ftp-send-cmd host user (list 'cd dir) "Doing CD")))
