@@ -701,8 +701,12 @@ Optional arg TABLE if non-nil is a unification table to look up.")
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
+
+  if (! STRING_MULTIBYTE (str))
+    return Qnil;
+
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size,
+  find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size_byte,
 		       charsets, table);
   val = Qnil;
   for (i = MAX_CHARSET; i >= 0; i--)
@@ -978,42 +982,6 @@ The returned value is 0 for left-to-right and 1 for right-to-left.")
   return CHARSET_TABLE_INFO (charset, CHARSET_DIRECTION_IDX);
 }
 
-DEFUN ("chars-in-string", Fchars_in_string, Schars_in_string, 1, 1, 0,
-  "Return number of characters in STRING.\n\
-When using multibyte characters, this is not the necessarily same as\n\
-the length of STRING; the length counts a multibyte characters as\n\
-several bytes, but this function counts a multibyte character as one\n\
-character.")
-  (str)
-     Lisp_Object str;
-{
-  Lisp_Object val;
-  unsigned char *p, *endp;
-  int chars;
-
-  CHECK_STRING (str, 0);
-
-  if (NILP (current_buffer->enable_multibyte_characters))
-    return make_number (XSTRING (str)->size);
-
-  p = XSTRING (str)->data; endp = p + XSTRING (str)->size;
-  chars = 0;
-  while (p < endp)
-    {
-      if (*p == LEADING_CODE_COMPOSITION)
-	{
-	  p++;
-	  while (p < endp && ! CHAR_HEAD_P (*p)) p++;
-	}
-      else
-	p += BYTES_BY_CHAR_HEAD (*p);
-      chars++;
-    }
-
-  XSETFASTINT (val, chars);
-  return val;
-}
-
 DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
   "Return number of characters between BEG and END.")
   (beg, end)
@@ -1027,6 +995,11 @@ DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
   return to - from;
 }
 
+/* Return the number of characters in the NBYTES bytes at PTR.
+   This works by looking at the contents and checking for multibyte sequences.
+   However, if the current buffer has enable-multibyte-characters = nil,
+   we treat each byte as a character.  */
+
 int
 chars_in_text (ptr, nbytes)
      unsigned char *ptr;
@@ -1035,7 +1008,9 @@ chars_in_text (ptr, nbytes)
   unsigned char *endp;
   int chars;
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  /* current_buffer is null at early stages of Emacs initialization.  */
+  if (current_buffer == 0
+      || NILP (current_buffer->enable_multibyte_characters))
     return nbytes;
 
   endp = ptr + nbytes;
@@ -1056,7 +1031,37 @@ chars_in_text (ptr, nbytes)
   return chars;
 }
 
-DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
+/* Return the number of characters in the NBYTES bytes at PTR.
+   This works by looking at the contents and checking for multibyte sequences.
+   It ignores enable-multibyte-characters.  */
+
+int
+multibyte_chars_in_text (ptr, nbytes)
+     unsigned char *ptr;
+     int nbytes;
+{
+  unsigned char *endp;
+  int chars;
+
+  endp = ptr + nbytes;
+  chars = 0;
+
+  while (ptr < endp)
+    {
+      if (*ptr == LEADING_CODE_COMPOSITION)
+	{
+	  ptr++;
+	  while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
+	}
+      else
+	ptr += BYTES_BY_CHAR_HEAD (*ptr);
+      chars++;
+    }
+
+  return chars;
+}
+
+DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
   "Concatenate all the argument characters and make the result a string.")
   (n, args)
      int n;
@@ -1086,7 +1091,7 @@ DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
       p += len;
     }
 
-  val = make_string (buf, p - buf);
+  val = make_multibyte_string (buf, n, p - buf);
   return val;
 }
 
@@ -1459,7 +1464,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
 
   buf[0] = LEADING_CODE_COMPOSITION;
   p = XSTRING (str)->data;
-  pend = p + XSTRING (str)->size;
+  pend = p + XSTRING (str)->size_byte;
   i = 1;
   while (p < pend)
     {
@@ -1504,7 +1509,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
     /* STR contains only one character, which can't be composed.  */
     error ("Too short string to be composed: %s", XSTRING (str)->data);
 
-  return make_string (buf, i);
+  return make_multibyte_string (buf, 1, i);
 }
 
 
@@ -1626,9 +1631,8 @@ syms_of_charset ()
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
-  defsubr (&Schars_in_string);
   defsubr (&Schars_in_region);
-  defsubr (&Sconcat_chars);
+  defsubr (&Sstring);
   defsubr (&Scmpcharp);
   defsubr (&Scmpchar_component);
   defsubr (&Scmpchar_cmp_rule);
