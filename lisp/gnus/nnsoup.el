@@ -38,7 +38,7 @@
 (defvoo nnsoup-directory "~/SOUP/"
   "*SOUP packet directory.")
 
-(defvoo nnsoup-tmp-directory "/tmp/"
+(defvoo nnsoup-tmp-directory temporary-file-directory
   "*Where nnsoup will store temporary files.")
 
 (defvoo nnsoup-replies-directory (concat nnsoup-directory "replies/")
