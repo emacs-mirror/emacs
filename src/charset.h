@@ -675,13 +675,15 @@ else
     									\
     pos_byte--;								\
     if (pos_byte < GPT_BYTE)						\
-      p = BEG_ADDR + pos_byte - 1, p_min = BEG_ADDR;			\
+      p = BEG_ADDR + pos_byte - BEG_BYTE, p_min = BEG_ADDR;		\
     else								\
-      p = BEG_ADDR + GAP_SIZE + pos_byte - 1, p_min = GAP_END_ADDR;	\
+      p = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE, p_min = GAP_END_ADDR;\
     if (p > p_min && !CHAR_HEAD_P (*p))					\
       {									\
 	unsigned char *pend = p--;					\
 	int len, bytes;							\
+        if (p_min < p - MAX_MULTIBYTE_LENGTH)				\
+          p_min = p - MAX_MULTIBYTE_LENGTH;				\
 	while (p > p_min && !CHAR_HEAD_P (*p)) p--;			\
 	len = pend + 1 - p;						\
 	PARSE_MULTIBYTE_SEQ (p, len, bytes);				\
@@ -755,18 +757,20 @@ while (0)
     pos_byte--;								\
     if (pos_byte < BUF_GPT_BYTE (buf))					\
       {									\
-	p = BUF_BEG_ADDR (buf) + pos_byte - 1;				\
+	p = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
 	p_min = BUF_BEG_ADDR (buf);					\
       }									\
     else								\
       {									\
-	p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - 1;	\
+	p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
 	p_min = BUF_GAP_END_ADDR (buf);					\
       }									\
     if (p > p_min && !CHAR_HEAD_P (*p))					\
       {									\
 	unsigned char *pend = p--;					\
 	int len, bytes;							\
+        if (p_min < p - MAX_MULTIBYTE_LENGTH)				\
+          p_min = p - MAX_MULTIBYTE_LENGTH;				\
 	while (p > p_min && !CHAR_HEAD_P (*p)) p--;			\
 	len = pend + 1 - p;						\
 	PARSE_MULTIBYTE_SEQ (p, len, bytes);				\
