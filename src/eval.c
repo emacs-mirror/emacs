@@ -93,6 +93,7 @@ Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
+Lisp_Object Qcurry;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
 extern Lisp_Object Qkeymap;
@@ -2223,7 +2224,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  abort ();
 	}
     }
-  if (COMPILEDP (fun))
+  if (FUNVECP (fun))
     val = apply_lambda (fun, original_args, 1, Qnil);
   else
     {
@@ -2779,21 +2780,12 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 	}
     }
 
-  if (SUBRP (object) || COMPILEDP (object))
+  if (SUBRP (object) || FUNVECP (object))
     return Qt;
   else if (CONSP (object))
     {
       Lisp_Object car = XCAR (object);
       return (EQ (car, Qlambda) || EQ (car, Qclosure)) ? Qt : Qnil;
-    }
-  else if (VECTORP (object) && XVECTOR (object)->size >= 1)
-    {
-      Lisp_Object first = XVECTOR (object)->contents[0];
-      if (EQ (first, object))
-	/* Circular vector.  */
-	return Qnil;
-      else
-	return Ffunctionp (first);
     }
   else
     return Qnil;
@@ -2926,24 +2918,9 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  abort ();
 	}
     }
-  if (COMPILEDP (fun))
+
+  if (FUNVECP (fun))
     val = funcall_lambda (fun, numargs, args + 1, Qnil);
-  else if (VECTORP (fun) && XVECTOR (fun)->size >= 1)
-    {
-      int num_curried_args = XVECTOR (fun)->size - 1;
-
-      internal_args = (Lisp_Object *) alloca ((num_curried_args + nargs)
-					      * sizeof (Lisp_Object));
-
-      /* Curried function + curried args are first in the new arg vector.  */
-      bcopy (XVECTOR (fun)->contents, internal_args,
-	     (num_curried_args + 1) * sizeof (Lisp_Object));
-      /* User args (not including the old function) are last.  */
-      bcopy (args + 1, internal_args + num_curried_args + 1,
-	     (nargs - 1) * sizeof (Lisp_Object));
-
-      val = Ffuncall (num_curried_args + nargs, internal_args);
-    }
   else
     {
       if (!CONSP (fun))
@@ -3021,6 +2998,57 @@ apply_lambda (fun, args, eval_flag, lexenv)
   return tem;
 }
 
+
+/* Call a non-bytecode funvec object FUN, on the argments in ARGS (of
+   length NARGS).  */
+
+static Lisp_Object
+funcall_funvec (fun, nargs, args)
+     Lisp_Object fun;
+     int nargs;
+     Lisp_Object *args;
+{
+  int size = FUNVEC_SIZE (fun);
+  Lisp_Object tag = (size > 0 ? AREF (fun, 0) : Qnil);
+
+  if (EQ (tag, Qcurry))
+    {
+      /* A curried function is a way to attach arguments to a another
+	 function. The first element of the vector is the identifier
+	 `curry', the second is the wrapped function, and remaining
+	 elements are the attached arguments.  */
+      int num_curried_args = size - 2;
+      /* Offset of the curried and user args in the final arglist.  Curried
+	 args are first in the new arg vector, after the function.  User
+	 args follow.  */
+      int curried_args_offs = 1;
+      int user_args_offs = curried_args_offs + num_curried_args;
+      /* The curried function and arguments.  */
+      Lisp_Object *curry_params = XVECTOR (fun)->contents + 1;
+      /* The arguments in the curry vector.  */
+      Lisp_Object *curried_args = curry_params + 1;
+      /* The number of arguments with which we'll call funcall, and the
+	 arguments themselves.  */
+      int num_funcall_args = 1 + num_curried_args + nargs;
+      Lisp_Object *funcall_args
+	= (Lisp_Object *) alloca (num_funcall_args * sizeof (Lisp_Object));
+
+      /* First comes the real function.  */
+      funcall_args[0] = curry_params[0];
+
+      /* Then the arguments in the appropriate order.  */
+      bcopy (curried_args, funcall_args + curried_args_offs,
+	     num_curried_args * sizeof (Lisp_Object));
+      bcopy (args, funcall_args + user_args_offs,
+	     nargs * sizeof (Lisp_Object));
+
+      return Ffuncall (num_funcall_args, funcall_args);
+    }
+  else
+    return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+}
+
+
 /* Apply a Lisp function FUN to the NARGS evaluated arguments in ARG_VECTOR
    and return the result of evaluation.
    FUN must be either a lambda-expression or a compiled-code object.  */
@@ -3037,7 +3065,7 @@ funcall_lambda (fun, nargs, arg_vector, lexenv)
   int i, optional, rest;
 
   if (COMPILEDP (fun)
-      && (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) > COMPILED_PUSH_ARGS
+      && FUNVEC_SIZE (fun) > COMPILED_PUSH_ARGS
       && ! NILP (XVECTOR (fun)->contents[COMPILED_PUSH_ARGS]))
     /* A byte-code object with a non-nil `push args' slot means we
        shouldn't bind any arguments, instead just call the byte-code
@@ -3050,7 +3078,7 @@ funcall_lambda (fun, nargs, arg_vector, lexenv)
     {
       /* If we have not actually read the bytecode string
 	 and constants vector yet, fetch them from the file.  */
-      if (CONSP (XVECTOR (fun)->contents[COMPILED_BYTECODE]))
+      if (CONSP (AREF (fun, COMPILED_BYTECODE)))
 	Ffetch_bytecode (fun);
       return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
 			     AREF (fun, COMPILED_CONSTANTS),
@@ -3058,6 +3086,11 @@ funcall_lambda (fun, nargs, arg_vector, lexenv)
 			     AREF (fun, COMPILED_ARGLIST),
 			     nargs, arg_vector);
     }
+
+  if (FUNVECP (fun) && !FUNVEC_COMPILED_P (fun))
+    /* Byte-compiled functions are handled directly below, but we
+       call other funvec types via funcall_funvec.  */
+    return funcall_funvec (fun, nargs, arg_vector);
 
   if (CONSP (fun))
     {
@@ -3347,6 +3380,20 @@ unbind_to (count, value)
 }
 
 
+
+DEFUN ("specialp", Fspecialp, Sspecialp, 1, 1, 0,
+       doc: /* Return non-nil if SYMBOL's global binding has been declared special.
+A special variable is one that will be bound dynamically, even in a
+context where binding is lexical by default.  */)
+  (symbol)
+     Lisp_Object symbol;
+{
+   CHECK_SYMBOL (symbol);
+   return XSYMBOL (symbol)->declared_special ? Qt : Qnil;
+}
+
+
+
 DEFUN ("curry", Fcurry, Scurry, 1, MANY, 0,
        doc: /* Return FUN curried with ARGS.
 The result is a function-like object that will append any arguments it
@@ -3363,24 +3410,10 @@ usage: (curry FUN &rest ARGS)  */)
      register int nargs;
      Lisp_Object *args;
 {
-  if (NILP (Ffunctionp (args[0])))
-    return Fsignal (Qinvalid_function, Fcons (args[0], Qnil));
-
-  return Fvector (nargs, args);
+  return make_funvec (Qcurry, 0, nargs, args);
 }
-
-DEFUN ("specialp", Fspecialp, Sspecialp, 1, 1, 0,
-       doc: /* Return non-nil if SYMBOL's global binding has been declared special.
-A special variable is one that will be bound dynamically, even in a
-context where binding is lexical by default.  */)
-  (symbol)
-     Lisp_Object symbol;
-{
-   CHECK_SYMBOL (symbol);
-   return XSYMBOL (symbol)->declared_special ? Qt : Qnil;
-}
-
 
+
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)
@@ -3593,6 +3626,9 @@ before making `inhibit-quit' nil.  */);
   Qclosure = intern ("closure");
   staticpro (&Qclosure);
 
+  Qcurry = intern ("curry");
+  staticpro (&Qcurry);
+
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
 	       doc: /* *Non-nil means errors display a backtrace buffer.
 More precisely, this happens for any error that is handled
@@ -3721,6 +3757,7 @@ alist of active lexical bindings.  */);
   defsubr (&Srun_hook_with_args_until_success);
   defsubr (&Srun_hook_with_args_until_failure);
   defsubr (&Sfetch_bytecode);
+  defsubr (&Scurry);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);

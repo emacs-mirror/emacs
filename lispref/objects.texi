@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/objects
@@ -155,7 +155,7 @@ latter are unique to Emacs Lisp.
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
-* Byte-Code Type::      A function written in Lisp, then compiled.
+* Funvec Type::         A vector type callable as a function.
 * Autoload Type::       A type used for automatically loading seldom-used
                         functions.
 @end menu
@@ -1200,18 +1200,55 @@ with the name of the subroutine.
 @end group
 @end example
 
-@node Byte-Code Type
-@subsection Byte-Code Function Type
+@node Funvec Type
+@subsection ``Function Vector' Type
+@cindex function vector
+@cindex funvec
 
-The byte compiler produces @dfn{byte-code function objects}.
-Internally, a byte-code function object is much like a vector; however,
-the evaluator handles this data type specially when it appears as a
-function to be called.  @xref{Byte Compilation}, for information about
-the byte compiler.
+A @dfn{function vector}, or @dfn{funvec} is a vector-like object whose
+purpose is to define special kinds of functions.  You can examine or
+modify the contents of a funvec like a normal vector, using the
+@code{aref} and @code{aset} functions.
 
-The printed representation and read syntax for a byte-code function
-object is like that for a vector, with an additional @samp{#} before the
-opening @samp{[}.
+The behavior of a funvec when called is dependent on the kind of
+funvec it is, and that is determined by its first element (a
+zero-length funvec will signal an error if called):
+
+@table @asis
+@item A list
+A funvec with a list as its first element is a byte-compiled function,
+produced by the byte compiler; such funvecs are known as
+@dfn{byte-code function objects}.  @xref{Byte Compilation}, for
+information about the byte compiler.
+
+@item The symbol @code{curry}
+A funvec with @code{curry} as its first element is a ``curried function''.
+
+The second element in such a funvec is the function which is
+being curried, and the remaining elements are a list of arguments.
+
+Calling such a funvec operates by calling the embedded function with
+an argument list composed of the arguments in the funvec followed by
+the arguments the funvec was called with.  @xref{Function Currying}.
+@end table
+
+The printed representation and read syntax for a funvec object is like
+that for a vector, with an additional @samp{#} before the opening
+@samp{[}.
+
+@defun funvecp object
+@code{funvecp} returns @code{t} if @var{object} is a function vector
+object (including byte-code objects), and @code{nil} otherwise.
+@end defun
+
+@defun funvec kind &rest params
+@code{funvec} returns a new function vector containing @var{kind} and
+@var{params}.  @var{kind} determines the type of funvec; it should be
+one of the choices listed in the table above.
+
+Typically you should use the @code{make-byte-code} function to create
+byte-code objects, though they are a type of funvec.
+@end defun
 
 @node Autoload Type
 @subsection Autoload Type
@@ -1626,7 +1663,7 @@ with references to further information.
 @xref{Buffer Basics, bufferp}.
 
 @item byte-code-function-p
-@xref{Byte-Code Type, byte-code-function-p}.
+@xref{Funvec Type, byte-code-function-p}.
 
 @item case-table-p
 @xref{Case Tables, case-table-p}.

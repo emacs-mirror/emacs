@@ -1,3 +1,13 @@
+2004-08-09  Miles Bader  <miles@gnu.org>
+
+	Changes from merging the funvec patch:
+	
+	* eval.c (Feval, Ffuncall): Don't special-case vectors.
+	(funcall_lambda): Use FUNVEC_SIZE.
+	(Fcurry): Remove function.
+
+	Merge funvec patch.
+
 2004-04-10  Miles Bader  <miles@gnu.org>
 
 	* eval.c (Fspecialp): New function.

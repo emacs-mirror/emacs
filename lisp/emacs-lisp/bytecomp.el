@@ -2636,7 +2636,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   ;; environment vector to make a closure object.
   (if for-effect
       (setq for-effect nil)
-    (byte-compile-push-constant 'vector)
+    (byte-compile-push-constant 'curry)
     (byte-compile-push-constant code)
     (byte-compile-lexical-variable-ref byte-compile-current-heap-environment)
     (byte-compile-out 'byte-call 2)))

@@ -904,7 +904,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	case IMAGE_FUNCTION_VALUE:
 	  value = indirect_function (value);
 	  if (SUBRP (value)
-	      || COMPILEDP (value)
+	      || FUNVECP (value)
 	      || (CONSP (value) && EQ (XCAR (value), Qlambda)))
 	    break;
 	  return 0;

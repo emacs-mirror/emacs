@@ -1,0 +1,37 @@
+2004-05-20  Miles Bader  <miles@gnu.org>
+
+	* lisp.h: Declare make_funvec and Ffunvec.
+	(enum pvec_type): Rename `PVEC_COMPILED' to `PVEC_FUNVEC'.
+	(XSETFUNVEC): Renamed from `XSETCOMPILED'.
+	(FUNVEC_SIZE, FUNVEC_COMPILED_TAG_P, FUNVEC_COMPILED_P): New macros.
+	(COMPILEDP): Define in terms of funvec macros.
+	(FUNVECP, GC_FUNVECP): Renamed from `COMPILEDP' & `GC_COMPILEDP'.
+	(FUNCTIONP): Use FUNVECP instead of COMPILEDP.
+	* alloc.c (make_funvec, funvec): New functions.
+	(Fmake_byte_code): Make sure the first element is a list.
+
+	* eval.c (Qcurry): New variable.
+	(funcall_funvec, Fcurry): New functions.
+	(syms_of_eval): Initialize them.
+	(funcall_lambda): Handle non-bytecode funvec objects by calling
+	funcall_funvec.
+	(Ffuncall, Feval): Use FUNVECP insetad of COMPILEDP.
+	* lread.c (read1): Return result of read_vector for `#[' syntax
+	directly; read_vector now does any extra work required.
+	(read_vector): Handle both funvec and byte-code objects, converting the
+	type as necessary.  `bytecodeflag' argument is now called
+	`read_funvec'.
+	* data.c (Ffunvecp): New function.
+	* doc.c (Fdocumentation): Return nil for unknown funvecs.
+	* fns.c (mapcar1, Felt, concat): Allow funvecs.
+
+	* eval.c (Ffunctionp): Use `funvec' operators instead of `compiled'
+	operators.
+	* alloc.c (Fmake_byte_code, Fpurecopy, mark_object): Likewise.
+	* keyboard.c (Fcommand_execute): Likewise.
+	* image.c (parse_image_spec): Likewise.
+	* fns.c (Flength, concat, internal_equal): Likewise.
+	* data.c (Faref, Ftype_of): Likewise.
+	* print.c (print_preprocess, print_object): Likewise.
+
+;; arch-tag: f35a6a00-4a11-4739-a4b6-9cf98296f315

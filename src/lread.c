@@ -2163,14 +2163,8 @@ read1 (readcharfun, pch, first_in_list)
 						Qnil));
 	}
       if (c == '[')
-	{
-	  /* Accept compiled functions at read-time so that we don't have to
-	     build them using function calls.  */
-	  Lisp_Object tmp;
-	  tmp = read_vector (readcharfun, 1);
-	  return Fmake_byte_code (XVECTOR (tmp)->size,
-				  XVECTOR (tmp)->contents);
-	}
+	/* `function vector' objects, including byte-compiled functions.  */
+	return read_vector (readcharfun, 1);
       if (c == '(')
 	{
 	  Lisp_Object tmp;
@@ -2938,9 +2932,9 @@ isfloat_string (cp)
 
 
 static Lisp_Object
-read_vector (readcharfun, bytecodeflag)
+read_vector (readcharfun, read_funvec)
      Lisp_Object readcharfun;
-     int bytecodeflag;
+     int read_funvec;
 {
   register int i;
   register int size;
@@ -2948,6 +2942,11 @@ read_vector (readcharfun, bytecodeflag)
   register Lisp_Object tem, item, vector;
   register struct Lisp_Cons *otem;
   Lisp_Object len;
+  /* If we're reading a funvec object we start out assuming it's also a
+     byte-code object (a subset of funvecs), so we can do any special
+     processing needed.  If it's just an ordinary funvec object, we'll
+     realize that as soon as we've read the first element.  */
+  int read_bytecode = read_funvec;
 
   tem = read_list (1, readcharfun);
   len = Flength (tem);
@@ -2958,11 +2957,19 @@ read_vector (readcharfun, bytecodeflag)
   for (i = 0; i < size; i++)
     {
       item = Fcar (tem);
+
+      /* If READ_BYTECODE is set, check whether this is really a byte-code
+	 object, or just an ordinary `funvec' object -- non-byte-code
+	 funvec objects use the same reader syntax.  We can tell from the
+	 first element which one it is.  */
+      if (read_bytecode && i == 0 && ! FUNVEC_COMPILED_TAG_P (item))
+	read_bytecode = 0;	/* Nope. */
+
       /* If `load-force-doc-strings' is t when reading a lazily-loaded
 	 bytecode object, the docstring containing the bytecode and
 	 constants values must be treated as unibyte and passed to
 	 Fread, to get the actual bytecode string and constants vector.  */
-      if (bytecodeflag && load_force_doc_strings)
+      if (read_bytecode && load_force_doc_strings)
 	{
 	  if (i == COMPILED_BYTECODE)
 	    {
@@ -3006,6 +3013,14 @@ read_vector (readcharfun, bytecodeflag)
       tem = Fcdr (tem);
       free_cons (otem);
     }
+
+  if (read_bytecode && size >= 4)
+    /* Convert this vector to a bytecode object.  */
+    vector = Fmake_byte_code (size, XVECTOR (vector)->contents);
+  else if (read_funvec && size >= 1)
+    /* Convert this vector to an ordinary funvec object.  */
+    XSETFUNVEC (vector, XVECTOR (vector));
+
   return vector;
 }
 

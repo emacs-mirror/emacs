@@ -152,8 +152,8 @@ To get the number of bytes, use `string-bytes'. */)
     XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
     XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
-  else if (COMPILEDP (sequence))
-    XSETFASTINT (val, XVECTOR (sequence)->size & PSEUDOVECTOR_SIZE_MASK);
+  else if (FUNVECP (sequence))
+    XSETFASTINT (val, FUNVEC_SIZE (sequence));
   else if (CONSP (sequence))
     {
       i = 0;
@@ -579,7 +579,7 @@ concat (nargs, args, target_type, last_special)
     {
       this = args[argnum];
       if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
-	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
+	    || FUNVECP (this) || BOOL_VECTOR_P (this)))
 	{
 	    args[argnum] = wrong_type_argument (Qsequencep, this);
 	}
@@ -605,7 +605,7 @@ concat (nargs, args, target_type, last_special)
 	  Lisp_Object ch;
 	  int this_len_byte;
 
-	  if (VECTORP (this))
+	  if (VECTORP (this) || FUNVECP (this))
 	    for (i = 0; i < len; i++)
 	      {
 		ch = XVECTOR (this)->contents[i];
@@ -1425,7 +1425,7 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
     {
       if (CONSP (sequence) || NILP (sequence))
 	return Fcar (Fnthcdr (n, sequence));
-      else if (STRINGP (sequence) || VECTORP (sequence)
+      else if (STRINGP (sequence) || VECTORP (sequence) || FUNVECP (sequence)
 	       || BOOL_VECTOR_P (sequence) || CHAR_TABLE_P (sequence))
 	return Faref (sequence, n);
       else
@@ -2242,11 +2242,11 @@ internal_equal (o1, o2, depth, props)
 	if (WINDOW_CONFIGURATIONP (o1))
 	  return compare_window_configurations (o1, o2, 0);
 
-	/* Aside from them, only true vectors, char-tables, and compiled
-	   functions are sensible to compare, so eliminate the others now.  */
+	/* Aside from them, only true vectors, char-tables, and function
+	   vectors are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_COMPILED | PVEC_CHAR_TABLE)))
+	    if (!(size & (PVEC_FUNVEC | PVEC_CHAR_TABLE)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -2931,7 +2931,7 @@ mapcar1 (leni, vals, fn, seq)
   /* We need not explicitly protect `tail' because it is used only on lists, and
     1) lists are not relocated and 2) the list is marked via `seq' so will not be freed */
 
-  if (VECTORP (seq))
+  if (VECTORP (seq) || FUNVECP (seq))
     {
       for (i = 0; i < leni; i++)
 	{

@@ -404,6 +404,11 @@ string is passed through `substitute-command-keys'.  */)
       else
 	return Qnil;
     }
+  else if (FUNVECP (fun))
+    {
+      /* Unless otherwise handled, funvecs have no documentation.  */
+      return Qnil;
+    }
   else if (STRINGP (fun) || VECTORP (fun))
     {
       return build_string ("Keyboard macro.");
