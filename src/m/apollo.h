@@ -1,5 +1,5 @@
 /* machine description file for Apollo machine.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1994, Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,7 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* The following line tells the configuration script what sort of 
    operating system this machine is likely to run.
-   USUAL-OPSYS="bsd4-2"  */
+   USUAL-OPSYS="bsd4-3"  */
 
 /* The following three symbols give information on
  the size of various data types.  */
@@ -55,15 +55,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Do not define LOAD_AVE_TYPE or LOAD_AVE_CVT
    since there is no /dev/kmem */
 
-/* Define CANNOT_DUMP because it is impossible to dump.  */
+/* Undefine VIRT_ADDR_VARIES because the virtual addresses of
+   pure and impure space as loaded do not vary.  */
 
-#define CANNOT_DUMP
-
-/* Define VIRT_ADDR_VARIES because the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.  */
-
-#define VIRT_ADDR_VARIES
+#undef VIRT_ADDR_VARIES
 
 /* Define HAVE_ALLOCA because we use the system's version of alloca.  */
 
@@ -73,24 +68,34 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LIBS_DEBUG
 
-/* Must use the system's termcap.  It does special things.  */
+/* Can't use the system's termcap.  It has compressed data sections that
+   interfere with dumping.  That means we won't automatically get a vt100
+   when we start up emacs in a dm pad (a dubious feature at best anyway). */
 
-#define LIBS_TERMCAP -ltermcap
+#undef LIBS_TERMCAP
 
 /* Must use the system's malloc and alloca.  */
 
 #define SYSTEM_MALLOC
 
-/* No crt0 is needed, but control where environ is allocated.  */
+/* Define the file we use for UNEXEC. */
 
-#define START_FILES pre-crt0.o
+#define UNEXEC unexapollo.o
 
-/* Apollo's bcopy said to lose on more than 16k bytes in SR9.5.  */
+/* The Apollo linker does not recognize the -X switch, so we remove it here. */
 
-#ifndef APOLLO_SR10
-#undef BSTRING
+#define LD_SWITCH_SYSTEM
+
+/* Define C_SWITCH_MACHINE to compile for 68020/68030 or PRISM.
+   Define LD_SWITCH_MACHINE to save space by stripping symbols
+   and use X11 libraries. */
+
+#if _ISP__A88K
+#define C_SWITCH_MACHINE -W0,-ncompress -W0,-opt,2 -A cpu,a88k -A sys,any -A run,bsd4.3
+#define LD_SWITCH_MACHINE -A cpu,a88k -A sys,any -A run,bsd4.3
+#else
+#define C_SWITCH_MACHINE -W0,-ncompress -W0,-opt,2 -A cpu,3000 -A sys,any -A run,bsd4.3
+#define LD_SWITCH_MACHINE -A cpu,m68k -A sys,any -A run,bsd4.3
 #endif
 
-/* The function x_destroy_database doesn't exist in the version of X
-   on the Apollo.  */
-#define NO_X_DESTROY_DATABASE
+#define OLDXMENU_OPTIONS ${C_SWITCH_MACHINE}
