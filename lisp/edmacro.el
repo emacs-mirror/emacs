@@ -716,41 +716,6 @@ If START or END is negative, it counts from the end."
 		      collect (if (= (logand ch ?\M-\^@) 0)
 				  ch (+ ch 128))))
       res)))
-
-;;; The following probably ought to go in macros.el:
-
-;;;###autoload
-(defun insert-kbd-macro (macroname &optional keys)
-  "Insert in buffer the definition of kbd macro NAME, as Lisp code.
-Optional second arg KEYS means also record the keys it is on
-\(this is the prefix argument, when calling interactively).
-
-This Lisp code will, when executed, define the kbd macro with the same
-definition it has now.  If you say to record the keys, the Lisp code
-will also rebind those keys to the macro.  Only global key bindings
-are recorded since executing this Lisp code always makes global
-bindings.
-
-To save a kbd macro, visit a file of Lisp code such as your `~/.emacs',
-use this command, and then save the file."
-  (interactive "CInsert kbd macro (name): \nP")
-  (let (definition)
-    (if (string= (symbol-name macroname) "")
-	(progn
-	  (setq definition (format-kbd-macro))
-	  (insert "(setq last-kbd-macro"))
-      (setq definition (format-kbd-macro macroname))
-      (insert (format "(defalias '%s" macroname)))
-    (if (> (length definition) 50)
-	(insert " (read-kbd-macro\n")
-      (insert "\n  (read-kbd-macro "))
-    (prin1 definition (current-buffer))
-    (insert "))\n")
-    (if keys
-	(let ((keys (where-is-internal macroname '(keymap))))
-	  (while keys
-	    (insert (format "(global-set-key %S '%s)\n" (car keys) macroname))
-	    (setq keys (cdr keys)))))))
 
 (provide 'edmacro)
 
