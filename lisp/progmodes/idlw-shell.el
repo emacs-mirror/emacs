@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.14
-;; Date: $Date: 2002/06/14 19:05:30 $
+;; Date: $Date: 2002/07/18 18:58:07 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -448,7 +448,7 @@ t          Glyph when possible, otherwise face (same effect as 'glyph)."
 	  (const :tag "Glyph or face." t)))
 
 (defvar idlwave-shell-use-breakpoint-glyph t
-  "Obsolete variable.   See `idlwave-shell-mark-breakpoints.")
+  "Obsolete variable.  See `idlwave-shell-mark-breakpoints.")
 
 (defcustom idlwave-shell-breakpoint-face 'idlwave-shell-bp-face
   "*The face for breakpoint lines in the source code.
