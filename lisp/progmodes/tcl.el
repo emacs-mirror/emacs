@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 1994, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.63 $
+;; Version: $Revision: 1.64 $
 
 ;; This file is part of GNU Emacs.
 
@@ -104,36 +104,12 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'imenu)
   (require 'outline)
   (require 'dabbrev)
   (require 'add-log))
 
-;; I sure wish Emacs had a package that made it easy to extract this
-;; sort of information.  Strange definition works with XEmacs 20.0.
-(defconst tcl-using-emacs-19 (not (string-match "18\\." emacs-version))
-  "Non-nil if using Emacs 19 or later.")
-
-(defconst tcl-using-emacs-19-23
-  (or (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
-      (string-match "^[2-9][0-9]\\." emacs-version))
-  "Non-nil if using Emacs 19-23 or later.")
-
-(defconst tcl-using-xemacs-19 (string-match "XEmacs" emacs-version)
-  "Non-nil if using XEmacs.")
-
 (require 'comint)
-
-;; When compiling under Emacs, load imenu during compilation.  If
-;; you have 19.22 or earlier, comment this out, or get imenu.
-(and (fboundp 'eval-when-compile)
-     (eval-when-compile
-       (if (and (not (string< emacs-version "19.23"))
-		(not (string-match "XEmacs" emacs-version)))
-	   (require 'imenu))
-       ()))
-
-(defconst tcl-version "$Revision: 1.63 $")
-(defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
 ;; User variables.
@@ -177,13 +153,6 @@ to take place:
 		 (const :tag "Beginning only" nil)
 		 (const :tag "Maybe move or make or delete comment" 'tcl)))
 
-
-(defcustom tcl-use-hairy-comment-detector t
-  "*If not nil, use the more sophisticated, but slower, comment-delete method.
-This variable is not effective in Emacs 18;
-the fast function is always used in that version."
-  :group 'tcl
-  :type 'boolean)
 
 (defcustom tcl-electric-hash-style 'smart
   "*Style of electric hash insertion to use.
@@ -238,54 +207,80 @@ quoted for Tcl."
 ;; Keymaps, abbrevs, syntax tables.
 ;;
 
-(defvar tcl-mode-abbrev-table nil
-  "Abbrev table in use in Tcl-mode buffers.")
-(if tcl-mode-abbrev-table
-    ()
-  (define-abbrev-table 'tcl-mode-abbrev-table ()))
+(defvar tcl-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "{" 'tcl-electric-char)
+    (define-key map "}" 'tcl-electric-brace)
+    (define-key map "[" 'tcl-electric-char)
+    (define-key map "]" 'tcl-electric-char)
+    (define-key map ";" 'tcl-electric-char)
+    (define-key map "#" 'tcl-electric-hash) ;Remove?  -stef
+    (define-key map "\e\C-q" 'tcl-indent-exp)
+    (define-key map "\177" 'backward-delete-char-untabify)
+    (define-key map "\t" 'tcl-indent-command)
+    (define-key map "\M-\C-x" 'tcl-eval-defun)
+    (define-key map "\C-c\C-i" 'tcl-help-on-word)
+    (define-key map "\C-c\C-v" 'tcl-eval-defun)
+    (define-key map "\C-c\C-f" 'tcl-load-file)
+    (define-key map "\C-c\C-t" 'inferior-tcl)
+    (define-key map "\C-c\C-x" 'tcl-eval-region)
+    (define-key map "\C-c\C-s" 'switch-to-tcl)
+    map)
+  "Keymap used in `tcl-mode'.")
 
-(defvar tcl-mode-map ()
-  "Keymap used in Tcl mode.")
+(defvar tcl-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?%  "_"  st)
+    (modify-syntax-entry ?@  "_"  st)
+    (modify-syntax-entry ?&  "_"  st)
+    (modify-syntax-entry ?*  "_"  st)
+    (modify-syntax-entry ?+  "_"  st)
+    (modify-syntax-entry ?-  "_"  st)
+    (modify-syntax-entry ?.  "_"  st)
+    (modify-syntax-entry ?:  "_"  st)
+    (modify-syntax-entry ?!  "_"  st)
+    (modify-syntax-entry ?$  "_"  st)	; FIXME use "'"?
+    (modify-syntax-entry ?/  "_"  st)
+    (modify-syntax-entry ?~  "_"  st)
+    (modify-syntax-entry ?<  "_"  st)
+    (modify-syntax-entry ?=  "_"  st)
+    (modify-syntax-entry ?>  "_"  st)
+    (modify-syntax-entry ?|  "_"  st)
+    (modify-syntax-entry ?\( "()" st)
+    (modify-syntax-entry ?\) ")(" st)
+    (modify-syntax-entry ?\; "."  st)
+    (modify-syntax-entry ?\n ">"  st)
+    ;; (modify-syntax-entry ?\f ">"  st)
+    (modify-syntax-entry ?#  "<"  st)
+    st)
+  "Syntax table in use in `tcl-mode' buffers.")
 
-(defvar tcl-mode-syntax-table nil
-  "Syntax table in use in Tcl-mode buffers.")
-(if tcl-mode-syntax-table
-    ()
-  (setq tcl-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?%  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?@  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?&  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?*  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?+  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?-  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?.  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?:  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?!  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?$  "_" tcl-mode-syntax-table) ; FIXME use "'"?
-  (modify-syntax-entry ?/  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?~  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?<  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?=  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?>  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?|  "_" tcl-mode-syntax-table)
-  (modify-syntax-entry ?\(  "()" tcl-mode-syntax-table)
-  (modify-syntax-entry ?\)  ")(" tcl-mode-syntax-table)
-  (modify-syntax-entry ?\;  "." tcl-mode-syntax-table)
-  (modify-syntax-entry ?\n ">   " tcl-mode-syntax-table)
-  (modify-syntax-entry ?\f ">   " tcl-mode-syntax-table)
-  (modify-syntax-entry ?# "<   " tcl-mode-syntax-table))
+(defvar inferior-tcl-mode-map
+  ;; FIXME we override comint keybindings here.
+  ;; Maybe someone has a better set?
+  (let ((map (make-sparse-keymap)))
+    ;; Will inherit from `comint-mode-map' thanks to define-derived-mode.
+    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
+    (define-key map "\177" 'backward-delete-char-untabify)
+    (define-key map "\M-\C-x" 'tcl-eval-defun)
+    (define-key map "\C-c\C-i" 'tcl-help-on-word)
+    (define-key map "\C-c\C-v" 'tcl-eval-defun)
+    (define-key map "\C-c\C-f" 'tcl-load-file)
+    (define-key map "\C-c\C-t" 'inferior-tcl)
+    (define-key map "\C-c\C-x" 'tcl-eval-region)
+    (define-key map "\C-c\C-s" 'switch-to-tcl)
+    map)
+  "Keymap used in `inferior-tcl-mode'.")
 
-(defvar inferior-tcl-mode-map nil
-  "Keymap used in Inferior Tcl mode.")
-
-;; XEmacs menu.
-(defvar tcl-xemacs-menu
-  '(["Beginning of function" tcl-beginning-of-defun t]
-    ["End of function" tcl-end-of-defun t]
-    ["Mark function" tcl-mark-defun t]
-    ["Indent region" indent-region (tcl-mark)]
-    ["Comment region" comment-region (tcl-mark)]
-    ["Uncomment region" tcl-uncomment-region (tcl-mark)]
+(easy-menu-define tcl-mode-menu tcl-mode-map "Menu used in `tcl-mode'."
+  '("Tcl"
+    ["Beginning of function" beginning-of-defun t]
+    ["End of function" end-of-defun t]
+    ["Mark function" mark-defun t]
+    ["Indent region" indent-region (mark t)]
+    ["Comment region" comment-region (mark t)]
+    ["Uncomment region" uncomment-region (mark t)]
     "----"
     ["Show Tcl process buffer" inferior-tcl t]
     ["Send function to Tcl process" tcl-eval-defun
@@ -296,83 +291,7 @@ quoted for Tcl."
      (and inferior-tcl-buffer (get-buffer inferior-tcl-buffer))]
     ["Restart Tcl process with file" tcl-restart-with-file t]
     "----"
-    ["Tcl help" tcl-help-on-word tcl-help-directory-list]
-    ["Send bug report" tcl-submit-bug-report t])
-  "XEmacs menu for Tcl mode.")
-
-;; Emacs does menus via keymaps.  Do it in a function in case we
-;; later decide to add it to inferior Tcl mode as well.
-(defun tcl-add-emacs-menu (map)
-  (define-key map [menu-bar] (make-sparse-keymap "Tcl"))
-  ;; This fails in Emacs 19.22 and earlier.
-  (require 'lmenu)
-  (let ((menu (make-lucid-menu-keymap "Tcl" tcl-xemacs-menu)))
-    (define-key map [menu-bar tcl] (cons "Tcl" menu))
-    ;; The following is intended to compute the key sequence
-    ;; information for the menu.  It doesn't work.
-    (x-popup-menu nil menu)))
-
-(defun tcl-fill-mode-map ()
-  (define-key tcl-mode-map "{" 'tcl-electric-char)
-  (define-key tcl-mode-map "}" 'tcl-electric-brace)
-  (define-key tcl-mode-map "[" 'tcl-electric-char)
-  (define-key tcl-mode-map "]" 'tcl-electric-char)
-  (define-key tcl-mode-map ";" 'tcl-electric-char)
-  (define-key tcl-mode-map "#" 'tcl-electric-hash)
-  ;; FIXME.
-  (define-key tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
-  ;; FIXME.
-  (define-key tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
-  ;; FIXME.
-  (define-key tcl-mode-map "\e\C-h" 'tcl-mark-defun)
-  (define-key tcl-mode-map "\e\C-q" 'indent-tcl-exp)
-  (define-key tcl-mode-map "\177" 'backward-delete-char-untabify)
-  (define-key tcl-mode-map "\t" 'tcl-indent-command)
-  (define-key tcl-mode-map "\M-;" 'tcl-indent-for-comment)
-  (define-key tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
-  (define-key tcl-mode-map "\C-c\C-b" 'tcl-submit-bug-report)
-  (and (fboundp 'comment-region)
-       (define-key tcl-mode-map "\C-c\C-c" 'comment-region))
-  (define-key tcl-mode-map "\C-c\C-i" 'tcl-help-on-word)
-  (define-key tcl-mode-map "\C-c\C-v" 'tcl-eval-defun)
-  (define-key tcl-mode-map "\C-c\C-f" 'tcl-load-file)
-  (define-key tcl-mode-map "\C-c\C-t" 'inferior-tcl)
-  (define-key tcl-mode-map "\C-c\C-x" 'tcl-eval-region)
-  (define-key tcl-mode-map "\C-c\C-s" 'switch-to-tcl)
-
-  ;; Make menus.
-  (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
-      (progn
-	(tcl-add-emacs-menu tcl-mode-map))))
-
-(defun tcl-fill-inferior-map ()
-  (define-key inferior-tcl-mode-map "\t" 'comint-dynamic-complete)
-  (define-key inferior-tcl-mode-map "\M-?"
-    'comint-dynamic-list-filename-completions)
-  (define-key inferior-tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
-  (define-key inferior-tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
-  (define-key inferior-tcl-mode-map "\177" 'backward-delete-char-untabify)
-  (define-key inferior-tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
-  (define-key inferior-tcl-mode-map "\C-c\C-b" 'tcl-submit-bug-report)
-  (define-key inferior-tcl-mode-map "\C-c\C-i" 'tcl-help-on-word)
-  (define-key inferior-tcl-mode-map "\C-c\C-v" 'tcl-eval-defun)
-  (define-key inferior-tcl-mode-map "\C-c\C-f" 'tcl-load-file)
-  (define-key inferior-tcl-mode-map "\C-c\C-t" 'inferior-tcl)
-  (define-key inferior-tcl-mode-map "\C-c\C-x" 'tcl-eval-region)
-  (define-key inferior-tcl-mode-map "\C-c\C-s" 'switch-to-tcl))
-
-(if tcl-mode-map
-    ()
-  (setq tcl-mode-map (make-sparse-keymap))
-  (tcl-fill-mode-map))
-
-(if inferior-tcl-mode-map
-    ()
-  ;; FIXME Use keymap inheritance here?  FIXME we override comint
-  ;; keybindings here.  Maybe someone has a better set?
-  (setq inferior-tcl-mode-map (copy-keymap comint-mode-map))
-  (tcl-fill-inferior-map))
-
+    ["Tcl help" tcl-help-on-word tcl-help-directory-list]))
 
 (defvar inferior-tcl-buffer nil
   "*The current inferior-tcl process buffer.
@@ -421,27 +340,20 @@ Several functions exist which are useful to run from your
 `tcl-mode-hook' (see each function's documentation for more
 information):
 
-  tcl-guess-application
+  `tcl-guess-application'
     Guesses a default setting for `tcl-application' based on any
     \"#!\" line at the top of the file.
-  tcl-hashify-buffer
+  `tcl-hashify-buffer'
     Quotes all \"#\" characters that don't correspond to actual
     Tcl comments.  (Useful when editing code not originally created
     with this mode).
-  tcl-auto-fill-mode
+  `tcl-auto-fill-mode'
     Auto-filling of Tcl comments.
 
 Add functions to the hook with `add-hook':
 
-   (add-hook 'tcl-mode-hook 'tcl-guess-application)
+   (add-hook 'tcl-mode-hook 'tcl-guess-application)")
 
-Emacs 18 users must use `setq' instead:
-
-   (setq tcl-mode-hook (cons 'tcl-guess-application tcl-mode-hook))")
-
-
-(defvar inferior-tcl-mode-hook nil
-  "Hook for customizing Inferior Tcl mode.")
 
 (defvar tcl-proc-list
   '("proc" "method" "itcl_class" "body" "configbody" "class")
@@ -464,7 +376,8 @@ Call `tcl-set-font-lock-keywords' after changing this list.")
   '("if" "then" "else" "elseif" "for" "foreach" "break" "continue" "while"
     "eval" "case" "in" "switch" "default" "exit" "error" "proc" "return"
     "uplevel" "constructor" "destructor" "itcl_class" "loop" "for_array_keys"
-    "for_recursive_glob" "for_file" "method" "body" "configbody" "class")
+    "for_recursive_glob" "for_file" "method" "body" "configbody" "class"
+    "chain")
   "List of Tcl keywords.  Used only for highlighting.
 Default list includes some TclX keywords.
 Call `tcl-set-font-lock-keywords' after changing this list.")
@@ -475,11 +388,15 @@ This variable is generally set from `tcl-proc-regexp',
 `tcl-typeword-list', and `tcl-keyword-list' by the function
 `tcl-set-font-lock-keywords'.")
 
+(defvar tcl-font-lock-syntactic-keywords
+  ;; Mark the few `#' that are not comment-markers.
+  '(("[^;[{ \t\n][ \t]*\\(#\\)" (1 ".")))
+  "Syntactic keywords for `tcl-mode'.")
+
 ;; FIXME need some way to recognize variables because array refs look
 ;; like 2 sexps.
 (defvar tcl-type-alist
-  '(
-    ("proc" nil tcl-expr tcl-commands)
+  '(("proc" nil tcl-expr tcl-commands)
     ("method" nil tcl-expr tcl-commands)
     ("destructor" tcl-commands)
     ("constructor" tcl-commands)
@@ -499,8 +416,7 @@ This variable is generally set from `tcl-proc-regexp',
     ;; either a command or an expr, and there is no real way to look
     ;; forward.
     ("loop" nil tcl-expr tcl-expr tcl-commands)
-    ("loop" nil tcl-expr tcl-commands)
-    )
+    ("loop" nil tcl-expr tcl-commands))
   "Alist that controls indentation.
 \(Actually, this really only controls what happens on continuation lines).
 Each entry looks like `(KEYWORD TYPE ...)'.
@@ -523,20 +439,6 @@ is a Tcl expression, and the last argument is Tcl commands.")
   "If not `nil', debugging message will be printed during indentation.")
 
 
-
-;;
-;; Work around differences between various versions of Emacs.
-;;
-
-(defconst tcl-pps-has-arg-6
-  (or tcl-using-emacs-19
-      (and tcl-using-xemacs-19
-	   (condition-case nil
-	       (progn
-		 (parse-partial-sexp (point) (point) nil nil nil t)
-		 t)
-	     (error nil))))
-  "t if Emacs supports \"commentstop\" argument to `parse-partial-sexp'.")
 
 ;; Its pretty bogus to have to do this, but there is no easier way to
 ;; say "match not syntax-1 and not syntax-2".  Too bad you can't put
@@ -561,88 +463,6 @@ is a Tcl expression, and the last argument is Tcl commands.")
 ;; ?? Is there a bug now ??
 (defconst tcl-omit-ws-regexp "^[^ \t\n#}][^\n}]+}*[ \t]+")
 
-(defun tcl-internal-beginning-of-defun (&optional arg)
-  "Move backward to next beginning of defun.
-With argument, do this that many times.
-Returns t unless search stops due to end of buffer."
-  (interactive "p")
-  (if (or (null arg) (= arg 0))
-      (setq arg 1))
-  (let (success)
-    (while (progn
-	     (setq arg (1- arg))
-	     (and (>= arg 0)
-		  (setq success
-			(re-search-backward tcl-omit-ws-regexp nil 'move 1))))
-      (while (and (looking-at "[]#}]")
-		  (setq success
-			(re-search-backward tcl-omit-ws-regexp nil 'move 1)))))
-    (beginning-of-line)
-    (not (null success))))
-
-(defun tcl-internal-end-of-defun (&optional arg)
-  "Move forward to next end of defun.
-An end of a defun is found by moving forward from the beginning of one."
-  (interactive "p")
-  (if (or (null arg) (= arg 0)) (setq arg 1))
-  (let ((start (point)))
-    ;; Was forward-char.  I think this works a little better.
-    (forward-line)
-    (tcl-beginning-of-defun)
-    (while (> arg 0)
-      (while (and (re-search-forward tcl-omit-ws-regexp nil 'move 1)
-		  (progn (beginning-of-line) t)
-		  (looking-at "[]#}]")
-		  (progn (forward-line) t)))
-      (let ((next-line (save-excursion 
-			 (forward-line)
-			 (point))))
-	(while (< (point) next-line)
-	  (forward-sexp)))
-      (forward-line)
-      (if (> (point) start) (setq arg (1- arg))))))
-
-;; We can now use begining-of-defun as long as we set up a
-;; certain regexp.  In Emacs 18, we need our own function.
-(defalias 'tcl-beginning-of-defun
-  (if tcl-using-emacs-19
-      'beginning-of-defun
-    'tcl-internal-beginning-of-defun))
-
-;; Ditto end-of-defun.
-(defalias 'tcl-end-of-defun
-  (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
-      'end-of-defun
-    'tcl-internal-end-of-defun))
-
-;; Internal mark-defun that is used for losing Emacsen.
-(defun tcl-internal-mark-defun ()
-  "Put mark at end of Tcl function, point at beginning."
-  (interactive)
-  (push-mark (point))
-  (tcl-end-of-defun)
-  (if tcl-using-emacs-19
-      (push-mark (point) nil t)
-    (push-mark (point)))
-  (tcl-beginning-of-defun)
-  (backward-paragraph))
-
-;; In Emacs 19.23 and later, mark-defun works as advertised.  I
-;; don't know about XEmacs, so for now it and Emacs 18 just lose.
-(fset 'tcl-mark-defun
-      (if tcl-using-emacs-19-23
-	  'mark-defun
-	'tcl-internal-mark-defun))
-
-;; In Emacs 19, mark takes an additional "force" argument.  I
-;; don't know about XEmacs, so I'm just assuming it is the same.
-;; Emacs 18 doesn't have this argument.
-(defun tcl-mark ()
-  "Return mark, or nil if none."
-  (if tcl-using-emacs-19
-      (mark t)
-    (mark)))
-
 
 
 ;;
@@ -651,9 +471,8 @@ An end of a defun is found by moving forward from the beginning of one."
 
 (defun tcl-set-proc-regexp ()
   "Set `tcl-proc-regexp' from variable `tcl-proc-list'."
-  (setq tcl-proc-regexp (concat "^\\s-*\\("
-				(mapconcat 'identity tcl-proc-list "\\|")
-				"\\)[ \t]+")))
+  (setq tcl-proc-regexp
+	(concat "^\\s-*" (regexp-opt tcl-proc-list t) "[ \t]+")))
 
 (defun tcl-set-font-lock-keywords ()
   "Set `tcl-font-lock-keywords'.
@@ -665,21 +484,19 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 	       2 'font-lock-function-name-face)
 
 	 ;; Names of type-defining things.
-	 (list (concat "\\(\\s-\\|^\\)\\("
-		       ;; FIXME Use 'regexp-quote?
-		       (mapconcat 'identity tcl-typeword-list "\\|")
-		       "\\)\\(\\s-\\|$\\)")
+	 (list (concat "\\(\\s-\\|^\\)"
+		       (regexp-opt tcl-typeword-list t)
+		       "\\(\\s-\\|$\\)")
 	       2 'font-lock-type-face)
 
 	 ;; Keywords.  Only recognized if surrounded by whitespace.
 	 ;; FIXME consider using "not word or symbol", not
 	 ;; "whitespace".
-	 (cons (concat "\\(\\s-\\|^\\)\\("
+	 (cons (concat "\\(\\s-\\|^\\)"
 		       ;; FIXME Use regexp-quote? 
-		       (mapconcat 'identity tcl-keyword-list "\\|")
-		       "\\)\\(\\s-\\|$\\)")
-	       2)
-	 )))
+		       (regexp-opt tcl-keyword-list t)
+		       "\\(\\s-\\|$\\)")
+	       2))))
 
 (if tcl-proc-regexp
     ()
@@ -696,7 +513,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 ;;
 
 ;;;###autoload
-(defun tcl-mode ()
+(define-derived-mode tcl-mode nil "Tcl"
   "Major mode for editing Tcl code.
 Expression and list commands understand all Tcl brackets.
 Tab indents for Tcl code.
@@ -704,24 +521,21 @@ Paragraphs are separated by blank lines only.
 Delete converts tabs to spaces as it moves back.
 
 Variables controlling indentation style:
-  tcl-indent-level
+  `tcl-indent-level'
     Indentation of Tcl statements within surrounding block.
-  tcl-continued-indent-level
+  `tcl-continued-indent-level'
     Indentation of continuation line relative to first line of command.
 
 Variables controlling user interaction with mode (see variable
 documentation for details):
-  tcl-tab-always-indent
+  `tcl-tab-always-indent'
     Controls action of TAB key.
-  tcl-auto-newline
+  `tcl-auto-newline'
     Non-nil means automatically newline before and after braces, brackets,
     and semicolons inserted in Tcl code.
-  tcl-electric-hash-style
+  `tcl-electric-hash-style'
     Controls action of `#' key.
-  tcl-use-hairy-comment-detector
-    If t, use more complicated, but slower, comment detector.
-    This variable is only used in Emacs 19.
-  tcl-use-smart-word-finder
+  `tcl-use-smart-word-finder'
     If not nil, use a smarter, Tcl-specific way to find the current
     word when looking up help on a Tcl command.
 
@@ -732,101 +546,57 @@ already exist.
 
 Commands:
 \\{tcl-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map tcl-mode-map)
-  (setq major-mode 'tcl-mode)
-  (setq mode-name "Tcl")
-  (setq local-abbrev-table tcl-mode-abbrev-table)
-  (set-syntax-table tcl-mode-syntax-table)
+  (set (make-local-variable 'paragraph-start) "$\\|")
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
 
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (if (and tcl-using-emacs-19-23
-	   (>= emacs-minor-version 29))
-      (progn
-	;; In Emacs 19.29, you aren't supposed to start these with a ^.
-	(setq paragraph-start "$\\|")
-	(setq paragraph-separate paragraph-start))
-    (setq paragraph-start (concat "^$\\|" page-delimiter))
-    (setq paragraph-separate paragraph-start))
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'tcl-do-fill-paragraph)
+  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+  (set (make-local-variable 'fill-paragraph-function) 'tcl-do-fill-paragraph)
 
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'tcl-indent-line)
+  (set (make-local-variable 'indent-line-function) 'tcl-indent-line)
+  (set (make-local-variable 'comment-indent-function) 'tcl-comment-indent)
   ;; Tcl doesn't require a final newline.
   ;; (make-local-variable 'require-final-newline)
   ;; (setq require-final-newline t)
 
-  (make-local-variable 'comment-start)
-  (setq comment-start "# ")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "#+ *")
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-start-skip) "#+ *")
+  (set (make-local-variable 'comment-column) 40) ;why?  -stef
+  (set (make-local-variable 'comment-end) "")
 
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp "[^\n\^M]")
-  (make-local-variable 'outline-level)
-  (setq outline-level 'tcl-outline-level)
+  (set (make-local-variable 'outline-regexp) "[^\n\^M]")
+  (set (make-local-variable 'outline-level) 'tcl-outline-level)
 
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	'(tcl-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults)
+       '(tcl-font-lock-keywords nil nil nil beginning-of-defun
+	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
+	 (parse-sexp-lookup-properties . t)))
 
-  (make-local-variable 'imenu-create-index-function)
-  (setq imenu-create-index-function 'tcl-imenu-create-index-function)
-  (make-local-variable 'parse-sexp-ignore-comments)
-
+  (set (make-local-variable 'imenu-create-index-function)
+       'tcl-imenu-create-index-function)
+  
   ;; Settings for new dabbrev code.
-  (make-local-variable 'dabbrev-case-fold-search)
-  (setq dabbrev-case-fold-search nil)
-  (make-local-variable 'dabbrev-case-replace)
-  (setq dabbrev-case-replace nil)
-  (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
-  (setq dabbrev-abbrev-skip-leading-regexp "[$!]")
-  (make-local-variable 'dabbrev-abbrev-char-regexp)
-  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
+  (set (make-local-variable 'dabbrev-case-fold-search) nil)
+  (set (make-local-variable 'dabbrev-case-replace) nil)
+  (set (make-local-variable 'dabbrev-abbrev-skip-leading-regexp) "[$!]")
+  (set (make-local-variable 'dabbrev-abbrev-char-regexp) "\\sw\\|\\s_")
 
-  (if tcl-using-emacs-19
-      (progn
-	;; This can only be set to t in Emacs 19 and XEmacs.
-	;; Emacs 18 and Epoch lose.
-	(setq parse-sexp-ignore-comments t)
-	;; XEmacs has defun-prompt-regexp, but I don't believe
-	;; that it works for end-of-defun -- only for
-	;; beginning-of-defun.
-	(make-local-variable 'defun-prompt-regexp)
-	(setq defun-prompt-regexp tcl-omit-ws-regexp)
-	;; The following doesn't work in Lucid Emacs 19.6, but maybe
-	;; it will appear in later versions.
-	(make-local-variable 'add-log-current-defun-function)
-	(setq add-log-current-defun-function 'add-log-tcl-defun))
-    (setq parse-sexp-ignore-comments nil))
+  ;; This can only be set to t in Emacs 19 and XEmacs.
+  ;; Emacs 18 and Epoch lose.
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  ;; XEmacs has defun-prompt-regexp, but I don't believe
+  ;; that it works for end-of-defun -- only for
+  ;; beginning-of-defun.
+  (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
+  ;; The following doesn't work in Lucid Emacs 19.6, but maybe
+  ;; it will appear in later versions.
+  (set (make-local-variable 'add-log-current-defun-function)
+       'tcl-add-log-defun)
 
-  ;; Put Tcl menu into menubar for XEmacs.  This happens
-  ;; automatically in Emacs.
-  (if (and tcl-using-xemacs-19
-	   current-menubar
-	   (not (assoc "Tcl" current-menubar)))
-      (progn
-	(set-buffer-menubar (copy-sequence current-menubar))
-	(add-menu nil "Tcl" tcl-xemacs-menu)))
+  (easy-menu-add tcl-mode-menu)
   ;; Append Tcl menu to popup menu for XEmacs.
-  (if (and tcl-using-xemacs-19 (boundp 'mode-popup-menu))
+  (if (boundp 'mode-popup-menu)
       (setq mode-popup-menu
-	    (cons (concat mode-name " Mode Commands") tcl-xemacs-menu)))
-
-  ;; If hilit19 is loaded, add our stuff.
-  (if (featurep 'hilit19)
-      (tcl-hilit))
-
-  (run-hooks 'tcl-mode-hook))
+	    (cons (concat mode-name " Mode Commands") tcl-mode-menu))))
 
 
 
@@ -903,17 +673,13 @@ from the following list to take place:
 		       (point)))
 	   (comment-p (tcl-in-comment)))
       (cond
-       ((= ipoint (save-excursion
-		    (beginning-of-line)
-		    (point)))
+       ((= ipoint (line-beginning-position))
 	(beginning-of-line)
 	(tcl-indent-line)
 	;; If indenting didn't leave us in column 0, go to the
 	;; indentation.  Otherwise leave point at end of line.  This
 	;; is a hack.
-	(if (= (point) (save-excursion
-			 (beginning-of-line)
-			 (point)))
+	(if (= (point) (line-beginning-position))
 	    (end-of-line)
 	  (back-to-indentation)))
        ((and comment-p (looking-at "[ \t]*$"))
@@ -933,7 +699,7 @@ from the following list to take place:
 	(tcl-indent-line))
        ((not comment-p)
 	(tcl-indent-line)
-	(tcl-indent-for-comment))
+	(comment-indent))
        (t
 	;; Go to start of comment.  We don't leave point where it is
 	;; because we want to skip comment-start-skip.
@@ -943,7 +709,7 @@ from the following list to take place:
 (defun tcl-indent-line ()
   "Indent current line as Tcl code.
 Return the amount the indentation changed by."
-  (let ((indent (calculate-tcl-indent nil))
+  (let ((indent (tcl-calculate-indent nil))
 	beg shift-amt
 	(case-fold-search nil)
 	(pos (- (point-max) (point))))
@@ -1015,7 +781,7 @@ See documentation for variable `tcl-type-alist' for more information."
 	 (message "Indentation type %s" result))
     result))
 
-(defun calculate-tcl-indent (&optional parse-start)
+(defun tcl-calculate-indent (&optional parse-start)
   "Return appropriate indentation for current line as Tcl code.
 In usual case returns an integer: the column to indent to.
 Returns nil if line starts inside a string, t if in a comment."
@@ -1037,7 +803,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	   found-next-line)
       (if parse-start
 	  (goto-char parse-start)
-	(tcl-beginning-of-defun))
+	(beginning-of-defun))
       (while (< (point) indent-point)
 	(setq parse-start (point))
 	(setq state (parse-partial-sexp (point) indent-point 0))
@@ -1117,7 +883,7 @@ Returns nil if line starts inside a string, t if in a comment."
 
 
 
-(defun indent-tcl-exp ()
+(defun tcl-indent-exp ()
   "Indent each line of the Tcl grouping following point."
   (interactive)
   (let ((indent-stack (list nil))
@@ -1190,7 +956,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		(setq this-indent (car indent-stack))
 	      ;; Just started a new nesting level.
 	      ;; Compute the standard indent for this level.
-	      (let ((val (calculate-tcl-indent
+	      (let ((val (tcl-calculate-indent
 			  (if (car indent-stack)
 			      (- (car indent-stack))))))
 		(setcar indent-stack
@@ -1239,15 +1005,14 @@ Returns nil if line starts inside a string, t if in a comment."
     (nreverse alist)))
 
 ;; FIXME Definition of function is very ad-hoc.  Should use
-;; tcl-beginning-of-defun.  Also has incestuous knowledge about the
+;; beginning-of-defun.  Also has incestuous knowledge about the
 ;; format of tcl-proc-regexp.
-(defun add-log-tcl-defun ()
+(defun tcl-add-log-defun ()
   "Return name of Tcl function point is in, or nil."
   (save-excursion
     (end-of-line)
     (if (re-search-backward (concat tcl-proc-regexp "\\([^ \t\n{]+\\)") nil t)
-	(buffer-substring (match-beginning 2)
-			  (match-end 2)))))
+	(match-string 2))))
 
 (defun tcl-outline-level ()
   (save-excursion
@@ -1269,21 +1034,17 @@ Returns nil if line starts inside a string, t if in a comment."
 
 (defun tcl-filter (proc string)
   (let ((inhibit-quit t))
-    (save-excursion
-      (set-buffer (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
       (goto-char (process-mark proc))
       ;; Delete prompt if requested.
       (if (marker-buffer inferior-tcl-delete-prompt-marker)
 	  (progn
 	    (delete-region (point) inferior-tcl-delete-prompt-marker)
 	    (set-marker inferior-tcl-delete-prompt-marker nil)))))
-  (if tcl-using-emacs-19
-      (comint-output-filter proc string)
-    (funcall comint-output-filter string)))
+  (comint-output-filter proc string))
 
 (defun tcl-send-string (proc string)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (goto-char (process-mark proc))
     (beginning-of-line)
     (if (looking-at comint-prompt-regexp)
@@ -1291,8 +1052,7 @@ Returns nil if line starts inside a string, t if in a comment."
   (comint-send-string proc string))
 
 (defun tcl-send-region (proc start end)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (goto-char (process-mark proc))
     (beginning-of-line)
     (if (looking-at comint-prompt-regexp)
@@ -1333,9 +1093,9 @@ Prefix argument means switch to the Tcl buffer afterwards."
 Prefix argument means switch to the Tcl buffer afterwards."
   (interactive "P")
   (save-excursion
-    (tcl-end-of-defun)
+    (end-of-defun)
     (let ((end (point)))
-      (tcl-beginning-of-defun)
+      (beginning-of-defun)
       (tcl-eval-region (point) end)))
   (if and-go (switch-to-tcl t)))
 
@@ -1345,7 +1105,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
 ;; Inferior Tcl mode itself.
 ;;
 
-(defun inferior-tcl-mode ()
+(define-derived-mode inferior-tcl-mode comint-mode "Inferior Tcl"
   "Major mode for interacting with Tcl interpreter.
 
 A Tcl process can be started with M-x inferior-tcl.
@@ -1357,42 +1117,29 @@ You can send text to the inferior Tcl process from other buffers
 containing Tcl source.
 
 Variables controlling Inferior Tcl mode:
-  tcl-application
+  `tcl-application'
     Name of program to run.
-  tcl-command-switches
+  `tcl-command-switches'
     Command line arguments to `tcl-application'.
-  tcl-prompt-regexp
+  `tcl-prompt-regexp'
     Matches prompt.
-  inferior-tcl-source-command
+  `inferior-tcl-source-command'
     Command to use to read Tcl file in running application.
-  inferior-tcl-buffer
+  `inferior-tcl-buffer'
     The current inferior Tcl process buffer.  See variable
     documentation for details on multiple-process support.
 
 The following commands are available:
 \\{inferior-tcl-mode-map}"
-  (interactive)
-  (comint-mode)
-  (setq comint-prompt-regexp (or tcl-prompt-regexp
-				 (concat "^"
-					 (regexp-quote tcl-application)
-					 ">")))
-  (setq major-mode 'inferior-tcl-mode)
-  (setq mode-name "Inferior Tcl")
-  (if (boundp 'modeline-process)
-      (setq modeline-process '(": %s"))	; For XEmacs.
-    (setq mode-line-process '(": %s")))
-  (use-local-map inferior-tcl-mode-map)
+  (set (make-local-variable 'comint-prompt-regexp)
+       (or tcl-prompt-regexp
+	   (concat "^" (regexp-quote tcl-application) ">")))
+  (setq mode-line-process '(": %s"))
   (setq local-abbrev-table tcl-mode-abbrev-table)
   (set-syntax-table tcl-mode-syntax-table)
-  (if tcl-using-emacs-19
-      (progn
-	(make-local-variable 'defun-prompt-regexp)
-	(setq defun-prompt-regexp tcl-omit-ws-regexp)))
-  (make-local-variable 'inferior-tcl-delete-prompt-marker)
-  (setq inferior-tcl-delete-prompt-marker (make-marker))
-  (set-process-filter (get-buffer-process (current-buffer)) 'tcl-filter)
-  (run-hooks 'inferior-tcl-mode-hook))
+  (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
+  (set (make-local-variable 'inferior-tcl-delete-prompt-marker) (make-marker))
+  (set-process-filter (get-buffer-process (current-buffer)) 'tcl-filter))
 
 ;;;###autoload
 (defun inferior-tcl (cmd)
@@ -1413,8 +1160,7 @@ See documentation for function `inferior-tcl-mode' for more information."
   (setq inferior-tcl-buffer "*inferior-tcl*")
   (switch-to-buffer "*inferior-tcl*"))
 
-(and (fboundp 'defalias)
-     (defalias 'run-tcl 'inferior-tcl))
+(defalias 'run-tcl 'inferior-tcl)
 
 
 
@@ -1465,8 +1211,7 @@ simpler version that is often right, and works in Emacs 18."
 	real-comment
 	last-cstart)
     (while (and (not last-cstart) (< (point) end))
-      (setq real-comment nil)		;In case we've looped around and it is
-                                        ;set.
+      (setq real-comment nil)	 ;In case we've looped around and it is set.
       (setq state (parse-partial-sexp (point) end nil nil state t))
       (if (nth 4 state)
 	  (progn
@@ -1494,29 +1239,11 @@ simpler version that is often right, and works in Emacs 18."
 	 (goto-char last-cstart))
     (cons real-comment state)))
 
-(defun tcl-hairy-in-comment ()
+(defun tcl-in-comment ()
   "Return t if point is in a comment, and leave point at beginning of comment."
   (let ((save (point)))
-    (tcl-beginning-of-defun)
+    (beginning-of-defun)
     (car (tcl-hairy-scan-for-comment nil save nil))))
-
-(defun tcl-simple-in-comment ()
-  "Return t if point is in comment, and leave point at beginning of comment.
-This is faster that `tcl-hairy-in-comment', but is correct less often."
-  (let ((save (point))
-	comment)
-    (beginning-of-line)
-    (while (and (< (point) save) (not comment))
-      (search-forward "#" save 'move)
-      (setq comment (tcl-real-comment-p)))
-    comment))
-
-(defun tcl-in-comment ()
-  "Return t if point is in comment, and leave point at beginning of comment."
-  (if (and tcl-pps-has-arg-6
-	   tcl-use-hairy-comment-detector)
-      (tcl-hairy-in-comment)
-    (tcl-simple-in-comment)))
 
 (defun tcl-do-fill-paragraph (ignore)
   "fill-paragraph function for Tcl mode.  Only fills in a comment."
@@ -1573,9 +1300,7 @@ This is faster that `tcl-hairy-in-comment', but is correct less often."
 	      (do-auto-fill)
 	      (save-excursion
 		(back-to-indentation)
-		(delete-region (point) (save-excursion
-					 (beginning-of-line)
-					 (point)))
+		(delete-region (point) (line-beginning-position))
 		(indent-to-column col)))))))
 
 
@@ -1592,42 +1317,34 @@ to update the alist.")
 (defvar tcl-help-alist nil
   "Alist with command names as keys and filenames as values.")
 
+(defun tcl-files-alist (dir &optional alist)
+  "Recursively add all pairs (FILE . PATH) under DIR to ALIST."
+  (dolist (file (directory-files dir t) alist)
+    (cond
+     ((not (file-directory-p file))
+      (push (cons (file-name-nondirectory file) file) alist))
+     ((member (file-name-nondirectory file) '("." "..")))
+     (t (setq alist (tcl-files-alist file alist))))))
+
 (defun tcl-help-snarf-commands (dirlist)
-  "Build alist of commands and filenames."
-  (while dirlist
-    (let ((files (directory-files (car dirlist) t)))
-      (while files
-	(if (and (file-directory-p (car files))
-		 (not
-		  (let ((fpart (file-name-nondirectory (car files))))
-		    (or (equal fpart ".")
-			(equal fpart "..")))))
-	    (let ((matches (directory-files (car files) t)))
-	      (while matches
-		(or (file-directory-p (car matches))
-		    (setq tcl-help-alist
-			  (cons
-			   (cons (file-name-nondirectory (car matches))
-				 (car matches))
-			   tcl-help-alist)))
-		(setq matches (cdr matches)))))
-	(setq files (cdr files))))
-    (setq dirlist (cdr dirlist))))
+  "Return alist of commands and filenames."
+  (let ((alist nil))
+    (dolist (dir dirlist alist)
+      (when (file-directory-p dir)
+	(setq alist (tcl-files-alist dir alist))))))
 
 (defun tcl-reread-help-files ()
   "Set up to re-read files, and then do it."
   (interactive)
   (message "Building Tcl help file index...")
   (setq tcl-help-saved-dirs tcl-help-directory-list)
-  (setq tcl-help-alist nil)
-  (tcl-help-snarf-commands tcl-help-directory-list)
+  (setq tcl-help-alist (tcl-help-snarf-commands tcl-help-directory-list))
   (message "Building Tcl help file index...done"))
 
 (defun tcl-word-no-props ()
-  "Like current-word, but strips properties."
+  "Like `current-word', but strips properties."
   (let ((word (current-word)))
-    (and (fboundp 'set-text-properties)
-	 (set-text-properties 0 (length word) nil word))
+    (set-text-properties 0 (length word) nil word)
     word))
 
 (defun tcl-current-word (flag)
@@ -1666,7 +1383,7 @@ Prefix argument means invert sense of `tcl-use-smart-word-finder'."
 	 (if (or (null word) (string= word ""))
 	     "Help on Tcl command: "
 	   (format "Help on Tcl command (default %s): " word))
-	 tcl-help-alist nil t)))
+	 tcl-help-alist nil t nil nil word)))
     current-prefix-arg))
   (if (not (equal tcl-help-directory-list tcl-help-saved-dirs))
       (tcl-reread-help-files))
@@ -1763,8 +1480,6 @@ Prefix argument means switch to the Tcl buffer afterwards."
 (defun tcl-auto-fill-mode (&optional arg)
   "Like `auto-fill-mode', but controls filling of Tcl comments."
   (interactive "P")
-  (and (not tcl-using-emacs-19)
-       (error "This feature is not supported in Emacs 18"))
   ;; Following code taken from "auto-fill-mode" (simple.el).
   (prog1
       (setq auto-fill-function
@@ -1774,20 +1489,6 @@ Prefix argument means switch to the Tcl buffer afterwards."
 		'tcl-do-auto-fill
 	      nil))
     (force-mode-line-update)))
-
-;; hilit19 support from "Chris Alfeld" <calfeld@math.utah.edu>
-(defun tcl-hilit ()
-  (hilit-set-mode-patterns
-   '(tcl-mode)
-   '(
-     ("\\(^ *\\|\; *\\)#.*$" nil comment)
-     ("[^\\]\\(\\$[A-Za-z0-9\\-\\_./\\(\\)]+\\)" 1 label)
-     ("[^_]\\<\\(append\\|array\\|auto_execok\\|auto_load\\|auto_mkindex\\|auto_reset\\|break\\|case\\|catch\\|cd\\|close\\|concat\\|continue\\|eof\\|error\\|eval\\|exec\\|exit\\|expr\\|file\\|flush\\|for\\|foreach\\|format\\|gets\\|glob\\|global\\|history\\|if\\|incr\\|info\\|join\\|lappend\\|lindex\\|linsert\\|list\\|llength\\|lrange\\|lreplace\\|lsearch\\|lsort\\|open\\|pid\\|proc\\|puts\\|pwd\\|read\\|regexp\\|regsub\\|rename\\|return\\|scan\\|seek\\|set\\|source\\|split\\|string\\|switch\\|tell\\|time\\|trace\\|unknown\\|unset\\|uplevel\\|upvar\\|while\\)\\>[^_]" 1 keyword) ; tcl keywords
-     ("[^_]\\<\\(after\\|bell\\|bind\\|bindtags\\|clipboard\\|destroy\\|fileevent\\|focus\\|grab\\|image\\|lower\\|option\\|pack\\|place\\|raise\\|scale\\|selection\\|send\\|subst\\|tk\\|tk_popup\\|tkwait\\|update\\|winfo\\|wm\\)\\>[^_]" 1 define) ; tk keywords
-     ("[^_]\\<\\(button\\|canvas\\|checkbutton\\|entry\\|frame\\|label\\|listbox\\|menu\\|menubutton\\|message\\|radiobutton\\|scrollbar\\|text\\|toplevel\\)\\>[^_]" 1 decl) ; tk widgets
-     ("[^_]\\<\\(tix\\((ButtonBox\\|Baloon\\|Control\\|DirList\\|ExFileSelectBox\\|ExFileSelectDialog\\|FileEntry\\|HList\\|LabelEntry\\|LabelFrame\\|NoteBook\\|OptionMenu\\|PanedWindow\\|PopupMenu\\|ScrolledHList\\|ScrolledText\\|ScrolledWindow\\|Select\\|StdButtonBox\\)\\)\\>[^_]" 1 defun) ; tix widgets
-     ("[{}\\\"\\(\\)]" nil include) ; misc punctuation
-     )))
 
 (defun tcl-electric-hash (&optional count)
   "Insert a `#' and quote if it does not start a real comment.
@@ -1830,76 +1531,34 @@ styles."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (if (and tcl-pps-has-arg-6 tcl-use-hairy-comment-detector)
-	(let (state
-	      result)
-	  (while (< (point) (point-max))
-	    (setq result (tcl-hairy-scan-for-comment state (point-max) t))
-	    (if (car result)
-		(beginning-of-line 2)
-	      (backward-char)
-	      (if (eq ?# (following-char))
-		  (insert "\\"))
-	      (forward-char))
-	    (setq state (cdr result))))
-      (while (and (< (point) (point-max))
-		  (search-forward "#" nil 'move))
-	(if (tcl-real-comment-p)
+    (let (state
+	  result)
+      (while (< (point) (point-max))
+	(setq result (tcl-hairy-scan-for-comment state (point-max) t))
+	(if (car result)
 	    (beginning-of-line 2)
-	  ;; There's really no good way for the simple converter to
-	  ;; work.  So we just quote # if it isn't already quoted.
-	  ;; Bogus, but it works.
 	  (backward-char)
-	  (if (not (eq ?\\ (preceding-char)))
+	  (if (eq ?# (following-char))
 	      (insert "\\"))
-	  (forward-char))))))
+	  (forward-char))
+	(setq state (cdr result))))))
 
-(defun tcl-indent-for-comment ()
-  "Indent this line's comment to comment column, or insert an empty comment.
-Is smart about syntax of Tcl comments.
-Parts of this were taken from `indent-for-comment'."
-  (interactive "*")
-  (end-of-line)
-  (or (tcl-in-comment)
-      (progn
-	;; Not in a comment, so we have to insert one.  Create an
-	;; empty comment (since there isn't one on this line).  If
-	;; line is not blank, make sure we insert a ";" first.
-	(skip-chars-backward " \t")
-	(let ((eolpoint (point)))
-	  (beginning-of-line)
-	  (if (/= (point) eolpoint)
-	      (progn
-		(goto-char eolpoint)
-		(insert
-		 (if (tcl-real-command-p) "" ";")
-		 "# ")
-		(backward-char))))))
-  ;; Point is just after the "#" starting a comment.  Move it as
-  ;; appropriate.
-  (let* ((indent (funcall comment-indent-function))
-	 (begpos (progn
-		   (backward-char)
-		   (point))))
-    (if (/= begpos indent)
-	(progn
-	  (skip-chars-backward " \t" (save-excursion
-				       (beginning-of-line)
-				       (point)))
-	  (delete-region (point) begpos)
-	  (indent-to indent)))
-    (looking-at comment-start-skip)	; Always true.
-    (goto-char (match-end 0))
-    ;; I don't like the effect of the next two.
-    ;;(skip-chars-backward " \t" (match-beginning 0))
-    ;;(skip-chars-backward "^ \t" (match-beginning 0))
-    ))
+(defun tcl-comment-indent ()
+  "Return the desired indentation, but be careful to add a `;' if needed."
+  (save-excursion
+    ;; If line is not blank, make sure we insert a ";" first.
+    (skip-chars-backward " \t")
+    (unless (or (bolp) (tcl-real-command-p))
+      (insert ";")
+      ;; Try and erase a non-significant char to keep charpos identical.
+      (if (memq (char-after) '(?\t ?\ )) (delete-char 1))))
+  (funcall (default-value 'comment-indent-function)))
 
 ;; The following was inspired by the Tcl editing mode written by
 ;; Gregor Schmid <schmid@fb3-s7.math.TU-Berlin.DE>.  His version also
 ;; attempts to snarf the command line options from the command line,
 ;; but I didn't think that would really be that helpful (doesn't seem
-;; like it owould be right enough.  His version also looks for the
+;; like it would be right enough.  His version also looks for the
 ;; "#!/bin/csh ... exec" hack, but that seemed even less useful.
 ;; FIXME should make sure that the application mentioned actually
 ;; exists.
@@ -1909,18 +1568,7 @@ The first line is assumed to look like \"#!.../program ...\"."
   (save-excursion
     (goto-char (point-min))
     (if (looking-at "#![^ \t]*/\\([^ \t\n/]+\\)\\([ \t]\\|$\\)")
-	(progn
-	  (make-local-variable 'tcl-application)
-	  (setq tcl-application (buffer-substring (match-beginning 1)
-						  (match-end 1)))))))
-
-;; This only exists to put on the menubar.  I couldn't figure out any
-;; other way to do it.  FIXME should take "number of #-marks"
-;; argument.
-(defun tcl-uncomment-region (beg end)
-  "Uncomment region."
-  (interactive "r")
-  (comment-region beg end -1))
+	(set (make-local-variable 'tcl-application) (match-string 1)))))
 
 
 
@@ -1934,19 +1582,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (defun tcl-popup-menu (e)
   (interactive "@e")
-  (and tcl-using-emacs-19
-       (not tcl-using-xemacs-19)
-       (if tcl-using-emacs-19-23
-	   (require 'lmenu)
-	 ;; CAVEATS:
-	 ;; * lmenu.el provides 'menubar, which is bogus.
-	 ;; * lmenu.el causes menubars to be turned on everywhere.
-	 ;;   Doubly bogus!
-	 ;; Both of these problems are fixed in Emacs 19.23.  People
-	 ;; using an Emacs before that just suffer.
-	 (require 'menubar "lmenu")))  ;; This is annoying
-  ;; IMHO popup-menu should be autoloaded.  Oh well.
-  (popup-menu tcl-xemacs-menu))
+  (popup-menu tcl-mode-menu))
 
 
 
@@ -1958,54 +1594,27 @@ The first line is assumed to look like \"#!.../program ...\"."
 ;; of expansion or splitting.  Tcl quoting sure sucks.
 (defun tcl-quote (string)
   "Quote STRING according to Tcl rules."
-  (mapconcat (function (lambda (char)
-			 (if (memq char '(?[ ?] ?{ ?} ?\\ ?\" ?$ ?  ?\;))
-			     (concat "\\" (char-to-string char))
-			   (char-to-string char))))
+  (mapconcat (lambda (char)
+	       (if (memq char '(?[ ?] ?{ ?} ?\\ ?\" ?$ ?  ?\;))
+		   (concat "\\" (char-to-string char))
+		 (char-to-string char)))
 	     string ""))
-
-
 
 ;;
 ;; Bug reporting.
 ;;
-
-(and (fboundp 'eval-when-compile)
-     (eval-when-compile
-       (require 'reporter)))
-
-(defun tcl-submit-bug-report ()
-  "Submit via mail a bug report on Tcl mode."
-  (interactive)
-  (require 'reporter)
-  (and
-   (y-or-n-p "Do you really want to submit a bug report on Tcl mode? ")
-   (reporter-submit-bug-report
-    tcl-maintainer
-    (concat "Tcl mode " tcl-version)
-    '(tcl-indent-level
-      tcl-continued-indent-level
-      tcl-auto-newline
-      tcl-tab-always-indent
-      tcl-use-hairy-comment-detector
-      tcl-electric-hash-style
-      tcl-help-directory-list
-      tcl-use-smart-word-finder
-      tcl-application
-      tcl-command-switches
-      tcl-prompt-regexp
-      inferior-tcl-source-command
-      tcl-using-emacs-19
-      tcl-using-emacs-19-23
-      tcl-using-xemacs-19
-      tcl-proc-list
-      tcl-proc-regexp
-      tcl-typeword-list
-      tcl-keyword-list
-      tcl-font-lock-keywords
-      tcl-pps-has-arg-6))))
-
 
+
+;; These are relics kept "just in case".
+(defalias 'tcl-uncomment-region 'uncomment-region)
+(defalias 'tcl-indent-for-comment 'comment-indent)
+(defalias 'add-log-tcl-defun 'tcl-add-log-defun)
+(defalias 'indent-tcl-exp 'tcl-indent-exp)
+(defalias 'calculate-tcl-indent 'tcl-calculate-indent)
+(defalias 'tcl-beginning-of-defun 'beginning-of-defun)
+(defalias 'tcl-end-of-defun 'end-of-defun)
+(defalias 'tcl-mark-defun 'mark-defun)
+(defun tcl-mark () (mark t))
 
 (provide 'tcl)
 
