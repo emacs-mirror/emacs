@@ -1118,7 +1118,7 @@ be used instead of a colon (:) to separate the hour and minute parts."
 	      (if (equal ?a (downcase (aref s (match-beginning 2))))
 		  0 1200)))
 	  ((string-match        ; Hour and minute  XX:XXam or XX:XXpm
-	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.][\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
+	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-int
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
