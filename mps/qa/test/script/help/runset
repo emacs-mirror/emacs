@@ -1,5 +1,5 @@
 run tests from a test-set
-% $HopeName$
+% $HopeName: MMQA_harness!script:help:runset(trunk.2) $
 
 Usage: qa runset [<options>] <testsetfile>
 
@@ -18,5 +18,5 @@ logs directory (see 'qa help options'):
  res.log  -- results log: test specifications, results and verdict
  full.log -- full log: specifications, results, verdict and transcript
 
-To run tests individually, use the 'try' or 'run' commands.
+To run tests individually, use the 'run' command.
 

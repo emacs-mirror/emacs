@@ -1,12 +1,11 @@
 run tests, reporting results and verdict
-% $HopeName$
+% $HopeName: MMQA_harness!script:help:run(trunk.2) $
 
-Usage: qa try [<options>] <testfile> [<testfile> ...]
+Usage: qa run [<options>] <testfile> [<testfile> ...]
 
 'run' runs tests individually. The test libraries must previously
 have been compiled with 'clib'.
 
-'try' shows the test's output as it runs, then when it finishes,
+'run' shows the test's output as it runs, then when it finishes,
 displays test information, results, and the verdict: PASS or FAIL.
-If you don't want these details, use 'try' instead of 'run'.
 
