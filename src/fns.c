@@ -820,7 +820,9 @@ DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
 They must have the same data type.\n\
 Conses are compared by comparing the cars and the cdrs.\n\
 Vectors and strings are compared element by element.\n\
-Numbers are compared by value.  Symbols must match exactly.")
+Numbers are compared by value, but integers cannot equal floats.\n\
+ (Use `=' if you want integers and floats to be able to be equal.)\n\
+Symbols must match exactly.")
   (o1, o2)
      register Lisp_Object o1, o2;
 {
@@ -838,10 +840,8 @@ do_cdr:
   QUIT;
   if (EQ (o1, o2)) return Qt;
 #ifdef LISP_FLOAT_TYPE
-  if (NUMBERP (o1) && NUMBERP (o2))
-    {
-      return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
-    }
+  if (FLOATP (o1) && FLOATP (o2))
+    return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
 #endif
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
   if (XTYPE (o1) == Lisp_Cons
