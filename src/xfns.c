@@ -2136,8 +2136,10 @@ be shared by the new frame.")
      or making it visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
 
+#ifdef USE_X_TOOLKIT
   /* Compute the size of the menubar and display it.  */
   initialize_frame_menubar (f);
+#endif /* USE_X_TOOLKIT */
 
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
