@@ -374,7 +374,7 @@ It serves as a menu to find any of the occurrences in this buffer.
 ;; to make that display both SPC and Y.
 (defconst query-replace-help
   "Type Space or `y' to replace one match, Delete or `n' to skip to next,
-ESC or `q' to exit, Period to replace one match and exit,
+RET or `q' to exit, Period to replace one match and exit,
 Comma to replace but not move point immediately,
 C-r to enter recursive edit (\\[exit-recursive-edit] to get out again),
 C-w to delete match and recursive edit,
@@ -397,8 +397,6 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "y" 'act)
 (define-key query-replace-map "n" 'skip)
 (define-key query-replace-map "," 'act-and-show)
-(define-key query-replace-map "\e" 'exit)
-(define-key query-replace-map [escape] 'exit)
 (define-key query-replace-map "q" 'exit)
 (define-key query-replace-map "\r" 'exit)
 (define-key query-replace-map [return] 'exit)
