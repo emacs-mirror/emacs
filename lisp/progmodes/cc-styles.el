@@ -302,8 +302,9 @@ done internally by CC Mode, there's hardly ever a reason to use it."
 			   (prompt (format "Which %s indentation style? "
 					   mode-name)))
 		       (completing-read prompt c-style-alist nil t
-					(cons c-indentation-style 0)
-					'c-set-style-history))))
+					nil
+					'c-set-style-history
+					c-indentation-style))))
   (c-initialize-builtin-style)
   (let ((vars (c-get-style-variables stylename nil)))
     (mapcar (lambda (elem)
