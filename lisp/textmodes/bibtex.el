@@ -2573,27 +2573,37 @@ non-nil.
              bibtex-parse-keys-timeout t
              'bibtex-parse-buffers-stealthily)))
   ;; Install stealthy parse function if not already installed
-  (set (make-local-variable 'paragraph-start) "[ \f\n\t]*$")
-  (set (make-local-variable 'comment-start) bibtex-comment-start)
-  (set (make-local-variable 'comment-start-skip) bibtex-comment-start)
-  (set (make-local-variable 'comment-column) 0)
-  (set (make-local-variable 'normal-auto-fill-function)
-       'bibtex-do-auto-fill)
-  (set (make-local-variable 'font-lock-defaults)
-       '(bibtex-font-lock-keywords
-         nil t ((?$ . "\"")
-                ;; Mathematical expressions should be fontified as strings
-                (?\" . ".")
-                ;; Quotes are field delimiters and quote-delimited
-                ;; entries should be fontified in the same way as
-                ;; brace-delimited ones
-                )))
+  (make-local-variable 'paragraph-start)
+  (setq paragraph-start "[ \f\n\t]*$")
+  (make-local-variable 'comment-start)
+  (setq comment-start bibtex-comment-start)
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip bibtex-comment-start)
+  (make-local-variable 'comment-column)
+  (setq comment-column 0)
+  (make-local-variable 'defun-prompt-regexp)
+  (setq defun-prompt-regexp "^@[a-zA-Z0-9]+")
+  (make-local-variable 'outline-regexp)
+  (setq outline-regexp "@")
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'bibtex-do-auto-fill)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+	'(bibtex-font-lock-keywords
+	  nil t ((?$ . "\"")
+		 ;; Mathematical expressions should be fontified as strings
+		 (?\" . ".")
+		 ;; Quotes are field delimiters and quote-delimited
+		 ;; entries should be fontified in the same way as
+		 ;; brace-delimited ones
+		 )))
+  (make-local-variable 'font-lock-mark-block-function)
   (setq font-lock-mark-block-function
-        (lambda ()
-          (set-mark (bibtex-end-of-entry))
-          (bibtex-beginning-of-entry)))
+	(lambda ()
+	  (set-mark (bibtex-end-of-entry))
+	  (bibtex-beginning-of-entry)))
   (setq imenu-generic-expression
-        (list (list nil bibtex-reference-head bibtex-key-in-head)))
+	(list (list nil bibtex-reference-head bibtex-key-in-head)))
   (setq imenu-case-fold-search t)
   ;; XEmacs needs easy-menu-add, Emacs does not care
   (easy-menu-add bibtex-edit-menu)
