@@ -1169,7 +1169,7 @@ Remaining arguments are strings to give program as arguments.")
   else
     {
       /* Setup coding systems for communicating with the process.  */
-      /* Qt denotes that we have not yet called Ffind_coding_system.  */
+      /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
       Lisp_Object coding_systems = Qt;
       Lisp_Object val, *args2;
       struct gcpro gcpro1;
@@ -1180,7 +1180,7 @@ Remaining arguments are strings to give program as arguments.")
 	  args2[0] = Qstart_process;
 	  for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	  GCPRO1 (proc);
-	  coding_systems = Ffind_coding_system (nargs + 1, args2);
+	  coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	  UNGCPRO;
 	  if (CONSP (coding_systems))
 	    val = XCONS (coding_systems)->car;
@@ -1197,7 +1197,8 @@ Remaining arguments are strings to give program as arguments.")
 	      args2[0] = Qstart_process;
 	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	      GCPRO1 (proc);
-	      coding_systems = Ffind_coding_system (nargs + 1, args2);
+	      coding_systems =
+		Ffind_operation_coding_system (nargs + 1, args2);
 	      UNGCPRO;
 	    }
 	  if (CONSP (coding_systems))
@@ -1902,7 +1903,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     {
       /* Setup coding systems for communicating with the network stream.  */
       struct gcpro gcpro1;
-      /* Qt denotes that we have not yet called Ffind_coding_system.  */
+      /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
       Lisp_Object coding_systems = Qt;
       Lisp_Object args[5], val;
 
@@ -1911,7 +1912,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	  args[0] = Qopen_network_stream, args[1] = name,
 	    args[2] = buffer, args[3] = host, args[4] = service;
 	  GCPRO1 (proc);
-	  coding_systems = Ffind_coding_system (5, args);
+	  coding_systems = Ffind_operation_coding_system (5, args);
 	  UNGCPRO;
 	  if (CONSP (coding_systems))
 	    val = XCONS (coding_systems)->car;
@@ -1927,7 +1928,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	      args[0] = Qopen_network_stream, args[1] = name,
 		args[2] = buffer, args[3] = host, args[4] = service;
 	      GCPRO1 (proc);
-	      coding_systems = Ffind_coding_system (5, args);
+	      coding_systems = Ffind_operation_coding_system (5, args);
 	      UNGCPRO;
 	    }
 	  if (CONSP (coding_systems))
