@@ -639,7 +639,7 @@ char *get_emacs_configuration (void);
 extern Lisp_Object Vsystem_configuration;
 
 void
-init_environment ()
+init_environment (char ** argv)
 {
   int len;
   static const char * const tempdirs[] = {
@@ -758,7 +758,7 @@ init_environment ()
 
   {
     char *p;
-    char modname[MAX_PATH];
+    static char modname[MAX_PATH];
 
     if (!GetModuleFileName (NULL, modname, MAX_PATH))
       abort ();
@@ -767,6 +767,10 @@ init_environment ()
     *p = 0;
 
     SetCurrentDirectory (modname);
+
+    /* Ensure argv[0] has the full path to Emacs.  */
+    *p = '\\';
+    argv[0] = modname;
   }
 
   init_user_info ();
