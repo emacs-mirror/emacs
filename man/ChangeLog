@@ -1,3 +1,32 @@
+2005-02-25  Richard M. Stallman  <rms@gnu.org>
+
+	* screen.texi (Screen): Explain better about cursors and mode lines;
+	don't presuppose text terminals.
+	(Point): Don't assume just one cursor.
+	Clarify explanation of cursors.
+	(Echo Area, Menu Bar): Cleanups.
+
+	* mini.texi (Minibuffer): Prompts are highlighted.
+	(Minibuffer Edit): Newline = C-j only on text terminals.
+	Clarify resize-mini-windows values.
+	Mention M-PAGEUP and M-PAGEDOWN.
+	(Completion Commands): Mouse-1 like Mouse-2.
+	(Minibuffer History): Explain history commands better.
+	(Repetition): Add xref to Incremental Search.
+
+	* mark.texi (Setting Mark): Clarify info about displaying mark.
+	Clarify explanation of C-@ and C-SPC.
+	(Transient Mark): Mention Delete Selection mode.
+	(Marking Objects): Clean up text about extending the region.
+
+	* m-x.texi (M-x): One C-g doesn't always go to top level.
+	No delay before suggest-key-bindings output.
+
+	* fixit.texi (Fixit): Mention C-/ for undo.
+	(Spelling): Mention ESC TAB like M-TAB.
+	Replacement words with r and R are rechecked.
+	Say where C-g leaves point.  Mention ? as input.
+
 2005-02-23  Lute Kamstra  <lute@gnu.org>
 
 	* cmdargs.texi (Initial Options): Add cross reference.
