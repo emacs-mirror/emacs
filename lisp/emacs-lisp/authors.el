@@ -113,7 +113,8 @@ from `authors-obsolete-files-regexps'."
 ACTION is a keyword symbol describing what he did.  Record file,
 author and what he did in hash table TABLE.  See the description of
 `authors-scan-change-log' for the structure of the hash table."
-  (unless (authors-obsolete-file-p file)
+  (unless (or (authors-obsolete-file-p file)
+	      (equal author ""))
     (let* ((value (gethash author table))
 	   (entry (assoc file value)))
       (if (null entry)
