@@ -1095,6 +1095,14 @@ popup_get_selection (initial_event, dpyinfo, id)
 	  popup_activated_flag = 0;
 	  break;
 	}
+      /* Button presses outside the menu also pop it down.  */
+      else if (event.type == ButtonPress
+	       && event.xany.display == dpyinfo->display
+	       && x_any_window_to_frame (dpyinfo, event.xany.window))
+	{
+	  popup_activated_flag = 0;
+	  break;
+	}
 
       /* Queue all events not for this popup,
 	 except for Expose, which we've already handled.
@@ -2089,6 +2097,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	      i += MENU_ITEMS_PANE_LENGTH;
 	    }
+	  /* Ignore a nil in the item list.
+	     It's meaningful only for dialog boxes.  */
+	  else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+	    i += 1;
 	  else
 	    {
 	      entry
