@@ -647,3 +647,14 @@ Res ArenaNoExtend(Arena arena, Addr base, Size size)
   NOTREACHED;
   return ResUNIMPL;
 }
+
+
+/* Has Addr */
+
+Bool ArenaHasAddr(Arena arena, Addr addr)
+{
+  Seg seg;
+
+  AVERT(Arena, arena);
+  return SegOfAddr(&seg, arena, addr);
+}
