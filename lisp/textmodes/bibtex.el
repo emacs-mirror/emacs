@@ -6,7 +6,9 @@
 ;;	Mark Shapiro <shapiro@corto.inria.fr>
 ;;	Mike Newton <newton@gumby.cs.caltech.edu>
 ;;	Aaron Larson <alarson@src.honeywell.com>
-;; Maintainer: Mark Shapiro <shapiro@corto.inria.fr>
+;; Version: 1.3.1
+;; Maintainer:Aaron Larson <alarson@src.honeywell.com>
+;; Adapted-By: ESR
 ;; Keywords: tex, bib
 
 ;; This file is part of GNU Emacs.
@@ -25,15 +27,105 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; TODO distribute texinfo file.
+
+;;; LCD Archive Entry:
+;;; bibtex-mode|Bengt Martensson, Marc Shapiro, Aaron Larson|
+;;; alarson@src.honeywell.com|
+;;; Support for maintaining BibTeX format bibliography databases|
+;;; 93-03-29|version 1.3|~/modes/bibtex-mode.el.Z|
+
 ;;; Commentary:
 
-;; A major mode for entering and editing BibTex files, validating
-;; them, canonicalizing them, and sorting them.  Includes entry
-;; commands tailored to many different formats (book, master's this,
-;; journal article, etc).  Has loads of options.
+;;; BUGS:
+;;;   1. using regular expressions to match the entire bibtex entry dies
+;;;      on long bibtex entires (e.g. those containing abstracts) since
+;;;      the length of regular expression matches is fairly limited.
+;;;   2. When inserting a string (with \C-C\C-E\s) hitting a TAB results
+;;;      in the error message "Can't find enclosing Bibtex field" instead
+;;;      of moving to the empty string. [reported by gernot@cs.unsw.oz.au]
+;;;   3. Function string-equalp should be in a library file, not in this
+;;;      file. 
+
+;;; (current keeper: alarson@src.honeywell.com
+;;;  previous: shapiro@corto.inria.fr)
 
 ;;; Change Log:
 
+;; Mon Mar 29 14:06:06 1993  Aaron Larson  (alarson at gendibal)
+;;
+;;	* bibtex.el: V1.3 released Mar 30, 1993
+;;	(bibtex-field-name):  Fix to match definition if latex manual,
+;;	specifically letters, digits, and punctuation other than comma.
+;;	Underscore is retained for historical reasons. 
+;;	(bibtex-make-field):  Fix to work around bug in Lucid prin1-to-string
+;;	function as reported by Martin Sjolin <marsj@ida.liu.se>. 
+;;	(bibtex-entry):  minor code cleanup.
+;;	(bibtex-mode-map): Remove key binding (C-c n) for
+;;	narrow-to-bibtex-entry, previous binding violated emacs policy of
+;;	reserving C-c followed by a letter for user customization.
+;;	revise modification history to better conform to FSF changelog
+;;	standards.
+;;	(bibtex-refile-entry): Removed.  Would need disclaimer papers to
+;;	incorporate it into official sources, and unable to contact author.
+;;	Fix minor "syntax" errors in documentation strings and such found
+;;	by new byte compiler.  Funs bibtex-mode, bibtex-remove-double-quotes
+;;
+;;
+;; Fri Jan 15 14:06:06 1993  Aaron Larson  (alarson at gendibal)
+;;
+;;	* bibtex.el: V1.2 released Feb 15 1993
+;;	(find-bibtex-entry-location bibtex-make-field): Fixed placement of
+;;	"interactive specification".  [Bug report from
+;;	mernst@theory.lcs.mit.edu] 
+;;	Fixed problem where bibtex-entry would fail if user typed entry
+;;	name in wrong case.
+;;	(bibtex-inside-field) Position the cursor _before_ the last comma
+;;	on a line (the comma is not necessarily "inside" the field); this
+;;	does not seem to break any existing code. ref sct@dcs.edinburgh.ac.uk
+;;	(bibtex-enclosing-field, bibtex-enclosing-reference): leave
+;;	point unmoved if no enclosing field/reference is found.  As a
+;;	result of changes (3) and (4) bibtex-next-field works properly,
+;;	even when called from the entry key position. 
+;;	(bibtex-remove-OPT): realign the '=' after removing the 'opt'.
+;;	(bibtex-clean-entry): always remove any trailing comma from the
+;;	end of a bibtex entry (these commas get stripped automatically when
+;;	optional fields are killed by bibtex-kill-optional-field, but can be
+;;	left if optional fields are removed by other means).
+;;	(bibtex-x-help) Replace tab with spaces in X menu as noted by
+;;	khera@cs.duke.edu
+;;	(bibtex-refile-entry): Added (from brannon@jove.cs.caltech.edu)
+;;	(bibtex-sort-ignore-string-entries sort-bibtex-entries,
+;;	map-bibtex-entries): Added variable as requested by  
+;;	gernot@cs.unsw.oz.au, required changes to funs.
+;;	(bibtex-current-entry-label): Added at request of
+;;	yasuro@maekawa.is.uec.ac.jp
+;;	(bibtex-DEAthesis:) Deleted along with corresponding entry from
+;;	bibtex-x-help  per shapiro@corto.inria.fr 
+;;	Moved narrow-to-bibtex-entry from C-c C-n to C-c n (the previous
+;;	binding was in conflict with the binding for bibtex-pop-next.
+;;	bug report from [shapiro@corto.inria.fr]
+;;
+
+;;; 
+;;; alarson@src.honeywell.com 92-Feb-13
+;;;   1. Made bibtex-entry user callable, now prompts for entry type (e.g.
+;;;      Article), with completion, and bound it to a key.  This is now my
+;;;      preferred way to add most entries. 
+;;;   2. Made fields of a bibtex entry derived from the alist bibtex-entry-
+;;;      field-alist.
+;;;   3. Fixed handling of escaped double quotes, e.g. "Schr{\"o}dinger".
+;;;   4. Fixed bug where unhiding bibtex entries moved point.
+;;;   5. Made "field name" specs permit (name . value) for defaulting.  E.g. 
+;;;       (setq bibtex-mode-user-optional-fields '(("library" . "alarson")))
+;;;      will generate the field:
+;;;       library	= "alarson",
+;;;   6. Added binding for narrow-to-bibtex-entry
+;;;   7. Adding a bibtex entry now runs hook: bibtex-add-entry-hook
+;;;   8. Made bibtex-clean-entry fixup text alignment, and eliminated the
+;;;      dependency on bibtex-enclosing-reference which has a problem with
+;;;      long entries (e.g. those containing abstracts).
+;;; 
 ;;; alarson@src.honeywell.com 92-Jan-31
 ;;;   Added support for: ispell, beginning/end of entry movement, a simple
 ;;;   outline like mode (hide the bodies of bibtex entries), support for
@@ -129,35 +221,43 @@
 ;;; Bengt Martensson <bengt@mathematik.uni-Bremen.de> 87-06-28
 ;;;   Original version
 
+;;; Code:
+
 ;;; NOTE by Marc Shapiro, 14-dec-87:
 ;;; (bibtex-x-environment) binds an X menu for bibtex mode to x-button-c-right.
 ;;; Trouble is, in Emacs 18.44 you can't have a mode-specific mouse binding,
 ;;; so it will remain active in all windows.  Yuck!
 
-;;; Code:
-
 (provide 'bibtex)
 
 ;;; these guys typically don't have autoloads...[alarson:19920131.1548CST]
+;;; Check for fboundp first so that if user autoloads them from non standard 
+;;; places, the users bindings will take precedence.
 (if (not (fboundp 'TeX-insert-quote))
     (autoload 'TeX-insert-quote "tex-mode"))
 (if (not (fboundp 'sort-subr))
     (autoload 'sort-subr "sort"))
 
+;;; These should be in a more generally accessible location. 
+
+(defun string-equalp (s1 s2)
+  "Like string= except differences in case are ignored."
+  (let ((ss1 (if (symbolp s1) (symbol-name s1) s1))
+	(ss2 (if (symbolp s2) (symbol-name s2) s2)))
+    (and (= (length ss1) (length ss2))
+	 (string-equal (upcase ss1) (upcase ss2)))))
+
+;;; This should be moved into simple.el, and the functions there modified
+;;; to call it rather than doing it themselves.
+(defun put-string-on-kill-ring (string)
+  "Make STRING be the first element of the kill ring."
+  (setq kill-ring (cons string kill-ring))
+  (if (> (length kill-ring) kill-ring-max)
+      (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
+  (setq kill-ring-yank-pointer kill-ring))
 
 
-(defvar bibtex-mode-syntax-table nil "")
-(defvar bibtex-mode-abbrev-table nil "")
-(define-abbrev-table 'bibtex-mode-abbrev-table ())
-(defvar bibtex-mode-map (make-sparse-keymap) "")
 
-(defvar bibtex-pop-previous-search-point nil
-  "Next point where bibtex-pop-previous should start looking for a similar
-entry.")
-
-(defvar bibtex-pop-next-search-point nil
-  "Next point where bibtex-pop-next should start looking for a similar
-entry.")
 
 (defvar bibtex-clean-entry-zap-empty-opts t
   "*If non-nil, bibtex-clean-entry will delete all empty optional fields.")
@@ -174,7 +274,148 @@ entry.")
 
 (defvar bibtex-mode-user-optional-fields nil		;no default value
   "*List of optional fields that user want to have as always present 
-when making a bibtex entry.  One possibility is for ``keywords''")
+when making a bibtex entry.  One possibility is for ``keywords''.  
+Entries can be either strings or conses, in which case the car should be 
+string and the cdr the value to be inserted.")
+
+(defvar bibtex-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; [alarson:19920214.1004CST] make double quote a string quote
+    (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?$ "$$  " st)
+    (modify-syntax-entry ?% "<   " st)
+    (modify-syntax-entry ?'  "w   " st)
+    (modify-syntax-entry ?@  "w   " st)
+    (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?\f ">   " st)
+    (modify-syntax-entry ?\n ">   " st)
+    (modify-syntax-entry ?~ " " st)
+    st))
+
+(defvar bibtex-mode-abbrev-table nil "")
+(define-abbrev-table 'bibtex-mode-abbrev-table ())
+(defvar bibtex-mode-map
+  (let ((km (make-sparse-keymap)))
+    
+    (define-key km "\t" 'bibtex-find-text)
+    (define-key km "\n" 'bibtex-next-field)
+    (define-key km "\C-c\"" 'bibtex-remove-double-quotes)
+    (define-key km "\C-c\C-c" 'bibtex-clean-entry)
+    (define-key km "\C-c?" 'describe-mode)
+    (define-key km "\C-c\C-p" 'bibtex-pop-previous)
+    (define-key km "\C-c\C-n" 'bibtex-pop-next)
+    (define-key km "\C-c\C-k" 'bibtex-kill-optional-field)
+    (define-key km "\C-c\C-d" 'bibtex-empty-field)
+
+    ;; [alarson:19920131.1543CST]
+    (define-key km "\""   'TeX-insert-quote)
+    (define-key km "\C-c$"   'ispell-bibtex-entry)
+    (define-key km "\M-\C-a"   'beginning-of-bibtex-entry)
+    (define-key km "\M-\C-e"   'end-of-bibtex-entry)
+    (define-key km "\C-ce"   'bibtex-entry)
+;    (define-key km "\C-cn" 'narrow-to-bibtex-entry)
+
+    (define-key km "\C-c\C-e\C-a" 'bibtex-Article)
+    (define-key km "\C-c\C-e\C-b" 'bibtex-Book)
+;    (define-key km "\C-c\C-e\C-d" 'bibtex-DEAthesis)
+    (define-key km "\C-c\C-e\C-c" 'bibtex-InProceedings)
+    (define-key km "\C-c\C-e\C-i" 'bibtex-InBook)
+    (define-key km "\C-c\C-ei" 'bibtex-InCollection)
+    (define-key km "\C-c\C-eI" 'bibtex-InProceedings)
+    (define-key km "\C-c\C-e\C-m" 'bibtex-Manual)
+    (define-key km "\C-c\C-em" 'bibtex-MastersThesis)
+    (define-key km "\C-c\C-eM" 'bibtex-Misc)
+    (define-key km "\C-c\C-o" 'bibtex-remove-OPT)
+    (define-key km "\C-c\C-e\C-p" 'bibtex-PhdThesis)
+    (define-key km "\C-c\C-ep" 'bibtex-Proceedings)
+    (define-key km "\C-c\C-eP" 'bibtex-preamble)
+    (define-key km "\C-c\C-e\C-t" 'bibtex-TechReport)
+    (define-key km "\C-c\C-e\C-s" 'bibtex-string)
+    (define-key km "\C-c\C-e\C-u" 'bibtex-Unpublished)
+    km))
+
+(defvar bibtex-pop-previous-search-point nil
+  "Next point where bibtex-pop-previous should start looking for a similar
+entry.")
+
+(defvar bibtex-pop-next-search-point nil
+  "Next point where bibtex-pop-next should start looking for a similar
+entry.")
+
+(defvar bibtex-entry-field-alist
+  '(
+    ("Article" . ((("author" "title" "journal" "year")
+		   ("volume" "number" "pages" "month" "note"))
+		  (("author" "title")
+		   ("journal" "year" "volume" "number" "pages"
+		    "month" "note"))))
+    ("Book" . ((("author" "title" "publisher" "year")
+		("editor" "volume" "number" "series" "address"
+		 "edition" "month" "note"))))
+    ("Booklet" . ((("title")
+		   ("author" "howpublished" "address" "month" "year" "note"))))
+    
+    ;; France: Dipl\^{o}me d'Etudes Approfondies (similar to Master's)
+;    ("DEAthesis" . ((("author" "title" "school" "year")
+;		     ("address" "month" "note"))))
+    
+    ("InBook" . ((("author" "title" "chapter" "publisher" "year")
+		  ("editor" "pages" "volume" "number" "series" "address"
+		   "edition" "month" "type" "note"))
+		 (("author" "title" "chapter")
+		  ("publisher" "year" "editor" "pages" "volume" "number"
+		   "series" "address" "edition" "month" "type" "note"))))
+
+
+    ("InCollection" . ((("author" "title"
+			 "booktitle" "publisher" "year")
+			("editor" "volume" "number" "series" "type" "chapter"
+			 "pages" "address" "edition" "month" "note"))
+		       (("author" "title")
+			("booktitle" "publisher" "year"
+			 "editor" "volume" "number" "series" "type" "chapter"
+			 "pages" "address" "edition" "month" "note"))))
+
+
+    ("InProceedings" . ((("author" "title" "booktitle" "year")
+			 ("editor" "volume" "number" "series" "pages"
+			  "organization" "publisher" "address" "month" "note"))
+			(("author" "title")
+			 ("editor" "volume" "number" "series" "pages"
+			  "booktitle" "year"
+			  "organization" "publisher" "address" "month" "note"))))
+
+
+    ("Manual" . ((("title")
+		  ("author" "organization" "address" "edition" "year"
+		   "month" "note"))))
+
+    ("MastersThesis" . ((("author" "title" "school" "year")
+			 ("address" "month" "note" "type"))))
+
+    ("Misc" . ((()
+		("author" "title" "howpublished" "year" "month" "note"))))
+
+    ("PhdThesis" . ((("author" "title" "school" "year")
+		     ("address" "month" "type" "note"))))
+
+    ("Proceedings" . ((("title" "year")
+		       ("editor" "volume" "number" "series" "publisher"
+			"organization" "address" "month" "note"))))
+
+    ("TechReport" . ((("author" "title" "institution" "year")
+		      ("type" "number" "address" "month" "note"))))
+
+    ("Unpublished" . ((("author" "title" "note")
+		       ("year" "month"))))
+    )
+
+  "List of (entry-name (required optional) (crossref-required crossref-optional))
+tripples.  If the third element is nil, then the first pair can be used.  Required
+and optional are lists of strings.  All entry creation functions use this variable
+to generate entries, and bibtex-entry ensures the entry type is valid.  This 
+variable can be used for example to make bibtex manipulate a different set of entry
+types, e.g. a crossreference document of organization types.")
 
 
 ;;; A bibtex file is a sequence of entries, either string definitions
@@ -198,7 +439,24 @@ when making a bibtex entry.  One possibility is for ``keywords''")
 (defconst bibtex-text-in-cfield 2
   "The regexp subexpression number of the text part in bibtex-cfield.")
 
-(defconst bibtex-field-name "[A-Za-z][---A-Za-z0-9:_+]*"
+;;; KAWATA Yasuro <yasuro@qqqq.maekawa.is.uec.ac.jp> reported bug that "/"
+;;; was not premitted in field names.  The old value of this var was:
+;;;    "[A-Za-z][---A-Za-z0-9:_+]*"
+;;; According to the LaTeX manual, page 71, the legal values are letters,
+;;; digits, and punctuation other than comma.  Section 2.1 defines
+;;; punctuation as:
+;;;     .:;,?!`'()[]-/*@
+;;; and says that += can be used in normal text.  Specifically #$%&~_^\{}
+;;; are called out as special chars.  Some experimentation with LaTeX
+;;; indicates that # and ~ definitely don't work, but that the following
+;;; citation does! \cite{a0.:;?!`'()[]-/*@_&$^+=|<>}.  I chose here to
+;;; permit _ since it was previously allowed, but otherwise to only handle
+;;; punc and +=
+;;; Amendment:  I couldn't get a regexp with both "[]"'s and hyphen to
+;;; work.  It looks like you need them both to be the first entries in a
+;;; regexp pattern. [alarson:19930315.0900CST]
+
+(defconst bibtex-field-name "[A-Za-z][---A-Za-z0-9.:;?!`'()/*@_+=]*"
   "Regexp defining the name part of a bibtex field.")
 
 ;; bibtex-field-text must be able to handle
@@ -294,6 +552,33 @@ Chosen on aesthetic grounds only.")
   "Alignment for the text part in BibTeX fields.
 Equal to the space needed for the longest name part.")
 
+(defun bibtex-current-entry-label (&optional include-cite kill)
+  "Return the label of the bibtex entry containing, or preceeding point.
+Optional argument INCLUDE-CITE, if true means put a '\\cite{}' around the
+returned value.  Second optional argument KILL, if true, means place the
+returned value in the kill buffer.  Interactively; providing prefix
+argument makes INCLUDE-CITE true, and kill is true by default.
+
+Rationale:
+The intention is that someone will write a function that can be bound to
+a mouse key so that people entering TeX can just mouse on the bibtex entry
+and have the citation key inserted at the current point (which will almost
+certainly be in some other bufer).  In the interim this function is 
+marginally useful for keyboard binding and is not bound by default.  
+Suggested binding is ^C-k."
+  (interactive (list current-prefix-arg t))
+  (save-excursion
+    (beginning-of-bibtex-entry)
+    (re-search-forward bibtex-reference-head (save-excursion (end-of-bibtex-entry) (point)))
+    (let* ((key (buffer-substring (match-beginning bibtex-key-in-head)
+				  (match-end bibtex-key-in-head)))
+	   (val (if include-cite
+		    (format "\\cite{%s}" key)
+		    key)))
+      (if kill
+	  (put-string-on-kill-ring val))
+      val)))
+
 ;;; bibtex mode:
 
 (defun bibtex-mode () 
@@ -323,6 +608,24 @@ mouse button.
 \\[bibtex-sun-environment] binds a mode-specific Sun menu to right
 mouse button.
 
+The following may be of interest as well:
+
+  Functions:
+    find-bibtex-duplicates
+    find-bibtex-entry-location
+    hide-bibtex-entry-bodies
+    sort-bibtex-entries
+    validate-bibtex-buffer
+
+  Variables:
+    bibtex-clean-entry-zap-empty-opts
+    bibtex-entry-field-alist
+    bibtex-include-OPTannote
+    bibtex-include-OPTcrossref
+    bibtex-include-OPTkey
+    bibtex-maintain-sorted-entries
+    bibtex-mode-user-optional-fields
+
 Fields:
     address
            Publisher's address
@@ -338,7 +641,7 @@ Fields:
     crossref
 	   The database key of the entry being cross referenced.
     edition
-           Edition of a book (e.g., ""second"")
+           Edition of a book (e.g., \"second\")
     editor
            Name(s) of editor(s), in BibTeX name format.
            If there is also an author field, then the editor field should be
@@ -371,8 +674,8 @@ Fields:
     title
            The title of the thing being referenced
     type
-           Type of a technical report (e.g., ""Research Note"") to be used
-           instead of the default ""Technical Report""
+           Type of a technical report (e.g., \"Research Note\") to be used
+           instead of the default \"Technical Report\"
     volume
            Volume of a journal or multivolume work
     year
@@ -382,63 +685,14 @@ Entry to this mode calls the value of bibtex-mode-hook if that value is
 non-nil."
   (interactive)
   (kill-all-local-variables)
-  (if bibtex-mode-syntax-table
-      (set-syntax-table bibtex-mode-syntax-table)
-     (setq bibtex-mode-syntax-table (make-syntax-table))
-     (set-syntax-table bibtex-mode-syntax-table)
-     (modify-syntax-entry ?\" ".")
-     (modify-syntax-entry ?$ "$$  ")
-     (modify-syntax-entry ?% "<   ")
-     (modify-syntax-entry ?'  "w   ")
-     (modify-syntax-entry ?@  "w   ")
-     (modify-syntax-entry ?\\ "\\")
-     (modify-syntax-entry ?\f ">   ")
-     (modify-syntax-entry ?\n ">   ")
-     (modify-syntax-entry ?~ " "))
+  (set-syntax-table bibtex-mode-syntax-table)
   (use-local-map bibtex-mode-map)
   (setq major-mode 'bibtex-mode)
-
-
   (setq mode-name "BibTeX")
   (set-syntax-table bibtex-mode-syntax-table)
   (setq local-abbrev-table bibtex-mode-abbrev-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start "^[ \f\n\t]*$")
-
-  (define-key bibtex-mode-map "\t" 'bibtex-find-text)
-  (define-key bibtex-mode-map "\n" 'bibtex-next-field)
-  (define-key bibtex-mode-map "\C-c\"" 'bibtex-remove-double-quotes)
-  (define-key bibtex-mode-map "\C-c\C-c" 'bibtex-clean-entry)
-  (define-key bibtex-mode-map "\C-c?" 'describe-mode)
-  (define-key bibtex-mode-map "\C-c\C-p" 'bibtex-pop-previous)
-  (define-key bibtex-mode-map "\C-c\C-n" 'bibtex-pop-next)
-  (define-key bibtex-mode-map "\C-c\C-k" 'bibtex-kill-optional-field)
-  (define-key bibtex-mode-map "\C-c\C-d" 'bibtex-empty-field)
-
-  ;; [alarson:19920131.1543CST]
-  (define-key bibtex-mode-map "\""   'TeX-insert-quote)
-  (define-key bibtex-mode-map "\C-c$"   'ispell-bibtex-entry)
-  (define-key bibtex-mode-map "\M-\C-a"   'beginning-of-bibtex-entry)
-  (define-key bibtex-mode-map "\M-\C-e"   'end-of-bibtex-entry)
-
-  (define-key bibtex-mode-map "\C-c\C-e\C-a" 'bibtex-Article)
-  (define-key bibtex-mode-map "\C-c\C-e\C-b" 'bibtex-Book)
-  (define-key bibtex-mode-map "\C-c\C-e\C-d" 'bibtex-DEAthesis)
-  (define-key bibtex-mode-map "\C-c\C-e\C-c" 'bibtex-InProceedings)
-  (define-key bibtex-mode-map "\C-c\C-e\C-i" 'bibtex-InBook)
-  (define-key bibtex-mode-map "\C-c\C-ei" 'bibtex-InCollection)
-  (define-key bibtex-mode-map "\C-c\C-eI" 'bibtex-InProceedings)
-  (define-key bibtex-mode-map "\C-c\C-e\C-m" 'bibtex-Manual)
-  (define-key bibtex-mode-map "\C-c\C-em" 'bibtex-MastersThesis)
-  (define-key bibtex-mode-map "\C-c\C-eM" 'bibtex-Misc)
-  (define-key bibtex-mode-map "\C-c\C-o" 'bibtex-remove-OPT)
-  (define-key bibtex-mode-map "\C-c\C-e\C-p" 'bibtex-PhdThesis)
-  (define-key bibtex-mode-map "\C-c\C-ep" 'bibtex-Proceedings)
-  (define-key bibtex-mode-map "\C-c\C-eP" 'bibtex-preamble)
-  (define-key bibtex-mode-map "\C-c\C-e\C-t" 'bibtex-TechReport)
-  (define-key bibtex-mode-map "\C-c\C-e\C-s" 'bibtex-string)
-  (define-key bibtex-mode-map "\C-c\C-e\C-u" 'bibtex-Unpublished)
-
   (auto-fill-mode 1)			; nice alignements
   (setq left-margin (+ bibtex-text-alignment 1))
 
@@ -468,9 +722,49 @@ non-nil."
   (interactive)
   (re-search-backward "^@" nil 'move))
 
+(defun skip-whitespace-and-comments ()
+  ;; It might be a good idea to have forward-sexp with argument 0 do what
+  ;; this function tries to do, namely skip whitespace and comments.
+  ;; Maybe a better name for this would be skip-to-next-sexp.
+  ;; alternative implementation:
+  ;;   (let ((parse-sexp-ignore-comments t))
+  ;;     (forward-sexp 1)
+  ;;     (forward-sexp -1))
+  ;; but I've had problems with this not getting the parse of comments
+  ;; right going backward if they contain unbalanced expressions or string
+  ;; quotes. [alarson:19920217.1021CST]
+  (let ((md (match-data)))
+    (unwind-protect
+	(while (cond ((looking-at "\\s>+\\|\\s +")
+		      ;; was whitespace
+		      ;; NOTE: also checked end-comment.  In latex and
+		      ;; lisp modes, newline is an end comment, but it
+		      ;; should also be a whitespace char.
+		      (goto-char (match-end 0)))
+		     ;; If looking at beginning of comment, skip to end.
+		     ((looking-at "\\s<")
+		      (re-search-forward "\\s>"))))		      
+      (store-match-data md))))
+
+;;; [alarson:19920214.1007CST]
 (defun end-of-bibtex-entry ()
+  "If inside an entry, move to the end of it, otherwise move to the end
+of the next entry."
   (interactive)
-  (re-search-forward "}$" nil 'move))
+  ;; if point was previously at the end of an entry, this puts us
+  ;; inside the next entry, otherwise we remain in the current one.
+  (progn
+    (skip-whitespace-and-comments)
+;;;     (skip-chars-forward " \t\n") 
+    (end-of-line))
+  (beginning-of-bibtex-entry)
+  (let ((parse-sexp-ignore-comments t))
+    (forward-sexp) ; skip entry type
+    (forward-sexp) ; skip entry body
+    ))
+;(defun end-of-bibtex-entry ()
+;  (interactive)
+;  (re-search-forward "}$" nil 'move))
   
 (defun ispell-bibtex-entry ()
   (interactive)
@@ -498,21 +792,29 @@ non-nil."
   "Hide all lines between first and last bibtex entries not beginning with @.
 With argument, show all text."
   (interactive "P")
-  (beginning-of-first-bibtex-entry)
-  ;; subst-char-in-region modifies the buffer, despite what the
-  ;; documentation says...
-  (let ((modifiedp (buffer-modified-p))
-	(buffer-read-only nil))
-    (if arg
-	(subst-char-in-region (point) (point-max) ?\r ?\n t)
+  (save-excursion
+    (beginning-of-first-bibtex-entry)
+    ;; subst-char-in-region modifies the buffer, despite what the
+    ;; documentation says...
+    (let ((modifiedp (buffer-modified-p))
+	  (buffer-read-only nil))
+      (if arg
+	  (subst-char-in-region (point) (point-max) ?\r ?\n t)
 	(while (save-excursion (re-search-forward "\n[^@]" (point-max) t))
 	  (save-excursion (replace-regexp "\n\\([^@]\\)" "\r\\1"))))
-    (setq selective-display (not arg))
-    (set-buffer-modified-p modifiedp)))
+      (setq selective-display (not arg))
+      (set-buffer-modified-p modifiedp))))
+
+(defvar bibtex-sort-ignore-string-entries nil
+  "*If true, bibtex @STRING entries are ignored when determining ordering
+of the buffer (e.g. sorting, locating alphabetical position for new entries,
+etc.)")
 
 (defun sort-bibtex-entries ()
   "Sort bibtex entries alphabetically by key.
-Text before the first bibtex entry, and following the last is not effected.
+Text before the first bibtex entry, and following the last is not affected.
+If bibtex-sort-ignore-string-entries is true, @string entries will be ignored.
+
 Bugs:
   1. Text between the closing brace ending one bibtex entry, and the @ starting 
      the next, is considered part of the PRECEEDING entry.  Perhaps it should be
@@ -530,27 +832,40 @@ Bugs:
 	       ;; begining of record function
 	       'forward-line
 	       ;; end of record function
-	       (function (lambda () (and (re-search-forward "}[ \t]*\n[\n \t]*@" nil 'move)
+	       (function (lambda () (and (re-search-forward "}\\s-*\n[\n \t]*@" nil 'move)
 					 (forward-char -2))))
 	       ;; start of key function
-	       (function (lambda () (re-search-forward "{[ \t]*") nil))
+	       (if bibtex-sort-ignore-string-entries
+		   (function (lambda ()
+			       (while (and (re-search-forward "^\\s-*\\([@a-zA-Z]*\\)\\s-*{\\s-*")
+					   (string-equalp "@string"
+							  (buffer-substring (match-beginning 1)
+									    (match-end 1)))))
+			       nil))
+		   (function (lambda () (re-search-forward "{\\s-*") nil)))
 	       ;; end of key function
 	       (function (lambda () (search-forward ",")))
 	       )))
   
 (defun map-bibtex-entries (fun)
   "Call FUN for each bibtex entry starting with the current, to the end of the file.
-FUN is called with one argument, the key of the entry, and with point inside the entry."
+FUN is called with one argument, the key of the entry, and with point inside the entry.
+If bibtex-sort-ignore-string-entries is true, FUN will not be called for @string entries."
   (beginning-of-bibtex-entry)
-  (while (re-search-forward "^@[^{]*{[ \t]*\\([^,]*\\)" nil t)
-    (funcall fun (buffer-substring (match-beginning 1) (match-end 1)))))
+  (while (re-search-forward "^@[^{]*{[ \t]*\\([^, ]*\\)" nil t)
+    (if (and bibtex-sort-ignore-string-entries
+	     (string-equalp "@string{"
+			    (buffer-substring (match-beginning 0)
+					      (match-beginning 1))))
+	nil ; ignore the @string entry.
+      (funcall fun (buffer-substring (match-beginning 1) (match-end 1))))))
   
 (defun find-bibtex-entry-location (entry-name)
-  (interactive "sBibtex entry key: ")
   "Searches from beginning of current buffer looking for place to put the
 bibtex entry named ENTRY-NAME.  Buffer is assumed to be in sorted order,
 without duplicates (see \\[sort-bibtex-entries]), if it is not, an error will
 be signalled."
+  (interactive "sBibtex entry key: ")
   (let ((previous nil)
 	point)
     (beginning-of-first-bibtex-entry)
@@ -600,6 +915,7 @@ be signalled."
     (goto-char point)
     (while (search-forward "\"" nil t)
       (or (looking-at "[,}][ \t]*$")
+	  (char-equal (preceding-char) ?\")
 	  ;; some versions put closing brace on separate line.
 	  (looking-at "[ \t]*\n}")
 	  (save-excursion
@@ -628,43 +944,60 @@ Buffer is assumed to be sorted, see \\[sort-bibtex-entries]"
     (message "No duplicates found!")))
 
 
+;;; assoc doesn't ignore case, so we need an assoc that does...
+(defun assoc-string-equalp (thing alist)
+  (or (assoc thing alist)
+      (while (and alist
+		  (not (string-equalp thing (car (car alist)))))
+	(setq alist (cdr alist)))
+      (car alist)))
+
 (defvar bibtex-maintain-sorted-entries nil
   "*If true, bibtex-mode will attempt to maintain all bibtex entries in 
-sorted order.")
+sorted order.  
 
-;;
-;; note: this should really take lists of strings OR of lists.  in the
-;;       second case, one can use either list.  (ie:
-;;                "name" (("crossref") ("journal" "year"))     )
-;;
+Note that this is more a property of a file than a personal preference and
+as such should normally be set via a file local variable entry.")
 
-(defun bibtex-entry (entry-type required optional)
-  (let (key)
-    (if bibtex-maintain-sorted-entries
-	(progn
-	  (setq key (read-string (format "%s key: " entry-type)))
-	  (find-bibtex-entry-location key)))
+(defun bibtex-entry (entry-type &optional required optional)
+  (interactive (let* ((completion-ignore-case t)
+		      (e-t (completing-read "Entry Type: " bibtex-entry-field-alist
+					    nil t)))
+		 (list e-t)))
+  (if (and (null required) (null optional))
+      (let* ((e (assoc-string-equalp entry-type bibtex-entry-field-alist))
+	     (r-n-o (elt e 1))
+	     (c-ref (elt e 2)))
+	(if (null e)
+	  (error "Bibtex entry type %s not defined!"))
+	(if (and bibtex-include-OPTcrossref c-ref)
+	    (setq required (elt c-ref 0)
+		  optional (elt c-ref 1))
+	  (setq required (elt r-n-o 0)
+		optional (elt r-n-o 1)))))
+  (let ((key (if bibtex-maintain-sorted-entries
+		 (read-string (format "%s key: " entry-type)))))
+    (if key
+	(find-bibtex-entry-location key))	
     (bibtex-move-outside-of-entry)
     (insert "@" entry-type "{")
-    (mapcar 'bibtex-make-field required)
-    (if bibtex-include-OPTcrossref
-	(bibtex-make-optional-field "crossref"))
-    (if bibtex-include-OPTkey
-	(bibtex-make-optional-field "key"))
-    (mapcar 'bibtex-make-optional-field optional)
-    (if bibtex-mode-user-optional-fields ;MON...
-	(mapcar 'bibtex-make-optional-field 
-		bibtex-mode-user-optional-fields))
-    (if bibtex-include-OPTannote
-	(bibtex-make-optional-field "annote"))
-    (insert "\n}\n\n")
-    (forward-char -3)
-    (up-list -1)
-    (forward-char 1)
     (if key
-	(progn
-	  (insert key)
-	  (bibtex-next-field t)))))
+	(insert key))
+    (save-excursion
+      (mapcar 'bibtex-make-field required)
+      (if bibtex-include-OPTcrossref
+	  (bibtex-make-optional-field "crossref"))
+      (if bibtex-include-OPTkey
+	  (bibtex-make-optional-field "key"))
+      (mapcar 'bibtex-make-optional-field optional)
+      (mapcar 'bibtex-make-optional-field 
+	      bibtex-mode-user-optional-fields)
+      (if bibtex-include-OPTannote
+	  (bibtex-make-optional-field "annote"))
+      (insert "\n}\n\n"))
+    (if key
+	(bibtex-next-field t))
+    (run-hooks 'bibtex-add-entry-hook)))
 
 ;; (defun bibtex-entry (entry-type required optional)
 ;;   (bibtex-move-outside-of-entry)
@@ -686,125 +1019,88 @@ sorted order.")
 ;;  (forward-char 1))
 
 
-(defun bibtex-make-field (str)
+(defun bibtex-make-field (e-t)
   (interactive "sBibTeX entry type: ")
-  (insert ",\n")
-  (indent-to-column bibtex-name-alignement)
-  (insert str " = ")
-  (indent-to-column bibtex-text-alignment)
-  (insert "\"\"")
-  nil)
+  (let ((name  (if (consp e-t) (car e-t) e-t))
+	(value (if (consp e-t) (cdr e-t) "")))
+    (insert ",\n")
+    (indent-to-column bibtex-name-alignement)
+    (insert name " = ")
+    (indent-to-column bibtex-text-alignment)
+    ;; lucid emacs prin1-to-string breaks the undo chain.  When they fix
+    ;; that, the  hack can be removed. [alarson:19930316.0805CST]
+;    (insert (prin1-to-string value))
+    ;; begin hack
+    (insert (format (if (stringp value) "\"%s\"" "%s")
+		    value))
+    ;; end hack
+    nil))
 
-(defun bibtex-make-optional-field (str)
+(defun bibtex-make-optional-field (e-t)
   (interactive "sOptional BibTeX entry type: ")
-  (insert ",\n")
-  (indent-to-column bibtex-name-alignement)
-  (insert "OPT" str " = ")
-  (indent-to-column bibtex-text-alignment)
-  (insert "\"\"")
-  nil)
+  (if (consp e-t)
+      (setq e-t (cons (concat "OPT" (car e-t)) (cdr e-t)))
+    (setq e-t (concat "OPT" e-t)))
+  (bibtex-make-field e-t))
 
 ;; What to do about crossref?  if present, journal and year are 
 ;; both optional.  Due to this, i move all of them into optional. -- MON
 
 (defun bibtex-Article ()
   (interactive)
-  (if bibtex-include-OPTcrossref
-      (bibtex-entry "Article" '("author" "title")
-		    '("journal" "year" "volume" "number" "pages"
-		      "month" "note"))
-    (bibtex-entry "Article" '("author" "title" "journal" "year")
-		  '("volume" "number" "pages" "month" "note"))))
-
+  (bibtex-entry "Article"))
 
 (defun bibtex-Book ()
   (interactive)
-  (bibtex-entry "Book" '("author" "title" "publisher" "year")
-		'("editor" "volume" "number" "series" "address"
-			   "edition" "month" "note")))
+  (bibtex-entry "Book"))
 
 (defun bibtex-Booklet ()
   (interactive)
-  (bibtex-entry "Booklet" '("title")
-		'("author" "howpublished" "address" "month" "year" "note")))
+  (bibtex-entry "Booklet"))
 
-;; France: Dipl\^{o}me d'Etudes Approfondies (similar to Master's)
-(defun bibtex-DEAthesis ()
-  (interactive)
-  (bibtex-entry "DEAthesis" '("author" "title" "school" "year")
-		'("address" "month" "note")))
+;(defun bibtex-DEAthesis ()
+;  (interactive)
+;  (bibtex-entry "DEAthesis"))
 
 (defun bibtex-InBook ()
   (interactive)
-  (if bibtex-include-OPTcrossref
-      (bibtex-entry "InBook" '("author" "title" "chapter")
-		    '("publisher" "year" "editor" "pages" "volume" "number"
-		      "series" "address" "edition" "month" "type" "note"))
-    (bibtex-entry "InBook" '("author" "title" "chapter" "publisher" "year")
-		  '("editor" "pages" "volume" "number" "series" "address"
-		    "edition" "month" "type" "note"))))
+  (bibtex-entry "InBook"))
 
 (defun bibtex-InCollection ()
   (interactive)
-  (if bibtex-include-OPTcrossref
-      (bibtex-entry "InCollection" '("author" "title")
-		    '("booktitle" "publisher" "year"
-		      "editor" "volume" "number" "series" "type" "chapter"
-		      "pages" "address" "edition" "month" "note"))
-    (bibtex-entry "InCollection" '("author" "title"
-				   "booktitle" "publisher" "year")
-		  '("editor" "volume" "number" "series" "type" "chapter"
-		    "pages" "address" "edition" "month" "note"))))
-
+  (bibtex-entry "InCollection"))
 
 (defun bibtex-InProceedings ()
   (interactive)
-  (if bibtex-include-OPTcrossref
-      (bibtex-entry "InProceedings" '("author" "title")
-		    '("editor" "volume" "number" "series" "pages"
-		      "booktitle" "year"
-		      "organization" "publisher" "address" "month" "note"))
-    (bibtex-entry "InProceedings" '("author" "title" "booktitle" "year")
-		  '("editor" "volume" "number" "series" "pages"
-		    "organization" "publisher" "address" "month" "note"))))
-
+  (bibtex-entry "InProceedings"))
 
 (defun bibtex-Manual ()
   (interactive)
-  (bibtex-entry "Manual" '("title")
-		'("author" "organization" "address" "edition" "year"
-			   "month" "note")))
+  (bibtex-entry "Manual"))
 
 (defun bibtex-MastersThesis ()
   (interactive)
-  (bibtex-entry "MastersThesis" '("author" "title" "school" "year")
-		'("address" "month" "note" "type")))
+  (bibtex-entry "MastersThesis"))
 
 (defun bibtex-Misc ()
   (interactive)
-  (bibtex-entry "Misc" '()
-		'("author" "title" "howpublished" "year" "month" "note")))
+  (bibtex-entry "Misc"))
 
 (defun bibtex-PhdThesis ()
   (interactive)
-  (bibtex-entry "PhdThesis" '("author" "title" "school" "year")
-		'("address" "month" "type" "note")))
+  (bibtex-entry "PhdThesis"))
 
 (defun bibtex-Proceedings ()
   (interactive)
-  (bibtex-entry "Proceedings" '("title" "year")
-		'("editor" "volume" "number" "series" "publisher"
-		  "organization" "address" "month" "note")))
+  (bibtex-entry "Proceedings"))
 
 (defun bibtex-TechReport ()
   (interactive)
-  (bibtex-entry "TechReport" '("author" "title" "institution" "year")
-		'("type" "number" "address" "month" "note")))
+  (bibtex-entry "TechReport"))
 
 (defun bibtex-Unpublished ()
   (interactive)
-  (bibtex-entry "Unpublished" '("author" "title" "note")
-		'("year" "month")))
+  (bibtex-entry "Unpublished"))
 
 (defun bibtex-string ()
   (interactive)
@@ -880,7 +1176,12 @@ sorted order.")
   (save-excursion
     (goto-char (match-beginning bibtex-name-in-field))
     (if (looking-at "OPT")
-	(delete-char (length "OPT"))))
+	;; sct@dcs.edinburgh.ac.uk
+ 	(progn
+ 	  (delete-char (length "OPT"))
+ 	  (search-forward "=")
+ 	  (delete-horizontal-space)
+ 	  (indent-to-column bibtex-text-alignment))))
   (bibtex-inside-field))
 
 (defun bibtex-inside-field ()
@@ -889,12 +1190,12 @@ sorted order.")
   (end-of-line)
   (skip-chars-backward " \t")		;MON - maybe delete these chars?
   (cond ((= (preceding-char) ?,)
-	 (forward-char -1)))
+	 (forward-char -2))) ; -1 --> -2 sct@dcs.edinburgh.ac.uk
   (cond ((= (preceding-char) ?\")
 	 (forward-char -1))))		;MON - only go back if quote
 
 (defun bibtex-remove-double-quotes ()
-  "Removes """" around string."
+  "Removes \"\" around string."
   (interactive)
   (save-excursion
     (bibtex-inside-field)
@@ -1067,19 +1368,25 @@ intermixed with \\[bibtex-pop-previous] (bibtex-pop-previous)."
   "Search for BibTeX field enclosing point.
 Point moves to end of field; also, use match-beginning and match-end
 to parse the field."
-  (condition-case errname
-      (bibtex-enclosing-regexp bibtex-field)
-    (search-failed
-     (error "Can't find enclosing BibTeX field."))))
+  ;; sct@dcs.edinburgh.ac.uk
+  (let ((old-point (point)))
+    (condition-case errname
+ 	(bibtex-enclosing-regexp bibtex-field)
+      (search-failed
+       (goto-char old-point)
+       (error "Can't find enclosing BibTeX field.")))))
 
 (defun bibtex-enclosing-reference ()
   "Search for BibTeX reference enclosing point.
 Point moves to end of reference; also, use match-beginning and match-end
 to parse the reference."
-  (condition-case errname
-      (bibtex-enclosing-regexp bibtex-reference)
-    (search-failed
-     (error "Can't find enclosing BibTeX reference."))))
+  ;; sct@dcs.edinburgh.ac.uk
+  (let ((old-point (point)))
+    (condition-case errname
+ 	(bibtex-enclosing-regexp bibtex-reference)
+      (search-failed
+       (goto-char old-point)
+       (error "Can't find enclosing BibTeX reference.")))))
 
 (defun bibtex-enclosing-regexp (regexp)
   "Search for REGEXP enclosing point.
@@ -1115,11 +1422,10 @@ an undefined location.
 (defun bibtex-clean-entry ()
   "For all optional fields of current BibTeX entry: if empty, kill the whole field; otherwise, remove the \"OPT\" string in the name; if text numerical, remove double-quotes.  For all mandatory fields: if empty, signal error."
   (interactive)
-  (bibtex-enclosing-reference)
-  (goto-char (match-beginning 0))
+  (beginning-of-bibtex-entry)
   (let ((start (point)))
     (save-restriction
-      (narrow-to-region start (match-end 0))
+      (narrow-to-region start (save-excursion (end-of-bibtex-entry) (point)))
       (while (re-search-forward bibtex-field (point-max) t 1)
 	(let ((begin-field (match-beginning 0))
 	      (end-field (match-end 0))
@@ -1138,6 +1444,11 @@ an undefined location.
 		   ; otherwise: not empty, delete "OPT"
 		   (goto-char begin-name)
 		   (delete-char (length "OPT"))
+		   (progn
+		     ;; fixup alignment. [alarson:19920309.2047CST]
+		     (search-forward "=")
+		     (delete-horizontal-space)
+		     (indent-to-column bibtex-text-alignment))
 		   (goto-char begin-field) ; and loop to go through next test
 		   ))
 		(t
@@ -1165,10 +1476,14 @@ an undefined location.
 		       (t
 			(goto-char end-field))))))))
     (goto-char start)
-    (skip-chars-forward "@a-zA-Z")
-    (bibtex-enclosing-reference)
-    (goto-char (match-end 0))
-    (skip-chars-forward " \t\n")))
+    (end-of-bibtex-entry)
+    ;; sct@dcs.edinburgh.ac.uk
+    (save-excursion
+      (previous-line 1)
+      (end-of-line)
+      (if (eq (preceding-char) ?,)
+ 	  (backward-delete-char 1)))
+    (skip-whitespace-and-comments)))
 
 
 
@@ -1176,7 +1491,7 @@ an undefined location.
 
 (defun bibtex-x-help (arg)
   "Mouse commands for BibTeX mode"
-  
+
   (let ((selection
 	 (x-popup-menu
 	  arg
@@ -1186,9 +1501,9 @@ an undefined location.
 	     ("        Article in journal         " . bibtex-Article)
 	     ("               Book                " . bibtex-Book)
 	     ("             Booklet               " . bibtex-Booklet)
-	     ("            Conference	          " . bibtex-InProceedings)
+	     ("            Conference             " . bibtex-InProceedings)
 	     ("         Master's Thesis           " . bibtex-MastersThesis)
-	     ("            DEA Thesis             " . bibtex-DEAthesis)
+;	     ("            DEA Thesis             " . bibtex-DEAthesis)
 	     ("            Phd. Thesis            " . bibtex-PhdThesis)
 	     ("         Technical Report          " . bibtex-TechReport)
 	     ("         technical Manual          " . bibtex-Manual)
@@ -1228,9 +1543,9 @@ an undefined location.
 ;; since we aren't interested.  See etc/SUN-SUPPORT for the reasons why
 ;; we consider this nothing but a distraction from our work.
 
-(defmacro eval-in-menu-window (&rest l)
-  "Evaluates its argument in the window in which the mouse button was pressed."
-  (list 'eval-in-window '*menu-window* l))
+;(defmacro eval-in-menu-window (&rest l)
+;  "Evaluates its argument in the window in which the mouse button was pressed."
+;  (list 'eval-in-window '*menu-window* l))
 
 ;(defmenu bibtex-sun-entry-menu 
 ;  ("Article In Conf. Proc." eval-in-menu-window bibtex-InProceedings)
@@ -1262,14 +1577,15 @@ an undefined location.
 ;  ("describe BibTeX mode" eval-in-menu-window describe-mode)
 ;  ("Main Emacs menu" . emacs-menu))
  
-(defun bibtex-sun-menu-eval (window x y)
-  "Pop-up menu of BibTeX commands."
-  (sun-menu-evaluate window (1+ x) (1- y) 'bibtex-sun-menu))
+;(defun bibtex-sun-menu-eval (window x y)
+;  "Pop-up menu of BibTeX commands."
+;  (sun-menu-evaluate window (1+ x) (1- y) 'bibtex-sun-menu))
+;
+;(defun bibtex-sun-environment ()
+;  "Set up sun menus for BibTeX mode.  Call it as bibtex-mode-hook, or
+;interactively"
+;  (interactive)
+;  (local-set-mouse  '(text right) 'bibtex-sun-menu-eval))
+;
 
-(defun bibtex-sun-environment ()
-  "Set up sun menus for BibTeX mode.  Call it as bibtex-mode-hook, or
-interactively"
-  (interactive)
-  (local-set-mouse  '(text right) 'bibtex-sun-menu-eval))
-
-;;; bibtex-mode.el ends here
+;;; bibtex.el ends here
