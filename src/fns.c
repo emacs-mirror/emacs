@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2376,7 +2376,10 @@ DEFUN ("y-or-n-p", Fy_or_n_p, Sy_or_n_p, 1, 1, 0,
 Takes one argument, which is the string to display to ask the question.\n\
 It should end in a space; `y-or-n-p' adds `(y or n) ' to it.\n\
 No confirmation of the answer is requested; a single character is enough.\n\
-Also accepts Space to mean yes, or Delete to mean no.")
+Also accepts Space to mean yes, or Delete to mean no.\n\
+\n\
+Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
+is nil.")
   (prompt)
      Lisp_Object prompt;
 {
@@ -2506,7 +2509,10 @@ DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
 Takes one argument, which is the string to display to ask the question.\n\
 It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.\n\
 The user must confirm the answer with RET,\n\
-and can edit it until it has been confirmed.")
+and can edit it until it has been confirmed.\n\
+\n\
+Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
+is nil.")
   (prompt)
      Lisp_Object prompt;
 {
