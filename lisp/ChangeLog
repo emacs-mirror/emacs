@@ -1,5 +1,7 @@
 2003-02-11  Juanma Barranquero  <lektu@terra.es>
 
+	* info-xref.el (info-xref-check-buffer): Fix typo.
+
 	* makefile.w32-in (DONTCOMPILE): Add malayalam.el and tamil.el.
 
 2003-02-11  Kenichi Handa  <handa@m17n.org>

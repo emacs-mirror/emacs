@@ -1,3 +1,7 @@
+2003-02-11  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (lisp): Add malayalam.el and tamil.el.
+
 2003-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (EXEEXT): Define to @EXEEXT@ and use this variable
