@@ -31,7 +31,6 @@
 ;;; Code:
 
 (require 'widget)
-(require 'cl)
 
 ;;; Compatibility.
 
@@ -225,7 +224,7 @@ minibuffer."
 			  (car (event-object val))))
 	   (cdr (assoc val items))))
 	(t
-	 (setq items (remove-if 'stringp items))
+	 (setq items (widget-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
 	   (if (stringp val)
 	       (let ((try (try-completion val items)))
@@ -233,6 +232,14 @@ minibuffer."
 		   (setq val try))
 		 (cdr (assoc val items)))
 	     nil)))))
+
+(defun widget-remove-if (predictate list)
+  (let (result (tail list))
+    (while tail
+      (or (funcall predictate (car tail))
+	  (setq result (cons (car tail) result)))
+      (setq tail (cdr tail)))
+    (nreverse result)))
 
 ;;; Widget text specifications.
 ;; 
@@ -1306,19 +1313,20 @@ Optional EVENT is the event that triggered the action."
 	     ;; Get rid of trailing newlines.
 	     (when (string-match "\n+\\'" doc-text)
 	       (setq doc-text (substring doc-text 0 (match-beginning 0))))
-	     (push (if (string-match "\n." doc-text)
-		       ;; Allow multiline doc to be hiden.
-		       (widget-create-child-and-convert
-			widget 'widget-help 
-			:doc (progn
-			       (string-match "\\`.*" doc-text)
-			       (match-string 0 doc-text))
-			:widget-doc doc-text
-			"?")
-		     ;; A single line is just inserted.
-		     (widget-create-child-and-convert
-		      widget 'item :format "%d" :doc doc-text nil))
-		   buttons)))
+	     (setq buttons
+		   (cons (if (string-match "\n." doc-text)
+			     ;; Allow multiline doc to be hiden.
+			     (widget-create-child-and-convert
+			      widget 'widget-help 
+			      :doc (progn
+				     (string-match "\\`.*" doc-text)
+				     (match-string 0 doc-text))
+			      :widget-doc doc-text
+			      "?")
+			   ;; A single line is just inserted.
+			   (widget-create-child-and-convert
+			    widget 'item :format "%d" :doc doc-text nil))
+			 buttons))))
 	  (t 
 	   (error "Unknown escape `%c'" escape)))
     (widget-put widget :buttons buttons)))
@@ -1423,9 +1431,22 @@ Optional EVENT is the event that triggered the action."
   (let ((value (widget-get widget :value)))
     (and (listp value)
 	 (<= (length value) (length values))
-	 (let ((head (subseq values 0 (length value))))
+	 (let ((head (widget-sublist values 0 (length value))))
 	   (and (equal head value)
-		(cons head (subseq values (length value))))))))
+		(cons head (widget-sublist values (length value))))))))
+
+(defun widget-sublist (list start &optional end)
+  "Return the sublist of LIST from START to END.
+If END is omitted, it defaults to the length of LIST."
+  (let (len)
+    (if (> start 0) (setq list (nthcdr start list)))
+    (if end
+	(if (<= end start)
+	    nil
+	  (setq list (copy-sequence list))
+	  (setcdr (nthcdr (- end start 1) list) nil)
+	  list)
+      (copy-sequence list))))
 
 (defun widget-item-action (widget &optional event)
   ;; Just notify itself.
@@ -1474,7 +1495,8 @@ Optional EVENT is the event that triggered the action."
 	(progn 
 	  (unless gui
 	    (setq gui (make-gui-button tag 'widget-gui-action widget))
-	    (push (cons tag gui) widget-push-button-cache))
+	    (setq widget-push-button-cache
+		  (cons (cons tag gui) widget-push-button-cache)))
 	  (widget-glyph-insert-glyph widget
 				     (make-glyph
 				      (list (nth 0 (aref gui 1))
@@ -2429,13 +2451,14 @@ when he invoked the menu."
       (and (eq (preceding-char) ?\n)
 	   (widget-get widget :indent)
 	   (insert-char ?  (widget-get widget :indent)))
-      (push (cond ((null answer)
-		   (widget-create-child widget arg))
-		  ((widget-get arg :inline)
-		   (widget-create-child-value widget arg  (car answer)))
-		  (t
-		   (widget-create-child-value widget arg  (car (car answer)))))
-	    children))
+      (setq children
+	    (cons (cond ((null answer)
+			 (widget-create-child widget arg))
+			((widget-get arg :inline)
+			 (widget-create-child-value widget arg  (car answer)))
+			(t
+			 (widget-create-child-value widget arg  (car (car answer)))))
+		  children)))
     (widget-put widget :children (nreverse children))))
 
 (defun widget-group-match (widget values)
