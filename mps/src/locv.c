@@ -2,7 +2,7 @@
  *
  *            Leaf Object Pool Class Coverage Test
  *
- *  $HopeName: MMsrc!locv.c(trunk.3) $
+ *  $HopeName: MMsrc!locv.c(trunk.4) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -10,112 +10,125 @@
  *  pool (PoolClassLO).
  */
 
-
-#include "std.h"
-#include "space.h"
-#include "lo.h"
+#include "mps.h"
+#include "mpsclo.h"
 #include "testlib.h"
-#include "format.h"
-#include "pool.h"
-#include "poolclas.h"
-#include "root.h"
 
-SRCID("$HopeName$");
+#include <assert.h>
 
 
-static Error scan(ScanState ss, Addr base, Addr limit);
-static Addr skip(Addr object);
-static void move(Addr object, Addr to);
-static Addr isMoved(Addr object);
-static void copy(Addr object, Addr to);
+static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
+static mps_addr_t skip(mps_addr_t object);
+static void move(mps_addr_t object, mps_addr_t to);
+static mps_addr_t isMoved(mps_addr_t object);
+static void copy(mps_addr_t old, mps_addr_t new);
+static void pad(mps_addr_t base, size_t size);
 
-static Addr roots[4];
+static mps_fmt_A_s locv_fmt = 
+  {
+    (mps_align_t)4,
+    scan,
+    skip,
+    copy,
+    move,
+    isMoved,
+    pad
+  };
+
+static mps_addr_t roots[4];
 
 int
 main(void)
 {
-  Space space;
-  Pool pool;
-  Format format;
-  Buffer buffer;
-  Addr p;
-  Bool b;
-  Root root;
+  mps_space_t space;
+  mps_pool_t pool;
+  mps_fmt_t format;
+  mps_ap_t ap;
+  mps_addr_t p;
+  mps_bool_t b;
+  mps_root_t root;
 
-  die(SpaceCreate(&space), "SpaceCreate");
-  die(RootCreateTable(&root, space, RefRankEXACT,
-                      roots, roots + (sizeof(roots)/sizeof(*roots))),
+  die(mps_space_create(&space), "SpaceCreate");
+  die(mps_root_create_table(&root, space, MPS_RANK_EXACT,
+                        (mps_rm_t)0,
+                        roots, (sizeof(roots)/sizeof(*roots))),
       "RootCreate");
 
-  die(FormatCreate(&format, space, (Addr)4, scan, skip,
-		   move, isMoved, copy), "FormatCreate");
-  die(PoolCreate(&pool, PoolClassLO(), space, format), "LOCreate");
+  die(mps_fmt_create_A(&format, space, &locv_fmt), "FormatCreate");
+  die(mps_pool_create(&pool, space, mps_class_lo(), format), "LOCreate");
 
-  die(BufferCreate(&buffer, pool), "BufferCreate");
+  die(mps_ap_create(&ap, pool), "APCreate");
 
-  die(BufferReserve(&p, buffer, (Size)4), "BufferReserve");
-  *(Addr *)p = 4;
-  b = BufferCommit(buffer, p, (Size)4);
-  AVER(b);
-  die(BufferReserve(&roots[1], buffer, (Size)8), "BufferReserve");
+  die(mps_reserve(&p, ap, (size_t)4), "mps_reserve");
+  *(mps_word_t *)p = 4;
+  b = mps_commit(ap, p, (size_t)4);
+  assert(b);
+  die(mps_reserve(&roots[1], ap, (size_t)8), "mps_reserve");
   p = roots[1];
-  *(Addr *)p = 8;
-  b = BufferCommit(buffer, p, (Size)8);
-  AVER(b);
-  die(BufferReserve(&p, buffer, (Size)4096), "BufferReserve");
-  *(Addr *)p = 4096;
-  b = BufferCommit(buffer, p, (Size)4096);
-  AVER(b);
-  die(BufferReserve(&p, buffer, (Size)4), "BufferReserve");
-  *(Addr *)p = 4;
-  b = BufferCommit(buffer, p, (Size)4);
-  AVER(b);
+  *(mps_word_t *)p = 8;
+  b = mps_commit(ap, p, (size_t)8);
+  assert(b);
+  die(mps_reserve(&p, ap, (size_t)4096), "mps_reserve");
+  *(mps_word_t *)p = 4096;
+  b = mps_commit(ap, p, (size_t)4096);
+  assert(b);
+  die(mps_reserve(&p, ap, (size_t)4), "mps_reserve");
+  *(mps_word_t *)p = 4;
+  b = mps_commit(ap, p, (size_t)4);
+  assert(b);
 
-  BufferDestroy(buffer);
-  PoolDestroy(pool);
-  RootDestroy(root);
-  SpaceDestroy(space);
+  mps_ap_destroy(ap);
+  mps_pool_destroy(pool);
+  mps_root_destroy(root);
+  mps_space_destroy(space);
 
   return 0;
 }
 
 static
-Error
-scan(ScanState ss, Addr base, Addr limit)
+mps_res_t
+scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
-  NOTREACHED;
+  assert(0);
   return ErrFAILURE;
 }
 
 static
-Addr
-skip(Addr object)
+mps_addr_t
+skip(mps_addr_t object)
 {
-  Addr bytes;
+  size_t bytes;
 
-  bytes = *(Addr *)object;
+  bytes = (size_t)(*(mps_word_t *)object);
 
-  return object + bytes;
+  return (mps_addr_t)((char *)object + bytes);
 }
 
 static
 void
-move(Addr object, Addr to)
+move(mps_addr_t object, mps_addr_t to)
 {
-  NOTREACHED;
+  assert(0);
 }
 
 static
-Addr
-isMoved(Addr object)
+mps_addr_t
+isMoved(mps_addr_t object)
 {
-  NOTREACHED;
-  return ErrFAILURE;
+  assert(0);
+  return (mps_addr_t)NULL;
 }
 
 static
 void
-copy(Addr object, Addr to)
+copy(mps_addr_t old, mps_addr_t new)
 {
-  NOTREACHED;
+  assert(0);
+}
+
+static
+void
+pad(mps_addr_t base, size_t size)
+{
+  assert(0);
 }
