@@ -1,5 +1,45 @@
 1999-10-24  Ken Raeburn  <raeburn@raeburn.org>
 
+	* alloc.c: Undef HIDE_LISP_IMPLEMENTATION before including
+	lisp.h.
+
+	* buffer.c (Fbuffer_list, Fget_file_buffer, get_truename_buffer,
+	Fbuffer_local_variables, Fother_buffer, record_buffer,
+	set_buffer_internal_1, Fbury_buffer, Fkill_all_local_variables,
+	swap_out_buffer_local_variables, overlays_at, overlays_in,
+	overlay_touches_p, overlay_strings, recenter_overlay_lists,
+	fix_overlays_in_range, fix_overlays_before, Foverlay_get,
+	Foverlay_put, report_overlay_modification, evaporate_overlays):
+	Use XCAR, XCDR, and XFLOAT_DATA instead of explicit member
+	references.
+	* data.c (Fcar, Fcar_safe, Fcdr, Fcdr_safe, Fsetcar, Fsetcdr,
+	swap_in_symval_forwarding, set_internal, default_value,
+	Fset_default, Fmake_variable_buffer_local, Fmake_local_variable,
+	Fmake_variable_frame_local, Flocal_variable_p,
+	Flocal_variable_if_set_p, arithcompare, Fzerop, cons_to_long,
+	Fnumber_to_string, float_arith_driver, Fadd1, Fsub1): Likewise.
+	* dispnew.c (Fframe_or_buffer_changed_p): Likewise.
+	* emacs.c (main): Likewise.
+	* fontset.c (fs_load_font, fs_register_fontset,
+	CACHED_FONTSET_NAME, CACHED_FONTSET_REGEX, Fquery_fontset,
+	Fnew_fontset, Fset_fontset_font): Likewise.
+	* frame.c (do_switch_frame, next_frame, prev_frame,
+	other_visible_frames, Fdelete_frame, Fvisible_frame_list):
+	Likewise.
+	* keyboard.c (read_char, help_char_p, event_to_kboard,
+	kbd_buffer_get_event, timer_start_idle, timer_check,
+	make_lispy_event, apply_modifiers, reorder_modifiers,
+	Fevent_convert_list, lucid_event_type_list_p, menu_bar_items,
+	menu_bar_one_keymap, menu_item_eval_property_1, parse_menu_item,
+	tool_bar_items, read_char_x_menu_prompt, read_key_sequence,
+	Fcommand_execute, Fexecute_extended_command): Likewise.
+	* minibuf.c (read_minibuf, get_minibuffer, Ftry_completion,
+	Fall_completions): Likewise.
+	* window.c (Fset_window_margins): Likewise.
+
+	* callint.c (quotify_args): Don't explicitly use struct
+	Lisp_Cons, use Lisp_Object and XCAR/XCDR instead.
+
 	* s/netbsd.h (HAVE_GETLOADAVG): Define as 1.
 	(UNEXEC, START_FILES, LIB_STANDARD, LIB_GCC): Define ELF versions,
 	if __ELF__ is defined.

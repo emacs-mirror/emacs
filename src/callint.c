@@ -148,11 +148,11 @@ quotify_args (exp)
      Lisp_Object exp;
 {
   register Lisp_Object tail;
-  register struct Lisp_Cons *ptr;
-  for (tail = exp; CONSP (tail); tail = ptr->cdr)
+  Lisp_Object next;
+  for (tail = exp; CONSP (tail); tail = next)
     {
-      ptr = XCONS (tail);
-      ptr->car = quotify_arg (ptr->car);
+      next = XCDR (tail);
+      XCAR (tail) = quotify_arg (XCAR (tail));
     }
   return exp;
 }

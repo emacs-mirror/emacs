@@ -1077,11 +1077,11 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 	    }
 
 	  for (tail = Vbuffer_alist; CONSP (tail);
-	       tail = XCONS (tail)->cdr)
+	       tail = XCDR (tail))
 	    {
 	      Lisp_Object buffer;
 
-	      buffer = Fcdr (XCONS (tail)->car);
+	      buffer = Fcdr (XCAR (tail));
 	      /* Verify that all buffers are empty now, as they
 		 ought to be.  */
 	      if (BUF_Z (XBUFFER (buffer)) > BUF_BEG (XBUFFER (buffer)))

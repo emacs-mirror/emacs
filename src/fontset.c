@@ -218,24 +218,24 @@ fs_load_font (f, font_table, charset, fontname, fontset)
       for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
 	fontp->encoding[i] = 1;
       /* Then override them by a specification in Vfont_encoding_alist.  */
-      for (list = Vfont_encoding_alist; CONSP (list); list = XCONS (list)->cdr)
+      for (list = Vfont_encoding_alist; CONSP (list); list = XCDR (list))
 	{
-	  elt = XCONS (list)->car;
+	  elt = XCAR (list);
 	  if (CONSP (elt)
-	      && STRINGP (XCONS (elt)->car) && CONSP (XCONS (elt)->cdr)
-	      && (fast_c_string_match_ignore_case (XCONS (elt)->car, fontname)
+	      && STRINGP (XCAR (elt)) && CONSP (XCDR (elt))
+	      && (fast_c_string_match_ignore_case (XCAR (elt), fontname)
 		  >= 0))
 	    {
 	      Lisp_Object tmp;
 
-	      for (tmp = XCONS (elt)->cdr; CONSP (tmp); tmp = XCONS (tmp)->cdr)
-		if (CONSP (XCONS (tmp)->car)
-		    && ((i = get_charset_id (XCONS (XCONS (tmp)->car)->car))
+	      for (tmp = XCDR (elt); CONSP (tmp); tmp = XCDR (tmp))
+		if (CONSP (XCAR (tmp))
+		    && ((i = get_charset_id (XCAR (XCAR (tmp))))
 			>= 0)
-		    && INTEGERP (XCONS (XCONS (tmp)->car)->cdr)
-		    && XFASTINT (XCONS (XCONS (tmp)->car)->cdr) < 4)
+		    && INTEGERP (XCDR (XCAR (tmp)))
+		    && XFASTINT (XCDR (XCAR (tmp))) < 4)
 		  fontp->encoding[i]
-		    = XFASTINT (XCONS (XCONS (tmp)->car)->cdr);
+		    = XFASTINT (XCDR (XCAR (tmp)));
 	    }
 	}
     }
@@ -328,12 +328,12 @@ fs_register_fontset (f, fontset_info)
   int i;
 
   if (!CONSP (fontset_info)
-      || !STRINGP (XCONS (fontset_info)->car)
-      || !CONSP (XCONS (fontset_info)->cdr))
+      || !STRINGP (XCAR (fontset_info))
+      || !CONSP (XCDR (fontset_info)))
     /* Invalid data in FONTSET_INFO.  */
     return -1;
 
-  name = XCONS (fontset_info)->car;
+  name = XCAR (fontset_info);
   if ((fontset = fs_query_fontset (f, XSTRING (name)->data)) >= 0)
     /* This fontset already exists on frame F.  */
     return fontset;
@@ -351,21 +351,21 @@ fs_register_fontset (f, fontset_info)
       fontsetp->font_indexes[i] = FONT_NOT_OPENED;
     }
 
-  for (fontlist = XCONS (fontset_info)->cdr; CONSP (fontlist);
-       fontlist = XCONS (fontlist)->cdr)
+  for (fontlist = XCDR (fontset_info); CONSP (fontlist);
+       fontlist = XCDR (fontlist))
     {
       Lisp_Object tem = Fcar (fontlist);
       int charset;
 
       if (CONSP (tem)
-	  && (charset = get_charset_id (XCONS (tem)->car)) >= 0
-	  && STRINGP (XCONS (tem)->cdr))
+	  && (charset = get_charset_id (XCAR (tem))) >= 0
+	  && STRINGP (XCDR (tem)))
 	{
 	  fontsetp->fontname[charset]
-	     = (char *) xmalloc (XSTRING (XCONS (tem)->cdr)->size + 1);
-	  bcopy (XSTRING (XCONS (tem)->cdr)->data,
+	     = (char *) xmalloc (XSTRING (XCDR (tem))->size + 1);
+	  bcopy (XSTRING (XCDR (tem))->data,
 		 fontsetp->fontname[charset],
-		 XSTRING (XCONS (tem)->cdr)->size + 1);
+		 XSTRING (XCDR (tem))->size + 1);
 	}
       else
 	/* Broken or invalid data structure.  */
@@ -400,8 +400,8 @@ fs_register_fontset (f, fontset_info)
    the corresponding regular expression.  */
 static Lisp_Object Vcached_fontset_data;
 
-#define CACHED_FONTSET_NAME (XSTRING (XCONS (Vcached_fontset_data)->car)->data)
-#define CACHED_FONTSET_REGEX (XCONS (Vcached_fontset_data)->cdr)
+#define CACHED_FONTSET_NAME (XSTRING (XCAR (Vcached_fontset_data))->data)
+#define CACHED_FONTSET_REGEX (XCDR (Vcached_fontset_data))
 
 /* If fontset name PATTERN contains any wild card, return regular
    expression corresponding to PATTERN.  */
@@ -473,9 +473,9 @@ If REGEXPP is non-nil, PATTERN is a regular expression.")
   else
     regexp = pattern;
 
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCONS (tem)->cdr)
+  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
     {
-      Lisp_Object fontset_name = XCONS (XCONS (tem)->car)->car;
+      Lisp_Object fontset_name = XCAR (XCAR (tem));
       if (!NILP (regexp))
 	{
 	  if (fast_c_string_match_ignore_case (regexp,
@@ -574,14 +574,14 @@ FONTLIST is an alist of charsets vs corresponding font names.")
 	   XSTRING (name)->data, XSTRING (fullname)->data);
 
   /* Check the validity of FONTLIST.  */
-  for (tail = fontlist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = fontlist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object tem = XCONS (tail)->car;
+      Lisp_Object tem = XCAR (tail);
       int charset;
 
       if (!CONSP (tem)
-	  || (charset = get_charset_id (XCONS (tem)->car)) < 0
-	  || !STRINGP (XCONS (tem)->cdr))
+	  || (charset = get_charset_id (XCAR (tem))) < 0
+	  || !STRINGP (XCDR (tem)))
 	error ("Elements of fontlist must be a cons of charset and font name");
     }
 
@@ -632,14 +632,14 @@ If FRAME is omitted or nil, all frames are affected.")
   if (NILP (frame))
     {
       Lisp_Object fontset_info = Fassoc (fullname, Vglobal_fontset_alist);
-      Lisp_Object tem = Fassq (charset_symbol, XCONS (fontset_info)->cdr);
+      Lisp_Object tem = Fassq (charset_symbol, XCDR (fontset_info));
 
       if (NILP (tem))
-	XCONS (fontset_info)->cdr
+	XCDR (fontset_info)
 	  = Fcons (Fcons (charset_symbol, fontname),
-		   XCONS (fontset_info)->cdr);
+		   XCDR (fontset_info));
       else
-	XCONS (tem)->cdr = fontname;
+	XCDR (tem) = fontname;
     }
 
   /* Then, update information in the specified frame or all existing
@@ -671,7 +671,7 @@ If FRAME is omitted or nil, all frames are affected.")
 	      if (set_frame_fontset_func
 		  && !NILP (font_param)
 		  && !strcmp (XSTRING (fullname)->data,
-			      XSTRING (XCONS (font_param)->cdr)->data))
+			      XSTRING (XCDR (font_param))->data))
 		/* This fontset is the default fontset on frame TEM.
 		   We may have to resize this frame because of new
 		   ASCII font.  */

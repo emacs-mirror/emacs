@@ -510,7 +510,7 @@ Error if arg is not nil and not a cons cell.  See also `car-safe'.")
   while (1)
     {
       if (CONSP (list))
-	return XCONS (list)->car;
+	return XCAR (list);
       else if (EQ (list, Qnil))
 	return Qnil;
       else
@@ -524,7 +524,7 @@ DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
      Lisp_Object object;
 {
   if (CONSP (object))
-    return XCONS (object)->car;
+    return XCAR (object);
   else
     return Qnil;
 }
@@ -539,7 +539,7 @@ Error if arg is not nil and not a cons cell.  See also `cdr-safe'.")
   while (1)
     {
       if (CONSP (list))
-	return XCONS (list)->cdr;
+	return XCDR (list);
       else if (EQ (list, Qnil))
 	return Qnil;
       else
@@ -553,7 +553,7 @@ DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
      Lisp_Object object;
 {
   if (CONSP (object))
-    return XCONS (object)->cdr;
+    return XCDR (object);
   else
     return Qnil;
 }
@@ -567,7 +567,7 @@ DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
     cell = wrong_type_argument (Qconsp, cell);
 
   CHECK_IMPURE (cell);
-  XCONS (cell)->car = newcar;
+  XCAR (cell) = newcar;
   return newcar;
 }
 
@@ -580,7 +580,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
     cell = wrong_type_argument (Qconsp, cell);
 
   CHECK_IMPURE (cell);
-  XCONS (cell)->cdr = newcdr;
+  XCDR (cell) = newcdr;
   return newcdr;
 }
 
@@ -846,7 +846,7 @@ swap_in_symval_forwarding (symbol, valcontents)
   if (NILP (tem1) || current_buffer != XBUFFER (tem1)
       || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
     {
-      tem1 = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
+      tem1 = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
       Fsetcdr (tem1,
 	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
       tem1 = assq_no_quit (symbol, current_buffer->local_var_alist);
@@ -864,7 +864,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       else
 	XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 1;
 
-      XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car = tem1;
+      XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr) = tem1;
       XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, current_buffer);
       XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
       store_symval_forwarding (symbol,
@@ -1006,7 +1006,7 @@ set_internal (symbol, newval, bindflag)
 
       /* What value are we caching right now?  */
       current_alist_element
-	= XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
+	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
 
       /* If the current buffer is not the buffer whose binding is
 	 currently cached, or if it's a Lisp_Buffer_Local_Value and
@@ -1015,7 +1015,7 @@ set_internal (symbol, newval, bindflag)
       if (current_buffer != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
 	  || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)
 	  || (BUFFER_LOCAL_VALUEP (valcontents)
-	      && EQ (XCONS (current_alist_element)->car,
+	      && EQ (XCAR (current_alist_element),
 		     current_alist_element)))
 	{
 	  /* Write out the cached value for the old buffer; copy it
@@ -1062,7 +1062,7 @@ set_internal (symbol, newval, bindflag)
 	    }
 
 	  /* Cache the new buffer's assoc in CURRENT-ALIST-ELEMENT.  */
-	  XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car
+	  XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr)
 	    = tem1;
 
 	  /* Set BUFFER and FRAME for binding now loaded.  */
@@ -1117,12 +1117,12 @@ default_value (symbol)
 	 ordinary setq stores just that slot.  So use that.  */
       Lisp_Object current_alist_element, alist_element_car;
       current_alist_element
-	= XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
-      alist_element_car = XCONS (current_alist_element)->car;
+	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
+      alist_element_car = XCAR (current_alist_element);
       if (EQ (alist_element_car, current_alist_element))
 	return do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue);
       else
-	return XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr;
+	return XCDR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
     }
   /* For other variables, get the current value.  */
   return do_symval_forwarding (valcontents);
@@ -1197,11 +1197,11 @@ for this variable.")
     return Fset (symbol, value);
 
   /* Store new value into the DEFAULT-VALUE slot */
-  XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->cdr = value;
+  XCDR (XBUFFER_LOCAL_VALUE (valcontents)->cdr) = value;
 
   /* If that slot is current, we must set the REALVALUE slot too */
   current_alist_element
-    = XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
+    = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
   alist_element_buffer = Fcar (current_alist_element);
   if (EQ (alist_element_buffer, current_alist_element))
     store_symval_forwarding (symbol, XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
@@ -1280,7 +1280,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
   if (EQ (valcontents, Qunbound))
     XSYMBOL (variable)->value = Qnil;
   tem = Fcons (Qnil, Fsymbol_value (variable));
-  XCONS (tem)->car = tem;
+  XCAR (tem) = tem;
   newval = allocate_misc ();
   XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->realvalue = XSYMBOL (variable)->value;
@@ -1337,7 +1337,7 @@ Use `make-local-hook' instead.")
     {
       Lisp_Object newval;
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
-      XCONS (tem)->car = tem;
+      XCAR (tem) = tem;
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->realvalue = XSYMBOL (variable)->value;
@@ -1359,7 +1359,7 @@ Use `make-local-hook' instead.")
       find_symbol_value (variable);
 
       current_buffer->local_var_alist
-        = Fcons (Fcons (variable, XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (variable)->value)->cdr)->cdr),
+        = Fcons (Fcons (variable, XCDR (XBUFFER_LOCAL_VALUE (XSYMBOL (variable)->value)->cdr)),
 		 current_buffer->local_var_alist);
 
       /* Make sure symbol does not think it is set up for this buffer;
@@ -1474,7 +1474,7 @@ See `modify-frame-parameters'.")
   if (EQ (valcontents, Qunbound))
     XSYMBOL (variable)->value = Qnil;
   tem = Fcons (Qnil, Fsymbol_value (variable));
-  XCONS (tem)->car = tem;
+  XCAR (tem) = tem;
   newval = allocate_misc ();
   XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->realvalue = XSYMBOL (variable)->value;
@@ -1513,10 +1513,10 @@ BUFFER defaults to the current buffer.")
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object tail, elt;
-      for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	{
-	  elt = XCONS (tail)->car;
-	  if (EQ (variable, XCONS (elt)->car))
+	  elt = XCAR (tail);
+	  if (EQ (variable, XCAR (elt)))
 	    return Qt;
 	}
     }
@@ -1561,10 +1561,10 @@ BUFFER defaults to the current buffer.")
   if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object tail, elt;
-      for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	{
-	  elt = XCONS (tail)->car;
-	  if (EQ (variable, XCONS (elt)->car))
+	  elt = XCAR (tail);
+	  if (EQ (variable, XCAR (elt)))
 	    return Qt;
 	}
     }
@@ -1896,8 +1896,8 @@ arithcompare (num1, num2, comparison)
   if (FLOATP (num1) || FLOATP (num2))
     {
       floatp = 1;
-      f1 = (FLOATP (num1)) ? XFLOAT (num1)->data : XINT (num1);
-      f2 = (FLOATP (num2)) ? XFLOAT (num2)->data : XINT (num2);
+      f1 = (FLOATP (num1)) ? XFLOAT_DATA (num1) : XINT (num1);
+      f2 = (FLOATP (num2)) ? XFLOAT_DATA (num2) : XINT (num2);
     }
 #else
   CHECK_NUMBER_COERCE_MARKER (num1, 0);
@@ -2000,7 +2000,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "Return t if NUMBER is zero.")
 
   if (FLOATP (number))
     {
-      if (XFLOAT(number)->data == 0.0)
+      if (XFLOAT_DATA (number) == 0.0)
 	return Qt;
       return Qnil;
     }
@@ -2035,10 +2035,10 @@ cons_to_long (c)
   Lisp_Object top, bot;
   if (INTEGERP (c))
     return XINT (c);
-  top = XCONS (c)->car;
-  bot = XCONS (c)->cdr;
+  top = XCAR (c);
+  bot = XCDR (c);
   if (CONSP (bot))
-    bot = XCONS (bot)->car;
+    bot = XCAR (bot);
   return ((XINT (top) << 16) | XINT (bot));
 }
 
@@ -2060,7 +2060,7 @@ NUMBER may be an integer or a floating point number.")
     {
       char pigbuf[350];	/* see comments in float_to_string */
 
-      float_to_string (pigbuf, XFLOAT(number)->data);
+      float_to_string (pigbuf, XFLOAT_DATA (number));
       return build_string (pigbuf);
     }
 #endif /* LISP_FLOAT_TYPE */
@@ -2249,7 +2249,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 
       if (FLOATP (val))
 	{
-	  next = XFLOAT (val)->data;
+	  next = XFLOAT_DATA (val);
 	}
       else
 	{
@@ -2520,7 +2520,7 @@ Markers are converted to integers.")
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number, 0);
 
   if (FLOATP (number))
-    return (make_float (1.0 + XFLOAT (number)->data));
+    return (make_float (1.0 + XFLOAT_DATA (number)));
 #else
   CHECK_NUMBER_COERCE_MARKER (number, 0);
 #endif /* LISP_FLOAT_TYPE */
@@ -2539,7 +2539,7 @@ Markers are converted to integers.")
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number, 0);
 
   if (FLOATP (number))
-    return (make_float (-1.0 + XFLOAT (number)->data));
+    return (make_float (-1.0 + XFLOAT_DATA (number)));
 #else
   CHECK_NUMBER_COERCE_MARKER (number, 0);
 #endif /* LISP_FLOAT_TYPE */

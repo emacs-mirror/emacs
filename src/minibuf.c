@@ -360,11 +360,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
       for (buf_list = Vbuffer_alist;
 	   CONSP (buf_list);
-	   buf_list = XCONS (buf_list)->cdr)
+	   buf_list = XCDR (buf_list))
 	{
 	  Lisp_Object other_buf;
 
-	  other_buf = XCONS (XCONS (buf_list)->car)->cdr;
+	  other_buf = XCDR (XCAR (buf_list));
 	  if (STRINGP (XBUFFER (other_buf)->directory))
 	    {
 	      current_buffer->directory = XBUFFER (other_buf)->directory;
@@ -565,7 +565,7 @@ get_minibuffer (depth)
 	 enabled in it.  */
       Fbuffer_enable_undo (buf);
 
-      XCONS (tail)->car = buf;
+      XCAR (tail) = buf;
     }
   else
     {
@@ -1026,9 +1026,9 @@ or the symbol from the obarray.")
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-	       regexps = XCONS (regexps)->cdr)
+	       regexps = XCDR (regexps))
 	    {
-	      tem = Fstring_match (XCONS (regexps)->car, eltstring, zero);
+	      tem = Fstring_match (XCAR (regexps), eltstring, zero);
 	      if (NILP (tem))
 		break;
 	    }
@@ -1280,9 +1280,9 @@ are ignored unless STRING itself starts with a space.")
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-	       regexps = XCONS (regexps)->cdr)
+	       regexps = XCDR (regexps))
 	    {
-	      tem = Fstring_match (XCONS (regexps)->car, eltstring, zero);
+	      tem = Fstring_match (XCAR (regexps), eltstring, zero);
 	      if (NILP (tem))
 		break;
 	    }

@@ -631,9 +631,9 @@ do_switch_frame (frame, no_enter, track)
   /* If FRAME is a switch-frame event, extract the frame we should
      switch to.  */
   if (CONSP (frame)
-      && EQ (XCONS (frame)->car, Qswitch_frame)
-      && CONSP (XCONS (frame)->cdr))
-    frame = XCONS (XCONS (frame)->cdr)->car;
+      && EQ (XCAR (frame), Qswitch_frame)
+      && CONSP (XCDR (frame)))
+    frame = XCAR (XCDR (frame));
 
   /* This used to say CHECK_LIVE_FRAME, but apparently it's possible for
      a switch-frame event to arrive after a frame is no longer live,
@@ -659,17 +659,17 @@ do_switch_frame (frame, no_enter, track)
     {
       Lisp_Object tail;
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object focus;
 
-	  if (!FRAMEP (XCONS (tail)->car))
+	  if (!FRAMEP (XCAR (tail)))
 	    abort ();
 
-	  focus = FRAME_FOCUS_FRAME (XFRAME (XCONS (tail)->car));
+	  focus = FRAME_FOCUS_FRAME (XFRAME (XCAR (tail)));
 
 	  if (FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
-	    Fredirect_frame_focus (XCONS (tail)->car, frame);
+	    Fredirect_frame_focus (XCAR (tail), frame);
 	}
     }
 #else /* ! 0 */
@@ -893,11 +893,11 @@ next_frame (frame, minibuf)
   CHECK_LIVE_FRAME (frame, 0);
 
   while (1)
-    for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+    for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
       {
 	Lisp_Object f;
 
-	f = XCONS (tail)->car;
+	f = XCAR (tail);
 
 	if (passed
 	    && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
@@ -968,11 +968,11 @@ prev_frame (frame, minibuf)
     abort ();
 
   prev = Qnil;
-  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object f;
 
-      f = XCONS (tail)->car;
+      f = XCAR (tail);
       if (!FRAMEP (f))
 	abort ();
 
@@ -1087,11 +1087,11 @@ other_visible_frames (f)
 
       for (frames = Vframe_list;
 	   CONSP (frames);
-	   frames = XCONS (frames)->cdr)
+	   frames = XCDR (frames))
 	{
 	  Lisp_Object this;
 
-	  this = XCONS (frames)->car;
+	  this = XCAR (frames);
 	  /* Verify that the frame's window still exists
 	     and we can still talk to it.  And note any recent change
 	     in visibility.  */
@@ -1148,7 +1148,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 #if 0
   /* This is a nice idea, but x_connection_closed needs to be able
      to delete the last frame, if it is gone.  */
-  if (NILP (XCONS (Vframe_list)->cdr))
+  if (NILP (XCDR (Vframe_list)))
     error ("Attempt to delete the only frame");
 #endif
 
@@ -1160,10 +1160,10 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
       for (frames = Vframe_list;
 	   CONSP (frames);
-	   frames = XCONS (frames)->cdr)
+	   frames = XCDR (frames))
 	{
 	  Lisp_Object this;
-	  this = XCONS (frames)->car;
+	  this = XCAR (frames);
 
 	  if (! EQ (this, frame)
 	      && EQ (frame,
@@ -1280,9 +1280,9 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
       for (frames = Vframe_list;
 	   CONSP (frames);
-	   frames = XCONS (frames)->cdr)
+	   frames = XCDR (frames))
 	{
-	  f = XFRAME (XCONS (frames)->car);
+	  f = XFRAME (XCAR (frames));
 	  if (!FRAME_MINIBUF_ONLY_P (f))
 	    {
 	      last_nonminibuf_frame = f;
@@ -1308,12 +1308,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
       for (frames = Vframe_list;
 	   CONSP (frames);
-	   frames = XCONS (frames)->cdr)
+	   frames = XCDR (frames))
 	{
 	  Lisp_Object this;
 	  struct frame *f1;
 
-	  this = XCONS (frames)->car;
+	  this = XCAR (frames);
 	  if (!FRAMEP (this))
 	    abort ();
 	  f1 = XFRAME (this);
@@ -1662,9 +1662,9 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
   Lisp_Object value;
 
   value = Qnil;
-  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!FRAMEP (frame))
 	continue;
       f = XFRAME (frame);

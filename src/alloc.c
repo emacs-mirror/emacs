@@ -24,6 +24,10 @@ Boston, MA 02111-1307, USA.  */
 /* Note that this declares bzero on OSF/1.  How dumb.  */
 #include <signal.h>
 
+/* This file is part of the core Lisp implementation, and thus must
+   deal with the real data structures.  If the Lisp implementation is
+   replaced, this file likely will not be used.  */
+#undef HIDE_LISP_IMPLEMENTATION
 #include "lisp.h"
 #include "intervals.h"
 #include "puresize.h"

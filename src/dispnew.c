@@ -5693,9 +5693,9 @@ the current state.\n")
      No need to test for the end of the vector
      because the last element of the vector is lambda
      and that will always cause a mismatch.  */
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
-      buf = XCONS (XCONS (tail)->car)->cdr;
+      buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
       if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
 	continue;
@@ -5714,7 +5714,7 @@ the current state.\n")
   n = 1;
   FOR_EACH_FRAME (tail, frame)
     n += 2;
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     n += 3;
   /* Reallocate the vector if it's grown, or if it's shrunk a lot.  */
   if (n > XVECTOR (frame_and_buffer_state)->size
@@ -5727,9 +5727,9 @@ the current state.\n")
       *vecp++ = frame;
       *vecp++ = XFRAME (frame)->name;
     }
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
-      buf = XCONS (XCONS (tail)->car)->cdr;
+      buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
       if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
 	continue;

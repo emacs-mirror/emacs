@@ -4836,13 +4836,13 @@ A nil width parameter means no margin.")
   /* Check widths < 0 and translate a zero width to nil.
      Margins that are too wide have to be checked elsewhere.  */
   if ((INTEGERP (left) && XINT (left) < 0)
-      || (FLOATP (left) && XFLOAT (left)->data <= 0))
+      || (FLOATP (left) && XFLOAT_DATA (left) <= 0))
      XSETFASTINT (left, 0);
   if (INTEGERP (left) && XFASTINT (left) == 0)
     left = Qnil;
   
   if ((INTEGERP (right) && XINT (right) < 0)
-      || (FLOATP (right) && XFLOAT (right)->data <= 0))
+      || (FLOATP (right) && XFLOAT_DATA (right) <= 0))
     XSETFASTINT (right, 0);
   if (INTEGERP (right) && XFASTINT (right) == 0)
     right = Qnil;

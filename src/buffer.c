@@ -214,8 +214,8 @@ If the optional arg FRAME is a frame, we return that frame's buffer list.")
       tail = framelist;
       while (! NILP (tail))
 	{
-	  general = Fdelq (XCONS (tail)->car, general);
-	  tail = XCONS (tail)->cdr;
+	  general = Fdelq (XCAR (tail), general);
+	  tail = XCDR (tail);
 	}
       return nconc2 (framelist, general);
     }
@@ -278,9 +278,9 @@ See also `find-buffer-visiting'.")
   if (!NILP (handler))
     return call2 (handler, Qget_file_buffer, filename);
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
-      buf = Fcdr (XCONS (tail)->car);
+      buf = Fcdr (XCAR (tail));
       if (!BUFFERP (buf)) continue;
       if (!STRINGP (XBUFFER (buf)->filename)) continue;
       tem = Fstring_equal (XBUFFER (buf)->filename, filename);
@@ -296,9 +296,9 @@ get_truename_buffer (filename)
 {
   register Lisp_Object tail, buf, tem;
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
-      buf = Fcdr (XCONS (tail)->car);
+      buf = Fcdr (XCAR (tail));
       if (!BUFFERP (buf)) continue;
       if (!STRINGP (XBUFFER (buf)->file_truename)) continue;
       tem = Fstring_equal (XBUFFER (buf)->file_truename, filename);
@@ -731,28 +731,28 @@ No argument or nil as argument means use current buffer as BUFFER.")
 
   {
     register Lisp_Object tail;
-    for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+    for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
       {
 	Lisp_Object val, elt;
 
-	elt = XCONS (tail)->car;
+	elt = XCAR (tail);
 
 	/* Reference each variable in the alist in buf.
 	   If inquiring about the current buffer, this gets the current values,
 	   so store them into the alist so the alist is up to date.
 	   If inquiring about some other buffer, this swaps out any values
 	   for that buffer, making the alist up to date automatically.  */
-	val = find_symbol_value (XCONS (elt)->car);
+	val = find_symbol_value (XCAR (elt));
 	/* Use the current buffer value only if buf is the current buffer.  */
 	if (buf != current_buffer)
-	  val = XCONS (elt)->cdr;
+	  val = XCDR (elt);
 
 	/* If symbol is unbound, put just the symbol in the list.  */
 	if (EQ (val, Qunbound))
-	  result = Fcons (XCONS (elt)->car, result);
+	  result = Fcons (XCAR (elt), result);
 	/* Otherwise, put (symbol . value) in the list.  */
 	else
-	  result = Fcons (Fcons (XCONS (elt)->car, val), result);
+	  result = Fcons (Fcons (XCAR (elt), val), result);
       }
   }
 
@@ -928,9 +928,9 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
   add_ons = Qnil;
   while (CONSP (tem))
     {
-      if (BUFFERP (XCONS (tem)->car))
-	add_ons = Fcons (Fcons (Qnil, XCONS (tem)->car), add_ons);
-      tem = XCONS (tem)->cdr;
+      if (BUFFERP (XCAR (tem)))
+	add_ons = Fcons (Fcons (Qnil, XCAR (tem)), add_ons);
+      tem = XCDR (tem);
     }
   tail = nconc2 (Fnreverse (add_ons), tail);
 
@@ -1237,9 +1237,9 @@ record_buffer (buf)
   frame = selected_frame;
 
   prev = Qnil;
-  for (link = Vbuffer_alist; CONSP (link); link = XCONS (link)->cdr)
+  for (link = Vbuffer_alist; CONSP (link); link = XCDR (link))
     {
-      if (EQ (XCONS (XCONS (link)->car)->cdr, buf))
+      if (EQ (XCDR (XCAR (link)), buf))
 	break;
       prev = link;
     }
@@ -1248,20 +1248,20 @@ record_buffer (buf)
      we cannot use Fdelq itself here because it allows quitting.  */
 
   if (NILP (prev))
-    Vbuffer_alist = XCONS (Vbuffer_alist)->cdr;
+    Vbuffer_alist = XCDR (Vbuffer_alist);
   else
-    XCONS (prev)->cdr = XCONS (XCONS (prev)->cdr)->cdr;
+    XCDR (prev) = XCDR (XCDR (prev));
 	
-  XCONS (link)->cdr = Vbuffer_alist;
+  XCDR (link) = Vbuffer_alist;
   Vbuffer_alist = link;
 
   /* Now move this buffer to the front of frame_buffer_list also.  */
 
   prev = Qnil;
   for (link = frame_buffer_list (frame); CONSP (link);
-       link = XCONS (link)->cdr)
+       link = XCDR (link))
     {
-      if (EQ (XCONS (link)->car, buf))
+      if (EQ (XCAR (link), buf))
 	break;
       prev = link;
     }
@@ -1272,11 +1272,11 @@ record_buffer (buf)
     {
       if (NILP (prev))
 	set_frame_buffer_list (frame,
-			       XCONS (frame_buffer_list (frame))->cdr);
+			       XCDR (frame_buffer_list (frame)));
       else
-	XCONS (prev)->cdr = XCONS (XCONS (prev)->cdr)->cdr;
+	XCDR (prev) = XCDR (XCDR (prev));
 	
-      XCONS (link)->cdr = frame_buffer_list (frame);
+      XCDR (link) = frame_buffer_list (frame);
       set_frame_buffer_list (frame, link);
     }
   else
@@ -1516,31 +1516,31 @@ set_buffer_internal_1 (b)
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
 
-  for (tail = b->local_var_alist; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = b->local_var_alist; !NILP (tail); tail = XCDR (tail))
     {
-      valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
+      valcontents = XSYMBOL (XCAR (XCAR (tail)))->value;
       if ((BUFFER_LOCAL_VALUEP (valcontents)
 	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable
 	     to cause it to become set for this buffer.  */
-	Fsymbol_value (XCONS (XCONS (tail)->car)->car);
+	Fsymbol_value (XCAR (XCAR (tail)));
     }
 
   /* Do the same with any others that were local to the previous buffer */
 
   if (old_buf)
-    for (tail = old_buf->local_var_alist; !NILP (tail); tail = XCONS (tail)->cdr)
+    for (tail = old_buf->local_var_alist; !NILP (tail); tail = XCDR (tail))
       {
-	valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
+	valcontents = XSYMBOL (XCAR (XCAR (tail)))->value;
 	if ((BUFFER_LOCAL_VALUEP (valcontents)
 	     || SOME_BUFFER_LOCAL_VALUEP (valcontents))
 	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable
                to cause it to become set for this buffer.  */
-	  Fsymbol_value (XCONS (XCONS (tail)->car)->car);
+	  Fsymbol_value (XCAR (XCAR (tail)));
       }
 }
 
@@ -1682,7 +1682,7 @@ selected window if it is displayed there.")
     aelt = Frassq (buffer, Vbuffer_alist);
     link = Fmemq (aelt, Vbuffer_alist);
     Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-    XCONS (link)->cdr = Qnil;
+    XCDR (link) = Qnil;
     Vbuffer_alist = nconc2 (Vbuffer_alist, link);
   }
 
@@ -1935,14 +1935,14 @@ the normal hook `change-major-mode-hook'.")
   /* Any which are supposed to be permanent,
      make local again, with the same values they had.  */
      
-  for (alist = oalist; !NILP (alist); alist = XCONS (alist)->cdr)
+  for (alist = oalist; !NILP (alist); alist = XCDR (alist))
     {
-      sym = XCONS (XCONS (alist)->car)->car;
+      sym = XCAR (XCAR (alist));
       tem = Fget (sym, Qpermanent_local);
       if (! NILP (tem))
 	{
 	  Fmake_local_variable (sym);
-	  Fset (sym, XCONS (XCONS (alist)->car)->cdr);
+	  Fset (sym, XCDR (XCAR (alist)));
 	}
     }
 
@@ -1965,9 +1965,9 @@ swap_out_buffer_local_variables (b)
   XSETBUFFER (buffer, b);
   oalist = b->local_var_alist;
 
-  for (alist = oalist; !NILP (alist); alist = XCONS (alist)->cdr)
+  for (alist = oalist; !NILP (alist); alist = XCDR (alist))
     {
-      sym = XCONS (XCONS (alist)->car)->car;
+      sym = XCAR (XCAR (alist));
 
       /* Need not do anything if some other buffer's binding is now encached.  */
       tem = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer;
@@ -1981,16 +1981,16 @@ swap_out_buffer_local_variables (b)
 	     it is currently set up for.  This is so that, if the
 	     local is marked permanent, and we make it local again
 	     later in Fkill_all_local_variables, we don't lose the value.  */
-	  XCONS (XCONS (tem)->car)->cdr
+	  XCDR (XCAR (tem))
 	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue);
 	  /* Switch to the symbol's default-value alist entry.  */
-	  XCONS (tem)->car = tem;
+	  XCAR (tem) = tem;
 	  /* Mark it as current for buffer B.  */
 	  XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer = buffer;
 	  /* Store the current value into any forwarding in the symbol.  */
 	  store_symval_forwarding (sym,
 				   XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue,
-				   XCONS (tem)->cdr);
+				   XCDR (tem));
 	}
     }
 }
@@ -2032,11 +2032,11 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 
   for (tail = current_buffer->overlays_before;
        GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos, endpos;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -2085,11 +2085,11 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 
   for (tail = current_buffer->overlays_after;
        GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos, endpos;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -2175,11 +2175,11 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 
   for (tail = current_buffer->overlays_before;
        GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos, endpos;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
 
       ostart = OVERLAY_START (overlay);
       oend = OVERLAY_END (overlay);
@@ -2221,11 +2221,11 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 
   for (tail = current_buffer->overlays_after;
        GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos, endpos;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
 
       ostart = OVERLAY_START (overlay);
       oend = OVERLAY_END (overlay);
@@ -2277,11 +2277,11 @@ overlay_touches_p (pos)
   Lisp_Object tail, overlay;
 
   for (tail = current_buffer->overlays_before; GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int endpos;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
       if (!GC_OVERLAYP (overlay))
 	abort ();
 
@@ -2293,11 +2293,11 @@ overlay_touches_p (pos)
     }
 
   for (tail = current_buffer->overlays_after; GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
       if (!GC_OVERLAYP (overlay))
 	abort ();
 
@@ -2502,9 +2502,9 @@ overlay_strings (pos, w, pstr)
 
   overlay_heads.used = overlay_heads.bytes = 0;
   overlay_tails.used = overlay_tails.bytes = 0;
-  for (ov = current_buffer->overlays_before; CONSP (ov); ov = XCONS (ov)->cdr)
+  for (ov = current_buffer->overlays_before; CONSP (ov); ov = XCDR (ov))
     {
-      overlay = XCONS (ov)->car;
+      overlay = XCAR (ov);
       if (!OVERLAYP (overlay))
 	abort ();
 
@@ -2531,9 +2531,9 @@ overlay_strings (pos, w, pstr)
 			       Foverlay_get (overlay, Qpriority),
 			       endpos - startpos);
     }
-  for (ov = current_buffer->overlays_after; CONSP (ov); ov = XCONS (ov)->cdr)
+  for (ov = current_buffer->overlays_after; CONSP (ov); ov = XCDR (ov))
     {
-      overlay = XCONS (ov)->car;
+      overlay = XCAR (ov);
       if (!OVERLAYP (overlay))
 	abort ();
 
@@ -2634,8 +2634,8 @@ recenter_overlay_lists (buf, pos)
        CONSP (tail);
        prev = tail, tail = next)
     {
-      next = XCONS (tail)->cdr;
-      overlay = XCONS (tail)->car;
+      next = XCDR (tail);
+      overlay = XCAR (tail);
 
       /* If the overlay is not valid, get rid of it.  */
       if (!OVERLAY_VALID (overlay))
@@ -2645,7 +2645,7 @@ recenter_overlay_lists (buf, pos)
 	{
 	  /* Splice the cons cell TAIL out of overlays_before.  */
 	  if (!NILP (prev))
-	    XCONS (prev)->cdr = next;
+	    XCDR (prev) = next;
 	  else
 	    buf->overlays_before = next;
 	  tail = prev;
@@ -2664,7 +2664,7 @@ recenter_overlay_lists (buf, pos)
 
 	  /* Splice the cons cell TAIL out of overlays_before.  */
 	  if (!NILP (prev))
-	    XCONS (prev)->cdr = next;
+	    XCDR (prev) = next;
 	  else
 	    buf->overlays_before = next;
 
@@ -2672,11 +2672,11 @@ recenter_overlay_lists (buf, pos)
 	  other_prev = Qnil;
 	  for (other = buf->overlays_after;
 	       CONSP (other);
-	       other_prev = other, other = XCONS (other)->cdr)
+	       other_prev = other, other = XCDR (other))
 	    {
 	      Lisp_Object otherbeg, otheroverlay;
 
-	      otheroverlay = XCONS (other)->car;
+	      otheroverlay = XCAR (other);
 	      if (! OVERLAY_VALID (otheroverlay))
 		abort ();
 
@@ -2686,9 +2686,9 @@ recenter_overlay_lists (buf, pos)
 	    }
 
 	  /* Add TAIL to overlays_after before OTHER.  */
-	  XCONS (tail)->cdr = other;
+	  XCDR (tail) = other;
 	  if (!NILP (other_prev))
-	    XCONS (other_prev)->cdr = tail;
+	    XCDR (other_prev) = tail;
 	  else
 	    buf->overlays_after = tail;
 	  tail = prev;
@@ -2706,8 +2706,8 @@ recenter_overlay_lists (buf, pos)
        CONSP (tail);
        prev = tail, tail = next)
     {
-      next = XCONS (tail)->cdr;
-      overlay = XCONS (tail)->car;
+      next = XCDR (tail);
+      overlay = XCAR (tail);
 
       /* If the overlay is not valid, get rid of it.  */
       if (!OVERLAY_VALID (overlay))
@@ -2717,7 +2717,7 @@ recenter_overlay_lists (buf, pos)
 	{
 	  /* Splice the cons cell TAIL out of overlays_after.  */
 	  if (!NILP (prev))
-	    XCONS (prev)->cdr = next;
+	    XCDR (prev) = next;
 	  else
 	    buf->overlays_after = next;
 	  tail = prev;
@@ -2741,7 +2741,7 @@ recenter_overlay_lists (buf, pos)
 
 	  /* Splice the cons cell TAIL out of overlays_after.  */
 	  if (!NILP (prev))
-	    XCONS (prev)->cdr = next;
+	    XCDR (prev) = next;
 	  else
 	    buf->overlays_after = next;
 
@@ -2749,11 +2749,11 @@ recenter_overlay_lists (buf, pos)
 	  other_prev = Qnil;
 	  for (other = buf->overlays_before;
 	       CONSP (other);
-	       other_prev = other, other = XCONS (other)->cdr)
+	       other_prev = other, other = XCDR (other))
 	    {
 	      Lisp_Object otherend, otheroverlay;
 
-	      otheroverlay = XCONS (other)->car;
+	      otheroverlay = XCAR (other);
 	      if (! OVERLAY_VALID (otheroverlay))
 		abort ();
 
@@ -2763,9 +2763,9 @@ recenter_overlay_lists (buf, pos)
 	    }
 
 	  /* Add TAIL to overlays_before before OTHER.  */
-	  XCONS (tail)->cdr = other;
+	  XCDR (tail) = other;
 	  if (!NILP (other_prev))
-	    XCONS (other_prev)->cdr = tail;
+	    XCDR (other_prev) = tail;
 	  else
 	    buf->overlays_before = tail;
 	  tail = prev;
@@ -2833,7 +2833,7 @@ fix_overlays_in_range (start, end)
      it may look strange.  */
   for (ptail = &current_buffer->overlays_before; CONSP (*ptail);)
     {
-      overlay = XCONS (*ptail)->car;
+      overlay = XCAR (*ptail);
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
       if (endpos < start)
 	break;
@@ -2856,21 +2856,21 @@ fix_overlays_in_range (start, end)
 	  if (endpos < XINT (current_buffer->overlay_center))
 	    {
 	      *pafter = *ptail;
-	      pafter = &XCONS (*ptail)->cdr;
+	      pafter = &XCDR (*ptail);
 	    }
 	  else
 	    {
 	      *pbefore = *ptail;
-	      pbefore = &XCONS (*ptail)->cdr;
+	      pbefore = &XCDR (*ptail);
 	    }
-	  *ptail = XCONS (*ptail)->cdr;
+	  *ptail = XCDR (*ptail);
 	}
       else
-	ptail = &XCONS (*ptail)->cdr;
+	ptail = &XCDR (*ptail);
     }
   for (ptail = &current_buffer->overlays_after; CONSP (*ptail);)
     {
-      overlay = XCONS (*ptail)->car;
+      overlay = XCAR (*ptail);
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
       if (startpos >= end)
 	break;
@@ -2890,17 +2890,17 @@ fix_overlays_in_range (start, end)
 	  if (endpos < XINT (current_buffer->overlay_center))
 	    {
 	      *pafter = *ptail;
-	      pafter = &XCONS (*ptail)->cdr;
+	      pafter = &XCDR (*ptail);
 	    }
 	  else
 	    {
 	      *pbefore = *ptail;
-	      pbefore = &XCONS (*ptail)->cdr;
+	      pbefore = &XCDR (*ptail);
 	    }
-	  *ptail = XCONS (*ptail)->cdr;
+	  *ptail = XCDR (*ptail);
 	}
       else
-	ptail = &XCONS (*ptail)->cdr;
+	ptail = &XCDR (*ptail);
     }
 
   /* Splice the constructed (wrong) lists into the buffer's lists,
@@ -2949,9 +2949,9 @@ fix_overlays_before (bp, prev, pos)
      overlay whose ending marker is after-insertion-marker if disorder
      exists).  */
   while (!NILP (*tailp)
-	 && ((end = OVERLAY_POSITION (OVERLAY_END (XCONS (*tailp)->car)))
+	 && ((end = OVERLAY_POSITION (OVERLAY_END (XCAR (*tailp))))
 	     >= pos))
-    tailp = &XCONS (*tailp)->cdr;
+    tailp = &XCDR (*tailp);
 
   /* If we don't find such an overlay,
      or the found one ends before PREV,
@@ -2959,11 +2959,11 @@ fix_overlays_before (bp, prev, pos)
      we don't have to fix anything.  */
   if (NILP (*tailp)
       || end < prev
-      || NILP (XCONS (*tailp)->cdr))
+      || NILP (XCDR (*tailp)))
     return;
 
   right_place = tailp;
-  tailp = &XCONS (*tailp)->cdr;
+  tailp = &XCDR (*tailp);
 
   /* Now, end position of overlays in the list *TAILP should be before
      or equal to PREV.  In the loop, an overlay which ends at POS is
@@ -2972,21 +2972,21 @@ fix_overlays_before (bp, prev, pos)
      correct order.  */
   while (!NILP (*tailp))
     {
-      end = OVERLAY_POSITION (OVERLAY_END (XCONS (*tailp)->car));
+      end = OVERLAY_POSITION (OVERLAY_END (XCAR (*tailp)));
 
       if (end == pos)
 	{			/* This overlay is disordered. */
 	  Lisp_Object found = *tailp;
 
 	  /* Unlink the found overlay.  */
-	  *tailp = XCONS (found)->cdr;
+	  *tailp = XCDR (found);
 	  /* Move an overlay at RIGHT_PLACE to the next of the found one.  */
-	  XCONS (found)->cdr = *right_place;
+	  XCDR (found) = *right_place;
 	  /* Link it into the right place.  */
 	  *right_place = found;
 	}
       else if (end == prev)
-	tailp = &XCONS (*tailp)->cdr;
+	tailp = &XCDR (*tailp);
       else			/* No more disordered overlay. */
 	break;
     }
@@ -3457,12 +3457,12 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
   fallback = Qnil;
 
   for (plist = XOVERLAY (overlay)->plist;
-       CONSP (plist) && CONSP (XCONS (plist)->cdr);
-       plist = XCONS (XCONS (plist)->cdr)->cdr)
+       CONSP (plist) && CONSP (XCDR (plist));
+       plist = XCDR (XCDR (plist)))
     {
-      if (EQ (XCONS (plist)->car, prop))
-	return XCONS (XCONS (plist)->cdr)->car;
-      else if (EQ (XCONS (plist)->car, Qcategory))
+      if (EQ (XCAR (plist), prop))
+	return XCAR (XCDR (plist));
+      else if (EQ (XCAR (plist), Qcategory))
 	{
 	  Lisp_Object tem;
 	  tem = Fcar (Fcdr (plist));
@@ -3487,12 +3487,12 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   buffer = Fmarker_buffer (OVERLAY_START (overlay));
 
   for (tail = XOVERLAY (overlay)->plist;
-       CONSP (tail) && CONSP (XCONS (tail)->cdr);
-       tail = XCONS (XCONS (tail)->cdr)->cdr)
-    if (EQ (XCONS (tail)->car, prop))
+       CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
+    if (EQ (XCAR (tail), prop))
       {
-	changed = !EQ (XCONS (XCONS (tail)->cdr)->car, value);
-	XCONS (XCONS (tail)->cdr)->car = value;
+	changed = !EQ (XCAR (XCDR (tail)), value);
+	XCAR (XCDR (tail)) = value;
 	goto found;
       }
   /* It wasn't in the list, so add it to the front.  */
@@ -3615,12 +3615,12 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
   tail_copied = 0;
   for (tail = current_buffer->overlays_before;
        CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos, endpos;
       Lisp_Object ostart, oend;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
 
       ostart = OVERLAY_START (overlay);
       oend = OVERLAY_END (overlay);
@@ -3671,12 +3671,12 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
   tail_copied = 0;
   for (tail = current_buffer->overlays_after;
        CONSP (tail);
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       int startpos, endpos;
       Lisp_Object ostart, oend;
 
-      overlay = XCONS (tail)->car;
+      overlay = XCAR (tail);
 
       ostart = OVERLAY_START (overlay);
       oend = OVERLAY_END (overlay);
@@ -3760,10 +3760,10 @@ evaporate_overlays (pos)
   hit_list = Qnil;
   if (pos <= XFASTINT (current_buffer->overlay_center))
     for (tail = current_buffer->overlays_before; CONSP (tail);
-	 tail = XCONS (tail)->cdr)
+	 tail = XCDR (tail))
       {
 	int endpos;
-	overlay = XCONS (tail)->car;
+	overlay = XCAR (tail);
 	endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
 	if (endpos < pos)
 	  break;
@@ -3773,10 +3773,10 @@ evaporate_overlays (pos)
       }
   else
     for (tail = current_buffer->overlays_after; CONSP (tail);
-	 tail = XCONS (tail)->cdr)
+	 tail = XCDR (tail))
       {
 	int startpos;
-	overlay = XCONS (tail)->car;
+	overlay = XCAR (tail);
 	startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
 	if (startpos > pos)
 	  break;
@@ -3784,8 +3784,8 @@ evaporate_overlays (pos)
 	    && ! NILP (Foverlay_get (overlay, Qevaporate)))
 	  hit_list = Fcons (overlay, hit_list);
       }
-  for (; CONSP (hit_list); hit_list = XCONS (hit_list)->cdr)
-    Fdelete_overlay (XCONS (hit_list)->car);
+  for (; CONSP (hit_list); hit_list = XCDR (hit_list))
+    Fdelete_overlay (XCAR (hit_list));
 }
 
 /* Somebody has tried to store a value with an unacceptable type

@@ -1849,16 +1849,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   reread = 0;
   if (CONSP (Vunread_post_input_method_events))
     {
-      c = XCONS (Vunread_post_input_method_events)->car;
+      c = XCAR (Vunread_post_input_method_events);
       Vunread_post_input_method_events
-	= XCONS (Vunread_post_input_method_events)->cdr;
+	= XCDR (Vunread_post_input_method_events);
 
       /* Undo what read_char_x_menu_prompt did when it unread
 	 additional keys returned by Fx_popup_menu.  */
       if (CONSP (c)
-	  && (SYMBOLP (XCONS (c)->car) || INTEGERP (XCONS (c)->car))
-	  && NILP (XCONS (c)->cdr))
-	c = XCONS (c)->car;
+	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c)))
+	  && NILP (XCDR (c)))
+	c = XCAR (c);
 
       reread = 1;
       goto reread_first;
@@ -1875,15 +1875,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (CONSP (Vunread_command_events))
     {
-      c = XCONS (Vunread_command_events)->car;
-      Vunread_command_events = XCONS (Vunread_command_events)->cdr;
+      c = XCAR (Vunread_command_events);
+      Vunread_command_events = XCDR (Vunread_command_events);
 
       /* Undo what read_char_x_menu_prompt did when it unread
 	 additional keys returned by Fx_popup_menu.  */
       if (CONSP (c)
-	  && (SYMBOLP (XCONS (c)->car) || INTEGERP (XCONS (c)->car))
-	  && NILP (XCONS (c)->cdr))
-	c = XCONS (c)->car;
+	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c)))
+	  && NILP (XCDR (c)))
+	c = XCAR (c);
 
       reread = 1;
       goto reread_for_input_method;
@@ -1891,15 +1891,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (CONSP (Vunread_input_method_events))
     {
-      c = XCONS (Vunread_input_method_events)->car;
-      Vunread_input_method_events = XCONS (Vunread_input_method_events)->cdr;
+      c = XCAR (Vunread_input_method_events);
+      Vunread_input_method_events = XCDR (Vunread_input_method_events);
 
       /* Undo what read_char_x_menu_prompt did when it unread
 	 additional keys returned by Fx_popup_menu.  */
       if (CONSP (c)
-	  && (SYMBOLP (XCONS (c)->car) || INTEGERP (XCONS (c)->car))
-	  && NILP (XCONS (c)->cdr))
-	c = XCONS (c)->car;
+	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c)))
+	  && NILP (XCDR (c)))
+	c = XCAR (c);
       reread = 1;
       goto reread_for_input_method;
     }
@@ -2037,7 +2037,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    if (single_kboard)
 	      abort ();
 	    while (CONSP (*tailp))
-	      tailp = &XCONS (*tailp)->cdr;
+	      tailp = &XCDR (*tailp);
 	    if (!NILP (*tailp))
 	      abort ();
 	    *tailp = Fcons (c, Qnil);
@@ -2112,8 +2112,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (nmaps > 0 && INTERACTIVE
       && !NILP (prev_event)
       && EVENT_HAS_PARAMETERS (prev_event)
-      && !EQ (XCONS (prev_event)->car, Qmenu_bar)
-      && !EQ (XCONS (prev_event)->car, Qtool_bar)
+      && !EQ (XCAR (prev_event), Qmenu_bar)
+      && !EQ (XCAR (prev_event), Qtool_bar)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && unread_command_char < 0)
@@ -2179,8 +2179,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      or sentinel or filter.  */
   if (CONSP (Vunread_command_events))
     {
-      c = XCONS (Vunread_command_events)->car;
-      Vunread_command_events = XCONS (Vunread_command_events)->cdr;
+      c = XCAR (Vunread_command_events);
+      Vunread_command_events = XCDR (Vunread_command_events);
     }
 
   /* Read something from current KBOARD's side queue, if possible.  */
@@ -2191,15 +2191,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  if (!CONSP (current_kboard->kbd_queue))
 	    abort ();
-	  c = XCONS (current_kboard->kbd_queue)->car;
+	  c = XCAR (current_kboard->kbd_queue);
 	  current_kboard->kbd_queue
-	    = XCONS (current_kboard->kbd_queue)->cdr;
+	    = XCDR (current_kboard->kbd_queue);
 	  if (NILP (current_kboard->kbd_queue))
 	    current_kboard->kbd_queue_has_data = 0;
 	  input_pending = readable_events (0);
 	  if (EVENT_HAS_PARAMETERS (c)
 	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qswitch_frame))
-	    internal_last_event_frame = XCONS (XCONS (c)->cdr)->car;
+	    internal_last_event_frame = XCAR (XCDR (c));
 	  Vlast_event_frame = internal_last_event_frame;
 	}
     }
@@ -2251,7 +2251,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  Lisp_Object *tailp = &kb->kbd_queue;
 	  while (CONSP (*tailp))
-	    tailp = &XCONS (*tailp)->cdr;
+	    tailp = &XCDR (*tailp);
 	  if (!NILP (*tailp))
 	    abort ();
 	  *tailp = Fcons (c, Qnil);
@@ -2357,9 +2357,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      return just menu-bar for now.  Modify the mouse click event
      so we won't do this twice, then queue it up.  */
   if (EVENT_HAS_PARAMETERS (c)
-      && CONSP (XCONS (c)->cdr)
+      && CONSP (XCDR (c))
       && CONSP (EVENT_START (c))
-      && CONSP (XCONS (EVENT_START (c))->cdr))
+      && CONSP (XCDR (EVENT_START (c))))
     {
       Lisp_Object posn;
 
@@ -2483,9 +2483,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  goto retry;
 	}
       /* It returned one event or more.  */
-      c = XCONS (tem)->car;
+      c = XCAR (tem);
       Vunread_post_input_method_events
-	= nconc2 (XCONS (tem)->cdr, Vunread_post_input_method_events);
+	= nconc2 (XCDR (tem), Vunread_post_input_method_events);
     }
 
  reread_first:
@@ -2612,8 +2612,8 @@ help_char_p (c)
 
   if (EQ (c, Vhelp_char))
     return 1;
-  for (tail = Vhelp_event_list; CONSP (tail); tail = XCONS (tail)->cdr)
-    if (EQ (c, XCONS (tail)->car))
+  for (tail = Vhelp_event_list; CONSP (tail); tail = XCDR (tail))
+    if (EQ (c, XCAR (tail)))
       return 1;
   return 0;
 }
@@ -2805,7 +2805,7 @@ event_to_kboard (event)
   Lisp_Object frame;
   frame = event->frame_or_window;
   if (CONSP (frame))
-    frame = XCONS (frame)->car;
+    frame = XCAR (frame);
   else if (WINDOWP (frame))
     frame = WINDOW_FRAME (XWINDOW (frame));
 
@@ -3028,8 +3028,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
   if (CONSP (Vunread_command_events))
     {
       Lisp_Object first;
-      first = XCONS (Vunread_command_events)->car;
-      Vunread_command_events = XCONS (Vunread_command_events)->cdr;
+      first = XCAR (Vunread_command_events);
+      Vunread_command_events = XCDR (Vunread_command_events);
       *kbp = current_kboard;
       return first;
     }
@@ -3170,7 +3170,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 
 	  frame = event->frame_or_window;
 	  if (CONSP (frame))
-	    frame = XCONS (frame)->car;
+	    frame = XCAR (frame);
 	  else if (WINDOWP (frame))
 	    frame = WINDOW_FRAME (XWINDOW (frame));
 
@@ -3197,8 +3197,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 		 that as the `event with parameters' for this selection.  */
 	      if ((event->kind == menu_bar_event
 		   || event->kind == TOOL_BAR_EVENT)
-		  && !(CONSP (obj) && EQ (XCONS (obj)->car, Qmenu_bar))
-		  && !(CONSP (obj) && EQ (XCONS (obj)->car, Qtool_bar))
+		  && !(CONSP (obj) && EQ (XCAR (obj), Qmenu_bar))
+		  && !(CONSP (obj) && EQ (XCAR (obj), Qtool_bar))
 		  && used_mouse_menu)
 		*used_mouse_menu = 1;
 #endif
@@ -3350,11 +3350,11 @@ timer_start_idle ()
   EMACS_GET_TIME (timer_idleness_start_time);
 
   /* Mark all idle-time timers as once again candidates for running.  */
-  for (timers = Vtimer_idle_list; CONSP (timers); timers = XCONS (timers)->cdr)
+  for (timers = Vtimer_idle_list; CONSP (timers); timers = XCDR (timers))
     {
       Lisp_Object timer;
 
-      timer = XCONS (timers)->car;
+      timer = XCAR (timers);
 
       if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
 	continue;
@@ -3426,10 +3426,10 @@ timer_check (do_it_now)
       /* Skip past invalid timers and timers already handled.  */
       if (!NILP (timers))
 	{
-	  timer = XCONS (timers)->car;
+	  timer = XCAR (timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
 	    {
-	      timers = XCONS (timers)->cdr;
+	      timers = XCDR (timers);
 	      continue;
 	    }
 	  vector = XVECTOR (timer)->contents;
@@ -3438,16 +3438,16 @@ timer_check (do_it_now)
 	      || !INTEGERP (vector[3])
 	      || ! NILP (vector[0]))
 	    {
-	      timers = XCONS (timers)->cdr;
+	      timers = XCDR (timers);
 	      continue;
 	    }
 	}
       if (!NILP (idle_timers))
 	{
-	  timer = XCONS (idle_timers)->car;
+	  timer = XCAR (idle_timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
 	    {
-	      idle_timers = XCONS (idle_timers)->cdr;
+	      idle_timers = XCDR (idle_timers);
 	      continue;
 	    }
 	  vector = XVECTOR (timer)->contents;
@@ -3456,7 +3456,7 @@ timer_check (do_it_now)
 	      || !INTEGERP (vector[3])
 	      || ! NILP (vector[0]))
 	    {
-	      idle_timers = XCONS (idle_timers)->cdr;
+	      idle_timers = XCDR (idle_timers);
 	      continue;
 	    }
 	}
@@ -3467,7 +3467,7 @@ timer_check (do_it_now)
 	 this timer becomes ripe (negative if it's already ripe).  */
       if (!NILP (timers))
 	{
-	  timer = XCONS (timers)->car;
+	  timer = XCAR (timers);
 	  vector = XVECTOR (timer)->contents;
 	  EMACS_SET_SECS (timer_time,
 			  (XINT (vector[1]) << 16) | (XINT (vector[2])));
@@ -3479,7 +3479,7 @@ timer_check (do_it_now)
 	 based on the next idle timer.  */
       if (!NILP (idle_timers))
 	{
-	  idle_timer = XCONS (idle_timers)->car;
+	  idle_timer = XCAR (idle_timers);
 	  vector = XVECTOR (idle_timer)->contents;
 	  EMACS_SET_SECS (idle_timer_time,
 			  (XINT (vector[1]) << 16) | (XINT (vector[2])));
@@ -3498,26 +3498,26 @@ timer_check (do_it_now)
 	  if (EMACS_TIME_NEG_P (temp))
 	    {
 	      chosen_timer = timer;
-	      timers = XCONS (timers)->cdr;
+	      timers = XCDR (timers);
 	      difference = timer_difference;
 	    }
 	  else
 	    {
 	      chosen_timer = idle_timer;
-	      idle_timers = XCONS (idle_timers)->cdr;
+	      idle_timers = XCDR (idle_timers);
 	      difference = idle_timer_difference;
 	    }
 	}
       else if (! NILP (timers))
 	{
 	  chosen_timer = timer;
-	  timers = XCONS (timers)->cdr;
+	  timers = XCDR (timers);
 	  difference = timer_difference;
 	}
       else
 	{
 	  chosen_timer = idle_timer;
-	  idle_timers = XCONS (idle_timers)->cdr;
+	  idle_timers = XCDR (idle_timers);
 	  difference = idle_timer_difference;
 	}
       vector = XVECTOR (chosen_timer)->contents;
@@ -4391,8 +4391,8 @@ make_lispy_event (event)
 		Lisp_Object down;
 
 		down = Fnth (make_number (2), start_pos);
-		if (EQ (event->x, XCONS (down)->car)
-		    && EQ (event->y, XCONS (down)->cdr))
+		if (EQ (event->x, XCAR (down))
+		    && EQ (event->y, XCDR (down)))
 		  {
 		    event->modifiers |= click_modifier;
 		  }
@@ -4617,8 +4617,8 @@ make_lispy_event (event)
 	if (! CONSP (event->frame_or_window))
 	  abort ();
 
-	f = XFRAME (XCONS (event->frame_or_window)->car);
-	files = XCONS (event->frame_or_window)->cdr;
+	f = XFRAME (XCAR (event->frame_or_window));
+	files = XCDR (event->frame_or_window);
 
 	/* Ignore mouse events that were made on frames that
 	   have been deleted.  */
@@ -4630,7 +4630,7 @@ make_lispy_event (event)
 
 	if (!WINDOWP (window))
 	  {
-	    window = XCONS (event->frame_or_window)->car;
+	    window = XCAR (event->frame_or_window);
 	    posn = Qnil;
 	  }
 	else
@@ -4685,7 +4685,7 @@ make_lispy_event (event)
       /* The event value is in the cdr of the frame_or_window slot.  */
       if (!CONSP (event->frame_or_window))
 	abort ();
-      return XCONS (event->frame_or_window)->cdr;
+      return XCDR (event->frame_or_window);
 #endif
 
     case TOOL_BAR_EVENT:
@@ -5049,7 +5049,7 @@ apply_modifiers (modifiers, base)
   entry = assq_no_quit (index, cache);
 
   if (CONSP (entry))
-    new_symbol = XCONS (entry)->cdr;
+    new_symbol = XCDR (entry);
   else
     {
       /* We have to create the symbol ourselves.  */
@@ -5107,8 +5107,8 @@ reorder_modifiers (symbol)
   Lisp_Object parsed;
 
   parsed = parse_modifiers (symbol);
-  return apply_modifiers ((int) XINT (XCONS (XCONS (parsed)->cdr)->car),
-			  XCONS (parsed)->car);
+  return apply_modifiers ((int) XINT (XCAR (XCDR (parsed))),
+			  XCAR (parsed));
 }
 
 
@@ -5249,8 +5249,8 @@ has the same base event type and all the specified modifiers.")
       Lisp_Object elt;
       int this = 0;
 
-      elt = XCONS (rest)->car;
-      rest = XCONS (rest)->cdr;
+      elt = XCAR (rest);
+      rest = XCDR (rest);
 
       /* Given a symbol, see if it is a modifier name.  */
       if (SYMBOLP (elt) && CONSP (rest))
@@ -5385,10 +5385,10 @@ lucid_event_type_list_p (object)
   if (! CONSP (object))
     return 0;
 
-  for (tail = object; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = object; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt;
-      elt = XCONS (tail)->car;
+      elt = XCAR (tail);
       if (! (INTEGERP (elt) || SYMBOLP (elt)))
 	return 0;
     }
@@ -5831,13 +5831,13 @@ menu_bar_items (old)
 
   /* Move to the end those items that should be at the end.  */
 
-  for (tail = Vmenu_bar_final_items; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vmenu_bar_final_items; CONSP (tail); tail = XCDR (tail))
     {
       int i;
       int end = menu_bar_items_index;
 
       for (i = 0; i < end; i += 4)
-	if (EQ (XCONS (tail)->car, XVECTOR (menu_bar_items_vector)->contents[i]))
+	if (EQ (XCAR (tail), XVECTOR (menu_bar_items_vector)->contents[i]))
 	  {
 	    Lisp_Object tem0, tem1, tem2, tem3;
 	    /* Move the item at index I to the end,
@@ -5894,11 +5894,11 @@ menu_bar_one_keymap (keymap)
   menu_bar_one_keymap_changed_items = Qnil;
 
   /* Loop over all keymap entries that have menu strings.  */
-  for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = keymap; CONSP (tail); tail = XCDR (tail))
     {
-      item = XCONS (tail)->car;
+      item = XCAR (tail);
       if (CONSP (item))
-	menu_bar_item (XCONS (item)->car, XCONS (item)->cdr);
+	menu_bar_item (XCAR (item), XCDR (item));
       else if (VECTORP (item))
 	{
 	  /* Loop over the char values represented in the vector.  */
@@ -6007,7 +6007,7 @@ menu_item_eval_property_1 (arg)
 {
   /* If we got a quit from within the menu computation,
      quit all the way out of it.  This takes care of C-] in the debugger.  */
-  if (CONSP (arg) && EQ (XCONS (arg)->car, Qquit))
+  if (CONSP (arg) && EQ (XCAR (arg), Qquit))
     Fsignal (Qquit, Qnil);
 
   return Qnil;
@@ -6070,31 +6070,31 @@ parse_menu_item (item, notreal, inmenubar)
   /* Save the item here to protect it from GC.  */
   XVECTOR (item_properties)->contents[ITEM_PROPERTY_ITEM] = item;
 
-  item_string = XCONS (item)->car;
+  item_string = XCAR (item);
 
   start = item;
-  item = XCONS (item)->cdr;
+  item = XCDR (item);
   if (STRINGP (item_string))
     {
       /* Old format menu item.  */
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME] = item_string;
 
       /* Maybe help string.  */
-      if (CONSP (item) && STRINGP (XCONS (item)->car))
+      if (CONSP (item) && STRINGP (XCAR (item)))
 	{
 	  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
-	    = XCONS (item)->car;
+	    = XCAR (item);
 	  start = item;
-	  item = XCONS (item)->cdr;
+	  item = XCDR (item);
 	}
 	  
       /* Maybee key binding cache.  */
-      if (CONSP (item) && CONSP (XCONS (item)->car)
-	  && (NILP (XCONS (XCONS (item)->car)->car)
-	      || VECTORP (XCONS (XCONS (item)->car)->car)))
+      if (CONSP (item) && CONSP (XCAR (item))
+	  && (NILP (XCAR (XCAR (item)))
+	      || VECTORP (XCAR (XCAR (item)))))
 	{
-	  cachelist = XCONS (item)->car;
-	  item = XCONS (item)->cdr;
+	  cachelist = XCAR (item);
+	  item = XCDR (item);
 	}
       
       /* This is the real definition--the function to run.  */
@@ -6112,47 +6112,47 @@ parse_menu_item (item, notreal, inmenubar)
     {
       /* New format menu item.  */
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]
-	= XCONS (item)->car;
-      start = XCONS (item)->cdr;
+	= XCAR (item);
+      start = XCDR (item);
       if (CONSP (start))
 	{
 	  /* We have a real binding.  */
 	  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF]
-	    = XCONS (start)->car;
+	    = XCAR (start);
 
-	  item = XCONS (start)->cdr;
+	  item = XCDR (start);
 	  /* Is there a cache list with key equivalences. */
-	  if (CONSP (item) && CONSP (XCONS (item)->car))
+	  if (CONSP (item) && CONSP (XCAR (item)))
 	    {
-	      cachelist = XCONS (item)->car;
-	      item = XCONS (item)->cdr;
+	      cachelist = XCAR (item);
+	      item = XCDR (item);
 	    }
 
 	  /* Parse properties.  */
-	  while (CONSP (item) && CONSP (XCONS (item)->cdr))
+	  while (CONSP (item) && CONSP (XCDR (item)))
 	    {
-	      tem = XCONS (item)->car;
-	      item = XCONS (item)->cdr;
+	      tem = XCAR (item);
+	      item = XCDR (item);
 
 	      if (EQ (tem, QCenable))
 		XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE]
-		  = XCONS (item)->car;
+		  = XCAR (item);
 	      else if (EQ (tem, QCvisible) && !notreal)
 		{
 		  /* If got a visible property and that evaluates to nil
 		     then ignore this item.  */
-		  tem = menu_item_eval_property (XCONS (item)->car);
+		  tem = menu_item_eval_property (XCAR (item));
 		  if (NILP (tem))
 		    return 0;
 	 	}
 	      else if (EQ (tem, QChelp))
 		XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
-		  = XCONS (item)->car;
+		  = XCAR (item);
 	      else if (EQ (tem, QCfilter))
 		filter = item;
 	      else if (EQ (tem, QCkey_sequence))
 		{
-		  tem = XCONS (item)->car;
+		  tem = XCAR (item);
 		  if (NILP (cachelist)
 		      && (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem)))
 		    /* Be GC protected. Set keyhint to item instead of tem. */
@@ -6160,25 +6160,25 @@ parse_menu_item (item, notreal, inmenubar)
 		}
 	      else if (EQ (tem, QCkeys))
 		{
-		  tem = XCONS (item)->car;
+		  tem = XCAR (item);
 		  if (CONSP (tem) || (STRINGP (tem) && NILP (cachelist)))
 		    XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ]
 		      = tem;
 		}
-	      else if (EQ (tem, QCbutton) && CONSP (XCONS (item)->car))
+	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))
 		{
 		  Lisp_Object type;
-		  tem = XCONS (item)->car;
-		  type = XCONS (tem)->car;
+		  tem = XCAR (item);
+		  type = XCAR (tem);
 		  if (EQ (type, QCtoggle) || EQ (type, QCradio))
 		    {
 		      XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]
-			= XCONS (tem)->cdr;
+			= XCDR (tem);
 		      XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE]
 			= type;
 		    }
 		}
-	      item = XCONS (item)->cdr;
+	      item = XCDR (item);
 	    }
 	}
       else if (inmenubar || !NILP (start))
@@ -6202,7 +6202,7 @@ parse_menu_item (item, notreal, inmenubar)
   def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
   if (!NILP (filter))
     {
-      def = menu_item_eval_property (list2 (XCONS (filter)->car,
+      def = menu_item_eval_property (list2 (XCAR (filter),
 					    list2 (Qquote, def)));
 
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = def;
@@ -6247,22 +6247,22 @@ parse_menu_item (item, notreal, inmenubar)
     {
       /* We have to create a cachelist.  */
       CHECK_IMPURE (start);
-      XCONS (start)->cdr = Fcons (Fcons (Qnil, Qnil), XCONS (start)->cdr);
-      cachelist = XCONS (XCONS (start)->cdr)->car;
+      XCDR (start) = Fcons (Fcons (Qnil, Qnil), XCDR (start));
+      cachelist = XCAR (XCDR (start));
       newcache = 1;
       tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
       if (!NILP (keyhint))
 	{
-	  XCONS (cachelist)->car = XCONS (keyhint)->car;
+	  XCAR (cachelist) = XCAR (keyhint);
 	  newcache = 0;
 	}
       else if (STRINGP (tem))
 	{
-	  XCONS (cachelist)->cdr = Fsubstitute_command_keys (tem);
-	  XCONS (cachelist)->car = Qt;
+	  XCDR (cachelist) = Fsubstitute_command_keys (tem);
+	  XCAR (cachelist) = Qt;
 	}
     }
-  tem = XCONS (cachelist)->car;
+  tem = XCAR (cachelist);
   if (!EQ (tem, Qt))
     {
       int chkcache = 0;
@@ -6274,13 +6274,13 @@ parse_menu_item (item, notreal, inmenubar)
       prefix = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
       if (CONSP (prefix))
 	{
-	  def = XCONS (prefix)->car;
-	  prefix = XCONS (prefix)->cdr;
+	  def = XCAR (prefix);
+	  prefix = XCDR (prefix);
 	}
       else
 	def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
 
-      if (NILP (XCONS (cachelist)->car)) /* Have no saved key.  */
+      if (NILP (XCAR (cachelist))) /* Have no saved key.  */
 	{
 	  if (newcache		/* Always check first time.  */
 	      /* Should we check everything when precomputing key
@@ -6314,16 +6314,16 @@ parse_menu_item (item, notreal, inmenubar)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil);
-	  XCONS (cachelist)->car = tem;
+	  XCAR (cachelist) = tem;
 	  if (NILP (tem))
 	    {
-	      XCONS (cachelist)->cdr = Qnil;
+	      XCDR (cachelist) = Qnil;
 	      chkcache = 0;
 	    }
 	}
-      else if (!NILP (keyhint) && !NILP (XCONS (cachelist)->car))
+      else if (!NILP (keyhint) && !NILP (XCAR (cachelist)))
 	{
-	  tem = XCONS (cachelist)->car;
+	  tem = XCAR (cachelist);
 	  chkcache = 1;
 	}
 
@@ -6333,20 +6333,20 @@ parse_menu_item (item, notreal, inmenubar)
 	  tem = Fkey_description (tem);
 	  if (CONSP (prefix))
 	    {
-	      if (STRINGP (XCONS (prefix)->car))
-		tem = concat2 (XCONS (prefix)->car, tem);
-	      if (STRINGP (XCONS (prefix)->cdr))
-		tem = concat2 (tem, XCONS (prefix)->cdr);
+	      if (STRINGP (XCAR (prefix)))
+		tem = concat2 (XCAR (prefix), tem);
+	      if (STRINGP (XCDR (prefix)))
+		tem = concat2 (tem, XCDR (prefix));
 	    }
-	  XCONS (cachelist)->cdr = tem;
+	  XCDR (cachelist) = tem;
 	}
     }
 
-  tem = XCONS (cachelist)->cdr;
+  tem = XCDR (cachelist);
   if (newcache && !NILP (tem))
     {
       tem = concat3 (build_string ("  ("), tem, build_string (")"));
-      XCONS (cachelist)->cdr = tem;
+      XCDR (cachelist) = tem;
     }
 
   /* If we only want to precompute equivalent key bindings, stop here. */
@@ -6483,7 +6483,7 @@ tool_bar_items (reuse, nitems)
 	    Lisp_Object tail;
 	    
 	    /* KEYMAP is a list `(keymap (KEY . BINDING) ...)'.  */
-	    for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
+	    for (tail = keymap; CONSP (tail); tail = XCDR (tail))
 	      {
 		Lisp_Object keydef = XCAR (tail);
 		if (CONSP (keydef))
@@ -6823,8 +6823,8 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
   if (EVENT_HAS_PARAMETERS (prev_event)
-      && !EQ (XCONS (prev_event)->car, Qmenu_bar)
-      && !EQ (XCONS (prev_event)->car, Qtool_bar))
+      && !EQ (XCAR (prev_event), Qmenu_bar)
+      && !EQ (XCAR (prev_event), Qtool_bar))
     {
       /* Display the menu and get the selection.  */
       Lisp_Object *realmaps
@@ -6842,7 +6842,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  Lisp_Object tem;
 
-	  record_menu_key (XCONS (value)->car);
+	  record_menu_key (XCAR (value));
 
 	  /* If we got multiple events, unread all but
 	     the first.
@@ -6852,22 +6852,22 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	     to indicate that they came from a mouse menu,
 	     so that when present in last_nonmenu_event
 	     they won't confuse things.  */
-	  for (tem = XCONS (value)->cdr; !NILP (tem);
-	       tem = XCONS (tem)->cdr)
+	  for (tem = XCDR (value); !NILP (tem);
+	       tem = XCDR (tem))
 	    {
-	      record_menu_key (XCONS (tem)->car);
-	      if (SYMBOLP (XCONS (tem)->car)
-		  || INTEGERP (XCONS (tem)->car))
-		XCONS (tem)->car
-		  = Fcons (XCONS (tem)->car, Qnil);
+	      record_menu_key (XCAR (tem));
+	      if (SYMBOLP (XCAR (tem))
+		  || INTEGERP (XCAR (tem)))
+		XCAR (tem)
+		  = Fcons (XCAR (tem), Qnil);
 	    }
 
 	  /* If we got more than one event, put all but the first
 	     onto this list to be read later.
 	     Return just the first event now.  */
 	  Vunread_command_events
-	    = nconc2 (XCONS (value)->cdr, Vunread_command_events);
-	  value = XCONS (value)->car;
+	    = nconc2 (XCDR (value), Vunread_command_events);
+	  value = XCAR (value);
 	}
       else if (NILP (value))
 	value = Qt;
@@ -7550,7 +7550,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		/* If the side queue is non-empty, ensure it begins with a
 		   switch-frame, so we'll replay it in the right context.  */
 		if (CONSP (interrupted_kboard->kbd_queue)
-		    && (key = XCONS (interrupted_kboard->kbd_queue)->car,
+		    && (key = XCAR (interrupted_kboard->kbd_queue),
 			!(EVENT_HAS_PARAMETERS (key)
 			  && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)),
 				 Qswitch_frame))))
@@ -7714,7 +7714,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      /* For a mouse click, get the local text-property keymap
 		 of the place clicked on, rather than point.  */
 	      if (last_real_key_start == 0
-		  && CONSP (XCONS (key)->cdr)
+		  && CONSP (XCDR (key))
 		  && ! localized_local_map)
 		{
 		  Lisp_Object map_here, start, pos;
@@ -7722,7 +7722,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  localized_local_map = 1;
 		  start = EVENT_START (key);
 		  
-		  if (CONSP (start) && CONSP (XCONS (start)->cdr))
+		  if (CONSP (start) && CONSP (XCDR (start)))
 		    {
 		      pos = POSN_BUFFER_POSN (start);
 		      if (INTEGERP (pos)
@@ -7780,9 +7780,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  goto replay_key;
 		}
 	    }
-	  else if (CONSP (XCONS (key)->cdr)
+	  else if (CONSP (XCDR (key))
 		   && CONSP (EVENT_START (key))
-		   && CONSP (XCONS (EVENT_START (key))->cdr))
+		   && CONSP (XCDR (EVENT_START (key))))
 	    {
 	      Lisp_Object posn;
 
@@ -7847,7 +7847,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      int modifiers;
 
 	      breakdown = parse_modifiers (head);
-	      modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
+	      modifiers = XINT (XCAR (XCDR (breakdown)));
 	      /* Attempt to reduce an unbound mouse event to a simpler
 		 event that is bound:
 		   Drags reduce to clicks.
@@ -7916,7 +7916,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			}
 
 		      new_head
-			= apply_modifiers (modifiers, XCONS (breakdown)->car);
+			= apply_modifiers (modifiers, XCAR (breakdown));
 		      new_click
 			= Fcons (new_head, Fcons (EVENT_START (key), Qnil));
 
@@ -7999,7 +7999,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      /* Handle symbol with autoload definition.  */
 	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
 		  && CONSP (XSYMBOL (fkey_next)->function)
-		  && EQ (XCONS (XSYMBOL (fkey_next)->function)->car, Qautoload))
+		  && EQ (XCAR (XSYMBOL (fkey_next)->function), Qautoload))
 		do_autoload (XSYMBOL (fkey_next)->function,
 			     fkey_next);
 
@@ -8123,7 +8123,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    /* Handle symbol with autoload definition.  */
 	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
 		&& CONSP (XSYMBOL (keytran_next)->function)
-		&& EQ (XCONS (XSYMBOL (keytran_next)->function)->car, Qautoload))
+		&& EQ (XCAR (XSYMBOL (keytran_next)->function), Qautoload))
 	      do_autoload (XSYMBOL (keytran_next)->function,
 			   keytran_next);
 
@@ -8259,7 +8259,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  int modifiers;
 
 	  breakdown = parse_modifiers (key);
-	  modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
+	  modifiers = XINT (XCAR (XCDR (breakdown)));
 	  if (modifiers & shift_modifier)
 	    {
 	      Lisp_Object new_key;
@@ -8269,7 +8269,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      modifiers &= ~shift_modifier;
 	      new_key = apply_modifiers (modifiers,
-					 XCONS (breakdown)->car);
+					 XCAR (breakdown));
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = t;
@@ -8537,7 +8537,7 @@ a special event, so ignore the prefix argument and don't clear it.")
 	    {
 	      tem = Fnthcdr (Vhistory_length, Vcommand_history);
 	      if (CONSP (tem))
-		XCONS (tem)->cdr = Qnil;
+		XCDR (tem) = Qnil;
 	    }
 	}
 
@@ -8580,14 +8580,14 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   if (EQ (prefixarg, Qminus))
     strcpy (buf, "- ");
-  else if (CONSP (prefixarg) && XINT (XCONS (prefixarg)->car) == 4)
+  else if (CONSP (prefixarg) && XINT (XCAR (prefixarg)) == 4)
     strcpy (buf, "C-u ");
-  else if (CONSP (prefixarg) && INTEGERP (XCONS (prefixarg)->car))
+  else if (CONSP (prefixarg) && INTEGERP (XCAR (prefixarg)))
     {
       if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d ", XINT (XCONS (prefixarg)->car));
+	sprintf (buf, "%d ", XINT (XCAR (prefixarg)));
       else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", (long) XINT (XCONS (prefixarg)->car));
+	sprintf (buf, "%ld ", (long) XINT (XCAR (prefixarg)));
       else
 	abort ();
     }
