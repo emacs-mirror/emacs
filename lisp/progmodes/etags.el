@@ -1070,10 +1070,14 @@ See documentation of variable `tags-file-name'."
 ;; t if point is at a tag line that matches TAG "exactly".
 ;; point should be just after a string that matches TAG.
 (defun tag-exact-match-p (tag)
-  (and (looking-at "\\Sw.*\177") (looking-at "\\S_.*\177") ;not a symbol char
-       (save-excursion
-	 (backward-char (1+ (length tag)))
-	 (and (looking-at "\\Sw") (looking-at "\\S_")))))
+  ;; The match is really exact if there is an explicit tag name.
+  (or (looking-at (concat "[^\177]*\177" (regexp-quote tag) "\001"))
+      ;; We also call it "exact" if it is surrounded by symbol boundaries.
+      ;; This is needed because etags does not always generate explicit names.
+      (and (looking-at "\\Sw.*\177") (looking-at "\\S_.*\177")
+	   (save-excursion
+	     (backward-char (1+ (length tag)))
+	     (and (looking-at "\\Sw") (looking-at "\\S_"))))))
 
 ;; t if point is at a tag line that matches TAG as a word.
 ;; point should be just after a string that matches TAG.
