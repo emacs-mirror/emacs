@@ -1564,8 +1564,8 @@ x_find_modifier_meanings (dpyinfo)
 #ifdef HAVE_X11R4
   XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
 #else
-  min_code = display->min_keycode;
-  max_code = display->max_keycode;
+  min_code = dpyinfo->display->min_keycode;
+  max_code = dpyinfo->display->max_keycode;
 #endif
 
   syms = XGetKeyboardMapping (dpyinfo->display,
