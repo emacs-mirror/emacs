@@ -1,3 +1,12 @@
+2001-11-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-complete-next-re, Info-complete-cache): New vars.
+	(Info-complete-menu-item): Rewrite.  Add the ability to search
+	several sequential nodes.  Add a simple caching mechanism.
+	(Info-goto-index): New function extracted from Info-index.
+	(Info-index): Use it.  Add completion to the interactive spec.
+	(Info-menu-update): Simplify call to `Info-complete-menu-item'.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
@@ -19,8 +28,7 @@
 
 	* play/blackbox.el (blackbox-mode, blackbox): Doc fix.
 
-	* play/cookie1.el (cookie, cookie-insert, shuffle-vector): Doc
-	fixes.
+	* play/cookie1.el (cookie, cookie-insert, shuffle-vector): Doc fixes.
 
 	* play/studly.el (studlify-word, studlify-region)
 	(studlify-buffer): Fix doc-string.
