@@ -1,3 +1,8 @@
+2002-09-28  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate starttls on
+	streams that were opened using starttls.
+
 2002-09-28  Paul Reilly  <pmr@pajato.com>
 
 	* files.el (auto-mode-alist): Add support for Java Enterprise
