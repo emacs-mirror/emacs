@@ -114,7 +114,7 @@ change the list."
 Evaluate BODY with VAR bound to each car from LIST, in turn.
 Then evaluate RESULT to get return value, default nil.
 
-\(dolist (VAR LIST [RESULT]) BODY...)"
+\(fn (VAR LIST [RESULT]) BODY...)"
   (declare (indent 1) (debug ((symbolp form &optional form) body)))
   (let ((temp (make-symbol "--dolist-temp--")))
     `(let ((,temp ,(nth 1 spec))
@@ -132,7 +132,7 @@ Evaluate BODY with VAR bound to successive integers running from 0,
 inclusive, to COUNT, exclusive.  Then evaluate RESULT to get
 the return value (nil if RESULT is omitted).
 
-\(dotimes (VAR COUNT [RESULT]) BODY...)"
+\(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (indent 1) (debug dolist))
   (let ((temp (make-symbol "--dotimes-temp--"))
 	(start 0)
