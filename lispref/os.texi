@@ -1233,6 +1233,8 @@ arguments; for example, day 0 means the day preceding the given month.
 
 The operating system puts limits on the range of possible time values;
 if you try to encode a time that is out of range, an error results.
+For instance, years before 1970 do not work on some systems;
+on others, years as early as 1901 do work.
 @end defun
 
 @node Time Calculations
