@@ -1618,7 +1618,9 @@ kbd_buffer_get_event ()
 
       (*mouse_position_hook) (&frame, &x, &y, &time);
 
-      if (frame != XFRAME (Vlast_event_frame))
+      /* Decide if we should generate a switch-frame event.  Don't generate
+	 switch-frame events for motion outside of all Emacs frames.  */
+      if (frame && frame != XFRAME (Vlast_event_frame))
 	{
 	  XSET (Vlast_event_frame, Lisp_Frame, frame);
 	  obj = make_lispy_switch_frame (Vlast_event_frame);
