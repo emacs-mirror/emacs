@@ -1,3 +1,7 @@
+2002-07-26  Juanma Barranquero  <lektu@terra.es>
+
+	* warnings.el (lwarn, warn): Doc fix.
+
 2002-07-25  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ediff-wind.el (ediff-window-setup-function): Extend type
@@ -44,13 +48,13 @@
 	(reftex-extract-bib-entries): Use `reftex-get-bibkey-default' to
 	get a default regex.
 
-	* textmodes/reftex-toc.el (reftex-toc-mode): make-local-hook for
+	* textmodes/reftex-toc.el (reftex-toc-mode): Use `make-local-hook' for
 	XEmacs compatibility (got OK from RMS).
 
-	* textmodes/reftex-index.el (reftex-index-mode): likewise.
+	* textmodes/reftex-index.el (reftex-index-mode): Likewise.
 
-	* textmodes/reftex-sel.el (reftex-select-label-mode): likewise.
-	(reftex-select-bib-mode): likewise
+	* textmodes/reftex-sel.el (reftex-select-label-mode): Likewise.
+	(reftex-select-bib-mode): Likewise
 
 2002-07-25  Colin Walters  <walters@debian.org>
 
