@@ -1,3 +1,8 @@
+2002-10-27  Kim F. Storm  <storm@cua.dk>
+
+	* pcvs.el (cvs-checkout): Use read-directory-name.
+	(cvs-query-directory): Likewise.
+
 2002-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/outline.el (outline-next-heading): Make sure the match-data
