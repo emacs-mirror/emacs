@@ -301,7 +301,7 @@ when editing big diffs)."
 ;;;;
 
 (defconst diff-hunk-header-re "^\\(@@ -[0-9,]+ \\+[0-9,]+ @@.*\\|\\*\\{15\\}.*\n\\*\\*\\* .+ \\*\\*\\*\\*\\|[0-9]+\\(,[0-9]+\\)?[acd][0-9]+\\(,[0-9]+\\)?\\)$")
-(defconst diff-file-header-re (concat "^\\(--- .+\n\\+\\+\\+\\|\\*\\*\\* .+\n---\\|[^-+!<>0-9@* ]\\).+\n" (substring diff-hunk-header-re 1)))
+(defconst diff-file-header-re (concat "^\\(--- .+\n\\+\\+\\+ \\|\\*\\*\\* .+\n--- \\|[^-+!<>0-9@* ]\\).+\n" (substring diff-hunk-header-re 1)))
 (defvar diff-narrowed-to nil)
 
 (defun diff-end-of-hunk (&optional style)
@@ -798,9 +798,12 @@ else cover the whole bufer."
       (goto-char end) (diff-end-of-hunk)
       (let ((plus 0) (minus 0) (space 0) (bang 0))
 	(while (and (= (forward-line -1) 0) (<= start (point)))
-	  (if (not (looking-at "\\(@@ -[0-9,]+ \\+[0-9,]+ @@.*\\|[-*][-*][-*] .+ [-*][-*][-*][-*]\\)$"))
+	  (if (not (looking-at
+		    (concat "@@ -[0-9,]+ \\+[0-9,]+ @@"
+			    "\\|[-*][-*][-*] [0-9,]+ [-*][-*][-*][-*]$"
+			    "\\|--- .+\n\\+\\+\\+ ")))
 	      (case (char-after)
-		(?\  (incf space))
+		(?\s (incf space))
 		(?+ (incf plus))
 		(?- (incf minus))
 		(?! (incf bang))
