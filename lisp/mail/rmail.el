@@ -3348,6 +3348,8 @@ typically for purposes of moderating a list."
 		    (if (and (not (vectorp mail-abbrevs))
 			     (file-exists-p mail-personal-alias-file))
 			(build-mail-abbrevs))
+		    (unless mail-abbrev-syntax-table
+		      (mail-abbrev-make-syntax-table))
 		    (set-syntax-table mail-abbrev-syntax-table)
 		    (goto-char before)
 		    (while (and (< (point) end)
