@@ -1,3 +1,8 @@
+2000-12-09  Stephen Gildea  <gildea@alum.mit.edu>
+
+	* time-stamp.el (time-stamp-old-format-warn): Reorder custom
+	choices to match documentation string.
+
 2000-12-09  Miles Bader  <miles@gnu.org>
 
 	* minibuf-eldef.el: New file.
