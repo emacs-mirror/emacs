@@ -1,3 +1,9 @@
+2004-08-01  John Paul Wallington  <jpw@gnu.org>
+
+	* abbrev.el (only-global-abbrevs): Doc fix.
+	(edit-abbrevs-map): Define within defvar.
+	(quietly-read-abbrev-file): Doc fix.
+
 2004-07-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* novice.el (enable-command, disable-command): Doc fixes.
