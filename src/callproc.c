@@ -677,7 +677,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    else
 	      {			/* We have to decode the input.  */
 		int size = decoding_buffer_size (&process_coding, nread);
-		char *decoding_buf = (char *) alloca (size);
+		char *decoding_buf = (char *) malloc (size);
 
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
@@ -689,6 +689,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		       there's a possibility that the detection was
 		       done by insufficient data.  So, we give up
 		       displaying on the fly.  */
+		    free (decoding_buf);
 		    display_on_the_fly = 0;
 		    process_coding = saved_coding;
 		    carryover = nread;
@@ -696,6 +697,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		  }
 		if (process_coding.produced > 0)
 		  insert (decoding_buf, process_coding.produced);
+		free (decoding_buf);
 		carryover = nread - process_coding.consumed;
 		if (carryover > 0)
 		  {
