@@ -1296,6 +1296,11 @@ called, it calls this function with the supplied arguments instead of
 doing its usual work.
 @end defvar
 
+@defvar read-file-name-completion-ignore-case
+If this variable is non-@code{nil}, @code{read-file-name} ignores case
+when performing completion.
+@end defvar
+
 @defun read-directory-name prompt &optional directory default existing initial
 This function is like @code{read-file-name} but allows only directory
 names as completion possibilities.
