@@ -282,8 +282,10 @@ Runs `change-log-mode-hook'."
 	fill-column 74)
   (use-local-map change-log-mode-map)
   ;; Let each entry behave as one paragraph:
-  (set (make-local-variable 'paragraph-start) "^\\s *$\\|^\f")
-  (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^\f\\|^\\sw")
+  ;; We really do want "^" in paragraph-start below: it is only the lines that
+  ;; begin at column 0 (despite the left-margin of 8) that we are looking for.
+  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\sw")
+  (set (make-local-variable 'paragraph-separate) "\\s *$\\|\f\\|^\\sw")
   ;; Let all entries for one day behave as one page.
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
@@ -302,9 +304,10 @@ Runs `change-log-mode-hook'."
   "Fill the paragraph, but preserve open parentheses at beginning of lines.
 Prefix arg means justify as well."
   (interactive "P")
-  (let ((paragraph-separate (concat paragraph-separate "\\|^\\s *\\s("))
-	(paragraph-start (concat paragraph-start "\\|^\\s *\\s(")))
-    (fill-paragraph justify)))
+  (let ((end (save-excursion (forward-paragraph) (point)))
+	(beg (save-excursion (backward-paragraph)(point)))
+	(paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
+    (fill-region beg end justify)))
 
 (defvar add-log-current-defun-header-regexp
   "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
