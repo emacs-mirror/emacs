@@ -125,13 +125,6 @@ ${archlibdir}: all
 	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
 	fi
-	@echo
-	@echo "Changing the owner and group of Emacs's utility programs to \`bin'."
-	@echo "(You may ignore errors here if you don't care about this.)"
-	-for file in ${UTILITIES} ${SCRIPTS} ; do \
-	  chgrp bin ${archlibdir}/$${file} ; \
-	  chown bin ${archlibdir}/$${file} ; \
-	done
 
 # We don't need to install `wakeup' explicitly, because it will be copied when
 # this whole directory is copied.
