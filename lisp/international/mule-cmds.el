@@ -1123,18 +1123,31 @@ specifies the character set for the major languages of Western Europe."
   (setq charset-origin-alist
 	(get-language-info language-name 'charset-origin-alist))
 
+  ;; Unibyte setups if necessary.
   (unless default-enable-multibyte-characters
-    ;; Unibyte setups.
+    ;; Syntax and case table.
     (let ((syntax (get-language-info language-name 'unibyte-syntax)))
       (if syntax
 	  (let ((set-case-syntax-set-multibyte nil))
-	    (load syntax nil t)
-	    (set-standard-case-table (standard-case-table))
-	    (let ((list (buffer-list)))
-	      (while list
-		(with-current-buffer (car list)
-		  (set-case-table (standard-case-table)))
-		(setq list (cdr list)))))))
+	    (load syntax nil t))
+	;; No information for syntax and case.  Reset to the defaults.
+	(let ((syntax-table (standard-syntax-table))
+	      (case-table (standard-case-table))
+	      (ch 160))
+	  (while (< ch 256)
+	    (modify-syntax-entry ch " " syntax-table)
+	    (aset case-table ch ch)
+	    (setq ch (1+ ch)))
+	  (set-char-table-extra-slot case-table 0 nil)
+	  (set-char-table-extra-slot case-table 1 nil)
+	  (set-char-table-extra-slot case-table 2 nil))
+	(set-standard-case-table (standard-case-table))
+	(let ((list (buffer-list)))
+	  (while list
+	    (with-current-buffer (car list)
+	      (set-case-table (standard-case-table)))
+	    (setq list (cdr list))))))
+    ;; Display table and coding system for terminal.
     (let ((coding (get-language-info language-name 'unibyte-display)))
       (if coding
 	  (progn
