@@ -1983,6 +1983,10 @@ x_set_scroll_bar_width (f, arg, oldval)
 	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
     {
       int wid = FONT_WIDTH (f->output_data.x->font);
+
+      if (XFASTINT (arg) < 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM)
+	Fsignal (Qargs_out_of_range, Fcons (arg, Qnil));
+
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = XFASTINT (arg);
       FRAME_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
       if (FRAME_X_WINDOW (f))
