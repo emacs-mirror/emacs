@@ -13,6 +13,13 @@ I'm Károly Lőrentey.  My address: lorentey@elte.hu.
 
 Patches or suggestions are welcome!
 
+Retrieving the branch:
+
+	tla register-archive lorentey@elte.hu--2004 http://lorentey.web.elte.hu/arch/2004/
+	tla get lorentey@elte.hu--2004/emacs--multi-tty--0 <directory>
+
+(I use tla 1.1.)
+
 
 STATUS
 ------
