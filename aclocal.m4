@@ -1,6 +1,7 @@
 dnl The following are from prerelease autoconf 2.14a.  When 2.14 is
 dnl released, we should be able to zap them and just use AC_PREREQ(2.14).
 
+ifelse(_AC_VERSION_COMPARE(AC_ACVERSION, [2.14]), -1,
 
 # AC_PROG_CC_STDC
 # ---------------
@@ -278,8 +279,8 @@ else
 fi
 ])# AC_C_PROTOTYPES
 
-dnl The following isn't in the prerelease autoconf at this time, but
-dnl eggert expects it to go in eventually.
+dnl The following is a bit different from the prerelease autoconf at
+dnl this time since that requires extra definitions.
 
 dnl By default, many hosts won't let programs access large files;
 dnl one must use special compiler options to get large-file access to work.
@@ -353,3 +354,5 @@ AC_DEFUN(AC_SYS_LARGEFILE,
        [#include <stdio.h>], [return !ftello;])
    fi
   ])
+
+) dnl ifelse
