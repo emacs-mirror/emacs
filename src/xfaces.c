@@ -995,6 +995,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   struct frame *f;
   int magic_p;
   int id;
+  int garbaged = 0;
 
   CHECK_FRAME (frame, 0);
   CHECK_NUMBER (face_id, 0);
@@ -1019,18 +1020,23 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
       face->font = font;
       if (frame_update_line_height (f))
 	x_set_window_size (f, 0, f->width, f->height);
+      /* Must clear cache, since it might contain the font
+	 we just got rid of.  */
+      garbaged = 1;
     }
   else if (EQ (attr_name, intern ("foreground")))
     {
       unsigned long new_color = load_color (f, attr_value);
       unload_color (f, face->foreground);
       face->foreground = new_color;
+      garbaged = 1;
     }
   else if (EQ (attr_name, intern ("background")))
     {
       unsigned long new_color = load_color (f, attr_value);
       unload_color (f, face->background);
       face->background = new_color;
+      garbaged = 1;
     }
 #if 0
   else if (EQ (attr_name, intern ("background-pixmap")))
@@ -1057,16 +1063,13 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id == 0 || id == 1)
     recompute_basic_faces (f);
 
-  /* If we're modifying either of the frame's display faces, that
-     means that we're changing the parameters of a fixed face code;
-     since the color/font/whatever is changed but the face ID hasn't,
-     redisplay won't know to redraw the affected sections.  Give it a
-     kick.  */
-  if (id == 0 || id == 1)
+  /* We must redraw the frame whenever any face font or color changes,
+     because it's possible that a merged (display) face
+     contains the font or color we just replaced.
+     And we must inhibit any Expose events until the redraw is done,
+     since they would try to use the invalid display faces.  */
+  if (garbaged)
     SET_FRAME_GARBAGED (f);
-  else
-    /* Otherwise, it's enough to tell it to redisplay the text.  */
-    windows_or_buffers_changed = 1;
 
   return Qnil;
 }
