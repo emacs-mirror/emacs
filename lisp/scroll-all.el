@@ -55,9 +55,9 @@ use either M-x customize or the function `scroll-all-mode'."
 
 (if running-xemacs
     (add-minor-mode 'scroll-all-mode " *SL*")
-  (or (assq 'scroll-all-mode-mode minor-mode-alist)
+  (or (assq 'scroll-all-mode minor-mode-alist)
       (setq minor-mode-alist
-	    (cons '(scroll-all-mode-mode " *SL*") minor-mode-alist))))
+	    (cons '(scroll-all-mode " *SL*") minor-mode-alist))))
 
 (defun scroll-all-scroll-down-all (arg)
   "Scroll down all visible windows."
@@ -65,7 +65,7 @@ use either M-x customize or the function `scroll-all-mode'."
   (let ((num-windows (count-windows))
 	(count 1))
     (if (> num-windows 1)
-	( progn (other-window 1)
+	(progn (other-window 1)
 		(while (< count num-windows)
 		  (if (not (eq (point) (point-max)))
 		      (progn (call-interactively 'next-line)))
@@ -78,7 +78,7 @@ use either M-x customize or the function `scroll-all-mode'."
   (let ((num-windows (count-windows))
 	(count 1))
     (if (> num-windows 1)
-	( progn (other-window 1)
+	(progn (other-window 1)
 		(while (< count num-windows)
 		  (if (not (eq (point) (point-min)))
 		      (progn (call-interactively 'previous-line)))
@@ -93,7 +93,7 @@ use either M-x customize or the function `scroll-all-mode'."
     (if (> num-windows 1)
 	(progn (other-window 1)
 	       (while (< count num-windows)
-		 (call-interactively 'fkey-scroll-up)
+		 (call-interactively 'scroll-up)
 		 (other-window 1)
 		 (setq count (1+ count)))))))
 
@@ -105,21 +105,23 @@ use either M-x customize or the function `scroll-all-mode'."
     (if (> num-windows 1)
 	(progn (other-window 1)
 	       (while (< count num-windows)
-		 (call-interactively 'fkey-scroll-down)
+		 (call-interactively 'scroll-down)
 		 (other-window 1)
 		 (setq count (1+ count)))))))
 
 
 (defun scroll-all-check-to-scroll ()
-  "Check `last-command' to see if a scroll was done."
-  (if (eq this-command 'next-line)
-      (call-interactively 'scroll-all-scroll-down-all))
-  (if (eq this-command 'previous-line)
-      (call-interactively 'scroll-all-scroll-up-all))
-  (if (eq this-command 'fkey-scroll-up)
-      (call-interactively 'scroll-all-page-down-all))
-  (if (eq this-command 'fkey-scroll-down)
-      (call-interactively 'scroll-all-page-up-all)))
+  "Check `this-command' to see if a scroll is to be done."
+  (cond
+   ((eq this-command 'next-line)
+	(call-interactively 'scroll-all-scroll-down-all))
+   ((eq this-command 'previous-line)
+	(call-interactively 'scroll-all-scroll-up-all))
+   ((eq this-command 'scroll-up)
+	(call-interactively 'scroll-all-page-down-all))
+   ((eq this-command 'scroll-down)
+	(call-interactively 'scroll-all-page-up-all))))
+
 
 ;;;###autoload
 (defun scroll-all-mode (arg)
