@@ -263,6 +263,7 @@ regexp should probably be \".\" to specify a default browser."
            (function-item :tag "Default Windows browser"
                           :value  browse-url-default-windows-browser)
            (function :tag "Your own function"))
+  :version "20.4"
   :group 'browse-url)
 
 (defcustom browse-url-netscape-program "netscape"
