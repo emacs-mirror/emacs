@@ -119,7 +119,7 @@
 ;;  comint-last-input-match		string	...
 ;;  comint-dynamic-complete-functions	hook   For the completion mechanism
 ;;  comint-completion-fignore		list	...
-;;  comint-file-name-regexp		regexp	...
+;;  comint-file-name-chars		string	...
 ;;  comint-file-name-quote-list		list	...
 ;;  comint-get-old-input		function Hooks for specific 
 ;;  comint-input-filter-functions	hook	process-in-a-buffer
@@ -397,7 +397,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
-  (make-local-variable 'comint-file-name-regexp)
+  (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
   (run-hooks 'comint-mode-hook))
 
@@ -1827,8 +1827,11 @@ Note that this applies to `comint-dynamic-complete-filename' only.")
 This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
-(defvar comint-file-name-regexp nil
-  "Regexp of characters valid in a file name.
+(defvar comint-file-name-chars
+  (if (memq system-type '(ms-dos windows-nt))
+      "~/A-Za-z0-9_^$!#%&{}@`'.()-"
+    "~/A-Za-z0-9+@:_.$#%,={}-")
+  "String of characters valid in a file name.
 
 This is a good thing to set in mode hooks.")
 
@@ -1884,7 +1887,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 (defun comint-match-partial-filename ()
   "Return the filename at point, or nil if non is found.
 Environment variables are substituted.  See `comint-word'."
-  (let ((filename (comint-word comint-file-name-regexp)))
+  (let ((filename (comint-word comint-file-name-chars)))
     (and filename (comint-substitute-in-file-name 
 		   (comint-unquote-filename filename)))))
 
