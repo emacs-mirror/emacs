@@ -885,7 +885,7 @@ Return t if any property value actually changed, nil otherwise.")
 	{
 	  int got = (LENGTH (i) - (s - i->position));
 	  if (got >= len)
-	    return Qnil;
+	    RETURN_UNGCPRO (Qnil);
 	  len -= got;
 	  i = next_interval (i);
 	}
