@@ -1,3 +1,7 @@
+2004-10-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (x_draw_vertical_border): Do nothing if non-window system.
+
 2004-10-14  Andreas Schwab  <schwab@suse.de>
 
 	* m/ia64.h (DATA_SEG_BITS): Don't define.
