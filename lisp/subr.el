@@ -701,7 +701,7 @@ On other systems, this variable is normally always nil.")
 (defun get-buffer-window-list (buffer &optional frame)
   "Return windows currently displaying BUFFER, or nil if none.
 See `get-buffer-window' for the meaning of FRAME."
-  (let (windows)
+  (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
     (walk-windows (function (lambda (window)
 			      (if (eq (window-buffer window) buffer)
 				  (setq windows (cons window windows)))))
