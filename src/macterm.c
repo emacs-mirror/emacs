@@ -475,6 +475,8 @@ static void x_produce_stretch_glyph P_ ((struct it *));
 static void activate_scroll_bars (FRAME_PTR);
 static void deactivate_scroll_bars (FRAME_PTR);
 
+static int is_emacs_window (WindowPtr);
+
 extern int image_ascent (struct image *, struct face *);
 void x_set_offset (struct frame *, int, int, int);
 int x_bitmap_icon (struct frame *, Lisp_Object);
@@ -8251,8 +8253,11 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
   Point mouse_pos;
   int ignore1, ignore2;
   WindowPtr wp = FrontWindow ();
-  struct frame *f = ((mac_output *) GetWRefCon (wp))->mFP;            
+  struct frame *f;
   Lisp_Object frame, tail;
+
+  if (is_emacs_window(wp))
+    f = ((mac_output *) GetWRefCon (wp))->mFP;         
 
   BLOCK_INPUT;
 
@@ -11497,6 +11502,14 @@ Lisp_Object Vmac_reverse_ctrl_meta;
 /* True if the mouse wheel button (i.e. button 4) should map to
    mouse-2, instead of mouse-3.  */
 Lisp_Object Vmac_wheel_button_is_mouse_2;
+
+/* If Non-nil, the Mac "Command" key is passed on to the Mac Toolbox
+   for processing before Emacs sees it.  */
+Lisp_Object Vmac_pass_command_to_system;
+
+/* If Non-nil, the Mac "Control" key is passed on to the Mac Toolbox
+   for processing before Emacs sees it.  */
+Lisp_Object Vmac_pass_control_to_system;
 #endif
 
 /* convert input from Mac keyboard (assumed to be in Mac Roman coding)
@@ -11840,17 +11853,22 @@ static void
 do_mouse_moved (Point mouse_pos)
 {
   WindowPtr wp = FrontWindow ();
-  struct frame *f = ((mac_output *) GetWRefCon (wp))->mFP;            
+  struct frame *f;
 
+  if (is_emacs_window (wp)) 
+    {
+      f = ((mac_output *) GetWRefCon (wp))->mFP;            
+      
 #if TARGET_API_MAC_CARBON
       SetPort (GetWindowPort (wp));
 #else
       SetPort (wp);
 #endif
 
-  GlobalToLocal (&mouse_pos);
-
-  note_mouse_movement (f, &mouse_pos);
+      GlobalToLocal (&mouse_pos);
+      
+      note_mouse_movement (f, &mouse_pos);
+    }
 }
 
 
@@ -12626,7 +12644,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	      {
 		SInt32 delta;
 		Point point;
-		WindowPtr window_ptr = FrontWindow ();
+		WindowPtr window_ptr = FrontNonFloatingWindow ();
 		struct mac_output *mwp = (mac_output *) GetWRefCon (window_ptr);
 		GetEventParameter(eventRef, kEventParamMouseWheelDelta,
 				  typeSInt32, NULL, sizeof (SInt32),
@@ -12666,8 +12684,14 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  SInt16 part_code;
 
 #if USE_CARBON_EVENTS
-	  /* This is needed to correctly */
-	  SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+	  /* This is needed to send mouse events like aqua window buttons
+	     to the correct handler.  */
+	  if (eventNotHandledErr != SendEventToEventTarget (eventRef, GetEventDispatcherTarget ())) {
+	    break;
+	  }
+
+	  if (!is_emacs_window(window_ptr))
+	    break;
 #endif
 
           if (mouse_tracking_in_progress == mouse_tracking_scroll_bar
@@ -12861,7 +12885,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
       case osEvt:
       case activateEvt:
 #if USE_CARBON_EVENTS
-	SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
+	if (eventNotHandledErr == SendEventToEventTarget (eventRef, GetEventDispatcherTarget ()))
 #endif	
     	do_events (&er);
 	break;
@@ -12872,6 +12896,24 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  int keycode = (er.message & keyCodeMask) >> 8;
 	  int xkeysym;
 	  
+#if USE_CARBON_EVENTS
+	  /* When using Carbon Events, we need to pass raw keyboard events
+	     to the TSM ourselves.  If TSM handles it, it will pass back
+	     noErr, otherwise it will pass back "eventNotHandledErr" and
+	     we can process it normally.   */
+	  if ((!NILP (Vmac_pass_command_to_system)
+	       || !(er.modifiers & cmdKey))
+	      && (!NILP (Vmac_pass_control_to_system)
+		  || !(er.modifiers & controlKey)))
+	    {
+	      OSStatus err;
+	      err = SendEventToEventTarget (eventRef,
+					    GetEventDispatcherTarget ());
+	      if (err != eventNotHandledErr)
+		break;
+	    }
+#endif
+
 	  if (!IsValidWindowPtr (FrontNonFloatingWindow ()))
 	    {
 	      SysBeep (1);
@@ -13011,16 +13053,14 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
            constuct_drag_n_drop in w32term.c.  */
         if (!NILP (drag_and_drop_file_list))
           {
-            struct frame *f;
+            struct frame *f = NULL;
             WindowPtr wp;
             Lisp_Object frame;
 
-            wp = FrontWindow ();
-            if (!wp)
-              f = NULL;
-            else
-              f = ((mac_output *) GetWRefCon (wp))->mFP;            
-            
+            wp = FrontNonFloatingWindow ();
+            if (wp && is_emacs_window(wp))
+	        f = ((mac_output *) GetWRefCon (wp))->mFP;            
+
             bufp->kind = DRAG_N_DROP_EVENT;
             bufp->code = 0;
             bufp->timestamp = er.when * (1000 / 60);
@@ -13610,6 +13650,16 @@ Otherwise the option key is used.  */);
 the right click will be mouse-3.
 Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
   Vmac_wheel_button_is_mouse_2 = Qt;
+
+  DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
+   doc: /* If non-nil, the Mac \"Command\" key is passed on to the Mac
+Toolbox for processing before Emacs sees it.  */);
+  Vmac_pass_command_to_system = Qt;
+
+  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
+   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
+Toolbox for processing before Emacs sees it.  */);
+  Vmac_pass_control_to_system = Qt;
 #endif
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
