@@ -143,7 +143,7 @@ first will be printed into the backtrace buffer."
 		     (beginning-of-line))
 		    ;; Debugger entered for an error.
 		    ((eq (car debugger-args) 'error)
-		     (insert "Signalling: ")
+		     (insert "Signaling: ")
 		     (prin1 (nth 1 debugger-args) (current-buffer))
 		     (insert ?\n))
 		    ;; debug-on-call, when the next thing is an eval.
