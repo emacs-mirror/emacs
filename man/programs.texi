@@ -365,7 +365,7 @@ This key, if the keyboard has it, is another way to enter @kbd{C-j}.
   The basic indentation command is @key{TAB}, which gives the current line
 the correct indentation as determined from the previous lines.  The
 function that @key{TAB} runs depends on the major mode; it is
-@code{indent-for-tab-command}
+@code{lisp-indent-line}
 in Lisp mode, @code{c-indent-command} in C mode, etc.  These functions
 understand the syntax and conventions of different languages, but they all do
 conceptually the same job: @key{TAB} in any programming-language major mode
@@ -411,7 +411,7 @@ you have several commands available.
 
 @table @kbd
 @item C-M-q
-Reindent all the lines within one parenthetical grouping(@code{indent-sexp}).
+Reindent all the lines within one parenthetical grouping(@code{indent-sexp}) .
 @item C-M-\
 Reindent all lines in the region (@code{indent-region}).
 @item C-u @key{TAB}
@@ -426,7 +426,7 @@ lines that start inside comments and strings.
 @findex indent-sexp
   You can reindent the contents of a single parenthetical grouping by
 positioning point before the beginning of it and typing @kbd{C-M-q}
-(@code{indent-sexp} in Lisp mode, @code{c-indent-exp} in C mode; also
+(@code{indent-pp-sexp} in Lisp mode, @code{c-indent-exp} in C mode; also
 bound to other suitable commands in other modes).  The indentation of
 the line where the grouping starts is not changed; therefore it
 changes only the relative indentation within the grouping, not its
@@ -455,6 +455,7 @@ to them.
 region sideways, like @code{indent-rigidly} does (@pxref{Indentation
 Commands}).  It doesn't alter the indentation of lines that start
 inside a string, unless the region also starts inside that string.
+The prefix arg specifies the number of columns to indent.
 
 @node Lisp Indent
 @subsection Customizing Lisp Indentation
@@ -797,8 +798,9 @@ as in @samp{[x)}---a warning message is displayed in the echo area.
 @vindex blink-matching-paren
 @vindex blink-matching-paren-distance
 @vindex blink-matching-delay
-  Three variables control parenthesis match display.
-@code{blink-matching-paren} turns the feature on or off: @code{nil}
+  Three variables control parenthesis match display:
+
+  @code{blink-matching-paren} turns the feature on or off: @code{nil}
 disables it, but the default is @code{t} to enable match display.
 
   @code{blink-matching-delay} says how many seconds to leave the
@@ -1220,8 +1222,9 @@ v} uses the symbol name around or adjacent to point as its default.
 mode constantly displays in the echo area the argument list for the
 function being called at point.  (In other words, it finds the
 function call that point is contained in, and displays the argument
-list of that function.)  Eldoc mode applies in Emacs Lisp and Lisp
-Interaction modes only.  Use the command @kbd{M-x eldoc-mode} to
+list of that function.)  If point is over a documented variable, it
+shows the variable's docstring.  Eldoc mode applies in Emacs Lisp and
+Lisp Interaction modes only.  Use the command @kbd{M-x eldoc-mode} to
 enable or disable this feature.
 
 @node Hideshow
@@ -1735,8 +1738,8 @@ click on @samp{[A]pply these settings} (or go to that buffer and type
 @findex c-show-syntactic-information
 @kindex C-c C-s @r{(C mode)}
 Display the syntactic information about the current source line
-(@code{c-show-syntactic-information}).  This is the information that
-directs how the line is indented.
+(@code{c-show-syntactic-information}).  This information directs how
+the line is indented.
 
 @item M-x cwarn-mode
 @itemx M-x global-cwarn-mode
@@ -2063,7 +2066,7 @@ unless you have said in advance to do so.  To do this, set the variable
 
 @table @kbd
 @item M-;
-Align comment or insert new comment (@code{fortran-comment-indent}).
+Align comment or insert new comment (@code{fortran-indent-comment}).
 
 @item C-x ;
 Applies to nonstandard @samp{!} comments only.
@@ -2074,7 +2077,7 @@ into real code (@code{fortran-comment-region}).
 @end table
 
   @kbd{M-;} in Fortran mode is redefined as the command
-@code{fortran-comment-indent}.  Like the usual @kbd{M-;} command, this
+@code{fortran-indent-comment}.  Like the usual @kbd{M-;} command, this
 recognizes any kind of existing comment and aligns its text appropriately;
 if there is no existing comment, a comment is inserted and aligned.  But
 inserting and aligning comments are not the same in Fortran mode as in
