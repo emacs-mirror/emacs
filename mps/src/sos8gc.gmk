@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SOLARIS/SPARC/GCC PLATFORM
 #
-#  $HopeName: MMsrc!sospgc.gmk(MMdevel_lib.2) $
+#  $HopeName: MMsrc!sospgc.gmk(trunk.4) $
 #
 #  Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -18,6 +18,7 @@ MPM = assert.c ring.c mpsliban.c mpm.c \
 MPMPS = sssosp.S
 AMC = amc.c
 LO = lo.c
+MRG = poolmrg.c
 DW = fmtdy.c dw.c
 SW = assert.c ring.c mpsliban.c mpm.c \
      arenavm.c vmrm.c space.c pool.c poolmfs.c \
