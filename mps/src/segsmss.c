@@ -1,7 +1,7 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.3) $
- * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!segsmss.c(trunk.4) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 
  * a protocol for subclassing AMS segments). Defines a new pool 
@@ -25,7 +25,6 @@
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
 
 
 /* Forward declarations */
@@ -108,6 +107,7 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 
 #define SegAMSTSeg(seg)             ((AMSTSeg)(seg))
 #define AMSTSegSeg(amstseg)         ((Seg)(amstseg))
+
 
 /* amstSegInit -- initialise an amst segment */
 
@@ -790,15 +790,15 @@ static void *test(void *arg, size_t s)
       printf(indent);
       fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)
-        assert(exactRoots[i] == objNULL ||
-               dylan_check(exactRoots[i]));
+        cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
+             "all roots check");
     }
 
     r = (size_t)rnd();
     if(r & 1) {
       i = (r >> 1) % exactRootsCOUNT;
       if(exactRoots[i] != objNULL)
-        assert(dylan_check(exactRoots[i]));
+        cdie(dylan_check(exactRoots[i]), "dying root check");
       exactRoots[i] = make();
       if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
@@ -812,7 +812,7 @@ static void *test(void *arg, size_t s)
 
     if(rnd() % stressTestFREQ == 0)
       mps_amst_ap_stress(ap); /* stress active buffer */
-    
+
     if(rnd() % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
@@ -835,11 +835,13 @@ static void *test(void *arg, size_t s)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
