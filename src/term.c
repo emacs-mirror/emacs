@@ -982,7 +982,7 @@ calculate_ins_del_char_costs (frame)
 }
 
 #ifdef HAVE_X_WINDOWS
-extern int x_frame_planes;
+extern int x_screen_planes;
 #endif
 
 calculate_costs (frame)
@@ -999,7 +999,7 @@ calculate_costs (frame)
   if (FRAME_IS_X (frame))
     {
       do_line_insertion_deletion_costs (frame, 0, ".5*", 0, ".5*",
-					0, 0, x_frame_planes);
+					0, 0, x_screen_planes);
       return;
     }
 #endif
