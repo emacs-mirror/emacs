@@ -1,5 +1,8 @@
 2001-09-04  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
+	* makefile.MPW: Generate etc/DOC file from .elc files instead of
+	.el files.
+
 	* src/mac.c (stat): Don't fail for aliases.
 	(sys_open) [__MRC__]: Set file creator and type for newly-created
 	files.
