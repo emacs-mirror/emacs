@@ -1389,6 +1389,7 @@ If summary buffer is currently displayed, update current message there also."
 	(goto-char (point-min))
 	(rmail-display-labels)
 	(rmail-highlight-headers)
+	(if transient-mark-mode (deactivate-mark))
 	(run-hooks 'rmail-show-message-hook)
 	;; If there is a summary buffer, try to move to this message
 	;; in that buffer.  But don't complain if this message
