@@ -1,10 +1,10 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
+/* Copyright (C) 1985, 1986, 1987, 1988, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -210,11 +210,18 @@ static long data_scnptr;
 #ifdef HPUX
 extern void *sbrk ();
 #else
+#if 0
+/* Some systems with __STDC__ compilers still declare this `char *' in some
+   header file, and our declaration conflicts.  The return value is always
+   cast, so it should be harmless to leave it undefined.  Hopefully
+   machines with different size pointers and ints declare sbrk in a header
+   file.  */
 #ifdef __STDC__
 extern void *sbrk ();
 #else
 extern char *sbrk ();
 #endif /* __STDC__ */
+#endif
 #endif /* HPUX */
 
 #define SYMS_START ((long) N_SYMOFF (ohdr))
