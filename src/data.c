@@ -711,11 +711,9 @@ do_symval_forwarding (valcontents)
 	offset = XBUFFER_OBJFWD (valcontents)->offset;
 	return *(Lisp_Object *)(offset + (char *)current_buffer);
 
-      case Lisp_Misc_Display_Objfwd:
-	if (!current_perdisplay)
-	  abort ();
-	offset = XDISPLAY_OBJFWD (valcontents)->offset;
-	return *(Lisp_Object *)(offset + (char *)current_perdisplay);
+      case Lisp_Misc_Kboard_Objfwd:
+	offset = XKBOARD_OBJFWD (valcontents)->offset;
+	return *(Lisp_Object *)(offset + (char *)current_kboard);
       }
   return valcontents;
 }
@@ -762,11 +760,9 @@ store_symval_forwarding (sym, valcontents, newval)
 	  }
 	  break;
 
-	case Lisp_Misc_Display_Objfwd:
-	  if (!current_perdisplay)
-	    abort ();
-	  (*(Lisp_Object *)((char *)current_perdisplay
-			    + XDISPLAY_OBJFWD (valcontents)->offset))
+	case Lisp_Misc_Kboard_Objfwd:
+	  (*(Lisp_Object *)((char *)current_kboard
+			    + XKBOARD_OBJFWD (valcontents)->offset))
 	    = newval;
 	  break;
 
@@ -868,11 +864,9 @@ find_symbol_value (sym)
 	  return *(Lisp_Object *)(XBUFFER_OBJFWD (valcontents)->offset
 				  + (char *)current_buffer);
 
-	case Lisp_Misc_Display_Objfwd:
-	  if (!current_perdisplay)
-	    abort ();
-	  return *(Lisp_Object *)(XDISPLAY_OBJFWD (valcontents)->offset
-				  + (char *)current_perdisplay);
+	case Lisp_Misc_Kboard_Objfwd:
+	  return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
+				  + (char *)current_kboard);
 	}
     }
 
@@ -1191,7 +1185,7 @@ The function `default-value' gets the default value and `set-default' sets it.")
   CHECK_SYMBOL (sym, 0);
 
   valcontents = XSYMBOL (sym)->value;
-  if (EQ (sym, Qnil) || EQ (sym, Qt) || DISPLAY_OBJFWDP (valcontents))
+  if (EQ (sym, Qnil) || EQ (sym, Qt) || KBOARD_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", XSYMBOL (sym)->name->data);
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
@@ -1234,7 +1228,7 @@ Use `make-local-hook' instead.")
   CHECK_SYMBOL (sym, 0);
 
   valcontents = XSYMBOL (sym)->value;
-  if (EQ (sym, Qnil) || EQ (sym, Qt) || DISPLAY_OBJFWDP (valcontents))
+  if (EQ (sym, Qnil) || EQ (sym, Qt) || KBOARD_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", XSYMBOL (sym)->name->data);
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
