@@ -432,7 +432,7 @@ posting bug reports to this newsgroup directly (@pxref{Reporting bugs}).
 
 @node Newsgroup archives, Reporting bugs, Guidelines for newsgroup postings, General questions
 @section Where can I get old postings to @uref{news:gnu.emacs.help} and other GNU groups?
-@cindex Archived postings from @uref{news:gnu.emacs.help}
+@cindex Archived postings from @code{gnu.emacs.help}
 @cindex Usenet archives for GNU groups
 @cindex Old Usenet postings for GNU groups
 
