@@ -557,20 +557,13 @@ Finishes by calling the functions in `find-file-hooks'."
 		   "Note: file is write protected")
 		  ((file-attributes (directory-file-name default-directory))
 		   "File not found and directory write-protected")
+		  ((file-exists-p (file-name-directory buffer-file-name))
+		   (setq buffer-read-only nil))
 		  (t
-		   ;; If the directory the buffer is in doesn't exist,
-		   ;; offer to create it.  It's better to do this now
-		   ;; than when we save the buffer, because we want
-		   ;; autosaving to work.
 		   (setq buffer-read-only nil)
-		   (or (file-exists-p (file-name-directory buffer-file-name))
-		       (if (yes-or-no-p
-			    (format
-			     "The directory containing %s does not exist.  Create? "
-			     (abbreviate-file-name buffer-file-name)))
-			   (make-directory-path
-			    (file-name-directory buffer-file-name))))
-		   nil))))
+		   (if (file-exists-p (file-name-directory (directory-file-name (file-name-directory buffer-file-name))))
+		       "Use M-x make-dir RET RET to create the directory"
+		     "Use C-u M-x make-dir RET RET to create directory and its parents")))))
       (if msg
 	  (progn
 	    (message msg)
@@ -1411,18 +1404,29 @@ or multiple mail buffers, etc."
     (rename-buffer name)
     (set-buffer-modified-p (buffer-modified-p)))) ; force mode line update
 
-(defun make-directory-path (path)
-  "Create all the directories along path that don't exist yet."
-  (interactive "Fdirectory path to create: ")
-  (let ((path (directory-file-name (expand-file-name path)))
-	create-list)
-    (while (not (file-exists-p path))
-      (setq create-list (cons path create-list)	    
-	    path (directory-file-name (file-name-directory path))))
-    (while create-list
-      (make-directory (car create-list))
-      (setq create-list (cdr create-list)))))
-
+(defun make-directory (dir &optional parents)
+  "Create the directory DIR and any nonexistent parent dirs."
+  (interactive "FMake directory: \nP")
+  (let (handler (handlers file-name-handler-alist))
+    (save-match-data
+     (while (and (consp handlers) (null handler))
+       (if (and (consp (car handlers))
+		(stringp (car (car handlers)))
+		(string-match (car (car handlers)) file))
+	   (setq handler (cdr (car handlers))))
+       (setq handlers (cdr handlers))))
+    (if handler
+	(funcall handler 'make-directory dir parents)
+      (if (not parents)
+	  (make-directory-internal dir)
+	(let ((dir (directory-file-name (expand-file-name dir)))
+	      create-list)
+	  (while (not (file-exists-p dir))
+	    (setq create-list (cons dir create-list)	    
+		  dir (directory-file-name (file-name-directory dir))))
+	  (while create-list
+	    (make-directory-internal (car create-list))
+	    (setq create-list (cdr create-list))))))))
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
