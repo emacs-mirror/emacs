@@ -498,20 +498,15 @@ that uses or sets the mark."
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
-  (let ((opoint (point)) start)
-    (save-excursion
-      (save-restriction
-	(goto-char (point-min))
-	(widen)
-	(forward-line 0)
-	(setq start (point))
-	(goto-char opoint)
-	(forward-line 0)
-	(if (/= start (point-min))
-	    (message "line %d (narrowed line %d)"
-		     (1+ (count-lines (point-min) (point)))
-		     (1+ (count-lines start (point))))
-	  (message "Line %d" (1+ (count-lines (point-min) (point)))))))))
+  (let ((opoint (point)) (start (point-min))
+	(n (line-at-pos)))
+    (if (= start 1)
+	(message "Line %d" n)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (message "line %d (narrowed line %d)" 
+		   (+ n (line-at-pos start) -1) n))))))
 
 (defun count-lines (start end)
   "Return number of lines between START and END.
@@ -535,6 +530,17 @@ and the greater of them is not at the start of a line."
 		  (1+ done)
 		done)))
 	(- (buffer-size) (forward-line (buffer-size)))))))
+
+(defun line-at-pos (&optional pos)
+  "Return (narrowed) buffer line number at position POS.
+If POS is nil, use current buffer location."
+  (let ((opoint (or pos (point))) start)
+    (save-excursion
+      (goto-char (point-min))
+      (setq start (point))
+      (goto-char opoint)
+      (forward-line 0)
+      (1+ (count-lines start (point))))))
 
 (defun what-cursor-position (&optional detail)
   "Print info on cursor position (on screen and within buffer).
@@ -672,15 +678,17 @@ the echo area."
 COMMAND is a Lisp expression.  Let user edit that expression in
 the minibuffer, then read and evaluate the result."
   (let ((command
-	 (unwind-protect
-	     (read-from-minibuffer prompt
-				   (prin1-to-string command)
-				   read-expression-map t
-				   '(command-history . 1))
-	   ;; If command was added to command-history as a string,
-	   ;; get rid of that.  We want only evaluable expressions there.
-	   (if (stringp (car command-history))
-	       (setq command-history (cdr command-history))))))
+	 (let ((print-level nil)
+	       (minibuffer-history-sexp-flag (1+ (minibuffer-depth))))
+	   (unwind-protect
+	       (read-from-minibuffer prompt
+				     (prin1-to-string command)
+				     read-expression-map t
+				     'command-history)
+	     ;; If command was added to command-history as a string,
+	     ;; get rid of that.  We want only evaluable expressions there.
+	     (if (stringp (car command-history))
+		 (setq command-history (cdr command-history)))))))
 
     ;; If command to be redone does not match front of history,
     ;; add it to the history.
@@ -3735,9 +3743,9 @@ See also `read-mail-command' concerning reading mail."
 	    (same-window-buffer-names nil)
 	    (same-window-regexps nil))
 	(funcall switch-function "*mail*")))
-  (let ((cc (cdr (assoc-ignore-case "cc" other-headers)))
-	(in-reply-to (cdr (assoc-ignore-case "in-reply-to" other-headers)))
-	(body (cdr (assoc-ignore-case "body" other-headers))))
+  (let ((cc (cdr (assoc-string "cc" other-headers t)))
+	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
+	(body (cdr (assoc-string "body" other-headers t))))
     (or (mail continue to subject in-reply-to cc yank-action send-actions)
 	continue
 	(error "Message aborted"))

@@ -30,6 +30,9 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "buffer.h"
 #include "process.h"
+#include "termhooks.h"
+
+#include <X11/Xproto.h>
 
 struct prop_location;
 
@@ -2278,6 +2281,351 @@ Positive means shift the values forward, negative means backward.  */)
 
 #endif
 
+/***********************************************************************
+                      Drag and drop support
+***********************************************************************/
+/* Check that lisp values are of correct type for x_fill_property_data.
+   That is, number, string or a cons with two numbers (low and high 16
+   bit parts of a 32 bit number).  */
+
+int
+x_check_property_data (data)
+     Lisp_Object data;
+{
+  Lisp_Object iter;
+  int size = 0;
+
+  for (iter = data; CONSP (iter) && size != -1; iter = XCDR (iter), ++size)
+    {
+      Lisp_Object o = XCAR (iter);
+
+      if (! NUMBERP (o) && ! STRINGP (o) && ! CONSP (o))
+        size = -1;
+      else if (CONSP (o) &&
+               (! NUMBERP (XCAR (o)) || ! NUMBERP (XCDR (o))))
+        size = -1;
+    }
+
+  return size;
+}
+
+/* Convert lisp values to a C array.  Values may be a number, a string
+   which is taken as an X atom name and converted to the atom value, or
+   a cons containing the two 16 bit parts of a 32 bit number.
+
+   DPY is the display use to look up X atoms.
+   DATA is a Lisp list of values to be converted.
+   RET is the C array that contains the converted values.  It is assumed
+   it is big enough to hol all values.
+   FORMAT is 8, 16 or 32 and gives the size in bits for each C value to
+   be stored in RET.  */
+
+void
+x_fill_property_data (dpy, data, ret, format)
+     Display *dpy;
+     Lisp_Object data;
+     void *ret;
+     int format;
+{
+  CARD32 val;
+  CARD32 *d32 = (CARD32 *) ret;
+  CARD16 *d16 = (CARD16 *) ret;
+  CARD8  *d08 = (CARD8  *) ret;
+  Lisp_Object iter;
+
+  for (iter = data; CONSP (iter); iter = XCDR (iter))
+    {
+      Lisp_Object o = XCAR (iter);
+
+      if (INTEGERP (o))
+        val = (CARD32) XFASTINT (o);
+      else if (FLOATP (o))
+        val = (CARD32) XFLOAT (o);
+      else if (CONSP (o))
+        val = (CARD32) cons_to_long (o);
+      else if (STRINGP (o))
+        {
+          BLOCK_INPUT;
+          val = XInternAtom (dpy, (char *) SDATA (o), False);
+          UNBLOCK_INPUT;
+        }
+      else
+        error ("Wrong type, must be string, number or cons");
+
+      if (format == 8)
+        *d08++ = (CARD8) val;
+      else if (format == 16)
+        *d16++ = (CARD16) val;
+      else
+        *d32++ = val;
+    }
+}
+
+/* Convert an array of C values to a Lisp list.
+   F is the frame to be used to look up X atoms if the TYPE is XA_ATOM.
+   DATA is a C array of values to be converted.
+   TYPE is the type of the data.  Only XA_ATOM is special, it converts
+   each number in DATA to its corresponfing X atom as a symbol.
+   FORMAT is 8, 16 or 32 and gives the size in bits for each C value to
+   be stored in RET.
+   SIZE is the number of elements in DATA.
+
+   Also see comment for selection_data_to_lisp_data above.  */
+
+Lisp_Object
+x_property_data_to_lisp (f, data, type, format, size)
+     struct frame *f;
+     unsigned char *data;
+     Atom type;
+     int format;
+     unsigned long size;
+{
+  return selection_data_to_lisp_data (FRAME_X_DISPLAY (f),
+                                      data, size*format/8, type, format);
+}
+
+/* Get the mouse position frame relative coordinates.  */
+
+static void
+mouse_position_for_drop (f, x, y)
+     FRAME_PTR f;
+     int *x;
+     int *y;
+{
+  Window root, dummy_window;
+  int dummy;
+
+  BLOCK_INPUT;
+
+  XQueryPointer (FRAME_X_DISPLAY (f),
+                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+
+                 /* The root window which contains the pointer.  */
+                 &root,
+
+                 /* Window pointer is on, not used  */
+                 &dummy_window,
+
+                 /* The position on that root window.  */
+                 x, y,
+
+                 /* x/y in dummy_window coordinates, not used.  */
+                 &dummy, &dummy,
+
+                 /* Modifier keys and pointer buttons, about which
+                    we don't care.  */
+                 (unsigned int *) &dummy);
+
+
+  /* Absolute to relative.  */
+  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+
+  UNBLOCK_INPUT;
+}
+
+DEFUN ("x-get-atom-name", Fx_get_atom_name,
+       Sx_get_atom_name, 1, 2, 0,
+       doc: /* Return the X atom name for VALUE as a string.
+VALUE may be a number or a cons where the car is the upper 16 bits and
+the cdr is the lower 16 bits of a 32 bit value.
+Use the display for FRAME or the current frame if FRAME is not given or nil.
+
+If the value is 0 or the atom is not known, return the empty string.  */)
+  (value, frame)
+     Lisp_Object value, frame;
+{
+  struct frame *f = check_x_frame (frame);
+  char *name = 0;
+  Lisp_Object ret = Qnil;
+  int count;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Atom atom;
+
+  if (INTEGERP (value))
+    atom = (Atom) XUINT (value);
+  else if (FLOATP (value))
+    atom = (Atom) XFLOAT (value);
+  else if (CONSP (value))
+    atom = (Atom) cons_to_long (value);
+  else
+    error ("Wrong type, value must be number or cons");
+
+  BLOCK_INPUT;
+  count = x_catch_errors (dpy);
+
+  name = atom ? XGetAtomName (dpy, atom) : "";
+
+  if (! x_had_errors_p (dpy))
+    ret = make_string (name, strlen (name));
+
+  x_uncatch_errors (dpy, count);
+
+  if (atom && name) XFree (name);
+  if (NILP (ret)) ret = make_string ("", 0);
+
+  UNBLOCK_INPUT;
+
+  return ret;
+}
+
+/* Convert an XClientMessageEvent to a Lisp event of type DRAG_N_DROP_EVENT.
+   TODO: Check if this client event really is a DND event?  */
+
+int
+x_handle_dnd_message (f, event, dpyinfo, bufp)
+     struct frame *f;
+     XClientMessageEvent *event;
+     struct x_display_info *dpyinfo;
+     struct input_event *bufp;
+{
+  Lisp_Object vec;
+  Lisp_Object frame;
+  unsigned long size = (8*sizeof (event->data))/event->format;
+  int x, y;
+
+  XSETFRAME (frame, f);
+
+  vec = Fmake_vector (4, Qnil);
+  AREF (vec, 0) = SYMBOL_NAME (x_atom_to_symbol (FRAME_X_DISPLAY (f),
+                                                 event->message_type));
+  AREF (vec, 1) = frame;
+  AREF (vec, 2) = XFASTINT (event->format);
+  AREF (vec, 3) = x_property_data_to_lisp (f,
+                                           event->data.b,
+                                           event->message_type,
+                                           event->format,
+                                           size);
+
+  mouse_position_for_drop (f, &x, &y);
+  bufp->kind = DRAG_N_DROP_EVENT;
+  bufp->frame_or_window = Fcons (frame, vec);
+  bufp->timestamp = CurrentTime;
+  bufp->x = make_number (x);
+  bufp->y = make_number (y);
+  bufp->arg = Qnil;
+  bufp->modifiers = 0;
+
+  return 1;
+}
+
+DEFUN ("x-send-client-message", Fx_send_client_event,
+       Sx_send_client_message, 6, 6, 0,
+       doc: /* Send a client message of MESSAGE-TYPE to window DEST on DISPLAY.
+
+For DISPLAY, specify either a frame or a display name (a string).
+If DISPLAY is nil, that stands for the selected frame's display.
+DEST may be a number, in which case it is a Window id.  The value 0 may
+be used to send to the root window of the DISPLAY.
+If DEST is a cons, it is converted to a 32 bit number
+with the high 16 bits from the car and the lower 16 bit from the cdr.  That
+number is then used as a window id.
+If DEST is a frame the event is sent to the outer window of that frame.
+Nil means the currently selected frame.
+If DEST is the string "PointerWindow" the event is sent to the window that
+contains the pointer.  If DEST is the string "InputFocus" the event is
+sent to the window that has the input focus.
+FROM is the frame sending the event.  Use nil for currently selected frame.
+MESSAGE-TYPE is the name of an Atom as a string.
+FORMAT must be one of 8, 16 or 32 and determines the size of the values in
+bits.  VALUES is a list of numbers, cons and/or strings containing the values
+to send.  If a value is a string, it is converted to an Atom and the value of
+the Atom is sent.  If a value is a cons, it is converted to a 32 bit number
+with the high 16 bits from the car and the lower 16 bit from the cdr.
+If more values than fits into the event is given, the excessive values
+are ignored.  */)
+     (display, dest, from, message_type, format, values)
+     Lisp_Object display, dest, from, message_type, format, values;
+{
+  struct x_display_info *dpyinfo = check_x_display_info (display);
+  Window wdest;
+  XEvent event;
+  Lisp_Object cons;
+  int size;
+  struct frame *f = check_x_frame (from);
+  int count;
+  int to_root;
+
+  CHECK_STRING (message_type);
+  CHECK_NUMBER (format);
+  CHECK_CONS (values);
+
+  if (x_check_property_data (values) == -1)
+    error ("Bad data in VALUES, must be number, cons or string");
+
+  event.xclient.type = ClientMessage;
+  event.xclient.format = XFASTINT (format);
+
+  if (event.xclient.format != 8 && event.xclient.format != 16
+      && event.xclient.format != 32)
+    error ("FORMAT must be one of 8, 16 or 32");
+  
+  if (FRAMEP (dest) || NILP (dest))
+    {
+      struct frame *fdest = check_x_frame (dest);
+      wdest = FRAME_OUTER_WINDOW (fdest);
+    }
+  else if (STRINGP (dest))
+    {
+      if (strcmp (SDATA (dest), "PointerWindow") == 0)
+        wdest = PointerWindow;
+      else if (strcmp (SDATA (dest), "InputFocus") == 0)
+        wdest = InputFocus;
+      else
+        error ("DEST as a string must be one of PointerWindow or InputFocus");
+    }
+  else if (INTEGERP (dest))
+    wdest = (Window) XFASTINT (dest);
+  else if (FLOATP (dest))
+    wdest =  (Window) XFLOAT (dest);
+  else if (CONSP (dest))
+    {
+      if (! NUMBERP (XCAR (dest)) || ! NUMBERP (XCDR (dest)))
+        error ("Both car and cdr for DEST must be numbers");
+      else
+        wdest = (Window) cons_to_long (dest);
+    }
+  else
+    error ("DEST must be a frame, nil, string, number or cons");
+
+  if (wdest == 0) wdest = dpyinfo->root_window;
+  to_root = wdest == dpyinfo->root_window;
+
+  for (cons = values, size = 0; CONSP (cons); cons = XCDR (cons), ++size)
+    ;
+
+  BLOCK_INPUT;
+
+  event.xclient.message_type
+    = XInternAtom (dpyinfo->display, SDATA (message_type), False);
+  event.xclient.display = dpyinfo->display;
+
+  /* Some clients (metacity for example) expects sending window to be here
+     when sending to the root window.  */
+  event.xclient.window = to_root ? FRAME_OUTER_WINDOW (f) : wdest;
+
+  memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
+  x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
+                        event.xclient.format);
+
+  /* If event mask is 0 the event is sent to the client that created
+     the destination window.  But if we are sending to the root window,
+     there is no such client.  Then we set the event mask to 0xffff.  The
+     event then goes to clients selecting for events on the root window.  */
+  count = x_catch_errors (dpyinfo->display);
+  {
+    int propagate = to_root ? False : True;
+    unsigned mask = to_root ? 0xffff : 0;
+    XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
+    XFlush (dpyinfo->display);
+  }
+  x_uncatch_errors (dpyinfo->display, count);
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
+
 void
 syms_of_xselect ()
 {
@@ -2292,6 +2640,9 @@ syms_of_xselect ()
   defsubr (&Sx_store_cut_buffer_internal);
   defsubr (&Sx_rotate_cut_buffers_internal);
 #endif
+
+  defsubr (&Sx_get_atom_name);
+  defsubr (&Sx_send_client_message);
 
   reading_selection_reply = Fcons (Qnil, Qnil);
   staticpro (&reading_selection_reply);

@@ -707,31 +707,6 @@ x
 @end example
 @end defun
 
-@defun remq object list
-This function returns a copy of @var{list}, with all elements removed
-which are @code{eq} to @var{object}.  The letter @samp{q} in @code{remq}
-says that it uses @code{eq} to compare @var{object} against the elements
-of @code{list}.
-
-@example
-@group
-(setq sample-list '(a b c a b c))
-     @result{} (a b c a b c)
-@end group
-@group
-(remq 'a sample-list)
-     @result{} (b c b c)
-@end group
-@group
-sample-list
-     @result{} (a b c a b c)
-@end group
-@end example
-@noindent
-The function @code{delq} offers a way to perform this operation
-destructively.  See @ref{Sets And Lists}.
-@end defun
-
 @defun copy-tree tree &optional vecp
 This function returns a copy the tree @code{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
@@ -1248,7 +1223,8 @@ useful example of @code{sort}.
   A list can represent an unordered mathematical set---simply consider a
 value an element of a set if it appears in the list, and ignore the
 order of the list.  To form the union of two sets, use @code{append} (as
-long as you don't mind having duplicate elements).  Other useful
+long as you don't mind having duplicate elements).  You can remove
+@code{equal} duplicates using @code{delete-dups}.  Other useful
 functions for sets include @code{memq} and @code{delq}, and their
 @code{equal} versions, @code{member} and @code{delete}.
 
@@ -1346,9 +1322,34 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 @end group
 @end example
 
-The following two functions are like @code{memq} and @code{delq} but use
-@code{equal} rather than @code{eq} to compare elements.  @xref{Equality
-Predicates}.
+@defun remq object list
+This function returns a copy of @var{list}, with all elements removed
+which are @code{eq} to @var{object}.  The letter @samp{q} in @code{remq}
+says that it uses @code{eq} to compare @var{object} against the elements
+of @code{list}.
+
+@example
+@group
+(setq sample-list '(a b c a b c))
+     @result{} (a b c a b c)
+@end group
+@group
+(remq 'a sample-list)
+     @result{} (b c b c)
+@end group
+@group
+sample-list
+     @result{} (a b c a b c)
+@end group
+@end example
+@noindent
+The function @code{delq} offers a way to perform this operation
+destructively.  See @ref{Sets And Lists}.
+@end defun
+
+The following three functions are like @code{memq}, @code{delq} and
+@code{remq}, but use @code{equal} rather than @code{eq} to compare
+elements.  @xref{Equality Predicates}.
 
 @defun member object list
 The function @code{member} tests to see whether @var{object} is a member
@@ -1431,6 +1432,20 @@ be a string and that it ignores differences in letter-case and text
 representation: upper-case and lower-case letters are treated as
 equal, and unibyte strings are converted to multibyte prior to
 comparison.
+@end defun
+
+@defun delete-dups list
+This function destructively removes all @code{equal} duplicates from
+@var{list} and returns the result.  Of several @code{equal}
+occurrences of an element in @var{list}, @code{delete-dups} keeps the
+last one.
+
+The value of @var{list} after a call to this function is undefined.
+Usually, we store the return value back in @var{list}:
+
+@example
+(setq list (delete-dups list))
+@end example
 @end defun
 
   See also the function @code{add-to-list}, in @ref{Setting Variables},
@@ -1541,9 +1556,9 @@ Here is another example, in which the keys and values are not symbols:
 @end smallexample
 @end defun
 
-  The functions @code{assoc-ignore-representation} and
-@code{assoc-ignore-case} are much like @code{assoc} except using
-@code{compare-strings} to do the comparison.  @xref{Text Comparison}.
+  The function @code{assoc-string} is much like @code{assoc} except
+that it ignores certain differences between strings.  @xref{Text
+Comparison}.
 
 @defun rassoc value alist
 This function returns the first association with value @var{value} in

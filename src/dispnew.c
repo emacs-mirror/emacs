@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,1999,2000,01,02,2003
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,1999,2000,01,02,03,04
        Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1513,12 +1513,11 @@ row_equal_p (w, a, b, mouse_face_p)
 	    return 0;
 	}
 
-      if (a->truncated_on_left_p != b->truncated_on_left_p
-	  || a->fill_line_p != b->fill_line_p
-	  || a->truncated_on_right_p != b->truncated_on_right_p
-	  || a->overlay_arrow_p != b->overlay_arrow_p
-	  || a->continued_p != b->continued_p
-	  || a->indicate_empty_line_p != b->indicate_empty_line_p
+      if (a->fill_line_p != b->fill_line_p
+	  || a->cursor_in_fringe_p != b->cursor_in_fringe_p
+	  || a->left_fringe_bitmap != b->left_fringe_bitmap
+	  || a->right_fringe_bitmap != b->right_fringe_bitmap
+	  || a->exact_window_width_line_p != b->exact_window_width_line_p
 	  || a->overlapped_p != b->overlapped_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (a)
 	      != MATRIX_ROW_CONTINUATION_LINE_P (b))
@@ -3450,6 +3449,7 @@ direct_output_for_insert (g)
 	  /* Can't do it in a continued line because continuation
 	     lines would change.  */
 	  (glyph_row->continued_p
+	   || glyph_row->exact_window_width_line_p
 	   /* Can't use this method if the line overlaps others or is
 	      overlapped by others because these other lines would
 	      have to be redisplayed.  */
@@ -3654,6 +3654,10 @@ direct_output_for_insert (g)
       y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
       cursor_to (y, x);
     }
+
+#ifdef HAVE_WINDOW_SYSTEM
+  update_window_fringes (w, 0);
+#endif
 
   if (rif)
     rif->update_window_end_hook (w, 1, 0);
@@ -4192,6 +4196,10 @@ update_window (w, force_p)
       strcpy (w->current_matrix->method, w->desired_matrix->method);
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+      update_window_fringes (w, 0);
+#endif
+
       /* End the update of window W.  Don't set the cursor if we
          paused updating the display because in this case,
          set_window_cursor_after_update hasn't been called, and
@@ -4510,13 +4518,10 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
       if (!current_row->enabled_p
 	  || desired_row->y != current_row->y
 	  || desired_row->visible_height != current_row->visible_height
-	  || desired_row->overlay_arrow_p != current_row->overlay_arrow_p
-	  || desired_row->truncated_on_left_p != current_row->truncated_on_left_p
-	  || desired_row->truncated_on_right_p != current_row->truncated_on_right_p
-	  || desired_row->continued_p != current_row->continued_p
+	  || desired_row->cursor_in_fringe_p != current_row->cursor_in_fringe_p
+	  || current_row->redraw_fringe_bitmaps_p
 	  || desired_row->mode_line_p != current_row->mode_line_p
-	  || (desired_row->indicate_empty_line_p
-	      != current_row->indicate_empty_line_p)
+	  || desired_row->exact_window_width_line_p != current_row->exact_window_width_line_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (desired_row)
 	      != MATRIX_ROW_CONTINUATION_LINE_P (current_row)))
 	rif->after_update_window_line_hook (desired_row);
@@ -4769,6 +4774,7 @@ scrolling_window (w, header_line_p)
 
       if (c->enabled_p
 	  && d->enabled_p
+	  && !d->redraw_fringe_bitmaps_p
 	  && c->y == d->y
 	  && MATRIX_ROW_BOTTOM_Y (c) <= yb
 	  && MATRIX_ROW_BOTTOM_Y (d) <= yb
@@ -4824,6 +4830,7 @@ scrolling_window (w, header_line_p)
          && MATRIX_ROW (current_matrix, i - 1)->enabled_p
 	 && (MATRIX_ROW (current_matrix, i - 1)->y
 	     == MATRIX_ROW (desired_matrix, j - 1)->y)
+	 && !MATRIX_ROW (desired_matrix, j - 1)->redraw_fringe_bitmaps_p
          && row_equal_p (w,
 			 MATRIX_ROW (desired_matrix, i - 1),
                          MATRIX_ROW (current_matrix, j - 1), 1))
@@ -5016,6 +5023,10 @@ scrolling_window (w, header_line_p)
 	    to = MATRIX_ROW (current_matrix, r->desired_vpos + j);
 	    from = MATRIX_ROW (desired_matrix, r->desired_vpos + j);
 	    to_overlapped_p = to->overlapped_p;
+	    if (!from->mode_line_p && !w->pseudo_window_p
+		&& (to->left_fringe_bitmap != from->left_fringe_bitmap
+		    || to->right_fringe_bitmap != from->right_fringe_bitmap))
+	      from->redraw_fringe_bitmaps_p = 1;
 	    assign_row (to, from);
 	    to->enabled_p = 1, from->enabled_p = 0;
 	    to->overlapped_p = to_overlapped_p;
@@ -5687,21 +5698,24 @@ update_frame_line (f, vpos)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return in *OBJECT the object (string or buffer) that's there.
-   Return in *POS the position in that object. Adjust *X and *Y
-   to character positions.  */
+   Return the object (string or buffer) that's there.
+   Return in *POS the position in that object.
+   Adjust *X and *Y to character positions.  */
 
-void
-buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
+Lisp_Object
+buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
      struct window *w;
      int *x, *y;
-     int *dx, *dy;
-     Lisp_Object *object;
      struct display_pos *pos;
+     Lisp_Object *object;
+     int *dx, *dy;
+     int *width, *height;
 {
   struct it it;
   struct buffer *old_current_buffer = current_buffer;
   struct text_pos startp;
+  Lisp_Object string;
+  struct glyph_row *row;
   int x0, x1;
 
   current_buffer = XBUFFER (w->buffer);
@@ -5719,7 +5733,10 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
   *dx = x0 + it.first_visible_x - it.current_x;
   *dy = *y - it.current_y;
 
-  *object =  w->buffer;
+  string =  w->buffer;
+  if (STRINGP (it.string))
+    string = it.string;
+  *pos = it.current;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
@@ -5727,25 +5744,33 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
       struct image *img;
       if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
 	  && !NILP (img->spec))
-	{
-	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, it.vpos);
-	  struct glyph *glyph;
+	*object = img->spec;
+    }
+#endif
 
-	  if (it.hpos < row->used[TEXT_AREA]
-	      && (glyph = row->glyphs[TEXT_AREA] + it.hpos,
-		  glyph->type == IMAGE_GLYPH))
-	    {
-	      *dy -= row->ascent - glyph->ascent;
-	      *object = img->spec;
-	    }
+  row = MATRIX_ROW (w->current_matrix, it.vpos);
+  if (row->enabled_p)
+    {
+      if (it.hpos < row->used[TEXT_AREA])
+	{
+	  struct glyph *glyph = row->glyphs[TEXT_AREA] + it.hpos;
+	  *width = glyph->pixel_width;
+	  *height = glyph->ascent + glyph->descent;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (glyph->type == IMAGE_GLYPH)
+	    *dy -= row->ascent - glyph->ascent;
+#endif
+	}
+      else
+	{
+	  *width = 0;
+	  *height = row->height;
 	}
     }
   else
-#endif
-    if (STRINGP (it.string))
-      *object = it.string;
-
-  *pos = it.current;
+    {
+      *width = *height = 0;
+    }
 
   /* Add extra (default width) columns if clicked after EOL. */
   x1 = max(0, it.current_x + it.pixel_width - it.first_visible_x);
@@ -5754,21 +5779,24 @@ buffer_posn_from_coords (w, x, y, dx, dy, object, pos)
 
   *x = it.hpos;
   *y = it.vpos;
+
+  return string;
 }
 
 
 /* Value is the string under window-relative coordinates X/Y in the
-   mode or header line of window W, or nil if none.  MODE_LINE_P non-zero
-   means look at the mode line.  *CHARPOS is set to the position in
-   the string returned.  */
+   mode line or header line (PART says which) of window W, or nil if none.
+   *CHARPOS is set to the position in the string returned.  */
 
 Lisp_Object
-mode_line_string (w, x, y, dx, dy, part, charpos)
+mode_line_string (w, part, x, y, charpos, object, dx, dy, width, height)
      struct window *w;
-     int *x, *y;
-     int *dx, *dy;
      enum window_part part;
+     int *x, *y;
      int *charpos;
+     Lisp_Object *object;
+     int *dx, *dy;
+     int *width, *height;
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
@@ -5795,22 +5823,36 @@ mode_line_string (w, x, y, dx, dy, part, charpos)
 	{
 	  string = glyph->object;
 	  *charpos = glyph->charpos;
+	  *width = glyph->pixel_width;
+	  *height = glyph->ascent + glyph->descent;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (glyph->type == IMAGE_GLYPH)
+	    {
+	      struct image *img;
+	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      if (img != NULL)
+		*object = img->spec;
+	      y0 -= row->ascent - glyph->ascent;
+	    }
+#endif
 	}
       else
-	/* Add extra (default width) columns if clicked after EOL. */
-	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	{
+	  /* Add extra (default width) columns if clicked after EOL. */
+	  *x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	  *width = 0;
+	  *height = row->height;
+	}
     }
   else
     {
       *x = 0;
       x0 = 0;
+      *width = *height = 0;
     }
 
-  if (dx)
-    {
-      *dx = x0;
-      *dy = y0;
-    }
+  *dx = x0;
+  *dy = y0;
 
   return string;
 }
@@ -5821,12 +5863,14 @@ mode_line_string (w, x, y, dx, dy, part, charpos)
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (w, x, y, dx, dy, part, charpos)
+marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
      struct window *w;
-     int *x, *y;
-     int *dx, *dy;
      enum window_part part;
+     int *x, *y;
      int *charpos;
+     Lisp_Object *object;
+     int *dx, *dy;
+     int *width, *height;
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
@@ -5871,32 +5915,36 @@ marginal_area_string (w, x, y, dx, dy, part, charpos)
 	{
 	  string = glyph->object;
 	  *charpos = glyph->charpos;
+	  *width = glyph->pixel_width;
+	  *height = glyph->ascent + glyph->descent;
 #ifdef HAVE_WINDOW_SYSTEM
 	  if (glyph->type == IMAGE_GLYPH)
 	    {
 	      struct image *img;
 	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
-		string = img->spec;
+		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
 	    }
 #endif
 	}
       else
-	/* Add extra (default width) columns if clicked after EOL. */
-	*x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	{
+	  /* Add extra (default width) columns if clicked after EOL. */
+	  *x += x0 / WINDOW_FRAME_COLUMN_WIDTH (w);
+	  *width = 0;
+	  *height = row->height;
+	}
     }
   else
     {
       x0 = 0;
       *x = 0;
+      *width = *height = 0;
     }
 
-  if (dx)
-    {
-      *dx = x0;
-      *dy = y0;
-    }
+  *dx = x0;
+  *dy = y0;
 
   return string;
 }

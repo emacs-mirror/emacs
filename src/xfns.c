@@ -4284,125 +4284,6 @@ x_sync (f)
 
 
 /***********************************************************************
-                General X functions exposed to Elisp.
- ***********************************************************************/
-
-DEFUN ("x-send-client-message", Fx_send_client_event,
-       Sx_send_client_message, 6, 6, 0,
-       doc: /* Send a client message of MESSAGE-TYPE to window DEST on DISPLAY.
-
-For DISPLAY, specify either a frame or a display name (a string).
-If DISPLAY is nil, that stands for the selected frame's display.
-DEST may be an integer, in which case it is a Window id.  The value 0 may
-be used to send to the root window of the DISPLAY.
-If DEST is a frame the event is sent to the outer window of that frame.
-Nil means the currently selected frame.
-If DEST is the string "PointerWindow" the event is sent to the window that
-contains the pointer.  If DEST is the string "InputFocus" the event is
-sent to the window that has the input focus.
-FROM is the frame sending the event.  Use nil for currently selected frame.
-MESSAGE-TYPE is the name of an Atom as a string.
-FORMAT must be one of 8, 16 or 32 and determines the size of the values in
-bits.  VALUES is a list of integer and/or strings containing the values to
-send.  If a value is a string, it is converted to an Atom and the value of
-the Atom is sent.  If more values than fits into the event is given,
-the excessive values are ignored.  */)
-     (display, dest, from, message_type, format, values)
-     Lisp_Object display, dest, from, message_type, format, values;
-{
-  struct x_display_info *dpyinfo = check_x_display_info (display);
-  Window wdest;
-  XEvent event;
-  Lisp_Object cons;
-  int i;
-  int max_nr_values = (int) sizeof (event.xclient.data.b);
-  struct frame *f = check_x_frame (from);
-  
-  CHECK_STRING (message_type);
-  CHECK_NUMBER (format);
-  CHECK_CONS (values);
-
-  for (cons = values; CONSP (cons); cons = XCDR (cons))
-    {
-      Lisp_Object o = XCAR (cons);
-
-      if (! INTEGERP (o) && ! STRINGP (o))
-        error ("Bad data in VALUES, must be integer or string");
-    }
-
-  event.xclient.type = ClientMessage;
-  event.xclient.format = XFASTINT (format);
-
-  if (event.xclient.format != 8 && event.xclient.format != 16
-      && event.xclient.format != 32)
-    error ("FORMAT must be one of 8, 16 or 32");
-  if (event.xclient.format == 16) max_nr_values /= 2;
-  if (event.xclient.format == 32) max_nr_values /= 4;
-  
-  if (FRAMEP (dest) || NILP (dest))
-    {
-      struct frame *fdest = check_x_frame (dest);
-      wdest = FRAME_OUTER_WINDOW (fdest);
-    }
-  else if (STRINGP (dest))
-    {
-      if (strcmp (SDATA (dest), "PointerWindow") == 0)
-        wdest = PointerWindow;
-      else if (strcmp (SDATA (dest), "InputFocus") == 0)
-        wdest = InputFocus;
-      else
-        error ("DEST as a string must be one of PointerWindow or InputFocus");
-    }
-  else
-    {
-      CHECK_NUMBER (dest);
-      wdest = (Window) XFASTINT (dest);
-      if (wdest == 0) wdest = dpyinfo->root_window;
-    }
-
-  BLOCK_INPUT;
-  for (cons = values, i = 0;
-       CONSP (cons) && i < max_nr_values;
-       cons = XCDR (cons), ++i)
-    {
-      Lisp_Object o = XCAR (cons);
-      long val;
-
-      if (INTEGERP (o))
-        val = XINT (o);
-      else if (STRINGP (o))
-          val = XInternAtom (dpyinfo->display, SDATA (o), False);
-
-      if (event.xclient.format == 8)
-        event.xclient.data.b[i] = (char) val;
-      else if (event.xclient.format == 16)
-        event.xclient.data.s[i] = (short) val;
-      else
-        event.xclient.data.l[i] = val;
-    }
-
-  for ( ; i < max_nr_values; ++i)
-    if (event.xclient.format == 8)
-      event.xclient.data.b[i] = 0;
-    else if (event.xclient.format == 16)
-      event.xclient.data.s[i] = 0;
-    else
-      event.xclient.data.l[i] = 0;
-
-  event.xclient.message_type
-    = XInternAtom (dpyinfo->display, SDATA (message_type), False);
-  event.xclient.display = dpyinfo->display;
-  event.xclient.window = FRAME_OUTER_WINDOW (f);
-
-  XSendEvent (dpyinfo->display, wdest, False, 0xffff, &event);
-
-  XFlush (dpyinfo->display);
-  UNBLOCK_INPUT;
-
-  return Qnil;
-}
-
-/***********************************************************************
 			    Image types
  ***********************************************************************/
 
@@ -9593,24 +9474,86 @@ x_kill_gs_process (pixmap, f)
  ***********************************************************************/
 
 DEFUN ("x-change-window-property", Fx_change_window_property,
-       Sx_change_window_property, 2, 3, 0,
+       Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
-PROP and VALUE must be strings.  FRAME nil or omitted means use the
-selected frame.  Value is VALUE.  */)
-     (prop, value, frame)
-     Lisp_Object frame, prop, value;
+PROP must be a string.
+VALUE may be a string or a list of conses, numbers and/or strings.
+If an element in the list is a string, it is converted to
+an Atom and the value of the Atom is used.  If an element is a cons,
+it is converted to a 32 bit number where the car is the 16 top bits and the
+cdr is the lower 16 bits.
+FRAME nil or omitted means use the selected frame.
+If TYPE is given and non-nil, it is the name of the type of VALUE.
+If TYPE is not given or nil, the type is STRING.
+FORMAT gives the size in bits of each element if VALUE is a list.
+It must be one of 8, 16 or 32.
+If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
+If OUTER_P is non-nil, the property is changed for the outer X window of
+FRAME.  Default is to change on the edit X window.
+
+Value is VALUE.  */)
+     (prop, value, frame, type, format, outer_p)
+     Lisp_Object frame, prop, value, outer_p;
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
+  Atom target_type = XA_STRING;
+  int element_format = 8;
+  unsigned char *data;
+  int nelements;
+  Lisp_Object cons;
+  Window w;
 
   CHECK_STRING (prop);
-  CHECK_STRING (value);
+
+  if (! NILP (format))
+    {
+      CHECK_NUMBER (format);
+      element_format = XFASTINT (format);
+
+      if (element_format != 8 && element_format != 16
+          && element_format != 32)
+        error ("FORMAT must be one of 8, 16 or 32");
+    }
+
+  if (CONSP (value))
+    {
+      nelements = x_check_property_data (value);
+      if (nelements == -1)
+        error ("Bad data in VALUE, must be number, string or cons");
+
+      if (element_format == 8)
+        data = (unsigned char *) xmalloc (nelements);
+      else if (element_format == 16)
+        data = (unsigned char *) xmalloc (nelements*2);
+      else
+        data = (unsigned char *) xmalloc (nelements*4);
+
+      x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
+    }
+  else
+    {
+      CHECK_STRING (value);
+      data = SDATA (value);
+      nelements = SCHARS (value);
+    }
 
   BLOCK_INPUT;
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
-  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   prop_atom, XA_STRING, 8, PropModeReplace,
-		   SDATA (value), SCHARS (value));
+  if (! NILP (type))
+    {
+      CHECK_STRING (type);
+      target_type = XInternAtom (FRAME_X_DISPLAY (f), SDATA (type), False);
+    }
+
+  if (! NILP (outer_p)) w = FRAME_OUTER_WINDOW (f);
+  else w = FRAME_X_WINDOW (f);
+ 
+  XChangeProperty (FRAME_X_DISPLAY (f), w,
+		   prop_atom, target_type, element_format, PropModeReplace,
+		   data, nelements);
+
+  if (CONSP (value)) xfree (data);
 
   /* Make sure the property is set when we return.  */
   XFlush (FRAME_X_DISPLAY (f));
@@ -9644,13 +9587,20 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 
 
 DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
-       1, 2, 0,
+       1, 6, 0,
        doc: /* Value is the value of window property PROP on FRAME.
-If FRAME is nil or omitted, use the selected frame.  Value is nil
-if FRAME hasn't a property with name PROP or if PROP has no string
-value.  */)
-     (prop, frame)
-     Lisp_Object prop, frame;
+If FRAME is nil or omitted, use the selected frame.
+If TYPE is nil or omitted, get the property as a string.  Otherwise TYPE
+is the name of the Atom that denotes the type expected.
+If SOURCE is non-nil, get the property on that window instead of from
+FRAME.  The number 0 denotes the root window.
+If DELETE_P is non-nil, delete the property after retreiving it.
+If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+
+Value is nil if FRAME hasn't a property with name PROP or if PROP has
+no value of TYPE.  */)
+     (prop, frame, type, source, delete_p, vector_ret_p)
+     Lisp_Object prop, frame, type, source, delete_p, vector_ret_p;
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -9658,14 +9608,43 @@ value.  */)
   Lisp_Object prop_value = Qnil;
   char *tmp_data = NULL;
   Atom actual_type;
+  Atom target_type = XA_STRING;
   int actual_format;
   unsigned long actual_size, bytes_remaining;
+  Window target_window = FRAME_X_WINDOW (f);
+  struct gcpro gcpro1;
 
+  GCPRO1 (prop_value);
   CHECK_STRING (prop);
+
+  if (! NILP (source))
+    {
+      if (NUMBERP (source))
+        {
+          if (FLOATP (source))
+            target_window = (Window) XFLOAT (source);
+          else
+            target_window = XFASTINT (source);
+
+          if (target_window == 0)
+            target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
+        }
+      else if (CONSP (source))
+        target_window = cons_to_long (source);
+    }
+
   BLOCK_INPUT;
+  if (STRINGP (type))
+    {
+      if (strcmp ("AnyPropertyType", SDATA (type)) == 0)
+        target_type = AnyPropertyType;
+      else
+        target_type = XInternAtom (FRAME_X_DISPLAY (f), SDATA (type), False);
+    }
+
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SDATA (prop), False);
-  rc = XGetWindowProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			   prop_atom, 0, 0, False, XA_STRING,
+  rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
+			   prop_atom, 0, 0, False, target_type,
 			   &actual_type, &actual_format, &actual_size,
 			   &bytes_remaining, (unsigned char **) &tmp_data);
   if (rc == Success)
@@ -9675,19 +9654,29 @@ value.  */)
       XFree (tmp_data);
       tmp_data = NULL;
 
-      rc = XGetWindowProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			       prop_atom, 0, bytes_remaining,
-			       False, XA_STRING,
+			       ! NILP (delete_p), target_type,
 			       &actual_type, &actual_format,
 			       &actual_size, &bytes_remaining,
 			       (unsigned char **) &tmp_data);
       if (rc == Success && tmp_data)
-	prop_value = make_string (tmp_data, size);
+        {
+          if (NILP (vector_ret_p))
+            prop_value = make_string (tmp_data, size);
+          else
+            prop_value = x_property_data_to_lisp (f,
+                                                  (unsigned char *) tmp_data,
+                                                  actual_type,
+                                                  actual_format,
+                                                  actual_size);
+        }
 
-      XFree (tmp_data);
+      if (tmp_data) XFree (tmp_data);
     }
 
   UNBLOCK_INPUT;
+  UNGCPRO;
   return prop_value;
 }
 
@@ -11097,7 +11086,6 @@ meaning don't clear the cache.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
-  defsubr (&Sx_send_client_message);
   defsubr (&Sx_focus_frame);
   defsubr (&Sx_backspace_delete_keys_p);
 

@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998, 1999, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1442,10 +1442,13 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      if (i_byte == size_byte)
 		break;
 
-	      c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte,
+					  size_byte - i_byte, len);
 	      i_byte += len;
 	    }
-	  if (i_byte < size_byte
+	  /* Treat `-' as range character only if another character
+	     follows.  */
+	  if (i_byte + 1 < size_byte
 	      && str[i_byte] == '-')
 	    {
 	      unsigned int c2;
@@ -1453,11 +1456,9 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      /* Skip over the dash.  */
 	      i_byte++;
 
-	      if (i_byte == size_byte)
-		break;
-
 	      /* Get the end of the range.  */
-	      c2 =STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte,
+					   size_byte - i_byte, len);
 	      i_byte += len;
 
 	      if (SINGLE_BYTE_CHAR_P (c))

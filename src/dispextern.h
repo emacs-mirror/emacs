@@ -709,6 +709,15 @@ struct glyph_row
      position of the next row.  */
   struct display_pos end;
 
+  /* Left fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned left_fringe_bitmap : 4;
+
+  /* Right fringe bitmap number (enum fringe_bitmap_type).  */
+  unsigned right_fringe_bitmap : 4;
+
+  /* 1 means that we must draw the bitmaps of this row.  */
+  unsigned redraw_fringe_bitmaps_p : 1;
+
   /* In a desired matrix, 1 means that this row must be updated.  In a
      current matrix, 0 means that the row has been invalidated, i.e.
      the row's contents do not agree with what is visible on the
@@ -776,6 +785,29 @@ struct glyph_row
 
   /* 1 means this row was ended by a newline from a string.  */
   unsigned ends_in_newline_from_string_p : 1;
+
+  /* 1 means this row width is exactly the width of the window, and the
+     final newline character is hidden in the right fringe.  */
+  unsigned exact_window_width_line_p : 1;
+
+  /* 1 means this row currently shows the cursor in the right fringe.  */
+  unsigned cursor_in_fringe_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the first line of the buffer.  */
+  unsigned indicate_bob_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the top line of the window, but not start of the buffer.  */
+  unsigned indicate_top_line_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the last line of the buffer.  */
+  unsigned indicate_eob_p : 1;
+
+  /* Non-zero means display a bitmap on X frames indicating that this
+     the bottom line of the window, but not end of the buffer.  */
+  unsigned indicate_bottom_line_p : 1;
 
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
@@ -1582,10 +1614,19 @@ enum fringe_bitmap_type
   NO_FRINGE_BITMAP = 0,
   LEFT_TRUNCATION_BITMAP,
   RIGHT_TRUNCATION_BITMAP,
+  UP_ARROW_BITMAP,
+  DOWN_ARROW_BITMAP,
   CONTINUED_LINE_BITMAP,
   CONTINUATION_LINE_BITMAP,
   OVERLAY_ARROW_BITMAP,
+  FIRST_LINE_BITMAP,
+  LAST_LINE_BITMAP,
+  FILLED_BOX_CURSOR_BITMAP,
+  HOLLOW_BOX_CURSOR_BITMAP,
+  BAR_CURSOR_BITMAP,
+  HBAR_CURSOR_BITMAP,
   ZV_LINE_BITMAP,
+  HOLLOW_SQUARE_BITMAP,
   MAX_FRINGE_BITMAPS
 };
 
@@ -2489,7 +2530,10 @@ void move_it_past_eol P_ ((struct it *));
 int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
+void draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, int));
 void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
+void draw_window_fringes P_ ((struct window *));
+int update_window_fringes P_ ((struct window *, int));
 void compute_fringe_widths P_ ((struct frame *, int));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
@@ -2582,6 +2626,7 @@ void clear_face_cache P_ ((int));
 unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
 			      enum lface_attribute_index));
 void unload_color P_ ((struct frame *, unsigned long));
+int face_font_available_p P_ ((struct frame *, Lisp_Object));
 int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstricmp P_ ((const unsigned char *, const unsigned char *));
@@ -2671,12 +2716,19 @@ int popup_activated P_ ((void));
 extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
-extern Lisp_Object mode_line_string P_ ((struct window *, int *, int *,
-					 int *, int *,
-					 enum window_part, int *));
-extern Lisp_Object marginal_area_string P_ ((struct window *, int *, int *,
-					     int *, int *,
-					     enum window_part, int *));
+extern Lisp_Object buffer_posn_from_coords P_ ((struct window *,
+						int *, int *,
+						struct display_pos *,
+						Lisp_Object *, 
+						int *, int *, int *, int *));
+extern Lisp_Object mode_line_string P_ ((struct window *, enum window_part,
+					 int *, int *, int *,
+					 Lisp_Object *,
+					 int *, int *, int *, int *));
+extern Lisp_Object marginal_area_string P_ ((struct window *, enum window_part,
+					     int *, int *, int *,
+					     Lisp_Object *,
+					     int *, int *, int *, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
@@ -2717,9 +2769,6 @@ int direct_output_forward_char P_ ((int));
 int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
-void buffer_posn_from_coords P_ ((struct window *, int *, int *,
-				  int *, int *,
-				  Lisp_Object *, struct display_pos *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));
 void bitch_at_user P_ ((void));

@@ -1029,7 +1029,7 @@ external program defined by `sendmail-program'."
 			      )
 		      )
 		     (exit-value (apply 'call-process-region args)))
-		(or (null exit-value) (zerop exit-value)
+		(or (null exit-value) (eq 0 exit-value)
 		    (error "Sending...failed with exit value %d" exit-value)))
 	    (or fcc-was-found
 		(error "No recipients")))

@@ -210,7 +210,7 @@
 (require 'syntax)
 
 ;; Define core `font-lock' group.
-(defgroup font-lock nil
+(defgroup font-lock '((jit-lock custom-group))
   "Font Lock mode text highlighting package."
   :link '(custom-manual "(emacs)Font Lock")
   :link '(custom-manual "(elisp)Font Lock Mode")
@@ -236,13 +236,6 @@
   "Font Lock support mode to fontify lazily."
   :link '(custom-manual "(emacs)Support Modes")
   :load 'lazy-lock
-  :group 'font-lock)
-
-(defgroup jit-lock nil
-  "Font Lock support mode to fontify just-in-time."
-  :link '(custom-manual "(emacs)Support Modes")
-  :version "21.1"
-  :load 'jit-lock
   :group 'font-lock)
 
 ;; User variables.
@@ -1031,7 +1024,8 @@ what properties to clear before refontifying a region.")
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
-  (let ((inhibit-point-motion-hooks t))
+  (let ((inhibit-point-motion-hooks t)
+	(inhibit-quit t))
     (save-excursion
       (save-match-data
 	;; Rescan between start of lines enclosing the region.
@@ -1925,9 +1919,6 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
   "Default expressions to highlight in Lisp modes.")
 
 (provide 'font-lock)
-
-(when (eq font-lock-support-mode 'jit-lock-mode)
-  (require 'jit-lock))
 
 ;;; arch-tag: 682327e4-64d8-4057-b20b-1fbb9f1fc54c
 ;;; font-lock.el ends here

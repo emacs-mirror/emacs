@@ -313,6 +313,7 @@ symbol function indirection when calling @code{erste}.
 perform symbol function indirection explicitly.
 
 @c Emacs 19 feature
+@anchor{Definition of indirect-function}
 @defun indirect-function function
 This function returns the meaning of @var{function} as a function.  If
 @var{function} is a symbol, then it finds @var{function}'s function

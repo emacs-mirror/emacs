@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1143,6 +1143,9 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 				output_cursor.x, output_cursor.y);
 
       x_draw_vertical_border (w);
+
+      draw_window_fringes (w);
+
       UNBLOCK_INPUT;
     }
 
@@ -1239,11 +1242,7 @@ x_after_update_window_line (desired_row)
   xassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
-    {
-      BLOCK_INPUT;
-      draw_row_fringe_bitmaps (w, desired_row);
-      UNBLOCK_INPUT;
-    }
+    desired_row->redraw_fringe_bitmaps_p = 1;
 
   /* When a window has disappeared, make sure that no rest of
      full-width rows stays visible in the internal border.  Could
@@ -1295,9 +1294,24 @@ x_draw_fringe_bitmap (w, row, p)
   XGCValues gcv;
   GC gc = f->output_data.mac->normal_gc;
   struct face *face = p->face;
+  int rowY;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, gc);
+  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  if (p->y < rowY)
+    {
+      /* Adjust position of "bottom aligned" bitmap on partially
+	 visible last row.  */
+      int oldY = row->y;
+      int oldVH = row->visible_height;
+      row->visible_height = p->h;
+      row->y -= rowY - p->y;
+      x_clip_to_row (w, row, gc);
+      row->y = oldY;
+      row->visible_height = oldVH;
+    }
+  else
+    x_clip_to_row (w, row, gc);
 
   if (p->bx >= 0)
     {
@@ -4546,6 +4560,14 @@ mac_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
       w->phys_cursor_width = cursor_width;
       w->phys_cursor_on_p = 1;
 
+      if (glyph_row->exact_window_width_line_p
+	  && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
+	{
+	  glyph_row->cursor_in_fringe_p = 1;
+	  draw_fringe_bitmap (w, glyph_row, 0);
+	  return;
+	}
+
       switch (cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
@@ -6372,81 +6394,6 @@ x_find_ccl_program (fontp)
 
 
 
-/***********************************************************************
-			    Initialization
- ***********************************************************************/
-
-#ifdef USE_X_TOOLKIT
-static XrmOptionDescRec emacs_options[] = {
-  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
-  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
-
-  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
-     XrmoptionSepArg, NULL},
-  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-
-  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
-  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
-};
-#endif /* USE_X_TOOLKIT */
-
-static int x_initialized;
-
-#ifdef MULTI_KBOARD
-/* Test whether two display-name strings agree up to the dot that separates
-   the screen number from the server number.  */
-static int
-same_x_server (name1, name2)
-     char *name1, *name2;
-{
-  int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
-
-  while (system_name[length_until_period] != 0
-	 && system_name[length_until_period] != '.')
-    length_until_period++;
-
-  /* Treat `unix' like an empty host name.  */
-  if (! strncmp (name1, "unix:", 5))
-    name1 += 4;
-  if (! strncmp (name2, "unix:", 5))
-    name2 += 4;
-  /* Treat this host's name like an empty host name.  */
-  if (! strncmp (name1, system_name, system_name_length)
-      && name1[system_name_length] == ':')
-    name1 += system_name_length;
-  if (! strncmp (name2, system_name, system_name_length)
-      && name2[system_name_length] == ':')
-    name2 += system_name_length;
-  /* Treat this host's domainless name like an empty host name.  */
-  if (! strncmp (name1, system_name, length_until_period)
-      && name1[length_until_period] == ':')
-    name1 += length_until_period;
-  if (! strncmp (name2, system_name, length_until_period)
-      && name2[length_until_period] == ':')
-    name2 += length_until_period;
-
-  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
-    {
-      if (*name1 == ':')
-	seen_colon++;
-      if (seen_colon && *name1 == '.')
-	return 1;
-    }
-  return (seen_colon
-	  && (*name1 == '.' || *name1 == '\0')
-	  && (*name2 == '.' || *name2 == '\0'));
-}
-#endif
-
-
 /* The Mac Event loop code */
 
 #ifndef MAC_OSX
@@ -6718,8 +6665,8 @@ do_check_ram_size (void)
 
   if (Gestalt (gestaltPhysicalRAMSize, &physical_ram_size) != noErr
       || Gestalt (gestaltLogicalRAMSize, &logical_ram_size) != noErr
-      || physical_ram_size > 256 * 1024 * 1024
-      || logical_ram_size > 256 * 1024 * 1024)
+      || physical_ram_size > (1 << VALBITS)
+      || logical_ram_size > (1 << VALBITS))
     {
       StopAlert (RAM_TOO_LARGE_ALERT_ID, NULL);
       exit (1);
@@ -7518,7 +7465,9 @@ main (void)
 
   do_get_menus ();
 
+#ifndef USE_LSB_TAG
   do_check_ram_size ();
+#endif
 
   init_emacs_passwd_dir ();
 
@@ -8256,9 +8205,6 @@ NewMacWindow (FRAME_PTR fp)
 void
 make_mac_frame (struct frame *f)
 {
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
-
   FRAME_DESIRED_CURSOR (f) = FILLED_BOX_CURSOR;
 
   NewMacWindow(f);
@@ -8307,6 +8253,9 @@ make_mac_terminal_frame (struct frame *f)
   FRAME_COLS (f) = 96;
   FRAME_LINES (f) = 4;
 
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
+
   make_mac_frame (f);
 
   x_make_gc (f);
@@ -8329,74 +8278,6 @@ make_mac_terminal_frame (struct frame *f)
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
-
-#ifdef USE_X_TOOLKIT
-static XrmOptionDescRec emacs_options[] = {
-  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
-  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
-
-  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
-     XrmoptionSepArg, NULL},
-  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-
-  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
-  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
-};
-#endif /* USE_X_TOOLKIT */
-
-#ifdef MULTI_KBOARD
-/* Test whether two display-name strings agree up to the dot that separates
-   the screen number from the server number.  */
-static int
-same_x_server (name1, name2)
-     char *name1, *name2;
-{
-  int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
-
-  while (system_name[length_until_period] != 0
-	 && system_name[length_until_period] != '.')
-    length_until_period++;
-
-  /* Treat `unix' like an empty host name.  */
-  if (! strncmp (name1, "unix:", 5))
-    name1 += 4;
-  if (! strncmp (name2, "unix:", 5))
-    name2 += 4;
-  /* Treat this host's name like an empty host name.  */
-  if (! strncmp (name1, system_name, system_name_length)
-      && name1[system_name_length] == ':')
-    name1 += system_name_length;
-  if (! strncmp (name2, system_name, system_name_length)
-      && name2[system_name_length] == ':')
-    name2 += system_name_length;
-  /* Treat this host's domainless name like an empty host name.  */
-  if (! strncmp (name1, system_name, length_until_period)
-      && name1[length_until_period] == ':')
-    name1 += length_until_period;
-  if (! strncmp (name2, system_name, length_until_period)
-      && name2[length_until_period] == ':')
-    name2 += length_until_period;
-
-  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
-    {
-      if (*name1 == ':')
-	seen_colon++;
-      if (seen_colon && *name1 == '.')
-	return 1;
-    }
-  return (seen_colon
-	  && (*name1 == '.' || *name1 == '\0')
-	  && (*name2 == '.' || *name2 == '\0'));
-}
-#endif
 
 int mac_initialized = 0;
 

@@ -137,8 +137,8 @@ is nil, raise an error."
     ;; Try to avoid losing badly when hooks installed in critical
     ;; places go away.  (Some packages install things on
     ;; `kill-buffer-hook', `activate-menubar-hook' and the like.)
-    ;; First off, provide a clean way for package `foo' to arrange
-    ;; this by defining `foo-unload-hook'.
+    ;; First off, provide a clean way for package FOO to arrange
+    ;; this by adding hooks on the variable `FOO-unload-hook'.
     (if unload-hook
         (run-hooks unload-hook)
       ;; Otherwise, do our best.  Look through the obarray for symbols

@@ -123,6 +123,10 @@ as the final argument."
 		       (car find-ls-option)))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map (current-local-map))
+      (define-key map "\C-c\C-k" 'kill-find)
+      (use-local-map map))
     (make-local-variable 'dired-sort-inhibit)
     (setq dired-sort-inhibit t)
     (set (make-local-variable 'revert-buffer-function)
@@ -144,6 +148,7 @@ as the final argument."
     ;; Make second line a ``find'' line in analogy to the ``total'' or
     ;; ``wildcard'' line.
     (insert "  " args "\n")
+    (setq buffer-read-only t)
     ;; Start the find process.
     (let ((proc (start-process-shell-command find-dired-find-program (current-buffer) args)))
       (set-process-filter proc (function find-dired-filter))
@@ -151,6 +156,16 @@ as the final argument."
       ;; Initialize the process marker; it is used by the filter.
       (move-marker (process-mark proc) 1 (current-buffer)))
     (setq mode-line-process '(":%s"))))
+
+(defun kill-find ()
+  "Kill the `find' process running in the current buffer."
+  (interactive)
+  (let ((find (get-buffer-process (current-buffer))))
+    (and find (eq (process-status find) 'run)
+	 (eq (process-filter find) (function find-dired-filter))
+	 (condition-case nil
+	     (delete-process find)
+	   (error nil)))))
 
 ;;;###autoload
 (defun find-name-dired (dir pattern)
@@ -192,7 +207,8 @@ Thus ARG can also contain additional grep options."
 
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.
-  (let ((buf (process-buffer proc)))
+  (let ((buf (process-buffer proc))
+	(inhibit-read-only t))
     (if (buffer-name buf)		; not killed?
 	(save-excursion
 	  (set-buffer buf)
@@ -229,7 +245,8 @@ Thus ARG can also contain additional grep options."
 
 (defun find-dired-sentinel (proc state)
   ;; Sentinel for \\[find-dired] processes.
-  (let ((buf (process-buffer proc)))
+  (let ((buf (process-buffer proc))
+	(inhibit-read-only t))
     (if (buffer-name buf)
 	(save-excursion
 	  (set-buffer buf)

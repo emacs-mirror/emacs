@@ -423,9 +423,13 @@ Point is moved to just past the fill prefix on the first line."
 	  ((string-match "\\[[^][]*\\(\\.\\)[^][]*\\]" sentence-end)
 	   (concat (replace-match ".:" nil nil sentence-end 1) "$"))
 	  ;; Can't find the right spot to insert the colon.
-	  (t "[.?!:][])}\"']*$"))))
+	  (t "[.?!:][])}\"']*$")))
+	(sentence-end-without-space-list
+	 (string-to-list sentence-end-without-space)))
     (while (re-search-forward eol-double-space-re to t)
       (or (>= (point) to) (memq (char-before) '(?\t ?\ ))
+	  (memq (char-after (match-beginning 0)) 
+		sentence-end-without-space-list)
 	  (insert-and-inherit ?\ ))))
 
   (goto-char from)

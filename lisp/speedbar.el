@@ -3410,7 +3410,9 @@ directory with these items."
 	(if (re-search-forward "[]>?}] [^ ]"
 			       (save-excursion (end-of-line) (point))
 			       t)
-	    (speedbar-do-function-pointer)
+	    (progn
+	      (forward-char -1)
+	      (speedbar-do-function-pointer))
 	  nil))
       (speedbar-do-function-pointer)))
 

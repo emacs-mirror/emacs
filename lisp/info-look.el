@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; Really cool code to lookup info indexes.
-;; Try especially info-lookup-symbol (aka C-h TAB).
+;; Try especially info-lookup-symbol (aka C-h S).
 
 ;;; Code:
 
@@ -321,7 +321,7 @@ If optional argument QUERY is non-nil, query for the help mode."
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
-                    (assoc-ignore-case item completions)
+                    (assoc-string item completions t)
                     (error "Not documented as a %s: %s" topic (or item ""))))
          (modes (info-lookup->all-modes topic mode))
          (window (selected-window))
@@ -829,6 +829,17 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 (t nil)))
 	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'maxima-mode
+ :ignore-case t
+ :regexp "[a-zA-Z_%]+"
+ :doc-spec '( ("(maxima)Function and Variable Index" nil 
+	       "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
+
+(info-lookup-maybe-add-help
+ :mode 'inferior-maxima-mode
+ :other-modes '(maxima-mode))
 
 ;; coreutils and bash builtins overlap in places, eg. printf, so there's a
 ;; question which should come first.  Some of the coreutils descriptions are

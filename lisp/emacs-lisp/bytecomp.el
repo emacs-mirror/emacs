@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.139 $")
+(defconst byte-compile-version "$Revision: 2.142 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -75,7 +75,7 @@
 ;; User customization variables:
 ;;
 ;; byte-compile-verbose	Whether to report the function currently being
-;;				compiled in the minibuffer;
+;;				compiled in the echo area;
 ;; byte-optimize		Whether to do optimizations; this may be
 ;;				t, nil, 'source, or 'byte;
 ;; byte-optimize-log		Whether to report (in excruciating detail)
@@ -130,7 +130,7 @@
 ;;		 (baz 0))
 ;;
 ;;  o	It is possible to open-code a function in the same file it is defined
-;;	in without having to load that file before compiling it.  the
+;;	in without having to load that file before compiling it.  The
 ;;	byte-compiler has been modified to remember function definitions in
 ;;	the compilation environment in the same way that it remembers macro
 ;;	definitions.
@@ -262,7 +262,9 @@ if you change this variable."
   :type 'boolean)
 
 (defcustom byte-compile-compatibility nil
-  "*Non-nil means generate output that can run in Emacs 18."
+  "*Non-nil means generate output that can run in Emacs 18.
+This only means that it can run in principle, if it doesn't require
+facilities that have been added more recently."
   :group 'bytecomp
   :type 'boolean)
 
@@ -462,6 +464,11 @@ Each element looks like (FUNCTIONNAME . DEFINITION).  It is
   "Alist of undefined functions to which calls have been compiled.
 Used for warnings when the function is not known to be defined or is later
 defined with incorrect args.")
+
+(defvar byte-compile-noruntime-functions nil
+  "Alist of functions called that may not be defined when the compiled code is run.
+Used for warnings about calling a function that is defined during compilation
+but won't necessarily be defined when the compiled file is loaded.")
 
 ;; Variables for lexical binding
 (defvar byte-compile-lexical-environment nil
@@ -856,7 +863,7 @@ CONST2 may be evaulated multiple times."
 
 (defun byte-compile-eval (form)
   "Eval FORM and mark the functions defined therein.
-Each function's symbol gets marked with the `byte-compile-noruntime' property."
+Each function's symbol gets added to `byte-compile-noruntime-functions'."
   (let ((hist-orig load-history)
 	(hist-nil-orig current-load-list))
     (prog1 (eval form)
@@ -874,17 +881,17 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		  (cond
 		   ((symbolp s)
 		    (unless (memq s old-autoloads)
-		      (put s 'byte-compile-noruntime t)))
+		      (push s byte-compile-noruntime-functions)))
 		   ((and (consp s) (eq t (car s)))
 		    (push (cdr s) old-autoloads))
 		   ((and (consp s) (eq 'autoload (car s)))
-		    (put (cdr s) 'byte-compile-noruntime t)))))))
+		    (push (cdr s) byte-compile-noruntime-functions)))))))
 	  ;; Go through current-load-list for the locally defined funs.
 	  (let (old-autoloads)
 	    (while (and hist-nil-new (not (eq hist-nil-new hist-nil-orig)))
 	      (let ((s (pop hist-nil-new)))
 		(when (and (symbolp s) (not (memq s old-autoloads)))
-		  (put s 'byte-compile-noruntime t))
+		  (push s byte-compile-noruntime-functions))
 		(when (and (consp s) (eq t (car s)))
 		  (push (cdr s) old-autoloads))))))))))
 
@@ -1250,10 +1257,11 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	       "requires"
 	     "accepts only")
 	   (byte-compile-arglist-signature-string sig))))
+    (byte-compile-format-warn form)
     ;; Check to see if the function will be available at runtime
     ;; and/or remember its arity if it's unknown.
     (or (and (or sig (fboundp (car form))) ; might be a subr or autoload.
-	     (not (get (car form) 'byte-compile-noruntime)))
+	     (not (memq (car form) byte-compile-noruntime-functions)))
 	(eq (car form) byte-compile-current-form) ; ## this doesn't work
 					; with recursion.
 	;; It's a currently-undefined function.
@@ -1266,6 +1274,32 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	    (setq byte-compile-unresolved-functions
 		  (cons (list (car form) n)
 			byte-compile-unresolved-functions)))))))
+
+(defun byte-compile-format-warn (form)
+  "Warn if FORM is `format'-like with inconsistent args.
+Applies if head of FORM is a symbol with non-nil property
+`byte-compile-format-like' and first arg is a constant string.
+Then check the number of format fields matches the number of
+extra args."
+  (when (and (symbolp (car form))
+	     (stringp (nth 1 form))
+	     (get (car form) 'byte-compile-format-like))
+    (let ((nfields (with-temp-buffer
+		     (insert (nth 1 form))
+		     (goto-char 1)
+		     (let ((n 0))
+		       (while (re-search-forward "%." nil t)
+			 (unless (eq ?% (char-after (1+ (match-beginning 0))))
+			   (setq n (1+ n))))
+		       n)))
+	  (nargs (- (length form) 2)))
+      (unless (= nargs nfields)
+	(byte-compile-warn
+	 "`%s' called with %d args to fill %d format field(s)" (car form)
+	 nargs nfields)))))
+
+(dolist (elt '(format message error))
+  (put elt 'byte-compile-format-like t))
 
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
@@ -1334,7 +1368,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (let ((func (car-safe form)))
     (if (and byte-compile-cl-functions
 	     (memq func byte-compile-cl-functions)
-	     ;; Aliases which won't have been expended at this point.
+	     ;; Aliases which won't have been expanded at this point.
 	     ;; These aren't all aliases of subrs, so not trivial to
 	     ;; avoid hardwiring the list.
 	     (not (memq func
@@ -1738,7 +1772,7 @@ The value is non-nil if there were no errors, nil if errors."
 ;;;###autoload
 (defun compile-defun (&optional arg)
   "Compile and evaluate the current top-level form.
-Print the result in the minibuffer.
+Print the result in the echo area.
 With argument, insert value in current buffer after the form."
   (interactive "P")
   (save-excursion
@@ -2538,20 +2572,22 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	     (if (cdr (cdr int))
 		 (byte-compile-warn "malformed interactive spec: %s"
 				    (prin1-to-string int)))
-	     ;; If the interactive spec is a call to `list',
-	     ;; don't compile it, because `call-interactively'
-	     ;; looks at the args of `list'.
+	     ;; If the interactive spec is a call to `list', don't
+	     ;; compile it, because `call-interactively' looks at the
+	     ;; args of `list'.  Actually, compile it to get warnings,
+	     ;; but don't use the result.
 	     (let ((form (nth 1 int)))
 	       (while (memq (car-safe form) '(let let* progn save-excursion))
 		 (while (consp (cdr form))
 		   (setq form (cdr form)))
 		 (setq form (car form)))
-	       (or (eq (car-safe form) 'list)
-		   (setq int (list 'interactive
-				   (byte-compile-top-level (nth 1 int)))))))
-	     ((cdr int)
-	      (byte-compile-warn "malformed interactive spec: %s"
-				 (prin1-to-string int)))))
+	       (if (eq (car-safe form) 'list)
+		   (byte-compile-top-level (nth 1 int))
+		 (setq int (list 'interactive
+				 (byte-compile-top-level (nth 1 int)))))))
+	    ((cdr int)
+	     (byte-compile-warn "malformed interactive spec: %s"
+				(prin1-to-string int)))))
     ;; Process the body.
     (let* ((byte-compile-lexical-environment
 	    ;; If doing lexical binding, push a new lexical environment
@@ -3480,51 +3516,55 @@ discarding."
       (if ,discard 'byte-goto-if-nil 'byte-goto-if-nil-else-pop))
     ,tag))
 
+(defmacro byte-compile-maybe-guarded (condition &rest body)
+  "Execute forms in BODY, potentially guarded by CONDITION.
+CONDITION is the test in an `if' form or in a `cond' clause.
+BODY is to compile the first arm of the if or the body of the
+cond clause.  If CONDITION is of the form `(foundp 'foo)'
+or `(boundp 'foo)', the relevant warnings from BODY about foo
+being undefined will be suppressed."
+  (declare (indent 1) (debug t))
+  `(let* ((fbound
+	   (if (eq 'fboundp (car-safe ,condition))
+	       (and (eq 'quote (car-safe (nth 1 ,condition)))
+		    ;; Ignore if the symbol is already on the
+		    ;; unresolved list.
+		    (not (assq (nth 1 (nth 1 ,condition)) ; the relevant symbol
+			       byte-compile-unresolved-functions))
+		    (nth 1 (nth 1 ,condition)))))
+	  (bound (if (or (eq 'boundp (car-safe ,condition))
+			 (eq 'default-boundp (car-safe ,condition)))
+		     (and (eq 'quote (car-safe (nth 1 ,condition)))
+			  (nth 1 (nth 1 ,condition)))))
+	  ;; Maybe add to the bound list.
+	  (byte-compile-bound-variables
+	   (if bound
+	       (cons bound byte-compile-bound-variables)
+	     byte-compile-bound-variables)))
+     (progn ,@body)
+     ;; Maybe remove the function symbol from the unresolved list.
+     (if fbound
+	 (setq byte-compile-unresolved-functions
+	       (delq (assq fbound byte-compile-unresolved-functions)
+		     byte-compile-unresolved-functions)))))
+
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
   ;; Check whether we have `(if (fboundp ...' or `(if (boundp ...'
   ;; and avoid warnings about the relevent symbols in the consequent.
-  (let* ((clause (nth 1 form))
-	 (fbound (if (eq 'fboundp (car-safe clause))
-		     (and (eq 'quote (car-safe (nth 1 clause)))
-			  ;; Ignore if the symbol is already on the
-			  ;; unresolved list.
-			  (not (assq
-				(nth 1 (nth 1 clause)) ; the relevant symbol
-				byte-compile-unresolved-functions))
-			  (nth 1 (nth 1 clause)))))
-	 (bound (if (eq 'boundp (car-safe clause))
-		    (and (eq 'quote (car-safe (nth 1 clause)))
-			 (nth 1 (nth 1 clause)))))
-	 (donetag (byte-compile-make-tag)))
+  (let ((clause (nth 1 form))
+	(donetag (byte-compile-make-tag)))
     (if (null (nthcdr 3 form))
 	;; No else-forms
 	(progn
 	  (byte-compile-goto-if nil for-effect donetag)
-	  ;; Maybe add to the bound list.
-	  (let ((byte-compile-bound-variables
-		 (if bound
-		     (cons bound byte-compile-bound-variables)
-		   byte-compile-bound-variables)))
+	  (byte-compile-maybe-guarded clause
 	    (byte-compile-form (nth 2 form) for-effect))
-	  ;; Maybe remove the function symbol from the unresolved list.
-	  (if fbound
-	      (setq byte-compile-unresolved-functions
-		    (delq (assq fbound byte-compile-unresolved-functions)
-			  byte-compile-unresolved-functions)))
 	  (byte-compile-out-tag donetag))
       (let ((elsetag (byte-compile-make-tag)))
 	(byte-compile-goto 'byte-goto-if-nil elsetag)
-	;; As above for the first form.
-	(let ((byte-compile-bound-variables
-		 (if bound
-		     (cons bound byte-compile-bound-variables)
-		   byte-compile-bound-variables)))
-	    (byte-compile-form (nth 2 form) for-effect))
-	(if fbound
-	    (setq byte-compile-unresolved-functions
-		  (delq (assq fbound byte-compile-unresolved-functions)
-			byte-compile-unresolved-functions)))
+	(byte-compile-maybe-guarded clause
+	  (byte-compile-form (nth 2 form) for-effect))
 	(byte-compile-goto 'byte-goto donetag)
 	(byte-compile-out-tag elsetag)
 	(byte-compile-body (cdr (cdr (cdr form))) for-effect)
@@ -3547,14 +3587,16 @@ discarding."
 	     (if (null (cdr clause))
 		 ;; First clause is a singleton.
 		 (byte-compile-goto-if t for-effect donetag)
-	       (setq nexttag (byte-compile-make-tag))
-	       (byte-compile-goto 'byte-goto-if-nil nexttag)
-	       (byte-compile-body (cdr clause) for-effect)
-	       (byte-compile-goto 'byte-goto donetag)
-	       (byte-compile-out-tag nexttag)))))
+		 (setq nexttag (byte-compile-make-tag))
+		 (byte-compile-goto 'byte-goto-if-nil nexttag)
+		 (byte-compile-maybe-guarded (car clause)
+		   (byte-compile-body (cdr clause) for-effect))
+		 (byte-compile-goto 'byte-goto donetag)
+		 (byte-compile-out-tag nexttag)))))
     ;; Last clause
     (and (cdr clause) (not (eq (car clause) t))
-	 (progn (byte-compile-form (car clause))
+	 (progn (byte-compile-maybe-guarded (car clause)
+					    (byte-compile-form (car clause)))
 		(byte-compile-goto-if nil for-effect donetag)
 		(setq clause (cdr clause))))
     (byte-compile-body-do-effect clause)

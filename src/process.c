@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999,
-      2001, 2002, 2003 Free Software Foundation, Inc.
+      2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -258,6 +258,33 @@ int update_tick;
 #ifdef TERM
 #undef NON_BLOCKING_CONNECT
 #undef DATAGRAM_SOCKETS
+#endif
+
+#if !defined (ADAPTIVE_READ_BUFFERING) && !defined (NO_ADAPTIVE_READ_BUFFERING)
+#ifdef EMACS_HAS_USECS
+#define ADAPTIVE_READ_BUFFERING
+#endif
+#endif
+
+#ifdef ADAPTIVE_READ_BUFFERING
+#define READ_OUTPUT_DELAY_INCREMENT 10000
+#define READ_OUTPUT_DELAY_MAX       (READ_OUTPUT_DELAY_INCREMENT * 5)
+#define READ_OUTPUT_DELAY_MAX_MAX   (READ_OUTPUT_DELAY_INCREMENT * 7)
+
+/* Number of processes which might be delayed.  */
+
+static int process_output_delay_count;
+
+/* Non-zero if any process has non-nil process_output_skip.  */
+
+static int process_output_skip;
+
+/* Non-nil means to delay reading process output to improve buffering.
+   A value of t means that delay is reset after each send, any other
+   non-nil value does not reset the delay.  */
+static Lisp_Object Vprocess_adaptive_read_buffering;
+#else
+#define process_output_delay_count 0
 #endif
 
 
@@ -572,6 +599,12 @@ make_process (name)
   p->raw_status_high = Qnil;
   p->status = Qrun;
   p->mark = Fmake_marker ();
+
+#ifdef ADAPTIVE_READ_BUFFERING
+  p->adaptive_read_buffering = Qnil;
+  XSETFASTINT (p->read_output_delay, 0);
+  p->read_output_skip = Qnil;
+#endif
 
   /* If name is already in use, modify it until it is unused.  */
 
@@ -1500,6 +1533,10 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->filter_multibyte
     = buffer_defaults.enable_multibyte_characters;
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
+
+#ifdef ADAPTIVE_READ_BUFFERING
+  XPROCESS (proc)->adaptive_read_buffering = Vprocess_adaptive_read_buffering;
+#endif
 
   /* Make the process marker point into the process buffer (if any).  */
   if (!NILP (buffer))
@@ -3588,6 +3625,16 @@ deactivate_process (proc)
   inchannel = XINT (p->infd);
   outchannel = XINT (p->outfd);
 
+#ifdef ADAPTIVE_READ_BUFFERING
+  if (XINT (p->read_output_delay) > 0)
+    {
+      if (--process_output_delay_count < 0)
+	process_output_delay_count = 0;
+      XSETINT (p->read_output_delay, 0);
+      p->read_output_skip = Qnil;
+    }
+#endif
+      
   if (inchannel >= 0)
     {
       /* Beware SIGCHLD hereabouts. */
@@ -3973,7 +4020,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   register int channel, nfds;
   static SELECT_TYPE Available;
   static SELECT_TYPE Connecting;
-  int check_connect, no_avail;
+  int check_connect, check_delay, no_avail;
   int xerrno;
   Lisp_Object proc;
   EMACS_TIME timeout, end_time;
@@ -4033,6 +4080,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 Otherwise, do pending quit if requested.  */
       if (XINT (read_kbd) >= 0)
 	QUIT;
+#ifdef SYNC_INPUT
+      else if (interrupt_input_pending)
+	handle_async_input ();
+#endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
@@ -4202,7 +4253,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (!NILP (wait_for_cell))
 	{
 	  Available = non_process_wait_mask;
-	  check_connect = 0;
+	  check_connect = check_delay = 0;
 	}
       else
 	{
@@ -4211,6 +4262,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  else
 	    Available = input_wait_mask;
 	  check_connect = (num_pending_connects > 0);
+	  check_delay = process_output_delay_count;
 	}
 
       /* If frame size has changed or the window is newly mapped,
@@ -4236,6 +4288,34 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  if (check_connect)
 	    Connecting = connect_wait_mask;
+
+#ifdef ADAPTIVE_READ_BUFFERING
+	  if (process_output_skip && check_delay > 0)
+	    {
+	      int usecs = EMACS_USECS (timeout);
+	      if (EMACS_SECS (timeout) > 0 || usecs > READ_OUTPUT_DELAY_MAX)
+		usecs = READ_OUTPUT_DELAY_MAX;
+	      for (channel = 0; check_delay > 0 && channel <= max_process_desc; channel++)
+		{
+		  proc = chan_process[channel];
+		  if (NILP (proc))
+		    continue;
+		  if (XINT (XPROCESS (proc)->read_output_delay) > 0)
+		    {
+		      check_delay--;
+		      if (NILP (XPROCESS (proc)->read_output_skip))
+			continue;
+		      FD_CLR (channel, &Available);
+		      XPROCESS (proc)->read_output_skip = Qnil;
+		      if (XINT (XPROCESS (proc)->read_output_delay) < usecs)
+			usecs = XINT (XPROCESS (proc)->read_output_delay);
+		    }
+		}
+	      EMACS_SET_SECS_USECS (timeout, 0, usecs);
+	      process_output_skip = 0;
+	    }
+#endif
+
 	  nfds = select (max (max_process_desc, max_keyboard_desc) + 1,
 			 &Available,
 			 (check_connect ? &Connecting : (SELECT_TYPE *)0),
@@ -4689,7 +4769,36 @@ read_process_output (proc, channel)
   else
 #endif
   if (proc_buffered_char[channel] < 0)
-    nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
+    {
+      nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
+#ifdef ADAPTIVE_READ_BUFFERING
+      if (!NILP (p->adaptive_read_buffering))
+	{
+	  int delay = XINT (p->read_output_delay);
+	  if (nbytes < 256)
+	    {
+	      if (delay < READ_OUTPUT_DELAY_MAX_MAX)
+		{
+		  if (delay == 0)
+		    process_output_delay_count++;
+		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
+		}
+	    }
+	  else if (delay > 0 && (nbytes == readmax - carryover))
+	    {
+	      delay -= READ_OUTPUT_DELAY_INCREMENT;
+	      if (delay == 0)
+		process_output_delay_count--;
+	    }
+	  XSETINT (p->read_output_delay, delay);
+	  if (delay)
+	    {
+	      p->read_output_skip = Qt;
+	      process_output_skip = 1;
+	    }
+	}
+#endif
+    }
   else
     {
       chars[carryover] = proc_buffered_char[channel];
@@ -4991,6 +5100,7 @@ send_process (proc, buf, len, object)
      volatile Lisp_Object object;
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
+  struct Lisp_Process *p = XPROCESS (proc);
   int rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
@@ -4998,20 +5108,17 @@ send_process (proc, buf, len, object)
   GCPRO1 (object);
 
 #ifdef VMS
-  struct Lisp_Process *p = XPROCESS (proc);
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
 #endif /* VMS */
 
-  if (! NILP (XPROCESS (proc)->raw_status_low))
-    update_status (XPROCESS (proc));
-  if (! EQ (XPROCESS (proc)->status, Qrun))
-    error ("Process %s not running",
-	   SDATA (XPROCESS (proc)->name));
-  if (XINT (XPROCESS (proc)->outfd) < 0)
-    error ("Output file descriptor of %s is closed",
-	   SDATA (XPROCESS (proc)->name));
+  if (! NILP (p->raw_status_low))
+    update_status (p);
+  if (! EQ (p->status, Qrun))
+    error ("Process %s not running", SDATA (p->name));
+  if (XINT (p->outfd) < 0)
+    error ("Output file descriptor of %s is closed", SDATA (p->name));
 
-  coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
+  coding = proc_encode_coding_system[XINT (p->outfd)];
   Vlast_coding_system_used = coding->symbol;
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
@@ -5019,13 +5126,12 @@ send_process (proc, buf, len, object)
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
       || EQ (object, Qt))
     {
-      if (!EQ (coding->symbol, XPROCESS (proc)->encode_coding_system))
+      if (!EQ (coding->symbol, p->encode_coding_system))
 	/* The coding system for encoding was changed to raw-text
 	   because we sent a unibyte text previously.  Now we are
 	   sending a multibyte text, thus we must encode it by the
-	   original coding system specified for the current
-	   process.  */
-	setup_coding_system (XPROCESS (proc)->encode_coding_system, coding);
+	   original coding system specified for the current process.  */
+	setup_coding_system (p->encode_coding_system, coding);
       /* src_multibyte should be set to 1 _after_ a call to
 	 setup_coding_system, since it resets src_multibyte to
 	 zero.  */
@@ -5076,15 +5182,15 @@ send_process (proc, buf, len, object)
 	    coding->composing = COMPOSITION_DISABLED;
 	}
 
-      if (SBYTES (XPROCESS (proc)->encoding_buf) < require)
-	XPROCESS (proc)->encoding_buf = make_uninit_string (require);
+      if (SBYTES (p->encoding_buf) < require)
+	p->encoding_buf = make_uninit_string (require);
 
       if (from_byte >= 0)
 	buf = (BUFFERP (object)
 	       ? BUF_BYTE_ADDRESS (XBUFFER (object), from_byte)
 	       : SDATA (object) + from_byte);
 
-      object = XPROCESS (proc)->encoding_buf;
+      object = p->encoding_buf;
       encode_coding (coding, (char *) buf, SDATA (object),
 		     len, SBYTES (object));
       len = coding->produced;
@@ -5102,8 +5208,7 @@ send_process (proc, buf, len, object)
   if (pty_max_bytes == 0)
     {
 #if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
-      pty_max_bytes = fpathconf (XFASTINT (XPROCESS (proc)->outfd),
-				 _PC_MAX_CANON);
+      pty_max_bytes = fpathconf (XFASTINT (p->outfd), _PC_MAX_CANON);
       if (pty_max_bytes < 0)
 	pty_max_bytes = 250;
 #else
@@ -5126,7 +5231,7 @@ send_process (proc, buf, len, object)
 
 	  /* Decide how much data we can send in one batch.
 	     Long lines need to be split into multiple batches.  */
-	  if (!NILP (XPROCESS (proc)->pty_flag))
+	  if (!NILP (p->pty_flag))
 	    {
 	      /* Starting this at zero is always correct when not the first
                  iteration because the previous iteration ended by sending C-d.
@@ -5155,7 +5260,7 @@ send_process (proc, buf, len, object)
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
-	      int outfd = XINT (XPROCESS (proc)->outfd);
+	      int outfd = XINT (p->outfd);
 	      old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
@@ -5168,7 +5273,18 @@ send_process (proc, buf, len, object)
 		}
 	      else
 #endif
-		rv = emacs_write (outfd, (char *) buf, this);
+		{
+		  rv = emacs_write (outfd, (char *) buf, this);
+#ifdef ADAPTIVE_READ_BUFFERING
+		  if (XINT (p->read_output_delay) > 0
+		      && EQ (p->adaptive_read_buffering, Qt))
+		    {
+		      XSETFASTINT (p->read_output_delay, 0);
+		      process_output_delay_count--;
+		      p->read_output_skip = Qnil;
+		    }
+#endif
+		}
 	      signal (SIGPIPE, old_sigpipe);
 
 	      if (rv < 0)
@@ -5209,8 +5325,7 @@ send_process (proc, buf, len, object)
 		      if (errno == EAGAIN)
 			{
 			  int flags = FWRITE;
-			  ioctl (XINT (XPROCESS (proc)->outfd), TIOCFLUSH,
-				 &flags);
+			  ioctl (XINT (p->outfd), TIOCFLUSH, &flags);
 			}
 #endif /* BROKEN_PTY_READ_AFTER_EAGAIN */
 
@@ -5255,18 +5370,17 @@ send_process (proc, buf, len, object)
     {
 #ifndef VMS
       proc = process_sent_to;
+      p = XPROCESS (proc);
 #endif
-      XPROCESS (proc)->raw_status_low = Qnil;
-      XPROCESS (proc)->raw_status_high = Qnil;
-      XPROCESS (proc)->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
-      XSETINT (XPROCESS (proc)->tick, ++process_tick);
+      p->raw_status_low = Qnil;
+      p->raw_status_high = Qnil;
+      p->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
+      XSETINT (p->tick, ++process_tick);
       deactivate_process (proc);
 #ifdef VMS
-      error ("Error writing to process %s; closed it",
-	     SDATA (XPROCESS (proc)->name));
+      error ("Error writing to process %s; closed it", SDATA (p->name));
 #else
-      error ("SIGPIPE raised on process %s; closed it",
-	     SDATA (XPROCESS (proc)->name));
+      error ("SIGPIPE raised on process %s; closed it", SDATA (p->name));
 #endif
     }
 
@@ -5980,7 +6094,10 @@ kill_buffer_processes (buffer)
    queued and the signal-catching function will be continually
    reentered until the queue is empty".  Invoking signal() causes the
    kernel to reexamine the SIGCLD queue.  Fred Fish, UniSoft Systems
-   Inc. */
+   Inc.
+
+   ** Malloc WARNING: This should never call malloc either directly or
+   indirectly; if it does, that is a bug  */
 
 SIGTYPE
 sigchld_handler (signo)
@@ -6098,18 +6215,7 @@ sigchld_handler (signo)
 	  if (WIFEXITED (w))
 	    synch_process_retcode = WRETCODE (w);
 	  else if (WIFSIGNALED (w))
-	    {
-	      int code = WTERMSIG (w);
-	      char *signame;
-
-	      synchronize_system_messages_locale ();
-	      signame = strsignal (code);
-
-	      if (signame == 0)
-		signame = "unknown";
-
-	      synch_process_death = signame;
-	    }
+            synch_process_termsig = WTERMSIG (w);
 
 	  /* Tell wait_reading_process_input that it needs to wake up and
 	     look around.  */
@@ -6503,6 +6609,11 @@ init_process ()
   FD_ZERO (&non_process_wait_mask);
   max_process_desc = 0;
 
+#ifdef ADAPTIVE_READ_BUFFERING
+  process_output_delay_count = 0;
+  process_output_skip = 0;
+#endif
+
   FD_SET (0, &input_wait_mask);
 
   Vprocess_alist = Qnil;
@@ -6635,6 +6746,20 @@ The value has no effect if the system has no ptys or if all ptys are busy:
 then a pipe is used in any case.
 The value takes effect when `start-process' is called.  */);
   Vprocess_connection_type = Qt;
+
+#ifdef ADAPTIVE_READ_BUFFERING
+  DEFVAR_LISP ("process-adaptive-read-buffering", &Vprocess_adaptive_read_buffering,
+	       doc: /* If non-nil, improve receive buffering by delaying after short reads.
+On some systems, when emacs reads the output from a subprocess, the output data
+is read in very small blocks, potentially resulting in very poor performance.
+This behaviour can be remedied to some extent by setting this variable to a
+non-nil value, as it will automatically delay reading from such processes, to
+allowing them to produce more output before emacs tries to read it.
+If the value is t, the delay is reset after each write to the process; any other
+non-nil value means that the delay is not reset on write.
+The variable takes effect when `start-process' is called.  */);
+  Vprocess_adaptive_read_buffering = Qt;
+#endif
 
   defsubr (&Sprocessp);
   defsubr (&Sget_process);

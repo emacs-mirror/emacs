@@ -65,7 +65,7 @@ The return value of this function is not used."
 (defmacro noreturn (form)
   "Evaluates FORM, with the expectation that the evaluation will signal an error
 instead of returning to its caller.  If FORM does return, an error is
-signalled." 
+signalled."
   `(prog1 ,form
      (error "Form marked with `noreturn' did return")))
 
@@ -158,6 +158,12 @@ the return value (nil if RESULT is omitted).
 	 (setq ,(car spec) (1+ ,(car spec))))
        ,@(cdr (cdr spec)))))
 
+(defmacro declare (&rest specs)
+  "Do not evaluate any arguments and return nil.
+Treated as a declaration when used at the right place in a
+`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'."
+  nil)
+
 (defsubst caar (x)
   "Return the car of the car of X."
   (car (car x)))
@@ -202,6 +208,21 @@ If N is bigger than the length of X, return X."
 	 (progn
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
+
+(defun delete-dups (list)
+  "Destructively return LIST, with `equal' duplicates removed.
+LIST must be a proper list.  The value of LIST after a call to
+this function is undefined.  Use \(setq LIST (delete-dups LIST))
+if you want to store the return value in LIST.  Of several
+`equal' occurrences of an element in LIST, the last one is kept."
+  (while (member (car list) (cdr list))
+    (pop list))
+  (let ((tail list))
+    (while tail
+      (while (member (cadr tail) (cddr tail))
+	(setcdr tail (cddr tail)))
+      (pop tail)))
+  list)
 
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
@@ -298,27 +319,19 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
+(make-obsolete 'assoc-ignore-case 'assoc-string)
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and alist (not element))
-      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil t))
-	  (setq element (car alist)))
-      (setq alist (cdr alist)))
-    element))
+  (assoc-string key alist t))
 
+(make-obsolete 'assoc-ignore-representation 'assoc-string)
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and alist (not element))
-      (if (eq t (compare-strings key 0 nil (car (car alist)) 0 nil))
-	  (setq element (car alist)))
-      (setq alist (cdr alist)))
-    element))
+  (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
   "Like `member', but ignores differences in case and text representation.
@@ -679,7 +692,8 @@ If EVENT is a mouse press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
-   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW))
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth 1 event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -688,7 +702,8 @@ The `posn-' functions access elements of such lists."
   "Return the ending location of EVENT.  EVENT should be a click or drag event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
-   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW))
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -701,13 +716,13 @@ The return value is a positive integer."
 (defsubst posn-window (position)
   "Return the window in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 0 position))
 
 (defsubst posn-area (position)
   "Return the window area recorded in POSITION, or nil for the text area.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (let ((area (if (consp (nth 1 position))
 		  (car (nth 1 position))
 		(nth 1 position))))
@@ -716,7 +731,7 @@ and `event-end' functions."
 (defsubst posn-point (position)
   "Return the buffer location in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (or (nth 5 position)
       (if (consp (nth 1 position))
 	  (car (nth 1 position))
@@ -725,18 +740,18 @@ and `event-end' functions."
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 2 position))
 
 (defun posn-col-row (position)
   "Return the nominal column and row in POSITION, measured in characters.
 The column and row values are approximations calculated from the x
 and y coordinates in POSITION and the frame's default character width
-and height. 
+and height.
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (let* ((pair   (posn-x-y position))
 	 (window (posn-window position))
 	 (area   (posn-area position)))
@@ -762,26 +777,44 @@ These are the actual row number in the window and character number in that row.
 Return nil if POSITION does not contain the actual position; in that case
 `posn-col-row' can be used to get approximate values.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 3 position))
 
-(defsubst posn-object (position)
-  "Return the object of POSITION.
+(defsubst posn-string (position)
+  "Return the string object of POSITION, or nil if a buffer position.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 4 position))
+
+(defsubst posn-image (position)
+  "Return the image object of POSITION, or nil if a not an image.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 7 position))
+
+(defsubst posn-object (position)
+  "Return the object (image or string) of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
   "Return the x and y coordinates relative to the object of POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
-  (nth 7 position))
+and `event-end' functions."
+  (nth 8 position))
+
+(defsubst posn-object-width-height (position)
+  "Return the pixel width and height of the object of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions."
+  (nth 9 position))
 
 
 ;;;; Obsolescent names for functions.
@@ -1569,7 +1602,18 @@ Replaces `category' properties with their defined properties."
 (defvar yank-undo-function)
 
 (defun insert-for-yank (string)
+  "Calls `insert-for-yank-1' repetitively for each `yank-handler' segment.
+
+See `insert-for-yank-1' for more details."
+  (let (to)
+    (while (setq to (next-single-property-change 0 'yank-handler string))
+      (insert-for-yank-1 (substring string 0 to))
+      (setq string (substring string to))))
+  (insert-for-yank-1 string))
+
+(defun insert-for-yank-1 (string)
   "Insert STRING at point, stripping some text properties.
+
 Strip text properties from the inserted text according to
 `yank-excluded-properties'.  Otherwise just like (insert STRING).
 
@@ -1815,6 +1859,7 @@ in BODY."
 (defvar delayed-mode-hooks nil
   "List of delayed mode hooks waiting to be run.")
 (make-variable-buffer-local 'delayed-mode-hooks)
+(put 'delay-mode-hooks 'permanent-local t)
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.

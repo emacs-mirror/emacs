@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 01, 2003
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98,99,2000,01,03,2004
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3640,7 +3640,6 @@ defvar_per_buffer (namestring, address, type, doc)
 {
   Lisp_Object sym, val;
   int offset;
-  extern struct buffer buffer_local_symbols;
 
   sym = intern (namestring);
   val = allocate_misc ();

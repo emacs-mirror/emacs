@@ -375,7 +375,12 @@ So any buffer-local binding of this variable is discarded if you change
 the visited file name with \\[set-visited-file-name], but not when you
 change the major mode.
 
-See also `write-contents-functions'.")
+This hook is not run if any of the functions in
+`write-contents-functions' returns non-nil.  Both hooks pertain
+to how to save a buffer to file, for instance, choosing a suitable
+coding system and setting mode bits.  (See Info
+node `(elisp)Saving Buffers'.)  To perform various checks or
+updates before the buffer is saved, use `before-save-hook' .")
 (put 'write-file-functions 'permanent-local t)
 (defvaralias 'write-file-hooks 'write-file-functions)
 (make-obsolete-variable 'write-file-hooks 'write-file-functions "21.4")
@@ -395,7 +400,11 @@ buffer's contents, not to the particular visited file; thus,
 `set-visited-file-name' does not clear this variable; but changing the
 major mode does clear it.
 
-See also `write-file-functions'.")
+For hooks that _do_ pertain to the particular visited file, use
+`write-file-functions'.  Both this variable and
+`write-file-functions' relate to how a buffer is saved to file.
+To perform various checks or updates before the buffer is saved,
+use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
 (defvaralias 'write-contents-hooks 'write-contents-functions)
 (make-obsolete-variable 'write-contents-hooks 'write-contents-functions "21.4")
@@ -481,13 +490,18 @@ patterns and to guarantee valid names."
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-DIRNAME if user enters a null string.
+Default name to DEFAULT-DIRNAME if user exits with the same
+non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, the current buffer's directory is used,
   except that if INITIAL is specified, that combined with DIR is used.)
+If the user exits with an empty minibuffer, this function returns
+an empty string.  (This can only happen if the user erased the
+pre-inserted contents or if `insert-default-directory' is nil.)
 Fourth arg MUSTMATCH non-nil means require existing directory's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
-DIR defaults to current buffer's directory default."
+DIR should be an absolute directory name.  It defaults to
+the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
   (unless default-dirname
@@ -1605,7 +1619,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.el\\'" . emacs-lisp-mode)
-     ("\\.scm\\|\\.stk\\|\\.ss\\|\\.sch\\'" . scheme-mode)
+     ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.lisp\\'" . lisp-mode)
      ("\\.f\\'" . fortran-mode)
@@ -2420,7 +2434,7 @@ This makes the buffer visit that file, and marks it as not modified.
 
 If you specify just a directory name as FILENAME, that means to use
 the default file name but in that directory.  You can also yank
-the default file name into the minibuffer to edit it, using M-n.
+the default file name into the minibuffer to edit it, using \\<minibuffer-local-map>\\[next-history-element].
 
 If the buffer is not already visiting a file, the default file name
 for the output file is the buffer name.
@@ -2552,7 +2566,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	      (not (file-writable-p to-name)))
 	 (delete-file to-name))
      (copy-file from-name to-name t t)))
-  (set-file-modes to-name (logand modes #o1777)))
+  (and modes
+       (set-file-modes to-name (logand modes #o1777))))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
@@ -2989,6 +3004,12 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 (defvar auto-save-hook nil
   "Normal hook run just before auto-saving.")
 
+(defcustom before-save-hook nil
+  "Normal hook that is run before a buffer is saved to its file."
+  :options '(copyright-update)
+  :type 'hook
+  :group 'files)
+
 (defcustom after-save-hook nil
   "Normal hook that is run after a buffer is saved to its file."
   :options '(executable-make-buffer-file-executable-if-script-p)
@@ -3011,7 +3032,8 @@ in such cases.")
 The hooks `write-contents-functions' and `write-file-functions' get a chance
 to do the job of saving; if they do not, then the buffer is saved in
 the visited file file in the usual way.
-After saving the buffer, this function runs `after-save-hook'."
+Before and after saving the buffer, this function runs
+`before-save-hook' and `after-save-hook', respectively."
   (interactive)
   (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
@@ -3067,6 +3089,7 @@ After saving the buffer, this function runs `after-save-hook'."
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
+	    (run-hooks 'before-save-hook)
 	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-functions)
@@ -3727,8 +3750,9 @@ This command is used in the special Dired buffer created by
       (kill-buffer buffer))))
 
 (defun kill-some-buffers (&optional list)
-  "For each buffer in LIST, ask whether to kill it.
-LIST defaults to all existing live buffers."
+  "Kill some buffers.  Asks the user whether to kill each one of them.
+Non-interactively, if optional argument LIST is non-`nil', it
+specifies the list of buffers to kill, asking for approval for each one."
   (interactive)
   (if (null list)
       (setq list (buffer-list)))
@@ -4135,10 +4159,10 @@ program specified by `directory-free-space-program' if that is non-nil."
     (save-match-data
       (with-temp-buffer
 	(when (and directory-free-space-program
-		   (zerop (call-process directory-free-space-program
-					nil t nil
-					directory-free-space-args
-					dir)))
+		   (eq 0 (call-process directory-free-space-program
+				       nil t nil
+				       directory-free-space-args
+				       dir)))
 	  ;; Usual format is a header line followed by a line of
 	  ;; numbers.
 	  (goto-char (point-min))
@@ -4258,21 +4282,21 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 				 file))))))))
 
 	  ;; If `insert-directory-program' failed, signal an error.
-	  (if (/= result 0)
-	      ;; On non-Posix systems, we cannot open a directory, so
-	      ;; don't even try, because that will always result in
-	      ;; the ubiquitous "Access denied".  Instead, show the
-	      ;; command line so the user can try to guess what went wrong.
-	      (if (and (file-directory-p file)
-		       (memq system-type '(ms-dos windows-nt)))
-		  (error
-		   "Reading directory: \"%s %s -- %s\" exited with status %s"
-		   insert-directory-program
-		   (if (listp switches) (concat switches) switches)
-		   file result)
-		;; Unix.  Access the file to get a suitable error.
-		(access-file file "Reading directory")
-		(error "Listing directory failed but `access-file' worked")))
+	  (unless (eq 0 result)
+	    ;; On non-Posix systems, we cannot open a directory, so
+	    ;; don't even try, because that will always result in
+	    ;; the ubiquitous "Access denied".  Instead, show the
+	    ;; command line so the user can try to guess what went wrong.
+	    (if (and (file-directory-p file)
+		     (memq system-type '(ms-dos windows-nt)))
+		(error
+		 "Reading directory: \"%s %s -- %s\" exited with status %s"
+		 insert-directory-program
+		 (if (listp switches) (concat switches) switches)
+		 file result)
+	      ;; Unix.  Access the file to get a suitable error.
+	      (access-file file "Reading directory")
+	      (error "Listing directory failed but `access-file' worked")))
 
 	  (when (string-match "--dired\\>" switches)
 	    (forward-line -2)

@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99,2000,01,02,03
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99,2000,01,02,03,04
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -478,36 +478,6 @@ extern char *pending_malloc_warning;
 /* Circular buffer for pre-read keyboard input.  */
 
 static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
-
-/* Vector to GCPRO the Lisp objects referenced from kbd_buffer.
-
-   The interrupt-level event handlers will never enqueue an event on a
-   frame which is not in Vframe_list, and once an event is dequeued,
-   internal_last_event_frame or the event itself points to the frame.
-   So that's all fine.
-
-   But while the event is sitting in the queue, it's completely
-   unprotected.  Suppose the user types one command which will run for
-   a while and then delete a frame, and then types another event at
-   the frame that will be deleted, before the command gets around to
-   it.  Suppose there are no references to this frame elsewhere in
-   Emacs, and a GC occurs before the second event is dequeued.  Now we
-   have an event referring to a freed frame, which will crash Emacs
-   when it is dequeued.
-
-   Similar things happen when an event on a scroll bar is enqueued; the
-   window may be deleted while the event is in the queue.
-
-   So, we use this vector to protect the Lisp_Objects in the event
-   queue.  That way, they'll be dequeued as dead frames or windows,
-   but still valid Lisp objects.
-
-   If kbd_buffer[i].kind != NO_EVENT, then
-
-   AREF (kbd_buffer_gcpro, 2 * i) == kbd_buffer[i].frame_or_window.
-   AREF (kbd_buffer_gcpro, 2 * i + 1) == kbd_buffer[i].arg.  */
-
-static Lisp_Object kbd_buffer_gcpro;
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
@@ -2943,13 +2913,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       Lisp_Object posn;
 
-      posn = POSN_BUFFER_POSN (EVENT_START (c));
+      posn = POSN_POSN (EVENT_START (c));
       /* Handle menu-bar events:
 	 insert the dummy prefix event `menu-bar'.  */
       if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
 	{
 	  /* Change menu-bar to (menu-bar) as the event "position".  */
-	  POSN_BUFFER_SET_POSN (EVENT_START (c), Fcons (posn, Qnil));
+	  POSN_SET_POSN (EVENT_START (c), Fcons (posn, Qnil));
 
 	  also_record = c;
 	  Vunread_command_events = Fcons (c, Vunread_command_events);
@@ -3634,7 +3604,6 @@ kbd_buffer_store_event (event)
      Discard the event if it would fill the last slot.  */
   if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
-      int idx;
 
 #if 0 /* The SELECTION_REQUEST_EVENT case looks bogus, and it's error
 	 prone to assign individual members for other events, in case
@@ -3664,9 +3633,6 @@ kbd_buffer_store_event (event)
       *kbd_store_ptr = *event;
 #endif
 
-      idx = 2 * (kbd_store_ptr - kbd_buffer);
-      ASET (kbd_buffer_gcpro, idx, event->frame_or_window);
-      ASET (kbd_buffer_gcpro, idx + 1, event->arg);
       ++kbd_store_ptr;
     }
 }
@@ -3782,9 +3748,6 @@ static INLINE void
 clear_event (event)
      struct input_event *event;
 {
-  int idx = 2 * (event - kbd_buffer);
-  ASET (kbd_buffer_gcpro, idx, Qnil);
-  ASET (kbd_buffer_gcpro, idx + 1, Qnil);
   event->kind = NO_EVENT;
 }
 
@@ -4982,9 +4945,11 @@ make_lispy_position (f, x, y, time)
     {
       /* It's a click in window window at frame coordinates (x,y)  */
       struct window *w = XWINDOW (window);
-      Lisp_Object object = Qnil;
+      Lisp_Object string_info = Qnil;
       int textpos = -1, rx = -1, ry = -1;
       int dx = -1, dy = -1;
+      int width = -1, height = -1;
+      Lisp_Object object = Qnil;
 
       /* Set event coordinates to window-relative coordinates
 	 for constructing the Lisp event below.  */
@@ -5000,9 +4965,10 @@ make_lispy_position (f, x, y, time)
 
 	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
 	  rx = wx, ry = wy;
-	  string = mode_line_string (w, &rx, &ry, &dx, &dy, part, &charpos);
+	  string = mode_line_string (w, part, &rx, &ry, &charpos,
+				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
-	    object = Fcons (string, make_number (charpos));
+	    string_info = Fcons (string, make_number (charpos));
 	  if (w == XWINDOW (selected_window))
 	    textpos = PT;
 	  else
@@ -5013,6 +4979,7 @@ make_lispy_position (f, x, y, time)
 	  posn = Qvertical_line;
 	  wx = -1;
 	  dx = 0;
+	  width = 1;
 	}
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
@@ -5021,22 +4988,10 @@ make_lispy_position (f, x, y, time)
 	  
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
-	  string = marginal_area_string (w, &rx, &ry, &dx, &dy, part, &charpos);
+	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
+					 &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
-	    object = Fcons (string, make_number (charpos));
-#ifdef HAVE_WINDOW_SYSTEM
-	  else if (IMAGEP (string))
-	    {
-	      Lisp_Object image_map, hotspot;
-	      object = string;
-	      if ((image_map = Fplist_get (XCDR (object), QCmap),
-		   !NILP (image_map))
-		  && (hotspot = find_hot_spot (image_map, dx, dy),
-		      CONSP (hotspot))
-		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
-		posn = XCAR (hotspot);
-	    }
-#endif
+	    string_info = Fcons (string, make_number (charpos));
 	}
       else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
 	{
@@ -5055,46 +5010,60 @@ make_lispy_position (f, x, y, time)
 
       if (textpos < 0)
 	{
-	  Lisp_Object string;
+	  Lisp_Object string2, object2 = Qnil;
 	  struct display_pos p;
 	  int dx2, dy2;
+	  int width2, height2;
 	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
-	  buffer_posn_from_coords (w, &wx, &wy, &dx2, &dy2, &string, &p);
+	  string2 = buffer_posn_from_coords (w, &wx, &wy, &p,
+					     &object2, &dx2, &dy2,
+					     &width2, &height2);
 	  textpos = CHARPOS (p.pos);
 	  if (rx < 0) rx = wx;
 	  if (ry < 0) ry = wy;
 	  if (dx < 0) dx = dx2;
 	  if (dy < 0) dy = dy2;
+	  if (width < 0) width = width2;
+	  if (height < 0) height = height2;
 
 	  if (NILP (posn))
 	    {
 	      posn = make_number (textpos);
-	      if (STRINGP (string))
-		object = Fcons (string,
-				make_number (CHARPOS (p.string_pos)));
-#ifdef HAVE_WINDOW_SYSTEM
-	      else if (IMAGEP (string))
-		{
-		  Lisp_Object image_map, hotspot;
-		  object = string;
-		  if ((image_map = Fplist_get (XCDR (object), QCmap),
-		       !NILP (image_map))
-		      && (hotspot = find_hot_spot (image_map, dx, dy),
-			  CONSP (hotspot))
-		      && (hotspot = XCDR (hotspot), CONSP (hotspot)))
-		    posn = XCAR (hotspot);
-		}
-#endif
+	      if (STRINGP (string2))
+		string_info = Fcons (string2,
+				     make_number (CHARPOS (p.string_pos)));
 	    }
+	  if (NILP (object))
+	    object = object2;
 	}
 
+#ifdef HAVE_WINDOW_SYSTEM
+      if (IMAGEP (object))
+	{
+	  Lisp_Object image_map, hotspot;
+	  if ((image_map = Fplist_get (XCDR (object), QCmap),
+	       !NILP (image_map))
+	      && (hotspot = find_hot_spot (image_map, dx, dy),
+		  CONSP (hotspot))
+	      && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+	    posn = XCAR (hotspot);
+	}
+#endif
+
+      /* Object info */
       extra_info = Fcons (object,
+			  Fcons (Fcons (make_number (dx),
+					make_number (dy)),
+				 Fcons (Fcons (make_number (width),
+					       make_number (height)),
+					Qnil)));
+
+      /* String info */
+      extra_info = Fcons (string_info,
 			  Fcons (make_number (textpos),
 				 Fcons (Fcons (make_number (rx),
 					       make_number (ry)),
-					Fcons (Fcons (make_number (dx),
-						      make_number (dy)),
-					       Qnil))));
+					extra_info)));
     }
   else if (f != 0)
     {
@@ -6741,31 +6710,13 @@ read_avail_input (expected)
 }
 #endif /* not VMS */
 
-#ifdef SIGIO   /* for entire page */
-/* Note SIGIO has been undef'd if FIONREAD is missing.  */
-
-static SIGTYPE
-input_available_signal (signo)
-     int signo;
+void
+handle_async_input ()
 {
-  /* Must preserve main program's value of errno.  */
-  int old_errno = errno;
 #ifdef BSD4_1
   extern int select_alarmed;
 #endif
-
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signo, input_available_signal);
-#endif /* USG */
-
-#ifdef BSD4_1
-  sigisheld (SIGIO);
-#endif
-
-  if (input_available_clear_time)
-    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+  interrupt_input_pending = 0;
 
   while (1)
     {
@@ -6781,6 +6732,36 @@ input_available_signal (signo)
       select_alarmed = 1;  /* Force the select emulator back to life */
 #endif
     }
+}
+
+#ifdef SIGIO   /* for entire page */
+/* Note SIGIO has been undef'd if FIONREAD is missing.  */
+
+static SIGTYPE
+input_available_signal (signo)
+     int signo;
+{
+  /* Must preserve main program's value of errno.  */
+  int old_errno = errno;
+
+#if defined (USG) && !defined (POSIX_SIGNALS)
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (signo, input_available_signal);
+#endif /* USG */
+
+#ifdef BSD4_1
+  sigisheld (SIGIO);
+#endif
+
+  if (input_available_clear_time)
+    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+
+#ifdef SYNC_INPUT
+  interrupt_input_pending = 1;
+#else
+  handle_async_input ();
+#endif
 
 #ifdef BSD4_1
   sigfree ();
@@ -6799,7 +6780,7 @@ void
 reinvoke_input_signal ()
 {
 #ifdef SIGIO
-  kill (getpid (), SIGIO);
+  handle_async_input ();
 #endif
 }
 
@@ -8862,7 +8843,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      Lisp_Object window, posn;
 
 	      window = POSN_WINDOW      (EVENT_START (key));
-	      posn   = POSN_BUFFER_POSN (EVENT_START (key));
+	      posn   = POSN_POSN (EVENT_START (key));
 
 	      if (CONSP (posn)
 		  || (!NILP (fake_prefixed_keys)
@@ -8920,7 +8901,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  localized_local_map = 1;
 		  start = EVENT_START (key);
 
-		  if (CONSP (start) && CONSP (XCDR (start)))
+		  if (CONSP (start) && POSN_INBUFFER_P (start))
 		    {
 		      pos = POSN_BUFFER_POSN (start);
 		      if (INTEGERP (pos)
@@ -9030,7 +9011,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    {
 	      Lisp_Object posn;
 
-	      posn = POSN_BUFFER_POSN (EVENT_START (key));
+	      posn = POSN_POSN (EVENT_START (key));
 	      /* Handle menu-bar events:
 		 insert the dummy prefix event `menu-bar'.  */
 	      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
@@ -9042,8 +9023,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  /* Zap the position in key, so we know that we've
 		     expanded it, and don't try to do so again.  */
-		  POSN_BUFFER_SET_POSN (EVENT_START (key),
-					Fcons (posn, Qnil));
+		  POSN_SET_POSN (EVENT_START (key),
+				 Fcons (posn, Qnil));
 
 		  mock_input = t + 2;
 		  goto replay_sequence;
@@ -10055,7 +10036,6 @@ Also end any kbd macro being defined.  */)
   discard_tty_input ();
 
   kbd_fetch_ptr =  kbd_store_ptr;
-  Ffillarray (kbd_buffer_gcpro, Qnil);
   input_pending = 0;
 
   return Qnil;
@@ -10146,17 +10126,13 @@ stuff_buffered_input (stuffstring)
      Should we ignore anything that was typed in at the "wrong" kboard?  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
-      int idx;
 
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT)
 	stuff_char (kbd_fetch_ptr->code);
 
-      kbd_fetch_ptr->kind = NO_EVENT;
-      idx = 2 * (kbd_fetch_ptr - kbd_buffer);
-      ASET (kbd_buffer_gcpro, idx, Qnil);
-      ASET (kbd_buffer_gcpro, idx + 1, Qnil);
+      clear_event (kbd_fetch_ptr);
     }
 
   input_pending = 0;
@@ -10556,7 +10532,6 @@ init_keyboard ()
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
-  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
 #ifdef HAVE_MOUSE
   do_mouse_tracking = Qnil;
 #endif
@@ -10846,9 +10821,6 @@ syms_of_keyboard ()
   Qextended_command_history = intern ("extended-command-history");
   Fset (Qextended_command_history, Qnil);
   staticpro (&Qextended_command_history);
-
-  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
-  staticpro (&kbd_buffer_gcpro);
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);

@@ -1010,6 +1010,13 @@ integers.  Thus, you can use times obtained from @code{current-time}
 (see above) and from @code{file-attributes} (@pxref{File Attributes}).
 @end defun
 
+@defun set-time-zone-rule tz
+This function specifies the local time zone according to @var{tz}.  If
+@var{tz} is @code{nil}, that means to use an implementation-defined
+default time zone.  If @var{tz} is @code{t}, that means to use
+Universal Time.
+@end defun
+
 @defun float-time &optional time-value
 This function returns the current time as a floating-point number of
 seconds since the epoch.  The argument @var{time-value}, if given,

@@ -140,6 +140,10 @@ static int next_fontset_id;
    font for each characters.  */
 static Lisp_Object Vdefault_fontset;
 
+/* Alist of font specifications.  It override the font specification
+   in the default fontset.  */
+static Lisp_Object Voverriding_fontspec_alist;
+
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Vignore_relative_composition;
@@ -184,11 +188,13 @@ void (*check_window_system_func) P_ ((void));
 
 /* Prototype declarations for static functions.  */
 static Lisp_Object fontset_ref P_ ((Lisp_Object, int));
+static Lisp_Object lookup_overriding_fontspec P_ ((Lisp_Object, int));
 static void fontset_set P_ ((Lisp_Object, int, Lisp_Object));
 static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static int fontset_id_valid_p P_ ((int));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
 static Lisp_Object font_family_registry P_ ((Lisp_Object, int));
+static Lisp_Object regulalize_fontname P_ ((Lisp_Object));
 
 
 /********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
@@ -241,6 +247,46 @@ fontset_ref (fontset, c)
 }
 
 
+static Lisp_Object
+lookup_overriding_fontspec (frame, c)
+     Lisp_Object frame;
+     int c;
+{
+  Lisp_Object tail;
+
+  for (tail = Voverriding_fontspec_alist; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object val, target, elt;
+
+      val = XCAR (tail);
+      target = XCAR (val);
+      val = XCDR (val);
+      /* Now VAL is (NO-FRAME-LIST OK-FRAME-LIST CHAR FONTNAME).  */
+      if (NILP (Fmemq (frame, XCAR (val)))
+	  && (CHAR_TABLE_P (target)
+	      ? ! NILP (CHAR_TABLE_REF (target, c))
+	      : XINT (target) == CHAR_CHARSET (c)))
+	{
+	  val = XCDR (val);
+	  elt = XCDR (val);
+	  if (NILP (Fmemq (frame, XCAR (val))))
+	    {
+	      if (! face_font_available_p (XFRAME (frame), XCDR (elt)))
+		{
+		  val = XCDR (XCAR (tail));
+		  XSETCAR (val, Fcons (frame, XCAR (val)));
+		  continue;
+		}
+	      XSETCAR (val, Fcons (frame, XCAR (val)));
+	    }
+	  if (NILP (XCAR (elt)))
+	    XSETCAR (elt, make_number (c));
+	  return elt;
+	}
+    }
+  return Qnil;
+}
+
 #define FONTSET_REF_VIA_BASE(fontset, c) fontset_ref_via_base (fontset, &c)
 
 static Lisp_Object
@@ -254,8 +300,12 @@ fontset_ref_via_base (fontset, c)
   if (SINGLE_BYTE_CHAR_P (*c))
     return FONTSET_ASCII (fontset);
 
-  elt = FONTSET_REF (FONTSET_BASE (fontset), *c);
-  if (NILP (elt) && ! EQ (fontset, Vdefault_fontset))
+  elt = Qnil;
+  if (! EQ (FONTSET_BASE (fontset), Vdefault_fontset))
+    elt = FONTSET_REF (FONTSET_BASE (fontset), *c);
+  if (NILP (elt))
+    elt = lookup_overriding_fontspec (FONTSET_FRAME (fontset), *c);
+  if (NILP (elt))
     elt = FONTSET_REF (Vdefault_fontset, *c);
   if (NILP (elt))
     return Qnil;
@@ -548,7 +598,15 @@ fontset_font_pattern (f, id, c)
       fontset = FONTSET_FROM_ID (id);
       xassert (!BASE_FONTSET_P (fontset));
       fontset = FONTSET_BASE (fontset);
-      elt = FONTSET_REF (fontset, c);
+      if (! EQ (fontset, Vdefault_fontset))
+	elt = FONTSET_REF (fontset, c);
+    }
+  if (NILP (elt))
+    {
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      elt = lookup_overriding_fontspec (frame, c);
     }
   if (NILP (elt))
     elt = FONTSET_REF (Vdefault_fontset, c);
@@ -980,6 +1038,33 @@ check_fontset_name (name)
   return FONTSET_FROM_ID (id);
 }
 
+/* Downcase FONTNAME or car and cdr of FONTNAME.  If FONTNAME is a
+   string, maybe change FONTNAME to (FAMILY . REGISTRY).  */
+
+static Lisp_Object
+regulalize_fontname (Lisp_Object fontname)
+{
+  Lisp_Object family, registry;
+
+  if (STRINGP (fontname))
+    return font_family_registry (Fdowncase (fontname), 0);
+
+  CHECK_CONS (fontname);
+  family = XCAR (fontname);
+  registry = XCDR (fontname);
+  if (!NILP (family))
+    {
+      CHECK_STRING (family);
+      family = Fdowncase (family);
+    }
+  if (!NILP (registry))
+    {
+      CHECK_STRING (registry);
+      registry = Fdowncase (registry);
+    }
+  return Fcons (family, registry);
+}
+
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
        doc: /* Modify fontset NAME to use FONTNAME for CHARACTER.
 
@@ -1043,34 +1128,12 @@ name of a font, REGISTRY is a registry name of a font.  */)
 	error ("Can't change font for a single byte character");
     }
 
-  if (STRINGP (fontname))
-    {
-      fontname = Fdowncase (fontname);
-      elt = Fcons (make_number (from), font_family_registry (fontname, 0));
-    }
-  else
-    {
-      CHECK_CONS (fontname);
-      family = XCAR (fontname);
-      registry = XCDR (fontname);
-      if (!NILP (family))
-	{
-	  CHECK_STRING (family);
-	  family = Fdowncase (family);
-	}
-      if (!NILP (registry))
-	{
-	  CHECK_STRING (registry);
-	  registry = Fdowncase (registry);
-	}
-      elt = Fcons (make_number (from), Fcons (family, registry));
-    }
-
   /* The arg FRAME is kept for backward compatibility.  We only check
      the validity.  */
   if (!NILP (frame))
     CHECK_LIVE_FRAME (frame);
 
+  elt = Fcons (make_number (from), regulalize_fontname (fontname));
   for (; from <= to; from++)
     FONTSET_SET (fontset, from, elt);
   Foptimize_char_table (fontset);
@@ -1445,6 +1508,60 @@ DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
   return list;
 }
 
+DEFUN ("set-overriding-fontspec-internal", Fset_overriding_fontspec_internal,
+       Sset_overriding_fontspec_internal, 1, 1, 0,
+       doc: /* Internal use only.
+
+FONTLIST is an alist of TARGET vs FONTNAME, where TARGET is a charset
+or a char-table, FONTNAME have the same meanings as in
+`set-fontset-font'.
+
+It overrides the font specifications for each TARGET in the default
+fontset by the corresponding FONTNAME.
+
+If TARGET is a charset, targets are all characters in the charset.  If
+TARGET is a char-table, targets are characters whose value is non-nil
+in the table.
+
+It is intended that this function is called only from
+`set-language-environment'.  */)
+     (fontlist)
+     Lisp_Object fontlist;
+{
+  Lisp_Object tail;
+
+  fontlist = Fcopy_sequence (fontlist);
+  /* Now FONTLIST is ((TARGET . FONTNAME) ...).  Reform it to ((TARGET
+     nil nil nil FONTSPEC) ...), where TARGET is a charset-id or a
+     char-table.  */
+  for (tail = fontlist; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object elt, target;
+
+      elt = XCAR (tail);
+      target = Fcar (elt);
+      elt = Fcons (Qnil, regulalize_fontname (Fcdr (elt)));
+      if (! CHAR_TABLE_P (target))
+	{
+	  int charset, c;
+
+	  CHECK_SYMBOL (target);
+	  charset = get_charset_id (target);
+	  if (charset < 0)
+	    error ("Invalid charset %s", SDATA (SYMBOL_NAME (target)));
+	  target = make_number (charset);
+	  c = MAKE_CHAR (charset, 0, 0);
+	  XSETCAR (elt, make_number (c));
+	}
+      elt = Fcons (target, Fcons (Qnil, Fcons (Qnil, elt)));
+      XSETCAR (tail, elt);
+    }
+  Voverriding_fontspec_alist = fontlist;
+  clear_face_cache (0);
+  ++windows_or_buffers_changed;
+  return Qnil;
+}
+
 void
 syms_of_fontset ()
 {
@@ -1482,6 +1599,9 @@ syms_of_fontset ()
 #endif
   AREF (Vfontset_table, 0) = Vdefault_fontset;
   next_fontset_id = 1;
+
+  Voverriding_fontspec_alist = Qnil;
+  staticpro (&Voverriding_fontspec_alist);
 
   DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
 	       doc: /* Alist of fontname patterns vs corresponding encoding info.
@@ -1548,6 +1668,7 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);
+  defsubr (&Sset_overriding_fontspec_internal);
 }
 
 /* arch-tag: ea861585-2f5f-4e5b-9849-d04a9c3a3537

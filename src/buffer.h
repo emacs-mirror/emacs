@@ -733,6 +733,9 @@ struct buffer
      like vi).  */
   Lisp_Object indicate_empty_lines;
 
+  /* Non-nil means indicate buffer boundaries and scrolling.  */
+  Lisp_Object indicate_buffer_boundaries;
+
   /* Time stamp updated each time this buffer is displayed in a window.  */
   Lisp_Object display_time;
 
@@ -906,8 +909,26 @@ extern int last_per_buffer_idx;
        (B)->local_flags[IDX] = (VAL);			\
      } while (0)
 
-/* Return the index of the per-buffer variable at offset OFFSET in the
-   buffer structure.  */
+/* Return the index value of the per-buffer variable at offset OFFSET
+   in the buffer structure.
+
+   If the slot OFFSET has a corresponding default value in
+   buffer_defaults, the index value is positive and has only one
+   nonzero bit.  When a buffer has its own local value for a slot, the
+   bit for that slot (found in the same slot in this structure) is
+   turned on in the buffer's local_flags array.
+
+   If the index value is -1, even though there may be a
+   DEFVAR_PER_BUFFER for the slot, there is no default value for it;
+   and the corresponding slot in buffer_defaults is not used.
+
+   If the index value is -2, then there is no DEFVAR_PER_BUFFER for
+   the slot, but there is a default value which is copied into each
+   new buffer.
+
+   If a slot in this structure corresponding to a DEFVAR_PER_BUFFER is
+   zero, that is a bug */
+
 
 #define PER_BUFFER_IDX(OFFSET) \
       XINT (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_flags))

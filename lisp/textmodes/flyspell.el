@@ -267,7 +267,9 @@ property of the major mode name.")
 (defun mail-mode-flyspell-verify ()
   "This function is used for `flyspell-generic-check-word-p' in Mail mode."
   (let ((in-headers (save-excursion
-		      (re-search-forward mail-header-separator nil t)))
+		      ;; When mail-header-separator is "",
+		      ;; it is likely to be found in both directions.
+		      (not (re-search-backward (concat "^" (regexp-quote mail-header-separator) "$") nil t))))
 	(in-signature (save-excursion
 			(re-search-backward message-signature-separator nil t))))
     (cond (in-headers
@@ -1349,7 +1351,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 					       ispell-personal-dictionary)))))
 		      (setq args (append args ispell-extra-args))
 		      args))))
-      (if (= c 0)
+      (if (eq c 0)
 	  (flyspell-external-point-words)
 	(error "Can't check region...")))))
 
@@ -1628,7 +1630,7 @@ misspelled words backwards."
 (defun flyspell-abbrev-table ()
   (if flyspell-use-global-abbrev-table-p
       global-abbrev-table
-    local-abbrev-table))
+    (or local-abbrev-table global-abbrev-table)))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-define-abbrev ...                                       */

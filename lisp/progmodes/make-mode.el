@@ -1374,7 +1374,7 @@ and generates the overview, one line per target name."
   (delete-file filename))		; remove the tmpfile
 
 (defun makefile-query-by-make-minus-q (target &optional filename)
-  (not (zerop
+  (not (eq 0
 	(call-process makefile-brave-make nil nil nil
 		      "-f" filename "-q" target))))
 

@@ -760,17 +760,20 @@ return nil.  */)
 
 DEFUN ("declare-equiv-charset", Fdeclare_equiv_charset, Sdeclare_equiv_charset,
        4, 4, 0,
-       doc: /* Declare a charset of DIMENSION, CHARS, FINAL-CHAR is the same as CHARSET.
-CHARSET should be defined by `defined-charset' in advance.  */)
-     (dimension, chars, final_char, charset_symbol)
-     Lisp_Object dimension, chars, final_char, charset_symbol;
+       doc: /* Declare an equivalent charset for ISO-2022 decoding.
+
+On decoding by an ISO-2022 base coding system, when a charset
+specified by DIMENSION, CHARS, and FINAL-CHAR is designated, behave as
+if CHARSET is designated instead.  */)
+     (dimension, chars, final_char, charset)
+     Lisp_Object dimension, chars, final_char, charset;
 {
-  int charset;
+  int charset_id;
 
   CHECK_NUMBER (dimension);
   CHECK_NUMBER (chars);
   CHECK_NUMBER (final_char);
-  CHECK_SYMBOL (charset_symbol);
+  CHECK_SYMBOL (charset);
 
   if (XINT (dimension) != 1 && XINT (dimension) != 2)
     error ("Invalid DIMENSION %d, it should be 1 or 2", XINT (dimension));
@@ -778,10 +781,10 @@ CHARSET should be defined by `defined-charset' in advance.  */)
     error ("Invalid CHARS %d, it should be 94 or 96", XINT (chars));
   if (XINT (final_char) < '0' || XFASTINT (final_char) > '~')
     error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
-  if ((charset = get_charset_id (charset_symbol)) < 0)
-    error ("Invalid charset %s", SDATA (SYMBOL_NAME (charset_symbol)));
+  if ((charset_id = get_charset_id (charset)) < 0)
+    error ("Invalid charset %s", SDATA (SYMBOL_NAME (charset)));
 
-  ISO_CHARSET_TABLE (dimension, chars, final_char) = charset;
+  ISO_CHARSET_TABLE (dimension, chars, final_char) = charset_id;
   return Qnil;
 }
 

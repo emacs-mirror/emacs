@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 02, 2003
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 02, 03, 2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -67,7 +67,7 @@ struct buffer *all_buffers;
    Setting the default value also goes through the alist of buffers
    and stores into each buffer that does not say it has a local value.  */
 
-struct buffer buffer_defaults;
+DECL_ALIGN (struct buffer, buffer_defaults);
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 
@@ -89,10 +89,6 @@ static Lisp_Object Vbuffer_defaults;
    If a slot is -2, then there is no DEFVAR_PER_BUFFER for it,
    but there is a default value which is copied into each buffer.
 
-   If a slot in this structure is negative, then even though there may
-   be a DEFVAR_PER_BUFFER for the slot, there is no default value for it;
-   and the corresponding slot in buffer_defaults is not used.
-
    If a slot in this structure corresponding to a DEFVAR_PER_BUFFER is
    zero, that is a bug */
 
@@ -101,7 +97,8 @@ struct buffer buffer_local_flags;
 /* This structure holds the names of symbols whose values may be
    buffer-local.  It is indexed and accessed in the same way as the above. */
 
-struct buffer buffer_local_symbols;
+DECL_ALIGN (struct buffer, buffer_local_symbols);
+
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
 
@@ -1202,6 +1199,10 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
       buf = Fcdr (XCAR (tail));
       if (EQ (buf, buffer))
 	continue;
+      if (NILP (buf))
+	continue;
+      if (NILP (XBUFFER (buf)->name))
+	continue;
       if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
       /* If the selected frame has a buffer_predicate,
@@ -1429,7 +1430,8 @@ with SIGHUP.  */)
   if (STRINGP (b->auto_save_file_name)
       && b->auto_save_modified != 0
       && BUF_SAVE_MODIFF (b) < b->auto_save_modified
-      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+      && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
+      && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
@@ -4958,6 +4960,7 @@ init_buffer_once ()
   buffer_defaults.scroll_bar_width = Qnil;
   buffer_defaults.vertical_scroll_bar_type = Qt;
   buffer_defaults.indicate_empty_lines = Qnil;
+  buffer_defaults.indicate_buffer_boundaries = Qnil;
   buffer_defaults.scroll_up_aggressively = Qnil;
   buffer_defaults.scroll_down_aggressively = Qnil;
   buffer_defaults.display_time = Qnil;
@@ -5027,6 +5030,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.scroll_bar_width, idx); ++idx;
   XSETFASTINT (buffer_local_flags.vertical_scroll_bar_type, idx); ++idx;
   XSETFASTINT (buffer_local_flags.indicate_empty_lines, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.indicate_buffer_boundaries, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
@@ -5314,6 +5318,11 @@ This is the same as (default-value 'vertical-scroll-bar).  */);
 		     &buffer_defaults.indicate_empty_lines,
 		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
+
+  DEFVAR_LISP_NOPRO ("default-indicate-buffer-boundaries",
+		     &buffer_defaults.indicate_buffer_boundaries,
+		     doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
+This is the same as (default-value 'indicate-buffer-boundaries).  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
 		     &buffer_defaults.scroll_up_aggressively,
@@ -5624,6 +5633,14 @@ A value of t means to use the vertical scroll bar type from the window's frame. 
 		     doc: /* *Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
+
+  DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
+		     &current_buffer->indicate_buffer_boundaries, Qnil,
+		     doc: /* *Visually indicate buffer boundaries and scrolling.
+If non-nil, the first and last line of the buffer are marked in the left and
+right fringe of a window on window-systems.
+In addition, if value is t, the top and bottom line of the window are marked
+with up and down arrow bitmaps in the right fringe if window can be scrolled.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,

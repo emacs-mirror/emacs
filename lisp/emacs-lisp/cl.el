@@ -108,6 +108,10 @@ printer proceeds to the next function on the list.
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
 
+(defvar cl-unload-hook '(cl-cannot-unload)
+  "Prevent unloading the feature `cl', since it does not work.")
+(defun cl-cannot-unload ()
+  (error "Cannot unload the feature `cl'"))
 
 ;;; Predicates.
 
@@ -579,9 +583,10 @@ Keywords supported:  :test :test-not :key"
   "Non-nil means don't make CL functions autoload.")
 
 ;;; Autoload the other portions of the package.
-;; We want to replace the basic versions of dolist, dotimes below.
+;; We want to replace the basic versions of dolist, dotimes, declare below.
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
+(fmakunbound 'declare)
 (mapcar (function
 	 (lambda (set)
 	   (let ((file (if cl-fake-autoloads "<none>" (car set))))

@@ -197,6 +197,8 @@ static void Select();
 static void Key();
 static void Nothing();
 static int separator_height __P ((enum menu_separator));
+static void pop_up_menu __P ((XlwMenuWidget, XButtonPressedEvent *));
+
 
 static XtActionsRec
 xlwMenuActionsList [] =
@@ -2004,6 +2006,13 @@ Start (w, ev, params, num_params)
   if (!mw->menu.popped_up)
     {
       menu_post_event = *ev;
+      /* If event is set to CurrentTime, get the last known time stamp.
+         This is for calculating if (popup) menus should stay up after
+         a fast click.  */
+      if (menu_post_event.xbutton.time == CurrentTime)
+        menu_post_event.xbutton.time
+          = XtLastTimestampProcessed (XtDisplay (w));
+
       pop_up_menu (mw, (XButtonPressedEvent*) ev);
     }
   else
@@ -2044,15 +2053,17 @@ Nothing (w, ev, params, num_params)
 {
 }
 
-widget_value *
-find_first_selectable (mw, item)
+static widget_value *
+find_first_selectable (mw, item, skip_no_call_data)
      XlwMenuWidget mw;
      widget_value *item;
+     int skip_no_call_data;
 {
   widget_value *current = item;
   enum menu_separator separator;
 
-  while (lw_separator_p (current->name, &separator, 0) || !current->enabled)
+  while (lw_separator_p (current->name, &separator, 0) || !current->enabled
+         || (skip_no_call_data && !current->call_data))
     if (current->next)
       current=current->next;
     else
@@ -2061,8 +2072,8 @@ find_first_selectable (mw, item)
   return current;
 }
 
-widget_value *
-find_next_selectable (mw, item)
+static widget_value *
+find_next_selectable (mw, item, skip_no_call_data)
      XlwMenuWidget mw;
      widget_value *item;
 {
@@ -2070,7 +2081,8 @@ find_next_selectable (mw, item)
   enum menu_separator separator;
 
   while (current->next && (current=current->next) &&
-	 (lw_separator_p (current->name, &separator, 0) || !current->enabled))
+	 (lw_separator_p (current->name, &separator, 0) || !current->enabled
+          || (skip_no_call_data && !current->call_data)))
     ;
 
   if (current == item)
@@ -2079,7 +2091,9 @@ find_next_selectable (mw, item)
 	return current;
       current = mw->menu.old_stack [mw->menu.old_depth - 2]->contents;
 
-      while (lw_separator_p (current->name, &separator, 0) || !current->enabled)
+      while (lw_separator_p (current->name, &separator, 0)
+             || !current->enabled
+             || (skip_no_call_data && !current->call_data))
 	{
 	  if (current->next)
 	    current=current->next;
@@ -2093,15 +2107,16 @@ find_next_selectable (mw, item)
   return current;
 }
 
-widget_value *
-find_prev_selectable (mw, item)
+static widget_value *
+find_prev_selectable (mw, item, skip_no_call_data)
      XlwMenuWidget mw;
      widget_value *item;
 {
   widget_value *current = item;
   widget_value *prev = item;
 
-  while ((current=find_next_selectable (mw, current)) != item)
+  while ((current=find_next_selectable (mw, current, skip_no_call_data))
+         != item)
     {
       if (prev == current)
 	break;
@@ -2120,15 +2135,23 @@ Down (w, ev, params, num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+  int popup_menu_p = mw->menu.top_depth == 1;
 
   /* Inside top-level menu-bar?  */
-  if (mw->menu.old_depth == 2)
+  if (mw->menu.old_depth == mw->menu.top_depth)
     /* When <down> in the menu-bar is pressed, display the corresponding
-       sub-menu and select the first selectable menu item there.  */
-    set_new_state (mw, find_first_selectable (mw, selected_item->contents), mw->menu.old_depth);
+       sub-menu and select the first selectable menu item there.
+       If this is a popup menu, skip items with zero call data (title of
+       the popup).  */
+    set_new_state (mw,
+                   find_first_selectable (mw,
+                                          selected_item->contents,
+                                          popup_menu_p),
+                   mw->menu.old_depth);
   else
     /* Highlight next possible (enabled and not separator) menu item.  */
-    set_new_state (mw, find_next_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    set_new_state (mw, find_next_selectable (mw, selected_item, popup_menu_p),
+                   mw->menu.old_depth - 1);
 
   remap_menubar (mw);
 }
@@ -2142,27 +2165,39 @@ Up (w, ev, params, num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+  int popup_menu_p = mw->menu.top_depth == 1;
 
   /* Inside top-level menu-bar?  */
-  if (mw->menu.old_depth == 2)
+  if (mw->menu.old_depth == mw->menu.top_depth)
     {
       /* FIXME: this is tricky.  <up> in the menu-bar should select the
 	 last selectable item in the list.  So we select the first
 	 selectable one and find the previous selectable item.  Is there
 	 a better way?  */
-      set_new_state (mw, find_first_selectable (mw, selected_item->contents), mw->menu.old_depth);
+      /* If this is a popup menu, skip items with zero call data (title of
+         the popup).  */
+      set_new_state (mw,
+                     find_first_selectable (mw,
+                                            selected_item->contents,
+                                            popup_menu_p),
+                     mw->menu.old_depth);
       remap_menubar (mw);
       selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
-      set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+      set_new_state (mw,
+                     find_prev_selectable (mw,
+                                           selected_item,
+                                           popup_menu_p),
+                     mw->menu.old_depth - 1);
     }
   else
     /* Highlight previous (enabled and not separator) menu item.  */
-    set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    set_new_state (mw, find_prev_selectable (mw, selected_item, popup_menu_p),
+                   mw->menu.old_depth - 1);
 
   remap_menubar (mw);
 }
 
-static void
+void
 Left (w, ev, params, num_params)
      Widget w;
      XEvent *ev;
@@ -2173,31 +2208,36 @@ Left (w, ev, params, num_params)
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
 
   /* Inside top-level menu-bar?  */
-  if (mw->menu.old_depth == 2)
+  if (mw->menu.old_depth == mw->menu.top_depth)
     /* When <left> in the menu-bar is pressed, display the previous item on
        the menu-bar. If the current item is the first one, highlight the
        last item in the menubar (probably Help).  */
-    set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    set_new_state (mw, find_prev_selectable (mw, selected_item, 0),
+                   mw->menu.old_depth - 1);
   else if (mw->menu.old_depth == 1
 	   && selected_item->contents)     /* Is this menu item expandable?  */
     {
       set_new_state (mw, selected_item->contents, mw->menu.old_depth);
       remap_menubar (mw);
       selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
-      if (!selected_item->enabled && find_first_selectable (mw, selected_item))
-	set_new_state (mw, find_first_selectable (mw, selected_item), mw->menu.old_depth - 1);
+      if (!selected_item->enabled && find_first_selectable (mw,
+                                                            selected_item,
+                                                            0))
+	set_new_state (mw, find_first_selectable (mw, selected_item, 0),
+                       mw->menu.old_depth - 1);
     }
 
   else
     {
       pop_new_stack_if_no_contents (mw);
-      set_new_state (mw, mw->menu.old_stack [mw->menu.old_depth - 2], mw->menu.old_depth - 2);
+      set_new_state (mw, mw->menu.old_stack [mw->menu.old_depth - 2],
+                     mw->menu.old_depth - 2);
     }
 
   remap_menubar (mw);
 }
 
-static void
+void
 Right (w, ev, params, num_params)
      Widget w;
      XEvent *ev;
@@ -2208,23 +2248,28 @@ Right (w, ev, params, num_params)
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
 
   /* Inside top-level menu-bar?  */
-  if (mw->menu.old_depth == 2)
+  if (mw->menu.old_depth == mw->menu.top_depth)
     /* When <right> in the menu-bar is pressed, display the next item on
        the menu-bar. If the current item is the last one, highlight the
        first item (probably File).  */
-    set_new_state (mw, find_next_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    set_new_state (mw, find_next_selectable (mw, selected_item, 0),
+                   mw->menu.old_depth - 1);
   else if (selected_item->contents)     /* Is this menu item expandable?  */
     {
       set_new_state (mw, selected_item->contents, mw->menu.old_depth);
       remap_menubar (mw);
       selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
-      if (!selected_item->enabled && find_first_selectable (mw, selected_item))
-	set_new_state (mw, find_first_selectable (mw, selected_item), mw->menu.old_depth - 1);
+      if (!selected_item->enabled && find_first_selectable (mw,
+                                                            selected_item,
+                                                            0))
+	set_new_state (mw, find_first_selectable (mw, selected_item, 0),
+                       mw->menu.old_depth - 1);
     }
   else
     {
       pop_new_stack_if_no_contents (mw);
-      set_new_state (mw, mw->menu.old_stack [mw->menu.old_depth - 2], mw->menu.old_depth - 2);
+      set_new_state (mw, mw->menu.old_stack [mw->menu.old_depth - 2],
+                     mw->menu.old_depth - 2);
     }
 
   remap_menubar (mw);
@@ -2305,7 +2350,7 @@ Select (w, ev, params, num_params)
 
 
 /* Special code to pop-up a menu */
-void
+static void
 pop_up_menu (mw, event)
      XlwMenuWidget mw;
      XButtonPressedEvent* event;
@@ -2349,6 +2394,7 @@ pop_up_menu (mw, event)
       display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
       mw->menu.windows [0].x = x + borderwidth;
       mw->menu.windows [0].y = y + borderwidth;
+      mw->menu.top_depth = 1;  /* Popup menus don't have a bar so top is 1  */
     }
   else
     {
@@ -2359,6 +2405,7 @@ pop_up_menu (mw, event)
       /* notes the absolute position of the menubar window */
       mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
       mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
+      mw->menu.top_depth = 2;
     }
 
 #ifdef emacs

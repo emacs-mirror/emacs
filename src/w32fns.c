@@ -51,6 +51,7 @@ Boston, MA 02111-1307, USA.  */
 #include <commdlg.h>
 #include <shellapi.h>
 #include <ctype.h>
+#include <winspool.h>
 
 #include <dlgs.h>
 #define FILE_NAME_TEXT_FIELD edt1
@@ -5557,6 +5558,11 @@ x_to_w32_font (lpxstr, lplogfont)
             (Fcheck_coding_system (Vlocale_coding_system), &coding);
 	  coding.src_multibyte = 1;
 	  coding.dst_multibyte = 1;
+	  /* Need to set COMPOSITION_DISABLED, otherwise Emacs crashes in
+	     encode_coding_iso2022 trying to dereference a null pointer.  */
+	  coding.composing = COMPOSITION_DISABLED;
+	  if (coding.type == coding_type_iso2022)
+	    coding.flags |= CODING_FLAG_ISO_SAFE;
 	  bufsize = encoding_buffer_size (&coding, strlen (name));
 	  buf = (unsigned char *) alloca (bufsize);
           coding.mode |= CODING_MODE_LAST_BLOCK;
@@ -13921,6 +13927,76 @@ If the underlying system call fails, value is nil.  */)
   return value;
 }
 
+DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
+       0, 0, 0, doc: /* Return the name of Windows default printer device.  */)
+     ()
+{
+  static char pname_buf[256];
+  int err;
+  HANDLE hPrn;
+  PRINTER_INFO_2 *ppi2 = NULL;
+  DWORD dwNeeded = 0, dwReturned = 0;
+
+  /* Retrieve the default string from Win.ini (the registry).
+   * String will be in form "printername,drivername,portname".
+   * This is the most portable way to get the default printer. */
+  if (GetProfileString ("windows", "device", ",,", pname_buf, sizeof (pname_buf)) <= 0)
+    return Qnil;
+  /* printername precedes first "," character */
+  strtok (pname_buf, ",");
+  /* We want to know more than the printer name */
+  if (!OpenPrinter (pname_buf, &hPrn, NULL))
+    return Qnil;
+  GetPrinter (hPrn, 2, NULL, 0, &dwNeeded);
+  if (dwNeeded == 0)
+    {
+      ClosePrinter (hPrn);
+      return Qnil;
+    }
+  /* Allocate memory for the PRINTER_INFO_2 struct */
+  ppi2 = (PRINTER_INFO_2 *) xmalloc (dwNeeded);
+  if (!ppi2)
+    {
+      ClosePrinter (hPrn);
+      return Qnil;
+    }
+  /* Call GetPrinter() again with big enouth memory block */
+  err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
+  ClosePrinter (hPrn);
+  if (!err)
+    {
+      xfree(ppi2);
+      return Qnil;
+    }
+
+  if (ppi2)
+    {
+      if (ppi2->Attributes & PRINTER_ATTRIBUTE_SHARED && ppi2->pServerName)
+        {
+	  /* a remote printer */
+	  if (*ppi2->pServerName == '\\')
+	    _snprintf(pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
+		      ppi2->pShareName);
+	  else
+	    _snprintf(pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
+		      ppi2->pShareName);
+	  pname_buf[sizeof (pname_buf) - 1] = '\0';
+	}
+      else
+        {
+	  /* a local printer */
+	  strncpy(pname_buf, ppi2->pPortName, sizeof (pname_buf));
+	  pname_buf[sizeof (pname_buf) - 1] = '\0';
+	  /* `pPortName' can include several ports, delimited by ','.
+	   * we only use the first one. */
+	  strtok(pname_buf, ",");
+	}
+      xfree(ppi2);
+    }
+
+  return build_string (pname_buf);
+}
+
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -14373,6 +14449,7 @@ versions of Windows) characters.  */);
   defsubr (&Sw32_find_bdf_fonts);
 
   defsubr (&Sfile_system_info);
+  defsubr (&Sdefault_printer_name);
 
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = w32_get_font_info;

@@ -512,7 +512,8 @@ echo "Making links to \`nt/inc/netinet'"
 
 echo "Making links to \`nt/icons'"
 (cd nt/icons
- ln [a-z]*.ico ../../${tempdir}/nt/icons)
+ ln [a-z]*.ico ../../${tempdir}/nt/icons
+ ln [a-z]*.cur ../../${tempdir}/nt/icons)
 
 echo "Making links to \`mac'"
 (cd mac
@@ -614,7 +615,7 @@ echo "Making links to \`man'"
 
 echo "Making links to \`lispref'"
 (cd lispref
- ln `ls -1 *.texi | grep -v index.texi` ../${tempdir}/lispref
+ ln `ls -1 *.texi` ../${tempdir}/lispref
  ln *.aux *.cps *.fns *.kys *.vrs index.*perm ../${tempdir}/lispref
  ln *.txt *.el spellfile permute-index tindex.pl ../${tempdir}/lispref
  test -f README && ln README ../${tempdir}/lispref

@@ -48,6 +48,7 @@ under X.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::	        How to enable and disable scroll bars; how to use them.
 * Wheeled Mice::        Using mouse wheels for scrolling.
+* Drag and drop::       Using drag and drop to open files and insert text.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
@@ -794,6 +795,40 @@ generating appropriate events for Emacs.
   The variables @code{mouse-wheel-follow-mouse} and
 @code{mouse-wheel-scroll-amount} determine where and by how much
 buffers are scrolled.
+
+@node Drag and drop
+@section Drag and drop in Emacs.
+
+@cindex drag and drop
+  Emacs supports drag and drop so that dropping of files and text is handeled.
+Currently supported drag and drop protocols are XDND and the old KDE 1.x
+protocol.  There is no drag support yet. 
+When text is dropped on Emacs, Emacs inserts the text where it is dropped.
+When a file is dragged from a file manager to Emacs, Emacs opens that file.
+As a special case, if a file is dropped on a dired buffer the file is
+copied or moved (depends on exactly how it is dragged and the application
+it was dragged from) to the directory the dired buffer is displaying.
+
+@vindex x-dnd-open-file-other-window
+  A file is normally opened in the window it is dropped on, but if you
+prefer the file to be opened in a new window you can customize the variable
+@code{x-dnd-open-file-other-window}.
+
+@vindex x-dnd-types-alist
+  If you want to change the way Emacs handles drop of different types
+or add a new type, you shall customize @code{x-dnd-types-alist}.  This
+requires detailed knowledge of what types other applications use
+for drag and drop.
+
+@vindex x-dnd-protocol-alist
+  When an URL is dropped on Emacs it may be a file, but it may also be
+another URL type (ftp, http, etc.).  Emacs first checks
+@code{x-dnd-protocol-alist} to determine what to do with the URL.  If there
+is no match there and if @code{browse-url-browser-function} is an alist,
+Emacs looks for a match there.  If no match is found the text for the URL
+is inserted.  If you want to alter Emacs behaviour you can customize these
+variables.
+
 
 @node Menu Bars
 @section Menu Bars

@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2003-05-21
-Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -13,6 +13,9 @@ so we will look at it and add it to the manual.
 
 
 * Installation Changes in Emacs 21.4
+
+---
+** A Bulgarian translation of the Emacs Tutorial is available.
 
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
 when you run configure.  This requires Gtk+ 2.0 or newer.  This port
@@ -79,9 +82,31 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 ---
 ** A French translation of the Emacs Tutorial is available.
+** Building with -DENABLE_CHECKING does not automatically build with union
+types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 
 * Changes in Emacs 21.4
+
+** On window systems, lines which are exactly as wide as the window
+(not counting the final newline character) are no longer broken into
+two lines on the display (with just the newline on the second line).
+Instead, the newline now "overflows" into the right fringe, and the
+cursor will be displayed in the fringe when positioned on that newline.
+
+The new user option 'overflow-newline-into-fringe' may be set to nil to
+revert to the old behaviour of continuing such lines.
+
+** The buffer boundaries (i.e. first and last line in the buffer) may now
+be marked with bitmaps in the fringes.  In addition, up and down
+arrow bitmaps may be shown at the top and bottom of the right fringe
+if the window can be scrolled in either direction.
+
+This behavior is activated by setting the buffer-local variable
+`indicate-buffer-boundaries' to a non-nil value.  If value is t, both
+boundaries and scrolling arrows are shown; any other non-nil value
+shows only the buffer boundaries.  The default value of this variable
+is found in `default-indicate-buffer-boundaries'.
 
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
@@ -104,7 +129,10 @@ echo area, using `display-local-help'.
 ** Help mode now only makes hyperlinks for faces when the face name is
 preceded or followed by the word `face'.  It no longer makes
 hyperlinks for variables without variable documentation, unless
-preceded by one of the words `variable' or `option'.
+preceded by one of the words `variable' or `option'.  It now makes
+hyperlinks to Info anchors (or nodes) if the anchor (or node) name is
+enclosed in single quotes and preceded by `info anchor' or `Info
+anchor' (in addition to earlier `info node' and `Info node').
 
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
@@ -256,6 +284,11 @@ or when the frame is resized.
 
 These functions return the current locations of the vertical and
 horisontal scroll bars in a frame or window.
+
+---
+** Emacs now supports drag and drop for X.  Dropping a file on a window
+   opens it, dropping text inserts the text.  Dropping a file on a dired
+   buffer copies or moves the file to that directory.
 
 ** Under X, mouse-wheel-mode is turned on by default.
 
@@ -477,6 +510,13 @@ command.
 ** The scrollbar under LessTif or Motif has a smoother drag-scrolling.
 On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
+
+---
+** The pop up menus for Lucid now stay up if you do a fast click and can
+be navigated with the arrow keys (like Gtk+ and W32).
+
+---
+** Dialogs for Lucid/Athena and Lesstif/Motif pops down when pressing ESC.
 
 +++
 ** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
@@ -821,12 +861,19 @@ Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
 is only rarely needed.
 
 ---
-** jit-lock can now be delayed with `jit-lock-defer-time'.
+** JIT-lock changes
+*** jit-lock can now be delayed with `jit-lock-defer-time'.
 
 If this variable is non-nil, its value should be the amount of Emacs
 idle time in seconds to wait before starting fontification.  For
 example, if you set `jit-lock-defer-time' to 0.25, fontification will
 only happen after 0.25s of idle time.
+
+*** contextual refontification is now separate from stealth fontification.
+
+jit-lock-defer-contextually is renamed jit-lock-contextually and
+jit-lock-context-time determines the delay after which contextual
+refontification takes place.
 
 +++
 ** Marking commands extend the region when invoked multiple times.  If
@@ -942,6 +989,12 @@ count backward from the end of the year.
 ** The function `simple-diary-display' now by default sets a header line.
 This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
+
++++
+** The procedure for activating appointment reminders has changed: use
+the new function `appt-activate'. The new variable
+`appt-display-format' controls how reminders are displayed, replacing
+appt-issue-message, appt-visible, and appt-msg-window.
 
 ** VC Changes
 
@@ -1510,6 +1563,21 @@ use for the modifiers.  For example, the following two lines swap
 Meta and Alt:
     (setq x-alt-keysym 'meta)
     (setq x-meta-keysym 'alt)
+
++++
+** vc-annotate-mode enhancements
+
+In vc-annotate mode, you can now use the following key bindings for
+enhanced functionality to browse the annotations of past revisions, or
+to view diffs or log entries directly from vc-annotate-mode:
+
+    P:  annotates the previous revision
+    N:  annotates the next revision
+    J:  annotates the revision at line
+    A:  annotates the revision previous to line
+    D:  shows the diff of the revision at line with its previous revision
+    L:  shows the log of the revision at line
+    W:  annotates the workfile (most up to date) version
 
 * New modes and packages in 21.4
 
@@ -1734,6 +1802,34 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** The default value of `sentence-end' is now defined using the new
+variable `sentence-end-without-space' which contains such characters
+that end a sentence without following spaces.
+
++++
+** The flags, width, and precision options for %-specifications in function
+`format' are now documented.  Some flags that were accepted but not
+implemented (such as "*") are no longer accepted.
+
++++
+** New function `delete-dups' destructively removes `equal' duplicates
+from a list.  Of several `equal' occurrences of an element in the list,
+the last one is kept.
+
++++
+** `declare' is now a macro.  This change was made mostly for
+documentation purposes and should have no real effect on Lisp code.
+
+** The new hook `before-save-hook' is invoked by `basic-save-buffer'
+before saving buffers.  This allows packages to perform various final
+tasks, for example; it can be used by the copyright package to make
+sure saved files have the current year in any copyright headers.
+
+** The function `insert-for-yank' now supports strings where the
+`yank-handler' property does not span the first character of the
+string.  The old behavior is available if you call
+`insert-for-yank-1' instead.
+
 ** New function `get-char-property-and-overlay' accepts the same
 arguments as `get-char-property' and returns a cons whose car is the
 return value of `get-char-property' called with those arguments and
@@ -1779,13 +1875,17 @@ mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
 *** Mouse clicks on fringes now generates left-fringe or right-fringes
 events, rather than a text area click event.
 
+*** Mouse clicks in the left and right marginal areas now includes a
+sensible buffer position corresponding to the first character in the
+corresponding text row.
+
+*** Function `mouse-set-point' now works for events outside text area.
+
 +++
 *** Mouse events now includes buffer position for all event types.
 
 +++
 *** `posn-point' now returns buffer position for non-text area events.
-
-*** Function `mouse-set-point' now works for events outside text area.
 
 +++
 *** New function `posn-area' returns window area clicked on (nil means
@@ -1804,9 +1904,15 @@ text area).
 *** Mouse events include relative x and y pixel coordinates relative to
 the top left corner of the object (image or character) clicked on.
 
-*** New functions 'posn-object' and 'posn-object-x-y' return the image
-or string object of a mouse click, and the x and y pixel coordinates
-relative to the top left corner of that object.
++++
+*** Mouse events include the pixel width and height of the object
+(image or character) clicked on.
+
++++
+*** New functions 'posn-object', 'posn-object-x-y', and
+'posn-object-width-height' return the image or string object of a mouse
+click, the x and y pixel coordinates relative to the top left corner
+of that object, and the total width and height of that object.
 
 ** New function `force-window-update' can initiate a full redisplay of
 one or all windows.  Normally, this is not needed as changes in window
@@ -2514,6 +2620,17 @@ and modify elements on this property list.
 
 The new low-level functions process-plist and set-process-plist are
 used to access and replace the entire property list of a process.
+
+???
+*** Adaptive read buffering of subprocess output.
+
+On some systems, when emacs reads the output from a subprocess, the
+output data is read in very small blocks, potentially resulting in
+very poor performance.  This behaviour can be remedied to some extent
+by setting the new variable process-adaptive-read-buffering to a
+non-nil value (the default), as it will automatically delay reading
+from such processes, to allowing them to produce more output before
+emacs tries to read it.
 
 +++
 ** Enhanced networking support.
@@ -7260,7 +7377,8 @@ Additional image properties supported are:
 `:index INDEX'
 
 INDEX must be an integer >= 0.  Load image number INDEX from a
-multi-image GIF file.  An error is signaled if INDEX is too large.
+multi-image GIF file.  If INDEX is too large, the image displays
+as a hollow box.
 
 This could be used to implement limited support for animated GIFs.
 For example, the following function displays a multi-image GIF file

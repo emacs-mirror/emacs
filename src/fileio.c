@@ -2407,7 +2407,7 @@ Also set the file modes of the target file to match the source file.  */)
   CHECK_STRING (newname);
 
   if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (file, newname);
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
   else
     newname = Fexpand_file_name (newname, Qnil);
 
@@ -4685,7 +4685,9 @@ choose_write_coding_system (start, end, filename,
 {
   Lisp_Object val;
 
-  if (auto_saving)
+  if (auto_saving
+      && NILP (Fstring_equal (current_buffer->filename,
+			      current_buffer->auto_save_file_name)))
     {
       /* We use emacs-mule for auto saving... */
       setup_coding_system (Qemacs_mule, coding);
@@ -5221,7 +5223,14 @@ This does code conversion according to the value of
       update_mode_lines++;
     }
   else if (quietly)
-    return Qnil;
+    {
+      if (auto_saving
+	  && ! NILP (Fstring_equal (current_buffer->filename,
+				    current_buffer->auto_save_file_name)))
+	SAVE_MODIFF = MODIFF;
+
+      return Qnil;
+    }
 
   if (!auto_saving)
     message_with_string ((INTEGERP (append)
@@ -5776,11 +5785,14 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   minibuffer_auto_raise = 0;
   auto_saving = 1;
 
-  /* First, save all files which don't have handlers.  If Emacs is
-     crashing, the handlers may tweak what is causing Emacs to crash
-     in the first place, and it would be a shame if Emacs failed to
-     autosave perfectly ordinary files because it couldn't handle some
-     ange-ftp'd file.  */
+  /* On first pass, save all files that don't have handlers.
+     On second pass, save all files that do have handlers.
+
+     If Emacs is crashing, the handlers may tweak what is causing
+     Emacs to crash in the first place, and it would be a shame if
+     Emacs failed to autosave perfectly ordinary files because it
+     couldn't handle some ange-ftp'd file.  */
+
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
     for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
       {
@@ -6083,6 +6095,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   if (SCHARS (name) == 0)
     return Qt;
 #endif /* VMS */
+  string = Fexpand_file_name (string, dir);
   if (!NILP (Vread_file_name_predicate))
     return call1 (Vread_file_name_predicate, string);
   return Ffile_exists_p (string);
@@ -6091,15 +6104,20 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-FILENAME if user enters a null string.
+Default name to DEFAULT-FILENAME if user exits the minibuffer with
+the same non-empty string that was inserted by this function.
  (If DEFAULT-FILENAME is omitted, the visited file name is used,
   except that if INITIAL is specified, that combined with DIR is used.)
+If the user exits with an empty minibuffer, this function returns
+an empty string.  (This can only happen if the user erased the
+pre-inserted contents or if `insert-default-directory' is nil.)
 Fourth arg MUSTMATCH non-nil means require existing file's name.
  Non-nil and non-t means also require confirmation after completion.
 Fifth arg INITIAL specifies text to start with.
-If optional sixth arg PREDICATE is non-nil, possible completions and the
-resulting file name must satisfy (funcall PREDICATE NAME).
-DIR defaults to current buffer's directory default.
+If optional sixth arg PREDICATE is non-nil, possible completions and
+the resulting file name must satisfy (funcall PREDICATE NAME).
+DIR should be an absolute directory name.  It defaults to the value of
+`default-directory'.
 
 If this command was invoked with the mouse, use a file dialog box if
 `use-dialog-box' is non-nil, and the window system or X toolkit in use
@@ -6263,13 +6281,6 @@ provides a file dialog box.  */)
 
   if (!NILP (tem) && !NILP (default_filename))
     val = default_filename;
-  else if (SCHARS (val) == 0 && NILP (insdef))
-    {
-      if (!NILP (default_filename))
-	val = default_filename;
-      else
-	error ("No default file name");
-    }
   val = Fsubstitute_in_file_name (val);
 
   if (replace_in_history)
@@ -6445,7 +6456,20 @@ same format as a regular save would use.  */);
   Vread_file_name_predicate = Qnil;
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
-	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.  */);
+	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.
+If the initial minibuffer contents are non-empty, you can usually
+request a default filename by typing RETURN without editing.  For some
+commands, exiting with an empty minibuffer has a special meaning,
+such as making the current buffer visit no file in the case of
+`set-visited-file-name'.
+If this variable is non-nil, the minibuffer contents are always
+initially non-empty and typing RETURN without editing will fetch the
+default name, if one is provided.  Note however that this default name
+is not necessarily the name originally inserted in the minibuffer, if
+that is just the default directory.
+If this variable is nil, the minibuffer often starts out empty.  In
+that case you may have to explicitly fetch the next history element to
+request the default name.  */);
   insert_default_directory = 1;
 
   DEFVAR_BOOL ("vms-stmlf-recfm", &vms_stmlf_recfm,

@@ -328,7 +328,7 @@ See `run-hooks'."
 	       "do" "else" "for-each" "if" "lambda"
 	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
 	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
-	       "and" "or" "delay"
+	       "and" "or" "delay" "force"
 	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
 	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
 	       "map" "syntax" "syntax-rules") t)

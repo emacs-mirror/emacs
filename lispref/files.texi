@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/files
@@ -404,18 +404,29 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 This works just like @code{write-file-functions}, but it is intended for
 hooks that pertain to the contents of the file, as opposed to hooks that
 pertain to where the file came from.  Such hooks are usually set up by
-major modes, as buffer-local bindings for this variable.
+major modes, as buffer-local bindings for this variable.  If any of the
+functions in this hook returns non-@code{nil}, @code{write-file-functions}
+is not run.
 
 This variable automatically becomes buffer-local whenever it is set;
-switching to a new major mode always resets this variable.
+switching to a new major mode always resets this variable, but
+calling @code{set-visited-file-name} does not.
 @end defvar
 
+@defopt before-save-hook
+This normal hook runs before a buffer is saved in its visited file,
+regardless of whether that is done normally or by one of the hooks
+described above.  For instance, the @file{copyright.el} program uses
+this hook to make sure the file you are saving has the current year in
+its copyright notice.
+@end defopt
+
 @c Emacs 19 feature
-@defvar after-save-hook
+@defopt after-save-hook
 This normal hook runs after a buffer has been saved in its visited file.
 One use of this hook is in Fast Lock mode; it uses this hook to save the
 highlighting information in a cache file.
-@end defvar
+@end defopt
 
 @defvar file-precious-flag
 If this variable is non-@code{nil}, then @code{save-buffer} protects
@@ -2165,6 +2176,14 @@ An error is signaled if @var{directory} is not the name of a directory
 that can be read.
 @end defun
 
+@defun directory-files-and-attributes directory &optional full-name match-regexp nosort
+This is similar to @code{directory-files} in deciding which files
+to report on and how to report their names.  However, instead
+of returning a list of file names, it returns for each file a
+list @code{(@var{filename} . @var{attributes})}, where @var{attributes}
+is what @code{file-attributes} would return for that file.
+@end defun
+
 @defun file-name-all-versions file dirname
 This function returns a list of all versions of the file named
 @var{file} in directory @var{dirname}.
@@ -2441,7 +2460,7 @@ multiple handlers, and for operations that have two file names that may
 each have handlers.
 
 @kindex safe-magic (@r{property})
-Handlers that don't really do anything specal for actual access to the
+Handlers that don't really do anything special for actual access to the
 file---such as the ones that implement completion of host names for
 remote file names---should have a non-@code{nil} @code{safe-magic}
 property.  For instance, Emacs normally ``protects'' directory names

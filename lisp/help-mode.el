@@ -231,7 +231,7 @@ when help commands related to multilingual environment (e.g.,
 
 
 (defconst help-xref-info-regexp
-  (purecopy "\\<[Ii]nfo[ \t\n]+node[ \t\n]+`\\([^']+\\)'")
+  (purecopy "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+`\\([^']+\\)'")
   "Regexp matching doc string references to an Info node.")
 
 ;;;###autoload
@@ -310,11 +310,11 @@ that."
               ;; Info references
               (save-excursion
                 (while (re-search-forward help-xref-info-regexp nil t)
-                  (let ((data (match-string 1)))
+                  (let ((data (match-string 2)))
 		    (save-match-data
 		      (unless (string-match "^([^)]+)" data)
 			(setq data (concat "(emacs)" data))))
-		    (help-xref-button 1 'help-info data))))
+		    (help-xref-button 2 'help-info data))))
 	      ;; Mule related keywords.  Do this before trying
 	      ;; `help-xref-symbol-regexp' because some of Mule
 	      ;; keywords have variable or function definitions.

@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000, 01, 2003
+;; Copyright (c) 1986, 93, 94, 95, 97, 98, 99, 2000, 01, 03, 04
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -237,9 +237,24 @@ See the variable `fortran-column-ruler-fixed' for fixed format mode."
 
 (defcustom fortran-break-before-delimiters t
   "*Non-nil causes filling to break lines before delimiters.
-Delimiters are whitespace, commas, quotes, and operators."
+Delimiters are characters matching the regexp `fortran-break-delimiters-re'."
   :type  'boolean
   :group 'fortran)
+
+(defconst fortran-break-delimiters-re "[-+*/><=, \t]"
+  "Regexp matching delimiter characters at which lines may be broken.
+There are certain tokens comprised entirely of characters
+matching this regexp that should not be split, and these are
+specified by the constant `fortran-no-break-re'.")
+
+;; The ">=", etc F77 extensions are supported by g77.
+(defconst fortran-no-break-re
+  (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=") 'paren)
+  "Regexp specifying where not to break lines when filling.
+This regexp matches certain tokens comprised entirely of
+characters matching the regexp `fortran-break-delimiters-re' that should
+not be split by filling.  Each element is assumed to be two
+characters long.")
 
 (defcustom fortran-mode-hook nil
   "Hook run when entering Fortran mode."
@@ -1646,56 +1661,68 @@ If ALL is nil, only match comments that start in column > 0."
 	 (bol (line-beginning-position))
 	 (eol (line-end-position))
 	 (bos (min eol (+ bol (fortran-current-line-indentation))))
+         ;; If in a string at fill-column, break it either before the
+         ;; initial quote, or at fill-col (if string is too long).
 	 (quote
 	  (save-excursion
 	    (goto-char bol)
 	    ;; OK to break quotes on comment lines.
 	    (unless (looking-at fortran-comment-line-start-skip)
               (let (fcpoint start)
-	      (move-to-column fill-column)
-	      (when (fortran-is-in-string-p (setq fcpoint (point)))
-                (save-excursion
-                  (re-search-backward "\\S\"\\s\"\\S\"" bol t)
-                  (setq start
-                        (if fortran-break-before-delimiters
-                            (point)
-                          (1+ (point)))))
-                (if (re-search-forward "\\S\"\\s\"\\S\"" eol t)
-                    (backward-char 2))
-                ;; If the current string is longer than 72 - 6 chars,
-                ;; break it at the fill column (else infinite loop).
-                (if (> (- (point) start)
-                       (- fill-column 6 fortran-continuation-indent))
-                    fcpoint
-                  start))))))
+                (move-to-column fill-column)
+                (when (fortran-is-in-string-p (setq fcpoint (point)))
+                  (save-excursion
+                    (re-search-backward "\\S\"\\s\"\\S\"?" bol t)
+                    (setq start
+                          (if fortran-break-before-delimiters
+                              (point)
+                            (1+ (point)))))
+                  (if (re-search-forward "\\S\"\\s\"\\S\"" eol t)
+                      (backward-char 2))
+                  ;; If the current string is longer than 72 - 6 chars,
+                  ;; break it at the fill column (else infinite loop).
+                  (if (> (- (point) start)
+                         (- fill-column 6 fortran-continuation-indent))
+                      fcpoint
+                    start))))))
 	 ;; Decide where to split the line. If a position for a quoted
 	 ;; string was found above then use that, else break the line
-	 ;; before the last delimiter.
-	 ;; Delimiters are whitespace, commas, and operators.
-	 ;; Will break before a pair of *'s.
+	 ;; before/after the last delimiter.
 	 (fill-point
 	  (or quote
 	      (save-excursion
-		(move-to-column (1+ fill-column))
-                ;; GM Make this a defcustom as in f90-mode? Add ", (?
-		(skip-chars-backward "^ \t\n,'+-/*=)"
-;;;		 (if fortran-break-before-delimiters
-;;;		     "^ \t\n,'+-/*=" "^ \t\n,'+-/*=)")
-		 )
-		(when (<= (point) (1+ bos))
+                ;; If f-b-b-d is t, have an extra column to play with,
+                ;; since delimiter gets shifted to new line.
+                (move-to-column (if fortran-break-before-delimiters
+                                    (1+ fill-column)
+                                  fill-column))
+                (let ((repeat t))
+                  (while repeat
+                    (setq repeat nil)
+                    ;; Adapted from f90-find-breakpoint.
+                    (re-search-backward fortran-break-delimiters-re
+                                        (line-beginning-position))
+                    (if (not fortran-break-before-delimiters)
+                        (if (looking-at fortran-no-break-re)
+                            ;; Deal with cases such as "**" split over
+                            ;; fill-col. Simpler alternative would be
+                            ;; to start from (1- fill-column) above.
+                            (if (> (+ 2 (current-column)) fill-column)
+                                (setq repeat t)
+                              (forward-char 2))
+                          (forward-char 1))
+                      (backward-char)
+                      (or (looking-at fortran-no-break-re)
+                          (forward-char)))))
+                ;; Line indented beyond fill-column?
+		(when (<= (point) bos)
                   (move-to-column (1+ fill-column))
                   ;; What is this doing???
                   (or (re-search-forward "[\t\n,'+-/*)=]" eol t)
                       (goto-char bol)))
 		(if (bolp)
-		    (re-search-forward "[ \t]" opoint t)
-		  (backward-char)
-		  (if (looking-at "\\s\"")
-		      (forward-char)
-		    (skip-chars-backward " \t\*")))
-		(if fortran-break-before-delimiters
-		    (point)
-		  (1+ (point)))))))
+		    (re-search-forward "[ \t]" opoint t))
+                (point)))))
     ;; If we are in an in-line comment, don't break unless the
     ;; line of code is longer than it should be. Otherwise
     ;; break the line at the column computed above.

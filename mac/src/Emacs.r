@@ -1,5 +1,5 @@
 /* Resource definitions for GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -174,7 +174,7 @@ resource 'DITL' (129, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"Emacs does not run on a Macintosh with more than 256 MB of physical or virtual memory"
+			"Emacs does not run on a Macintosh with more than 512 MB of physical or virtual memory"
 		}
 	}
 };

@@ -189,7 +189,7 @@ choose_minibuf_frame_1 (ignore)
 DEFUN ("set-minibuffer-window", Fset_minibuffer_window,
        Sset_minibuffer_window, 1, 1, 0,
        doc: /* Specify which minibuffer window to use for the minibuffer.
-This effects where the minibuffer is displayed if you put text in it
+This affects where the minibuffer is displayed if you put text in it
 without invoking the usual minibuffer commands.  */)
      (window)
      Lisp_Object window;

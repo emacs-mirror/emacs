@@ -1,3 +1,458 @@
+2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Vmouse_events): Rename from Vmenu_events.
+	(syms_of_keymap): Add mouse-[45], header-line, and mode-line to it.
+
+2004-02-04  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fset_char_table_range): Handle charsets ascii,
+	eight-bit-control, and eight-bit-graphic correctly.
+
+2004-02-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Make coding iso2022 safe.
+
+	* w32fns.c (x_to_w32_font): Likewise.
+
+2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Add x_handle_dnd_message, x_check_property_data,
+	x_fill_property_data, x_property_data_to_lisp and check_x_display_info.
+
+	* xterm.c (handle_one_xevent): Call x_handle_dnd_message for
+	ClientMessages.
+
+	* xselect.c: Include termhooks.h and X11/Xproto.h
+	(x_check_property_data, x_fill_property_data)
+	(x_property_data_to_lisp, mouse_position_for_drop)
+	(Fx_get_atom_name, x_handle_dnd_message): New functions for DND support.
+	(Fx_send_client_event): Move here from xfns.c.
+	(syms_of_xselect): Add Sx_get_atom_name and Sx_send_client_message.
+
+	* xfns.c (x-send-client-message): Move to xselect.c
+	(Fx_change_window_property): Add optional arguments TYPE, FORMAT and
+	OUTER_P.
+	(Fx_window_property): Add optional arguments TYPE, SOURCE, DELETE_P,
+	VECTOR_RET_P.  Handle AnyPropertyType.  Call x_property_data_to_lisp
+	if vector_ret_p is true.
+	(syms_of_xfns): Sx_send_client_message moved to xselect.c.
+
+2004-02-02  Eli Zaretskii  <eliz@elta.co.il>
+
+	* fileio.c (Fcopy_file): If NEWNAME is a directory, expand the
+	basename of FILE relative to it, not FILE itself.
+
+2004-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_restore_composition): Check invalid
+	composition data more rigidly.
+
+2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fileio.c (Fread_file_name_internal): Correctly handle the case
+	where insert-default-directory is nil.
+	(Fread_file_name): Always return an empty string if the user exits
+	with an empty minibuffer.  Adapt the docstring accordingly.
+	(syms_of_fileio): Adapt the docstring of insert-default-directory
+	to the change in Fread_file_name.
+
+2004-01-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* alloca.c [!alloca]: Fix the prototype for xfree.
+
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (string_char_to_byte): Optimize for ASCII only string.
+	(string_byte_to_char): Likewise.
+
+2004-01-28  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in, w32fns.c: Add `default-printer-name' function.
+
+2004-01-27  Steven Tamm <steventamm@mac.com>
+
+	* unexmacosx.c (unexec_copy): Do not copy more than was
+	requested to prevent overwriting during unexec.
+
+2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.c (sigchld_handler): Add comment about not calling malloc.
+
+	* process.h: Add extern to synch_process_termsig.
+
+2004-01-27  Steven Tamm <steventamm@mac.com>
+
+	* macterm.c (make_mac_frame, make_mac_terminal_frame):
+	Move setting of scroll bars from make_mac_frame to
+	make_mac_terminal_frame to prevent clobbering of scroll-bar-mode.
+
+2004-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Freplace_match): Handle nonexistent
+	back-references properly.
+
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (decode_any_window): New function.
+	(Fwindow_height, Fwindow_width, Fwindow_edges)
+	(Fwindow_pixel_edges, Fwindow_inside_edges)
+	(Fwindow_inside_pixel_edges): Use decode_any_window.
+
+2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.h: synch_process_termsig new variable.
+
+	* callproc.c: Define synch_process_termsig.
+	(Fcall_process): Initiate synch_process_termsig to zero and
+	check if non-zero and get signal name after subprocess has ended.
+
+	* process.c (sigchld_handler): Set synch_process_termsig
+	if terminated by a signal.  synch_process_death setting removed.
+
+	* sysdep.c (mkdir, rmdir): Also check synch_process_termsig.
+
+2004-01-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_preprocess): Declare size as EMACS_INT to not
+	lose bits.
+	(print_object): Likewise.
+	* alloc.c (Fpurecopy): Likewise.
+
+2004-01-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fwindow_minibuffer_p): Doc fix.
+
+2004-01-24  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* editfns.c (Fformat): Make both passes accept the same set of flags.
+
+2004-01-23  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fmd5): If OBJECT is a buffer different from the current
+	one, set buffer to OBJECT temporarily.
+
+2004-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (kbd_buffer_gcpro): Remove.
+	(kbd_buffer_store_event, clear_event, Fdiscard_input)
+	(stuff_buffered_input, init_keyboard, syms_of_keyboard):
+	Don't initialize and/or maintain the variable any more.  It was made
+	redundant by my commit of 2003-06-15.
+
+	* lisp.h [USE_LSB_TAG && !DECL_ALIGN]: Signal an error.
+
+2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lisp.h: Add undef DECL_ALIGN.
+
+2004-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (wait_reading_process_input) [SYNC_INPUT]:
+	Check interrupt_input_pending explicitly.
+
+	* lisp.h (QUIT) [SYNC_INPUT]: Check interrupt_input_pending as well.
+
+	* keyboard.c (handle_async_input): New fun,
+	extracted from input_available_signal.
+	(input_available_signal, reinvoke_input_signal): Use it.
+
+2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (buffer_defaults, buffer_local_symbols): Use DECL_ALIGN.
+
+	* lisp.h [USE_LSB_TAG]: Add definitions for Lisp_Object value
+	manipulation macros for when tags are in the lower bits.
+	(struct Lisp_Free) [USE_LSB_TAG]: Add padding.
+	(DECL_ALIGN): New macro.
+	(DEFUN): Use it.
+
+	* lisp.h [ENABLE_CHECKING]: Don't force union type.
+
+	* s/darwin.h (__attribute__): Remove outdated workaround.
+
+	* macterm.c (main) [USE_LSB_TAG]: Don't range check the ram.
+
+	* alloc.c (lisp_malloc, lisp_align_malloc) [USE_LSB_TAG]:
+	Don't check range of malloc address.
+	(pure_alloc) [USE_LSB_TAG]: Enforce alignment.
+
+	* process.c (wait_reading_process_input): Lisp_Object/int mixup.
+
+	* dired.c (Ffile_attributes): Lisp_Object/int mixup.
+
+2004-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_font_pattern): Fix previous change.
+
+2004-01-16  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* xdisp.c (Voverflow_newline_into_fringe)
+	(move_it_in_display_line_to, redisplay_internal)
+	(update_window_fringes, redisplay_window, display_line, window):
+	Add `#ifdef HAVE_WINDOW_SYSTEM' around fringe-drawing stuff, so
+	that it compiles without a window-system.
+	* dispnew.c (direct_output_for_insert, update_window): Likewise.
+
+2004-01-16  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.h (struct buffer): New member indicate_buffer_boundaries.
+
+	* buffer.c (init_buffer_once):  Set buffer_defaults and
+	buffer_local_flags for indicate_buffer_boundaries.
+	(syms_of_buffer): Defvar_per_buffer it, and defvar_lisp_nopro
+	default- variable for it.
+
+	* dispextern.h (struct glyph_row): New members left_fringe_bitmap,
+	right_fringe_bitmap, redraw_fringe_bitmaps_p for new fringe handling.
+	New members exact_window_width_line_p and cursor_in_fringe_p for
+	overflowing newlines into right fringe.
+	New members indicate_bob_p, indicate_top_line_p, indicate_eob_p,
+	and indicate_bottom_line_p for buffer boundaries and scrolling.
+	(enum fringe_bitmap_type): Add UP_ARROW_BITMAP, DOWN_ARROW_BITMAP,
+	FIRST_LINE_BITMAP, LAST_LINE_BITMAP, FILLED_BOX_CURSOR_BITMAP,
+	HOLLOW_BOX_CURSOR_BITMAP, BAR_CURSOR_BITMAP, HBAR_CURSOR_BITMAP,
+	and HOLLOW_SQUARE_BITMAP.
+	(draw_fringe_bitmap, draw_window_fringes, update_window_fringes):
+	Add prototypes.
+
+	* dispnew.c (row_equal_p, update_window_line): Compare fringe bitmaps
+	instead of related indicator fields.
+	Compare exact_window_width_line_p and cursor_in_mouse_face_p indicators.
+	(direct_output_for_insert): Handle exact width lines like
+	contined lines.  Call update_window_fringes.
+	(update_window): Call update_window_fringes.
+	(scrolling_window): Don't skip desired rows with changed bitmaps.
+	Check if fringe bitmaps changes when assigning scrolled rows.
+
+	* xdisp.c (Voverflow_newline_into_fringe): New variable.
+	(IT_OVERFLOW_NEWLINE_INTO_FRINGE): New macro.
+	(move_it_in_display_line_to): Overflow newline into fringe for
+	rows that are exactly as wide as the window.
+	(up_arrow_bits, down_arrow_bits, first_line_bits, last_line_bits)
+	(filled_box_cursor_bits, hollow_box_cursor_bits, bar_cursor_bits)
+	(hbar_cursor_bits, hollow_square_bits): New fringe bitmaps.
+	(fringe_bitmaps): Add new bitmaps.
+	(draw_fringe_bitmap): Make extern.  Remove WHICH arg.
+	Select proper bitmap for cursor in fringe when appropriate.
+	Handle alignment of bitmap to top or bottom of row.
+	(draw_row_fringe_bitmaps): Don't select bitmaps here; that is now
+	done by update_window_fringes.
+	(update_window_fringes, draw_window_fringes): New functions.
+	(redisplay_internal): Call update_window_fringes in case only
+	cursor row is updated.
+	(redisplay_window): Call update_window_fringes.
+	Explicitly call draw_window_fringes if redisplay was done using
+	the current matrix or the overlay arrow is in the window.
+	(try_window_reusing_current_matrix): Mark scrolled rows for
+	fringe update (to update buffer-boundaries / scrolling icons).
+	(find_last_unchanged_at_beg_row): Handle exact width lines line
+	continued lines.
+	(display_line): Overflow newline into fringe for rows that are
+	exactly as wide as the window.  Don't append space for newline
+	in this case.
+	(notice_overwritten_cursor): Explicitly clear cursor bitmap
+	in fringe as if it had been overwritten.
+	(erase_phys_cursor): Erase cursor bitmap in fringe.
+	(syms_of_xdisp): Mark show-trailing-whitespace and
+	void-text-area-pointer as user options.
+	DEFVAR_LISP Voverflow_newline_into_fringe.  Enable by default.
+
+	* xterm.c (x_update_window_end): Call draw_window_fringes.
+	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
+	in row instead of actually drawing fringe bitmaps.
+	(x_draw_fringe_bitmap): Handle bottom aligned bitmaps.
+	(x_draw_window_cursor): Draw cursor in fringe.
+
+	* w32term.c (x_update_window_end): Call draw_window_fringes.
+	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
+	in row instead of actually drawing fringe bitmaps.
+	(w32_draw_fringe_bitmap): Handle bottom aligned bitmaps.
+	(w32_draw_window_cursor): Draw cursor in fringe.
+
+	* macterm.c (x_update_window_end): Call draw_window_fringes.
+	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
+	in row instead of actually drawing fringe bitmaps.
+	(x_draw_fringe_bitmap): Handle bottom aligned bitmaps.
+	(mac_draw_window_cursor): Draw cursor in fringe.
+
+2004-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Don't handle characters that are part
+	of an old style (XLookupString) compose sequence.
+
+2004-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (Freplace_match): Use make_multibyte_string or
+	make_unibyte_string according to the buffer multibyteness.
+
+2004-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (struct interval_block, struct string_block)
+	(struct symbol_block, struct marker_block, live_string_p)
+	(live_cons_p, live_symbol_p, live_float_p, live_misc_p):
+	Better preserve alignment for objects in blocks.
+	(FLOAT_BLOCK_SIZE): Adjust for possible alignment padding.
+
+	* lread.c (defvar_per_buffer): Remove dead declaration.
+
+	* macterm.c (do_check_ram_size): Don't hardcode the lisp address
+	space size.
+
+2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (popup_get_selection): Check new parameter down_on_keypress
+	if a key press should pop down.  Only pop down if a key is pressed
+	outside the menu/dialog.
+	(create_and_show_popup_menu): Pass 0 for down_on_keypress to
+	popup_get_selection.
+	(create_and_show_dialog): Pass 1 for down_on_keypress to
+	popup_get_selection.
+
+2004-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (allocate_vectorlike): Surround calls to mallopt with
+	BLOCK/UNBLOCK_INPUT.
+
+2004-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (Fx_popup_dialog): Add an Ok button if no buttons are
+	specified.
+
+2004-01-08  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Fformat): Fix '&' to '&&'.
+
+2004-01-08  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_preprocess) <case Lisp_Vectorlike>: Only mask
+	size if PSEUDOVECTOR_FLAG is set.
+
+2004-01-07  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fdeclare_equiv_charset): Fix docstring.
+
+	* fontset.c (fontset_ref_via_base): Fix previous change.
+
+2004-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (read_process_output): Only activate adaptive
+	buffering if we read less than 256 bytes at a time.
+
+2004-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (buffer_posn_from_coords): Return both buffer/string
+	object and image object.  Return glyph width and height.
+	(mode_line_string, marginal_area_string): Ditto.
+
+	* dispextern.h (buffer_posn_from_coords, mode_line_string)
+	(marginal_area_string): Fix prototypes.
+
+	* keyboard.h (POSN_POSN, POSN_SET_POSN): Rename macros from
+	POSN_BUFFER_POSN and POSN_SET_BUFFER_POSN. All uses changed.
+	(POSN_INBUFFER_P, POSN_BUFFER_POSN): New macros.
+
+	* keyboard.c (make_lispy_position): Use modified mode_line_string,
+	buffer_posn_from_coords, and marginal_area_string functions to
+	include both string object and image object in the lispy position.
+	Also add actual glyph width and height to position.
+	(read_key_sequence): Use real buffer position from mouse
+	event to find keymap property even when click is in marginal area.
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Use modified
+	mode_line_string and marginal_area_string functions to handle
+	both string object and image object properties.
+
+2004-01-06  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (skip_chars): Treat '-' at end of string as ordinary
+	character.
+
+2004-01-02  Andreas Schwab  <schwab@suse.de>
+
+	* macterm.c (emacs_options, x_initialized, same_x_server):
+	Remove unused (and duplicated) definitions.
+
+2004-01-02  Kim F. Storm  <storm@cua.dk>
+
+	* process.h (struct Lisp_Process): New members for adaptive read
+	buffering: adaptive_read_buffering, read_output_delay, and
+	read_output_skip.
+
+	* process.c (ADAPTIVE_READ_BUFFERING): New conditional.
+	(READ_OUTPUT_DELAY_INCREMENT, READ_OUTPUT_DELAY_MAX)
+	(READ_OUTPUT_DELAY_MAX_MAX): New constants.
+	(process_output_delay_count, process_output_skip): New vars.
+	(Vprocess_adaptive_read_buffering): New variable.
+	(make_process): Initialize adaptive read buffering members.
+	(Fstart_process): Set adaptive_read_buffering member.
+	(deactivate_process): Cleanup adaptive read buffering.
+	(wait_reading_process_input): Temporarily omit delayed
+	subprocesses from the set of file descriptors to read from;
+	adjust the select timeout if we skipped any subprocesses.
+	(read_process_output): Increase adaptive read buffering delay if
+	we read less than a full buffer; reduce delay when we read a
+	full buffer.
+	(send_process): Simplify using local Lisp_Process var.
+	Reset adaptive read buffering delay after write.
+	(init_process): Initialize process_output_delay_count and
+	process_output_skip.
+	(syms_of_process): DEFVAR_LISP Vprocess_adaptive_read_buffering.
+
+2004-01-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_text_out): Use s->font, for consistency with callers.
+
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* print.c (Ferror_message_string): Add hyperlink in the docstring
+	to the definition of `signal' in the Elisp manual.
+	* eval.c (Fsignal): Ditto.
+
+2003-12-29  James Clark <jjc@jclark.com>  (tiny change)
+
+	* fns.c (internal_equal): Return t for two NaN arguments.
+
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (store_symval_forwarding): Handle setting
+	default-fill-column, etc., by changing the value in
+	buffers that use the default.
+
+	* minibuf.c (Fset_minibuffer_window): Doc fix.
+
+	* fileio.c (choose_write_coding_system): Ignore auto_saving
+	if using the visited file for auto saves.
+	(Fwrite_region): Don't update SAVE_MODIFF
+	if auto-saving in visited file.
+
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (face_font_available_p): Extern it.
+
+	* fontset.c (Voverriding_fontspec_alist): New variable.
+	(lookup_overriding_fontspec): New function.
+	(fontset_ref_via_base): Call lookup_overriding_fontspec if necessary.
+	(fontset_font_pattern): Likewise.
+	(regulalize_fontname): New function.
+	(Fset_fontset_font): Call regulalize_fontname.
+	(Fset_overriding_fontspec_internal): New function.
+	(syms_of_fontset): Initialize and staticpro Voverriding_fontspec_alist.
+	Defsubr Sset_overriding_fontspec_internal.
+
+	* xfaces.c (face_font_available_p): New function.
+
+2003-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fother_buffer): Don't crash if BUF is nil
+	or if its name is nil.
+
+	* buffer.c (Fkill_buffer): Don't delete auto-save file
+	if it's the same as the visited file.
+
+2003-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* coding.c (Fcheck_coding_system): Doc fix.
+
 2003-12-28  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (eval.o): Depend on dispextern.h.
@@ -39,7 +494,7 @@
 	(Vvoid_text_area_pointer): Replace Vshow_text_cursor_in_void.
 	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for
 	image maps.
-	(x_y_to_hpos_vpos): Return glyph relative coordinates through 
+	(x_y_to_hpos_vpos): Return glyph relative coordinates through
 	new dx and dy args.
 	Remove buffer_only_p arg (always 0).  Simplify code accordingly.
 	(get_glyph_string_clip_rect): Draw cursor using glyph's rather
@@ -49,9 +504,9 @@
 	(produce_image_glyph): Adjust it.ascent to minimum row ascent if
 	image glyph is alone on the last line.
 	(append_glyph, append_composite_glyph, produce_image_glyph)
-	(append_stretch_glyph): Set glyph's ascent and descent. 
+	(append_stretch_glyph): Set glyph's ascent and descent.
 	(on_hot_spot_p): New function to check if position is inside an
-	rectangular, circular, or polygon-shaped image hot-spot, 
+	rectangular, circular, or polygon-shaped image hot-spot,
 	(find_hot_spot): New function to search for image hot-spot.
 	(Flookup_image_map): New defun to search for image hot-spot.
 	(define_frame_cursor1): New aux function to determine frame pointer.
@@ -119,8 +574,7 @@
 	(Fread_minibuffer, Fread_no_blanks_input): Adapt to changes in
 	read_minibuf.
 	(Fcompleting_read): Delete code moved into read_minibuf.
-	(Ftest_completion): Make it handle obarrays and hash tables
-	correctly.
+	(Ftest_completion): Make it handle obarrays and hash tables correctly.
 
 2003-12-03  Kenichi Handa  <handa@m17n.org>
 
@@ -271,10 +725,8 @@
 
 2003-11-22  Lars Hansen <larsh@math.ku.dk>
 
-	* w32.c (struct the_group): Added.
-	(getgrgid): Added.
-	* mac.c (struct my_group): Added.
-	(getgrgid): Added.
+	* w32.c (struct the_group, getgrgid): Add.
+	* mac.c (struct my_group, getgrgid): Add.
 
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -282,18 +734,19 @@
 
 2003-11-21  Lars Hansen  <larsh@math.ku.dk>
 
-	* dired.c (Ffile_attributes): Parameter ID-FORMAT added and
-	included in call to file name handler. Numeric UID and GID
-	optionally translated to strings. Docstring updated.
-	(directory_files_internal): Parameter ID-FORMAT added.
-	(Fdirectory_files_and_attributes): Parameter ID-FORMAT added and
-	included in call to file name handler and call to
-	directory_files_internal. Docstring updated.  (Fdirectory_files):
-	Dummy parameter added in call to directory_files_internal.
-	* lisp.h (Qinteger): Added.  (Qinteger_or_floatp,
-	Qinteger_or_float_or_marker_p): Removed.  (Ffile_attributes):
-	Parameter added.
-	* data.c (Qinteger): Exported.
+	* dired.c (Ffile_attributes): Add parameter ID-FORMAT and
+	include in call to file name handler.  Optionally translate numeric
+	UID and GID to strings.  Update docstring.
+	(directory_files_internal): Add parameter ID-FORMAT.
+	(Fdirectory_files_and_attributes): Add parameter ID-FORMAT and
+	include in call to file name handler and call to
+	directory_files_internal.  Update Docstring.
+	(Fdirectory_files): Add dummy parameter in call to
+	directory_files_internal.
+	* lisp.h (Qinteger): Add.
+	(Qinteger_or_floatp, Qinteger_or_float_or_marker_p): Remove.
+	(Ffile_attributes): Add parameter.
+	* data.c (Qinteger): Export.
 
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -315,6 +768,13 @@
 	* dispextern.h (struct it): New member start.
 
 2003-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (make_float, Fcons): Clear the markbit at init time.
+	(make_float, Fcons, Fmake_symbol, allocate_misc): Move the increment
+	of block_index outside of the macro call.
+	(Fgarbage_collect): Remove null code.
+
+	* m/amdx86-64.h: Don't redefine XPNTR.
 
 	* keyboard.c (parse_modifiers, apply_modifiers): Use INTMASK instead
 	of VALMASK.
@@ -1630,7 +2090,7 @@
 	* gtkutil.c: Include keyboard.h, charset.h, coding.h.
 	(xg_create_frame_widgets): Use ENCODE_UTF_8.
 
-	* xterm.c (Qutf_8): Moved to coding.c
+	* xterm.c (Qutf_8): Move to coding.c
 
 	* xmenu.c (ENCODE_MENU_STRING): New.
 	(list_of_panes, list_of_items, digest_single_submenu, xmenu_show):

@@ -1,3 +1,23 @@
+2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and drop): New section.
+
+2004-01-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Acknowledgments): Renamed from Acknowledgements.
+	Include it only @ifnotinfo.  Patch the preceding and following
+	node headers to point to each other.
+
+2004-01-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi (Appointments): Update section.
+
+2003-12-29  Kevin Ryde <user42@zip.com.au>
+
+	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
+
+	* programs.texi (C Modes): Fix the xref.
+
 2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* building.texi (Watch Expressions): Update.

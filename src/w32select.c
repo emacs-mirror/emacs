@@ -212,6 +212,11 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  }
 	coding.src_multibyte = 1;
 	coding.dst_multibyte = 0;
+	/* Need to set COMPOSITION_DISABLED, otherwise Emacs crashes in
+	   encode_coding_iso2022 trying to dereference a null pointer.  */
+	coding.composing = COMPOSITION_DISABLED;
+	if (coding.type == coding_type_iso2022)
+	  coding.flags |= CODING_FLAG_ISO_SAFE;
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
 	bufsize = encoding_buffer_size (&coding, nbytes);

@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -42,8 +42,8 @@
 ;; info manual. Some GDB/MI commands are also used through th CLI command
 ;; 'interpreter mi <mi-command>'.
 ;;
-;; Known Bugs: 
-;; 
+;; Known Bugs:
+;;
 
 ;;; Code:
 
@@ -116,7 +116,9 @@ The following interactive lisp functions help control operation :
   ;;
   ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
   (gdb command-line)
-  ;;
+  (gdb-ann3))
+
+(defun gdb-ann3 ()
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
   ;;
@@ -144,8 +146,10 @@ The following interactive lisp functions help control operation :
 			  (gud-call "until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
 
-  (define-key gud-minor-mode-map [left-margin mouse-1] 'gdb-mouse-toggle-breakpoint)
-  (define-key gud-minor-mode-map [left-fringe mouse-1] 'gdb-mouse-toggle-breakpoint)
+  (define-key gud-minor-mode-map [left-margin mouse-1]
+    'gdb-mouse-toggle-breakpoint)
+  (define-key gud-minor-mode-map [left-fringe mouse-1]
+    'gdb-mouse-toggle-breakpoint)
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -158,6 +162,7 @@ The following interactive lisp functions help control operation :
   (setq gdb-selected-view 'source)
   (setq gdb-var-list nil)
   (setq gdb-var-changed nil)
+  (setq gdb-first-prompt nil)
   ;;
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
@@ -184,7 +189,7 @@ speedbar."
   "Watch expression at point."
   (interactive)
   (let ((expr (tooltip-identifier-from-point (point))))
-    (if (and (string-equal gdb-current-language "c") 
+    (if (and (string-equal gdb-current-language "c")
 	     gdb-use-colon-colon-notation)
 	(setq expr (concat gdb-current-frame "::" expr)))
     (catch 'already-watched
@@ -212,9 +217,9 @@ speedbar."
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
-	       (list (concat "server interpreter mi \"-var-evaluate-expression " 
-			     (nth 1 var) "\"\n") 
-		     `(lambda () (gdb-var-evaluate-expression-handler 
+	       (list (concat "server interpreter mi \"-var-evaluate-expression "
+			     (nth 1 var) "\"\n")
+		     `(lambda () (gdb-var-evaluate-expression-handler
 				  ,(nth 1 var) nil))))
 	    (setq gdb-var-changed t)))
       (if (re-search-forward "Undefined command" nil t)
@@ -267,11 +272,11 @@ speedbar."
 		   (push varchild var-list)
 		   (if (equal (nth 2 varchild) "0")
 		       (gdb-enqueue-input
-			(list 
-			 (concat 
+			(list
+			 (concat
 			  "server interpreter mi \"-var-evaluate-expression "
-				 (nth 1 varchild) "\"\n") 
-			 `(lambda () (gdb-var-evaluate-expression-handler 
+				 (nth 1 varchild) "\"\n")
+			 `(lambda () (gdb-var-evaluate-expression-handler
 				      ,(nth 1 varchild) nil))))))))
 	   (push var var-list)))
        (setq gdb-var-list (nreverse var-list))))))
@@ -279,7 +284,7 @@ speedbar."
 (defun gdb-var-update ()
   (if (not (member 'gdb-var-update (gdb-get-pending-triggers)))
       (progn
-	(gdb-enqueue-input (list "server interpreter mi \"-var-update *\"\n" 
+	(gdb-enqueue-input (list "server interpreter mi \"-var-update *\"\n"
 				 'gdb-var-update-handler))
 	(gdb-set-pending-triggers (cons 'gdb-var-update
 					(gdb-get-pending-triggers))))))
@@ -292,9 +297,9 @@ speedbar."
     (while (re-search-forward gdb-var-update-regexp nil t)
 	(let ((varnum (match-string 1)))
 	  (gdb-enqueue-input
-	   (list (concat "server interpreter mi \"-var-evaluate-expression " 
+	   (list (concat "server interpreter mi \"-var-evaluate-expression "
 			 varnum "\"\n") 
-		     `(lambda () (gdb-var-evaluate-expression-handler 
+		     `(lambda () (gdb-var-evaluate-expression-handler
 				  ,varnum t)))))))
   (gdb-set-pending-triggers
    (delq 'gdb-var-update (gdb-get-pending-triggers))))
@@ -683,6 +688,7 @@ output from a previous command if that happens to be in effect."
 (defun gdb-prompt (ignored)
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
+  (when gdb-first-prompt (gdb-ann3))
   (let ((sink (gdb-get-output-sink)))
     (cond
      ((eq sink 'user) t)
@@ -775,15 +781,14 @@ output from the current command if that happens to be appropriate."
 
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb. Handle a burst of output from GDB."
-  (let (
-	;; Recall the left over burst from last time
-	(burst (concat (gdb-get-burst) string))
-	;; Start accumulating output for the GUD buffer
-	(output ""))
+  ;; Recall the left over gud-marker-acc from last time
+  (setq gud-marker-acc (concat gud-marker-acc string))
+  ;; Start accumulating output for the GUD buffer
+  (let ((output ""))
     ;;
     ;; Process all the complete markers in this chunk.
-    (while (string-match "\n\032\032\\(.*\\)\n" burst)
-      (let ((annotation (match-string 1 burst)))
+    (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
+      (let ((annotation (match-string 1 gud-marker-acc)))
 	;;
 	;; Stuff prior to the match is just ordinary output.
 	;; It is either concatenated to OUTPUT or directed
@@ -791,11 +796,11 @@ output from the current command if that happens to be appropriate."
 	(setq output
 	      (gdb-concat-output
 	       output
-	       (substring burst 0 (match-beginning 0))))
-
-	;; Take that stuff off the burst.
-	(setq burst (substring burst (match-end 0)))
-
+	       (substring gud-marker-acc 0 (match-beginning 0))))
+        ;;
+	;; Take that stuff off the gud-marker-acc.
+	(setq gud-marker-acc (substring gud-marker-acc (match-end 0)))
+        ;;
 	;; Parse the tag from the annotation, and maybe its arguments.
 	(string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
 	(let* ((annotation-type (match-string 1 annotation))
@@ -812,25 +817,23 @@ output from the current command if that happens to be appropriate."
 	    ))))
     ;;
     ;; Does the remaining text end in a partial line?
-    ;; If it does, then keep part of the burst until we get more.
+    ;; If it does, then keep part of the gud-marker-acc until we get more.
     (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
-		      burst)
+		      gud-marker-acc)
 	(progn
 	  ;; Everything before the potential marker start can be output.
 	  (setq output
 		(gdb-concat-output output
-				   (substring burst 0 (match-beginning 0))))
+				   (substring gud-marker-acc 0
+					      (match-beginning 0))))
 	  ;;
 	  ;; Everything after, we save, to combine with later input.
-	  (setq burst (substring burst (match-beginning 0))))
+	  (setq gud-marker-acc (substring gud-marker-acc (match-beginning 0))))
       ;;
-      ;; In case we know the burst contains no partial annotations:
+      ;; In case we know the gud-marker-acc contains no partial annotations:
       (progn
-	(setq output (gdb-concat-output output burst))
-	(setq burst "")))
-    ;;
-    ;; Save the remaining burst for the next call to this function.
-    (gdb-set-burst burst)
+	(setq output (gdb-concat-output output gud-marker-acc))
+	(setq gud-marker-acc "")))
     output))
 
 (defun gdb-concat-output (so-far new)
@@ -1552,7 +1555,7 @@ the source buffer."
 )
 
 (let ((menu (make-sparse-keymap "View")))
-   (define-key gud-menu-map [view] 
+   (define-key gud-menu-map [view]
      `(menu-item "View" ,menu :visible (eq gud-minor-mode 'gdba)))
 ;  (define-key menu [both] '(menu-item "Both" gdb-view-both
 ;	       :help "Display both source and assembler"
@@ -1619,7 +1622,7 @@ the source buffer."
   (other-window 1)
   (switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (if (and gdb-view-source 
+  (if (and gdb-view-source
 	   (eq gdb-selected-view 'source))
       (switch-to-buffer
        (if gud-last-last-frame
@@ -1665,7 +1668,7 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (if (and gdb-view-source 
+    (if (and gdb-view-source
 	   (eq gdb-selected-view 'source))
 	(switch-to-buffer
 	 (if gud-last-last-frame
@@ -1702,14 +1705,13 @@ This arrangement depends on the value of `gdb-many-windows'."
 buffers."
   (goto-char (point-min))
   (if (search-forward "directory is " nil t)
-      (progn
-	(if (looking-at "\\S-*:\\(\\S-*\\)")
-	    (setq gdb-cdir (match-string 1))
-	  (looking-at "\\S-*")
-	  (setq gdb-cdir (match-string 0)))
-	(search-forward "Located in ")
+      (if (looking-at "\\S-*:\\(\\S-*\\)")
+	  (setq gdb-cdir (match-string 1))
 	(looking-at "\\S-*")
-	(setq gdb-main-file (match-string 0)))
+	(setq gdb-cdir (match-string 0))))
+  (if (search-forward "Located in " nil t)
+      (if (looking-at "\\S-*")
+	  (setq gdb-main-file (match-string 0)))
     (setq gdb-view-source nil))
   (delete-other-windows)
   (switch-to-buffer gud-comint-buffer)
@@ -1888,7 +1890,7 @@ BUFFER nil or omitted means use the current buffer."
 	(unless (string-equal gdb-current-frame gdb-previous-frame)
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       (gdb-get-pending-triggers)))
-		  (not (string-equal gdb-current-address 
+		  (not (string-equal gdb-current-address
 				     gdb-previous-address)))
 	  (progn
 	    ;; take previous disassemble command off the queue
@@ -1896,7 +1898,7 @@ BUFFER nil or omitted means use the current buffer."
 	      (let ((queue (gdb-get-input-queue)) (item))
 		(dolist (item queue)
 		  (if (equal (cdr item) '(gdb-assembler-handler))
-		      (gdb-set-input-queue 
+		      (gdb-set-input-queue
 		       (delete item (gdb-get-input-queue)))))))
 	    (gdb-enqueue-input
 	     (list (concat "server disassemble " gdb-current-address "\n")
@@ -1922,26 +1924,25 @@ BUFFER nil or omitted means use the current buffer."
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (forward-line)
-    (if (looking-at ".*= 0x\\(\\S-*\\) in \\(\\S-*\\)")
+    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*\\)")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
 	  (let ((address (match-string 1)))
 	    ;; remove leading 0s from output of info frame command.
 	    (if (string-match "^0+\\(.*\\)" address)
-		(setq gdb-current-address 
+		(setq gdb-current-address
 		      (concat "0x" (match-string 1 address)))
 	      (setq gdb-current-address (concat "0x" address))))
-	  (if (or (if (not (looking-at ".*(\\S-*:[0-9]*)"))
+	  (if (or (if (not (re-search-forward "(\\S-*:[0-9]*);" nil t))
 		      (progn (setq gdb-view-source nil) t))
 		  (eq gdb-selected-view 'assembler))
 	      (progn
-		(set-window-buffer 
+		(set-window-buffer
 		 gdb-source-window
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler))))))
-    (forward-line)
-    (if (looking-at " source language \\(\\S-*\\)\.")
+    (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
 	(setq gdb-current-language (match-string 1))))
 
 (provide 'gdb-ui)

@@ -1,6 +1,6 @@
 ;;;; ses.el -- Simple Emacs Spreadsheet
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002,03,04  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -720,11 +720,23 @@ preceding cell has spilled over."
 		;;Fill to complete width of all the fields spanned
 		(setq text (concat text (make-string (- maxwidth len) ? )))
 	      ;;Not enough room to end of line or next non-nil field.  Truncate
-	      ;;if string; otherwise fill with error indicator
+	      ;;if string or decimal; otherwise fill with error indicator
 	      (setq sig `(error "Too wide" ,text))
-	      (if (stringp value)
-		  (setq text (substring text 0 maxwidth))
-		(setq text (make-string maxwidth ?#))))))))
+	      (cond
+	       ((stringp value)
+		(setq text (substring text 0 maxwidth)))
+	       ((and (numberp value)
+		     (string-match "\\.[0-9]+" text)
+		     (>= 0 (setq width
+				 (- len maxwidth
+				    (- (match-end 0) (match-beginning 0))))))
+		;; Turn 6.6666666666e+49 into 6.66e+49.  Rounding is too hard!
+		(setq text (concat (substring text
+					      0
+					      (- (match-beginning 0) width))
+				   (substring text (match-end 0)))))
+	       (t
+		(setq text (make-string maxwidth ?#)))))))))
       ;;Substitute question marks for tabs and newlines.  Newlines are
       ;;used as row-separators; tabs could confuse the reimport logic.
       (setq text (replace-regexp-in-string "[\t\n]" "?" text))

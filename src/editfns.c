@@ -3193,6 +3193,10 @@ It may contain %-sequences meaning to substitute the next argument.
   The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
 Use %% to put a single % into the output.
 
+The basic structure of a %-sequence is
+  % <flags> <width> <precision> character
+where flags is [- #0]+, width is [0-9]+, and precision is .[0-9]+
+
 usage: (format STRING &rest OBJECTS)  */)
      (nargs, args)
      int nargs;
@@ -3300,7 +3304,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	   where
 
-	   flags	::= [#-* 0]+
+	   flags	::= [- #0]+
 	   field-width	::= [0-9]+
 	   precision	::= '.' [0-9]*
 
@@ -3312,14 +3316,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	   digits to print after the '.' for floats, or the max.
 	   number of chars to print from a string.  */
 
-	/* NOTE the handling of specifiers here differs in some ways
-           from the libc model.  There are bugs in this code that lead
-           to incorrect formatting when flags recognized by C but
-           neither parsed nor rejected here are used.  Further
-           revisions will be made soon.  */
-
-        /* incorrect list of flags to skip; will be fixed */
-	while (index ("-*# 0", *format))
+	while (index ("-0# ", *format))
 	  ++format;
 
 	if (*format >= '0' && *format <= '9')
@@ -3403,7 +3400,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    if (*format == 'c')
 	      {
 		if (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
-		    /* Note: No one can remeber why we have to treat
+		    /* Note: No one can remember why we have to treat
 		       the character 0 as a multibyte character here.
 		       But, until it causes a real problem, let's
 		       don't change it.  */
@@ -3447,7 +3444,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    /* Anything but a string, convert to a string using princ.  */
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qt);
-	    if (STRING_MULTIBYTE (tem) & ! multibyte)
+	    if (STRING_MULTIBYTE (tem) && ! multibyte)
 	      {
 		multibyte = 1;
 		goto retry;
@@ -3494,17 +3491,19 @@ usage: (format STRING &rest OBJECTS)  */)
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  /* Process a numeric arg and skip it.  */
-	  /* NOTE atoi is the wrong thing to use here; will be fixed */
-	  minlen = atoi (format);
-	  if (minlen < 0)
-	    minlen = - minlen, negative = 1;
+	  while (index("-0# ", *format))
+	    {
+	      if (*format == '-')
+		{
+		  negative = 1;
+		}
+	      discarded[format - format_start] = 1;
+	      ++format;
+	    }
 
-	  /* NOTE the parsing here is not consistent with the first
-             pass, and neither attempt is what we want to do.  Will be
-             fixed. */
-	  while ((*format >= '0' && *format <= '9')
-		 || *format == '-' || *format == ' ' || *format == '.')
+	  minlen = atoi (format);
+
+	  while ((*format >= '0' && *format <= '9') || *format == '.')
 	    {
 	      discarded[format - format_start] = 1;
 	      format++;

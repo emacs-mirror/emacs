@@ -1,3 +1,182 @@
+2004-02-04  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Sync with Makefile.in changes.
+
+2004-02-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Text from Minibuffer): Various corrections and
+	clarifications.
+	(Object from Minibuffer): Correct Lisp description of
+	read-minibuffer.
+	(Minibuffer History): Clarify description of cons values for
+	HISTORY arguments.
+	(Basic Completion): Various corrections and clarifications.  Add
+	completion-regexp-list.
+	(Minibuffer Completion): Correct and clarify description of
+	completing-read.
+	(Completion Commands): Mention partial-completion-mode.  Various
+	other minor changes.
+	(High-Level Completion): Various corrections and clarifications.
+	(Reading File Names): Ditto.
+	(Minibuffer Misc): Ditto.
+
+2004-01-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Text Comparison): assoc-string also matches
+	elements of alists that are strings instead of conses.
+	(Formatting Strings): Standardize Texinfo usage.  Update index
+	entries.
+
+2004-01-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Add delete-dups.
+
+2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Instrumenting Macro Calls): `declare' is not a
+	special form.
+	* macros.texi (Defining Macros): Update description of `declare',
+	which now is a macro.
+	(Wrong Time): Fix typos.
+
+2004-01-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* compile.texi (Compilation Functions): Expand descriptions of
+	`compile-defun', `byte-compile-file', `byte-recompile-directory'
+	and `batch-byte-compile'.  In particular, mention and describe
+	all optional arguments.
+	(Disassembly): Correct and clarify the description of `disassemble'.
+
+2004-01-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* searching.texi: Various small changes in addition to the
+	following.
+	(Regexp Example): Adapt to new value of `sentence-end'.
+	(Regexp Functions): The PAREN argument to `regexp-opt' can be
+	`words'.
+	(Search and Replace): Add usage note for `perform-replace'.
+	(Entire Match Data): Mention INTEGERS and REUSE arguments to
+	`match-data'.
+	(Standard Regexps): Update for new values of `paragraph-start'
+	and `sentence-end'.
+
+2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Saving Buffers): Clarify descriptions of
+	`write-contents-functions' and `before-save-hook'.
+	Make the defvar's for `before-save-hook' and `after-save-hook'
+	into defopt's.
+
+2004-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Describe new image and
+	width/height elements of click events.
+	(Accessing Events): Add posn-string, posn-image, and
+	posn-object-width-height.  Change posn-object to return either
+	image or string object.
+
+2004-01-01  Simon Josefsson  <jas@extundo.com>
+
+	* hooks.texi (Standard Hooks): Add before-save-hook.
+	* files.texi (Saving Buffers): Likewise.
+
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Frames and Windows): Delete frame-root-window.
+
+2004-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.texi, hash.texi, help.texi, symbols.texi: Add anchors.
+
+	* functions.texi: Various small changes in addition to the
+	following.
+	(What Is a Function): `functionp' returns nil for macros.  Clarify
+	behavior of this and following functions for symbol arguments.
+	(Function Documentation): Add `\' in front of (fn @var{arglist})
+	and explain why.
+	(Defining Functions): Mention DOCSTRING argument to `defalias'.
+	Add anchor.
+	(Mapping Functions): Add anchor.  Unquote nil in mapcar* example.
+
+2004-01-01  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Buttons): New section.
+
+2003-12-31  Andreas Schwab  <schwab@suse.de>
+
+	* numbers.texi (Math Functions): sqrt reports a domain-error
+	error.
+	(Float Basics): Use `(/ 0.0 0.0)' instead of `(sqrt -1.0)'.
+
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Update item on hyperlinks in
+	documentation strings.
+
+	* errors.texi (Standard Errors): Various small corrections and
+	additions.
+
+	* control.texi: Various small changes in addition to the
+	following.
+	(Signaling Errors): Provide some more details on how `signal'
+	constructs the error message.  Add anchor to the definition of
+	`signal'.
+	(Error Symbols): Describe special treatment of `quit'.
+	(Cleanups): Rename BODY argument of `unwind-protect' to BODY-FORM
+	to emphasize that it has to be a single form.
+
+	* buffers.texi: Add anchor.
+
+2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Choosing Window): Add same-window-p, special-display-p.
+	(Window Configurations): Add window-configuration-frame.
+
+	* variables.texi (Creating Buffer-Local): Add local-variable-if-set-p.
+
+	* text.texi (Examining Properties): Add get-char-property-and-overlay.
+	Change arg name in get-char-property.
+	(Special Properties): Update handling of keymap property.
+
+	* strings.texi (Modifying Strings): Add clear-string.
+	(Text Comparison): Add assoc-string and remove
+	assoc-ignore-case, assoc-ignore-representation.
+
+	* os.texi (Time of Day): Add set-time-zone-rule.
+
+	* numbers.texi (Math Functions): asin, acos, log, log10
+	report domain-error errors.
+
+	* nonascii.texi (Converting Representations):
+	Add multibyte-char-to-unibyte and unibyte-char-to-multibyte.
+	(Encoding and I/O): Add file-name-coding-system.
+
+	* modes.texi (Search-based Fontification): Explain that
+	face specs are symbols with face names as values.
+
+	* minibuf.texi (Minibuffer Misc): Add set-minibuffer-window.
+
+	* lists.texi (Building Lists): remq moved elsewhere.
+	(Sets And Lists): remq moved here.
+	(Association Lists): Refer to assoc-string.
+
+	* internals.texi (Garbage Collection): Add memory-use-counts.
+
+	* frames.texi (Frames and Windows): Add set-frame-selected-window
+	and frame-root-window.
+
+	* files.texi (Contents of Directories):
+	Add directory-files-and-attributes.
+
+	* display.texi (Refresh Screen): Add force-window-update.
+	(Invisible Text): Explain about moving point out of invis text.
+	(Overlay Properties): Add overlay-properties.
+	(Managing Overlays): Add overlayp.
+	(GIF Images): Invalid image number displays a hollow box.
+
+	* buffers.texi (Buffer Modification): Add restore-buffer-modified-p.
+	(Killing Buffers): Add buffer-live-p.
+
 2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* display.texi (Fringes): Fix typo "set-buffer-window".
@@ -31,7 +210,7 @@
 	mention `eval-current-buffer' as an alias for `current-buffer'.
 	Correct the description and mention all optional arguments.
 
-	* nonascii.texi : Various small changes in addition to the
+	* nonascii.texi: Various small changes in addition to the
 	following.
 	(Converting Representations): Clarify behavior of
 	`string-make-multibyte' and `string-to-multibyte' for unibyte all

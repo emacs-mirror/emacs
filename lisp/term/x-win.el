@@ -76,6 +76,7 @@
 (require 'select)
 (require 'menu-bar)
 (require 'fontset)
+(require 'x-dnd)
 
 (defvar x-invocation-args)
 
@@ -2198,8 +2199,10 @@ order until succeed.")
 			  (error nil))
 		   utf8-coding last-coding-system-used)
 	     (if utf8
-		 ;; If it is a locale selection, choose it.
-		 (or (get-text-property 0 'foreign-selection utf8)
+		 ;; If it is a local selection, or it contains only
+		 ;; ASCII characers, choose it.
+		 (if (or (not (get-text-property 0 'foreign-selection utf8))
+			 (= (length utf8) (string-bytes utf8)))
 		     (setq text utf8)))
 	     ;; If not yet decided, try COMPOUND_TEXT.
 	     (if (not text)
@@ -2385,12 +2388,6 @@ order until succeed.")
 	;; generated from FONT.
 	(create-fontset-from-ascii-font font resolved-name "startup"))))
 
-;; Sun expects the menu bar cut and paste commands to use the clipboard.
-;; This has ,? to match both on Sunos and on Solaris.
-(if (string-match "Sun Microsystems,? Inc\\."
-		  (x-server-vendor))
-    (menu-bar-enable-clipboard))
-
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
 ;; precedence.
@@ -2455,6 +2452,28 @@ order until succeed.")
 
 ;; Turn on support for mouse wheels.
 (mouse-wheel-mode 1)
+
+
+;; Enable CLIPBOARD copy/paste through menu bar commands.
+(menu-bar-enable-clipboard)
+
+;; Override Paste so it looks at CLIPBOARD first.
+(defun x-clipboard-yank ()
+  "Insert the clipboard contents, or the last stretch of killed text."
+  (interactive)
+  (let ((clipboard-text (x-get-selection 'CLIPBOARD))
+	(x-select-enable-clipboard t))
+    (if (and clipboard-text (> (length clipboard-text) 0))
+	(kill-new clipboard-text))
+    (yank)))
+
+(define-key menu-bar-edit-menu [paste]
+  (cons "Paste" (cons "Paste text from clipboard or kill ring"
+		      'x-clipboard-yank)))
+
+;; Initiate drag and drop
+(add-hook 'after-make-frame-functions 'x-dnd-init-frame)
+(global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 ;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

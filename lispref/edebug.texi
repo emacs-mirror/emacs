@@ -1091,7 +1091,7 @@ forms to be evaluated.  For simple macros, the @var{specification}
 often looks very similar to the formal argument list of the macro
 definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
-the @code{declare} special form.
+the @code{declare} form.
 
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
@@ -1381,7 +1381,7 @@ all begin with the same symbol, you can usually work around this
 constraint by factoring the symbol out of the alternatives, e.g.,
 @code{["foo" &or [first case] [second case] ...]}.
 
-Most needs are satisfied by these two ways that bactracking is
+Most needs are satisfied by these two ways that backtracking is
 automatically disabled, but occasionally it is useful to explicitly
 disable backtracking by using the @code{gate} specification.  This is
 useful when you know that no higher alternatives could apply.  See the

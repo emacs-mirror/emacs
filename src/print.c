@@ -966,7 +966,9 @@ debug_print (arg)
 
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
-       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.  */)
+       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
+See Info anchor `(elisp)Definition of signal' for some details on how this
+error message is constructed.  */)
      (obj)
      Lisp_Object obj;
 {
@@ -1274,7 +1276,8 @@ static void
 print_preprocess (obj)
      Lisp_Object obj;
 {
-  int i, size;
+  int i;
+  EMACS_INT size;
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
@@ -1340,7 +1343,9 @@ print_preprocess (obj)
 	  goto loop;
 
 	case Lisp_Vectorlike:
-	  size = XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK;
+	  size = XVECTOR (obj)->size;
+	  if (size & PSEUDOVECTOR_FLAG)
+	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
 	  break;
@@ -1887,7 +1892,7 @@ print_object (obj, printcharfun, escapeflag)
 	}
       else
 	{
-	  int size = XVECTOR (obj)->size;
+	  EMACS_INT size = XVECTOR (obj)->size;
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');

@@ -1,3 +1,27 @@
+2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Don't use the hostname in the socket name.
+	Look for relative socket names in the /tmp dir rather than in cwd.
+
+2004-01-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c (main): Restore errno from saved_errno,
+	so the error message comes from socket_status.
+
+2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Stop if socket name too long.
+	Only try su-fallback if the socket name was not explicit.
+	Check socket name length in su-fallback case as well.
+
+2004-01-08  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Save errno from socket_status.
+
+2004-01-04  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Fix socket name when using another user.
+
 2003-12-27  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs2log (rlog_options): Append -rbranchtag if CVS/Tag indicates

@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001
+   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -941,9 +941,9 @@ Elements of the attribute list are:
   else
     {
       pw = (struct passwd *) getpwuid (s.st_uid);
-      values[2] = (pw ? build_string (pw->pw_name) : s.st_uid);
+      values[2] = (pw ? build_string (pw->pw_name) : make_number (s.st_uid));
       gr = (struct group *) getgrgid (s.st_gid);
-      values[3] = (gr ? build_string (gr->gr_name) : s.st_gid);
+      values[3] = (gr ? build_string (gr->gr_name) : make_number (s.st_gid));
     }
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);

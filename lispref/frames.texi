@@ -923,6 +923,13 @@ This function returns the window on @var{frame} that is selected within
 @var{frame}.
 @end defun
 
+@defun set-frame-selected-window frame window
+This sets the selected window of frame @var{frame} to @var{window}.
+If @var{frame} is @code{nil}, it operates on the selected frame.  If
+@var{frame} is the selected frame, this makes @var{window} the
+selected window.
+@end defun
+
   Conversely, selecting a window for Emacs with @code{select-window} also
 makes that window selected within its frame.  @xref{Selecting Windows}.
 

@@ -177,6 +177,7 @@ SHELL32		= -lshell32
 USER32		= -luser32
 WSOCK32		= -lwsock32
 WINMM     = -lwinmm
+WINSPOOL	= -lwinspool
 
 ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG

@@ -1,3 +1,13 @@
+2004-01-27  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
+
+	* quail/cyrillic.el ("bulgarian-bds"): Docstring fixed.
+
+2004-01-22  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
+
+	* quail/cyrillic.el ("bulgarian-phonetic"): Docstring fixed.
+	Duplicated entry removed.
+	("bulgarian-bds"): Docstring fixed.
+
 2003-10-06  Dave Love  <fx@gnu.org>
 
 	* quail/latin-ltx.el: Several additions.

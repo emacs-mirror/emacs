@@ -754,7 +754,7 @@ Returns the compilation buffer created."
 	      compilation-directory-stack (list default-directory))
 	(set-window-start outwin (point-min))
 	(or (eq outwin (selected-window))
-	    (set-window-point outwin (point-min)))
+	    (set-window-point outwin (point)))
 	;; The setup function is called before compilation-set-window-height
 	;; so it can set the compilation-window-height buffer locally.
 	(if compilation-process-setup-function

@@ -172,7 +172,7 @@ to write negative floating point numbers, as in @samp{-1.0}.
 which provides for positive infinity and negative infinity as floating point
 values.  It also provides for a class of values called NaN or
 ``not-a-number''; numerical functions return such values in cases where
-there is no correct answer.  For example, @code{(sqrt -1.0)} returns a
+there is no correct answer.  For example, @code{(/ 0.0 0.0)} returns a
 NaN.  For practical purposes, there's no significant difference between
 different NaN values in Emacs Lisp, and there's no rule for precisely
 which NaN value should be used in a particular case, so Emacs Lisp
@@ -1047,8 +1047,8 @@ pi/2
 @tex
 @math{\pi/2}
 @end tex
-(inclusive) whose sine is @var{arg}; if, however, @var{arg}
-is out of range (outside [-1, 1]), then the result is a NaN.
+(inclusive) whose sine is @var{arg}; if, however, @var{arg} is out of
+range (outside [-1, 1]), it signals a @code{domain-error} error.
 @end defun
 
 @defun acos arg
@@ -1059,8 +1059,8 @@ pi
 @tex
 @math{\pi}
 @end tex
-(inclusive) whose cosine is @var{arg}; if, however, @var{arg}
-is out of range (outside [-1, 1]), then the result is a NaN.
+(inclusive) whose cosine is @var{arg}; if, however, @var{arg} is out
+of range (outside [-1, 1]), it signals a @code{domain-error} error.
 @end defun
 
 @defun atan y &optional x
@@ -1112,8 +1112,8 @@ If you don't specify @var{base}, the base
 @ifnottex
 @i{e}
 @end ifnottex
-is used.  If @var{arg}
-is negative, the result is a NaN.
+is used.  If @var{arg} is negative, it signals a @code{domain-error}
+error.
 @end defun
 
 @ignore
@@ -1132,8 +1132,9 @@ lose accuracy.
 
 @defun log10 arg
 This function returns the logarithm of @var{arg}, with base 10.  If
-@var{arg} is negative, the result is a NaN.  @code{(log10 @var{x})}
-@equiv{} @code{(log @var{x} 10)}, at least approximately.
+@var{arg} is negative, it signals a @code{domain-error} error.
+@code{(log10 @var{x})} @equiv{} @code{(log @var{x} 10)}, at least
+approximately.
 @end defun
 
 @defun expt x y
@@ -1145,7 +1146,7 @@ integer values.
 
 @defun sqrt arg
 This returns the square root of @var{arg}.  If @var{arg} is negative,
-the value is a NaN.
+it signals a @code{domain-error} error.
 @end defun
 
 @node Random Numbers

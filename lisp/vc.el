@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.361 2003/12/24 23:18:10 uid66361 Exp $
+;; $Id: vc.el,v 1.331.2.3 2003/12/28 05:19:57 uid65618 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -347,6 +347,13 @@
 ;;   time with hours, minutes, and seconds included.  Probably safe to
 ;;   ignore.  Return the current-time, in units of fractional days.
 ;;
+;; - annotate-extract-revision-at-line ()
+;;
+;;   Only required if `annotate-command' is defined for the backend.
+;;   Invoked from a buffer in vc-annotate-mode, return the revision
+;;   corresponding to the current line, or nil if there is no revision
+;;   corresponding to the current line.
+;;
 ;; SNAPSHOT SYSTEM
 ;;
 ;; - create-snapshot (dir name branchp)
@@ -392,7 +399,13 @@
 ;;
 ;; - previous-version (file rev)
 ;;
-;;   Return the version number that precedes REV for FILE.
+;;   Return the version number that precedes REV for FILE, or nil if no such
+;;   version exists.
+;;
+;; - next-version (file rev)
+;;
+;;   Return the version number that follows REV for FILE, or nil if no such
+;;   version exists.
 ;;
 ;; - check-headers ()
 ;;
@@ -631,6 +644,14 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     m)
   "Local keymap used for VC-Annotate mode.")
 
+(define-key vc-annotate-mode-map "A" 'vc-annotate-revision-previous-to-line)
+(define-key vc-annotate-mode-map "D" 'vc-annotate-show-diff-revision-at-line)
+(define-key vc-annotate-mode-map "J" 'vc-annotate-revision-at-line)
+(define-key vc-annotate-mode-map "L" 'vc-annotate-show-log-revision-at-line)
+(define-key vc-annotate-mode-map "N" 'vc-annotate-next-version)
+(define-key vc-annotate-mode-map "P" 'vc-annotate-prev-version)
+(define-key vc-annotate-mode-map "W" 'vc-annotate-workfile-version)
+
 (defvar vc-annotate-mode-menu nil
   "Local keymap used for VC-Annotate mode's menu bar menu.")
 
@@ -714,9 +735,10 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
   (substring rev (match-beginning 0) (match-end 0)))
 
 (defun vc-default-previous-version (backend file rev)
-  "Guess the version number immediately preceding REV for FILE.
-This default implementation works for <major>.<minor>-style version numbers
-as used by RCS and CVS."
+  "Return the version number immediately preceding REV for FILE,
+or nil if there is no previous version.  This default
+implementation works for <major>.<minor>-style version numbers as
+used by RCS and CVS."
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
     (when branch
@@ -730,6 +752,16 @@ as used by RCS and CVS."
           ;; we are at the beginning of a branch --
           ;; return version of starting point
           (vc-branch-part branch))))))
+
+(defun vc-default-next-version (backend file rev)
+  "Return the version number immediately following REV for FILE,
+or nil if there is no next version.  This default implementation
+works for <major>.<minor>-style version numbers as used by RCS
+and CVS."
+  (when (not (string= rev (vc-workfile-version file)))
+    (let ((branch (vc-branch-part rev))
+	  (minor-num (string-to-number (vc-minor-part rev))))
+      (concat branch "." (number-to-string (1+ minor-num))))))
 
 ;; File property caching
 
@@ -2285,11 +2317,13 @@ allowed and simply skipped)."
 ;; Miscellaneous other entry points
 
 ;;;###autoload
-(defun vc-print-log ()
-  "List the change log of the current buffer in a window."
+(defun vc-print-log (&optional focus-rev)
+  "List the change log of the current buffer in a window.  If
+FOCUS-REV is non-nil, leave the point at that revision."
   (interactive)
   (vc-ensure-vc-buffer)
   (let ((file buffer-file-name))
+    (or focus-rev (setq focus-rev (vc-workfile-version file)))
     (vc-call print-log file)
     (set-buffer "*vc*")
     (pop-to-buffer (current-buffer))
@@ -2307,7 +2341,7 @@ allowed and simply skipped)."
 	;; move point to the log entry for the current version
 	(vc-call-backend ',(vc-backend file)
 			 'show-log-entry
-			 ',(vc-workfile-version file))
+			 ',focus-rev)
         (set-buffer-modified-p nil)))))
 
 (defun vc-default-show-log-entry (backend rev)
@@ -2778,6 +2812,11 @@ Uses `rcs2log' which only works for RCS and CVS."
 (defvar vc-annotate-ratio nil "Global variable.")
 (defvar vc-annotate-backend nil "Global variable.")
 
+;; internal buffer-local variables
+(defvar vc-annotate-parent-file nil)
+(defvar vc-annotate-parent-rev nil)
+(defvar vc-annotate-parent-display-mode nil)
+
 (defconst vc-annotate-font-lock-keywords
   ;; The fontification is done by vc-annotate-lines instead of font-lock.
   '((vc-annotate-lines)))
@@ -2797,6 +2836,7 @@ menu items."
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
        '(vc-annotate-font-lock-keywords t))
+  (view-mode 1)
   (vc-annotate-add-menu))
 
 (defun vc-annotate-display-default (&optional ratio)
@@ -2885,7 +2925,23 @@ cover the range from the oldest annotation to the newest."
 		    (unless (eq vc-annotate-display-mode 'fullscale)
 		      (vc-annotate-display-select nil 'fullscale))
 		    :style toggle :selected
-		    (eq vc-annotate-display-mode 'fullscale)])))
+		    (eq vc-annotate-display-mode 'fullscale)])
+		  (list "--")
+		  (list ["Annotate previous revision"
+			 (call-interactively 'vc-annotate-prev-version)])
+		  (list ["Annotate next revision"
+			 (call-interactively 'vc-annotate-next-version)])
+		  (list ["Annotate revision at line"
+			 (vc-annotate-revision-at-line)])
+		  (list ["Annotate revision previous to line"
+			 (vc-annotate-revision-previous-to-line)])
+		  (list ["Annotate latest revision"
+			 (vc-annotate-workfile-version)])
+		  (list ["Show log of revision at line"
+			 (vc-annotate-show-log-revision-at-line)])
+		  (list ["Show diff of revision at line"
+			 (vc-annotate-show-diff-revision-at-line)])))
+
     ;; Define the menu
     (if (or (featurep 'easymenu) (load "easymenu" t))
 	(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
@@ -2922,7 +2978,7 @@ use; you may override this using the second optional arg MODE."
 ;;;;  the contents in BUFFER.
 
 ;;;###autoload
-(defun vc-annotate (prefix)
+(defun vc-annotate (prefix &optional revision display-mode)
   "Display the edit history of the current file using colours.
 
 This command creates a buffer that shows, for each line of the current
@@ -2949,19 +3005,24 @@ mode-specific menu. `vc-annotate-color-map' and
 colors. `vc-annotate-background' specifies the background color."
   (interactive "P")
   (vc-ensure-vc-buffer)
-  (let* ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
+  (let* ((temp-buffer-name nil)
          (temp-buffer-show-function 'vc-annotate-display-select)
-         (rev (vc-workfile-version buffer-file-name))
+	 (rev (or revision (vc-workfile-version buffer-file-name)))
+	 (bfn buffer-file-name)
          (vc-annotate-version
-          (if prefix (read-string
-                      (format "Annotate from version: (default %s) " rev)
-                      nil nil rev)
-            rev)))
-    (if prefix
-        (setq vc-annotate-display-mode
-              (float (string-to-number
-                      (read-string "Annotate span days: (default 20) "
-                                   nil nil "20")))))
+	  (if prefix (read-string
+		      (format "Annotate from version: (default %s) " rev)
+		      nil nil rev)
+	    rev)))
+    (if display-mode
+	(setq vc-annotate-display-mode display-mode)
+      (if prefix
+	  (setq vc-annotate-display-mode
+		(float (string-to-number
+			(read-string "Annotate span days: (default 20) "
+				     nil nil "20"))))))
+    (setq temp-buffer-name (format "*Annotate %s (rev %s)*"
+				   (buffer-name) vc-annotate-version))
     (setq vc-annotate-backend (vc-backend buffer-file-name))
     (message "Annotating...")
     (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
@@ -2972,12 +3033,150 @@ colors. `vc-annotate-background' specifies the background color."
 		       buffer-file-name
 		       (get-buffer temp-buffer-name)
                        vc-annotate-version))
+    (save-excursion
+      (set-buffer temp-buffer-name)
+      (set (make-local-variable 'vc-annotate-parent-file) bfn)
+      (set (make-local-variable 'vc-annotate-parent-rev) vc-annotate-version)
+      (set (make-local-variable 'vc-annotate-parent-display-mode)
+	   vc-annotate-display-mode))
+	   
     ;; Don't use the temp-buffer-name until the buffer is created
     ;; (only after `with-output-to-temp-buffer'.)
     (setq vc-annotate-buffers
 	  (append vc-annotate-buffers
 		  (list (cons (get-buffer temp-buffer-name) vc-annotate-backend))))
   (message "Annotating... done")))
+
+(defun vc-annotate-prev-version (prefix)
+  "Visit the annotation of the version previous to this one.
+
+With a numeric prefix argument, annotate the version that many
+versions previous."
+  (interactive "p")
+  (vc-annotate-warp-version (- 0 prefix)))
+
+(defun vc-annotate-next-version (prefix)
+  "Visit the annotation of the version after this one.
+
+With a numeric prefix argument, annotate the version that many
+versions after."
+  (interactive "p")
+  (vc-annotate-warp-version prefix))
+
+(defun vc-annotate-workfile-version ()
+  "Visit the annotation of the workfile version of this file."
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((warp-rev (vc-workfile-version vc-annotate-parent-file)))
+      (if (equal warp-rev vc-annotate-parent-rev)
+	  (message "Already at version %s" warp-rev)
+	(vc-annotate-warp-version warp-rev)))))
+
+(defun vc-annotate-extract-revision-at-line ()
+  "Extract the revision number of the current line."
+  ;; This function must be invoked from a buffer in vc-annotate-mode
+  (save-window-excursion
+    (vc-ensure-vc-buffer)
+    (setq vc-annotate-backend (vc-backend buffer-file-name)))
+  (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
+
+(defun vc-annotate-revision-at-line ()
+  "Visit the annotation of the version identified in the current line."
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
+      (if (not rev-at-line)
+	  (message "Cannot extract revision number from the current line")
+	(if (equal rev-at-line vc-annotate-parent-rev)
+	    (message "Already at version %s" rev-at-line)
+	  (vc-annotate-warp-version rev-at-line))))))
+
+(defun vc-annotate-revision-previous-to-line ()
+  "Visit the annotation of the version before the version at line."  
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((rev-at-line (vc-annotate-extract-revision-at-line))
+	  (prev-rev nil))
+      (if (not rev-at-line)
+	  (message "Cannot extract revision number from the current line")
+	(setq prev-rev
+	      (vc-call previous-version vc-annotate-parent-file rev-at-line))
+	(vc-annotate-warp-version prev-rev)))))
+
+(defun vc-annotate-show-log-revision-at-line ()
+  "Visit the log of the version at line."
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
+      (if (not rev-at-line)
+	  (message "Cannot extract revision number from the current line")
+	(vc-print-log rev-at-line)))))
+
+(defun vc-annotate-show-diff-revision-at-line ()
+  "Visit the diff of the version at line from its previous version."
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((rev-at-line (vc-annotate-extract-revision-at-line))
+	  (prev-rev nil))
+      (if (not rev-at-line)
+	  (message "Cannot extract revision number from the current line")
+	(setq prev-rev
+	      (vc-call previous-version vc-annotate-parent-file rev-at-line))
+	(if (not prev-rev)
+	    (message "Cannot diff from any version prior to %s" rev-at-line)
+	  (save-window-excursion
+	    (vc-version-diff vc-annotate-parent-file prev-rev rev-at-line))
+	  (switch-to-buffer "*vc-diff*"))))))
+
+(defun vc-annotate-warp-version (revspec)
+  "Annotate the version described by REVSPEC.
+
+If REVSPEC is a positive integer, warp that many versions
+forward, if possible, otherwise echo a warning message.  If
+REVSPEC is a negative integer, warp that many versions backward,
+if possible, otherwise echo a warning message.  If REVSPEC is a
+string, then it describes a revision number, so warp to that
+revision."
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let* ((oldline (line-at-pos))
+	   (revspeccopy revspec)
+	   (newrev nil))
+      (cond
+       ((and (integerp revspec) (> revspec 0))
+	(setq newrev vc-annotate-parent-rev)
+	(while (and (> revspec 0) newrev)
+	       (setq newrev (vc-call next-version
+				     vc-annotate-parent-file newrev))
+	       (setq revspec (1- revspec)))
+	(if (not newrev)
+	    (message "Cannot increment %d versions from version %s"
+		     revspeccopy vc-annotate-parent-rev)))
+       ((and (integerp revspec) (< revspec 0))
+	(setq newrev vc-annotate-parent-rev)
+	(while (and (< revspec 0) newrev)
+	       (setq newrev (vc-call previous-version
+				     vc-annotate-parent-file newrev))
+	       (setq revspec (1+ revspec)))
+	(if (not newrev)
+	    (message "Cannot decrement %d versions from version %s"
+		     (- 0 revspeccopy) vc-annotate-parent-rev)))
+       ((stringp revspec) (setq newrev revspec))
+       (t (error "Invalid argument to vc-annotate-warp-version")))
+      (when newrev
+	(save-window-excursion
+	  (find-file vc-annotate-parent-file)
+	  (vc-annotate nil newrev vc-annotate-parent-display-mode))
+	(kill-buffer (current-buffer)) ;; kill the buffer we started from
+	(switch-to-buffer (car (car (last vc-annotate-buffers))))
+	(goto-line (min oldline (progn (goto-char (point-max))
+				       (previous-line)
+				       (line-at-pos))))))))
 
 (defun vc-annotate-car-last-cons (a-list)
   "Return car of last cons in association list A-LIST."

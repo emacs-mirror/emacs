@@ -966,7 +966,7 @@ An example of such an error is:
 
   x-complement-fontset-spec: "Wrong type argument: stringp, nil"
 
-This can be another symptom of stale *.elc files in your classpath.
+This can be another symptom of stale *.elc files in your load-path.
 The following command will print any duplicate Lisp files that are
 present in load-path:
 

@@ -47,6 +47,7 @@ typedef struct _XlwMenu_part
   unsigned free_bottom_shadow_color_p : 1;
 
   /* State of the XlwMenu */
+  int                   top_depth;
   int			old_depth;
   widget_value**	old_stack;
   int			old_stack_length;

@@ -86,10 +86,10 @@ See also `ediff-backup-specs'."
 
 (defun ediff-test-patch-utility ()
   (condition-case nil
-      (cond ((zerop (call-process ediff-patch-program nil nil nil "-z." "-b"))
+      (cond ((eq 0 (call-process ediff-patch-program nil nil nil "-z." "-b"))
 	     ;; GNU `patch' v. >= 2.2
 	     'gnu)
-	    ((zerop (call-process ediff-patch-program nil nil nil "-b"))
+	    ((eq 0 (call-process ediff-patch-program nil nil nil "-b"))
 	     'posix)
 	    (t 'traditional))
     (file-error nil)))

@@ -20,18 +20,19 @@ that Emacs presents to the user.
 * Selective Display::   Hiding part of the buffer text (the old way).
 * Overlay Arrow::       Display of an arrow to indicate position.
 * Temporary Displays::  Displays that go away automatically.
-* Overlays::		Use overlays to highlight parts of the buffer.
+* Overlays::            Use overlays to highlight parts of the buffer.
 * Width::               How wide a character or string is on the screen.
-* Faces::		A face defines a graphics style for text characters:
+* Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
 * Scroll Bars::         Controlling vertical scroll bars.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
+* Buttons::             Adding clickable buttons to Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
-* Inverse Video::	Specifying how the screen looks.
-* Usual Display::	The usual conventions for displaying nonprinting chars.
-* Display Tables::	How to specify other conventions.
+* Inverse Video::       Specifying how the screen looks.
+* Usual Display::       The usual conventions for displaying nonprinting chars.
+* Display Tables::      How to specify other conventions.
 * Beeping::             Audible signal to the user.
 * Window Systems::      Which window system is being used.
 @end menu
@@ -52,6 +53,17 @@ Even more powerful is @code{redraw-display}:
 @deffn Command redraw-display
 This function clears and redisplays all visible frames.
 @end deffn
+
+  This function forces certain windows to be redisplayed
+but does not clear them.
+
+@defun force-window-update object
+This function forces redisplay of some or all windows.  If
+@var{object} is a window, it forces redisplay of that window.  If
+@var{object} is a buffer or buffer name, it forces redisplay of all
+windows displaying that buffer.  If @var{object} is @code{nil}, it
+forces redisplay of all windows.
+@end defun
 
   Processing user input takes absolute priority over redisplay.  If you
 call these functions when input is available, they do nothing
@@ -517,6 +529,7 @@ warnings buffer.  Each element of the list should be a list of
 symbols.  If it matches the first few elements in a warning type, then
 that warning is not logged.
 @end defopt
+
 @node Invisible Text
 @section Invisible Text
 
@@ -613,11 +626,21 @@ major mode should use the mode's own name as an element of
 @end example
 
 @vindex line-move-ignore-invisible
-  Ordinarily, commands that operate on text or move point do not care
+  Ordinarily, functions that operate on text or move point do not care
 whether the text is invisible.  The user-level line motion commands
 explicitly ignore invisible newlines if
 @code{line-move-ignore-invisible} is non-@code{nil}, but only because
 they are explicitly programmed to do so.
+
+  However, if a command ends with point inside or immediately after
+invisible text, the main editing loop moves point further forward or
+further backward (in the same direction that the command already moved
+it) until that condition is no longer true.  Thus, if the command
+moved point back into an invisible range, Emacs moves point back to
+the beginning of that range, following the previous visible character.
+If the command moved point forward into an invisible range, Emacs
+moves point forward past the first visible character that follows the
+invisible text.
 
   Incremental search can make invisible overlays visible temporarily
 and/or permanently when a match includes invisible text.  To enable
@@ -944,7 +967,7 @@ beginning and end.  It also has properties that you can examine and set;
 these affect the display of the text within the overlay.
 
 @menu
-* Overlay Properties::	How to read and set properties.
+* Overlay Properties::  How to read and set properties.
 			What properties do to the screen display.
 * Managing Overlays::   Creating and moving overlays.
 * Finding Overlays::    Searching for overlays.
@@ -978,6 +1001,10 @@ is @code{nil}.
 @defun overlay-put overlay prop value
 This function sets the value of property @var{prop} recorded in
 @var{overlay} to @var{value}.  It returns @var{value}.
+@end defun
+
+@defun overlay-properties overlay
+This returns a copy of the property list of @var{overlay}.
 @end defun
 
   See also the function @code{get-char-property} which checks both
@@ -1154,6 +1181,10 @@ property) rather than replacing it.
 
   This section describes the functions to create, delete and move
 overlays, and to examine their contents.
+
+@defun overlayp object
+This function returns @code{t} if @var{object} is an overlay.
+@end defun
 
 @defun make-overlay start end &optional buffer front-advance rear-advance
 This function creates and returns an overlay that belongs to
@@ -1394,10 +1425,10 @@ face name a special meaning in one frame if you wish.
 * Standard Faces::      The faces Emacs normally comes with.
 * Defining Faces::      How to define a face with @code{defface}.
 * Face Attributes::     What is in a face?
-* Attribute Functions:: Functions to examine and set face attributes.
-* Merging Faces::	How Emacs combines the faces specified for a character.
+* Attribute Functions::  Functions to examine and set face attributes.
+* Merging Faces::       How Emacs combines the faces specified for a character.
 * Font Selection::      Finding the best available font for a face.
-* Face Functions::	How to define and examine faces.
+* Face Functions::      How to define and examine faces.
 * Auto Faces::          Hook for automatic face assignment.
 * Font Lookup::         Looking up the names of available fonts
                           and information about them.
@@ -2609,12 +2640,12 @@ this section describes several kinds of display specifications and what
 they mean.
 
 @menu
-* Specified Space::     Displaying one space with a specified width.
-* Other Display Specs:: Displaying an image; magnifying text; moving it
+* Specified Space::      Displaying one space with a specified width.
+* Other Display Specs::  Displaying an image; magnifying text; moving it
                           up or down on the page; adjusting the width
                           of spaces within text.
 * Display Margins::     Displaying text or images to the side of the main text.
-* Conditional Display:: Making any of the above features conditional
+* Conditional Display::  Making any of the above features conditional
                           depending on some Lisp expression.
 @end menu
 
@@ -3114,8 +3145,8 @@ them, Emacs can display them.
 @item :index @var{index}
 You can use @code{:index} to specify one image from a GIF file that
 contains more than one image.  This property specifies use of image
-number @var{index} from the file.  An error is signaled if the GIF file
-doesn't contain an image with index @var{index}.
+number @var{index} from the file.  If the GIF file doesn't contain an
+image with index @var{index}, the image displays as a hollow box.
 @end table
 
 @ignore
@@ -3371,6 +3402,348 @@ only the cache for that frame is cleared.  Otherwise all frames' caches
 are cleared.
 @end defun
 
+@node Buttons
+@section Buttons
+@cindex buttons
+@cindex buttons in buffers
+@cindex clickable buttons in buffers
+
+  The @emph{button} package defines functions for inserting and
+manipulating clickable (with the mouse, or via keyboard commands)
+buttons in Emacs buffers, such as might be used for help hyper-links,
+etc.  Emacs uses buttons for the hyper-links in help text and the like.
+
+A button is essentially a set of properties attached (via text
+properties or overlays) to a region of text in an emacs buffer, which
+are called its button properties.  @xref{Button Properties}.
+
+One of the these properties (@code{action}) is a function, which will
+be called when the user invokes it using the keyboard or the mouse.
+The invoked function may then examine the button and use its other
+properties as desired.
+
+In some ways the emacs button package duplicates functionality offered
+by the widget package (@pxref{Top, , Introduction, widget, The Emacs
+Widget Library}), but the button package has the advantage that it is
+much faster, much smaller, and much simpler to use (for elisp
+programmers---for users, the result is about the same).  The extra
+speed and space savings are useful mainly if you need to create many
+buttons in a buffer (for instance an @code{*Apropos*} buffer uses
+buttons to make entries clickable, and may contain many thousands of
+entries).
+
+@menu
+* Button Properties::      Button properties with special meanings.
+* Button Types::           Defining common properties for classes of buttons.
+* Making Buttons::         Adding buttons to emacs buffers.
+* Manipulating Buttons::   Getting and setting properties of buttons.
+* Button Buffer Commands:: Buffer-wide commands and bindings for buttons.
+* Manipulating Button Types:: 
+@end menu
+
+@node Button Properties
+@subsection Button Properties
+@cindex button properties
+
+  Buttons have an associated list of properties defining their
+appearance and behavior, and other arbitrary properties may be used
+for application specific purposes.
+
+Some properties that have special meaning to the button package
+include:
+
+@table @code
+
+@item action
+@kindex action @r{(button property)}
+The function to call when the user invokes the button, which is passed
+the single argument @var{button}.  By default this is @code{ignore},
+which does nothing.
+
+@item mouse-action
+@kindex mouse-action @r{(button property)}
+This is similar to @code{action}, and when present, will be used
+instead of @code{action} for button invocations resulting from
+mouse-clicks (instead of the user hitting @key{RET}).  If not
+present, mouse-clicks use @code{action} instead.
+
+@item face
+@kindex face @r{(button property)}
+This is an emacs face controlling how buttons of this type are
+displayed; by default this is the @code{button} face.
+
+@item mouse-face
+@kindex mouse-face @r{(button property)}
+This is an additional face which controls appearance during
+mouse-overs (merged with the usual button face); by default this is
+the usual emacs @code{highlight} face.
+
+@item keymap
+@kindex keymap @r{(button property)}
+The button's keymap, defining bindings active within the button
+region.  By default this is the usual button region keymap, stored
+in the variable @code{button-map}, which defines @key{RET} and
+@key{down-mouse-1} to invoke the button.
+
+@item type
+@kindex type @r{(button property)}
+The button-type of the button.  When creating a button, this is
+usually specified using the @code{:type} keyword argument.
+@xref{Button Types}.
+
+@item help-echo
+@kindex help-index @r{(button property)}
+A string displayed by the emacs tool-tip help system; by default,
+@code{"mouse-2, RET: Push this button"}.
+
+@item button
+@kindex button @r{(button property)}
+All buttons have a non-@code{nil} @code{button} property, which may be useful
+in finding regions of text that comprise buttons (which is what the
+standard button functions do).
+@end table
+
+There are other properties defined for the regions of text in a
+button, but these are not generally interesting for typical uses.
+
+@node Button Types
+@subsection Button Types
+@cindex button types
+
+  Every button has a button @emph{type}, which defines default values
+for the button's properties.  Button types are arranged in a
+hierarchy, with specialized types inheriting from more general types,
+so that it's easy to define special-purpose types of buttons for
+specific tasks.
+
+@defun define-button-type name &rest properties
+@tindex define-button-type
+Define a `button type' called @var{name}.  The remaining arguments
+form a sequence of @var{property value} pairs, specifying default
+property values for buttons with this type (a button's type may be set
+by giving it a @code{type} property when creating the button, using
+the @code{:type} keyword argument).
+
+In addition, the keyword argument @code{:supertype} may be used to
+specify a button-type from which @var{name} inherits its default
+property values.  Note that this inheritance happens only when
+@var{name} is defined; subsequent changes to a supertype are not
+reflected in its subtypes.
+@end defun
+
+Using @code{define-button-type} to define default properties for
+buttons is not necessary---buttons without any specified type use the
+built-in button-type @code{button}---but it is is encouraged, since
+doing so usually makes the resulting code clearer and more efficient.
+
+@node Making Buttons
+@subsection Making Buttons
+@cindex making buttons
+
+  Buttons are associated with a region of text, using an overlay or
+text-properties to hold button-specific information, all of which are
+initialized from the button's type (which defaults to the built-in
+button type @code{button}).  Like all emacs text, the appearance of
+the button is governed by the @code{face} property; by default (via
+the @code{face} property inherited from the @code{button} button-type)
+this is a simple underline, like a typical web-page link.
+
+For convenience, there are two sorts of button-creation functions,
+those that add button properties to an existing region of a buffer,
+called @code{make-...button}, and those also insert the button text,
+called @code{insert-...button}.
+
+The button-creation functions all take the @code{&rest} argument
+@var{properties}, which should be a sequence of @var{property value}
+pairs, specifying properties to add to the button; see @ref{Button
+Properties}.  In addition, the keyword argument @code{:type} may be
+used to specify a button-type from which to inherit other properties;
+see @ref{Button Types}.  Any properties not explicitly specified
+during creation will be inherited from the button's type (if the type
+defines such a property).
+
+The following functions add a button using an overlay
+(@pxref{Overlays}) to hold the button properties:
+
+@defun make-button beg end &rest properties
+@tindex make-button
+Make a button from @var{beg} to @var{end} in the current buffer.
+@end defun
+
+@defun insert-button label &rest properties
+@tindex insert-button
+Insert a button with the label @var{label}.
+@end defun
+
+The following functions are similar, but use emacs text-properties
+(@pxref{Text Properties}) to hold the button properties, making the
+button actually part of the text instead of being a property of the
+buffer (using text-properties is usually faster than using overlays,
+so this may be preferable when creating large numbers of buttons):
+
+@defun make-text-button beg end &rest properties
+@tindex make-text-button
+Make a button from @var{beg} to @var{end} in the current buffer, using
+text-properties.
+@end defun
+
+@defun insert-text-button label &rest properties
+@tindex insert-text-button
+Insert a button with the label @var{label}, using text-properties.
+@end defun
+
+Buttons using text-properties retain no markers into the buffer are
+retained, which is important for speed in cases where there are
+extremely large numbers of buttons.
+
+@node Manipulating Buttons
+@subsection Manipulating Buttons
+@cindex manipulating buttons
+
+These are functions for getting and setting properties of buttons.
+Often these are used by a button's invocation function to determine
+what to do.
+
+Where a @var{button} parameter is specified, it means an object
+referring to a specific button, either an overlay (for overlay
+buttons), or a buffer-position or marker (for text property buttons).
+Such an object is passed as the first argument to a button's
+invocation function when it is invoked.
+
+@defun button-start button
+@tindex button-start
+Return the position at which @var{button} starts.
+@end defun
+
+@defun button-end button
+@tindex button-end
+Return the position at which @var{button} ends.
+@end defun
+
+@defun button-get button prop
+@tindex button-get
+Get the property of button @var{button} named @var{prop}.
+@end defun
+
+@defun button-put button prop val
+@tindex button-put
+Set @var{button}'s @var{prop} property to @var{val}.
+@end defun
+
+@defun button-activate button &optional use-mouse-action
+@tindex button-activate
+Call @var{button}'s @code{action} property (i.e., invoke it).  If
+@var{use-mouse-action} is non-@code{nil}, try to invoke the button's
+@code{mouse-action} property instead of @code{action}; if the button
+has no @code{mouse-action} property, use @code{action} as normal.
+@end defun
+
+@defun button-label button
+@tindex button-label
+Return @var{button}'s text label.
+@end defun
+
+@defun button-type button
+@tindex button-type
+Return @var{button}'s button-type.
+@end defun
+
+@defun button-has-type-p button type
+@tindex button-has-type-p
+Return @code{t} if @var{button} has button-type @var{type}, or one of
+@var{type}'s subtypes.
+@end defun
+
+@defun button-at pos
+@tindex button-at
+Return the button at position @var{pos} in the current buffer, or @code{nil}.
+@end defun
+
+@node Button Buffer Commands
+@subsection Button Buffer Commands
+@cindex button buffer commands
+
+These are commands and functions for locating and operating on
+buttons in an emacs buffer.
+
+@code{push-button} is the command that a user uses to actually `push'
+a button, and is bound by default in the button itself to @key{RET}
+and to @key{mouse-down-1} using a region-specific keymap.  Commands
+that are useful outside the buttons itself, such as
+@code{forward-button} and @code{backward-button} are additionally
+available in the keymap stored in @code{button-buffer-map}; a mode
+which uses buttons may want to use @code{button-buffer-map} as a
+parent keymap for its keymap.
+
+@deffn Command push-button &optional pos use-mouse-action
+@tindex push-button
+Perform the action specified by a button at location @var{pos}.
+@var{pos} may be either a buffer position or a mouse-event.  If
+@var{use-mouse-action} is non-@code{nil}, or @var{pos} is a
+mouse-event (@pxref{Mouse Events}), try to invoke the button's
+@code{mouse-action} property instead of @code{action}; if the button
+has no @code{mouse-action} property, use @code{action} as normal.
+@var{pos} defaults to point, except when @code{push-button} is invoked
+interactively as the result of a mouse-event, in which case, the mouse
+event's position is used.  If there's no button at @var{pos}, do
+nothing and return @code{nil}, otherwise return @code{t}.
+@end deffn
+
+@deffn Command forward-button n &optional wrap display-message
+@tindex forward-button
+Move to the @var{n}th next button, or @var{n}th previous button if
+@var{n} is negative.  If @var{n} is zero, move to the start of any
+button at point.  If @var{wrap} is non-@code{nil}, moving past either
+end of the buffer continues from the other end.  If
+@var{display-message} is non-@code{nil}, the button's help-echo string
+is displayed.  Any button with a non-@code{nil} @code{skip} property
+is skipped over.  Returns the button found.
+@end deffn
+
+@deffn Command backward-button n &optional wrap display-message
+@tindex backward-button
+Move to the @var{n}th previous button, or @var{n}th next button if
+@var{n} is negative.  If @var{n} is zero, move to the start of any
+button at point.  If @var{wrap} is non-@code{nil}, moving past either
+end of the buffer continues from the other end.  If
+@var{display-message} is non-@code{nil}, the button's help-echo string
+is displayed.  Any button with a non-@code{nil} @code{skip} property
+is skipped over.  Returns the button found.
+@end deffn
+
+@defun next-button pos &optional count-current
+@tindex next-button
+Return the next button after position @var{pos} in the current buffer.
+If @var{count-current} is non-@code{nil}, count any button at
+@var{pos} in the search, instead of starting at the next button.
+@end defun
+
+@defun previous-button pos &optional count-current
+@tindex previous-button
+Return the @var{n}th button before position @var{pos} in the current
+buffer.  If @var{count-current} is non-@code{nil}, count any button at
+@var{pos} in the search, instead of starting at the next button.
+@end defun
+
+@node Manipulating Button Types
+@subsection Manipulating Button Types
+@cindex manipulating button types
+
+@defun button-type-put type prop val
+@tindex button-type-put
+Set the button-type @var{type}'s @var{prop} property to @var{val}.
+@end defun
+
+@defun button-type-get type prop
+@tindex button-type-get
+Get the property of button-type @var{type} named @var{prop}.
+@end defun
+
+@defun button-type-subtype-p type supertype
+@tindex button-type-subtype-p
+Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
+@end defun
+
 @node Blinking
 @section Blinking Parentheses
 @cindex parenthesis matching
@@ -3565,9 +3938,9 @@ force redisplay of the mode line using a new display table, call
 @code{force-mode-line-update} (@pxref{Mode Line Format}).
 
 @menu
-* Display Table Format::	What a display table consists of.
-* Active Display Table::	How Emacs selects a display table to use.
-* Glyphs::			How to define a glyph, and what glyphs mean.
+* Display Table Format::  What a display table consists of.
+* Active Display Table::  How Emacs selects a display table to use.
+* Glyphs::              How to define a glyph, and what glyphs mean.
 @end menu
 
 @node Display Table Format

@@ -293,7 +293,7 @@ null strings are always omitted from the result.  Thus:
 @end example
 
 The result is not @samp{("" "two" "words" "")}, which would rarely be
-useful.  If you need such a result, use an explict value for
+useful.  If you need such a result, use an explicit value for
 @var{separators}:
 
 @example
@@ -377,6 +377,14 @@ Since it is impossible to change the length of an existing string, it is
 an error if @var{obj} doesn't fit within @var{string}'s actual length,
 or if any new character requires a different number of bytes from the
 character currently present at that point in @var{string}.
+@end defun
+
+  To clear out a string that contained a password, use
+@code{clear-string}:
+
+@defun clear-string string
+This clears the contents of @var{string} to zeros
+and may change its length.
 @end defun
 
 @need 2000
@@ -518,13 +526,13 @@ two strings.  The sign is negative if @var{string1} (or its specified
 portion) is less.
 @end defun
 
-@defun assoc-ignore-case key alist
-@defunx assoc-ignore-representation key alist
-These functions work like @code{assoc}, except that @var{key} must be
-a string, all elements of @var{alist} must be cons cells whose
-@sc{car} is a string, and comparison is done using
-@code{compare-strings}.  @code{assoc-ignore-case} ignores case
-differences, whereas @code{assoc-ignore-representation} does not.
+@defun assoc-string key alist &optional case-fold
+This function works like @code{assoc}, except that @var{key} must be a
+string, and comparison is done using @code{compare-strings}.  If
+@var{case-fold} is non-@code{nil}, it ignores case differences.
+Unlike @code{assoc}, this function can also match elements of the alist
+that are strings rather than conses.  In particular, @var{alist} can
+be a list of strings rather than an actual alist.
 @xref{Association Lists}.
 @end defun
 
@@ -790,22 +798,20 @@ operation} error.
 @end group
 @end example
 
-@cindex numeric prefix
 @cindex field width
 @cindex padding
-  All the specification characters allow an optional numeric prefix
-between the @samp{%} and the character.  The optional numeric prefix
-defines the minimum width for the object.  If the printed
-representation of the object contains fewer characters than this, then
-it is padded.  The padding is on the left if the prefix is positive
-(or starts with zero) and on the right if the prefix is negative.  The
-padding character is normally a space, but if the numeric prefix
-starts with a zero, zeros are used for padding.  Some of these
-conventions are ignored for specification characters for which they do
-not make sense.  That is, %s, %S and %c accept a numeric prefix
-starting with 0, but still pad with @emph{spaces} on the left.  Also,
-%% accepts a numeric prefix, but ignores it.  Here are some examples
-of padding:
+  All the specification characters allow an optional ``width'', which
+is a digit-string between the @samp{%} and the character.  If the
+printed representation of the object contains fewer characters than
+this width, then it is padded.  The padding is on the left if the
+width is positive (or starts with zero) and on the right if the
+width is negative.  The padding character is normally a space, but if
+the width starts with a zero, zeros are used for padding.  Some of
+these conventions are ignored for specification characters for which
+they do not make sense.  That is, @samp{%s}, @samp{%S} and @samp{%c}
+accept a width starting with 0, but still pad with @emph{spaces} on
+the left.  Also, @samp{%%} accepts a width, but ignores it.  Here are
+some examples of padding:
 
 @example
 (format "%06d is padded on the left with zeros" 123)
@@ -815,10 +821,9 @@ of padding:
      @result{} "123    is padded on the right"
 @end example
 
-  @code{format} never truncates an object's printed representation, no
-matter what width you specify.  Thus, you can use a numeric prefix to
-specify a minimum spacing between columns with no risk of losing
-information.
+If the width is too small, @code{format} does not truncate the
+object's printed representation.  Thus, you can use a width to specify
+a minimum spacing between columns with no risk of losing information.
 
   In the following three examples, @samp{%7s} specifies a minimum width
 of 7.  In the first case, the string inserted in place of @samp{%7s} has
@@ -845,6 +850,32 @@ not truncated.  In the third case, the padding is on the right.
      @result{} "The word `foo    ' actually has 3 letters in it."
 @end group
 @end smallexample
+
+@cindex precision in format specifications
+  All the specification characters allow an optional ``precision''
+before the character (after the width, if present).  The precision is
+a decimal-point @samp{.} followed by a digit-string.  For the
+floating-point specifications (@samp{%e}, @samp{%f}, @samp{%g}), the
+precision specifies how many decimal places to show; if zero, the
+decimal-point itself is also omitted.  For @samp{%s} and @samp{%S},
+the precision truncates the string to the given width, so
+@samp{%.3s} shows only the first three characters of the
+representation for @var{object}.  Precision is ignored for other
+specification characters.
+
+@cindex flags in format specifications
+Immediately after the @samp{%} and before the optional width and
+precision, you can put certain ``flag'' characters.
+
+A space character inserts a space for positive numbers (otherwise
+nothing is inserted for positive numbers).  This flag is ignored
+except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}.
+
+The flag @samp{#} indicates ``alternate form''.  For @samp{%o} it
+ensures that the result begins with a 0.  For @samp{%x} and @samp{%X}
+the result is prefixed with @samp{0x} or @samp{0X}. For @samp{%e},
+@samp{%f}, and @samp{%g} a decimal point is always shown even if the
+precision is zero.
 
 @node Case Conversion
 @comment node-name, next, previous, up
@@ -1010,7 +1041,7 @@ and @samp{A} are related by case-conversion, they should have the same
 canonical equivalent character (which should be either @samp{a} for both
 of them, or @samp{A} for both of them).
 
-  The extra table @var{equivalences} is a map that cyclicly permutes
+  The extra table @var{equivalences} is a map that cyclically permutes
 each equivalence class (of characters with the same canonical
 equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of

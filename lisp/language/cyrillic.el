@@ -204,6 +204,9 @@ This works whether or not the table is Unicode-based or
 ;; The table is set up later to encode both Unicode and 8859-5.
 (define-ccl-program ccl-encode-koi8-font
   `(0
+    (if (r2 >= 0)
+	((r1 <<= 7)
+	 (r1 += r2)))
     (translate-character cyrillic-koi8-r-encode-table r0 r1))
   "CCL program to encode Cyrillic chars to KOI font.")
 
@@ -472,10 +475,25 @@ Support for Russian using koi8-r and the russian-computer input method.")
       (setcdr slot (cdr elt))
     (push elt ctext-non-standard-encodings-alist)))
 
+(define-ccl-program ccl-encode-windows-1251-font
+  `(0
+    ((if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	 ((r1 <<= 7)
+	  (r1 += r2)))
+     (translate-character encode-windows-1251 r0 r1))))
+
+(add-to-list 'font-ccl-encoder-alist
+	     '("microsoft-cp1251" . ccl-encode-windows-1251-font))
+
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
 	       (coding-priority windows-1251)
 	       (ctext-non-standard-encodings "microsoft-cp1251")
+	       (overriding-fontspec
+		(,(get 'encode-windows-1251 'translation-table)
+		 . (nil . "microsoft-cp1251"))
+		(,(get 'cyrillic-koi8-r-encode-table 'translation-table)
+		 . (nil . "koi8-r")))
 	       (nonascii-translation
 		. ,(get 'decode-windows-1251 'translation-table))
 	       (input-method . "bulgarian-bds")
@@ -488,6 +506,11 @@ Support for Russian using koi8-r and the russian-computer input method.")
  "Belarusian" `((coding-system windows-1251)
 		(coding-priority windows-1251)
 		(ctext-non-standard-encodings "microsoft-cp1251")
+		(overriding-fontspec
+		 (,(get 'encode-windows-1251 'translation-table)
+		  . (nil . "microsoft-cp1251"))
+		 (,(get 'cyrillic-koi8-r-encode-table 'translation-table)
+		  . (nil . "koi8-r")))
 		(nonascii-translation
 		 . ,(get 'decode-windows-1251 'translation-table))
 		(input-method . "belarusian")

@@ -305,7 +305,8 @@ used by that frame.  */)
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
-       doc: /* Returns non-nil if WINDOW is a minibuffer window.  */)
+       doc: /* Returns non-nil if WINDOW is a minibuffer window.
+WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
 {
@@ -392,6 +393,17 @@ decode_window (window)
   return XWINDOW (window);
 }
 
+static struct window *
+decode_any_window (window)
+     register Lisp_Object window;
+{
+  if (NILP (window))
+    return XWINDOW (selected_window);
+
+  CHECK_WINDOW (window);
+  return XWINDOW (window);
+}
+
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.  */)
      (window)
@@ -405,7 +417,7 @@ DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
      (window)
      Lisp_Object window;
 {
-  return decode_window (window)->total_lines;
+  return decode_any_window (window)->total_lines;
 }
 
 DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
@@ -416,7 +428,7 @@ use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
      (window)
      Lisp_Object window;
 {
-  return make_number (window_box_text_cols (decode_window (window)));
+  return make_number (window_box_text_cols (decode_any_window (window)));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -489,7 +501,7 @@ To get the edges of the actual text area, use `window-inside-edges'.  */)
      (window)
      Lisp_Object window;
 {
-  register struct window *w = decode_window (window);
+  register struct window *w = decode_any_window (window);
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_COL (w)),
 	 Fcons (make_number (WINDOW_TOP_EDGE_LINE (w)),
@@ -509,7 +521,7 @@ To get the edges of the actual text area, use `window-inside-pixel-edges'.  */)
      (window)
      Lisp_Object window;
 {
-  register struct window *w = decode_window (window);
+  register struct window *w = decode_any_window (window);
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_X (w)),
 	 Fcons (make_number (WINDOW_TOP_EDGE_Y (w)),
@@ -528,7 +540,7 @@ display margins, fringes, header line, and/or mode line.  */)
      (window)
      Lisp_Object window;
 {
-  register struct window *w = decode_window (window);
+  register struct window *w = decode_any_window (window);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_COL (w)
 			     + WINDOW_LEFT_MARGIN_COLS (w)
@@ -552,7 +564,7 @@ display margins, fringes, header line, and/or mode line.  */)
      (window)
      Lisp_Object window;
 {
-  register struct window *w = decode_window (window);
+  register struct window *w = decode_any_window (window);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
 			     + WINDOW_LEFT_MARGIN_WIDTH (w)
@@ -771,7 +783,7 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
   int x, y;
   Lisp_Object lx, ly;
 
-  CHECK_LIVE_WINDOW (window);
+  CHECK_WINDOW (window);
   w = XWINDOW (window);
   f = XFRAME (w->frame);
   CHECK_CONS (coordinates);

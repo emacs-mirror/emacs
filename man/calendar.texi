@@ -1325,36 +1325,22 @@ Reference Manual}.
 @section Appointments
 @cindex appointment notification
 
+@vindex appt-display-format
+@vindex appt-audible
   If you have a diary entry for an appointment, and that diary entry
 begins with a recognizable time of day, Emacs can warn you several
 minutes beforehand that that appointment is pending.  Emacs alerts you
-to the appointment by displaying a message in the mode line.
+to the appointment by displaying a message in your chosen format, as
+specified by the variable @code{appt-display-format}.  If the value
+of @code{appt-audible} is non-nil, an audible reminder is also given.
 
-@vindex diary-hook
-@findex appt-make-list
-  To enable appointment notification, you must enable the time display
-feature of Emacs, @kbd{M-x display-time} (@pxref{Mode Line}).  You must
-also add the function @code{appt-make-list} to the
-@code{diary-hook}, like this:
-
-@example
-(add-hook 'diary-hook 'appt-make-list)
-@end example
-
-@noindent
-Adding this text to your @file{.emacs} file does the whole job:
-
-@example
-(display-time)
-(add-hook 'diary-hook 'appt-make-list)
-(diary 0)
-@end example
-
-  With these preparations done, when you display the diary (either with
-the @kbd{d} command in the calendar window or with the @kbd{M-x diary}
-command), it sets up an appointment list of all the diary entries found
-with recognizable times of day, and reminds you just before each of
-them.
+@findex appt-activate
+  To enable appointment notification, call the function
+@code{appt-activate} with a positive argument. This sets up an
+appointment list for today from the diary file, giving all diary entries
+found with recognizable times of day, and reminds you just before each
+of them. Calling @code{appt-activate} with a negative argument disables
+the appointment package.
 
   For example, suppose the diary file contains these lines:
 
@@ -1364,19 +1350,26 @@ Monday
  12:00pm Lunch
 @end example
 
+@vindex appt-message-warning-time
 @noindent
-Then on Mondays, after you have displayed the diary, you will be
-reminded at 9:20am about your coffee break and at 11:50am about lunch.
+Then on Mondays, you will be reminded at around 9:20am about your coffee
+break and at around 11:50am about lunch. How many minutes in advance you
+are first warned is determined by the value of
+@code{appt-message-warning-time}.
 
   You can write times in am/pm style (with @samp{12:00am} standing
 for midnight and @samp{12:00pm} standing for noon), or 24-hour
 European/military style.  You need not be consistent; your diary file
-can have a mixture of the two styles.
+can have a mixture of the two styles.  Times must be at the beginning
+of lines if they are to be recognized.
 
 @vindex appt-display-diary
-  Emacs updates the appointments list automatically just after
-midnight.  This also displays the next day's diary entries in the diary
-buffer, unless you set @code{appt-display-diary} to @code{nil}.
+  Emacs updates the appointments list from the diary file automatically
+just after midnight.  An update can be forced at any time by
+re-activating the appointment package.  Both these actions also display
+the day's diary buffer, unless you set @code{appt-display-diary} to
+@code{nil}.  The appointments list is also updated whenever the
+diary file is saved.
 
 @findex appt-add
 @findex appt-delete
@@ -1385,10 +1378,6 @@ buffer, unless you set @code{appt-display-diary} to @code{nil}.
 clock.  The command @kbd{M-x appt-add} adds entries to the appointment
 list without affecting your diary file.  You delete entries from the
 appointment list with @kbd{M-x appt-delete}.
-
-@vindex appt-issue-message
-  You can turn off the appointment notification feature at any time by
-setting @code{appt-issue-message} to @code{nil}.
 
 @node Daylight Savings
 @section Daylight Savings Time

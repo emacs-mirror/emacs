@@ -1156,7 +1156,8 @@ the marginal areas, @var{position} has this form:
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
- @var{object} @var{text-pos} (@var{col} . @var{row}) (@var{dx} . @var{dy}))
+ @var{object} @var{text-pos} (@var{col} . @var{row}) 
+ @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
 @end example
 
 @table @asis
@@ -1181,10 +1182,9 @@ This is the time at which the event occurred, in milliseconds.
 
 @item @var{object}
 This is the object on which the click occurred.  It is either
-@code{nil} if there is no string property or image at the position
-clicked on, or it has the form (@var{string} . @var{string-pos}) when
-there is a string-type text property at the click position, or it is
-an image object as returned by @code{find-image} if click was in an image.
+@code{nil} if there is no string property, or it has the form
+(@var{string} . @var{string-pos}) when there is a string-type text
+property at the click position.
 
 @item @var{string}
 This is the string on which the click occurred, including any
@@ -1204,6 +1204,11 @@ the window.
 These are the actual coordinates of the glyph under the @var{x},
 @var{y} position, possibly padded with default character width
 glyphs if @var{x} is beyond the last glyph on the line.
+
+@item @var{image}
+This is the image object on which the click occurred.  It is either
+@code{nil} if there is no image at the position clicked on, or it is
+an image object as returned by @code{find-image} if click was in an image.
 
 @item @var{dx}, @var{dy}
 These are the pixel-denominated coordinates of the click, relative to
@@ -1669,7 +1674,8 @@ mouse-button event, as a list of this form:
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
- @var{object} @var{text-pos} (@var{col} . @var{row}) (@var{dx} . @var{dy}))
+ @var{object} @var{text-pos} (@var{col} . @var{row})
+ @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
 @end example
 
 @defun event-start event
@@ -1730,15 +1736,33 @@ in the window, and the actual character number in that row.  Return
 case, @code{posn-col-row} can be used to get approximate values.
 @end defun
 
+@defun posn-string position
+Return the string object in @var{position}, either @code{nil}, or a
+cons cell @code{(@var{string} . @var{string-pos})}.
+@end defun
+
+@defun posn-image position
+Return the image object in @var{position}, either @code{nil}, or an
+image @code{(image ...)}.
+@end defun
+
 @defun posn-object position
-Return the object in @var{position}, either @code{nil}, a cons
-cell @code{(@var{string} . @var{string-pos})}, or an image
-@code{(image ...)}.
+Return the image or string object in @var{position}, either
+@code{nil}, an image @code{(image ...)}, or a cons cell
+@code{(@var{string} . @var{string-pos})}.
 @end defun
 
 @defun posn-object-x-y position
 Return the pixel-based x and y coordinates relative to the upper left
-corner of the object in @var{position}, as a cons cell @code{(@var{dx} . @var{dy})}.
+corner of the object in @var{position} as a cons cell @code{(@var{dx}
+. @var{dy})}.  If the @var{position} is a buffer position, return the
+relative position in the character at that position.
+@end defun
+
+@defun posn-object-width-height position
+Return the pixel width and height of the object in @var{position} as a
+cons cell @code{(@var{width} . @var{height})}.  If the @var{position}
+is a buffer position, return the size of the character at that position.
 @end defun
 
 @cindex mouse event, timestamp

@@ -1397,6 +1397,15 @@ This function also adds a hook to the minibuffer."
 	(substring s 0 l)
       s)))
 
+(defun ido-nonreadable-directory-p (dir)
+  ;; Return t if dir is a directory, but not readable
+  ;; Do not check for non-readable directories via tramp, as this causes a premature
+  ;; connect on incomplete tramp paths (after entring just method:).
+  (let ((ido-enable-tramp-completion nil))
+    (and (ido-final-slash dir)
+	 (file-directory-p dir)
+	 (not (file-readable-p dir)))))
+
 (defun ido-set-current-directory (dir &optional subdir no-merge)
   ;; Set ido's current directory to DIR or DIR/SUBDIR
   (setq dir (ido-final-slash dir t))
@@ -1410,7 +1419,7 @@ This function also adds a hook to the minibuffer."
     (setq ido-current-directory dir)
     (if (get-buffer ido-completion-buffer)
 	(kill-buffer ido-completion-buffer))
-    (setq ido-directory-nonreadable (not (file-readable-p dir)))
+    (setq ido-directory-nonreadable (ido-nonreadable-directory-p dir))
     t))
 
 (defun ido-set-current-home (&optional dir)
@@ -1867,7 +1876,7 @@ If INITIAL is non-nil, it specifies the initial input string."
   (unless item
     (setq item 'file))
   (let* ((ido-current-directory (ido-expand-directory default))
-	 (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
+	 (ido-directory-nonreadable (ido-nonreadable-directory-p ido-current-directory))
 	 filename)
 
     (cond
@@ -2706,7 +2715,7 @@ for first matching file."
 
 (defun ido-file-name-all-completions1 (dir)
   (cond
-   ((not (file-readable-p dir)) '())
+   ((ido-nonreadable-directory-p dir) '())
    ((and ido-enable-tramp-completion
 	 (string-match "\\`/\\([^/:]+:\\([^/:@]+@\\)?\\)\\'" dir))
 

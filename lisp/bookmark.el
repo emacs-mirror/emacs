@@ -335,10 +335,7 @@ through a file easier.")
   "Return the full entry for BOOKMARK in bookmark-alist.
 If BOOKMARK is not a string, return nil."
   (when (stringp bookmark)
-    (apply (if bookmark-completion-ignore-case
-	       #'assoc-ignore-case
-	     #'assoc)
-	   (list bookmark bookmark-alist))))
+    (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case)))
 
 
 (defun bookmark-get-bookmark-record (bookmark)

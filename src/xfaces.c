@@ -2562,6 +2562,69 @@ x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
 }
 
 
+/* Check if a font matching pattern_offset_t on frame F is available
+   or not.  PATTERN may be a cons (FAMILY . REGISTRY), in which case,
+   a font name pattern is generated from FAMILY and REGISTRY.  */
+
+int
+face_font_available_p (f, pattern)
+     struct frame *f;
+     Lisp_Object pattern;
+{
+  Lisp_Object fonts;
+
+  if (! STRINGP (pattern))
+    {
+      Lisp_Object family, registry;
+      char *family_str, *registry_str, *pattern_str;
+
+      CHECK_CONS (pattern);
+      family = XCAR (pattern);
+      if (NILP (family))
+	family_str = "*";
+      else
+	{
+	  CHECK_STRING (family);
+	  family_str = (char *) SDATA (family);
+	}
+      registry = XCDR (pattern);
+      if (NILP (registry))
+	registry_str = "*";
+      else
+	{
+	  CHECK_STRING (registry);
+	  registry_str = (char *) SDATA (registry);
+	}
+
+      pattern_str = (char *) alloca (strlen (family_str)
+				     + strlen (registry_str)
+				     + 10);
+      strcpy (pattern_str, index (family_str, '-') ? "-" : "-*-");
+      strcat (pattern_str, family_str);
+      strcat (pattern_str, "-*-");
+      strcat (pattern_str, registry_str);
+      if (!index (registry_str, '-'))
+	{
+	  if (registry_str[strlen (registry_str) - 1] == '*')
+	    strcat (pattern_str, "-*");
+	  else
+	    strcat (pattern_str, "*-*");
+	}
+      pattern = build_string (pattern_str);
+    }
+
+  /* Get the list of fonts matching PATTERN.  */
+#ifdef WINDOWSNT
+  BLOCK_INPUT;
+  fonts = w32_list_fonts (f, pattern, 0, 1);
+  UNBLOCK_INPUT;
+#else
+  fonts = x_list_fonts (f, pattern, -1, 1);
+#endif
+  return XINT (Flength (fonts));
+}
+
+
 /* Determine fonts matching PATTERN on frame F.  Sort resulting fonts
    using comparison function CMPFN.  Value is the number of fonts
    found.  If value is non-zero, *FONTS is set to a vector of

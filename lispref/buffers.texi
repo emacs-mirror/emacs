@@ -223,6 +223,7 @@ form in @var{body}.  The current buffer is restored even in case of an
 abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 @end defmac
 
+@anchor{Definition of with-temp-buffer}
 @defmac with-temp-buffer body...
 The @code{with-temp-buffer} macro evaluates the @var{body} forms
 with a temporary buffer as the current buffer.  It saves the identity of
@@ -515,6 +516,11 @@ function @code{force-mode-line-update} works by doing this:
 (set-buffer-modified-p (buffer-modified-p))
 @end group
 @end example
+@end defun
+
+@defun restore-buffer-modified-p flag
+Like @code{set-buffer-modified-p}, but does not force redisplay
+of mode lines.
 @end defun
 
 @deffn Command not-modified
@@ -952,6 +958,11 @@ save that buffer, just as they offer to save file-visiting buffers.  The
 variable @code{buffer-offer-save} automatically becomes buffer-local
 when set for any reason.  @xref{Buffer-Local Variables}.
 @end defvar
+
+@defun buffer-live-p buffer
+This function returns @code{t} if @var{object} is a buffer which has
+not been killed, @code{nil} otherwise.
+@end defun
 
 @node Indirect Buffers
 @section Indirect Buffers

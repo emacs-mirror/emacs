@@ -1172,6 +1172,7 @@ without any interpretation."
    ;; Give temporary modes such as isearch a chance to turn off.
    (run-hooks 'mouse-leave-buffer-hook)
    (setq this-command 'yank)
+   (mouse-set-point click)
    (term-send-raw-string (current-kill (cond
 					((listp arg) 0)
 					((eq arg '-) -1)
@@ -1290,6 +1291,7 @@ buffer.  The hook term-exec-hook is run after each exec."
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
       (set-process-filter proc 'term-emulate-terminal)
+      (set-process-sentinel proc 'term-sentinel)
       ;; Feed it the startfile.
       (cond (startfile
 	     ;;This is guaranteed to wait long enough
@@ -1305,6 +1307,49 @@ buffer.  The hook term-exec-hook is run after each exec."
 	     (term-send-string proc startfile)))
     (run-hooks 'term-exec-hook)
     buffer)))
+
+(defun term-sentinel  (proc msg)
+  "Sentinel for term buffers.
+The main purpose is to get rid of the local keymap."
+  (let ((buffer (process-buffer proc)))
+    (if (memq (process-status proc) '(signal exit))
+	(progn
+	  (if (null (buffer-name buffer))
+	      ;; buffer killed
+	      (set-process-buffer proc nil)
+	    (let ((obuf (current-buffer)))
+	      ;; save-excursion isn't the right thing if
+	      ;; process-buffer is current-buffer
+	      (unwind-protect
+		  (progn
+		    ;; Write something in the compilation buffer
+		    ;; and hack its mode line.
+		    (set-buffer buffer)
+		    ;; Get rid of local keymap.
+		    (use-local-map nil)
+		    (term-handle-exit (process-name proc)
+				      msg)
+		    ;; Since the buffer and mode line will show that the
+		    ;; process is dead, we can delete it now.  Otherwise it
+		    ;; will stay around until M-x list-processes.
+		    (delete-process proc))
+		(set-buffer obuf))))
+	  ))))
+
+(defun term-handle-exit (process-name msg)
+  "Write process exit (or other change) message MSG in the current buffer."
+  (let ((buffer-read-only nil)
+	(omax (point-max))
+	(opoint (point)))
+    ;; Record where we put the message, so we can ignore it
+    ;; later on.
+    (goto-char omax)
+    (insert ?\n "Process " process-name " " msg)
+    ;; Force mode line redisplay soon.
+    (force-mode-line-update)
+    (if (and opoint (< opoint omax))
+	(goto-char opoint))))
+
 
 ;;; Name to use for TERM.
 ;;; Using "emacs" loses, because bash disables editing if TERM == emacs.

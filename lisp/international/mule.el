@@ -1664,31 +1664,36 @@ function by default."
 		  (setq coding-system nil)))))
 
 	;; If no coding: tag in the head, check the tail.
+	;; Here we must pay attention to the case that the end-of-line
+	;; is just "\r" and we can't use "^" nor "$" in regexp.
 	(when (and tail-found (not coding-system))
 	  (goto-char tail-start)
-	  (search-forward "\n\^L" nil t)
+	  (re-search-forward "[\r\n]\^L" nil t)
 	  (if (re-search-forward
-	       "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$" tail-end t)
-	  ;; The prefix is what comes before "local variables:" in its
-	   ;; line.  The suffix is what comes after "local variables:"
+	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]" 
+	       tail-end t)
+	      ;; The prefix is what comes before "local variables:" in its
+	      ;; line.  The suffix is what comes after "local variables:"
 	      ;; in its line.
 	      (let* ((prefix (regexp-quote (match-string 1)))
 		     (suffix (regexp-quote (match-string 2)))
 		     (re-coding
 		      (concat
-		       "^" prefix
+		       "[\r\n]" prefix
 		       ;; N.B. without the \n below, the regexp can
 		       ;; eat newlines.
-		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
-		       suffix "$"))
+		       "[ \t]*coding[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-unibyte
 		      (concat
-		       "^" prefix
-		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
-		       suffix "$"))
+		       "[\r\n]" prefix
+		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-end
-		      (concat "^" prefix "[ \t]*End *:[ \t]*" suffix "$"))
-		     (pos (point)))
+		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix 
+			      "[\r\n]?"))
+		     (pos (1- (point))))
+		(forward-char -1)	; skip back \r or \n.
 		(re-search-forward re-end tail-end 'move)
 		(setq tail-end (point))
 		(goto-char pos)

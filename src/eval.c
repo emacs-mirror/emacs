@@ -1509,6 +1509,8 @@ A handler for any of those names will get to handle this signal.
 The symbol `error' should normally be one of them.
 
 DATA should be a list.  Its elements are printed as part of the error message.
+See Info anchor `(elisp)Definition of signal' for some details on how this
+error message is constructed.
 If the signal is handled, DATA is made available to the handler.
 See also the function `condition-case'.  */)
      (error_symbol, data)
@@ -2736,6 +2738,8 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
   RETURN_UNGCPRO (Ffuncall (7, &fn));
 #endif /* not NO_ARG_ARRAY */
 }
+
+/* The caller should GCPRO all the elements of ARGS.  */
 
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a type of object that can be called as a function.  */)

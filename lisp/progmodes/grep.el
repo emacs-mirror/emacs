@@ -157,8 +157,9 @@ The following place holders should be present in the string:
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
 
-    (define-key map [remap next-line] 'compilation-next-error)
-    (define-key map [remap previous-line] 'compilation-previous-error)
+    ;; This is intolerable -- rms
+;;;    (define-key map [remap next-line] 'compilation-next-error)
+;;;    (define-key map [remap previous-line] 'compilation-previous-error)
 
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)
@@ -317,7 +318,12 @@ Sets `grep-last-buffer' and runs `grep-setup-hook'."
 	      'gnu)))
   (unless grep-find-command
     (setq grep-find-command
-	  (cond ((eq grep-find-use-xargs 'gnu)
+          (cond ((not (executable-command-find-unix-p "find"))
+		 (message
+		  (concat "compile.el: Unix type find(1) not found. "
+			  "Please set `grep-find-command'."))
+		 nil)
+		((eq grep-find-use-xargs 'gnu)
 		 (format "%s . -type f -print0 | xargs -0 -e %s"
 			 find-program grep-command))
 		(grep-find-use-xargs
@@ -442,11 +448,17 @@ easily repeat a find command."
    (progn
      (unless grep-find-command
        (grep-compute-defaults))
-     (list (read-from-minibuffer "Run find (like this): "
-				 grep-find-command nil nil
-				 'grep-find-history))))
-  (let ((null-device nil))		; see grep
-    (grep command-args)))
+     (if grep-find-command
+	 (list (read-from-minibuffer "Run find (like this): "
+				     grep-find-command nil nil
+                                     'grep-find-history))
+       ;; No default was set
+       (read-string
+        "compile.el: No `grep-find-command' command available. Press RET.")
+       (list nil))))
+  (when (and grep-find-command command-args)
+    (let ((null-device nil))		; see grep
+      (grep command-args))))
 
 (defun grep-expand-command-macros (command &optional regexp files dir excl case-fold)
   "Patch grep COMMAND replacing <D>, etc."

@@ -540,6 +540,9 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 				output_cursor.x, output_cursor.y);
 
       x_draw_vertical_border (w);
+
+      draw_window_fringes (w);
+
       UNBLOCK_INPUT;
     }
 
@@ -624,11 +627,7 @@ x_after_update_window_line (desired_row)
   xassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
-    {
-      BLOCK_INPUT;
-      draw_row_fringe_bitmaps (w, desired_row);
-      UNBLOCK_INPUT;
-    }
+    desired_row->redraw_fringe_bitmaps_p = 1;
 
   /* When a window has disappeared, make sure that no rest of
      full-width rows stays visible in the internal border.  Could
@@ -678,11 +677,26 @@ w32_draw_fringe_bitmap (w, row, p)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   struct face *face = p->face;
+  int rowY;
 
   hdc = get_frame_dc (f);
 
   /* Must clip because of partially visible lines.  */
-  w32_clip_to_row (w, row, hdc);
+  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  if (p->y < rowY)
+    {
+      /* Adjust position of "bottom aligned" bitmap on partially
+	 visible last row.  */
+      int oldY = row->y;
+      int oldVH = row->visible_height;
+      row->visible_height = p->h;
+      row->y -= rowY - p->y;
+      w32_clip_to_row (w, row, hdc);
+      row->y = oldY;
+      row->visible_height = oldVH;
+    }
+  else
+    w32_clip_to_row (w, row, hdc);
 
   if (p->bx >= 0)
     {
@@ -1121,9 +1135,9 @@ w32_text_out (s, x, y,chars,nchars)
      wchar_t * chars;
      int nchars;
 {
-  int charset_dim = w32_font_is_double_byte (s->gc->font) ? 2 : 1;
-  if (s->gc->font->bdf)
-    w32_BDF_TextOut (s->gc->font->bdf, s->hdc,
+  int charset_dim = w32_font_is_double_byte (s->font) ? 2 : 1;
+  if (s->font->bdf)
+    w32_BDF_TextOut (s->font->bdf, s->hdc,
                      x, y, (char *) chars, charset_dim,
                      nchars * charset_dim, 0);
   else if (s->first_glyph->font_type == UNICODE_FONT)
@@ -5119,6 +5133,14 @@ w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 
 	  /* Move the system caret.  */
 	  PostMessage (hwnd, WM_EMACS_TRACK_CARET, 0, 0);
+	}
+
+      if (glyph_row->exact_window_width_line_p
+	  && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
+	{
+	  glyph_row->cursor_in_fringe_p = 1;
+	  draw_fringe_bitmap (w, glyph_row, 0);
+	  return;
 	}
 
       switch (cursor_type)

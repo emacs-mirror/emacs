@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -309,6 +309,21 @@ extern Lisp_Object Qscroll_bar;
 /* Non-nil means highlight trailing whitespace.  */
 
 Lisp_Object Vshow_trailing_whitespace;
+
+#ifdef HAVE_WINDOW_SYSTEM
+/* Non-nil means that newline may flow into the right fringe.  */
+
+Lisp_Object Voverflow_newline_into_fringe;
+#endif /* HAVE_WINDOW_SYSTEM */
+
+/* Test if overflow newline into fringe.  Called with iterator IT
+   at or past right window margin, and with IT->current_x set.  */ 
+
+#define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it)	\
+  (!NILP (Voverflow_newline_into_fringe)	\
+   && FRAME_WINDOW_P (it->f)			\
+   && WINDOW_RIGHT_FRINGE_WIDTH (it->w) > 0	\
+   && it->current_x == it->last_visible_x)
 
 /* Non-nil means show the text cursor in void text areas
    i.e. in blank areas after eol and eob.  This used to be
@@ -5594,7 +5609,20 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		      ++it->hpos;
 		      it->current_x = new_x;
 		      if (i == it->nglyphs - 1)
-			set_iterator_to_next (it, 1);
+			{
+			  set_iterator_to_next (it, 1);
+#ifdef HAVE_WINDOW_SYSTEM
+			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+			    {
+			      get_next_display_element (it);
+			      if (ITERATOR_AT_END_OF_LINE_P (it))
+				{
+				  result = MOVE_NEWLINE_OR_CR;
+				  break;
+				}
+			    }
+#endif /* HAVE_WINDOW_SYSTEM */
+			}
 		    }
 		  else
 		    {
@@ -5651,6 +5679,17 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
       if (it->truncate_lines_p
 	  && it->current_x >= it->last_visible_x)
 	{
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+	    {
+	      get_next_display_element (it);
+	      if (ITERATOR_AT_END_OF_LINE_P (it))
+		{
+		  result = MOVE_NEWLINE_OR_CR;
+		  break;
+		}
+	    }
+#endif /* HAVE_WINDOW_SYSTEM */
 	  result = MOVE_LINE_TRUNCATED;
 	  break;
 	}
@@ -8899,25 +8938,204 @@ note_tool_bar_highlight (f, x, y)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+/* Notice that all bitmaps bits are "mirrored".  */
+
 /* An arrow like this: `<-'.  */
+/*
+  ...xx...
+  ....xx..
+  .....xx.
+  ..xxxxxx
+  ..xxxxxx
+  .....xx.
+  ....xx..
+  ...xx...
+*/
 static unsigned char left_bits[] = {
    0x18, 0x0c, 0x06, 0x3f, 0x3f, 0x06, 0x0c, 0x18};
 
+
 /* Right truncation arrow bitmap `->'.  */
+/*
+  ...xx...
+  ..xx....
+  .xx.....
+  xxxxxx..
+  xxxxxx..
+  .xx.....
+  ..xx....
+  ...xx...
+*/
 static unsigned char right_bits[] = {
    0x18, 0x30, 0x60, 0xfc, 0xfc, 0x60, 0x30, 0x18};
 
+
+/* Up arrow bitmap.  */
+/*
+  ...xx...
+  ..xxxx..
+  .xxxxxx.
+  xxxxxxxx
+  ...xx...
+  ...xx...
+  ...xx...
+  ...xx...
+*/
+static unsigned char up_arrow_bits[] = {
+   0x18, 0x3c, 0x7e, 0xff, 0x18, 0x18, 0x18, 0x18};
+
+
+/* Down arrow bitmap.  */
+/*
+  ...xx...
+  ...xx...
+  ...xx...
+  ...xx...
+  xxxxxxxx
+  .xxxxxx.
+  ..xxxx..
+  ...xx...
+*/
+static unsigned char down_arrow_bits[] = {
+   0x18, 0x18, 0x18, 0x18, 0xff, 0x7e, 0x3c, 0x18};
+
 /* Marker for continued lines.  */
+/*
+  ..xxxx..
+  .xxxxx..
+  xx......
+  xxx..x..
+  xxxxxx..
+  .xxxxx..
+  ..xxxx..
+  .xxxxx..
+*/
 static unsigned char continued_bits[] = {
    0x3c, 0x7c, 0xc0, 0xe4, 0xfc, 0x7c, 0x3c, 0x7c};
 
 /* Marker for continuation lines.  */
+/*
+  ..xxxx..
+  ..xxxxx.
+  ......xx
+  ..x..xxx
+  ..xxxxxx
+  ..xxxxx.
+  ..xxxx..
+  ..xxxxx.
+*/
 static unsigned char continuation_bits[] = {
    0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
 
 /* Overlay arrow bitmap.  A triangular arrow.  */
+/*
+  ......xx
+  ....xxxx
+  ...xxxxx
+  ..xxxxxx
+  ..xxxxxx
+  ...xxxxx
+  ....xxxx
+  ......xx
+*/
 static unsigned char ov_bits[] = {
    0x03, 0x0f, 0x1f, 0x3f, 0x3f, 0x1f, 0x0f, 0x03};
+
+
+/* First line bitmap.  An left-up angle.  */
+/*
+  ..xxxxxx
+  ..xxxxxx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ........
+*/
+static unsigned char first_line_bits[] = {
+   0x3f, 0x3f, 0x03, 0x03, 0x03, 0x03, 0x03, 0x00};
+
+
+/* Last line bitmap.  An left-down angle.  */
+/*
+  ........
+  xx......
+  xx......
+  xx......
+  xx......
+  xx......
+  xxxxxx..
+  xxxxxx..
+*/
+static unsigned char last_line_bits[] = {
+   0x00, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xfc};
+
+/* Filled box cursor bitmap.  A filled box; max 13 pixels high.  */
+/*
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+  .xxxxxxx
+*/
+static unsigned char filled_box_cursor_bits[] = {
+   0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
+
+/* Hollow box cursor bitmap.  A hollow box; max 13 pixels high.  */
+/*
+  .xxxxxxx
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .x.....x
+  .xxxxxxx
+*/
+static unsigned char hollow_box_cursor_bits[] = {
+   0x7f, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x7f};
+
+/* Bar cursor bitmap.  A vertical bar; max 13 pixels high.  */
+/*
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+  ......xx
+*/
+static unsigned char bar_cursor_bits[] = {
+   0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03};
+
+/* HBar cursor bitmap.  A horisontal bar; 2 pixels high.  */
+/*
+  .xxxxxxx
+  .xxxxxxx
+*/
+static unsigned char hbar_cursor_bits[] = {
+  0x7f, 0x7f};
+
 
 /* Bitmap drawn to indicate lines not displaying text if
    `indicate-empty-lines' is non-nil.  */
@@ -8931,32 +9149,89 @@ static unsigned char zv_bits[] = {
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00};
 
+/* Hollow square bitmap.  */
+/*
+  .xxxxxx.
+  .x....x.
+  .x....x.
+  .x....x.
+  .x....x.
+  .xxxxxx.
+*/
+static unsigned char hollow_square_bits[] = {
+   0x7e, 0x42, 0x42, 0x42, 0x42, 0x7e};
+
+
 struct fringe_bitmap fringe_bitmaps[MAX_FRINGE_BITMAPS] =
 {
   { 0, 0, 0, NULL /* NO_FRINGE_BITMAP */ },
   { 8, sizeof (left_bits), 0, left_bits },
   { 8, sizeof (right_bits), 0, right_bits },
+  { 8, sizeof (up_arrow_bits), -1, up_arrow_bits },
+  { 8, sizeof (down_arrow_bits), -2, down_arrow_bits },
   { 8, sizeof (continued_bits), 0, continued_bits },
   { 8, sizeof (continuation_bits), 0, continuation_bits },
   { 8, sizeof (ov_bits), 0, ov_bits },
-  { 8, sizeof (zv_bits), 3, zv_bits }
+  { 8, sizeof (first_line_bits), -1, first_line_bits },
+  { 8, sizeof (last_line_bits), -2, last_line_bits },
+  { 8, sizeof (filled_box_cursor_bits), 0, filled_box_cursor_bits },
+  { 8, sizeof (hollow_box_cursor_bits), 0, hollow_box_cursor_bits },
+  { 8, sizeof (bar_cursor_bits), 0, bar_cursor_bits },
+  { 8, sizeof (hbar_cursor_bits), -2, hbar_cursor_bits },
+  { 8, sizeof (zv_bits), 3, zv_bits },
+  { 8, sizeof (hollow_square_bits), 0, hollow_square_bits },
 };
 
 
 /* Draw the bitmap WHICH in one of the left or right fringes of
    window W.  ROW is the glyph row for which to display the bitmap; it
    determines the vertical position at which the bitmap has to be
-   drawn.  */
+   drawn.
+   LEFT_P is 1 for left fringe, 0 for right fringe.
+*/
 
-static void
-draw_fringe_bitmap (w, row, which, left_p)
+void
+draw_fringe_bitmap (w, row, left_p)
      struct window *w;
      struct glyph_row *row;
-     enum fringe_bitmap_type which;
      int left_p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct draw_fringe_bitmap_params p;
+  enum fringe_bitmap_type which;
+  int period;
+
+  if (left_p)
+    which = row->left_fringe_bitmap;
+  else if (!row->cursor_in_fringe_p)
+    which = row->right_fringe_bitmap;
+  else
+    switch (w->phys_cursor_type)
+      {
+      case HOLLOW_BOX_CURSOR:
+	if (row->visible_height >= sizeof(hollow_box_cursor_bits))
+	  which = HOLLOW_BOX_CURSOR_BITMAP;
+	else
+	  which = HOLLOW_SQUARE_BITMAP;
+	break;
+      case FILLED_BOX_CURSOR:
+	which = FILLED_BOX_CURSOR_BITMAP;
+	break;
+      case BAR_CURSOR:
+	which = BAR_CURSOR_BITMAP;
+	break;
+      case HBAR_CURSOR:
+	which = HBAR_CURSOR_BITMAP;
+	break;
+      case NO_CURSOR:
+      default:
+	w->phys_cursor_on_p = 0;
+	row->cursor_in_fringe_p = 0;
+	which = row->right_fringe_bitmap;
+	break;
+      }
+
+  period = fringe_bitmaps[which].period;
 
   /* Convert row to frame coordinates.  */
   p.y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
@@ -8965,9 +9240,7 @@ draw_fringe_bitmap (w, row, which, left_p)
   p.wd = fringe_bitmaps[which].width;
 
   p.h = fringe_bitmaps[which].height;
-  p.dh = (fringe_bitmaps[which].period
-	  ? (p.y % fringe_bitmaps[which].period)
-	  : 0);
+  p.dh = (period > 0 ? (p.y % period) : 0);
   p.h -= p.dh;
   /* Clip bitmap if too high.  */
   if (p.h > row->height)
@@ -9027,7 +9300,13 @@ draw_fringe_bitmap (w, row, which, left_p)
     }
 
   /* Adjust y to the offset in the row to start drawing the bitmap.  */
-  p.y += (row->height - p.h) / 2;
+  if (period == 0)
+    p.y += (row->height - p.h) / 2;
+  else if (period == -2)
+    {
+      p.h = fringe_bitmaps[which].height;
+      p.y += (row->visible_height - p.h);
+    }
 
   rif->draw_fringe_bitmap (w, row, &p);
 }
@@ -9040,8 +9319,6 @@ draw_row_fringe_bitmaps (w, row)
      struct window *w;
      struct glyph_row *row;
 {
-  enum fringe_bitmap_type bitmap;
-
   xassert (interrupt_input_blocked);
 
   /* If row is completely invisible, because of vscrolling, we
@@ -9050,35 +9327,35 @@ draw_row_fringe_bitmaps (w, row)
     return;
 
   if (WINDOW_LEFT_FRINGE_WIDTH (w) != 0)
-    {
-      /* Decide which bitmap to draw in the left fringe.  */
-      if (row->overlay_arrow_p)
-	bitmap = OVERLAY_ARROW_BITMAP;
-      else if (row->truncated_on_left_p)
-	bitmap = LEFT_TRUNCATION_BITMAP;
-      else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
-	bitmap = CONTINUATION_LINE_BITMAP;
-      else if (row->indicate_empty_line_p)
-	bitmap = ZV_LINE_BITMAP;
-      else
-	bitmap = NO_FRINGE_BITMAP;
-
-      draw_fringe_bitmap (w, row, bitmap, 1);
-    }
+    draw_fringe_bitmap (w, row, 1);
 
   if (WINDOW_RIGHT_FRINGE_WIDTH (w) != 0)
-    {
-      /* Decide which bitmap to draw in the right fringe.  */
-      if (row->truncated_on_right_p)
-	bitmap = RIGHT_TRUNCATION_BITMAP;
-      else if (row->continued_p)
-	bitmap = CONTINUED_LINE_BITMAP;
-      else if (row->indicate_empty_line_p && WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
-	bitmap = ZV_LINE_BITMAP;
-      else
-	bitmap = NO_FRINGE_BITMAP;
+    draw_fringe_bitmap (w, row, 0);
+}
 
-      draw_fringe_bitmap (w, row, bitmap, 0);
+/* Draw the fringes of window W.  Only fringes for rows marked for
+   update in redraw_fringe_bitmaps_p are drawn.  */
+
+void
+draw_window_fringes (w)
+     struct window *w;
+{
+  struct glyph_row *row;
+  int yb = window_text_bottom_y (w);
+  int nrows = w->current_matrix->nrows;
+  int y = 0, rn;
+
+  if (w->pseudo_window_p)
+    return;
+
+  for (y = 0, rn = 0, row = w->current_matrix->rows;
+       y < yb && rn < nrows;
+       y += row->height, ++row, ++rn)
+    {
+      if (!row->redraw_fringe_bitmaps_p)
+	continue;
+      draw_row_fringe_bitmaps (w, row);
+      row->redraw_fringe_bitmaps_p = 0;
     }
 }
 
@@ -9985,6 +10262,9 @@ redisplay_internal (preserve_echo_area)
 #if GLYPH_DEBUG
 	      *w->desired_matrix->method = 0;
 	      debug_method_add (w, "optimization 1");
+#endif
+#ifdef HAVE_WINDOW_SYSTEM
+	      update_window_fringes (w, 0);
 #endif
 	      goto update;
 	    }
@@ -11396,6 +11676,137 @@ set_vertical_scroll_bar (w)
   set_vertical_scroll_bar_hook (w, end - start, whole, start);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Recalculate the bitmaps to show in the fringes of window W.
+   If FORCE_P is 0, only mark rows with modified bitmaps for update in
+   redraw_fringe_bitmaps_p; else mark all rows for update.  */
+
+int
+update_window_fringes (w, force_p)
+     struct window *w;
+     int force_p;
+{
+  struct glyph_row *row, *cur = 0;
+  int yb = window_text_bottom_y (w);
+  int rn, nrows = w->current_matrix->nrows;
+  int y;
+  int redraw_p = 0;
+  Lisp_Object ind;
+
+  if (w->pseudo_window_p)
+    return 0;
+
+  if (!MINI_WINDOW_P (w)
+      && (ind = XBUFFER (w->buffer)->indicate_buffer_boundaries, !NILP (ind)))
+    {
+      int do_eob = 1, do_bob = 1;
+
+      for (y = 0, rn = 0;
+	   y < yb && rn < nrows;
+	   y += row->height, ++rn)
+	{
+	  unsigned indicate_bob_p, indicate_top_line_p;
+	  unsigned indicate_eob_p, indicate_bottom_line_p;
+	  
+	  row = w->desired_matrix->rows + rn;
+	  if (!row->enabled_p)
+	    row = w->current_matrix->rows + rn;
+
+	  indicate_bob_p = row->indicate_bob_p;
+	  indicate_top_line_p = row->indicate_top_line_p;
+	  indicate_eob_p = row->indicate_eob_p;
+	  indicate_bottom_line_p = row->indicate_bottom_line_p;
+	  
+	  row->indicate_bob_p = row->indicate_top_line_p = 0;
+	  row->indicate_eob_p = row->indicate_bottom_line_p = 0;
+
+	  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer)))
+	    row->indicate_bob_p = do_bob, do_bob = 0;
+	  else if (EQ (ind, Qt)
+		   && (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0) == rn)
+	    row->indicate_top_line_p = 1;
+
+	  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer)))
+	    row->indicate_eob_p = do_eob, do_eob = 0;
+	  else if (EQ (ind, Qt)
+		   && y + row->height >= yb)
+	    row->indicate_bottom_line_p = 1;
+
+	  if (indicate_bob_p != row->indicate_bob_p
+	      || indicate_top_line_p != row->indicate_top_line_p
+	      || indicate_eob_p != row->indicate_eob_p
+	      || indicate_bottom_line_p != row->indicate_bottom_line_p)
+	    row->redraw_fringe_bitmaps_p = 1;
+	}
+    }
+
+  for (y = 0, rn = 0;
+       y < yb && rn < nrows;
+       y += row->height, rn++)
+    {
+      enum fringe_bitmap_type left, right;
+
+      row = w->desired_matrix->rows + rn;
+      cur = w->current_matrix->rows + rn;
+      if (!row->enabled_p)
+	row = cur;
+
+      /* Decide which bitmap to draw in the left fringe.  */
+      if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
+	left = NO_FRINGE_BITMAP;
+      else if (row->overlay_arrow_p)
+	left = OVERLAY_ARROW_BITMAP;
+      else if (row->truncated_on_left_p)
+	left = LEFT_TRUNCATION_BITMAP;
+      else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
+	left = CONTINUATION_LINE_BITMAP;
+      else if (row->indicate_empty_line_p)
+	left = ZV_LINE_BITMAP;
+      else if (row->indicate_bob_p)
+	left = FIRST_LINE_BITMAP;
+      else
+	left = NO_FRINGE_BITMAP;
+
+      /* Decide which bitmap to draw in the right fringe.  */
+      if (WINDOW_RIGHT_FRINGE_WIDTH (w) == 0)
+	right = NO_FRINGE_BITMAP;
+      else if (row->truncated_on_right_p)
+	right = RIGHT_TRUNCATION_BITMAP;
+      else if (row->continued_p)
+	right = CONTINUED_LINE_BITMAP;
+      else if (row->indicate_eob_p)
+	right = LAST_LINE_BITMAP;
+      else if (row->indicate_top_line_p) 
+	right = UP_ARROW_BITMAP;
+      else if (row->indicate_bottom_line_p)
+	right = DOWN_ARROW_BITMAP;
+      else if (row->indicate_empty_line_p && WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
+	right = ZV_LINE_BITMAP;
+      else
+	right = NO_FRINGE_BITMAP;
+
+      if (force_p
+	  || row->y != cur->y
+	  || row->visible_height != cur->visible_height
+	  || left != cur->left_fringe_bitmap
+	  || right != cur->right_fringe_bitmap
+	  || cur->redraw_fringe_bitmaps_p)
+	{
+	  redraw_p = row->redraw_fringe_bitmaps_p = cur->redraw_fringe_bitmaps_p = 1;
+	  cur->left_fringe_bitmap = left;
+	  cur->right_fringe_bitmap = right;
+	}
+
+      row->left_fringe_bitmap = left;
+      row->right_fringe_bitmap = right;
+    }
+
+  return redraw_p;
+}
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
    selected_window is redisplayed.
 
@@ -11418,6 +11829,7 @@ redisplay_window (window, just_this_one_p)
   struct it it;
   /* Record it now because it's overwritten.  */
   int current_matrix_up_to_date_p = 0;
+  int used_current_matrix_p = 0;
   /* This is less strict than current_matrix_up_to_date_p.
      It indictes that the buffer contents and narrowing are unchanged.  */
   int buffer_unchanged_p = 0;
@@ -11724,6 +12136,7 @@ redisplay_window (window, just_this_one_p)
       switch (rc)
 	{
 	case CURSOR_MOVEMENT_SUCCESS:
+	  used_current_matrix_p = 1;
 	  goto done;
 
 #if 0  /* try_cursor_movement never returns this value.  */
@@ -11788,7 +12201,8 @@ redisplay_window (window, just_this_one_p)
 	     buffer.  */
 	  || !NILP (Vwindow_scroll_functions)
 	  || MINI_WINDOW_P (w)
-	  || !try_window_reusing_current_matrix (w))
+	  || !(used_current_matrix_p =
+	       try_window_reusing_current_matrix (w)))
 	{
 	  IF_DEBUG (debug_method_add (w, "1"));
 	  try_window (window, startp);
@@ -11917,7 +12331,8 @@ redisplay_window (window, just_this_one_p)
       || !NILP (Vwindow_scroll_functions)
       || !just_this_one_p
       || MINI_WINDOW_P (w)
-      || !try_window_reusing_current_matrix (w))
+      || !(used_current_matrix_p =
+	   try_window_reusing_current_matrix (w)))
     try_window (window, startp);
 
   /* If new fonts have been loaded (due to fontsets), give up.  We
@@ -12078,6 +12493,19 @@ redisplay_window (window, just_this_one_p)
         redisplay_tool_bar (f);
 #endif
     }
+
+#ifdef HAVE_WINDOW_SYSTEM
+  if (update_window_fringes (w, 0)
+      && (used_current_matrix_p || overlay_arrow_seen)
+      && !w->pseudo_window_p)
+    {
+      update_begin (f);
+      BLOCK_INPUT;
+      draw_window_fringes (w);
+      UNBLOCK_INPUT;
+      update_end (f);
+    }
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* We go to this label, with fonts_changed_p nonzero,
      if it is necessary to try again using larger glyph matrices.
@@ -12335,6 +12763,7 @@ try_window_reusing_current_matrix (w)
 		row->visible_height -= min_y - row->y;
 	      if (row->y + row->height > max_y)
 		row->visible_height -= row->y + row->height - max_y;
+	      row->redraw_fringe_bitmaps_p = 1;
 
 	      it.current_y += row->height;
 
@@ -12474,7 +12903,6 @@ try_window_reusing_current_matrix (w)
 
       if (run.height)
 	{
-	  struct frame *f = XFRAME (WINDOW_FRAME (w));
 	  update_begin (f);
 	  rif->update_window_begin_hook (w);
 	  rif->clear_window_mouse_face (w);
@@ -12495,6 +12923,7 @@ try_window_reusing_current_matrix (w)
 	    row->visible_height -= min_y - row->y;
 	  if (row->y + row->height > max_y)
 	    row->visible_height -= row->y + row->height - max_y;
+	  row->redraw_fringe_bitmaps_p = 1;
 	}
 
       /* Scroll the current matrix.  */
@@ -12617,7 +13046,8 @@ find_last_unchanged_at_beg_row (w)
 	     row is not unchanged because it may be no longer
 	     continued.  */
 	  && !(MATRIX_ROW_END_CHARPOS (row) == first_changed_pos
-	       && row->continued_p))
+	       && (row->continued_p
+		   || row->exact_window_width_line_p)))
 	row_found = row;
 
       /* Stop if last visible row.  */
@@ -14513,7 +14943,20 @@ display_line (it)
 		      it->continuation_lines_width += new_x;
 		      ++it->hpos;
 		      if (i == nglyphs - 1)
-			set_iterator_to_next (it, 1);
+			{
+			  set_iterator_to_next (it, 1);
+#ifdef HAVE_WINDOW_SYSTEM
+			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+			    {
+			      get_next_display_element (it);
+			      if (ITERATOR_AT_END_OF_LINE_P (it))
+				{
+				  row->continued_p = 0;
+				  row->exact_window_width_line_p = 1;
+				}
+			    }
+#endif /* HAVE_WINDOW_SYSTEM */
+			}
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
 			   && !FRAME_WINDOW_P (it->f))
@@ -14615,6 +15058,7 @@ display_line (it)
 	    break;
 	}
 
+    at_end_of_line:
       /* Is this a line end?  If yes, we're also done, after making
 	 sure that a non-default face is extended up to the right
 	 margin of the window.  */
@@ -14624,9 +15068,12 @@ display_line (it)
 
 	  row->ends_in_newline_from_string_p = STRINGP (it->object);
 
+#ifdef HAVE_WINDOW_SYSTEM
 	  /* Add a space at the end of the line that is used to
 	     display the cursor there.  */
-	  append_space (it, 0);
+	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+	    append_space (it, 0);
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Extend the face to the end of the line.  */
 	  extend_face_to_end_of_line (it);
@@ -14667,6 +15114,21 @@ display_line (it)
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
 	    }
+#ifdef HAVE_WINDOW_SYSTEM
+	  else
+	    {
+	      /* Don't truncate if we can overflow newline into fringe.  */
+	      if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+		{
+		  get_next_display_element (it);
+		  if (ITERATOR_AT_END_OF_LINE_P (it))
+		    {
+		      row->exact_window_width_line_p = 1;
+		      goto at_end_of_line;
+		    }
+		}
+	    }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
@@ -19206,36 +19668,53 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
      enum glyph_row_area area;
      int x0, y0, x1, y1;
 {
-  if (area == TEXT_AREA && w->phys_cursor_on_p)
+  int cx0, cx1, cy0, cy1;
+  struct glyph_row *row;
+
+  if (!w->phys_cursor_on_p)
+    return;
+  if (area != TEXT_AREA)
+    return;
+
+  row = w->current_matrix->rows + w->phys_cursor.vpos;
+  if (!row->displays_text_p)
+    return;
+
+  if (row->cursor_in_fringe_p)
     {
-      int cx0 = w->phys_cursor.x;
-      int cx1 = cx0 + w->phys_cursor_width;
-      int cy0 = w->phys_cursor.y;
-      int cy1 = cy0 + w->phys_cursor_height;
-
-      if (x0 <= cx0 && (x1 < 0 || x1 >= cx1))
-	{
-	  /* The cursor image will be completely removed from the
-	     screen if the output area intersects the cursor area in
-	     y-direction.  When we draw in [y0 y1[, and some part of
-	     the cursor is at y < y0, that part must have been drawn
-	     before.  When scrolling, the cursor is erased before
-	     actually scrolling, so we don't come here.  When not
-	     scrolling, the rows above the old cursor row must have
-	     changed, and in this case these rows must have written
-	     over the cursor image.
-
-	     Likewise if part of the cursor is below y1, with the
-	     exception of the cursor being in the first blank row at
-	     the buffer and window end because update_text_area
-	     doesn't draw that row.  (Except when it does, but
-	     that's handled in update_text_area.)  */
-
-	  if (((y0 >= cy0 && y0 < cy1) || (y1 > cy0 && y1 < cy1))
-	      && w->current_matrix->rows[w->phys_cursor.vpos].displays_text_p)
-	    w->phys_cursor_on_p = 0;
-	}
+      row->cursor_in_fringe_p = 0;
+      draw_fringe_bitmap (w, row, 0);
+      w->phys_cursor_on_p = 0;
+      return;
     }
+
+  cx0 = w->phys_cursor.x;
+  cx1 = cx0 + w->phys_cursor_width;
+  if (x0 > cx0 || (x1 >= 0 && x1 < cx1))
+    return;
+
+  /* The cursor image will be completely removed from the
+     screen if the output area intersects the cursor area in
+     y-direction.  When we draw in [y0 y1[, and some part of
+     the cursor is at y < y0, that part must have been drawn
+     before.  When scrolling, the cursor is erased before
+     actually scrolling, so we don't come here.  When not
+     scrolling, the rows above the old cursor row must have
+     changed, and in this case these rows must have written
+     over the cursor image.
+
+     Likewise if part of the cursor is below y1, with the
+     exception of the cursor being in the first blank row at
+     the buffer and window end because update_text_area
+     doesn't draw that row.  (Except when it does, but
+     that's handled in update_text_area.)  */
+
+  cy0 = w->phys_cursor.y;
+  cy1 = cy0 + w->phys_cursor_height;
+  if ((y0 < cy0 || y0 >= cy1) && (y1 <= cy0 || y1 >= cy1))
+    return;
+
+  w->phys_cursor_on_p = 0;
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -19369,6 +19848,14 @@ erase_phys_cursor (w)
      we switch to a buffer with a header line in that window.  */
   if (cursor_row->visible_height <= 0)
     goto mark_cursor_off;
+
+  /* If cursor is in the fringe, erase by drawing actual bitmap there.  */
+  if (cursor_row->cursor_in_fringe_p)
+    {
+      cursor_row->cursor_in_fringe_p = 0;
+      draw_fringe_bitmap (w, cursor_row, 0);
+      goto mark_cursor_off;
+    }
 
   /* This can happen when the new row is shorter than the old one.
      In this case, either draw_glyphs or clear_end_of_line
@@ -20171,19 +20658,56 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   Lisp_Object pointer = Qnil;
-  int charpos, dx, dy;
-  Lisp_Object string;
+  int charpos, dx, dy, width, height;
+  Lisp_Object string, object = Qnil;
   Lisp_Object pos, help, image;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
-    string = mode_line_string (w, &x, &y, 0, 0, area, &charpos);
+    string = mode_line_string (w, area, &x, &y, &charpos,
+			       &object, &dx, &dy, &width, &height);
   else
     {
       x -= WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w);
-      string = marginal_area_string (w, &x, &y, &dx, &dy, area, &charpos);
+      string = marginal_area_string (w, area, &x, &y, &charpos,
+				     &object, &dx, &dy, &width, &height);
     }
 
   help = Qnil;
+
+  if (IMAGEP (object))
+    {
+      Lisp_Object image_map, hotspot;
+      if ((image_map = Fplist_get (XCDR (object), QCmap),
+	   !NILP (image_map))
+	  && (hotspot = find_hot_spot (image_map, dx, dy),
+	      CONSP (hotspot))
+	  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+	{
+	  Lisp_Object area_id, plist;
+
+	  area_id = XCAR (hotspot);
+	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
+	     If so, we could look for mouse-enter, mouse-leave
+	     properties in PLIST (and do something...).  */
+	  if ((plist = XCDR (hotspot), CONSP (plist)))
+	    {
+	      pointer = Fplist_get (plist, Qpointer);
+	      if (NILP (pointer))
+		pointer = Qhand;
+	      help = Fplist_get (plist, Qhelp_echo);
+	      if (!NILP (help))
+		{
+		  help_echo_string = help;
+		  /* Is this correct?  ++kfs */
+		  XSETWINDOW (help_echo_window, w);
+		  help_echo_object = w->buffer;
+		  help_echo_pos = charpos;
+		}
+	    }
+	  if (NILP (pointer))
+	    pointer = Fplist_get (XCDR (object), QCpointer);
+	}
+    }
 
   if (STRINGP (string))
     {
@@ -20212,40 +20736,6 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	    map = Fget_text_property (pos, Qkeymap, string);
 	  if (!KEYMAPP (map))
 	    cursor = dpyinfo->vertical_scroll_bar_cursor;
-	}
-    }
-  else if (IMAGEP (string))
-    {
-      Lisp_Object image_map, hotspot;
-      if ((image_map = Fplist_get (XCDR (string), QCmap),
-	   !NILP (image_map))
-	  && (hotspot = find_hot_spot (image_map, dx, dy),
-	      CONSP (hotspot))
-	  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
-	{
-	  Lisp_Object area_id, plist;
-
-	  area_id = XCAR (hotspot);
-	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
-	     If so, we could look for mouse-enter, mouse-leave
-	     properties in PLIST (and do something...).  */
-	  if ((plist = XCDR (hotspot), CONSP (plist)))
-	    {
-	      pointer = Fplist_get (plist, Qpointer);
-	      if (NILP (pointer))
-		pointer = Qhand;
-	      help = Fplist_get (plist, Qhelp_echo);
-	      if (!NILP (help))
-		{
-		  help_echo_string = help;
-		  /* Is this correct?  ++kfs */
-		  XSETWINDOW (help_echo_window, w);
-		  help_echo_object = w->buffer;
-		  help_echo_pos = charpos;
-		}
-	    }
-	  if (NILP (pointer))
-	    pointer = Fplist_get (XCDR (string), QCpointer);
 	}
     }
 
@@ -21521,12 +22011,23 @@ wide as that tab on the display.  */);
 #endif
 
   DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
-    doc: /* Non-nil means highlight trailing whitespace.
+    doc: /* *Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
+#ifdef HAVE_WINDOW_SYSTEM
+  DEFVAR_LISP ("overflow-newline-into-fringe", &Voverflow_newline_into_fringe,
+    doc: /* *Non-nil means that newline may flow into the right fringe.
+This means that display lines which are exactly as wide as the window
+(not counting the final newline) will only occupy one screen line, by
+showing (or hiding) the final newline in the right fringe; when point
+is at the final newline, the cursor is shown in the right fringe.
+If nil, also continue lines which are exactly as wide as the window.  */);
+  Voverflow_newline_into_fringe = Qt;
+#endif
+
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
-    doc: /* The pointer shape to show in void text areas.
+    doc: /* *The pointer shape to show in void text areas.
 Nil means to show the text pointer.  Other options are `arrow', `text',
 `hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */); 
   Vvoid_text_area_pointer = Qarrow;

@@ -884,12 +884,11 @@ string_char_to_byte (string, char_index)
   int best_below, best_below_byte;
   int best_above, best_above_byte;
 
-  if (! STRING_MULTIBYTE (string))
-    return char_index;
-
   best_below = best_below_byte = 0;
   best_above = SCHARS (string);
   best_above_byte = SBYTES (string);
+  if (best_above == best_above_byte)
+    return char_index;
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -957,12 +956,11 @@ string_byte_to_char (string, byte_index)
   int best_below, best_below_byte;
   int best_above, best_above_byte;
 
-  if (! STRING_MULTIBYTE (string))
-    return byte_index;
-
   best_below = best_below_byte = 0;
   best_above = SCHARS (string);
   best_above_byte = SBYTES (string);
+  if (best_above == best_above_byte)
+    return byte_index;
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -2169,7 +2167,15 @@ internal_equal (o1, o2, depth)
   switch (XTYPE (o1))
     {
     case Lisp_Float:
-      return (extract_float (o1) == extract_float (o2));
+      {
+	double d1, d2;
+
+	d1 = extract_float (o1);
+	d2 = extract_float (o2);
+	/* If d is a NaN, then d != d. Two NaNs should be `equal' even
+	   though they are not =. */
+	return d1 == d2 || (d1 != d1 && d2 != d2);
+      }
 
     case Lisp_Cons:
       if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1))
@@ -2506,14 +2512,26 @@ character set, or a character code.  Return VALUE.  */)
   else if (SYMBOLP (range))
     {
       Lisp_Object charset_info;
+      int charset_id;
 
       charset_info = Fget (range, Qcharset);
-      CHECK_VECTOR (charset_info);
+      if (! VECTORP (charset_info)
+	  || ! NATNUMP (AREF (charset_info, 0))
+	  || (charset_id = XINT (AREF (charset_info, 0)),
+	      ! CHARSET_DEFINED_P (charset_id)))
+	error ("Invalid charset: %s", SYMBOL_NAME (range));
 
-      return Faset (char_table,
-		    make_number (XINT (XVECTOR (charset_info)->contents[0])
-				 + 128),
-		    value);
+      if (charset_id == CHARSET_ASCII)
+	for (i = 0; i < 128; i++)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      else if (charset_id == CHARSET_8_BIT_CONTROL)
+	for (i = 128; i < 160; i++)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      else if (charset_id == CHARSET_8_BIT_GRAPHIC)
+	for (i = 160; i < 256; i++)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      else
+	XCHAR_TABLE (char_table)->contents[charset_id + 128] = value;
     }
   else if (INTEGERP (range))
     Faset (char_table, range, value);
@@ -5446,12 +5464,18 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
     }
   else
     {
+      struct buffer *prev = current_buffer;
+
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
       CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
+      if (bp != current_buffer)
+	set_buffer_internal (bp);
 
       if (NILP (start))
-	b = BUF_BEGV (bp);
+	b = BEGV;
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (start);
@@ -5459,7 +5483,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       if (NILP (end))
-	e = BUF_ZV (bp);
+	e = ZV;
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (end);
@@ -5469,7 +5493,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
       if (b > e)
 	temp = b, b = e, e = temp;
 
-      if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
+      if (!(BEGV <= b && e <= ZV))
 	args_out_of_range (start, end);
 
       if (NILP (coding_system))
@@ -5536,6 +5560,11 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	}
 
       object = make_buffer_string (b, e, 0);
+      if (prev != current_buffer)
+	set_buffer_internal (prev);
+      /* Discard the unwind protect for recovering the current
+	 buffer.  */
+      specpdl_ptr--;
 
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string1 (object, coding_system, Qnil, 1);

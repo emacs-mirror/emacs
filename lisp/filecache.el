@@ -170,6 +170,19 @@ do not use this variable."
   :type 'string
   :group 'file-cache)
 
+(defcustom file-cache-find-command-posix-flag 'not-defined
+  "*Set to t, if `file-cache-find-command' handles wildcards POSIX style.
+This variable is automatically set to nil or non-nil
+if it has the initial value `not-defined' whenever you first
+call the `file-cache-add-directory-using-find'.
+
+Under Windows operating system where Cygwin is available, this value
+should be t."
+  :type  '(choice (const :tag "Yes" t)
+		  (const :tag "No" nil)
+		  (const :tag "Unknown" not-defined))
+  :group 'file-cache)
+
 (defcustom file-cache-locate-command "locate"
   "*External program used by `file-cache-add-directory-using-locate'."
   :type 'string
@@ -212,13 +225,10 @@ Defaults to the value of `case-fold-search'."
   :group 'file-cache
   )
 
-(defcustom file-cache-assoc-function
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
-      'assoc-ignore-case
-    'assoc)
-  "Function to use to check completions in the file cache.
-Defaults to `assoc-ignore-case' on DOS and Windows, and `assoc' on
-other systems."
+(defcustom file-cache-ignore-case
+  (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  "Non-nil means ignore case when checking completions in the file cache.
+Defaults to nil on DOS and Windows, and t on other systems."
   :type 'sexp
   :group 'file-cache
   )
@@ -270,11 +280,13 @@ be added to the cache."
       ;; Filter out files we don't want to see
       (mapcar
        '(lambda (file)
-	(mapcar
-	 '(lambda (regexp)
-	    (if (string-match regexp file)
-		(setq dir-files (delq file dir-files))))
-	 file-cache-filter-regexps))
+          (if (file-directory-p file)
+              (setq dir-files (delq file dir-files))
+	    (mapcar
+	     '(lambda (regexp)
+		(if (string-match regexp file)
+		    (setq dir-files (delq file dir-files))))
+	     file-cache-filter-regexps)))
        dir-files)
       (file-cache-add-file-list dir-files))))
 
@@ -301,8 +313,9 @@ in each directory, not to the directory list itself."
       (message "File %s does not exist" file)
     (let* ((file-name (file-name-nondirectory file))
 	   (dir-name  (file-name-directory    file))
-	   (the-entry (funcall file-cache-assoc-function
-			       file-name file-cache-alist))
+	   (the-entry (assoc-string
+		       file-name file-cache-alist
+		       file-cache-ignore-case))
 	   )
       ;; Does the entry exist already?
       (if the-entry
@@ -324,12 +337,21 @@ in each directory, not to the directory list itself."
 Find is run in DIRECTORY."
   (interactive "DAdd files under directory: ")
   (let ((dir (expand-file-name directory)))
+    (if (eq file-cache-find-command-posix-flag 'not-defined)
+        (setq file-cache-find-command-posix-flag
+	      (executable-command-find-posix-p file-cache-find-command)))
     (set-buffer (get-buffer-create file-cache-buffer))
     (erase-buffer)
     (call-process file-cache-find-command nil
 		  (get-buffer file-cache-buffer) nil
 		  dir "-name"
-		  (if (eq system-type 'windows-nt) "'*'" "*")
+                  (cond
+                   (file-cache-find-command-posix-flag
+                    "\\*")
+                   ((eq system-type 'windows-nt)
+                    "'*'")
+                   (t
+                    "*"))
 		  "-print")
     (file-cache-add-from-file-cache-buffer)))
 
@@ -402,7 +424,7 @@ or the optional REGEXP argument."
   (interactive
    (list (completing-read "Delete file from cache: " file-cache-alist)))
   (setq file-cache-alist
-	(delq (funcall file-cache-assoc-function file file-cache-alist)
+	(delq (assoc-string file file-cache-alist file-cache-ignore-case)
 	      file-cache-alist)))
 
 (defun file-cache-delete-file-list (file-list)
@@ -458,8 +480,9 @@ or the optional REGEXP argument."
 
 ;; Returns the name of a directory for a file in the cache
 (defun file-cache-directory-name  (file)
-  (let* ((directory-list (cdr (funcall file-cache-assoc-function
-				       file file-cache-alist)))
+  (let* ((directory-list (cdr (assoc-string
+			       file file-cache-alist
+			       file-cache-ignore-case)))
 	 (len            (length directory-list))
 	 (directory)
 	 (num)
@@ -556,7 +579,8 @@ the name is considered already unique; only the second substitution
       ;; If we've already inserted a unique string, see if the user
       ;; wants to use that one
       (if (and (string= string completion-string)
-	       (funcall file-cache-assoc-function string file-cache-alist))
+	       (assoc-string string file-cache-alist
+			     file-cache-ignore-case))
 	  (if (and (eq last-command this-command)
 		   (string= file-cache-last-completion completion-string))
 	      (progn
@@ -725,7 +749,8 @@ match REGEXP."
   "Debugging function."
   (interactive
    (list (completing-read "File Cache: " file-cache-alist)))
-  (message "%s" (funcall file-cache-assoc-function file file-cache-alist))
+  (message "%s" (assoc-string file file-cache-alist
+			      file-cache-ignore-case))
   )
 
 (defun file-cache-display  ()

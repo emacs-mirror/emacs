@@ -707,8 +707,9 @@ documentation will be shown, even if the symbol is also defined as a
 variable or as a function.
 
 To make a hyperlink to Info documentation, write the name of the Info
-node in single quotes, preceded by @samp{info node} or @samp{Info
-node}.  The Info file name defaults to @samp{emacs}.  For example,
+node (or anchor) in single quotes, preceded by @samp{info node},
+@samp{Info node}, @samp{info anchor} or @samp{Info anchor}.  The Info
+file name defaults to @samp{emacs}.  For example,
 
 @smallexample
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 1998, 2003 Free Software Foundation, Inc.
 
-;; Author: Morten Welinder <terra@diku.dk>
+;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: archives msdog editing major-mode
 ;; Favourite-brand-of-beer: None, I hate beer.
 

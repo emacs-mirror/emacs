@@ -167,7 +167,7 @@ This is a fine thing to set in your `.emacs' file.")
 (defvar shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
-    "~/A-Za-z0-9+@:_.$#%,={}-")
+    "[]~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 This variable is used to initialize `comint-file-name-chars' in the
 shell buffer.  The value may depend on the operating system or shell.
@@ -941,36 +941,37 @@ Returns t if successful."
   "Dynamically complete at point as a command.
 See `shell-dynamic-complete-filename'.  Returns t if successful."
   (let* ((filename (or (comint-match-partial-filename) ""))
-	 (pathnondir (file-name-nondirectory filename))
-	 (paths (cdr (reverse exec-path)))
+	 (filenondir (file-name-nondirectory filename))
+	 (path-dirs (cdr (reverse exec-path)))
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
 	  (and comint-completion-fignore
 	       (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
 			  comint-completion-fignore "\\|")))
-	 (path "") (comps-in-path ()) (file "") (filepath "") (completions ()))
-    ;; Go thru each path in the search path, finding completions.
-    (while paths
-      (setq path (file-name-as-directory (comint-directory (or (car paths) ".")))
-	    comps-in-path (and (file-accessible-directory-p path)
-			       (file-name-all-completions pathnondir path)))
+	 (dir "") (comps-in-dir ()) 
+	 (file "") (abs-file-name "") (completions ()))
+    ;; Go thru each dir in the search path, finding completions.
+    (while path-dirs
+      (setq dir (file-name-as-directory (comint-directory (or (car path-dirs) ".")))
+	    comps-in-dir (and (file-accessible-directory-p dir)
+			      (file-name-all-completions filenondir dir)))
       ;; Go thru each completion found, to see whether it should be used.
-      (while comps-in-path
-	(setq file (car comps-in-path)
-	      filepath (concat path file))
+      (while comps-in-dir
+	(setq file (car comps-in-dir)
+	      abs-file-name (concat dir file))
 	(if (and (not (member file completions))
 		 (not (and ignored-extensions
 			   (string-match ignored-extensions file)))
-		 (or (string-equal path cwd)
-		     (not (file-directory-p filepath)))
+		 (or (string-equal dir cwd)
+		     (not (file-directory-p abs-file-name)))
 		 (or (null shell-completion-execonly)
-		     (file-executable-p filepath)))
+		     (file-executable-p abs-file-name)))
 	    (setq completions (cons file completions)))
-	(setq comps-in-path (cdr comps-in-path)))
-      (setq paths (cdr paths)))
+	(setq comps-in-dir (cdr comps-in-dir)))
+      (setq path-dirs (cdr path-dirs)))
     ;; OK, we've got a list of completions.
     (let ((success (let ((comint-completion-addsuffix nil))
-		     (comint-dynamic-simple-complete pathnondir completions))))
+		     (comint-dynamic-simple-complete filenondir completions))))
       (if (and (memq success '(sole shortest)) comint-completion-addsuffix
 	       (not (file-directory-p (comint-match-partial-filename))))
 	  (insert " "))
