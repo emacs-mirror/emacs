@@ -558,6 +558,24 @@ to replace it with--each one ended with a Return.
    after the cursor.
 
 
+* AUTO SAVE
+-----------
+
+When you have made changes in a file, but you have not saved them yet,
+they could be lost if your computer crashes.  To protect you from
+this, Emacs writes "auto save" files periodically.  The auto save file
+name as a # at the beginning and the end; for example, if your file is
+named "hello.c", its auto save file's name is "#hello.c#".  When you
+save the file in the normal way, its auto save file is no longer
+necessary so Emacs deletes it.
+
+If the computer crashes, you can recover your auto-saved editing by
+finding the file normally (the file you were editing, not the auto
+save file) and then typing M-x recover file<return>.  When it asks for
+confirmation, type yes<return> to go ahead and recover the auto-save
+data.
+
+
 * MODE LINE
 -----------
 
