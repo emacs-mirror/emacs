@@ -4501,7 +4501,6 @@ the return value is nil.  Otherwise the value is t.")
     {
       if (XBUFFER (new_current_buffer) == current_buffer)
 	old_point = PT;
-
     }
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
@@ -4516,7 +4515,7 @@ the return value is nil.  Otherwise the value is t.")
       struct window *root_window;
       struct window **leaf_windows;
       int n_leaf_windows;
-      int k, i;
+      int k, i, n;
 
       /* If the frame has been resized since this window configuration was
 	 made, we change the frame to the size specified in the
@@ -4723,15 +4722,24 @@ the return value is nil.  Otherwise the value is t.")
 #endif
 
       /* Now, free glyph matrices in windows that were not reused.  */
-      for (i = 0; i < n_leaf_windows; ++i)
-	if (NILP (leaf_windows[i]->buffer))
-	  {
-	    /* Assert it's not reused as a combination.  */
-	    xassert (NILP (leaf_windows[i]->hchild) 
-		     && NILP (leaf_windows[i]->vchild));
-	    free_window_matrices (leaf_windows[i]);
-	    SET_FRAME_GARBAGED (f);
-	  }
+      for (i = n = 0; i < n_leaf_windows; ++i)
+	{
+	  if (NILP (leaf_windows[i]->buffer))
+	    {
+	      /* Assert it's not reused as a combination.  */
+	      xassert (NILP (leaf_windows[i]->hchild) 
+		       && NILP (leaf_windows[i]->vchild));
+	      free_window_matrices (leaf_windows[i]);
+	      SET_FRAME_GARBAGED (f);
+	    }
+	  else if (EQ (leaf_windows[i]->buffer, new_current_buffer))
+	    ++n;
+	}
+
+      /* If more than one window shows the new and old current buffer,
+	 don't try to preserve point in that buffer.  */
+      if (old_point > 0 && n > 1)
+	old_point = -1;
       
       adjust_glyphs (f);
 
