@@ -228,7 +228,7 @@ buffer's contents, not to the particular visited file; thus,
 major mode does clear it.
 
 This variable automatically becomes buffer-local whenever it is set.
-If you use `add-hooks' to add elements to the list, use nil for the
+If you use `add-hook' to add elements to the list, use nil for the
 LOCAL argument.
 
 See also `write-file-hooks'.")
