@@ -531,7 +531,15 @@ to an optional list of FLAGS."
 				     (concat "-b" rev)))
 		  (vc-checkout file nil rev))
 	      (error "Sorry, this is not implemented for SCCS."))
-	  (vc-checkout-writable-buffer file))))
+	  (if (vc-latest-on-branch-p file)
+	      (vc-checkout-writable-buffer file)
+	    (if (yes-or-no-p 
+		 "This is not the latest version.  Really lock it?  ")
+		(vc-checkout-writable-buffer file)
+	      (if (yes-or-no-p "Lock the latest version instead? ")
+		  (vc-checkout-writable-buffer file
+		     (vc-branch-part (vc-workfile-version file))))))
+	  )))
 
      ;; a checked-out version exists, but the user may not own the lock
      ((and (not (eq vc-type 'CVS))	;There are no locks in CVS.
