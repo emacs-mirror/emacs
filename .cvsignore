@@ -1,2 +1,6 @@
 configure
 bin
+boot.log
+boot.log.diff
+boot.log.old
+update.log
