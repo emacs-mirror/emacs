@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -97,7 +97,7 @@ and `right' (scroll bars on right).
 To set this variable in a Lisp program, use `set-scroll-bar-mode'
 to make it take real effect.
 Setting the variable with a customization buffer also takes effect."
-  :type '(choice (const :tag "none (nil)")
+  :type '(choice (const :tag "none (nil)" nil)
 		 (const left)
 		 (const right))
   :group 'frames
