@@ -2142,8 +2142,12 @@ kbd_buffer_get_event ()
       if (event->kind == selection_request_event)
 	{
 #ifdef HAVE_X11
-	  x_handle_selection_request (event);
+	  struct input_event copy = *event;
+	  /* Remove it from the buffer before processing it,
+	     since otherwise swallow_events will see it
+	     and process it again.  */
 	  perd->kbd_fetch_ptr = event + 1;
+	  x_handle_selection_request (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -2319,8 +2323,10 @@ swallow_events ()
       if (event->kind == selection_request_event)
 	{
 #ifdef HAVE_X11
-	  x_handle_selection_request (event);
+	  struct input_event copy;
+	  copy = *event;
 	  perd->kbd_fetch_ptr = event + 1;
+	  x_handle_selection_request (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
