@@ -1,5 +1,12 @@
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (Fuser_uid, Fuser_real_uid): Use make_fixnum_or_float.
+	(Fuser_full_name): Fix bug treating a float as a fixnum.
+
+	* data.c (Fstring_to_number): Use make_fixnum_or_float.
+
+	* lisp.h (make_fixnum_or_float): New macro.
+	
 	* lisp.h (circular_list_error): Add prototype.
 
 	* data.c (Qcircular_list): New variable.
