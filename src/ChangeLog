@@ -1,5 +1,7 @@
 2002-03-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* xdisp.c (message_with_string): Fix syntax of a call to GCPRO2.
+
 	* xterm.c (XTread_socket): If XK_ISO_Lock and
 	XK_ISO_Last_Group_Lock are defined, handle keysyms between
 	XK_ISO_Lock and XK_ISO_Last_Group_Lock similarly to Mode_switch.
