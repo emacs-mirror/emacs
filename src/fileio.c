@@ -4346,25 +4346,14 @@ actually used.")
     }
 
   if (!NILP (visit)
+      /* Can't do this if part of the buffer might be preserved.  */
+      && NILP (replace)
       && (coding.type == coding_type_no_conversion
 	  || coding.type == coding_type_raw_text))
     {
-      /* Visiting a file with these coding systems should always make
-	 the buffer unibyte.  If we happen to be replacing text in a
-	 multibyte buffer (this happens when reverting an RMAIL
-	 buffer), positions in the buffer, markers etc. may have byte
-	 positions != character positions, so just setting
-	 enable_multibyte_characters to nil doesn't suffice.  */
-      if (!NILP (replace)
-	  && !NILP (current_buffer->enable_multibyte_characters))
-	Fset_buffer_multibyte (Qnil);
-      else
-	/* We cannot Fset_buffer_multibyte(nil) here.  When we visit a
-	   file literally in a multibyte buffer, a call to
-	   Fset_buffer_multibyte would change character positions,
-	   although the buffer has unibyte contents, and that's wrong,
-	   of course.  */
-	current_buffer->enable_multibyte_characters = Qnil;
+      /* Visiting a file with these coding system makes the buffer
+         unibyte. */
+      current_buffer->enable_multibyte_characters = Qnil;
       coding.dst_multibyte = 0;
     }
 
