@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.0
 
-;;	$Id: vc.el,v 1.23 1993/03/09 22:56:29 eric Exp eric $	
+;;	$Id: vc.el,v 1.24 1993/03/09 23:02:40 eric Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -1109,7 +1109,6 @@ Return nil if there is no such person."
   ;; it deletes the workfile.
   (message "Checking in %s..." file)
   (save-excursion
-  (message "Stealing lock on %s..." file)
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
     (vc-backend-dispatch file
@@ -1119,13 +1118,11 @@ Return nil if there is no such person."
 	       (concat "-y" comment)
 	       vc-checkin-switches)
 	(if vc-keep-workfiles
-  (message "Stealing lock on %s...done" file)
 	    (vc-do-command 0 "get" file))
 	)
       (apply 'vc-do-command 0 "ci" file
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
 	     (concat "-m" comment)
-  (message "Removing last change from %s..." file)
 	     vc-checkin-switches)
       ))
   (vc-file-setprop file 'vc-locking-user nil)
