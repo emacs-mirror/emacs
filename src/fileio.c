@@ -19,8 +19,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#define _GNU_SOURCE		/* for euidaccess */
-
 #include <config.h>
 
 #if defined (USG5) || defined (BSD_SYSTEM) || defined (GNU_LINUX)
@@ -72,16 +70,6 @@ extern int errno;
 
 #ifdef APOLLO
 #include <sys/time.h>
-#endif
-
-#ifndef USG
-#ifndef VMS
-#ifndef BSD4_1
-#ifndef WINDOWSNT
-#define HAVE_FSYNC
-#endif
-#endif
-#endif
 #endif
 
 #include "lisp.h"
