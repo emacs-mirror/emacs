@@ -1083,8 +1083,9 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
   "Return a unibyte string with the same individual bytes as STRING.\n\
 If STRING is unibyte, the result is STRING itself.\n\
 Otherwise it is a newly created string, with no text properties.\n\
-If STRING is multibyte and contains a character of charset `binary',\n\
-it is converted to the corresponding single byte.")
+If STRING is multibyte and contains a character of charset\n\
+`eight-bit-control' or `eight-bit-graphic', it is converted to the\n\
+corresponding single byte.")
   (string)
      Lisp_Object string;
 {
@@ -1109,8 +1110,8 @@ DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
 If STRING is multibyte, the result is STRING itself.\n\
 Otherwise it is a newly created string, with no text properties.\n\
 If STRING is unibyte and contains an individual 8-bit byte (i.e. not\n\
-part of multibyte form), it is converted to the corresponding\n\
-multibyte character of charset `binary'.")
+part of a multibyte form), it is converted to the corresponding\n\
+multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.")
   (string)
      Lisp_Object string;
 {
