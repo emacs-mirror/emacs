@@ -2386,7 +2386,11 @@ Uses `backup-directory-alist' in the same way as does
     ;; Run a handler for this function so that ange-ftp can refuse to do it.
     (if handler
 	(funcall handler 'find-backup-file-name fn)
-      (if (eq version-control 'never)
+      (if (or (eq version-control 'never)
+	      ;; We don't support numbered backups on plain MS-DOS
+	      ;; when long file names are unavailable.
+	      (and (eq system-type 'ms-dos)
+		   (not (msdos-long-file-names))))
 	  (list (make-backup-file-name fn))
 	(let* ((basic-name (make-backup-file-name-1 fn))
 	       (base-versions (concat (file-name-nondirectory basic-name)
