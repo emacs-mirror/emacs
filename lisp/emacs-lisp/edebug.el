@@ -540,6 +540,8 @@ the minibuffer."
 	  (let ((edebug-all-forms edebugging)
 		(edebug-all-defs (eq edebug-all-defs (not edebug-it))))
 	    (edebug-read-top-level-form))))
+    ;; This should be consistent with `eval-defun-1', but not the
+    ;; same, since that gets a macroexpended form.
     (cond ((and (eq (car form) 'defvar)
 		(cdr-safe (cdr-safe form)))
 	   ;; Force variable to be bound.
