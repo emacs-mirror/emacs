@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.72) $
+ * $HopeName: MMsrc!mpmst.h(trunk.73) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -757,8 +757,8 @@ typedef struct CBSStruct {
   Bool mayUseInline;
   Bool fastFind;
   Bool inCBS; /* prevent reentrance */
-  struct CBSEmergencyBlockStruct *emergencyBlockList;
-  struct CBSEmergencyGrainStruct *emergencyGrainList;
+  void **emergencyBlockList;
+  void **emergencyGrainList;
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
