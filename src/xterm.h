@@ -321,6 +321,7 @@ struct x_display
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
+  Cursor cross_cursor;
 #else
   Cursor cursor;
 #endif
