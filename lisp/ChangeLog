@@ -1,3 +1,17 @@
+2002-10-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-find-version): Use the new backend op `find-version'.
+	(vc-default-find-version): Provide the new backend op `find-version'
+	in terms of the old `checkout' op.
+
+	* vc-rcs.el (vc-rcs-find-version): New fun.
+	(vc-rcs-checkout): Remove `workfile' arg and simplify.
+
+	* vc-sccs.el (vc-sccs-find-version): New fun.
+	(vc-sccs-checkout): Remove `workfile' arg and simplify.
+
+	* vc-cvs.el (vc-cvs-find-version): New fun.
+
 2002-10-08  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* info.el (Info-next-menu-item, Info-last-menu-item)
@@ -20,8 +34,17 @@
 
 2002-10-07  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua-normal-cursor-color): Fixed
-	initialization to make "Erase Customization" work.
+	* emulation/cua-base.el (cua-normal-cursor-color):
+	Fixed initialization to make "Erase Customization" work.
+
+2002-10-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-maybe-resolve-conflicts): Always call vc-resolve-conflicts
+	in case some other package redefined it.
+	(vc-resolve-conflicts): Make it into an alias for smerge-ediff.
+
+	* textmodes/fill.el (fill-paragraph): Go to BOL before calling
+	forward-paragraph to make sure its return value is meaningful.
 
 2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -41,8 +64,7 @@
 	Replace `tramp-host-regexp' by `tramp-host-with-port-regexp'.
 	From Michael Albinus.
 	(tramp-action-terminal): New function.
-	(tramp-terminal-prompt-regexp): New variable, matches "tset"
-	prompts.
+	(tramp-terminal-prompt-regexp): New variable, matches "tset" prompts.
 	(tramp-actions-before-shell): Use them.
 	(tramp-handle-shell-command): Logic error.  From Ivan
 	Zakharyaschev <imz@altlinux.org>.
@@ -56,6 +78,22 @@
 
 	* progmodes/fortran.el (fortran-beginning-do): Ignore labelled DO
 	loops.
+
+2002-10-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-log-mode-map): Explicitly inherit from text-mode.
+	(vc-maybe-resolve-conflicts): Don't check smerge-mode and smerge-ediff.
+	(vc-print-log): Don't check log-view-mode.
+	(vc-default-show-log-entry): Don't check log-view-goto-rev.
+	(vc-log-mode): Remove.
+	(vc-log-edit): Don't check log-edit.
+
+2002-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-cvs.el (vc-cvs-show-log-entry):
+	* vc-rcs.el (vc-rcs-show-log-entry): Delete.
+
+	* smerge-mode.el (smerge-ediff): Add name-{mine,other,base} args.
 
 2002-10-04  Markus Rost  <rost@math.ohio-state.edu>
 
