@@ -1,3 +1,9 @@
+2005-04-02  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
+
+	* mail/rmail.el (rmail-parse-url): Bugfix. Parse traditional
+	mailbox specifications as well as URLs.
+	(rmail-insert-inbox-text): Remove unused conditional branches.
+
 2005-04-01  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-graph.el (calc-gnuplot-name, calc-gnuplot-plot-command)
