@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Adapted-by: Simon Marshall <simon@gnu.ai.mit.edu>
@@ -1854,12 +1854,30 @@ inside of a \"[...]\" (see `skip-chars-forward')."
 	  (progn (store-match-data (list (point) here))
 		 (match-string 0))))))
 
+(defun comint-substitute-in-file-name (filename)
+  "Return FILENAME with environment variables substituted.
+Supports additional environment variable syntax of the command
+interpreter (e.g., the percent notation of cmd.exe on NT)."
+  (let ((name (substitute-in-file-name filename)))
+    (if (memq system-type '(ms-dos windows-nt))
+	(let (env-var-name
+	      env-var-val)
+	  (save-match-data
+	    (while (string-match "%\\([^\\\\/]*\\)%" name)
+	      (setq env-var-name 
+		    (substring name (match-beginning 1) (match-end 1)))
+	      (setq env-var-val (if (getenv env-var-name)
+				    (getenv env-var-name)
+				  ""))
+	      (setq name (replace-match env-var-val nil nil name))))))
+    name))
 
 (defun comint-match-partial-filename ()
   "Return the filename at point, or nil if non is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint-word "~/A-Za-z0-9+@:_.$#%,={}-")))
-    (and filename (substitute-in-file-name (comint-unquote-filename filename)))))
+    (and filename (comint-substitute-in-file-name 
+		   (comint-unquote-filename filename)))))
 
 
 (defun comint-quote-filename (filename)
@@ -1923,7 +1941,8 @@ Returns t if successful."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case nil)
+  (let* ((completion-ignore-case 
+	  (if (memq system-type '(ms-dos windows-nt)) t nil))
 	 (completion-ignored-extensions comint-completion-fignore)
 	 (file-name-handler-alist nil)
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
@@ -1997,7 +2016,8 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
-  (let* ((completion-ignore-case nil)
+  (let* ((completion-ignore-case
+	  (if (memq system-type '(ms-dos windows-nt)) t nil))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
@@ -2038,7 +2058,8 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
-  (let* ((completion-ignore-case nil)
+  (let* ((completion-ignore-case
+	  (if (memq system-type '(ms-dos windows-nt)) t nil))
 	 (file-name-handler-alist nil)
 	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
