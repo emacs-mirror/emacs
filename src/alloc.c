@@ -4201,8 +4201,7 @@ mark_object (argptr)
 	  mark_face_cache (ptr->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
 	  mark_image_cache (ptr);
-	  mark_object (&ptr->desired_tool_bar_items);
-	  mark_object (&ptr->current_tool_bar_items);
+	  mark_object (&ptr->tool_bar_items);
 	  mark_object (&ptr->desired_tool_bar_string);
 	  mark_object (&ptr->current_tool_bar_string);
 #endif /* HAVE_WINDOW_SYSTEM */
