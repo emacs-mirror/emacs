@@ -84,7 +84,7 @@ This might not yet be honored by all index-building functions."
   :type 'integer
   :group 'imenu)
 
-(decustom imenu-auto-rescan nil
+(defcustom imenu-auto-rescan nil
   "*Non-nil means Imenu should always rescan the buffers."
   :type 'boolean
   :group 'imenu)
