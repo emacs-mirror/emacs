@@ -1,5 +1,10 @@
 2002-04-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (sync_frame_with_window_matrix_rows): Don't give frame
+	rows marginal areas.
+	(Fdump_frame_glyph_matrix) [GLYPH_DEBUG]: New function.
+	(syms_of_xdisp) [GLYPH_DEBUG]: Defsubr it.
+
 	* dispnew.c (marginal_area_string): Check that glyph row is enabled.
 
 2002-04-12  Dave Love  <fx@gnu.org>
