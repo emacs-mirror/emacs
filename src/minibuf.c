@@ -1451,6 +1451,7 @@ If the input is null, `completing-read' returns an empty string,\n\
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.\n\
   If it is (STRING . POSITION), the initial input\n\
   is STRING, but point is placed POSITION characters into the string.\n\
+  This feature is deprecated--it is best to pass nil for INITIAL.\n\
 HIST, if non-nil, specifies a history list\n\
   and optionally the initial position in the list.\n\
   It can be a symbol, which is the history list variable to use,\n\
