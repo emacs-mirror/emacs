@@ -27,14 +27,14 @@ Boston, MA 02111-1307, USA.  */
 int
 main ()
 {
-    return 0;
+  return 0;
 }
 #else /* not BSD 4.2 (or newer) */
 #ifdef MSDOS
 int
 main ()
 {
-    return 0;
+  return 0;
 }
 #else /* not MSDOS */
 /* This conditional contains all the rest of the file.  */
