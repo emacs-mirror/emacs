@@ -1,3 +1,7 @@
+2004-02-09  Sam Steingold  <sds@gnu.org>
+
+	* w32term.c (w32_draw_fringe_bitmap): Fixed a typo in the last patch.
+
 2004-02-09  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c: New file.  Move original fringe related declarations
@@ -28,7 +32,7 @@
 	DEFVAR_LISP Voverflow_newline_into_fringe.
 	(init_fringe_once, init_fringe): New functions.
 	(w32_init_fringe, w32_reset_fringes) [WINDOWS_NT]: New functions.
-	
+
 	* Makefile.in (obj): Add fringe.o.
 	(fringe.o): New dependencies.
 

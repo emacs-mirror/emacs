@@ -698,7 +698,7 @@ w32_draw_fringe_bitmap (w, row, p)
   else
     w32_clip_to_row (w, row, hdc);
 
-  if (p->bx >= 0 !p->overlay_p)
+  if (p->bx >= 0 && !p->overlay_p)
     {
       w32_fill_area (f, hdc, face->background,
 		     p->bx, p->by, p->nx, p->ny);
@@ -725,13 +725,13 @@ w32_draw_fringe_bitmap (w, row, p)
 
       if (p->overlay_p)
 	{
-	  clipmask = XCreatePixmapFromBitmapData (display, 
+	  clipmask = XCreatePixmapFromBitmapData (display,
 						  FRAME_X_DISPLAY_INFO (f)->root_window,
-						  bits, p->wd, p->h, 
+						  bits, p->wd, p->h,
 						  1, 0, 1);
 	  gcv.clip_mask = clipmask;
 	  gcv.clip_x_origin = p->x;
-	  gcv.clip_y_origin = p->y; 
+	  gcv.clip_y_origin = p->y;
 	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
 	}
 #endif
