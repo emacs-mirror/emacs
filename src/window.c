@@ -843,7 +843,7 @@ minibuffer even if it is active.\n\
 \n\
 Several frames may share a single minibuffer; if the minibuffer\n\
 counts, all windows on all frames that share that minibuffer count\n\
-too.  This means that next-window may be used to iterate through the\n\
+too.  Therefore, `next-window' can be used to iterate through the\n\
 set of windows even when the minibuffer is on another frame.  If the\n\
 minibuffer does not count, only windows from WINDOW's frame count.\n\
 \n\
@@ -960,10 +960,9 @@ minibuffer even if it is active.\n\
 \n\
 Several frames may share a single minibuffer; if the minibuffer\n\
 counts, all windows on all frames that share that minibuffer count\n\
-too.  This means that previous-window may be used to iterate through\n\
+too.  Therefore, `previous-window' can be used to iterate through\n\
 the set of windows even when the minibuffer is on another frame.  If\n\
-the minibuffer does not count, only windows from WINDOW's frame\n\
-count.\n\
+the minibuffer does not count, only windows from WINDOW's frame count\n\
 \n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
