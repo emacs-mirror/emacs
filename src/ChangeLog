@@ -1,5 +1,8 @@
 2000-07-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (note_mouse_highlight): Process overlays in the right
+	order of priority.
+	
 	* keyboard.c (show_help_echo, gen_help_event): Extend comments.
 
 	* xterm.c (note_mouse_highlight): If help-echo was found in an
