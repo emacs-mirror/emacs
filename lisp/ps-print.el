@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson <thompson@wg2.waii.com>
-;; Maintainer: FSF
+;; Maintainer: duthen@cegelec-red.fr (Jacques Duthen Prestataire)
 ;; Keywords: print, PostScript
 
 ;; This file is part of GNU Emacs.
