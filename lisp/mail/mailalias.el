@@ -151,7 +151,8 @@ removed from alias expansions."
 	      (end-of-line)
 	      (define-mail-alias
 		name
-		(buffer-substring start (point)))))
+		(buffer-substring start (point))
+		t)))
 	  mail-aliases)
       (if buffer (kill-buffer buffer))
       (set-buffer obuf))))
@@ -159,7 +160,7 @@ removed from alias expansions."
 ;; Always autoloadable in case the user wants to define aliases
 ;; interactively or in .emacs.
 ;;;###autoload
-(defun define-mail-alias (name definition)
+(defun define-mail-alias (name definition &optional from-mailrc-file)
   "Define NAME as a mail alias that translates to DEFINITION.
 This means that sending a message to NAME will actually send to DEFINITION.
 DEFINITION can be one or more mail addresses separated by spaces.
@@ -176,22 +177,27 @@ An address can contain spaces if it is quoted with double-quotes."
       (setq definition (substring definition (match-end 0))))
   (if (string-match "[ \t\n,]+\\'" definition)
       (setq definition (substring definition 0 (match-beginning 0))))
-  (let ((first (aref definition 0))
-	(last (aref definition (1- (length definition))))
-	tem)
-    (if (and (= first last) (memq first '(?\' ?\")))
-	;; Strip quotation marks.
-	(setq definition (substring definition 1 (1- (length definition))))
-      ;; ~/.mailrc contains addresses separated by spaces.
-      ;; Mailers should expect addresses separated by commas.
-      (while (setq tem (string-match "[^ \t,][ \t,]+" definition tem))
-	(if (= (match-end 0) (length definition))
-	    (setq definition (substring definition 0 (1+ tem)))
-	  (setq definition (concat (substring definition
-					      0 (1+ tem))
-				   ", "
-				   (substring definition (match-end 0))))
-	  (setq tem (+ 3 tem)))))
+  (let ((result '())
+	(start 0)
+	(L (length definition))
+	end tem)
+    (while start
+      ;; If we're reading from the mailrc file, then addresses are delimited
+      ;; by spaces, and addresses with embedded spaces must be surrounded by
+      ;; double-quotes.  Otherwise, addresses are separated by commas.
+      (if from-mailrc-file
+	  (if (eq ?\" (aref definition start))
+	      (setq start (1+ start)
+		    end (string-match "\"[ \t,]*" definition start))
+	      (setq end (string-match "[ \t,]+" definition start)))
+	  (setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
+      (setq result (cons (substring definition start end) result))
+      (setq start (and end
+		       (/= (match-end 0) L)
+		       (match-end 0))))
+    (setq definition (mapconcat (function identity)
+				(nreverse result)
+				", "))
     (setq tem (assoc name mail-aliases))
     (if tem
 	(rplacd tem definition)
