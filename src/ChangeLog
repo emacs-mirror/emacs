@@ -16,6 +16,7 @@
 2000-12-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_vertical_border): Fix call to w32_fill_rect.
+
 	* w32fns.c (x_set_cursor_color): Fix last change.
 
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
