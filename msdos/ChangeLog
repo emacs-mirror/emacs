@@ -1,3 +1,10 @@
+2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sedleim.inp (RUN-EMACS): Remove EMACSLOADPATH setting as part of
+	the command; use Make's "export EMACSLOADPATH=" instead.  Remove
+	the handling of `command` expansion, leim/Makefile.in doesn't use
+	that anymore.
+
 2000-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2.inp (HAVE_INDEX, HAVE_RINDEX): Define.

@@ -1,3 +1,9 @@
+2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (find-backup-file-name) [ms-dos]: If support for long
+	file names is not available, behave as if version-control were set
+	to never.
+
 2000-10-07  Dave Love  <fx@gnu.org>
 
 	* net/browse-url.el (browse-url-gnome-moz-arguments): New option.
@@ -20,7 +26,7 @@
 	(indent-for-tab-command): Use it.
 
 	* files.el (set-auto-mode): Ignore unknown -*- mode -*- rather than
-	raise an error.  This way it can still defaults to a sane value.
+	raise an error.  This way it can still default to a sane value.
 
 	* startup.el (fancy-splash-screens): Use local rather than global map.
 	Don't use `update-menu-bindings' any more.

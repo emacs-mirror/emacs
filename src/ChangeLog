@@ -1,3 +1,10 @@
+2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.c (Fframe_parameter): For non-windowed frames, if
+	f->param_alist says foreground or background color is unspecified,
+	call tty_color_name to return the color name computed from the
+	frame's current colors.
+
 2000-10-06  Dave Love  <fx@gnu.org>
 
 	* terminfo.c (ospeed): Don't declare.

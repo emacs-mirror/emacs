@@ -1,3 +1,8 @@
+2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (${TIT}, clean): Don't use shell `command`
+	expansion, use ${TIT:.elc=.el} instead.
+
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in: Make this the leim Makefile.in.
