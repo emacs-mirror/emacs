@@ -92,6 +92,7 @@ e -- Parametrized event (i.e., one that's a list) that invoked this command.\n\
      This skips events that are integers or symbols.\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
+i -- Ignored, i.e. always nil.  Does not do I/O.\n\
 k -- Key sequence (downcase the last event if needed to get a definition).\n\
 K -- Key sequence to be redefined (do not downcase the last event).\n\
 m -- Value of mark as number.  Does not do I/O.\n\
@@ -105,6 +106,8 @@ S -- Any symbol.\n\
 v -- Variable name: symbol that is user-variable-p.\n\
 x -- Lisp expression read but not evaluated.\n\
 X -- Lisp expression read and evaluated.\n\
+z -- Coding system.\n\
+Z -- Coding system, nil if no prefix arg.\n\
 In addition, if the string begins with `*'\n\
  then an error is signaled if the buffer is read-only.\n\
  This happens before reading any arguments.\n\
@@ -523,6 +526,10 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 				     Qnil, Qnil, Qnil, Qnil);
 	  break;
 
+	case 'i':		/* Ignore an argument -- Does not do I/O */
+	  varies[i] = -1;
+	  break;
+
 	case 'k':		/* Key sequence. */
 	  {
 	    int speccount1 = specpdl_ptr - specpdl;
@@ -651,6 +658,26 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  args[i] = Feval_minibuffer (build_string (callint_message), Qnil);
 	  visargs[i] = last_minibuf_string;
  	  break;
+
+	case 'Z':		/* Coding-system symbol, or ignore the
+				   argument if no prefix */
+	  if (NILP (prefix_arg))
+	    {
+	      args[i] = Qnil;
+	      varies[i] = -1;
+	    }
+	  else 
+	    {
+	      args[i]
+		= Fread_non_nil_coding_system (build_string (callint_message));
+	      visargs[i] = last_minibuf_string;
+	    }
+	  break;
+
+	case 'z':		/* Coding-system symbol or nil */
+	  args[i] = Fread_coding_system (build_string (callint_message));
+	  visargs[i] = last_minibuf_string;
+	  break;
 
 	  /* We have a case for `+' so we get an error
 	     if anyone tries to define one here.  */
