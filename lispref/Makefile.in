@@ -67,9 +67,9 @@ elisp.dvi: $(srcs) index.texi
 index.texi:
 	if [ a${permuted_index} != a ]; \
 	then \
-	  ln -s index.perm index.texi; \
+	  ln -s index.perm index.texi || ln index.perm index.texi; \
 	else \
-	  ln -s index.unperm index.texi; \
+	  ln -s index.unperm index.texi || ln index.unperm index.texi; \
 	fi
 
 install: elisp
