@@ -1,9 +1,22 @@
-;;; -*-Emacs-Lisp-*- General command interpreter in a window stuff
+;;; shell.el --- general command interpreter in a window stuff
+
 ;;; Copyright Olin Shivers (1988).
-;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
-;;; notice appearing here to the effect that you may use this code any
-;;; way you like, as long as you don't charge money for it, remove this
-;;; notice, or hold me liable for its results.
+
+;;; This file is part of GNU Emacs.
+
+;;; GNU Emacs is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 1, or (at your option)
+;;; any later version.
+
+;;; GNU Emacs is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+
+;;; You should have received a copy of the GNU General Public License
+;;; along with GNU Emacs; see the file COPYING.  If not, write to
+;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; The changelog is at the end of file.
 
@@ -12,9 +25,9 @@
 ;;;     - Olin Shivers (shivers@cs.cmu.edu)
 
 ;;; This file defines a a shell-in-a-buffer package (shell mode) built
-;;; on top of comint mode.  This shell mode is similar to its
-;;; counterpart in the GNU Emacs 18 release, but is more featureful,
-;;; robust, and uniform than that version.
+;;; on top of comint mode.  This is actually cmushell with things
+;;; renamed to replace its counterpart in Emacs 18.  cmushell is more
+;;; featureful, robust, and uniform than the Emacs 18 version.
 
 ;;; Since this mode is built on top of the general command-interpreter-in-
 ;;; a-buffer mode (comint mode), it shares a common base functionality, 
@@ -32,25 +45,23 @@
 ;;; text to the process? Switch selectable?
 
 (require 'comint)
-(provide 'shell)
-
 ;; YOUR .EMACS FILE
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
 ;;
-;; ; If shell lives in some non-standard directory, you must tell emacs
+;; ; If cmushell lives in some non-standard directory, you must tell emacs
 ;; ; where to get it. This may or may not be necessary.
 ;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
 ;;
-;; ; Autoload shell from file shell.el
-;; (autoload 'shell "shell"
+;; ; Autoload cmushell from file cmushell.el
+;; (autoload 'cmushell "cmushell"
 ;;           "Run an inferior shell process."
 ;;           t)
 ;;
-;; ; Define C-c t to run my favorite command in shell mode:
-;; (setq shell-load-hook
+;; ; Define C-c t to run my favorite command in cmushell mode:
+;; (setq cmushell-load-hook
 ;;       '((lambda () 
-;;           (define-key shell-mode-map "\C-ct" 'favorite-cmd))))
+;;           (define-key cmushell-mode-map "\C-ct" 'favorite-cmd))))
 
 
 ;;; Brief Command Documentation:
@@ -89,23 +100,15 @@
 
 ;;; Read the rest of this file for more information.
 
-;;; Emacs 18 SHELL.EL COMPATIBILITY
-;;;
-;;; The below notes were written before this shell package became the
-;;; official shell mode of the standard Emacs distribution, and talk
-;;; about getting this package to work well with the old shell package
-;;; and its users.  This issue isn't quite as relevant now as it was
-;;; then, but the notes below should still be useful for people
-;;; modifying elisp packages that used the old shell mode to use this
-;;; one.  Note that some of the variables referred to have lost their
-;;; `cmu-' prefix.
-;;;
+;;; SHELL.EL COMPATIBILITY
+;;; Notes from when this was called cmushell, and was not the standard emacs
+;;; shell package.
 ;;;============================================================================
 ;;; In brief: this package should have no trouble coexisting with shell.el.
 ;;; 
 ;;; Most customising variables -- e.g., explicit-shell-file-name -- are the
 ;;; same, so the users shouldn't have much trouble. Hooks have different
-;;; names, however, so you can customise shell mode differently from shell
+;;; names, however, so you can customise shell mode differently from cmushell
 ;;; mode. You basically just have to remember to type M-x cmushell instead of
 ;;; M-x shell.
 ;;; 
@@ -133,12 +136,8 @@
 ;;; ===========================================================================
 ;;; 
 
-;In loaddefs.el now.
-;(defconst shell-prompt-pattern
-;  "^[^#$%>]*[#$%>] *"
-;  "*Regexp used by Newline command to match subshell prompts.
-;;; Change the doc string for shell-prompt-pattern:
-(put 'shell-prompt-pattern 'variable-documentation
+;;;###autoload
+(defconst shell-prompt-pattern "^[^#$%>]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>]*[#$%>] *\", which works pretty well.
 This variable is used to initialise comint-prompt-regexp in the 
@@ -167,11 +166,12 @@ This is a fine thing to set in your .emacs file.")
   "*Args passed to inferior shell by M-x shell, if the shell is csh.
 Value is a list of strings, which may be nil.")
 
-;;; All the above vars aren't prefixed "shell-" to make them
+;;; All the above vars aren't prefixed "cmushell-" to make them
 ;;; backwards compatible w/shell.el and old .emacs files.
 
 (defvar shell-dirstack nil
-  "List of directories saved by pushd in this buffer's shell.")
+  "List of directories saved by pushd in this buffer's shell.
+Thus, this does not include the shell's current directory.")
 
 (defvar shell-dirstack-query "dirs"
   "Command used by shell-resync-dirlist to query shell.")
@@ -194,10 +194,10 @@ Value is a list of strings, which may be nil.")
   "Major mode for interacting with an inferior shell.
 Return after the end of the process' output sends the text from the 
     end of process to the end of the current line.
-Return before end of process output copies rest of line to end (skipping
-    the prompt) and sends it.
+Return before end of process output copies the current line (except
+    for the prompt) to the end of the buffer and sends it.
 M-x send-invisible reads a line of text without echoing it, and sends it to
-    the shell.
+    the shell.  This is useful for entering passwords.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -228,6 +228,7 @@ to match their respective commands."
   (run-hooks 'shell-mode-hook))
 
 
+;;;###autoload
 (defun shell ()
   "Run an inferior shell, with I/O through buffer *shell*.
 If buffer exists but shell process is not running, make new shell.
@@ -509,6 +510,8 @@ command again."
 
 
 ;;; Interfacing to client packages (and converting them)
+;;; Notes from when this was called cmushell, and was not the standard emacs
+;;; shell package.  Many of the conversions discussed here have been done.
 ;;;============================================================================
 ;;; Several gnu packages (tex-mode, background, dbx, gdb, kermit, prolog, 
 ;;; telnet are some) use the shell package as clients. Most of them would
@@ -598,3 +601,11 @@ This is a good place to put keybindings.")
 ;;;
 ;;; Olin 3/12/91
 ;;; - Moved comint-dynamic-complete (filename completion) from M-tab to tab.
+;;;
+;;; Jim Blandy 10/30/91
+;;; - Removed the "cmu" prefix from names, renamed file to shell.el,
+;;;   to become the standard shell package.
+
+(provide 'shell)
+
+;;; shell.el ends here

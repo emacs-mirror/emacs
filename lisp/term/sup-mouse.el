@@ -1,3 +1,5 @@
+;;; sup-mouse.el --- GNU Emacs code for lambda/supdup mouse
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;									     ;;
 ;;	File:     sup-mouse.el						     ;;
@@ -7,10 +9,8 @@
 ;;									     ;;
 ;;     (from code originally written by John Robinson@bbn for the bitgraph)  ;;
 ;;									     ;;
-;;	$Log$								     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; GNU Emacs code for lambda/supdup mouse
 ;; Copyright (C) Free Software Foundation 1985, 1986
 
 ;; This file is part of GNU Emacs.
@@ -205,3 +205,5 @@ X and Y are 0-based character positions on the screen."
     (or window (selected-window))
     )
   )
+
+;;; sup-mouse.el ends here

@@ -1,4 +1,5 @@
-;; Basic editing commands for Emacs
+;;; simple.el --- basic editing commands for Emacs
+
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -704,6 +705,17 @@ a number counts as a prefix arg."
 	      (concat string (car kill-ring))
 	      (concat (car kill-ring) string))))
 
+(defvar interprogram-cut-function nil
+  "Function to call to make a killed region available to other programs.
+
+Most window systems provide some sort of facility for cutting and
+pasting text between the windows of different programs.  On startup,
+this variable is set to a function which emacs will call to make the
+most recently killed text available to other programs.
+
+The function takes one argument, TEXT, which is a string containing
+the text which should be made available.")
+
 (defun kill-region (beg end)
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
@@ -728,23 +740,14 @@ to make one entry in the kill ring."
 	;; Take the same string recorded for undo
 	;; and put it in the kill-ring.
 	(setq kill-ring (cons (car (car buffer-undo-list)) kill-ring))
+	(if interprogram-cut-function
+	    (funcall interprogram-cut-function (car kill-ring)))
 	(if (> (length kill-ring) kill-ring-max)
 	    (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
 	(setq this-command 'kill-region)
 	(setq kill-ring-yank-pointer kill-ring))
     (copy-region-as-kill beg end)
     (or buffer-read-only (delete-region beg end))))
-
-(defvar interprogram-cut-function nil
-  "Function to call to make a killed region available to other programs.
-
-Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.  On startup,
-this variable is set to a function which emacs will call to make the
-most recently killed text available to other programs.
-
-The function takes one argument, TEXT, which is a string containing
-the text which should be made available.")
 
 (defun copy-region-as-kill (beg end)
   "Save the region as if killed, but don't kill it.
@@ -1408,11 +1411,16 @@ Setting this variable automatically makes it local to the current buffer.")
 
 (defconst comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
-on new line, with no new terminator or starter.")
+on new line, with no new terminator or starter.
+This is obsolete because you might as well use \\[newline-and-indent].")
 
 (defun indent-new-comment-line ()
   "Break line at point and indent, continuing comment if presently within one.
-The body of the continued comment is indented under the previous comment line."
+The body of the continued comment is indented under the previous comment line.
+
+This command is intended for styles where you write a comment per line,
+starting a new comment (and terminating it if necessary) on each line.
+If you want to continue one comment across several lines, use \\[newline-and-indent]."
   (interactive "*")
   (let (comcol comstart)
     (skip-chars-backward " \t")
@@ -1420,39 +1428,42 @@ The body of the continued comment is indented under the previous comment line."
 		   (progn (skip-chars-forward " \t")
 			  (point)))
     (insert ?\n)
-    (save-excursion
-      (if (and comment-start-skip
-	       (let ((opoint (point)))
-		 (forward-line -1)
-		 (re-search-forward comment-start-skip opoint t)))
-	  ;; The old line is a comment.
-	  ;; Set WIN to the pos of the comment-start.
-	  ;; But if the comment is empty, look at preceding lines
-	  ;; to find one that has a nonempty comment.
-	  (let ((win (match-beginning 0)))
-	    (while (and (eolp) (not (bobp))
-			(let (opoint)
-			  (beginning-of-line)
-			  (setq opoint (point))
-			  (forward-line -1)
-			  (re-search-forward comment-start-skip opoint t)))
-	      (setq win (match-beginning 0)))
-	    ;; Indent this line like what we found.
-	    (goto-char win)
-	    (setq comcol (current-column))
-	    (setq comstart (buffer-substring (point) (match-end 0))))))
+    (if (not comment-multi-line)
+	(save-excursion
+	  (if (and comment-start-skip
+		   (let ((opoint (point)))
+		     (forward-line -1)
+		     (re-search-forward comment-start-skip opoint t)))
+	      ;; The old line is a comment.
+	      ;; Set WIN to the pos of the comment-start.
+	      ;; But if the comment is empty, look at preceding lines
+	      ;; to find one that has a nonempty comment.
+	      (let ((win (match-beginning 0)))
+		(while (and (eolp) (not (bobp))
+			    (let (opoint)
+			      (beginning-of-line)
+			      (setq opoint (point))
+			      (forward-line -1)
+			      (re-search-forward comment-start-skip opoint t)))
+		  (setq win (match-beginning 0)))
+		;; Indent this line like what we found.
+		(goto-char win)
+		(setq comcol (current-column))
+		(setq comstart (buffer-substring (point) (match-end 0)))))))
     (if comcol
 	(let ((comment-column comcol)
 	      (comment-start comstart)
 	      (comment-end comment-end))
 	  (and comment-end (not (equal comment-end ""))
-	       (if (not comment-multi-line)
+;	       (if (not comment-multi-line)
 		   (progn
 		     (forward-char -1)
 		     (insert comment-end)
 		     (forward-char 1))
-		 (setq comment-column (+ comment-column (length comment-start))
-		       comment-start "")))
+;		 (setq comment-column (+ comment-column (length comment-start))
+;		       comment-start "")
+;		   )
+	       )
 	  (if (not (eolp))
 	      (setq comment-end ""))
 	  (insert ?\n)
@@ -1500,8 +1511,14 @@ selective-display's value is separate for each buffer."
   (interactive "P")
   (if (eq selective-display t)
       (error "selective-display already in use for marked lines"))
-  (setq selective-display
-	(and arg (prefix-numeric-value arg)))
+  (let ((current-vpos
+	 (save-restriction
+	   (narrow-to-region (point-min) (point))
+	   (goto-char (window-start))
+	   (vertical-motion (window-height)))))
+    (setq selective-display
+	  (and arg (prefix-numeric-value arg)))
+    (recenter current-vpos))
   (set-window-start (selected-window) (window-start (selected-window)))
   (princ "selective-display set to " t)
   (prin1 selective-display t)
@@ -1694,3 +1711,5 @@ If you want VALUE to be a string, you must surround it with doublequotes."
 (defconst mode-specific-map (symbol-function 'mode-specific-command-prefix)
   "Keymap for characters following C-c.")
 (define-key global-map "\C-c" 'mode-specific-command-prefix)
+
+;;; simple.el ends here

@@ -1,4 +1,5 @@
-;;; -*- Mode: Emacs-lisp -*-
+;;; reposition.el --- center a Lisp function or comment on the screen
+
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -187,3 +188,4 @@ first comment line visible (if point is in a comment)."
 ;       (concat "Case " (, case-no) ": %s %s %s %s %s")
 ;       ht line comment-height defun-height defun-depth)))
 
+;;; reposition.el ends here

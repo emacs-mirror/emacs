@@ -1,4 +1,5 @@
-;; Spook phrase utility
+;;; spook.el --- spook phrase utility for overloading the NSA line eater
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -107,3 +108,5 @@
       (aset vector j temp)
       (setq i (1+ i))))
   vector)
+
+;;; spook.el ends here

@@ -1,4 +1,5 @@
-;; Process command line arguments from within a suspended Emacs job
+;;; resume.el --- process command line args from within a suspended Emacs job
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is not yet part of GNU Emacs, but soon will be.
@@ -157,3 +158,5 @@ and processes these arguments like command line options."
       (widen)
       (write-region (point-min) (point-max) file nil 'quiet))
     (set-buffer-modified-p nil)))
+
+;;; resume.el ends here

@@ -1,4 +1,5 @@
-;; scribe mode, and its ideosyncratic commands.
+;;; scribe.el --- scribe mode, and its idiosyncratic commands.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file might become part of GNU Emacs.
@@ -306,3 +307,5 @@ preceding text is of the form @Command."
 				   scribe-open-parentheses)))
 	  (save-excursion
 	    (insert (aref scribe-close-parentheses paren-char)))))))
+
+;;; scribe.el ends here

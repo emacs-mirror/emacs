@@ -1,4 +1,5 @@
-;; Subroutines of Mouse handling for Sun windows
+;;; sun-fns.el --- subroutines of Mouse handling for Sun windows
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -628,3 +629,5 @@ To unmark a buffer marked for deletion, select it with LEFT."
 (global-set-mouse '(minibuffer double control meta right)  'mouse-help-region)
 
 (provide 'sun-fns)
+
+;;; sun-fns.el ends here

@@ -1,3 +1,5 @@
+;;; rmailmsc.el --- miscellaneous support functions for the RMAIL mail reader
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -43,3 +45,5 @@ If FILE-NAME is empty, remove any inbox list."
 		(insert "Mail: " file-name "\n"))))))
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   (rmail-show-message rmail-current-message))
+
+;;; rmailmsc.el ends here

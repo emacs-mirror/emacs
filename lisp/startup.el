@@ -1,4 +1,5 @@
-;; Process Emacs shell arguments
+;;; startup.el --- process Emacs shell arguments
+
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -368,3 +369,5 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (or (get-buffer-window first-file-buffer)
 	      (progn (other-window)
 		     (buffer-menu)))))))
+
+;;; startup.el ends here

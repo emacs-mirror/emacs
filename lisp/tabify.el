@@ -1,4 +1,5 @@
-;; Tab conversion commands for Emacs
+;;; tabify.el --- tab conversion commands for Emacs
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -51,3 +52,5 @@ The variable tab-width controls the action."
 	      (indent-tabs-mode t))
 	  (delete-region (match-beginning 0) (point))
 	  (indent-to column))))))
+
+;;; tabify.el ends here

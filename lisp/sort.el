@@ -1,4 +1,5 @@
-;; Commands to sort text in an Emacs buffer.
+;;; sort.el --- commands to sort text in an Emacs buffer.
+
 ;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -445,3 +446,4 @@ From a program takes two point or marker arguments, BEG and END."
 
 (provide 'sort)
 
+;;; sort.el ends here

@@ -1,4 +1,5 @@
-;;; Rmail: sort messages.
+;;; rmailsort.el --- Rmail: sort messages.
+
 ;; Copyright (C) 1990 Masanobu UMEDA
 ;; umerin@tc.Nagasaki.GO.JP?
 
@@ -202,3 +203,5 @@ Arguments are MSG and FIELD."
     year-string))
 
 (provide 'rmailsort)
+
+;;; rmailsort.el ends here

@@ -1,4 +1,5 @@
-;; Miscellaneous functions for dealing with Swedish.
+;;; swedish.el --- miscellaneous functions for dealing with Swedish.
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -143,3 +144,5 @@ Leaves point just after the word that looks Swedish."
 ;   (run-hooks 'text-mode-hook))
 
 (provide 'swedish)
+
+;;; swedish.el ends here

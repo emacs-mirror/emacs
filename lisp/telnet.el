@@ -1,3 +1,5 @@
+;;; telnet.el --- run a telnet session from within an Emacs buffer
+
 ;; Copyright (C) 1985, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -180,3 +182,4 @@ Bugs:
 
 (provide 'telnet)
 
+;;; telnet.el ends here

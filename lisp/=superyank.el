@@ -1,5 +1,5 @@
-;; superyank.el -- Version 1.1
-;;
+;;; superyank.el --- smart message-yanking code for GNUS (Version 1.1)
+
 ;; Inserts the message being replied to with various user controlled
 ;; citation styles.
 ;;
@@ -1210,3 +1210,4 @@ inserts that many newlines."
 
 (provide 'superyank)
 
+;;; superyank.el ends here

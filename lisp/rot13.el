@@ -1,4 +1,5 @@
-;; Display a buffer in rot13.
+;;; rot13.el --- display a buffer in rot13.
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -39,3 +40,5 @@
     (set-window-display-table w rot13-display-table)))
 
 (provide 'rot13)
+
+;;; rot13.el ends here

@@ -1,4 +1,5 @@
-;;; USENET news reader for gnu emacs
+;;; rnews.el --- USENET news reader for gnu emacs
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -977,4 +978,6 @@ Mail and USENET news headers are not rotated."
       (caesar-region rotnum)
       (setq buffer-read-only buffer-status))))
 
-(provide 'rnews)	(provide 'rnews)
+(provide 'rnews)
+
+;;; rnews.el ends here

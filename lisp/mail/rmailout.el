@@ -1,4 +1,5 @@
-;; "RMAIL" mail reader for Emacs: output message to a file.
+;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
+
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -180,3 +181,5 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	(rmail-delete-forward)
       (if (> count 0)
 	  (rmail-next-undeleted-message 1)))))
+
+;;; rmailout.el ends here

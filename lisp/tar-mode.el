@@ -1,7 +1,5 @@
-;;; -*- Mode: Emacs-Lisp -*-
+;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
-;;; File:		tar-mode.el
-;;; Description:	simple editing of tar files from GNU emacs
 ;;; Author:		Jamie Zawinski <jwz@lucid.com>
 ;;; Created:		4 Apr 1990
 ;;; Version:		1.21, 10 Mar 91
@@ -1108,3 +1106,4 @@ itself."
 
 (provide 'tar-mode)
 
+;;; tar-mode.el ends here

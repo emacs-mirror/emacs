@@ -1,4 +1,5 @@
-;;; -*-Emacs-Lisp-*- Functions to manipulate environment variables.
+;;; setenv.el --- functions to manipulate environment variables.
+
 ;;; Copyright Free Software Foundation 1991
 
 ;;; This file is part of GNU Emacs.
@@ -36,3 +37,4 @@ This function works by modifying process-environment."
 
 (provide 'setenv)
 
+;;; setenv.el ends here

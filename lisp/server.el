@@ -1,4 +1,5 @@
-;; Lisp code for GNU Emacs running as server process.
+;;; server.el --- Lisp code for GNU Emacs running as server process.
+
 ;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 ;; Author William Sommerfeld, wesommer@athena.mit.edu.
 ;; Changes by peck@sun.com and by rms.
@@ -296,3 +297,5 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
       (switch-to-buffer (other-buffer)))))
 
 (global-set-key "\C-x#" 'server-edit)
+
+;;; server.el ends here

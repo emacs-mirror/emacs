@@ -1,4 +1,5 @@
-;;; USENET news poster/mailer for GNU Emacs
+;;; rnewspost.el --- USENET news poster/mailer for GNU Emacs
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -388,3 +389,5 @@ While composing the message, use \\[news-reply-yank-original] to yank the
 original message into it."
   (interactive)
   (mail-other-window nil nil nil nil nil (current-buffer)))
+
+;;; rnewspost.el ends here

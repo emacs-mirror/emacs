@@ -1,4 +1,5 @@
-;;;; Multi-screen management that is independent of window systems.
+;;; screen.el --- multi-screen management independent of window systems.
+
 ;;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
 
 ;;; This file is part of GNU Emacs.
@@ -270,3 +271,5 @@ under the X Window System."
 (define-key ctl-x-3-map "0" 'delete-screen)
 
 (provide 'screen)
+
+;;; screen.el ends here

@@ -1,4 +1,5 @@
-;; Basic lisp subroutines for Emacs
+;;; subr.el --- basic lisp subroutines for Emacs
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -344,3 +345,5 @@ and then modifies one entry in it."
 
 (defmacro lambda (&rest cdr)
   (` (function (lambda (,@ cdr)))))
+
+;;; subr.el ends here

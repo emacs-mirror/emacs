@@ -1,4 +1,5 @@
-;; Register commands for Emacs.
+;;; register.el --- register commands for Emacs.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -173,3 +174,5 @@ START and END are buffer positions giving two corners of rectangle."
 		(if delete-flag
 		    (delete-extract-rectangle start end)
 		  (extract-rectangle start end))))
+
+;;; register.el ends here

@@ -1,4 +1,5 @@
-;; Scheme mode, and its idiosyncratic commands.
+;;; scheme.el --- Scheme mode, and its idiosyncratic commands.
+
 ;; Copyright (C) 1986, 1987, 1988 Free Software Foundation, Inc.
 ;; Adapted from Lisp mode by Bill Rozas, jinx@prep.
 
@@ -499,3 +500,5 @@ of the start of the containing expression."
 		       (indent-to this-indent)))))))))
 
 (provide 'scheme)
+
+;;; scheme.el ends here

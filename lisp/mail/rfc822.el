@@ -1,4 +1,5 @@
-;; Hairy rfc822 parser for mail and news and suchlike
+;;; rfc822.el --- hairy rfc822 parser for mail and news and suchlike
+
 ;; Copyright (C) 1986-1990 Free Software Foundation, Inc.
 ;; Author Richard Mlynarik.
 
@@ -304,3 +305,4 @@
 
 (provide 'rfc822)
 
+;;; rfc822.el ends here

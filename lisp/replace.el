@@ -1,4 +1,5 @@
-;; Replace commands for Emacs.
+;;; replace.el --- replace commands for Emacs.
+
 ;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -531,3 +532,4 @@ before rotating to the next."
     (perform-replace regexp replacements t t nil arg))
   (message "Done"))
 
+;;; replace.el ends here

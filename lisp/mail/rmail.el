@@ -1,4 +1,5 @@
-;; "RMAIL" mail reader for Emacs.
+;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
+
 ;; Copyright (C) 1985, 1986, 1987, 1988, 1991, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1611,3 +1612,4 @@ Leaves original message, deleted, before the undigestified messages."
 
 (provide 'rmail)
 
+;;; rmail.el ends here

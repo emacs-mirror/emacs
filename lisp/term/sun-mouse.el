@@ -1,4 +1,5 @@
-;; Mouse handling for Sun windows
+;;; sun-mouse.el --- mouse handling for Sun windows
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -667,3 +668,4 @@ just close the window, and wait for reopening."
 
 (provide 'sun-mouse)
 
+;;; sun-mouse.el ends here

@@ -1,4 +1,5 @@
-;; Cursor definitions for Sun windows
+;;; sun-cursors.el --- cursor definitions for Sun windows
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -205,3 +206,4 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
 
 (provide 'sm-cursors)
 
+;;; sun-cursors.el ends here

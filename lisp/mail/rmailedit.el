@@ -1,4 +1,5 @@
-;; "RMAIL edit mode"  Edit the current message.
+;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -103,3 +104,4 @@ to return to regular RMAIL:
   (insert rmail-old-text)
   (rmail-cease-edit))
 
+;;; rmailedit.el ends here

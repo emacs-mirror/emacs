@@ -1,4 +1,5 @@
-;; Mail sending commands for Emacs.
+;;; sendmail.el --- mail sending commands for Emacs.
+
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -662,3 +663,4 @@ The seventh argument ACTIONS is a list of actions to take
 
 (provide 'sendmail)
 
+;;; sendmail.el ends here

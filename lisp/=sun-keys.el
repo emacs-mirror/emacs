@@ -1,4 +1,5 @@
-;;;
+;;; sun-keys.el --- support for Sun function keys
+
 ;;; Support (cleanly) for Sun function keys.  Provides help facilities,
 ;;; better diagnostics, etc.
 ;;;
@@ -69,3 +70,5 @@ CCommand To Use:")
 (global-set-key "\e*" 'sun-function-keys-dispatch)
 
 (make-variable-buffer-local 'sun-function-keys-command-list)
+
+;;; sun-keys.el ends here

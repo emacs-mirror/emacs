@@ -1,4 +1,5 @@
-;; "RMAIL" mail reader for Emacs.
+;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs.
+
 ;; Copyright (C) 1985, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -262,3 +263,5 @@ With prefix argument N moves forward N messages with these labels."
 	    (narrow-to-region (- (buffer-size) omin)
 			      (- (buffer-size) omax)))))
     keyword))
+
+;;; rmailkwd.el ends here
