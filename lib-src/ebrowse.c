@@ -3495,7 +3495,7 @@ open_file (file)
 #define USAGE "\
 Usage: ebrowse [options] {files}\n\
 \n\
-  -a, --append                  append output\n\
+  -a, --append                  append output to existing file\n\
   -f, --files=FILES             read input file names from FILE\n\
   -I, --search-path=LIST        set search path for input files\n\
   -m, --min-regexp-length=N     set minimum regexp length to N\n\
@@ -3740,6 +3740,32 @@ main (argc, argv)
   /* Open output file */
   if (*out_filename)
     {
+      if (f_append)
+	{
+	  /* Check that the file to append to exists, and is not
+	     empty.  More specifically, it should be a valid file
+	     produced by a vaprevious run of ebrowse, but that's too
+	     difficult to check.  */
+	  FILE *fp;
+	  int rc;
+
+	  fp = fopen (out_filename, "r");
+	  if (fp == NULL)
+	    yyerror ("file `%s' must exist for --append", out_filename);
+
+	  rc = fseek (fp, 0, SEEK_END);
+	  if (rc == -1)
+	    yyerror ("error seeking in file `%s'", out_filename);
+
+	  rc = ftell (fp);
+	  if (rc == -1)
+	    yyerror ("error getting size of file `%s'", out_filename);
+	  else if (rc == 0)
+	    yyerror ("file `%s' is empty", out_filename);
+	  
+	  fclose (fp);
+	}
+      
       yyout = fopen (out_filename, f_append ? "a" : "w");
       if (yyout == NULL)
 	{
