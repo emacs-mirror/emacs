@@ -1473,9 +1473,10 @@ support the @code{LIST ACTIVE group} command), on others this isn't fast
 at all.  In any case, @code{some} should be faster than @code{nil}, and
 is certainly faster than @code{t} over slow lines.
 
-Some news servers (Leafnode and old versions of INN, for instance) do
-not support the @code{LIST ACTIVE group}.  For these servers, @code{nil}
-is probably the most efficient value for this variable.
+Some news servers (old versions of Leafnode and old versions of INN, for
+instance) do not support the @code{LIST ACTIVE group}.  For these
+servers, @code{nil} is probably the most efficient value for this
+variable.
 
 If this variable is @code{nil}, Gnus will ask for group info in total
 lock-step, which isn't very fast.  If it is @code{some} and you use an
@@ -1933,6 +1934,14 @@ group from the server.  If you give a numerical prefix @var{N}, @var{N}
 determines the number of articles Gnus will fetch.  If @var{N} is
 positive, Gnus fetches the @var{N} newest articles, if @var{N} is
 negative, Gnus fetches the @code{abs(@var{N})} oldest articles.
+
+Thus, @kbd{SPC} enters the group normally, @kbd{C-u SPC} offers old
+articles, @kbd{C-u 4 2 SPC} fetches the 42 newest articles, and @kbd{C-u
+- 4 2 SPC} fetches the 42 oldest ones.
+
+When you are in the group (in the Summary buffer), you can type
+@kbd{M-g} to fetch new articles, or @kbd{C-u M-g} to also show the old
+ones.
 
 @item RET
 @kindex RET (Group)
@@ -2713,9 +2722,11 @@ last signature or any of the elements of the alist
 
 @end table
 
-Use the @kbd{G p} command to edit group parameters of a group.  You
-might also be interested in reading about topic parameters (@pxref{Topic
-Parameters}).
+Use the @kbd{G p} or the @kbd{G c} command to edit group parameters of a
+group.  (@kbd{G p} presents you with a Lisp-based interface, @kbd{G c}
+presents you with a Customize-like interface.  The latter helps avoid
+silly Lisp errors.)  You might also be interested in reading about topic
+parameters (@pxref{Topic Parameters}).
 
 
 @node Listing Groups
@@ -11203,7 +11214,7 @@ The password to give to the POP server.  If not specified, the user is
 prompted.
 
 @item :program
-The program to use to fetch mail from the POP server.  This is should be
+The program to use to fetch mail from the POP server.  This should be
 a @code{format}-like string.  Here's an example:
 
 @example
@@ -11313,10 +11324,11 @@ Two example maildir mail sources:
 @end lisp
 
 @item imap
-Get mail from a @sc{imap} server.  If you don't want to use @sc{imap} as
-intended, as a network mail reading protocol (ie with nnimap), for some
-reason or other, Gnus let you treat it similar to a POP server and
-fetches articles from a given @sc{imap} mailbox.
+Get mail from a @sc{imap} server.  If you don't want to use @sc{imap}
+as intended, as a network mail reading protocol (ie with nnimap), for
+some reason or other, Gnus let you treat it similar to a POP server
+and fetches articles from a given @sc{imap} mailbox.  @xref{IMAP}, for
+more information.
 
 Keywords:
 
@@ -11347,6 +11359,31 @@ Which authenticator to use for authenticating to the server, this is one
 of the symbols in @code{imap-authenticator-alist}.  Right now, this
 means @samp{kerberos4}, @samp{cram-md5}, @samp{anonymous} or the default
 @samp{login}.
+
+@item :program
+When using the `shell' :stream, the contents of this variable is
+mapped into the `imap-shell-program' variable.  This should be a
+@code{format}-like string (or list of strings).  Here's an example:
+
+@example
+ssh %s imapd
+@end example
+
+The valid format specifier characters are:
+
+@table @samp
+@item s
+The name of the server.
+
+@item l
+User name from `imap-default-user'.
+
+@item p
+The port number of the server.
+@end table
+
+The values used for these specs are taken from the values you give the
+corresponding keywords.
 
 @item :mailbox
 The name of the mailbox to get mail from.  The default is @samp{INBOX}
@@ -13681,10 +13718,26 @@ So, to use this, simply say something like:
 @cindex nnimap
 @cindex @sc{imap}
 
-@sc{imap} is a network protocol for reading mail (or news, or ...),
-think of it as a modernized @sc{nntp}.  Connecting to a @sc{imap} server
-is much similar to connecting to a news server, you just specify the
-network address of the server.
+@sc{imap} is a network protocol for reading mail (or news, or@dots{}),
+think of it as a modernized @sc{nntp}.  Connecting to a @sc{imap}
+server is much similar to connecting to a news server, you just
+specify the network address of the server.
+
+@sc{imap} has two properties.  First, @sc{imap} can do everything that
+POP can, it can hence be viewed as POP++.  Secondly, @sc{imap} is a
+mail storage protocol, similar to @sc{nntp} being a news storage
+protocol.  (@sc{imap} offers more features than @sc{nntp} because news
+is more or less read-only whereas mail is read-write.)
+
+If you want to use @sc{imap} as POP++, use an imap entry in
+mail-sources.  With this, Gnus will fetch mails from the @sc{imap}
+server and store them on the local disk.  This is not the usage
+described in this section.  @xref{Mail Sources}.
+
+If you want to use @sc{imap} as a mail storage protocol, use an nnimap
+entry in gnus-secondary-select-methods.  With this, Gnus will
+manipulate mails stored on the @sc{imap} server.  This is the kind of
+usage explained in this section.
 
 A server configuration in @code{~/.gnus} with a few @sc{imap} servers
 might look something like this:
@@ -13774,48 +13827,49 @@ Please note that the value of @code{nnimap-stream} is a symbol!
 
 @itemize @bullet
 @item
-@dfn{gssapi:} Connect with GSSAPI (usually kerberos 5). Require the
-@samp{imtest} program.
+@dfn{gssapi:} Connect with GSSAPI (usually Kerberos 5).  Requires the
+@command{imtest} program.
 @item
-@dfn{kerberos4:} Connect with kerberos 4. Require the @samp{imtest} program.
+@dfn{kerberos4:} Connect with Kerberos 4.  Requires the
+@command{imtest} program.
 @item
 @dfn{starttls:} Connect via the STARTTLS extension (similar to
-SSL). Require the external library @samp{starttls.el} and program
-@samp{starttls}.
+SSL)@.  Requires the library @file{starttls.el} and program
+@command{starttls}.
 @item
-@dfn{ssl:} Connect through SSL. Require OpenSSL (the
-program @samp{openssl}) or SSLeay (@samp{s_client}).
+@dfn{ssl:} Connect through SSL@.  Requires OpenSSL (the
+program @command{openssl}) or SSLeay (@command{s_client}).
 @item
-@dfn{shell:} Use a shell command to start IMAP connection.
+@dfn{shell:} Use a shell command to start an @sc{imap} connection.
 @item
 @dfn{network:} Plain, TCP/IP network connection.
 @end itemize
 
 @vindex imap-kerberos4-program
-The @samp{imtest} program is shipped with Cyrus IMAPD, nnimap support
-both @samp{imtest} version 1.5.x and version 1.6.x.  The variable
-@code{imap-kerberos4-program} contain parameters to pass to the imtest
-program.
+The @command{imtest} program is shipped with Cyrus IMAPD@.  Nnimap supports
+both @command{imtest} version 1.5.x and version 1.6.x.  The variable
+@code{imap-kerberos4-program} contains parameters to pass to the
+@command{imtest} program.
 
 @vindex imap-ssl-program
 For SSL connections, the OpenSSL program is available from
 @uref{http://www.openssl.org/}. OpenSSL was formerly known as SSLeay,
-and nnimap support it too - altough the most recent versions of
+and nnimap supports it too.  However, the most recent versions of
 SSLeay, 0.9.x, are known to have serious bugs making it
-useless. Earlier versions, especially 0.8.x, of SSLeay are known to
-work. The variable @code{imap-ssl-program} contain parameters to pass
+useless.  Earlier versions, especially 0.8.x, of SSLeay are known to
+work. The variable @code{imap-ssl-program} contains parameters to pass
 to OpenSSL/SSLeay.
 
 @vindex imap-shell-program
 @vindex imap-shell-host
-For IMAP connections using the @code{shell} stream, the variable
-@code{imap-shell-program} specify what program to call.
+For @sc{imap} connections using the @code{shell} stream, the variable
+@code{imap-shell-program} specifies what program to call.
 
 @item nnimap-authenticator
 @vindex nnimap-authenticator
 
 The authenticator used to connect to the server.  By default, nnimap
-will use the most secure authenticator your server is capable of.
+will use the most secure authenticator your server supports.
 
 Example server specification:
 
@@ -13828,28 +13882,29 @@ Please note that the value of @code{nnimap-authenticator} is a symbol!
 
 @itemize @bullet
 @item
-@dfn{gssapi:} GSSAPI (usually kerberos 5) authentication. Require
-external program @code{imtest}.
+@dfn{gssapi:} GSSAPI (usually Kerberos 5) authentication.  Requires the
+external program @command{imtest}.
 @item
-@dfn{kerberos4:} Kerberos authentication. Require external program
-@code{imtest}.
+@dfn{kerberos4:} Kerberos authentication.  Requires the external program
+@command{imtest}.
 @item
-@dfn{digest-md5:} Encrypted username/password via DIGEST-MD5. Require
-external library @code{digest-md5.el}.
+@dfn{digest-md5:} Encrypted username/password via DIGEST-MD5@.  Requires
+external library @command{digest-md5.el}.
 @item
 @dfn{cram-md5:} Encrypted username/password via CRAM-MD5.
 @item
 @dfn{login:} Plain-text username/password via LOGIN.
 @item
-@dfn{anonymous:} Login as `anonymous', supplying your emailadress as password.
+@dfn{anonymous:} Login as `anonymous', supplying your email address as
+password.
 @end itemize
 
 @item nnimap-expunge-on-close
 @cindex Expunging
 @vindex nnimap-expunge-on-close
-Unlike Parmenides the @sc{imap} designers has decided that things that
-doesn't exist actually does exist.  More specifically, @sc{imap} has
-this concept of marking articles @code{Deleted} which doesn't actually
+Unlike Parmenides, the @sc{imap} designers decided that things that
+don't exist actually do exist.  More specifically, @sc{imap} has
+the concept of marking articles @code{Deleted} which doesn't actually
 delete them, and this (marking them @code{Deleted}, that is) is what
 nnimap does when you delete a article in Gnus (with @kbd{G DEL} or
 similar).
@@ -13906,11 +13961,11 @@ variable @code{nntp-authinfo-file} for exact syntax; also see
 @subsubsection Splitting in @sc{imap}
 @cindex splitting imap mail
 
-Splitting is something Gnus users has loved and used for years, and now
-the rest of the world is catching up.  Yeah, dream on, not many
-@sc{imap} server has server side splitting and those that have splitting
+Splitting is something Gnus users have loved and used for years, and now
+the rest of the world is catching up.  Yeah, dream on; not many
+@sc{imap} servers have server side splitting and those that have splitting
 seem to use some non-standard protocol.  This means that @sc{imap}
-support for Gnus has to do it's own splitting.
+support for Gnus has to do its own splitting.
 
 And it does.
 
@@ -13934,8 +13989,8 @@ Nnmail equivalent: @code{nnmail-crosspost}.
 @vindex nnimap-split-inbox
 
 A string or a list of strings that gives the name(s) of @sc{imap}
-mailboxes to split from.  Defaults to nil, which means that splitting is
-disabled!
+mailboxes to split from.  Defaults to @code{nil}, which means that
+splitting is disabled!
 
 @lisp
 (setq nnimap-split-inbox
@@ -13988,18 +14043,18 @@ unread articles in your inbox, since the splitting code would go over
 them every time you fetch new mail.)
 
 These rules are processed from the beginning of the alist toward the
-end.  The first rule to make a match will "win", unless you have
-crossposting enabled.  In that case, all matching rules will "win".
+end.  The first rule to make a match will `win', unless you have
+crossposting enabled.  In that case, all matching rules will `win'.
 
 This variable can also have a function as its value, the function will
 be called with the headers narrowed and should return a group to where
 it thinks the article should be split.  See @code{nnimap-split-fancy}.
 
-The splitting code tries to create mailboxes if it need too.
+The splitting code tries to create mailboxes if it needs too.
 
 To allow for different split rules on different virtual servers, and
 even different split rules in different inboxes on the same server,
-the syntax of this variable have been extended along the lines of:
+the syntax of this variable has been extended along the lines of:
 
 @lisp
 (setq nnimap-split-rule
@@ -14921,13 +14976,13 @@ unread, ticked and dormant articles will be kept indefinitely.
 @node Agent and IMAP
 @subsection Agent and IMAP
 
-The Agent work with any Gnus backend, including nnimap.  However, since
-there are some conceptual differences between NNTP and IMAP, this
-section (should) provide you with some information to make Gnus Agent
-work smoother as a IMAP Disconnected Mode client.
+The Agent work with any Gnus backend, including nnimap.  However,
+since there are some conceptual differences between @sc{nntp} and
+@sc{imap}, this section (should) provide you with some information to
+make Gnus Agent work smoother as a @sc{imap} Disconnected Mode client.
 
 The first thing to keep in mind is that all flags (read, ticked, etc)
-are kept on the IMAP server, rather than in @code{.newsrc} as is the
+are kept on the @sc{imap} server, rather than in @file{.newsrc} as is the
 case for nntp.  Thus Gnus need to remember flag changes when
 disconnected, and synchronize these flags when you plug back in.
 
@@ -14950,7 +15005,7 @@ re-connect, this can be done manually with the
 in the group buffer by default.
 
 Some things are currently not implemented in the Agent that you'd might
-expect from a disconnected IMAP client, including:
+expect from a disconnected @sc{imap} client, including:
 
 @itemize @bullet
 
@@ -18713,7 +18768,7 @@ names who could possibly mess up Gnus internally (like allowing
 @samp{:} in a group name, which is normally used to delimit method and
 group).
 
-IMAP users might want to allow @samp{/} in group names though.
+@sc{imap} users might want to allow @samp{/} in group names though.
 
 
 @end table
