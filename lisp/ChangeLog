@@ -1,3 +1,8 @@
+2001-01-23  Dave Love  <fx@gnu.org>
+
+	* textmodes/outline.el (outline-mode) <font-lock-defaults>: Add
+	backward-paragraph as font-lock-beginning-of-syntax-function.
+
 2001-01-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* font-lock.el (font-lock-mode): Doc fix.
