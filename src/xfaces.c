@@ -4998,7 +4998,7 @@ return the font name used for CHARACTER.  */)
       if (! face)
 	return Qnil;
 #ifdef HAVE_WINDOW_SYSTEM
-      if (!NILP (character))
+      if (FRAME_WINDOW_P (f) && !NILP (character))
 	{
 	  CHECK_CHARACTER (character);
 	  face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
