@@ -231,12 +231,12 @@ NOTE-END
 #ifdef _MALLOC_INTERNAL
 /* These declarations are designed to match the ones in gmalloc.c.  */
 #if defined (__STDC__) && __STDC__
-extern void *malloc (), *realloc ();
+extern void *malloc (), *realloc (), *calloc ();
 #else
-extern char *malloc (), *realloc ();
+extern char *malloc (), *realloc (), *calloc ();
 #endif
 #else /* not _MALLOC_INTERNAL */
-extern void *malloc (), *realloc ();
+extern void *malloc (), *realloc (), *calloc ();
 #endif /* not _MALLOC_INTERNAL */
 
 
