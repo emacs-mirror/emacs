@@ -1,5 +1,11 @@
 2000-06-01  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/lao-util.el (lao-composition-function): Fix args to
+	compose-string.
+
+	* language/thai-util.el (thai-composition-function): Fix args to
+	compose-string.
+
 	* isearch.el (isearch-update): Set disable-point-adjustment to t
 	to prevent the point moving to the end of a composition when a
 	part of a composition is searched.
