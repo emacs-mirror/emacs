@@ -254,9 +254,9 @@ The gathering of attribution information is not affected by the value
 of this variable.  The number of lines in the region is calculated
 *after* all mail headers are removed.  This variable is only consulted
 during the initial citing via `sc-cite-original'."
-  :type '(choice (const :tag "always cite" t)
-		 (const :tag "do not cite" nil)
-		 (integer :tag "citation threshold"))
+  :type '(choice (const :tag "do not cite" nil)
+		 (integer :tag "citation threshold")
+		 (other :tag "always cite" t))
   :group 'supercite-cite)
 
 (defcustom sc-confirm-always-p t
