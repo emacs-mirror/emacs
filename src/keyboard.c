@@ -6525,19 +6525,27 @@ See also `current-input-mode'.")
   reset_sys_modes ();
 #ifdef SIGIO
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
-#ifdef NO_SOCK_SIGIO
   if (read_socket_hook)
-    interrupt_input = 0;	/* No interrupts if reading from a socket.  */
-  else
+    {
+      /* When using X, don't give the user a real choice,
+	 because we haven't implemented the mechanisms to support it.  */
+#ifdef NO_SOCK_SIGIO
+      interrupt_input = 0;
+#else /* not NO_SOCK_SIGIO */
+      interrupt_input = 1;
 #endif /* NO_SOCK_SIGIO */
+    }
+  else
     interrupt_input = !NILP (interrupt);
 #else /* not SIGIO */
   interrupt_input = 0;
 #endif /* not SIGIO */
+
 /* Our VMS input only works by interrupts, as of now.  */
 #ifdef VMS
   interrupt_input = 1;
 #endif
+
   flow_control = !NILP (flow);
   if (NILP (meta))
     meta_key = 0;
