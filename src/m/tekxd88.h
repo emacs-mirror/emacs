@@ -111,13 +111,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SETSID
 #undef sigsetmask	/* XD88 has sigsetmask() */
 
-#ifdef HAVE_X_WINDOWS
-#  if 0 /* autoconf should take care of this.  */
-#  define HAVE_RANDOM	/* Random is in libX11.a */
-#  endif 
-#  undef LIB_X11_LIB	/* Don't use shared libraries defined in usg5-3.h */
-#  undef LIBX11_SYSTEM
-#endif /* HAVE_X_WINDOWS */
+#undef LIB_X11_LIB	/* Don't use shared libraries defined in usg5-3.h */
+#undef LIBX11_SYSTEM
 
 #define HAVE_TERMIOS	/* We have termios. */
 #undef HAVE_TERMIO	/* Make sure termios ifdef code is used, not termio. */
