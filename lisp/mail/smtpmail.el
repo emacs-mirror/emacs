@@ -404,10 +404,10 @@ don't define this value.")
       (insert data "\r\n"))
 
   (setq smtpmail-read-point (point))
-  (process-send-string process data)
-  ;; . -> ..
-  (if (string-equal data ".")
+  ;; Escape "." at start of a line
+  (if (eq (string-to-char data) ?.)
       (process-send-string process "."))
+  (process-send-string process data)
   (process-send-string process "\r\n")
   )
 
