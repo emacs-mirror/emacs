@@ -1145,7 +1145,7 @@ See also the function `condition-case'.")
 	  if (EQ (sig, Qquit))
 	    return Qnil;
 	  else
-	error ("Returning a value from an error is no longer supported");
+	    error ("Cannot return from the debugger in an error");
 	}
 #endif
 
