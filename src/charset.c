@@ -1417,7 +1417,12 @@ str_cmpchar_id (str, len)
     p = str + 1;
     while (p < endp)
       {
-	if (embedded_rule) p++;
+	if (embedded_rule)
+	  {
+	    p++;
+	    if (p >= endp)
+	      return -1;
+	  }
 	/* No need of checking if *P is 0xA0 because
 	   BYTES_BY_CHAR_HEAD (0x80) surely returns 2.  */
 	p += BYTES_BY_CHAR_HEAD (*p - 0x20);
@@ -1719,7 +1724,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
   i = 1;
   while (p < pend)
     {
-      if (*p < 0x20 || *p == 127) /* control code */
+      if (*p < 0x20) /* control code */
 	error ("Invalid component character: %d", *p);
       else if (*p < 0x80)	/* ASCII */
 	{
@@ -1740,6 +1745,8 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
 	    error ("Can't compose a rule-based composition character");
 	  ptemp = p;
 	  while (! CHAR_HEAD_P (*p)) p++;
+	  if (str_cmpchar_id (ptemp - 1, p - ptemp + 1) < 0)
+	    error ("Can't compose an invalid composition character");
 	  if (i + (p - ptemp) >= MAX_LENGTH_OF_MULTI_BYTE_FORM)
 	    error ("Too long string to be composed: %s", XSTRING (str)->data);
 	  bcopy (ptemp, buf + i, p - ptemp);
@@ -1749,7 +1756,10 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
 	{
 	  /* Add 0x20 to the base leading-code, keep the remaining
              bytes unchanged.  */
-	  len = BYTES_BY_CHAR_HEAD (*p);
+	  int c = STRING_CHAR_AND_CHAR_LENGTH (p, pend - p, len);
+
+	  if (len <= 1 || ! CHAR_VALID_P (c, 0))
+	    error ("Can't compose an invalid character");
 	  if (i + len >= MAX_LENGTH_OF_MULTI_BYTE_FORM)
 	    error ("Too long string to be composed: %s", XSTRING (str)->data);
 	  bcopy (p, buf + i, len);
