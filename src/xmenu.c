@@ -223,9 +223,31 @@ be the return value for that line (i.e. if it is selected).")
     }
 #endif
   BLOCK_INPUT;
-  selection = xmenu_show (ROOT_WINDOW, XMenu_xpos, XMenu_ypos, names, menus,
-			  items, number_of_panes, obj_list, title,
-			  &error_name);
+  {
+    Window root;
+    int root_x, root_y;
+    int dummy_int;
+    unsigned int dummy_uint;
+    Window dummy_window;
+
+    /* Figure out which root window F is on.  */
+    XGetGeometry (x_current_display, FRAME_X_WINDOW (f), &root,
+		  &dummy_int, &dummy_int, &dummy_uint, &dummy_uint,
+		  &dummy_uint, &dummy_uint);
+
+    /* Translate the menu co-ordinates within f to menu co-ordinates
+       on that root window.  */
+    if (! XTranslateCoordinates (x_current_display,
+				 FRAME_X_WINDOW (f), root,
+				 XMenu_xpos, XMenu_ypos, &root_x, &root_y,
+				 &dummy_window))
+      /* But XGetGeometry said root was the root window of f's screen!  */ 
+      abort ();
+
+    selection = xmenu_show (root, XMenu_xpos, XMenu_ypos, names, menus,
+			    items, number_of_panes, obj_list, title,
+			    &error_name);
+  }
   UNBLOCK_INPUT;
   /* fprintf (stderr, "selection = %x\n", selection);  */
   if (selection != NUL)
