@@ -1077,9 +1077,12 @@ If `enable-local-variables' is nil, this function does not check for a
 	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
 		   (error "malformed -*- line"))
 	       (goto-char (match-end 0))
-	       (let ((key (intern (downcase (buffer-substring
-					     (match-beginning 1)
-					     (match-end 1)))))
+	       ;; There used to be a downcase here,
+	       ;; but the manual didn't say so,
+	       ;; and people want to set var names that aren't all lc.
+	       (let ((key (intern (buffer-substring
+				   (match-beginning 1)
+				   (match-end 1))))
 		     (val (save-restriction
 			    (narrow-to-region (point) end)
 			    (read (current-buffer)))))
