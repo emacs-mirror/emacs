@@ -1,3 +1,11 @@
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (SAFE_ALLOCA_LISP): New macro to allocate Lisp_Objects.
+	Temporarily inhibits GC if memory is xmalloc'ed, as the Lisp_Objects
+	in that memory area are unknown to GC.  Add comments.
+
+	* fns.c (Fmapconcat, Fmapcar): Use SAFE_ALLOCA_LISP.
+
 2004-06-21  Kim F. Storm  <storm@cua.dk>
 
 	* lisp.h (MAX_ALLOCA): Define here.
