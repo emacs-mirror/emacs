@@ -1,3 +1,8 @@
+2001-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* ccl.c (ccl_driver): Don't copy remaining bytes in case
+	of CCL_STAT_INVALID_CMD.
+
 2001-05-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eval.c (Fdefvar): Only record (defvar <var>) in the load-history
