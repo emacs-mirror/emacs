@@ -2593,14 +2593,14 @@ and (2) it puts less data in the undo list.")
   fd = -1;
 
 #ifndef APOLLO
-  if (stat (XSTRING (filename)->data, &st) < 0
-      || (fd = open (XSTRING (filename)->data, 0)) < 0)
+  if (stat (XSTRING (filename)->data, &st) < 0)
 #else
   if ((fd = open (XSTRING (filename)->data, 0)) < 0
       || fstat (fd, &st) < 0)
 #endif /* not APOLLO */
     {
       if (fd >= 0) close (fd);
+    badopen:
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
       st.st_mtime = -1;
@@ -2608,21 +2608,25 @@ and (2) it puts less data in the undo list.")
       goto notfound;
     }
 
+#ifdef S_IFREG
+  /* This code will need to be changed in order to work on named
+     pipes, and it's probably just not worth it.  So we should at
+     least signal an error.  */
+  if (!S_ISREG (st.st_mode))
+    Fsignal (Qfile_error,
+	     Fcons (build_string ("not a regular file"),
+		    Fcons (filename, Qnil)));
+#endif
+
+  if (fd < 0)
+    if ((fd = open (XSTRING (filename)->data, 0)) < 0)
+      goto badopen;
+
   /* Replacement should preserve point as it preserves markers.  */
   if (!NILP (replace))
     record_unwind_protect (restore_point_unwind, Fpoint_marker ());
 
   record_unwind_protect (close_file_unwind, make_number (fd));
-
-#ifdef S_IFSOCK
-  /* This code will need to be changed in order to work on named
-     pipes, and it's probably just not worth it.  So we should at
-     least signal an error.  */
-  if ((st.st_mode & S_IFMT) == S_IFSOCK)
-    Fsignal (Qfile_error,
-	     Fcons (build_string ("reading from named pipe"),
-		    Fcons (filename, Qnil)));
-#endif
 
   /* Supposedly happens on VMS.  */
   if (st.st_size < 0)
