@@ -1,3 +1,10 @@
+2001-04-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-keywords-list, lm-keywords-finder-p):
+	New functions.
+	(lm-verify): Check keywords. 
+	From: Eric M. Ludlam <eric@siege-engine.com>.
+
 2001-04-03  Eric M. Ludlam  <eric@siege-engine.com>
 
 	* speedbar.el (speedbar-insert-image-button-maybe): Check for
@@ -17,6 +24,9 @@
 	hexl-beginning-of-line.
 
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* icomplete.el (icomplete-mode): Treat an argument like other
+	modes do.
 
 	* startup.el (fancy-splash-head): Use splash8.xpm for color
 	depth 8.
