@@ -260,6 +260,11 @@ entry that supports color is `xterm-color', so setting TERM's value to
 `xterm-color' might activate the color support on an xterm-compatible
 emulator.
 
+Beginning with version 21.3, Emacs supports the --color command-line
+option which may be used to force Emacs to use one of a few popular
+modes for getting colors on a tty.  For example, --color=ansi8 sets up
+for using the ANSI-standard escape sequences that support 8 colors.
+
 Some modes do not use colors unless you turn on the Font-lock mode.
 Some people have long ago set their `~/.emacs' files to turn on
 Font-lock on X only, so they won't see colors on a tty.  The
