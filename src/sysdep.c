@@ -59,6 +59,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef fwrite
 #endif
 
+#ifndef HAVE_H_ERRNO
+extern int h_errno;
+#endif
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -2040,6 +2044,9 @@ init_system_name ()
       int count;
       for (count = 0; count < 10; count++)
 	{
+#ifdef TRY_AGAIN
+	  h_errno = 0;
+#endif
 	  hp = gethostbyname (hostname);
 #ifdef TRY_AGAIN
 	  if (! (hp == 0 && h_errno == TRY_AGAIN))
