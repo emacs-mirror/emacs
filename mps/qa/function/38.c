@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!38.c(trunk.6) $
+ id = $HopeName: MMQA_test_function!38.c(trunk.7) $
  summary = test of location dependencies
  language = c
  link = testlib.o rankfmt.o
@@ -13,9 +13,16 @@ END_HEADER
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
+#include "mpsavm.h"
 
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 #define MAXLDS 100
+
 
 void *stackpointer;
 
@@ -24,7 +31,8 @@ static mycell *obj_table[MAXLDS];
 static mps_ld_t lds[MAXLDS];
 
 
-static void checklds(void) {
+static void checklds(void)
+{
  int i;
 
  for (i=0; i < MAXLDS; i++) {
@@ -42,13 +50,15 @@ static void checklds(void) {
 }
 
 
-static void test(void) {
+static void test(void)
+{
  mps_pool_t poolmv, poolawl, poolamc;
  mps_thr_t thread;
  mps_root_t root0, root1, root2;
 
  mps_addr_t p;
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t apawl, apamc;
 
  mycell *a, *b;
@@ -65,7 +75,6 @@ static void test(void) {
  cdie(mps_root_create_table(&root0, arena, MPS_RANK_AMBIG, 0,
                             (mps_addr_t*)&exfmt_root, 1),
       "create exfmt root");
-
  cdie(mps_root_create_table(&root2, arena, MPS_RANK_EXACT, 0,
                             (mps_addr_t *)obj_table, MAXLDS),
       "create table root");
@@ -77,6 +86,8 @@ static void test(void) {
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
       "create awl pool");
 
@@ -86,9 +97,8 @@ static void test(void) {
  cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
       "create ap");
 
- /* first we'll use only pool classes MV and AWL. So LDs shouldn't
-    go stale at all.
- */
+ /* First we'll use only pool classes MV and AWL. So LDs shouldn't */
+ /* go stale at all. */
 
  b = allocone(apawl, 5, MPS_RANK_EXACT);
 
@@ -115,17 +125,17 @@ static void test(void) {
           "%d stale but shouldn't be", i);
  }
 
- cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
-  "create amc pool");
+ /* Then use AMC, so object do move and LDs go stale. */
+
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(
   mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
   "create ap");
 
- /* allocate MAXLDS objects, and make each LD depend on the corresponding
-    object
- */
+ /* Allocate MAXLDS objects, and make each LD depend on the corresponding */
+ /* object. */
 
  for (i=0; i < MAXLDS; i++) {
   comment("%d", i);
@@ -143,15 +153,13 @@ static void test(void) {
 
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
- comment("Destroyed aps.");
-
  mps_pool_destroy(poolmv);
  mps_pool_destroy(poolamc);
  mps_pool_destroy(poolawl);
  comment("Destroyed pools.");
 
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
 
  mps_root_destroy(root0);
  mps_root_destroy(root1);
@@ -159,8 +167,6 @@ static void test(void) {
  comment("Destroyed roots.");
 
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
 }
