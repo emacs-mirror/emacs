@@ -42,7 +42,7 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
   :version "20.3")
 
 (defsubst easy-menu-intern (s)
-  (if (stringp s) (intern s) s))
+  (if (stringp s) (intern (downcase s)) s))
 
 ;;;###autoload
 (put 'easy-menu-define 'lisp-indent-function 'defun)
@@ -243,7 +243,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 
 (defun easy-menu-do-add-item (menu item &optional before)
   (setq item (easy-menu-convert-item item))
-  (easy-menu-define-key-intern menu (car item) (cdr item) before))
+  (easy-menu-define-key menu (easy-menu-intern (car item)) (cdr item) before))
 
 (defvar easy-menu-converted-items-table (make-hash-table :test 'equal))
 
@@ -366,26 +366,24 @@ MENU, just change it, otherwise put it last in MENU."
 			   (and name
 				(cons command prop))))))))
 
-(defun easy-menu-define-key-intern (menu key item &optional before)
-  "Like easy-menu-define-key, but interns KEY and BEFORE if they are strings."
-  (easy-menu-define-key menu (easy-menu-intern key) item
-			(easy-menu-intern before)))
-
 (defun easy-menu-define-key (menu key item &optional before)
   "Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.
-If KEY is not nil then delete any duplications.  If ITEM is nil, then
-don't insert, only delete.
-Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
-put binding before BEFORE in MENU, otherwise if binding is already
-present in MENU, just change it, otherwise put it last in MENU.
-KEY and BEFORE don't have to be symbols, comparison is done with equal
-not with eq."
+If KEY is not nil then delete any duplications.
+If ITEM is nil, then delete the definition of KEY.
+
+Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil,
+put binding before the item in MENU named BEFORE; otherwise,
+if a binding for KEY is already present in MENU, just change it;
+otherwise put the new binding last in MENU.
+BEFORE can be either a string (menu item name) or a symbol
+\(the fake function key for the menu item).
+KEY does not have to be a symbol, and comparison is done with equal."
   (let ((inserted (null item))		; Fake already inserted.
 	tail done)
     (while (not done)
       (cond
        ((or (setq done (or (null (cdr menu)) (keymapp (cdr menu))))
-	    (and before (equal (car-safe (cadr menu)) before)))
+	    (and before (easy-menu-name-match before (cadr menu))))
 	;; If key is nil, stop here, otherwise keep going past the
 	;; inserted element so we can delete any duplications that come
 	;; later.
@@ -400,15 +398,25 @@ not with eq."
 		(and before		;  wanted elsewhere and
 		     (setq tail (cddr menu)) ; not last item and not
 		     (not (keymapp tail))
-		     (not (equal (car-safe (car tail)) before)))) ; in position
+		     (not (easy-menu-name-match
+			   before (car tail))))) ; in position
 	    (setcdr menu (cddr menu))	; Remove item.
 	  (setcdr (cadr menu) item)	; Change item.
 	  (setq inserted t)
 	  (setq menu (cdr menu))))
        (t (setq menu (cdr menu)))))))
 
+(defun easy-menu-name-match (name item)
+  "Return t if NAME is the name of menu item ITEM.
+NAME can be either a string, or a symbol."
+  (if (consp item)
+      (if (symbolp name) 
+	  (eq (car-safe item) name)
+	(if (stringp name)
+	    (member-ignore-case name item)))))
+
 (defun easy-menu-always-true (x)
-  "Return true if X never evaluates to nil."
+  "Return true if form X never evaluates to nil."
   (if (consp x) (and (eq (car x) 'quote) (cadr x))
     (or (eq x t) (not (symbolp x)))))
 
@@ -457,6 +465,15 @@ Do it if `easy-menu-precalculate-equivalent-keybindings' is on,"
 	(setq menu (symbol-value menu)))
     (if (keymapp menu) (x-popup-menu nil menu))))
 
+(defun add-submenu (menu-path submenu &optional before in-menu)
+  "Add submenu SUBMENU in the menu at MENU-PATH.
+If BEFORE is non-nil, add before the item named BEFORE.
+If IN-MENU is non-nil, follow MENU-PATH in IN-MENU.
+This is a compatibility function; use `easy-menu-add-item'."
+  (easy-menu-add-item (or in-menu (current-global-map))
+		      (cons "menu-bar" menu-path)
+		      submenu before))
+
 (defun easy-menu-add-item (map path item &optional before)
   "To the submenu of MAP with path PATH, add ITEM.
 
@@ -485,7 +502,8 @@ earlier by `easy-menu-define' or `easy-menu-create-menu'."
   (if (and (consp item) (consp (cdr item)) (eq (cadr item) 'menu-item))
       ;; This is a value returned by `easy-menu-item-present-p' or
       ;; `easy-menu-remove-item'.
-      (easy-menu-define-key-intern map (car item) (cdr item) before)
+      (easy-menu-define-key map (easy-menu-intern (car item))
+			    (cdr item) before)
     (if (or (keymapp item)
 	    (and (symbolp item) (keymapp (symbol-value item))))
 	;; Item is a keymap, find the prompt string and use as item name.
@@ -510,7 +528,7 @@ MAP and PATH are defined as in `easy-menu-add-item'.
 NAME should be a string, the name of the element to be removed."
   (setq map (easy-menu-get-map map path))
   (let ((ret (easy-menu-return-item map name)))
-    (if ret (easy-menu-define-key-intern map name nil))
+    (if ret (easy-menu-define-key map (easy-menu-intern name) nil))
     ret))
 
 (defun easy-menu-return-item (menu name)
@@ -539,8 +557,7 @@ If item is an old format item, a new format item is returned."
      )))
 
 (defun easy-menu-get-map-look-for-name (name submap)
-  (while (and submap (not (or (equal (car-safe (cdr-safe (car submap))) name)
-			      (equal (car-safe (cdr-safe (cdr-safe (car submap)))) name))))
+  (while (and submap (not (easy-menu-name-match name (car submap))))
     (setq submap (cdr submap)))
   submap)
 
