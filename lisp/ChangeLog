@@ -30,9 +30,9 @@
 
 	* emacs-lisp/lselect.el: Ditto.
 
-	* hexl.el (hexl-insert-multibyte-char, hexl-insert-char): Remove
-	periods from the end of error message strings.  From Pavel
-	Jan,Bm(Bk <Pavel@Janik.cz>.
+	* hexl.el (hexl-insert-multibyte-char, hexl-insert-char):
+	Remove periods from the end of error message strings.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* progmodes/antlr-mode.el: Add Keywords header.  From Pavel
 	Jan,Bm(Bk <Pavel@Janik.cz>.
@@ -50,8 +50,8 @@
 	Replace some of the undefined characters with emulations of bidi
 	formatting characters and Niqud as per SI 1311-1.
 	(IT-unicode-translations): Ditto.
-	(IT-display-table-setup, IT-setup-unicode-display): Fill
-	characters without translations with dos-unsupported-char-glyph.
+	(IT-display-table-setup, IT-setup-unicode-display):
+	Fill characters without translations with dos-unsupported-char-glyph.
 
 2001-08-24  Simon Josefsson  <jas@extundo.com>
 
@@ -68,6 +68,10 @@
 
 	* term/mac-win.el: Require scroll-bar.
 
+2001-08-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* ebuff-menu.el (electric-buffer-list): Use list-buffers-noselect.
+
 2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hexl.el (hexl-insert-multibyte-char) New function.
@@ -82,6 +86,8 @@
 	hexl-self-insert-command.
 
 2001-08-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* wid-edit.el (text): Re-order docstring correctly.
 
 	* mail/sendmail.el (mail-mode): Use adaptive-fill-regexp.
 

@@ -78,8 +78,8 @@
 	* window.c (window_scroll_pixel_based): Don't recenter if
 	PT is partially visible in the window.
 
-	* xterm.c (expose_window_tree, expose_window, expose_line): Return
-	1 when overwriting mouse-face.
+	* xterm.c (expose_window_tree, expose_window, expose_line):
+	Return 1 when overwriting mouse-face.
 	(expose_frame): If mouse-face was overwritten, redo it.
 
 	* xfaces.c (x_update_menu_appearance): Don't call
@@ -104,7 +104,7 @@
 
 	* xdisp.c (move_it_by_lines) <DVPOS < 0>: If not already on
 	a line start, move back to the line start.
-	
+
 	* xdisp.c (resize_echo_area_exactly): Don't resize the mini-window
 	exactly when a mini-buffer is active.
 
@@ -129,18 +129,16 @@
 	* xdisp.c (mark_window_display_accurate_1): Remove an assertion.
 
 	* dispnew.c (adjust_glyph_matrix): Undo last change.
-	
+
 2001-08-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (adjust_glyph_matrix): In the optimization for
-	windows whose height has changed, disable partially visible
-	lines.
+	windows whose height has changed, disable partially visible lines.
 
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Frecenter): If ARG < 0, and on a window system
-	frame, count in some empty lines when we can't move -ARG lines
-	down.
+	frame, count in some empty lines when we can't move -ARG lines down.
 
 	* xdisp.c (start_display): Don't try to determine the continuation
 	lines width if lines are truncated.  It's superfluous and leads to
@@ -179,7 +177,7 @@
 
 	* xdisp.c (redisplay_internal): Add a check for the last
 	displayed message.
-	
+
 	* xdisp.c (message_cleared_p): New variable.
 	(clear_message): Set message_cleared_p when clearing the current
 	message.
@@ -189,8 +187,7 @@
 	* keyboard.c (command_loop_1): Fix spelling of
 	resize_echo_area_exactly.
 
-	* dispextern.h (resize_echo_area_exactly): Fix typo in function
-	name.
+	* dispextern.h (resize_echo_area_exactly): Fix typo in function name.
 
 	* xdisp.c (resize_echo_area_exactly): Fix typo in function name.
 
@@ -226,24 +223,23 @@
 	of row's visible height.
 
 	* xdisp.c (init_from_display_pos): If POS is in an overlay string,
-	deal with the first overlay string having an image `display'
-	property.
-	(try_window_reusing_current_matrix, compute_line_metrics): Fix
-	computation of row's visible height for the case that part of the
+	deal with the first overlay string having an image `display' property.
+	(try_window_reusing_current_matrix, compute_line_metrics):
+	Fix computation of row's visible height for the case that part of the
 	row is invisible above and part of the row is at the same time
 	invisible below the window.
 
 2001-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x-show-tip): Doc fix.
-	
+
 	* xfns.c (Vx_max_tooltip_size): New variable.
 	(syms_of_xfns): DEFVAR_LISP it.
 	(Fx_show_tip): Set frame's window_width to the width of the
 	window.  Use a maximum tooltip size specified by
 	Vx_max_tooltip_size, if that has valid contents.
 	(x_create_tip_frame): Set tooltip buffer's truncate-lines to nil.
-	
+
 2001-07-26  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (x_display_list): New variable.
@@ -254,8 +250,8 @@
 2001-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (resize_mini_window): Give up when inhibit-redisplay
-	is non-nil, instead of when redisplaying_p is non-zero.  See
-	comment there.
+	is non-nil, instead of when redisplaying_p is non-zero.
+	See comment there.
 	(mark_window_display_accurate_1): Add an assertion.
 
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
@@ -274,7 +270,7 @@
 
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* indent.c (current_column): Fix column computation in the 
+	* indent.c (current_column): Fix column computation in the
 	presence of display table entries.
 	(current_column_1, Fmove_to_column, compute_motion): Likewise.
 
@@ -301,8 +297,7 @@
 	* dispnew.c (update_window): Don't set the cursor at the end
 	of the update if display update has been paused.
 
-	* composite.h (syms_of_composite): Renamed from
-	syms_of_composition.
+	* composite.h (syms_of_composite): Renamed from syms_of_composition.
 
 2001-07-18  Ken Raeburn  <raeburn@gnu.org>
 
@@ -319,8 +314,8 @@
 
 2001-07-17  Gerd Moellmann  <gerd@gnu.org>
 
-	* keyboard.c (KBD_BUFFER_SIZE) [!HAVE_WINDOW_SYSTEM]: Increase
-	to 4096 because of paste problems reported on GNU/Linux.
+	* keyboard.c (KBD_BUFFER_SIZE) [!HAVE_WINDOW_SYSTEM]:
+	Increase to 4096 because of paste problems reported on GNU/Linux.
 
 2001-07-17  Jan Nieuwenhuizen  <janneke@gnu.org>
 
@@ -473,8 +468,7 @@
 2001-06-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* widget.c (EmacsFrameSetCharSize): Turn off atimers and block
-	SIGIO around the code where Xt might wait for a
-	ConfigureNotifyEvent.
+	SIGIO around the code where Xt might wait for a ConfigureNotifyEvent.
 	(toplevel): Include <signal.h> and syssignal.h.
 
 	* sound.c (vox_configure, vox_close): Turn off atimers
