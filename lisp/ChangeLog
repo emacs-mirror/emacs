@@ -1,4 +1,4 @@
-2002-12-20  Francesco Potorti`  <pot@gnu.org>
+2002-12-20  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-mail-separator): Renamed from
 	rmail-digest-mail-separator.  All users changed.
@@ -64,7 +64,7 @@
 	coding-system to allow users to specify unsafe coding system on
 	their risk.
 
-2002-12-16  Francesco Potorti`  <pot@gnu.org>
+2002-12-16  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-digest-methods)
 	(rmail-digest-mail-separator): New variables.
@@ -3472,7 +3472,7 @@
 	(transient-mark-mode, line-number-mode, column-number-mode):
 	Pass an explicit `:require nil' argument.
 
-2002-09-13  Francesco Potorti`  <pot@gnu.org>
+2002-09-13  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* play/tetris.el (tetris-blank-options, tetris-cell-options):
 	Remove various redundant `(t nil)'.
@@ -4257,7 +4257,7 @@
 
 	* comint.el (comint-carriage-motion): Start at START.
 
-2002-08-27  Francesco Potorti`  <pot@gnu.org>
+2002-08-27  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Skip the 530 response
 	given by vsFTPd when accessed with a kerberised FTP client.
@@ -5993,7 +5993,7 @@
 
 	* bindings.el (completion-ignored-extensions): Add .gmo and .mo.
 
-2002-07-06  Francesco Potorti`  <pot@gnu.org>
+2002-07-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* dos-w32.el (file-name-buffer-file-type-alist): Add knowledge of
 	.sx[dmicw] file suffixes for Open office data files.
@@ -6482,7 +6482,7 @@
 	21 dialogs to select the file, since we want a directory name only.
 	(ada-customize): Add support for the new GNAT project files.
 
-2002-06-20  Francesco Potorti`  <pot@gnu.org>
+2002-06-20  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-implicit-name-match-p): New function.
 	(etags-recognize-tags-table): Use it for implicit tag names.
@@ -7498,7 +7498,7 @@
 	* textmodes/sgml-mode.el (sgml-tag):
 	Default skeleton-transformation to `identity'.
 
-2002-05-14  Francesco Potorti`  <pot@gnu.org>
+2002-05-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* shell.el (shell-mode): Make second part of initialisation
 	depend on whether comint-input-ring is empty, rather than depend
@@ -7777,7 +7777,7 @@
 	* emacs-lisp/find-func.el (find-function-search-for-symbol):
 	Use with-syntax-table.
 
-2002-05-06  Francesco Potorti`  <pot@gnu.org>
+2002-05-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/rmail.el (rmail-font-lock-keywords): Highlight Resent-[Ff]rom:.
 
@@ -9478,7 +9478,7 @@
 	* simple.el (pop-to-mark-command): Do not set this-command.
 	(set-mark-command): Always jump to mark when called with arg.
 
-2002-04-18  Francesco Potorti`  <pot@gnu.org>
+2002-04-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* comint.el (comint-watch-for-password-prompt): Remove whitespace
 	at the beginning of password prompts.
@@ -9495,7 +9495,7 @@
 	(ibuffer-current-state-list): Reinstate optional argument; now
 	just call `point' inside the mapping function.
 
-2002-04-17  Francesco Potorti`  <pot@gnu.org>
+2002-04-17  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* dired-aux.el (dired-star-subst-regexp)
 	(dired-quark-subst-regexp): New constants.
@@ -9650,7 +9650,7 @@
 
 	* help.el (string-key-binding): Deal with margin events.
 
-2002-04-12  Francesco Potorti`  <pot@gnu.org>
+2002-04-12  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Match " SMB password".
 
@@ -10727,7 +10727,7 @@
 	(fortran-fill): Don't be confused by ! inside a comment.
 	(fortran-break-line): Minor cleanup and simplification.
 
-2002-03-13  Francesco Potorti`  <pot@gnu.org>
+2002-03-13  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-exact-file-name-match-p)
 	(tag-file-name-match-p, tag-partial-file-name-match-p): Use a
@@ -10759,7 +10759,7 @@
 	(lisp-indent-defmethod): Use car/cdr instead of first/rest.
 	(lisp-backquote-indentation): New user option.
 
-2002-03-12  Francesco Potorti`  <pot@gnu.org>
+2002-03-12  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-exact-file-name-match-p)
 	(tag-file-name-match-p, tag-partial-file-name-match-p):
@@ -12236,7 +12236,7 @@
 	* ibuffer.el: Don't require ibuf-ext at load time.
 	(ibuffer): Require ibuf-ext here.
 
-2002-01-21  Francesco Potorti`  <pot@gnu.org>
+2002-01-21  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* generic-x.el (apache-conf-generic-mode): Highlight the first
 	word in a line even if preceded by blanks.
@@ -14440,7 +14440,7 @@
 	to avoid name clashes.  Fix `lisp-indent-function' property for
 	both.
 
-2001-11-23  Francesco Potorti`  <pot@gnu.org>
+2001-11-23  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* generic-x.el (mailrc-generic-mode): Highlight the `source' keyword.
 
