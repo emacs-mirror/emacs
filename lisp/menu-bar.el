@@ -89,6 +89,43 @@
 
 (autoload 'ispell-menu-map "ispell" nil t 'keymap)
 
+;; These are alternative definitions for the cut, paste and copy
+;; menu items.  Use them if your system expects these to use the clipboard
+
+(define-key global-map [cut] 'clipboard-kill-region)
+(define-key global-map [copy] 'clipboard-kill-ring-save)
+(define-key global-map [paste] 'clipboard-yank)
+
+(put 'clipboard-kill-region 'menu-enable 'mark-active)
+(put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
+(put 'clipboard-yank 'menu-enable
+     '(or (x-selection-exists-p) (x-selection-exists-p 'CLIPBOARD)))
+
+(defun clipboard-yank ()
+  "Reinsert the last stretch of killed text, or the clipboard contents."
+  (interactive)
+  (let ((x-select-enable-clipboard t))
+    (yank)))
+
+(defun clipboard-kill-ring-save (beg end)
+  "Copy region to kill ring, and save in the X clipboard."
+  (interactive "r")
+  (let ((x-select-enable-clipboard t))
+    (kill-ring-save beg end)))
+
+(defun clipboard-kill-region (beg end)
+  "Kill the region, and save it in the X clipboard."
+  (interactive "r")
+  (let ((x-select-enable-clipboard t))
+    (kill-region beg end)))
+
+(defun menu-bar-enable-clipboard ()
+  "Make the menu bar CUT, PASTE and COPY items use the clipboard."
+  (interactive)
+  (define-key menu-bar-edit-menu [paste] '("Paste" . clipboard-yank))
+  (define-key menu-bar-edit-menu [copy] '("Copy" . clipboard-kill-ring-save))
+  (define-key menu-bar-edit-menu [cut] '("Cut" . clipboard-kill-region)))
+
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
 (define-key menu-bar-help-menu [man] '("Man..." . manual-entry))
