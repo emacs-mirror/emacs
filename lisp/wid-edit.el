@@ -2905,7 +2905,7 @@ link for that string."
 		(not (widget-get parent :documentation-shown))))
   ;; Redraw.
   (widget-value-set widget (widget-value widget)))
-
+
 ;;; The Sexp Widgets.
 
 (define-widget 'const 'item
@@ -3096,41 +3096,40 @@ It will read a directory name from the minibuffer when invoked."
   :prompt-history 'widget-variable-prompt-value-history
   :tag "Variable")
 
-(when (featurep 'mule)
-  (defvar widget-coding-system-prompt-value-history nil
-    "History of input to `widget-coding-system-prompt-value'.")
+(defvar widget-coding-system-prompt-value-history nil
+  "History of input to `widget-coding-system-prompt-value'.")
   
-  (define-widget 'coding-system 'symbol
-    "A MULE coding-system."
-    :format "%{%t%}: %v"
-    :tag "Coding system"
-    :prompt-history 'widget-coding-system-prompt-value-history
-    :prompt-value 'widget-coding-system-prompt-value
-    :action 'widget-coding-system-action)
+(define-widget 'coding-system 'symbol
+  "A MULE coding-system."
+  :format "%{%t%}: %v"
+  :tag "Coding system"
+  :prompt-history 'widget-coding-system-prompt-value-history
+  :prompt-value 'widget-coding-system-prompt-value
+  :action 'widget-coding-system-action)
   
-  (defun widget-coding-system-prompt-value (widget prompt value unbound)
-    ;; Read coding-system from minibuffer.
-    (intern
-     (completing-read (format "%s (default %s) " prompt value)
-		      (mapcar (function
-			       (lambda (sym)
-				 (list (symbol-name sym))
-				 ))
-			      (coding-system-list)))))
+(defun widget-coding-system-prompt-value (widget prompt value unbound)
+  ;; Read coding-system from minibuffer.
+  (intern
+   (completing-read (format "%s (default %s) " prompt value)
+		    (mapcar (function
+			     (lambda (sym)
+			       (list (symbol-name sym))
+			       ))
+			    (coding-system-list)))))
 
-  (defun widget-coding-system-action (widget &optional event)
-    ;; Read a file name from the minibuffer.
-    (let ((answer
-	   (widget-coding-system-prompt-value
-	    widget
-	    (widget-apply widget :menu-tag-get)
-	    (widget-value widget)
-	    t)))
-      (widget-value-set widget answer)
-      (widget-apply widget :notify widget event)
-      (widget-setup)))
+(defun widget-coding-system-action (widget &optional event)
+  ;; Read a file name from the minibuffer.
+  (let ((answer
+	 (widget-coding-system-prompt-value
+	  widget
+	  (widget-apply widget :menu-tag-get)
+	  (widget-value widget)
+	  t)))
+    (widget-value-set widget answer)
+    (widget-apply widget :notify widget event)
+    (widget-setup)))
   )
-
+
 (define-widget 'sexp 'editable-field
   "An arbitrary Lisp expression."
   :tag "Lisp expression"
@@ -3218,7 +3217,7 @@ To use this type, you must define :match or :match-alternatives."
 	  (setq matched t))
       (setq alternatives (cdr alternatives)))
     matched))
-
+
 (define-widget 'integer 'restricted-sexp
   "An integer."
   :tag "Integer"
@@ -3286,7 +3285,98 @@ To use this type, you must define :match or :match-alternatives."
   (and (consp value)
        (widget-group-match widget
 			   (widget-apply widget :value-to-internal value))))
+
+;;; The `plist' Widget.
+;;
+;; Property lists.
 
+(define-widget 'plist 'list
+  "A property list."
+  :key-type '(symbol :tag "Key")
+  :value-type '(sexp :tag "Value")
+  :convert-widget 'widget-plist-convert-widget
+  :tag "Plist")
+
+(defvar widget-plist-value-type)	;Dynamic variable
+
+(defun widget-plist-convert-widget (widget)
+  ;; Handle `:options'.
+  (let* ((options (widget-get widget :options))
+	 (key-type (widget-get widget :key-type))
+	 (widget-plist-value-type (widget-get widget :value-type))
+	 (other `(editable-list :inline t 
+				(group :inline t
+				       ,key-type
+				       ,widget-plist-value-type)))
+	 (args (if options
+		   (list `(checklist :inline t
+				     :greedy t
+				     ,@(mapcar 'widget-plist-convert-option
+					       options))
+			 other)
+		 (list other))))
+    (widget-put widget :args args)
+    widget))
+
+(defun widget-plist-convert-option (option)
+  ;; Convert a single plist option.
+  (let (key-type value-type)
+    (if (listp option)
+	(let ((key (nth 0 option)))
+	  (setq value-type (nth 1 option))
+	  (if (listp key)
+	      (setq key-type ,key)
+	    (setq key-type `(const ,key))))
+      (setq key-type `(const ,option)
+	    value-type widget-plist-value-type))
+    `(group :format "Key: %v" :inline t ,key-type ,value-type)))
+
+
+;;; The `alist' Widget.
+;;
+;; Association lists.
+
+(define-widget 'alist 'list
+  "An association list."
+  :key-type '(string :tag "Key")
+  :value-type '(sexp :tag "Value")
+  :convert-widget 'widget-alist-convert-widget
+  :tag "Alist")
+
+(defvar widget-alist-value-type)	;Dynamic variable
+
+(defun widget-alist-convert-widget (widget)
+  ;; Handle `:options'.
+  (let* ((options (widget-get widget :options))
+	 (key-type (widget-get widget :key-type))
+	 (widget-alist-value-type (widget-get widget :value-type))
+	 (other `(editable-list :inline t 
+				(cons :format "%v"
+				      ,key-type
+				      ,widget-alist-value-type)))
+	 (args (if options
+		   (list `(checklist :inline t
+				     :greedy t
+				     ,@(mapcar 'widget-alist-convert-option
+					       options))
+			 other)
+		 (list other))))
+    (widget-put widget :args args)
+    widget))
+
+(defun widget-alist-convert-option (option)
+  ;; Convert a single alist option.
+  (let (key-type value-type)
+    (if (listp option)
+	(let ((key (nth 0 option)))
+	  (setq value-type (nth 1 option))
+	  (if (listp key)
+	      (setq key-type ,key)
+	    (setq key-type `(const ,key))))
+      (setq key-type `(const ,option)
+	    value-type widget-alist-value-type))
+    `(cons :format "Key: %v" ,key-type ,value-type)))
+
 (define-widget 'choice 'menu-choice
   "A union of several sexp types."
   :tag "Choice"
@@ -3336,7 +3426,7 @@ To use this type, you must define :match or :match-alternatives."
     (if current
 	(widget-prompt-value current prompt nil t)
       value)))
-
+
 (define-widget 'radio 'radio-button-choice
   "A union of several sexp types."
   :tag "Choice"
@@ -3366,7 +3456,7 @@ To use this type, you must define :match or :match-alternatives."
 (defun widget-boolean-prompt-value (widget prompt value unbound)
   ;; Toggle a boolean.
   (y-or-n-p prompt))
-
+
 ;;; The `color' Widget.
 
 (define-widget 'color 'editable-field 
@@ -3450,7 +3540,7 @@ To use this type, you must define :match or :match-alternatives."
   (overlay-put (widget-get widget :sample-overlay) 
 	       'face (widget-apply widget :sample-face-get))
   (widget-default-notify widget child event))
-
+
 ;;; The Help Echo
 
 (defun widget-echo-help-mouse ()
