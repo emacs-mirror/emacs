@@ -396,6 +396,15 @@ Once you discover the corrupted Lisp object or data structure, it is
 useful to look at it in a fresh Emacs session and compare its contents
 with a session that you are debugging.
 
+** Debugging problems with non-ASCII characters
+
+If you experience problems which seem to be related to non-ASCII
+characters, such as \201 characters appearing in the buffer or in your
+files, set the variable byte-debug-flag to t.  This causes Emacs to do
+some extra checks, such as look for broken relations between byte and
+character positions in buffers and strings; the resulting diagnostics
+might pinpoint the cause of the problem.
+
 ** Some suggestions for debugging on MS Windows:
 
    (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
