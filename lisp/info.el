@@ -1144,13 +1144,11 @@ Bind this in case the user sets it to nil."
 	(goto-char (point-min))
 	(when Info-header-line
 	  ;; expose the header line in the buffer
-	  (let ((end (point-max)))
-	    (widen)
-	    (forward-line -1)
-	    (narrow-to-region (point) end)))
+	  (widen)
+	  (forward-line -1))
 	(let ((bound (point)))
 	  (forward-line 1)
-	  (cond ((re-search-backward (concat name ":") nil bound)
+	  (cond ((re-search-backward (concat name ":") bound t)
 	    (goto-char (match-end 0))
 	    (Info-following-node-name))
 		((not (eq errorname t))
