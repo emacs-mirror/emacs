@@ -1195,6 +1195,15 @@ Debian system, type
 
 and then choose /usr/bin/netkit-ftp.
 
+* Emacs built on Windows 9x/ME crashes at startup on Windows XP,
+or Emacs built on XP crashes at startup on Windows 9x/ME.
+
+There appear to be general problems running programs compiled on
+Windows 9x/ME on Windows XP and vice-versa, at least when compilation
+is done with MSVC 6.0.  This affects other programs as well as Emacs.
+The compatibility options in the program properties on Windows XP may
+help in some cases.
+
 * Antivirus software interacts badly with the MS-Windows version of Emacs.
 
 The usual manifestation of these problems is that subprocesses don't
