@@ -1,3 +1,8 @@
+2004-01-06  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (skip_chars): Treat '-' at end of string as ordinary
+	character.
+
 2004-01-02  Andreas Schwab  <schwab@suse.de>
 
 	* macterm.c (emacs_options, x_initialized, same_x_server): Remove
