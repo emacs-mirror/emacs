@@ -203,7 +203,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (make-coding-system
  'vietnamese-viscii 4 ?V
  "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)"
- (cons ccl-decode-viscii ccl-encode-viscii)
+ '(ccl-decode-viscii . ccl-encode-viscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
    (mime-charset . viscii)))
 
@@ -212,7 +212,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (make-coding-system
  'vietnamese-vscii 4 ?v
  "8-bit encoding for Vietnamese VSCII-1"
- (cons ccl-decode-vscii ccl-encode-vscii)
+ '(ccl-decode-vscii . ccl-encode-vscii)
  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)))
 
 (define-coding-system-alias 'vscii 'vietnamese-vscii)

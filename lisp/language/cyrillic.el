@@ -104,7 +104,7 @@
  ;; So people who use koi8 for languages other than Russian
  ;; will have to forgive us.
  ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
- (cons ccl-decode-koi8 ccl-encode-koi8)
+ '(ccl-decode-koi8 . ccl-encode-koi8)
  '((safe-charsets ascii cyrillic-iso8859-5)
    (mime-charset . koi8-r)))
 
@@ -184,7 +184,7 @@
 (make-coding-system
  'cyrillic-alternativnyj 4 ?A
  "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
- (cons ccl-decode-alternativnyj ccl-encode-alternativnyj)
+ '(ccl-decode-alternativnyj . ccl-encode-alternativnyj)
  '((safe-charsets ascii cyrillic-iso8859-5)))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
