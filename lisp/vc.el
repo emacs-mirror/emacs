@@ -605,8 +605,15 @@ The optional argument REV may be a string specifying the new version level
 permissions zeroed, or deleted (according to the value of `vc-keep-workfiles').
 COMMENT is a comment string; if omitted, a buffer is
 popped up to accept a comment."
-  (setq vc-log-after-operation-hook 'vc-checkin-hook)
-  (vc-start-entry file rev comment "Enter a change comment." 'vc-backend-checkin))
+  ;; If we will pop up a buffer to edit the comment, and we are in a buffer
+  ;; on the file being checked in, insert a default header into the comment
+  ;; buffer based on the defun point is currently in.
+  (let ((defun (and (null comment) (string= file buffer-file-name)
+		    (add-log-current-defun))))
+    (setq vc-log-after-operation-hook 'vc-checkin-hook)
+    (prog1 (vc-start-entry file rev comment "Enter a change comment."
+			   'vc-backend-checkin)
+      (if defun (insert "(" defun "): ")))))
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
