@@ -237,12 +237,12 @@ Bool ArenaCheck(Arena arena)
   }
   /* the oldest history entry must be a subset of the prehistory */
   CHECKL(RefSetSub(rs, arena->prehistory));
-          
+
   /* we also check the statics now. design.mps.arena.static.check */
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
   /* can't check arenaSerial */
- 
+
   for(rank = 0; rank < RankMAX; ++rank)
     CHECKL(RingCheck(&arena->greyRing[rank]));
 
@@ -291,7 +291,7 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->flippedTraces = TraceSetEMPTY; /* impl.c.trace */
   for (i=0; i < TRACE_MAX; i++) {
     /* design.mps.arena.trace.invalid */
-    arena->trace[i].sig = SigInvalid;  
+    arena->trace[i].sig = SigInvalid;
   }
   LockInit(lock);
   arena->lock = lock;
@@ -334,7 +334,7 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->sig = ArenaSig;
   arena->serial = arenaSerial;  /* design.mps.arena.static.serial */
   ++arenaSerial;
- 
+
   AVERT(Arena, arena);
 }
 
@@ -367,7 +367,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   res = (*class->init)(&arena, class, args);
   if(res != ResOK)
     goto failInit;
- 
+
   ArenaEnter(arena);
   AVERT(Arena, arena);
 
@@ -383,7 +383,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   if(res != ResOK)
     goto failControlInit;
   arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
- 
+
   /* initialize the message stuff, design.mps.message */
   {
     void *v;
@@ -671,24 +671,7 @@ void ArenaPoll(Arena arena)
 
   arena->insidePoll = TRUE;
 
-  /* Poll actions to see if any new action is to be taken. */
-  ActionPoll(arena);
-
-  /* Temporary hacky progress control added here and in trace.c */
-  /* for change.dylan.honeybee.170466, and substantially modified */
-  /* for change.epcore.minnow.160062. */
-  if(arena->busyTraces != TraceSetEMPTY) {
-    Trace trace = ArenaTrace(arena, (TraceId)0);
-    AVER(arena->busyTraces == TraceSetSingle((TraceId)0));
-    TracePoll(trace);
-    if(trace->state == TraceFINISHED) {
-      TraceDestroy(trace);
-    }
-  }
-
-  size = arena->fillMutatorSize;
-  arena->pollThreshold = size + ARENA_POLL_MAX;
-  AVER(arena->pollThreshold > size); /* enough precision? */
+  ArenaStep(arena);
 
   arena->insidePoll = FALSE;
 }
@@ -727,6 +710,37 @@ void ArenaPark(Arena arena)
           TraceDestroy(trace);
       }
   }
+}
+
+
+/* Take a single step of any active trace. */
+
+void ArenaStep(Arena arena)
+{
+    TraceId ti;
+    double size;
+
+    AVERT(Arena, arena);
+
+    /* Poll actions to see if any new action is to be taken. */
+    ActionPoll(arena);
+
+    if (arena->busyTraces != TraceSetEMPTY) {
+        /* Find an active trace to poll. */
+        for(ti = 0; ti < TRACE_MAX; ++ti) {
+            if(TraceSetIsMember(arena->busyTraces, ti)) {
+                Trace trace = ArenaTrace(arena, ti);
+                TracePoll(trace);
+                if(trace->state == TraceFINISHED)
+                    TraceDestroy(trace);
+            }
+        }
+    }
+
+    /* set poll threshold so we don't steal any more mutator time too soon. */
+    size = arena->fillMutatorSize;
+    arena->pollThreshold = size + ARENA_POLL_MAX;
+    AVER(arena->pollThreshold > size); /* enough precision? */
 }
 
 
@@ -797,14 +811,14 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-               "Arena $P ($U) {\n",   
+               "Arena $P ($U) {\n",
                (WriteFP)arena, (WriteFU)arena->serial,
                "  class $P (\"$S\")\n",
                (WriteFP)arena->class, arena->class->name,
 	       "  mpsVersion $S\n",
 	       arena->mpsVersionString,
                "  poolReady $S\n",     arena->poolReady ? "YES" : "NO",
-               "  controlPool $P\n",  
+               "  controlPool $P\n",
                (WriteFP)&arena->controlPoolStruct,
                "  lock $P\n",          (WriteFP)arena->lock,
                "  pollThreshold $U KB\n",
@@ -834,7 +848,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                "  rootSerial $U\n", (WriteFU)arena->rootSerial,
                "  formatSerial $U\n", (WriteFU)arena->formatSerial,
                "  threadSerial $U\n", (WriteFU)arena->threadSerial,
-               "  insideShield $S\n", 
+               "  insideShield $S\n",
                arena->insideShield ? "YES" : "NO",
                "  busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "  flippedTraces $B\n", (WriteFB)arena->flippedTraces,
@@ -855,7 +869,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
     if(res != ResOK)
       return res;
   }
- 
+
   res = WriteF(stream,
                "    [note: indices are raw, not rotated]\n"
                "    prehistory = $B\n",    (WriteFB)arena->prehistory,
@@ -1197,7 +1211,7 @@ Res ArenaExtend(Arena arena, Addr base, Size size)
   res = (*arena->class->extend)(arena, base, size);
   if(res != ResOK)
     return res;
- 
+
   EVENT_PAW(ArenaExtend, arena, base, size);
 
   return ResOK;
@@ -1215,7 +1229,7 @@ Res ArenaRetract(Arena arena, Addr base, Size size)
   res = (*arena->class->retract)(arena, base, size);
   if(res != ResOK)
     return res;
- 
+
   EVENT_PAW(ArenaRetract, arena, base, size);
 
   return ResOK;
@@ -1475,7 +1489,7 @@ Ref ArenaRead(Arena arena, Addr addr)
   Seg seg;
 
   AVERT(Arena, arena);
- 
+
   b = SegOfAddr(&seg, arena, addr);
   AVER(b == TRUE);
 
