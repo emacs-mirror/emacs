@@ -218,7 +218,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	  struct gcpro gcpro1, gcpro2;
 
 	  len = NAMLEN (dp);
-	  name = finalname = make_string (dp->d_name, len);
+	  name = finalname = make_unibyte_string (dp->d_name, len);
 	  GCPRO2 (finalname, name);
 	  
 	  /* Note: ENCODE_FILE can GC; it should protect its argument,
