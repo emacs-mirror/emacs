@@ -1,3 +1,8 @@
+2003-03-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Pass ReparentNotify to Xt even if
+	the event isn't for a frame (i.e. for dialogs).
+
 2003-03-07  Kenichi Handa  <handa@etlken2>
 
 	* coding.c (CODING_ADD_COMPOSITION_COMPONENT): If the number of

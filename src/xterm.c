@@ -10569,8 +10569,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           x_real_positions (f, &x, &y);
           f->output_data.x->left_pos = x;
           f->output_data.x->top_pos = y;
-          goto OTHER;
         }
+      goto OTHER;
       break;
 
     case Expose:
