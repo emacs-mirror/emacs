@@ -1,0 +1,82 @@
+		      Building and Installing Emacs
+		      on Windows NT and Windows 95
+
+You need a compiler package to build and install Emacs on NT or Win95.
+If you don't have one, precompiled versions are available in
+ftp://ftp.cs.washington.edu/pub/ntemacs/<version>.
+
+Configuring:
+
+(1) In previous versions, you needed to edit makefile.def
+    to reflect the compiler package that you are using.  You should no
+    longer have to do this if you have defined the INCLUDE and LIB 
+    environment variables, as is customary for use with Windows compilers.
+
+(2) Choose the directory into which Emacs will be installed, and
+    edit makefile.nt to define INSTALL_DIR to be this directory.  Note 
+    that if it is not installed in the directory in which it is built,
+    the ~16 MB of lisp files will be copied into the installation directory.
+
+    Also, makefile.def is sometimes unpacked read-only; use
+   
+    > attrib -r makefile.def
+
+    to make it writable.
+
+Building:
+
+(3) The target to compile the sources is "all", and is recursive starting 
+    one directory up.  The makefiles for the NT port are in files named 
+    "makefile.nt".  To get things started, type in this directory:
+
+    > nmake -f makefile.nt all
+
+    or use the ebuild.bat file.
+
+    When the files are compiled, you will see some warning messages declaring
+    that some functions don't return a value, or that some data conversions
+    will be lossy, etc.  You can safely ignore these messages.  The warnings
+    may be fixed in the main FSF source at some point, but until then we
+    will just live with them.
+
+    NOTES: You should not have to edit src\paths.h to get Emacs to run
+    correctly.  All of the variables in src\paths.h are configured
+    during start up using the nt\emacs.bat file (which gets installed 
+    as bin\emacs.bat -- see below).
+
+Installing:
+
+(4) Currently, Emacs requires a number of environment variables to be set
+    for it to run correctly.  A batch file, emacs.bat, is provided that 
+    sets these variables appropriately and then runs the executable.
+    Before you install Emacs, you first need to edit emacs.bat to 
+    reflect your installation.  To do this, set the emacs_path variable 
+    to point to the directory into which you will be installing Emacs.
+    (This should be the same directory you defined INSTALL_DIR to be
+    in makefile.def above).
+
+(5) Install Emacs.  From this directory, type:
+
+    > nmake -f makefile.nt install
+
+    or use the install.bat file.
+
+(6) Create the Emacs startup file.  Under Unix, this file is .emacs;
+    under NT and Win95, this files is _emacs.  (If you would like to
+    use a .emacs file that, for example, you share with a Unix version
+    of Emacs, you can invoke Emacs with the -l option to specify the
+    .emacs file that you would like to load.)  Note that Emacs requires 
+    the environment variable HOME to be set in order for it to locate the 
+    _emacs file.  Ideally, HOME should not be set in the emacs.bat file 
+    as it will be different for each user.  (HOME could be set, 
+    for example, in the System panel of the Control Panel).
+
+(7) Create a program manager icon for the %emacs_path%\emacs.bat file.
+
+(8) Either click on the icon, or run the emacs.bat file, and away you go.
+
+    If you would like to resize the command window that Emacs uses,
+    or change the font or colors, click on the program manager icon
+    to start Emacs.  Change the settings using the "-" menu in the upper
+    left hand corner of the window, making sure to select the "Save"
+    options in the dialog boxes as you do so.  Exit Emacs and restart.
