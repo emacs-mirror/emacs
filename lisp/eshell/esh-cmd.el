@@ -1401,7 +1401,7 @@ messages, and errors."
 			(if (and (stringp arg)
 				 (> (length arg) 0)
 				 (get-text-property 0 'number arg))
-			    (setcar a (string-to-number arg))))
+			    (setcar args (string-to-number arg))))
 		      (setq args (cdr args))))
 		  (eshell-apply object eshell-last-arguments))
 	      (setq eshell-last-arguments args
