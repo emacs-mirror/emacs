@@ -29,6 +29,9 @@ defined as an alias, the function returns VARIABLE.
 It might be noteworthy that variables aliases work for all kinds of
 variables, including buffer-local and frame-local variables.
 
+** Functions from `post-gc-hook' are run at the end of garbage
+collection.  The hook is run with GC inhibited, so use it with care.
+
 
 * Installation Changes in Emacs 21.1
 
