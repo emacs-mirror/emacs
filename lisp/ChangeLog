@@ -1,3 +1,27 @@
+2004-04-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-putback-char):
+	Delete Emacs 18 definition.
+
+	* international/mule.el (ctext-post-read-conversion): 
+	Use assoc-string, not assoc-ignore-case.
+	
+	* international/mule-cmds.el: Use assoc-string, not assoc-ignore-case.
+
+	* emacs-lisp/easymenu.el (easy-menu-add):
+	Do call x-popup-menu, but only if it's defined.
+
+	* emacs-lisp/disass.el (disassemble): Handle lambda-exp as arg.
+
+	* emacs-lisp/bytecomp.el (byte-compile-no-warnings):
+	Handle multiple args: compile like progn.
+
+	* emacs-lisp/byte-run.el (with-no-warnings): Simplify:
+	take all args as &rest arg.
+
+	* autoinsert.el (auto-insert-alist): Insert the user's name in
+	copyright notice, rather than Free Software Foundation.
+
 2004-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Make it work on *Help* buffer.
