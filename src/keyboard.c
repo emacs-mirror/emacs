@@ -6220,7 +6220,7 @@ menu_bar_items (old)
 				       * sizeof (maps[0]));
 	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
 	if (!NILP (map))
-	  maps[nmaps++] = get_local_map (PT, current_buffer, keymap);
+	  maps[nmaps++] = map;
 	maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
       }
     maps[nmaps++] = current_global_map;
@@ -6877,7 +6877,7 @@ tool_bar_items (reuse, nitems)
 				     * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
       if (!NILP (map))
-	maps[nmaps++] = get_local_map (PT, current_buffer, keymap);
+	maps[nmaps++] = map;
       maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
     }
 
@@ -9216,7 +9216,7 @@ current_active_maps (maps_p)
 				     * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
       if (!NILP (map))
-	maps[nmaps++] = get_local_map (PT, current_buffer, keymap);
+	maps[nmaps++] = map;
       maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
     }
   maps[nmaps++] = current_global_map;
