@@ -5,7 +5,7 @@
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Created: 8 Feb 1994
-;; Version: 1.7
+;; Version: 1.11
 ;; Keywords: tools
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,15 @@
 ;;   supplied.
 
 ;;; Change Log:
+;;    v1.11 Jul 26 1994 Ake Stenhoff
+;;      Fixed bugs in 'imenu-add-to-menubar'.
+;;    v1.10 Jul 21 1994 Ake Stenhoff
+;;      Added support for markers.
+;;      Changed the examples to use
+;;      markers.
+;;      Thanks [alon].
+;;    v1.9 Jun 14 1994 Ake Stenhoff
+;;      Added 'imenu-add-to-menubar'.
 ;;    v1.7 Apr 12 1994 Ake Stenhoff
 ;;	Changed doc strings refering to symbols.
 ;;      Require 'cl' when compiling only.
@@ -77,7 +86,7 @@
 ;;; Thanks goes to
 ;;  [simon] - Simon Leinen simon@lia.di.epfl.ch
 ;;  [dean] - Dean Andrews ada@unison.com
-;;  
+;;  [alon] - Alon Albert al@mercury.co.il 
 
 ;;; Code
 (eval-when-compile (require 'cl))
@@ -287,7 +296,25 @@ This function is called after the function pointed out by
       (error "No items suitable for an index found in this buffer."))
   ;; Add a rescan option to the index.
   (cons imenu--rescan-item imenu--index-alist))
-
+;;;
+;;; Find all markers in alist and makes
+;;; them point nowhere.
+;;;
+(defun imenu--cleanup (&optional alist)
+  ;; Sets the markers in imenu--index-alist 
+  ;; point nowhere.
+  ;; if alist is provided use that list.
+  (and imenu--index-alist
+       (mapc 
+	(function
+	 (lambda (item)
+	   (cond
+	    ((markerp (cdr item))
+	     (set-marker (cdr item) nil))
+	    ((listp (cdr item))
+	     (imenu--cleanup (cdr item))))))
+	 (if alist alist imenu--index-alist))
+	t))
 (defun imenu-default-create-index-function ()
   "*Wrapper for index searching functions.
 
@@ -350,7 +377,7 @@ Their results are gathered into an index alist."
 				  (concat prefix imenu-level-separator name)
 				name))))
 	(cond
-	 ((numberp pos)
+	 ((or (markerp pos) (numberp pos))
 	  (list (cons new-prefix pos)))
 	 (t
 	  (imenu--flatten-index-alist pos new-prefix))))))
@@ -468,8 +495,19 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 		(imenu--mouse-menu index-alist last-nonmenu-event)
 	      (imenu--completion-buffer index-alist prompt)))
       (and (eq result t)
+	   (imenu--cleanup)
 	   (setq imenu--index-alist nil)))
     result))
+
+(defun imenu-add-to-menubar (name)
+  "Adds an \"imenu\" entry to the menubar for the 
+current local keymap.
+NAME is the string naming the menu to be added.
+See 'imenu' for more information."
+  (interactive "sMenu name: ")
+  (and window-system
+       (define-key (current-local-map) [menu-bar index]
+	 (cons name 'imenu))))
 
 ;;;###autoload
 (defun imenu ()
@@ -480,7 +518,12 @@ See `imenu-choose-buffer-index' for more information."
     (and index-item
 	 (progn
 	   (push-mark)
-	   (goto-char (cdr index-item))))))
+	   (cond
+	    ((markerp (cdr index-item))
+	     (goto-char (marker-position (cdr index-item))))
+	    (t
+	     (goto-char (cdr index-item))))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -495,9 +538,11 @@ See `imenu-choose-buffer-index' for more information."
   (save-excursion
     (forward-sexp -1)
     (let ((beg (point))
-	  (end (progn (forward-sexp) (point))))
+	  (end (progn (forward-sexp) (point)))
+	  (marker (make-marker)))
+      (set-marker marker beg)
       (cons (buffer-substring beg end)
-	    beg))))
+	    marker))))
   
 ;;;
 ;;; Lisp
