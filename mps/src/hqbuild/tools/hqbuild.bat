@@ -1,5 +1,9 @@
 @REM impl.bat.hqbuild
-@REM $HopeName: MMsrc!hqbuild:tools:hqbuild.bat(trunk.1) $
+<<<<<<< /u/nickb/mm/merge/trunk/src/hqbuild:tools:hqbuild.bat
+@REM $HopeName: MMsrc!hqbuild:tools:hqbuild.bat(trunk.2) $
+=======
+@REM $HopeName: MMsrc!hqbuild:tools:hqbuild.bat(MMdevel_sw_eq.2) $
+>>>>>>> 1.2.5.2
 @REM Copyright (C) 1996 Harlequin Group, all rights reserved
 @REM Called by SWIG autobuild system
 @
@@ -9,4 +13,4 @@ SET PATH=%MSVCNT%\bin;%PATH%
 SET LIB=%MSVCNT%\lib
 SET INCLUDE=%MSVCNT%\include
 @REM Silently throw away all but first argument
-nmake /f %1.nmk
+nmake /f %1.nmk %2 %3 %4 %5 %6 %7 %8 %9
