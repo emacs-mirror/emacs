@@ -302,10 +302,40 @@ This command must be bound to a mouse click."
 	(split-window-horizontally
 	 (min (max new-width first-col) last-col))))))
 
+(defun mouse-drag-window-above (window)
+  "Return the (or a) window directly above WINDOW.
+That means one whose bottom edge is at the same height as WINDOW's top edge."
+  (let ((top (nth 1 (window-edges window)))
+	(start-window window)
+	above-window)
+    (setq window (previous-window window 0))
+    (while (and (not above-window) (not (eq window start-window)))
+      (if (= (+ (window-height window) (nth 1 (window-edges window)))
+	     top)
+	  (setq above-window window))
+      (setq window (previous-window window)))
+    above-window))
+
+(defun mouse-drag-move-window-bottom (window growth)
+  "Move the bottom of WINDOW up or down by GROWTH lines.
+Move it down if GROWTH is positive, or up if GROWTH is negative.
+If this would make WINDOW too short,
+shrink the window or windows above it to make room."
+  (let ((excess (- window-min-height (+ (window-height window) growth))))
+    ;; EXCESS is the number of lines we need to take from windows above.
+    (if (> excess 0)
+	;; This can recursively shrink windows all the way up.
+	(let ((window-above (mouse-drag-window-above window)))
+	  (if window-above
+	      (mouse-drag-move-window-bottom window-above (- excess))))))
+  (save-selected-window
+    (select-window window)
+    (enlarge-window growth nil (> growth 0))))
+
 (defun mouse-drag-mode-line-1 (start-event mode-line-p)
   "Change the height of a window by dragging on the mode or header line.
 START-EVENT is the starting mouse-event of the drag action.
-MODE-LINE-P non-nil means a mode line is dragged."
+MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (let* ((done nil)
@@ -375,10 +405,6 @@ MODE-LINE-P non-nil means a mode line is dragged."
 
 		 ;; compute size change needed
 		 (cond (mode-line-p
-			;; Scale back a move that would make the
-			;; window too short.
-			(when (< (- y top -1) window-min-height)
-			  (setq y (+ top window-min-height -1)))
 			(setq growth (- y bot -1)))
 		       (t	; header line
 			(when (< (- bot y) window-min-height)
@@ -412,7 +438,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		       (select-window start-event-window))
 		   ;; no.  grow/shrink the selected window
 		   ;(message "growth = %d" growth)
-		   (enlarge-window growth))
+		   (mouse-drag-move-window-bottom start-event-window growth))
 
 		 ;; if this window's growth caused another
 		 ;; window to be deleted because it was too
@@ -426,6 +452,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		 ;; around it.
 		 (when (or (/= start-nwindows (count-windows t))
 			   (and (not should-enlarge-minibuffer)
+				(> growth 0)
 				mode-line-p
 				(/= top (nth 1 (window-edges)))))
 		   (set-window-configuration wconfig)))))))))
