@@ -1495,7 +1495,7 @@ EXTRA is the possible non-standard header."
   "Lower the score on THREAD with SCORE-ADJUST.
 THREAD is expected to contain a list of the form `(PARENT [CHILD1
 CHILD2 ...])' where PARENT is a header array and each CHILD is a list
-of the same form as THREAD.  The empty list `nil' is valid.  For each
+of the same form as THREAD.  The empty list nil is valid.  For each
 article in the tree, the score of the corresponding entry in
 `gnus-newsgroup-scored' is adjusted by SCORE-ADJUST."
   (while thread
