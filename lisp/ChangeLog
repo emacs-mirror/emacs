@@ -1,3 +1,7 @@
+2000-01-25  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-version-diff): Make sure file name is expanded.
+
 2000-01-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* scroll-bar.el (scroll-bar-timer): Variable removed.
