@@ -112,8 +112,14 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 compile: doit
 	wd=`pwd`;						\
 	find $$wd -name "*.elc" -print | xargs chmod +w;	\
-	$(setwins);						\
-	loadpath="(setq load-path '($$wins))";			\
+	subdirs=`find $$wd -type d -print`; 			\
+	for dir in $$subdirs; do 				\
+	   case $$dir in 					\
+	     */Old | */RCS | */CVS | */=* ) ;; 			\
+	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
+	   esac; 						\
+        done; 							\
+	loadpath="(setq load-path '($$loadpath))";		\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
 	  compile_it=y;						\
@@ -123,6 +129,7 @@ compile: doit
             fi;							\
           done;							\
           if test $$compile_it = y; then			\
+            echo $(emacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
             $(emacs) --eval "$$loadpath" -f batch-byte-compile $$el; \
           else							\
             echo "Don't compile $$el";				\
@@ -136,8 +143,14 @@ compile: doit
 bootstrap-compile: doit
 	wd=`pwd`;						\
 	find $$wd -name "*.elc" -print | xargs rm -f            \
-	$(setwins);						\
-	loadpath="(setq load-path '($$wins))";			\
+	subdirs=`find $$wd -type d -print`; 			\
+	for dir in $$subdirs; do 				\
+	   case $$dir in 					\
+	     */Old | */RCS | */CVS | */=* ) ;; 			\
+	     *) loadpath="$$loadpath \"$$dir\"" ;; 		\
+	   esac; 						\
+        done; 							\
+	loadpath="(setq load-path '($$loadpath))";		\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
 	  compile_it=y;						\
