@@ -94,25 +94,9 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 
-#define CHECK_X_FRAME(f, frame)			\
-  if (NILP (frame))				\
-    f = selected_frame;				\
-  else						\
-    {						\
-      CHECK_LIVE_FRAME (frame, 0);		\
-      f = XFRAME (frame);			\
-    }						\
-  if (! FRAME_X_P (f))
-
-  
-
 /* The mask of events that text windows always want to receive.  This
-   does not include mouse movement events.  It is used when the window
-   is created (in x_window) and and in selection processing.
-
-   We do include ButtonReleases in this set because Emacs isn't always
-   fast enough to catch them when it wants them, and they're rare
-   enough that they don't use much processor time.  */
+   includes mouse movement events, since handling the mouse-font text property
+   means that we must track mouse motion all the time.  */
 
 #define STANDARD_EVENT_SET      \
   (KeyPressMask			\
@@ -120,7 +104,6 @@ Boston, MA 02111-1307, USA.  */
    | ButtonPressMask		\
    | ButtonReleaseMask		\
    | PointerMotionMask		\
-   | PointerMotionHintMask	\
    | StructureNotifyMask	\
    | FocusChangeMask		\
    | LeaveWindowMask		\
