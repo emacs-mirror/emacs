@@ -2365,7 +2365,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
 (defvar Info-file-list-for-emacs
-  '("ediff" "forms" "gnus" ("mh" . "mh-e") "sc" "message"
+  '("ediff" "forms" "gnus" "info" ("mh" . "mh-e") "sc" "message"
     ("dired" . "dired-x") ("c" . "ccmode") "viper" "vip"
     ("skeleton" . "autotype") ("auto-insert" . "autotype")
     ("copyright" . "autotype") ("executable" . "autotype")
