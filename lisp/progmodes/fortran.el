@@ -1789,7 +1789,7 @@ Intended as the value of `fill-paragraph-function'."
 	  (fortran-previous-statement)))
     (fortran-indent-line)))
 
-(defun fortran-strip-sqeuence-nos (&optional do-space)
+(defun fortran-strip-sequence-nos (&optional do-space)
   "Delete all text in column 72 and up (assumed to be sequence numbers).
 Normally also deletes trailing whitespace after stripping such text.
 Supplying prefix arg DO-SPACE prevents stripping the whitespace."
