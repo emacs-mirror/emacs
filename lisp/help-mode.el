@@ -234,8 +234,6 @@ restore it properly when going back."
   "Non-nil when following a help cross-reference.")
 
 (defun help-buffer ()
-  (unless (equal help-xref-following (eq major-mode 'help-mode))
-    (debug))
   (buffer-name				;for with-output-to-temp-buffer
    (if help-xref-following
        (current-buffer)
