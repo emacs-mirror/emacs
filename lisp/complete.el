@@ -205,9 +205,9 @@ command begins with that sequence of characters, and
 \\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
 other file in that directory begin with that sequence of characters.
 
-Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
+Unless `PC-disable-includes' is non-nil, the `<...>' sequence is interpreted
 specially in \\[find-file].  For example,
-\\[find-file] <sys/time.h> RET finds the file /usr/include/sys/time.h.
+\\[find-file] <sys/time.h> RET finds the file `/usr/include/sys/time.h'.
 See also the variable `PC-include-file-path'."
   :global t :group 'partial-completion
   ;; Deal with key bindings...
