@@ -399,7 +399,7 @@ menu_item_enabled_p (def, notreal)
   enabled = Qt;
   if (notreal)
     return enabled;
-  if (XTYPE (def) == Lisp_Symbol)
+  if (SYMBOLP (def))
     {
       /* No property, or nil, means enable.
 	 Otherwise, enable if value is not nil.  */
@@ -459,18 +459,18 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 
   push_menu_pane (pane_name, prefix);
 
-  for (tail = keymap; XTYPE (tail) == Lisp_Cons; tail = XCONS (tail)->cdr)
+  for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       /* Look at each key binding, and if it has a menu string,
 	 make a menu item from it.  */
       item = XCONS (tail)->car;
-      if (XTYPE (item) == Lisp_Cons)
+      if (CONSP (item))
 	{
 	  item1 = XCONS (item)->cdr;
-	  if (XTYPE (item1) == Lisp_Cons)
+	  if (CONSP (item1))
 	    {
 	      item_string = XCONS (item1)->car;
-	      if (XTYPE (item_string) == Lisp_String)
+	      if (STRINGP (item_string))
 		{
 		  /* This is the real definition--the function to run.  */
 		  Lisp_Object def;
@@ -527,7 +527,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 		}
 	    }
 	}
-      else if (XTYPE (item) == Lisp_Vector)
+      else if (VECTORP (item))
 	{
 	  /* Loop over the char values represented in the vector.  */
 	  int len = XVECTOR (item)->size;
@@ -537,10 +537,10 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 	      Lisp_Object character;
 	      XFASTINT (character) = c;
 	      item1 = XVECTOR (item)->contents[c];
-	      if (XTYPE (item1) == Lisp_Cons)
+	      if (CONSP (item1))
 		{
 		  item_string = XCONS (item1)->car;
-		  if (XTYPE (item_string) == Lisp_String)
+		  if (STRINGP (item_string))
 		    {
 		      Lisp_Object def;
 
@@ -737,7 +737,7 @@ cached information about equivalent key sequences.")
       else
 	{
 	  tem = Fcar (position);
-	  if (XTYPE (tem) == Lisp_Cons)
+	  if (CONSP (tem))
 	    {
 	      window = Fcar (Fcdr (position));
 	      x = Fcar (tem);
@@ -763,14 +763,14 @@ cached information about equivalent key sequences.")
 
       /* Decode where to put the menu.  */
 
-      if (XTYPE (window) == Lisp_Frame)
+      if (FRAMEP (window))
 	{
 	  f = XFRAME (window);
 
 	  xpos = 0;
 	  ypos = 0;
 	}
-      else if (XTYPE (window) == Lisp_Window)
+      else if (WINDOWP (window))
 	{
 	  CHECK_LIVE_WINDOW (window, 0);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
@@ -794,7 +794,7 @@ cached information about equivalent key sequences.")
 
   keymap = Fkeymapp (menu);
   tem = Qnil;
-  if (XTYPE (menu) == Lisp_Cons)
+  if (CONSP (menu))
     tem = Fkeymapp (Fcar (menu));
   if (!NILP (keymap))
     {
@@ -827,7 +827,7 @@ cached information about equivalent key sequences.")
 
       /* The first keymap that has a prompt string
 	 supplies the menu title.  */
-      for (tem = menu, i = 0; XTYPE (tem) == Lisp_Cons; tem = Fcdr (tem))
+      for (tem = menu, i = 0; CONSP (tem); tem = Fcdr (tem))
 	{
 	  Lisp_Object prompt;
 
@@ -929,7 +929,7 @@ on the left of the dialog box and all following items on the right.\n\
     {
       Lisp_Object tem;
       tem = Fcar (position);
-      if (XTYPE (tem) == Lisp_Cons)
+      if (CONSP (tem))
 	window = Fcar (Fcdr (position));
       else
 	{
@@ -942,9 +942,9 @@ on the left of the dialog box and all following items on the right.\n\
 
   /* Decode where to put the menu.  */
 
-  if (XTYPE (window) == Lisp_Frame)
+  if (FRAMEP (window))
     f = XFRAME (window);
-  else if (XTYPE (window) == Lisp_Window)
+  else if (WINDOWP (window))
     {
       CHECK_LIVE_WINDOW (window, 0);
       f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
