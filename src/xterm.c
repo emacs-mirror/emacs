@@ -9819,7 +9819,7 @@ static Time enter_timestamp;
    me that letting the compiler initialize it to zeros will work okay.
 
    This must be defined outside of XTread_socket, for the same reasons
-   given for enter_time stamp, above.  */
+   given for enter_timestamp, above.  */
 
 static XComposeStatus compose_status;
 
