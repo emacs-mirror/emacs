@@ -1558,10 +1558,15 @@ in that file's directory.  Before running @TeX{}, it offers to save any
 modified buffers.  Generally, you need to use (@code{tex-file}) twice to
 get the cross-references right.
 
-@vindex tex-start-options-string
-  The value of the variable @code{tex-start-options-string} specifies
-options for the @TeX{} run.  The default value causes @TeX{} to run in
-nonstop mode.  To run @TeX{} interactively, set the variable to @code{""}.
+@vindex tex-start-options
+  The value of the variable @code{tex-start-options} specifies
+options for the @TeX{} run.
+
+@vindex tex-start-commands
+  The value of the variable @code{tex-start-commands} specifies @TeX{}
+commands for starting @TeX{}.  The default value causes @TeX{} to run
+in nonstop mode.  To run @TeX{} interactively, set the variable to
+@code{""}.
 
 @vindex tex-main-file
   Large @TeX{} documents are often split into several files---one main
@@ -1624,8 +1629,6 @@ can be used with @kbd{M-x format-find-file}, for instance.
 @findex tildify-region
 @cindex ties, @TeX{}, inserting
 @cindex hard spaces, @TeX{}, inserting
-@cindex SGML
-@cindex HTML
   The commands @kbd{M-x tildify-buffer} and @kbd{M-x tildify-region}
 insert @samp{~} (@dfn{tie}) characters where they are conventionally
 required.  This is set up for Czech---customize the group
@@ -1735,10 +1738,10 @@ contains a list of ideas for future enhancements.
 @node Requesting Formatted Text
 @subsection Requesting to Edit Formatted Text
 
-  Whenever you visit a file that Emacs saved in the text/enriched format,
-Emacs automatically converts the formatting information in the file into
-Emacs's own internal format (text properties), and turns on Enriched
-mode.
+  Whenever you visit a file that Emacs saved in the text/enriched
+format, Emacs automatically converts the formatting information in the
+file into Emacs's own internal format (known as @dfn{text
+properties}), and turns on Enriched mode.
 
 @findex enriched-mode
   To create a new file of formatted text, first visit the nonexistent
@@ -1774,6 +1777,9 @@ Note that the text/enriched standard requires any non-standard
 annotations to have names starting with @samp{x-}, as in
 @samp{x-read-only}.  This ensures that they will not conflict with
 standard annotations that may be added later.
+
+  @xref{Text Properties,,, elisp, the Emacs Lisp Reference Manual},
+for more information about text properties.
 
 @node Hard and Soft Newlines
 @subsection Hard and Soft Newlines
