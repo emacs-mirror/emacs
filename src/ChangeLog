@@ -1,5 +1,7 @@
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_hide_tip): Simplified.
+
 	* s/freebsd.h, s/netbsd.h (GC_MARK_STACK): Use
 	GC_MAKE_GCPROS_NOOPS instead of `1'.
 
