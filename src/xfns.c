@@ -4622,20 +4622,7 @@ select_visual (dpyinfo)
       if (n_visuals != 1)
 	fatal ("Can't get proper X visual info");
 
-      if ((1 << vinfo->depth) == vinfo->colormap_size)
-	dpyinfo->n_planes = vinfo->depth;
-      else
-	{
-	  int i = 0;
-	  int n = vinfo->colormap_size - 1;
-	  while (n)
-	    {
-	      n = n >> 1;
-	      i++;
-	    }
-	  dpyinfo->n_planes = i;
-	}
-
+      dpyinfo->n_planes = vinfo->depth;
       XFree ((char *) vinfo);
     }
 }
