@@ -413,8 +413,9 @@ x_decline_selection_request (event)
   reply.property = None;
 
   BLOCK_INPUT;
-  (void) XSendEvent (reply.display, reply.requestor, False, 0L,
-		     (XEvent *) &reply);
+  XSendEvent (reply.display, reply.requestor, False, 0L,
+	      (XEvent *) &reply);
+  XFlushQueue ();
   UNBLOCK_INPUT;
 }
 
