@@ -1661,7 +1661,10 @@ Many emacs functions, such as forward-word, forward-sentence,
 forward-paragraph, beginning-of-line, etc., stop moving when they come
 to the boundary between fields; beginning-of-line and end-of-line will
 not let the point move past the field boundary, but other movement
-commands continue into the next field if repeated.
+commands continue into the next field if repeated.  Stopping at field
+boundaries can be suppressed programmatically by binding
+`inhibit-field-text-motion' to a non-nil value around calls to these
+functions.
 
 Now that the minibuffer prompt is inserted into the minibuffer, it is in
 a separate field from the user-input part of the buffer, so that common
