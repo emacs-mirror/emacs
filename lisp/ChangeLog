@@ -1,5 +1,8 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* language/european.el ("Polish"): Change sample text.
+	From: jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+
 	* progmodes/sh-script.el (sh-indent-line): Add optional PREFIX-ARG
 	parameter.
 
