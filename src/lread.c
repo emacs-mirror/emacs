@@ -2353,6 +2353,7 @@ init_lread ()
   Vvalues = Qnil;
 
   load_in_progress = 0;
+  Vload_file_name = Qnil;
 
   load_descriptor_list = Qnil;
 }
