@@ -975,6 +975,11 @@ See documentation of variable `tags-file-name'."
 	(re-search-forward pat nil t)
 	(error "`%s' not found in %s; time to rerun etags"
 	       pat buffer-file-name)))
+  ;; Position point at the right place
+  ;; if the search string matched an extra Ctrl-m at the beginning.
+  (and (eq selective-display t)
+       (looking-at "\^m")
+       (forward-char 1))
   (beginning-of-line))
 
 (defun etags-list-tags (file)
