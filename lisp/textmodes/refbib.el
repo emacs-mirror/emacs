@@ -716,7 +716,10 @@ Please send bug reports and suggestions to
    "Print help message."
    (interactive)
    (with-output-to-temp-buffer "*Help*"
-      (princ r2b-help-message)))
+      (princ r2b-help-message)
+      (save-excursion
+	(set-buffer standard-output)
+	(help-mode))))
 
 (if (not r2b-load-quietly)
    (r2b-help))
