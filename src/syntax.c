@@ -1277,21 +1277,25 @@ scan_words (from, count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 1, 1, "p",
+DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
 and the function returns nil.  Field boundaries are not noticed if
 `inhibit-field-text-motion' is non-nil.  */)
-     (count)
-     Lisp_Object count;
+     (arg)
+     Lisp_Object arg;
 {
   int orig_val, val;
-  CHECK_NUMBER (count);
 
-  val = orig_val = scan_words (PT, XINT (count));
+  if (NILP (arg))
+    XSETFASTINT (arg, 1);
+  else
+    CHECK_NUMBER (arg);
+
+  val = orig_val = scan_words (PT, XINT (arg));
   if (! orig_val)
-    val = XINT (count) > 0 ? ZV : BEGV;
+    val = XINT (arg) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
   val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
