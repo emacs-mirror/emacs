@@ -1,5 +1,8 @@
 2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/po.el (po-find-file-coding-system-guts): Use
+	with-temp-buffer instead of po-with-temp-buffer.
+
 	* international/mule-conf.el (file-coding-system-alist): Add an
 	association for PO files.
 
