@@ -57,7 +57,7 @@ successive @kbd{C-g} characters to get out of a search
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
 recognize @kbd{C-g} while a command is running, between interactions
 with the user.  By contrast, it @emph{is} feasible to recognize
-@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Input}.
+@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Keyboard}.
 
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
