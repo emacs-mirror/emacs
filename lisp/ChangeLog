@@ -1,3 +1,10 @@
+2001-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-retry-failure): 
+	Don't call rmail-beginning-of-message.
+	Don't discard From: field.  Do discard Received: field.
+	Use unwind-protect to re-prune.
+
 2001-03-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-title): Add autoload cookie.
