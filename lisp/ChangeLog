@@ -1,3 +1,8 @@
+2002-01-21  Richard M. Stallman  <rms@gnu.org>
+
+	* window.el (window-body-height): Handle minibuffer window specially.
+	Otherwise, don't return less than 1.
+
 2002-01-20  Thomas Dorner  <Thomas.Dorner@start.de>
 
 	* ange-ftp.el: Added support for BS2000, and for raw ftp
