@@ -2243,14 +2243,14 @@ terminals at any point in a key sequence.\n\
 The read-key-sequence function replaces subsequences bound by\n\
 function-key-map with their bindings.  When the current local and global\n\
 keymaps have no binding for the current key sequence but\n\
-function-key-map binds a suffix of the sequence to a vector,\n\
+function-key-map binds a suffix of the sequence to a vector or string,\n\
 read-key-sequence replaces the matching suffix with its binding, and\n\
 continues with the new sequence.\n\
 \n\
-For example, suppose function-key-map binds `ESC O P' to [pf1].\n\
-Typing `ESC O P' to read-key-sequence would return [pf1].  Typing\n\
-`C-x ESC O P' would return [?\C-x pf1].  If [pf1] were a prefix\n\
-key, typing `ESC O P x' would return [pf1 x].");
+For example, suppose function-key-map binds `ESC O P' to [f1].\n\
+Typing `ESC O P' to read-key-sequence would return [f1].  Typing\n\
+`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix\n\
+key, typing `ESC O P x' would return [f1 x].");
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   Qsingle_key_description = intern ("single-key-description");
