@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2003/05/14 22:34:05 vinicius>
-;; Version: 6.6.1
+;; Time-stamp: <2003/07/10 19:19:12 vinicius>
+;; Version: 6.6.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.1"
-  "ps-print.el, v 6.6.1 <2003/05/14 vinicius>
+(defconst ps-print-version "6.6.2"
+  "ps-print.el, v 6.6.2 <2003/07/10 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -4126,7 +4126,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-spool-without-faces (from to &optional region-p)
   (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p from)
+  (ps-printing-region region-p from to)
   (ps-generate (current-buffer) from to 'ps-generate-postscript))
 
 
@@ -4137,7 +4137,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-spool-with-faces (from to &optional region-p)
   (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p from)
+  (ps-printing-region region-p from to)
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
 
 
@@ -4167,11 +4167,11 @@ file.")
   "Non-nil means ps-print is printing a region.")
 
 
-(defun ps-printing-region (region-p from)
+(defun ps-printing-region (region-p from to)
   (setq ps-printing-region-p region-p
 	ps-printing-region
 	(cons (if region-p
-		  (ps-count-lines (point-min) from)
+		  (ps-count-lines (point-min) (min from to))
 		1)
 	      (ps-count-lines (point-min) (point-max)))))
 

@@ -1,3 +1,10 @@
+2003-07-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Print line number correctly in a region.  Reported by
+	Tim Allen <timallen@ls83.fsnet.co.uk>
+	(ps-print-version): New version number (6.6.2).
+	(ps-printing-region): Code fix.
+
 2003-07-10  John Paul Wallington  <jpw@gnu.org>
 
 	* progmodes/etags.el (visit-tags-table-buffer): Add autoload cookie;
