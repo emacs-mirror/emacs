@@ -3988,10 +3988,11 @@ xt_action_hook (widget, client_data, action_name, event, params,
       w = XWINDOW (window_being_scrolled);
       
       if (!NILP (XSCROLL_BAR (w->vertical_scroll_bar)->dragging))
-	/* The thumb size is incorrect while dragging: fix it.  */
-	set_vertical_scroll_bar (w);
-
-      XSCROLL_BAR (w->vertical_scroll_bar)->dragging = Qnil;
+	{
+	  XSCROLL_BAR (w->vertical_scroll_bar)->dragging = Qnil;
+	  /* The thumb size is incorrect while dragging: fix it.  */
+	  set_vertical_scroll_bar (w);
+	}
       window_being_scrolled = Qnil;
       last_scroll_bar_part = -1;
 
