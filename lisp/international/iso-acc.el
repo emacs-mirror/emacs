@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@mh.nl>
-;; Version: 1.7
+;; Version: 1.7 (modified)
 ;; Maintainer: FSF
 ;; Keywords: i18n
 
@@ -39,6 +39,7 @@
 ;;   ^  (caret)     -> circumflex
 ;;   ~  (tilde)     -> tilde over the character
 ;;   /  (slash)     -> slash through the character.
+;;                  Also:  /A is A-with-ring and /E is AE ligature.
 ;;
 ;; The action taken depends on the key that follows the pseudo accent.
 ;; In general: 
@@ -123,7 +124,11 @@
     ((?\~ ?o) ?\365)
     ((?\~ ?>) ?\273)
     ((?\~ ?<) ?\253)
+    ((?\/ ?A) ?\305) ;; A-with-ring (Norwegian and Danish)
+    ((?\/ ?E) ?\306) ;; AE-ligature (Norwegian and Danish)
     ((?\/ ?O) ?\330)
+    ((?\/ ?a) ?\345) ;; a-with-ring (Norwegian and Danish)
+    ((?\/ ?e) ?\346) ;; ae-ligature (Norwegian and Danish)
     ((?\/ ?o) ?\370)
     )
   "Association list for ISO accent combinations.")
