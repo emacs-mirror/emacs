@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 93 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -500,6 +500,9 @@ Just inserts the text, but uses `insert-before-markers'."
       (setq errors (cdr errors)))
     errors))
 
+(defsubst compilation-buffer-p (buffer)
+  (assq 'compilation-error-list (buffer-local-variables buffer)))
+
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
 Does NOT find the source line like \\[next-error]."
@@ -631,8 +634,7 @@ Does NOT find the source line like \\[next-error]."
     ;; discard the info we have, to force reparsing.
     (if (or (eq compilation-error-list t)
 	    (consp argp))
-	(progn (compilation-forget-errors)
-	       (setq compilation-parsing-end 1)))
+	(compilation-forget-errors))
     (if (and compilation-error-list
 	     (or (not limit-search)
 		 (> compilation-parsing-end limit-search))
@@ -641,18 +643,32 @@ Does NOT find the source line like \\[next-error]."
 	;; Since compilation-error-list is non-nil, it points to a specific
 	;; error the user wanted.  So don't move it around.
 	nil
-      (switch-to-buffer compilation-last-buffer)
+      ;; This was here for a long time (before my rewrite); why? --roland
+      ;;(switch-to-buffer compilation-last-buffer)
       (set-buffer-modified-p nil)
       (if (< compilation-parsing-end (point-max))
-	  (let ((at-start (= compilation-parsing-end 1)))
+	  ;; compilation-error-list might be non-nil if we have a non-nil
+	  ;; LIMIT-SEARCH of FIND-AT-LEAST arg.  In that case its value
+	  ;; records the current position in the error list, and we must
+	  ;; preserve that after reparsing.
+	  (let ((error-list-pos compilation-error-list))
 	    (funcall compilation-parse-errors-function
-		     limit-search find-at-least)
-	    ;; Remember the entire list for compilation-forget-errors.
-	    ;; If this is an incremental parse, append to previous list.
-	    (if at-start
-		(setq compilation-old-error-list compilation-error-list)
-	      (setq compilation-old-error-list
-		    (nconc compilation-old-error-list compilation-error-list)))
+		     limit-search
+		     (and find-at-least
+			  ;; We only need enough new parsed errors to reach
+			  ;; FIND-AT-LEAST errors past the current
+			  ;; position.
+			  (- find-at-least (length compilation-error-list))))
+	    ;; Remember the entire list for compilation-forget-errors.  If
+	    ;; this is an incremental parse, append to previous list.  If
+	    ;; we are parsing anew, compilation-forget-errors cleared
+	    ;; compilation-old-error-list above.
+	    (setq compilation-old-error-list
+		  (nconc compilation-old-error-list compilation-error-list))
+	    (if error-list-pos
+		;; We started in the middle of an existing list of parsed
+		;; errors before parsing more; restore that position.
+		(setq compilation-error-list error-list-pos))
 	    )))))
 
 (defun compile-goto-error (&optional argp)
@@ -686,9 +702,6 @@ other kinds of prefix arguments are ignored."
 	(set-buffer compilation-last-buffer)))
 
   (next-error 1))
-
-(defsubst compilation-buffer-p (buffer)
-  (assq 'compilation-error-list (buffer-local-variables buffer)))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
@@ -926,7 +939,8 @@ See variables `compilation-parse-errors-function' and
 	  (set-marker (cdr next-error) nil)))
     (setq compilation-old-error-list (cdr compilation-old-error-list)))
   (setq compilation-error-list nil
-	compilation-directory-stack nil))
+	compilation-directory-stack nil
+	compilation-parsing-end 1))
 
 
 (defun count-regexp-groupings (regexp)
@@ -1041,8 +1055,17 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       (setq compilation-directory-stack
 		     (cons dir compilation-directory-stack))
 	       (and (file-directory-p dir)
-		    (setq default-directory dir))))
-	    
+		    (setq default-directory dir)))
+
+	     (and limit-search (>= (point) limit-search)
+		  ;; The user wanted a specific error, and we're past it.
+		  ;; We do this check here (and in the leave-group case)
+		  ;; rather than at the end of the loop because if the last
+		  ;; thing seen is an error message, we must carefully
+		  ;; discard the last error when it is the first in a new
+		  ;; file (see below in the error-group case).
+		  (setq found-desired t)))
+
 	    ((match-beginning leave-group)
 	     ;; The match was the leave-directory regexp.
 	     (let ((beg (match-beginning (+ leave-group 1)))
@@ -1067,8 +1090,17 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       (setq stack (car compilation-directory-stack))
 	       (if stack
 		   (setq default-directory stack))
-	       ))
-	    
+	       )
+
+	     (and limit-search (>= (point) limit-search)
+		  ;; The user wanted a specific error, and we're past it.
+		  ;; We do this check here (and in the enter-group case)
+		  ;; rather than at the end of the loop because if the last
+		  ;; thing seen is an error message, we must carefully
+		  ;; discard the last error when it is the first in a new
+		  ;; file (see below in the error-group case).
+		  (setq found-desired t)))
+
 	    ((match-beginning error-group)
 	     ;; The match was the composite error regexp.
 	     ;; Find out which individual regexp matched.
@@ -1109,13 +1141,15 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				 compilation-error-list))
 		     (setq compilation-num-errors-found
 			   (1+ compilation-num-errors-found)))))
-	       (and find-at-least (>= compilation-num-errors-found
-				      find-at-least)
-		    ;; We have found as many new errors as the user wants.
-		    ;; We continue to parse until we have seen all
-		    ;; the consecutive errors in the same file,
-		    ;; so the error positions will be recorded as markers
-		    ;; in this buffer that might change.
+	       (and (or (and find-at-least (> compilation-num-errors-found
+					      find-at-least))
+			(and limit-search (>= (point) limit-search)))
+		    ;; We have found as many new errors as the user wants,
+		    ;; or past the buffer position he indicated.  We
+		    ;; continue to parse until we have seen all the
+		    ;; consecutive errors in the same file, so the error
+		    ;; positions will be recorded as markers in this buffer
+		    ;; that might change.
 		    (cdr compilation-error-list) ; Must check at least two.
 		    (not (equal (car (cdr (nth 0 compilation-error-list)))
 				(car (cdr (nth 1 compilation-error-list)))))
@@ -1134,9 +1168,11 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	    (t
 	     (error "compilation-parse-errors: known groups didn't match!")))
 
-      (message "Parsing error messages...%d (%d%% of buffer)"
+      (message "Parsing error messages...%d (%.0f%% of buffer)"
 	       compilation-num-errors-found
-	       (/ (* 100 (point)) (point-max)))
+	       ;; Use floating-point because (* 100 (point)) frequently
+	       ;; exceeds the range of Emacs Lisp integers.
+	       (/ (* 100.0 (point)) (point-max)))
 
       (and limit-search (>= (point) limit-search)
 	   ;; The user wanted a specific error, and we're past it.
