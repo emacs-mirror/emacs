@@ -95,7 +95,7 @@
 		     (let ((inv (overlay-get ol 'invisible)))
 		       (and inv (symbolp inv)
 			    (or (setq open (or (get inv 'reveal-toggle-invisible)
-					       (get ol 'isearch-open-invisible-temporary)))
+					       (overlay-get ol 'isearch-open-invisible-temporary)))
 				(overlay-get ol 'isearch-open-invisible)
 				(and (consp buffer-invisibility-spec)
 				     (assq inv buffer-invisibility-spec)))
@@ -129,7 +129,7 @@
 	     (if (or open
 		     (and (setq inv (overlay-get ol 'reveal-invisible))
 			  (setq open (or (get inv 'reveal-toggle-invisible)
-					 (get ol 'isearch-open-invisible-temporary)))))
+					 (overlay-get ol 'isearch-open-invisible-temporary)))))
 		 (condition-case err
 		     (funcall open ol t)
 		   (error (message "!!Reveal-hide: %s !!" err)))
@@ -171,4 +171,5 @@ With zero or negative ARG turn mode off."
 
 (provide 'reveal)
 
+;;; arch-tag: 96ba0242-2274-4ed7-8e10-26bc0707b4d8
 ;;; reveal.el ends here

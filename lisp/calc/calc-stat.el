@@ -586,4 +586,5 @@
 		 (math-div (math-mul suminvsqrwts (1- len)) len))
 	     (if pop len (1- len)))))))))
 
+;;; arch-tag: 423858e9-8513-489c-9f35-710cd9d9c307
 ;;; calc-stat.el ends here

@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
-   Copyright (C) 1993, 94, 95, 96, 97, 1999, 2000, 2001
+   Copyright (C) 1993, 94, 95, 96, 97, 1999, 2000, 01, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -64,6 +64,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "blockinput.h"
 #include "keyboard.h"
+#include "intervals.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
@@ -1260,8 +1261,8 @@ show_mouse_face (struct display_info *dpyinfo, int hl)
       row->mouse_face_p = hl > 0;
       if (hl > 0)
 	{
-	  int vpos = row->y + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
-	  int kstart = start_hpos + WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
+	  int vpos = row->y + WINDOW_TOP_EDGE_Y (w);
+	  int kstart = start_hpos + WINDOW_LEFT_EDGE_X (w);
 	  int nglyphs = end_hpos - start_hpos;
 	  int offset = ScreenPrimary + 2*(vpos*screen_size_X + kstart) + 1;
 	  int start_offset = offset;
@@ -1303,8 +1304,8 @@ show_mouse_face (struct display_info *dpyinfo, int hl)
 	  /* IT_write_glyphs writes at cursor position, so we need to
 	     temporarily move cursor coordinates to the beginning of
 	     the highlight region.  */
-	  new_pos_X = start_hpos + WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
-	  new_pos_Y = row->y + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
+	  new_pos_X = start_hpos + WINDOW_LEFT_EDGE_X (w);
+	  new_pos_Y = row->y + WINDOW_TOP_EDGE_Y (w);
 
 	  if (termscript)
 	    fprintf (termscript, "<MH- %d-%d:%d>",
@@ -1433,8 +1434,10 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
       Lisp_Object help, map;
 
       /* Find the glyph under X.  */
-      glyph = row->glyphs[TEXT_AREA]
-	+ x - FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f);
+      glyph = (row->glyphs[TEXT_AREA]
+	       + x
+	       /* in case someone implements scroll bars some day... */
+	       - WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w));
       end = glyph + row->used[TEXT_AREA];
       if (glyph < end
 	  && STRINGP (glyph->object)
@@ -1492,7 +1495,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
     }
 
   /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &part, 0);
+  window = window_from_coordinates (f, x, y, &part, &x, &y, 0);
 
   /* If we were displaying active text in another window, clear that.  */
   if (! EQ (window, dpyinfo->mouse_face_window))
@@ -1504,8 +1507,6 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
   /* Convert to window-relative coordinates.  */
   w = XWINDOW (window);
-  x -= WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
-  y -= WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
 
   if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
     {
@@ -1513,8 +1514,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
       IT_note_mode_line_highlight (w, x, part == ON_MODE_LINE);
       return;
     }
-  else
-    IT_set_mouse_pointer (0);
+
+  IT_set_mouse_pointer (0);
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
@@ -1881,7 +1882,7 @@ IT_cmgoto (FRAME_PTR f)
   /* If we are in the echo area, put the cursor at the
      end of the echo area message.  */
   if (!update_cursor_pos
-      && XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top) <= new_pos_Y)
+      && WINDOW_TOP_EDGE_LINE (XWINDOW (FRAME_MINIBUF_WINDOW (f))) <= new_pos_Y)
     {
       int tem_X = current_pos_X, dummy;
 
@@ -2548,7 +2549,6 @@ internal_terminal_init ()
       if (colors[1] >= 0 && colors[1] < 16)
         the_only_x_display.background_pixel = colors[1];
     }
-  the_only_x_display.line_height = 1;
   the_only_x_display.font = (XFontStruct *)1;   /* must *not* be zero */
   the_only_x_display.display_info.mouse_face_mouse_frame = NULL;
   the_only_x_display.display_info.mouse_face_deferred_gc = 0;
@@ -3131,7 +3131,8 @@ dos_rawgetc ()
   struct input_event event;
   union REGS regs;
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (SELECTED_FRAME());
-
+  EVENT_INIT (event);
+  
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
   IT_cmgoto (SELECTED_FRAME());
@@ -3383,7 +3384,7 @@ dos_rawgetc ()
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
 						      mouse_last_y,
-						      0, 0);
+						      0, 0, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -4011,13 +4012,13 @@ XMenuDestroy (Display *foo, XMenu *menu)
 int
 x_pixel_width (struct frame *f)
 {
-  return FRAME_WIDTH (f);
+  return FRAME_COLS (f);
 }
 
 int
 x_pixel_height (struct frame *f)
 {
-  return FRAME_HEIGHT (f);
+  return FRAME_LINES (f);
 }
 #endif /* !HAVE_X_WINDOWS */
 
@@ -5297,3 +5298,6 @@ nil means don't delete them until `list-processes' is run.  */);
 }
 
 #endif /* MSDOS */
+
+/* arch-tag: db404e92-52a5-475f-9eb2-1cb78dd05f30
+   (do not change this comment) */

@@ -717,15 +717,21 @@ or directories unless otherwise noted.
   These functions test for permission to access a file in specific ways.
 
 @defun file-exists-p filename
-This function returns @code{t} if a file named @var{filename} appears to
-exist.  This does not mean you can necessarily read the file, only that
-you can find out its attributes.  (On Unix and GNU/Linux, this is true
-if the file exists and you have execute permission on the containing
-directories, regardless of the protection of the file itself.)
+This function returns @code{t} if a file named @var{filename} appears
+to exist.  This does not mean you can necessarily read the file, only
+that you can find out its attributes.  (On Unix and GNU/Linux, this is
+true if the file exists and you have execute permission on the
+containing directories, regardless of the protection of the file
+itself.)
 
 If the file does not exist, or if fascist access control policies
 prevent you from finding the attributes of the file, this function
 returns @code{nil}.
+
+Directories are files, so @code{file-exists-p} returns @code{t} when
+given a directory name.  However, symbolic links are treated
+specially; @code{file-exists-p} returns @code{t} for a symbolic link
+name only if the target file exists.
 @end defun
 
 @defun file-readable-p filename
@@ -859,10 +865,10 @@ as directories, symbolic links, and ordinary files.
 
 @defun file-symlink-p filename
 @cindex file symbolic links
-If the file @var{filename} is a symbolic link, the @code{file-symlink-p}
-function returns the file name to which it is linked.  This may be the
-name of a text file, a directory, or even another symbolic link, or it
-may be a nonexistent file name.
+If the file @var{filename} is a symbolic link, the
+@code{file-symlink-p} function returns the link target as a string.
+(Determining the file name that the link points to from the target is
+nontrivial.)
 
 If the file @var{filename} is not a symbolic link (or there is no such file),
 @code{file-symlink-p} returns @code{nil}.
@@ -942,10 +948,12 @@ The function @code{file-truename} returns the truename of the file
 @var{filename}.  The argument must be an absolute file name.
 @end defun
 
-@defun file-chase-links filename
+@defun file-chase-links filename &optional limit
 This function follows symbolic links, starting with @var{filename},
 until it finds a file name which is not the name of a symbolic link.
-Then it returns that file name.
+Then it returns that file name.  If you specify a number for
+@var{limit}, then after chasing through that many links, the function
+just returns what it as even if that is still a symbolic link.
 @end defun
 
   To illustrate the difference between @code{file-chase-links} and
@@ -1270,12 +1278,16 @@ In an interactive call, this function prompts for @var{filename} and
 
 @deffn Command copy-file oldname newname &optional ok-if-exists time
 This command copies the file @var{oldname} to @var{newname}.  An
-error is signaled if @var{oldname} does not exist.
+error is signaled if @var{oldname} does not exist.  If @var{newname}
+names a directory, it copies @var{oldname} into that directory,
+preserving its final name component.
 
 If @var{time} is non-@code{nil}, then this function gives the new file
 the same last-modified time that the old one has.  (This works on only
 some operating systems.)  If setting the time gets an error,
 @code{copy-file} signals a @code{file-date-error} error.
+
+This function copies the file modes, too.
 
 In an interactive call, this function prompts for @var{filename} and
 @var{newname} in the minibuffer; also, it requests confirmation if
@@ -1474,7 +1486,7 @@ This function returns the nondirectory part of @var{filename}.
 This function returns @var{filename}'s final ``extension,'' if any,
 after applying @code{file-name-sans-versions} to remove any
 version/backup part.  It returns @code{nil} for extensionless file
-names such as @file{foo}.  If @var{period} is non-nil, then the
+names such as @file{foo}.  If @var{period} is non-@code{nil}, then the
 returned value includes the period that delimits the extension, and if
 @var{filename} has no extension, the value is @code{""}.  If the last
 component of a file name begins with a @samp{.}, that @samp{.} doesn't
@@ -1801,14 +1813,25 @@ default-directory
 
 @defun substitute-in-file-name filename
 This function replaces environment variables references in
-@var{filename} with the environment variable values.  Following standard
-Unix shell syntax, @samp{$} is the prefix to substitute an environment
-variable value.
+@var{filename} with the environment variable values.  Following
+standard Unix shell syntax, @samp{$} is the prefix to substitute an
+environment variable value.  If the input contains @samp{$$}, that is
+converted to @samp{$}; this gives the user a way to ``quote'' a
+@samp{$}.
 
 The environment variable name is the series of alphanumeric characters
 (including underscores) that follow the @samp{$}.  If the character following
 the @samp{$} is a @samp{@{}, then the variable name is everything up to the
 matching @samp{@}}.
+
+Calling @code{substitute-in-file-name} on output produced by
+@code{substitute-in-file-name} tends to give incorrect results.  For
+instance, use of @samp{$$} to quote a single @samp{$} won't work
+properly, and @samp{$} in an environment variable's value could lead
+to repeated substitution.  Therefore, programs that call this function
+and put the output where it will be passed to this function need to
+double all @samp{$} characters to prevent subsequent incorrect
+results.
 
 @c Wordy to avoid overfull hbox.  --rjc 15mar92
 Here we assume that the environment variable @code{HOME}, which holds
@@ -2276,6 +2299,11 @@ this:
 The @var{handler} then needs to figure out whether to handle
 @var{filename} or @var{dirname}.
 
+If the specified file name matches more than one handler, the one
+whose match starts last in the file name gets precedence.  This rule
+is chosen so that handlers for jobs such as uncompression are handled
+first, before handlers for jobs such as remote file access.
+
 Here are the operations that a magic file name handler gets to handle:
 
 @ifnottex
@@ -2405,6 +2433,16 @@ shown above; the details are crucial for proper behavior in the case of
 multiple handlers, and for operations that have two file names that may
 each have handlers.
 
+@kindex safe-magic (@r{property})
+Handlers that don't really do anything specal for actual access to the
+file---such as the ones that implement completion of host names for
+remote file names---should have a non-@code{nil} @code{safe-magic}
+property.  For instance, Emacs normally ``protects'' directory names
+it finds in @code{PATH} from becoming magic, if they look like magic
+file names, by prefixing them with @samp{/:}.  But if the handler that
+would be used for them has a non-@code{nil} @code{safe-magic}
+property, the @samp{/:} is not added.
+
 @defvar inhibit-file-name-handlers
 This variable holds a list of handlers whose use is presently inhibited
 for a certain operation.
@@ -2423,15 +2461,22 @@ for comparison with @code{inhibit-file-name-operation}.
 @end defun
 
 @defun file-local-copy filename
-This function copies file @var{filename} to an ordinary non-magic file,
-if it isn't one already.
+This function copies file @var{filename} to an ordinary non-magic file
+on the local machine, if it isn't on the local machine already.  Magic
+file names should handle the @code{file-local-copy} operation if they
+refer to files on other machines.  A magic file name that is used for
+other purposes than remote file access should not handle
+@code{file-local-copy}; then this function will treat the file as
+local.
 
-If @var{filename} specifies a magic file name, which programs
-outside Emacs cannot directly read or write, this copies the contents to
-an ordinary file and returns that file's name.
+If @var{filename} is local, whether magic or not, this function does
+nothing and returns @code{nil}.  Otherwise it returns the file name
+of the local copy file.
+@end defun
 
-If @var{filename} is an ordinary file name, not magic, then this function
-does nothing and returns @code{nil}.
+@defun file-remote-p filename
+This functions return @code{t} if @var{filename} is a remote file---that is,
+a magic file name that handles @code{file-local-copy}.
 @end defun
 
 @defun unhandled-file-name-directory filename
@@ -2599,3 +2644,7 @@ a list of format names, just like the value of
 @code{buffer-file-format} for writing auto-save files.  This variable is
 always buffer-local in all buffers.
 @end defvar
+
+@ignore
+   arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
+@end ignore

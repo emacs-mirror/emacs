@@ -1,3 +1,36 @@
+2003-06-25  Sam Steingold  <sds@gnu.org>
+
+	* gnus-group.el (gnus-group-suspend): Avoid some consing.
+
+2003-06-11  Sam Steingold  <sds@gnu.org>
+
+	* pop3.el (pop3-leave-mail-on-server): New user variable.
+	(pop3-movemail): Delete mail only when it is nil.
+
+2003-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* message.el (message-buffer-naming-style): Fix typo.
+
+2003-05-07  Dave Love  <fx@gnu.org>
+
+	[Partial sync with Gnus.]
+
+	* rfc2047.el (rfc2047-header-encoding-alist): Add Followup-To.
+	(rfc2047-encode-message-header): Fold when encoding not necessary.
+	(rfc2047-encode-region): Skip \n as whitespace.
+	(rfc2047-fold-region): Fix whitespace regexps.  Don't break just
+	after the header name.
+	(rfc2047-unfold-region): Fix regexp and whitespace-skipping.
+
+2003-05-06  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus-cus.el (gnus-group-customize, gnus-score-parameters): Don't
+	quote nil and t in docstrings.
+
+	* gnus-score.el (gnus-score-lower-thread): Likewise.
+
+	* gnus-art.el (gnus-article-mime-match-handle-function): Likewise.
+
 2003-02-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnfolder.el (nnfolder-request-accept-article): Don't use
@@ -11145,3 +11178,5 @@
     Copyright (C) 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 3f33a3e7-090d-492b-bedd-02a1417d32b4

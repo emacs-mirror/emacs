@@ -301,4 +301,5 @@ The backup file is the first file given to `diff'."
 
 (provide 'diff)
 
+;;; arch-tag: 7de2c29b-7ea5-4b85-9b9d-72dd860de2bd
 ;;; diff.el ends here

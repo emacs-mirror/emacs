@@ -202,6 +202,12 @@ This is used for directory tracking and does not do a perfect job."
   :type 'regexp
   :group 'shell)
 
+(defcustom shell-command-separator-regexp "[;&|\n \t]*"
+  "*Regexp to match a single command within a pipeline.
+This is used for directory tracking and does not do a perfect job."
+  :type 'regexp
+  :group 'shell)
+
 (defcustom shell-completion-execonly t
   "*If non-nil, use executable files only for completion candidates.
 This mirrors the optional behavior of tcsh.
@@ -454,8 +460,30 @@ buffer."
       (setq shell-dirstack-query
 	    (cond ((string-equal shell "sh") "pwd")
 		  ((string-equal shell "ksh") "echo $PWD ~-")
-		  (t "dirs"))))
+		  (t "dirs")))
+      ;; Bypass a bug in certain versions of bash.
+      (when (string-equal shell "bash")
+        (add-hook 'comint-output-filter-functions
+                  'shell-filter-ctrl-a-ctrl-b nil t)))
     (comint-read-input-ring t)))
+
+(defun shell-filter-ctrl-a-ctrl-b (string)
+  "Remove `^A' and `^B' characters from comint output.
+
+Bash uses these characters as internal quoting characters in its
+prompt.  Due to a bug in some bash versions (including 2.03,
+2.04, and 2.05b), they may erroneously show up when bash is
+started with the `--noediting' option and Select Graphic
+Rendition (SGR) control sequences (formerly known as ANSI escape
+sequences) are used to color the prompt.
+
+This function can be put on `comint-output-filter-functions'.
+The argument STRING is ignored."
+  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
+    (save-excursion
+      (goto-char (or comint-last-output-start (point-min)))
+      (while (re-search-forward "[\C-a\C-b]" pmark t)
+        (replace-match "")))))
 
 (defun shell-write-history-on-exit (process event)
   "Called when the shell process is stopped.
@@ -505,7 +533,8 @@ Otherwise, one argument `-i' is passed to the shell.
   (interactive
    (list
     (and current-prefix-arg
-	 (read-buffer "Shell buffer: " "*shell*"))))
+	 (read-buffer "Shell buffer: "
+		      (generate-new-buffer-name "*shell*")))))
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
@@ -586,7 +615,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
       (condition-case chdir-failure
-	  (let ((start (progn (string-match "^[; \t]*" str) ; skip whitespace
+	  (let ((start (progn (string-match
+			       (concat "^" shell-command-separator-regexp)
+			       str) ; skip whitespace
 			      (match-end 0)))
 		end cmd arg1)
 	    (while (string-match shell-command-regexp str start)
@@ -612,7 +643,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 						"\\)\\($\\|[ \t]\\)")
 					cmd))
 		     (shell-process-cd (comint-substitute-in-file-name cmd))))
-	      (setq start (progn (string-match "[; \t]*" str end) ; skip again
+	      (setq start (progn (string-match shell-command-separator-regexp
+					       str end)
+				 ;; skip again
 				 (match-end 0)))))
 	(error "Couldn't cd"))))
 
@@ -769,12 +802,16 @@ command again."
     (let ((pt (point))) ; wait for 1 line
       ;; This extra newline prevents the user's pending input from spoofing us.
       (insert "\n") (backward-char 1)
-      (while (not (looking-at ".+\n"))
+      (while (not (looking-at
+		   (concat "\\(" ; skip literal echo in case of stty echo
+			   (regexp-quote shell-dirstack-query)
+			   "\n\\)?" ; skip if present
+			   "\\(" ".+\n" "\\)")) ) ; what to actually look for
 	(accept-process-output proc)
 	(goto-char pt)))
     (goto-char pmark) (delete-char 1) ; remove the extra newline
     ;; That's the dirlist. grab it & parse it.
-    (let* ((dl (buffer-substring (match-beginning 0) (1- (match-end 0))))
+    (let* ((dl (buffer-substring (match-beginning 2) (1- (match-end 2))))
 	   (dl-len (length dl))
 	   (ds '())			; new dir stack
 	   (i 0))
@@ -1028,4 +1065,5 @@ Returns t if successful."
 
 (provide 'shell)
 
+;;; arch-tag: bcb5f12a-c1f4-4aea-a809-2504bd5bd797
 ;;; shell.el ends here

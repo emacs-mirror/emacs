@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2003 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -266,7 +266,12 @@ ARGLIST allows full Common Lisp conventions."
 	     (nconc (let ((hdr (nreverse header)))
 		      (require 'help-fns)
 		      (cons (help-add-fundoc-usage
-			     (if (stringp (car hdr)) (pop hdr)) orig-args)
+			     (if (stringp (car hdr)) (pop hdr))
+			     ;; orig-args can contain &cl-defs (an internal CL
+			     ;; thingy that I do not understand), so remove it.
+			     (let ((x (memq '&cl-defs orig-args)))
+			       (if (null x) orig-args
+				 (delq (car x) (remq (cadr x) orig-args)))))
 			    hdr))
 		    (list (nconc (list 'let* bind-lets)
 				 (nreverse bind-forms) body)))))))
@@ -486,7 +491,7 @@ The result of the body appears to the compiler as a quoted constant."
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
 against each key in each KEYLIST; the corresponding BODY is evaluated.
 If no clause succeeds, case returns nil.  A single atom may be used in
-place of a KEYLIST of one atom.  A KEYLIST of `t' or `otherwise' is
+place of a KEYLIST of one atom.  A KEYLIST of t or `otherwise' is
 allowed only in the final clause, and matches if no other keys match.
 Key values are compared by `eql'."
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (gensym)))
@@ -523,7 +528,7 @@ Key values are compared by `eql'."
   "Evals EXPR, chooses from CLAUSES on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
 satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
-typecase returns nil.  A TYPE of `t' or `otherwise' is allowed only in the
+typecase returns nil.  A TYPE of t or `otherwise' is allowed only in the
 final clause, and matches if no other keys match."
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (gensym)))
 	 (type-list nil)
@@ -912,7 +917,7 @@ Valid clauses are:
 		      (setq var (prog1 other (setq other var))))
 		  (setq loop-map-form
 			(list (if (memq word '(key-seq key-seqs))
-				  'cl-map-keymap-recursively 'cl-map-keymap)
+				  'cl-map-keymap-recursively 'map-keymap)
 			      (list 'function (list* 'lambda (list var other)
 						     '--cl-map)) map))))
 
@@ -2497,7 +2502,9 @@ surrounded by (block NAME ...).
     (list 'progn
 	  (if p nil   ; give up if defaults refer to earlier args
 	    (list 'define-compiler-macro name
-		  (list* '&whole 'cl-whole '&cl-quote args)
+		  (if (memq '&key args)
+		      (list* '&whole 'cl-whole '&cl-quote args)
+		    (cons '&cl-quote args))
 		  (list* 'cl-defsubst-expand (list 'quote argns)
 			 (list 'quote (list* 'block name body))
 			 (not (or unsafe (cl-expr-access-order pbody argns)))
@@ -2650,4 +2657,5 @@ surrounded by (block NAME ...).
 ;;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
 ;;; End:
 
+;;; arch-tag: afd947a6-b553-4df1-bba5-000be6388f46
 ;;; cl-macs.el ends here

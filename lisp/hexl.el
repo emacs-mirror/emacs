@@ -297,7 +297,7 @@ Switch to a buffer visiting file FILENAME, creating one in none exists."
     (let ((completion-ignored-extensions nil))
       (read-file-name "Filename: " nil nil 'ret-must-match))))
   ;; Ignore the user's setting of default-major-mode.
-  (let ((default-major-mode 'hexl-mode))
+  (let ((default-major-mode 'fundamental-mode))
     (find-file-literally filename))
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
@@ -953,4 +953,5 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 
 (provide 'hexl)
 
+;;; arch-tag: d5a7aa8a-9bce-480b-bcff-6c4c7ca5ea4a
 ;;; hexl.el ends here

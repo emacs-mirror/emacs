@@ -1,10 +1,9 @@
 ;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion
 
-;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003 Free Software Foundation, Inc.
 
-;; Authors:    2000- Martin Stjernholm
-;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
-;;	       1994-1997 Barry A. Warsaw
+;; Authors:    1998- Martin Stjernholm
+;;	       1994-1999 Barry A. Warsaw
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    August 1994, split from cc-mode.el
 ;; Version:    See cc-mode.el
@@ -51,7 +50,7 @@
 		  (stringp byte-compile-dest-file))
 	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (require 'cc-bytecomp)))
+    (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
@@ -106,7 +105,7 @@ This is in addition to c-continued-statement-offset.")
     (if (eq (char-before) ?{)
 	(forward-char -1)
       (goto-char (cdr langelem)))
-    (let* ((curcol (save-excursion
+    (let* ((curcol (save-excursion 
 		     (goto-char (cdr langelem))
 		     (current-column)))
 	  (bocm-lossage
@@ -138,7 +137,7 @@ This is in addition to c-continued-statement-offset.")
 (defun cc-block-close-offset (langelem)
   (save-excursion
     (let* ((here (point))
-	   bracep
+	   bracep 
 	   (curcol (progn
 		     (goto-char (cdr langelem))
 		     (current-column)))
@@ -154,11 +153,13 @@ This is in addition to c-continued-statement-offset.")
 			   (current-column))))
       (- bocm-lossage curcol
 	 (if bracep 0 c-indent-level)))))
-
+      
 
 (defun cc-substatement-open-offset (langelem)
   (+ c-continued-statement-offset c-continued-brace-offset))
 
 
 (cc-provide 'cc-compat)
+
+;;; arch-tag: 564dab2f-e6ad-499c-a4a3-fedec3ecc192
 ;;; cc-compat.el ends here

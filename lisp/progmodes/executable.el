@@ -1,6 +1,6 @@
 ;;; executable.el --- base functionality for executable interpreter scripts -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1994, 1995, 1996, 2000 by Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2000, 2003 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: languages, unix
@@ -227,34 +227,28 @@ executable."
       (not (or insert-flag executable-insert))
       (> (point-min) 1)
       (save-excursion
-	(let ((point (point-marker))
-	      (buffer-modified-p (buffer-modified-p)))
-	  (goto-char (point-min))
-	  (add-hook 'after-save-hook 'executable-chmod nil t)
-	  (if (looking-at "#![ \t]*\\(.*\\)$")
-	      (and (goto-char (match-beginning 1))
-		   ;; If the line ends in a space,
-		   ;; don't offer to change it.
-		   (not (= (char-after (1- (match-end 1))) ?\ ))
-		   (not (string= argument
-				 (buffer-substring (point) (match-end 1))))
-		   (if (or (not executable-query) no-query-flag
-			   (save-window-excursion
-			     ;; Make buffer visible before question.
-			     (switch-to-buffer (current-buffer))
-			     (y-or-n-p (concat "Replace magic number by `"
-					       executable-prefix argument "'? "))))
-		       (progn
-			 (replace-match argument t t nil 1)
-			 (message "Magic number changed to `%s'"
-				  (concat executable-prefix argument)))))
-	    (insert executable-prefix argument ?\n)
-	    (message "Magic number changed to `%s'"
-		     (concat executable-prefix argument)))
-;;;	  (or insert-flag
-;;;	      (eq executable-insert t)
-;;;	      (set-buffer-modified-p buffer-modified-p))
-	  )))
+	(goto-char (point-min))
+	(add-hook 'after-save-hook 'executable-chmod nil t)
+	(if (looking-at "#![ \t]*\\(.*\\)$")
+	    (and (goto-char (match-beginning 1))
+		 ;; If the line ends in a space,
+		 ;; don't offer to change it.
+		 (not (= (char-after (1- (match-end 1))) ?\ ))
+		 (not (string= argument
+			       (buffer-substring (point) (match-end 1))))
+		 (if (or (not executable-query) no-query-flag
+			 (save-window-excursion
+			   ;; Make buffer visible before question.
+			   (switch-to-buffer (current-buffer))
+			   (y-or-n-p (concat "Replace magic number by `"
+					     executable-prefix argument "'? "))))
+		     (progn
+		       (replace-match argument t t nil 1)
+		       (message "Magic number changed to `%s'"
+				(concat executable-prefix argument)))))
+	  (insert executable-prefix argument ?\n)
+	  (message "Magic number changed to `%s'"
+		   (concat executable-prefix argument)))))
     interpreter)
 
 
@@ -276,7 +270,7 @@ file modes."
   (and (>= (buffer-size) 2)
        (save-restriction
 	 (widen)
-	 (string= "#!" (buffer-substring 1 3)))
+	 (string= "#!" (buffer-substring (point-min) (+ 2 (point-min)))))
        (let* ((current-mode (file-modes (buffer-file-name)))
               (add-mode (logand ?\111 (default-file-modes))))
          (or (/= (logand ?\111 current-mode) 0)
@@ -286,4 +280,5 @@ file modes."
 
 (provide 'executable)
 
+;;; arch-tag: 58458d1c-d9db-45ec-942b-8bbb1d5e319d
 ;;; executable.el ends here

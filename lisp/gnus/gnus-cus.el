@@ -161,7 +161,7 @@ All posts will be sent to the specified group.")
 		      (string :format "%v" :hide-front-space t)) "\
 Specify default value for GCC header.
 
-If this symbol is present in the group parameter list and set to `t',
+If this symbol is present in the group parameter list and set to t,
 new composed messages will be `Gcc''d to the current group.  If it is
 present and set to `none', no `Gcc:' header will be generated, if it
 is present and a string, this string will be inserted literally as a
@@ -387,7 +387,7 @@ Set variables local to the group you are entering.
 If you want to turn threading off in `news.answers', you could put
 `(gnus-show-threads nil)' in the group parameters of that group.
 `gnus-show-threads' will be made into a local variable in the summary
-buffer you enter, and the form `nil' will be `eval'ed there.
+buffer you enter, and the form nil will be `eval'ed there.
 
 This can also be used as a group-specific hook function, if you'd
 like.  If you want to hear a beep when you enter a group, you could
@@ -500,15 +500,15 @@ by ordinary scoring rules.")
 		   (sexp :format "%v"
 			 :hide-front-space t)) "\
 This entry controls the adaptive scoring.
-If it is `t', the default adaptive scoring rules will be used.  If it
+If it is t, the default adaptive scoring rules will be used.  If it
 is `ignore', no adaptive scoring will be performed on this group.  If
 it is a list, this list will be used as the adaptive scoring rules.
-If it isn't present, or is something other than `t' or `ignore', the
+If it isn't present, or is something other than t or `ignore', the
 default adaptive scoring rules will be used.  If you want to use
 adaptive scoring on most groups, you'd set `gnus-use-adaptive-scoring'
-to `t', and insert an `(adapt ignore)' in the groups where you do not
+to t, and insert an `(adapt ignore)' in the groups where you do not
 want adaptive scoring.  If you only want adaptive scoring in a few
-groups, you'd set `gnus-use-adaptive-scoring' to `nil', and insert
+groups, you'd set `gnus-use-adaptive-scoring' to nil, and insert
 `(adapt t)' in the score files of the groups where you want it.")
 
     (adapt-file (file :tag "Adapt-file") "\
@@ -818,4 +818,5 @@ articles in the thread.
 
 (provide 'gnus-cus)
 
+;;; arch-tag: a37c285a-49bc-4235-8244-804536effeaf
 ;;; gnus-cus.el ends here

@@ -1,3 +1,18 @@
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* xlwmenu.c: Include lisp.h, not ../src/lisp.h.
+	(make_drawing_gcs): Remove unused `xswa', `mask'.
+
+	* lwlib-Xlw.c: Include lisp.h, not ../src/lisp.h.
+	(lw_lucid_widget_p): Remove unused `mw'.
+	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]: Provide
+	ISO C arglists.
+
+2003-04-30  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in: Make things function properly in case both LessTif
+	and Open Motif are installed.
+
 2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
@@ -1169,3 +1184,5 @@
         Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 0cd8ab87-d764-40d9-b86d-d00c71887a9e

@@ -16,3 +16,6 @@ set_proc_str(ptr) char *ptr; {
     else
 	printf("string too long for set-proc-str: %s\n", ptr);
     }
+
+/* arch-tag: eb7ae804-0d6e-4077-ab42-7173821410c3
+   (do not change this comment) */

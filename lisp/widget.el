@@ -95,4 +95,5 @@ The third argument DOC is a documentation string for the widget."
 
 (provide 'widget)
 
+;;; arch-tag: 932c71a3-9aeb-4827-a293-8b88b26d5c58
 ;;; widget.el ends here

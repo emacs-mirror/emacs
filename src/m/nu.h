@@ -69,3 +69,6 @@ Boston, MA 02111-1307, USA.  */
    in the executable file.  */
 
 #define SECTION_ALIGNMENT pagemask
+
+/* arch-tag: 7d2d9b6d-75d4-4c0d-96a9-a41f06212f35
+   (do not change this comment) */

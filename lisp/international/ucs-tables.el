@@ -1180,7 +1180,9 @@ everything on input operations."
 
   (when for-encode
     ;; Make mule-utf-* encode all characters in ucs-mule-to-mule-unicode.
-    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le)))
+    (let ((coding-list '(mule-utf-8 mule-utf-16be mule-utf-16le
+				    mule-utf-16be-with-signature
+				    mule-utf-16le-with-signature)))
       (define-translation-table 'utf-translation-table-for-encode
 	ucs-mule-to-mule-unicode)
       (dolist (coding coding-list)
@@ -1219,7 +1221,9 @@ unification on input operations."
     ;; ucs-mule-to-mule-unicode except what was originally supported
     ;; and what is translated by utf-translation-table-for-decode when
     ;; `utf-fragment-on-decoding' is non-nil.
-    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
+    (let ((coding-list '(mule-utf-8 mule-utf-16be mule-utf-16le
+				    mule-utf-16be-with-signature
+				    mule-utf-16le-with-signature))
 	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
       (dolist (coding coding-list)
 	(set-char-table-parent (coding-system-get coding 'safe-chars) nil))
@@ -2527,4 +2531,5 @@ Intended to be added to `minibuffer-setup-hook'."
 
 (provide 'ucs-tables)
 
+;;; arch-tag: b497e22b-7fe1-486a-9352-e2d7f7d76a76
 ;;; ucs-tables.el ends here

@@ -416,4 +416,5 @@ definition of \"random distance\".)"
 (if mouse-avoidance-mode
     (mouse-avoidance-mode mouse-avoidance-mode))
 
+;;; arch-tag: 64ad4ef8-a870-4183-8d96-3aa93b7a6800
 ;;; avoid.el ends here

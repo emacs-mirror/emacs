@@ -357,4 +357,5 @@ the form:
       (eshell-glob-entries (car rdirs) globs recurse-p)
       (setq rdirs (cdr rdirs)))))
 
+;;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
 ;;; em-glob.el ends here

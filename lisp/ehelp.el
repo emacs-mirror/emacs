@@ -418,9 +418,13 @@ will select it.)"
     (substitute-key-definition 'describe-bindings 'electric-describe-bindings map)
     (substitute-key-definition 'describe-syntax 'electric-describe-syntax map)
 
-    (setq ehelp-map map)
-    (fset 'ehelp-command map)))
+    (setq ehelp-map map)))
+
+;;;###(autoload 'ehelp-command "ehelp" "Prefix command for ehelp." t 'keymap)
+(defalias 'ehelp-command ehelp-map)
+(put 'ehelp-command 'documentation "Prefix command for ehelp.")
 
 (provide 'ehelp)
 
+;;; arch-tag: e0e3037f-42c0-433e-ba18-322c5d951f46
 ;;; ehelp.el ends here

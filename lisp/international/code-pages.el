@@ -33,13 +33,12 @@
 
 ;; Those covered are: cp437, cp737, cp720, cp775, cp850, cp851, cp852,
 ;; cp855, cp857, cp860, cp861, cp862, cp863, cp864, cp865, cp866,
-;; cp869, cp874, cp1125, windows-1250, windows-1251, windows-1252,
-;; windows-1253, windows-1254, windows-1255, windows-1256,
-;; windows-1257, windows-1258, next, koi8-u, iso-8859-6,
-;; iso-8859-10, iso-8859-11, iso-8859-16, koi8-t, georgian-ps.  This
-;; is meant to include all the single-byte ones relevant to GNU (used
-;; in glibc-defined locales); we don't yet get all the multibyte ones
-;; in base Emacs.
+;; cp869, cp874, cp1125, windows-1250, windows-1253, windows-1254,
+;; windows-1255, windows-1256, windows-1257, windows-1258, next,
+;; iso-8859-6, iso-8859-10, iso-8859-11, iso-8859-16, koi8-t,
+;; georgian-ps.  This is meant to include all the single-byte ones
+;; relevant to GNU (used in glibc-defined locales); we don't yet get
+;; all the multibyte ones in base Emacs.
 
 ;; Note that various of these can clash with definitions in
 ;; codepage.el; we try to avoid damage from that.  A few CPs from
@@ -54,7 +53,11 @@
 
 ;;; Code:
 
-(defun cp-make-translation-table (v)
+;; The defsubsts here are just so that language files can use
+;; `cp-make-coding-system' and not require functions from this file
+;; at runtime.
+
+(defsubst cp-make-translation-table (v)
   "Return a translation table made from 128-long vector V.
 V comprises characters encodable by mule-utf-8."
   (let ((encoding-vector (make-vector 256 0)))
@@ -75,7 +78,7 @@ V comprises characters encodable by mule-utf-8."
 		      ucs-mule-to-mule-unicode)
       tab)))
 
-(defun cp-valid-codes (v)
+(defsubst cp-valid-codes (v)
   "Derive a valid-codes list for translation vector V.
 See `make-coding-system'."
   (let (pairs
@@ -93,13 +96,6 @@ See `make-coding-system'."
       (setq i (1+ i)))
     (if start (push (cons start end) pairs))
     (nreverse pairs)))
-
-(defun cp-fix-safe-chars (cs)
-  "This is an obsolete function.  
-It exists just for backward compatibility, and it does nothing.")
-(make-obsolete 'cp-fix-safe-chars
-	       "Unnecessary function.  Calling it has no effect."
-	       "21.3")
 
 ;; Fix things that have been, or might be, done by codepage.el.
 (eval-after-load "codepage"
@@ -139,20 +135,16 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
        cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
 )					; eval-after-load
 
-;; For `non-iso-charset-alist'.  Do this after redefining
-;; `cp-supported-codepages', which is called through loading
-;; mule-diag.
-(require 'mule-diag)
-
 ;; Macro to allow ccl compilation at byte-compile time, avoiding
 ;; loading ccl.
 ;;;###autoload
 (defmacro cp-make-coding-system (name v &optional doc-string mnemonic)
   "Make coding system NAME for and 8-bit, extended-ASCII character set.
 V is a 128-long vector of characters to translate the upper half of
-the charactert set.  DOC-STRING and MNEMONIC are used as the
+the character set.  DOC-STRING and MNEMONIC are used as the
 corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
-?* is used."
+?* is used.
+Return an updated `non-iso-charset-alist'."
   (let* ((encoder (intern (format "encode-%s" name)))
 	 (decoder (intern (format "decode-%s" name)))
 	 (ccl-decoder
@@ -208,6 +200,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 		     (list l)))
 	     non-iso-charset-alist))))
 
+(eval-when-compile (defvar non-iso-charset-alist))
 
 ;; These tables were mostly derived by running somthing like
 ;; `recode -f cpxxx/..utf-8' on a binary file filled by
@@ -2578,270 +2571,6 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ţ
   ?\˙])
 
-;; be_BY, bg_BG
-(cp-make-coding-system
- windows-1251
- [?\Ђ
-  ?\Ѓ
-  ?\‚
-  ?\ѓ
-  ?\„
-  ?\…
-  ?\†
-  ?\‡
-  ?\€
-  ?\‰
-  ?\Љ
-  ?\‹
-  ?\Њ
-  ?\Ќ
-  ?\Ћ
-  ?\Џ
-  ?\ђ
-  ?\‘
-  ?\’
-  ?\“
-  ?\”
-  ?\•
-  ?\–
-  ?\—
-  nil
-  ?\™
-  ?\љ
-  ?\›
-  ?\њ
-  ?\ќ
-  ?\ћ
-  ?\џ
-  ?\ 
-  ?\Ў
-  ?\ў
-  ?\Ј
-  ?\¤
-  ?\Ґ
-  ?\¦
-  ?\§
-  ?\Ё
-  ?\©
-  ?\Є
-  ?\«
-  ?\¬
-  ?\­
-  ?\®
-  ?\Ї
-  ?\°
-  ?\±
-  ?\І
-  ?\і
-  ?\ґ
-  ?\µ
-  ?\¶
-  ?\·
-  ?\ё
-  ?\№
-  ?\є
-  ?\»
-  ?\ј
-  ?\Ѕ
-  ?\ѕ
-  ?\ї
-  ?\А
-  ?\Б
-  ?\В
-  ?\Г
-  ?\Д
-  ?\Е
-  ?\Ж
-  ?\З
-  ?\И
-  ?\Й
-  ?\К
-  ?\Л
-  ?\М
-  ?\Н
-  ?\О
-  ?\П
-  ?\Р
-  ?\С
-  ?\Т
-  ?\У
-  ?\Ф
-  ?\Х
-  ?\Ц
-  ?\Ч
-  ?\Ш
-  ?\Щ
-  ?\Ъ
-  ?\Ы
-  ?\Ь
-  ?\Э
-  ?\Ю
-  ?\Я
-  ?\а
-  ?\б
-  ?\в
-  ?\г
-  ?\д
-  ?\е
-  ?\ж
-  ?\з
-  ?\и
-  ?\й
-  ?\к
-  ?\л
-  ?\м
-  ?\н
-  ?\о
-  ?\п
-  ?\р
-  ?\с
-  ?\т
-  ?\у
-  ?\ф
-  ?\х
-  ?\ц
-  ?\ч
-  ?\ш
-  ?\щ
-  ?\ъ
-  ?\ы
-  ?\ь
-  ?\э
-  ?\ю
-  ?\я]
- nil ?b)
-
-(cp-make-coding-system
- windows-1252
- [?\€
-  nil
-  ?\‚
-  ?\ƒ
-  ?\„
-  ?\…
-  ?\†
-  ?\‡
-  ?\ˆ
-  ?\‰
-  ?\Š
-  ?\‹
-  ?\Œ
-  nil
-  ?\Ž
-  ?\ž
-  nil
-  ?\‘
-  ?\’
-  ?\“
-  ?\”
-  ?\•
-  ?\–
-  ?\—
-  ?\˜
-  ?\™
-  ?\š
-  ?\›
-  ?\œ
-  nil
-  nil
-  ?\Ÿ
-  ?\ 
-  ?\¡
-  ?\¢
-  ?\£
-  ?\¤
-  ?\¥
-  ?\¦
-  ?\§
-  ?\¨
-  ?\©
-  ?\ª
-  ?\«
-  ?\¬
-  ?\­
-  ?\®
-  ?\¯
-  ?\°
-  ?\±
-  ?\²
-  ?\³
-  ?\´
-  ?\µ
-  ?\¶
-  ?\·
-  ?\¸
-  ?\¹
-  ?\º
-  ?\»
-  ?\¼
-  ?\½
-  ?\¾
-  ?\¿
-  ?\À
-  ?\Á
-  ?\Â
-  ?\Ã
-  ?\Ä
-  ?\Å
-  ?\Æ
-  ?\Ç
-  ?\È
-  ?\É
-  ?\Ê
-  ?\Ë
-  ?\Ì
-  ?\Í
-  ?\Î
-  ?\Ï
-  ?\Ð
-  ?\Ñ
-  ?\Ò
-  ?\Ó
-  ?\Ô
-  ?\Õ
-  ?\Ö
-  ?\×
-  ?\Ø
-  ?\Ù
-  ?\Ú
-  ?\Û
-  ?\Ü
-  ?\Ý
-  ?\Þ
-  ?\ß
-  ?\à
-  ?\á
-  ?\â
-  ?\ã
-  ?\ä
-  ?\å
-  ?\æ
-  ?\ç
-  ?\è
-  ?\é
-  ?\ê
-  ?\ë
-  ?\ì
-  ?\í
-  ?\î
-  ?\ï
-  ?\ð
-  ?\ñ
-  ?\ò
-  ?\ó
-  ?\ô
-  ?\õ
-  ?\ö
-  ?\÷
-  ?\ø
-  ?\ù
-  ?\ú
-  ?\û
-  ?\ü
-  ?\ý
-  ?\þ
-  ?\ÿ])
-
 (cp-make-coding-system
  windows-1253
  [?\€
@@ -3896,6 +3625,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Ъ]
  "Unicode-based KOI8-T encoding for Cyrillic")
 (coding-system-put 'koi8-t 'mime-charset nil) ; not in the IANA list
+(define-coding-system-alias 'cyrillic-koi8-t 'koi8-t)
 
 ;;   Online final ISO draft:
 
@@ -4729,6 +4459,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ;; <URL:ftp://ftp.logic.ru/pub/logic/linux/cyr-asian/PT154>.  See also
 ;; <URL:http://lists.w3.org/Archives/Public/ietf-charsets/2002AprJun/0092.html,
 ;; which suggests it's used in an Asian Cyrillic context.
+;;;###autoload(autoload-coding-system 'pt154 '(require 'code-pages))
 (cp-make-coding-system
  pt154
  [?Җ ?Ғ ?Ӯ ?ғ ?„ ?… ?Ҷ ?Ү ?Ҳ ?ү ?Ҡ ?Ӣ ?Ң ?Қ ?Һ ?Ҹ ?җ ?‘ ?’ ?“ ?” ?• ?–
@@ -4738,6 +4469,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?Ь ?Э ?Ю ?Я ?а ?б ?в ?г ?д ?е ?ж ?з ?и ?й ?к ?л ?м ?н ?о ?п ?р ?с ?т
   ?у ?ф ?х ?ц ?ч ?ш ?щ ?ъ ?ы ?ь ?э ?ю ?я])
   
+;;;###autoload(autoload-coding-system 'iso-8859-11 '(require 'code-pages))
 (cp-make-coding-system
  iso-8859-11
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
@@ -4753,16 +4485,18 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 (dotimes (i 8)
   (let ((w (intern (format "windows-125%d" i)))
 	(c (intern (format "cp125%d" i))))
-    (define-coding-system-alias c w)
+    (if (coding-system-p c)		; 1251 is in cyrillic.el
+	(define-coding-system-alias c w))
     ;; Compatibility with codepage.el, though cp... are not the
     ;; canonical names.
     (push (assoc w non-iso-charset-alist) non-iso-charset-alist)))
 
 ;; Use Unicode font under Windows.  Jason Rumney fecit.
-(if (and (fboundp 'w32-add-charset-info)
-	 (not (boundp 'w32-unicode-charset-defined)))
-    (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
+(if (fboundp 'w32-add-charset-info)
+    (unless (boundp 'w32-unicode-charset-defined)
+      (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t)))
 
 (provide 'code-pages)
 
+;;; arch-tag: 8b6e3c73-b271-4198-866d-ea6d0ceff1b2
 ;;; code-pages.el ends here

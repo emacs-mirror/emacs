@@ -36,6 +36,15 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "fontset.h"
 #include "window.h"
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+#ifdef WINDOWSNT
+#include "w32term.h"
+#endif
+#ifdef MAC_OS
+#include "macterm.h"
+#endif
 
 #ifdef FONTSET_DEBUG
 #undef xassert
@@ -681,9 +690,7 @@ fs_load_font (f, c, fontname, id, face)
 	}
     }
 
-  fontp->font_encoder = (struct ccl_program *) 0;
-
-  if (find_ccl_program_func)
+  if (! fontp->font_encoder && find_ccl_program_func)
     (*find_ccl_program_func) (fontp);
 
   /* If we loaded a font for a face that has fontset, record the face
@@ -1139,9 +1146,16 @@ If the named font is not yet loaded, return nil.  */)
 }
 
 
-/* Return the font name for the character at POSITION in the current
+/* Return a cons (FONT-NAME . GLYPH-CODE).
+   FONT-NAME is the font name for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.  It returns nil in the following cases:
+   that apply to POSITION.
+   GLYPH-CODE is the glyph code in the font to use for the character.
+
+   If the 2nd optional arg CH is non-nil, it is a character to check
+   the font instead of the character at POSITION.
+
+   It returns nil in the following cases:
 
    (1) The window system doesn't have a font for the character (thus
    it is displayed by an empty box).
@@ -1155,14 +1169,14 @@ If the named font is not yet loaded, return nil.  */)
    POSITION is currently not visible.  */
 
 
-DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
+DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
        doc: /* For internal use only.  */)
-     (position)
-     Lisp_Object position;
+     (position, ch)
+     Lisp_Object position, ch;
 {
   int pos, pos_byte, dummy;
   int face_id;
-  int c;
+  int c, code;
   Lisp_Object window;
   struct window *w;
   struct frame *f;
@@ -1173,7 +1187,13 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
   if (pos < BEGV || pos >= ZV)
     args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
   pos_byte = CHAR_TO_BYTE (pos);
-  c = FETCH_CHAR (pos_byte);
+  if (NILP (ch))
+    c = FETCH_CHAR (pos_byte);
+  else
+    {
+      CHECK_NATNUM (ch);
+      c = XINT (ch);
+    }
   if (! CHAR_VALID_P (c, 0))
     return Qnil;
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
@@ -1184,9 +1204,23 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
   face_id = face_at_buffer_position (w, pos, -1, -1, &dummy, pos + 100, 0);
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c);
   face = FACE_FROM_ID (f, face_id);
-  return (face->font && face->font_name
-	  ? build_string (face->font_name)
-	  : Qnil);
+  if (! face->font || ! face->font_name)
+    return Qnil;
+
+  {
+    struct font_info *fontp = (*get_font_info_func) (f, face->font_info_id);
+    XChar2b char2b;
+    int c1, c2, charset;
+
+    SPLIT_CHAR (c, charset, c1, c2);
+    if (c2 > 0)
+      STORE_XCHAR2B (&char2b, c1, c2);
+    else
+      STORE_XCHAR2B (&char2b, 0, c1);
+    rif->encode_char (c, &char2b, fontp, NULL);
+    code = (XCHAR2B_BYTE1 (&char2b) << 8) | XCHAR2B_BYTE2 (&char2b);
+  }
+  return Fcons (build_string (face->font_name), make_number (code));
 }
 
 
@@ -1305,7 +1339,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
     {
       /* Merge FONTSET onto the default fontset.  */
       val = Fcopy_sequence (Vdefault_fontset);
-      map_char_table (override_font_info, Qnil, fontset, val, 0, indices);
+      map_char_table (override_font_info, Qnil, fontset, fontset, val, 0, indices);
       fontset = val;
     }
 
@@ -1317,7 +1351,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
 		      Fcons (XCDR (FONTSET_ASCII (fontset)), Qnil)),
 	       Qnil);
   val = Fcons (val, val);
-  map_char_table (accumulate_font_info, Qnil, fontset, val, 0, indices);
+  map_char_table (accumulate_font_info, Qnil, fontset, fontset, val, 0, indices);
   val = XCDR (val);
 
   /* For each FONT-INFO, if CHAR_OR_RANGE (car part) is a generic
@@ -1515,3 +1549,6 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);
 }
+
+/* arch-tag: ea861585-2f5f-4e5b-9849-d04a9c3a3537
+   (do not change this comment) */

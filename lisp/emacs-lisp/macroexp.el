@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support
 ;;
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -98,81 +98,89 @@ each clause."
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
-  (setq form (macroexpand form macroexpand-all-environment))
-  (if (consp form)
-      (let ((fun (car form)))
-	(cond
-	 ((eq fun 'cond)
-	  (maybe-cons fun (macroexpand-all-clauses (cdr form)) form))
-	 ((eq fun 'condition-case)
-	  (maybe-cons
-	   fun
-	   (maybe-cons (cadr form)
-		       (maybe-cons (macroexpand-all-1 (nth 2 form))
-				   (macroexpand-all-clauses (nthcdr 3 form) 1)
-				   (cddr form))
-		       (cdr form))
-	   form))
-	 ((eq fun 'defmacro)
-	  (push (cons (cadr form) (cons 'lambda (cddr form)))
-		macroexpand-all-environment)
-	  (macroexpand-all-forms form 3))
-	 ((eq fun 'defun)
-	  (macroexpand-all-forms form 3))
-	 ((memq fun '(defvar defconst))
-	  (macroexpand-all-forms form 2))
-	 ((eq fun 'function)
-	  (if (and (consp (cadr form)) (eq (car (cadr form)) 'lambda))
-	      (maybe-cons fun
-			  (maybe-cons (macroexpand-all-forms (cadr form) 2)
-				      nil
-				      (cadr form))
-			  form)
-	    form))
-	 ((memq fun '(let let*))
-	  (maybe-cons fun
-		      (maybe-cons (macroexpand-all-clauses (cadr form) 1)
-				  (macroexpand-all-forms (cddr form))
-				  (cdr form))
-		      form))
-	 ((eq fun 'quote)
-	  form)
-	 ((and (consp fun) (eq (car fun) 'lambda))
-	  ;; embedded lambda
-	  (maybe-cons (macroexpand-all-forms fun 2)
-		      (macroexpand-all-forms (cdr form))
-		      form))
-	 ;; The following few cases are for normal function calls that
-	 ;; are known to funcall one of their arguments.  The byte
-	 ;; compiler has traditionally handled these functions specially
-	 ;; by treating a lambda expression quoted by `quote' as if it
-	 ;; were quoted by `function'.  We make the same transformation
-	 ;; here, so that any code that cares about the difference will
-	 ;; see the same transformation.
-	 ;; First arg is a function:
-	 ((and (memq fun '(apply mapcar mapatoms mapconcat mapc))
-	       (consp (cadr form))
-	       (eq (car (cadr form)) 'quote))
-	  ;; We don't use `maybe-cons' since there's clearly a change.
-	  (cons fun
-		(cons (macroexpand-all-1 (cons 'function (cdr (cadr form))))
-		      (macroexpand-all-forms (cddr form)))))
-	 ;; Second arg is a function:
-	 ((and (eq fun 'sort)
-	       (consp (nth 2 form))
-	       (eq (car (nth 2 form)) 'quote))
-	  ;; We don't use `maybe-cons' since there's clearly a change.
-	  (cons fun
-		(cons (macroexpand-all-1 (cadr form))
-		      (cons (macroexpand-all-1
-			     (cons 'function (cdr (nth 2 form))))
-			    (macroexpand-all-forms (nthcdr 3 form))))))
-	 (t
-	  ;; For everything else, we just expand each argument (for
-	  ;; setq/setq-default this works alright because the variable names
-	  ;; are symbols).
-	  (macroexpand-all-forms form 1))))
-    form))
+  (if (and (listp form) (eq (car form) 'backquote-list*))
+      ;; Special-case `backquote-list*', as it is normally a macro that
+      ;; generates exceedingly deep expansions from relatively shallow input
+      ;; forms.  We just process it `in reverse' -- first we expand all the
+      ;; arguments, _then_ we expand the top-level definition.
+      (macroexpand (macroexpand-all-forms form 1)
+		   macroexpand-all-environment)
+    ;; Normal form; get its expansion, and then expand arguments.
+    (setq form (macroexpand form macroexpand-all-environment))
+    (if (consp form)
+	(let ((fun (car form)))
+	  (cond
+	   ((eq fun 'cond)
+	    (maybe-cons fun (macroexpand-all-clauses (cdr form)) form))
+	   ((eq fun 'condition-case)
+	    (maybe-cons
+	     fun
+	     (maybe-cons (cadr form)
+			 (maybe-cons (macroexpand-all-1 (nth 2 form))
+				     (macroexpand-all-clauses (nthcdr 3 form) 1)
+				     (cddr form))
+			 (cdr form))
+	     form))
+	   ((eq fun 'defmacro)
+	    (push (cons (cadr form) (cons 'lambda (cddr form)))
+		  macroexpand-all-environment)
+	    (macroexpand-all-forms form 3))
+	   ((eq fun 'defun)
+	    (macroexpand-all-forms form 3))
+	   ((memq fun '(defvar defconst))
+	    (macroexpand-all-forms form 2))
+	   ((eq fun 'function)
+	    (if (and (consp (cadr form)) (eq (car (cadr form)) 'lambda))
+		(maybe-cons fun
+			    (maybe-cons (macroexpand-all-forms (cadr form) 2)
+					nil
+					(cadr form))
+			    form)
+	      form))
+	   ((memq fun '(let let*))
+	    (maybe-cons fun
+			(maybe-cons (macroexpand-all-clauses (cadr form) 1)
+				    (macroexpand-all-forms (cddr form))
+				    (cdr form))
+			form))
+	   ((eq fun 'quote)
+	    form)
+	   ((and (consp fun) (eq (car fun) 'lambda))
+	    ;; embedded lambda
+	    (maybe-cons (macroexpand-all-forms fun 2)
+			(macroexpand-all-forms (cdr form))
+			form))
+	   ;; The following few cases are for normal function calls that
+	   ;; are known to funcall one of their arguments.  The byte
+	   ;; compiler has traditionally handled these functions specially
+	   ;; by treating a lambda expression quoted by `quote' as if it
+	   ;; were quoted by `function'.  We make the same transformation
+	   ;; here, so that any code that cares about the difference will
+	   ;; see the same transformation.
+	   ;; First arg is a function:
+	   ((and (memq fun '(apply mapcar mapatoms mapconcat mapc))
+		 (consp (cadr form))
+		 (eq (car (cadr form)) 'quote))
+	    ;; We don't use `maybe-cons' since there's clearly a change.
+	    (cons fun
+		  (cons (macroexpand-all-1 (cons 'function (cdr (cadr form))))
+			(macroexpand-all-forms (cddr form)))))
+	   ;; Second arg is a function:
+	   ((and (eq fun 'sort)
+		 (consp (nth 2 form))
+		 (eq (car (nth 2 form)) 'quote))
+	    ;; We don't use `maybe-cons' since there's clearly a change.
+	    (cons fun
+		  (cons (macroexpand-all-1 (cadr form))
+			(cons (macroexpand-all-1
+			       (cons 'function (cdr (nth 2 form))))
+			      (macroexpand-all-forms (nthcdr 3 form))))))
+	   (t
+	    ;; For everything else, we just expand each argument (for
+	    ;; setq/setq-default this works alright because the variable names
+	    ;; are symbols).
+	    (macroexpand-all-forms form 1))))
+      form)))
 
 (defun macroexpand-all (form &optional environment)
   "Return result of expanding macros at all levels in FORM.
@@ -184,4 +192,5 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 
 (provide 'macroexp)
 
+;;; arch-tag: af9b8c24-c196-43bc-91e1-a3570790fa5a
 ;;; macroexp.el ends here

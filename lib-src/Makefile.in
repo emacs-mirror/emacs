@@ -27,7 +27,6 @@ SHELL = /bin/sh
 
 CC=@CC@
 CFLAGS=@CFLAGS@
-ALLOCA=@ALLOCA@
 version=@version@
 configuration=@configuration@
 EXEEXT=@EXEEXT@
@@ -145,12 +144,6 @@ MOVE_FLAGS=
 #define NOT_C_CODE
 #include "../src/config.h"
 
-/* We won't really call alloca;
-   don't let the file name alloca.c get messed up.  */
-#ifdef alloca
-#undef alloca
-#endif
-
 /* Some machines don\'t find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
 #ifndef LIB_STANDARD_LIBSRC
@@ -234,8 +227,12 @@ MOVE_FLAGS=
 
 LIBS_MOVE=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 
+#ifdef HAVE_LIBLOCKFILE
+LIBS_MAIL=-llockfile
+#else
 #ifdef HAVE_LIBMAIL
 LIBS_MAIL=-lmail
+#endif
 #endif
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
@@ -385,14 +382,12 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-GETOPTOBJS = getopt.o getopt1.o $(ALLOCA)
+GETOPTOBJS = getopt.o getopt1.o
 GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
 getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
 getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
-alloca.o: ${srcdir}/alloca.c
-	${CC} -Demacs -c ${BASE_CFLAGS} ${srcdir}/alloca.c
 
 #ifdef REGEXP_IN_LIBC
 REGEXPOBJ =
@@ -425,8 +420,8 @@ make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 digest-doc${EXEEXT}: ${srcdir}/digest-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc
 
-sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c ${ALLOCA}
-	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
+sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c
+	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
 
 b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
@@ -483,3 +478,6 @@ xveterm${EXEEXT}: ${srcdir}/emacstool.c
 	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
+
+/* arch-tag: cc40144d-fbd2-436b-9a22-dcb5b5b6a2af
+   (do not change this comment) */

@@ -22,3 +22,6 @@
 #define NO_SIOCTL_H
 #define NEED_PTEM_H
 #define BROKEN_FIONREAD
+
+/* arch-tag: d66e6a70-0812-437d-aa35-9b01bd474941
+   (do not change this comment) */

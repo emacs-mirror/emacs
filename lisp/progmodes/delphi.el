@@ -65,7 +65,7 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.9 $"))
+  (let ((revision "$Revision: 3.11 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
@@ -742,7 +742,7 @@ routine.")
         (delphi-step-progress p "Fontifying" delphi-fontifying-progress-step))
       (delphi-progress-done)))))
 
-(defconst delphi-ignore-changes t
+(defvar delphi-ignore-changes t
   "Internal flag to control if the delphi-mode responds to buffer changes.
 Defaults to t in case the delphi-after-change function is called on a
 non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
@@ -2010,4 +2010,5 @@ no args, if that value is non-nil."
 
   (run-hooks 'delphi-mode-hook))
 
+;;; arch-tag: 410e192d-e9b5-4397-ad62-12340fc3fa41
 ;;; delphi.el ends here

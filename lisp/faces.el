@@ -664,6 +664,9 @@ of face names.  Attributes from inherited faces are merged into the face
 like an underlying face would be, with higher priority than underlying faces."
   (let ((where (if (null frame) 0 frame)))
     (setq args (purecopy args))
+    ;; If we set the new-frame defaults, this face is modified outside Custom.
+    (if (memq where '(0 t))
+	(put face 'face-modified t))
     (while args
       (internal-set-lisp-face-attribute face (car args)
 					(purecopy (cadr args))
@@ -1378,7 +1381,11 @@ If SPEC is nil, do nothing."
 	       (setq attribute nil))))
 	(when attribute
 	  (set-face-attribute face frame attribute value)))
-      (setq attrs (cdr (cdr attrs))))))
+      (setq attrs (cdr (cdr attrs)))))
+  ;; When we reset the face based on its spec, then it is unmodified
+  ;; as far as Custom is concerned.
+  (if (null frame)
+      (put face 'face-modified nil)))
 
 
 (defun face-attr-match-p (face attrs &optional frame)
@@ -1489,10 +1496,10 @@ with the default face for display, can be represented in a way that's
  (1) different in appearance than the default face, and
  (2) `close in spirit' to what the attributes specify, if not exact.
 
-Point (2) implies that a `:weight black' attribute will be satisified by
+Point (2) implies that a `:weight black' attribute will be satisfied by
 any display that can display bold, and a `:foreground \"yellow\"' as long
 as it can display a yellowish color, but `:slant italic' will _not_ be
-satisified by the tty display code's automatic substitution of a `dim'
+satisfied by the tty display code's automatic substitution of a `dim'
 face for italic."
   (let ((frame
 	 (if (framep display)
@@ -1670,8 +1677,21 @@ Value is the new frame created."
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
-  ;; Don't let frame creation fail because of an invalid face spec.
+  (if (face-attribute 'default :font t)
+      (set-face-attribute 'default frame :font
+			  (face-attribute 'default :font t))
+    (set-face-attribute 'default frame :family
+			(face-attribute 'default :family t))
+    (set-face-attribute 'default frame :height
+			(face-attribute 'default :height t))
+    (set-face-attribute 'default frame :slant
+			(face-attribute 'default :slant t))
+    (set-face-attribute 'default frame :weight
+			(face-attribute 'default :weight t))
+    (set-face-attribute 'default frame :width
+			(face-attribute 'default :width t)))
   (dolist (face (face-list))
+    ;; Don't let frame creation fail because of an invalid face spec.
     (condition-case ()
 	(when (not (equal face 'default))
 	  (face-spec-set face (face-user-default-spec face) frame)
@@ -2194,4 +2214,5 @@ If that can't be done, return nil."
 
 (provide 'faces)
 
+;;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
 ;;; faces.el ends here

@@ -92,3 +92,6 @@ Boston, MA 02111-1307, USA.  */
 #define LIB_STANDARD  -lc
 #define LD_SWITCH_MACHINE -X
 #define SECTION_ALIGNMENT (0x3ff)
+
+/* arch-tag: 42316eb5-74b2-4762-970a-e372c6a2783d
+   (do not change this comment) */

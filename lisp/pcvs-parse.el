@@ -1,11 +1,10 @@
 ;;; pcvs-parse.el --- the CVS output parser
 
-;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,2002
+;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,02,2003
 ;; 		 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.15 2003/02/10 21:50:00 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -200,7 +199,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (defun cvs-parse-table ()
   "Table of message objects for `cvs-parse-process'."
-  (let (c file dir path type base-rev subtype)
+  (let (c file dir path base-rev subtype)
     (cvs-or
 
      (cvs-parse-status)
@@ -267,7 +266,20 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (and
 	(cvs-match "New directory `\\(.*\\)' -- ignored$" (dir 1))
 	;; (cvs-parsed-fileinfo 'MESSAGE " " (file-name-as-directory dir))
-	(cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir))
+	;; These messages either correspond to a true new directory
+	;; that an update will bring in, or to a directory that's empty
+	;; on the current branch (either because it only exists in other
+	;; branches, or because it's been removed).
+	(if (ignore-errors
+	      (with-current-buffer
+		  (find-file-noselect (expand-file-name
+				       ".cvsignore" (file-name-directory dir)))
+		(goto-char (point-min))
+		(re-search-forward
+		 (concat "^" (regexp-quote (file-name-nondirectory dir)) "/$")
+		 nil t)))
+	    t		       ;The user requested to ignore those messages.
+	  (cvs-parsed-fileinfo '(NEED-UPDATE . NEW-DIR) dir t)))
 
        ;; File removed, since it is removed (by third party) in repository.
        (and
@@ -388,7 +400,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 
 (defun cvs-parse-merge ()
-  (let (path base-rev head-rev handled type)
+  (let (path base-rev head-rev type)
     ;; A merge (maybe with a conflict).
     (and
      (cvs-match "RCS file: .*$")
@@ -445,12 +457,12 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 		 (type (if nofile '(UP-TO-DATE . REMOVED) 'UP-TO-DATE)))
       (cvs-match "File had conflicts on merge$" (type 'MODIFIED))
       (cvs-match ".*[Cc]onflict.*$"	(type 'CONFLICT))
-      (cvs-match "Locally Added$"		(type 'ADDED))
+      (cvs-match "Locally Added$"	(type 'ADDED))
       (cvs-match "Locally Removed$"	(type 'REMOVED))
       (cvs-match "Locally Modified$"	(type 'MODIFIED))
       (cvs-match "Needs Merge$"		(type 'NEED-MERGE))
       (cvs-match "Entry Invalid"	(type '(NEED-MERGE . REMOVED)))
-      (cvs-match "Unknown$"		(type 'UNKNOWN)))
+      (cvs-match ".*$"			(type 'UNKNOWN)))
      (cvs-match "$")
      (cvs-or
       (cvs-match " *Version:[ \t]*\\([0-9.]+\\).*$" (base-rev 1))
@@ -463,12 +475,15 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       (cvs-match " *Repository revision:[ \t]*\\([0-9.]+\\)[ \t]*\\(.*\\)$"
 		 (head-rev 1))
       (cvs-match " *Repository revision:.*"))
+     (cvs-or (cvs-match " *Expansion option:.*") t)  ;Optional CVSNT thingie.
+     (cvs-or (cvs-match " *Commit Identifier:.*") t) ;Optional CVSNT thingie.
      (cvs-or
-      (and;;sometimes those fields are missing
-       (cvs-match " *Sticky Tag:[ \t]*\\(.*\\)$") ; FIXME: use it
-       (cvs-match " *Sticky Date:[ \t]*\\(.*\\)$") ; FIXME: use it
-       (cvs-match " *Sticky Options:[ \t]*\\(.*\\)$")) ; FIXME: use it
+      (and ;; Sometimes those fields are missing.
+       (cvs-match " *Sticky Tag:[ \t]*\\(.*\\)$")      ; FIXME: use it.
+       (cvs-match " *Sticky Date:[ \t]*\\(.*\\)$")     ; FIXME: use it.
+       (cvs-match " *Sticky Options:[ \t]*\\(.*\\)$")) ; FIXME: use it.
       t)
+     (cvs-or (cvs-match " *Merge From:.*") t) ;Optional CVSNT thingie.
      (cvs-match "$")
      ;; ignore the tags-listing in the case of `status -v'
      (cvs-or (cvs-match " *Existing Tags:\n\\(\t.*\n\\)*$") t)
@@ -510,4 +525,5 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (provide 'pcvs-parse)
 
+;;; arch-tag: 35418375-1a23-40a0-957d-96b0262f91d6
 ;;; pcvs-parse.el ends here

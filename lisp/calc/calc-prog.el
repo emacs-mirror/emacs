@@ -2242,4 +2242,5 @@
 		 (math-read-expr-level (nth 3 op)) (nth 1 x))
 	      (throw 'syntax "Syntax error"))))))
 
+;;; arch-tag: 4c5a183b-c9e5-4632-bb3f-e41a764518b0
 ;;; calc-prog.el ends here

@@ -99,3 +99,6 @@ extern Lisp_Object Vglyph_table;
 #define NULL_GLYPH 00
 
 #define GLYPH_FROM_CHAR(c) (c)
+
+/* arch-tag: d7f792d2-f59c-4904-a91e-91522e3ab349
+   (do not change this comment) */

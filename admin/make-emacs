@@ -185,3 +185,5 @@ exit system "$make CC=\"$cc\" CFLAGS=\"$opts\" @ARGV";
 # Local Variables:
 # mode: cperl
 # End:
+
+# arch-tag: 5c3f9713-9ece-4a12-b3f8-deaff15974ba

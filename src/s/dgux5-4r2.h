@@ -45,3 +45,6 @@ Boston, MA 02111-1307, USA.  */
 	  caused trouble on DGUX 5.4.2.  */
 #define LIBS_SYSTEM -ldgc
 #endif
+
+/* arch-tag: a14f4043-6caa-4f01-a9b9-ae0fb0d2c96e
+   (do not change this comment) */

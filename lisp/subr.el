@@ -43,13 +43,17 @@ This is set as the value of the variable `macro-declaration-function'.
 MACRO is the name of the macro being defined.
 DECL is a list `(declare ...)' containing the declarations.
 The return value of this function is not used."
-  (dolist (d (cdr decl))
-    (cond ((and (consp d) (eq (car d) 'indent))
-	   (put macro 'lisp-indent-function (cadr d)))
-	  ((and (consp d) (eq (car d) 'debug))
-	   (put macro 'edebug-form-spec (cadr d)))
-	  (t
-	   (message "Unknown declaration %s" d)))))
+  ;; We can't use `dolist' or `cadr' yet for bootstrapping reasons.
+  (let (d)
+    ;; Ignore the first element of `decl' (it's always `declare').
+    (while (setq decl (cdr decl))
+      (setq d (car decl))
+      (cond ((and (consp d) (eq (car d) 'indent))
+	     (put macro 'lisp-indent-function (car (cdr d))))
+	    ((and (consp d) (eq (car d) 'debug))
+	     (put macro 'edebug-form-spec (car (cdr d))))
+	    (t
+	     (message "Unknown declaration %s" d))))))
 
 (setq macro-declaration-function 'macro-declaration-function)
 
@@ -81,6 +85,7 @@ BODY should be a list of Lisp expressions."
   "Add NEWELT to the list stored in the symbol LISTNAME.
 This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
+  (declare (debug (form sexp)))
   (list 'setq listname
 	(list 'cons newelt listname)))
 
@@ -89,47 +94,55 @@ LISTNAME must be a symbol."
 LISTNAME must be a symbol whose value is a list.
 If the value is nil, `pop' returns nil but does not actually
 change the list."
+  (declare (debug (sexp)))
   (list 'car
 	(list 'prog1 listname
 	      (list 'setq listname (list 'cdr listname)))))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil."
+  (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil."
+  (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
 (defmacro dolist (spec &rest body)
-  "(dolist (VAR LIST [RESULT]) BODY...): loop over a list.
+  "Loop over a list.
 Evaluate BODY with VAR bound to each car from LIST, in turn.
-Then evaluate RESULT to get return value, default nil."
+Then evaluate RESULT to get return value, default nil.
+
+\(fn (VAR LIST [RESULT]) BODY...)"
+  (declare (indent 1) (debug ((symbolp form &optional form) body)))
   (let ((temp (make-symbol "--dolist-temp--")))
-    (list 'let (list (list temp (nth 1 spec)) (car spec))
-	  (list 'while temp
-		(list 'setq (car spec) (list 'car temp))
-		(cons 'progn
-		      (append body
-			      (list (list 'setq temp (list 'cdr temp))))))
-	  (if (cdr (cdr spec))
-	      (cons 'progn
-		    (cons (list 'setq (car spec) nil) (cdr (cdr spec))))))))
+    `(let ((,temp ,(nth 1 spec))
+	   ,(car spec))
+       (while ,temp
+	 (setq ,(car spec) (car ,temp))
+	 (setq ,temp (cdr ,temp))
+	 ,@body)
+       ,@(if (cdr (cdr spec))
+	     `((setq ,(car spec) nil) ,@(cdr (cdr spec)))))))
 
 (defmacro dotimes (spec &rest body)
-  "(dotimes (VAR COUNT [RESULT]) BODY...): loop a certain number of times.
+  "Loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers running from 0,
 inclusive, to COUNT, exclusive.  Then evaluate RESULT to get
-the return value (nil if RESULT is omitted)."
-  (let ((temp (make-symbol "--dotimes-temp--")))
-    (list 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
-	   (list 'while (list '< (car spec) temp)
-		 (cons 'progn
-		       (append body (list (list 'setq (car spec)
-						(list '1+ (car spec)))))))
-	   (if (cdr (cdr spec))
-	       (car (cdr (cdr spec)))
-	     nil))))
+the return value (nil if RESULT is omitted).
+
+\(fn (VAR COUNT [RESULT]) BODY...)"
+  (declare (indent 1) (debug dolist))
+  (let ((temp (make-symbol "--dotimes-temp--"))
+	(start 0)
+	(end (nth 1 spec)))
+    `(let ((,temp ,end)
+	   (,(car spec) ,start))
+       (while (< ,(car spec) ,temp)
+	 ,@body
+	 (setq ,(car spec) (1+ ,(car spec))))
+       ,@(cdr (cdr spec)))))
 
 (defsubst caar (x)
   "Return the car of the car of X."
@@ -176,20 +189,23 @@ If N is bigger than the length of X, return X."
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
 
-(defun number-sequence (from &optional to)
+(defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
-The Nth element of the list is (+ FROM N) where N counts from zero.
+INC is the increment used between numbers in the sequence.
+So, the Nth element of the list is (+ FROM (* N INC)) where N counts from
+zero.
+If INC is nil, it defaults to 1 (one).
 If TO is nil, it defaults to FROM.
-If TO is less than FROM, the value is nil."
-  (if to
-      (if (< to from)
-	  (setq to (1- from)))
-    (setq to from))
-  (let* ((list (make-list (- (1+ to) from) from))
-	 (tail list))
-    (while (setq tail (cdr tail))
-      (setcar tail (setq from (1+ from))))
-    list))
+If TO is less than FROM, the value is nil.
+Note that FROM, TO and INC can be integer or float."
+  (if (not to)
+      (list from)
+    (or inc (setq inc 1))
+    (let (seq)
+      (while (<= from to)
+	(setq seq (cons from seq)
+	      from (+ from inc)))
+      (nreverse seq))))
 
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurrences of ELT removed.
@@ -201,8 +217,9 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
     (delete elt (copy-sequence seq))))
 
 (defun remq (elt list)
-  "Return a copy of LIST with all occurrences of ELT removed.
-The comparison is done with `eq'."
+  "Return LIST with all occurrences of ELT removed.
+The comparison is done with `eq'.  Contrary to `delq', this does not use
+side-effects, and the argument LIST is not modified."
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
@@ -568,7 +585,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 			(if (> c 127)
 			    (logxor c listify-key-sequence-1)
 			  c)))
-	    (append key nil))))
+	    key)))
 
 (defsubst eventp (obj)
   "True if the argument is an event object."
@@ -702,176 +719,6 @@ POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
   (nth 3 position))
-
-
-;;;; Keyboard menu prompting
-
-(defvar key-menu-event-face 'underline
-  "Face used to highlight the events in the keyboard-menu prompt.
-Used by `key-menu-prompt'.")
-(defvar key-menu-initial-separator "  "
-  "String used to separate a keyboard-menu prompt from the first key description.
-Used by `key-menu-prompt'.")
-(defvar key-menu-separator ",  "
-  "String used to separate adjacent keyboard-menu key descriptions.
-Used by `key-menu-prompt'.")
-(defvar key-menu-long-prompt-line-prefix "    "
-  "A prefix for entry lines when the menu prompt is very long.
-Used by `key-menu-prompt'.")
-
-(defvar key-menu-format-entry-function nil
-  "If non-nil, a function to format a single entry in a keyboard-menu.
-The function should return a string representing the entry, and will be
-given the following arguments:
-  (EVENT PROMPT &OPTIONAL BINDING TOGGLE-TYPE TOGGLE-STATE)
-  EVENT is the key to be pressed
-  PROMPT is a string describing the entry
-  BINDING is a `global' binding for this function
-  TOGGLE-TYPE may be either nil, `:radio', or `:toggle'
-  If TOGGLE-TYPE is non-nil, TOGGLE-STATE is that toggle's state.")
-
-(defvar key-menu-more-prompt (propertize "--more--" 'face '(:inverse-video t))
-  "Appended to the last line of a keyboard-menu indicating more lines follow.")
-
-(defun key-menu-format-entry (event prompt
-				    &optional binding toggle-type toggle-state)
-  "Return a string representing a single keyboard-menu binding.
-The arguments are:
-  EVENT is the key to be pressed
-  PROMPT is a string describing the entry
-  BINDING is a `global' binding for this function
-  TOGGLE-TYPE may be either nil, `:radio', or `:toggle'
-  If TOGGLE-TYPE is non-nil, TOGGLE-STATE is that toggle's state."
-  (if (eq event (aref prompt 0))
-      (format "%s%s"
-	      (propertize (char-to-string event)
-			  'face key-menu-event-face)
-	      (substring prompt 1))
-    (format "%s = %s"
-	    (propertize (char-to-string event)
-			'face key-menu-event-face)
-	    prompt)))
-
-(defun key-menu-format-prompt (prompt entries max-width max-height)
-  (let* ((prompt-width (string-width prompt))
-	 (cur-line "")
-	 (prefix nil)
-	 (prefix-width
-	  ;; a guess, at first
-	  (+ prompt-width (string-width key-menu-initial-separator)))
-	 (sep "")
-	 (string prompt)
-	 (cur-height 0)
-	 (cur-line-width prefix-width)
-	 (more-width (string-width key-menu-more-prompt)))
-    (while (and entries (< cur-height max-height))
-      (let* ((entry
-	      (pop entries))
-	     (entry-string
-	      (apply
-	       (or key-menu-format-entry-function #'key-menu-format-entry)
-	       entry))
-	     (entry-width
-	      (string-width entry-string))
-	     (appended-width
-	      (+ cur-line-width (string-width sep) entry-width)))
-	;; If this is the first line, first see if we'd be better off
-	;; wrapping right after the prompt (because the prompt string is
-	;; unusually long).  Note that we only do so if there are (1)
-	;; less than 4 entries already on the first line, and (2) the
-	;; prompt is greater than 12 characters wide; these values are
-	;; completely arbitrary.
-	(when (and (eq string prompt)
-		   (>= appended-width max-width)
-		   (> prompt-width (/ max-width 4))
-		   (> max-height 1))
-	  ;; Wrap after the prompt
-	  (setq cur-line-width (- cur-line-width prefix-width))
-	  (setq prefix key-menu-long-prompt-line-prefix
-		prefix-width (string-width prefix))
-	  (setq string (concat string "\n")
-		cur-line-width (+ cur-line-width prefix-width)
-		appended-width (+ cur-line-width (string-width sep) entry-width)
-		cur-height (1+ cur-height)))
-	;; See if we have to wrap before the current entry (note that
-	;; this might happen even if we just wrapped after the prompt
-	;; above).
-	(if (if (or (< (1+ cur-height) max-height) (null entries))
-		(< appended-width max-width)
-	      (< (+ appended-width more-width) max-width))
-	    ;; It's OK to append the current entry, so do so
-	    (setq cur-line (concat cur-line sep entry-string)
-		  cur-line-width appended-width)
-	  ;; We have to wrap the current line first, and then append it
-	  (if prefix
-	      (setq string (concat string prefix cur-line))
-	    (setq string (concat string key-menu-initial-separator cur-line)
-		  prefix (make-string prefix-width ? )))
-	  (setq cur-height (1+ cur-height))
-	  (if (< cur-height max-height)
-	      ;; Start a new line
-	      (setq cur-line entry-string
-		    cur-line-width (+ entry-width prefix-width)
-		    string (concat string "\n"))
-	    ;; Have to give up, because there's no more room.
-	    (setq string (concat string
-				 (make-string (- max-width
-						 cur-line-width
-						 (string-width
-						  key-menu-more-prompt)
-						 1)
-					      ? )
-				 key-menu-more-prompt))
-	    ;; Put back ENTRY for later consideration
-	    (push entry entries)))
-	;; Update sep to the normal inter-entry value
-	(setq sep key-menu-separator)))
-    ;; The final menu
-    (unless entries
-      ;; tack on the last line
-      (unless prefix
-	(setq prefix key-menu-initial-separator))
-      (setq string (concat string prefix cur-line)))
-    ;; Return a list of the menu string and any remaining entries
-    (cons string entries)))
-
-
-(defun key-menu-prompt (menu)
-  "Display the keyboard-menu MENU, and read the user's response.
-This function is appropiate for `key-menu-prompt-function', which see."
-  (let* ((prompt (concat (car menu) ":"))
-	 (frame (window-frame (minibuffer-window)))
-	 (max-width (frame-width frame))
-	 (max-height
-	  (cond ((or (not resize-mini-windows)
-		     (not (numberp max-mini-window-height)))
-		 1)
-		((integerp max-mini-window-height)
-		 max-mini-window-height)
-		(t
-		 (max 1 (truncate (* (frame-height frame)
-				     max-mini-window-height))))))
-	 (answer nil)
-	 (entries (cdr menu))
-	 (cur-entries entries)
-	 (prev-entries-stack nil))
-    (while (null answer)
-      (let* ((page
-	      (key-menu-format-prompt prompt cur-entries max-width max-height))
-	     (next-entries (cdr page)))
-	(setq answer (read-char (car page)))
-	(when (or next-entries prev-entries-stack)
-	  (cond ((eq answer ? )
-		 (push cur-entries prev-entries-stack)
-		 (setq cur-entries (or next-entries entries))
-		 (setq answer nil))
-		((eq answer ?\C-?)
-		 (setq cur-entries (or (pop prev-entries-stack) entries))
-		 (setq answer nil))))))
-    answer))
-
-;; `key-menu-prompt-function' is defined in src/keyboard.c
-(setq key-menu-prompt-function 'key-menu-prompt)
 
 
 ;;;; Obsolescent names for functions.
@@ -1313,7 +1160,7 @@ any other non-digit terminates the character code and is then used as input."))
 	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
 	    ((and (<= ?a (downcase translated))
-		  (< (downcase translated) (+ ?a -10 (min 26 read-quoted-char-radix))))
+		  (< (downcase translated) (+ ?a -10 (min 36 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix)
 			   (+ 10 (- (downcase translated) ?a))))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
@@ -1339,10 +1186,10 @@ Optional DEFAULT is a default password to use instead of empty input."
 		(second (read-passwd "Confirm password: " nil default)))
 	    (if (equal first second)
 		(progn
-		  (and (arrayp second) (fillarray second ?\0))
+		  (and (arrayp second) (clear-string second))
 		  (setq success first))
-	      (and (arrayp first) (fillarray first ?\0))
-	      (and (arrayp second) (fillarray second ?\0))
+	      (and (arrayp first) (clear-string first))
+	      (and (arrayp second) (clear-string second))
 	      (message "Password not repeated accurately; please start over")
 	      (sit-for 1))))
 	success)
@@ -1358,18 +1205,18 @@ Optional DEFAULT is a default password to use instead of empty input."
 	(clear-this-command-keys)
 	(if (= c ?\C-u)
 	    (progn
-	      (and (arrayp pass) (fillarray pass ?\0))
+	      (and (arrayp pass) (clear-string pass))
 	      (setq pass ""))
 	  (if (and (/= c ?\b) (/= c ?\177))
 	      (let* ((new-char (char-to-string c))
 		     (new-pass (concat pass new-char)))
-		(and (arrayp pass) (fillarray pass ?\0))
-		(fillarray new-char ?\0)
+		(and (arrayp pass) (clear-string pass))
+		(clear-string new-char)
 		(setq c ?\0)
 		(setq pass new-pass))
 	    (if (> (length pass) 0)
 		(let ((new-pass (substring pass 0 -1)))
-		  (and (arrayp pass) (fillarray pass ?\0))
+		  (and (arrayp pass) (clear-string pass))
 		  (setq pass new-pass))))))
       (message nil)
       (or pass default ""))))
@@ -1431,7 +1278,9 @@ You can then activate that multibuffer change group with a single
 call to `activate-change-group' and finish it with a single call
 to `accept-change-group' or `cancel-change-group'."
 
-  (list (cons (current-buffer) buffer-undo-list)))
+  (if buffer
+      (list (cons buffer (with-current-buffer buffer buffer-undo-list)))
+    (list (cons (current-buffer) buffer-undo-list))))
 
 (defun activate-change-group (handle)
   "Activate a change group made with `prepare-change-group' (which see)."
@@ -1707,6 +1556,8 @@ BUFFER may be a buffer or a buffer name.  Arguments START and END are
 character numbers specifying the substring.  They default to the
 beginning and the end of BUFFER.  Strip text properties from the
 inserted text according to `yank-excluded-properties'."
+  ;; Since the buffer text should not normally have yank-handler properties,
+  ;; there is no need to handle them here.
   (let ((opoint (point)))
     (insert-buffer-substring buf start end)
     (remove-yank-excluded-properties opoint (point))))
@@ -1771,14 +1622,38 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
   "Execute the forms in BODY with BUFFER as the current buffer.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
-  (cons 'save-current-buffer
-	(cons (list 'set-buffer buffer)
-	      body)))
+  (declare (indent 1) (debug t))
+  `(save-current-buffer
+     (set-buffer ,buffer)
+     ,@body))
+
+(defmacro with-selected-window (window &rest body)
+  "Execute the forms in BODY with WINDOW as the selected window.
+The value returned is the value of the last form in BODY.
+This does not alter the buffer list ordering.
+See also `with-temp-buffer'."
+  (declare (indent 1) (debug t))
+  ;; Most of this code is a copy of save-selected-window.
+  `(let ((save-selected-window-window (selected-window))
+	 (save-selected-window-alist
+	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
+		  (frame-list))))
+     (unwind-protect
+	 (progn (select-window ,window 'norecord)
+		,@body)
+       (dolist (elt save-selected-window-alist)
+	 (and (frame-live-p (car elt))
+	      (window-live-p (cadr elt))
+	      (set-frame-selected-window (car elt) (cadr elt))))
+       (if (window-live-p save-selected-window-window)
+	   ;; This is where the code differs from save-selected-window.
+	   (select-window save-selected-window-window 'norecord)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
+  (declare (debug t))
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-file ,file)
@@ -1801,6 +1676,7 @@ The value returned is the value of the last form in BODY.
 MESSAGE is written to the message log buffer if `message-log-max' is non-nil.
 If MESSAGE is nil, the echo area and message log buffer are unchanged.
 Use a MESSAGE of \"\" to temporarily clear the echo area."
+  (declare (debug t))
   (let ((current-message (make-symbol "current-message"))
 	(temp-message (make-symbol "with-temp-message")))
     `(let ((,temp-message ,message)
@@ -1819,6 +1695,7 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 (defmacro with-temp-buffer (&rest body)
   "Create a temporary buffer, and evaluate BODY there like `progn'.
 See also `with-temp-file' and `with-output-to-string'."
+  (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-buffer
 	    (get-buffer-create (generate-new-buffer-name " *temp*"))))
@@ -1830,6 +1707,7 @@ See also `with-temp-file' and `with-output-to-string'."
 
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
+  (declare (indent 0) (debug t))
   `(let ((standard-output
 	  (get-buffer-create (generate-new-buffer-name " *string-output*"))))
      (let ((standard-output standard-output))
@@ -1859,6 +1737,7 @@ functions can't be deferred, so in that case this macro has no effect.
 
 Do not alter `after-change-functions' or `before-change-functions'
 in BODY."
+  (declare (indent 0) (debug t))
   `(unwind-protect
        (let ((combine-after-change-calls t))
 	 . ,body)
@@ -1887,6 +1766,7 @@ Major mode functions should use this."
 (defmacro delay-mode-hooks (&rest body)
   "Execute BODY, but delay any `run-mode-hooks'.
 Only affects hooks run in the current buffer."
+  (declare (debug t))
   `(progn
      (make-local-variable 'delay-mode-hooks)
      (let ((delay-mode-hooks t))
@@ -1907,6 +1787,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 The syntax table of the current buffer is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
+  (declare (debug t))
   (let ((old-table (make-symbol "table"))
 	(old-buffer (make-symbol "buffer")))
     `(let ((,old-table (syntax-table))
@@ -1918,6 +1799,46 @@ Value is what BODY returns."
 	 (save-current-buffer
 	   (set-buffer ,old-buffer)
 	   (set-syntax-table ,old-table))))))
+
+(defmacro dynamic-completion-table (fun)
+  "Use function FUN as a dynamic completion table.
+FUN is called with one argument, the string for which completion is required,
+and it should return an alist containing all the intended possible
+completions.  This alist may be a full list of possible completions so that FUN
+can ignore the value of its argument.  If completion is performed in the
+minibuffer, FUN will be called in the buffer from which the minibuffer was
+entered.
+
+The result of the `dynamic-completion-table' form is a function
+that can be used as the ALIST argument to `try-completion' and
+`all-completion'.  See Info node `(elisp)Programmed Completion'."
+  (let ((win (make-symbol "window"))
+        (string (make-symbol "string"))
+        (predicate (make-symbol "predicate"))
+        (mode (make-symbol "mode")))
+    `(lambda (,string ,predicate ,mode)
+       (with-current-buffer (let ((,win (minibuffer-selected-window)))
+                              (if (window-live-p ,win) (window-buffer ,win)
+                                (current-buffer)))
+         (cond
+          ((eq ,mode t) (all-completions ,string (,fun ,string) ,predicate))
+          ((not ,mode) (try-completion ,string (,fun ,string) ,predicate))
+          (t (test-completion ,string (,fun ,string) ,predicate)))))))
+
+(defmacro lazy-completion-table (var fun &rest args)
+  "Initialize variable VAR as a lazy completion table.
+If the completion table VAR is used for the first time (e.g., by passing VAR
+as an argument to `try-completion'), the function FUN is called with arguments
+ARGS.  FUN must return the completion table that will be stored in VAR.
+If completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered.  The return value of
+`lazy-completion-table' must be used to initialize the value of VAR."
+  (let ((str (make-symbol "string")))
+    `(dynamic-completion-table
+      (lambda (,str)
+        (unless (listp ,var)
+          (setq ,var (funcall ',fun ,@args)))
+        ,var))))
 
 ;;; Matching and substitution
 
@@ -1933,6 +1854,7 @@ The value returned is the value of the last form in BODY."
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
+  (declare (indent 0) (debug t))
   (list 'let
 	'((save-match-data-internal (match-data)))
 	(list 'unwind-protect
@@ -1965,19 +1887,53 @@ STRING should be given if the last search was by `string-match' on STRING."
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
 
-(defun split-string (string &optional separators)
-  "Splits STRING into substrings where there are matches for SEPARATORS.
-Each match for SEPARATORS is a splitting point.
-The substrings between the splitting points are made into a list
-which is returned.
-If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\".
+(defun looking-back (regexp &optional limit)
+  "Return non-nil if text before point matches regular expression REGEXP.
+Like `looking-at' except backwards and slower.
+LIMIT if non-nil speeds up the search by specifying how far back the
+match can start."
+  (save-excursion
+    (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)))
 
-If there is match for SEPARATORS at the beginning of STRING, we do not
-include a null substring for that.  Likewise, if there is a match
-at the end of STRING, we don't include a null substring for that.
+(defconst split-string-default-separators "[ \f\t\n\r\v]+"
+  "The default value of separators for `split-string'.
+
+A regexp matching strings of whitespace.  May be locale-dependent
+\(as yet unimplemented).  Should not match non-breaking spaces.
+
+Warning: binding this to a different value and using it as default is
+likely to have undesired semantics.")
+
+;; The specification says that if both SEPARATORS and OMIT-NULLS are
+;; defaulted, OMIT-NULLS should be treated as t.  Simplifying the logical
+;; expression leads to the equivalent implementation that if SEPARATORS
+;; is defaulted, OMIT-NULLS is treated as t.
+(defun split-string (string &optional separators omit-nulls)
+  "Splits STRING into substrings bounded by matches for SEPARATORS.
+
+The beginning and end of STRING, and each match for SEPARATORS, are
+splitting points.  The substrings matching SEPARATORS are removed, and
+the substrings between the splitting points are collected as a list,
+which is returned.
+
+If SEPARATORS is non-nil, it should be a regular expression matching text
+which separates, but is not part of, the substrings.  If nil it defaults to
+`split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
+OMIT-NULLS is forced to t.
+
+If OMIT-NULLs is t, zero-length substrings are omitted from the list \(so
+that for the default value of SEPARATORS leading and trailing whitespace
+are effectively trimmed).  If nil, all zero-length substrings are retained,
+which correctly parses CSV format, for example.
+
+Note that the effect of `(split-string STRING)' is the same as
+`(split-string STRING split-string-default-separators t)').  In the rare
+case that you wish to retain zero-length substrings when splitting on
+whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
-  (let ((rexp (or separators "[ \f\t\n\r\v]+"))
+  (let ((keep-nulls (not (if separators omit-nulls t)))
+	(rexp (or separators split-string-default-separators))
 	(start 0)
 	notfirst
 	(list nil))
@@ -1986,16 +1942,14 @@ Modifies the match data; use `save-match-data' if necessary."
 				       (= start (match-beginning 0))
 				       (< start (length string)))
 				  (1+ start) start))
-		(< (match-beginning 0) (length string)))
+		(< start (length string)))
       (setq notfirst t)
-      (or (eq (match-beginning 0) 0)
-	  (and (eq (match-beginning 0) (match-end 0))
-	       (eq (match-beginning 0) start))
+      (if (or keep-nulls (< start (match-beginning 0)))
 	  (setq list
 		(cons (substring string start (match-beginning 0))
 		      list)))
       (setq start (match-end 0)))
-    (or (eq start (length string))
+    (if (or keep-nulls (< start (length string)))
 	(setq list
 	      (cons (substring string start)
 		    list)))
@@ -2013,7 +1967,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
     newstr))
 
 (defun replace-regexp-in-string (regexp rep string &optional
-					fixedcase literal subexp start)
+                                 fixedcase literal subexp start)
   "Replace all matches for REGEXP with REP in STRING.
 
 Return a new string containing the replacements.
@@ -2062,7 +2016,7 @@ and replace a sub-expression, e.g.
 				       rep
 				     (funcall rep (match-string 0 str)))
 				   fixedcase literal str subexp)
-		    (cons (substring string start mb) ; unmatched prefix
+		    (cons (substring string start mb)       ; unmatched prefix
 			  matches)))
 	(setq start me))
       ;; Reconstruct a string from the pieces.
@@ -2210,10 +2164,11 @@ If function is a command (see `commandp'), value is a list of the form
 
 (defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is KEY.
-Return the modified alist."
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
   (let ((tail alist))
     (while tail
-      (if (eq (car (car tail)) key)
+      (if (and (consp (car tail)) (eq (car (car tail)) key))
 	  (setq alist (delq (car tail) alist)))
       (setq tail (cdr tail)))
     alist))
@@ -2256,6 +2211,14 @@ If SUFFIX is non-nil, add that at the end of the file name."
       (set-default-file-modes umask))))
 
 
+;; If a minor mode is not defined with define-minor-mode,
+;; add it here explicitly.
+;; isearch-mode is deliberately excluded, since you should
+;; not call it yourself.
+(defvar minor-mode-list '(auto-save-mode auto-fill-mode abbrev-mode
+					 overwrite-mode view-mode)
+  "List of all minor mode functions.")
+
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
 
@@ -2280,6 +2243,9 @@ It defaults to (and should by convention be) TOGGLE.
 If TOGGLE has a non-nil `:included' property, an entry for the mode is
 included in the mode-line minor mode menu.
 If TOGGLE has a `:menu-tag', that is used for the menu item's label."
+  (unless (memq toggle minor-mode-list)
+    (push toggle minor-mode-list))
+
   (unless toggle-fun (setq toggle-fun toggle))
   ;; Add the name to the minor-mode-alist.
   (when name
@@ -2479,4 +2445,5 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
+;;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

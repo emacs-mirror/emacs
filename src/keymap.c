@@ -412,7 +412,8 @@ PARENT should be nil or another keymap.  */)
 	{
 	  Lisp_Object indices[3];
 
-	  map_char_table (fix_submap_inheritance, Qnil, XCAR (list),
+	  map_char_table (fix_submap_inheritance, Qnil,
+			  XCAR (list), XCAR (list),
 			  keymap, 0, indices);
 	}
     }
@@ -638,6 +639,102 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
     UNGCPRO;
     return get_keyelt (t_binding, autoload);
   }
+}
+
+static void
+map_keymap_item (fun, args, key, val, data)
+     map_keymap_function_t fun;
+     Lisp_Object args, key, val;
+     void *data;
+{
+  /* We should maybe try to detect bindings shadowed by previous
+     ones and things like that.  */
+  if (EQ (val, Qt))
+    val = Qnil;
+  (*fun) (key, val, args, data);
+}
+
+static void
+map_keymap_char_table_item (args, key, val)
+     Lisp_Object args, key, val;
+{
+  if (!NILP (val))
+    {
+      map_keymap_function_t fun = XSAVE_VALUE (XCAR (args))->pointer;
+      args = XCDR (args);
+      map_keymap_item (fun, XCDR (args), key, val,
+		       XSAVE_VALUE (XCAR (args))->pointer);
+    }
+}
+
+/* Call FUN for every binding in MAP.
+   FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).
+   AUTOLOAD if non-zero means that we can autoload keymaps if necessary.  */
+void
+map_keymap (map, fun, args, data, autoload)
+     map_keymap_function_t fun;
+     Lisp_Object map, args;
+     void *data;
+     int autoload;
+{
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object tail;
+
+  GCPRO3 (map, args, tail);
+  map = get_keymap (map, 1, autoload);
+  for (tail = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
+       CONSP (tail) || (tail = get_keymap (tail, 0, autoload), CONSP (tail));
+       tail = XCDR (tail))
+    {
+      Lisp_Object binding = XCAR (tail);
+      
+      if (CONSP (binding))
+	map_keymap_item (fun, args, XCAR (binding), XCDR (binding), data);
+      else if (VECTORP (binding))
+	{
+	  /* Loop over the char values represented in the vector.  */
+	  int len = ASIZE (binding);
+	  int c;
+	  for (c = 0; c < len; c++)
+	    {
+	      Lisp_Object character;
+	      XSETFASTINT (character, c);
+	      map_keymap_item (fun, args, character, AREF (binding, c), data);
+	    }
+	}
+      else if (CHAR_TABLE_P (binding))
+	{
+	  Lisp_Object indices[3];
+	  map_char_table (map_keymap_char_table_item, Qnil, binding, binding,
+			  Fcons (make_save_value (fun, 0),
+				 Fcons (make_save_value (data, 0),
+					args)),
+			  0, indices);
+	}
+    }
+  UNGCPRO;
+}
+
+static void
+map_keymap_call (key, val, fun, dummy)
+     Lisp_Object key, val, fun;
+     void *dummy;
+{
+  call2 (fun, key, val);
+}
+
+DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 2, 0,
+       doc: /* Call FUNCTION for every binding in KEYMAP.
+FUNCTION is called with two arguments: the event and its binding.  */)
+     (function, keymap)
+     Lisp_Object function, keymap;
+{
+  if (INTEGERP (function))
+    /* We have to stop integers early since map_keymap gives them special
+       significance.  */
+    Fsignal (Qinvalid_function, Fcons (function, Qnil));
+  map_keymap (keymap, map_keymap_call, function, NULL, 1);
+  return Qnil;
 }
 
 /* Given OBJECT which was found in a slot in a keymap,
@@ -943,7 +1040,7 @@ is not copied.  */)
 	{
 	  Lisp_Object indices[3];
 	  elt = Fcopy_sequence (elt);
-	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
+	  map_char_table (copy_keymap_1, Qnil, elt, elt, elt, 0, indices);
 	}
       else if (VECTORP (elt))
 	{
@@ -1817,7 +1914,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	    {
 	      Lisp_Object indices[3];
 
-	      map_char_table (accessible_keymaps_char_table, Qnil,
+	      map_char_table (accessible_keymaps_char_table, Qnil, elt,
 			      elt, Fcons (Fcons (maps, make_number (is_metized)),
 					  Fcons (tail, thisseq)),
 			      0, indices);
@@ -2334,7 +2431,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 			    Fcons (Fcons (this, last),
 				   Fcons (make_number (nomenus),
 					  make_number (last_is_meta))));
-	      map_char_table (where_is_internal_2, Qnil, elt, args,
+	      map_char_table (where_is_internal_2, Qnil, elt, elt, args,
 			      0, indices);
 	      sequences = XCDR (XCAR (args));
 	    }
@@ -3653,6 +3750,7 @@ and applies even for keys that have ordinary bindings.  */);
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
+  defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);
   defsubr (&Scommand_remapping);
   defsubr (&Skey_binding);
@@ -3684,3 +3782,6 @@ keys_of_keymap ()
   initial_define_key (global_map, 033, "ESC-prefix");
   initial_define_key (global_map, Ctl('X'), "Control-X-prefix");
 }
+
+/* arch-tag: 6dd15c26-7cf1-41c4-b904-f42f7ddda463
+   (do not change this comment) */

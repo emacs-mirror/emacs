@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1986, 88, 93, 94, 96, 98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1986,88,93,94,96,98,1999,2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -725,10 +725,8 @@ cached information about equivalent key sequences.  */)
 	  CHECK_LIVE_WINDOW (window);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (FRAME_FONT (f))
-		  * XFASTINT (XWINDOW (window)->left));
-	  ypos = (FRAME_LINE_HEIGHT (f)
-		  * XFASTINT (XWINDOW (window)->top));
+	  xpos = WINDOW_LEFT_EDGE_X (XWINDOW (window));
+	  ypos = WINDOW_TOP_EDGE_Y (XWINDOW (window));
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -1037,6 +1035,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
 	      int j;
 	      struct input_event buf;
 	      Lisp_Object frame;
+	      EVENT_INIT (buf);
 
 	      XSETFRAME (frame, f);
 	      buf.kind = MENU_BAR_EVENT;
@@ -1601,7 +1600,7 @@ set_frame_menubar (f, first_time, deep_p)
     /* Force the window size to be recomputed so that the frame's text
        area remains the same, if menubar has just been created.  */
     if (old_widget == NULL)
-      x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
   }
 
   UNBLOCK_INPUT;
@@ -2417,3 +2416,6 @@ void globals_of_w32menu ()
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
 }
+
+/* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
+   (do not change this comment) */

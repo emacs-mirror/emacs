@@ -1,0 +1,33 @@
+/* XPM */
+static char * highlight_xpm[] = {
+/* columns rows colors chars-per-pixel */
+"24 24 4 1",
+" 	c None",
+".	c black",
+"X	c #828282827474",
+"o	c #dd00df007e00",
+/* pixels */
+"                 .....  ",
+"                ..XXX.. ",
+"                .XXXXX. ",
+"               .XXXXX.. ",
+"               .XXXXX.  ",
+"               .XXXXX.  ",
+"              .XXXXX.   ",
+"              .ooXX.    ",
+"              ..ooo.    ",
+"       oooo     ....    ",
+"oo.ooo....oo ...        ",
+"o.o.ooo.oo.o.ooo.o      ",
+".ooo.oo.oo.o.ooooo      ",
+".ooo.oo.oo.o.ooooo      ",
+".ooo.oo...oo.ooooo      ",
+".....oo.oo.o.ooooo      ",
+".ooo.oo.oo.o.ooooo      ",
+".ooo.oo.oo.o.ooo.o      ",
+". oo.o....ooo...o       ",
+"         oo oooo        ",
+"                        ",
+"                        ",
+"                        ",
+"                        "};

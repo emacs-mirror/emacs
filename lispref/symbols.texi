@@ -560,6 +560,16 @@ in the place where you got @var{plist}.  For example,
             (plist-put (symbol-plist symbol) prop value)))
 @end example
 
+@defun lax-plist-get plist property
+Like @code{plist-get} except that it compares properties
+using @code{equal} instead of @code{eq}.
+@end defun
+
+@defun lax-plist-put plist property value
+Like @code{plist-put} except that it compares properties
+using @code{equal} instead of @code{eq}.
+@end defun
+
 @defun plist-member plist property
 @tindex plist-member
 This returns non-@code{nil} if @var{plist} contains the given
@@ -568,3 +578,7 @@ between a missing property and a property with the value @code{nil}.
 The value is actually the tail of @var{plist} whose @code{car} is
 @var{property}.
 @end defun
+
+@ignore
+   arch-tag: 8750b7d2-de4c-4923-809a-d35fc39fd8ce
+@end ignore

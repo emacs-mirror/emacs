@@ -1,5 +1,6 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998, 2001, 02 Free Software Foundation, Inc.
+   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998, 2001, 02, 03
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -368,12 +369,13 @@ Whichever character you type to run this command is inserted.  */)
    return 0.  A value of 1 indicates this *might* not have been simple.
    A value of 2 means this did things that call for an undo boundary.  */
 
+static Lisp_Object Qexpand_abbrev;
+
 int
 internal_self_insert (c, noautofill)
      int c;
      int noautofill;
 {
-  extern Lisp_Object Fexpand_abbrev ();
   int hairy = 0;
   Lisp_Object tem;
   register enum syntaxcode synt;
@@ -477,7 +479,7 @@ internal_self_insert (c, noautofill)
       int modiff = MODIFF;
       Lisp_Object sym;
 
-      sym = Fexpand_abbrev ();
+      sym = call0 (Qexpand_abbrev);
 
       /* If we expanded an abbrev which has a hook,
 	 and the hook has a non-nil `no-self-insert' property,
@@ -565,6 +567,9 @@ syms_of_cmds ()
   Qoverwrite_mode_binary = intern ("overwrite-mode-binary");
   staticpro (&Qoverwrite_mode_binary);
 
+  Qexpand_abbrev = intern ("expand-abbrev");
+  staticpro (&Qexpand_abbrev);
+
   DEFVAR_LISP ("self-insert-face", &Vself_insert_face,
 	       doc: /* If non-nil, set the face of the next self-inserting character to this.
 See also `self-insert-face-command'.  */);
@@ -615,3 +620,6 @@ keys_of_cmds ()
   initial_define_key (global_map, Ctl ('F'), "forward-char");
   initial_define_key (global_map, 0177, "delete-backward-char");
 }
+
+/* arch-tag: 022ba3cd-67f9-4978-9c5d-7d2b18d8644e
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2003 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -84,13 +84,7 @@
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
 ;; Handle mouse-wheel events with mwheel.
-;; Normally only mouse-wheel-mode and mwheel-install are autoloaded,
-;; but binding mouse-wheel must be done directly, since those functions
-;; do not recognize mouse-wheel as a valid button.
-(autoload 'mwheel-scroll "mwheel")
-(global-set-key [mouse-wheel] 'mwheel-scroll)
-(global-set-key [C-mouse-wheel] 'mwheel-scroll)
-(global-set-key [S-mouse-wheel] 'mwheel-scroll)
+(mouse-wheel-mode 1)
 
 (defun w32-drag-n-drop-debug (event)
   "Print the drag-n-drop EVENT in a readable form."
@@ -1066,13 +1060,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (global-set-key [f10] (lambda ()
 			(interactive) (w32-send-sys-command ?\xf100)))
 
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
-
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
 
@@ -1268,4 +1255,5 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 	(if (null font)
 	    (error "Font not found")))))
 
+;;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here

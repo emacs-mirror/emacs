@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.24 2000/07/24 00:49:09 friedman Exp $
+;; $Id: type-break.el,v 1.29 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -97,7 +97,7 @@ use either \\[customize] or the function `type-break-mode'."
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
   "*Number of seconds of idle time considered to be an adequate typing rest.
 
-When this variable is non-`nil', emacs checks the idle time between
+When this variable is non-nil, emacs checks the idle time between
 keystrokes.  If this idle time is long enough to be considered a \"good\"
 rest from typing, then the next typing break is simply rescheduled for later.
 
@@ -145,7 +145,7 @@ guess a reasonably good pair of values for this variable."
   :group 'type-break)
 
 (defcustom type-break-query-mode t
-  "*Non-`nil' means ask whether or not to prompt user for breaks.
+  "*Non-nil means ask whether or not to prompt user for breaks.
 If so, call the function specified in the value of the variable
 `type-break-query-function' to do the asking."
   :type 'boolean
@@ -156,7 +156,7 @@ If so, call the function specified in the value of the variable
 It should take a string as an argument, the prompt.
 Usually this should be set to `yes-or-no-p' or `y-or-n-p'.
 
-To avoid being queried at all, set `type-break-query-mode' to `nil'."
+To avoid being queried at all, set `type-break-query-mode' to nil."
   :type '(radio function
                 (function-item yes-or-no-p)
                 (function-item y-or-n-p))
@@ -222,7 +222,7 @@ remove themselves after running.")
 ;; Mode line frobs
 
 (defcustom type-break-mode-line-message-mode nil
-  "*Non-`nil' means put type-break related messages in the mode line.
+  "*Non-nil means put type-break related messages in the mode line.
 Otherwise, messages typically go in the echo area.
 
 See also `type-break-mode-line-format' and its members."
@@ -258,7 +258,7 @@ See also `type-break-mode-line-format' and its members."
   "If non-nil, this is a countdown for the next typing break.
 
 This variable, in conjunction with `type-break-warning-countdown-string-type'
-(which indicates whether this value is a number of keystrokes or seconds)
+\(which indicates whether this value is a number of keystrokes or seconds)
 is installed in mode-line-format to notify of imminent typing breaks.")
 
 (defvar type-break-warning-countdown-string-type nil
@@ -981,11 +981,12 @@ With optional non-nil ALL, force redisplay of all mode-lines."
                   (funcall 'delete-timer (car list)))
              (setq list (cdr list)))))
         ((memq type-break-emacs-variant '(xemacs lucid))
-         (let ((list itimer-list))
-           (while list
-             (and (eq (funcall 'itimer-function (car list)) function)
-                  (funcall 'delete-itimer (car list)))
-             (setq list (cdr list)))))))
+	 (with-no-warnings
+	  (let ((list itimer-list))
+	    (while list
+	      (and (eq (funcall 'itimer-function (car list)) function)
+		   (funcall 'delete-itimer (car list)))
+	      (setq list (cdr list))))))))
 
 
 ;;; Demo wrappers
@@ -1089,4 +1090,5 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 (if type-break-mode
     (type-break-mode 1))
 
+;;; arch-tag: 943a2eb3-07e6-420b-993f-96e4796f5fd0
 ;;; type-break.el ends here

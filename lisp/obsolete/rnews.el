@@ -984,4 +984,5 @@ Mail and USENET news headers are not rotated."
 
 (provide 'rnews)
 
+;;; arch-tag: c032a20b-cafb-466c-b3fa-5be404a18f8c
 ;;; rnews.el ends here

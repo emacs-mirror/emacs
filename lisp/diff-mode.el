@@ -1242,4 +1242,5 @@ For use in `add-log-current-defun-function'."
 ;; use `combine-after-change-calls' to minimize the slowdown of font-lock.
 ;;
 
+;;; arch-tag: 2571d7ff-bc28-4cf9-8585-42e21890be66
 ;;; diff-mode.el ends here

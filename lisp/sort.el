@@ -40,7 +40,8 @@
   :type 'boolean)
 
 ;;;###autoload
-(defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
+(defun sort-subr (reverse nextrecfun endrecfun
+			  &optional startkeyfun endkeyfun predicate)
   "General text sorting routine to divide buffer into records and sort them.
 
 We divide the accessible portion of the buffer into disjoint pieces
@@ -74,7 +75,10 @@ starts at the beginning of the record.
 
 ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
-same as ENDRECFUN."
+same as ENDRECFUN.
+
+PREDICATE is the function to use to compare keys.  If keys are numbers,
+it defaults to `<', otherwise it defaults to `string<'."
   ;; Heuristically try to avoid messages if sorting a small amt of text.
   (let ((messages (> (- (point-max) (point-min)) 50000)))
     (save-excursion
@@ -88,32 +92,18 @@ same as ENDRECFUN."
 	  (or reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Sorting records..."))
 	  (setq sort-lists
-		(if (fboundp 'sortcar)
-		    (sortcar sort-lists
-			     (cond ((numberp (car (car sort-lists)))
-				    ;; This handles both ints and floats.
-				    '<)
-				   ((consp (car (car sort-lists)))
-				    (function
-				     (lambda (a b)
-				       (> 0 (compare-buffer-substrings
-					     nil (car a) (cdr a)
-					     nil (car b) (cdr b))))))
-				   (t
-				    'string<)))
-		  (sort sort-lists
-			(cond ((numberp (car (car sort-lists)))
-			       'car-less-than-car)
-			      ((consp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (> 0 (compare-buffer-substrings
-					nil (car (car a)) (cdr (car a))
-					nil (car (car b)) (cdr (car b)))))))
-			      (t
-			       (function
-				(lambda (a b)
-				  (string< (car a) (car b)))))))))
+		(sort sort-lists
+		      (cond (predicate
+			     `(lambda (a b) (,predicate (car a) (car b))))
+			    ((numberp (car (car sort-lists)))
+			     'car-less-than-car)
+			    ((consp (car (car sort-lists)))
+			     (lambda (a b)
+			       (> 0 (compare-buffer-substrings
+				     nil (car (car a)) (cdr (car a))
+				     nil (car (car b)) (cdr (car b))))))
+			    (t
+			     (lambda (a b) (string< (car a) (car b)))))))
 	  (if reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Reordering buffer..."))
 	  (sort-reorder-buffer sort-lists old)))
@@ -150,15 +140,14 @@ same as ENDRECFUN."
       (cond ((prog1 done (setq done nil)))
 	    (endrecfun (funcall endrecfun))
 	    (nextrecfun (funcall nextrecfun) (setq done t)))
-      (if key (setq sort-lists (cons
-				 ;; consing optimization in case in which key
-				 ;; is same as record.
-				 (if (and (consp key)
-					  (equal (car key) start-rec)
-					  (equal (cdr key) (point)))
-				     (cons key key)
-				   (cons key (cons start-rec (point))))
-				 sort-lists)))
+      (if key (push
+	       ;; consing optimization in case in which key is same as record.
+	       (if (and (consp key)
+			(equal (car key) start-rec)
+			(equal (cdr key) (point)))
+		   (cons key key)
+		 (cons key (cons start-rec (point))))
+	       sort-lists))
       (and (not done) nextrecfun (funcall nextrecfun)))
     sort-lists))
 
@@ -546,4 +535,5 @@ From a program takes two point or marker arguments, BEG and END."
 
 (provide 'sort)
 
+;;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
 ;;; sort.el ends here

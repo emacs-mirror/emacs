@@ -2227,7 +2227,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 
 ;;; Member mode
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-member-mode ()
   "Major mode for Ebrowse member buffers.
 
@@ -3397,28 +3397,28 @@ definition."
       (ebrowse-push-position (point-marker) info t))))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-declaration ()
   "View declaration of member at point."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 0 :view t :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-declaration ()
   "Find declaration of member at point."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 0 :view nil :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-definition ()
   "View definition of member at point."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 0 :view t :definition t))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-definition ()
   "Find definition of member at point."
   (interactive)
@@ -3431,21 +3431,21 @@ definition."
   (ebrowse-tags-view/find-member-decl/defn 4 :view t :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-declaration-other-window ()
   "Find declaration of member at point in other window."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 4 :view nil :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-definition-other-window ()
   "View definition of member at point in other window."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 4 :view t :definition t))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-definition-other-window ()
   "Find definition of member at point in other window."
   (interactive)
@@ -3458,21 +3458,21 @@ definition."
   (ebrowse-tags-view/find-member-decl/defn 5 :view t :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-declaration-other-frame ()
   "Find definition of member at point in other frame."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 5 :view nil :definition nil))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-view-definition-other-frame ()
   "View definition of member at point in other frame."
   (interactive)
   (ebrowse-tags-view/find-member-decl/defn 5 :view t :definition t))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-find-definition-other-frame ()
   "Find definition of member at point in other frame."
   (interactive)
@@ -3779,7 +3779,7 @@ TREE-BUFFER if indirectly specifies which files to loop over."
     (goto-char (point-min))))
 
 
-;;###autoload
+;;;###autoload
 (defun ebrowse-tags-search (regexp)
   "Search for REGEXP in all files in a tree.
 If marked classes exist, process marked classes, only.
@@ -4492,4 +4492,5 @@ EVENT is the mouse event."
 ;;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
 ;;; End:
 
+;;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
 ;;; ebrowse.el ends here

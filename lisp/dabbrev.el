@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 01, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -357,11 +357,9 @@ this list.")
 ;; Exported functions
 ;;----------------------------------------------------------------
 
-;;;###autoload
-(define-key esc-map "/" 'dabbrev-expand)
+;;;###autoload (define-key esc-map "/" 'dabbrev-expand)
 ;;;??? Do we want this?
-;;;###autoload
-(define-key esc-map [?\C-/] 'dabbrev-completion)
+;;;###autoload (define-key esc-map [?\C-/] 'dabbrev-completion)
 
 ;;;###autoload
 (defun dabbrev-completion (&optional arg)
@@ -613,16 +611,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 (defun dabbrev--goto-start-of-abbrev ()
   ;; Move backwards over abbrev chars
   (save-match-data
-    (if (not (bobp))
-	(progn
-	  (forward-char -1)
-	  (while (and (looking-at dabbrev--abbrev-char-regexp)
-		      (not (bobp))
-		      (not (= (point) (field-beginning (point) nil
-						       (1- (point))))))
-	    (forward-char -1))
-	  (or (looking-at dabbrev--abbrev-char-regexp)
-	      (forward-char 1))))
+    (when (> (point) (minibuffer-prompt-end))
+      (forward-char -1)
+      (while (and (looking-at dabbrev--abbrev-char-regexp)
+		  (> (point) (minibuffer-prompt-end))
+		  (not (= (point) (field-beginning (point) nil
+						   (1- (point))))))
+	(forward-char -1))
+      (or (looking-at dabbrev--abbrev-char-regexp)
+	  (forward-char 1)))
     (and dabbrev-abbrev-skip-leading-regexp
 	 (while (looking-at dabbrev-abbrev-skip-leading-regexp)
 	   (forward-char 1)))))
@@ -854,7 +851,8 @@ of the start of the occurrence."
 
 (defun dabbrev--safe-replace-match (string &optional fixedcase literal)
   (if (eq major-mode 'picture-mode)
-      (picture-replace-match string fixedcase literal)
+      (with-no-warnings
+       (picture-replace-match string fixedcase literal))
     (replace-match string fixedcase literal)))
 
 ;;;----------------------------------------------------------------
@@ -1030,4 +1028,5 @@ Leaves point at the location of the start of the expansion."
 
 (provide 'dabbrev)
 
+;;; arch-tag: 29e58596-f080-4306-a409-70296cf9d46f
 ;;; dabbrev.el ends here

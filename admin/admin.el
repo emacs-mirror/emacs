@@ -89,4 +89,5 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "EMACSVER" (1+ space)
 				(submatch (1+ (in "0-9.")))))))
 
+;;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
 ;; admin.el ends here.

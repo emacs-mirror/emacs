@@ -417,4 +417,5 @@ The regexp is highlighted with FACE."
 
 (provide 'generic)
 
+;;; arch-tag: 239c1fc4-1303-48d9-9ac0-657d655669ea
 ;;; generic.el ends here

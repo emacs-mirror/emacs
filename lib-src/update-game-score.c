@@ -1,5 +1,5 @@
 /* update-game-score.c --- Update a score file
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -68,6 +68,11 @@ extern int optind, opterr;
 #define P_(proto) ()
 #endif
 
+#ifndef HAVE_DIFFTIME
+/* OK on POSIX (time_t is arithmetic type) modulo overflow in subtraction.  */
+#define difftime(t1, t0) (double)((t1) - (t0))
+#endif
+
 int
 usage (err)
      int err;
@@ -110,6 +115,23 @@ lose (msg)
 }
 
 void lose_syserr P_ ((const char *msg)) NO_RETURN;
+
+/* Taken from sysdep.c.  */
+#ifndef HAVE_STRERROR
+#ifndef WINDOWSNT
+char *
+strerror (errnum)
+     int errnum;
+{
+  extern char *sys_errlist[];
+  extern int sys_nerr;
+
+  if (errnum >= 0 && errnum < sys_nerr)
+    return sys_errlist[errnum];
+  return (char *) "Unknown error";
+}
+#endif /* not WINDOWSNT */
+#endif /* ! HAVE_STRERROR */
 
 void
 lose_syserr (msg)
@@ -357,7 +379,9 @@ read_scores (filename, scores, count)
       scorecount++;
       if (scorecount >= cursize)
 	{
-	  ret = (struct score_entry *) realloc (ret, cursize *= 2);
+	  cursize *= 2;
+	  ret = (struct score_entry *)
+	    realloc (ret, (sizeof (struct score_entry) * cursize));
 	  if (!ret)
 	    return -1;
 	}
@@ -504,3 +528,6 @@ unlock_file (filename, state)
   errno = saved_errno;
   return ret;
 }
+
+/* arch-tag: 2bf5c52e-4beb-463a-954e-c58b9c64736b
+   (do not change this comment) */

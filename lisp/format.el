@@ -223,10 +223,12 @@ For most purposes, consider using `format-encode-region' instead."
 	    (let ((copy-buf (get-buffer-create (format " *Format Temp %d*"
 						       format-count)))
 		  (sel-disp selective-display)
-		  (multibyte enable-multibyte-characters))
+		  (multibyte enable-multibyte-characters)
+		  (coding-system buffer-file-coding-system))
 	      (with-current-buffer copy-buf
 		(setq selective-display sel-disp)
-		(set-buffer-multibyte multibyte))
+		(set-buffer-multibyte multibyte)
+		(setq buffer-file-coding-system coding-system))
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
@@ -1047,4 +1049,5 @@ OLD and NEW are the values."
 
 (provide 'format)
 
+;;; arch-tag: c387e9c7-a93d-47bf-89bc-8ca67e96755a
 ;;; format.el ends here

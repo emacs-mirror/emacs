@@ -1277,4 +1277,5 @@ Leaves the region wide."
 
 (provide 'tar-mode)
 
+;;; arch-tag: 8a585a4a-340e-42c2-89e7-d3b1013a4b78
 ;;; tar-mode.el ends here

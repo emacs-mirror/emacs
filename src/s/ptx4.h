@@ -35,3 +35,6 @@
     fatal ("ioctl I_PUSH ldterm", errno);	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1 && errno != EINVAL) \
     fatal ("ioctl I_PUSH ttcompat", errno);
+
+/* arch-tag: 14621824-8dca-432b-a97a-049fc4ce0e9f
+   (do not change this comment) */

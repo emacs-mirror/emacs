@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1986, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -59,6 +59,7 @@
       (modify-syntax-entry ?` "'   " table)
       (modify-syntax-entry ?' "'   " table)
       (modify-syntax-entry ?, "'   " table)
+      (modify-syntax-entry ?@ "'   " table)
       ;; Used to be singlequote; changed for flonums.
       (modify-syntax-entry ?. "_   " table)
       (modify-syntax-entry ?# "'   " table)
@@ -145,7 +146,8 @@
 		 (let ((n 0))
 		   (goto-char (nth 8 state))
 		   (condition-case nil
-		       (while (progn (backward-sexp 1) (setq n (1+ n))))
+		       (while (and (not (bobp))
+				   (progn (backward-sexp 1) (setq n (1+ n)))))
 		     (scan-error nil))
 		   (when (> n 0)
 		     (let ((sym (intern-soft
@@ -318,7 +320,8 @@ if that value is non-nil."
   (setq mode-name "Emacs-Lisp")
   (lisp-mode-variables)
   (setq imenu-case-fold-search nil)
-  (run-hooks 'emacs-lisp-mode-hook))
+  (run-mode-hooks 'emacs-lisp-mode-hook))
+(put 'emacs-lisp-mode 'custom-mode-group 'lisp)
 
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap)))
@@ -353,7 +356,10 @@ if that value is non-nil."
   (setq font-lock-keywords-case-fold-search t)
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
-  (run-hooks 'lisp-mode-hook))
+  (run-mode-hooks 'lisp-mode-hook))
+
+;; Used in old LispM code.
+(defalias 'common-lisp-mode 'lisp-mode)
 
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
@@ -419,23 +425,40 @@ alternative printed representations that can be displayed."
 						printed-value)))))
 
 
-(defun last-sexp-toggle-display ()
+(defun last-sexp-toggle-display (&optional arg)
   "Toggle between abbreviated and unabbreviated printed representations."
-  (interactive)
-  (let ((value (get-text-property (point) 'printed-value)))
-    (when value
-      (let ((beg (or (previous-single-property-change (point) 'printed-value) (point)))
-	    (end (or (next-single-char-property-change (point) 'printed-value) (point)))
-	    (standard-output (current-buffer))
-	    (point (point)))
-	(delete-region beg end)
-	(insert (nth 1 value))
-	(last-sexp-setup-props beg (point)
-			       (nth 0 value)
-			       (nth 2 value)
-			       (nth 1 value))
-	(goto-char (min (point-max) point))))))
+  (interactive "P")
+  (save-restriction
+    (widen)
+    (let ((value (get-text-property (point) 'printed-value)))
+      (when value
+	(let ((beg (or (previous-single-property-change (min (point-max) (1+ (point)))
+							'printed-value)
+		       (point)))
+	      (end (or (next-single-char-property-change (point) 'printed-value) (point)))
+	      (standard-output (current-buffer))
+	      (point (point)))
+	  (delete-region beg end)
+	  (insert (nth 1 value))
+	  (last-sexp-setup-props beg (point)
+				 (nth 0 value)
+				 (nth 2 value)
+				 (nth 1 value))
+	  (goto-char (min (point-max) point)))))))
 
+(defun prin1-char (char)
+  "Return a string representing CHAR as a character rather than as an integer.
+If CHAR is not a character, return nil."
+  (and (integerp char)
+       (char-valid-p (event-basic-type char))
+       (concat
+	"?"
+	(mapconcat
+	 (lambda (modif)
+	   (cond ((eq modif 'super) "\\s-")
+		 (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
+	 (event-modifiers char) "")
+	(string (event-basic-type char)))))
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -446,72 +469,76 @@ With argument, print output into current buffer."
 		       (opoint (point))
 		       ignore-quotes
 		       expr)
-		   (unwind-protect
-		       (save-excursion
-			 (set-syntax-table emacs-lisp-mode-syntax-table)
-			 ;; If this sexp appears to be enclosed in `...'
-			 ;; then ignore the surrounding quotes.
-			 (setq ignore-quotes
-			       (or (eq (following-char) ?\')
-				   (eq (preceding-char) ?\')))
-			 (forward-sexp -1)
-			 ;; If we were after `?\e' (or similar case),
-			 ;; use the whole thing, not just the `e'.
-			 (when (eq (preceding-char) ?\\)
-			   (forward-char -1)
-			   (when (eq (preceding-char) ??)
-			     (forward-char -1)))
+		   (save-excursion
+		     (with-syntax-table emacs-lisp-mode-syntax-table
+		       ;; If this sexp appears to be enclosed in `...'
+		       ;; then ignore the surrounding quotes.
+		       (setq ignore-quotes
+			     (or (eq (following-char) ?\')
+				 (eq (preceding-char) ?\')))
+		       (forward-sexp -1)
+		       ;; If we were after `?\e' (or similar case),
+		       ;; use the whole thing, not just the `e'.
+		       (when (eq (preceding-char) ?\\)
+			 (forward-char -1)
+			 (when (eq (preceding-char) ??)
+			   (forward-char -1)))
 
-			 ;; Skip over `#N='s.
-			 (when (eq (preceding-char) ?=)
-			   (let (labeled-p)
-			     (save-excursion
-			       (skip-chars-backward "0-9#=")
-			       (setq labeled-p (looking-at "\\(#[0-9]+=\\)+")))
-			     (when labeled-p
-			       (forward-sexp -1))))
+		       ;; Skip over `#N='s.
+		       (when (eq (preceding-char) ?=)
+			 (let (labeled-p)
+			   (save-excursion
+			     (skip-chars-backward "0-9#=")
+			     (setq labeled-p (looking-at "\\(#[0-9]+=\\)+")))
+			   (when labeled-p
+			     (forward-sexp -1))))
 
-			 (save-restriction
-			   ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
-			   ;; `variable' so that the value is returned, not the
-			   ;; name
-			   (if (and ignore-quotes
-				    (eq (following-char) ?`))
-			       (forward-char))
-			   (narrow-to-region (point-min) opoint)
-			   (setq expr (read (current-buffer)))
-			   ;; If it's an (interactive ...) form, it's more
-			   ;; useful to show how an interactive call would
-			   ;; use it.
-			   (and (consp expr)
-				(eq (car expr) 'interactive)
-				(setq expr
-				      (list 'call-interactively
-					    (list 'quote
-						  (list 'lambda
-							'(&rest args)
-							expr
-							'args)))))
-			   expr))
-		     (set-syntax-table stab))))))
-      (let ((unabbreviated (let ((print-length nil) (print-level nil))
-			     (prin1-to-string value)))
-	    (print-length eval-expression-print-length)
-	    (print-level eval-expression-print-level)
-	    (beg (point))
-	    end)
-	(prog1
-	    (prin1 value)
-	  (setq end (point))
-	  (when (and (bufferp standard-output)
-		     (or (not (null print-length))
-			 (not (null print-level)))
-		     (not (string= unabbreviated
-				   (buffer-substring-no-properties beg end))))
-	    (last-sexp-setup-props beg end value
-				   unabbreviated
-				   (buffer-substring-no-properties beg end))
-	    ))))))
+		       (save-restriction
+			 ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
+			 ;; `variable' so that the value is returned, not the
+			 ;; name
+			 (if (and ignore-quotes
+				  (eq (following-char) ?`))
+			     (forward-char))
+			 (narrow-to-region (point-min) opoint)
+			 (setq expr (read (current-buffer)))
+			 ;; If it's an (interactive ...) form, it's more
+			 ;; useful to show how an interactive call would
+			 ;; use it.
+			 (and (consp expr)
+			      (eq (car expr) 'interactive)
+			      (setq expr
+				    (list 'call-interactively
+					  (list 'quote
+						(list 'lambda
+						      '(&rest args)
+						      expr
+						      'args)))))
+			 expr)))))))
+      (eval-last-sexp-print-value value))))
+
+(defun eval-last-sexp-print-value (value)
+  (let ((unabbreviated (let ((print-length nil) (print-level nil))
+			 (prin1-to-string value)))
+	(print-length eval-expression-print-length)
+	(print-level eval-expression-print-level)
+	(char-string (prin1-char value))
+	(beg (point))
+	end)
+    (prog1
+	(prin1 value)
+      (if (and (eq standard-output t) char-string)
+	  (princ (concat " = " char-string)))
+      (setq end (point))
+      (when (and (bufferp standard-output)
+		 (or (not (null print-length))
+		     (not (null print-level)))
+		 (not (string= unabbreviated
+			       (buffer-substring-no-properties beg end))))
+	(last-sexp-setup-props beg end value
+			       unabbreviated
+			       (buffer-substring-no-properties beg end))
+	))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
@@ -536,9 +563,11 @@ Likewise for other constructs as necessary."
   (cond ((not (listp form))
 	 form)
 	((and (eq (car form) 'defvar)
-	      (cdr-safe (cdr-safe form)))
-	 ;; Force variable to be bound.
-	 (cons 'defconst (cdr form)))
+	      (cdr-safe (cdr-safe form))
+	      (boundp (cadr form)))
+	 ;; Force variable to be re-set.
+	 `(progn (defvar ,(nth 1 form) nil ,@(nthcdr 3 form))
+		 (setq ,(nth 1 form) ,(nth 2 form))))
 	;; `defcustom' is now macroexpanded to
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
@@ -625,7 +654,7 @@ which see."
 	     (unless (eq old-value new-value)
 	       (setq debug-on-error new-value))
 	     value)))))
-
+
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
@@ -826,13 +855,13 @@ This function also returns nil meaning don't specify the indentation."
         (progn
           (if (not (> (save-excursion (forward-line 1) (point))
                       calculate-lisp-indent-last-sexp))
-              (progn (goto-char calculate-lisp-indent-last-sexp)
-                     (beginning-of-line)
-                     (parse-partial-sexp (point)
-					 calculate-lisp-indent-last-sexp 0 t)))
-          ;; Indent under the list or under the first sexp on the same
-          ;; line as calculate-lisp-indent-last-sexp.  Note that first
-          ;; thing on that line has to be complete sexp since we are
+		(progn (goto-char calculate-lisp-indent-last-sexp)
+		       (beginning-of-line)
+		       (parse-partial-sexp (point)
+					   calculate-lisp-indent-last-sexp 0 t)))
+	    ;; Indent under the list or under the first sexp on the same
+	    ;; line as calculate-lisp-indent-last-sexp.  Note that first
+	    ;; thing on that line has to be complete sexp since we are
           ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
@@ -1144,4 +1173,5 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
+;;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
 ;;; lisp-mode.el ends here

@@ -1,3 +1,473 @@
+2003-10-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* windows.texi (Choosing Window): Fix typo.
+	* edebug.texi (Edebug Execution Modes): Fix typo.
+
+2003-10-13  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Windows): A window has fringe settings,
+	display margins and scroll-bar settings.
+	(Splitting Windows): Doc split-window return value.
+	Clean up one-window-p.
+	(Selecting Windows): Fix typo.
+	(Cyclic Window Ordering): Explain frame as ALL-FRAMES in next-window.
+	(Buffers and Windows): In set-window-buffer, explain effect
+	on fringe settings and scroll bar settings.
+	(Displaying Buffers): In pop-to-buffer, explain nil as buffer arg.
+	(Choosing Window): Use defopt for pop-up-frame-function.
+	For special-display-buffer-names, explain same-window and same-frame.
+	Clarify window-dedicated-p return value.
+	(Textual Scrolling): scroll-up and scroll-down can get an error.
+	(Horizontal Scrolling): Clarify auto-hscroll-mode.
+	Clarify set-window-hscroll.
+	(Size of Window): Don't mention tool bar in window-height.
+	(Coordinates and Windows): Explain what coordinates-in-window-p
+	returns for fringes and display margins.
+	(Window Configurations): Explain saving fringes, etc.
+
+	* tips.texi (Library Headers): Clean up Documentation.
+
+	* syntax.texi (Parsing Expressions): Clean up forward-comment
+	and parse-sexp-lookup-properties.
+
+	* sequences.texi (Sequence Functions): sequencep accepts bool-vectors.
+
+	* os.texi (System Environment): Clean up text for load-average errors.
+
+	* modes.texi (Hooks): Don't explain local hook details at front.
+	Clarify run-hooks and run-hook-with-args a little.
+	Clean up add-hook and remove-hook.
+
+	* edebug.texi (Edebug Execution Modes): Clarify t.
+	Document edebug-sit-for-seconds.
+	(Coverage Testing): Document C-x X = and =.
+	(Instrumenting Macro Calls): Fix typo.
+	(Specification List): Don't index the specification keywords.
+
+2003-10-10  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network): Introduce make-network-process.
+
+2003-10-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Library Headers): Fix typo.
+
+2003-10-07  Juri Linkov  <juri@jurta.org>
+
+	* modes.texi (Imenu): Mention imenu-create-index-function's
+	default value.  Explain submenus better.
+
+2003-10-07  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Faces for Font Lock): Fix typo.
+	(Hooks): Explain how buffer-local hook variables can refer to
+	global hook variables.
+	Various minor clarifications.
+
+2003-10-06  Lute Kamstra  <lute@gnu.org>
+
+	* tips.texi (Coding Conventions): Mention naming conventions for
+	hooks.
+
+2003-10-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Library Search): Correct default value of
+	load-suffixes.
+	(Named Features): Fix typo.
+
+2003-10-05  Richard M. Stallman  <rms@gnu.org>
+
+	* loading.texi (Named Features): In `provide',
+	say how to test for subfeatures.
+	(Unloading): In unload-feature, use new var name
+	unload-feature-special-hooks.
+
+2003-10-03  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Mention third way to set up
+	Imenu.
+	(Imenu): A number of small fixes.
+	Delete documentation of internal variable imenu--index-alist.
+	Document the return value format of imenu-create-index-function
+	functions.
+
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Network): Say what stopped datagram connections do.
+
+	* lists.texi (Association Lists): Clarify `assq-delete-all'.
+
+	* display.texi (Overlay Properties): Clarify `evaporate' property.
+
+2003-09-29  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Data): Explain when symbols in mode-line
+	constructs should be marked as risky.
+	Change cons cell into proper list.
+	(Mode Line Variables): Change cons cell into proper list.
+
+2003-09-26  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Data): Document the :propertize construct.
+	(Mode Line Variables): Reorder the descriptions of the variables
+	to match their order in the default mode-line-format.
+	Describe the new variables mode-line-position and mode-line-modes.
+	Update the default values of mode-line-frame-identification,
+	minor-mode-alist, and default-mode-line-format.
+	(Properties in Mode): Mention the :propertize construct.
+
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi, commands.texi, debugging.texi, eval.texi:
+	* loading.texi, minibuf.texi, text.texi, variables.texi:
+	Avoid @strong{Note:}.
+
+2003-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Fix typo.
+
+2003-09-23  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* processes.texi (Low-Level Network): Fix typo.
+
+2003-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network, Network Servers): Fix typos.
+	(Low-Level Network): Add timeout value for :server keyword.
+	Add new option keywords to make-network-process.
+	Add set-network-process-options.
+	Explain how to test availability of network options.
+
+2003-09-19  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Motion by Indent): Arg to
+	backward-to-indentation and forward-to-indentation is optional.
+
+	* strings.texi (Creating Strings): Add substring-no-properties.
+
+	* processes.texi
+	(Process Information): Add list-processes arg QUERY-ONLY.
+	Delete process-contact from here.
+	Add new status values for process-status.
+	Add process-get, process-put, process-plist, set-process-plist.
+	(Synchronous Processes): Add call-process-shell-command.
+	(Signals to Processes): signal-process allows process objects.
+	(Network): Complete rewrite.
+	(Network Servers, Datagrams, Low-Level Network): New nodes.
+
+	* positions.texi (Word Motion): forward-word, backward-word
+	arg is optional.  Reword.
+
+	* abbrevs.texi (Defining Abbrevs): Index no-self-insert.
+
+	* variables.texi (Creating Buffer-Local):
+	Delete duplicate definition of buffer-local-value.
+	(File Local Variables): Explain about discarding text props.
+
+2003-09-11  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Explain that the minibuffer
+	changes variables that record input events.
+	(Minibuffer Misc): Add minibuffer-selected-window.
+
+	* lists.texi (Building Lists): Add copy-tree.
+
+	* display.texi (Fontsets): Add char-displayable-p.
+	(Scroll Bars): New node.
+
+2003-09-08  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (%-Constructs): Document new `%i' and `%I'
+	constructs.
+
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in: New file.
+
+2003-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Properties): Clarify how priorities
+	affect use of the properties.
+
+2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* customize.texi (Type Keywords): Correct the description of
+	`:help-echo' in the case where `motion-doc' is a function.
+
+2003-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Subsection, not section.
+
+2003-08-13  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode lists in menu.
+
+	* text.texi (Insertion): Add insert-buffer-substring-no-properties.
+	(Kill Functions): kill-region has new arg yank-handler.
+	(Yanking): New node.
+	(Yank Commands): Add yank-undo-function.
+	(Low-Level Kill Ring):
+	kill-new and kill-append have new arg yank-handler.
+	(Changing Properties): Add remove-list-of-text-properties.
+	(Atomic Changes): New node.
+
+	* symbols.texi (Other Plists): Add lax-plist-get, lax-plist-put.
+
+	* streams.texi (Output Variables): Add eval-expression-print-length
+	and eval-expression-print-level.
+
+	* os.texi (Time Conversion): For encode-time, explain limits on year.
+
+	* objects.texi (Character Type): Define anchor "modifier bits".
+
+	* modes.texi (Emulating Mode Line): New node.
+	(Search-based Fontification): Font Lock uses font-lock-face property.
+	(Other Font Lock Variables): Likewise.
+
+	* keymaps.texi (Format of Keymaps): Keymaps contain char tables,
+	not vectors.
+	(Active Keymaps): Add emulation-mode-map-alists.
+	(Functions for Key Lookup): key-binding has new arg no-remap.
+	(Remapping Commands): New node.
+	(Scanning Keymaps): where-is-internal has new arg no-remap.
+	(Tool Bar): Add tool-bar-local-item-from-menu.
+	Clarify when to use tool-bar-add-item-from-menu.
+
+	* commands.texi (Interactive Call): commandp has new arg.
+	(Command Loop Info): Add this-original-command.
+
+2003-08-06  John Paul Wallington  <jpw@gnu.org>
+
+	* compile.texi (Compiler Errors): Say `@end defmac' after `@defmac'.
+
+	* display.texi (Warning Basics): Fix typo.
+	(Fringes): Add closing curly bracket and fix typo.
+
+	* elisp.texi (Top): Fix typo.
+
+2003-08-05  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi: Update lists of subnodes.
+
+	* windows.texi (Buffers and Windows): set-window-buffer has new arg.
+
+	* variables.texi (Local Variables): Use lc for example variable names.
+
+	* tips.texi (Library Headers): Explain where to put -*-.
+
+	* strings.texi (Creating Strings): Fix xref for vconcat.
+
+	* sequences.texi (Vector Functions):
+	vconcat no longer allows integer args.
+
+	* minibuf.texi (Reading File Names): read-file-name has new
+	arg PREDICATE.  New function read-directory-name.
+
+	* macros.texi (Defining Macros): Give definition of `declare'
+	(Indenting Macros): New node.
+
+	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
+	(Window Frame Parameters): Make separate table of parameters
+	that are coupled with specific face attributes.
+	(Deleting Frames): delete-frame-hooks renamed to
+	delete-frame-functions.
+
+	* files.texi (Magic File Names): Add file-remote-p.
+	Clarify file-local-copy.
+
+	* edebug.texi (Instrumenting Macro Calls): Don't define `declare'
+	here; instead xref Defining Macros.
+
+	* display.texi (Warnings): New node, and subnodes.
+	(Fringes): New node.
+
+	* debugging.texi (Test Coverage): New node.
+
+	* compile.texi (Compiler Errors): Explain with-no-warnings
+	and other ways to suppress warnings.
+
+	* commands.texi (Interactive Call): Minor clarification.
+
+	* buffers.texi (Buffer File Name): set-visited-file-name
+	renames the buffer too.
+
+	* abbrevs.texi (Abbrev Tables): Add copy-abbrev-table.
+
+2003-07-24  Markus Rost  <rost@math.ohio-state.edu>
+
+	* abbrevs.texi (Abbrev Expansion): Use \s syntax in example.
+
+2003-07-22  Markus Rost  <rost@math.ohio-state.edu>
+
+	* internals.texi (Garbage Collection): Fix previous change.
+
+2003-07-22  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Truenames): Add LIMIT arg to file-chase-links.
+
+	* display.texi (Width): Use \s syntax in example.
+	(Font Selection): Add face-font-rescale-alist.
+
+	* modes.texi (Imenu): Add xref to Emacs Manual node on Imenu.
+	Remove spurious indent in example.
+
+	* lists.texi (Building Lists): Add number-sequence.
+
+	* internals.texi (Garbage Collection): Add gcs-done, gc-elapsed.
+
+	* functions.texi (Function Documentation): Explain how to
+	show calling convention explicitly in the doc string.
+
+	* windows.texi (Selecting Windows): save-selected-window saves
+	selected window of each frame.
+	(Window Configurations): Minor change.
+
+	* syntax.texi (Syntax Table Functions): Use \s syntax in examples.
+
+	* streams.texi (Output Variables): Add print-continuous-numbering
+	and print-number-table.
+
+	* processes.texi (Decoding Output): New node.
+
+	* os.texi (Time Conversion): decode-time arg is optional.
+
+	* objects.texi (Character Type): Don't use space as example for \.
+	Make list of char names and \-sequences correspond.
+	Explain that \s is not used in strings.  `\ ' needs space after.
+
+	* nonascii.texi (Converting Representations): Add string-to-multibyte.
+	(Translation of Characters): Add translation-table-for-input.
+	(Default Coding Systems): Add auto-coding-functions.
+	(Explicit Encoding): Add decode-coding-inserted-region.
+	(Locales): Add locale-info.
+
+	* minibuf.texi (Basic Completion): Describe test-completion.
+	Collections can be lists of strings.
+	Clean up lazy-completion-table.
+	(Programmed Completion): Mention test-completion.
+	Clarify why lambda expressions are not accepted.
+	(Minibuffer Misc): Describe minibufferp.
+
+2003-07-14  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi (Killing Buffers): kill-buffer-hook is perm local.
+
+	* windows.texi (Selecting Windows): New arg to select-window.
+	(Selecting Windows): Add with-selected-window.
+	(Size of Window): Add window-inside-edges, etc.
+
+	* internals.texi (Garbage Collection): Add post-gc-hook.
+
+	* processes.texi (Subprocess Creation): Add exec-suffixes.
+
+	* keymaps.texi (Functions for Key Lookup): Add current-active-maps.
+	(Scanning Keymaps): Add map-keymaps.
+	(Defining Menus): Add keymap-prompt.
+
+	* numbers.texi (Integer Basics): Add most-positive-fixnum,
+	most-negative-fixnum.
+
+	* compile.texi (Byte Compilation): Explain no-byte-compile
+	(Compiler Errors): New node.
+
+	* os.texi (User Identification): user-uid, user-real-uid
+	can return float.
+
+	* modes.texi (Major Mode Conventions): Explain about run-mode-hooks
+	and about derived modes.
+	(Minor Modes): Add minor-mode-list.
+	(Defining Minor Modes): Keyword args for define-minor-mode.
+	(Search-based Fontification): Explain managing other properties.
+	(Other Font Lock Variables): Add font-lock-extra-managed-props.
+	(Faces for Font Lock): Add font-locl-preprocessor-face.
+	(Hooks): Add run-mode-hooks and delay-mode-hooks.
+
+	* variables.texi (Creating Buffer-Local): Add buffer-local-value.
+	(Variable Aliases): Clarify defvralias.
+
+	* loading.texi (Library Search): Add load-suffixes.
+
+	* minibuf.texi (Basic Completion): Add lazy-completion-table.
+	(Programmed Completion): Add dynamic-completion-table.
+
+	* files.texi (Changing Files): copy-file allows dir as NEWNAME.
+	(Magic File Names): Specify precedence order of handlers.
+o
+	* commands.texi (Command Overview): Emacs server runs pre-command-hook
+	and post-command-hook.
+	(Waiting): New calling convention for sit-for.
+
+	* text.texi (Special Properties): local-map and keymap properties
+	apply based on their stickiness.
+
+2003-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Minor Mode Conventions): Specify only some kinds
+	of list values as args to minor modes.
+
+	* files.texi (File Name Expansion): Warn about iterative use
+	of substitute-in-file-name.
+
+	* advice.texi (Activation of Advice): Clean up previous change.
+
+2003-07-06  Markus Rost  <rost@math.ohio-state.edu>
+
+	* advice.texi (Activation of Advice): Note that ad-start-advice is
+	turned on by default.
+
+2003-06-30  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Buffer Contents): Document current-word.
+	(Change Hooks): Not called for *Messages*.
+
+	* functions.texi (Defining Functions): Explain about redefining
+	primitives.
+	(Function Safety): Renamed.  Minor changes.
+	Comment out the detailed criteria for what is safe.
+
+2003-06-22  Andreas Schwab  <schwab@suse.de>
+
+	* objects.texi (Symbol Type): Fix description of examples.
+
+2003-06-16  Andreas Schwab  <schwab@suse.de>
+
+	* hash.texi (Creating Hash): Fix description of :weakness.
+
+2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* files.texi (Changing Files): copy-file copies file modes, too.
+
+2003-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* strings.texi (Creating Strings): Clarify split-string.
+
+2003-05-22  Stephen J. Turnbull  <stephen@xemacs.org>
+
+	* strings.texi (Creating Strings): Update split-string specification
+	and examples.
+
+2003-05-19  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi: Correct invariant section names.
+
+2003-04-20  Richard M. Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Explain about timers and quitting.
+
+2003-04-19  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Strings are
+	no longer special for GCPROs.  Mention GCPRO5, GCPRO6.
+	Explain GCPRO convention for varargs function args.
+
+2003-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Misc): Document fn minibuffer-message.
+
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Kinds of Files): Correct return value of file-symlink-p.
+
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* objects.texi (Character Type): New \s escape for space.
@@ -563,9 +1033,11 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 	for the Project GNU development environment.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

@@ -1,5 +1,5 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -39,7 +39,7 @@
 (autoload 'mm-body-7-or-8 "mm-bodies")
 
 (defvar rfc2047-header-encoding-alist
-  '(("Newsgroups" . nil)
+  '(("Newsgroups\\|Followup-To" . nil)
     ("Message-ID" . nil)
     ("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|Reply-To\\|Sender\\)" .
      address-mime)
@@ -135,15 +135,25 @@ Should be called narrowed to the head of the message."
 	(save-restriction
 	  (rfc2047-narrow-to-field)
 	  (if (not (rfc2047-encodable-p))
-	      (if (and (eq (mm-body-7-or-8) '8bit)
-		       (mm-multibyte-p)
-		       (mm-coding-system-p
-			(car message-posting-charset)))
-		       ;; 8 bit must be decoded.
-		       ;; Is message-posting-charset a coding system?
-		       (mm-encode-coding-region
-			(point-min) (point-max)
-			(car message-posting-charset)))
+	      (prog1
+		(if (and (eq (mm-body-7-or-8) '8bit)
+			 (mm-multibyte-p)
+			 (mm-coding-system-p
+			  (car message-posting-charset)))
+		    ;; 8 bit must be decoded.
+		    (mm-encode-coding-region
+		     (point-min) (point-max)
+		     (mm-charset-to-coding-system
+		      (car message-posting-charset))))
+		;; No encoding necessary, but folding is nice
+		(rfc2047-fold-region
+		 (save-excursion
+		   (goto-char (point-min))
+		   (skip-chars-forward "^:")
+		   (when (looking-at ": ")
+		     (forward-char 2))
+		   (point))
+		 (point-max)))
 	    ;; We found something that may perhaps be encoded.
 	    (setq method nil
 		  alist rfc2047-header-encoding-alist)
@@ -230,7 +240,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 	(let ((start (point))		; start of current token
 	      end			; end of current token
 	      ;; Whether there's an encoded word before the current
-	      ;; tpken, either immediately or separated by space.
+	      ;; token, either immediately or separated by space.
 	      last-encoded)
 	  (goto-char (point-min))
 	  (condition-case nil	      ; in case of unbalanced quotes
@@ -240,7 +250,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 	      (while (not (eobp))
 		(setq start (point))
 		;; Skip whitespace.
-		(unless (= 0 (skip-chars-forward " \t"))
+		(unless (= 0 (skip-chars-forward " \t\n"))
 		  (setq start (point)))
 		(cond
 		 ((not (char-after)))	; eob
@@ -364,6 +374,7 @@ By default, the region is treated as containing addresses (see
     (goto-char (point-min))
     (let ((break nil)
 	  (qword-break nil)
+	  (first t)
 	  (bol (save-restriction
 		 (widen)
 		 (mm-point-at-bol))))
@@ -372,7 +383,7 @@ By default, the region is treated as containing addresses (see
 	  (goto-char (or break qword-break))
 	  (setq break nil
 		qword-break nil)
-	  (if (looking-at " \t")
+	  (if (looking-at "[ \t]")
 	      (insert ?\n)
 	    (insert "\n "))
 	  (setq bol (1- (point)))
@@ -392,7 +403,10 @@ By default, the region is treated as containing addresses (see
 	  (forward-char 1))
 	 ((memq (char-after) '(?  ?\t))
 	  (skip-chars-forward " \t")
-	  (setq break (1- (point))))
+	  (if first
+	      ;; Don't break just after the header name.
+	      (setq first nil)
+	    (setq break (1- (point)))))
 	 ((not break)
 	  (if (not (looking-at "=\\?[^=]"))
 	      (if (eq (char-after) ?=)
@@ -406,7 +420,7 @@ By default, the region is treated as containing addresses (see
 	(goto-char (or break qword-break))
 	(setq break nil
 	      qword-break nil)
-	  (if (looking-at " \t")
+	  (if (looking-at "[ \t]")
 	      (insert ?\n)
 	    (insert "\n "))
 	(setq bol (1- (point)))
@@ -426,14 +440,12 @@ By default, the region is treated as containing addresses (see
 	  leading)
       (forward-line 1)
       (while (not (eobp))
-	(looking-at "[ \t]*")
-	(setq leading (- (match-end 0) (match-beginning 0)))
-	(if (< (- (mm-point-at-eol) bol leading) 76)
-	    (progn
-	      (goto-char eol)
-	      (delete-region eol (progn
-				   (skip-chars-forward "[ \t\n\r]+")
-				   (1- (point)))))
+	(if (and (looking-at "[ \t]")
+		 (< (- (mm-point-at-eol) bol) 76))
+	    (delete-region eol (progn
+				 (goto-char eol)
+				 (skip-chars-forward "\r\n")
+				 (point)))
 	  (setq bol (mm-point-at-bol)))
 	(setq eol (mm-point-at-eol))
 	(forward-line 1)))))
@@ -579,4 +591,5 @@ If your Emacs implementation can't decode CHARSET, return nil."
 
 (provide 'rfc2047)
 
+;;; arch-tag: a07fe3d4-22b5-4c4a-bd89-b1f82d5d36f6
 ;;; rfc2047.el ends here

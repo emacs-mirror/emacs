@@ -57,3 +57,6 @@ NOTE-END  */
 #undef HAVE_XSCREENRESOURCESTRING
 #undef HAVE_SETSID
 #endif
+
+/* arch-tag: 56050454-0df5-4de9-b1b7-0c6ab400313c
+   (do not change this comment) */

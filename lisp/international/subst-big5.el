@@ -32,7 +32,8 @@
  (lambda (pair)
    (let ((unicode (car pair))
 	 (char (cadr pair)))
-     (if (and (>= unicode #x2e80) (<= unicode #xd7a3))
+     (if (or (and (>= unicode #x2e80) (<= unicode #xd7a3))
+	     (and (>= unicode #xff00) (<= unicode #xffef)))
 	 (puthash unicode  char ucs-unicode-to-mule-cjk))
      (puthash char unicode ucs-mule-cjk-to-unicode)))
  '((#xa7 ?¡±)
@@ -13937,4 +13938,5 @@
    (#xffe3 ?¡Ã)
    (#xffe5 ?¢D)))
 
+;;; arch-tag: 4fbf5312-bb44-4f23-8ae2-7ab2ee1c540f
 ;;; subst-big5.el ends here

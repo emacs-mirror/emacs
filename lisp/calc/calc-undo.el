@@ -150,4 +150,5 @@
        (or (eq (car (car list)) 'pop)
 	   (calc-undo-does-pushes (cdr list)))))
 
+;;; arch-tag: eeb485d2-fb3d-454a-9d79-450af1f50d6c
 ;;; calc-undo.el ends here

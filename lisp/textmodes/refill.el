@@ -1,8 +1,9 @@
 ;;; refill.el --- `auto-fill' by refilling paragraphs on changes
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
+;; Maintainer: Miles Bader <miles@gnu.org>
 ;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
@@ -101,27 +102,28 @@ This is used to optimize refilling.")
       (forward-line -1)
       (if (<= (point) (overlay-start overlay))
 	  ;; Just get OVERLAY out of the way
-	  (move-overlay overlay 1 1)
+	  (move-overlay overlay (point-min) (point-min))
 	;; Make overlay contain only the region
 	(move-overlay overlay (overlay-start overlay) (point))))))
 
 (defun refill-fill-paragraph-at (pos &optional arg)
   "Like `fill-paragraph' at POS, but don't delete whitespace at paragraph end."
-  (let (fill-pfx)
-    (save-excursion
-      (goto-char pos)
-      ;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
-      ;; leading to excessive refilling and wrong choice of fill-prefix.
-      ;; might be a bug in my paragraphs.el.
-      (forward-paragraph)
-      (let ((end (point))
-	    (beg (progn (backward-paragraph) (point)))
-	    (obeg (overlay-start refill-ignorable-overlay))
-	    (oend (overlay-end refill-ignorable-overlay)))
+  (save-excursion
+    (goto-char pos)
+    ;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
+    ;; leading to excessive refilling and wrong choice of fill-prefix.
+    ;; might be a bug in my paragraphs.el.
+    (forward-paragraph)
+    (skip-syntax-backward "-")
+    (let ((end (point))
+	  (beg (progn (backward-paragraph) (point)))
+	  (obeg (overlay-start refill-ignorable-overlay))
+	  (oend (overlay-end refill-ignorable-overlay)))
+      (unless (> beg pos)      ;Don't fill if point is outside the paragraph.
 	(goto-char pos)
 	(if (and (>= beg obeg) (< beg oend))
 	    ;; Limit filling to the modified tail of the paragraph.
-	    (let (;; When adaptive-fill-mode is enabled, the filling
+	    (let ( ;; When adaptive-fill-mode is enabled, the filling
 		  ;; functions will attempt to set the fill prefix from
 		  ;; the fake paragraph bounds we pass in, so set it
 		  ;; ourselves first, using the real paragraph bounds.
@@ -136,23 +138,20 @@ This is used to optimize refilling.")
 		(if use-hard-newlines
 		    (fill-region oend end arg)
 		  (fill-region-as-paragraph oend end arg)))
-	      (setq fill-pfx fill-prefix)
 	      (move-overlay refill-ignorable-overlay obeg (point)))
 	  ;; Fill the whole paragraph
-	  (setq fill-pfx
-		(save-restriction
-		  (if use-hard-newlines
-		      (fill-region beg end arg)
-		    (fill-region-as-paragraph beg end arg))))
-	  (move-overlay refill-ignorable-overlay beg (point)))))
-    (skip-line-prefix fill-pfx)))
+	  (save-restriction
+	    (if use-hard-newlines
+		(fill-region beg end arg)
+	      (fill-region-as-paragraph beg end arg)))
+	  (move-overlay refill-ignorable-overlay beg (point)))))))
 
 (defun refill-fill-paragraph (arg)
   "Like `fill-paragraph' but don't delete whitespace at paragraph end."
   (refill-fill-paragraph-at (point) arg))
 
 (defvar refill-doit nil
-  "Non-nil means that `refill-post-command-function' does its processing.
+  "Non-nil tells `refill-post-command-function' to do its processing.
 Set by `refill-after-change-function' in `after-change-functions' and
 unset by `refill-post-command-function' in `post-command-hook', and
 sometimes `refill-pre-command-function' in `pre-command-hook'.  This
@@ -258,4 +257,5 @@ refilling if they would cause auto-filling."
 
 (provide 'refill)
 
+;;; arch-tag: 2c4ce9e8-1daa-4a3b-b6f8-fd6ac5bf6138
 ;;; refill.el ends here

@@ -1,9 +1,9 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2003 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
-;; Maintainer:    Mark Senn <mds@ecn.purdue.edu>
+;; Maintainer:    FSF
 ;; Created:       February 1993
 ;; Last Modified: 1993/09/22 18:58:46
 ;; Keywords: mail, news
@@ -510,39 +510,15 @@ string."
 (defvar sc-attributions nil
   "Alist of attributions for use when citing.")
 
-(defconst sc-emacs-features
-  (let ((version 'v18)
-	(flavor  'GNU))
-    (if (not
-	 (string= (substring emacs-version 0 2) "18"))
-	(setq version 'v19))
-    (if (string-match "Lucid" emacs-version)
-	(setq flavor 'Lucid))
-    ;; cobble up list
-    (list version flavor))
-  "A list describing what version of Emacs we're running on.
-Known flavors are:
-
-Emacs 18           : (v18 GNU)
-Emacs 19 or later  : (v19 GNU)
-Lucid 19 or later  : (v19 Lucid)")
-
-
 (defvar sc-tmp-nested-regexp nil
-  "Temporary regepx describing nested citations.")
+  "Temporary regexp describing nested citations.")
 (defvar sc-tmp-nonnested-regexp nil
   "Temporary regexp describing non-nested citations.")
 (defvar sc-tmp-dumb-regexp nil
   "Temp regexp describing non-nested citation cited with a nesting citer.")
 
-(defvar sc-minor-mode nil
-  "Supercite minor mode on flag.")
-(defvar sc-mode-string " SC"
-  "Supercite minor mode string.")
-
 (make-variable-buffer-local 'sc-mail-info)
 (make-variable-buffer-local 'sc-attributions)
-(make-variable-buffer-local 'sc-minor-mode)
 
 
 ;; ======================================================================
@@ -552,139 +528,81 @@ Lucid 19 or later  : (v19 Lucid)")
   "*Key binding to install Supercite keymap.
 If this is nil, Supercite keymap is not installed.")
 
-(defvar sc-T-keymap ()
+(defvar sc-T-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'sc-S-preferred-attribution-list)
+    (define-key map "b" 'sc-T-mail-nuke-blank-lines)
+    (define-key map "c" 'sc-T-confirm-always)
+    (define-key map "d" 'sc-T-downcase)
+    (define-key map "e" 'sc-T-electric-references)
+    (define-key map "f" 'sc-T-auto-fill-region)
+    (define-key map "h" 'sc-T-describe)
+    (define-key map "l" 'sc-S-cite-region-limit)
+    (define-key map "n" 'sc-S-mail-nuke-mail-headers)
+    (define-key map "N" 'sc-S-mail-header-nuke-list)
+    (define-key map "o" 'sc-T-electric-circular)
+    (define-key map "p" 'sc-S-preferred-header-style)
+    (define-key map "s" 'sc-T-nested-citation)
+    (define-key map "u" 'sc-T-use-only-preferences)
+    (define-key map "w" 'sc-T-fixup-whitespace)
+    (define-key map "?" 'sc-T-describe)
+    map)
   "Keymap for sub-keymap of setting and toggling functions.")
-(if sc-T-keymap
-    ()
-  (setq sc-T-keymap (make-sparse-keymap))
-  (define-key sc-T-keymap "a" 'sc-S-preferred-attribution-list)
-  (define-key sc-T-keymap "b" 'sc-T-mail-nuke-blank-lines)
-  (define-key sc-T-keymap "c" 'sc-T-confirm-always)
-  (define-key sc-T-keymap "d" 'sc-T-downcase)
-  (define-key sc-T-keymap "e" 'sc-T-electric-references)
-  (define-key sc-T-keymap "f" 'sc-T-auto-fill-region)
-  (define-key sc-T-keymap "h" 'sc-T-describe)
-  (define-key sc-T-keymap "l" 'sc-S-cite-region-limit)
-  (define-key sc-T-keymap "n" 'sc-S-mail-nuke-mail-headers)
-  (define-key sc-T-keymap "N" 'sc-S-mail-header-nuke-list)
-  (define-key sc-T-keymap "o" 'sc-T-electric-circular)
-  (define-key sc-T-keymap "p" 'sc-S-preferred-header-style)
-  (define-key sc-T-keymap "s" 'sc-T-nested-citation)
-  (define-key sc-T-keymap "u" 'sc-T-use-only-preferences)
-  (define-key sc-T-keymap "w" 'sc-T-fixup-whitespace)
-  (define-key sc-T-keymap "?" 'sc-T-describe)
-  )
 
-(defvar sc-mode-map ()
+(defvar sc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "c"    'sc-cite-region)
+    (define-key map "f"    'sc-mail-field-query)
+    (define-key map "g"    'sc-mail-process-headers)
+    (define-key map "h"    'sc-describe)
+    (define-key map "i"    'sc-insert-citation)
+    (define-key map "o"    'sc-open-line)
+    (define-key map "r"    'sc-recite-region)
+    (define-key map "\C-p" 'sc-raw-mode-toggle)
+    (define-key map "u"    'sc-uncite-region)
+    (define-key map "v"    'sc-version)
+    (define-key map "w"    'sc-insert-reference)
+    (define-key map "\C-t"  sc-T-keymap)
+    (define-key map "\C-b" 'sc-submit-bug-report)
+    (define-key map "?"    'sc-describe)
+    map)
   "Keymap for Supercite quasi-mode.")
-(if sc-mode-map
-    ()
-  (setq sc-mode-map (make-sparse-keymap))
-  (define-key sc-mode-map "c"    'sc-cite-region)
-  (define-key sc-mode-map "f"    'sc-mail-field-query)
-  (define-key sc-mode-map "g"    'sc-mail-process-headers)
-  (define-key sc-mode-map "h"    'sc-describe)
-  (define-key sc-mode-map "i"    'sc-insert-citation)
-  (define-key sc-mode-map "o"    'sc-open-line)
-  (define-key sc-mode-map "r"    'sc-recite-region)
-  (define-key sc-mode-map "\C-p" 'sc-raw-mode-toggle)
-  (define-key sc-mode-map "u"    'sc-uncite-region)
-  (define-key sc-mode-map "v"    'sc-version)
-  (define-key sc-mode-map "w"    'sc-insert-reference)
-  (define-key sc-mode-map "\C-t"  sc-T-keymap)
-  (define-key sc-mode-map "\C-b" 'sc-submit-bug-report)
-  (define-key sc-mode-map "?"    'sc-describe)
-  )
 
-(defvar sc-electric-mode-map ()
+(defvar sc-electric-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "p"    'sc-eref-prev)
+    (define-key map "n"    'sc-eref-next)
+    (define-key map "s"    'sc-eref-setn)
+    (define-key map "j"    'sc-eref-jump)
+    (define-key map "x"    'sc-eref-abort)
+    (define-key map "q"    'sc-eref-abort)
+    (define-key map "\r"   'sc-eref-exit)
+    (define-key map "\n"   'sc-eref-exit)
+    (define-key map "g"    'sc-eref-goto)
+    (define-key map "?"    'describe-mode)
+    (define-key map "\C-h" 'describe-mode)
+    (define-key map [f1]   'describe-mode)
+    (define-key map [help] 'describe-mode)
+    map)
   "Keymap for `sc-electric-mode' electric references mode.")
-(if sc-electric-mode-map
-    nil
-  (setq sc-electric-mode-map (make-sparse-keymap))
-  (define-key sc-electric-mode-map "p"    'sc-eref-prev)
-  (define-key sc-electric-mode-map "n"    'sc-eref-next)
-  (define-key sc-electric-mode-map "s"    'sc-eref-setn)
-  (define-key sc-electric-mode-map "j"    'sc-eref-jump)
-  (define-key sc-electric-mode-map "x"    'sc-eref-abort)
-  (define-key sc-electric-mode-map "q"    'sc-eref-abort)
-  (define-key sc-electric-mode-map "\r"   'sc-eref-exit)
-  (define-key sc-electric-mode-map "\n"   'sc-eref-exit)
-  (define-key sc-electric-mode-map "g"    'sc-eref-goto)
-  (define-key sc-electric-mode-map "?"    'describe-mode)
-  (define-key sc-electric-mode-map "\C-h" 'describe-mode)
-  (define-key sc-electric-mode-map [f1]   'describe-mode)
-  (define-key sc-electric-mode-map [help] 'describe-mode)
-  )
 
-(defvar sc-minibuffer-local-completion-map nil
-  "Keymap for minibuffer confirmation of attribution strings.")
-(if sc-minibuffer-local-completion-map
-    ()
-  (setq sc-minibuffer-local-completion-map
-	(copy-keymap minibuffer-local-completion-map))
-  (define-key sc-minibuffer-local-completion-map "\C-t" 'sc-toggle-fn)
-  (define-key sc-minibuffer-local-completion-map " "    'self-insert-command))
 
-(defvar sc-minibuffer-local-map nil
+(defvar sc-minibuffer-local-completion-map
+  (let ((map (copy-keymap minibuffer-local-completion-map)))
+    (define-key map "\C-t" 'sc-toggle-fn)
+    (define-key map " "    'self-insert-command)
+    map)
   "Keymap for minibuffer confirmation of attribution strings.")
-(if sc-minibuffer-local-map
-    ()
-  (setq sc-minibuffer-local-map (copy-keymap minibuffer-local-map))
-  (define-key sc-minibuffer-local-map "\C-t" 'sc-toggle-fn))
+
+(defvar sc-minibuffer-local-map
+  (let ((map (copy-keymap minibuffer-local-map)))
+    (define-key map "\C-t" 'sc-toggle-fn)
+    map)
+  "Keymap for minibuffer confirmation of attribution strings.")
 
 
 ;; ======================================================================
 ;; utility functions
-
-(defun sc-completing-read (prompt table &optional predicate require-match
-				  initial-contents history)
-  "Compatibility between Emacs 18 and 19 `completing-read'.
-In version 18, the HISTORY argument is ignored."
-  (if (memq 'v19 sc-emacs-features)
-      (funcall 'completing-read prompt table predicate require-match
-	       initial-contents history)
-    (funcall 'completing-read prompt table predicate require-match
-	     (or (car-safe initial-contents)
-		 initial-contents))))
-
-(defun sc-read-string (prompt &optional initial-contents history)
-  "Compatibility between Emacs 18 and 19 `read-string'.
-In version 18, the HISTORY argument is ignored."
-  (if (memq 'v19 sc-emacs-features)
-      (read-string prompt initial-contents history)
-    (read-string prompt initial-contents)))
-
-(if (fboundp 'match-string)
-    (defalias 'sc-submatch 'match-string)
-  (defun sc-submatch (matchnum &optional string)
-    "Returns `match-beginning' and `match-end' sub-expression for MATCHNUM.
-If optional STRING is provided, take sub-expression using `substring'
-of argument, otherwise use `buffer-substring' on current buffer.  Note
-that `match-data' must have already been generated and no error
-checking is performed by this function."
-    (if string
-	(substring string (match-beginning matchnum) (match-end matchnum))
-      (buffer-substring (match-beginning matchnum) (match-end matchnum)))))
-
-(if (fboundp 'member)
-    (defalias 'sc-member 'member)
-  (defun sc-member (elt list)
-    "Like `memq', but uses `equal' instead of `eq'.
-Emacs19 has a builtin function `member' which does exactly this."
-    (catch 'elt-is-member
-      (while list
-	(if (equal elt (car list))
-	    (throw 'elt-is-member list))
-	(setq list (cdr list))))))
-
-;; One day maybe Emacs will have this...
-(if (fboundp 'string-text)
-    (defalias 'sc-string-text 'string-text)
-  (defun sc-string-text (string)
-    "Return STRING with all text properties removed."
-    (let ((string (copy-sequence string)))
-      (set-text-properties 0 (length string) nil string)
-      string)))
 
 (defun sc-ask (alist)
   "Ask a question in the minibuffer requiring a single character answer.
@@ -704,30 +622,23 @@ the list should be unique."
 		  ") "))
 	 (p prompt)
 	 (event
-	  (if (memq 'Lucid sc-emacs-features)
+	  (if (fboundp 'allocate-event)
 	      (allocate-event)
 	    nil)))
     (while (stringp p)
       (if (let ((cursor-in-echo-area t)
 		(inhibit-quit t))
 	    (message "%s" p)
-	    ;; lets be good neighbors and be compatible with all emacsen
-	    (cond
-	     ((memq 'v18 sc-emacs-features)
-	      (setq event (read-char)))
-	     ((memq 'Lucid sc-emacs-features)
-	      (next-command-event event))
-	     (t				; must be Emacs 19
-	      (setq event (read-event))))
+	    (setq event (read-event))
 	    (prog1 quit-flag (setq quit-flag nil)))
 	  (progn
 	    (message "%s%s" p (single-key-description event))
-	    (and (memq 'Lucid sc-emacs-features)
+	    (and (fboundp 'deallocate-event)
 		 (deallocate-event event))
 	    (setq quit-flag nil)
 	    (signal 'quit '())))
       (let ((char
-	     (if (memq 'Lucid sc-emacs-features)
+	     (if (featurep 'xemacs)
 		 (let* ((key (and (key-press-event-p event) (event-key event)))
 			(char (and key (event-to-character event))))
 		   char)
@@ -738,18 +649,18 @@ the list should be unique."
 	 ((setq elt (rassq char alist))
 	  (message "%s%s" p (car elt))
 	  (setq p (cdr elt)))
-	 ((and (memq 'Lucid sc-emacs-features)
+	 ((and (fboundp 'button-release-event-p)
 	       (button-release-event-p event)) ; ignore them
 	  nil)
 	 (t
 	  (message "%s%s" p (single-key-description event))
-	  (if (memq 'Lucid sc-emacs-features)
+	  (if (featurep 'xemacs)
 	      (ding nil 'y-or-n-p)
 	    (ding))
 	  (discard-input)
 	  (if (eq p prompt)
 	      (setq p (concat "Try again.  " prompt)))))))
-    (and (memq 'Lucid sc-emacs-features)
+    (and (fboundp 'deallocate-event)
 	 (deallocate-event event))
     p))
 
@@ -801,7 +712,7 @@ the list should be unique."
     (end                          (setq sc-mail-headers-end (point))))
   "Regi frame for glomming mail header information.")
 
-(eval-when-compile (defvar curline))	; dynamic bondage
+(defvar curline)			; dynamic bondage
 
 ;; regi functions
 (defun sc-mail-fetch-field (&optional attribs-p)
@@ -809,13 +720,12 @@ the list should be unique."
 If optional ATTRIBS-P is non-nil, the key/value pair is placed in
 `sc-attributions' too."
   (if (string-match "^\\(\\S *\\)\\s *:\\s +\\(.*\\)$" curline)
-      (let* ((key (downcase (sc-string-text (sc-submatch 1 curline))))
-	     (val (sc-string-text (sc-submatch 2 curline)))
+      (let* ((key (downcase (match-string-no-properties 1 curline)))
+	     (val (match-string-no-properties 2 curline))
 	     (keyval (cons key val)))
-	(setq sc-mail-info (cons keyval sc-mail-info))
+	(push keyval sc-mail-info)
 	(if attribs-p
-	    (setq sc-attributions (cons keyval sc-attributions)))
-	))
+	    (push keyval sc-attributions))))
   nil)
 
 (defun sc-mail-append-field ()
@@ -823,7 +733,7 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
   (let ((keyval (car sc-mail-info)))
     (if (and keyval (string-match "^\\s *\\(.*\\)$" curline))
 	(setcdr keyval (concat (cdr keyval) " "
-			       (sc-string-text (sc-submatch 1 curline))))))
+			       (match-string-no-properties 1 curline)))))
   nil)
 
 (defun sc-mail-error-in-mail-field ()
@@ -842,7 +752,7 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
 
 (defun sc-mail-nuke-line ()
   "Nuke the current mail header line."
-  (delete-region (regi-pos 'bol) (regi-pos 'bonl))
+  (delete-region (line-beginning-position) (line-beginning-position 2))
   '((step . -1)))
 
 (defun sc-mail-nuke-header-line ()
@@ -866,7 +776,8 @@ The number of lines left is specified by `sc-blank-lines-after-headers'."
 	(delete-blank-lines)
 	(beginning-of-line)
 	(if (looking-at "[ \t]*$")
-	    (delete-region (regi-pos 'bol) (regi-pos 'bonl)))
+	    (delete-region (line-beginning-position)
+			   (line-beginning-position 2)))
 	(insert-char ?\n sc-blank-lines-after-headers)))
   nil)
 
@@ -938,7 +849,7 @@ Action can be one of: View, Modify, Add, or Delete."
 	 key)
     (if (not action)
 	()
-      (setq key (sc-completing-read
+      (setq key (completing-read
 		 (concat (car (rassq action alist))
 			      " information key: ")
 		 sc-mail-info nil
@@ -952,17 +863,15 @@ Action can be one of: View, Modify, Add, or Delete."
        ((eq action ?m)
 	(let ((keyval (assoc key sc-mail-info)))
 	  ;; first put initial value onto list if not already there
-	  (if (not (sc-member (cdr keyval)
-			      sc-mail-field-modification-history))
+	  (if (not (member (cdr keyval)
+			   sc-mail-field-modification-history))
 	      (setq sc-mail-field-modification-history
 		    (cons (cdr keyval) sc-mail-field-modification-history)))
-	  (setcdr keyval (sc-read-string
+	  (setcdr keyval (read-string
 			  (concat key ": ") (cdr keyval)
 			  'sc-mail-field-modification-history))))
        ((eq action ?a)
-	(setq sc-mail-info
-	      (cons (cons key
-			  (sc-read-string (concat key ": "))) sc-mail-info)))
+	(push (cons key (read-string (concat key ": "))) sc-mail-info))
        ))))
 
 
@@ -980,7 +889,7 @@ Match addresses of the style ``name%[stuff].'' when called with DELIM
 of \"%\" and addresses of the style ``[stuff]name@[stuff]'' when
 called with DELIM \"@\".  If DELIM is nil or not provided, matches
 addresses of the style ``name''."
-  (and (string-match (concat "[-a-zA-Z0-9_.]+" delim) from 0)
+  (and (string-match (concat "[-[:alnum:]_.]+" delim) from 0)
        (substring from
 		  (match-beginning 0)
 		  (- (match-end 0) (if (null delim) 0 1)))))
@@ -989,7 +898,7 @@ addresses of the style ``name''."
   "Extract the author's email terminus from email address FROM.
 Match addresses of the style ``[stuff]![stuff]...!name[stuff].''"
   (let ((eos (length from))
-	(mstart (string-match "![-a-zA-Z0-9_.]+\\([^-!a-zA-Z0-9_.]\\|$\\)"
+	(mstart (string-match "![-[:alnum:]_.]+\\([^-![:alnum:]_.]\\|$\\)"
 			      from 0))
 	(mend (match-end 0)))
     (and mstart
@@ -1000,7 +909,7 @@ Match addresses of the style ``[stuff]![stuff]...!name[stuff].''"
   "Extract the author's email terminus from email address FROM.
 Match addresses of the style ``<name[stuff]>.''"
   (and (string-match "<\\(.*\\)>" from)
-       (sc-submatch 1 from)))
+       (match-string 1 from)))
 
 (defun sc-get-address (from author)
   "Get the full email address path from FROM.
@@ -1014,7 +923,7 @@ AUTHOR is the author's name (which is removed from the address)."
 	      (substring address 1 (1- (length address)))
 	    address))
       (if (string-match "[-[:alnum:]!@%._]+" from 0)
-	  (sc-submatch 0 from)
+	  (match-string 0 from)
 	"")
       )))
 
@@ -1042,6 +951,7 @@ substring."
 (defun sc-attribs-extract-namestring (from)
   "Extract the name string from FROM.
 This should be the author's full name minus an optional title."
+  ;; FIXME: we probably should use mail-extract-address-components.
   (let ((namestring
 	 (or
 	  ;; If there is a <...> in the name,
@@ -1077,10 +987,10 @@ This should be the author's full name minus an optional title."
 
 (defun sc-attribs-chop-namestring (namestring)
   "Convert NAMESTRING to a list of names.
-example: (sc-namestring-to-list \"John Xavier Doe\")
+example: (sc-attribs-chop-namestring \"John Xavier Doe\")
          => (\"John\" \"Xavier\" \"Doe\")"
   (if (string-match "\\([ \t]*\\)\\([^ \t._]+\\)\\([ \t]*\\)" namestring)
-      (cons (sc-submatch 2 namestring)
+      (cons (match-string 2 namestring)
 	    (sc-attribs-chop-namestring (substring namestring (match-end 3)))
 	    )))
 
@@ -1098,13 +1008,14 @@ example: (sc-namestring-to-list \"John Xavier Doe\")
 If attribution cannot be guessed, nil is returned.  Optional STRING if
 supplied, is used instead of the line point is on in the current buffer."
   (let ((start 0)
-	(string (or string (buffer-substring (regi-pos 'bol) (regi-pos 'eol))))
+	(string (or string (buffer-substring (line-beginning-position)
+					     (line-end-position))))
 	attribution)
     (and
      (= start (or (string-match sc-citation-leader-regexp string start) -1))
      (setq start (match-end 0))
      (= start (or (string-match sc-citation-root-regexp string start) 1))
-     (setq attribution (sc-submatch 0 string)
+     (setq attribution (match-string 0 string)
 	   start (match-end 0))
      (= start (or (string-match sc-citation-delimiter-regexp string start) -1))
      (setq start (match-end 0))
@@ -1173,12 +1084,9 @@ This populates the `sc-attributions' with the list of possible attributions."
 		       (lambda (midname)
 			 (let ((key-attribs (format "middlename-%d" n))
 			       (key-mail    (format "sc-middlename-%d" n)))
-			   (setq
-			    sc-attributions (cons (cons key-attribs midname)
-						  sc-attributions)
-			    sc-mail-info (cons (cons key-mail midname)
-					       sc-mail-info)
-			    n (1+ n))
+			   (push (cons key-attribs midname) sc-attributions)
+			   (push (cons key-mail midname) sc-mail-info)
+			   (setq n (1+ n))
 			   midname)))
 		      midnames " ")
 
@@ -1212,8 +1120,7 @@ This populates the `sc-attributions' with the list of possible attributions."
 		       sc-mail-info)
 	 ))
     ;; from string is empty
-    (setq sc-mail-info (cons (cons "sc-author" sc-default-author-name)
-			     sc-mail-info))))
+    (push (cons "sc-author" sc-default-author-name) sc-mail-info)))
 
 (defvar sc-attrib-or-cite nil
   "Used to toggle between attribution input or citation input.")
@@ -1325,11 +1232,11 @@ to the auto-selected attribution string."
 		(progn
 		  (setq choice
 			(if sc-attrib-or-cite
-			    (sc-read-string
+			    (read-string
 			     "Enter citation prefix: "
 			     citation
 			     'sc-citation-confirmation-history)
-			  (sc-completing-read
+			  (completing-read
 			   "Complete attribution name: "
 			   query-alist nil nil
 			   (cons initial 0)
@@ -1360,20 +1267,17 @@ to the auto-selected attribution string."
 	   (akeyval (assoc akey sc-mail-info)))
       (if ckeyval
 	  (setcdr ckeyval citation)
-	(setq sc-mail-info
-	      (append (list (cons ckey citation)) sc-mail-info)))
+	(push (cons ckey citation) sc-mail-info))
       (if akeyval
 	  (setcdr akeyval attribution)
-	(setq sc-mail-info
-	      (append (list (cons akey attribution)) sc-mail-info))))
+	(push (cons akey attribution) sc-mail-info)))
 
     ;; set the sc-lastchoice attribution
     (let* ((lkey "sc-lastchoice")
 	   (lastchoice (assoc lkey sc-attributions)))
       (if lastchoice
 	  (setcdr lastchoice attribution)
-	(setq sc-attributions
-	      (cons (cons lkey attribution) sc-attributions))))
+	(push (cons lkey attribution) sc-attributions)))
     ))
 
 
@@ -1426,14 +1330,14 @@ not supplied, initialize fill variables.  This is useful for a regi
 `begin' frame-entry."
   (if (not prefix)
       (setq sc-fill-line-prefix ""
-	    sc-fill-begin (regi-pos 'bol))
+	    sc-fill-begin (line-beginning-position))
     (if (and sc-auto-fill-region-p
 	     (not (string= prefix sc-fill-line-prefix)))
 	(let ((fill-prefix sc-fill-line-prefix))
 	  (if (not (string= fill-prefix ""))
-	      (fill-region sc-fill-begin (regi-pos 'bol)))
+	      (fill-region sc-fill-begin (line-beginning-position)))
 	  (setq sc-fill-line-prefix prefix
-		sc-fill-begin (regi-pos 'bol))))
+		sc-fill-begin (line-beginning-position))))
     )
   nil)
 
@@ -1467,13 +1371,14 @@ If nesting cannot be guessed, nil is returned.  Optional STRING if
 supplied, is used instead of the line point is on in the current
 buffer."
   (let ((start 0)
-	(string (or string (buffer-substring (regi-pos 'bol) (regi-pos 'eol))))
+	(string (or string (buffer-substring (line-beginning-position)
+					     (line-end-position))))
 	nesting)
     (and
      (= start (or (string-match sc-citation-leader-regexp string start) -1))
      (setq start (match-end 0))
      (= start (or (string-match sc-citation-delimiter-regexp string start) -1))
-     (setq nesting (sc-submatch 0 string)
+     (setq nesting (match-string 0 string)
 	   start (match-end 0))
      (= start (or (string-match sc-citation-separator-regexp string start) -1))
      nesting)))
@@ -1863,7 +1768,6 @@ entered, regardless of the value of `sc-electric-references-p'.  See
   (interactive)
   (setq sc-fixup-whitespace-p (not sc-fixup-whitespace-p)
 	sc-auto-fill-region-p (not sc-auto-fill-region-p))
-  (sc-set-mode-string)
   (force-mode-line-update))
 
 (defun sc-toggle-var (variable)
@@ -1872,8 +1776,7 @@ VARIABLE must be a bound symbol.  nil values change to t, non-nil
 values are changed to nil."
   (message "%s changed from %s to %s"
 	   variable (symbol-value variable)
-	   (set variable (not (symbol-value variable))))
-  (sc-set-mode-string))
+	   (set variable (not (symbol-value variable)))))
 
 (defun sc-set-variable (var)
   "Set the Supercite VARIABLE.
@@ -1886,41 +1789,35 @@ querying you by typing `C-h'.  Note that the format is changed
 slightly from that used by `set-variable' -- the current value is
 printed just after the variable's name instead of at the bottom of the
 help window."
-  (let* ((minibuffer-help-form
-	  '(funcall myhelp))
+  (let* ((minibuffer-help-form '(funcall myhelp))
 	 (myhelp
-	  (function
-	   (lambda ()
-	     (with-output-to-temp-buffer "*Help*"
-	       (prin1 var)
-	       (if (boundp var)
-		   (let ((print-length 20))
-		     (princ "\t(Current value: ")
-		     (prin1 (symbol-value var))
-		     (princ ")")))
-	       (princ "\n\nDocumentation:\n")
-	       (princ (substring (documentation-property
-				  var
-				  'variable-documentation)
-				  1))
-	       (save-excursion
-		 (set-buffer standard-output)
-		 (help-mode))
-	       nil)))))
-    (set var (eval-minibuffer (format "Set %s to value: " var))))
-  (sc-set-mode-string))
+	  (lambda ()
+	    (with-output-to-temp-buffer "*Help*"
+	      (prin1 var)
+	      (if (boundp var)
+		  (let ((print-length 20))
+		    (princ "\t(Current value: ")
+		    (prin1 (symbol-value var))
+		    (princ ")")))
+	      (princ "\n\nDocumentation:\n")
+	      (princ (substring (documentation-property
+				 var
+				 'variable-documentation)
+				1))
+	      (with-current-buffer standard-output
+		(help-mode))
+	      nil))))
+    (set var (eval-minibuffer (format "Set %s to value: " var)))))
 
 (defmacro sc-toggle-symbol (rootname)
-  (list 'defun (intern (concat "sc-T-" rootname)) '()
-	(list 'interactive)
-	(list 'sc-toggle-var
-	      (list 'quote (intern (concat "sc-" rootname "-p"))))))
+  `(defun ,(intern (concat "sc-T-" rootname)) ()
+     (interactive)
+     (sc-toggle-var ',(intern (concat "sc-" rootname "-p")))))
 
 (defmacro sc-setvar-symbol (rootname)
-  (list 'defun (intern (concat "sc-S-" rootname)) '()
-	(list 'interactive)
-	(list 'sc-set-variable
-	      (list 'quote (intern (concat "sc-" rootname))))))
+  `(defun ,(intern (concat "sc-S-" rootname)) ()
+     (interactive)
+     (sc-set-variable ',(intern (concat "sc-" rootname)))))
 
 (sc-toggle-symbol "confirm-always")
 (sc-toggle-symbol "downcase")
@@ -1953,27 +1850,24 @@ Note on function names in this list: all functions of the form
   (interactive)
   (describe-function 'sc-T-describe))
 
-(defun sc-set-mode-string ()
-  "Update the minor mode string to show state of Supercite."
-  (setq sc-mode-string
-	(concat " SC"
-		(if (or sc-auto-fill-region-p
-			sc-fixup-whitespace-p)
-		    ":" "")
-		(if sc-auto-fill-region-p "f" "")
-		(if sc-fixup-whitespace-p "w" "")
-		)))
-
 
 ;; ======================================================================
 ;; published interface to mail and news readers
+
+(define-minor-mode sc-minor-mode
+  "Supercite minor mode."
+  nil (" SC" (sc-auto-fill-region-p
+	      (":f" (sc-fixup-whitespace-p "w"))
+	      (sc-fixup-whitespace-p ":w")))
+  `((,sc-mode-map-prefix . ,sc-mode-map)))
 
 ;;;###autoload
 (defun sc-cite-original ()
   "Workhorse citing function which performs the initial citation.
 This is callable from the various mail and news readers' reply
-function according to the agreed upon standard.  See `\\[sc-describe]'
-for more details.  `sc-cite-original' does not do any yanking of the
+function according to the agreed upon standard.  See the associated
+info node `(SC)Top' for more details.
+`sc-cite-original' does not do any yanking of the
 original message but it does require a few things:
 
      1) The reply buffer is the current buffer.
@@ -1994,29 +1888,14 @@ when this function is called.  Also, the hook `sc-pre-hook' is run
 before, and `sc-post-hook' is run after the guts of this function."
   (run-hooks 'sc-pre-hook)
 
-  ;; before we do anything, we want to insert the supercite keymap so
-  ;; we can proceed from here
-  (and sc-mode-map-prefix
-       (local-set-key sc-mode-map-prefix sc-mode-map))
-
-  ;; hack onto the minor mode alist, if it hasn't been done before,
-  ;; then turn on the minor mode. also, set the minor mode string with
-  ;; the values of fill and fixup whitespace variables
-  (if (not (get 'minor-mode-alist 'sc-minor-mode))
-      (progn
-	(put 'minor-mode-alist 'sc-minor-mode 'sc-minor-mode)
-	(setq minor-mode-alist
-	      (cons '(sc-minor-mode sc-mode-string) minor-mode-alist))
-	))
-  (setq sc-minor-mode t)
-  (sc-set-mode-string)
+  (sc-minor-mode 1)
 
   (undo-boundary)
 
   ;; grab point and mark since the region is probably not active when
   ;; this function gets automatically called. we want point to be a
   ;; mark so any deleting before point works properly
-  (let* ((zmacs-regions nil)		; for Lemacs
+  (let* ((zmacs-regions nil)		; for XEemacs
 	 (mark-active t)		; for Emacs
 	 (point (point-marker))
 	 (mark  (copy-marker (mark-marker))))
@@ -2061,9 +1940,7 @@ before, and `sc-post-hook' is run after the guts of this function."
     (set-marker point nil)
     (set-marker mark nil)
     )
-  (run-hooks 'sc-post-hook)
-  ;; post hook could have changed the variables
-  (sc-set-mode-string))
+  (run-hooks 'sc-post-hook))
 
 
 ;; ======================================================================
@@ -2077,7 +1954,7 @@ With numeric ARG, inserts that many new lines."
     (let ((start (point))
 	  (prefix (or (progn (beginning-of-line)
 			     (if (looking-at (sc-cite-regexp))
-				 (sc-submatch 0)))
+				 (match-string 0)))
 		      "")))
       (goto-char start)
       (open-line arg)
@@ -2116,7 +1993,7 @@ inserts the version string in the current buffer instead."
   "
 Supercite is a package which provides a flexible mechanism for citing
 email and news replies.  Please see the associated texinfo file for
-more information."
+more information.  Info node `(SC)Top'."
   (interactive)
   (describe-function 'sc-describe))
 
@@ -2168,4 +2045,5 @@ more information."
 (provide 'supercite)
 (run-hooks 'sc-load-hook)
 
+;;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
 ;;; supercite.el ends here

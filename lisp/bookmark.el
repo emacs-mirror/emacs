@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001 Free Software Foundation
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2003 Free Software Foundation
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -234,34 +234,21 @@ so that you have a bookmark prefix, just use `global-set-key' and bind a
 key of your choice to `bookmark-map'.  All interactive bookmark
 functions have a binding in this keymap.")
 
-;;;###autoload
-(define-prefix-command 'bookmark-map)
+;;;###autoload (define-prefix-command 'bookmark-map)
 
 ;; Read the help on all of these functions for details...
-;;;###autoload
-(define-key bookmark-map "x" 'bookmark-set)
-;;;###autoload
-(define-key bookmark-map "m" 'bookmark-set) ; "m" for "mark"
-;;;###autoload
-(define-key bookmark-map "j" 'bookmark-jump)
-;;;###autoload
-(define-key bookmark-map "g" 'bookmark-jump) ; "g" for "go"
-;;;###autoload
-(define-key bookmark-map "i" 'bookmark-insert)
-;;;###autoload
-(define-key bookmark-map "e" 'edit-bookmarks)
-;;;###autoload
-(define-key bookmark-map "f" 'bookmark-insert-location) ; "f" for "find"
-;;;###autoload
-(define-key bookmark-map "r" 'bookmark-rename)
-;;;###autoload
-(define-key bookmark-map "d" 'bookmark-delete)
-;;;###autoload
-(define-key bookmark-map "l" 'bookmark-load)
-;;;###autoload
-(define-key bookmark-map "w" 'bookmark-write)
-;;;###autoload
-(define-key bookmark-map "s" 'bookmark-save)
+;;;###autoload (define-key bookmark-map "x" 'bookmark-set)
+;;;###autoload (define-key bookmark-map "m" 'bookmark-set) ; "m" for "mark"
+;;;###autoload (define-key bookmark-map "j" 'bookmark-jump)
+;;;###autoload (define-key bookmark-map "g" 'bookmark-jump) ; "g" for "go"
+;;;###autoload (define-key bookmark-map "i" 'bookmark-insert)
+;;;###autoload (define-key bookmark-map "e" 'edit-bookmarks)
+;;;###autoload (define-key bookmark-map "f" 'bookmark-insert-location) ; "f" for "find"
+;;;###autoload (define-key bookmark-map "r" 'bookmark-rename)
+;;;###autoload (define-key bookmark-map "d" 'bookmark-delete)
+;;;###autoload (define-key bookmark-map "l" 'bookmark-load)
+;;;###autoload (define-key bookmark-map "w" 'bookmark-write)
+;;;###autoload (define-key bookmark-map "s" 'bookmark-save)
 
 
 ;;; The annotation maps.
@@ -469,21 +456,21 @@ probably don't want to include one yourself.
 Optional second arg DEFAULT is a string to return if the user enters
 the empty string."
   (bookmark-maybe-load-default-file) ; paranoia
-  (let* ((completion-ignore-case bookmark-completion-ignore-case)
-         (default default)
-         (prompt (if default
-                     (concat prompt (format " (%s): " default))
-                   (concat prompt ": ")))
-         (str
-          (completing-read prompt
-                           bookmark-alist
-                           nil
-                           0
-                           nil
-                           'bookmark-history)))
-    (if (string-equal "" str)
-        (list default)
-      (list str))))
+  (if (listp last-nonmenu-event)
+      (bookmark-menu-popup-paned-menu t prompt (bookmark-all-names))
+    (let* ((completion-ignore-case bookmark-completion-ignore-case)
+	   (default default)
+	   (prompt (if default
+		       (concat prompt (format " (%s): " default))
+		     (concat prompt ": ")))
+	   (str
+	    (completing-read prompt
+			     bookmark-alist
+			     nil
+			     0
+			     nil
+			     'bookmark-history)))
+      (if (string-equal "" str) default str))))
 
 
 (defmacro bookmark-maybe-historicize-string (string)
@@ -937,10 +924,8 @@ When you have finished composing, type \\[bookmark-send-annotation].
 
 (defun bookmark-edit-annotation (bookmark)
   "Pop up a buffer for editing bookmark BOOKMARK's annotation."
-  (let ((buf (current-buffer))
-	(point (point)))
-    (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
-    (bookmark-edit-annotation-mode bookmark)))
+  (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
+  (bookmark-edit-annotation-mode bookmark))
 
 
 (defun bookmark-insert-current-bookmark ()
@@ -1059,7 +1044,8 @@ if you wish to give the bookmark a new location, and bookmark-jump
 will then jump to the new location, as well as recording it in place
 of the old one in the permanent bookmark record."
   (interactive
-   (bookmark-completing-read "Jump to bookmark" bookmark-current-bookmark))
+   (list (bookmark-completing-read "Jump to bookmark"
+				   bookmark-current-bookmark)))
   (bookmark-maybe-historicize-string bookmark)
   (let ((cell (bookmark-jump-noselect bookmark)))
     (and cell
@@ -1152,7 +1138,7 @@ be retrieved from a VC backend, else return nil."
 This makes an already existing bookmark point to that file, instead of
 the one it used to point at.  Useful when a file has been renamed
 after a bookmark was set in it."
-  (interactive (bookmark-completing-read "Bookmark to relocate"))
+  (interactive (list (bookmark-completing-read "Bookmark to relocate")))
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
   (let* ((bmrk-filename (bookmark-get-filename bookmark))
@@ -1169,7 +1155,7 @@ after a bookmark was set in it."
   "Insert the name of the file associated with BOOKMARK.
 Optional second arg NO-HISTORY means don't record this in the
 minibuffer history list `bookmark-history'."
-  (interactive (bookmark-completing-read "Insert bookmark location"))
+  (interactive (list (bookmark-completing-read "Insert bookmark location")))
   (or no-history (bookmark-maybe-historicize-string bookmark))
   (let ((start (point)))
     (prog1
@@ -1204,7 +1190,7 @@ must pass at least OLD when calling from Lisp.
 While you are entering the new name, consecutive C-w's insert
 consecutive words from the text of the buffer into the new bookmark
 name."
-  (interactive (bookmark-completing-read "Old bookmark name"))
+  (interactive (list (bookmark-completing-read "Old bookmark name")))
   (bookmark-maybe-historicize-string old)
   (bookmark-maybe-load-default-file)
 
@@ -1237,7 +1223,7 @@ You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
 bookmarks.  See help on function `bookmark-load' for more about
 this."
-  (interactive (bookmark-completing-read "Insert bookmark contents"))
+  (interactive (list (bookmark-completing-read "Insert bookmark contents")))
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
   (let ((orig-point (point))
@@ -1260,7 +1246,8 @@ one most recently used in this file, if any\).
 Optional second arg BATCH means don't update the bookmark list buffer,
 probably because we were called from there."
   (interactive
-   (bookmark-completing-read "Delete bookmark" bookmark-current-bookmark))
+   (list (bookmark-completing-read "Delete bookmark"
+				   bookmark-current-bookmark)))
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
   (let ((will-go (bookmark-get-bookmark bookmark)))
@@ -1546,9 +1533,8 @@ deletion, or > if it is flagged for displaying."
   (if (interactive-p)
       (switch-to-buffer (get-buffer-create "*Bookmark List*"))
     (set-buffer (get-buffer-create "*Bookmark List*")))
-  (let ((buffer-read-only nil))
-    (delete-region (point-max) (point-min))
-    (goto-char (point-min)) ;sure are playing it safe...
+  (let ((inhibit-read-only t))
+    (erase-buffer)
     (insert "% Bookmark\n- --------\n")
     (bookmark-maybe-sort-alist)
     (mapcar
@@ -1651,7 +1637,7 @@ Optional argument SHOW means show them unconditionally."
         (goto-char (point-min))
         (forward-line 2)
         (setq bookmark-bmenu-hidden-bookmarks ())
-        (let ((buffer-read-only nil))
+        (let ((inhibit-read-only t))
           (while (< (point) (point-max))
             (let ((bmrk (bookmark-bmenu-bookmark)))
               (setq bookmark-bmenu-hidden-bookmarks
@@ -1684,7 +1670,7 @@ Optional argument SHOW means show them unconditionally."
             (backward-word 1)
             (setq bookmark-bmenu-bookmark-column (current-column)))
           (save-excursion
-            (let ((buffer-read-only nil))
+            (let ((inhibit-read-only t))
               (while bookmark-bmenu-hidden-bookmarks
                 (move-to-column bookmark-bmenu-bookmark-column t)
                 (bookmark-kill-line)
@@ -1787,7 +1773,7 @@ if an annotation exists."
   (interactive)
   (beginning-of-line)
   (if (bookmark-bmenu-check-position)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
         (delete-char 1)
         (insert ?>)
         (forward-line 1)
@@ -1806,7 +1792,7 @@ You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mar
         (goto-char (point-min))
         (while (re-search-forward "^>" nil t)
           (setq tem (bookmark-bmenu-bookmark))
-          (let ((buffer-read-only nil))
+          (let ((inhibit-read-only t))
             (delete-char -1)
             (insert ?\ ))
           (or (string-equal tem bmrk)
@@ -1953,7 +1939,7 @@ Optional BACKUP means move up."
   (beginning-of-line)
   (if (bookmark-bmenu-check-position)
       (progn
-        (let ((buffer-read-only nil))
+        (let ((inhibit-read-only t))
           (delete-char 1)
           ;; any flags to reset according to circumstances?  How about a
           ;; flag indicating whether this bookmark is being visited?
@@ -1980,7 +1966,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (interactive)
   (beginning-of-line)
   (if (bookmark-bmenu-check-position)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
         (delete-char 1)
         (insert ?D)
         (forward-line 1)
@@ -2060,149 +2046,38 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 
 ;;; Menu bar stuff.  Prefix is "bookmark-menu".
 
-(defun bookmark-menu-build-paned-menu (name entries)
-  "Build a multi-paned menu named NAME from the strings in ENTRIES.
-That is, ENTRIES is a list of strings which appear as the choices
-in the menu.  The number of panes depends on the number of entries.
-The visible entries are truncated to `bookmark-menu-length', but the
-strings returned are not."
-  (let* ((f-height (/ (frame-height) 2))
-         (pane-list
-          (let (temp-pane-list
-                (iter 0))
-            (while entries
-              (let (lst
-                    (count 0))
-                (while (and (< count f-height) entries)
-                  (let ((str (car entries)))
-                    (setq lst (cons
-                               (cons
-                                (if (> (length str) bookmark-menu-length)
-                                    (substring str 0 bookmark-menu-length)
-                                  str)
-                                str)
-                               lst))
-                    (setq entries (cdr entries))
-                    (setq count (1+ count))))
-                (setq iter (1+ iter))
-                (setq
-                 temp-pane-list
-                 (cons
-                  (cons
-                   (format "-*- %s (%d) -*-" name iter)
-                   (nreverse lst))
-                  temp-pane-list))))
-            (nreverse temp-pane-list))))
-
-    ;; Return the menu:
-    (cons (concat "-*- " name " -*-") pane-list)))
-
-
 (defun bookmark-menu-popup-paned-menu (event name entries)
   "Pop up multi-paned menu at EVENT, return string chosen from ENTRIES.
 That is, ENTRIES is a list of strings which appear as the choices
 in the menu.
-The number of panes depends on the number of entries."
-  (interactive "e")
-  (x-popup-menu event (bookmark-menu-build-paned-menu name entries)))
-
-
-(defun bookmark-menu-popup-paned-bookmark-menu (event name)
-  "Pop up menu of bookmarks, return chosen bookmark.
-Pop up at EVENT, menu's name is NAME.
-The number of panes depends on the number of bookmarks."
-  (bookmark-menu-popup-paned-menu event name (bookmark-all-names)))
-
-
-(defun bookmark-popup-menu-and-apply-function (func-sym menu-label event)
-  ;; help function for making menus that need to apply a bookmark
-  ;; function to a string.
-  (let* ((choice (bookmark-menu-popup-paned-bookmark-menu
-                  event menu-label)))
-    (if choice (apply func-sym (list choice)))))
-
-
-;;;###autoload
-(defun bookmark-menu-insert (event)
-  "Insert the text of the file pointed to by bookmark BOOKMARK.
-You may have a problem using this function if the value of variable
-`bookmark-alist' is nil.  If that happens, you need to load in some
-bookmarks.  See help on function `bookmark-load' for more about
-this.
-
-Warning: this function only takes an EVENT as argument.  Use the
-corresponding bookmark function from Lisp \(the one without the
-\"-menu-\" in its name\)."
-  (interactive "e")
-  (bookmark-popup-menu-and-apply-function
-   'bookmark-insert "Insert Bookmark Contents" event))
-
-
-;;;###autoload
-(defun bookmark-menu-jump (event)
-  "Jump to bookmark BOOKMARK (a point in some file).
-You may have a problem using this function if the value of variable
-`bookmark-alist' is nil.  If that happens, you need to load in some
-bookmarks.  See help on function `bookmark-load' for more about
-this.
-
-Warning: this function only takes an EVENT as argument.  Use the
-corresponding bookmark function from Lisp \(the one without the
-\"-menu-\" in its name\)."
-  (interactive "e")
-  (bookmark-popup-menu-and-apply-function
-   'bookmark-jump "Jump to Bookmark" event))
-
-
-;;;###autoload
-(defun bookmark-menu-locate (event)
-  "Insert the name of the file associated with BOOKMARK.
-\(This is not the same as the contents of that file\).
-
-Warning: this function only takes an EVENT as argument.  Use the
-corresponding bookmark function from Lisp \(the one without the
-\"-menu-\" in its name\)."
-  (interactive "e")
-  (bookmark-popup-menu-and-apply-function
-   'bookmark-insert-location "Insert Bookmark Location" event))
-
-
-;;;###autoload
-(defun bookmark-menu-rename (event)
-  "Change the name of OLD-BOOKMARK to NEWNAME.
-If called from keyboard, prompts for OLD-BOOKMARK and NEWNAME.
-If called from menubar, OLD-BOOKMARK is selected from a menu, and
-prompts for NEWNAME.
-If called from Lisp, prompts for NEWNAME if only OLD-BOOKMARK was
-passed as an argument.  If called with two strings, then no prompting
-is done.  You must pass at least OLD-BOOKMARK when calling from Lisp.
-
-While you are entering the new name, consecutive C-w's insert
-consecutive words from the text of the buffer into the new bookmark
-name.
-
-Warning: this function only takes an EVENT as argument.  Use the
-corresponding bookmark function from Lisp \(the one without the
-\"-menu-\" in its name\)."
-  (interactive "e")
-  (bookmark-popup-menu-and-apply-function
-   'bookmark-rename "Rename Bookmark" event))
-
-
-;;;###autoload
-(defun bookmark-menu-delete (event)
-  "Delete the bookmark named NAME from the bookmark list.
-Removes only the first instance of a bookmark with that name.  If
-there are one or more other bookmarks with the same name, they will
-not be deleted.  Defaults to the \"current\" bookmark \(that is, the
-one most recently used in this file, if any\).
-
-Warning: this function only takes an EVENT as argument.  Use the
-corresponding bookmark function from Lisp \(the one without the
-\"-menu-\" in its name\)."
-  (interactive "e")
-  (bookmark-popup-menu-and-apply-function
-   'bookmark-delete "Delete Bookmark" event))
+The number of panes depends on the number of entries.
+The visible entries are truncated to `bookmark-menu-length', but the
+strings returned are not."
+  (let ((f-height (/ (frame-height) 2))
+	(pane-list nil)
+	(iter 0))
+    (while entries
+      (let (lst
+	    (count 0))
+	(while (and (< count f-height) entries)
+	  (let ((str (car entries)))
+	    (push (cons
+		   (if (> (length str) bookmark-menu-length)
+		       (substring str 0 bookmark-menu-length)
+		     str)
+		   str)
+		  lst)
+	    (setq entries (cdr entries))
+	    (setq count (1+ count))))
+	(setq iter (1+ iter))
+	(push (cons
+	       (format "-*- %s (%d) -*-" name iter)
+	       (nreverse lst))
+	      pane-list)))
+    
+    ;; Popup the menu and return the string.
+    (x-popup-menu event (cons (concat "-*- " name " -*-")
+			      (nreverse pane-list)))))
 
 
 ;; Thanks to Roland McGrath for fixing menubar.el so that the
@@ -2214,10 +2089,22 @@ corresponding bookmark function from Lisp \(the one without the
 ;; Emacs menubar stuff.
 
 ;;;###autoload
-(defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions"))
+(defvar menu-bar-bookmark-map
+  (let ((map (make-sparse-keymap "Bookmark functions")))
+    (define-key map [load]	'("Load a Bookmark File..." . bookmark-load))
+    (define-key map [write]	'("Save Bookmarks As..." . bookmark-write))
+    (define-key map [save]	'("Save Bookmarks" . bookmark-save))
+    (define-key map [edit]	'("Edit Bookmark List" . bookmark-bmenu-list))
+    (define-key map [delete]	'("Delete Bookmark" . bookmark-delete))
+    (define-key map [rename]	'("Rename Bookmark" . bookmark-rename))
+    (define-key map [locate]	'("Insert Location" . bookmark-locate))
+    (define-key map [insert]	'("Insert Contents" . bookmark-insert))
+    (define-key map [set]	'("Set Bookmark" . bookmark-set))
+    (define-key map [jump]	'("Jump to Bookmark" . bookmark-jump))
+    map))
 
 ;;;###autoload
-(defalias 'menu-bar-bookmark-map (symbol-value 'menu-bar-bookmark-map))
+(defalias 'menu-bar-bookmark-map menu-bar-bookmark-map)
 
 ;; make bookmarks appear toward the right side of the menu.
 (if (boundp 'menu-bar-final-items)
@@ -2226,65 +2113,24 @@ corresponding bookmark function from Lisp \(the one without the
               (cons 'bookmark menu-bar-final-items)))
   (setq menu-bar-final-items '(bookmark)))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [load]
-  '("Load a Bookmark File..." . bookmark-load))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [write]
-  '("Save Bookmarks As..." . bookmark-write))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [save]
-  '("Save Bookmarks" . bookmark-save))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [edit]
-  '("Edit Bookmark List" . bookmark-bmenu-list))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [delete]
-  '("Delete Bookmark" . bookmark-menu-delete))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [rename]
-  '("Rename Bookmark" . bookmark-menu-rename))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [locate]
-  '("Insert Location" . bookmark-menu-locate))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [insert]
-  '("Insert Contents" . bookmark-menu-insert))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [set]
-  '("Set Bookmark" . bookmark-set))
-
-;;;###autoload
-(define-key menu-bar-bookmark-map [jump]
-  '("Jump to Bookmark" . bookmark-menu-jump))
-
 ;;;; end bookmark menu stuff ;;;;
 
 
 ;;; Load Hook
 (defvar bookmark-load-hook nil
-  "Hook to run at the end of loading bookmark.")
+  "Hook run at the end of loading bookmark.")
 
 ;;; Exit Hook, called from kill-emacs-hook
 (defvar bookmark-exit-hook nil
-  "Hook to run when emacs exits")
+  "Hook run when emacs exits.")
 
 (defun bookmark-exit-hook-internal ()
   "Save bookmark state, if necessary, at Emacs exit time.
 This also runs `bookmark-exit-hooks'."
-  (and
-   (progn (run-hooks 'bookmark-exit-hooks) t)
-   bookmark-alist
-   (bookmark-time-to-save-p t)
-   (bookmark-save)))
+  (run-hooks 'bookmark-exit-hooks)
+  (and bookmark-alist
+       (bookmark-time-to-save-p t)
+       (bookmark-save)))
 
 (add-hook 'kill-emacs-hook 'bookmark-exit-hook-internal)
 
@@ -2293,4 +2139,5 @@ This also runs `bookmark-exit-hooks'."
 
 (provide 'bookmark)
 
+;;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
 ;;; bookmark.el ends here

@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1703,23 +1703,26 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
 /* Return the direction from which the text-property PROP would be
    inherited by any new text inserted at POS: 1 if it would be
    inherited from the char after POS, -1 if it would be inherited from
-   the char before POS, and 0 if from neither.  */
+   the char before POS, and 0 if from neither.
+   BUFFER can be either a buffer or nil (meaning current buffer).  */
 
 int
-text_property_stickiness (prop, pos)
-     Lisp_Object prop;
-     Lisp_Object pos;
+text_property_stickiness (prop, pos, buffer)
+     Lisp_Object prop, pos, buffer;
 {
   Lisp_Object prev_pos, front_sticky;
   int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
 
-  if (XINT (pos) > BEGV)
+  if (NILP (buffer))
+    XSETBUFFER (buffer, current_buffer);
+
+  if (XINT (pos) > BUF_BEGV (XBUFFER (buffer)))
     /* Consider previous character.  */
     {
       Lisp_Object rear_non_sticky;
 
       prev_pos = make_number (XINT (pos) - 1);
-      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
+      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, buffer);
 
       if (!NILP (CONSP (rear_non_sticky)
 		 ? Fmemq (prop, rear_non_sticky)
@@ -1729,7 +1732,7 @@ text_property_stickiness (prop, pos)
     }
 
   /* Consider following character.  */
-  front_sticky = Fget_text_property (pos, Qfront_sticky, Qnil);
+  front_sticky = Fget_text_property (pos, Qfront_sticky, buffer);
 
   if (EQ (front_sticky, Qt)
       || (CONSP (front_sticky)
@@ -1749,7 +1752,8 @@ text_property_stickiness (prop, pos)
      disambiguate.  Basically, rear-sticky wins, _except_ if the
      property that would be inherited has a value of nil, in which case
      front-sticky wins.  */
-  if (XINT (pos) == BEGV || NILP (Fget_text_property (prev_pos, prop, Qnil)))
+  if (XINT (pos) == BUF_BEGV (XBUFFER (buffer))
+      || NILP (Fget_text_property (prev_pos, prop, buffer)))
     return 1;
   else
     return -1;
@@ -2291,3 +2295,6 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
 /*  defsubr (&Serase_text_properties); */
 /*  defsubr (&Scopy_text_properties); */
 }
+
+/* arch-tag: 454cdde8-5f86-4faa-a078-101e3625d479
+   (do not change this comment) */

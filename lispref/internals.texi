@@ -339,6 +339,12 @@ beginning and end of garbage collection.  The default value is
 @code{nil}, meaning there are no such messages.
 @end defopt
 
+@defvar post-gc-hook
+This is a normal hook that is run at the end of garbage collection.
+Garbage collection is inhibited while the hook functions run, so be
+careful writing them.
+@end defvar
+
 @defopt gc-cons-threshold
 The value of this variable is the number of bytes of storage that must
 be allocated for Lisp objects after one garbage collection in order to
@@ -375,6 +381,17 @@ Lisp integer.
 You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
+
+@defvar gcs-done
+This variable contains the total number of garbage collections
+done so far in this Emacs session.
+@end defvar
+
+@defvar gc-elapsed
+This variable contains the total number of seconds of elapsed time
+during garbage collection so far in this Emacs session, as a floating
+point number.
+@end defvar
 
 @node Memory Usage
 @section Memory Usage
@@ -546,6 +563,8 @@ If the last line of the documentation string begins with the keyword
 @samp{usage:}, the rest of the line is treated as the argument list
 for documentation purposes.  This way, you can use different argument
 names in the documentation string from the ones used in the C code.
+@samp{usage:} is required if the function has an unlimited number of
+arguments.
 
 All the usual rules for documentation strings in Lisp code
 (@pxref{Documentation Tips}) apply to C code documentation strings
@@ -572,22 +591,30 @@ Lisp object that you intend to refer to again must be protected somehow.
 @code{UNGCPRO} cancels the protection of the variables that are
 protected in the current function.  It is necessary to do this explicitly.
 
-  For most data types, it suffices to protect at least one pointer to
-the object; as long as the object is not recycled, all pointers to it
-remain valid.  This is not so for strings, because the garbage collector
-can move them.  When the garbage collector moves a string, it relocates
-all the pointers it knows about; any other pointers become invalid.
-Therefore, you must protect all pointers to strings across any point
-where garbage collection may be possible.
+  It suffices to ensure that at least one pointer to each object is
+GC-protected; as long as the object is not recycled, all pointers to
+it remain valid.  So if you are sure that a local variable points to
+an object that will be preserved by some other pointer, that local
+variable does not need a GCPRO.  (Formerly, strings were an exception
+to this rule; in older Emacs versions, every pointer to a string
+needed to be marked by GC.)
 
-  The macro @code{GCPRO1} protects just one local variable.  If you want
-to protect two, use @code{GCPRO2} instead; repeating @code{GCPRO1} will
-not work.  Macros @code{GCPRO3} and @code{GCPRO4} also exist.
-
-  These macros implicitly use local variables such as @code{gcpro1}; you
-must declare these explicitly, with type @code{struct gcpro}.  Thus, if
-you use @code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
+  The macro @code{GCPRO1} protects just one local variable.  If you
+want to protect two, use @code{GCPRO2} instead; repeating
+@code{GCPRO1} will not work.  Macros, @code{GCPRO3}, @code{GCPRO4},
+@code{GCPRO5}, and @code{GCPRO6} also exist.  These macros implicitly
+use local variables such as @code{gcpro1}; you must declare these
+explicitly, with type @code{struct gcpro}.  Thus, if you use
+@code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
 Alas, we can't explain all the tricky details here.
+
+  Built-in functions that take a variable number of arguments actually
+accept two arguments at the C level: the number of Lisp arguments, and
+a @code{Lisp_Object *} pointer to a C vector containing those Lisp
+arguments.  This C vector may be part of a Lisp vector, but it need
+not be.  The responsibility for using GCPRO to protecting the Lisp
+arguments from GC if necessary rests with the caller in this case,
+since the caller allocated or found the storage for them.
 
   You must not use C initializers for static or global variables unless
 the variables are never written once Emacs is dumped.  These variables
@@ -721,10 +748,10 @@ number of arguments.  They work by calling @code{Ffuncall}.
 @file{lisp.h} contains the definitions for some important macros and
 functions.
 
-  If you define a function which is side-effect free, update the code in
-@file{byte-opt.el} which binds @code{side-effect-free-fns} and
-@code{side-effect-and-error-free-fns} to include it.  This will help the
-optimizer.
+  If you define a function which is side-effect free, update the code
+in @file{byte-opt.el} which binds @code{side-effect-free-fns} and
+@code{side-effect-and-error-free-fns} so that the compiler optimizer
+knows about it.
 
 @node Object Internals
 @appendixsec Object Internals
@@ -1431,3 +1458,7 @@ Size of carryover in encoding.
 Flag to set @code{coding-system} of the process buffer from the
 coding system used to decode process output.
 @end table
+
+@ignore
+   arch-tag: 4b2c33bc-d7e4-43f5-bc20-27c0db52a53e
+@end ignore

@@ -106,7 +106,7 @@ Emacs reads a command is the buffer that the command will apply to.
 switch visibly to a different buffer so that the user can edit it.  For
 that, you must use the functions described in @ref{Displaying Buffers}.
 
-  @strong{Note:} Lisp functions that change to a different current buffer
+  @strong{Warning:} Lisp functions that change to a different current buffer
 should not depend on the command loop to set it back afterwards.
 Editing commands written in Emacs Lisp can be called from other programs
 as well as from the command loop; it is convenient for the caller if
@@ -444,10 +444,13 @@ such buffer in the buffer list.
 If @var{filename} is a non-empty string, this function changes the
 name of the file visited in the current buffer to @var{filename}.  (If the
 buffer had no visited file, this gives it one.)  The @emph{next time}
-the buffer is saved it will go in the newly-specified file.  This
-command marks the buffer as modified, since it does not (as far as Emacs
-knows) match the contents of @var{filename}, even if it matched the
-former visited file.
+the buffer is saved it will go in the newly-specified file.
+
+This command marks the buffer as modified, since it does not (as far
+as Emacs knows) match the contents of @var{filename}, even if it
+matched the former visited file.  It also renames the buffer to
+correspond to the new file name, unless the new name is already in
+use.
 
 If @var{filename} is @code{nil} or the empty string, that stands for
 ``no visited file''.  In this case, @code{set-visited-file-name} marks
@@ -678,13 +681,14 @@ signal an error if the current buffer is read-only.
 @cindex buffer list
 
   The @dfn{buffer list} is a list of all live buffers.  Creating a
-buffer adds it to this list, and killing a buffer excises it.  The order
-of the buffers in the list is based primarily on how recently each
-buffer has been displayed in the selected window.  Buffers move to the
-front of the list when they are selected and to the end when they are
-buried (see @code{bury-buffer}, below).  Several functions, notably
-@code{other-buffer}, use this ordering.  A buffer list displayed for the
-user also follows this order.
+buffer adds it to this list, and killing a buffer removes it.  The
+order of the buffers in the list is based primarily on how recently
+each buffer has been displayed in the selected window.  Buffers move
+to the front of the list when they are selected (selecting a window
+that already displays the buffer counts as selecting the buffer), and
+to the end when they are buried (see @code{bury-buffer}, below).
+Several functions, notably @code{other-buffer}, use this ordering.  A
+buffer list displayed for the user also follows this order.
 
   In addition to the fundamental Emacs buffer list, each frame has its
 own version of the buffer list, in which the buffers that have been
@@ -937,7 +941,8 @@ ask for confirmation from the user.  If any of them returns @code{nil},
 This is a normal hook run by @code{kill-buffer} after asking all the
 questions it is going to ask, just before actually killing the buffer.
 The buffer to be killed is current when the hook functions run.
-@xref{Hooks}.
+@xref{Hooks}.  This variable is a permanent local, so its local binding
+is not cleared by changing major modes.
 @end defvar
 
 @defvar buffer-offer-save
@@ -1016,3 +1021,7 @@ This function returns the current gap position in the current buffer.
 @defun gap-size
 This function returns the current gap size of the current buffer.
 @end defun
+
+@ignore
+   arch-tag: 2e53cfab-5691-41f6-b5a8-9c6a3462399c
+@end ignore

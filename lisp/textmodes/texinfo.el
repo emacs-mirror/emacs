@@ -1,7 +1,7 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985, '88, '89, '90, '91, '01,
-;;                '92, '93, '96, '97, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985,88,89,90,91,92,93,96,97,2000,01,03
+;;           Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
@@ -28,7 +28,7 @@
 ;;; Todo:
 
 ;; - facemenu support.
-;; - command completion. 
+;; - command completion.
 
 ;;; Commentary:
 
@@ -276,6 +276,7 @@ chapter."
     ("unnumberedsubsubsec" 5)
     ("appendix" 2)
     ("appendixsec" 3)
+    ("appendixsection" 3)
     ("appendixsubsec" 4)
     ("appendixsubsubsec" 5)
     ("majorheading" 2)
@@ -666,7 +667,7 @@ Puts point on a blank line between them."
     (and (re-search-backward (concat "@\\(end\\s +\\)?" env) bound t)
 	 (not (match-end 1)))))
 
-(defvar texinfo-enable-quote-macros '("@\\(code\\|samp\\|kbd\\)\\>"))
+(defvar texinfo-enable-quote-macros "@\\(code\\|samp\\|kbd\\)\\>")
 (defvar texinfo-enable-quote-envs '("example\\>" "lisp\\>"))
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for TeXinfo.
@@ -842,9 +843,9 @@ The default is not to surround any existing words with the braces."
   (interactive "P")
   (texinfo-insert-@-with-arg "strong" arg))
 
-(defun texinfo-insert-@table (&optional arg)
+(defun texinfo-insert-@table ()
   "Insert the string `@table' in a Texinfo buffer."
-  (interactive "P")
+  (interactive)
   (insert "@table "))
 
 (defun texinfo-insert-@var (&optional arg)
@@ -881,8 +882,7 @@ to jump to the corresponding spot in the Texinfo source file."
 
   (interactive "P")
   ;; First, remember current location
-  (let ((source-buffer (current-buffer))
-        current-location)
+  (let (current-location)
     (save-excursion
       (end-of-line)            ; so as to find section on current line
       (if (re-search-backward
@@ -893,7 +893,7 @@ to jump to the corresponding spot in the Texinfo source file."
                 (progn
                   (beginning-of-line)
                   (buffer-substring (point) (progn (end-of-line) (point)))))
-        ;; else point is located before before any section command
+        ;; else point is located before any section command.
         (setq current-location "tex")))
     ;; Second, create and format an *Occur* buffer
     (save-excursion
@@ -1039,4 +1039,5 @@ You are prompted for the job number (use a number shown by a previous
 
 (provide 'texinfo)
 
+;;; arch-tag: 005d7c38-43b9-4b7d-aa1d-aea69bae73e1
 ;;; texinfo.el ends here

@@ -1,11 +1,11 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:26:32 jbarranquero>
+;; Time-stamp: <2003/08/12 21:29:14 vinicius>
 ;; Version: 1.6
 
 ;; This file is part of GNU Emacs.
@@ -127,7 +127,8 @@
   "Value returned by `ebnf-iso-lex' function.")
 
 
-(defconst ebnf-no-meta-identifier nil)
+(defvar ebnf-no-meta-identifier nil
+  "Used by `ebnf-iso-term' and `ebnf-iso-lex' functions.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -612,4 +613,5 @@ See documentation for variable `ebnf-iso-lex'."
 (provide 'ebnf-iso)
 
 
+;;; arch-tag: 03315eef-8f64-404a-bf9d-256d42442ee3
 ;;; ebnf-iso.el ends here

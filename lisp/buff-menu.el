@@ -563,14 +563,8 @@ For more information, see the function `buffer-menu'."
 	 list desired-point name file mode)
     (when Buffer-menu-use-header-line
       (let ((spaces
-	     ;; FIXME: This is using the settings of the current frame rather
-	     ;; than the frame into which the buffer will be displayed.
-	     (/ (+ 0.0 (or (frame-parameter nil 'left-fringe) 0)
-		   (or (if (eq (frame-parameter nil 'vertical-scroll-bars)
-			       'left)
-			   (frame-parameter nil 'scroll-bar-width))
-		       0))
-		(frame-char-width)))
+	     (- (car (window-inside-edges))
+		(car (window-edges))))
 	    (pos 0))
 	;; Turn spaces in the header into stretch specs so they work
 	;; regardless of the header-line face.
@@ -590,9 +584,9 @@ For more information, see the function `buffer-menu'."
       (erase-buffer)
       (setq standard-output (current-buffer))
       (unless Buffer-menu-use-header-line
-	(insert header "--- ------")
-	(indent-to Buffer-menu-buffer+size-width)
-	(insert "----  ----" mode-end "----\n")
+	(insert header (propertize "---" 'face 'fixed-pitch) " ")
+	(insert (Buffer-menu-buffer+size "------" "----"))
+	(insert "  ----" mode-end "----\n")
 	(put-text-property 1 (point) 'intangible t))
       (setq list
 	    (delq t
@@ -670,4 +664,5 @@ For more information, see the function `buffer-menu'."
 	   (goto-char desired-point))
       (current-buffer))))
 
+;;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
 ;;; buff-menu.el ends here

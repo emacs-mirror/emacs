@@ -144,8 +144,9 @@ enum iso_code_class_type
 #define CODING_FLAG_ISO_DESIGNATION	0x10000
 
 /* A character to be produced on output if encoding of the original
-   character is prohibited by CODING_FLAG_ISO_SAFE.  */
-#define CODING_INHIBIT_CHARACTER_SUBSTITUTION  077 /* 077 == `?' */
+   character is inhibitted by CODING_MODE_INHIBIT_UNENCODABLE_CHAR.
+   It must be an ASCII character.  */
+#define CODING_REPLACEMENT_CHARACTER '?'
 
 /* Structure of the field `spec.iso2022' in the structure `coding_system'.  */
 struct iso2022_spec
@@ -337,9 +338,12 @@ struct composition_data
    enables selective display.  */
 #define CODING_MODE_SELECTIVE_DISPLAY		0x04
 
+/* If set, replace unencodabae characters by `?' on encoding.  */
+#define CODING_MODE_INHIBIT_UNENCODABLE_CHAR	0x08
+
 /* This flag is used by the decoding/encoding routines on the fly.  If
    set, it means that right-to-left text is being processed.  */
-#define CODING_MODE_DIRECTION			0x08
+#define CODING_MODE_DIRECTION			0x10
 
 struct coding_system
 {
@@ -610,6 +614,8 @@ struct coding_system
 
 #endif /* !WINDOWSNT */
 
+#define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
+
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, const unsigned char *,
 			      unsigned char *, int, int));
@@ -651,6 +657,7 @@ extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
 extern Lisp_Object Qraw_text, Qemacs_mule;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
+extern Lisp_Object Qutf_8;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
@@ -722,3 +729,6 @@ extern Lisp_Object Vdefault_file_name_coding_system;
 extern Lisp_Object Qcoding_system_error;
 
 #endif /* EMACS_CODING_H */
+
+/* arch-tag: 2bc3b4fa-6870-4f64-8135-b962b2d290e4
+   (do not change this comment) */

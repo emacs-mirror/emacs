@@ -1,6 +1,6 @@
-;;; mh-identity.el --- Multiple Identify support for MH-E.
+;;; mh-identity.el --- Multiple identify support for MH-E.
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -36,8 +36,6 @@
 ;; from the command line.
 
 ;;; Change Log:
-
-;; $Id: mh-identity.el,v 1.3 2003/02/04 13:15:32 lektu Exp $
 
 ;;; Code:
 
@@ -169,11 +167,9 @@ Edit the `mh-identity-list' variable to define identity."
                 (cond
                  ;; If MIME composition done, insert signature at the end as
                  ;; an inline MIME part.
-                 ((and (boundp 'mh-mhn-compose-insert-flag)
-                       mh-mhn-compose-insert-flag)
+                 ((mh-mhn-directive-present-p)
                   (insert "#\n" "Content-Description: Signature\n"))
-                 ((and (boundp 'mh-mml-compose-insert-flag)
-                       mh-mml-compose-insert-flag)
+                 ((mh-mml-directive-present-p)
                   (mml-insert-tag 'part 'type "text/plain"
                                   'disposition "inline"
                                   'description "Signature")))
@@ -182,12 +178,10 @@ Edit the `mh-identity-list' variable to define identity."
                   (funcall value))
                 (goto-char (point-min))
                 (when (not (re-search-forward "^--" nil t))
-                  (if (and (boundp 'mh-mhn-compose-insert-flag)
-                           mh-mhn-compose-insert-flag)
-                      (forward-line 2))
-                  (if (and (boundp 'mh-mml-compose-insert-flag)
-                           mh-mml-compose-insert-flag)
-                      (forward-line 1))
+                  (cond ((mh-mhn-directive-present-p)
+                         (forward-line 2))
+                        ((mh-mml-directive-present-p)
+                         (forward-line 1)))
                   (insert "-- \n"))
                 (set (make-local-variable 'mh-identity-signature-end)
                      (make-marker))
@@ -216,4 +210,5 @@ Edit the `mh-identity-list' variable to define identity."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 07d66ef6-8726-4ac6-9ecf-e566cd5bfb45
 ;;; mh-identity.el ends here

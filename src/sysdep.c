@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 86,87,88,93,94,95, 1999, 2000, 2001
+   Copyright (C) 1985, 86,87,88,93,94,95,1999,2000,01,2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -84,15 +84,6 @@ static int delete_exited_processes;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-
-/* Get _POSIX_VDISABLE, if it is available.  */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 
 #ifdef HAVE_SETPGID
 #if !defined (USG) || defined (BSD_PGRPS)
@@ -1814,10 +1805,10 @@ reset_sys_modes ()
     return;
 #endif
   sf = SELECTED_FRAME ();
-  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
-  clear_end_of_line (FRAME_WIDTH (sf));
+  cursor_to (FRAME_LINES (sf) - 1, 0);
+  clear_end_of_line (FRAME_COLS (sf));
   /* clear_end_of_line may move the cursor */
-  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
+  cursor_to (FRAME_LINES (sf) - 1, 0);
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to
@@ -2017,6 +2008,8 @@ kbd_input_ast ()
   if (c >= 0)
     {
       struct input_event e;
+      EVENT_INIT (e);
+
       e.kind = ASCII_KEYSTROKE_EVENT;
       XSETINT (e.code, c);
       e.frame_or_window = selected_frame;
@@ -2631,14 +2624,15 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 void
 read_input_waiting ()
 {
-  struct input_event e;
   int nread, i;
   extern int quit_char;
 
   if (read_socket_hook)
     {
       struct input_event buf[256];
-
+      for (i = 0; i < 256; i++)
+	EVENT_INIT (buf[i]);
+      
       read_alarm_should_throw = 0;
       if (! setjmp (read_alarm_throw))
 	nread = (*read_socket_hook) (0, buf, 256, 1);
@@ -2658,8 +2652,10 @@ read_input_waiting ()
     }
   else
     {
+      struct input_event e;
       char buf[3];
       nread = read (fileno (stdin), buf, 1);
+      EVENT_INIT (e);
 
       /* Scan the chars for C-g and store them in kbd_buffer.  */
       e.kind = ASCII_KEYSTROKE_EVENT;
@@ -2845,7 +2841,7 @@ sys_sigsetmask (sigset_t new_mask)
 
 #endif /* POSIX_SIGNALS */
 
-#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
 static char *my_sys_siglist[NSIG];
 # ifdef sys_siglist
 #  undef sys_siglist
@@ -2861,7 +2857,7 @@ init_signals ()
   sigfillset (&full_mask);
 #endif
 
-#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
     {
 # ifdef SIGABRT
@@ -3021,7 +3017,7 @@ init_signals ()
       sys_siglist[SIGXFSZ] = "File size limit exceeded";
 # endif
     }
-#endif /* !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED */
+#endif /* !defined HAVE_STRSIGNAL && !defined HAVE_DECL_SYS_SIGLIST */
 }
 
 #ifndef HAVE_RANDOM
@@ -5302,3 +5298,5 @@ strsignal (code)
 }
 #endif /* HAVE_STRSIGNAL */
 
+/* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
+   (do not change this comment) */

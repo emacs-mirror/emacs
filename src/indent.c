@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94,95,98, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,88,93,94,95,98,2000,01,02,2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -374,8 +374,8 @@ current_column ()
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
   if (BUF_INTERVALS (current_buffer)
-      || !NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after)
+      || current_buffer->overlays_before
+      || current_buffer->overlays_after
       || Z != Z_BYTE)
     return current_column_1 ();
 
@@ -1159,18 +1159,18 @@ struct position val_compute_motion;
 
 	window_width - 1
 	 - (has_vertical_scroll_bars
-	    ? FRAME_SCROLL_BAR_COLS (XFRAME (window->frame))
-	    : (window_width + window_left != frame_width))
+	    ? WINDOW_CONFIG_SCROLL_BAR_COLS (window)
+	    : (window_width + window_left != frame_cols))
 
 	where
-	  window_width is XFASTINT (w->width),
-	  window_left is XFASTINT (w->left),
+	  window_width is XFASTINT (w->total_cols),
+	  window_left is XFASTINT (w->left_col),
 	  has_vertical_scroll_bars is
-	    FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (WINDOW_FRAME (window)))
-	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))
+	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
+	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
 
-   Or you can let window_internal_width do this all for you, and write:
-	window_internal_width (w) - 1
+   Or you can let window_box_text_cols do this all for you, and write:
+	window_box_text_cols (w) - 1
 
    The `-1' accounts for the continuation-line backslashes; the rest
    accounts for window borders if the window is split horizontally, and
@@ -1366,7 +1366,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	{
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width + 1 < FRAME_WIDTH (XFRAME (WINDOW_FRAME (win))))
+		  && width + 1 < FRAME_COLS (XFRAME (WINDOW_FRAME (win))))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline, unless we are already past
@@ -1834,7 +1834,9 @@ vmotion (from, vtarget, w)
      register int from, vtarget;
      struct window *w;
 {
-  int width = window_internal_width (w) - 1;
+  /* We don't need to make room for continuation marks (we have fringes now),
+     so hould we really subtract 1 here if FRAME_WINDOW_P ?  ++KFS  */
+  int width = window_box_text_cols (w) - 1;
   int hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
@@ -2061,3 +2063,6 @@ Setting this variable automatically makes it local to the current buffer.  */);
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }
+
+/* arch-tag: 9adfea44-71f7-4988-8ee3-96da15c502cc
+   (do not change this comment) */

@@ -107,3 +107,6 @@ Boston, MA 02111-1307, USA.  */
 /* The OS needs stream.h+ptem.h included in sysdep.c.  */
 #define NO_SIOCTL_H
 #define NEED_PTEM_H
+
+/* arch-tag: 3dff1355-7cb6-49e3-8834-85a369e4ea8f
+   (do not change this comment) */

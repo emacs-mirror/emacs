@@ -2192,4 +2192,5 @@
 		 byte-optimize-lapcode))))
  nil)
 
+;;; arch-tag: 0f14076b-737e-4bef-aae6-908826ec1ff1
 ;;; byte-opt.el ends here

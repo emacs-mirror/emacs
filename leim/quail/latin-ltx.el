@@ -679,6 +679,7 @@ system, including many technical ones.  Examples:
  ("\\lesssim" ?$,1y2(B)
  ("\\lfloor" ?$,1zj(B)
  ("\\lhd" ?$,2"!(B)
+ ("\\rhd" ?$,2!w(B)
  ("\\ll" ?$,1y*(B)
  ("\\llcorner" ?$,1z~(B)
  ("\\lnapprox" ?$,1zF(B)
@@ -940,6 +941,16 @@ system, including many technical ones.  Examples:
  ;; by analogy with lq, rq:
  ("\\ldq" ?\$,1r|(B)
  ("\\rdq" ?\$,1r}(B)
-)
+ ("\\minus" ?$,1x2(B)
+ ("\\defs" ?$,1xy(B)				; per fuzz/zed
+;;  ("\\sqrt[3]" ?$,1x;(B)
+ ("\\llbracket" ?\$,2=Z(B) 			; stmaryrd
+ ("\\rrbracket" ?\$,2=[(B) 
+;;  ("\\lbag" ?\$,2=Z(B) 			; fuzz
+;;  ("\\rbag" ?\$,2=[(B) 
+ ("\\ldata" ?\$,2=J(B) 			; fuzz/zed
+ ("\\rdata" ?\$,2=K(B)
+ )
 
+;;; arch-tag: 3daae613-2c53-446e-a0a1-ee2e1ebed15f
 ;;; latin-ltx.el ends here

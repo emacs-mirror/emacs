@@ -1,10 +1,9 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003 Free Software Foundation, Inc.
 
-;; Authors:    2000- Martin Stjernholm
-;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
-;;             1992-1997 Barry A. Warsaw
+;; Authors:    1998- Martin Stjernholm
+;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
@@ -39,15 +38,26 @@
 		  (stringp byte-compile-dest-file))
 	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (require 'cc-bytecomp)))
+    (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
-(cc-require 'cc-langs)
 (cc-require 'cc-engine)
 
 
 ;; Standard indentation line-ups
+
+;; Calling convention:
+;;
+;; The single argument is a cons cell containing the syntactic symbol
+;; in the car, and the relpos (a.k.a. anchor position) in the cdr.
+;; The cdr may be nil for syntactic symbols which doesn't have an
+;; associated relpos.
+;;
+;; Some syntactic symbols provide more information, usually more
+;; interesting positions.  The complete list for the syntactic element
+;; (beginning with the symbol itself) is available in
+;; `c-syntactic-element'.
 
 (defun c-lineup-topmost-intro-cont (langelem)
   "Line up declaration continuation lines zero or one indentation step.
@@ -88,17 +98,55 @@ Works with: topmost-intro-cont."
 (defun c-lineup-arglist (langelem)
   "Line up the current argument line under the first argument.
 
+As a special case, if an argument on the same line as the open
+parenthesis starts with a brace block opener, the indentation is
+`c-basic-offset' only.  This is intended as a \"DWIM\" measure in
+cases like macros that contains statement blocks, e.g:
+
+A_VERY_LONG_MACRO_NAME ({
+        some (code, with + long, lines * in[it]);
+    });
+<--> c-basic-offset
+
+This is motivated partly because it's more in line with how code
+blocks are handled, and partly since it approximates the behavior of
+earlier CC Mode versions, which due to inaccurate analysis tended to
+indent such cases this way.
+
 Works with: arglist-cont-nonempty, arglist-close."
   (save-excursion
-    (beginning-of-line)
-    (let ((containing-sexp (c-most-enclosing-brace (c-parse-state))))
-      (goto-char (1+ containing-sexp))
-      (let ((eol (c-point 'eol)))
+    (goto-char (1+ (elt c-syntactic-element 2)))
+
+    ;; Don't stop in the middle of a special brace list opener
+    ;; like "({".
+    (when c-special-brace-lists
+      (let ((special-list (c-looking-at-special-brace-list)))
+	(when special-list
+	  (goto-char (+ (car (car special-list)) 2)))))
+
+    (let ((savepos (point))
+	  (eol (c-point 'eol)))
+
+      ;; Find out if an argument on the same line starts with an
+      ;; unclosed open brace paren.  Note similar code in
+      ;; `c-lineup-close-paren' and
+      ;; `c-lineup-arglist-close-under-paren'.
+      (if (and (c-syntactic-re-search-forward "{" eol t t)
+	       (looking-at c-syntactic-eol)
+	       (progn (backward-char)
+		      (not (c-looking-at-special-brace-list)))
+	       (progn (c-backward-syntactic-ws)
+		      (or (= (point) savepos)
+			  (eq (char-before) ?,))))
+	  c-basic-offset
+
+	;; Normal case.  Indent to the token after the arglist open paren.
+	(goto-char savepos)
 	(c-forward-syntactic-ws)
 	(when (< (point) eol)
-	  (goto-char (1+ containing-sexp))
-	  (skip-chars-forward " \t")))
-      (vector (current-column)))))
+	  (goto-char savepos)
+	  (skip-chars-forward " \t"))
+	(vector (current-column))))))
 
 ;; Contributed by Kevin Ryde <user42@zip.com.au>.
 (defun c-lineup-argcont (elem)
@@ -107,7 +155,7 @@ Works with: arglist-cont-nonempty, arglist-close."
 foo (xyz, aaa + bbb + ccc
           + ddd + eee + fff);    <- c-lineup-argcont
 
-Only continuation lines like this are touched, `nil' is returned on lines
+Only continuation lines like this are touched, nil is returned on lines
 which are the start of an argument.
 
 Within a gcc asm block, \":\" is recognised as an argument separator,
@@ -118,32 +166,46 @@ Works with: arglist-cont, arglist-cont-nonempty."
 
   (save-excursion
     (beginning-of-line)
-    (let ((bol (point)))
 
-      ;; Previous line ending in a comma means we're the start of an
-      ;; argument.  This should quickly catch most cases not for us.
-      (c-backward-syntactic-ws)
-      (let ((c (char-before)))
-	(unless (eq c ?,)
+    (when (eq (car elem) 'arglist-cont-nonempty)
+      ;; Our argument list might not be the innermost one.  If it
+      ;; isn't, go back to the last position in it.  We do this by
+      ;; stepping back over open parens until we get to the open paren
+      ;; of our argument list.
+      (let ((open-paren (elt c-syntactic-element 2))
+	    (paren-state (c-parse-state)))
+	(while (not (eq (car paren-state) open-paren))
+	  (goto-char (car paren-state))
+	  (setq paren-state (cdr paren-state)))))
 
-	  ;; In a gcc asm, ":" on the previous line means the start of an
-	  ;; argument.  And lines starting with ":" are not for us, don't
-	  ;; want them to indent to the preceding operand.
-	  (let ((gcc-asm (save-excursion
-			   (goto-char bol)
-			   (c-in-gcc-asm-p))))
-	    (unless (and gcc-asm
-			 (or (eq c ?:)
-			     (save-excursion
-			       (goto-char bol)
-			       (looking-at "[ \t]*:"))))
+    (let ((start (point)) c)
 
-	      (c-lineup-argcont-scan (if gcc-asm ?:))
-	      (vector (current-column)))))))))
+      (when (bolp)
+	;; Previous line ending in a comma means we're the start of an
+	;; argument.  This should quickly catch most cases not for us.
+	;; This case is only applicable if we're the innermost arglist.
+	(c-backward-syntactic-ws)
+	(setq c (char-before)))
+
+      (unless (eq c ?,)
+	;; In a gcc asm, ":" on the previous line means the start of an
+	;; argument.  And lines starting with ":" are not for us, don't
+	;; want them to indent to the preceding operand.
+	(let ((gcc-asm (save-excursion
+			 (goto-char start)
+			 (c-in-gcc-asm-p))))
+	  (unless (and gcc-asm
+		       (or (eq c ?:)
+			   (save-excursion
+			     (goto-char start)
+			     (looking-at "[ \t]*:"))))
+
+	    (c-lineup-argcont-scan (if gcc-asm ?:))
+	    (vector (current-column))))))))
 
 (defun c-lineup-argcont-scan (&optional other-match)
   ;; Find the start of an argument, for `c-lineup-argcont'.
-  (when (eq 0 (c-backward-token-1 1 t))
+  (when (zerop (c-backward-token-2 1 t))
     (let ((c (char-after)))
       (if (or (eq c ?,) (eq c other-match))
 	  (progn
@@ -152,8 +214,8 @@ Works with: arglist-cont, arglist-cont-nonempty."
 	(c-lineup-argcont-scan other-match)))))
 
 (defun c-lineup-arglist-intro-after-paren (langelem)
-  "Line up a line just after the open paren of the surrounding paren or
-brace block.
+  "Line up a line to just after the open paren of the surrounding paren
+or brace block.
 
 Works with: defun-block-intro, brace-list-intro,
 statement-block-intro, statement-case-intro, arglist-intro."
@@ -164,16 +226,79 @@ statement-block-intro, statement-case-intro, arglist-intro."
     (vector (1+ (current-column)))))
 
 (defun c-lineup-arglist-close-under-paren (langelem)
-  "Line up a closing paren line under the corresponding open paren.
+  "Line up a line under the enclosing open paren.
+Normally used to line up a closing paren in the same column as its
+corresponding open paren, but can also be used with arglist-cont and
+arglist-cont-nonempty to line up all lines inside a parenthesis under
+the open paren.
 
-Works with: defun-close, class-close, inline-close, block-close,
-brace-list-close, arglist-close, extern-lang-close, namespace-close
-\(for most of these, a zero offset will normally produce the same
-result, though)."
+As a special case, if a brace block is opened at the same line as the
+open parenthesis of the argument list, the indentation is
+`c-basic-offset' only.  See `c-lineup-arglist' for further discussion
+of this \"DWIM\" measure.
+
+Works with: Almost all symbols, but are typically most useful on
+arglist-close, brace-list-close, arglist-cont and arglist-cont-nonempty."
   (save-excursion
-    (beginning-of-line)
-    (backward-up-list 1)
-    (vector (current-column))))
+    (let (special-list paren-start savepos)
+      (if (memq (car langelem) '(arglist-cont-nonempty arglist-close))
+	  (goto-char (elt c-syntactic-element 2))
+	(beginning-of-line)
+	(c-go-up-list-backward))
+
+      (if (and c-special-brace-lists
+	       (setq special-list (c-looking-at-special-brace-list)))
+	  ;; Don't stop in the middle of a special brace list opener
+	  ;; like "({".
+	  (progn
+	    (setq paren-start (car (car special-list)))
+	    (goto-char (+ paren-start 2)))
+	(setq paren-start (point))
+	(forward-char 1))
+
+      (setq savepos (point))
+      ;; Find out if an argument on the same line starts with an
+      ;; unclosed open brace paren.  Note similar code in
+      ;; `c-lineup-arglist' and `c-lineup-close-paren'.
+      (if (and (c-syntactic-re-search-forward "{" (c-point 'eol) t t)
+	       (looking-at c-syntactic-eol)
+	       (progn (backward-char)
+		      (not (c-looking-at-special-brace-list)))
+	       (progn (c-backward-syntactic-ws)
+		      (or (= (point) savepos)
+			  (eq (char-before) ?,))))
+	  c-basic-offset
+
+	;; Normal case.  Indent to the arglist open paren.
+	(goto-char paren-start)
+	(vector (current-column))))))
+
+(defun c-lineup-arglist-operators (langelem)
+  "Line up lines starting with an infix operator under the open paren.
+Return nil on lines that don't start with an operator, to leave those
+cases to other lineup functions.  Example:
+
+if (  x < 10
+   || at_limit (x,       <- c-lineup-arglist-operators
+                list)    <- c-lineup-arglist-operators returns nil
+   )
+
+Since this function doesn't do anything for lines without an infix
+operator you typically want to use it together with some other lineup
+settings, e.g. as follows \(the arglist-close setting is just a
+suggestion to get a consistent style):
+
+\(c-set-offset 'arglist-cont '(c-lineup-arglist-operators 0))
+\(c-set-offset 'arglist-cont-nonempty '(c-lineup-arglist-operators
+                                        c-lineup-arglist))
+\(c-set-offset 'arglist-close '(c-lineup-arglist-close-under-paren))
+
+Works with: arglist-cont, arglist-cont-nonempty."
+  (save-excursion
+    (back-to-indentation)
+    (when (looking-at "[-+|&*%<>=]\\|\\(/[^/*]\\)")
+      ;; '-' can be both an infix and a prefix operator, but I'm lazy now..
+      (c-lineup-arglist-close-under-paren langelem))))
 
 (defun c-lineup-close-paren (langelem)
   "Line up the closing paren under its corresponding open paren if the
@@ -184,25 +309,45 @@ main (int,              main (
       char **               int, char **
      )           <->    )                 <- c-lineup-close-paren
 
-Works with: defun-close, class-close, inline-close, block-close,
-brace-list-close, arglist-close, extern-lang-close, namespace-close."
+As a special case, if a brace block is opened at the same line as the
+open parenthesis of the argument list, the indentation is
+`c-basic-offset' instead of the open paren column.  See
+`c-lineup-arglist' for further discussion of this \"DWIM\" measure.
+
+Works with: All *-close symbols."
   (save-excursion
-    (condition-case nil
-	(let (opencol spec)
-	  (beginning-of-line)
-	  (backward-up-list 1)
-	  (setq spec (c-looking-at-special-brace-list))
-	  (if spec (goto-char (car (car spec))))
-	  (setq opencol (current-column))
-	  (forward-char 1)
-	  (if spec (progn
-		     (c-forward-syntactic-ws)
-		     (forward-char 1)))
-	  (c-forward-syntactic-ws (c-point 'eol))
-	  (if (eolp)
-	      0
-	    (vector opencol)))
-      (error nil))))
+    (beginning-of-line)
+    (c-go-up-list-backward)
+
+    (let ((spec (c-looking-at-special-brace-list)) savepos argstart)
+      (if spec (goto-char (car (car spec))))
+      (setq savepos (point))
+      (forward-char 1)
+      (when spec
+	(c-forward-syntactic-ws)
+	(forward-char 1))
+
+      (if (looking-at c-syntactic-eol)
+	  ;; The arglist is "empty".
+	  0
+
+	;; Find out if an argument on the same line starts with an
+	;; unclosed open brace paren.  Note similar code in
+	;; `c-lineup-arglist' and
+	;; `c-lineup-arglist-close-under-paren'.
+	(setq argstart (point))
+	(if (and (c-syntactic-re-search-forward "{" (c-point 'eol) t t)
+		 (looking-at c-syntactic-eol)
+		 (progn (backward-char)
+			(not (c-looking-at-special-brace-list)))
+		 (progn (c-backward-syntactic-ws)
+			(or (= (point) argstart)
+			    (eq (char-before) ?,))))
+	    c-basic-offset
+
+	  ;; Normal case.  Indent to the arglist open paren.
+	  (goto-char savepos)
+	  (vector (current-column)))))))
 
 (defun c-lineup-streamop (langelem)
   "Line up C++ stream operators under each other.
@@ -232,6 +377,7 @@ class Foo                 Foo::Foo (int a, int b)
 
 Works with: inher-cont, member-init-cont."
   (save-excursion
+    (back-to-indentation)
     (let* ((eol (c-point 'eol))
 	   (here (point))
 	   (char-after-ip (progn
@@ -253,12 +399,13 @@ Works with: inher-cont, member-init-cont."
       (if (or (eolp)
 	      (looking-at c-comment-start-regexp))
 	  (c-forward-syntactic-ws here))
-      (vector (current-column))
+      (if (< (point) here)
+	  (vector (current-column)))
       )))
 
 (defun c-lineup-java-inher (langelem)
   "Line up Java implements and extends declarations.
-If class names follows on the same line as the implements/extends
+If class names follow on the same line as the implements/extends
 keyword, they are lined up under each other.  Otherwise, they are
 indented by adding `c-basic-offset' to the column of the keyword.
 E.g:
@@ -279,7 +426,7 @@ Works with: inher-cont."
 
 (defun c-lineup-java-throws (langelem)
   "Line up Java throws declarations.
-If exception names follows on the same line as the throws keyword,
+If exception names follow on the same line as the throws keyword,
 they are lined up under each other.  Otherwise, they are indented by
 adding `c-basic-offset' to the column of the throws keyword.  The
 throws keyword itself is also indented by `c-basic-offset' from the
@@ -295,11 +442,11 @@ Works with: func-decl-cont."
     (let* ((lim (1- (c-point 'bol)))
 	   (throws (catch 'done
 		     (goto-char (cdr langelem))
-		     (while (zerop (c-forward-token-1 1 t lim))
+		     (while (zerop (c-forward-token-2 1 t lim))
 		       (if (looking-at "throws\\>[^_]")
 			   (throw 'done t))))))
       (if throws
-	  (if (zerop (c-forward-token-1 1 nil (c-point 'eol)))
+	  (if (zerop (c-forward-token-2 1 nil (c-point 'eol)))
 	      (vector (current-column))
 	    (back-to-indentation)
 	    (vector (+ (current-column) c-basic-offset)))
@@ -470,7 +617,7 @@ Works with: comment-intro."
       (cond
        ;; CASE 1: preserve aligned comments
        ((save-excursion
-	  (and (c-forward-comment -1)
+	  (and (c-backward-single-comment)
 	       (= col (current-column))))
 	(vector col))			; Return an absolute column.
        ;; indent as specified by c-comment-only-line-offset
@@ -534,46 +681,71 @@ the statement.  If there isn't any, indent with `c-basic-offset'.  If
 the current line contains an equal sign too, try to align it with the
 first one.
 
-Works with: statement-cont, arglist-cont, arglist-cont-nonempty."
-  (save-excursion
-    (let ((equalp (save-excursion
-		    (goto-char (c-point 'boi))
-		    (let ((eol (c-point 'eol)))
-		      (c-forward-token-1 0 t eol)
-		      (while (and (not (eq (char-after) ?=))
-				  (= (c-forward-token-1 1 t eol) 0))))
-		    (and (eq (char-after) ?=)
-			 (- (point) (c-point 'boi)))))
-	  donep)
-      (if (cdr langelem) (goto-char (cdr langelem)))
-      (while (and (not donep)
-		  (< (point) (c-point 'eol)))
-	(skip-chars-forward "^=" (c-point 'eol))
-	(if (c-in-literal (cdr langelem))
-	    (forward-char 1)
-	  (setq donep t)))
-      (if (or (not (eq (char-after) ?=))
+Works with: topmost-intro-cont, statement-cont, arglist-cont,
+arglist-cont-nonempty."
+  (let (startpos endpos equalp)
+
+    (if (eq (car langelem) 'arglist-cont-nonempty)
+	;; If it's an arglist-cont-nonempty then we're only interested
+	;; in equal signs outside it.  We don't search for a "=" on
+	;; the current line since that'd have a different nesting
+	;; compared to the one we should align with.
+	(save-excursion
+	  (save-restriction
+	    (setq endpos (nth 2 c-syntactic-element))
+	    (narrow-to-region (cdr langelem) endpos)
+	    (if (setq startpos (c-up-list-backward endpos))
+		(setq startpos (1+ startpos))
+	      (setq startpos (cdr langelem)))))
+
+      (setq startpos (cdr langelem)
+	    endpos (point))
+
+      ;; Find a syntactically relevant and unnested "=" token on the
+      ;; current line.  equalp is in that case set to the number of
+      ;; columns to left shift the current line to align it with the
+      ;; goal column.
+      (save-excursion
+	(beginning-of-line)
+	(when (c-syntactic-re-search-forward
+	       c-assignment-op-regexp
+	       (c-point 'eol) t t t)
+	  (setq equalp (- (or (match-beginning 1)
+			      (match-end 0))
+			  (c-point 'boi))))))
+
+    (save-excursion
+      (goto-char startpos)
+      (if (or (if (c-syntactic-re-search-forward
+		   c-assignment-op-regexp
+		   (min endpos (c-point 'eol)) t t t)
+		  (progn
+		    (goto-char (or (match-beginning 1)
+				   (match-end 0)))
+		    nil)
+		t)
 	      (save-excursion
-		(forward-char 1)
 		(c-forward-syntactic-ws (c-point 'eol))
 		(eolp)))
-	  ;; there's no equal sign on the line
+	  ;; There's no equal sign on the line, or there is one but
+	  ;; nothing follows it.
 	  c-basic-offset
+
 	;; calculate indentation column after equals and ws, unless
 	;; our line contains an equals sign
 	(if (not equalp)
 	    (progn
-	      (forward-char 1)
 	      (skip-chars-forward " \t")
 	      (setq equalp 0)))
+
 	(vector (- (current-column) equalp)))
       )))
 
 (defun c-lineup-cascaded-calls (langelem)
   "Line up \"cascaded calls\" under each other.
-If the line begins with \"->\" and the preceding line ends with one or
-more function calls preceded by \"->\", then the arrow is lined up with
-the first of those \"->\". E.g:
+If the line begins with \"->\" or \".\" and the preceding line ends
+with one or more function calls preceded by the same token, then the
+arrow is lined up with the first of those tokens.  E.g:
 
 result = proc->add(17)->add(18)
              ->add(19) +           <- c-lineup-cascaded-calls
@@ -582,22 +754,63 @@ result = proc->add(17)->add(18)
 In any other situation nil is returned to allow use in list
 expressions.
 
-Works with: statement-cont, arglist-cont, arglist-cont-nonempty."
-  (save-excursion
-    (let ((bopl (c-point 'bopl)) col)
+Works with: topmost-intro-cont, statement-cont, arglist-cont,
+arglist-cont-nonempty."
+
+  (if (and (eq (car langelem) 'arglist-cont-nonempty)
+	   (not (eq (nth 2 c-syntactic-element)
+		    (c-most-enclosing-brace (c-parse-state)))))
+      ;; The innermost open paren is not our one, so don't do
+      ;; anything.  This can occur for arglist-cont-nonempty with
+      ;; nested arglist starts on the same line.
+      nil
+
+    (save-excursion
       (back-to-indentation)
-      (when (and (looking-at "->")
-		 (= (c-backward-token-1 1 t bopl) 0)
-		 (eq (char-after) ?\()
-		 (= (c-backward-token-1 3 t bopl) 0)
-		 (looking-at "->"))
-	(setq col (current-column))
-	(while (and (= (c-backward-token-1 1 t bopl) 0)
-		    (eq (char-after) ?\()
-		    (= (c-backward-token-1 3 t bopl) 0)
-		    (looking-at "->"))
-	  (setq col (current-column)))
-	(vector col)))))
+      (let ((operator (and (looking-at "->\\|\\.")
+			   (regexp-quote (match-string 0))))
+	    (stmt-start (cdr langelem)) col)
+
+	(when (and operator
+		   (looking-at operator)
+		   (zerop (c-backward-token-2 1 t stmt-start))
+		   (eq (char-after) ?\()
+		   (zerop (c-backward-token-2 2 t stmt-start))
+		   (looking-at operator))
+	  (setq col (current-column))
+
+	  (while (and (zerop (c-backward-token-2 1 t stmt-start))
+		      (eq (char-after) ?\()
+		      (zerop (c-backward-token-2 2 t stmt-start))
+		      (looking-at operator))
+	    (setq col (current-column)))
+
+	  (vector col))))))
+
+(defun c-lineup-string-cont (langelem)
+  "Line up a continued string under the one it continues.
+A continued string in this sense is where a string literal follows
+directly after another one.  E.g:
+
+result = prefix + \"A message \"
+                  \"string.\";      <- c-lineup-string-cont
+
+Nil is returned in other situations, to allow stacking with other
+lineup functions.
+
+Works with: topmost-intro-cont, statement-cont, arglist-cont,
+arglist-cont-nonempty."
+  (save-excursion
+    (back-to-indentation)
+    (and (looking-at "\\s\"")
+	 (let ((quote (char-after)) pos)
+	   (while (and (progn (c-backward-syntactic-ws)
+			      (eq (char-before) quote))
+		       (c-safe (c-backward-sexp) t)
+		       (/= (setq pos (point)) (c-point 'boi))))
+	   (when pos
+	     (goto-char pos)
+	     (vector (current-column)))))))
 
 (defun c-lineup-template-args (langelem)
   "Line up template argument lines under the first argument.
@@ -610,11 +823,11 @@ Works with: template-args-cont."
       (beginning-of-line)
       (backward-up-list 1)
       (if (and (eq (char-after) ?<)
-	       (zerop (c-forward-token-1 1 nil (c-point 'eol))))
+	       (zerop (c-forward-token-2 1 nil (c-point 'eol))))
 	  (vector (current-column))))))
 
 (defun c-lineup-ObjC-method-call (langelem)
-  "Line up selector args as elisp-mode does with function args:
+  "Line up selector args as Emacs Lisp mode does with function args:
 Go to the position right after the message receiver, and if you are at
 the end of the line, indent the current line c-basic-offset columns
 from the opening bracket; otherwise you are looking at the first
@@ -736,8 +949,8 @@ In the first case the indentation is kept unchanged, in the
 second `c-basic-offset' is added.
 
 Works with: defun-close, defun-block-intro, block-close,
-brace-list-close, brace-list-intro, statement-block-intro, inclass,
-inextern-lang, innamespace."
+brace-list-close, brace-list-intro, statement-block-intro and all in*
+symbols, e.g. inclass and inextern-lang."
   (save-excursion
     (goto-char (cdr langelem))
     (back-to-indentation)
@@ -775,13 +988,13 @@ const char msg[] =             if (!running)
 } while (0)             <->    } while (0)           <- c-lineup-cpp-define
 
 The relative indentation returned by `c-lineup-cpp-define' is zero and
-two, respectively, in these two examples. They are then added to the
+two, respectively, in these two examples.  They are then added to the
 two column indentation that statement-block-intro gives in both cases
 here.
 
 If the relative indentation is zero, then nil is returned instead.
-This useful in a list expression to specify the default indentation on
-the top level.
+That is useful in a list expression to specify the default indentation
+on the top level.
 
 If `c-syntactic-indentation-in-macros' is nil then this function keeps
 the current indentation, except for empty lines \(ignoring the ending
@@ -842,7 +1055,7 @@ The \"x\" line is aligned to the text after the \":\" on the \"w\" line, and
 similarly \"z\" under \"y\".
 
 This is done only in an \"asm\" or \"__asm__\" block, and only to those
-lines mentioned.  Anywhere else `nil' is returned.  The usual arrangement is
+lines mentioned.  Anywhere else nil is returned.  The usual arrangement is
 to have this routine as an extra feature at the start of arglist lineups, e.g.
 
     (c-lineup-gcc-asm-reg c-lineup-arglist)
@@ -854,6 +1067,13 @@ Works with: arglist-cont, arglist-cont-nonempty."
     (save-excursion
       (and
        c-opt-asm-stmt-key
+
+       ;; Don't do anything if the innermost open paren isn't our one.
+       ;; This can occur for arglist-cont-nonempty with nested arglist
+       ;; starts on the same line.
+       (or (not (eq (car elem) 'arglist-cont-nonempty))
+	   (eq (elt c-syntactic-element 2)
+	       (c-most-enclosing-brace (c-parse-state))))
 
        ;; Find the ":" to align to.  Look for this first so as to quickly
        ;; eliminate pretty much all cases which are not for us.
@@ -893,7 +1113,7 @@ ACTION associated with `block-close' syntax."
     (let (langelem)
       (if (and (eq syntax 'block-close)
 	       (setq langelem (assq 'block-close c-syntactic-context))
-	       (progn (goto-char (cdr langelem))
+	       (progn (goto-char (elt langelem 1))
 		      (if (eq (char-after) ?{)
 			  (c-safe (c-forward-sexp -1)))
 		      (looking-at "\\<do\\>[^_]")))
@@ -904,27 +1124,32 @@ ACTION associated with `block-close' syntax."
   "Imposes a minimum indentation for lines inside a top-level construct.
 The variable `c-label-minimum-indentation' specifies the minimum
 indentation amount."
-  (let ((non-top-levels '(defun-block-intro statement statement-cont
-			   statement-block-intro statement-case-intro
-			   statement-case-open substatement substatement-open
-			   case-label label do-while-closure else-clause
-			   ))
-	(syntax c-syntactic-context)
-	langelem)
-    (while syntax
-      (setq langelem (car (car syntax))
-	    syntax (cdr syntax))
-      ;; don't adjust macro or comment-only lines
-      (cond ((memq langelem '(cpp-macro comment-intro))
-	     (setq syntax nil))
-	    ((memq langelem non-top-levels)
-	     (save-excursion
-	       (setq syntax nil)
-	       (back-to-indentation)
-	       (if (zerop (current-column))
-		   (insert-char ?\  c-label-minimum-indentation t))
-	       ))
-	    ))))
+
+  ;; Don't adjust macro or comment-only lines.
+  (unless (or (assq 'cpp-macro c-syntactic-context)
+	      (assq 'comment-intro c-syntactic-context))
+
+    (let ((paren-state (save-excursion
+			 ;; Get the parenthesis state, but skip past
+			 ;; an initial closing paren on the line since
+			 ;; the close brace of a block shouldn't be
+			 ;; considered to be inside the block.
+			 (back-to-indentation)
+			 (when (looking-at "\\s\)")
+			   (forward-char))
+			 (c-parse-state))))
+
+      ;; Search for an enclosing brace on paren-state.
+      (while (and paren-state
+		  (not (and (integer-or-marker-p (car paren-state))
+			    (eq (char-after (car paren-state)) ?{))))
+	(setq paren-state (cdr paren-state)))
+
+      (when paren-state
+	(save-excursion
+	  (back-to-indentation)
+	  (if (zerop (current-column))
+	      (insert-char ?\  c-label-minimum-indentation t)))))))
 
 
 ;; Useful for c-hanging-semi&comma-criteria
@@ -983,4 +1208,5 @@ For other semicolon contexts, no determination is made."
 
 (cc-provide 'cc-align)
 
+;;; arch-tag: 4d71ed28-bf51-4509-a148-f39669669a2e
 ;;; cc-align.el ends here

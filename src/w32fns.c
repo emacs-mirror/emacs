@@ -239,6 +239,10 @@ Lisp_Object Qw32_charset_mac;
 Lisp_Object Qw32_charset_unicode;
 #endif
 
+/* Prefix for system colors.  */
+#define SYSTEM_COLOR_PREFIX "System"
+#define SYSTEM_COLOR_PREFIX_LEN (sizeof (SYSTEM_COLOR_PREFIX) - 1)
+
 /* State variables for emulating a three button mouse. */
 #define LMOUSE 1
 #define MMOUSE 2
@@ -253,11 +257,11 @@ static unsigned mouse_move_timer = 0;
 /* Window that is tracking the mouse.  */
 static HWND track_mouse_window;
 
-typedef BOOL (WINAPI * TrackMouseEvent_Proc) (
-    IN OUT LPTRACKMOUSEEVENT lpEventTrack
-    );
+typedef BOOL (WINAPI * TrackMouseEvent_Proc)
+  (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 
-TrackMouseEvent_Proc track_mouse_event_fn=NULL;
+TrackMouseEvent_Proc track_mouse_event_fn = NULL;
+ClipboardSequence_Proc clipboard_sequence_fn = NULL;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;
@@ -655,8 +659,8 @@ x_real_positions (f, xptr, yptr)
   ClientToScreen (FRAME_W32_WINDOW(f), &pt);
 
   /* Remember x_pixels_diff and y_pixels_diff.  */
-  f->output_data.w32->x_pixels_diff = pt.x - rect.left;
-  f->output_data.w32->y_pixels_diff = pt.y - rect.top;
+  f->x_pixels_diff = pt.x - rect.left;
+  f->y_pixels_diff = pt.y - rect.top;
 
   *xptr = pt.x;
   *yptr = pt.y;
@@ -1077,6 +1081,56 @@ w32_color_map_lookup (colorname)
   return ret;
 }
 
+
+static void
+add_system_logical_colors_to_map (system_colors)
+     Lisp_Object *system_colors;
+{
+  HKEY colors_key;
+
+  /* Other registry operations are done with input blocked.  */
+  BLOCK_INPUT;
+
+  /* Look for "Control Panel/Colors" under User and Machine registry
+     settings.  */
+  if (RegOpenKeyEx (HKEY_CURRENT_USER, "Control Panel\\Colors", 0,
+		    KEY_READ, &colors_key) == ERROR_SUCCESS
+      || RegOpenKeyEx (HKEY_LOCAL_MACHINE, "Control Panel\\Colors", 0,
+		       KEY_READ, &colors_key) == ERROR_SUCCESS)
+    {
+      /* List all keys.  */
+      char color_buffer[64];
+      char full_name_buffer[MAX_PATH + SYSTEM_COLOR_PREFIX_LEN];
+      int index = 0;
+      DWORD name_size, color_size;
+      char *name_buffer = full_name_buffer + SYSTEM_COLOR_PREFIX_LEN;
+
+      name_size = sizeof (full_name_buffer) - SYSTEM_COLOR_PREFIX_LEN;
+      color_size = sizeof (color_buffer);
+
+      strcpy (full_name_buffer, SYSTEM_COLOR_PREFIX);
+
+      while (RegEnumValueA (colors_key, index, name_buffer, &name_size,
+			    NULL, NULL, color_buffer, &color_size)
+	     == ERROR_SUCCESS)
+	{
+	  int r, g, b;
+	  if (sscanf (color_buffer, " %u %u %u", &r, &g, &b) == 3)
+	    *system_colors = Fcons (Fcons (build_string (full_name_buffer),
+					   make_number (RGB (r, g, b))),
+				    *system_colors);
+
+	  name_size = sizeof (full_name_buffer) - SYSTEM_COLOR_PREFIX_LEN;
+	  color_size = sizeof (color_buffer);
+	  index++;
+	}
+      RegCloseKey (colors_key);
+    }
+
+  UNBLOCK_INPUT;
+}
+
+
 COLORREF
 x_to_w32_color (colorname)
      char * colorname;
@@ -1267,7 +1321,6 @@ x_to_w32_color (colorname)
   UNBLOCK_INPUT;
   return ret;
 }
-
 
 void
 w32_regenerate_palette (FRAME_PTR f)
@@ -1769,7 +1822,7 @@ x_set_border_pixel (f, pix)
 
   f->output_data.w32->border_pixel = pix;
 
-  if (FRAME_W32_WINDOW (f) != 0 && f->output_data.w32->border_width > 0)
+  if (FRAME_W32_WINDOW (f) != 0 && f->border_width > 0)
     {
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -1918,7 +1971,7 @@ x_set_menu_bar_lines (f, value, oldval)
       /* Adjust the frame size so that the client (text) dimensions
 	 remain the same.  This depends on FRAME_EXTERNAL_MENU_BAR being
 	 set correctly.  */
-      x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
   adjust_glyphs (f);
@@ -1956,7 +2009,7 @@ x_set_tool_bar_lines (f, value, oldval)
 
   /* Don't resize the tool-bar to more than we have room for.  */
   root_window = FRAME_ROOT_WINDOW (f);
-  root_height = XINT (XWINDOW (root_window)->height);
+  root_height = WINDOW_TOTAL_LINES (XWINDOW (root_window));
   if (root_height - delta < 1)
     {
       delta = root_height - 1;
@@ -1987,8 +2040,8 @@ x_set_tool_bar_lines (f, value, oldval)
   if (delta < 0)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
-      int width = PIXEL_WIDTH (f);
-      int y = nlines * CANON_Y_UNIT (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int y = nlines * FRAME_LINE_HEIGHT (f);
 
       BLOCK_INPUT;
       {
@@ -2134,11 +2187,11 @@ x_set_title (f, name, old_name)
 void x_set_scroll_bar_default_width (f)
      struct frame *f;
 {
-  int wid = FONT_WIDTH (f->output_data.w32->font);
+  int wid = FRAME_COLUMN_WIDTH (f);
 
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
-  FRAME_SCROLL_BAR_COLS (f) = (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) +
-			       wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) +
+				      wid - 1) / wid;
 }
 
 
@@ -2231,8 +2284,8 @@ w32_createwindow (f)
   RECT rect;
 
   rect.left = rect.top = 0;
-  rect.right = PIXEL_WIDTH (f);
-  rect.bottom = PIXEL_HEIGHT (f);
+  rect.right = FRAME_PIXEL_WIDTH (f);
+  rect.bottom = FRAME_PIXEL_HEIGHT (f);
 
   AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
 		    FRAME_EXTERNAL_MENU_BAR (f));
@@ -2248,8 +2301,8 @@ w32_createwindow (f)
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
 		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
-		    f->output_data.w32->left_pos,
-		    f->output_data.w32->top_pos,
+		    f->left_pos,
+		    f->top_pos,
 		    rect.right - rect.left,
 		    rect.bottom - rect.top,
 		    NULL,
@@ -2259,10 +2312,10 @@ w32_createwindow (f)
 
   if (hwnd)
     {
-      SetWindowLong (hwnd, WND_FONTWIDTH_INDEX, FONT_WIDTH (f->output_data.w32->font));
-      SetWindowLong (hwnd, WND_LINEHEIGHT_INDEX, f->output_data.w32->line_height);
-      SetWindowLong (hwnd, WND_BORDER_INDEX, f->output_data.w32->internal_border_width);
-      SetWindowLong (hwnd, WND_SCROLLBAR_INDEX, f->output_data.w32->vertical_scroll_bar_extra);
+      SetWindowLong (hwnd, WND_FONTWIDTH_INDEX, FRAME_COLUMN_WIDTH (f));
+      SetWindowLong (hwnd, WND_LINEHEIGHT_INDEX, FRAME_LINE_HEIGHT (f));
+      SetWindowLong (hwnd, WND_BORDER_INDEX, FRAME_INTERNAL_BORDER_WIDTH (f));
+      SetWindowLong (hwnd, WND_SCROLLBAR_INDEX, f->scroll_bar_actual_width);
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
 
       /* Enable drag-n-drop.  */
@@ -4014,8 +4067,8 @@ my_create_tip_window (f)
   RECT rect;
 
   rect.left = rect.top = 0;
-  rect.right = PIXEL_WIDTH (f);
-  rect.bottom = PIXEL_HEIGHT (f);
+  rect.right = FRAME_PIXEL_WIDTH (f);
+  rect.bottom = FRAME_PIXEL_HEIGHT (f);
 
   AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
 		    FRAME_EXTERNAL_MENU_BAR (f));
@@ -4024,8 +4077,8 @@ my_create_tip_window (f)
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
 		    f->output_data.w32->dwStyle,
-		    f->output_data.w32->left_pos,
-		    f->output_data.w32->top_pos,
+		    f->left_pos,
+		    f->top_pos,
 		    rect.right - rect.left,
 		    rect.bottom - rect.top,
 		    FRAME_W32_WINDOW (SELECTED_FRAME ()), /* owner */
@@ -4035,9 +4088,9 @@ my_create_tip_window (f)
 
   if (tip_window)
     {
-      SetWindowLong (tip_window, WND_FONTWIDTH_INDEX, FONT_WIDTH (f->output_data.w32->font));
-      SetWindowLong (tip_window, WND_LINEHEIGHT_INDEX, f->output_data.w32->line_height);
-      SetWindowLong (tip_window, WND_BORDER_INDEX, f->output_data.w32->internal_border_width);
+      SetWindowLong (tip_window, WND_FONTWIDTH_INDEX, FRAME_COLUMN_WIDTH (f));
+      SetWindowLong (tip_window, WND_LINEHEIGHT_INDEX, FRAME_LINE_HEIGHT (f));
+      SetWindowLong (tip_window, WND_BORDER_INDEX, FRAME_INTERNAL_BORDER_WIDTH (f));
       SetWindowLong (tip_window, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
 
       /* Tip frames have no scrollbars.  */
@@ -4154,7 +4207,7 @@ x_make_gc (f)
      Note that many default values are used.  */
 
   /* Normal video */
-  gc_values.font = f->output_data.w32->font;
+  gc_values.font = FRAME_FONT (f);
 
   /* Cursor has cursor-color background, background-color foreground.  */
   gc_values.foreground = FRAME_BACKGROUND_PIXEL (f);
@@ -4286,7 +4339,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   /* By default, make scrollbars the system standard width. */
-  f->scroll_bar_pixel_width = GetSystemMetrics (SM_CXVSCROLL);
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -4466,14 +4519,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
 
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+  FRAME_LINES (f) = 0;
+  SET_FRAME_COLS (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Tell the server what size and position, etc, we want, and how
@@ -4731,6 +4784,7 @@ w32_load_system_font (f,fontname,size)
 
     /* Now fill in the slots of *FONTP.  */
     BLOCK_INPUT;
+    bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
@@ -6658,28 +6712,28 @@ int
 x_pixel_width (f)
      register struct frame *f;
 {
-  return PIXEL_WIDTH (f);
+  return FRAME_PIXEL_WIDTH (f);
 }
 
 int
 x_pixel_height (f)
      register struct frame *f;
 {
-  return PIXEL_HEIGHT (f);
+  return FRAME_PIXEL_HEIGHT (f);
 }
 
 int
 x_char_width (f)
      register struct frame *f;
 {
-  return FONT_WIDTH (f->output_data.w32->font);
+  return FRAME_COLUMN_WIDTH (f);
 }
 
 int
 x_char_height (f)
      register struct frame *f;
 {
-  return f->output_data.w32->line_height;
+  return FRAME_LINE_HEIGHT (f);
 }
 
 int
@@ -6773,6 +6827,9 @@ terminate Emacs if we can't open the connection.  */)
   }
   if (NILP (Vw32_color_map))
     Vw32_color_map = Fw32_default_color_map ();
+
+  /* Merge in system logical colors.  */
+  add_system_logical_colors_to_map (&Vw32_color_map);
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) SDATA (xrm_string);
@@ -7244,8 +7301,8 @@ or omitted means use the selected frame.  */)
       int height = img->height + 2 * img->vmargin;
 
       if (NILP (pixels))
-	size = Fcons (make_float ((double) width / CANON_X_UNIT (f)),
-		      make_float ((double) height / CANON_Y_UNIT (f)));
+	size = Fcons (make_float ((double) width / FRAME_COLUMN_WIDTH (f)),
+		      make_float ((double) height / FRAME_LINE_HEIGHT (f)));
       else
 	size = Fcons (make_number (width), make_number (height));
     }
@@ -12731,7 +12788,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   current_buffer->truncate_lines = Qnil;
@@ -12858,10 +12915,9 @@ x_create_tip_frame (dpyinfo, parms, text)
   window_prompting = x_figure_window_size (f, parms, 0);
 
   /* No fringes on tip frame.  */
-  f->output_data.w32->fringes_extra = 0;
-  f->output_data.w32->fringe_cols = 0;
-  f->output_data.w32->left_fringe_width = 0;
-  f->output_data.w32->right_fringe_width = 0;
+  f->fringe_cols = 0;
+  f->left_fringe_width = 0;
+  f->right_fringe_width = 0;
 
   BLOCK_INPUT;
   my_create_tip_window (f);
@@ -12876,13 +12932,13 @@ x_create_tip_frame (dpyinfo, parms, text)
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
+  FRAME_LINES (f) = 0;
+  SET_FRAME_COLS (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
@@ -13071,8 +13127,8 @@ Text larger than the specified size is clipped.  */)
 	    }
 
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, PIXEL_WIDTH (f),
-			  PIXEL_HEIGHT (f), &root_x, &root_y);
+	  compute_tip_xy (f, parms, dx, dy, FRAME_PIXEL_WIDTH (f),
+			  FRAME_PIXEL_HEIGHT (f), &root_x, &root_y);
 
 	  /* Put tooltip in topmost group and in position.  */
 	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
@@ -13120,7 +13176,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left = w->top = make_number (0);
+  w->left_col = w->top_line = make_number (0);
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -13128,16 +13184,16 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      w->width = XCAR (Vx_max_tooltip_size);
-      w->height = XCDR (Vx_max_tooltip_size);
+      w->total_cols = XCAR (Vx_max_tooltip_size);
+      w->total_lines = XCDR (Vx_max_tooltip_size);
     }
   else
     {
-      w->width = make_number (80);
-      w->height = make_number (40);
+      w->total_cols = make_number (80);
+      w->total_lines = make_number (40);
     }
 
-  f->window_width = XINT (w->width);
+  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
@@ -14208,15 +14264,11 @@ WINDOWS_CHARSET is a symbol that can be one of:
 w32-charset-ansi, w32-charset-default, w32-charset-symbol,
 w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,
 w32-charset-chinesebig5,
-#ifdef JOHAB_CHARSET
 w32-charset-johab, w32-charset-hebrew,
 w32-charset-arabic, w32-charset-greek, w32-charset-turkish,
 w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,
 w32-charset-russian, w32-charset-mac, w32-charset-baltic,
-#endif
-#ifdef UNICODE_CHARSET
 w32-charset-unicode,
-#endif
 or w32-charset-oem.
 CODEPAGE should be an integer specifying the codepage that should be used
 to display the character set, t to do no translation and output as Unicode,
@@ -14400,11 +14452,6 @@ versions of Windows) characters.  */);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
 
-#if GLYPH_DEBUG
-  defsubr (&Simagep);
-  defsubr (&Slookup_image);
-#endif
-
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
   defsubr (&Sx_show_tip);
@@ -14432,11 +14479,15 @@ versions of Windows) characters.  */);
 void globals_of_w32fns ()
 {
   HMODULE user32_lib = GetModuleHandle ("user32.dll");
-	/*
-		TrackMouseEvent not available in all versions of Windows, so must load
-		it dynamically.  Do it once, here, instead of every time it is used.
+  /*
+    TrackMouseEvent not available in all versions of Windows, so must load
+    it dynamically.  Do it once, here, instead of every time it is used.
   */
-  track_mouse_event_fn = (TrackMouseEvent_Proc) GetProcAddress (user32_lib, "TrackMouseEvent");
+  track_mouse_event_fn = (TrackMouseEvent_Proc)
+    GetProcAddress (user32_lib, "TrackMouseEvent");
+  /* ditto for GetClipboardSequenceNumber.  */
+  clipboard_sequence_fn = (ClipboardSequence_Proc)
+    GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
 }
 
 /* Initialize image types. Based on which libraries are available.  */
@@ -14549,3 +14600,6 @@ w32_last_error()
 {
   return GetLastError ();
 }
+
+/* arch-tag: 707589ab-b9be-4638-8cdd-74629cc9b446
+   (do not change this comment) */

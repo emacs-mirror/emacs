@@ -174,6 +174,7 @@
     ((5) (0 49) ,#'(lambda () (+ 2000 parse-time-elt))))
   "(slots predicate extractor...)")
 
+;;;###autoload
 (defun parse-time-string (string)
   "Parse the time-string STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
 The values are identical to those of `decode-time', but any values that are
@@ -216,4 +217,5 @@ unknown are returned as nil."
 
 (provide 'parse-time)
 
+;;; arch-tag: 07066094-45a8-4c68-b307-86195e2c1103
 ;;; parse-time.el ends here

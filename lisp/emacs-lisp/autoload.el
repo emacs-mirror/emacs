@@ -1,6 +1,6 @@
-;;; autoload.el --- maintain autoloads in loaddefs.el
+;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -34,6 +34,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'help-fns)			;for help-add-fundoc-usage.
+(eval-when-compile (require 'cl))
 
 (defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
@@ -90,8 +91,11 @@ or macro definition or a defcustom)."
 		   define-minor-mode defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (if (memq car '(defun defmacro defun* defmacro*))
-		       (nth 2 form) t))
+	     (args (case car
+		    ((defun defmacro defun* defmacro*) (nth 2 form))
+		    ((define-skeleton) '(&optional str arg))
+		    ((define-generic-mode define-derived-mode) nil)
+		    (t)))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
 	(when (listp args)
@@ -475,10 +479,16 @@ Autoload section for %s is up to date."
   (delete-region begin (point)))
 
 ;;;###autoload
-(defun update-autoloads-from-directories (&rest dirs)
+(defun update-directory-autoloads (&rest dirs)
   "\
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
-This uses `update-file-autoloads' (which see) do its work."
+This uses `update-file-autoloads' (which see) do its work.
+In an interactive call, you must give one argument, the name
+of a single directory.  In a call from Lisp, you can supply multiple
+directories as separate arguments, but this usage is discouraged.
+
+The function does NOT recursively descend into subdirectories of the
+directory or directories specified."
   (interactive "DUpdate autoloads from directory: ")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf load-suffixes
@@ -551,10 +561,11 @@ This uses `update-file-autoloads' (which see) do its work."
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
-Calls `update-autoloads-from-directories' on the command line arguments."
-  (apply 'update-autoloads-from-directories command-line-args-left)
+Calls `update-directory-autoloads' on the command line arguments."
+  (apply 'update-directory-autoloads command-line-args-left)
   (setq command-line-args-left nil))
 
 (provide 'autoload)
 
+;;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
 ;;; autoload.el ends here

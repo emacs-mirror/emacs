@@ -77,3 +77,6 @@ extern EmacsFrameClassRec emacsFrameClassRec;	 /* class pointer */
 
 
 #endif /* _EmacsFrameP_h */
+
+/* arch-tag: 2b579b4c-f697-4f86-b27a-35b7cb1a4a1c
+   (do not change this comment) */

@@ -1,3 +1,267 @@
+Copyright (C) 2003 Free Software Foundation, Inc.
+	
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+
+* Changes in MH-E 7.3
+
+This release includes the new features of an index view of unseen
+messages in all folders, spam software support, relative folder
+specification @ support, marking messages, recipient handling by
+mh-default-folder-list, Face and X-Image-URL header field support, and
+Fcc completion. Function arguments have been unified. Bugs have been
+fixed.
+
+** New Features in MH-E 7.3
+
+*** Unified Function Arguments
+
+Any function with MSG-OR-SEQ in its docstring uses the displayed
+message by default for this argument. However, if a prefix argument is
+provided, then the user is prompted for a message sequence. If the
+variable `transient-mark-mode' is non-nil and the mark is active, then
+the function operates on the messages in the selected region. In a
+program, MSG-OR-SEQ can be a message number, a list of message
+numbers, a region in a cons cell, or a sequence.
+
+*** MH-Index View of Unseen Messages
+
+Use "F n (mh-index-new-messages)" or Folder -> View New Messages menu
+item to display messages in the `mh-unseen-seq' sequence in folders
+specified by `mh-index-new-messages-folders'. With a prefix argument,
+enter a space-separated list of folders, or nothing to search all
+folders.
+
+Like other MH-Index folders, use "v (mh-index-visit-folder)" if you
+wish to visit the original folder with the unseen message. This is
+usually not necessary since the original message is annotated if you
+reply, deleted if you delete the message, or refiled if you refile the
+message (closes SF #701756).
+
+*** Spam Software Support
+
+MH-E now supports several spam filters including Bogofilter,
+SpamProbe, and SpamAssassin. Spam that is mistakenly considered to be
+good mail can be reclassified as spam with "J b (mh-junk-blacklist)".
+Conversely, good mail that is accidently considered to be spam can be
+reclassified with "J w (mh-junk-whitelist)" (closes SF #669518).
+
+If a message is blacklisted, and `mh-junk-mail-folder' is a string,
+then the message is refiled to that folder. If this variable is nil,
+the message is deleted. If a message is whitelisted, then the message
+is refiled to `mh-inbox'.
+
+To change the spam program being used, customize `mh-junk-program'.
+This should only be necessary if you have multiple filters on your
+system and MH-E picked the wrong one. These customization variables
+are found in the new customization group `mh-junk'.
+
+The documentation for the following functions describes what setup is
+needed for the different spam fighting programs:
+
+  - `mh-bogofilter-blacklist'
+  - `mh-spamprobe-blacklist'
+  - `mh-spamassassin-blacklist'
+
+*** Relative Folder Specification @ Supported
+
+You can now use the relative folder marker @ in folder names (closes
+SF #666774).
+
+*** Marking Messages
+
+Messages can now be highlighted with "' (mh-toggle-tick)", Sequence ->
+Toggle Tick Mark menu item or the "Toggle tick mark" button. These
+messages are added to the "tick" sequence, although this sequence can
+be changed in `mh-tick-seq'. The highlighting effect can be modified
+by customizing `mh-folder-tick-face' (closes SF #623367).
+
+There is also a new keybinding "/ ' (mh-narrow-to-tick)" and menu item
+Sequence -> Narrow to Tick Sequence to narrow the view to the
+highlighted messages.
+
+*** mh-default-folder-list Now Takes Recipients
+
+If you wish to file a message based upon the recipient of a message
+(such as a mailing list), you can now indicate that when filling out
+the address in the `mh-default-folder-list' customization variable.
+
+*** Face Header Field Supported
+
+In addition to the X-Face header field, the Face header field, which
+can display color images, is now supported. As a bonus, the external
+xface-e21 library is no longer required.
+
+*** X-Image-URL Support
+
+Images specified in X-Image-URL header fields are now supported.
+See the customization variable `mh-fetch-x-image-url' to enable this
+support.
+
+*** Fcc Completion
+
+Folders in Fcc fields in message drafts can now be completed with
+M-TAB.
+
+** New Variables in MH-E 7.3
+
+Variables that have been added to MH-E that have not been discussed
+elsewhere are listed here.
+
+*** mh-auto-fields-list
+
+Alist of addresses for which header lines are automatically inserted.
+When a regular expression matches in the To or cc fields of a message,
+the corresponding header field is automatically inserted in the
+message header. It also allows the automatic setting of an identity
+(using `mh-insert-identity') to set an alternate identity when sending
+messages to a certain person or mailing list.
+
+Since this is a more general use of `mh-insert-mail-followup-to-flag'
+and `mh-insert-mail-followup-to-list', these variables have been removed.
+
+*** mh-show-xface-face
+
+Face for displaying the X-Face image.
+
+*** mh-xemacs-toolbar-position
+
+This customization variable allows the user to place the toolbar on
+the four edges of the frame.
+
+*** mh-xemacs-use-toolbar-flag
+
+This customization variable is used to enable or disable the toolbar
+under XEmacs.
+
+** Variables Deleted in MH-E 7.3
+
+Variables that have been removed from MH-E that have not been
+discussed elsewhere are listed here.
+
+*** mh-decode-content-transfer-encoded-message-flag
+
+No longer needed since the external program mimencode is no longer
+used.
+
+*** mh-index-show-hook
+
+This hook was never used, so it was removed.
+
+*** mh-tool-bar-reply-3-buttons-flag
+
+Obsolete. This functionality is present `mh-tool-bar-folder-buttons'.
+
+** Bug Fixes in MH-E 7.3
+
+*** Can't Refile Message
+
+Messages with invalid addresses were causing errors in ali which
+prevented the refiling of messages. The ali error is now shown in the
+"*MH-E Log*" buffer and refiling suggests the last folder used (closes
+SF #680388).
+
+*** Empty Body Triggers Duped Header
+
+If the body was empty the header would be treated like the body and
+was therefore displayed twice. This has been fixed (closes SF
+#681162).
+
+*** mml or mhl Directives Not Always Processed
+
+The mml and mhl directives used to create body parts were not
+processed if one re-edited a draft, or if they added the directives
+manually. The directives are now always processed upon sending the
+letter. You may still, of course, use "C-c C-m m (mh-mml-to-mime)" or
+"C-c C-e (mh-edit-mhn)" to manually create the MIME body parts from
+the directives and then send the draft.
+
+*** mh-alias-grab-from-field Fails
+
+MH-E was adding aliases with angle brackets around the address when
+there wasn't a phrase (usually, the user's name), to go with it. This
+caused ali to fail which caused problems in MH-E. This is probably a
+bug in ali, but MH-E no longer inserts angle brackets around the
+address unless there is a phrase, which avoids the problem (closes SF
+#690216).
+
+*** XEmacs Fixes
+
+MH-E is now fully supported under XEmacs and compiles without any
+warnings.
+
+In particular, the following now work under XEmacs:
+
+- X-Face, Face, and X-Image-URL header fields
+- MH-E logo in mode line
+- Emphasis (bold, italics, etc.)
+- Smilies
+- Toolbar
+
+*** Indexed Folders Should Respect mh-show-threads-flag
+
+Indexed folders are now threaded if `mh-show-threads-flag' is non-nil
+(closes SF #709667).
+
+*** Threading Index View Loses Folder Info
+
+This has been fixed (closes SF #709672).
+
+*** No Undo Information When Re-editing Drafts
+
+Undo is turned on in the draft buffer when using "e (mh-edit-again)"
+(closes SF #712777).
+
+*** Forwarded base64-encoded Messages Are Incorrectly Displayed
+
+This has been fixed (closes SF #681518).
+
+*** Append to *MH-E Log* Buffer
+
+The last 100 lines of log messages are kept in the *MH-E Log* buffer.
+Previously, the buffer was erased every time it was written (closes SF
+#685476). In addition, many of the MH-E commands now send their output
+into this buffer instead of a plethora of other special-purpose
+buffers.
+
+*** mh-inc-folder Complains if No Mail and No Current Message
+
+The function `mh-inc-folder' no longer calls `mh-show' if point is not
+on a valid scan line. This keeps `mh-inc-folder' from complaining
+(closes SF #678115).
+
+*** Folder Normalization Strips Leading Slash
+
+Leading "/" characters in folder names entered by the user were being
+lost. This has been fixed (closes SF #676890).
+
+*** Print Header Doesn't Show Message
+
+When printing a sequence, the header simply indicated that a sequence,
+but not which one, was being printed and did not show the message
+number. This has been fixed. If more than one message is printed, a
+page of the scan lines is printed and its header indicates the
+sequence or message range. The pages with the actual messages all set
+the header to the folder and message displayed on that page.
+
+*** Aliases Constantly Reloaded
+
+Empty lists are now handled properly (closes SF #693859).
+
+*** Remove RCS Keywords
+
+Removed RCS keywords per Emacs conventions (closes SF #680731).
+
+*** Replace Mimencode
+
+MH-E was enhanced to decode message based on charset and
+Content-Transfer-Encoding. This eliminates the need for the external
+program mimencode (closes SF #674857).
+
+
+
 * Changes in MH-E 7.2
 
 This release includes the new features of filing hints, hierarchical
@@ -1469,3 +1733,5 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
+
+arch-tag: f6696cad-eb1b-4c5f-8057-4e3954a98d18

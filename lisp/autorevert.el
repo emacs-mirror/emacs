@@ -329,4 +329,5 @@ the timer when no buffers need to be checked."
 
 (run-hooks 'auto-revert-load-hook)
 
+;;; arch-tag: f6bcb07b-4841-477e-9e44-b18678e58876
 ;;; autorevert.el ends here

@@ -35,7 +35,6 @@
 (require 'ibuffer)
 
 (eval-when-compile
-  (require 'derived)
   (require 'ibuf-macs)
   (require 'cl))
 
@@ -556,7 +555,8 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
                   (cons (format "%s" mode) `((mode . ,mode))))
                 (let ((modes
                        (ibuffer-remove-duplicates
-                        (mapcar (lambda (buf) (with-current-buffer buf major-mode))
+                        (mapcar (lambda (buf) 
+				  (with-current-buffer buf major-mode))
                                 (buffer-list)))))
                   (if ibuffer-view-ibuffer
 		      modes
@@ -586,7 +586,8 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 ;;;###autoload
 (defun ibuffer-decompose-filter-group (group)
   "Decompose the filter group GROUP into active filters."
-  (interactive (list (ibuffer-read-filter-group-name "Decompose filter group: " t)))
+  (interactive 
+   (list (ibuffer-read-filter-group-name "Decompose filter group: " t)))
   (let ((data (cdr (assoc group ibuffer-filter-groups))))
     (setq ibuffer-filter-groups (ibuffer-delete-alist
 				 group ibuffer-filter-groups)
@@ -620,7 +621,8 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 ;;;###autoload
 (defun ibuffer-jump-to-filter-group (name)
   "Move point to the filter group whose name is NAME."
-  (interactive (list (ibuffer-read-filter-group-name "Jump to filter group: ")))
+  (interactive 
+   (list (ibuffer-read-filter-group-name "Jump to filter group: ")))
   (ibuffer-aif (assoc name (ibuffer-current-filter-groups-with-position))
       (goto-char (cdr it))
     (error "No filter group with name %s" name)))
@@ -667,7 +669,8 @@ See also `ibuffer-kill-filter-group'."
 		    (setq groups (cdr groups))))
 		res)))
     (cond ((not found)
-	   (setq ibuffer-filter-groups (nconc ibuffer-filter-groups (list newgroup))))
+	   (setq ibuffer-filter-groups
+		 (nconc ibuffer-filter-groups (list newgroup))))
 	  ((zerop pos)
 	   (push newgroup ibuffer-filter-groups))
 	  (t
@@ -836,14 +839,16 @@ filter into parts."
 		  (not (eq 'or (caar ibuffer-filtering-qualifiers))))
 	  (error "Top filter is not an OR"))
 	(let ((lim (pop ibuffer-filtering-qualifiers)))
-	  (setq ibuffer-filtering-qualifiers (nconc (cdr lim) ibuffer-filtering-qualifiers))))
+	  (setq ibuffer-filtering-qualifiers 
+		(nconc (cdr lim) ibuffer-filtering-qualifiers))))
     (when (< (length ibuffer-filtering-qualifiers) 2)
       (error "Need two filters to OR"))
     ;; If the second filter is an OR, just add to it.
     (let ((first (pop ibuffer-filtering-qualifiers))
 	  (second (pop ibuffer-filtering-qualifiers)))
       (if (eq 'or (car second))
-	  (push (nconc (list 'or first) (cdr second)) ibuffer-filtering-qualifiers)
+	  (push (nconc (list 'or first) (cdr second))
+		ibuffer-filtering-qualifiers)
 	(push (list 'or first second)
 	      ibuffer-filtering-qualifiers))))
   (ibuffer-update nil t))
@@ -917,9 +922,9 @@ of replacing the current filters."
 (defun ibuffer-format-filter-group-data (filter)
   (if (equal filter "Default")
       ""
-    (concat "Filter: " (mapconcat #'ibuffer-format-qualifier
-				  (cdr (assq filter ibuffer-filter-groups))
-				  " ") "\n")))
+    (concat "Filter:" (mapconcat #'ibuffer-format-qualifier
+				 (cdr (assq filter ibuffer-filter-groups))
+				 " "))))
 
 (defun ibuffer-format-qualifier (qualifier)
   (if (eq (car-safe qualifier) 'not)
@@ -1455,4 +1460,5 @@ defaults to one."
 
 (provide 'ibuf-ext)
 
+;;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here

@@ -1,8 +1,8 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.18
+;; Version: 4.21
 
 ;; This file is part of GNU Emacs.
 
@@ -46,21 +46,23 @@ Here are all local bindings.
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'reftex-toc-mode
-	mode-name "TOC")
+        mode-name "TOC")
   (use-local-map reftex-toc-map)
+  (set (make-local-variable 'transient-mark-mode) t)
+  (set (make-local-variable 'zmacs-regions) t)
   (set (make-local-variable 'revert-buffer-function) 'reftex-toc-revert)
   (set (make-local-variable 'reftex-toc-include-labels-indicator) "")
   (set (make-local-variable 'reftex-toc-max-level-indicator)
        (if (= reftex-toc-max-level 100)
-	   "ALL"
-	 (int-to-string reftex-toc-max-level)))
+           "ALL"
+         (int-to-string reftex-toc-max-level)))
   (setq mode-line-format
-	(list "----  " 'mode-line-buffer-identification
-	      "  " 'global-mode-string "   (" mode-name ")"
-	      "  L<" 'reftex-toc-include-labels-indicator ">"
-	      "  I<" 'reftex-toc-include-index-indicator ">"
-	      "  T<" 'reftex-toc-max-level-indicator ">"
-	      " -%-"))
+        (list "----  " 'mode-line-buffer-identification
+              "  " 'global-mode-string "   (" mode-name ")"
+              "  L<" 'reftex-toc-include-labels-indicator ">"
+              "  I<" 'reftex-toc-include-index-indicator ">"
+              "  T<" 'reftex-toc-max-level-indicator ">"
+              " -%-"))
   (setq truncate-lines t)
   (when (featurep 'xemacs)
     ;; XEmacs needs the call to make-local-hook
@@ -91,19 +93,25 @@ n / p      next-line / previous-line
 SPC        Show the corresponding location of the LaTeX document.
 TAB        Goto the location and keep the *toc* window.
 RET        Goto the location and hide the *toc* window (also on mouse-2).
+< / >      Promote / Demote section, or all sections in region.
 C-c >      Display Index. With prefix arg, restrict index to current section.
 q / k      Hide/Kill *toc* buffer, return to position of reftex-toc command.
 l i c F    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
 t          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
-f / a / g  Toggle follow mode / toggle auto recenter / Refresh *toc* buffer.
+f / g      Toggle follow mode / Refresh *toc* buffer.
+a / d      Toggle auto recenter / Toggle dedicated frame
 r / C-u r  Reparse the LaTeX document     / Reparse entire LaTeX document.
 .          In other window, show position from where `reftex-toc' was called.
+M-%        Global search and replace to rename label at point.
 x          Switch to TOC of external document (with LaTeX package `xr').
-z          Jump to a specific section (e.g. '3 z' goes to section 3")
+z          Jump to a specific section (e.g. '3 z' goes to section 3).")
 
-(defun reftex-toc (&optional rebuild)
+(defun reftex-toc (&optional rebuild reuse)
   "Show the table of contents for the current document.
 When called with a raw C-u prefix, rescan the document first."
+
+;; The REUSE argument means, search all visible frames for a window
+;; displaying the toc window.  If yes, reuse this window.
 
   (interactive)
 
@@ -129,40 +137,50 @@ When called with a raw C-u prefix, rescan the document first."
   (reftex-access-scan-info current-prefix-arg)
 
   (let* ((this-buf (current-buffer))
-	 (docstruct-symbol reftex-docstruct-symbol)
-	 (xr-data (assq 'xr (symbol-value reftex-docstruct-symbol)))
-	 (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
-	 (here-I-am (if (boundp 'reftex-rebuilding-toc)
-			(get 'reftex-toc :reftex-data)
-		      (car (reftex-where-am-I))))
-	 offset)
+         (docstruct-symbol reftex-docstruct-symbol)
+         (xr-data (assq 'xr (symbol-value reftex-docstruct-symbol)))
+         (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
+         (here-I-am (if (boundp 'reftex-rebuilding-toc)
+                        (get 'reftex-toc :reftex-data)
+                      (car (reftex-where-am-I))))
+         (unsplittable (if (fboundp 'frame-property)
+                           (frame-property (selected-frame) 'unsplittable)
+                         (frame-parameter (selected-frame) 'unsplittable)))
+         offset toc-window)
 
-    (if (get-buffer-window "*toc*")
-        (select-window (get-buffer-window "*toc*"))
+    (if (setq toc-window (get-buffer-window 
+                          "*toc*"
+                          (if reuse 'visible)))
+        (select-window toc-window)
       (when (or (not reftex-toc-keep-other-windows)
-		(< (window-height) (* 2 window-min-height)))
-	(delete-other-windows))
+                (< (window-height) (* 2 window-min-height)))
+        (delete-other-windows))
 
       (setq reftex-last-window-width (window-width)
-	    reftex-last-window-height (window-height))  ; remember
-      (if reftex-toc-split-windows-horizontally
-	  (split-window-horizontally
-	   (floor (* (frame-width) reftex-toc-split-windows-horizontally-fraction)))
-	(split-window))
+            reftex-last-window-height (window-height))  ; remember
+
+      (unless unsplittable
+        (if reftex-toc-split-windows-horizontally
+            (split-window-horizontally
+             (floor (* (window-width)
+                       reftex-toc-split-windows-fraction)))
+          (split-window-vertically 
+           (floor (* (window-height)
+                     reftex-toc-split-windows-fraction)))))
 
       (let ((default-major-mode 'reftex-toc-mode))
-	(switch-to-buffer "*toc*")))
+        (switch-to-buffer "*toc*")))
 
     (or (eq major-mode 'reftex-toc-mode) (reftex-toc-mode))
     (set (make-local-variable 'reftex-docstruct-symbol) docstruct-symbol)
     (setq reftex-toc-include-labels-indicator
-	  (if (eq reftex-toc-include-labels t)
-	      "ALL"
-	    reftex-toc-include-labels))
+          (if (eq reftex-toc-include-labels t)
+              "ALL"
+            reftex-toc-include-labels))
     (setq reftex-toc-include-index-indicator
-	  (if (eq reftex-toc-include-index-entries t)
-	      "ALL"
-	    reftex-toc-include-index-entries))
+          (if (eq reftex-toc-include-index-entries t)
+              "ALL"
+            reftex-toc-include-index-entries))
 
     (cond
      ((= (buffer-size) 0)
@@ -177,39 +195,39 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 " (abbreviate-file-name reftex-last-toc-master)))
 
       (if (reftex-use-fonts)
-          (put-text-property 1 (point) 'face reftex-toc-header-face))
-      (put-text-property 1 (point) 'intangible t)
-      (put-text-property 1 2 'xr-alist xr-alist)
+          (put-text-property (point-min) (point) 'face reftex-toc-header-face))
+      (put-text-property (point-min) (point) 'intangible t)
+      (put-text-property (point-min) (1+ (point-min)) 'xr-alist xr-alist)
 
       (setq offset
-	    (reftex-insert-docstruct
-	     this-buf
-	     t ; include toc
-	     reftex-toc-include-labels
-	     reftex-toc-include-index-entries
-	     reftex-toc-include-file-boundaries
-	     reftex-toc-include-context
-	     nil ; counter
-	     nil ; commented
-	     here-I-am
-	     ""     ; xr-prefix
-	     t      ; a toc buffer
-	     ))
-
+            (reftex-insert-docstruct
+             this-buf
+             t ; include toc
+             reftex-toc-include-labels
+             reftex-toc-include-index-entries
+             reftex-toc-include-file-boundaries
+             reftex-toc-include-context
+             nil ; counter
+             nil ; commented
+             here-I-am 
+             ""     ; xr-prefix
+             t      ; a toc buffer
+             ))
+       
       (run-hooks 'reftex-display-copied-context-hook)
       (message "Building *toc* buffer...done.")
       (setq buffer-read-only t))
      (t
       ;; Only compute the offset
       (setq offset
-	    (or (reftex-get-offset this-buf here-I-am
-				   (if reftex-toc-include-labels " " nil)
-				   t
-				   reftex-toc-include-index-entries
-				   reftex-toc-include-file-boundaries)
-		(reftex-last-assoc-before-elt
-		 'toc here-I-am
-		 (symbol-value reftex-docstruct-symbol))))
+            (or (reftex-get-offset this-buf here-I-am
+                                   (if reftex-toc-include-labels " " nil)
+                                   t
+                                   reftex-toc-include-index-entries
+                                   reftex-toc-include-file-boundaries)
+                (reftex-last-assoc-before-elt 
+                 'toc here-I-am
+                 (symbol-value reftex-docstruct-symbol))))
       (put 'reftex-toc :reftex-line 3)
       (goto-line 3)
       (beginning-of-line)))
@@ -221,27 +239,27 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 (defun reftex-toc-recenter (&optional arg)
   "Display the TOC window and highlight line corresponding to current position."
   (interactive "P")
-  (let ((buf (current-buffer)))
-    (reftex-toc arg)
+  (let ((buf (current-buffer))
+        (frame (selected-frame)))
+    (reftex-toc arg t)
     (if (= (count-lines 1 (point)) 2)
-	(let ((current-prefix-arg nil))
-	  (select-window (get-buffer-window buf))
-	  (reftex-toc nil)))
+        (let ((current-prefix-arg nil))
+          (select-window (get-buffer-window buf frame))
+          (reftex-toc nil t)))
     (and (> (point) 1)
-	 (not (get-text-property (point) 'intangible))
-	 (memq reftex-highlight-selection '(cursor both))
-	 (reftex-highlight 2
-	   (or (previous-single-property-change
-		(min (point-max) (1+ (point))) :data)
-	       (point-min))
-	   (or (next-single-property-change (point) :data)
-	       (point-max))))
-    (select-window (get-buffer-window buf))))
+         (not (get-text-property (point) 'intangible))
+         (memq reftex-highlight-selection '(cursor both))
+         (reftex-highlight 2
+                           (or (previous-single-property-change 
+                                (min (point-max) (1+ (point))) :data)
+                               (point-min))
+                           (or (next-single-property-change (point) :data)
+                               (point-max))))
+    (select-window (get-buffer-window buf frame))))
 
 (defun reftex-toc-pre-command-hook ()
   ;; used as pre command hook in *toc* buffer
   (reftex-unhighlight 0)
-;;  (reftex-unhighlight 1)  ;; remove highlight on leaving buffer.
   )
 
 (defun reftex-toc-post-command-hook ()
@@ -249,37 +267,52 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   (when (get-text-property (point) :data)
     (put 'reftex-toc :reftex-data (get-text-property (point) :data))
     (and (> (point) 1)
-	 (not (get-text-property (point) 'intangible))
-	 (memq reftex-highlight-selection '(cursor both))
-	 (reftex-highlight 2
-	   (or (previous-single-property-change (1+ (point)) :data)
-	       (point-min))
-	   (or (next-single-property-change (point) :data)
-	       (point-max)))))
+         (not (get-text-property (point) 'intangible))
+         (memq reftex-highlight-selection '(cursor both))
+         (reftex-highlight 2
+           (or (previous-single-property-change (1+ (point)) :data)
+               (point-min))
+           (or (next-single-property-change (point) :data)
+               (point-max)))))
   (if (integerp reftex-toc-follow-mode)
       ;; remove delayed action
       (setq reftex-toc-follow-mode t)
-    (and reftex-toc-follow-mode
-	 (not (equal reftex-last-follow-point (point)))
-	 ;; show context in other window
-	 (setq reftex-last-follow-point (point))
-	 (condition-case nil
-	     (reftex-toc-visit-location nil (not reftex-revisit-to-follow))
-	   (error t)))))
+    (and (not (reftex-toc-dframe-p))
+         reftex-toc-follow-mode
+         (not (equal reftex-last-follow-point (point)))
+         ;; show context in other window
+         (setq reftex-last-follow-point (point))
+         (condition-case nil
+             (reftex-toc-visit-location nil (not reftex-revisit-to-follow))
+           (error t)))))
 
 (defun reftex-re-enlarge ()
-  ;; Enlarge windiw to a remembered size
+  ;; Enlarge window to a remembered size.
   (if reftex-toc-split-windows-horizontally
       (enlarge-window-horizontally
        (max 0 (- (or reftex-last-window-width (window-width))
-		 (window-width))))
+                 (window-width))))
     (enlarge-window
      (max 0 (- (or reftex-last-window-height (window-height))
-	       (window-height))))))
+               (window-height))))))
+
+(defun reftex-toc-dframe-p (&optional frame error)
+  ;; Check if FRAME is the dedicated TOC frame.  
+  ;; If yes, and ERROR is non-nil, throw an error.
+  (setq frame (or frame (selected-frame)))
+  (let ((res (equal 
+              (if (fboundp 'frame-property)
+                  (frame-property frame 'name)
+                (frame-parameter  frame 'name))
+              "RefTeX TOC Frame")))
+    (if (and res error)
+        (error "This frame is view-only.  Use `C-c =' to create toc window for commands."))
+    res))
 
 (defun reftex-toc-show-help ()
   "Show a summary of special key bindings."
   (interactive)
+  (reftex-toc-dframe-p nil 'error)
   (with-output-to-temp-buffer "*RefTeX Help*"
     (princ reftex-toc-help))
   (reftex-enlarge-to-fit "*RefTeX Help*" t)
@@ -290,25 +323,29 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 (defun reftex-toc-next (&optional arg)
   "Move to next selectable item."
   (interactive "p")
+  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
   (setq reftex-callback-fwd t)
   (or (eobp) (forward-char 1))
-  (goto-char (or (next-single-property-change (point) :data)
-		 (point))))
+  (goto-char (or (next-single-property-change (point) :data) 
+                 (point))))
 (defun reftex-toc-previous (&optional arg)
   "Move to previous selectable item."
   (interactive "p")
+  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
   (setq reftex-callback-fwd nil)
   (goto-char (or (previous-single-property-change (point) :data)
-		 (point))))
+                 (point))))
 (defun reftex-toc-next-heading (&optional arg)
   "Move to next table of contentes line."
   (interactive "p")
+  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
   (end-of-line)
   (re-search-forward "^ " nil t arg)
   (beginning-of-line))
 (defun reftex-toc-previous-heading (&optional arg)
   "Move to previous table of contentes line."
   (interactive "p")
+  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
   (re-search-backward "^ " nil t arg))
 (defun reftex-toc-toggle-follow ()
   "Toggle follow (other window follows with context)."
@@ -319,16 +356,16 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   "Toggle inclusion of file boundaries in *toc* buffer."
   (interactive)
   (setq reftex-toc-include-file-boundaries
-	(not reftex-toc-include-file-boundaries))
+        (not reftex-toc-include-file-boundaries))
   (reftex-toc-revert))
 (defun reftex-toc-toggle-labels (arg)
   "Toggle inclusion of labels in *toc* buffer.
 With prefix ARG, prompt for a label type and include only labels of
 that specific type."
   (interactive "P")
-  (setq reftex-toc-include-labels
-	(if arg (reftex-query-label-type)
-	  (not reftex-toc-include-labels)))
+  (setq reftex-toc-include-labels 
+        (if arg (reftex-query-label-type)
+          (not reftex-toc-include-labels)))
   (reftex-toc-revert))
 (defun reftex-toc-toggle-index (arg)
   "Toggle inclusion of index in *toc* buffer.
@@ -336,8 +373,8 @@ With prefix arg, prompt for an index tag and include only entries of that
 specific index."
   (interactive "P")
   (setq reftex-toc-include-index-entries
-	(if arg (reftex-index-select-tag)
-	  (not reftex-toc-include-index-entries)))
+        (if arg (reftex-index-select-tag)
+          (not reftex-toc-include-index-entries)))
   (reftex-toc-revert))
 (defun reftex-toc-toggle-context ()
   "Toggle inclusion of label context in *toc* buffer.
@@ -351,46 +388,57 @@ When no prefix is given, set the max level to a large number, so that all
 levels are shown.  For eaxample, to set the level to 3, type `3 m'."
   (interactive "P")
   (setq reftex-toc-max-level (if arg
-				 (prefix-numeric-value arg)
-			       100))
+                                 (prefix-numeric-value arg)
+                               100))
   (setq reftex-toc-max-level-indicator
-	(if arg (int-to-string reftex-toc-max-level) "ALL"))
+        (if arg (int-to-string reftex-toc-max-level) "ALL"))
   (reftex-toc-revert))
 (defun reftex-toc-view-line ()
   "View document location in other window."
   (interactive)
+  (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location))
 (defun reftex-toc-goto-line-and-hide ()
   "Go to document location in other window.  Hide the *toc* window."
   (interactive)
+  (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location 'hide))
 (defun reftex-toc-goto-line ()
   "Go to document location in other window. *toc* window stays."
   (interactive)
+  (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location t))
 (defun reftex-toc-mouse-goto-line-and-hide (ev)
   "Go to document location in other window.  Hide the *toc* window."
   (interactive "e")
   (mouse-set-point ev)
+  (reftex-toc-dframe-p nil 'error)
   (reftex-toc-visit-location 'hide))
 (defun reftex-toc-show-calling-point ()
   "Show point where reftex-toc was called from."
   (interactive)
+  (reftex-toc-dframe-p nil 'error)
   (let ((this-window (selected-window)))
     (unwind-protect
-	(progn
-	  (switch-to-buffer-other-window
-	   (marker-buffer reftex-toc-return-marker))
-	  (goto-char (marker-position reftex-toc-return-marker))
-	  (recenter '(4)))
+        (progn
+          (switch-to-buffer-other-window
+           (marker-buffer reftex-toc-return-marker))
+          (goto-char (marker-position reftex-toc-return-marker))
+          (recenter '(4)))
       (select-window this-window))))
 (defun reftex-toc-quit ()
-  "Hide the *toc* window and do not move point."
+  "Hide the *toc* window and do not move point.
+If the toc window is the only window on the dedicated TOC frame, the frame
+is destroyed."
   (interactive)
-  (or (one-window-p) (delete-window))
-  (switch-to-buffer (marker-buffer reftex-toc-return-marker))
-  (reftex-re-enlarge)
-  (goto-char (or (marker-position reftex-toc-return-marker) (point))))
+  (if (and (one-window-p)
+           (reftex-toc-dframe-p)
+           (> (length (frame-list)) 1))
+      (delete-frame)
+    (or (one-window-p) (delete-window))
+    (switch-to-buffer (marker-buffer reftex-toc-return-marker))
+    (reftex-re-enlarge)
+    (goto-char (or (marker-position reftex-toc-return-marker) (point)))))
 (defun reftex-toc-quit-and-kill ()
   "Kill the *toc* buffer."
   (interactive)
@@ -404,37 +452,41 @@ levels are shown.  For eaxample, to set the level to 3, type `3 m'."
 This works just like `reftex-display-index' from a LaTeX buffer.
 With prefix arg 1, restrict index to the section at point."
   (interactive "P")
+  (reftex-toc-dframe-p nil 'error)
   (let ((data (get-text-property (point) :data))
-	(docstruct (symbol-value reftex-docstruct-symbol))
-	bor eor restr)
+        (docstruct (symbol-value reftex-docstruct-symbol))
+        bor eor restr)
     (when (equal arg 2)
       (setq bor (reftex-last-assoc-before-elt 'toc data docstruct)
-	    eor (assoc 'toc (cdr (memq bor docstruct)))
-	    restr (list (nth 6 bor) bor eor)))
+            eor (assoc 'toc (cdr (memq bor docstruct)))
+            restr (list (nth 6 bor) bor eor)))
     (reftex-toc-goto-line)
     (reftex-display-index (if restr nil arg) restr)))
+
+;; Rescanning the document and rebuilding the TOC buffer.
 (defun reftex-toc-rescan (&rest ignore)
   "Regenerate the *toc* buffer by reparsing file of section at point."
   (interactive)
-  (if (and reftex-enable-partial-scans
-	   (null current-prefix-arg))
+  (if (and reftex-enable-partial-scans 
+           (null current-prefix-arg))
       (let* ((data (get-text-property (point) :data))
-	     (what (car data))
-	     (file (cond ((eq what 'toc) (nth 3 data))
-			 ((memq what '(eof bof file-error)) (nth 1 data))
-			 ((stringp what) (nth 3 data))
-			 ((eq what 'index) (nth 3 data))))
-	     (line (+ (count-lines (point-min) (point)) (if (bolp) 1 0))))
+             (what (car data))
+             (file (cond ((eq what 'toc) (nth 3 data))
+                         ((memq what '(eof bof file-error)) (nth 1 data))
+                         ((stringp what) (nth 3 data))
+                         ((eq what 'index) (nth 3 data))))
+             (line (+ (count-lines (point-min) (point)) (if (bolp) 1 0))))
         (if (not file)
             (error "Don't know which file to rescan.  Try `C-u r'")
-	  (put 'reftex-toc :reftex-line line)
+          (put 'reftex-toc :reftex-line line)
           (switch-to-buffer-other-window
            (reftex-get-file-buffer-force file))
-	  (setq current-prefix-arg '(4))
-	  (let ((reftex-rebuilding-toc t))
-	    (reftex-toc))))
+          (setq current-prefix-arg '(4))
+          (let ((reftex-rebuilding-toc t))
+            (reftex-toc))))
     (reftex-toc-Rescan))
   (reftex-kill-temporary-buffers))
+
 (defun reftex-toc-Rescan (&rest ignore)
   "Regenerate the *toc* buffer by reparsing the entire document."
   (interactive)
@@ -445,28 +497,38 @@ With prefix arg 1, restrict index to the section at point."
   (setq current-prefix-arg '(16))
   (let ((reftex-rebuilding-toc t))
     (reftex-toc)))
+
 (defun reftex-toc-revert (&rest ignore)
   "Regenerate the *toc* from the internal lists."
   (interactive)
-  (switch-to-buffer-other-window
-   (reftex-get-file-buffer-force reftex-last-toc-file))
+  (let ((unsplittable 
+         (if (fboundp 'frame-property)
+             (frame-property (selected-frame) 'unsplittable)
+           (frame-parameter (selected-frame) 'unsplittable)))
+        (reftex-rebuilding-toc t))
+    (if unsplittable
+        (switch-to-buffer
+         (reftex-get-file-buffer-force reftex-last-toc-file))
+      (switch-to-buffer-other-window
+       (reftex-get-file-buffer-force reftex-last-toc-file))))
   (reftex-erase-buffer "*toc*")
   (setq current-prefix-arg nil)
-  (let ((reftex-rebuilding-toc t))
-    (reftex-toc t)))
+  (reftex-toc t))
+
 (defun reftex-toc-external (&rest ignore)
   "Switch to table of contents of an external document."
   (interactive)
+  (reftex-toc-dframe-p nil 'error)
   (let* ((old-buf (current-buffer))
-	 (xr-alist (get-text-property 1 'xr-alist))
-	 (xr-index (reftex-select-external-document
-		   xr-alist 0)))
+         (xr-alist (get-text-property 1 'xr-alist))
+         (xr-index (reftex-select-external-document
+                   xr-alist 0)))
     (switch-to-buffer-other-window (or (reftex-get-file-buffer-force
-					(cdr (nth xr-index xr-alist)))
-				       (error "Cannot switch document")))
+                                        (cdr (nth xr-index xr-alist)))
+                                       (error "Cannot switch document")))
     (reftex-toc)
     (if (equal old-buf (current-buffer))
-	(message "")
+        (message "")
       (message "Switched document"))))
 
 (defun reftex-toc-jump (arg)
@@ -479,12 +541,260 @@ Useful for large TOC's."
    nil t)
   (beginning-of-line))
 
+;; Promotion/Demotion stuff
+
+(defun reftex-toc-demote (&optional arg)
+  "Demote section at point.  If region is active, apply to all in region."
+  (interactive "p")
+  (reftex-toc-do-promote 1))
+(defun reftex-toc-promote (&optional arg)
+  "Promote section at point.  If region is active, apply to all in region."
+  (interactive "p")
+  (reftex-toc-do-promote -1))
+(defun reftex-toc-do-promote (delta)
+  "Workhorse for reftex-toc-promote and reftex-to-demote.
+Changes the level of sections in the current region, or just the section at
+point."
+  ;; We should not do anything unless we are sure this is going to work for
+  ;; each section in the region.  Therefore we first collect information and
+  ;; test.
+  (let* ((start-line (+ (count-lines (point-min) (point))
+			(if (bolp) 1 0)))
+	 (mark-line  (if (reftex-region-active-p)
+			 (save-excursion (goto-char (mark))
+					 (+ (count-lines (point-min) (point))
+					    (if (bolp) 1 0)))))
+         (start-pos (point))
+         (pro-or-de (if (> delta 0) "de" "pro"))
+         beg end entries data sections nsec mpos msg)
+    (setq msg
+          (catch 'exit
+            (if (reftex-region-active-p)
+                ;; A region is dangerous, check if we have a brandnew scan,
+                ;; to make sure we are not missing any section statements.
+                (if (not (reftex-toc-check-docstruct))
+                    (reftex-toc-load-all-files-for-promotion)   ;; exits
+                  (setq beg (min (point) (mark))
+                        end (max (point) (mark))))
+              (setq beg (point) end (point)))
+            (goto-char beg)
+            (while (and (setq data (get-text-property (point) :data))
+                        (<= (point) end))
+              (if (eq (car data) 'toc) (push (cons data (point)) entries))
+              (goto-char (or (next-single-property-change (point) :data)
+                             (point-max))))
+            (setq entries (nreverse entries))
+            ;; Get the relevant section numbers, for an informative message
+            (goto-char start-pos)
+            (setq sections (reftex-toc-extract-section-number (car entries)))
+            (if (> (setq nsec (length entries)) 1)
+                (setq sections 
+                      (concat sections "-"
+                              (reftex-toc-extract-section-number
+                               (nth (1- nsec) entries)))))
+            ;; Run through the list and prepare the changes.
+            (setq entries (mapcar 'reftex-toc-promote-prepare entries))
+            ;; Ask for permission
+            (if (or (not reftex-toc-confirm-promotion)           ; never confirm
+                    (and (integerp reftex-toc-confirm-promotion) ; confirm if many
+                         (< nsec reftex-toc-confirm-promotion))
+                    (yes-or-no-p                                 ; ask
+                     (format "%s %d toc-entr%s (section%s %s)? "
+                             (if (< delta 0) "Promote" "Demote")
+                             nsec
+                             (if (= 1 nsec) "y" "ies")
+                             (if (= 1 nsec) "" "s")
+                             sections)))
+                nil              ; we have permission, do nothing
+              (error "Abort"))   ; abort, we don't have permission
+            ;; Do the changes
+            (mapcar 'reftex-toc-promote-action entries)
+            ;; Rescan the document and rebuilt the toc buffer
+            (save-window-excursion
+              (reftex-toc-Rescan))
+            (reftex-toc-restore-region start-line mark-line)
+            (message "%d section%s %smoted" 
+                     nsec (if (= 1 nsec) "" "s") pro-or-de)
+            nil))
+    (if msg (progn (ding) (message msg)))))
+
+(defvar delta)
+(defvar mpos)
+(defvar pro-or-de)
+(defvar start-pos)
+(defvar start-line)
+(defvar mark-line)
+
+(defun reftex-toc-restore-region (point-line &optional mark-line)
+  (if mark-line
+      (progn (goto-line mark-line)
+             (setq mpos (point))))
+  (if point-line (goto-line point-line))
+  (if mark-line
+      (progn
+        (set-mark mpos)
+        (if (fboundp 'zmacs-activate-region)
+            (zmacs-activate-region)
+          (setq mark-active t
+                deactivate-mark nil)))))
+
+(defun reftex-toc-promote-prepare (x)
+  "Look at a toc entry and see if we could pro/demote it.
+Expects the level change DELTA to be dynamically scoped into this function.
+This function prepares everything for the changes, but does not do it.
+The return value is a list with information needed when doing the
+promotion/demotion later."
+  (let* ((data (car x))
+         (toc-point (cdr x))
+         (marker (nth 4 data))
+         (literal (nth 7 data))
+         (load nil)
+         (name nil)
+         ;; Here follows some paranoid code to make very sure we are not
+         ;; going to break anything
+         (name1         ; dummy
+          (if (and (markerp marker) (marker-buffer marker))
+              ;; Buffer is still live and we have the marker.
+              (progn
+                (save-excursion
+                  ;; Goto the buffer and check of section is unchanged
+                  (set-buffer (marker-buffer marker))
+                  (goto-char (marker-position marker))
+                  (if (looking-at (regexp-quote literal))
+                      ;; OK, get the makro name
+                      (progn
+                        (beginning-of-line 1)
+                        (if (looking-at reftex-section-regexp)
+                            (setq name (reftex-match-string 2))
+                          (error "Something is wrong! Contact maintainer!")))
+                    ;; Section has changed, request scan and loading
+                    ;; We use a variable to delay until after the safe-exc.
+                    ;; because otherwise we loose the region.
+                    (setq load t)))
+                ;; Scan document and load all files, this exits command
+                (if load (reftex-toc-load-all-files-for-promotion))) ; exits
+            ;; We don't have a live marker: scan and load files.
+            (reftex-toc-load-all-files-for-promotion)))
+         (level (cdr (assoc name reftex-section-levels-all)))
+         (dummy (if (not (integerp level))
+                    (progn
+                      (goto-char toc-point)
+                      (error "Cannot %smote special sections" pro-or-de))))
+         ;; Delta is dynamically scoped into here...
+         (newlevel (if (>= level 0) (+ delta level) (- level delta)))
+         (dummy2 (if (or (and (>= level 0) (= newlevel -1))
+                         (and (< level 0)  (= newlevel 0)))
+                     (error "Cannot %smote \\%s" pro-or-de name)))
+         (newname (reftex-toc-newhead-from-alist newlevel name
+                                                 reftex-section-levels-all)))
+    (if (and name newname)
+        (list data name newname toc-point)
+      (goto-char toc-point)
+      (error "Cannot %smote \\%s" pro-or-de name))))
+
+(defun reftex-toc-promote-action (x)
+  "Change the level of a toc entry.
+DELTA and PRO-OR-DE are assumed to be dynamically scoped into this function."
+  (let* ((data (car x))
+         (name (nth 1 x))
+         (newname (nth 2 x))
+         (marker (nth 4 data)))
+    (save-excursion
+      (set-buffer (marker-buffer marker))
+      (goto-char (marker-position marker))
+      (if (looking-at (concat "\\([ \t]*\\\\\\)" (regexp-quote name)))
+          (replace-match (concat "\\1" newname))
+        (error "Fatal error during %smotion" pro-or-de)))))
+
+(defun reftex-toc-extract-section-number (entry)
+  "Get the numbering of a toc entry, for message purposes."
+  (if (string-match "\\s-*\\(\\S-+\\)" (nth 2 (car entry)))
+      (match-string 1 (nth 2 (car entry)))
+    "?"))
+
+(defun reftex-toc-newhead-from-alist (nlevel head alist)
+  "Get new heading with level NLEVEL from ALIST.
+If there are no such entries, return nil.
+If there are several different entries with same new level, choose
+the one with the smallest distance to the assocation of HEAD in the alist.
+This makes it possible for promotion to work several sets of headings,
+if these sets are sorted blocks in the alist."
+  (let* ((al alist)
+         (ass (assoc head al))
+         (pos (length (memq ass al)))
+         dist (mindist 1000) newhead)
+    (while al
+      (if (equal (cdar al) nlevel)
+          (progn
+            (setq dist (abs (- (length al) pos)))
+            (if (< dist mindist)
+                (setq newhead (car (car al))
+                      mindist dist))))
+      (setq al (cdr al)))
+    newhead))
+
+(defun reftex-toc-check-docstruct ()
+  "Check if the current docstruct is fully up to date and all files visited."
+  ;; We do this by checking if all sections are on the right position
+  (let ((docstruct (symbol-value reftex-docstruct-symbol))
+        entry marker empoint)
+    (catch 'exit
+      (while (setq entry (pop docstruct))
+        (if (eq (car entry) 'toc)
+            (progn
+              (setq marker (nth 4 entry)
+                    empoint (nth 8 entry))
+              (if (not (and (markerp marker)
+                            (marker-buffer marker)
+                            (= (marker-position marker) empoint)))
+                  (throw 'exit nil)))))
+      t)))
+
+(defun reftex-toc-load-all-files-for-promotion ()
+  "Make sure all files of the document are being visited by buffers,
+and that the scanning info is absolutely up to date.
+We do this by rescanning with reftex-keep-temporary-buffers bound to t.
+The variable PRO-OR-DE is assumed to be dynamically scoped into thes function.
+When finished, we exit with an error message."
+  (let ((reftex-keep-temporary-buffers t))
+    (reftex-toc-Rescan)
+    (reftex-toc-restore-region start-line mark-line)
+    (throw 'exit
+           (format "TOC had to be updated first.  Please check selection and repeat the command." pro-or-de))))
+
+(defun reftex-toc-rename-label ()
+  "Rename the currently selected label in the *TOC* buffer.
+This launches a global search and replace in order to rename a label.
+Renaming a label is hardly ever necessary - the only exeption is after
+promotion/demotion in connection with a package like fancyref, where the
+label prefix determines the wording of a reference."
+  (interactive)
+  (let* ((toc (get-text-property (point) :data))
+         (label (car toc)) newlabel)
+    (if (not (stringp label))
+        (error "This is not a label entry."))
+    (setq newlabel (read-string (format "Rename label \"%s\" to:" label)))
+    (if (assoc newlabel (symbol-value reftex-docstruct-symbol))
+        (if (not (y-or-n-p 
+                  (format "Label '%s' exists. Use anyway? " label)))
+            (error "Abort")))
+    (save-excursion
+      (save-window-excursion
+        (reftex-toc-visit-location t)
+        (condition-case nil
+            (reftex-query-replace-document
+             (concat "{" (regexp-quote label) "}")
+             (format "{%s}" newlabel))
+          (error t))))        
+    (reftex-toc-rescan)))
+
+
 (defun reftex-toc-visit-location (&optional final no-revisit)
   ;; Visit the tex file corresponding to the toc entry on the current line.
   ;; If FINAL is t, stay there
   ;; If FINAL is 'hide, hide the *toc* window.
   ;; Otherwise, move cursor back into *toc* window.
-  ;; NO-REVISIT means don't visit files, just use live biffers.
+  ;; NO-REVISIT means don't visit files, just use live buffers.
   ;; This function is pretty clever about finding back a section heading,
   ;; even if the buffer is not live, or things like outline, x-symbol etc.
   ;; have been active.
@@ -494,9 +804,9 @@ Useful for large TOC's."
          show-window show-buffer match)
 
     (unless toc (error "Don't know which toc line to visit"))
-
+    
     (cond
-
+  
      ((eq (car toc) 'toc)
       ;; a toc entry
       (setq match (reftex-toc-find-section toc no-revisit)))
@@ -508,19 +818,19 @@ Useful for large TOC's."
      ((memq (car toc) '(bof eof))
       ;; A file entry
       (setq match
-	    (let ((where (car toc))
-		  (file (nth 1 toc)))
-	      (if (or (not no-revisit) (reftex-get-buffer-visiting file))
-		  (progn
-		    (switch-to-buffer-other-window
-		     (reftex-get-file-buffer-force file nil))
-		    (goto-char (if (eq where 'bof) (point-min) (point-max))))
-		(message reftex-no-follow-message) nil))))
+            (let ((where (car toc))
+                  (file (nth 1 toc)))
+              (if (or (not no-revisit) (reftex-get-buffer-visiting file))
+                  (progn
+                    (switch-to-buffer-other-window 
+                     (reftex-get-file-buffer-force file nil))
+                    (goto-char (if (eq where 'bof) (point-min) (point-max))))
+                (message reftex-no-follow-message) nil))))
 
      ((stringp (car toc))
       ;; a label
       (setq match (reftex-show-label-location toc reftex-callback-fwd
-						no-revisit t))))
+                                                no-revisit t))))
 
     (setq show-window (selected-window)
           show-buffer (current-buffer))
@@ -539,45 +849,49 @@ Useful for large TOC's."
      ((eq final 'hide)
       (reftex-unhighlight 0)
       (or (one-window-p) (delete-window))
-      (switch-to-buffer show-buffer)
+      ;; If `show-window' is still live, show-buffer is already visible
+      ;; so let's not make it visible in yet-another-window.
+      (if (window-live-p show-window)
+	  (set-buffer show-buffer)
+	(switch-to-buffer show-buffer))
       (reftex-re-enlarge))
      (t nil))))
 
 (defun reftex-toc-find-section (toc &optional no-revisit)
   (let* ((file (nth 3 toc))
-	 (marker (nth 4 toc))
-	 (level (nth 5 toc))
-	 (literal (nth 7 toc))
-	 (emergency-point (nth 8 toc))
-	 (match
-	  (cond
-	   ((and (markerp marker) (marker-buffer marker))
-	    ;; Buffer is still live and we have the marker.  Should be easy.
-	    (switch-to-buffer-other-window (marker-buffer marker))
-	    (goto-char (marker-position marker))
-	    (or (looking-at (regexp-quote literal))
-		(looking-at (reftex-make-regexp-allow-for-ctrl-m literal))
-		(looking-at (reftex-make-desperate-section-regexp literal))
-		(looking-at (concat "\\\\"
-				    (regexp-quote
-				     (car
-				      (rassq level
-					     reftex-section-levels-all)))
-				    "[[{]?"))))
-	   ((or (not no-revisit)
-		(reftex-get-buffer-visiting file))
-	    ;; Marker is lost.  Use the backup method.
-	    (switch-to-buffer-other-window
-	     (reftex-get-file-buffer-force file nil))
-	    (goto-char (or emergency-point (point-min)))
-	    (or (looking-at (regexp-quote literal))
-		(let ((len (length literal)))
-		  (or (reftex-nearest-match (regexp-quote literal) len)
-		      (reftex-nearest-match
-		       (reftex-make-regexp-allow-for-ctrl-m literal) len)
-		      (reftex-nearest-match
-		       (reftex-make-desperate-section-regexp literal) len)))))
-	   (t (message reftex-no-follow-message) nil))))
+         (marker (nth 4 toc))
+         (level (nth 5 toc))
+         (literal (nth 7 toc))
+         (emergency-point (nth 8 toc))
+         (match
+          (cond
+           ((and (markerp marker) (marker-buffer marker))
+            ;; Buffer is still live and we have the marker.  Should be easy.
+            (switch-to-buffer-other-window (marker-buffer marker))
+            (goto-char (marker-position marker))
+            (or (looking-at (regexp-quote literal))
+                (looking-at (reftex-make-regexp-allow-for-ctrl-m literal))
+                (looking-at (reftex-make-desperate-section-regexp literal))
+                (looking-at (concat "\\\\"
+                                    (regexp-quote
+                                     (car 
+                                      (rassq level 
+                                             reftex-section-levels-all)))
+                                    "[[{]?"))))
+           ((or (not no-revisit)
+                (reftex-get-buffer-visiting file))
+            ;; Marker is lost.  Use the backup method.
+            (switch-to-buffer-other-window
+             (reftex-get-file-buffer-force file nil))
+            (goto-char (or emergency-point (point-min)))
+            (or (looking-at (regexp-quote literal))
+                (let ((len (length literal)))
+                  (or (reftex-nearest-match (regexp-quote literal) len)
+                      (reftex-nearest-match
+                       (reftex-make-regexp-allow-for-ctrl-m literal) len)
+                      (reftex-nearest-match
+                       (reftex-make-desperate-section-regexp literal) len)))))
+           (t (message reftex-no-follow-message) nil))))
     (when match
       (goto-char (match-beginning 0))
       (if (not (= (point) (point-max))) (recenter 1))
@@ -599,15 +913,17 @@ Useful for large TOC's."
       (setq old (substring old (match-end 0))))
     new))
 
+;; Auto recentering of TOC window
 
 (defun reftex-recenter-toc-when-idle ()
   (and (> (buffer-size) 5)
        reftex-mode
        (not (active-minibuffer-window))
        (fboundp 'reftex-toc-mode)
-       (get-buffer-window "*toc*")
+       (get-buffer-window "*toc*" 'visible)
        (string= reftex-last-toc-master (reftex-TeX-master-file))
-       (reftex-toc-recenter)))
+       (let (current-prefix-arg)
+         (reftex-toc-recenter))))
 
 (defun reftex-toggle-auto-toc-recenter ()
   "Toggle the automatic recentering of the toc window.
@@ -616,20 +932,73 @@ section."
   (interactive)
   (if reftex-toc-auto-recenter-timer
       (progn
-	(if (featurep 'xemacs)
-	    (delete-itimer reftex-toc-auto-recenter-timer)
-	  (cancel-timer reftex-toc-auto-recenter-timer))
-	(setq reftex-toc-auto-recenter-timer nil)
-	(message "Automatic recentering of toc buffer was turned off"))
+        (if (featurep 'xemacs)
+            (delete-itimer reftex-toc-auto-recenter-timer)
+          (cancel-timer reftex-toc-auto-recenter-timer))
+        (setq reftex-toc-auto-recenter-timer nil)
+        (message "Automatic recentering of toc windwo was turned off"))
     (setq reftex-toc-auto-recenter-timer
-	  (if (featurep 'xemacs)
-	      (start-itimer "RefTeX Idle Timer for recenter"
-			    'reftex-recenter-toc-when-idle
-			    reftex-idle-time reftex-idle-time t)
-	    (run-with-idle-timer
-	     reftex-idle-time t 'reftex-recenter-toc-when-idle)))
+          (if (featurep 'xemacs)
+              (start-itimer "RefTeX Idle Timer for recenter"
+                            'reftex-recenter-toc-when-idle
+                            reftex-idle-time reftex-idle-time t)
+            (run-with-idle-timer
+             reftex-idle-time t 'reftex-recenter-toc-when-idle)))
     (message "Automatic recentering of toc window was turned on")))
 
+(defun reftex-toc-toggle-dedicated-frame ()
+  "Toggle the display of a separate frame for the TOC.
+This frame is not used by the `reftex-toc' commands, but it is useful to
+always show the current section in connection with the option
+`reftex-auto-recenter-toc'."
+  (interactive)
+  (catch 'exit
+    (let* ((frames (frame-list)) frame
+           (get-frame-prop-func (if (fboundp 'frame-property)
+                                    'frame-property
+                                  'frame-parameter)))
+      (while (setq frame (pop frames))
+        (if (equal (funcall get-frame-prop-func frame 'name)
+                   "RefTeX TOC Frame")
+            (progn
+              (delete-frame frame)
+              (throw 'exit nil))))
+      (reftex-make-separate-toc-frame))))
+
+(defun reftex-make-separate-toc-frame ()
+  ;; Create a new fame showing only the toc buffer.
+  (let ((current-frame (selected-frame))
+        (current-window (selected-window))
+        (current-toc-window (get-buffer-window "*toc*" 'visible))
+        current-toc-frame)
+    (if (and current-toc-window
+             (not (equal (selected-frame) (window-frame current-toc-window))))
+        nil
+      (setq current-toc-frame
+            (make-frame
+             '((name . "RefTeX TOC Frame")
+               (height . 20) (width . 60)
+               (unsplittable . t)
+               (minibuffer . nil)
+               (default-toolbar-visible-p . nil)
+               (menubar-visible-p . nil)
+               (horizontal-scrollbar-visible-p . nil))))
+      (select-frame current-toc-frame)
+      (switch-to-buffer "*toc*")
+      (select-frame current-frame)
+      (if (fboundp 'focus-frame) (focus-frame current-frame)
+        (if (fboundp 'x-focus-frame) (x-focus-frame current-frame)))
+      (select-window current-window)
+      (when (eq reftex-auto-recenter-toc 'frame)
+        (unless reftex-toc-auto-recenter-timer
+          (reftex-toggle-auto-toc-recenter))
+        (add-hook 'delete-frame-hook 'reftex-toc-delete-frame-hook)))))
+
+(defun reftex-toc-delete-frame-hook (frame)
+  (if (and reftex-toc-auto-recenter-timer
+           (reftex-toc-dframe-p frame))
+      (progn
+      (reftex-toggle-auto-toc-recenter))))
 
 ;; Table of Contents map
 (define-key reftex-toc-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
@@ -641,47 +1010,57 @@ section."
  'previous-line 'reftex-toc-previous reftex-toc-map global-map)
 
 (loop for x in
-      '(("n"    . reftex-toc-next)
-	("p"    . reftex-toc-previous)
-	("?"    . reftex-toc-show-help)
-	(" "    . reftex-toc-view-line)
-	("\C-m" . reftex-toc-goto-line-and-hide)
-	("\C-i" . reftex-toc-goto-line)
-	("\C-c>". reftex-toc-display-index)
-	("r"    . reftex-toc-rescan)
-	("R"    . reftex-toc-Rescan)
-	("g"    . revert-buffer)
-	("q"    . reftex-toc-quit)
-	("k"    . reftex-toc-quit-and-kill)
-	("f"    . reftex-toc-toggle-follow)
-	("a"    . reftex-toggle-auto-toc-recenter)
-	("F"    . reftex-toc-toggle-file-boundary)
-	("i"    . reftex-toc-toggle-index)
-	("l"    . reftex-toc-toggle-labels)
-	("t"    . reftex-toc-max-level)
-	("c"    . reftex-toc-toggle-context)
-	("%"    . reftex-toc-toggle-commented)
-	("x"    . reftex-toc-external)
-	("z"    . reftex-toc-jump)
-	("."    . reftex-toc-show-calling-point)
-	("\C-c\C-n" . reftex-toc-next-heading)
-	("\C-c\C-p" . reftex-toc-previous-heading))
+      '(("n"        . reftex-toc-next)
+        ("p"        . reftex-toc-previous)
+        ("?"        . reftex-toc-show-help)
+        (" "        . reftex-toc-view-line)
+        ("\C-m"     . reftex-toc-goto-line-and-hide)
+        ("\C-i"     . reftex-toc-goto-line)
+        ("\C-c>"    . reftex-toc-display-index)
+        ("r"        . reftex-toc-rescan)
+        ("R"        . reftex-toc-Rescan)
+        ("g"        . revert-buffer)
+        ("q"        . reftex-toc-quit);
+        ("k"        . reftex-toc-quit-and-kill)
+        ("f"        . reftex-toc-toggle-follow);
+        ("a"        . reftex-toggle-auto-toc-recenter)
+        ("d"        . reftex-toc-toggle-dedicated-frame)
+        ("F"        . reftex-toc-toggle-file-boundary)
+        ("i"        . reftex-toc-toggle-index)
+        ("l"        . reftex-toc-toggle-labels)
+        ("t"        . reftex-toc-max-level)
+        ("c"        . reftex-toc-toggle-context)
+;        ("%"        . reftex-toc-toggle-commented)
+        ("\M-%"     . reftex-toc-rename-label)
+        ("x"        . reftex-toc-external)
+        ("z"        . reftex-toc-jump)
+        ("."        . reftex-toc-show-calling-point)
+        ("\C-c\C-n" . reftex-toc-next-heading)
+        ("\C-c\C-p" . reftex-toc-previous-heading)
+        (">"        . reftex-toc-demote)
+        ("<"        . reftex-toc-promote))
       do (define-key reftex-toc-map (car x) (cdr x)))
 
 (loop for key across "0123456789" do
       (define-key reftex-toc-map (vector (list key)) 'digit-argument))
 (define-key reftex-toc-map "-" 'negative-argument)
 
-(easy-menu-define
+(easy-menu-define 
  reftex-toc-menu reftex-toc-map
  "Menu for Table of Contents buffer"
  '("TOC"
    ["Show Location" reftex-toc-view-line t]
    ["Go To Location" reftex-toc-goto-line t]
    ["Exit & Go To Location" reftex-toc-goto-line-and-hide t]
-   ["Index" reftex-toc-display-index t]
+   ["Show Calling Point" reftex-toc-show-calling-point t]
    ["Quit" reftex-toc-quit t]
    "--"
+   ("Edit"
+    ["Promote" reftex-toc-promote t]
+    ["Demote" reftex-toc-demote t]
+    ["Rename Label" reftex-toc-rename-label t])
+   "--"
+   ["Index" reftex-toc-display-index t]
    ["External Document TOC  " reftex-toc-external t]
    "--"
    ("Update"
@@ -699,10 +1078,14 @@ section."
     ["Context" reftex-toc-toggle-context :style toggle
      :selected reftex-toc-include-context]
     "--"
-    ["Follow Mode" reftex-toc-toggle-follow :style toggle
-     :selected reftex-toc-follow-mode])
+    ["Follow Mode" reftex-toc-toggle-follow :style toggle 
+     :selected reftex-toc-follow-mode]
+    ["Auto Recenter" reftex-toggle-auto-toc-recenter :style toggle
+     :selected reftex-toc-auto-recenter-timer]
+    ["Dedicated Frame" reftex-toc-toggle-dedicated-frame t])
    "--"
    ["Help" reftex-toc-show-help t]))
 
 
+;;; arch-tag: 92400ce2-0b86-4c89-a606-4ed71acea17e
 ;;; reftex-toc.el ends here

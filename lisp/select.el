@@ -38,7 +38,18 @@ how to convert the data.
 TYPE may be `SECONDARY' or `CLIPBOARD', in addition to `PRIMARY'.
 DATA-TYPE is usually `STRING', but can also be one of the symbols
 in `selection-converter-alist', which see."
-  (x-get-selection-internal (or type 'PRIMARY) (or data-type 'STRING)))
+  (let ((data (x-get-selection-internal (or type 'PRIMARY)
+					(or data-type 'STRING)))
+	coding)
+    (when (and (stringp data)
+	       (setq data-type (get-text-property 0 'foreign-selection data)))
+      (setq coding (if (eq data-type 'UTF8_STRING)
+		       'utf-8
+		     (or next-selection-coding-system
+			 selection-coding-system))
+	    data (decode-coding-string data coding))
+      (put-text-property 0 (length data) 'foreign-selection data-type data))
+    data))
 
 (defun x-get-clipboard ()
   "Return text pasted to the clipboard."
@@ -378,4 +389,5 @@ This function returns the string \"emacs\"."
 
 (provide 'select)
 
+;;; arch-tag: bb634f97-8a3b-4b0a-b940-f6e09982328c
 ;;; select.el ends here

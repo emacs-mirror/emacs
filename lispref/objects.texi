@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/objects
@@ -258,9 +258,9 @@ character @kbd{a}.
 
   You can use the same syntax for punctuation characters, but it is
 often a good idea to add a @samp{\} so that the Emacs commands for
-editing Lisp code don't get confused.  For example, @samp{?\ } is the
-way to write the space character.  If the character is @samp{\}, you
-@emph{must} use a second @samp{\} to quote it: @samp{?\\}.
+editing Lisp code don't get confused.  For example, @samp{?\(} is the
+way to write the open-paren character.  If the character is @samp{\},
+you @emph{must} use a second @samp{\} to quote it: @samp{?\\}.
 
 @cindex whitespace
 @cindex bell character
@@ -281,13 +281,14 @@ way to write the space character.  If the character is @samp{\}, you
 @cindex @samp{\e}
 @cindex space
 @cindex @samp{\s}
-  You can express the characters Control-g, backspace, tab, newline,
+  You can express the characters control-g, backspace, tab, newline,
 vertical tab, formfeed, space, return, del, and escape as @samp{?\a},
 @samp{?\b}, @samp{?\t}, @samp{?\n}, @samp{?\v}, @samp{?\f},
-@samp{?\r}, @samp{?\d}, @samp{?\e}, and @samp{?\s}, respectively.  Thus,
+@samp{?\s}, @samp{?\r}, @samp{?\d}, and @samp{?\e}, respectively.
+Thus,
 
 @example
-?\a @result{} 7                 ; @r{@kbd{C-g}}
+?\a @result{} 7                 ; @r{control-g, @kbd{C-g}}
 ?\b @result{} 8                 ; @r{backspace, @key{BS}, @kbd{C-h}}
 ?\t @result{} 9                 ; @r{tab, @key{TAB}, @kbd{C-i}}
 ?\n @result{} 10                ; @r{newline, @kbd{C-j}}
@@ -302,8 +303,10 @@ vertical tab, formfeed, space, return, del, and escape as @samp{?\a},
 
 @cindex escape sequence
   These sequences which start with backslash are also known as
-@dfn{escape sequences}, because backslash plays the role of an escape
-character; this usage has nothing to do with the character @key{ESC}.
+@dfn{escape sequences}, because backslash plays the role of an
+``escape character''; this terminology has nothing to do with the
+character @key{ESC}.  @samp{\s} is meant for use only in character
+constants; in string constants, just write the space.
 
 @cindex control characters
   Control characters may be represented using yet another read syntax.
@@ -406,12 +409,13 @@ represents the shifted-control-o character.
 @cindex hyper characters
 @cindex super characters
 @cindex alt characters
-  The X Window System defines three other modifier bits that can be set
+  The X Window System defines three other @anchor{modifier bits}
+modifier bits that can be set
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
 for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  (Case is
 significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
-@kbd{Alt-Hyper-Meta-x}.  Note that @samp{\s} (without the @samp{-})
-represents the space character.
+@kbd{Alt-Hyper-Meta-x}.  (Note that @samp{\s} with no following @samp{-}
+represents the space character.)
 @tex
 Numerically, the
 bit values are @math{2^{22}} for alt, @math{2^{23}} for super and @math{2^{24}} for hyper.
@@ -457,10 +461,13 @@ a special escape meaning; thus, @samp{?\+} is equivalent to @samp{?+}.
 There is no reason to add a backslash before most characters.  However,
 you should add a backslash before any of the characters
 @samp{()\|;'`"#.,} to avoid confusing the Emacs commands for editing
-Lisp code.  Also add a backslash before whitespace characters such as
+Lisp code.  You can also add a backslash before whitespace characters such as
 space, tab, newline and formfeed.  However, it is cleaner to use one of
 the easily readable escape sequences, such as @samp{\t} or @samp{\s},
 instead of an actual whitespace character such as a tab or a space.
+(If you do write backslash followed by a space, you should write
+an extra space after the character constant to separate it from the
+following text.)
 
 @node Symbol Type
 @subsection Symbol Type
@@ -508,7 +515,7 @@ Lisp, upper case and lower case letters are distinct.
 
   Here are several examples of symbol names.  Note that the @samp{+} in
 the fifth example is escaped to prevent it from being read as a number.
-This is not necessary in the sixth example because the rest of the name
+This is not necessary in the seventh example because the rest of the name
 makes it invalid as a number.
 
 @example
@@ -1896,3 +1903,7 @@ returns @code{t} if and only if both the expressions below return
 
 Because of this recursive method, circular lists may therefore cause
 infinite recursion (leading to an error).
+
+@ignore
+   arch-tag: 9711a66e-4749-4265-9e8c-972d55b67096
+@end ignore

@@ -75,6 +75,7 @@
     (devanagari-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun devanagari-post-read-conversion (len)
   (save-excursion
     (save-restriction
@@ -537,6 +538,7 @@ preferred rule from the sanskrit fonts."  )
     (,dev-glyph-left-matra . 3) ;; processed by reference point.
     (,dev-glyph-top-matra . 4)
     (,(dev-charseq #xc7 #xc8) . 5)
+    (,(dev-charseq #xc4) . 6)
     (,(dev-charseq #xc6) . 6)
     (,(dev-charseq #xc5) . 7)
     (,dev-glyph-bottom-modifier . 8)))
@@ -563,86 +565,87 @@ preferred rule from the sanskrit fonts."  )
 (defun devanagari-compose-syllable-region (from to)
   "Compose devanagari syllable in region FROM to TO."
   (let ((glyph-str nil) (cons-num 0) glyph-str-list
-        (last-halant nil) (preceding-r nil) (last-modifier nil)
-        (last-char (char-before to)) match-str
-        glyph-block split-pos)
+	(last-halant nil) (preceding-r nil) (last-modifier nil)
+	(last-char (char-before to)) match-str
+	glyph-block split-pos)
     (save-excursion
       (save-restriction
-          ;;; *** char-to-glyph conversion ***
-        ;; Special rule 1. -- Last halant must be preserved.
-        (if (eq last-char ?$,16-(B)
-            (progn
-              (setq last-halant t)
-              (narrow-to-region from (1- to)))
-          (narrow-to-region from to)
-          ;; note if the last char is modifier.
-          (if (or (eq last-char ?$,15A(B) (eq last-char ?$,15B(B))
-              (setq last-modifier t)))
-        (goto-char (point-min))
-        ;; Special rule 2. -- preceding "r halant" must be modifier.
-        (when (looking-at "$,15p6-(B.")
-          (setq preceding-r t)
-          (goto-char (+ 2 (point))))
-        ;; translate the rest characters into glyphs
-        (while (re-search-forward dev-char-glyph-regexp nil t)
-          (setq match-str (match-string 0))
-          (setq glyph-str
-                (concat glyph-str
-                        (gethash match-str dev-char-glyph-hash)))
-          ;; count the number of consonant-glyhs.
-          (if (string-match devanagari-consonant match-str)
-              (setq cons-num (1+ cons-num))))
-        ;; preceding-r must be attached before the anuswar if exists.
-        (if preceding-r
-            (if last-modifier
-                (setq glyph-str (concat (substring glyph-str 0 -1)
-                                        "$,4"'(B" (substring glyph-str -1)))
-              (setq glyph-str (concat glyph-str "$,4"'(B"))))
-        (if last-halant (setq glyph-str (concat glyph-str "$,4""(B")))
-          ;;; *** glyph-to-glyph conversion ***
-        (when (string-match dev-glyph-glyph-regexp glyph-str)
-          (setq glyph-str
-                (replace-match (gethash (match-string 0 glyph-str)
-                                        dev-glyph-glyph-hash)
-                               nil t glyph-str))
-          (if (and (> cons-num 1)
-                   (string-match dev-glyph-glyph-2-regexp glyph-str))
-              (setq glyph-str
-                    (replace-match (gethash (match-string 0 glyph-str)
-                                            dev-glyph-glyph-2-hash)
-                                   nil t glyph-str))))
-          ;;; *** glyph reordering ***
-        (while (setq split-pos (string-match "$,4""(B\\|.$" glyph-str))
-          (setq glyph-block (substring glyph-str 0 (1+ split-pos)))
-          (setq glyph-str (substring glyph-str (1+ split-pos)))
-          (setq
-           glyph-block
-           (if (string-match dev-glyph-right-modifier-regexp glyph-block)
-               (sort (string-to-list glyph-block)
-                     (function (lambda (x y)
-                        (< (get-char-code-property x 'composition-order)
-                           (get-char-code-property y 'composition-order)))))
-             (sort (string-to-list glyph-block)
-                   (function (lambda (x y)
-                      (let ((xo (get-char-code-property x 'composition-order))
-                            (yo (get-char-code-property y 'composition-order)))
-                        (if (= xo 2) nil (if (= yo 2) t (< xo yo)))))))))
-          (setq glyph-str-list (nconc glyph-str-list glyph-block)))
-          ;; concatenate and attach reference-points.
-        (setq glyph-str
-              (cdr
-               (apply
-                'nconc
-                (mapcar
-                 (function (lambda (x)
-                   (list
-                    (or (get-char-code-property x 'reference-point)
-                    '(5 . 3) ;; default reference point.
-                     )
-                    x)))
-                 glyph-str-list))))))
+	  ;;; *** char-to-glyph conversion ***
+	;; Special rule 1. -- Last halant must be preserved.
+	(if (eq last-char ?$,16-(B)
+	    (progn
+	      (setq last-halant t)
+	      (narrow-to-region from (1- to)))
+	  (narrow-to-region from to)
+	  ;; note if the last char is modifier.
+	  (if (or (eq last-char ?$,15A(B) (eq last-char ?$,15B(B))
+	      (setq last-modifier t)))
+	(goto-char (point-min))
+	;; Special rule 2. -- preceding "r halant" must be modifier.
+	(when (looking-at "$,15p6-(B.")
+	  (setq preceding-r t)
+	  (goto-char (+ 2 (point))))
+	;; translate the rest characters into glyphs
+	(while (re-search-forward dev-char-glyph-regexp nil t)
+	  (setq match-str (match-string 0))
+	  (setq glyph-str
+		(concat glyph-str
+			(gethash match-str dev-char-glyph-hash)))
+	  ;; count the number of consonant-glyhs.
+	  (if (string-match devanagari-consonant match-str)
+	      (setq cons-num (1+ cons-num))))
+	;; preceding-r must be attached before the anuswar if exists.
+	(if preceding-r
+	    (if last-modifier
+		(setq glyph-str (concat (substring glyph-str 0 -1)
+					"$,4"'(B" (substring glyph-str -1)))
+	      (setq glyph-str (concat glyph-str "$,4"'(B"))))
+	(if last-halant (setq glyph-str (concat glyph-str "$,4""(B")))
+	  ;;; *** glyph-to-glyph conversion ***
+	(when (string-match dev-glyph-glyph-regexp glyph-str)
+	  (setq glyph-str
+		(replace-match (gethash (match-string 0 glyph-str)
+					dev-glyph-glyph-hash)
+			       nil t glyph-str))
+	  (if (and (> cons-num 1)
+		   (string-match dev-glyph-glyph-2-regexp glyph-str))
+	      (setq glyph-str
+		    (replace-match (gethash (match-string 0 glyph-str)
+					    dev-glyph-glyph-2-hash)
+				   nil t glyph-str))))
+	  ;;; *** glyph reordering ***
+	(while (setq split-pos (string-match "$,4""(B\\|.$" glyph-str))
+	  (setq glyph-block (substring glyph-str 0 (1+ split-pos)))
+	  (setq glyph-str (substring glyph-str (1+ split-pos)))
+	  (setq
+	   glyph-block
+	   (if (string-match dev-glyph-right-modifier-regexp glyph-block)
+	       (sort (string-to-list glyph-block)
+		     (function (lambda (x y)
+			(< (get-char-code-property x 'composition-order)
+			   (get-char-code-property y 'composition-order)))))
+	     (sort (string-to-list glyph-block)
+		   (function (lambda (x y)
+		      (let ((xo (get-char-code-property x 'composition-order))
+			    (yo (get-char-code-property y 'composition-order)))
+			(if (= xo 2) nil (if (= yo 2) t (< xo yo)))))))))
+	  (setq glyph-str-list (nconc glyph-str-list glyph-block)))
+	  ;; concatenate and attach reference-points.
+	(setq glyph-str
+	      (cdr
+	       (apply
+		'nconc
+		(mapcar
+		 (function (lambda (x)
+		   (list
+		    (or (get-char-code-property x 'reference-point)
+		    '(5 . 3) ;; default reference point.
+		     )
+		    x)))
+		 glyph-str-list))))))
       (compose-region from to glyph-str)))
 
 (provide 'devan-util)
 
+;;; arch-tag: 9bc4d6e3-f2b9-4110-886e-ff9b66b7eebc
 ;;; devan-util.el ends here

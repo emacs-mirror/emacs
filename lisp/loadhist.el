@@ -98,7 +98,8 @@ return the feature \(symbol\)."
 				   features)
 			   nil t)))
 
-(defvar loadhist-hook-functions
+(defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
+(defvar unload-feature-special-hooks
   '(after-change-functions
     after-insert-file-functions auto-fill-function
     before-change-functions blink-paren-function
@@ -153,7 +154,7 @@ is nil, raise an error."
                       (consp (symbol-value x))
                       (string-match "-hooks?\\'" (symbol-name x)))
                  (and (boundp x)       ; Known abnormal hooks etc.
-                      (memq x loadhist-hook-functions)))
+                      (memq x unload-feature-special-hooks)))
 	     (dolist (y (cdr flist))
 	       (remove-hook x y))))))
     (if (fboundp 'elp-restore-function)	; remove ELP stuff first
@@ -189,4 +190,5 @@ is nil, raise an error."
 
 (provide 'loadhist)
 
+;;; arch-tag: 70bb846a-c413-4f01-bf88-78dba4ac0798
 ;;; loadhist.el ends here

@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo                                  @c -*-texinfo-*-
 @comment %**start of header
 @setfilename ../info/eintr
 @c sethtmlfilename emacs-lisp-intro.html
@@ -13,7 +13,7 @@
 @c      set for smallbook, which works for all sizes
 @c      of paper, and with Postscript figures >>>>
 @smallbook
-@clear largebook
+@clear  largebook
 @set print-postscript-figures
 @c set largebook
 @c clear print-postscript-figures
@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.07
-@set update-date 2002 Aug 23
+@set edition-number 2.10
+@set update-date 2003 July 15
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -47,6 +47,17 @@
     ## XML output
     makeinfo --xml --no-split --paragraph-indent=0 \
     --verbose emacs-lisp-intro.texi
+
+    #### (You must be in the same directory as the viewed file.)
+
+      ## View DVI output
+      xdvi emacs-lisp-intro.dvi &
+
+      ## View HTML output
+      galeon emacs-lisp-intro.html
+
+      ## View Info output with standalone reader
+      info emacs-lisp-intro.info
 
 @end ignore
 
@@ -144,76 +155,12 @@
 
 @c For all sized formats:  print within-book cross
 @c reference with ``...''  rather than [...]
+
+@c This works with the texinfo.tex file, version 2003-05-04.08,
+@c in the Texinfo version 4.6 of the 2003 Jun 13 distribution.
+
 @tex
-% Need following so comma appears after section numbers.
-\global\def\Ysectionnumberandtype{%
-\ifnum\secno=0 \putwordChapter\xreftie\the\chapno, \space %
-\else \ifnum \subsecno=0 \putwordSection\xreftie\the\chapno.\the\secno, \space %
-\else \ifnum \subsubsecno=0 %
-\putwordSection\xreftie\the\chapno.\the\secno.\the\subsecno, \space %
-\else %
-\putwordSection\xreftie\the\chapno.\the\secno.\the\subsecno.\the\subsubsecno, \space%
-\fi \fi \fi }
-
-\global\def\Yappendixletterandtype{%
-\ifnum\secno=0 \putwordAppendix\xreftie'char\the\appendixno{}, \space%
-\else \ifnum \subsecno=0 \putwordSection\xreftie'char\the\appendixno.\the\secno, \space %
-\else \ifnum \subsubsecno=0 %
-\putwordSection\xreftie'char\the\appendixno.\the\secno.\the\subsecno, \space %
-\else %
-\putwordSection\xreftie'char\the\appendixno.\the\secno.\the\subsecno.\the\subsubsecno, \space %
-\fi \fi \fi }
-
-\global\def\xrefX[#1,#2,#3,#4,#5,#6]{\begingroup
-  \def\printedmanual{\ignorespaces #5}%
-  \def\printednodename{\ignorespaces #3}%
-  \setbox1=\hbox{\printedmanual}%
-  \setbox0=\hbox{\printednodename}%
-  \ifdim \wd0 = 0pt
-    % No printed node name was explicitly given.
-    \ifx\SETxref-automatic-section-title\relax %
-      % Use the actual chapter/section title appear inside
-      % the square brackets.  Use the real section title if we have it.
-      \ifdim \wd1>0pt%
-        % It is in another manual, so we don't have it.
-        \def\printednodename{\ignorespaces #1}%
-      \else
-        \ifhavexrefs
-          % We know the real title if we have the xref values.
-          \def\printednodename{\refx{#1-title}}%
-        \else
-          % Otherwise just copy the Info node name.
-          \def\printednodename{\ignorespaces #1}%
-        \fi%
-      \fi
-      \def\printednodename{#1-title}%
-    \else
-      % Use the node name inside the square brackets.
-      \def\printednodename{\ignorespaces #1}%
-    \fi
-  \fi
-  %
-  % If we use \unhbox0 and \unhbox1 to print the node names, TeX does not
-  % insert empty discretionaries after hyphens, which means that it will
-  % not find a line break at a hyphen in a node names.  Since some manuals
-  % are best written with fairly long node names, containing hyphens, this
-  % is a loss.  Therefore, we give the text of the node name again, so it
-  % is as if TeX is seeing it for the first time.
-  \ifdim \wd1 > 0pt
-    \putwordsection{} ``\printednodename'' in \cite{\printedmanual}%
-  \else
-    % _ (for example) has to be the character _ for the purposes of the
-    % control sequence corresponding to the node, but it has to expand
-    % into the usual \leavevmode...\vrule stuff for purposes of
-    % printing.  So we \turnoffactive for the \refx-snt, back on for the
-    % printing, back off for the \refx-pg.
-    {\turnoffactive \refx{#1-snt}{}}%
-%    \space [\printednodename],\space                % <= original
-%    \putwordsection{} ``\printednodename'',\space
-    ``\printednodename'',\space
-    \turnoffactive \putwordpage\tie\refx{#1-pg}{}%
-  \fi
-\endgroup}
+\global\def\xrefprintnodename#1{``#1''}
 @end tex
 
 @c ----------------------------------------------------
@@ -225,18 +172,38 @@
 @end direntry
 
 @copying
-This is an introduction to @cite{Programming in Emacs Lisp}, for
+This is an @cite{Introduction to Programming in Emacs Lisp}, for
 people who are not programmers.
-
+@sp 1
 Edition @value{edition-number}, @value{update-date}
+@sp 1
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,
+2002, 2003 Free Software Foundation, Inc.
+@sp 1
 
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
-@sp 2
+@iftex
+Published by the:@*
 
-Published by the Free Software Foundation, Inc.@*
-59 Temple Place, Suite 330@*
-Boston, MA 02111-1307 USA@*
+GNU Press,                      @hfill  @uref{http://www.gnupress.org}@*
+a division of the               @hfill General: @email{press@@gnu.org}@*
+Free Software Foundation, Inc.  @hfill Orders:@w{ }  @email{sales@@gnu.org}@*
+59 Temple Place, Suite 330      @hfill Tel: +1 (617) 542-5942@*
+Boston, MA 02111-1307 USA       @hfill Fax: +1 (617) 542-2652@*
+@end iftex
 
+@ifnottex
+Published by the:
+
+@example
+GNU Press,                          Website: http://www.gnupress.org
+a division of the                   General: press@@gnu.org
+Free Software Foundation, Inc.      Orders:  sales@@gnu.org
+59 Temple Place, Suite 330          Tel: +1 (617) 542-5942
+Boston, MA 02111-1307 USA           Fax: +1 (617) 542-2652
+@end example
+@end ifnottex
+
+@sp 1
 @c Printed copies are available for $30 each.@*
 ISBN 1-882114-43-4
 
@@ -269,7 +236,7 @@ Free Software Foundation raise funds for GNU development.''
 @sp 2
 @center @titlefont{Programming in Emacs Lisp}
 @sp 2
-@center Second Edition
+@center Revised Second Edition
 @sp 4
 @center by Robert J. Chassell
 
@@ -285,46 +252,17 @@ Free Software Foundation raise funds for GNU development.''
 @end iftex
 
 @ifnothtml
-
-@c Keep T.O.C. short by tightening up.
+@c     Keep T.O.C. short by tightening up for largebook
 @ifset largebook
 @tex
 \global\parskip 2pt plus 1pt
 \global\advance\baselineskip by -1pt
 @end tex
 @end ifset
+@end ifnothtml
 
 @shortcontents
 @contents
-
-@ifset largebook
-@tex
-\global\parskip 6pt plus 1pt
-\global\advance\baselineskip by 1pt
-@end tex
-@end ifset
-
-@end ifnothtml
-
-@c >>>> Set pageno appropriately <<<<
-
-@c The first page of the Preface is a roman numeral; it is the first
-@c right handed page after the Table of Contents; hence the following
-@c setting must be for an odd negative number.
-
-@c if largebook, there are 8 pages in Table of Contents
-@ifset largebook
-@iftex
-@pageno = -9
-@end iftex
-@end ifset
-
-@c if smallbook, there are 10 pages in Table of Contents
-@ifclear largebook
-@iftex
-@pageno = -11
-@end iftex
-@end ifclear
 
 @ifnottex
 @node Top, Preface, (dir), (dir)
@@ -360,6 +298,7 @@ every node in every chapter.
 * the-the::                     An appendix: how to find reduplicated words.
 * Kill Ring::                   An appendix: how the kill ring works.
 * Full Graph::                  How to create a graph with labelled axes.
+* Free Software and Free Manuals::
 * GNU Free Documentation License::
 * Index::
 * About the Author::
@@ -779,6 +718,7 @@ Handling the Kill Ring
 * rotate-yank-pointer::         Move a pointer along a list and around.
 * yank::                        Paste a copy of a clipped element.
 * yank-pop::                    Insert first element pointed to.
+* ring file::
 
 The @code{rotate-yank-pointer} Function
 
@@ -831,6 +771,16 @@ Printing the Whole Graph
 
 @end detailmenu
 @end menu
+
+@c >>>> Set pageno appropriately <<<<
+
+@c The first page of the Preface is a roman numeral; it is the first
+@c right handed page after the Table of Contents; hence the following
+@c setting must be for an odd negative number.
+
+@iftex
+@global@pageno = -11
+@end iftex
 
 @node Preface, List Processing, Top, Top
 @comment  node-name,  next,  previous,  up
@@ -1090,7 +1040,7 @@ Robert J. Chassell
 @headings off
 @evenheading @thispage @| @| @thischapter
 @oddheading @thissection @| @| @thispage
-@pageno = 1
+@global@pageno = 1
 @end iftex
 
 @node List Processing, Practicing Evaluation, Preface, Top
@@ -1542,9 +1492,9 @@ carry out.  Instead, the symbol is used, perhaps temporarily, as a way
 of locating the definition or set of instructions.  What we see is the
 name through which the instructions can be found.  Names of people
 work the same way.  I can be referred to as @samp{Bob}; however, I am
-not the letters @samp{B}, @samp{o}, @samp{b} but am the consciousness
-consistently associated with a particular life-form.  The name is not
-me, but it can be used to refer to me.
+not the letters @samp{B}, @samp{o}, @samp{b} but am, or were, the
+consciousness consistently associated with a particular life-form.
+The name is not me, but it can be used to refer to me.
 
 In Lisp, one set of instructions can be attached to several names.
 For example, the computer instructions for adding numbers can be
@@ -2008,6 +1958,7 @@ kind of information it uses.  The arguments to a function such as
 @code{+} must have values that are numbers, since @code{+} adds numbers.
 Other functions use different kinds of data for their arguments.
 
+@need 1250
 @findex concat
 For example, the @code{concat} function links together or unites two or
 more strings of text to produce a string.  The arguments are strings.
@@ -2324,7 +2275,7 @@ for @samp{%s}:
 @smallexample
 @group
 (message "He saw %d %s"
-         (- fill-column 34)
+         (- fill-column 32)
          (concat "red "
                  (substring
                   "The quick brown foxes jumped." 16 21)
@@ -2536,6 +2487,7 @@ Learning Lisp is like climbing a hill in which the first part is the
 steepest.  You have now climbed the most difficult part; what remains
 becomes easier as you progress onwards.
 
+@need 1000
 In summary,
 
 @itemize @bullet
@@ -3535,7 +3487,7 @@ each argument by adding parts to the string that follows
 each argument in the same order it is specified in the
 @code{interactive} list.  In the string, each part is separated from
 the next part by a @samp{\n}, which is a newline.  For example, you
-could follow @code{"BAppend to buffer:@: "} with a @samp{\n}) and an
+could follow @code{"BAppend to buffer:@: "} with a @samp{\n} and an
 @samp{r}.  This would cause Emacs to pass the values of point and mark
 to the function as well as prompt you for the buffer---three arguments
 in all.
@@ -4392,6 +4344,7 @@ function, in sequence.  These parts may also tell the interpreter to
 prompt for information.  Parts of the string are separated by
 newlines, @samp{\n}.
 
+@need 1000
 Common code characters are:
 
 @table @code
@@ -4522,8 +4475,8 @@ Print a message in the echo area. The first argument is a string that
 can contain @samp{%s}, @samp{%d}, or @samp{%c} to print the value of
 arguments that follow the string.  The argument used by @samp{%s} must
 be a string or a symbol; the argument used by @samp{%d} must be a
-number.  The argument used by @samp{%c} must be an ascii code number;
-it will be printed as the character with that @sc{ascii} code.
+number.  The argument used by @samp{%c} must be an @sc{ascii} code
+number; it will be printed as the character with that @sc{ascii} code.
 
 @item setq
 @itemx set
@@ -4631,7 +4584,7 @@ then @key{RET}).
 In versions 20 and higher, when a function is written in Emacs Lisp,
 @code{describe-function} will also tell you the location of the
 function definition.  If you move point over the file name and press
-the @key{RET} key, which is this case means @code{help-follow} rather
+the @key{RET} key, which in this case means @code{help-follow} rather
 than `return' or `enter', Emacs will take you directly to the function
 definition.
 
@@ -4646,8 +4599,8 @@ The @code{find-tags} function depends on `tags tables' that record
 the locations of the functions, variables, and other items to which
 @code{find-tags} jumps.
 
-To use the @code{find-tags} command, type @kbd{M-.}  (i.e., type the
-@key{META} key and the period key at the same time, or else type the
+To use the @code{find-tags} command, type @kbd{M-.}  (i.e., press the
+period key while holding down the @key{META} key, or else type the
 @key{ESC} key and then type the period key), and then, at the prompt,
 type in the name of the function whose source code you want to see,
 such as @code{mark-whole-buffer}, and then type @key{RET}.  Emacs will
@@ -4667,7 +4620,7 @@ if it has already been created for you, will be in a subdirectory of
 the @file{/usr/local/share/emacs/} directory; thus you would use the
 @code{M-x visit-tags-table} command and specify a pathname such as
 @file{/usr/local/share/emacs/21.0.100/lisp/TAGS} or
-@file{/usr/local/src/emacs/lisp/TAGS}.  If the tags table has
+@file{/usr/local/src/emacs/src/TAGS}.  If the tags table has
 not already been created, you will have to create it yourself.
 
 @need 1250
@@ -4892,6 +4845,7 @@ that the function will be used interactively.  These details are similar
 to the @code{simplified-beginning-of-buffer} function described in the
 previous section.
 
+@need 1250
 @node Body of mark-whole-buffer,  , mark-whole-buffer overview, mark-whole-buffer
 @comment  node-name,  next,  previous,  up
 @subsection Body of @code{mark-whole-buffer}
@@ -5476,6 +5430,9 @@ command copies another buffer @emph{into} the current buffer.  It is the
 reverse of @code{append-to-buffer} or @code{copy-to-buffer}, since they
 copy a region of text @emph{from} the current buffer to another buffer.
 
+Here is a discussion based on the original code.  The code was
+simplified in 2003 and is harder to understand.
+
 In addition, this code illustrates the use of @code{interactive} with a
 buffer that might be @dfn{read-only} and the important distinction
 between the name of an object and the object actually referred to.
@@ -5681,7 +5638,7 @@ returns true, the @code{not} expression returns false and vice-versa:
 what is ``not true'' is false and what is ``not false'' is true.
 
 Using this test, the @code{if} expression works as follows: when the
-value of the variable @code{buffer} is actually a buffer rather then
+value of the variable @code{buffer} is actually a buffer rather than
 its name, the true-or-false-test returns false and the @code{if}
 expression does not evaluate the then-part.  This is fine, since we do
 not need to do anything to the variable @code{buffer} if it really is
@@ -5829,7 +5786,8 @@ function sets a mark to this location.  (The previous location of the
 mark is still accessible; it is recorded on the mark ring and you can
 go back to it with @kbd{C-u C-@key{SPC}}.)  Meanwhile, point is
 located at the beginning of the inserted text, which is where it was
-before you called the insert function.
+before you called the insert function, the position of which was saved
+by the first @code{save-excursion}.
 
 @need 1250
 The whole @code{let} expression looks like this:
@@ -6143,12 +6101,14 @@ position in the buffer.
 The number that results from all this is passed to @code{goto-char} and
 the cursor is moved to that point.
 
+@need 1500
 @node beginning-of-buffer complete,  , beginning-of-buffer opt arg, beginning-of-buffer
 @comment  node-name,  next,  previous,  up
 @subsection The Complete @code{beginning-of-buffer}
 
-@need 800
+@need 1000
 Here is the complete text of the @code{beginning-of-buffer} function:
+@sp 1
 
 @smallexample
 @group
@@ -6157,6 +6117,8 @@ Here is the complete text of the @code{beginning-of-buffer} function:
 leave mark at previous position.
 With arg N, put point N/10 of the way
 from the true beginning.
+@end group
+@group
 Don't use this in Lisp programs!
 \(goto-char (point-min)) is faster
 and does not set the mark."
@@ -6264,9 +6226,10 @@ Return @code{t} if its argument is a buffer; otherwise return @code{nil}.
 @section @code{optional} Argument Exercise
 
 Write an interactive function with an optional argument that tests
-whether its argument, a number, is greater or less than the value of
-@code{fill-column}, and tells you which, in a message.  However, if you
-do not pass an argument to the function, use 56 as a default value.
+whether its argument, a number, is greater than or equal to, or else,
+less than the value of @code{fill-column}, and tells you which, in a
+message.  However, if you do not pass an argument to the function, use
+56 as a default value.
 
 @node Narrowing & Widening, car cdr & cons, More Complex, Top
 @comment  node-name,  next,  previous,  up
@@ -6395,7 +6358,7 @@ For example,
 The @code{what-line} command tells you the number of the line in which
 the cursor is located.  The function illustrates the use of the
 @code{save-restriction} and @code{save-excursion} commands.  Here is the
-text of the function in full:
+original text of the function:
 
 @smallexample
 @group
@@ -6411,9 +6374,19 @@ text of the function in full:
 @end group
 @end smallexample
 
-The function has a documentation line and is interactive, as you would
-expect.  The next two lines use the functions @code{save-restriction} and
-@code{widen}.
+(In recent versions of GNU Emacs, the @code{what-line} function has
+been expanded to tell you your line number in a narrowed buffer as
+well as your line number in a widened buffer.  The recent version is
+more complex than the version shown here.  If you feel adventurous,
+you might want to look at it after figuring out how this version
+works.  The newer version uses a conditional to determine whether the
+buffer has been narrowed, and rather than use @code{beginning-of-line}
+to move point to the beginning of the current line, if need be, the
+function uses @code{(forward-line 0)}.)
+
+The function as shown here has a documentation line and is
+interactive, as you would expect.  The next two lines use the
+functions @code{save-restriction} and @code{widen}.
 
 The @code{save-restriction} special form notes whatever narrowing is in
 effect, if any, in the current buffer and restores that narrowing after
@@ -6459,6 +6432,7 @@ printed as a string of characters.  However, it may contain @samp{%d},
 something such as @samp{Line 243}.
 
 @need 1200
+
 The number that is printed in place of the @samp{%d} is computed by the
 last line of the function:
 
@@ -6484,11 +6458,21 @@ the original narrowing, if any.
 
 Write a function that will display the first 60 characters of the
 current buffer, even if you have narrowed the buffer to its latter
-half so that the first line is inaccessible.  Restore point, mark,
-and narrowing.  For this exercise, you need to use
-@code{save-restriction}, @code{widen}, @code{goto-char},
-@code{point-min}, @code{buffer-substring}, @code{message}, and other
-functions, a whole potpourri.
+half so that the first line is inaccessible.  Restore point, mark, and
+narrowing.  For this exercise, you need to use a whole potpourri of
+functions, including @code{save-restriction}, @code{widen},
+@code{goto-char}, @code{point-min}, @code{message}, and
+@code{buffer-substring}.
+
+@cindex Properties, mention of @code{buffer-substring-no-properties}
+(@code{buffer-substring} is a previously unmentioned function you will
+have to investigate yourself; or perhaps you will have to use
+@code{buffer-substring-no-properties} @dots{}, yet another function
+and one that introduces text properties, a feature otherwise not
+discussed here.  @xref{Text Properties, , Text Properties, elisp, The
+GNU Emacs Lisp Reference Manual}.  Additionally, do you really need
+@code{goto-char} or @code{point-min}?  Or can you write the function
+without them?)
 
 @node car cdr & cons, Cutting & Storing Text, Narrowing & Widening, Top
 @comment  node-name,  next,  previous,  up
@@ -6570,7 +6554,7 @@ daisy buttercup)} is @code{rose}, the rest of the list, the value
 returned by the @code{cdr} function, is @code{(violet daisy
 buttercup)}.
 
-@need 1250
+@need 800
 You can see this by evaluating the following in the usual way:
 
 @smallexample
@@ -7080,6 +7064,10 @@ The @code{setcdr} function is similar to the @code{setcar} function,
 except that the function replaces the second and subsequent elements of
 a list rather than the first element.
 
+(To see how to change the last element of a list, look ahead to
+@ref{kill-new function, , The @code{kill-new} function}, which uses
+the @code{nthcdr} and @code{setcdr} functions.)
+
 @need 1200
 To see how this works, set the value of the variable to a list of
 domesticated animals by evaluating the following expression:
@@ -7338,14 +7326,16 @@ buffer only because of a mistake in the implementation of
 @code{interactive}.  According to the documentation for
 @code{interactive}, the asterisk, @samp{*}, should prevent the
 @code{zap-to-char} function from doing anything at all when the buffer
-is read only.  The function should not copy the text to the kill ring.
-It is a bug that it does.
+is read only.  In version 19, the function should not copy the text to
+the kill ring.  It is a bug that it does.
 
-In version 21, @code{interactive} is implemented correctly.  So the
+In version 21, the function is designed to copy the text to the kill
+ring; moreover, @code{interactive} is implemented correctly.  So the
 asterisk, @samp{*}, had to be removed from the interactive
-specification.  If you insert an @samp{*} and evaluate the function
-definition, then the next time you run the @code{zap-to-char} function
-on a read-only buffer, you will not copy any text.
+specification.  However, if you insert an @samp{*} yourself and
+evaluate the function definition, then the next time you run the
+@code{zap-to-char} function on a read-only buffer, you will not copy
+any text.
 
 That change aside, and a change to the documentation, the two versions
 of the  @code{zap-to-char} function are identical.
@@ -7559,8 +7549,9 @@ contains the code that is called in the event of an error.
 
 @need 1200
 We will go through the @code{condition-case} code in a moment.  First,
-let us look at the complete definition of @code{kill-region}, with
-comments added:
+let us look at the original definition of @code{kill-region}, with
+comments added (the newer definition has an optional third argument
+and is more complex):
 
 @c v 21
 @smallexample
@@ -8140,6 +8131,8 @@ the function copies the text into a separate entry in the kill ring.
 Here is the complete text of the version 21 @code{copy-region-as-kill}
 function:
 
+@c !!! for no text properties, use buffer-substring-no-properties
+
 @smallexample
 @group
 (defun copy-region-as-kill (beg end)
@@ -8337,7 +8330,7 @@ evaluated, it is bound to the value returned by evaluating the actual
 argument.  In this case, this is the expression @code{(< end beg)}.
 This expression does not directly determine whether the killed text in
 this command is located before or after the kill text of the last
-command; what is does is determine whether the value of the variable
+command; what it does is determine whether the value of the variable
 @code{end} is less than the value of the variable @code{beg}.  If it
 is, it means that the user is most likely heading towards the
 beginning of the buffer.  Also, the result of evaluating the predicate
@@ -8587,12 +8580,14 @@ list---it takes the @sc{cdr} of the @sc{cdr} of the @sc{cdr}
 @findex setcdr, @r{example}
 Thus, if we had a four element list that was supposed to be three
 elements long, we could set the @sc{cdr} of the next to last element
-to @code{nil}, and thereby shorten the list.
+to @code{nil}, and thereby shorten the list.  (If you sent the last
+element to some other value than @code{nil}, which you could do, then
+you would not have shortened the list.)
 
-You can see this by evaluating the following three expressions in turn.
-First set the value of @code{trees} to @code{(maple oak pine birch)},
-then set the @sc{cdr} of its second @sc{cdr} to @code{nil} and then
-find the value of @code{trees}:
+You can see shortening by evaluating the following three expressions
+in turn.  First set the value of @code{trees} to @code{(maple oak pine
+birch)}, then set the @sc{cdr} of its second @sc{cdr} to @code{nil}
+and then find the value of @code{trees}:
 
 @smallexample
 @group
@@ -8717,6 +8712,7 @@ commands.  However, before discussing the yank commands, it is better
 to learn how lists are implemented in a computer.  This will make
 clear such mysteries as the use of the term `pointer'.
 
+@need 1250
 @node cons & search-fwd Review, search Exercises, copy-region-as-kill, Cutting & Storing Text
 @comment  node-name,  next,  previous,  up
 @section Review
@@ -8842,7 +8838,7 @@ search goes backwards.
 @end enumerate
 
 @item kill-region
-@itemx delete-region
+@itemx delete-and-extract-region
 @itemx copy-region-as-kill
 
 @code{kill-region} cuts the text between point and mark from the
@@ -11522,17 +11518,30 @@ using @code{cond}.
 @item
 Write a function for Texinfo mode that creates an index entry at the
 beginning of a paragraph for every @samp{@@dfn} within the paragraph.
-(In a Texinfo file, @samp{@@dfn} marks a definition.  For more
-information, see
+(In a Texinfo file, @samp{@@dfn} marks a definition.  This book is
+written in Texinfo.)
+
+Many of the functions you will need are described in two of the
+previous chapters, @ref{Cutting & Storing Text, , Cutting and Storing
+Text}, and @ref{Yanking, , Yanking Text Back}.  If you use
+@code{forward-paragraph} to put the index entry at the beginning of
+the paragraph, you will have to use @w{@kbd{C-h f}}
+(@code{describe-function}) to find out how to make the command go
+backwards.
+
+For more information, see
 @ifinfo
-@ref{Indicating, , Indicating Definitions, texinfo}.)
+@ref{Indicating, , Indicating Definitions, texinfo}.
 @end ifinfo
 @ifhtml
-@ref{Indicating, , Indicating, texinfo, Texinfo Manual}.)
+@ref{Indicating, , Indicating, texinfo, Texinfo Manual}, which goes to
+a Texinfo manual in the current directory.  Or, if you are on the
+Internet, see
+@uref{http://www.gnu.org/manual/texinfo-4.6/html_node/Indicating.html}
 @end ifhtml
 @iftex
 ``Indicating Definitions, Commands, etc.'' in @cite{Texinfo, The GNU
-Documentation Format}.)
+Documentation Format}.
 @end iftex
 @end itemize
 
@@ -14704,7 +14713,7 @@ it uses the @code{<} function:
   '("../lisp/macros.el"
     "../lisp/mailalias.el"
     "../lisp/makesum.el"))
- '<
+ '<)
 @end group
 @end smallexample
 
@@ -16096,7 +16105,7 @@ and options; these are not featured in @code{defvar}.  (These
 arguments are optional.)
 
 Each of these arguments consists of a keyword followed by a value.
-Each keyword starts with the character @code{:}.
+Each keyword starts with the colon character @samp{:}.
 
 @need 1250
 For example, the customizable user option variable
@@ -16179,12 +16188,12 @@ expression!  I do all time.  The purpose of the warning is to scare
 those who do not know what they are doing, so they do not
 inadvertently generate an error.
 
-The @code{custom-set-variables} works somewhat differently than a
-@code{setq}.  While I have never learned the differences, I do modify
-the @code{custom-set-variables} expressions in my @file{.emacs} file
-by hand:  I make the changes in what appears to me to be a reasonable
-manner and have not had any problems.  Others prefer to use the
-Customization command and let Emacs do the work for them.
+The @code{custom-set-variables} function works somewhat differently
+than a @code{setq}.  While I have never learned the differences, I do
+modify the @code{custom-set-variables} expressions in my @file{.emacs}
+file by hand:  I make the changes in what appears to me to be a
+reasonable manner and have not had any problems.  Others prefer to use
+the Customization command and let Emacs do the work for them.
 
 Another @code{custom-set-@dots{}} function is @code{custom-set-faces}.
 This function sets the various font faces.  Over time, I have set a
@@ -16248,6 +16257,7 @@ The first part of the file consists of comments: reminders to myself.
 By now, of course, I remember these things, but when I started, I did
 not.
 
+@need 1200
 @smallexample
 @group
 ;;;; Bob's .emacs file
@@ -16698,11 +16708,7 @@ Reference Manual}, for more information about keymaps.
 Many people in the GNU Emacs community have written extensions to
 Emacs.  As time goes by, these extensions are often included in new
 releases.  For example, the Calendar and Diary packages are now part
-of the standard GNU Emacs.
-
-(Calc, which I consider a vital part of Emacs, would be part of the
-standard distribution except that it was so large it was packaged
-separately and no one has changed that.)
+of the standard GNU Emacs, as is Calc.
 
 You can use a @code{load} command to evaluate a complete file and
 thereby install all the functions and variables in the file into Emacs.
@@ -17080,7 +17086,130 @@ Set the shape and color of the mouse cursor:
   (set-mouse-color "white"))
 @end group
 @end smallexample
+
+@item
+Convert @kbd{@key{CTL}-h} into @key{DEL} and @key{DEL}
+into @kbd{@key{CTL}-h}.@*
+(Some olders keyboards needed this, although I have not seen the
+problem recently.)
+
+@smallexample
+@group
+;; Translate `C-h' to <DEL>.
+; (keyboard-translate ?\C-h ?\C-?)
+
+;; Translate <DEL> to `C-h'.
+(keyboard-translate ?\C-? ?\C-h)
+@end group
+@end smallexample
+
+@item Turn off a blinking cursor!
+
+@smallexample
+@group
+(if (fboundp 'blink-cursor-mode)
+    (blink-cursor-mode -1))
+@end group
+@end smallexample
+
+@item  Ignore case when using `grep'@*
+@samp{-n}@w{  }   Prefix each line of output with line number@*
+@samp{-i}@w{  }   Ignore case distinctions@*
+@samp{-e}@w{  }   Protect patterns beginning with a hyphen character, @samp{-} 
+
+@smallexample
+(setq grep-command "grep  -n -i -e ")
+@end smallexample
+
+@item Automatically uncompress compressed files when visiting them
+
+@smallexample
+(load "uncompress")
+@end smallexample
+
+@item Find an existing buffer, even if it has a different name@*
+This avoids problems with symbolic links.
+
+@smallexample
+(setq find-file-existing-other-name t)
+@end smallexample
+
+@item Set your language environment and default input method
+
+@smallexample
+@group
+(set-language-environment "latin-1")
+;; Remember you can enable or disable multilingual text input
+;; with the @code{toggle-input-method'} (@kbd{C-\}) command
+(setq default-input-method "latin-1-prefix")
+@end group
+@end smallexample
+
+If you want to write with Chinese `GB' characters, set this instead:
+
+@smallexample
+@group
+(set-language-environment "Chinese-GB")
+(setq default-input-method "chinese-tonepy")
+@end group
+@end smallexample
 @end itemize
+
+@subsubheading Fixing Unpleasant Key Bindings
+@cindex Key bindings, fixing 
+@cindex Bindings, key, fixing unpleasant
+
+Some systems bind keys unpleasantly.  Sometimes, for example, the
+@key{CTL} key appears in an awkward spot rather than at the far left
+of the home row.
+
+Usually, when people fix these sorts of keybindings, they do not
+change their @file{~/.emacs} file.  Instead, they bind the proper keys
+on their consoles with the @code{loadkeys} or @code{install-keymap}
+commands in their boot script and then include @code{xmodmap} commands
+in their @file{.xinitrc} or @file{.Xsession} file for X Windows.
+
+@need 1250
+@noindent
+For a boot script:
+
+@smallexample
+@group
+loadkeys /usr/share/keymaps/i386/qwerty/emacs2.kmap.gz
+
+@exdent or
+
+install-keymap emacs2
+@end group
+@end smallexample
+
+@need 1250
+@noindent
+For a @file{.xinitrc} or @file{.Xsession} file when the @key{Caps
+Lock} key is at the far left of the home row:
+
+@smallexample
+@group
+# Bind the key labeled `Caps Lock' to `Control'
+# (Such a broken user interface suggests that keyboard manufacturers
+# think that computers are typewriters from 1885.)
+
+xmodmap -e "clear Lock"
+xmodmap -e "add Control = Caps_Lock"
+@end group
+@end smallexample
+
+@need 1250
+@noindent
+In a @file{.xinitrc} or @file{.Xsession} file, to convert an @key{ALT}
+key to a @key{META} key:
+
+@smallexample
+@group
+# Some ill designed keyboards have a key labeled ALT and no Meta
+xmodmap -e "keysym Alt_L = Meta_L Alt_L"
+@end group
+@end smallexample
 
 @node Mode Line,  , Miscellaneous, Emacs Initialization
 @section A Modified Mode Line
@@ -17159,11 +17288,12 @@ has been modified, @code{mode-name} tells the name of the mode, and so
 on.  However, the format looks complicated because of two features we
 have not discussed.
 
+@cindex Properties, in mode line example
 The first string in the mode line is a dash or hyphen, @samp{-}.  In
 the old days, it would have been specified simply as @code{"-"}.  But
 nowadays, Emacs can add properties to a string, such as highlighting
 or, as in this case, a help feature.  If you place your mouse cursor
-over the hyphen, some help information appears  (By default, you must
+over the hyphen, some help information appears (By default, you must
 wait one second before the information appears.  You can change that
 timing by changing the value of @code{tooltip-delay}.)
 
@@ -17186,10 +17316,9 @@ property name, in this case, @samp{help-echo}, followed by a value, in this
 case, a string.  The second, third, and fourth elements of this new
 string format can be repeated.
 
-@xref{Text Props and Strings, , Text Properties in String, elisp, The
-GNU Emacs Lisp Reference Manual}, and see @ref{Mode Line Format, , Mode
-Line Format, elisp, The GNU Emacs Lisp Reference Manual}, for more
-information.
+@xref{Text Properties, , Text Properties, elisp, The GNU Emacs Lisp
+Reference Manual}, and see @ref{Mode Line Format, , Mode Line Format,
+elisp, The GNU Emacs Lisp Reference Manual}, for more information.
 
 @code{mode-line-buffer-identification}
 displays the current buffer name.  It is a list
@@ -17494,6 +17623,7 @@ Debugger entered--beginning evaluation of function call form:
 @end group
 @end smallexample
 
+@need 1500
 @noindent
 Finally, after you type @kbd{d} two more times, Emacs will reach the
 error, and the top two lines of the @file{*Backtrace*} buffer will look
@@ -17572,6 +17702,7 @@ quickly until reaching a @dfn{breakpoint} where execution stops.
 Edebug is described in @ref{edebug, , Edebug, elisp, The GNU Emacs
 Lisp Reference Manual}.
 
+@need 1250
 Here is a bugged function definition for @code{triangle-recursively}.
 @xref{Recursive triangle function, , Recursion in place of a counter},
 for a review of it.
@@ -17659,7 +17790,8 @@ Result: 3 = C-c
 
 @noindent
 This means the value of @code{number} is 3, which is @sc{ascii}
-`control-c' (the third letter of the alphabet).
+`control-c' (the third letter of the alphabet, in case you need to
+know this information).
 
 You can continue moving through the code until you reach the line with
 the error.  Before evaluation, that line looks like this:
@@ -17989,6 +18121,7 @@ commands.
 * rotate-yank-pointer::         Move a pointer along a list and around.
 * yank::                        Paste a copy of a clipped element.
 * yank-pop::                    Insert first element pointed to.
+* ring file::
 @end menu
 
 @node rotate-yank-pointer, yank, Kill Ring, Kill Ring
@@ -18307,6 +18440,7 @@ that the value of the whole expression
 @noindent
 will be 1.
 
+@need 1200
 Consequently, the argument to @code{nthcdr} will be found as the result of
 the expression
 
@@ -18383,6 +18517,7 @@ evaluating
 is 1.  (I just checked this by placing the cursor after the expression
 and typing @kbd{C-x C-e}.  Indeed, 1 is printed in the echo area.)
 
+@need 2000
 @node rotate-yk-ptr remainder, kill-rng-yk-ptr last elt, Remainder Function, rotate-yk-ptr body
 @unnumberedsubsubsec Using @code{%} in @code{rotate-yank-pointer}
 
@@ -18681,7 +18816,7 @@ towards the beginning of the kill ring more than one place at a time
 and doing this is easier than writing a function to determine the
 magnitude of the number that follows the minus sign.
 
-@node yank-pop,  , yank, Kill Ring
+@node yank-pop, ring file, yank, Kill Ring
 @comment  node-name,  next,  previous,  up
 @appendixsec @code{yank-pop}
 @findex yank-pop
@@ -18728,7 +18863,17 @@ yank, point was left before the inserted text, point and mark are now
 exchanged so point is again left in front of the newly inserted text.
 That is all there is to it!
 
-@node Full Graph, GNU Free Documentation License, Kill Ring, Top
+@node ring file,  , yank-pop, Kill Ring
+@comment  node-name,  next,  previous,  up
+@appendixsec The @file{ring.el} File
+@cindex @file{ring.el} file
+
+Interestingly, GNU Emacs posses a file called @file{ring.el} that
+provides many of the features we just discussed.  But functions such
+as @code{kill-ring-yank-pointer} do not use this library, possibly
+because they were written earlier.
+
+@node Full Graph, Free Software and Free Manuals, Kill Ring, Top
 @appendix A Graph with Labelled Axes
 
 Printed axes help you understand a graph.  They convey scale.  In an
@@ -18874,6 +19019,7 @@ in the @code{let} for @code{print-graph}:
 @noindent
 As we shall see, this expression is not quite right.
 
+@need 2000
 @node print-Y-axis, print-X-axis, print-graph Varlist, Full Graph
 @comment  node-name,  next,  previous,  up
 @appendixsec The @code{print-Y-axis} Function
@@ -18949,7 +19095,7 @@ As usual in cases like this, a complex problem becomes simpler if it is
 divided into several smaller problems.
 
 First, consider the case when the highest value of the graph is an
-integral multiple of five---when it is 5, 10, 15 ,or some higher
+integral multiple of five---when it is 5, 10, 15, or some higher
 multiple of five.  We can use this value as the Y axis height.
 
 A fairly simply way to determine whether a number is a multiple of
@@ -19249,6 +19395,7 @@ using the @code{Y-axis-element} function; if not, we construct a
 blank label using the @code{make-string} function.  The base line
 consists of the number one followed by a tic mark.
 
+@need 2000
 @node print-Y-axis Penultimate,  , Y-axis-column, print-Y-axis
 @appendixsubsec The Not Quite Final Version of @code{print-Y-axis}
 
@@ -19324,6 +19471,7 @@ Emacs will print labels vertically, the top one being
 will pass the value of @code{height-of-top-line}, which
 in this case would end up as 15.)
 
+@need 2000
 @node print-X-axis, Print Whole Graph, print-Y-axis, Full Graph
 @appendixsec The @code{print-X-axis} Function
 @cindex Axis, print horizontal
@@ -19666,6 +19814,7 @@ Press @key{RET} to evaluate the expression.
 
 @need 1250
 Emacs will print the horizontal axis like this:
+@sp 1
 
 @smallexample
 @group
@@ -19920,6 +20069,7 @@ Emacs will print a graph that looks like this:
 @end group
 @end smallexample
 
+@need 1200
 On the other hand, if you pass @code{print-graph} a
 @code{vertical-step} value of 2, by evaluating this expression:
 
@@ -20003,9 +20153,9 @@ Evaluate the following:
 @end smallexample
 
 @noindent
-On my machine, this takes about an hour.  It looks though 303 Lisp
+On my old machine, this took about an hour.  It looked though 303 Lisp
 files in my copy of Emacs version 19.23.  After all that computing,
-the @code{list-for-graph} has this value:
+the @code{list-for-graph} had this value:
 
 @smallexample
 @group
@@ -20015,7 +20165,7 @@ the @code{list-for-graph} has this value:
 @end smallexample
 
 @noindent
-This means that my copy of Emacs has 537 function definitions with
+This means that my copy of Emacs had 537 function definitions with
 fewer than 10 words or symbols in them, 1,027 function definitions
 with 10 to 19 words or symbols in them, 955 function definitions with
 20 to 29 words or symbols in them, and so on.
@@ -20063,6 +20213,7 @@ Thus,
 is a function definition that says `return the value resulting from
 dividing whatever is passed to me as @code{arg} by 50'.
 
+@need 1200
 Earlier, for example, we had a function @code{multiply-by-seven}; it
 multiplied its argument by 7.  This function is similar, except it
 divides its argument by 50; and, it has no name.  The anonymous
@@ -20991,15 +21142,17 @@ each column."
 
 When made and installed, you can call the @code{print-graph} command
 like this:
+@sp 1
 
 @smallexample
 @group
 (print-graph fiftieth-list-for-graph 50 10)
 @end group
 @end smallexample
+@sp 1
 
+@noindent
 Here is the graph:
-
 @sp 2
 
 @smallexample
@@ -21031,16 +21184,143 @@ Here is the graph:
 
 @sp 2
 
+@noindent
 The largest group of functions contain 10 -- 19 words and symbols each.
 
-@node GNU Free Documentation License, Index, Full Graph, Top
+@node Free Software and Free Manuals, GNU Free Documentation License, Full Graph, Top
+@appendix Free Software and Free Manuals
+
+@strong{by Richard M. Stallman}
+@sp 1
+
+The biggest deficiency in free operating systems is not in the
+software---it is the lack of good free manuals that we can include in
+these systems.  Many of our most important programs do not come with
+full manuals.  Documentation is an essential part of any software
+package; when an important free software package does not come with a
+free manual, that is a major gap.  We have many such gaps today.
+
+Once upon a time, many years ago, I thought I would learn Perl.  I got
+a copy of a free manual, but I found it hard to read.  When I asked
+Perl users about alternatives, they told me that there were better
+introductory manuals---but those were not free.
+
+Why was this?  The authors of the good manuals had written them for
+O'Reilly Associates, which published them with restrictive terms---no
+copying, no modification, source files not available---which exclude
+them from the free software community.
+
+That wasn't the first time this sort of thing has happened, and (to
+our community's great loss) it was far from the last.  Proprietary
+manual publishers have enticed a great many authors to restrict their
+manuals since then.  Many times I have heard a GNU user eagerly tell me
+about a manual that he is writing, with which he expects to help the
+GNU project---and then had my hopes dashed, as he proceeded to explain
+that he had signed a contract with a publisher that would restrict it
+so that we cannot use it.
+
+Given that writing good English is a rare skill among programmers, we
+can ill afford to lose manuals this way.
+
+@c (texinfo)uref
+(The Free Software Foundation
+@uref{http://www.gnu.org/doc/doc.html#DescriptionsOfGNUDocumentation, ,
+sells printed copies} of free @uref{http://www.gnu.org/doc/doc.html,
+GNU manuals}, too.)
+
+Free documentation, like free software, is a matter of freedom, not
+price.  The problem with these manuals was not that O'Reilly Associates
+charged a price for printed copies---that in itself is fine.  (The Free
+Software Foundation sells printed copies of free GNU manuals, too.)
+But GNU manuals are available in source code form, while these manuals
+are available only on paper.  GNU manuals come with permission to copy
+and modify; the Perl manuals do not.  These restrictions are the
+problems.
+
+The criterion for a free manual is pretty much the same as for free
+software: it is a matter of giving all users certain
+freedoms.  Redistribution (including commercial redistribution) must be
+permitted, so that the manual can accompany every copy of the program,
+on-line or on paper.  Permission for modification is crucial too.
+
+As a general rule, I don't believe that it is essential for people to
+have permission to modify all sorts of articles and books.  The issues
+for writings are not necessarily the same as those for software.  For
+example, I don't think you or I are obliged to give permission to
+modify articles like this one, which describe our actions and our
+views.
+
+But there is a particular reason why the freedom to modify is crucial
+for documentation for free software.  When people exercise their right
+to modify the software, and add or change its features, if they are
+conscientious they will change the manual too---so they can provide
+accurate and usable documentation with the modified program.  A manual
+which forbids programmers to be conscientious and finish the job, or
+more precisely requires them to write a new manual from scratch if
+they change the program, does not fill our community's needs.
+
+While a blanket prohibition on modification is unacceptable, some
+kinds of limits on the method of modification pose no problem.  For
+example, requirements to preserve the original author's copyright
+notice, the distribution terms, or the list of authors, are ok.  It is
+also no problem to require modified versions to include notice that
+they were modified, even to have entire sections that may not be
+deleted or changed, as long as these sections deal with nontechnical
+topics.  (Some GNU manuals have them.)
+
+These kinds of restrictions are not a problem because, as a practical
+matter, they don't stop the conscientious programmer from adapting the
+manual to fit the modified program.  In other words, they don't block
+the free software community from making full use of the manual.
+
+However, it must be possible to modify all the technical content of
+the manual, and then distribute the result in all the usual media,
+through all the usual channels; otherwise, the restrictions do block
+the community, the manual is not free, and so we need another manual.
+
+Unfortunately, it is often hard to find someone to write another
+manual when a proprietary manual exists.  The obstacle is that many
+users think that a proprietary manual is good enough---so they don't
+see the need to write a free manual.  They do not see that the free
+operating system has a gap that needs filling.
+
+Why do users think that proprietary manuals are good enough? Some have
+not considered the issue.  I hope this article will do something to
+change that.
+
+Other users consider proprietary manuals acceptable for the same
+reason so many people consider proprietary software acceptable: they
+judge in purely practical terms, not using freedom as a
+criterion.  These people are entitled to their opinions, but since
+those opinions spring from values which do not include freedom, they
+are no guide for those of us who do value freedom.
+
+Please spread the word about this issue.  We continue to lose manuals
+to proprietary publishing.  If we spread the word that proprietary
+manuals are not sufficient, perhaps the next person who wants to help
+GNU by writing documentation will realize, before it is too late, that
+he must above all make it free.
+
+We can also encourage commercial publishers to sell free, copylefted
+manuals instead of proprietary ones.  One way you can help this is to
+check the distribution terms of a manual before you buy it, and prefer
+copylefted manuals to non-copylefted ones.
+
+@sp 2
+@noindent
+Note: The Free Software Foundation maintains a page on its Web site
+that lists free books available from other publishers:@*
+@uref{http://www.gnu.org/doc/other-free-books.html}
+
+
+@node GNU Free Documentation License, Index, Free Software and Free Manuals, Top
 @appendix GNU Free Documentation License
 
 @cindex FDL, GNU Free Documentation License
-@center Version 1.1, March 2000
+@center Version 1.2, November 2002
 
 @display
-Copyright @copyright{} 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 2000,2001,2002 Free Software Foundation, Inc.
 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
 
 Everyone is permitted to copy and distribute verbatim copies
@@ -21052,12 +21332,12 @@ of this license document, but changing it is not allowed.
 PREAMBLE
 
 The purpose of this License is to make a manual, textbook, or other
-written document @dfn{free} in the sense of freedom: to assure everyone
-the effective freedom to copy and redistribute it, with or without
-modifying it, either commercially or noncommercially.  Secondarily,
-this License preserves for the author and publisher a way to get
-credit for their work, while not being considered responsible for
-modifications made by others.
+functional and useful document @dfn{free} in the sense of freedom: to
+assure everyone the effective freedom to copy and redistribute it,
+with or without modifying it, either commercially or noncommercially.
+Secondarily, this License preserves for the author and publisher a way
+to get credit for their work, while not being considered responsible
+for modifications made by others.
 
 This License is a kind of ``copyleft'', which means that derivative
 works of the document must themselves be free in the same sense.  It
@@ -21075,57 +21355,69 @@ principally for works whose purpose is instruction or reference.
 @item
 APPLICABILITY AND DEFINITIONS
 
-This License applies to any manual or other work that contains a
-notice placed by the copyright holder saying it can be distributed
-under the terms of this License.  The ``Document'', below, refers to any
-such manual or work.  Any member of the public is a licensee, and is
-addressed as ``you''.
+This License applies to any manual or other work, in any medium, that
+contains a notice placed by the copyright holder saying it can be
+distributed under the terms of this License.  Such a notice grants a
+world-wide, royalty-free license, unlimited in duration, to use that
+work under the conditions stated herein.  The ``Document'', below,
+refers to any such manual or work.  Any member of the public is a
+licensee, and is addressed as ``you''.  You accept the license if you
+copy, modify or distribute the work in a way requiring permission
+under copyright law.
 
 A ``Modified Version'' of the Document means any work containing the
 Document or a portion of it, either copied verbatim, or with
 modifications and/or translated into another language.
 
-A ``Secondary Section'' is a named appendix or a front-matter section of
-the Document that deals exclusively with the relationship of the
-publishers or authors of the Document to the Document's overall subject
-(or to related matters) and contains nothing that could fall directly
-within that overall subject.  (For example, if the Document is in part a
-textbook of mathematics, a Secondary Section may not explain any
-mathematics.)  The relationship could be a matter of historical
+A ``Secondary Section'' is a named appendix or a front-matter section
+of the Document that deals exclusively with the relationship of the
+publishers or authors of the Document to the Document's overall
+subject (or to related matters) and contains nothing that could fall
+directly within that overall subject.  (Thus, if the Document is in
+part a textbook of mathematics, a Secondary Section may not explain
+any mathematics.)  The relationship could be a matter of historical
 connection with the subject or with related matters, or of legal,
 commercial, philosophical, ethical or political position regarding
 them.
 
 The ``Invariant Sections'' are certain Secondary Sections whose titles
 are designated, as being those of Invariant Sections, in the notice
-that says that the Document is released under this License.
+that says that the Document is released under this License.  If a
+section does not fit the above definition of Secondary then it is not
+allowed to be designated as Invariant.  The Document may contain zero
+Invariant Sections.  If the Document does not identify any Invariant
+Sections then there are none.
 
 The ``Cover Texts'' are certain short passages of text that are listed,
 as Front-Cover Texts or Back-Cover Texts, in the notice that says that
-the Document is released under this License.
+the Document is released under this License.  A Front-Cover Text may
+be at most 5 words, and a Back-Cover Text may be at most 25 words.
 
 A ``Transparent'' copy of the Document means a machine-readable copy,
 represented in a format whose specification is available to the
-general public, whose contents can be viewed and edited directly and
+general public, that is suitable for revising the document
 straightforwardly with generic text editors or (for images composed of
 pixels) generic paint programs or (for drawings) some widely available
 drawing editor, and that is suitable for input to text formatters or
 for automatic translation to a variety of formats suitable for input
 to text formatters.  A copy made in an otherwise Transparent file
-format whose markup has been designed to thwart or discourage
-subsequent modification by readers is not Transparent.  A copy that is
-not ``Transparent'' is called ``Opaque''.
+format whose markup, or absence of markup, has been arranged to thwart
+or discourage subsequent modification by readers is not Transparent.
+An image format is not Transparent if used for any substantial amount
+of text.  A copy that is not ``Transparent'' is called ``Opaque''.
 
 Examples of suitable formats for Transparent copies include plain
-@sc{ascii} without markup, Texinfo input format, La@TeX{} input format,
-@acronym{SGML} or @acronym{XML} using a publicly available
-@acronym{DTD}, and standard-conforming simple @acronym{HTML} designed
-for human modification.  Opaque formats include PostScript,
-@acronym{PDF}, proprietary formats that can be read and edited only by
-proprietary word processors, @acronym{SGML} or @acronym{XML} for which
-the @acronym{DTD} and/or processing tools are not generally available,
-and the machine-generated @acronym{HTML} produced by some word
-processors for output purposes only.
+@sc{ascii} without markup, Texinfo input format, La@TeX{} input
+format, @acronym{SGML} or @acronym{XML} using a publicly available
+@acronym{DTD}, and standard-conforming simple @acronym{HTML},
+PostScript or @acronym{PDF} designed for human modification.  Examples
+of transparent image formats include @acronym{PNG}, @acronym{XCF} and
+@acronym{JPG}.  Opaque formats include proprietary formats that can be
+read and edited only by proprietary word processors, @acronym{SGML} or
+@acronym{XML} for which the @acronym{DTD} and/or processing tools are
+not generally available, and the machine-generated @acronym{HTML},
+PostScript or @acronym{PDF} produced by some word processors for
+output purposes only.
 
 The ``Title Page'' means, for a printed book, the title page itself,
 plus such following pages as are needed to hold, legibly, the material
@@ -21133,6 +21425,21 @@ this License requires to appear in the title page.  For works in
 formats which do not have any title page as such, ``Title Page'' means
 the text near the most prominent appearance of the work's title,
 preceding the beginning of the body of the text.
+
+A section ``Entitled XYZ'' means a named subunit of the Document whose
+title either is precisely XYZ or contains XYZ in parentheses following
+text that translates XYZ in another language.  (Here XYZ stands for a
+specific section name mentioned below, such as ``Acknowledgements'',
+``Dedications'', ``Endorsements'', or ``History''.)  To ``Preserve the Title''
+of such a section when you modify the Document means that it remains a
+section ``Entitled XYZ'' according to this definition.
+
+The Document may include Warranty Disclaimers next to the notice which
+states that this License applies to the Document.  These Warranty
+Disclaimers are considered to be included by reference in this
+License, but only as regards disclaiming warranties: any other
+implication that these Warranty Disclaimers may have is void and has
+no effect on the meaning of this License.
 
 @item
 VERBATIM COPYING
@@ -21153,9 +21460,10 @@ you may publicly display copies.
 @item
 COPYING IN QUANTITY
 
-If you publish printed copies of the Document numbering more than 100,
-and the Document's license notice requires Cover Texts, you must enclose
-the copies in covers that carry, clearly and legibly, all these Cover
+If you publish printed copies (or copies in media that commonly have
+printed covers) of the Document, numbering more than 100, and the
+Document's license notice requires Cover Texts, you must enclose the
+copies in covers that carry, clearly and legibly, all these Cover
 Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
 the back cover.  Both covers must also clearly and legibly identify
 you as the publisher of these copies.  The front cover must present
@@ -21173,16 +21481,15 @@ pages.
 If you publish or distribute Opaque copies of the Document numbering
 more than 100, you must either include a machine-readable Transparent
 copy along with each Opaque copy, or state in or with each Opaque copy
-a publicly-accessible computer-network location containing a complete
-Transparent copy of the Document, free of added material, which the
-general network-using public has access to download anonymously at no
-charge using public-standard network protocols.  If you use the latter
-option, you must take reasonably prudent steps, when you begin
-distribution of Opaque copies in quantity, to ensure that this
-Transparent copy will remain thus accessible at the stated location
-until at least one year after the last time you distribute an Opaque
-copy (directly or through your agents or retailers) of that edition to
-the public.
+a computer-network location from which the general network-using
+public has access to download using public-standard network protocols
+a complete Transparent copy of the Document, free of added material.
+If you use the latter option, you must take reasonably prudent steps,
+when you begin distribution of Opaque copies in quantity, to ensure
+that this Transparent copy will remain thus accessible at the stated
+location until at least one year after the last time you distribute an
+Opaque copy (directly or through your agents or retailers) of that
+edition to the public.
 
 It is requested, but not required, that you contact the authors of the
 Document well before redistributing any large number of copies, to give
@@ -21210,7 +21517,8 @@ if the original publisher of that version gives permission.
 List on the Title Page, as authors, one or more persons or entities
 responsible for authorship of the modifications in the Modified
 Version, together with at least five of the principal authors of the
-Document (all of its principal authors, if it has less than five).
+Document (all of its principal authors, if it has fewer than five),
+unless they release you from this requirement.
 
 @item
 State on the Title page the name of the publisher of the
@@ -21236,10 +21544,10 @@ and required Cover Texts given in the Document's license notice.
 Include an unaltered copy of this License.
 
 @item
-Preserve the section entitled ``History'', and its title, and add to
-it an item stating at least the title, year, new authors, and
+Preserve the section Entitled ``History'', Preserve its Title, and add
+to it an item stating at least the title, year, new authors, and
 publisher of the Modified Version as given on the Title Page.  If
-there is no section entitled ``History'' in the Document, create one
+there is no section Entitled ``History'' in the Document, create one
 stating the title, year, authors, and publisher of the Document as
 given on its Title Page, then add an item describing the Modified
 Version as stated in the previous sentence.
@@ -21254,10 +21562,10 @@ least four years before the Document itself, or if the original
 publisher of the version it refers to gives permission.
 
 @item
-In any section entitled ``Acknowledgments'' or ``Dedications'',
-preserve the section's title, and preserve in the section all the
-substance and tone of each of the contributor acknowledgments
-and/or dedications given therein.
+For any section Entitled ``Acknowledgements'' or ``Dedications'', Preserve
+the Title of the section, and preserve in the section all the
+substance and tone of each of the contributor acknowledgements and/or
+dedications given therein.
 
 @item
 Preserve all the Invariant Sections of the Document,
@@ -21265,12 +21573,15 @@ unaltered in their text and in their titles.  Section numbers
 or the equivalent are not considered part of the section titles.
 
 @item
-Delete any section entitled ``Endorsements''.  Such a section
+Delete any section Entitled ``Endorsements''.  Such a section
 may not be included in the Modified Version.
 
 @item
-Do not retitle any existing section as ``Endorsements''
-or to conflict in title with any Invariant Section.
+Do not retitle any existing section to be Entitled ``Endorsements'' or
+to conflict in title with any Invariant Section.
+
+@item
+Preserve any Warranty Disclaimers.
 @end enumerate
 
 If the Modified Version includes new front-matter sections or
@@ -21280,7 +21591,7 @@ of these sections as invariant.  To do this, add their titles to the
 list of Invariant Sections in the Modified Version's license notice.
 These titles must be distinct from any other section titles.
 
-You may add a section entitled ``Endorsements'', provided it contains
+You may add a section Entitled ``Endorsements'', provided it contains
 nothing but endorsements of your Modified Version by various
 parties---for example, statements of peer review or that the text has
 been approved by an organization as the authoritative definition of a
@@ -21308,7 +21619,7 @@ License, under the terms defined in section 4 above for modified
 versions, provided that you include in the combination all of the
 Invariant Sections of all of the original documents, unmodified, and
 list them all as Invariant Sections of your combined work in its
-license notice.
+license notice, and that you preserve all their Warranty Disclaimers.
 
 The combined work need only contain one copy of this License, and
 multiple identical Invariant Sections may be replaced with a single
@@ -21319,11 +21630,11 @@ author or publisher of that section if known, or else a unique number.
 Make the same adjustment to the section titles in the list of
 Invariant Sections in the license notice of the combined work.
 
-In the combination, you must combine any sections entitled ``History''
-in the various original documents, forming one section entitled
-``History''; likewise combine any sections entitled ``Acknowledgments'',
-and any sections entitled ``Dedications''.  You must delete all sections
-entitled ``Endorsements.''
+In the combination, you must combine any sections Entitled ``History''
+in the various original documents, forming one section Entitled
+``History''; likewise combine any sections Entitled ``Acknowledgements'',
+and any sections Entitled ``Dedications''.  You must delete all
+sections Entitled ``Endorsements.''
 
 @item
 COLLECTIONS OF DOCUMENTS
@@ -21344,18 +21655,20 @@ AGGREGATION WITH INDEPENDENT WORKS
 
 A compilation of the Document or its derivatives with other separate
 and independent documents or works, in or on a volume of a storage or
-distribution medium, does not as a whole count as a Modified Version
-of the Document, provided no compilation copyright is claimed for the
-compilation.  Such a compilation is called an ``aggregate'', and this
-License does not apply to the other self-contained works thus compiled
-with the Document, on account of their being thus compiled, if they
-are not themselves derivative works of the Document.
+distribution medium, is called an ``aggregate'' if the copyright
+resulting from the compilation is not used to limit the legal rights
+of the compilation's users beyond what the individual works permit.
+When the Document is included in an aggregate, this License does not
+apply to the other works in the aggregate which are not themselves
+derivative works of the Document.
 
 If the Cover Text requirement of section 3 is applicable to these
-copies of the Document, then if the Document is less than one quarter
-of the entire aggregate, the Document's Cover Texts may be placed on
-covers that surround only the Document within the aggregate.
-Otherwise they must appear on covers around the whole aggregate.
+copies of the Document, then if the Document is less than one half of
+the entire aggregate, the Document's Cover Texts may be placed on
+covers that bracket the Document within the aggregate, or the
+electronic equivalent of covers if the Document is in electronic form.
+Otherwise they must appear on printed covers that bracket the whole
+aggregate.
 
 @item
 TRANSLATION
@@ -21366,10 +21679,17 @@ Replacing Invariant Sections with translations requires special
 permission from their copyright holders, but you may include
 translations of some or all Invariant Sections in addition to the
 original versions of these Invariant Sections.  You may include a
-translation of this License provided that you also include the
-original English version of this License.  In case of a disagreement
-between the translation and the original English version of this
-License, the original English version will prevail.
+translation of this License, and all the license notices in the
+Document, and any Warranty Disclaimers, provided that you also include
+the original English version of this License and the original versions
+of those notices and disclaimers.  In case of a disagreement between
+the translation and the original version of this License or a notice
+or disclaimer, the original version will prevail.
+
+If a section in the Document is Entitled ``Acknowledgements'',
+``Dedications'', or ``History'', the requirement (section 4) to Preserve
+its Title (section 1) will typically require changing the actual
+title.
 
 @item
 TERMINATION
@@ -21400,6 +21720,45 @@ Free Software Foundation.  If the Document does not specify a version
 number of this License, you may choose any version ever published (not
 as a draft) by the Free Software Foundation.
 @end enumerate
+
+@page
+@appendixsubsec ADDENDUM: How to use this License for your documents
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and
+license notices just after the title page:
+
+@smallexample
+@group
+Copyright (C)  @var{year}  @var{your name}.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+A copy of the license is included in the section entitled ``GNU
+Free Documentation License''.
+@end group
+@end smallexample
+
+If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
+replace the ``with...Texts.'' line with this:
+
+@smallexample
+@group
+with the Invariant Sections being @var{list their titles}, with
+the Front-Cover Texts being @var{list}, and with the Back-Cover Texts
+being @var{list}.
+@end group
+@end smallexample
+
+If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License,
+to permit their use in free software.
 
 @node Index, About the Author, GNU Free Documentation License, Top
 @comment  node-name,  next,  previous,  up
@@ -21472,3 +21831,7 @@ airplane.
 @end iftex
 
 @bye
+
+@ignore
+   arch-tag: da1a2154-531f-43a8-8e33-fc7faad10acf
+@end ignore

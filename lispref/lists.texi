@@ -384,11 +384,11 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
 @end defun
 
 @defun last list &optional n
-This function returns the last link of @var{list}.  The
-@code{car} of this link is the list's last element.  If @var{list} is
-null, @code{nil} is returned.  If @var{n} is non-nil the
-@var{n}-th-to-last link is returned instead, or the whole @var{list} if
-@var{n} is bigger than @var{list}'s length.
+This function returns the last link of @var{list}.  The @code{car} of
+this link is the list's last element.  If @var{list} is null,
+@code{nil} is returned.  If @var{n} is non-@code{nil}, the
+@var{n}th-to-last link is returned instead, or the whole of @var{list}
+if @var{n} is bigger than @var{list}'s length.
 @end defun
 
 @defun safe-length list
@@ -731,6 +731,32 @@ sample-list
 @noindent
 The function @code{delq} offers a way to perform this operation
 destructively.  See @ref{Sets And Lists}.
+@end defun
+
+@defun copy-tree tree &optional vecp
+This function returns a copy the tree @code{tree}.  If @var{tree} is a
+cons cell, this makes a new cons cell with the same @sc{car} and
+@sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
+same way.
+
+Normally, when @var{tree} is anything other than a cons cell,
+@code{copy-tree} simply returns @var{tree}.  However, if @var{vecp} is
+non-@code{nil}, it copies vectors too (and operates recursively on
+their elements).
+@end defun
+
+@defun number-sequence from to &optional separation
+This returns a list of numbers starting with @var{from}
+and incrementing by @var{separation} (or by 1 if @var{separation}
+is @code{nil} or omitted), and ending at or just before @var{to}.
+For example,
+
+@example
+(number-sequence 4 9)
+     @result{} (4 5 6 7 8 9)
+(number-sequence 1.5 6 2)
+     @result{} (1.5 3.5 5.5)
+@end example
 @end defun
 
 @node Modifying Lists
@@ -1644,13 +1670,22 @@ the associations of one copy without affecting the other:
 @defun assq-delete-all key alist
 @tindex assq-delete-all
 This function deletes from @var{alist} all the elements whose @sc{car}
-is @code{eq} to @var{key}.  It returns @var{alist}, modified
-in this way.  Note that it modifies the original list structure
-of @var{alist}.
+is @code{eq} to @var{key}, much as if you used @code{delq} to delete
+such each element one by one.  It returns the shortened alist, and
+often modifies the original list structure of @var{alist}.  For
+correct results, use the return value of @code{assq-delete-all} rather
+than looking at the saved value of @var{alist}.
 
 @example
-(assq-delete-all 'foo
-                 '((foo 1) (bar 2) (foo 3) (lose 4)))
+(setq alist '((foo 1) (bar 2) (foo 3) (lose 4)))
+     @result{} ((foo 1) (bar 2) (foo 3) (lose 4))
+(assq-delete-all 'foo alist)
      @result{} ((bar 2) (lose 4))
+alist
+     @result{} ((foo 1) (bar 2) (lose 4))
 @end example
 @end defun
+
+@ignore
+   arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4
+@end ignore

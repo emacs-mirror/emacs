@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 2003
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -506,7 +506,7 @@ print_string (string, printcharfun)
 	for (i = 0; i < size; i++)
 	  PRINTCHAR (SREF (string, i));
       else
-	for (i = 0; i < size_byte; i++)
+	for (i = 0; i < size_byte; )
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
@@ -592,12 +592,13 @@ temp_output_buffer_setup (bufname)
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 
   Fkill_all_local_variables ();
+  delete_all_overlays (current_buffer);
   current_buffer->directory = old->directory;
   current_buffer->read_only = Qnil;
   current_buffer->filename = Qnil;
   current_buffer->undo_list = Qt;
-  current_buffer->overlays_before = Qnil;
-  current_buffer->overlays_after = Qnil;
+  eassert (current_buffer->overlays_before == NULL);
+  eassert (current_buffer->overlays_after == NULL);
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
   Ferase_buffer ();
@@ -757,34 +758,48 @@ A printed representation of an object is text which describes that object.  */)
      (object, noescape)
      Lisp_Object object, noescape;
 {
-  PRINTDECLARE;
   Lisp_Object printcharfun;
-  struct gcpro gcpro1, gcpro2;
-  Lisp_Object tem;
+  /* struct gcpro gcpro1, gcpro2; */
+  Lisp_Object save_deactivate_mark;
+  int count = specpdl_ptr - specpdl;
+  struct buffer *previous;
 
-  /* Save and restore this--we are altering a buffer
-     but we don't want to deactivate the mark just for that.
-     No need for specbind, since errors deactivate the mark.  */
-  tem = Vdeactivate_mark;
-  GCPRO2 (object, tem);
+  specbind (Qinhibit_modification_hooks, Qt);
 
-  printcharfun = Vprin1_to_string_buffer;
-  PRINTPREPARE;
-  print (object, printcharfun, NILP (noescape));
-  /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
-  PRINTFINISH;
+  {
+    PRINTDECLARE;
+
+    /* Save and restore this--we are altering a buffer
+       but we don't want to deactivate the mark just for that.
+       No need for specbind, since errors deactivate the mark.  */
+    save_deactivate_mark = Vdeactivate_mark;
+    /* GCPRO2 (object, save_deactivate_mark); */
+    abort_on_gc++;
+
+    printcharfun = Vprin1_to_string_buffer;
+    PRINTPREPARE;
+    print (object, printcharfun, NILP (noescape));
+    /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
+    PRINTFINISH;
+  }
+
+  previous = current_buffer;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   object = Fbuffer_string ();
   if (SBYTES (object) == SCHARS (object))
     STRING_SET_UNIBYTE (object);
 
+  /* Note that this won't make prepare_to_modify_buffer call 
+     ask-user-about-supersession-threat because this buffer
+     does not visit a file.  */
   Ferase_buffer ();
-  set_buffer_internal (old);
+  set_buffer_internal (previous);
 
-  Vdeactivate_mark = tem;
-  UNGCPRO;
+  Vdeactivate_mark = save_deactivate_mark;
+  /* UNGCPRO; */
 
-  return object;
+  abort_on_gc--;
+  return unbind_to (count, object);
 }
 
 DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
@@ -2080,7 +2095,9 @@ Also print formfeeds as `\\f'.  */);
   DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
 	       doc: /* Non-nil means print unibyte non-ASCII chars in strings as \\OOO.
 \(OOO is the octal representation of the character code.)
-Only single-byte characters are affected, and only in `prin1'.  */);
+Only single-byte characters are affected, and only in `prin1'.
+When the output goes in a multibyte buffer, this feature is
+enabled regardless of the value of the variable.  */);
   print_escape_nonascii = 0;
 
   DEFVAR_BOOL ("print-escape-multibyte", &print_escape_multibyte,
@@ -2162,3 +2179,6 @@ that need to be recorded in the table.  */);
 
   defsubr (&Swith_output_to_temp_buffer);
 }
+
+/* arch-tag: bc797170-94ae-41de-86e3-75e20f8f7a39
+   (do not change this comment) */

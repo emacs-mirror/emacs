@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2 -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1993,2000,2003  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -203,26 +203,12 @@ If so, return the true (non-nil) value returned by PREDICATE."
   (not (apply 'every cl-pred cl-seq cl-rest)))
 
 ;;; Support for `loop'.
-(defun cl-map-keymap (cl-func cl-map)
-  (while (symbolp cl-map) (setq cl-map (symbol-function cl-map)))
-  (if (listp cl-map)
-      (let ((cl-p cl-map))
-	(while (consp (setq cl-p (cdr cl-p)))
-	  (cond ((consp (car cl-p))
-		 (funcall cl-func (car (car cl-p)) (cdr (car cl-p))))
-		((or (vectorp (car cl-p)) (char-table-p (car cl-p)))
-		 (cl-map-keymap cl-func (car cl-p)))
-		((eq (car cl-p) 'keymap)
-		 (setq cl-p nil)))))
-    (let ((cl-i -1))
-      (while (< (setq cl-i (1+ cl-i)) (length cl-map))
-	(if (aref cl-map cl-i)
-	    (funcall cl-func cl-i (aref cl-map cl-i)))))))
+(defalias 'cl-map-keymap 'map-keymap)
 
 (defun cl-map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
   (or cl-base
       (setq cl-base (copy-sequence [0])))
-  (cl-map-keymap
+  (map-keymap
    (function
     (lambda (cl-key cl-bind)
       (aset cl-base (1- (length cl-base)) cl-key)
@@ -721,11 +707,10 @@ This also does some trivial optimizations to make the form prettier."
 		      (sublis sub (nreverse decls))
 		      (list
 		       (list* 'list '(quote apply)
-			      (list 'list '(quote quote)
-				    (list 'function
-					  (list* 'lambda
-						 (append new (cadadr form))
-						 (sublis sub body))))
+			      (list 'function
+				    (list* 'lambda
+					   (append new (cadadr form))
+					   (sublis sub body)))
 			      (nconc (mapcar (function
 					      (lambda (x)
 						(list 'list '(quote quote) x)))
@@ -733,7 +718,8 @@ This also does some trivial optimizations to make the form prettier."
 				     '((quote --cl-rest--)))))))
 		 (list (car form) (list* 'lambda (cadadr form) body))))
 	   (let ((found (assq (cadr form) env)))
-	     (if (eq (cadr (caddr found)) 'cl-labels-args)
+	     (if (and found (ignore-errors
+			      (eq (cadr (caddr found)) 'cl-labels-args)))
 		 (cl-macroexpand-all (cadr (caddr (cadddr found))) env)
 	       form))))
 	((memq (car form) '(defun defmacro))
@@ -763,4 +749,5 @@ This also does some trivial optimizations to make the form prettier."
 
 (run-hooks 'cl-extra-load-hook)
 
+;;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
 ;;; cl-extra.el ends here

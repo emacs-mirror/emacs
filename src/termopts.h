@@ -39,3 +39,6 @@ extern int meta_key;
 
 /* Nonzero means truncate lines in all windows less wide than the frame */
 extern int truncate_partial_width_windows;
+
+/* arch-tag: 35d4d284-dc1a-4fff-97fa-0154a21aebdb
+   (do not change this comment) */

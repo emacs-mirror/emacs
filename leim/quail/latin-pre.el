@@ -260,7 +260,7 @@ Key translation rules are:
     acute    |   '    | 'e -> ,Ai(B
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
-  diaeresis  |   \"   | \"i -> ,Ao(B
+  diaeresis  |   \"    | \"i -> ,Ao(B
    cedilla   | ~ or , | ~c -> ,Ag(B   ,c -> ,Ag(B
    symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B
 " nil t nil nil nil nil nil nil nil nil t)
@@ -351,7 +351,7 @@ Key translation rules are:
  "german-prefix" "German" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
- \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ?,A_(B
+ \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ,A_(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -700,11 +700,12 @@ Key translation rules are:
 
 (quail-define-package
  "polish-slash" "Polish" "PL>" nil
- "Polish diacritics in Latin-2 encoding are input as `/[acelnosxzACELNOSXZ]'.
+ "Polish diacritics and slash character are input as `/[acelnosxzACELNOSXZ/]'.
 For example, the character named `aogonek' is obtained by `/a'."
  nil t t t nil nil nil nil nil nil t)
 
 (quail-define-rules
+ ("//" ?/)
  ("/a" ?,B1(B)
  ("/c" ?,Bf(B)
  ("/e" ?,Bj(B)
@@ -1182,4 +1183,6 @@ of characters from a single Latin-N charset.
  ("~|" ?,A&(B)
  ("~~" ?,A8(B)
 )
+
+;;; arch-tag: 83017837-6b84-4366-b183-e0577e3ed838
 ;;; latin-pre.el ends here

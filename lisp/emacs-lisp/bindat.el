@@ -619,4 +619,5 @@ If optional second arg SEP is a string, use that as separator."
 
 (provide 'bindat)
 
+;;; arch-tag: 5e6708c3-03e2-4ad7-9885-5041b779c3fb
 ;;; bindat.el ends here

@@ -549,13 +549,7 @@ and change the current conversion to the last one in the group."
 	  ;; The currently selected conversion is after the list shown
 	  ;; previously.  We start calculation of message width from
 	  ;; the conversion next of TO.
-	  (setq this-idx next-idx msg nil)
-	;; The current conversion is in MSG.  Just clear brackets
-	;; around index number.
-	(if (string-match "<.>" msg)
-	    (progn
-	      (aset msg (match-beginning 0) ?\ )
-	      (aset msg (1- (match-end 0)) ?\ )))))
+	  (setq this-idx next-idx msg nil)))
     (if (not msg)
 	(let ((len (length kkc-current-conversions))
 	      (max-width (window-width (minibuffer-window)))
@@ -587,7 +581,8 @@ and change the current conversion to the last one in the group."
 	  (setq l (nthcdr this-idx kkc-current-conversions))
 	  (setq msg (format " %c %s"
 			    (aref kkc-show-conversion-list-index-chars 0)
-			    (car l))
+			    (propertize (car l)
+					'kkc-conversion-index this-idx))
 		idx (1+ this-idx)
 		l (cdr l))
 	  (while (< idx next-idx)
@@ -595,20 +590,26 @@ and change the current conversion to the last one in the group."
 			      msg
 			      (aref kkc-show-conversion-list-index-chars
 				    (- idx this-idx))
-			      (car l)))
-	    (setq idx (1+ idx)
+			      (propertize (car l)
+					  'kkc-conversion-index idx))
+		  idx (1+ idx)
 		  l (cdr l)))
 	  (aset first-slot 2 msg)))
+
+    ;; Highlight the current conversion.
     (if (> current-idx 0)
-	(progn
-	  ;; Highlight the current conversion by brackets.
-	  (string-match (format " \\(%c\\) "
-				(aref kkc-show-conversion-list-index-chars
-				      (- current-idx this-idx)))
-			msg)
-	  (aset msg (match-beginning 0) ?<)
-	  (aset msg (1- (match-end 0)) ?>)))
-    (message "%s" msg)))
+	(let ((pos 3)
+	      (limit (length msg)))
+	  (remove-text-properties 0 (length msg) '(face nil) msg)
+	  (while (not (eq (get-text-property pos 'kkc-conversion-index msg)
+			  current-idx))
+	    (setq pos (next-single-property-change pos 'kkc-conversion-index
+						   msg limit)))
+	  (put-text-property pos (next-single-property-change
+				  pos 'kkc-conversion-index msg limit)
+			     'face 'highlight msg)))
+    (let ((message-log-max nil))
+      (message "%s" msg))))
 
 ;; Update the conversion area with the latest conversion selected.
 ;; ALL if non nil means to update the whole area, else update only
@@ -655,4 +656,5 @@ and change the current conversion to the last one in the group."
 ;;
 (provide 'kkc)
 
+;;; arch-tag: 3cbfd56e-74e6-4f60-bb46-ba7c2d366fbf
 ;;; kkc.el ends here

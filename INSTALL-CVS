@@ -25,20 +25,26 @@ procedure:
 (If you want to install the Emacs binary, type "make install" instead
 of "make" in the last command.)
 
-If the above procedure fails, try "make bootstrap".
+Occasionally the file "lisp/loaddefs.el" will need be updated to reflect
+new autoloaded functions.  If you see errors about undefined lisp
+functions during compilation, that may be the reason.  Another symptom
+may be an error saying that "loaddefs.el" could not be found; this is
+due to a change in the way loaddefs.el was handled in CVS, and should
+only happen once, for users that are updating old CVS trees.
+
+To update loaddefs.el, do:
+
+  $ cd lisp
+  $ make autoloads EMACS=../src/emacs
+
+If either of above procedures fails, try "make bootstrap".
 
 Users of non-Posix systems (MS-Windows etc.) should run the
 platform-specific configuration scripts (nt/configure.bat, config.bat,
 etc.) before "make bootstrap" or "make"; the rest of the procedure is
 applicable to those systems as well.
 
-Note that "make bootstrap" overwrites some files that are under CVS
-control, such as lisp/loaddefs.el.  This could produce CVS conflicts
-next time that you resync with the CVS.  If you see such conflicts,
-overwrite your local copy of the file with the clean version from the
-CVS repository.  For example:
-
-    cvs update -C lisp/loaddefs.el
-
 Questions, requests, and bug reports about the CVS versions of Emacs
-sould be sent to emacs-pretest-bug@gnu.org rather.
+should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
+or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
+send it to the proper place.

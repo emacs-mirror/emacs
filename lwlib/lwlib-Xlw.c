@@ -1,5 +1,6 @@
 /* The lwlib interface to "xlwmenu" menus.
    Copyright (C) 1992 Lucid, Inc.
+   Copyright (C) 1994, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -22,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
-#include "../src/lisp.h"
+#include "lisp.h"
 
 #include "lwlib-Xlw.h"
 #include <X11/StringDefs.h>
@@ -205,19 +206,18 @@ lw_lucid_widget_p (widget)
 }
 
 void
+#ifdef PROTOTYPES
+xlw_update_one_widget (widget_instance* instance, Widget widget,
+		       widget_value* val, Boolean deep_p)
+#else
 xlw_update_one_widget (instance, widget, val, deep_p)
      widget_instance* instance;
      Widget widget;
      widget_value* val;
      Boolean deep_p;
+#endif
 {
-  XlwMenuWidget mw;
   Arg al[1];
-
-  if (XtIsShell (widget))
-    mw = (XlwMenuWidget)((CompositeWidget)widget)->composite.children [0];
-  else
-    mw = (XlwMenuWidget)widget;
 
   /* This used to use XtVaSetValues, but some old Xt versions
      that have a bug in XtVaCreateWidget might have it here too.  */
@@ -236,9 +236,13 @@ xlw_update_one_value (instance, widget, val)
 }
 
 void
+#ifdef PROTOTYPES
+xlw_pop_instance (widget_instance* instance, Boolean up)
+#else
 xlw_pop_instance (instance, up)
      widget_instance* instance;
      Boolean up;
+#endif
 {
 }
 
@@ -283,3 +287,5 @@ xlw_destroy_instance (instance)
     XtDestroyWidget (instance->widget);
 }
 
+/* arch-tag: 541e3912-477d-406e-9bf2-dbf2b7ff8c3b
+   (do not change this comment) */

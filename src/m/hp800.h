@@ -1,5 +1,5 @@
 /* machine description file for hp9000 series 800 machines.
-   Copyright (C) 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -67,13 +67,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-
-#define XMARKBIT(a) ((a) < 0)
-#define XSETMARKBIT(a,b) ((a) = ((b) ? (a)|MARKBIT : (a) & ~MARKBIT))
-
-#if 0  /* Loses when sign bit of type field is set.  */
-#define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
-#endif
 
 /* Common definitions for HPUX and GNU/Linux.  */
 
@@ -180,3 +173,6 @@ Boston, MA 02111-1307, USA.  */
 #define rindex strrchr
 
 #endif /* __hpux */
+
+/* arch-tag: 809436e6-1645-4b92-b40d-2de5d6e7227c
+   (do not change this comment) */

@@ -1,5 +1,5 @@
 /* Generic frame functions.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2003
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -114,6 +114,7 @@ Lisp_Object Qface_set_after_frame_default;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
+Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
 Lisp_Object Vdelete_frame_functions;
@@ -126,13 +127,13 @@ set_menu_bar_lines_1 (window, n)
   struct window *w = XWINDOW (window);
 
   XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->top, XFASTINT (w->top) + n);
-  XSETFASTINT (w->height, XFASTINT (w->height) - n);
+  XSETFASTINT (w->top_line, XFASTINT (w->top_line) + n);
+  XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - n);
 
-  if (INTEGERP (w->orig_top))
-    XSETFASTINT (w->orig_top, XFASTINT (w->orig_top) + n);
-  if (INTEGERP (w->orig_height))
-    XSETFASTINT (w->orig_height, XFASTINT (w->orig_height) - n);
+  if (INTEGERP (w->orig_top_line))
+    XSETFASTINT (w->orig_top_line, XFASTINT (w->orig_top_line) + n);
+  if (INTEGERP (w->orig_total_lines))
+    XSETFASTINT (w->orig_total_lines, XFASTINT (w->orig_total_lines) - n);
 
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
@@ -285,6 +286,19 @@ make_frame (mini_p)
   f->tool_bar_items = Qnil;
   f->desired_tool_bar_string = f->current_tool_bar_string = Qnil;
   f->n_tool_bar_items = 0;
+  f->left_fringe_width = f->right_fringe_width = 0;
+  f->fringe_cols = 0;
+  f->scroll_bar_actual_width = 0;
+  f->border_width = 0;
+  f->internal_border_width = 0;
+  f->column_width = 1;  /* !FRAME_WINDOW_P value */
+  f->line_height = 1;  /* !FRAME_WINDOW_P value */
+  f->x_pixels_diff = f->y_pixels_diff = 0;
+#ifdef HAVE_WINDOW_SYSTEM
+  f->want_fullscreen = FULLSCREEN_NONE;
+#endif
+  f->size_hint_flags = 0;
+  f->win_gravity = 0;
 
   root_window = make_window ();
   if (mini_p)
@@ -309,17 +323,17 @@ make_frame (mini_p)
      just so that there is "something there."
      Correct size will be set up later with change_frame_size.  */
 
-  SET_FRAME_WIDTH (f, 10);
-  f->height = 10;
+  SET_FRAME_COLS (f, 10);
+  FRAME_LINES (f) = 10;
 
-  XSETFASTINT (XWINDOW (root_window)->width, 10);
-  XSETFASTINT (XWINDOW (root_window)->height, (mini_p ? 9 : 10));
+  XSETFASTINT (XWINDOW (root_window)->total_cols, 10);
+  XSETFASTINT (XWINDOW (root_window)->total_lines, (mini_p ? 9 : 10));
 
   if (mini_p)
     {
-      XSETFASTINT (XWINDOW (mini_window)->width, 10);
-      XSETFASTINT (XWINDOW (mini_window)->top, 9);
-      XSETFASTINT (XWINDOW (mini_window)->height, 1);
+      XSETFASTINT (XWINDOW (mini_window)->total_cols, 10);
+      XSETFASTINT (XWINDOW (mini_window)->top_line, 9);
+      XSETFASTINT (XWINDOW (mini_window)->total_lines, 1);
     }
 
   /* Choose a buffer for the frame's root window.  */
@@ -339,7 +353,7 @@ make_frame (mini_p)
        don't have the right size, glyph matrices aren't initialized
        etc.  Running Lisp functions at this point surely ends in a
        SEGV.  */
-    set_window_buffer (root_window, buf, 0);
+    set_window_buffer (root_window, buf, 0, 0);
     f->buffer_list = Fcons (buf, Qnil);
   }
 
@@ -350,7 +364,7 @@ make_frame (mini_p)
 			 (NILP (Vminibuffer_list)
 			  ? get_minibuffer (0)
 			  : Fcar (Vminibuffer_list)),
-			 0);
+			 0, 0);
     }
 
   f->root_window = root_window;
@@ -358,6 +372,8 @@ make_frame (mini_p)
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  */
   XSETFASTINT (XWINDOW (f->selected_window)->use_time, ++window_select_count);
+
+  f->default_face_done_p = 0;
 
   return f;
 }
@@ -415,7 +431,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
     Fset_window_buffer (mini_window,
 			(NILP (Vminibuffer_list)
 			 ? get_minibuffer (0)
-			 : Fcar (Vminibuffer_list)));
+			 : Fcar (Vminibuffer_list)), Qnil);
   return f;
 }
 
@@ -453,7 +469,7 @@ make_minibuffer_frame ()
   Fset_window_buffer (mini_window,
 		      (NILP (Vminibuffer_list)
 		       ? get_minibuffer (0)
-		       : Fcar (Vminibuffer_list)));
+		       : Fcar (Vminibuffer_list)), Qnil);
   return f;
 }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -573,8 +589,8 @@ Note that changing the size of one terminal frame automatically affects all.  */
 
   f = make_terminal_frame ();
 
-  change_frame_size (f, FRAME_HEIGHT (sf),
-		     FRAME_WIDTH (sf), 0, 0, 0);
+  change_frame_size (f, FRAME_LINES (sf),
+		     FRAME_COLS (sf), 0, 0, 0);
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
@@ -682,7 +698,7 @@ do_switch_frame (frame, track, for_deletion)
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
 
-  Fselect_window (XFRAME (frame)->selected_window);
+  Fselect_window (XFRAME (frame)->selected_window, Qnil);
 
 #ifndef WINDOWSNT
   /* Make sure to switch the tty color mode to that of the newly
@@ -745,7 +761,7 @@ to that frame.  */)
 
 DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
        doc: /* Do nothing, but preserve any prefix argument already specified.
-This is a suitable binding for iconify-frame and make-frame-visible.  */)
+This is a suitable binding for `iconify-frame' and `make-frame-visible'.  */)
      ()
 {
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
@@ -860,7 +876,7 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
     error ("In `set-frame-selected-window', WINDOW is not on FRAME");
 
   if (EQ (frame, selected_frame))
-    return Fselect_window (window);
+    return Fselect_window (window, Qnil);
 
   return XFRAME (frame)->selected_window = window;
 }
@@ -1228,13 +1244,13 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (EQ (f->minibuffer_window, minibuf_window))
     {
       Fset_window_buffer (sf->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer);
+			  XWINDOW (minibuf_window)->buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
 
       /* If the dying minibuffer window was selected,
 	 select the new one.  */
       if (minibuffer_selected)
-	Fselect_window (minibuf_window);
+	Fselect_window (minibuf_window, Qnil);
     }
 
   /* Don't let echo_area_window to remain on a deleted frame.  */
@@ -1263,6 +1279,8 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   if (f->namebuf)
     xfree (f->namebuf);
+  if (f->decode_mode_spec_buffer)
+    xfree (f->decode_mode_spec_buffer);
   if (FRAME_INSERT_COST (f))
     xfree (FRAME_INSERT_COST (f));
   if (FRAME_DELETEN_COST (f))
@@ -1603,7 +1621,7 @@ but if the second optional argument FORCE is non-nil, you may do so.  */)
     {
       struct frame *sf = XFRAME (selected_frame);
       Fset_window_buffer (sf->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer);
+			  XWINDOW (minibuf_window)->buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -1642,7 +1660,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
     {
       struct frame *sf = XFRAME (selected_frame);
       Fset_window_buffer (sf->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer);
+			  XWINDOW (minibuf_window)->buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -2080,9 +2098,9 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 				    :"tty"));
     }
   store_in_alist (&alist, Qname, f->name);
-  height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
+  height = (f->new_text_lines ? f->new_text_lines : FRAME_LINES (f));
   store_in_alist (&alist, Qheight, make_number (height));
-  width = (FRAME_NEW_WIDTH (f) ? FRAME_NEW_WIDTH (f) : FRAME_WIDTH (f));
+  width = (f->new_text_cols ? f->new_text_cols : FRAME_COLS (f));
   store_in_alist (&alist, Qwidth, make_number (width));
   store_in_alist (&alist, Qmodeline, (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qminibuffer,
@@ -2336,7 +2354,7 @@ If FRAME is omitted, the selected frame is used.  */)
     return make_number (x_pixel_height (f));
   else
 #endif
-    return make_number (FRAME_HEIGHT (f));
+    return make_number (FRAME_LINES (f));
 }
 
 DEFUN ("frame-pixel-width", Fframe_pixel_width,
@@ -2359,7 +2377,7 @@ If FRAME is omitted, the selected frame is used.  */)
     return make_number (x_pixel_width (f));
   else
 #endif
-    return make_number (FRAME_WIDTH (f));
+    return make_number (FRAME_COLS (f));
 }
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
@@ -2381,8 +2399,8 @@ but that the idea of the actual height of the frame should not be changed.  */)
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      if (XINT (lines) != f->height)
-	x_set_window_size (f, 1, f->width, XINT (lines));
+      if (XINT (lines) != FRAME_LINES (f))
+	x_set_window_size (f, 1, FRAME_COLS (f), XINT (lines));
       do_pending_window_change (0);
     }
   else
@@ -2409,8 +2427,8 @@ but that the idea of the actual width of the frame should not be changed.  */)
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      if (XINT (cols) != f->width)
-	x_set_window_size (f, 1, XINT (cols), f->height);
+      if (XINT (cols) != FRAME_COLS (f))
+	x_set_window_size (f, 1, XINT (cols), FRAME_LINES (f));
       do_pending_window_change (0);
     }
   else
@@ -2435,8 +2453,9 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      if (XINT (rows) != f->height || XINT (cols) != f->width
-	  || FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
+      if (XINT (rows) != FRAME_LINES (f)
+	  || XINT (cols) != FRAME_COLS (f)
+	  || f->new_text_lines || f->new_text_cols)
 	x_set_window_size (f, 1, XINT (cols), XINT (rows));
       do_pending_window_change (0);
     }
@@ -2541,32 +2560,31 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
      int *top_pos;
      int *left_pos;
 {
-  int newwidth = f->width, newheight = f->height;
+  int newwidth = FRAME_COLS (f);
+  int newheight = FRAME_LINES (f);
 
-  *top_pos = FRAME_X_OUTPUT (f)->top_pos;
-  *left_pos = FRAME_X_OUTPUT (f)->left_pos;
+  *top_pos = f->top_pos;
+  *left_pos = f->left_pos;
 
-  if (FRAME_X_OUTPUT (f)->want_fullscreen & FULLSCREEN_HEIGHT)
+  if (f->want_fullscreen & FULLSCREEN_HEIGHT)
     {
       int ph;
 
       ph = FRAME_X_DISPLAY_INFO (f)->height;
-      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
-      ph = CHAR_TO_PIXEL_HEIGHT (f, newheight)
-        - FRAME_X_OUTPUT (f)->y_pixels_diff;
-      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
+      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
+      ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, newheight) - f->y_pixels_diff;
+      newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
       *top_pos = 0;
     }
 
-  if (FRAME_X_OUTPUT (f)->want_fullscreen & FULLSCREEN_WIDTH)
+  if (f->want_fullscreen & FULLSCREEN_WIDTH)
     {
       int pw;
 
       pw = FRAME_X_DISPLAY_INFO (f)->width;
-      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
-      pw = CHAR_TO_PIXEL_WIDTH (f, newwidth)
-        - FRAME_X_OUTPUT (f)->x_pixels_diff;
-      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
+      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
+      pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, newwidth) - f->x_pixels_diff;
+      newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
       *left_pos = 0;
     }
 
@@ -2574,33 +2592,6 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
   *height = newheight;
 }
 
-
-/* Really try to move where we want to be in case of fullscreen.  Some WMs
-   moves the window where we tell them.  Some (mwm, twm) moves the outer
-   window manager window there instead.
-   Try to compensate for those WM here. */
-
-static void
-x_fullscreen_move (f, new_top, new_left)
-     struct frame *f;
-     int new_top;
-     int new_left;
-{
-  if (new_top != FRAME_X_OUTPUT (f)->top_pos
-      || new_left != FRAME_X_OUTPUT (f)->left_pos)
-    {
-      int move_x = new_left;
-      int move_y = new_top;
-
-#ifdef HAVE_X_WINDOWS
-      move_x += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
-      move_y += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
-#endif
-
-      FRAME_X_OUTPUT (f)->want_fullscreen |= FULLSCREEN_MOVE_WAIT;
-      x_set_offset (f, move_x, move_y, 1);
-    }
-}
 
 /* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing special;
@@ -2668,15 +2659,8 @@ x_set_frame_parameters (f, alist)
   icon_left = icon_top = Qunbound;
 
   /* Provide default values for HEIGHT and WIDTH.  */
-  if (FRAME_NEW_WIDTH (f))
-    width = FRAME_NEW_WIDTH (f);
-  else
-    width = FRAME_WIDTH (f);
-
-  if (FRAME_NEW_HEIGHT (f))
-    height = FRAME_NEW_HEIGHT (f);
-  else
-    height = FRAME_HEIGHT (f);
+  width = (f->new_text_cols ? f->new_text_cols : FRAME_COLS (f));
+  height = (f->new_text_lines ? f->new_text_lines : FRAME_LINES (f));
 
   /* Process foreground_color and background_color before anything else.
      They are independent of other properties, but other properties (e.g.,
@@ -2760,18 +2744,18 @@ x_set_frame_parameters (f, alist)
   if (EQ (left, Qunbound))
     {
       left_no_change = 1;
-      if (FRAME_X_OUTPUT (f)->left_pos < 0)
-	left = Fcons (Qplus, Fcons (make_number (FRAME_X_OUTPUT (f)->left_pos), Qnil));
+      if (f->left_pos < 0)
+	left = Fcons (Qplus, Fcons (make_number (f->left_pos), Qnil));
       else
-	XSETINT (left, FRAME_X_OUTPUT (f)->left_pos);
+	XSETINT (left, f->left_pos);
     }
   if (EQ (top, Qunbound))
     {
       top_no_change = 1;
-      if (FRAME_X_OUTPUT (f)->top_pos < 0)
-	top = Fcons (Qplus, Fcons (make_number (FRAME_X_OUTPUT (f)->top_pos), Qnil));
+      if (f->top_pos < 0)
+	top = Fcons (Qplus, Fcons (make_number (f->top_pos), Qnil));
       else
-	XSETINT (top, FRAME_X_OUTPUT (f)->top_pos);
+	XSETINT (top, f->top_pos);
     }
 
   /* If one of the icon positions was not set, preserve or default it.  */
@@ -2804,7 +2788,8 @@ x_set_frame_parameters (f, alist)
       int new_left, new_top;
 
       x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
-      x_fullscreen_move (f, new_top, new_left);
+      if (new_top != f->top_pos || new_left != f->left_pos)
+        x_set_offset (f, new_left, new_top, 1);
     }
 #endif
 
@@ -2823,35 +2808,35 @@ x_set_frame_parameters (f, alist)
 
     XSETFRAME (frame, f);
 
-    if (width != FRAME_WIDTH (f)
-	|| height != FRAME_HEIGHT (f)
-	|| FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
+    if (width != FRAME_COLS (f)
+	|| height != FRAME_LINES (f)
+	|| f->new_text_lines || f->new_text_cols)
       Fset_frame_size (frame, make_number (width), make_number (height));
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)
-	&& ! (NUMBERP (left) && XINT (left) == FRAME_X_OUTPUT (f)->left_pos
-	      && NUMBERP (top) && XINT (top) == FRAME_X_OUTPUT (f)->top_pos))
+	&& ! (NUMBERP (left) && XINT (left) == f->left_pos
+	      && NUMBERP (top) && XINT (top) == f->top_pos))
       {
 	int leftpos = 0;
 	int toppos = 0;
 
 	/* Record the signs.  */
-	FRAME_X_OUTPUT (f)->size_hint_flags &= ~ (XNegative | YNegative);
+	f->size_hint_flags &= ~ (XNegative | YNegative);
 	if (EQ (left, Qminus))
-	  FRAME_X_OUTPUT (f)->size_hint_flags |= XNegative;
+	  f->size_hint_flags |= XNegative;
 	else if (INTEGERP (left))
 	  {
 	    leftpos = XINT (left);
 	    if (leftpos < 0)
-	      FRAME_X_OUTPUT (f)->size_hint_flags |= XNegative;
+	      f->size_hint_flags |= XNegative;
 	  }
 	else if (CONSP (left) && EQ (XCAR (left), Qminus)
 		 && CONSP (XCDR (left))
 		 && INTEGERP (XCAR (XCDR (left))))
 	  {
 	    leftpos = - XINT (XCAR (XCDR (left)));
-	    FRAME_X_OUTPUT (f)->size_hint_flags |= XNegative;
+	    f->size_hint_flags |= XNegative;
 	  }
 	else if (CONSP (left) && EQ (XCAR (left), Qplus)
 		 && CONSP (XCDR (left))
@@ -2861,19 +2846,19 @@ x_set_frame_parameters (f, alist)
 	  }
 
 	if (EQ (top, Qminus))
-	  FRAME_X_OUTPUT (f)->size_hint_flags |= YNegative;
+	  f->size_hint_flags |= YNegative;
 	else if (INTEGERP (top))
 	  {
 	    toppos = XINT (top);
 	    if (toppos < 0)
-	      FRAME_X_OUTPUT (f)->size_hint_flags |= YNegative;
+	      f->size_hint_flags |= YNegative;
 	  }
 	else if (CONSP (top) && EQ (XCAR (top), Qminus)
 		 && CONSP (XCDR (top))
 		 && INTEGERP (XCAR (XCDR (top))))
 	  {
 	    toppos = - XINT (XCAR (XCDR (top)));
-	    FRAME_X_OUTPUT (f)->size_hint_flags |= YNegative;
+	    f->size_hint_flags |= YNegative;
 	  }
 	else if (CONSP (top) && EQ (XCAR (top), Qplus)
 		 && CONSP (XCDR (top))
@@ -2884,10 +2869,10 @@ x_set_frame_parameters (f, alist)
 
 
 	/* Store the numeric value of the position.  */
-	FRAME_X_OUTPUT (f)->top_pos = toppos;
-	FRAME_X_OUTPUT (f)->left_pos = leftpos;
+	f->top_pos = toppos;
+	f->left_pos = leftpos;
 
-	FRAME_X_OUTPUT (f)->win_gravity = NorthWestGravity;
+	f->win_gravity = NorthWestGravity;
 
 	/* Actually set that position, and convert to absolute.  */
 	x_set_offset (f, leftpos, toppos, -1);
@@ -2918,31 +2903,31 @@ x_report_frame_params (f, alistptr)
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
-  XSETINT (tem, FRAME_X_OUTPUT (f)->left_pos);
-  if (FRAME_X_OUTPUT (f)->left_pos >= 0)
+  XSETINT (tem, f->left_pos);
+  if (f->left_pos >= 0)
     store_in_alist (alistptr, Qleft, tem);
   else
     store_in_alist (alistptr, Qleft, Fcons (Qplus, Fcons (tem, Qnil)));
 
-  XSETINT (tem, FRAME_X_OUTPUT (f)->top_pos);
-  if (FRAME_X_OUTPUT (f)->top_pos >= 0)
+  XSETINT (tem, f->top_pos);
+  if (f->top_pos >= 0)
     store_in_alist (alistptr, Qtop, tem);
   else
     store_in_alist (alistptr, Qtop, Fcons (Qplus, Fcons (tem, Qnil)));
 
   store_in_alist (alistptr, Qborder_width,
-		  make_number (FRAME_X_OUTPUT (f)->border_width));
+		  make_number (f->border_width));
   store_in_alist (alistptr, Qinternal_border_width,
-		  make_number (FRAME_X_OUTPUT (f)->internal_border_width));
+		  make_number (FRAME_INTERNAL_BORDER_WIDTH (f)));
   store_in_alist (alistptr, Qleft_fringe,
-		  make_number (FRAME_X_OUTPUT (f)->left_fringe_width));
+		  make_number (FRAME_LEFT_FRINGE_WIDTH (f)));
   store_in_alist (alistptr, Qright_fringe,
-		  make_number (FRAME_X_OUTPUT (f)->right_fringe_width));
+		  make_number (FRAME_RIGHT_FRINGE_WIDTH (f)));
   store_in_alist (alistptr, Qscroll_bar_width,
 		  (! FRAME_HAS_VERTICAL_SCROLL_BARS (f)
 		   ? make_number (0)
-		   : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
-		   ? make_number (FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
+		   : FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
+		   ? make_number (FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
 		   /* nil means "use default width"
 		      for non-toolkit scroll bar.
 		      ruler-mode.el depends on this.  */
@@ -2988,13 +2973,13 @@ x_set_fullscreen (f, new_value, old_value)
 {
 #ifndef HAVE_CARBON
   if (NILP (new_value))
-    FRAME_X_OUTPUT (f)->want_fullscreen = FULLSCREEN_NONE;
+    f->want_fullscreen = FULLSCREEN_NONE;
   else if (EQ (new_value, Qfullboth))
-    FRAME_X_OUTPUT (f)->want_fullscreen = FULLSCREEN_BOTH;
+    f->want_fullscreen = FULLSCREEN_BOTH;
   else if (EQ (new_value, Qfullwidth))
-    FRAME_X_OUTPUT (f)->want_fullscreen = FULLSCREEN_WIDTH;
+    f->want_fullscreen = FULLSCREEN_WIDTH;
   else if (EQ (new_value, Qfullheight))
-    FRAME_X_OUTPUT (f)->want_fullscreen = FULLSCREEN_HEIGHT;
+    f->want_fullscreen = FULLSCREEN_HEIGHT;
 #endif
 }
 
@@ -3112,7 +3097,7 @@ x_set_border_width (f, arg, oldval)
 {
   CHECK_NUMBER (arg);
 
-  if (XINT (arg) == FRAME_X_OUTPUT (f)->border_width)
+  if (XINT (arg) == f->border_width)
     return;
 
 #ifndef HAVE_CARBON
@@ -3120,7 +3105,7 @@ x_set_border_width (f, arg, oldval)
     error ("Cannot change the border width of a window");
 #endif /* MAC_TODO */
 
-  FRAME_X_OUTPUT (f)->border_width = XINT (arg);
+  f->border_width = XINT (arg);
 }
 
 void
@@ -3128,24 +3113,24 @@ x_set_internal_border_width (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  int old = FRAME_X_OUTPUT (f)->internal_border_width;
+  int old = FRAME_INTERNAL_BORDER_WIDTH (f);
 
   CHECK_NUMBER (arg);
-  FRAME_X_OUTPUT (f)->internal_border_width = XINT (arg);
-  if (FRAME_X_OUTPUT (f)->internal_border_width < 0)
-    FRAME_X_OUTPUT (f)->internal_border_width = 0;
+  FRAME_INTERNAL_BORDER_WIDTH (f) = XINT (arg);
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) < 0)
+    FRAME_INTERNAL_BORDER_WIDTH (f) = 0;
 
 #ifdef USE_X_TOOLKIT
   if (FRAME_X_OUTPUT (f)->edit_widget)
     widget_store_internal_border (FRAME_X_OUTPUT (f)->edit_widget);
 #endif
 
-  if (FRAME_X_OUTPUT (f)->internal_border_width == old)
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) == old)
     return;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-      x_set_window_size (f, 0, f->width, f->height);
+      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       SET_FRAME_GARBAGED (f);
       do_pending_window_change (0);
     }
@@ -3210,20 +3195,18 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	   ? vertical_scroll_bar_left
 	   : EQ (Qright, arg)
 	   ? vertical_scroll_bar_right
-#ifdef HAVE_NTGUI
-	   /* MS-Windows has scroll bars on the right by default.  */
-	   : vertical_scroll_bar_right
-#else
-	   : vertical_scroll_bar_left
-#endif
-	   );
+	   : EQ (Qleft, Vdefault_frame_scroll_bars)
+	   ? vertical_scroll_bar_left
+	   : EQ (Qright, Vdefault_frame_scroll_bars)
+	   ? vertical_scroll_bar_right
+	   : vertical_scroll_bar_none);
 
       /* We set this parameter before creating the X window for the
 	 frame, so we can get the geometry right from the start.
 	 However, if the window hasn't been created yet, we shouldn't
 	 call x_set_window_size.  */
       if (FRAME_X_WINDOW (f))
-	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
 }
@@ -3233,30 +3216,30 @@ x_set_scroll_bar_width (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  int wid = FONT_WIDTH (FRAME_FONT (f));
+  int wid = FRAME_COLUMN_WIDTH (f);
 
   if (NILP (arg))
     {
       x_set_scroll_bar_default_width (f);
 
       if (FRAME_X_WINDOW (f))
-        x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+        x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
   else if (INTEGERP (arg) && XINT (arg) > 0
-	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
+	   && XFASTINT (arg) != FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
     {
       if (XFASTINT (arg) <= 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM)
 	XSETINT (arg, 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM + 1);
 
-      FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = XFASTINT (arg);
-      FRAME_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
+      FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = XFASTINT (arg);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
       if (FRAME_X_WINDOW (f))
-	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
 
-  change_frame_size (f, 0, FRAME_WIDTH (f), 0, 0, 0);
+  change_frame_size (f, 0, FRAME_COLS (f), 0, 0, 0);
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.hpos = 0;
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.x = 0;
 }
@@ -3706,18 +3689,17 @@ x_figure_window_size (f, parms, toolbar_p)
   /* Default values if we fall through.
      Actually, if that happens we should get
      window manager prompting.  */
-  SET_FRAME_WIDTH (f, DEFAULT_COLS);
-  f->height = DEFAULT_ROWS;
+  SET_FRAME_COLS (f, DEFAULT_COLS);
+  FRAME_LINES (f) = DEFAULT_ROWS;
   /* Window managers expect that if program-specified
      positions are not (0,0), they're intentional, not defaults.  */
-  FRAME_X_OUTPUT (f)->top_pos = 0;
-  FRAME_X_OUTPUT (f)->left_pos = 0;
+  f->top_pos = 0;
+  f->left_pos = 0;
 
-  /* Ensure that old new_width and new_height will not override the
+  /* Ensure that old new_text_cols and new_text_lines will not override the
      values set here.  */
   /* ++KFS: This was specific to W32, but seems ok for all platforms */
-  FRAME_NEW_WIDTH (f) = 0;
-  FRAME_NEW_HEIGHT (f) = 0;
+  f->new_text_cols = f->new_text_lines = 0;
 
   tem0 = x_get_arg (dpyinfo, parms, Qheight, 0, 0, RES_TYPE_NUMBER);
   tem1 = x_get_arg (dpyinfo, parms, Qwidth, 0, 0, RES_TYPE_NUMBER);
@@ -3727,12 +3709,12 @@ x_figure_window_size (f, parms, toolbar_p)
       if (!EQ (tem0, Qunbound))
 	{
 	  CHECK_NUMBER (tem0);
-	  f->height = XINT (tem0);
+	  FRAME_LINES (f) = XINT (tem0);
 	}
       if (!EQ (tem1, Qunbound))
 	{
 	  CHECK_NUMBER (tem1);
-	  SET_FRAME_WIDTH (f, XINT (tem1));
+	  SET_FRAME_COLS (f, XINT (tem1));
 	}
       if (!NILP (tem2) && !EQ (tem2, Qunbound))
 	window_prompting |= USSize;
@@ -3740,15 +3722,8 @@ x_figure_window_size (f, parms, toolbar_p)
 	window_prompting |= PSize;
     }
 
-  FRAME_X_OUTPUT (f)->vertical_scroll_bar_extra
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-#ifndef HAVE_X_WINDOWS
-       /* +KFS: This was specific for W32 and MAC.. why?  */
-       : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
-       ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-#endif
-       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (FRAME_X_OUTPUT (f)->font)));
+  f->scroll_bar_actual_width
+    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   /* This used to be done _before_ calling x_figure_window_size, but
      since the height is reset here, this was really a no-op.  I
@@ -3780,13 +3755,13 @@ x_figure_window_size (f, parms, toolbar_p)
 	margin = 0;
 
       bar_height = DEFAULT_TOOL_BAR_IMAGE_HEIGHT + 2 * margin + 2 * relief;
-      f->height += (bar_height + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
+      FRAME_LINES (f) += (bar_height + FRAME_LINE_HEIGHT (f) - 1) / FRAME_LINE_HEIGHT (f);
     }
 
   compute_fringe_widths (f, 0);
 
-  FRAME_X_OUTPUT (f)->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
-  FRAME_X_OUTPUT (f)->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
+  FRAME_PIXEL_WIDTH (f) = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, FRAME_COLS (f));
+  FRAME_PIXEL_HEIGHT (f) = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
 
   tem0 = x_get_arg (dpyinfo, parms, Qtop, 0, 0, RES_TYPE_NUMBER);
   tem1 = x_get_arg (dpyinfo, parms, Qleft, 0, 0, RES_TYPE_NUMBER);
@@ -3795,57 +3770,57 @@ x_figure_window_size (f, parms, toolbar_p)
     {
       if (EQ (tem0, Qminus))
 	{
-	  FRAME_X_OUTPUT (f)->top_pos = 0;
+	  f->top_pos = 0;
 	  window_prompting |= YNegative;
 	}
       else if (CONSP (tem0) && EQ (XCAR (tem0), Qminus)
 	       && CONSP (XCDR (tem0))
 	       && INTEGERP (XCAR (XCDR (tem0))))
 	{
-	  FRAME_X_OUTPUT (f)->top_pos = - XINT (XCAR (XCDR (tem0)));
+	  f->top_pos = - XINT (XCAR (XCDR (tem0)));
 	  window_prompting |= YNegative;
 	}
       else if (CONSP (tem0) && EQ (XCAR (tem0), Qplus)
 	       && CONSP (XCDR (tem0))
 	       && INTEGERP (XCAR (XCDR (tem0))))
 	{
-	  FRAME_X_OUTPUT (f)->top_pos = XINT (XCAR (XCDR (tem0)));
+	  f->top_pos = XINT (XCAR (XCDR (tem0)));
 	}
       else if (EQ (tem0, Qunbound))
-	FRAME_X_OUTPUT (f)->top_pos = 0;
+	f->top_pos = 0;
       else
 	{
 	  CHECK_NUMBER (tem0);
-	  FRAME_X_OUTPUT (f)->top_pos = XINT (tem0);
-	  if (FRAME_X_OUTPUT (f)->top_pos < 0)
+	  f->top_pos = XINT (tem0);
+	  if (f->top_pos < 0)
 	    window_prompting |= YNegative;
 	}
 
       if (EQ (tem1, Qminus))
 	{
-	  FRAME_X_OUTPUT (f)->left_pos = 0;
+	  f->left_pos = 0;
 	  window_prompting |= XNegative;
 	}
       else if (CONSP (tem1) && EQ (XCAR (tem1), Qminus)
 	       && CONSP (XCDR (tem1))
 	       && INTEGERP (XCAR (XCDR (tem1))))
 	{
-	  FRAME_X_OUTPUT (f)->left_pos = - XINT (XCAR (XCDR (tem1)));
+	  f->left_pos = - XINT (XCAR (XCDR (tem1)));
 	  window_prompting |= XNegative;
 	}
       else if (CONSP (tem1) && EQ (XCAR (tem1), Qplus)
 	       && CONSP (XCDR (tem1))
 	       && INTEGERP (XCAR (XCDR (tem1))))
 	{
-	  FRAME_X_OUTPUT (f)->left_pos = XINT (XCAR (XCDR (tem1)));
+	  f->left_pos = XINT (XCAR (XCDR (tem1)));
 	}
       else if (EQ (tem1, Qunbound))
-	FRAME_X_OUTPUT (f)->left_pos = 0;
+	f->left_pos = 0;
       else
 	{
 	  CHECK_NUMBER (tem1);
-	  FRAME_X_OUTPUT (f)->left_pos = XINT (tem1);
-	  if (FRAME_X_OUTPUT (f)->left_pos < 0)
+	  f->left_pos = XINT (tem1);
+	  if (f->left_pos < 0)
 	    window_prompting |= XNegative;
 	}
 
@@ -3855,7 +3830,7 @@ x_figure_window_size (f, parms, toolbar_p)
 	window_prompting |= PPosition;
     }
 
-  if (FRAME_X_OUTPUT (f)->want_fullscreen != FULLSCREEN_NONE)
+  if (f->want_fullscreen != FULLSCREEN_NONE)
     {
       int left, top;
       int width, height;
@@ -3863,30 +3838,30 @@ x_figure_window_size (f, parms, toolbar_p)
       /* It takes both for some WM:s to place it where we want */
       window_prompting = USPosition | PPosition;
       x_fullscreen_adjust (f, &width, &height, &top, &left);
-      f->width = width;
-      f->height = height;
-      FRAME_X_OUTPUT (f)->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
-      FRAME_X_OUTPUT (f)->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
-      FRAME_X_OUTPUT (f)->left_pos = left;
-      FRAME_X_OUTPUT (f)->top_pos = top;
+      FRAME_COLS (f) = width;
+      FRAME_LINES (f) = height;
+      FRAME_PIXEL_WIDTH (f) = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
+      FRAME_PIXEL_HEIGHT (f) = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
+      f->left_pos = left;
+      f->top_pos = top;
     }
 
   if (window_prompting & XNegative)
     {
       if (window_prompting & YNegative)
-	FRAME_X_OUTPUT (f)->win_gravity = SouthEastGravity;
+	f->win_gravity = SouthEastGravity;
       else
-	FRAME_X_OUTPUT (f)->win_gravity = NorthEastGravity;
+	f->win_gravity = NorthEastGravity;
     }
   else
     {
       if (window_prompting & YNegative)
-	FRAME_X_OUTPUT (f)->win_gravity = SouthWestGravity;
+	f->win_gravity = SouthWestGravity;
       else
-	FRAME_X_OUTPUT (f)->win_gravity = NorthWestGravity;
+	f->win_gravity = NorthWestGravity;
     }
 
-  FRAME_X_OUTPUT (f)->size_hint_flags = window_prompting;
+  f->size_hint_flags = window_prompting;
 
   return window_prompting;
 }
@@ -4033,6 +4008,19 @@ The `menu-bar-lines' element of the list controls whether new frames
 Setting this variable does not affect existing frames, only new ones.  */);
   Vdefault_frame_alist = Qnil;
 
+  DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
+	       doc: /* Default position of scroll bars on this window-system.  */);
+#ifdef HAVE_WINDOW_SYSTEM
+#if defined(HAVE_NTGUI) || defined(HAVE_CARBON)
+  /* MS-Windows has scroll bars on the right by default.  */
+  Vdefault_frame_scroll_bars = Qright;
+#else
+  Vdefault_frame_scroll_bars = Qleft;
+#endif
+#else
+  Vdefault_frame_scroll_bars = Qnil;
+#endif
+
   Qinhibit_default_face_x_resources
     = intern ("inhibit-default-face-x-resources");
   staticpro (&Qinhibit_default_face_x_resources);
@@ -4135,3 +4123,6 @@ This variable is local to the current terminal and cannot be buffer-local.  */);
 #endif
 
 }
+
+/* arch-tag: 7dbf2c69-9aad-45f8-8296-db893d6dd039
+   (do not change this comment) */

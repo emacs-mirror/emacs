@@ -243,8 +243,8 @@ This function returns ARGS minus the arguments that have been processed."
 	x-invocation-args (cdr x-invocation-args)))
 
 (defvar emacs-save-session-functions nil
-  "Functions to run when a save-session event occurs.
-The functions does not get any argument.
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
 Functions can return non-nil to inform the session manager that the
 window system shutdown should be aborted.
 
@@ -1158,13 +1158,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     defined-colors))
 
 ;;;; Function keys
-
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
 
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
@@ -2145,6 +2138,105 @@ This is in addition to, but in preference to, the primary selection."
     (setq x-last-selected-text-clipboard text))
   )
 
+(defvar x-select-request-type nil
+  "*Data type request for X selection.
+The value is nil, one of the following data types, or a list of them:
+  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+
+If the value is nil, try `COMPOUND_TEXT' and `UTF8_STRING', and
+use the more appropriate result.  If both fail, try `STRING', and
+then `TEXT'.
+
+If the value is one of the above symbols, try only the specified
+type.
+
+If the value is a list of them, try each of them in the specified
+order until succeed.")
+
+;; Helper function for x-selection-value.  Select UTF8 or CTEXT
+;; whichever is more appropriate.  Here, we use this heurisitcs.
+;;
+;;   (1) If their lengthes are different, select the longer one.  This
+;;   is because an X client may just cut off unsupported characters.
+;;
+;;   (2) Otherwise, if the Nth character of CTEXT is an ASCII
+;;   character that is different from the Nth character of UTF8,
+;;   select UTF8.  This is because an X client may replace unsupported
+;;   characters with some ASCII character (typically ` ' or `?') in
+;;   CTEXT.
+;;
+;;   (3) Otherwise, select CTEXT.  This is because legacy charsets are
+;;   better for the current Emacs, especially when the selection owner
+;;   is also Emacs.
+
+(defun x-select-utf8-or-ctext (utf8 ctext)
+  (let ((len-utf8 (length utf8))
+	(len-ctext (length ctext))
+	(selected ctext)
+	(i 0)
+	char)
+    (if (/= len-utf8 len-ctext)
+	(if (> len-utf8 len-ctext) utf8 ctext)
+      (while (< i len-utf8)
+	(setq char (aref ctext i))
+	(if (and (< char 128) (/= char (aref utf8 i)))
+	    (setq selected utf8
+		  i len-utf8)
+	  (setq i (1+ i))))
+      selected)))
+
+(defun x-selection-value (type)
+  (let (text)
+    (cond ((null x-select-request-type)
+	   (let (utf8 ctext utf8-coding)
+	     ;; We try both UTF8_STRING and COMPOUND_TEXT, and choose
+	     ;; the more appropriate one.  If both fail, try STRING.
+
+	     ;; At first try UTF8_STRING.
+	     (setq utf8 (condition-case nil
+			    (x-get-selection type 'UTF8_STRING)
+			  (error nil))
+		   utf8-coding last-coding-system-used)
+	     (if utf8
+		 ;; If it is a locale selection, choose it.
+		 (or (get-text-property 0 'foreign-selection utf8)
+		     (setq text utf8)))
+	     ;; If not yet decided, try COMPOUND_TEXT.
+	     (if (not text)
+		 (if (setq ctext (condition-case nil
+				     (x-get-selection type 'COMPOUND_TEXT)
+				   (error nil)))
+		     ;; If UTF8_STRING was also successful, choose the
+		     ;; more appropriate one from UTF8 and CTEXT.
+		     (if utf8
+			 (setq text (x-select-utf8-or-ctext utf8 ctext))
+		       ;; Othewise, choose CTEXT.
+		       (setq text ctext))))
+	     ;; If not yet decided, try STRING.
+	     (or text
+		 (setq text (condition-case nil
+				(x-get-selection type 'STRING)
+			      (error nil))))
+	     (if (eq text utf8)
+		 (setq last-coding-system-used utf8-coding))))
+
+	  ((consp x-select-request-type)
+	   (let ((tail x-select-request-type))
+	     (while (and tail (not text))
+	       (condition-case nil
+		   (setq text (x-get-selection type (car tail)))
+		 (error nil))
+	       (setq tail (cdr tail)))))
+
+	  (t
+	   (condition-case nil
+	       (setq text (x-get-selection type x-select-request-type))
+	     (error nil))))
+
+    (if text
+	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
+    text))
+      
 ;;; Return the value of the current X selection.
 ;;; Consult the selection, and the cut buffer.  Treat empty strings
 ;;; as if they were unset.
@@ -2154,15 +2246,7 @@ This is in addition to, but in preference to, the primary selection."
 (defun x-cut-buffer-or-selection-value ()
   (let (clip-text primary-text cut-text)
     (when x-select-enable-clipboard
-      ;; Don't die if x-get-selection signals an error.
-      (if (null clip-text)
-	  (condition-case c
-	      (setq clip-text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
-	    (error nil)))
-      (if (null clip-text)
-	  (condition-case c
-	      (setq clip-text (x-get-selection 'CLIPBOARD 'STRING))
-	    (error nil)))
+      (setq clip-text (x-selection-value 'CLIPBOARD))
       (if (string= clip-text "") (setq clip-text nil))
 
       ;; Check the CLIPBOARD selection for 'newness', is it different
@@ -2182,15 +2266,7 @@ This is in addition to, but in preference to, the primary selection."
 	      (setq x-last-selected-text-clipboard clip-text))))
       )
 
-    ;; Don't die if x-get-selection signals an error.
-    (if (null primary-text)
-	(condition-case c
-	    (setq primary-text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
-	  (error nil)))
-    (if (null primary-text)
-	(condition-case c
-	    (setq primary-text (x-get-selection 'PRIMARY 'STRING))
-	  (error nil)))
+    (setq primary-text (x-selection-value 'PRIMARY))
     ;; Check the PRIMARY selection for 'newness', is it different
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
@@ -2224,6 +2300,9 @@ This is in addition to, but in preference to, the primary selection."
       nil)
      (t
 	    (setq x-last-selected-text-cut cut-text))))
+
+    ;; As we have done one selection, clear this now.
+    (setq next-selection-coding-system nil)
 
     ;; At this point we have recorded the current values for the
     ;; selection from clipboard (if we are supposed to) primary,
@@ -2367,11 +2446,15 @@ This is in addition to, but in preference to, the primary selection."
 ;; Don't show the frame name; that's redundant with X.
 (setq-default mode-line-frame-identification "  ")
 
-;;; Motif direct handling of f10 wasn't working right,
-;;; So temporarily we've turned it off in lwlib-Xm.c
-;;; and turned the Emacs f10 back on.
-;;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
-;;; (if (featurep 'motif)
-;;;     (global-set-key [f10] 'ignore))
+;; Motif direct handling of f10 wasn't working right,
+;; So temporarily we've turned it off in lwlib-Xm.c
+;; and turned the Emacs f10 back on.
+;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
+;; (if (featurep 'motif)
+;;     (global-set-key [f10] 'ignore))
 
+;; Turn on support for mouse wheels.
+(mouse-wheel-mode 1)
+
+;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

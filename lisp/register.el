@@ -146,7 +146,7 @@ Interactively, NUMBER is the prefix arg (none means nil)."
 		  (if (looking-at "\\s-*-?[0-9]+")
 		      (progn
 			(goto-char (match-end 0))
-			(string-to-int (match-string 0)))
+			(string-to-number (match-string 0)))
 		    0))))
 
 (defun increment-register (number register)
@@ -313,4 +313,5 @@ START and END are buffer positions giving two corners of rectangle."
 		    (delete-extract-rectangle start end)
 		  (extract-rectangle start end))))
 
+;;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

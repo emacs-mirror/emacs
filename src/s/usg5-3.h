@@ -205,3 +205,6 @@ Boston, MA 02111-1307, USA.  */
 /* On USG systems signal handlers return void */
 
 #define SIGTYPE void
+
+/* arch-tag: 2bca65fd-f015-44b9-a2aa-9f8170ce89ca
+   (do not change this comment) */

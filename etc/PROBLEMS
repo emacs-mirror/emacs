@@ -1,6 +1,12 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Process output truncated on Mac OS X (Carbon) when using pty's.
+
+There appears to be a problem with the implementation of pty's on the
+Mac OS X that causes process output to be truncated.  To avoid this,
+leave process-connection-type set to its default value of nil.
+
 * Emacs crashes on Mac OS X (Carbon) after system software upgrade.
 
 This problem seems to be now solved by Steven Tamm's patch to
@@ -15,17 +21,39 @@ problems with the unexec code and its interaction with libSystem.B.
 * Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
-minimal character repertoires (whereas the encoding is meant to be a
-reasonable indication of the repertoire).  Emacs may choose one of
-these to display characters from the mule-unicode charsets and then
-typically won't be able to find the glyphs to display many characters.
-(Check with C-u C-x = .)  To avoid this, you may need to use a fontset
-which sets the font for the mule-unicode sets explicitly.  E.g. to use
-GNU unifont, include in the fontset spec:
+minimal character repertoires (whereas the encoding part of the font
+name is meant to be a reasonable indication of the repertoire
+according to the XLFD spec).  Emacs may choose one of these to display
+characters from the mule-unicode charsets and then typically won't be
+able to find the glyphs to display many characters.  (Check with C-u
+C-x = .)  To avoid this, you may need to use a fontset which sets the
+font for the mule-unicode sets explicitly.  E.g. to use GNU unifont,
+include in the fontset spec:
 
 mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
+
+* The UTF-8/16/7 coding systems don't encode CJK (Far Eastern) characters.
+
+Emacs by default only supports the parts of the Unicode BMP whose code
+points are in the ranges 0000-33ff and e000-ffff.  This excludes: most
+of CJK, Yi and Hangul, as well as everything outside the BMP.
+
+If you read UTF-8 data with code points outside these ranges, the
+characters appear in the buffer as raw bytes of the original UTF-8
+(composed into a single quasi-character) and they will be written back
+correctly as UTF-8, assuming you don't break the composed sequences.
+If you read such characters from UTF-16 or UTF-7 data, they are
+substituted with the Unicode `replacement character', and you lose
+information.
+
+To edit such UTF data, turn on Utf-Translate-Cjk mode, which makes
+many common CJK characters available for encoding and decoding and can
+be extended by updating the tables it uses.  This also allows you to
+save as UTF buffers containing characters decoded by the chinese-,
+japanese- and korean- coding systems, e.g. cut and pasted from
+elsewhere.
 
 * Problems with file dialogs in Emacs built with Open Motif.
 
@@ -240,10 +268,10 @@ There are several ways to improve this performance, any subset of which can
 be carried out at the same time:
 
 1) If you don't need X Input Methods (XIM) for entering text in some
-   language you use, you can improve performance on WAN links by
-   configuring Emacs with option `--without-xim'.  Configuring Emacs
-   without XIM does not affect the use of Emacs' own input methods, which
-   are part of the Leim package.
+   language you use, you can improve performance on WAN links by using
+   the X resource useXIM to turn off use of XIM.  This does not affect
+   the use of Emacs' own input methods, which are part of the Leim
+   package.
 
 2) If the connection is very slow, you might also want to consider
    switching off scroll bars, menu bar, and tool bar.
@@ -261,7 +289,7 @@ be carried out at the same time:
     -noatomsfile  -nowinattr  -cheaterrors -cheatevents
    Note that the -nograbcmap option is known to cause problems.
    For more about lbxproxy, see:
-   http://www.xfree86.org/4.2.0/lbxproxy.1.html
+   http://www.xfree86.org/4.3.0/lbxproxy.1.html
 
 * Getting a Meta key on the FreeBSD console
 
@@ -401,7 +429,7 @@ entry that supports color is `xterm-color', so setting TERM's value to
 `xterm-color' might activate the color support on an xterm-compatible
 emulator.
 
-Beginning with version 21.3, Emacs supports the --color command-line
+Beginning with version 21.4, Emacs supports the --color command-line
 option which may be used to force Emacs to use one of a few popular
 modes for getting colors on a tty.  For example, --color=ansi8 sets up
 for using the ANSI-standard escape sequences that support 8 colors.
@@ -497,10 +525,7 @@ yet.)
 Windows uses UTF-16 encoding to deal with multilingual text (text not
 encodable in the `system codepage') in the clipboard.  To deal with
 this, load the library `utf-16' and use `set-selection-coding-system'
-to set the clipboard coding system to `utf-16-le-dos'.  This won't
-cope with Far Eastern (`CJK') text; if necessary, install the Mule-UCS
-package (see etc/MORE.STUFF), whose `utf-16-le-dos' coding system does
-encode a lot of CJK characters.
+to set the clipboard coding system to `utf-16-le-with-signature-dos'.
 
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
@@ -563,7 +588,8 @@ The solution is to remove this line from `etc/fstab'.
 * Emacs binary is not in executable format, and cannot be run.
 
 This was reported to happen when Emacs is built in a directory mounted
-via NFS.  Usually, the file `emacs' produced in these cases is full of
+via NFS, for some combinations of NFS client and NFS server.
+Usually, the file `emacs' produced in these cases is full of
 binary null characters, and the `file' utility says:
 
     emacs: ASCII text, with no line terminators
@@ -613,7 +639,7 @@ introduced with Emacs 21.1, could significantly slow down scrolling
 through the buffer, especially scrolling backwards, and also jumping
 to the end of a very large buffer.
 
-Beginning with version 21.3, a parenthesis or a brace in column zero
+Beginning with version 21.4, a parenthesis or a brace in column zero
 is highlighted in bold-red face if it is inside a string or a comment,
 to indicate that it could interfere with Font Lock (and also with
 indentation) and should be moved or escaped with a backslash.
@@ -739,10 +765,10 @@ argument "-x" from the variable `ldap-ldapsearch-args'.
 * The `oc-unicode' package doesn't work with Emacs 21.
 
 This package tries to define more private charsets than there are free
-slots now.  If the built-in Unicode/UTF-8 support is insufficient,
-e.g. if you need more CJK coverage, use the current Mule-UCS package.
-Any files encoded as emacs-mule using oc-unicode won't be read
-correctly by Emacs 21.
+slots now.  The current built-in Unicode support is actually more
+flexible.  (Use option `utf-translate-cjk-mode' if you need CJK
+support.)  Files encoded as emacs-mule using oc-unicode aren't
+generally read correctly by Emacs 21.
 
 * Using epop3.el package causes Emacs to signal an error.
 
@@ -762,6 +788,22 @@ defines compatibility functions which trick ps-print into thinking it
 runs in XEmacs, and look for the prologue files in a wrong directory.
 
 The solution is to upgrade X-Symbol to a later version.
+
+* lpr commands don't work on MS-Windows with some cheap printers.
+
+This problem may also strike other platforms, but the solution is
+likely to be a global one, and not Emacs specific.
+
+Many cheap inkjet, and even some cheap laser printers, do not
+print plain text anymore, they will only print through graphical
+printer drivers. A workaround on MS-Windows is to use Windows' basic
+built in editor to print (this is possibly the only useful purpose it
+has):
+
+(setq printer-name "")         ;; notepad takes the default
+(setq lpr-command "notepad")   ;; notepad
+(setq lpr-switches nil)        ;; not needed
+(setq lpr-printer-switch "/P") ;; run notepad as batch printer
 
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
@@ -932,6 +974,23 @@ Windows might respond by crashing or locking up your system.  In
 particular, this has been reported when trying to compile a Java
 program in JDEE when javac.exe is installed, but not on the system
 PATH.
+
+* Pressing the mouse button on MS-Windows does not give a mouse-2 event.
+
+This is usually a problem with the mouse driver. Because most Windows
+programs do not do anything useful with the middle mouse button, many
+mouse drivers allow you to define the wheel press to do something
+different. Some drivers do not even have the option to generate a
+middle button press. In such cases, setting the wheel press to
+"scroll" sometimes works if you press the button twice. Trying a
+generic mouse driver might help.
+
+* Scrolling the mouse wheel on MS-Windows always scrolls the top window.
+
+This is another common problem with mouse drivers. Instead of
+generating scroll events, some mouse drivers try to fake scroll bar
+movement. But they are not intelligent enough to handle multiple
+scroll bars within a frame. Trying a generic mouse driver might help.
 
 * Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
@@ -3334,3 +3393,5 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
+
+arch-tag: 49fc0d95-88cb-4715-b21c-f27fb5a4764a

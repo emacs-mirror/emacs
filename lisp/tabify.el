@@ -79,4 +79,5 @@ The variable `tab-width' controls the spacing of tab stops."
 
 (provide 'tabify)
 
+;;; arch-tag: c83893b1-e0cc-4e57-8a09-73fd03466416
 ;;; tabify.el ends here

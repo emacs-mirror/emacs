@@ -68,18 +68,23 @@ controlled by a separate variable, `mail-specify-envelope-from'."
 (defcustom mail-specify-envelope-from nil
   "*If non-nil, specify the envelope-from address when sending mail.
 The value used to specify it is whatever is found in
-`mail-envelope-from', with `user-mail-address' as fallback.
+the variable `mail-envelope-from', with `user-mail-address' as fallback.
 
-On most systems, specifying the envelope-from address
-is a privileged operation."
+On most systems, specifying the envelope-from address is a
+privileged operation.  This variable affects sendmail and
+smtpmail -- if you use feedmail to send mail, see instead the
+variable `feedmail-deduce-envelope-from'."
   :version "21.1"
   :type 'boolean
   :group 'sendmail)
 
 (defcustom mail-envelope-from nil
   "*If non-nil, designate the envelope-from address when sending mail.
-If this is nil while `mail-specify-envelope-from' is non-nil, the
-content of `user-mail-address' is used."
+This only has an effect if `mail-specify-envelope-from' is non-nil.
+The value should be either a string, or the symbol `header' (in
+which case the contents of the \"From\" header of the message
+being sent is used), or nil (in which case the value of
+`user-mail-address' is used)."
   :version "21.1"
   :type '(choice (string :tag "From-name")
 		 (const :tag "Use From: header from message" header)
@@ -180,8 +185,8 @@ The function `mail-setup' runs this hook."
 (defvar mail-aliases t
   "Alist of mail address aliases,
 or t meaning should be initialized from your mail aliases file.
-\(The file's name is normally `~/.mailrc', but your MAILRC environment
-variable can override that name.)
+\(The file's name is normally `~/.mailrc', but `mail-personal-alias-file'
+can specify a different file name.)
 The alias definitions in the file have this form:
     alias ALIAS MEANING")
 
@@ -382,10 +387,11 @@ actually occur.")
 
 
 (defun sendmail-sync-aliases ()
-  (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
-    (or (equal mail-alias-modtime modtime)
-	(setq mail-alias-modtime modtime
-	      mail-aliases t))))
+  (when mail-personal-alias-file
+    (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+      (or (equal mail-alias-modtime modtime)
+	  (setq mail-alias-modtime modtime
+		mail-aliases t)))))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (or mail-default-reply-to
@@ -394,8 +400,9 @@ actually occur.")
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(if (file-exists-p mail-personal-alias-file)
-	    (build-mail-aliases))))
+	(when mail-personal-alias-file
+	  (if (file-exists-p mail-personal-alias-file)
+	      (build-mail-aliases)))))
   ;; Don't leave this around from a previous message.
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
@@ -498,7 +505,6 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
   (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-start)
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'mail-mode-auto-fill)
   (make-local-variable 'fill-paragraph-function)
@@ -518,12 +524,11 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
-  (setq paragraph-start (concat (regexp-quote mail-header-separator)
+  (setq paragraph-separate (concat (regexp-quote mail-header-separator)
 				"$\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
 				"\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
-				"-- $\\|---+$\\|"
-				page-delimiter))
-  (setq paragraph-separate paragraph-start))
+				"--\\( \\|-+\\)$\\|"
+				page-delimiter)))
 
 
 (defun mail-header-end ()
@@ -686,20 +691,20 @@ If within the headers, this makes the new lines into continuation lines."
 
 ;; User-level commands for sending.
 
-(defun mail-send-and-exit (arg)
+(defun mail-send-and-exit (&optional arg)
   "Send message like `mail-send', then, if no errors, exit from mail buffer.
 Prefix arg means don't delete this window."
   (interactive "P")
   (mail-send)
   (mail-bury arg))
 
-(defun mail-dont-send (arg)
+(defun mail-dont-send (&optional arg)
   "Don't send the message you have been editing.
 Prefix arg means don't delete this window."
   (interactive "P")
   (mail-bury arg))
 
-(defun mail-bury (arg)
+(defun mail-bury (&optional arg)
   "Bury this mail buffer."
   (let ((newbuf (other-buffer (current-buffer))))
     (bury-buffer (current-buffer))
@@ -1722,4 +1727,5 @@ you can move to one of them and type C-c C-c to recover that one."
 
 (provide 'sendmail)
 
+;;; arch-tag: 48bc1025-d993-4d31-8d81-2a29491f0626
 ;;; sendmail.el ends here

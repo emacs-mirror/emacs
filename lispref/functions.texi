@@ -22,7 +22,7 @@ define them.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
 * Inline Functions::	  Defining functions that the compiler will open code.
-* Function safety::       Determining whether a function is safe to call.
+* Function Safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
                             that have a special bearing on how functions work.
 @end menu
@@ -57,10 +57,10 @@ such as @code{car} or @code{append}.  These functions are also called
 considered primitives.)
 
 Usually the reason we implement a function as a primitive is either
-because it is fundamental, because it provides a low-level interface to
-operating system services, or because it needs to run fast.  Primitives
-can be modified or added only by changing the C sources and recompiling
-the editor.  See @ref{Writing Emacs Primitives}.
+because it is fundamental, because it provides a low-level interface
+to operating system services, or because it needs to run fast.
+Primitives can be modified or added only by changing the C sources and
+recompiling the editor.  See @ref{Writing Emacs Primitives}.
 
 @item lambda expression
 A @dfn{lambda expression} is a function written in Lisp.
@@ -411,7 +411,7 @@ of one or two complete sentences that summarize the function's purpose.
 but since these spaces come before the starting double-quote, they are not part of
 the string.  Some people make a practice of indenting any additional
 lines of the string so that the text lines up in the program source.
-@emph{This is a mistake.}  The indentation of the following lines is
+@emph{That is a mistake.}  The indentation of the following lines is
 inside the string; what looks nice in the source code will look ugly
 when displayed by the help commands.
 
@@ -422,6 +422,19 @@ it has no effect if it is not the last form in the body.  Thus, in
 practice, there is no confusion between the first form of the body and the
 documentation string; if the only body form is a string then it serves both
 as the return value and as the documentation.
+
+  The last line of the documentation string can specify calling
+conventions different from the actual function arguments.  Write
+text like this:
+
+@example
+(fn @var{arglist})
+@end example
+
+@noindent
+following a blank line, with no newline following it inside the
+documentation string.  This feature is particularly useful for
+macro definitions.
 
 @node Function Names
 @section Naming a Function
@@ -572,6 +585,17 @@ By contrast, in programs that manipulate function definitions for other
 purposes, it is better to use @code{fset}, which does not keep such
 records.
 @end defun
+
+  You cannot create a new primitive function with @code{defun} or
+@code{defalias}, but you use them to change the function definition of
+any symbol, even one such as @code{car} or @code{x-popup-menu} whose
+normal definition is a primitive.  However, this is risky: for
+instance, it is next to impossible to redefine @code{car} without
+breaking Lisp completely.  Redefining an obscure function such as
+@code{x-popup-menu} is less dangerous, but it still may not work as
+you expect.  If there are calls to the primitive from C code, they
+call the primitive's C definition directly, so changing the symbol's
+definition will have no effect on them.
 
   See also @code{defsubst}, which defines a function like @code{defun}
 and tells the Lisp compiler to open-code it.  @xref{Inline Functions}.
@@ -1158,27 +1182,21 @@ do for macros.  (@xref{Argument Evaluation}.)
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
 
-@node Function safety
+@node Function Safety
 @section Determining whether a function is safe to call
 @cindex function safety
 @cindex safety of functions
-@cindex virus detection
-@cindex Trojan-horse detection
-@cindex DDoS attacks
 
-Some major modes such as SES (see @pxref{Top,,,ses}) will call
-functions that are stored in user files.  User files sometimes have
-poor pedigrees---you can get a spreadsheet from someone you've just
-met, or you can get one through email from someone you've never met.
-Such files can contain viruses and other Trojan horses that could
-corrupt your operating system environment, delete your files, or even
-turn your computer into a DDoS zombie!  To avoid this terrible fate,
-you should not call a function whose source code is stored in a user
-file until you have determined that it is safe.
+Some major modes such as SES (@pxref{Top,,,ses}) call functions that
+are stored in user files.  User files sometimes have poor
+pedigrees---you can get a spreadsheet from someone you've just met, or
+you can get one through email from someone you've never met.  So it is
+risky to call a function whose source code is stored in a user file
+until you have determined that it is safe.
 
 @defun unsafep form &optional unsafep-vars
-Returns nil if @var{form} is a @dfn{safe} lisp expression, or returns
-a list that describes why it might be unsafe.  The argument
+Returns @code{nil} if @var{form} is a @dfn{safe} Lisp expression, or
+returns a list that describes why it might be unsafe.  The argument
 @var{unsafep-vars} is a list of symbols known to have temporary
 bindings at this point; it is mainly used for internal recursive
 calls.  The current buffer is an implicit argument, which provides a
@@ -1187,14 +1205,15 @@ list of buffer-local bindings.
 
 Being quick and simple, @code{unsafep} does a very light analysis and
 rejects many Lisp expressions that are actually safe.  There are no
-known cases where @code{unsafep} returns nil for an unsafe expression.
-However, a ``safe'' Lisp expression can return a string with a
-@code{display} property, containing an associated Lisp expression to
-be executed after the string is inserted into a buffer.  This
-associated expression can be a virus.  In order to be safe, you must
-delete properties from all strings calculated by user code before
+known cases where @code{unsafep} returns @code{nil} for an unsafe
+expression.  However, a ``safe'' Lisp expression can return a string
+with a @code{display} property, containing an associated Lisp
+expression to be executed after the string is inserted into a buffer.
+This associated expression can be a virus.  In order to be safe, you
+must delete properties from all strings calculated by user code before
 inserting them into buffers.
 
+@ignore
 What is a safe Lisp expression?  Basically, it's an expression that
 calls only built-in functions with no side effects (or only innocuous
 ones).  Innocuous side effects include displaying messages and
@@ -1209,16 +1228,20 @@ An atom or quoted thing.
 A call to a safe function (see below), if all its arguments are
 safe expressions.
 @item
-One of the special forms [and, catch, cond, if, or, prog1, prog2,
-progn, while, unwind-protect], if all its arguments are safe.
+One of the special forms @code{and}, @code{catch}, @code{cond},
+@code{if}, @code{or}, @code{prog1}, @code{prog2}, @code{progn},
+@code{while}, and @code{unwind-protect}], if all its arguments are
+safe.
 @item
-A form that creates temporary bindings [condition-case, dolist,
-dotimes, lambda, let, let*], if all args are safe and the symbols to
-be bound are not explicitly risky (see @pxref{File Local Variables}).
+A form that creates temporary bindings (@code{condition-case},
+@code{dolist}, @code{dotimes}, @code{lambda}, @code{let}, or
+@code{let*}), if all args are safe and the symbols to be bound are not
+explicitly risky (see @pxref{File Local Variables}).
 @item
-An assignment [add-to-list, setq, push, pop], if all args are safe and
-the symbols to be assigned are not explicitly risky and they already
-have temporary or buffer-local bindings.
+An assignment using @code{add-to-list}, @code{setq}, @code{push}, or
+@code{pop}, if all args are safe and the symbols to be assigned are
+not explicitly risky and they already have temporary or buffer-local
+bindings.
 @item
 One of [apply, mapc, mapcar, mapconcat] if the first argument is a
 safe explicit lambda and the other args are safe expressions.
@@ -1231,9 +1254,9 @@ A lambda containing safe expressions.
 @item
 A symbol on the list @code{safe-functions}, so the user says it's safe.
 @item
-A symbol with a non-nil @code{side-effect-free} property.
+A symbol with a non-@code{nil} @code{side-effect-free} property.
 @item
-A symbol with a non-nil @code{safe-function} property.  Value t
+A symbol with a non-@code{nil} @code{safe-function} property.  Value t
 indicates a function that is safe but has innocuous side effects.
 Other values will someday indicate functions with classes of side
 effects that are not always safe.
@@ -1243,11 +1266,8 @@ The @code{side-effect-free} and @code{safe-function} properties are
 provided for built-in functions and for low-level functions and macros
 defined in @file{subr.el}.  You can assign these properties for the
 functions you write.
-
 @end table
-
-
-@c Emacs versions prior to 19 did not have inline functions.
+@end ignore
 
 @node Related Topics
 @section Other Topics Related to Functions
@@ -1309,3 +1329,6 @@ See @ref{Mapping Functions}.
 See @ref{Key Lookup}.
 @end table
 
+@ignore
+   arch-tag: 39100cdf-8a55-4898-acba-595db619e8e2
+@end ignore

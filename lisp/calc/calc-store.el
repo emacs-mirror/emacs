@@ -619,4 +619,5 @@
   (calc-slow-wrapper
    (calc-binary-op "sub" 'calcFunc-subscr arg)))
 
+;;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
 ;;; calc-store.el ends here

@@ -1,6 +1,6 @@
 ;;; syntax.el --- helper functions to find syntactic context
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2003 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; The main exported function is `syntax-ppss'.  You might also need
-;; to call `syntax-ppss-after-change-function' or to add it to
+;; to call `syntax-ppss-flush-cache' or to add it to
 ;; after-change-functions'(although this is automatically done by
 ;; syntax-ppss when needed, but that might fail if syntax-ppss is
 ;; called in a context where after-change-functions is temporarily
@@ -39,7 +39,6 @@
 ;; - new functions `syntax-state', ... to replace uses of parse-partial-state
 ;;   with something higher-level (similar to syntax-ppss-context).
 ;; - interaction with mmm-mode.
-;; - what to do when the buffer is narrowed ?
 
 ;;; Code:
 
@@ -73,7 +72,9 @@ point (where the PPSS is equivalent to nil).")
   "Cache of (LAST-POS . LAST-PPSS).")
 (make-variable-buffer-local 'syntax-ppss-last)
 
-(defun syntax-ppss-after-change-function (beg &rest ignored)
+(defalias 'syntax-ppss-after-change-function 'syntax-ppss-flush-cache)
+(defun syntax-ppss-flush-cache (beg &rest ignored)
+  "Flush the cache of `syntax-ppss' starting at position BEG."
   ;; Flush invalid cache entries.
   (while (and syntax-ppss-cache (> (caar syntax-ppss-cache) beg))
     (setq syntax-ppss-cache (cdr syntax-ppss-cache)))
@@ -106,10 +107,6 @@ point (where the PPSS is equivalent to nil).")
   "Parse-Partial-Sexp State at POS.
 The returned value is the same as `parse-partial-sexp' except that
 the 2nd and 6th values of the returned state cannot be relied upon.
-
-If the caller knows the PPSS of a nearby position, she can pass it
-in OLP-PPSS (with or without its corresponding OLD-POS) to try and
-avoid a more expansive scan.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))
@@ -120,142 +117,151 @@ Point is at POS when this function returns."
 	(pt-min (point-min)))
     (if (and old-pos (> old-pos pos)) (setq old-pos nil))
     ;; Use the OLD-POS if usable and close.  Don't update the `last' cache.
-    (if (and old-pos (< (- pos old-pos)
-			;; The time to find PPSS using syntax-begin-function
-			;; is assumed to be about 2 * distance.
-			(* 2 (/ (cdr (aref syntax-ppss-stats 5))
-				(1+ (car (aref syntax-ppss-stats 5)))))))
-	(progn
-	  (incf (car (aref syntax-ppss-stats 0)))
-	  (incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
-	  (parse-partial-sexp old-pos pos nil nil old-ppss))
-
-      (cond
-       ;; Use OLD-PPSS if possible and close enough.
-       ((and (not old-pos) old-ppss
-	     ;; BEWARE! We rely on the undocumented 9th field.
-	     ;; The 9th field currently contains the list of positions
-	     ;; of open-parens of the enclosing parens.  I.e.  those positions
-	     ;; are outside of any string/comment and the first of those is
-	     ;; outside of any paren (i.e. corresponds to a nil ppss).
-	     ;; If this list is empty but we are in a string or comment,
-	     ;; then the 8th field contains a similar "toplevel" position.
-	     ;; If `pt-min' is too far from `pos', we could try to use
-	     ;; other positions in (nth 9 old-ppss), but that doesn't seem
-	     ;; to happen in practice and it would complicate this code
-	     ;; (and the after-change-function code even more).  But maybe it
-	     ;; would be useful in "degenerate" cases such as when the whole
-	     ;; file is wrapped in a set of parenthesis.
-	     (setq pt-min (or (car (nth 9 old-ppss))
-			      (nth 8 old-ppss)
-			      (nth 2 old-ppss)))
-	     (<= pt-min pos) (< (- pos pt-min) syntax-ppss-max-span))
-	(incf (car (aref syntax-ppss-stats 1)))
-	(incf (cdr (aref syntax-ppss-stats 1)) (- pos pt-min))
-	(setq ppss (parse-partial-sexp pt-min pos)))
-       ;; The OLD-* data can't be used.  Consult the cache.
-       (t
-	(let ((cache-pred nil)
-	      (cache syntax-ppss-cache)
-	      (pt-min (point-min))
-	      ;; I differentiate between PT-MIN and PT-BEST because I feel
-	      ;; like it might be important to ensure that the cache is only
-	      ;; filled with 100% sure data (whereas syntax-begin-function
-	      ;; might return incorrect data).  Maybe that's just stupid.
-	      (pt-best (point-min))
-	      (ppss-best nil))
-	  ;; look for a usable cache entry.
-	  (while (and cache (< pos (caar cache)))
-	    (setq cache-pred cache)
-	    (setq cache (cdr cache)))
-	  (if cache (setq pt-min (caar cache) ppss (cdar cache)))
-
-	  ;; Setup the after-change function if necessary.
-	  (unless (or syntax-ppss-cache syntax-ppss-last)
-	    (add-hook 'after-change-functions
-		      'syntax-ppss-after-change-function nil t))
-
-	  ;; Use the best of OLD-POS and CACHE.
-	  (if (or (not old-pos) (< old-pos pt-min))
-	      (setq pt-best pt-min ppss-best ppss)
-	    (incf (car (aref syntax-ppss-stats 4)))
-	    (incf (cdr (aref syntax-ppss-stats 4)) (- pos old-pos))
-	    (setq pt-best old-pos ppss-best old-ppss))
-
-	  ;; Use the `syntax-begin-function' if available.
-	  ;; We could try using that function earlier, but:
-	  ;; - The result might not be 100% reliable, so it's better to use
-	  ;;   the cache if available.
-	  ;; - The function might be slow.
-	  ;; - If this function almost always finds a safe nearby spot,
-	  ;;   the cache won't be populated, so consulting it is cheap.
-	  (unless (or syntax-begin-function
-		      (not (boundp 'font-lock-beginning-of-syntax-function))
-		      (not font-lock-beginning-of-syntax-function))
-	    (set (make-local-variable 'syntax-begin-function)
-		 font-lock-beginning-of-syntax-function))
-	  (when (and syntax-begin-function
-		     (progn (goto-char pos)
-			    (funcall syntax-begin-function)
-			    ;; Make sure it's better.
-			    (> (point) pt-best))
-		     ;; Simple sanity check.
-		     (not (memq (get-text-property (point) 'face)
-				'(font-lock-string-face font-lock-comment-face
-				  font-lock-doc-face))))
-	    (incf (car (aref syntax-ppss-stats 5)))
-	    (incf (cdr (aref syntax-ppss-stats 5)) (- pos (point)))
-	    (setq pt-best (point) ppss-best nil))
+    (condition-case nil
+	(if (and old-pos (< (- pos old-pos)
+			    ;; The time to use syntax-begin-function and
+			    ;; find PPSS is assumed to be about 2 * distance.
+			    (* 2 (/ (cdr (aref syntax-ppss-stats 5))
+				    (1+ (car (aref syntax-ppss-stats 5)))))))
+	    (progn
+	      (incf (car (aref syntax-ppss-stats 0)))
+	      (incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
+	      (parse-partial-sexp old-pos pos nil nil old-ppss))
 
 	  (cond
-	   ;; Quick case when we found a nearby pos.
-	   ((< (- pos pt-best) syntax-ppss-max-span)
-	    (incf (car (aref syntax-ppss-stats 2)))
-	    (incf (cdr (aref syntax-ppss-stats 2)) (- pos pt-best))
-	    (setq ppss (parse-partial-sexp pt-best pos nil nil ppss-best)))
-	   ;; Slow case: compute the state from some known position and
-	   ;; populate the cache so we won't need to do it again soon.
+	   ;; Use OLD-PPSS if possible and close enough.
+	   ((and (not old-pos) old-ppss
+		 ;; BEWARE! We rely on the undocumented 9th field.  The 9th
+		 ;; field currently contains the list of positions of
+		 ;; open-parens of the enclosing parens.  I.e. those
+		 ;; positions are outside of any string/comment
+		 ;; and the first of those is outside of any paren
+		 ;; (i.e. corresponds to a nil ppss).  If this list is empty
+		 ;; but we are in a string or comment, then the 8th field
+		 ;; contains a similar "toplevel" position.  If `pt-min' is
+		 ;; too far from `pos', we could try to use other positions
+		 ;; in (nth 9 old-ppss), but that doesn't seem to happen in
+		 ;; practice and it would complicate this code (and the
+		 ;; after-change-function code even more).  But maybe it
+		 ;; would be useful in "degenerate" cases such as when the
+		 ;; whole file is wrapped in a set of parenthesis.
+		 (setq pt-min (or (car (nth 9 old-ppss))
+				  (nth 8 old-ppss)
+				  (nth 2 old-ppss)))
+		 (<= pt-min pos) (< (- pos pt-min) syntax-ppss-max-span))
+	    (incf (car (aref syntax-ppss-stats 1)))
+	    (incf (cdr (aref syntax-ppss-stats 1)) (- pos pt-min))
+	    (setq ppss (parse-partial-sexp pt-min pos)))
+	   ;; The OLD-* data can't be used.  Consult the cache.
 	   (t
-	    (incf (car (aref syntax-ppss-stats 3)))
-	    (incf (cdr (aref syntax-ppss-stats 3)) (- pos pt-min))
+	    (let ((cache-pred nil)
+		  (cache syntax-ppss-cache)
+		  (pt-min (point-min))
+		  ;; I differentiate between PT-MIN and PT-BEST because
+		  ;; I feel like it might be important to ensure that the
+		  ;; cache is only filled with 100% sure data (whereas
+		  ;; syntax-begin-function might return incorrect data).
+		  ;; Maybe that's just stupid.
+		  (pt-best (point-min))
+		  (ppss-best nil))
+	      ;; look for a usable cache entry.
+	      (while (and cache (< pos (caar cache)))
+		(setq cache-pred cache)
+		(setq cache (cdr cache)))
+	      (if cache (setq pt-min (caar cache) ppss (cdar cache)))
 
-	    ;; If `pt-min' is too far, add a few intermediate entries.
-	    (while (> (- pos pt-min) (* 2 syntax-ppss-max-span))
-	      (setq ppss (parse-partial-sexp
-			  pt-min (setq pt-min (/ (+ pt-min pos) 2))
-			  nil nil ppss))
-	      (let ((pair (cons pt-min ppss)))
-		(if cache-pred
-		    (push pair (cdr cache-pred))
-		  (push pair syntax-ppss-cache))))
+	      ;; Setup the after-change function if necessary.
+	      (unless (or syntax-ppss-cache syntax-ppss-last)
+		(add-hook 'after-change-functions
+			  'syntax-ppss-flush-cache nil t))
 
-	    ;; Compute the actual return value.
-	    (setq ppss (parse-partial-sexp pt-min pos nil nil ppss))
+	      ;; Use the best of OLD-POS and CACHE.
+	      (if (or (not old-pos) (< old-pos pt-min))
+		  (setq pt-best pt-min ppss-best ppss)
+		(incf (car (aref syntax-ppss-stats 4)))
+		(incf (cdr (aref syntax-ppss-stats 4)) (- pos old-pos))
+		(setq pt-best old-pos ppss-best old-ppss))
 
-	    ;; Debugging check.
-	    ;; (let ((real-ppss (parse-partial-sexp (point-min) pos)))
-	    ;;   (setcar (last ppss 4) 0)
-	    ;;   (setcar (last real-ppss 4) 0)
-	    ;;   (setcar (last ppss 8) nil)
-	    ;;   (setcar (last real-ppss 8) nil)
-	    ;;   (unless (equal ppss real-ppss)
-	    ;;     (message "!!Syntax: %s != %s" ppss real-ppss)
-	    ;;     (setq ppss real-ppss)))
+	      ;; Use the `syntax-begin-function' if available.
+	      ;; We could try using that function earlier, but:
+	      ;; - The result might not be 100% reliable, so it's better to use
+	      ;;   the cache if available.
+	      ;; - The function might be slow.
+	      ;; - If this function almost always finds a safe nearby spot,
+	      ;;   the cache won't be populated, so consulting it is cheap.
+	      (when (and (not syntax-begin-function)
+			 (boundp 'font-lock-beginning-of-syntax-function)
+			 font-lock-beginning-of-syntax-function)
+		(set (make-local-variable 'syntax-begin-function)
+		     font-lock-beginning-of-syntax-function))
+	      (when (and syntax-begin-function
+			 (progn (goto-char pos)
+				(funcall syntax-begin-function)
+				;; Make sure it's better.
+				(> (point) pt-best))
+			 ;; Simple sanity check.
+			 (not (memq (get-text-property (point) 'face)
+				    '(font-lock-string-face font-lock-doc-face
+				      font-lock-comment-face))))
+		(incf (car (aref syntax-ppss-stats 5)))
+		(incf (cdr (aref syntax-ppss-stats 5)) (- pos (point)))
+		(setq pt-best (point) ppss-best nil))
 
-	    ;; Store it in the cache.
-	    (let ((pair (cons pos ppss)))
-	      (if cache-pred
-		  (if (> (- (caar cache-pred) pos) syntax-ppss-max-span)
-		      (push pair (cdr cache-pred))
-		    (setcar cache-pred pair))
-		(if (or (null syntax-ppss-cache)
-			(> (- (caar syntax-ppss-cache) pos)
-			   syntax-ppss-max-span))
-		    (push pair syntax-ppss-cache)
-		  (setcar syntax-ppss-cache pair)))))))))
+	      (cond
+	       ;; Quick case when we found a nearby pos.
+	       ((< (- pos pt-best) syntax-ppss-max-span)
+		(incf (car (aref syntax-ppss-stats 2)))
+		(incf (cdr (aref syntax-ppss-stats 2)) (- pos pt-best))
+		(setq ppss (parse-partial-sexp pt-best pos nil nil ppss-best)))
+	       ;; Slow case: compute the state from some known position and
+	       ;; populate the cache so we won't need to do it again soon.
+	       (t
+		(incf (car (aref syntax-ppss-stats 3)))
+		(incf (cdr (aref syntax-ppss-stats 3)) (- pos pt-min))
 
-      (setq syntax-ppss-last (cons pos ppss))
-      ppss)))
+		;; If `pt-min' is too far, add a few intermediate entries.
+		(while (> (- pos pt-min) (* 2 syntax-ppss-max-span))
+		  (setq ppss (parse-partial-sexp
+			      pt-min (setq pt-min (/ (+ pt-min pos) 2))
+			      nil nil ppss))
+		  (let ((pair (cons pt-min ppss)))
+		    (if cache-pred
+			(push pair (cdr cache-pred))
+		      (push pair syntax-ppss-cache))))
+
+		;; Compute the actual return value.
+		(setq ppss (parse-partial-sexp pt-min pos nil nil ppss))
+
+		;; Debugging check.
+		;; (let ((real-ppss (parse-partial-sexp (point-min) pos)))
+		;;   (setcar (last ppss 4) 0)
+		;;   (setcar (last real-ppss 4) 0)
+		;;   (setcar (last ppss 8) nil)
+		;;   (setcar (last real-ppss 8) nil)
+		;;   (unless (equal ppss real-ppss)
+		;;     (message "!!Syntax: %s != %s" ppss real-ppss)
+		;;     (setq ppss real-ppss)))
+
+		;; Store it in the cache.
+		(let ((pair (cons pos ppss)))
+		  (if cache-pred
+		      (if (> (- (caar cache-pred) pos) syntax-ppss-max-span)
+			  (push pair (cdr cache-pred))
+			(setcar cache-pred pair))
+		    (if (or (null syntax-ppss-cache)
+			    (> (- (caar syntax-ppss-cache) pos)
+			       syntax-ppss-max-span))
+			(push pair syntax-ppss-cache)
+		      (setcar syntax-ppss-cache pair)))))))))
+
+	  (setq syntax-ppss-last (cons pos ppss))
+	  ppss)
+      (args-out-of-range
+       ;; If the buffer is more narrowed than when we built the cache,
+       ;; we may end up calling parse-partial-sexp with a position before
+       ;; point-min.  In that case, just parse from point-min assuming
+       ;; a nil state.
+       (parse-partial-sexp (point-min) pos)))))
 
 ;; Debugging functions
 
@@ -283,4 +289,6 @@ Point is at POS when this function returns."
 ;;     (syntax-ppss-depth (syntax-ppss))))
 
 (provide 'syntax)
+
+;;; arch-tag: 302f1eeb-e77c-4680-a8c5-c543e01161a5
 ;;; syntax.el ends here

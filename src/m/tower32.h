@@ -109,3 +109,6 @@ Boston, MA 02111-1307, USA.  */
 #include <asld.h>
 #define EXEC_MAGIC AOUT1MAGIC
 #define EXEC_PAGESIZE DATACLICK
+
+/* arch-tag: a08e7dea-d48e-44cc-b60d-c7f2e5187ff5
+   (do not change this comment) */

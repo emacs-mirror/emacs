@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000, 2001
+   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000, 2001, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -68,6 +68,8 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #ifdef HAVE_X_WINDOWS
+/*  Defining HAVE_MULTILINGUAL_MENU would mean that the toolkit menu
+    code accepts the Emacs internal encoding.  */
 #undef HAVE_MULTILINGUAL_MENU
 #ifdef USE_X_TOOLKIT
 #include "widget.h"
@@ -127,6 +129,22 @@ extern void set_frame_menubar ();
 static Lisp_Object xdialog_show ();
 #endif
 
+/* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
+   isn't defined.  The use of HAVE_MULTILINGUAL_MENU could probably be
+   confined to an extended version of this with sections of code below
+   using it unconditionally.  */
+#ifdef USE_GTK
+/* gtk just uses utf-8.  */
+# define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
+#else
+/* I'm not convinced ENCODE_SYSTEM is defined correctly, or maybe
+   something else should be used here.  Except under MS-Windows it
+   just converts to unibyte, but encoding with `locale-coding-system'
+   seems better -- X may actually display the result correctly, and
+   it's not necessarily equivalent to the unibyte text.  -- fx  */
+# define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
+#endif
+
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object));
@@ -136,8 +154,6 @@ static Lisp_Object xmenu_show P_ ((struct frame *, int, int, int, int,
 static void keymap_panes P_ ((Lisp_Object *, int, int));
 static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				     int, int));
-static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object *,
-				  int, int, int *));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
 
@@ -410,6 +426,17 @@ keymap_panes (keymaps, nmaps, notreal)
   finish_menu_items ();
 }
 
+/* Args passed between single_keymap_panes and single_menu_item.  */
+struct skp
+  {
+     Lisp_Object pending_maps;
+     int maxdepth, notreal;
+     int notbuttons;
+  };
+
+static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				  void *));
+
 /* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
    The other arguments are passed along
@@ -427,10 +454,13 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      int notreal;
      int maxdepth;
 {
-  Lisp_Object pending_maps = Qnil;
-  Lisp_Object tail, item;
-  struct gcpro gcpro1, gcpro2;
-  int notbuttons = 0;
+  struct skp skp;
+  struct gcpro gcpro1;
+
+  skp.pending_maps = Qnil;
+  skp.maxdepth = maxdepth;
+  skp.notreal = notreal;
+  skp.notbuttons = 0;
 
   if (maxdepth <= 0)
     return;
@@ -442,88 +472,65 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      add a prefix when (if) we see the first button.  After that, notbuttons
      is set to 0, to mark that we have seen a button and all non button
      items need a prefix.  */
-  notbuttons = menu_items_used;
+  skp.notbuttons = menu_items_used;
 #endif
 
-  for (tail = keymap; CONSP (tail); tail = XCDR (tail))
-    {
-      GCPRO2 (keymap, pending_maps);
-      /* Look at each key binding, and if it is a menu item add it
-	 to this menu.  */
-      item = XCAR (tail);
-      if (CONSP (item))
-	single_menu_item (XCAR (item), XCDR (item),
-			  &pending_maps, notreal, maxdepth, &notbuttons);
-      else if (VECTORP (item))
-	{
-	  /* Loop over the char values represented in the vector.  */
-	  int len = XVECTOR (item)->size;
-	  int c;
-	  for (c = 0; c < len; c++)
-	    {
-	      Lisp_Object character;
-	      XSETFASTINT (character, c);
-	      single_menu_item (character, XVECTOR (item)->contents[c],
-				&pending_maps, notreal, maxdepth, &notbuttons);
-	    }
-	}
-      UNGCPRO;
-    }
+  GCPRO1 (skp.pending_maps);
+  map_keymap (keymap, single_menu_item, Qnil, &skp, 1);
+  UNGCPRO;
 
   /* Process now any submenus which want to be panes at this level.  */
-  while (!NILP (pending_maps))
+  while (CONSP (skp.pending_maps))
     {
       Lisp_Object elt, eltcdr, string;
-      elt = Fcar (pending_maps);
+      elt = XCAR (skp.pending_maps);
       eltcdr = XCDR (elt);
       string = XCAR (eltcdr);
       /* We no longer discard the @ from the beginning of the string here.
 	 Instead, we do this in xmenu_show.  */
       single_keymap_panes (Fcar (elt), string,
 			   XCDR (eltcdr), notreal, maxdepth - 1);
-      pending_maps = Fcdr (pending_maps);
+      skp.pending_maps = XCDR (skp.pending_maps);
     }
 }
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
    KEY is a key in a keymap and ITEM is its binding.
-   PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
+   SKP->PENDING_MAPS_PTR is a list of keymaps waiting to be made into
    separate panes.
-   If NOTREAL is nonzero, only check for equivalent key bindings, don't
+   If SKP->NOTREAL is nonzero, only check for equivalent key bindings, don't
    evaluate expressions in menu items and don't make any menu.
-   If we encounter submenus deeper than MAXDEPTH levels, ignore them.
-   NOTBUTTONS_PTR is only used when simulating toggle boxes and radio
-   buttons.  It points to variable notbuttons in single_keymap_panes,
-   which keeps track of if we have seen a button in this menu or not.  */
+   If we encounter submenus deeper than SKP->MAXDEPTH levels, ignore them.
+   SKP->NOTBUTTONS is only used when simulating toggle boxes and radio
+   buttons.  It keeps track of if we have seen a button in this menu or
+   not.  */
 
 static void
-single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
-		  notbuttons_ptr)
-     Lisp_Object key, item;
-     Lisp_Object *pending_maps_ptr;
-     int maxdepth, notreal;
-     int *notbuttons_ptr;
+single_menu_item (key, item, dummy, skp_v)
+     Lisp_Object key, item, dummy;
+     void *skp_v;
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
+  struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
-  res = parse_menu_item (item, notreal, 0);
+  res = parse_menu_item (item, skp->notreal, 0);
   UNGCPRO;
   if (!res)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-
-  if (notreal)
+  
+  if (skp->notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
 	 precompute equivalent key bindings.  */
       if (!NILP (map))
-	single_keymap_panes (map, Qnil, key, 1, maxdepth - 1);
+	single_keymap_panes (map, Qnil, key, 1, skp->maxdepth - 1);
       return;
     }
 
@@ -534,8 +541,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
-	*pending_maps_ptr = Fcons (Fcons (map, Fcons (item_string, key)),
-				   *pending_maps_ptr);
+	skp->pending_maps = Fcons (Fcons (map, Fcons (item_string, key)),
+				   skp->pending_maps);
       return;
     }
 
@@ -550,10 +557,10 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 	Lisp_Object selected
 	  = XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
 
-	if (*notbuttons_ptr)
+	if (skp->notbuttons)
 	  /* The first button. Line up previous items in this menu.  */
 	  {
-	    int index = *notbuttons_ptr; /* Index for first item this menu.  */
+	    int index = skp->notbuttons; /* Index for first item this menu.  */
 	    int submenu = 0;
 	    Lisp_Object tem;
 	    while (index < menu_items_used)
@@ -583,7 +590,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 		    index += MENU_ITEMS_ITEM_LENGTH;
 		  }
 	      }
-	    *notbuttons_ptr = 0;
+	    skp->notbuttons = 0;
 	  }
 
 	/* Calculate prefix, if any, for this item.  */
@@ -593,7 +600,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 	  prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
       }
     /* Not a button. If we have earlier buttons, then we need a prefix.  */
-    else if (!*notbuttons_ptr && SREF (item_string, 0) != '\0'
+    else if (!skp->notbuttons && SREF (item_string, 0) != '\0'
 	     && SREF (item_string, 0) != '-')
       prefix = build_string ("    ");
 
@@ -620,7 +627,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
   if (! (NILP (map) || NILP (enabled)))
     {
       push_submenu_start ();
-      single_keymap_panes (map, Qnil, key, 0, maxdepth - 1);
+      single_keymap_panes (map, Qnil, key, 0, skp->maxdepth - 1);
       push_submenu_end ();
     }
 #endif
@@ -644,7 +651,7 @@ list_of_panes (menu)
       elt = Fcar (tail);
       pane_name = Fcar (elt);
       CHECK_STRING (pane_name);
-      push_menu_pane (pane_name, Qnil);
+      push_menu_pane (ENCODE_MENU_STRING (pane_name), Qnil);
       pane_data = Fcdr (elt);
       CHECK_CONS (pane_data);
       list_of_items (pane_data);
@@ -665,7 +672,8 @@ list_of_items (pane)
     {
       item = Fcar (tail);
       if (STRINGP (item))
-	push_menu_item (item, Qnil, Qnil, Qt, Qnil, Qnil, Qnil, Qnil);
+	push_menu_item (ENCODE_MENU_STRING (item), Qnil, Qnil, Qt,
+			Qnil, Qnil, Qnil, Qnil);
       else if (NILP (item))
 	push_left_right_boundary ();
       else
@@ -673,7 +681,8 @@ list_of_items (pane)
 	  CHECK_CONS (item);
 	  item1 = Fcar (item);
 	  CHECK_STRING (item1);
-	  push_menu_item (item1, Qt, Fcdr (item), Qt, Qnil, Qnil, Qnil, Qnil);
+	  push_menu_item (ENCODE_MENU_STRING (item1), Qt, Fcdr (item),
+			  Qt, Qnil, Qnil, Qnil, Qnil);
 	}
     }
 }
@@ -720,10 +729,8 @@ mouse_position_for_popup(f, x, y)
 
   /* xmenu_show expects window coordinates, not root window
      coordinates.  Translate.  */
-  *x -= f->output_data.x->left_pos
-    + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  *y -= f->output_data.x->top_pos
-    + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 }
 
 #endif /* HAVE_X_WINDOWS */
@@ -872,10 +879,8 @@ cached information about equivalent key sequences.  */)
 	  CHECK_LIVE_WINDOW (window);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (FRAME_FONT (f))
-		  * XFASTINT (XWINDOW (window)->left));
-	  ypos = (FRAME_LINE_HEIGHT (f)
-		  * XFASTINT (XWINDOW (window)->top));
+	  xpos = WINDOW_LEFT_EDGE_X (XWINDOW (window));
+	  ypos = WINDOW_TOP_EDGE_Y (XWINDOW (window));
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -1414,6 +1419,7 @@ find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
 	      int j;
 	      struct input_event buf;
 	      Lisp_Object frame;
+	      EVENT_INIT (buf);
 
 	      XSETFRAME (frame, f);
 	      buf.kind = MENU_BAR_EVENT;
@@ -1712,13 +1718,13 @@ digest_single_submenu (start, end, top_level_items)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1790,8 +1796,8 @@ update_frame_menubar (f)
   BLOCK_INPUT;
   /* Save the size of the frame because the pane widget doesn't accept
      to resize itself. So force it.  */
-  columns = f->width;
-  rows = f->height;
+  columns = FRAME_COLS (f);
+  rows = FRAME_LINES (f);
 
   /* Do the voodoo which means "I'm changing lots of things, don't try
      to refigure sizes until I'm done."  */
@@ -2325,8 +2331,8 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
       pos_func = menu_position_func;
 
       /* Adjust coordinates to be root-window-relative.  */
-      x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-      y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+      x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+      y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
       popup_x_y.x = x;
       popup_x_y.y = y;
@@ -2392,7 +2398,6 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   XButtonPressedEvent dummy;
   LWLIB_ID menu_id;
   Widget menu;
-  Window child;
 
   menu_id = widget_id_tick++;
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
@@ -2413,8 +2418,8 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   dummy.y = y;
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
   dummy.x_root = x;
   dummy.y_root = y;
@@ -2576,13 +2581,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -2642,7 +2647,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = ENCODE_SYSTEM (title);
+	title = ENCODE_MENU_STRING (title);
 #endif
 
       wv_title->name = (char *) SDATA (title);
@@ -3131,8 +3136,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* HAVE_X_WINDOWS */
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->output_data.x->left_pos;
-  y += f->output_data.x->top_pos;
+  x += f->left_pos;
+  y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
   i = 0;
@@ -3371,3 +3376,6 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_dialog);
 #endif
 }
+
+/* arch-tag: 92ea573c-398e-496e-ac73-2436f7d63242
+   (do not change this comment) */

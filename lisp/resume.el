@@ -125,4 +125,5 @@
 
 (provide 'resume)
 
+;;; arch-tag: c90b2761-4803-4e58-a0ae-c4721368b628
 ;;; resume.el ends here

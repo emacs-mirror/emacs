@@ -247,4 +247,5 @@ To disable dissecting shar codes, for instance, add
 
 (provide 'mm-uu)
 
+;;; arch-tag: 7db076bf-53db-4320-aa19-ca76a1d2ab2c
 ;;; mm-uu.el ends here

@@ -57,3 +57,5 @@ This is for the *Elisp Ref Manual*"
 
 (defun volume-numbers-toc-markup-I () (volume-numbers-toc-markup "I"))
 (defun volume-numbers-toc-markup-II () (volume-numbers-toc-markup "II"))
+
+;;; arch-tag: 848955fe-e9cf-45e7-a2f1-570ef156d6a5

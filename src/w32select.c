@@ -41,9 +41,14 @@ static Lisp_Object Vselection_coding_system;
 /* Coding system for the next communicating with other Windows programs.  */
 static Lisp_Object Vnext_selection_coding_system;
 
-/* The last text we put into the clipboard.  This is used to prevent
-   passing back our own text from the clipboard, instead of using the
-   kill ring.  The former is undesirable because the clipboard data
+/* Sequence number, used where possible to detect when we are pasting
+   our own text.  */
+static DWORD last_clipboard_sequence_number;
+extern ClipboardSequence_Proc clipboard_sequence_fn;
+
+/* The last text we put into the clipboard.  This is used when the OS
+   does not support sequence numbers (NT4, 95). It is undesirable to
+   use data put on the clipboard by Emacs because the clipboard data
    could be MULEtilated by inappropriately chosen
    (next-)selection-coding-system.  For this reason, we must store the
    text *after* it was encoded/Unix-to-DOS-converted.  */
@@ -217,17 +222,23 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	encode_coding (&coding, src, dst, nbytes, bufsize);
 	Vlast_coding_system_used = coding.symbol;
 
-        /* Stash away the data we are about to put into the clipboard, so we
-           could later check inside Fw32_get_clipboard_data whether
-           the clipboard still holds our data.  */
-        if (clipboard_storage_size < coding.produced)
-          {
-            clipboard_storage_size = coding.produced + 100;
-            last_clipboard_text = (char *) xrealloc (last_clipboard_text,
-                                                     clipboard_storage_size);
-          }
-        if (last_clipboard_text)
-          memcpy (last_clipboard_text, dst, coding.produced);
+	/* If clipboard sequence numbers are not supported, keep a copy for
+	   later comparison.  */
+	if (!clipboard_sequence_fn)
+	  {
+	    /* Stash away the data we are about to put into the
+	       clipboard, so we could later check inside
+	       Fw32_get_clipboard_data whether the clipboard still
+	       holds our data.  */
+	    if (clipboard_storage_size < coding.produced)
+	      {
+		clipboard_storage_size = coding.produced + 100;
+		last_clipboard_text = (char *) xrealloc (last_clipboard_text,
+							 clipboard_storage_size);
+	      }
+	    if (last_clipboard_text)
+	      memcpy (last_clipboard_text, dst, coding.produced);
+	  }
 
 	GlobalUnlock (htext);
 
@@ -243,6 +254,9 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 
   ok = EmptyClipboard () && SetClipboardData (CF_TEXT, htext);
 
+  if (clipboard_sequence_fn)
+    last_clipboard_sequence_number = clipboard_sequence_fn ();
+
   CloseClipboard ();
 
   if (ok) goto done;
@@ -253,6 +267,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   if (htext) GlobalFree (htext);
   if (last_clipboard_text)
     *last_clipboard_text = '\0';
+
+  last_clipboard_sequence_number = 0;
 
  done:
   UNBLOCK_INPUT;
@@ -297,9 +313,11 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
        data in the clipboard.  This is so we don't pass our own text
        from the clipboard (which might be troublesome if the killed
        text includes null characters).  */
-    if (last_clipboard_text
-        && clipboard_storage_size >= nbytes
-        && memcmp(last_clipboard_text, src, nbytes) == 0)
+    if ((clipboard_sequence_fn
+	 && clipboard_sequence_fn () == last_clipboard_sequence_number)
+	|| (last_clipboard_text
+	    && clipboard_storage_size >= nbytes
+	    && memcmp(last_clipboard_text, src, nbytes) == 0))
       goto closeclip;
 
     {
@@ -471,3 +489,6 @@ set to nil.  */);
 
   QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
 }
+
+/* arch-tag: c96e9724-5eb1-4dad-be07-289f092fd2af
+   (do not change this comment) */

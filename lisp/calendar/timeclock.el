@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -33,11 +33,11 @@
 ;; Use `timeclock-in' when you start on a project, and `timeclock-out'
 ;; when you're done.  Once you've collected some data, you can use
 ;; `timeclock-workday-remaining' to see how much time is left to be
-;; worked today (assuming a typical average of 8 hours a day), and
-;; `timeclock-when-to-leave' which will calculate when you're free.
+;; worked today (where `timeclock-workday' specifies the length of the
+;; working day), and `timeclock-when-to-leave' to calculate when you're free.
 
 ;; You'll probably want to bind the timeclock commands to some handy
-;; keystrokes.  At the moment, C-x t is unused in Emacs 20:
+;; keystrokes.  At the moment, C-x t is unused:
 ;;
 ;;   (require 'timeclock)
 ;;
@@ -64,7 +64,7 @@
 ;; `timeclock-ask-before-exiting' to t using M-x customize (this is
 ;; the default), or by adding the following to your .emacs file:
 ;;
-;;   (add-hook 'kill-emacs-hook 'timeclock-query-out)
+;;   (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
 
 ;; NOTE: If you change your .timelog file without using timeclock's
 ;; functions, or if you change the value of any of timeclock's
@@ -99,8 +99,8 @@ For example, if the length of a normal workday is eight hours, and you
 work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
 eight hours -- or eight hours, non-relative.  So relative time takes
-into account any discrepancy of time under-worked or overworked on
-previous days."
+into account any discrepancy of time under-worked or over-worked on
+previous days.  This only affects the timeclock modeline display."
   :type 'boolean
   :group 'timeclock)
 
@@ -132,11 +132,12 @@ that day has a different length from the norm."
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
-  "*If non-nil, ask if the user wants to clock out before exiting Emacs."
+  "*If non-nil, ask if the user wants to clock out before exiting Emacs.
+This variable only has an effect if set with \\[customize]."
   :set (lambda (symbol value)
 	 (if value
-	     (add-hook 'kill-emacs-hook 'timeclock-query-out)
-	   (remove-hook 'kill-emacs-hook 'timeclock-query-out))
+	     (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
+	   (remove-hook 'kill-emacs-query-functions 'timeclock-query-out))
 	 (setq timeclock-ask-before-exiting value))
   :type 'boolean
   :group 'timeclock)
@@ -144,15 +145,20 @@ that day has a different length from the norm."
 (defvar timeclock-update-timer nil
   "The timer used to update `timeclock-mode-string'.")
 
+;; For byte-compiler.
+(defvar display-time-hook)
+(defvar timeclock-modeline-display)
+
 (defcustom timeclock-use-display-time t
   "*If non-nil, use `display-time-hook' for doing modeline updates.
 The advantage to this is that it means one less timer has to be set
 running amok in Emacs' process space.  The disadvantage is that it
 requires you to have `display-time' running.  If you don't want to use
 `display-time', but still want the modeline to show how much time is
-left, set this variable to nil.  You will need to restart Emacs (or
-toggle the value of `timeclock-modeline-display') for the change to
-take effect."
+left, set this variable to nil.  Changing the value of this variable
+while timeclock information is being displayed in the modeline has no
+effect.  You should call the function `timeclock-modeline-display' with
+a positive argument to force an update."
   :set (lambda (symbol value)
 	 (let ((currently-displaying
 		(and (boundp 'timeclock-modeline-display)
@@ -200,7 +206,7 @@ to today."
 
 (defcustom timeclock-day-over-hook nil
   "*A hook that is run when the workday has been completed.
-This hook is only run if the current time remaining is being display
+This hook is only run if the current time remaining is being displayed
 in the modeline.  See the variable `timeclock-modeline-display'."
   :type 'hook
   :group 'timeclock)
@@ -244,7 +250,7 @@ each day.")
 This value is not accurate enough to be useful by itself.  Rather,
 call `timeclock-workday-elapsed', to determine how much time has been
 worked so far today.  Also, if `timeclock-relative' is nil, this value
-will be the same as `timeclock-discrepancy'.")
+will be the same as `timeclock-discrepancy'.") ; ? gm
 
 (defvar timeclock-last-period nil
   "Integer representing the number of seconds in the last period.
@@ -252,7 +258,8 @@ Note that you shouldn't access this value, but should use the function
 `timeclock-last-period' instead.")
 
 (defvar timeclock-mode-string nil
-  "The timeclock string (optionally) displayed in the modeline.")
+  "The timeclock string (optionally) displayed in the modeline.
+The time is bracketed by <> if you are clocked in, otherwise by [].")
 
 (defvar timeclock-day-over nil
   "The date of the last day when notified \"day over\" for.")
@@ -262,24 +269,25 @@ Note that you shouldn't access this value, but should use the function
 ;;;###autoload
 (defun timeclock-modeline-display (&optional arg)
   "Toggle display of the amount of time left today in the modeline.
-If `timeclock-use-display-time' is non-nil, the modeline will be
-updated whenever the time display is updated.  Otherwise, the
-timeclock will use its own sixty second timer to do its updating.
-With prefix ARG, turn modeline display on if and only if ARG is
-positive.  Returns the new status of timeclock modeline display
-\(non-nil means on)."
+If `timeclock-use-display-time' is non-nil (the default), then
+the function `display-time-mode' must be active, and the modeline
+will be updated whenever the time display is updated.  Otherwise,
+the timeclock will use its own sixty second timer to do its
+updating.  With prefix ARG, turn modeline display on if and only
+if ARG is positive.  Returns the new status of timeclock modeline
+display (non-nil means on)."
   (interactive "P")
+  ;; cf display-time-mode.
+  (setq timeclock-mode-string "")
+  (or global-mode-string (setq global-mode-string '("")))
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
 		(not timeclock-modeline-display))))
     (if on-p
-	(let ((list-entry (or (memq 'global-mode-string mode-line-format)
-			      ;; In Emacs 21.3 we must use assq
-			      (assq 'global-mode-string mode-line-format))))
-	  (unless (or (null list-entry)
-		      (memq 'timeclock-mode-string mode-line-format))
-	    (setcdr list-entry (cons 'timeclock-mode-string
-				     (cdr list-entry))))
+        (progn
+          (or (memq 'timeclock-mode-string global-mode-string)
+              (setq global-mode-string
+                    (append global-mode-string '(timeclock-mode-string))))
 	  (unless (memq 'timeclock-update-modeline timeclock-event-hook)
 	    (add-hook 'timeclock-event-hook 'timeclock-update-modeline))
 	  (when timeclock-update-timer
@@ -288,11 +296,17 @@ positive.  Returns the new status of timeclock modeline display
 	  (if (boundp 'display-time-hook)
 	      (remove-hook 'display-time-hook 'timeclock-update-modeline))
 	  (if timeclock-use-display-time
-	      (add-hook 'display-time-hook 'timeclock-update-modeline)
+              (progn
+                ;; Update immediately so there is a visible change
+                ;; on calling this function.
+                (if display-time-mode (timeclock-update-modeline)
+                  (message "Activate `display-time-mode' to see \
+timeclock information"))
+                (add-hook 'display-time-hook 'timeclock-update-modeline))
 	    (setq timeclock-update-timer
 		  (run-at-time nil 60 'timeclock-update-modeline))))
-      (setq mode-line-format
-	    (delq 'timeclock-mode-string mode-line-format))
+      (setq global-mode-string
+	    (delq 'timeclock-mode-string global-mode-string))
       (remove-hook 'timeclock-event-hook 'timeclock-update-modeline)
       (if (boundp 'display-time-hook)
 	  (remove-hook 'display-time-hook
@@ -301,7 +315,7 @@ positive.  Returns the new status of timeclock modeline display
 	(cancel-timer timeclock-update-timer)
 	(setq timeclock-update-timer nil)))
     (force-mode-line-update)
-    on-p))
+    (setq timeclock-modeline-display on-p)))
 
 ;; This has to be here so that the function definition of
 ;; `timeclock-modeline-display' is known to the "set" function.
@@ -314,6 +328,10 @@ You must modify via \\[customize] for this variable to have an effect."
   :type 'boolean
   :group 'timeclock
   :require 'timeclock)
+
+(defsubst timeclock-time-to-date (time)
+  "Convert the TIME value to a textual date string."
+  (format-time-string "%Y/%m/%d" time))
 
 ;;;###autoload
 (defun timeclock-in (&optional arg project find-project)
@@ -386,13 +404,28 @@ discover the reason."
     (if arg
 	(run-hooks 'timeclock-done-hook))))
 
+;; Should today-only be removed in favour of timeclock-relative? - gm
+(defsubst timeclock-workday-remaining (&optional today-only)
+  "Return the number of seconds until the workday is complete.
+The amount returned is relative to the value of `timeclock-workday'.
+If TODAY-ONLY is non-nil, the value returned will be relative only to
+the time worked today, and not to past time."
+  (let ((discrep (timeclock-find-discrep)))
+    (if discrep
+        (- (if today-only (cadr discrep)
+             (car discrep)))
+      0.0)))
+
 ;;;###autoload
 (defun timeclock-status-string (&optional show-seconds today-only)
-  "Report the overall timeclock status at the present moment."
+  "Report the overall timeclock status at the present moment.
+If SHOW-SECONDS is non-nil, display second resolution.
+If TODAY-ONLY is non-nil, the display will be relative only to time
+worked today, ignoring the time worked on previous days."
   (interactive "P")
-  (let* ((remainder (timeclock-workday-remaining))
-	 (last-in (equal (car timeclock-last-event) "i"))
-	 status)
+  (let ((remainder (timeclock-workday-remaining)) ; today-only?
+        (last-in (equal (car timeclock-last-event) "i"))
+        status)
     (setq status
 	  (format "Currently %s since %s (%s), %s %s, leave at %s"
 		  (if last-in "IN" "OUT")
@@ -424,10 +457,12 @@ project you were working on."
 ;;;###autoload
 (defun timeclock-query-out ()
   "Ask the user before clocking out.
-This is a useful function for adding to `kill-emacs-hook'."
-  (if (and (equal (car timeclock-last-event) "i")
-	   (y-or-n-p "You're currently clocking time, clock out? "))
-      (timeclock-out)))
+This is a useful function for adding to `kill-emacs-query-functions'."
+  (and (equal (car timeclock-last-event) "i")
+       (y-or-n-p "You're currently clocking time, clock out? ")
+       (timeclock-out))
+  ;; Unconditionally return t for `kill-emacs-query-functions'.
+  t)
 
 ;;;###autoload
 (defun timeclock-reread-log ()
@@ -458,19 +493,6 @@ as with time remaining, where negative time really means overtime)."
 	    (if (< seconds 0) (if reverse-leader "+" "-") "")
 	    (truncate (/ (abs seconds) 60 60))
 	    (% (truncate (/ (abs seconds) 60)) 60))))
-
-(defsubst timeclock-workday-remaining (&optional today-only)
-  "Return the number of seconds until the workday is complete.
-The amount returned is relative to the value of `timeclock-workday'.
-If TODAY-ONLY is non-nil, the value returned will be relative only to
-the time worked today, and not to past time.  This argument only makes
-a difference if `timeclock-relative' is non-nil."
-  (let ((discrep (timeclock-find-discrep)))
-    (if discrep
-	(if today-only
-	    (- (cadr discrep))
-	  (- (car discrep)))
-      0.0)))
 
 (defsubst timeclock-currently-in-p ()
   "Return non-nil if the user is currently clocked in."
@@ -514,11 +536,23 @@ non-nil, the amount returned will be relative to past time worked."
 	(message string)
       string)))
 
+(defsubst timeclock-time-to-seconds (time)
+  "Convert TIME to a floating point number."
+  (+ (* (car time) 65536.0)
+     (cadr time)
+     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
+
+(defsubst timeclock-seconds-to-time (seconds)
+  "Convert SECONDS (a floating point number) to an Emacs time structure."
+  (list (floor seconds 65536)
+	(floor (mod seconds 65536))
+	(floor (* (- seconds (ffloor seconds)) 1000000))))
+
+;; Should today-only be removed in favour of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)
   "Return a time value representing at when the workday ends today.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
-the time worked today, and not to past time.  This argument only makes
-a difference if `timeclock-relative' is non-nil."
+the time worked today, and not to past time."
   (timeclock-seconds-to-time
    (- (timeclock-time-to-seconds (current-time))
       (let ((discrep (timeclock-find-discrep)))
@@ -533,12 +567,10 @@ a difference if `timeclock-relative' is non-nil."
 						 today-only)
   "Return a string representing at what time the workday ends today.
 This string is relative to the value of `timeclock-workday'.  If
-NO-MESSAGE is non-nil, no messages will be displayed in the
-minibuffer.  If SHOW-SECONDS is non-nil, the value printed/returned
-will include seconds.  If TODAY-ONLY is non-nil, the value returned
-will be relative only to the time worked today, and not to past time.
-This argument only makes a difference if `timeclock-relative' is
-non-nil."
+SHOW-SECONDS is non-nil, the value printed/returned will include
+seconds.  If TODAY-ONLY is non-nil, the value returned will be
+relative only to the time worked today, and not to past time."
+  ;; Should today-only be removed in favour of timeclock-relative? - gm
   (interactive)
   (let* ((then (timeclock-when-to-leave today-only))
 	 (string
@@ -581,10 +613,12 @@ non-nil."
 			     (mapcar 'list timeclock-reason-list)))
 
 (defun timeclock-update-modeline ()
-  "Update the `timeclock-mode-string' displayed in the modeline."
+  "Update the `timeclock-mode-string' displayed in the modeline.
+The value of `timeclock-relative' affects the display as described in
+that variable's documentation."
   (interactive)
-  (let* ((remainder (timeclock-workday-remaining))
-	 (last-in (equal (car timeclock-last-event) "i")))
+  (let ((remainder (timeclock-workday-remaining (not timeclock-relative)))
+        (last-in (equal (car timeclock-last-event) "i")))
     (when (and (< remainder 0)
 	       (not (and timeclock-day-over
 			 (equal timeclock-day-over
@@ -594,10 +628,14 @@ non-nil."
 	    (timeclock-time-to-date (current-time)))
       (run-hooks 'timeclock-day-over-hook))
     (setq timeclock-mode-string
-	  (format "   %c%s%c"
-		  (if last-in ?< ?[)
-		  (timeclock-seconds-to-string remainder nil t)
-		  (if last-in ?> ?])))))
+          (propertize
+           (format " %c%s%c "
+                   (if last-in ?< ?[)
+ 		   (timeclock-seconds-to-string remainder nil t)
+		   (if last-in ?> ?]))
+           'help-echo "timeclock: time remaining"))))
+
+(put 'timeclock-mode-string 'risky-local-variable t)
 
 (defun timeclock-log (code &optional project)
   "Log the event CODE to the timeclock log, at the time of call.
@@ -646,22 +684,6 @@ being logged for.  Normally only \"in\" events specify a project."
 	    (sec  (string-to-number (match-string 7)))
 	    (project (match-string 8)))
 	(list code (encode-time sec min hour mday mon year) project))))
-
-(defsubst timeclock-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
-
-(defsubst timeclock-seconds-to-time (seconds)
-  "Convert SECONDS (a floating point number) to an Emacs time structure."
-  (list (floor seconds 65536)
-	(floor (mod seconds 65536))
-	(floor (* (- seconds (ffloor seconds)) 1000000))))
-
-(defsubst timeclock-time-to-date (time)
-  "Convert the TIME value to a textual date string."
-  (format-time-string "%Y/%m/%d" time))
 
 (defun timeclock-last-period (&optional moment)
   "Return the value of the last event period.
@@ -811,6 +833,11 @@ This is only provided for coherency when used by
 
 (defun timeclock-log-data (&optional recent-only filename)
   "Return the contents of the timelog file, in a useful format.
+If the optional argument RECENT-ONLY is non-nil, only show the contents
+from the last point where the time debt (see below) was set.
+If the optional argument FILENAME is non-nil, it is used instead of
+the file specified by `timeclock-file.'
+
 A timelog contains data in the form of a single entry per line.
 Each entry has the form:
 
@@ -1005,7 +1032,9 @@ See the documentation for the given function if more info is needed."
       log-data)))
 
 (defun timeclock-find-discrep ()
-  "Find overall discrepancy from `timeclock-workday' (in seconds)."
+  "Calculate time discrepancies, in seconds.
+The result is a three element list, containing the total time
+discrepancy, today's discrepancy, and the time worked today."
   ;; This is not implemented in terms of the functions above, because
   ;; it's a bit wasteful to read all of that data in, just to throw
   ;; away more than 90% of the information afterwards.
@@ -1083,7 +1112,7 @@ See the documentation for the given function if more info is needed."
 	  (setq timeclock-discrepancy accum))))
     (unless timeclock-last-event-workday
       (setq timeclock-last-event-workday timeclock-workday))
-    (setq accum timeclock-discrepancy
+    (setq accum (or timeclock-discrepancy 0)
 	  elapsed (or timeclock-elapsed elapsed))
     (if timeclock-last-event
 	(if (equal (car timeclock-last-event) "i")
@@ -1106,7 +1135,8 @@ See the documentation for the given function if more info is needed."
 	   (< (nth 1 t1) (nth 1 t2)))))
 
 (defun timeclock-day-base (&optional time)
-  "Given a time within a day, return 0:0:0 within that day."
+  "Given a time within a day, return 0:0:0 within that day.
+If optional argument TIME is non-nil, use that instead of the current time."
   (let ((decoded (decode-time (or time (current-time)))))
     (setcar (nthcdr 0 decoded) 0)
     (setcar (nthcdr 1 decoded) 0)
@@ -1126,7 +1156,9 @@ See the documentation for the given function if more info is needed."
       0)))
 
 (defun timeclock-generate-report (&optional html-p)
-  "Generate a summary report based on the current timelog file."
+  "Generate a summary report based on the current timelog file.
+By default, the report is in plain text, but if the optional argument
+HTML-P is non-nil html markup is added."
   (interactive)
   (let ((log (timeclock-log-data))
 	(today (timeclock-day-base)))
@@ -1318,7 +1350,7 @@ See the documentation for the given function if more info is needed."
 ;;; A helpful little function
 
 (defun timeclock-visit-timelog ()
-  "Open up the .timelog file in another window."
+  "Open the file named by `timeclock-file' in another window."
   (interactive)
   (find-file-other-window timeclock-file))
 
@@ -1331,4 +1363,5 @@ See the documentation for the given function if more info is needed."
 (if (file-readable-p timeclock-file)
     (timeclock-reread-log))
 
+;;; arch-tag: a0be3377-deb6-44ec-b9a2-a7be28436a40
 ;;; timeclock.el ends here

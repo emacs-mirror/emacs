@@ -321,4 +321,5 @@ default setting.")
 
 (provide 'vietnamese)
 
+;;; arch-tag: 5bd4f1aa-2d4e-4f33-b7d8-0679c6a19ee6
 ;;; vietnamese.el ends here

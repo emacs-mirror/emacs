@@ -130,3 +130,6 @@ NOTE-END */
 
 #define internal_with_output_to_temp_buffer	stupid_long_name1
 #define Finsert_abbrev_table_description	stupid_long_name2
+
+/* arch-tag: 4076b26c-1fe6-4c28-94f3-3c863f074767
+   (do not change this comment) */

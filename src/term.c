@@ -66,14 +66,14 @@ static void tty_show_cursor P_ ((void));
 static void tty_hide_cursor P_ ((void));
 
 #define OUTPUT(a) \
-     tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame)) - curY), cmputc)
+     tputs (a, (int) (FRAME_LINES (XFRAME (selected_frame)) - curY), cmputc)
 #define OUTPUT1(a) tputs (a, 1, cmputc)
 #define OUTPUTL(a, lines) tputs (a, lines, cmputc)
 
 #define OUTPUT_IF(a)							\
      do {								\
        if (a)								\
-         tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame))	\
+         tputs (a, (int) (FRAME_LINES (XFRAME (selected_frame))	\
 			  - curY), cmputc);				\
      } while (0)
 
@@ -363,11 +363,11 @@ static int se_is_so;	/* 1 if same string both enters and leaves
 
 /* The largest frame width in any call to calculate_costs.  */
 
-int max_frame_width;
+int max_frame_cols;
 
 /* The largest frame height in any call to calculate_costs.  */
 
-int max_frame_height;
+int max_frame_lines;
 
 static int costs_set;	  /* Nonzero if costs have been calculated. */
 
@@ -378,7 +378,7 @@ int standout_mode;			/* Nonzero when in standout mode.  */
    This is the number of lines, from the top of frame downwards,
    which can participate in insert-line/delete-line operations.
 
-   Effectively it excludes the bottom frame_height - specified_window_size
+   Effectively it excludes the bottom frame_lines - specified_window_size
    lines from those operations.  */
 
 int specified_window;
@@ -504,7 +504,7 @@ set_terminal_window (size)
 {
   if (FRAME_TERMCAP_P (updating_frame))
     {
-      specified_window = size ? size : FRAME_HEIGHT (updating_frame);
+      specified_window = size ? size : FRAME_LINES (updating_frame);
       if (scroll_region_ok)
 	set_scroll_region (0, specified_window);
     }
@@ -523,11 +523,11 @@ set_scroll_region (start, stop)
     buf = tparam (TS_set_scroll_region, 0, 0, start, stop - 1);
   else if (TS_set_scroll_region_1)
     buf = tparam (TS_set_scroll_region_1, 0, 0,
-		  FRAME_HEIGHT (sf), start,
-		  FRAME_HEIGHT (sf) - stop,
-		  FRAME_HEIGHT (sf));
+		  FRAME_LINES (sf), start,
+		  FRAME_LINES (sf) - stop,
+		  FRAME_LINES (sf));
   else
-    buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_WIDTH (sf));
+    buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_COLS (sf));
 
   OUTPUT (buf);
   xfree (buf);
@@ -701,10 +701,10 @@ clear_to_end ()
     }
   else
     {
-      for (i = curY; i < FRAME_HEIGHT (XFRAME (selected_frame)); i++)
+      for (i = curY; i < FRAME_LINES (XFRAME (selected_frame)); i++)
 	{
 	  cursor_to (i, 0);
-	  clear_end_of_line (FRAME_WIDTH (XFRAME (selected_frame)));
+	  clear_end_of_line (FRAME_COLS (XFRAME (selected_frame)));
 	}
     }
 }
@@ -773,8 +773,8 @@ clear_end_of_line (first_unused_hpos)
       turn_off_insert ();
 
       /* Do not write in last row last col with Auto-wrap on. */
-      if (AutoWrap && curY == FRAME_HEIGHT (sf) - 1
-	  && first_unused_hpos == FRAME_WIDTH (sf))
+      if (AutoWrap && curY == FRAME_LINES (sf) - 1
+	  && first_unused_hpos == FRAME_COLS (sf))
 	first_unused_hpos--;
 
       for (i = curX; i < first_unused_hpos; i++)
@@ -921,8 +921,8 @@ write_glyphs (string, len)
      since that would scroll the whole frame on some terminals.  */
 
   if (AutoWrap
-      && curY + 1 == FRAME_HEIGHT (sf)
-      && (curX + len) == FRAME_WIDTH (sf))
+      && curY + 1 == FRAME_LINES (sf)
+      && (curX + len) == FRAME_COLS (sf))
     len --;
   if (len <= 0)
     return;
@@ -1153,7 +1153,7 @@ ins_del_lines (vpos, n)
      as there will be a matching inslines later that will flush them. */
   if (scroll_region_ok && vpos + i >= specified_window)
     return;
-  if (!memory_below_frame && vpos + i >= FRAME_HEIGHT (sf))
+  if (!memory_below_frame && vpos + i >= FRAME_LINES (sf))
     return;
 
   if (multi)
@@ -1188,7 +1188,7 @@ ins_del_lines (vpos, n)
 
   if (!scroll_region_ok && memory_below_frame && n < 0)
     {
-      cursor_to (FRAME_HEIGHT (sf) + n, 0);
+      cursor_to (FRAME_LINES (sf) + n, 0);
       clear_to_end ();
     }
 }
@@ -1238,11 +1238,11 @@ per_line_cost (str)
 #ifndef old
 /* char_ins_del_cost[n] is cost of inserting N characters.
    char_ins_del_cost[-n] is cost of deleting N characters.
-   The length of this vector is based on max_frame_width.  */
+   The length of this vector is based on max_frame_cols.  */
 
 int *char_ins_del_vector;
 
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_WIDTH ((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
 #endif
 
 /* ARGSUSED */
@@ -1295,7 +1295,7 @@ calculate_ins_del_char_costs (frame)
 
   /* Delete costs are at negative offsets */
   p = &char_ins_del_cost (frame)[0];
-  for (i = FRAME_WIDTH (frame); --i >= 0;)
+  for (i = FRAME_COLS (frame); --i >= 0;)
     *--p = (del_startup_cost += del_cost_per_char);
 
   /* Doing nothing is free */
@@ -1303,7 +1303,7 @@ calculate_ins_del_char_costs (frame)
   *p++ = 0;
 
   /* Insert costs are at positive offsets */
-  for (i = FRAME_WIDTH (frame); --i >= 0;)
+  for (i = FRAME_COLS (frame); --i >= 0;)
     *p++ = (ins_startup_cost += ins_cost_per_char);
 }
 
@@ -1325,8 +1325,8 @@ calculate_costs (frame)
      char_ins_del_vector (i.e., char_ins_del_cost) isn't used because
      X turns off char_ins_del_ok. */
 
-  max_frame_height = max (max_frame_height, FRAME_HEIGHT (frame));
-  max_frame_width = max (max_frame_width, FRAME_WIDTH (frame));
+  max_frame_lines = max (max_frame_lines, FRAME_LINES (frame));
+  max_frame_cols = max (max_frame_cols, FRAME_COLS (frame));
 
   costs_set = 1;
 
@@ -1334,14 +1334,14 @@ calculate_costs (frame)
     char_ins_del_vector
       = (int *) xrealloc (char_ins_del_vector,
 			  (sizeof (int)
-			   + 2 * max_frame_width * sizeof (int)));
+			   + 2 * max_frame_cols * sizeof (int)));
   else
     char_ins_del_vector
       = (int *) xmalloc (sizeof (int)
-			 + 2 * max_frame_width * sizeof (int));
+			 + 2 * max_frame_cols * sizeof (int));
 
   bzero (char_ins_del_vector, (sizeof (int)
-			       + 2 * max_frame_width * sizeof (int)));
+			       + 2 * max_frame_cols * sizeof (int)));
 
   if (f && (!TS_ins_line && !TS_del_line))
     do_line_insertion_deletion_costs (frame,
@@ -1360,7 +1360,7 @@ calculate_costs (frame)
   if (TS_repeat && per_line_cost (TS_repeat) * baud_rate < 9000)
     RPov = string_cost (TS_repeat);
   else
-    RPov = FRAME_WIDTH (frame) * 2;
+    RPov = FRAME_COLS (frame) * 2;
 
   cmcostinit ();		/* set up cursor motion costs */
 }
@@ -2066,6 +2066,10 @@ void
 tty_setup_colors (mode)
      int mode;
 {
+  /* Canonicalize all negative values of MODE.  */
+  if (mode < -1)
+    mode = -1;
+
   switch (mode)
     {
       case -1:	 /* no colors at all */
@@ -2108,7 +2112,7 @@ set_tty_color_mode (f, val)
   tty_color_mode_alist = Fintern_soft (build_string ("tty-color-mode-alist"),
 				       Qnil);
 
-  if (NATNUMP (val))
+  if (INTEGERP (val))
     color_mode = val;
   else
     {
@@ -2116,22 +2120,24 @@ set_tty_color_mode (f, val)
 	color_mode_spec = Qnil;
       else
 	color_mode_spec = Fassq (val, XSYMBOL (tty_color_mode_alist)->value);
-      current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
 
       if (CONSP (color_mode_spec))
 	color_mode = XCDR (color_mode_spec);
       else
 	color_mode = Qnil;
     }
+
+  current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
+
   if (CONSP (current_mode_spec))
     current_mode = XCDR (current_mode_spec);
   else
     current_mode = Qnil;
-  if (NATNUMP (color_mode))
+  if (INTEGERP (color_mode))
     mode = XINT (color_mode);
   else
     mode = 0;	/* meaning default */
-  if (NATNUMP (current_mode))
+  if (INTEGERP (current_mode))
     old_mode = XINT (current_mode);
   else
     old_mode = 0;
@@ -2159,7 +2165,8 @@ term_init (terminal_type)
 {
   char *area;
   char **address = &area;
-  char buffer[2044];
+  char *buffer = NULL;
+  int buffer_size = 4096;
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
@@ -2171,12 +2178,9 @@ term_init (terminal_type)
 
   area = (char *) xmalloc (2044);
 
-  if (area == 0)
-    abort ();
-
-  FrameRows = FRAME_HEIGHT (sf);
-  FrameCols = FRAME_WIDTH (sf);
-  specified_window = FRAME_HEIGHT (sf);
+  FrameRows = FRAME_LINES (sf);
+  FrameCols = FRAME_COLS (sf);
+  specified_window = FRAME_LINES (sf);
 
   delete_in_insert_mode = 1;
 
@@ -2202,6 +2206,7 @@ term_init (terminal_type)
 
   Wcm_clear ();
 
+  buffer = (char *) xmalloc (buffer_size);
   status = tgetent (buffer, terminal_type);
   if (status < 0)
     {
@@ -2229,13 +2234,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	     terminal_type);
 #endif
     }
-#ifdef TERMINFO
-  area = (char *) xmalloc (2044);
-#else
-  area = (char *) xmalloc (strlen (buffer));
-#endif /* not TERMINFO */
-  if (area == 0)
+
+#ifndef TERMINFO
+  if (strlen (buffer) >= buffer_size)
     abort ();
+  buffer_size = strlen (buffer);
+#endif
+  area = (char *) xmalloc (buffer_size);
 
   TS_ins_line = tgetstr ("al", address);
   TS_ins_multi_lines = tgetstr ("AL", address);
@@ -2356,21 +2361,21 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   {
     int height, width;
     get_frame_size (&width, &height);
-    FRAME_WIDTH (sf) = width;
-    FRAME_HEIGHT (sf) = height;
+    FRAME_COLS (sf) = width;
+    FRAME_LINES (sf) = height;
   }
 
-  if (FRAME_WIDTH (sf) <= 0)
-    SET_FRAME_WIDTH (sf, tgetnum ("co"));
+  if (FRAME_COLS (sf) <= 0)
+    SET_FRAME_COLS (sf, tgetnum ("co"));
   else
     /* Keep width and external_width consistent */
-    SET_FRAME_WIDTH (sf, FRAME_WIDTH (sf));
-  if (FRAME_HEIGHT (sf) <= 0)
-    FRAME_HEIGHT (sf) = tgetnum ("li");
+    SET_FRAME_COLS (sf, FRAME_COLS (sf));
+  if (FRAME_LINES (sf) <= 0)
+    FRAME_LINES (sf) = tgetnum ("li");
 
-  if (FRAME_HEIGHT (sf) < 3 || FRAME_WIDTH (sf) < 3)
+  if (FRAME_LINES (sf) < 3 || FRAME_COLS (sf) < 3)
     fatal ("Screen size %dx%d is too small",
-	   FRAME_HEIGHT (sf), FRAME_WIDTH (sf));
+	   FRAME_LINES (sf), FRAME_COLS (sf));
 
   min_padding_speed = tgetnum ("pb");
   TabWidth = tgetnum ("tw");
@@ -2493,9 +2498,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	}
     }
 
-  FrameRows = FRAME_HEIGHT (sf);
-  FrameCols = FRAME_WIDTH (sf);
-  specified_window = FRAME_HEIGHT (sf);
+  FrameRows = FRAME_LINES (sf);
+  FrameCols = FRAME_COLS (sf);
+  specified_window = FRAME_LINES (sf);
 
   if (Wcm_init () == -1)	/* can't do cursor motion */
 #ifdef VMS
@@ -2524,8 +2529,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	   terminal_type);
 # endif /* TERMINFO */
 #endif /*VMS */
-  if (FRAME_HEIGHT (sf) <= 0
-      || FRAME_WIDTH (sf) <= 0)
+  if (FRAME_LINES (sf) <= 0
+      || FRAME_COLS (sf) <= 0)
     fatal ("The frame size has not been specified");
 
   delete_in_insert_mode
@@ -2560,6 +2565,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
 #endif /* WINDOWSNT */
+
+  xfree (buffer);
 }
 
 /* VARARGS 1 */
@@ -2595,3 +2602,5 @@ The function should accept no arguments.  */);
   defsubr (&Stty_display_color_cells);
 }
 
+/* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
+   (do not change this comment) */

@@ -49,7 +49,7 @@
 (defvar coptic-calendar-epoch (calendar-absolute-from-julian '(8 29 284))
   "Absolute date of start of Coptic calendar = August 29, 284 A.D. (Julian).")
 
-(defconst coptic-name "Coptic")
+(defvar coptic-name "Coptic")
 
 (defun coptic-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the Coptic calendar."
@@ -234,4 +234,5 @@ Echo Ethiopic date unless NOECHO is t."
 
 (provide 'cal-coptic)
 
+;;; arch-tag: 72d49161-25df-4072-9312-b182cdca7627
 ;;; cal-coptic.el ends here

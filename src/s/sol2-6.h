@@ -6,3 +6,6 @@
 #undef UNEXEC
 #define UNEXEC unexsol.o
 #endif
+
+/* arch-tag: 71ea3857-89dc-4395-9623-77964e6ed3ca
+   (do not change this comment) */

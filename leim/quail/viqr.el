@@ -68,4 +68,5 @@
 
 (viet-quail-define-rules)
 
+;;; arch-tag: d2c29221-5a2e-46b2-898b-0e56bc4eb858
 ;;; viqr.el ends here

@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.24 2003/02/11 00:11:55 monnier Exp $
+;; $Id: eldoc.el,v 1.27 2003/09/06 17:32:31 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,10 +40,13 @@
 ;; One useful way to enable this minor mode is to put the following in your
 ;; .emacs:
 ;;
-;;      (autoload 'turn-on-eldoc-mode "eldoc" nil t)
 ;;      (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
 ;;      (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 ;;      (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+
+;; Major modes for other languages may use Eldoc by defining an
+;; appropriate function as the buffer-local value of
+;; `eldoc-print-current-symbol-info-function'.
 
 ;;; Code:
 
@@ -81,11 +84,11 @@ returns another string is acceptable."
 
 (defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
   "*Allow long eldoc messages to resize echo area display.
-If value is `t', never attempt to truncate messages; complete symbol name
+If value is t, never attempt to truncate messages; complete symbol name
 and function arglist or 1-line variable documentation will be displayed
 even if echo area must be resized to fit.
 
-If value is any non-nil value other than `t', symbol name may be truncated
+If value is any non-nil value other than t, symbol name may be truncated
 if it will enable the function arglist or documentation string to fit on a
 single line without resizing window.  Otherwise, behavior is just like
 former case.
@@ -180,7 +183,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (defun eldoc-message (&rest args)
   (let ((omessage eldoc-last-message))
-    (setq eldoc-last-message 
+    (setq eldoc-last-message
 	  (cond ((eq (car args) eldoc-last-message) eldoc-last-message)
 		((null (car args)) nil)
 		;; If only one arg, no formatting to do, so put it in
@@ -233,19 +236,32 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
        (not (eq (selected-window) (minibuffer-window)))))
 
 
+(defvar eldoc-print-current-symbol-info-function nil
+  "If non-nil, function to call to return doc string.
+The function of no args should return a one-line string for displaying
+doc about a function etc. appropriate to the context around point.
+It should return nil if there's no doc appropriate for the context.
+Typically doc is returned if point is on a function-like name or in its
+arg list.
+
+This variable is expected to be made buffer-local by modes (other than
+Emacs Lisp mode) that support Eldoc.")
+
 (defun eldoc-print-current-symbol-info ()
   (condition-case err
       (and (eldoc-display-message-p)
-	   (let* ((current-symbol (eldoc-current-symbol))
-		  (current-fnsym  (eldoc-fnsym-in-current-sexp))
-		  (doc (cond
-			((eq current-symbol current-fnsym)
-			 (or (eldoc-get-fnsym-args-string current-fnsym)
-			     (eldoc-get-var-docstring current-symbol)))
-			(t
-			 (or (eldoc-get-var-docstring current-symbol)
-			     (eldoc-get-fnsym-args-string current-fnsym))))))
-	     (eldoc-message doc)))
+	   (if eldoc-print-current-symbol-info-function
+	       (eldoc-message (funcall eldoc-print-current-symbol-info-function))
+	     (let* ((current-symbol (eldoc-current-symbol))
+		    (current-fnsym  (eldoc-fnsym-in-current-sexp))
+		    (doc (cond
+			  ((eq current-symbol current-fnsym)
+			   (or (eldoc-get-fnsym-args-string current-fnsym)
+			       (eldoc-get-var-docstring current-symbol)))
+			  (t
+			   (or (eldoc-get-var-docstring current-symbol)
+			       (eldoc-get-fnsym-args-string current-fnsym))))))
+	       (eldoc-message doc))))
     ;; This is run from post-command-hook or some idle timer thing,
     ;; so we need to be careful that errors aren't ignored.
     (error (message "eldoc error: %s" err))))
@@ -451,4 +467,5 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (provide 'eldoc)
 
+;;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
 ;;; eldoc.el ends here

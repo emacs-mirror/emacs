@@ -610,6 +610,10 @@ x_real_positions (f, xptr, yptr)
   LocalToGlobal (&pt);
   SetPort (oldport);
 
+  /* MAC has no frame pixel diff.  */
+  f->x_pixels_diff = 0;
+  f->y_pixels_diff = 0;
+
   *xptr = pt.h;
   *yptr = pt.v;
 }
@@ -1896,7 +1900,7 @@ x_set_border_pixel (f, pix)
 {
   f->output_data.mac->border_pixel = pix;
 
-  if (FRAME_MAC_WINDOW (f) != 0 && f->output_data.mac->border_width > 0)
+  if (FRAME_MAC_WINDOW (f) != 0 && f->border_width > 0)
     {
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -2049,7 +2053,7 @@ x_set_menu_bar_lines (f, value, oldval)
       /* Adjust the frame size so that the client (text) dimensions
 	 remain the same.  This depends on FRAME_EXTERNAL_MENU_BAR being
 	 set correctly.  */
-      x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
   adjust_glyphs (f);
@@ -2087,7 +2091,7 @@ x_set_tool_bar_lines (f, value, oldval)
 
   /* Don't resize the tool-bar to more than we have room for.  */
   root_window = FRAME_ROOT_WINDOW (f);
-  root_height = XINT (XWINDOW (root_window)->height);
+  root_height = WINDOW_TOTAL_LINES (XWINDOW (root_window));
   if (root_height - delta < 1)
     {
       delta = root_height - 1;
@@ -2118,8 +2122,8 @@ x_set_tool_bar_lines (f, value, oldval)
   if (delta < 0)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
-      int width = PIXEL_WIDTH (f);
-      int y = nlines * CANON_Y_UNIT (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int y = nlines * FRAME_LINE_HEIGHT (f);
 
       BLOCK_INPUT;
       XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
@@ -2292,20 +2296,20 @@ x_set_scroll_bar_default_width (f)
 {
   /* Imitate X without X Toolkit */
 
-  int wid = FONT_WIDTH (f->output_data.mac->font);
+  int wid = FRAME_COLUMN_WIDTH (f);
 
 #ifdef MAC_OSX
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 16;  /* Aqua scroll bars.  */
-  FRAME_SCROLL_BAR_COLS (f) = (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) +
-			       wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 16;  /* Aqua scroll bars.  */
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) +
+				      wid - 1) / wid;
 #else /* not MAC_OSX */
   /* Make the actual width at least 14 pixels and a multiple of a
      character width.  */
-  FRAME_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
 
   /* Use all of that space (aside from required margins) for the
      scroll bar.  */
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 0;
 #endif /* not MAC_OSX */
 }
 
@@ -2507,9 +2511,9 @@ mac_window (f, window_prompting, minibuffer_only)
     strcpy (f->namebuf, str);
   }
 
-  SetRect (&r, f->output_data.mac->left_pos, f->output_data.mac->top_pos,
-           f->output_data.mac->left_pos + PIXEL_WIDTH (f),
-           f->output_data.mac->top_pos + PIXEL_HEIGHT (f));
+  SetRect (&r, f->left_pos, f->top_pos,
+           f->left_pos + FRAME_PIXEL_WIDTH (f),
+           f->top_pos + FRAME_PIXEL_HEIGHT (f));
   FRAME_MAC_WINDOW (f)
     = NewCWindow (NULL, &r, "\p", 1, zoomDocProc, (WindowPtr) -1, 1, (long) f->output_data.mac);
 
@@ -2597,7 +2601,7 @@ x_make_gc (f)
      Note that many default values are used.  */
 
   /* Normal video */
-  gc_values.font = f->output_data.mac->font;
+  gc_values.font = FRAME_FONT (f);
   gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
   gc_values.background = FRAME_BACKGROUND_PIXEL (f);
   f->output_data.mac->normal_gc = XCreateGC (FRAME_MAC_DISPLAY (f),
@@ -2881,7 +2885,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      tool-bar height don't change the frame size. This is done so that
      users can create tall Emacs frames without having to guess how
      tall the tool-bar will get. */
-  f->height += FRAME_TOOL_BAR_LINES (f);
+  FRAME_LINES (f) += FRAME_TOOL_BAR_LINES (f);
 
   /* mac_window (f, window_prompting, minibuffer_only); */
   make_mac_frame (f);
@@ -2908,14 +2912,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
 
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+  FRAME_LINES (f) = 0;
+  SET_FRAME_COLS (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Set up faces after all frame parameters are known.  */
@@ -3265,28 +3269,28 @@ int
 x_pixel_width (f)
      register struct frame *f;
 {
-  return PIXEL_WIDTH (f);
+  return FRAME_PIXEL_WIDTH (f);
 }
 
 int
 x_pixel_height (f)
      register struct frame *f;
 {
-  return PIXEL_HEIGHT (f);
+  return FRAME_PIXEL_HEIGHT (f);
 }
 
 int
 x_char_width (f)
      register struct frame *f;
 {
-  return FONT_WIDTH (f->output_data.mac->font);
+  return FRAME_COLUMN_WIDTH (f);
 }
 
 int
 x_char_height (f)
      register struct frame *f;
 {
-  return f->output_data.mac->line_height;
+  return FRAME_LINE_HEIGHT (f);
 }
 
 int
@@ -8150,7 +8154,7 @@ x_create_tip_frame (dpyinfo, parms)
 #if 0
   f->output_data.w32->icon_bitmap = -1;
 #endif
-  f->output_data.w32->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->icon_name = Qnil;
 
 #ifdef MULTI_KBOARD
@@ -8295,13 +8299,13 @@ x_create_tip_frame (dpyinfo, parms)
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
+  FRAME_LINES (f) = 0;
+  SET_FRAME_COLS (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
@@ -8411,7 +8415,7 @@ DY added (default is 10).  */)
 	  BLOCK_INPUT;
 	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       root_x, root_y - PIXEL_HEIGHT (f));
+		       root_x, root_y - FRAME_PIXEL_HEIGHT (f));
 	  UNBLOCK_INPUT;
 #endif /* MAC_TODO */
 	  goto start_timer;
@@ -8447,15 +8451,15 @@ DY added (default is 10).  */)
      columns x 40 lines.  If someone wants to show a larger tip, he
      will loose.  I don't think this is a realistic case.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left = w->top = make_number (0);
-  w->width = make_number (80);
-  w->height = make_number (40);
+  w->left_col = w->top_line = make_number (0);
+  w->total_cols = make_number (80);
+  w->total_lines = make_number (40);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   Ferase_buffer ();
@@ -9022,3 +9026,6 @@ init_xfns ()
 #endif
 #endif /* NTEMACS_TODO */
 }
+
+/* arch-tag: d7591289-f374-4377-b245-12f5dbbb8edc
+   (do not change this comment) */

@@ -167,3 +167,6 @@ int lw_separator_p __P ((char *label, enum menu_separator *type,
 void lwlib_bcopy __P ((char*, char*, int));
 
 #endif /* LWLIB_H */
+
+/* arch-tag: 44d818d5-7eb2-4d87-acd7-b992bb0d5d20
+   (do not change this comment) */

@@ -695,4 +695,5 @@ Keywords supported:  :test :test-not :key"
 
 (run-hooks 'cl-load-hook)
 
+;;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here

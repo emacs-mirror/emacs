@@ -89,3 +89,6 @@ NOTE-END  */
 #define static
 
 #endif /* USG */
+
+/* arch-tag: 4210db3c-e35c-4b96-9399-1dbde3e00a57
+   (do not change this comment) */

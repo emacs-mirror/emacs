@@ -225,6 +225,13 @@ parameter.  If you don't mention a parameter in @var{alist}, its value
 doesn't change.
 @end defun
 
+@defun modify-all-frames-parameters alist
+This function alters the frame parameters of all existing frames
+according to @var{alist}, then modifies @code{default-frame-alist}
+to apply the same parameter values to frames that will be created
+henceforth.
+@end defun
+
 @node Initial Parameters
 @subsection Initial Frame Parameters
 
@@ -423,13 +430,6 @@ considers that buffer.
 A list of buffers that have been selected in this frame,
 ordered most-recently-selected first.
 
-@item font
-The name of the font for displaying text in the frame.  This is a
-string, either a valid font name for your system or the name of an Emacs
-fontset (@pxref{Fontsets}).  Changing this frame parameter on a frame
-also changes the font-related attributes of the default face on that
-frame.
-
 @item auto-raise
 Whether selecting the frame raises it (non-@code{nil} means yes).
 
@@ -447,7 +447,8 @@ Whether the frame has scroll bars for horizontal scrolling
 implemented.)
 
 @item scroll-bar-width
-The width of the vertical scroll bar, in pixels.
+The width of the vertical scroll bar, in pixels,
+or @code{nil} meaning to use the default width.
 
 @item icon-type
 The type of icon to use for this frame when it is iconified.  If the
@@ -459,32 +460,9 @@ picture of a gnu); @code{nil} specifies a text icon.
 The name to use in the icon for this frame, when and if the icon
 appears.  If this is @code{nil}, the frame's title is used.
 
-@item foreground-color
-The color to use for the image of a character.  This is a string; the
-window system defines the meaningful color names.  Changing this
-parameter is equivalent to changing the foreground color of the face
-@code{default} on the frame in question.
-
-@item background-color
-The color to use for the background of characters.  Changing this
-parameter is equivalent to changing the foreground color of the face
-@code{default} on the frame in question.
-
 @item background-mode
 This parameter is either @code{dark} or @code{light}, according
 to whether the background color is a light one or a dark one.
-
-@item mouse-color
-The color for the mouse pointer.  Changing this parameter is equivalent
-to changing the background color of face @code{mouse}.
-
-@item cursor-color
-The color for the cursor that shows point.  Changing this parameter is
-equivalent to changing the background color of face @code{cursor}.
-
-@item border-color
-The color for the border of the frame.  Changing this parameter is
-equivalent to changing the background color of face @code{border}.
 
 @item tty-color-mode
 @cindex standard colors for character terminals
@@ -499,16 +477,6 @@ the ANSI escape sequences for 8 standard text colors; and a value of
 value is a symbol, that symbol is looked up in the alist
 @code{tty-color-mode-alist}, and if found, the associated number is
 used as the color support mode.
-
-@item scroll-bar-foreground
-If non-@code{nil}, the color for the foreground of scroll bars.
-Changing this parameter is equivalent to setting the foreground color of
-face @code{scroll-bar}.
-
-@item scroll-bar-background
-If non-@code{nil}, the color for the background of scroll bars.
-Changing this parameter is equivalent to setting the background color of
-face @code{scroll-bar}.
 
 @item display-type
 This parameter describes the range of possible colors that can be used
@@ -546,6 +514,22 @@ The width in pixels of the window border.
 
 @item internal-border-width
 The distance in pixels between text and border.
+
+@item left-fringe
+@itemx right-fringe
+The default width of the left and right fringes of windows in this
+frame (@pxref{Fringes}).  If either of these is zero, that effectively
+removes the corresponding fringe.  A value of @code{nil} stands for
+the standard fringe width, which is the width needed to display the
+fringe bitmaps.
+
+The combined fringe widths must add up to an integral number of
+columns, so the actual default fringe widths for the frame may be
+larger than the specified values.  The extra width needed to reach an
+acceptable total is distributed evenly between the left and right
+fringe.  However, you can force one frame or the other to a precise
+width by specifying that width a negative integer.  If both widths are
+negative, only the left fringe gets the specified width.
 
 @item unsplittable
 If non-@code{nil}, this frame's window is never split automatically.
@@ -610,6 +594,47 @@ if the type is not mentioned as an @var{on-state} here.  Changes
 in this variable do not take effect immediately, because the variable
 is examined only when you specify a cursor type for a frame.
 @end defvar
+
+These frame parameters are semi-obsolete in that they are automatically
+equivalent to particular face attributes of particular faces.
+
+@table @code
+@item font
+The name of the font for displaying text in the frame.  This is a
+string, either a valid font name for your system or the name of an Emacs
+fontset (@pxref{Fontsets}).  It is equivalent to the @code{font}
+attribute of the @code{default} face.
+
+@item foreground-color
+The color to use for the image of a character.  It is equivalent to
+the @code{:foreground} attribute of the @code{default} face.
+
+@item background-color
+The color to use for the background of characters.  It is equivalent to
+the @code{:background} attribute of the @code{default} face.
+
+@item mouse-color
+The color for the mouse pointer.  It is equivalent to the @code{:background}
+attribute of the @code{mouse} face.
+
+@item cursor-color
+The color for the cursor that shows point.  It is equivalent to the
+@code{:background} attribute of the @code{cursor} face.
+
+@item border-color
+The color for the border of the frame.  It is equivalent to the
+@code{:background} attribute of the @code{border} face.
+
+@item scroll-bar-foreground
+If non-@code{nil}, the color for the foreground of scroll bars.  It is
+equivalent to the @code{:foreground} attribute of the
+@code{scroll-bar} face.
+
+@item scroll-bar-background
+If non-@code{nil}, the color for the background of scroll bars.  It is
+equivalent to the @code{:background} attribute of the
+@code{scroll-bar} face.
+@end table
 
 @node Size and Position
 @subsection Frame Size And Position
@@ -798,10 +823,10 @@ configuration (@pxref{Frame Configurations}); this is similar to the
 way windows behave.
 
 @deffn Command delete-frame &optional frame force
-@vindex delete-frame-hook
+@vindex delete-frame-functions
 This function deletes the frame @var{frame} after running the hook
-@code{delete-frame-hook}.  By default, @var{frame} is the selected
-frame.
+@code{delete-frame-functions} (each function gets one argument,
+@var{frame}).  By default, @var{frame} is the selected frame.
 
 A frame cannot be deleted if its minibuffer is used by other frames.
 Normally, you cannot delete a frame if all other frames are invisible,
@@ -1871,4 +1896,8 @@ This variable's value is @code{t} if no X window manager is in use.
 @item
 The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
+@end ignore
+
+@ignore
+   arch-tag: 94977df6-3dca-4730-b57b-c6329e9282ba
 @end ignore

@@ -1,6 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
-;; Copyright (C) 1994, 1995, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 1997,
+;;  2001, 02, 2003 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -93,8 +94,6 @@
 
 ;;; Change Log:
 
-;; $Id: mh-alias.el,v 1.3 2003/02/04 13:15:32 lektu Exp $
-
 ;;; Code:
 
 (require 'mh-e)
@@ -103,10 +102,12 @@
 (eval-when-compile (defvar mail-abbrev-syntax-table))
 
 ;;; Autoloads
-(autoload 'mail-abbrev-complete-alias "mailabbrev")
-(autoload 'multi-prompt "multi-prompt")
+(eval-when (compile load eval)
+  (ignore-errors
+    (require 'mailabbrev)
+    (require 'multi-prompt)))
 
-(defvar mh-alias-alist nil
+(defvar mh-alias-alist 'not-read
   "Alist of MH aliases.")
 (defvar mh-alias-blind-alist nil
   "Alist of MH aliases that are blind lists.")
@@ -180,7 +181,7 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
             (insert-file-contents "/etc/passwd")))
        ((stringp mh-alias-local-users)
         (insert mh-alias-local-users "\n")
-        (shell-command-on-region (point-min)(point-max) mh-alias-local-users t)
+        (shell-command-on-region (point-min) (point-max) mh-alias-local-users t)
         (goto-char (point-min))))
       (while  (< (point) (point-max))
         (cond
@@ -241,7 +242,7 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
 
 (defun mh-alias-reload-maybe ()
   "Load new MH aliases."
-  (if (or (not mh-alias-alist)		; Doesn't exist, so create it.
+  (if (or (eq mh-alias-alist 'not-read) ; Doesn't exist, so create it.
           (mh-alias-tstamp nil))        ; Out of date, so recreate it.
       (mh-alias-reload)))
 
@@ -253,12 +254,16 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
 ALIAS must be a string for a single alias.
 If USER is t, then assume ALIAS is an address and call ali -user.
 ali returns the string unchanged if not defined.  The same is done here."
-  (save-excursion
-    (let ((user-arg (if user "-user" "-nouser")))
-      (mh-exec-cmd-quiet t "ali" user-arg "-nolist" alias))
-    (goto-char (point-max))
-    (if (looking-at "^$") (delete-backward-char 1))
-    (buffer-substring (point-min)(point-max))))
+  (condition-case err
+      (save-excursion
+        (let ((user-arg (if user "-user" "-nouser")))
+          (mh-exec-cmd-quiet t "ali" user-arg "-nolist" alias))
+        (goto-char (point-max))
+        (if (looking-at "^$") (delete-backward-char 1))
+        (buffer-substring (point-min)(point-max)))
+    (error (progn
+             (message (error-message-string err))
+             alias))))
 
 (defun mh-alias-expand (alias)
   "Return expansion for ALIAS.
@@ -280,15 +285,14 @@ Blind aliases or users from /etc/passwd are not expanded."
     (let* ((minibuffer-local-completion-map mh-alias-read-address-map)
            (completion-ignore-case mh-alias-completion-ignore-case-flag)
            (the-answer
-            (or (cond
-                 ((fboundp 'completing-read-multiple)
-                  (completing-read-multiple prompt mh-alias-alist nil nil))
-                 ((featurep 'multi-prompt)
-                  (multi-prompt "," nil prompt mh-alias-alist nil nil))
-                 (t
-                  (split-string
-                   (completing-read prompt mh-alias-alist nil nil)
-                   ","))))))
+            (cond ((fboundp 'completing-read-multiple)
+                   (mh-funcall-if-exists
+                    completing-read-multiple prompt mh-alias-alist nil nil))
+                  ((featurep 'multi-prompt)
+                   (mh-funcall-if-exists
+                    multi-prompt "," nil prompt mh-alias-alist nil nil))
+                  (t (split-string
+                      (completing-read prompt mh-alias-alist nil nil) ",")))))
       (if (not mh-alias-expand-aliases-flag)
           (mapconcat 'identity the-answer ", ")
         ;; Loop over all elements, checking if in passwd aliast or blind first
@@ -325,12 +329,14 @@ Blind aliases or users from /etc/passwd are not expanded."
               (message "No alias for %s" the-name))))))
   (self-insert-command 1))
 
+(mh-do-in-xemacs (defvar mail-abbrevs))
+
 ;;;###mh-autoload
 (defun mh-alias-letter-expand-alias ()
   "Expand mail alias before point."
   (mh-alias-reload-maybe)
   (let ((mail-abbrevs mh-alias-alist))
-    (mail-abbrev-complete-alias))
+    (mh-funcall-if-exists mail-abbrev-complete-alias))
   (when mh-alias-expand-aliases-flag
     (let* ((end (point))
            (syntax-table (syntax-table))
@@ -350,6 +356,9 @@ Blind aliases or users from /etc/passwd are not expanded."
 (defun mh-alias-suggest-alias (string)
   "Suggest an alias for STRING."
   (cond
+   ((string-match "^<\\(.*\\)>$" string)
+    ;; <somename@foo.bar>  -> recurse, stripping brackets.
+    (mh-alias-suggest-alias (match-string 1 string)))
    ((string-match "^\\sw+$" string)
     ;; One word -> downcase it.
     (downcase string))
@@ -389,9 +398,25 @@ Blind aliases or users from /etc/passwd are not expanded."
      (format "%s %s" (match-string 2 string) (match-string 1 string))))
    (t
     ;; Output string, with spaces replaced by dots.
-    (downcase (replace-regexp-in-string
-               "\\.\\.+" "."
-               (replace-regexp-in-string " +" "." string))))))
+    (mh-alias-canonicalize-suggestion string))))
+
+(defun mh-alias-canonicalize-suggestion (string)
+  "Process STRING to replace spacess by periods.
+First all spaces are replaced by periods. Then every run of consecutive periods
+are replaced with a single period. Finally the string is converted to lower
+case."
+  (with-temp-buffer
+    (insert string)
+    ;; Replace spaces with periods
+    (goto-char (point-min))
+    (replace-regexp " +" ".")
+    ;; Replace consecutive periods with a single period
+    (goto-char (point-min))
+    (replace-regexp "\\.\\.+" ".")
+    ;; Convert to lower case
+    (downcase-region (point-min) (point-max))
+    ;; Whew! all done...
+    (buffer-string)))
 
 (defun mh-alias-which-file-has-alias (alias file-list)
   "Return the name of writable file which defines ALIAS from list FILE-LIST."
@@ -403,7 +428,7 @@ Blind aliases or users from /etc/passwd are not expanded."
         (erase-buffer)
         (when (file-writable-p (car file-list))
           (insert-file-contents (car file-list))
-          (if (re-search-forward (concat "^" (regexp-quote alias) ":"))
+          (if (re-search-forward (concat "^" (regexp-quote alias) ":") nil t)
               (setq found (car file-list)
                     the-list nil)
             (setq the-list (cdr the-list)))))
@@ -470,14 +495,18 @@ Set `mh-alias-insert-file' or set AliasFile in your .mh_profile file"))
 
 ;;;###mh-autoload
 (defun mh-alias-from-has-no-alias-p ()
-  "Return t is From has no current alias set."
+  "Return t is From has no current alias set.
+In the exceptional situation where there isn't a From header in the message the
+function returns nil."
   (mh-alias-reload-maybe)
   (save-excursion
     (if (not (mh-folder-line-matches-show-buffer-p))
         nil                             ;No corresponding show buffer
       (if (eq major-mode 'mh-folder-mode)
           (set-buffer mh-show-buffer))
-      (not (mh-alias-address-to-alias (mh-extract-from-header-value))))))
+      (let ((from-header (mh-extract-from-header-value)))
+        (and from-header
+             (not (mh-alias-address-to-alias from-header)))))))
 
 (defun mh-alias-add-alias-to-file (alias address &optional file)
   "Add ALIAS for ADDRESS in alias FILE without alias check or prompts.
@@ -491,7 +520,6 @@ after it."
     (goto-char (point-min))
     (let ((alias-search (concat alias ":"))
           (letter)
-          (here (point))
           (case-fold-search t))
       (cond
        ;; Search for exact match (if we had the same alias before)
@@ -538,7 +566,11 @@ If the alias is already is use, `mh-alias-add-alias-to-file' will prompt."
   (interactive "P\nP")
   (mh-alias-reload-maybe)
   (setq alias (completing-read "Alias: " mh-alias-alist nil nil alias))
+  (if (and address (string-match "^<\\(.*\\)>$" address))
+      (setq address (match-string 1 address)))
   (setq address (read-string "Address: " address))
+  (if (string-match "^<\\(.*\\)>$" address)
+      (setq address (match-string 1 address)))
   (let ((address-alias (mh-alias-address-to-alias address))
         (alias-address (mh-alias-expand alias)))
     (if (string-equal alias-address alias)
@@ -571,7 +603,8 @@ already has an alias."
       (insert-file-contents (mh-msg-filename (mh-get-msg-num t))))
      ((eq major-mode 'mh-folder-mode)
       (error "Cursor not pointing to a message")))
-    (let* ((address (mh-extract-from-header-value))
+    (let* ((address (or (mh-extract-from-header-value)
+                        (error "Message has no From: header")))
            (alias (mh-alias-suggest-alias address)))
       (mh-alias-add-alias alias address))))
 
@@ -591,4 +624,5 @@ already has an alias."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
 ;;; mh-alias.el ends here

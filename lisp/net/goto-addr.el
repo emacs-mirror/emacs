@@ -93,8 +93,9 @@ But only if `goto-address-highlight-p' is also non-nil."
   :group 'goto-address)
 
 (defcustom goto-address-fontify-maximum-size 30000
-  "*Maximum size of file in which to fontify and/or highlight URLs."
-  :type 'integer
+  "*Maximum size of file in which to fontify and/or highlight URLs.
+A value of t means there is no limit--fontify regardless of the size."
+  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t))
   :group 'goto-address)
 
 (defvar goto-address-mail-regexp
@@ -155,7 +156,8 @@ and `goto-address-fontify-p'."
   (save-excursion
     (let ((inhibit-point-motion-hooks t))
       (goto-char (point-min))
-      (if (< (- (point-max) (point)) goto-address-fontify-maximum-size)
+      (if (or (eq t goto-address-fontify-maximum-size)
+	      (< (- (point-max) (point)) goto-address-fontify-maximum-size))
 	  (progn
 	    (while (re-search-forward goto-address-url-regexp nil t)
               (let* ((s (match-beginning 0))
@@ -246,4 +248,5 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (provide 'goto-addr)
 
+;;; arch-tag: ca47c505-5661-425d-a471-62bc6e75cf0a
 ;;; goto-addr.el ends here

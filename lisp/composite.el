@@ -386,4 +386,6 @@ Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
 (make-obsolete 'decompose-composite-char 'char-to-string "21.1")
 
 
+
+;;; arch-tag: ee703d77-1723-45d4-a31f-e9f0f867aa33
 ;;; composite.el ends here

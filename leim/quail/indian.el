@@ -48,34 +48,41 @@
 (defvar quail-indian-update-preceding-char nil)
 (make-variable-frame-local 'quail-indian-update-preceding-char)
 
-;;; update function
-
-;; CONTROL-FLAG is integer (n)
+;; Input value ::
+;;   CONTROL-FLAG is integer `n'
 ;;     quail-current-key :: keyboard input.
-;;                          Only first n can be translated.
-;;     quail-current-string :: corresonding string.  Translated when last
-;;                             time CONTROL-FLAG is nil.
-;;     todo :: (1) put last (len-n) char to unrread-command-event.
-;;             (2) put translated string to  quail-current-string.
+;;                          Only first `n' can be translated.
+;;     quail-current-str :: corresonding string. 
+;;     jobs :: (1) put last (len-n) char to unrread-command-event.
+;;             (2) put translated string to  quail-current-str.
 ;;
-;; CONTROL-FLAG is t (terminate) or nil (proceed the translation)
+;;   CONTROL-FLAG is t (terminate) or nil (proceed the translation)
 ;;     quail-current-key :: keyboard input.
-;;     quail-current-string :: corresponding string.  Created by database.
-;;     todo :: (1) put modified translated string to quail-current-string.
+;;     quail-current-str :: corresponding string.
+;;     jobs :: (1) put modified translated string to quail-current-str.
+;;
+;; When non-nil value is returned from quail-translation-update-function, 
+;; the quail-current-str is split to characters and put into event queue, 
+;; with `compose-last-char' event with composition info at the end.
 
 (defun quail-indian-update-translation (control-flag)
-  ;;(message "input control-flag=%s, string=%s, key=%s"
-  ;;         control-flag quail-current-str quail-current-key)
   ;; make quail-current-str string when possible.
   (if (char-valid-p quail-current-str)
       (setq quail-current-str (char-to-string quail-current-str)))
+  ;(message "\n input control-flag=%s, str=%s, key=%s q-ind-upd-prec-char=%s"
+  ;         control-flag quail-current-str quail-current-key
+  ;         quail-indian-update-preceding-char)
   ;; reset quail-indian-update-preceding-char if it's initial.
   (if (= (overlay-start quail-overlay) (overlay-end quail-overlay))
       (setq quail-indian-update-preceding-char nil))
-  ;; set quial-indian-update-preceding-char if appropriate.
+  ;; Check the preceding character of the quail region.  If the
+  ;; preceding character can be composed with quail-current-str, then
+  ;; grab that preceding character into the quail-current-str and
+  ;; remove that char from the region.  
   (let* (prec-char-position composition-regexp
          prec-char-str candidate-str match-pos match-end)
     (when (and quail-current-str
+               (null quail-indian-update-preceding-char)
                (null input-method-use-echo-area)
                (null input-method-exit-on-first-char)
                (setq prec-char-position
@@ -85,7 +92,6 @@
                      (if prec-char-position
                          (caar (elt composition-function-table
                                     (char-after prec-char-position)))))
-               ;; (null quail-indian-update-preceding-char)
                (setq prec-char-str
                      (buffer-substring prec-char-position
                                        (overlay-start quail-overlay))
@@ -96,31 +102,19 @@
       (setq quail-indian-update-preceding-char prec-char-str)
       (delete-region prec-char-position
                      (overlay-start quail-overlay))))
-  ;; make quail-current-str string when possible.
-  (if (null quail-current-str)
-      (setq quail-current-str ""))
-  ;; set quail-current-str unless control-flag is number.
+  (setq quail-current-str 
+        (indian-compose-string
+         (concat quail-indian-update-preceding-char 
+                 quail-current-str)))
   (if (numberp control-flag)
-      (setq quail-indian-update-preceding-char nil
-            quail-current-str
-            (if (equal quail-current-str "")
-                (substring quail-current-key 0 control-flag)
-              (indian-compose-string quail-current-str))
-            unread-command-events
+      (setq unread-command-events
             (string-to-list
-             (substring quail-current-key control-flag)))
-    (if quail-indian-update-preceding-char
-        (setq quail-current-str
-              (concat quail-indian-update-preceding-char
-                      quail-current-str)))
-    (setq quail-current-str
-          (indian-compose-string quail-current-str)))
-  (when (eq t control-flag)
-    ;; reset preceding-char if translation is terminated.
+             (substring quail-current-key control-flag))))
+  (when control-flag
     (setq quail-indian-update-preceding-char nil))
-    ;; compose to previous char if it looks possible.
-  ;;(message "  out control-flag=%s, string=%s, key=%s"
-  ;;         control-flag quail-current-str quail-current-key)
+  ;(message "output control-flag=%s, str=%s, key=%s q-ind-upd-prec-char=%s"
+  ;         control-flag quail-current-str quail-current-key
+  ;         quail-indian-update-preceding-char)
   control-flag)
 
 ;;;
@@ -335,4 +329,5 @@
  "tamil-inscript" "Tamil" "TmlIS"
  "Tamil keyboard Inscript.")
 
+;;; arch-tag: 9e5a621e-f7d5-4fce-9543-0a51b407c940
 ;;; indian.el ends here

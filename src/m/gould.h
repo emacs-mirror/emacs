@@ -183,3 +183,6 @@ NOTE-END */
    with `environ' the way most standard crt0.o's do.  */
 
 #define START_FILES pre-crt0.o /lib/crt0.o
+
+/* arch-tag: 930cb9ef-f56f-4c06-aea0-5e81103bbf58
+   (do not change this comment) */

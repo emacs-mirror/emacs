@@ -4,7 +4,6 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.15 2003/02/04 11:34:29 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -205,4 +204,5 @@ Otherwise, get the diff between the revisions
 
 (provide 'log-view)
 
+;;; arch-tag: 0d64220b-ce7e-4f62-9c2a-6b04c2f81f4f
 ;;; log-view.el ends here

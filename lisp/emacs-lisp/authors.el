@@ -638,4 +638,5 @@ the Emacs source tree, from which to build the file."
     (authors root)
     (write-file file)))
 
+;;; arch-tag: 659d5900-5ff2-43b0-954c-a315cc1e4dc1
 ;;; authors.el ends here

@@ -42,7 +42,7 @@ extern int errno;
 #endif
 
 #include <sys/file.h>
-#ifdef USG5
+#ifdef HAVE_FCNTL_H
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #endif
@@ -1011,7 +1011,7 @@ t (mix it with ordinary output), or a file name string.
 Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
 Remaining args are passed to PROGRAM at startup as command args.
 
-If BUFFER is nil, `call-process-region' returns immediately with value nil.
+If BUFFER is 0, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
@@ -1672,7 +1672,10 @@ Each element should be a string of the form ENVVARNAME=VALUE.
 If multiple entries define the same variable, the first one always
 takes precedence.
 The environment which Emacs inherits is placed in this variable
-when Emacs starts.  */);
+when Emacs starts.
+Non-ASCII characters are encoded according to the initial value of
+`locale-coding-system', i.e. the elements must normally be decoded for use.
+See `setenv' and `getenv'.  */);
 
 #ifndef VMS
   defsubr (&Scall_process);
@@ -1680,3 +1683,6 @@ when Emacs starts.  */);
 #endif
   defsubr (&Scall_process_region);
 }
+
+/* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95
+   (do not change this comment) */

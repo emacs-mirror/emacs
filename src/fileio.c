@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000, 2001
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,2003
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -154,6 +154,13 @@ int auto_saving;
    a new file with the same mode as the original */
 int auto_save_mode_bits;
 
+/* The symbol bound to coding-system-for-read when
+   insert-file-contents is called for recovering a file.  This is not
+   an actual coding system name, but just an indicator to tell
+   insert-file-contents to use `emacs-mule' with a special flag for
+   auto saving and recovering a file.  */
+Lisp_Object Qauto_save_coding;
+
 /* Coding system for file names, or nil if none.  */
 Lisp_Object Vfile_name_coding_system;
 
@@ -177,8 +184,13 @@ Lisp_Object Vset_auto_coding_function;
 /* Functions to be called to process text properties in inserted file.  */
 Lisp_Object Vafter_insert_file_functions;
 
+/* Lisp function for setting buffer-file-coding-system and the
+   multibyteness of the current buffer after inserting a file.  */
+Lisp_Object Qafter_insert_file_set_coding;
+
 /* Functions to be called to create text property annotations for file.  */
 Lisp_Object Vwrite_region_annotate_functions;
+Lisp_Object Qwrite_region_annotate_functions;
 
 /* During build_annotations, each time an annotation function is called,
    this holds the annotations made by the previous functions.  */
@@ -2374,7 +2386,8 @@ A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.
 Fourth arg KEEP-TIME non-nil means give the new file the same
 last-modified time as the old one.  (This works on only some systems.)
-A prefix arg makes KEEP-TIME non-nil.  */)
+A prefix arg makes KEEP-TIME non-nil.
+Also set the file modes of the target file to match the source file.  */)
      (file, newname, ok_if_already_exists, keep_time)
      Lisp_Object file, newname, ok_if_already_exists, keep_time;
 {
@@ -2618,7 +2631,8 @@ If file has multiple names, it continues to exist with the other names.  */)
   struct gcpro gcpro1;
 
   GCPRO1 (filename);
-  if (!NILP (Ffile_directory_p (filename)))
+  if (!NILP (Ffile_directory_p (filename))
+      && NILP (Ffile_symlink_p (filename)))
     Fsignal (Qfile_error,
  	     Fcons (build_string ("Removing old name: is a directory"),
  		    Fcons (filename, Qnil)));
@@ -3182,16 +3196,11 @@ If there is no error, we return nil.  */)
 
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
        doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
-The value is the name of the file to which it is linked.
+The value is the link target, as a string.
 Otherwise returns nil.  */)
      (filename)
      Lisp_Object filename;
 {
-#ifdef S_IFLNK
-  char *buf;
-  int bufsize;
-  int valsize;
-  Lisp_Object val;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -3202,6 +3211,13 @@ Otherwise returns nil.  */)
   handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
+
+#ifdef S_IFLNK
+  {
+  char *buf;
+  int bufsize;
+  int valsize;
+  Lisp_Object val;
 
   filename = ENCODE_FILE (filename);
 
@@ -3237,6 +3253,7 @@ Otherwise returns nil.  */)
   xfree (buf);
   val = DECODE_FILE (val);
   return val;
+  }
 #else /* not S_IFLNK */
   return Qnil;
 #endif /* not S_IFLNK */
@@ -3574,7 +3591,7 @@ read_non_regular_quit ()
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        1, 5, 0,
        doc: /* Insert contents of file FILENAME after point.
-Returns list of absolute file name and number of bytes inserted.
+Returns list of absolute file name and number of characters inserted.
 If second argument VISIT is non-nil, the buffer's visited filename
 and last save file modtime are set, and it is marked unmodified.
 If visiting and the file does not exist, visiting is completed
@@ -3755,7 +3772,20 @@ actually used.  */)
 	}
     }
 
-  if (BEG < Z)
+  if (EQ (Vcoding_system_for_read, Qauto_save_coding))
+    {
+      /* We use emacs-mule for auto saving... */
+      setup_coding_system (Qemacs_mule, &coding);
+      /* ... but with the special flag to indicate to read in a
+	 multibyte sequence for eight-bit-control char as is.  */
+      coding.flags = 1;
+      coding.src_multibyte = 0;
+      coding.dst_multibyte
+	= !NILP (current_buffer->enable_multibyte_characters);
+      coding.eol_type = CODING_EOL_LF;
+      coding_system_decided = 1;
+    }
+  else if (BEG < Z)
     {
       /* Decide the coding system to use for reading the file now
          because we can't use an optimized method for handling
@@ -3810,12 +3840,13 @@ actually used.  */)
 		  buffer = Fget_buffer_create (build_string (" *code-converting-work*"));
 		  buf = XBUFFER (buffer);
 
+		  delete_all_overlays (buf);
 		  buf->directory = current_buffer->directory;
 		  buf->read_only = Qnil;
 		  buf->filename = Qnil;
 		  buf->undo_list = Qt;
-		  buf->overlays_before = Qnil;
-		  buf->overlays_after = Qnil;
+		  eassert (buf->overlays_before == NULL);
+		  eassert (buf->overlays_after == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
@@ -4493,6 +4524,8 @@ actually used.  */)
  			     inserted);
     }
 
+  /* Now INSERTED is measured in characters.  */
+
 #ifdef DOS_NT
   /* Use the conversion type to determine buffer-file-type
      (find-buffer-file-type is now used to help determine the
@@ -4538,6 +4571,19 @@ actually used.  */)
 			Fcons (orig_filename, Qnil)));
     }
 
+  if (set_coding_system)
+    Vlast_coding_system_used = coding.symbol;
+
+  if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
+    {
+      insval = call1 (Qafter_insert_file_set_coding, make_number (inserted));
+      if (! NILP (insval))
+	{
+	  CHECK_NUMBER (insval);
+	  inserted = XFASTINT (insval);
+	}
+    }
+
   /* Decode file format */
   if (inserted > 0)
     {
@@ -4560,9 +4606,6 @@ actually used.  */)
       if (!NILP (visit))
 	current_buffer->undo_list = empty_undo_list_p ? Qnil : Qt;
     }
-
-  if (set_coding_system)
-    Vlast_coding_system_used = coding.symbol;
 
   /* Call after-change hooks for the inserted text, aside from the case
      of normal visiting (not with REPLACE), which is done in a new buffer
@@ -4642,7 +4685,14 @@ choose_write_coding_system (start, end, filename,
   Lisp_Object val;
 
   if (auto_saving)
-    val = Qnil;
+    {
+      /* We use emacs-mule for auto saving... */
+      setup_coding_system (Qemacs_mule, coding);
+      /* ... but with the special flag to indicate not to strip off
+	 leading code of eight-bit-control chars.  */
+      coding->flags = 1;
+      goto done_setup_coding;
+    }
   else if (!NILP (Vcoding_system_for_write))
     {
       val = Vcoding_system_for_write;
@@ -4844,11 +4894,14 @@ This does code conversion according to the value of
       return val;
     }
 
+  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
     {
       XSETFASTINT (start, BEG);
       XSETFASTINT (end, Z);
+      Fwiden ();
     }
 
   record_unwind_protect (build_annotations_unwind, Fcurrent_buffer ());
@@ -5170,7 +5223,12 @@ This does code conversion according to the value of
     return Qnil;
 
   if (!auto_saving)
-    message_with_string ("Wrote %s", visit_file, 1);
+    message_with_string ((INTEGERP (append)
+			  ? "Updated %s"
+			  : ! NILP (append)
+			  ? "Added to %s"
+			  : "Wrote %s"),
+			 visit_file, 1);
 
   return Qnil;
 }
@@ -5201,7 +5259,7 @@ build_annotations (start, end)
   Lisp_Object p, res;
   struct gcpro gcpro1, gcpro2;
   Lisp_Object original_buffer;
-  int i;
+  int i, used_global = 0;
 
   XSETBUFFER (original_buffer, current_buffer);
 
@@ -5211,6 +5269,15 @@ build_annotations (start, end)
   while (CONSP (p))
     {
       struct buffer *given_buffer = current_buffer;
+      if (EQ (Qt, XCAR (p)) && !used_global)
+	{ /* Use the global value of the hook.  */
+	  Lisp_Object arg[2];
+	  used_global = 1;
+	  arg[0] = Fdefault_value (Qwrite_region_annotate_functions);
+	  arg[1] = XCDR (p);
+	  p = Fappend (2, arg);
+	  continue;
+	}
       Vwrite_region_annotations_so_far = annotations;
       res = call2 (XCAR (p), start, end);
       /* If the function makes a different buffer current,
@@ -6264,6 +6331,7 @@ syms_of_fileio ()
   Qwrite_region = intern ("write-region");
   Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
   Qset_visited_file_modtime = intern ("set-visited-file-modtime");
+  Qauto_save_coding = intern ("auto-save-coding");
 
   staticpro (&Qexpand_file_name);
   staticpro (&Qsubstitute_in_file_name);
@@ -6296,6 +6364,7 @@ syms_of_fileio ()
   staticpro (&Qwrite_region);
   staticpro (&Qverify_visited_file_modtime);
   staticpro (&Qset_visited_file_modtime);
+  staticpro (&Qauto_save_coding);
 
   Qfile_name_history = intern ("file-name-history");
   Fset (Qfile_name_history, Qnil);
@@ -6342,6 +6411,8 @@ same format as a regular save would use.  */);
   staticpro (&Qformat_decode);
   Qformat_annotate_function = intern ("format-annotate-function");
   staticpro (&Qformat_annotate_function);
+  Qafter_insert_file_set_coding = intern ("after-insert-file-set-coding");
+  staticpro (&Qafter_insert_file_set_coding);
 
   Qcar_less_than_car = intern ("car-less-than-car");
   staticpro (&Qcar_less_than_car);
@@ -6414,10 +6485,11 @@ or local variable spec of the tailing lines with `coding:' tag.  */);
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
 	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
-Each is passed one argument, the number of bytes inserted.  It should return
-the new byte count, and leave point the same.  If `insert-file-contents' is
-intercepted by a handler from `file-name-handler-alist', that handler is
-responsible for calling the after-insert-file-functions if appropriate.  */);
+Each is passed one argument, the number of characters inserted.
+It should return the new character count, and leave point the same.
+If `insert-file-contents' is intercepted by a handler from
+`file-name-handler-alist', that handler is responsible for calling the
+functions in `after-insert-file-functions' if appropriate.  */);
   Vafter_insert_file_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
@@ -6430,8 +6502,13 @@ inserted at the specified positions of the file being written (1 means to
 insert before the first byte written).  The POSITIONs must be sorted into
 increasing order.  If there are several functions in the list, the several
 lists are merged destructively.  Alternatively, the function can return
-with a different buffer current and value nil.*/);
+with a different buffer current; in that case it should pay attention
+to the annotations returned by previous functions and listed in
+`write-region-annotations-so-far'.*/);
   Vwrite_region_annotate_functions = Qnil;
+  staticpro (&Qwrite_region_annotate_functions);
+  Qwrite_region_annotate_functions
+    = intern ("write-region-annotate-functions");
 
   DEFVAR_LISP ("write-region-annotations-so-far",
 	       &Vwrite_region_annotations_so_far,
@@ -6514,3 +6591,6 @@ a non-nil value.  */);
   defsubr (&Sunix_sync);
 #endif
 }
+
+/* arch-tag: 64ba3fd7-f844-4fb2-ba4b-427eb928786c
+   (do not change this comment) */

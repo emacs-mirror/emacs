@@ -1,3 +1,11 @@
+This file is obsolete, and no longer part of the Emacs Lisp Reference Manual.
+It is still present in CVS in case we ever want to use some of it again.
+
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c   Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename elisp
@@ -128,42 +136,6 @@ Manual.  It corresponds to Emacs Version 19.29.
 Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307 USA
-
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
-
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
-
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries copying permission notice
-identical to this one except for the removal of this paragraph (this
-paragraph not being relevant to the printed manual).
-
-@end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the
-entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation
-approved by the Foundation.
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-section entitled ``GNU General Public License'' is included exactly as
-in the original, and provided that the entire resulting derived work is
-distributed under the terms of a permission notice identical to this
-one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that the section entitled ``GNU General Public License'' may be
-included in a translation approved by the Free Software Foundation
-instead of in the original English.
 @end ifinfo
 
 @setchapternewpage odd
@@ -1045,3 +1017,7 @@ Object Internals
 
 
 These words prevent "local variables" above from confusing Emacs.
+
+@ignore
+   arch-tag: 9594760d-8801-4d1b-aeb9-f3b3166b5be2
+@end ignore

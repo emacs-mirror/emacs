@@ -187,3 +187,7 @@ mathematical functions.
 @code{"Arithmetic underflow error"}@*
 @xref{Math Functions}.
 @end table
+
+@ignore
+   arch-tag: 717c6048-5d9d-4c7d-9a62-df57390b6f19
+@end ignore

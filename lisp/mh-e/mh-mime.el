@@ -1,6 +1,6 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
-;; Copyright (C) 1993, 1995, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 02, 2003 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -32,8 +32,6 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
-
 ;;; Code:
 
 (require 'cl)
@@ -58,6 +56,7 @@
 (autoload 'mml-insert-empty-tag "mml")
 (autoload 'mml-to-mime "mml")
 (autoload 'mml-attach-file "mml")
+(autoload 'rfc2047-decode-region "rfc2047")
 
 ;;;###mh-autoload
 (defun mh-compose-insertion (&optional inline)
@@ -235,7 +234,6 @@ See also \\[mh-edit-mhn]."
 The file specified by FILENAME is encoded as TYPE. An optional DESCRIPTION is
 used as the Content-Description field, optional set of ATTRIBUTES and an
 optional COMMENT can also be included."
-  (setq mh-mhn-compose-insert-flag t)
   (beginning-of-line)
   (insert "#" type)
   (and attributes
@@ -306,7 +304,6 @@ DESCRIPTION, a line of text for the Content-description header, ATTRIBUTES,
 EXTRA-PARAMS, and COMMENT.
 
 See also \\[mh-edit-mhn]."
-  (setq mh-mhn-compose-insert-flag t)
   (beginning-of-line)
   (insert "#@" type)
   (and attributes
@@ -341,7 +338,6 @@ See also \\[mh-edit-mhn]."
                                      (if mh-sent-from-msg
                                          (format " [%d]" mh-sent-from-msg)
                                        "")))))
-  (setq mh-mhn-compose-insert-flag t)
   (beginning-of-line)
   (insert "#forw [")
   (and description
@@ -368,7 +364,8 @@ Process the current draft with the mhn program, which, using directives
 already inserted in the draft, fills in all the MIME components and header
 fields.
 
-This step should be done last just before sending the message.
+This step is performed automatically when sending the message, but this
+function may be called manually before sending the draft as well.
 
 The `\\[mh-revert-mhn-edit]' command undoes this command. The arguments in the
 list `mh-mhn-args' are passed to mhn if this function is passed an optional
@@ -379,8 +376,7 @@ components in a message, see \\[mh-mhn-compose-insertion] (generic insertion
 from a file), \\[mh-mhn-compose-anon-ftp] (external reference to file via
 anonymous ftp), \\[mh-mhn-compose-external-compressed-tar] \ \(reference to
 compressed tar file via anonymous ftp), and \\[mh-mhn-compose-forw] (forward
-message). If these helper functions are used, `mh-edit-mhn' is run
-automatically when the draft is sent.
+message).
 
 The value of `mh-edit-mhn-hook' is a list of functions to be called, with no
 arguments, after performing the conversion.
@@ -396,7 +392,6 @@ The mhn program is part of MH version 6.8 or later."
    (t
     (mh-exec-cmd-error (format "mhdraft=%s" buffer-file-name)
                        "mhn" (if extra-args mh-mhn-args) buffer-file-name)))
-  (setq mh-mhn-compose-insert-flag nil)
   (revert-buffer t t)
   (message "mhn editing...done")
   (run-hooks 'mh-edit-mhn-hook))
@@ -429,18 +424,35 @@ Optional non-nil argument NOCONFIRM means don't ask for confirmation."
       (insert-file-contents backup-file))
     (after-find-file nil)))
 
+;;;###mh-autoload
+(defun mh-mhn-directive-present-p ()
+  "Check if the current buffer has text which might be a MHN directive."
+  (save-excursion
+    (block 'search-for-mhn-directive
+      (goto-char (point-min))
+      (while (re-search-forward "^#" nil t)
+        (let ((s (buffer-substring-no-properties (point) (line-end-position))))
+          (cond ((equal s ""))
+                ((string-match "^forw[ \t\n]+" s)
+                 (return-from 'search-for-mhn-directive t))
+                (t (let ((first-token (car (split-string s "[ \t;@]"))))
+                     (when (string-match mh-media-type-regexp first-token)
+                       (return-from 'search-for-mhn-directive t)))))))
+      nil)))
+
 
 
 ;;; MIME composition functions
 
 ;;;###mh-autoload
 (defun mh-mml-to-mime ()
-  "Compose MIME message from mml directives."
+  "Compose MIME message from mml directives.
+This step is performed automatically when sending the message, but this
+function may be called manually before sending the draft as well."
   (interactive)
   (when mh-gnus-pgp-support-flag ;; This is only needed for PGP
     (message-options-set-recipient))
-  (mml-to-mime)
-  (setq mh-mml-compose-insert-flag nil))
+  (mml-to-mime))
 
 ;;;###mh-autoload
 (defun mh-mml-forward-message (description folder message)
@@ -460,8 +472,7 @@ number."
              (mml-attach-file (format "%s%s/%d"
                                       mh-user-path (substring folder 1) msg)
                               "message/rfc822"
-                              description))
-           (setq mh-mml-compose-insert-flag t))
+                              description)))
           (t (error "The message number, %s is not a integer!" msg)))))
 
 ;;;###mh-autoload
@@ -488,8 +499,7 @@ automatically."
                                       nil t nil nil
                                       "attachment"))))
     (mml-insert-empty-tag 'part 'type type 'filename file
-                          'disposition dispos 'description description)
-    (setq mh-mml-compose-insert-flag t)))
+                          'disposition dispos 'description description)))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-sign-pgpmime ()
@@ -497,8 +507,7 @@ automatically."
   (interactive)
   (if (not mh-gnus-pgp-support-flag)
       (error "Sorry.  Your version of gnus does not support PGP/GPG")
-    (mml-secure-message-sign-pgpmime)
-    (setq mh-mml-compose-insert-flag t)))
+    (mml-secure-message-sign-pgpmime)))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-encrypt-pgpmime (&optional dontsign)
@@ -507,8 +516,16 @@ If called with a prefix argument DONTSIGN, only encrypt (do NOT sign)."
   (interactive "P")
   (if (not mh-gnus-pgp-support-flag)
       (error "Sorry.  Your version of gnus does not support PGP/GPG")
-    (mml-secure-message-encrypt-pgpmime dontsign)
-    (setq mh-mml-compose-insert-flag t)))
+    (mml-secure-message-encrypt-pgpmime dontsign)))
+
+;;;###mh-autoload
+(defun mh-mml-directive-present-p ()
+  "Check if the current buffer has text which may be an MML directive."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward
+     "\\(<#part\\(.\\|\n\\)*>[ \n\t]*<#/part>\\|^<#secure.+>$\\)"
+     nil t)))
 
 
 
@@ -546,6 +563,8 @@ BODY."
 ;; Copy of original macro is in mm-decode.el
 (mh-defun-compat mm-handle-multipart-ctl-parameter (handle parameter)
   (get-text-property 0 parameter (car handle)))
+
+(mh-do-in-xemacs (defvar default-enable-multibyte-characters))
 
 ;; Copy of original function in mm-decode.el
 (mh-defun-compat mm-readable-p (handle)
@@ -610,8 +629,7 @@ BODY."
   "Free the decoded MIME parts."
   (let ((mime-data (gethash (current-buffer) mh-globals-hash)))
     ;; This is for Emacs, what about XEmacs?
-    (cond ((fboundp 'remove-images)
-           (remove-images (point-min) (point-max))))
+    (mh-funcall-if-exists remove-images (point-min) (point-max))
     (when mime-data
       (mm-destroy-parts (mh-mime-handles mime-data))
       (remhash (current-buffer) mh-globals-hash))))
@@ -662,6 +680,7 @@ I have seen this only in spam, so maybe we shouldn't fix this ;-)"
   (when (and mh-graphical-smileys-flag
              (fboundp 'smiley-region)
              (boundp 'font-lock-maximum-size)
+             font-lock-maximum-size
              (>= (/ font-lock-maximum-size 8) (buffer-size)))
     (smiley-region (point-min) (point-max))))
 
@@ -669,8 +688,8 @@ I have seen this only in spam, so maybe we shouldn't fix this ;-)"
 (defun mh-display-emphasis ()
   "Function to display graphical emphasis."
   (when (and mh-graphical-emphasis-flag
-             (boundp 'font-lock-maximum-size)
-             (>= (/ font-lock-maximum-size 8) (buffer-size)))
+             (if font-lock-maximum-size
+                 (>= (/ font-lock-maximum-size 8) (buffer-size))))
     (flet ((article-goto-body ()))      ; shadow this function to do nothing
       (save-excursion
         (goto-char (point-min))
@@ -685,7 +704,10 @@ I have seen this only in spam, so maybe we shouldn't fix this ;-)"
     (unless (>= (string-to-number emacs-version) 21)
       ;; XEmacs doesn't care.
       (set-keymap-parent map mh-show-mode-map))
-    (define-key map [mouse-2] 'mh-push-button)
+    (mh-do-in-gnu-emacs
+     (define-key map [mouse-2] 'mh-push-button))
+    (mh-do-in-xemacs
+     (define-key map '(button2) 'mh-push-button))
     (dolist (c mh-mime-button-commands)
       (define-key map (cadr c) (car c)))
     map))
@@ -708,7 +730,10 @@ I have seen this only in spam, so maybe we shouldn't fix this ;-)"
     (unless (>= (string-to-number emacs-version) 21)
       (set-keymap-parent map mh-show-mode-map))
     (define-key map "\r" 'mh-press-button)
-    (define-key map [mouse-2] 'mh-push-button)
+    (mh-do-in-gnu-emacs
+     (define-key map [mouse-2] 'mh-push-button))
+    (mh-do-in-xemacs
+     (define-key map '(button2) 'mh-push-button))
     map))
 
 (defvar mh-mime-save-parts-directory nil
@@ -755,21 +780,45 @@ actual storing."
       (if (equal nil mh-mime-save-parts-default-directory)
           (setq mh-mime-save-parts-directory directory))
       (save-excursion
-        (set-buffer (get-buffer-create " *mh-store*"))
+        (set-buffer (get-buffer-create mh-log-buffer))
         (cd directory)
         (setq mh-mime-save-parts-directory directory)
-        (erase-buffer)
-        (apply 'call-process
-               (expand-file-name command mh-progs) nil t nil
-               (mh-list-to-string (list folder msg "-auto")))
-        (if (> (buffer-size) 0)
-            (save-window-excursion
-              (switch-to-buffer-other-window " *mh-store*")
-              (sit-for 3)))))))
+        (let ((initial-size (mh-truncate-log-buffer)))
+          (apply 'call-process
+                 (expand-file-name command mh-progs) nil t nil
+                 (mh-list-to-string (list folder msg "-auto")))
+          (if (> (buffer-size) initial-size)
+              (save-window-excursion
+                (switch-to-buffer-other-window mh-log-buffer)
+                (sit-for 3))))))))
 
 ;; Avoid errors if gnus-sum isn't loaded yet...
 (defvar gnus-newsgroup-charset nil)
 (defvar gnus-newsgroup-name nil)
+
+(defun mh-decode-message-body ()
+  "Decode message based on charset.
+If message has been encoded for transfer take that into account."
+  (let* ((ct (ignore-errors (mail-header-parse-content-type
+                             (message-fetch-field "Content-Type" t))))
+         (charset (mail-content-type-get ct 'charset))
+         (cte (message-fetch-field "Content-Transfer-Encoding")))
+    (when (stringp cte) (setq cte (mail-header-strip cte)))
+    (when (or (not ct) (equal (car ct) "text/plain"))
+      (save-restriction
+        (narrow-to-region (min (1+ (mh-mail-header-end)) (point-max))
+                          (point-max))
+        (mm-decode-body charset
+                        (and cte (intern (downcase
+                                          (gnus-strip-whitespace cte))))
+                        (car ct))))))
+
+;;;###mh-autoload
+(defun mh-decode-message-header ()
+  "Decode RFC2047 encoded message header fields."
+  (when mh-decode-mime-flag
+    (let ((buffer-read-only nil))
+      (rfc2047-decode-region (point-min) (mh-mail-header-end)))))
 
 ;;;###mh-autoload
 (defun mh-mime-display (&optional pre-dissected-handles)
@@ -778,36 +827,43 @@ Optional argument, PRE-DISSECTED-HANDLES is a list of MIME handles. If
 present they are displayed otherwise the buffer is parsed and then
 displayed."
   (let ((handles ())
-        (folder mh-show-folder-buffer))
+        (folder mh-show-folder-buffer)
+        (raw-message-data (buffer-string)))
     (flet ((mm-handle-set-external-undisplayer
             (handle function)
             (mh-handle-set-external-undisplayer folder handle function)))
-      ;; If needed dissect the current buffer
-      (if pre-dissected-handles
-          (setq handles pre-dissected-handles)
-        (setq handles (or (mm-dissect-buffer nil) (mm-uu-dissect)))
-        (setf (mh-mime-handles (mh-buffer-data))
-              (mm-merge-handles handles (mh-mime-handles (mh-buffer-data))))
+      (goto-char (point-min))
+      (unless (search-forward "\n\n" nil t)
+        (goto-char (point-max))
+        (insert "\n\n"))
 
-        ;; Use charset to decode body...
-        (unless handles
-          (let* ((ct (ignore-errors
-                       (mail-header-parse-content-type
-                        (message-fetch-field "Content-Type" t))))
-                 (charset (mail-content-type-get ct 'charset)))
-            (when (stringp charset)
-              (mm-decode-body charset)))))
+      (condition-case err
+          (progn
+            ;; If needed dissect the current buffer
+            (if pre-dissected-handles
+                (setq handles pre-dissected-handles)
+              (setq handles (or (mm-dissect-buffer nil) (mm-uu-dissect)))
+              (setf (mh-mime-handles (mh-buffer-data))
+                    (mm-merge-handles handles
+                                      (mh-mime-handles (mh-buffer-data))))
+              (unless handles (mh-decode-message-body)))
 
-      (when (and handles (or (not (stringp (car handles))) (cdr handles)))
-        ;; Goto start of message body
-        (goto-char (point-min))
-        (or (search-forward "\n\n" nil t) (goto-char (point-max)))
+            (when (and handles
+                       (or (not (stringp (car handles))) (cdr handles)))
+              ;; Goto start of message body
+              (goto-char (point-min))
+              (or (search-forward "\n\n" nil t) (goto-char (point-max)))
 
-        ;; Delete the body
-        (delete-region (point) (point-max))
+              ;; Delete the body
+              (delete-region (point) (point-max))
 
-        ;; Display the MIME handles
-        (mh-mime-display-part handles)))))
+              ;; Display the MIME handles
+              (mh-mime-display-part handles)))
+        (error
+         (message "Please report this error. The error message is:\n %s"
+                  (error-message-string err))
+         (delete-region (point-min) (point-max))
+         (insert raw-message-data))))))
 
 (defun mh-mime-display-part (handle)
   "Decides the viewer to call based on the type of HANDLE."
@@ -868,7 +924,8 @@ This is only useful if a Content-Disposition header is not present."
          (let* ((image (mm-get-image handle)))
            (cond ((fboundp 'glyph-width)
                   ;; XEmacs -- totally untested, copied from gnus
-                  (and (< (glyph-width image)
+                  (and (mh-funcall-if-exists glyphp image)
+                       (< (glyph-width image)
                           (or mh-max-inline-image-width
                               (window-pixel-width)))
                        (< (glyph-height image)
@@ -876,8 +933,9 @@ This is only useful if a Content-Disposition header is not present."
                               (window-pixel-height)))))
                  ((fboundp 'image-size)
                   ;; Emacs21 -- copied from gnus
-                  (let ((size (image-size image)))
-                    (and (< (cdr size)
+                  (let ((size (mh-funcall-if-exists image-size image)))
+                    (and size
+                         (< (cdr size)
                             (or mh-max-inline-image-height
                                 (1- (window-height))))
                          (< (car size)
@@ -889,7 +947,8 @@ This is only useful if a Content-Disposition header is not present."
 (defun mh-inline-vcard-p (handle)
   "Decide if HANDLE is a vcard that must be displayed inline."
   (let ((type (mm-handle-type handle)))
-    (and (consp type)
+    (and (or (featurep 'vcard) (fboundp 'vcard-pretty-print))
+         (consp type)
          (equal (car type) "text/x-vcard")
          (save-excursion
            (save-restriction
@@ -932,6 +991,10 @@ This is only useful if a Content-Disposition header is not present."
              (forward-line -1)
              (mh-mm-display-part handle)))
       (goto-char (point-max)))))
+
+(mh-do-in-xemacs
+ (defvar dots)
+ (defvar type))
 
 (defun mh-insert-mime-button (handle index displayed)
   "Insert MIME button for HANDLE.
@@ -999,9 +1062,9 @@ like \"K v\" which operate on individual MIME parts."
                 (progn
                   ;; Delete the button and displayed part (if any)
                   (let ((region (get-text-property point 'mh-region)))
-                    (when region
-                      (when (fboundp 'remove-images)
-                        (remove-images (car region) (cdr region))))
+                    (when (and region (fboundp 'remove-images))
+                      (mh-funcall-if-exists
+                       remove-images (car region) (cdr region)))
                     (mm-display-part handle)
                     (when region
                       (delete-region (car region) (cdr region))))
@@ -1067,20 +1130,33 @@ If the MIME part is visible then it is removed. Otherwise the part is
 displayed. This function is called when the mouse is used to click the MIME
 button."
   (interactive "e")
-  (set-buffer (window-buffer (posn-window (event-start event))))
-  (select-window (posn-window (event-start event)))
-  (let* ((pos (posn-point (event-start event)))
-         (folder mh-show-folder-buffer)
-         (mm-inline-media-tests mh-mm-inline-media-tests)
-         (data (get-text-property pos 'mh-data))
-         (function (get-text-property pos 'mh-callback))
-         (buffer-read-only nil))
-    (flet ((mm-handle-set-external-undisplayer
-            (handle function)
-            (mh-handle-set-external-undisplayer folder handle function)))
-      (goto-char pos)
-      (unwind-protect (and function (funcall function data))
-        (set-buffer-modified-p nil)))))
+  (save-excursion
+    (let* ((event-window
+            (or (mh-funcall-if-exists posn-window (event-start event));GNU Emacs
+                (mh-funcall-if-exists event-window event)))            ;XEmacs
+           (event-position
+            (or (mh-funcall-if-exists posn-point (event-start event)) ;GNU Emacs
+                (mh-funcall-if-exists event-closest-point event)))    ;XEmacs
+           (original-window (selected-window))
+           (original-position (progn
+                                (set-buffer (window-buffer event-window))
+                                (set-marker (make-marker) (point))))
+           (folder mh-show-folder-buffer)
+           (mm-inline-media-tests mh-mm-inline-media-tests)
+           (data (get-text-property event-position 'mh-data))
+           (function (get-text-property event-position 'mh-callback))
+           (buffer-read-only nil))
+      (unwind-protect
+          (progn
+            (select-window event-window)
+            (flet ((mm-handle-set-external-undisplayer (handle func)
+                     (mh-handle-set-external-undisplayer folder handle func)))
+              (goto-char event-position)
+              (and function (funcall function data))))
+        (set-buffer-modified-p nil)
+        (goto-char original-position)
+        (set-marker original-position nil)
+        (select-window original-window)))))
 
 ;;;###mh-autoload
 (defun mh-mime-save-part ()
@@ -1242,6 +1318,7 @@ message multiple times."
                      handles))))
 
         (goto-char (point-min))
+        (mh-show-xface)
         (cond (clean-message-header
                (mh-clean-msg-header (point-min)
                                     invisible-headers
@@ -1249,7 +1326,7 @@ message multiple times."
                (goto-char (point-min)))
               (t
                (mh-start-of-uncleaned-message)))
-        (mh-show-xface)
+        (mh-decode-message-header)
         (mh-show-addr)
         ;; The other highlighting types don't need anything special
         (when (eq mh-highlight-citation-p 'gnus)
@@ -1277,4 +1354,5 @@ message multiple times."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
 ;;; mh-mime.el ends here

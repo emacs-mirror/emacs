@@ -3,6 +3,7 @@
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <t.link@gmx.at>
+;; Maintainer: FSF
 ;; Keywords: filesets convenience
 
 ;; This file is part of GNU Emacs.
@@ -32,9 +33,10 @@
 ;; pattern, a base directory and a search pattern (for files), or an
 ;; inclusion group (i.e. a base file including other files).
 
-;; Usage: 1. Put (require 'filesets) into your start-up file.  2. Type
-;; M-x filesets-edit or choose "Edit Filesets" from the menu.  3. Save
-;; your customizations.
+;; Usage:
+;; 1. Put (require 'filesets) and (filesets-init) in your .emacs file.
+;; 2. Type ;; M-x filesets-edit or choose "Edit Filesets" from the menu.
+;; 3. Save your customizations.
 
 ;; Caveat: Fileset names have to be unique.
 
@@ -65,6 +67,13 @@
 
 ;;- better handling of different customization scenarios
 
+;; Data gathering should be better separated from building the menu
+;; so that one could (1) use filesets without installing the menu
+;; and (2) create new "frontends" to speedbar and others.
+
+;; The functionality to call external viewers should be isolated in
+;; an extra package and possibly integrated with the MIME
+;; handling.
 
 ;;; Credits:
 
@@ -118,8 +127,8 @@ ignored.")
 Is buffer local variable.")
 
 (defvar filesets-verbosity 1
-  "An integer defining the level of verbosity. 0 means no messages
-at all.")
+  "An integer defining the level of verbosity.
+0 means no messages at all.")
 
 (defvar filesets-menu-ensure-use-cached
   (and filesets-running-xemacs
@@ -263,6 +272,8 @@ key is supported."
     (setq filesets-has-changed-flag t)))
 ;    (filesets-reset-fileset nil t)))
 
+(defvar filesets-data)
+
 (defun filesets-data-set-default (sym val)
   "Set the default for `filesets-data'."
   (if filesets-menu-use-cached-flag
@@ -279,9 +290,7 @@ key is supported."
 	(dolist (x modified-filesets)
 	  (filesets-reset-fileset (car x))))))
   (filesets-set-default sym val))
-
-
-
+
 ;;; configuration
 (defgroup filesets nil
   "The fileset swapper."
@@ -1056,8 +1065,7 @@ defined in `filesets-ingroup-patterns'."
   :set (function filesets-set-default)
   :type 'integer
   :group 'filesets)
-
-
+
 ;;; Emacs compatibility
 (eval-and-compile
   (if filesets-running-xemacs
@@ -2505,13 +2513,11 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
     (filesets-build-menu)))
 
 
-;;; run
-(filesets-init)
-
 (provide 'filesets)
 
 ;;; Local Variables:
 ;;; sentence-end-double-space:t
 ;;; End:
 
+;;; arch-tag: 2c03f85f-c3df-4cec-b0a3-b46fd5592d70
 ;;; filesets.el ends here

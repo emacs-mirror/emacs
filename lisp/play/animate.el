@@ -184,4 +184,5 @@ Strings will be separated from each other by SPACE lines."
   (animate-string "my sunshine" 18 34)
   (animate-string "to stay!" 19 34))
 
+;;; arch-tag: 275289a3-6ac4-41da-b527-a1147045392f
 ;;; animate.el ends here

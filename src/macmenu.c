@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the for Mac OS.
-   Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -732,10 +732,8 @@ cached information about equivalent key sequences.  */)
 	  CHECK_LIVE_WINDOW (window);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (FRAME_FONT (f))
-		  * XFASTINT (XWINDOW (window)->left));
-	  ypos = (FRAME_LINE_HEIGHT (f)
-		  * XFASTINT (XWINDOW (window)->top));
+	  xpos = WINDOW_LEFT_EDGE_X (XWINDOW (window));
+	  ypos = WINDOW_TOP_EDGE_Y (XWINDOW (window));
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -1037,6 +1035,7 @@ menubar_selection_callback (FRAME_PTR f, int client_data)
 	      int j;
 	      struct input_event buf;
 	      Lisp_Object frame;
+	      EVENT_INIT (buf);
 
 	      XSETFRAME (frame, f);
 	      buf.kind = MENU_BAR_EVENT;
@@ -2375,3 +2374,6 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_dialog);
 #endif
 }
+
+/* arch-tag: 40b2c6c7-b8a9-4a49-b930-1b2707184cce
+   (do not change this comment) */

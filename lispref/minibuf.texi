@@ -63,6 +63,11 @@ other window, when the minibuffer is not active.  If the frame contains
 just a minibuffer, you can change the minibuffer's size by changing the
 frame's size.
 
+  Use of the minibuffer reads input events, and that alters the values
+of variables such as @code{this-command} and @code{last-command}
+(@pxref{Command Loop Info}).  Your program should bind them around the
+code that uses the minibuffer, if you do not want that to change them.
+
   If a command uses a minibuffer while there is an active minibuffer,
 this is called a @dfn{recursive minibuffer}.  The first minibuffer is
 named @w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
@@ -84,7 +89,7 @@ completion commands (@pxref{Completion}).
 
 @item
 @code{minibuffer-local-ns-map} is similar, except that @key{SPC} exits
-just like @key{RET}.  This is used mainly for Mocklisp compatibility.
+just like @key{RET}.
 
 @item
 @code{minibuffer-local-completion-map} is for permissive completion.
@@ -184,12 +189,12 @@ arguments @var{prompt} and @var{initial} are used as in
 @code{read-from-minibuffer}.  The keymap used is
 @code{minibuffer-local-map}.
 
-The optional argument @var{history}, if non-nil, specifies a history
-list and optionally the initial position in the list.  The optional
-argument @var{default} specifies a default value to return if the user
-enters null input; it should be a string.  The optional argument
-@var{inherit-input-method} specifies whether to inherit the current
-buffer's input method.
+The optional argument @var{history}, if non-@code{nil}, specifies a
+history list and optionally the initial position in the list.  The
+optional argument @var{default} specifies a default value to return if
+the user enters null input; it should be a string.  The optional
+argument @var{inherit-input-method} specifies whether to inherit the
+current buffer's input method.
 
 This function is a simplified interface to the
 @code{read-from-minibuffer} function:
@@ -520,22 +525,22 @@ for reading certain kinds of names with completion.
 * High-Level Completion::  Convenient special cases of completion
                              (reading buffer name, file name, etc.)
 * Reading File Names::     Using completion to read file names.
-* Programmed Completion::  Finding the completions for a given file name.
+* Programmed Completion::  Writing your own completion-function.
 @end menu
 
 @node Basic Completion
 @subsection Basic Completion Functions
 
-  The two functions @code{try-completion} and @code{all-completions}
-have nothing in themselves to do with minibuffers.  We describe them in
-this chapter so as to keep them near the higher-level completion
-features that do use the minibuffer.
+  The functions @code{try-completion}, @code{all-completions} and
+@code{test-completion} have nothing in themselves to do with
+minibuffers.  We describe them in this chapter so as to keep them near
+the higher-level completion features that do use the minibuffer.
 
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.  The value of
-@var{collection} must be an alist, an obarray, or a function that
-implements a virtual set of strings (see below).
+@var{collection} must be a list of strings, an alist, an obarray, or a
+function that implements a virtual set of strings (see below).
 
 Completion compares @var{string} against each of the permissible
 completions specified by @var{collection}; if the beginning of the
@@ -559,13 +564,6 @@ Note that the only valid way to make a new obarray is to create it
 empty and then add symbols to it one by one using @code{intern}.
 Also, you cannot intern a given symbol in more than one obarray.
 
-If the argument @var{predicate} is non-@code{nil}, then it must be a
-function of one argument.  It is used to test each possible match, and
-the match is accepted only if @var{predicate} returns non-@code{nil}.
-The argument given to @var{predicate} is either a cons cell from the alist
-(the @sc{car} of which is a string) or else it is a symbol (@emph{not} a
-symbol name) from the obarray.
-
 You can also use a symbol that is a function as @var{collection}.  Then
 the function is solely responsible for performing completion;
 @code{try-completion} returns whatever this function returns.  The
@@ -573,6 +571,13 @@ function is called with three arguments: @var{string}, @var{predicate}
 and @code{nil}.  (The reason for the third argument is so that the same
 function can be used in @code{all-completions} and do the appropriate
 thing in either case.)  @xref{Programmed Completion}.
+
+If the argument @var{predicate} is non-@code{nil}, then it must be a
+function of one argument.  It is used to test each possible match, and
+the match is accepted only if @var{predicate} returns non-@code{nil}.
+The argument given to @var{predicate} is either a string from the
+list, a cons cell from the alist (the @sc{car} of which is a string)
+or a symbol (@emph{not} a symbol name) from the obarray.
 
 In the first of the following examples, the string @samp{foo} is
 matched by three of the alist @sc{car}s.  All of the matches begin with
@@ -657,10 +662,42 @@ example for @code{try-completion}:
 @end smallexample
 @end defun
 
+@defun test-completion string collection &optional predicate
+This function returns non-@code{nil} if @var{string} is a valid
+completion possibility specified by @var{collection} and
+@var{predicate}.  The other arguments are the same as in
+@code{try-completion}.  For instance, if @var{collection} is a list,
+this is true if @var{string} appears in the list and @var{predicate}
+is satisfied.
+
+If @var{collection} is a function, it is called with three arguments,
+the values @var{string}, @var{predicate} and @code{lambda}; whatever
+it returns, @code{test-completion} returns in turn.
+@end defun
+
 @defvar completion-ignore-case
-If the value of this variable is
-non-@code{nil}, Emacs does not consider case significant in completion.
+If the value of this variable is non-@code{nil}, Emacs does not
+consider case significant in completion.
 @end defvar
+
+@defmac lazy-completion-table var fun &rest args
+This macro provides a way to initialize the variable @var{var} as a
+collection for completion in a lazy way, not computing its actual
+contents until they are first needed.  You use this macro to produce a
+value that you store in @var{var}.  The actual computation of the
+proper value is done the first time you do completion using @var{var}.
+It is done by calling @var{fun} with the arguments @var{args}.  The
+value @var{fun} returns becomes the permanent value of @var{var}.
+
+Here are two examples of use:
+
+@example
+(defvar foo (lazy-completion-table foo make-my-alist 'global))
+
+(make-local-variable 'bar)
+(setq bar (lazy-completion-table foo make-my-alist 'local)
+@end example
+@end defmac
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
@@ -1051,7 +1088,7 @@ predicate @code{user-variable-p} instead of @code{commandp}:
 file name.  It provides special features including automatic insertion
 of the default directory.
 
-@defun read-file-name prompt &optional directory default existing initial
+@defun read-file-name prompt &optional directory default existing initial predicate
 This function reads a file name in the minibuffer, prompting with
 @var{prompt} and providing completion.  If @var{default} is
 non-@code{nil}, then the function returns @var{default} if the user just
@@ -1073,12 +1110,18 @@ initial input.  It defaults to the current buffer's value of
 @code{default-directory}.
 
 @c Emacs 19 feature
-If you specify @var{initial}, that is an initial file name to insert in
-the buffer (after @var{directory}, if that is inserted).  In this
+If you specify @var{initial}, that is an initial file name to insert
+in the buffer (after @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} is @code{nil}---don't insert any file name.  To see what
-@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Note:} we
-recommend using @var{default} rather than @var{initial} in most cases.
+@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Please
+note:} we recommend using @var{default} rather than @var{initial} in
+most cases.
+
+If @var{predicate} is non-@code{nil}, it specifies a function of one
+argument that decides which file names are acceptable completion
+possibilities.  A file name is an acceptable value if @var{predicate}
+returns non-@code{nil} for it.
 
 Here is an example:
 
@@ -1112,6 +1155,11 @@ The file is /gp/gnu/elisp/manual.texi@point{}
 @noindent
 If the user types @key{RET}, @code{read-file-name} returns the file name
 as the string @code{"/gp/gnu/elisp/manual.texi"}.
+@end defun
+
+@defun read-directory-name prompt &optional directory default existing initial
+This function is like @code{read-file-name} but allows only directory
+names as completion possibilities.
 @end defun
 
 @defopt insert-default-directory
@@ -1203,7 +1251,7 @@ should return a list of all possible completions of the specified
 string.
 
 @item
-@code{lambda} specifies a test for an exact match.  The completion
+@code{lambda} specifies @code{test-completion}.  The completion
 function should return @code{t} if the specified string is an exact
 match for some possibility; @code{nil} otherwise.
 @end itemize
@@ -1211,13 +1259,22 @@ match for some possibility; @code{nil} otherwise.
   It would be consistent and clean for completion functions to allow
 lambda expressions (lists that are functions) as well as function
 symbols as @var{collection}, but this is impossible.  Lists as
-completion tables are already assigned another meaning---as alists.  It
-would be unreliable to fail to handle an alist normally because it is
-also a possible function.  So you must arrange for any function you wish
-to use for completion to be encapsulated in a symbol.
+completion tables already have other meanings, and it would be
+unreliable to treat one differently just because it is also a possible
+function.  So you must arrange for any function you wish to use for
+completion to be encapsulated in a symbol.
 
   Emacs uses programmed completion when completing file names.
 @xref{File Name Completion}.
+
+@defmac dynamic-completion-table function
+This macro is a convenient way to write a function that can act as
+programmed completion function.  The argument @var{function} should be
+a function that takes one argument, a string, and returns an alist of
+possible completions of it.  You can think of
+@code{dynamic-completion-table} as a transducer between that interface
+and the interface for programmed completion functions.
+@end defmac
 
 @node Yes-or-No Queries
 @section Yes-or-No Queries
@@ -1570,6 +1627,11 @@ The current value of this variable is used to rebind @code{help-form}
 locally inside the minibuffer (@pxref{Help Functions}).
 @end defvar
 
+@defun minibufferp &optional buffer
+This function returns non-@code{nil} if @var{buffer} is a minibuffer.
+If @var{buffer} is omitted, it tests the current buffer.
+@end defun
+
 @defun active-minibuffer-window
 This function returns the currently active minibuffer window, or
 @code{nil} if none is currently active.
@@ -1604,6 +1666,12 @@ object.  When the function @code{scroll-other-window} is called in the
 minibuffer, it scrolls this window.
 @end defvar
 
+@defun minibuffer-selected-window
+This function returns the window which was selected when the
+minibuffer was entered.  If selected window is not a minibuffer
+window, it returns @code{nil}.
+@end defun
+
 Finally, some functions and variables deal with recursive minibuffers
 (@pxref{Recursive Editing}):
 
@@ -1631,3 +1699,13 @@ that is non-@code{nil}, then the command can use the minibuffer to read
 arguments even if it is invoked from the minibuffer.  The minibuffer
 command @code{next-matching-history-element} (normally @kbd{M-s} in the
 minibuffer) uses this feature.
+
+@defun minibuffer-message string &optional timeout
+This function displays @var{string} temporarily at the end of the
+minibuffer text, for @var{timeout} seconds.  (The default is 2
+seconds.)
+@end defun
+
+@ignore
+   arch-tag: bba7f945-9078-477f-a2ce-18818a6e1218
+@end ignore

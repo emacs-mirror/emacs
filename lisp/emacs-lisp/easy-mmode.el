@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -98,12 +98,19 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 		By default, the mode is buffer-local.
 :init-value VAL	Same as the INIT-VALUE argument.
 :lighter SPEC	Same as the LIGHTER argument.
+:keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
     :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
+  (declare (debug (&define name stringp
+			   [&optional [&not keywordp] sexp
+			    &optional [&not keywordp] sexp
+			    &optional [&not keywordp] sexp]
+			   [&rest [keywordp sexp]]
+			   def-body)))
 
   ;; Allow skipping the first three args.
   (cond
@@ -121,12 +128,10 @@ For example, you could write
 	 (extra-args nil)
 	 (extra-keywords nil)
 	 (require t)
-	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
-		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
-	 keyw)
+	 keyw keymap-sym)
 
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
@@ -138,7 +143,11 @@ For example, you could write
 	(:extra-args (setq extra-args (pop body)))
 	(:group (setq group (nconc group (list :group (pop body)))))
 	(:require (setq require (pop body)))
+	(:keymap (setq keymap (pop body)))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
+
+    (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
+		       (intern (concat mode-name "-map"))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
@@ -203,8 +212,9 @@ With zero or negative ARG turn mode off.
 	 (if (interactive-p)
 	     (progn
 	       ,(if globalp `(customize-mark-as-set ',mode))
-	       (message ,(format "%s %%sabled" pretty-name)
-			(if ,mode "en" "dis"))))
+	       (unless (current-message)
+		 (message ,(format "%s %%sabled" pretty-name)
+			  (if ,mode "en" "dis")))))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
 	 ,mode)
@@ -341,7 +351,7 @@ KEY and BINDINGS are suitable for `define-key'.
 Optional NAME is passed to `make-sparse-keymap'.
 Optional map M can be used to modify an existing map.
 ARGS is a list of additional keyword arguments."
-  (let (inherit dense suppress)
+  (let (inherit dense)
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
@@ -350,7 +360,6 @@ ARGS is a list of additional keyword arguments."
 	 (:dense (setq dense val))
 	 (:inherit (setq inherit val))
 	 (:group)
-	 ;;((eq key :suppress) (setq suppress val))
 	 (t (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
       (setq bs (append m bs))
@@ -422,7 +431,7 @@ ENDFUN should return the end position (with or without moving point)."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next"))))
-    (unless name (setq name (symbol-name base-name)))
+    (unless name (setq name base-name))
     `(progn
        (add-to-list 'debug-ignored-errors
 		    ,(concat "^No \\(previous\\|next\\) " (regexp-quote name)))
@@ -435,7 +444,7 @@ ENDFUN should return the end position (with or without moving point)."
 	   (if (not (re-search-forward ,re nil t count))
 	       (if (looking-at ,re)
 		   (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-		 (error ,(format "No next %s" name)))
+		 (error "No next %s" ,name))
 	     (goto-char (match-beginning 0))
 	     (when (and (eq (current-buffer) (window-buffer (selected-window)))
 			(interactive-p))
@@ -451,8 +460,9 @@ ENDFUN should return the end position (with or without moving point)."
 	 (unless count (setq count 1))
 	 (if (< count 0) (,next-sym (- count))
 	   (unless (re-search-backward ,re nil t count)
-	     (error ,(format "No previous %s" name))))))))
+	     (error "No previous %s" ,name)))))))
 
 (provide 'easy-mmode)
 
+;;; arch-tag: d48a5250-6961-4528-9cb0-3c9ea042a66a
 ;;; easy-mmode.el ends here

@@ -5,7 +5,7 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: mar feb 18 2003 10:03:18 (Romance Standard Time)
+;; Revised: jue jun 05 2003 22:00:02 (Hora de verano romance)
 
 ;; This file is part of GNU Emacs.
 
@@ -688,10 +688,10 @@ height."
   :tag "Cell Face"
   :group 'table)
 
-(defcustom table-cell-horizontal-char ?\-
-  "*Character that forms table cell's horizontal border line."
-  :tag "Cell Horizontal Boundary Character"
-  :type 'character
+(defcustom table-cell-horizontal-chars "-="
+  "*Characters that may be used for table cell's horizontal border line."
+  :tag "Cell Horizontal Boundary Characters"
+  :type 'string
   :group 'table)
 
 (defcustom table-cell-vertical-char ?\|
@@ -986,7 +986,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     )
   "Bindings for table cell commands.")
 
-(defconst table-command-remap-alist
+(defvar table-command-remap-alist
   '((self-insert-command . *table--cell-self-insert-command)
     (completion-separator-self-insert-autofilling . *table--cell-self-insert-command)
     (completion-separator-self-insert-command . *table--cell-self-insert-command)
@@ -1004,7 +1004,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     (dabbrev-completion . *table--cell-dabbrev-completion))
   "List of cons cells consisting of (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
 
-(defconst table-command-list nil
+(defvar table-command-list nil
   "List of commands that override original commands.")
 ;; construct the real contents of the `table-command-list'
 (let ((remap-alist table-command-remap-alist))
@@ -1658,7 +1658,7 @@ Inside a table cell has a special keymap.
       (setq cw cell-width)
       (setq i 0)
       (while (< i columns)
-	(insert (make-string (car cw) table-cell-horizontal-char) table-cell-intersection-char)
+	(insert (make-string (car cw) (string-to-char table-cell-horizontal-chars)) table-cell-intersection-char)
 	(if (cdr cw) (setq cw (cdr cw)))
 	(setq i (1+ i)))
       (setq border-str (buffer-substring (point-min) (point-max)))
@@ -1748,7 +1748,7 @@ are appended at the bottom of the table."
 	  (while (> i 0)
 	    (setq rect (cons
 			(concat (if exclude-left "" (char-to-string table-cell-intersection-char))
-				(make-string (- (cadr this) (caar this)) table-cell-horizontal-char)
+				(make-string (- (cadr this) (caar this)) (string-to-char table-cell-horizontal-chars))
 				(if exclude-right "" (char-to-string table-cell-intersection-char)))
 			rect))
 	    (let ((j cell-height))
@@ -1801,7 +1801,7 @@ created column(s) are appended at the right of the table."
 	 (coord-list (table--cell-list-to-coord-list (table--vertical-cell-list t nil 'left)))
 	 (append-column (if coord-list nil (setq coord-list (table--find-row-column 'column))))
 	 (cell-width (car (table--min-coord-list coord-list)))
-	 (border-str (table--multiply-string (concat (make-string cell-width table-cell-horizontal-char)
+	 (border-str (table--multiply-string (concat (make-string cell-width (string-to-char table-cell-horizontal-chars))
 						     (char-to-string table-cell-intersection-char)) n))
 	 (cell-str (table--multiply-string (concat (table--cell-blank-str cell-width)
 						   (let ((str (string table-cell-vertical-char)))
@@ -1915,13 +1915,13 @@ all the table specific features."
     (if (>= arg 0)
 	(save-excursion
 	  (goto-char (point-min))
-	  (let* ((border (format "[%c%c%c]"
-				 table-cell-horizontal-char
+	  (let* ((border (format "[%s%c%c]"
+				 table-cell-horizontal-chars
 				 table-cell-vertical-char
 				 table-cell-intersection-char))
 		 (border3 (concat border border border))
-		 (non-border (format "^[^%c%c%c]*$"
-				     table-cell-horizontal-char
+		 (non-border (format "^[^%s%c%c]*$"
+				     table-cell-horizontal-chars
 				     table-cell-vertical-char
 				     table-cell-intersection-char)))
 	    ;; `table-recognize-region' is an expensive function so minimize
@@ -1964,12 +1964,12 @@ specific features."
 	(table--remove-cell-properties beg end)
       (save-excursion
 	(goto-char beg)
-	(let* ((border (format "[%c%c%c]"
-			       table-cell-horizontal-char
+	(let* ((border (format "[%s%c%c]"
+			       table-cell-horizontal-chars
 			       table-cell-vertical-char
 			       table-cell-intersection-char))
-	       (non-border (format "[^%c%c%c]"
-				   table-cell-horizontal-char
+	       (non-border (format "[^%s%c%c]"
+				   table-cell-horizontal-chars
 				   table-cell-vertical-char
 				   table-cell-intersection-char))
 	       (inhibit-read-only t))
@@ -2318,18 +2318,21 @@ table's rectangle structure."
 			       (1+ (cdr (cdr this)))
 			     (cdr (cdr this))))))
 	       (tmp (extract-rectangle (1- beg) end))
-	       (border (format "[%c%c]\\%c"
-			       table-cell-horizontal-char
+	       (border (format "[%s%c]\\%c"
+			       table-cell-horizontal-chars
 			       table-cell-intersection-char
 			       table-cell-intersection-char))
 	       (blank (table--cell-blank-str))
 	       rectangle)
 	  ;; create a single wide vertical bar of empty cell fragment
 	  (while tmp
-	    (setq rectangle (cons (if (string-match border (car tmp))
-				      (string table-cell-horizontal-char)
+;        (message "tmp is %s" tmp)
+	    (setq rectangle (cons
+                         (if (string-match border (car tmp))
+				      (substring (car tmp) 0 1)
 				    blank)
 				  rectangle))
+;        (message "rectangle is %s" rectangle)
 	    (setq tmp (cdr tmp)))
 	  (setq rectangle (nreverse rectangle))
 	  ;; untabify the area right of the bar that is about to be inserted
@@ -2656,7 +2659,7 @@ DIRECTION is one of symbols; right, left, above or below."
 	    (setq rectangle
 		  (cons (if below-contp
 			    (char-to-string table-cell-intersection-char)
-			  (char-to-string table-cell-horizontal-char))
+			  (substring table-cell-horizontal-chars 0 1))
 			rectangle))
 	    (while (> n-element 0)
 	      (setq rectangle (cons (table--cell-blank-str 1) rectangle))
@@ -2664,7 +2667,7 @@ DIRECTION is one of symbols; right, left, above or below."
 	    (setq rectangle
 		  (cons (if above-contp
 			    (char-to-string table-cell-intersection-char)
-			  (char-to-string table-cell-horizontal-char))
+			  (substring table-cell-horizontal-chars 0 1))
 			rectangle))
 	    (delete-rectangle beg end)
 	    (goto-char beg)
@@ -2673,11 +2676,13 @@ DIRECTION is one of symbols; right, left, above or below."
 	(insert (if (and (> (point) (point-min))
 			 (save-excursion
 			   (forward-char -1)
-			   (looking-at (regexp-quote (char-to-string table-cell-horizontal-char)))))
+			   (looking-at (regexp-opt-charset
+					(string-to-list table-cell-horizontal-chars)))))
 		    table-cell-intersection-char
 		  table-cell-vertical-char)
 		(table--cell-blank-str (- end beg 2))
-		(if (looking-at (regexp-quote (char-to-string table-cell-horizontal-char)))
+		(if (looking-at (regexp-opt-charset
+				 (string-to-list table-cell-horizontal-chars)))
 		    table-cell-intersection-char
 		  table-cell-vertical-char))))
     ;; recognize the newly created spanned cell
@@ -2711,7 +2716,7 @@ Creates a cell above and a cell below the current point location."
       (goto-char beg)
       (delete-region beg end)
       (insert table-cell-intersection-char
-	      (make-string table-cell-info-width table-cell-horizontal-char)
+	      (make-string table-cell-info-width (string-to-char table-cell-horizontal-chars))
 	      table-cell-intersection-char)
       (table--goto-coordinate old-coordinate)
       (forward-line 1)
@@ -3284,6 +3289,10 @@ CALS (DocBook DTD):
 			 ((eq language 'cals) 10)))
 	(insert ?\n)))))
 
+(defun table--cell-horizontal-char-p (c)
+  "Test if character C is one of the horizontal characters"
+  (memq c (string-to-list table-cell-horizontal-chars)))
+
 (defun table--generate-source-scan-lines (dest-buffer language origin-cell tail-cell col-list row-list)
   "Scan the table line by line.
 Currently this method is for LaTeX only."
@@ -3303,18 +3312,18 @@ Currently this method is for LaTeX only."
 	     start i c)
 	(if border-p
 	    ;; horizontal cell border processing
-	    (if (and (eq (car border-char-list) table-cell-horizontal-char)
+	    (if (and (table--cell-horizontal-char-p (car border-char-list))
 		     (table--uniform-list-p border-char-list))
 		(with-current-buffer dest-buffer
 		  (insert "\\hline\n"))
 	      (setq i 0)
 	      (while (setq c (nth i border-char-list))
-		(if (and start (not (eq c table-cell-horizontal-char)))
+		(if (and start (not (table--cell-horizontal-char-p c)))
 		    (progn
 		      (with-current-buffer dest-buffer
 			(insert (format "\\cline{%d-%d}\n" (1+ start) i)))
 		      (setq start nil)))
-		(if (and (not start) (eq c table-cell-horizontal-char))
+		(if (and (not start) (table--cell-horizontal-char-p c))
 		    (setq start i))
 		(setq i (1+ i)))
 	      (if start
@@ -3534,7 +3543,7 @@ consists from cells of same height."
 	      (delete-char 1)
 	      (insert table-cell-intersection-char))
 	  (delete-char 1)
-	  (insert table-cell-horizontal-char))
+	  (insert (string-to-char table-cell-horizontal-chars)))
 	(setq n (1- n))
 	(setcar coord (1+ (car coord)))))
     ;; goto appropriate end point
@@ -3576,9 +3585,11 @@ column must consists from cells of same width."
 	(table--goto-coordinate coord)
 	(if (save-excursion
 	      (or (and (table--goto-coordinate (cons (1- (car coord)) (cdr coord)) 'no-extension)
-		       (looking-at (regexp-quote (char-to-string table-cell-horizontal-char))))
+		       (looking-at (regexp-opt-charset
+				    (string-to-list table-cell-horizontal-chars))))
 		  (and (table--goto-coordinate (cons (1+ (car coord)) (cdr coord)) 'no-extension)
-		       (looking-at (regexp-quote (char-to-string table-cell-horizontal-char))))))
+		       (looking-at (regexp-opt-charset
+				    (string-to-list table-cell-horizontal-chars))))))
 	    (progn
 	      (delete-char 1)
 	      (insert table-cell-intersection-char))
@@ -4412,9 +4423,9 @@ Returns the coordinate of the final point location."
 (defun table--spacify-frame ()
   "Spacify table frame.
 Replace frame characters with spaces."
-  (let ((frame-char (list table-cell-intersection-char
-			  table-cell-horizontal-char
-			  table-cell-vertical-char)))
+  (let ((frame-char
+         (append (string-to-list table-cell-horizontal-chars)
+                 (list table-cell-intersection-char table-cell-vertical-char))))
     (while
 	(progn
 	  (cond
@@ -4427,11 +4438,11 @@ Replace frame characters with spaces."
 		     (table--spacify-frame))))
 	    (delete-char 1)
 	    (insert-before-markers ?\ ))
-	   ((eq (char-after) table-cell-horizontal-char)
+	   ((table--cell-horizontal-char-p (char-after))
 	    (while (progn
 		     (delete-char 1)
 		     (insert-before-markers ?\ )
-		     (eq (char-after) table-cell-horizontal-char))))
+		     (table--cell-horizontal-char-p (char-after)))))
 	   ((eq (char-after) table-cell-vertical-char)
 	    (while (let ((col (current-column)))
 		     (delete-char 1)
@@ -4685,8 +4696,8 @@ of line."
 		(>= (if columnp (car coord) (cdr coord)) 0))
 	    (while (progn
 		     (table--goto-coordinate coord 'no-extension 'no-tab-expansion)
-		     (not (looking-at (format "[%c%c%c]"
-					      table-cell-horizontal-char
+		     (not (looking-at (format "[%s%c%c]"
+					      table-cell-horizontal-chars
 					      table-cell-vertical-char
 					      table-cell-intersection-char))))
 	      (if columnp (setcar coord (1- (car coord)))
@@ -5037,7 +5048,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
     (let ((vertical-str (regexp-quote (char-to-string table-cell-vertical-char)))
 	  (intersection-str (regexp-quote (char-to-string table-cell-intersection-char)))
 	  (v-border (format "[%c%c]" table-cell-vertical-char table-cell-intersection-char))
-	  (h-border (format "[%c%c]" table-cell-horizontal-char table-cell-intersection-char))
+	  (h-border (format "[%s%c]" table-cell-horizontal-chars table-cell-intersection-char))
 	  (limit (save-excursion (beginning-of-line) (point))))
       (catch 'end
 	(while t
@@ -5075,7 +5086,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
     (let ((vertical-str (regexp-quote (char-to-string table-cell-vertical-char)))
 	  (intersection-str (regexp-quote (char-to-string table-cell-intersection-char)))
 	  (v-border (format "[%c%c]" table-cell-vertical-char table-cell-intersection-char))
-	  (h-border (format "[%c%c]" table-cell-horizontal-char table-cell-intersection-char))
+	  (h-border (format "[%s%c]" table-cell-horizontal-chars table-cell-intersection-char))
 	  (limit (save-excursion (end-of-line) (point))))
       (catch 'end
 	(while t
@@ -5124,8 +5135,8 @@ the right-bottom is the position after the cell's right bottom corner character.
 When it fails to find either one of the cell corners it returns nil or
 signals error if the optional ABORT-ON-ERROR is non-nil."
   (let (lu rb
-	(border (format "^[%c%c%c]+$"
-			table-cell-horizontal-char
+	(border (format "^[%s%c%c]+$"
+			table-cell-horizontal-chars
 			table-cell-vertical-char
 			table-cell-intersection-char)))
     (if (and (condition-case nil
@@ -5576,4 +5587,5 @@ It returns COLUMN unless STR contains some wide characters."
 ;; End: ***
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here

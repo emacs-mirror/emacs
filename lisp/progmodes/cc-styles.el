@@ -1,10 +1,9 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003 Free Software Foundation, Inc.
 
-;; Authors:    2000- Martin Stjernholm
-;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
-;;             1992-1997 Barry A. Warsaw
+;; Authors:    1998- Martin Stjernholm
+;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
@@ -39,10 +38,9 @@
 		  (stringp byte-compile-dest-file))
 	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (require 'cc-bytecomp)))
+    (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
-(cc-require 'cc-langs)
 (cc-require 'cc-vars)
 (cc-require 'cc-align)
 ;; cc-align is only indirectly required: Styles added with
@@ -52,8 +50,7 @@
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 
 
-;; Warning: don't eval-defun this constant or you'll break style inheritance.
-(defconst c-style-alist
+(defvar c-style-alist
   '(("gnu"
      (c-basic-offset . 2)
      (c-comment-only-line-offset . (0 . 0))
@@ -135,6 +132,12 @@
 			 (namespace-open . +)
 			 (innamespace . c-lineup-whitesmith-in-block)
 			 (namespace-close . +)
+			 (module-open . +)
+			 (inmodule . c-lineup-whitesmith-in-block)
+			 (module-close . +)
+			 (composition-open . +)
+			 (incomposition . c-lineup-whitesmith-in-block)
+			 (composition-close . +)
 			 ))
      )
     ("ellemtel"
@@ -242,6 +245,8 @@ the existing style.")
 ;; Functions that manipulate styles
 (defun c-set-style-1 (conscell dont-override)
   ;; Set the style for one variable
+  ;;
+  ;; This function does not do any hidden buffer changes.
   (let ((attr (car conscell))
 	(val  (cdr conscell)))
     (cond
@@ -285,6 +290,8 @@ the existing style.")
 
 (defun c-get-style-variables (style basestyles)
   ;; Return all variables in a style by resolving inheritances.
+  ;;
+  ;; This function does not do any hidden buffer changes.
   (if (not style)
       (copy-alist c-fallback-style)
     (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
@@ -367,10 +374,10 @@ when used elsewhere."
   (c-keep-region-active))
 
 ;;;###autoload
-(defun c-add-style (style descrip &optional set-p)
+(defun c-add-style (style description &optional set-p)
   "Adds a style to `c-style-alist', or updates an existing one.
-STYLE is a string identifying the style to add or update.  DESCRIP is
-an association list describing the style and must be of the form:
+STYLE is a string identifying the style to add or update.  DESCRIPTION
+is an association list describing the style and must be of the form:
 
   ([BASESTYLE] (VARIABLE . VALUE) [(VARIABLE . VALUE) ...])
 
@@ -380,14 +387,14 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
   (interactive
    (let ((stylename (completing-read "Style to add: " c-style-alist
 				     nil nil nil 'c-set-style-history))
-	 (description (eval-minibuffer "Style description: ")))
-     (list stylename description
+         (descr (eval-minibuffer "Style description: ")))
+     (list stylename descr
 	   (y-or-n-p "Set the style too? "))))
   (setq style (downcase style))
   (let ((s (assoc style c-style-alist)))
     (if s
-	(setcdr s (copy-alist descrip))	; replace
-      (setq c-style-alist (cons (cons style descrip) c-style-alist))))
+        (setcdr s (copy-alist description)) ; replace
+      (setq c-style-alist (cons (cons style description) c-style-alist))))
   (and set-p (c-set-style style)))
 
 
@@ -396,6 +403,8 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 (defun c-read-offset (langelem)
   ;; read new offset value for LANGELEM from minibuffer. return a
   ;; legal value only
+  ;;
+  ;; This function does not do any hidden buffer changes.
   (let* ((oldoff  (cdr-safe (or (assq langelem c-offsets-alist)
 				(assq langelem (get 'c-offsets-alist
 						    'c-stylevar-fallback)))))
@@ -446,9 +455,10 @@ and exists only for compatibility reasons."
 		    ;; on the syntactic analysis list for the current
 		    ;; line
 		    (and c-buffer-is-cc-mode
-			 (let* ((syntax (c-guess-basic-syntax))
-				(len (length syntax))
-				(ic (format "%s" (car (nth (1- len) syntax)))))
+			 (c-save-buffer-state
+			     ((syntax (c-guess-basic-syntax))
+			      (len (length syntax))
+			      (ic (format "%s" (car (nth (1- len) syntax)))))
 			   (cons ic 0)))
 		    )))
 	  (offset (c-read-offset langelem)))
@@ -471,19 +481,26 @@ and exists only for compatibility reasons."
   "Fix things up for paragraph recognition and filling inside comments by
 incorporating the value of `c-comment-prefix-regexp' in the relevant
 variables."
+  ;;
+  ;; This function does not do any hidden buffer changes.
+
+  (interactive)
+
   (setq c-current-comment-prefix
 	(if (listp c-comment-prefix-regexp)
 	    (cdr-safe (or (assoc major-mode c-comment-prefix-regexp)
 			  (assoc 'other c-comment-prefix-regexp)))
 	  c-comment-prefix-regexp))
+
   (let ((comment-line-prefix
 	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
+
     (setq paragraph-start (concat comment-line-prefix
-				  (c-lang-var paragraph-start)
+				  c-paragraph-start
 				  "\\|"
 				  page-delimiter)
 	  paragraph-separate (concat comment-line-prefix
-				     (c-lang-var paragraph-separate)
+				     c-paragraph-separate
 				     "\\|"
 				     page-delimiter)
 	  paragraph-ignore-fill-prefix t
@@ -495,6 +512,7 @@ variables."
 			      (default-value 'adaptive-fill-regexp)
 			      "\\)")
 		    "")))
+
     (when (boundp 'adaptive-fill-first-line-regexp)
       ;; XEmacs (20.x) adaptive fill mode doesn't have this.
       (make-local-variable 'adaptive-fill-first-line-regexp)
@@ -521,6 +539,8 @@ CC Mode by making sure the proper entries are present on
   ;; This function is intended to be used explicitly by the end user
   ;; only.
   ;;
+  ;; This function does not do any hidden buffer changes.
+
   ;; The default configuration already handles C++ comments, but we
   ;; need to add handling of C block comments.  A new filladapt token
   ;; `c-comment' is added for that.
@@ -549,6 +569,8 @@ CC Mode by making sure the proper entries are present on
   ;; crucial because future c-set-style calls will always reset the
   ;; variables first to the `cc-mode' style before instituting the new
   ;; style.  Only do this once!
+  ;;
+  ;; This function does not do any hidden buffer changes.
   (unless (get 'c-initialize-builtin-style 'is-run)
     (put 'c-initialize-builtin-style 'is-run t)
     ;;(c-initialize-cc-mode)
@@ -573,24 +595,16 @@ CC Mode by making sure the proper entries are present on
 
 (defun c-make-styles-buffer-local (&optional this-buf-only-p)
   "Make all CC Mode style variables buffer local.
-If you edit primarily one style of C (or C++, Objective-C, Java, etc)
-code, you probably want style variables to be global.  This is the
-default.
+If `this-buf-only-p' is non-nil, the style variables will be made
+buffer local only in the current buffer.  Otherwise they'll be made
+permanently buffer local in any buffer that change their values.
 
-If you edit many different styles of C (or C++, Objective-C, Java,
-etc) at the same time, you probably want the CC Mode style variables
-to be buffer local.  If you do, it's advisable to set any CC Mode
-style variables in a hook function (e.g. off of `c-mode-common-hook'),
-instead of at the top level of your ~/.emacs file.
+The buffer localness of the style variables are normally controlled
+with the variable `c-style-variables-are-local-p', so there's seldom
+any reason to call this function directly."
+  ;;
+  ;; This function does not do any hidden buffer changes.
 
-This function makes all the CC Mode style variables buffer local.
-Call it after CC Mode is loaded into your Emacs environment.
-Conversely, set the variable `c-style-variables-are-local-p' to t in
-your .emacs file, before CC Mode is loaded, and this function will be
-automatically called when CC Mode is loaded.
-
-Optional argument, when non-nil, means use `make-local-variable'
-instead of `make-variable-buffer-local'."
   ;; style variables
   (let ((func (if this-buf-only-p
 		  'make-local-variable
@@ -609,4 +623,5 @@ instead of `make-variable-buffer-local'."
 
 (cc-provide 'cc-styles)
 
+;;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
 ;;; cc-styles.el ends here

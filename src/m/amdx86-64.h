@@ -1,5 +1,5 @@
 /* machine description file for AMD x86-64.
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -101,11 +101,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define VALBITS         60
 
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
-
 /* Define XINT and XUINT so that they can take arguments of type int */
 #define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
 #define XUINT(a) ((long) (a) & VALMASK)
@@ -119,3 +114,6 @@ Boston, MA 02111-1307, USA.  */
 
 #undef LIB_STANDARD
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
+
+/* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
+   (do not change this comment) */

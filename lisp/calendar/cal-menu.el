@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -36,6 +36,9 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar displayed-month)
+(defvar displayed-year)
 
 (eval-when-compile (require 'calendar))
 (require 'easymenu)
@@ -114,6 +117,8 @@
   '("Astronomical Date" . calendar-goto-astro-day-number))
 (define-key calendar-mode-map [menu-bar goto iso]
   '("ISO Date" . calendar-goto-iso-date))
+(define-key calendar-mode-map [menu-bar goto day-of-year]
+  '("Day of Year" . calendar-goto-day-of-year))
 (define-key calendar-mode-map [menu-bar goto gregorian]
   '("Other Date" . calendar-goto-date))
 (define-key calendar-mode-map [menu-bar goto end-of-year]
@@ -161,6 +166,15 @@
 (define-key calendar-mode-map [menu-bar scroll fwd-1]
   '("Forward 1 Month" . scroll-calendar-left))
 
+(defun calendar-flatten (list)
+  "Flatten LIST eliminating sublists structure; result is a list of atoms.
+This is the same as the preorder list of leaves in a rooted forest."
+  (if (atom list)
+      (list list)
+    (if (cdr list)
+        (append (calendar-flatten (car list)) (calendar-flatten (cdr list)))
+      (calendar-flatten (car list)))))
+
 (defun cal-menu-x-popup-menu (position menu)
   "Like `x-popup-menu', but prints an error message if popup menus are
 not available."
@@ -202,7 +216,8 @@ not available."
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t]
                                 (cons ["--" '("--") t] l))))
-            (easy-menu-change nil "Holidays" (nreverse l))
+            (define-key calendar-mode-map [menu-bar Holidays]
+	      (cons "Holidays" (easy-menu-create-menu "Holidays" (nreverse l))))
             (define-key calendar-mode-map [menu-bar Holidays separator]
               '("--"))
             (define-key calendar-mode-map [menu-bar Holidays today]
@@ -218,13 +233,13 @@ not available."
                      (increment-calendar-month m2 y2 1)
                      (if (= y1 y2)
                          (format "%s-%s, %d"
-                                 (calendar-month-name m1 3)
-                                 (calendar-month-name m2 3)
+                                 (calendar-month-name m1 'abbrev)
+                                 (calendar-month-name m2 'abbrev)
                                  y2)
                        (format "%s, %d-%s, %d"
-                               (calendar-month-name m1 3)
+                               (calendar-month-name m1 'abbrev)
                                y1
-                               (calendar-month-name m2 3)
+                               (calendar-month-name m2 'abbrev)
                                y2)))))
               (define-key  calendar-mode-map [menu-bar Holidays 3-month]
                 `(,(format "For Window (%s)" title)
@@ -303,53 +318,48 @@ ERROR is t, otherwise just returns nil."
              (if l l '("None")))))))
     (and selection (call-interactively selection))))
 
-(defun calendar-mouse-view-diary-entries ()
-  "Pop up menu of diary entries for mouse selected date."
+(defun calendar-mouse-view-diary-entries (&optional date diary)
+  "Pop up menu of diary entries for mouse-selected date.
+Use optional DATE and alternative file DIARY.
+
+Any holidays are shown if `holidays-in-diary-buffer' is t."
   (interactive)
-  (let* ((date (calendar-event-to-date))
-         (l (mapcar '(lambda (x) (list (car (cdr x))))
-                    (let ((diary-list-include-blanks nil)
-                          (diary-display-hook 'ignore))
-                      (list-diary-entries date 1))))
+  (let* ((date (if date date (calendar-event-to-date)))
+         (diary-file (if diary diary diary-file))
+         (diary-list-include-blanks nil)
+         (diary-display-hook 'ignore)
+         (diary-entries
+          (mapcar '(lambda (x) (split-string (car (cdr x)) "\^M\\|\n"))
+                  (list-diary-entries date 1)))
+         (holidays (if holidays-in-diary-buffer
+                       (mapcar '(lambda (x) (list x))
+                               (check-calendar-holidays date))))
+         (title (concat "Diary entries "
+                        (if diary (format "from %s " diary) "")
+                        "for "
+                        (calendar-date-string date)))
          (selection
           (cal-menu-x-popup-menu
            event
-           (list
-            (format "Diary entries for %s" (calendar-date-string date))
-            (append
-             (list (format "Diary entries for %s" (calendar-date-string date)))
-             (if l l '("None")))))))
+           (list title
+                 (append
+                  (list title)
+                  (if holidays
+                      (mapcar '(lambda (x) (list (concat "     " (car x))))
+                              holidays))
+                  (if holidays
+                      (list "--shadow-etched-in" "--shadow-etched-in"))
+                  (if diary-entries
+                      (mapcar 'list (calendar-flatten diary-entries))
+                    '("None")))))))
     (and selection (call-interactively selection))))
 
 (defun calendar-mouse-view-other-diary-entries ()
   "Pop up menu of diary entries from alternative file on mouse-selected date."
   (interactive)
-  (let* ((date (calendar-event-to-date))
-         (diary-list-include-blanks nil)
-         (diary-display-hook 'ignore)
-         (diary-file (read-file-name
-                      "Enter diary file name: "
-                      default-directory nil t))
-         ; The following doesn't really do the right thing.  The problem is
-         ; that a newline in the diary entry does not give a newline in a
-         ; pop-up menu; for that you need a separate list item.  When the (car
-         ; (cdr x)) contains newlines, the item should be split into a list of
-         ; items.  Too minor and messy to worry about.
-         (l (mapcar '(lambda (x) (list (car (cdr x))))
-                    (list-diary-entries date 1)))
-         (selection
-          (cal-menu-x-popup-menu
-           event
-           (list
-            (format "Diary entries from %s for %s"
-                    diary-file
-                    (calendar-date-string date))
-            (append
-             (list (format "Diary entries from %s for %s"
-                            diary-file
-                           (calendar-date-string date)))
-             (if l l '("None")))))))
-    (and selection (call-interactively selection))))
+  (calendar-mouse-view-diary-entries
+   (calendar-event-to-date)
+   (read-file-name "Enter diary file name: " default-directory nil t)))
 
 (defun calendar-mouse-insert-diary-entry ()
   "Insert diary entry for mouse-selected date."
@@ -608,4 +618,5 @@ The output is in landscape format, one month to a page."
 
 (provide 'cal-menu)
 
+;;; arch-tag: aa81cf73-ce89-48a4-97ec-9ef861e87fe9
 ;;; cal-menu.el ends here

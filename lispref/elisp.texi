@@ -40,7 +40,7 @@ Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999,@*
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
-Invariant Sections being ``Copying'', with the Front-Cover texts being
+Invariant Sections being ``GNU General Public License'', with the Front-Cover texts being
 ``A GNU Manual'', and with the Back-Cover Texts as in (a) below.  A copy
 of the license is included in the section entitled ``GNU Free
 Documentation License''.
@@ -415,6 +415,7 @@ Macros
 * Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
+* Indenting Macros::        Specifying how to indent macro calls.
 
 Loading
 
@@ -438,7 +439,7 @@ Advising Functions
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Subr Arguments::          Accessing arguments when advising a primitive.
+* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
@@ -534,6 +535,7 @@ Keymaps
 * Key Lookup::                  How extracting elements from keymaps works.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
+* Remapping Commands::          Bindings that translate one command to another.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 
@@ -738,12 +740,16 @@ Text
 * Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
+* Atomic Changes::          Installing several buffer changs ``atomically''.
+* Base 64::                 Conversion to or from base 64 encoding.
+* MD5 Checksum::            Compute the MD5 ``message digest''/``checksum''.
 * Change Hooks::            Supplying functions to be run when text is changed.
 
 The Kill Ring
 
 * Kill Ring Concepts::      What text looks like in the kill ring.
 * Kill Functions::          Functions that kill text.
+* Yanking::                 How yanking is done.
 * Yank Commands::           Commands that access the kill ring.
 * Low-Level Kill Ring::	    Functions and variables for kill ring access.
 * Internals of Kill Ring::  Variables that hold kill-ring data.
@@ -852,6 +858,7 @@ Receiving Output from Processes
 
 * Process Buffers::         If no filter, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
+* Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
 
 Operating System Interface
@@ -882,12 +889,21 @@ Emacs Display
 * Refresh Screen::          Clearing the screen and redrawing everything on it.
 * Truncation::              Folding or wrapping long text lines.
 * The Echo Area::           Where messages are displayed.
+* Warnings::                Displaying warning messages for the user.
 * Selective Display::       Hiding part of the buffer text.
 * Overlay Arrow::           Display of an arrow to indicate position.
 * Temporary Displays::      Displays that go away automatically.
-* Waiting::                 Forcing display update and waiting for user.
+* Overlays::		    Use overlays to highlight parts of the buffer.
+* Width::                   How wide a character or string is on the screen.
+* Faces::		    A face defines a graphics style
+                              for text characters: font, colors, etc.
+* Fringes::                 Controlling window fringes.
+* Display Property::        Enabling special display features.
+* Images::                  Displaying images in Emacs buffers.
 * Blinking::                How Emacs shows the matching open parenthesis.
-* Usual Display::	    How control characters are displayed.
+* Inverse Video::	    Specifying how the screen looks.
+* Usual Display::	    The usual conventions for displaying nonprinting chars.
+* Display Tables::	    How to specify other conventions.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
 
@@ -988,3 +1004,7 @@ Object Internals
 
 
 These words prevent "local variables" above from confusing Emacs.
+
+@ignore
+   arch-tag: f7e9a219-a0e1-4776-b631-08eaa1d49b34
+@end ignore

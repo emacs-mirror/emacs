@@ -1,4 +1,4 @@
-# $Id: TONEPY.tit,v 1.1 1991/10/27 06:28:34 ygz Exp $
+# $Id: TONEPY.tit,v 1.2 2003/09/01 15:44:59 miles Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 1
@@ -2098,3 +2098,5 @@ zuo2	„Ѕ„т„чу–
 zuo3	ій„у„ф
 zuo4	‘д„х„ц„ч„ш„щЏиятвфл—мсх°
 zuo5	
+
+# arch-tag: 6a2668ac-399a-4504-bb7a-5c641cb8e0ef

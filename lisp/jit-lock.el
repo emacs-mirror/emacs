@@ -528,4 +528,5 @@ will take place when text is fontified stealthily."
 
 (provide 'jit-lock)
 
+;;; arch-tag: 56b5de6e-f581-453b-bb97-49c39372ff9e
 ;;; jit-lock.el ends here

@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002, 2003
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 01, 2003
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -61,6 +61,9 @@ Boston, MA 02111-1307, USA.  */
 #include <locale.h>
 #endif /* HAVE_SETLOCALE */
 
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #ifndef O_RDONLY
 #define O_RDONLY 0
 #endif
@@ -763,7 +766,6 @@ load_error_handler (data)
   return Qnil;
 }
 
-
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el',
@@ -1071,6 +1073,11 @@ Return t if file exists.  */)
 	message_with_string ("Loading %s...done", file, 1);
     }
 
+  if (!NILP (Fequal (build_string ("obsolete"),
+		     Ffile_name_nondirectory
+		     (Fdirectory_file_name (Ffile_name_directory (found))))))
+    message_with_string ("Package %s is obsolete", file, 1);
+
   return Qt;
 }
 
@@ -1179,6 +1186,8 @@ openp (path, str, suffixes, storeptr, predicate)
   Lisp_Object string, tail, encoded_fn;
   int max_suffix_len = 0;
 
+  CHECK_STRING (str);
+
   for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
     {
       CHECK_STRING_CAR (tail);
@@ -1251,8 +1260,8 @@ openp (path, str, suffixes, storeptr, predicate)
 		  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	     It's not clear why that was the case and it breaks things like
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
-	  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	  string = build_string (fn);
+	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
 	      if (NILP (predicate))
@@ -2421,16 +2430,18 @@ read1 (readcharfun, pch, first_in_list)
 	    UNREAD (next_next_char);
 
 	    ok = (next_next_char <= 040
-		  || index ("\"';([#?", next_next_char)
-		  || (!first_in_list && next_next_char == '`')
-		  || (new_backquote_flag && next_next_char == ','));
+		  || (next_next_char < 0200
+		      && (index ("\"';([#?", next_next_char)
+			  || (!first_in_list && next_next_char == '`')
+			  || (new_backquote_flag && next_next_char == ','))));
 	  }
 	else
 	  {
 	    ok = (next_char <= 040
-		  || index ("\"';()[]#?", next_char)
-		  || (!first_in_list && next_char == '`')
-		  || (new_backquote_flag && next_char == ','));
+		  || (next_char < 0200
+		      && (index ("\"';()[]#?", next_char)
+			  || (!first_in_list && next_char == '`')
+			  || (new_backquote_flag && next_char == ','))));
 	  }
 	UNREAD (next_char);
 	if (!ok)
@@ -2504,7 +2515,7 @@ read1 (readcharfun, pch, first_in_list)
 	      c = 0;
 	    else if (c == (CHAR_CTL | '?'))
 	      c = 127;
-
+	    
 	    if (c & CHAR_SHIFT)
 	      {
 		/* Shift modifier is valid only with [A-Za-z].  */
@@ -2588,9 +2599,10 @@ read1 (readcharfun, pch, first_in_list)
 	UNREAD (next_char);
 
 	if (next_char <= 040
-	    || index ("\"';([#?", next_char)
-	    || (!first_in_list && next_char == '`')
-	    || (new_backquote_flag && next_char == ','))
+	    || (next_char < 0200
+		&& index ("\"';([#?", next_char)
+		|| (!first_in_list && next_char == '`')
+		|| (new_backquote_flag && next_char == ',')))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -2611,9 +2623,10 @@ read1 (readcharfun, pch, first_in_list)
 	  char *end = read_buffer + read_buffer_size;
 
 	  while (c > 040
-		 && !index ("\"';()[]#", c)
-		 && !(!first_in_list && c == '`')
-		 && !(new_backquote_flag && c == ','))
+		 && (c >= 0200
+		     || (!index ("\"';()[]#", c)
+			 && !(!first_in_list && c == '`')
+			 && !(new_backquote_flag && c == ','))))
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
@@ -4114,3 +4127,6 @@ This variable automatically becomes buffer-local when set.  */);
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
 }
+
+/* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d
+   (do not change this comment) */

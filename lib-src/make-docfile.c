@@ -1185,3 +1185,6 @@ scan_lisp_file (filename, mode)
   fclose (infile);
   return 0;
 }
+
+/* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
+   (do not change this comment) */

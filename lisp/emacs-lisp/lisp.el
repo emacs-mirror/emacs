@@ -157,8 +157,9 @@ normal recipe (see `beginning-of-defun').  Major modes can define this
 if defining `defun-prompt-regexp' is not sufficient to handle the mode's
 needs.
 
-The function should go to the line on which the current defun starts,
-and return non-nil, or should return nil if it can't find the beginning.")
+The function (of no args) should go to the line on which the current
+defun starts, and return non-nil, or should return nil if it can't
+find the beginning.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -192,7 +193,7 @@ is called as a function to find the defun's beginning."
     (and (re-search-backward (if defun-prompt-regexp
 				 (concat (if open-paren-in-column-0-is-defun-start
 					     "^\\s(\\|" "")
-					 "\\(" defun-prompt-regexp "\\)\\s(")
+					 "\\(?:" defun-prompt-regexp "\\)\\s(")
 			       "^\\s(")
 			     nil 'move (or arg 1))
 	 (progn (goto-char (1- (match-end 0)))) t)))
@@ -445,4 +446,5 @@ considered."
 		   (display-completion-list list)))
 	       (message "Making completion list...%s" "done")))))))
 
+;;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

@@ -206,7 +206,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
-  (if (looking-at "[^ \t\n]+")
+  (if (looking-at "[^ \t\r\n]+")
       (car (read-from-string (concat "\"" (match-string 0) "\"")))))
 
 ;; Return an appropriate quail-package filename from FILENAME (TIT
@@ -768,6 +768,11 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
     (insert "(quail-define-rules\n")
     (save-excursion
       (set-buffer dicbuf)
+      ;; Handle double CR line ends, which result when checking out of
+      ;; CVS on MS-Windows.
+      (goto-char (point-min))
+      (while (re-search-forward "\r\r$" nil t)
+	(replace-match ""))
       (goto-char (point-min))
       (search-forward "A440")
       (beginning-of-line)
@@ -1178,4 +1183,5 @@ to store generated Quail packages."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 8ad478b2-a985-4da2-b47f-d8ee5d7c24a3
 ;;; titdic-cnv.el ends here

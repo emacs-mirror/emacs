@@ -427,4 +427,5 @@ before writing buffer in Unicode.  See also
 
 (provide 'tibet-util)
 
+;;; arch-tag: 7a7333e8-1584-446c-b39c-a02b9def265d
 ;;; tibet-util.el ends here

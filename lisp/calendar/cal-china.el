@@ -49,6 +49,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'lunar)
 
 (defvar chinese-calendar-celestial-stem
@@ -498,4 +501,5 @@ Echo Chinese date unless NOECHO is t."
 
 (provide 'cal-china)
 
+;;; arch-tag: 7e5b7e0d-676c-47e3-8696-93e7ea0ab644
 ;;; cal-china.el ends here

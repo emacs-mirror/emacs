@@ -31,6 +31,9 @@
 
 (defalias 'current-time-seconds 'current-time)
 
+;; In case cl-map-keymap is an alias for map-keymap, avoid circular calls.
+(fset 'cl-map-keymap (indirect-function 'cl-map-keymap))
+
 (defun map-keymap (function keymap &optional sort-first)
   "Call FUNCTION for every binding in KEYMAP.
 This does not include bindings inherited from a parent keymap.
@@ -127,7 +130,7 @@ This function exists for compatibility with XEmacs."
 
 (defun buffer-syntactic-context (&optional buffer)
   "Syntactic context at point in BUFFER.
-Either of `string', `comment' or `nil'.
+Either of `string', `comment' or nil.
 This is an XEmacs compatibility function."
   (with-current-buffer (or buffer (current-buffer))
     (let ((state (syntax-ppss (point))))
@@ -260,4 +263,5 @@ This is an XEmacs compatibility function."
 
 (provide 'lucid)
 
+;;; arch-tag: 80f9ab46-0b36-4151-86ed-3edb6d449c9e
 ;;; lucid.el ends here

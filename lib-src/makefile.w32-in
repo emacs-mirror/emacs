@@ -143,7 +143,7 @@ lisp= \
 	$(lispsource)abbrev.elc \
 	$(lispsource)buff-menu.elc \
 	$(lispsource)button.elc \
-	$(lispsource)byte-run.elc \
+	$(lispsource)emacs-lisp/byte-run.elc \
 	$(lispsource)cus-start.elc \
 	$(lispsource)custom.elc \
 	$(lispsource)emacs-lisp/backquote.elc \
@@ -155,15 +155,15 @@ lisp= \
 	$(lispsource)format.elc \
 	$(lispsource)facemenu.elc \
 	$(MOUSE_SUPPORT) \
-	$(lispsource)float-sup.elc \
-	$(lispsource)frame.elc\
+	$(lispsource)emacs-lisp/float-sup.elc \
+	$(lispsource)frame.elc \
 	$(lispsource)help.elc \
 	$(lispsource)indent.elc \
 	$(lispsource)isearch.elc \
 	$(lispsource)loadup.el \
 	$(lispsource)loaddefs.el \
 	$(lispsource)bindings.elc \
-	$(lispsource)map-ynp.elc \
+	$(lispsource)emacs-lisp/map-ynp.elc \
 	$(lispsource)menu-bar.elc \
 	$(lispsource)international/mule.elc \
 	$(lispsource)international/mule-conf.el \
@@ -422,3 +422,5 @@ $(BLD)/timer.$(O) : \
 $(BLD)/yow.$(O) : \
 	$(SRC)/yow.c \
 	$(EMACS_ROOT)/lib-src/../src/paths.h
+
+# arch-tag: c051bc02-a6de-474b-889a-27f7b2fbbcea

@@ -127,4 +127,5 @@ Defaults to today's date if DATE is not given."
 
 (provide 'cal-iso)
 
+;;; arch-tag: 3c0154cc-d30f-4981-9f60-42bdf7a468f6
 ;;; cal-iso.el ends here

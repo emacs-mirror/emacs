@@ -109,3 +109,6 @@ Boston, MA 02111-1307, USA.  */
 #define HAVE_PTYS			/* we do have PTYs if we have TCP */
 #define HAVE_SOCKETS			/* we do have sockets if we have TCP */
 #define LIBS_SYSTEM -lsocket		/* get TCP networking functions */
+
+/* arch-tag: e0c09754-b0f2-48da-a8a5-aee3c94838f4
+   (do not change this comment) */

@@ -929,4 +929,5 @@ name from there."
     (call-last-kbd-macro)))
 
 
+;;; arch-tag: ecd3cc5c-8cd0-4bbe-b2ec-7e75a4b7d0aa
 ;;; viper-macs.el ends here

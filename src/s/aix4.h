@@ -12,3 +12,6 @@
 /* Specify the type that the 3rd arg of `accept' points to.
    It is just a guess which versions of AIX need this definition.  */
 #define SOCKLEN_TYPE int
+
+/* arch-tag: b9471dfc-ccdc-4980-a8a1-80c7627ec6b2
+   (do not change this comment) */

@@ -200,6 +200,8 @@
 	     ;; syntax.c
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)
+	     (open-paren-in-column-0-is-defun-start editing-basics boolean
+						    "21.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (display-buffer-function windows (choice (const nil) function))
@@ -254,12 +256,14 @@
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
+	     (line-number-display-limit-width display integer)
 	     (highlight-nonselected-windows display boolean)
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
+	     (blink-cursor-alist cursor alist "21.5")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
@@ -319,6 +323,8 @@
 	(put symbol 'custom-version version)))))
 
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
+(custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
+		     'custom-variable)
 (put 'selection-coding-system 'custom-set
      (lambda (symbol value)
        (set-selection-coding-system value)
@@ -331,4 +337,5 @@
 (unless purify-flag
   (provide 'cus-start))
 
+;;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here

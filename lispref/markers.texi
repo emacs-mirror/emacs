@@ -639,3 +639,7 @@ should normally use @code{interactive} with the @samp{r} specification
 to find the beginning and end of the region.  This lets other Lisp
 programs specify the bounds explicitly as arguments.  (@xref{Interactive
 Codes}.)
+
+@ignore
+   arch-tag: b1ba2e7a-a0f3-4c5e-875c-7d8e22d73299
+@end ignore

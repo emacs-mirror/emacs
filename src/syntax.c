@@ -337,7 +337,7 @@ dec_bytepos (bytepos)
    It should be the last one before POS, or nearly the last.
 
    When open_paren_in_column_0_is_defun_start is nonzero,
-   the beginning of every line is treated as a defun-start.
+   only the beginning of the buffer is treated as a defun-start.
 
    We record the information about where the scan started
    and what its result was, so that another call in the same area
@@ -352,6 +352,12 @@ find_defun_start (pos, pos_byte)
      int pos, pos_byte;
 {
   int opoint = PT, opoint_byte = PT_BYTE;
+
+  if (!open_paren_in_column_0_is_defun_start)
+    {
+      find_start_value_byte = BEGV_BYTE;
+      return BEGV;
+    }
 
   /* Use previous finding, if it's valid and applies to this inquiry.  */
   if (current_buffer == find_start_buffer
@@ -372,24 +378,21 @@ find_defun_start (pos, pos_byte)
      syntax-tables.  */
   gl_state.current_syntax_table = current_buffer->syntax_table;
   gl_state.use_global = 0;
-  if (open_paren_in_column_0_is_defun_start)
+  while (PT > BEGV)
     {
-      while (PT > BEGV)
+      /* Open-paren at start of line means we may have found our
+	 defun-start.  */
+      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
 	{
-	  /* Open-paren at start of line means we may have found our
-	     defun-start.  */
+	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
 	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
-	    {
-	      SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
-		break;
-	      /* Now fallback to the default value.  */
-	      gl_state.current_syntax_table = current_buffer->syntax_table;
-	      gl_state.use_global = 0;
-	    }
-	  /* Move to beg of previous line.  */
-	  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
+	    break;
+	  /* Now fallback to the default value.  */
+	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.use_global = 0;
 	}
+      /* Move to beg of previous line.  */
+      scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
     }
 
   /* Record what we found, for the next try.  */
@@ -1274,21 +1277,25 @@ scan_words (from, count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 1, 1, "p",
+DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
 and the function returns nil.  Field boundaries are not noticed if
 `inhibit-field-text-motion' is non-nil.  */)
-     (count)
-     Lisp_Object count;
+     (arg)
+     Lisp_Object arg;
 {
   int orig_val, val;
-  CHECK_NUMBER (count);
 
-  val = orig_val = scan_words (PT, XINT (count));
+  if (NILP (arg))
+    XSETFASTINT (arg, 1);
+  else
+    CHECK_NUMBER (arg);
+
+  val = orig_val = scan_words (PT, XINT (arg));
   if (! orig_val)
-    val = XINT (count) > 0 ? ZV : BEGV;
+    val = XINT (arg) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
   val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
@@ -1504,6 +1511,18 @@ skip_chars (forwardp, syntaxp, string, lim)
     int start_point = PT;
     int pos = PT;
     int pos_byte = PT_BYTE;
+    unsigned char *p = PT_ADDR, *endp, *stop;
+
+    if (forwardp)
+      {
+	endp = (XINT (lim) == GPT) ? GPT_ADDR : CHAR_POS_ADDR (XINT (lim));
+	stop = (pos < GPT && GPT < XINT (lim)) ? GPT_ADDR : endp; 
+      }
+    else
+      {
+	endp = CHAR_POS_ADDR (XINT (lim));
+	stop = (pos >= GPT && GPT > XINT (lim)) ? GAP_END_ADDR : endp; 
+      }
 
     immediate_quit = 1;
     if (syntaxp)
@@ -1512,60 +1531,85 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      {
-		if (pos < XINT (lim))
-		  while (fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
+	      while (1)
+		{
+		  int nbytes;
+
+		  if (p >= stop)
 		    {
-		      /* Since we already checked for multibyteness,
-			 avoid using INC_BOTH which checks again.  */
-		      INC_POS (pos_byte);
-		      pos++;
-		      if (pos >= XINT (lim))
-		    	break;
-		      UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
 		    }
-	      }
+		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (! fastmap[(int) SYNTAX (c)])
+		    break;
+		  p += nbytes, pos++, pos_byte += nbytes;
+		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		}
 	    else
-	      {
-		while (pos < XINT (lim)
-		       && fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
-		  {
-		    pos++;
-		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		  }
-	      }
+	      while (1)
+		{
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  if (! fastmap[(int) SYNTAX (*p)])
+		    break;
+		  p++, pos++;
+		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		}
 	  }
 	else
 	  {
 	    if (multibyte)
-	      {
-		while (pos > XINT (lim))
-		  {
-		    int savepos = pos_byte;
-		    /* Since we already checked for multibyteness,
-		       avoid using DEC_BOTH which checks again.  */
-		    pos--;
-		    DEC_POS (pos_byte);
-		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
-		    if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
-		      {
-			pos++;
-			pos_byte = savepos;
-			break;
-		      }
-		  }
-	      }
-	    else
-	      {
-		if (pos > XINT (lim))
-		  while (fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+	      while (1)
+		{
+		  unsigned char *prev_p;
+		  int nbytes;
+
+		  if (p <= stop)
 		    {
-		      pos--;
-		      if (pos <= XINT (lim))
+		      if (p <= endp)
 			break;
-		      UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		      p = GPT_ADDR;
+		      stop = endp;
 		    }
-	      }
+		  prev_p = p;
+		  while (--p >= stop && ! CHAR_HEAD_P (*p));
+		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (prev_p - p > nbytes)
+		    p = prev_p - 1, c = *p, nbytes = 1;
+		  else
+		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+		  pos--, pos_byte -= nbytes;
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+		  if (! fastmap[(int) SYNTAX (c)])
+		    {
+		      pos++;
+		      pos_byte += nbytes;
+		      break;
+		    }
+		}
+	    else
+	      while (1)
+		{
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  if (! fastmap[(int) SYNTAX (p[-1])])
+		    break;
+		  p--, pos--;
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		}
 	  }
       }
     else
@@ -1573,9 +1617,18 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      while (pos < XINT (lim))
+	      while (1)
 		{
-		  c = FETCH_MULTIBYTE_CHAR (pos_byte);
+		  int nbytes;
+
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1598,21 +1651,45 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
-		  INC_BOTH (pos, pos_byte);
+		  p += nbytes, pos++, pos_byte += nbytes;
 		}
 	    else
-	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
-		pos++;
+	      while (1)
+		{
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  if (!fastmap[*p])
+		    break;
+		  p++, pos++;
+		}
 	  }
 	else
 	  {
 	    if (multibyte)
-	      while (pos > XINT (lim))
+	      while (1)
 		{
-		  int prev_pos_byte = pos_byte;
+		  unsigned char *prev_p;
+		  int nbytes;
 
-		  DEC_POS (prev_pos_byte);
-		  c = FETCH_MULTIBYTE_CHAR (prev_pos_byte);
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  prev_p = p;
+		  while (--p >= stop && ! CHAR_HEAD_P (*p));
+		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (prev_p - p > nbytes)
+		    p = prev_p - 1, c = *p, nbytes = 1;
+		  else
+		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1627,12 +1704,22 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
-		  pos--;
-		  pos_byte = prev_pos_byte;
+		  pos--, pos_byte -= nbytes;
 		}
 	    else
-	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
-		pos--;
+	      while (1)
+		{
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  if (!fastmap[p[-1]])
+		    break;
+		  p--, pos--;
+		}
 	  }
       }
 
@@ -3023,3 +3110,6 @@ See the info node `(elisp)Syntax Properties' for a description of the
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
+
+/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
+   (do not change this comment) */

@@ -221,3 +221,6 @@ Boston, MA 02111-1307, USA.  */
 /* It's possible that HPUX 7 has sys/wait.h but it does not work right.  */
 #undef HAVE_SYS_WAIT_H
 #endif
+
+/* arch-tag: 75c1239f-fedb-4f64-8f86-7893e75699e8
+   (do not change this comment) */

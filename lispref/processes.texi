@@ -48,6 +48,10 @@ This function returns @code{t} if @var{object} is a process,
 * Query Before Exit::        Whether to query if exiting will kill a process.
 * Transaction Queues::	     Transaction-based communication with subprocesses.
 * Network::                  Opening network connections.
+* Network Servers::          Network servers let Emacs accept net connections.
+* Datagrams::
+* Low-Level Network::        Lower-level but more general function
+                               to create connections and servers.
 @end menu
 
 @node Subprocess Creation
@@ -78,6 +82,16 @@ in @code{exec-path}, but environment variable substitutions
 (@samp{$HOME}, etc.) are not recognized; use
 @code{substitute-in-file-name} to perform them (@pxref{File Name
 Expansion}).
+
+  Executing a program can also try adding suffixes to the specified
+name:
+
+@defvar exec-suffixes
+This variable is a list of suffixes (strings) to try adding to the
+specified program file name.  The list should include @code{""} if you
+want the name to be tried exactly as specified.  The default value is
+system-dependent.
+@end defvar
 
   Each of the subprocess-creating functions has a @var{buffer-or-name}
 argument which specifies where the standard output from the program will
@@ -366,6 +380,13 @@ inputinput@point{}
 @end smallexample
 @end defun
 
+@defun call-process-shell-command command &optional infile destination display &rest args
+This function executes the shell command @var{command} synchronously
+in separate process.  The final arguments @var{args} are additional
+arguments to add at the end of @var{command}.  The other arguments
+are handled as in @code{call-process}.
+@end defun
+
 @defun shell-command-to-string command
 This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
@@ -529,10 +550,13 @@ will happen sooner or later).
   Several functions return information about processes.
 @code{list-processes} is provided for interactive use.
 
-@deffn Command list-processes
+@deffn Command list-processes &optional query-only
 This command displays a listing of all living processes.  In addition,
 it finally deletes any process whose status was @samp{Exited} or
 @samp{Signaled}.  It returns @code{nil}.
+
+If @var{query-only} is non-@code{nil} then it lists only processes
+whose query flag is non-@code{nil}.  @xref{Query Before Exit}.
 @end deffn
 
 @defun process-list
@@ -584,12 +608,6 @@ process is started and remains constant as long as the process exists.
 This function returns the name of @var{process}.
 @end defun
 
-@defun process-contact process
-This function returns @code{t} for an ordinary child process, and
-@code{(@var{hostname} @var{service})} for a net connection
-(@pxref{Network}).
-@end defun
-
 @defun process-status process-name
 This function returns the status of @var{process-name} as a symbol.
 The argument @var{process-name} must be a process, a buffer, a
@@ -612,6 +630,12 @@ for a network connection that is open.
 for a network connection that is closed.  Once a connection
 is closed, you cannot reopen it, though you might be able to open
 a new connection to the same place.
+@item connect
+for a non-blocking connection that is waiting to complete.
+@item failed
+for a non-blocking connection that has failed to complete.
+@item listen
+for a network server that is listening.
 @item nil
 if @var{process-name} is not the name of an existing process.
 @end table
@@ -667,6 +691,27 @@ This function specifies the coding systems to use for subsequent output
 from and input to @var{process}.  It will use @var{decoding-system} to
 decode subprocess output, and @var{encoding-system} to encode subprocess
 input.
+@end defun
+
+  Every process also has a property list that you can use to store
+miscellaneous values associated with the process.
+
+@defun process-get process propname
+This function returns the value of the @var{propname} property
+of @var{process}.
+@end defun
+
+@defun process-put process propname value
+This function sets the value of the @var{propname} property
+of @var{process} to @var{value}.
+@end defun
+
+@defun process-plist process
+This function returns the process plist of @var{process}.
+@end defun
+
+@defun set-process-plist process plist
+This function sets the process plist of @var{process} to @var{plist}.
 @end defun
 
 @node Input to Processes
@@ -849,10 +894,12 @@ stopped previously.
 @end defun
 
 @c Emacs 19 feature
-@defun signal-process pid signal
-This function sends a signal to process @var{pid}, which need not be
-a child of Emacs.  The argument @var{signal} specifies which signal
-to send; it should be an integer.
+@defun signal-process process signal
+This function sends a signal to process @var{process}.  The argument
+@var{signal} specifies which signal to send; it should be an integer.
+
+You can specify the target process by its process @sc{id}; that allows
+you to send signals to processes that are not children of Emacs.
 @end defun
 
 @node Output from Processes
@@ -888,29 +935,11 @@ you want to keep the output to those streams separate, you should
 redirect one of them to a file--for example, by using an appropriate
 shell command.
 
-  Subprocess output is normally decoded using a coding system before the
-buffer or filter function receives it, much like text read from a file.
-You can use @code{set-process-coding-system} to specify which coding
-system to use (@pxref{Process Information}).  Otherwise, the coding
-system comes from @code{coding-system-for-read}, if that is
-non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
-Coding Systems}).
-
-  @strong{Warning:} Coding systems such as @code{undecided} which
-determine the coding system from the data do not work entirely reliably
-with asynchronous subprocess output.  This is because Emacs has to
-process asynchronous subprocess output in batches, as it arrives.  Emacs
-must try to detect the proper coding system from one batch at a time,
-and this does not always work.  Therefore, if at all possible, use a
-coding system which determines both the character code conversion and
-the end of line conversion---that is, one like @code{latin-1-unix},
-rather than @code{undecided} or @code{latin-1}.
-
 @menu
-* Process Buffers::       If no filter, output is put in a buffer.
-* Filter Functions::      Filter functions accept output from the process.
-* Accepting Output::      Explicitly permitting subprocess output.
-                            Waiting for subprocess output.
+* Process Buffers::         If no filter, output is put in a buffer.
+* Filter Functions::        Filter functions accept output from the process.
+* Decoding Output::         Filters can get unibyte or multibyte strings.
+* Accepting Output::        How to wait until process output arrives.
 @end menu
 
 @node Process Buffers
@@ -1151,6 +1180,55 @@ there is no filter function:
 @end group
 @end smallexample
 @end ignore
+
+@node Decoding Output
+@subsection Decoding Process Output
+
+  When Emacs writes process output directly into a multibyte buffer,
+it decodes the output according to the process output coding system.
+If the coding system is @code{raw-text} or @code{no-conversion}, Emacs
+converts the unibyte output to multibyte using
+@code{string-to-multibyte}, inserts the resulting multibyte text.
+
+  You can use @code{set-process-coding-system} to specify which coding
+system to use (@pxref{Process Information}).  Otherwise, the coding
+system comes from @code{coding-system-for-read}, if that is
+non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
+Coding Systems}).
+
+  @strong{Warning:} Coding systems such as @code{undecided} which
+determine the coding system from the data do not work entirely
+reliably with asynchronous subprocess output.  This is because Emacs
+has to process asynchronous subprocess output in batches, as it
+arrives.  Emacs must try to detect the proper coding system from one
+batch at a time, and this does not always work.  Therefore, if at all
+possible, specify a coding system that determines both the character
+code conversion and the end of line conversion---that is, one like
+@code{latin-1-unix}, rather than @code{undecided} or @code{latin-1}.
+
+@cindex filter multibyte flag, of process
+@cindex process filter multibyte flag
+  When Emacs calls a process filter function, it provides the process
+output as a multibyte string or as a unibyte string according to the
+process's filter multibyte flag.  If the flag is non-@code{nil}, Emacs
+decodes the output according to the process output coding system to
+produce a multibyte string, and passes that to the process.  If the
+flag is @code{nil}, Emacs puts the output into a unibyte string, with
+no decoding, and passes that.
+
+  When you create a process, the filter multibyte flag takes its
+initial value from @code{default-enable-multibyte-characters}.  If you
+want to change the flag later on, use
+@code{set-process-filter-multibyte}.
+
+@defun set-process-filter-multibyte process multibyte
+This function sets the filter multibyte flag of @var{process}
+to @var{multibyte}.
+@end defun
+
+@defun process-filter-multibyte-p process
+This function returns the filter multibyte flag of @var{process}.
+@end defun
 
 @node Accepting Output
 @subsection Accepting Output from Processes
@@ -1395,25 +1473,59 @@ Transaction queues are implemented by means of a filter function.
 @section Network Connections
 @cindex network connection
 @cindex TCP
+@cindex UDP
 
-  Emacs Lisp programs can open TCP network connections to other processes on
-the same machine or other machines.  A network connection is handled by Lisp
-much like a subprocess, and is represented by a process object.
-However, the process you are communicating with is not a child of the
-Emacs process, so you can't kill it or send it signals.  All you can do
-is send and receive data.  @code{delete-process} closes the connection,
-but does not kill the process at the other end; that process must decide
-what to do about closure of the connection.
+  Emacs Lisp programs can open stream (TCP) and datagram (UDP) network
+connections to other processes on the same machine or other machines.
+A network connection is handled by Lisp much like a subprocess, and is
+represented by a process object.  However, the process you are
+communicating with is not a child of the Emacs process, so it has no
+process @sc{id}, and you can't kill it or send it signals.  All you
+can do is send and receive data.  @code{delete-process} closes the
+connection, but does not kill the program at the other end; that
+program must decide what to do about closure of the connection.
+
+  Lisp programs can listen for connections by creating network
+servers.  A network server is also represented by a kind of process
+object, but unlike a network connection, the network server never
+transfers data itself.  When it receives a connection request, it
+creates a new network connection to represent the connection just
+made.  (The network connection inherits certain information, including
+the process plist, from the server.)  The network server then goes
+back to listening for more connection requests.
+
+  Network connections and servers are created by calling
+@code{make-network-process} with an argument list consisting of
+keyword/argument pairs, for example @code{:server t} to create a
+server process, or @code{:type 'datagram} to create a datagram
+connection.  @xref{Low-Level Network}, for details.  You can also use
+one of the @code{open-network-...} functions descibed below;
+internally, they just call @code{make-network-process} with suitable
+arguments.
 
   You can distinguish process objects representing network connections
-from those representing subprocesses with the @code{process-status}
-function.  It always returns either @code{open} or @code{closed} for a
-network connection, and it never returns either of those values for a
-real subprocess.  @xref{Process Information}.
+and servers from those representing subprocesses with the
+@code{process-status} function.  The possible status values for
+network connections are @code{open}, @code{closed}, @code{connect},
+and @code{failed}.  For a network server, the status is always
+@code{listen}.  None of those values is possible for a real
+subprocess.  @xref{Process Information}.
+
+  You can stop and resume operation of a network processes by calling
+@code{stop-process} and @code{continue-process}.  For a server
+process, being stopped means not accepting new connections.  (Up to 5
+connection requests will be queued for when you resume the server; you
+can increase this limit, unless it is imposed by the operating
+systems.)  For a network stream connection, being stopped means not
+processing input (any arriving input waits until you resume the
+connection).  For a datagram connection, some number of packets may be
+queued but input may be lost.  You can use the function
+@code{process-command} to determine whether a network connection or
+server is stopped; a non-@code{nil} value means yes.
 
 @defun open-network-stream name buffer-or-name host service
-This function opens a TCP connection for a service to a host.  It
-returns a process object to represent the connection.
+This function opens a TCP connection, and returns a process object
+that represents the connection.
 
 The @var{name} argument specifies the name for the process object.  It
 is modified as necessary to make it unique.
@@ -1428,3 +1540,461 @@ The arguments @var{host} and @var{service} specify where to connect to;
 @var{host} is the host name (a string), and @var{service} is the name of
 a defined network service (a string) or a port number (an integer).
 @end defun
+
+@defun open-network-stream-nowait name buffer-or-name host service &optional sentinel filter
+This function opens a TCP connection, like @code{open-network-stream},
+but it returns immediately without waiting for the request to be
+accepted or rejected by the remote server.  When the request is
+subsequently accepted or rejected, the process's sentinel function
+will be called with a string that starts with @code{"open"} (on
+success) or @code{"failed"} (on error).
+
+Some systems do not support non-blocking connections; on those
+systems, @code{open-network-stream-nowait} returns @code{nil}
+and does nothing.
+
+The optional arguments @var{sentinel} and @var{filter} specify the
+sentinel and filter functions for this network connection.  It is
+useful to specify them when opening the connection, because they will
+be used later asynchronously.  The other arguments mean the same as in
+@code{open-network-stream}.
+@end defun
+
+@defun process-contact process &optional key
+This function returns information about how a network process was set
+up.  For a connection, when @var{key} is @code{nil}, it returns
+@code{(@var{hostname} @var{service})} which specifies what you
+connected to.
+
+If @var{key} is @code{t}, the value is the complete status information
+for the connection or server; that is, the list of keywords and values
+specified in @code{make-network-process}, except that some of the
+values represent the current status instead of what you specified:
+
+@table @code
+@item :buffer
+The associated value is the process buffer.
+@item :filter
+The associated value is the process filter function.
+@item :sentinel
+The associated value is the process sentinel function.
+@item :remote
+In a connection, this is the address in internal format of the remote peer.
+@item :local
+The local address, in internal format.
+@item :service
+In a server, if you specified @code{t} for @var{service},
+this value is the actual port number.
+@end table
+
+@code{:local} and @code{:remote} are included even if they were not
+specified explicitly in @code{make-network-process}.
+
+If @var{key} is a keyword, the function returns the value corresponding
+to that keyword.
+
+For an ordinary child process, this function always returns @code{t}.
+@end defun
+
+@node Network Servers
+@section Network Servers
+
+  You create a server by calling @code{make-network-process} with
+@code{:server t}.  The server will listen for connection requests from
+clients.  When it accepts a client connection request, that creates a
+new network connection, itself a process object, with the following
+parameters:
+
+@itemize @bullet
+@item
+The connection's process name is constructed by concatenating the
+server process' @var{name} with a client identification string.  The
+client identification string for an IPv4 connection looks like
+@samp{<@var{a}.@var{b}.@var{c}.@var{d}:@var{p}>}.  Otherwise, it is a
+unique number in brackets, as in @samp{<@var{nnn}>}.  The number
+is unique for each connection in the Emacs session.
+
+@item
+If the server's filter is non-@code{nil}, the connection process does
+not get a separate process buffer; otherwise, Emacs creates a new
+buffer for the purpose.  The buffer name is the server's buffer name
+or process name, concatenated with the client identification string.
+
+The server's process buffer value is never used directly by Emacs, but
+it is passed to the log function, which can log connections by
+inserting text there.
+
+@item
+The communication type and the process filter and sentinel are
+inherited from those of the server.  The server never directly
+uses its filter and sentinel; their sole purpose is to initialize
+connections made to the server.
+
+@item
+The connection's process contact info is set according to the client's
+addressing information (typically an IP address and a port number).
+This information is associated with the @code{process-contact}
+keywords @code{:host}, @code{:service}, @code{:remote}.
+
+@item
+The connection's local address is set up according to the port
+number used for the connection.
+
+@item
+The client process' plist is initialized from the server's plist.
+@end itemize
+
+@defun open-network-stream-server name buffer-or-name service &optional sentinel filter
+Create a network server process for a TCP service.
+It returns nil if server processes are not supported; otherwise,
+it returns a subprocess-object to represent the server.
+
+When a client connects to the specified service, Emacs creates a new
+subprocess to handle the new connection, and then calls its sentinel
+function (which it has inherited from the server).
+
+The optional arguments @var{sentinel} and @var{filter} specify the
+sentinel and filter functions for the server.  It is useful to specify
+them now, because they will be used later asynchronously when the
+server receives a connection request.  The three arguments @var{name},
+@var{buffer-or-name} and @var{service} mean the same thing as in
+@code{open-network-stream}, but @var{service} can be @code{t}
+meaning ask the system to allocate an unused port to listen on.
+@end defun
+
+@node Datagrams
+@section Datagrams 
+@cindex datagrams
+
+  A datagram connection communicates with individual packets
+rather than streams of data.  Each call to @code{process-send}
+sends one datagram packet, and each datagram received results
+in one call to the filter function.
+
+  The datagram connection doesn't have to talk with the same remote
+peer all the time.  It has a @dfn{remote peer address} which specifies
+where to send datagrams to.  Each time an incoming datagram is passed
+to the filter function, the peer address is set to the address that
+datagram came from; that way, if the filter function sends a datagram,
+it will go back to that place.  You can specify the remote peer
+address when you create the datagram connection using the
+@code{:remote} keyword.  You can change it later on by calling
+@code{set-process-datagram-address}.
+
+@defun process-datagram-address process
+If @var{process} is a datagram connection or server, this function
+returns its remote peer address.
+@end defun
+
+@defun set-process-datagram-address process address
+If @var{process} is a datagram connection or server, this function
+sets its remote peer address to @var{address}.
+@end defun
+
+@node Low-Level Network
+@section Low-Level Network Access
+
+   The basic function for creating network connections and network
+servers is @code{make-network-process}.  It can do either of those
+jobs, depending on the arguments you give it.
+
+@defun make-network-process &rest args
+This function creates a network connection or server and returns the
+process object that represents it.  The arguments @var{args} are a
+list of keyword/argument pairs.  Omitting a keyword is always
+equivalent to specifying it with value @code{nil}, except for
+@code{:coding}, @code{:filter-multibyte}, and @code{:reuseaddr}.  Here
+are the meaningful keywords:
+
+@table @asis
+@item :name name
+Use the string @var{name} as the process name.  It is modified if
+necessary to make it unique.
+
+@item :type @var{type}
+Specify the communication type.  A value of @code{nil} specifies a
+stream connection (the default); @code{datagram} specifies a datagram
+connection.  Both connections and servers can be of either type.
+
+@item :server @var{server-flag}
+If @var{server-flag} is non-@code{nil}, create a server.  Otherwise,
+create a connection.  For a stream type server, @var{server-flag} may
+be an integer which then specifies the length of the queue of pending
+connections to the server.  The default queue length is 5.
+
+@item :host @var{host}
+Specify the host to connect to.  @var{host} should be a host name or
+internet address, as a string, or the symbol @code{local} to specify
+the local host.  If you specify @var{host} for a server, it must
+specify a valid address for the local host, and only clients
+connecting to that address will be accepted.
+
+@item :service @var{service}
+@var{service} specifies a port number to connect to, or, for a server,
+the port number to listen on.  It should be a service name that
+translates to a port number, or an integer specifying the port number
+directly.  For a server, it can also be @code{t}, which means to let
+the system select an unused port number.
+
+@item :family @var{family}
+@var{family} specifies the address (and protocol) family for
+communication.  @code{nil} stands for IPv4.  @code{local} specifies a
+Unix socket, in which case @var{host} is ignored.
+
+@item :local @var{local-address}
+For a server process, @var{local-address} is the address to listen on.
+It overrides @var{family}, @var{host} and @var{service}, and you
+may as well not specify them.
+
+@item :remote @var{remote-address}
+For a connection, @var{remote-address} is the address to connect to.
+It overrides @var{family}, @var{host} and @var{service}, and you
+may as well not specify them.
+
+For a datagram server, @var{remote-address} specifies the initial
+setting of the remote datagram address.
+
+The format of @var{local-address} or @var{remote-address} depends on
+the address family:
+
+@itemize -
+@item
+An IPv4 address is represented as a vector of integers @code{[@var{a}
+@var{b} @var{c} @var{d} @var{p}]} corresponding to numeric IP address
+@var{a}.@var{b}.@var{c}.@var{d} and port number @var{p}.
+
+@item
+A local address is represented as a string which specifies the address
+in the local address space.
+
+@item
+An ``unsupported family'' address is represented by a cons
+@code{(@var{f} . @var{av})}, where @var{f} is the family number and
+@var{av} is a vector specifying the socket address using with one
+element per address data byte.  Do not rely on this format in portable
+code, as it may depend on implementation defined constants, data
+sizes, and data structure alignment.
+@end itemize
+
+@item :nowait @var{bool}
+If @var{bool} is non-@code{nil} for a stream connection, return
+without waiting for the connection to complete.  When the connection
+succeeds or fails, Emacs will call the sentinel function, with a
+second argument matching @code{"open"} (if successful) or
+@code{"failed"}.  The default is to block, so that
+@code{make-network-process} does not return until the connection
+has succeeded or failed.
+
+@item :stop @var{stopped}
+Start the network connection or server in the `stopped' state if
+@var{stopped} is non-@code{nil}.
+
+@item :buffer @var{buffer}
+Use @var{buffer} as the process buffer.
+
+@item :coding @var{coding}
+Use @var{coding} as the coding system for this process.  To specify
+different coding systems for decoding data from the connection and for
+encoding data sent to it, specify @code{(@var{decoding} .
+@var{encoding})} for @var{coding}.
+
+If you don't specify this keyword at all, the default
+is to determine the coding systems from the data.
+
+@item :noquery @var{query-flag}
+Initialize the process query flag to @var{query-flag}.  @xref{Query Before Exit}.
+
+@item :filter @var{filter}
+Initialize the process filter to @var{filter}.
+
+@item :filter-multibyte @var{bool}
+If @var{bool} is non-@code{nil}, strings given to the process filter
+are multibyte, otherwise they are unibyte.  If you don't specify this
+keyword at all, the default is that the strings are multibyte if
+@code{default-enable-multibyte-characters} is non-@code{nil}.
+
+@item :sentinel @var{sentinel}
+Initialize the process sentinel to @var{sentinel}.
+
+@item :log @var{log}
+Initialize the log function of a server process to @var{log}.  The log
+function is called each time the server accepts a network connection
+from a client.  The arguments passed to the log function are
+@var{server}, @var{connection}, and @var{message}, where @var{server}
+is the server process, @var{connection} is the new process for the
+connection, and @var{message} is a string describing what has
+happened.
+
+@item :plist @var{plist}
+Initialize the process plist to @var{plist}.
+@end table
+
+The following network options can be specified for the network
+process.  Except for @code{:reuseaddr}, you can set or modify these
+options later using @code{set-network-process-option}.
+
+For a server process, the options specified with
+@code{make-network-process} are not inherited by the client
+connections, so you will need to set the necessary options for each
+child connection as they are created.
+
+@table @asis
+@item :bindtodevice @var{device-name}
+If @var{device-name} is a non-empty string identifying a network
+interface name (see @code{network-interface-list}), only handle
+packets received on that interface.  If @var{device-name} is nil (the
+default), handle packets received on any interface.
+
+Using this option may require special privileges on some systems.
+
+@item :broadcast @var{broadcast-flag}
+If @var{broadcast-flag} is non-@code{nil} for a datagram process, the
+process will receive datagram packet sent to a broadcast address, and
+be able to send packets to a broadcast address.  Ignored for a stream
+connection.
+
+@item :dontroute @var{dontroute-flag}
+If @var{dontroute-flag} is non-@code{nil}, the process can only send
+to hosts on the same network as the local host.
+
+@item :keepalive @var{keepalive-flag}
+If @var{keepalive-flag} is non-@code{nil} for a stream connection,
+enable exchange of low-level keep-alive messa
+
+@item :linger @var{linger-arg}
+If @var{linger-arg} is non-@code{nil}, wait for successful
+transmission of all queued packets on the connection before it is
+deleted (see @code{delete-process}).  If @var{linger-arg} is an
+integer, it specifies the maximum time in seconds to wait for queued
+packets to be sent before closing the connection.  Default is
+@code{nil} which means to discard unsent queued packets when the
+process is deleted.
+
+@item :oobinline @var{oobinline-flag}
+If @var{oobinline-flag} is non-@code{nil} for a stream connection,
+receive out-of-band data in the normal data stream.  Otherwise, ignore
+out-of-band data.
+
+@item :priority @var{priority}
+Set the priority for packets sent on this connection to the integer
+@var{priority}.  The interpretation of this number is protocol
+specific, such as setting the TOS (type of service) field on IP
+packets sent on this connection.  It may also have system dependent
+effects, such as selecting a specific output queue on the network
+interface.
+
+@item :reuseaddr @var{reuseaddr-flag}
+If @var{reuseaddr-flag} is non-@code{nil} (the default) for a stream
+server process, allow this server to reuse a specific port number (see
+@code{:service}) unless another process on this host is already
+listening on that port.  If @var{reuseaddr-flag} is @code{nil}, there
+may be a period of time after the last use of that port (by any
+process on the host), where it is not possible to make a new server on
+that port.
+
+@end table
+
+The original argument list, modified with the actual connection
+information, is available via the `process-contact' function.
+@end defun
+
+@defun set-network-process-option process option value
+This function sets or modifies a network option for network process
+@var{process}.  See @code{make-network-process} for details of options
+@var{option} and their corresponding values @var{value}.
+
+The current setting of an option is available via the
+`process-contact' function.
+@end defun
+
+@defun network-interface-list
+This function returns a list describing the network interfaces
+of the machine you are using.  The value is an alist whose
+elements have the form @code{(@var{name} . @var{address})}.
+@var{address} has the same form as the @var{local-address}
+and @var{remote-address} arguments to @code{make-network-process}.
+@end defun
+
+@defun network-interface-info ifname
+This function returns information about the network interface named
+@var{ifname}.  The value is a list of the form @code{(@var{addr} @var{bcast} @var{netmask} @var{hwaddr} @var{flags})}.
+
+@table @var
+@item addr
+The internet protocol address.
+@item bcast
+The broadcast address.
+@item netmask
+The network mask.
+@item hwaddr
+The layer 2 address (Ethernet MAC address, for instance).
+@item flags
+The current flags of the interface.
+@end table
+@end defun
+
+@defun format-network-address address &optional omit-port
+This function converts the Lisp representation of a network address to
+a string.  For example, a five-element vector @code{[@var{a} @var{b}
+@var{c} @var{d} @var{p}]} represents an IP address
+@var{a}.@var{b}.@var{c}.@var{d} and port number @var{p}.
+@code{format-network-address} converts that to the string
+@code{"@var{a}.@var{b}.@var{c}.@var{d}:@var{p}"}.
+
+If @var{omit-port} is non-@code{nil}, the value does not include
+the port number.
+@end defun
+
+  To test for the availability of a given network feature, use
+@code{featurep} like this:
+
+@example
+(featurep 'make-network-process '(@var{keyword} @var{value}))
+@end example 
+
+@noindent
+The result of the first form is @code{t} if it works to specify
+@var{keyword} with value @var{value} in @code{make-network-process}.
+The result of the second form is @code{t} if @var{keyword} is
+supported by @code{make-network-process}.  Here are some of the
+@var{keyword}---@var{value} pairs you can test in
+this way.
+
+@table @code
+@item (:nowait t)
+Non-@code{nil} if non-blocking connect is supported.
+@item (:type datagram)
+Non-@code{nil} if datagrams are supported.
+@item (:family local)
+Non-@code{nil} if local (aka ``UNIX domain'') sockets are supported.
+@item (:service t)
+Non-@code{nil} if the system can select the port for a server.
+@end table
+
+  To test for the availability of a given network option, use
+@code{featurep} like this:
+
+@example
+(featurep 'make-network-process '@var{keyword})
+@end example 
+
+Here are some of the option @var{keyword}s you can test in
+this way.
+
+@table @code
+@item :bindtodevice
+@itemx :broadcast
+@itemx :dontroute
+@itemx :keepalive
+@itemx :linger
+@itemx :oobinline
+@itemx :priority
+@itemx :reuseaddr
+That particular network option is supported by
+@code{make-network-process} and @code{set-network-process-option}.
+@end table
+
+@ignore
+   arch-tag: ba9da253-e65f-4e7f-b727-08fba0a1df7a
+@end ignore
+

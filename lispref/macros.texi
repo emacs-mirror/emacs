@@ -30,6 +30,7 @@ instead.  @xref{Inline Functions}.
 * Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
+* Indenting Macros::        Specifying how to indent macro calls.
 @end menu
 
 @node Simple Macro
@@ -204,6 +205,30 @@ function, and the keywords @code{&rest} and @code{&optional} may be used
 any @code{interactive} declaration is ignored since macros cannot be
 called interactively.
 @end defspec
+
+  The body of the macro definition can include a @code{declare} form,
+which can specify how @key{TAB} should indent macro calls, and how to
+step through them for Edebug.
+
+@defspec declare @var{specs}...
+This special form is used at top level in a macro definition to
+specify various additional information about it.  Two kinds of
+specification are currently supported:
+
+@table @code
+@item (edebug @var{edebug-form-spec})
+Specify how to step through macro calls for Edebug.
+@xref{Instrumenting Macro Calls}, for more details.
+
+@item (indent @var{indent-spec})
+Specify how to indent calls to this macro.  @xref{Indenting Macros},
+for more details.
+@end table
+@end defspec
+
+  No macro absolutely needs a @code{declare} form, because that form
+has no effect on how the macro expands, on what the macro means in the
+program.  It only affects secondary features: indentation and Edebug.
 
 @node Backquote
 @section Backquote
@@ -636,3 +661,62 @@ One way to avoid pathological cases like this is to think of
 allocation construct.  You wouldn't use @code{setcar} on a constant such
 as @code{'(nil)}, so naturally you won't use it on @code{(empty-object)}
 either.
+
+@node Indenting Macros
+@section Indenting Macros
+
+  You can use the @code{declare} form in the macro definition to
+specify how to @key{TAB} should indent indent calls to the macro.  You
+write it like this:
+
+@example
+(declare (indent @var{indent-spec}))
+@end example
+
+@noindent
+Here are the possibilities for @var{indent-spec}:
+
+@table @asis
+@item @code{nil}
+This is the same as no property---use the standard indentation pattern.
+@item @code{defun}
+Handle this function like a @samp{def} construct: treat the second
+line as the start of a @dfn{body}.
+@item a number, @var{number}
+The first @var{number} arguments of the function are
+@dfn{distinguished} arguments; the rest are considered the body
+of the expression.  A line in the expression is indented according to
+whether the first argument on it is distinguished or not.  If the
+argument is part of the body, the line is indented @code{lisp-body-indent}
+more columns than the open-parenthesis starting the containing
+expression.  If the argument is distinguished and is either the first
+or second argument, it is indented @emph{twice} that many extra columns.
+If the argument is distinguished and not the first or second argument,
+the line uses the standard pattern.
+@item a symbol, @var{symbol}
+@var{symbol} should be a function name; that function is called to
+calculate the indentation of a line within this expression.  The
+function receives two arguments:
+@table @asis
+@item @var{state}
+The value returned by @code{parse-partial-sexp} (a Lisp primitive for
+indentation and nesting computation) when it parses up to the
+beginning of this line.
+@item @var{pos}
+The position at which the line being indented begins.
+@end table
+@noindent
+It should return either a number, which is the number of columns of
+indentation for that line, or a list whose car is such a number.  The
+difference between returning a number and returning a list is that a
+number says that all following lines at the same nesting level should
+be indented just like this one; a list says that following lines might
+call for different indentations.  This makes a difference when the
+indentation is being computed by @kbd{C-M-q}; if the value is a
+number, @kbd{C-M-q} need not recalculate indentation for the following
+lines until the end of the list.
+@end table
+
+@ignore
+   arch-tag: d4cce66d-1047-45c3-bfde-db6719d6e82b
+@end ignore

@@ -1,8 +1,8 @@
 ;;; reftex-auc.el --- RefTeX's interface to AUC TeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.18
+;; Version: 4.21
 
 ;; This file is part of GNU Emacs.
 
@@ -34,7 +34,7 @@
   ;; Tell if a certain flag is set in reftex-plug-into-AUCTeX
   (or (eq t reftex-plug-into-AUCTeX)
       (and (listp reftex-plug-into-AUCTeX)
-	   (nth which reftex-plug-into-AUCTeX))))
+           (nth which reftex-plug-into-AUCTeX))))
 
 (defun reftex-arg-label (optional &optional prompt definition)
   "Use `reftex-label', `reftex-reference' or AUCTeX's code to insert label arg.
@@ -44,17 +44,17 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
      ((and definition (reftex-plug-flag 1))
       ;; Create a new label, with a temporary brace for `reftex-what-macro'
       (unwind-protect
-	  (progn (insert "{") (setq label (or (reftex-label nil t) "")))
-	(delete-backward-char 1)))
+          (progn (insert "{") (setq label (or (reftex-label nil t) "")))
+        (delete-backward-char 1)))
      ((and (not definition) (reftex-plug-flag 2))
       ;; Reference a label with RefTeX
       (setq label (reftex-reference nil t)))
      (t
       ;; AUCTeX's default mechanism
       (setq label (completing-read (TeX-argument-prompt optional prompt "Key")
-				   (LaTeX-label-list)))))
+                                   (LaTeX-label-list)))))
     (if (and definition (not (string-equal "" label)))
-	(LaTeX-add-labels label))
+        (LaTeX-add-labels label))
     (TeX-argument-insert label optional)))
 
 (defun reftex-arg-cite (optional &optional prompt definition)
@@ -66,28 +66,28 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
       (setq items (list (or (reftex-citation t) ""))))
      (t
       (setq prompt (concat (if optional "(Optional) " "")
-			   (if prompt prompt "Add key")
-			   ": (default none) "))
+                           (if prompt prompt "Add key")
+                           ": (default none) "))
       (setq items (multi-prompt "," t prompt (LaTeX-bibitem-list)))))
     (apply 'LaTeX-add-bibitems items)
     (TeX-argument-insert (mapconcat 'identity items ",") optional)))
 
 
 (defun reftex-arg-index-tag (optional &optional prompt &rest args)
-  "Prompt for an index tag with completion.
+  "Prompt for an index tag with completion. 
 This is the name of an index, not the entry."
   (let (tag taglist)
     (setq prompt (concat (if optional "(Optional) " "")
-			 (if prompt prompt "Index tag")
-			 ": (default none) "))
+                         (if prompt prompt "Index tag")
+                         ": (default none) "))
     (if (and reftex-support-index (reftex-plug-flag 4))
-	;; Use RefTeX completion
-	(progn
-	  (reftex-access-scan-info nil)
-	  (setq taglist
-		(cdr (assoc 'index-tags
-			    (symbol-value reftex-docstruct-symbol)))
-		tag (completing-read prompt (mapcar 'list taglist))))
+        ;; Use RefTeX completion
+        (progn
+          (reftex-access-scan-info nil)
+          (setq taglist 
+                (cdr (assoc 'index-tags 
+                            (symbol-value reftex-docstruct-symbol)))
+                tag (completing-read prompt (mapcar 'list taglist))))
       ;; Just ask like AUCTeX does.
       (setq tag (read-string prompt)))
     (TeX-argument-insert tag optional)))
@@ -98,12 +98,12 @@ Completion is specific for just one index, if the macro or a tag
 argument identify one of multiple indices."
   (let* (tag key)
     (if (and reftex-support-index (reftex-plug-flag 4))
-	(progn
-	  (reftex-access-scan-info nil)
-	  (setq tag (reftex-what-index-tag)
-		key (reftex-index-complete-key (or tag "idx"))))
+        (progn
+          (reftex-access-scan-info nil)
+          (setq tag (reftex-what-index-tag)
+                key (reftex-index-complete-key (or tag "idx"))))
       (setq key (completing-read (TeX-argument-prompt optional prompt "Key")
-				 (LaTeX-index-entry-list))))
+                                 (LaTeX-index-entry-list))))
     (unless (string-equal "" key)
       (LaTeX-add-index-entries key))
     (TeX-argument-insert key optional)))
@@ -111,18 +111,18 @@ argument identify one of multiple indices."
 (defun reftex-what-index-tag ()
   ;; Look backward to find out what index the macro at point belongs to
   (let ((macro (save-excursion
-		 (and (re-search-backward "\\\\[a-zA-Z*]+" nil t)
-		      (match-string 0))))
-	tag entry)
+                 (and (re-search-backward "\\\\[a-zA-Z*]+" nil t)
+                      (match-string 0))))
+        tag entry)
     (when (and macro
-	       (setq entry (assoc macro reftex-index-macro-alist)))
+               (setq entry (assoc macro reftex-index-macro-alist)))
       (setq tag (nth 1 entry))
       (cond
        ((stringp tag) tag)
        ((integerp tag)
-	(save-excursion
-	  (goto-char (match-end 1))
-	  (or (reftex-nth-arg tag (nth 6 entry)) "idx")))
+        (save-excursion
+          (goto-char (match-end 1))
+          (or (reftex-nth-arg tag (nth 6 entry)) "idx")))
        (t "idx")))))
 
 (defvar LaTeX-label-function)
@@ -130,7 +130,7 @@ argument identify one of multiple indices."
   ;; Replace AUCTeX functions with RefTeX functions.
   ;; Which functions are replaced is controlled by the variable
   ;; `reftex-plug-into-AUCTeX'.
-
+  
   (if (reftex-plug-flag 0)
       (setq LaTeX-label-function 'reftex-label)
     (setq LaTeX-label-function nil))
@@ -142,11 +142,11 @@ argument identify one of multiple indices."
   (and (reftex-plug-flag 3)
        (fboundp 'TeX-arg-cite)
        (fset 'TeX-arg-cite 'reftex-arg-cite))
-
-  (and (reftex-plug-flag 4)
+  
+  (and (reftex-plug-flag 4) 
        (fboundp 'TeX-arg-index-tag)
        (fset 'TeX-arg-index-tag 'reftex-arg-index-tag))
-  (and (reftex-plug-flag 4)
+  (and (reftex-plug-flag 4) 
        (fboundp 'TeX-arg-index)
        (fset 'TeX-arg-index 'reftex-arg-index)))
 
@@ -174,17 +174,17 @@ the label information is recompiled on next use."
   (unless reftex-docstruct-symbol
     (reftex-tie-multifile-symbols))
   (when (and reftex-docstruct-symbol
-	     (symbolp reftex-docstruct-symbol))
+             (symbolp reftex-docstruct-symbol))
     (let ((list (get reftex-docstruct-symbol 'reftex-label-alist-style))
-	  entry changed)
+          entry changed)
       (while entry-list
-	(setq entry (pop entry-list))
-	(unless (member entry list)
-	  (setq reftex-tables-dirty t
-		changed t)
-	  (push entry list)))
+        (setq entry (pop entry-list))
+        (unless (member entry list)
+          (setq reftex-tables-dirty t
+                changed t)
+          (push entry list)))
       (when changed
-	(put reftex-docstruct-symbol 'reftex-label-alist-style list)))))
+        (put reftex-docstruct-symbol 'reftex-label-alist-style list)))))
 (defalias 'reftex-add-to-label-alist 'reftex-add-label-environments)
 
 (defun reftex-add-section-levels (entry-list)
@@ -195,19 +195,20 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
   (unless reftex-docstruct-symbol
     (reftex-tie-multifile-symbols))
   (when (and reftex-docstruct-symbol
-	     (symbolp reftex-docstruct-symbol))
+             (symbolp reftex-docstruct-symbol))
     (let ((list (get reftex-docstruct-symbol 'reftex-section-levels))
-	  entry changed)
+          entry changed)
       (while entry-list
-	(setq entry (pop entry-list))
-	(unless (member entry list)
-	  (setq reftex-tables-dirty t
-		changed t)
-	  (push entry list)))
+        (setq entry (pop entry-list))
+        (unless (member entry list)
+          (setq reftex-tables-dirty t
+                changed t)
+          (push entry list)))
       (when changed
-	(put reftex-docstruct-symbol 'reftex-section-levels list)))))
+        (put reftex-docstruct-symbol 'reftex-section-levels list)))))
 
 (defun reftex-notice-new-section ()
   (reftex-notice-new 1 'force))
 
+;;; arch-tag: 4a798e68-3405-421c-a09b-0269aac64ab4
 ;;; reftex-auc.el ends here

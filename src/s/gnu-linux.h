@@ -130,8 +130,18 @@ Boston, MA 02111-1307, USA.  */
 /* On GNU/Linux systems, both methods are used by various mail
    programs.  I assume that most people are using newer mailers that
    have heard of flock.  Change this if you need to. */
+/* Debian contains a patch which says: ``On Debian/GNU/Linux systems,
+   configure gets the right answers, and that means *NOT* using flock.
+   Using flock is guaranteed to be the wrong thing. See Debian Policy
+   for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
+   Debian maintainer hasn't provided a clean fix for Emacs.
+   movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
+   HAVE_MAILLOCK_H are defined, so the following appears to be the
+   correct logic.  -- fx */
 
+#if !(defined (HAVE_LIBMAIL) && defined (HAVE_MAILLOCK_H))
 #define MAIL_USE_FLOCK
+#endif
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
@@ -352,3 +362,6 @@ Boston, MA 02111-1307, USA.  */
 #define GC_LISP_OBJECT_ALIGNMENT 2
 #endif
 #endif
+
+/* arch-tag: 6244ea2a-abd0-44ec-abec-ff3dcc9afea9
+   (do not change this comment) */

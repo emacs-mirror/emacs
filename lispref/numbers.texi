@@ -135,6 +135,16 @@ arguments to such functions may be either numbers or markers, we often
 give these arguments the name @var{number-or-marker}.  When the argument
 value is a marker, its position value is used and its buffer is ignored.
 
+@defvar most-positive-fixnum
+The value of this variable is the largest integer that Emacs Lisp
+can handle.
+@end defvar
+
+@defvar most-negative-fixnum
+The value of this variable is the smallest integer that Emacs Lisp can
+handle.  It is negative.
+@end defvar
+
 @node Float Basics
 @section Floating Point Basics
 
@@ -1170,3 +1180,7 @@ On some machines, any integer representable in Lisp may be the result
 of @code{random}.  On other machines, the result can never be larger
 than a certain maximum or less than a certain (negative) minimum.
 @end defun
+
+@ignore
+   arch-tag: 574e8dd2-d513-4616-9844-c9a27869782e
+@end ignore

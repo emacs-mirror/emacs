@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001
+;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -505,6 +505,26 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 
 ;;;; Creation of additional frames, and other frame miscellanea
 
+(defun modify-all-frames-parameters (alist)
+  "modify all current and future frames parameters according to ALIST.
+This changes `default-frame-alist' and possibly `initial-frame-alist'.
+See help of `modify-frame-parameters' for more information."
+  (let (element)			;; temp
+    (dolist (frame (frame-list))
+      (modify-frame-parameters frame alist))
+
+    (dolist (pair alist)		;; conses to add/replace
+      ;; initial-frame-alist needs setting only when
+      ;; frame-notice-user-settings is true
+      (and frame-notice-user-settings
+	   (setq element (assoc (car pair) initial-frame-alist))
+	   (setq initial-frame-alist (delq element initial-frame-alist)))
+      (and (setq element (assoc (car pair) default-frame-alist))
+	   (setq default-frame-alist (delq element default-frame-alist)))))
+  (and frame-notice-user-settings
+       (setq initial-frame-alist (append initial-frame-alist alist)))
+  (setq default-frame-alist (append default-frame-alist alist)))
+
 (defun get-other-frame ()
   "Return some frame other than the current frame.
 Create one if necessary.  Note that the minibuffer frame, if separate,
@@ -557,6 +577,7 @@ The functions are run with one arg, the newly created frame.")
 
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
+(make-obsolete 'new-frame 'make-frame "21.4")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
@@ -639,7 +660,6 @@ the user during startup."
 	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
 
-
 (defcustom focus-follows-mouse t
   "*Non-nil if window system changes focus when you move the mouse.
 You should set this variable to tell Emacs how your window manager
@@ -685,6 +705,13 @@ Otherwise, that variable should be nil."
 	(setq frame (previous-frame frame)))
       (setq arg (1+ arg)))
     (select-frame-set-input-focus frame)))
+
+(defun iconify-or-deiconify-frame ()
+  "Iconify the selected frame, or deiconify if it's currently an icon."
+  (interactive)
+  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+      (iconify-frame)
+    (make-frame-visible)))
 
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
@@ -794,20 +821,36 @@ If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
 (defalias 'set-default-font 'set-frame-font)
-(defun set-frame-font (font-name)
+(defun set-frame-font (font-name &optional keep-size)
   "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.
-To get the frame's current default font, use `frame-parameters'."
+To get the frame's current default font, use `frame-parameters'.
+
+The default behavior is to keep the numbers of lines and columns in
+the frame, thus may change its pixel size. If optional KEEP-SIZE is
+non-nil (interactively, prefix argument) the current frame size (in
+pixels) is kept by adjusting the numbers of the lines and columns."
   (interactive
-   (list
-    (let ((completion-ignore-case t))
-      (completing-read "Font name: "
-		       (mapcar #'list
-			       ;; x-list-fonts will fail with an error
-			       ;; if this frame doesn't support fonts.
-			       (x-list-fonts "*" nil (selected-frame)))))))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'font font-name)))
+   (let* ((completion-ignore-case t)
+	  (font (completing-read "Font name: "
+			 (mapcar #'list
+				 ;; x-list-fonts will fail with an error
+				 ;; if this frame doesn't support fonts.
+				 (x-list-fonts "*" nil (selected-frame)))
+			 nil nil nil nil
+			 (frame-parameter nil 'font))))
+     (list font current-prefix-arg)))
+  (let (fht fwd)
+    (if keep-size
+	(setq fht (* (frame-parameter nil 'height) (frame-char-height))
+	      fwd (* (frame-parameter nil 'width)  (frame-char-width))))
+    (modify-frame-parameters (selected-frame)
+			     (list (cons 'font font-name)))
+    (if keep-size
+	(modify-frame-parameters
+	 (selected-frame)
+	 (list (cons 'height (round fht (frame-char-height)))
+	       (cons 'width (round fwd (frame-char-width)))))))
   (run-hooks 'after-setting-font-hook 'after-setting-font-hooks))
 
 (defun set-frame-parameter (frame parameter value)
@@ -899,6 +942,18 @@ one frame, otherwise the name is displayed on the frame's caption bar."
   (interactive "sFrame name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
+
+(defun frame-current-scroll-bars (&optional frame)
+  "Return the current scroll-bar settings in frame FRAME.
+Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+current location of the vertical scroll-bars (left, right, or nil),
+and HORISONTAL specifies the current location of the horisontal scroll
+bars (top, bottom, or nil)."
+  (let ((vert (frame-parameter frame 'vertical-scroll-bars))
+	(hor nil))
+    (unless (memq vert '(left right nil))
+      (setq vert default-frame-scroll-bars))
+    (cons vert hor)))
 
 ;;;; Frame/display capabilities.
 (defun display-mouse-p (&optional display)
@@ -1107,7 +1162,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
 
-
 (make-obsolete 'screen-height 'frame-height) ;before 19.15
 (make-obsolete 'screen-width  'frame-width) ;before 19.15
 (make-obsolete 'set-screen-width 'set-frame-width) ;before 19.15
@@ -1285,4 +1339,5 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
+;;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here

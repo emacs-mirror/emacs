@@ -125,6 +125,14 @@ static Lisp_Object Vmotif_version_string;
 
 #endif /* USE_X_TOOLKIT */
 
+#ifdef USE_GTK
+
+/* GTK+ version info */
+
+static Lisp_Object Vgtk_version_string;
+
+#endif /* USE_GTK */
+
 #ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 #else
@@ -550,6 +558,14 @@ x_bitmap_pixmap (f, id)
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 
+int
+x_bitmap_mask (f, id)
+     FRAME_PTR f;
+     int id;
+{
+  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].mask;
+}
+
 
 /* Allocate a new bitmap record.  Returns index of new record.  */
 
@@ -615,6 +631,7 @@ x_create_bitmap_from_data (f, bits, width, height)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 0;
   dpyinfo->bitmaps[id - 1].file = NULL;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].depth = 1;
@@ -666,6 +683,7 @@ x_create_bitmap_from_file (f, file)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 0;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file
     = (char *) xmalloc (SBYTES (file) + 1);
@@ -693,6 +711,8 @@ x_destroy_bitmap (f, id)
 	{
 	  BLOCK_INPUT;
 	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].pixmap);
+	  if (dpyinfo->bitmaps[id - 1].have_mask)
+	    XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].mask);
 	  if (dpyinfo->bitmaps[id - 1].file)
 	    {
 	      xfree (dpyinfo->bitmaps[id - 1].file);
@@ -714,12 +734,114 @@ x_destroy_all_bitmaps (dpyinfo)
     if (dpyinfo->bitmaps[i].refcount > 0)
       {
 	XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].pixmap);
+	if (dpyinfo->bitmaps[i].have_mask)
+	  XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].mask);
 	if (dpyinfo->bitmaps[i].file)
 	  xfree (dpyinfo->bitmaps[i].file);
       }
   dpyinfo->bitmaps_last = 0;
 }
 
+
+
+
+/* Useful functions defined in the section
+   `Image type independent image structures' below. */
+
+static unsigned long four_corners_best P_ ((XImage *ximg, unsigned long width,
+					    unsigned long height));
+
+static int x_create_x_image_and_pixmap P_ ((struct frame *f, int width, int height,
+					    int depth, XImage **ximg,
+					    Pixmap *pixmap));
+
+static void x_destroy_x_image P_ ((XImage *ximg));
+
+
+/* Create a mask of a bitmap. Note is this not a perfect mask.
+   It's nicer with some borders in this context */
+
+int
+x_create_bitmap_mask(f, id)
+     struct frame *f;
+     int id;
+{
+  Pixmap pixmap, mask;
+  XImage *ximg, *mask_img;
+  unsigned long width, height;
+  int result;
+  unsigned long bg;
+  unsigned long x, y, xp, xm, yp, ym;
+  GC gc;
+
+  int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (!(id > 0))
+    return -1;
+
+  pixmap = x_bitmap_pixmap(f, id);
+  width = x_bitmap_width(f, id);
+  height = x_bitmap_height(f, id);
+
+  BLOCK_INPUT;
+  ximg = XGetImage (FRAME_X_DISPLAY (f), pixmap, 0, 0, width, height,
+		    ~0, ZPixmap);
+
+  if (!ximg)
+    {
+      UNBLOCK_INPUT;
+      return -1;
+    }
+
+  result = x_create_x_image_and_pixmap (f, width, height, 1, &mask_img, &mask);
+
+  UNBLOCK_INPUT;
+  if (!result)
+    {
+      XDestroyImage(ximg);
+      return -1;
+    }
+
+  bg = four_corners_best (ximg, width, height);
+
+  for (y = 0; y < ximg->height; ++y)
+    {
+      for (x = 0; x < ximg->width; ++x)
+	{
+	  xp = x != ximg->width - 1 ? x + 1 : 0;
+	  xm = x != 0 ? x - 1 : ximg->width - 1;
+	  yp = y != ximg->height - 1 ? y + 1 : 0;
+	  ym = y != 0 ? y - 1 : ximg->height - 1;
+	  if (XGetPixel (ximg, x, y) == bg
+	      && XGetPixel (ximg, x, yp) == bg
+	      && XGetPixel (ximg, x, ym) == bg
+	      && XGetPixel (ximg, xp, y) == bg
+	      && XGetPixel (ximg, xp, yp) == bg
+	      && XGetPixel (ximg, xp, ym) == bg
+	      && XGetPixel (ximg, xm, y) == bg
+	      && XGetPixel (ximg, xm, yp) == bg
+	      && XGetPixel (ximg, xm, ym) == bg)
+	    XPutPixel (mask_img, x, y, 0);
+	  else
+	    XPutPixel (mask_img, x, y, 1);
+	}
+    }
+
+  xassert (interrupt_input_blocked);
+  gc = XCreateGC (FRAME_X_DISPLAY (f), mask, 0, NULL);
+  XPutImage (FRAME_X_DISPLAY (f), mask, gc, mask_img, 0, 0, 0, 0,
+	     width, height);
+  XFreeGC (FRAME_X_DISPLAY (f), gc);
+
+  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].mask = mask;
+
+  XDestroyImage (ximg);
+  x_destroy_x_image(mask_img);
+
+  return 0;
+}
 
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
@@ -859,7 +981,7 @@ x_real_positions (f, xptr, yptr)
 
                                  /* Child of win.  */
                                  &child);
-    }
+	}
 
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
     }
@@ -870,10 +992,11 @@ x_real_positions (f, xptr, yptr)
 
   if (had_errors) return;
 
-  f->output_data.x->x_pixels_diff = -win_x;
-  f->output_data.x->y_pixels_diff = -win_y;
-  f->output_data.x->x_pixels_outer_diff = -outer_x;
-  f->output_data.x->y_pixels_outer_diff = -outer_y;
+  f->x_pixels_diff = -win_x;
+  f->y_pixels_diff = -win_y;
+
+  FRAME_X_OUTPUT (f)->x_pixels_outer_diff = -outer_x;
+  FRAME_X_OUTPUT (f)->y_pixels_outer_diff = -outer_y;
 
   *xptr = real_x;
   *yptr = real_y;
@@ -974,6 +1097,56 @@ x_set_wait_for_wm (f, new_value, old_value)
 {
   f->output_data.x->wait_for_wm = !NILP (new_value);
 }
+
+#ifdef USE_GTK
+
+static Lisp_Object x_find_image_file P_ ((Lisp_Object file));
+
+/* Set icon from FILE for frame F.  By using GTK functions the icon
+   may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
+
+int
+xg_set_icon(f, file)
+    FRAME_PTR f;
+    Lisp_Object file;
+{
+  struct gcpro gcpro1;
+  int result = 0;
+  Lisp_Object found;
+
+  GCPRO1 (found);
+
+  found = x_find_image_file (file);
+
+  if (! NILP (found))
+    {
+      GdkPixbuf *pixbuf;
+      GError *err = NULL;
+      char *filename;
+
+      filename = SDATA (found);
+      BLOCK_INPUT;
+
+      pixbuf = gdk_pixbuf_new_from_file (filename, &err);
+
+      if (pixbuf)
+	{
+	  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			       pixbuf);
+	  g_object_unref (pixbuf);
+
+	  result = 1;
+	}
+      else
+	g_error_free (err);
+
+      UNBLOCK_INPUT;
+    }
+
+  UNGCPRO;
+  return result;
+}
+#endif /* USE_GTK */
 
 
 /* Functions called only from `x_set_frame_param'
@@ -1296,7 +1469,7 @@ x_set_border_pixel (f, pix)
   unload_color (f, f->output_data.x->border_pixel);
   f->output_data.x->border_pixel = pix;
 
-  if (FRAME_X_WINDOW (f) != 0 && f->output_data.x->border_width > 0)
+  if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       BLOCK_INPUT;
       XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -1519,7 +1692,7 @@ x_set_tool_bar_lines (f, value, oldval)
 
   /* Don't resize the tool-bar to more than we have room for.  */
   root_window = FRAME_ROOT_WINDOW (f);
-  root_height = XINT (XWINDOW (root_window)->height);
+  root_height = WINDOW_TOTAL_LINES (XWINDOW (root_window));
   if (root_height - delta < 1)
     {
       delta = root_height - 1;
@@ -1550,8 +1723,8 @@ x_set_tool_bar_lines (f, value, oldval)
   if (delta < 0)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
-      int width = PIXEL_WIDTH (f);
-      int y = nlines * CANON_Y_UNIT (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int y = nlines * FRAME_LINE_HEIGHT (f);
 
       BLOCK_INPUT;
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -1790,11 +1963,11 @@ x_set_name (f, name, explicit)
 	   managers which don't support that encoding.  So, if NAME
 	   contains only ASCII and 8859-1 characters, encode it by
 	   iso-latin-1, and use "STRING" in text.encoding hoping that
-	   such window manager at least analize this format correctly,
+	   such window managers at least analyze this format correctly,
 	   i.e. treat 8-bit bytes as 8859-1 characters.
 
 	   We may also be able to use "UTF8_STRING" in text.encoding
-	   in the feature which can encode all Unicode characters.
+	   in the future which can encode all Unicode characters.
 	   But, for the moment, there's no way to know that the
 	   current window manager supports it or not.  */
 	coding_system = Qcompound_text;
@@ -1956,21 +2129,21 @@ void
 x_set_scroll_bar_default_width (f)
      struct frame *f;
 {
-  int wid = FONT_WIDTH (f->output_data.x->font);
+  int wid = FRAME_COLUMN_WIDTH (f);
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
   int width = 16 + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
-  FRAME_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = width;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = width;
 #else
   /* Make the actual width at least 14 pixels and a multiple of a
      character width.  */
-  FRAME_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
 
   /* Use all of that space (aside from required margins) for the
      scroll bar.  */
-  FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 0;
 #endif
 }
 
@@ -2120,7 +2293,7 @@ static XFontSet xic_create_xfontset P_ ((struct frame *, char *));
 static XIMStyle best_xim_style P_ ((XIMStyles *, XIMStyles *));
 
 
-/* Supported XIM styles, ordered by preferenc.  */
+/* Supported XIM styles, ordered by preference.  */
 
 static XIMStyle supported_xim_styles[] =
 {
@@ -2330,7 +2503,7 @@ xic_set_preeditarea (w, x, y)
   XVaNestedList attr;
   XPoint spot;
 
-  spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x);
+  spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w);
   spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
   attr = XVaCreateNestedList (0, XNSpotLocation, &spot, NULL);
   XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
@@ -2369,8 +2542,8 @@ xic_set_statusarea (f)
 
   area.width  = needed->width;
   area.height = needed->height;
-  area.x = PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
-  area.y = (PIXEL_HEIGHT (f) - area.height
+  area.x = FRAME_PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
+  area.y = (FRAME_PIXEL_HEIGHT (f) - area.height
 	    - FRAME_MENUBAR_HEIGHT (f)
 	    - FRAME_TOOLBAR_HEIGHT (f)
             - FRAME_INTERNAL_BORDER_WIDTH (f));
@@ -2448,7 +2621,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
   XtSetArg (al[ac], XtNinput, 1); ac++;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
-  XtSetArg (al[ac], XtNborderWidth, f->output_data.x->border_width); ac++;
+  XtSetArg (al[ac], XtNborderWidth, f->border_width); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
@@ -2533,9 +2706,9 @@ x_window (f, window_prompting, minibuffer_only)
        is a user-specified or program-specified one.
        We pass that information later, in x_wm_set_size_hints.  */
     {
-      int left = f->output_data.x->left_pos;
+      int left = f->left_pos;
       int xneg = window_prompting & XNegative;
-      int top = f->output_data.x->top_pos;
+      int top = f->top_pos;
       int yneg = window_prompting & YNegative;
       if (xneg)
 	left = -left;
@@ -2544,14 +2717,14 @@ x_window (f, window_prompting, minibuffer_only)
 
       if (window_prompting & USPosition)
 	sprintf (shell_position, "=%dx%d%c%d%c%d",
-		 PIXEL_WIDTH (f) + extra_borders,
-		 PIXEL_HEIGHT (f) + menubar_size + extra_borders,
+		 FRAME_PIXEL_WIDTH (f) + extra_borders,
+		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders,
 		 (xneg ? '-' : '+'), left,
 		 (yneg ? '-' : '+'), top);
       else
 	sprintf (shell_position, "=%dx%d",
-		 PIXEL_WIDTH (f) + extra_borders,
-		 PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+		 FRAME_PIXEL_WIDTH (f) + extra_borders,
+		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
     }
 
     len = strlen (shell_position) + 1;
@@ -2578,9 +2751,8 @@ x_window (f, window_prompting, minibuffer_only)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-#ifdef USE_XIM
-  create_frame_xic (f);
-#endif
+  if (use_xim)
+    create_frame_xic (f);
 #endif
 
   f->output_data.x->wm_hints.input = True;
@@ -2657,31 +2829,32 @@ x_window (f)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-#ifdef USE_XIM
-  BLOCK_INPUT;
-  create_frame_xic (f);
-  if (FRAME_XIC (f))
-    {
-      /* XIM server might require some X events. */
-      unsigned long fevent = NoEventMask;
-      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+if (use_xim)
+  {
+    BLOCK_INPUT;
+    create_frame_xic (f);
+    if (FRAME_XIC (f))
+      {
+	/* XIM server might require some X events. */
+	unsigned long fevent = NoEventMask;
+	XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
 
-      if (fevent != NoEventMask)
-        {
-          XSetWindowAttributes attributes;
-          XWindowAttributes wattr;
-          unsigned long attribute_mask;
+	if (fevent != NoEventMask)
+	  {
+	    XSetWindowAttributes attributes;
+	    XWindowAttributes wattr;
+	    unsigned long attribute_mask;
 
-          XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                                &wattr);
-          attributes.event_mask = wattr.your_event_mask | fevent;
-          attribute_mask = CWEventMask;
-          XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                                   attribute_mask, &attributes);
-        }
-    }
-  UNBLOCK_INPUT;
-#endif
+	    XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				  &wattr);
+	    attributes.event_mask = wattr.your_event_mask | fevent;
+	    attribute_mask = CWEventMask;
+	    XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				     attribute_mask, &attributes);
+	  }
+      }
+    UNBLOCK_INPUT;
+  }
 #endif
 }
 
@@ -2711,29 +2884,30 @@ x_window (f)
   FRAME_X_WINDOW (f)
     = XCreateWindow (FRAME_X_DISPLAY (f),
 		     f->output_data.x->parent_desc,
-		     f->output_data.x->left_pos,
-		     f->output_data.x->top_pos,
-		     PIXEL_WIDTH (f), PIXEL_HEIGHT (f),
-		     f->output_data.x->border_width,
+		     f->left_pos,
+		     f->top_pos,
+		     FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+		     f->border_width,
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
 		     FRAME_X_VISUAL (f),
 		     attribute_mask, &attributes);
 
 #ifdef HAVE_X_I18N
-#ifdef USE_XIM
-  create_frame_xic (f);
-  if (FRAME_XIC (f))
+  if (use_xim)
     {
-      /* XIM server might require some X events. */
-      unsigned long fevent = NoEventMask;
-      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
-      attributes.event_mask |= fevent;
-      attribute_mask = CWEventMask;
-      XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			       attribute_mask, &attributes);
+      create_frame_xic (f);
+      if (FRAME_XIC (f))
+	{
+	  /* XIM server might require some X events. */
+	  unsigned long fevent = NoEventMask;
+	  XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+	  attributes.event_mask |= fevent;
+	  attribute_mask = CWEventMask;
+	  XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				   attribute_mask, &attributes);
+	}
     }
-#endif
 #endif /* HAVE_X_I18N */
 
   validate_x_resource_name ();
@@ -2858,7 +3032,7 @@ x_make_gc (f)
      Note that many default values are used.  */
 
   /* Normal video */
-  gc_values.font = f->output_data.x->font->fid;
+  gc_values.font = FRAME_FONT (f)->fid;
   gc_values.foreground = f->output_data.x->foreground_pixel;
   gc_values.background = f->output_data.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
@@ -3064,7 +3238,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
-  f->output_data.x->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -3192,7 +3366,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
-  xlwmenu_default_font = f->output_data.x->font;
+  xlwmenu_default_font = FRAME_FONT (f);
 #endif
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
@@ -3304,22 +3478,15 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "scrollBarWidth", "ScrollBarWidth",
 		       RES_TYPE_NUMBER);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
 
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+  SET_FRAME_COLS (f, 0);
+  FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
-
-  /* Set up faces after all frame parameters are known.  This call
-     also merges in face attributes specified for new frames.  If we
-     don't do this, the `menu' face for instance won't have the right
-     colors, and the menu bar won't appear in the specified colors for
-     new frames.  */
-  call1 (Qface_set_after_frame_default, frame);
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
@@ -3365,6 +3532,19 @@ This function is an internal primitive--use `make-frame' instead.  */)
       else
 	/* Must have been Qnil.  */
 	;
+    }
+
+  /* Set the WM leader property.  GTK does this itself, so this is not
+     needed when using GTK.  */
+  if (dpyinfo->client_leader_window != 0)
+    {
+      BLOCK_INPUT;
+      XChangeProperty (FRAME_X_DISPLAY (f),
+                       FRAME_OUTER_WINDOW (f),
+                       dpyinfo->Xatom_wm_client_leader,
+                       XA_WINDOW, 32, PropModeReplace,
+                       (char *) &dpyinfo->client_leader_window, 1);
+      UNBLOCK_INPUT;
     }
 
   UNGCPRO;
@@ -3762,28 +3942,28 @@ int
 x_pixel_width (f)
      register struct frame *f;
 {
-  return PIXEL_WIDTH (f);
+  return FRAME_PIXEL_WIDTH (f);
 }
 
 int
 x_pixel_height (f)
      register struct frame *f;
 {
-  return PIXEL_HEIGHT (f);
+  return FRAME_PIXEL_HEIGHT (f);
 }
 
 int
 x_char_width (f)
      register struct frame *f;
 {
-  return FONT_WIDTH (f->output_data.x->font);
+  return FRAME_COLUMN_WIDTH (f);
 }
 
 int
 x_char_height (f)
      register struct frame *f;
 {
-  return f->output_data.x->line_height;
+  return FRAME_LINE_HEIGHT (f);
 }
 
 int
@@ -4032,9 +4212,6 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
       {
-	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
-	  xfree (dpyinfo->font_table[i].full_name);
-	xfree (dpyinfo->font_table[i].name);
 	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
       }
 
@@ -4096,6 +4273,125 @@ x_sync (f)
   UNBLOCK_INPUT;
 }
 
+
+/***********************************************************************
+                General X functions exposed to Elisp.
+ ***********************************************************************/
+
+DEFUN ("x-send-client-message", Fx_send_client_event,
+       Sx_send_client_message, 6, 6, 0,
+       doc: /* Send a client message of MESSAGE-TYPE to window DEST on DISPLAY.
+
+For DISPLAY, specify either a frame or a display name (a string).
+If DISPLAY is nil, that stands for the selected frame's display.
+DEST may be an integer, in which case it is a Window id.  The value 0 may
+be used to send to the root window of the DISPLAY.
+If DEST is a frame the event is sent to the outer window of that frame.
+Nil means the currently selected frame.
+If DEST is the string "PointerWindow" the event is sent to the window that
+contains the pointer.  If DEST is the string "InputFocus" the event is
+sent to the window that has the input focus.
+FROM is the frame sending the event.  Use nil for currently selected frame.
+MESSAGE-TYPE is the name of an Atom as a string.
+FORMAT must be one of 8, 16 or 32 and determines the size of the values in
+bits.  VALUES is a list of integer and/or strings containing the values to
+send.  If a value is a string, it is converted to an Atom and the value of
+the Atom is sent.  If more values than fits into the event is given,
+the excessive values are ignored.  */)
+     (display, dest, from, message_type, format, values)
+     Lisp_Object display, dest, from, message_type, format, values;
+{
+  struct x_display_info *dpyinfo = check_x_display_info (display);
+  Window wdest;
+  XEvent event;
+  Lisp_Object cons;
+  int i;
+  int max_nr_values = (int) sizeof (event.xclient.data.b);
+  struct frame *f = check_x_frame (from);
+  
+  CHECK_STRING (message_type);
+  CHECK_NUMBER (format);
+  CHECK_CONS (values);
+
+  for (cons = values; CONSP (cons); cons = XCDR (cons))
+    {
+      Lisp_Object o = XCAR (cons);
+
+      if (! INTEGERP (o) && ! STRINGP (o))
+        error ("Bad data in VALUES, must be integer or string");
+    }
+
+  event.xclient.type = ClientMessage;
+  event.xclient.format = XFASTINT (format);
+
+  if (event.xclient.format != 8 && event.xclient.format != 16
+      && event.xclient.format != 32)
+    error ("FORMAT must be one of 8, 16 or 32");
+  if (event.xclient.format == 16) max_nr_values /= 2;
+  if (event.xclient.format == 32) max_nr_values /= 4;
+  
+  if (FRAMEP (dest) || NILP (dest))
+    {
+      struct frame *fdest = check_x_frame (dest);
+      wdest = FRAME_OUTER_WINDOW (fdest);
+    }
+  else if (STRINGP (dest))
+    {
+      if (strcmp (SDATA (dest), "PointerWindow") == 0)
+        wdest = PointerWindow;
+      else if (strcmp (SDATA (dest), "InputFocus") == 0)
+        wdest = InputFocus;
+      else
+        error ("DEST as a string must be one of PointerWindow or InputFocus");
+    }
+  else
+    {
+      CHECK_NUMBER (dest);
+      wdest = (Window) XFASTINT (dest);
+      if (wdest == 0) wdest = dpyinfo->root_window;
+    }
+
+  BLOCK_INPUT;
+  for (cons = values, i = 0;
+       CONSP (cons) && i < max_nr_values;
+       cons = XCDR (cons), ++i)
+    {
+      Lisp_Object o = XCAR (cons);
+      long val;
+
+      if (INTEGERP (o))
+        val = XINT (o);
+      else if (STRINGP (o))
+          val = XInternAtom (dpyinfo->display, SDATA (o), False);
+
+      if (event.xclient.format == 8)
+        event.xclient.data.b[i] = (char) val;
+      else if (event.xclient.format == 16)
+        event.xclient.data.s[i] = (short) val;
+      else
+        event.xclient.data.l[i] = val;
+    }
+
+  for ( ; i < max_nr_values; ++i)
+    if (event.xclient.format == 8)
+      event.xclient.data.b[i] = 0;
+    else if (event.xclient.format == 16)
+      event.xclient.data.s[i] = 0;
+    else
+      event.xclient.data.l[i] = 0;
+
+  event.xclient.message_type
+    = XInternAtom (dpyinfo->display, SDATA (message_type), False);
+  event.xclient.display = dpyinfo->display;
+  event.xclient.window = FRAME_OUTER_WINDOW (f);
+
+  XSendEvent (dpyinfo->display, wdest, False, 0xffff, &event);
+
+  XFlush (dpyinfo->display);
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
 
 /***********************************************************************
 			    Image types
@@ -4474,8 +4770,8 @@ or omitted means use the selected frame.  */)
       int height = img->height + 2 * img->vmargin;
 
       if (NILP (pixels))
-	size = Fcons (make_float ((double) width / CANON_X_UNIT (f)),
-		      make_float ((double) height / CANON_Y_UNIT (f)));
+	size = Fcons (make_float ((double) width / FRAME_COLUMN_WIDTH (f)),
+		      make_float ((double) height / FRAME_LINE_HEIGHT (f)));
       else
 	size = Fcons (make_number (width), make_number (height));
     }
@@ -6575,7 +6871,37 @@ lookup_rgb_color (f, r, g, b)
   unsigned hash = CT_HASH_RGB (r, g, b);
   int i = hash % CT_SIZE;
   struct ct_color *p;
+  struct x_display_info *dpyinfo;
 
+  /* Handle TrueColor visuals specially, which improves performance by
+     two orders of magnitude.  Freeing colors on TrueColor visuals is
+     a nop, and pixel colors specify RGB values directly.  See also
+     the Xlib spec, chapter 3.1.  */
+  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  if (dpyinfo->red_bits > 0)
+    {
+      unsigned long pr, pg, pb;
+
+      /* Apply gamma-correction like normal color allocation does.  */
+      if (f->gamma)
+	{
+	  XColor color;
+	  color.red = r, color.green = g, color.blue = b;
+	  gamma_correct (f, &color);
+	  r = color.red, g = color.green, b = color.blue;
+	}
+
+      /* Scale down RGB values to the visual's bits per RGB, and shift
+	 them to the right position in the pixel color.  Note that the
+	 original RGB values are 16-bit values, as usual in X.  */
+      pr = (r >> (16 - dpyinfo->red_bits))   << dpyinfo->red_offset;
+      pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
+      pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
+
+      /* Assemble the pixel color.  */
+      return pr | pg | pb;
+    }
+  
   for (p = ct_table[i]; p; p = p->next)
     if (p->r == r && p->g == g && p->b == b)
       break;
@@ -7426,7 +7752,11 @@ pbm_load (f, img)
 
 #if HAVE_PNG
 
-#include <png.h>
+#if defined HAVE_LIBPNG_PNG_H
+# include <libpng/png.h>
+#else
+# include <png.h>
+#endif
 
 /* Function prototypes.  */
 
@@ -7577,8 +7907,7 @@ png_load (f, img)
   png_byte channels;
   png_uint_32 row_bytes;
   int transparent_p;
-  double screen_gamma, image_gamma;
-  int intent;
+  double screen_gamma;
   struct png_memory_storage tbr;  /* Data to be read */
 
   /* Find out what file to load.  */
@@ -7717,19 +8046,22 @@ png_load (f, img)
   screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
 
 #if 0 /* Avoid double gamma correction for PNG images. */
-  /* Tell the PNG lib to handle gamma correction for us.  */
+  { /* Tell the PNG lib to handle gamma correction for us.  */
+    int intent;
+    double image_gamma;
 #if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
-  if (png_get_sRGB (png_ptr, info_ptr, &intent))
-    /* The libpng documentation says this is right in this case.  */
-    png_set_gamma (png_ptr, screen_gamma, 0.45455);
-  else
+    if (png_get_sRGB (png_ptr, info_ptr, &intent))
+      /* The libpng documentation says this is right in this case.  */
+      png_set_gamma (png_ptr, screen_gamma, 0.45455);
+    else
 #endif
-  if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
-    /* Image contains gamma information.  */
-    png_set_gamma (png_ptr, screen_gamma, image_gamma);
-  else
-    /* Use the standard default for the image gamma.  */
-    png_set_gamma (png_ptr, screen_gamma, 0.45455);
+      if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
+	/* Image contains gamma information.  */
+	png_set_gamma (png_ptr, screen_gamma, image_gamma);
+      else
+	/* Use the standard default for the image gamma.  */
+	png_set_gamma (png_ptr, screen_gamma, 0.45455);
+  }
 #endif /* if 0 */
 
   /* Handle alpha channel by combining the image with a background
@@ -9631,7 +9963,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   current_buffer->truncate_lines = Qnil;
@@ -9650,7 +9982,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
-  f->output_data.x->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -9831,13 +10163,13 @@ x_create_tip_frame (dpyinfo, parms, text)
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
 
-  /* Dimensions, especially f->height, must be done via change_frame_size.
+  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
-     f->height.  */
-  width = f->width;
-  height = f->height;
-  f->height = 0;
-  SET_FRAME_WIDTH (f, 0);
+     FRAME_LINES (f).  */
+  width = FRAME_COLS (f);
+  height = FRAME_LINES (f);
+  SET_FRAME_COLS (f, 0);
+  FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
@@ -10026,8 +10358,8 @@ Text larger than the specified size is clipped.  */)
 	    }
 
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, PIXEL_WIDTH (f),
-			  PIXEL_HEIGHT (f), &root_x, &root_y);
+	  compute_tip_xy (f, parms, dx, dy, FRAME_PIXEL_WIDTH (f),
+			  FRAME_PIXEL_HEIGHT (f), &root_x, &root_y);
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       root_x, root_y);
 	  UNBLOCK_INPUT;
@@ -10062,7 +10394,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left = w->top = make_number (0);
+  w->left_col = w->top_line = make_number (0);
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -10070,16 +10402,16 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      w->width = XCAR (Vx_max_tooltip_size);
-      w->height = XCDR (Vx_max_tooltip_size);
+      w->total_cols = XCAR (Vx_max_tooltip_size);
+      w->total_lines = XCDR (Vx_max_tooltip_size);
     }
   else
     {
-      w->width = make_number (80);
-      w->height = make_number (40);
+      w->total_cols = make_number (80);
+      w->total_lines = make_number (40);
     }
 
-  f->window_width = XINT (w->width);
+  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
@@ -10531,7 +10863,7 @@ usual X keysyms.  */)
 			    Initialization
  ***********************************************************************/
 
-/* Keep this list in the same order as frame_parms in frame.c. 
+/* Keep this list in the same order as frame_parms in frame.c.
    Use 0 for unsupported frame parameters.  */
 
 frame_parm_handler x_frame_parm_handlers[] =
@@ -10721,6 +11053,19 @@ meaning don't clear the cache.  */);
 #endif /* USE_MOTIF */
 #endif /* USE_X_TOOLKIT */
 
+#ifdef USE_GTK
+  Fprovide (intern ("gtk"), Qnil);
+
+  DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
+               doc: /* Version info for GTK+.  */);
+  {
+    char gtk_version[40];
+    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
+                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+    Vgtk_version_string = build_string (gtk_version);
+  }
+#endif /* USE_GTK */
+
   /* X window properties.  */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
@@ -10748,6 +11093,7 @@ meaning don't clear the cache.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
+  defsubr (&Sx_send_client_message);
   defsubr (&Sx_focus_frame);
   defsubr (&Sx_backspace_delete_keys_p);
 
@@ -10875,3 +11221,6 @@ init_xfns ()
 }
 
 #endif /* HAVE_X_WINDOWS */
+
+/* arch-tag: 55040d02-5485-4d58-8b22-95a7a05f3288
+   (do not change this comment) */

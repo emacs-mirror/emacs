@@ -24,6 +24,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_X_SM
 
 #include <X11/SM/SMlib.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #else
@@ -47,6 +50,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "termhooks.h"
 #include "termopts.h"
+#include "xterm.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 1024
@@ -403,9 +407,37 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
 #endif /* ! defined (SIGIO) */
 }
 
+/* Create the client leader window.  */
+static void
+create_client_leader_window (dpyinfo, client_id)
+     struct x_display_info *dpyinfo;
+     char *client_id;
+{
+  Window w;
+  XClassHint class_hints;
+  Atom sm_id;
+
+  w = XCreateSimpleWindow (dpyinfo->display,
+                           dpyinfo->root_window,
+                           -1, -1, 1, 1,
+                           CopyFromParent, CopyFromParent, CopyFromParent);
+
+  class_hints.res_name = (char *) SDATA (Vx_resource_name);
+  class_hints.res_class = (char *) SDATA (Vx_resource_class);
+  XSetClassHint (dpyinfo->display, w, &class_hints);
+  XStoreName (dpyinfo->display, w, class_hints.res_name);
+
+  sm_id = XInternAtom (dpyinfo->display, "SM_CLIENT_ID", False);
+  XChangeProperty (dpyinfo->display, w, sm_id, XA_STRING, 8, PropModeReplace,
+                   client_id, strlen (client_id));
+
+  dpyinfo->client_leader_window = w;
+}
+
 /* Try to open a connection to the session manager. */
 void
-x_session_initialize ()
+x_session_initialize (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
 #define SM_ERRORSTRING_LEN 512
   char errorstring[SM_ERRORSTRING_LEN];
@@ -466,7 +498,17 @@ x_session_initialize ()
                                 errorstring);
 
   if (smc_conn != 0)
-    Vx_session_id = make_string (client_id, strlen (client_id));
+    {
+      Vx_session_id = make_string (client_id, strlen (client_id));
+
+#ifdef USE_GTK
+      /* GTK creats a leader window by itself, but we need to tell
+         it about our client_id.  */
+      gdk_set_sm_client_id (client_id);
+#else
+      create_client_leader_window (dpyinfo, client_id);
+#endif
+    }
 }
 
 
@@ -544,3 +586,6 @@ See also `emacs-save-session-functions', `emacs-session-save' and
 }
 
 #endif /* HAVE_X_SM */
+
+/* arch-tag: 56a2c58c-adfa-430a-b772-130abd29fd2e
+   (do not change this comment) */

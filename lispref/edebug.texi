@@ -257,7 +257,8 @@ Next: stop at the next stop point encountered after an expression
 @ref{Edebug Misc}.
 
 @item t
-Trace: pause one second at each Edebug stop point (@code{edebug-trace-mode}).
+Trace: pause (normally one second) at each Edebug stop point
+(@code{edebug-trace-mode}).
 
 @item T
 Rapid trace: update the display at each stop point, but don't actually
@@ -307,6 +308,10 @@ specifies step mode.  Note that you may reenter the same Edebug level
 several times if, for example, an instrumented function is called
 several times from one command.
 
+@defopt edebug-sit-for-seconds
+This option specifies how many seconds to wait between execution steps
+in trace mode.  The default is 1 second.
+@end defopt
 
 @node Jumping
 @subsection Jumping
@@ -871,8 +876,12 @@ performed for all execution of an instrumented function, even if the
 execution mode is Go-nonstop, and regardless of whether coverage testing
 is enabled.
 
-  Use @kbd{M-x edebug-display-freq-count} to display both the
-coverage information and the frequency counts for a definition.
+@kindex C-x X =
+@findex edebug-temp-display-freq-count
+  Use @kbd{C-x X =} (@code{edebug-display-freq-count}) to display both
+the coverage information and the frequency counts for a definition.
+Just @kbd{=} (@code{edebug-temp-display-freq-count}) displays the same
+information temporarily, only until you type another key.
 
 @deffn Command edebug-display-freq-count
 This command displays the frequency count data for each line of the
@@ -1077,15 +1086,14 @@ For example, (for i from 1 to 10 do (print i))."
   ...)
 @end example
 
-@defspec declare (edebug @var{specification})
-Specify which expressions of a call to the macro in which the
-declaration appears are forms to be evaluated.  For simple macros, the
-@var{specification} often looks very similar to the formal argument list
-of the macro definition, but specifications are much more general than
-macro arguments.
-@end defspec
+  The Edebug specification says which parts of a call to the macro are
+forms to be evaluated.  For simple macros, the @var{specification}
+often looks very similar to the formal argument list of the macro
+definition, but specifications are much more general than macro
+arguments.  @xref{Defining Macros}, for more explanation of
+the @code{declare} special form.
 
-You can also define an edebug specification for a macro separately
+  You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
 @code{edebug} declarations is preferred, and more convenient, for
 macro definitions in Lisp, but @code{def-edebug-spec} makes it
@@ -1185,7 +1193,7 @@ either way.
 A lambda expression with no quoting.
 
 @item &optional
-@kindex &optional @r{(Edebug)}
+@c @kindex &optional @r{(Edebug)}
 All following elements in the specification list are optional; as soon
 as one does not match, Edebug stops matching at this level.
 
@@ -1195,7 +1203,7 @@ elements must all match or none, use @code{&optional
 [@var{specs}@dots{}]}.  See the @code{defun} example below.
 
 @item &rest
-@kindex &rest @r{(Edebug)}
+@c @kindex &rest @r{(Edebug)}
 All following elements in the specification list are repeated zero or
 more times.  In the last repetition, however, it is not a problem if the
 expression runs out before matching all of the elements of the
@@ -1206,7 +1214,7 @@ To specify several elements that must all match on every repetition, use
 @code{&rest [@var{specs}@dots{}]}.
 
 @item &or
-@kindex &or @r{(Edebug)}
+@c @kindex &or @r{(Edebug)}
 Each of the following elements in the specification list is an
 alternative.  One of the alternatives must match, or the @code{&or}
 specification fails.
@@ -1216,14 +1224,14 @@ group two or more list elements as a single alternative, enclose them in
 @code{[@dots{}]}.
 
 @item &not
-@kindex &not @r{(Edebug)}
+@c @kindex &not @r{(Edebug)}
 Each of the following elements is matched as alternatives as if by using
 @code{&or}, but if any of them match, the specification fails.  If none
 of them match, nothing is matched, but the @code{&not} specification
 succeeds.
 
 @item &define
-@kindex &define @r{(Edebug)}
+@c @kindex &define @r{(Edebug)}
 Indicates that the specification is for a defining form.  The defining
 form itself is not instrumented (that is, Edebug does not stop before and
 after the defining form), but forms inside it typically will be
@@ -1550,7 +1558,11 @@ until the @emph{next} time Edebug is invoked via a new command.
 @c A new command is not precisely true, but that is close enough -- dan
 
 @defopt edebug-global-break-condition
-If non-@code{nil}, an expression to test for at every stop point.
-If the result is non-nil, then break.  Errors are ignored.
+If non-@code{nil}, an expression to test for at every stop point.  If
+the result is non-@code{nil}, then break.  Errors are ignored.
 @xref{Global Break Condition}.
 @end defopt
+
+@ignore
+   arch-tag: 74842db8-019f-4818-b5a4-b2de878e57fd
+@end ignore

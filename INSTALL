@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994, 1996, 1997, 2000, 2001 Free software Foundation, Inc.
+Copyright (c) 1992, 94, 96, 97, 2000, 01, 02 Free software Foundation, Inc.
 See the end of the file for copying permissions.
 
 
@@ -93,13 +93,13 @@ ADDITIONAL DISTRIBUTION FILES
 
 * intlfonts-VERSION.tar.gz
 
-The intlfonts distribution contains X11 fonts that Emacs needs in
-order to display international characters.  If you see a non-ASCII
-character appear as a hollow box, that means you don't have a font for
-it.  You might find a font in the intlfonts distribution.  If you do
-have a font for a non-ASCII character, but some characters don't look
-right, or appear improperly aligned, a font from the intlfonts
-distribution might look better.
+The intlfonts distribution contains X11 fonts in various encodings
+that Emacs can use to display international characters.  If you see a
+non-ASCII character appear as a hollow box, that means you don't have
+a font for it.  You might find one in the intlfonts distribution.  If
+you do have a font for a non-ASCII character, but some characters
+don't look right, or appear improperly aligned, a font from the
+intlfonts distribution might look better.
 
 The fonts in the intlfonts distribution are also used by the ps-print
 package for printing international characters.  The file
@@ -156,22 +156,39 @@ At first, Emacs does not include fonts and does not install them.  You
 must do this yourself.
 
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
-a Unicode font.  For information on Unicode fonts for X, see
-<URL:http://czyborra.com/unifont/>,
-<URL:http://openlab.ring.gr.jp/efont/> and
+a suitable font.  For `Unicode' (ISO 10646) fonts for X, see
+<URL:http://dvdeug.dhis.org/unifont.html> (packaged in Debian),
+<URL:http://openlab.ring.gr.jp/efont/> (packaged in Debian).  (In
+recent Debian versions, there is an extensive `misc-fixed' iso10646-1
+in the default X installation.)  Perhaps also see
 <URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
+
 <URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
 ISO-8859 charsets.
 
 XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/> and mirrors)
 contains font support for most, if not all, of the charsets that Emacs
-supports.  The font files should be usable separately with older X
-releases.
+currently supports, including iso10646-1 encoded fonts for use with
+the mule-unicode charsets.  The font files should also be usable with
+older X releases.  Note that XFree 4 contains many iso10646-1 fonts
+with minimal character repertoires, which can cause problems -- see
+etc/PROBLEMS.
 
 BDF fonts etl-unicode.tar.gz used by ps-print and ps-mule to print
 Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
 and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
 
+* GNU/Linux development packages
+
+Many GNU/Linux systems do not come with development packages by
+default; they just include the files that you need to run Emacs, but
+not those you need to compile it.  For example, to compile Emacs with
+X11 support, you may need to install the special `X11 development'
+package.  For example, in April 2003, the package names to install
+were `XFree86-devel' and `Xaw3d-devel' on RedHat.  On Debian, the
+packages necessary to build the installed version should be
+sufficient; they can be installed using `apt-get build-dep emacs21' in
+Debian 3 and above.
 
 
 DETAILED BUILDING AND INSTALLATION:
@@ -274,9 +291,15 @@ or more of these options:
   --without-png        for PNG image support
 
 Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
-scroll bars.  --without-xim disables the use of X Input Methods, and
---disable-largefile omits support for files larger than 2GB on systems
-which support that.  Use --without-sound to disable sound support.
+scroll bars.  
+
+Use --without-xim to inhibit the default use of X Input Methods.  In
+this case, the X resource useXIM can be used to turn on use of XIM.
+
+Use --disable-largefile omits support for files larger than 2GB on
+systems which support that.  
+
+Use --without-sound to disable sound support.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.

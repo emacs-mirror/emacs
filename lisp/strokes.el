@@ -173,6 +173,8 @@
 ;; Other: I always have the most beta version of strokes, so if you
 ;;        want it just let me know.
 
+;; Fixme: Use pbm instead of xpm for pixmaps to work generally.
+
 ;;; Code:
 
 ;;; Requirements and provisions...
@@ -1722,4 +1724,5 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
 (run-hooks 'strokes-load-hook)
 (provide 'strokes)
 
+;;; arch-tag: 8377f60e-43fb-467a-bbcd-2774f91f833e
 ;;; strokes.el ends here

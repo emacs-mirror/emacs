@@ -628,4 +628,5 @@
 
 (provide 'iso-insert)
 
+;;; arch-tag: eb5f97bd-a034-4851-92ff-ab1f1bf92814
 ;;; iso-insert.el ends here

@@ -39,6 +39,7 @@
 ;; Function                           Browser     Earliest version
 ;; browse-url-mozilla                 Mozilla     Don't know
 ;; browse-url-galeon                  Galeon      Don't know
+;; browse-url-epiphany                Epiphany    Don't know
 ;; browse-url-netscape                Netscape    1.1b1
 ;; browse-url-mosaic                  XMosaic/mMosaic <= 2.4
 ;; browse-url-cci                     XMosaic     2.5
@@ -50,6 +51,7 @@
 ;; browse-url-mmm                     MMM         ?
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
+;; browse-url-default-macosx-browser  Mac OS X browser
 ;; browse-url-gnome-moz               GNOME interface to Mozilla
 ;; browse-url-kde                     KDE konqueror (kfm)
 
@@ -227,9 +229,11 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (if (memq system-type '(windows-nt ms-dos cygwin))
-      'browse-url-default-windows-browser
-    'browse-url-default-browser)
+  (cond
+   ((memq system-type '(windows-nt ms-dos cygwin))
+    'browse-url-default-windows-browser)
+   ((memq system-type '(darwin)) 'browse-url-default-macosx-browser)
+   (t 'browse-url-default-browser))
   "*Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -245,6 +249,7 @@ regexp should probably be \".\" to specify a default browser."
 			 :value  browse-url-w3-gnudoit)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
+	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
@@ -260,6 +265,8 @@ regexp should probably be \".\" to specify a default browser."
 			 :value browse-url-generic)
 	  (function-item :tag "Default Windows browser"
 			 :value browse-url-default-windows-browser)
+	  (function-item :tag "Default Mac OS X browser"
+			 :value browse-url-default-macosx-browser)
 	  (function-item :tag "GNOME invoking Mozilla"
 			 :value browse-url-gnome-moz)
 	  (function-item :tag "Default browser"
@@ -294,7 +301,6 @@ Defaults to the value of `browse-url-netscape-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-;;;###autoload
 (defcustom browse-url-browser-display nil
   "*The X display for running the browser, if not same as Emacs'."
   :type '(choice string (const :tag "Default" nil))
@@ -317,7 +323,6 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-;;;###autoload
 (defcustom browse-url-galeon-program "galeon"
   "*The name by which to invoke Galeon."
   :type 'string
@@ -331,6 +336,23 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
 (defcustom browse-url-galeon-startup-arguments browse-url-galeon-arguments
   "*A list of strings to pass to Galeon when it starts up.
 Defaults to the value of `browse-url-galeon-arguments' at the time
+`browse-url' is loaded."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-epiphany-program "epiphany"
+  "*The name by which to invoke Epiphany."
+  :type 'string
+  :group 'browse-url)
+
+(defcustom browse-url-epiphany-arguments nil
+  "*A list of strings to pass to Epiphany as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-epiphany-startup-arguments browse-url-epiphany-arguments
+  "*A list of strings to pass to Epiphany when it starts up.
+Defaults to the value of `browse-url-epiphany-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
@@ -349,7 +371,13 @@ If non-nil, then open the URL in a new tab rather than a new window if
   :type 'boolean
   :group 'browse-url)
 
-;;;###autoload
+(defcustom browse-url-epiphany-new-window-is-tab nil
+  "*Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-epiphany' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
 (defcustom browse-url-new-window-flag nil
   "*If non-nil, always open a new browser window with appropriate browsers.
 Passing an interactive argument to \\[browse-url], or specific browser
@@ -408,7 +436,6 @@ address to an HTTP URL:
   :version "20.3"
   :group 'browse-url)
 
-;;;###autoload
 (defcustom browse-url-save-file nil
   "*If non-nil, save the buffer before displaying its file.
 Used by the `browse-url-of-file' command."
@@ -423,15 +450,6 @@ file rather than displaying a cached copy."
   :type 'hook
   :options '(browse-url-netscape-reload)
   :group 'browse-url)
-
-(defvar browse-url-usr1-signal
-  (if (and (boundp 'emacs-major-version)
-	   (or (> emacs-major-version 19) (>= emacs-minor-version 29)))
-      'SIGUSR1 ; Why did I think this was in lower case before?
-    30)					; Check /usr/include/signal.h.
-  "The argument to `signal-process' for sending SIGUSR1 to XMosaic.
-Emacs 19.29 accepts 'SIGUSR1, earlier versions require an integer
-which is 30 on SunOS and 16 on HP-UX and Solaris.")
 
 (defcustom browse-url-CCI-port 3003
   "*Port to access XMosaic via CCI.
@@ -484,7 +502,6 @@ These might set the port, for instance."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-;;;###autoload
 (defcustom browse-url-generic-program nil
   "*The name of the browser program used by `browse-url-generic'."
   :type '(choice string (const :tag "None" nil))
@@ -731,6 +748,10 @@ to use."
 	(error "Browsing URLs is not supported on this system"))
     (w32-shell-execute "open" url)))
 
+(defun browse-url-default-macosx-browser (url &optional new-window)
+  (interactive (browse-url-interactive-arg "URL: "))
+  (start-process (concat "open " url) nil "open" url))
+
 ;; --- Netscape ---
 
 (defun browse-url-process-environment ()
@@ -770,7 +791,7 @@ The order attempted is gnome-moz-remote, Mozilla, Galeon, Netscape,
 Mosaic, IXI Mosaic, Lynx in an xterm, MMM, Konqueror, and then W3."
   (apply
     (cond
-     ((executable-find "gnome-moz-remote") 'browse-url-gnome-moz)
+     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
      ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
      ((executable-find browse-url-galeon-program) 'browse-url-galeon)
      ((executable-find browse-url-kde-program) 'browse-url-kde)
@@ -885,8 +906,8 @@ used instead of `browse-url-new-window-flag'."
 				(if (browse-url-maybe-new-window
 				     new-window)
 				    (if browse-url-mozilla-new-window-is-tab
-					",new-tab")
-				  ",new-window")
+					",new-tab"
+				      ",new-window"))
 				")"))))))
     (set-process-sentinel process
 			  `(lambda (process change)
@@ -927,7 +948,8 @@ used instead of `browse-url-new-window-flag'."
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
-			 (concat "galeon " url) nil
+			 (concat "galeon " url)
+			 nil
 			 browse-url-galeon-program
 			 (append
 			  browse-url-galeon-arguments
@@ -951,8 +973,57 @@ used instead of `browse-url-new-window-flag'."
 	       browse-url-galeon-program
 	       (append browse-url-galeon-startup-arguments (list url))))))
 
-;; GNOME means of invoking either Mozilla or Netrape.
+(defun browse-url-epiphany (url &optional new-window)
+  "Ask the Epiphany WWW browser to load URL.
+Default to the URL around or before point.  The strings in variable
+`browse-url-galeon-arguments' are also passed to Epiphany.
 
+When called interactively, if variable `browse-url-new-window-flag' is
+non-nil, load the document in a new Epiphany window, otherwise use a
+random existing one.  A non-nil interactive prefix argument reverses
+the effect of `browse-url-new-window-flag'.
+
+If `browse-url-epiphany-new-window-is-tab' is non-nil, then whenever a
+document would otherwise be loaded in a new window, it is loaded in a
+new tab in an existing window instead.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-flag'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  ;; URL encode any `confusing' characters in the URL.  This needs to
+  ;; include at least commas; presumably also close parens.
+  (while (string-match "[,)]" url)
+    (setq url (replace-match
+	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (let* ((process-environment (browse-url-process-environment))
+         (process (apply 'start-process
+			 (concat "epiphany " url)
+			 nil
+			 browse-url-epiphany-program
+			 (append
+			  browse-url-epiphany-arguments
+                          (if (browse-url-maybe-new-window new-window)
+			      (if browse-url-epiphany-new-window-is-tab
+				  '("--new-tab")
+				'("--new-window" "--noraise"))
+                            '("--existing"))
+                          (list url)))))
+    (set-process-sentinel process
+			  `(lambda (process change)
+			     (browse-url-epiphany-sentinel process ,url)))))
+
+(defun browse-url-epiphany-sentinel (process url)
+  "Handle a change to the process communicating with Epiphany."
+  (or (eq (process-exit-status process) 0)
+      (let* ((process-environment (browse-url-process-environment)))
+	;; Epiphany is not running - start it
+	(message "Starting Epiphany...")
+	(apply 'start-process (concat "epiphany " url) nil
+	       browse-url-epiphany-program
+	       (append browse-url-epiphany-startup-arguments (list url))))))
+
+;; GNOME means of invoking either Mozilla or Netrape.
+(defvar browse-url-gnome-moz-program "gnome-moz-remote")
 (defcustom browse-url-gnome-moz-arguments '()
   "*A list of strings passed to the GNOME mozilla viewer as arguments."
   :version "21.1"
@@ -975,7 +1046,7 @@ used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (apply 'start-process (concat "gnome-moz-remote " url)
 	 nil
-	 "gnome-moz-remote"
+	 browse-url-gnome-moz-program
 	 (append
 	  browse-url-gnome-moz-arguments
 	  (if (browse-url-maybe-new-window new-window)
@@ -1021,7 +1092,7 @@ used instead of `browse-url-new-window-flag'."
 	  (kill-buffer nil)
 	  ;; Send signal SIGUSR to Mosaic
 	  (message "Signalling Mosaic...")
-	  (signal-process pid browse-url-usr1-signal)
+	  (signal-process pid 'SIGUSR1)
 	  ;; Or you could try:
 	  ;; (call-process "kill" nil 0 nil "-USR1" (int-to-string pid))
 	  (message "Signalling Mosaic...done")
@@ -1034,7 +1105,6 @@ used instead of `browse-url-new-window-flag'."
 
 ;; --- Grail ---
 
-;;;###autoload
 (defvar browse-url-grail
   (concat (or (getenv "GRAILDIR") "~/.grail") "/user/rcgrail.py")
   "Location of Grail remote control client script `rcgrail.py'.
@@ -1280,9 +1350,10 @@ don't offer a form of remote control."
 Default to the URL around or before point."
   (interactive (browse-url-interactive-arg "KDE URL: "))
   (message "Sending URL to KDE...")
-  (apply #'start-process `(,(concat "KDE" url) nil ,browse-url-kde-program
-			   ,@browse-url-kde-args ,url)))
+  (apply #'start-process (concat "KDE " url) nil browse-url-kde-program
+	                 (append browse-url-kde-args (list url))))
 
 (provide 'browse-url)
 
+;;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here

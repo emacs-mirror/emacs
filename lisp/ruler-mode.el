@@ -5,7 +5,7 @@
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001
-;; Version: 1.5
+;; Version: 1.6
 ;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
@@ -33,14 +33,14 @@
 ;; You can use the mouse to change the `fill-column' `comment-column',
 ;; `goal-column', `window-margins' and `tab-stop-list' settings:
 ;;
-;; [header-line (shift down-mouse-1)] set left margin to the ruler
+;; [header-line (shift down-mouse-1)] set left margin end to the ruler
 ;; graduation where the mouse pointer is on.
 ;;
-;; [header-line (shift down-mouse-3)] set right margin to the ruler
-;; graduation where the mouse pointer is on.
+;; [header-line (shift down-mouse-3)] set right margin beginning to
+;; the ruler graduation where the mouse pointer is on.
 ;;
-;; [header-line down-mouse-2] set `fill-column', `comment-column' or
-;; `goal-column' to the ruler graduation with the mouse dragging.
+;; [header-line down-mouse-2] Drag the `fill-column', `comment-column'
+;; or `goal-column' to a ruler graduation.
 ;;
 ;; [header-line (control down-mouse-1)] add a tab stop to the ruler
 ;; graduation where the mouse pointer is on.
@@ -57,14 +57,12 @@
 ;; the `current-column' location, `ruler-mode-fill-column-char' shows
 ;; the `fill-column' location, `ruler-mode-comment-column-char' shows
 ;; the `comment-column' location, `ruler-mode-goal-column-char' shows
-;; the `goal-column' and `ruler-mode-tab-stop-char' shows tab
-;; stop locations.  `window-margins' areas are shown with a different
-;; background color.
+;; the `goal-column' and `ruler-mode-tab-stop-char' shows tab stop
+;; locations.  Graduations in `window-margins' and `window-fringes'
+;; areas are shown with a different foreground color.
 ;;
 ;; It is also possible to customize the following characters:
 ;;
-;; - `ruler-mode-margins-char' character used to pad margin areas
-;;   (space by default).
 ;; - `ruler-mode-basic-graduation-char' character used for basic
 ;;   graduations ('.' by default).
 ;; - `ruler-mode-inter-graduation-char' character used for
@@ -83,13 +81,15 @@
 ;;   `current-column' character.
 ;; - `ruler-mode-tab-stop-face' the face used to highlight tab stop
 ;;   characters.
-;; - `ruler-mode-margins-face' the face used to highlight the
-;;   `window-margins' areas.
+;; - `ruler-mode-margins-face' the face used to highlight graduations
+;;   in the `window-margins' areas.
+;; - `ruler-mode-fringes-face' the face used to highlight graduations
+;;   in the `window-fringes' areas.
 ;; - `ruler-mode-column-number-face' the face used to highlight the
-;;   number graduations.
+;;   numbered graduations.
 ;;
 ;; `ruler-mode-default-face' inherits from the built-in `default' face.
-;; All `ruler-mode' faces inerit from `ruler-mode-default-face'.
+;; All `ruler-mode' faces inherit from `ruler-mode-default-face'.
 ;;
 ;; WARNING: To keep ruler graduations aligned on text columns it is
 ;; important to use the same font family and size for ruler and text
@@ -135,7 +135,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                     (format "Invalid character value: %S" value))
         widget))))
 
-(defcustom ruler-mode-fill-column-char (if window-system
+(defcustom ruler-mode-fill-column-char (if (char-displayable-p ?¶)
                                            ?\¶
                                          ?\|)
   "*Character used at the `fill-column' location."
@@ -161,7 +161,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
           (integer :tag "Integer char value"
                    :validate ruler-mode-character-validate)))
 
-(defcustom ruler-mode-current-column-char (if window-system
+(defcustom ruler-mode-current-column-char (if (char-displayable-p ?¦)
                                               ?\¦
                                             ?\@)
   "*Character used at the `current-column' location."
@@ -173,14 +173,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
 
 (defcustom ruler-mode-tab-stop-char ?\T
   "*Character used at `tab-stop-list' locations."
-  :group 'ruler-mode
-  :type '(choice
-          (character :tag "Character")
-          (integer :tag "Integer char value"
-                   :validate ruler-mode-character-validate)))
-
-(defcustom ruler-mode-margins-char ?\s
-  "*Character used in margin areas."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -225,6 +217,34 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Default face used by the ruler."
   :group 'ruler-mode)
 
+(defface ruler-mode-pad-face
+  '((((type tty))
+     (:inherit ruler-mode-default-face
+               :background "grey50"
+               ))
+    (t
+     (:inherit ruler-mode-default-face
+               :background "grey64"
+               )))
+  "Face used to pad inactive ruler areas."
+  :group 'ruler-mode)
+
+(defface ruler-mode-margins-face
+  '((t
+     (:inherit ruler-mode-default-face
+               :foreground "white"
+               )))
+  "Face used to highlight margin areas."
+  :group 'ruler-mode)
+
+(defface ruler-mode-fringes-face
+  '((t
+     (:inherit ruler-mode-default-face
+               :foreground "green"
+               )))
+  "Face used to highlight fringes areas."
+  :group 'ruler-mode)
+
 (defface ruler-mode-column-number-face
   '((t
      (:inherit ruler-mode-default-face
@@ -265,18 +285,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Face used to highlight tab stop characters."
   :group 'ruler-mode)
 
-(defface ruler-mode-margins-face
-  '((((type tty))
-     (:inherit ruler-mode-default-face
-               :background "grey50"
-               ))
-    (t
-     (:inherit ruler-mode-default-face
-               :background "grey64"
-               )))
-  "Face used to highlight the `window-margins' areas."
-  :group 'ruler-mode)
-
 (defface ruler-mode-current-column-face
   '((t
      (:inherit ruler-mode-default-face
@@ -286,207 +294,251 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
 
+(defmacro ruler-mode-left-fringe-cols ()
+  "Return the width, measured in columns, of the left fringe area."
+  '(ceiling (or (car (window-fringes)) 0)
+            (frame-char-width)))
+
+(defmacro ruler-mode-right-fringe-cols ()
+  "Return the width, measured in columns, of the right fringe area."
+  '(ceiling (or (nth 1 (window-fringes)) 0)
+            (frame-char-width)))
+
+(defun ruler-mode-left-scroll-bar-cols ()
+  "Return the width, measured in columns, of the right vertical scrollbar."
+  (let* ((wsb   (window-scroll-bars))
+         (vtype (nth 2 wsb))
+         (cols  (nth 1 wsb)))
+    (if (or (eq vtype 'left)
+            (and (eq vtype t)
+                 (eq (frame-parameter nil 'vertical-scroll-bars) 'left)))
+        (or cols
+            (ceiling
+             ;; nil means it's a non-toolkit scroll bar,
+             ;; and its width in columns is 14 pixels rounded up.
+             (or (frame-parameter nil 'scroll-bar-width) 14)
+             ;; Always round up to multiple of columns.
+             (frame-char-width)))
+      0)))
+
+(defun ruler-mode-right-scroll-bar-cols ()
+  "Return the width, measured in columns, of the right vertical scrollbar."
+  (let* ((wsb   (window-scroll-bars))
+         (vtype (nth 2 wsb))
+         (cols  (nth 1 wsb)))
+    (if (or (eq vtype 'right)
+            (and (eq vtype t)
+                 (eq (frame-parameter nil 'vertical-scroll-bars) 'right)))
+        (or cols
+            (ceiling
+             ;; nil means it's a non-toolkit scroll bar,
+             ;; and its width in columns is 14 pixels rounded up.
+             (or (frame-parameter nil 'scroll-bar-width) 14)
+             ;; Always round up to multiple of columns.
+             (frame-char-width)))
+      0)))
+
+(defsubst ruler-mode-full-window-width ()
+  "Return the full width of the selected window."
+  (let ((edges (window-edges)))
+    (- (nth 2 edges) (nth 0 edges))))
+
+(defsubst ruler-mode-window-col (n)
+  "Return a column number relative to the selected window.
+N is a column number relative to selected frame."
+  (- n
+     (car (window-edges))
+     (or (car (window-margins)) 0)
+     (ruler-mode-left-fringe-cols)
+     (ruler-mode-left-scroll-bar-cols)))
+
 (defun ruler-mode-mouse-set-left-margin (start-event)
-  "Set left margin to the graduation where the mouse pointer is on.
+  "Set left margin end to the graduation where the mouse pointer is on.
 START-EVENT is the mouse click event."
   (interactive "e")
   (let* ((start (event-start start-event))
          (end   (event-end   start-event))
-         w col m lm0 lm rm)
-    (if (eq start end) ;; mouse click
-        (save-selected-window
-          (select-window (posn-window start))
-          (setq m   (window-margins)
-                lm0 (or (car m) 0)
-                rm  (or (cdr m) 0)
-                w   (window-width)
-                col (car (posn-col-row start))
-                lm  (min (- w rm) col))
-          (message "Left margin set to %d (was %d)" lm lm0)
-          (set-window-margins nil lm rm)))))
+         col w lm rm)
+    (when (eq start end) ;; mouse click
+      (save-selected-window
+        (select-window (posn-window start))
+        (setq col (- (car (posn-col-row start)) (car (window-edges))
+                     (ruler-mode-left-scroll-bar-cols))
+              w   (- (ruler-mode-full-window-width)
+                     (ruler-mode-left-scroll-bar-cols)
+                     (ruler-mode-right-scroll-bar-cols)))
+        (when (and (>= col 0) (< col w))
+          (setq lm (window-margins)
+                rm (or (cdr lm) 0)
+                lm (or (car lm) 0))
+          (message "Left margin set to %d (was %d)" col lm)
+          (set-window-margins nil col rm))))))
 
 (defun ruler-mode-mouse-set-right-margin (start-event)
-  "Set right margin to the graduation where the mouse pointer is on.
+  "Set right margin beginning to the graduation where the mouse pointer is on.
 START-EVENT is the mouse click event."
   (interactive "e")
   (let* ((start (event-start start-event))
          (end   (event-end   start-event))
-         m col w lm rm0 rm)
-    (if (eq start end) ;; mouse click
-        (save-selected-window
-          (select-window (posn-window start))
-          (setq m   (window-margins)
-                rm0 (or (cdr m) 0)
-                lm  (or (car m) 0)
-                col (car (posn-col-row start))
-                w   (window-width)
-                rm  (max 0 (- w col)))
-          (message "Right margin set to %d (was %d)" rm rm0)
-          (set-window-margins nil lm rm)))))
+         col w lm rm)
+    (when (eq start end) ;; mouse click
+      (save-selected-window
+        (select-window (posn-window start))
+        (setq col (- (car (posn-col-row start)) (car (window-edges))
+                     (ruler-mode-left-scroll-bar-cols))
+              w   (- (ruler-mode-full-window-width)
+                     (ruler-mode-left-scroll-bar-cols)
+                     (ruler-mode-right-scroll-bar-cols)))
+        (when (and (>= col 0) (< col w))
+          (setq lm  (window-margins)
+                rm  (or (cdr lm) 0)
+                lm  (or (car lm) 0)
+                col (- w col 1))
+          (message "Right margin set to %d (was %d)" col rm)
+          (set-window-margins nil lm col))))))
 
-(defvar ruler-mode-mouse-current-grab-object nil
+(defvar ruler-mode-dragged-symbol nil
   "Column symbol dragged in the ruler.
 That is `fill-column', `comment-column', `goal-column', or nil when
 nothing is dragged.")
 
 (defun ruler-mode-mouse-grab-any-column (start-event)
-  "Set a column symbol to the graduation with mouse dragging.
-See also variable `ruler-mode-mouse-current-grab-object'.
-START-EVENT is the mouse down event."
+  "Drag a column symbol on the ruler.
+Start dragging on mouse down event START-EVENT, and update the column
+symbol value with the current value of the ruler graduation while
+dragging.  See also the variable `ruler-mode-dragged-symbol'."
   (interactive "e")
-  (setq ruler-mode-mouse-current-grab-object nil)
+  (setq ruler-mode-dragged-symbol nil)
   (let* ((start (event-start start-event))
-         m col w lm rm hs newc oldc)
+         col newc oldc)
     (save-selected-window
       (select-window (posn-window start))
-      (setq m   (window-margins)
-            lm  (or (car m) 0)
-            rm  (or (cdr m) 0)
-            col (- (car (posn-col-row start)) lm)
-            w   (window-width)
-            hs  (window-hscroll)
-            newc  (+ col hs))
-      ;;
-      ;; About the ways to handle the goal column:
-      ;; A. update the value of the goal column if goal-column has
-      ;;    non-nil value and if the mouse is dragged
-      ;; B. set value to the goal column if goal-column has nil and if
-      ;;    the mouse is just clicked, not dragged.
-      ;; C. unset value to the goal column if goal-column has non-nil
-      ;;    and mouse is just clicked on goal-column character on the
-      ;;    ruler, not dragged.
-      ;;
-      (and (>= col 0) (< (+ col lm rm) w)
-           (cond
-            ((eq newc fill-column)
-             (setq oldc fill-column)
-             (setq ruler-mode-mouse-current-grab-object 'fill-column)
-             t)
-            ((eq newc comment-column)
-             (setq oldc comment-column)
-             (setq ruler-mode-mouse-current-grab-object 'comment-column)
-             t)
-            ((eq newc goal-column)      ; A. update goal column
-             (setq oldc goal-column)
-             (setq ruler-mode-mouse-current-grab-object 'goal-column)
-             t)
-            ((null goal-column)         ; B. set goal column
-             (setq oldc goal-column)
-             (setq goal-column newc)
-             ;; mouse-2 coming AFTER drag-mouse-2 invokes `ding'.
-             ;; This `ding' flushes the next messages about setting
-             ;; goal column. So here I force fetch the event(mouse-2)
-             ;; and throw away.
-             (read-event)
-             ;; Ding BEFORE `message' is OK.
-             (if ruler-mode-set-goal-column-ding-flag
-                 (ding))
-             (message
-              "Goal column %d (click `%s' on the ruler again to unset it)"
-              newc
-              (propertize (char-to-string ruler-mode-goal-column-char)
-                          'face 'ruler-mode-goal-column-face))
-             ;; don't enter drag iteration
-             nil))
-           (if (eq 'click (ruler-mode-mouse-drag-any-column-iteration
-                           (posn-window start)))
-               (if (eq 'goal-column ruler-mode-mouse-current-grab-object)
-                   ;; C. unset goal column
-                   (set-goal-column t))
-             ;; *-column is updated; report it
-             (message "%s is set to %d (was %d)"
-                      ruler-mode-mouse-current-grab-object
-                      (eval ruler-mode-mouse-current-grab-object)
-                      oldc))))))
+      (setq col  (ruler-mode-window-col (car (posn-col-row start)))
+            newc (+ col (window-hscroll)))
+      (and
+       (>= col 0) (< col (window-width))
+       (cond
+
+        ;; Handle the fill column.
+        ((eq newc fill-column)
+         (setq oldc fill-column
+               ruler-mode-dragged-symbol 'fill-column)
+         t) ;; Start dragging
+
+        ;; Handle the comment column.
+        ((eq newc comment-column)
+         (setq oldc comment-column
+               ruler-mode-dragged-symbol 'comment-column)
+         t) ;; Start dragging
+
+        ;; Handle the goal column.
+        ;; A. On mouse down on the goal column character on the ruler,
+        ;;    update the `goal-column' value while dragging.
+        ;; B. If `goal-column' is nil, set the goal column where the
+        ;;    mouse is clicked.
+        ;; C. On mouse click on the goal column character on the
+        ;;    ruler, unset the goal column.
+        ((eq newc goal-column)          ; A. Drag the goal column.
+         (setq oldc goal-column
+               ruler-mode-dragged-symbol 'goal-column)
+         t) ;; Start dragging
+
+        ((null goal-column)             ; B. Set the goal column.
+         (setq oldc goal-column
+               goal-column newc)
+         ;; mouse-2 coming AFTER drag-mouse-2 invokes `ding'.  This
+         ;; `ding' flushes the next messages about setting goal
+         ;; column.  So here I force fetch the event(mouse-2) and
+         ;; throw away.
+         (read-event)
+         ;; Ding BEFORE `message' is OK.
+         (when ruler-mode-set-goal-column-ding-flag
+           (ding))
+         (message "Goal column set to %d (click on %s again to unset it)"
+                  newc
+                  (propertize (char-to-string ruler-mode-goal-column-char)
+                              'face 'ruler-mode-goal-column-face))
+         nil) ;; Don't start dragging.
+        )
+       (if (eq 'click (ruler-mode-mouse-drag-any-column-iteration
+                       (posn-window start)))
+           (when (eq 'goal-column ruler-mode-dragged-symbol)
+             ;; C. Unset the goal column.
+             (set-goal-column t))
+         ;; At end of dragging, report the updated column symbol.
+         (message "%s is set to %d (was %d)"
+                  ruler-mode-dragged-symbol
+                  (symbol-value ruler-mode-dragged-symbol)
+                  oldc))))))
 
 (defun ruler-mode-mouse-drag-any-column-iteration (window)
   "Update the ruler while dragging the mouse.
-WINDOW is the window where the last down-mouse event is occurred.
-Return a symbol `drag' if the mouse is actually dragged.
-Return a symbol `click' if the mouse is just clicked."
-  (let (newevent
-        (drag-count 0))
+WINDOW is the window where occurred the last down-mouse event.
+Return the symbol `drag' if the mouse has been dragged, or `click' if
+the mouse has been clicked."
+  (let ((drags 0)
+        event)
     (track-mouse
-      (while (progn
-               (setq newevent (read-event))
-               (mouse-movement-p newevent))
-        (setq drag-count (1+ drag-count))
-        (if (eq window (posn-window (event-end newevent)))
-            (progn
-              (ruler-mode-mouse-drag-any-column newevent)
-              (force-mode-line-update)))))
-    (if (and (eq drag-count 0)
-             (eq 'click (car (event-modifiers newevent))))
+      (while (mouse-movement-p (setq event (read-event)))
+        (setq drags (1+ drags))
+        (when (eq window (posn-window (event-end event)))
+          (ruler-mode-mouse-drag-any-column event)
+          (force-mode-line-update))))
+    (if (and (zerop drags) (eq 'click (car (event-modifiers event))))
         'click
       'drag)))
 
 (defun ruler-mode-mouse-drag-any-column (start-event)
-  "Update the ruler for START-EVENT, one mouse motion event."
+  "Update the value of the symbol dragged on the ruler.
+Called on each mouse motion event START-EVENT."
   (let* ((start (event-start start-event))
          (end   (event-end   start-event))
-         m col w lm rm hs newc)
+         col newc)
     (save-selected-window
       (select-window (posn-window start))
-      (setq m   (window-margins)
-            lm  (or (car m) 0)
-            rm  (or (cdr m) 0)
-            col (- (car (posn-col-row end)) lm)
-            w   (window-width)
-            hs  (window-hscroll)
-            newc  (+ col hs))
-      (if (and (>= col 0) (< (+ col lm rm) w))
-          (set ruler-mode-mouse-current-grab-object newc)))))
+      (setq col  (ruler-mode-window-col (car (posn-col-row end)))
+            newc (+ col (window-hscroll)))
+      (when (and (>= col 0) (< col (window-width)))
+        (set ruler-mode-dragged-symbol newc)))))
 
 (defun ruler-mode-mouse-add-tab-stop (start-event)
   "Add a tab stop to the graduation where the mouse pointer is on.
 START-EVENT is the mouse click event."
   (interactive "e")
-  (if ruler-mode-show-tab-stops
-      (let* ((start (event-start start-event))
-             (end   (event-end   start-event))
-             m col w lm rm hs ts)
-        (if (eq start end) ;; mouse click
-            (save-selected-window
-              (select-window (posn-window start))
-              (setq m   (window-margins)
-                    lm  (or (car m) 0)
-                    rm  (or (cdr m) 0)
-                    col (- (car (posn-col-row start)) lm)
-                    w   (window-width)
-                    hs  (window-hscroll)
-                    ts  (+ col hs))
-              (and (>= col 0) (< (+ col lm rm) w)
-                   (not (member ts tab-stop-list))
-                   (progn
-                     (message "Tab stop set to %d" ts)
-                     (setq tab-stop-list
-                           (sort (cons ts tab-stop-list)
-                                 #'<)))))))))
+  (when ruler-mode-show-tab-stops
+    (let* ((start (event-start start-event))
+           (end   (event-end   start-event))
+           col ts)
+      (when (eq start end) ;; mouse click
+        (save-selected-window
+          (select-window (posn-window start))
+          (setq col (ruler-mode-window-col (car (posn-col-row start)))
+                ts  (+ col (window-hscroll)))
+          (and (>= col 0) (< col (window-width))
+               (not (member ts tab-stop-list))
+               (progn
+                 (message "Tab stop set to %d" ts)
+                 (setq tab-stop-list (sort (cons ts tab-stop-list)
+                                           #'<)))))))))
 
 (defun ruler-mode-mouse-del-tab-stop (start-event)
   "Delete tab stop at the graduation where the mouse pointer is on.
 START-EVENT is the mouse click event."
   (interactive "e")
-  (if ruler-mode-show-tab-stops
-      (let* ((start (event-start start-event))
-             (end   (event-end   start-event))
-             m col w lm rm hs ts)
-        (if (eq start end) ;; mouse click
-            (save-selected-window
-              (select-window (posn-window start))
-              (setq m   (window-margins)
-                    lm  (or (car m) 0)
-                    rm  (or (cdr m) 0)
-                    col (- (car (posn-col-row start)) lm)
-                    w   (window-width)
-                    hs  (window-hscroll)
-                    ts  (+ col hs))
-              (and (>= col 0) (< (+ col lm rm) w)
-                   (member ts tab-stop-list)
-                   (progn
-                     (message "Tab stop at %d deleted" ts)
-                     (setq tab-stop-list
-                           (delete ts tab-stop-list)))))))))
+  (when ruler-mode-show-tab-stops
+    (let* ((start (event-start start-event))
+           (end   (event-end   start-event))
+           col ts)
+      (when (eq start end) ;; mouse click
+        (save-selected-window
+          (select-window (posn-window start))
+          (setq col (ruler-mode-window-col (car (posn-col-row start)))
+                ts  (+ col (window-hscroll)))
+          (and (>= col 0) (< col (window-width))
+               (member ts tab-stop-list)
+               (progn
+                 (message "Tab stop at %d deleted" ts)
+                 (setq tab-stop-list (delete ts tab-stop-list)))))))))
 
 (defun ruler-mode-toggle-show-tab-stops ()
   "Toggle showing of tab stops on the ruler."
@@ -542,7 +594,7 @@ START-EVENT is the mouse click event."
     ;; the current one is the ruler header line format.
     (when (eq header-line-format ruler-mode-header-line-format)
       (kill-local-variable 'header-line-format)
-      (when ruler-mode-header-line-format-old
+      (when (local-variable-p 'ruler-mode-header-line-format-old)
         (setq header-line-format ruler-mode-header-line-format-old)))
     (remove-hook 'post-command-hook     ; remove local hook
                  #'force-mode-line-update t)))
@@ -588,195 +640,150 @@ drag-mouse-2: set goal column, \
 mouse-2: unset goal column"
   "Help string shown when mouse is on the goal column character.")
 
-(defconst ruler-mode-left-margin-help-echo
-  "Left margin %S"
-  "Help string shown when mouse is over the left margin area.")
+(defconst ruler-mode-margin-help-echo
+  "%s margin %S"
+  "Help string shown when mouse is over a margin area.")
 
-(defconst ruler-mode-right-margin-help-echo
-  "Right margin %S"
-  "Help string shown when mouse is over the right margin area.")
-
-(defmacro ruler-mode-left-fringe-cols ()
-  "Return the width, measured in columns, of the left fringe area."
-  '(round (or (frame-parameter nil 'left-fringe) 0)
-          (frame-char-width)))
-
-(defmacro ruler-mode-right-fringe-cols ()
-  "Return the width, measured in columns, of the right fringe area."
-  '(round (or (frame-parameter nil 'right-fringe) 0)
-          (frame-char-width)))
-
-(defmacro ruler-mode-left-scroll-bar-cols ()
-  "Return the width, measured in columns, of the left vertical scrollbar."
-  '(if (eq (frame-parameter nil 'vertical-scroll-bars) 'left)
-       (let ((sbw (frame-parameter nil 'scroll-bar-width)))
-         ;; nil means it's a non-toolkit scroll bar,
-         ;; and its width in columns is 14 pixels rounded up.
-         (unless sbw (setq sbw 14))
-         ;; Always round up to multiple of columns.
-         (ceiling sbw (frame-char-width)))
-     0))
-
-(defmacro ruler-mode-right-scroll-bar-cols ()
-  "Return the width, measured in columns, of the right vertical scrollbar."
-  '(if (eq (frame-parameter nil 'vertical-scroll-bars) 'right)
-       (round (or (frame-parameter nil 'scroll-bar-width) 0)
-              (frame-char-width))
-     0))
+(defconst ruler-mode-fringe-help-echo
+  "%s fringe %S"
+  "Help string shown when mouse is over a fringe area.")
 
 (defun ruler-mode-ruler ()
   "Return a string ruler."
-  (if ruler-mode
-      (let* ((j     (+ (ruler-mode-left-fringe-cols)
-                       (ruler-mode-left-scroll-bar-cols)))
-             (w     (+ (window-width) j))
-             (m     (window-margins))
-             (l     (or (car m) 0))
-             (r     (or (cdr m) 0))
-             (o     (- (window-hscroll) l j))
-             (i     0)
-             (ruler (concat
-                     ;; unit graduations
-                     (make-string w ruler-mode-basic-graduation-char)
-                     ;; extra space to fill the header line
-                     (make-string (+ (ruler-mode-right-fringe-cols)
-                                     (ruler-mode-right-scroll-bar-cols))
-                                  ?\ )))
-             c k)
+  (when ruler-mode
+    (let* ((fullw (ruler-mode-full-window-width))
+           (w     (window-width))
+           (m     (window-margins))
+           (lsb   (ruler-mode-left-scroll-bar-cols))
+           (lf    (ruler-mode-left-fringe-cols))
+           (lm    (or (car m) 0))
+           (rsb   (ruler-mode-right-scroll-bar-cols))
+           (rf    (ruler-mode-right-fringe-cols))
+           (rm    (or (cdr m) 0))
+           (ruler (make-string fullw ruler-mode-basic-graduation-char))
+           (o     (+ lsb lf lm))
+           (x     0)
+           (i     o)
+           (j     (window-hscroll))
+           k c l1 l2 r2 r1 h1 h2 f1 f2)
 
-        ;; Setup default face and help echo.
-        (put-text-property 0 (length ruler)
-                           'face 'ruler-mode-default-face
-                           ruler)
-        (put-text-property 0 (length ruler)
-                           'help-echo
-                           (if ruler-mode-show-tab-stops
-                               ruler-mode-ruler-help-echo-when-tab-stops
-                             (if goal-column
-                                 ruler-mode-ruler-help-echo-when-goal-column
-                               ruler-mode-ruler-help-echo))
-                           ruler)
-        ;; Setup the local map.
-        (put-text-property 0 (length ruler)
-                           'local-map ruler-mode-map
-                           ruler)
+      ;; Setup the default properties.
+      (put-text-property 0 fullw 'face 'ruler-mode-default-face ruler)
+      (put-text-property 0 fullw
+                         'help-echo
+                         (cond
+                          (ruler-mode-show-tab-stops
+                           ruler-mode-ruler-help-echo-when-tab-stops)
+                          (goal-column
+                           ruler-mode-ruler-help-echo-when-goal-column)
+                          (t
+                           ruler-mode-ruler-help-echo))
+                         ruler)
+      ;; Setup the local map.
+      (put-text-property 0 fullw 'local-map ruler-mode-map ruler)
 
-        (setq j (+ l j))
-        ;; Setup the left margin area.
-        (put-text-property
-         i j 'face 'ruler-mode-margins-face
-         ruler)
-        (put-text-property
-         i j 'help-echo (format ruler-mode-left-margin-help-echo l)
-         ruler)
-        (while (< i j)
-          (aset ruler i ruler-mode-margins-char)
-          (setq i (1+ i)))
+      ;; Setup the active area.
+      (while (< x w)
+        ;; Graduations.
+        (cond
+         ;; Show a number graduation.
+         ((= (mod j 10) 0)
+          (setq c (number-to-string (/ j 10))
+                m (length c)
+                k i)
+          (put-text-property
+           i (1+ i) 'face 'ruler-mode-column-number-face
+           ruler)
+          (while (and (> m 0) (>= k 0))
+            (aset ruler k (aref c (setq m (1- m))))
+            (setq k (1- k))))
+         ;; Show an intermediate graduation.
+         ((= (mod j 5) 0)
+          (aset ruler i ruler-mode-inter-graduation-char)))
+        ;; Special columns.
+        (cond
+         ;; Show the `current-column' marker.
+         ((= j (current-column))
+          (aset ruler i ruler-mode-current-column-char)
+          (put-text-property
+           i (1+ i) 'face 'ruler-mode-current-column-face
+           ruler))
+         ;; Show the `goal-column' marker.
+         ((and goal-column (= j goal-column))
+          (aset ruler i ruler-mode-goal-column-char)
+          (put-text-property
+           i (1+ i) 'face 'ruler-mode-goal-column-face
+           ruler)
+          (put-text-property
+           i (1+ i) 'help-echo ruler-mode-goal-column-help-echo
+           ruler))
+         ;; Show the `comment-column' marker.
+         ((= j comment-column)
+          (aset ruler i ruler-mode-comment-column-char)
+          (put-text-property
+           i (1+ i) 'face 'ruler-mode-comment-column-face
+           ruler)
+          (put-text-property
+           i (1+ i) 'help-echo ruler-mode-comment-column-help-echo
+           ruler))
+         ;; Show the `fill-column' marker.
+         ((= j fill-column)
+          (aset ruler i ruler-mode-fill-column-char)
+          (put-text-property
+           i (1+ i) 'face 'ruler-mode-fill-column-face
+           ruler)
+          (put-text-property
+           i (1+ i) 'help-echo ruler-mode-fill-column-help-echo
+           ruler))
+         ;; Show the `tab-stop-list' markers.
+         ((and ruler-mode-show-tab-stops (member j tab-stop-list))
+          (aset ruler i ruler-mode-tab-stop-char)
+          (put-text-property
+           i (1+ i) 'face 'ruler-mode-tab-stop-face
+           ruler)))
+        (setq i (1+ i)
+              j (1+ j)
+              x (1+ x)))
 
-        ;; Setup the ruler area.
-        (setq r (- w r))
-        (while (< i r)
-          (setq j (+ i o))
-          (cond
-           ((= (mod j 10) 0)
-            (setq c (number-to-string (/ j 10))
-                  m (length c)
-                  k i)
-            (put-text-property
-             i (1+ i) 'face 'ruler-mode-column-number-face
-             ruler)
-            (while (and (> m 0) (>= k 0))
-              (aset ruler k (aref c (setq m (1- m))))
-              (setq k (1- k)))
-            )
-           ((= (mod j 5) 0)
-            (aset ruler i ruler-mode-inter-graduation-char)
-            )
-           )
-          (setq i (1+ i)))
+      ;; Highlight the fringes and margins.
+      (if (nth 2 (window-fringes))
+          ;; fringes outside margins.
+          (setq l1 lf
+                l2 lm
+                r2 rm
+                r1 rf
+                h1 ruler-mode-fringe-help-echo
+                h2 ruler-mode-margin-help-echo
+                f1 'ruler-mode-fringes-face
+                f2 'ruler-mode-margins-face)
+        ;; fringes inside margins.
+        (setq l1 lm
+              l2 lf
+              r2 rf
+              r1 rm
+              h1 ruler-mode-margin-help-echo
+              h2 ruler-mode-fringe-help-echo
+              f1 'ruler-mode-margins-face
+              f2 'ruler-mode-fringes-face))
+      (setq i lsb j (+ i l1))
+      (put-text-property i j 'face f1 ruler)
+      (put-text-property i j 'help-echo (format h1 "Left" l1) ruler)
+      (setq i j j (+ i l2))
+      (put-text-property i j 'face f2 ruler)
+      (put-text-property i j 'help-echo (format h2 "Left" l2) ruler)
+      (setq i (+ o w) j (+ i r2))
+      (put-text-property i j 'face f2 ruler)
+      (put-text-property i j 'help-echo (format h2 "Right" r2) ruler)
+      (setq i j j (+ i r1))
+      (put-text-property i j 'face f1 ruler)
+      (put-text-property i j 'help-echo (format h1 "Right" r1) ruler)
 
-        ;; Setup the right margin area.
-        (put-text-property
-         i (length ruler) 'face 'ruler-mode-margins-face
-         ruler)
-        (put-text-property
-         i (length ruler) 'help-echo
-         (format ruler-mode-right-margin-help-echo (- w r))
-         ruler)
-        (while (< i (length ruler))
-          (aset ruler i ruler-mode-margins-char)
-          (setq i (1+ i)))
+      ;; Show inactive areas.
+      (put-text-property 0 lsb   'face 'ruler-mode-pad-face ruler)
+      (put-text-property j fullw 'face 'ruler-mode-pad-face ruler)
 
-        ;; Show the `goal-column' marker.
-        (if goal-column
-            (progn
-              (setq i (- goal-column o))
-              (and (>= i 0) (< i r)
-                   (aset ruler i ruler-mode-goal-column-char)
-                   (progn
-                     (put-text-property
-                      i (1+ i) 'face 'ruler-mode-goal-column-face
-                      ruler)
-                     (put-text-property
-                      i (1+ i) 'help-echo ruler-mode-goal-column-help-echo
-                      ruler))
-                   )))
-
-        ;; Show the `comment-column' marker.
-        (setq i (- comment-column o))
-        (and (>= i 0) (< i r)
-             (aset ruler i ruler-mode-comment-column-char)
-             (progn
-               (put-text-property
-                i (1+ i) 'face 'ruler-mode-comment-column-face
-                ruler)
-               (put-text-property
-                i (1+ i) 'help-echo ruler-mode-comment-column-help-echo
-                ruler)))
-
-        ;; Show the `fill-column' marker.
-        (setq i (- fill-column o))
-        (and (>= i 0) (< i r)
-             (aset ruler i ruler-mode-fill-column-char)
-             (progn (put-text-property
-                     i (1+ i) 'face 'ruler-mode-fill-column-face
-                     ruler)
-                    (put-text-property
-                     i (1+ i) 'help-echo ruler-mode-fill-column-help-echo
-                     ruler)))
-
-        ;; Show the `tab-stop-list' markers.
-        (if ruler-mode-show-tab-stops
-            (let ((tsl tab-stop-list) ts)
-              (while tsl
-                (setq ts  (car tsl)
-                      tsl (cdr tsl)
-                      i   (- ts o))
-                (and (>= i 0) (< i r)
-                     (aset ruler i ruler-mode-tab-stop-char)
-                     (put-text-property
-                      i (1+ i)
-                      'face (cond
-                             ;; Don't override the *-column face
-                             ((eq ts fill-column)
-                              'ruler-mode-fill-column-face)
-                             ((eq ts comment-column)
-                              'ruler-mode-comment-column-face)
-                             ((eq ts goal-column)
-                              'ruler-mode-goal-column-face)
-                             (t
-                              'ruler-mode-tab-stop-face))
-                      ruler)))))
-
-        ;; Show the `current-column' marker.
-        (setq i (- (current-column) o))
-        (and (>= i 0) (< i r)
-             (aset ruler i ruler-mode-current-column-char)
-             (put-text-property
-              i (1+ i) 'face 'ruler-mode-current-column-face
-              ruler))
-
-        ruler)))
+      ;; Return the ruler propertized string.
+      ruler)))
 
 (provide 'ruler-mode)
 
@@ -784,4 +791,5 @@ mouse-2: unset goal column"
 ;; coding: iso-latin-1
 ;; End:
 
+;;; arch-tag: b2f24546-5605-44c4-b67b-c9a4eeba3ee8
 ;;; ruler-mode.el ends here

@@ -129,3 +129,6 @@ extern Lisp_Object _temp_category_set;
    && word_boundary_p (c1, c2))
 
 extern int word_boundary_p P_ ((int, int));
+
+/* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
+   (do not change this comment) */

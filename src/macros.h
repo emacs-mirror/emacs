@@ -52,3 +52,6 @@ extern void finalize_kbd_macro_chars P_ ((void));
 /* Store a character into kbd macro being defined */
 
 extern void store_kbd_macro_char P_ ((Lisp_Object));
+
+/* arch-tag: 8edb7088-682f-4d1f-a4d9-0fbb7284234e
+   (do not change this comment) */

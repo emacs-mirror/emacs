@@ -60,3 +60,6 @@
    Causes "poll: interrupted system call" messages when Emacs is run
    in an X window (see process.c) */
 #define POLL_INTERRUPTED_SYS_CALL
+
+/* arch-tag: 1b95d569-a3c1-4fb0-8f69-fef264c17c24
+   (do not change this comment) */

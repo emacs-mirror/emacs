@@ -64,7 +64,7 @@ the tasks accomplished by such tools."
 ;; @ Command argument completion (tcsh, zsh)
 ;; @ Input history management (bash)
 ;; @ Intelligent output scrolling
-;; @ Psuedo-devices (such as "/dev/clip" for copying to the clipboard)
+;; @ Pseudo-devices (such as "/dev/clip" for copying to the clipboard)
 ;; @ Extended globbing (zsh)
 ;; @ Argument and globbing predication (zsh)
 ;; @ I/O redirection to buffers, files, symbols, processes, etc.
@@ -561,4 +561,5 @@ Emacs."
 
 (run-hooks 'eshell-load-hook)
 
+;;; arch-tag: 9d4d5214-0e4e-4e02-b349-39add640d63f
 ;;; eshell.el ends here

@@ -437,4 +437,5 @@ This is a good place to put keybindings."
 
 (provide 'cmuscheme)
 
+;;; arch-tag: e8795f4a-c496-45a2-97b4-8e0f2a2c57d2
 ;;; cmuscheme.el ends here

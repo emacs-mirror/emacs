@@ -5,3 +5,6 @@
 #define USING_CX_UX_7
 
 #include "cxux.h"
+
+/* arch-tag: 520cfbad-fd5c-4b3b-ace4-66e9bcd31a60
+   (do not change this comment) */

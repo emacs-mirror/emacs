@@ -132,6 +132,10 @@ static int any_help_event_p;
 
 int x_autoselect_window_p;
 
+/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
+
+int x_use_underline_position_properties;
+
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
    drawn as wide as that tab on the display.  */
@@ -302,8 +306,7 @@ static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
 static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
-static void x_clip_to_row P_ ((struct window *, struct glyph_row *,
-			       GC, int));
+static void x_clip_to_row P_ ((struct window *, struct glyph_row *, GC));
 static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
@@ -1269,7 +1272,7 @@ x_after_update_window_line (desired_row)
       XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 		  0, y, width, height, 0);
       XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  f->output_data.mac->pixel_width - width, y,
+		  FRAME_PIXEL_WIDTH (f) - width, y,
 		  width, height, 0);
 
       UNBLOCK_INPUT;
@@ -1296,7 +1299,7 @@ x_draw_fringe_bitmap (w, row, p)
   struct face *face = p->face;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, gc, 1);
+  x_clip_to_row (w, row, gc);
 
   if (p->bx >= 0)
     {
@@ -2348,9 +2351,10 @@ x_draw_glyph_string_box (s)
   if (s->row->full_width_p
       && !s->w->pseudo_window_p)
     {
-      last_x += FRAME_X_RIGHT_FRINGE_WIDTH (s->f);
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (s->f))
-	last_x += FRAME_SCROLL_BAR_WIDTH (s->f) * CANON_X_UNIT (s->f);
+      last_x += WINDOW_RIGHT_SCROLL_BAR_AREA_WIDTH (s->w);
+      if (s->area != RIGHT_MARGIN_AREA
+	  || WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
+	last_x += WINDOW_RIGHT_FRINGE_WIDTH (s->w);
     }
 
   /* The glyph that may have a right box line.  */
@@ -2740,7 +2744,7 @@ x_draw_stretch_glyph_string (s)
     {
       /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
 	 as wide as the stretch glyph.  */
-      int width = min (CANON_X_UNIT (s->f), s->background_width);
+      int width = min (FRAME_COLUMN_WIDTH (s->f), s->background_width);
 
       /* Draw cursor.  */
       x_draw_glyph_string_bg_rect (s, s->x, s->y, width, s->height);
@@ -3143,8 +3147,6 @@ x_scroll_run (w, run)
      without mode lines.  Include in this box the left and right
      fringes of W.  */
   window_box (w, -1, &x, &y, &width, &height);
-  width += FRAME_X_FRINGE_WIDTH (f);
-  x -= FRAME_X_LEFT_FRINGE_WIDTH (f);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -3231,7 +3233,7 @@ x_new_focus_frame (dpyinfo, frame)
       selected_frame = frame;
       XSETFRAME (XWINDOW (selected_frame->selected_window)->frame,
 		 selected_frame);
-      Fselect_window (selected_frame->selected_window);
+      Fselect_window (selected_frame->selected_window, Qnil);
       choose_minibuf_frame ();
 #endif /* ! 0 */
 
@@ -3587,14 +3589,13 @@ glyph_rect (f, x, y, rect)
 {
   Lisp_Object window;
 
-  window = window_from_coordinates (f, x, y, 0, 0);
+  window = window_from_coordinates (f, x, y, 0, &x, &y, 0);
+
   if (!NILP (window))
     {
       struct window *w = XWINDOW (window);
       struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
       struct glyph_row *end = r + w->current_matrix->nrows - 1;
-
-      frame_to_window_pixel_xy (w, &x, &y);
 
       for (; r < end && r->enabled_p; ++r)
 	if (r->y <= y && r->y + r->height > y)
@@ -3610,7 +3611,10 @@ glyph_rect (f, x, y, rect)
 	    if (x < r->x)
 	      {
 		/* x is to the left of the first glyph in the row.  */
-		rect->left = XINT (w->left);
+		/* Shouldn't this be a pixel value?
+		   WINDOW_LEFT_EDGE_X (w) seems to be the right value.
+		   ++KFS */
+		rect->left = WINDOW_LEFT_EDGE_COL (w);
 		rect->right = WINDOW_TO_FRAME_PIXEL_X (w, r->x);
 		return 1;
 	      }
@@ -3626,7 +3630,10 @@ glyph_rect (f, x, y, rect)
 
 	    /* x is to the right of the last glyph in the row.  */
 	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	    rect->right = XINT (w->left) + XINT (w->width);
+	    /* Shouldn't this be a pixel value?  
+	       WINDOW_RIGHT_EDGE_X (w) seems to be the right value.
+	       ++KFS */
+	    rect->right = WINDOW_RIGHT_EDGE_COL (w);
 	    return 1;
 	  }
     }
@@ -3648,7 +3655,7 @@ remember_mouse_glyph (f1, gx, gy)
       int width = FRAME_SMALLEST_CHAR_WIDTH (f1);
       int height = FRAME_SMALLEST_FONT_HEIGHT (f1);
 
-      /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to
+      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
 	 round down even for negative values.  */
       if (gx < 0)
 	gx -= width - 1;
@@ -3934,35 +3941,30 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width, disp_top, disp_height;
-  int window_x, window_y, window_width, window_height;
+  int window_y, window_height;
 
   /* Get window dimensions.  */
-  window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
+  window_box (w, -1, 0, &window_y, 0, &window_height);
   top = window_y;
 #ifdef MAC_OSX
   width = 16;
 #else
-  width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
+  width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
 #endif
   height = window_height;
 
   /* Compute the left edge of the scroll bar area.  */
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-    left = XINT (w->left) + XINT (w->width) - FRAME_SCROLL_BAR_COLS (f);
-  else
-    left = XFASTINT (w->left);
-  left *= CANON_X_UNIT (f);
-  left += FRAME_INTERNAL_BORDER_WIDTH (f);
+  left = WINDOW_SCROLL_BAR_AREA_X (w);
 
   /* Compute the width of the scroll bar which might be less than
      the width of the area reserved for the scroll bar.  */
-  if (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0)
-    sb_width = FRAME_SCROLL_BAR_PIXEL_WIDTH (f);
+  if (WINDOW_CONFIG_SCROLL_BAR_WIDTH (w) > 0)
+    sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
   else
     sb_width = width;
 
   /* Compute the left edge of the scroll bar.  */
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     sb_left = left + width - sb_width - (width - sb_width) / 2;
   else
     sb_left = left + (width - sb_width) / 2;
@@ -3975,13 +3977,13 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       disp_top = -1;
       disp_height++;
     }
-  else if (disp_top == PIXEL_HEIGHT (f) - 16)
+  else if (disp_top == FRAME_PIXEL_HEIGHT (f) - 16)
     {
       disp_top++;
       disp_height--;
     }
 
-  if (sb_left + sb_width == PIXEL_WIDTH (f))
+  if (sb_left + sb_width == FRAME_PIXEL_WIDTH (f))
     sb_left++;
 
   /* Does the scroll bar exist yet?  */
@@ -4017,12 +4019,12 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	     wide as the area reserved for it .  This makes sure a
 	     previous mode line display is cleared after C-x 2 C-x 1, for
 	     example.  */
-	  int area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
+	  int area_width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
 	  XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 		      left, top, area_width, height, 0);
 
 #if 0
-          if (sb_left + sb_width >= PIXEL_WIDTH (f))
+          if (sb_left + sb_width >= FRAME_PIXEL_WIDTH (f))
             XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 		        sb_left - 1, top, 1, height, 0);
 #endif
@@ -4365,39 +4367,28 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 
 /* Set clipping for output in glyph row ROW.  W is the window in which
    we operate.  GC is the graphics context to set clipping in.
-   WHOLE_LINE_P non-zero means include the areas used for truncation
-   mark display and alike in the clipping rectangle.
 
    ROW may be a text row or, e.g., a mode line.  Text rows must be
    clipped to the interior of the window dedicated to text display,
    mode lines must be clipped to the whole window.  */
 
 static void
-x_clip_to_row (w, row, gc, whole_line_p)
+x_clip_to_row (w, row, gc)
      struct window *w;
      struct glyph_row *row;
      GC gc;
-     int whole_line_p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Rect clip_rect;
-  int window_x, window_y, window_width, window_height;
+  int window_y, window_width;
 
-  window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
+  window_box (w, -1, 0, &window_y, &window_width, 0);
 
   clip_rect.left = WINDOW_TO_FRAME_PIXEL_X (w, 0);
   clip_rect.top = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   clip_rect.top = max (clip_rect.top, window_y);
   clip_rect.right = clip_rect.left + window_width;
   clip_rect.bottom = clip_rect.top + row->visible_height;
-
-  /* If clipping to the whole line, including trunc marks, extend
-     the rectangle to the left and increase its width.  */
-  if (whole_line_p)
-    {
-      clip_rect.left -= FRAME_X_LEFT_FRINGE_WIDTH (f);
-      clip_rect.right += FRAME_X_FRINGE_WIDTH (f);
-    }
 
   mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), &clip_rect);
 }
@@ -4438,7 +4429,7 @@ x_draw_hollow_cursor (w, row)
   wd = cursor_glyph->pixel_width - 1;
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
-    wd = min (CANON_X_UNIT (f), wd);
+    wd = min (FRAME_COLUMN_WIDTH (f), wd);
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
@@ -4451,7 +4442,7 @@ x_draw_hollow_cursor (w, row)
   gc = dpyinfo->scratch_cursor_gc;
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
-  x_clip_to_row (w, row, gc, 0);
+  x_clip_to_row (w, row, gc);
   mac_draw_rectangle (dpy, FRAME_MAC_WINDOW (f), gc, x, y, wd, h);
   mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
 }
@@ -4507,7 +4498,7 @@ x_draw_bar_cursor (w, row, width)
 	width = FRAME_CURSOR_WIDTH (f);
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-      x_clip_to_row (w, row, gc, 0);
+      x_clip_to_row (w, row, gc);
       XFillRectangle (dpy, window, gc,
 		      x,
 		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
@@ -4681,36 +4672,37 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
+  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
+
+  compute_fringe_widths (f, 1);
+
   /* Compute the scroll bar width in character columns.  */
-  if (f->scroll_bar_pixel_width > 0)
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     {
-      int wid = FONT_WIDTH (FRAME_FONT (f));
-      f->scroll_bar_cols = (f->scroll_bar_pixel_width + wid-1) / wid;
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) 
+	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
     }
   else
     {
-      int wid = FONT_WIDTH (FRAME_FONT (f));
-      f->scroll_bar_cols = (14 + wid - 1) / wid;
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
     }
 
   /* Now make the frame display the given font.  */
   if (FRAME_MAC_WINDOW (f) != 0)
     {
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->normal_gc,
-		f->output_data.mac->font);
+		FRAME_FONT (f));
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->reverse_gc,
-		f->output_data.mac->font);
+		FRAME_FONT (f));
       XSetFont (FRAME_MAC_DISPLAY (f), f->output_data.mac->cursor_gc,
-		f->output_data.mac->font);
+		FRAME_FONT (f));
 
-      frame_update_line_height (f);
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-        x_set_window_size (f, 0, f->width, f->height);
+        x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
-  else
-    /* If we are setting a new frame's font for the first time,
-       there are no faces yet, so this font's height is the line height.  */
-    f->output_data.mac->line_height = FONT_HEIGHT (FRAME_FONT (f));
 
   return build_string (fontp->full_name);
 }
@@ -4772,7 +4764,7 @@ x_calc_absolute_position (f)
      struct frame *f;
 {
   Point pt;
-  int flags = f->output_data.mac->size_hint_flags;
+  int flags = f->size_hint_flags;
 
   pt.h = pt.v = 0;
 
@@ -4806,20 +4798,20 @@ x_calc_absolute_position (f)
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->output_data.mac->left_pos = (FRAME_MAC_DISPLAY_INFO (f)->width
-			      - 2 * f->output_data.mac->border_width - pt.h
-			      - PIXEL_WIDTH (f)
-			      + f->output_data.mac->left_pos);
+    f->left_pos = (FRAME_MAC_DISPLAY_INFO (f)->width
+		   - 2 * f->border_width - pt.h
+		   - FRAME_PIXEL_WIDTH (f)
+		   + f->left_pos);
   /* NTEMACS_TODO: Subtract menubar height?  */
   if (flags & YNegative)
-    f->output_data.mac->top_pos = (FRAME_MAC_DISPLAY_INFO (f)->height
-			     - 2 * f->output_data.mac->border_width - pt.v
-			     - PIXEL_HEIGHT (f)
-			     + f->output_data.mac->top_pos);
+    f->top_pos = (FRAME_MAC_DISPLAY_INFO (f)->height
+		  - 2 * f->border_width - pt.v
+		  - FRAME_PIXEL_HEIGHT (f)
+		  + f->top_pos);
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
-  f->output_data.mac->size_hint_flags &= ~ (XNegative | YNegative);
+  f->size_hint_flags &= ~ (XNegative | YNegative);
 }
 
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
@@ -4838,22 +4830,22 @@ x_set_offset (f, xoff, yoff, change_gravity)
 
   if (change_gravity > 0)
     {
-      f->output_data.mac->top_pos = yoff;
-      f->output_data.mac->left_pos = xoff;
-      f->output_data.mac->size_hint_flags &= ~ (XNegative | YNegative);
+      f->top_pos = yoff;
+      f->left_pos = xoff;
+      f->size_hint_flags &= ~ (XNegative | YNegative);
       if (xoff < 0)
-	f->output_data.mac->size_hint_flags |= XNegative;
+	f->size_hint_flags |= XNegative;
       if (yoff < 0)
-	f->output_data.mac->size_hint_flags |= YNegative;
-      f->output_data.mac->win_gravity = NorthWestGravity;
+	f->size_hint_flags |= YNegative;
+      f->win_gravity = NorthWestGravity;
     }
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  modified_left = f->output_data.mac->left_pos;
-  modified_top = f->output_data.mac->top_pos;
+  modified_left = f->left_pos;
+  modified_top = f->top_pos;
 
   MoveWindow (f->output_data.mac->mWP, modified_left + 6,
 	      modified_top + 42, false);
@@ -4877,17 +4869,15 @@ x_set_window_size (f, change_gravity, cols, rows)
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
-  f->output_data.mac->vertical_scroll_bar_extra
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.mac->font)));
+  f->scroll_bar_actual_width
+    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
-  pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
+  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
-  f->output_data.mac->win_gravity = NorthWestGravity;
+  f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
 
   SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
@@ -4906,8 +4896,8 @@ x_set_window_size (f, change_gravity, cols, rows)
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
   change_frame_size (f, rows, cols, 0, 1, 0);
-  PIXEL_WIDTH (f) = pixelwidth;
-  PIXEL_HEIGHT (f) = pixelheight;
+  FRAME_PIXEL_WIDTH (f) = pixelwidth;
+  FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
      receive in the ConfigureNotify event; if we get what we asked
@@ -4940,14 +4930,14 @@ x_set_mouse_position (f, x, y)
 {
   int pix_x, pix_y;
 
-  pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->output_data.mac->font) / 2;
-  pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->output_data.mac->line_height / 2;
+  pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
+  pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
 
   if (pix_x < 0) pix_x = 0;
-  if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
+  if (pix_x > FRAME_PIXEL_WIDTH (f)) pix_x = FRAME_PIXEL_WIDTH (f);
 
   if (pix_y < 0) pix_y = 0;
-  if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
+  if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
 
   x_set_mouse_pixel_position (f, pix_x, pix_y);
 }
@@ -5046,8 +5036,7 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.mac->asked_for_visible)
-	x_set_offset (f, f->output_data.mac->left_pos,
-		      f->output_data.mac->top_pos, 0);
+	x_set_offset (f, f->left_pos, f->top_pos, 0);
 
       f->output_data.mac->asked_for_visible = 1;
 
@@ -5224,8 +5213,8 @@ x_wm_set_size_hint (f, flags, user_position)
   /* Setting PMaxSize caused various problems.  */
   size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 
-  size_hints.x = f->output_data.x->left_pos;
-  size_hints.y = f->output_data.x->top_pos;
+  size_hints.x = f->left_pos;
+  size_hints.y = f->top_pos;
 
 #ifdef USE_X_TOOLKIT
   XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
@@ -5234,16 +5223,16 @@ x_wm_set_size_hint (f, flags, user_position)
   size_hints.height = widget_height;
   size_hints.width = widget_width;
 #else /* not USE_X_TOOLKIT */
-  size_hints.height = PIXEL_HEIGHT (f);
-  size_hints.width = PIXEL_WIDTH (f);
+  size_hints.height = FRAME_PIXEL_HEIGHT (f);
+  size_hints.width = FRAME_PIXEL_WIDTH (f);
 #endif /* not USE_X_TOOLKIT */
 
-  size_hints.width_inc = FONT_WIDTH (f->output_data.x->font);
-  size_hints.height_inc = f->output_data.x->line_height;
+  size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
+  size_hints.height_inc = FRAME_LINE_HEIGHT (f);
   size_hints.max_width
-    = FRAME_X_DISPLAY_INFO (f)->width - CHAR_TO_PIXEL_WIDTH (f, 0);
+    = FRAME_X_DISPLAY_INFO (f)->width - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
   size_hints.max_height
-    = FRAME_X_DISPLAY_INFO (f)->height - CHAR_TO_PIXEL_HEIGHT (f, 0);
+    = FRAME_X_DISPLAY_INFO (f)->height - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
   /* Calculate the base and minimum sizes.
 
@@ -5254,8 +5243,8 @@ x_wm_set_size_hint (f, flags, user_position)
     int base_width, base_height;
     int min_rows = 0, min_cols = 0;
 
-    base_width = CHAR_TO_PIXEL_WIDTH (f, 0);
-    base_height = CHAR_TO_PIXEL_HEIGHT (f, 0);
+    base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
     check_frame_size (f, &min_rows, &min_cols);
 
@@ -5330,7 +5319,7 @@ x_wm_set_size_hint (f, flags, user_position)
 #endif
 
 #ifdef PWinGravity
-  size_hints.win_gravity = f->output_data.x->win_gravity;
+  size_hints.win_gravity = f->win_gravity;
   size_hints.flags |= PWinGravity;
 
   if (user_position)
@@ -5821,7 +5810,8 @@ init_font_name_table ()
 /* Return a list of at most MAXNAMES font specs matching the one in
    PATTERN.  Cache matching fonts for patterns in
    dpyinfo->name_list_element to avoid looking them up again by
-   calling mac_font_pattern_match (slow).  */
+   calling mac_font_pattern_match (slow).  Return as many matching
+   fonts as possible if MAXNAMES = -1.  */
 
 Lisp_Object
 x_list_fonts (struct frame *f,
@@ -5864,7 +5854,7 @@ x_list_fonts (struct frame *f,
           newlist = Fcons (build_string (font_name_table[i]), newlist);
 
           n_fonts++;
-          if (n_fonts >= maxnames)
+          if (maxnames > 0 && n_fonts >= maxnames)
             break;
         }
     }
@@ -6250,6 +6240,7 @@ x_load_font (f, fontname, size)
 
     /* Now fill in the slots of *FONTP.  */
     BLOCK_INPUT;
+    bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (font->fontname) + 1);
@@ -7011,8 +7002,8 @@ do_grow_window (WindowPtr w, EventRecord *e)
   /* see if it really changed size */
   if (grow_size != 0)
     {
-      rows = PIXEL_TO_CHAR_HEIGHT (f, HiWord (grow_size));
-      columns = PIXEL_TO_CHAR_WIDTH (f, LoWord (grow_size));
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, HiWord (grow_size));
+      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, LoWord (grow_size));
 
       x_set_window_size (f, 0, columns, rows);
     }
@@ -7064,7 +7055,7 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
         InsetRect (&zoom_rect, 8, 4);  /* not too tight */
 
         zoom_rect.right = zoom_rect.left
-	  + CHAR_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+	  + FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
 
         SetWindowStandardState (w, &zoom_rect);
       }
@@ -7086,7 +7077,7 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
       InsetRect (&zoom_rect, 8, 4);  /* not too tight */
 
       zoom_rect.right = zoom_rect.left
-	+ CHAR_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+	+ FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
 
       (**((WStateDataHandle) ((WindowPeek) w)->dataHandle)).stdState
 	= zoom_rect;
@@ -7101,8 +7092,8 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
 #else
   port_rect = w->portRect;
 #endif
-  rows = PIXEL_TO_CHAR_HEIGHT (f, port_rect.bottom - port_rect.top);
-  columns = PIXEL_TO_CHAR_WIDTH (f, port_rect.right - port_rect.left);
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, port_rect.bottom - port_rect.top);
+  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, port_rect.right - port_rect.left);
   x_set_window_size (mwp->mFP, 0, columns, rows);
 
   SetPort (save_port);
@@ -7692,9 +7683,11 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		GetEventParameter(eventRef, kEventParamMouseLocation,
 				  typeQDPoint, NULL, sizeof (Point),
 				  NULL, &point);
-		bufp->kind = MOUSE_WHEEL_EVENT;
-		bufp->code = delta;
-		bufp->modifiers = mac_event_to_emacs_modifiers(eventRef);
+		bufp->kind = WHEEL_EVENT;
+		bufp->code = 0;
+		bufp->modifiers = (mac_event_to_emacs_modifiers(eventRef)
+				   | ((delta < 0) ? down_modifier
+				                  : up_modifier));
 		SetPort (GetWindowPort (window_ptr));
 		GlobalToLocal (&point);
 		XSETINT (bufp->x, point.h);
@@ -7882,12 +7875,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 	    case inDrag:
 #if TARGET_API_MAC_CARBON
-	      {
-	        BitMap bm;
-
-	        GetQDGlobalsScreenBits (&bm);
-	        DragWindow (window_ptr, er.where, &bm.bounds);
-	      }
+              if (er.what == mouseDown)  
+		{
+		  BitMap bm;
+		  
+		  GetQDGlobalsScreenBits (&bm);
+		  DragWindow (window_ptr, er.where, &bm.bounds);
+		}
 #else /* not TARGET_API_MAC_CARBON */
 	      DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
 #endif /* not TARGET_API_MAC_CARBON */
@@ -8251,7 +8245,7 @@ NewMacWindow (FRAME_PTR fp)
 
   mwp->fontset = -1;
 
-  SizeWindow (mwp->mWP, mwp->pixel_width, mwp->pixel_height, false);
+  SizeWindow (mwp->mWP, FRAME_PIXEL_WIDTH (fp), FRAME_PIXEL_HEIGHT (fp), false);
   ShowWindow (mwp->mWP);
 
 }
@@ -8272,23 +8266,23 @@ make_mac_frame (struct frame *f)
   f->output_data.mac->mouse_pixel = 0xff00ff;
   f->output_data.mac->cursor_foreground_pixel = 0x0000ff;
 
-  f->output_data.mac->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->output_data.mac->scroll_bar_foreground_pixel = -1;
   f->output_data.mac->scroll_bar_background_pixel = -1;
-  f->output_data.mac->left_pos = 4;
-  f->output_data.mac->top_pos = 4;
-  f->output_data.mac->border_width = 0;
   f->output_data.mac->explicit_parent = 0;
+  f->left_pos = 4;
+  f->top_pos = 4;
+  f->border_width = 0;
 
-  f->output_data.mac->internal_border_width = 0;
+  f->internal_border_width = 0;
 
   f->output_method = output_mac;
 
   f->auto_raise = 1;
   f->auto_lower = 1;
 
-  f->new_width = 0;
-  f->new_height = 0;
+  f->new_text_cols = 0;
+  f->new_text_lines = 0;
 }
 
 void
@@ -8302,14 +8296,14 @@ make_mac_terminal_frame (struct frame *f)
   f->output_data.mac = (struct mac_output *)
     xmalloc (sizeof (struct mac_output));
   bzero (f->output_data.mac, sizeof (struct mac_output));
-  f->output_data.mac->fontset = -1;
+  FRAME_FONTSET (f) = -1;
   f->output_data.mac->scroll_bar_foreground_pixel = -1;
   f->output_data.mac->scroll_bar_background_pixel = -1;
 
   XSETFRAME (FRAME_KBOARD (f)->Vdefault_minibuffer_frame, f);
 
-  f->width = 96;
-  f->height = 4;
+  FRAME_COLS (f) = 96;
+  FRAME_LINES (f) = 4;
 
   make_mac_frame (f);
 
@@ -8571,34 +8565,48 @@ quit_char_comp (EventRef inEvent, void *inCompData)
 }
 
 void
-mac_check_for_quit_char()
+mac_check_for_quit_char ()
 {
   EventRef event;
-  /* If windows are not initialized, return immediately (keep it bouncin')*/
+  static EMACS_TIME last_check_time = { 0, 0 };
+  static EMACS_TIME one_second = { 1, 0 };
+  EMACS_TIME now, t;
+
+  /* If windows are not initialized, return immediately (keep it bouncin').  */
   if (!mac_quit_char_modifiers)
     return;
 
+  /* Don't check if last check is less than a second ago.  */
+  EMACS_GET_TIME (now);
+  EMACS_SUB_TIME (t, now, last_check_time);
+  if (EMACS_TIME_LT (t, one_second))
+    return;
+  last_check_time = now;
+
   /* Redetermine modifiers because they are based on lisp variables */
-  mac_determine_quit_char_modifiers();
+  mac_determine_quit_char_modifiers ();
 
   /* Fill the queue with events */
   ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &event);
-  event = FindSpecificEventInQueue (GetMainEventQueue(), quit_char_comp, NULL);
+  event = FindSpecificEventInQueue (GetMainEventQueue (), quit_char_comp,
+				    NULL);
   if (event)
     {
       struct input_event e;
-      struct mac_output *mwp = (mac_output*) GetWRefCon (FrontNonFloatingWindow ());
+      struct mac_output *mwp =
+	(mac_output *) GetWRefCon (FrontNonFloatingWindow ());
       /* Use an input_event to emulate what the interrupt handler does. */
+      EVENT_INIT (e);
       e.kind = ASCII_KEYSTROKE_EVENT;
       e.code = quit_char;
       e.arg = NULL;
       e.modifiers = NULL;
-      e.timestamp = EventTimeToTicks(GetEventTime(event))*(1000/60);
-      XSETFRAME(e.frame_or_window, mwp->mFP);
+      e.timestamp = EventTimeToTicks (GetEventTime (event)) * (1000/60);
+      XSETFRAME (e.frame_or_window, mwp->mFP);
       /* Remove event from queue to prevent looping. */
-      RemoveEventFromQueue(GetMainEventQueue(), event);
-      ReleaseEvent(event);
-      kbd_buffer_store_event(&e);
+      RemoveEventFromQueue (GetMainEventQueue (), event);
+      ReleaseEvent (event);
+      kbd_buffer_store_event (&e);
     }
 }
 
@@ -8767,6 +8775,14 @@ syms_of_macterm ()
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
   Vx_toolkit_scroll_bars = Qt;
 
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+               &x_use_underline_position_properties,
+     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.  */);
+  x_use_underline_position_properties = 0;
+
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
@@ -8813,3 +8829,6 @@ command, this enables the Mac keyboard to be used to enter non-ASCII
 characters directly.  */);
   mac_keyboard_text_encoding = kTextEncodingMacRoman;
 }
+
+/* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b
+   (do not change this comment) */

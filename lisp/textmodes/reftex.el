@@ -1,8 +1,8 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.18
+;; Version: 4.21
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,7 @@
 ;;---------------------------------------------------------------------------
 ;;
 ;;; Commentary:
-;;
+;; 
 ;; RefTeX is a minor mode with distinct support for \ref, \label, \cite,
 ;; and \index commands in (multi-file) LaTeX documents.
 ;; - A table of contents provides easy access to any part of a document.
@@ -64,13 +64,13 @@
 ;;
 ;; The documentation in various formats is also available at
 ;;
-;;     http://www.strw.leidenuniv.nl/~dominik/Tools/
+;;     http://zon.astro.uva.nl/~dominik/Tools/
 ;;
 ;;---------------------------------------------------------------------------
 ;;
 ;; Introduction
 ;; ************
-;;
+;; 
 ;; RefTeX is a specialized package for support of labels, references,
 ;; citations, and the index in LaTeX.  RefTeX wraps itself round 4 LaTeX
 ;; macros: `\label', `\ref', `\cite', and `\index'.  Using these macros
@@ -79,13 +79,13 @@
 ;; time-consuming tasks almost entirely.  It also provides functions to
 ;; display the structure of a document and to move around in this
 ;; structure quickly.
-;;
+;; 
 ;;    *Note Imprint::, for information about who to contact for help, bug
 ;; reports or suggestions.
-;;
+;; 
 ;; Environment
 ;; ===========
-;;
+;; 
 ;; RefTeX needs to access all files which are part of a multifile
 ;; document, and the BibTeX database files requested by the
 ;; `\bibliography' command.  To find these files, RefTeX will require a
@@ -94,26 +94,26 @@
 ;; which are also used by RefTeX.  However, on some systems these
 ;; variables do not contain the full search path.  If RefTeX does not work
 ;; for you because it cannot find some files, read *Note Finding Files::.
-;;
+;; 
 ;; Entering RefTeX Mode
 ;; ====================
-;;
+;; 
 ;; To turn RefTeX Mode on and off in a particular buffer, use `M-x
 ;; reftex-mode'.  To turn on RefTeX Mode for all LaTeX files, add the
 ;; following lines to your `.emacs' file:
-;;
+;; 
 ;;      (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
 ;;      (add-hook 'latex-mode-hook 'turn-on-reftex)   ; with Emacs latex mode
-;;
+;; 
 ;; RefTeX in a Nutshell
 ;; ====================
-;;
+;; 
 ;;   1. Table of Contents
 ;;      Typing `C-c =' (`reftex-toc') will show a table of contents of the
 ;;      document.  This buffer can display sections, labels and index
 ;;      entries defined in the document.  From the buffer, you can jump
 ;;      quickly to every part of your document.  Press `?' to get help.
-;;
+;; 
 ;;   2. Labels and References
 ;;      RefTeX helps to create unique labels and to find the correct key
 ;;      for references quickly.  It distinguishes labels for different
@@ -121,7 +121,7 @@
 ;;      others), and can be configured to recognize any additional labeled
 ;;      environments you have defined yourself (variable
 ;;      `reftex-label-alist').
-;;
+;; 
 ;;         * Creating Labels
 ;;           Type `C-c (' (`reftex-label') to insert a label at point.
 ;;           RefTeX will either
@@ -130,17 +130,17 @@
 ;;                tables) or
 ;;              - insert a simple label made of a prefix and a number (all
 ;;                other environments)
-;;
+;; 
 ;;           Which labels are created how is configurable with the variable
 ;;           `reftex-insert-label-flags'.
-;;
+;; 
 ;;         * Referencing Labels
 ;;           To make a reference, type `C-c )' (`reftex-reference').  This
 ;;           shows an outline of the document with all labels of a certain
 ;;           type (figure, equation,...) and some label context.
 ;;           Selecting a label inserts a `\ref{LABEL}' macro into the
 ;;           original buffer.
-;;
+;; 
 ;;   3. Citations
 ;;      Typing `C-c [' (`reftex-citation') will let you specify a regular
 ;;      expression to search in current BibTeX database files (as
@@ -149,7 +149,7 @@
 ;;      sorted.  The selected article is referenced as `\cite{KEY}' (see
 ;;      the variable `reftex-cite-format' if you want to insert different
 ;;      macros).
-;;
+;; 
 ;;   4. Index Support
 ;;      RefTeX helps to enter index entries.  It also compiles all entries
 ;;      into an alphabetically sorted `*Index*' buffer which you can use
@@ -157,25 +157,25 @@
 ;;      index macros and can be configured to recognize any additional
 ;;      macros you have defined (`reftex-index-macros').  Multiple indices
 ;;      are supported.
-;;
+;; 
 ;;         * Creating Index Entries
 ;;           To index the current selection or the word at point, type
 ;;           `C-c /' (`reftex-index-selection-or-word').  The default macro
 ;;           `reftex-index-default-macro' will be used.  For a more
 ;;           complex entry type `C-c <' (`reftex-index'), select any of
 ;;           the index macros and enter the arguments with completion.
-;;
+;; 
 ;;         * The Index Phrases File (Delayed Indexing)
 ;;           Type `C-c \' (`reftex-index-phrase-selection-or-word') to add
 ;;           the current word or selection to a special _index phrase
 ;;           file_.  RefTeX can later search the document for occurrences
 ;;           of these phrases and let you interactively index the matches.
-;;
+;; 
 ;;         * Displaying and Editing the Index
 ;;           To display the compiled index in a special buffer, type `C-c
 ;;           >' (`reftex-display-index').  From that buffer you can check
 ;;           and edit all entries.
-;;
+;; 
 ;;   5. Viewing Cross-References
 ;;      When point is on the KEY argument of a cross-referencing macro
 ;;      (`\label', `\ref', `\cite', `\bibitem', `\index', and variations)
@@ -185,14 +185,14 @@
 ;;      When the enclosing macro is `\cite' or `\ref' and no other message
 ;;      occupies the echo area, information about the citation or label
 ;;      will automatically be displayed in the echo area.
-;;
+;; 
 ;;   6. Multifile Documents
 ;;      Multifile Documents are fully supported.  The included files must
 ;;      have a file variable `TeX-master' or `tex-main-file' pointing to
 ;;      the master file.  RefTeX provides cross-referencing information
 ;;      from all parts of the document, and across document borders
 ;;      (`xr.sty').
-;;
+;; 
 ;;   7. Document Parsing
 ;;      RefTeX needs to parse the document in order to find labels and
 ;;      other information.  It does it automatically once and updates its
@@ -201,23 +201,23 @@
 ;;      with a raw `C-u' prefix, or press the `r' key in the label
 ;;      selection buffer, the table of contents buffer, or the index
 ;;      buffer.
-;;
+;; 
 ;;   8. AUCTeX
 ;;      If your major LaTeX mode is AUCTeX, RefTeX can cooperate with it
 ;;      (see variable `reftex-plug-into-AUCTeX').  AUCTeX contains style
 ;;      files which trigger appropriate settings in RefTeX, so that for
 ;;      many of the popular LaTeX packages no additional customizations
 ;;      will be necessary.
-;;
+;; 
 ;;   9. Useful Settings
 ;;      To make RefTeX faster for large documents, try these:
 ;;           (setq reftex-enable-partial-scans t)
 ;;           (setq reftex-save-parse-info t)
 ;;           (setq reftex-use-multiple-selection-buffers t)
-;;
+;; 
 ;;      To integrate with AUCTeX, use
 ;;           (setq reftex-plug-into-AUCTeX t)
-;;
+;; 
 ;;      To make your own LaTeX macro definitions known to RefTeX,
 ;;      customize the variables
 ;;           `reftex-label-alist'          (for label macros/environments)
@@ -227,7 +227,7 @@
 ;;           `reftex-index-default-macro'  (to set the default macro)
 ;;      If you have a large number of macros defined, you may want to write
 ;;      an AUCTeX style file to support them with both AUCTeX and RefTeX.
-;;
+;; 
 ;;  10. Where Next?
 ;;      Go ahead and use RefTeX.  Use its menus until you have picked up
 ;;      the key bindings.  For an overview of what you can do in each of
@@ -236,13 +236,13 @@
 ;;      The first part of the manual explains in a tutorial way how to use
 ;;      and customize RefTeX.  The second part is a command and variable
 ;;      reference.
-;;
+;; 
 ;;---------------------------------------------------------------------------
 ;;
 ;; AUTHOR
 ;; ======
 ;;
-;; Carsten Dominik <dominik@strw.LeidenUniv.nl>
+;; Carsten Dominik <dominik@science.uva.nl>
 ;;
 ;;         with contributions from Stephen Eglen
 ;;
@@ -250,7 +250,7 @@
 ;; XEmacs 21.x.  If you need to install it yourself, you can find a
 ;; distribution at
 ;;
-;;    http://www.strw.leidenuniv.nl/~dominik/Tools/
+;;    http://zon.astro.uva.nl/~dominik/Tools/
 ;;
 ;; THANKS TO:
 ;; ---------
@@ -282,6 +282,12 @@
 (defvar reftex-tables-dirty t
   "Flag showing if tables need to be re-computed.")
 
+(eval-and-compile
+  (defun reftex-set-dirty (symbol value)
+    (setq reftex-tables-dirty t)
+    (set symbol value)))
+
+
 ;;; =========================================================================
 ;;;
 ;;; Configuration variables
@@ -294,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.18"
+(defconst reftex-version "RefTeX version 4.21"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -312,10 +318,10 @@
   (setq reftex-syntax-table (copy-syntax-table))
   (modify-syntax-entry ?\( "." reftex-syntax-table)
   (modify-syntax-entry ?\) "." reftex-syntax-table))
-
+        
 (unless reftex-syntax-table-for-bib
   (setq reftex-syntax-table-for-bib
-	(copy-syntax-table reftex-syntax-table))
+        (copy-syntax-table reftex-syntax-table))
   (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
   (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
   (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
@@ -371,30 +377,30 @@ on the menu bar.
 
   (if reftex-mode
       (progn
-	;; Mode was turned on
+        ;; Mode was turned on
         (easy-menu-add reftex-mode-menu)
-	(and reftex-plug-into-AUCTeX
-	     (reftex-plug-into-AUCTeX))
-	(unless (get 'reftex-auto-view-crossref 'initialized)
-	  (and reftex-auto-view-crossref
-	       (reftex-toggle-auto-view-crossref))
-	  (put 'reftex-auto-view-crossref 'initialized t))
-	(unless (get 'reftex-auto-recenter-toc 'initialized)
-	  (and reftex-auto-recenter-toc
-	       (reftex-toggle-auto-toc-recenter))
-	  (put 'reftex-auto-recenter-toc 'initialized t))
+        (and reftex-plug-into-AUCTeX
+             (reftex-plug-into-AUCTeX))
+        (unless (get 'reftex-auto-view-crossref 'initialized)
+          (and reftex-auto-view-crossref
+               (reftex-toggle-auto-view-crossref))
+          (put 'reftex-auto-view-crossref 'initialized t))
+        (unless (get 'reftex-auto-recenter-toc 'initialized)
+          (and (eq reftex-auto-recenter-toc t)
+               (reftex-toggle-auto-toc-recenter))
+          (put 'reftex-auto-recenter-toc 'initialized t))
 
-	;; Prepare the special syntax tables.
-	(setq reftex-syntax-table (copy-syntax-table (syntax-table)))
-	(modify-syntax-entry ?\( "." reftex-syntax-table)
-	(modify-syntax-entry ?\) "." reftex-syntax-table)
-
-	(setq reftex-syntax-table-for-bib
-	      (copy-syntax-table reftex-syntax-table))
-	(modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
-	(modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
-	(modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
-	(modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
+        ;; Prepare the special syntax tables.
+        (setq reftex-syntax-table (copy-syntax-table (syntax-table)))
+        (modify-syntax-entry ?\( "." reftex-syntax-table)
+        (modify-syntax-entry ?\) "." reftex-syntax-table)
+        
+        (setq reftex-syntax-table-for-bib
+              (copy-syntax-table reftex-syntax-table))
+        (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
+        (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
+        (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
+        (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
 
         (run-hooks 'reftex-mode-hook))
     ;; Mode was turned off
@@ -419,13 +425,13 @@ on the menu bar.
   ;; This function should be installed in `kill-buffer-hook'.
   ;; We are careful to make sure nothing goes wring in this function.
   (when (and (boundp 'reftex-mode)  reftex-mode
-	     (boundp 'reftex-save-parse-info)  reftex-save-parse-info
-	     (boundp 'reftex-docstruct-symbol)  reftex-docstruct-symbol
-	     (symbol-value reftex-docstruct-symbol)
-	     (get reftex-docstruct-symbol 'modified))
+             (boundp 'reftex-save-parse-info)  reftex-save-parse-info
+             (boundp 'reftex-docstruct-symbol)  reftex-docstruct-symbol
+             (symbol-value reftex-docstruct-symbol)
+             (get reftex-docstruct-symbol 'modified))
     ;; Write the file.
     (condition-case nil
-	(reftex-access-parse-file 'write)
+        (reftex-access-parse-file 'write)
       (error nil))))
 
 (defun reftex-kill-emacs-hook ()
@@ -433,9 +439,9 @@ on the menu bar.
   ;; This function should be installed in `kill-emacs-hook'.
   (save-excursion
     (mapcar (lambda (buf)
-	      (set-buffer buf)
-	      (reftex-kill-buffer-hook))
-	    (buffer-list))))
+              (set-buffer buf)
+              (reftex-kill-buffer-hook))
+            (buffer-list))))
 
 ;;; =========================================================================
 ;;;
@@ -505,8 +511,8 @@ on the menu bar.
       (put (symbol-value symbol) :master-index index)
       ;; Initialize if new symbols.
       (when newflag
-	(set (symbol-value symbol) nil)
-	(put (symbol-value symbol) 'reftex-index-macros-style '(default))))
+        (set (symbol-value symbol) nil)
+        (put (symbol-value symbol) 'reftex-index-macros-style '(default))))
 
     ;; Return t if the symbols did already exist, nil when we've made them.
     (not newflag)))
@@ -529,10 +535,10 @@ on the menu bar.
       ((master
         (cond
          ((fboundp 'TeX-master-file) ; AUCTeX is loaded.  Use its mechanism.
-	  (condition-case nil
-	      (TeX-master-file t)
-	    (error (buffer-file-name))))
-	 ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
+          (condition-case nil 
+              (TeX-master-file t)
+            (error (buffer-file-name))))
+         ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
          ((boundp 'TeX-master)       ; The variable is defined - lets use it.
           (cond
            ((eq TeX-master t)
@@ -558,7 +564,7 @@ on the menu bar.
           (buffer-file-name)))))
     (cond
      ((null master)
-      (error "Need a filename for this buffer, please save it first"))
+      (error "Need a filename for this buffer,  please save it first"))
      ((or (file-exists-p (concat master ".tex"))
           (reftex-get-buffer-visiting (concat master ".tex")))
       ;; Ahh, an extra .tex was missing...
@@ -569,7 +575,7 @@ on the menu bar.
       )
      (t
       ;; Use buffer file name.
-      (setq master (buffer-file-name))))
+      (buffer-file-name)))
     (expand-file-name master)))
 
 (defun reftex-is-multi ()
@@ -587,15 +593,15 @@ for possible values.  This function should be used from AUCTeX style files."
   (unless reftex-docstruct-symbol
     (reftex-tie-multifile-symbols))
   (when (and reftex-docstruct-symbol
-	     (symbolp reftex-docstruct-symbol))
+             (symbolp reftex-docstruct-symbol))
     (put reftex-docstruct-symbol 'reftex-cite-format value)))
 
 (defun reftex-get-cite-format ()
   ;; Return the current citation format.  Either the document-local value in
   ;; reftex-cite-format-symbol, or the global value in reftex-cite-format.
   (if (and reftex-docstruct-symbol
-	   (symbolp reftex-docstruct-symbol)
-	   (get reftex-docstruct-symbol 'reftex-cite-format))
+           (symbolp reftex-docstruct-symbol)
+           (get reftex-docstruct-symbol 'reftex-cite-format))
       (get reftex-docstruct-symbol 'reftex-cite-format)
     reftex-cite-format))
 
@@ -611,22 +617,22 @@ the label information is recompiled on next use."
   (unless reftex-docstruct-symbol
     (reftex-tie-multifile-symbols))
   (when (and reftex-docstruct-symbol
-	     (symbolp reftex-docstruct-symbol))
+             (symbolp reftex-docstruct-symbol))
     (let ((list (get reftex-docstruct-symbol 'reftex-index-macros-style))
-	  entry changed)
+          entry changed)
       (while entry-list
-	(setq entry (pop entry-list))
-	;; When it is a symbol, remove all other symbols
-	(and (symbolp entry)
-	     (not (memq entry list))
-	     (setq list (reftex-remove-symbols-from-list list)))
-	;; Add to list unless already member
-	(unless (member entry list)
-	  (setq reftex-tables-dirty t
-		changed t)
-	  (push entry list)))
+        (setq entry (pop entry-list))
+        ;; When it is a symbol, remove all other symbols
+        (and (symbolp entry)
+             (not (memq entry list))
+             (setq list (reftex-remove-symbols-from-list list)))
+        ;; Add to list unless already member
+        (unless (member entry list)
+          (setq reftex-tables-dirty t
+                changed t)
+          (push entry list)))
       (when changed
-	(put reftex-docstruct-symbol 'reftex-index-macros-style list)))))
+        (put reftex-docstruct-symbol 'reftex-index-macros-style list)))))
 
 ;;; =========================================================================
 ;;;
@@ -728,14 +734,14 @@ the label information is recompiled on next use."
 
 ;; A list of all variables in the cache.
 ;; The cache is used to save the compiled versions of some variables.
-(defconst reftex-cache-variables
+(defconst reftex-cache-variables 
   '(reftex-memory ;; This MUST ALWAYS be the first!
-
+    
     ;; Outline
     reftex-section-levels-all
 
     ;; Labels
-    reftex-env-or-mac-alist
+    reftex-env-or-mac-alist 
     reftex-special-env-parsers
     reftex-macros-with-labels
     reftex-label-mac-list
@@ -751,7 +757,7 @@ the label information is recompiled on next use."
     reftex-index-macro-alist
     reftex-macros-with-index
     reftex-query-index-macro-prompt
-    reftex-query-index-macro-help
+    reftex-query-index-macro-help 
     reftex-key-to-index-macro-alist
 
     ;; Regular expressions
@@ -768,35 +774,35 @@ the label information is recompiled on next use."
 (defun reftex-ensure-compiled-variables ()
   ;; Recompile the label alist when necessary
   (let* ((mem reftex-memory)
-	 (cache (get reftex-docstruct-symbol 'reftex-cache))
-	 (cmem  (car cache))
-	 (alist reftex-label-alist)
-	 (levels (get reftex-docstruct-symbol 'reftex-section-levels))
-	 (style (get reftex-docstruct-symbol 'reftex-label-alist-style))
-	 (default reftex-default-label-alist-entries)
-	 (index reftex-index-macros)
-	 (istyle (get reftex-docstruct-symbol 'reftex-index-macros-style)))
+         (cache (get reftex-docstruct-symbol 'reftex-cache))
+         (cmem  (car cache))
+         (alist reftex-label-alist)
+         (levels (get reftex-docstruct-symbol 'reftex-section-levels))
+         (style (get reftex-docstruct-symbol 'reftex-label-alist-style))
+         (default reftex-default-label-alist-entries)
+         (index reftex-index-macros)
+         (istyle (get reftex-docstruct-symbol 'reftex-index-macros-style)))
     (cond
      (reftex-tables-dirty (reftex-compile-variables))
      ((and (eq alist   (nth 0 mem))
-	   (eq levels  (nth 1 mem))
-	   (eq style   (nth 2 mem))
-	   (eq default (nth 3 mem))
-	   (eq index   (nth 4 mem))
-	   (eq istyle  (nth 5 mem))))  ;; everything is OK
+           (eq levels  (nth 1 mem))
+           (eq style   (nth 2 mem))
+           (eq default (nth 3 mem))
+           (eq index   (nth 4 mem))
+           (eq istyle  (nth 5 mem))))  ;; everything is OK
      ((and (eq alist   (nth 0 cmem))
-	   (eq levels  (nth 1 cmem))
-	   (eq style   (nth 2 cmem))
-	   (eq default (nth 2 cmem))
-	   (eq index   (nth 4 cmem))
-	   (eq istyle  (nth 5 cmem)))
+           (eq levels  (nth 1 cmem))
+           (eq style   (nth 2 cmem))
+           (eq default (nth 2 cmem))
+           (eq index   (nth 4 cmem))
+           (eq istyle  (nth 5 cmem)))
       ;; restore the cache
       (message "Restoring cache")
       (mapcar (lambda (sym) (set sym (pop cache))) reftex-cache-variables))
      (t (reftex-compile-variables)))))
 
 (defun reftex-reset-mode ()
-  "Reset RefTeX Mode.
+  "Reset RefTeX Mode.  
 This will re-compile the configuration information and remove all
 current scanning information and the parse file to enforce a rescan
 on next use."
@@ -804,18 +810,18 @@ on next use."
 
   ;; Reset the file search path variables
   (loop for prop in '(status master-dir recursive-path rec-type) do
-	(put 'reftex-tex-path prop nil)
-	(put 'reftex-bib-path prop nil))
+        (put 'reftex-tex-path prop nil)
+        (put 'reftex-bib-path prop nil))
 
   ;; Kill temporary buffers associated with RefTeX - just in case they
   ;; were not cleaned up properly
   (save-excursion
     (let ((buffer-list '("*RefTeX Help*" "*RefTeX Select*"
-			 "*Duplicate Labels*" "*toc*" " *RefTeX-scratch*"))
-	  buf)
+                         "*Duplicate Labels*" "*toc*" " *RefTeX-scratch*"))
+          buf)
       (while (setq buf (pop buffer-list))
-	(if (get-buffer buf)
-	    (kill-buffer buf))))
+        (if (get-buffer buf)
+            (kill-buffer buf))))
     (reftex-erase-all-selection-and-index-buffers))
 
   ;; Make sure the current document will be rescanned soon.
@@ -830,6 +836,7 @@ on next use."
 
   (reftex-compile-variables))
 
+;;;###autoload
 (defun reftex-reset-scanning-information ()
   "Reset the symbols containing information from buffer scanning.
 This enforces rescanning the buffer on next use."
@@ -846,12 +853,12 @@ This enforces rescanning the buffer on next use."
 
 (defun reftex-erase-all-selection-and-index-buffers ()
   ;; Remove all selection buffers associated with current document.
-  (mapcar
+  (mapcar 
    (lambda (type)
      (reftex-erase-buffer (reftex-make-selection-buffer-name type)))
    reftex-typekey-list)
   ;; Kill all index buffers
-  (mapcar
+  (mapcar 
    (lambda (tag)
      (reftex-kill-buffer (reftex-make-index-buffer-name tag)))
    (cdr (assoc 'index-tags (symbol-value reftex-docstruct-symbol)))))
@@ -867,34 +874,34 @@ This enforces rescanning the buffer on next use."
 
   ;; Record that we have done this, and what we have used.
   (setq reftex-tables-dirty nil)
-  (setq reftex-memory
-	(list reftex-label-alist
-	      (get reftex-docstruct-symbol 'reftex-section-levels)
-	      (get reftex-docstruct-symbol 'reftex-label-alist-style)
-	      reftex-default-label-alist-entries
-	      reftex-index-macros
-	      (get reftex-docstruct-symbol 'reftex-index-macros-style)))
+  (setq reftex-memory 
+        (list reftex-label-alist
+              (get reftex-docstruct-symbol 'reftex-section-levels)
+              (get reftex-docstruct-symbol 'reftex-label-alist-style)
+              reftex-default-label-alist-entries
+              reftex-index-macros
+              (get reftex-docstruct-symbol 'reftex-index-macros-style)))
 
   ;; Compile information in reftex-label-alist
   (let ((all (reftex-uniquify-by-car
-	      (reftex-splice-symbols-into-list
-	       (append reftex-label-alist
-		       (get reftex-docstruct-symbol
-			    'reftex-label-alist-style)
-		       reftex-default-label-alist-entries)
-	       reftex-label-alist-builtin)
-	      '(nil)))
-	(all-index (reftex-uniquify-by-car
-		    (reftex-splice-symbols-into-list
-		     (append reftex-index-macros
-			     (get reftex-docstruct-symbol
-				  'reftex-index-macros-style)
-			     '(default))
-		     reftex-index-macros-builtin)))
+              (reftex-splice-symbols-into-list
+               (append reftex-label-alist
+                       (get reftex-docstruct-symbol
+                            'reftex-label-alist-style)
+                       reftex-default-label-alist-entries)
+               reftex-label-alist-builtin)
+              '(nil)))
+        (all-index (reftex-uniquify-by-car
+                    (reftex-splice-symbols-into-list
+                     (append reftex-index-macros 
+                             (get reftex-docstruct-symbol
+                                  'reftex-index-macros-style)
+                             '(default))
+                     reftex-index-macros-builtin)))
         entry env-or-mac typekeychar typekey prefix context word
         fmt reffmt labelfmt wordlist qh-list macros-with-labels
         nargs nlabel opt-args cell sum i
-	macro verify repeat nindex tag key toc-level toc-levels)
+        macro verify repeat nindex tag key toc-level toc-levels)
 
     (setq reftex-words-to-typekey-alist nil
           reftex-typekey-list nil
@@ -923,7 +930,7 @@ This enforces rescanning the buffer on next use."
               fmt (nth 2 entry)
               context (nth 3 entry)
               wordlist (nth 4 entry)
-	      toc-level (nth 5 entry))
+              toc-level (nth 5 entry))
         (if (stringp wordlist)
             ;; This is before version 2.04 - convert to new format
             (setq wordlist (nthcdr 4 entry)))
@@ -935,66 +942,66 @@ This enforces rescanning the buffer on next use."
           (setq fmt (list "\\label{%s}" fmt)))
         (setq labelfmt (car fmt)
               reffmt (nth 1 fmt))
-	;; Note a new typekey
+        ;; Note a new typekey
         (if typekey
             (add-to-list 'reftex-typekey-list typekey))
         (if (and typekey prefix
                  (not (assoc typekey reftex-typekey-to-prefix-alist)))
             (add-to-list 'reftex-typekey-to-prefix-alist
                          (cons typekey prefix)))
-	;; Check if this is a macro or environment
+        ;; Check if this is a macro or environment
         (cond
-	 ((symbolp env-or-mac)
-	  ;; A special parser function
-	  (unless (fboundp env-or-mac)
-	    (message "Warning: %s does not seem to be a valid function"
-		     env-or-mac))
+         ((symbolp env-or-mac)
+          ;; A special parser function
+          (unless (fboundp env-or-mac)
+            (message "Warning: %s does not seem to be a valid function" 
+                     env-or-mac))
           (setq nargs nil nlabel nil opt-args nil)
-	  (add-to-list 'reftex-special-env-parsers env-or-mac)
-	  (setq env-or-mac (symbol-name env-or-mac)))
+          (add-to-list 'reftex-special-env-parsers env-or-mac)
+          (setq env-or-mac (symbol-name env-or-mac)))
          ((string-match "\\`\\\\" env-or-mac)
           ;; It's a macro
           (let ((result (reftex-parse-args env-or-mac)))
             (setq env-or-mac (or (first result) env-or-mac)
-		  nargs (second result)
+                  nargs (second result)
                   nlabel (third result)
                   opt-args (fourth result))
             (if nlabel (add-to-list 'macros-with-labels env-or-mac)))
-	  (if typekey (add-to-list 'reftex-label-mac-list env-or-mac)))
+          (if typekey (add-to-list 'reftex-label-mac-list env-or-mac)))
          (t
-	  ;; It's an environment
+          ;; It's an environment
           (setq nargs nil nlabel nil opt-args nil)
           (cond ((string= env-or-mac "any"))
                 ((string= env-or-mac ""))
                 ((string= env-or-mac "section"))
                 (t
                  (add-to-list 'reftex-label-env-list env-or-mac)
-		 (if toc-level
-		     (let ((string (format "begin{%s}" env-or-mac)))
-		       (or (assoc string toc-levels)
-			   (push (cons string toc-level) toc-levels))))))))
-	;; Translate some special context cases
-	(when (assq context reftex-default-context-regexps)
-	  (setq context
-		(format
-		 (cdr (assq context reftex-default-context-regexps))
-		 (regexp-quote env-or-mac))))
-	;; See if this is the first format for this typekey
+                 (if toc-level
+                     (let ((string (format "begin{%s}" env-or-mac)))
+                       (or (assoc string toc-levels)
+                           (push (cons string toc-level) toc-levels))))))))
+        ;; Translate some special context cases
+        (when (assq context reftex-default-context-regexps)
+          (setq context 
+                (format 
+                 (cdr (assq context reftex-default-context-regexps))
+                 (regexp-quote env-or-mac))))
+        ;; See if this is the first format for this typekey
         (and reffmt
              (not (assoc typekey reftex-typekey-to-format-alist))
              (push (cons typekey reffmt) reftex-typekey-to-format-alist))
-	;; See if this is the first definition for this env-or-mac
+        ;; See if this is the first definition for this env-or-mac
         (and (not (string= env-or-mac "any"))
              (not (string= env-or-mac ""))
              (not (assoc env-or-mac reftex-env-or-mac-alist))
              (push (list env-or-mac typekey context labelfmt
-			 nargs nlabel opt-args)
+                         nargs nlabel opt-args)
                    reftex-env-or-mac-alist))
-	;; Are the magic words regular expressions?  Quote normal words.
-	(if (eq (car wordlist) 'regexp)
-	    (setq wordlist (cdr wordlist))
-	  (setq wordlist (mapcar 'regexp-quote wordlist)))
-	;; Remember the first association of each word.
+        ;; Are the magic words regular expressions?  Quote normal words.
+        (if (eq (car wordlist) 'regexp)
+            (setq wordlist (cdr wordlist))
+          (setq wordlist (mapcar 'regexp-quote wordlist)))
+        ;; Remember the first association of each word.
         (while (stringp (setq word (pop wordlist)))
           (or (assoc word reftex-words-to-typekey-alist)
               (push (cons word typekey) reftex-words-to-typekey-alist)))
@@ -1009,10 +1016,10 @@ This enforces rescanning the buffer on next use."
           (nreverse reftex-typekey-to-prefix-alist))
 
     ;; Prepare the typekey query prompt and help string.
-    (setq qh-list
-	  (sort qh-list
-		(lambda (x1 x2)
-		  (string< (downcase (car x1)) (downcase (car x2))))))
+    (setq qh-list 
+          (sort qh-list
+                (lambda (x1 x2)
+                  (string< (downcase (car x1)) (downcase (car x2))))))
     (setq reftex-type-query-prompt
           (concat "Label type: ["
                   (mapconcat (lambda(x) (format "%s" (car x)))
@@ -1020,164 +1027,164 @@ This enforces rescanning the buffer on next use."
                   "]"))
     ;; In the help string, we need to wrap lines...
     (setq reftex-type-query-help
-          (concat
-	   "SELECT A LABEL TYPE:\n--------------------\n"
-	   (mapconcat
-	    (lambda(x)
-	      (setq sum 0)
-	      (format " [%s]   %s"
-		      (car x)
-		      (mapconcat (lambda(env)
-				   (setq sum (+ sum (length env)))
-				   (if (< sum 60)
-				       env
-				     (setq sum 0)
-				     (concat "\n       " env)))
-				 (cdr x) " ")))
-	    qh-list "\n")))
+          (concat 
+           "SELECT A LABEL TYPE:\n--------------------\n"
+           (mapconcat
+            (lambda(x)
+              (setq sum 0)
+              (format " [%s]   %s"
+                      (car x)
+                      (mapconcat (lambda(env)
+                                   (setq sum (+ sum (length env)))
+                                   (if (< sum 60)
+                                       env
+                                     (setq sum 0)
+                                     (concat "\n       " env)))
+                                 (cdr x) " ")))
+            qh-list "\n")))
 
     ;; Convert magic words to regular expressions.  We make regular expressions
     ;; which allow for some chars from the ref format to be in the buffer.
     ;; These characters will be seen and removed.
     (setq reftex-words-to-typekey-alist
-	  (mapcar
-	   (lambda (x)
-	     (setq word (car x)
-		   typekey (cdr x)
-		   fmt (cdr (assoc typekey reftex-typekey-to-format-alist)))
-	     (setq word (concat "\\W\\(" word "[ \t\n\r]*\\)\\("))
-	     (setq i 0)
-	     (while (and (< i 10)   ; maximum number of format chars allowed
- 			 (< i (length fmt))
-			 (not (member (aref fmt i) '(?%))))
-	       (setq word (concat word "\\|" (regexp-quote
-					      (substring fmt 0 (1+ i)))))
-	       (incf i))
-	     (cons (concat word "\\)\\=") typekey))
-	   (nreverse reftex-words-to-typekey-alist)))
+          (mapcar 
+           (lambda (x)
+             (setq word (car x)
+                   typekey (cdr x)
+                   fmt (cdr (assoc typekey reftex-typekey-to-format-alist)))
+             (setq word (concat "\\W\\(" word "[ \t\n\r]*\\)\\("))
+             (setq i 0)
+             (while (and (< i 10)   ; maximum number of format chars allowed
+                         (< i (length fmt))
+                         (not (member (aref fmt i) '(?%))))
+               (setq word (concat word "\\|" (regexp-quote
+                                              (substring fmt 0 (1+ i)))))
+               (incf i))
+             (cons (concat word "\\)\\=") typekey))
+           (nreverse reftex-words-to-typekey-alist)))
 
     ;; Parse the index macros
     (setq reftex-index-macro-alist nil
-	  reftex-key-to-index-macro-alist nil
-	  reftex-macros-with-index nil)
+          reftex-key-to-index-macro-alist nil
+          reftex-macros-with-index nil)
     (while all-index
       (setq entry (car all-index)
-	    macro (car entry)
-	    tag (nth 1 entry)
-	    key (nth 2 entry)
-	    prefix (or (nth 3 entry) "")
-	    verify (nth 4 entry)
-	    ;; For repeat, we need to be compatible with older code
-	    ;; This information used to be given only for the default macro,
-	    ;; but later we required to have it for *every* index macro
-	    repeat (cond ((> (length entry) 5) (nth 5 entry))
-			 ((and (eq key (car reftex-index-default-macro))
-			       (> (length reftex-index-default-macro) 2))
-			  ;; User has old setting - respect it
-			  (nth 2 reftex-index-default-macro))
-			 (t t))
-	    all-index (cdr all-index))
+            macro (car entry)
+            tag (nth 1 entry)
+            key (nth 2 entry)
+            prefix (or (nth 3 entry) "")
+            verify (nth 4 entry)
+            ;; For repeat, we need to be compatible with older code
+            ;; This information used to be given only for the default macro,
+            ;; but later we required to have it for *every* index macro
+            repeat (cond ((> (length entry) 5) (nth 5 entry))
+                         ((and (eq key (car reftex-index-default-macro))
+                               (> (length reftex-index-default-macro) 2))
+                          ;; User has old setting - respect it
+                          (nth 2 reftex-index-default-macro))
+                         (t t))
+            all-index (cdr all-index))
       (let ((result (reftex-parse-args macro)))
-	(setq macro (or (first result) macro)
-	      nargs (second result)
-	      nindex (third result)
-	      opt-args (fourth result))
-	(unless (member macro reftex-macros-with-index)
-	  ;;           0     1    2      3     4     5       6        7
-	  (push (list macro tag prefix verify nargs nindex opt-args repeat)
-		reftex-index-macro-alist)
-	  (or (assoc key reftex-key-to-index-macro-alist)
-	      (push (list key macro) reftex-key-to-index-macro-alist))
-	  (push macro reftex-macros-with-index))))
+        (setq macro (or (first result) macro)
+              nargs (second result)
+              nindex (third result)
+              opt-args (fourth result))
+        (unless (member macro reftex-macros-with-index)
+          ;;           0     1    2      3     4     5       6        7
+          (push (list macro tag prefix verify nargs nindex opt-args repeat)
+                reftex-index-macro-alist)
+          (or (assoc key reftex-key-to-index-macro-alist)
+              (push (list key macro) reftex-key-to-index-macro-alist))
+          (push macro reftex-macros-with-index))))
     ;; Make the prompt and help string for index macros query
     (setq reftex-key-to-index-macro-alist
-	  (sort reftex-key-to-index-macro-alist
-		(lambda (a b) (< (downcase (car a)) (downcase (car b))))))
-    (setq reftex-query-index-macro-prompt
-	  (concat "Index macro: ["
-		  (mapconcat (lambda (x) (char-to-string (car x)))
-			     reftex-key-to-index-macro-alist "")
-		  "]"))
+          (sort reftex-key-to-index-macro-alist
+                (lambda (a b) (< (downcase (car a)) (downcase (car b))))))
+    (setq reftex-query-index-macro-prompt 
+          (concat "Index macro: ["
+                  (mapconcat (lambda (x) (char-to-string (car x)))
+                             reftex-key-to-index-macro-alist "")
+                  "]"))
     (setq i 0
-	  reftex-query-index-macro-help
-	  (concat
-	   "SELECT A MACRO:\n---------------\n"
-	   (mapconcat
-	    (lambda(x)
-	      (format "[%c] %-20.20s%s" (car x) (nth 1 x)
-		      (if (= 0 (mod (incf i) 3)) "\n" "")))
-	    reftex-key-to-index-macro-alist "")))
+          reftex-query-index-macro-help
+          (concat 
+           "SELECT A MACRO:\n---------------\n"
+           (mapconcat
+            (lambda(x)
+              (format "[%c] %-20.20s%s" (car x) (nth 1 x) 
+                      (if (= 0 (mod (incf i) 3)) "\n" "")))
+            reftex-key-to-index-macro-alist "")))
 
     ;; Make the full list of section levels
     (setq reftex-section-levels-all
-	  (append toc-levels
-		  (get reftex-docstruct-symbol 'reftex-section-levels)
-		  reftex-section-levels))
+          (append toc-levels
+                  (get reftex-docstruct-symbol 'reftex-section-levels)
+                  reftex-section-levels))
 
     ;; Calculate the regular expressions
     (let* (
-;	   (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
-	   (wbol "\\(^\\)[ \t]*")  ; Need to keep the empty group because
-	                          ;;; because match number are hard coded
-	   (label-re "\\\\label{\\([^}]*\\)}")
-	   (include-re (concat wbol
-			       "\\\\\\("
-			       (mapconcat 'identity
-					  reftex-include-file-commands "\\|")
-			       "\\)[{ \t]+\\([^} \t\n\r]+\\)"))
-	   (section-re
-	    (concat wbol "\\\\\\("
-		    (mapconcat (lambda (x) (regexp-quote (car x)))
-			       reftex-section-levels-all "\\|")
-		    "\\)\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n]"))
-	   (appendix-re (concat wbol "\\(\\\\appendix\\)"))
-	   (macro-re
-	    (if macros-with-labels
-		(concat "\\("
-			(mapconcat 'regexp-quote macros-with-labels "\\|")
-			"\\)[[{]")
-	      ""))
-	   (index-re
-	    (concat "\\("
-		    (mapconcat 'regexp-quote reftex-macros-with-index "\\|")
-		    "\\)[[{]"))
-	   (find-index-re-format
-	    (concat "\\("
-		    (mapconcat 'regexp-quote reftex-macros-with-index "\\|")
-		    "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
-	   (find-label-re-format
-	    (concat "\\("
-		    (mapconcat 'regexp-quote (append '("\\label")
-						     macros-with-labels) "\\|")
-		    "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
-	   (index-level-re
-	    (regexp-quote (nth 0 reftex-index-special-chars)))
-	   (index-key-end-re ;; ^]- not allowed
-	    (concat "[^" (nth 3 reftex-index-special-chars) "]"
-		    "[" (nth 1 reftex-index-special-chars)
-		    (nth 2 reftex-index-special-chars) "]"))
-	   )
+;          (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
+           (wbol "\\(^\\)[ \t]*")  ; Need to keep the empty group because
+                                  ;;; because match number are hard coded  
+           (label-re "\\\\label{\\([^}]*\\)}")
+           (include-re (concat wbol 
+                               "\\\\\\("
+                               (mapconcat 'identity 
+                                          reftex-include-file-commands "\\|")
+                               "\\)[{ \t]+\\([^} \t\n\r]+\\)"))
+           (section-re
+            (concat wbol "\\\\\\("
+                    (mapconcat (lambda (x) (regexp-quote (car x)))
+                               reftex-section-levels-all "\\|")
+                    "\\)\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n]"))
+           (appendix-re (concat wbol "\\(\\\\appendix\\)"))
+           (macro-re
+            (if macros-with-labels
+                (concat "\\("
+                        (mapconcat 'regexp-quote macros-with-labels "\\|")
+                        "\\)[[{]")
+              ""))
+           (index-re
+            (concat "\\("
+                    (mapconcat 'regexp-quote reftex-macros-with-index "\\|")
+                    "\\)[[{]"))
+           (find-index-re-format
+            (concat "\\("
+                    (mapconcat 'regexp-quote reftex-macros-with-index "\\|")
+                    "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
+           (find-label-re-format
+            (concat "\\("
+                    (mapconcat 'regexp-quote (append '("\\label")
+                                                     macros-with-labels) "\\|")
+                    "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
+           (index-level-re
+            (regexp-quote (nth 0 reftex-index-special-chars)))
+           (index-key-end-re ;; ^]- not allowed
+            (concat "[^" (nth 3 reftex-index-special-chars) "]"
+                    "[" (nth 1 reftex-index-special-chars)
+                    (nth 2 reftex-index-special-chars) "]"))
+           )
       (setq reftex-section-regexp section-re
             reftex-section-or-include-regexp
             (concat section-re "\\|" include-re)
             reftex-everything-regexp
             (concat label-re "\\|" section-re "\\|" include-re
-		    "\\|" appendix-re
-		    "\\|" index-re
+                    "\\|" appendix-re
+                    "\\|" index-re
                     (if macros-with-labels "\\|" "") macro-re)
             reftex-everything-regexp-no-index
             (concat label-re "\\|" section-re "\\|" include-re
-		    "\\|" appendix-re
-		    "\\|" "\\(\\\\6\\\\3\\\\1\\)" ; This is unlikely to match
+                    "\\|" appendix-re
+                    "\\|" "\\(\\\\6\\\\3\\\\1\\)" ; This is unlikely to match
                     (if macros-with-labels "\\|" "") macro-re)
-	    reftex-index-re index-re
-	    reftex-index-level-re index-level-re
-	    reftex-index-key-end-re index-key-end-re
-	    reftex-macros-with-labels macros-with-labels
-	    reftex-find-index-entry-regexp-format find-index-re-format
+            reftex-index-re index-re
+            reftex-index-level-re index-level-re
+            reftex-index-key-end-re index-key-end-re
+            reftex-macros-with-labels macros-with-labels
+            reftex-find-index-entry-regexp-format find-index-re-format
             reftex-find-label-regexp-format find-label-re-format
-	    reftex-find-label-regexp-format2
-	    "\\([]} \t\n\r]\\)\\([[{]\\)\\(%s\\)[]}]")
+            reftex-find-label-regexp-format2 
+            "\\([]} \t\n\r]\\)\\([[{]\\)\\(%s\\)[]}]")
       (message "Compiling label environment definitions...done")))
   (put reftex-docstruct-symbol 'reftex-cache
        (mapcar 'symbol-value reftex-cache-variables)))
@@ -1195,8 +1202,8 @@ This enforces rescanning the buffer on next use."
             (when (eq ?\[ (string-to-char args))
               (push cnt opt-list))
             (when (and (match-end 1)
-		       (not nlabel))
-	      (setq nlabel cnt))
+                       (not nlabel))
+              (setq nlabel cnt))
             (setq args (substring args (match-end 0))))
           (list must-match cnt nlabel opt-list)))
     nil))
@@ -1220,14 +1227,14 @@ This enforces rescanning the buffer on next use."
   (reftex-ensure-compiled-variables)
 
   (when (or (null (symbol-value reftex-docstruct-symbol))
-	    (member rescan '(t 1 (4) (16))))
+            (member rescan '(t 1 (4) (16))))
     ;; The docstruct will change: Remove selection buffers.
     (save-excursion
       (reftex-erase-buffer "*toc*")
       (reftex-erase-all-selection-and-index-buffers)))
 
   (if (and (null (symbol-value reftex-docstruct-symbol))
-	   (not (member rescan '(t 1 (4) (16))))
+           (not (member rescan '(t 1 (4) (16))))
            reftex-save-parse-info)
       ;; Try to read the stuff from a file
       (reftex-access-parse-file 'read))
@@ -1248,7 +1255,7 @@ This enforces rescanning the buffer on next use."
   (and (symbolp reftex-docstruct-symbol)
        (symbol-value reftex-docstruct-symbol)
        t))
-
+  
 (defun reftex-silence-toc-markers (list n)
   ;; Set all toc markers in the first N entries in list to nil
   (while (and list (> (decf n) -1))
@@ -1261,12 +1268,12 @@ This enforces rescanning the buffer on next use."
   "Perform ACTION on the parse file (the .rel file).
 Valid actions are: readable, restore, read, kill, write."
   (let* ((list (symbol-value reftex-docstruct-symbol))
-	 (docstruct-symbol reftex-docstruct-symbol)
+         (docstruct-symbol reftex-docstruct-symbol)
          (master (reftex-TeX-master-file))
-	 (enable-local-variables nil)
+         (enable-local-variables nil)
          (file (if (string-match "\\.[a-zA-Z]+\\'" master)
-                   (concat (substring master 0 (match-beginning 0))
-			   reftex-parse-file-extension)
+                   (concat (substring master 0 (match-beginning 0)) 
+                           reftex-parse-file-extension)
                  (concat master reftex-parse-file-extension))))
     (cond
      ((eq action 'readable)
@@ -1278,31 +1285,31 @@ Valid actions are: readable, restore, read, kill, write."
           (reftex-tie-multifile-symbols))
       (if (file-exists-p file)
           ;; load the file and return t for success
-	  (condition-case nil
-	      (progn (load-file file) t)
-	    (error (set reftex-docstruct-symbol nil)
-		   (error "Error while loading file %s" file)))
+          (condition-case nil
+              (progn (load-file file) t)
+            (error (set reftex-docstruct-symbol nil)
+                   (error "Error while loading file %s" file)))
         ;; Throw an exception if the file does not exist
         (error "No restore file %s" file)))
      ((eq action 'read)
       (put reftex-docstruct-symbol 'modified nil)
       (if (file-exists-p file)
           ;; load the file and return t for success
-	  (condition-case nil
-	      (progn
-		(load-file file)
-		(reftex-check-parse-consistency)
-		t)
-	    (error (message "Error while restoring file %s" file)
-		   (set reftex-docstruct-symbol nil)
-		   nil))
+          (condition-case nil
+              (progn
+                (load-file file)
+                (reftex-check-parse-consistency)
+                t)
+            (error (message "Error while restoring file %s" file)
+                   (set reftex-docstruct-symbol nil)
+                   nil))
         ;; return nil for failure, but no exception
         nil))
      ((eq action 'kill)
       ;; Remove the file
       (when (and (file-exists-p file) (file-writable-p file))
-	(message "Unlinking file %s" file)
-	(delete-file file)))
+        (message "Unlinking file %s" file)
+        (delete-file file)))
      (t
       (put docstruct-symbol 'modified nil)
       (save-excursion
@@ -1318,20 +1325,20 @@ Valid actions are: readable, restore, read, kill, write."
               (insert "(set reftex-docstruct-symbol '(\n\n")
               (let ((standard-output (current-buffer)))
                 (mapcar
-		 (lambda (x)
-		   (cond ((eq (car x) 'toc)
-			  ;; A toc entry. Do not save the marker.
-			  ;; Save the markers  position at position 8
-			  (print (list 'toc "toc" (nth 2 x) (nth 3 x)
-				       nil (nth 5 x) (nth 6 x) (nth 7 x)
-				       (or (and (markerp (nth 4 x))
-						(marker-position (nth 4 x)))
-					   (nth 8 x)))))
-			 ((and (not (eq t reftex-support-index))
-			       (eq (car x) 'index))
-			  ;; Don't save index entries
-			  )
-			 (t (print x))))
+                 (lambda (x)
+                   (cond ((eq (car x) 'toc)
+                          ;; A toc entry. Do not save the marker.
+                          ;; Save the markers  position at position 8
+                          (print (list 'toc "toc" (nth 2 x) (nth 3 x)
+                                       nil (nth 5 x) (nth 6 x) (nth 7 x)
+                                       (or (and (markerp (nth 4 x))
+                                                (marker-position (nth 4 x)))
+                                           (nth 8 x)))))
+                         ((and (not (eq t reftex-support-index))
+                               (eq (car x) 'index))
+                          ;; Don't save index entries
+                          )
+                         (t (print x))))
                  list))
               (insert "))\n\n")
               (save-buffer 0)
@@ -1344,29 +1351,29 @@ Valid actions are: readable, restore, read, kill, write."
 
   ;; Check if the master is the same: when moving a document, this will see it.
   (let* ((real-master (reftex-TeX-master-file))
-	 (parsed-master
-	  (nth 1 (assq 'bof (symbol-value reftex-docstruct-symbol)))))
+         (parsed-master 
+          (nth 1 (assq 'bof (symbol-value reftex-docstruct-symbol)))))
     (unless (string= (file-truename real-master) (file-truename parsed-master))
       (message "Master file name in load file is different: %s versus %s"
-	       parsed-master real-master)
+               parsed-master real-master)
       (error "Master file name error")))
 
   ;; Check for the existence of all document files
 ;;;  (let* ((all (symbol-value reftex-docstruct-symbol)))
 ;;;    (while all
 ;;;      (when (and (eq (car (car all)) 'bof)
-;;;		 (not (file-regular-p (nth 1 (car all)))))
-;;;	(message "File %s in saved parse info not avalable" (cdr (car all)))
-;;;	(error "File not found"))
+;;;              (not (file-regular-p (nth 1 (car all)))))
+;;;     (message "File %s in saved parse info not avalable" (cdr (car all)))
+;;;     (error "File not found"))
 ;;;      (setq all (cdr all))))
   )
 
 (defun reftex-select-external-document (xr-alist xr-index)
   ;; Return index of an external document.
   (let* ((len (length xr-alist)) (highest (1- (+ ?0 len)))
-	 (prompt (format "[%c-%c] Select    TAB: Read prefix with completion"
-			 ?0 highest))
-	 key prefix)
+         (prompt (format "[%c-%c] Select    TAB: Read prefix with completion" 
+                         ?0 highest))
+         key prefix)
     (cond
      ((= len 1)
       (message "No external documents available")
@@ -1375,27 +1382,27 @@ Valid actions are: readable, restore, read, kill, write."
       (- 1 xr-index))
      (t
       (save-excursion
-	(let* ((length (apply 'max (mapcar
-				    (lambda(x) (length (car x))) xr-alist)))
-	       (fmt (format " [%%c]  %%-%ds  %%s\n" length))
-	       (n (1- ?0)))
-	  (setq key
-		(reftex-select-with-char
-		 prompt
-		 (concat
-		  "SELECT EXTERNAL DOCUMENT\n------------------------\n"
-		  (mapconcat
-		   (lambda (x)
-		     (format fmt (incf n) (or (car x) "")
-			     (abbreviate-file-name (cdr x))))
-		   xr-alist ""))
-		 nil t))
-	  (cond
-	   ((and (>= key ?0) (<= key highest)) (- key ?0))
-	   ((= key ?\C-i)
-	    (setq prefix (completing-read "Prefix: " xr-alist nil t))
-	    (- len (length (memq (assoc prefix xr-alist) xr-alist))))
-	   (t (error "Illegal document selection [%c]" key)))))))))
+        (let* ((length (apply 'max (mapcar 
+                                    (lambda(x) (length (car x))) xr-alist)))
+               (fmt (format " [%%c]  %%-%ds  %%s\n" length))
+               (n (1- ?0)))
+          (setq key
+                (reftex-select-with-char
+                 prompt
+                 (concat
+                  "SELECT EXTERNAL DOCUMENT\n------------------------\n"
+                  (mapconcat
+                   (lambda (x) 
+                     (format fmt (incf n) (or (car x) "")
+                             (abbreviate-file-name (cdr x))))
+                   xr-alist ""))
+                 nil t))
+          (cond
+           ((and (>= key ?0) (<= key highest)) (- key ?0))
+           ((= key ?\C-i)
+            (setq prefix (completing-read "Prefix: " xr-alist nil t))
+            (- len (length (memq (assoc prefix xr-alist) xr-alist))))
+           (t (error "Illegal document selection [%c]" key)))))))))
 
 ;;; =========================================================================
 ;;;
@@ -1407,65 +1414,65 @@ If the file does not have any of the legal extensions for TYPE,
 try first the default extension and only then the naked file name.
 When DIE is non-nil, throw an error if file not found."
   (let* ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
-	 (extensions (cdr (assoc type reftex-file-extensions)))
-	 (def-ext (car extensions))
-	 (ext-re (concat "\\("
-			 (mapconcat 'regexp-quote extensions "\\|")
-			 "\\)\\'"))
-	 (files (if (string-match ext-re file)
-		    (cons file nil)
-		  (cons (concat file def-ext) file)))
-	 path old-path file1)
+         (extensions (cdr (assoc type reftex-file-extensions)))
+         (def-ext (car extensions))
+         (ext-re (concat "\\(" 
+                         (mapconcat 'regexp-quote extensions "\\|")
+                         "\\)\\'"))
+         (files (if (string-match ext-re file)
+                    (cons file nil)
+                  (cons (concat file def-ext) file)))
+         path old-path file1)
     (cond
      ((file-name-absolute-p file)
-      (setq file1
-	    (or
-	     (and (car files) (file-regular-p (car files)) (car files))
-	     (and (cdr files) (file-regular-p (cdr files)) (cdr files)))))
+      (setq file1 
+            (or 
+             (and (car files) (file-regular-p (car files)) (car files))
+             (and (cdr files) (file-regular-p (cdr files)) (cdr files)))))
      ((and reftex-use-external-file-finders
-	   (assoc type reftex-external-file-finders))
+           (assoc type reftex-external-file-finders))
       (setq file1 (reftex-find-file-externally file type master-dir)))
      (t
       (while (and (null file1) rec-values)
-	(setq path (reftex-access-search-path
-		    type (pop rec-values) master-dir file))
-	(if (or (null old-path)
-		(not (eq old-path path)))
-	    (setq old-path path
-		  path (cons master-dir path)
-		  file1 (or (and (car files)
-				 (reftex-find-file-on-path
-				  (car files) path master-dir))
-			    (and (cdr files)
-				 (reftex-find-file-on-path
-				  (cdr files) path master-dir))))))))
+        (setq path (reftex-access-search-path
+                    type (pop rec-values) master-dir file))
+        (if (or (null old-path)
+                (not (eq old-path path)))
+            (setq old-path path
+                  path (cons master-dir path)
+                  file1 (or (and (car files)
+                                 (reftex-find-file-on-path 
+                                  (car files) path master-dir))
+                            (and (cdr files)
+                                 (reftex-find-file-on-path 
+                                  (cdr files) path master-dir))))))))
     (cond (file1 file1)
-	  (die (error "No such file: %s" file) nil)
-	  (t (message "No such file: %s (ignored)" file) nil))))
+          (die (error "No such file: %s" file) nil)
+          (t (message "No such file: %s (ignored)" file) nil))))
 
 (defun reftex-find-file-externally (file type &optional master-dir)
   ;; Use external program to find FILE.
   ;; The program is taken from `reftex-external-file-finders'.
   ;; Interprete relative path definitions starting from MASTER-DIR.
   (let ((default-directory (or master-dir default-directory))
-	(prg (cdr (assoc type reftex-external-file-finders)))
-	out)
+        (prg (cdr (assoc type reftex-external-file-finders)))
+        out)
     (if (string-match "%f" prg)
-	(setq prg (replace-match file t t prg)))
+        (setq prg (replace-match file t t prg)))
     (setq out (apply 'reftex-process-string (split-string prg)))
     (if (string-match "[ \t\n]+\\'" out)     ; chomp
-	(setq out (replace-match "" nil nil out)))
+        (setq out (replace-match "" nil nil out)))
     (cond ((equal out "") nil)
-	  ((file-regular-p out) (expand-file-name out master-dir))
-	  (t nil))))
+          ((file-regular-p out) (expand-file-name out master-dir))
+          (t nil))))
 
 (defun reftex-process-string (program &rest args)
   "Execute PROGRAM with arguments ARGS and return its STDOUT as a string."
   (let ((calling-dir default-directory))  ; remember default directory
     (with-output-to-string
       (with-current-buffer standard-output
-	(let ((default-directory calling-dir)) ; set default directory
-	  (apply 'call-process program nil '(t nil) nil args))))))
+        (let ((default-directory calling-dir)) ; set default directory
+          (apply 'call-process program nil '(t nil) nil args))))))
 
 (defun reftex-access-search-path (type &optional recurse master-dir file)
   ;; Access path from environment variables.  TYPE is either "tex" or "bib".
@@ -1479,51 +1486,51 @@ When DIE is non-nil, throw an error if file not found."
     (when (null (get pathvar 'status))
       ;; Get basic path
       (set pathvar
-	   (reftex-uniq
-	    (reftex-parse-colon-path
-	     (mapconcat
-	      (lambda(x)
-		(if (string-match "^!" x)
-		    (apply 'reftex-process-string
-			   (split-string (substring x 1)))
-		  (or (getenv x) x)))
-	      ;; For consistency, the next line should look like this:
-	      ;;  (cdr (assoc type reftex-path-environment))
-	      ;; However, historically we have separate options for the
-	      ;; environment variables, so we have to do this:
-	      (symbol-value (intern (concat "reftex-" type
-					    "path-environment-variables")))
-	      path-separator))))
+           (reftex-uniq
+            (reftex-parse-colon-path
+             (mapconcat
+              (lambda(x) 
+                (if (string-match "^!" x)
+                    (apply 'reftex-process-string
+                           (split-string (substring x 1)))
+                  (or (getenv x) x)))
+              ;; For consistency, the next line should look like this:
+              ;;  (cdr (assoc type reftex-path-environment))
+              ;; However, historically we have separate options for the
+              ;; environment variables, so we have to do this:
+              (symbol-value (intern (concat "reftex-" type 
+                                            "path-environment-variables")))
+              path-separator))))
       (put pathvar 'status 'split)
       ;; Check if we have recursive elements
       (let ((path (symbol-value pathvar)) dir rec)
-	(while (setq dir (pop path))
-	  (when (string= (substring dir -2) "//")
-	    (if (file-name-absolute-p dir)
-		(setq rec (or rec 'absolute))
-	      (setq rec 'relative))))
-	(put pathvar 'rec-type rec)))
+        (while (setq dir (pop path))
+          (when (string= (substring dir -2) "//")
+            (if (file-name-absolute-p dir)
+                (setq rec (or rec 'absolute))
+              (setq rec 'relative))))
+        (put pathvar 'rec-type rec)))
 
     (if recurse
-	;; Return the recursive expansion of the path
-	(cond
-	 ((not (get pathvar 'rec-type))
-	  ;; Path does not contain recursive elements - use simple path
-	  (symbol-value pathvar))
-	 ((or (not (get pathvar 'recursive-path))
-	      (and (eq (get pathvar 'rec-type) 'relative)
-		   (not (equal master-dir (get pathvar 'master-dir)))))
-	  ;; Either: We don't have a recursive expansion yet.
-	  ;; or:     Relative recursive path elements need to be expanded
-	  ;;         relative to new default directory
-	  (message "Expanding search path to find %s file: %s ..." type file)
-	  (put pathvar 'recursive-path
-	       (reftex-expand-path (symbol-value pathvar) master-dir))
-	  (put pathvar 'master-dir master-dir)
-	  (get pathvar 'recursive-path))
-	 (t
-	  ;; Recursive path computed earlier is still OK.
-	  (get pathvar 'recursive-path)))
+        ;; Return the recursive expansion of the path
+        (cond
+         ((not (get pathvar 'rec-type))
+          ;; Path does not contain recursive elements - use simple path
+          (symbol-value pathvar))
+         ((or (not (get pathvar 'recursive-path))
+              (and (eq (get pathvar 'rec-type) 'relative)
+                   (not (equal master-dir (get pathvar 'master-dir)))))
+          ;; Either: We don't have a recursive expansion yet.
+          ;; or:     Relative recursive path elements need to be expanded
+          ;;         relative to new default directory
+          (message "Expanding search path to find %s file: %s ..." type file)
+          (put pathvar 'recursive-path 
+               (reftex-expand-path (symbol-value pathvar) master-dir))
+          (put pathvar 'master-dir master-dir)
+          (get pathvar 'recursive-path))
+         (t 
+          ;; Recursive path computed earlier is still OK.
+          (get pathvar 'recursive-path)))
       ;; The simple path was requested
       (symbol-value pathvar))))
 
@@ -1533,15 +1540,15 @@ When DIE is non-nil, throw an error if file not found."
   (catch 'exit
     (when (file-name-absolute-p file)
       (if (file-regular-p file)
-	  (throw 'exit file)
-	(throw 'exit nil)))
+          (throw 'exit file)
+        (throw 'exit nil)))
     (let* ((thepath path) file1 dir)
       (while (setq dir (pop thepath))
-	(when (string= (substring dir -2) "//")
-	  (setq dir (substring dir 0 -1)))
-	(setq file1 (expand-file-name file (expand-file-name dir def-dir)))
-	(if (file-regular-p file1)
-	    (throw 'exit file1)))
+        (when (string= (substring dir -2) "//")
+          (setq dir (substring dir 0 -1)))
+        (setq file1 (expand-file-name file (expand-file-name dir def-dir)))
+        (if (file-regular-p file1)
+            (throw 'exit file1)))
       ;; No such file
       nil)))
 
@@ -1550,8 +1557,8 @@ When DIE is non-nil, throw an error if file not found."
   ;; Trailing ! or !! will be converted into `//' (emTeX convention)
   (mapcar
    (lambda (dir)
-     (if (string-match "\\(//+\\|/*!+\\)\\'" dir)
-	 (setq dir (replace-match "//" t t dir)))
+     (if (string-match "\\(//+\\|/*!+\\)\\'" dir) 
+         (setq dir (replace-match "//" t t dir)))
      (file-name-as-directory dir))
    (delete "" (split-string path (concat path-separator "+")))))
 
@@ -1561,15 +1568,15 @@ When DIE is non-nil, throw an error if file not found."
   (let (path1 dir recursive)
     (while (setq dir (pop path))
       (if (setq recursive (string= (substring dir -2) "//"))
-	  (setq dir (substring dir 0 -1)))
+          (setq dir (substring dir 0 -1)))
       (if (and recursive
-	       (not (file-name-absolute-p dir)))
-	  (setq dir (expand-file-name dir default-dir)))
+               (not (file-name-absolute-p dir)))
+          (setq dir (expand-file-name dir default-dir)))
       (if recursive
-	  ;; Expand recursively
-	  (setq path1 (append (reftex-recursive-directory-list dir) path1))
-	;; Keep unchanged
-	(push dir path1)))
+          ;; Expand recursively
+          (setq path1 (append (reftex-recursive-directory-list dir) path1))
+        ;; Keep unchanged
+        (push dir path1)))
     (nreverse path1)))
 
 (defun reftex-recursive-directory-list (dir)
@@ -1577,18 +1584,18 @@ When DIE is non-nil, throw an error if file not found."
   (let ((path (list dir)) path1 file files)
     (while (setq dir (pop path))
       (when (file-directory-p dir)
-	(setq files (nreverse (directory-files dir t "[^.]")))
-	(while (setq file (pop files))
-	  (if (file-directory-p file)
-	      (push (file-name-as-directory file) path)))
-	(push dir path1)))
+        (setq files (nreverse (directory-files dir t "[^.]")))
+        (while (setq file (pop files))
+          (if (file-directory-p file) 
+              (push (file-name-as-directory file) path)))
+        (push dir path1)))
     path1))
 
 (defun reftex-uniq (list)
   (let (new)
     (while list
       (or (member (car list) new)
-	  (push (car list) new))
+          (push (car list) new))
       (pop list))
     (nreverse new)))
 
@@ -1617,7 +1624,6 @@ When DIE is non-nil, throw an error if file not found."
 (autoload 'reftex-notice-new "reftex-parse")
 (autoload 'reftex-nth-arg "reftex-parse")
 (autoload 'reftex-locate-bibliography-files "reftex-parse")
-(autoload 'reftex-all-document-files "reftex-parse")
 (autoload 'reftex-ensure-index-support "reftex-parse")
 (autoload 'reftex-everything-regexp "reftex-parse")
 
@@ -1652,8 +1658,8 @@ When DIE is non-nil, throw an error if file not found."
   "Show the table of contents for the current document." t)
 (autoload 'reftex-toc-recenter "reftex-toc"
   "Display the TOC window and highlight line corresponding to current position." t)
-(autoload 'reftex-toggle-auto-toc-recenter "reftex-toc" t)
-
+(autoload 'reftex-toggle-auto-toc-recenter "reftex-toc" 
+  "Toggle automatic recentering of TOC window." t)
 
 ;;; =========================================================================
 ;;;
@@ -1791,6 +1797,13 @@ When DIE is non-nil, throw an error if file not found."
   (when (match-beginning n)
     (buffer-substring-no-properties (match-beginning n) (match-end n))))
 
+(defun reftex-region-active-p ()
+  "Is transient-mark-mode on and the region active?
+Works on both Emacs and XEmacs."
+  (if (featurep 'xemacs)
+      (and zmacs-regions (region-active-p))
+    (and transient-mark-mode mark-active)))
+
 (defun reftex-kill-buffer (buffer)
   ;; Kill buffer if it exists.
   (and (setq buffer (get-buffer buffer))
@@ -1848,7 +1861,7 @@ When DIE is non-nil, throw an error if file not found."
   (let* ((elt (car (member elt list))) (ex (not exclusive)) ass last-ass)
     (while (and (setq ass (assoc key list))
                 (setq list (memq ass list))
-		(or ex (not (eq elt (car list))))
+                (or ex (not (eq elt (car list))))
                 (memq elt list))
       (setq last-ass ass
             list (cdr list)))
@@ -1862,22 +1875,22 @@ When DIE is non-nil, throw an error if file not found."
   (let (rtn)
     (while list
       (if (funcall predicate (car list))
-	  (push (if completion
-		    (list (nth nth (car list)))
-		  (nth nth (car list)))
-		rtn))
+          (push (if completion
+                    (list (nth nth (car list))) 
+                  (nth nth (car list)))
+                rtn))
       (setq list (cdr list)))
     (nreverse rtn)))
 
 (defun reftex-make-selection-buffer-name (type &optional index)
   ;; Make unique name for a selection buffer.
   (format " *RefTeX[%s][%d]*"
-	  type (or index (get reftex-docstruct-symbol :master-index) 0)))
+          type (or index (get reftex-docstruct-symbol :master-index) 0)))
 
 (defun reftex-make-index-buffer-name (tag &optional cnt)
   ;; Make unique name for an index buffer.
   (format "*Index[%s][%d]*"
-	  tag (or cnt (get reftex-docstruct-symbol :master-index) 0)))
+          tag (or cnt (get reftex-docstruct-symbol :master-index) 0)))
 
 (defun reftex-truncate (string ncols &optional ellipses padding)
   ;; Truncate STRING to NCOLS characters.
@@ -1885,11 +1898,11 @@ When DIE is non-nil, throw an error if file not found."
   ;; white space to NCOLS characters.  When ELLIPSES is non-nil and the
   ;; string needs to be truncated, replace last 3 characters by dots.
   (setq string
-	(if (<= (length string) ncols)
-	    string
-	  (if ellipses
-	      (concat (substring string 0 (- ncols 3)) "...")
-	    (substring string 0 ncols))))
+        (if (<= (length string) ncols)
+            string
+          (if ellipses
+              (concat (substring string 0 (- ncols 3)) "...")
+            (substring string 0 ncols))))
   (if padding
       (format (format "%%-%ds" ncols) string)
     string))
@@ -1899,8 +1912,8 @@ When DIE is non-nil, throw an error if file not found."
   ;; If POS is given, calculate distances relative to it.
   ;; Return nil if there is no match.
   (let ((pos (point))
-	(dist (or max-length (length regexp)))
-	match1 match2 match)
+        (dist (or max-length (length regexp)))  
+        match1 match2 match)
     (goto-char (min (+ pos dist) (point-max)))
     (when (re-search-backward regexp nil t)
       (setq match1 (match-data)))
@@ -1936,14 +1949,14 @@ When DIE is non-nil, throw an error if file not found."
   ;; Enlarge other window displaying buffer to show whole buffer if possible.
   ;; If KEEP-CURRENT in non-nil, current buffer must remain visible.
   (let* ((win1 (selected-window))
-	 (buf1 (current-buffer))
-	 (win2 (get-buffer-window buf2))) ;; Only on current frame.
+         (buf1 (current-buffer))
+         (win2 (get-buffer-window buf2))) ;; Only on current frame.
     (when win2
       (select-window win2)
-      (unless (and (pos-visible-in-window-p 1)
-		   (pos-visible-in-window-p (point-max)))
-	(enlarge-window (1+ (- (count-lines 1 (point-max))
-			       (reftex-window-height))))))
+      (unless (and (pos-visible-in-window-p (point-min))
+                   (pos-visible-in-window-p (point-max)))
+        (enlarge-window (1+ (- (count-lines (point-min) (point-max))
+                               (reftex-window-height))))))
     (cond
      ((window-live-p win1) (select-window win1))
      (keep-current
@@ -1958,37 +1971,37 @@ When DIE is non-nil, throw an error if file not found."
   (let ((char ?\?))
     (save-window-excursion
       (catch 'exit
-	(message (concat prompt "   (?=Help)"))
-	(when (or (sit-for (or delay-time 0))
-		  (= ?\? (setq char (read-char-exclusive))))
-	  (reftex-kill-buffer "*RefTeX Select*")
-	  (switch-to-buffer-other-window "*RefTeX Select*")
-	  (insert help-string)
-	  (goto-char 1)
-	  (unless (and (pos-visible-in-window-p 1)
-		       (pos-visible-in-window-p (point-max)))
-	    (enlarge-window (1+ (- (count-lines 1 (point-max))
-				   (reftex-window-height)))))
-	  (setq truncate-lines t))
-	(if (and (pos-visible-in-window-p 1)
-		 (pos-visible-in-window-p (point-max)))
-	    nil
-	  (setq prompt (concat prompt (if scroll "   (SPC/DEL=Scroll)" ""))))
-	(message prompt)
-	(and (equal char ?\?) (setq char (read-char-exclusive)))
-	(while t
-	  (cond ((equal char ?\C-g) (keyboard-quit))
-		((equal char ?\?))
-		((and scroll (equal char ?\ ))
-		 (condition-case nil (scroll-up) (error nil))
-		 (message prompt))
-		((and scroll (equal char ?\C-? ))
-		 (condition-case nil (scroll-down) (error nil))
-		 (message prompt))
-		(t (message "")
-		   (throw 'exit char)))
-	  (setq char (read-char-exclusive)))))))
-
+        (message (concat prompt "   (?=Help)"))
+        (when (or (sit-for (or delay-time 0))
+                  (= ?\? (setq char (read-char-exclusive))))
+          (reftex-kill-buffer "*RefTeX Select*")
+          (switch-to-buffer-other-window "*RefTeX Select*")
+          (insert help-string)
+          (goto-char 1)
+          (unless (and (pos-visible-in-window-p (point-min))
+                       (pos-visible-in-window-p (point-max)))
+            (enlarge-window (1+ (- (count-lines (point-min) (point-max))
+                                   (reftex-window-height)))))
+          (setq truncate-lines t))
+        (if (and (pos-visible-in-window-p (point-min))
+                 (pos-visible-in-window-p (point-max)))
+            nil
+          (setq prompt (concat prompt (if scroll "   (SPC/DEL=Scroll)" ""))))
+        (message prompt)
+        (and (equal char ?\?) (setq char (read-char-exclusive)))
+        (while t
+          (cond ((equal char ?\C-g) (keyboard-quit))
+                ((equal char ?\?))
+                ((and scroll (equal char ?\ ))
+                 (condition-case nil (scroll-up) (error nil))
+                 (message prompt))
+                ((and scroll (equal char ?\C-? ))
+                 (condition-case nil (scroll-down) (error nil))
+                 (message prompt))
+                (t (message "") 
+                   (throw 'exit char)))
+          (setq char (read-char-exclusive)))))))
+      
 
 (defun reftex-make-regexp-allow-for-ctrl-m (string)
   ;; convert STRING into a regexp, allowing ^M for \n and vice versa
@@ -2011,14 +2024,14 @@ When DIE is non-nil, throw an error if file not found."
 ;; Define `current-message' for compatibility with XEmacs prior to 20.4
 (defvar message-stack)
 (if (and (featurep 'xemacs)
-	 (not (fboundp 'current-message)))
+         (not (fboundp 'current-message)))
     (defun current-message (&optional frame)
       (cdr (car message-stack))))
 
 (defun reftex-visited-files (list)
   ;; Takes a list of filenames and returns the buffers of those already visited
   (delq nil (mapcar (lambda (x) (if (reftex-get-buffer-visiting x) x nil))
-		    list)))
+                    list)))
 
 (defun reftex-get-file-buffer-force (file &optional mark-to-kill)
   ;; Return a buffer visiting file.  Make one, if necessary.
@@ -2049,7 +2062,7 @@ When DIE is non-nil, throw an error if file not found."
              (let ((format-alist nil)
                    (auto-mode-alist (reftex-auto-mode-alist))
                    (default-major-mode 'fundamental-mode)
-		   (enable-local-variables nil)
+                   (enable-local-variables nil)
                    (after-insert-file-functions nil))
                (setq buf (find-file-noselect file)))
 
@@ -2059,9 +2072,9 @@ When DIE is non-nil, throw an error if file not found."
                  (set-buffer buf)
                  (run-hooks 'reftex-initialize-temporary-buffers))))
 
-	   ;; Lets see if we got a license to kill :-|
-	   (and mark-to-kill
-		(add-to-list 'reftex-buffers-to-kill buf))
+           ;; Lets see if we got a license to kill :-|
+           (and mark-to-kill
+                (add-to-list 'reftex-buffers-to-kill buf))
 
            ;; Return the new buffer
            buf)
@@ -2111,7 +2124,7 @@ When DIE is non-nil, throw an error if file not found."
   (let (rtn)
     (while list
       (unless (symbolp (car list))
-	(push (car list) rtn))
+        (push (car list) rtn))
       (setq list (cdr list)))
     (nreverse rtn)))
 
@@ -2121,7 +2134,7 @@ When DIE is non-nil, throw an error if file not found."
     (while list
       (setq elm (pop list))
       (unless (member elm new)
-	(push elm new)))
+        (push elm new)))
     (nreverse new)))
 
 (defun reftex-uniquify-by-car (alist &optional keep-list)
@@ -2137,11 +2150,11 @@ When DIE is non-nil, throw an error if file not found."
 
 (defun reftex-abbreviate-title (string)
   (reftex-convert-string string "[-~ \t\n\r,;]" nil t t
-			 5 40 nil 1 " " (nth 5 reftex-derive-label-parameters)))
+                         5 40 nil 1 " " (nth 5 reftex-derive-label-parameters)))
 
 (defun reftex-convert-string (string split-re illegal-re dot keep-fp
-				     nwords maxchar illegal abbrev sep
-				     ignore-words &optional downcase)
+                                     nwords maxchar illegal abbrev sep
+                                     ignore-words &optional downcase)
   "Convert a string (a sentence) to something shorter.
 SPLIT-RE     is the regular expression used to split the string into words.
 ILLEGAL-RE   matches characters which are illegal in the final string.
@@ -2159,14 +2172,14 @@ SEP          String separating different words in the output string.
 IGNORE-WORDS List of words which should be removed from the string."
 
   (let* ((words0 (split-string string (or split-re "[ \t\n\r]")))
-	 (reftex-label-illegal-re (or illegal-re "\000"))
-	 (abbrev-re (concat
-		     "\\`\\("
-		     (make-string (nth 0 reftex-abbrev-parameters) ?.)
-		     "[" (nth 2 reftex-abbrev-parameters) "]*"
-		     "\\)"
-		     "[" (nth 3 reftex-abbrev-parameters) "]"
-		     (make-string (1- (nth 1 reftex-abbrev-parameters)) ?.)))
+         (reftex-label-illegal-re (or illegal-re "\000"))
+         (abbrev-re (concat
+                     "\\`\\("
+                     (make-string (nth 0 reftex-abbrev-parameters) ?.)
+                     "[" (nth 2 reftex-abbrev-parameters) "]*"
+                     "\\)"
+                     "[" (nth 3 reftex-abbrev-parameters) "]"
+                     (make-string (1- (nth 1 reftex-abbrev-parameters)) ?.)))
          words word)
 
     ;; Remove words from the ignore list or with funny characters
@@ -2186,21 +2199,21 @@ IGNORE-WORDS List of words which should be removed from the string."
     ;; Restrict number of words
     (if (> (length words) nwords)
         (setcdr (nthcdr (1- nwords) words) nil))
-
+    
     ;; First, try to use all words
     (setq string (mapconcat 'identity words sep))
-
+  
     ;; Abbreviate words if enforced by user settings or string length
     (if (or (eq t abbrev)
             (and abbrev
                  (> (length string) maxchar)))
         (setq words
               (mapcar
-	       (lambda (w) (if (string-match abbrev-re w)
-			       (if dot
-				   (concat (match-string 1 w) ".")
-				 (match-string 1 w))
-			     w))
+               (lambda (w) (if (string-match abbrev-re w)
+                               (if dot
+                                   (concat (match-string 1 w) ".")
+                                 (match-string 1 w))
+                             w))
                words)
               string (mapconcat 'identity words sep)))
 
@@ -2250,47 +2263,47 @@ IGNORE-WORDS List of words which should be removed from the string."
   (and (reftex-use-fonts)
        (or (eq t reftex-refontify-context)
            (and (eq 1 reftex-refontify-context)
-		;; Test of we use the font-lock version of x-symbol
-		(and (featurep 'x-symbol-tex) (not (boundp 'x-symbol-mode)))))))
+                ;; Test of we use the font-lock version of x-symbol
+                (and (featurep 'x-symbol-tex) (not (boundp 'x-symbol-mode)))))))
 
 (defvar font-lock-defaults-computed)
 (defun reftex-fontify-select-label-buffer (parent-buffer)
   ;; Fontify the `*RefTeX Select*' buffer.  Buffer is temporarily renamed to
   ;; start with none-SPC char, beacuse Font-Lock otherwise refuses operation.
   (run-hook-with-args 'reftex-pre-refontification-functions
-		      parent-buffer 'reftex-ref)
+                      parent-buffer 'reftex-ref)
   (let* ((oldname (buffer-name))
-	 (newname (concat "Fontify-me-" oldname)))
+         (newname (concat "Fontify-me-" oldname)))
     (unwind-protect
-	(progn
-	  ;; Rename buffer temporarily to start w/o space (because of font-lock)
-	  (rename-buffer newname t)
-	  (cond
-	   ((fboundp 'font-lock-default-fontify-region)
-	    ;; Good: we have the indirection functions
-	    (set (make-local-variable 'font-lock-fontify-region-function)
-		 'reftex-select-font-lock-fontify-region)
-	    (let ((major-mode 'latex-mode))
-	      (font-lock-mode 1)))
-	   ((fboundp 'font-lock-set-defaults-1)
-	    ;; Looks like the XEmacs font-lock stuff.
-	    ;; FIXME: this is still kind of a hack, but it works.
-	    (set (make-local-variable 'font-lock-keywords) nil)
-	    (let ((major-mode 'latex-mode)
-		  (font-lock-defaults-computed nil))
-	      (font-lock-set-defaults-1)
-	      (reftex-select-font-lock-fontify-region (point-min) (point-max))))
-	   (t
-	    ;; Oops?
-	    (message "Sorry: cannot refontify RefTeX Select buffer."))))
+        (progn
+          ;; Rename buffer temporarily to start w/o space (because of font-lock)
+          (rename-buffer newname t)
+          (cond
+           ((fboundp 'font-lock-default-fontify-region)
+            ;; Good: we have the indirection functions
+            (set (make-local-variable 'font-lock-fontify-region-function)
+                 'reftex-select-font-lock-fontify-region)
+            (let ((major-mode 'latex-mode))
+              (font-lock-mode 1)))
+           ((fboundp 'font-lock-set-defaults-1)
+            ;; Looks like the XEmacs font-lock stuff.
+            ;; FIXME: this is still kind of a hack, but it works.
+            (set (make-local-variable 'font-lock-keywords) nil)
+            (let ((major-mode 'latex-mode)
+                  (font-lock-defaults-computed nil))
+              (font-lock-set-defaults-1)
+              (reftex-select-font-lock-fontify-region (point-min) (point-max))))
+           (t
+            ;; Oops? 
+            (message "Sorry: cannot refontify RefTeX Select buffer."))))
       (rename-buffer oldname))))
 
 (defun reftex-select-font-lock-fontify-region (beg end &optional loudly)
   ;; Fontify a region, but only lines starting with a dot.
   (let ((func (if (fboundp 'font-lock-default-fontify-region)
-		  'font-lock-default-fontify-region
-		'font-lock-fontify-region))
-	beg1 end1)
+                  'font-lock-default-fontify-region
+                'font-lock-fontify-region))
+        beg1 end1)
     (goto-char beg)
     (while (re-search-forward "^\\." end t)
       (setq beg1 (point) end1 (progn (skip-chars-forward "^\n") (point)))
@@ -2309,9 +2322,9 @@ IGNORE-WORDS List of words which should be removed from the string."
   (let (face)
     (catch 'exit
       (while (setq face (pop faces))
-	(if (featurep 'xemacs)
-	    (if (find-face face) (throw 'exit face))
-	  (if (facep face) (throw 'exit face)))))))
+        (if (featurep 'xemacs)
+            (if (find-face face) (throw 'exit face))
+          (if (facep face) (throw 'exit face)))))))
 
 ;; Highlighting uses overlays.  For XEmacs, we need the emulation.
 (if (featurep 'xemacs) (require 'overlay))
@@ -2321,14 +2334,14 @@ IGNORE-WORDS List of words which should be removed from the string."
 
 ;; Initialize the overlays
 (aset reftex-highlight-overlays 0 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 0)
-	     'face 'highlight)
+(overlay-put (aref reftex-highlight-overlays 0) 
+             'face 'highlight)
 (aset reftex-highlight-overlays 1 (make-overlay 1 1))
 (overlay-put (aref reftex-highlight-overlays 1)
-	     'face reftex-cursor-selected-face)
+             'face reftex-cursor-selected-face)
 (aset reftex-highlight-overlays 2 (make-overlay 1 1))
 (overlay-put (aref reftex-highlight-overlays 2)
-	     'face reftex-cursor-selected-face)
+             'face reftex-cursor-selected-face)
 
 ;; Two functions for activating and deactivation highlight overlays
 (defun reftex-highlight (index begin end &optional buffer)
@@ -2346,30 +2359,30 @@ IGNORE-WORDS List of words which should be removed from the string."
 
 ;;; =========================================================================
 ;;;
-;;; Keybindings
+;;; Keybindings 
 
 ;; The default bindings in the mode map.
 (loop for x in
       '(("\C-c="  . reftex-toc)
-	("\C-c-"  . reftex-toc-recenter)
-	("\C-c("  . reftex-label)
-	("\C-c)"  . reftex-reference)
-	("\C-c["  . reftex-citation)
-	("\C-c<"  . reftex-index)
-	("\C-c>"  . reftex-display-index)
-	("\C-c/"  . reftex-index-selection-or-word)
-	("\C-c\\" . reftex-index-phrase-selection-or-word)
-	("\C-c|"  . reftex-index-visit-phrases-buffer)
-	("\C-c&"  . reftex-view-crossref))
+        ("\C-c-"  . reftex-toc-recenter)
+        ("\C-c("  . reftex-label)
+        ("\C-c)"  . reftex-reference)
+        ("\C-c["  . reftex-citation)
+        ("\C-c<"  . reftex-index)
+        ("\C-c>"  . reftex-display-index)
+        ("\C-c/"  . reftex-index-selection-or-word)
+        ("\C-c\\" . reftex-index-phrase-selection-or-word)
+        ("\C-c|"  . reftex-index-visit-phrases-buffer)
+        ("\C-c&"  . reftex-view-crossref))
       do (define-key reftex-mode-map (car x) (cdr x)))
 
 ;; Bind `reftex-mouse-view-crossref' only when the key is still free
 (if (featurep 'xemacs)
     (unless (key-binding [(shift button2)])
-      (define-key reftex-mode-map [(shift button2)]
-	'reftex-mouse-view-crossref))
+      (define-key reftex-mode-map [(shift button2)] 
+        'reftex-mouse-view-crossref))
   (unless (key-binding [(shift mouse-2)])
-    (define-key reftex-mode-map [(shift mouse-2)]
+    (define-key reftex-mode-map [(shift mouse-2)] 
       'reftex-mouse-view-crossref)))
 
 ;; Bind `reftex-view-crossref-from-bibtex' in BibTeX mode map
@@ -2380,14 +2393,14 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;; If the user requests so, she can have a few more bindings:
 (when reftex-extra-bindings
   (loop for x in
-	'(("\C-ct" . reftex-toc)
-	  ("\C-cl" . reftex-label)
-	  ("\C-cr" . reftex-reference)
-	  ("\C-cc" . reftex-citation)
-	  ("\C-cv" . reftex-view-crossref)
-	  ("\C-cg" . reftex-grep-document)
-	  ("\C-cs" . reftex-search-document))
-	do (define-key reftex-mode-map (car x) (cdr x))))
+        '(("\C-ct" . reftex-toc)
+          ("\C-cl" . reftex-label)
+          ("\C-cr" . reftex-reference)
+          ("\C-cc" . reftex-citation)
+          ("\C-cv" . reftex-view-crossref)
+          ("\C-cg" . reftex-grep-document)
+          ("\C-cs" . reftex-search-document))
+        do (define-key reftex-mode-map (car x) (cdr x))))
 
 ;;; =========================================================================
 ;;;
@@ -2464,23 +2477,23 @@ IGNORE-WORDS List of words which should be removed from the string."
      :style toggle :selected reftex-plug-into-AUCTeX])
    ("Reference Style"
     ["Default" (setq reftex-vref-is-default nil
-		     reftex-fref-is-default nil)
-     :style radio :selected (not (or reftex-vref-is-default
-				     reftex-fref-is-default))]
+                     reftex-fref-is-default nil)
+     :style radio :selected (not (or reftex-vref-is-default 
+                                     reftex-fref-is-default))]
     ["Varioref" (setq reftex-vref-is-default t
-		      reftex-fref-is-default nil)
+                      reftex-fref-is-default nil)
      :style radio :selected reftex-vref-is-default]
     ["Fancyref" (setq reftex-fref-is-default t
-		      reftex-vref-is-default nil)
+                      reftex-vref-is-default nil)
      :style radio :selected reftex-fref-is-default])
    ("Citation Style"
     ,@(mapcar
        (lambda (x)
-	 (vector
-	  (capitalize (symbol-name (car x)))
-	  (list 'reftex-set-cite-format (list 'quote (car x)))
-	  :style 'radio :selected
-	  (list 'eq (list 'reftex-get-cite-format) (list 'quote (car x)))))
+         (vector
+          (capitalize (symbol-name (car x)))
+          (list 'reftex-set-cite-format (list 'quote (car x)))
+          :style 'radio :selected
+          (list 'eq (list 'reftex-get-cite-format) (list 'quote (car x)))))
        reftex-cite-format-builtin)
     "--"
     "Sort Database Matches"
@@ -2495,13 +2508,13 @@ IGNORE-WORDS List of words which should be removed from the string."
    ("Index Style"
     ,@(mapcar
        (lambda (x)
-	 (vector
-	  (capitalize (symbol-name (car x)))
-	  (list 'reftex-add-index-macros (list 'list (list 'quote (car x))))
-	  :style 'radio :selected
-	  (list 'memq (list 'quote (car x))
-		(list 'get 'reftex-docstruct-symbol
-		      (list 'quote 'reftex-index-macros-style)))))
+         (vector
+          (capitalize (symbol-name (car x)))
+          (list 'reftex-add-index-macros (list 'list (list 'quote (car x))))
+          :style 'radio :selected
+          (list 'memq (list 'quote (car x))
+                (list 'get 'reftex-docstruct-symbol 
+                      (list 'quote 'reftex-index-macros-style)))))
        reftex-index-macros-builtin))
    "--"
     ["Reset RefTeX Mode"       reftex-reset-mode t]
@@ -2509,7 +2522,7 @@ IGNORE-WORDS List of words which should be removed from the string."
    ("Customize"
     ["Browse RefTeX Group" reftex-customize t]
     "--"
-    ["Build Full Customize Menu" reftex-create-customize-menu
+    ["Build Full Customize Menu" reftex-create-customize-menu 
      (fboundp 'customize-menu-create)])
    ("Documentation"
     ["Info" reftex-info t]
@@ -2525,17 +2538,17 @@ IGNORE-WORDS List of words which should be removed from the string."
   (interactive)
   (if (fboundp 'customize-menu-create)
       (progn
-	(easy-menu-change
-	 '("Ref") "Customize"
-	 `(["Browse RefTeX group" reftex-customize t]
-	   "--"
-	   ,(customize-menu-create 'reftex)
-	   ["Set" Custom-set t]
-	   ["Save" Custom-save t]
-	   ["Reset to Current" Custom-reset-current t]
-	   ["Reset to Saved" Custom-reset-saved t]
-	   ["Reset to Standard Settings" Custom-reset-standard t]))
-	(message "\"Ref\"-menu now contains full customization menu"))
+        (easy-menu-change 
+         '("Ref") "Customize"
+         `(["Browse RefTeX group" reftex-customize t]
+           "--"
+           ,(customize-menu-create 'reftex)
+           ["Set" Custom-set t]
+           ["Save" Custom-save t]
+           ["Reset to Current" Custom-reset-current t]
+           ["Reset to Saved" Custom-reset-saved t]
+           ["Reset to Standard Settings" Custom-reset-standard t]))
+        (message "\"Ref\"-menu now contains full customization menu"))
     (error "Cannot expand menu (outdated version of cus-edit.el)")))
 
 (defun reftex-show-commentary ()
@@ -2563,8 +2576,9 @@ With optional NODE, go directly to that node."
 ;;; That's it! ----------------------------------------------------------------
 
 (setq reftex-tables-dirty t)  ; in case this file is evaluated by hand
-(provide 'reftex)
+(provide 'reftex) 
 
 ;;;============================================================================
 
+;;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
 ;;; reftex.el ends here

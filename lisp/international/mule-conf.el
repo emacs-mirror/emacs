@@ -520,8 +520,8 @@ for decoding and encoding files, process I/O, etc."
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-ccl		nil
       coding-category-utf-8		'mule-utf-8
-      coding-category-utf-16-be         nil
-      coding-category-utf-16-le         nil
+      coding-category-utf-16-be         'mule-utf-16be-with-signature
+      coding-category-utf-16-le         'mule-utf-16le-with-signature
       coding-category-big5		'chinese-big5
       coding-category-raw-text		'raw-text
       coding-category-binary		'no-conversion)
@@ -529,6 +529,9 @@ for decoding and encoding files, process I/O, etc."
 (set-coding-priority
  '(coding-category-iso-8-1
    coding-category-iso-8-2
+   coding-category-utf-8
+   coding-category-utf-16-be
+   coding-category-utf-16-le
    coding-category-iso-7-tight
    coding-category-iso-7
    coding-category-iso-7-else
@@ -539,16 +542,18 @@ for decoding and encoding files, process I/O, etc."
    coding-category-big5
    coding-category-ccl
    coding-category-binary
-   coding-category-utf-8
-   coding-category-utf-16-be
-   coding-category-utf-16-le))
+   ))
 
 
 ;;; Miscellaneous settings.
+(aset latin-extra-code-table ?\221 t)
 (aset latin-extra-code-table ?\222 t)
 (aset latin-extra-code-table ?\223 t)
 (aset latin-extra-code-table ?\224 t)
+(aset latin-extra-code-table ?\225 t)
+(aset latin-extra-code-table ?\226 t)
 
 (update-coding-systems-internal)
 
+;;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here

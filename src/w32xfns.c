@@ -409,3 +409,6 @@ x_sync (f)
      void *f;
 {
 }
+
+/* arch-tag: 4fab3695-4ad3-4cc6-a2b1-fd2c67dc46be
+   (do not change this comment) */

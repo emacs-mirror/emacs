@@ -15,6 +15,7 @@ that Emacs presents to the user.
 * Forcing Redisplay::   Forcing redisplay.
 * Truncation::          Folding or wrapping long text lines.
 * The Echo Area::       Where messages are displayed.
+* Warnings::            Displaying warning messages for the user.
 * Invisible Text::      Hiding part of the buffer text.
 * Selective Display::   Hiding part of the buffer text (the old way).
 * Overlay Arrow::       Display of an arrow to indicate position.
@@ -23,6 +24,8 @@ that Emacs presents to the user.
 * Width::               How wide a character or string is on the screen.
 * Faces::		A face defines a graphics style for text characters:
                           font, colors, etc.
+* Fringes::             Controlling window fringes.
+* Scroll Bars::         Controlling vertical scroll bars.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
@@ -111,10 +114,9 @@ the rightmost column indicates a line that ``wraps'' onto the next line,
 which is also called @dfn{continuing} the line.  (The display table can
 specify alternative indicators; see @ref{Display Tables}.)
 
-@cindex fringes, and line continuation/truncation indicators
   On a windowed display, the @samp{$} and @samp{\} indicators are
-replaced with graphics bitmaps displayed on the thin areas right near
-the window edges, called the @dfn{fringes}.
+replaced with graphics bitmaps displayed in the window fringes
+(@pxref{Fringes}).
 
   Note that continuation is different from filling; continuation happens
 on the screen only, not in the buffer contents, and it breaks a line
@@ -327,6 +329,194 @@ sequence are echoed immediately.)
 If the value is zero, then command input is not echoed.
 @end defvar
 
+@node Warnings
+@section Reporting Warnings
+@cindex warnings
+
+  @dfn{Warnings} are a facility for a program to inform the user of a
+possible problem, but continue running.
+
+@menu
+* Warning Basics::      Warnings concepts and functions to report them.
+* Warning Variables::   Variables programs bind to customize their warnings.
+* Warning Options::     Variables users set to control display of warnings.
+@end menu
+
+@node Warning Basics
+@subsection Warning Basics
+@cindex severity level
+
+  Every warning has a textual message, which explains the problem for
+the user, and a @dfn{severity level} which is a symbol.  Here are the
+possible severity levels, in order of decreasing severity, and their
+meanings:
+
+@table @code
+@item :emergency
+A problem that will seriously impair Emacs operation soon
+if you do not attend to it promptly.
+@item :error
+A report of data or circumstances that are inherently wrong.
+@item :warning
+A report of data or circumstances that are not inherently wrong, but
+raise suspicion of a possible problem.
+@item :debug
+A report of information that may be useful if you are debugging.
+@end table
+
+  When your program encounters invalid input data, it can either
+signal a Lisp error by calling @code{error} or @code{signal} or report
+a warning with severity @code{:error}.  Signaling a Lisp error is the
+easiest thing to do, but it means the program cannot continue
+processing.  If you want to take the trouble to implement a way to
+continue processing despite the bad data, then reporting a warning of
+severity @code{:error} is the right way to inform the user of the
+problem.  For instance, the Emacs Lisp byte compiler can report an
+error that way and continue compiling other functions.  (If the
+program signals a Lisp error and then handles it with
+@code{condition-case}, the user won't see the error message; it could
+show the message to the user by reporting it as a warning.)
+
+@cindex warning type
+  Each warning has a @dfn{warning type} to classify it.  The type is a
+list of symbols.  The first symbol should be the custom group that you
+use for the program's user options.  For example, byte compiler
+warnings use the warning type @code{(bytecomp)}.  You can also
+subcategorize the warnings, if you wish, by using more symbols in the
+list.
+
+@defun display-warning type message &optional level buffer-name
+This function reports a warning, using @var{message} as the message
+and @var{type} as the warning type.  @var{level} should be the
+severity level, with @code{:warning} being the default.
+
+@var{buffer-name}, if non-@code{nil}, specifies the name of the buffer
+for logging the warning.  By default, it is @samp{*Warnings*}.
+@end defun
+
+@defun lwarn type level message &rest args
+This function reports a warning using the value of @code{(format
+@var{message} @var{args}...)} as the message.  In other respects it is
+equivalent to @code{display-warning}.
+@end defun
+
+@defun warn message &rest args
+This function reports a warning using the value of @code{(format
+@var{message} @var{args}...)} as the message, @code{(emacs)} as the
+type, and @code{:warning} as the severity level.  It exists for
+compatibility only; we recommend not using it, because you should
+specify a specific warning type.
+@end defun
+
+@node Warning Variables
+@subsection Warning Variables
+
+  Programs can customize how their warnings appear by binding
+the variables described in this section.
+
+@defvar warning-levels
+This list defines the meaning and severity order of the warning
+severity levels.  Each element defines one severity level,
+and they are arranged in order of decreasing severity.
+
+Each element has the form @code{(@var{level} @var{string}
+@var{function})}, where @var{level} is the severity level it defines.
+@var{string} specifies the textual description of this level.
+@var{string} should use @samp{%s} to specify where to put the warning
+type information, or it can omit the @samp{%s} so as not to include
+that information.
+
+The optional @var{function}, if non-@code{nil}, is a function to call
+with no arguments, to get the user's attention.
+
+Normally you should not change the value of this variable.
+@end defvar
+
+@defvar warning-prefix-function
+If non-@code{nil}, te value is a function to generate prefix text for
+warnings.  Programs can bind the variable to a suitable function.
+@code{display-warning} calls this function with the warnings buffer
+current, and the function can insert text in it.  That text becomes
+the beginning of the warning message.
+
+The function is called with two arguments, the severity level and its
+entry in @code{warning-levels}.  It should return a list to use as the
+entry (this value need not be an actual member of
+@code{warning-levels}).  By constructing this value, the function to
+change the severity of the warning, or specify different handling for
+a given severity level.
+
+If the variable's value is @code{nil} then there is no function
+to call.
+@end defvar
+
+@defvar warning-series
+Programs can bind this variable to @code{t} to say that the next
+warning should begin a series.  When several warnings form a series,
+that means to leave point on the first warning of the series, rather
+than keep move it for each warning so that it appears on the last one.
+The series ends when the local binding is unbound and
+@code{warning-series} becomes @code{nil} again.
+
+The value can also be a symbol with a function definition.  That is
+equivalent to @code{t}, except that the next warning will also call
+the function with no arguments with the warnings buffer current.  The
+function can insert text which will serve as a header for the series
+of warnings.
+
+Once a series has begun, the value is a marker which points to the
+buffer position in the warnings buffer of the start of the series.
+
+The variable's normal value is @code{nil}, which means to handle
+each warning separately.
+@end defvar
+
+@defvar warning-fill-prefix
+When this variable is non-@code{nil}, it specifies a fill prefix to
+use for filling each warning's text.
+@end defvar
+
+@defvar warning-type-format
+This variable specifies the format for displaying the warning type
+in the warning message.  The result of formatting the type this way
+gets included in the message under the control of the string in the
+entry in @code{warning-levels}.  The default value is @code{" (%s)"}.
+If you bind it to @code{""} then the warning type won't appear at
+all.
+@end defvar
+
+@node Warning Options
+@subsection Warning Options
+
+  These variables are used by users to control what happens
+when a Lisp program reports a warning.
+
+@defopt warning-minimum-level
+This user option specifies the minimum severity level that should be
+shown immediately to the user.  The default is @code{:warning}, which
+means to immediately display all warnings except @code{:debug}
+warnings.
+@end defopt
+
+@defopt warning-minimum-log-level
+This user option specifies the minimum severity level that should be
+logged in the warnings buffer.  The default is @code{:warning}, which
+means to log all warnings except @code{:debug} warnings.
+@end defopt
+
+@defopt warning-suppress-types
+This list specifies which warning types should not be displayed
+immediately for the user.  Each element of the list should be a list
+of symbols.  If its elements match the first elements in a warning
+type, then that warning is not displayed immediately.
+@end defopt
+
+@defopt warning-suppress-log-types
+This list specifies which warning types should not be logged in the
+warnings buffer.  Each element of the list should be a list of
+symbols.  If it matches the first few elements in a warning type, then
+that warning is not logged.
+@end defopt
 @node Invisible Text
 @section Invisible Text
 
@@ -572,7 +762,6 @@ interface to debuggers, the overlay arrow indicates the line of code
 about to be executed.
 
 @defvar overlay-arrow-string
-@cindex fringe, and overlay arrow display
 This variable holds the string to display to call attention to a
 particular line, or @code{nil} if the arrow feature is not in use.
 On a graphical display the contents of the string are ignored; instead a
@@ -799,12 +988,14 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value (which should be a nonnegative number) determines
-the priority of the overlay.  The priority matters when two or more
-overlays cover the same character and both specify a face for display;
-the one whose @code{priority} value is larger takes priority over the
-other, and its face attributes override the face attributes of the lower
-priority overlay.
+This property's value (which should be a nonnegative integer number)
+determines the priority of the overlay.  The priority matters when two
+or more overlays cover the same character and both specify the same
+property; the one whose @code{priority} value is larger takes priority
+over the other.  For the @code{face} property, the higher priority
+value does not completely replace the other; instead, its face
+attributes override the face attributes of the lower priority
+@code{face} property.
 
 Currently, all overlays take priority over text properties.  Please
 avoid using negative priority values, as we have not yet decided just
@@ -938,7 +1129,9 @@ sense---only on the screen.
 @item evaporate
 @kindex evaporate @r{(overlay property)}
 If this property is non-@code{nil}, the overlay is deleted automatically
-if it ever becomes empty (i.e., if it spans no characters).
+if it becomes empty (i.e., if its length becomes zero).  However,
+if the overlay is @emph{already} empty, @code{evaporate} does not
+delete it.
 
 @item local-map
 @cindex keymap of character (and overlays)
@@ -1166,7 +1359,7 @@ the beginning of the result if one multi-column character in
 @example
 (truncate-string-to-width "\tab\t" 12 4)
      @result{} "ab"
-(truncate-string-to-width "\tab\t" 12 4 ?\ )
+(truncate-string-to-width "\tab\t" 12 4 ?\s)
      @result{} "    ab  "
 @end example
 @end defun
@@ -1668,14 +1861,15 @@ that means the selected frame (@pxref{Input Focus}).
 If @var{frame} is @code{t}, the value is the default for
 @var{face} for new frames.
 
-If @var{inherit} is nil, only attributes directly defined by
+If @var{inherit} is @code{nil}, only attributes directly defined by
 @var{face} are considered, so the return value may be
-@code{unspecified}, or a relative value.  If @var{inherit} is non-nil,
-@var{face}'s definition of @var{attribute} is merged with the faces
-specified by its @code{:inherit} attribute; however the return value
-may still be @code{unspecified} or relative.  If @var{inherit} is a
-face or a list of faces, then the result is further merged with that
-face (or faces), until it becomes specified and absolute.
+@code{unspecified}, or a relative value.  If @var{inherit} is
+non-@code{nil}, @var{face}'s definition of @var{attribute} is merged
+with the faces specified by its @code{:inherit} attribute; however the
+return value may still be @code{unspecified} or relative.  If
+@var{inherit} is a face or a list of faces, then the result is further
+merged with that face (or faces), until it becomes specified and
+absolute.
 
 To ensure that the return value is always specified and absolute, use
 a value of @code{default} for @var{inherit}; this will resolve any
@@ -1706,7 +1900,7 @@ if it modifies an underlying or inherited value of @var{attribute}).
 If @var{value1} is a relative value for the face attribute
 @var{attribute}, returns it merged with the underlying value
 @var{value2}; otherwise, if @var{value1} is an absolute value for the
-face a attribute @var{attribute}, returns @var{value1} unchanged.
+face attribute @var{attribute}, returns @var{value1} unchanged.
 @end defun
 
 @defun set-face-foreground face color &optional frame
@@ -1790,12 +1984,13 @@ specified, use a value of @code{default} for @var{inherit}.
 This function returns the name of the background stipple pattern of face
 @var{face}, or @code{nil} if it doesn't have one.
 
-If @var{inherit} is nil, only a stipple directly defined by the face
-is returned.  If @var{inherit} is non-nil, any faces specified by its
-@code{:inherit} attribute are considered as well, and if @var{inherit}
-is a face or a list of faces, then they are also considered, until a
-specified stipple is found.  To ensure that the return value is always
-specified, use a value of @code{default} for @var{inherit}.
+If @var{inherit} is @code{nil}, only a stipple directly defined by the
+face is returned.  If @var{inherit} is non-@code{nil}, any faces
+specified by its @code{:inherit} attribute are considered as well, and
+if @var{inherit} is a face or a list of faces, then they are also
+considered, until a specified stipple is found.  To ensure that the
+return value is always specified, use a value of @code{default} for
+@var{inherit}.
 @end defun
 
 @defun face-font face &optional frame
@@ -2005,6 +2200,21 @@ If @var{unload-p} is non-@code{nil}, that means to unload
 all unused fonts as well.
 @end defun
 
+@defvar face-font-rescale-alist
+This variable specifies scaling for certain faces.  Its value should
+be a list of elements of the form
+
+@example
+(@var{fontname-regexp} . @var{scale-factor})
+@end example
+
+If @var{fontname-regexp} matches the font name that is about to be
+used, this says to choose a larger similar font according to the
+factor @var{scale-factor}.  You would use this feature to normalize
+the font size if certain fonts are bigger or smaller than their
+nominal heights and widths would suggest.
+@end defvar
+
 @node Face Functions
 @subsection Functions for Working with Faces
 
@@ -2140,9 +2350,10 @@ The first five elements correspond to face attributes; if you
 specify these attributes for a face, it will use this font.
 
 The last three elements give additional information about the font.
-@var{fixed-p} is non-nil if the font is fixed-pitch.  @var{full} is the
-full name of the font, and @var{registry-and-encoding} is a string
-giving the registry and encoding of the font.
+@var{fixed-p} is non-@code{nil} if the font is fixed-pitch.
+@var{full} is the full name of the font, and
+@var{registry-and-encoding} is a string giving the registry and
+encoding of the font.
 
 The result list is sorted according to the current face font sort order.
 @end defun
@@ -2268,6 +2479,111 @@ Then, the font specifications for all but Chinese GB2312 characters have
 @samp{fixed} in the @var{family} field, and the font specification for
 Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
 field.
+
+@defun char-displayable-p char
+This function returns @code{t} if Emacs ought to be able to display
+@var{char}.  More precisely, if the selected frame's fontset has a
+font to display the character set that @var{char} belongs to.
+
+Fontsets can specify a font on a per-character basis; when the fontset
+does that, this function's value may not be accurate.
+@end defun
+
+@node Fringes
+@section Fringes
+@cindex Fringes
+
+  The @dfn{fringes} of a window are thin vertical strips down the
+sides that are used for displaying bitmaps that indicate truncation,
+continuation, and horizontal scrolling, the overlay arrow.  The
+fringes normally appear between the display margins and the window
+text, but you can put them outside the display margins for a specific
+buffer by setting @code{fringes-outside-margins} buffer-locally to a
+non-@code{nil} value.
+
+@defvar fringes-outside-margins
+If the value is non-@code{nil}, the frames appear outside
+the display margins. 
+@end defvar
+
+@defvar left-fringe-width
+This variable, if non-@code{nil}, specifies the width of the left
+fringe in pixels.
+@end defvar
+
+@defvar right-fringe-width
+This variable, if non-@code{nil}, specifies the width of the right
+fringe in pixels.
+@end defvar
+
+  The values of these variables take effect when you display the
+buffer in a window.  If you change them while the buffer is visible,
+you can call @code{set-buffer-window} to display it in a window again.
+
+@defun set-window-fringes window left &optional right outside-margins
+This function sets the fringe widthes of window @var{window}.
+If window is @code{nil}, that stands for the selected window.
+
+The argument @var{left} specifies the width in pixels of the left
+fringe, and likewise @var{right} for the right fringe.  A value of
+@code{nil} for either one stands for the default width.  If
+@var{outside-margins} is non-@code{nil}, that specifies that fringes
+should appear outside of the display margins.
+@end defun
+
+@defun window-fringes window
+This function returns information about the fringes of a window
+@var{window}.  The value has the form @code{(@var{left-width}
+@var{right-width} @var{frames-outside-margins})}.
+@end defun
+
+@node Scroll Bars
+@section Scroll Bars
+
+Normally the frame parameter @code{vertical-scroll-bars} controls
+whether the windows in the frame have vertical scroll bars.  A
+non-@code{nil} parameter value means they do.  The frame parameter
+@code{scroll-bar-width} specifies how wide they are (@code{nil}
+meaning the default).  @xref{Window Frame Parameters}.
+
+You can also control this for individual windows.  Call the function
+@code{set-window-scroll-bars} to specify what to do for a specific window:
+
+@defun set-window-scroll-bars window width &optional vertical-type horizontal-type
+Set width and type of scroll bars of window @var{window}.  (If
+@var{window} is @code{nil}, this applies to the selected window.)
+@var{width} specifies the scroll bar width in pixels (@code{nil} means
+use whatever is specified for width for the frame).
+@var{vertical-type} specifies whether to have a vertical scroll bar
+and, if so, where.  The possible values are @code{left}, @code{right}
+and @code{nil}, just like the values of the
+@code{vertical-scroll-bars} frame parameter.
+
+The argument @var{horizontal-type} is meant to specify whether and
+where to have horizontal scroll bars, but since they are not
+implemented, it has no effect.
+@end defun
+
+@defun window-scroll-bars &optional window
+Report the width and type of scroll bars specified for @var{window}.
+If @var{window} is omitted or @code{nil}, it defaults to the currently
+selected window.  The value is a list of the form @code{(@var{width}
+@var{cols} @var{vertical-type} @var{horizontal-type})}.  The value
+@var{width} is the value that was specified for the width (which may
+be @code{nil}); @var{cols} is the number of columns that the scroll
+bar actually occupies.
+
+@var{horizontal-type} is not actually meaningful.
+@end defun
+
+If you don't specify these values for a window with
+@code{set-window-scroll-bars}, the buffer-local variables
+@code{scroll-bar-mode} and @code{scroll-bar-width} in the buffer being
+displayed control the window's vertical scroll bars.  The function
+@code{set-window-buffer} examines these variables.  If you change them
+in a buffer that is already visible in a window, you can make the
+window take note of the new values by calling @code{set-window-buffer}
+specifying the same buffer that is already displayed.
 
 @node Display Property
 @section The @code{display} Property
@@ -2568,7 +2884,7 @@ image properties along with @code{:data}.
 
 @item :margin @var{margin}
 The @code{:margin} property specifies how many pixels to add as an
-extra margin around the image.  The value, @var{margin}, must be a a
+extra margin around the image.  The value, @var{margin}, must be a
 non-negative number, or a pair @code{(@var{x} . @var{y})} of such
 numbers.  If it is a pair, @var{x} specifies how many pixels to add
 horizontally, and @var{y} specifies how many pixels to add vertically.
@@ -2685,9 +3001,9 @@ color from the corners is the background color of the image.  Otherwise,
 @var{bg} must be a list @code{(@var{red} @var{green} @var{blue})}
 specifying the color to assume for the background of the image.
 
-If @var{mask} is nil, remove a mask from the image, if it has one.  Images
-in some formats include a mask which can be removed by specifying
-@code{:mask nil}.
+If @var{mask} is @code{nil}, remove a mask from the image, if it has
+one.  Images in some formats include a mask which can be removed by
+specifying @code{:mask nil}.
 @end table
 
 @defun image-mask-p spec &optional frame
@@ -3008,10 +3324,10 @@ This removes only images that were put into @var{buffer} the way
 @tindex image-size
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
-specification.  @var{pixels} non-nil means return sizes measured in
-pixels, otherwise return sizes measured in canonical character units
-(fractions of the width/height of the frame's default font).
-@var{frame} is the frame on which the image will be displayed.
+specification.  @var{pixels} non-@code{nil} means return sizes
+measured in pixels, otherwise return sizes measured in canonical
+character units (fractions of the width/height of the frame's default
+font).  @var{frame} is the frame on which the image will be displayed.
 @var{frame} null or omitted means use the selected frame (@pxref{Input
 Focus}).
 @end defun
@@ -3207,9 +3523,9 @@ buffers that do not override it.  @xref{Default Value}.
 @defopt indicate-empty-lines
 @tindex indicate-empty-lines
 @cindex fringes, and empty line indication
-When this is non-@code{nil}, Emacs displays a special glyph in
-each empty line at the end of the buffer, on terminals that
-support it (window systems).
+When this is non-@code{nil}, Emacs displays a special glyph in the
+fringe of each empty line at the end of the buffer, on terminals that
+support it (window systems).  @xref{Fringes}.
 @end defopt
 
 @defopt tab-width
@@ -3516,3 +3832,7 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
+
+@ignore
+   arch-tag: ffdf5714-7ecf-415b-9023-fbc6b409c2c6
+@end ignore

@@ -110,6 +110,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
+/* Define to 1 if you have /usr/lib/crti.o. */
+#undef HAVE_CRTIN
+
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
@@ -123,6 +126,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if dynamic ptys are supported. */
 #undef HAVE_DEV_PTMX
+
+/* Define to 1 if you have the `difftime' function. */
+#undef HAVE_DIFFTIME
 
 /* Define to 1 if you have the `dup2' function. */
 #undef HAVE_DUP2
@@ -295,6 +301,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
+/* Define to 1 if you have the <libpng/png.h> header file. */
+#undef HAVE_LIBPNG_PNG_H
+
 /* Define to 1 if you have the `pthreads' library (-lpthreads). */
 #undef HAVE_LIBPTHREADS
 
@@ -315,6 +324,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <linux/version.h> header file. */
 #undef HAVE_LINUX_VERSION_H
+
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
 
 /* Define to 1 if you have the `logb' function. */
 #undef HAVE_LOGB
@@ -343,14 +355,23 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mbsinit' function. */
 #undef HAVE_MBSINIT
 
+/* Define to 1 if <wchar.h> declares mbstate_t. */
+#undef HAVE_MBSTATE_T
+
 /* Define to 1 if you have the `memcmp' function. */
 #undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
 
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mempcpy' function. */
+#undef HAVE_MEMPCPY
 
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
@@ -378,11 +399,20 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
 
+/* Define to 1 if you have the <net/if.h> header file. */
+#undef HAVE_NET_IF_H
+
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
 
 /* Define to 1 if you have the png library (-lpng). */
 #undef HAVE_PNG
+
+/* Define to 1 if you have the <png.h> header file. */
+#undef HAVE_PNG_H
+
+/* Define to 1 if you have the `posix_memalign' function. */
+#undef HAVE_POSIX_MEMALIGN
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
@@ -471,6 +501,21 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
 
+/* Define to 1 if `ifr_addr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_ADDR
+
+/* Define to 1 if `ifr_broadaddr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
+
+/* Define to 1 if `ifr_flags' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_FLAGS
+
+/* Define to 1 if `ifr_hwaddr' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_HWADDR
+
+/* Define to 1 if `ifr_netmask' is member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_NETMASK
+
 /* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
@@ -482,6 +527,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
 
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
@@ -521,6 +569,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the <sys/_mbstate_t.h> header file. */
+#undef HAVE_SYS__MBSTATE_T_H
 
 /* Define to 1 if you have the <termcap.h> header file. */
 #undef HAVE_TERMCAP_H
@@ -597,6 +648,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you're using XFree386. */
 #undef HAVE_XFREE386
 
+/* Define to 1 if XIM is available */
+#undef HAVE_XIM
+
 /* Define to 1 if you have the XkbGetKeyboard function. */
 #undef HAVE_XKBGETKEYBOARD
 
@@ -643,9 +697,6 @@ Boston, MA 02111-1307, USA.  */
    Solaris, for example). */
 #undef LD_SWITCH_X_SITE_AUX
 
-/* Define to -llockfile if it is usable. */
-#undef LIBMAIL
-
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
@@ -655,9 +706,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
    on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
 #undef NLIST_NAME_UNION
-
-/* Define to 1 if you have <nlist.h>. */
-#undef NLIST_STRUCT
 
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
@@ -730,6 +778,10 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
+   XPointer or XPointer*. */
+#undef XRegisterIMInstantiateCallback_arg6
+
 /* Define to 1 if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
@@ -770,6 +822,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+
+/* Define to a type if <wchar.h> does not define. */
+#undef mbstate_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
@@ -814,6 +869,9 @@ Boston, MA 02111-1307, USA.  */
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
+
+/* We have blockinput.h.  */
+#define DO_BLOCK_INPUT
 
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
@@ -890,6 +948,8 @@ Boston, MA 02111-1307, USA.  */
 #if ! HAVE_MKTIME || BROKEN_MKTIME
 #define mktime emacs_mktime
 #endif
+
+#define my_strftime nstrftime	/* for strftime.c */
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.
@@ -1013,20 +1073,15 @@ typedef unsigned size_t;
 #  endif
 #endif
 
-#ifndef MAC_OSX
-/* On Mac OS X, macros already defined in precompiled headers.  */
-/* avoid deprecated functions */
-#if HAVE_MEMCPY
-#  define bcopy(a,b,s) memcpy (b,a,s)
+#ifndef HAVE_BCOPY
+#define bcopy(a,b,s) memcpy (b,a,s)
 #endif
-#if HAVE_MEMSET
-#  define bzero(a,s) memset (a,0,s)
+#ifndef HAVE_BZERO
+#define bzero(a,s) memset (a,0,s)
 #endif
-#if HAVE_MEMCMP
-#  define BCMP memcmp
-#  define bcmp memcmp
+#ifndef HAVE_BCMP
+#define BCMP memcmp
 #endif
-#endif /* MAC_OSX */
 
 #endif /* EMACS_CONFIG_H */
 

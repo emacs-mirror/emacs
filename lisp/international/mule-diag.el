@@ -61,7 +61,8 @@
   'help-function #'list-charset-chars
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
-(defvar non-iso-charset-alist
+;;;###autoload
+(defvar non-iso-charset-alist 
   `((mac-roman
      (ascii latin-iso8859-1 mule-unicode-2500-33ff
 	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
@@ -349,27 +350,6 @@ coding system cpCODEPAGE."
     (string-to-char
      (decode-coding-string (char-to-string code) coding-system))))
 
-
-;; Add DOS codepages to `non-iso-charset-alist'.
-
-(let ((tail (cp-supported-codepages))
-      elt)
-  (while tail
-    (setq elt (car tail) tail (cdr tail))
-    ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
-    ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
-    ;; are mapped to.
-    (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
-      (setq non-iso-charset-alist
-	    (cons (list (intern (concat "cp" (car elt)))
-			(list 'ascii (cdr elt))
-			`(lambda (code)
-			   (decode-codepage-char ,(string-to-int (car elt))
-						 code))
-			(list (list 0 255)))
-		  non-iso-charset-alist)))))
-
-
 ;; A variable to hold charset input history.
 (defvar charset-history nil)
 
@@ -593,10 +573,10 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
 			     charset (charset-description charset)))
 		    ((listp charset)
 		     (if (charsetp (car charset))
-			 (format "%s:%s, and also used by the followings:"
+			 (format "%s:%s, and also used by the following:"
 				 (car charset)
 				 (charset-description (car charset)))
-		       "no initial designation, and used by the followings:"))
+		       "no initial designation, and used by the following:"))
 		    (t
 		     "invalid designation information"))))
       (when (listp charset)
@@ -760,6 +740,10 @@ in place of `..':
      )))
 
 ;; Print symbol name and mnemonic letter of CODING-SYSTEM with `princ'.
+;; If DOC-STRING is non-nil, print also the docstring of CODING-SYSTEM.
+;; If DOC-STRING is `tightly', don't print an empty line before the
+;; docstring, and print only the first line of the docstring.
+
 (defun print-coding-system-briefly (coding-system &optional doc-string)
   (if (not coding-system)
       (princ "nil\n")
@@ -780,10 +764,16 @@ in place of `..':
 			(not (eq coding-system (aref base-eol-type eol-type))))
 		   (princ (format " (alias of %s)"
 				  (aref base-eol-type eol-type))))))))
-    (princ "\n\n")
-    (if (and doc-string
-	     (setq doc-string (coding-system-doc-string coding-system)))
-	(princ (format "%s\n" doc-string)))))
+    (princ "\n")
+    (or (eq doc-string 'tightly)
+	(princ "\n"))
+    (if doc-string
+	(let ((doc (or (coding-system-doc-string coding-system) "")))
+	  (when (eq doc-string 'tightly)
+	    (if (string-match "\n" doc)
+		(setq doc (substring doc 0 (match-beginning 0))))
+	    (setq doc (concat "  " doc)))
+	  (princ (format "%s\n" doc))))))
 
 ;;;###autoload
 (defun describe-current-coding-system ()
@@ -976,7 +966,7 @@ but still contains full information about each coding system."
 ###############################################
 # List of coding systems in the following format:
 # MNEMONIC-LETTER -- CODING-SYSTEM-NAME
-#	DOC-STRING
+#   DOC-STRING
 ")
     (princ "\
 #########################
@@ -993,7 +983,7 @@ but still contains full information about each coding system."
 ##  EOL = 0 (LF), 1 (CRLF), 2 (CR), or 3 (Automatic detection)
 ##  FLAGS =
 ##    if TYPE = 2 then
-##      comma (`,') separated data of the followings:
+##      comma (`,') separated data of the following:
 ##        G0, G1, G2, G3, SHORT-FORM, ASCII-EOL, ASCII-CNTL, SEVEN,
 ##        LOCKING-SHIFT, SINGLE-SHIFT, USE-ROMAN, USE-OLDJIS, NO-ISO6429
 ##    else if TYPE = 4 then
@@ -1003,14 +993,21 @@ but still contains full information about each coding system."
 ##  POST-READ-CONVERSION, PRE-WRITE-CONVERSION = function name to be called
 ##
 "))
-  (let ((bases (coding-system-list 'base-only))
-	coding-system)
-    (while bases
-      (setq coding-system (car bases))
-      (if (null arg)
-	  (print-coding-system-briefly coding-system 'doc-string)
-	(print-coding-system coding-system))
-      (setq bases (cdr bases)))))
+  (dolist (coding-system (sort-coding-systems (coding-system-list 'base-only)))
+    (if (null arg)
+	(print-coding-system-briefly coding-system 'tightly)
+      (print-coding-system coding-system)))
+  (let ((first t))
+    (dolist (elt coding-system-alist)
+      (unless (memq (intern (car elt)) coding-system-list)
+	(when first
+	  (princ "\
+####################################################
+# The following coding systems are not yet loaded. #
+####################################################
+")
+	  (setq first nil))
+	(princ-list (car elt))))))
 
 ;;;###autoload
 (defun list-coding-categories ()
@@ -1312,4 +1309,5 @@ system which uses fontsets)."
 
 (provide 'mule-diag)
 
+;;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
 ;;; mule-diag.el ends here

@@ -1,6 +1,6 @@
 ;;; china-util.el --- utilities for Chinese  -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 1995, 2001 Free Software Foundation, Inc.
 
@@ -64,15 +64,16 @@
   "Flag to tell if we should care line continuation convention of Hz.")
 
 (defconst hz-set-msb-table
-  (let ((str (make-string 127 0))
-	(i 0))
-    (while (< i 33)
-      (aset str i i)
-      (setq i (1+ i)))
-    (while (< i 127)
-      (aset str i (+ i 128))
-      (setq i (1+ i)))
-    str))
+  (eval-when-compile
+    (let ((chars nil)
+	  (i 0))
+      (while (< i 33)
+	(push i chars)
+	(setq i (1+ i)))
+      (while (< i 127)
+	(push (+ i 128) chars)
+	(setq i (1+ i)))
+      (apply 'string (nreverse chars)))))
 
 ;;;###autoload
 (defun decode-hz-region (beg end)
@@ -171,6 +172,7 @@ Return the length of resulting text."
 ;; Many kudos to Himi!  The used code has been adapted from his
 ;; mule-ucs package.
 
+(eval-when-compile
 (defun big5-to-flat-code (num)
   "Convert NUM in Big 5 encoding to a `flat code'.
 0xA140 will be mapped to position 0, 0xA141 to position 1, etc.
@@ -226,54 +228,43 @@ mapped will be represented with the byte 0xFF.
 
 The return value is the filled translation table."
 
-  (let (chartable
-        elem
-        result
+  (let ((chartable (make-char-table 'translation-table #xFF))
         char
         big5
         i
         end
         codepoint
         charset)
-    (setq chartable (make-char-table 'translation-table #xFF))
-    (while alist
-      (setq elem (car alist)
-            char (car elem)
-            big5 (cdr elem)
-            alist (cdr alist))
+    (dolist (elem alist)
+      (setq char (car elem)
+            big5 (cdr elem))
       (cond ((and (consp char)
                   (consp big5))
-               (setq i (big5-to-flat-code (car big5))
-                     end (big5-to-flat-code (cdr big5))
-                     codepoint (euc-to-flat-code (cdr char))
-                     charset (car char))
-               (while (>= end i)
-                 (aset chartable
-                       (decode-big5-char (flat-code-to-big5 i))
-                       (apply (function make-char)
-                              charset
-                              (flat-code-to-euc codepoint)))
-                 (setq i (1+ i)
-                       codepoint (1+ codepoint)))
-            )
+	     (setq i (big5-to-flat-code (car big5))
+		   end (big5-to-flat-code (cdr big5))
+		   codepoint (euc-to-flat-code (cdr char))
+		   charset (car char))
+	     (while (>= end i)
+	       (aset chartable
+		     (decode-big5-char (flat-code-to-big5 i))
+		     (apply (function make-char)
+			    charset
+			    (flat-code-to-euc codepoint)))
+	       (setq i (1+ i)
+		     codepoint (1+ codepoint))))
             ((and (char-valid-p char)
                   (numberp big5))
-               (setq i (decode-big5-char big5))
-               (aset chartable i char)
-            )
+	     (setq i (decode-big5-char big5))
+	     (aset chartable i char))
             (t
-             (error "Unknown slot type: %S" elem)
-            )
-      )
-    )
+             (error "Unknown slot type: %S" elem))))
     ;; the return value
-    chartable
-  )
-)
+    chartable)))
 
 ;; All non-CNS encodings are commented out.
 
 (define-translation-table 'big5-to-cns
+  (eval-when-compile
   (expand-euc-big5-alist
    '(
      ;; Symbols
@@ -420,10 +411,11 @@ The return value is the filled translation table."
      (?$(I=~(B . #xF9DB)
      (?$(IK\(B . #xF9DC)
     )
-  )
+  ))
 )
 
 ;;
 (provide 'china-util)
 
+;;; arch-tag: 5a47b084-b9ac-420e-8191-70c5b3a14836
 ;;; china-util.el ends here

@@ -113,3 +113,6 @@ NOTE-END  */
 #ifdef BSD4_2
 #define HAVE_FTIME
 #endif
+
+/* arch-tag: 508bdf7a-01a0-4ce0-8eba-0704d0df55a0
+   (do not change this comment) */

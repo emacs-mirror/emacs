@@ -33,3 +33,5 @@ extern int initialized;
 static int * dummy = &initialized;
 #endif
 
+/* arch-tag: a6c0d2dd-00c3-4ba5-95a5-9c8ab82f39b2
+   (do not change this comment) */

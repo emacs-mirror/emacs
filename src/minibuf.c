@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-   2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -159,7 +159,7 @@ choose_minibuf_frame ()
 	 init_window_once.  That window doesn't have a buffer.  */
       buffer = XWINDOW (minibuf_window)->buffer;
       if (BUFFERP (buffer))
-	Fset_window_buffer (sf->minibuffer_window, buffer);
+	Fset_window_buffer (sf->minibuffer_window, buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -415,7 +415,7 @@ minibuffer_completion_contents ()
    match the front of that history list exactly.  The value is pushed onto
    the list as the string that was read.
 
-   DEFALT specifies te default value for the sake of history commands.
+   DEFALT specifies the default value for the sake of history commands.
 
    If ALLOW_PROPS is nonzero, we do not throw away text properties.
 
@@ -441,6 +441,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
+
+  /* String to add to the history.  */
+  Lisp_Object histstring;
+
   extern Lisp_Object Qfront_sticky;
   extern Lisp_Object Qrear_nonsticky;
 
@@ -481,6 +485,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       val = read_minibuf_noninteractive (map, initial, prompt, backup_n,
 					 expflag, histvar, histpos, defalt,
 					 allow_props, inherit_input_method);
+      UNGCPRO;
       return unbind_to (count, val);
     }
 
@@ -584,8 +589,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuf_scroll_window = selected_window;
   if (minibuf_level == 1 || !EQ (minibuf_window, selected_window))
     minibuf_selected_window = selected_window;
-  Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
-  Fselect_window (minibuf_window);
+  Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
+  Fselect_window (minibuf_window, Qnil);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
 
   Fmake_local_variable (Qprint_escape_newlines);
@@ -675,9 +680,17 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   last_minibuf_string = val;
 
-  /* Add the value to the appropriate history list unless it is empty.  */
-  if (SCHARS (val) != 0
-      && SYMBOLP (Vminibuffer_history_variable))
+  /* Choose the string to add to the history.  */
+  if (SCHARS (val) != 0)
+    histstring = val;
+  else if (STRINGP (defalt))
+    histstring = defalt;
+  else
+    histstring = Qnil;
+
+  /* Add the value to the appropriate history list, if any.  */
+  if (SYMBOLP (Vminibuffer_history_variable)
+      && !NILP (histstring))
     {
       /* If the caller wanted to save the value read on a history list,
 	 then do so if the value is not already the front of the list.  */
@@ -691,13 +704,15 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
       /* The value of the history variable must be a cons or nil.  Other
 	 values are unacceptable.  We silently ignore these values.  */
+
       if (NILP (histval)
 	  || (CONSP (histval)
-	      && NILP (Fequal (last_minibuf_string, Fcar (histval)))))
+	      /* Don't duplicate the most recent entry in the history.  */
+	      && NILP (Fequal (histstring, Fcar (histval)))))
 	{
 	  Lisp_Object length;
 
-	  histval = Fcons (last_minibuf_string, histval);
+	  histval = Fcons (histstring, histval);
 	  Fset (Vminibuffer_history_variable, histval);
 
 	  /* Truncate if requested.  */
@@ -724,7 +739,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* The appropriate frame will get selected
      in set-window-configuration.  */
-  RETURN_UNGCPRO (unbind_to (count, val));
+  UNGCPRO;
+  return unbind_to (count, val);
 }
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
@@ -761,7 +777,11 @@ get_minibuffer (depth)
   else
     {
       int count = SPECPDL_INDEX ();
-
+      /* `reset_buffer' blindly sets the list of overlays to NULL, so we
+	 have to empty the list, otherwise we end up with overlays that
+	 think they belong to this buffer while the buffer doesn't know about
+	 them any more.  */
+      delete_all_overlays (XBUFFER (buf));
       reset_buffer (XBUFFER (buf));
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (buf);
@@ -1111,7 +1131,8 @@ minibuf_conform_representation (string, basis)
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
        doc: /* Return common substring of all completions of STRING in ALIST.
-Each car of each element of ALIST is tested to see if it begins with STRING.
+Each car of each element of ALIST (or each element if it is not a cons cell)
+is tested to see if it begins with STRING.
 All that match are compared together; the longest initial sequence
 common to all matches is returned as a string.
 If there is no match at all, nil is returned.
@@ -1353,7 +1374,8 @@ is used to further constrain the set of candidates.  */)
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
        doc: /* Search for partial matches to STRING in ALIST.
-Each car of each element of ALIST is tested to see if it begins with STRING.
+Each car of each element of ALIST (or each element if it is not a cons cell)
+is tested to see if it begins with STRING.
 The value is a list of all the strings from ALIST that match.
 
 If ALIST is a hash-table, all the string keys are the possible matches.
@@ -1719,7 +1741,7 @@ do_completion ()
   if (NILP (completion))
     {
       bitch_at_user ();
-      temp_echo_area_glyphs (" [No match]");
+      temp_echo_area_glyphs (build_string (" [No match]"));
       UNGCPRO;
       return 0;
     }
@@ -1783,7 +1805,7 @@ do_completion ()
       else if (!NILP (Vcompletion_auto_help))
 	Fminibuffer_completion_help ();
       else
-	temp_echo_area_glyphs (" [Next char not unique]");
+	temp_echo_area_glyphs (build_string (" [Next char not unique]"));
       return 6;
     }
   else if (completedp)
@@ -1882,13 +1904,13 @@ scroll the window of possible completions.  */)
     case 1:
       if (PT != ZV)
 	Fgoto_char (make_number (ZV));
-      temp_echo_area_glyphs (" [Sole completion]");
+      temp_echo_area_glyphs (build_string (" [Sole completion]"));
       break;
 
     case 3:
       if (PT != ZV)
 	Fgoto_char (make_number (ZV));
-      temp_echo_area_glyphs (" [Complete, but not unique]");
+      temp_echo_area_glyphs (build_string (" [Complete, but not unique]"));
       break;
     }
 
@@ -1949,7 +1971,7 @@ a repetition of this command will exit.  */)
     case 4:
       if (!NILP (Vminibuffer_completion_confirm))
 	{
-	  temp_echo_area_glyphs (" [Confirm]");
+	  temp_echo_area_glyphs (build_string (" [Confirm]"));
 	  return Qnil;
 	}
       else
@@ -1986,7 +2008,7 @@ Return nil if there is no valid completion, else t.  */)
   if (NILP (completion))
     {
       bitch_at_user ();
-      temp_echo_area_glyphs (" [No match]");
+      temp_echo_area_glyphs (build_string (" [No match]"));
       return Qnil;
     }
   if (EQ (completion, Qt))
@@ -2058,7 +2080,7 @@ Return nil if there is no valid completion, else t.  */)
 	    i++;
 	    buffer_nchars--;
 	  }
-	del_range (1, i + 1);
+	del_range (start_pos, start_pos + buffer_nchars);
       }
     UNGCPRO;
   }
@@ -2344,7 +2366,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   if (NILP (completions))
     {
       bitch_at_user ();
-      temp_echo_area_glyphs (" [No completions]");
+      temp_echo_area_glyphs (build_string (" [No completions]"));
     }
   else
     internal_with_output_to_temp_buffer ("*Completions*",
@@ -2388,15 +2410,15 @@ If no minibuffer is active, return nil.  */)
 }
 
 
-/* Temporarily display the string M at the end of the current
+/* Temporarily display STRING at the end of the current
    minibuffer contents.  This is used to display things like
    "[No Match]" when the user requests a completion for a prefix
    that has no possible completions, and other quick, unobtrusive
    messages.  */
 
 void
-temp_echo_area_glyphs (m)
-     const char *m;
+temp_echo_area_glyphs (string)
+     Lisp_Object string;
 {
   int osize = ZV;
   int osize_byte = ZV_BYTE;
@@ -2409,7 +2431,7 @@ temp_echo_area_glyphs (m)
   message (0);
 
   SET_PT_BOTH (osize, osize_byte);
-  insert_string (m);
+  insert_from_string (string, 0, 0, SCHARS (string), SBYTES (string), 0);
   SET_PT_BOTH (opoint, opoint_byte);
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
@@ -2432,7 +2454,7 @@ or until the next input event arrives, whichever comes first.  */)
      Lisp_Object string;
 {
   CHECK_STRING (string);
-  temp_echo_area_glyphs (SDATA (string));
+  temp_echo_area_glyphs (string);
   return Qnil;
 }
 
@@ -2665,3 +2687,6 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
 		      "minibuffer-complete-and-exit");
 }
+
+/* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73
+   (do not change this comment) */

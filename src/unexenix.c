@@ -258,3 +258,6 @@ fatal_unexec (s, va_alist)
   fputs (".\n", stderr);
   exit (1);
 }
+
+/* arch-tag: ce26be27-370a-438d-83b4-766059749a02
+   (do not change this comment) */

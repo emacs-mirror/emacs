@@ -51,3 +51,6 @@ char my_endbss[1];
 static char _my_endbss[1];
 char * my_endbss_static = _my_endbss;
 #endif
+
+/* arch-tag: 67e81ab4-e14f-44b2-8875-c0c12252223e
+   (do not change this comment) */

@@ -192,6 +192,20 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
+(defcustom dired-view-command-alist
+  '(("[.]\\(ps\\|ps_pages\\|eps\\)\\'" . "gv -spartan -color -watch %s")
+    ("[.]pdf\\'" . "xpdf %s")
+    ("[.]\\(jpe?g\\|gif\\|png\\)\\'" . "eog %s")
+    ("[.]dvi\\'" . "xdvi -sidemargin 0.5 -topmargin 1 %s"))
+  "Alist specifying how to view special types of files.
+Each element has the form (REGEXP . SHELL-COMMAND).
+When the file name matches REGEXP, `dired-view-file'
+invokes SHELL-COMMAND to view the file, processing it through `format'.
+Use `%s' in SHELL-COMMAND to specify where to put the file name."
+  :group 'dired
+  :type '(alist :key-type regexp :value-type string)
+  :version "21.4")
+
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -253,7 +267,7 @@ The directory name must be absolute, but need not be fully expanded.")
 	       "-[-r][-w].[-r][-w].[-r][-w][xst]")
 	     "\\|"))
 (defvar dired-re-perms "[-bcdlps][-r][-w].[-r][-w].[-r][-w].")
-(defvar dired-re-dot "^.* \\.\\.?$")
+(defvar dired-re-dot "^.* \\.\\.?/?$")
 
 ;; The subdirectory names in this list are expanded.
 (defvar dired-subdir-alist nil
@@ -934,6 +948,7 @@ If HDR is non-nil, insert a header line with the directory name."
     (define-key map "f" 'dired-find-file)
     (define-key map "\C-m" 'dired-advertised-find-file)
     (define-key map "g" 'revert-buffer)
+    (define-key map "\M-g" 'dired-goto-file)
     (define-key map "h" 'describe-mode)
     (define-key map "i" 'dired-maybe-insert-subdir)
     (define-key map "k" 'dired-do-kill-lines)
@@ -1270,7 +1285,9 @@ Keybindings:
        (or dirname default-directory))
   ;; list-buffers uses this to display the dir being edited in this buffer.
   (set (make-local-variable 'list-buffers-directory)
-       (expand-file-name dired-directory))
+       (expand-file-name (if (listp dired-directory)
+			     (car dired-directory)
+			   dired-directory)))
   (set (make-local-variable 'dired-actual-switches)
        (or switches dired-listing-switches))
   (set (make-local-variable 'font-lock-defaults) '(dired-font-lock-keywords t))
@@ -1350,7 +1367,12 @@ Creates a buffer if necessary."
 (defun dired-get-file-for-visit ()
   "Get the current line's file name, with an error if file does not exist."
   (interactive)
-  (let ((file-name (file-name-sans-versions (dired-get-filename) t)))
+  ;; We pass t for second arg so that we don't get error for `.' and `..'.
+  (let ((raw (dired-get-filename nil t))
+	file-name)
+    (if (null raw)
+	(error "No file on this line"))
+    (setq file-name (file-name-sans-versions raw t))
     (if (file-exists-p file-name)
 	file-name
       (if (file-symlink-p file-name)
@@ -1362,7 +1384,10 @@ Creates a buffer if necessary."
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)
-  (find-file (dired-get-file-for-visit)))
+  ;; Bind `find-file-run-dired' so that the command works on directories
+  ;; too, independent of the user's setting.
+  (let ((find-file-run-dired t))
+    (find-file (dired-get-file-for-visit))))
 
 (defun dired-find-alternate-file ()
   "In Dired, visit this file or directory instead of the dired buffer."
@@ -1384,21 +1409,24 @@ Creates a buffer if necessary."
       (set-buffer (window-buffer window))
       (goto-char pos)
       (setq file (dired-get-file-for-visit)))
-    (select-window window)
-    (find-file-other-window (file-name-sans-versions file t))))
-
-(defcustom dired-view-command-alist
-  '(("[.]ps\\'" . "gv -spartan -color -watch")
-    ("[.]pdf\\'" . "xpdf")
-    ("[.]dvi\\'" . "xdvi -sidemargin 0.5 -topmargin 1"))
-  "Alist specifying how to view special types of files.
-Each element has the form (REGEXP . SHELL-COMMAND).
-When the file name matches REGEXP, `dired-view-file'
-invokes SHELL-COMMAND to view the file, putting the file name
-at the end of the command."
-  :group 'dired
-  :type '(alist :key-type regexp :value-type string)
-  :version "21.4")
+    (if (file-directory-p file)
+	(or (and (cdr dired-subdir-alist)
+		 (dired-goto-subdir file))
+	    (progn
+	      (select-window window)
+	      (dired-other-window file)))
+      (let (cmd)
+	;; Look for some other way to view a certain file.
+	(dolist (elt dired-view-command-alist)
+	  (if (string-match (car elt) file)
+	      (setq cmd (cdr elt))))
+	(if cmd
+	    (call-process shell-file-name nil 0 nil
+			  "-c"
+			  (concat (format cmd (shell-quote-argument file))
+				  " &"))
+	  (select-window window)
+	  (find-file-other-window (file-name-sans-versions file t)))))))
 
 (defun dired-view-file ()
   "In Dired, examine a file in view mode, returning to dired when done.
@@ -1417,8 +1445,10 @@ see `dired-view-command-alist'.  Otherwise, display it in another buffer."
 	  (if (string-match (car elt) file)
 	      (setq cmd (cdr elt))))
 	(if cmd
-	    (dired-run-shell-command (concat cmd " "
-					     (shell-quote-argument file)))
+	    (call-process shell-file-name nil 0 nil
+			  "-c"
+			  (concat (format cmd (shell-quote-argument file))
+				  " &"))
 	  (view-file file))))))
 
 (defun dired-find-file-other-window ()
@@ -1437,11 +1467,12 @@ see `dired-view-command-alist'.  Otherwise, display it in another buffer."
   "In Dired, return name of file mentioned on this line.
 Value returned normally includes the directory name.
 Optional arg LOCALP with value `no-dir' means don't include directory
-  name in result.  A value of `verbatim' means to return the name exactly as
-  it occurs in the buffer, and a value of t means construct name relative to
-  `default-directory', which still may contain slashes if in a subdirectory.
-Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
-  this line, otherwise an error occurs."
+name in result.  A value of `verbatim' means to return the name exactly as
+it occurs in the buffer, and a value of t means construct name relative to
+`default-directory', which still may contain slashes if in a subdirectory.
+Optional arg NO-ERROR-IF-NOT-FILEP means treat `.' and `..' as
+regular filenames and return nil if no filename on this line.
+Otherwise, an error occurs in these cases."
   (let (case-fold-search file p1 p2 already-absolute)
     (save-excursion
       (if (setq p1 (dired-move-to-filename (not no-error-if-not-filep)))
@@ -1478,6 +1509,11 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
       nil)
      ((eq localp 'verbatim)
       file)
+     ((and (not no-error-if-not-filep)
+	   (save-excursion
+	     (beginning-of-line)
+	     (looking-at dired-re-dot)))
+      (error "Cannot operate on `.' or `..'"))
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
      (already-absolute
@@ -1503,7 +1539,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
       (concat (dired-current-directory localp) file)))))
 
 (defun dired-string-replace-match (regexp string newtext
-					  &optional literal global)
+                                   &optional literal global)
   "Replace first match of REGEXP in STRING with NEWTEXT.
 If it does not match, nil is returned instead of the new string.
 Optional arg LITERAL means to take NEWTEXT literally.
@@ -1548,9 +1584,11 @@ DIR must be a directory name, not a file name."
 
 (defvar dired-move-to-filename-regexp
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
+	 (l-or-quote "\\([A-Za-z']\\|[^\0-\177]\\)")
 	 ;; In some locales, month abbreviations are as short as 2 letters,
 	 ;; and they can be followed by ".".
-	 (month (concat l l "+\\.?"))
+	 ;; In Breton, a month name  can include a quote character.
+	 (month (concat l-or-quote l-or-quote "+\\.?"))
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (dd "[ 0-3][0-9]")
@@ -2652,8 +2690,10 @@ Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
 		 (re-search-forward dired-re-mark nil t)
 	       (search-forward string nil t))
 	(if (or (not arg)
-		(dired-query 'query "Unmark file `%s'? "
-			     (dired-get-filename t)))
+		(let ((file (dired-get-filename t t)))
+		  (and file
+		       (dired-query 'query "Unmark file `%s'? "
+				    file))))
 	    (progn (subst-char-in-region (1- (point)) (point)
 					 (preceding-char) ?\ )
 		   (setq count (1+ count)))))
@@ -3093,4 +3133,5 @@ true then the type of the file linked to by FILE is printed instead."
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
+;;; arch-tag: e1af7a8f-691c-41a0-aac1-ddd4d3c87517
 ;;; dired.el ends here

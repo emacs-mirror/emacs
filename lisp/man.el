@@ -1,6 +1,6 @@
-;;; man.el --- browse UNIX manual pages
+;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -241,7 +241,7 @@ the associated section number."
 (defvar Man-cooked-hook nil
   "Hook run after removing backspaces but before `Man-mode' processing.")
 
-(defvar Man-name-regexp "[-a-zA-Z0-9_][-a-zA-Z0-9_.]*"
+(defvar Man-name-regexp "[-a-zA-Z0-9_­+][-a-zA-Z0-9_.­+]*"
   "Regular expression describing the name of a manpage (without section).")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
@@ -256,7 +256,7 @@ the associated section number."
 	    "(\\(" Man-section-regexp "\\))\\).*\\1"))
   "Regular expression describing the heading of a page.")
 
-(defvar Man-heading-regexp "^\\([A-Z][A-Z ]+\\)$"
+(defvar Man-heading-regexp "^\\([A-Z][A-Z -]+\\)$"
   "Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
@@ -504,8 +504,20 @@ This is necessary if one wants to dump man.el with Emacs."
 				       (error "Malformed Man-filter-list"))
 				   phrase)
 				 pargs " ")))
-	(setq flist (cdr flist))))
+        (setq flist (cdr flist))))
     command))
+
+
+(defun Man-translate-cleanup (string)
+  "Strip leading, trailing and middle spaces."
+  (when (stringp string)
+    ;;  Strip leading and trailing
+    (if (string-match "^[ \t\f\r\n]*\\(.+[^ \t\f\r\n]\\)" string)
+        (setq string (match-string 1 string)))
+    ;; middle spaces
+    (setq string (replace-regexp-in-string "[\t\r\n]" " " string))
+    (setq string (replace-regexp-in-string "  +" " " string))
+    string))
 
 (defun Man-translate-references (ref)
   "Translates REF from \"chmod(2V)\" to \"2v chmod\" style.
@@ -513,8 +525,9 @@ Leave it as is if already in that style.  Possibly downcase and
 translate the section (see the Man-downcase-section-letters-flag
 and the Man-section-translations-alist variables)."
   (let ((name "")
-	(section "")
-	(slist Man-section-translations-alist))
+        (section "")
+        (slist Man-section-translations-alist))
+    (setq ref (Man-translate-cleanup ref))
     (cond
      ;; "chmod(2V)" case ?
      ((string-match (concat "^" Man-reference-regexp "$") ref)
@@ -556,19 +569,18 @@ This guess is based on the text surrounding the cursor."
       (skip-chars-backward "-a-zA-Z0-9._+:")
       (let ((start (point)))
 	(skip-chars-forward "-a-zA-Z0-9._+:")
-	(setq word (buffer-substring start (point))))
+	(setq word (buffer-substring-no-properties start (point))))
       (if (string-match "[._]+$" word)
 	  (setq word (substring word 0 (match-beginning 0))))
+      ;; If looking at something like *strcat(... , remove the '*'
+      (if (string-match "^*" word)
+	  (setq word (substring word 1)))
       ;; If looking at something like ioctl(2) or brc(1M), include the
       ;; section number in the returned value.  Remove text properties.
-      (forward-word 1)
-      ;; Use `format' here to clear any text props from `word'.
-      (format "%s%s"
-	      word
+      (concat word
 	      (if (looking-at
 		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-		  (format "(%s)" (match-string 1))
-		"")))))
+		  (format "(%s)" (match-string-no-properties 1)))))))
 
 
 ;; ======================================================================
@@ -577,6 +589,7 @@ This guess is based on the text surrounding the cursor."
 ;; For compatibility with older versions.
 ;;;###autoload
 (defalias 'manual-entry 'man)
+
 
 ;;;###autoload
 (defun man (man-args)
@@ -667,12 +680,12 @@ all sections related to a subject, put something appropriate into the
 	      ;; the page will actually be displayed, but it seems
 	      ;; reasonable.
 	      (setenv "COLUMNS" (number-to-string (frame-width)))))
+	(setenv "GROFF_NO_SGR" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
 	     (start-process manual-program buffer "sh" "-c"
 			    (format (Man-build-man-command) man-args))
 	     'Man-bgproc-sentinel)
-	  (setenv "GROFF_NO_SGR" "1")
 	  (let ((exit-status
 		 (call-process shell-file-name nil (list buffer nil) nil "-c"
 			       (format (Man-build-man-command) man-args)))
@@ -999,7 +1012,7 @@ The following key bindings are currently in effect in the buffer:
 			      ;; Update len, in case a reference spans
 			      ;; more than two lines (paranoia).
 			      len (1- (length word))))
-		    (if (= (aref word len) ?-)
+		    (if (memq (aref word len) '(?- ?­))
 			(setq hyphenated (substring word 0 len)))
 		    (if (string-match Man-reference-regexp word)
 			(aput 'Man-refpages-alist word))))
@@ -1198,7 +1211,7 @@ Specify which REFERENCE to use; default is based on word at point."
 			    (aheadsym Man-refpages-alist)))
 		   chosen
 		   (prompt (concat "Refer to: (default " default ") ")))
-	      (setq chosen (completing-read prompt Man-refpages-alist nil t))
+	      (setq chosen (completing-read prompt Man-refpages-alist))
 	      (if (or (not chosen)
 		      (string= chosen ""))
 		  default
@@ -1294,4 +1307,5 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (provide 'man)
 
+;;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

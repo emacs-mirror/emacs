@@ -212,3 +212,6 @@ extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object,
 extern void compose_chars_in_text P_ ((int, int, Lisp_Object));
 
 #endif /* not EMACS_COMPOSITE_H */
+
+/* arch-tag: 59524d89-c645-47bd-b5e6-65e861690118
+   (do not change this comment) */

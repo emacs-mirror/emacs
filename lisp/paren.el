@@ -243,4 +243,5 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 
 (provide 'paren)
 
+;;; arch-tag: d0969b88-7ac0-4bd0-bd53-e73b892b86a9
 ;;; paren.el ends here

@@ -87,10 +87,7 @@ This is nil while loading `scroll-bar.el', and t afterward.")
 	 (list (cons 'vertical-scroll-bars scroll-bar-mode)))
 	(setq frames (cdr frames))))))
 
-(defcustom scroll-bar-mode
-  (cond ((eq system-type 'windows-nt) 'right)
-	((featurep 'mac-carbon) 'right)
-	(t 'left))
+(defcustom scroll-bar-mode default-frame-scroll-bars
   "*Specify whether to have vertical scroll bars, and on which side.
 Possible values are nil (no scroll bars), `left' (scroll bars on left)
 and `right' (scroll bars on right).
@@ -117,14 +114,13 @@ created in the future.
 With a numeric argument, if the argument is negative,
 turn off scroll bars; otherwise, turn on scroll bars."
   (interactive "P")
-  (if flag (setq flag (prefix-numeric-value flag)))
 
   ;; Tweedle the variable according to the argument.
-  (set-scroll-bar-mode (if (null flag) (not scroll-bar-mode)
-			 (and (or (not (numberp flag)) (>= flag 0))
-			      (cond ((eq system-type 'windows-nt) 'right)
-				    ((featurep 'mac-carbon) 'right)
-				    (t 'left))))))
+  (set-scroll-bar-mode (if (if (null flag) 
+			       (not scroll-bar-mode)
+			     (setq flag (prefix-numeric-value flag))
+			     (or (not (numberp flag)) (>= flag 0)))
+			   default-frame-scroll-bars)))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
@@ -142,10 +138,7 @@ when they are turned on; if it is nil, they go on the left."
    (selected-frame)
    (list (cons 'vertical-scroll-bars
 	       (if (> arg 0)
-		   (or scroll-bar-mode
-		       (cond ((eq system-type 'windows-nt) 'right)
-			     ((featurep 'mac-carbon) 'right)
-			     (t 'left))))))))
+		   (or scroll-bar-mode default-frame-scroll-bars))))))
 
 (defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
@@ -218,7 +211,7 @@ EVENT should be a scroll bar click or drag event."
       (goto-char (+ (point-min)
 		    (scroll-bar-scale portion-whole
 				      (- (point-max) (point-min)))))
-      (beginning-of-line)
+      (vertical-motion 0 window)
       (set-window-start window (point)))))
 
 (defun scroll-bar-drag (event)
@@ -358,4 +351,5 @@ EVENT should be a scroll bar click."
 
 (provide 'scroll-bar)
 
+;;; arch-tag: 6f1d01d0-0b1e-4bf8-86db-d491e0f399f3
 ;;; scroll-bar.el ends here

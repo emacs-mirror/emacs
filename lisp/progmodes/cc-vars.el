@@ -1,10 +1,9 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003 Free Software Foundation, Inc.
 
-;; Authors:    2000- Martin Stjernholm
-;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
-;;             1992-1997 Barry A. Warsaw
+;; Authors:    1998- Martin Stjernholm
+;;             1992-1999 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
@@ -39,7 +38,7 @@
 		  (stringp byte-compile-dest-file))
 	     (cons (file-name-directory byte-compile-dest-file) load-path)
 	   load-path)))
-    (require 'cc-bytecomp)))
+    (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
 
@@ -50,9 +49,27 @@
 
 ;; Pull in custom if it exists and is recent enough (the one in Emacs
 ;; 19.34 isn't).
-(eval-when-compile
-  (require 'custom)
-  (require 'wid-edit))
+(eval
+ (cc-eval-when-compile
+   (condition-case nil
+       (progn
+	 (require 'custom)
+	 (or (fboundp 'defcustom) (error ""))
+	 (require 'widget)
+	 '(progn			; Compile in the require's.
+	    (require 'custom)
+	    (require 'widget)))
+     (error
+      (message "Warning: Compiling without Customize support \
+since a (good enough) custom library wasn't found")
+      (cc-bytecomp-defmacro define-widget (name class doc &rest args))
+      (cc-bytecomp-defmacro defgroup (symbol members doc &rest args))
+      (cc-bytecomp-defmacro defcustom (symbol value doc &rest args)
+	`(defvar ,symbol ,value ,doc))
+      (cc-bytecomp-defmacro custom-declare-variable (symbol value doc
+						     &rest args)
+	`(defvar ,(eval symbol) ,(eval value) ,doc))
+      nil))))
 
 (cc-eval-when-compile
   ;; Need the function form of `backquote', which isn't standardized
@@ -66,7 +83,7 @@
 
 ;;; Helpers
 
-;; This widget will show up in newer versions of the Custom library
+;; This widget exists in newer versions of the Custom library
 (or (get 'other 'widget-type)
     (define-widget 'other 'sexp
       "Matches everything, but doesn't let the user edit the value.
@@ -104,13 +121,51 @@ Useful as last item in a `choice' widget."
   :tag "Optional integer"
   :match (lambda (widget value) (or (integerp value) (null value))))
 
+(define-widget 'c-symbol-list 'sexp
+  "A single symbol or a list of symbols."
+  :tag "Symbols separated by spaces"
+  :validate 'widget-field-validate
+  :match
+  (lambda (widget value)
+    (or (symbolp value)
+	(catch 'ok
+	  (while (listp value)
+	    (unless (symbolp (car value))
+	      (throw 'ok nil))
+	    (setq value (cdr value)))
+	  (null value))))
+  :value-to-internal
+  (lambda (widget value)
+    (cond ((null value)
+	   "")
+	  ((symbolp value)
+	   (symbol-name value))
+	  ((consp value)
+	   (mapconcat (lambda (symbol)
+			(symbol-name symbol))
+		      value
+		      " "))
+	  (t
+	   value)))
+  :value-to-external
+  (lambda (widget value)
+    (if (stringp value)
+	(let (list end)
+	  (while (string-match "\\S +" value end)
+	    (setq list (cons (intern (match-string 0 value)) list)
+		  end (match-end 0)))
+	  (if (and list (not (cdr list)))
+	      (car list)
+	    (nreverse list)))
+      value)))
+
 (defvar c-style-variables
   '(c-basic-offset c-comment-only-line-offset c-indent-comment-alist
     c-indent-comments-syntactically-p c-block-comment-prefix
-    c-comment-prefix-regexp c-cleanup-list c-hanging-braces-alist
-    c-hanging-colons-alist c-hanging-semi&comma-criteria c-backslash-column
-    c-backslash-max-column c-special-indent-hook c-label-minimum-indentation
-    c-offsets-alist)
+    c-comment-prefix-regexp c-doc-comment-style c-cleanup-list
+    c-hanging-braces-alist c-hanging-colons-alist
+    c-hanging-semi&comma-criteria c-backslash-column c-backslash-max-column
+    c-special-indent-hook c-label-minimum-indentation c-offsets-alist)
   "List of the style variables.")
 
 (defvar c-fallback-style nil)
@@ -152,6 +207,7 @@ the value set here overrides the style system (there is a variable
 (defun c-valid-offset (offset)
   "Return non-nil iff OFFSET is a valid offset for a syntactic symbol.
 See `c-offsets-alist'."
+  ;; This function does not do any hidden buffer changes.
   (or (eq offset '+)
       (eq offset '-)
       (eq offset '++)
@@ -268,7 +324,7 @@ it might complicate editing if CC Mode doesn't recognize the context
 of the macro content.  The default context inside the macro is the
 same as the top level, so if it contains \"bare\" statements they
 might be indented wrongly, although there are special cases that
-handles this in most cases.  If this problem occurs, it's usually
+handle this in most cases.  If this problem occurs, it's usually
 countered easily by surrounding the statements by a block \(or even
 better with the \"do { ... } while \(0)\" trick)."
   :type 'boolean
@@ -434,16 +490,16 @@ which is sometimes inserted by CC Mode inside block comments.  It
 should not match any surrounding whitespace.
 
 Note that CC Mode uses this variable to set many other variables that
-handles the paragraph filling.  That's done at mode initialization or
+handle the paragraph filling.  That's done at mode initialization or
 when you switch to a style which sets this variable.  Thus, if you
 change it in some other way, e.g. interactively in a CC Mode buffer,
-you will need to do \\[c-mode] (or whatever mode you're currently
-using) to reinitialize.
+you will need to do \\[c-setup-paragraph-variables] afterwards so that
+the other variables are updated with the new value.
 
-Note also that when CC Mode starts up, the other variables are
-modified before the mode hooks are run.  If you change this variable
-in a mode hook, you can call `c-setup-paragraph-variables' afterwards
-to redo it."
+Note also that when CC Mode starts up, all variables are initialized
+before the mode hooks are run.  It's therefore necessary to make a
+call to `c-setup-paragraph-variables' explicitly if you change this
+variable in a mode hook."
   :type '(radio
 	  (regexp :tag "Regexp for all modes")
 	  (list
@@ -464,6 +520,74 @@ to redo it."
 		  (const :format "Pike  " pike-mode) (regexp :format "%v")))
 	   (cons :format "    %v"
 		 (const :format "Other " other) (regexp :format "%v"))))
+  :group 'c)
+
+(defcustom-c-stylevar c-doc-comment-style
+  '((java-mode . javadoc)
+    (pike-mode . autodoc))
+  "*Specifies documentation comment style(s) to recognize.
+This is primarily used to fontify doc comments and the markup within
+them, e.g. Javadoc comments.
+
+The value can be any of the following symbols for various known doc
+comment styles:
+
+ javadoc -- Javadoc style for \"/** ... */\" comments (default in Java mode).
+ autodoc -- Pike autodoc style for \"//! ...\" comments (default in Pike mode).
+
+The value may also be a list of doc comment styles, in which case all
+of them are recognized simultaneously (presumably with markup cues
+that don't conflict).
+
+The value may also be an association list to specify different doc
+comment styles for different languages.  The symbol for the major mode
+is then looked up in the alist, and the value of that element is
+interpreted as above if found.  If it isn't found then the symbol
+`other' is looked up and its value is used instead.
+
+Note that CC Mode uses this variable to set other variables that
+handle fontification etc.  That's done at mode initialization or when
+you switch to a style which sets this variable.  Thus, if you change
+it in some other way, e.g. interactively in a CC Mode buffer, you will
+need to do \\[java-mode] (or whatever mode you're currently using) to
+reinitialize.
+
+Note also that when CC Mode starts up, the other variables are
+modified before the mode hooks are run.  If you change this variable
+in a mode hook, you have to call `c-setup-doc-comment-style'
+afterwards to redo that work."
+  ;; Symbols other than those documented above may be used on this
+  ;; variable.  If a variable exists that has that name with
+  ;; "-font-lock-keywords" appended, it's value is prepended to the
+  ;; font lock keywords list.  If it's a function then it's called and
+  ;; the result is prepended.
+  :type '(radio
+	  (c-symbol-list :tag "Doc style(s) in all modes")
+	  (list
+	   :tag "Mode-specific doc styles"
+	   (set
+	    :inline t :format "%v"
+	    (cons :format "%v"
+		  (const :format "C     " c-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
+		  (const :format "C++   " c++-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
+		  (const :format "ObjC  " objc-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Java  " java-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
+		  (const :format "IDL   " idl-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Pike  " pike-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
+		  (const :format "Other " other)
+		  (c-symbol-list :format "%v")))))
   :group 'c)
 
 (defcustom c-ignore-auto-fill '(string cpp code)
@@ -559,9 +683,13 @@ involve auto-newline inserted newlines:
 
 (defcustom-c-stylevar c-hanging-braces-alist '((brace-list-open)
 					       (brace-entry-open)
+					       (statement-cont)
 					       (substatement-open after)
 					       (block-close . c-snug-do-while)
 					       (extern-lang-open after)
+					       (namespace-open after)
+					       (module-open after)
+					       (composition-open after)
 					       (inexpr-class-open after)
 					       (inexpr-class-close before))
   "*Controls the insertion of newlines before and after braces
@@ -575,16 +703,13 @@ associated ACTION is used to determine where newlines are inserted.
 If the context is not found, the default is to insert a newline both
 before and after the brace.
 
-SYNTACTIC-SYMBOL can be any of: defun-open, defun-close, class-open,
-class-close, inline-open, inline-close, block-open, block-close,
-substatement-open, statement-case-open, extern-lang-open,
-extern-lang-close, brace-list-open, brace-list-close,
-brace-list-intro, brace-entry-open, namespace-open, namespace-close,
-inexpr-class-open, or inexpr-class-close.  See `c-offsets-alist' for
-details, except for inexpr-class-open and inexpr-class-close, which
-doesn't have any corresponding symbols there.  Those two symbols are
-used for the opening and closing braces, respectively, of anonymous
-inner classes in Java.
+SYNTACTIC-SYMBOL can be statement-cont, brace-list-intro,
+inexpr-class-open, inexpr-class-close, and any of the *-open and
+*-close symbols.  See `c-offsets-alist' for details, except for
+inexpr-class-open and inexpr-class-close, which doesn't have any
+corresponding symbols there.  Those two symbols are used for the
+opening and closing braces, respectively, of anonymous inner classes
+in Java.
 
 ACTION can be either a function symbol or a list containing any
 combination of the symbols `before' or `after'.  If the list is empty,
@@ -616,11 +741,13 @@ syntactic context for the brace line."
 	      class-open class-close
 	      inline-open inline-close
 	      block-open block-close
-	      substatement-open statement-case-open
-	      extern-lang-open extern-lang-close
+	      statement-cont substatement-open statement-case-open
 	      brace-list-open brace-list-close
 	      brace-list-intro brace-entry-open
+	      extern-lang-open extern-lang-close
 	      namespace-open namespace-close
+	      module-open module-close
+	      composition-open composition-close
 	      inexpr-class-open inexpr-class-close)))
     :group 'c)
 
@@ -700,7 +827,7 @@ space."
   :group 'c)
 
 (defcustom c-delete-function 'delete-char
-  "*Function called by `c-electric-delete' when deleting forwards."
+  "*Function called by `c-electric-delete-forward' when deleting forwards."
   :type 'function
   :group 'c)
 
@@ -928,11 +1055,11 @@ can always override the use of `c-default-style' by making calls to
        (arglist-cont          . (c-lineup-gcc-asm-reg 0))
        ;; Relpos: At the first token after the open paren.
        (arglist-cont-nonempty . (c-lineup-gcc-asm-reg c-lineup-arglist))
-       ;; Relpos: Boi at the open paren, or at the first non-ws after
-       ;; the open paren of the surrounding sexp, whichever is later.
+       ;; Relpos: At the containing statement(*).
+       ;; 2nd pos: At the open paren.
        (arglist-close         . +)
-       ;; Relpos: Boi at the open paren, or at the first non-ws after
-       ;; the open paren of the surrounding sexp, whichever is later.
+       ;; Relpos: At the containing statement(*).
+       ;; 2nd pos: At the open paren.
        (stream-op             . c-lineup-streamop)
        ;; Relpos: Boi at the first stream op in the statement.
        (inclass               . +)
@@ -953,19 +1080,21 @@ can always override the use of `c-default-style' by making calls to
        (objc-method-call-cont . c-lineup-ObjC-method-call)
        ;; Relpos: At the open bracket.
        (extern-lang-open      . 0)
-       ;; Relpos: Boi at the extern keyword.
-       (extern-lang-close     . 0)
-       ;; Relpos: Boi at the corresponding extern keyword.
-       (inextern-lang         . +)
-       ;; Relpos: At the extern block open brace if it's at boi,
-       ;; otherwise boi at the extern keyword.
        (namespace-open        . 0)
-       ;; Relpos: Boi at the namespace keyword.
+       (module-open           . 0)
+       (composition-open      . 0)
+       ;; Relpos: Boi at the extern/namespace/etc keyword.
+       (extern-lang-close     . 0)
        (namespace-close       . 0)
-       ;; Relpos: Boi at the corresponding namespace keyword.
+       (module-close          . 0)
+       (composition-close     . 0)
+       ;; Relpos: Boi at the corresponding extern/namespace/etc keyword.
+       (inextern-lang         . +)
        (innamespace           . +)
-       ;; Relpos: At the namespace block open brace if it's at boi,
-       ;; otherwise boi at the namespace keyword.
+       (inmodule              . +)
+       (incomposition         . +)
+       ;; Relpos: At the extern/namespace/etc block open brace if it's
+       ;; at boi, otherwise boi at the keyword.
        (template-args-cont    . (c-lineup-template-args +))
        ;; Relpos: Boi at the decl start.  This might be changed; the
        ;; logical position is clearly the opening '<'.
@@ -1014,7 +1143,7 @@ If OFFSET is one of the symbols `+', `-', `++', `--', `*', or `/', a
 positive or negative multiple of `c-basic-offset' is added; 1, -1, 2,
 -2, 0.5, and -0.5, respectively.
 
-If OFFSET is a vector, its first element, which must be an integer,
+If OFFSET is a vector, it's first element, which must be an integer,
 is used as an absolute indentation column.  This overrides all
 relative offsets.  If there are several syntactic elements which
 evaluates to absolute indentation columns, the first one takes
@@ -1103,14 +1232,19 @@ Here is the current list of valid syntactic element symbols:
  objc-method-intro      -- The first line of an Objective-C method definition.
  objc-method-args-cont  -- Lines continuing an Objective-C method definition.
  objc-method-call-cont  -- Lines continuing an Objective-C method call.
- extern-lang-open       -- Brace that opens an external language block.
- extern-lang-close      -- Brace that closes an external language block.
+ extern-lang-open       -- Brace that opens an \"extern\" block.
+ extern-lang-close      -- Brace that closes an \"extern\" block.
  inextern-lang          -- Analogous to the `inclass' syntactic symbol,
-                           but used inside extern constructs.
- namespace-open         -- Brace that opens a C++ namespace block.
- namespace-close        -- Brace that closes a C++ namespace block.
- innamespace            -- Analogous to the `inextern-lang' syntactic
-                           symbol, but used inside C++ namespace constructs.
+                           but used inside \"extern\" blocks.
+ namespace-open, namespace-close, innamespace
+                        -- Similar to the three `extern-lang' symbols, but for
+                           C++ \"namespace\" blocks.
+ module-open, module-close, inmodule
+                        -- Similar to the three `extern-lang' symbols, but for
+                           CORBA IDL \"module\" blocks.
+ composition-open, composition-close, incomposition
+                        -- Similar to the three `extern-lang' symbols, but for
+                           CORBA CIDL \"composition\" blocks.
  template-args-cont     -- C++ template argument list continuations.
  inlambda               -- In the header or body of a lambda function.
  lambda-intro-cont      -- Continuation of the header of a lambda function.
@@ -1144,18 +1278,24 @@ buffer local by default.  If nil, they will remain global.  Variables
 are made buffer local when this file is loaded, and once buffer
 localized, they cannot be made global again.
 
+This variable must be set appropriately before CC Mode is loaded.
+
 The list of variables to buffer localize are:
-    c-offsets-alist
     c-basic-offset
     c-comment-only-line-offset
+    c-indent-comment-alist
+    c-indent-comments-syntactically-p
     c-block-comment-prefix
     c-comment-prefix-regexp
+    c-doc-comment-style
     c-cleanup-list
     c-hanging-braces-alist
     c-hanging-colons-alist
     c-hanging-semi&comma-criteria
     c-backslash-column
+    c-backslash-max-column
     c-label-minimum-indentation
+    c-offsets-alist
     c-special-indent-hook
     c-indentation-style"
   :type 'boolean
@@ -1193,7 +1333,7 @@ The list of variables to buffer localize are:
 
 (defcustom c-mode-common-hook nil
   "*Hook called by all CC Mode modes for common initializations."
-  :type '(hook :format "%{CC Mode Common Hook%}:\n%v")
+  :type 'hook
   :group 'c)
 
 (defcustom c-initialization-hook nil
@@ -1230,6 +1370,106 @@ all style variables are per default set in a special non-override
 state.  Set this variable only if your configuration has stopped
 working due to this change.")
 
+(define-widget 'c-extra-types-widget 'radio
+  "Internal CC Mode widget for the `*-font-lock-extra-types' variables."
+  :args '((const :tag "none" nil)
+	  (repeat :tag "types" regexp)))
+
+(eval-and-compile
+  ;; XEmacs 19 evaluates this at compile time below, while most other
+  ;; versions delays the evaluation until the package is loaded.
+  (defun c-make-font-lock-extra-types-blurb (mode1 mode2 example)
+    (concat "\
+*List of extra types (aside from the type keywords) to recognize in "
+mode1 " mode.
+Each list item should be a regexp matching a single identifier.
+" example "
+
+On decoration level 3 (and higher, where applicable), a method is used
+that finds most types and declarations by syntax alone.  This variable
+is still used as a first step, but other types are recognized
+correctly anyway in most cases.  Therefore this variable should be
+fairly restrictive and not contain patterns that are uncertain.
+
+Note that this variable is only consulted when the major mode is
+initialized.  If you change it later you have to reinitialize CC Mode
+by doing \\[" mode2 "].
+
+Despite the name, this variable is not only used for font locking but
+also elsewhere in CC Mode to tell types from other identifiers.")))
+
+;; Note: Most of the variables below are also defined in font-lock.el
+;; in older versions in Emacs, so depending on the load order we might
+;; not install the values below.  There's no kludge to cope with this
+;; (as opposed to the *-font-lock-keywords-* variables) since the old
+;; values work fairly well anyway.
+
+(defcustom c-font-lock-extra-types
+  '("FILE" "\\sw+_t"
+    "bool" "complex" "imaginary"	; Defined in C99.
+    ;; I do not appreciate the following very Emacs-specific luggage
+    ;; in the default value, but otoh it can hardly get in the way for
+    ;; other users, and removing it would cause unnecessary grief for
+    ;; the old timers that are used to it. /mast
+    "Lisp_Object")
+  (c-make-font-lock-extra-types-blurb "C" "c-mode"
+"For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word FILE
+and words ending in _t are treated as type names.")
+  :type 'c-extra-types-widget
+  :group 'c)
+
+(defcustom c++-font-lock-extra-types
+  '("\\sw+_t"
+    "\\([iof]\\|str\\)+stream\\(buf\\)?" "ios"
+    "string" "rope"
+    "list" "slist"
+    "deque" "vector" "bit_vector"
+    "set" "multiset"
+    "map" "multimap"
+    "hash\\(_\\(m\\(ap\\|ulti\\(map\\|set\\)\\)\\|set\\)\\)?"
+    "stack" "queue" "priority_queue"
+    "type_info"
+    "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator"
+    "reference" "const_reference")
+  (c-make-font-lock-extra-types-blurb "C++" "c++-mode"
+"For example, a value of (\"string\") means the word string is treated
+as a type name.")
+  :type 'c-extra-types-widget
+  :group 'c)
+
+(defcustom objc-font-lock-extra-types
+  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
+  (c-make-font-lock-extra-types-blurb "ObjC" "objc-mode" (concat
+"For example, a value of (\"[" c-upper "]\\\\sw*[" c-lower "]\\\\sw*\") means
+capitalized words are treated as type names (the requirement for a
+lower case char is to avoid recognizing all-caps macro and constant
+names)."))
+  :type 'c-extra-types-widget
+  :group 'c)
+
+(defcustom java-font-lock-extra-types
+  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
+  (c-make-font-lock-extra-types-blurb "Java" "java-mode" (concat
+"For example, a value of (\"[" c-upper "]\\\\sw*[" c-lower "]\\\\sw*\") means
+capitalized words are treated as type names (the requirement for a
+lower case char is to avoid recognizing all-caps constant names)."))
+  :type 'c-extra-types-widget
+  :group 'c)
+
+(defcustom idl-font-lock-extra-types nil
+  (c-make-font-lock-extra-types-blurb "IDL" "idl-mode" "")
+  :type 'c-extra-types-widget
+  :group 'c)
+
+(defcustom pike-font-lock-extra-types
+  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
+  (c-make-font-lock-extra-types-blurb "Pike" "pike-mode" (concat
+"For example, a value of (\"[" c-upper "]\\\\sw*[" c-lower "]\\\\sw*\") means
+capitalized words are treated as type names (the requirement for a
+lower case char is to avoid recognizing all-caps macro and constant
+names)."))
+  :type 'c-extra-types-widget
+  :group 'c)
 
 
 ;; Non-customizable variables, still part of the interface to CC Mode
@@ -1254,10 +1494,40 @@ Note that file offset settings are applied after file style settings
 as designated in the variable `c-file-style'.")
 (make-variable-buffer-local 'c-file-offsets)
 
-(defvar c-syntactic-context nil
-  "Variable containing syntactic analysis list during indentation.
-This is always bound dynamically.  It should never be set statically
-\(e.g. with `setq').")
+;; It isn't possible to specify a docstring without specifying an
+;; initial value with `defvar', so the following two variables have
+;; only doc comments even though they are part of the API.  It's
+;; really good not to have an initial value for variables like these
+;; that always should be dynamically bound, so it's worth the
+;; inconvenience.
+
+(cc-bytecomp-defvar c-syntactic-context)
+(defvar c-syntactic-context)
+;; Variable containing the syntactic analysis list during indentation.
+;; It is a list with one element for each found syntactic symbol.  See
+;; `c-syntactic-element' for further info.
+;;
+;; This is always bound dynamically.  It should never be set
+;; statically (e.g. with `setq').
+
+(cc-bytecomp-defvar c-syntactic-element)
+(defvar c-syntactic-element)
+;; Variable containing the info regarding the current syntactic
+;; element during calls to the lineup functions.  The value is one of
+;; the elements in the list in `c-syntactic-context' and is a list
+;; with the symbol name in the first position, followed by zero or
+;; more elements containing any additional info associated with the
+;; syntactic symbol.  There are accessor functions `c-langelem-sym',
+;; `c-langelem-pos', `c-langelem-col', and `c-langelem-2nd-pos' to
+;; access the list.
+;;
+;; Specifically, the element returned by `c-langelem-pos' is the
+;; relpos (a.k.a. anchor position), or nil if there isn't any.  See
+;; the comments in the `c-offsets-alist' variable for more detailed
+;; info about the data each syntactic symbol provides.
+;; 
+;; This is always bound dynamically.  It should never be set
+;; statically (e.g. with `setq').
 
 (defvar c-indentation-style nil
   "Name of the currently installed style.
@@ -1268,64 +1538,142 @@ Don't change this directly; call `c-set-style' instead.")
 Set from `c-comment-prefix-regexp' at mode initialization.")
 (make-variable-buffer-local 'c-current-comment-prefix)
 
-(defvar c-buffer-is-cc-mode nil
-  "Non-nil for all buffers with a major mode derived from CC Mode.
-Otherwise, this variable is nil.  I.e. this variable is non-nil for
-`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode',
-`pike-mode', and any other non-CC Mode mode that calls
-`c-initialize-cc-mode' (e.g. `awk-mode').  The value is the mode
-symbol itself (i.e. `c-mode' etc) of the original CC Mode mode, or
-just t if it's not known.")
-(make-variable-buffer-local 'c-buffer-is-cc-mode)
-
-;; Have to make `c-buffer-is-cc-mode' permanently local so that it
-;; survives the initialization of the derived mode.
-(put 'c-buffer-is-cc-mode 'permanent-local t)
-
 
 ;; Figure out what features this Emacs has
-;;;###autoload
+
+(cc-bytecomp-defvar open-paren-in-column-0-is-defun-start)
+
 (defconst c-emacs-features
-  (let ((infodock-p (boundp 'infodock-version))
-	(comments
-	 ;; XEmacs 19 and beyond use 8-bit modify-syntax-entry flags.
-	 ;; Emacs 19 uses a 1-bit flag.  We will have to set up our
-	 ;; syntax tables differently to handle this.
-	 (let ((table (copy-syntax-table))
-	       entry)
-	   (modify-syntax-entry ?a ". 12345678" table)
-	   (cond
-	    ;; XEmacs 19, and beyond Emacs 19.34
-	    ((arrayp table)
-	     (setq entry (aref table ?a))
-	     ;; In Emacs, table entries are cons cells
-	     (if (consp entry) (setq entry (car entry))))
-	    ;; XEmacs 20
-	    ((fboundp 'get-char-table) (setq entry (get-char-table ?a table)))
-	    ;; before and including Emacs 19.34
-	    ((and (fboundp 'char-table-p)
-		  (char-table-p table))
-	     (setq entry (car (char-table-range table [?a]))))
-	    ;; incompatible
-	    (t (error "CC Mode is incompatible with this version of Emacs")))
-	   (if (= (logand (lsh entry -16) 255) 255)
-	       '8-bit
-	     '1-bit))))
-    (if infodock-p
-	(list comments 'infodock)
-      (list comments)))
-  "A list of features extant in the Emacs you are using.
+  (let (list)
+
+    (if (boundp 'infodock-version)
+	;; I've no idea what this actually is, but it's legacy. /mast
+	(setq list (cons 'infodock list)))
+
+    ;; XEmacs 19 and beyond use 8-bit modify-syntax-entry flags.
+    ;; Emacs 19 uses a 1-bit flag.  We will have to set up our
+    ;; syntax tables differently to handle this.
+    (let ((table (copy-syntax-table))
+	  entry)
+      (modify-syntax-entry ?a ". 12345678" table)
+      (cond
+       ;; XEmacs 19, and beyond Emacs 19.34
+       ((arrayp table)
+	(setq entry (aref table ?a))
+	;; In Emacs, table entries are cons cells
+	(if (consp entry) (setq entry (car entry))))
+       ;; XEmacs 20
+       ((fboundp 'get-char-table) (setq entry (get-char-table ?a table)))
+       ;; before and including Emacs 19.34
+       ((and (fboundp 'char-table-p)
+	     (char-table-p table))
+	(setq entry (car (char-table-range table [?a]))))
+       ;; incompatible
+       (t (error "CC Mode is incompatible with this version of Emacs")))
+      (setq list (cons (if (= (logand (lsh entry -16) 255) 255)
+			   '8-bit
+			 '1-bit)
+		       list)))
+
+    (let ((buf (generate-new-buffer "test"))
+	  parse-sexp-lookup-properties
+	  parse-sexp-ignore-comments
+	  lookup-syntax-properties)
+      (save-excursion
+	(set-buffer buf)
+	(set-syntax-table (make-syntax-table))
+
+	;; For some reason we have to set some of these after the
+	;; buffer has been made current.  (Specifically,
+	;; `parse-sexp-ignore-comments' in Emacs 21.)
+	(setq parse-sexp-lookup-properties t
+	      parse-sexp-ignore-comments t
+	      lookup-syntax-properties t)
+
+	;; Find out if the `syntax-table' text property works.
+	(modify-syntax-entry ?< ".")
+	(modify-syntax-entry ?> ".")
+	(insert "<()>")
+	(c-mark-<-as-paren 1)
+	(c-mark->-as-paren 4)
+	(goto-char 1)
+	(c-forward-sexp)
+	(if (= (point) 5)
+	    (setq list (cons 'syntax-properties list)))
+
+	;; Find out if generic comment delimiters work.
+	(c-safe
+	  (modify-syntax-entry ?x "!")
+	  (if (string-match "\\s!" "x")
+	      (setq list (cons 'gen-comment-delim list))))
+
+	;; Find out if generic string delimiters work.
+	(c-safe
+	  (modify-syntax-entry ?x "|")
+	  (if (string-match "\\s|" "x")
+	      (setq list (cons 'gen-string-delim list))))
+
+	;; See if `open-paren-in-column-0-is-defun-start' exists and
+	;; isn't buggy.
+	(when (boundp 'open-paren-in-column-0-is-defun-start)
+	  (let ((open-paren-in-column-0-is-defun-start nil)
+		(parse-sexp-ignore-comments t))
+	    (set-syntax-table (make-syntax-table))
+	    (modify-syntax-entry ?\' "\"")
+	    (cond
+	     ;; XEmacs.  Afaik this is currently an Emacs-only
+	     ;; feature, but it's good to be prepared.
+	     ((memq '8-bit list)
+	      (modify-syntax-entry ?/ ". 1456")
+	      (modify-syntax-entry ?* ". 23"))
+	     ;; Emacs
+	     ((memq '1-bit list)
+	      (modify-syntax-entry ?/ ". 124b")
+	      (modify-syntax-entry ?* ". 23")))
+	    (modify-syntax-entry ?\n "> b")
+	    (insert "/* '\n   () */")
+	    (backward-sexp)
+	    (if (bobp)
+		(setq list (cons 'col-0-paren list))))
+	  (kill-buffer buf))
+
+	(set-buffer-modified-p nil))
+      (kill-buffer buf))
+
+    ;; See if `parse-partial-sexp' returns the eighth element.
+    (when (c-safe (>= (length (save-excursion (parse-partial-sexp 1 1))) 10))
+      (setq list (cons 'pps-extended-state list)))
+
+    ;; See if POSIX char classes work.
+    (when (string-match "[[:alpha:]]" "a")
+      (setq list (cons 'posix-char-classes list)))
+
+    list)
+  "A list of certain features in the (X)Emacs you are using.
 There are many flavors of Emacs out there, each with different
-features supporting those needed by CC Mode.  Here's the current
-supported list, along with the values for this variable:
+features supporting those needed by CC Mode.  The following values
+might be present:
 
- XEmacs 19, 20, 21:          (8-bit)
- Emacs 19, 20:               (1-bit)
+'8-bit              8 bit syntax entry flags (XEmacs style).
+'1-bit              1 bit syntax entry flags (Emacs style).
+'syntax-properties  It works to override the syntax for specific characters
+		    in the buffer with the 'syntax-table property.
+'gen-comment-delim  Generic comment delimiters work
+		    (i.e. the syntax class `!').
+'gen-string-delim   Generic string delimiters work
+		    (i.e. the syntax class `|').
+'pps-extended-state `parse-partial-sexp' returns a list with at least 10
+		    elements, i.e. it contains the position of the
+		    start of the last comment or string.
+'posix-char-classes The regexp engine understands POSIX character classes.
+'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
+		    in column zero is the start of a defun.
+'infodock           This is Infodock (based on XEmacs).
 
-Infodock (based on XEmacs) has an additional symbol on this list:
-`infodock'.")
+'8-bit and '1-bit are mutually exclusive.")
 
 
 (cc-provide 'cc-vars)
 
+;;; arch-tag: d62e9a55-c9fe-409b-b5b6-050b6aa202c9
 ;;; cc-vars.el ends here

@@ -168,3 +168,6 @@ extern void cmcostinit ();
 extern void cmgoto ();
 extern void Wcm_clear ();
 extern int Wcm_init ();
+
+/* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
+   (do not change this comment) */

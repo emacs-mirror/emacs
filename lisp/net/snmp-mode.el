@@ -720,4 +720,5 @@ controls whether case is significant."
 
 (provide 'snmp-mode)
 
+;;; arch-tag: eb6cc0f9-1e47-4023-8625-bc9aae6c3527
 ;;; snmp-mode.el ends here

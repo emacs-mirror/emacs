@@ -450,6 +450,31 @@ FILE is created there."
     (t
      (gamegrid-add-score-with-update-game-score file score))))
 
+
+;; On POSIX systems there are four cases to distinguish:
+
+;;     1. FILE is an absolute filename.  Then it should be a file in
+;;        temporary file directory.  This is the way,
+;;        `gamegrid-add-score' was supposed to be used in the past and
+;;        is covered here for backward-compatibility.
+;;
+;;     2. The helper program "update-game-score" is setuid and the
+;;        file FILE does already exist in a system wide shared game
+;;        directory.  This should be the normal case on POSIX systems,
+;;        if the game was installed system wide.  Use
+;;        "update-game-score" to add the score to the file in the
+;;        shared game directory.
+;;
+;;     3. "update-game-score" is setuid, but the file FILE does *not*
+;;        exist in the system wide shared game directory.  Use
+;;        `gamegrid-add-score-insecure' to create--if necessary--and
+;;        update FILE.  This is for the case that a user has installed
+;;        a game on her own.
+;;
+;;     4. "update-game-score" is not setuid.  Use it to create/update
+;;        FILE in the user's home directory.  There is presumably no
+;;        shared game directory.
+
 (defun gamegrid-add-score-with-update-game-score (file score)
   (let* ((result nil) ;; What is this good for? -- os
 	 (have-shared-game-dir
@@ -457,28 +482,34 @@ FILE is created there."
 			       (expand-file-name "update-game-score"
 						 exec-directory))
 			      #o4000)))))
-    (if (and have-shared-game-dir
-	     (file-exists-p (expand-file-name file shared-game-score-directory)))
-	;; Use the setuid update-gamescore program to update a
-	;; system-wide score file.
-	(gamegrid-add-score-with-update-game-score-1
-	 (expand-file-name file shared-game-score-directory) score)
-      ;; Else: Add the score to a score file in the user's home
-      ;; directory. If `have-shared-game-dir' is non-nil, the
-      ;; "update-gamescore" program is setuid, so don't use it.
-      (if have-shared-game-dir
-	  (gamegrid-add-score-insecure file score
-				       gamegrid-user-score-file-directory)
-	(let ((f (expand-file-name
-		  gamegrid-user-score-file-directory)))
-	  (when (file-writable-p f)
-	    (unless (eq (car-safe (file-attributes f))
-			t)
-	      (make-directory f))
-	    (setq f (expand-file-name file f))
-	    (unless (file-exists-p f)
-	      (write-region "" nil f nil 'silent nil 'excl)))
-	  (gamegrid-add-score-with-update-game-score-1 f score))))))
+    (cond ((file-name-absolute-p file)
+	   (gamegrid-add-score-insecure file score))
+	  ((and have-shared-game-dir
+		(file-exists-p (expand-file-name file shared-game-score-directory)))
+	   ;; Use the setuid "update-game-score" program to update a
+	   ;; system-wide score file.
+	   (gamegrid-add-score-with-update-game-score-1
+	    (expand-file-name file shared-game-score-directory) score))
+	  ;; Else: Add the score to a score file in the user's home
+	  ;; directory.
+	  (have-shared-game-dir
+	   ;; If `have-shared-game-dir' is non-nil, then
+	   ;; "update-gamescore" program is setuid, so don't use it.
+	   (unless (file-exists-p
+		    (directory-file-name gamegrid-user-score-file-directory))
+	     (make-directory gamegrid-user-score-file-directory t))
+	   (gamegrid-add-score-insecure file score
+					gamegrid-user-score-file-directory))
+	  (t (let ((f (expand-file-name
+		       gamegrid-user-score-file-directory)))
+	       (when (file-writable-p f)
+		 (unless (eq (car-safe (file-attributes f))
+			     t)
+		   (make-directory f))
+		 (setq f (expand-file-name file f))
+		 (unless (file-exists-p f)
+		   (write-region "" nil f nil 'silent nil 'excl)))
+	       (gamegrid-add-score-with-update-game-score-1 f score))))))
 
 (defun gamegrid-add-score-with-update-game-score-1 (target score)
   (let ((default-directory "/")
@@ -547,4 +578,5 @@ FILE is created there."
 
 (provide 'gamegrid)
 
+;;; arch-tag: a96c2ff4-1c12-427e-bd3d-faeaf174cd46
 ;;; gamegrid.el ends here

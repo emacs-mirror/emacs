@@ -281,8 +281,8 @@
       (setq candidates (cdr candidates)))
     (nreverse l)))
 
-(defconst skkdic-okuri-nasi-entries (list nil))
-(defconst skkdic-okuri-nasi-entries-count 0)
+(defvar skkdic-okuri-nasi-entries (list nil))
+(defvar skkdic-okuri-nasi-entries-count 0)
 
 (defun skkdic-collect-okuri-nasi ()
   (message "Collecting OKURI-NASI entries ...")
@@ -568,4 +568,5 @@ To get complete usage, invoke:
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: dec06fb0-8118-45b1-80d7-dc360b6fd3b2
 ;;; ja-dic-cnv.el ends here

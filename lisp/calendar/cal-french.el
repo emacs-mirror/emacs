@@ -254,4 +254,5 @@ Echo French Revolutionary date unless NOECHO is t."
 
 (provide 'cal-french)
 
+;;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here

@@ -162,4 +162,5 @@ Can be used to change frame parameters, such as font, color, location, etc.")
 
 (provide 'cal-x)
 
+;;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here

@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -80,6 +80,7 @@ DONTCOMPILE = \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
 	$(lisp)/loaddefs.el \
+	$(lisp)/ldefs-boot.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
 	$(lisp)/patcomp.el \
@@ -130,7 +131,7 @@ emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
 
 setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.arch-ids | */.arch-ids/* | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
@@ -187,11 +188,11 @@ update-authors:
 	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
 	${ETAGS} $$els
 
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
 	${ETAGS} -o TAGS-LISP $$els
 
 .SUFFIXES: .elc .el
@@ -219,17 +220,17 @@ $(DONTCOMPILE:.el=.elc):
 
 compile: $(lisp)/subdirs.el doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
-	wd=$(lisp); $(setwins);						    \
-	elpat=`echo $$wins | tr ' 	' '\012\012' |			    \
-		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	    \
-	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) |  \
-		tr '	 ' '\012\012' | sort | uniq -u`;		    \
-	for el in $(COMPILE_FIRST) $$els; do				    \
-	  if test -f $$el;						    \
-	  then								    \
-	    echo Compiling $$el;					    \
-	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1;	    \
-	  fi								    \
+	wd=$(lisp); $(setwins);	\
+	elpat=`echo $$wins | tr ' 	' '\012\012' | \
+		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
+	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
+		tr '	 ' '\012\012' | sort | uniq -u`; \
+	for el in $(COMPILE_FIRST) $$els; do \
+	  if test -f $$el; \
+	  then \
+	    echo Compiling $$el; \
+	    $(emacs) --eval '(setq max-lisp-eval-depth 1000)' -f batch-byte-compile-if-not-done $$el || exit 1; \
+	  fi \
 	done
 
 # Compile all Lisp files, except those from DONTCOMPILE.  This
@@ -275,14 +276,27 @@ compile-after-backup: backup-compiled-files compile-always
 recompile: doit
 	$(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
-# Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
-# because it's not sure it's up-to-date, and if it's not, that might
-# lead to errors during the bootstrap because something fails to
-# autoload as expected.  Remove compiled Lisp files so that
-# bootstrap-emacs will be built from sources only.
+# Prepare a bootstrap in the lisp subdirectory.
+#
+# Build loaddefs.el, because it's not sure it's up-to-date, and if it's not,
+# that might lead to errors during the bootstrap because something fails to
+# autoload as expected.  However, if there is no emacs binary, then we can't
+# build autoloads yet, so just make sure there's some loaddefs.el file, as
+# it's necessary for generating the binary (because loaddefs.el is an
+# automatically generated file, we don't want to store it in the source
+# repository).
+#
+# Remove compiled Lisp files so that bootstrap-emacs will be built from
+# sources only.
 
 bootstrap-clean:
-	if test -x $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
+	if test -x $(EMACS); then				\
+	  $(MAKE) $(MFLAGS) autoloads;				\
+	else							\
+	  if test ! -r $(lisp)/loaddefs.el; then		\
+	    cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;	\
+	  fi							\
+	fi
 	cd $(lisp); rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
@@ -297,4 +311,5 @@ bootstrap-after: finder-data custom-deps
 distclean:
 	-rm -f ./Makefile
 
+# arch-tag: d4ea703a-b91c-405c-a171-8dde30b163a7
 # Makefile ends here.

@@ -358,4 +358,5 @@ as a multilingual text encoded in a coding system set by
 
 (provide 'encoded-kb)
 
+;;; arch-tag: 76f0f9b3-65e7-45c3-b692-59509a87ad44
 ;;; encoded-kb.el ends here

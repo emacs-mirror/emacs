@@ -1,13 +1,14 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
-;; Time-stamp: <2001/08/15 15:34:11 vinicius>
+;; Time-stamp: <2003/05/14 22:19:41 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -1439,36 +1440,17 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 ;;;###autoload
 (defun ps-mule-header-string-charsets ()
   "Return a list of character sets that appears in header strings."
-  (let ((str ""))
-    (when ps-print-header
-      (let ((tail (list ps-left-header ps-right-header)))
-	(while tail
-	  ;; Simulate what is done by ps-generate-header-line to get a
-	  ;; string to plot.
-	  (let ((count 0)
-		(tmp (car tail)))
-	    (setq tail (cdr tail))
-	    (while (and tmp (< count ps-header-lines))
-	      (let ((elt (car tmp)))
-		(setq tmp (cdr tmp)
-		      count (1+ count)
-		      str (concat str
-				  (cond ((stringp elt) elt)
-					((and (symbolp elt) (fboundp elt))
-					 (funcall elt))
-					((and (symbolp elt) (boundp elt))
-					 (symbol-value elt))
-					(t ""))))))))))
-    (let ((len (length str))
-	  (i 0)
-	  charset-list)
-      (while (< i len)
-	(let ((charset (char-charset (aref str i))))
-	  (setq i (1+ i))
-	  (or (eq charset 'ascii)
-	      (memq charset charset-list)
-	      (setq charset-list (cons charset charset-list)))))
-      charset-list)))
+  (let* ((str (ps-header-footer-string))
+	 (len (length str))
+	 (i 0)
+	 charset-list)
+    (while (< i len)
+      (let ((charset (char-charset (aref str i))))
+	(setq i (1+ i))
+	(or (eq charset 'ascii)
+	    (memq charset charset-list)
+	    (setq charset-list (cons charset charset-list)))))
+    charset-list))
 
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
@@ -1588,4 +1570,5 @@ This checks if all multi-byte characters in the region are printable or not."
 
 (provide 'ps-mule)
 
+;;; arch-tag: bca017b2-66a7-4e59-8584-103e749eadbe
 ;;; ps-mule.el ends here

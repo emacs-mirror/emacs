@@ -69,8 +69,8 @@ elements.  This section describes functions that accept any kind of
 sequence.
 
 @defun sequencep object
-Returns @code{t} if @var{object} is a list, vector, or
-string, @code{nil} otherwise.
+Returns @code{t} if @var{object} is a list, vector,
+string, bool-vector, or char-table, @code{nil} otherwise.
 @end defun
 
 @defun length sequence
@@ -78,10 +78,12 @@ string, @code{nil} otherwise.
 @cindex list length
 @cindex vector length
 @cindex sequence length
+@cindex char-table length
 This function returns the number of elements in @var{sequence}.  If
 @var{sequence} is a cons cell that is not a list (because the final
 @sc{cdr} is not @code{nil}), a @code{wrong-type-argument} error is
-signaled.
+signaled.  For a char-table, the value returned is always one more
+than the maximum Emacs character code.
 
 @xref{List Elements}, for the related function @code{safe-length}.
 
@@ -107,6 +109,13 @@ signaled.
     @result{} 5
 @end group
 @end example
+@end defun
+
+@defun string-bytes string
+@cindex string, number of bytes
+This function returns the number of bytes in @var{string}.
+If @var{string} is a multibyte string, this is greater than
+@code{(length @var{string})}.
 @end defun
 
 @defun elt sequence index
@@ -489,14 +498,11 @@ The @code{vconcat} function also allows byte-code function objects as
 arguments.  This is a special feature to make it easy to access the entire
 contents of a byte-code function object.  @xref{Byte-Code Objects}.
 
-The @code{vconcat} function also allows integers as arguments.  It
-converts them to strings of digits, making up the decimal print
-representation of the integer, and then uses the strings instead of the
-original integers.  @strong{Don't use this feature; we plan to eliminate
-it.  If you already use this feature, change your programs now!}  The
-proper way to convert an integer to a decimal number in this way is with
-@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
-(@pxref{String Conversion}).
+In Emacs versions before 21, the @code{vconcat} function allowed
+integers as arguments, converting them to strings of digits, but that
+feature has been eliminated.  The proper way to convert an integer to
+a decimal number in this way is with @code{format} (@pxref{Formatting
+Strings}) or @code{number-to-string} (@pxref{String Conversion}).
 
 For other concatenation functions, see @code{mapconcat} in @ref{Mapping
 Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}
@@ -722,3 +728,6 @@ bv
 These results make sense because the binary codes for control-_ and
 control-W are 11111 and 10111, respectively.
 
+@ignore
+   arch-tag: fcf1084a-cd29-4adc-9f16-68586935b386
+@end ignore

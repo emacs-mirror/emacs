@@ -183,3 +183,6 @@ Boston, MA 02111-1307, USA.  */
 /* There is some indication that the convex has sys/wait.h
    but it does not work right.  */
 #undef HAVE_SYS_WAIT_H
+
+/* arch-tag: 127e5ae1-4f03-40c0-a87e-d2cb02c59de8
+   (do not change this comment) */

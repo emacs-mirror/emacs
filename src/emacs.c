@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,2002
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,2003
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -40,10 +40,15 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif
 
+#ifdef WINDOWSNT
+#include <fcntl.h>
+#endif
+
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "window.h"
 
 #include "systty.h"
 #include "blockinput.h"
@@ -601,7 +606,7 @@ void __do_global_ctors_aux ()
 {}
 void __do_global_dtors ()
 {}
-/* Linux has a bug in its library; avoid an error.  */
+/* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
 char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif
@@ -954,11 +959,13 @@ main (argc, argv
   uninterrupt_malloc ();
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef MSDOS
+#if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
      newlines, we do that manually.  */
   _fmode = O_BINARY;
+#endif /* MSDOS || WINDOWSNT */
 
+#ifdef MSDOS
 #if __DJGPP__ >= 2
   if (!isatty (fileno (stdin)))
     setmode (fileno (stdin), O_BINARY);
@@ -2392,3 +2399,6 @@ near where the Emacs executable was found.  */);
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
 }
+
+/* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
+   (do not change this comment) */

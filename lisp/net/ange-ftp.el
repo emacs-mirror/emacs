@@ -1469,14 +1469,15 @@ only return the directory part of FILE."
 ;; Display the last chunk of output from the ftp process for the given HOST
 ;; USER pair, and signal an error including MSG in the text.
 (defun ange-ftp-error (host user msg)
-  (let ((cur (selected-window))
-	(pop-up-windows t))
-    (pop-to-buffer
-     (get-buffer-create
-      (ange-ftp-ftp-process-buffer host user)))
-    (goto-char (point-max))
-    (select-window cur))
-  (signal 'ftp-error (list (format "FTP Error: %s" msg))))
+  (save-excursion  ;; Prevent pop-to-buffer from changing current buffer.
+    (let ((cur (selected-window))
+	  (pop-up-windows t))
+      (pop-to-buffer
+       (get-buffer-create
+	(ange-ftp-ftp-process-buffer host user)))
+      (goto-char (point-max))
+      (select-window cur))
+    (signal 'ftp-error (list (format "FTP Error: %s" msg)))))
 
 (defun ange-ftp-set-buffer-mode ()
   "Set correct modes for the current buffer if visiting a remote file."
@@ -3356,9 +3357,14 @@ system TYPE.")
       (ange-ftp-real-insert-file-contents filename visit beg end replace))))
 
 (defun ange-ftp-expand-symlink (file dir)
-  (if (file-name-absolute-p file)
-      (ange-ftp-replace-name-component dir file)
-    (expand-file-name file dir)))
+  (let ((res (if (file-name-absolute-p file)
+		 (ange-ftp-replace-name-component dir file)
+	       (expand-file-name file dir))))
+    (if (file-symlink-p res)
+	(ange-ftp-expand-symlink
+	 (ange-ftp-get-file-entry res)
+	 (file-name-directory (directory-file-name res)))
+      res)))
 
 (defun ange-ftp-file-symlink-p (file)
   ;; call ange-ftp-expand-file-name rather than the normal
@@ -3366,15 +3372,17 @@ system TYPE.")
   ;; redefines both file-symlink-p and expand-file-name.
   (setq file (ange-ftp-expand-file-name file))
   (if (ange-ftp-ftp-name file)
-      (let ((file-ent
-	     (gethash
-	      (ange-ftp-get-file-part file)
-	      (ange-ftp-get-files (file-name-directory file)))))
-	(if (stringp file-ent)
-	    (if (file-name-absolute-p file-ent)
-		(ange-ftp-replace-name-component
-		 (file-name-directory file) file-ent)
-	      file-ent)))
+      (condition-case nil
+	  (let ((file-ent
+		 (gethash
+		  (ange-ftp-get-file-part file)
+		  (ange-ftp-get-files (file-name-directory file)))))
+	    (and (stringp file-ent) file-ent))
+	;; If we can't read the parent directory, just assume
+	;; this file is not a symlink.
+	;; This makes it possible to access a directory that
+	;; whose parent is not readable.
+	(file-error nil))
     (ange-ftp-real-file-symlink-p file)))
 
 (defun ange-ftp-file-exists-p (name)
@@ -6041,4 +6049,5 @@ be recognized automatically (they are all valid BS2000 hosts too)."
 
 (provide 'ange-ftp)
 
+;;; arch-tag: 2987ef88-cb56-4ec1-87a9-79132572e316
 ;;; ange-ftp.el ends here

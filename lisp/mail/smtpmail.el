@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -212,7 +212,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;;;
 
 (defvar smtpmail-mail-address nil
-  "Value of `user-mail-address' in ambient buffer.")
+  "Value to use for envelope-from address for mail from ambient buffer.")
 
 ;;;###autoload
 (defun smtpmail-send-it ()
@@ -223,7 +223,11 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
-	(smtpmail-mail-address user-mail-address)
+        ;; Examine this variable now, so that
+	;; local binding in the mail buffer will take effect.
+	(smtpmail-mail-address
+         (or (and mail-specify-envelope-from (mail-envelope-from))
+             user-mail-address))
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -354,6 +358,8 @@ This is relative to `smtpmail-queue-dir'.")
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
 		   (buffer-scratch "*queue-mail*"))
+	      (unless (file-exists-p smtpmail-queue-dir)
+		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
 		(insert-buffer tembuf)
@@ -397,14 +403,17 @@ This is relative to `smtpmail-queue-dir'.")
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'no-conversion))
 	    (insert-file-contents file-msg))
-	  (if (not (null smtpmail-recipient-address-list))
-	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
-					  (current-buffer)))
-		  (error "Sending failed; SMTP protocol error"))
-	    (error "Sending failed; no recipients")))
+          (let ((smtpmail-mail-address
+                 (or (and mail-specify-envelope-from (mail-envelope-from))
+                     user-mail-address)))
+            (if (not (null smtpmail-recipient-address-list))
+                (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
+                                            (current-buffer)))
+                    (error "Sending failed; SMTP protocol error"))
+              (error "Sending failed; no recipients"))))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
-	(kill-line 1))
+	(delete-region (point-at-bol) (point-at-bol 2)))
       (write-region (point-min) (point-max) smtpmail-queue-index))))
 
 ;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
@@ -457,7 +466,9 @@ This is relative to `smtpmail-queue-dir'.")
   (let ((cred (smtpmail-find-credentials
 	       smtpmail-starttls-credentials host port)))
     (if (null (and cred (condition-case ()
-			    (call-process "starttls")
+			    (progn
+			      (require 'starttls)
+			      (call-process starttls-program))
 			  (error nil))))
 	;; The normal case.
 	(open-network-stream "SMTP" process-buffer host port)
@@ -541,9 +552,12 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
-	(envelope-from (or (mail-envelope-from)
-			   smtpmail-mail-address
-			   user-mail-address))
+        ;; smtpmail-mail-address should be set to the appropriate
+        ;; buffer-local value by the caller, but in case not:
+        (envelope-from (or smtpmail-mail-address
+                           (and mail-specify-envelope-from
+                                (mail-envelope-from))
+                           user-mail-address))
 	response-code
 	greeting
 	process-buffer
@@ -657,7 +671,7 @@ This is relative to `smtpmail-queue-dir'.")
 			  (>= (car response-code) 400))
 		      (throw 'done nil))))
 
-	    ;; MAIL FROM: <sender>
+	    ;; MAIL FROM:<sender>
 	    (let ((size-part
 		   (if (or (member 'size supported-extensions)
 			   (assoc 'size supported-extensions))
@@ -692,8 +706,8 @@ This is relative to `smtpmail-queue-dir'.")
 			 "")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
-	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-						     envelope-from
+	      (smtpmail-send-command process (format "MAIL FROM:<%s>%s%s"
+                                                     envelope-from
 						     size-part
 						     body-part))
 
@@ -703,10 +717,10 @@ This is relative to `smtpmail-queue-dir'.")
 		  (throw 'done nil)
 		))
 
-	    ;; RCPT TO: <recipient>
+	    ;; RCPT TO:<recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
-		(smtpmail-send-command process (format "RCPT TO: <%s>" (smtpmail-maybe-append-domain (nth n recipient))))
+		(smtpmail-send-command process (format "RCPT TO:<%s>" (smtpmail-maybe-append-domain (nth n recipient))))
 		(setq n (1+ n))
 
 		(setq response-code (smtpmail-read-response process))
@@ -946,4 +960,5 @@ many continuation lines."
 
 (provide 'smtpmail)
 
+;;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
 ;;; smtpmail.el ends here

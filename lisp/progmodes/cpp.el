@@ -1,6 +1,6 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994, 1995 Free Software Foundation
+;; Copyright (C) 1994, 1995, 2003 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -92,7 +92,7 @@ Each entry is a list with the following elements:
 0. The name of the macro (a string).
 1. Face used for text that is `ifdef' the macro.
 2. Face used for text that is `ifndef' the macro.
-3. `t', `nil', or `both' depending on what text may be edited."
+3. t, nil, or `both' depending on what text may be edited."
   :type '(repeat (list string face face
 		       (choice (const t)
 			       (const nil)
@@ -379,9 +379,6 @@ A prefix arg suppresses display of that buffer."
 (defun cpp-make-overlay-hidden (overlay)
   ;; Make overlay hidden and intangible.
   (overlay-put overlay 'invisible 'cpp)
-  (overlay-put overlay 'intangible t)
-  ;; Unfortunately `intangible' is not implemented for overlays yet,
-  ;; so we make is read-only instead.
   (overlay-put overlay 'modification-hooks '(cpp-signal-read-only))
   (overlay-put overlay 'insert-in-front-hooks '(cpp-signal-read-only)))
 
@@ -824,4 +821,5 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 (provide 'cpp)
 
+;;; arch-tag: fb7d433d-745d-495a-96f0-86908ab63f74
 ;;; cpp.el ends here

@@ -2669,4 +2669,6 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 		     alist nil))))))
 
 ;;; Local IspellPersDict: .ispell_antlr
+
+;;; arch-tag: 5de2be79-3d13-4560-8fbc-f7d0234dcb5c
 ;;; antlr-mode.el ends here

@@ -1,3 +1,143 @@
+2003-09-23  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check members of struct ifreq.
+
+2003-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* configure.in: Add checks for sys/ioctl.h and net/if.h.
+
+2003-09-12  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* Makefile.in (install-arch-indep, uninstall): Add SES manual.
+
+2003-08-18  Lute Kamstra  <lute@gnu.org>
+
+	* configure.in: Revert the change of 2003-07-29 as GTK+ 2.2 is not
+	required anymore.
+
+2003-08-07  Andrew Choi  <akochoi@shaw.ca>
+
+	* configure.in [powerpc-apple-darwin*]: Use the -no-cpp-precomp
+	option instead of -traditional-cpp for CPP.
+
+2003-07-29  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in (HAVE_XIM): Define if XIM is available.
+
+2003-07-29  Tim Van Holder  <tim.vanholder@anubex.com>  (tiny change)
+
+	* configure.in: The function gtk_window_set_icon_from_file was
+	introduced in GTK+ 2.2, so check for that release.
+
+2003-07-23  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Add --enable-maintainer-mode, substitute MAINT.
+
+	* Makefile.in (YACC): Remove, not used.
+	(MAINT): Don't set.
+	(${srcdir}/configure, $(srcdir)/src/stamp-h.in): Use @MAINT@ to
+	disable dependency on ${srcdir}/configure.in when maintainer mode
+	is disabled.
+
+2003-07-22  Dave Love  <fx@gnu.org>
+
+	* configure.in: Make XRegisterIMInstantiateCallback test depend on
+	HAVE_X11, not with_xim.
+	(HAVE_CRTIN): Provide template.
+	<with_png>: Test for png.h and libpng/png.h.
+
+2003-07-15  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Temporarily leave quoting for AC_DEFINE.
+
+2003-07-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* configure.in: Check for posix_memalign.
+
+2003-07-12  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in [netbsd systems]: Define HAVE_CRTIN properly.
+
+2003-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Describe new
+	functionality of --without-xim.
+
+2003-06-29  Dave Love  <fx@gnu.org>
+
+	* configure.in: Fix XRegisterIMInstantiateCallback check for gcc.
+
+2003-06-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure: Regenerate.
+
+2003-06-23  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for sys/_mbstate_t.h.
+	Test XRegisterIMInstantiateCallback prototype.
+	(AH_BOTTOM): Define DO_BLOCK_INPUT, my_strftime.
+
+2003-06-06  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for locale.h.
+
+2003-06-05  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for memcpy, mempcpy, mblen, mbrlen.
+	Use AC_FUNC_STRFTIME, AC_STRUCT_TIMEZONE, AC_TYPE_MBSTATE_T.
+	(NLIST_STRUCT): Don't define.
+	(AH_BOTTOM): Define my_strftime.
+
+2003-06-02  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Revert changes of 2003-03-03 and 2003-05-24.
+
+2003-05-24  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in (AH_BOTTOM) [MAC_OSX]: Do not redefine bcopy,
+	bzero, and bcmp.
+
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* configure.in: Remove redundant test for term.h.  Test for difftime.
+
+2003-05-20  Dave Love  <fx@gnu.org>
+
+	* configure.in: Append * to s390-*-linux-gnu case.
+	(LIBMAIL) <lockfile>: Don't define.
+
+2003-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
+
+2003-04-28  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* configure.in:  Undo last (RMS') change, as it is useless, per
+	Dave Love.
+
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Put #include of jpeglib.h at start of line.
+
+2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* INSTALL (* GNU/Linux development packages): Mention Debian and
+	RedHat package names.
+
+2003-04-30  Boyd Lynn Gerber  <gerberb@zenez.com>
+
+	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
+
+2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* INSTALL (* GNU/Linux development packages): Tell people to
+	install additional packages for compiling Emacs.
+
+2003-04-06  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* configure.in: Use the same configuration for all aix5, not just
+	aix5.1.
+
 2003-03-16  Nelson H. F. Beebe  <beebe@math.utah.edu>  (tiny change)
 
 	* configure.in: Check for need for bigtoc support on IBM AIX for
@@ -5,8 +145,8 @@
 
 2003-03-03  Rob Browning  <rlb@defaultvalue.org>
 
-	* configure.in: add AC_CHECK_FUNCS for memcmp and memmove.
-	(AH_BOTTOM): switch tests to prefer memcmp, memset, and memmove
+	* configure.in: Add AC_CHECK_FUNCS for memcmp and memmove.
+	(AH_BOTTOM): Switch tests to prefer memcmp, memset, and memmove
 	over bzero, bcmp, and bcopy.
 
 2003-02-23  Simon Josefsson  <jas@extundo.com>
@@ -60,7 +200,7 @@
 
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* configure.in (m68k-motorola-sysv): Removed (obsolete).
+	* configure.in (m68k-motorola-sysv): Remove (obsolete).
 
 2003-01-07  Steven Tamm  <steventamm@mac.com>
 
@@ -76,8 +216,7 @@
 
 2003-01-06  David Kastrup  <dak@gnu.org>
 
-	* Makefile.in (INSTALL_INFO): Get install-info command from
-	configure.
+	* Makefile.in (INSTALL_INFO): Get install-info command from configure.
 
 	* configure.in: Add tests for install-info
 
@@ -97,8 +236,8 @@
 2002-11-27  Dave Love  <fx@gnu.org>
 
 	* configure.in: Use AC_CHECK_DECLS, not AC_DECL_SYS_SIGLIST.
-	Check for __sys_siglist too.  Check for memset.  Use
-	AC_FUNC_GETPGRP.  Add mipsel-*-linux-gnu* target.
+	Check for __sys_siglist too.  Check for memset.
+	Use AC_FUNC_GETPGRP.  Add mipsel-*-linux-gnu* target.
 
 2002-11-22  Juanma Barranquero  <lektu@terra.es>
 
@@ -110,12 +249,12 @@
 
 2002-11-15  Dave Love  <fx@gnu.org>
 
-	* configure.in: Tidy up various quoting issues throughout.  Use
-	AC_GNU_SOURCE.
+	* configure.in: Tidy up various quoting issues throughout.
+	Use AC_GNU_SOURCE.
 	(AH_BOTTOM): Fix #endif protecting config.h.  Maybe include
 	alloca.h.  Define GC_SETJMP_WORKS, GC_LISP_OBJECT_ALIGNMENT.
 	Maybe define bcopy, bzero, bcmp.
-	(powerpcle-*-solaris2.5*, powerpcle-*-solaris2*): Removed (use
+	(powerpcle-*-solaris2.5*, powerpcle-*-solaris2*): Remove (use
 	non-existent machine file).
 	(sys/vlimit.h, sys/resource.h, fsync, __restrict): Test for.
 	(term.h, X11/Xaw3d/Scrollbar.h): Avoid warning from test.
@@ -135,14 +274,13 @@
 
 2002-11-08  Dave Love  <fx@gnu.org>
 
-	* configure.in: Use AC_CONFIG_LIBOBJ_DIR and require autoconf
-	2.54.
+	* configure.in: Use AC_CONFIG_LIBOBJ_DIR and require autoconf 2.54.
 	(AH_BOTTOM) [!HAVE_SIZE_T]: Typedef size_t.
 
 2002-11-07  Miles Bader  <miles@gnu.org>
 
-	* Makefile.in (maybe_bootstrap): Fix shell variable usage.  Handle
-	separate-build-dir case.
+	* Makefile.in (maybe_bootstrap): Fix shell variable usage.
+	Handle separate-build-dir case.
 
 2002-11-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -153,9 +291,8 @@
 
 	* configure.in:  Require autoconf 2.53.  Test for pty.h,
 	sys/mman.h, sys/param.h, mremap, memmove.
-	(AH_BOTTOM): Maybe include strings.h.  Add local variables for
-	mode.
-	(AC_PROG_YACC): Deleted.
+	(AH_BOTTOM): Maybe include strings.h.  Add local variables for mode.
+	(AC_PROG_YACC): Delete.
 	(size_t): Use AC_CHECK_TYPES.
 	(AH_TOP): Up-date copyright.
 
@@ -189,7 +326,7 @@
 	(*-sunos5.6*, *-solaris2.6*): New alternative.
 	(*-sunos5*): Use version 2.6 as default.
 
-2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* configure.in: Fix typo.
 
@@ -222,17 +359,17 @@
 	(epaths-force): Insert value of gamedir into PATH_GAME.
 
 	* configure.in (gamedir): Handle it like lispdir.
-	(--with-game-dir option): Deleted.
+	(--with-game-dir option): Delete.
 
-2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Add support for mipseb-*-netbsd* machines.
 
-2002-06-18  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (install-arch-indep, uninstall): Add Tramp.
 
-2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* info/dir (File): Add an entry for Tramp.
 
@@ -256,7 +393,7 @@
 
 	* configure.in (emacs_cv_speed_t): Add square brackets for clarity.
 
-2002-05-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Do not distribute lock/ directory.
 
@@ -270,7 +407,7 @@
 
 	* configure.in: Delete configure check for access to the game user.
 
-2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: lwlib/Imakefile is removed.
 
@@ -281,7 +418,7 @@
 
 	* make-dist: Create directories in mac/Emacs.app.
 
-2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: lwlib-Xol* are removed.
 
@@ -308,7 +445,7 @@
 	* configure.in: Add --game-dir, --game-user.  Test to see if we
 	can use them.
 
-2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Add --with-sound.
 
@@ -396,7 +533,7 @@
 
 	* configure.in (hppa*-*-linux-gnu*): New alternative.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Copy COPYING to leim/, lwlib/, mac/ and nt/ when
 	creating distribution.
@@ -409,12 +546,12 @@
 	(HAVE_DES_H, HAVE_KRB5_H): Properly quote args of AC_CHECK_HEADERS;
 	this is required by recent Autoconf versions.
 
-2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Do not try to link removed files (aclocal.m4, _emacs,
 	TODO, vms-pp.trans and others).
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Use COPYING from the top-level directory.
 
@@ -422,7 +559,7 @@
 
 	* configure.in: Add support for FreeBSD/Alpha.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Add COPYING to the top-level directory of the
 	distribution.  Simplify the logic behind copying.
@@ -438,7 +575,7 @@
 	* Makefile.in: bootstrap should not delete dumped executables.
 	(bootstrap-clean-before): New target.
 	(bootstrap): Use bootstrap-clean-before instead of clean.
-	(bootstrap-clean-after): Renamed from bootstrap-clean.  Calls changed.
+	(bootstrap-clean-after): Rename from bootstrap-clean.  Calls changed.
 
 2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -467,7 +604,7 @@
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (install-arch-indep): Install the calc .info files.
-	(uninstall): Handle deletion of calc .info files (thanks Pavel Jan,Bm(Bk).
+	(uninstall): Handle deletion of calc .info files (thanks Pavel Jan,Am(Bk).
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -478,14 +615,14 @@
 
 	* configure.in: Add coff.h to the list in AC_CHECK_HEADERS.
 
-2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Fix previous change.
 
 	* configure.in, Makefile.in: Add support for --program-prefix,
 	--program-suffix and --program-transform-name options.
 
-2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (install-arch-indep): Use `${manext}' instead of `.1'.
 	(install-arch-indep): Install emacsclient manual page.
@@ -494,9 +631,9 @@
 2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist: Add lispref/index.*perm files to the distribution.
-	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
 
-2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Remove gfdl.1 when uninstalling.
 
@@ -533,7 +670,7 @@
 
 	* configure.in: Added a check for <nlist.h>
 
-2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Reindent --help output.
 	From Per Starback (starback@ling.uu.se).
@@ -5580,3 +5717,5 @@
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: ac61a779-1480-4884-b292-d0c39c127a73

@@ -746,4 +746,5 @@ doing 'M-x toggle-debug-on-error', then reproducing the bug.
 " )))
 (defalias 'calc-report-bug 'report-calc-bug)
 
+;;; arch-tag: 7984d9d0-62e5-41dc-afb8-e904b975f250
 ;;; calc-misc.el ends here

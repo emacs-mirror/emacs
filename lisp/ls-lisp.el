@@ -65,6 +65,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
   :version "21.1"
@@ -214,6 +216,9 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
       (if handler
 	  (funcall handler 'insert-directory file switches
 		   wildcard full-directory-p)
+	;; Remove --dired switch
+	(if (string-match "--dired " switches)
+	    (setq switches (replace-match "" nil nil switches)))
 	;; Convert SWITCHES to a list of characters.
 	(setq switches (delete ?- (append switches nil)))
 	(if wildcard
@@ -533,7 +538,7 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 			(if group
 			    (format " %-8s" group)
 			  (format " %-8d" gid))))))
-	    (format (if (floatp file-size) " %8.0f" " %8d") file-size)
+	    (ls-lisp-format-file-size file-size (memq ?h switches))
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)
 	    " "
@@ -587,6 +592,16 @@ All ls time options, namely c, t and u, are handled."
 	   time))
       (error "Unk  0  0000"))))
 
+(defun ls-lisp-format-file-size (file-size human-readable)
+  (if (or (not human-readable)
+          (< file-size 1024))
+      (format (if (floatp file-size) " %8.0f" " %8d") file-size)
+    (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
+         ;; kilo, mega, giga, tera, peta, exa
+         (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
+        ((< file-size 1024) (format " %7.0f%s"  file-size (car post-fixes))))))
+
 (provide 'ls-lisp)
 
+;;; arch-tag: e55f399b-05ec-425c-a6d5-f5e349c35ab4
 ;;; ls-lisp.el ends here

@@ -38,7 +38,7 @@
 
 ;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
 ;; or as help on variables `cperl-tips', `cperl-problems',         <<<<<<
-;; `cperl-praise', `cperl-speed'.				    <<<<<<
+;; `cperl-praise', `cperl-speed'.				   <<<<<<
 
 ;; The mode information (on C-h m) provides some customization help.
 ;; If you use font-lock feature of this mode, it is advisable to use
@@ -584,7 +584,7 @@ when syntaxifying a chunk of buffer."
     (((class color) (background dark))
      (:foreground ,cperl-dark-foreground))
     (t (:weight bold :underline t)))
-  "Font Lock mode face used to highlight array names."
+  "Font Lock mode face used non-overridable keywords and modifiers of regexps."
   :group 'cperl-faces)
 
 (defface cperl-array-face
@@ -1146,7 +1146,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	   ["Add tags for Perl files in (sub)directories"
 	    (cperl-write-tags nil nil t t) t]))
 	 ("Perl docs"
-	  ["Define word at point" imenu-go-find-at-position 
+	  ["Define word at point" imenu-go-find-at-position
 	   (fboundp 'imenu-go-find-at-position)]
 	  ["Help on function" cperl-info-on-command t]
 	  ["Help on function at point" cperl-info-on-current-command t]
@@ -1154,7 +1154,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	  ["Perldoc" cperl-perldoc t]
 	  ["Perldoc on word at point" cperl-perldoc-at-point t]
 	  ["View manpage of POD in this file" cperl-build-manpage t]
-	  ["Auto-help on" cperl-lazy-install 
+	  ["Auto-help on" cperl-lazy-install
 	   (and (fboundp 'run-with-idle-timer)
 		(not cperl-lazy-installed))]
 	  ["Auto-help off" cperl-lazy-unstall
@@ -1166,7 +1166,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	  ["Electric keywords" cperl-toggle-abbrev t]
 	  ["Fix whitespace on indent" cperl-toggle-construct-fix t]
 	  ["Auto-help on Perl constructs" cperl-toggle-autohelp t]
-	  ["Auto fill" auto-fill-mode t]) 
+	  ["Auto fill" auto-fill-mode t])
 	 ("Indent styles..."
 	  ["CPerl" (cperl-set-style "CPerl") t]
 	  ["PerlStyle" (cperl-set-style "PerlStyle") t]
@@ -2912,7 +2912,7 @@ Returns true if comment is found."
 		    (goto-char (1- cpoint)))))
 	      (setq stop-in t)		; Finish
 	      (forward-char -1))
-	  (setq stop-in t)))		; Finish 
+	  (setq stop-in t)))		; Finish
       (nth 4 state))))
 
 (defsubst cperl-1- (p)
@@ -3570,7 +3570,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			    ((and (eq (following-char) ?:)
 				  (eq b1 ?\{) ; Check for $ { s::bar }
 				  (looking-at "::[a-zA-Z0-9_:]*[ \t\n\f]*}")
-				  (progn 
+				  (progn
 				    (goto-char (1- go))
 				    (skip-chars-backward " \t\n\f")
 				    (memq (preceding-char)
@@ -4882,7 +4882,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (defvar cperl-guessed-background nil
 	    "Display characteristics as guessed by cperl.")
 	  ;;	  (or (fboundp 'x-color-defined-p)
-	  ;;	      (defalias 'x-color-defined-p 
+	  ;;	      (defalias 'x-color-defined-p
 	  ;;		(cond ((fboundp 'color-defined-p) 'color-defined-p)
 	  ;;		      ;; XEmacs >= 19.12
 	  ;;		      ((fboundp 'valid-color-name-p) 'valid-color-name-p)
@@ -5198,7 +5198,7 @@ data already), may be restored by `cperl-set-style-back'.
 Chosing \"Current\" style will not change style, so this may be used for
 side-effect of memorizing only."
   (interactive
-   (let ((list (mapcar (function (lambda (elt) (list (car elt)))) 
+   (let ((list (mapcar (function (lambda (elt) (list (car elt))))
 		       cperl-style-alist)))
      (list (completing-read "Enter style: " list nil 'insist))))
   (or cperl-old-style
@@ -5403,7 +5403,7 @@ partially contained in the region are lined up at the same column.
 MINSHIFT is the minimal amount of space to insert before the construction.
 STEP is the tabwidth to position constructions.
 If STEP is nil, `cperl-lineup-step' will be used
-\(or `cperl-indent-level', if `cperl-lineup-step' is `nil').
+\(or `cperl-indent-level', if `cperl-lineup-step' is nil).
 Will not move the position at the start to the left."
   (interactive "r")
   (let (search col tcol seen b e)
@@ -5658,7 +5658,7 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
 			 (string-match "^sub[ \t]+\\([_a-zA-Z]+\\)[^:_a-zA-Z]"
 				       (elt elt 3)))
 		    ;; Need to insert the name without package as well
-		    (setq lst (cons (cons (substring (elt elt 3) 
+		    (setq lst (cons (cons (substring (elt elt 3)
 						     (match-beginning 1)
 						     (match-end 1))
 					  (cdr elt))
@@ -5730,7 +5730,7 @@ Use as
 			(setq cperl-unreadable-ok t
 			      tm nil)	; Return empty list
 		      (error "Aborting: unreadable directory %s" file)))))))
-	  (mapcar (function 
+	  (mapcar (function
 		   (lambda (file)
 		     (cond
 		      ((string-match cperl-noscan-files-regexp file)
@@ -6008,12 +6008,12 @@ One may build such TAGS files from CPerl mode menu."
 (defvar cperl-bad-style-regexp
   (mapconcat 'identity
 	     '("[^-\n\t <>=+!.&|(*/'`\"#^][-=+<>!|&^]" ; char sign
-	       "[-<>=+^&|]+[^- \t\n=+<>~]") ; sign+ char 
+	       "[-<>=+^&|]+[^- \t\n=+<>~]") ; sign+ char
 	     "\\|")
   "Finds places such that insertion of a whitespace may help a lot.")
 
 (defvar cperl-not-bad-style-regexp
-  (mapconcat 
+  (mapconcat
    'identity
    '("[^-\t <>=+]\\(--\\|\\+\\+\\)"	; var-- var++
      "[a-zA-Z0-9_][|&][a-zA-Z0-9_$]"	; abc|def abc&def are often used.
@@ -7271,4 +7271,5 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
 
 (provide 'cperl-mode)
 
+;;; arch-tag: 42e5b19b-e187-4537-929f-1a7408980ce6
 ;;; cperl-mode.el ends here

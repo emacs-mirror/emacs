@@ -567,4 +567,5 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
 
 (provide 'foldout)
 
+;;; arch-tag: 19d095a2-1f09-42a7-a5ac-e2a3078cfe95
 ;;; foldout.el ends here

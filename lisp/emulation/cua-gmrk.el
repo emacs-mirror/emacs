@@ -390,4 +390,5 @@ With prefix argument, don't jump to global mark when cancelling it."
 
   (setq cua--global-mark-initialized t))
 
+;;; arch-tag: 553d8076-a91d-48ae-825d-6cb962a5f67f
 ;;; cua-gmrk.el ends here

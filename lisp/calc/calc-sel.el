@@ -825,4 +825,5 @@
   (interactive "P")
   (calc-sel-add-both-sides no-simp t))
 
+;;; arch-tag: e5169792-777d-428f-bff5-acca66813fa2
 ;;; calc-sel.el ends here

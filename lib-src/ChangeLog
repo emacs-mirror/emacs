@@ -1,7 +1,64 @@
+2003-09-28  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+
+	* emacsclient.c (quote_file_name): Print the result instead of
+	returning it.  Fix the return type accordingly.
+	(main): Under --eval, don't fail if left with additional
+	arguments after decoding options.  Quote file names.
+
+2003-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c	(main): Use socket_name.
+
+2003-09-10  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+
+	* emacsclient.c (socket_name): New variable.
+	(longopts, decode_options, print_help_and_exit):
+	Handle --socket-name argument.
+
+2003-08-25  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* etags.c (consider_token): check C++ `operator' only when the
+	token len is long enough.
+
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Remove obsolete references to alloca.
+
+2003-07-29  Ken Brush  <ken@wirex.com>
+
+	* emacsclient.c (main)
+	* etags.c (suggest_asking_for_help)
+	* movemail.c (main): Fix having macros in a printf statement.
+
+2003-05-31  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (lisp): Fix references to byte-run.el,
+	float-sup.el and map-ynp.el, which are now in emacs-lisp.
+
+2003-05-22  Dave Love  <fx@gnu.org>
+
+	* update-game-score.c (difftime) [!HAVE_DIFFTIME]: Define.
+	(strerror) [!HAVE_STRERROR && !WINDOWSNT]: New.
+
+2003-05-20  Dave Love  <fx@gnu.org>
+
+	* movemail.c: Check HAVE_LIBLOCKFILE like HAVE_LIBMAIL.
+
+	* Makefile.in [HAVE_LIBLOCKFILE]: Define LIBS_MAIL=-llockfile.
+
+2003-04-27  Oliver Scholz  <alkibiades@gmx.de>
+
+	* update-game-score.c (read_scores): Fix corruption of scores on
+	read.
+
+2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacsclient.c (main): Use new safe location for socket.
+
 2003-03-12  Tom Tromey  <tromey@redhat.com>
 
-	* emacsclient.c (print_help_and_exit): Print to stdout.  Exit
-	successfully.  Added some blank lines for readability.
+	* emacsclient.c (print_help_and_exit): Print to stdout.
+	Exit successfully.  Added some blank lines for readability.
 	(decode_options): Don't call print_help_and_exit in default case.
 	Print version information to stdout.
 	(main): Don't call print_help_and_exit.
@@ -184,7 +241,7 @@
 
 2002-08-29  Francesco Potorti`  <pot@gnu.org>
 
-	* etags.c (C_entries): Corrected a problem with const C++ funcs.
+	* etags.c (C_entries): Correct a problem with const C++ funcs.
 	(ignoreindent): Renamed from noindentypedefs.
 	(cjava, cplpl): They are now macros instead of local vars.
 
@@ -205,8 +262,8 @@
 	(pattern): Structure renamed to `regexp', member regex renamed to
 	pattern.
 	(node_st): Member pat renamed to regex.
-	(pattern); New member force_explicit_name, for future use.  Now
-	always set to true, cannot be reset.
+	(pattern); New member force_explicit_name, for future use.
+	Now always set to true, cannot be reset.
 	(add_regex, regex_tag_multiline, readline): Use it.
 	(main): Free some global structures.
 	(fdesc): New member `written'.
@@ -265,8 +322,7 @@
 	whose name is automatically deduced by etags.el.  The advantage is
 	that there is no explicit tag name in most tags, so the size of
 	the tags file is reduced, yet find-tag is able to do a match as
-	accurate as with named tags.  See the comment in make_tag for
-	details.
+	accurate as with named tags.  See the comment in make_tag for details.
 	(make_tag): New function (was the disabled function new_pfnote).
 	(make_C_tag): Use it.
 
@@ -443,7 +499,7 @@
 	#line directives.  This handles the case when xxx.y is tagged
 	before xxx.c, and the entries of xxx.c pointing to xxx.y should
 	be discarded.
-	(language): Added the metasource member.  Initializers changed.
+	(language): Add the metasource member.  Initializers changed.
 	(invalidate_nodes): New function.
 	(readline): Discard lines after having found a #line
 	directive pointing to an already tagged file.  This handles the
@@ -640,7 +696,7 @@
 	(F_getit): Renamed from getit.  All callers changed.
 	(nocase_tail): Renamed from tail.  All callers changed.
 	(Ada_getit): Renamed from adagetit.  All callers changed.
-	(L_getit): Simplified by using get_tag.
+	(L_getit): Simplify by using get_tag.
 	(Perl_functions, Postscript_functions, erlang_attribute): Use the
 	modified LOOKING_AT.
 	(notinname): Removed '[' and added ')' to the recognised chars.
@@ -854,12 +910,12 @@
 	(check_namespace): New function.
 	(enter_namespace): Call find_namespace with CONTEXT parameter.
 	(match_qualified_namespace_alias): New function.
-	(parse_qualified_ident_or_type): Fixed typo in comment.
+	(parse_qualified_ident_or_type): Fix typo in comment.
 	While parsing qualified ident or type update namespace context and
 	restore it on exit.
-	(parse_qualified_param_ident_or_type): Fixed typo in comment.
-	(globals): Changed handling of namespace aliases.
-	(version): Added year 2001.
+	(parse_qualified_param_ident_or_type): Fix typo in comment.
+	(globals): Change handling of namespace aliases.
+	(version): Add year 2001.
 
 2001-09-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1076,7 +1132,7 @@
 	(grow_linebuffer): Don't call xrnew when not needed.
 	(token): Buffer renamed to line.
 	(C_entries): Three calls to inibuffer moved here from main.
-	(C_entries): Removed all references to var methodlen, delete it.
+	(C_entries): Remove all references to var methodlen, delete it.
 	(linebuffer_setlen): Was grow_buffer, now also sets len.
 	(consider_token, C_entries, Pascal_functions): Use it.
 	(C_entries): Preventing problems relative to extern "C".
@@ -1103,11 +1159,11 @@
 
 	* etags.c (get_language_from_langname): Renamed from
 	get_language_from_name.
-	(get_language_from_filename): Renamed from
-	get_language_from_suffix.  Now first looks for the complete file name.
+	(get_language_from_filename): Renamed from get_language_from_suffix.
+	Now first looks for the complete file name.
 	(language): New member char **filenames.
 	(Makefile_filenames): List of possible filenames for makefiles.
-	(lang_names): Added a NULL member for every entry, added an entry
+	(lang_names): Add a NULL member for every entry, added an entry
 	for makefiles.
 	(Makefile_targets): New function.
 	(Texinfo_nodes): Renamed from Texinfo_fuctions and made
@@ -1133,8 +1189,8 @@
 
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* ebrowse.c (yyerror): Changed to take two arguments.
-	Prototype added.  Callers changed.
+	* ebrowse.c (yyerror): Change to take two arguments.
+	Add prototype.  Change callers.
 
 2001-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1340,7 +1396,7 @@
 
 2000-02-10  Francesco Potorti`  <pot@gnu.org>
 
-	* etags.c (iswhite): Redefined not to consider '\0' as white
+	* etags.c (iswhite): Redefine not to consider '\0' as white
 	space, and use it throughout in place of isspace, thus preventing a
 	potential signed char to int conversion problem.
 	(MSDOS): #undefine befere redefining
@@ -1425,9 +1481,9 @@
 	(typdef): ttypedefseen renamed to tkeyseen, new label ttypeseen.
 	(C_entries): Modifications that make --members tag even inside
 	typedefs and C nested structs (one level only).
-	(consider_token): Corrected a bug which prevented tagging of enum
+	(consider_token): Correct a bug which prevented tagging of enum
 	constants.
-	(C_stab_entry): Added if, for, while, switch, return as
+	(C_stab_entry): Add if, for, while, switch, return as
 	st_C_ignore.  This makes it simpler to work when cblev!=0.
 
 	* etags.c (C_entries): Tag member function declarations when
@@ -5404,3 +5460,5 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 2d979296-954c-448e-95c1-b46d134513dc

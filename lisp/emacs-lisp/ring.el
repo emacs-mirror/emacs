@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This code defines a ring data structure. A ring is a
+;; This code defines a ring data structure.  A ring is a
 ;;     (hd-index length . vector)
 ;; list.  You can insert to, remove from, and rotate a ring.  When the ring
 ;; fills up, insertions cause the oldest elts to be quietly dropped.
@@ -48,7 +48,7 @@
 
 ;;;###autoload
 (defun ring-p (x)
-  "Returns t if X is a ring; nil otherwise."
+  "Return t if X is a ring; nil otherwise."
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (car (cdr x)))
        (vectorp (cdr (cdr x)))))
@@ -71,20 +71,20 @@
     (setcar (cdr ring) ln)))
 
 (defun ring-plus1 (index veclen)
-  "Returns INDEX+1, with wraparound."
+  "Return INDEX+1, with wraparound."
   (let ((new-index (+ index 1)))
     (if (= new-index veclen) 0 new-index)))
 
 (defun ring-minus1 (index veclen)
-  "Returns INDEX-1, with wraparound."
+  "Return INDEX-1, with wraparound."
   (- (if (= 0 index) veclen index) 1))
 
 (defun ring-length (ring)
-  "Returns the number of elements in the RING."
+  "Return the number of elements in the RING."
   (car (cdr ring)))
 
 (defun ring-index (index head ringlen veclen)
-  "Converts nominal ring index INDEX to an internal index.
+  "Convert nominal ring index INDEX to an internal index.
 The internal index refers to the items ordered from newest to oldest.
 HEAD is the index of the oldest element in the ring.
 RINGLEN is the number of elements currently in the ring.
@@ -93,15 +93,15 @@ VECLEN is the size of the vector in the ring."
   (mod (1- (+ head (- ringlen index))) veclen))
 
 (defun ring-empty-p (ring)
-  "Returns t if RING is empty; nil otherwise."
-  (= 0 (car (cdr ring))))
+  "Return t if RING is empty; nil otherwise."
+  (zerop (car (cdr ring))))
 
 (defun ring-size (ring)
-  "Returns the size of RING, the maximum number of elements it can contain."
+  "Return the size of RING, the maximum number of elements it can contain."
   (length (cdr (cdr ring))))
 
 (defun ring-copy (ring)
-  "Returns a copy of RING."
+  "Return a copy of RING."
   (let* ((vec (cdr (cdr ring)))
 	 (hd  (car ring))
 	 (ln  (car (cdr ring))))
@@ -144,7 +144,7 @@ numeric, remove the element indexed."
       oldelt)))
 
 (defun ring-ref (ring index)
-  "Returns RING's INDEX element.
+  "Return RING's INDEX element.
 INDEX = 0 is the most recently inserted; higher indices
 correspond to older elements.
 INDEX need not be <= the ring length; the appropriate modulo operation
@@ -155,11 +155,12 @@ will be performed."
       (aref vec (ring-index index hd ln (length vec))))))
 
 (defun ring-elements (ring)
-  "Return a list of the lements of RING."
+  "Return a list of the elements of RING."
   (mapcar #'identity (cddr ring)))
 
 ;;; provide ourself:
 
 (provide 'ring)
 
+;;; arch-tag: e707682b-ed69-47c9-b20f-cf2c68cc92d2
 ;;; ring.el ends here

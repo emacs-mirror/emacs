@@ -329,7 +329,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		. ,(get 'cyrillic-koi8-u-nonascii-translation-table
 			'translation-table))
 	       (input-method . "ukrainian-computer")
-	       (features code-pages)
 	       (documentation
 		. "Support for Ukrainian with KOI8-U character set."))
  '("Cyrillic"))
@@ -441,16 +440,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
  '("Cyrillic"))
 
 (set-language-info-alist
- "Windows-1251" `((coding-system windows-1251)
-		  (coding-priority windows-1251)
-		  (nonascii-translation
-		   . ,(get 'decode-windows-1252 'translation-table))
-		  (input-method . "russian-typewriter") ; fixme?
-		  (features code-pages)
-		  (documentation . "Support for windows-1251 character set."))
- '("Cyrillic"))
-
-(set-language-info-alist
  "Tajik" `((coding-system cyrillic-koi8-t)
 	   (coding-priority cyrillic-koi8-t)
 	   (nonascii-translation
@@ -460,13 +449,28 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	   (documentation . "Support for Tajik using KOI8-T."))
  '("Cyrillic"))
 
+(eval-and-compile
+  (setq
+   non-iso-charset-alist
+   (cp-make-coding-system
+    windows-1251
+    [?\$,1("(B ?\$,1(#(B ?\$,1rz(B ?\$,1(s(B ?\$,1r~(B ?\$,1s&(B ?\$,1s (B ?\$,1s!(B ?\$,1tL(B ?\$,1s0(B ?\$,1()(B ?\$,1s9(B ?\$,1(*(B ?\$,1(,(B ?\$,1(+(B ?\$,1(/(B ?\$,1(r(B
+	 ?\$,1rx(B ?\$,1ry(B ?\$,1r|(B ?\$,1r}(B ?\$,1s"(B ?\$,1rs(B ?\$,1rt(B nil ?\$,1ub(B ?\$,1(y(B ?\$,1s:(B ?\$,1(z(B ?\$,1(|(B ?\$,1({(B ?\$,1((B ?\,A (B ?\$,1(.(B
+	 ?\$,1(~(B ?\$,1(((B ?\,A$(B ?\$,1)P(B ?\,A&(B ?\,A'(B ?\$,1(!(B ?\,A)(B ?\$,1($(B ?\,A+(B ?\,A,(B ?\,A-(B ?\,A.(B ?\$,1('(B ?\,A0(B ?\,A1(B ?\$,1(&(B
+	 ?\$,1(v(B ?\$,1)Q(B ?\,A5(B ?\,A6(B ?\,A7(B ?\$,1(q(B ?\$,1uV(B ?\$,1(t(B ?\,A;(B ?\$,1(x(B ?\$,1(%(B ?\$,1(u(B ?\$,1(w(B ?\$,1(0(B ?\$,1(1(B ?\$,1(2(B ?\$,1(3(B
+	 ?\$,1(4(B ?\$,1(5(B ?\$,1(6(B ?\$,1(7(B ?\$,1(8(B ?\$,1(9(B ?\$,1(:(B ?\$,1(;(B ?\$,1(<(B ?\$,1(=(B ?\$,1(>(B ?\$,1(?(B ?\$,1(@(B ?\$,1(A(B ?\$,1(B(B ?\$,1(C(B ?\$,1(D(B
+	 ?\$,1(E(B ?\$,1(F(B ?\$,1(G(B ?\$,1(H(B ?\$,1(I(B ?\$,1(J(B ?\$,1(K(B ?\$,1(L(B ?\$,1(M(B ?\$,1(N(B ?\$,1(O(B ?\$,1(P(B ?\$,1(Q(B ?\$,1(R(B ?\$,1(S(B ?\$,1(T(B ?\$,1(U(B
+	 ?\$,1(V(B ?\$,1(W(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B ?\$,1(_(B ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(d(B ?\$,1(e(B ?\$,1(f(B
+	 ?\$,1(g(B ?\$,1(h(B ?\$,1(i(B ?\$,1(j(B ?\$,1(k(B ?\$,1(l(B ?\$,1(m(B ?\$,1(n(B ?\$,1(o(B] nil ?b)))
+
+(define-coding-system-alias 'cp1251 'windows-1251)
+
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
 		  (coding-priority windows-1251)
 	       (nonascii-translation
 		. ,(get 'decode-windows-1251 'translation-table))
 	       (input-method . "bulgarian-bds")
-		  (features code-pages)
 	       (documentation
 		. "Support for Bulgarian with windows-1251 character set.")
 	       (tutorial . "TUTORIAL.bg"))
@@ -478,7 +482,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		(nonascii-translation
 		 . ,(get 'decode-windows-1251 'translation-table))
 		(input-method . "belarusian")
-		(features code-pages)
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
@@ -486,4 +489,5 @@ Support for Russian using koi8-r and the russian-computer input method.")
 
 (provide 'cyrillic)
 
+;;; arch-tag: bda71ae0-ba41-4cb6-a6e0-1dff542313d3
 ;;; cyrillic.el ends here

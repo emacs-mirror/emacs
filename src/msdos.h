@@ -90,9 +90,6 @@ typedef struct display_info Display_Info;
 /* This is a cut-down version of the one in xterm.h, which see.  */
 struct x_output
 {
-  int left_pos;			/* used in xmenu_show (xmenu.c) */
-  int top_pos;			/* ditto */
-  int line_height;		/* used in x-popup-menu (xmenu.c) */
   PIX_TYPE background_pixel;	/* used in xfaces.c and lots of other places */
   PIX_TYPE foreground_pixel;	/* ditto */
   XFontStruct *font;		/* used in x-popup-menu (xmenu.c) */
@@ -108,9 +105,6 @@ extern struct x_output the_only_x_display;
 #define FRAME_BACKGROUND_PIXEL(f) (the_only_x_display.background_pixel)
 #define FRAME_FONT(f) (the_only_x_display.font)
 #define FRAME_X_DISPLAY_INFO(f) (&the_only_x_display.display_info)
-#define FRAME_LINE_HEIGHT(f) (the_only_x_display.line_height)
-
-#define FRAME_INTERNAL_BORDER_WIDTH(f) (0)
 
 /* Prototypes.  */
 
@@ -129,8 +123,8 @@ extern int x_pixel_height P_ ((struct frame *));
 #define x_destroy_bitmap(p1,p2)
 #define load_pixmap(p1,p2,p3,p4) (0)
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
-#define DisplayWidth(p1,p2) (SELECTED_FRAME()->width)
-#define DisplayHeight(p1,p2) (SELECTED_FRAME()->height)
+#define DisplayWidth(p1,p2) (SELECTED_FRAME()->text_cols)
+#define DisplayHeight(p1,p2) (SELECTED_FRAME()->text_lines)
 #define XMenuSetAEQ (void)
 #define XMenuSetFreeze (void)
 #define XMenuRecompute (void)
@@ -165,3 +159,6 @@ void XMenuDestroy (Display *, XMenu *);
 #endif /* not HAVE_X_WINDOWS */
 
 #endif /* not EMACS_MSDOS_H */
+
+/* arch-tag: ad21eeed-8fdb-4357-8007-36368a6bdbf3
+   (do not change this comment) */

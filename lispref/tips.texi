@@ -126,6 +126,12 @@ If a user option variable records a true-or-false condition, give it a
 name that ends in @samp{-flag}.
 
 @item
+If the purpose of a variable is to store a single function, give it a
+name that ends in @samp{-function}.  If the purpose of a variable is
+to store a list of functions (i.e., the variable is a hook), please
+follow the naming conventions for hooks.  @xref{Hooks}.
+
+@item
 @cindex reserved keys
 @cindex keys, reserved
 Please do not define @kbd{C-c @var{letter}} as a key in your major
@@ -204,7 +210,15 @@ off, and make it autoload (@pxref{Autoload}).  Design the package so
 that simply loading it has no visible effect---that should not enable
 the feature.@footnote{Consider that the package may be loaded
 arbitrarily by Custom for instance.}  Users will request the feature by
-invoking the command.
+invoking the command.  It is a good idea to define this command
+as a minor mode.
+
+@cindex unloading packages
+If loading the file adds functions to hooks, define a function
+@code{@var{feature}-unload-hook}, where @var{feature} is the name of
+the feature the package provides, and make it undo any such changes.
+Using @code{unload-feature} to unload the file will run this function.
+@xref{Unloading}.
 
 @item
 It is a bad idea to define aliases for the Emacs primitives.  Use the
@@ -234,6 +248,13 @@ If a file does replace any of the functions or library programs of
 standard Emacs, prominent comments at the beginning of the file should
 say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
+
+@item
+Avoid using macros that define functions and variables with names that
+are constructed.  It is best for maintenance wen the name of the
+function or variable being defined is given explicitly in the source
+code, as the second element of the list---as it is when you use
+@code{defun}, @code{defalias}, @code{defvar} and @code{defopt}.
 
 @item
 Please keep the names of your Emacs Lisp source files to 13 characters
@@ -850,7 +871,8 @@ if we haven't installed it in Emacs yet!
 @end example
 
 @noindent
-The description should be complete in one line.
+The description should be complete in one line.  If the file
+needs a @samp{-*-} specification, put it after @var{description}.
 
   After the copyright notice come several @dfn{header comment} lines,
 each beginning with @samp{;; @var{header-name}:}.  Here is a table of
@@ -926,9 +948,9 @@ It should come right after the copying permissions, terminated by a
 text is used by the Finder package, so it should make sense in that
 context.
 
-@item ;;; Documentation
-This has been used in some files in place of @samp{;;; Commentary:},
-but @samp{;;; Commentary:} is preferred.
+@item ;;; Documentation:
+This was used in some files in place of @samp{;;; Commentary:},
+but it is deprecated.
 
 @item ;;; Change Log:
 This begins change log information stored in the library file (if you
@@ -945,3 +967,7 @@ This is the @dfn{footer line}; it appears at the very end of the file.
 Its purpose is to enable people to detect truncated versions of the file
 from the lack of a footer line.
 @end table
+
+@ignore
+   arch-tag: 9ea911c2-6b1d-47dd-88b7-0a94e8b27c2e
+@end ignore

@@ -539,4 +539,5 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (provide 'gnus-int)
 
+;;; arch-tag: bbc90087-9b7f-4017-a92c-3abf180ac86d
 ;;; gnus-int.el ends here

@@ -1,5 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993, 1994, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 2000, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,6 +23,49 @@ Boston, MA 02111-1307, USA.  */
 #define NULL_INTERVAL ((INTERVAL)0)
 #define INTERVAL_DEFAULT NULL_INTERVAL
 
+/* Basic data type for use of intervals.  */
+
+struct interval
+{
+  /* The first group of entries deal with the tree structure.  */
+
+  unsigned EMACS_INT total_length; /* Length of myself and both children.  */
+  unsigned EMACS_INT position;	/* Cache of interval's character position.  */
+				/* This field is usually updated
+				   simultaneously with an interval
+				   traversal, there is no guarantee
+				   that it is valid for a random
+				   interval.  */
+  struct interval *left;	/* Intervals which precede me.  */
+  struct interval *right;	/* Intervals which succeed me.  */
+
+  /* Parent in the tree, or the Lisp_Object containing this interval tree.  */
+  union
+  {
+    struct interval *interval;
+    Lisp_Object obj;
+  } up;
+  unsigned int up_obj : 1;
+
+  unsigned gcmarkbit : 1;
+
+  /* The remaining components are `properties' of the interval.
+     The first four are duplicates for things which can be on the list,
+     for purposes of speed.  */
+
+  unsigned int write_protect : 1;   /* Non-zero means can't modify.  */
+  unsigned int visible : 1;	    /* Zero means don't display.  */
+  unsigned int front_sticky : 1;    /* Non-zero means text inserted just
+				       before this interval goes into it.  */
+  unsigned int rear_sticky : 1;	    /* Likewise for just after it.  */
+
+  /* Properties of this interval.
+     The mark bit on this field says whether this particular interval
+     tree node has been visited.  Since intervals should never be
+     shared, GC aborts if it seems to have visited an interval twice.  */
+  Lisp_Object plist;
+};
+
 /* These are macros for dealing with the interval tree. */
 
 /* Size of the structure used to represent an interval */
@@ -41,7 +84,8 @@ Boston, MA 02111-1307, USA.  */
 #define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object){(EMACS_INT)(i)}) \
 			 || STRINGP ((Lisp_Object){(EMACS_INT)(i)}))
 #endif
-#define NULL_INTERVAL_P(i) (CHECK(!INT_LISPLIKE(i),"non-interval"),(i) == NULL_INTERVAL)
+#define NULL_INTERVAL_P(i) \
+   (CHECK (!INT_LISPLIKE (i), "non-interval"), (i) == NULL_INTERVAL)
 /* old #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i)) */
 
 /* True if this interval has no right child. */
@@ -111,26 +155,35 @@ Boston, MA 02111-1307, USA.  */
    The choice of macros is dependent on the type needed.  Don't add
    casts to get around this, it will break some development work in
    progress.  */
-#define SET_INTERVAL_PARENT(i,p) (eassert (!INT_LISPLIKE (p)),(i)->up_obj = 0, (i)->up.interval = (p))
-#define SET_INTERVAL_OBJECT(i,o) (eassert (!INTEGERP (o)), eassert (BUFFERP (o) || STRINGP (o)),(i)->up_obj = 1, (i)->up.obj = (o))
-#define INTERVAL_PARENT(i) (eassert((i) != 0 && (i)->up_obj == 0),(i)->up.interval)
+#define SET_INTERVAL_PARENT(i,p) \
+   (eassert (!INT_LISPLIKE (p)), (i)->up_obj = 0, (i)->up.interval = (p))
+#define SET_INTERVAL_OBJECT(i,o) \
+   (eassert (BUFFERP (o) || STRINGP (o)), (i)->up_obj = 1, (i)->up.obj = (o))
+#define INTERVAL_PARENT(i) \
+   (eassert ((i) != 0 && (i)->up_obj == 0),(i)->up.interval)
 #define GET_INTERVAL_OBJECT(d,s) (eassert((s)->up_obj == 1), (d) = (s)->up.obj)
 
 /* Make the parent of D be whatever the parent of S is, regardless of
    type.  This is used when balancing an interval tree.  */
-#define COPY_INTERVAL_PARENT(d,s) ((d)->up = (s)->up, (d)->up_obj = (s)->up_obj)
+#define COPY_INTERVAL_PARENT(d,s) \
+   ((d)->up = (s)->up, (d)->up_obj = (s)->up_obj)
 
 /* Get the parent interval, if any, otherwise a null pointer.  Useful
    for walking up to the root in a "for" loop; use this to get the
    "next" value, and test the result to see if it's NULL_INTERVAL.  */
-#define INTERVAL_PARENT_OR_NULL(i) (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
+#define INTERVAL_PARENT_OR_NULL(i) \
+   (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
+
+/* Abort if interval I's size is negative.  */
+#define CHECK_TOTAL_LENGTH(i) \
+  if ((int) (i)->total_length < 0) abort (); else
 
 /* Reset this interval to its vanilla, or no-property state. */
 #define RESET_INTERVAL(i) \
 { \
     (i)->total_length = (i)->position = 0;    \
     (i)->left = (i)->right = NULL_INTERVAL;   \
-    SET_INTERVAL_PARENT (i, NULL_INTERVAL);	      \
+    SET_INTERVAL_PARENT (i, NULL_INTERVAL);   \
     (i)->write_protect = 0;                   \
     (i)->visible = 0;                         \
     (i)->front_sticky = (i)->rear_sticky = 0; \
@@ -300,8 +353,14 @@ int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 void extend_property_ranges P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 Lisp_Object get_char_property_and_overlay P_ ((Lisp_Object, Lisp_Object,
 					       Lisp_Object, Lisp_Object*));
-extern int text_property_stickiness P_ ((Lisp_Object prop, Lisp_Object pos));
+extern int text_property_stickiness P_ ((Lisp_Object prop, Lisp_Object pos,
+					 Lisp_Object buffer));
+extern Lisp_Object get_pos_property P_ ((Lisp_Object pos, Lisp_Object prop,
+					 Lisp_Object object));
 
-extern void syms_of_textprop ();
+extern void syms_of_textprop P_ ((void));
 
 #include "composite.h"
+
+/* arch-tag: f0bc16c0-b084-498d-9de4-21cc8f077795
+   (do not change this comment) */

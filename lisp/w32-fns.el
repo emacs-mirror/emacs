@@ -449,4 +449,5 @@ they were unset."
 (setq interprogram-paste-function 'x-get-selection-value)
 
 
+;;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

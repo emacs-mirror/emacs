@@ -110,3 +110,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Tell emacs.c not to define abort.  */
 #define NO_ABORT
+
+/* arch-tag: 5cd6fed4-a0be-4402-9349-85a80bc01d57
+   (do not change this comment) */

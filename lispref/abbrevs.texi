@@ -80,6 +80,11 @@ This function undefines all the abbrevs in abbrev table @var{table},
 leaving it empty.  It always returns @code{nil}.
 @end defun
 
+@defun copy-abbrev-table table
+This function returns a copy of abbrev table @var{table}---a new
+abbrev table that contains the same abbrev definitions.
+@end defun
+
 @defun define-abbrev-table tabname definitions
 This function defines @var{tabname} (a symbol) as an abbrev table
 name, i.e., as a variable whose value is an abbrev table.  It defines
@@ -149,13 +154,14 @@ non-@code{nil}, then it is called with no arguments after the abbrev is
 replaced with @var{expansion}; point is located at the end of
 @var{expansion} when @var{hook} is called.
 
-If @var{hook} is a non-nil symbol whose @code{no-self-insert} property
-is non-@code{nil}, @var{hook} can explicitly control whether to insert
-the self-inserting input character that triggered the expansion.  If
-@var{hook} returns non-@code{nil} in this case, that inhibits insertion
-of the character.  By contrast, if @var{hook} returns @code{nil},
-@code{expand-abbrev} also returns @code{nil}, as if expansion had not
-really occurred.
+@cindex @code{no-self-insert} property
+If @var{hook} is a non-@code{nil} symbol whose @code{no-self-insert}
+property is non-@code{nil}, @var{hook} can explicitly control whether
+to insert the self-inserting input character that triggered the
+expansion.  If @var{hook} returns non-@code{nil} in this case, that
+inhibits insertion of the character.  By contrast, if @var{hook}
+returns @code{nil}, @code{expand-abbrev} also returns @code{nil}, as
+if expansion had not really occurred.
 
 If @var{system-flag} is non-@code{nil}, that marks the abbrev as a
 ``system'' abbrev with the @code{system-type} property.
@@ -340,7 +346,7 @@ aborts expansion if it is not confirmed.
 ;; @r{acceptable; the return value has no effect on expansion.}
 
 (defun query-if-not-space ()
-  (if (/= ?\  (preceding-char))
+  (if (/= ?\s  (preceding-char))
       (if (not (y-or-n-p "Do you want to expand this abbrev? "))
           (error "Not expanding this abbrev"))))
 @end smallexample
@@ -377,3 +383,6 @@ This is the local abbrev table used in Text mode.
 This is the local abbrev table used in Lisp mode and Emacs Lisp mode.
 @end defvar
 
+@ignore
+   arch-tag: 5ffdbe08-2cd4-48ec-a5a8-080f95756eec
+@end ignore

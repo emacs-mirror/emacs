@@ -216,7 +216,7 @@ way you can change it with real effect is to do so before dumping
 Emacs.
 @end defvar
 
-  @xref{Init File Examples,,, emacs, The GNU Emacs Manual}, for
+  @xref{Init Examples,, Init File Examples, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
 @file{.emacs} file.
 
@@ -400,8 +400,7 @@ arguments is in @code{command-line-args}.)
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Command
-Switches, , Command Line Switches and Arguments, emacs, The GNU Emacs
-Manual}.
+Arguments, , Command Line Arguments, emacs, The GNU Emacs Manual}.
 @end defvar
 
 @defvar command-line-args
@@ -797,6 +796,11 @@ averages, which indicate the average number of processes trying to run.
 If @var{use-float} is non-@code{nil}, then they are returned
 as floating point numbers and without multiplying by 100.
 
+If it is impossible to obtain the load average, this function signals
+an error.  On some platforms, access to load averages requires
+installing Emacs as setuid or setgid so that it can read kernel
+information, and that usually isn't advisable.
+
 @example
 @group
 (load-average)
@@ -918,6 +922,7 @@ Titles}).
 
 @defun user-real-uid
 This function returns the real @sc{uid} of the user.
+The value may be a floating point number.
 
 @example
 @group
@@ -929,6 +934,7 @@ This function returns the real @sc{uid} of the user.
 
 @defun user-uid
 This function returns the effective @sc{uid} of the user.
+The value may be a floating point number.
 @end defun
 
 @node Time of Day
@@ -1162,9 +1168,10 @@ seconds since the epoch, to a time value and returns that.  To perform
 the inverse conversion, use @code{float-time}.
 @end defun
 
-@defun decode-time time
-This function converts a time value into calendrical information.  The
-return value is a list of nine elements, as follows:
+@defun decode-time &optional time
+This function converts a time value into calendrical information.  If
+you don't specify @var{time}, it decodes the current time.  The return
+value is a list of nine elements, as follows:
 
 @example
 (@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
@@ -1231,6 +1238,8 @@ arguments; for example, day 0 means the day preceding the given month.
 
 The operating system puts limits on the range of possible time values;
 if you try to encode a time that is out of range, an error results.
+For instance, years before 1970 do not work on some systems;
+on others, years as early as 1901 do work.
 @end defun
 
 @node Time Calculations
@@ -1276,8 +1285,8 @@ This function returns @code{t} if @var{year} is a leap year.
 @section Timers for Delayed Execution
 @cindex timer
 
-  You can set up a @dfn{timer} to call a function at a specified future time or
-after a certain length of idleness.
+  You can set up a @dfn{timer} to call a function at a specified
+future time or after a certain length of idleness.
 
   Emacs cannot run timers at any arbitrary point in a Lisp program; it
 can run them only when Emacs could accept output from a subprocess:
@@ -1285,6 +1294,13 @@ namely, while waiting or inside certain primitive functions such as
 @code{sit-for} or @code{read-event} which @emph{can} wait.  Therefore, a
 timer's execution may be delayed if Emacs is busy.  However, the time of
 execution is very precise if Emacs is idle.
+
+  Emacs binds @code{inhibit-quit} to @code{t} before calling the timer
+function, because quitting out of many timer functions can leave
+things in an inconsistent state.  This is normally unproblematical
+because most timer functions don't do a lot of work.  Indeed, for a
+timer to calls a function that takes substantial time to run is likely
+to be annoying.
 
 @defun run-at-time time repeat function &rest args
 This function arranges to call @var{function} with arguments @var{args}
@@ -2064,3 +2080,7 @@ Emacs is restarted by the session manager.
   nil)
 @end group
 @end example
+
+@ignore
+   arch-tag: 8378814a-30d7-467c-9615-74a80b9988a7
+@end ignore

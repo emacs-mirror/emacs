@@ -60,3 +60,5 @@ NOTE-END  */
 
 #define LIBS_TERMCAP -ltermcap
 
+/* arch-tag: 79bfd831-874a-4339-85fa-b8cbdc29bdab
+   (do not change this comment) */

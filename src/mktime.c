@@ -252,6 +252,9 @@ __mktime_internal (tp, convert, offset)
   int year_requested = tp->tm_year;
   int isdst = tp->tm_isdst;
 
+  /* 1 if the previous probe was DST.  */
+  int dst2;
+
   /* Ensure that mon is in range, and set year accordingly.  */
   int mon_remainder = mon % 12;
   int negative_mon_remainder = mon_remainder < 0;
@@ -270,6 +273,13 @@ __mktime_internal (tp, convert, offset)
 	      + mday - 1);
 
   int sec_requested = sec;
+
+  /* Only years after 1970 are defined.
+     If year is 69, it might still be representable due to
+     timezone differences.  */
+  if (year < 69)
+    return -1;
+
 #if LEAP_SECONDS_POSSIBLE
   /* Handle out-of-range seconds specially,
      since ydhms_tm_diff assumes every minute has 60 seconds.  */
@@ -286,20 +296,24 @@ __mktime_internal (tp, convert, offset)
   tm.tm_yday = tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
   t0 = ydhms_tm_diff (year, yday, hour, min, sec, &tm);
 
-  for (t = t1 = t2 = t0 + *offset;
+  for (t = t1 = t2 = t0 + *offset, dst2 = 0;
        (dt = ydhms_tm_diff (year, yday, hour, min, sec,
 			    ranged_convert (convert, &t, &tm)));
-       t1 = t2, t2 = t, t += dt)
+       t1 = t2, t2 = t, t += dt, dst2 = tm.tm_isdst != 0)
     if (t == t1 && t != t2
-	&& (isdst < 0 || tm.tm_isdst < 0
-	    || (isdst != 0) != (tm.tm_isdst != 0)))
+	&& (tm.tm_isdst < 0
+	    || (isdst < 0
+		? dst2 <= (tm.tm_isdst != 0)
+		: (isdst != 0) != (tm.tm_isdst != 0))))
       /* We can't possibly find a match, as we are oscillating
 	 between two values.  The requested time probably falls
 	 within a spring-forward gap of size DT.  Follow the common
 	 practice in this case, which is to return a time that is DT
 	 away from the requested time, preferring a time whose
-	 tm_isdst differs from the requested value.  In practice,
-	 this is more useful than returning -1.  */
+	 tm_isdst differs from the requested value.  (If no tm_isdst
+	 was requested and only one of the two values has a nonzero
+	 tm_isdst, prefer that value.)  In practice, this is more
+	 useful than returning -1.  */
       break;
     else if (--remaining_probes == 0)
       return -1;
@@ -370,6 +384,14 @@ __mktime_internal (tp, convert, offset)
       const time_t time_t_min = TIME_T_MIN;
 
       if (time_t_max / 3 - time_t_min / 3 < (dsec < 0 ? - dsec : dsec))
+	return -1;
+    }
+
+  if (year == 69)
+    {
+      /* If year was 69, need to check whether the time was representable
+	 or not.  */
+      if (t < 0 || t > 2 * 24 * 60 * 60)
 	return -1;
     }
 
@@ -542,3 +564,6 @@ Local Variables:
 compile-command: "gcc -DDEBUG -DHAVE_LIMITS_H -DSTDC_HEADERS -Wall -W -O -g mktime.c -o mktime"
 End:
 */
+
+/* arch-tag: 9456752f-7ddd-47cb-8286-fa807b1355ae
+   (do not change this comment) */

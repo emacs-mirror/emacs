@@ -23,7 +23,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 #
-#	$Id: vcdiff,v 1.6 1997/01/01 05:33:42 eggert Exp $
+#	$Id: vcdiff,v 1.8 2003/09/01 15:45:03 miles Exp $
 #
 
 DIFF="diff"
@@ -111,3 +111,5 @@ do
 	then status=$s
 	fi
 done
+
+# arch-tag: 4344ba3a-bcbe-4f77-971c-f43c1606953a

@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994, 1995, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2002, 2003 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -182,20 +182,13 @@ To override this, give an argument to `ff-find-other-file'."
   :type 'boolean
   :group 'ff)
 
+;;;###autoload
 (defvar ff-special-constructs
   '(
     ;; C/C++ include, for NeXTSTEP too
     ("^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]" .
      (lambda ()
        (setq fname (buffer-substring (match-beginning 2) (match-end 2)))))
-
-    ;; Ada import
-    ("^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" .
-     (lambda ()
-       (setq fname (buffer-substring (match-beginning 1) (match-end 1)))
-       (require 'ada-mode)
-       (setq fname (concat (ada-make-filename-from-adaname fname)
-			   ada-spec-suffix))))
     )
   "*A list of regular expressions for `ff-find-file'.
 Specifies how to recognise special constructs such as include files
@@ -944,8 +937,6 @@ and the name of the file passed in."
 
 (defvar ff-function-name nil "Name of the function we are in.")
 
-;(eval-when-compile (require 'ada-mode))
-
 ;; bind with (setq ff-pre-load-hook 'ff-which-function-are-we-in)
 ;;
 (defun ff-which-function-are-we-in ()
@@ -976,4 +967,5 @@ That name was previously determined by `ff-which-function-are-we-in'."
 
 (provide 'find-file)
 
+;;; arch-tag: 5a2fc49e-3b0a-4708-9acf-fb14e471a97a
 ;;; find-file.el ends here

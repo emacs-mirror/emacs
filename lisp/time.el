@@ -391,4 +391,5 @@ This runs the normal hook `display-time-hook' after each update."
 
 (provide 'time)
 
+;;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
 ;;; time.el ends here

@@ -588,11 +588,11 @@ property list.  On these occasions, use the @code{eval} function.
 specify limits to the evaluation process, or record recently returned
 values.  Loading a file also does evaluation (@pxref{Loading}).
 
-  @strong{Note:} it is generally cleaner and more flexible to store a
-function in a data structure, and call it with @code{funcall} or
-@code{apply}, than to store an expression in the data structure and
-evaluate it.  Using functions provides the ability to pass information
-to them as arguments.
+  It is generally cleaner and more flexible to store a function in a
+data structure, and call it with @code{funcall} or @code{apply}, than
+to store an expression in the data structure and evaluate it.  Using
+functions provides the ability to pass information to them as
+arguments.
 
 @defun eval form
 This is the basic function evaluating an expression.  It evaluates
@@ -719,3 +719,7 @@ particular elements, like this:
 @end group
 @end example
 @end defvar
+
+@ignore
+   arch-tag: f723a4e0-31b3-453f-8afc-0bf8fd276d57
+@end ignore

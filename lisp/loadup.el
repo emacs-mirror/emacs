@@ -48,7 +48,7 @@
 ;; We don't want to have any undo records in the dumped Emacs.
 (buffer-disable-undo "*scratch*")
 
-(load "byte-run")
+(load "emacs-lisp/byte-run")
 (load "emacs-lisp/backquote")
 (load "subr")
 
@@ -57,7 +57,7 @@
 
 (load "widget")
 (load "custom")
-(load "map-ynp")
+(load "emacs-lisp/map-ynp")
 (load "env")
 (load "cus-start")
 (load "international/mule")
@@ -139,7 +139,7 @@
       (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
-(load "timer")
+(load "emacs-lisp/timer")
 (load "isearch")
 
 (message "%s" (garbage-collect))
@@ -185,7 +185,7 @@
       (load "ls-lisp")))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
-      (load "float-sup")))
+      (load "emacs-lisp/float-sup")))
 (message "%s" (garbage-collect))
 
 (load "vc-hooks")
@@ -301,6 +301,9 @@
 ;;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(if (null (garbage-collect))
+    (setq pure-space-overflow t))
+
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (if (eq system-type 'vax-vms)
@@ -353,4 +356,6 @@
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
+
+;;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here

@@ -3375,4 +3375,5 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 (run-hooks 'calc-load-hook)
 
+;;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here

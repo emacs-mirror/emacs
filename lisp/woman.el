@@ -1221,7 +1221,7 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 		   ;; Was let-bound when file loaded, so ...
 		   (setq woman-topic-at-point woman-topic-at-point-default)))
 	     (setq topic
-		   (current-word t))	; only within or adjacent to word
+		   (or (current-word t) ""))	; only within or adjacent to word
 	     (assoc topic woman-topic-all-completions))
 	(setq topic
 	      (completing-read
@@ -1230,7 +1230,7 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	       ;; Initial input suggestion (was nil), with
 	       ;; cursor at left ready to kill suggestion!:
 	       (and woman-topic-at-point
-		    (cons (current-word) 0)) ; nearest word
+		    (cons (or (current-word) "") 0)) ; nearest word
 	       'woman-topic-history)))
     ;; Note that completing-read always returns a string.
     (if (= (length topic) 0)
@@ -1744,7 +1744,7 @@ Leave point at end of new text.  Return length of inserted text."
 Argument EVENT is the invoking mouse event."
   (interactive "e")			; mouse event
   (goto-char (posn-point (event-start event)))
-  (woman (current-word t)))
+  (woman (or (current-word t) "")))
 
 ;; WoMan menu bar and pop-up menu:
 (easy-menu-define
@@ -4526,4 +4526,5 @@ logging the message."
 
 (provide 'woman)
 
+;;; arch-tag: eea35e90-552f-4712-a94b-d9ffd3db7651
 ;;; woman.el ends here

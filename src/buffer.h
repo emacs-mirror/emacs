@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 01, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -27,7 +27,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Position of beginning of buffer.  */
 #define BEG (1)
-#define BEG_BYTE (1)
+#define BEG_BYTE (BEG)
 
 /* Position of beginning of accessible range of buffer.  */
 #define BEGV (current_buffer->begv)
@@ -62,16 +62,16 @@ Boston, MA 02111-1307, USA.  */
 #define PT_ADDR (BYTE_POS_ADDR (current_buffer->pt_byte))
 
 /* Address of beginning of gap in buffer.  */
-#define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte - 1)
+#define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte - BEG_BYTE)
 
 /* Address of end of gap in buffer.  */
-#define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte + current_buffer->text->gap_size - 1)
+#define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte + current_buffer->text->gap_size - BEG_BYTE)
 
 /* Address of end of accessible range of buffer.  */
 #define ZV_ADDR (BYTE_POS_ADDR (current_buffer->zv_byte))
 
 /* Address of end of buffer.  */
-#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z_byte - 1)
+#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z_byte - BEG_BYTE)
 
 /* Size of gap.  */
 #define GAP_SIZE (current_buffer->text->gap_size)
@@ -102,8 +102,8 @@ Boston, MA 02111-1307, USA.  */
    Note that many of these evaluate the buffer argument more than once.  */
 
 /* Position of beginning of buffer.  */
-#define BUF_BEG(buf) (1)
-#define BUF_BEG_BYTE(buf) (1)
+#define BUF_BEG(buf) (BEG)
+#define BUF_BEG_BYTE(buf) (BEG_BYTE)
 
 /* Position of beginning of accessible range of buffer.  */
 #define BUF_BEGV(buf) ((buf)->begv)
@@ -129,13 +129,13 @@ Boston, MA 02111-1307, USA.  */
 #define BUF_BEG_ADDR(buf) ((buf)->text->beg)
 
 /* Address of beginning of gap of buffer.  */
-#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte - 1)
+#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte - BEG_BYTE)
 
 /* Address of end of buffer.  */
-#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z_byte - 1)
+#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z_byte - BEG_BYTE)
 
 /* Address of end of gap in buffer.  */
-#define BUF_GAP_END_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte + (buf)->text->gap_size - 1)
+#define BUF_GAP_END_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte + (buf)->text->gap_size - BEG_BYTE)
 
 /* Size of gap.  */
 #define BUF_GAP_SIZE(buf) ((buf)->text->gap_size)
@@ -280,14 +280,14 @@ else
 /* Return the address of byte position N in current buffer.  */
 
 #define BYTE_POS_ADDR(n) \
-  (((n) >= GPT_BYTE ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
+  (((n) >= GPT_BYTE ? GAP_SIZE : 0) + (n) + BEG_ADDR - BEG_BYTE)
 
 /* Return the address of char position N.  */
 
 #define CHAR_POS_ADDR(n)			\
   (((n) >= GPT ? GAP_SIZE : 0)			\
    + buf_charpos_to_bytepos (current_buffer, n)	\
-   + BEG_ADDR - 1)
+   + BEG_ADDR - BEG_BYTE)
 
 /* Convert a character position to a byte position.  */
 
@@ -303,8 +303,8 @@ else
 
 #define PTR_BYTE_POS(ptr) \
 ((ptr) - (current_buffer)->text->beg					    \
- - (ptr - (current_buffer)->text->beg < (unsigned) GPT_BYTE ? 0 : GAP_SIZE) \
- + 1)
+ - (ptr - (current_buffer)->text->beg <= (unsigned) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE) \
+ + BEG_BYTE)
 
 /* Return character at position POS.  */
 
@@ -327,7 +327,7 @@ extern int _fetch_multibyte_char_len;
 
 #define FETCH_MULTIBYTE_CHAR(pos)				 	\
   (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
-			       + (pos) + BEG_ADDR - 1),		 	\
+			       + (pos) + BEG_ADDR - BEG_BYTE),		 	\
    _fetch_multibyte_char_len						\
       = ((pos) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE) - (pos),		\
    STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
@@ -340,14 +340,14 @@ extern int _fetch_multibyte_char_len;
    Note that both arguments can be computed more than once.  */
 
 #define BUF_BYTE_ADDRESS(buf, pos) \
-((buf)->text->beg + (pos) - 1		\
+((buf)->text->beg + (pos) - BEG_BYTE		\
  + ((pos) >= (buf)->text->gpt_byte ? (buf)->text->gap_size : 0))
 
 /* Return the address of character at char position POS in buffer BUF.
    Note that both arguments can be computed more than once.  */
 
 #define BUF_CHAR_ADDRESS(buf, pos) \
-((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - 1	\
+((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - BEG_BYTE	\
  + ((pos) >= (buf)->text->gpt ? (buf)->text->gap_size : 0))
 
 /* Convert PTR, the address of a char in buffer BUF,
@@ -355,9 +355,9 @@ extern int _fetch_multibyte_char_len;
 
 #define BUF_PTR_BYTE_POS(buf, ptr)				\
 ((ptr) - (buf)->text->beg					\
- - (ptr - (buf)->text->beg < (unsigned) BUF_GPT_BYTE ((buf))	\
+ - (ptr - (buf)->text->beg <= (unsigned) (BUF_GPT_BYTE ((buf)) - BEG_BYTE)\
     ? 0 : BUF_GAP_SIZE ((buf)))					\
- + 1)
+ + BEG_BYTE)
 
 /* Return the character at byte position POS in buffer BUF.   */
 
@@ -378,7 +378,7 @@ extern int _fetch_multibyte_char_len;
 #define BUF_FETCH_MULTIBYTE_CHAR(buf, pos)				\
   (_fetch_multibyte_char_p						\
      = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)		\
-        + (pos) + BUF_BEG_ADDR (buf) - 1),				\
+        + (pos) + BUF_BEG_ADDR (buf) - BEG_BYTE),			\
    _fetch_multibyte_char_len						\
      = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_ZV_BYTE (buf) : BUF_GPT_BYTE (buf)) \
         - (pos)),							\
@@ -397,11 +397,11 @@ struct buffer_text
        into a buffer's text to functions that malloc.  */
     unsigned char *beg;
 
-    int gpt;			/* Char pos of gap in buffer.  */
-    int z;			/* Char pos of end of buffer.  */
-    int gpt_byte;		/* Byte pos of gap in buffer.  */
-    int z_byte;			/* Byte pos of end of buffer.  */
-    int gap_size;		/* Size of buffer's gap.  */
+    EMACS_INT gpt;		/* Char pos of gap in buffer.  */
+    EMACS_INT z;		/* Char pos of end of buffer.  */
+    EMACS_INT gpt_byte;		/* Byte pos of gap in buffer.  */
+    EMACS_INT z_byte;		/* Byte pos of end of buffer.  */
+    EMACS_INT gap_size;		/* Size of buffer's gap.  */
     int modiff;			/* This counts buffer-modification events
 				   for this buffer.  It is incremented for
 				   each such event, and never otherwise
@@ -412,10 +412,10 @@ struct buffer_text
     int overlay_modiff;		/* Counts modifications to overlays.  */
 
     /* Minimum value of GPT - BEG since last redisplay that finished.  */
-    int beg_unchanged;
+    EMACS_INT beg_unchanged;
 
     /* Minimum value of Z - GPT since last redisplay that finished.  */
-    int end_unchanged;
+    EMACS_INT end_unchanged;
 
     /* MODIFF as of last redisplay that finished; if it matches MODIFF,
        beg_unchanged and end_unchanged contain no useful information.  */
@@ -433,7 +433,7 @@ struct buffer_text
        This is actually a single marker ---
        successive elements in its marker `chain'
        are the other markers referring to this buffer.  */
-    Lisp_Object markers;
+    struct Lisp_Marker *markers;
   };
 
 /* This is the structure that the buffer Lisp object points to.  */
@@ -464,17 +464,17 @@ struct buffer
   struct buffer_text *text;
 
   /* Char position of point in buffer.  */
-  int pt;
+  EMACS_INT pt;
   /* Byte position of point in buffer.  */
-  int pt_byte;
+  EMACS_INT pt_byte;
   /* Char position of beginning of accessible range.  */
-  int begv;
+  EMACS_INT begv;
   /* Byte position of beginning of accessible range.  */
-  int begv_byte;
+  EMACS_INT begv_byte;
   /* Char position of end of accessible range.  */
-  int zv;
+  EMACS_INT zv;
   /* Byte position of end of accessible range.  */
-  int zv_byte;
+  EMACS_INT zv_byte;
 
   /* In an indirect buffer, this points to the base buffer.
      In an ordinary buffer, it is 0.  */
@@ -503,7 +503,7 @@ struct buffer
   int auto_save_failure_time;
   /* Position in buffer at which display started
      the last time this buffer was displayed.  */
-  int last_window_start;
+  EMACS_INT last_window_start;
 
   /* Set nonzero whenever the narrowing is changed in this buffer.  */
   int clip_changed;
@@ -530,6 +530,17 @@ struct buffer
   /* Non-zero means don't use redisplay optimizations for
      displaying this buffer.  */
   unsigned prevent_redisplay_optimizations_p : 1;
+
+  /* List of overlays that end at or before the current center,
+     in order of end-position.  */
+  struct Lisp_Overlay *overlays_before;
+
+  /* List of overlays that end after  the current center,
+     in order of start-position.  */
+  struct Lisp_Overlay *overlays_after;
+
+  /* Position where the overlay lists are centered.  */
+  EMACS_INT overlay_center;
 
   /* Everything from here down must be a Lisp_Object.  */
 
@@ -644,17 +655,6 @@ struct buffer
   /* t means the mark and region are currently active.  */
   Lisp_Object mark_active;
 
-  /* List of overlays that end at or before the current center,
-     in order of end-position.  */
-  Lisp_Object overlays_before;
-
-  /* List of overlays that end after  the current center,
-     in order of start-position.  */
-  Lisp_Object overlays_after;
-
-  /* Position where the overlay lists are centered.  */
-  Lisp_Object overlay_center;
-
   /* Non-nil means the buffer contents are regarded as multi-byte
      form of characters, not a binary code.  */
   Lisp_Object enable_multibyte_characters;
@@ -715,7 +715,19 @@ struct buffer
 
   /* Widths of left and right marginal areas for windows displaying
      this buffer.  */
-  Lisp_Object left_margin_width, right_margin_width;
+  Lisp_Object left_margin_cols, right_margin_cols;
+
+  /* Widths of left and right fringe areas for windows displaying
+     this buffer.  */
+  Lisp_Object left_fringe_width, right_fringe_width;
+
+  /* Non-nil means fringes are drawn outside display margins;
+     othersize draw them between margin areas and text.  */
+  Lisp_Object fringes_outside_margins;
+
+  /* Width and type of scroll bar areas for windows displaying
+     this buffer.  */
+  Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
 
   /* Non-nil means indicate lines not displaying text (in a style
      like vi).  */
@@ -792,19 +804,20 @@ extern struct buffer buffer_local_symbols;
 
 extern struct buffer buffer_local_types;
 
+extern void delete_all_overlays P_ ((struct buffer *));
 extern void reset_buffer P_ ((struct buffer *));
-extern void evaporate_overlays P_ ((int));
-extern int overlays_at P_ ((int, int, Lisp_Object **, int *, int *, int *, int));
+extern void evaporate_overlays P_ ((EMACS_INT));
+extern int overlays_at P_ ((EMACS_INT, int, Lisp_Object **, int *, int *, int *, int));
 extern int sort_overlays P_ ((Lisp_Object *, int, struct window *));
-extern void recenter_overlay_lists P_ ((struct buffer *, int));
-extern int overlay_strings P_ ((int, struct window *, unsigned char **));
+extern void recenter_overlay_lists P_ ((struct buffer *, EMACS_INT));
+extern int overlay_strings P_ ((EMACS_INT, struct window *, unsigned char **));
 extern void validate_region P_ ((Lisp_Object *, Lisp_Object *));
 extern void set_buffer_internal P_ ((struct buffer *));
 extern void set_buffer_internal_1 P_ ((struct buffer *));
 extern void set_buffer_temp P_ ((struct buffer *));
 extern void record_buffer P_ ((Lisp_Object));
 extern void buffer_slot_type_mismatch P_ ((int));
-extern void fix_overlays_before P_ ((struct buffer *, int, int));
+extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
 
 EXFUN (Fbuffer_name, 1);
@@ -922,3 +935,6 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_TYPE(OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_types))
+
+/* arch-tag: 679305dd-d41c-4a50-b170-3caf5c97b2d1
+   (do not change this comment) */

@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; For European scripts, character sets ISO8859-1,2,3,4,9,14,15 are
-;; supported.
+;; For European scripts, all the ISO Latin character sets are
+;; supported, along with various others.
 
 ;;; Code:
 
@@ -62,6 +62,19 @@ Latin-1 also covers several written languages outside Europe, including
 Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
  '("European"))
 
+(eval-and-compile
+  (setq
+   non-iso-charset-alist
+   (cp-make-coding-system
+    windows-1252
+    [?\$,1tL(B nil ?\$,1rz(B ?\$,1!R(B ?\$,1r~(B ?\$,1s&(B ?\$,1s (B ?\$,1s!(B ?\$,1$f(B ?\$,1s0(B ?\$,1! (B ?\$,1s9(B ?\$,1 r(B nil ?\$,1!=(B ?\$,1!>(B nil
+	 ?\$,1rx(B ?\$,1ry(B ?\$,1r|(B ?\$,1r}(B ?\$,1s"(B ?\$,1rs(B ?\$,1rt(B ?\$,1$|(B ?\$,1ub(B ?\$,1!!(B ?\$,1s:(B ?\$,1 s(B nil nil ?\$,1!8(B ?\,A (B ?\,A!(B
+	 ?\,A"(B ?\,A#(B ?\,A$(B ?\,A%(B ?\,A&(B ?\,A'(B ?\,A((B ?\,A)(B ?\,A*(B ?\,A+(B ?\,A,(B ?\,A-(B ?\,A.(B ?\,A/(B ?\,A0(B ?\,A1(B ?\,A2(B
+	 ?\,A3(B ?\,A4(B ?\,A5(B ?\,A6(B ?\,A7(B ?\,A8(B ?\,A9(B ?\,A:(B ?\,A;(B ?\,A<(B ?\,A=(B ?\,A>(B ?\,A?(B ?\,A@(B ?\,AA(B ?\,AB(B ?\,AC(B
+	 ?\,AD(B ?\,AE(B ?\,AF(B ?\,AG(B ?\,AH(B ?\,AI(B ?\,AJ(B ?\,AK(B ?\,AL(B ?\,AM(B ?\,AN(B ?\,AO(B ?\,AP(B ?\,AQ(B ?\,AR(B ?\,AS(B ?\,AT(B
+	 ?\,AU(B ?\,AV(B ?\,AW(B ?\,AX(B ?\,AY(B ?\,AZ(B ?\,A[(B ?\,A\(B ?\,A](B ?\,A^(B ?\,A_(B ?\,A`(B ?\,Aa(B ?\,Ab(B ?\,Ac(B ?\,Ad(B ?\,Ae(B
+	 ?\,Af(B ?\,Ag(B ?\,Ah(B ?\,Ai(B ?\,Aj(B ?\,Ak(B ?\,Al(B ?\,Am(B ?\,An(B ?\,Ao(B ?\,Ap(B ?\,Aq(B ?\,Ar(B ?\,As(B ?\,At(B ?\,Au(B ?\,Av(B
+	 ?\,Aw(B ?\,Ax(B ?\,Ay(B ?\,Az(B ?\,A{(B ?\,A|(B ?\,A}(B ?\,A~(B ?\,A(B])))
 
 ;; Latin-2 (ISO-8859-2)
 
@@ -684,4 +697,5 @@ The return value is the number of composed characters."
 
 (provide 'european)
 
+;;; arch-tag: 9e018b12-fb02-4120-907b-9adeaf84b5c2
 ;;; european.el ends here

@@ -193,7 +193,7 @@ Setting this variable outside customize has no effect."
 (define-minor-mode utf-translate-cjk-mode
   "Whether the UTF based coding systems should decode/encode CJK characters.
 Enabling this loads tables which allow the coding systems mule-utf-8,
-mule-utf-16-le and mule-utf-16-be to encode characters in the charsets
+mule-utf-16le and mule-utf-16be to encode characters in the charsets
 `korean-ksc5601', `chinese-gb2312', `chinese-big5-1',
 `chinese-big5-2', `japanese-jisx0208' and `japanese-jisx0212', and to
 decode the corresponding unicodes into such characters.
@@ -221,7 +221,7 @@ default.  Also, installing them may be rather slow."
 	(setq ucs-mule-cjk-to-unicode
 	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000)
 	      ucs-unicode-to-mule-cjk
-	      (make-hash-table :test 'eq :size 43000 :rehash-size 1000))
+	      (make-hash-table :test 'eq :size 21500 :rehash-size 1000))
 	;; Load the files explicitly, to avoid having to keep
 	;; around the large tables they contain (as well as the
 	;; ones which get built).
@@ -246,18 +246,20 @@ default.  Also, installing them may be rather slow."
 	  (load "subst-gb2312")
 	  (load "subst-big5")
 	  (load "subst-jis")))	  ; jis covers as much as big5, gb2312
-	(let ((table (make-char-table 'translation-table)))
-	  (maphash (lambda (k v)
-		     (aset table k t))
-		   ucs-mule-cjk-to-unicode)
-	  (define-translation-hash-table 'utf-subst-table-for-decode
-	    ucs-unicode-to-mule-cjk)
-	  (define-translation-hash-table 'utf-subst-table-for-encode
-	    ucs-mule-cjk-to-unicode))
 	(define-translation-hash-table 'utf-subst-table-for-decode
-	  (make-hash-table :test 'eq))
+	  ucs-unicode-to-mule-cjk)
 	(define-translation-hash-table 'utf-subst-table-for-encode
-	  (make-hash-table :test 'eq)))))
+	  ucs-mule-cjk-to-unicode)
+	(set-char-table-extra-slot (get 'utf-translation-table-for-encode
+					'translation-table)
+				   1 ucs-mule-cjk-to-unicode))
+    (define-translation-hash-table 'utf-subst-table-for-decode
+      (make-hash-table :test 'eq))
+    (define-translation-hash-table 'utf-subst-table-for-encode
+      (make-hash-table :test 'eq))
+    (set-char-table-extra-slot (get 'utf-translation-table-for-encode
+				    'translation-table)
+			       1 nil)))
 
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
@@ -446,12 +448,19 @@ default.  Also, installing them may be rather slow."
 
 			    ;; mule-unicode-e000-ffff
 			    ;; Fixme: fffe and ffff are invalid.
-			    ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-			     (r3 -= #xe000)
-			     (r3 //= 96)
-			     (r1 = (r7 + 32))
-			     (r1 += ((r3 + 32) << 7))
-			     (write-multibyte-character r0 r1)))))))))
+			    ((r4 = r3)	; don't zap r3
+			     (lookup-integer utf-subst-table-for-decode r4 r5)
+			     (if r7
+				 ;; got a translation
+				 ((write-multibyte-character r4 r5)
+				  ;; Zapped through register starvation.
+				  (r5 = ,(charset-id 'eight-bit-control)))
+			       ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+				(r3 -= #xe000)
+				(r3 //= 96)
+				(r1 = (r7 + 32))
+				(r1 += ((r3 + 32) << 7))
+				(write-multibyte-character r0 r1)))))))))))
 
 	      (if (r0 < #xfe)
 		  ;; 4byte encoding
@@ -754,8 +763,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
     (save-excursion (setq length (diacritic-post-read-conversion length)))
     (save-excursion (setq length (thai-post-read-conversion length)))
     (save-excursion (setq length (lao-post-read-conversion length)))
-    (save-excursion
-      (setq length (in-is13194-devanagari-post-read-conversion length))))
+    (save-excursion (setq length (devanagari-post-read-conversion length)))
+    (save-excursion (setq length (malayalam-post-read-conversion length)))
+    (save-excursion (setq length (tamil-post-read-conversion length))))
   length)
 
 ;; ucs-tables is preloaded
@@ -800,6 +810,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
    (valid-codes (0 . 255))
 ;;    (pre-write-conversion . utf-8-pre-write-conversion)
    (post-read-conversion . utf-8-post-read-conversion)
+   (translation-table-for-encode . utf-translation-table-for-encode)
    (dependency unify-8859-on-encoding-mode
 	       unify-8859-on-decoding-mode
 	       utf-fragment-on-decoding
@@ -828,4 +839,5 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
 ;;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
 ;;; 	   . utf-8-compose-function))))
 
+;;; arch-tag: b08735b7-753b-4ae6-b754-0f3efe4515c5
 ;;; utf-8.el ends here

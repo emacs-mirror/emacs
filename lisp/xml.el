@@ -1,10 +1,10 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
-;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Keywords: xml
+;; Maintainer: Mark A. Hershberger <mah@everybody.org>
+;; Keywords: xml, data
 
 ;; This file is part of GNU Emacs.
 
@@ -25,18 +25,19 @@
 
 ;;; Commentary:
 
-;; This file contains a full XML parser. It parses a file, and returns a list
-;; that can be used internally by any other lisp file.
-;; See some example in todo.el
+;; This file contains a somewhat incomplete non-validating XML parser.  It
+;; parses a file, and returns a list that can be used internally by
+;; any other lisp libraries.
 
 ;;; FILE FORMAT
 
-;; It does not parse the DTD, if present in the XML file, but knows how to
-;; ignore it. The XML file is assumed to be well-formed. In case of error, the
-;; parsing stops and the XML file is shown where the parsing stopped.
+;; The document type declaration may either be ignored or (optionally)
+;; parsed, but currently the parsing will only accept element
+;; declarations.  The XML file is assumed to be well-formed. In case
+;; of error, the parsing stops and the XML file is shown where the
+;; parsing stopped.
 ;;
-;; It also knows how to ignore comments, as well as the special ?xml? tag
-;; in the XML file.
+;; It also knows how to ignore comments and processing instructions.
 ;;
 ;; The XML file should have the following format:
 ;;    <node1 attr1="name1" attr2="name2" ...>value
@@ -63,9 +64,14 @@
 ;;                       | nil
 ;;    string     ::= "..."
 ;;
-;; Some macros are provided to ease the parsing of this list
+;; Some macros are provided to ease the parsing of this list.
+;; Whitespace is preserved.  Fixme: There should be a tree-walker that
+;; can remove it.
 
 ;;; Code:
+
+;; Note that {buffer-substring,match-string}-no-properties were
+;; formerly used in several places, but that removes composition info.
 
 ;;*******************************************************************
 ;;**
@@ -114,115 +120,214 @@ An empty string is returned if the attribute was not found."
 ;;**
 ;;*******************************************************************
 
-(defun xml-parse-file (file &optional parse-dtd)
-  "Parse the well-formed XML FILE.
-If FILE is already edited, this will keep the buffer alive.
+;;;###autoload
+(defun xml-parse-file (file &optional parse-dtd parse-ns)
+  "Parse the well-formed XML file FILE.
+If FILE is already visited, use its buffer and don't kill it.
 Returns the top node with all its children.
-If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
+If PARSE-DTD is non-nil, the DTD is parsed rather than skipped.
+If PARSE-NS is non-nil, then QNAMES are expanded."
   (let ((keep))
     (if (get-file-buffer file)
 	(progn
 	  (set-buffer (get-file-buffer file))
 	  (setq keep (point)))
-      (find-file file))
+      (let (auto-mode-alist)		; no need for xml-mode
+	(find-file file)))
 
     (let ((xml (xml-parse-region (point-min)
 				 (point-max)
 				 (current-buffer)
-				 parse-dtd)))
+				 parse-dtd parse-ns)))
       (if keep
 	  (goto-char keep)
 	(kill-buffer (current-buffer)))
       xml)))
 
-(defun xml-parse-region (beg end &optional buffer parse-dtd)
+;; Note that this is setup so that we can do whitespace-skipping with
+;; `(skip-syntax-forward " ")', inter alia.  Previously this was slow
+;; compared with `re-search-forward', but that has been fixed.  Also
+;; note that the standard syntax table contains other characters with
+;; whitespace syntax, like NBSP, but they are invalid in contexts in
+;; which we might skip whitespace -- specifically, they're not
+;; NameChars [XML 4].
+
+(defvar xml-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; Get space syntax correct per XML [3].
+    (dotimes (c 31)
+      (modify-syntax-entry c "." table)) ; all are space in standard table
+    (dolist (c '(?\t ?\n ?\r))		; these should be space
+      (modify-syntax-entry c " " table))
+    ;; For skipping attributes.
+    (modify-syntax-entry ?\" "\"" table)
+    (modify-syntax-entry ?' "\"" table)
+    ;; Non-alnum name chars should be symbol constituents (`-' and `_'
+    ;; are OK by default).
+    (modify-syntax-entry ?. "_" table)
+    (modify-syntax-entry ?: "_" table)
+    ;; XML [89]
+    (dolist (c '(#x00B7 #x02D0 #x02D1 #x0387 #x0640 #x0E46 #x0EC6 #x3005
+		 #x3031 #x3032 #x3033 #x3034 #x3035 #x309D #x309E #x30FC
+		 #x30FD #x30FE))
+      (modify-syntax-entry (decode-char 'ucs c) "w" table))
+    ;; Fixme: rest of [4]
+    table)
+  "Syntax table used by `xml-parse-region'.")
+
+;; XML [5]
+;; Note that [:alpha:] matches all multibyte chars with word syntax.
+(eval-and-compile
+  (defconst xml-name-regexp "[[:alpha:]_:][[:alnum:]._:-]*"))
+
+;; Fixme:  This needs re-writing to deal with the XML grammar properly, i.e.
+;;   document    ::=    prolog element Misc*
+;;   prolog    ::=    XMLDecl? Misc* (doctypedecl Misc*)?
+
+;;;###autoload
+(defun xml-parse-region (beg end &optional buffer parse-dtd parse-ns)
   "Parse the region from BEG to END in BUFFER.
 If BUFFER is nil, it defaults to the current buffer.
 Returns the XML list for the region, or raises an error if the region
-is not a well-formed XML file.
+is not well-formed XML.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped,
-and returned as the first element of the list"
-  (let (xml result dtd)
-    (save-excursion
-      (if buffer
-	  (set-buffer buffer))
-      (goto-char beg)
-      (while (< (point) end)
-	(if (search-forward "<" end t)
-	    (progn
-	      (forward-char -1)
-	      (if (null xml)
-		  (progn
-		    (setq result (xml-parse-tag end parse-dtd))
+and returned as the first element of the list.
+If PARSE-NS is non-nil, then QNAMES are expanded."
+  (save-restriction
+    (narrow-to-region beg end)
+    ;; Use fixed syntax table to ensure regexp char classes and syntax
+    ;; specs DTRT.
+    (with-syntax-table (standard-syntax-table)
+      (let ((case-fold-search nil)	; XML is case-sensitive.
+	    xml result dtd)
+	(save-excursion
+	  (if buffer
+	      (set-buffer buffer))
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (if (search-forward "<" nil t)
+		(progn
+		  (forward-char -1)
+		  (if xml
+		      ;;  translation of rule [1] of XML specifications
+		      (error "XML files can have only one toplevel tag")
+		    (setq result (xml-parse-tag parse-dtd parse-ns))
 		    (cond
 		     ((null result))
 		     ((listp (car result))
 		      (setq dtd (car result))
-		      (add-to-list 'xml (cdr result)))
+		      (if (cdr result)	; possible leading comment
+			  (add-to-list 'xml (cdr result))))
 		     (t
-		      (add-to-list 'xml result))))
-
-		;;  translation of rule [1] of XML specifications
-		(error "XML files can have only one toplevel tag")))
-	  (goto-char end)))
-      (if parse-dtd
-	  (cons dtd (reverse xml))
-	(reverse xml)))))
+		      (add-to-list 'xml result)))))
+	      (goto-char (point-max))))
+	  (if parse-dtd
+	      (cons dtd (nreverse xml))
+	    (nreverse xml)))))))
 
 
-(defun xml-parse-tag (end &optional parse-dtd)
-  "Parse the tag that is just in front of point.
-The end tag must be found before the position END in the current buffer.
+(defun xml-parse-tag (&optional parse-dtd parse-ns)
+  "Parse the tag at point.
 If PARSE-DTD is non-nil, the DTD of the document, if any, is parsed and
 returned as the first element in the list.
+If PARSE-NS is non-nil, then QNAMES are expanded.
 Returns one of:
-   - a list : the matching node
-   - nil    : the point is not looking at a tag.
-   - a cons cell: the first element is the DTD, the second is the node"
-  (cond
-   ;; Processing instructions (like the <?xml version="1.0"?> tag at the
-   ;; beginning of a document)
-   ((looking-at "<\\?")
-    (search-forward "?>" end)
-    (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
-    (xml-parse-tag end))
-   ;;  Character data (CDATA) sections, in which no tag should be interpreted
-   ((looking-at "<!\\[CDATA\\[")
-    (let ((pos (match-end 0)))
-      (unless (search-forward "]]>" end t)
-	(error "CDATA section does not end anywhere in the document"))
-      (buffer-substring-no-properties pos (match-beginning 0))))
-   ;;  DTD for the document
-   ((looking-at "<!DOCTYPE")
-    (let (dtd)
-      (if parse-dtd
-	  (setq dtd (xml-parse-dtd end))
-	(xml-skip-dtd end))
-      (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
+ - a list : the matching node
+ - nil    : the point is not looking at a tag.
+ - a pair : the first element is the DTD, the second is the node."
+  (let ((xml-ns (if (consp parse-ns)
+		    parse-ns
+		  (if parse-ns
+		      (list
+		       ;; Default no namespace
+		       (cons "" "")
+		       ;; We need to seed the xmlns namespace
+		       (cons "xmlns" "http://www.w3.org/2000/xmlns/"))))))
+    (cond
+     ;; Processing instructions (like the <?xml version="1.0"?> tag at the
+     ;; beginning of a document).
+     ((looking-at "<\\?")
+      (search-forward "?>")
+      (skip-syntax-forward " ")
+      (xml-parse-tag parse-dtd xml-ns))
+     ;;  Character data (CDATA) sections, in which no tag should be interpreted
+     ((looking-at "<!\\[CDATA\\[")
+      (let ((pos (match-end 0)))
+	(unless (search-forward "]]>" nil t)
+	  (error "CDATA section does not end anywhere in the document"))
+	(buffer-substring pos (match-beginning 0))))
+     ;;  DTD for the document
+     ((looking-at "<!DOCTYPE")
+      (let (dtd)
+	(if parse-dtd
+	    (setq dtd (xml-parse-dtd))
+	  (xml-skip-dtd))
+      (skip-syntax-forward " ")
       (if dtd
-	  (cons dtd (xml-parse-tag end))
-	(xml-parse-tag end))))
-   ;;  skip comments
-   ((looking-at "<!--")
-    (search-forward "-->" end)
-    nil)
-   ;;  end tag
-   ((looking-at "</")
-    '())
-   ;;  opening tag
-   ((looking-at "<\\([^/> \t\n\r]+\\)")
-    (goto-char (match-end 1))
-    (let* ((case-fold-search nil) ;; XML is case-sensitive.
-	   (node-name (match-string 1))
-	   ;; Parse the attribute list.
-	   (children (list (xml-parse-attlist end) (intern node-name)))
-	   pos)
+	  (cons dtd (xml-parse-tag nil xml-ns))
+	(xml-parse-tag nil xml-ns))))
+     ;;  skip comments
+     ((looking-at "<!--")
+      (search-forward "-->")
+      nil)
+     ;;  end tag
+     ((looking-at "</")
+      '())
+     ;;  opening tag
+     ((looking-at "<\\([^/>[:space:]]+\\)")
+      (goto-char (match-end 1))
+      (let* ((node-name (match-string 1))
+	     ;; Parse the attribute list.
+	     (children (list (xml-parse-attlist) (intern node-name)))
+	     pos)
 
-      ;; is this an empty element ?
-      (if (looking-at "/[ \t\n\r]*>")
-	  (progn
-	    (forward-char 2)
-	    (nreverse (cons '("") children)))
+	;; add the xmlns:* attrs to our cache
+	(when (consp xml-ns)
+	  (mapcar
+	   (lambda (attr)
+	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
+		    (prefix (nth 0 splitup))
+		    (lname (nth 1 splitup)))
+	       (when (string= "xmlns" prefix)
+		 (setq xml-ns (append (list (cons (if lname
+						      lname
+						    "")
+						  (cdr attr)))
+				      xml-ns)))))
+	   (car children))
+
+	  ;; expand element names
+	  (let* ((splitup (split-string (symbol-name (cadr children)) ":"))
+		 (lname (or (nth 1 splitup)
+			    (nth 0 splitup)))
+		 (prefix (if (nth 1 splitup)
+			     (nth 0 splitup)
+			   "")))
+	    (setcdr children (list
+			      (intern (concat "{"
+					     (cdr (assoc-string prefix xml-ns))
+					     "}" lname)))))
+
+	  ;; expand attribute names
+	  (mapcar
+	   (lambda (attr)
+	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
+		    (lname (or (nth 1 splitup)
+			       (nth 0 splitup)))
+		    (prefix (if (nth 1 splitup)
+				(nth 0 splitup)
+			      (caar xml-ns))))
+
+	       (setcar attr (intern (concat "{"
+					    (cdr (assoc-string prefix xml-ns))
+					    "}" lname)))))
+	   (car children)))
+
+	;; is this an empty element ?
+	(if (looking-at "/>")
+	(progn
+	  (forward-char 2)
+	  (nreverse children))
 
 	;; is this a valid start tag ?
 	(if (eq (char-after) ?>)
@@ -230,61 +335,54 @@ Returns one of:
 	      (forward-char 1)
 	      ;;  Now check that we have the right end-tag. Note that this
 	      ;;  one might contain spaces after the tag name
-	      (while (not (looking-at (concat "</" node-name "[ \t\n\r]*>")))
-		(cond
-		 ((looking-at "</")
-		  (error (concat
-			  "XML: invalid syntax -- invalid end tag (expecting "
-			  node-name
-			  ") at pos " (number-to-string (point)))))
-		 ((= (char-after) ?<)
-		  (let ((tag (xml-parse-tag end)))
-		    (when tag
-		      (push tag children))))
-		 (t
-		  (setq pos (point))
-		  (search-forward "<" end)
-		  (forward-char -1)
-		  (let ((string (buffer-substring-no-properties pos (point)))
-			(pos 0))
+	      (let ((end (concat "</" node-name "\\s-*>")))
+		(while (not (looking-at end))
+		  (cond
+		   ((looking-at "</")
+		    (error "XML: Invalid end tag (expecting %s) at pos %d"
+			   node-name (point)))
+		   ((= (char-after) ?<)
+		    (let ((tag (xml-parse-tag nil xml-ns)))
+		      (when tag
+			(push tag children))))
+		   (t
+		    (setq pos (point))
+		    (search-forward "<")
+		    (forward-char -1)
+		    (let ((string (buffer-substring pos (point)))
+			  (pos 0))
 
-		    ;; Clean up the string.  As per XML
-		    ;; specifications, the XML processor should
-		    ;; always pass the whole string to the
-		    ;; application.  But \r's should be replaced:
-		    ;; http://www.w3.org/TR/2000/REC-xml-20001006#sec-line-ends
-		    (while (string-match "\r\n?" string pos)
-		      (setq string (replace-match "\n" t t string))
-		      (setq pos (1+ (match-beginning 0))))
+		      ;; Clean up the string.  As per XML
+		      ;; specifications, the XML processor should
+		      ;; always pass the whole string to the
+		      ;; application.  But \r's should be replaced:
+		      ;; http://www.w3.org/TR/2000/REC-xml-20001006#sec-line-ends
+		      (while (string-match "\r\n?" string pos)
+			(setq string (replace-match "\n" t t string))
+			(setq pos (1+ (match-beginning 0))))
 
-		    (setq string (xml-substitute-special string))
-		    (setq children
-			  (if (stringp (car children))
-			      ;; The two strings were separated by a comment.
-			      (cons (concat (car children) string)
-				    (cdr children))
-			    (cons string children)))))))
+		      (setq string (xml-substitute-special string))
+		      (setq children
+			    (if (stringp (car children))
+				;; The two strings were separated by a comment.
+				(cons (concat (car children) string)
+				      (cdr children))
+			      (cons string children))))))))
+
 	      (goto-char (match-end 0))
-	      (if (> (point) end)
-		  (error "XML: End tag for %s not found before end of region"
-			 node-name))
 	      (nreverse children))
-
 	  ;;  This was an invalid start tag
-	  (error "XML: Invalid attribute list")
-	  ))))
-   (t ;; This is not a tag.
-    (error "XML: Invalid character"))
-   ))
+	  (error "XML: Invalid attribute list")))))
+     (t	;; This is not a tag.
+      (error "XML: Invalid character")))))
 
-(defun xml-parse-attlist (end)
-  "Return the attribute-list that point is looking at.
-The search for attributes end at the position END in the current buffer.
-Leaves the point on the first non-blank character after the tag."
+(defun xml-parse-attlist ()
+  "Return the attribute-list after point.Leave point at the first non-blank character after the tag."
   (let ((attlist ())
 	start-pos name)
-    (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
-    (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[ \t\n\r]*=[ \t\n\r]*")
+    (skip-syntax-forward " ")
+    (while (looking-at (eval-when-compile
+			 (concat "\\(" xml-name-regexp "\\)\\s-*=\\s-*")))
       (setq name (intern (match-string 1)))
       (goto-char (match-end 0))
 
@@ -304,22 +402,15 @@ Leaves the point on the first non-blank character after the tag."
 
       ;; Multiple whitespace characters should be replaced with a single one
       ;; in the attributes
-      (let ((string (match-string-no-properties 1))
+      (let ((string (match-string 1))
 	    (pos 0))
-	(while (string-match "[ \t\n\r]+" string pos)
-	  (setq string (replace-match " " t nil string))
-	  (setq pos (1+ (match-beginning 0))))
+	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(push (cons name (xml-substitute-special string)) attlist))
 
       (goto-char start-pos)
-      (if (looking-at "\"\\([^\"]*\\)\"")
-	  (goto-char (match-end 0))
-	(if (looking-at "'\\([^']*\\)'")
-	    (goto-char (match-end 0))))
+      (forward-sexp)			; we have string syntax
 
-      (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
-      (if (> (point) end)
-	  (error "XML: end of attribute list not found before end of region")))
+      (skip-syntax-forward " "))
     (nreverse attlist)))
 
 ;;*******************************************************************
@@ -330,96 +421,113 @@ Leaves the point on the first non-blank character after the tag."
 ;;**
 ;;*******************************************************************
 
-(defun xml-skip-dtd (end)
-  "Skip the DTD that point is looking at.
-The DTD must end before the position END in the current buffer.
-The point must be just before the starting tag of the DTD.
+;; Fixme: This fails at least if the DTD contains conditional sections.
+
+(defun xml-skip-dtd ()
+  "Skip the DTD at point.
 This follows the rule [28] in the XML specifications."
   (forward-char (length "<!DOCTYPE"))
-  (if (looking-at "[ \t\n\r]*>")
+  (if (looking-at "\\s-*>")
       (error "XML: invalid DTD (excepting name of the document)"))
   (condition-case nil
       (progn
-	(forward-word 1)
-	(goto-char (- (re-search-forward "[ \t\n\r]") 1))
-	(goto-char (- (re-search-forward "[^ \t\n\r]") 1))
+	(forward-sexp)
+	(skip-syntax-forward " ")
 	(if (looking-at "\\[")
-	    (re-search-forward "\\][ \t\n\r]*>" end)
-	  (search-forward ">" end)))
+	    (re-search-forward "]\\s-*>")
+	  (search-forward ">")))
     (error (error "XML: No end to the DTD"))))
 
-(defun xml-parse-dtd (end)
-  "Parse the DTD that point is looking at.
-The DTD must end before the position END in the current buffer."
-  (forward-char (length "<!DOCTYPE"))
-  (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
+(defun xml-parse-dtd ()
+  "Parse the DTD at point."
+  (forward-char (eval-when-compile (length "<!DOCTYPE")))
+  (skip-syntax-forward " ")
   (if (looking-at ">")
       (error "XML: invalid DTD (excepting name of the document)"))
 
   ;;  Get the name of the document
-  (looking-at "\\sw+")
-  (let ((dtd (list (match-string-no-properties 0) 'dtd))
+  (looking-at xml-name-regexp)
+  (let ((dtd (list (match-string 0) 'dtd))
 	type element end-pos)
     (goto-char (match-end 0))
 
-    (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
+    (skip-syntax-forward " ")
+    ;; XML [75]
+    (cond ((looking-at "PUBLIC\\s-+")
+	   (goto-char (match-end 0))
+	   (unless (or (re-search-forward
+			"\\=\"\\([[:space:][:alnum:]-'()+,./:=?;!*#@$_%]*\\)\""
+			nil t)
+		       (re-search-forward
+			"\\='\\([[:space:][:alnum:]-()+,./:=?;!*#@$_%]*\\)'"
+			nil t))
+	     (error "XML: missing public id"))
+	   (let ((pubid (match-string 1)))
+	     (unless (or (re-search-forward "\\='\\([^']*\\)'" nil t)
+			 (re-search-forward "\\=\"\\([^\"]*\\)\"" nil t))
+	       (error "XML: missing system id"))
+	     (push (list pubid (match-string 1) 'public) dtd)))
+	  ((looking-at "SYSTEM\\s-+")
+	   (goto-char (match-end 0))
+	   (unless (or (re-search-forward "\\='\\([^']*\\)'" nil t)
+		       (re-search-forward "\\=\"\\([^\"]*\\)\"" nil t))
+	     (error "XML: missing system id"))
+	   (push (list (match-string 1) 'system) dtd)))
+    (skip-syntax-forward " ")
+    (if (eq ?> (char-after))
+	(forward-char)
+      (skip-syntax-forward " ")
+      (if (not (eq (char-after) ?\[))
+	  (error "XML: bad DTD")
+	(forward-char)
+	;;  Parse the rest of the DTD
+	;;  Fixme: Deal with ENTITY, ATTLIST, NOTATION, PIs.
+	(while (not (looking-at "\\s-*\\]"))
+	  (skip-syntax-forward " ")
+	  (cond
 
-    ;;	External DTDs => don't know how to handle them yet
-    (if (looking-at "SYSTEM")
-	(error "XML: Don't know how to handle external DTDs"))
+	   ;;  Translation of rule [45] of XML specifications
+	   ((looking-at
+	     "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
 
-    (if (not (= (char-after) ?\[))
-	(error "XML: Unknown declaration in the DTD"))
+	    (setq element (intern (match-string 1))
+		  type    (match-string-no-properties 2))
+	    (setq end-pos (match-end 0))
 
-    ;;	Parse the rest of the DTD
-    (forward-char 1)
-    (while (and (not (looking-at "[ \t\n\r]*\\]"))
-		(<= (point) end))
-      (cond
+	    ;;  Translation of rule [46] of XML specifications
+	    (cond
+	     ((string-match "^EMPTY[ \t\n\r]*$" type) ;; empty declaration
+	      (setq type 'empty))
+	     ((string-match "^ANY[ \t\n\r]*$" type) ;; any type of contents
+	      (setq type 'any))
+	     ((string-match "^(\\(.*\\))[ \t\n\r]*$" type) ;; children ([47])
+	      (setq type (xml-parse-elem-type (match-string 1 type))))
+	     ((string-match "^%[^;]+;[ \t\n\r]*$" type)	;; substitution
+	      nil)
+	     (t
+	      (error "XML: Invalid element type in the DTD")))
 
-       ;;  Translation of rule [45] of XML specifications
-       ((looking-at
-	 "[ \t\n\r]*<!ELEMENT[ \t\n\r]+\\([a-zA-Z0-9.%;]+\\)[ \t\n\r]+\\([^>]+\\)>")
+	    ;;  rule [45]: the element declaration must be unique
+	    (if (assoc element dtd)
+		(error "XML: element declarations must be unique in a DTD (<%s>)"
+		       (symbol-name element)))
 
-	(setq element (intern (match-string-no-properties 1))
-	      type    (match-string-no-properties 2))
-	(setq end-pos (match-end 0))
+	    ;;  Store the element in the DTD
+	    (push (list element type) dtd)
+	    (goto-char end-pos))
+	   ((looking-at "<!--")
+	    (search-forward "-->"))
 
-	;;  Translation of rule [46] of XML specifications
-	(cond
-	 ((string-match "^EMPTY[ \t\n\r]*$" type)     ;; empty declaration
-	  (setq type 'empty))
-	 ((string-match "^ANY[ \t\n\r]*$" type)	      ;; any type of contents
-	  (setq type 'any))
-	 ((string-match "^(\\(.*\\))[ \t\n\r]*$" type) ;; children ([47])
-	  (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
-	 ((string-match "^%[^;]+;[ \t\n\r]*$" type)   ;; substitution
-	  nil)
-	 (t
-	  (error "XML: Invalid element type in the DTD")))
+	   (t
+	    (error "XML: Invalid DTD item")))
 
-	;;  rule [45]: the element declaration must be unique
-	(if (assoc element dtd)
-	    (error "XML: elements declaration must be unique in a DTD (<%s>)"
-		   (symbol-name element)))
-
-	;;  Store the element in the DTD
-	(push (list element type) dtd)
-	(goto-char end-pos))
-
-
-       (t
-	(error "XML: Invalid DTD item"))
-       )
-      )
-
-    ;;  Skip the end of the DTD
-    (search-forward ">" end)
+	  ;;  Skip the end of the DTD
+	  (search-forward ">"))))
     (nreverse dtd)))
 
 
 (defun xml-parse-elem-type (string)
-  "Convert a STRING for an element type into an elisp structure."
+  "Convert element type STRING into a Lisp structure."
 
   (let (elem modifier)
     (if (string-match "(\\([^)]+\\))\\([+*?]?\\)" string)
@@ -433,8 +541,7 @@ The DTD must end before the position END in the current buffer."
 	    (if (string-match "," elem)
 		(setq elem (cons 'seq
 				 (mapcar 'xml-parse-elem-type
-					 (split-string elem ","))))
-	      )))
+					 (split-string elem ",")))))))
       (if (string-match "[ \t\n\r]*\\([^+*?]+\\)\\([+*?]?\\)" string)
 	  (setq elem	 (match-string 1 string)
 		modifier (match-string 2 string))))
@@ -454,53 +561,44 @@ The DTD must end before the position END in the current buffer."
 
 ;;*******************************************************************
 ;;**
-;;**  Converting code points to strings
-;;**
-;;*******************************************************************
-
-(defun xml-ucs-to-string (codepoint)
-  "Return a string representation of CODEPOINT.	 If it can't be
-converted, return '?'."
-  (cond ((boundp 'decode-char)
-	 (char-to-string (decode-char 'ucs codepoint)))
-	((and (< codepoint 128)
-	      (> codepoint 31))
-	 (char-to-string codepoint))
-	(t "?"))) ; FIXME: There's gotta be a better way to
-		  ; designate an unknown character.
-
-;;*******************************************************************
-;;**
 ;;**  Substituting special XML sequences
 ;;**
 ;;*******************************************************************
 
-(defun xml-substitute-special (string)
-  "Return STRING, after subsituting special XML sequences."
-  (while (string-match "&lt;" string)
-    (setq string (replace-match "<"  t nil string)))
-  (while (string-match "&gt;" string)
-    (setq string (replace-match ">"  t nil string)))
-  (while (string-match "&apos;" string)
-    (setq string (replace-match "'"  t nil string)))
-  (while (string-match "&quot;" string)
-    (setq string (replace-match "\"" t nil string)))
-  (while (string-match "&#\\([0-9]+\\);" string)
-    (setq string (replace-match (xml-ucs-to-string
-				 (string-to-number
-				  (match-string-no-properties 1 string)))
-				t nil string)))
-  (while (string-match "&#x\\([0-9a-fA-F]+\\);" string)
-    (setq string (replace-match (xml-ucs-to-string
-				 (string-to-number
-				  (match-string-no-properties 1 string)
-                                  16))
-				t nil string)))
+(eval-when-compile
+  (defvar str))		       ; dynamic from replace-regexp-in-string
 
-  ;; This goes last so it doesn't confuse the matches above.
-  (while (string-match "&amp;" string)
-    (setq string (replace-match "&"  t nil string)))
-  string)
+;; Fixme:  Take declared entities from the DTD when they're available.
+(defun xml-substitute-entity (match)
+  "Subroutine of xml-substitute-special."
+  (save-match-data
+    (let ((match1 (match-string 1 str)))
+      (cond ((string= match1 "lt") "<")
+	    ((string= match1 "gt") ">")
+	    ((string= match1 "apos") "'")
+	    ((string= match1 "quot") "\"")
+	    ((string= match1 "amp") "&")
+	    ((and (string-match "#\\([0-9]+\\)" match1)
+		  (let ((c (decode-char
+			    'ucs
+			    (string-to-number (match-string 1 match1)))))
+		    (if c (string c))))) ; else unrepresentable
+	    ((and (string-match "#x\\([[:xdigit:]]+\\)" match1)
+		  (let ((c (decode-char
+			    'ucs
+			    (string-to-number (match-string 1 match1) 16))))
+		    (if c (string c)))))
+	    ;; Default to asis.  Arguably, unrepresentable code points
+	    ;; might be best replaced with U+FFFD.
+	    (t match)))))
+
+(defun xml-substitute-special (string)
+  "Return STRING, after subsituting entity references."
+  ;; This originally made repeated passes through the string from the
+  ;; beginning, which isn't correct, since then either "&amp;amp;" or
+  ;; "&#38;amp;" won't DTRT.
+  (replace-regexp-in-string "&\\([^;]+\\);"
+			    #'xml-substitute-entity string t t))
 
 ;;*******************************************************************
 ;;**
@@ -515,19 +613,18 @@ converted, return '?'."
 
 (defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.
-The first line indented with INDENT-STRING."
+The first line is indented with INDENT-STRING."
   (let ((tree xml)
 	attlist)
-    (insert indent-string "<" (symbol-name (xml-node-name tree)))
+    (insert indent-string ?< (symbol-name (xml-node-name tree)))
 
     ;;  output the attribute list
     (setq attlist (xml-node-attributes tree))
     (while attlist
-      (insert " ")
-      (insert (symbol-name (caar attlist)) "=\"" (cdar attlist) "\"")
+      (insert ?\  (symbol-name (caar attlist)) "=\"" (cdar attlist) ?\")
       (setq attlist (cdr attlist)))
 
-    (insert ">")
+    (insert ?>)
 
     (setq tree (xml-node-children tree))
 
@@ -535,15 +632,16 @@ The first line indented with INDENT-STRING."
     (dolist (node tree)
       (cond
        ((listp node)
-	(insert "\n")
+	(insert ?\n)
 	(xml-debug-print-internal node (concat indent-string "  ")))
        ((stringp node) (insert node))
        (t
 	(error "Invalid XML tree"))))
 
-    (insert "\n" indent-string
-	    "</" (symbol-name (xml-node-name xml)) ">")))
+    (insert ?\n indent-string
+	    ?< ?/ (symbol-name (xml-node-name xml)) ?>)))
 
 (provide 'xml)
 
+;;; arch-tag: 5864b283-5a68-4b59-a20d-36a72b353b9b
 ;;; xml.el ends here

@@ -1202,4 +1202,5 @@ The command \\[yank] can retrieve it from there."
 	(setq bp (if buf nil (cdr bp))))
       (or first calc-embedded-quiet (message "")))))
 
+;;; arch-tag: 1b8f311e-fba1-40d3-b8c3-1d6f68fd26fc
 ;;; calc-embed.el ends here

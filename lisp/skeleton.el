@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons
 
-;; Copyright (C) 1993, 1994, 1995, 1996 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 2003 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: FSF
@@ -52,7 +52,7 @@ Typical examples might be `upcase' or `capitalize'.")
 (defvar skeleton-autowrap t
   "Controls wrapping behaviour of functions created with `define-skeleton'.
 When the region is visible (due to `transient-mark-mode' or marking a region
-with the mouse) and this is non-`nil' and the function was called without an
+with the mouse) and this is non-nil and the function was called without an
 explicit ARG, then the ARG defaults to -1, i.e. wrapping around the visible
 region.
 
@@ -78,10 +78,10 @@ The variables `v1' and `v2' are still set when calling this.")
   "Function for transforming a skeleton proxy's aliases' variable value.")
 
 (defvar skeleton-untabify t
-  "When non-`nil' untabifies when deleting backwards with element -ARG.")
+  "When non-nil untabifies when deleting backwards with element -ARG.")
 
 (defvar skeleton-newline-indent-rigidly nil
-  "When non-`nil', indent rigidly under current line for element `\\n'.
+  "When non-nil, indent rigidly under current line for element `\\n'.
 Else use mode's `indent-line-function'.")
 
 (defvar skeleton-further-elements ()
@@ -98,10 +98,6 @@ skeleton elements.")
   "*Replacement for %s in prompts of recursive subskeletons.")
 
 
-(defvar skeleton-abbrev-cleanup nil
-  "Variable used to delete the character that led to abbrev expansion.")
-
-
 (defvar skeleton-debug nil
   "*If non-nil `define-skeleton' will override previous definition.")
 
@@ -116,18 +112,25 @@ are integer buffer positions in the reverse order of the insertion order.")
 (defvar skeleton-point)
 (defvar skeleton-regions)
 
+(def-edebug-spec skeleton-edebug-spec
+  ([&or null stringp (stringp &rest stringp) [[&not atom] def-form]]
+   &rest &or "n" "_" "-" ">" "@" "&" "!" "resume:"
+   ("quote" def-form) skeleton-edebug-spec def-form))
 ;;;###autoload
 (defmacro define-skeleton (command documentation &rest skeleton)
   "Define a user-configurable COMMAND that enters a statement skeleton.
-DOCUMENTATION is that of the command, while the variable of the same name,
-which contains the skeleton, has a documentation to that effect.
-INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
+DOCUMENTATION is that of the command.
+SKELETON is as defined under `skeleton-insert'."
+  (declare (debug (&define name stringp skeleton-edebug-spec)))
   (if skeleton-debug
       (set command skeleton))
   `(progn
+     ;; Tell self-insert-command that this function, if called by an
+     ;; abbrev, should cause the self-insert to be skipped.
+     (put ',command 'no-self-insert t)
      (defun ,command (&optional str arg)
        ,(concat documentation
-		(if (string-match "\n\\>" documentation)
+		(if (string-match "\n\\'" documentation)
 		    "" "\n")
 		"\n"
   "This is a skeleton command (see `skeleton-insert').
@@ -144,97 +147,34 @@ This is a way of overriding the use of a highlighted region.")
 
 ;;;###autoload
 (defun skeleton-proxy-new (skeleton &optional str arg)
-  "Insert skeleton defined by variable of same name (see `skeleton-insert').
+  "Insert SKELETON.
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
 If no ARG was given, but the region is visible, ARG defaults to -1 depending
 on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
 This command can also be an abbrev expansion (3rd and 4th columns in
 \\[edit-abbrevs]  buffer: \"\"  command-name).
 
-When called as a function, optional first argument STR may also be a string
-which will be the value of `str' whereas the skeleton's interactor is then
-ignored."
-  (interactive "*P\nP")
-  (setq skeleton (funcall skeleton-filter skeleton))
-  (if (not skeleton)
-      (if (memq this-command '(self-insert-command
-			       skeleton-pair-insert-maybe
-			       expand-abbrev))
-	  (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
-    (skeleton-insert skeleton
-		     (if (setq skeleton-abbrev-cleanup
-			       (or (eq this-command 'self-insert-command)
-				   (eq this-command
-				       'skeleton-pair-insert-maybe)))
-			 ()
-		       ;; Pretend  C-x a e  passed its prefix arg to us
-		       (if (or arg current-prefix-arg)
-			   (prefix-numeric-value (or arg
-						     current-prefix-arg))
-			 (and skeleton-autowrap
-			      (or (eq last-command 'mouse-drag-region)
-				  (and transient-mark-mode mark-active))
-			      -1)))
-		     (if (stringp str)
-			 str))
-    (and skeleton-abbrev-cleanup
-	 (setq skeleton-abbrev-cleanup (point))
-	 (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t))))
-
-;; This command isn't meant to be called, only its aliases with meaningful
-;; names are.
-;;;###autoload
-(defun skeleton-proxy (&optional str arg)
-  "Insert skeleton defined by variable of same name (see `skeleton-insert').
-Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
-If no ARG was given, but the region is visible, ARG defaults to -1 depending
-on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
-This command can also be an abbrev expansion (3rd and 4th columns in
-\\[edit-abbrevs]  buffer: \"\"  command-name).
-
-When called as a function, optional first argument STR may also be a string
-which will be the value of `str' whereas the skeleton's interactor is then
-ignored."
-  (interactive "*P\nP")
-  (let ((function (nth 1 (backtrace-frame 1))))
-    (if (eq function 'nth)		; uncompiled Lisp function
-	(setq function (nth 1 (backtrace-frame 5)))
-      (if (eq function 'byte-code)	; tracing byte-compiled function
-	  (setq function (nth 1 (backtrace-frame 2)))))
-    (if (not (setq function (funcall skeleton-filter (symbol-value function))))
-	(if (memq this-command '(self-insert-command
-				 skeleton-pair-insert-maybe
-				 expand-abbrev))
-	    (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
-      (skeleton-insert function
-		       (if (setq skeleton-abbrev-cleanup
-				 (or (eq this-command 'self-insert-command)
-				     (eq this-command
-					 'skeleton-pair-insert-maybe)))
-			   ()
-			 ;; Pretend  C-x a e  passed its prefix arg to us
-			 (if (or arg current-prefix-arg)
-			     (prefix-numeric-value (or arg
-						       current-prefix-arg))
-			   (and skeleton-autowrap
-				(or (eq last-command 'mouse-drag-region)
-				    (and transient-mark-mode mark-active))
-				-1)))
-		       (if (stringp str)
-			   str))
-      (and skeleton-abbrev-cleanup
-	   (setq skeleton-abbrev-cleanup (point))
-	   (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t)))))
-
-
-(defun skeleton-abbrev-cleanup (&rest list)
-  "Value for `post-command-hook' to remove char that expanded abbrev."
-  (if (integerp skeleton-abbrev-cleanup)
-      (progn
-	(delete-region skeleton-abbrev-cleanup (point))
-	(setq skeleton-abbrev-cleanup)
-	(remove-hook 'post-command-hook 'skeleton-abbrev-cleanup t))))
-
+Optional first argument STR may also be a string which will be the value
+of `str' whereas the skeleton's interactor is then ignored."
+  (skeleton-insert (funcall skeleton-filter skeleton)
+		   ;; Pretend  C-x a e  passed its prefix arg to us
+		   (if (or arg current-prefix-arg)
+		       (prefix-numeric-value (or arg
+						 current-prefix-arg))
+		     (and skeleton-autowrap
+			  (or (eq last-command 'mouse-drag-region)
+			      (and transient-mark-mode mark-active))
+			  ;; Deactivate the mark, in case one of the
+			  ;; elements of the skeleton is sensitive
+			  ;; to such situations (e.g. it is itself a
+			  ;; skeleton).
+			  (progn (deactivate-mark)
+				 -1)))
+		   (if (stringp str)
+		       str))
+  ;; Return non-nil to tell expand-abbrev that expansion has happened.
+  ;; Otherwise the no-self-insert is ignored.
+  t)
 
 ;;;###autoload
 (defun skeleton-insert (skeleton &optional regions str)
@@ -262,6 +202,8 @@ If ELEMENT is a string or a character it gets inserted (see also
 
 	\\n	go to next line and indent according to mode
 	_	interesting point, interregion here
+	-	interesting point, no interregion interaction, overrides
+		interesting point set by _
 	>	indent line (or interregion if > _) according to major mode
 	@	add position to `skeleton-positions'
 	&	do next ELEMENT iff previous moved point
@@ -270,8 +212,8 @@ If ELEMENT is a string or a character it gets inserted (see also
 	resume:	skipped, continue here if quit is signaled
 	nil	skipped
 
-After termination, point will be positioned at the first occurrence
-of _ or @ or at the end of the inserted text.
+After termination, point will be positioned at the last occurrence of -
+or at the first occurrence of _ or at the end of the inserted text.
 
 Further elements can be defined via `skeleton-further-elements'.  ELEMENT may
 itself be a SKELETON with an INTERACTOR.  The user is prompted repeatedly for
@@ -284,19 +226,19 @@ strings with the subskeleton being repeated once for each string.
 
 Quoted Lisp expressions are evaluated for their side-effects.
 Other Lisp expressions are evaluated and the value treated as above.
-Note that expressions may not return `t' since this implies an
+Note that expressions may not return t since this implies an
 endless loop.  Modes can define other symbols by locally setting them
 to any valid skeleton element.  The following local variables are
 available:
 
 	str	first time: read a string according to INTERACTOR
 		then: insert previously read string once more
-	help	help-form during interaction with the user or `nil'
+	help	help-form during interaction with the user or nil
 	input	initial input (string or cons with index) while reading str
 	v1, v2	local variables for memorizing anything you want
 
 When done with skeleton, but before going back to `_'-point call
-`skeleton-end-hook' if that is non-`nil'."
+`skeleton-end-hook' if that is non-nil."
   (let ((skeleton-regions regions))
     (and skeleton-regions
 	 (setq skeleton-regions
@@ -334,8 +276,8 @@ When done with skeleton, but before going back to `_'-point call
 
 PROMPT must be a string or a form that evaluates to a string.
 It may contain a `%s' which will be replaced by `skeleton-subprompt'.
-If non-`nil' second arg INITIAL-INPUT or variable `input' is a string or
-cons with index to insert before reading.  If third arg RECURSIVE is non-`nil'
+If non-nil second arg INITIAL-INPUT or variable `input' is a string or
+cons with index to insert before reading.  If third arg RECURSIVE is non-nil
 i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
@@ -388,7 +330,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 		 opoint (point)
 		 skeleton (cdr skeleton))
       (condition-case quit
-	  (skeleton-internal-1 (car skeleton))
+	  (skeleton-internal-1 (car skeleton) nil recursive)
 	(quit
 	 (if (eq (cdr quit) 'recursive)
 	     (setq recursive 'quit
@@ -408,7 +350,7 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit 'recursive)
     recursive))
 
-(defun skeleton-internal-1 (element &optional literal)
+(defun skeleton-internal-1 (element &optional literal recursive)
   (cond
    ((char-or-string-p element)
     (if (and (integerp element)		; -num
@@ -416,8 +358,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(if skeleton-untabify
 	    (backward-delete-char-untabify (- element))
 	  (delete-backward-char (- element)))
-      (insert (if (and skeleton-transformation
-		       (not literal))
+      (insert (if (not literal)
 		  (funcall skeleton-transformation element)
 		element))))
    ((or (eq element '\n)			; actually (eq '\n 'n)
@@ -458,25 +399,29 @@ automatically, and you are prompted to fill in the variable parts.")))
 	       (end-of-line 0)))
       (or skeleton-point
 	  (setq skeleton-point (point)))))
-	((eq element '&)
+   ((eq element '-)
+    (setq skeleton-point (point)))
+   ((eq element '&)
     (when skeleton-modified (pop skeleton)))
    ((eq element '|)
     (unless skeleton-modified (pop skeleton)))
    ((eq element '@)
-    (push (point) skeleton-positions)
-    (unless skeleton-point (setq skeleton-point (point))))
+    (push (point) skeleton-positions))
    ((eq 'quote (car-safe element))
     (eval (nth 1 element)))
-   ((or (stringp (car-safe element))
-	(consp (car-safe element)))
+   ((and (consp element)
+	 (or (stringp (car element)) (listp (car element))))
+    ;; Don't forget: `symbolp' is also true for nil.
     (if (symbolp (car-safe (car element)))
-	(while (skeleton-internal-list element nil t))
+	(while (and (skeleton-internal-list element nil t)
+		    ;; If the interactor is nil, don't infinite loop.
+		    (car element)))
       (setq literal (car element))
       (while literal
 	(skeleton-internal-list element (car literal))
 	(setq literal (cdr literal)))))
    ((null element))
-   (t (skeleton-internal-1 (eval element) t))))
+   (t (skeleton-internal-1 (eval element) t recursive))))
 
 ;; Maybe belongs into simple.el or elsewhere
 ;; ;;;###autoload
@@ -530,6 +475,12 @@ Each alist element, which looks like (ELEMENT ...), is passed to
 
 Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
 
+(defvar skeleton-pair-default-alist '((?( _ ?)) (?\))
+				      (?[ _ ?]) (?\])
+				      (?{ _ ?}) (?\})
+				      (?< _ ?>) (?\>)
+				      (?« _ ?») (?\»)
+				      (?` _ ?')))
 
 ;;;###autoload
 (defun skeleton-pair-insert-maybe (arg)
@@ -546,29 +497,23 @@ If a match is found in `skeleton-pair-alist', that is inserted, else
 the defaults are used.  These are (), [], {}, <> and `' for the
 symmetrical ones, and the same character twice for the others."
   (interactive "*P")
-  (let ((mark (and skeleton-autowrap
-		   (or (eq last-command 'mouse-drag-region)
-		       (and transient-mark-mode mark-active))))
-	(skeleton-end-hook))
-    (if (or arg
-	    (not skeleton-pair)
-	    (memq (char-syntax (preceding-char)) '(?\\ ?/))
-	    (and (not mark)
-		 (or overwrite-mode
-		     (if (not skeleton-pair-on-word) (looking-at "\\w"))
-		     (funcall skeleton-pair-filter))))
-	(self-insert-command (prefix-numeric-value arg))
-      (setq last-command-char (logand last-command-char 255))
-      (or skeleton-abbrev-cleanup
-	  (skeleton-insert
-	   (cons nil (or (assq last-command-char skeleton-pair-alist)
-			 (assq last-command-char '((?( _ ?))
-						   (?[ _ ?])
-						   (?{ _ ?})
-						   (?< _ ?>)
-						   (?` _ ?')))
-			 `(,last-command-char _ ,last-command-char)))
-	   (if mark -1))))))
+  (if (or arg (not skeleton-pair))
+      (self-insert-command (prefix-numeric-value arg))
+    (let* ((mark (and skeleton-autowrap
+		      (or (eq last-command 'mouse-drag-region)
+			  (and transient-mark-mode mark-active))))
+	   (skeleton-end-hook)
+	   (char last-command-char)
+	   (skeleton (or (assq char skeleton-pair-alist)
+			 (assq char skeleton-pair-default-alist)
+			 `(,char _ ,char))))
+      (if (or (memq (char-syntax (preceding-char)) '(?\\ ?/))
+	      (and (not mark)
+		   (or overwrite-mode
+		       (if (not skeleton-pair-on-word) (looking-at "\\w"))
+		       (funcall skeleton-pair-filter))))
+	  (self-insert-command (prefix-numeric-value arg))
+	(skeleton-insert (cons nil skeleton) (if mark -1))))))
 
 
 ;; A more serious example can be found in sh-script.el
@@ -616,4 +561,5 @@ symmetrical ones, and the same character twice for the others."
 
 (provide 'skeleton)
 
+;;; arch-tag: ccad7bd5-eb5d-40de-9ded-900197215c3e
 ;;; skeleton.el ends here

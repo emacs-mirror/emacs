@@ -193,3 +193,6 @@ Boston, MA 02111-1307, USA.  */
    SINIX.  */
 #undef LIBS_SYSTEM
 #define LIBS_SYSTEM -lgen
+
+/* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
+   (do not change this comment) */

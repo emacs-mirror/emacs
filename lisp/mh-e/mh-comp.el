@@ -1,6 +1,7 @@
 ;;; mh-comp.el --- MH-E functions for composing messages
 
-;; Copyright (C) 1993,1995,1997,2000,2001,2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 95, 1997,
+;;  2000, 01, 02, 2003 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -30,14 +31,14 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.3 2003/02/04 13:15:32 lektu Exp $
-
 ;;; Code:
 
 (require 'mh-e)
 (require 'gnus-util)
 (require 'easymenu)
 (require 'cl)
+(eval-when (compile load eval)
+  (ignore-errors (require 'mailabbrev)))
 
 ;; Shush the byte-compiler
 (defvar adaptive-fill-first-line-regexp)
@@ -309,27 +310,21 @@ See also documentation for `\\[mh-send]' function."
 
 ;;;###mh-autoload
 (defun mh-forward (to cc &optional msg-or-seq)
-  "Forward one or more messages to the recipients TO and CC.
+  "Forward messages to the recipients TO and CC.
+Use optional MSG-OR-SEQ argument to specify a message or sequence to forward.
+Default is the displayed message.
+If optional prefix argument is provided, then prompt for the message sequence.
+If variable `transient-mark-mode' is non-nil and the mark is active, then the
+selected region is forwarded.
+In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
+region in a cons cell, or a sequence.
 
-Use the optional MSG-OR-SEQ to specify a message or sequence to forward.
-
-Default is the displayed message.  If optional prefix argument is given then
-prompt for the message sequence.  If variable `transient-mark-mode' is non-nil
-and the mark is active, then the selected region is forwarded.
 See also documentation for `\\[mh-send]' function."
   (interactive (list (mh-read-address "To: ")
                      (mh-read-address "Cc: ")
-                     (cond
-                      ((mh-mark-active-p t)
-                       (mh-region-to-msg-list (region-beginning) (region-end)))
-                      (current-prefix-arg
-                       (mh-read-seq-default "Forward" t))
-                      (t
-                       (mh-get-msg-num t)))))
+                     (mh-interactive-msg-or-seq "Forward")))
   (let* ((folder mh-current-folder)
-         (msgs (cond ((numberp msg-or-seq) (list msg-or-seq))
-                     ((listp msg-or-seq) msg-or-seq)
-                     (t (mh-seq-to-msgs msg-or-seq))))
+         (msgs (mh-msg-or-seq-to-msg-list msg-or-seq))
          (config (current-window-configuration))
          (fwd-msg-file (mh-msg-filename (car msgs) folder))
          ;; forw always leaves file in "draft" since it doesn't have -draft
@@ -337,7 +332,8 @@ See also documentation for `\\[mh-send]' function."
          (draft (cond ((or (not (file-exists-p draft-name))
                            (y-or-n-p "The file 'draft' exists.  Discard it? "))
                        (mh-exec-cmd "forw" "-build" (if mh-nmh-flag "-mime")
-                                    mh-current-folder msgs)
+                                    mh-current-folder
+                                    (mh-coalesce-msg-list msgs))
                        (prog1
                            (mh-read-draft "" draft-name t)
                          (mh-insert-fields "To:" to "Cc:" cc)
@@ -353,14 +349,12 @@ See also documentation for `\\[mh-send]' function."
         (setq orig-from (mh-get-header-field "From:"))
         (setq orig-subject (mh-get-header-field "Subject:")))
       (let ((forw-subject
-             (mh-forwarded-letter-subject orig-from orig-subject))
-            (compose))
+             (mh-forwarded-letter-subject orig-from orig-subject)))
         (mh-insert-fields "Subject:" forw-subject)
         (goto-char (point-min))
         ;; If using MML, translate mhn
         (if (equal mh-compose-insertion 'gnus)
             (save-excursion
-              (setq compose t)
               (re-search-forward (format "^\\(%s\\)?$"
                                          mh-mail-header-separator))
               (while
@@ -386,12 +380,10 @@ See also documentation for `\\[mh-send]' function."
           (forward-line 1))
         (delete-other-windows)
         (mh-add-msgs-to-seq msgs 'forwarded t)
-        (mh-compose-and-send-mail draft "" folder msg-or-seq
+        (mh-compose-and-send-mail draft "" folder msgs
                                   to forw-subject cc
                                   mh-note-forw "Forwarded:"
                                   config)
-        (if compose
-            (setq mh-mml-compose-insert-flag t))
         (mh-letter-mode-message)))))
 
 (defun mh-forwarded-letter-subject (from subject)
@@ -439,38 +431,27 @@ setting of the variable `mh-redist-full-contents'.  See its documentation."
       (mh-goto-header-end 0)
       (insert "Resent-To: " to "\n")
       (if (not (equal cc "")) (insert "Resent-cc: " cc "\n"))
-      (mh-clean-msg-header (point-min)
-                           "^Message-Id:\\|^Received:\\|^Return-Path:\\|^Sender:\\|^Date:\\|^From:"
-                           nil)
+      (mh-clean-msg-header
+       (point-min)
+       "^Message-Id:\\|^Received:\\|^Return-Path:\\|^Sender:\\|^Date:\\|^From:"
+       nil)
       (save-buffer)
       (message "Redistributing...")
-      (if (not mh-redist-background)
-          (if mh-redist-full-contents
-              (call-process "/bin/sh" nil 0 nil "-c"
-                            (format "mhdist=1 mhaltmsg=%s %s -push %s"
-                                    buffer-file-name
-                                    (expand-file-name mh-send-prog mh-progs)
-                                    buffer-file-name))
-            (call-process "/bin/sh" nil 0 nil "-c"
-                          (format
-                           "mhdist=1 mhaltmsg=%s mhannotate=1 %s -push %s"
-                           (mh-msg-filename msg folder)
-                           (expand-file-name mh-send-prog mh-progs)
-                           buffer-file-name))))
-      (mh-annotate-msg msg folder mh-note-dist
-                       "-component" "Resent:"
-                       "-text" (format "\"%s %s\"" to cc))
-      (if mh-redist-background
-          (mh-exec-cmd-daemon "/bin/sh" nil "-c"
-                              (format "mhdist=1 mhaltmsg=%s %s %s %s"
-                                      (if mh-redist-full-contents
-                                          buffer-file-name
-                                        (mh-msg-filename msg folder))
-                                      (if mh-redist-full-contents
-                                          ""
-                                        "mhannotate=1")
-                                      (mh-expand-file-name "send" mh-progs)
-                                      buffer-file-name)))
+      (let ((env "mhdist=1"))
+        ;; Setup environment...
+        (setq env (concat env " mhaltmsg=" (if mh-redist-full-contents
+                                               buffer-file-name
+                                             (mh-msg-filename msg folder))))
+        (unless mh-redist-full-contents
+          (setq env (concat env " mhannotate=1")))
+        ;; Redistribute...
+        (if mh-redist-background
+            (mh-exec-cmd-env-daemon env mh-send-prog nil buffer-file-name)
+          (mh-exec-cmd-error env mh-send-prog "-push" buffer-file-name))
+        ;; Annotate...
+        (mh-annotate-msg msg folder mh-note-dist
+                         "-component" "Resent:"
+                         "-text" (format "\"%s %s\"" to cc)))
       (kill-buffer draft)
       (message "Redistributing...done"))))
 
@@ -501,7 +482,8 @@ Optional argument BUFFER can be used to specify the buffer."
 
 ;;;###mh-autoload
 (defun mh-reply (message &optional reply-to includep)
-  "Reply to MESSAGE (default: current message).
+  "Reply to MESSAGE.
+Default is the displayed message.
 If the optional argument REPLY-TO is not given, prompts for type of addresses
 to reply to:
    from    sender only,
@@ -706,14 +688,15 @@ reused."
     (buffer-substring (point-min) (1- (point-max)))))
 
 (defun mh-annotate-msg (msg buffer note &rest args)
-  "Mark MSG in BUFFER with character NOTE and annotate message with ARGS."
-  (apply 'mh-exec-cmd "anno" buffer msg args)
+  "Mark MSG in BUFFER with character NOTE and annotate message with ARGS.
+MSG can be a message number, a list of message numbers, or a sequence."
+  (apply 'mh-exec-cmd "anno" buffer
+         (if (listp msg) (append msg args) (cons msg args)))
   (save-excursion
     (cond ((get-buffer buffer)          ; Buffer may be deleted
            (set-buffer buffer)
-           (if (numberp msg)
-               (mh-notate msg note (1+ mh-cmd-note))
-             (mh-notate-seq msg note (1+ mh-cmd-note)))))))
+           (mh-iterate-on-msg-or-seq nil msg
+             (mh-notate nil note (1+ mh-cmd-note)))))))
 
 (defun mh-insert-fields (&rest name-values)
   "Insert the NAME-VALUES pairs in the current buffer.
@@ -776,7 +759,7 @@ Returns t if found, nil if not."
   "Extract From: string from header."
   (save-excursion
     (if (not (mh-goto-header-field "From:"))
-        (error "No From header line found")
+        nil
       (skip-chars-forward " \t")
       (buffer-substring-no-properties
        (point) (progn (mh-header-field-end)(point))))))
@@ -812,9 +795,9 @@ Returns t if found, nil if not."
       ;; The next two will have to be merged. But I also need to make sure the
       ;; user can't mix directives of both types.
       ["Pull in All Compositions (mhn)"
-       mh-edit-mhn mh-mhn-compose-insert-flag]
+       mh-edit-mhn (mh-mhn-directive-present-p)]
       ["Pull in All Compositions (gnus)"
-       mh-mml-to-mime mh-mml-compose-insert-flag]
+       mh-mml-to-mime (mh-mml-directive-present-p)]
       ["Revert to Non-MIME Edit (mhn)"
        mh-revert-mhn-edit (equal mh-compose-insertion 'mhn)]
       ["Kill This Draft"          mh-fully-kill-draft t]))))
@@ -856,6 +839,11 @@ work better in MH-Letter mode."
     (if (mh-in-header-p)
         (mail-mode-fill-paragraph arg)
       (fill-paragraph arg))))
+
+;; Avoid compiler warnings in XEmacs and Emacs 20
+(eval-when-compile
+  (defvar tool-bar-mode)
+  (defvar tool-bar-map))
 
 ;;;###autoload
 (define-derived-mode mh-letter-mode text-mode "MH-Letter"
@@ -918,8 +906,11 @@ When a message is composed, the hooks `text-mode-hook' and
   (setq paragraph-separate paragraph-start)
   ;; --- End of code from sendmail.el ---
 
+  ;; Enable undo since a show-mode buffer might have been reused.
+  (buffer-enable-undo)
   (if (and (boundp 'tool-bar-mode) tool-bar-mode)
       (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))
+  (mh-funcall-if-exists mh-toolbar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
    ((or (equal mh-highlight-citation-p 'font-lock)
@@ -933,16 +924,6 @@ When a message is composed, the hooks `text-mode-hook' and
     ;; ...or the header only
     (setq font-lock-defaults '(mh-show-font-lock-keywords t))))
   (easy-menu-add mh-letter-menu)
-  ;; See if a "forw: -mime" message containing a MIME composition.
-  ;; Mode clears local vars, so can't do this in mh-forward.
-  (save-excursion
-    (goto-char (point-min))
-    (when (and (re-search-forward
-                (format "^\\(%s\\)?$" mail-header-separator) nil t)
-               (= 0 (forward-line 1))
-               (looking-at "^#forw"))
-      (require 'mh-mime)            ;Need mh-mhn-compose-insert-flag local var
-      (setq mh-mhn-compose-insert-flag t)))
   (setq fill-column mh-letter-fill-column)
   ;; If text-mode-hook turned on auto-fill, tune it for messages
   (when auto-fill-function
@@ -1055,16 +1036,25 @@ called, with no arguments, before the signature is actually inserted."
 ;;; Routines to compose and send a letter.
 
 (defun mh-insert-x-face ()
-  "Append X-Face field to header.
+  "Append X-Face, Face or X-Image-URL field to header.
 If the field already exists, this function does nothing."
   (when (and (file-exists-p mh-x-face-file)
              (file-readable-p mh-x-face-file))
     (save-excursion
-      (when (null (mh-position-on-field "X-Face"))
-        (insert "X-Face: ")
-        (goto-char (+ (point) (cadr (insert-file-contents mh-x-face-file))))
-        (if (not (looking-at "^"))
-            (insert "\n"))))))
+      (unless (or (mh-position-on-field "X-Face")
+                  (mh-position-on-field "Face")
+                  (mh-position-on-field "X-Image-URL"))
+        (save-excursion
+          (goto-char (+ (point) (cadr (insert-file-contents mh-x-face-file))))
+          (if (not (looking-at "^"))
+              (insert "\n")))
+        (unless (looking-at "\\(X-Face\\|Face\\|X-Image-URL\\): ")
+          (insert "X-Face: "))))))
+
+(defvar mh-x-mailer-string nil
+  "*String containing the contents of the X-Mailer header field.
+If nil, this variable is initialized to show the version of MH-E, Emacs, and
+MH the first time a message is composed.")
 
 (defun mh-insert-x-mailer ()
   "Append an X-Mailer field to the header.
@@ -1116,21 +1106,39 @@ The versions of MH-E, Emacs, and MH are shown."
           (setq fields (cdr fields))))
       search-result)))
 
-(defun mh-insert-mail-followup-to ()
-  "Insert Mail-Followup-To: if To or Cc match `mh-insert-mail-followup-to-list'."
+(defun mh-insert-auto-fields ()
+  "Insert custom fields if To or Cc match `mh-auto-fields-list'."
   (save-excursion
-    (if (and (or (mh-goto-header-field "To:")(mh-goto-header-field "cc:"))
-             (not (mh-goto-header-field "Mail-Followup-To: ")))
-        (let ((list mh-insert-mail-followup-to-list))
-          (while list
-            (let ((regexp (nth 0 (car list)))
-                  (entry  (nth 1 (car list))))
-              (when (mh-regexp-in-field-p regexp "To:" "cc:")
-                (if (mh-goto-header-field "Mail-Followup-To: ")
-                    (insert entry ", ")
-                  (mh-goto-header-end 0)
-                  (insert "Mail-Followup-To: " entry "\n")))
-              (setq list (cdr list))))))))
+    (when (and (or (mh-goto-header-field "To:")(mh-goto-header-field "cc:")))
+      (let ((list mh-auto-fields-list))
+        (while list
+          (let ((regexp (nth 0 (car list)))
+                (entries (nth 1 (car list))))
+            (when (mh-regexp-in-field-p regexp "To:" "cc:")
+              (let ((entry-list entries))
+                (while entry-list
+                  (let ((field (caar entry-list))
+                        (value (cdar entry-list)))
+                    (cond
+                     ((equal "identity" field)
+                      (when (assoc value mh-identity-list)
+                        (mh-insert-identity value)))
+                     (t
+                      (mh-modify-header-field field value
+                                              (equal field "From")))))
+                  (setq entry-list (cdr entry-list))))))
+          (setq list (cdr list)))))))
+
+(defun mh-modify-header-field (field value &optional overwrite-flag)
+  "To header FIELD add VALUE.
+If OVERWRITE-FLAG is non-nil then the old value, if present, is discarded."
+  (cond ((mh-goto-header-field (concat field ":"))
+         (insert value)
+         (if overwrite-flag
+             (delete-region (point) (line-end-position))
+           (insert ", ")))
+        (t (mh-goto-header-end 0)
+           (insert field ": " value "\n"))))
 
 (defun mh-compose-and-send-mail (draft send-args
                                        sent-from-folder sent-from-msg
@@ -1149,12 +1157,13 @@ message.  In that case, the ANNOTATE-FIELD is used to build a string
 for `mh-annotate-msg'.
 CONFIG is the window configuration to restore after sending the letter."
   (pop-to-buffer draft)
-  (if mh-insert-mail-followup-to-flag (mh-insert-mail-followup-to))
+  (mh-insert-auto-fields)
   (mh-letter-mode)
 
   ;; mh-identity support
   (if (and (boundp 'mh-identity-default)
-           mh-identity-default)
+           mh-identity-default
+           (not mh-identity-local))
       (mh-insert-identity mh-identity-default))
   (when (and (boundp 'mh-identity-list)
              mh-identity-list)
@@ -1169,6 +1178,7 @@ CONFIG is the window configuration to restore after sending the letter."
   (setq mh-previous-window-config config)
   (setq mode-line-buffer-identification (list "    {%b}"))
   (mh-logo-display)
+  (mh-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'mh-tidy-draft-buffer nil t)
   (if (and (boundp 'mh-compose-letter-function)
            mh-compose-letter-function)
@@ -1193,19 +1203,16 @@ This should be the last function called when composing the draft."
 If optional prefix argument ARG is provided, monitor delivery.
 The value of `mh-before-send-letter-hook' is a list of functions to be called,
 with no arguments, before doing anything.
-Run `\\[mh-edit-mhn]' if variable `mh-mhn-compose-insert-flag' is set.
-Run `\\[mh-mml-to-mime]' if variable `mh-mml-compose-insert-flag' is set.
+Run `\\[mh-edit-mhn]' if mhn directives are present; otherwise
+run `\\[mh-mml-to-mime]' if mml directives are present.
 Insert X-Mailer field if variable `mh-insert-x-mailer-flag' is set.
 Insert X-Face field if the file specified by `mh-x-face-file' exists."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
-  (cond
-   ((and (boundp 'mh-mhn-compose-insert-flag)
-         mh-mhn-compose-insert-flag)
-    (mh-edit-mhn))
-   ((and (boundp 'mh-mml-compose-insert-flag)
-         mh-mml-compose-insert-flag)
-    (mh-mml-to-mime)))
+  (cond ((mh-mhn-directive-present-p)
+         (mh-edit-mhn))
+        ((mh-mml-directive-present-p)
+         (mh-mml-to-mime)))
   (if mh-insert-x-mailer-flag (mh-insert-x-mailer))
   (mh-insert-x-face)
   (save-buffer)
@@ -1232,7 +1239,7 @@ Insert X-Face field if the file specified by `mh-x-face-file' exists."
              (mh-goto-header-field "Content-Type:"))
         (setq mh-send-args (format "-mime %s" mh-send-args)))
     (cond (arg
-           (pop-to-buffer "MH mail delivery")
+           (pop-to-buffer mh-mail-delivery-buffer)
            (erase-buffer)
            (mh-exec-cmd-output mh-send-prog t "-watch" "-nopush"
                                "-nodraftfolder" mh-send-args file-name)
@@ -1339,7 +1346,7 @@ yanked message will be deleted."
                                 (eq t mh-yank-from-start-of-msg)))
                        ;; supercite needs the full header
                        (concat
-                        (buffer-substring (point-min) (mail-header-end))
+                        (buffer-substring (point-min) (mh-mail-header-end))
                         "\n"
                         (buffer-substring (region-beginning) (region-end))))
                       (yank-region
@@ -1472,6 +1479,33 @@ This is useful in breaking up paragraphs in replies."
         (insert " "))
       (forward-line -1))))
 
+(mh-do-in-xemacs (defvar mail-abbrevs))
+
+(defun mh-folder-expand-at-point ()
+  "Do folder name completion in Fcc header field."
+  (let* ((end (point))
+         (syntax-table (syntax-table))
+         (beg (unwind-protect
+                  (save-excursion
+                    (mh-funcall-if-exists mail-abbrev-make-syntax-table)
+                    (set-syntax-table mail-abbrev-syntax-table)
+                    (backward-word 1)
+                    (point))
+                (set-syntax-table syntax-table)))
+         (folder (buffer-substring beg end))
+         (leading-plus (and (> (length folder) 0) (equal (aref folder 0) ?+)))
+         (last-slash (mh-search-from-end ?/ folder))
+         (prefix (and last-slash (substring folder 0 last-slash)))
+         (mail-abbrevs
+          (mapcar #'(lambda (x)
+                      (list (cond (prefix (format "%s/%s" prefix x))
+                                  (leading-plus (format "+%s" x))
+                                  (t x))))
+                  (mh-folder-completion-function folder nil t))))
+    (if (fboundp 'mail-abbrev-complete-alias)
+        (mh-funcall-if-exists mail-abbrev-complete-alias)
+      (error "Fcc completion not supported in your version of Emacs"))))
+
 ;;;###mh-autoload
 (defun mh-letter-complete (arg)
   "Perform completion on header field or word preceding point.
@@ -1480,12 +1514,19 @@ by the function designated by `mh-letter-complete-function' elsewhere,
 passing the prefix ARG if any."
   (interactive "P")
   (let ((case-fold-search t))
-    (if (and (mh-in-header-p)
-             (save-excursion
-               (mh-header-field-beginning)
-               (looking-at "^.*\\(to\\|cc\\|from\\):")))
-        (mh-alias-letter-expand-alias)
-      (funcall mh-letter-complete-function arg))))
+    (cond
+     ((and (mh-in-header-p)
+           (save-excursion
+             (mh-header-field-beginning)
+             (looking-at "^fcc:")))
+      (mh-folder-expand-at-point))
+     ((and (mh-in-header-p)
+           (save-excursion
+             (mh-header-field-beginning)
+             (looking-at "^.*\\(to\\|cc\\|from\\):")))
+      (mh-alias-letter-expand-alias))
+     (t
+      (funcall mh-letter-complete-function arg)))))
 
 ;;; Build the letter-mode keymap:
 ;;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
@@ -1532,6 +1573,8 @@ passing the prefix ARG if any."
 
 ;; "C-c /" prefix is used in mh-letter-mode by pgp.el and mailcrypt.el.
 
+;;;###autoload(add-to-list 'auto-mode-alist '("/drafts/[0-9]+\\'" . mh-letter-mode))
+
 (provide 'mh-comp)
 
 ;;; Local Variables:
@@ -1539,4 +1582,5 @@ passing the prefix ARG if any."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 62865511-e610-4923-b0b5-f45a8ab70a34
 ;;; mh-comp.el ends here

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.21 2003/02/04 12:05:02 lektu Exp $
+;; Revision: $Id: smerge-mode.el,v 1.24 2003/10/06 16:34:59 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -535,4 +535,6 @@ buffer names."
 
 
 (provide 'smerge-mode)
+
+;;; arch-tag: 605c8d1e-e43d-4943-a6f3-1bcc4333e690
 ;;; smerge-mode.el ends here

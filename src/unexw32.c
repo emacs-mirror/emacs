@@ -23,7 +23,6 @@ Boston, MA 02111-1307, USA.
 
 #include <config.h>
 
-#include <stdlib.h> 	/* _fmode */
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
@@ -111,10 +110,6 @@ _start (void)
 
   /* Grab our malloc arena space now, before CRT starts up. */
   init_heap ();
-
-  /* The default behavior is to treat files as binary and patch up
-     text files appropriately, in accordance with the MSDOS code.  */
-  _fmode = O_BINARY;
 
   /* This prevents ctrl-c's in shells running while we're suspended from
      having us exit.  */
@@ -812,3 +807,6 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
 }
 
 /* eof */
+
+/* arch-tag: fe1d3d1c-ef88-4917-ab22-f12ab16b3254
+   (do not change this comment) */

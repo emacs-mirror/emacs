@@ -51,7 +51,7 @@
     ("^.....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
     ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
-    ("{ \\([^\n}]+\\),}" 1 font-lock-comment-face))		; Labels.
+    ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
 ;; Entry points for making a summary buffer.
@@ -300,8 +300,12 @@ By default, `identity' is set."
 		 ""
 	       (concat "{"
 		       (buffer-substring (point)
-					 (progn (end-of-line) (point)))
-		       "} ")))))
+					 (progn (end-of-line)
+						(backward-char)
+						(if (looking-at ",")
+						    (point)
+						  (1+ (point)))))
+		       " } ")))))
 	 (line
 	  (progn
 	    (forward-line 1)
@@ -396,49 +400,52 @@ Setting this variable has an effect only before reading a mail."
 		    (t "??????"))))
 	  "  "
 	  (save-excursion
-	    (if (not (re-search-forward "^From:[ \t]*" nil t))
-		"                         "
-	      (let* ((from (mail-strip-quoted-names
-			    (buffer-substring
-			     (1- (point))
-			     ;; Get all the lines of the From field
-			     ;; so that we get a whole comment if there is one,
-			     ;; so that mail-strip-quoted-names can discard it.
-			     (let ((opoint (point)))
-			       (while (progn (forward-line 1)
-					     (looking-at "[ \t]")))
-			       ;; Back up over newline, then trailing spaces or tabs
-			       (forward-char -1)
-			       (skip-chars-backward " \t")
-			       (point)))))
-                     len mch lo)
-		(if (string-match
-		     (or rmail-user-mail-address-regexp
-			 (concat "^\\("
-				 (regexp-quote (user-login-name))
-				 "\\($\\|@\\)\\|"
-				 (regexp-quote
-				  ;; Don't lose if run from init file
-				  ;; where user-mail-address is not
-				  ;; set yet.
-				  (or user-mail-address
-				      (concat (user-login-name) "@"
-					      (or mail-host-address
-						  (system-name)))))
-				 "\\>\\)"))
-		     from)
-		    (save-excursion
-		      (goto-char (point-min))
-		      (if (not (re-search-forward "^To:[ \t]*" nil t))
-			  nil
-			(setq from
-			      (concat "to: "
-				      (mail-strip-quoted-names
-				       (buffer-substring
-					(point)
-					(progn (end-of-line)
-					       (skip-chars-backward " \t")
-					       (point)))))))))
+	    (let* ((from (and (re-search-forward "^From:[ \t]*" nil t)
+			      (mail-strip-quoted-names
+			       (buffer-substring
+				(1- (point))
+				;; Get all the lines of the From field
+				;; so that we get a whole comment if there is one,
+				;; so that mail-strip-quoted-names can discard it.
+				(let ((opoint (point)))
+				  (while (progn (forward-line 1)
+						(looking-at "[ \t]")))
+				  ;; Back up over newline, then trailing spaces or tabs
+				  (forward-char -1)
+				  (skip-chars-backward " \t")
+				  (point))))))
+		   len mch lo)
+	      (if (or (null from)
+		      (string-match
+		       (or rmail-user-mail-address-regexp
+			   (concat "^\\("
+				   (regexp-quote (user-login-name))
+				   "\\($\\|@\\)\\|"
+				   (regexp-quote
+				    ;; Don't lose if run from init file
+				    ;; where user-mail-address is not
+				    ;; set yet.
+				    (or user-mail-address
+					(concat (user-login-name) "@"
+						(or mail-host-address
+						    (system-name)))))
+				   "\\>\\)"))
+		       from))
+		  ;; No From field, or it's this user.
+		  (save-excursion
+		    (goto-char (point-min))
+		    (if (not (re-search-forward "^To:[ \t]*" nil t))
+			nil
+		      (setq from
+			    (concat "to: "
+				    (mail-strip-quoted-names
+				     (buffer-substring
+				      (point)
+				      (progn (end-of-line)
+					     (skip-chars-backward " \t")
+					     (point)))))))))
+	      (if (null from)
+		  "                         "
 		(setq len (length from))
 		(setq mch (string-match "[@%]" from))
 		(format "%25s"
@@ -1647,4 +1654,5 @@ KEYWORDS is a comma-separated list of labels."
 
 (provide 'rmailsum)
 
+;;; arch-tag: 556079ee-75c1-47f5-9884-2e0a0bc6c5a1
 ;;; rmailsum.el ends here

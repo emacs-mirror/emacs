@@ -1908,3 +1908,6 @@ Such characters have value t in this table.  */);
 }
 
 #endif /* emacs */
+
+/* arch-tag: 66a89b8d-4c28-47d3-9ca1-56f78440d69f
+   (do not change this comment) */

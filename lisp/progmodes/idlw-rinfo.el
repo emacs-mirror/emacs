@@ -1535,4 +1535,5 @@
 (provide 'idlw-rinfo)
 (provide 'idlwave-rinfo)
 
+;;; arch-tag: d0b65da3-7f5e-4992-b8dd-885800b5cd6b
 ;;; idlw-rinfo.el ends here

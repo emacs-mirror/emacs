@@ -27,30 +27,22 @@
 
 ;;;###autoload
 (defvar menu-bar-emerge-menu (make-sparse-keymap "Emerge"))
-;;;###autoload
-(fset 'menu-bar-emerge-menu (symbol-value 'menu-bar-emerge-menu))
+;;;###autoload (fset 'menu-bar-emerge-menu (symbol-value 'menu-bar-emerge-menu))
 
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-merge-directories]
-  '("Merge Directories..." . emerge-merge-directories))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
-  '("Revisions with Ancestor..." . emerge-revisions-with-ancestor))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-revisions]
-  '("Revisions..." . emerge-revisions))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
-  '("Files with Ancestor..." . emerge-files-with-ancestor))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-files]
-  '("Files..." . emerge-files))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
-  '("Buffers with Ancestor..." . emerge-buffers-with-ancestor))
-;;;###autoload
-(define-key menu-bar-emerge-menu [emerge-buffers]
-  '("Buffers..." . emerge-buffers))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-merge-directories]
+;;;###autoload   '("Merge Directories..." . emerge-merge-directories))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
+;;;###autoload   '("Revisions with Ancestor..." . emerge-revisions-with-ancestor))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-revisions]
+;;;###autoload   '("Revisions..." . emerge-revisions))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
+;;;###autoload   '("Files with Ancestor..." . emerge-files-with-ancestor))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-files]
+;;;###autoload   '("Files..." . emerge-files))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
+;;;###autoload   '("Buffers with Ancestor..." . emerge-buffers-with-ancestor))
+;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers]
+;;;###autoload   '("Buffers..." . emerge-buffers))
 
 ;;; Macros
 
@@ -3217,4 +3209,5 @@ More precisely, a [...] regexp to match any one such character."
 
 (provide 'emerge)
 
+;;; arch-tag: a575f092-6e44-400e-b8a2-4124e9377585
 ;;; emerge.el ends here

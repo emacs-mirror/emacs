@@ -20,3 +20,6 @@
 
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: 89580064-dd8c-4533-a47c-0f92d8090945
+   (do not change this comment) */

@@ -203,4 +203,5 @@ but operates on the region."
 
 (provide 'mantemp)
 
+;;; arch-tag: 49794712-3b1b-4baa-9785-39556cb52c94
 ;;; mantemp.el ends here

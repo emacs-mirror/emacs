@@ -84,6 +84,9 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 ;;; CONSTANTS FOR BOARD
 ;;;
 
+(defconst gomoku-buffer-name "*Gomoku*"
+  "Name of the Gomoku buffer.")
+
 ;; You may change these values if you have a small screen or if the squares
 ;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
 
@@ -193,8 +196,9 @@ You play by moving the cursor over the square you choose and hitting \\[gomoku-h
 Other useful commands:
 \\{gomoku-mode-map}
 Entry to this mode calls the value of `gomoku-mode-hook' if that value
-is non-nil.  One interesting value is `turn-on-font-lock'."
+is non-nil."
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'gomoku-mode
 	mode-name "Gomoku")
   (gomoku-display-statistics)
@@ -747,7 +751,17 @@ Use \\[describe-mode] for more info."
   (interactive (if current-prefix-arg
 		   (list (prefix-numeric-value current-prefix-arg)
 			 (eval (read-minibuffer "Height: ")))))
-  (gomoku-switch-to-window)
+  ;; gomoku-switch-to-window, but without the potential call to gomoku
+  ;; from gomoku-prompt-for-other-game.
+  (if (get-buffer gomoku-buffer-name)
+      (switch-to-buffer gomoku-buffer-name)
+    (when gomoku-game-in-progress
+      (setq gomoku-emacs-is-computing nil)
+      (gomoku-terminate-game 'crash-game)
+      (sit-for 4)
+      (or (y-or-n-p "Another game ") (error "Chicken !")))
+    (switch-to-buffer gomoku-buffer-name)
+    (gomoku-mode))
   (cond
    (gomoku-emacs-is-computing
     (gomoku-crash-game))
@@ -934,7 +948,7 @@ If the game is finished, this command requests for another game."
   "Ask for another game, and start it."
   (if (y-or-n-p "Another game ")
       (gomoku gomoku-board-width gomoku-board-height)
-    (message "Chicken !")))
+    (error "Chicken !")))
 
 (defun gomoku-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
@@ -1067,13 +1081,12 @@ If the game is finished, this command requests for another game."
 (defun gomoku-switch-to-window ()
   "Find or create the Gomoku buffer, and display it."
   (interactive)
-  (let ((buff (get-buffer "*Gomoku*")))
-    (if buff				; Buffer exists:
-	(switch-to-buffer buff)		;   no problem.
-      (if gomoku-game-in-progress
-	  (gomoku-crash-game))		;   buffer has been killed or something
-      (switch-to-buffer "*Gomoku*")	; Anyway, start anew.
-      (gomoku-mode))))
+  (if (get-buffer gomoku-buffer-name)       ; Buffer exists:
+      (switch-to-buffer gomoku-buffer-name) ;   no problem.
+    (if gomoku-game-in-progress
+        (gomoku-crash-game))            ;   buffer has been killed or something
+    (switch-to-buffer gomoku-buffer-name)   ; Anyway, start anew.
+    (gomoku-mode)))
 
 ;;;
 ;;; CROSSING WINNING QTUPLES.
@@ -1199,4 +1212,5 @@ If the game is finished, this command requests for another game."
 
 (provide 'gomoku)
 
+;;; arch-tag: b1b8205e-77fc-4597-b373-3ea2c04311eb
 ;;; gomoku.el ends here

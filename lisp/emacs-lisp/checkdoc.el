@@ -2346,22 +2346,16 @@ Code:, and others referenced in the style guide."
       ;; section that is easy to pick out, and it is also the most
       ;; visible section (with the finder).
       (let ((cm (lm-commentary-mark)))
-	(if cm
-	    (save-excursion
-	      (goto-char (lm-commentary-mark))
-	      ;; Spellcheck between the commentary, and the first
-	      ;; non-comment line.  We could use lm-commentary, but that
-	      ;; returns a string, and Ispell wants to talk to a buffer.
-	      ;; Since the comments talk about Lisp, use the specialized
-	      ;; spell-checker we also used for doc strings.
-	      (let ((e (save-excursion (re-search-forward "^[^;]" nil t)
-				       (point))))
-		(checkdoc-sentencespace-region-engine (point) e)
-		(checkdoc-proper-noun-region-engine (point) e)
-		(checkdoc-ispell-docstring-engine e)))))
-;;; test comment out code
-;;;       (foo 1 3)
-;;;       (bar 5 7)
+        (when cm
+          (save-excursion
+            (goto-char cm)
+            (let ((e (copy-marker (lm-commentary-end))))
+              ;; Since the comments talk about Lisp, use the
+              ;; specialized spell-checker we also used for doc
+              ;; strings.
+              (checkdoc-sentencespace-region-engine (point) e)
+              (checkdoc-proper-noun-region-engine (point) e)
+              (checkdoc-ispell-docstring-engine e)))))
       (setq
        err
        (or
@@ -2702,4 +2696,5 @@ function called to create the messages."
 
 (provide 'checkdoc)
 
+;;; arch-tag: c49a7ec8-3bb7-46f2-bfbc-d5f26e033b26
 ;;; checkdoc.el ends here

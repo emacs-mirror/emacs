@@ -113,8 +113,11 @@ position to pop up the tooltip."
 
 (defface tooltip
   '((((class color))
-     (:background "lightyellow" :foreground "black"))
-    (t ()))
+     :background "lightyellow"
+     :foreground "black"
+     :inherit variable-pitch)
+    (t
+     :inherit variable-pitch))
   "Face for tooltips."
   :group 'tooltip)
 
@@ -521,4 +524,5 @@ use either \\[customize] or the function `tooltip-mode'."
 
 (provide 'tooltip)
 
+;;; arch-tag: 3d61135e-4618-4a78-af28-183f6df5636f
 ;;; tooltip.el ends here

@@ -1219,4 +1219,5 @@
 ;;; coding: iso-2022-7bit
 ;;; End:
 
+;;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here

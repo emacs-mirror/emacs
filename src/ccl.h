@@ -65,8 +65,11 @@ struct ccl_program {
 				   system.  */
   int suppress_error;		/* If nonzero, don't insert error
 				   message in the output.  */
-  int eight_bit_control;	/* Set to nonzero if CCL_WRITE_CHAR
-				   writes eight-bit-control char.  */
+  int eight_bit_control;	/* If nonzero, ccl_driver counts all
+				   eight-bit-control bytes written by
+				   CCL_WRITE_CHAR.  After execution,
+				   if no such byte is written, set
+				   this value to zero.  */
 };
 
 /* This data type is used for the spec field of the structure
@@ -98,3 +101,6 @@ extern Lisp_Object Vccl_program_table;
 extern Lisp_Object Qccl_program_idx;
 
 #endif /* EMACS_CCL_H */
+
+/* arch-tag: 14681df7-876d-43de-bc71-6b78e23a4e3c
+   (do not change this comment) */

@@ -196,3 +196,6 @@ extern SIGMASKTYPE sigprocmask_set;
 /* strsignal is in sysdep.c */
 char *strsignal ();
 #endif
+
+/* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
+   (do not change this comment) */

@@ -297,28 +297,10 @@ struct mac_output {
   int size_computed_faces;
 #endif
 
-  /* Position of the Mac window (x and y offsets in global coordinates).  */
-  int left_pos;
-  int top_pos;
-
-  /* Border width of the W32 window as known by the window system.  */
-  int border_width;
-
-  /* Size of the W32 window in pixels.  */
-  int pixel_height, pixel_width;
-
-  /* Height of a line, in pixels.  */
-  int line_height;
-
   /* Here are the Graphics Contexts for the default font.  */
   GC normal_gc;				/* Normal video */
   GC reverse_gc;			/* Reverse video */
   GC cursor_gc;				/* cursor drawing */
-
-  /* Width of the internal border.  This is a line of background color
-     just inside the window's border.  When the frame is selected,
-     a highlighting is displayed inside the internal border.  */
-  int internal_border_width;
 
   /* The window used for this frame.
      May be zero while the frame object is being created
@@ -381,22 +363,6 @@ struct mac_output {
   DWORD dwStyle;
 #endif
 
-  /* The size of the extra width currently allotted for vertical
-     scroll bars, in pixels.  */
-  int vertical_scroll_bar_extra;
-
-  /* The extra width currently allotted for the areas in which
-     truncation marks, continuation marks, and overlay arrows are
-     displayed.  */
-  int left_fringe_width, right_fringe_width;
-  int fringe_cols, fringes_extra;
-
-  /* This is the gravity value for the specified window position.  */
-  int win_gravity;
-
-  /* The geometry flags for this window.  */
-  int size_hint_flags;
-
   /* This is the Emacs structure for the display this frame is on.  */
   /* struct w32_display_info *display_info; */
 
@@ -429,17 +395,6 @@ struct mac_output {
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
-
-  /* See enum below */
-  int want_fullscreen;
-
-  /* This many pixels are the difference between the outer window (i.e. the
-     left of the window manager decoration) and FRAME_X_WINDOW. */
-  int x_pixels_diff;
-
-  /* This many pixels are the difference between the outer window (i.e. the
-     top of the window manager titlebar) and FRAME_X_WINDOW. */
-  int y_pixels_diff;
 };
 
 typedef struct mac_output mac_output;
@@ -457,13 +412,6 @@ typedef struct mac_output mac_output;
 #define FRAME_FONT(f) ((f)->output_data.mac->font)
 #define FRAME_FONTSET(f) ((f)->output_data.mac->fontset)
 
-#undef FRAME_INTERNAL_BORDER_WIDTH
-#define FRAME_INTERNAL_BORDER_WIDTH(f) \
-     ((f)->output_data.mac->internal_border_width)
-#define FRAME_LINE_HEIGHT(f) ((f)->output_data.mac->line_height)
-/* Width of the default font of frame F.  Must be defined by each
-   terminal specific header.  */
-#define FRAME_DEFAULT_FONT_WIDTH(F) 	FONT_WIDTH (FRAME_FONT (F))
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.mac->baseline_offset)
 
 /* This gives the w32_display_info structure for the display F is on.  */
@@ -476,10 +424,6 @@ typedef struct mac_output mac_output;
 
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_MAC_FONT_TABLE(f) (FRAME_MAC_DISPLAY_INFO (f)->font_table)
-
-/* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
-#define PIXEL_WIDTH(f) ((f)->output_data.mac->pixel_width)
-#define PIXEL_HEIGHT(f) ((f)->output_data.mac->pixel_height)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -494,25 +438,6 @@ typedef struct mac_output mac_output;
 /* Return a pointer to the image cache of frame F.  */
 
 #define FRAME_X_IMAGE_CACHE(F) FRAME_MAC_DISPLAY_INFO ((F))->image_cache
-
-
-/* Total width of fringes reserved for drawing truncation bitmaps,
-   continuation bitmaps and alike.  The width is in canonical char
-   units of the frame.  This must currently be the case because window
-   sizes aren't pixel values.  If it weren't the case, we wouldn't be
-   able to split windows horizontally nicely.  */
-
-#define FRAME_X_FRINGE_COLS(F)	((F)->output_data.mac->fringe_cols)
-
-/* Total width of fringes in pixels.  */
-
-#define FRAME_X_FRINGE_WIDTH(F) ((F)->output_data.mac->fringes_extra)
-
-/* Pixel-width of the left and right fringe.  */
-
-#define FRAME_X_LEFT_FRINGE_WIDTH(F) ((F)->output_data.mac->left_fringe_width)
-#define FRAME_X_RIGHT_FRINGE_WIDTH(F) ((F)->output_data.mac->right_fringe_width)
-
 
 
 /* Mac-specific scroll bar stuff.  */
@@ -647,51 +572,6 @@ struct scroll_bar {
    text from glomming up against the scroll bar */
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
-
-/* Manipulating pixel sizes and character sizes.
-   Knowledge of which factors affect the overall size of the window should
-   be hidden in these macros, if that's possible.
-
-   Return the upper/left pixel position of the character cell on frame F
-   at ROW/COL.  */
-#define CHAR_TO_PIXEL_ROW(f, row) \
-  ((f)->output_data.mac->internal_border_width \
-   + (row) * (f)->output_data.mac->line_height)
-#define CHAR_TO_PIXEL_COL(f, col) \
-  ((f)->output_data.mac->internal_border_width \
-   + (col) * FONT_WIDTH ((f)->output_data.mac->font))
-
-/* Return the pixel width/height of frame F if it has
-   WIDTH columns/HEIGHT rows.  */
-#define CHAR_TO_PIXEL_WIDTH(f, width) \
-  (CHAR_TO_PIXEL_COL (f, width) \
-   + (f)->output_data.mac->vertical_scroll_bar_extra \
-   + (f)->output_data.mac->fringes_extra \
-   + (f)->output_data.mac->internal_border_width)
-#define CHAR_TO_PIXEL_HEIGHT(f, height) \
-  (CHAR_TO_PIXEL_ROW (f, height) \
-   + (f)->output_data.mac->internal_border_width)
-
-
-/* Return the row/column (zero-based) of the character cell containing
-   the pixel on FRAME at ROW/COL.  */
-#define PIXEL_TO_CHAR_ROW(f, row) \
-  (((row) - (f)->output_data.mac->internal_border_width) \
-   / (f)->output_data.mac->line_height)
-#define PIXEL_TO_CHAR_COL(f, col) \
-  (((col) - (f)->output_data.mac->internal_border_width) \
-   / FONT_WIDTH ((f)->output_data.mac->font))
-
-/* How many columns/rows of text can we fit in WIDTH/HEIGHT pixels on
-   frame F?  */
-#define PIXEL_TO_CHAR_WIDTH(f, width) \
-  (PIXEL_TO_CHAR_COL (f, ((width) \
-			  - (f)->output_data.mac->internal_border_width \
-			  - (f)->output_data.mac->fringes_extra \
-			  - (f)->output_data.mac->vertical_scroll_bar_extra)))
-#define PIXEL_TO_CHAR_HEIGHT(f, height) \
-  (PIXEL_TO_CHAR_ROW (f, ((height) \
-			  - (f)->output_data.mac->internal_border_width)))
 
 struct frame * check_x_frame (Lisp_Object);
 
@@ -701,3 +581,5 @@ void deactivate_scroll_bars (FRAME_PTR);
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
+/* arch-tag: 6b4ca125-5bef-476d-8ee8-31ed808b7e79
+   (do not change this comment) */

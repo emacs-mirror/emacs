@@ -110,6 +110,24 @@ by \\=\\< and \\>."
 	   (re (regexp-opt-group sorted-strings open)))
       (if words (concat "\\<" re "\\>") re))))
 
+(defconst regexp-opt-not-groupie*-re
+  (let* ((harmless-ch "[^\\\\[]")
+         (esc-pair-not-lp "\\\\[^(]")
+         (class-harmless-ch "[^][]")
+         (class-lb-harmless "[^]:]")
+         (class-lb-colon-maybe-charclass ":\\([a-z]+:]\\)?")
+         (class-lb (concat "\\[\\(" class-lb-harmless
+                           "\\|" class-lb-colon-maybe-charclass "\\)"))
+         (class
+          (concat "\\[^?]?"
+                  "\\(" class-harmless-ch
+                  "\\|" class-lb "\\)*"
+                  "\\[?]"))         ; special handling for bare [ at end of re
+         (shy-lp "\\\\(\\?:"))
+    (concat "\\(" harmless-ch "\\|" esc-pair-not-lp
+            "\\|" class "\\|" shy-lp "\\)*"))
+  "Matches any part of a regular expression EXCEPT for non-shy \"\\\\(\"s")
+
 ;;;###autoload
 (defun regexp-opt-depth (regexp)
   "Return the depth of REGEXP.
@@ -120,11 +138,12 @@ in REGEXP."
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
     (let ((count 0) start)
-      (while (string-match "\\(\\`\\|[^\\]\\)\\\\\\(\\\\\\\\\\)*([^?]"
-			   regexp start)
-	(setq count (1+ count)
-	      ;; Go back 2 chars (one for [^?] and one for [^\\]).
-	      start (- (match-end 0) 2)))
+      (while
+          (progn
+            (string-match regexp-opt-not-groupie*-re regexp start)
+            (setq start ( + (match-end 0) 2))  ; +2 for "\\(" after match-end.
+            (<= start (length regexp)))
+        (setq count (1+ count)))
       count)))
 
 ;;; Workhorse functions.
@@ -280,4 +299,5 @@ in REGEXP."
 
 (provide 'regexp-opt)
 
+;;; arch-tag: 6c5a66f4-29af-4fd6-8c3b-4b554d5b4370
 ;;; regexp-opt.el ends here

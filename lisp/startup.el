@@ -365,6 +365,9 @@ from being initialized."
 
 (defvar normal-top-level-add-subdirs-inode-list nil)
 
+(defvar pure-space-overflow nil
+  "Non-nil if building Emacs overflowed pure space.")
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -1262,6 +1265,8 @@ where FACE is a valid face specification, as it can be used with
   (let ((text (car fancy-current-text)))
     (set-buffer buffer)
     (erase-buffer)
+    (if pure-space-overflow
+	(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
     (fancy-splash-head)
     (apply #'fancy-splash-insert text)
     (fancy-splash-tail)
@@ -1274,7 +1279,10 @@ where FACE is a valid face specification, as it can be used with
 
 
 (defun fancy-splash-default-action ()
-  "Default action for events in the splash screen buffer."
+  "Stop displaying the splash screen buffer.
+This is an internal function used to turn off the splash screen after
+the user caused an input event by hitting a key or clicking with the
+mouse."
   (interactive)
   (push last-command-event unread-command-events)
   (throw 'exit nil))
@@ -1333,9 +1341,10 @@ we put it on this frame."
 
 (defun use-fancy-splash-screens-p ()
   "Return t if fancy splash screens should be used."
-  (when (or (and (display-color-p)
+  (when (and (display-graphic-p)
+             (or (and (display-color-p)
 		 (image-type-available-p 'xpm))
-	    (image-type-available-p 'pbm))
+                 (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
 	(let* ((img (create-image (or fancy-splash-image
@@ -1355,6 +1364,9 @@ we put it on this frame."
 	  (let ((tab-width 8)
 		(mode-line-format (propertize "---- %b %-"
 					      'face '(:weight bold))))
+
+	    (if pure-space-overflow
+		(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
 
 	    ;; The convention for this piece of code is that
 	    ;; each piece of output starts with one or two newlines
@@ -1506,8 +1518,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 Fancy splash screens are used on graphic displays,
 normal otherwise."
   (interactive)
-  (if (and (display-graphic-p)
-	   (use-fancy-splash-screens-p))
+  (if (use-fancy-splash-screens-p)
       (fancy-splash-screens)
     (normal-splash-screen)))
 
@@ -1542,6 +1553,8 @@ normal otherwise."
 			    nil t))
 		       (error nil))
 		   (kill-buffer buffer)))))
+      ;; Stop any "Loading image..." message hiding echo-area-message.
+      (use-fancy-splash-screens-p)
       (display-startup-echo-area-message))
 
   ;; Delay 2 seconds after an init file error message
@@ -1765,7 +1778,8 @@ normal otherwise."
     ;; clicks the menu bar during the sit-for.
     (when (display-popup-menus-p)
       (precompute-menubar-bindings))
-    (setq menubar-bindings-done t)
+    (with-no-warnings
+     (setq menubar-bindings-done t))
 
     ;; If *scratch* is selected and it is empty, insert an
     ;; initial message saying not to create a file there.
@@ -1793,4 +1807,5 @@ normal otherwise."
       (setq file (replace-match "/" t t file)))
     file))
 
+;;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
 ;;; startup.el ends here

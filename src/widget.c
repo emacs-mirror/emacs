@@ -183,8 +183,8 @@ get_default_char_pixel_size (ew, pixel_width, pixel_height)
      int* pixel_height;
 {
   struct frame* f = ew->emacs_frame.frame;
-  *pixel_width = FONT_WIDTH (f->output_data.x->font);
-  *pixel_height = f->output_data.x->line_height;
+  *pixel_width = FRAME_COLUMN_WIDTH (f);
+  *pixel_height = FRAME_LINE_HEIGHT (f);
 }
 
 static void
@@ -196,8 +196,8 @@ pixel_to_char_size (ew, pixel_width, pixel_height, char_width, char_height)
      int* char_height;
 {
   struct frame* f = ew->emacs_frame.frame;
-  *char_width = PIXEL_TO_CHAR_WIDTH (f, (int) pixel_width);
-  *char_height = PIXEL_TO_CHAR_HEIGHT (f, (int) pixel_height);
+  *char_width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, (int) pixel_width);
+  *char_height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, (int) pixel_height);
 }
 
 static void
@@ -209,8 +209,8 @@ char_to_pixel_size (ew, char_width, char_height, pixel_width, pixel_height)
      Dimension* pixel_height;
 {
   struct frame* f = ew->emacs_frame.frame;
-  *pixel_width = CHAR_TO_PIXEL_WIDTH (f, char_width);
-  *pixel_height = CHAR_TO_PIXEL_HEIGHT (f, char_height);
+  *pixel_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, char_width);
+  *pixel_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, char_height);
 }
 
 static void
@@ -305,8 +305,8 @@ set_frame_size (ew)
    */
 
   /* Hairily merged geometry */
-  unsigned int w = ew->emacs_frame.frame->width;
-  unsigned int h = ew->emacs_frame.frame->height;
+  unsigned int w = FRAME_COLS (ew->emacs_frame.frame);
+  unsigned int h = FRAME_LINES (ew->emacs_frame.frame);
 
   Widget wmshell = get_wm_shell ((Widget) ew);
   /* Each Emacs shell is now independent and top-level.  */
@@ -420,7 +420,7 @@ set_frame_size (ew)
     }
 #endif /* 0 */
   {
-    struct frame* frame = ew->emacs_frame.frame;
+    struct frame *f = ew->emacs_frame.frame;
     Dimension pixel_width, pixel_height;
 
     /* Take into account the size of the scrollbar.  Always use the
@@ -428,18 +428,15 @@ set_frame_size (ew)
        might end up with a frame width that is not a multiple of the
        frame's character width which is bad for vertically split
        windows.  */
-    frame->output_data.x->vertical_scroll_bar_extra
-      = (!FRAME_HAS_VERTICAL_SCROLL_BARS (frame)
-	 ? 0
-	 : (FRAME_SCROLL_BAR_COLS (frame)
-	    * FONT_WIDTH (frame->output_data.x->font)));
+    f->scroll_bar_actual_width
+      = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
-    compute_fringe_widths (frame, 0);
+    compute_fringe_widths (f, 0);
 
 #if 0 /* This can run Lisp code, and it is dangerous to give
 	 out the frame to Lisp code before it officially exists.
 	 This is handled in Fx_create_frame so not needed here.  */
-    change_frame_size (frame, h, w, 1, 0, 0);
+    change_frame_size (f, h, w, 1, 0, 0);
 #endif
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
     ew->core.width = pixel_width;
@@ -645,10 +642,11 @@ static void
 update_various_frame_slots (ew)
      EmacsFrame ew;
 {
-  struct x_output *x = ew->emacs_frame.frame->output_data.x;
-  x->pixel_height = ew->core.height + x->menubar_height;
-  x->pixel_width = ew->core.width;
-  x->internal_border_width = ew->emacs_frame.internal_border_width;
+  struct frame *f = ew->emacs_frame.frame;
+  struct x_output *x = f->output_data.x;
+  FRAME_PIXEL_HEIGHT (f) = ew->core.height + x->menubar_height;
+  FRAME_PIXEL_WIDTH (f) = ew->core.width;
+  f->internal_border_width = ew->emacs_frame.internal_border_width;
 
 }
 
@@ -656,11 +654,12 @@ static void
 update_from_various_frame_slots (ew)
      EmacsFrame ew;
 {
-  struct x_output *x = ew->emacs_frame.frame->output_data.x;
-  ew->core.height = x->pixel_height - x->menubar_height;
-  ew->core.width = x->pixel_width;
+  struct frame *f = ew->emacs_frame.frame;
+  struct x_output *x = f->output_data.x;
+  ew->core.height = FRAME_PIXEL_HEIGHT (f) - x->menubar_height;
+  ew->core.width = FRAME_PIXEL_WIDTH (f);
   ew->core.background_pixel = x->background_pixel;
-  ew->emacs_frame.internal_border_width = x->internal_border_width;
+  ew->emacs_frame.internal_border_width = f->internal_border_width;
   ew->emacs_frame.font = x->font;
   ew->emacs_frame.foreground_pixel = x->foreground_pixel;
   ew->emacs_frame.cursor_color = x->cursor_pixel;
@@ -717,7 +716,7 @@ EmacsFrameInitialize (request, new, dum1, dum2)
   }
 
 /* Update the font field in frame */
-  ew->emacs_frame.frame->output_data.x->font = ew->emacs_frame.font;
+  FRAME_FONT (ew->emacs_frame.frame) = ew->emacs_frame.font;
 #endif
 
   update_from_various_frame_slots (ew);
@@ -910,10 +909,8 @@ EmacsFrameSetCharSize (widget, columns, rows)
   if (columns < 3) columns = 3;  /* no way buddy */
 
   check_frame_size (f, &rows, &columns);
-  f->output_data.x->vertical_scroll_bar_extra
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-       : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
+  f->scroll_bar_actual_width
+    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   compute_fringe_widths (f, 0);
 
@@ -923,7 +920,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
   /* Something is really strange here wrt to the border width:
      Apparently, XtNwidth and XtNheight include the border, so we have
      to add it here.  But the XtNborderWidth set for the widgets has
-     no similarity to what f->output_data.x->border_width is set to.  */
+     no similarity to what f->border_width is set to.  */
   XtVaGetValues (widget, XtNborderWidth, &border_width, NULL);
   pixel_height += 2 * border_width;
   pixel_width += 2 * border_width;
@@ -1017,6 +1014,8 @@ widget_store_internal_border (widget)
   EmacsFrame ew = (EmacsFrame) widget;
   FRAME_PTR f = ew->emacs_frame.frame;
 
-  ew->emacs_frame.internal_border_width
-    = f->output_data.x->internal_border_width;
+  ew->emacs_frame.internal_border_width = f->internal_border_width;
 }
+
+/* arch-tag: 931d28e5-0d59-405a-8325-7d475d0a13d9
+   (do not change this comment) */

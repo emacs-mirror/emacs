@@ -125,6 +125,18 @@ AC_ARG_ENABLE(carbon-app,
                           specify install directory for Emacs.app on Mac OS X]],
 [ carbon_appdir_x=${enableval}])
 
+AC_ARG_ENABLE(maintainer-mode,
+[  --enable-maintainer-mode enable make rules and dependencies not useful
+                          (and sometimes confusing) to the casual installer],
+      USE_MAINTAINER_MODE=$enableval,
+      USE_MAINTAINER_MODE=no)
+if test $USE_MAINTAINER_MODE = yes; then
+  MAINT=
+else
+  MAINT=#
+fi
+AC_SUBST(MAINT)
+
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
@@ -182,6 +194,10 @@ dnl This used to use changequote, but, apart from `changequote is evil'
 dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
 dnl the great gob of text.  Thus it's not processed for possible expansion.
 dnl Just make sure the brackets remain balanced.
+dnl
+dnl Since Emacs can't find matching pairs of quotes, boundaries are
+dnl indicated by comments.
+dnl quotation begins
 [
 
 ### If you add support for a new configuration, add code to this
@@ -222,6 +238,12 @@ case "${canonical}" in
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
+    if test -f /usr/lib/crti.o; then]
+dnl The close and open brackets here are because this section is quoted --
+dnl see the `changequote' comment above.
+      AC_DEFINE(HAVE_CRTIN, [], [Define to 1 if you have /usr/lib/crti.o.])
+[   fi
+
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
@@ -618,7 +640,7 @@ case "${canonical}" in
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
-  s390-*-linux-gnu)
+  s390-*-linux-gnu* )
     machine=ibms390 opsys=gnu-linux
   ;;
   rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
@@ -633,7 +655,7 @@ case "${canonical}" in
   rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix5.1* | powerpc-ibm-aix5.1*  )
+  rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
   rs6000-ibm-aix4.0* | powerpc-ibm-aix4.0*  )
@@ -1078,6 +1100,8 @@ case "${canonical}" in
 				OVERRIDE_CPPFLAGS=" "
 				;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
+      *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
+      *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-nextstep* )             opsys=nextstep ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
@@ -1110,7 +1134,7 @@ case "${canonical}" in
   powerpc-apple-darwin* )
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
-    CPP="cc -E -traditional-cpp"
+    CPP="gcc -E -no-cpp-precomp"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -1140,6 +1164,8 @@ if test x"${opsys}" = x; then
     *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
     *-sysv3* | *-sysvr3* )		opsys=usg5-3 ;;
     *-sysv4.2uw* )			opsys=unixware ;;
+    *-sysv5uw* )			opsys=unixware ;;
+    *-sysv5OpenUNIX* )			opsys=unixware ;;
     *-sysv4.1* | *-sysvr4.1* )
 	NON_GNU_CPP=/usr/lib/cpp
 	opsys=usg5-4 ;;
@@ -1160,6 +1186,7 @@ if test x"${opsys}" = x; then
 fi
 
 ]
+dnl quotation ends
 
 if test $unported = yes; then
   AC_MSG_ERROR([Emacs hasn't been ported to `${canonical}' systems.
@@ -1404,8 +1431,8 @@ fi
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h fcntl.h term.h strings.h coff.h pty.h sys/mman.h \
-  sys/param.h sys/vlimit.h sys/resource.h)
+  termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
+  sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h)
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
@@ -1487,6 +1514,9 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[AC_DEFINE(HAVE_TM_GMTOFF, 1,
 			   [Define to 1 if `tm_gmtoff' is member of `struct tm'.])],,
 		[#include <time.h>])
+AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr, 
+		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
+		  struct ifreq.ifr_addr], , ,[#include <net/if.h>])
 
 dnl checks for compiler characteristics
 
@@ -2039,12 +2069,55 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
   fi
 fi
 
-dnl Don't use X11 input methods if user specifies he doesn't want it
-dnl with `--with-xim=no'.
+dnl See if XIM is available.
+AC_TRY_COMPILE([
+	  #include <X11/Xlib.h>
+	  #include <X11/Xresource.h>],
+	 [XIMProc  callback;],
+	 HAVE_XIM=yes
+	 AC_DEFINE(HAVE_XIM, 1, [Define to 1 if XIM is available]),
+	 HAVE_XIM=no)
+
+dnl `--with-xim' now controls only the initial value of use_xim at run time.
 
 if test "${with_xim}" != "no"; then
   AC_DEFINE(USE_XIM, 1,
 	    [Define to 1 if we should use XIM, if it is available.])
+fi
+ 
+
+if test "${HAVE_XIM}" != "no"; then
+  late_CFLAGS=$CFLAGS
+  if test "$GCC" = yes; then
+    CFLAGS="$CFLAGS --pedantic-errors"
+  fi
+  AC_TRY_COMPILE([
+#include <X11/Xlib.h>
+#include <X11/Xresource.h>],
+[Display *display;
+XrmDatabase db;
+char *res_name;
+char *res_class;
+XIMProc  callback;
+XPointer *client_data;
+#ifndef __GNUC__
+/* If we're not using GCC, it's probably not XFree86, and this is
+   probably right, but we can't use something like --pedantic-errors.  */
+extern Bool XRegisterIMInstantiateCallback(Display*, XrmDatabase, char*,
+                                           char*, XIMProc, XPointer*);
+#endif
+(void)XRegisterIMInstantiateCallback(display, db, res_name, res_class, callback,
+   client_data);],
+    [emacs_cv_arg6_star=yes])
+  AH_TEMPLATE(XRegisterIMInstantiateCallback_arg6,
+         [Define to the type of the 6th arg of XRegisterIMInstantiateCallback,
+either XPointer or XPointer*.])dnl
+  if test "$emacs_cv_arg6_star" = yes; then
+    AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer*])
+  else
+    AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer])
+  fi
+  CFLAGS=$late_CFLAGS
 fi
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
@@ -2102,8 +2175,12 @@ fi
 HAVE_PNG=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_png}" != "no"; then
-    AC_CHECK_HEADER(png.h,
-      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm))
+    # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
+    # in /usr/include/libpng.
+    AC_CHECK_HEADERS(png.h libpng/png.h)
+    if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
+      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
+    fi
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
@@ -2194,10 +2271,10 @@ AC_FUNC_ALLOCA
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 AC_CHECK_LIB(m, sqrt)
 
-# Check for mail-locking functions in a "mail" library
+# Check for mail-locking functions in a "mail" library.  Probably this should
+# have the same check as for liblockfile below.
 AC_CHECK_LIB(mail, maillock)
 dnl Debian, at least:
-dnl AC_CHECK_LIB(lockfile, maillock, [AC_DEFINE(HAVE_LIBMAIL)])
 AC_CHECK_LIB(lockfile, maillock)
 # If we have the shared liblockfile, assume we must use it for mail
 # locking (e.g. Debian).  If we couldn't link against liblockfile
@@ -2211,9 +2288,8 @@ if test "$ac_cv_lib_lockfile_maillock" = no; then
     AC_MSG_ERROR([Shared liblockfile found but can't link against it.
 This probably means that movemail could lose mail.
 There may be a `development' package to install containing liblockfile.])
-  else AC_DEFINE(LIBMAIL, -llockfile, [Define to -llockfile if it is usable.])
-  fi
   else :
+  fi
 fi
 AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS(maillock.h)
@@ -2222,11 +2298,11 @@ AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
-utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
+utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
-memset memcmp memmove)
+memset memcmp memmove difftime memcpy mempcpy mblen mbrlen posix_memalign)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -2240,6 +2316,8 @@ AC_FUNC_GETLOADAVG
 AC_FUNC_FSEEKO
 
 AC_FUNC_GETPGRP
+
+AC_FUNC_STRFTIME
 
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
@@ -2375,6 +2453,9 @@ if test "x$HAVE_TIMEVAL" = xyes; then
   fi
 fi
 
+# This defines (or not) HAVE_TZNAME and HAVE_TM_ZONE.
+AC_STRUCT_TIMEZONE
+
 dnl Note that AC_STRUCT_TIMEZONE doesn't do what you might expect.
 if test "$ac_cv_func_gettimeofday" = yes; then
   AC_CACHE_CHECK([for struct timezone], emacs_cv_struct_timezone,
@@ -2418,6 +2499,8 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
 	    [Define to 1 if you have inet sockets.])
 fi
 
+AC_CHECK_HEADERS(sys/ioctl.h net/if.h)
+
 if test -f /usr/lpp/X11/bin/smt.exp; then
   AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
 	    [Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists.])
@@ -2447,6 +2530,8 @@ fi
 
 AC_CHECK_TYPES(size_t)
 
+AC_TYPE_MBSTATE_T
+
 dnl Restrict could probably be used effectively other than in regex.c.
 AC_CACHE_CHECK([for C restrict keyword], emacs_cv_c_restrict,
   [AC_TRY_COMPILE([void fred (int *restrict x);], [],
@@ -2474,11 +2559,16 @@ if test "$emacs_cv_c_restrict_arr" = yes; then
      declarations.  Define as empty for no equivalent.])
 fi
 
-AC_CHECK_HEADERS(nlist.h, [AC_DEFINE(NLIST_STRUCT, 1,
-                 [Define to 1 if you have <nlist.h>.])])
-
 dnl Fixme: AC_SYS_POSIX_TERMIOS should probably be used, but it's not clear
 dnl how the tty code is related to POSIX and/or other versions of termios.
+dnl The following looks like a useful start.
+dnl
+dnl AC_SYS_POSIX_TERMIOS
+dnl if test $ac_cv_sys_posix_termios = yes; then
+dnl    AC_DEFINE(HAVE_TERMIOS, 1, [Define to 1 if you have POSIX-style functions 
+dnl                                and macros for terminal control.])
+dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
+dnl fi
 
 dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
 
@@ -2645,6 +2735,9 @@ AH_BOTTOM([
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
+/* We have blockinput.h.  */
+#define DO_BLOCK_INPUT
+
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
    it probably doesn't make sense to try.  */
@@ -2720,6 +2813,8 @@ AH_BOTTOM([
 #if ! HAVE_MKTIME || BROKEN_MKTIME
 #define mktime emacs_mktime
 #endif
+
+#define my_strftime nstrftime	/* for strftime.c */
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.
@@ -2843,16 +2938,14 @@ typedef unsigned size_t;
 #  endif
 #endif
 
-/* avoid deprecated functions */
-#ifdef HAVE_MEMCPY
-#  define bcopy(a,b,s) memcpy (b,a,s)
+#ifndef HAVE_BCOPY
+#define bcopy(a,b,s) memcpy (b,a,s)
 #endif
-#ifdef HAVE_MEMSET
-#  define bzero(a,s) memset (a,0,s)
+#ifndef HAVE_BZERO
+#define bzero(a,s) memset (a,0,s)
 #endif
-#ifdef HAVE_MEMCMP
-#  define BCMP memcmp
-#  define bcmp memcmp
+#ifndef HAVE_BCMP
+#define BCMP memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */
@@ -2997,3 +3090,6 @@ touch src/config.stamp
 
 ], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
 
+m4_if(dnl	Do not change this comment
+   arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
+)dnl

@@ -364,7 +364,7 @@ build_region_list ()
 }
 
 
-#define MAX_UNEXEC_REGIONS 30
+#define MAX_UNEXEC_REGIONS 200
 
 int num_unexec_regions;
 vm_range_t unexec_regions[MAX_UNEXEC_REGIONS];
@@ -401,6 +401,46 @@ find_emacs_zone_regions ()
 				      (vm_address_t) emacs_zone,
 				      unexec_reader,
 				      unexec_regions_recorder);
+}
+
+static int
+unexec_regions_sort_compare (const void *a, const void *b)
+{
+  vm_address_t aa = ((vm_range_t *) a)->address;
+  vm_address_t bb = ((vm_range_t *) b)->address;
+
+  if (aa < bb)
+    return -1;
+  else if (aa > bb)
+    return 1;
+  else
+    return 0;
+}
+
+static void
+unexec_regions_merge ()
+{
+  int i, n;
+  vm_range_t r;
+
+  qsort (unexec_regions, num_unexec_regions, sizeof (unexec_regions[0]),
+	 &unexec_regions_sort_compare);
+  n = 0;
+  r = unexec_regions[0];
+  for (i = 1; i < num_unexec_regions; i++)
+    {
+      if (r.address + r.size == unexec_regions[i].address)
+	{
+	  r.size += unexec_regions[i].size;
+	}
+      else
+	{
+	  unexec_regions[n++] = r;
+	  r = unexec_regions[i];
+	}
+    }
+  unexec_regions[n++] = r;
+  num_unexec_regions = n;
 }
 
 
@@ -863,6 +903,7 @@ unexec (char *outfile, char *infile, void *start_data, void *start_bss,
   read_load_commands ();
 
   find_emacs_zone_regions ();
+  unexec_regions_merge ();
 
   in_dumped_exec = 1;
 
@@ -935,3 +976,6 @@ unexec_free (void *ptr)
   else
     malloc_zone_free (emacs_zone, ptr);
 }
+
+/* arch-tag: 1a784f7b-a184-4c4f-9544-da8619593d72
+   (do not change this comment) */

@@ -236,3 +236,6 @@ extern Lisp_Object fontset_ascii P_ ((int));
 extern int fontset_height P_ ((int));
 
 #endif /* EMACS_FONTSET_H */
+
+/* arch-tag: c27cef7b-3cab-488a-8398-7a4daa96bb77
+   (do not change this comment) */

@@ -1,9 +1,6 @@
 						-*- text -*-
 For an order form for all Emacs and FSF distributions deliverable from
-the USA, see the file `ORDERS' in this directory (etc/ in the GNU
-Emacs distribution or http://www.gnu.org/order/order.html).  For a
-European order form, see `ORDERS.EUROPE'.  For a Japan order form,
-see `ORDERS.JAPAN'.
+the USA, see http://www.gnu.org/order/order.html.
 
 	   GNU Emacs availability information, October 2000
 Copyright (C) 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1995, 1998, 2000
@@ -36,8 +33,7 @@ If you do not know anyone to get a copy of GNU Emacs from, you can
 order a cd-rom from the Free Software Foundation.  We distribute
 several Emacs versions.  We also distribute nicely typeset copies of
 the Emacs user manual, Emacs Lisp Reference Manual, the Emacs
-reference card, etc.  See file `ORDERS', or visit
-http://www.gnu.org/order/order.html.
+reference card, etc.  See http://www.gnu.org/order/order.html.
 
 If you have Internet access, you can copy the latest Emacs
 distribution from hosts, such as ftp.gnu.org.  There are several ways
@@ -45,14 +41,12 @@ to do this; see http://www.gnu.org/software/software.html for more
 information.
 
 Emacs has been run on GNU/Linux, FreeBSD, NetBSD, OpenBSD, and on many
-Unix systems, on a variety of types of cpu.  It also works on VMS and
-on Apollo computers, though with some deficiencies that reflect
-problems in these operating systems.  See the file `MACHINES' in this
-directory (see above) for a full list of machines that GNU Emacs has
-been tested on, with machine-specific installation notes and warnings.
-There is also an MS-DOS version that works on MS-DOS and all platforms
-that have some kind of ``DOS box'', and also an MS-Windows and a Mac
-version.
+Unix systems, on a variety of types of cpu, as well as on MSDOS,
+Windows and MacOS.  It also formerly worked on VMS and on Apollo
+computers, though with some deficiencies that reflect problems in
+these operating systems.  See the file `MACHINES' in this directory
+(see above) for a full list of machines that GNU Emacs has been tested
+on, with machine-specific installation notes and warnings.
 
 Note that there is significant variation between Unix systems
 supposedly running the same version of Unix; it is possible that what

@@ -3,7 +3,7 @@
 If you are ready to start working on any of these TODO items, we
 appreciate your help; please write to emacs-devel@gnu.org so we can be
 aware that the problem is being addressed, and talk with you how to do
-it best.  Since Emacs is an FSF-copyrighted packages, please be
+it best.  Since Emacs is an FSF-copyrighted package, please be
 prepared to sign legal papers to transfer the copyright on your work
 to the FSF.
 
@@ -12,6 +12,12 @@ Small but important fixes needed in existing features:
 * Make compile.el record the markers that point to error loci
   on text properties in the error message lines.
 
+* Fix the kill/yank treatment of invisible text. At the moment,
+  invisible text is placed in the kill-ring, so that the contents of
+  the ring may not correspond to the text as displayed to the user. It
+  ought to be possible to omit text which is invisible (due to a
+  text-property, overlay, or selective display) from the kill-ring.
+
 Important features:
 
 * Provide user-friendly ways to list all available font families,
@@ -19,7 +25,8 @@ Important features:
   font selection for Emacs 22.]
 
 * Program Enriched mode to read and save in RTF.  [Is there actually a
-  decent single definition of RTF?]
+  decent single definition of RTF?  Maybe see info at
+  http://latex2rtf.sourceforge.net/.]
 
 * Implement something better than the current Refill mode.  This
   probably needs some primitive support.
@@ -49,7 +56,9 @@ Important features:
   in the menu or by rendering in an unmapped window and copying the
   pixels.  Note that the relevant Xlib functions assume a specific
   locale; that isn't good enough even if X can render the arbitrary
-  text, which it often can't as far as I can tell.  -- fx]
+  text, which it often can't as far as I can tell.  -- fx] [The gtk
+  port now displays multilingual text in menus, but only insofar as
+  Emacs can encode it as utf-8 and gtk can display the result.]
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
@@ -90,7 +99,9 @@ Other features we would like:
   Love started on this.]
 
 * Implement a variant of uncompress.el or jka-compr.el that works with
-  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.]
+  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
+  See the Gnus development sources for assigned code concerning GPG
+  use with mail, which is probably a good start.]
 
 * Save undo information in files, and reload it when needed
   for undoing.
@@ -109,7 +120,7 @@ Other features we would like:
   the whole menu bar.  In the mean time, it should process other messages.
 
 * Get some major packages installed: W3/url (development version needs
-  significant work), PSGML, Mule-UCS.  Check the assignments file for other
+  significant work), PSGML.  Check the assignments file for other
   packages which might go in and have been missed.
 
 * Make keymaps a first-class Lisp object (this means a rewrite of
@@ -155,7 +166,8 @@ Other features we would like:
   holidays, quoting characters?,...
 
 * Improve the GC (generational, incremental).  (We may be able to use
-  the Boehm collector.)  [fx is working on this.]
+  the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
+  this.]
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
@@ -168,8 +180,6 @@ Other features we would like:
   size and its position from lines instead of characters.
 
 * Make the Custom themes support do useful things.
-
-* Adapt the gnuserv/gnudoit features for server/emacsclient.
 
 * Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
@@ -214,6 +224,9 @@ Other features we would like:
   this.]
 
 * Use the XIE X extension, if available, for image display.
+
+* Make monochrome images display using the foreground and background
+  colors of the applicable faces.
 
 * Add support for rendering antialiased text, probably using
   XRender/Freetype.
@@ -264,3 +277,8 @@ Other features we would like:
   other variable, without changing the value of `values'.
 
 * Fix skip-chars-{for,back}ward to allow character classes.
+
+* (Controlled by a flag) make open and close syntax match exactly,
+  i.e. `(' doesn't match `]'.
+
+;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

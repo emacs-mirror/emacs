@@ -36,6 +36,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'calendar)
 
 (defun calendar-goto-today ()
@@ -324,6 +327,28 @@ Moves forward if ARG is negative."
   (calendar-cursor-to-visible-date date)
   (run-hooks 'calendar-move-hook))
 
+(defun calendar-goto-day-of-year (year day &optional noecho)
+  "Move cursor to YEAR, DAY number; echo DAY/YEAR unless NOECHO is t.
+Negative DAY counts backward from end of year."
+  (interactive
+   (let* ((year (calendar-read
+                 "Year (>0): "
+                 (lambda (x) (> x 0))
+                 (int-to-string (extract-calendar-year
+                                 (calendar-current-date)))))
+          (last (if (calendar-leap-year-p year) 366 365))
+          (day (calendar-read
+                (format "Day number (+/- 1-%d): " last)
+                '(lambda (x) (and (<= 1 (abs x)) (<= (abs x) last))))))
+     (list year day)))
+  (calendar-goto-date
+   (calendar-gregorian-from-absolute
+    (if (< 0 day)
+        (+ -1 day (calendar-absolute-from-gregorian (list 1 1 year)))
+      (+ 1 day (calendar-absolute-from-gregorian (list 12 31 year))))))
+  (or noecho (calendar-print-day-of-year)))
+
 (provide 'cal-move)
 
+;;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
 ;;; cal-move.el ends here

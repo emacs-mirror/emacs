@@ -9,24 +9,30 @@ For each step, check for possible errors.
     make sure that the later tagged version will bootstrap, should it be
     necessary to check it out.
 
-3.  Set the version number (M-x load-file RET admin/admin.el RET, then
+3.  Regenerate Emacs' AUTHORS file (M-x load-file RET
+    lisp/emacs-lisp/authors.el RET, then M-x authors RET, then save
+    the *Authors* buffer).  This may require fixing syntactically
+    incorrect ChangeLog entries beforehand.
+
+4.  Set the version number (M-x load-file RET admin/admin.el RET, then
     M-x set-version RET).  For a release, add released change log
     entries (M-x add-release-logs RET).
 
-4.  rm configure; make bootstrap
+5.  rm configure; make bootstrap
 
-5.  Commit configure, README, lisp/loaddefs.el, lisp/cus-load.el,
-    lisp/finder-inf.el, lisp/version.el, man/emacs.texi.  For a release,
-    also commit the ChangeLog files in all directories.
+6.  Commit configure, README, AUTHORS, lisp/loaddefs.el,
+    lisp/cus-load.el, lisp/finder-inf.el, lisp/version.el,
+    man/emacs.texi.  For a release, also commit the ChangeLog files in
+    all directories.
 
-6.  make-dist --snapshot.  Check the contents of the new tar with
+7.  make-dist --snapshot.  Check the contents of the new tar with
     admin/diff-tar-files against an older tar file.  Some old pretest
     tarballs are kept under fencepost.gnu.org:~pot/emacs-pretest/, while
     old emacs tarballs are at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
 
-7.  xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
+8.  xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
 
-8.  tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
+9.  tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
     configure && make && make -n install
     Use `script' or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
@@ -34,28 +40,30 @@ For each step, check for possible errors.
     number of the old Emacs to __, do the same with the new log and do
     M-x ediff. Especially check that Info files aren't built.
 
-9.  cd EMACS_ROOT_DIR; cvs tag TAG
+10. cd EMACS_ROOT_DIR; cvs tag TAG
     TAG is EMACS_PRETEST_XX_YY_ZZZ for a pretest, EMACS_XX_YY for a
     release.
 
-10. admin/make-announcement OLD NEW
+11. admin/make-announcement OLD NEW
     This creates an announcement for pretests.  OLD is the version used
     to make deltas with respect to NEW.  Anouncements for pretests need
     to be crafted by hand.  Use an older announcement to start with.
 
-11. For a pretest, do:
+12. For a pretest, do:
     rsync -aP emacs-NEW.tar.gz emacs-OLD-NEW.xdelta compile-NEW.log \
     emacs-NEW.announce alpha.gnu.org:/home/alpha/gnu/emacs/pretest/.
     For a release, do:
     rsync -aP emacs-NEW.tar.gz emacs-OLD-NEW.xdelta \
     alpha.gnu.org:/home/ftp/gnu/emacs/.
 
-12. Verify that the files are visible at
+13. Verify that the files are visible at
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at
     ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
-13. For a pretest, let Richard Stallman know about the new pretest and
+14. For a pretest, let Richard Stallman know about the new pretest and
     tell him to announce it using the announcement you prepared.  Remind
     him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
     For a release, Richard should prepare the announcement himself,
     possibly starting from a previous announcment.
+
+# arch-tag: c23c771f-ca26-4584-8a04-50ecf0989390

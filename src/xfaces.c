@@ -228,10 +228,6 @@ Boston, MA 02111-1307, USA.  */
 #define check_x check_w32
 #define x_list_fonts w32_list_fonts
 #define GCGraphicsExposures 0
-/* For historic reasons, FONT_WIDTH refers to average width on W32,
-   not maximum as on X. Redefine here. */
-#undef FONT_WIDTH
-#define FONT_WIDTH FONT_MAX_WIDTH
 #endif /* WINDOWSNT */
 
 #ifdef MAC_OS
@@ -367,6 +363,10 @@ Lisp_Object Vscalable_fonts_allowed, Qscalable_fonts_allowed;
 /* List of regular expressions that matches names of fonts to ignore. */
 
 Lisp_Object Vface_ignored_fonts;
+
+/* Alist of font name patterns vs the rescaling factor.  */
+
+Lisp_Object Vface_font_rescale_alist;
 
 /* Maximum number of fonts to consider in font_list.  If not an
    integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
@@ -1211,30 +1211,6 @@ load_pixmap (f, name, w_ptr, h_ptr)
 
 
 /***********************************************************************
-			 Minimum font bounds
- ***********************************************************************/
-
-#ifdef HAVE_WINDOW_SYSTEM
-
-/* Update the line_height of frame F.  Return non-zero if line height
-   changes.  */
-
-int
-frame_update_line_height (f)
-     struct frame *f;
-{
-  int line_height, changed_p;
-
-  line_height = FONT_HEIGHT (FRAME_FONT (f));
-  changed_p = line_height != FRAME_LINE_HEIGHT (f);
-  FRAME_LINE_HEIGHT (f) = line_height;
-  return changed_p;
-}
-
-#endif /* HAVE_WINDOW_SYSTEM */
-
-
-/***********************************************************************
 				Fonts
  ***********************************************************************/
 
@@ -1935,6 +1911,11 @@ struct font_name
      split_font_name for which these are.  */
   int numeric[XLFD_LAST];
 
+  /* If the original name matches one of Vface_font_rescale_alist,
+     the value is the corresponding rescale ratio.  Otherwise, the
+     value is 1.0.  */
+  double rescale_ratio;
+
   /* Lower value mean higher priority.  */
   int registry_priority;
 };
@@ -2265,6 +2246,25 @@ pixel_point_size (f, pixel)
 }
 
 
+/* Return a rescaling ratio of a font of NAME.  */
+
+static double
+font_rescale_ratio (name)
+     char *name;
+{
+  Lisp_Object tail, elt;  
+
+  for (tail = Vface_font_rescale_alist; CONSP (tail); tail = XCDR (tail))
+    {
+      elt = XCAR (tail);
+      if (STRINGP (XCAR (elt)) && FLOATP (XCDR (elt))
+	  && fast_c_string_match_ignore_case (XCAR (elt), name) >= 0)
+	return XFLOAT_DATA (XCDR (elt));
+    }
+  return 1.0;
+}
+
+
 /* Split XLFD font name FONT->name destructively into NUL-terminated,
    lower-case fields in FONT->fields.  NUMERIC_P non-zero means
    compute numeric values for fields XLFD_POINT_SIZE, XLFD_SWIDTH,
@@ -2281,6 +2281,11 @@ split_font_name (f, font, numeric_p)
 {
   int i = 0;
   int success_p;
+  double rescale_ratio;
+
+  if (numeric_p)
+    /* This must be done before splitting the font name.  */
+    rescale_ratio = font_rescale_ratio (font->name);
 
   if (*font->name == '-')
     {
@@ -2340,6 +2345,7 @@ split_font_name (f, font, numeric_p)
       font->numeric[XLFD_WEIGHT] = xlfd_numeric_weight (font);
       font->numeric[XLFD_SWIDTH] = xlfd_numeric_swidth (font);
       font->numeric[XLFD_AVGWIDTH] = atoi (font->fields[XLFD_AVGWIDTH]);
+      font->rescale_ratio = rescale_ratio;
     }
 
   /* Initialize it to zero.  It will be overridden by font_list while
@@ -2930,10 +2936,17 @@ the WIDTH times as wide as FACE on FRAME.  */)
 			   ? NULL
 			   : FACE_FROM_ID (f, face_id));
 
+#ifdef WINDOWSNT
+/* For historic reasons, FONT_WIDTH refers to average width on W32,
+   not maximum as on X.  Redefine here. */
+#undef FONT_WIDTH
+#define FONT_WIDTH FONT_MAX_WIDTH
+#endif
+
       if (face && face->font)
 	size = FONT_WIDTH (face->font);
       else
-	size = FONT_WIDTH (FRAME_FONT (f));
+	size = FONT_WIDTH (FRAME_FONT (f));  /* FRAME_COLUMN_WIDTH (f) */
 
       if (!NILP (width))
 	size *= XINT (width);
@@ -4123,20 +4136,24 @@ FRAME 0 means change the face on all frames, and change the default
 	  struct frame *f;
 	  Lisp_Object tmp;
 
-	  CHECK_STRING (value);
 	  if (EQ (frame, Qt))
 	    f = SELECTED_FRAME ();
 	  else
 	    f = check_x_frame (frame);
 
-	  /* VALUE may be a fontset name or an alias of fontset.  In
-	     such a case, use the base fontset name.  */
-	  tmp = Fquery_fontset (value, Qnil);
-	  if (!NILP (tmp))
-	    value = tmp;
+	  if (!UNSPECIFIEDP (value))
+	    {
+	      CHECK_STRING (value);
 
-	  if (!set_lface_from_font_name (f, lface, value, 1, 1))
-	    signal_error ("Invalid font or fontset name", value);
+	      /* VALUE may be a fontset name or an alias of fontset.  In
+		 such a case, use the base fontset name.  */
+	      tmp = Fquery_fontset (value, Qnil);
+	      if (!NILP (tmp))
+		value = tmp;
+
+	      if (!set_lface_from_font_name (f, lface, value, 1, 1))
+		signal_error ("Invalid font or fontset name", value);
+	    }
 
 	  font_attr_p = 1;
 	}
@@ -4323,6 +4340,7 @@ set_font_frame_param (frame, lface)
 	  xfree (font);
 	}
 
+      f->default_face_done_p = 0;
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
     }
 }
@@ -4405,8 +4423,6 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
      Lisp_Object resource, class, frame;
 {
   Lisp_Object value = Qnil;
-#ifndef WINDOWSNT
-#ifndef MAC_OS
   CHECK_STRING (resource);
   CHECK_STRING (class);
   CHECK_LIVE_FRAME (frame);
@@ -4414,8 +4430,6 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
   UNBLOCK_INPUT;
-#endif /* not MAC_OS */
-#endif /* not WINDOWSNT */
   return value;
 }
 
@@ -5987,12 +6001,23 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 
       if (compare_pt_p || xlfd_idx != XLFD_POINT_SIZE)
 	{
-	  int delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
-	  int delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
+	  int delta1, delta2;
 
-	  if (xlfd_idx == XLFD_POINT_SIZE
-	      && abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
-	    continue;
+	  if (xlfd_idx == XLFD_POINT_SIZE)
+	    {
+	      delta1 = abs (values[i] - (font1->numeric[xlfd_idx]
+					 / font1->rescale_ratio));
+	      delta2 = abs (values[i] - (font2->numeric[xlfd_idx]
+					 / font2->rescale_ratio));
+	      if (abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
+		continue;
+	    }
+	  else
+	    {
+	      delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
+	      delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
+	    }
+
 	  if (delta1 > delta2)
 	    return 0;
 	  else if (delta1 < delta2)
@@ -6018,6 +6043,18 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 	return 0;
       else if (delta1 < delta2)
 	return 1;
+    }
+
+  if (! compare_pt_p)
+    {
+      /* We prefer a real scalable font; i.e. not what autoscaled.  */
+      int auto_scaled_1 = (font1->numeric[XLFD_POINT_SIZE] == 0
+			   && font1->numeric[XLFD_RESY] > 0);
+      int auto_scaled_2 = (font2->numeric[XLFD_POINT_SIZE] == 0
+			   && font2->numeric[XLFD_RESY] > 0);
+
+      if (auto_scaled_1 != auto_scaled_2)
+	return auto_scaled_2;
     }
 
   return font1->registry_priority < font2->registry_priority;
@@ -6057,7 +6094,7 @@ build_scalable_font_name (f, font, specified_pt)
      struct font_name *font;
      int specified_pt;
 {
-  char point_size[20], pixel_size[20];
+  char pixel_size[20];
   int pixel_value;
   double resy = FRAME_X_DISPLAY_INFO (f)->resy;
   double pt;
@@ -6075,11 +6112,19 @@ build_scalable_font_name (f, font, specified_pt)
       pt = specified_pt;
       pixel_value = resy / (PT_PER_INCH * 10.0) * pt;
     }
+  /* We may need a font of the different size.  */
+  pixel_value *= font->rescale_ratio;
 
-  /* Set point size of the font.  */
-  sprintf (point_size, "%d", (int) pt);
-  font->fields[XLFD_POINT_SIZE] = point_size;
-  font->numeric[XLFD_POINT_SIZE] = pt;
+  /* We should keep POINT_SIZE 0.  Otherwise, X server can't open a
+     font of the specified PIXEL_SIZE.  */
+#if 0
+  { /* Set point size of the font.  */
+    char point_size[20];
+    sprintf (point_size, "%d", (int) pt);
+    font->fields[XLFD_POINT_SIZE] = point_size;
+    font->numeric[XLFD_POINT_SIZE] = pt;
+  }
+#endif
 
   /* Set pixel size.  */
   sprintf (pixel_size, "%d", pixel_value);
@@ -6244,7 +6289,10 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		|| better_font_p (specified, fonts + i, best, 0, 0)
 		|| (!non_scalable_has_exact_height_p
 		    && !better_font_p (specified, best, fonts + i, 0, 0)))
-	      best = fonts + i;
+	      {
+		non_scalable_has_exact_height_p = 1;
+		best = fonts + i;
+	      }
 	  }
 
       if (needs_overstrike)
@@ -6391,7 +6439,7 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
 
   /* Try any family with the given registry.  */
   if (nfonts == 0)
-    nfonts = font_list (f, Qnil, Qnil, registry, fonts);
+    nfonts = try_alternative_families (f, Qnil, registry, fonts);
 
   return nfonts;
 }
@@ -6540,11 +6588,12 @@ realize_default_face (f)
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
   if (NILP (lface))
-    {
-      Lisp_Object frame;
-      XSETFRAME (frame, f);
-      lface = Finternal_make_lisp_face (Qdefault, frame);
-    }
+  {
+       Lisp_Object frame;
+       XSETFRAME (frame, f);
+       lface = Finternal_make_lisp_face (Qdefault, frame);
+  }
+
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -6553,7 +6602,9 @@ realize_default_face (f)
       frame_font = Fassq (Qfont, f->param_alist);
       xassert (CONSP (frame_font) && STRINGP (XCDR (frame_font)));
       frame_font = XCDR (frame_font);
-      set_lface_from_font_name (f, lface, frame_font, 1, 1);
+      set_lface_from_font_name (f, lface, frame_font,
+                                f->default_face_done_p, 1);
+      f->default_face_done_p = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -7674,6 +7725,15 @@ Each element is a regular expression that matches names of fonts to
 ignore.  */);
   Vface_ignored_fonts = Qnil;
 
+  DEFVAR_LISP ("face-font-rescale-alist", &Vface_font_rescale_alist,
+	       doc: /* Alist of fonts vs the rescaling factors.
+Each element is a cons (FONT-NAME-PATTERN . RESCALE-RATIO), where
+FONT-NAME-PATTERN is a regular expression matching a font name, and
+RESCALE-RATIO is a floating point number to specify how much larger
+\(or smaller) font we should use.  For instance, if a face requests
+a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
+  Vface_font_rescale_alist = Qnil;
+
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
   defsubr (&Sx_list_fonts);
@@ -7682,3 +7742,6 @@ ignore.  */);
   defsubr (&Sx_font_family_list);
 #endif /* HAVE_WINDOW_SYSTEM */
 }
+
+/* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
+   (do not change this comment) */

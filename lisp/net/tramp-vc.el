@@ -336,6 +336,9 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 	   (tramp-tramp-file-p filename)
 	   (not
 	    (let ((v	(tramp-dissect-file-name filename)))
+	      ;; The following check is probably to test whether
+	      ;; file-attributes returns correct last modification
+	      ;; times.  This check needs to be changed.
 	      (tramp-get-remote-perl (tramp-file-name-multi-method v)
 				   (tramp-file-name-method v)
 				   (tramp-file-name-user v)
@@ -483,4 +486,5 @@ This makes remote VC work correctly at the cost of some processing time."
 ;; No need to load this again if anyone asks.
 (provide 'tramp-vc)
 
+;;; arch-tag: 27cc42ce-da19-468d-ad5c-a2690558db60
 ;;; tramp-vc.el ends here

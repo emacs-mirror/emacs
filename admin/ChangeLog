@@ -1,3 +1,42 @@
+2003-10-01  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs: Don't use "function" keyword when defining
+	shell functions.
+
+2003-09-27  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* quick-install-emacs: Remove fns-* pruning, since that file no
+	longer seems to be generated.
+	(AVOID): Quote literal periods.  Quote braces in a way acceptable
+	to all parties (gawk gets bitchy about using `\').
+
+2003-08-19  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs: Add arch-specific ignored files to
+	quick-install-emacs.  Use quoting for periods that's acceptable
+	to recent versions of gawk.
+
+2003-08-11  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-test.el: Remove obsolete workaround.
+
+2003-04-22  Andrew Innes  <andrewi@gnu.org>
+
+	* nt/makedist.bat: Fix multi-file .zip distribution, by splitting
+	emacs.exe before zipping, and including batch file to recreate
+	after unpacking.
+
+	* nt/stitch.bat: New file.
+
+	* nt/README-ftp-server: Update wording and version number etc.
+	Add extra instructions for installing multi-file .zip
+	distribution.
+
+	* nt/README.W32: Remove personal email address and update wording.
+
+	* nt/README-UNDUMP.W32: Remove personal email address and update
+	wording.
+
 2003-02-10  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* make-changelog-diff: New script, code stolen from make-announcement.
@@ -119,3 +158,5 @@
     Copyright (C) 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 97728c77-77c0-4156-b669-0e8c07d94e5a

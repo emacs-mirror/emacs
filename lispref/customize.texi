@@ -376,7 +376,7 @@ equivalent to @code{(string)}.
 @end menu
 
 All customization types are implemented as widgets; see @ref{Top, ,
-Introduction, widget, The Emacs Widget Library} for details.
+Introduction, widget, The Emacs Widget Library}, for details.
 
 @node Simple Types
 @subsection Simple Types
@@ -975,7 +975,8 @@ When you move to this item with @code{widget-forward} or
 @code{widget-backward}, it will display the string @var{motion-doc} in
 the echo area.  In addition, @var{motion-doc} is used as the mouse
 @code{help-echo} string and may actually be a function or form evaluated
-to yield a help string as for @code{help-echo} text properties.
+to yield a help string.  If it is a function, it is called with one
+argument, the widget.
 @c @xref{Text help-echo}.
 
 @item :match @var{function}
@@ -1054,3 +1055,7 @@ arguments, which will be used when creating the @code{radio-button} or
 @code{checkbox} associated with this item.
 @end ignore
 @end table
+
+@ignore
+   arch-tag: d1b8fad3-f48c-4ce4-a402-f73b5ef19bd2
+@end ignore

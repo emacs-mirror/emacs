@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- Speedbar interface for MH-E.
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -30,8 +30,6 @@
 ;; Speedbar support for MH-E package.
 
 ;;; Change Log:
-
-;; $Id: mh-speed.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
 
 ;;; Code:
 
@@ -70,7 +68,8 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
                             'mh-speedbar-folder-face 0)
     (forward-line -1)
     (setf (gethash nil mh-speed-folder-map)
-          (set-marker (make-marker) (1+ (line-beginning-position))))
+          (set-marker (or (gethash nil mh-speed-folder-map) (make-marker))
+                      (1+ (line-beginning-position))))
     (add-text-properties
      (line-beginning-position) (1+ (line-beginning-position))
      `(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
@@ -278,7 +277,9 @@ Do the right thing for the different kinds of buffers that MH-E uses."
            (save-excursion
              (forward-line -1)
              (setf (gethash folder-name mh-speed-folder-map)
-                   (set-marker (make-marker) (1+ (line-beginning-position))))
+                   (set-marker (or (gethash folder-name mh-speed-folder-map)
+                                   (make-marker))
+                               (1+ (line-beginning-position))))
              (add-text-properties
               (line-beginning-position) (1+ (line-beginning-position))
               `(mh-folder ,folder-name
@@ -309,8 +310,10 @@ The otional ARGS are ignored and there for compatibilty with speedbar."
              (setq start-region (point))
              (while (and (get-text-property (point) 'mh-level)
                          (> (get-text-property (point) 'mh-level) level))
-               (remhash (get-text-property (point) 'mh-folder)
-                        mh-speed-folder-map)
+               (let ((folder (get-text-property (point) 'mh-folder)))
+                 (when (gethash folder mh-speed-folder-map)
+                   (set-marker (gethash folder mh-speed-folder-map) nil)
+                   (remhash folder mh-speed-folder-map)))
                (forward-line))
              (delete-region start-region (point))
              (forward-line -1)
@@ -344,24 +347,29 @@ Optional ARGS are ignored."
        (delete-other-windows)))))
 
 (defvar mh-speed-current-folder nil)
+(defvar mh-speed-flists-folder nil)
 
 ;;;###mh-autoload
-(defun mh-speed-flists (force)
+(defun mh-speed-flists (force &optional folder)
   "Execute flists -recurse and update message counts.
-If FORCE is non-nil the timer is reset."
+If FORCE is non-nil the timer is reset. If FOLDER is non-nil then flists is run
+only for that one folder."
   (interactive (list t))
   (when force
-    (when (timerp mh-speed-flists-timer)
-      (cancel-timer mh-speed-flists-timer))
-    (setq mh-speed-flists-timer nil)
+    (when mh-speed-flists-timer
+      (cancel-timer mh-speed-flists-timer)
+      (setq mh-speed-flists-timer nil))
     (when (and (processp mh-speed-flists-process)
                (not (eq (process-status mh-speed-flists-process) 'exit)))
+      (set-process-filter mh-speed-flists-process t)
       (kill-process mh-speed-flists-process)
+      (setq mh-speed-partial-line "")
       (setq mh-speed-flists-process nil)))
+  (setq mh-speed-flists-folder folder)
   (unless mh-speed-flists-timer
     (setq mh-speed-flists-timer
           (run-at-time
-           nil mh-speed-flists-interval
+           nil (and mh-speed-run-flists-flag mh-speed-flists-interval)
            (lambda ()
              (unless (and (processp mh-speed-flists-process)
                           (not (eq (process-status mh-speed-flists-process)
@@ -376,8 +384,11 @@ If FORCE is non-nil the timer is reset."
                (setq mh-speed-flists-process
                      (start-process "*flists*" nil
                                     (expand-file-name "flists" mh-progs)
-                                    "-recurse"
+                                    (or mh-speed-flists-folder "-recurse")
+                                    (if mh-speed-flists-folder "-noall" "-all")
                                     "-sequence" (symbol-name mh-unseen-seq)))
+               ;; Run flists on all folders the next time around...
+               (setq mh-speed-flists-folder nil)
                (set-process-filter mh-speed-flists-process
                                    'mh-speed-parse-flists-output)))))))
 
@@ -397,7 +408,10 @@ next."
                 mh-speed-partial-line "")
           (multiple-value-setq (folder unseen total)
             (mh-parse-flist-output-line line mh-speed-current-folder))
-          (when (and folder unseen total)
+          (when (and folder unseen total
+                     (let ((old-pair (gethash folder mh-speed-flists-cache)))
+                       (or (not (equal (car old-pair) unseen))
+                           (not (equal (cdr old-pair) total)))))
             (setf (gethash folder mh-speed-flists-cache) (cons unseen total))
             (save-excursion
               (when (buffer-live-p (get-buffer speedbar-buffer))
@@ -514,7 +528,8 @@ The function invalidates the latest ancestor that is present."
           (insert-char char 1 t)
           (put-text-property (point) (1- (point)) 'invisible nil)
           ;; make sure we fix the image on the text here.
-          (speedbar-insert-image-button-maybe (- (point) 2) 3)))))
+          (mh-funcall-if-exists
+           speedbar-insert-image-button-maybe (- (point) 2) 3)))))
 
 (provide 'mh-speed)
 
@@ -523,4 +538,5 @@ The function invalidates the latest ancestor that is present."
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: d38ddcd4-3c00-4e37-99bf-8b89dda7b32c
 ;;; mh-speed.el ends here

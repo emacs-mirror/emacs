@@ -46,7 +46,6 @@
 ;;
 ;; If you decide you like this, add the following to your .emacs file:
 ;;
-;; (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
 ;; (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; SGR control sequences are defined in section 3.8.117 of the ECMA-48
@@ -649,4 +648,5 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 
 (provide 'ansi-color)
 
+;;; arch-tag: 00726118-9432-44fd-b72d-d2af7591c99c
 ;;; ansi-color.el ends here

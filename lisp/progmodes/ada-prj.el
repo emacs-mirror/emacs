@@ -1,10 +1,9 @@
 ;;; ada-prj.el --- easy editing of project files for the ada-mode
 
-;; Copyright (C) 1998, 99, 2000, 2001, 2002
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 99, 2000-2003 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   Revision: 1.55.2.2 (GNAT 3.15)
+;; Ada Core Technologies's version:   $Revision: 1.13 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -40,6 +39,10 @@
 ;; ----- Requirements -----------------------------------------------------
 
 (require 'cus-edit)
+(require 'ada-xref)
+
+(eval-when-compile
+   (require 'ada-mode))
 
 ;; ----- Buffer local variables -------------------------------------------
 
@@ -86,37 +89,22 @@ If there is none, opens a new project file"
       (ada-customize)
     (ada-prj-new)))
 
-(defun ada-prj-add-keymap ()
-  "Add new keybindings for ada-prj."
-  (define-key ada-mode-map "\C-cu"  'ada-prj-edit))
-
-(defun ada-prj-initialize-values (symbol ada-buffer &optional filename)
+(defun ada-prj-initialize-values (symbol ada-buffer filename)
   "Set SYMBOL to the property list of the project file FILENAME.
 If FILENAME is null, read the file associated with ADA-BUFFER. If no
 project file is found, returns the default values."
 
-  (let ((prj filename))
+  (if (and filename
+	   (not (string= filename ""))
+	   (assoc filename ada-xref-project-files))
+      (set symbol (copy-sequence (cdr (assoc filename ada-xref-project-files))))
 
-    (if filename
-      ;; If filename is given, reread if first if needed
-      (if (file-exists-p filename)
-	  (ada-reread-prj-file))
-
-      ;; Else use the active one
-      (set 'prj ada-prj-default-project-file))
-
-
-    (if (and prj
-	     (not (string= prj ""))
-	     (assoc prj ada-xref-project-files))
-	(set symbol (copy-sequence (cdr (assoc prj ada-xref-project-files))))
-
-      ;;  Set default values (except for the file name if this was given
-      ;;  in the buffer
-      (ada-xref-set-default-prj-values symbol ada-buffer)
-      (if (and prj (not (string= prj "")))
-	  (set symbol (plist-put (eval symbol) 'filename prj)))
-      )))
+    ;;  Set default values (except for the file name if this was given
+    ;;  in the buffer
+    (ada-xref-set-default-prj-values symbol ada-buffer)
+    (if (and filename (not (string= filename "")))
+	(set symbol (plist-put (eval symbol) 'filename filename)))
+    ))
 
 
 (defun ada-prj-save-specific-option (field)
@@ -258,7 +246,7 @@ The current buffer must be the project editing buffer."
     (erase-buffer))
 
   ;;  Widget support in Emacs 21 requires that we clear the buffer first
-  (if (and (not (boundp 'running-xemacs)) (>= emacs-major-version 21))
+  (if (and (not (featurep 'xemacs)) (>= emacs-major-version 21))
       (progn
 	(setq widget-field-new  nil
 	      widget-field-list nil)
@@ -516,13 +504,19 @@ If FILENAME is given, edit that file."
 	  (add-hook 'after-save-hook 'ada-reread-prj-file t t)
 	  )
 
+      (if filename
+	  (ada-reread-prj-file filename)
+	(if (not (string= ada-prj-default-project-file ""))
+	    (ada-reread-prj-file ada-prj-default-project-file)
+	  (ada-reread-prj-file)))
+
       ;;  Else start the interactive editor
       (switch-to-buffer "*Customize Ada Mode*")
-      (kill-all-local-variables)
 
       (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
-      (ada-prj-initialize-values
-       'ada-prj-current-values ada-buffer filename)
+      (ada-prj-initialize-values 'ada-prj-current-values
+				 ada-buffer
+				 ada-prj-default-project-file)
 
       (set (make-local-variable 'ada-prj-ada-buffer) ada-buffer)
 
@@ -552,23 +546,6 @@ directory name."
 				   x)))
              ada-list "\n"))
 
-
-(defun ada-prj-get-prj-dir (&optional ada-file)
-  "Returns the directory/name of the project file for ADA-FILE.
-If ADA-FILE is nil, returns the project file for the current buffer."
-  (unless ada-file
-    (setq ada-file (buffer-file-name)))
-
-  (save-excursion
-    (let ((prj-file (ada-prj-find-prj-file t)))
-      (if (or (not prj-file)
-	      (not (file-exists-p prj-file))
-	      )
-	  (setq prj-file
-		(concat (file-name-sans-extension ada-file)
-			ada-project-file-extension)))
-      prj-file)
-    ))
 
 (defun ada-prj-field-modified (widget &rest dummy)
   "Callback called each time the value of WIDGET is modified. Save the
@@ -702,10 +679,7 @@ AFTER-TEXT is inserted just after the widget."
     ))
 
 
-;;  Set the keymap once and for all, so that the keys set by the user in his
-;;  config file are not overwritten every time we open a new file.
-(ada-prj-add-keymap)
-
 (provide 'ada-prj)
 
+;;; arch-tag: 65978c77-816e-49c6-896e-6905605d1b4c
 ;;; ada-prj.el ends here

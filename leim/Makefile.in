@@ -213,8 +213,13 @@ install: all
 	    tar -chf - quail/* ja-dic \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
+	  rm -rf ${INSTALLDIR}/CVS        ${INSTALLDIR}/*/CVS; \
+	  rm -f  ${INSTALLDIR}/.cvsignore ${INSTALLDIR}/*/.cvsignore; \
+	  rm -f  ${INSTALLDIR}/\#*        ${INSTALLDIR}/*/\#* ; \
+	  rm -f  ${INSTALLDIR}/.\#*       ${INSTALLDIR}/*/.\#* ; \
+	  rm -f  ${INSTALLDIR}/*~         ${INSTALLDIR}/*/*~ ; \
+	  rm -f  ${INSTALLDIR}/*.orig     ${INSTALLDIR}/*/*.orig ; \
 	else true; fi
-	-rm -f ${INSTALLDIR}/.cvsignore ${INSTALLDIR}/*/.cvsignore
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
@@ -227,3 +232,5 @@ distclean maintainer-clean:
 
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
+
+# arch-tag: f666a939-8145-4d64-a6a6-cc1f61bd32ca

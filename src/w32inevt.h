@@ -30,3 +30,6 @@ extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
 					unsigned long *time);
 
 #endif /* EMACS_W32INEVT_H */
+
+/* arch-tag: 7641bd54-199f-4552-8e8a-6a2f5340ef13
+   (do not change this comment) */

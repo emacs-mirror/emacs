@@ -689,7 +689,7 @@ lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
-	${lispsource}byte-run.elc \
+	${lispsource}emacs-lisp/byte-run.elc \
 	${lispsource}cus-face.elc \
 	${lispsource}cus-start.elc \
 	${lispsource}custom.elc \
@@ -702,7 +702,7 @@ lisp= \
 	${lispsource}format.elc \
 	${lispsource}facemenu.elc \
 	MOUSE_SUPPORT \
-	${lispsource}float-sup.elc \
+	${lispsource}emacs-lisp/float-sup.elc \
 	${lispsource}frame.elc \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
@@ -710,7 +710,7 @@ lisp= \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}bindings.elc \
-	${lispsource}map-ynp.elc \
+	${lispsource}emacs-lisp/map-ynp.elc \
 	${lispsource}menu-bar.elc \
 	${lispsource}international/mule.elc \
 	${lispsource}international/mule-conf.el \
@@ -762,7 +762,7 @@ lisp= \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
 	${lispsource}textmodes/text-mode.elc \
-	${lispsource}timer.elc \
+	${lispsource}emacs-lisp/timer.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
 	VMS_SUPPORT \
@@ -780,7 +780,7 @@ shortlisp= \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
-	../lisp/byte-run.elc \
+	../lisp/emacs-lisp/byte-run.elc \
 	../lisp/cus-face.elc \
 	../lisp/cus-start.elc \
 	../lisp/custom.elc \
@@ -790,7 +790,7 @@ shortlisp= \
 	../lisp/facemenu.elc \
 	../lisp/faces.elc \
 	../lisp/files.elc \
-	../lisp/float-sup.elc \
+	../lisp/emacs-lisp/float-sup.elc \
 	../lisp/format.elc \
 	../lisp/frame.elc \
 	../lisp/help.elc \
@@ -799,7 +799,7 @@ shortlisp= \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/bindings.elc \
-	../lisp/map-ynp.elc \
+	../lisp/emacs-lisp/map-ynp.elc \
 	../lisp/env.elc \
 	../lisp/international/mule.elc \
 	../lisp/international/mule-conf.el \
@@ -852,7 +852,7 @@ shortlisp= \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \
 	../lisp/textmodes/text-mode.elc \
-	../lisp/timer.elc \
+	../lisp/emacs-lisp/timer.elc \
 	../lisp/vc-hooks.elc \
 	../lisp/ediff-hook.elc \
 	../lisp/widget.elc \
@@ -944,11 +944,6 @@ prefix-args${EXEEXT}: prefix-args.c $(config_h)
 #define OLDXMENU_OPTIONS
 #endif
 
-/* Don't lose if this was not defined.  */
-#ifndef LWLIB_OPTIONS
-#define LWLIB_OPTIONS
-#endif
-
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS)
 
 /* We use stamp-xmenu with these two deps
@@ -972,7 +967,7 @@ C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-lwlib:
-	cd ${lwlibdir}; ${MAKE} ${MFLAGS} LWLIB_OPTIONS \
+	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
@@ -1023,40 +1018,10 @@ stamp-oldxmenu:
 	exit 1
 
 /* Some machines have alloca built-in.
-   They should define HAVE_ALLOCA, or may just let alloca.s
-   be used but generate no code.
-   Some have it written in assembler in alloca.s.
+   They should define HAVE_ALLOCA.
    Some use the C version in alloca.c (these define C_ALLOCA in config.h).
    */
-
-#ifdef C_ALLOCA
-/* We could put something in alloca.c to #define free and malloc
-   whenever emacs was #defined, but that's not appropriate for all
-   users of alloca in Emacs.  Check out ../lib-src/getopt.c.  */
-alloca.o : alloca.c
-	$(CC) -c $(CPPFLAGS) -DEMACS_FREE=xfree \
-	$(ALL_CFLAGS) ${srcdir}/alloca.c
-#else
-#ifndef HAVE_ALLOCA
-alloca.o : alloca.s $(config_h)
-/* $(CPP) is cc -E, which may get confused by filenames
-   that do not end in .c.  So copy file to a safe name.  */
-	-rm -f allocatem.c
-	cp ${srcdir}/alloca.s allocatem.c
-/* Remove any ^L, blank lines, and preprocessor comments,
-   since some assemblers barf on them.  Use a different basename for the
-   output file, since some stupid compilers (Green Hill's) use that
-   name for the intermediate assembler file. */
-	$(CPP) $(CPPFLAGS) $(ALL_CFLAGS) allocatem.c | \
-	sed -e 's///' -e 's/^#.*//' | \
-	sed -n -e '/^..*$$/p' > allocax.s
-	-rm -f alloca.o
-/* Xenix, in particular, needs to run assembler via cc.  */
-	$(CC) -c allocax.s
-	mv allocax.o alloca.o
-	-rm -f allocax.s allocatem.c
-#endif /* HAVE_ALLOCA */
-#endif /* ! defined (C_ALLOCA) */
+alloca.o: alloca.c blockinput.h atimer.h
 
 /* Nearly all the following files depend on lisp.h,
    but it is not included as a dependency because
@@ -1079,7 +1044,7 @@ category.o: category.c category.h buffer.h charset.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
 charset.o: charset.c charset.h buffer.h coding.h composite.h disptab.h \
 	$(config_h)
-coding.o: coding.c coding.h ccl.h buffer.h charset.h $(config_h)
+coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h window.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
 	msdos.h dispextern.h
@@ -1099,7 +1064,8 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h dispextern.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
-   termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h)
+   termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
+   window.h keyboard.h keymap.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h ccl.h msdos.h dispextern.h $(config_h)
 filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
@@ -1129,12 +1095,13 @@ gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h)
 marker.o: marker.c buffer.h charset.h $(config_h)
+md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
    buffer.h commands.h charset.h msdos.h $(config_h)
 mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h charset.h coding.h ccl.h disptab.h window.h \
-   keyboard.h $(config_h)
+   keyboard.h intervals.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
@@ -1178,17 +1145,18 @@ xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    charset.h gtkutil.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h \
-   gtkutil.h msdos.h $(config_h)
+   gtkutil.h msdos.h coding.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
   dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
   keyboard.h gnu.h charset.h ccl.h fontset.h composite.h \
   coding.h process.h gtkutil.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
-  charset.h coding.h ccl.h buffer.h atimer.h systime.h $(config_h)
+  buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
-xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h
+xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
+  lisp.h termopts.h
 gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
-  blockinput.h window.h atimer.h termhooks.h
+  blockinput.h window.h atimer.h termhooks.h keyboard.h charset.h coding.h
 
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
@@ -1198,13 +1166,13 @@ atimer.o: atimer.c atimer.h systime.h $(config_h)
 
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
  blockinput.h atimer.h systime.h charset.h dispextern.h $(config_h) $(INTERVAL_SRC)
-bytecode.o: bytecode.c buffer.h syntax.h charset.h $(config_h)
+bytecode.o: bytecode.c buffer.h syntax.h charset.h window.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
- frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h
+ frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h \
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
@@ -1345,3 +1313,5 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 
+/* arch-tag: 8e915ae5-d15d-4617-8c41-c5c267a23b00
+   (do not change this comment) */

@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 
-;; Author: Jonathan Yavner <jyavner@engineer.com>
-;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
+;; Author: Jonathan Yavner <jyavner@member.fsf.org>
+;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: spreadsheet
 
 ;; This file is part of GNU Emacs.
@@ -2927,4 +2927,5 @@ current column and continues until the next nonblank column."
 
 (provide 'ses)
 
+;;; arch-tag: 88c1ccf0-4293-4824-8c5d-0757b52217f3
 ;; ses.el ends here.

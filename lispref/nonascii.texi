@@ -191,6 +191,12 @@ The function @code{unibyte-char-to-multibyte} is used to convert
 each unibyte character to a multibyte character.
 @end defun
 
+@defun string-to-multibyte string
+This function returns a multibyte string containing the same sequence
+of character codes as @var{string}.  If @var{string} is a multibyte
+string, the value is the equal to @var{string}.
+@end defun
+
 @node Selecting a Representation
 @section Selecting a Representation
 
@@ -229,7 +235,7 @@ more characters than @var{string} has.
 If @var{string} is already a unibyte string, then the value is
 @var{string} itself.  Otherwise it is a newly created string, with no
 text properties.  If @var{string} is multibyte, any characters it
-contains of charset @var{eight-bit-control} or @var{eight-bit-graphic}
+contains of charset @code{eight-bit-control} or @code{eight-bit-graphic}
 are converted to the corresponding single byte.
 @end defun
 
@@ -242,8 +248,8 @@ If @var{string} is already a multibyte string, then the value is
 @var{string} itself.  Otherwise it is a newly created string, with no
 text properties.  If @var{string} is unibyte and contains any individual
 8-bit bytes (i.e.@: not part of a multibyte form), they are converted to
-the corresponding multibyte character of charset @var{eight-bit-control}
-or @var{eight-bit-graphic}.
+the corresponding multibyte character of charset @code{eight-bit-control}
+or @code{eight-bit-graphic}.
 @end defun
 
 @node Character Codes
@@ -273,8 +279,8 @@ text representations.
      @result{} t
 @end example
 
-If the optional argument @var{genericp} is non-nil, this function
-returns @code{t} if @var{charcode} is a generic character
+If the optional argument @var{genericp} is non-@code{nil}, this
+function returns @code{t} if @var{charcode} is a generic character
 (@pxref{Splitting Characters}).
 @end defun
 
@@ -319,9 +325,7 @@ belongs to.
 This function returns the charset property list of the character set
 @var{charset}.  Although @var{charset} is a symbol, this is not the same
 as the property list of that symbol.  Charset properties are used for
-special purposes within Emacs; for example,
-@code{preferred-coding-system} helps determine which coding system to
-use to encode characters in a charset.
+special purposes within Emacs.
 @end defun
 
 @node Chars and Bytes
@@ -395,6 +399,11 @@ or both of @var{code1} and @var{code2} according to the dimension of
 (make-char 'latin-iso8859-1 72)
      @result{} 2248
 @end example
+
+Actually, the eighth bit of both @var{code1} and @var{code2} is zeroed
+before they are used to index @var{charset}.  Thus you may use, for
+instance, an ISO 8859 character code rather than subtracting 128, as
+is necessary to index the corresponding Emacs charset.
 @end defun
 
 @cindex generic characters
@@ -503,6 +512,11 @@ coding systems that don't specify any other translation table.
 @defvar standard-translation-table-for-encode
 This is the default translation table for encoding, for
 coding systems that don't specify any other translation table.
+@end defvar
+
+@defvar translation-table-for-input
+Self-inserting characters are translated through this translation
+table before they are inserted.
 @end defvar
 
 @node Coding Systems
@@ -887,6 +901,22 @@ The value should be a cons cell of the form @code{(@var{input-coding}
 the subprocess, and @var{output-coding} applies to output to it.
 @end defvar
 
+@defvar auto-coding-functions
+This variable holds a list of functions that try to determine a
+coding system for a file based on its undecoded contents.
+
+Each function in this list should be written to look at text in the
+current buffer, but should not modify it in any way.  The buffer will
+contain undecoded text of parts of the file.  Each function should
+take one argument, @var{size}, which tells it how many characters to
+look at, starting from point.  If the function succeeds in determining
+a coding system for the file, it should return that coding system.
+Otherwise, it should return @code{nil}.
+
+If a file has a @samp{coding:} tag, that takes precedence, so these
+functions won't be called.
+@end defvar
+
 @defun find-operation-coding-system operation &rest arguments
 This function returns the coding system to use (by default) for
 performing @var{operation} with @var{arguments}.  The value has this
@@ -1038,6 +1068,17 @@ system @var{coding-system}.  It returns a new string containing the
 decoded text.  To make explicit decoding useful, the contents of
 @var{string} ought to be a sequence of byte values, but a multibyte
 string is acceptable.
+@end defun
+
+@defun decode-coding-inserted-region from to filename &optional visit beg end replace
+This function decodes the text from @var{from} to @var{to} as if
+it were being read from file @var{filename} using @code{insert-file-contents}
+using the rest of the arguments provided.
+
+The normal way to use this function is after reading text from a file
+without decoding, if you decide you would rather have decoded it.
+Instead of deleting the text and reading it again, this time with
+decoding, you can call this function.
 @end defun
 
 @node Terminal I/O Encoding
@@ -1235,3 +1276,35 @@ conventions of a different language.  If the variable is @code{nil}, the
 locale is specified by environment variables in the usual POSIX fashion.
 @end defvar
 
+@defun locale-info item
+This function returns locale data @var{item} for the current POSIX
+locale, if available.  @var{item} should be one of these symbols:
+
+@table @code
+@item codeset
+Return the character set as a string (locale item @code{CODESET}).
+
+@item days
+Return a 7-element vector of day names (locale items
+@code{DAY_1} through @code{DAY_7});
+
+@item months
+Return a 12-element vector of month names (locale items @code{MON_1}
+through @code{MON_12}).
+
+@item paper
+Return a list @code{(@var{width} @var{height})} for the default paper
+size measured in milimeters (locale items @code{PAPER_WIDTH} and
+@code{PAPER_HEIGHT}).
+@end table
+
+If the system can't provide the requested information, or if
+@var{item} is not one of those symbols, the value is @code{nil}.  All
+strings in the return value are decoded using
+@code{locale-coding-system}.  @xref{Locales,,, libc, GNU Libc Manual},
+for more information about locales and locale items.
+@end defun
+
+@ignore
+   arch-tag: be705bf8-941b-4c35-84fc-ad7d20ddb7cb
+@end ignore

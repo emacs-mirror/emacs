@@ -1,6 +1,6 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 02, 2003 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -31,8 +31,6 @@
 ;; since less Lisp code needs to be loaded all at once.
 
 ;;; Change Log:
-
-;; $Id: mh-funcs.el,v 1.3 2003/02/04 13:15:32 lektu Exp $
 
 ;;; Code:
 
@@ -76,33 +74,21 @@ digest are inserted into the folder after that message."
 ;;;###mh-autoload
 (defun mh-copy-msg (msg-or-seq folder)
   "Copy the specified MSG-OR-SEQ to another FOLDER without deleting them.
-Default is the displayed message. If optional prefix argument is provided,
-then prompt for the message sequence."
-  (interactive (list (cond
-                      ((mh-mark-active-p t)
-                       (cons (region-beginning) (region-end)))
-                      (current-prefix-arg
-                       (mh-read-seq-default "Copy" t))
-                      (t
-                       (cons (line-beginning-position) (line-end-position))))
+Default is the displayed message.
+If optional prefix argument is provided, then prompt for the message sequence.
+If variable `transient-mark-mode' is non-nil and the mark is active, then the
+selected region is copied.
+In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
+region in a cons cell, or a sequence."
+  (interactive (list (mh-interactive-msg-or-seq "Copy")
                      (mh-prompt-for-folder "Copy to" "" t)))
-  (let ((msg-list (cond ((numberp msg-or-seq) (list msg-or-seq))
-                        ((symbolp msg-or-seq) (mh-seq-to-msgs msg-or-seq))
-                        ((and (consp msg-or-seq) (numberp (car msg-or-seq))
-                              (numberp (cdr msg-or-seq)))
-                         (let ((result ()))
-                           (mh-iterate-on-messages-in-region msg
-                               (car msg-or-seq) (cdr msg-or-seq)
-                             (mh-notate nil mh-note-copied mh-cmd-note)
-                             (push msg result))
-                           result))
-                        (t msg-or-seq))))
+  (let ((msg-list (let ((result ()))
+                    (mh-iterate-on-msg-or-seq msg msg-or-seq
+                      (mh-notate nil mh-note-copied mh-cmd-note)
+                      (push msg result))
+                    result)))
     (mh-exec-cmd "refile" (mh-coalesce-msg-list msg-list)
-                 "-link" "-src" mh-current-folder folder)
-    (cond ((numberp msg-or-seq)
-           (mh-notate msg-or-seq mh-note-copied mh-cmd-note))
-          ((symbolp msg-or-seq)
-           (mh-notate-seq msg-or-seq mh-note-copied mh-cmd-note)))))
+                 "-link" "-src" mh-current-folder folder)))
 
 ;;;###mh-autoload
 (defun mh-kill-folder ()
@@ -111,7 +97,7 @@ Removes all of the messages (files) within the specified current folder,
 and then removes the folder (directory) itself."
   (interactive)
   (if (or mh-index-data
-          (yes-or-no-p (format "Remove folder %s (and all included messages)?"
+          (yes-or-no-p (format "Remove folder %s (and all included messages)? "
                                mh-current-folder)))
       (let ((folder mh-current-folder)
             (window-config mh-previous-window-config))
@@ -246,57 +232,60 @@ Otherwise just send the message's body without the headers."
 
 ;;;###mh-autoload
 (defun mh-print-msg (msg-or-seq)
-  "Print MSG-OR-SEQ (default: displayed message) on printer.
-If optional prefix argument provided, then prompt for the message sequence.
+  "Print MSG-OR-SEQ on printer.
+Default is the displayed message.
+If optional prefix argument is provided, then prompt for the message sequence.
+If variable `transient-mark-mode' is non-nil and the mark is active, then the
+selected region is printed.
+In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
+region in a cons cell, or a sequence.
+
 The variable `mh-lpr-command-format' is used to generate the print command.
 The messages are formatted by mhl. See the variable `mhl-formfile'."
-  (interactive (list (if current-prefix-arg
-                         (reverse (mh-seq-to-msgs
-                                   (mh-read-seq-default "Print" t)))
-                       (mh-get-msg-num t))))
-  (if (numberp msg-or-seq)
-      (message "Printing message...")
-    (message "Printing sequence..."))
-  (let ((print-command
-         (if (numberp msg-or-seq)
-             (format "%s -nobell -clear %s %s | %s"
-                     (expand-file-name "mhl" mh-lib-progs)
-                     (mh-msg-filename msg-or-seq)
-                     (if (stringp mhl-formfile)
-                         (format "-form %s" mhl-formfile)
-                       "")
-                     (format mh-lpr-command-format
-                             (if (numberp msg-or-seq)
-                                 (format "%s/%d" mh-current-folder
-                                         msg-or-seq)
-                               (format "Sequence from %s" mh-current-folder))))
-           (format "(scan -clear %s ; %s -nobell -clear %s %s) | %s"
-                   (mapconcat (function (lambda (msg) msg)) msg-or-seq " ")
-                   (expand-file-name "mhl" mh-lib-progs)
-                   (if (stringp mhl-formfile)
-                       (format "-form %s" mhl-formfile)
-                     "")
-                   (mh-msg-filenames msg-or-seq)
-                   (format mh-lpr-command-format
-                           (if (numberp msg-or-seq)
-                               (format "%s/%d" mh-current-folder
-                                       msg-or-seq)
-                             (format "Sequence from %s"
-                                     mh-current-folder)))))))
-    (if mh-print-background-flag
-        (mh-exec-cmd-daemon shell-file-name nil "-c" print-command)
-      (call-process shell-file-name nil nil nil "-c" print-command))
-    (if (numberp msg-or-seq)
-        (mh-notate msg-or-seq mh-note-printed mh-cmd-note)
-      (mh-notate-seq msg-or-seq mh-note-printed mh-cmd-note))
-    (mh-add-msgs-to-seq msg-or-seq 'printed t)
-    (if (numberp msg-or-seq)
-        (message "Printing message...done")
-      (message "Printing sequence...done"))))
-
-(defun mh-msg-filenames (msgs &optional folder)
-  "Return a list of file names for MSGS in FOLDER (default current folder)."
-  (mapconcat (function (lambda (msg) (mh-msg-filename msg folder))) msgs " "))
+  (interactive (list (mh-interactive-msg-or-seq "Print")))
+  (message "Printing...")
+  (let (msgs)
+    ;; Gather message numbers and add them to "printed" sequence.
+    (mh-iterate-on-msg-or-seq msg msg-or-seq
+      (mh-add-msgs-to-seq msg 'printed t)
+      (mh-notate nil mh-note-printed mh-cmd-note)
+      (push msg msgs))
+    (setq msgs (nreverse msgs))
+    ;; Print scan listing if we have more than one message.
+    (if (> (length msgs) 1)
+        (let* ((msgs-string
+                (mapconcat 'identity (mh-list-to-string
+                                      (mh-coalesce-msg-list msgs)) " "))
+               (lpr-command
+                (format mh-lpr-command-format
+                        (cond ((listp msg-or-seq)
+                               (format "Folder: %s, Messages: %s"
+                                       mh-current-folder msgs-string))
+                              ((symbolp msg-or-seq)
+                               (format "Folder: %s, Sequence: %s"
+                                       mh-current-folder msg-or-seq)))))
+               (scan-command
+                (format "scan %s | %s" msgs-string lpr-command)))
+          (if mh-print-background-flag
+              (mh-exec-cmd-daemon shell-file-name nil "-c" scan-command)
+            (call-process shell-file-name nil nil nil "-c" scan-command))))
+    ;; Print the messages
+    (dolist (msg msgs)
+      (let* ((mhl-command (format "%s %s %s"
+                                  (expand-file-name "mhl" mh-lib-progs)
+                                  (if mhl-formfile
+                                      (format " -form %s" mhl-formfile)
+                                    "")
+                                  (mh-msg-filename msg)))
+             (lpr-command
+              (format mh-lpr-command-format
+                      (format "%s/%s" mh-current-folder msg)))
+             (print-command
+              (format "%s | %s" mhl-command lpr-command)))
+        (if mh-print-background-flag
+            (mh-exec-cmd-daemon shell-file-name nil "-c" print-command)
+          (call-process shell-file-name nil nil nil "-c" print-command)))))
+  (message "Printing...done"))
 
 ;;;###mh-autoload
 (defun mh-sort-folder (&optional extra-args)
@@ -314,7 +303,6 @@ argument EXTRA-ARGS is given."
     (when mh-index-data
       (mh-index-update-maps mh-current-folder))
     (message "Sorting folder...done")
-    (mh-reset-threads-and-narrowing)
     (mh-scan-folder mh-current-folder "all")
     (cond (threaded-flag (mh-toggle-threads))
           (mh-index-data (mh-index-insert-folder-headers)))))
@@ -334,7 +322,9 @@ Argument IGNORE is deprecated."
            (mh-unmark-all-headers t)))
         (t
          (message "Commands not undone.")
-         (sit-for 2))))
+         ;; Remove by 2003-06-30 if nothing seems amiss. XXX
+         ;; (sit-for 2)
+         )))
 
 ;;;###mh-autoload
 (defun mh-store-msg (directory)
@@ -378,9 +368,9 @@ Default directory is the last directory used, or initially the value of
                           (if (looking-at "^[#:]....+\n\\( ?\n\\)?end$")
                               nil       ;most likely end of a uuencode
                             (point))))))
-        (log-buffer (get-buffer-create "*Store Output*"))
         (command "sh")
-        (uudecode-filename "(unknown filename)"))
+        (uudecode-filename "(unknown filename)")
+        log-begin)
     (if (not sh-start)
         (save-excursion
           (goto-char (point-min))
@@ -389,31 +379,33 @@ Default directory is the last directory used, or initially the value of
                     (buffer-substring (point)
                                       (progn (end-of-line) (point)))))))
     (save-excursion
-      (set-buffer log-buffer)
-      (erase-buffer)
+      (set-buffer (get-buffer-create mh-log-buffer))
+      (setq log-begin (mh-truncate-log-buffer))
       (if (not (file-directory-p store-directory))
           (progn
             (insert "mkdir " directory "\n")
-            (call-process "mkdir" nil log-buffer t store-directory)))
+            (call-process "mkdir" nil mh-log-buffer t store-directory)))
       (insert "cd " directory "\n")
       (setq mh-store-default-directory directory)
       (if (not sh-start)
           (progn
             (setq command "uudecode")
             (insert uudecode-filename " being uudecoded...\n"))))
-    (set-window-start (display-buffer log-buffer) 0) ;watch progress
-    (let (value)
-      (let ((default-directory (file-name-as-directory store-directory)))
-        (setq value (call-process-region sh-start (point-max) command
-                                         nil log-buffer t)))
-      (set-buffer log-buffer)
-      (mh-handle-process-error command value))
-    (insert "\n(mh-store finished)\n")))
+    (set-window-start (display-buffer mh-log-buffer) log-begin) ;watch progress
+    (let ((default-directory (file-name-as-directory store-directory)))
+      (if (equal (call-process-region sh-start (point-max) command
+                                      nil mh-log-buffer t)
+                 0)
+          (save-excursion
+            (set-buffer mh-log-buffer)
+            (insert "\n(mh-store finished)\n"))
+        (error "Error occurred during execution of %s" command)))))
 
 
 
 ;;; Help Functions
 
+;;;###mh-autoload
 (defun mh-ephem-message (string)
   "Display STRING in the minibuffer momentarily."
   (message "%s" string)
@@ -450,4 +442,5 @@ Default directory is the last directory used, or initially the value of
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: 1936c4f1-4843-438e-bc4b-a63bb75a7762
 ;;; mh-funcs.el ends here

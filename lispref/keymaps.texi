@@ -28,6 +28,7 @@ found.  The whole process is called @dfn{key lookup}.
 * Key Lookup::                  How extracting elements from keymaps works.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
+* Remapping Commands::          Bindings that translate one command to another.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 * Menu Keymaps::		Defining a menu as a keymap.
@@ -124,27 +125,24 @@ bindings allow a keymap to bind all possible event types without having
 to enumerate all of them.  A keymap that has a default binding
 completely masks any lower-precedence keymap.
 
-@item @var{vector}
-If an element of a keymap is a vector, the vector counts as bindings for
-all the @sc{ascii} characters, codes 0 through 127; vector element
-@var{n} is the binding for the character with code @var{n}.  This is a
-compact way to record lots of bindings.  A keymap with such a vector is
-called a @dfn{full keymap}.  Other keymaps are called @dfn{sparse
-keymaps}.
+@item @var{char-table}
+If an element of a keymap is a char-table, it counts as holding
+bindings for all character events with no modifier bits
+(@pxref{modifier bits}): element @var{n} is the binding for the
+character with code @var{n}.  This is a compact way to record lots of
+bindings.  A keymap with such a char-table is called a @dfn{full
+keymap}.  Other keymaps are called @dfn{sparse keymaps}.
 
-A @code{nil} binding is used to mean that a key is explicitly not bound.
-Just like any other binding, it takes precedence over a default binding
-or a binding in the parent keymap, but on the other hand, it does not
-take precedence over keymaps of lower priority.
-
-When a keymap contains a vector, it always defines a binding for each
-@sc{ascii} character, even if the vector contains @code{nil} for that
-character.  Such a binding of @code{nil} overrides any default key
-binding in the keymap, for @sc{ascii} characters.  However, default
-bindings are still meaningful for events other than @sc{ascii}
-characters.  A binding of @code{nil} does @emph{not} override
-lower-precedence keymaps; thus, if the local map gives a binding of
-@code{nil}, Emacs uses the binding from the global map.
+When a keymap contains a char-table vector, it always defines a
+binding for each character without modifiers.  However, if the binding
+is @code{nil}, it doesn't constitute a definition.  @code{nil} takes
+precedence over a default binding or a binding in the parent keymap.
+So in a full keymap, default bindings are not meaningful for
+characters without modifiers.  They can still apply to characters with
+modifier bits and to non-character events.  A binding of @code{nil}
+does @emph{not} override lower-precedence keymaps; thus, if the local
+map gives a binding of @code{nil}, Emacs uses the binding from the
+global map.
 
 @item @var{string}
 @cindex keymap prompt string
@@ -530,7 +528,8 @@ when the minor mode is enabled.
 
   The variable @code{overriding-local-map}, if non-@code{nil}, specifies
 another local keymap that overrides the buffer's local map and all the
-minor mode keymaps.
+minor mode keymaps.  Modes for emulation can specify additional
+active keymaps through the variable @code{emulation-mode-map-alists}.
 
   All the active keymaps are used together to determine what command to
 execute when a key is entered.  Emacs searches these maps one by one, in
@@ -712,6 +711,16 @@ exiting.
 This variable holds a keymap for special events.  If an event type has a
 binding in this keymap, then it is special, and the binding for the
 event is run directly by @code{read-event}.  @xref{Special Events}.
+@end defvar
+
+@defvar emulation-mode-map-alists
+This variable holds a list of keymap alists to use for emulations
+modes.  It is intended for modes or packages using multiple minor-mode
+keymaps.  Each element is a keymap alist which has the same format and
+meaning as @code{minor-mode-map-alist}, or a symbol with a variable
+binding which is such an alist.  The ``active'' keymaps in each alist
+are used before @code{minor-mode-map-alist} and
+@code{minor-mode-overriding-map-alist}.
 @end defvar
 
 @node Key Lookup
@@ -918,7 +927,7 @@ Used in keymaps to undefine keys.  It calls @code{ding}, but does
 not cause an error.
 @end deffn
 
-@defun key-binding key &optional accept-defaults
+@defun key-binding key &optional accept-defaults no-remap
 This function returns the binding for @var{key} in the current
 keymaps, trying all the active keymaps.  The result is @code{nil} if
 @var{key} is undefined in the keymaps.
@@ -926,6 +935,12 @@ keymaps, trying all the active keymaps.  The result is @code{nil} if
 @c Emacs 19 feature
 The argument @var{accept-defaults} controls checking for default
 bindings, as in @code{lookup-key} (above).
+
+When commands are remapped (@pxref{Remapping Commands}),
+@code{key-binding} normally processes command remappings so as to
+returns the remapped command that will actually be executed.  However,
+if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
+remappings and returns the binding directly specified for @var{key}.
 
 An error is signaled if @var{key} is not a string or a vector.
 
@@ -935,6 +950,11 @@ An error is signaled if @var{key} is not a string or a vector.
     @result{} find-file
 @end group
 @end example
+@end defun
+
+@defun current-active-maps
+This returns the list of keymaps that would be used by the command
+loop in the current circumstances to look up a key sequence.
 @end defun
 
 @defun local-key-binding key &optional accept-defaults
@@ -1145,6 +1165,12 @@ changing an entry in @code{ctl-x-map}, and this has the effect of
 changing the bindings of both @kbd{C-p C-f} and @kbd{C-x C-f} in the
 default global map.
 
+  The function @code{substitute-key-definition} scans a keymap for
+keys that have a certain binding and rebind them with a different
+binding.  Another feature you can use for similar effects, but which
+is often cleaner, is to add a binding that remaps a command
+(@pxref{Remapping Commands}).
+
 @defun substitute-key-definition olddef newdef keymap &optional oldmap
 @cindex replace bindings
 This function replaces @var{olddef} with @var{newdef} for any keys in
@@ -1178,13 +1204,6 @@ bindings in another.  For example,
 @noindent
 puts the special deletion command in @code{my-map} for whichever keys
 are globally bound to the standard deletion command.
-
-@ignore
-@c Emacs 18 only
-Prefix keymaps that appear within @var{keymap} are not checked
-recursively for keys bound to @var{olddef}; they are not changed at all.
-Perhaps it would be better to check nested keymaps recursively.
-@end ignore
 
 Here is an example showing a keymap before and after substitution:
 
@@ -1252,6 +1271,56 @@ Dired mode is set up:
 @dots{}
 @end group
 @end smallexample
+@end defun
+
+@node Remapping Commands
+@section Remapping Commands
+@cindex remapping commands
+
+  A special kind of key binding, using a special ``key sequence''
+which includes a command name, has the effect of @dfn{remapping} that
+command into another.  Here's how it works.  You make a key binding
+for a key sequence that starts with the dummy event @code{remap},
+followed by the command name you want to remap.  Specify the remapped
+definition as the definition in this binding.  The remapped definition
+is usually a command name, but it can be any valid definition for
+a key binding.
+
+  Here's an example.  Suppose that My mode uses special commands
+@code{my-kill-line} and @code{my-kill-word}, which should be invoked
+instead of @code{kill-line} and @code{kill-word}.  It can establish
+this by making these two command-remapping bindings in its keymap:
+
+@example
+(define-key my-mode-map [remap kill-line] 'my-kill-line)
+(define-key my-mode-map [remap kill-word] 'my-kill-word)
+@end example
+
+Whenever @code{my-mode-map} is an active keymap, if the user types
+@kbd{C-k}, Emacs will find the standard global binding of
+@code{kill-line} (assuming nobody has changed it).  But
+@code{my-mode-map} remaps @code{kill-line} to @code{my-mode-map},
+so instead of running @code{kill-line}, Emacs runs
+@code{my-kill-line}.
+
+Remapping only works through a single level.  In other words,
+
+@example
+(define-key my-mode-map [remap kill-line] 'my-kill-line)
+(define-key my-mode-map [remap my-kill-line] 'my-other-kill-line)
+@end example
+
+@noindent
+does not have the effect of remapping @code{kill-line} into
+@code{my-other-kill-line}.  If an ordinary key binding specifies 
+@code{kill-line}, this keymap will remap it to @code{my-kill-line};
+if an ordinary binding specifies @code{my-kill-line}, this keymap will
+remap it to @code{my-other-kill-line}.
+
+@defun command-remapping command
+This function returns the remapping for @var{command}, given the
+current active keymaps.  If @var{command} is not remapped (which is
+the usual situation), the function returns @code{nil}.
 @end defun
 
 @node Key Binding Commands
@@ -1473,7 +1542,17 @@ of a window.
 These are not all the keymaps you would see in actuality.
 @end defun
 
-@defun where-is-internal command &optional keymap firstonly noindirect
+@defun map-keymap function keymap
+The function @code{map-keymap} calls @var{function} once
+for each binding in @var{keymap}.  It passes two arguments,
+the event type and the value of the binding.  If @var{keymap}
+has a parent, the parent's bindings are included as well.
+
+This function is the cleanest way to examine all the bindings
+in a keymap.
+@end defun
+
+@defun where-is-internal command &optional keymap firstonly noindirect no-remap
 This function is a subroutine used by the @code{where-is} command
 (@pxref{Help, , Help, emacs,The GNU Emacs Manual}).  It returns a list
 of key sequences (of any length) that are bound to @var{command} in a
@@ -1503,6 +1582,13 @@ characters) are preferred to all other key sequences.
 If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
 follow indirect keymap bindings.  This makes it possible to search for
 an indirect definition itself.
+
+When command remapping is in effect (@pxref{Remapping Commands}),
+@code{where-is-internal} figures out when a command will be run due to
+remapping and reports keys accordingly.  It also returns @code{nil} if
+@var{command} won't really be run because it has been remapped to some
+other command.  However, if @var{no-remap} is non-@code{nil}.
+@code{where-is-internal} ignores remappings.
 
 @smallexample
 @group
@@ -1573,6 +1659,11 @@ the string as an argument when you call @code{make-keymap},
 @code{make-sparse-keymap} or @code{define-prefix-command}
 (@pxref{Creating Keymaps}).
 
+@defun keymap-prompt keymap
+This function returns the overall prompt string of @var{keymap},
+or @code{nil} if it has none.
+@end defun
+
 The order of items in the menu is the same as the order of bindings in
 the keymap.  Since @code{define-key} puts new bindings at the front, you
 should define the menu items starting at the bottom of the menu and
@@ -1603,7 +1694,12 @@ looks like this:
 @noindent
 The @sc{car}, @var{item-string}, is the string to be displayed in the
 menu.  It should be short---preferably one to three words.  It should
-describe the action of the command it corresponds to.
+describe the action of the command it corresponds to.  Note that it is
+not generally possible to display non-ASCII text in menus.  It will
+work for keyboard menus and will work to a large extent when Emacs is
+built with Gtk+ support.@footnote{In this case, the text is first
+encoded using the @code{utf-8} coding system and then rendered by the
+toolkit as it sees fit.}
 
 You can also supply a second string, called the help string, as follows:
 
@@ -2250,15 +2346,26 @@ To define items in some local map, bind @code{`tool-bar-map} with
 
 @defun tool-bar-add-item-from-menu command icon &optional map &rest props
 @tindex tool-bar-add-item-from-menu
-This command is a convenience for defining tool bar items which are
+This function is a convenience for defining tool bar items which are
 consistent with existing menu bar bindings.  The binding of
 @var{command} is looked up in the menu bar in @var{map} (default
 @code{global-map}) and modified to add an image specification for
-@var{icon}, which is looked for in the same way as by
+@var{icon}, which is found in the same way as by
 @code{tool-bar-add-item}.  The resulting binding is then placed in
-@code{tool-bar-map}.  @var{map} must contain an appropriate keymap bound
-to @code{[menu-bar]}.  The remaining arguments @var{props} are
-additional property list elements to add to the menu item specification.
+@code{tool-bar-map}, so use this function only for global tool bar
+items.
+
+@var{map} must contain an appropriate keymap bound to
+@code{[menu-bar]}.  The remaining arguments @var{props} are additional
+property list elements to add to the menu item specification.
+@end defun
+
+@defun tool-bar-local-item-from-menu command icon in-map &optional from-map &rest props
+This function is used for making non-global tool bar items.  Use it
+like @code{tool-bar-add-item-from-menu} except that @var{in-map}
+specifies the local map to make the definition in.  The argument
+@var{from-map} si like the @var{map} argument of
+@code{tool-bar-add-item-from-menu}.
 @end defun
 
 @tindex auto-resize-tool-bar
@@ -2351,3 +2458,7 @@ menu of Shell mode, after the item @code{break}:
   [work] '("Work" . work-command) 'break)
 @end example
 @end defun
+
+@ignore
+   arch-tag: cfb87287-9364-4e46-9e93-6c2f7f6ae794
+@end ignore

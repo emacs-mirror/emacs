@@ -2116,7 +2116,7 @@ Redefining advices affect the construction of an advised definition."
   (let (enabled-advices)
     (ad-dolist (advice (ad-get-advice-info-field function class))
       (if (ad-advice-enabled advice)
-	  (setq enabled-advices (cons advice enabled-advices))))
+	  (push advice enabled-advices)))
     (reverse enabled-advices)))
 
 
@@ -2475,7 +2475,7 @@ will clear the cache."
 		   with-output-to-temp-buffer)))
     ;; track-mouse could be void in some configurations.
     (if (fboundp 'track-mouse)
-	(setq tem (cons 'track-mouse tem)))
+	(push 'track-mouse tem))
     (mapcar 'symbol-function tem)))
 
 (defmacro ad-special-form-p (definition)
@@ -2545,8 +2545,7 @@ supplied to make subr arglist lookup more efficient."
 	   ;; otherwise get it from its printed representation:
 	   (setq name (format "%s" definition))
 	   (string-match "^#<subr \\([^>]+\\)>$" name)
-	   (ad-subr-arglist
-	    (intern (substring name (match-beginning 1) (match-end 1))))))))
+	   (ad-subr-arglist (intern (match-string 1 name)))))))
 
 ;; Store subr-args as `((arg1 arg2 ...))' so I can distinguish
 ;; a defined empty arglist `(nil)' from an undefined arglist:
@@ -2583,19 +2582,9 @@ that property, or otherwise use `(&rest ad-subr-args)'."
 		    (ad-define-subr-args
 		     subr-name
 		     (cdr (car (read-from-string
-				(downcase
-				 (substring doc
-					    (match-beginning 1)
-					    (match-end 1)))))))
+				(downcase (match-string 1 doc))))))
 		    (ad-get-subr-args subr-name))
-		   ;; this is the old format used before Emacs 19.24:
-		   ((string-match
-		     "[\n\t ]*\narguments: ?\\((.*)\\)\n?\\'" doc)
-		    (ad-define-subr-args
-		     subr-name
-		     (car (read-from-string
-			   doc (match-beginning 1) (match-end 1))))
-		    (ad-get-subr-args subr-name))
+		   ;; This is actually an error.
 		   (t '(&rest ad-subr-args)))))))
 
 (defun ad-docstring (definition)
@@ -2999,33 +2988,37 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		       (capitalize (symbol-name class))
 		       (ad-advice-name advice)))))))
 
+(require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
+
 (defun ad-make-advised-docstring (function &optional style)
-  ;;"Constructs a documentation string for the advised FUNCTION.
-  ;;It concatenates the original documentation with the documentation
-  ;;strings of the individual pieces of advice which will be formatted
-  ;;according to STYLE.  STYLE can be `plain' or `freeze', everything else
-  ;;will be interpreted as `default'.  The order of the advice documentation
-  ;;strings corresponds to before/around/after and the individual ordering
-  ;;in any of these classes."
+  "Construct a documentation string for the advised FUNCTION.
+It concatenates the original documentation with the documentation
+strings of the individual pieces of advice which will be formatted
+according to STYLE.  STYLE can be `plain' or `freeze', everything else
+will be interpreted as `default'.  The order of the advice documentation
+strings corresponds to before/around/after and the individual ordering
+in any of these classes."
   (let* ((origdef (ad-real-orig-definition function))
 	 (origtype (symbol-name (ad-definition-type origdef)))
 	 (origdoc
 	  ;; Retrieve raw doc, key substitution will be taken care of later:
 	  (ad-real-documentation origdef t))
-	 paragraphs advice-docstring)
+	 (usage (help-split-fundoc origdoc function))
+	 paragraphs advice-docstring ad-usage)
+    (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
-    (if (not (eq style 'plain))
-	(setq paragraphs (cons (concat "This " origtype " is advised.")
-			       paragraphs)))
+    (unless (eq style 'plain)
+      (push (concat "This " origtype " is advised.") paragraphs))
     (ad-dolist (class ad-advice-classes)
       (ad-dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring
 	      (ad-make-single-advice-docstring advice class style))
 	(if advice-docstring
-	    (setq paragraphs (cons advice-docstring paragraphs)))))
-    (if paragraphs
-	;; separate paragraphs with blank lines:
-	(mapconcat 'identity (nreverse paragraphs) "\n\n"))))
+	    (push advice-docstring paragraphs))))
+    (setq origdoc (if paragraphs
+		      ;; separate paragraphs with blank lines:
+		      (mapconcat 'identity (nreverse paragraphs) "\n\n")))
+    (help-add-fundoc-usage origdoc usage)))
 
 (defun ad-make-plain-docstring (function)
   (ad-make-advised-docstring function 'plain))
@@ -3990,4 +3983,5 @@ Use only in REAL emergencies."
 
 (provide 'advice)
 
+;;; arch-tag: 29f8c9a1-8c88-471f-95d7-e28541c6b7c0
 ;;; advice.el ends here

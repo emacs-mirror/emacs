@@ -96,7 +96,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
      int free_at_end;
 {
   register int i, j;
-  int frame_height = FRAME_HEIGHT (frame);
+  int frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1;
 
@@ -105,18 +105,18 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
      at the i'th line of the lines we are considering,
      where I is origin 1 (as it is below).  */
   int *first_insert_cost
-    = &FRAME_INSERT_COST (frame)[frame_height - 1 - lines_moved];
+    = &FRAME_INSERT_COST (frame)[frame_lines - 1 - lines_moved];
   int *first_delete_cost
-    = &FRAME_DELETE_COST (frame)[frame_height - 1 - lines_moved];
+    = &FRAME_DELETE_COST (frame)[frame_lines - 1 - lines_moved];
   int *next_insert_cost
-    = &FRAME_INSERTN_COST (frame)[frame_height - 1 - lines_moved];
+    = &FRAME_INSERTN_COST (frame)[frame_lines - 1 - lines_moved];
   int *next_delete_cost
-    = &FRAME_DELETEN_COST (frame)[frame_height - 1 - lines_moved];
+    = &FRAME_DELETEN_COST (frame)[frame_lines - 1 - lines_moved];
 
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * FRAME_HEIGHT (frame));
+  int extra_cost = baud_rate / (10 * 4 * FRAME_LINES (frame));
 
   if (baud_rate <= 0)
     extra_cost = 1;
@@ -438,27 +438,27 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
      int free_at_end;
 {
   register int i, j;
-  int frame_height = FRAME_HEIGHT (frame);
+  int frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1, delta;
 
   /* first_insert_cost[-I] is the cost of doing the first insert-line
      at a position I lines above the bottom line in the scroll window. */
   int *first_insert_cost
-    = &FRAME_INSERT_COST (frame)[frame_height - 1];
+    = &FRAME_INSERT_COST (frame)[frame_lines - 1];
   int *first_delete_cost
-    = &FRAME_DELETE_COST (frame)[frame_height - 1];
+    = &FRAME_DELETE_COST (frame)[frame_lines - 1];
   int *next_insert_cost
-    = &FRAME_INSERTN_COST (frame)[frame_height - 1];
+    = &FRAME_INSERTN_COST (frame)[frame_lines - 1];
   int *next_delete_cost
-    = &FRAME_DELETEN_COST (frame)[frame_height - 1];
+    = &FRAME_DELETEN_COST (frame)[frame_lines - 1];
 
   int scroll_overhead;
 
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * FRAME_HEIGHT (frame));
+  int extra_cost = baud_rate / (10 * 4 * FRAME_LINES (frame));
 
   if (baud_rate <= 0)
     extra_cost = 1;
@@ -909,7 +909,7 @@ scroll_cost (frame, from, to, amount)
      will not be involved in actual motion.  */
   int limit = to;
   int offset;
-  int height = FRAME_HEIGHT (frame);
+  int height = FRAME_LINES (frame);
 
   if (amount == 0)
     return 0;
@@ -947,11 +947,11 @@ line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
      register int *ov, *mf;
 {
   register int i;
-  register int frame_height = FRAME_HEIGHT (frame);
+  register int frame_lines = FRAME_LINES (frame);
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 
-  for (i = frame_height-1; i >= 0; i--)
+  for (i = frame_lines-1; i >= 0; i--)
     {
       mf[i] = next_insert_cost / 10;
       next_insert_cost += pfn;
@@ -1000,12 +1000,12 @@ ins_del_costs (frame,
    only) and those that must repeatedly insert one line.
 
    The cost to insert N lines at line L is
-   	    [tt.t_ILov  + (frame_height + 1 - L) * tt.t_ILpf] +
-	N * [tt.t_ILnov + (frame_height + 1 - L) * tt.t_ILnpf]
+   	    [tt.t_ILov  + (frame_lines + 1 - L) * tt.t_ILpf] +
+	N * [tt.t_ILnov + (frame_lines + 1 - L) * tt.t_ILnpf]
 
    ILov represents the basic insert line overhead.  ILpf is the padding
    required to allow the terminal time to move a line: insertion at line
-   L changes (frame_height + 1 - L) lines.
+   L changes (frame_lines + 1 - L) lines.
 
    The first bracketed expression above is the overhead; the second is
    the multiply factor.  Both are dependent only on the position at
@@ -1035,27 +1035,27 @@ do_line_insertion_deletion_costs (frame,
     {
       FRAME_INSERT_COST (frame) =
 	(int *) xrealloc (FRAME_INSERT_COST (frame),
-			  FRAME_HEIGHT (frame) * sizeof (int));
+			  FRAME_LINES (frame) * sizeof (int));
       FRAME_DELETEN_COST (frame) =
 	(int *) xrealloc (FRAME_DELETEN_COST (frame),
-			  FRAME_HEIGHT (frame) * sizeof (int));
+			  FRAME_LINES (frame) * sizeof (int));
       FRAME_INSERTN_COST (frame) =
 	(int *) xrealloc (FRAME_INSERTN_COST (frame),
-			  FRAME_HEIGHT (frame) * sizeof (int));
+			  FRAME_LINES (frame) * sizeof (int));
       FRAME_DELETE_COST (frame) =
 	(int *) xrealloc (FRAME_DELETE_COST (frame),
-			  FRAME_HEIGHT (frame) * sizeof (int));
+			  FRAME_LINES (frame) * sizeof (int));
     }
   else
     {
       FRAME_INSERT_COST (frame) =
-	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+	(int *) xmalloc (FRAME_LINES (frame) * sizeof (int));
       FRAME_DELETEN_COST (frame) =
-	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+	(int *) xmalloc (FRAME_LINES (frame) * sizeof (int));
       FRAME_INSERTN_COST (frame) =
-	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+	(int *) xmalloc (FRAME_LINES (frame) * sizeof (int));
       FRAME_DELETE_COST (frame) =
-	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+	(int *) xmalloc (FRAME_LINES (frame) * sizeof (int));
     }
 
   ins_del_costs (frame,
@@ -1069,3 +1069,6 @@ do_line_insertion_deletion_costs (frame,
 		 FRAME_DELETE_COST (frame), FRAME_DELETEN_COST (frame),
 		 coefficient);
 }
+
+/* arch-tag: cdb7149c-48e7-4793-a948-2786c8e45485
+   (do not change this comment) */

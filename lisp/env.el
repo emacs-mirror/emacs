@@ -63,12 +63,14 @@ If it is also not t, RET does not exit if it does non-null completion."
 `$FOO' where FOO is an environment variable name means to substitute
 the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
-the entire variable name in braces.  Use `$$' to insert a single
-dollar sign."
+the entire variable name in braces.  For instance, in `ab$cd-x',
+`$cd' is treated as an environment variable.
+
+Use `$$' to insert a single dollar sign."
   (let ((start 0))
     (while (string-match
 	    (eval-when-compile
-	      (rx (or (and "$" (submatch (1+ (regexp "[:alnum:]_"))))
+	      (rx (or (and "$" (submatch (1+ (regexp "[[:alnum:]_]"))))
 		      (and "${" (submatch (minimal-match (0+ anything))) "}")
 		      "$$")))
 	    string start)
@@ -89,8 +91,8 @@ dollar sign."
 
 (defun setenv (variable &optional value unset substitute-env-vars)
   "Set the value of the environment variable named VARIABLE to VALUE.
-VARIABLE should be a string.  VALUE is optional; if not provided or is
-`nil', the environment variable VARIABLE will be removed.  UNSET
+VARIABLE should be a string.  VALUE is optional; if not provided or
+nil, the environment variable VARIABLE will be removed.  UNSET
 if non-nil means to remove VARIABLE from the environment.
 SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
 variables in VALUE with `substitute-env-vars', where see.
@@ -126,7 +128,7 @@ a side-effect."
 		    (memq (coding-system-base locale-coding-system) codings))
 	  (error "Can't encode `%s=%s' with `locale-coding-system'"
 		 variable (or value "")))))
-  (if unset 
+  (if unset
       (setq value nil)
     (if substitute-env-vars
 	(setq value (substitute-env-vars value))))
@@ -178,4 +180,5 @@ for its value."
 
 (provide 'env)
 
+;;; arch-tag: b7d6a8f7-bc81-46db-8e39-8d721d4ed0b8
 ;;; env.el ends here

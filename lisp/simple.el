@@ -80,7 +80,7 @@ If `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
-than the value of `fill-column' and ARG is `nil'."
+than the value of `fill-column' and ARG is nil."
   (interactive "*P")
   (barf-if-buffer-read-only)
   ;; Inserting a newline at the end of a line produces better redisplay in
@@ -352,24 +352,25 @@ useful for editing binary files."
       (insert-and-inherit char)
       (setq arg (1- arg)))))
 
-(defun forward-to-indentation (arg)
+(defun forward-to-indentation (&optional arg)
   "Move forward ARG lines and position at first nonblank character."
   (interactive "p")
-  (forward-line arg)
+  (forward-line (or arg 1))
   (skip-chars-forward " \t"))
 
-(defun backward-to-indentation (arg)
+(defun backward-to-indentation (&optional arg)
   "Move backward ARG lines and position at first nonblank character."
   (interactive "p")
-  (forward-line (- arg))
+  (forward-line (- (or arg 1)))
   (skip-chars-forward " \t"))
 
 (defun back-to-indentation ()
   "Move point to the first non-whitespace character on this line."
   (interactive)
   (beginning-of-line 1)
-  (let ((limit (line-end-position)))
-    (skip-syntax-forward " " limit)))
+  (skip-syntax-forward " " (line-end-position))
+  ;; Move back over chars that have whitespace syntax but have the p flag.
+  (backward-prefix-chars))
 
 (defun fixup-whitespace ()
   "Fixup white space between objects around point.
@@ -660,8 +661,11 @@ the echo area."
 
   (let ((print-length eval-expression-print-length)
 	(print-level eval-expression-print-level))
-    (prin1 (car values)
-	   (if eval-expression-insert-value (current-buffer) t))))
+    (if eval-expression-insert-value
+	(with-no-warnings
+	 (let ((standard-output (current-buffer)))
+	   (eval-last-sexp-print-value (car values))))
+      (prin1 (car values) t))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.
@@ -936,13 +940,22 @@ Return 0 if current buffer is not a mini-buffer."
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
 
+(defconst undo-equiv-table (make-hash-table :test 'eq :weakness t)
+  "Table mapping redo records to the corresponding undo one.")
+
+(defvar undo-in-region nil
+  "Non-nil if `pending-undo-list' is not just a tail of `buffer-undo-list'.")
+
+(defvar undo-no-redo nil
+  "If t, `undo' doesn't go through redo entries.")
+
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
 A numeric argument serves as a repeat count.
 
 In Transient Mark mode when the mark is active, only undo changes within
-the current region.  Similarly, when not in Transient Mark mode, just C-u
+the current region.  Similarly, when not in Transient Mark mode, just \\[universal-argument]
 as an argument limits undo to changes within the current region."
   (interactive "*P")
   ;; Make last-command indicate for the next command that this was an undo.
@@ -954,20 +967,36 @@ as an argument limits undo to changes within the current region."
   (setq this-command 'undo)
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
-    (or (eq (selected-window) (minibuffer-window))
-	(message (if (and transient-mark-mode mark-active)
-		     "Undo in region!"
-		   "Undo!")))
     (unless (eq last-command 'undo)
-      (if (if transient-mark-mode mark-active (and arg (not (numberp arg))))
+      (setq undo-in-region
+	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
+      (if undo-in-region
 	  (undo-start (region-beginning) (region-end))
 	(undo-start))
       ;; get rid of initial undo boundary
       (undo-more 1))
+    ;; Check to see whether we're hitting a redo record, and if
+    ;; so, ask the user whether she wants to skip the redo/undo pair.
+    (let ((equiv (gethash pending-undo-list undo-equiv-table)))
+      (or (eq (selected-window) (minibuffer-window))
+	  (message (if undo-in-region
+		       (if equiv "Redo in region!" "Undo in region!")
+		     (if equiv "Redo!" "Undo!"))))
+      (when (and equiv undo-no-redo)
+	;; The equiv entry might point to another redo record if we have done
+	;; undo-redo-undo-redo-... so skip to the very last equiv.
+	(while (let ((next (gethash equiv undo-equiv-table)))
+		 (if next (setq equiv next))))
+	(setq pending-undo-list equiv)))
     (undo-more
      (if (or transient-mark-mode (numberp arg))
 	 (prefix-numeric-value arg)
        1))
+    ;; Record the fact that the just-generated undo records come from an
+    ;; undo operation, so we can skip them later on.
+    ;; I don't know how to do that in the undo-in-region case.
+    (unless undo-in-region
+      (puthash buffer-undo-list pending-undo-list undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)
@@ -975,9 +1004,9 @@ as an argument limits undo to changes within the current region."
       (while (car tail)
 	(when (integerp (car tail))
 	  (let ((pos (car tail)))
-	    (if (null prev)
-		(setq buffer-undo-list (cdr tail))
-	      (setcdr prev (cdr tail)))
+	    (if prev
+		(setcdr prev (cdr tail))
+	      (setq buffer-undo-list (cdr tail)))
 	    (setq tail (cdr tail))
 	    (while (car tail)
 	      (if (eq pos (car tail))
@@ -991,6 +1020,17 @@ as an argument limits undo to changes within the current region."
 
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary recent-save))))
+
+(defun undo-only (&optional arg)
+  "Undo some previous changes.
+Repeat this command to undo more changes.
+A numeric argument serves as a repeat count.
+Contrary to `undo', this will not redo a previous undo."
+  (interactive "*p")
+  (let ((undo-no-redo t)) (undo arg)))
+;; Richard said that we should not use C-x <uppercase letter> and I have
+;; no idea whereas to bind it.  Any suggestion welcome.  -stef
+;; (define-key ctl-x-map "U" 'undo-only)
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
@@ -1305,8 +1345,7 @@ specifies the value of ERROR-BUFFER."
 		    (if (yes-or-no-p "A command is running.  Kill it? ")
 			(kill-process proc)
 		      (error "Shell command in progress")))
-		(save-excursion
-		  (set-buffer buffer)
+		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
 		  (erase-buffer)
 		  (display-buffer buffer)
@@ -1775,8 +1814,7 @@ may access and use elements from the kill-ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
   (if (> (length string) 0)
       (if yank-handler
-	  (put-text-property 0 1 'yank-handler yank-handler string)
-	(remove-list-of-text-properties 0 1 '(yank-handler) string))
+	  (put-text-property 0 1 'yank-handler yank-handler string))
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
@@ -1877,7 +1915,8 @@ text property to be set on the killed text.  See `insert-for-yank'."
 	  (if (eq last-command 'kill-region)
 	      (kill-append string (< end beg) yank-handler)
 	    (kill-new string nil yank-handler)))
-	(setq this-command 'kill-region))
+	(when (or string (eq last-command 'kill-region))
+	  (setq this-command 'kill-region)))
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters
      ;; in the region, are read-only.
@@ -1969,7 +2008,9 @@ The argument is used for internal purposes; do not supply one."
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler)
-  "*Text properties to discard when yanking."
+  "*Text properties to discard when yanking.
+The value should be a list of text properties to discard or t,
+which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'editing
   :version "21.4")
@@ -2145,7 +2186,9 @@ use \\[append-next-kill] before \\[kill-line].
 
 If the buffer is read-only, Emacs will beep and refrain from deleting
 the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer."
+you can use this command to copy text from a read-only buffer.
+\(If the variable `kill-read-only-ok' is non-nil, then this won't
+even beep.)"
   (interactive "P")
   (kill-region (point)
 	       ;; It is better to move point to the other end of the kill
@@ -2169,6 +2212,43 @@ you can use this command to copy text from a read-only buffer."
 		       (goto-char end))))
 		 (point))))
 
+(defun kill-whole-line (&optional arg)
+  "Kill current line.
+With prefix arg, kill that many lines starting from the current line.
+If arg is negative, kill backward.  Also kill the preceding newline.
+\(This is meant to make C-x z work well with negative arguments.\)
+If arg is zero, kill current line but exclude the trailing newline."
+  (interactive "P")
+  (setq arg (prefix-numeric-value arg))
+  (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
+      (signal 'end-of-buffer nil))
+  (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))
+      (signal 'beginning-of-buffer nil))
+  (unless (eq last-command 'kill-region)
+    (kill-new "")
+    (setq last-command 'kill-region))
+  (cond ((zerop arg)
+	 ;; We need to kill in two steps, because the previous command
+	 ;; could have been a kill command, in which case the text
+	 ;; before point needs to be prepended to the current kill
+	 ;; ring entry and the text after point appended.  Also, we
+	 ;; need to use save-excursion to avoid copying the same text
+	 ;; twice to the kill ring in read-only buffers.
+	 (save-excursion
+	   (kill-region (point) (progn (forward-visible-line 0) (point))))
+	 (kill-region (point) (progn (end-of-visible-line) (point))))
+	((< arg 0)
+	 (save-excursion
+	   (kill-region (point) (progn (end-of-visible-line) (point))))
+	 (kill-region (point)
+		      (progn (forward-visible-line (1+ arg))
+			     (unless (bobp) (backward-char))
+			     (point))))
+	(t
+	 (save-excursion
+	   (kill-region (point) (progn (forward-visible-line 0) (point))))
+	 (kill-region (point)
+		      (progn (forward-visible-line arg) (point))))))
 
 (defun forward-visible-line (arg)
   "Move forward by ARG lines, ignoring currently invisible newlines only.
@@ -2208,8 +2288,8 @@ If ARG is zero, move to the beginning of the current line."
 	      (unless (bolp)
 		(goto-char opoint))))
 	(let ((first t))
-	  (while (or first (< arg 0))
-	    (if (zerop arg)
+	  (while (or first (<= arg 0))
+	    (if first
 		(beginning-of-line)
 	      (or (zerop (forward-line -1))
 		  (signal 'beginning-of-buffer nil)))
@@ -2218,13 +2298,12 @@ If ARG is zero, move to the beginning of the current line."
 	    (unless (bobp)
 	      (let ((prop
 		     (get-char-property (1- (point)) 'invisible)))
-		(if (if (eq buffer-invisibility-spec t)
-			prop
-		      (or (memq prop buffer-invisibility-spec)
-			  (assq prop buffer-invisibility-spec)))
-		    (setq arg (1+ arg)))))
-	    (setq first nil)
-	    (setq arg (1+ arg)))
+		(unless (if (eq buffer-invisibility-spec t)
+			    prop
+			  (or (memq prop buffer-invisibility-spec)
+			      (assq prop buffer-invisibility-spec)))
+		  (setq arg (1+ arg)))))
+	    (setq first nil))
 	  ;; If invisible text follows, and it is a number of complete lines,
 	  ;; skip it.
 	  (let ((opoint (point)))
@@ -2272,7 +2351,7 @@ Puts mark after the inserted text.
 BUFFER may be a buffer or a buffer name.
 
 This function is meant for the user to run interactively.
-Don't call it from programs!"
+Don't call it from programs: use `insert-buffer-substring' instead!"
   (interactive
    (list
     (progn
@@ -2282,16 +2361,10 @@ Don't call it from programs!"
 		       (other-buffer (current-buffer))
 		     (window-buffer (next-window (selected-window))))
 		   t))))
-  (or (bufferp buffer)
-      (setq buffer (get-buffer buffer)))
-  (let (start end newmark)
-    (save-excursion
-      (save-excursion
-	(set-buffer buffer)
-	(setq start (point-min) end (point-max)))
-      (insert-buffer-substring buffer start end)
-      (setq newmark (point)))
-    (push-mark newmark))
+  (push-mark
+   (save-excursion
+     (insert-buffer-substring (get-buffer buffer))
+     (point)))
   nil)
 
 (defun append-to-buffer (buffer start end)
@@ -2504,13 +2577,11 @@ Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information.
 
 In Transient Mark mode, this does not activate the mark."
-  (if (null (mark t))
-      nil
+  (unless (null (mark t))
     (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-    (if (> (length mark-ring) mark-ring-max)
-	(progn
-	  (move-marker (car (nthcdr mark-ring-max mark-ring)) nil)
-	  (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil))))
+    (when (> (length mark-ring) mark-ring-max)
+      (move-marker (car (nthcdr mark-ring-max mark-ring)) nil)
+      (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil)))
   (set-marker (mark-marker) (or location (point)) (current-buffer))
   ;; Now push the mark on the global mark ring.
   (if (and global-mark-ring
@@ -2519,11 +2590,9 @@ In Transient Mark mode, this does not activate the mark."
       ;; Don't push another one.
       nil
     (setq global-mark-ring (cons (copy-marker (mark-marker)) global-mark-ring))
-    (if (> (length global-mark-ring) global-mark-ring-max)
-	(progn
-	  (move-marker (car (nthcdr global-mark-ring-max global-mark-ring))
-		       nil)
-	  (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil))))
+    (when (> (length global-mark-ring) global-mark-ring-max)
+      (move-marker (car (nthcdr global-mark-ring-max global-mark-ring)) nil)
+      (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil)))
   (or nomsg executing-kbd-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
   (if (or activate (not transient-mark-mode))
@@ -2533,14 +2602,13 @@ In Transient Mark mode, this does not activate the mark."
 (defun pop-mark ()
   "Pop off mark ring into the buffer's actual mark.
 Does not set point.  Does nothing if mark ring is empty."
-  (if mark-ring
-      (progn
-	(setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
-	(set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
-	(deactivate-mark)
-	(move-marker (car mark-ring) nil)
-	(if (null (mark t)) (ding))
-	(setq mark-ring (cdr mark-ring)))))
+  (when mark-ring
+    (setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
+    (set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
+    (deactivate-mark)
+    (move-marker (car mark-ring) nil)
+    (if (null (mark t)) (ding))
+    (setq mark-ring (cdr mark-ring))))
 
 (defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark (&optional arg)
@@ -2632,7 +2700,7 @@ If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (unless arg (setq arg 1))
+  (or arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
 	  ;; When adding a newline, don't expand an abbrev.
@@ -2664,7 +2732,7 @@ If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
-  (unless arg (setq arg 1))
+  (or arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
 	  (line-move (- arg))
@@ -3036,17 +3104,19 @@ With argument 0, interchanges line point is in with line mark is in."
   (if (> (cdr pos1) (car pos2)) (error "Don't have two things to transpose"))
   (atomic-change-group
    (let (word2)
+     ;; FIXME: We first delete the two pieces of text, so markers that
+     ;; used to point to after the text end up pointing to before it :-(
      (setq word2 (delete-and-extract-region (car pos2) (cdr pos2)))
      (goto-char (car pos2))
      (insert (delete-and-extract-region (car pos1) (cdr pos1)))
      (goto-char (car pos1))
      (insert word2))))
 
-(defun backward-word (arg)
+(defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "p")
-  (forward-word (- arg)))
+  (forward-word (- (or arg 1))))
 
 (defun mark-word (arg)
   "Set mark arg words away from point.
@@ -3078,37 +3148,42 @@ With argument, do this that many times."
   (interactive "p")
   (kill-word (- arg)))
 
-(defun current-word (&optional strict)
-  "Return the word point is on (or a nearby word) as a string.
+(defun current-word (&optional strict really-word)
+  "Return the symbol or word that point is on (or a nearby one) as a string.
+The return value includes no text properties.
 If optional arg STRICT is non-nil, return nil unless point is within
-or adjacent to a word."
+or adjacent to a symbol or word.
+The function, belying its name, normally finds a symbol.
+If optional arg REALLY-WORD is non-nil, it finds just a word."
   (save-excursion
-    (let ((oldpoint (point)) (start (point)) (end (point)))
-      (skip-syntax-backward "w_") (setq start (point))
+    (let* ((oldpoint (point)) (start (point)) (end (point))
+	   (syntaxes (if really-word "w" "w_"))
+	   (not-syntaxes (concat "^" syntaxes)))
+      (skip-syntax-backward syntaxes) (setq start (point))
       (goto-char oldpoint)
-      (skip-syntax-forward "w_") (setq end (point))
-      (if (and (eq start oldpoint) (eq end oldpoint))
-	  ;; Point is neither within nor adjacent to a word.
-	  (and (not strict)
-	       (progn
-		 ;; Look for preceding word in same line.
-		 (skip-syntax-backward "^w_"
-				       (save-excursion (beginning-of-line)
-						       (point)))
-		 (if (bolp)
-		     ;; No preceding word in same line.
-		     ;; Look for following word in same line.
-		     (progn
-		       (skip-syntax-forward "^w_"
-					    (save-excursion (end-of-line)
-							    (point)))
-		       (setq start (point))
-		       (skip-syntax-forward "w_")
-		       (setq end (point)))
-		   (setq end (point))
-		   (skip-syntax-backward "w_")
-		   (setq start (point)))
-		 (buffer-substring-no-properties start end)))
+      (skip-syntax-forward syntaxes) (setq end (point))
+      (when (and (eq start oldpoint) (eq end oldpoint)
+		 ;; Point is neither within nor adjacent to a word.
+		 (not strict))
+	;; Look for preceding word in same line.
+	(skip-syntax-backward not-syntaxes
+			      (save-excursion (beginning-of-line)
+					      (point)))
+	(if (bolp)
+	    ;; No preceding word in same line.
+	    ;; Look for following word in same line.
+	    (progn
+	      (skip-syntax-forward not-syntaxes
+				   (save-excursion (end-of-line)
+						   (point)))
+	      (setq start (point))
+	      (skip-syntax-forward syntaxes)
+	      (setq end (point)))
+	  (setq end (point))
+	  (skip-syntax-backward syntaxes)
+	  (setq start (point))))
+      ;; If we found something nonempty, return it as a string.
+      (unless (= start end)
 	(buffer-substring-no-properties start end)))))
 
 (defcustom fill-prefix nil
@@ -3380,6 +3455,13 @@ With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
   :global t :group 'editing-basics :require nil)
+
+(define-minor-mode size-indication-mode
+  "Toggle Size Indication mode.
+With arg, turn Size Indication mode on iff arg is positive.  When
+Size Indication mode is enabled, the size of the accessible part
+of the buffer appears in the mode line."
+  :global t :group 'editing-basics :require nil)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
@@ -3426,7 +3508,8 @@ when it is off screen)."
 			   (point)))))
        (let* ((oldpos (point))
 	      (blinkpos)
-	      (mismatch))
+	      (mismatch)
+	      matching-paren)
 	 (save-excursion
 	   (save-restriction
 	     (if blink-matching-paren-distance
@@ -3440,12 +3523,20 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(/= (char-syntax (char-after blinkpos))
-		    ?\$)
-		(setq mismatch
-		      (or (null (matching-paren (char-after blinkpos)))
+		(save-excursion
+		  (goto-char blinkpos)
+		  (not (looking-at "\\s$")))
+		(setq matching-paren
+		      (or (and parse-sexp-lookup-properties
+			       (let ((prop (get-text-property blinkpos 'syntax-table)))
+				 (and (consp prop)
+				      (eq (car prop) 4)
+				      (cdr prop))))
+			  (matching-paren (char-after blinkpos)))
+		      mismatch
+		      (or (null matching-paren)
 			  (/= (char-after (1- oldpos))
-			      (matching-paren (char-after blinkpos))))))
+			      matching-paren))))
 	   (if mismatch (setq blinkpos nil))
 	   (if blinkpos
 	       ;; Don't log messages about paren matching.
@@ -3911,9 +4002,8 @@ to decide what to delete."
   ;; unless it is reading a file name and CHOICE is a directory,
   ;; or completion-no-auto-exit is non-nil.
 
-  (let ((buffer (or buffer completion-reference-buffer))
-	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
-			      (buffer-name buffer))))
+  (let* ((buffer (or buffer completion-reference-buffer))
+	 (mini-p (minibufferp buffer)))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
     (if (and mini-p
@@ -4010,8 +4100,7 @@ The completion list buffer is available as the value of `standard-output'.")
 		  (- (point) (minibuffer-prompt-end))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(save-match-data
-	  (if (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
-			    (buffer-name mainbuf))
+	  (if (minibufferp mainbuf)
 	      (setq completion-base-size 0))))
       (goto-char (point-min))
       (if (display-mouse-p)
@@ -4051,27 +4140,27 @@ select the completion near point.\n\n")))))
 ;; to the following event.
 
 (defun event-apply-alt-modifier (ignore-prompt)
-  "Add the Alt modifier to the following event.
+  "\\<function-key-map>Add the Alt modifier to the following event.
 For example, type \\[event-apply-alt-modifier] & to enter Alt-&."
   (vector (event-apply-modifier (read-event) 'alt 22 "A-")))
 (defun event-apply-super-modifier (ignore-prompt)
-  "Add the Super modifier to the following event.
+  "\\<function-key-map>Add the Super modifier to the following event.
 For example, type \\[event-apply-super-modifier] & to enter Super-&."
   (vector (event-apply-modifier (read-event) 'super 23 "s-")))
 (defun event-apply-hyper-modifier (ignore-prompt)
-  "Add the Hyper modifier to the following event.
+  "\\<function-key-map>Add the Hyper modifier to the following event.
 For example, type \\[event-apply-hyper-modifier] & to enter Hyper-&."
   (vector (event-apply-modifier (read-event) 'hyper 24 "H-")))
 (defun event-apply-shift-modifier (ignore-prompt)
-  "Add the Shift modifier to the following event.
+  "\\<function-key-map>Add the Shift modifier to the following event.
 For example, type \\[event-apply-shift-modifier] & to enter Shift-&."
   (vector (event-apply-modifier (read-event) 'shift 25 "S-")))
 (defun event-apply-control-modifier (ignore-prompt)
-  "Add the Ctrl modifier to the following event.
+  "\\<function-key-map>Add the Ctrl modifier to the following event.
 For example, type \\[event-apply-control-modifier] & to enter Ctrl-&."
   (vector (event-apply-modifier (read-event) 'control 26 "C-")))
 (defun event-apply-meta-modifier (ignore-prompt)
-  "Add the Meta modifier to the following event.
+  "\\<function-key-map>Add the Meta modifier to the following event.
 For example, type \\[event-apply-meta-modifier] & to enter Meta-&."
   (vector (event-apply-modifier (read-event) 'meta 27 "M-")))
 
@@ -4400,8 +4489,34 @@ See also `normal-erase-is-backspace'."
   (if (interactive-p)
       (message "Delete key deletes %s"
 	       (if normal-erase-is-backspace "forward" "backward"))))
+
+(defcustom idle-update-delay 0.5
+  "*Idle time delay before updating various things on the screen.
+Various Emacs features that update auxiliary information when point moves
+wait this many seconds after Emacs becomes idle before doing an update."
+  :type 'number
+  :group 'display
+  :version "21.4")
+
+(defvar vis-mode-saved-buffer-invisibility-spec nil
+  "Saved value of `buffer-invisibility-spec' when Visible mode is on.")
 
+(define-minor-mode visible-mode
+  "Toggle Visible mode.
+With argument ARG turn Visible mode on iff ARG is positive.
 
+Enabling Visible mode makes all invisible text temporarily visible.
+Disabling Visible mode turns off that effect.  Visible mode
+works by saving the value of `buffer-invisibility-spec' and setting it to nil."
+  :lighter " Vis"
+  (when (local-variable-p 'vis-mode-saved-buffer-invisibility-spec)
+    (setq buffer-invisibility-spec vis-mode-saved-buffer-invisibility-spec)
+    (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
+  (when visible-mode
+    (set (make-local-variable 'vis-mode-saved-buffer-invisibility-spec)
+	 buffer-invisibility-spec)
+    (setq buffer-invisibility-spec nil)))
+
 ;; Minibuffer prompt stuff.
 
 ;(defun minibuffer-prompt-modification (start end)
@@ -4424,4 +4539,6 @@ See also `normal-erase-is-backspace'."
 ;
 
 (provide 'simple)
+
+;;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

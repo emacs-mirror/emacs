@@ -36,7 +36,7 @@ function (or a new command) which uses the existing function.
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Subr Arguments::          Accessing arguments when advising a primitive.
+* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 @end menu
 
@@ -331,12 +331,13 @@ replaced with the new one.
 @cindex advice, activating
 
 By default, advice does not take effect when you define it---only when
-you @dfn{activate} advice for the function that was advised.  You can
-request the activation of advice for a function when you define the
-advice, by specifying the @code{activate} flag in the @code{defadvice}.
-But normally you activate the advice for a function by calling the
-function @code{ad-activate} or one of the other activation commands
-listed below.
+you @dfn{activate} advice for the function that was advised.  However
+the advice will be automatically activated if the function is defined
+or redefined later.  You can request the activation of advice for a
+function when you define the advice, by specifying the @code{activate}
+flag in the @code{defadvice}.  But normally you activate the advice
+for a function by calling the function @code{ad-activate} or one of
+the other activation commands listed below.
 
 Separating the activation of advice from the act of defining it permits
 you to add several pieces of advice to one function efficiently, without
@@ -416,8 +417,7 @@ last time it was activated.
 
 @deffn Command ad-start-advice
 Turn on automatic advice activation when a function is defined or
-redefined.  If you turn on this mode, then advice takes effect
-immediately when defined.
+redefined.  This is the default mode.
 @end deffn
 
 @deffn Command ad-stop-advice
@@ -656,16 +656,23 @@ will be 3, and @var{r} will be @code{(2 1 0)} inside the body of
   These argument constructs are not really implemented as Lisp macros.
 Instead they are implemented specially by the advice mechanism.
 
-@node Subr Arguments
-@section Definition of Subr Argument Lists
+@node Advising Primitives
+@section Advising Primitives
 
-  When the advice facility constructs the combined definition, it needs
-to know the argument list of the original function.  This is not always
-possible for primitive functions.  When advice cannot determine the
-argument list, it uses @code{(&rest ad-subr-args)}, which always works
-but is inefficient because it constructs a list of the argument values.
-You can use @code{ad-define-subr-args} to declare the proper argument
-names for a primitive function:
+  Advising a primitive function (also called a ``subr'') is risky.
+Some primitive functions are used by the advice mechanism; advising
+them could cause an infinite recursion.  Also, many primitive
+functions are called directly from C code.  Calls to the primitive
+from Lisp code will take note of the advice, but calls from C code
+will ignore the advice.
+
+When the advice facility constructs the combined definition, it needs
+to know the argument list of the original function.  This is not
+always possible for primitive functions.  When advice cannot determine
+the argument list, it uses @code{(&rest ad-subr-args)}, which always
+works but is inefficient because it constructs a list of the argument
+values.  You can use @code{ad-define-subr-args} to declare the proper
+argument names for a primitive function:
 
 @defun ad-define-subr-args function arglist
 This function specifies that @var{arglist} should be used as the
@@ -744,3 +751,7 @@ pieces of advice is the same.  The only difference is that
 executed even if some previous piece of advice had an error or a
 non-local exit.  If any around-advice is protected, then the whole
 around-advice onion is protected as a result.
+
+@ignore
+   arch-tag: 80c135c2-f1c3-4f8d-aa85-f8d8770d307f
+@end ignore

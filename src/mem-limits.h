@@ -37,9 +37,13 @@ extern int etext, __data_start; weak_extern (__data_start)
 
 #else /* not _LIBC */
 
-#if defined (__osf__) && (defined (__mips) || defined (mips) || defined(__alpha))
-#include <sys/time.h>
-#include <sys/resource.h>
+#ifdef HAVE_SYS_RESOURCE_H
+# include <sys/time.h>
+# include <sys/resource.h>
+#else
+# if HAVE_SYS_VLIMIT_H
+#  include <sys/vlimit.h>	/* Obsolete, says glibc */
+# endif
 #endif
 
 #ifdef __bsdi__
@@ -190,3 +194,6 @@ get_lim_data ()
 #endif /* not WINDOWSNT */
 #endif /* not USG */
 #endif /* not NO_LIM_DATA */
+
+/* arch-tag: fe39244e-e54f-4208-b7aa-02556f7841c5
+   (do not change this comment) */

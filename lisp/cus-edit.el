@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,1999,2000,01,02,2003  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -74,6 +74,7 @@
 
 (defgroup emulations nil
   "Emulations of other editors."
+  :link '(custom-manual "(emacs)Emulation")
   :group 'editing)
 
 (defgroup mouse nil
@@ -87,11 +88,6 @@
 (defgroup external nil
   "Interfacing to external utilities."
   :group 'emacs)
-
-(defgroup bib nil
-  "Code related to the `bib' bibliography processor."
-  :tag "Bibliography"
-  :group 'external)
 
 (defgroup processes nil
   "Process, subshell, compilation, and job control support."
@@ -117,6 +113,7 @@
 
 (defgroup c nil
   "Support for the C language and related languages."
+  :link '(custom-manual "(ccmode)")
   :group 'languages)
 
 (defgroup tools nil
@@ -141,6 +138,7 @@
 
 (defgroup news nil
   "Support for netnews reading and posting."
+  :link '(custom-manual "(gnus)")
   :group 'applications)
 
 (defgroup games nil
@@ -195,6 +193,7 @@
 
 (defgroup i18n nil
   "Internationalization and alternate character-set support."
+  :link '(custom-manual "(emacs)International")
   :group 'environment
   :group 'editing)
 
@@ -245,8 +244,6 @@
 (defgroup customize '((widgets custom-group))
   "Customization of the Customization support."
   :link '(custom-manual "(elisp)Customization")
-  :link '(url-link :tag "(Old?) Development Page"
-		   "http://www.dina.kvl.dk/~abraham/custom/")
   :prefix "custom-"
   :group 'help)
 
@@ -272,6 +269,7 @@
 
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
+  :link '(custom-manual "(emacs)Abbrevs")
   :group 'abbrev)
 
 (defgroup alloc nil
@@ -281,6 +279,7 @@
 
 (defgroup undo nil
   "Undoing changes in buffers."
+  :link '(custom-manual "(emacs)Undo")
   :group 'editing)
 
 (defgroup modeline nil
@@ -289,6 +288,7 @@
 
 (defgroup fill nil
   "Indenting and filling text."
+  :link '(custom-manual "(emacs)Filling Text")
   :group 'editing)
 
 (defgroup editing-basics nil
@@ -321,6 +321,7 @@
 
 (defgroup minibuffer nil
   "Controling the behaviour of the minibuffer."
+  :link '(custom-manual "(emacs)Minibuffer")
   :group 'environment)
 
 (defgroup keyboard nil
@@ -349,6 +350,7 @@
 
 (defgroup windows nil
   "Windows within a frame."
+  :link '(custom-manual "(emacs)Windows")
   :group 'environment)
 
 ;;; Utilities.
@@ -1189,7 +1191,8 @@ links: groups have links to subgroups."
 ;; If we pass BUFFER to `bury-buffer', the buffer isn't removed from
 ;; the window.
 (defun custom-bury-buffer (buffer)
-  (bury-buffer))
+  (with-current-buffer buffer
+    (bury-buffer)))
 
 (defcustom custom-buffer-done-function 'custom-bury-buffer
   "*Function called to remove a Custom buffer when the user is done with it.
@@ -1205,6 +1208,31 @@ Called with one argument, the buffer to remove."
   :type 'integer
   :group 'custom-buffer)
 
+(defun custom-get-fresh-buffer (name)
+  "Get a fresh new buffer with name NAME.
+If the buffer already exist, clean it up to be like new.
+Beware: it's not quite like new.  Good enough for custom, but maybe
+not for everybody."
+  ;; To be more complete, we should also kill all permanent-local variables,
+  ;; but it's not needed for custom.
+  (let ((buf (get-buffer name)))
+    (when (and buf (buffer-local-value 'buffer-file-name buf))
+      ;; This will check if the file is not saved.
+      (kill-buffer buf)
+      (setq buf nil))
+    (if (null buf)
+	(get-buffer-create name)
+      (with-current-buffer buf
+	(kill-all-local-variables)
+	(run-hooks 'kill-buffer-hook)
+	;; Delete overlays before erasing the buffer so the overlay hooks
+	;; don't get run spuriously when we erase the buffer.
+	(let ((ols (overlay-lists)))
+	  (dolist (ol (nconc (car ols) (cdr ols)))
+	    (delete-overlay ol)))
+	(erase-buffer)
+	buf))))
+
 ;;;###autoload
 (defun custom-buffer-create (options &optional name description)
   "Create a buffer containing OPTIONS.
@@ -1212,9 +1240,7 @@ Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
-  (unless name (setq name "*Customization*"))
-  (kill-buffer (get-buffer-create name))
-  (pop-to-buffer (get-buffer-create name))
+  (pop-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
   (custom-buffer-create-internal options description))
 
 ;;;###autoload
@@ -1225,14 +1251,13 @@ OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
-  (kill-buffer (get-buffer-create name))
   (let ((window (selected-window))
 	(pop-up-windows t)
 	(special-display-buffer-names nil)
 	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
-    (pop-to-buffer (get-buffer-create name))
+    (pop-to-buffer (custom-get-fresh-buffer name))
     (custom-buffer-create-internal options description)
     (select-window window)))
 
@@ -1392,8 +1417,7 @@ Un-customize all values in this buffer.  They get their standard settings."
   (unless group
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
-    (kill-buffer (get-buffer-create name))
-    (pop-to-buffer (get-buffer-create name)))
+    (pop-to-buffer (custom-get-fresh-buffer name)))
   (custom-mode)
   (widget-insert "\
 Square brackets show active fields; type RET or click mouse-1
@@ -2440,7 +2464,6 @@ The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default))
-	 (comment-widget (widget-get widget :comment-widget))
 	 (value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment)))
     (cond ((or value comment)
@@ -2464,8 +2487,7 @@ restoring it to the state of a variable that has never been customized.
 The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
-	 (set (or (get symbol 'custom-set) 'set-default))
-	 (comment-widget (widget-get widget :comment-widget)))
+	 (set (or (get symbol 'custom-set) 'set-default)))
     (if (get symbol 'standard-value)
 	(progn
 	  (custom-variable-backup-value widget)
@@ -2586,7 +2608,6 @@ Also change :reverse-video to :inverse-video."
   (unless (widget-get widget :inactive)
     (let ((tag (custom-face-edit-attribute-tag widget))
 	  (from (copy-marker (widget-get widget :from)))
-	  (to (widget-get widget :to))
 	  (value (widget-value widget))
 	  (inhibit-read-only t)
 	  (inhibit-modification-hooks t))
@@ -2982,28 +3003,34 @@ widget.  If FILTER is nil, ACTION is always valid.")
   "Set the state of WIDGET."
   (let* ((symbol (widget-value widget))
 	 (comment (get symbol 'face-comment))
-	 tmp temp)
-    (widget-put widget :custom-state
-		(cond ((progn
-			 (setq tmp (get symbol 'customized-face))
-			 (setq temp (get symbol 'customized-face-comment))
-			 (or tmp temp))
-		       (if (equal temp comment)
-			   'set
-			 'changed))
-		      ((progn
-			 (setq tmp (get symbol 'saved-face))
-			 (setq temp (get symbol 'saved-face-comment))
-			 (or tmp temp))
-		       (if (equal temp comment)
-			   'saved
-			 'changed))
-		      ((get symbol 'face-defface-spec)
-		       (if (equal comment nil)
-			   'standard
-			 'changed))
-		      (t
-		       'rogue)))))
+	 tmp temp
+	 (state
+	  (cond ((progn
+		   (setq tmp (get symbol 'customized-face))
+		   (setq temp (get symbol 'customized-face-comment))
+		   (or tmp temp))
+		 (if (equal temp comment)
+		     'set
+		   'changed))
+		((progn
+		   (setq tmp (get symbol 'saved-face))
+		   (setq temp (get symbol 'saved-face-comment))
+		   (or tmp temp))
+		 (if (equal temp comment)
+		     'saved
+		   'changed))
+		((get symbol 'face-defface-spec)
+		 (if (equal comment nil)
+		     'standard
+		   'changed))
+		(t
+		 'rogue))))
+    ;; If the user called set-face-attribute to change the default
+    ;; for new frames, this face is "set outside of Customize".
+    (if (and (not (eq state 'rogue))
+	     (get symbol 'face-modified))
+	(setq state 'changed))
+    (widget-put widget :custom-state state)))
 
 (defun custom-face-action (widget &optional event)
   "Show the menu for `custom-face' WIDGET.
@@ -3721,8 +3748,7 @@ or (if there were none) at the end of the buffer."
 			    (and (not (boundp symbol))
 				 (not (eq (get symbol 'force-value)
 					  'rogue))))))
-	      (comment (get symbol 'saved-variable-comment))
-	      sep)
+	      (comment (get symbol 'saved-variable-comment)))
 	  ;; Check `requests'.
 	  (dolist (request requests)
 	    (when (and (symbolp request) (not (featurep request)))
@@ -4087,4 +4113,5 @@ if that value is non-nil."
 
 (provide 'cus-edit)
 
+;;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
 ;;; cus-edit.el ends here

@@ -129,7 +129,8 @@ extern int lk_open (), lk_close ();
 #endif
 
 #if !defined (MAIL_USE_SYSTEM_LOCK) && !defined (MAIL_USE_MMDF) && \
-	defined (HAVE_LIBMAIL) && defined (HAVE_MAILLOCK_H)
+	(defined (HAVE_LIBMAIL) || defined (HAVE_LIBLOCKFILE)) && \
+        defined (HAVE_MAILLOCK_H)
 #include <maillock.h>
 /* We can't use maillock unless we know what directory system mail
    files appear in. */
@@ -227,13 +228,12 @@ main (argc, argv)
 #endif
       )
     {
-      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n",
 #ifdef MAIL_USE_POP
-	       " [POP-password]"
+      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n",
+	       " [POP-password]");
 #else
-	       ""
+      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n", "");
 #endif
-	       );
       exit (1);
     }
 
@@ -954,3 +954,6 @@ strerror (errnum)
 }
 
 #endif /* ! HAVE_STRERROR */
+
+/* arch-tag: 1c323112-41fe-4fe5-8de9-494de631f73f
+   (do not change this comment) */

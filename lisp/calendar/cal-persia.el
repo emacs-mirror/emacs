@@ -206,4 +206,5 @@ Echo Persian date unless NOECHO is t."
 
 (provide 'cal-persia)
 
+;;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
 ;;; cal-persia.el ends here

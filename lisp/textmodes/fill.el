@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,2002
+;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,2003
 ;;               Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -406,6 +406,12 @@ Point is moved to just past the fill prefix on the first line."
 	(goto-char (match-end 0)))
     (setq from (point))))
 
+;; The `fill-space' property carries the string with which a newline
+;; should be replaced when unbreaking a line (in fill-delete-newlines).
+;; It is added to newline characters by fill-newline when the default
+;; behavior of fill-delete-newlines is not what we want.
+(add-to-list 'text-property-default-nonsticky '(fill-space . t))
+
 (defun fill-delete-newlines (from to justify nosqueeze squeeze-after)
   (goto-char from)
   ;; Make sure sentences ending at end of line get an extra space.
@@ -434,15 +440,17 @@ Point is moved to just past the fill prefix on the first line."
       ;; character preceding a newline has text property
       ;; `nospace-between-words'.
       (while (search-forward "\n" to t)
-	(let ((prev (char-before (match-beginning 0)))
-	      (next (following-char)))
-	  (if (and (or (aref (char-category-set next) ?|)
-		       (aref (char-category-set prev) ?|))
-		   (or (get-charset-property (char-charset prev)
-					     'nospace-between-words)
-		       (get-text-property (1- (match-beginning 0))
-					  'nospace-between-words)))
-	      (delete-char -1)))))
+	(if (get-text-property (match-beginning 0) 'fill-space)
+	    (replace-match (get-text-property (match-beginning 0) 'fill-space))
+	  (let ((prev (char-before (match-beginning 0)))
+		(next (following-char)))
+	    (if (and (or (aref (char-category-set next) ?|)
+			 (aref (char-category-set prev) ?|))
+		     (or (get-charset-property (char-charset prev)
+					       'nospace-between-words)
+			 (get-text-property (1- (match-beginning 0))
+					    'nospace-between-words)))
+		(delete-char -1))))))
 
   (goto-char from)
   (skip-chars-forward " \t")
@@ -450,7 +458,10 @@ Point is moved to just past the fill prefix on the first line."
   (subst-char-in-region from to ?\n ?\ )
   (if (and nosqueeze (not (eq justify 'full)))
       nil
-    (canonically-space-region (or squeeze-after (point)) to))
+    (canonically-space-region (or squeeze-after (point)) to)
+    ;; Remove trailing whitespace.
+    ;; Maybe canonically-space-region should do that.
+    (goto-char to) (delete-char (- (skip-chars-backward " \t"))))
   (goto-char from))
 
 (defun fill-move-to-break-point (linebeg)
@@ -517,19 +528,17 @@ The break position will be always after LINEBEG and generally before point."
   ;; Replace whitespace here with one newline, then
   ;; indent to left margin.
   (skip-chars-backward " \t")
-  (if (and (= (following-char) ?\ )
-	   (or (aref (char-category-set (preceding-char)) ?|)
-	       (looking-at "[ \t]+\\c|")))
-      ;; We need one space at end of line so that
-      ;; further filling won't delete it.  NOTE: We
-      ;; intentionally leave this one space to
-      ;; distinguish the case that user wants to put
-      ;; space between \c| characters.
-      (forward-char 1))
   (insert ?\n)
   ;; Give newline the properties of the space(s) it replaces
   (set-text-properties (1- (point)) (point)
 		       (text-properties-at (point)))
+  (and (looking-at "\\( [ \t]*\\)\\(\\c|\\)?")
+       (or (aref (char-category-set (or (char-before (1- (point))) ?\000)) ?|)
+	   (match-end 2))
+       ;; When refilling later on, this newline would normally not be replaced
+       ;; by a space, so we need to mark it specially to re-install the space
+       ;; when we unfill.
+       (put-text-property (1- (point)) (point) 'fill-space (match-string 1)))
   ;; If we don't want breaks in invisible text, don't insert
   ;; an invisible newline.
   (if fill-nobreak-invisible
@@ -657,9 +666,10 @@ space does not end a sentence, so don't break a line there."
 	(let (linebeg)
 	  (while (< (point) to)
 	    (setq linebeg (point))
-	    (move-to-column (1+ (current-fill-column)))
+	    (move-to-column (current-fill-column))
 	    (if (when (< (point) to)
 		  ;; Find the position where we'll break the line.
+		  (forward-char 1) ;Use an immediately following space, if any.
 		  (fill-move-to-break-point linebeg)
 		  ;; Check again to see if we got to the end of
 		  ;; the paragraph.
@@ -752,9 +762,6 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 			;; fill-region.
 			(fill-region beg end arg)
 		      (fill-region-as-paragraph beg end arg))))))
-	;; See if point ended up inside the fill-prefix, and if so, move
-	;; past it.
-	(skip-line-prefix fill-pfx)
 	fill-pfx)))
 
 (defun fill-comment-paragraph (&optional justify)
@@ -778,7 +785,18 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 
       ;; Narrow to include only the comment, and then fill the region.
       (let* ((fill-prefix fill-prefix)
-	     (comment-re (concat "[ \t]*\\(?:" comment-start-skip "\\)"))
+	     (commark
+	      (comment-string-strip (buffer-substring comstart comin) nil t))
+	     (comment-re
+	      (if (string-match comment-start-skip (concat commark "a"))
+		  (concat "[ \t]*" (regexp-quote commark)
+			  ;; Make sure we only match comments that use
+			  ;; the exact same comment marker.
+			  "[^" (substring commark -1) "]")
+		;; If the commark needs to be followed by some special
+		;; set of characters (like @c in TeXinfo), we can't
+		;; rely just on `commark'.
+		(concat "[ \t]*\\(?:" comment-start-skip "\\)")))
 	     (comment-fill-prefix	; Compute a fill prefix.
 	      (save-excursion
 		(goto-char comstart)
@@ -1388,4 +1406,5 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	"")
     string))
 
+;;; arch-tag: 727ad455-1161-4fa9-8df5-0f74b179216d
 ;;; fill.el ends here

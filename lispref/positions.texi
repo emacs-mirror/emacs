@@ -185,7 +185,7 @@ In an interactive call, @var{count} is the numeric prefix argument.
   These functions for parsing words use the syntax table to decide
 whether a given character is part of a word.  @xref{Syntax Tables}.
 
-@deffn Command forward-word count
+@deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
 @var{count} is negative).  ``Moving one word'' means moving until point
 crosses a word-constituent character and then encounters a
@@ -203,19 +203,12 @@ If @code{inhibit-field-text-motion} is non-@code{nil},
 this function ignores field boundaries.
 
 In an interactive call, @var{count} is specified by the numeric prefix
-argument.
+argument.  If @var{count} is omitted or @code{nil}, it defaults to 1.
 @end deffn
 
-@deffn Command backward-word count
+@deffn Command backward-word &optional count
 This function is just like @code{forward-word}, except that it moves
 backward until encountering the front of a word, rather than forward.
-
-In an interactive call, @var{count} is set to the numeric prefix
-argument.
-
-@c [Now optimized by compiler.]
-@c This function is rarely used in programs, as it is more efficient to
-@c call @code{forward-word} with a negative argument.
 @end deffn
 
 @defvar words-include-escapes
@@ -641,8 +634,8 @@ expressions (also called @dfn{sexps} in connection with moving across
 them in Emacs).  The syntax table controls how these functions interpret
 various characters; see @ref{Syntax Tables}.  @xref{Parsing
 Expressions}, for lower-level primitives for scanning sexps or parts of
-sexps.  For user-level commands, see @ref{Lists Commands,,, emacs, The GNU
-Emacs Manual}.
+sexps.  For user-level commands, see @ref{Parentheses,, Commands for
+Editing with Parentheses, emacs, The GNU Emacs Manual}.
 
 @deffn Command forward-list &optional arg
 This function moves forward across @var{arg} (default 1) balanced groups of
@@ -996,3 +989,7 @@ This is the contents of foo@point{}
 @end group
 @end example
 @end defspec
+
+@ignore
+   arch-tag: 56e8ff26-4ffe-4832-a141-7e991a2d0f87
+@end ignore

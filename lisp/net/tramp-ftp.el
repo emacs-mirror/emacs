@@ -94,18 +94,25 @@ pass to the OPERATION."
   (save-match-data
     (or (boundp 'ange-ftp-name-format)
 	(require 'ange-ftp))
-    (let* ((ange-ftp-name-format
-	    (list (nth 0 tramp-file-name-structure)
-		  (nth 3 tramp-file-name-structure)
-		  (nth 2 tramp-file-name-structure)
-		  (nth 4 tramp-file-name-structure)))
-	   (inhibit-file-name-handlers
-	    (list 'tramp-file-name-handler
-		  'tramp-completion-file-name-handler
-		  (and (eq inhibit-file-name-operation operation)
-		       inhibit-file-name-handlers)))
-	   (inhibit-file-name-operation operation))
-      (apply 'ange-ftp-hook-function operation args))))
+    (let ((ange-ftp-name-format
+	   (list (nth 0 tramp-file-name-structure)
+		 (nth 3 tramp-file-name-structure)
+		 (nth 2 tramp-file-name-structure)
+		 (nth 4 tramp-file-name-structure))))
+      (cond
+       ;; If argument is a symlink, 'file-directory-p` and 'file-exists-p`
+       ;; call the traversed file recursively. So we cannot disable the
+       ;; file-name-handler this case.
+       ((memq operation '(file-directory-p file-exists-p))
+	(apply 'ange-ftp-hook-function operation args))
+	;; Normally, the handlers must be discarded
+	(t (let* ((inhibit-file-name-handlers
+		   (list 'tramp-file-name-handler
+			 'tramp-completion-file-name-handler
+			 (and (eq inhibit-file-name-operation operation)
+			      inhibit-file-name-handlers)))
+		  (inhibit-file-name-operation operation))
+	     (apply 'ange-ftp-hook-function operation args)))))))
 
 (defun tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."
@@ -127,10 +134,9 @@ pass to the OPERATION."
 
 ;; * In case of "/ftp:host:file" this works only for functions which
 ;;   are defined in `tramp-file-name-handler-alist'.  Call has to be
-;;   pretended in `tramp-file-name-handler' otherwise.  Looks like
-;;   `ange-ftp-completion-hook-function' and `ange-ftp-hook-function'
-;;   are active temporarily in `file-name-handler-alist'.
-;;   Furthermore, there are no backup files on FTP hosts this case.
+;;   pretended in `tramp-file-name-handler' otherwise.
+;;   Furthermore, there are no backup files on FTP hosts.
 ;;   Worth further investigations.
 
+;;; arch-tag: 759fb338-5c63-4b99-bd36-b4d59db91cff
 ;;; tramp-ftp.el ends here

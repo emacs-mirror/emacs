@@ -1,11 +1,11 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998,99,2001 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1998, 1999, 2001, 2003 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: wp, BDF, font, PostScript
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp>
-;; Time-stamp: <2001-07-15 12:25:51 pavel>
+;; Time-stamp: <2003/07/11 21:13:44 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -40,8 +40,7 @@
 
 ;;;###autoload
 (defvar bdf-directory-list
-  (if (and (memq system-type '(ms-dos windows-nt))
-	   (boundp 'installation-directory))
+  (if (memq system-type '(ms-dos windows-nt))
       (list (expand-file-name "fonts/bdf" installation-directory))
     '("/usr/local/share/emacs/fonts/bdf"))
   "*List of directories to search for `BDF' font files.
@@ -49,8 +48,7 @@ The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;; MS-DOS and MS-Windows users like to move the binary around after
 ;; it's built, but the value above is computed at load-up time.
-(and (and (memq system-type '(ms-dos windows-nt))
-	  (boundp 'installation-directory))
+(and (memq system-type '(ms-dos windows-nt))
      (setq bdf-directory-list
 	   (list (expand-file-name "fonts/bdf" installation-directory))))
 
@@ -455,4 +453,5 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
 
 (provide 'ps-bdf)
 
+;;; arch-tag: 9b875ba8-565a-4ecf-acaa-30cee732c898
 ;;; ps-bdf.el ends here

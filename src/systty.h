@@ -387,3 +387,6 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 #endif /* not def VMS */
 #endif /* not def HAVE_TERMIO */
 #endif /* not def HAVE_TERMIOS */
+
+/* arch-tag: cf4b90bc-be41-401c-be98-40619178a712
+   (do not change this comment) */

@@ -1,8 +1,8 @@
 ;;; reftex-cite.el --- creating citations with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.18
+;; Version: 4.21
 
 ;; This file is part of GNU Emacs.
 
@@ -57,21 +57,21 @@
 (defmacro reftex-with-special-syntax-for-bib (&rest body)
   `(let ((saved-syntax (syntax-table)))
      (unwind-protect
-	 (progn
-	   (set-syntax-table reftex-syntax-table-for-bib)
-	   ,@body)
+         (progn
+           (set-syntax-table reftex-syntax-table-for-bib)
+           ,@body)
        (set-syntax-table saved-syntax))))
 
 (defun reftex-default-bibliography ()
   ;; Return the expanded value of `reftex-default-bibliography'.
   ;; The expanded value is cached.
   (unless (eq (get 'reftex-default-bibliography :reftex-raw)
-	      reftex-default-bibliography)
+              reftex-default-bibliography)
     (put 'reftex-default-bibliography :reftex-expanded
-	 (reftex-locate-bibliography-files
-	  default-directory reftex-default-bibliography))
+         (reftex-locate-bibliography-files 
+          default-directory reftex-default-bibliography))
     (put 'reftex-default-bibliography :reftex-raw
-	 reftex-default-bibliography))
+         reftex-default-bibliography))
   (get 'reftex-default-bibliography :reftex-expanded))
 
 (defun reftex-bib-or-thebib ()
@@ -79,19 +79,19 @@
   ;; citation
   ;; Find the bof of the current file
   (let* ((docstruct (symbol-value reftex-docstruct-symbol))
-	 (rest (or (member (list 'bof (buffer-file-name)) docstruct)
-		   docstruct))
-	 (bib (assq 'bib rest))
-	 (thebib (assq 'thebib rest))
-	 (bibmem (memq bib rest))
-	 (thebibmem (memq thebib rest)))
+         (rest (or (member (list 'bof (buffer-file-name)) docstruct)
+                   docstruct))
+         (bib (assq 'bib rest))
+         (thebib (assq 'thebib rest))
+         (bibmem (memq bib rest))
+         (thebibmem (memq thebib rest)))
     (when (not (or thebib bib))
       (setq bib (assq 'bib docstruct)
-	    thebib (assq 'thebib docstruct)
-	    bibmem (memq bib docstruct)
-	    thebibmem (memq thebib docstruct)))
+            thebib (assq 'thebib docstruct)
+            bibmem (memq bib docstruct)
+            thebibmem (memq thebib docstruct)))
     (if (> (length bibmem) (length thebibmem))
-	(if bib 'bib nil)
+        (if bib 'bib nil)
       (if thebib 'thebib nil))))
 
 (defun reftex-get-bibfile-list ()
@@ -119,7 +119,7 @@
 ;; Find a certain reference in any of the BibTeX files.
 
 (defun reftex-pop-to-bibtex-entry (key file-list &optional mark-to-kill
-				       highlight item return)
+                                       highlight item return)
   ;; Find BibTeX KEY in any file in FILE-LIST in another window.
   ;; If MARK-TO-KILL is non-nil, mark new buffer to kill.
   ;; If HIGHLIGHT is non-nil, highlight the match.
@@ -127,11 +127,11 @@
   ;; If RETURN is non-nil, just return the entry.
 
   (let* ((re
-	  (if item
-	      (concat "\\\\bibitem\\(\\[[^]]*\\]\\)?{" (regexp-quote key) "}")
-	    (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
-		    "[, \t\r\n}]")))
-	 (buffer-conf (current-buffer))
+          (if item 
+              (concat "\\\\bibitem\\(\\[[^]]*\\]\\)?{" (regexp-quote key) "}")
+            (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
+                    "[, \t\r\n}]")))
+         (buffer-conf (current-buffer))
          file buf pos)
 
     (catch 'exit
@@ -145,34 +145,34 @@
         (goto-char (point-min))
         (when (re-search-forward re nil t)
           (goto-char (match-beginning 0))
-	  (setq pos (point))
-	  (when return
-	    ;; Just return the relevant entry
-	    (if item (goto-char (match-end 0)))
-	    (setq return (buffer-substring
-			  (point) (reftex-end-of-bib-entry item)))
-	    (set-buffer buffer-conf)
-	    (throw 'exit return))
-	  (switch-to-buffer-other-window buf)
-	  (goto-char pos)
+          (setq pos (point))
+          (when return
+            ;; Just return the relevant entry
+            (if item (goto-char (match-end 0)))
+            (setq return (buffer-substring 
+                          (point) (reftex-end-of-bib-entry item)))
+            (set-buffer buffer-conf)
+            (throw 'exit return))
+          (switch-to-buffer-other-window buf)
+          (goto-char pos)
           (recenter 0)
           (if highlight
               (reftex-highlight 0 (match-beginning 0) (match-end 0)))
           (throw 'exit (selected-window))))
       (set-buffer buffer-conf)
       (if item
-	  (error "No \\bibitem with citation key %s" key)
-	(error "No BibTeX entry with citation key %s" key)))))
+          (error "No \\bibitem with citation key %s" key)
+        (error "No BibTeX entry with citation key %s" key)))))
 
 (defun reftex-end-of-bib-entry (item)
-  (save-excursion
+  (save-excursion 
     (condition-case nil
-	(if item
-	    (progn (end-of-line)
-		   (re-search-forward
-		    "\\\\bibitem\\|\\end{thebibliography}")
-		   (1- (match-beginning 0)))
-	  (progn (forward-list 1) (point)))
+        (if item 
+            (progn (end-of-line)
+                   (re-search-forward
+                    "\\\\bibitem\\|\\end{thebibliography}")
+                   (1- (match-beginning 0)))
+          (progn (forward-list 1) (point)))
       (error (min (point-max) (+ 300 (point)))))))
 
 ;; Parse bibtex buffers
@@ -188,23 +188,23 @@
 
     ;; Read a regexp, completing on known citation keys.
     (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list
-	  (split-string
-	   (completing-read
-	    (concat
-	     "Regex { && Regex...}: "
-	     "[" default "]: ")
-	    (if reftex-mode
-		(if (fboundp 'LaTeX-bibitem-list)
-		    (LaTeX-bibitem-list)
-		  (cdr (assoc 'bibview-cache
-			      (symbol-value reftex-docstruct-symbol))))
-	      nil)
-	    nil nil nil 'reftex-cite-regexp-hist)
-	   "[ \t]*&&[ \t]*"))
+    (setq re-list 
+          (split-string 
+           (completing-read 
+            (concat
+             "Regex { && Regex...}: "
+             "[" default "]: ")
+            (if reftex-mode
+                (if (fboundp 'LaTeX-bibitem-list)
+                    (LaTeX-bibitem-list)
+                  (cdr (assoc 'bibview-cache 
+                              (symbol-value reftex-docstruct-symbol))))
+              nil)
+            nil nil nil 'reftex-cite-regexp-hist)
+           "[ \t]*&&[ \t]*"))
 
     (if (or (null re-list ) (equal re-list '("")))
-	(setq re-list (list default)))
+        (setq re-list (list default)))
 
     (setq first-re (car re-list)    ; We'll use the first re to find things,
           rest-re  (cdr re-list))   ; the others to narrow down.
@@ -228,64 +228,65 @@
             (message "Scanning bibliography database %s" buffer1))
 
           (set-buffer buffer1)
-	  (reftex-with-special-syntax-for-bib
-	   (save-excursion
-	     (goto-char (point-min))
-	     (while (re-search-forward first-re nil t)
-	       (catch 'search-again
-		 (setq key-point (point))
-		 (unless (re-search-backward
-			  "\\(\\`\\|[\n\r]\\)[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
-		   (throw 'search-again nil))
-		 (setq start-point (point))
-		 (goto-char (match-end 0))
-		 (condition-case nil
-		     (up-list 1)
-		   (error (goto-char key-point)
+          (reftex-with-special-syntax-for-bib
+           (save-excursion
+             (goto-char (point-min))
+             (while (re-search-forward first-re nil t)
+               (catch 'search-again
+                 (setq key-point (point))
+                 (unless (re-search-backward
+                          "\\(\\`\\|[\n\r]\\)[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
+                   (throw 'search-again nil))
+                 (setq start-point (point))
+                 (goto-char (match-end 0))
+                 (condition-case nil
+                     (up-list 1)
+                   (error (goto-char key-point)
                           (throw 'search-again nil)))
-		 (setq end-point (point))
-
-		 ;; Ignore @string, @comment and @c entries or things
-		 ;; outside entries
-		 (when (or (string= (downcase (match-string 2)) "string")
-			   (string= (downcase (match-string 2)) "comment")
-			   (string= (downcase (match-string 2)) "c")
-			   (< (point) key-point)) ; this means match not in {}
-		   (goto-char key-point)
-		   (throw 'search-again nil))
-
-		 ;; Well, we have got a match
-		 (setq entry (concat
-			      (buffer-substring start-point (point)) "\n"))
-
-		 ;; Check if other regexp match as well
-		 (setq re-list rest-re)
-		 (while re-list
-		   (unless (string-match (car re-list) entry)
-		     ;; nope - move on
-		     (throw 'search-again nil))
-		   (pop re-list))
-
-		 (setq alist (reftex-parse-bibtex-entry
-			      nil start-point end-point))
-		 (push (cons "&entry" entry) alist)
-
-		 ;; check for crossref entries
-		 (if (assoc "crossref" alist)
-		     (setq alist
-			   (append
-			    alist (reftex-get-crossref-alist alist))))
-
-		 ;; format the entry
-		 (push (cons "&formatted" (reftex-format-bib-entry alist))
-		       alist)
-
-		 ;; make key the first element
-		 (push (reftex-get-bib-field "&key" alist) alist)
-
-		 ;; add it to the list
-		 (push alist found-list)))))
-	  (reftex-kill-temporary-buffers))))
+                 (setq end-point (point))
+                 
+                 ;; Ignore @string, @comment and @c entries or things
+                 ;; outside entries
+                 (when (or (string= (downcase (match-string 2)) "string")
+                           (string= (downcase (match-string 2)) "comment")
+                           (string= (downcase (match-string 2)) "c")
+                           (< (point) key-point)) ; this means match not in {}
+                   (goto-char key-point)
+                   (throw 'search-again nil))
+                 
+                 ;; Well, we have got a match
+                 ;;(setq entry (concat
+                 ;;             (buffer-substring start-point (point)) "\n"))
+                 (setq entry (buffer-substring start-point (point)))
+                 
+                 ;; Check if other regexp match as well
+                 (setq re-list rest-re)
+                 (while re-list
+                   (unless (string-match (car re-list) entry)
+                     ;; nope - move on
+                     (throw 'search-again nil))
+                   (pop re-list))
+                 
+                 (setq alist (reftex-parse-bibtex-entry
+                              nil start-point end-point))
+                 (push (cons "&entry" entry) alist)
+                 
+                 ;; check for crossref entries
+                 (if (assoc "crossref" alist)
+                     (setq alist
+                           (append
+                            alist (reftex-get-crossref-alist alist))))
+                 
+                 ;; format the entry
+                 (push (cons "&formatted" (reftex-format-bib-entry alist))
+                       alist)
+                 
+                 ;; make key the first element
+                 (push (reftex-get-bib-field "&key" alist) alist)
+                 
+                 ;; add it to the list
+                 (push alist found-list)))))
+          (reftex-kill-temporary-buffers))))
     (setq found-list (nreverse found-list))
 
     ;; Sorting
@@ -345,75 +346,75 @@
     (unless files
       (error "Need file name to find thebibliography environment"))
     (while (setq file (pop files))
-      (setq buf (reftex-get-file-buffer-force
-		 file (not reftex-keep-temporary-buffers)))
+      (setq buf (reftex-get-file-buffer-force 
+                 file (not reftex-keep-temporary-buffers)))
       (unless buf
-	(error "No such file %s" file))
+        (error "No such file %s" file))
       (message "Scanning thebibliography environment in %s" file)
 
       (save-excursion
-	(set-buffer buf)
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  (while (re-search-forward
-		  "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
-	    (beginning-of-line 2)
-	    (setq start (point))
-	    (if (re-search-forward
-		 "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
-		(progn
-		  (beginning-of-line 1)
-		  (setq end (point))))
-	    (when (and start end)
-	      (setq entries
-		    (append entries
+        (set-buffer buf)
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (while (re-search-forward 
+                  "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
+            (beginning-of-line 2)
+            (setq start (point))
+            (if (re-search-forward 
+                 "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
+                (progn
+                  (beginning-of-line 1)
+                  (setq end (point))))
+            (when (and start end)
+              (setq entries 
+                    (append entries
                       (mapcar 'reftex-parse-bibitem
-			(delete ""
-				(split-string
-				 (buffer-substring-no-properties start end)
-				 "[ \t\n\r]*\\\\bibitem\\(\\[[^]]*]\\)*"))))))
-	    (goto-char end)))))
+                        (delete ""
+                                (split-string 
+                                 (buffer-substring-no-properties start end)
+                                 "[ \t\n\r]*\\\\bibitem\\(\\[[^]]*]\\)*"))))))
+            (goto-char end)))))
     (unless entries
       (error "No bibitems found"))
 
     ;; Read a regexp, completing on known citation keys.
     (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list
-	  (split-string
-	   (completing-read
-	    (concat
-	     "Regex { && Regex...}: "
-	     "[" default "]: ")
-	    (if reftex-mode
-		(if (fboundp 'LaTeX-bibitem-list)
-		    (LaTeX-bibitem-list)
-		  (cdr (assoc 'bibview-cache
-			      (symbol-value reftex-docstruct-symbol))))
-	      nil)
-	    nil nil nil 'reftex-cite-regexp-hist)
-	   "[ \t]*&&[ \t]*"))
+    (setq re-list 
+          (split-string 
+           (completing-read 
+            (concat
+             "Regex { && Regex...}: "
+             "[" default "]: ")
+            (if reftex-mode
+                (if (fboundp 'LaTeX-bibitem-list)
+                    (LaTeX-bibitem-list)
+                  (cdr (assoc 'bibview-cache 
+                              (symbol-value reftex-docstruct-symbol))))
+              nil)
+            nil nil nil 'reftex-cite-regexp-hist)
+           "[ \t]*&&[ \t]*"))
 
     (if (or (null re-list ) (equal re-list '("")))
-	(setq re-list (list default)))
+        (setq re-list (list default)))
 
     (if (string-match "\\`[ \t]*\\'" (car re-list))
         (error "Empty regular expression"))
 
     (while (and (setq re (pop re-list)) entries)
-      (setq entries
-	    (delq nil (mapcar
-		       (lambda (x)
-			 (if (string-match re (cdr (assoc "&entry" x)))
-			     x nil))
-		       entries))))
-    (setq entries
-	  (mapcar
-	    (lambda (x)
-	      (push (cons "&formatted" (reftex-format-bibitem x)) x)
-	      (push (reftex-get-bib-field "&key" x) x)
-	      x)
-	   entries))
+      (setq entries 
+            (delq nil (mapcar
+                       (lambda (x)
+                         (if (string-match re (cdr (assoc "&entry" x)))
+                             x nil))
+                       entries))))
+    (setq entries 
+          (mapcar 
+            (lambda (x)
+              (push (cons "&formatted" (reftex-format-bibitem x)) x)
+              (push (reftex-get-bib-field "&key" x) x)
+              x)
+           entries))
 
     entries))
 
@@ -423,7 +424,7 @@
   (let* ((macro (reftex-what-macro 1)))
     (save-excursion
       (if (and macro (string-match "cite" (car macro)))
-	  (goto-char (cdr macro)))
+          (goto-char (cdr macro)))
       (skip-chars-backward "^a-zA-Z0-9")
       (reftex-this-word))))
 
@@ -452,7 +453,7 @@
             (progn
               (set-buffer (get-buffer-create " *RefTeX-scratch*"))
               (fundamental-mode)
-	      (set-syntax-table reftex-syntax-table-for-bib)
+              (set-syntax-table reftex-syntax-table-for-bib)
               (erase-buffer)
               (insert entry))
           (widen)
@@ -499,9 +500,9 @@
   ;; Extract the field FIELDNAME from an ENTRY
   (let ((cell (assoc fieldname entry)))
     (if cell
-	(if format
-	    (format format (cdr cell))
-	  (cdr cell))
+        (if format
+            (format format (cdr cell))
+          (cdr cell))
       "")))
 
 (defun reftex-format-bib-entry (entry)
@@ -536,9 +537,9 @@
     (setq authors (reftex-truncate authors 30 t t))
     (when (reftex-use-fonts)
       (put-text-property 0 (length key)     'face
-			 (reftex-verified-face reftex-label-face
-					       'font-lock-constant-face
-					       'font-lock-reference-face)
+                         (reftex-verified-face reftex-label-face
+                                               'font-lock-constant-face
+                                               'font-lock-reference-face)
                          key)
       (put-text-property 0 (length authors) 'face reftex-bib-author-face
                          authors)
@@ -555,12 +556,12 @@
   (let ((key "") (text ""))
     (when (string-match "\\`{\\([^}]+\\)}\\([^\000]*\\)" item)
       (setq key (match-string 1 item)
-	    text (match-string 2 item)))
+            text (match-string 2 item)))
     ;; Clean up the text a little bit
     (while (string-match "[\n\r\t]\\|[ \t][ \t]+" text)
       (setq text (replace-match " " nil t text)))
     (if (string-match "\\`[ \t]+" text)
-	(setq text (replace-match "" nil t text)))
+        (setq text (replace-match "" nil t text)))
     (list
      (cons "&key" key)
      (cons "&text" text)
@@ -569,14 +570,14 @@
 (defun reftex-format-bibitem (item)
   ;; Format a \bibitem entry so that it is (relatively) nice to look at.
   (let ((text (reftex-get-bib-field "&text" item))
-	(key  (reftex-get-bib-field "&key" item))
-	(lines nil))
+        (key  (reftex-get-bib-field "&key" item))
+        (lines nil))
 
     ;; Wrap the text into several lines.
     (while (and (> (length text) 70)
-		(string-match " " (substring text 60)))
-	(push (substring text 0 (+ 60 (match-beginning 0))) lines)
-	(setq text (substring text (+ 61 (match-beginning 0)))))
+                (string-match " " (substring text 60)))
+        (push (substring text 0 (+ 60 (match-beginning 0))) lines)
+        (setq text (substring text (+ 61 (match-beginning 0)))))
     (push text lines)
     (setq text (mapconcat 'identity (nreverse lines) "\n     "))
 
@@ -628,18 +629,18 @@ While entering the regexp, completion on knows citation keys is possible.
   ;; This really does the work of reftex-citation.
 
   (let* ((format (reftex-figure-out-cite-format arg no-insert format-key))
-	 (docstruct-symbol reftex-docstruct-symbol)
-	 (selected-entries (reftex-offer-bib-menu))
-	 (insert-entries selected-entries)
-	 entry string cite-view)
+         (docstruct-symbol reftex-docstruct-symbol)
+         (selected-entries (reftex-offer-bib-menu))
+         (insert-entries selected-entries)
+         entry string cite-view)
 
     (unless selected-entries (error "Quit"))
 
     (if (stringp selected-entries)
-	;; Nonexistent entry
-	(setq selected-entries nil
-	      insert-entries (list (list selected-entries
-					 (cons "&key" selected-entries))))
+        ;; Nonexistent entry
+        (setq selected-entries nil
+              insert-entries (list (list selected-entries
+                                         (cons "&key" selected-entries))))
       ;; It makes sense to compute the cite-view strings.
       (setq cite-view t))
 
@@ -647,54 +648,54 @@ While entering the regexp, completion on knows citation keys is possible.
       ;; All keys go into a single command - we need to trick a little
       (pop selected-entries)
       (let ((concat-keys (mapconcat 'car selected-entries ",")))
-	(setq insert-entries
-	      (list (list concat-keys (cons "&key" concat-keys))))))
-
+        (setq insert-entries 
+              (list (list concat-keys (cons "&key" concat-keys))))))
+    
     (unless no-insert
 
       ;; We shall insert this into the buffer...
       (message "Formatting...")
 
       (while (setq entry (pop insert-entries))
-	;; Format the citation and insert it
-	(setq string (if reftex-format-cite-function
-			 (funcall reftex-format-cite-function
-				  (reftex-get-bib-field "&key" entry)
-				  format)
-		       (reftex-format-citation entry format)))
-	(insert string))
+        ;; Format the citation and insert it
+        (setq string (if reftex-format-cite-function
+                         (funcall reftex-format-cite-function
+                                  (reftex-get-bib-field "&key" entry)
+                                  format)
+                       (reftex-format-citation entry format)))
+        (insert string))
 
       ;; Reposition cursor?
       (when (string-match "\\?" string)
-	(search-backward "?")
-	(delete-char 1))
+        (search-backward "?")
+        (delete-char 1))
 
       ;; Tell AUCTeX
-      (when (and reftex-mode
-		 (fboundp 'LaTeX-add-bibitems)
-		 reftex-plug-into-AUCTeX)
-	(apply 'LaTeX-add-bibitems (mapcar 'car selected-entries)))
-
+      (when (and reftex-mode 
+                 (fboundp 'LaTeX-add-bibitems)
+                 reftex-plug-into-AUCTeX)
+        (apply 'LaTeX-add-bibitems (mapcar 'car selected-entries)))
+      
       ;; Produce the cite-view strings
       (when (and reftex-mode reftex-cache-cite-echo cite-view)
-	(mapcar (lambda (entry)
-		  (reftex-make-cite-echo-string entry docstruct-symbol))
-		selected-entries))
+        (mapcar (lambda (entry) 
+                  (reftex-make-cite-echo-string entry docstruct-symbol))
+                selected-entries))
 
       (message ""))
 
     (set-marker reftex-select-return-marker nil)
     (reftex-kill-buffer "*RefTeX Select*")
-
+    
     ;; Check if the prefix arg was numeric, and call recursively
     (when (integerp arg)
       (if (> arg 1)
-	  (progn
-	    (skip-chars-backward "}")
-	    (decf arg)
-	    (reftex-do-citation arg))
-	(forward-char 1)))
-
+          (progn      
+            (skip-chars-backward "}")
+            (decf arg)
+            (reftex-do-citation arg))
+        (forward-char 1)))
+    
     ;; Return the citation key
     (car (car selected-entries))))
 
@@ -702,44 +703,44 @@ While entering the regexp, completion on knows citation keys is possible.
   ;; Check if there is already a cite command at point and change cite format
   ;; in order to only add another reference in the same cite command.
   (let ((macro (car (reftex-what-macro 1)))
-	(cite-format-value (reftex-get-cite-format))
-	key format)
+        (cite-format-value (reftex-get-cite-format))
+        key format)
     (cond
      (no-insert
       ;; Format does not really matter because nothing will be inserted.
       (setq format "%l"))
-
+     
      ((and (stringp macro)
-	   (string-match "\\`\\\\cite\\|cite\\'" macro))
+           (string-match "\\`\\\\cite\\|cite\\'" macro))
       ;; We are already inside a cite macro
       (if (or (not arg) (not (listp arg)))
-	  (setq format
-		(concat
-		 (if (member (preceding-char) '(?\{ ?,)) "" ",")
-		 "%l"
-		 (if (member (following-char) '(?\} ?,)) "" ",")))
-	(setq format "%l")))
+          (setq format
+                (concat
+                 (if (member (preceding-char) '(?\{ ?,)) "" ",")
+                 "%l"
+                 (if (member (following-char) '(?\} ?,)) "" ",")))
+        (setq format "%l")))
      (t
       ;; Figure out the correct format
       (setq format
             (if (and (symbolp cite-format-value)
-		     (assq cite-format-value reftex-cite-format-builtin))
-		(nth 2 (assq cite-format-value reftex-cite-format-builtin))
-	      cite-format-value))
+                     (assq cite-format-value reftex-cite-format-builtin))
+                (nth 2 (assq cite-format-value reftex-cite-format-builtin))
+              cite-format-value))
       (when (listp format)
-	(setq key
-	      (or format-key
-		  (reftex-select-with-char
-		   "" (concat "SELECT A CITATION FORMAT\n\n"
-			      (mapconcat
-			       (lambda (x)
-				 (format "[%c] %s  %s" (car x)
-					 (if (> (car x) 31) " " "")
-					 (cdr x)))
-			       format "\n")))))
-	(if (assq key format)
-	    (setq format (cdr (assq key format)))
-	  (error "No citation format associated with key `%c'" key)))))
+        (setq key
+              (or format-key
+                  (reftex-select-with-char 
+                   "" (concat "SELECT A CITATION FORMAT\n\n"
+                              (mapconcat
+                               (lambda (x)
+                                 (format "[%c] %s  %s" (car x)
+                                         (if (> (car x) 31) " " "")
+                                         (cdr x)))
+                               format "\n")))))
+        (if (assq key format)
+            (setq format (cdr (assq key format)))
+          (error "No citation format associated with key `%c'" key)))))
     format))
 
 (defun reftex-citep ()
@@ -757,141 +758,141 @@ While entering the regexp, completion on knows citation keys is possible.
   ;; Offer bib menu and return list of selected items
 
   (let ((bibtype (reftex-bib-or-thebib))
-	found-list rtn key data selected-entries)
-    (while
-	(not
-	 (catch 'done
-	   ;; Scan bibtex files
-	   (setq found-list
-	      (cond
-	       ((eq bibtype 'bib)
-;	       ((assq 'bib (symbol-value reftex-docstruct-symbol))
-		;; using BibTeX database files.
-		(reftex-extract-bib-entries (reftex-get-bibfile-list)))
-	       ((eq bibtype 'thebib)
-;	       ((assq 'thebib (symbol-value reftex-docstruct-symbol))
-		;; using thebibliography environment.
-		(reftex-extract-bib-entries-from-thebibliography
-		 (reftex-uniquify
-		  (mapcar 'cdr
-			  (reftex-all-assq
-			   'thebib (symbol-value reftex-docstruct-symbol))))))
-	       (reftex-default-bibliography
-		(message "Using default bibliography")
-		(reftex-extract-bib-entries (reftex-default-bibliography)))
-	       (t (error "No valid bibliography in this document, and no default available"))))
-
-	   (unless found-list
-	     (error "Sorry, no matches found"))
-
-	  ;; Remember where we came from
-	  (setq reftex-call-back-to-this-buffer (current-buffer))
-	  (set-marker reftex-select-return-marker (point))
-
-	  ;; Offer selection
-	  (save-window-excursion
-	    (delete-other-windows)
-	    (let ((default-major-mode 'reftex-select-bib-mode))
-	      (reftex-kill-buffer "*RefTeX Select*")
-	      (switch-to-buffer-other-window "*RefTeX Select*")
-	      (unless (eq major-mode 'reftex-select-bib-mode)
-		(reftex-select-bib-mode))
-	      (let ((buffer-read-only nil))
-		(erase-buffer)
-		(reftex-insert-bib-matches found-list)))
-	    (setq buffer-read-only t)
-	    (if (= 0 (buffer-size))
-		(error "No matches found"))
-	    (setq truncate-lines t)
-	    (goto-char 1)
-	    (while t
-	      (setq rtn
-		    (reftex-select-item
-		     reftex-citation-prompt
-		     reftex-citation-help
-		     reftex-select-bib-map
-		     nil
-		     'reftex-bibtex-selection-callback nil))
-	      (setq key (car rtn)
-		    data (nth 1 rtn))
-	      (unless key (throw 'done t))
-	      (cond
-	       ((eq key ?g)
-		;; Start over
-		(throw 'done nil))
-	       ((eq key ?r)
-		;; Restrict with new regular expression
-		(setq found-list (reftex-restrict-bib-matches found-list))
-		(let ((buffer-read-only nil))
-		  (erase-buffer)
-		  (reftex-insert-bib-matches found-list))
-		(goto-char 1))
-	       ((eq key ?A)
-		;; Take all (marked)
-		(setq selected-entries
-		      (if reftex-select-marked
-			  (mapcar 'car (nreverse reftex-select-marked))
-			found-list))
-		(throw 'done t))
-	       ((eq key ?a)
-		;; Take all (marked), and push the symbol 'concat
-		(setq selected-entries
-		      (cons 'concat
-			    (if reftex-select-marked
-				(mapcar 'car (nreverse reftex-select-marked))
-			      found-list)))
-		(throw 'done t))
-	       ((or (eq key ?\C-m)
-		    (eq key 'return))
-		;; Take selected
-		(setq selected-entries
-		      (if reftex-select-marked
-			  (cons 'concat
-				(mapcar 'car (nreverse reftex-select-marked)))
-			(if data (list data) nil)))
-		(throw 'done t))
-	       ((stringp key)
-		;; Got this one with completion
-		(setq selected-entries key)
-		(throw 'done t))
-	       (t
-		(ding))))))))
+        found-list rtn key data selected-entries)
+    (while 
+        (not 
+         (catch 'done
+           ;; Scan bibtex files
+           (setq found-list
+              (cond
+               ((eq bibtype 'bib)
+;              ((assq 'bib (symbol-value reftex-docstruct-symbol))
+                ;; using BibTeX database files.
+                (reftex-extract-bib-entries (reftex-get-bibfile-list)))
+               ((eq bibtype 'thebib)
+;              ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+                ;; using thebibliography environment.
+                (reftex-extract-bib-entries-from-thebibliography
+                 (reftex-uniquify
+                  (mapcar 'cdr
+                          (reftex-all-assq 
+                           'thebib (symbol-value reftex-docstruct-symbol))))))
+               (reftex-default-bibliography
+                (message "Using default bibliography")
+                (reftex-extract-bib-entries (reftex-default-bibliography)))
+               (t (error "No valid bibliography in this document, and no default available"))))
+           
+           (unless found-list
+             (error "Sorry, no matches found"))
+    
+          ;; Remember where we came from
+          (setq reftex-call-back-to-this-buffer (current-buffer))
+          (set-marker reftex-select-return-marker (point))
+    
+          ;; Offer selection
+          (save-window-excursion
+            (delete-other-windows)
+            (let ((default-major-mode 'reftex-select-bib-mode))
+              (reftex-kill-buffer "*RefTeX Select*")
+              (switch-to-buffer-other-window "*RefTeX Select*")
+              (unless (eq major-mode 'reftex-select-bib-mode)
+                (reftex-select-bib-mode))
+              (let ((buffer-read-only nil))
+                (erase-buffer)
+                (reftex-insert-bib-matches found-list)))
+            (setq buffer-read-only t)
+            (if (= 0 (buffer-size))
+                (error "No matches found"))
+            (setq truncate-lines t)
+            (goto-char 1)
+            (while t
+              (setq rtn
+                    (reftex-select-item
+                     reftex-citation-prompt
+                     reftex-citation-help
+                     reftex-select-bib-map
+                     nil
+                     'reftex-bibtex-selection-callback nil))
+              (setq key (car rtn)
+                    data (nth 1 rtn))
+              (unless key (throw 'done t))
+              (cond
+               ((eq key ?g)
+                ;; Start over
+                (throw 'done nil))
+               ((eq key ?r)
+                ;; Restrict with new regular expression
+                (setq found-list (reftex-restrict-bib-matches found-list))
+                (let ((buffer-read-only nil))
+                  (erase-buffer)
+                  (reftex-insert-bib-matches found-list))
+                (goto-char 1))
+               ((eq key ?A)
+                ;; Take all (marked)
+                (setq selected-entries 
+                      (if reftex-select-marked
+                          (mapcar 'car (nreverse reftex-select-marked))
+                        found-list))
+                (throw 'done t))
+               ((eq key ?a)
+                ;; Take all (marked), and push the symbol 'concat
+                (setq selected-entries 
+                      (cons 'concat 
+                            (if reftex-select-marked
+                                (mapcar 'car (nreverse reftex-select-marked))
+                              found-list)))
+                (throw 'done t))
+               ((or (eq key ?\C-m)
+                    (eq key 'return))
+                ;; Take selected
+                (setq selected-entries 
+                      (if reftex-select-marked
+                          (cons 'concat 
+                                (mapcar 'car (nreverse reftex-select-marked)))
+                        (if data (list data) nil)))
+                (throw 'done t))
+               ((stringp key)
+                ;; Got this one with completion
+                (setq selected-entries key)
+                (throw 'done t))
+               (t
+                (ding))))))))
     selected-entries))
 
 (defun reftex-restrict-bib-matches (found-list)
   ;; Limit FOUND-LIST with more regular expressions
   (let ((re-list (split-string (read-string
-				"RegExp [ && RegExp...]: "
-				nil 'reftex-cite-regexp-hist)
-			       "[ \t]*&&[ \t]*"))
-	(found-list-r found-list)
-	re)
+                                "RegExp [ && RegExp...]: "
+                                nil 'reftex-cite-regexp-hist)
+                               "[ \t]*&&[ \t]*"))
+        (found-list-r found-list)
+        re)
     (while (setq re (pop re-list))
       (setq found-list-r
-	    (delq nil
-		  (mapcar
-		   (lambda (x)
-		     (if (string-match
-			  re (cdr (assoc "&entry" x)))
-			 x
-		       nil))
-		   found-list-r))))
+            (delq nil
+                  (mapcar
+                   (lambda (x)
+                     (if (string-match
+                          re (cdr (assoc "&entry" x)))
+                         x
+                       nil))
+                   found-list-r))))
     (if found-list-r
-	found-list-r
+        found-list-r
       (ding)
       found-list)))
 
 (defun reftex-insert-bib-matches (list)
   ;; Insert the bib matches and number them correctly
   (let ((mouse-face
-	 (if (memq reftex-highlight-selection '(mouse both))
-	     reftex-mouse-selected-face
-	   nil))
-	tmp len)
-    (mapcar
+         (if (memq reftex-highlight-selection '(mouse both))
+             reftex-mouse-selected-face
+           nil))
+        tmp len)
+    (mapcar 
      (lambda (x)
        (setq tmp (cdr (assoc "&formatted" x))
-	     len (length tmp))
+             len (length tmp))
        (put-text-property 0 len :data x tmp)
        (put-text-property 0 (1- len) 'mouse-face mouse-face tmp)
        (insert tmp))
@@ -943,7 +944,7 @@ While entering the regexp, completion on knows citation keys is possible.
                ((= l ?A) (car (reftex-get-bib-names "author" entry)))
                ((= l ?b) (reftex-get-bib-field "booktitle" entry "in: %s"))
                ((= l ?B) (reftex-abbreviate-title
-			  (reftex-get-bib-field "booktitle" entry "in: %s")))
+                          (reftex-get-bib-field "booktitle" entry "in: %s")))
                ((= l ?c) (reftex-get-bib-field "chapter" entry))
                ((= l ?d) (reftex-get-bib-field "edition" entry))
                ((= l ?e) (reftex-format-names
@@ -966,7 +967,7 @@ While entering the regexp, completion on knows citation keys is possible.
                ((= l ?r) (reftex-get-bib-field "address" entry))
                ((= l ?t) (reftex-get-bib-field "title" entry))
                ((= l ?T) (reftex-abbreviate-title
-			  (reftex-get-bib-field "title" entry)))
+                          (reftex-get-bib-field "title" entry)))
                ((= l ?v) (reftex-get-bib-field "volume" entry))
                ((= l ?y) (reftex-get-bib-field "year" entry)))))
 
@@ -983,25 +984,25 @@ While entering the regexp, completion on knows citation keys is possible.
 (defun reftex-make-cite-echo-string (entry docstruct-symbol)
   ;; Format a bibtex entry for the echo area and cache the result.
   (let* ((key (reftex-get-bib-field "&key" entry))
-	 (string
-	  (let* ((reftex-cite-punctuation '(" " " & " " etal.")))
-	    (reftex-format-citation entry reftex-cite-view-format)))
-	 (cache (assq 'bibview-cache (symbol-value docstruct-symbol)))
-	 (cache-entry (assoc key (cdr cache))))
+         (string 
+          (let* ((reftex-cite-punctuation '(" " " & " " etal.")))
+            (reftex-format-citation entry reftex-cite-view-format)))
+         (cache (assq 'bibview-cache (symbol-value docstruct-symbol)))
+         (cache-entry (assoc key (cdr cache))))
     (unless cache
       ;; This docstruct has no cache - make one.
       (set docstruct-symbol (cons (cons 'bibview-cache nil)
-				  (symbol-value docstruct-symbol))))
+                                  (symbol-value docstruct-symbol))))
     (when reftex-cache-cite-echo
       (setq key (copy-sequence key))
       (set-text-properties 0 (length key) nil key)
       (set-text-properties 0 (length string) nil string)
       (if cache-entry
-	  (unless (string= (cdr cache-entry) string)
-	    (setcdr cache-entry string)
-	    (put reftex-docstruct-symbol 'modified t))
-	(push (cons key string) (cdr cache))
-	(put reftex-docstruct-symbol 'modified t)))
+          (unless (string= (cdr cache-entry) string)
+            (setcdr cache-entry string)
+            (put reftex-docstruct-symbol 'modified t))
+        (push (cons key string) (cdr cache))
+        (put reftex-docstruct-symbol 'modified t)))
     string))
 
 (defun reftex-bibtex-selection-callback (data ignore no-revisit)
@@ -1014,32 +1015,33 @@ While entering the regexp, completion on knows citation keys is possible.
 
     (catch 'exit
       (save-excursion
-	(set-buffer reftex-call-back-to-this-buffer)
-	(setq bibtype (reftex-bib-or-thebib))
-	(cond
-	 ((eq bibtype 'bib)
-;	 ((assq 'bib (symbol-value reftex-docstruct-symbol))
-	  (setq bibfile-list (reftex-get-bibfile-list)))
-	 ((eq bibtype 'thebib)
-;	 ((assq 'thebib (symbol-value reftex-docstruct-symbol))
-	  (setq bibfile-list
-		(reftex-uniquify
-		 (mapcar 'cdr
-			 (reftex-all-assq
-			  'thebib (symbol-value reftex-docstruct-symbol))))
-		item t))
-	 (reftex-default-bibliography
-	  (setq bibfile-list (reftex-default-bibliography)))
-	 (t (ding) (throw 'exit nil))))
+        (set-buffer reftex-call-back-to-this-buffer)
+        (setq bibtype (reftex-bib-or-thebib))
+        (cond
+         ((eq bibtype 'bib)
+;        ((assq 'bib (symbol-value reftex-docstruct-symbol))
+          (setq bibfile-list (reftex-get-bibfile-list)))
+         ((eq bibtype 'thebib)
+;        ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+          (setq bibfile-list
+                (reftex-uniquify
+                 (mapcar 'cdr
+                         (reftex-all-assq 
+                          'thebib (symbol-value reftex-docstruct-symbol))))
+                item t))
+         (reftex-default-bibliography
+          (setq bibfile-list (reftex-default-bibliography)))
+         (t (ding) (throw 'exit nil))))
 
       (when no-revisit
-	(setq bibfile-list (reftex-visited-files bibfile-list)))
+        (setq bibfile-list (reftex-visited-files bibfile-list)))
 
       (condition-case nil
-	  (reftex-pop-to-bibtex-entry
-	   key bibfile-list (not reftex-keep-temporary-buffers) t item)
-	(error (ding))))
-
+          (reftex-pop-to-bibtex-entry 
+           key bibfile-list (not reftex-keep-temporary-buffers) t item)
+        (error (ding))))
+      
     (select-window win)))
 
+;;; arch-tag: d53d0a5a-ab32-4b52-a846-2a7c3527cd89
 ;;; reftex-cite.el ends here

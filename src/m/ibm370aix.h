@@ -53,3 +53,6 @@ Boston, MA 02111-1307, USA.  */
 
 #undef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE -xa
+
+/* arch-tag: 8605b600-0580-4e49-9ba9-8b4a977f860a
+   (do not change this comment) */

@@ -1,4 +1,38 @@
-2003-04-03  Kenichi Handa  <handa@etlken2>
+2003-09-30  Werner Lemberg  <wl@gnu.org>
+
+	* TUTORIAL.de: Minor updates and grammatical fixes.
+
+2003-09-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* TODO: Add invisible text kill/yank issue.
+
+2003-08-29  Wim Nieuwenhuizen  <wwwillem@xs4all.nl>
+
+	* TUTORIAL.nl: Many changes.
+
+2003-08-20  Stephen Eglen  <stephen@gnu.org>
+
+	* MORE.STUFF: Update URLs for several projects.
+
+2003-07-22  Andrew Choi  <akochoi@shaw.ca>
+
+	* PROBLEMS: Truncated process output with pty's on Mac OS X.
+
+2003-07-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* NEWS: Merge in the changes for versions 21.2 and 21.3 as
+	documented on the EMACS_21_1_RC branch.
+
+2003-03-03  Chao-Hong Liu  <chliu@gnu.org>
+
+	* TUTORIAL.cn: Updated.
+	* TUTORIAL.zh: Updated.
+
+2003-04-24  Bill Wohler  <wohler@newt.com>
+
+	* MH-E-NEWS: Upgraded to MH-E version 7.3.
+
+2003-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Fix the malayalam line.
 
@@ -54,10 +88,10 @@
 
 	* TUTORIAL.pl: Updated.
 
-2003-01-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2003-01-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated to reflect changes in English version.
-	From Miroslav Va,B9(Bko <zemiak@zoznam.sk>.
+	From Miroslav Va$,1!!(Bko <zemiak@zoznam.sk>.
 
 2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
 
@@ -127,7 +161,7 @@
 
 	* termcap.src: New version from ftp://invisible-island.net.
 
-2002-03-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-03-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.translators: New file, list of tutorial translators.
 
@@ -135,15 +169,15 @@
 
 	* gnus.xpm: Remove garbages.
 
-2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* letter.xpm: New file, XPM variant of letter.xbm.
 
-2001-12-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Move back.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -198,7 +232,7 @@
 	* HELLO: Fix the Italian and Maltese entries.  From Trevor Spiteri
 	<tbspit@eng.um.edu.mt>.
 
-2001-08-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* HELLO: Slovak language name added to be compatible with other
 	languages.
@@ -206,7 +240,7 @@
 2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.pl: Updated in accordance with the English version.
-	From Beata Wierzcho,B3(Bowska <beataw@orient.uw.edu.pl> and
+	From Beata Wierzcho$,1 b(Bowska <beataw@orient.uw.edu.pl> and
 	Janusz S. Bien <jsbien@mail.uw.edu.pl>.
 
 2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -215,26 +249,26 @@
 	per config.sub and config.guess.  Reported by Ryo Furue
 	<furufuru@ccsr.u-tokyo.ac.jp>.
 
-2001-08-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated in accordance with the English version.
-	From Miroslav Va,B9(Bko <vasko@debian.cz>.
+	From Miroslav Va$,1!!(Bko <vasko@debian.cz>.
 
 2001-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.ko: Updated in accordance with the English version.
 	From Koaunghi Un <koaunghi@world.kaist.ac.kr>.
 
-2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs: Update from Milan Zamazal.
 
-2001-08-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: e-mail
 	address of Milan Zamazal changed.
 
-2001-08-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL, TUTORIAL.cs: Be consistent when naming CONTROL and
 	META keys.
@@ -266,7 +300,7 @@
 	* sk-dired-ref.tex: New files.
 
 	* cs-survival.tex, cs-dired-ref.ps, cs-dired-ref.tex: New files.
-	From Pavel@Janik.cz (Pavel Jan,Bm(Bk).
+	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
 
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -1545,3 +1579,5 @@
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 094f3a51-bd72-44d0-8fac-2ac242c6c5b1

@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995,96,97,98,99,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98,99,2001,2003  Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -468,7 +468,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	      (progn
 		(goto-char (point-min))
 		(and (search-forward "\n* Menu:" nil t)
-		     (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+		     (while (re-search-forward "\n\\* \\(.*\\): " nil t)
 		       (setq entry (match-string 1)
 			     item (funcall trans entry))
 		       ;; `trans' can return nil if the regexp doesn't match.
@@ -682,13 +682,37 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'autoconf-mode
  :regexp "A[CM]_[_A-Z0-9]+"
- :doc-spec '(("(autoconf)Autoconf Macro Index" "AC_"
+ :doc-spec '(;; Autoconf Macro Index entries are without an "AC_" prefix,
+	     ;; but with "AH_" or "AU_" for those.  So add "AC_" if there
+	     ;; isn't already an "A._".
+             ("(autoconf)Autoconf Macro Index"
+              (lambda (item)
+                (if (string-match "^A._" item) item (concat "AC_" item)))
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
-	     ("(automake)Macro and Variable Index" nil
-	      "^[ \t]*`" "'")
-	     ;; These are for older versions (probably pre autoconf 2.5x):
+             ;; M4 Macro Index entries are without "AS_" prefixes, and
+             ;; mostly without "m4_" prefixes.  "dnl" is an exception, not
+             ;; wanting any prefix.  So AS_ is added back to upper-case
+             ;; names, m4_ to others which don't already an m4_.
+             ("(autoconf)M4 Macro Index"
+              (lambda (item)
+                (let ((case-fold-search nil))
+                  (cond ((or (string-equal item "dnl")
+                             (string-match "^m4_" item))
+                         item)
+                        ((string-match "^[A-Z0-9_]+$" item)
+                         (concat "AS_" item))
+                        (t
+                         (concat "m4_" item)))))
+	      "^[ \t]+- Macro: .*\\<" "\\>")
+             ;; Autotest Macro Index entries are without "AT_".
+             ("(autoconf)Autotest Macro Index" "AT_"
+	      "^[ \t]+- Macro: .*\\<" "\\>")
+	     ;; This is for older versions (probably pre autoconf 2.5x):
 	     ("(autoconf)Macro Index" "AC_"
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	     ;; Automake has index entries for its notes on various autoconf
+	     ;; macros (eg. AC_PROG_CC).  Ensure this is after the autoconf
+	     ;; index, so as to prefer the autoconf docs.
 	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
  ;; Autoconf symbols are M4 macros.  Thus use M4's parser.
@@ -756,9 +780,19 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
  :regexp "[^][()'\" \t\n]+"
- :doc-spec '(("(emacs)Command Index")
-	     ("(emacs)Variable Index")
-	     ("(elisp)Index")))
+ :doc-spec '(;; Commands with key sequences appear in nodes as `foo' and
+             ;; those without as `M-x foo'.
+             ("(emacs)Command Index"  nil "`\\(M-x[ \t\n]+\\)?" "'")
+             ;; Variables normally appear in nodes as just `foo'.
+             ("(emacs)Variable Index" nil "`" "'")
+             ;; Almost all functions, variables, etc appear in nodes as
+             ;; " - Function: foo" etc.  A small number of aliases and
+             ;; symbols appear only as `foo', and will miss out on exact
+             ;; positions.  Allowing `foo' would hit too many false matches
+             ;; for things that should go to Function: etc, and those latter
+             ;; are much more important.  Perhaps this could change if some
+             ;; sort of fallback match scheme existed.
+             ("(elisp)Index"          nil "^ - .*: " "\\( \\|$\\)")))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
@@ -844,4 +878,5 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (provide 'info-look)
 
+;;; arch-tag: 0f1e3ea3-32a2-4461-bbab-3cff93539a74
 ;;; info-look.el ends here

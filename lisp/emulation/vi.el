@@ -1486,4 +1486,5 @@ With ARG, inserts that many newlines."
 
 (provide 'vi)
 
+;;; arch-tag: ac9bdac3-8acb-4ddd-bdae-c6dd873153b3
 ;;; vi.el ends here

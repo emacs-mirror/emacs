@@ -666,6 +666,26 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
 	(cp-make-coding-systems-for-codepage
 	 cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp)))))
 
+;; Add DOS codepages to `non-iso-charset-alist'.
+(eval-after-load "mule-diag"
+  '(let ((tail (cp-supported-codepages))
+	 elt)
+     (while tail
+       (setq elt (car tail) tail (cdr tail))
+       ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
+       ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
+       ;; are mapped to.
+       (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
+	 (setq non-iso-charset-alist
+	       (cons (list (intern (concat "cp" (car elt)))
+			   (list 'ascii (cdr elt))
+			   `(lambda (code)
+			      (decode-codepage-char ,(string-to-int (car elt))
+						    code))
+			   (list (list 0 255)))
+		     non-iso-charset-alist))))))
+
 (provide 'codepage)
 
+;;; arch-tag: 80328de8-b94e-4386-be26-5876105731f0
 ;;; codepage.el ends here

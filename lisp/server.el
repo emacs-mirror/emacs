@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
-;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1986,87,92,94,95,96,97,98,99,2000,01,02,2003
 ;;	 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -159,11 +159,8 @@ This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
-;; Fixme: This doesn't look secure.  If it really is, it deserves a
-;; comment, but I'd expect it to be created in a protected subdir as
-;; normal.  -- fx
 (defvar server-socket-name
-  (format "/tmp/esrv%d-%s" (user-uid)
+  (format "/tmp/emacs%d-%s/server" (user-uid)
 	  (substring (system-name) 0 (string-match "\\." (system-name)))))
 
 (defun server-log (string &optional client)
@@ -223,6 +220,22 @@ are done with it in the server.")
 	    (t " ")))
    arg t t))
 
+(defun server-ensure-safe-dir (dir)
+  "Make sure DIR is a directory with no race-condition issues.
+Creates the directory if necessary and makes sure:
+- there's no symlink involved
+- it's owned by us
+- it's not readable/writable by anybody else."
+  (setq dir (directory-file-name dir))
+  (let ((attrs (file-attributes dir)))
+    (unless attrs
+      (letf (((default-file-modes) ?\700)) (make-directory dir))
+      (setq attrs (file-attributes dir)))
+    ;; Check that it's safe for use.
+    (unless (and (eq t (car attrs)) (eq (nth 2 attrs) (user-uid))
+		 (zerop (logand ?\077 (file-modes dir))))
+      (error "The directory %s is unsafe" dir))))
+
 ;;;###autoload
 (defun server-start (&optional leave-dead)
   "Allow this Emacs process to be a server for client processes.
@@ -233,8 +246,11 @@ Emacs distribution as your standard \"editor\".
 
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
+  ;; Make sure there is a safe directory in which to place the socket.
+  (server-ensure-safe-dir (file-name-directory server-socket-name))
   ;; kill it dead!
-  (condition-case () (delete-process server-process) (error nil))
+  (if server-process
+      (condition-case () (delete-process server-process) (error nil)))
   ;; Delete the socket files made by previous server invocations.
   (condition-case () (delete-file server-socket-name) (error nil))
   ;; If this Emacs already had a server, clear out associated status.
@@ -244,20 +260,16 @@ Prefix arg means just kill any existing server communications subprocess."
   (unless leave-dead
     (if server-process
 	(server-log (message "Restarting server")))
-    (let ((umask (default-file-modes)))
-      (unwind-protect
-	  (progn
-	    (set-default-file-modes ?\700)
-	    (setq server-process
-		  (make-network-process
-		   :name "server" :family 'local :server t :noquery t
-		   :service server-socket-name
-		   :sentinel 'server-sentinel :filter 'server-process-filter
-		   ;; We must receive file names without being decoded.
-		   ;; Those are decoded by server-process-filter according
-		   ;; to file-name-coding-system.
-		   :coding 'raw-text)))
-	(set-default-file-modes umask)))))
+    (letf (((default-file-modes) ?\700))
+      (setq server-process
+	    (make-network-process
+	     :name "server" :family 'local :server t :noquery t
+	     :service server-socket-name
+	     :sentinel 'server-sentinel :filter 'server-process-filter
+	     ;; We must receive file names without being decoded.
+	     ;; Those are decoded by server-process-filter according
+	     ;; to file-name-coding-system.
+	     :coding 'raw-text)))))
 
 ;;;###autoload
 (define-minor-mode server-mode
@@ -271,7 +283,6 @@ Server mode runs a process that accepts commands from the
   ;; Fixme: Should this check for an existing server socket and do
   ;; nothing if there is one (for multiple Emacs sessions)?
   (server-start (not server-mode)))
-(custom-add-version 'server-mode "21.4")
 
 (defun server-process-filter (proc string)
   "Process a request from the server to edit some files.
@@ -296,13 +307,11 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
       (setq string (substring string (match-end 0)))
       (setq client (cons proc nil))
       (while (string-match "[^ ]* " request)
-	(let ((arg (substring request (match-beginning 0) (1- (match-end 0))))
-	      (pos 0))
+	(let ((arg (substring request (match-beginning 0) (1- (match-end 0)))))
 	  (setq request (substring request (match-end 0)))
 	  (cond
 	   ((equal "-nowait" arg) (setq nowait t))
-;;; This is not safe unless we make sure other users can't send commands.
-;;;	   ((equal "-eval" arg) (setq eval t))
+	   ((equal "-eval" arg) (setq eval t))
 	   ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
 	    (let ((display (server-unquote-arg (match-string 1 request))))
 	      (setq request (substring request (match-end 0)))
@@ -615,4 +624,5 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 
 (provide 'server)
 
+;;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
 ;;; server.el ends here

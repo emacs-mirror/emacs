@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifndef BASE_PURESIZE
-#define BASE_PURESIZE (910000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
+#define BASE_PURESIZE (1100000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
 #endif
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
@@ -96,3 +96,6 @@ extern char my_edata[];
 
 #endif /* PNTR_COMPARISON_TYPE */
 #endif /* VIRT_ADDRESS_VARIES */
+
+/* arch-tag: fd9b0a91-a70e-4729-a75a-6bb4ca1ce14f
+   (do not change this comment) */

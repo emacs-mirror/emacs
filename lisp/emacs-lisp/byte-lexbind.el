@@ -673,4 +673,5 @@ binding slots have been popped."
 
 (provide 'byte-lexbind)
 
+;;; arch-tag: b8f1dff6-9edb-4430-a96f-323d42a681a9
 ;;; byte-lexbind.el ends here

@@ -44,3 +44,5 @@ else
 
   echo "(normal-top-level-add-to-load-path '($subdirs))" >> subdirs.el
 fi
+
+# arch-tag: 56ebcf1b-5c30-4934-b0b4-72d374064704

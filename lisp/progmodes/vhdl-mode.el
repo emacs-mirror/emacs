@@ -5,7 +5,7 @@
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
-;; RCS:         $Id: vhdl-mode.el,v 1.20 2003/03/05 07:50:38 lektu Exp $
+;; RCS:         $Id: vhdl-mode.el,v 1.21 2003/09/01 15:45:35 miles Exp $
 ;; Keywords:    languages vhdl
 ;; WWW:         http://opensource.ethz.ch/emacs/vhdl-mode.html
 
@@ -16578,4 +16578,5 @@ to visually support naming conventions.")
 
 (provide 'vhdl-mode)
 
+;;; arch-tag: 780d7073-9b5d-4c6c-b0d8-26b28783aba3
 ;;; vhdl-mode.el ends here

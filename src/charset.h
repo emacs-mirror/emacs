@@ -437,25 +437,33 @@ extern int width_by_char_head[256];
 #else  /* not BYTE_COMBINING_DEBUG */
 
 #define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
-  (bytes) = BYTES_BY_CHAR_HEAD ((str)[0])
+  ((void)(length), (bytes) = BYTES_BY_CHAR_HEAD ((str)[0]))
 
 #endif /* not BYTE_COMBINING_DEBUG */
+
+#define VALID_LEADING_CODE_P(code)	\
+  (! NILP (CHARSET_TABLE_ENTRY (code)))
 
 /* Return 1 iff the byte sequence at unibyte string STR (LENGTH bytes)
    is valid as a multibyte form.  If valid, by a side effect, BYTES is
    set to the byte length of the multibyte form.  */
 
-#define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)	\
-  (((str)[0] < 0x80 || (str)[0] >= 0xA0)		\
-   ? ((bytes) = 1)					\
-   : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),	\
-      ((bytes) > 1 && (bytes) <= (length)		\
-       && (str)[0] != LEADING_CODE_8_BIT_CONTROL	\
-       && !CHAR_HEAD_P ((str)[1])			\
-       && ((bytes) == 2					\
-	   || (!CHAR_HEAD_P ((str)[2])			\
-	       && ((bytes) == 3				\
-		   || !CHAR_HEAD_P ((str)[3])))))))
+#define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)		\
+  (((str)[0] < 0x80 || (str)[0] >= 0xA0)			\
+   ? ((bytes) = 1)						\
+   : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),		\
+      ((bytes) <= (length)					\
+       && !CHAR_HEAD_P ((str)[1])				\
+       && ((bytes) == 2						\
+	   ? (str)[0] != LEADING_CODE_8_BIT_CONTROL		\
+	   : (!CHAR_HEAD_P ((str)[2])				\
+	      && ((bytes) == 3					\
+		  ? (((str)[0] != LEADING_CODE_PRIVATE_11	\
+		      && (str)[0] != LEADING_CODE_PRIVATE_12)	\
+		     || VALID_LEADING_CODE_P (str[1]))		\
+		  : (!CHAR_HEAD_P ((str)[3])			\
+		     && VALID_LEADING_CODE_P (str[1]))))))))
+
 
 /* Return 1 iff the byte sequence at multibyte string STR is valid as
    a unibyte form.  By a side effect, BYTES is set to the byte length
@@ -862,3 +870,6 @@ extern Lisp_Object Vauto_fill_chars;
   } while (0)
 
 #endif /* EMACS_CHARSET_H */
+
+/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
+   (do not change this comment) */

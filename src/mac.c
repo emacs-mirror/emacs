@@ -2931,12 +2931,12 @@ init_mac_osx_environment ()
       q[0] = '\0';
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/MacOS/bin");
+      strcat (p, "/Contents/MacOS/libexec");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	strcat (q, p);
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/MacOS/libexec");
+      strcat (p, "/Contents/MacOS/bin");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
 	  if (q[0] != '\0')
@@ -2988,3 +2988,6 @@ syms_of_mac ()
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);
 }
+
+/* arch-tag: 29d30c1f-0c6b-4f88-8a6d-0558d7f9dbff
+   (do not change this comment) */

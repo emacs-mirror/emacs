@@ -158,7 +158,7 @@ The holidays, diary entries, bottom string, and the text follow.")
 
 (defvar cal-tex-day-name-format "\\myday{%s}%%"
   "The format for LaTeX code for a day name.  The names are taken from
-calendar-day-name-array.")
+`calendar-day-name-array'.")
 
 (defvar cal-tex-cal-one-month
 "\\def\\calmonth#1#2%
@@ -649,6 +649,11 @@ this is only an upper bound."
 ;;; Weekly calendars
 ;;;
 
+(defvar cal-tex-LaTeX-hourbox
+  "\\newcommand{\\hourbox}[2]%
+{\\makebox[2em]{\\rule{0cm}{#2ex}#1}\\rule{3in}{.15mm}}\n"
+  "One hour and a line on the right.")
+
 (defun cal-tex-cursor-week (&optional arg)
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in.
@@ -869,11 +874,6 @@ Holidays are included if `cal-tex-holidays' is t."
              (cal-tex-newpage))))
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
-
-(defvar cal-tex-LaTeX-hourbox
-  "\\newcommand{\\hourbox}[2]%
-{\\makebox[2em]{\\rule{0cm}{#2ex}#1}\\rule{3in}{.15mm}}\n"
-  "One hour and a line on the right.")
 
 (defun cal-tex-week-hours (date holidays height)
   "Insert hourly entries for DATE with HOLIDAYS, with line height HEIGHT."
@@ -1781,4 +1781,5 @@ without erasing current contents."
 
 (provide 'cal-tex)
 
+;;; arch-tag: ca8168a4-5a00-4508-a565-17e3bccce6d0
 ;;; cal-tex.el ends here

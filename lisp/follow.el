@@ -2347,4 +2347,5 @@ This prevents `mouse-drag-region' from messing things up."
 ;; | save it".             -- Douglas Adams, "Last Chance to See"           |
 ;; \------------------------------------------------------------------------/
 
+;;; arch-tag: 7b16bb1a-808c-4991-a8cc-66d3822936d0
 ;;; follow.el ends here

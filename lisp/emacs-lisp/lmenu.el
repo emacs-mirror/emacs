@@ -143,7 +143,7 @@ If the `callback' of a button is a symbol, then it must name a command.
 It will be invoked with `call-interactively'.  If it is a list, then it is
 evaluated with `eval'.
 
-One (and only one) of the buttons may be `nil'.  This marker means that all
+One (and only one) of the buttons may be nil.  This marker means that all
 following buttons should be flushright instead of flushleft.
 
 The syntax, more precisely:
@@ -436,4 +436,5 @@ BEFORE, if provided, is the name of a menu before which this menu should
 
 (provide 'lmenu)
 
+;;; arch-tag: 7051c396-2837-435a-ae11-b2d2e2af8fc1
 ;;; lmenu.el ends here

@@ -1029,7 +1029,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.8 2003/02/04 14:30:40 lektu Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.9 2003/09/01 15:44:58 miles Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -6482,3 +6482,4 @@ mode: outline
 paragraph-separate: "[ 	]*$"
 end:
 
+arch-tag: 944be39b-afe8-4217-9977-c745b68a7ca2

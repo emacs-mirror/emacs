@@ -49,6 +49,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (if (fboundp 'atan)
     (require 'lisp-float-type)
   (error "Lunar calculations impossible since floating point is unavailable"))
@@ -395,4 +398,5 @@ calendar-time-zone."
 
 (provide 'lunar)
 
+;;; arch-tag: 72f0b8a4-7bcc-4a1b-b67a-ff53c4a1d222
 ;;; lunar.el ends here

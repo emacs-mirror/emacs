@@ -175,15 +175,19 @@ DEF is the function whose usage we're looking for in DOC."
 (defun help-add-fundoc-usage (doc arglist)
   "Add the usage info to the docstring DOC.
 If DOC already has a usage info, then just return DOC unchanged.
-The usage info is built from ARGLIST.  DOC can be nil."
+The usage info is built from ARGLIST.  DOC can be nil.
+ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
   (unless (stringp doc) (setq doc "Not documented"))
-  (if (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc)
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (eq arglist t))
       doc
     (format "%s%s%s" doc
 	    (if (string-match "\n?\n\\'" doc)
-		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n")
+		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
-	    (help-make-usage 'fn arglist))))
+	    (if (and (stringp arglist)
+		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
+		(concat "(fn" (match-string 1 arglist) ")")
+	      (help-make-usage 'fn arglist)))))
 
 (defun help-function-arglist (def)
   ;; Handle symbols aliased to other symbols.
@@ -409,7 +413,10 @@ it is displayed along with the global value."
 		      (delete-region (1- from) from)))))
 	    (terpri)
 	    (when (local-variable-p variable)
-	      (princ (format "Local in buffer %s; " (buffer-name)))
+	      (princ (format "%socal in buffer %s; "
+			     (if (get variable 'permanent-local)
+				 "Permanently l" "L")
+			     (buffer-name)))
 	      (if (not (default-boundp variable))
 		  (princ "globally void")
 		(let ((val (default-value variable)))
@@ -562,4 +569,5 @@ The descriptions are inserted in a buffer, which is then displayed."
 
 (provide 'help-fns)
 
+;;; arch-tag: 9e10331c-ae81-4d13-965d-c4819aaab0b3
 ;;; help-fns.el ends here

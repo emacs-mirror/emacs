@@ -29,7 +29,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.49 2001/11/28 23:55:08 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.51 2003/09/01 15:45:03 miles Exp $'
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002
 #  Free Software Foundation, Inc.
@@ -729,3 +729,5 @@ exec rm -fr $logdir
 # Local Variables:
 # tab-width:4
 # End:
+
+# arch-tag: cea067bd-a552-4254-ba17-078208933073

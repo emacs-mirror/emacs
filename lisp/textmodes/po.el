@@ -42,7 +42,7 @@ Contains canonical charset names that don't correspond to coding systems.")
 (defun po-find-charset (filename)
   "Return PO charset value for FILENAME."
   (let ((charset-regexp
-	 "^\"Content-Type: text/plain;[ \t]*charset=\\(.*\\)\\\\n\"")
+	 "^\"Content-Type:[ \t]*text/plain;[ \t]*charset=\\(.*\\)\\\\n\"")
 	(short-read nil))
     ;; Try the first 4096 bytes.  In case we cannot find the charset value
     ;; within the first 4096 bytes (the PO file might start with a long
@@ -122,4 +122,5 @@ Called through `file-coding-system-alist', before the file is visited for real."
 
 (provide 'po)
 
+;;; arch-tag: 56748a57-d64c-4200-8f6b-c3a70496eb8c
 ;;; po.el ends here

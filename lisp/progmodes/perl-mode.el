@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2003  Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -260,15 +260,17 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Funny things in sub arg specifications like `sub myfunc ($$)'
     ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
     ;; regexp and funny quotes
-    ("[;(=!~{][ \t\n]*\\(/\\)" (1 '(7)))
-    ("[;( =!~{\t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("[?:.,;=!~({[][ \t\n]*\\(/\\)" (1 '(7)))
+    ("[?:.,;=!~({[ \t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).
      ;; -s file
      (2 (if (assoc (char-after (match-beginning 2))
 		   perl-quote-like-pairs)
-	    '(15) '(7))))))
+	    '(15) '(7))))
+    ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
+    ))
 
 (defvar perl-empty-syntax-table
   (let ((st (copy-syntax-table)))
@@ -369,41 +371,33 @@ The expansion is entirely correct because it uses the C preprocessor."
 
 (defcustom perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-continued-statement-offset 4
   "*Extra indent for lines not starting new statements."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-continued-brace-offset -4
   "*Extra indent for substatements that start with open-braces.
 This is in addition to `perl-continued-statement-offset'."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-brace-offset 0
   "*Extra indentation for braces, compared with other text in same context."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-brace-imaginary-offset 0
   "*Imagined indentation of an open brace that actually follows a statement."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-label-offset -2
   "*Offset of Perl label lines relative to usual indentation."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-indent-continued-arguments nil
   "*If non-nil offset of argument lines relative to usual indentation.
 If nil, continued arguments are aligned with the first argument."
-  :type '(choice integer (const nil))
-  :group 'perl)
+  :type '(choice integer (const nil)))
 
-(defcustom perl-tab-always-indent t
-  "*Non-nil means TAB in Perl mode always indents the current line.
+(defcustom perl-tab-always-indent tab-always-indent
+  "Non-nil means TAB in Perl mode always indents the current line.
 Otherwise it inserts a tab character if you type it past the first
 nonwhite character on the line."
-  :type 'boolean
-  :group 'perl)
+  :type 'boolean)
 
 ;; I changed the default to nil for consistency with general Emacs
 ;; conventions -- rms.
@@ -412,13 +406,11 @@ nonwhite character on the line."
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
 create a new comment."
-  :type 'boolean
-  :group 'perl)
+  :type 'boolean)
 
 (defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
   "*Lines starting with this regular expression are not auto-indented."
-  :type 'regexp
-  :group 'perl)
+  :type 'regexp)
 
 ;;;###autoload
 (defun perl-mode ()
@@ -893,7 +885,7 @@ With argument, repeat that many times; negative args move backward."
   (or arg (setq arg 1))
   (let ((first t))
     (while (and (> arg 0) (< (point) (point-max)))
-      (let ((pos (point)) npos)
+      (let ((pos (point)))
 	(while (progn
 		(if (and first
 			 (progn
@@ -937,4 +929,5 @@ With argument, repeat that many times; negative args move backward."
 
 (provide 'perl-mode)
 
+;;; arch-tag: 8c7ff68d-15f3-46a2-ade2-b7c41f176826
 ;;; perl-mode.el ends here

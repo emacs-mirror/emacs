@@ -1,4 +1,4 @@
-# $Id: Punct.tit,v 1.1 1991/10/27 06:21:16 ygz Exp $
+# $Id: Punct.tit,v 1.2 2003/09/01 15:44:59 miles Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 1
@@ -75,3 +75,5 @@ punct	¡º¡»¡¼¡½¡¾¡¿
 symbol	¡á¡â¡ã¡ä¡å¡æ¡ç¡è¡é¡ê¡ë¡ì¡í
 |	£ü¡¬¡Î
 ~	£þ¡«¡×¡Ø¡Þ
+
+# arch-tag: 4d0e14b7-4eb2-4310-9582-e981f4c4a7f0

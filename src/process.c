@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999,
-      2001, 2002 Free Software Foundation, Inc.
+      2001, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -96,6 +96,17 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
+#endif
+
+/* Can we use SIOCGIFCONF and/or SIOCGIFADDR */
+#ifdef HAVE_SOCKETS
+#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_NET_IF_H)
+/* sys/ioctl.h may have been included already */
+#ifndef SIOCGIFADDR
+#include <sys/ioctl.h>
+#endif
+#include <net/if.h>
+#endif
 #endif
 
 #ifdef IRIS
@@ -459,16 +470,8 @@ status_message (status)
 int
 allocate_pty ()
 {
-  struct stat stb;
   register int c, i;
   int fd;
-
-  /* Some systems name their pseudoterminals so that there are gaps in
-     the usual sequence - for example, on HP9000/S700 systems, there
-     are no pseudoterminals with names ending in 'f'.  So we wait for
-     three failures in a row before deciding that we've reached the
-     end of the ptys.  */
-  int failed_count = 0;
 
 #ifdef PTY_ITERATION
   PTY_ITERATION
@@ -477,6 +480,7 @@ allocate_pty ()
     for (i = 0; i < 16; i++)
 #endif
       {
+	struct stat stb;	/* Used in some PTY_OPEN.  */
 #ifdef PTY_NAME_SPRINTF
 	PTY_NAME_SPRINTF
 #else
@@ -486,28 +490,38 @@ allocate_pty ()
 #ifdef PTY_OPEN
 	PTY_OPEN;
 #else /* no PTY_OPEN */
-#ifdef IRIS
-	/* Unusual IRIS code */
- 	*ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
- 	if (fd < 0)
- 	  return -1;
-	if (fstat (fd, &stb) < 0)
-	  return -1;
-#else /* not IRIS */
-	if (stat (pty_name, &stb) < 0)
-	  {
-	    failed_count++;
-	    if (failed_count >= 3)
-	      return -1;
+	{
+# ifdef IRIS
+	  /* Unusual IRIS code */
+	  *ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
+	  if (fd < 0)
+	    return -1;
+	  if (fstat (fd, &stb) < 0)
+	    return -1;
+# else /* not IRIS */
+	  { /* Some systems name their pseudoterminals so that there are gaps in
+	       the usual sequence - for example, on HP9000/S700 systems, there
+	       are no pseudoterminals with names ending in 'f'.  So we wait for
+	       three failures in a row before deciding that we've reached the
+	       end of the ptys.  */
+	    int failed_count = 0;
+	    
+	    if (stat (pty_name, &stb) < 0)
+	      {
+		failed_count++;
+		if (failed_count >= 3)
+		  return -1;
+	      }
+	    else
+	      failed_count = 0;
 	  }
-	else
-	  failed_count = 0;
-#ifdef O_NONBLOCK
-	fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
-#else
-	fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
-#endif
-#endif /* not IRIS */
+#  ifdef O_NONBLOCK
+	  fd = emacs_open (pty_name, O_RDWR | O_NONBLOCK, 0);
+#  else
+	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
+#  endif
+# endif /* not IRIS */
+	}
 #endif /* no PTY_OPEN */
 
 	if (fd >= 0)
@@ -523,11 +537,11 @@ allocate_pty ()
 	    if (access (pty_name, 6) != 0)
 	      {
 		emacs_close (fd);
-#if !defined(IRIS) && !defined(__sgi)
+# if !defined(IRIS) && !defined(__sgi)
 		continue;
-#else
+# else
 		return -1;
-#endif /* IRIS */
+# endif /* IRIS */
 	      }
 #endif /* not UNIPLUS */
 	    setup_pty (fd);
@@ -951,8 +965,14 @@ It gets two arguments: the process, and a string describing the change.  */)
      (process, sentinel)
      register Lisp_Object process, sentinel;
 {
+  struct Lisp_Process *p;
+
   CHECK_PROCESS (process);
-  XPROCESS (process)->sentinel = sentinel;
+  p = XPROCESS (process);
+
+  p->sentinel = sentinel;
+  if (NETCONN1_P (p))
+    p->childp = Fplist_put (p->childp, QCsentinel, sentinel);
   return sentinel;
 }
 
@@ -2203,7 +2223,7 @@ conv_lisp_to_sockaddr (family, address, sa, len)
      int len;
 {
   register struct Lisp_Vector *p;
-  register unsigned char *cp;
+  register unsigned char *cp = NULL;
   register int i;
 
   bzero (sa, len);
@@ -2294,233 +2314,172 @@ static struct socket_options {
   /* The name of this option.  Should be lowercase version of option
      name without SO_ prefix. */
   char *name;
-  /* Length of name.  */
-  int nlen;
   /* Option level SOL_... */
   int optlevel;
   /* Option number SO_... */
   int optnum;
-  enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_STR, SOPT_LINGER } opttype;
+  enum { SOPT_UNKNOWN, SOPT_BOOL, SOPT_INT, SOPT_IFNAME, SOPT_LINGER } opttype;
+  enum { OPIX_NONE=0, OPIX_MISC=1, OPIX_REUSEADDR=2 } optbit;
 } socket_options[] =
   {
 #ifdef SO_BINDTODEVICE
-    { "bindtodevice", 12, SOL_SOCKET, SO_BINDTODEVICE, SOPT_STR },
+    { ":bindtodevice", SOL_SOCKET, SO_BINDTODEVICE, SOPT_IFNAME, OPIX_MISC },
 #endif
 #ifdef SO_BROADCAST
-    { "broadcast", 9, SOL_SOCKET, SO_BROADCAST, SOPT_BOOL },
+    { ":broadcast", SOL_SOCKET, SO_BROADCAST, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_DONTROUTE
-    { "dontroute", 9, SOL_SOCKET, SO_DONTROUTE, SOPT_BOOL },
+    { ":dontroute", SOL_SOCKET, SO_DONTROUTE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_KEEPALIVE
-    { "keepalive", 9, SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL },
+    { ":keepalive", SOL_SOCKET, SO_KEEPALIVE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_LINGER
-    { "linger", 6, SOL_SOCKET, SO_LINGER, SOPT_LINGER },
+    { ":linger", SOL_SOCKET, SO_LINGER, SOPT_LINGER, OPIX_MISC },
 #endif
 #ifdef SO_OOBINLINE
-    { "oobinline", 9, SOL_SOCKET, SO_OOBINLINE, SOPT_BOOL },
+    { ":oobinline", SOL_SOCKET, SO_OOBINLINE, SOPT_BOOL, OPIX_MISC },
 #endif
 #ifdef SO_PRIORITY
-    { "priority", 8, SOL_SOCKET, SO_PRIORITY, SOPT_INT },
+    { ":priority", SOL_SOCKET, SO_PRIORITY, SOPT_INT, OPIX_MISC },
 #endif
 #ifdef SO_REUSEADDR
-    { "reuseaddr", 9, SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL },
+    { ":reuseaddr", SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL, OPIX_REUSEADDR },
 #endif
-    { 0, 0, 0, 0, SOPT_UNKNOWN }
+    { 0, 0, 0, SOPT_UNKNOWN, OPIX_NONE }
   };
 
-/* Process list of socket options OPTS on socket S.
-   Only check if options are supported is S < 0.
-   If NO_ERROR is non-zero, continue silently if an option
-   cannot be set.
+/* Set option OPT to value VAL on socket S.
 
-   Each element specifies one option.  An element is either a string
-   "OPTION=VALUE" or a cons (OPTION . VALUE) where OPTION is a string
-   or a symbol.  */
+   Returns (1<<socket_options[OPT].optbit) if option is known, 0 otherwise.
+   Signals an error if setting a known option fails.
+*/
 
 static int
-set_socket_options (s, opts, no_error)
+set_socket_option (s, opt, val)
      int s;
-     Lisp_Object opts;
-     int no_error;
+     Lisp_Object opt, val;
 {
-  if (!CONSP (opts))
-    opts = Fcons (opts, Qnil);
+  char *name;
+  struct socket_options *sopt;
+  int ret = 0;
 
-  while (CONSP (opts))
+  CHECK_SYMBOL (opt);
+
+  name = (char *) SDATA (SYMBOL_NAME (opt));
+  for (sopt = socket_options; sopt->name; sopt++)
+    if (strcmp (name, sopt->name) == 0)
+      break;
+
+  switch (sopt->opttype)
     {
-      Lisp_Object opt;
-      Lisp_Object val;
-      char *name, *arg;
-      struct socket_options *sopt;
-      int ret = 0;
-
-      opt = XCAR (opts);
-      opts = XCDR (opts);
-
-      name = 0;
-      val = Qt;
-      if (CONSP (opt))
-	{
-	  val = XCDR (opt);
-	  opt = XCAR (opt);
-	}
-      if (STRINGP (opt))
-	name = (char *) SDATA (opt);
-      else if (SYMBOLP (opt))
-	name = (char *) SDATA (SYMBOL_NAME (opt));
-      else {
-	error ("Mal-formed option list");
-	return 0;
+    case SOPT_BOOL:
+      {
+	int optval;
+	optval = NILP (val) ? 0 : 1;
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  &optval, sizeof (optval));
+	break;
       }
 
-      if (strncmp (name, "no", 2) == 0)
-	{
-	  val = Qnil;
-	  name += 2;
-	}
+    case SOPT_INT:
+      {
+	int optval;
+	if (INTEGERP (val))
+	  optval = XINT (val);
+	else
+	  error ("Bad option value for %s", name);
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  &optval, sizeof (optval));
+	break;
+      }
 
-      arg = 0;
-      for (sopt = socket_options; sopt->name; sopt++)
-	if (strncmp (name, sopt->name, sopt->nlen) == 0)
-	  {
-	    if (name[sopt->nlen] == 0)
-	      break;
-	    if (name[sopt->nlen] == '=')
-	      {
-		arg = name + sopt->nlen + 1;
-		break;
-	      }
-	  }
+#ifdef SO_BINDTODEVICE
+    case SOPT_IFNAME:
+      {
+	char devname[IFNAMSIZ+1];
 
-      switch (sopt->opttype)
-	{
-	case SOPT_BOOL:
+	/* This is broken, at least in the Linux 2.4 kernel.
+	   To unbind, the arg must be a zero integer, not the empty string.
+	   This should work on all systems.   KFS. 2003-09-23.  */
+	bzero (devname, sizeof devname);
+	if (STRINGP (val))
 	  {
-	    int optval;
-	    if (s < 0)
-	      return 1;
-	    if (arg)
-	      optval = (*arg == '0' || *arg == 'n') ? 0 : 1;
-	    else if (INTEGERP (val))
-	      optval = XINT (val) == 0 ? 0 : 1;
-	    else
-	      optval = NILP (val) ? 0 : 1;
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      &optval, sizeof (optval));
-	    break;
+	    char *arg = (char *) SDATA (val);
+	    int len = min (strlen (arg), IFNAMSIZ);
+	    bcopy (arg, devname, len);
 	  }
-
-	case SOPT_INT:
-	  {
-	    int optval;
-	    if (arg)
-	      optval = atoi(arg);
-	    else if (INTEGERP (val))
-	      optval = XINT (val);
-	    else
-	      error ("Bad option argument for %s", name);
-	    if (s < 0)
-	      return 1;
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      &optval, sizeof (optval));
-	    break;
-	  }
-
-	case SOPT_STR:
-	  {
-	    if (!arg)
-	      {
-		if (NILP (val))
-		  arg = "";
-		else if (STRINGP (val))
-		  arg = (char *) SDATA (val);
-		else if (XSYMBOL (val))
-		  arg = (char *) SDATA (SYMBOL_NAME (val));
-		else
-		  error ("Invalid argument to %s option", name);
-	      }
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      arg, strlen (arg));
-	  }
+	else if (!NILP (val))
+	  error ("Bad option value for %s", name);
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  devname, IFNAMSIZ);
+	break;
+      }
+#endif
 
 #ifdef SO_LINGER
-	case SOPT_LINGER:
-	  {
-	    struct linger linger;
+    case SOPT_LINGER:
+      {
+	struct linger linger;
 
-	    linger.l_onoff = 1;
-	    linger.l_linger = 0;
-
-	    if (s < 0)
-	      return 1;
-
-	    if (arg)
-	      {
-		if (*arg == 'n' || *arg == 't' || *arg == 'y')
-		  linger.l_onoff = (*arg == 'n') ? 0 : 1;
-		else
-		  linger.l_linger = atoi(arg);
-	      }
-	    else if (INTEGERP (val))
-	      linger.l_linger = XINT (val);
-	    else
-	      linger.l_onoff = NILP (val) ? 0 : 1;
-	    ret = setsockopt (s, sopt->optlevel, sopt->optnum,
-			      &linger, sizeof (linger));
-	    break;
-	  }
+	linger.l_onoff = 1;
+	linger.l_linger = 0;
+	if (INTEGERP (val))
+	  linger.l_linger = XINT (val);
+	else
+	  linger.l_onoff = NILP (val) ? 0 : 1;
+	ret = setsockopt (s, sopt->optlevel, sopt->optnum,
+			  &linger, sizeof (linger));
+	break;
+      }
 #endif
-	default:
-	  if (s < 0)
-	    return 0;
-	  if (no_error)
-	    continue;
-	  error ("Unsupported option: %s", name);
-	}
-      if (ret < 0 && ! no_error)
-	  report_file_error ("Cannot set network option: %s", opt);
+
+    default:
+      return 0;
     }
-  return 1;
+
+  if (ret < 0)
+    report_file_error ("Cannot set network option",
+		       Fcons (opt, Fcons (val, Qnil)));
+  return (1 << sopt->optbit);
 }
 
-DEFUN ("set-network-process-options",
-       Fset_network_process_options, Sset_network_process_options,
-       1, MANY, 0,
-       doc: /* Set one or more options for network process PROCESS.
-Each option is either a string "OPT=VALUE" or a cons (OPT . VALUE).
-A boolean value is false if it either zero or nil, true otherwise.
 
-The following options are known.  Consult the relevant system manual
-pages for more information.
-
-bindtodevice=NAME -- bind to interface NAME, or remove binding if nil.
-broadcast=BOOL -- Allow send and receive of datagram broadcasts.
-dontroute=BOOL -- Only send to directly connected hosts.
-keepalive=BOOL -- Send keep-alive messages on network stream.
-linger=BOOL or TIMEOUT -- Send queued messages before closing.
-oobinline=BOOL -- Place out-of-band data in receive data stream.
-priority=INT -- Set protocol defined priority for sent packets.
-reuseaddr=BOOL -- Allow reusing a recently used address.
-
-usage: (set-network-process-options PROCESS &rest OPTIONS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+DEFUN ("set-network-process-option",
+       Fset_network_process_option, Sset_network_process_option,
+       3, 4, 0,
+       doc: /* For network process PROCESS set option OPTION to value VALUE.
+See `make-network-process' for a list of options and values.
+If optional fourth arg NO-ERROR is non-nil, don't signal an error if
+OPTION is not a supported option, return nil instead; otherwise return t.  */)
+     (process, option, value, no_error)
+     Lisp_Object process, option, value;
+     Lisp_Object no_error;
 {
-  Lisp_Object process;
-  Lisp_Object opts;
+  int s;
+  struct Lisp_Process *p;
 
-  process = args[0];
   CHECK_PROCESS (process);
-  if (nargs > 1 && XINT (XPROCESS (process)->infd) >= 0)
+  p = XPROCESS (process);
+  if (!NETCONN1_P (p))
+    error ("Process is not a network process");
+
+  s = XINT (p->infd);
+  if (s < 0)
+    error ("Process is not running");
+
+  if (set_socket_option (s, option, value))
     {
-      opts = Flist (nargs, args);
-      set_socket_options (XINT (XPROCESS (process)->infd), opts, 0);
+      p->childp = Fplist_put (p->childp, option, value);
+      return Qt;
     }
-  return process;
+
+  if (NILP (no_error))
+    error ("Unknown or unsupported option");
+
+  return Qnil;
 }
+
 
 /* A version of request_sigio suitable for a record_unwind_protect.  */
 
@@ -2600,10 +2559,10 @@ address data with one element per address data byte.  Do not rely on
 this format in portable code, as it may depend on implementation
 defined constants, data sizes, and data structure alignment.
 
-:coding CODING -- CODING is coding system for this process.
-
-:options OPTIONS -- Set the specified options for the network process.
-See `set-network-process-options' for details.
+:coding CODING -- If CODING is a symbol, it specifies the coding
+system used for both reading and writing for this process.  If CODING
+is a cons (DECODING . ENCODING), DECODING is used for reading, and
+ENCODING is used for writing.
 
 :nowait BOOL -- If BOOL is non-nil for a stream type client process,
 return without waiting for the connection to complete; instead, the
@@ -2637,13 +2596,33 @@ and MESSAGE is a string.
 
 :plist PLIST -- Install PLIST as the new process' initial plist.
 
-:server BOOL -- if BOOL is non-nil, create a server process for the
+:server QLEN -- if QLEN is non-nil, create a server process for the
 specified FAMILY, SERVICE, and connection type (stream or datagram).
-Default is a client process.
+If QLEN is an integer, it is used as the max. length of the server's
+pending connection queue (also known as the backlog); the default
+queue length is 5.  Default is to create a client process.
 
-A server process will listen for and accept connections from
-clients.  When a client connection is accepted, a new network process
-is created for the connection with the following parameters:
+The following network options can be specified for this connection:
+
+:broadcast BOOL    -- Allow send and receive of datagram broadcasts.
+:dontroute BOOL    -- Only send to directly connected hosts.
+:keepalive BOOL    -- Send keep-alive messages on network stream.
+:linger BOOL or TIMEOUT -- Send queued messages before closing.
+:oobinline BOOL    -- Place out-of-band data in receive data stream.
+:priority INT      -- Set protocol defined priority for sent packets.
+:reuseaddr BOOL    -- Allow reusing a recently used local address
+                      (this is allowed by default for a server process).
+:bindtodevice NAME -- bind to interface NAME.  Using this may require
+                      special privileges on some systems.
+
+Consult the relevant system programmer's manual pages for more
+information on using these options.
+
+
+A server process will listen for and accept connections from clients.
+When a client connection is accepted, a new network process is created
+for the connection with the following parameters:
+
 - The client's process name is constructed by concatenating the server
 process' NAME and a client identification string.
 - If the FILTER argument is non-nil, the client process will not get a
@@ -2704,7 +2683,7 @@ usage: (make-network-process &rest ARGS)  */)
   Lisp_Object name, buffer, host, service, address;
   Lisp_Object filter, sentinel;
   int is_non_blocking_client = 0;
-  int is_server = 0;
+  int is_server = 0, backlog = 5;
   int socktype;
   int family = -1;
 
@@ -2741,6 +2720,8 @@ usage: (make-network-process &rest ARGS)  */)
       error ("Network servers not supported");
 #else
       is_server = 1;
+      if (INTEGERP (tem))
+	backlog = XINT (tem);
 #endif
     }
 
@@ -2993,6 +2974,8 @@ usage: (make-network-process &rest ARGS)  */)
 
   for (lres = res; lres; lres = lres->ai_next)
     {
+      int optn, optbits;
+
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
 	{
@@ -3026,17 +3009,27 @@ usage: (make-network-process &rest ARGS)  */)
       /* Make us close S if quit.  */
       record_unwind_protect (close_file_unwind, make_number (s));
 
+      /* Parse network options in the arg list.
+	 We simply ignore anything which isn't a known option (including other keywords).
+         An error is signalled if setting a known option fails.  */
+      for (optn = optbits = 0; optn < nargs-1; optn += 2)
+	optbits |= set_socket_option (s, args[optn], args[optn+1]);
+
       if (is_server)
 	{
 	  /* Configure as a server socket.  */
+
+	  /* SO_REUSEADDR = 1 is default for server sockets; must specify
+	     explicit :reuseaddr key to override this.  */
 #ifdef HAVE_LOCAL_SOCKETS
 	  if (family != AF_LOCAL)
 #endif
-	    {
-	      int optval = 1;
-	      if (setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval))
-		report_file_error ("Cannot set reuse option on server socket.", Qnil);
-	    }
+	    if (!(optbits & (1 << OPIX_REUSEADDR)))
+	      {
+		int optval = 1;
+		if (setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval))
+		  report_file_error ("Cannot set reuse option on server socket.", Qnil);
+	      }
 
 	  if (bind (s, lres->ai_addr, lres->ai_addrlen))
 	    report_file_error ("Cannot bind server socket", Qnil);
@@ -3055,7 +3048,7 @@ usage: (make-network-process &rest ARGS)  */)
 	    }
 #endif
 
-	  if (socktype == SOCK_STREAM && listen (s, 5))
+	  if (socktype == SOCK_STREAM && listen (s, backlog))
 	    report_file_error ("Cannot listen on server socket", Qnil);
 
 	  break;
@@ -3191,10 +3184,6 @@ usage: (make-network-process &rest ARGS)  */)
 	report_file_error ("make client process failed", contact);
     }
 
-  tem = Fplist_get (contact, QCoptions);
-  if (!NILP (tem))
-    set_socket_options (s, tem, 1);
-
 #endif /* not TERM */
 
   inch = s;
@@ -3276,7 +3265,11 @@ usage: (make-network-process &rest ARGS)  */)
     Lisp_Object args[5], val;
 
     if (!NILP (tem))
-      val = XCAR (XCDR (tem));
+      {
+	val = XCAR (XCDR (tem));
+	if (CONSP (val))
+	  val = XCAR (val);
+      }
     else if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
     else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
@@ -3308,7 +3301,11 @@ usage: (make-network-process &rest ARGS)  */)
     p->decode_coding_system = val;
 
     if (!NILP (tem))
-      val = XCAR (XCDR (tem));
+      {
+	val = XCAR (XCDR (tem));
+	if (CONSP (val))
+	  val = XCDR (val);
+      }
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
     else if (NILP (current_buffer->enable_multibyte_characters))
@@ -3351,6 +3348,234 @@ usage: (make-network-process &rest ARGS)  */)
   UNGCPRO;
   return proc;
 }
+#endif	/* HAVE_SOCKETS */
+
+
+#if defined(HAVE_SOCKETS) && defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+
+#ifdef SIOCGIFCONF
+DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
+       doc: /* Return an alist of all network interfaces and their network address.
+Each element is a cons, the car of which is a string containing the
+interface name, and the cdr is the network address in internal
+format; see the description of ADDRESS in `make-network-process'.  */)
+     ()
+{
+  struct ifconf ifconf;
+  struct ifreq *ifreqs = NULL;
+  int ifaces = 0;
+  int buf_size, s;
+  Lisp_Object res;
+
+  s = socket (AF_INET, SOCK_STREAM, 0);
+  if (s < 0)
+    return Qnil;
+
+ again:
+  ifaces += 25;
+  buf_size = ifaces * sizeof(ifreqs[0]);
+  ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
+  if (!ifreqs)
+    {
+      close (s);
+      return Qnil;
+    }
+
+  ifconf.ifc_len = buf_size;
+  ifconf.ifc_req = ifreqs;
+  if (ioctl (s, SIOCGIFCONF, &ifconf))
+    {
+      close (s);
+      return Qnil;
+    }
+
+  if (ifconf.ifc_len == buf_size)
+    goto again;
+
+  close (s);
+  ifaces = ifconf.ifc_len / sizeof (ifreqs[0]);
+
+  res = Qnil;
+  while (--ifaces >= 0)
+    {
+      struct ifreq *ifq = &ifreqs[ifaces];
+      char namebuf[sizeof (ifq->ifr_name) + 1];
+      if (ifq->ifr_addr.sa_family != AF_INET)
+	continue;
+      bcopy (ifq->ifr_name, namebuf, sizeof (ifq->ifr_name));
+      namebuf[sizeof (ifq->ifr_name)] = 0;
+      res = Fcons (Fcons (build_string (namebuf),
+			  conv_sockaddr_to_lisp (&ifq->ifr_addr,
+						 sizeof (struct sockaddr))),
+		   res);
+    }
+
+  return res;
+}
+#endif /* SIOCGIFCONF */
+
+#if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
+
+struct ifflag_def {
+  int flag_bit;
+  char *flag_sym;
+};
+
+static struct ifflag_def ifflag_table[] = {
+#ifdef IFF_UP
+  { IFF_UP,		"up" },
+#endif
+#ifdef IFF_BROADCAST
+  { IFF_BROADCAST,	"broadcast" },
+#endif
+#ifdef IFF_DEBUG
+  { IFF_DEBUG,		"debug" },
+#endif
+#ifdef IFF_LOOPBACK
+  { IFF_LOOPBACK,	"loopback" },
+#endif
+#ifdef IFF_POINTOPOINT
+  { IFF_POINTOPOINT,	"pointopoint" },
+#endif
+#ifdef IFF_RUNNING
+  { IFF_RUNNING,	"running" },
+#endif
+#ifdef IFF_NOARP
+  { IFF_NOARP,		"noarp" },
+#endif
+#ifdef IFF_PROMISC
+  { IFF_PROMISC,	"promisc" },
+#endif
+#ifdef IFF_NOTRAILERS
+  { IFF_NOTRAILERS,	"notrailers" },
+#endif
+#ifdef IFF_ALLMULTI
+  { IFF_ALLMULTI,	"allmulti" },
+#endif
+#ifdef IFF_MASTER
+  { IFF_MASTER,		"master" },
+#endif
+#ifdef IFF_SLAVE
+  { IFF_SLAVE,		"slave" },
+#endif
+#ifdef IFF_MULTICAST
+  { IFF_MULTICAST,	"multicast" },
+#endif
+#ifdef IFF_PORTSEL
+  { IFF_PORTSEL,	"portsel" },
+#endif
+#ifdef IFF_AUTOMEDIA
+  { IFF_AUTOMEDIA,	"automedia" },
+#endif
+#ifdef IFF_DYNAMIC
+  { IFF_DYNAMIC,	"dynamic" },
+#endif
+  { 0, 0 }
+};
+
+DEFUN ("network-interface-info", Fnetwork_interface_info, Snetwork_interface_info, 1, 1, 0,
+       doc: /* Return information about network interface named IFNAME.
+The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
+where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
+NETMASK is the layer 3 network mask, HWADDR is the layer 2 addres, and
+FLAGS is the current flags of the interface.  */)
+     (ifname)
+     Lisp_Object ifname;
+{
+  struct ifreq rq;
+  Lisp_Object res = Qnil;
+  Lisp_Object elt;
+  int s;
+  int any = 0;
+
+  CHECK_STRING (ifname);
+
+  bzero (rq.ifr_name, sizeof rq.ifr_name);
+  strncpy (rq.ifr_name, SDATA (ifname), sizeof (rq.ifr_name));
+
+  s = socket (AF_INET, SOCK_STREAM, 0);
+  if (s < 0)
+    return Qnil;
+
+  elt = Qnil;
+#if defined(SIOCGIFFLAGS) && defined(HAVE_STRUCT_IFREQ_IFR_FLAGS)
+  if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
+    {
+      int flags = rq.ifr_flags;
+      struct ifflag_def *fp;
+      int fnum;
+
+      any++;
+      for (fp = ifflag_table; flags != 0 && fp; fp++)
+	{
+	  if (flags & fp->flag_bit)
+	    {
+	      elt = Fcons (intern (fp->flag_sym), elt);
+	      flags -= fp->flag_bit;
+	    }
+	}
+      for (fnum = 0; flags && fnum < 32; fnum++)
+	{
+	  if (flags & (1 << fnum))
+	    {
+	      elt = Fcons (make_number (fnum), elt);
+	    }
+	}
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#if defined(SIOCGIFHWADDR) && defined(HAVE_STRUCT_IFREQ_IFR_HWADDR)
+  if (ioctl (s, SIOCGIFHWADDR, &rq) == 0)
+    {
+      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
+      register struct Lisp_Vector *p = XVECTOR (hwaddr);
+      int n;
+
+      any++;
+      for (n = 0; n < 6; n++)
+	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
+      elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#if defined(SIOCGIFNETMASK) && defined(ifr_netmask)
+  if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
+    {
+      any++;
+      elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#if defined(SIOCGIFBRDADDR) && defined(HAVE_STRUCT_IFREQ_IFR_BROADADDR)
+  if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
+    {
+      any++;
+      elt = conv_sockaddr_to_lisp (&rq.ifr_broadaddr, sizeof (rq.ifr_broadaddr));
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#if defined(SIOCGIFADDR) && defined(HAVE_STRUCT_IFREQ_IFR_ADDR)
+  if (ioctl (s, SIOCGIFADDR, &rq) == 0)
+    {
+      any++;
+      elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
+    }
+#endif
+  res = Fcons (elt, res);
+
+  close (s);
+
+  return any ? res : Qnil;
+}
+#endif
 #endif	/* HAVE_SOCKETS */
 
 void
@@ -3492,12 +3717,7 @@ Return non-nil iff we received any output before the timeout expired.  */)
 	seconds = -1;
     }
   else
-    {
-      if (NILP (process))
-	seconds = -1;
-      else
-	seconds = 0;
-    }
+    seconds = NILP (process) ? -1 : 0;
 
   if (NILP (process))
     XSETFASTINT (process, 0);
@@ -4165,7 +4385,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 but select says there is input.  */
 
       if (XINT (read_kbd) && interrupt_input
-	  && keyboard_bit_set (&Available))
+	  && keyboard_bit_set (&Available) && ! noninteractive)
 	kill (getpid (), SIGIO);
 #endif
 
@@ -4402,7 +4622,7 @@ read_process_output (proc, channel)
      Lisp_Object proc;
      register int channel;
 {
-  register int nchars, nbytes;
+  register int nbytes;
   char *chars;
   register Lisp_Object outstream;
   register struct buffer *old = current_buffer;
@@ -4463,18 +4683,18 @@ read_process_output (proc, channel)
   if (DATAGRAM_CHAN_P (channel))
     {
       int len = datagram_address[channel].len;
-      nbytes = recvfrom (channel, chars + carryover, readmax,
+      nbytes = recvfrom (channel, chars + carryover, readmax - carryover,
 			 0, datagram_address[channel].sa, &len);
     }
   else
 #endif
   if (proc_buffered_char[channel] < 0)
-    nbytes = emacs_read (channel, chars + carryover, readmax);
+    nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
   else
     {
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
+      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1 - carryover);
       if (nbytes < 0)
 	nbytes = 1;
       else
@@ -4573,9 +4793,7 @@ read_process_output (proc, channel)
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));
-      nbytes = SBYTES (text);
-      nchars = SCHARS (text);
-      if (nbytes > 0)
+      if (SBYTES (text) > 0)
 	internal_condition_case_1 (read_process_output_call,
 				   Fcons (outstream,
 					  Fcons (proc, Fcons (text, Qnil))),
@@ -4609,7 +4827,7 @@ read_process_output (proc, channel)
       start_vms_process_read (vs);
 #endif
       unbind_to (count, Qnil);
-      return nchars;
+      return nbytes;
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
@@ -4680,11 +4898,10 @@ read_process_output (proc, channel)
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));
-      nbytes = SBYTES (text);
-      nchars = SCHARS (text);
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
-      insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
+      insert_from_string_before_markers (text, 0, 0,
+					 SCHARS (text), SBYTES (text), 0);
 
       /* Make sure the process marker's position is valid when the
 	 process buffer is changed in the signal_after_change above.
@@ -4837,7 +5054,6 @@ send_process (proc, buf, len, object)
     {
       int require = encoding_buffer_size (coding, len);
       int from_byte = -1, from = -1, to = -1;
-      unsigned char *temp_buf = NULL;
 
       if (BUFFERP (object))
 	{
@@ -4873,8 +5089,6 @@ send_process (proc, buf, len, object)
 		     len, SBYTES (object));
       len = coding->produced;
       buf = SDATA (object);
-      if (temp_buf)
-	xfree (temp_buf);
     }
 
 #ifdef VMS
@@ -6306,6 +6520,8 @@ init_process ()
 #ifdef HAVE_SOCKETS
  {
    Lisp_Object subfeatures = Qnil;
+   struct socket_options *sopt;
+
 #define ADD_SUBFEATURE(key, val) \
   subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
 
@@ -6324,30 +6540,10 @@ init_process ()
 #if !defined(TERM) && (defined(O_NONBLOCK) || defined(O_NDELAY))
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
-#ifdef SO_BINDTODEVICE
-   ADD_SUBFEATURE (QCoptions, intern ("bindtodevice"));
-#endif
-#ifdef SO_BROADCAST
-   ADD_SUBFEATURE (QCoptions, intern ("broadcast"));
-#endif
-#ifdef SO_DONTROUTE
-   ADD_SUBFEATURE (QCoptions, intern ("dontroute"));
-#endif
-#ifdef SO_KEEPALIVE
-   ADD_SUBFEATURE (QCoptions, intern ("keepalive"));
-#endif
-#ifdef SO_LINGER
-   ADD_SUBFEATURE (QCoptions, intern ("linger"));
-#endif
-#ifdef SO_OOBINLINE
-   ADD_SUBFEATURE (QCoptions, intern ("oobinline"));
-#endif
-#ifdef SO_PRIORITY
-   ADD_SUBFEATURE (QCoptions, intern ("priority"));
-#endif
-#ifdef SO_REUSEADDR
-   ADD_SUBFEATURE (QCoptions, intern ("reuseaddr"));
-#endif
+
+   for (sopt = socket_options; sopt->name; sopt++)
+     subfeatures = Fcons (intern (sopt->name), subfeatures);
+
    Fprovide (intern ("make-network-process"), subfeatures);
  }
 #endif /* HAVE_SOCKETS */
@@ -6469,10 +6665,18 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
 #ifdef HAVE_SOCKETS
-  defsubr (&Sset_network_process_options);
+  defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
 #endif /* HAVE_SOCKETS */
+#if defined(HAVE_SOCKETS) && defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#ifdef SIOCGIFCONF
+  defsubr (&Snetwork_interface_list);
+#endif
+#if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
+  defsubr (&Snetwork_interface_info);
+#endif
+#endif /* HAVE_SOCKETS ... */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);
@@ -6804,3 +7008,6 @@ syms_of_process ()
 
 
 #endif /* not subprocesses */
+
+/* arch-tag: 3706c011-7b9a-4117-bd4f-59e7f701a4c4
+   (do not change this comment) */

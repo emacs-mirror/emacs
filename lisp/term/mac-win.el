@@ -1,6 +1,6 @@
 ;;; mac-win.el --- support for "Macintosh windows"
 
-;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 
@@ -172,13 +172,6 @@ Switch to a buffer editing the last file dropped."
 	  '(lambda ()
 	     (defvar mac-ready-for-drag-n-drop t)))
 
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
-
 ; Define constant values to be set to mac-keyboard-text-encoding
 (defconst kTextEncodingMacRoman 0)
 (defconst kTextEncodingISOLatin1 513 "0x201")
@@ -232,11 +225,10 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 (if (string= default-directory "/")
     (cd "~"))
 
-(unless (eq system-type 'darwin)
-  ;; Tell Emacs to use pipes instead of pty's for processes because the
-  ;; latter sometimes lose characters.  Pty support is compiled in since
-  ;; ange-ftp will not work without it.
-  (setq process-connection-type nil))
+;; Tell Emacs to use pipes instead of pty's for processes because the
+;; latter sometimes lose characters.  Pty support is compiled in since
+;; ange-ftp will not work without it.
+(setq process-connection-type nil)
 
 ;; Assume that fonts are always scalable on the Mac.  This sometimes
 ;; results in characters with jagged edges.  However, without it,
@@ -249,10 +241,7 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 			   global-map)
 
 ;; Support mouse-wheel scrolling
-(autoload 'mwheel-scroll "mwheel")
-(global-set-key [mouse-wheel] 'mwheel-scroll)
-(global-set-key [C-mouse-wheel] 'mwheel-scroll)
-(global-set-key [S-mouse-wheel] 'mwheel-scroll)
+(mouse-wheel-mode 1)
 
 ;; (prefer-coding-system 'mac-roman)
 
@@ -1028,4 +1017,5 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
   "The list of X colors from the `rgb.txt' file.
 XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
+;;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

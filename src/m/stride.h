@@ -115,3 +115,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define this macro if system defines a type `union wait'.  */
 
 #define HAVE_UNION_WAIT
+
+/* arch-tag: 65c635ed-5bc7-4ace-ab20-f3442429c8ba
+   (do not change this comment) */

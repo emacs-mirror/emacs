@@ -721,3 +721,6 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
   UNBLOCK_INPUT;
   return ret;
 }
+
+/* arch-tag: 0bcb39b7-d085-4b85-9070-6750e8c03047
+   (do not change this comment) */

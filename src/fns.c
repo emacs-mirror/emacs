@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -142,6 +142,8 @@ To get the number of bytes, use `string-bytes'. */)
     XSETFASTINT (val, SCHARS (sequence));
   else if (VECTORP (sequence))
     XSETFASTINT (val, XVECTOR (sequence)->size);
+  else if (SUB_CHAR_TABLE_P (sequence))
+    XSETFASTINT (val, SUB_CHAR_TABLE_ORDINARY_SLOTS);
   else if (CHAR_TABLE_P (sequence))
     XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
@@ -2323,6 +2325,20 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   return array;
 }
+
+DEFUN ("clear-string", Fclear_string, Sclear_string,
+       1, 1, 0,
+       doc: /* Clear the contents of STRING.
+This makes STRING unibyte and may change its length.  */)
+     (string)
+     Lisp_Object string;
+{
+  int len = SBYTES (string);
+  bzero (SDATA (string), len);
+  STRING_SET_CHARS (string, len);
+  STRING_SET_UNIBYTE (string);
+  return Qnil;
+}
 
 DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
@@ -2508,9 +2524,9 @@ a coding system, or a character code.  */)
 
 DEFUN ("set-char-table-default", Fset_char_table_default,
        Sset_char_table_default, 3, 3, 0,
-       doc: /* Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.
+       doc: /* Set the default value in CHAR-TABLE for generic character CH to VALUE.
 The generic character specifies the group of characters.
-See also the documentation of make-char.  */)
+See also the documentation of `make-char'.  */)
      (char_table, ch, value)
      Lisp_Object char_table, ch, value;
 {
@@ -2632,9 +2648,9 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
    ARG is passed to C_FUNCTION when that is called.  */
 
 void
-map_char_table (c_function, function, subtable, arg, depth, indices)
+map_char_table (c_function, function, table, subtable, arg, depth, indices)
      void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, subtable, arg, *indices;
+     Lisp_Object function, table, subtable, arg, *indices;
      int depth;
 {
   int i, to;
@@ -2644,7 +2660,11 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
       /* At first, handle ASCII and 8-bit European characters.  */
       for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
 	{
-	  Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
+	  Lisp_Object elt= XCHAR_TABLE (subtable)->contents[i];
+	  if (NILP (elt))
+	    elt = XCHAR_TABLE (subtable)->defalt;
+	  if (NILP (elt))
+	    elt = Faref (subtable, make_number (i));
 	  if (c_function)
 	    (*c_function) (arg, make_number (i), elt);
 	  else
@@ -2685,17 +2705,21 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	{
 	  if (depth >= 3)
 	    error ("Too deep char table");
-	  map_char_table (c_function, function, elt, arg, depth + 1, indices);
+	  map_char_table (c_function, function, table, elt, arg, depth + 1, indices);
 	}
       else
 	{
 	  int c1, c2, c;
 
-	  if (NILP (elt))
-	    elt = XCHAR_TABLE (subtable)->defalt;
 	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
 	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
 	  c = MAKE_CHAR (charset, c1, c2);
+
+	  if (NILP (elt))
+	    elt = XCHAR_TABLE (subtable)->defalt;
+	  if (NILP  (elt))
+	    elt = Faref (table, make_number (c));
+
 	  if (c_function)
 	    (*c_function) (arg, make_number (c), elt);
 	  else
@@ -2729,7 +2753,7 @@ The key is always a possible IDX argument to `aref'.  */)
      be passed to map_char_table because it returns a Lisp_Object rather
      than returning nothing.
      Casting leads to crashes on some architectures.  -stef  */
-  map_char_table (void_call2, Qnil, char_table, function, 0, indices);
+  map_char_table (void_call2, Qnil, char_table, char_table, function, 0, indices);
   return Qnil;
 }
 
@@ -3211,7 +3235,12 @@ When USE-FLOATS is non-nil, floats will be used instead of integers.
 These floats are not multiplied by 100.
 
 If the 5-minute or 15-minute load averages are not available, return a
-shortened list, containing only those averages which are available.  */)
+shortened list, containing only those averages which are available.
+
+An error is thrown if the load average can't be obtained.  In some
+cases making it work would require Emacs being installed setuid or
+setgid so that it can read kernel information, and that usually isn't
+advisable.  */)
      (use_floats)
      Lisp_Object use_floats;
 {
@@ -3300,8 +3329,8 @@ DEFUN ("require", Frequire, Srequire, 1, 3, 0,
 If FEATURE is not a member of the list `features', then the feature
 is not loaded; so load the file FILENAME.
 If FILENAME is omitted, the printname of FEATURE is used as the file name,
-and `load' will try to load this name appended with the suffix `.elc',
-`.el' or the unmodified name, in that order.
+and `load' will try to load this name appended with the suffix `.elc' or
+`.el', in that order.  The name without appended suffix will not be used.
 If the optional third argument NOERROR is non-nil,
 then return nil if the file is not found instead of signaling an error.
 Normally the return value is FEATURE.
@@ -3464,19 +3493,21 @@ usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
 #include <langinfo.h>
 #endif
 
-DEFUN ("langinfo", Flanginfo, Slanginfo, 1, 1, 0,
-       doc: /* Access locale data ITEM, if available.
+DEFUN ("locale-info", Flocale_info, Slocale_info, 1, 1, 0,
+       doc: /* Access locale data ITEM for the current C locale, if available.
+ITEM should be one of the following:
 
-ITEM may be one of the following:
 `codeset', returning the character set as a string (locale item CODESET);
+
 `days', returning a 7-element vector of day names (locale items DAY_n);
+
 `months', returning a 12-element vector of month names (locale items MON_n);
-`paper', returning a list (WIDTH, HEIGHT) for the default paper size,
-  where the width and height are in mm (locale items PAPER_WIDTH,
-  PAPER_HEIGHT).
+
+`paper', returning a list (WIDTH HEIGHT) for the default paper size,
+  both measured in milimeters (locale items PAPER_WIDTH, PAPER_HEIGHT).
 
 If the system can't provide such information through a call to
-nl_langinfo(3), return nil.
+`nl_langinfo', or if ITEM isn't from the list above, return nil.
 
 See also Info node `(libc)Locales'.
 
@@ -3541,7 +3572,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
     }
 #endif	/* PAPER_WIDTH */
 #endif	/* HAVE_LANGINFO_CODESET*/
-    return Qnil;
+  return Qnil;
 }
 
 /* base64 encode/decode functions (RFC 2045).
@@ -4729,13 +4760,13 @@ sweep_weak_table (h, remove_entries_p)
 		  /* Make sure key and value survive.  */
 		  if (!key_known_to_survive_p)
 		    {
-		      mark_object (&HASH_KEY (h, i));
+		      mark_object (HASH_KEY (h, i));
 		      marked = 1;
 		    }
 
 		  if (!value_known_to_survive_p)
 		    {
-		      mark_object (&HASH_VALUE (h, i));
+		      mark_object (HASH_VALUE (h, i));
 		      marked = 1;
 		    }
 		}
@@ -5642,6 +5673,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Slax_plist_put);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
+  defsubr (&Sclear_string);
   defsubr (&Schar_table_subtype);
   defsubr (&Schar_table_parent);
   defsubr (&Sset_char_table_parent);
@@ -5671,7 +5703,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
-  defsubr (&Slanginfo);
+  defsubr (&Slocale_info);
 }
 
 
@@ -5680,3 +5712,6 @@ init_fns ()
 {
   Vweak_hash_tables = Qnil;
 }
+
+/* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31
+   (do not change this comment) */

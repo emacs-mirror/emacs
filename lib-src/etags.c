@@ -3116,7 +3116,7 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
 	      fvdef = vignore;
 	      return FALSE;
 	    }
-	  if (strneq (str+len-10, "::operator", 10))
+	  if (len >= 10 && strneq (str+len-10, "::operator", 10))
 	    {
 	      if (*c_extp & C_AUTO) /* automatic detection of C++ */
 		*c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
@@ -4192,7 +4192,7 @@ Fortran_functions (inf)
 /*
  * Ada parsing
  * Original code by
- * Philippe Waroquiers <philippe.waroquiers@eurocontrol.int> (1998)
+ * Philippe Waroquiers (1998)
  */
 
 static void Ada_getit __P((FILE *, char *));
@@ -6484,14 +6484,14 @@ pfatal (s1)
 static void
 suggest_asking_for_help ()
 {
-  fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	   progname,
+
 #ifdef LONG_OPTIONS
-	   "--help"
+fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
+	 progname, "--help");
 #else
-	   "-h"
+fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
+	 progname, "-h");
 #endif
-	   );
   exit (BAD);
 }
 
@@ -6785,3 +6785,6 @@ xrealloc (ptr, size)
  * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "regexp")
  * End:
  */
+
+/* arch-tag: 8a9b748d-390c-4922-99db-2eeefa921051
+   (do not change this comment) */

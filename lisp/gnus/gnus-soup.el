@@ -573,4 +573,5 @@ Return whether the unpacking was successful."
 
 (provide 'gnus-soup)
 
+;;; arch-tag: eddfa69d-13e8-4aea-84ef-62a526ef185c
 ;;; gnus-soup.el ends here

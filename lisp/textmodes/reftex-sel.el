@@ -1,8 +1,8 @@
 ;;; reftex-sel.el --- the selection modes for RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.18
+;; Version: 4.21
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@ started with the command \\[reftex-reference].")
 (defun reftex-select-label-mode ()
   "Major mode for selecting a label in a LaTeX document.
 This buffer was created with RefTeX.
-It only has a meaningful keymap when you are in the middle of a
+It only has a meaningful keymap when you are in the middle of a 
 selection process.
 To select a label, move the cursor to it and press RET.
 Press `?' for a summary of important key bindings.
@@ -54,7 +54,7 @@ During a selection process, these are the local bindings.
     (make-local-hook 'pre-command-hook)
     (make-local-hook 'post-command-hook))
   (setq major-mode 'reftex-select-label-mode
-	mode-name "LSelect")
+        mode-name "LSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
   (when (syntax-table-p reftex-latex-syntax-table)
     (set-syntax-table reftex-latex-syntax-table))
@@ -69,7 +69,7 @@ started with the command \\[reftex-citation].")
 (defun reftex-select-bib-mode ()
   "Major mode for selecting a citation key in a LaTeX document.
 This buffer was created with RefTeX.
-It only has a meaningful keymap when you are in the middle of a
+It only has a meaningful keymap when you are in the middle of a 
 selection process.
 In order to select a citation, move the cursor to it and press RET.
 Press `?' for a summary of important key bindings.
@@ -84,7 +84,7 @@ During a selection process, these are the local bindings.
     (make-local-hook 'pre-command-hook)
     (make-local-hook 'post-command-hook))
   (setq major-mode 'reftex-select-bib-mode
-	mode-name "BSelect")
+        mode-name "BSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
   ;; We do not set a local map - reftex-select-item does this.
   (run-hooks 'reftex-select-bib-mode-hook))
@@ -99,18 +99,18 @@ During a selection process, these are the local bindings.
 ;;;       (set-buffer buf)
 ;;;       (reftex-access-scan-info)
 ;;;       (let* ((rest (memq here-am-I (symbol-value reftex-docstruct-symbol)))
-;;; 	     entry)
-;;; 	(while (setq entry (pop rest))
-;;; 	  (if (or (and typekey
-;;; 		       (stringp (car entry))
-;;; 		       (or (equal typekey " ")
-;;; 			   (equal typekey (nth 1 entry))))
-;;; 		  (and toc (eq (car entry) 'toc))
-;;; 		  (and index (eq (car entry) 'index))
-;;; 		  (and file
-;;; 		       (memq (car entry) '(bof eof file-error))))
-;;; 	      (throw 'exit entry)))
-;;; 	nil))))
+;;;          entry)
+;;;     (while (setq entry (pop rest))
+;;;       (if (or (and typekey
+;;;                    (stringp (car entry))
+;;;                    (or (equal typekey " ")
+;;;                        (equal typekey (nth 1 entry))))
+;;;               (and toc (eq (car entry) 'toc))
+;;;               (and index (eq (car entry) 'index))
+;;;               (and file
+;;;                    (memq (car entry) '(bof eof file-error))))
+;;;           (throw 'exit entry)))
+;;;     nil))))
 
 (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
   ;; Find the correct offset data, like insert-docstruct would, but faster.
@@ -122,24 +122,24 @@ During a selection process, these are the local bindings.
       (set-buffer buf)
       (reftex-access-scan-info)
       (let* ((rest (symbol-value reftex-docstruct-symbol))
-	     lastentry entry)
-	(while (setq entry (pop rest))
-	  (if (or (and typekey
-		       (stringp (car entry))
-		       (or (equal typekey " ")
-			   (equal typekey (nth 1 entry))))
-		  (and toc (eq (car entry) 'toc))
-		  (and index (eq (car entry) 'index))
-		  (and file
-		       (memq (car entry) '(bof eof file-error))))
-	      (setq lastentry entry))
-	  (if (eq entry here-am-I)
-	      (throw 'exit (or lastentry entry))))
-	nil))))
+             lastentry entry)
+        (while (setq entry (pop rest))
+          (if (or (and typekey
+                       (stringp (car entry))
+                       (or (equal typekey " ")
+                           (equal typekey (nth 1 entry))))
+                  (and toc (eq (car entry) 'toc))
+                  (and index (eq (car entry) 'index))
+                  (and file
+                       (memq (car entry) '(bof eof file-error))))
+              (setq lastentry entry))
+          (if (eq entry here-am-I)
+              (throw 'exit (or lastentry entry))))
+        nil))))
 
 (defun reftex-insert-docstruct
   (buf toc labels index-entries files context counter show-commented
-	    here-I-am xr-prefix toc-buffer)
+            here-I-am xr-prefix toc-buffer)
   ;; Insert an excerpt of the docstruct list.
   ;; Return the data property of the entry corresponding to HERE-I-AM.
   ;; BUF is the buffer which has the correct docstruct-symbol.
@@ -163,18 +163,18 @@ During a selection process, these are the local bindings.
          (context-indent
           (concat ".   "
                   (if toc (make-string (* 7 reftex-level-indent) ?\ ) "")))
-	 (mouse-face
-	  (if (memq reftex-highlight-selection '(mouse both))
-	      reftex-mouse-selected-face
-	    nil))
-	 (label-face (reftex-verified-face reftex-label-face
-					   'font-lock-constant-face
-					   'font-lock-reference-face))
-	 (index-face (reftex-verified-face reftex-index-face
-					   'font-lock-constant-face
-					   'font-lock-reference-face))
+         (mouse-face
+          (if (memq reftex-highlight-selection '(mouse both))
+              reftex-mouse-selected-face
+            nil))
+         (label-face (reftex-verified-face reftex-label-face
+                                           'font-lock-constant-face
+                                           'font-lock-reference-face))
+         (index-face (reftex-verified-face reftex-index-face
+                                           'font-lock-constant-face
+                                           'font-lock-reference-face))
          all cell text label typekey note comment master-dir-re
-	 prev-inserted offset from to index-tag docstruct-symbol)
+         prev-inserted offset from to index-tag docstruct-symbol)
 
     ;; Pop to buffer buf to get the correct buffer-local variables
     (save-excursion
@@ -184,7 +184,7 @@ During a selection process, these are the local bindings.
       (reftex-access-scan-info)
 
       (setq docstruct-symbol reftex-docstruct-symbol
-	    all (symbol-value reftex-docstruct-symbol)
+            all (symbol-value reftex-docstruct-symbol)
             reftex-active-toc nil
             master-dir-re
             (concat "\\`" (regexp-quote
@@ -192,7 +192,7 @@ During a selection process, these are the local bindings.
 
     (set (make-local-variable 'reftex-docstruct-symbol) docstruct-symbol)
     (set (make-local-variable 'reftex-prefix)
-	 (cdr (assoc labels reftex-typekey-to-prefix-alist)))
+         (cdr (assoc labels reftex-typekey-to-prefix-alist)))
     (if (equal reftex-prefix " ") (setq reftex-prefix nil))
 
     ;; Walk the docstruct and insert the appropriate stuff
@@ -204,14 +204,14 @@ During a selection process, these are the local bindings.
       (cond
 
        ((memq (car cell) '(bib thebib label-numbers appendix
-			       master-dir bibview-cache is-multi xr xr-doc)))
+                               master-dir bibview-cache is-multi xr xr-doc)))
        ;; These are currently ignored
 
        ((memq (car cell) '(bof eof file-error))
         ;; Beginning or end of a file
         (when files
-	  (setq prev-inserted cell)
-;	  (if (eq offset 'attention) (setq offset cell))
+          (setq prev-inserted cell)
+;         (if (eq offset 'attention) (setq offset cell))
           (insert
            " File " (if (string-match master-dir-re (nth 1 cell))
                    (substring (nth 1 cell) (match-end 0))
@@ -219,41 +219,41 @@ During a selection process, these are the local bindings.
            (cond ((eq (car cell) 'bof) " starts here\n")
                  ((eq (car cell) 'eof) " ends here\n")
                  ((eq (car cell) 'file-error) " was not found\n")))
-	  (setq to (point))
+          (setq to (point))
           (when font
             (put-text-property from to
                                'face reftex-file-boundary-face))
-	  (when toc-buffer
-	    (if mouse-face
-		(put-text-property from (1- to)
-				   'mouse-face mouse-face))
-	    (put-text-property from to :data cell))))
+          (when toc-buffer
+            (if mouse-face
+                (put-text-property from (1- to)
+                                   'mouse-face mouse-face))
+            (put-text-property from to :data cell))))
 
        ((eq (car cell) 'toc)
         ;; a table of contents entry
         (when (and toc
-		   (<= (nth 5 cell) reftex-toc-max-level))
-	  (setq prev-inserted cell)
-;	  (if (eq offset 'attention) (setq offset cell))
+                   (<= (nth 5 cell) reftex-toc-max-level))
+          (setq prev-inserted cell)
+;         (if (eq offset 'attention) (setq offset cell))
           (setq reftex-active-toc cell)
           (insert (concat toc-indent (nth 2 cell) "\n"))
-	  (setq to (point))
-	  (when font
-	    (put-text-property from to
-			       'face reftex-section-heading-face))
-	  (when toc-buffer
-	    (if mouse-face
-		(put-text-property from (1- to)
-				   'mouse-face mouse-face))
-	    (put-text-property from to :data cell))
-	  (goto-char to)))
+          (setq to (point))
+          (when font
+            (put-text-property from to
+                               'face reftex-section-heading-face))
+          (when toc-buffer
+            (if mouse-face
+                (put-text-property from (1- to)
+                                   'mouse-face mouse-face))
+            (put-text-property from to :data cell))
+          (goto-char to)))
 
        ((stringp (car cell))
         ;; a label
         (when (null (nth 2 cell))
           ;; No context yet.  Quick update.
-	  (setcdr cell (cdr (reftex-label-info-update cell)))
-	  (put docstruct-symbol 'modified t))
+          (setcdr cell (cdr (reftex-label-info-update cell)))
+          (put docstruct-symbol 'modified t))
 
         (setq label   (car cell)
               typekey (nth 1 cell)
@@ -262,27 +262,27 @@ During a selection process, these are the local bindings.
               note    (nth 5 cell))
 
         (when (and labels
-		   (or (eq labels t)
-		       (string= typekey labels)
-		       (string= labels " "))
+                   (or (eq labels t) 
+                       (string= typekey labels)
+                       (string= labels " "))
                    (or show-commented (null comment)))
 
           ;; Yes we want this one
           (incf cnt)
-	  (setq prev-inserted cell)
-;	  (if (eq offset 'attention) (setq offset cell))
+          (setq prev-inserted cell)
+;         (if (eq offset 'attention) (setq offset cell))
 
-	  (setq label (concat xr-prefix label))
+          (setq label (concat xr-prefix label))
           (when comment (setq label (concat "% " label)))
           (insert label-indent label)
           (when font
-	    (setq to (point))
+            (setq to (point))
             (put-text-property
              (- (point) (length label)) to
              'face (if comment
                        'font-lock-comment-face
                      label-face))
-	    (goto-char to))
+            (goto-char to))
 
           (insert (if counter (format " (%d) " cnt) "")
                   (if comment " LABEL IS COMMENTED OUT " "")
@@ -294,46 +294,46 @@ During a selection process, these are the local bindings.
             (insert context-indent text "\n")
             (setq to (point)))
           (put-text-property from to :data cell)
-	  (when mouse-face
-	    (put-text-property from (1- to)
-			       'mouse-face mouse-face))
+          (when mouse-face
+            (put-text-property from (1- to)
+                               'mouse-face mouse-face))   
           (goto-char to)))
 
        ((eq (car cell) 'index)
-	;; index entry
-	(when (and index-entries
-		   (or (eq t index-entries)
-		       (string= index-entries (nth 1 cell))))
-	  (setq prev-inserted cell)
-;	  (if (eq offset 'attention) (setq offset cell))
-	  (setq index-tag (format "<%s>" (nth 1 cell)))
-	  (and font
-	       (put-text-property 0 (length index-tag)
-				  'face reftex-index-tag-face index-tag))
-	  (insert label-indent index-tag " " (nth 7 cell))
+        ;; index entry
+        (when (and index-entries
+                   (or (eq t index-entries)
+                       (string= index-entries (nth 1 cell))))
+          (setq prev-inserted cell)
+;         (if (eq offset 'attention) (setq offset cell))
+          (setq index-tag (format "<%s>" (nth 1 cell)))
+          (and font
+               (put-text-property 0 (length index-tag)
+                                  'face reftex-index-tag-face index-tag))
+          (insert label-indent index-tag " " (nth 7 cell))
 
-	  (when font
-	    (setq to (point))
-	    (put-text-property
-	     (- (point) (length (nth 7 cell))) to
-	     'face index-face)
-	    (goto-char to))
-	  (insert "\n")
-	  (setq to (point))
+          (when font
+            (setq to (point))
+            (put-text-property 
+             (- (point) (length (nth 7 cell))) to
+             'face index-face)
+            (goto-char to))
+          (insert "\n")
+          (setq to (point))
 
-	  (when context
-	    (insert context-indent (nth 2 cell) "\n")
-	    (setq to (point)))
-	  (put-text-property from to :data cell)
-	  (when mouse-face
-	    (put-text-property from (1- to)
-			       'mouse-face mouse-face))
+          (when context
+            (insert context-indent (nth 2 cell) "\n")
+            (setq to (point)))
+          (put-text-property from to :data cell)
+          (when mouse-face
+            (put-text-property from (1- to)
+                               'mouse-face mouse-face))   
           (goto-char to))))
 
-      (if (eq cell here-I-am)
-	  (setq offset 'attention))
+      (if (eq cell here-I-am) 
+          (setq offset 'attention))
       (if (and prev-inserted (eq offset 'attention))
-	  (setq offset prev-inserted))
+          (setq offset prev-inserted))
       )
 
     (when (reftex-refontify)
@@ -351,18 +351,18 @@ During a selection process, these are the local bindings.
     (goto-char (point-min))
     (let (loc pos)
       (while locations
-	(setq loc (pop locations))
-	(cond
-	 ((null loc))
-	 ((listp loc)
-	  (setq pos (text-property-any (point-min) (point-max) :data loc))
-	  (when pos
-	    (goto-char pos)
-	    (throw 'exit t)))
-	 ((integerp loc)
-	  (when (<= loc (count-lines (point-min) (point-max)))
-	    (goto-line loc)
-	    (throw 'exit t)))))
+        (setq loc (pop locations))
+        (cond
+         ((null loc))
+         ((listp loc)
+          (setq pos (text-property-any (point-min) (point-max) :data loc))
+          (when pos
+            (goto-char pos) 
+            (throw 'exit t)))
+         ((integerp loc)
+          (when (<= loc (count-lines (point-min) (point-max)))
+            (goto-line loc)
+            (throw 'exit t)))))
       (goto-char fallback))))
 
 (defvar reftex-last-data nil)
@@ -370,8 +370,8 @@ During a selection process, these are the local bindings.
 (defvar reftex-select-marked nil)
 
 (defun reftex-select-item (prompt help-string keymap
-				  &optional offset
-				  call-back cb-flag)
+                                  &optional offset
+                                  call-back cb-flag)
 ;; Select an item, using PROMPT. The function returns a key indicating
 ;; an exit status, along with a data structure indicating which item was
 ;; selected.
@@ -393,36 +393,36 @@ During a selection process, these are the local bindings.
             (save-window-excursion
               (setq truncate-lines t)
 
-	      ;; Find a good starting point
-	      (reftex-find-start-point
-	       (point-min) offset reftex-last-data reftex-last-line)
+              ;; Find a good starting point
+              (reftex-find-start-point 
+               (point-min) offset reftex-last-data reftex-last-line)
               (beginning-of-line 1)
-	      (set (make-local-variable 'reftex-last-follow-point) (point))
+              (set (make-local-variable 'reftex-last-follow-point) (point))
 
       (unwind-protect
-	  (progn
-	    (use-local-map keymap)
-	    (add-hook 'pre-command-hook 'reftex-select-pre-command-hook nil t)
-	    (add-hook 'post-command-hook 'reftex-select-post-command-hook nil t)
-	    (princ prompt)
-	    (set-marker reftex-recursive-edit-marker (point))
-	    ;; XEmacs does not run post-command-hook here
-	    (and (featurep 'xemacs) (run-hooks 'post-command-hook))
-	    (recursive-edit))
+          (progn
+            (use-local-map keymap)
+            (add-hook 'pre-command-hook 'reftex-select-pre-command-hook nil t)
+            (add-hook 'post-command-hook 'reftex-select-post-command-hook nil t)
+            (princ prompt)
+            (set-marker reftex-recursive-edit-marker (point))
+            ;; XEmacs does not run post-command-hook here
+            (and (featurep 'xemacs) (run-hooks 'post-command-hook))
+            (recursive-edit))
 
-	(set-marker reftex-recursive-edit-marker nil)
-	(save-excursion
-	  (set-buffer selection-buffer)
-	  (use-local-map nil)
-	  (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
-	  (remove-hook 'post-command-hook
-		       'reftex-select-post-command-hook t))
-	;; Kill the mark overlays
-	(mapcar (lambda (c) (delete-overlay (nth 1 c)))
-		reftex-select-marked)))))
+        (set-marker reftex-recursive-edit-marker nil)
+        (save-excursion
+          (set-buffer selection-buffer)
+          (use-local-map nil)
+          (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
+          (remove-hook 'post-command-hook 
+                       'reftex-select-post-command-hook t))
+        ;; Kill the mark overlays
+        (mapcar (lambda (c) (delete-overlay (nth 1 c)))
+                reftex-select-marked)))))
 
     (set (make-local-variable 'reftex-last-line)
-	 (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
+         (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
     (set (make-local-variable 'reftex-last-data) last-data)
     (reftex-kill-buffer "*RefTeX Help*")
     (setq reftex-callback-fwd (not reftex-callback-fwd)) ;; ;-)))
@@ -451,25 +451,25 @@ During a selection process, these are the local bindings.
   (let (b e)
     (setq data (get-text-property (point) :data))
     (setq last-data (or data last-data))
-
+  
     (when (and data cb-flag
-	       (not (equal reftex-last-follow-point (point))))
+               (not (equal reftex-last-follow-point (point))))
       (setq reftex-last-follow-point (point))
-      (funcall call-back data reftex-callback-fwd
-	       (not reftex-revisit-to-follow)))
+      (funcall call-back data reftex-callback-fwd 
+               (not reftex-revisit-to-follow)))
     (if data
-	(setq b (or (previous-single-property-change
-		     (1+ (point)) :data)
-		    (point-min))
-	      e (or (next-single-property-change
-		     (point) :data)
-		    (point-max)))
+        (setq b (or (previous-single-property-change
+                     (1+ (point)) :data)
+                    (point-min))
+              e (or (next-single-property-change
+                     (point) :data)
+                    (point-max)))
       (setq b (point) e (point)))
     (and (memq reftex-highlight-selection '(cursor both))
-	 (reftex-highlight 1 b e))
+         (reftex-highlight 1 b e))
     (if (or (not (pos-visible-in-window-p b))
-	    (not (pos-visible-in-window-p e)))
-	(recenter '(4)))
+            (not (pos-visible-in-window-p e)))
+        (recenter '(4)))
     (unless (current-message)
       (princ prompt))))
 
@@ -518,12 +518,12 @@ Useful for large TOC's."
   (let (pos)
     (cond
      ((and (local-variable-p 'reftex-last-data (current-buffer))
-	   reftex-last-data
-	   (setq pos (text-property-any (point-min) (point-max)
-					:data reftex-last-data)))
+           reftex-last-data
+           (setq pos (text-property-any (point-min) (point-max)
+                                        :data reftex-last-data)))
       (goto-char pos))
      ((and (local-variable-p 'reftex-last-line (current-buffer))
-	   (integerp reftex-last-line))
+           (integerp reftex-last-line))
       (goto-line reftex-last-line))
      (t (ding)))))
 (defun reftex-select-toggle-follow ()
@@ -542,20 +542,20 @@ Useful for large TOC's."
   "Toggle the macro used for referencing the label between \\ref and \\vref."
   (interactive)
   (setq refstyle
-	(cond ((string= refstyle "\\ref") "\\fref")
-	      ((string= refstyle "\\fref") "\\Fref")
-	      (t "\\ref")))
+        (cond ((string= refstyle "\\ref") "\\fref")
+              ((string= refstyle "\\fref") "\\Fref")
+              (t "\\ref")))
   (force-mode-line-update))
 (defun reftex-select-show-insertion-point ()
   "Show the point from where selection was started in another window."
   (interactive)
   (let ((this-window (selected-window)))
     (unwind-protect
-	(progn
-	  (switch-to-buffer-other-window
-	   (marker-buffer reftex-select-return-marker))
-	  (goto-char (marker-position reftex-select-return-marker))
-	  (recenter '(4)))
+        (progn
+          (switch-to-buffer-other-window
+           (marker-buffer reftex-select-return-marker))
+          (goto-char (marker-position reftex-select-return-marker))
+          (recenter '(4)))
       (select-window this-window))))
 (defun reftex-select-callback ()
   "Show full context in another window."
@@ -575,16 +575,16 @@ Useful for large TOC's."
 (defun reftex-select-read-label ()
   "Use minibuffer to read a label to reference, with completion."
   (interactive)
-  (let ((label (completing-read
-		"Label: " (symbol-value reftex-docstruct-symbol)
-		nil nil reftex-prefix)))
+  (let ((label (completing-read 
+                "Label: " (symbol-value reftex-docstruct-symbol)
+                nil nil reftex-prefix)))
     (unless (or (equal label "") (equal label reftex-prefix))
       (throw 'myexit label))))
 (defun reftex-select-read-cite ()
   "Use minibuffer to read a citation key with completion."
   (interactive)
   (let* ((key (completing-read "Citation key: " found-list))
-	 (entry (assoc key found-list)))
+         (entry (assoc key found-list)))
     (cond
      ((or (null key) (equal key "")))
      (entry
@@ -597,23 +597,23 @@ Useful for large TOC's."
   "Mark the entry."
   (interactive)
   (let* ((data (get-text-property (point) :data))
-	 boe eoe ovl)
+         boe eoe ovl)
     (or data (error "No entry to mark at point"))
     (if (assq data reftex-select-marked)
-	(error "Entry is already marked"))
+        (error "Entry is already marked"))
     (setq boe (or (previous-single-property-change (1+ (point)) :data)
-		  (point-min))
-	  eoe (or (next-single-property-change (point) :data) (point-max)))
+                  (point-min))
+          eoe (or (next-single-property-change (point) :data) (point-max)))
     (setq ovl (make-overlay boe eoe))
     (push (list data ovl separator) reftex-select-marked)
     (overlay-put ovl 'face reftex-select-mark-face)
     (if (featurep 'xemacs)
-	;; before-string property is broken in Emacs
-	(overlay-put ovl 'before-string
-		     (if separator
-			 (format "*%c%d* " separator
-				 (length reftex-select-marked))
-		       (format "*%d*  " (length reftex-select-marked)))))
+        ;; before-string property is broken in Emacs
+        (overlay-put ovl 'before-string
+                     (if separator
+                         (format "*%c%d* " separator
+                                 (length reftex-select-marked))
+                       (format "*%d*  " (length reftex-select-marked)))))
     (message "Entry has mark no. %d" (length reftex-select-marked))))
 
 (defun reftex-select-mark-comma ()
@@ -633,25 +633,25 @@ Useful for large TOC's."
   "Unmark the entry."
   (interactive)
   (let* ((data (get-text-property (point) :data))
-	 (cell (assq data reftex-select-marked))
-	 (ovl (nth 1 cell))
-	 (cnt 0)
-	 sep)
+         (cell (assq data reftex-select-marked))
+         (ovl (nth 1 cell))
+         (cnt 0)
+         sep)
     (unless cell
       (error "No marked entry at point"))
     (and ovl (delete-overlay ovl))
     (setq reftex-select-marked (delq cell reftex-select-marked))
     (if (featurep 'xemacs)
-	;; before-string property is broken in Emacs
-	(progn
-	  (setq cnt (1+ (length reftex-select-marked)))
-	  (mapcar (lambda (c)
-		    (setq sep (nth 2 c))
-		    (overlay-put (nth 1 c) 'before-string
-				 (if sep
-				     (format "*%c%d* " sep (decf cnt))
-				   (format "*%d*  " (decf cnt)))))
-		  reftex-select-marked)))
+        ;; before-string property is broken in Emacs
+        (progn
+          (setq cnt (1+ (length reftex-select-marked)))
+          (mapcar (lambda (c)
+                    (setq sep (nth 2 c))
+                    (overlay-put (nth 1 c) 'before-string
+                                 (if sep
+                                     (format "*%c%d* " sep (decf cnt))
+                                   (format "*%d*  " (decf cnt)))))
+                  reftex-select-marked)))
     (message "Entry no longer marked")))
 
 (defun reftex-select-help ()
@@ -664,27 +664,27 @@ Useful for large TOC's."
 ;; Common bindings in reftex-select-label-map and reftex-select-bib-map
 (let ((map (make-sparse-keymap)))
   (substitute-key-definition
-   'next-line 'reftex-select-next		       map global-map)
+   'next-line 'reftex-select-next                      map global-map)
   (substitute-key-definition
-   'previous-line 'reftex-select-previous	       map global-map)
+   'previous-line 'reftex-select-previous              map global-map)
   (substitute-key-definition
    'keyboard-quit 'reftex-select-keyboard-quit         map global-map)
   (substitute-key-definition
-   'newline 'reftex-select-accept		       map global-map)
+   'newline 'reftex-select-accept                      map global-map)
 
   (loop for x in
-	'((" "        . reftex-select-callback)
-	  ("n"        . reftex-select-next)
-	  ([(down)]   . reftex-select-next)
-	  ("p"        . reftex-select-previous)
-	  ([(up)]     . reftex-select-previous)
-	  ("f"        . reftex-select-toggle-follow)
-	  ("\C-m"     . reftex-select-accept)
-	  ([(return)] . reftex-select-accept)
-	  ("q"        . reftex-select-quit)
-	  ("."        . reftex-select-show-insertion-point)
-	  ("?"        . reftex-select-help))
-	do (define-key map (car x) (cdr x)))
+        '((" "        . reftex-select-callback)
+          ("n"        . reftex-select-next)
+          ([(down)]   . reftex-select-next)
+          ("p"        . reftex-select-previous)
+          ([(up)]     . reftex-select-previous)
+          ("f"        . reftex-select-toggle-follow)
+          ("\C-m"     . reftex-select-accept)
+          ([(return)] . reftex-select-accept) 
+          ("q"        . reftex-select-quit)
+          ("."        . reftex-select-show-insertion-point)
+          ("?"        . reftex-select-help))
+        do (define-key map (car x) (cdr x)))
 
   ;; The mouse-2 binding
   (if (featurep 'xemacs)
@@ -693,7 +693,7 @@ Useful for large TOC's."
 
   ;; Digit arguments
   (loop for key across "0123456789" do
-	(define-key map (vector (list key)) 'digit-argument))
+        (define-key map (vector (list key)) 'digit-argument))
   (define-key map "-" 'negative-argument)
 
   ;; Make two maps
@@ -703,40 +703,41 @@ Useful for large TOC's."
 ;; Specific bindings in reftex-select-label-map
 (loop for key across "aAcgFlrRstx#%" do
       (define-key reftex-select-label-map (vector (list key))
-	(list 'lambda '()
-	      "Press `?' during selection to find out about this key."
-	      '(interactive) (list 'throw '(quote myexit) key))))
+        (list 'lambda '() 
+              "Press `?' during selection to find out about this key."
+              '(interactive) (list 'throw '(quote myexit) key))))
 
 (loop for x in
       '(("b"        . reftex-select-jump-to-previous)
-	("z"        . reftex-select-jump)
-	("v"        . reftex-select-toggle-varioref)
-	("V"        . reftex-select-toggle-fancyref)
-	("m"        . reftex-select-mark)
-	("u"        . reftex-select-unmark)
-	(","        . reftex-select-mark-comma)
-	("-"        . reftex-select-mark-to)
-	("+"        . reftex-select-mark-and)
-	([(tab)]    . reftex-select-read-label)
-	("\C-i"     . reftex-select-read-label)
-	("\C-c\C-n" . reftex-select-next-heading)
-	("\C-c\C-p" . reftex-select-previous-heading))
+        ("z"        . reftex-select-jump)
+        ("v"        . reftex-select-toggle-varioref)
+        ("V"        . reftex-select-toggle-fancyref)
+        ("m"        . reftex-select-mark)
+        ("u"        . reftex-select-unmark)
+        (","        . reftex-select-mark-comma)
+        ("-"        . reftex-select-mark-to)
+        ("+"        . reftex-select-mark-and)
+        ([(tab)]    . reftex-select-read-label)
+        ("\C-i"     . reftex-select-read-label)
+        ("\C-c\C-n" . reftex-select-next-heading)
+        ("\C-c\C-p" . reftex-select-previous-heading))
       do
       (define-key reftex-select-label-map (car x) (cdr x)))
 
 ;; Specific bindings in reftex-select-bib-map
 (loop for key across "grRaA" do
       (define-key reftex-select-bib-map (vector (list key))
-	(list 'lambda '()
-	      "Press `?' during selection to find out about this key."
-	      '(interactive) (list 'throw '(quote myexit) key))))
+        (list 'lambda '() 
+              "Press `?' during selection to find out about this key."
+              '(interactive) (list 'throw '(quote myexit) key))))
 
 (loop for x in
       '(("\C-i"  . reftex-select-read-cite)
-	([(tab)] . reftex-select-read-cite)
-	("m"     . reftex-select-mark)
-	("u"     . reftex-select-unmark))
+        ([(tab)] . reftex-select-read-cite)
+        ("m"     . reftex-select-mark)
+        ("u"     . reftex-select-unmark))
       do (define-key reftex-select-bib-map (car x) (cdr x)))
+  
 
-
+;;; arch-tag: 842078ff-0586-4e0b-957e-536e08218464
 ;;; reftex-sel.el ends here

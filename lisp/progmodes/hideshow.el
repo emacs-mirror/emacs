@@ -201,7 +201,7 @@
 ;;     Love, Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray,
 ;;     Moody Ahmad, Preston F. Crow, Lars Lindberg, Reto Zimmermann,
 ;;     Keith Sheffield, Chew Meng Kuan, Tony Lam, Pete Ware, François
-;;     Pinard, Stefan Monnier, Joseph Eydelnant
+;;     Pinard, Stefan Monnier, Joseph Eydelnant, Michael Ernst
 ;;
 ;; Special thanks go to Dan Nicolaescu, who reimplemented hideshow using
 ;; overlays (rather than selective display), added isearch magic, folded
@@ -280,8 +280,9 @@ defined as text surrounded by START and END.
 As a special case, START may be a list of the form (COMPLEX-START
 MDATA-SELECTOR), where COMPLEX-START is a regexp w/ multiple parts and
 MDATA-SELECTOR an integer that specifies which sub-match is the proper
-place to adjust point, before calling `hs-forward-sexp-func'.  For
-example, see the `hs-special-modes-alist' entry for `bibtex-mode'.
+place to adjust point, before calling `hs-forward-sexp-func'.  Point
+is adjusted to the beginning of the specified match.  For example,
+see the `hs-special-modes-alist' entry for `bibtex-mode'.
 
 For some major modes, `forward-sexp' does not work properly.  In those
 cases, FORWARD-SEXP-FUNC specifies another function to use instead.
@@ -940,4 +941,5 @@ Key bindings:
 
 (provide 'hideshow)
 
+;;; arch-tag: 378b6852-e82a-466a-aee8-d9c73859a65e
 ;;; hideshow.el ends here

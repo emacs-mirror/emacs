@@ -54,3 +54,6 @@ Boston, MA 02111-1307, USA.  */
 /* warning messages */
 #define C_SWITCH_SYSTEM -D__NO_INCLUDE_WARN__
 #define LIBS_SYSTEM -lbsd
+
+/* arch-tag: fbc81ec9-1c45-416b-a368-799ae7c094a1
+   (do not change this comment) */

@@ -4,7 +4,6 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.15 2003/02/04 11:53:11 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -471,4 +470,5 @@ DIR can also be a file."
 
 (provide 'pcvs-info)
 
+;;; arch-tag: d85dde07-bdc2-400a-882f-92f398c7b0ba
 ;;; pcvs-info.el ends here

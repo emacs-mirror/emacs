@@ -500,4 +500,5 @@ followed by a non-Polish character, that is one not listed in the
 
 (provide 'ogonek)
 
+;;; arch-tag: 672d7744-28ac-412b-965e-06a27e50d1d7
 ;;; ogonek.el ends here

@@ -1,6 +1,6 @@
 ;;; cal-islam.el --- calendar functions for the Islamic calendar
 
-;; Copyright (C) 1995, 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -40,11 +40,15 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'cal-julian)
 
 (defvar calendar-islamic-month-name-array
   ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"
-   "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"])
+   "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"]
+"Array of strings giving the names of the Islamic months.")
 
 (defvar calendar-islamic-epoch (calendar-absolute-from-julian '(7 16 622))
   "Absolute date of start of Islamic calendar = August 29, 284 A.D. (Julian).")
@@ -221,9 +225,9 @@ not be marked in the calendar.  This function is provided for use with the
                                  (car d)))
                     (backup (equal (car (car d)) 'backup))
                     (dayname
-                     (concat
-                      (calendar-day-name gdate) "\\|"
-                      (substring (calendar-day-name gdate) 0 3) ".?"))
+                     (format "%s\\|%s\\.?"
+                      (calendar-day-name gdate)
+                      (calendar-day-name gdate 'abbrev)))
                     (calendar-month-name-array
                      calendar-islamic-month-name-array)
                     (monthname
@@ -269,7 +273,8 @@ not be marked in the calendar.  This function is provided for use with the
                         gdate
                         (buffer-substring-no-properties entry-start (point))
                         (buffer-substring-no-properties
-                         (1+ date-start) (1- entry-start)))))))
+                         (1+ date-start) (1- entry-start))
+                        (copy-marker entry-start))))))
                (setq d (cdr d))))
            (setq gdate
                  (calendar-gregorian-from-absolute
@@ -293,11 +298,11 @@ provided for use as part of the nongregorian-diary-marking-hook."
           ((date-form (if (equal (car (car d)) 'backup)
                           (cdr (car d))
                         (car d)));; ignore 'backup directive
-           (dayname (diary-name-pattern calendar-day-name-array))
+           (dayname (diary-name-pattern calendar-day-name-array
+                                        calendar-day-abbrev-array))
            (monthname
-            (concat
-             (diary-name-pattern calendar-islamic-month-name-array t)
-             "\\|\\*"))
+            (format "%s\\|\\*"
+                    (diary-name-pattern calendar-islamic-month-name-array)))
            (month "[0-9]+\\|\\*")
            (day "[0-9]+\\|\\*")
            (year "[0-9]+\\|\\*")
@@ -367,19 +372,16 @@ provided for use as part of the nongregorian-diary-marking-hook."
                          (string-to-int y-str)))))
             (if dd-name
                 (mark-calendar-days-named
-                 (cdr (assoc-ignore-case (substring dd-name 0 3)
+                 (cdr (assoc-ignore-case dd-name
                                          (calendar-make-alist
                                           calendar-day-name-array
-                                          0
-                                          '(lambda (x) (substring x 0 3))))))
+                                          0 nil calendar-day-abbrev-array))))
               (if mm-name
-                  (if (string-equal mm-name "*")
-                      (setq mm 0)
-                    (setq mm
-                          (cdr (assoc-ignore-case
-                                mm-name
-                                (calendar-make-alist
-                                  calendar-islamic-month-name-array))))))
+                  (setq mm (if (string-equal mm-name "*") 0
+                             (cdr (assoc-ignore-case
+                                   mm-name
+                                   (calendar-make-alist
+                                    calendar-islamic-month-name-array))))))
               (mark-islamic-calendar-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
@@ -495,4 +497,5 @@ Prefix arg will make the entry nonmarking."
 
 (provide 'cal-islam)
 
+;;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
 ;;; cal-islam.el ends here

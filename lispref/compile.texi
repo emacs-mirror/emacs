@@ -39,6 +39,14 @@ Emacs 19.29; as a result, files compiled in versions before 19.29 will
 not work in subsequent versions if they contain character constants with
 modifier bits.
 
+@vindex no-byte-compile
+  If you do not want a Lisp file to be compiled, ever, put a file-local
+variable binding for @code{no-byte-compile} into it, like this:
+
+@example
+;; -*-no-byte-compile: t; -*-
+@end example
+
   @xref{Compilation Errors}, for how to investigate errors occurring in
 byte compilation.
 
@@ -48,6 +56,7 @@ byte compilation.
 * Docs and Compilation::        Dynamic loading of documentation strings.
 * Dynamic Loading::             Dynamic loading of individual functions.
 * Eval During Compile::  	Code to be evaluated when you compile.
+* Compiler Errors::             Handling compiler error messages.
 * Byte-Code Objects::		The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
@@ -397,6 +406,57 @@ Common Lisp @samp{#.} reader macro (but not when interpreting) is closer
 to what @code{eval-when-compile} does.
 @end defspec
 
+@node Compiler Errors
+@section Compiler Errors
+@cindex compiler errors
+
+  Byte compilation writes errors and warnings into the buffer
+@samp{*Compile-Log*}.  The messages include file names and line
+numbers that identify the location of the problem.  The usual Emacs
+commands for operating on compiler diagnostics work properly on
+these messages.
+
+  However, the warnings about functions that were used but not
+defined are always ``located'' at the end of the file, so these
+commands won't find the places they are really used.  To do that,
+you must search for the function names.
+ 
+  You can suppress the compiler warning for calling an undefined
+function @var{func} by conditionalizing the function call on a
+@code{fboundp} test, like this:
+
+@example
+(if (fboundp '@var{func}) ...(@var{func} ...)...)
+@end example
+
+@noindent
+The call to @var{func} must be in the @var{then-form} of the @code{if},
+and @var{func} must appear quoted in the call to @code{fboundp}.
+Likewise, you can suppress a compiler warning for an unbound variable
+@var{variable} by conditionalizing its use on a @code{boundp} test,
+like this:
+
+@example
+(if (boundp '@var{variable}) ...@var{variable}...)
+@end example
+
+@noindent
+The reference to @var{variable} must be in the @var{then-form} of the
+@code{if}, and @var{variable} must appear quoted in the call to
+@code{boundp}.
+
+  You can suppress any compiler warnings using the construct
+@code{with-no-warnings}:
+
+@defmac with-no-warnings body...
+In execution, this is equivalent to @code{(progn @var{body}...)},
+but the compiler does not issue warnings for anything that occurs
+inside @var{body}.
+
+We recommend that you use this construct around the smallest
+possible piece of code.
+@end defmac
+
 @node Byte-Code Objects
 @section Byte-Code Function Objects
 @cindex compiled function
@@ -742,3 +802,6 @@ The @code{silly-loop} function is somewhat more complex:
 @end example
 
 
+@ignore
+   arch-tag: f78e3050-2f0a-4dee-be27-d9979a0a2289
+@end ignore

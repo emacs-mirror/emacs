@@ -31,10 +31,13 @@ Boston, MA 02111-1307, USA.  */
 #include "atimer.h"
 #include "gtkutil.h"
 #include "termhooks.h"
+#include "keyboard.h"
+#include "charset.h"
+#include "coding.h"
 #include <gdk/gdkkeysyms.h>
 
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
-  (PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
+  (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
 
 
 
@@ -237,12 +240,12 @@ static void
 xg_set_geometry (f)
      FRAME_PTR f;
 {
-  if (f->output_data.x->size_hint_flags & USPosition)
+  if (f->size_hint_flags & USPosition)
   {
-    int left = f->output_data.x->left_pos;
-    int xneg = f->output_data.x->size_hint_flags & XNegative;
-    int top = f->output_data.x->top_pos;
-    int yneg = f->output_data.x->size_hint_flags & YNegative;
+    int left = f->left_pos;
+    int xneg = f->size_hint_flags & XNegative;
+    int top = f->top_pos;
+    int yneg = f->size_hint_flags & YNegative;
     char geom_str[32];
 
     if (xneg)
@@ -251,7 +254,7 @@ xg_set_geometry (f)
       top = -top;
 
     sprintf (geom_str, "=%dx%d%c%d%c%d",
-             PIXEL_WIDTH (f),
+             FRAME_PIXEL_WIDTH (f),
              FRAME_TOTAL_PIXEL_HEIGHT (f),
              (xneg ? '-' : '+'), left,
              (yneg ? '-' : '+'), top);
@@ -273,7 +276,7 @@ xg_resize_outer_widget (f, columns, rows)
      int rows;
 {
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                     PIXEL_WIDTH (f), FRAME_TOTAL_PIXEL_HEIGHT (f));
+                     FRAME_PIXEL_WIDTH (f), FRAME_TOTAL_PIXEL_HEIGHT (f));
 
   /* base_height is now changed.  */
   x_wm_set_size_hint (f, 0, 0);
@@ -317,12 +320,13 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
 {
   int mbheight = FRAME_MENUBAR_HEIGHT (f);
   int tbheight = FRAME_TOOLBAR_HEIGHT (f);
-  int rows = PIXEL_TO_CHAR_HEIGHT (f, pixelheight - mbheight - tbheight);
-  int columns = PIXEL_TO_CHAR_WIDTH (f, pixelwidth);
+  int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, (pixelheight 
+						   - mbheight - tbheight));
+  int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
 
   if (FRAME_GTK_WIDGET (f)
-      && (columns != FRAME_WIDTH (f) || rows != FRAME_HEIGHT (f)
-          || pixelwidth != PIXEL_WIDTH (f) || pixelheight != PIXEL_HEIGHT (f)))
+      && (columns != FRAME_COLS (f) || rows != FRAME_LINES (f)
+          || pixelwidth != FRAME_PIXEL_WIDTH (f) || pixelheight != FRAME_PIXEL_HEIGHT (f)))
     {
       struct x_output *x = f->output_data.x;
       GtkAllocation all;
@@ -349,7 +353,7 @@ xg_frame_set_char_size (f, cols, rows)
      int cols;
      int rows;
 {
-  int pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows)
+  int pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
   int pixelwidth;
 
@@ -358,17 +362,14 @@ xg_frame_set_char_size (f, cols, rows)
      might end up with a frame width that is not a multiple of the
      frame's character width which is bad for vertically split
      windows.  */
-  f->output_data.x->vertical_scroll_bar_extra
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-       : (FRAME_SCROLL_BAR_COLS (f)
-          * FONT_WIDTH (f->output_data.x->font)));
+  f->scroll_bar_actual_width
+    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   compute_fringe_widths (f, 0);
 
-  /* CHAR_TO_PIXEL_WIDTH uses vertical_scroll_bar_extra, so call it
+  /* FRAME_TEXT_COLS_TO_PIXEL_WIDTH uses scroll_bar_actual_width, so call it
      after calculating that value.  */
-  pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
 
   /* Must resize our top level widget.  Font size may have changed,
      but not rows/cols.  */
@@ -500,8 +501,8 @@ xg_create_frame_widgets (f)
   gtk_widget_set_name (wfixed, SDATA (Vx_resource_name));
 
   /* If this frame has a title or name, set it in the title bar.  */
-  if (! NILP (f->title)) title = SDATA (f->title);
-  else if (! NILP (f->name)) title = SDATA (f->name);
+  if (! NILP (f->title)) title = SDATA (ENCODE_UTF_8 (f->title));
+  else if (! NILP (f->name)) title = SDATA (ENCODE_UTF_8 (f->name));
 
   if (title) gtk_window_set_title (GTK_WINDOW (wtop), title);
 
@@ -511,9 +512,7 @@ xg_create_frame_widgets (f)
 
   gtk_fixed_set_has_window (GTK_FIXED (wfixed), TRUE);
 
-  gtk_widget_set_size_request (wfixed,
-                               PIXEL_WIDTH (f),
-                               PIXEL_HEIGHT (f));
+  gtk_widget_set_size_request (wfixed, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
 
   gtk_container_add (GTK_CONTAINER (wtop), wvbox);
   gtk_box_pack_end (GTK_BOX (wvbox), wfixed, TRUE, TRUE, 0);
@@ -594,8 +593,8 @@ xg_create_frame_widgets (f)
   gtk_widget_modify_style (wfixed, style);
 
   /* GTK does not set any border, and they look bad with GTK.  */
-  f->output_data.x->border_width = 0;
-  f->output_data.x->internal_border_width = 0;
+  f->border_width = 0;
+  f->internal_border_width = 0;
 
   UNBLOCK_INPUT;
 
@@ -621,7 +620,7 @@ x_wm_set_size_hint (f, flags, user_position)
     gint hint_flags = 0;
     int base_width, base_height;
     int min_rows = 0, min_cols = 0;
-    int win_gravity = f->output_data.x->win_gravity;
+    int win_gravity = f->win_gravity;
 
     if (flags)
       {
@@ -630,18 +629,18 @@ x_wm_set_size_hint (f, flags, user_position)
         f->output_data.x->hint_flags = hint_flags;
       }
      else
-       flags = f->output_data.x->size_hint_flags;
+       flags = f->size_hint_flags;
 
     size_hints = f->output_data.x->size_hints;
     hint_flags = f->output_data.x->hint_flags;
 
     hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
-    size_hints.width_inc = FONT_WIDTH (f->output_data.x->font);
-    size_hints.height_inc = f->output_data.x->line_height;
+    size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
+    size_hints.height_inc = FRAME_LINE_HEIGHT (f);
 
     hint_flags |= GDK_HINT_BASE_SIZE;
-    base_width = CHAR_TO_PIXEL_WIDTH (f, 0);
-    base_height = CHAR_TO_PIXEL_HEIGHT (f, 0)
+    base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0)
       + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
     check_frame_size (f, &min_rows, &min_cols);
@@ -866,7 +865,7 @@ create_dialog (wv, select_cb, deactivate_cb)
       else
         {
           /* This is one button to add to the dialog.  */
-          w = gtk_button_new_with_mnemonic (utf8_label);
+          w = gtk_button_new_with_label (utf8_label);
           if (! item->enabled)
             gtk_widget_set_sensitive (w, FALSE);
           if (select_cb)
@@ -1109,14 +1108,14 @@ xg_mark_data ()
   xg_list_node *iter;
 
   for (iter = xg_menu_cb_list.next; iter; iter = iter->next)
-    mark_object (&((xg_menu_cb_data *) iter)->menu_bar_vector);
+    mark_object (((xg_menu_cb_data *) iter)->menu_bar_vector);
 
   for (iter = xg_menu_item_cb_list.next; iter; iter = iter->next)
     {
       xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data *) iter;
 
       if (! NILP (cb_data->help))
-        mark_object (&cb_data->help);
+        mark_object (cb_data->help);
     }
 }
 
@@ -1211,7 +1210,7 @@ make_widget_for_menu_item (utf8_label, utf8_key)
   GtkWidget *wbox;
 
   wbox = gtk_hbox_new (FALSE, 0);
-  wlbl = gtk_label_new_with_mnemonic (utf8_label);
+  wlbl = gtk_label_new (utf8_label);
   wkey = gtk_label_new (utf8_key);
 
   gtk_misc_set_alignment (GTK_MISC (wlbl), 0.0, 0.5);
@@ -1250,6 +1249,12 @@ make_menu_item (utf8_label, utf8_key, item, group)
   GtkWidget *w;
   GtkWidget *wtoadd = 0;
 
+  /* It has been observed that some menu items have a NULL name field.
+     This will lead to this function being called with a NULL utf8_label.
+     GTK crashes on that so we set a blank label.  Why there is a NULL
+     name remains to be investigated.  */
+  if (! utf8_label) utf8_label = " ";
+
   if (utf8_key)
     wtoadd = make_widget_for_menu_item (utf8_label, utf8_key);
 
@@ -1257,13 +1262,13 @@ make_menu_item (utf8_label, utf8_key, item, group)
     {
       *group = NULL;
       if (utf8_key) w = gtk_check_menu_item_new ();
-      else w = gtk_check_menu_item_new_with_mnemonic (utf8_label);
+      else w = gtk_check_menu_item_new_with_label (utf8_label);
       gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (w), item->selected);
     }
   else if (item->button_type == BUTTON_TYPE_RADIO)
     {
       if (utf8_key) w = gtk_radio_menu_item_new (*group);
-      else w = gtk_radio_menu_item_new_with_mnemonic (*group, utf8_label);
+      else w = gtk_radio_menu_item_new_with_label (*group, utf8_label);
       *group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (w));
       if (item->selected)
         gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (w), TRUE);
@@ -1272,7 +1277,7 @@ make_menu_item (utf8_label, utf8_key, item, group)
     {
       *group = NULL;
       if (utf8_key) w = gtk_menu_item_new ();
-      else w = gtk_menu_item_new_with_mnemonic (utf8_label);
+      else w = gtk_menu_item_new_with_label (utf8_label);
     }
 
   if (wtoadd) gtk_container_add (GTK_CONTAINER (w), wtoadd);
@@ -1552,7 +1557,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
           utf8_label = get_utf8_string (item->name);
 
           gtk_menu_set_title (GTK_MENU (wmenu), utf8_label);
-          w = gtk_menu_item_new_with_mnemonic (utf8_label);
+          w = gtk_menu_item_new_with_label (utf8_label);
           gtk_widget_set_sensitive (w, FALSE);
           if (utf8_label && utf8_label != item->name) g_free (utf8_label);
         }
@@ -1830,7 +1835,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
           GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
           char *utf8_label = get_utf8_string (val->name);
 
-          gtk_label_set_text_with_mnemonic (wlabel, utf8_label);
+          gtk_label_set_text (wlabel, utf8_label);
 
           iter = g_list_next (iter);
           val = val->next;
@@ -1960,7 +1965,7 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
     gtk_label_set_text (wkey, utf8_key);
 
   if (! old_label || strcmp (utf8_label, old_label) != 0)
-    gtk_label_set_text_with_mnemonic (wlbl, utf8_label);
+    gtk_label_set_text (wlbl, utf8_label);
 
   if (utf8_key && utf8_key != val->key) g_free (utf8_key);
   if (utf8_label && utf8_label != val->name) g_free (utf8_label);
@@ -2298,7 +2303,7 @@ xg_update_frame_menubar (f)
 
   /* The height has changed, resize outer widget and set columns
      rows to what we had before adding the menu bar.  */
-  xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+  xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
 
   SET_FRAME_GARBAGED (f);
   UNBLOCK_INPUT;
@@ -2327,7 +2332,7 @@ free_frame_menubar (f)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before removing the menu bar.  */
-      xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
 
       SET_FRAME_GARBAGED (f);
       UNBLOCK_INPUT;
@@ -2512,25 +2517,25 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
 
   scroll_id = xg_store_widget_in_map (wscroll);
 
-  g_signal_connect (G_OBJECT (vadj),
+  g_signal_connect (G_OBJECT (wscroll),
                     "value-changed",
                     scroll_callback,
-                    (gpointer)bar);
+                    (gpointer) bar);
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
-                    (gpointer)scroll_id);
+                    (gpointer) scroll_id);
 
   /* Connect to button press and button release to detect if any scroll bar
      has the pointer.  */
   g_signal_connect (G_OBJECT (wscroll),
                     "button-press-event",
                     G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer)bar);
+                    (gpointer) bar);
   g_signal_connect (G_OBJECT (wscroll),
                     "button-release-event",
                     G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer)bar);
+                    (gpointer) bar);
 
   gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget),
                  wscroll, -1, -1);
@@ -2735,7 +2740,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       /* We do the same as for MOTIF in xterm.c, assume 30 chars per line
          rather than the real portion value.  This makes the thumb less likely
          to resize and that looks better.  */
-      portion = XFASTINT (XWINDOW (bar->window)->height) * 30;
+      portion = WINDOW_TOTAL_LINES (XWINDOW (bar->window)) * 30;
       /* When the thumb is at the bottom, position == whole.
          So we need to increase `whole' to make space for the thumb.  */
       whole += portion;
@@ -2757,7 +2762,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       value = max (value, XG_SB_MIN);
 
       /* Assume all lines are of equal size.  */
-      new_step = size / max (1, FRAME_HEIGHT (f));
+      new_step = size / max (1, FRAME_LINES (f));
 
       if ((int) adj->page_size != size
           || (int) adj->step_increment != new_step)
@@ -2813,6 +2818,7 @@ xg_tool_bar_callback (w, client_data)
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
+  EVENT_INIT (event);
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
     return;
@@ -2857,7 +2863,7 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before detaching the tool bar.  */
-      xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 }
 
@@ -2884,7 +2890,7 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before detaching the tool bar.  */
-      xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 }
 
@@ -3029,7 +3035,7 @@ xg_create_tool_bar (f)
 
   /* The height has changed, resize outer widget and set columns
      rows to what we had before adding the tool bar.  */
-  xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+  xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
 
   SET_FRAME_GARBAGED (f);
 }
@@ -3202,7 +3208,7 @@ update_frame_tool_bar (f)
   if (old_req.height != new_req.height)
     {
       FRAME_TOOLBAR_HEIGHT (f) = new_req.height;
-      xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 
   if (icon_list) g_list_free (icon_list);
@@ -3227,7 +3233,7 @@ free_frame_tool_bar (f)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before removing the tool bar.  */
-      xg_resize_outer_widget (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
 
       SET_FRAME_GARBAGED (f);
       UNBLOCK_INPUT;
@@ -3269,3 +3275,6 @@ xg_initialize ()
 }
 
 #endif /* USE_GTK */
+
+/* arch-tag: fe7104da-bc1e-4aba-9bd1-f349c528f7e3
+   (do not change this comment) */

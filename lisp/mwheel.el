@@ -35,7 +35,7 @@
 ;; To enable this code, simply put this at the top of your .emacs
 ;; file:
 ;;
-;; (mwheel-install)
+;; (mouse-wheel-mode 1)
 
 ;;; Code:
 
@@ -58,8 +58,10 @@
                         'mouse-wheel-down-event)
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		  mouse-wheel-down-button))
+  (if (memq system-type '(windows-nt macos darwin))
+      'wheel-up
+    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		    mouse-wheel-down-button)))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
@@ -70,8 +72,10 @@
                         'mouse-wheel-up-event)
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		  mouse-wheel-up-button))
+  (if (memq system-type '(windows-nt macos darwin))
+      'wheel-down
+    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		    mouse-wheel-up-button)))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
@@ -105,7 +109,7 @@ the wheel is moved with the modifier key depressed.
 Elements of the list have the form (MODIFIERS . AMOUNT) or just AMOUNT if
 MODIFIERS is nil.
 
-AMOUNT should be the number of lines to scroll, or `nil' for near full
+AMOUNT should be the number of lines to scroll, or nil for near full
 screen.  It can also be a floating point number, specifying the fraction of
 a full screen to scroll.  A near full screen is `next-screen-context-lines'
 less than a full screen."
@@ -246,4 +250,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'mwheel)
 
+;;; arch-tag: 50ed00e7-3686-4b7a-8037-fb31aa5c237f
 ;;; mwheel.el ends here

@@ -896,3 +896,6 @@ the composition gets invalid after a change in a buffer.  */);
   defsubr (&Scompose_string_internal);
   defsubr (&Sfind_composition_internal);
 }
+
+/* arch-tag: 79cefaf8-ca48-4eed-97e5-d5afb290d272
+   (do not change this comment) */

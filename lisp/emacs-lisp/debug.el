@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2001, 2003  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -128,7 +128,8 @@ first will be printed into the backtrace buffer."
 	  (debugger-outer-track-mouse track-mouse)
 	  (debugger-outer-last-command last-command)
 	  (debugger-outer-this-command this-command)
-	  (debugger-outer-unread-command-char unread-command-char)
+	  (debugger-outer-unread-command-char
+	   (with-no-warnings unread-command-char))
 	  (debugger-outer-unread-command-events unread-command-events)
 	  (debugger-outer-unread-post-input-method-events
 	   unread-post-input-method-events)
@@ -145,7 +146,7 @@ first will be printed into the backtrace buffer."
       (setq overriding-terminal-local-map nil)
       ;; Don't let these magic variables affect the debugger itself.
       (let ((last-command nil) this-command track-mouse
-	    (unread-command-char -1) unread-command-events
+	    unread-command-events
 	    unread-post-input-method-events
 	    last-input-event last-command-event last-nonmenu-event
 	    last-event-frame
@@ -161,6 +162,8 @@ first will be printed into the backtrace buffer."
 	(unwind-protect
 	    (save-excursion
 	      (save-window-excursion
+		(with-no-warnings
+		 (setq unread-command-char -1))
 		(pop-to-buffer debugger-buffer)
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
@@ -178,7 +181,7 @@ first will be printed into the backtrace buffer."
 		      (delete-region middlestart (point)))
 		    (insert "...\n"))
 		  (goto-char (point-min))
-		  (message (buffer-string))
+		  (message "%s" (buffer-string))
 		  (kill-emacs))
 		(if (eq (car debugger-args) 'debug)
 		    ;; Skip the frames for backtrace-debug, byte-code, and debug.
@@ -214,7 +217,8 @@ first will be printed into the backtrace buffer."
       (setq track-mouse debugger-outer-track-mouse)
       (setq last-command debugger-outer-last-command)
       (setq this-command debugger-outer-this-command)
-      (setq unread-command-char debugger-outer-unread-command-char)
+      (with-no-warnings
+       (setq unread-command-char debugger-outer-unread-command-char))
       (setq unread-command-events debugger-outer-unread-command-events)
       (setq unread-post-input-method-events
 	    debugger-outer-unread-post-input-method-events)
@@ -487,7 +491,6 @@ Applies to the frame whose line point is on in the backtrace."
           (track-mouse debugger-outer-track-mouse)
           (last-command debugger-outer-last-command)
           (this-command debugger-outer-this-command)
-          (unread-command-char debugger-outer-unread-command-char)
           (unread-command-events debugger-outer-unread-command-events)
           (unread-post-input-method-events
            debugger-outer-unread-post-input-method-events)
@@ -500,7 +503,17 @@ Applies to the frame whose line point is on in the backtrace."
           (inhibit-redisplay debugger-outer-inhibit-redisplay)
           (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
       (set-match-data debugger-outer-match-data)
-      (prog1 (progn ,@body)
+      (prog1
+	  (let ((save-ucc (with-no-warnings unread-command-char)))
+	    (unwind-protect
+		(progn
+		  (with-no-warnings
+		   (setq unread-command-char debugger-outer-unread-command-char))
+		  (prog1 (progn ,@body)
+		    (with-no-warnings
+		     (setq debugger-outer-unread-command-char unread-command-char))))
+	      (with-no-warnings
+	       (setq unread-command-char save-ucc))))
         (setq debugger-outer-match-data (match-data))
         (setq debugger-outer-load-read-function load-read-function)
         (setq debugger-outer-overriding-terminal-local-map
@@ -509,7 +522,6 @@ Applies to the frame whose line point is on in the backtrace."
         (setq debugger-outer-track-mouse track-mouse)
         (setq debugger-outer-last-command last-command)
         (setq debugger-outer-this-command this-command)
-        (setq debugger-outer-unread-command-char unread-command-char)
         (setq debugger-outer-unread-command-events unread-command-events)
         (setq debugger-outer-unread-post-input-method-events
               unread-post-input-method-events)
@@ -721,4 +733,5 @@ If argument is nil or an empty string, cancel for all functions."
 
 (provide 'debug)
 
+;;; arch-tag: b6ec7047-f801-4103-9c63-d69322db9d3b
 ;;; debug.el ends here

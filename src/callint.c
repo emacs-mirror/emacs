@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 2002
+   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 02, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -41,6 +41,7 @@ Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
 extern Lisp_Object Vhistory_length;
+extern Lisp_Object Vthis_original_command, real_this_command;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
@@ -174,14 +175,18 @@ check_mark (for_region)
     Fsignal (Qmark_inactive, Qnil);
 }
 
+/* If the list of args INPUT was produced with an explicit call to
+   `list', look for elements that were computed with
+   (region-beginning) or (region-end), and put those expressions into
+   VALUES instead of the present values.
+
+   This function doesn't return a value because it modifies elements
+   of VALUES to do its job.  */
+
 static void
 fix_command (input, values)
      Lisp_Object input, values;
 {
-  /* If the list of args was produced with an explicit call to `list',
-     look for elements that were computed with (region-beginning)
-     or (region-end), and put those expressions into VALUES
-     instead of the present values.  */
   if (CONSP (input))
     {
       Lisp_Object car;
@@ -287,6 +292,14 @@ supply if the command inquires which events were used to invoke it.  */)
   int key_count;
   int record_then_fail = 0;
 
+  Lisp_Object save_this_command, save_last_command;
+  Lisp_Object save_this_original_command, save_real_this_command;
+
+  save_this_command = Vthis_command;
+  save_this_original_command = Vthis_original_command;
+  save_real_this_command = real_this_command;
+  save_last_command = current_kboard->Vlast_command;
+
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
   else
@@ -375,7 +388,7 @@ supply if the command inquires which events were used to invoke it.  */)
       if (i != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
-	  Lisp_Object values, car;
+	  Lisp_Object values;
 	  /* Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  values = quotify_args (Fcopy_sequence (specs));
@@ -391,6 +404,12 @@ supply if the command inquires which events were used to invoke it.  */)
 		XSETCDR (teml, Qnil);
 	    }
 	}
+
+      Vthis_command = save_this_command;
+      Vthis_original_command = save_this_original_command;
+      real_this_command= save_real_this_command;
+      current_kboard->Vlast_command = save_last_command;
+
       single_kboard_state ();
       return apply1 (function, specs);
     }
@@ -452,7 +471,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	      if (!NILP (Vmouse_leave_buffer_hook))
 		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
 
-	      Fselect_window (event);
+	      Fselect_window (event, Qnil);
 	    }
 	  string++;
 	}
@@ -837,6 +856,11 @@ supply if the command inquires which events were used to invoke it.  */)
   if (record_then_fail)
     Fbarf_if_buffer_read_only ();
 
+  Vthis_command = save_this_command;
+  Vthis_original_command = save_this_original_command;
+  real_this_command= save_real_this_command;
+  current_kboard->Vlast_command = save_last_command;
+
   single_kboard_state ();
 
   {
@@ -974,3 +998,6 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
 }
+
+/* arch-tag: a3a7cad7-bcac-42ce-916e-1bd2546ebf37
+   (do not change this comment) */

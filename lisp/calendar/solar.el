@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events
 
-;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995, 1997, 2003 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Denis B. Roegel <Denis.Roegel@loria.fr>
@@ -58,6 +58,9 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar displayed-month)
+(defvar displayed-year)
 
 (if (fboundp 'atan)
     (require 'lisp-float-type)
@@ -939,6 +942,33 @@ use when highlighting the day in the calendar."
 		  (format "%s Sabbath candle lighting"
                     (apply 'solar-time-string light)))))))
 
+; from Meeus, 1991, page 167
+(defconst solar-seasons-data
+  '((485 324.96 1934.136)
+    (203 337.23 32964.467)
+    (199 342.08 20.186)
+    (182 27.85 445267.112)
+    (156 73.14 45036.886)
+    (136 171.52 22518.443)
+    (77 222.54 65928.934)
+    (74 296.72 3034.906)
+    (70 243.58 9037.513)
+    (58 119.81 33718.147)
+    (52 297.17 150.678)
+    (50 21.02 2281.226)
+    (45 247.54 29929.562)
+    (44 325.15 31555.956)
+    (29 60.93 4443.417)
+    (18 155.12 67555.328)
+    (17 288.79 4562.452)
+    (16 198.04 62894.029)
+    (14 199.76 31436.921)
+    (12 95.39 14577.848)
+    (12 287.11 31931.756)
+    (12 320.81 34777.259)
+    (9 227.73 1222.114)
+    (8 15.45 16859.074)))
+
 (defun solar-equinoxes/solstices (k year)
   "Date of equinox/solstice K for YEAR.
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox;
@@ -1017,33 +1047,6 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
                                    (* -0.00823 z z z)
                                    (* 0.00032 z z z z)))))))
 
-; from Meeus, 1991, page 167
-(defconst solar-seasons-data
-  '((485 324.96 1934.136)
-    (203 337.23 32964.467)
-    (199 342.08 20.186)
-    (182 27.85 445267.112)
-    (156 73.14 45036.886)
-    (136 171.52 22518.443)
-    (77 222.54 65928.934)
-    (74 296.72 3034.906)
-    (70 243.58 9037.513)
-    (58 119.81 33718.147)
-    (52 297.17 150.678)
-    (50 21.02 2281.226)
-    (45 247.54 29929.562)
-    (44 325.15 31555.956)
-    (29 60.93 4443.417)
-    (18 155.12 67555.328)
-    (17 288.79 4562.452)
-    (16 198.04 62894.029)
-    (14 199.76 31436.921)
-    (12 95.39 14577.848)
-    (12 287.11 31931.756)
-    (12 320.81 34777.259)
-    (9 227.73 1222.114)
-    (8 15.45 16859.074)))
-
 ;;;###autoload
 (defun solar-equinoxes-solstices ()
   "*local* date and time of equinoxes and solstices, if visible in the calendar window.
@@ -1093,4 +1096,5 @@ Requires floating point."
 
 (provide 'solar)
 
+;;; arch-tag: bc0ff693-df58-4666-bde4-2a7837ccb8fe
 ;;; solar.el ends here

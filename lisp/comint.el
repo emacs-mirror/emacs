@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1988,90,92,93,94,95,96,97,98,99,2000,01,02,2003
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -244,16 +244,19 @@ See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local."
 		 (const this))
   :group 'comint)
 
-(defcustom comint-scroll-to-bottom-on-output nil
-  "*Controls whether interpreter output causes window to scroll.
-If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
-If `this', scroll only the selected window.
-If `others', scroll only those that are not the selected window.
+(defcustom comint-move-point-for-output nil
+  "*Controls whether interpreter output moves point to the end of the output.
+If nil, then output never moves point to the output.
+ (If the output occurs at point, it is inserted before point.)
+If t or `all', move point in all windows showing the buffer.
+If `this', move point only the selected window.
+If `others', move point only in other windows, not in the selected window.
 
 The default is nil.
 
-See variable `comint-scroll-show-maximum-output' and function
-`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local."
+See the variable `comint-scroll-show-maximum-output' and the function
+`comint-postoutput-scroll-to-bottom'.
+This variable is buffer-local in all comint buffers."
   :type '(choice (const :tag "off" nil)
 		 (const t)
 		 (const all)
@@ -261,12 +264,22 @@ See variable `comint-scroll-show-maximum-output' and function
 		 (const others))
   :group 'comint)
 
-(defcustom comint-scroll-show-maximum-output t
-  "*Controls how interpreter output causes window to scroll.
-If non-nil, then show the maximum output when the window is scrolled.
+(defvaralias 'comint-scroll-to-bottom-on-output 'comint-move-point-for-output)
 
-See variable `comint-scroll-to-bottom-on-output' and function
-`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local."
+(defcustom comint-scroll-show-maximum-output t
+  "*Controls how to scroll due to interpreter output.
+This variable applies when point is at the end of the buffer
+\(either because it was originally there, or because
+`comint-move-point-for-output' said to move it there)
+and output from the subprocess is inserted.
+
+Non-nil means scroll so that the window is full of text
+and point is on the last line.  A value of nil
+means don't do anyting special--scroll normally.
+
+See also the variable `comint-move-point-for-output' and the function
+`comint-postoutput-scroll-to-bottom'.
+This variable is buffer-local in all comint buffers."
   :type 'boolean
   :group 'comint)
 
@@ -430,7 +443,7 @@ The command \\[comint-accumulate] sets this.")
 (put 'comint-output-filter-functions 'permanent-local t)
 (put 'comint-preoutput-filter-functions 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-input 'permanent-local t)
-(put 'comint-scroll-to-bottom-on-output 'permanent-local t)
+(put 'comint-move-point-for-output 'permanent-local t)
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
 (put 'comint-ptyp 'permanent-local t)
 
@@ -464,7 +477,7 @@ Commands with no default key bindings include `send-invisible',
 Input to, and output from, the subprocess can cause the window to scroll to
 the end of the buffer.  See variables `comint-output-filter-functions',
 `comint-preoutput-filter-functions', `comint-scroll-to-bottom-on-input',
-and `comint-scroll-to-bottom-on-output'.
+and `comint-move-point-for-output'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -499,7 +512,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-input-sender)
   (make-local-variable 'comint-eol-on-send)
   (make-local-variable 'comint-scroll-to-bottom-on-input)
-  (make-local-variable 'comint-scroll-to-bottom-on-output)
+  (make-local-variable 'comint-move-point-for-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
   ;; This makes it really work to keep point at the bottom.
   (make-local-variable 'scroll-conservatively)
@@ -682,8 +695,7 @@ See `make-comint' and `comint-exec'."
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same comint
 buffer.  The hook `comint-exec-hook' is run after each exec."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
       (if proc (delete-process proc)))
     ;; Crank up a new process
@@ -737,7 +749,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)
 	      default-directory
-	    (char-to-string directory-sep-char)))
+	    "/"))
 	proc decoding encoding changed)
     (let ((exec-path (if (file-name-directory command)
 			 ;; If the command has slashes, make sure we
@@ -1562,7 +1574,7 @@ Make backspaces delete the previous character."
 	(save-restriction
 	  (widen)
 	  (let ((inhibit-field-text-motion t)
-		(buffer-read-only nil))
+		(inhibit-read-only t))
 	    ;; CR LF -> LF
 	    ;; Note that this won't work properly when the CR and LF
 	    ;; are in different output chunks, but this is probably an
@@ -1601,7 +1613,7 @@ Make backspaces delete the previous character."
 	    (setq functions (cdr functions))))
 
 	;; Insert STRING
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      ;; Avoid the overhead of save-excursion, since we just
 	      ;; fiddle with the point
 	      (saved-point (point-marker)))
@@ -1727,16 +1739,16 @@ This function should be a pre-command hook."
 	       nil t))))))
 
 (defun comint-postoutput-scroll-to-bottom (string)
-  "Go to the end of buffer in all windows showing it.
+  "Go to the end of buffer in some or all windows showing it.
 Does not scroll if the current line is the last line in the buffer.
-Depends on the value of `comint-scroll-to-bottom-on-output' and
+Depends on the value of `comint-move-point-for-output' and
 `comint-scroll-show-maximum-output'.
 
 This function should be in the list `comint-output-filter-functions'."
   (let* ((selected (selected-window))
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
-	 (scroll comint-scroll-to-bottom-on-output))
+	 (scroll comint-move-point-for-output))
     (unwind-protect
 	(if process
 	    (walk-windows
@@ -1772,7 +1784,8 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (goto-char (process-mark (get-buffer-process (current-buffer))))
     (forward-line (- comint-buffer-maximum-size))
     (beginning-of-line)
-    (delete-region (point-min) (point))))
+    (let ((inhibit-read-only t))
+      (delete-region (point-min) (point)))))
 
 (defun comint-strip-ctrl-m (&optional string)
   "Strip trailing `^M' characters from the current output group.
@@ -1890,7 +1903,7 @@ filter and C-g is pressed, this function returns nil rather than a string).
 Note that the keystrokes comprising the text can still be recovered
 \(temporarily) with \\[view-lossage].  Some people find this worrysome.
 Once the caller uses the password, it can erase the password
-by doing (fillarray STRING 0)."
+by doing (clear-string STRING)."
   (let ((ans "")
 	(newans nil)
 	(c 0)
@@ -1917,11 +1930,11 @@ by doing (fillarray STRING 0)."
 	    ((or (= c ?\r) (= c ?\n) (= c ?\e))
 	     (setq done t))
 	    ((= c ?\C-u)
-	     (fillarray ans 0)
+	     (clear-string ans)
 	     (setq ans ""))
 	    ((and (/= c ?\b) (/= c ?\177))
 	     (setq newans (concat ans (char-to-string c)))
-	     (fillarray ans 0)
+	     (clear-string ans)
 	     (setq ans newans))
 	    ((> (length ans) 0)
 	     (aset ans (1- (length ans)) 0)
@@ -2069,7 +2082,9 @@ This command also kills the pending input
 between the process-mark and point."
   (interactive)
   (comint-skip-input)
-  (interrupt-process nil comint-ptyp))
+  (interrupt-process nil comint-ptyp)
+;;  (process-send-string nil "\n")
+  )
 
 (defun comint-kill-subjob ()
   "Send kill signal to the current subjob.
@@ -2672,7 +2687,7 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 (dirsuffix (cond ((not comint-completion-addsuffix)
 			   "")
 			  ((not (consp comint-completion-addsuffix))
-			   (char-to-string directory-sep-char))
+			   "/")
 			  (t
 			   (car comint-completion-addsuffix))))
 	 (filesuffix (cond ((not comint-completion-addsuffix)
@@ -3379,4 +3394,5 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
+;;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
 ;;; comint.el ends here

@@ -44,6 +44,9 @@
 ;; during byte-compilation (at which point it might be missing).
 (load "finder-inf" t t)
 
+(defvar finder-mode-hook nil
+  "*Hook run when function `finder-mode' is called.")
+
 ;; Local variable in finder buffer.
 (defvar finder-headmark)
 
@@ -337,7 +340,8 @@ FILE should be in a form suitable for passing to `locate-library'."
   (setq mode-name "Finder")
   (setq major-mode 'finder-mode)
   (make-local-variable 'finder-headmark)
-  (setq finder-headmark nil))
+  (setq finder-headmark nil)
+  (run-hooks 'finder-mode-hook))
 
 (defun finder-summary ()
   "Summarize basic Finder commands."
@@ -362,4 +366,5 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (provide 'finder)
 
+;;; arch-tag: ec85ff49-8cb8-41f5-a63f-9131d53ce2c5
 ;;; finder.el ends here

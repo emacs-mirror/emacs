@@ -1552,4 +1552,5 @@ If it isn't in one, return nil."
 
 (provide 'make-mode)
 
+;;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
 ;;; make-mode.el ends here

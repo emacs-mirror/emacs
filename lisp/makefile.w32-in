@@ -87,6 +87,7 @@ DONTCOMPILE = \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
 	$(lisp)/loaddefs.el \
+	$(lisp)/ldefs-boot.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
 	$(lisp)/patcomp.el \
@@ -352,22 +353,33 @@ compile-after-backup: backup-compiled-files compile-always
 recompile: doit
 	$(emacs) -f batch-byte-recompile-directory $(lisp)
 
-# Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
-# because it's not sure it's up-to-date, and if it's not, that might
-# lead to errors during the bootstrap because something fails to
-# autoload as expected.  Remove compiled Lisp files so that
-# bootstrap-emacs will be built from sources only.
+# Prepare a bootstrap in the lisp subdirectory.
+#
+# Build loaddefs.el, because it's not sure it's up-to-date, and if it's not,
+# that might lead to errors during the bootstrap because something fails to
+# autoload as expected.  However, if there is no emacs binary, then we can't
+# build autoloads yet, so just make sure there's some loaddefs.el file, as
+# it's necessary for generating the binary (because loaddefs.el is an
+# automatically generated file, we don't want to store it in the source
+# repository).
+#
+# Remove compiled Lisp files so that bootstrap-emacs will be built from
+# sources only.
 
 # Need separate version for sh and native cmd.exe
 bootstrap-clean: bootstrap-clean-$(SHELLTYPE) loaddefs.el
 
 bootstrap-clean-CMD:
 #	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
+	if not exist $(lisp)\loaddefs.el cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
 	-for %f in (. $(WINS)) do for %g in (%f\*.elc) do @$(DEL) %g
 
 bootstrap-clean-SH:
 #	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
 #	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
+	if ! test -r $(lisp)/loaddefs.el; then \
+	  cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el; \
+	fi
 	-for dir in . $(WINS); do rm -f $$dir/*.elc; done
 
 # Generate/update files for the bootstrap process.
@@ -406,3 +418,5 @@ install:
 #
 clean:
 		- $(DEL) *~
+
+# arch-tag: bd03b562-c58d-4403-99db-c7bccd8c49a0

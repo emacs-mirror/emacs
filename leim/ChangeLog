@@ -1,3 +1,38 @@
+2003-10-06  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Several additions.
+
+2003-08-25  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* quail/latin-pre.el ("german-prefix"): Fix typo in the docstring.
+
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Add \rhd.
+
+2003-08-19  Markus Rost  <rost@math.ohio-state.edu>
+
+	* quail/latin-pre.el ("french-prefix"): Fix spacing in docstring.
+
+2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
+
+	* quail/indian.el (quail-indian-update-translation): Adjusted the
+	behaviour according to the change of quail-translate-key.
+
+2003-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* quail/pypunct-b5.el ("chinese-py-punct-b5"): Change the title
+	Chinese characters from GB to Big5.
+
+2003-05-01  Bzyl Wlodzimierz  <matwb@julia.univ.gda.pl>  (tiny change)
+
+	* quail/latin-pre.el ("polish-slash"): Add the rule "//"->?/.
+
+2003-04-05  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install): Remove CVS related and backup files from
+	installation directory.
+
 2003-02-27  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el (greek-babel): add koronis transliteration.
@@ -1324,3 +1359,5 @@
     Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 4b364045-a476-4ff7-92ad-dde58dbd45b4

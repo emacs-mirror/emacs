@@ -1,4 +1,4 @@
-# $Id: SW.tit,v 1.1 1991/10/27 06:21:16 ygz Exp $
+# $Id: SW.tit,v 1.2 2003/09/01 15:44:59 miles Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 1
@@ -726,3 +726,5 @@ zv	·±×ÏÙÛÙÜÙà
 zy	°±´Ôµª¶Ì·Õ·ú¸×º¤ºĞÂÈÄÊÆóÆøÇâÇèÉÏĞ©ĞéÑõÕ½Ö¹ÙÚÙİÙŞê¨
 zy	ë­ë®ë¯ë°ë±ë²ë³ë´ëµõºö´÷ª
 zz	´Ó¿¨ÁìÂ­ÆµÇêÈËÌ°Õ§ÕêÖÚêßì£ì¨ò¢ò¥
+
+# arch-tag: 0e108249-9190-46f4-884f-6af10a9aeb89

@@ -111,3 +111,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* We need this to get dumping to work */
 #define KEEP_OLD_TEXT_SCNPTR
+
+/* arch-tag: fd3cebc3-2aed-4f8c-be9b-f37331c6e0ff
+   (do not change this comment) */

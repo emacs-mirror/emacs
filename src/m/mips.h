@@ -1,5 +1,5 @@
 /* m- file for Mips machines.
-   Copyright (C) 1987, 1992, 1999, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1992, 1999, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -170,11 +170,6 @@ NOTE-END  */
   ((var) =								\
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
-
-#define XUNMARK(a)							\
-  ((a) =								\
-   (((unsigned)(a) << (BITS_PER_INT-GCTYPEBITS-VALBITS))		\
-    >> (BITS_PER_INT-GCTYPEBITS-VALBITS)))
 
 #if !defined (NEWSOS5) && !defined (__linux__)
 #ifdef USG
@@ -217,3 +212,6 @@ NOTE-END  */
 #endif /* BSD_SYSTEM */
 
 #endif /* not NEWSOS5 && not __linux__ */
+
+/* arch-tag: 8fd020ee-78a7-4d87-96ce-6129f52f7bee
+   (do not change this comment) */

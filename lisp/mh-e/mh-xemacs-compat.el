@@ -1,6 +1,6 @@
 ;;; mh-xemacs-compat.el --- GNU Emacs Functions needed by XEmacs
 
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 02, 2003 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -28,12 +28,12 @@
 
 ;;; Change Log:
 
-;; $Id: mh-xemacs-compat.el,v 1.2 2003/02/03 20:55:30 wohler Exp $
-
 ;;; Code:
 
 ;;; Some requires:
 (require 'rfc822)
+
+(eval-when-compile (require 'mh-utils))
 
 ;;; Simple compatibility:
 
@@ -52,6 +52,42 @@
 (unless (fboundp 'cancel-timer)
   (defalias 'cancel-timer 'delete-itimer))
 
+;; Set up the modeline glyph
+(defconst mh-modeline-logo
+  "/* XPM */
+static char * file[] = {
+\"18 13 2 1\",
+\"# c #666699\",
+\". c None s None\",
+\"........##........\",
+\".......####.......\",
+\"......######......\",
+\"......######......\",
+\"....#########.....\",
+\"..##############..\",
+\".##...######....#.\",
+\"##...#.#.####...#.\",
+\"....#..#.##.#...#.\",
+\"...#..##.#.#.#....\",
+\"...#..#..#..#.#...\",
+\"...#..#.##..#.##..\",
+\"...#..#.#..#....#.\"};"
+  "The image for the modeline logo.")
+
+(mh-do-in-xemacs
+  (defvar mh-modeline-glyph
+    (progn
+      (let* ((data mh-modeline-logo)
+             (glyph (make-glyph
+                     (cond ((and (featurep 'xpm)
+                                 (device-on-window-system-p)
+                                 has-modeline-p)
+                            `[xpm :data ,data])
+                           (t [string :data "MH-E"])))))
+        (set-glyph-face glyph 'modeline-buffer-id)
+        glyph))
+    "Cute little logo to put in the modeline of MH-E buffers."))
+
 (provide 'mh-xemacs-compat)
 
 ;;; Local Variables:
@@ -59,4 +95,5 @@
 ;;; sentence-end-double-space: nil
 ;;; End:
 
+;;; arch-tag: f531e3cc-98ba-4f9f-b6a1-e282173a6aa9
 ;;; mh-xemacs-compat.el ends here

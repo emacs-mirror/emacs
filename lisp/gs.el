@@ -212,4 +212,5 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 
 (provide 'gs)
 
+;;; arch-tag: 06ab51b8-4932-4cfe-9f60-b924a8edb3f0
 ;;; gs.el ends here

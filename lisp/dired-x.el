@@ -2,7 +2,7 @@
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Maintainer: FSF (unless Dodd can be found)
+;; Maintainer: nobody (want to volunteer?)
 ;; Version: 2.37+
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
@@ -398,7 +398,7 @@ See variable `dired-patch-unclean-extensions'."
 
 (defun dired-clean-tex ()
   "Flag dispensable files created by [La]TeX etc. for deletion.
-See variables `dired-texinfo-unclean-extensions',
+See variables `dired-tex-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
   (interactive)
@@ -1665,4 +1665,5 @@ variables `dired-x-variable-list' in the message."
 ;; As Barry Warsaw would say: "This might be useful..."
 (provide 'dired-x)
 
+;;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

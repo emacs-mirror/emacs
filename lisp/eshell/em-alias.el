@@ -272,4 +272,5 @@ These are all the command aliases which begin with NAME."
 					eshell-prevent-alias-expansion))))
 		     (eshell-parse-command alias))))))))))
 
+;;; arch-tag: 8b018fc1-4e07-4ccc-aa73-c0a1ba361f82
 ;;; em-alias.el ends here

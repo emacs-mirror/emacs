@@ -1,3 +1,7 @@
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in: New file.
+
 2001-11-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp-intro.texi (Index): @ignore extraneous text.
@@ -17,10 +21,12 @@
 	* *.eps: Rename to avoid clashes in DOS 8+3 namespace.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 2001
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: ee4f8e1f-e14c-4d2e-86de-4dd697e6f1c3

@@ -573,10 +573,7 @@ There should be no more than seven characters after the final `/'."
 						  uncompress-args)))
 		      (setq size (- (point) start))
 		      (if replace
-			  (let* ((del-beg (point))
-				 (del-end (+ del-beg size)))
-			    (delete-region del-beg
-					   (min del-end (point-max)))))
+			  (delete-region (point) (point-max)))
 		      (goto-char start))
 		  (error
 		   (if (and (eq (car error-code) 'file-error)
@@ -943,4 +940,5 @@ Returns the new status of auto compression (non-nil means on)."
 
 (provide 'jka-compr)
 
+;;; arch-tag: 3f15b630-e9a7-46c4-a22a-94afdde86ebc
 ;;; jka-compr.el ends here

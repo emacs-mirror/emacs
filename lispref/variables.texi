@@ -198,18 +198,18 @@ is omitted, @code{nil} is used.
 
 All of the @var{value-form}s in @var{bindings} are evaluated in the
 order they appear and @emph{before} binding any of the symbols to them.
-Here is an example of this: @code{Z} is bound to the old value of
-@code{Y}, which is 2, not the new value of @code{Y}, which is 1.
+Here is an example of this: @code{z} is bound to the old value of
+@code{y}, which is 2, not the new value of @code{y}, which is 1.
 
 @example
 @group
-(setq Y 2)
+(setq y 2)
      @result{} 2
 @end group
 @group
-(let ((Y 1)
-      (Z Y))
-  (list Y Z))
+(let ((y 1)
+      (z y))
+  (list y z))
      @result{} (1 2)
 @end group
 @end example
@@ -225,13 +225,13 @@ form.  Compare the following example with the example above for
 
 @example
 @group
-(setq Y 2)
+(setq y 2)
      @result{} 2
 @end group
 @group
-(let* ((Y 1)
-       (Z Y))    ; @r{Use the just-established value of @code{Y}.}
-  (list Y Z))
+(let* ((y 1)
+       (z y))    ; @r{Use the just-established value of @code{y}.}
+  (list y z))
      @result{} (1 1)
 @end group
 @end example
@@ -576,11 +576,12 @@ this feature is largely obsoleted by @code{defcustom}
 (@pxref{Customization}).
 
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
-forms are used while the variable has a local binding, they set the
-local binding's value; the global binding is not changed.  This is not
-what you usually want.  To prevent it, use these special forms at top
-level in a file, where normally no local binding is in effect, and make
-sure to load the file before making a local binding for the variable.
+forms are used while the variable has a local binding (made with
+@code{let}, or a function argument), they set the local-binding's
+value; the top-level binding is not changed.  This is not what you
+usually want.  To prevent it, use these special forms at top level in
+a file, where normally no local binding is in effect, and make sure to
+load the file before making a local binding for the variable.
 
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
@@ -903,6 +904,7 @@ the others.
 @cindex scope
 @cindex extent
 @cindex dynamic scoping
+@cindex lexical scoping
   Local bindings in Emacs Lisp have @dfn{indefinite scope} and
 @dfn{dynamic extent}.  @dfn{Scope} refers to @emph{where} textually in
 the source code the binding can be accessed.  ``Indefinite scope'' means
@@ -1184,16 +1186,17 @@ the default binding untouched.  This means that the default value cannot
 be changed with @code{setq} in any buffer; the only way to change it is
 with @code{setq-default}.
 
-  @strong{Warning:} When a variable has buffer-local values in one or
-more buffers, binding the variable with @code{let} and changing to a
-different current buffer in which a different binding is in
-effect, and then exiting the @code{let}, the variable may not be
-restored to the value it had before the @code{let}.
-
-  To preserve your sanity, avoid using a variable in that way.  If you
-use @code{save-excursion} around each piece of code that changes to a
-different current buffer, you will not have this problem
-(@pxref{Excursions}).  Here is an example of what to avoid:
+  @strong{Warning:} When a variable has buffer-local or frame-local
+bindings in one or more buffers, @code{let} rebinds the binding that's
+currently in effect.  For instance, if the current buffer has a
+buffer-local value, @code{let} temporarily rebinds that.  If no
+buffer-local or frame-local bindings are in effect, @code{let} rebinds
+the default value.  If inside the @code{let} you then change to a
+different current buffer in which a different binding is in effect,
+you won't see the @code{let} binding any more.  And if you exit the
+@code{let} while still in the other buffer, you won't see the
+unbinding occur (though it will occur properly).  Here is an example
+to illustrate:
 
 @example
 @group
@@ -1208,24 +1211,12 @@ different current buffer, you will not have this problem
   ;; foo @result{} 'g     ; @r{the global value since foo is not local in @samp{b}}
   @var{body}@dots{})
 @group
-foo @result{} 'a        ; @r{we are still in buffer @samp{b}, but exiting the let}
-                 ; @r{restored the local value in buffer @samp{a}}
+foo @result{} 'g        ; @r{exiting restored the local value in buffer @samp{a},}
+                 ; @r{but we don't see that in buffer @samp{b}}
 @end group
 @group
-(set-buffer "a") ; @r{This can be seen here:}
-foo @result{} 'a        ; @r{we are back to the local value in buffer @samp{a}}
-@end group
-@end example
-
-@noindent
-But @code{save-excursion} as shown here avoids the problem:
-
-@example
-@group
-(let ((foo 'temp))
-  (save-excursion
-    (set-buffer "b")
-    @var{body}@dots{}))
+(set-buffer "a") ; @r{verify the local value was restored}
+foo @result{} 'a
 @end group
 @end example
 
@@ -1291,9 +1282,9 @@ If the variable is terminal-local, this function signals an error.  Such
 variables cannot have buffer-local bindings as well.  @xref{Multiple
 Displays}.
 
-@strong{Note:} Do not use @code{make-local-variable} for a hook
-variable.  The hook variables are automatically made buffer-local
-as needed if you use the @var{local} argument to @code{add-hook} or
+@strong{Warning:} do not use @code{make-local-variable} for a hook
+variable.  The hook variables are automatically made buffer-local as
+needed if you use the @var{local} argument to @code{add-hook} or
 @code{remove-hook}.
 @end deffn
 
@@ -1328,6 +1319,13 @@ This returns @code{t} if @var{variable} is buffer-local in buffer
 @code{nil}.
 @end defun
 
+@defun buffer-local-value variable buffer
+This function returns the buffer-local binding of @var{variable} (a
+symbol) in buffer @var{buffer}.  If @var{variable} does not have a
+buffer-local binding in buffer @var{buffer}, it returns the default
+value (@pxref{Default Value}) of @var{variable} instead.
+@end defun
+
 @defun buffer-local-variables &optional buffer
 This function returns a list describing the buffer-local variables in
 buffer @var{buffer}.  (If @var{buffer} is omitted, the current buffer is
@@ -1360,13 +1358,6 @@ then the variable appears directly in the resulting list.
 
 Note that storing new values into the @sc{cdr}s of cons cells in this
 list does @emph{not} change the buffer-local values of the variables.
-@end defun
-
-@defun buffer-local-value variable buffer
-This function returns the buffer-local binding of @var{variable} (a
-symbol) in buffer @var{buffer}.  If @var{variable} does not have a
-buffer-local binding in buffer @var{buffer}, it returns the default
-value (@pxref{Default Value}) of @var{variable} instead.
 @end defun
 
 @deffn Command kill-local-variable variable
@@ -1676,15 +1667,15 @@ chosen, or because its meaning has partly changed---it can be useful
 to keep the old name as an @emph{alias} of the new one for
 compatibility.  You can do this with @code{defvaralias}.
 
-@defun defvaralias alias-var base-var [docstring]
+@defun defvaralias alias-var base-var &optional docstring
 This function defines the symbol @var{alias-var} as a variable alias
 for symbol @var{base-var}. This means that retrieving the value of
 @var{alias-var} returns the value of @var{base-var}, and changing the
 value of @var{alias-var} changes the value of @var{base-var}.
 
-If the @var{docstring} argument is present, it specifies the documentation for
-@var{alias-var}; otherwise, it has the same documentation as @var{base-var},
-if any.
+If the @var{docstring} argument is non-@code{nil}, it specifies the
+documentation for @var{alias-var}; otherwise, the alias gets the same
+documentation as @var{base-var} has, if any.
 @end defun
 
 @defun indirect-variable variable
@@ -1760,7 +1751,8 @@ for one of these variables is ignored.
 @end defvar
 
 @defun risky-local-variable-p sym
-Returns non-nil if @var{sym} is risky for any of the reasons stated above.
+Returns non-@code{nil} if @var{sym} is risky for any of the reasons
+stated above.
 @end defun
 
   The @samp{Eval:} ``variable'' is also a potential loophole, so Emacs
@@ -1772,3 +1764,12 @@ lists in files being visited.  A value of @code{t} means process them
 unconditionally; @code{nil} means ignore them; anything else means ask
 the user what to do for each file.  The default value is @code{maybe}.
 @end defopt
+
+  Text properties are also potential loopholes, since their values
+could include functions to call.  So Emacs discards all text
+properties from string values specified in a file's local variables
+list.
+
+@ignore
+   arch-tag: 5ff62c44-2b51-47bb-99d4-fea5aeec5d3e
+@end ignore

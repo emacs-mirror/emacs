@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 2001
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
@@ -151,7 +151,7 @@ string, and RET terminates editing and does a nonincremental search."
   :type 'boolean
   :group 'isearch)
 
-(defcustom search-whitespace-regexp "\\s-+"
+(defcustom search-whitespace-regexp "\\(?:\\s-+\\)"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to regular expression incremental search.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.
@@ -738,15 +738,14 @@ REGEXP says which ring to use."
       (if (or (null regexp-search-ring)
 	      (not (string= string (car regexp-search-ring))))
 	  (progn
-	    (setq regexp-search-ring
-		  (cons string regexp-search-ring))
+	    (push string regexp-search-ring)
 	    (if (> (length regexp-search-ring) regexp-search-ring-max)
 		(setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
 			nil))))
     (if (or (null search-ring)
 	    (not (string= string (car search-ring))))
 	(progn
-	  (setq search-ring (cons string search-ring))
+	  (push string search-ring)
 	  (if (> (length search-ring) search-ring-max)
 	      (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
 
@@ -1493,9 +1492,8 @@ With prefix arg N, insert the Nth element."
   ;; Helper for isearch-complete and isearch-complete-edit
   ;; Return t if completion OK, nil if no completion exists.
   (let* ((ring (if isearch-regexp regexp-search-ring search-ring))
-         (alist (mapcar (function (lambda (string) (list string))) ring))
          (completion-ignore-case case-fold-search)
-         (completion (try-completion isearch-string alist)))
+         (completion (try-completion isearch-string ring)))
     (cond
      ((eq completion t)
       ;; isearch-string stays the same
@@ -1507,7 +1505,7 @@ With prefix arg N, insert the Nth element."
 	    (if completion-auto-help
 		(with-output-to-temp-buffer "*Isearch completions*"
 		  (display-completion-list
-		   (all-completions isearch-string alist))))
+		   (all-completions isearch-string ring))))
 	    t)
 	(and completion
 	     (setq isearch-string completion))))
@@ -1521,7 +1519,10 @@ The completed string is then editable in the minibuffer.
 If there is no completion possible, say so and continue searching."
   (interactive)
   (if (isearch-complete1)
-      (isearch-edit-string)
+      (progn (setq isearch-message
+		   (mapconcat 'isearch-text-char-description
+			      isearch-string ""))
+	     (isearch-edit-string))
     ;; else
     (sit-for 1)
     (isearch-update)))
@@ -1529,7 +1530,7 @@ If there is no completion possible, say so and continue searching."
 (defun isearch-complete-edit ()
   "Same as `isearch-complete' except in the minibuffer."
   (interactive)
-  (setq isearch-string (buffer-string))
+  (setq isearch-string (field-string))
   (if (isearch-complete1)
       (progn
 	(delete-field)
@@ -2123,4 +2124,5 @@ CASE-FOLD non-nil means the search was case-insensitive."
 	isearch-case-fold-search case-fold)
   (isearch-search))
 
+;;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
 ;;; isearch.el ends here

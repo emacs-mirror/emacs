@@ -40,8 +40,8 @@
 (random t)				; randomize
 
 (defcustom mpuz-silent 'error
-  "*Set this to `nil' if you want dings on inputs.
-`t' means never ding, and `error' means only ding on wrong input."
+  "*Set this to nil if you want dings on inputs.
+t means never ding, and `error' means only ding on wrong input."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
 		 (const :tag "If correct" error))
@@ -515,4 +515,5 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (provide 'mpuz)
 
+;;; arch-tag: 2781d6ba-89e7-43b5-85c7-5d3a2e73feb1
 ;;; mpuz.el ends here

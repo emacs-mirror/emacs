@@ -183,7 +183,7 @@ shrink_regexp_cache ()
     {
       cp->buf.allocated = cp->buf.used;
       cp->buf.buffer
-	= (unsigned char *) realloc (cp->buf.buffer, cp->buf.used);
+	= (unsigned char *) xrealloc (cp->buf.buffer, cp->buf.used);
     }
 }
 
@@ -2901,7 +2901,7 @@ syms_of_search ()
   for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
     {
       searchbufs[i].buf.allocated = 100;
-      searchbufs[i].buf.buffer = (unsigned char *) malloc (100);
+      searchbufs[i].buf.buffer = (unsigned char *) xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
       staticpro (&searchbufs[i].regexp);
@@ -2946,3 +2946,6 @@ syms_of_search ()
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
+
+/* arch-tag: a6059d79-0552-4f14-a2cb-d379a4e3c78f
+   (do not change this comment) */

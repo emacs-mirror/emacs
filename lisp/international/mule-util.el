@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -358,6 +359,45 @@ language environment LANG-ENV."
 		 coding-priority))
       (detect-coding-region from to))))
 
+;;;###autoload
+(defun char-displayable-p (char)
+  "Return non-nil if we should be able to display CHAR.
+On a multi-font display, the test is only whether there is an
+appropriate font from the selected frame's fontset to display CHAR's
+charset in general.  Since fonts may be specified on a per-character
+basis, this may not be accurate."
+  (cond ((< char 256)
+	 ;; Single byte characters are always displayable.
+	 t)
+	((display-multi-font-p)
+	 ;; On a window system, a character is displayable if we have
+	 ;; a font for that character in the default face of the
+	 ;; currently selected frame.
+	 (let ((fontset (frame-parameter (selected-frame) 'font))
+	       font-pattern)
+	   (if (query-fontset fontset)
+	       (setq font-pattern (fontset-font fontset char)))
+	   (or font-pattern
+	       (setq font-pattern (fontset-font "fontset-default" char)))
+	   (if font-pattern
+	       (progn
+		 ;; Now FONT-PATTERN is a string or a cons of family
+		 ;; field pattern and registry field pattern.
+		 (or (stringp font-pattern)
+		     (setq font-pattern (concat "-"
+						(or (car font-pattern) "*")
+						"-*-"
+						(cdr font-pattern))))
+		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
+	(t
+	 (let ((coding (terminal-coding-system)))
+	   (if coding
+	       (let ((safe-chars (coding-system-get coding 'safe-chars))
+		     (safe-charsets (coding-system-get coding 'safe-charsets)))
+		 (or (and safe-chars
+			  (aref safe-chars char))
+		     (and safe-charsets
+			  (memq (char-charset char) safe-charsets)))))))))
 
 (provide 'mule-util)
 
@@ -365,4 +405,5 @@ language environment LANG-ENV."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: 5bdb52b6-a3a5-4529-b7a0-37d01b0e570b
 ;;; mule-util.el ends here

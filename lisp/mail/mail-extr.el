@@ -1,4 +1,4 @@
-;;; mail-extr.el --- extract full name and address from RFC 822 mail header
+;;; mail-extr.el --- extract full name and address from RFC 822 mail header -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1997, 2001
 ;;   Free Software Foundation, Inc.
@@ -616,11 +616,11 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 
 (defsubst mail-extr-skip-whitespace-forward ()
   ;; v19 fn skip-syntax-forward is more tasteful, but not byte-coded.
-  (skip-chars-forward " \t\n\r\240"))
+  (skip-chars-forward " \t\n\r "))
 
 (defsubst mail-extr-skip-whitespace-backward ()
   ;; v19 fn skip-syntax-backward is more tasteful, but not byte-coded.
-  (skip-chars-backward " \t\n\r\240"))
+  (skip-chars-backward " \t\n\r "))
 
 
 (defsubst mail-extr-undo-backslash-quoting (beg end)
@@ -2144,4 +2144,5 @@ consing a string.)"
 
 (provide 'mail-extr)
 
+;;; arch-tag: 7785fade-1073-4ed6-b4f6-28db34a7982d
 ;;; mail-extr.el ends here

@@ -148,3 +148,5 @@
     (if (symbolp arg)
       (set_proc_str (get-pname arg))
       (error arg " is illegal argument to set-proc-str"))))
+
+;;; arch-tag: 2e76c01f-8d6a-4d04-b9ab-0eaabec96aee

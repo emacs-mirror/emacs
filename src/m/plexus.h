@@ -103,3 +103,6 @@ Boston, MA 02111-1307, USA.  */
 /* This triggers some stuff to avoid a compiler bug */
 
 #define TAHOE_REGISTER_BUG
+
+/* arch-tag: 78c607eb-b4f8-4750-b575-39670d979448
+   (do not change this comment) */

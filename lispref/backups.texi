@@ -143,9 +143,9 @@ ignored.
 
 @defvar make-backup-file-name-function
 @tindex make-backup-file-name-function
-This variable's value is a function to use for making backups instead of
-the default @code{make-backup-file-name}.  A value of nil gives the
-default @code{make-backup-file-name} behaviour.
+This variable's value is a function to use for making backups instead
+of the default @code{make-backup-file-name}.  A value of @code{nil}
+gives the default @code{make-backup-file-name} behaviour.
 
 This could be buffer-local to do something special for specific
 files.  If you define it, you may need to change
@@ -415,7 +415,7 @@ automatically compare a file with its most recent backup.
 called @dfn{auto-saving}.  Auto-saving prevents you from losing more
 than a limited amount of work if the system crashes.  By default,
 auto-saves happen every 300 keystrokes, or after around 30 seconds of
-idle time.  @xref{Auto-Save, Auto-Save, Auto-Saving: Protection Against
+idle time.  @xref{Auto Save, Auto Save, Auto-Saving: Protection Against
 Disasters, emacs, The GNU Emacs Manual}, for information on auto-save
 for users.  Here we describe the functions used to implement auto-saving
 and the variables that control them.
@@ -558,9 +558,9 @@ the current buffer is large, the specified timeout is multiplied by a
 factor that increases as the size increases; for a million-byte
 buffer, the factor is almost 4.)
 
-If the value is zero or nil, then auto-saving is not done as a result
-of idleness, only after a certain number of input events
-as specified by @code{auto-save-interval}.
+If the value is zero or @code{nil}, then auto-saving is not done as a
+result of idleness, only after a certain number of input events as
+specified by @code{auto-save-interval}.
 @end defopt
 
 @defvar auto-save-hook
@@ -729,3 +729,7 @@ This normal hook is run by @code{revert-buffer} after inserting
 the modified contents---but only if @code{revert-buffer-function} is
 @code{nil}.
 @end defvar
+
+@ignore
+   arch-tag: 295a6321-e5ab-46d5-aef5-0bb4f447a67f
+@end ignore

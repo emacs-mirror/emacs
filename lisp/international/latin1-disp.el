@@ -106,7 +106,7 @@ a Unicode font with which to display them."
   (if sets
       (progn
 	(mapc #'latin1-display-setup sets)
-	(unless (latin1-char-displayable-p
+	(unless (char-displayable-p
 		 (make-char 'mule-unicode-0100-24ff 32 33))
 	  ;; It doesn't look as though we have a Unicode font.
 	  (map-char-table
@@ -133,6 +133,7 @@ a Unicode font with which to display them."
 	     (?\$,1rt(B "--")	;; EM DASH
 	     (?\$,1ub(B "TM")	;; TRADE MARK SIGN
 	     (?\$,1s:(B ">") ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+	     (?$,1s"(B  ",A7(B")
 	     )))
 	  (setq latin1-display t))
     (mapc #'latin1-display-reset latin1-display-sets)
@@ -220,47 +221,11 @@ character set: `latin-2', `hebrew' etc."
       (setq language 'cyrillic-iso))
   (let* ((info (get-language-info language 'charset))
 	 (char (and info (make-char (car (remq 'ascii info)) ?\ ))))
-    (and char (latin1-char-displayable-p char))))
+    (and char (char-displayable-p char))))
 
-;; This should be moved into mule-utils or somewhere after 21.1.
-(defun latin1-char-displayable-p (char)
-  "Return non-nil if we should be able to display CHAR.
-On a multi-font display, the test is only whether there is an
-appropriate font from the selected frame's fontset to display CHAR's
-charset in general.  Since fonts may be specified on a per-character
-basis, this may not be accurate."
-  (cond ((< char 256)
-	 ;; Single byte characters are always displayable.
-	 t)
-	((display-multi-font-p)
-	 ;; On a window system, a character is displayable if we have
-	 ;; a font for that character in the default face of the
-	 ;; currently selected frame.
-	 (let ((fontset (frame-parameter (selected-frame) 'font))
-	       font-pattern)
-	   (if (query-fontset fontset)
-	       (setq font-pattern (fontset-font fontset char)))
-	   (or font-pattern
-	       (setq font-pattern (fontset-font "fontset-default" char)))
-	   (if font-pattern
-	       (progn
-		 ;; Now FONT-PATTERN is a string or a cons of family
-		 ;; field pattern and registry field pattern.
-		 (or (stringp font-pattern)
-		     (setq font-pattern (concat "-"
-						(or (car font-pattern) "*")
-						"-*-"
-						(cdr font-pattern))))
-		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
-	(t
-	 (let ((coding (terminal-coding-system)))
-	   (if coding
-	       (let ((safe-chars (coding-system-get coding 'safe-chars))
-		     (safe-charsets (coding-system-get coding 'safe-charsets)))
-		 (or (and safe-chars
-			  (aref safe-chars char))
-		     (and safe-charsets
-			  (memq (char-charset char) safe-charsets)))))))))
+;; Backwards compatibility.
+(defalias 'latin1-char-displayable-p 'char-displayable-p)
+(make-obsolete 'latin1-char-displayable-p 'char-displayable-p "21.5")
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.
@@ -825,7 +790,7 @@ turn it off and display Unicode characters literally.  The display
 is't changed if the display can render Unicode characters."
   (interactive "p")
   (if (> arg 0)
-      (unless (latin1-char-displayable-p
+      (unless (char-displayable-p
  	       (make-char 'mule-unicode-0100-24ff 32 33))
 	;; It doesn't look as though we have a Unicode font.
 	(let ((latin1-display-format "%s"))
@@ -3244,8 +3209,8 @@ is't changed if the display can render Unicode characters."
 	     (?\$,3sc(B "\"")
 	     (?\$,3sd(B ",")
 	     ;; Not from Lynx
-	     (?$,3r_(B . "")
-	     (?$,3u=(B . "?")))))
+	     (?$,3r_(B "")
+	     (?$,3u=(B "?")))))
     (aset standard-display-table
 	  (make-char 'mule-unicode-0100-24ff) nil)
     (aset standard-display-table
@@ -3257,4 +3222,5 @@ is't changed if the display can render Unicode characters."
 
 (provide 'latin1-disp)
 
+;;; arch-tag: 68b2872e-d667-4f48-8e2f-ec2ba2d29406
 ;;; latin1-disp.el ends here

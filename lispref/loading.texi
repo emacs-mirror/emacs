@@ -148,9 +148,9 @@ The function should accept one argument, just as @code{read} does.
 Normally, the variable's value is @code{nil}, which means those
 functions should use @code{read}.
 
-@strong{Note:} Instead of using this variable, it is cleaner to use
-another, newer feature: to pass the function as the @var{read-function}
-argument to @code{eval-region}.  @xref{Eval}.
+Instead of using this variable, it is cleaner to use another, newer
+feature: to pass the function as the @var{read-function} argument to
+@code{eval-region}.  @xref{Eval}.
 @end defvar
 
   For information about how @code{load} is used in building Emacs, see
@@ -285,6 +285,12 @@ name as a string.  When the user runs @code{locate-library}
 interactively, the argument @var{interactive-call} is @code{t}, and this
 tells @code{locate-library} to display the file name in the echo area.
 @end deffn
+
+@defvar load-suffixes
+This variable is a list of suffixes (strings) that @code{load} should
+try adding to the specified file name.  The default value is
+@code{(".elc" ".el")}.  There is no need to include the null suffix.
+@end defvar
 
 @node Loading Non-ASCII
 @section Loading Non-@sc{ascii} Characters
@@ -650,6 +656,7 @@ The argument @var{feature} must be a symbol.  @code{provide} returns
 
 If provided, @var{subfeatures} should be a list of symbols indicating
 a set of specific subfeatures provided by this version of @var{feature}.
+You can test the presence of a subfeature using @code{featurep}.
 
 @smallexample
 features
@@ -662,7 +669,7 @@ features
 @end smallexample
 
 When a file is loaded to satisfy an autoload, and it stops due to an
-error in the evaluating its contents, any function definitions or
+error in the evaluation of its contents, any function definitions or
 @code{provide} calls that occurred during the load are undone.
 @xref{Autoload}.
 @end defun
@@ -685,12 +692,12 @@ provided}, unless @var{noerror} is non-@code{nil}.
 @end defun
 
 @defun featurep feature &optional subfeature
-This function returns @code{t} if @var{feature} has been provided in the
-current Emacs session (i.e.@:, if @var{feature} is a member of
-@code{features}.)  If @var{subfeature} is non-nil, then the function
-returns @code{t} only if that subfeature is provided as well (i.e.@:
-if @var{subfeature} is a member of the @code{subfeature} property
-of the @var{feature} symbol.)
+This function returns @code{t} if @var{feature} has been provided in
+the current Emacs session (i.e.@:, if @var{feature} is a member of
+@code{features}.)  If @var{subfeature} is non-@code{nil}, then the
+function returns @code{t} only if that subfeature is provided as well
+(i.e.@: if @var{subfeature} is a member of the @code{subfeature}
+property of the @var{feature} symbol.)
 @end defun
 
 @defvar features
@@ -717,12 +724,14 @@ library with @code{defun}, @code{defalias}, @code{defsubst},
 It then restores any autoloads formerly associated with those symbols.
 (Loading saves these in the @code{autoload} property of the symbol.)
 
+@vindex unload-feature-special-hooks
 Before restoring the previous definitions, @code{unload-feature} runs
 @code{remove-hook} to remove functions in the library from certain
-hooks.  These hooks include variables whose names end in @samp{hook} or
-@samp{-hooks}, plus those listed in @code{loadhist-special-hooks}.  This
-is to prevent Emacs from ceasing to function because important hooks
-refer to functions that are no longer defined.
+hooks.  These hooks include variables whose names end in @samp{hook}
+or @samp{-hooks}, plus those listed in
+@code{unload-feature-special-hooks}.  This is to prevent Emacs from
+ceasing to function because important hooks refer to functions that
+are no longer defined.
 
 @vindex @var{feature}-unload-hook
 If these measures are not sufficient to prevent malfunction, a library
@@ -846,3 +855,7 @@ implement @code{eval-after-load}.
 @end defvar
 
 @c Emacs 19 feature
+
+@ignore
+   arch-tag: df731f89-0900-4389-a436-9105241b6f7a
+@end ignore

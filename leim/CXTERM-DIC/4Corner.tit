@@ -1,4 +1,4 @@
-# $Id: 4Corner.tit,v 1.3 1995/01/02 06:09:19 ygz Exp $
+# $Id: 4Corner.tit,v 1.3 2003/09/01 15:44:59 miles Exp $
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 2
@@ -6682,3 +6682,5 @@ BEGINDICTIONARY
 99901	æÎ
 99903	¿¢
 99904	ºa
+
+# arch-tag: aa089b66-ed25-422f-97e2-78574370efa5

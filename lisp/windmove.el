@@ -321,14 +321,15 @@ of the frame; (X-MAX, Y-MAX) is the zero-based coordinate of the
 bottom-right corner of the frame.
 For example, if a frame has 76 rows and 181 columns, the return value
 from `windmove-frame-edges' will be the list (0 0 180 75)."
-  (let ((frame (if window
-                   (window-frame window)
-                 (selected-frame))))
-    (let ((x-min 0)
-          (y-min 0)
-          (x-max (1- (frame-width frame))) ; 1- for last row & col here
-          (y-max (1- (frame-height frame))))
-      (list x-min y-min x-max y-max))))
+  (let* ((frame (if window
+		    (window-frame window)
+		  (selected-frame)))
+	 (top-left (window-inside-edges (frame-first-window frame)))
+	 (x-min (nth 0 top-left))
+	 (y-min (nth 1 top-left))
+	 (x-max (+ x-min (frame-width frame) -1)) ; 1- for last row & col
+	 (y-max (+ x-max (frame-height frame) -1)))
+    (list x-min y-min x-max y-max)))
 
 ;; it turns out that constraining is always a good thing, even when
 ;; wrapping is going to happen.  this is because:
@@ -453,15 +454,13 @@ currently-selected window, or WINDOW if supplied; otherwise, it is the
 top-left or bottom-right corner of the selected window, or WINDOW if
 supplied, if ARG is greater or smaller than zero, respectively."
   (let ((effective-arg (if (null arg) 0 (prefix-numeric-value arg)))
-        (edges (window-edges window)))
+        (edges (window-inside-edges window)))
     (let ((top-left (cons (nth 0 edges)
                           (nth 1 edges)))
-          ;; if 1-'s are not there, windows actually extend too far.
-          ;; actually, -2 is necessary for bottom: (nth 3 edges) is
-          ;; the height of the window; -1 because we want 0-based max,
-          ;; -1 to get rid of mode line
+	  ;; Subtracting 1 converts the edge to the last column or line
+	  ;; within the window.
           (bottom-right (cons (- (nth 2 edges) 1)
-                              (- (nth 3 edges) 2))))
+                              (- (nth 3 edges) 1))))
       (cond
        ((> effective-arg 0)
           top-left)
@@ -531,10 +530,10 @@ DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'.
 If no window is at direction DIR, an error is signaled."
   (let ((other-window (windmove-find-other-window dir arg window)))
     (cond ((null other-window)
-           (error "No window at %s" dir))
+           (error "No window %s from selected window" dir))
           ((and (window-minibuffer-p other-window)
                 (not (minibuffer-window-active-p other-window)))
-           (error "Can't move to inactive minibuffer"))
+           (error "Minibuffer is inactive"))
           (t
            (select-window other-window)))))
 
@@ -609,4 +608,5 @@ Default MODIFIER is 'shift."
 
 (provide 'windmove)
 
+;;; arch-tag: 56267432-bf1a-4296-a9a0-85c6bd9f2375
 ;;; windmove.el ends here

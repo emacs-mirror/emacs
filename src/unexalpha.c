@@ -26,7 +26,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <stdio.h>
-#include <varargs.h>
 #include <errno.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -541,3 +540,6 @@ fatal_unexec (s, arg)
   fputs (".\n", stderr);
   exit (1);
 }
+
+/* arch-tag: 46316c49-ee08-4aa3-942b-00798902f5bd
+   (do not change this comment) */

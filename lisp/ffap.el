@@ -3,6 +3,7 @@
 ;; Copyright (C) 1995, 96, 97, 2000  Free Software Foundation, Inc.
 ;;
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
+;; Maintainer: Rajesh Vaidheeswarran  <rv@gnu.org>
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse, convenience
 ;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
@@ -65,6 +66,7 @@
 ;; (setq ffap-alist nil)                ; faster, dumber prompting
 ;; (setq ffap-machine-p-known 'accept)  ; no pinging
 ;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
+;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;;
 ;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
@@ -119,6 +121,18 @@ Otherwise return nil (or the optional DEFAULT value)."
   ;; Bug: (ffap-soft-value "nil" 5) --> 5
   (let ((sym (intern-soft name)))
     (if (and sym (boundp sym)) (symbol-value sym) default)))
+
+(defcustom ffap-shell-prompt-regexp
+  ;; This used to test for some shell prompts that don't have a space
+  ;; after them. The common root shell prompt (#) is not listed since it
+  ;; also doubles up as a valid URL character.
+  "[$%><]*"
+  "Paths matching this regexp are stripped off the shell prompt
+If nil, ffap doesn't do shell prompt stripping."
+  :type '(choice (const :tag "Disable" nil)
+		  (const :tag "Standard" "[$%><]*")
+		   regexp)
+  :group 'ffap)
 
 (defcustom ffap-ftp-regexp
   ;; This used to test for ange-ftp or efs being present, but it should be
@@ -1109,6 +1123,11 @@ which may actually result in an url rather than a filename."
          ;; Try stripping off line numbers; good for compilation/grep output.
          ((and (not abs) (string-match ":[0-9]" name)
                (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
+         ;; Try stripping off prominent (non-root - #) shell prompts
+	 ;; if the ffap-shell-prompt-regexp is non-nil.
+         ((and ffap-shell-prompt-regexp
+	       (not abs) (string-match ffap-shell-prompt-regexp name)
+               (ffap-file-exists-string (substring name (match-end 0)))))
 	 ;; Immediately test local filenames.  If default-directory is
 	 ;; remote, you probably already have a connection.
 	 ((and (not abs) (ffap-file-exists-string name)))
@@ -1230,9 +1249,7 @@ which may actually result in an url rather than a filename."
 ;; This code assumes that you load ffap.el after complete.el.
 ;;
 ;; We must inform complete about whether our completion function
-;; will do filename style completion.  For earlier versions of
-;; complete.el, this requires a defadvice.  For recent versions
-;; there may be a special variable for this purpose.
+;; will do filename style completion.
 
 (defun ffap-complete-as-file-p nil
   ;; Will `minibuffer-completion-table' complete the minibuffer
@@ -1246,15 +1263,7 @@ which may actually result in an url rather than a filename."
  (featurep 'complete)
  (if (boundp 'PC-completion-as-file-name-predicate)
      ;; modern version of complete.el, just set the variable:
-     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)
-   (require 'advice)
-   (defadvice PC-do-completion (around ffap-fix act)
-     "Work with ffap."
-     (let ((minibuffer-completion-table
-	    (if (eq t (ffap-complete-as-file-p))
-		'read-file-name-internal
-	      minibuffer-completion-table)))
-       ad-do-it))))
+     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)))
 
 
 ;;; Highlighting (`ffap-highlight'):
@@ -1704,4 +1713,6 @@ Of course if you do not like these bindings, just roll your own!")
   (eval (cons 'progn ffap-bindings)))
 
 
+
+;;; arch-tag: 9dd3e88a-5dec-4607-bd57-60ae9ede8ebc
 ;;; ffap.el ends here

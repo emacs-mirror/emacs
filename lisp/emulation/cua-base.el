@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997,98,99,200,01,02,03  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulation convenience cua
@@ -260,29 +260,6 @@
   :link '(emacs-commentary-link :tag "Commentary" "cua-base.el")
   :link '(emacs-library-link :tag "Lisp File" "cua-base.el"))
 
-;;;###autoload
-(defcustom cua-mode nil
-  "Non-nil means that CUA emulation mode is enabled.
-In CUA mode, shifted movement keys highlight and extend the region.
-When a region is highlighted, the binding of the C-x and C-c keys are
-temporarily changed to work as Motif, MAC or MS-Windows cut and paste.
-Also, insertion commands first delete the region and then insert.
-This mode enables Transient Mark mode and it provides a superset of the
-PC Selection Mode and Delete Selection Modes.
-
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `cua-mode'."
-  :set (lambda (symbol value)
-	 (cua-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
-  :require 'cua-base
-  :link '(emacs-commentary-link "cua-base.el")
-  :version "21.4"
-  :type 'boolean
-  :group 'cua)
-
-
 (defcustom cua-enable-cua-keys t
   "*Enable using C-z, C-x, C-c, and C-v for undo, cut, copy, and paste.
 If the value is t, these mappings are always enabled.  If the value is
@@ -405,9 +382,9 @@ Can be toggled by [M-p] while the rectangle is active,"
   :group 'cua)
 
 (defface cua-global-mark-face '((((class color))
-                                  (:foreground "black")
-				  (:background "yellow"))
-                                 (t (:bold t)))
+				 :foreground "black"
+				 :background "yellow")
+				(t :bold t))
   "*Font used by CUA for highlighting the global mark."
   :group 'cua)
 
@@ -1181,19 +1158,17 @@ Extra commands should be added to `cua-movement-commands'")
 (defvar cua--saved-state nil)
 
 ;;;###autoload
-(defun cua-mode (&optional arg)
+(define-minor-mode cua-mode
   "Toggle CUA key-binding mode.
 When enabled, using shifted movement keys will activate the region (and
 highlight the region using `transient-mark-mode'), and typed text replaces
 the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
 paste (in addition to the normal emacs bindings)."
-  (interactive "P")
-  (setq cua-mode
-	(cond
-	 ((null arg) (not cua-mode))
-	 ((symbolp arg) t)
-	 (t (> (prefix-numeric-value arg) 0))))
-
+  :global t
+  :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
+  :require 'cua-base
+  :link '(emacs-commentary-link "cua-base.el")
+  :version "21.4"
   (setq mark-even-if-inactive t)
   (setq highlight-nonselected-windows nil)
   (make-variable-buffer-local 'cua--explicit-region-start)
@@ -1229,15 +1204,13 @@ paste (in addition to the normal emacs bindings)."
 	   (and (boundp 'delete-selection-mode) delete-selection-mode)
 	   (and (boundp 'pc-selection-mode) pc-selection-mode)))
     (if (and (boundp 'delete-selection-mode) delete-selection-mode)
-	(delete-selection-mode))
+	(delete-selection-mode -1))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
-	(pc-selection-mode))
+	(pc-selection-mode -1))
     (setq transient-mark-mode (and cua-mode
 				   (if cua-highlight-region-shift-only
 				       (not cua--explicit-region-start)
-				     t)))
-    (if (interactive-p)
-	(message "CUA mode enabled")))
+				     t))))
    (cua--saved-state
     (setq transient-mark-mode (car cua--saved-state))
     (if (nth 1 cua--saved-state)
@@ -1250,11 +1223,7 @@ paste (in addition to the normal emacs bindings)."
 		 (if (and (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " and" "")
 		 (if (nth 2 cua--saved-state) " PC-Selection" "")
 		 (if (or (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " enabled" "")))
-    (setq cua--saved-state nil))
-
-   (t
-    (if (interactive-p)
-	(message "CUA mode disabled")))))
+    (setq cua--saved-state nil))))
 
 (defun cua-debug ()
   "Toggle cua debugging."
@@ -1279,4 +1248,5 @@ paste (in addition to the normal emacs bindings)."
 
 (provide 'cua)
 
+;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here

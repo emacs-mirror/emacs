@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/strings
@@ -219,6 +219,11 @@ the current buffer.  The beginning of a string is at index 0, but the
 beginning of a buffer is at index 1.
 @end defun
 
+@defun substring-no-properties string start &optional end
+This works like @code{substring} but discards all text properties
+from the value.
+@end defun
+
 @defun concat &rest sequences
 @cindex copying strings
 @cindex concatenating strings
@@ -255,34 +260,52 @@ printed form is with @code{format} (@pxref{Formatting Strings}) or
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
-@code{vconcat} in @ref{Vectors}, and @code{append} in @ref{Building
+@code{vconcat} in @ref{Vector Functions}, and @code{append} in @ref{Building
 Lists}.
 @end defun
 
-@defun split-string string separators
-This function splits @var{string} into substrings at matches for the regular
-expression @var{separators}.  Each match for @var{separators} defines a
-splitting point; the substrings between the splitting points are made
-into a list, which is the value returned by @code{split-string}.
-If @var{separators} is @code{nil} (or omitted),
-the default is @code{"[ \f\t\n\r\v]+"}.
+@defun split-string string separators omit-nulls
+This function splits @var{string} into substrings at matches for the
+regular expression @var{separators}.  Each match for @var{separators}
+defines a splitting point; the substrings between the splitting points
+are made into a list, which is the value returned by
+@code{split-string}.
 
-For example,
+If @var{omit-nulls} is @code{nil}, the result contains null strings
+whenever there are two consecutive matches for @var{separators}, or a
+match is adjacent to the beginning or end of @var{string}.  If
+@var{omit-nulls} is @code{t}, these null strings are omitted from the
+result list.
+
+If @var{separators} is @code{nil} (or omitted),
+the default is the value of @code{split-string-default-separators}.
+
+As a special case, when @var{separators} is @code{nil} (or omitted),
+null strings are always omitted from the result.  Thus:
+
+@example
+(split-string "  two words ")
+@result{} ("two" "words")
+@end example
+
+The result is not @samp{("" "two" "words" "")}, which would rarely be
+useful.  If you need such a result, use an explict value for
+@var{separators}:
+
+@example
+(split-string "  two words " split-string-default-separators)
+@result{} ("" "two" "words" "")
+@end example
+
+More examples:
 
 @example
 (split-string "Soup is good food" "o")
 @result{} ("S" "up is g" "" "d f" "" "d")
+(split-string "Soup is good food" "o" t)
+@result{} ("S" "up is g" "d f" "d")
 (split-string "Soup is good food" "o+")
 @result{} ("S" "up is g" "d f" "d")
-@end example
-
-When there is a match adjacent to the beginning or end of the string,
-this does not cause a null string to appear at the beginning or end
-of the list:
-
-@example
-(split-string "out to moo" "o+")
-@result{} ("ut t" " m")
 @end example
 
 Empty matches do count, when not adjacent to another match:
@@ -294,6 +317,11 @@ Empty matches do count, when not adjacent to another match:
 @result{}("N" "i" "c" "e" " " "d" "o" "g" "g" "y" "!")
 @end example
 @end defun
+
+@defvar split-string-default-separators
+The default value of @var{separators} for @code{split-string}, initially
+@samp{"[ \f\t\n\r\v]+"}.
+@end defvar
 
 @node Modifying Strings
 @section Modifying Strings
@@ -984,3 +1012,7 @@ This function makes @var{char} case-invariant, with syntax
 This command displays a description of the contents of the current
 buffer's case table.
 @end deffn
+
+@ignore
+   arch-tag: 700b8e95-7aa5-4b52-9eb3-8f2e1ea152b4
+@end ignore

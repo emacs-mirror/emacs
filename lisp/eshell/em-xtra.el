@@ -118,4 +118,5 @@ naturally accessible within Emacs."
 
 ;;; Code:
 
+;;; arch-tag: f944cfda-a118-470c-a0d6-b41a3a5c99c7
 ;;; em-xtra.el ends here

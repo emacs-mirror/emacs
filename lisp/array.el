@@ -964,4 +964,5 @@ Entering array mode calls the function `array-mode-hook'."
 
 (provide 'array)
 
+;;; arch-tag: 0086605d-79fe-4a1a-992a-456417261f80
 ;;; array.el ends here

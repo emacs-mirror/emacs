@@ -51,6 +51,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'calendar)
 
 (autoload 'holiday-julian "cal-julian"
@@ -507,4 +510,5 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
 
 (provide 'holidays)
 
+;;; arch-tag: 48eb3117-75a7-4dbe-8fd9-873c3cbb0d37
 ;;; holidays.el ends here

@@ -993,4 +993,5 @@ symbol in the alist."
 
 (provide 'nndoc)
 
+;;; arch-tag: f5c2970e-0387-47ac-a0b3-6cc317dffabe
 ;;; nndoc.el ends here

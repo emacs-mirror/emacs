@@ -47,5 +47,11 @@ extern void initial_define_lispy_key P_ ((Lisp_Object, char *, char *));
 extern void syms_of_keymap P_ ((void));
 extern void keys_of_keymap P_ ((void));
 
+typedef void (*map_keymap_function_t)
+     P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
+extern void map_keymap P_ ((Lisp_Object map, map_keymap_function_t fun, Lisp_Object largs, void* cargs, int autoload));
 
 #endif
+
+/* arch-tag: 7400d5a1-ef0b-43d0-b366-f4d678bf3ba2
+   (do not change this comment) */

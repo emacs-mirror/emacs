@@ -12,4 +12,5 @@
   ;; The third arg only matters in that it is not t or nil.
   (set-input-mode (nth 0 value) (nth 1 value) 'iso-latin-1 (nth 3 value)))
 
+;;; arch-tag: 5d0c4f63-739b-4862-abf3-041fe42adb8f
 ;;; linux.el ends here

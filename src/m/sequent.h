@@ -163,3 +163,6 @@ NOTE-END */
   sprintf (ptyname, "/dev/pty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
 #define PTY_TTY_NAME_SPRINTF \
   sprintf (ptyname, "/dev/tty%c%c", PTY_MAJOR[ma], PTY_MINOR[mi]);
+
+/* arch-tag: 81caea48-aa64-4021-9544-e969dea71ee8
+   (do not change this comment) */

@@ -1143,3 +1143,6 @@ init_sound ()
 }
 
 #endif /* HAVE_SOUND */
+
+/* arch-tag: dd850ad8-0433-4e2c-9cba-b7aeeccc0dbd
+   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -24,9 +24,9 @@
 
 ;;; Commentary:
 
-;; There is at present only a function interpreting the new `/proc/apm'
-;; file format of Linux version 1.3.58 or newer.  That is, what a lucky
-;; coincidence, exactly the interface provided by the author's laptop.
+;; There is at present support for interpreting the new `/proc/apm'
+;; file format of Linux version 1.3.58 or newer and for the `/proc/acpi/'
+;; directory structure of Linux 2.4.20 and 2.6.
 
 ;;; Code:
 
@@ -42,7 +42,10 @@
 (defcustom battery-status-function
   (cond ((and (eq system-type 'gnu/linux)
 	      (file-readable-p "/proc/apm"))
-	 'battery-linux-proc-apm))
+	 'battery-linux-proc-apm)
+	((and (eq system-type 'gnu/linux)
+	      (file-directory-p "/proc/acpi/battery"))
+	 'battery-linux-proc-acpi))
   "*Function for getting battery status information.
 The function has to return an alist of conversion definitions.
 Its cons cells are of the form
@@ -56,7 +59,9 @@ introduced by a `%' character in a control string."
 
 (defcustom battery-echo-area-format
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
-	 "Power %L, battery %B (%p%% load, remaining time %t)"))
+	 "Power %L, battery %B (%p%% load, remaining time %t)")
+	((eq battery-status-function 'battery-linux-proc-acpi)
+	 "Power %L, battery %B at %r mA (%p%% load, remaining time %t)"))
   "*Control string formatting the string to display in the echo area.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -70,7 +75,9 @@ string are substituted as defined by the current value of the variable
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
-	 " [%b%p%%]"))
+	 " [%b%p%%]")
+	((eq battery-status-function 'battery-linux-proc-acpi)
+	 " [%b%p%%,%d°C]"))
   "*Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -218,6 +225,104 @@ The following %-sequences are provided:
 	  (cons ?t (or remaining-time "N/A")))))
 
 
+;;; `/proc/acpi/' interface for Linux.
+
+(defun battery-linux-proc-acpi ()
+  "Get ACPI status information from Linux kernel.
+This function works only with the new `/proc/acpi/' format introduced
+in Linux version 2.4.20 and 2.6.0.
+
+The following %-sequences are provided:
+%c Current capacity (mAh)
+%B Battery status (verbose)
+%b Battery status, empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%d Temperature (in degrees Celsius)
+%L AC line status (verbose)
+%p battery load percentage
+%m Remaining time in minutes
+%h Remaining time in hours
+%t Remaining time in the form `h:min'"
+  (let (capacity design-capacity rate charging-state warn low minutes hours)
+    (when (file-directory-p "/proc/acpi/battery/")
+      ;; ACPI provides information about each battery present in the system in
+      ;; a separate subdirectory.  We are going to merge the available
+      ;; information together since displaying for a variable amount of
+      ;; batteries seems overkill for format-strings.
+      (mapc
+       (lambda (dir)
+	 (with-temp-buffer
+	   (insert-file-contents (expand-file-name "state" dir))
+	   (when (re-search-forward "present: +yes$" nil t)
+	     (and (re-search-forward "charging state: +\\(.*\\)$" nil t)
+		  (or (null charging-state) (string= charging-state
+						     "unknown"))
+		  ;; On most multi-battery systems, most of the time only one
+		  ;; battery is "charging"/"discharging", the others are
+		  ;; "unknown".
+		  (setq charging-state (match-string 1)))
+	     (when (re-search-forward "present rate: +\\([0-9]+\\) mA$" nil t)
+	       (setq rate (+ (or rate 0) (string-to-int (match-string 1)))))
+	     (when (re-search-forward "remaining capacity: +\\([0-9]+\\) mAh$"
+				      nil t)
+	       (setq capacity
+		     (+ (or capacity 0) (string-to-int (match-string 1))))))
+	   (goto-char (point-max))
+	   (insert-file-contents (expand-file-name "info" dir))
+	   (when (re-search-forward "present: +yes$" nil t)
+	     (when (re-search-forward "design capacity: +\\([0-9]+\\) mAh$"
+				      nil t)
+	       (setq design-capacity (+ (or design-capacity 0)
+					(string-to-int (match-string 1)))))
+	     (when (re-search-forward "design capacity warning: +\\([0-9]+\\) mAh$"
+				      nil t)
+	       (setq warn (+ (or warn 0) (string-to-int (match-string 1)))))
+	     (when (re-search-forward "design capacity low: +\\([0-9]+\\) mAh$"
+				      nil t)
+	       (setq low (+ (or low 0)
+			    (string-to-int (match-string 1))))))))
+       (directory-files "/proc/acpi/battery/" t "BAT")))
+    (and capacity rate
+	 (setq minutes (floor (* (/ (float (if (string= charging-state
+							"charging")
+					       (- design-capacity capacity)
+					     capacity)) rate) 60))
+	       hours (/ minutes 60)))
+    (list (cons ?c (or (and capacity (number-to-string capacity)) "N/A"))
+	  (cons ?L (or (when (file-exists-p "/proc/acpi/ac_adapter/AC/state")
+			 (with-temp-buffer
+			   (insert-file-contents
+			    "/proc/acpi/ac_adapter/AC/state")
+			   (when (re-search-forward "state: +\\(.*\\)$" nil t)
+			     (match-string 1))))
+		       "N/A"))
+	  (cons ?d (or (when (file-exists-p
+			      "/proc/acpi/thermal_zone/THRM/temperature")
+			 (with-temp-buffer
+			   (insert-file-contents
+			    "/proc/acpi/thermal_zone/THRM/temperature")
+			   (when (re-search-forward
+				  "temperature: +\\([0-9]+\\) C$" nil t)
+			     (match-string 1))))
+		       "N/A"))
+	  (cons ?r (or (and rate (number-to-string rate)) "N/A"))
+	  (cons ?B (or charging-state "N/A"))
+	  (cons ?b (or (and (string= charging-state "charging") "+")
+		       (and low (< capacity low) "!")
+		       (and warn (< capacity warn) "-")
+		       ""))
+	  (cons ?h (or (and hours (number-to-string hours)) "N/A"))
+	  (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))
+	  (cons ?t (or (and minutes
+			    (format "%d:%02d" hours (- minutes (* 60 hours))))
+		       "N/A"))
+	  (cons ?p (or (and design-capacity capacity
+			    (number-to-string
+			     (floor (/ capacity
+				       (/ (float design-capacity) 100)))))
+		       "N/A")))))
+
+
 ;;; Private functions.
 
 (defun battery-format (format alist)
@@ -271,4 +376,5 @@ The following %-sequences are provided:
 
 (provide 'battery)
 
+;;; arch-tag: 65916f50-4754-4b6b-ac21-0b510f545a37
 ;;; battery.el ends here

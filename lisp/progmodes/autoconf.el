@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
-;; $Revision: 1.2 $
+;; $Revision: 1.5 $
 
 ;; This file is part of GNU Emacs.
 
@@ -73,7 +73,7 @@
 This version looks back for an AC_DEFINE or AC_SUBST.  It will stop
 searching backwards at another AC_... command."
   (save-excursion
-    (with-syntax-table autoconf-mode-syntax-table
+    (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
       (modify-syntax-entry ?_ "w")
       (if (re-search-backward autoconf-definition-regexp
 			      (save-excursion (beginning-of-defun) (point))
@@ -108,4 +108,5 @@ searching backwards at another AC_... command."
 
 (provide 'autoconf-mode)
 
+;;; arch-tag: 4f44778f-2ab3-49a1-a103-f0acb9df2de4
 ;;; autoconf.el ends here

@@ -29,10 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
 #include "buffer.h"
-#include "charset.h"
-#include "coding.h"
 #include "process.h"
-#include "composite.h"
 
 struct prop_location;
 
@@ -113,6 +110,8 @@ static Lisp_Object Vselection_coding_system;
 
 /* Coding system for the next communicating with other X clients.  */
 static Lisp_Object Vnext_selection_coding_system;
+
+static Lisp_Object Qforeign_selection;
 
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
@@ -425,6 +424,9 @@ x_get_local_selection (selection_symbol, target_type, local_request)
 
       CHECK_SYMBOL (target_type);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
+      /* gcpro is not needed here since nothing but HANDLER_FN
+	 is live, and that ought to be a symbol.  */
+
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
 		       selection_symbol, (local_request ? Qnil : target_type),
@@ -837,8 +839,6 @@ x_handle_selection_request (event)
 
  DONE:
 
-  UNGCPRO;
-
   /* Let random lisp code notice that the selection has been asked for.  */
   {
     Lisp_Object rest;
@@ -847,6 +847,8 @@ x_handle_selection_request (event)
       for (; CONSP (rest); rest = Fcdr (rest))
 	call3 (Fcar (rest), selection_symbol, target_symbol, successful_p);
   }
+
+  UNGCPRO;
 }
 
 /* Handle a SelectionClear event EVENT, which indicates that some
@@ -1602,74 +1604,21 @@ selection_data_to_lisp_data (display, data, size, type, format)
   /* Convert any 8-bit data to a string, for compactness.  */
   else if (format == 8)
     {
-      Lisp_Object str;
-      int require_encoding = 0;
+      Lisp_Object str, lispy_type;
 
-      if (
-#if 1
-	  1
-#else
-	  ! NILP (buffer_defaults.enable_multibyte_characters)
-#endif
-	  )
-	{
-	  /* If TYPE is `TEXT' or `COMPOUND_TEXT', we should decode
-	     DATA to Emacs internal format because DATA may be encoded
-	     in compound text format.  In addtion, if TYPE is `STRING'
-	     and DATA contains any 8-bit Latin-1 code, we should also
-	     decode it.  */
-	  if (type == dpyinfo->Xatom_TEXT
-	      || type == dpyinfo->Xatom_COMPOUND_TEXT)
-	    require_encoding = 1;
-	  else if (type == XA_STRING)
-	    {
-	      int i;
-	      for (i = 0; i < size; i++)
-		{
-		  if (data[i] >= 0x80)
-		    {
-		      require_encoding = 1;
-		      break;
-		    }
-		}
-	    }
-	}
-      if (!require_encoding)
-	{
-	  str = make_unibyte_string ((char *) data, size);
-	  Vlast_coding_system_used = Qraw_text;
-	}
+      str = make_unibyte_string ((char *) data, size);
+      /* Indicate that this string is from foreign selection by a text
+	 property `foreign-selection' so that the caller of
+	 x-get-selection-internal (usually x-get-selection) can know
+	 that the string must be decode.  */
+      if (type == dpyinfo->Xatom_COMPOUND_TEXT)
+	lispy_type = QCOMPOUND_TEXT;
+      else if (type == dpyinfo->Xatom_UTF8_STRING)
+	lispy_type = QUTF8_STRING;
       else
-	{
-	  int bufsize;
-	  unsigned char *buf;
-	  struct coding_system coding;
-
-	  if (NILP (Vnext_selection_coding_system))
-	    Vnext_selection_coding_system = Vselection_coding_system;
-	  setup_coding_system
-	    (Fcheck_coding_system(Vnext_selection_coding_system), &coding);
-	  coding.src_multibyte = 0;
-	  coding.dst_multibyte = 1;
-	  Vnext_selection_coding_system = Qnil;
-          coding.mode |= CODING_MODE_LAST_BLOCK;
-	  /* We explicitely disable composition handling because
-	     selection data should not contain any composition
-	     sequence.  */
-	  coding.composing = COMPOSITION_DISABLED;
-	  bufsize = decoding_buffer_size (&coding, size);
-	  buf = (unsigned char *) xmalloc (bufsize);
-	  decode_coding (&coding, data, buf, size, bufsize);
-	  str = make_string_from_bytes ((char *) buf,
-					coding.produced_char, coding.produced);
-	  xfree (buf);
-
-	  if (SYMBOLP (coding.post_read_conversion)
-	      && !NILP (Ffboundp (coding.post_read_conversion)))
-	    str = run_pre_post_conversion_on_str (str, &coding, 0);
-	  Vlast_coding_system_used = coding.symbol;
-	}
-      compose_chars_in_text (0, SCHARS (str), str);
+	lispy_type = QSTRING;
+      Fput_text_property (make_number (0), make_number (size),
+			  Qforeign_selection, lispy_type, str);
       return str;
     }
   /* Convert a single atom to a Lisp_Symbol.  Convert a set of atoms to
@@ -2448,4 +2397,9 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   QCUT_BUFFER7 = intern ("CUT_BUFFER7"); staticpro (&QCUT_BUFFER7);
 #endif
 
+  Qforeign_selection = intern ("foreign-selection");
+  staticpro (&Qforeign_selection);
 }
+
+/* arch-tag: 7c293b0f-9918-4f69-8ac7-03e142307236
+   (do not change this comment) */

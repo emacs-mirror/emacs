@@ -982,4 +982,5 @@ You must modify via \\[customize] for this variable to have an effect."
   :group 'pc-select
   :require 'pc-select)
 
+;;; arch-tag: 10697b70-ae07-4f3e-ad23-7814a3f418c2
 ;;; pc-select.el ends here

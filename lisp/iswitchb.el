@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996, 1997, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2000, 2001, 2003  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -29,6 +29,8 @@
 ;; Installation:
 ;; To get the functions in this package bound to keys, use
 ;; M-x iswitchb-mode or customize the option `iswitchb-mode'.
+;; Alternatively, add the following line to your .emacs:
+;; (iswitchb-mode 1)
 
 ;; As you type in a substring, the list of buffers currently matching
 ;; the substring is displayed as you type.  The list is ordered so
@@ -61,11 +63,11 @@
 ;; The list in {} are the matching buffers, most recent first (buffers
 ;; visible in the current frame are put at the end of the list by
 ;; default).  At any time I can select the item at the head of the
-;; list by pressing RET.  I can also bring the put the first element
-;; at the end of the list by pressing C-s, or put the last element at
-;; the head of the list by pressing C-r.  The item in [] indicates
-;; what can be added to my input by pressing TAB.  In this case, I
-;; will get "3" added to my input.  So, press TAB:
+;; list by pressing RET.  I can also put the first element at the end
+;; of the list by pressing C-s, or put the last element at the head of
+;; the list by pressing C-r.  The item in [] indicates what can be
+;; added to my input by pressing TAB.  In this case, I will get "3"
+;; added to my input.  So, press TAB:
 ;;	 iswitch 23{123456,123}
 ;;
 ;; At this point, I still have two matching buffers.
@@ -293,7 +295,7 @@ is temporarily case sensitive."
 For example, traditional behavior is not to list buffers whose names begin
 with a space, for which the regexp is `^ '.  See the source file for
 example functions that filter buffernames."
-  :type '(repeat regexp)
+  :type '(repeat (choice regexp function))
   :group 'iswitchb)
 
 (defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
@@ -473,9 +475,6 @@ selected.")
 (defvar iswitchb-buffer-ignore-orig nil
   "Stores original value of `iswitchb-buffer-ignore'.")
 
-(defvar iswitchb-xemacs  (string-match "XEmacs" (emacs-version))
-  "Non-nil if we are running XEmacs.  Otherwise, assume we are running Emacs.")
-
 (defvar iswitchb-default nil
   "Default buffer for iswitchb.")
 
@@ -599,7 +598,6 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
     (iswitchb-set-matches)
     (let
 	((minibuffer-local-completion-map iswitchb-mode-map)
-	 (iswitchb-prepost-hooks t)
 	 ;; Record the minibuffer depth that we expect to find once
 	 ;; the minibuffer is set up and iswitchb-entryfn-p is called.
 	 (iswitchb-minibuf-depth (1+ (minibuffer-depth)))
@@ -956,7 +954,7 @@ Return the modified list with the last element prepended to it."
 	  (set-buffer buf))
 
       (with-output-to-temp-buffer temp-buf
-	(if iswitchb-xemacs
+	(if (featurep 'xemacs)
 
 	    ;; XEmacs extents are put on by default, doesn't seem to be
 	    ;; any way of switching them off.
@@ -1012,7 +1010,7 @@ Return the modified list with the last element prepended to it."
 	     (or (eq iswitchb-method 'always-frame)
 		 (y-or-n-p "Jump to frame? ")))
 	(setq newframe (window-frame win))
-        (if (not iswitchb-xemacs)
+        (if (fboundp 'select-frame-set-input-focus)
             (select-frame-set-input-focus newframe)
           (raise-frame newframe)
           (select-frame newframe)
@@ -1032,7 +1030,7 @@ Return the modified list with the last element prepended to it."
      ((eq iswitchb-method 'otherframe)
       (progn
 	(switch-to-buffer-other-frame buffer)
-	(if (not iswitchb-xemacs)
+	(if (fboundp 'select-frame-set-input-focus)
             (select-frame-set-input-focus (selected-frame)))
 	)))))
 
@@ -1143,7 +1141,7 @@ This is a hack for XEmacs, and should really be handled by `iswitchb-exhibit'."
 	(goto-char (point-min)))))
 
 ;; add this hook for XEmacs only.
-(if iswitchb-xemacs
+(if (featurep 'xemacs)
     (add-hook 'iswitchb-minibuffer-setup-hook
 	      'iswitchb-init-XEmacs-trick))
 
@@ -1157,7 +1155,7 @@ This is a hack for XEmacs, and should really be handled by `iswitchb-exhibit'."
   (define-key iswitchb-mode-map '[backspace] 'backward-delete-char)
   (define-key iswitchb-mode-map '[(meta backspace)] 'backward-kill-word))
 
-(if iswitchb-xemacs
+(if (featurep 'xemacs)
     (add-hook 'iswitchb-define-mode-map-hook
 	      'iswitchb-xemacs-backspacekey))
 
@@ -1189,11 +1187,9 @@ Copied from `icomplete-exhibit' with two changes:
 	  ;; Insert the match-status information:
 	  (insert (iswitchb-completions
 		   contents
-		   minibuffer-completion-table
-		   minibuffer-completion-predicate
 		   (not minibuffer-completion-confirm)))))))
 
-(defun iswitchb-completions (name candidates predicate require-match)
+(defun iswitchb-completions (name require-match)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
 
@@ -1237,7 +1233,6 @@ Modified from `icomplete-completions'."
 		  (most nil)
 		  (most-len (length most))
 		  most-is-exact
-		  first
 		  (alternatives
 		   (apply
 		    (function concat)
@@ -1336,7 +1331,7 @@ This is an example function which can be hooked on to
   "Return non-nil iff we should ignore case when matching.
 See the variable `iswitchb-case' for details."
   (if iswitchb-case
-      (if iswitchb-xemacs
+      (if (featurep 'xemacs)
 	  (isearch-no-upper-case-p iswitchb-text)
 	(isearch-no-upper-case-p iswitchb-text t))))
 
@@ -1353,4 +1348,5 @@ This mode enables switching between buffers using substrings.  See
 
 (provide 'iswitchb)
 
+;;; arch-tag: d74198ae-753f-44f2-b34f-0c515398d90a
 ;;; iswitchb.el ends here

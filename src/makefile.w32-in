@@ -55,7 +55,6 @@ OBJ0 =  $(BLD)/emacs.$(O)
 
 OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/alloc.$(O)			\
-	$(BLD)/alloca.$(O)			\
 	$(BLD)/atimer.$(O)			\
 	$(BLD)/buffer.$(O)			\
 	$(BLD)/bytecode.$(O)			\
@@ -288,18 +287,6 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
-$(BLD)/alloca.$(O) : \
-	$(SRC)/alloca.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/s/ms-w32.h \
-	$(SRC)/m/intel386.h \
-	$(SRC)/config.h \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/systime.h
-
 $(BLD)/atimer.$(O) : \
 	$(SRC)/atimer.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
@@ -342,7 +329,8 @@ $(BLD)/bytecode.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/charset.h \
-	$(SRC)/syntax.h
+	$(SRC)/syntax.h \
+	$(SRC)/window.h
 
 $(BLD)/callint.$(O) : \
 	$(SRC)/callint.c \
@@ -464,6 +452,7 @@ $(BLD)/coding.$(O) : \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/intervals.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -597,7 +586,8 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/systty.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
-	$(SRC)/w32gui.h
+	$(SRC)/w32gui.h \
+	$(SRC)/window.h
 
 $(BLD)/eval.$(O) : \
 	$(SRC)/eval.c \
@@ -1445,3 +1435,5 @@ $(BLD)/w32bdf.$(O): \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
+
+# arch-tag: 9fd7aba8-f826-4111-b3c0-497a8e7db9a0

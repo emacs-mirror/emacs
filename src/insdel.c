@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000, 2001
+   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000, 01, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -79,23 +79,19 @@ static int check_markers_debug_flag;
 void
 check_markers ()
 {
-  register Lisp_Object tail;
+  register struct Lisp_Marker *tail;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
-  tail = BUF_MARKERS (current_buffer);
-
-  while (! NILP (tail))
+  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
     {
-      if (XMARKER (tail)->buffer->text != current_buffer->text)
+      if (tail->buffer->text != current_buffer->text)
 	abort ();
-      if (XMARKER (tail)->charpos > Z)
+      if (tail->charpos > Z)
 	abort ();
-      if (XMARKER (tail)->bytepos > Z_BYTE)
+      if (tail->bytepos > Z_BYTE)
 	abort ();
-      if (multibyte && ! CHAR_HEAD_P (FETCH_BYTE (XMARKER (tail)->bytepos)))
+      if (multibyte && ! CHAR_HEAD_P (FETCH_BYTE (tail->bytepos)))
 	abort ();
-
-      tail = XMARKER (tail)->chain;
     }
 }
 
@@ -350,11 +346,8 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
   register struct Lisp_Marker *m;
   register int charpos;
 
-  marker = BUF_MARKERS (current_buffer);
-
-  while (!NILP (marker))
+  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
-      m = XMARKER (marker);
       charpos = m->charpos;
 
       if (charpos > Z)
@@ -371,16 +364,19 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
       else if (charpos > from)
 	{
 	  if (! m->insertion_type)
-	    /* Normal markers will end up at the beginning of the
+	    { /* Normal markers will end up at the beginning of the
 	       re-inserted text after undoing a deletion, and must be
 	       adjusted to move them to the correct place.  */
+	      XSETMISC (marker, m);
 	    record_marker_adjustment (marker, from - charpos);
+	    }
 	  else if (charpos < to)
-	    /* Before-insertion markers will automatically move forward
+	    { /* Before-insertion markers will automatically move forward
 	       upon re-inserting the deleted text, so we have to arrange
 	       for them to move backward to the correct position.  */
+	      XSETMISC (marker, m);
 	    record_marker_adjustment (marker, charpos - to);
-
+	    }
 	  m->charpos = from;
 	  m->bytepos = from_byte;
 	}
@@ -392,10 +388,9 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	     incorrectly make MARKER move forward, so we arrange for it
 	     to then move backward to the correct place at the beginning
 	     of the deleted region.  */
+	  XSETMISC (marker, m);
 	  record_marker_adjustment (marker, to - from);
 	}
-
-      marker = m->chain;
     }
 }
 
@@ -413,17 +408,13 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
      register int from, from_byte, to, to_byte;
      int before_markers;
 {
-  Lisp_Object marker;
+  struct Lisp_Marker *m;
   int adjusted = 0;
   int nchars = to - from;
   int nbytes = to_byte - from_byte;
 
-  marker = BUF_MARKERS (current_buffer);
-
-  while (!NILP (marker))
+  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
-      register struct Lisp_Marker *m = XMARKER (marker);
-
       /* In a single-byte buffer, a marker's two positions must be
 	 equal.  */
       if (Z == Z_BYTE)
@@ -447,8 +438,6 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
 	  m->bytepos += nbytes;
 	  m->charpos += nchars;
 	}
-
-      marker = m->chain;
     }
 
   /* Adjusting only markers whose insertion-type is t may result in
@@ -490,15 +479,13 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 			    new_chars, new_bytes)
      int from, from_byte, old_chars, old_bytes, new_chars, new_bytes;
 {
-  Lisp_Object marker = BUF_MARKERS (current_buffer);
+  register struct Lisp_Marker *m;
   int prev_to_byte = from_byte + old_bytes;
   int diff_chars = new_chars - old_chars;
   int diff_bytes = new_bytes - old_bytes;
 
-  while (!NILP (marker))
+  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
-      register struct Lisp_Marker *m = XMARKER (marker);
-
       if (m->bytepos >= prev_to_byte)
 	{
 	  m->charpos += diff_chars;
@@ -509,8 +496,6 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 	  m->charpos = from;
 	  m->bytepos = from_byte;
 	}
-
-      marker = m->chain;
     }
 
   CHECK_MARKERS ();
@@ -1930,7 +1915,7 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
 	  GCPRO1 (preserve_marker);
 	  verify_interval_modification (current_buffer, start, end);
 	  *preserve_ptr = marker_position (preserve_marker);
-	  unchain_marker (preserve_marker);
+	  unchain_marker (XMARKER (preserve_marker));
 	  UNGCPRO;
 	}
       else
@@ -1978,7 +1963,7 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
   if (! NILP (preserve_marker))					\
     {								\
       *preserve_ptr = marker_position (preserve_marker);	\
-      unchain_marker (preserve_marker);				\
+      unchain_marker (XMARKER (preserve_marker));		\
     }
 
 #define PRESERVE_START_END			\
@@ -2075,8 +2060,7 @@ signal_before_change (start_int, end_int, preserve_ptr)
       UNGCPRO;
     }
 
-  if (!NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after))
+  if (current_buffer->overlays_before || current_buffer->overlays_after)
     {
       PRESERVE_VALUE;
       report_overlay_modification (FETCH_START, FETCH_END, 0,
@@ -2110,8 +2094,8 @@ signal_after_change (charpos, lendel, lenins)
      just record the args that we were going to use.  */
   if (! NILP (Vcombine_after_change_calls)
       && NILP (Vbefore_change_functions)
-      && NILP (current_buffer->overlays_before)
-      && NILP (current_buffer->overlays_after))
+      && !current_buffer->overlays_before
+      && !current_buffer->overlays_after)
     {
       Lisp_Object elt;
 
@@ -2176,8 +2160,7 @@ signal_after_change (charpos, lendel, lenins)
       UNGCPRO;
     }
 
-  if (!NILP (current_buffer->overlays_before)
-      || !NILP (current_buffer->overlays_after))
+  if (current_buffer->overlays_before || current_buffer->overlays_after)
     report_overlay_modification (make_number (charpos),
 				 make_number (charpos + lenins),
 				 1,
@@ -2298,3 +2281,6 @@ as well as hooks attached to text properties and overlays.  */);
 
   defsubr (&Scombine_after_change_execute);
 }
+
+/* arch-tag: 9b34b886-47d7-465e-a234-299af411b23d
+   (do not change this comment) */

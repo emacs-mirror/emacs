@@ -1,5 +1,5 @@
-;;; mule-cmds.el --- commands for mulitilingual environment
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
+;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
@@ -64,10 +64,6 @@
 (define-key-after mule-menu-keymap [set-language-environment]
   (list 'menu-item  "Set Language Environment" setup-language-environment-map
 	:help "Multilingual environment suitable for a specific language"))
-(define-key-after mule-menu-keymap [mouse-set-font]
-  '(menu-item "Set Font/Fontset" mouse-set-font
-	       :visible (fboundp 'generate-fontset-menu)
-	       :help "Select a font from list of known fonts/fontsets"))
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)
@@ -84,7 +80,7 @@
   t)
 (define-key-after mule-menu-keymap [set-various-coding-system]
   (list 'menu-item "Set Coding Systems" set-coding-system-map
-	:enable 'enable-multibyte-characters))
+	:enable 'default-enable-multibyte-characters))
 (define-key-after mule-menu-keymap [view-hello-file]
   '(menu-item "Show Multi-lingual Text" view-hello-file
 	      :enable (file-readable-p
@@ -416,43 +412,58 @@ If the variable `sort-coding-systems-predicate' (which see) is
 non-nil, it is used to sort CODINGS in the different way than above."
   (if sort-coding-systems-predicate
       (sort codings sort-coding-systems-predicate)
-    (let* ((most-preferred (symbol-value (car coding-category-list)))
+    (let* ((from-categories (mapcar #'(lambda (x) (symbol-value x))
+				    coding-category-list))
+	   (most-preferred (car from-categories))
 	   (lang-preferred (get-language-info current-language-environment
 					      'coding-system))
 	   (func (function
 		  (lambda (x)
 		    (let ((base (coding-system-base x)))
-		      (+ (if (eq base most-preferred) 64 0)
-			 (let ((mime (coding-system-get base 'mime-charset)))
+		      ;; We calculate the priority number 0..255 by
+		      ;; using the 8 bits PMMLCEII as this:
+		      ;; P: 1 iff most preferred.
+		      ;; MM: greater than 0 iff mime-charset.
+		      ;; L: 1 iff one of the current lang. env.'s codings.
+		      ;; C: 1 iff one of codings listed in the category list.
+		      ;; E: 1 iff not XXX-with-esc
+		      ;; II: if iso-2022 based, 0..3, else 1.
+		      (logior
+		       (lsh (if (eq base most-preferred) 1 0) 7)
+		       (lsh
+			(let ((mime (coding-system-get base 'mime-charset)))
 			   ;; Prefer coding systems corresponding to a
 			   ;; MIME charset.
 			   (if mime
 			       ;; Lower utf-16 priority so that we
 			       ;; normally prefer utf-8 to it, and put
 			       ;; x-ctext below that.
-			       (cond ((or (eq base 'mule-utf-16-le)
-					  (eq base 'mule-utf-16-be))
-				      16)
+			       (cond ((string-match "utf-16"
+						    (symbol-name mime))
+				      2)
 				     ((string-match "^x-" (symbol-name mime))
-				      8)
-				     (t 32))
+				      1)
+				     (t 3))
 			     0))
-			 (if (memq base lang-preferred) 8 0)
-			 (if (string-match "-with-esc\\'" (symbol-name base))
-			     0 4)
-			 (if (eq (coding-system-type base) 2)
-			     ;; For ISO based coding systems, prefer
-			     ;; one that doesn't use escape sequences.
-			     (let ((flags (coding-system-flags base)))
-			       (if (or (consp (aref flags 0))
-				       (consp (aref flags 1))
-				       (consp (aref flags 2))
-				       (consp (aref flags 3)))
-				   (if (or (aref flags 8) (aref flags 9))
-				       0
-				     1)
-				 2))
-			   1)))))))
+			5)
+		       (lsh (if (memq base lang-preferred) 1 0) 4)
+		       (lsh (if (memq base from-categories) 1 0) 3)
+		       (lsh (if (string-match "-with-esc\\'"
+					      (symbol-name base))
+				0 1) 2)
+		       (if (eq (coding-system-type base) 2)
+			   ;; For ISO based coding systems, prefer
+			   ;; one that doesn't use escape sequences.
+			   (let ((flags (coding-system-flags base)))
+			     (if (or (consp (aref flags 0))
+				     (consp (aref flags 1))
+				     (consp (aref flags 2))
+				     (consp (aref flags 3)))
+				 (if (or (aref flags 8) (aref flags 9))
+				     0
+				   1)
+			       2))
+			 1)))))))
       (sort codings (function (lambda (x y)
 				(> (funcall func x) (funcall func y))))))))
 
@@ -616,7 +627,8 @@ The candidates of coding systems which can safely encode a text
 between FROM and TO are shown in a popup window.  Among them, the most
 proper one is suggested as the default.
 
-The list of `buffer-file-coding-system' of the current buffer and the
+The list of `buffer-file-coding-system' of the current buffer,
+the `default-buffer-file-coding-system', and the
 most preferred coding system (if it corresponds to a MIME charset) is
 treated as the default coding system list.  Among them, the first one
 that safely encodes the text is normally selected silently and
@@ -633,8 +645,8 @@ Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
 list of coding systems to be prepended to the default coding system
 list.  However, if DEFAULT-CODING-SYSTEM is a list and the first
 element is t, the cdr part is used as the defualt coding system list,
-i.e. `buffer-file-coding-system' and the most prepended coding system
-is not used.
+i.e. `buffer-file-coding-system', `default-buffer-file-coding-system',
+and the most preferred coding system are not used.
 
 Optional 4th arg ACCEPT-DEFAULT-P, if non-nil, is a function to
 determine the acceptability of the silently selected coding system.
@@ -664,6 +676,9 @@ and TO is ignored."
 	  (mapcar (function (lambda (x) (cons x (coding-system-base x))))
 		  default-coding-system))
 
+    ;; From now on, the list of defaults is reversed.
+    (setq default-coding-system (nreverse default-coding-system))
+
     (unless no-other-defaults
       ;; If buffer-file-coding-system is not nil nor undecided, append it
       ;; to the defaults.
@@ -671,24 +686,30 @@ and TO is ignored."
 	  (let ((base (coding-system-base buffer-file-coding-system)))
 	    (or (eq base 'undecided)
 		(rassq base default-coding-system)
-		(setq default-coding-system
-		      (append default-coding-system
-			      (list (cons buffer-file-coding-system base)))))))
+		(push (cons buffer-file-coding-system base)
+		      default-coding-system))))
+
+      ;; If default-buffer-file-coding-system is not nil nor undecided,
+      ;; append it to the defaults.
+      (if default-buffer-file-coding-system
+	  (let ((base (coding-system-base default-buffer-file-coding-system)))
+	    (or (eq base 'undecided)
+		(rassq base default-coding-system)
+		(push (cons default-buffer-file-coding-system base)
+		      default-coding-system))))
 
       ;; If the most preferred coding system has the property mime-charset,
       ;; append it to the defaults.
       (let ((tail coding-category-list)
 	    preferred base)
-	(while (and tail
-		    (not (setq preferred (symbol-value (car tail)))))
+	(while (and tail (not (setq preferred (symbol-value (car tail)))))
 	  (setq tail (cdr tail)))
 	(and (coding-system-p preferred)
 	     (setq base (coding-system-base preferred))
 	     (coding-system-get preferred 'mime-charset)
 	     (not (rassq base default-coding-system))
-	     (setq default-coding-system
-		   (append default-coding-system
-			   (list (cons preferred base))))))))
+	     (push (cons preferred base)
+		   default-coding-system)))))
 
   (if select-safe-coding-system-accept-default-p
       (setq accept-default-p select-safe-coding-system-accept-default-p))
@@ -709,7 +730,7 @@ and TO is ignored."
 	      (push (car elt) safe))
 	  (push (car elt) unsafe)))
       (if safe
-	  (setq coding-system (car (last safe)))))
+	  (setq coding-system (car safe))))
 
     ;; If all the defaults failed, ask a user.
     (when (not coding-system)
@@ -866,7 +887,7 @@ one of the following safe coding systems, or edit the buffer:\n")
 		(insert "\n")
 		(fill-region-as-paragraph pos (point)))
 	      (insert "Or specify any other coding system
-on your risk of losing the problematic characters.\n")))
+at the risk of losing the problematic characters.\n")))
 
 	  ;; Read a coding system.
 	  (setq default-coding-system (or (car safe) (car codings)))
@@ -1570,8 +1591,11 @@ The default status is as follows:
   bound to each category are as follows
 	coding category			coding system
 	--------------------------------------------------
-	coding-category-iso-8-2		iso-latin-1
 	coding-category-iso-8-1		iso-latin-1
+	coding-category-iso-8-2		iso-latin-1
+	coding-category-utf-8		mule-utf-8
+	coding-category-utf-16-be	mule-utf-16be-with-signature
+	coding-category-utf-16-le	mule-utf-16le-with-signature
 	coding-category-iso-7-tight	iso-2022-jp
 	coding-category-iso-7		iso-2022-7bit
 	coding-category-iso-7-else	iso-2022-7bit-lock
@@ -1581,10 +1605,7 @@ The default status is as follows:
 	coding-category-sjis		japanese-shift-jis
 	coding-category-big5		chinese-big5
 	coding-category-ccl		nil
-	coding-category-binary		no-conversion
-	coding-category-utf-16-be	nil
-	coding-category-utf-16-le	nil
-	coding-category-utf-8		mule-utf-8"
+	coding-category-binary		no-conversion"
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,
   ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
@@ -1599,8 +1620,8 @@ The default status is as follows:
 	coding-category-raw-text	'raw-text
 	coding-category-sjis		'japanese-shift-jis
 	coding-category-big5		'chinese-big5
-	coding-category-utf-16-be       nil
-	coding-category-utf-16-le       nil
+	coding-category-utf-16-be       'mule-utf-16be-with-signature
+	coding-category-utf-16-le       'mule-utf-16le-with-signature
 	coding-category-utf-8           'mule-utf-8
 	coding-category-ccl		nil
 	coding-category-binary		'no-conversion)
@@ -1608,6 +1629,9 @@ The default status is as follows:
   (set-coding-priority
    '(coding-category-iso-8-1
      coding-category-iso-8-2
+     coding-category-utf-8
+     coding-category-utf-16-be
+     coding-category-utf-16-le
      coding-category-iso-7-tight
      coding-category-iso-7
      coding-category-iso-7-else
@@ -1617,10 +1641,7 @@ The default status is as follows:
      coding-category-sjis
      coding-category-big5
      coding-category-ccl
-     coding-category-binary
-     coding-category-utf-16-be
-     coding-category-utf-16-le
-     coding-category-utf-8))
+     coding-category-binary))
 
   (update-coding-systems-internal)
 
@@ -1663,10 +1684,16 @@ The default status is as follows:
   (let ((coding (get-language-info language-name 'unibyte-display)))
     (if coding
 	(standard-display-european-internal)
-      (standard-display-default (if (eq window-system 'pc) 128 160) 255)
-      (aset standard-display-table 146 nil))
+      ;; The following 2 lines undo the 8-bit display that we set up
+      ;; in standard-display-european-internal, which see.  This is in
+      ;; case the user has used standard-display-european earlier in
+      ;; this session.  (The MS-DOS port doesn't use that setup, so it
+      ;; doesn't need to undo it.)
+      (when standard-display-table
+	(dotimes (i 128)
+	  (aset standard-display-table (+ i 128) nil))))
     (or (eq window-system 'pc)
-      (set-terminal-coding-system coding))))
+	(set-terminal-coding-system coding))))
 
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
@@ -1681,8 +1708,10 @@ specifies the character set for the major languages of Western Europe."
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
     (setq language-name "English"))
-  (or (assoc-ignore-case language-name language-info-alist)
+  (let ((slot (assoc-ignore-case language-name language-info-alist)))
+    (unless slot
       (error "Language environment not defined: %S" language-name))
+    (setq language-name (car slot)))
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
@@ -1771,7 +1800,7 @@ specifies the character set for the major languages of Western Europe."
 	(aset standard-display-table 160 [32])
 	;; With luck, non-Latin-1 fonts are more recent and so don't
 	;; have this bug.
-	(aset standard-display-table 2208 [32]) ; Latin-1 NBSP
+	(aset standard-display-table (make-char 'latin-iso8859-1 160) [32])
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
 	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
@@ -1779,7 +1808,21 @@ specifies the character set for the major languages of Western Europe."
 	;; fonts probably have the appropriate glyph at this position,
 	;; so they could use standard-display-8bit.  It's better to use a
 	;; proper windows-1252 coding system.  --fx]
-	(aset standard-display-table 146 [39]))))
+	(aset standard-display-table 146 [39])
+	;; XFree86 4 has changed most of the fonts from their designed
+	;; versions such that `' no longer appears as balanced quotes.
+	;; Assume it has iso10646 fonts installed, so we can display
+	;; balanced quotes.
+	(when (and (eq window-system 'x)
+		   (string= "The XFree86 Project, Inc" (x-server-vendor))
+		   (> (aref (number-to-string (nth 2 (x-server-version))) 0)
+		      ?3))
+	  (aset standard-display-table ?' [?$,1ry(B])
+	  (aset standard-display-table ?` [?$,1rx(B])
+	  ;; The fonts don't have the relevant bug.
+	  (aset standard-display-table 160 nil)
+	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
+		nil)))))
 
 (defun set-language-environment-coding-systems (language-name
 						&optional eol-type)
@@ -1838,6 +1881,8 @@ of `buffer-file-coding-system' set by this function."
       (error "No documentation for the specified language"))
   (if (symbolp language-name)
       (setq language-name (symbol-name language-name)))
+  (dolist (feature (get-language-info language-name 'features))
+    (require feature))
   (let ((doc (get-language-info language-name 'documentation))
 	pos)
     (help-setup-xref (list #'describe-language-environment language-name)
@@ -2124,7 +2169,7 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?9\\>" . "Latin-5")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
-     (".*utf\\(-?8\\)\\>" . "UTF-8")
+     (".*utf-?8\\>" . "UTF-8")
      ;; utf-8@euro exists, so put this last.  (@euro really specifies
      ;; the currency, rather than the charset.)
      (".*@euro\\>" . "Latin-9")))
@@ -2271,9 +2316,9 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (setq locale-coding-system coding-system))))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
-    ;; (See comments in Flanginfo.)
+    ;; (See comments in Flocale_info.)
     (let ((locale locale)
-	  (paper (langinfo 'paper)))
+	  (paper (locale-info 'paper)))
       (if paper
 	  ;; This will always be null at the time of writing.
 	  (cond
@@ -2358,7 +2403,7 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
    (if (and coding-system (eq (coding-system-type coding-system) 2))
        ;; Try to get a pretty description for ISO 2022 escape sequences.
        (function (lambda (x) (or (cdr (assq x iso-2022-control-alist))
-				 (format "%02X" x))))
+				 (format "0x%02X" x))))
      (function (lambda (x) (format "0x%02X" x))))
    str " "))
 
@@ -2394,4 +2439,5 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
       (substring enc2 0 i2))))
 
 
+;;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

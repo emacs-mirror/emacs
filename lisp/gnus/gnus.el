@@ -2950,4 +2950,5 @@ prompt the user for the name of an NNTP server to use."
 
 (provide 'gnus)
 
+;;; arch-tag: acebeeab-f331-4f8f-a7ea-89c58c84f636
 ;;; gnus.el ends here

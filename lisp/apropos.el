@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
@@ -102,6 +102,11 @@ for the regexp; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
+(defcustom apropos-sort-by-scores nil
+  "*Non-nil means sort matches by scores; best match is shown first.
+The computed score is shown for each match."
+  :group 'apropos
+  :type 'boolean)
 
 (defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
@@ -118,9 +123,6 @@ for the regexp; the part that matches gets displayed in this font."
 
 (defvar apropos-mode-hook nil
   "*Hook run when mode is turned on.")
-
-(defvar apropos-show-scores nil
-  "*Show apropos scores if non-nil.")
 
 (defvar apropos-regexp nil
   "Regexp used in current apropos run.")
@@ -246,9 +248,10 @@ before finding a label."
   "Make regexp matching any two of the words in WORDS."
   (concat "\\("
 	  (mapconcat 'identity words "\\|")
-	  "\\)" wild
+	  "\\)"
 	  (if (cdr words)
-	      (concat "\\("
+	      (concat wild
+		      "\\("
 		      (mapconcat 'identity words "\\|")
 		      "\\)")
 	    "")))
@@ -468,7 +471,7 @@ time-consuming.  Returns list of symbols and documentation found."
     (while p
       (setcar p (list
 		 (setq symbol (car p))
-		 0
+		 (apropos-score-symbol symbol)
 		 (when (fboundp symbol)
 		   (if (setq doc (condition-case nil
 				     (documentation symbol t)
@@ -766,10 +769,15 @@ separate items with that string."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-orig-regexp)
     (setq apropos-accumulator
-	  (sort apropos-accumulator (lambda (a b)
-				      (or (> (cadr a) (cadr b))
-					  (and (= (cadr a) (cadr b))
-					       (string-lessp (car a) (car b)))))))
+	  (sort apropos-accumulator
+		(lambda (a b)
+		  ;; Don't sort by score if user can't see the score.
+		  ;; It would be confusing.  -- rms.
+		  (if apropos-sort-by-scores
+		      (or (> (cadr a) (cadr b))
+			  (and (= (cadr a) (cadr b))
+			       (string-lessp (car a) (car b))))
+		    (string-lessp (car a) (car b))))))
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
@@ -798,7 +806,7 @@ separate items with that string."
 			      ;; changed the variable!
 			      ;; Just say `no' to variables containing faces!
 			      'face apropos-symbol-face)
-	  (if apropos-show-scores
+	  (if apropos-sort-by-scores
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
 	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
@@ -913,4 +921,5 @@ separate items with that string."
 
 (provide 'apropos)
 
+;;; arch-tag: d56fa2ac-e56b-4ce3-84ff-852f9c0dc66e
 ;;; apropos.el ends here

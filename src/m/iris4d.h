@@ -1,5 +1,5 @@
 /* machine description file for Iris-4D machines.  Use with s/irix*.h.
-   Copyright (C) 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1987, 2002, 2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -159,7 +159,10 @@ Boston, MA 02111-1307, USA.  */
 #undef FIRST_PTY_LETTER
 #define FIRST_PTY_LETTER 'q'
 
-#ifndef _LP64
+#if _MIPS_SZLONG != 64
+/* fixme: should there be 64-bit defiitions?  (The ones below aren't
+   OK.)  */
+
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
@@ -167,8 +170,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-
-#define XUNMARK(a) ((a) = (((unsigned)(a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
 #endif /* _LP64 */
 
 #ifndef __GNUC__
@@ -185,3 +186,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #endif /* not __GNUC__ */
+
+/* arch-tag: fff5e139-9ae0-465d-afec-837c41ea0aa6
+   (do not change this comment) */

@@ -304,4 +304,5 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
 
 (provide 'prolog)
 
+;;; arch-tag: f3ec6748-1272-4ab6-8826-c50cb1607636
 ;;; prolog.el ends here

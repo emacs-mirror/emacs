@@ -1135,3 +1135,5 @@ pi¹ete in delite prosto programje!
 ;;; Local Variables:
 ;;; coding: iso-latin-2
 ;;; End:
+
+;;; arch-tag: 985059e4-44c6-4ac9-b627-46c8db57acf6

@@ -3567,4 +3567,5 @@
  ("mdq" ?힛)
  ("mda" ?힝))
 
+;;; arch-tag: 20ea2223-ab47-414f-8e28-d03dc83617b7
 ;;; hangul3.el ends here

@@ -15,3 +15,6 @@
 #ifdef _MALLOC_INTERNAL
 #define _POSIX_SOURCE
 #endif
+
+/* arch-tag: 10a9fab3-9e84-4e9e-9535-6ff42baf9e77
+   (do not change this comment) */

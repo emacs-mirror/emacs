@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.42 2003/02/24 17:29:49 lektu Exp $||
+;; Version: $Id: allout.el,v 1.44 2003/09/01 15:45:04 miles Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -82,7 +82,7 @@ outline mode is automatically activated when the buffer-specific
 variable `allout-layout' is non-nil, and whether or not the layout
 dictated by `allout-layout' should be imposed on mode activation.
 
-With value `t', auto-mode-activation and auto-layout are enabled.
+With value t, auto-mode-activation and auto-layout are enabled.
 \(This also depends on `allout-find-file-hook' being installed in
 `find-file-hooks', which is also done by `allout-init'.)
 
@@ -92,7 +92,7 @@ performing auto-layout is asked of the user each time.
 With value `activate', only auto-mode-activation is enabled,
 auto-layout is not.
 
-With value `nil', neither auto-mode-activation nor auto-layout are
+With value nil, neither auto-mode-activation nor auto-layout are
 enabled.
 
 See the docstring for `allout-init' for the proper interface to
@@ -226,14 +226,14 @@ so topic headers look like comments in the programming language.
 
 String values are used as they stand.
 
-Value `t' means to first check for assoc value in `allout-mode-leaders'
+Value t means to first check for assoc value in `allout-mode-leaders'
 alist, then use comment-start string, if any, then use default \(`.').
 \(See note about use of comment-start strings, below.)
 
 Set to the symbol for either of `allout-mode-leaders' or
 `comment-start' to use only one of them, respectively.
 
-Value `nil' means to always use the default \(`.').
+Value nil means to always use the default \(`.').
 
 comment-start strings that do not end in spaces are tripled, and an
 `_' underscore is tacked on the end, to distinguish them from regular
@@ -480,7 +480,7 @@ When active, topic body lines that are indented even with or beyond
 their topic header are reindented to correspond with depth shifts of
 the header.
 
-A value of `t' enables reindent in non-programming-code buffers, ie
+A value of t enables reindent in non-programming-code buffers, ie
 those that do not have the variable `comment-start' set.  A value of
 `force' enables reindent whether or not `comment-start' is set."
   :type '(choice (const nil) (const t) (const text) (const force))
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.42 $"))
+  (let ((rcs-rev "$Revision: 1.44 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -893,7 +893,7 @@ It's automatically reset to nil after every buffer modification.")
 (make-variable-buffer-local 'allout-override-protect)
 ;;;_   > allout-unprotected (expr)
 (defmacro allout-unprotected (expr)
-  "Evaluate EXPRESSION with `allout-override-protect' let-bound `t'."
+  "Evaluate EXPRESSION with `allout-override-protect' let-bound t."
   `(let ((allout-override-protect t))
      ,expr))
 ;;;_   = allout-undo-aggregation
@@ -4770,4 +4770,5 @@ so pass them along when appropriate."
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
+;;; arch-tag: cf38fbc3-c044-450f-8bff-afed8ba5681c
 ;;; allout.el ends here

@@ -5,7 +5,7 @@
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.49 2001/11/17 04:01:31 rms Exp $
+;; Version: $Id: todo-mode.el,v 1.51 2003/09/01 15:45:19 miles Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.49 2001/11/17 04:01:31 rms Exp $
+;;      $Id: todo-mode.el,v 1.51 2003/09/01 15:45:19 miles Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -961,4 +961,5 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 (provide 'todo-mode)
 
+;;; arch-tag: 6fd91be5-776e-4464-a109-da4ea0e4e497
 ;;; todo-mode.el ends here

@@ -513,4 +513,5 @@ Optional prefix ARG chooses between two representations."
 
 (provide 'cvs-status)
 
+;;; arch-tag: db8b5094-d02a-473e-a476-544e89ff5ad0
 ;;; cvs-status.el ends here

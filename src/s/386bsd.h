@@ -22,3 +22,6 @@
 
 /* This affects a declaration in xrdb.c.  */
 #define DECLARE_GETPWUID_WITH_UID_T
+
+/* arch-tag: 8a114892-0863-4285-a4cb-3d66ba2d8e7b
+   (do not change this comment) */

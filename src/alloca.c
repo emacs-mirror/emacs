@@ -1,6 +1,9 @@
 /* alloca.c -- allocate automatically reclaimed memory
    (Mostly) portable public-domain implementation -- D A Gwyn
 
+   NOTE: The canonical source of this file is maintained with gnulib.
+   Bugs can be reported to bug-gnulib@gnu.org.
+
    This implementation of the PWB library alloca function,
    which is used to allocate space off the run-time stack so
    that it is automatically reclaimed upon procedure exit,
@@ -32,8 +35,7 @@
 # include <stdlib.h>
 #endif
 
-#ifdef emacs
-# include "lisp.h"
+#ifdef DO_BLOCK_INPUT
 # include "blockinput.h"
 #endif
 
@@ -54,8 +56,11 @@
 you
 lose
 -- must know STACK_DIRECTION at compile-time
-/* Using #error here is not wise since this file is for
-   old and obscure compilers.  */
+/* Using #error here is not wise since this file should work for
+   old and obscure compilers.  
+
+   As far as I know, using it is OK if it's indented -- at least for
+   pcc-based processors.  -- fx */
 #    endif /* STACK_DIRECTION undefined */
 #   endif /* static */
 #  endif /* emacs */
@@ -70,38 +75,32 @@ long i00afunc ();
 #   define ADDRESS_FUNCTION(arg) &(arg)
 #  endif
 
-#  ifdef POINTER_TYPE
+#  ifndef POINTER_TYPE
+#   ifdef __STDC__
+#    define POINTER_TYPE void
+#   else
+#    define POINTER_TYPE char
+#   endif
+#  endif
 typedef POINTER_TYPE *pointer;
-#  else /* not POINTER_TYPE */
-#   if __STDC__
-typedef void *pointer;
-#   else /* not __STDC__ */
-typedef char *pointer;
-#   endif /* not __STDC__ */
-#  endif /* not POINTER_TYPE */
 
 #  ifndef NULL
 #   define NULL 0
 #  endif
 
-/* Different portions of Emacs need to call different versions of
-   malloc.  The Emacs executable needs alloca to call xmalloc, because
-   ordinary malloc isn't protected from input signals.  On the other
-   hand, the utilities in lib-src need alloca to call malloc; some of
-   them are very simple, and don't have an xmalloc routine.
-
-   Non-Emacs programs expect this to call xmalloc.
+/* The Emacs executable needs alloca to call xmalloc, because ordinary
+   malloc isn't protected from input signals.  xmalloc also checks for
+   out-of-memory errors, so we should use it generally.
 
    Callers below should use malloc.  */
 
-#  ifdef emacs
-#   undef malloc
-#   define malloc xmalloc
-#   ifdef EMACS_FREE
-#    define free EMACS_FREE
-#   endif
-#  endif
-extern pointer malloc ();
+#  undef malloc
+#  define malloc xmalloc
+#  undef free
+#  define free xfree
+
+void *xmalloc _P ((size_t));
+void xfree _P ((void *))
 
 /* Define STACK_DIRECTION if you know the direction of stack
    growth for your system; otherwise it will be automatically
@@ -180,7 +179,7 @@ static header *last_alloca_header = NULL;	/* -> last alloca header.  */
 
 pointer
 alloca (size)
-     unsigned size;
+     size_t size;
 {
   auto char probe;		/* Probes stack depth: */
   register char *depth = ADDRESS_FUNCTION (probe);
@@ -196,7 +195,7 @@ alloca (size)
   {
     register header *hp;	/* Traverses linked list.  */
 
-#  ifdef emacs
+#  ifdef DO_BLOCK_INPUT
     BLOCK_INPUT;
 #  endif
 
@@ -215,7 +214,7 @@ alloca (size)
 
     last_alloca_header = hp;	/* -> last valid storage.  */
 
-#  ifdef emacs
+#  ifdef DO_BLOCK_INPUT
     UNBLOCK_INPUT;
 #  endif
   }
@@ -226,8 +225,8 @@ alloca (size)
   /* Allocate combined header + user data storage.  */
 
   {
-    register pointer new = malloc (sizeof (header) + size);
     /* Address of header.  */
+    register pointer new = malloc (sizeof (header) + size);
 
     if (new == 0)
       abort();
@@ -513,3 +512,6 @@ i00afunc (long address)
 
 # endif /* no alloca */
 #endif /* not GCC version 2 */
+
+/* arch-tag: 5c9901c8-3cd4-453e-bd66-d9035a175ee3
+   (do not change this comment) */

@@ -40,6 +40,9 @@
 
 ;;; Code:
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (require 'calendar)
 
 (defun calendar-julian-from-absolute (date)
@@ -207,4 +210,5 @@ Echo astronomical (Julian) day number unless NOECHO is t."
 
 (provide 'cal-julian)
 
+;;; arch-tag: 0520acdd-1c60-4188-9aa8-9b8c24d856ae
 ;;; cal-julian.el ends here

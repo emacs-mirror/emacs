@@ -251,27 +251,27 @@ Normally nil in most modes, since there is no process to display.")
 
 ;; Actual initialization is below.
 (defvar mode-line-position nil
-  "Mode-line control for displaying line number, column number and fraction.")
+  "Mode-line control for displaying the position in the buffer.
+Normally displays the buffer percentage and, optionally, the
+buffer size, the line number and the column number.")
 
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
-(defvar mode-line-major-mode-keymap nil "\
+(defvar mode-line-major-mode-keymap 
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2] 'describe-mode)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    map) "\
 Keymap to display on major mode.")
 
-(defvar mode-line-minor-mode-keymap nil "\
+(defvar mode-line-minor-mode-keymap 
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+    map) "\
 Keymap to display on minor modes.")
-
-(let ((map (make-sparse-keymap)))
-  (define-key map [mode-line mouse-2] 'describe-mode)
-  (setq mode-line-major-mode-keymap map))
-
-;; Menu of minor modes.
-(let ((map (make-sparse-keymap)))
-  (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
-  (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-  (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
-  (setq mode-line-minor-mode-keymap map))
 
 (let* ((help-echo
 	;; The multi-line message doesn't work terribly well on the
@@ -303,7 +303,7 @@ Keymap to display on minor modes.")
      `(:propertize ("" mode-name)
 		   help-echo "mouse-2: help for current major mode"
 		   local-map ,mode-line-major-mode-keymap)
-     `(:propertize ("" mode-line-process))
+     '("" mode-line-process)
      `(:propertize ("" minor-mode-alist)
 		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
@@ -313,7 +313,9 @@ Keymap to display on minor modes.")
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((-3 . ,(propertize "%p" 'help-echo help-echo))
+    `((-3 ,(propertize "%p" 'help-echo help-echo))
+      (size-indication-mode 
+       (8 ,(propertize " of %I" 'help-echo help-echo)))
       (line-number-mode
        ((column-number-mode
 	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
@@ -516,7 +518,9 @@ is okay.  See `mode-line-format'.")
 	 ;; Gettext
 	 ".gmo" ".mo"
 	 ;; Texinfo-related
-	 ".toc" ".log" ".aux"
+	 ;; This used to contain .log, but that's commonly used for log
+	 ;; files you do want to see, not just TeX stuff.  -- fx
+	 ".toc" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
 
@@ -640,6 +644,11 @@ language you are using."
 
 ;; From frame.c
 (global-set-key [switch-frame] 'handle-switch-frame)
+(global-set-key [select-window] 'handle-select-window)
+
+;; FIXME: Do those 3 events really ever reach the global-map ?
+;;        It seems that they can't because they're handled via
+;;        special-event-map which is used at very low-level.  -stef
 (global-set-key [delete-frame] 'handle-delete-frame)
 (global-set-key [iconify-frame] 'ignore-event)
 (global-set-key [make-frame-visible] 'ignore-event)
@@ -740,6 +749,7 @@ language you are using."
 ;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
+(define-key global-map [C-S-backspace]  'kill-whole-line)
 (define-key global-map [home]		'beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
 (define-key global-map [M-home]		'beginning-of-buffer-other-window)
@@ -768,6 +778,11 @@ language you are using."
 (define-key global-map [S-insert]	'yank)
 (define-key global-map [undo]		'undo)
 (define-key global-map [redo]		'repeat-complex-command)
+(define-key global-map [again]		'repeat-complex-command) ; Sun keyboard
+(define-key global-map [open]		'find-file) ; Sun
+;; The following wouldn't work to interrupt running code since C-g is
+;; treated specially in the event loop.
+;; (define-key global-map [stop]		'keyboard-quit) ; Sun
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
@@ -935,8 +950,10 @@ language you are using."
 (define-key esc-map [?\C-\ ] 'mark-sexp)
 (define-key esc-map "\C-d" 'down-list)
 (define-key esc-map "\C-k" 'kill-sexp)
-(define-key global-map [C-M-delete] 'backward-kill-sexp)
-(define-key global-map [C-M-backspace] 'backward-kill-sexp)
+;;; These are dangerous in various situations,
+;;; so let's not encourage anyone to use them.
+;;;(define-key global-map [C-M-delete] 'backward-kill-sexp)
+;;;(define-key global-map [C-M-backspace] 'backward-kill-sexp)
 (define-key esc-map [C-delete] 'backward-kill-sexp)
 (define-key esc-map [C-backspace] 'backward-kill-sexp)
 (define-key esc-map "\C-n" 'forward-list)
@@ -1029,4 +1046,5 @@ language you are using."
 ;; no-update-autoloads: t
 ;; End:
 
+;;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

@@ -160,4 +160,5 @@ to get the latest version of the file, then make the change again.")
       (set-buffer standard-output)
       (help-mode))))
 
+;;; arch-tag: a61c5b60-e1c8-44fd-894a-c617f4dfc639
 ;;; userlock.el ends here

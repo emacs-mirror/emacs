@@ -25,6 +25,11 @@ Packages posted to the gnu.emacs.sources newsgroup (see
 etc/MAILINGLISTS) might be archived specifically (try a web search
 engine) or retrievable from general Usenet archive services.
 
+* emacswiki.org
+
+The Emacs Wiki has an area for storing elisp files
+<URL:http://www.emacswiki.org/cgi-bin/wiki.pl/ElispArea>.
+
 * Maintenance versions of some packages distributed with Emacs
 
 You might find bug-fixes or enhancements in these places.
@@ -39,7 +44,7 @@ You might find bug-fixes or enhancements in these places.
  * BibTeX:
    <URL:http://www.ida.ing.tu-bs.de/people/dirk/bibtex/index.html>
 
- * BS: <URL:http://home.netsurf.de/olaf.sylvester/emacs>
+ * BS: <URL:http://www.geekware.de/software/emacs/index.html>
 
  * Calculator: <URL:http://www.cs.cornell.edu/eli/misc/calculator.el>
 
@@ -47,7 +52,7 @@ You might find bug-fixes or enhancements in these places.
 
  * CPerl: <URL:ftp://ftp.math.ohio-state.edu/pub/users/ilya>
 
- * Ediff and Viper: <URL:ftp://ftp.cs.sunysb.edu/pub/TechReports/kifer/>
+ * Ediff and Viper: <URL:http://www.cs.sunysb.edu/~kifer/emacs.html>
 
  * Eldoc and Rlogin:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>
@@ -86,9 +91,9 @@ You might find bug-fixes or enhancements in these places.
 
  * QuickURL: <URL:http://www.acemake.com/hagbard/archives/quickurl.el>
 
- * RefTeX: <URL:http://www.strw.leidenuniv.nl/%7Edominik/Tools/>
+ * RefTeX: <URL:http://zon.astro.uva.nl/~dominik/Tools/>
 
- * Speedbar, Checkdoc etc: <URL:ftp://www.ultranet.com/pub/zappo/>
+ * Speedbar, Checkdoc etc: <URL:http://cedet.sourceforge.net/>
 
  * SQL: <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>
 
@@ -118,7 +123,7 @@ the future.
 You might like to check whether they are packaged for your system.
 Several are for Debian GNU/Linux in particular.
 
- * AUCTeX: fancy (La)TeX support: <URL:http://sunsite.dk/auctex/>
+ * AUCTeX: fancy (La)TeX support: <URL:http://www.gnu.org/software/auctex/>
    There's an AUCTeX mail list/newsgroup:
    <URL:news://sunsite.dk/emacs.auctex>.
 
@@ -133,15 +138,17 @@ Several are for Debian GNU/Linux in particular.
    mirrors of the `CTAN' TeX archives.
 
  * Dismal: spreadsheet:
-   <URL:http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/
-   dismal.html>
+   <URL:http://acs.ist.psu.edu/dismal/dismal.html>
 
  * EDB: database:
    <URL:http://sdg.lcs.mit.edu/%7Emernst/software/edb-mrp.tar.gz>
    Not maintained?
 
+ * Ee: categorizing information manager:
+   <URL:http://www.jurta.org/emacs/ee/>
+
  * EIEIO (object system), ETalk (interface to Internet talk):
-   <URL:ftp://www.ultranet.com/pub/zappo/>
+   <URL:http://cedet.sourceforge.net/eieio.shtml>
 
  * EFS: enhanced version of ange-ftp:
    <URL:http://www-uk.hpl.hp.com/people/ange/efs>
@@ -150,6 +157,9 @@ Several are for Debian GNU/Linux in particular.
  * Elib library: <URL:http://www.gnu.org/software/elib/elib.html>
    From GNU distribution mirrors.  (Much of this functionality is now
    in Emacs.)
+
+ * Emacs statistical system (ESS): statistical programming within Emacs
+   <URL:http://www.analytics.washington.edu/Zope/wikis/ess/FrontPage>
 
  * Emacspeak -- A Speech Output Subsystem For Emacs:
    <URL:http://emacspeak.sourceforge.net/>
@@ -176,14 +186,15 @@ Several are for Debian GNU/Linux in particular.
    Provides an interactive environment for manipulating an inferior
    process running some form of Lisp.
 
- * JDE: <URL:http://sunsite.auc.dk/jde/>
-   Provides a Java-specific `Integrated Development Environment'.
+ * JDE: <URL:http://jdee.sunsite.dk/>
+   Provides a Java development environment for Emacs.
 
  * Mule-UCS: Universal enCoding System:
    <URL:ftp://ftp.m17n.org/pub/mule/Mule-UCS/>
    Extended coding systems for Mule, specifically for reading and
-   writing UTF-8 encoded Unicode.  This does more than the built-in
-   utf-8 coding system.
+   writing UTF-8 encoded Unicode.  This probably doesn't have much
+   advantage over the built-in `mule-utf-8' coding system with
+   `utf-translate-cjk' turned on.
 
  * Mailcrypt:
    <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
@@ -192,6 +203,9 @@ Several are for Debian GNU/Linux in particular.
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
+
+ * Preview LaTeX: embed preview LaTeX images in source buffer.
+   <URL:http://preview-latex.sourceforge.net/>
 
  * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
    DTD-aware serious SGML/XML editing.
@@ -205,7 +219,7 @@ Several are for Debian GNU/Linux in particular.
 	SJ3 Ver.2
 
  * Tramp: Remote file access via rsh/ssh
-   <URL:ftp://ls6.cs.uni-dortmund.de/pub/tramp.tar.gz>
+   <URL:http://savannah.gnu.org/projects/tramp/>
 
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
@@ -224,3 +238,5 @@ mode: text
 mode: view
 eval: (goto-address)
 End:
+
+arch-tag: c1d4e7c8-db85-44e6-909e-659e2b20fefa

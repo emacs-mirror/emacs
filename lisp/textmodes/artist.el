@@ -32,7 +32,7 @@
 ;; ---------------
 ;;
 ;; Artist is an Emacs lisp package that allows you to draw lines,
-;; rectangles and ellipses by using your mouse and/or keyboard. The
+;; rectangles and ellipses by using your mouse and/or keyboard.  The
 ;; shapes are made up with the ascii characters |, -, / and \.
 ;;
 ;; Features are:
@@ -61,20 +61,20 @@
 ;;     erase characters         erase rectangles
 ;;
 ;;   Straight lines are lines that go horizontally, vertically or
-;;   diagonally. Plain lines go in any direction. The operations in
+;;   diagonally.  Plain lines go in any direction.  The operations in
 ;;   the right column are accessed by holding down the shift key while
 ;;   drawing.
 ;;
 ;;   It is possible to vaporize (erase) entire lines and connected lines
 ;;   (rectangles for example) as long as the lines being vaporized are
-;;   straight and connected at their endpoints. Vaporizing is inspired
+;;   straight and connected at their endpoints.  Vaporizing is inspired
 ;;   by the drawrect package by Jari Aalto <jari.aalto@poboxes.com>.
 ;;
 ;; * Flood-filling: You can fill any area with a certain character by
 ;;   flood-filling.
 ;;
 ;; * Cut copy and paste: You can cut, copy and paste rectangular
-;;   regions. Artist also interfaces with the rect package (this can be
+;;   regions.  Artist also interfaces with the rect package (this can be
 ;;   turned off if it causes you any trouble) so anything you cut in
 ;;   artist can be yanked with C-x r y and vice versa.
 ;;
@@ -85,7 +85,7 @@
 ;;   poly-line, you can set arrows on the line-ends by typing < or >.
 ;;
 ;; * Aspect-ratio: You can set the variable artist-aspect-ratio to
-;;   reflect the height-width ratio for the font you are using. Squares
+;;   reflect the height-width ratio for the font you are using.  Squares
 ;;   and circles are then drawn square/round.  Note, that once your
 ;;   ascii-file is shown with font with a different height-width ratio,
 ;;   the squares won't be square and the circles won't be round.
@@ -446,7 +446,7 @@ strangely.")
   "Char to use when filling.")
 (make-variable-buffer-local 'artist-fill-char)
 
-(defvar artist-erase-char ?\
+(defvar artist-erase-char ?\s
   "Char to use when erasing.")
 (make-variable-buffer-local 'artist-erase-char)
 
@@ -1685,7 +1685,7 @@ info-variant-part."
   (list 'if fn (cons 'funcall (cons fn args))))
 
 (defvar artist-butlast-fn 'artist-butlast
-  "The butlast function")
+  "The butlast function.")
 
 (if (fboundp 'butlast)
     (setq artist-butlast-fn 'butlast)
@@ -2526,7 +2526,7 @@ They are faster to draw and most often they are what you need
 when drawing a simple image.
 
 Output is a straight line, which is a list on the form
-(END-POINT-1 END-POINT-2 SHAPE-INFO).
+\(END-POINT-1 END-POINT-2 SHAPE-INFO).
 
 END-POINT-1 and END-POINT-2 are two-element vectors on the form [X Y].
 SHAPE-INFO is a vector [START-X START-Y LENGTH-OF-LINE DIRECTION
@@ -2581,7 +2581,7 @@ SHAPE-INFO is a vector [START-X START-Y LENGTH-OF-LINE DIRECTION
   "Draws a rectangle with corners at X1, Y1 and X2, Y2.
 
 Output is a rectangle, which is a list on the form
-(END-POINT-1 END-POINT-2 SHAPE-INFO).
+\(END-POINT-1 END-POINT-2 SHAPE-INFO).
 
 END-POINT-1 and END-POINT-2 are two-element vectors on the form [X Y].
 SHAPE-INFO is a list of four straight lines."
@@ -2642,7 +2642,7 @@ depends on which of X2 and Y2 is most far away from X1, Y1."
   "Draw a square with corners at X1, Y1 and X2, Y2.
 
 Output is a square, which is a list on the form
-(END-POINT-1 END-POINT-2 SHAPE-INFO).
+\(END-POINT-1 END-POINT-2 SHAPE-INFO).
 
 END-POINT-1 and END-POINT-2 are two-element vectors on the form [X Y].
 SHAPE-INFO is a list of four straight lines."
@@ -5515,4 +5515,5 @@ The event, EV, is the mouse event."
 ;; Don't hesitate to ask me any questions.
 
 
+;;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
 ;;; artist.el ends here

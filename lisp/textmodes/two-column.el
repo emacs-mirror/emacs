@@ -223,7 +223,7 @@
 (defcustom 2C-mode-line-format
 	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
 	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
-  "*Value of mode-line-format for a buffer in two-column minor mode."
+  "*Value of `mode-line-format' for a buffer in two-column minor mode."
   :type 'sexp
   :group 'two-column)
 
@@ -639,4 +639,5 @@ When autoscrolling is turned on, this also realigns the two buffers."
 
 (provide 'two-column)
 
+;;; arch-tag: 2021b5ab-d3a4-4a8c-a21c-1936b0f9e6b1
 ;;; two-column.el ends here

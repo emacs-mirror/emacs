@@ -30,7 +30,7 @@ use Mail::Address;
 use Date::Parse;
 
 my($whoami) = basename $0;
-my($version) = '$Revision: 1.5 $';
+my($version) = '$Revision: 1.6 $';
 my($usage) = "Usage: $whoami [--help] [--version] [--[no]full-headers] [Babyl-file]
 \tBy default, full headers are printed.\n";
 
@@ -152,3 +152,5 @@ while (<>) {
 }
 
 close(STDOUT) || die "$whoami: Error closing stdout: $!\n";
+
+# arch-tag: 8c7c8ab0-721c-46d7-ba3e-139801240aa8

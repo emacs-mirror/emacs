@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 02, 2003
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -299,7 +299,7 @@ region_limit (beginningp)
   if (NILP (m))
     error ("The mark is not set now, so there is no region");
 
-  if ((PT < XFASTINT (m)) == beginningp)
+  if ((PT < XFASTINT (m)) == (beginningp != 0))
     m = make_number (PT);
   return m;
 }
@@ -338,15 +338,14 @@ overlays_around (pos, vec, len)
      Lisp_Object *vec;
      int len;
 {
-  Lisp_Object tail, overlay, start, end;
+  Lisp_Object overlay, start, end;
+  struct Lisp_Overlay *tail;
   int startpos, endpos;
   int idx = 0;
 
-  for (tail = current_buffer->overlays_before;
-       GC_CONSP (tail);
-       tail = XCDR (tail))
+  for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
-      overlay = XCAR (tail);
+      XSETMISC (overlay, tail);
 
       end = OVERLAY_END (overlay);
       endpos = OVERLAY_POSITION (end);
@@ -363,11 +362,9 @@ overlays_around (pos, vec, len)
 	}
     }
 
-  for (tail = current_buffer->overlays_after;
-       GC_CONSP (tail);
-       tail = XCDR (tail))
+  for (tail = current_buffer->overlays_after; tail; tail = tail->next)
     {
-      overlay = XCAR (tail);
+      XSETMISC (overlay, tail);
 
       start = OVERLAY_START (overlay);
       startpos = OVERLAY_POSITION (start);
@@ -399,19 +396,19 @@ get_pos_property (position, prop, object)
      Lisp_Object position, object;
      register Lisp_Object prop;
 {
-  struct window *w = 0;
-
   CHECK_NUMBER_COERCE_MARKER (position);
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
+  else if (WINDOWP (object))
+    object = XWINDOW (object)->buffer;
 
-  if (WINDOWP (object))
-    {
-      w = XWINDOW (object);
-      object = w->buffer;
-    }
-  if (BUFFERP (object))
+  if (!BUFFERP (object))
+    /* pos-property only makes sense in buffers right now, since strings
+       have no overlays and no notion of insertion for which stickiness
+       could be obeyed.  */
+    return Fget_text_property (position, prop, object);
+  else
     {
       int posn = XINT (position);
       int noverlays;
@@ -457,18 +454,18 @@ get_pos_property (position, prop, object)
 	    }
 	}
 
+      { /* Now check the text-properties.  */
+	int stickiness = text_property_stickiness (prop, position, object);
+	if (stickiness > 0)
+	  return Fget_text_property (position, prop, object);
+	else if (stickiness < 0
+		 && XINT (position) > BUF_BEGV (XBUFFER (object)))
+	  return Fget_text_property (make_number (XINT (position) - 1),
+				     prop, object);
+	else
+	  return Qnil;
+      }
     }
-
-  { /* Now check the text-properties.  */
-    int stickiness = text_property_stickiness (prop, position);
-    if (stickiness > 0)
-      return Fget_text_property (position, prop, Qnil);
-    else if (stickiness < 0 && XINT (position) > BEGV)
-      return Fget_text_property (make_number (XINT (position) - 1),
-				 prop, Qnil);
-    else
-      return Qnil;
-  }
 }
 
 /* Find the field surrounding POS in *BEG and *END.  If POS is nil,
@@ -868,7 +865,7 @@ save_excursion_restore (info)
   /* Point marker.  */
   tem = XCAR (info);
   Fgoto_char (tem);
-  unchain_marker (tem);
+  unchain_marker (XMARKER (tem));
 
   /* Mark marker.  */
   info = XCDR (info);
@@ -876,7 +873,7 @@ save_excursion_restore (info)
   omark = Fmarker_position (current_buffer->mark);
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   nmark = Fmarker_position (tem);
-  unchain_marker (tem);
+  unchain_marker (XMARKER (tem));
 
   /* visible */
   info = XCDR (info);
@@ -1667,6 +1664,9 @@ Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;
 for example, a DAY of 0 means the day preceding the given month.
 Year numbers less than 100 are treated just like other year numbers.
 If you want them to stand for years in this century, you must do that yourself.
+
+Years before 1970 are not guaranteed to work.  On some systems,
+year values as low as 1901 do work.
 
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
      (nargs, args)
@@ -3201,7 +3201,7 @@ usage: (format STRING &rest OBJECTS)  */)
   register int n;		/* The number of the next arg to substitute */
   register int total;		/* An estimate of the final length */
   char *buf, *p;
-  register unsigned char *format, *end;
+  register unsigned char *format, *end, *format_start;
   int nchars;
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
@@ -3220,9 +3220,20 @@ usage: (format STRING &rest OBJECTS)  */)
   int *precision = (int *) (alloca(nargs * sizeof (int)));
   int longest_format;
   Lisp_Object val;
+  int arg_intervals = 0;
+
+  /* discarded[I] is 1 if byte I of the format
+     string was not copied into the output.
+     It is 2 if byte I was not the first byte of its character.  */
+  char *discarded;
+
+  /* Each element records, for one argument,
+     the start and end bytepos in the output string,
+     and whether the argument is a string with intervals.
+     info[0] is unused.  Unused elements have -1 for start.  */
   struct info
   {
-    int start, end;
+    int start, end, intervals;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -3232,25 +3243,45 @@ usage: (format STRING &rest OBJECTS)  */)
      This is not always right; sometimes the result needs to be multibyte
      because of an object that we will pass through prin1,
      and in that case, we won't know it here.  */
-  for (n = 0; n < nargs; n++) {
-    if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
-      multibyte = 1;
-    /* Piggyback on this loop to initialize precision[N]. */
-    precision[n] = -1;
-  }
+  for (n = 0; n < nargs; n++)
+    {
+      if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
+	multibyte = 1;
+      /* Piggyback on this loop to initialize precision[N]. */
+      precision[n] = -1;
+    }
 
   CHECK_STRING (args[0]);
+  /* We may have to change "%S" to "%s". */
+  args[0] = Fcopy_sequence (args[0]);
+
+  /* GC should never happen here, so abort if it does.  */
+  abort_on_gc++;
 
   /* If we start out planning a unibyte result,
-     and later find it has to be multibyte, we jump back to retry.  */
+     then discover it has to be multibyte, we jump back to retry.
+     That can only happen from the first large while loop below.  */
  retry:
 
   format = SDATA (args[0]);
+  format_start = format;
   end = format + SBYTES (args[0]);
   longest_format = 0;
 
   /* Make room in result for all the non-%-codes in the control string.  */
   total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]);
+
+  /* Allocate the info and discarded tables.  */ 
+  {
+    int nbytes = nargs * sizeof *info;
+    int i;
+    info = (struct info *) alloca (nbytes);
+    bzero (info, nbytes);
+    for (i = 0; i <= nargs; i++)
+      info[i].start = -1;
+    discarded = (char *) alloca (SBYTES (args[0]));
+    bzero (discarded, SBYTES (args[0]));
+  }
 
   /* Add to TOTAL enough space to hold the converted arguments.  */
 
@@ -3326,6 +3357,11 @@ usage: (format STRING &rest OBJECTS)  */)
 		goto retry;
 	      }
 	    args[n] = tem;
+	    /* If we restart the loop, we should not come here again
+	       because args[n] is now a string and calling
+	       Fprin1_to_string on it produces superflous double
+	       quotes.  So, change "%S" to "%s" now.  */
+	    *format = 's';
 	    goto string;
 	  }
 	else if (SYMBOLP (args[n]))
@@ -3424,6 +3460,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	total += thissize + 4;
       }
 
+  abort_on_gc--;
+
   /* Now we can no longer jump to retry.
      TOTAL and LONGEST_FORMAT are known for certain.  */
 
@@ -3442,6 +3480,8 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Scan the format and store result in BUF.  */
   format = SDATA (args[0]);
+  format_start = format;
+  end = format + SBYTES (args[0]);
   maybe_combine_byte = 0;
   while (format != end)
     {
@@ -3451,6 +3491,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  int negative = 0;
 	  unsigned char *this_format_start = format;
 
+	  discarded[format - format_start] = 1;
 	  format++;
 
 	  /* Process a numeric arg and skip it.  */
@@ -3464,7 +3505,10 @@ usage: (format STRING &rest OBJECTS)  */)
              fixed. */
 	  while ((*format >= '0' && *format <= '9')
 		 || *format == '-' || *format == ' ' || *format == '.')
-	    format++;
+	    {
+	      discarded[format - format_start] = 1;
+	      format++;
+	    }
 
 	  if (*format++ == '%')
 	    {
@@ -3474,6 +3518,9 @@ usage: (format STRING &rest OBJECTS)  */)
 	    }
 
 	  ++n;
+
+	  discarded[format - format_start - 1] = 1;
+	  info[n].start = nchars;
 
 	  if (STRINGP (args[n]))
 	    {
@@ -3534,17 +3581,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* If this argument has text properties, record where
 		 in the result string it appears.  */
 	      if (STRING_INTERVALS (args[n]))
-		{
-		  if (!info)
-		    {
-		      int nbytes = nargs * sizeof *info;
-		      info = (struct info *) alloca (nbytes);
-		      bzero (info, nbytes);
-		    }
-
-		  info[n].start = start;
-		  info[n].end = end;
-		}
+		info[n].intervals = arg_intervals = 1;
 	    }
 	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
 	    {
@@ -3571,6 +3608,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		p += this_nchars;
 	      nchars += this_nchars;
 	    }
+
+	  info[n].end = nchars;
 	}
       else if (STRING_MULTIBYTE (args[0]))
 	{
@@ -3581,7 +3620,11 @@ usage: (format STRING &rest OBJECTS)  */)
 	      && !CHAR_HEAD_P (*format))
 	    maybe_combine_byte = 1;
 	  *p++ = *format++;
-	  while (! CHAR_HEAD_P (*format)) *p++ = *format++;
+	  while (! CHAR_HEAD_P (*format))
+	    {
+	      discarded[format - format_start] = 2;
+	      *p++ = *format++;
+	    }
 	  nchars++;
 	}
       else if (multibyte)
@@ -3612,7 +3655,7 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (STRING_INTERVALS (args[0]) || info)
+  if (STRING_INTERVALS (args[0]) || arg_intervals)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
@@ -3624,15 +3667,76 @@ usage: (format STRING &rest OBJECTS)  */)
 
       if (CONSP (props))
 	{
-	  new_len = make_number (SCHARS (val));
-	  extend_property_ranges (props, len, new_len);
+	  int bytepos = 0, position = 0, translated = 0, argn = 1;
+	  Lisp_Object list;
+
+	  /* Adjust the bounds of each text property
+	     to the proper start and end in the output string.  */
+	  /* We take advantage of the fact that the positions in PROPS
+	     are in increasing order, so that we can do (effectively)
+	     one scan through the position space of the format string.
+
+	     BYTEPOS is the byte position in the format string,
+	     POSITION is the untranslated char position in it,
+	     TRANSLATED is the translated char position in BUF,
+	     and ARGN is the number of the next arg we will come to.  */
+	  for (list = props; CONSP (list); list = XCDR (list))
+	    {
+	      Lisp_Object item;
+	      int pos;
+
+	      item = XCAR (list);
+
+	      /* First adjust the property start position.  */
+	      pos = XINT (XCAR (item));
+
+	      /* Advance BYTEPOS, POSITION, TRANSLATED and ARGN
+		 up to this position.  */
+	      for (; position < pos; bytepos++)
+		{
+		  if (! discarded[bytepos])
+		    position++, translated++;
+		  else if (discarded[bytepos] == 1)
+		    {
+		      position++;
+		      if (translated == info[argn].start)
+			{
+			  translated += info[argn].end - info[argn].start;
+			  argn++;
+			}
+		    }
+		}
+
+	      XSETCAR (item, make_number (translated));
+
+	      /* Likewise adjust the property end position.  */
+	      pos = XINT (XCAR (XCDR (item)));
+
+	      for (; bytepos < pos; bytepos++)
+		{
+		  if (! discarded[bytepos])
+		    position++, translated++;
+		  else if (discarded[bytepos] == 1)
+		    {
+		      position++;
+		      if (translated == info[argn].start)
+			{
+			  translated += info[argn].end - info[argn].start;
+			  argn++;
+			}
+		    }
+		}
+
+	      XSETCAR (XCDR (item), make_number (translated));
+	    }
+
 	  add_text_properties_from_list (val, props, make_number (0));
 	}
 
       /* Add text properties from arguments.  */
-      if (info)
+      if (arg_intervals)
 	for (n = 1; n < nargs; ++n)
-	  if (info[n].end)
+	  if (info[n].intervals)
 	    {
 	      len = make_number (SCHARS (args[n]));
 	      new_len = make_number (info[n].end - info[n].start);
@@ -3658,7 +3762,6 @@ format2 (string1, arg0, arg1)
      Lisp_Object arg0, arg1;
 {
   Lisp_Object args[3];
-  int numargs;
   args[0] = build_string (string1);
   args[1] = arg0;
   args[2] = arg1;
@@ -3711,7 +3814,7 @@ transpose_markers (start1, end1, start2, end2,
      register int start1_byte, end1_byte, start2_byte, end2_byte;
 {
   register int amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
-  register Lisp_Object marker;
+  register struct Lisp_Marker *marker;
 
   /* Update point as if it were a marker.  */
   if (PT < start1)
@@ -3746,10 +3849,9 @@ transpose_markers (start1, end1, start2, end2,
   amt1_byte = (end2_byte - start2_byte) + (start2_byte - end1_byte);
   amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
-  for (marker = BUF_MARKERS (current_buffer); !NILP (marker);
-       marker = XMARKER (marker)->chain)
+  for (marker = BUF_MARKERS (current_buffer); marker; marker = marker->next)
     {
-      mpos = marker_byte_position (marker);
+      mpos = marker->bytepos;
       if (mpos >= start1_byte && mpos < end2_byte)
 	{
 	  if (mpos < end1_byte)
@@ -3758,9 +3860,9 @@ transpose_markers (start1, end1, start2, end2,
 	    mpos += diff_byte;
 	  else
 	    mpos -= amt2_byte;
-	  XMARKER (marker)->bytepos = mpos;
+	  marker->bytepos = mpos;
 	}
-      mpos = XMARKER (marker)->charpos;
+      mpos = marker->charpos;
       if (mpos >= start1 && mpos < end2)
 	{
 	  if (mpos < end1)
@@ -3770,7 +3872,7 @@ transpose_markers (start1, end1, start2, end2,
 	  else
 	    mpos -= amt2;
 	}
-      XMARKER (marker)->charpos = mpos;
+      marker->charpos = mpos;
     }
 }
 
@@ -4205,3 +4307,6 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }
+
+/* arch-tag: fc3827d8-6f60-4067-b11e-c3218031b018
+   (do not change this comment) */

@@ -90,6 +90,10 @@ and also when the command loop is first entered.  At that time,
 these hooks, it terminates execution of the hook, and clears the hook
 variable to @code{nil} so as to prevent an infinite loop of errors.
 
+  A request coming into the Emacs server (@pxref{Emacs Server,,,
+emacs, The GNU Emacs Manual}) runs these two hooks just as a keyboard
+command does.
+
 @node Defining Commands
 @section Defining Commands
 @cindex defining commands
@@ -499,7 +503,7 @@ command is a function, @code{command-execute} calls
 @code{call-interactively}, which reads the arguments and calls the
 command.  You can also call these functions yourself.
 
-@defun commandp object
+@defun commandp object &optional for-call-interactively
 Returns @code{t} if @var{object} is suitable for calling interactively;
 that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
 
@@ -510,11 +514,13 @@ expressions, autoload objects that are declared as interactive
 (non-@code{nil} fourth argument to @code{autoload}), and some of the
 primitive functions.
 
-A symbol satisfies @code{commandp} if its function definition satisfies
-@code{commandp}.
+A symbol satisfies @code{commandp} if its function definition
+satisfies @code{commandp}.  Keys and keymaps are not commands.
+Rather, they are used to look up commands (@pxref{Keymaps}).
 
-Keys and keymaps are not commands.  Rather, they are used to look up
-commands (@pxref{Keymaps}).
+If @var{for-call-interactively} is non-@code{nil}, then
+@code{commandp} returns @code{t} only for objects that
+@code{call-interactively} could call---thus, not for keyboard macros.
 
 See @code{documentation} in @ref{Accessing Documentation}, for a
 realistic example of using @code{commandp}.
@@ -657,6 +663,10 @@ non-@code{nil}.  Here's how:
     (message "foo")))
 @end example
 
+@noindent
+Defined in this way, the function does display the message when
+called from a keyboard macro.
+
   The numeric prefix argument, provided by @samp{p}, is never @code{nil}.
 
 @node Command Loop Info
@@ -722,6 +732,14 @@ value at the end, like this:
 We do not bind @code{this-command} with @code{let} because that would
 restore the old value in case of error---a feature of @code{let} which
 in this case does precisely what we want to avoid.
+
+@defvar this-original-command
+This has the same value as @code{this-command} except when command
+remapping occurs (@pxref{Remapping Commands}).  In that case,
+@code{this-command} gives the command actually run (the result of
+remapping), and @code{this-original-command} gives the command that
+was specified to run but remapped into another command.
+@end defvar
 
 @defun this-command-keys
 This function returns a string or vector containing the key sequence
@@ -2037,7 +2055,7 @@ calls that function, passing the character as an argument.
 If this is non-@code{nil}, its value specifies the current input method
 function.
 
-@strong{Note:} Don't bind this variable with @code{let}.  It is often
+@strong{Warning:} don't bind this variable with @code{let}.  It is often
 buffer-local, and if you bind it around reading input (which is exactly
 when you @emph{would} bind it), switching buffers asynchronously while
 Emacs is waiting will cause the value to be restored in the wrong
@@ -2247,7 +2265,7 @@ the middle of a computation to allow the user time to view the display.
 input comes in, while @code{sleep-for} pauses without updating the
 screen.
 
-@defun sit-for seconds &optional millisec nodisp
+@defun sit-for seconds &optional nodisp
 This function performs redisplay (provided there is no pending input
 from the user), then waits @var{seconds} seconds, or until input is
 available.  The value is @code{t} if @code{sit-for} waited the full
@@ -2258,11 +2276,6 @@ The argument @var{seconds} need not be an integer.  If it is a floating
 point number, @code{sit-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
-
-The optional argument @var{millisec} specifies an additional waiting
-period measured in milliseconds.  This adds to the period specified by
-@var{seconds}.  If the system doesn't support waiting fractions of a
-second, you get an error if you specify nonzero @var{millisec}.
 
 The expression @code{(sit-for 0)} is a convenient way to request a
 redisplay, without any delay.  @xref{Forcing Redisplay}.
@@ -2276,6 +2289,10 @@ that generates an event.  @xref{Misc Events}.
 
 The usual purpose of @code{sit-for} is to give the user time to read
 text that you display.
+
+It is also possible to call @code{sit-for} with three arguments,
+as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},
+but that is considered obsolete.
 @end defun
 
 @defun sleep-for seconds &optional millisec
@@ -2816,3 +2833,7 @@ This normal hook (@pxref{Standard Hooks}) is run when a keyboard
 macro terminates, regardless of what caused it to terminate (reaching
 the macro end or an error which ended the macro prematurely).
 @end defvar
+
+@ignore
+   arch-tag: e34944ad-7d5c-4980-be00-36a5fe54d4b1
+@end ignore

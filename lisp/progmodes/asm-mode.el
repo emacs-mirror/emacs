@@ -83,8 +83,14 @@
 (defconst asm-font-lock-keywords
  '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
     (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
-   ("^\\((\\sw+)\\)?\\s +\\(\\(\\sw\\|\\s_\\)+\\(\\.\\sw+\\)*\\)"
-    2 font-lock-keyword-face))
+   ;; label started from ".".
+   ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>:"
+    1 font-lock-function-name-face)
+   ("^\\((\\sw+)\\)?\\s +\\(\\(\\.?\\sw\\|\\s_\\)+\\(\\.\\sw+\\)*\\)"
+    2 font-lock-keyword-face)
+   ;; directive started from ".".
+   ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>[^:]?"
+    1 font-lock-keyword-face))
  "Additional expressions to highlight in Assembler mode.")
 
 ;;;###autoload
@@ -232,4 +238,5 @@ repeatedly until you are satisfied with the kind of comment."
 
 (provide 'asm-mode)
 
+;;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
 ;;; asm-mode.el ends here

@@ -73,7 +73,7 @@ This will help you share your customizations with other people.\n\n")
   (widget-insert " ")
   (widget-create 'push-button
      		 :notify (lambda (&rest ignore)
-     			   (custom-theme-create))
+     			   (customize-create-theme))
      		 "Reset")
   (widget-insert " ")
   (widget-create 'push-button
@@ -154,4 +154,5 @@ It includes all faces in list FACES."
       (unless (looking-at "\n")
 	(princ "\n")))))
 
+;;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
 ;;; cus-theme.el ends here

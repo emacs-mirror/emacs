@@ -82,4 +82,5 @@
  ("e1" ?) ;; Letter not in Unicode (private use code).
  )
 
+;;; arch-tag: 7b26f205-7091-435e-a2cf-8778f899dc8a
 ;;; georgian.el ends here

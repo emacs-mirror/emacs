@@ -826,7 +826,8 @@ Reestablish the default three-window display."
 		 (eq this-command 'ediff-quit))))
 	  ))
 
-    (ediff-restore-highlighting)
+    (or no-rehighlight
+	(ediff-restore-highlighting))
     (ediff-with-current-buffer control-buf (ediff-refresh-mode-lines))
     ))
 
@@ -2690,7 +2691,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	      ((eq ediff-autostore-merges t)
 	       ;; ask for file name
 	       (setq merge-store-file
-		     (read-file-name "Save the merge buffer in file: "))
+		     (read-file-name "Save the result of the merge in file: "))
 	       (ediff-write-merge-buffer-and-maybe-kill
 		ediff-buffer-C merge-store-file nil save-and-continue))
 	      ((and (ediff-buffer-live-p ediff-meta-buffer)
@@ -2940,6 +2941,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	     ))
 
 	(ediff-install-fine-diff-if-necessary n)
+	;; set current difference here so the hook will be able to refer to it
+	(setq ediff-current-difference n)
 	(run-hooks 'ediff-select-hook))))
 
 
@@ -2991,6 +2994,9 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 	  (or (eq flag 'unselect-only)
 	      (ediff-select-difference n))
+	  ;; need to set current diff here even though it is also set in
+	  ;; ediff-select-difference because ediff-select-difference might not
+	  ;; be called if unselect-only is specified
 	  (setq ediff-current-difference n)
 	  ) ; end protected section
 
@@ -4286,4 +4292,5 @@ Mail anyway? (y or n) ")
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
+;;; arch-tag: f51099b6-ef4b-470f-88a1-3a0e0b03a879
 ;;; ediff-util.el ends here

@@ -661,7 +661,7 @@ This is meant for people who want to view first matched part.
 For `undisplayed-alternative' (default), the first undisplayed
 part or alternative part is used.  For `undisplayed', the first
 undisplayed part is used.  For a function, the first part which
-the function return `t' is used.  For `nil', the first part is
+the function return t is used.  For nil, the first part is
 used."
   :version "21.1"
   :group 'gnus-article-mime
@@ -4910,4 +4910,5 @@ For example:
 
 (run-hooks 'gnus-art-load-hook)
 
+;;; arch-tag: 2654516f-6279-48f9-a83b-05c1fa450c33
 ;;; gnus-art.el ends here

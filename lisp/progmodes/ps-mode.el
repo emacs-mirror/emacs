@@ -481,8 +481,7 @@ If nil, the following are tried in turn, until success:
 
 ;; PostScript mode.
 
-;;;###autoload (autoload (quote ps-mode) "ps-mode" "Major mode for editing PostScript with GNU Emacs.\n" t)
-
+;;;###autoload
 (define-derived-mode ps-mode fundamental-mode "PostScript"
   "Major mode for editing PostScript with GNU Emacs.
 
@@ -1191,4 +1190,5 @@ Use line numbers if `ps-run-error-line-numbers' is not nil"
 
 (provide 'ps-mode)
 
+;;; arch-tag: dce13d2d-69fb-4ec4-9d5d-6dd29c3f0e6e
 ;;; ps-mode.el ends here

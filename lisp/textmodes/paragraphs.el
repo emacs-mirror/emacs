@@ -420,6 +420,14 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
       (setq arg (1- arg)))
     (constrain-to-field nil opoint t)))
 
+(defun repunctuate-sentences ()
+  (interactive)
+  "Put two spaces at the end of sentences from point to the end of buffer.
+It works using `query-replace-regexp'."
+  (query-replace-regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +"
+			"\\1\\2\\3  "))
+
+
 (defun backward-sentence (&optional arg)
   "Move backward to start of sentence.  With arg, do it arg times.
 See `forward-sentence' for more information."
@@ -461,4 +469,5 @@ ones already marked."
 ;;; coding: iso-2022-7bit
 ;;; End:
 
+;;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575
 ;;; paragraphs.el ends here

@@ -136,3 +136,7 @@ however, we have renamed all of those.)
 @item write-file-functions
 @item write-region-annotate-functions
 @end table
+
+@ignore
+   arch-tag: 55fd0296-d906-4551-b300-979d3846aa88
+@end ignore

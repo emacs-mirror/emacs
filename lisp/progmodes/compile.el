@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -50,7 +50,7 @@
 		 integer)
   :group 'compilation)
 
-(defcustom compile-auto-highlight nil
+(defcustom compile-auto-highlight t
   "*Specify how many compiler errors to highlight (and parse) initially.
 \(Highlighting applies to an error message when the mouse is over it.)
 If this is a number N, all compiler error messages in the first N lines
@@ -437,6 +437,14 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; in unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml
     ("Warning:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
      3 1 2)
+
+    ;; See http://ant.apache.org/faq.html
+    ;; Ant Java: works for jikes
+    ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):\\([0-9]+\\):[0-9]+:[0-9]+:" 1 2 3)
+
+    ;; Ant Java: works for javac
+    ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):" 1 2)
+
     )
 
   "Alist that specifies how to match errors in compiler output.
@@ -593,6 +601,12 @@ This should be a function of three arguments: process status, exit status,
 and exit message; it returns a cons (MESSAGE . MODELINE) of the strings to
 write into the compilation buffer, and to put in its mode line.")
 
+(defvar compilation-environment nil
+  "*List of environment variables for compilation to inherit.
+Each element should be a string of the form ENVVARNAME=VALUE.
+This list is temporarily prepended to `process-environment' prior to
+starting the compilation process.")
+
 ;; History of compile commands.
 (defvar compile-history nil)
 ;; History of grep commands.
@@ -644,9 +658,11 @@ and move to the source code that caused it.
 Interactively, prompts for the command if `compilation-read-command' is
 non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
 
-To run more than one compilation at once, start one and rename the
-\`*compilation*' buffer to some other name with \\[rename-buffer].
-Then start the next one.
+To run more than one compilation at once, start one and rename
+the \`*compilation*' buffer to some other name with
+\\[rename-buffer].  Then start the next one.  On most systems,
+termination of the main compilation process kills its
+subprocesses.
 
 The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
@@ -987,7 +1003,7 @@ NOMESSAGE-REGEXP-ALIST is the nomessage regexp alist to use.
 \`compilation-buffer-name-function', `compilation-enter-directory-regexp-alist',
 \`compilation-leave-directory-regexp-alist', `compilation-file-regexp-alist',
 \ and `compilation-nomessage-regexp-alist', respectively.
-For arg 7-10 a value `t' means an empty alist.
+For arg 7-10 a value t means an empty alist.
 
 If NO-ASYNC is non-nil, start the compilation process synchronously.
 
@@ -1051,8 +1067,7 @@ Returns the compilation buffer created."
 	  (goto-char (point-max)))
       ;; Pop up the compilation buffer.
       (setq outwin (display-buffer outbuf nil t))
-      (save-excursion
-	(set-buffer outbuf)
+      (with-current-buffer outbuf
 	(compilation-mode name-of-mode)
 	;; In what way is it non-ergonomic ?  -stef
 	;; (toggle-read-only 1) ;;; Non-ergonomic.
@@ -1079,16 +1094,17 @@ Returns the compilation buffer created."
         (set (make-local-variable 'lazy-lock-defer-on-scrolling) t)
 	(setq default-directory thisdir
 	      compilation-directory-stack (list default-directory))
+	(compilation-set-window-height outwin)
 	(set-window-start outwin (point-min))
 	(or (eq outwin (selected-window))
 	    (set-window-point outwin (point-min)))
-	(compilation-set-window-height outwin)
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
 	(if (not no-async)
  	    (let* ((process-environment
 		    (append
+		     compilation-environment
 		     (if (and (boundp 'system-uses-terminfo)
 			      system-uses-terminfo)
 			 (list "TERM=dumb" "TERMCAP="
@@ -1144,19 +1160,13 @@ exited abnormally with code %d\n"
        ;; If window is alone in its frame, aside from a minibuffer,
        ;; don't change its height.
        (not (eq window (frame-root-window (window-frame window))))
-       ;; This save-excursion prevents us from changing the current buffer,
-       ;; which might not be the same as the selected window's buffer.
-       (save-excursion
-	 (let ((w (selected-window)))
-	   (unwind-protect
-	       (progn
-		 (select-window window)
-		 (enlarge-window (- compilation-window-height
-				    (window-height))))
-	     ;; The enlarge-window above may have deleted W, if
-	     ;; compilation-window-height is large enough.
-	     (when (window-live-p w)
-	       (select-window w)))))))
+       ;; This save-current-buffer prevents us from changing the current
+       ;; buffer, which might not be the same as the selected window's buffer.
+       (save-current-buffer
+	 (save-selected-window
+	   (select-window window)
+	   (enlarge-window (- compilation-window-height
+			      (window-height)))))))
 
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))
@@ -1414,7 +1424,18 @@ Does NOT find the source line like \\[next-error]."
 			  (if (> (- n) i)
 			      (error "Moved back past first error")
 			    (nth (+ i n) compilation-old-error-list)))
-		      (let ((compilation-error-list (cdr errors)))
+		      (save-excursion
+			(while (and (> n 0) errors)
+			  ;; Discard the current error and any previous.
+			  (while (and errors (>= (point) (car (car errors))))
+			    (setq errors (cdr errors)))
+			  ;; Now (car errors) is the next error.
+			  ;; If we want to move down more errors,
+			  ;; put point at this one and start again.
+			  (setq n (1- n))
+			  (if (and errors (> n 0))
+			      (goto-char (car (car errors))))))
+		      (let ((compilation-error-list errors))
 			(compile-reinitialize-errors nil nil n)
 			(if compilation-error-list
 			    (nth (1- n) compilation-error-list)
@@ -1730,11 +1751,15 @@ See variables `compilation-parse-errors-function' and
 			   (consp argp))))
 ;;;###autoload (define-key ctl-x-map "`" 'next-error)
 
-(defun previous-error ()
+(defun previous-error (argp)
   "Visit previous compilation error message and corresponding source code.
-This operates on the output from the \\[compile] command."
-  (interactive)
-  (next-error -1))
+
+A prefix ARGP specifies how many error messages to move;
+negative means move forward to next error messages.
+
+This operates on the output from the \\[compile] and \\[grep] commands."
+  (interactive "P")
+  (next-error (- (prefix-numeric-value argp))))
 
 (defun first-error ()
   "Reparse the error message buffer and start at the first error.
@@ -2359,4 +2384,5 @@ An error message with no file name and no file name has been seen earlier"))
 
 (provide 'compile)
 
+;;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here

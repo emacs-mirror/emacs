@@ -193,4 +193,5 @@ following bindings are established.
 All other Emacs commands are still available."
   t)
 
+;;; arch-tag: c178494e-2c37-4d02-99b7-e47e615656cf
 ;;; vms-patch.el ends here

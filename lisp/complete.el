@@ -954,4 +954,5 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 
 (provide 'complete)
 
+;;; arch-tag: fc7e2768-ff44-4e22-b579-4d825b968458
 ;;; complete.el ends here

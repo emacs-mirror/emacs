@@ -152,3 +152,6 @@ Boston, MA 02111-1307, USA.  */
 #endif /* VMS */
 
 #endif /* EMACS_SYSWAIT_H */
+
+/* arch-tag: 7e5d9719-ec66-4b6f-89bb-563eea16a899
+   (do not change this comment) */

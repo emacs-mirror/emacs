@@ -121,8 +121,8 @@ clear_to_end (void)
 {
   struct frame * f = PICK_FRAME ();
 
-  clear_end_of_line (FRAME_WIDTH (f) - 1);
-  ins_del_lines (cursor_coords.Y, FRAME_HEIGHT (f) - cursor_coords.Y - 1);
+  clear_end_of_line (FRAME_COLS (f) - 1);
+  ins_del_lines (cursor_coords.Y, FRAME_LINES (f) - cursor_coords.Y - 1);
 }
 
 /* Clear the frame.  */
@@ -138,7 +138,7 @@ clear_frame (void)
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 
   /* Remember that the screen buffer might be wider than the window.  */
-  n = FRAME_HEIGHT (f) * info.dwSize.X;
+  n = FRAME_LINES (f) * info.dwSize.X;
   dest.X = dest.Y = 0;
 
   FillConsoleOutputAttribute (cur_screen, char_attr_normal, n, dest, &r);
@@ -180,17 +180,17 @@ ins_del_lines (int vpos, int n)
   if (n < 0)
     {
       scroll.Top = vpos - n;
-      scroll.Bottom = FRAME_HEIGHT (f);
+      scroll.Bottom = FRAME_LINES (f);
       dest.Y = vpos;
     }
   else
     {
       scroll.Top = vpos;
-      scroll.Bottom = FRAME_HEIGHT (f) - n;
+      scroll.Bottom = FRAME_LINES (f) - n;
       dest.Y = vpos + n;
     }
   scroll.Left = 0;
-  scroll.Right = FRAME_WIDTH (f);
+  scroll.Right = FRAME_COLS (f);
 
   dest.X = 0;
 
@@ -213,7 +213,7 @@ ins_del_lines (int vpos, int n)
 	  for (i = scroll.Bottom; i < dest.Y; i++)
             {
 	      move_cursor (i, 0);
-	      clear_end_of_line (FRAME_WIDTH (f));
+	      clear_end_of_line (FRAME_COLS (f));
             }
         }
     }
@@ -226,7 +226,7 @@ ins_del_lines (int vpos, int n)
 	  for (i = nb; i < scroll.Top; i++)
             {
 	      move_cursor (i, 0);
-	      clear_end_of_line (FRAME_WIDTH (f));
+	      clear_end_of_line (FRAME_COLS (f));
             }
         }
     }
@@ -256,12 +256,12 @@ scroll_line (int dist, int direction)
   if (direction == LEFT)
     {
       scroll.Left = cursor_coords.X + dist;
-      scroll.Right = FRAME_WIDTH (f) - 1;
+      scroll.Right = FRAME_COLS (f) - 1;
     }
   else
     {
       scroll.Left = cursor_coords.X;
-      scroll.Right = FRAME_WIDTH (f) - dist - 1;
+      scroll.Right = FRAME_COLS (f) - dist - 1;
     }
 
   dest.X = cursor_coords.X;
@@ -661,16 +661,16 @@ initialize_w32_display (void)
 
   if (w32_use_full_screen_buffer)
     {
-      FRAME_HEIGHT (SELECTED_FRAME ()) = info.dwSize.Y;	/* lines per page */
-      SET_FRAME_WIDTH (SELECTED_FRAME (), info.dwSize.X);  /* characters per line */
+      FRAME_LINES (SELECTED_FRAME ()) = info.dwSize.Y;	/* lines per page */
+      SET_FRAME_COLS (SELECTED_FRAME (), info.dwSize.X);  /* characters per line */
     }
   else
     {
       /* Lines per page.  Use buffer coords instead of buffer size.  */
-      FRAME_HEIGHT (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom -
+      FRAME_LINES (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom -
 	info.srWindow.Top;
       /* Characters per line.  Use buffer coords instead of buffer size.  */
-      SET_FRAME_WIDTH (SELECTED_FRAME (), 1 + info.srWindow.Right -
+      SET_FRAME_COLS (SELECTED_FRAME (), 1 + info.srWindow.Right -
 		       info.srWindow.Left);
     }
 
@@ -721,3 +721,6 @@ scroll-back buffer.  */);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
 }
+
+/* arch-tag: a390a07f-f661-42bc-aeb4-e6d8bf860337
+   (do not change this comment) */

@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.36 2003/02/04 12:11:40 lektu Exp $
+;; $Id: vc-rcs.el,v 1.38 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -235,15 +235,7 @@ the RCS command (in that order).
 
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
-    (let ((subdir (expand-file-name "RCS" (file-name-directory file)))
-	  (switches (append
-		     (if (stringp vc-register-switches)
-			 (list vc-register-switches)
-		       vc-register-switches)
-		     (if (stringp vc-rcs-register-switches)
-		     (list vc-rcs-register-switches)
-		     vc-rcs-register-switches))))
-
+    (let ((subdir (expand-file-name "RCS" (file-name-directory file))))
       (and (not (file-exists-p subdir))
 	   (not (directory-files (file-name-directory file)
 				 nil ".*,v$" t))
@@ -254,7 +246,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	     (and (vc-rcs-release-p "5.6.4") "-i")
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
 	     (and comment (concat "-t-" comment))
-	     switches)
+	     (vc-switches 'RCS 'register))
       ;; parse output to find master file name and workfile version
       (with-current-buffer "*vc*"
         (goto-char (point-min))
@@ -312,9 +304,7 @@ whether to remove it."
 
 (defun vc-rcs-checkin (file rev comment)
   "RCS-specific version of `vc-backend-checkin'."
-  (let ((switches (if (stringp vc-checkin-switches)
-		      (list vc-checkin-switches)
-		    vc-checkin-switches)))
+  (let ((switches (vc-switches 'RCS 'checkin)))
     (let ((old-version (vc-workfile-version file)) new-version
 	  (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
       ;; Force branch creation if an appropriate
@@ -367,9 +357,7 @@ whether to remove it."
 	 buffer 0 "co" (vc-name file)
 	 "-q" ;; suppress diagnostic output
 	 (concat "-p" rev)
-	 (if (stringp vc-checkout-switches)
-	     (list vc-checkout-switches)
-	   vc-checkout-switches)))
+	 (vc-switches 'RCS 'checkout)))
 
 (defun vc-rcs-checkout (file &optional editable rev)
   "Retrieve a copy of a saved version of FILE."
@@ -379,9 +367,7 @@ whether to remove it."
     (save-excursion
       ;; Change buffers to get local value of vc-checkout-switches.
       (if file-buffer (set-buffer file-buffer))
-      (setq switches (if (stringp vc-checkout-switches)
-			 (list vc-checkout-switches)
-		       vc-checkout-switches))
+      (setq switches (vc-switches 'RCS 'checkout))
       ;; Save this buffer's default-directory
       ;; and use save-excursion to make sure it is restored
       ;; in the same buffer it was saved in.
@@ -428,7 +414,7 @@ whether to remove it."
 	    (vc-file-setprop file 'vc-workfile-version new-version)
 	    ;; if necessary, adjust the default branch
 	    (and rev (not (string= rev ""))
-		 (vc-rcs-set-default-branch
+		 (vc-rcs-set-default-branch 
 		  file
 		  (if (vc-rcs-latest-on-branch-p file new-version)
 		      (if (vc-trunk-p new-version) nil
@@ -504,7 +490,7 @@ Needs RCS 5.6.2 or later for -M."
          (append (list "-q"
                        (concat "-r" oldvers)
                        (and newvers (concat "-r" newvers)))
-                 (vc-diff-switches-list 'RCS))))
+                 (vc-switches 'RCS 'diff))))
 
 
 ;;;
@@ -796,4 +782,5 @@ variable `vc-rcs-release' is set to the returned value."
 
 (provide 'vc-rcs)
 
+;;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

@@ -54,6 +54,9 @@
 Defaults to 'pass, for the standard USER/PASS authentication.  Other valid
 values are 'apop.")
 
+(defvar pop3-leave-mail-on-server nil
+  "*Non-nil if the mail is to be left on the POP server after fetching.")
+
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
 Used for APOP authentication.")
@@ -97,7 +100,8 @@ Used for APOP authentication.")
 	      (goto-char (point-min))
 	      (forward-line 50)
 	      (delete-region (point-min) (point))))
-	  (pop3-dele process n)
+          (unless pop3-leave-mail-on-server
+            (pop3-dele process n))
 	  (setq n (+ 1 n))
 	  (if pop3-debug (sit-for 1) (sit-for 0.1))
 	  )
@@ -510,4 +514,5 @@ and close the connection."
 
 (provide 'pop3)
 
+;;; arch-tag: 2facc142-1d74-498e-82af-4659b64cac12
 ;;; pop3.el ends here

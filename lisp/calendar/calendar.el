@@ -1,7 +1,7 @@
 ;;; calendar.el --- calendar functions
 
 ;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
-;;	2000, 2001 Free Software Foundation, Inc.
+;;	2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -381,7 +381,8 @@ redisplays the diary for whatever date the cursor is moved to."
 (defcustom diary-file "~/diary"
   "*Name of the file in which one's personal diary of dates is kept.
 
-The file's entries are lines in any of the forms
+The file's entries are lines beginning with any of the forms
+specified by the variable `american-date-diary-pattern', by default:
 
             MONTH/DAY
             MONTH/DAY/YEAR
@@ -389,19 +390,24 @@ The file's entries are lines in any of the forms
             MONTHNAME DAY, YEAR
             DAYNAME
 
-at the beginning of the line; the remainder of the line is the diary entry
-string for that date.  MONTH and DAY are one or two digit numbers, YEAR is
-a number and may be written in full or abbreviated to the final two digits.
-If the date does not contain a year, it is generic and applies to any year.
-DAYNAME entries apply to any date on which is on that day of the week.
-MONTHNAME and DAYNAME can be spelled in full, abbreviated to three
-characters (with or without a period), capitalized or not.  Any of DAY,
-MONTH, or MONTHNAME, YEAR can be `*' which matches any day, month, or year,
-respectively.
+with the remainder of the line being the diary entry string for
+that date.  MONTH and DAY are one or two digit numbers, YEAR is a
+number and may be written in full or abbreviated to the final two
+digits (if `abbreviated-calendar-year' is non-nil).  MONTHNAME
+and DAYNAME can be spelled in full (as specified by the variables
+`calendar-month-name-array' and `calendar-day-name-array'),
+abbreviated (as specified by `calendar-month-abbrev-array' and
+`calendar-day-abbrev-array') with or without a period,
+capitalized or not.  Any of DAY, MONTH, or MONTHNAME, YEAR can be
+`*' which matches any day, month, or year, respectively. If the
+date does not contain a year, it is generic and applies to any
+year.  A DAYNAME entry applies to the appropriate day of the week
+in every week.
 
-The European style (in which the day precedes the month) can be used
-instead, if you execute `european-calendar' when in the calendar, or set
-`european-calendar-style' to t in your .emacs file.  The European forms are
+The European style (in which the day precedes the month) can be
+used instead, if you execute `european-calendar' when in the
+calendar, or set `european-calendar-style' to t in your .emacs
+file.  The European forms (see `european-date-diary-pattern') are
 
             DAY/MONTH
             DAY/MONTH/YEAR
@@ -507,28 +513,33 @@ See the documentation for the function `include-other-diary-files'."
   :type 'regexp
   :group 'diary)
 
-(defcustom diary-face-attrs '(
-			      (" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
-			      (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
-			      (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
-			      (" *\\[height:\\([-0-9a-z]+\\)\\]$" 1 :height int)
-			      (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
-			      (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
-			      (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
-			      (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
-			      (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
-			      (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
-			      (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
-			      (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
-;Unsupported			      (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
-;Unsupported			      (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)
-			      )
-  "*A list of (regexp regnum attr attrtype) lists where the regexp says how to find the tag, the regnum says which parenthetical sub-regexp this regexp looks for, and the attr says which attribute of the face (or that this _is_ a face) is being modified."
+(defcustom diary-face-attrs
+  '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
+    (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
+    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
+    (" *\\[height:\\([-0-9a-z]+\\)\\]$" 1 :height int)
+    (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
+    (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
+    (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
+    (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
+    (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
+    (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
+    (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
+    (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
+    ;; Unsupported.
+;;;    (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
+;;;    (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)
+    )
+  "*A list of (regexp regnum attr attrtype) lists where the
+regexp says how to find the tag, the regnum says which
+parenthetical sub-regexp this regexp looks for, and the attr says
+which attribute of the face (or that this _is_ a face) is being
+modified."
   :type 'sexp
   :group 'diary)
 
 (defcustom diary-file-name-prefix nil
-  "If non-nil then each entry in the diary list will be prefixed with the name of the file in which it was defined."
+  "If non-nil each diary entry is prefixed with the name of the file where it is defined."
   :type 'boolean
   :group 'diary)
 
@@ -551,7 +562,8 @@ If this variable is nil, years must be written in full."
 (defcustom european-calendar-style nil
   "*Use the European style of dates in the diary and in any displays.
 If this variable is t, a date 1/2/1990 would be interpreted as February 1,
-1990.  The accepted European date styles are
+1990.  The default European date styles (see `european-date-diary-pattern')
+are
 
             DAY/MONTH
             DAY/MONTH/YEAR
@@ -559,8 +571,9 @@ If this variable is t, a date 1/2/1990 would be interpreted as February 1,
             DAY MONTHNAME YEAR
             DAYNAME
 
-Names can be capitalized or not, written in full, or abbreviated to three
-characters with or without a period."
+Names can be capitalized or not, written in full (as specified by the
+variable `calendar-day-name-array'), or abbreviated (as specified by
+`calendar-day-abbrev-array') with or without a period."
   :type 'boolean
   :group 'diary)
 
@@ -614,12 +627,14 @@ any portion of the diary entry itself, just the date component.
 
 A pseudo-pattern is a list of regular expressions and the keywords `month',
 `day', `year', `monthname', and `dayname'.  The keyword `monthname' will
-match the name of the month, capitalized or not, or its three-letter
-abbreviation, followed by a period or not; it will also match `*'.
-Similarly, `dayname' will match the name of the day, capitalized or not, or
-its three-letter abbreviation, followed by a period or not.  The keywords
-`month', `day', and `year' will match those numerical values, preceded by
-arbitrarily many zeros; they will also match `*'.
+match the name of the month (see `calendar-month-name-array'), capitalized
+or not, or its user-specified abbreviation (see `calendar-month-abbrev-array'),
+followed by a period or not; it will also match `*'.  Similarly, `dayname'
+will match the name of the day (see `calendar-day-name-array'), capitalized or
+not, or its user-specified abbreviation (see `calendar-day-abbrev-array'),
+followed by a period or not.  The keywords `month', `day', and `year' will
+match those numerical values, preceded by arbitrarily many zeros; they will
+also match `*'.
 
 The matching of the diary entries with the date forms is done with the
 standard syntax table from Fundamental mode, but with the `*' changed so
@@ -738,6 +753,7 @@ in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
 lexicographic order."
   :type 'hook
+  :options '(include-other-diary-files sort-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -770,6 +786,7 @@ diary buffer will not show days for which there are no diary entries, even
 if that day is a holiday; if you want such days to be shown in the fancy
 diary buffer, set the variable `diary-list-include-blanks' to t."
   :type 'hook
+  :options '(fancy-diary-display)
   :group 'diary)
 
 ;;;###autoload
@@ -780,6 +797,7 @@ relevant entries.  You can use either or both of `list-hebrew-diary-entries'
 and `list-islamic-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
+  :options '(list-hebrew-diary-entries list-islamic-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -797,6 +815,7 @@ variable `diary-include-string'.  When you use `mark-included-diary-files' as
 part of the mark-diary-entries-hook, you will probably also want to use the
 function `include-other-diary-files' as part of `list-diary-entries-hook'."
   :type 'hook
+  :options '(mark-included-diary-files)
   :group 'diary)
 
 ;;;###autoload
@@ -807,6 +826,7 @@ relevant entries.  You can use either or both of `mark-hebrew-diary-entries'
 and `mark-islamic-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
+  :options '(mark-hebrew-diary-entries mark-islamic-diary-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -1186,11 +1206,16 @@ with descriptive strings such as
   "Name of the buffer used for the lunar phases.")
 
 (defmacro increment-calendar-month (mon yr n)
-  "Move the variables MON and YR to the month and year by N months.
-Forward if N is positive or backward if N is negative."
-  `(let ((macro-y (+ (* ,yr 12) ,mon -1 ,n)))
-    (setq ,mon (1+ (% macro-y 12)))
-    (setq ,yr (/ macro-y 12))))
+  "Increment the variables MON and YR by N months.
+Forward if N is positive or backward if N is negative.
+A negative YR is interpreted as BC; -1 being 1 BC, and so on."
+  `(let (macro-y)
+     (if (< ,yr 0) (setq ,yr (1+ ,yr))) ; -1 BC -> 0 AD, etc
+     (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
+           ,mon (1+ (mod macro-y 12))
+           ,yr (/ macro-y 12))
+     (and (< macro-y 0) (> ,mon 1) (setq ,yr (1- ,yr)))
+     (if (< ,yr 1) (setq ,yr (1- ,yr))))) ; 0 AD -> -1 BC, etc
 
 (defmacro calendar-for-loop (var from init to final do &rest body)
   "Execute a for loop."
@@ -1250,7 +1275,10 @@ Forward if N is positive or backward if N is negative."
   (car (cdr (cdr date))))
 
 (defsubst calendar-leap-year-p (year)
-  "Return t if YEAR is a Gregorian leap year."
+  "Return t if YEAR is a Gregorian leap year.
+A negative year is interpreted as BC; -1 being 1 BC, and so on."
+  ;; 1 BC = 0 AD, 2 BC acts like 1 AD, etc.
+  (if (< year 0) (setq year (1- (abs year))))
   (and (zerop (% year 4))
        (or (not (zerop (% year 100)))
            (zerop (% year 400)))))
@@ -1290,13 +1318,30 @@ while (calendar-day-number '(12 31 1980)) returns 366."
 
 (defsubst calendar-absolute-from-gregorian (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((prior-years (1- (extract-calendar-year date))))
-    (+ (calendar-day-number date);; Days this year
-       (* 365 prior-years);;        + Days in prior years
-       (/ prior-years 4);;          + Julian leap years
-       (- (/ prior-years 100));;    - century years
-       (/ prior-years 400))));;     + Gregorian leap years
+The Gregorian date Sunday, December 31, 1 BC is imaginary.
+DATE is a list of the form (month day year).  A negative year is
+interpreted as BC; -1 being 1 BC, and so on.  Dates before 12/31/1 BC
+return negative results."
+  (let ((year (extract-calendar-year date))
+        offset-years)
+    (cond ((= year 0)
+           (error "There was no year zero"))
+          ((> year 0)
+           (setq offset-years (1- year))
+           (+ (calendar-day-number date) ; Days this year
+              (* 365 offset-years)       ; + Days in prior years
+              (/ offset-years 4)         ; + Julian leap years
+              (- (/ offset-years 100))   ; - century years
+              (/ offset-years 400)))     ; + Gregorian leap years
+          (t
+           ;; Years between date and 1 BC, excluding 1 BC (1 for 2 BC, etc).
+           (setq offset-years (abs (1+ year)))
+           (- (calendar-day-number date)
+              (* 365 offset-years)
+              (/ offset-years 4)
+              (- (/ offset-years 100))
+              (/ offset-years 400)
+              (calendar-day-number '(12 31 -1))))))) ; days in year 1 BC
 
 (autoload 'calendar-goto-today "cal-move"
   "Reposition the calendar window so the current date is visible."
@@ -1384,6 +1429,10 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 
 (autoload 'calendar-goto-date "cal-move"
   "Move cursor to DATE."
+  t)
+
+(autoload 'calendar-goto-day-of-year "cal-move"
+  "Move cursor to day of year."
   t)
 
 (autoload 'calendar-only-one-frame-setup "cal-x"
@@ -1864,9 +1913,10 @@ Or, for optional MON, YR."
         (run-hooks 'today-invisible-calendar-hook)))))
 
 (defun generate-calendar (month year)
-  "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
-  (if (< (+ month (* 12 (1- year))) 2)
-      (error "Months before February, 1 AD are not available"))
+  "Generate a three-month Gregorian calendar centered around MONTH, YEAR.
+A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
+Note that while calendars can be displayed for years BC, some functions (eg
+motion, complex holiday functions) will not work correctly for such dates."
   (setq displayed-month month)
   (setq displayed-year year)
   (erase-buffer)
@@ -1880,7 +1930,7 @@ Or, for optional MON, YR."
 The calendar is inserted at the top of the buffer in which point is currently
 located, but indented INDENT spaces.  The indentation is done from the first
 character on the line and does not disturb the first INDENT characters on the
-line."
+line.  A negative YEAR is interpreted as BC; -1 being 1 BC, and so on."
   (let* ((blank-days;; at start of month
           (mod
            (- (calendar-day-of-week (list month 1 year))
@@ -1893,10 +1943,15 @@ line."
      (list (format "%s %d" (calendar-month-name month) year)) ?  20)
     indent t)
    (calendar-insert-indented "" indent);; Go to proper spot
+   ;; Use the first two characters of each day to head the columns.
    (calendar-for-loop i from 0 to 6 do
-      (insert (calendar-day-name (mod (+ calendar-week-start-day i) 7)
-				 2 t))
-      (insert " "))
+      (insert
+       (let ((string
+              (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t)))
+         (if enable-multibyte-characters
+             (truncate-string-to-width string 2)
+           (substring string 0 2)))
+       " "))
    (calendar-insert-indented "" 0 t);; Force onto following line
    (calendar-insert-indented "" indent);; Go to proper spot
    ;; Add blank days before the first of the month
@@ -1991,6 +2046,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "\C-x\C-x" 'calendar-exchange-point-and-mark)
   (define-key calendar-mode-map "\e=" 'calendar-count-days-region)
   (define-key calendar-mode-map "gd"  'calendar-goto-date)
+  (define-key calendar-mode-map "gD"  'calendar-goto-day-of-year)
   (define-key calendar-mode-map "gj"  'calendar-goto-julian-date)
   (define-key calendar-mode-map "ga"  'calendar-goto-astro-day-number)
   (define-key calendar-mode-map "gh"  'calendar-goto-hebrew-date)
@@ -2365,7 +2421,8 @@ ERROR is t, otherwise just returns nil."
 (defun calendar-gregorian-from-absolute (date)
   "Compute the list (month day year) corresponding to the absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
+Gregorian date Sunday, December 31, 1 BC.  This function does not
+handle dates in years BC."
 ;; See the footnote on page 384 of ``Calendrical Calculations, Part II:
 ;; Three Historical Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M.
 ;; Clamen, Software--Practice and Experience, Volume 23, Number 4
@@ -2470,8 +2527,8 @@ If optional NODAY is t, does not ask for day, but just returns
 \(month nil year); if NODAY is any other non-nil value the value returned is
 \(month year)"
   (let* ((year (calendar-read
-                "Year (>0): "
-                (lambda (x) (> x 0))
+                "Year: "
+                (lambda (x) (not (zerop x)))
                 (int-to-string (extract-calendar-year
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
@@ -2493,18 +2550,70 @@ If optional NODAY is t, does not ask for day, but just returns
             year))))
 
 (defun calendar-interval (mon1 yr1 mon2 yr2)
-  "The number of months difference between MON1, YR1 and MON2, YR2."
+  "The number of months difference between MON1, YR1 and MON2, YR2.
+The result is positive if the second date is later than the first.
+Negative years are interpreted as years BC; -1 being 1 BC, and so on."
+  (if (< yr1 0) (setq yr1 (1+ yr1)))      ; -1 BC -> 0 AD, etc
+  (if (< yr2 0) (setq yr2 (1+ yr2)))
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
+(defvar calendar-abbrev-length 3
+  "*Length of abbreviations to be used for day and month names.
+See also `calendar-day-abbrev-array' and `calendar-month-abbrev-array'.")
+
 (defvar calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
-  "Array of capitalized strings giving, in order, the day names.")
+  "*Array of capitalized strings giving, in order, the day names.
+The first two characters of each string will be used to head the
+day columns in the calendar.  See also the variable
+`calendar-day-abbrev-array'.")
+
+(defvar calendar-day-abbrev-array
+  [nil nil nil nil nil nil nil]
+  "*Array of capitalized strings giving the abbreviated day names.
+The order should be the same as that of the full names specified
+in `calendar-day-name-array'.  These abbreviations may be used
+instead of the full names in the diary file.  Do not include a
+trailing `.' in the strings specified in this variable, though
+you may use such in the diary file.  If any element of this array
+is nil, then the abbreviation will be constructed as the first 
+`calendar-abbrev-length' characters of the corresponding full name.")
 
 (defvar calendar-month-name-array
   ["January" "February" "March"     "April"   "May"      "June"
    "July"    "August"   "September" "October" "November" "December"]
-  "Array of capitalized strings giving, in order, the month names.")
+  "*Array of capitalized strings giving, in order, the month names.
+See also the variable `calendar-month-abbrev-array'.")
+
+(defvar calendar-month-abbrev-array
+  [nil nil nil nil nil nil nil nil nil nil nil nil]
+ "*Array of capitalized strings giving the abbreviated month names.
+The order should be the same as that of the full names specified
+in `calendar-month-name-array'.  These abbreviations are used in
+the calendar menu entries, and can also be used in the diary
+file.  Do not include a trailing `.' in the strings specified in
+this variable, though you may use such in the diary file.  If any
+element of this array is nil, then the abbreviation will be
+constructed as the first `calendar-abbrev-length' characters of the
+corresponding full name.")
+
+(defun calendar-abbrev-construct (abbrev full &optional period)
+  "Internal calendar function to return a complete abbreviation array.
+ABBREV is an array of abbreviations, FULL the corresponding array
+of full names.  The return value is the ABBREV array, with any nil
+elements replaced by the first three characters taken from the
+corresponding element of FULL.  If optional argument PERIOD is non-nil,
+each element returned has a final `.' character."
+  (let (elem array name)
+    (dotimes (i (length full))
+      (setq name (aref full i)
+            elem (or (aref abbrev i)
+                     (substring name 0
+                                (min calendar-abbrev-length (length name))))
+            elem (format "%s%s" elem (if period "." ""))
+            array (append array (list elem))))
+    (vconcat array)))
 
 (defvar calendar-font-lock-keywords
   `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
@@ -2515,50 +2624,71 @@ If optional NODAY is t, does not ask for day, but just returns
 	     (substring (aref calendar-day-name-array 0) 0 2)))
      ;; Saturdays and Sundays are hilited differently.
      . font-lock-comment-face)
+    ;; First two chars of each day are used in the calendar.
     (,(regexp-opt (mapcar (lambda (x) (substring x 0 2)) calendar-day-name-array))
      . font-lock-reference-face))
   "Default keywords to highlight in Calendar mode.")
 
-(defun calendar-day-name (date &optional width absolute)
+(defun calendar-day-name (date &optional abbrev absolute)
   "Return a string with the name of the day of the week of DATE.
-If WIDTH is non-nil, return just the first WIDTH characters of the name.
-If ABSOLUTE is non-nil, then DATE is actually the day-of-the-week
-rather than a date."
-  (let ((string (aref calendar-day-name-array
-		      (if absolute date (calendar-day-of-week date)))))
-    (cond ((null width) string)
-	  (enable-multibyte-characters (truncate-string-to-width string width))
-	  (t (substring string 0 width)))))
+DATE should be a list in the format (MONTH DAY YEAR), unless the
+optional argument ABSOLUTE is non-nil, in which case DATE should
+be an integer in the range 0 to 6 corresponding to the day of the
+week.  Day names are taken from the variable `calendar-day-name-array',
+unless the optional argument ABBREV is non-nil, in which case
+the variable `calendar-day-abbrev-array' is used."
+  (aref (if abbrev
+            (calendar-abbrev-construct calendar-day-abbrev-array
+                                       calendar-day-name-array)
+          calendar-day-name-array)
+        (if absolute date (calendar-day-of-week date))))
 
-(defun calendar-make-alist (sequence &optional start-index filter)
+(defun calendar-make-alist (sequence &optional start-index filter abbrevs)
   "Make an assoc list corresponding to SEQUENCE.
-Start at index 1, unless optional START-INDEX is provided.
-If FILTER is provided, apply it to each item in the list."
-  (let ((index (if start-index (1- start-index) 0)))
-    (mapcar
-     (lambda (x)
-        (setq index (1+ index))
-        (cons (if filter (funcall filter x) x)
-              index))
-     (append sequence nil))))
+Each element of sequence will be associated with an integer, starting
+from 1, or from START-INDEX if that is non-nil.  If a sequence ABBREVS
+is supplied, the function `calendar-abbrev-construct' is used to
+construct abbreviations corresponding to the elements in SEQUENCE.
+Each abbreviation is entered into the alist with the same
+association index as the full name it represents.
+If FILTER is provided, apply it to each key in the alist."
+  (let ((index 0)
+        (offset (or start-index 1))
+        (aseq (if abbrevs (calendar-abbrev-construct abbrevs sequence)))
+        (aseqp (if abbrevs (calendar-abbrev-construct abbrevs sequence
+                                                      'period)))
+        alist elem)
+    (dotimes (i (length sequence) (reverse alist))
+      (setq index (+ i offset)
+            elem (elt sequence i)
+            alist
+            (cons (cons (if filter (funcall filter elem) elem) index) alist))
+      (if aseq
+          (setq elem (elt aseq i)
+                alist (cons (cons (if filter (funcall filter elem) elem)
+                                  index) alist)))
+      (if aseqp
+          (setq elem (elt aseqp i)
+                alist (cons (cons (if filter (funcall filter elem) elem)
+                                  index) alist))))))
 
-(defun calendar-month-name (month &optional width)
-  "The name of MONTH.
-If WIDTH is non-nil, return just the first WIDTH characters of the name."
-  (let ((string (aref calendar-month-name-array (1- month))))
-    (if width
-	(let ((i 0) (result "") (pos 0))
-	  (while (< i width)
-	    (let ((chartext (char-to-string (aref string pos))))
-	      (setq pos (+ pos (length chartext)))
-	      (setq result (concat result chartext)))
-	    (setq i (1+ i)))
-	  result)
-      string)))
+(defun calendar-month-name (month &optional abbrev)
+  "Return a string with the name of month number MONTH.
+Months are numbered from one.  Month names are taken from the
+variable `calendar-month-name-array', unless the optional
+argument ABBREV is non-nil, in which case
+`calendar-month-abbrev-array' is used."
+  (aref (if abbrev
+            (calendar-abbrev-construct calendar-month-abbrev-array
+                                       calendar-month-name-array)
+          calendar-month-name-array)
+        (1- month)))
 
 (defun calendar-day-of-week (date)
-  "Return the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc."
-  (% (calendar-absolute-from-gregorian date) 7))
+  "Return the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc.
+DATE is a list of the form (month day year).  A negative year is
+interpreted as BC; -1 being 1 BC, and so on."
+  (mod (calendar-absolute-from-gregorian date) 7))
 
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
@@ -2581,6 +2711,9 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
          (<= 1 day) (<= day (calendar-last-day-of-month month year))
+         ;; BC dates left as non-legal, to suppress errors from
+         ;; complex holiday algorithms not suitable for years BC.
+         ;; Note there are side effects on calendar navigation.
          (<= 1 year))))
 
 (defun calendar-date-equal (date1 date2)
@@ -2665,20 +2798,16 @@ The actual dates are in the car of DATE1 and DATE2."
 
 (defun calendar-date-string (date &optional abbreviate nodayname)
   "A string form of DATE, driven by the variable `calendar-date-display-form'.
-An optional parameter ABBREVIATE, when t, causes the month and day names to be
-abbreviated to three characters.  An optional parameter NODAYNAME, when t,
-omits the name of the day of the week."
+An optional parameter ABBREVIATE, when non-nil, causes the month
+and day names to be abbreviated as specified by
+`calendar-month-abbrev-array' and `calendar-day-abbrev-array',
+respectively.  An optional parameter NODAYNAME, when t, omits the
+name of the day of the week."
   (let* ((dayname
-          (if nodayname
-              nil
-            (if abbreviate
-                (calendar-day-name date 3)
-              (calendar-day-name date))))
+          (unless nodayname
+            (calendar-day-name date abbreviate)))
          (month (extract-calendar-month date))
-         (monthname
-          (if abbreviate
-              (calendar-month-name month 3)
-            (calendar-month-name month)))
+         (monthname (calendar-month-name month abbreviate))
          (day (int-to-string (extract-calendar-day date)))
          (month (int-to-string month))
          (year (int-to-string (extract-calendar-year date))))
@@ -2804,4 +2933,5 @@ Defaults to today's date if DATE is not given."
 ;;; byte-compile-dynamic: t
 ;;; End:
 
+;;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
 ;;; calendar.el ends here

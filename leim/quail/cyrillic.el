@@ -1323,4 +1323,5 @@ This keyboard layout is standard for Bulgarian typewriters."
 ;; coding: iso-2022-7bit
 ;; End:
 
+;;; arch-tag: e6d34b16-8710-4181-a17e-819a1df0334f
 ;;; cyrillic.el ends here

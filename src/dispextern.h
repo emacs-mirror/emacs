@@ -550,12 +550,14 @@ struct glyph_matrix
   int matrix_w, matrix_h;
 
   /* If this structure describes a window matrix of window W,
-     window_left_x is the value of W->left, window_top_y the value of
-     W->top, window_height and window_width are width and height of W,
-     as returned by window_box, and window_vscroll is the value of
-     W->vscroll at the time the matrix was last adjusted.  Only set
-     for window-based redisplay.  */
-  int window_left_x, window_top_y, window_height, window_width, window_vscroll;
+     window_left_col is the value of W->left_col, window_top_line the
+     value of W->top_line, window_height and window_width are width and
+     height of W, as returned by window_box, and window_vscroll is the
+     value of W->vscroll at the time the matrix was last adjusted.
+     Only set for window-based redisplay.  */
+  int window_left_col, window_top_line;
+  int window_height, window_width;
+  int window_vscroll;
 
   /* Number of glyphs reserved for left and right marginal areas when
      the matrix was last adjusted.  */
@@ -866,13 +868,13 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P(W, ROW)		\
      (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))			\
-      && (ROW)->y < WINDOW_DISPLAY_HEADER_LINE_HEIGHT ((W)))
+      && (ROW)->y < WINDOW_HEADER_LINE_HEIGHT ((W)))
 
 /* Non-zero if ROW is partially visible at the bottom of window W.  */
 
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P(W, ROW)		      \
      (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))				      \
-      && (ROW)->y + (ROW)->height > WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE ((W)))
+      && (ROW)->y + (ROW)->height > WINDOW_BOX_HEIGHT_NO_MODE_LINE ((W)))
 
 /* Return the bottom Y + 1 of ROW.   */
 
@@ -1197,156 +1199,6 @@ struct glyph_string
 #define DESIRED_HEADER_LINE_HEIGHT(W) \
      MATRIX_HEADER_LINE_HEIGHT ((W)->desired_matrix)
 
-/* Like FRAME_INTERNAL_BORDER_WIDTH but checks whether frame F is a
-   window-system frame.  */
-
-#define FRAME_INTERNAL_BORDER_WIDTH_SAFE(F) \
-     (FRAME_WINDOW_P (F) ? FRAME_INTERNAL_BORDER_WIDTH (F) : 0)
-
-/* Width of display region of window W.  For terminal frames, this
-   equals the width of W since there are no vertical scroll bars.  For
-   window system frames, the value has to be corrected by the pixel
-   width of vertical scroll bars, and fringes.  */
-
-#define WINDOW_DISPLAY_PIXEL_WIDTH(W)					\
-     (((XFASTINT ((W)->width)						\
-        - FRAME_SCROLL_BAR_WIDTH (XFRAME (WINDOW_FRAME ((W))))		\
-	- FRAME_FRINGE_COLS (XFRAME (WINDOW_FRAME ((W)))))		\
-       * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
-
-/* Height of the display region of W, including a mode line, if any.  */
-
-#define WINDOW_DISPLAY_PIXEL_HEIGHT(W)					\
-     (XFASTINT ((W)->height)						\
-      * CANON_Y_UNIT (XFRAME (WINDOW_FRAME ((W)))))
-
-/* Height in pixels of the mode line.  May be zero if W doesn't have a
-   mode line.  */
-
-#define WINDOW_DISPLAY_MODE_LINE_HEIGHT(W)	\
-     (WINDOW_WANTS_MODELINE_P ((W))		\
-      ? CURRENT_MODE_LINE_HEIGHT (W)		\
-      : 0)
-
-/* Height in pixels of the header line.  Zero if W doesn't have a header
-   line.  */
-
-#define WINDOW_DISPLAY_HEADER_LINE_HEIGHT(W)	\
-     (WINDOW_WANTS_HEADER_LINE_P ((W))		\
-      ? CURRENT_HEADER_LINE_HEIGHT (W)		\
-      : 0)
-
-/* Pixel height of window W without mode line.  */
-
-#define WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE(W)	\
-     (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
-      - WINDOW_DISPLAY_MODE_LINE_HEIGHT ((W)))
-
-/* Pixel height of window W without mode and header line.  */
-
-#define WINDOW_DISPLAY_TEXT_HEIGHT(W)		\
-     (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
-      - WINDOW_DISPLAY_MODE_LINE_HEIGHT ((W))	\
-      - WINDOW_DISPLAY_HEADER_LINE_HEIGHT ((W)))
-
-/* Left edge of W in pixels relative to its frame.  */
-
-#define WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X(W)				\
-     (FRAME_INTERNAL_BORDER_WIDTH_SAFE (XFRAME (WINDOW_FRAME ((W))))	\
-      + (WINDOW_LEFT_MARGIN ((W))					\
-         * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W)))))			\
-      + FRAME_LEFT_FRINGE_WIDTH (XFRAME (WINDOW_FRAME ((W)))))
-
-/* Right edge of window W in pixels, relative to its frame.  */
-
-#define WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X(W)		\
-     (WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W))		\
-      + WINDOW_DISPLAY_PIXEL_WIDTH ((W)))
-
-/* Top edge of W in pixels relative to its frame.  */
-
-#define WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y(W)				\
-     (FRAME_INTERNAL_BORDER_WIDTH_SAFE (XFRAME (WINDOW_FRAME ((W))))	\
-      + (XFASTINT ((W)->top)						\
-         * CANON_Y_UNIT (XFRAME (WINDOW_FRAME ((W))))))
-
-/* Bottom edge of window W relative to its frame.  */
-
-#define WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y(W)		\
-     (WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W))		\
-      + WINDOW_DISPLAY_PIXEL_HEIGHT ((W)))
-
-/* Convert window W relative pixel X to frame pixel coordinates.  */
-
-#define WINDOW_TO_FRAME_PIXEL_X(W, X) \
-     ((X) + WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W)))
-
-/* Convert window W relative pixel Y to frame pixel coordinates.  */
-
-#define WINDOW_TO_FRAME_PIXEL_Y(W, Y) \
-     ((Y) + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W)))
-
-/* Convert frame relative pixel X to window relative pixel X.  */
-
-#define FRAME_TO_WINDOW_PIXEL_X(W, X) \
-     ((X) - WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W)))
-
-/* Convert frame relative pixel Y to window relative pixel Y.  */
-
-#define FRAME_TO_WINDOW_PIXEL_Y(W, Y) \
-     ((Y) - WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W)))
-
-/* Width of left margin area in pixels.  */
-
-#define WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH(W)		\
-     (NILP ((W)->left_margin_width)			\
-      ? 0						\
-      : (XINT ((W)->left_margin_width)			\
-	 * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
-
-/* Width of right marginal area in pixels.  */
-
-#define WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH(W)	\
-     (NILP ((W)->right_margin_width)			\
-      ? 0						\
-      : (XINT ((W)->right_margin_width)			\
-	 * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
-
-/* Width of text area in pixels.  */
-
-#define WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH(W)		\
-     (WINDOW_DISPLAY_PIXEL_WIDTH ((W))			\
-      - WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W))	\
-      - WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH ((W)))
-
-/* Convert a text area relative x-position in window W to frame X
-   pixel coordinates.  */
-
-#define WINDOW_TEXT_TO_FRAME_PIXEL_X(W, X)		\
-     (WINDOW_TO_FRAME_PIXEL_X ((W), (X))		\
-      + WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W)))
-
-/* Translate an x-position relative to AREA in window W to frame pixel
-   coordinates.  */
-
-#define WINDOW_AREA_TO_FRAME_PIXEL_X(W, AREA, X)	\
-     (WINDOW_TO_FRAME_PIXEL_X ((W), (X))		\
-      + (((AREA) > LEFT_MARGIN_AREA)			\
-	 ? WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W))	\
-	 : 0)						\
-      + (((AREA) > TEXT_AREA)				\
-	 ? WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH ((W))	\
-	 : 0))
-
-/* Return the pixel width of AREA in W.  */
-
-#define WINDOW_AREA_PIXEL_WIDTH(W, AREA)		\
-     (((AREA) == TEXT_AREA)				\
-      ? WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH ((W))	\
-      : (((AREA) == LEFT_MARGIN_AREA)			\
-	 ? WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W))	\
-	 : WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH ((W))))
-
 /* Value is non-zero if window W wants a mode line.  */
 
 #define WINDOW_WANTS_MODELINE_P(W)					\
@@ -1355,7 +1207,7 @@ struct glyph_string
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->mode_line_format)		\
-      && XFASTINT ((W)->height) > 1)
+      && WINDOW_TOTAL_LINES (W) > 1)
 
 /* Value is non-zero if window W wants a header line.  */
 
@@ -1365,7 +1217,7 @@ struct glyph_string
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->header_line_format)		\
-      && XFASTINT ((W)->height) > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
+      && WINDOW_TOTAL_LINES (W) > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
 
 
 /* Return proper value to be used as baseline offset of font that has
@@ -1391,7 +1243,7 @@ struct glyph_string
 	BOFF = DESCENT +  (F_HEIGHT - HEIGHT) / 2 - F_DESCENT
 	DESCENT = FONT->descent
 	HEIGHT = FONT_HEIGHT (FONT)
-	F_DESCENT = (F->output_data.x->font->descent
+	F_DESCENT = (FRAME_FONT (F)->descent
 		     - F->output_data.x->baseline_offset)
 	F_HEIGHT = FRAME_LINE_HEIGHT (F)
 */
@@ -2065,7 +1917,7 @@ struct it
   short truncation_pixel_width, continuation_pixel_width;
 
   /* First and last visible x-position in the display area.  If window
-     is hscrolled by n columns, first_visible_x == n * CANON_X_UNIT
+     is hscrolled by n columns, first_visible_x == n * FRAME_COLUMN_WIDTH
      (f), and last_visible_x == pixel width of W + first_visible_x.  */
   int first_visible_x, last_visible_x;
 
@@ -2714,7 +2566,6 @@ void clear_face_cache P_ ((int));
 unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
 			      enum lface_attribute_index));
 void unload_color P_ ((struct frame *, unsigned long));
-int frame_update_line_height P_ ((struct frame *));
 int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstricmp P_ ((const unsigned char *, const unsigned char *));
@@ -2927,3 +2778,6 @@ extern Lisp_Object x_default_parameter P_ ((struct frame *, Lisp_Object,
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not DISPEXTERN_H_INCLUDED */
+
+/* arch-tag: c65c475f-1c1e-4534-8795-990b8509fd65
+   (do not change this comment) */

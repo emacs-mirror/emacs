@@ -1078,3 +1078,5 @@ Copyright (c) 1985, 1996 Free Software Foundation
 // Alex Ott.
 // Большое спасибо Владимиру Бормотову, на базе перевода которого был сделан
 // этот перевод
+
+;;; arch-tag: ad4e5698-ea8b-45b7-b236-ed5ad5b72d2b

@@ -1,6 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000, 2003
+;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -50,6 +51,8 @@
   :type 'hook
   :group 'change-log)
 
+;; Many modes set this variable, so avoid warnings.
+;;;###autoload
 (defcustom add-log-current-defun-function nil
   "*If non-nil, function to guess name of surrounding function.
 It is used by `add-log-current-defun' in preference to built-in rules.
@@ -246,7 +249,11 @@ Note: The search is conducted only within 10%, at the beginning of the file."
      2 'change-log-acknowledgement-face))
   "Additional expressions to highlight in Change Log mode.")
 
-(defvar change-log-mode-map (make-sparse-keymap)
+(defvar change-log-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
+    (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
+    map)
   "Keymap for Change Log major mode.")
 
 (defvar change-log-time-zone-rule nil
@@ -287,6 +294,31 @@ If nil, use local time.")
 	  "$CHANGE_LOG$.TXT"
 	"ChangeLog")))
 
+(defun add-log-edit-prev-comment (arg)
+  "Cycle backward through Log-Edit mode comment history.
+With a numeric prefix ARG, go back ARG comments."
+  (interactive "*p")
+  (save-restriction
+    (narrow-to-region (point)
+		      (if (memq last-command '(add-log-edit-prev-comment
+					       add-log-edit-next-comment))
+			  (mark) (point)))
+    (when (fboundp 'log-edit-previous-comment)
+      (log-edit-previous-comment arg)
+      (indent-region (point-min) (point-max))
+      (goto-char (point-min))
+      (unless (save-restriction (widen) (bolp))
+	(delete-region (point) (progn (skip-chars-forward " \t\n") (point))))
+      (set-mark (point-min))
+      (goto-char (point-max))
+      (delete-region (point) (progn (skip-chars-backward " \t\n") (point))))))
+
+(defun add-log-edit-next-comment (arg)
+  "Cycle forward through Log-Edit mode comment history.
+With a numeric prefix ARG, go back ARG comments."
+  (interactive "*p")
+  (add-log-edit-prev-comment (- arg)))
+
 ;;;###autoload
 (defun prompt-for-change-log-name ()
   "Prompt for a change log name."
@@ -310,27 +342,26 @@ If nil, use local time.")
 This is the value returned by `vc-workfile-version' or, if that is
 nil, by matching `change-log-version-number-regexp-list'."
   (let* ((size (buffer-size))
-	 (end
+	 (limit
 	  ;; The version number can be anywhere in the file, but
 	  ;; restrict search to the file beginning: 10% should be
 	  ;; enough to prevent some mishits.
 	  ;;
 	  ;; Apply percentage only if buffer size is bigger than
 	  ;; approx 100 lines.
-	  (if (> size (* 100 80))
-	      (/ size 10)
-	    size))
-	 version)
+	  (if (> size (* 100 80)) (+ (point) (/ size 10)))))
     (or (and buffer-file-name (vc-workfile-version buffer-file-name))
 	(save-restriction
 	  (widen)
-	  (let ((regexps change-log-version-number-regexp-list))
+	  (let ((regexps change-log-version-number-regexp-list)
+		version)
 	    (while regexps
 	      (save-excursion
 		(goto-char (point-min))
-		(when (re-search-forward (pop regexps) end t)
+		(when (re-search-forward (pop regexps) limit t)
 		  (setq version (match-string 1)
-			regexps nil)))))))))
+			regexps nil))))
+	    version)))))
 
 
 ;;;###autoload
@@ -564,8 +595,13 @@ non-nil, otherwise in local time."
 	(skip-syntax-backward " ")
 	(skip-chars-backward "):")
 	(if (and (looking-at "):")
-		 (> fill-column (+ (current-column) (length defun) 4)))
-	    (progn (delete-region (point) pos) (insert ", "))
+		 (let ((pos (save-excursion (backward-sexp 1) (point))))
+		   (when (equal (buffer-substring pos (point)) defun)
+		     (delete-region pos (point)))
+		   (> fill-column (+ (current-column) (length defun) 4))))
+	    (progn (skip-chars-backward ", ")
+		   (delete-region (point) pos)
+		   (unless (memq (char-before) '(?\()) (insert ", ")))
 	  (if (looking-at "):")
 	      (delete-region (+ 1 (point)) (line-end-position)))
 	  (goto-char pos)
@@ -585,20 +621,44 @@ the change log file in another window."
   (add-change-log-entry whoami file-name t))
 ;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
+(defvar add-log-indent-text 0)
+
+(defun add-log-indent ()
+  (let* ((indent
+	  (save-excursion
+	    (beginning-of-line)
+	    (skip-chars-forward " \t")
+	    (cond
+	     ((and (looking-at "\\(.*\\)  [^ \n].*[^ \n]  <.*>$")
+		   ;; Matching the output of add-log-time-format is difficult,
+		   ;; but I'll get it has at least two adjacent digits.
+		   (string-match "[[:digit:]][[:digit:]]" (match-string 1)))
+	      0)
+	     ((looking-at "[^*(]")
+	      (+ (current-left-margin) add-log-indent-text))
+	     (t (current-left-margin)))))
+	 (pos (save-excursion (indent-line-to indent) (point))))
+    (if (> pos (point)) (goto-char pos))))
+
+
+(defvar smerge-resolve-function)
+
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
   "Major mode for editing change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
 New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.
-Runs `change-log-mode-hook'."
+Runs `change-log-mode-hook'.
+\\{change-log-mode-map}"
   (setq left-margin 8
 	fill-column 74
 	indent-tabs-mode t
 	tab-width 8)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
-  (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
+  (set (make-local-variable 'indent-line-function) 'add-log-indent)
+  (set (make-local-variable 'tab-always-indent) nil)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
@@ -984,4 +1044,5 @@ old-style time formats for entries are supported."
 
 (provide 'add-log)
 
+;;; arch-tag: 81eee6fc-088f-4372-a37f-80ad9620e762
 ;;; add-log.el ends here

@@ -1,12 +1,12 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1994,98,1999,2000,01,02,2003  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.72 $
+;; Version: $Revision: 1.76 $
 
 ;; This file is part of GNU Emacs.
 
@@ -122,20 +122,17 @@
 
 (defcustom tcl-indent-level 4
   "*Indentation of Tcl statements with respect to containing block."
-  :group 'tcl
   :type 'integer)
 
 (defcustom tcl-continued-indent-level 4
   "*Indentation of continuation line relative to first line of command."
-  :group 'tcl
   :type 'integer)
 
 (defcustom tcl-auto-newline nil
   "*Non-nil means automatically newline before and after braces you insert."
-  :group 'tcl
   :type 'boolean)
 
-(defcustom tcl-tab-always-indent t
+(defcustom tcl-tab-always-indent tab-always-indent
   "*Control effect of TAB key.
 If t (the default), always indent current line.
 If nil and point is not in the indentation area at the beginning of
@@ -149,7 +146,6 @@ to take place:
   4. Move forward to end of line, indenting if necessary.
   5. Create an empty comment.
   6. Move backward to start of comment, indenting if necessary."
-  :group 'tcl
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Beginning only" nil)
 		 (const :tag "Maybe move or make or delete comment" 'tcl)))
@@ -163,27 +159,22 @@ meaning that the choice between `backslash' and `quote' should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
 taken to mean `smart'.  The default is nil."
-  :group 'tcl
   :type '(choice (const backslash) (const quote) (const smart) (const nil)))
 
 (defcustom tcl-help-directory-list nil
   "*List of topmost directories containing TclX help files."
-  :group 'tcl
   :type '(repeat directory))
 
 (defcustom tcl-use-smart-word-finder t
   "*If not nil, use smart way to find current word, for Tcl help feature."
-  :group 'tcl
   :type 'boolean)
 
 (defcustom tcl-application "wish"
   "*Name of Tcl program to run in inferior Tcl mode."
-  :group 'tcl
   :type 'string)
 
 (defcustom tcl-command-switches nil
   "*List of switches to supply to the `tcl-application' program."
-  :group 'tcl
   :type '(repeat string))
 
 (defcustom tcl-prompt-regexp "^\\(% \\|\\)"
@@ -192,7 +183,6 @@ If nil, the prompt is the name of the application with \">\" appended.
 
 The default is \"^\\(% \\|\\)\", which will match the default primary
 and secondary prompts for tclsh and wish."
-  :group 'tcl
   :type 'regexp)
 
 (defcustom inferior-tcl-source-command "source %s\n"
@@ -201,7 +191,6 @@ This format string should use `%s' to substitute a file name
 and should result in a Tcl expression that will command the
 inferior Tcl to load that file.  The filename will be appropriately
 quoted for Tcl."
-  :group 'tcl
   :type 'string)
 
 ;;
@@ -437,7 +426,7 @@ argument is ignored (for indentation purposes).  The second argument
 is a Tcl expression, and the last argument is Tcl commands.")
 
 (defvar tcl-explain-indentation nil
-  "If not `nil', debugging message will be printed during indentation.")
+  "If non-nil, debugging message will be printed during indentation.")
 
 
 
@@ -560,7 +549,7 @@ Commands:
 	 (parse-sexp-lookup-properties . t)))
 
   (set (make-local-variable 'imenu-generic-expression)
-       'tcl-imenu-generic-expression)
+       tcl-imenu-generic-expression)
 
   ;; Settings for new dabbrev code.
   (set (make-local-variable 'dabbrev-case-fold-search) nil)
@@ -878,7 +867,7 @@ Returns nil if line starts inside a string, t if in a comment."
 	(contain-stack (list (point)))
 	(case-fold-search nil)
 	outer-loop-done inner-loop-done state ostate
-	this-indent last-sexp continued-line
+	this-indent continued-line
 	(next-depth 0)
 	last-depth)
     (save-excursion
@@ -898,9 +887,6 @@ Returns nil if line starts inside a string, t if in a comment."
 	  (setq state (parse-partial-sexp (point) (progn (end-of-line) (point))
 					  nil nil state))
 	  (setq next-depth (car state))
-	  (if (and (car (cdr (cdr state)))
-		   (>= (car (cdr (cdr state))) 0))
-	      (setq last-sexp (car (cdr (cdr state)))))
 	  (if (or (nth 4 ostate))
 	      (tcl-indent-line))
 	  (if (or (nth 3 state))
@@ -917,8 +903,6 @@ Returns nil if line starts inside a string, t if in a comment."
 	    (setq indent-stack (cdr indent-stack)
 		  contain-stack (cdr contain-stack)
 		  last-depth (1- last-depth)))
-	  (if (/= last-depth next-depth)
-	      (setq last-sexp nil))
 	  ;; Add levels for any parens that were started in this line.
 	  (while (< last-depth next-depth)
 	    (setq indent-stack (cons nil indent-stack)
@@ -1526,4 +1510,5 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (provide 'tcl)
 
+;;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
 ;;; tcl.el ends here
