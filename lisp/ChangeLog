@@ -1,3 +1,10 @@
+2002-04-27  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (insert-for-yank): Replace `category' property
+	with whatever properties it stands for.
+
+	* subr.el (member-ignore-case): Ignore non-strings in LIST.
+
 2002-04-27  Miles Bader  <miles@gnu.org>
 
 	* faces.el (read-face-name): Format the prompt correctly when
