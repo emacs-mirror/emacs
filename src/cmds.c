@@ -1,5 +1,5 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -207,8 +207,38 @@ N was explicitly specified.")
   (n, killflag)
      Lisp_Object n, killflag;
 {
+  Lisp_Object value;
+  int deleted_tab = 0;
+  int i;
+
   CHECK_NUMBER (n, 0);
-  return Fdelete_char (make_number (-XINT (n)), killflag);
+
+  /* See if we are about to delete a tab backwards.  */
+  for (i = 0; i < XINT (n); i++)
+    {
+      if (point - i < BEGV)
+	break;
+      if (FETCH_CHAR (point - i) == '\t')
+	{
+	  deleted_tab = 1;
+	  break;
+	}
+    }
+
+  value = Fdelete_char (make_number (-XINT (n)), killflag);
+
+  /* In overwrite mode, back over columns while clearing them out,
+     unless at end of line.  */
+  if (XINT (n) > 0
+      && ! NILP (current_buffer->overwrite_mode)
+      && ! deleted_tab
+      && ! (point == ZV || FETCH_CHAR (point) == '\n'))
+    {
+      Finsert_char (make_number (' '), XINT (n));
+      SET_PT (point - XINT (n));
+    }
+
+  return value;
 }
 
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
