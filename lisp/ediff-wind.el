@@ -113,7 +113,7 @@ Do not specify width and height here. These are computed automatically.")
 (ediff-defvar-local ediff-mouse-pixel-position nil "")
 
 ;; not used for now
-(defvar ediff-mouse-pixel-threshhold 30
+(defvar ediff-mouse-pixel-threshold 30
   "If the user moves mouse more than this many pixels, Ediff won't warp mouse into control window.")
 
 (defvar ediff-grab-mouse t
@@ -176,7 +176,7 @@ the frame used for the wide display.")
 (defvar ediff-prefer-iconified-control-frame nil
   "*If t, keep control panel iconified when help message is off.
 This has effect only on a windowing system.
-If t, hiting `?' to toggle control panel off iconifies it.
+If t, hitting `?' to toggle control panel off iconifies it.
 
 This is only useful in Emacs and only for certain kinds of window managers,
 such as TWM and its derivatives, since the window manager must permit
