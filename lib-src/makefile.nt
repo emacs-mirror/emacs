@@ -129,7 +129,7 @@ $(BLD)\ctags.obj: ctags.c
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c mocklisp.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c w32faces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c 
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c mocklisp.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c w32faces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c 
 
 #
 # These are the lisp files that are loaded up in loadup.el
@@ -242,8 +242,10 @@ install:	$(INSTALL_FILES)
 # Maintenance
 # 
 clean:;		- $(DEL) *~ *.pdb DOC*
+		- $(DEL) *.orig *.rej *.crlf ctags.c
 		- $(DEL_TREE) deleted
-		- $(DEL_TREE) $(OBJDIR)
+		- $(DEL_TREE) obj
+		- $(DEL_TREE) obj-spd
 
 #
 # Headers we would preprocess if we could.
