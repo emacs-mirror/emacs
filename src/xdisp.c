@@ -5838,6 +5838,16 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	     the line.  */
 	  if (skip == MOVE_X_REACHED)
 	    {
+	      /* Wait!  We can conclude that TO_Y is in the line if
+		 the already scanned glyphs make the line tall enough
+		 because further scanning doesn't make it shorter.  */
+	      line_height = it->max_ascent + it->max_descent;
+	      if (to_y >= it->current_y
+		  && to_y < it->current_y + line_height)
+		{
+		  reached = 6;
+		  break;
+		}
 	      it_backup = *it;
 	      TRACE_MOVE ((stderr, "move_it: from %d\n", IT_CHARPOS (*it)));
 	      skip2 = move_it_in_display_line_to (it, to_charpos, -1,
@@ -16921,6 +16931,13 @@ x_get_glyph_overhangs (glyph, f, left, right)
 	    *left = -pcm->lbearing;
 	}
     }
+  else if (glyph->type == COMPOSITE_GLYPH)
+    {
+      struct composition *cmp = composition_table[glyph->u.cmp_id];
+
+      *right = cmp->rbearing - cmp->pixel_width;
+      *left = - cmp->lbearing;
+    }
 }
 
 
@@ -18198,8 +18215,8 @@ x_produce_glyphs (it)
 	 now.  Theoretically, we have to check all fonts for the
 	 glyphs, but that requires much time and memory space.  So,
 	 here we check only the font of the first glyph.  This leads
-	 to incorrect display very rarely, and C-l (recenter) can
-	 correct the display anyway.  */
+	 to incorrect display, but it's very rare, and C-l (recenter)
+	 can correct the display anyway.  */
       if (cmp->font != (void *) font)
 	{
 	  /* Ascent and descent of the font of the first character of
@@ -18208,8 +18225,10 @@ x_produce_glyphs (it)
 	     them respectively.  */
 	  int font_ascent = FONT_BASE (font) + boff;
 	  int font_descent = FONT_DESCENT (font) - boff;
+	  int font_height = FONT_HEIGHT (font);
 	  /* Bounding box of the overall glyphs.  */
 	  int leftmost, rightmost, lowest, highest;
+	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
 
 	  cmp->font = (void *) font;
@@ -18222,12 +18241,20 @@ x_produce_glyphs (it)
 	      width = pcm->width;
 	      ascent = pcm->ascent;
 	      descent = pcm->descent;
+	      lbearing = pcm->lbearing;
+	      if (lbearing > 0)
+		lbearing = 0;
+	      rbearing = pcm->rbearing;
+	      if (rbearing < width)
+		rbearing = width;
 	    }
 	  else
 	    {
 	      width = FONT_WIDTH (font);
 	      ascent = FONT_BASE (font);
 	      descent = FONT_DESCENT (font);
+	      lbearing = 0;
+	      rbearing = width;
 	    }
 
 	  rightmost = width;
@@ -18247,6 +18274,8 @@ x_produce_glyphs (it)
 	     the left.  */
 	  cmp->offsets[0] = 0;
 	  cmp->offsets[1] = boff;
+	  cmp->lbearing = lbearing;
+	  cmp->rbearing = rbearing;
 
 	  /* Set cmp->offsets for the remaining glyphs.  */
 	  for (i = 1; i < cmp->glyph_len; i++)
@@ -18281,12 +18310,20 @@ x_produce_glyphs (it)
 		  width = pcm->width;
 		  ascent = pcm->ascent;
 		  descent = pcm->descent;
+		  lbearing = pcm->lbearing;
+		  if (lbearing > 0)
+		    lbearing = 0;
+		  rbearing = pcm->rbearing;
+		  if (rbearing < width)
+		    rbearing = width;
 		}
 	      else
 		{
 		  width = FONT_WIDTH (font);
 		  ascent = 1;
 		  descent = 0;
+		  lbearing = 0;
+		  rbearing = width;
 		}
 
 	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
@@ -18327,15 +18364,21 @@ x_produce_glyphs (it)
 			6---7---8 -- descent
 		  */
 		  int rule = COMPOSITION_RULE (cmp, i);
-		  int gref, nref, grefx, grefy, nrefx, nrefy;
+		  int gref, nref, grefx, grefy, nrefx, nrefy, xoff, yoff;
 
-		  COMPOSITION_DECODE_RULE (rule, gref, nref);
+		  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
 		  grefx = gref % 3, nrefx = nref % 3;
 		  grefy = gref / 3, nrefy = nref / 3;
+		  if (xoff)
+		    xoff = font_height * (xoff - 128) / 256;
+		  if (yoff)
+		    yoff = font_height * (yoff - 128) / 256;
 
 		  left = (leftmost
 			  + grefx * (rightmost - leftmost) / 2
-			  - nrefx * width / 2);
+			  - nrefx * width / 2
+			  + xoff);
+		  
 		  btm = ((grefy == 0 ? highest
 			  : grefy == 1 ? 0
 			  : grefy == 2 ? lowest
@@ -18343,23 +18386,32 @@ x_produce_glyphs (it)
 			 - (nrefy == 0 ? ascent + descent
 			    : nrefy == 1 ? descent - boff
 			    : nrefy == 2 ? 0
-			    : (ascent + descent) / 2));
+			    : (ascent + descent) / 2)
+			 + yoff);
 		}
 
 	      cmp->offsets[i * 2] = left;
 	      cmp->offsets[i * 2 + 1] = btm + descent;
 
 	      /* Update the bounding box of the overall glyphs. */
-	      right = left + width;
+	      if (width > 0)
+		{
+		  right = left + width;
+		  if (left < leftmost)
+		    leftmost = left;
+		  if (right > rightmost)
+		    rightmost = right;
+		}
 	      top = btm + descent + ascent;
-	      if (left < leftmost)
-		leftmost = left;
-	      if (right > rightmost)
-		rightmost = right;
 	      if (top > highest)
 		highest = top;
 	      if (btm < lowest)
 		lowest = btm;
+
+	      if (cmp->lbearing > left + lbearing)
+		cmp->lbearing = left + lbearing;
+	      if (cmp->rbearing < left + rbearing)
+		cmp->rbearing = left + rbearing;
 	    }
 
 	  /* If there are glyphs whose x-offsets are negative,
@@ -18370,6 +18422,8 @@ x_produce_glyphs (it)
 	      for (i = 0; i < cmp->glyph_len; i++)
 		cmp->offsets[i * 2] -= leftmost;
 	      rightmost -= leftmost;
+	      cmp->lbearing -= leftmost;
+	      cmp->rbearing -= leftmost;
 	    }
 
 	  cmp->pixel_width = rightmost;
@@ -18380,6 +18434,11 @@ x_produce_glyphs (it)
 	  if (cmp->descent < font_descent)
 	    cmp->descent = font_descent;
 	}
+
+      if (it->glyph_row
+	  && (cmp->lbearing < 0
+	      || cmp->rbearing > cmp->pixel_width))
+	it->glyph_row->contains_overlapping_glyphs_p = 1;
 
       it->pixel_width = cmp->pixel_width;
       it->ascent = it->phys_ascent = cmp->ascent;
