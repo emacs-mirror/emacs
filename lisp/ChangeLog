@@ -1,3 +1,68 @@
+2004-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment): Load
+	subst tables if necessary.
+
+	* international/mule.el (decode-char): Load subst tables if
+	necessary.
+	(encode-char): Likewise.
+
+	* international/utf-16.el (utf-16-decode-ucs): Handle a surrogate
+	pair correctly.  Call ccl-mule-utf-untrans for untranslable chars.
+	(utf-16le-decode-loop): Set r5 to -1 before loop.
+	(utf-16be-decode-loop): Likewise.
+	(ccl-decode-mule-utf-16le): Add EOF processing block.
+	(ccl-decode-mule-utf-16be): Likewise.
+	(ccl-decode-mule-utf-16le-with-signature): Likewise.
+	(ccl-decode-mule-utf-16be-with-signature): Likewise.
+	(ccl-decode-mule-utf-16): Likewise.  Set r5 to -1 initially.
+	(ccl-mule-utf-16-encode-untrans): New CCL.
+	(utf-16-decode-to-ucs): Handle pre-read character.
+	(utf-16le-encode-loop): Handle surrogate pair.
+	(utf-16be-encode-loop): Likewise.
+	(ccl-encode-mule-utf-16le-with-signature): Adjusted for the change
+	of utf-16le-encode-loop.
+	(ccl-encode-mule-utf-16be-with-signature): Adjusted for the change
+	of utf-16be-encode-loop.
+	(mule-utf-16-post-read-conversion): Call
+	utf-8-post-read-conversion at first.
+	(mule-utf-16[{le|be}], mule-utf-16{le|be}-with-signature): Include
+	CJK charsets in safe-charsets if utf-translate-cjk-mode is on.
+	Add post-read-conversion and pre-write-conversion.
+
+	* international/utf-8.el (utf-translate-cjk-charsets): New
+	variable.
+	(utf-translate-cjk-unicode-range): New variable.
+	(utf-translate-cjk-load-tables): New function.
+	(utf-lookup-subst-table-for-decode): New function.
+	(utf-lookup-subst-table-for-encode): New function.
+	(utf-translate-cjk-mode): Init-value changed to t.  Don't load
+	tables here.  Update safe-charsets of utf-* coding systems.
+	(ccl-mule-utf-untrans): New CCL.
+	(ccl-decode-mule-utf-8): Call ccl-mule-utf-untrans.  Use `repeat'
+	at end of each branch.
+	(ccl-mule-utf-8-encode-untrans): New CCL.
+	(ccl-encode-mule-utf-8): Call ccl-mule-utf-8-encode-untrans.
+	(ccl-untranslated-to-ucs): Handle 2-byte encoding.  Set r1 to the
+	length of encoding.  Don't return r0.
+	(utf-8-compose): New arg hash-table.  Handle 2-byte encoding.
+	(utf-8-post-read-conversion): Narrow to region properly.  If
+	utf-translate-cjk-mode is on, load tables if necessary.  Call
+	utf-8-compose with hash-table arg if necessary.  Call
+	XXX-compose-region instead of XXX-post-read-convesion.
+	(utf-8-pre-write-conversion): New function.
+	(mule-utf-8): Include CJK charsets in safe-charsets if
+	utf-translate-cjk-mode is on.  Add pre-write-conversion.
+
+	* international/characters.el: Temporarily set
+	utf-translate-cjk-mode to nil.
+
+	* language/devan-util.el (devanagari-compose-region): Add
+	autoload cookie.
+
+	* international/ccl.el (ccl-dump-call): Fix printing the
+	subroutine name.
+
 2004-06-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.el (dired-revert): If buffer is marked unmodified before

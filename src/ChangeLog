@@ -1,3 +1,18 @@
+2004-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_CALL_FOR_MAP_INSTRUCTION): Save eof_ic in
+	ccl_prog_stack_struct and update it.
+	(CCL_INVALID_CMD): If CCL_DEBUG is defined, call ccl_debug_hook.
+	(CCL_READ_CHAR): Get instruction counter from eof_ic, not from
+	ccl->eof_ic on EOF.
+	(ccl_debug_hook): New function.
+	(struct ccl_prog_stack): New member eof_ic.
+	(ccl_driver): Handle EOF in subrountine call correctly.
+
+2004-06-11  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_string): Check CODING_FINISH_INTERRUPT.
+
 2004-06-11  Kim F. Storm  <storm@cua.dk>
 
 	* emacs.c (shut_down_emacs): Inhibit redisplay during shutdown.

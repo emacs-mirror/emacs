@@ -717,11 +717,12 @@ and windows-1251 are preloaded since the former is so common and the
 latter is used by GNU locales.
 
 ** The utf-8/16 coding systems have been enhanced.
-By default, untranslatable utf-8 sequences (mostly representing CJK
-characters) are simply composed into single quasi-characters.  User
-option `utf-translate-cjk' arranges to translate many utf-8 CJK
-character sequences into real Emacs characters in a similar way to the
-Mule-UCS system.  This uses significant space, so is not the default.
+By default, untranslatable utf-8 sequences are simply composed into
+single quasi-characters.  User option `utf-translate-cjk-mode' (it is
+turned on by default) arranges to translate many utf-8 CJK character
+sequences into real Emacs characters in a similar way to the Mule-UCS
+system.  As this loads a fairly big data on demand, people who are not
+interested in CJK characters may want to customize it to nil.
 You can augment/amend the CJK translation via hash tables
 `ucs-mule-cjk-to-unicode' and `ucs-unicode-to-mule-cjk'.  The utf-8
 coding system now also encodes characters from most of Emacs's
