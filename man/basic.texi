@@ -103,12 +103,14 @@ inserts that character.
 @item
 @kbd{C-q} followed by a sequence of octal digits inserts the character
 with the specified octal character code.  You can use any number of
-octal digits; any non-digit terminates the sequence.  If the terminating
-character is @key{RET}, it serves only to terminate the sequence; any
-other non-digit is itself used as input after terminating the sequence.
-(The use of octal sequences is disabled in ordinary non-binary Overwrite
-mode, to give you a convenient way to insert a digit instead of
-overwriting with it.)
+octal digits; any non-digit terminates the sequence.  If the
+terminating character is @key{RET}, it serves only to terminate the
+sequence.  Any other non-digit terminates the sequence and then acts
+as normal input---thus, @kbd{C-q 1 0 1 B} inserts @samp{AB}.
+
+The use of octal sequences is disabled in ordinary non-binary
+Overwrite mode, to give you a convenient way to insert a digit instead
+of overwriting with it.
 @end itemize
 
 @cindex 8-bit character codes
@@ -582,15 +584,14 @@ area.  To go to a given line by number, use @kbd{M-x goto-line}; it
 prompts you for the number.  These line numbers count from one at the
 beginning of the buffer.
 
-  You can also see the current line number in the mode line; @xref{Mode
+  You can also see the current line number in the mode line; see @ref{Mode
 Line}.  If you narrow the buffer, then the line number in the mode line
 is relative to the accessible portion (@pxref{Narrowing}).  By contrast,
 @code{what-line} shows both the line number relative to the narrowed
 region and the line number relative to the whole buffer.
 
-  By contrast, @kbd{M-x what-page} counts pages from the beginning of
-the file, and counts lines within the page, printing both numbers.
-@xref{Pages}.
+  @kbd{M-x what-page} counts pages from the beginning of the file, and
+counts lines within the page, printing both numbers.  @xref{Pages}.
 
 @kindex M-=
 @findex count-lines-region
@@ -663,9 +664,9 @@ coding system is iso-2022-7bit@footnote{On terminals that support
 Latin-1 characters, the character shown after @samp{Char:} is displayed
 as the actual glyph of A with grave accent.}:
 
-@example
+@smallexample
 Char: @`A (04300, 2240, 0x8c0, ext ESC , A @@) (latin-iso8859-1 64)
-@end example
+@end smallexample
 
 @node Arguments
 @section Numeric Arguments
