@@ -1,3 +1,43 @@
+2004-10-10  Lars Hansen  <larsh@math.ku.dk>
+
+	* url-auth.el: Fix copyright notice.
+
+	* url-cache.el: Fix copyright notice.
+
+	* url-cookie.el: Fix copyright notice.
+
+	* url-dired.el: Fix copyright notice.
+
+	* url-file.el: Fix copyright notice.
+
+	* url-ftp.el: Fix copyright notice.
+
+	* url-handlers.el: Fix copyright notice.
+
+	* url-history.el: Fix copyright notice.
+
+	* url-irc.el: Fix copyright notice.
+
+	* url-mailto.el: Fix copyright notice.
+
+	* url-methods.el: Fix copyright notice.
+
+	* url-misc.el: Fix copyright notice.
+
+	* url-news.el: Fix copyright notice.
+
+	* url-nfs.el: Fix copyright notice.
+
+	* url-parse.el: Fix copyright notice.
+
+	* url-privacy.el: Fix copyright notice.
+
+	* url-vars.el: Fix copyright notice.
+
+	* url.el: Fix copyright notice.
+
+	* url-util.el: Fix copyright notice.
+
 2004-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-insert-file-contents): Use the URL to decide the
