@@ -2542,7 +2542,7 @@ If the value is an integer, highlighting is only shown after moving the
 mouse, while keyboard input turns off the highlight even when the mouse
 is over the clickable text.  However, the mouse shape still indicates
 when the mouse is over clickable text.  */);
-  Vmouse_highlight = make_number (1);
+  Vmouse_highlight = Qt;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.
