@@ -187,6 +187,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_SETSID
 #undef HAVE_FPATHCONF
 #undef HAVE_SELECT
+#undef HAVE_MKTIME
 #undef HAVE_EUIDACCESS
 #undef HAVE_GETPAGESIZE
 #undef HAVE_TZSET
@@ -200,11 +201,6 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_INET_SOCKETS
 
 #undef HAVE_AIX_SMT_EXP
-
-#undef HAVE_MKTIME
-#if ! HAVE_MKTIME || defined (_NEXT_SOURCE)
-#define mktime emacs_mktime
-#endif
 
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
@@ -322,6 +318,11 @@ Boston, MA 02111-1307, USA.  */
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object *
+#endif
+
+/* Avoid link-time collision with system mktime if we will use our own.  */
+#if ! HAVE_MKTIME || BROKEN_MKTIME
+#define mktime emacs_mktime
 #endif
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
