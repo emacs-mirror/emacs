@@ -901,7 +901,7 @@ text property.  */)
      (string)
      Lisp_Object string;
 {
-  register unsigned char *p;
+  register const unsigned char *p;
   register enum syntaxcode code;
   int val;
   Lisp_Object match;
@@ -1365,7 +1365,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
   int size_byte;
-  unsigned char *str;
+  const unsigned char *str;
   int len;
 
   CHECK_STRING (string);
@@ -1386,10 +1386,11 @@ skip_chars (forwardp, syntaxp, string, lim)
 	nbytes = SCHARS (string);
       if (nbytes != size_byte)
 	{
-	  str = (unsigned char *) alloca (nbytes);
-	  copy_text (SDATA (string), str, size_byte,
+	  unsigned char *tmp = (unsigned char *) alloca (nbytes);
+	  copy_text (SDATA (string), tmp, size_byte,
 		     string_multibyte, multibyte);
 	  size_byte = nbytes;
+	  str = tmp;
 	}
     }
 
