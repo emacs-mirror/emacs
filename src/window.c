@@ -1668,7 +1668,11 @@ before each command.")
   if (XFRAME (WINDOW_FRAME (w)) != selected_frame)
     {
       XFRAME (WINDOW_FRAME (w))->selected_window = window;
-      Fhandle_switch_frame (WINDOW_FRAME (w), Qnil);
+      /* Use this rather than Fhandle_switch_frame
+	 so that FRAME_FOCUS_FRAME is moved appropriately as we
+	 move around in the state where a minibuffer in a separate
+	 frame is active.  */
+      Fselect_frame (WINDOW_FRAME (w), Qnil);
     }
   else
     selected_frame->selected_window = window;
