@@ -1142,6 +1142,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
+  if (echo_area_glyphs == FRAME_MESSAGE_BUF (f))
+    {
+      echo_area_glyphs = 0;
+      previous_echo_glyphs = 0;
+    }
+
   if (f->namebuf)
     free (f->namebuf);
   if (FRAME_CURRENT_GLYPHS (f))
