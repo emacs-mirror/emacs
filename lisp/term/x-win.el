@@ -620,8 +620,6 @@ This is in addition to the primary selection.")
       (while (setq i (string-match "[.*]" x-resource-name))
 	(aset x-resource-name i ?-))))
 
-(menu-bar-mode t)
-
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY")))
 		   x-command-line-resources)
