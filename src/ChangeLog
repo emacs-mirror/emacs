@@ -1,3 +1,7 @@
+2002-03-05  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (hscroll_margin): Change to EMACS_INT.
+
 2002-03-05  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* frame.c (default-frame-alist): Explain that setting it doesn't
