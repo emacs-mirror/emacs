@@ -594,7 +594,7 @@ clear_to_end ()
 {
   register int i;
 
-  if (clear_to_end_hook && FRAME_TERMCAP_P (updating_frame))
+  if (clear_to_end_hook && ! FRAME_TERMCAP_P (updating_frame))
     {
       (*clear_to_end_hook) ();
       return;
