@@ -6959,10 +6959,6 @@ note_mouse_highlight (f, x, y)
 	  || (OVERLAYP (dpyinfo->mouse_face_overlay)
 	      && mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
 	{
-	  /* Clear the display of the old active region, if any.  */
-	  if (clear_mouse_face (dpyinfo))
-	    cursor = None;
-
 	  /* Find the highest priority overlay that has a mouse-face
 	     property.  */
 	  overlay = Qnil;
@@ -6972,8 +6968,19 @@ note_mouse_highlight (f, x, y)
 	      if (!NILP (mouse_face))
 		overlay = overlay_vec[i];
 	    }
-	  dpyinfo->mouse_face_overlay = overlay;
+	  
+	  /* If we're actually highlighting the same overlay as
+	     before, there's no need to do that again.  */
+	  if (!NILP (overlay)
+	      && EQ (overlay, dpyinfo->mouse_face_overlay))
+	    goto check_help_echo;
 	    
+	  dpyinfo->mouse_face_overlay = overlay;
+
+	  /* Clear the display of the old active region, if any.  */
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = None;
+
 	  /* If no overlay applies, get a text property.  */
 	  if (NILP (overlay))
 	    mouse_face = Fget_text_property (position, Qmouse_face, object);
@@ -7084,6 +7091,8 @@ note_mouse_highlight (f, x, y)
 	      cursor = None;
 	    }
 	}
+
+    check_help_echo:
 
       /* Look for a `help-echo' property.  */
       {
