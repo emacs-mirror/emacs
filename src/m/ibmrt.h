@@ -134,3 +134,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    This enables us to use the standard crt0.o.  */
 
 #define NO_REMAP
+
+/* rocky@watson.ibm.com says this is needed.  */
+#define HAVE_FTIME
