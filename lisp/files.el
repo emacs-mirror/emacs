@@ -940,6 +940,7 @@ If the current buffer now contains an empty file that you just visited
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
+	(odir dired-directory)
 	(otrue buffer-file-truename)
 	(oname (buffer-name)))
     (if (get-buffer " **lose**")
@@ -948,9 +949,13 @@ If the current buffer now contains an empty file that you just visited
     (unwind-protect
 	(progn
 	  (unlock-buffer)
+	  ;; This prevents us from finding the same buffer
+	  ;; if we specified the same file again.
 	  (setq buffer-file-name nil)
 	  (setq buffer-file-number nil)
 	  (setq buffer-file-truename nil)
+	  ;; Likewise for dired buffers.
+	  (setq dired-directory nil)
 	  (find-file filename))
       (when (eq obuf (current-buffer))
 	;; This executes if find-file gets an error
@@ -960,6 +965,7 @@ If the current buffer now contains an empty file that you just visited
 	(setq buffer-file-name ofile)
 	(setq buffer-file-number onum)
 	(setq buffer-file-truename otrue)
+	(setq dired-directory odir)
 	(lock-buffer)
 	(rename-buffer oname)))
     (unless (eq (current-buffer) obuf)
