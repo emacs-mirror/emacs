@@ -939,7 +939,9 @@ decimal key can be customized individually (for internationalization),
 `Numeric Prefix Arg' where the keypad keys produce numeric prefix args
 for emacs editing commands, `Cursor keys' and `Shifted Cursor keys'
 where the keys work like (shifted) arrow keys, home/end, etc., and
-`Remove Bindings' where all bindings for the keypad keys are removed.
+`Unspecified/User-defined' where the keypad keys (kp-0, kp-1, etc.)
+are left unspecified and can be bound individually through the global
+or local keymaps.
 
 *** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
