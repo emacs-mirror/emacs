@@ -357,7 +357,10 @@ If FRAME is omitted or nil, use the selected frame."
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (internal-get-lisp-face-attribute face :foreground frame))
+  (let ((value (internal-get-lisp-face-attribute face :foreground frame)))
+    (if (eq value 'unspecified)
+	nil 
+      value)))
 
 
 (defun face-background (face &optional frame)
@@ -365,7 +368,10 @@ If FRAME is omitted or nil, use the selected frame."
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (internal-get-lisp-face-attribute face :background frame))
+  (let ((value (internal-get-lisp-face-attribute face :background frame)))
+    (if (eq value 'unspecified)
+	nil
+      value)))
 
 
 (defun face-stipple (face &optional frame)
@@ -373,7 +379,10 @@ If FRAME is omitted or nil, use the selected frame."
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (internal-get-lisp-face-attribute face :stipple frame))
+  (let ((value (internal-get-lisp-face-attribute face :stipple frame)))
+    (if (eq value 'unspecified)
+	nil
+      value)))
 
 
 (defalias 'face-background-pixmap 'face-stipple)
