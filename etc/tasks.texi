@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 10 March 1996
+@set lastupdate 14 August 1996
 @c %**end of header
 
 @setchapternewpage off
@@ -15,19 +15,15 @@
 @end titlepage
 
 @ifinfo
-@node Top, Documentation, (dir), (dir)
+@node Top, Preface, (dir), (dir)
 @top GNU Task List
 
 This file is updated automatically from @file{tasks.texi}, which was
 last updated on @value{lastupdate}.
 @end ifinfo
 
-Check with @code{gnu@@prep.ai.mit.edu}, for a possibly more current copy.
-This task list is not exclusive; any other useful program might be a
-good project---but it might instead be something we already have, so
-check with @code{gnu@@prep} before you start writing it.
-
 @menu
+* Preface::
 * Documentation::
 * Unix-Related Projects::
 * Kernel Projects::
@@ -38,14 +34,24 @@ check with @code{gnu@@prep} before you start writing it.
 * Games and Recreations::
 @end menu
 
+@node Preface, Documentation, Top, Top
+@chapter About the GNU Task List
+
+Check with @code{gnu@@prep.ai.mit.edu}, for a possibly more current
+copy.  You can also ftp it from a GNU FTP host in directory
+@file{/pub/gnu/tasks} - These files in different formats are available:
+@file{tasks.text}, @file{tasks.texi}, @file{tasks.info}, and
+@file{tasks.dvi}.  It is also available on the GNU World Wide Web
+server: @file{http://www.gnu.ai.mit.edu}.
+
 If you start working steadily on a project, please let @code{gnu@@prep}
 know.  We might have information that could help you; we'd also like to
 send you the GNU coding standards.
 
-Because of the natural tendency for most volunteers to write
-programming tools or programming languages, we have a comparative
-shortage of applications useful for non-programmer users.  Therefore,
-we ask you to consider writing such a program.
+Because of the natural tendency for most volunteers to write programming
+tools or programming languages, we have a comparative shortage of
+applications useful for non-programmer users.  Therefore, we ask you to
+consider writing such a program.
 
 In general, a new program that does a completely new job advances the
 GNU project more than an improvement to an existing program.
@@ -58,19 +64,19 @@ that already exist or will exist very soon:
 
 @itemize @bullet
 @item
-Completion of the documentation for CC-mode, a new C/C++ mode for
-Emacs Lisp.
+Completion of the documentation for CC-mode, a new Emacs mode for
+C, C++ and other languages.
 
 @item
-A C reference manual.  (RMS has written half of one which you could
-start with).
+A C reference manual.  (RMS made a try at one, which you could start
+with).
 
 @item
 A manual for Ghostscript.
-@c
-@c @item
-@c A manual for CSH.
-@c Ick, do we want to encourage using THAT?  -djm
+
+
+@item
+A manual for TCSH.
 
 @item
 A manual for PIC (the graphics formatting language).
@@ -90,7 +96,7 @@ Manuals for various X window managers.
 
 @item
 Reference cards for those manuals that don't have them: C
-Compiler, Make, Texinfo, Termcap and maybe the C Library.
+Compiler, Make, Texinfo, Termcap, and maybe the C Library.
 
 @item
 Many utilities need documentation, including @code{grep} and others.
@@ -105,11 +111,8 @@ We could use an emulation of Unix @code{spell}, which would run by
 invoking @code{ispell}.
 
 @item
-Less urgent: @code{diction}, @code{explain}, @code{style}.
-
-@item
 An improved version of the POSIX utility @code{pax}.  There is one on
-the Usenet, but it is said to be poorly written.  Talk with
+Usenet, but it is said to be poorly written.  Talk with
 @code{mib@@gnu.ai.mit.edu} about this project.
 
 @ignore
@@ -126,6 +129,10 @@ Various other libraries.
 
 @item
 An emulation of SCCS that works using RCS.
+
+Less urgent: @code{diction}, @code{explain}, and @code{style}, or
+something to do the same kind of job.  Compatibility with Unix is not
+especially important for these programs.
 @end itemize
 
 @node Kernel Projects
@@ -150,6 +157,10 @@ need some changes.
 @item
 A shared memory X11 server to run under MACH is very desirable.  The
 machine specific parts should be kept well separated.
+
+@item
+An implementation of CIFS, the ``Common Internet File System,'' for the
+HURD.  This protocol is an offshoot of SMB.
 @end itemize
 
 @node Extensions
@@ -215,20 +226,7 @@ dancers moving on the screen.
 Port the Vibrant toolkit to work on X without using Motif.
 
 @item
-A widget for displaying circle-shaped menus ("pie menus") with X
-windows.
-
-@item
 A program to display and edit Hypercard stacks.
-
-@item
-An interface-builder program to make it easy to design graphical
-interfaces for applications.  This could work with the dynamic linker
-DLD and C++, loading in the same class definitions that will be used
-by the application program.
-
-@item
-A "desktop" program with drag-and-drop icons and such.
 
 @item
 A paint program, supporting both bitmap-oriented operations and
@@ -238,6 +236,12 @@ usable.
 @item
 A program for manipulating photographs---something vaguely like Photo
 Shop (though not exactly like it).
+
+@item
+An interactive 3D modeling utility with rendering/raytracing capabilities.
+
+@item
+A program for graphic morphing of scanned photographs.
 @end itemize
 
 @node Other Projects
@@ -247,6 +251,22 @@ If you think of others that should be added, please
 send them to @code{gnu@@prep.ai.mit.edu}.
 
 @itemize @bullet
+@item
+A free program for public-key encryption.
+
+This program should use the Diffie-Helman algorithm for public key
+encryption, not the RSA algorithm, because the Diffie-Helman patent in
+the US will expire in 1997.  It should use triple-DES, not IDEA, for
+block encryption because IDEA is patented in many countries and the
+patents will not expire soon.  In other respects, it should be like PGP.
+
+This program needs to be written by someone who is not a US citizen,
+outside the US, to avoid problems with US export control law.
+
+Many people believe that PGP is free software, but that is not actually
+true.  The distribution terms set by the copyright holders do not allow
+everyone to use and redistribute it.
+
 @item
 A program to convert compiled programs represented in OSF ANDF
 (``Architecture Neutral Distribution Format'') into ANSI C.
@@ -266,7 +286,12 @@ all the features that people want in such systems.  It would make sense
 to start with an existing one and add the other features.
 
 @item
-A general ledger program.
+A general ledger program, including support for accounts payable, 
+account receivables, payroll, inventory control, order processing, etc.
+
+@item
+A teleconferencing program which does the job of CU-SeeMe (which is,
+alas, not free software).
 
 @item
 A program to typeset C code for printing.
@@ -321,9 +346,6 @@ A program to recognize handwriting.
 A pen based interface.
 
 @item
-Software suitable for creating virtual reality user interfaces.
-
-@item
 CAD software, such as a vague imitation of Autocad.
 
 @item
@@ -335,9 +357,10 @@ alignments.
 @chapter Compilers for Other Batch Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
-Algol 60, Algol 68, PL/I, Cobol, or whatever, to be used with the code
-generation phases of the GNU C compiler.  (C++, Objective C and Fortran
-are done; Ada, Pascal and Java are being worked on.
+Algol 60, Algol 68, PL/I, Cobol, Fortran 90, or whatever, to be used
+with the code generation phases of the GNU C compiler.  (C, C++, and
+Objective-C are done; Fortran 77 is mostly done; Ada, Pascal, and Java
+are being worked on.)
 
 @c Fortran status is here so gnu@prep and the volunteer coordinators
 @c don't have to answer the question -len
@@ -350,9 +373,12 @@ finger -l fortran@@gnu.ai.mit.edu
 @node Games and Recreations
 @chapter Games and Recreations
 
+Video-oriented games that work with the X window system.
+
 @itemize @bullet
 @item
-Video-oriented games should work with the X window system.
+A Doom-compatible display game engine, for running the many free
+levels people have written for Doom.
 
 @item
 Empire (there is a free version but it needs upgrading)
@@ -360,6 +386,9 @@ Empire (there is a free version but it needs upgrading)
 @item
 An ``empire builder'' system that makes it easy to write various kinds of
 simulation games.
+
+@item
+Improve GnuGo, which is not yet very sophisticated.
 
 @item
 Imitations of popular video games:
