@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -1230,9 +1230,8 @@ by buffer configuration `bs-cycle-configuration-name'."
 	(bs-must-show-regexp   bs-must-show-regexp)
 	(bs-dont-show-function bs-dont-show-function)
 	(bs-must-show-function bs-must-show-function)
-	(bs--show-all          bs--show-all))
-    (if bs-cycle-configuration-name
-	(bs-set-configuration bs-cycle-configuration-name))
+	(bs--show-all          nil))
+    (bs-set-configuration (or bs-cycle-configuration-name bs-default-configuration))
     (let ((bs-buffer-sort-function nil)
 	  (bs--current-sort-function nil))
       (let* ((tupel (bs-next-buffer (if (or (eq last-command
@@ -1262,9 +1261,8 @@ by buffer configuration `bs-cycle-configuration-name'."
 	(bs-must-show-regexp   bs-must-show-regexp)
 	(bs-dont-show-function bs-dont-show-function)
 	(bs-must-show-function bs-must-show-function)
-	(bs--show-all          bs--show-all))
-    (if bs-cycle-configuration-name
-	(bs-set-configuration bs-cycle-configuration-name))
+	(bs--show-all          nil))
+    (bs-set-configuration (or bs-cycle-configuration-name bs-default-configuration))
     (let ((bs-buffer-sort-function nil)
 	  (bs--current-sort-function nil))
       (let* ((tupel (bs-previous-buffer (if (or (eq last-command
