@@ -87,9 +87,7 @@ strings or patterns."
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
 				   query-replace-to-history-variable from t))
-    (if (and transient-mark-mode mark-active)
-	(list from to current-prefix-arg (region-beginning) (region-end))
-      (list from to current-prefix-arg nil nil))))
+    (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional delimited start end)
   "Replace some occurrences of FROM-STRING with TO-STRING.
@@ -116,7 +114,16 @@ only matches surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
-  (interactive (query-replace-read-args "Query replace" nil))
+  (interactive (let ((common
+		      (query-replace-read-args "Query replace" nil)))
+		 (list (nth 0 common) (nth 1 common) (nth 2 common)
+		       ;; These are done separately here
+		       ;; so that command-history will record these expressions
+		       ;; rather than the values they had this time.
+		       (if (and transient-mark-mode mark-active)
+			   (region-beginning))
+		       (if (and transient-mark-mode mark-active)
+			   (region-end)))))
   (perform-replace from-string to-string t nil delimited nil nil start end))
 
 (define-key esc-map "%" 'query-replace)
@@ -148,7 +155,18 @@ Fourth and fifth arg START and END specify the region to operate on.
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
-  (interactive (query-replace-read-args "Query replace regexp" t))
+  (interactive
+   (let ((common
+	  (query-replace-read-args "Query replace regexp" t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common)
+	   ;; These are done separately here
+	   ;; so that command-history will record these expressions
+	   ;; rather than the values they had this time.
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
+
   (perform-replace regexp to-string t t delimited nil nil start end))
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
@@ -181,10 +199,7 @@ Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to start end)
-     (when (and transient-mark-mode mark-active)
-       (setq start (region-beginning)
-	     end (region-end)))
+   (let (from to)
      (if query-replace-interactive
          (setq from (car regexp-search-ring))
        (setq from (read-from-minibuffer "Query replace regexp: "
@@ -197,7 +212,11 @@ Fourth and fifth arg START and END specify the region to operate on."
      ;; We make TO a list because replace-match-string-symbols requires one,
      ;; and the user might enter a single token.
      (replace-match-string-symbols to)
-     (list from (car to) current-prefix-arg start end)))
+     (list from (car to) current-prefix-arg
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   t t delimited nil nil start end))
 
@@ -222,10 +241,7 @@ A prefix argument N says to use each replacement string N times
 before rotating to the next.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to start end)
-     (when (and transient-mark-mode mark-active)
-       (setq start (region-beginning)
-	     end (region-end)))
+   (let (from to)
      (setq from (if query-replace-interactive
 		    (car regexp-search-ring)
 		  (read-from-minibuffer "Map query replace (regexp): "
@@ -236,7 +252,11 @@ Fourth and fifth arg START and END specify the region to operate on."
 		       from)
 	       nil nil nil
 	       'query-replace-history from t))
-     (list from to start end current-prefix-arg)))
+     (list from to current-prefix-arg
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
   (let (replacements)
     (if (listp to-strings)
 	(setq replacements to-strings)
@@ -277,7 +297,14 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
-  (interactive (query-replace-read-args "Replace string" nil))
+  (interactive
+   (let ((common
+	  (query-replace-read-args "Replace string" nil)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common)
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
   (perform-replace from-string to-string nil nil delimited nil nil start end))
 
 (defun replace-regexp (regexp to-string &optional delimited start end)
@@ -304,7 +331,14 @@ What you probably want is a loop like this:
   (while (re-search-forward REGEXP nil t)
     (replace-match TO-STRING nil nil))
 which will run faster and will not set the mark or print anything."
-  (interactive (query-replace-read-args "Replace regexp" t))
+  (interactive
+   (let ((common
+	  (query-replace-read-args "Replace regexp" t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common)
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
   (perform-replace regexp to-string nil t delimited nil nil start end))
 
 
