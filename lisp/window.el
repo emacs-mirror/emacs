@@ -303,7 +303,7 @@ If WINDOW is non-nil, it specifies a window; we delete that window,
 and the buffer that is killed or buried is the one in that window."
   (interactive "P")
   (let ((buffer (window-buffer window))
-	(frame (if window (window-frame window) (selected-window)))
+	(frame (window-frame (or window (selected-window))))
 	(window-solitary
 	 (save-selected-window
 	   (if window
