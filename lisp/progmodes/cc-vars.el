@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.14
+;; Version:    5.15
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -103,6 +103,17 @@ When this variable is non-nil, comment-only lines are indented
 according to syntactic analysis via `c-offsets-alist', even when
 \\[indent-for-comment] is used."
   :type 'boolean
+  :group 'c)
+
+(defcustom c-comment-continuation-stars "* "
+  "*Specifies the leader of continued block comments.
+You should set this variable to the literal string that gets inserted
+at the front of continued block style comment lines.  This should
+either be the empty string, or some number of stars followed by a
+single space.  Note that for line style comments, this variable is not
+used."
+  :type '(choice (const :tag "Use old semantics" nil)
+		 string)
   :group 'c)
 
 (defcustom c-cleanup-list '(scope-operator)
@@ -397,6 +408,14 @@ as designated in the variable `c-file-style'.")
 
 (defvar c-indentation-style c-site-default-style
   "Name of style installed in the current buffer.")
+
+(defvar c-buffer-is-cc-mode nil
+  "Non-nil for all buffers with a `major-mode' derived from CC Mode.
+Otherwise, this variable is nil.  I.e. this variable is non-nil for
+`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode', and any
+other non-CC Mode mode that calls `c-initialize-cc-mode'
+\(e.g. `awk-mode').")
+(make-variable-buffer-local 'c-buffer-is-cc-mode)
 
 
 (provide 'cc-vars)
