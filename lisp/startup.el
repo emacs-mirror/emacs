@@ -1306,7 +1306,7 @@ Returning non-nil does not mean we should necessarily
 use the fancy splash screen, but if we do use it,
 we put it on this frame."
   (let (chosen-frame)
-    (dolist (frame (frame-list))
+    (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
 	  (setq chosen-frame frame)))
