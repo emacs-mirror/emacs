@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el.
 
-;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
 ;;;
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -226,7 +226,7 @@ autoloads go somewhere else.")
 		     (if (string-match "\\.elc?$" name)
 			 (substring name 0 (match-beginning 0))
 		       name)))
-	(done nil)
+	(found nil)
 	(existing-buffer (get-file-buffer file)))
     (save-excursion
       ;; We want to get a value for generated-autoload-file from
@@ -237,52 +237,42 @@ autoloads go somewhere else.")
 	(save-restriction
 	  (widen)
 	  (goto-char (point-min))
-	  (while (search-forward generate-autoload-section-header nil t)
+	  ;; Look for the section for LOAD-NAME.
+	  (while (and (not found)
+		      (search-forward generate-autoload-section-header nil t))
 	    (let ((form (condition-case ()
 			    (read (current-buffer))
 			  (end-of-file nil))))
-	      (if (string= (nth 2 form) load-name)
-		  (let ((begin (match-beginning 0))
-			(last-time (nth 4 form))
-			(file-time (nth 5 (file-attributes file))))
-		    (if (and (or (null existing-buffer)
-				 (not (buffer-modified-p existing-buffer)))
-			     (listp last-time) (= (length last-time) 2)
-			     (or (> (car last-time) (car file-time))
-				 (and (= (car last-time) (car file-time))
-				      (>= (nth 1 last-time)
-					  (nth 1 file-time)))))
-			(message "Autoload section for %s is up to date."
-				 file)
-		      (search-forward generate-autoload-section-trailer)
-		      (delete-region begin (point))
-		      (generate-file-autoloads file))
-		    (setq done t))))))
-	(if done
-	    ;; There was an existing section and we have updated it.
-	    ()
-	  (if (save-excursion
-		(set-buffer (find-file-noselect file))
-		(save-excursion
-		  (save-restriction
-		    (widen)
-		    (goto-char (point-min))
-		    (search-forward generate-autoload-cookie nil t))))
-	      ;; There are autoload cookies in FILE.
-	      ;; Have the user tell us where to put the new section.
-	      (progn
-		(save-window-excursion
-		(switch-to-buffer (current-buffer))
-		(with-output-to-temp-buffer "*Help*"
-		  (princ (substitute-command-keys
-			  (format "\
-Move point to where the autoload section
-for %s should be inserted.
-Then do \\[exit-recursive-edit]."
-				  file))))
-		(recursive-edit)
-		(beginning-of-line))
-		(generate-file-autoloads file)))))
+	      (cond ((string= (nth 2 form) load-name)
+		     ;; We found the section for this file.
+		     ;; Check if it is up to date.
+		     (let ((begin (match-beginning 0))
+			   (last-time (nth 4 form))
+			   (file-time (nth 5 (file-attributes file))))
+		       (if (and (or (null existing-buffer)
+				    (not (buffer-modified-p existing-buffer)))
+				(listp last-time) (= (length last-time) 2)
+				(or (> (car last-time) (car file-time))
+				    (and (= (car last-time) (car file-time))
+					 (>= (nth 1 last-time)
+					     (nth 1 file-time)))))
+			   (progn
+			     (message "Autoload section for %s is up to date."
+				      file)
+			     (setq found 'up-to-date))
+			 (search-forward generate-autoload-section-trailer)
+			 (delete-region begin (point))
+			 (setq found t))))
+		    ((string< load-name (nth 2 form))
+		     ;; We've come to a section alphabetically later than
+		     ;; LOAD-NAME.  We assume the file is in order and so
+		     ;; there must be no section for LOAD-NAME.  We will
+		     ;; insert one before the section here.
+		     (goto-char (match-beginning 0))
+		     (setq found t)))))
+	  (if (eq found t)
+	      (generate-file-autoloads file))
+	  (setq done t)))
       (if (interactive-p) (save-buffer))
       (if (and (null existing-buffer)
 	       (setq existing-buffer (get-file-buffer file)))
