@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.13) $
+ * $HopeName: MMsrc!seg.c(trunk.14) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -16,7 +16,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.13) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.14) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -107,12 +107,21 @@ void SegInit(Seg seg, Pool pool)
 
 void SegFinish(Seg seg)
 {
+  Arena arena;
+
   AVERT(Seg, seg);
 
+  arena = PoolArena(SegPool(seg));
+
   if(SegGrey(seg) != TraceSetEMPTY) {
-    SegSetGrey(seg, TraceSetEMPTY);
+    RingRemove(&seg->_greyRing);
+    seg->_grey = TraceSetEMPTY;
   }
-  SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
+  seg->_summary = RefSetEMPTY;
+  if(seg->_sm != AccessSetEMPTY) {
+    ShieldLower(arena, seg, seg->_sm);
+  }
+  seg->_rankSet = RankSetEMPTY;
 
   /* See impl.c.shield.shield.flush */
   ShieldFlush(PoolArena(seg->_pool));
