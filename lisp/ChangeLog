@@ -1,5 +1,10 @@
 2003-09-28  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
+	* mail/smtpmail.el (smtpmail-via-smtp): Don't insert a space
+	between "MAIL FROM:" and "RCPT TO:" and the following address.
+
+2003-09-28  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
 	* textmodes/text-mode.el (paragraph-indent-minor-mode): Doc fix.
 
 2003-09-28  David Ponce  <david@dponce.com>
