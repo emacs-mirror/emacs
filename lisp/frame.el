@@ -290,13 +290,13 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	      ;; when we first made the frame.
 	      (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
 	      (if (assq 'height frame-initial-geometry-arguments)
-		  (setq parms (assoc-delete-all 'height parms)))
+		  (setq parms (assq-delete-all 'height parms)))
 	      (if (assq 'width frame-initial-geometry-arguments)
-		  (setq parms (assoc-delete-all 'width parms)))
+		  (setq parms (assq-delete-all 'width parms)))
 	      (if (assq 'left frame-initial-geometry-arguments)
-		  (setq parms (assoc-delete-all 'left parms)))
+		  (setq parms (assq-delete-all 'left parms)))
 	      (if (assq 'top frame-initial-geometry-arguments)
-		  (setq parms (assoc-delete-all 'top parms)))
+		  (setq parms (assq-delete-all 'top parms)))
 	      (setq new
 		    (make-frame
 		     ;; Use the geometry args that created the existing
@@ -362,13 +362,13 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	    (setq allparms (append initial-frame-alist
 				   default-frame-alist))
 	    (if (assq 'height frame-initial-geometry-arguments)
-		(setq allparms (assoc-delete-all 'height allparms)))
+		(setq allparms (assq-delete-all 'height allparms)))
 	    (if (assq 'width frame-initial-geometry-arguments)
-		(setq allparms (assoc-delete-all 'width allparms)))
+		(setq allparms (assq-delete-all 'width allparms)))
 	    (if (assq 'left frame-initial-geometry-arguments)
-		(setq allparms (assoc-delete-all 'left allparms)))
+		(setq allparms (assq-delete-all 'left allparms)))
 	    (if (assq 'top frame-initial-geometry-arguments)
-		(setq allparms (assoc-delete-all 'top allparms)))
+		(setq allparms (assq-delete-all 'top allparms)))
 	    (setq tail allparms)
 	    ;; Find just the parms that have changed since we first
 	    ;; made this frame.  Those are the ones actually set by
