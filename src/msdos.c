@@ -414,7 +414,7 @@ extern int unibyte_display_via_language_environment;
 
 Lisp_Object Qbar, Qhbar;
 
-/* The screen colors of the curent frame, which serve as the default
+/* The screen colors of the current frame, which serve as the default
    colors for newly-created frames.  */
 static int initial_screen_colors[2];
 
