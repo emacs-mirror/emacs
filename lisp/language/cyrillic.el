@@ -226,7 +226,7 @@ This works whether or not the table is Unicode-based or
 			    'translation-table))
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
-		   (ctext-non-standard-encoding "koi8-r")
+		   (ctext-non-standard-encodings "koi8-r")
 		   (input-method . "russian-typewriter")
 		   (features cyril-util)
 		   (unibyte-display . cyrillic-koi8)
