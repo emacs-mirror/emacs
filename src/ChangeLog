@@ -1,3 +1,8 @@
+2000-06-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (Fset_fontset_font): The arg CHARACTER may be a
+	charset.
+
 2000-06-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (displayed_window_lines): Take empty lines at
