@@ -367,6 +367,64 @@ See also docstring of the function tibetan-compose-region."
     ;; Should return nil as annotations.
     nil))
 
+
+;;;
+;;; Unicode-related definitions.
+;;; 
+
+(defvar tibetan-canonicalize-for-unicode-alist
+  '(("$(7"Q(B" . "")	;; remove vowel a
+    ("$(7"T(B" . "$(7"R"S(B") ;; decompose vowels whose use is ``discouraged'' in Unicode 3.0
+    ("$(7"V(B" . "$(7"R"U(B")
+    ("$(7"W(B" . "$(7#C"a(B")
+    ("$(7"X(B" . "$(7#C"R"a(B")
+    ("$(7"Y(B" . "$(7#D"a(B")
+    ("$(7"Z(B" . "$(7#D"R"a(B")
+    ("$(7"b(B" . "$(7"R"a(B"))
+  "Rules for canonicalizing Tibetan vowels for Unicode.")
+
+(defvar tibetan-canonicalize-for-unicode-regexp
+  "[$(7"Q"T"V"W"X"Y"Z"b(B]"
+  "Regexp for Tibetan vowels to be canonicalized in Unicode.")
+
+(defun tibetan-canonicalize-for-unicode-region (from to)
+  (save-restriction
+    (narrow-to-region from to)
+    (goto-char from)
+    (while (re-search-forward tibetan-canonicalize-for-unicode-regexp nil t)
+      (let (
+	    ;;(from (match-beginning 0))
+	    ;;(to (match-end 0))
+	    (canonical-form
+	     (cdr (assoc (match-string 0)
+			 tibetan-canonicalize-for-unicode-alist))))
+	;;(goto-char from)
+	;;(delete-region from to)
+	;;(insert canonical-form)
+	(replace-match canonical-form)
+	))))
+
+(defvar tibetan-strict-unicode t
+  "*Flag to control Tibetan canonicalizing for Unicode.
+
+If non-nil, the vowel a is removed and composite vowels are decomposed
+before writing buffer in Unicode.  See also
+`tibetan-canonicalize-for-unicode-regexp' and
+`tibetan-canonicalize-for-unicode-alist'.")
+
+;;;###autoload
+(defun tibetan-pre-write-canonicalize-for-unicode (from to)
+  (let ((old-buf (current-buffer))
+	(strict-unicode tibetan-strict-unicode))
+    (set-buffer (generate-new-buffer " *temp*"))
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring old-buf from to))
+    (if strict-unicode
+	(tibetan-canonicalize-for-unicode-region (point-min) (point-max)))
+    ;; Should return nil as annotations.
+    nil))
+
 (provide 'tibet-util)
 
 ;;; tibet-util.el ends here
