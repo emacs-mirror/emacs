@@ -1,3 +1,7 @@
+2002-05-03  Richard M. Stallman  <rms@gnu.org>
+
+	* net/zone-mode.el (zone-mode): Add write-file-hooks hook locally.
+
 2002-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (clone-indirect-buffer-other-window): Fix a typo in

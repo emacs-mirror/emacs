@@ -1,3 +1,8 @@
+2002-05-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* indent.c (Fvertical_motion): Move to the start of the line
+	containing PT before moving up or down.
+
 2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/sol2-5.h (bcopy, bzero, bcmp): Define only if HAVE_BCOPY is
