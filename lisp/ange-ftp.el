@@ -860,7 +860,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.58 $")
+(defconst ange-ftp-version "$Revision: 1.59 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1406,6 +1406,11 @@ good, skip, fatal, or unknown."
 	 (setq ange-ftp-process-busy nil
 	       ange-ftp-process-result t
 	       ange-ftp-process-result-line line))
+	;; Check this before checking for errors.
+	;; Otherwise the last line of these three seems to be an error:
+	;; 230-see a significant impact from the move.  For those of you who can't
+	;; 230-use DNS to resolve hostnames and get an error message like
+	;; 230-"ftp.stsci.edu: unknown host", the new IP address will be...
 	((string-match ange-ftp-multi-msgs line)
 	 (setq ange-ftp-process-multi-skip t))
 	((string-match ange-ftp-fatal-msgs line)
