@@ -157,7 +157,7 @@ src/emacs -batch -f batch-update-autoloads lisp
 
 echo "Making lisp/MANIFEST"
 
-(cd lisp; head -1 *.el | grep '^;' | sed -e 's/;;; //' > MANIFEST)
+(cd lisp; head -1 [^=]*.el | grep '^;' | sed -e 's/;;; //' > MANIFEST)
 
 echo "Creating staging directory: \`${tempparent}'"
 
