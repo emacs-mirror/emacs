@@ -3,11 +3,10 @@
 	* process.c (Fsignal_process): Allow PROCESS to be specified by
 	name in addition to pid (as integer or string).
 
-2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
+2002-10-28  Harald Maier  <Harald.Maier.BW@t-online.de>  (tiny change)
 
 	* w32heap.c: Don't redefine _heap_init and _heap_term on MSVC 7 build
-	environments.  Patch from Jay Finger <jay_finger@hotmail.com> and
-	Harald.Maier.BW@t-online.de.
+	environments.
 
 2002-10-27  Kim F. Storm  <storm@cua.dk>
 
@@ -451,8 +450,9 @@
 	* w32fns.c (Qbox): Make extern.
 	(syms_of_w32fns): Remove initialization of Qbox.
 
-	* xfns.c (Fx_open_connection): Fix error message. Patch from Rune
-	Kleveland <runekl@viewpoint.no>.
+2002-08-30  Rune Kleveland  <runekl@viewpoint.no>  (tiny change)
+
+	* xfns.c (Fx_open_connection): Fix error message.
 
 2002-08-30  Kim F. Storm  <storm@cua.dk>
 

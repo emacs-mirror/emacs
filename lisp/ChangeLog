@@ -52,10 +52,9 @@
 	* progmodes/make-mode.el (makefile-warn-continuations): Don't
 	barf when there _aren't_ any suspicious continuations.
 
-2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
+2002-10-28  Matthew Swift  <swift@alum.mit.edu>  (tiny change)
 
 	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
-	Patch from Matt Swift <swift@alum.mit.edu>.
 
 2002-10-27  Michael Kifer  <kifer@cs.stonybrook.edu>
 
@@ -132,10 +131,9 @@
 	* textmodes/outline.el (outline-next-heading): Make sure the match-data
 	is really correct where returning.
 
-2002-10-24  Juanma Barranquero  <lektu@terra.es>  (tiny change)
+2002-10-24  Matthew Swift  <swift@alum.mit.edu>  (tiny change)
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
-	Patch from Matthew Swift <swift@alum.mit.edu>.
 
 2002-10-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -4359,18 +4357,19 @@
 	(compilation-parse-errors): Use that, and for directories too.
 	Don't check whether a directory really exists.
 
+
 2002-07-12  Juanma Barranquero  <lektu@terra.es>
 
-	* help-fns.el (describe-variable): Put `defvaralias' info before the
-	documentation (patch from John Paul Wallington
-	<jpw@shootybangbang.com>).  Remove useless "Documentation:" string.
+	* help-fns.el (describe-variable): Remove useless "Documentation:"
+	string.
 
 	* timer.el (timer-set-time-with-usecs): Fix documentation.
 	Simplify extraction of time data.
 
 2002-07-12  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* help-fns.el (describe-variable): Mention if the variable is an alias.
+	* help-fns.el (describe-variable): Mention if the variable is an
+	alias.  Put `defvaralias' info before the documentation.
 
 2002-07-12  Kenichi Handa  <handa@etl.go.jp>
 
