@@ -395,50 +395,37 @@ by the above coding systems, you can customize this option to nil."
   ;; Thus magnification factor is two.
   ;;
   `(2
-    ((r0 = -1)
+    ((r6 = ,(charset-id 'latin-iso8859-1))
+     (read r0)
      (loop
-      (if (r0 < 0)
-	  (read r0))
       (if (r0 < #x80)
 	  ;; 1-byte encoding, i.e., ascii
-	  ((write r0)
-	   (r0 = -1)
-	   (repeat)))
-      (if (r0 < #xc0)		    ; continuation byte (invalid here)
+	  (write-read-repeat r0))
+      (if (r0 < #xc2)
+	  ;; continuation byte (invalid here) or 1st byte of overlong
+	  ;; 2-byte sequence.
 	  ((call ccl-mule-utf-untrans)
-	   (r0 = -1)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
+	   (read r0)
 	   (repeat)))
 
       ;; Read the 2nd byte.
-      (r1 = -1)
       (read r1)
       (if ((r1 & #b11000000) != #b10000000) ; Invalid 2nd byte
 	  ((call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
 	   ;; Handle it in the next loop.
 	   (r0 = r1)
 	   (repeat)))
 
       (if (r0 < #xe0)
 	  ;; 2-byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
-	  ((r2 = ((r0 & #x1F) << 6))
-	   (r2 |= (r1 & #x3F))
-	   ;; Now r2 holds scalar value
+	  ((r1 &= #x3F)
+	   (r1 |= ((r0 & #x1F) << 6))
+	   ;; Now r2 holds scalar value.  We don't have to check
+	   ;; `overlong sequence' because r0 >= 0xC2.
 
-	   (if (r2 < 128)	; `overlong sequence'
-	       ((call ccl-mule-utf-untrans)
-		(r0 = r1)
-		(call ccl-mule-utf-untrans)
-		(r0 = -1)
-		(repeat)))
-
-	   (r1 = r2)
-	   (if (r1 < 160)
-	       ;; eight-bit-control
-	       (r0 = ,(charset-id 'eight-bit-control))
-	     (if (r1 < 256)
-		 ;; latin-iso8859-1
-		 ((r0 = ,(charset-id 'latin-iso8859-1))
-		  (r1 -= 128))
+	   (if (r1 >= 256)
 	       ;; mule-unicode-0100-24ff (< 0800)
 	       ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
 		(r1 -= #x0100)
@@ -446,18 +433,29 @@ by the above coding systems, you can customize this option to nil."
 		(r1 %= 96)
 		(r1 += (r2 + 32))
 		(translate-character
-		 utf-translation-table-for-decode r0 r1))))
-	   (write-multibyte-character r0 r1)
-	   (r0 = -1)
-	   (repeat)))
+		 utf-translation-table-for-decode r0 r1)
+		(write-multibyte-character r0 r1)
+		(read r0)
+		(repeat))
+	     (if (r1 >= 160)
+		 ;; latin-iso8859-1
+		 ((r1 -= 128)
+		  (write-multibyte-character r6 r1)
+		  (read r0)
+		  (repeat))
+	       ;; eight-bit-control
+	       ((r0 = ,(charset-id 'eight-bit-control))
+		(write-multibyte-character r0 r1)
+		(read r0)
+		(repeat))))))
 
       ;; Read the 3rd bytes.
-      (r2 = -1)
       (read r2)
       (if ((r2 & #b11000000) != #b10000000) ; Invalid 3rd byte
 	  ((call ccl-mule-utf-untrans)
 	   (r0 = r1)
 	   (call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
 	   ;; Handle it in the next loop.
 	   (r0 = r2)
 	   (repeat)))
@@ -475,7 +473,8 @@ by the above coding systems, you can customize this option to nil."
 		(call ccl-mule-utf-untrans)
 		(r0 = r2)
 		(call ccl-mule-utf-untrans)
-		(r0 = -1)
+		(r6 = ,(charset-id 'latin-iso8859-1))
+		(read r0)
 		(repeat)))
 
 	   (if (r3 < #x2500)
@@ -488,7 +487,7 @@ by the above coding systems, you can customize this option to nil."
 		(translate-character
 		 utf-translation-table-for-decode r0 r1)
 		(write-multibyte-character r0 r1)
-		(r0 = -1)
+		(read r0)
 		(repeat)))
 
 	   (if (r3 < #x3400)
@@ -502,7 +501,7 @@ by the above coding systems, you can customize this option to nil."
 		     (r1 = (r7 + 32))
 		     (r1 += ((r3 + 32) << 7))))
 		(write-multibyte-character r0 r1)
-		(r0 = -1)
+		(read r0)
 		(repeat)))
 
 	   (if (r3 < #xE000)
@@ -512,10 +511,13 @@ by the above coding systems, you can customize this option to nil."
 		(lookup-integer utf-subst-table-for-decode r3 r1)
 		(if r7
 		    ;; got a translation
-		    (write-multibyte-character r3 r1)
-		  (call ccl-mule-utf-untrans))
-		(r0 = -1)
-		(repeat)))
+		    ((write-multibyte-character r3 r1)
+		     (read r0)
+		     (repeat))
+		  ((call ccl-mule-utf-untrans)
+		   (r6 = ,(charset-id 'latin-iso8859-1))
+		   (read r0)
+		   (repeat)))))
 
 	   ;; mule-unicode-e000-ffff
 	   ;; Fixme: fffe and ffff are invalid.
@@ -528,21 +530,23 @@ by the above coding systems, you can customize this option to nil."
 		(r1 = (r7 + 32))
 		(r1 += ((r3 + 32) << 7))))
 	   (write-multibyte-character r0 r1)
-	   (r0 = -1)
+	   (read r0)
 	   (repeat)))
 
       ;; Read the 4th bytes.
-      (r3 = -1)
       (read r3)
       (if ((r3 & #b11000000) != #b10000000) ; Invalid 4th byte
 	  ((call ccl-mule-utf-untrans)
 	   (r0 = r1)
 	   (call ccl-mule-utf-untrans)
+	   (r0 = r2)
+	   (call ccl-mule-utf-untrans)
+	   (r6 = ,(charset-id 'latin-iso8859-1))
 	   ;; Handle it in the next loop.
 	   (r0 = r3)
 	   (repeat)))
 
-      (if (r3 < #xF8)
+      (if (r0 < #xF8)
 	  ;; 4-byte encoding:
 	  ;; wwwzzzzzzyyyyyyxxxxxx = 11110www 10zzzzzz 10yyyyyy 10xxxxxx
 	  ;; keep those bytes as eight-bit-{control|graphic}
@@ -561,20 +565,20 @@ by the above coding systems, you can customize this option to nil."
 		(r0 = r3)
 		(call ccl-mule-utf-untrans))
 	     ((r0 = r4)
-	      (call ccl-mule-utf-untrans)))
-	   (r0 = -1)
-	   (repeat)))
+	      (call ccl-mule-utf-untrans))))
 
-      ;; Unsupported sequence.
-      (call ccl-mule-utf-untrans)
-      (r0 = r1)
-      (call ccl-mule-utf-untrans)
-      (r0 = r2)
-      (call ccl-mule-utf-untrans)
-      (r0 = r3)
-      (call ccl-mule-utf-untrans)
-      (r0 = -1)
+	;; Unsupported sequence.
+	((call ccl-mule-utf-untrans)
+	 (r0 = r1)
+	 (call ccl-mule-utf-untrans)
+	 (r0 = r2)
+	 (call ccl-mule-utf-untrans)
+	 (r0 = r3)
+	 (call ccl-mule-utf-untrans)))
+      (r6 = ,(charset-id 'latin-iso8859-1))
+      (read r0)
       (repeat)))
+
 
     ;; At EOF...
     (if (r0 >= 0)
@@ -786,7 +790,7 @@ eight-bit-control and eight-bit-graphic characters.")
 	  (if (r0 < #xF0)		; 3-byte encoding, as above
 	      ((r0 = ((r0 & #xF) << 12))
 	       (r0 |= ((r1 & #x3F) << 6))
-	       (r0 |= (r1 & #x3F))
+	       (r0 |= (r2 & #x3F))
 	       (r1 = 3))
 	    (if (r3 == 0)
 		(r1 = 0)
