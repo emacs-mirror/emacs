@@ -1,3 +1,11 @@
+2002-04-12  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (hack-one-local-variable): Clear text props from string
+	value.  Recognize several additional patterns as risky.  Mark many
+	more variables as risky.
+	(file-expand-wildcards): Use save-match-data.
+	(format-alist): Mark as risky.
+
 2002-04-12  Tom Tromey  <tromey@cachet>
 
 	* progmodes/tcl.el (tcl-do-fill-paragraph): Find and fill on more
