@@ -2085,7 +2085,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	}
       /* Draw radio buttons and tickboxes. */
       else if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
-                           wv->button_type == BUTTON_TYPE_RADIO))
+				wv->button_type == BUTTON_TYPE_RADIO))
 	fuFlags |= MF_CHECKED;
       else
 	fuFlags |= MF_UNCHECKED;
@@ -2101,7 +2101,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                 out_string );
 
   /* This must be done after the menu item is created.  */
-  if ((fuFlags & MF_STRING) != 0)
+  if (!wv->title && wv->call_data != 0)
     {
       HMODULE user32 = GetModuleHandle ("user32.dll");
       FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
