@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.45) $
+ * $HopeName: MMsrc!mpsi.c(trunk.46) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.45) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.46) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -295,7 +295,7 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   return MPS_RES_OK;
 }
 
-#if MPS_PROD_DYLAN
+#ifdef MPS_PROD_DYLAN
 mps_res_t mps_space_create(mps_space_t *mps_space_o)
 {
   return mps_arena_create(mps_space_o, mps_arena_class_vm(), ARENA_SIZE);
@@ -319,7 +319,7 @@ void mps_arena_destroy(mps_arena_t mps_arena)
   ArenaDestroy(arena);
 }
 
-#if MPS_PROD_DYLAN
+#ifdef MPS_PROD_DYLAN
 void mps_space_destroy(mps_space_t mps_space)
 {
   mps_arena_destroy(mps_space);
