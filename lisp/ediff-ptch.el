@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'ediff-init)
+
 (defvar ediff-last-dir-patch nil
   "Last directory used by an Ediff command for file to patch.")
 
