@@ -635,7 +635,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
   "Generate and spool a PostScript image of the buffer.
 Like `ps-spool-buffer', but includes font, color, and underline
 information in the generated image.  This command works only if you
-are using a window system, so it has a way to determine color values."
+are using a window system, so it has a way to determine color values.
 
 Use the command `ps-despool' to send the spooled images to the printer."
 
@@ -660,7 +660,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
   "Generate a PostScript image of the region and spool locally.
 Like `ps-spool-region', but includes font, color, and underline
 information in the generated image.  This command works only if you
-are using a window system, so it has a way to determine color values."
+are using a window system, so it has a way to determine color values.
 
 Use the command `ps-despool' to send the spooled images to the printer."
   (interactive "r")
