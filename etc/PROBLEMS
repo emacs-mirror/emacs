@@ -554,6 +554,12 @@ are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
 so, you have hit a compiler bug.  Please make sure to re-configure
 Emacs so that it isn't compiled with `-O5'.
 
+* Compiling on AIX 4.3.x or 4.4 fails.
+This could happen if you use /bin/c89 as youir compiler, instead of
+the default `cc'.  /bin/c89 treats certain warnings, such as benign
+redefinitions of macros, as errors, and fails the build.  A solution
+is to use the default compiler `cc'.
+
 * The PSGML package uses the obsolete variables
 `before-change-function' and `after-change-function', which are no
 longer used by Emacs.  These changes to PSGML 1.2.2 fix that.
@@ -770,6 +776,14 @@ This happens because epop3 redefines the function gethash, which is a
 built-in primitive beginning with Emacs 21.1.  We don't have a patch
 for epop3 that fixes this, but perhaps a newer version of epop3
 corrects that.
+
+* ps-print commands fail to find prologue files ps-prin*.ps.
+
+This can happen if you use an old version of X-Symbol package: it
+defines compatibility functions which trick ps-print into thinking it
+runs in XEmacs, and look for the prologue files in a wrong directory.
+
+The solution is to upgrade X-Symbol to a later version.
 
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
