@@ -6018,7 +6018,6 @@ face_fontset (attrs)
      Lisp_Object *attrs;
 {
   Lisp_Object name;
-  int fontset;
 
   name = attrs[LFACE_FONT_INDEX];
   if (!STRINGP (name))
@@ -6144,7 +6143,6 @@ realize_default_face (f)
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object frame_font;
   struct face *face;
-  int fontset;
 
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
@@ -6789,7 +6787,6 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   Lisp_Object propname = mouse ? Qmouse_face : Qface;
   Lisp_Object limit1, end;
   struct face *default_face;
-  int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
