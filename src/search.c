@@ -502,7 +502,12 @@ search_command (string, bound, noerror, count, direction, RE)
 	{
 	  if (lim < BEGV || lim > ZV)
 	    abort ();
+	  SET_PT (lim);
+	  return Qnil;
+#if 0 /* This would be clean, but maybe programs depend on
+	 a value of nil here.  */
 	  np = lim;
+#endif
 	}
       else
 	return Qnil;
