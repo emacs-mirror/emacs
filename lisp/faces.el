@@ -283,7 +283,7 @@ in that frame; otherwise change each frame."
 	    (format "Set face %s %s: " face name))
 	  alist)))
     (cond ((equal value "none")
-	   nil)
+	   '(nil))
 	  ((equal value "")
 	   default)
 	  (t value))))
@@ -297,6 +297,7 @@ in that frame; otherwise change each frame.
 FOREGROUND and BACKGROUND should be a colour name string (or list of strings to
 try) or nil.  STIPPLE should be a stipple pattern name string or nil.
 If nil, means do not change the display attribute corresponding to that arg.
+If (nil), that means clear out the attribute.
 
 BOLD-P, ITALIC-P, UNDERLINE-P, and INVERSE-P specify whether
 the face should be set bold, italic, underlined or in inverse-video,
@@ -345,9 +346,15 @@ If called interactively, prompts for a face name and face attributes."
      (message "Face %s: %s" face
       (mapconcat 'identity
        (delq nil
-	(list (and foreground (concat (downcase foreground) " foreground"))
-	      (and background (concat (downcase background) " background"))
-	      (and stipple (concat (downcase new-stipple-string) " stipple"))
+	(list (if (equal foreground '(nil))
+		  " no foreground"
+		(and foreground (concat (downcase foreground) " foreground")))
+	      (if (equal background '(nil))
+		  " no background"
+		(and background (concat (downcase background) " background")))
+	      (if (equal stipple '(nil))
+		  " no stipple"
+		(and stipple (concat (downcase new-stipple-string) " stipple")))
 	      (and bold-p "bold") (and italic-p "italic")
 	      (and inverse-p "inverse")
 	      (and underline-p "underline"))) ", "))
@@ -1581,7 +1588,7 @@ examine the brightness for you."
 	(set-face-inverse-video-p face t frame)
       (let (done)
 	(while (and colors (not done))
-	  (if (or (memq (car colors) '(t underline))
+	  (if (or (memq (car colors) '(t underline nil))
 		  (face-color-supported-p frame (car colors)
 					  (eq function 'set-face-background)))
 	      (if (cdr colors)
