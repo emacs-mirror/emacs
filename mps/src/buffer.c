@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.42) $
+ * $HopeName: MMsrc!buffer.c(trunk.43) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.42) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.43) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -597,8 +597,11 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
 }
 
 
-/* BufferTrip -- act on a trapped buffer */
-
+/* BufferTrip -- act on a trapped buffer
+ *
+ * Called from BufferCommit (and its equivalents) when invoked on a
+ * trapped buffer (indicated by limit == 0).  This function can
+ * decide whether to succeed or fail the commit. */
 Bool BufferTrip(Buffer buffer, Addr p, Size size)
 {
   Pool pool;
@@ -621,6 +624,11 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   /* The p parameter points at the base address of the allocated */
   /* block, the end of which should now coincide with the init and */
   /* alloc fields. */
+  /* Note that we don't _really_ care about p too much.  We don't */
+  /* do anything else with it apart from these checks. (in particular */
+  /* it seems like the algorithms could be modified to cope with the */
+  /* case of the object having been copied between Commit updating i */
+  /* and testing limit) */
   AVER(AddrAdd(p, size) == buffer->apStruct.init);
 
   pool = BufferPool(buffer);
@@ -646,10 +654,21 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
 
   /* Emit event including class if loggged */
   if(buffer->mode & BufferModeLOGGED) {
-    /* hack to get the class of an object in the absence of */
-    /* using fmt->class (we can't get at the format just yet) */
-    Word clientClass = *(Word *)p;
-    EVENT_PAWW(BufferCommit, buffer, p, size, clientClass);
+    Bool b;
+    Format format;
+    Addr clientClass;
+
+    b = PoolFormat(&format, buffer->pool);
+    if(b) {
+      clientClass = format->class(p);
+    } else if(sizeof(Addr) <= size) {
+      /* hack to get the class of an object for unformatted pools. */
+      /* .trip.assume.align: Assume p is Addr * aligned. */
+      clientClass = *(Addr *)p;
+    } else {
+      clientClass = (Addr)0;
+    }
+    EVENT_PAWA(BufferCommit, buffer, p, size, clientClass);
     /* Of course, it's not _really_ unused unless you're not */
     /* using telemetry.  This is a HACK @@@@.  It should be */
     /* removed when telemetry is fixed to use its arguments. */
