@@ -1780,6 +1780,50 @@ Optional argument means return a file name relative to `default-directory'."
 
 ;; Deleting files
 
+(defcustom dired-recursive-deletes nil ; Default only delete empty directories.
+  "*Decide whether recursive deletes are allowed.
+Nil means no recursive deletes.
+`always' means delete recursively without asking.  This is DANGEROUS!
+`top' means ask for each directory at top level, but delete its subdirectories
+without asking.
+Anything else means ask for each directory."
+  :type '(choice :tag "Delete not empty directory"
+		 (const :tag "No. Only empty directories" nil)
+		 (const :tag "Ask for each directory" t)
+		 (const :tag "Ask for each top directory only" top))
+  :group 'dired)
+
+;; Match anything but `.' and `..'. 
+(defvar dired-re-no-dot "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
+
+;; Delete file, possibly delete a directory and all its files.
+;; This function is usefull outside of dired.  One could change it's name
+;; to e.g. recursive-delete-file and put it somewhere else.
+(defun dired-delete-file (file &optional recursive) "\
+Delete FILE or directory (possibly recursively if optional RECURSIVE is true.)
+RECURSIVE determines what to do with a non-empty directory.  If RECURSIVE is:
+Nil, do not delete.
+`always', delete recursively without asking.
+`top', ask for each directory at top level.
+Anything else, ask for each sub-directory."
+  (let (files)
+     ;; This test is equivalent to
+     ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
+     ;; but more efficient
+    (if (not (eq t (car (file-attributes file))))
+	(delete-file file)
+      (when (and recursive
+	       (setq files
+		     (directory-files file t dired-re-no-dot)) ; Not empty.
+	       (or (eq recursive 'always)
+		   (yes-or-no-p (format "Recursive delete of %s "
+					(dired-make-relative file)))))
+	(if (eq recursive 'top) (setq recursive 'always)) ; Don't ask again.
+	(while files		; Recursively delete (possibly asking).
+	    (dired-delete-file (car files) recursive)
+	    (setq files (cdr files))))
+      (delete-directory file))))
+
 (defun dired-do-flagged-delete (&optional nomessage)
   "In dired, delete the files flagged for deletion.
 If NOMESSAGE is non-nil, we don't display any message
@@ -1835,12 +1879,7 @@ if there are no flagged files."
 	      (let (buffer-read-only)
 		(condition-case err
 		    (let ((fn (car (car l))))
-		      ;; This test is equivalent to
-		      ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
-		      ;; but more efficient
-		      (if (eq t (car (file-attributes fn)))
-			  (delete-directory fn)
-			(delete-file fn))
+		      (dired-delete-file fn dired-recursive-deletes)
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))
 		      (message "%s of %s deletions" succ count)
