@@ -116,6 +116,10 @@
 	* term/mac-win.el: Deleted unnecessary calls of set-fontset-font.
 	(ccl-encode-mac-roman-font): Deleted.
 
+	* Makefile.in (DONTCOMPILE): Add latin1-disp.el, ucs-tables.el,
+	utf-8.el, and utf-8-subst.el as they can't be bytecompiled
+	currently.  This is just a temporary workaround.
+
 2002-02-26  Richard M. Stallman  <rms@gnu.org>
 
 	* paths.el (remote-shell-program): Add doc string.
