@@ -682,7 +682,7 @@ lisp= \
 	${lispsource}international/latin-8.el \
 	${lispsource}international/latin-9.el \
 	${lispsource}case-table.elc \
-	${lispsource}language/chinese.elc \
+	${lispsource}language/chinese.el \
 	${lispsource}language/cyrillic.el \
 	${lispsource}language/indian.elc \
 	${lispsource}language/devanagari.el \
@@ -763,7 +763,7 @@ shortlisp= \
 	../lisp/international/latin-8.el \
 	../lisp/international/latin-9.el \
 	../lisp/case-table.elc \
-	../lisp/language/chinese.elc \
+	../lisp/language/chinese.el \
 	../lisp/language/cyrillic.el \
 	../lisp/language/indian.elc \
 	../lisp/language/devanagari.el \
