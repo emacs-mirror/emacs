@@ -155,6 +155,9 @@ extern KBOARD the_only_kboard;
 #define single_kboard 1
 #endif
 
+extern Lisp_Object Vlucid_menu_bar_dirty_flag;
+extern Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
+
 /* Total number of times read_char has returned.  */
 extern int num_input_chars;
 
