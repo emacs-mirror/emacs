@@ -228,15 +228,15 @@ You may want to redefine `byte-compile-dest-file' if you change this.")
 ;; this way can never be run in Emacs 18, and may even cause it to crash.")
 
 (defvar byte-optimize t
-  "*If nil, no compile-optimizations will be done.
-Compilation will be faster, generated code will be slower and larger.
-This may be nil, t, 'byte, or 'source.  If it is 'byte, then only byte-level
-optimizations will be done; if it is 'source, then only source-level 
-optimizations will be done.")
+  "*Enables optimization in the byte compiler.
+nil means don't do any optimization.
+t means do all optimizations.
+`source' means do source-level optimizations only.
+`byte' means do code-level optimizations only.")
 
 (defvar byte-compile-delete-errors t
-  "*If non-nil, the optimizer may delete forms that may signal an error
-(variable references and side-effect-free functions such as CAR).")
+  "*If non-nil, the optimizer may delete forms that may signal an error.
+This includes variable references and calls to functions such as `car'.")
 
 (defvar byte-optimize-log nil
   "*If true, the byte-compiler will log its optimizations into *Compile-Log*.
@@ -244,8 +244,7 @@ If this is 'source, then only source-level optimizations will be logged.
 If it is 'byte, then only byte-level optimizations will be logged.")
 
 (defvar byte-compile-error-on-warn nil
-  "*If true, the byte-compiler will report warnings with `error' instead
-of `message.'")
+  "*If true, the byte-compiler reports warnings with `error'.")
 
 (defconst byte-compile-warning-types '(redefine callargs free-vars unresolved))
 (defvar byte-compile-warnings t
@@ -258,7 +257,7 @@ Elements of the list may be be:
   redefine    function cell redefined from a macro to a lambda or vice
               versa, or redefined to take a different number of arguments.
 
-See also the macro byte-compiler-options.")
+See also the macro `byte-compiler-options'.")
 
 (defvar byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.
@@ -306,6 +305,8 @@ specify different fields to sort on.")
 lives partly on the stack.")
 (defvar byte-compile-free-references)
 (defvar byte-compile-free-assignments)
+
+(defvar byte-compiler-error-flag)
 
 (defconst byte-compile-initial-macro-environment
   '(
@@ -746,6 +747,7 @@ otherwise pop it")
 ;;; This function should be used to report errors that have halted
 ;;; compilation of the current file.
 (defun byte-compile-report-error (error-info)
+  (setq byte-compiler-error-flag t)
   (byte-compile-log-1
    (concat "!! "
 	   (format (if (cdr error-info) "%s (%s)" "%s")
@@ -1124,19 +1126,26 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
   (if byte-compile-verbose
       (message "Compiling %s..." filename))
   (let ((byte-compile-current-file (file-name-nondirectory filename))
-	target-file)
+	target-file input-buffer output-buffer)
     (save-excursion
-      (set-buffer (get-buffer-create " *Compiler Input*"))
+      (setq input-buffer (get-buffer-create " *Compiler Input*"))
+      (set-buffer input-buffer)
       (erase-buffer)
       (insert-file-contents filename)
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
       (let ((buffer-file-name filename))
         (set-auto-mode)
-        (setq filename buffer-file-name))
-      (kill-buffer (prog1 (current-buffer)
-		     (set-buffer
-		      (byte-compile-from-buffer (current-buffer)))))
+        (setq filename buffer-file-name)))
+    (setq byte-compiler-error-flag nil)
+    ;; It is important that input-buffer not be current at this call,
+    ;; so that the value of point set in input-buffer
+    ;; within byte-compile-from-buffer lingers in that buffer.
+    (setq output-buffer (byte-compile-from-buffer input-buffer))
+    (or byte-compiler-error-flag
+	(kill-buffer input-buffer))
+    (save-excursion
+      (set-buffer output-buffer)
       (goto-char (point-max))
       (insert "\n")			; aaah, unix.
       (let ((vms-stmlf-recfm t))
