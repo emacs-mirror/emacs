@@ -1,11 +1,11 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995,98,99,2000,2001,2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995,98,99,2000,2001,02,2003  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.60 2003/05/09 14:32:01 monnier Exp $
+;; $Id: vc-cvs.el,v 1.61 2003/05/23 17:57:29 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -191,7 +191,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 
 (defun vc-cvs-state (file)
   "CVS-specific version of `vc-state'."
-  (if (vc-cvs-stay-local-p file)
+  (if (vc-stay-local-p file)
       (let ((state (vc-file-getprop file 'vc-state)))
         ;; If we should stay local, use the heuristic but only if
         ;; we don't have a more precise state already available.
@@ -217,7 +217,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   "Find the CVS state of all files in DIR."
   ;; if DIR is not under CVS control, don't do anything.
   (when (file-readable-p (expand-file-name "CVS/Entries" dir))
-    (if (vc-cvs-stay-local-p dir)
+    (if (vc-stay-local-p dir)
 	(vc-cvs-dir-state-heuristic dir)
       (let ((default-directory dir))
 	;; Don't specify DIR in this command, the default-directory is
@@ -286,6 +286,10 @@ COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-cvs-register-switches' are passed to
 the CVS command (in that order)."
+  (when (and (not (vc-cvs-responsible-p file))
+	     (vc-cvs-could-register file))
+    ;; Register the directory if needed.
+    (vc-cvs-register (directory-file-name (file-name-directory file))))
   (apply 'vc-cvs-command nil 0 file
 	 "add"
 	 (and comment (string-match "[^\t\n ]" comment)
@@ -299,9 +303,18 @@ the CVS command (in that order)."
 					  file
 					(file-name-directory file)))))
 
-(defalias 'vc-cvs-could-register 'vc-cvs-responsible-p
+(defun vc-cvs-could-register (file)
   "Return non-nil if FILE could be registered in CVS.
-This is only possible if CVS is responsible for FILE's directory.")
+This is only possible if CVS is managing FILE's directory or one of
+its parents."
+  (let ((dir file))
+    (while (and (stringp dir)
+                (not (equal dir (setq dir (file-name-directory dir))))
+                dir)
+      (setq dir (if (file-directory-p
+                     (expand-file-name "CVS/Entries" dir))
+                    t (directory-file-name dir))))
+    (eq dir t)))
 
 (defun vc-cvs-checkin (file rev comment)
   "CVS-specific version of `vc-backend-checkin'."
@@ -443,15 +456,6 @@ REV is the revision to check out into WORKFILE."
 (defun vc-cvs-delete-file (file)
   (vc-cvs-command nil 0 file "remove" "-f"))
 
-(defun vc-cvs-rename-file (old new)
-  ;; CVS doesn't know how to move files, so we just remove&add.
-  (condition-case nil
-      (add-name-to-file old new)
-    (error (rename-file old new)))
-  (vc-cvs-delete-file old)
-  (with-current-buffer (find-file-noselect new)
-    (vc-register)))
-
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (unless contents-done
@@ -533,7 +537,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   "Get change log associated with FILE."
   (vc-cvs-command
    nil
-   (if (and (vc-cvs-stay-local-p file) (fboundp 'start-process)) 'async 0)
+   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
 
 (defun vc-cvs-diff (file &optional oldvers newvers)
@@ -550,7 +554,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
-    (let* ((async (and (vc-cvs-stay-local-p file) (fboundp 'start-process)))
+    (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
 	   (status (apply 'vc-cvs-command "*vc-diff*"
 			  (if async 'async 1)
 			  file "diff"
@@ -563,7 +567,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   "Diff all files at and below DIR."
   (with-current-buffer "*vc-diff*"
     (setq default-directory dir)
-    (if (vc-cvs-stay-local-p dir)
+    (if (vc-stay-local-p dir)
         ;; local diff: do it filewise, and only for files that are modified
         (vc-file-tree-walk
          dir
@@ -673,7 +677,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Miscellaneous
 ;;;
 
-(defalias 'vc-cvs-make-version-backups-p 'vc-cvs-stay-local-p
+(defalias 'vc-cvs-make-version-backups-p 'vc-stay-local-p
   "Return non-nil if version backups should be made for FILE.")
 
 (defun vc-cvs-check-headers ()
@@ -698,56 +702,21 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
            (append vc-cvs-global-switches
                    flags))))
 
-(defun vc-cvs-stay-local-p (file)
-  "Return non-nil if VC should stay local when handling FILE.
-See `vc-cvs-stay-local'."
-  (when vc-cvs-stay-local
-    (let* ((dirname (if (file-directory-p file)
-			(directory-file-name file)
-		      (file-name-directory file)))
-	   (prop
-	    (or (vc-file-getprop dirname 'vc-cvs-stay-local-p)
-		(vc-file-setprop
-		 dirname 'vc-cvs-stay-local-p
-		 (let ((rootname (expand-file-name "CVS/Root" dirname)))
-		   (when (file-readable-p rootname)
-		     (with-temp-buffer
-		       (let ((coding-system-for-read
-			      (or file-name-coding-system
-				  default-file-name-coding-system)))
-			 (vc-insert-file rootname))
-		       (goto-char (point-min))
-		       (let* ((cvs-root-members
-			       (vc-cvs-parse-root
-				(buffer-substring (point)
-						  (line-end-position))))
-			      (hostname (nth 2 cvs-root-members)))
-			 (if (not hostname)
-			     'no
-			   (let* ((stay-local t)
-				  (rx
-				   (cond
-				    ;; vc-cvs-stay-local: rx
-				    ((stringp vc-cvs-stay-local)
-				     vc-cvs-stay-local)
-				    ;; vc-cvs-stay-local: '( [except] rx ... )
-				    ((consp vc-cvs-stay-local)
-				     (mapconcat
-				      'identity
-				      (if (not (eq (car vc-cvs-stay-local)
-						   'except))
-					  vc-cvs-stay-local
-					(setq stay-local nil)
-					(cdr vc-cvs-stay-local))
-				      "\\|")))))
-			     (if (not rx)
-				 'yes
-			       (if (not (string-match rx hostname))
-				   (setq stay-local (not stay-local)))
-			       (if stay-local
-				   'yes
-				 'no))))))))))))
-      (if (eq prop 'yes) t nil))))
+(defalias 'vc-cvs-stay-local-p 'vc-stay-local-p)  ;Back-compatibility.
+
+(defun vc-cvs-repository-hostname (dirname)
+  "Hostname of the CVS server associated to workarea DIRNAME."
+  (let ((rootname (expand-file-name "CVS/Root" dirname)))
+    (when (file-readable-p rootname)
+      (with-temp-buffer
+	(let ((coding-system-for-read
+	       (or file-name-coding-system
+		   default-file-name-coding-system)))
+	  (vc-insert-file rootname))
+	(goto-char (point-min))
+	(nth 2 (vc-cvs-parse-root
+		(buffer-substring (point)
+				  (line-end-position))))))))
 
 (defun vc-cvs-parse-root (root)
   "Split CVS ROOT specification string into a list of fields.
