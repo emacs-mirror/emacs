@@ -1,5 +1,7 @@
 2000-10-08  Miles Bader  <miles@gnu.org>
 
+	* faces.el (secondary-selection): Make foreground visible on tty.
+
 	* jka-compr.el (auto-compression-mode): Move to the end of the
 	file, because `define-minor-mode' actually calls the mode-function
 	if the associated variable is non-nil, which requires that all
