@@ -401,45 +401,51 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
     (setq elt (cdr elt))
     (if (eq elt 'undefined)
 	(setq tmm-table-undef (cons (cons event nil) tmm-table-undef))
-      (or
-       (assoc event tmm-table-undef)
-       (and (if (listp elt)
-		(or (keymapp elt) (eq (car elt) 'lambda))
-	      (fboundp elt))
-	    (setq km elt))
-       (and (if (listp (cdr-safe elt))
-		(or (keymapp (cdr-safe elt))
-		    (eq (car (cdr-safe elt)) 'lambda))
-	      (fboundp (cdr-safe elt)))
-	    (setq km (cdr elt))
-	    (and (stringp (car elt)) (setq str (car elt))))
-       (and (if (listp (cdr-safe (cdr-safe elt)))
-		(or (keymapp (cdr-safe (cdr-safe elt)))
-		    (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
-	      (fboundp (cdr-safe (cdr-safe elt))))
-	    (setq km (cdr (cdr elt)))
-	    (and (stringp (car elt)) (setq str (car elt)))
-	    (or (and str
-		     (stringp (cdr (car (cdr elt)))) ; keyseq cache
-		     (setq cache (cdr (car (cdr elt))))
-		     cache (setq str (concat str cache))) str))
-       (and (if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
-		(or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
-		    (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
-	      (fboundp (cdr-safe (cdr-safe (cdr-safe elt)))))
-					; New style of easy-menu
-	    (setq km (cdr (cdr (cdr elt))))
-	    (and (stringp (car elt)) (setq str (car elt)))
-	    (or (and str
-		     (stringp (cdr (car (cdr (cdr elt))))) ; keyseq cache
-		     (setq cache (cdr (car (cdr (cdr elt)))))
-		     cache (setq str (concat str cache)))
-		str))
-	    (and (stringp event)	; x-popup or x-popup element
-		 (if (or in-x-menu (stringp (car-safe elt)))
-		     (setq str event event nil km elt)
-		   (setq str event event nil km (cons 'keymap elt))
-		   )))
+      (unless (assoc event tmm-table-undef)
+	(cond ((if (listp elt)
+		   (or (keymapp elt) (eq (car elt) 'lambda))
+		 (fboundp elt))
+	       (setq km elt))
+	      ((if (listp (cdr-safe elt))
+		   (or (keymapp (cdr-safe elt))
+		       (eq (car (cdr-safe elt)) 'lambda))
+		 (fboundp (cdr-safe elt)))
+	       (setq km (cdr elt))
+	       (and (stringp (car elt)) (setq str (car elt))))
+	      ((if (listp (cdr-safe (cdr-safe elt)))
+		   (or (keymapp (cdr-safe (cdr-safe elt)))
+		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
+		 (fboundp (cdr-safe (cdr-safe elt))))
+	       (setq km (cdr (cdr elt)))
+	       (and (stringp (car elt)) (setq str (car elt)))
+	       (and str
+		    (stringp (cdr (car (cdr elt)))) ; keyseq cache
+		    (setq cache (cdr (car (cdr elt))))
+		    cache (setq str (concat str cache))))
+	      ((eq (car-safe elt) 'menu-item)
+	       (setq km (nth 2 elt))
+	       (setq str (nth 1 elt))
+	       (and str
+		    (stringp (cdr (car (nth 3 elt)))) ; keyseq cache
+		    (setq cache (cdr (car (nth 3 elt))))
+		    cache
+		    (setq str (concat str cache))))
+	      ((if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
+		   (or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
+		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
+		 (fboundp (cdr-safe (cdr-safe (cdr-safe elt)))))
+					 ; New style of easy-menu
+	       (setq km (cdr (cdr (cdr elt))))
+	       (and (stringp (car elt)) (setq str (car elt)))
+	       (and str
+		    (stringp (cdr (car (cdr (cdr elt))))) ; keyseq cache
+		    (setq cache (cdr (car (cdr (cdr elt)))))
+		    cache (setq str (concat str cache))))
+	      ((stringp event)		; x-popup or x-popup element
+	       (if (or in-x-menu (stringp (car-safe elt)))
+		   (setq str event event nil km elt)
+		 (setq str event event nil km (cons 'keymap elt))
+		 ))))
       (and km (stringp km) (setq str km))
       ;; Verify that the command is enabled;
       ;; if not, don't mention it.
