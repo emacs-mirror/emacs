@@ -909,13 +909,15 @@ Otherwise call the Doctor to parse preceding sentence."
 			'sentence 'used 'was
 			"..."
 			'(// bak))))
+   ((memq (car sent) '(do has have how when where who why))
+    (doctor-type ($ qlist)))
    ;;   ((eq (car sent) 'forget)
    ;;    (set (doctor-cadr sent) nil)
    ;;    (doctor-type '(($ isee)($ please)
    ;;     ($ continue)\.)))
    (t
     (if (doctor-defq sent) (doctor-define sent found))
-    (if (> (length sent) 12)(doctor-shorten sent))
+    (if (> (length sent) 12)(setq sent (doctor-shorten sent)))
     (setq sent (doctor-correct-spelling (doctor-replace sent replist)))
     (cond ((and (not (memq 'me sent))(not (memq 'i sent))
 		(memq 'am sent))
@@ -956,17 +958,15 @@ Otherwise call the Doctor to parse preceding sentence."
 (defun doctor-shorten (sent)
   "Make a sentence manageably short using a few hacks."
   (let (foo
-	retval
+	(retval sent)
 	(temp '(because but however besides anyway until
 		    while that except why how)))
     (while temp
 	   (setq foo (memq (car temp) sent))
 	   (if (and foo
 		    (> (length foo) 3))
-	       (setq sent foo
-		     sent (doctor-fixup sent)
-		     temp nil
-		     retval t)
+	       (setq retval (doctor-fixup foo)
+		     temp nil)
 	       (setq temp (cdr temp))))
     retval))
 
@@ -1540,7 +1540,7 @@ Hack on previous word, setting global variable OWNER to correct result."
   (doctor-hates1))
 
 (defun doctor-hates1 ()
-  (doctor-type '(($ whysay)(list subj verb obj))))
+  (doctor-type '(($ whysay)(list subj verb obj) \?)))
 
 (defun doctor-loves ()
   (doctor-svo sent found 1 t)
@@ -1633,11 +1633,6 @@ Hack on previous word, setting global variable OWNER to correct result."
 
 
 (defun doctor-chat () (doctor-type ($ chatlst)))
-
-(defun doctor-strangelove ()
-  (interactive)
-  (insert "Mein fuehrer!!\n")
-  (doctor-read-print))
 
 (provide 'doctor)
 
