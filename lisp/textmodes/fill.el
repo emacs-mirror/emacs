@@ -45,6 +45,10 @@ A value of nil means that any change in indentation starts a new paragraph.")
   "Mode-specific function to fill a paragraph, or nil if there is none.
 If the function returns nil, then `fill-paragraph' does its normal work.")
 
+(defvar do-kinsoku t
+  "*Non-nil means do `kinsoku' processing.
+See the document of `kinsoku' for more detail.")
+
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.
 Filling expects lines to start with the fill prefix and
@@ -287,6 +291,19 @@ space does not end a sentence, so don't break a line there."
 	  (while (re-search-forward "[.?!][])}\"']*$" nil t)
 	    (or (eobp) (insert-and-inherit ?\ )))
 	  (goto-char from)
+	  ;; The character category `|' means that we can break a line
+	  ;; at the character.  Since we don't need a space between
+	  ;; them, delete all newlines between them ...
+	  (while (re-search-forward "\\c|\n\\|\n\\c|" nil t)
+	    (if (bolp)
+		(delete-char -1)
+	      (if (= (char-before (match-beginning 0)) ?\ )
+		  ;; ... except when there is end of sentence.  The
+		  ;; variable `sentence-end-double-space' is handled
+		  ;; properly later.
+		  nil
+		(delete-region (match-beginning 0) (1+ (match-beginning 0))))))
+	  (goto-char from)
 	  (skip-chars-forward " \t")
 	  ;; Then change all newlines to spaces.
 	  (subst-char-in-region from (point-max) ?\n ?\ )
@@ -305,8 +322,19 @@ space does not end a sentence, so don't break a line there."
 	      (move-to-column (1+ (current-fill-column)))
 	      (if (eobp)
 		  (or nosqueeze (delete-horizontal-space))
-		;; Move back to start of word.
-		(skip-chars-backward "^ \n" linebeg)
+		;; Move back to the point where we can break the line
+		;; at.  We break the line between word or after/before
+		;; the character which has character category `|'.  We
+		;; search space, \c| followed by a character, or \c|
+		;; following a character.  If not found, place
+		;; the point at linebeg.
+		(if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
+		    ;; In case of space, we place the point at next to
+		    ;; the point where the break occurs acutually,
+		    ;; because we don't want to change the following
+		    ;; logic of original Emacs.  In case of \c|, the
+		    ;; point is at the place where the break occurs.
+		    (forward-char 1))
 		;; Don't break after a period followed by just one space.
 		;; Move back to the previous place to break.
 		;; The reason is that if a period ends up at the end of a line,
@@ -319,18 +347,20 @@ space does not end a sentence, so don't break a line there."
 				(not (eq (following-char) ?\ ))
 				(eq (char-after (- (point) 2)) ?\.))
 		      (forward-char -2)
-		      (skip-chars-backward "^ \n" linebeg)))
+		      (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
+			  (forward-char 1))))
 		;; If the left margin and fill prefix by themselves
 		;; pass the fill-column. or if they are zero
 		;; but we have no room for even one word,
-		;; keep at least one word anyway.
+		;; keep at least one word or a character which has
+		;; category `|'anyway .
 		;; This handles ALL BUT the first line of the paragraph.
 		(if (if (zerop prefixcol)
 			(save-excursion
 			  (skip-chars-backward " \t" linebeg)
 			  (bolp))
 		      (>= prefixcol (current-column)))
-		    ;; Ok, skip at least one word.
+		    ;; Ok, skip at least one word or one \c| character.
 		    ;; Meanwhile, don't stop at a period followed by one space.
 		    (let ((first t))
 		      (move-to-column prefixcol)
@@ -342,10 +372,15 @@ space does not end a sentence, so don't break a line there."
 							   (and (looking-at "\\. ")
 								(not (looking-at "\\.  ")))))))
 			(skip-chars-forward " \t")
-			(skip-chars-forward "^ \n\t")
+			;; Skip one \c| character or one word.
+			(if (looking-at "$\\|\\c|\\|[^ \t\n]+")
+			    (goto-char (match-end 0)))
 			(setq first nil)))
 		  ;; Normally, move back over the single space between the words.
-		  (forward-char -1))
+		  (if (= (preceding-char) ?\ ) (forward-char -1))
+		  ;; Do KINSOKU processing.
+		  (if do-kinsoku (kinsoku linebeg)))
+
 		;; If the left margin and fill prefix by themselves
 		;; pass the fill-column, keep at least one word.
 		;; This handles the first line of the paragraph.
@@ -370,7 +405,9 @@ space does not end a sentence, so don't break a line there."
 							   (and (looking-at "\\. ")
 								(not (looking-at "\\.  ")))))))
 			(skip-chars-forward " \t")
-			(skip-chars-forward "^ \t\n")
+			;; Skip one \c| character or one word.
+			(if (looking-at "$\\|\\c|\\|[^ \t\n]+")
+			    (goto-char (match-end 0)))
 			(setq first nil))))
 		;; Check again to see if we got to the end of the paragraph.
 		(if (save-excursion (skip-chars-forward " \t") (eobp))
@@ -378,6 +415,15 @@ space does not end a sentence, so don't break a line there."
 		  ;; Replace whitespace here with one newline, then indent to left
 		  ;; margin.
 		  (skip-chars-backward " \t")
+		  (if (and (= (following-char) ?\ )
+			   (or (aref (char-category-set (preceding-char)) ?|)
+			       (looking-at "[ \t]+\\c|")))
+		      ;; We need one space at end of line so that
+		      ;; further filling won't delete it.  NOTE: We
+		      ;; intentionally leave this one space to
+		      ;; distingush the case that user wants to put
+		      ;; space between \c| characters.
+		      (forward-char 1))
 		  (insert ?\n)
 		  ;; Give newline the properties of the space(s) it replaces
 		  (set-text-properties (1- (point)) (point)
