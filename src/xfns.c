@@ -205,7 +205,6 @@ Lisp_Object Qcursor_type;
 Lisp_Object Qfont;
 Lisp_Object Qforeground_color;
 Lisp_Object Qgeometry;
-/* Lisp_Object Qicon; */
 Lisp_Object Qicon_left;
 Lisp_Object Qicon_top;
 Lisp_Object Qicon_type;
@@ -214,6 +213,7 @@ Lisp_Object Qleft;
 Lisp_Object Qmouse_color;
 Lisp_Object Qnone;
 Lisp_Object Qparent_id;
+Lisp_Object Qscroll_bar_width;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qtop;
 Lisp_Object Qundefined_color;
@@ -401,6 +401,7 @@ void x_set_autolower ();
 void x_set_vertical_scroll_bars ();
 void x_set_visibility ();
 void x_set_menu_bar_lines ();
+void x_set_scroll_bar_width ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -420,6 +421,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "vertical-scroll-bars", x_set_vertical_scroll_bars,
   "visibility", x_set_visibility,
   "menu-bar-lines", x_set_menu_bar_lines,
+  "scroll-bar-width", x_set_scroll_bar_width,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1321,6 +1323,21 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
+
+void
+x_set_scroll_bar_width (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  if (XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
+    {
+      int wid = FONT_WIDTH (f->display.x->font);
+      FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = XFASTINT (arg);
+      FRAME_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
+      if (FRAME_X_WINDOW (f))
+	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+    }
+}
 
 /* Subroutines of creating an X frame.  */
 
@@ -1674,7 +1691,7 @@ x_figure_window_size (f, parms)
 
   f->display.x->vertical_scroll_bar_extra
     = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
+       ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : 0);
   f->display.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->display.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
@@ -2288,6 +2305,8 @@ be shared by the new frame.")
 
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBarLines", "MenuBarLines", number);
+  x_default_parameter (f, parms, Qscroll_bar_width, make_number (12),
+		       "scrollBarWidth", "ScrollBarWidth", number);
 
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
@@ -3944,6 +3963,8 @@ syms_of_xfns ()
   staticpro (&Qnone);
   Qparent_id = intern ("parent-id");
   staticpro (&Qparent_id);
+  Qscroll_bar_width = intern ("scroll-bar-width");
+  staticpro (&Qscroll_bar_width);
   Qsuppress_icon = intern ("suppress-icon");
   staticpro (&Qsuppress_icon);
   Qtop = intern ("top");
