@@ -379,11 +379,13 @@ now uses normal-erase-is-backspace-mode.
 
 ** EDiff changes.
 
++++
 ***  When comparing directories.
 Typing D brings up a buffer that lists the differences between the contents of
 directories. Now it is possible to use this buffer to copy the missing files
 from one directory to another.
 
++++
 *** When comparing files or buffers.
 Typing the = key now offers to perform the word-by-word comparison of the
 currently highlighted regions in an inferior Ediff session. If you answer 'n'
