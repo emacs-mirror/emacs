@@ -2891,11 +2891,10 @@ typically for purposes of moderating a list."
   (if (not from) (setq from user-mail-address))
   (let ((tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
-	(mailbuf (current-buffer)))
+	(mailbuf rmail-buffer))
     (unwind-protect
-	(save-excursion
+	(with-current-buffer tembuf
 	  ;;>> Copy message into temp buffer
-	  (set-buffer tembuf)
 	  (insert-buffer-substring mailbuf)
 	  (goto-char (point-min))
 	  ;; Delete any Sender field, since that's not specifiable.
@@ -2957,7 +2956,8 @@ typically for purposes of moderating a list."
 	  (let (mail-aliases)
 	    (funcall send-mail-function)))
       (kill-buffer tembuf))
-    (rmail-set-attribute "resent" t rmail-current-message)))
+    (with-current-buffer rmail-buffer
+      (rmail-set-attribute "resent" t rmail-current-message))))
 
 (defvar mail-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
