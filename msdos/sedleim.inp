@@ -13,6 +13,10 @@ MAKESHELL=/xyzzy/command
 /^INSTALLDIR=/c\
 INSTALLDIR=.
 
+/RUN-EMACS *=/,/^$/c\
+export EMACSLOADPATH=${buildlisppath}\
+RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
+
 /^	cd ../c\
 	${MAKE} -C ../src ${MFLAGS} emacs
 
@@ -28,8 +32,5 @@ INSTALLDIR=.
 
 /^install:/,/^$/c\
 install: all\
-
-/^	ELC=/,/^	rm -f/c\
-	rm -f ${TIT} $(shell echo ${TIT} | sed 's/\.el/.elc/g') leim-list.elc
 
 /^	if test -f/d
