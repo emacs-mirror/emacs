@@ -77,6 +77,7 @@ performance.")
     nil
   (let ((map (make-sparse-keymap)))
     (define-key map [t] 'te-pass-through)
+    (define-key map [switch-frame] 'handle-switch-frame)
     (define-key map "\e" terminal-meta-map)
     ;(define-key map "\C-l"
     ;  '(lambda () (interactive) (te-pass-through) (redraw-display)))
