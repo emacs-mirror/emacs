@@ -2981,6 +2981,8 @@ See also `java-font-lock-extra-types'.")
 ;; Provide ourselves:
 
 (provide 'font-lock)
-(require 'jit-lock)
+
+(when (eq font-lock-support-mode 'jit-lock-mode)
+  (require 'jit-lock))
 
 ;;; font-lock.el ends here
