@@ -75,6 +75,23 @@ If ALL-FRAMES is neither nil nor t, count only the selected frame."
     (eq base-window
 	(next-window base-window (if nomini 'arg) all-frames))))
 
+(defun window-current-scroll-bars (&optional window)
+  "Return the current scroll-bar settings in window WINDOW.
+Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+current location of the vertical scroll-bars (left, right, or nil),
+and HORISONTAL specifies the current location of the horisontal scroll
+bars (top, bottom, or nil)."
+  (let ((vert (nth 2 (window-scroll-bars window)))
+	(hor nil))
+    (when (or (eq vert t) (eq hor t))
+      (let ((fcsb (frame-current-scroll-bars 
+		   (window-frame (or window (selected-window))))))
+	(if (eq vert t)
+	    (setq vert (car fcsb)))
+	(if (eq hor t)
+	    (setq hor (cdr fcsb)))))
+    (cons vert hor)))
+
 (defun walk-windows (proc &optional minibuf all-frames)
   "Cycle through all visible windows, calling PROC for each one.
 PROC is called with a window as argument.
