@@ -334,10 +334,14 @@ if it is quoted with double-quotes."
       ;; double-quotes.  Otherwise, addresses are separated by commas.
       (if from-mailrc-file
 	  (if (eq ?\" (aref definition start))
-	      (progn (string-match "[^\\]\\(\\([\\][\\]\\)*\\)\"[ \t,]*" definition start)
-		     (setq start (1+ start)
-			   end (match-end 1)
-			   convert-backslash t))
+	      ;; The following test on `found' compensates for a bug
+	      ;; in match-end, which does not return nil when match
+	      ;; failed.
+	      (let ((found (string-match "[^\\]\\(\\([\\][\\]\\)*\\)\"[ \t,]*"
+					 definition start)))
+		(setq start (1+ start)
+		      end (and found (match-end 1))
+		      convert-backslash t))
 	    (setq end (string-match "[ \t,]+" definition start)))
 	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
       (let ((temp (substring definition start end))
