@@ -1,5 +1,8 @@
 2001-01-28  Andrew Choi  <akochoi@i-cable.com>
 
+	* fontset.c (fontset_pattern_regexp): Allocate three more bytes to
+	regex for '^', '$', and '\0'.
+
 	* alloc.c (allocate_string) [macintosh]: Call check_string_bytes
 	only if current_sblock has been initialized.
 

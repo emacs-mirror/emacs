@@ -719,7 +719,7 @@ fontset_pattern_regexp (pattern)
       || strcmp (XSTRING (pattern)->data, CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
-      char *regex = (char *) alloca (XSTRING (pattern)->size * 2);
+      char *regex = (char *) alloca (XSTRING (pattern)->size * 2 + 3);
       char *p0, *p1 = regex;
 
       /* Convert "*" to ".*", "?" to ".".  */
