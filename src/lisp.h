@@ -2437,7 +2437,6 @@ extern void syms_of_lread P_ ((void));
 /* Defined in eval.c */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
 extern Lisp_Object Vinhibit_quit, Qinhibit_quit, Vquit_flag;
-extern Lisp_Object Vmocklisp_arguments, Qmocklisp, Qmocklisp_arguments;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vdebug_on_error;
 extern Lisp_Object Vsignaling_function;
@@ -3011,9 +3010,6 @@ extern void syms_of_ccl P_ ((void));
 /* Defined in dired.c */
 EXFUN (Ffile_attributes, 1);
 extern void syms_of_dired P_ ((void));
-
-/* Defined in mocklisp.c */
-extern void syms_of_mocklisp P_ ((void));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
