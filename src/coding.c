@@ -897,7 +897,6 @@ coding_set_source (coding)
       else
 	{
 	  struct buffer *buf = XBUFFER (coding->src_object);
-	  EMACS_INT beg_byte = BUF_BEG_BYTE (buf);
 	  EMACS_INT gpt_byte = BUF_GPT_BYTE (buf);
 	  unsigned char *beg_addr = BUF_BEG_ADDR (buf);
 
@@ -4342,7 +4341,6 @@ encode_coding_charset (coding)
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = MAX_MULTIBYTE_LENGTH;
   int produced_chars = 0;
-  struct charset *charset;
   Lisp_Object attrs, eol_type, charset_list;
   int ascii_compatible;
   int c;
@@ -7319,10 +7317,16 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
       for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (tail)));
+	  int idx = (CHARSET_DIMENSION (charset) - 1) * 4;
 
-	  for (i = charset->code_space[0]; i <= charset->code_space[1]; i++)
-	    if (NILP (AREF (val, i)))
-	      ASET (val, i, XCAR (tail));
+	  for (i = charset->code_space[idx];
+	       i <= charset->code_space[idx + 1]; i++)
+	    {
+	      if (NILP (AREF (val, i)))
+		ASET (val, i, XCAR (tail));
+	      else
+		error ("Charsets conflicts in the first byte");
+	    }
 	}
       ASET (attrs, coding_attr_charset_valids, val);
       category = coding_category_charset;
@@ -7402,7 +7406,6 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
   else if (EQ (coding_type, Qiso_2022))
     {
       Lisp_Object initial, reg_usage, request, flags;
-      struct charset *charset;
       int i, id;
 
       if (nargs < coding_arg_iso2022_max)
