@@ -52,14 +52,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
 #endif /* BSD or STRIDE */
-#ifdef USG
-#ifdef HAVE_TERMIOS
-#include <termios.h>
-#else
-#include <termio.h>
-#endif
-#include <fcntl.h>
-#endif /* USG */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
@@ -2286,10 +2278,12 @@ process_send_signal (process, signo, current_group, nomsg)
 	  ioctl (XFASTINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VQUIT], 1);
 	  return;
+#ifdef SIGTSTP
 	case SIGTSTP:
 	  ioctl (XFASTINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VSWTCH], 1);
 	  return;
+#endif
 	}
 #endif /* ! defined (USG) */
 
