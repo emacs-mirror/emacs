@@ -232,7 +232,7 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 #ifdef sparc
 #define REL_INFO_TYPE		struct reloc_info_sparc
 #else
-#define REL_INFO_TYPE		struct reloc_info_m68k
+#define REL_INFO_TYPE		struct relocation_info
 #endif /* sparc */
 #define REL_TARGET_ADDRESS(r)	(((REL_INFO_TYPE *)(r))->r_address)
 #endif /* SUNOS4 */
