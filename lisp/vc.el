@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: ttn@netcom.com
@@ -259,7 +259,7 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 		 process-environment)))
       (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
-    (not-modified)
+    (set-buffer-modified-p nil)
     (forward-line -1)
     (if (or (not (integerp status)) (< okstatus status))
 	(progn
