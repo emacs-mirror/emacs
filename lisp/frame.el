@@ -58,7 +58,7 @@ These supersede the values given in `default-frame-alist'.")
 
 (setq pop-up-frame-function
       (function (lambda ()
-		  (new-frame pop-up-frame-alist))))
+		  (make-frame pop-up-frame-alist))))
 
 (defvar special-display-frame-alist 
   '((height . 14) (width . 80) (unsplittable . t))
@@ -82,7 +82,7 @@ These supersede the values given in `default-frame-alist'.")
 	  (raise-frame frame)
 	  window)
       ;; If no window yet, make one in a new frame.
-      (let ((frame (new-frame special-display-frame-alist)))
+      (let ((frame (make-frame special-display-frame-alist)))
 	(set-window-buffer (frame-selected-window frame) buffer)
 	(set-window-dedicated-p (frame-selected-window frame) t)
 	(frame-selected-window frame)))))
@@ -130,7 +130,7 @@ These supersede the values given in `default-frame-alist'.")
 		    (append initial-frame-alist default-frame-alist))
 	      (setq default-minibuffer-frame
 		    (setq frame-initial-frame
-			  (new-frame initial-frame-alist)))
+			  (make-frame initial-frame-alist)))
 	      ;; Delete any specifications for window geometry parameters
 	      ;; so that we won't reapply them in frame-notice-user-settings.
 	      ;; It would be wrong to reapply them then,
@@ -181,17 +181,19 @@ These supersede the values given in `default-frame-alist'.")
 			      '(minibuffer . t)))
 		     t))
 	    ;; Create the new frame.
-	    (let ((new
-		   (new-frame
-		    (append initial-frame-alist
-			    default-frame-alist
-			    (frame-parameters frame-initial-frame)))))
-
+	    (let* ((parms (append initial-frame-alist
+				  default-frame-alist
+				  (frame-parameters frame-initial-frame)
+				  nil))
+		   ;; Get rid of `reverse', because that was handled
+		   ;; when we first made the frame.
+		   (new (make-frame (cons '(reverse . nil)
+					  (delq (assq 'reverse parms) parms)))))
 	      ;; The initial frame, which we are about to delete, may be
 	      ;; the only frame with a minibuffer.  If it is, create a
 	      ;; new one.
 	      (or (delq frame-initial-frame (minibuffer-frame-list))
-		  (new-frame (append minibuffer-frame-alist
+		  (make-frame (append minibuffer-frame-alist
 				     '((minibuffer . only)))))
 
 	      ;; If the initial frame is serving as a surrogate
@@ -280,7 +282,7 @@ These supersede the values given in `default-frame-alist'.")
 ;;; considered (see next-frame).
 (defun get-other-frame ()
   (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
-	       (new-frame)
+	       (make-frame)
 	     (next-frame (selected-frame)))))
     s))
 
@@ -578,7 +580,7 @@ should use `set-frame-width' instead."
 (defalias 'ctl-x-5-prefix ctl-x-5-map)
 (define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
-(define-key ctl-x-5-map "2" 'new-frame)
+(define-key ctl-x-5-map "2" 'make-frame)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
 
