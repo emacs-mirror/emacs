@@ -56,7 +56,7 @@ elisp: $(srcs) index.texi
 	rm -f elisp-*
 	makeinfo elisp.texi
 
-elisp.dvi: $(srcs) index.texi elisp.tps texindex
+elisp.dvi: $(srcs) index.texi
 	# Avoid losing old contents of aux file entirely.
 	-mv elisp.aux elisp.oaux
 	# First shot to define xrefs:
@@ -64,14 +64,12 @@ elisp.dvi: $(srcs) index.texi elisp.tps texindex
 	if [ a${permuted_index} != a ]; \
 	then \
 	  ./permute-index; \
-	  mv permuted.fns elisp.fns; \
+	  mv permuted.fns elisp.fns;
+	  texindex elisp.tp; \
 	else \
-	  ./texindex elisp.??; \
+	  texindex elisp.??; \
 	fi
 	$(TEX) elisp.texi
-
-elisp.tps: texindex
-	./texindex elisp.tp
 
 index.texi:
 	if [ a${permuted_index} != a ]; \
