@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 2001
+   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 01, 02, 03
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3266,8 +3266,8 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 
 
 /* Apropos - finding all symbols whose names match a regexp.		*/
-Lisp_Object apropos_predicate;
-Lisp_Object apropos_accumulate;
+static Lisp_Object apropos_predicate;
+static Lisp_Object apropos_accumulate;
 
 static void
 apropos_accum (symbol, string)
@@ -3283,22 +3283,24 @@ apropos_accum (symbol, string)
 }
 
 DEFUN ("apropos-internal", Fapropos_internal, Sapropos_internal, 1, 2, 0, 
-       doc: /* Show all symbols whose names contain match for REGEXP.
+       doc: /* Find all symbols whose names contain match for REGEXP.
 If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
 for each symbol and a symbol is mentioned only if that returns non-nil.
 Return list of symbols found.  */)
      (regexp, predicate)
      Lisp_Object regexp, predicate;
 {
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
+  Lisp_Object result;
   CHECK_STRING (regexp);
   apropos_predicate = predicate;
-  GCPRO2 (apropos_predicate, apropos_accumulate);
-  apropos_accumulate = Qnil;
+  GCPRO1 (apropos_predicate);
+  apropos_accumulate = Qnil;	/* staticpro'd */
   map_obarray (Vobarray, apropos_accum, regexp);
-  apropos_accumulate = Fsort (apropos_accumulate, Qstring_lessp);
+  result = Fsort (apropos_accumulate, Qstring_lessp);
   UNGCPRO;
-  return apropos_accumulate;
+  apropos_accumulate = Qnil;	/* Allow the result to be GCed.  */
+  return result;
 }
 
 void
@@ -3432,6 +3434,8 @@ and applies even for keys that have ordinary bindings.  */);
   where_is_cache = Qnil;
   staticpro (&where_is_cache);
   staticpro (&where_is_cache_keymaps);
+  apropos_accumulate = Qnil;
+  staticpro (&apropos_accumulate);
 
   defsubr (&Skeymapp);
   defsubr (&Skeymap_parent);
