@@ -1,3 +1,28 @@
+2004-02-16  Eli Tziperman  <eli@deas.harvard.edu>
+
+	* rmail-spam-filter.el: (vm-use-spam-filter)
+	(rsf-min-region-length-added-to-spam-list): New	variables.
+	(rsf-bbdb-auto-delete-spam-bbdb-entries): Renamed from
+	rmail-bbdb-auto-delete-spam-entries.  Added cc: to recipients for
+	spam testing.  Don't delete spam message if automatic deletion
+	after output via variable rmail-delete-after-output is turned on.
+	(rsf-bbdb-dont-create-entries-for-deleted-messages): Renamed from
+	rsf-bbdb-dont-create-entries-for-spam.
+	(check-field): New function, extracted from code in
+	rmail-spam-filter to ease addition of header fields like
+	content-type.
+	(message-content-type): New variable to check the content-type:
+	field added, also in defcustom of rsf-definitions-alist.
+	(rmail-spam-filter): Replace repeated test code for header fields
+	by calls to check-field; change the call to
+	rmail-output-to-rmail-file such that rmail-current-message stays
+	the same to avoid wrong deletion of unseen
+	flags. 
+	(rsf-add-contents-type): New function to convert old format
+	of rmail-spam-definitions-alist into new one.
+	Changed prefixes of all variables and functions from
+	rmail-spam-filter- or spam-filter- or rmail-spam- to rsf-.
+
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* loadhist.el (unload-hook-features-list): New defvar.
