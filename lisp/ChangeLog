@@ -1,3 +1,12 @@
+2005-02-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el: Comment change.
+	(custom-buffer-create-internal): Slightly reword text at top of
+	Custom buffers.  Mention there that saving an option edits the
+	init file.  Add link to Emacs manual node on `custom-file'.
+	(custom-magic-alist): Rewrite individual State messages to use
+	capitalized keywords.  Doc fix.
+
 2005-02-27  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* calendar/calendar.el (calendar-buffer): Move above
