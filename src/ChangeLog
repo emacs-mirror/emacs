@@ -1,5 +1,12 @@
 2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* macmenu.c (_widget_value): Added lname and lkey.
+	(single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
 	* xmenu.c (digest_single_submenu): Set lname and lkey in widget_value
 	instead of name and key.
 	(update_submenu_strings): New function.
