@@ -159,7 +159,8 @@ end
 
 define xsymbol
 print (struct Lisp_Symbol *) ((((int) $) & $valmask) | gdb_data_seg_bits)
-output (char*)$->name->data
+set $xsymbol_name = ((struct Lisp_String *)(($->xname & $valmask) | gdb_data_seg_bits))
+output ($xsymbol_name->data[0])@($xsymbol_name->size_byte < 0 ? $xsymbol_name->size : $xsymbol_name->size_byte)
 echo \n
 end
 document xsymbol
