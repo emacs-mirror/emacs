@@ -147,7 +147,7 @@ write_c_args (out, buf, minargs, maxargs)
   register char *p = buf;
   int space = 0;
 
-  fprintf (out, "arguments:");
+  fprintf (out, "arguments: ");
 
   while (*p)
     {
@@ -300,8 +300,13 @@ scan_c_file (filename)
 	  putc (037, outfile);
 	  putc (defvarflag ? 'V' : 'F', outfile);
 	  fprintf (outfile, "%s\n", buf);
-	  read_c_string (infile, 1);
-	  if (defunflag)
+	  c = read_c_string (infile, 1);
+
+	  /* If this is a defun, find the arguments and print them.  If
+	     this function takes MANY or UNEVALLED args, then the C source
+	     won't give the names of the arguments, so we shouldn't bother
+	     trying to find them.  */
+	  if (defunflag && maxargs != -1)
 	    {
 	      char argbuf[1024], *p = argbuf;
 	      while (c != ')')
