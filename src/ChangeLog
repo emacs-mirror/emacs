@@ -1,5 +1,8 @@
 2001-02-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fwindow_end): Handle case that WINDOW's buffer is not
+	equal to the current buffer.
+
 	* xdisp.c (setup_echo_area_for_printing): Set truncate_lines to
 	nil, otherwise we're left with truncate_lines t when a message
 	is printed with message-truncate-lines bound to t.

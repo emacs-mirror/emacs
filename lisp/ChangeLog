@@ -1,3 +1,12 @@
+2001-02-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* msb.el (msb-mode): Call the update-buffers function explicitly
+	with a FORCE argument.
+
+	* menu-bar.el (menu-bar-update-buffers): Add optional parameter
+	FORCE.  If set, update the menu even if frame-or-buffer-changed-p
+	returns nil.
+
 2001-02-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Timestamp package replacement.  Some enhancements.
