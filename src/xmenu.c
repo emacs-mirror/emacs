@@ -137,6 +137,8 @@ static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
 #ifdef USE_GTK
 /* gtk just uses utf-8.  */
 # define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
+#elif defined HAVE_X_I18N
+# define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
 #else
 # define ENCODE_MENU_STRING(str) string_make_unibyte (str)
 #endif

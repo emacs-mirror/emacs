@@ -98,6 +98,7 @@ e -- Parametrized event (i.e., one that's a list) that invoked this command.
      This skips events that are integers or symbols.
 f -- Existing file name.
 F -- Possibly nonexistent file name.
+G -- Possibly nonexistent file name, defaulting to just directory name.
 i -- Ignored, i.e. always nil.  Does not do I/O.
 k -- Key sequence (downcase the last event if needed to get a definition).
 K -- Key sequence to be redefined (do not downcase the last event).
@@ -603,6 +604,12 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 	case 'F':		/* Possibly nonexistent file name. */
 	  args[i] = Fread_file_name (build_string (callint_message),
 				     Qnil, Qnil, Qnil, Qnil, Qnil);
+	  break;
+
+	case 'G':		/* Possibly nonexistent file name,
+				   default to directory alone. */
+	  args[i] = Fread_file_name (build_string (callint_message),
+				     Qnil, Qnil, Qnil, build_string (""), Qnil);
 	  break;
 
 	case 'i':		/* Ignore an argument -- Does not do I/O */

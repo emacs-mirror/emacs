@@ -419,6 +419,8 @@ If nil, use uppercases.")
 
 ;; To avoid byte-compiler warnings.  It should never be set globally.
 (defvar ethio-sera-being-called-by-w3)
+;; This variable will be bound by some third-party package.
+(defvar sera-being-called-by-w3)
 
 ;;;###autoload
 (defun ethio-sera-to-fidel-region (beg end &optional secondary force)
@@ -590,9 +592,11 @@ the conversion of \"a\"."
       (cond
 
        ;; skip from "<" to ">" (or from "&" to ";") if in w3-mode
-       ((and (boundp 'ethio-sera-being-called-by-w3)
-	     ethio-sera-being-called-by-w3
-	     (or (= ch ?<) (= ch ?&)))
+       ((and (or (= ch ?<) (= ch ?&))
+	     (or (and (boundp 'ethio-sera-being-called-by-w3)
+		      ethio-sera-being-called-by-w3)
+		 (and (boundp 'sera-being-called-by-w3)
+		      sera-being-called-by-w3)))
 	(search-forward (if (= ch ?<) ">" ";")
 			nil 0))
 
@@ -1177,9 +1181,11 @@ See also the descriptions of the variables
 	  (goto-char (1+ (match-end 0)))) ; because we inserted one byte (\)
 
 	 ;; skip from "<" to ">" (or from "&" to ";") if called from w3
-	 ((and (boundp 'ethio-sera-being-called-by-w3)
-	       ethio-sera-being-called-by-w3
-	       (or (= ch ?<) (= ch ?&)))
+	 ((and (or (= ch ?<) (= ch ?&))
+	       (or (and (boundp 'ethio-sera-being-called-by-w3)
+			ethio-sera-being-called-by-w3)
+		   (and (boundp 'sera-being-called-by-w3)
+			sera-being-called-by-w3)))
 	  (search-forward (if (= ch ?<) ">" ";")
 			  nil 0))
 

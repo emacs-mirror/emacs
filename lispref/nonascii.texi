@@ -293,8 +293,8 @@ codes cannot occur at all in multibyte text.  Only the @acronym{ASCII} codes
 0 through 127 are completely legitimate in both representations.
 
 @defun char-valid-p charcode &optional genericp
-This returns @code{t} if @var{charcode} is valid for either one of the two
-text representations.
+This returns @code{t} if @var{charcode} is valid (either for unibyte
+text or for multibyte text).
 
 @example
 (char-valid-p 65)

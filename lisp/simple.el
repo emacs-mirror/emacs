@@ -3536,17 +3536,11 @@ boundaries bind `inhibit-field-text-motion' to t."
   (or arg (setq arg 1))
   (if (/= arg 1)
       (line-move (1- arg) t))
-  (let (done pos)
-    (while (not done)
-      (beginning-of-line 1)
-      ;; (not bolp) means that it stopped at a field boundary.
-      (if (or (bobp) (not (bolp)))
-	  (setq done t)
-	(sit-for 0)
-	(if (and (consp (setq pos (pos-visible-in-window-p (point) nil t)))
-		 (= (car pos) 0))
-	    (setq done t)
-	  (backward-char 1))))))
+  (beginning-of-line 1)
+  (let ((orig (point)))
+    (vertical-motion 0)
+    (if (/= orig (point))
+	(goto-char (constrain-to-field (point) orig (/= arg 1) t nil)))))
 
 
 ;;; Many people have said they rarely use this feature, and often type
@@ -3933,6 +3927,7 @@ Setting this variable automatically makes it local to the current buffer.")
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
 Some major modes set this.")
 
+(put 'auto-fill-function :minor-mode-function 'auto-fill-mode)
 ;; FIXME: turn into a proper minor mode.
 ;; Add a global minor mode version of it.
 (defun auto-fill-mode (&optional arg)
@@ -5069,6 +5064,7 @@ the front of the list of recently selected ones."
 (defcustom normal-erase-is-backspace
   (and (not noninteractive)
        (or (memq system-type '(ms-dos windows-nt))
+	   (eq window-system 'mac)
 	   (and (memq window-system '(x))
 		(fboundp 'x-backspace-delete-keys-p)
 		(x-backspace-delete-keys-p))

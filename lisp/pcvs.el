@@ -1704,8 +1704,6 @@ Signal an error if there is no backup file."
 	    (message "Retrieving revision %s... Done" rev)
 	    (current-buffer))))))
 
-(eval-and-compile (autoload 'smerge-ediff "smerge-mode"))
-
 ;; FIXME: The user should be able to specify ancestor/head/backup and we should
 ;; provide sensible defaults when merge info is unavailable (rather than rely
 ;; on smerge-ediff).  Also provide sane defaults for need-merge files.

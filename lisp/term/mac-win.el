@@ -230,6 +230,55 @@ This function returns ARGS minus the arguments that have been processed."
 	    (funcall handler this-switch))
 	(setq args (cons orig-this-switch args)))))
   (nconc (nreverse args) x-invocation-args))
+
+
+;;
+;; Standard Mac cursor shapes
+;;
+
+(defconst mac-pointer-arrow 0)
+(defconst mac-pointer-copy-arrow 1)
+(defconst mac-pointer-alias-arrow 2)
+(defconst mac-pointer-contextual-menu-arrow 3)
+(defconst mac-pointer-I-beam 4)
+(defconst mac-pointer-cross 5)
+(defconst mac-pointer-plus 6)
+(defconst mac-pointer-watch 7)
+(defconst mac-pointer-closed-hand 8)
+(defconst mac-pointer-open-hand 9)
+(defconst mac-pointer-pointing-hand 10)
+(defconst mac-pointer-counting-up-hand 11)
+(defconst mac-pointer-counting-down-hand 12)
+(defconst mac-pointer-counting-up-and-down-hand 13)
+(defconst mac-pointer-spinning 14)
+(defconst mac-pointer-resize-left 15)
+(defconst mac-pointer-resize-right 16)
+(defconst mac-pointer-resize-left-right 17)
+;; Mac OS X 10.2 and later
+(defconst mac-pointer-not-allowed 18)
+;; Mac OS X 10.3 and later
+(defconst mac-pointer-resize-up 19)
+(defconst mac-pointer-resize-down 20)
+(defconst mac-pointer-resize-up-down 21)
+(defconst mac-pointer-poof 22)
+
+;;
+;; Standard X cursor shapes that have Mac counterparts
+;;
+
+(defconst x-pointer-left-ptr mac-pointer-arrow)
+(defconst x-pointer-xterm mac-pointer-I-beam)
+(defconst x-pointer-crosshair mac-pointer-cross)
+(defconst x-pointer-plus mac-pointer-plus)
+(defconst x-pointer-watch mac-pointer-watch)
+(defconst x-pointer-hand2 mac-pointer-pointing-hand)
+(defconst x-pointer-left-side mac-pointer-resize-left)
+(defconst x-pointer-right-side mac-pointer-resize-right)
+(defconst x-pointer-sb-h-double-arrow mac-pointer-resize-left-right)
+(defconst x-pointer-top-side mac-pointer-resize-up)
+(defconst x-pointer-bottom-side mac-pointer-resize-down)
+(defconst x-pointer-sb-v-double-arrow mac-pointer-resize-up-down)
+
 
 ;;
 ;; Available colors
@@ -1010,20 +1059,29 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
-(define-key function-key-map [return] [?\C-m])
-(define-key function-key-map [M-return] [?\M-\C-m])
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [M-tab] [?\M-\t])
 (define-key function-key-map [backspace] [?\d])
-(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [delete] [?\d])
+(define-key function-key-map [tab] [?\t])
+(define-key function-key-map [linefeed] [?\n])
+(define-key function-key-map [clear] [?\C-l])
+(define-key function-key-map [return] [?\C-m])
 (define-key function-key-map [escape] [?\e])
+(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [M-delete] [?\M-\d])
+(define-key function-key-map [M-tab] [?\M-\t])
+(define-key function-key-map [M-linefeed] [?\M-\n])
+(define-key function-key-map [M-clear] [?\M-\C-l])
+(define-key function-key-map [M-return] [?\M-\C-m])
 (define-key function-key-map [M-escape] [?\M-\e])
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
-(put 'return 'ascii-character ?\C-m)
-(put 'tab 'ascii-character ?\t)
 (put 'backspace 'ascii-character ?\d)
+(put 'delete 'ascii-character ?\d)
+(put 'tab 'ascii-character ?\t)
+(put 'linefeed 'ascii-character ?\n)
+(put 'clear 'ascii-character ?\C-l)
+(put 'return 'ascii-character ?\C-m)
 (put 'escape 'ascii-character ?\e)
 
 

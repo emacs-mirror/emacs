@@ -1,11 +1,13 @@
 /* The lwlib interface to Motif widgets.
+   Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2003, 2004, 2005
+             Free Software Foundation, Inc.
    Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
 
 The Lucid Widget Library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 The Lucid Widget Library is distributed in the hope that it will be useful,
@@ -368,7 +370,7 @@ xm_update_label (instance, widget, val)
       else
 	{
 	  built_string =
-	    XmStringCreateLtoR (val->value, XmSTRING_DEFAULT_CHARSET);
+	    XmStringCreateLocalized (val->value);
 	  XtSetArg (al [ac], XmNlabelString, built_string); ac++;
 	}
 
@@ -377,7 +379,7 @@ xm_update_label (instance, widget, val)
 
   if (val->key)
     {
-      key_string = XmStringCreateLtoR (val->key, XmSTRING_DEFAULT_CHARSET);
+      key_string = XmStringCreateLocalized (val->key);
       XtSetArg (al [ac], XmNacceleratorText, key_string); ac++;
     }
 
@@ -406,7 +408,7 @@ xm_update_list (instance, widget, val)
   for (cur = val->contents, i = 0; cur; cur = cur->next)
     if (cur->value)
       {
-	XmString xmstr = XmStringCreate (cur->value, XmSTRING_DEFAULT_CHARSET);
+	XmString xmstr = XmStringCreateLocalized (cur->value);
 	i += 1;
 	XmListAddItem (widget, xmstr, 0);
 	if (cur->selected)

@@ -1228,6 +1228,16 @@ relocated due to deletion of surrounding text, and that it moved
 @var{adjustment} character positions.  Undoing this element moves
 @var{marker} @minus{} @var{adjustment} characters.
 
+@item (apply @var{funname} . @var{args})
+This is an extensible undo item, which is undone by calling
+@var{funname} with arguments @var{args}.
+
+@item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
+This is an extensible undo item, which records a change limited to the
+range @var{beg} to @var{end}, which increased the size of the buffer
+by @var{delta}.  It is undone by calling @var{funname} with arguments
+@var{args}.
+
 @item nil
 This element is a boundary.  The elements between two boundaries are
 called a @dfn{change group}; normally, each change group corresponds to
@@ -1478,6 +1488,17 @@ the text around point.
 If this variable is non-@code{nil}, a period followed by just one space
 does not count as the end of a sentence, and the filling functions
 avoid breaking the line at such a place.
+@end defopt
+
+@defopt sentence-end-without-period
+If this variable is non-@code{nil}, a sentence can end without a
+period.  This is used for languages like Thai, where sentences end
+with a double space but without a period.
+@end defopt
+
+@defopt sentence-end-without-space
+If this variable is non-@code{nil}, it should be a string of
+characters that can end a sentence without following spaces.
 @end defopt
 
 @defvar fill-paragraph-function
@@ -2619,9 +2640,9 @@ list.
 @end defun
 
 @defun remove-list-of-text-properties start end list-of-properties &optional object
-Like @code{remove-list-properties} except that
+Like @code{remove-text-properties} except that
 @var{list-of-properties} is a list property names only, not an
-alternating list of property values.
+alternating list of property names and values.
 @end defun
 
 @defun set-text-properties start end props &optional object

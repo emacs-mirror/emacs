@@ -96,23 +96,26 @@
   :group 'rmail)
 
 (defcustom rmail-movemail-program nil
-  "If non-nil, name of program for fetching new mail."
+  "If non-nil, the file name of the `movemail' program."
   :group 'rmail-retrieve
   :type '(choice (const nil) string))
 
 (defcustom rmail-pop-password nil
-  "*Password to use when reading mail from POP server. Please, use rmail-remote-password instead."
+  "*Password to use when reading mail from POP server.
+Please use `rmail-remote-password' instead."
   :type '(choice (string :tag "Password")
 		 (const :tag "Not Required" nil))
   :group 'rmail-obsolete)
 
 (defcustom rmail-pop-password-required nil
-  "*Non-nil if a password is required when reading mail from a POP server. Please, use rmail-remote-password-required instead."
+  "*Non-nil if a password is required when reading mail from a POP server. 
+Please use rmail-remote-password-required instead."
   :type 'boolean
   :group 'rmail-obsolete)
 
 (defcustom rmail-remote-password nil
-  "*Password to use when reading mail from a remote server. This setting is ignored for mailboxes whose URL already contains a password."
+  "*Password to use when reading mail from a remote server.
+This setting is ignored for mailboxes whose URL already contains a password."
   :type '(choice (string :tag "Password")
 		 (const :tag "Not Required" nil))
   :set-after '(rmail-pop-password)
@@ -160,8 +163,7 @@ please report it with \\[report-emacs-bug].")
 (defvar rmail-encoded-remote-password nil)
 
 (defcustom rmail-preserve-inbox nil
-  "*Non-nil if incoming mail should be left in the user's inbox,
-rather than deleted, after it is retrieved."
+  "*Non-nil means leave incoming mail in the user's inbox--don't delete it."
   :type 'boolean
   :group 'rmail-retrieve)
 
@@ -171,8 +173,8 @@ rather than deleted, after it is retrieved."
     :type '(repeat (directory)))
 
 (defun rmail-probe (prog)
-  "Determine what flavor of movemail PROG is by executing it with --version
-command line option and analyzing its output."
+  "Determine what flavor of movemail PROG is.
+We do this by executing it with `--version' and analyzing its output."
   (with-temp-buffer
     (let ((tbuf (current-buffer)))
       (buffer-disable-undo tbuf)
@@ -191,10 +193,10 @@ command line option and analyzing its output."
 	  'emacs))))))
 
 (defun rmail-autodetect ()
-  "Determine and return the flavor of `movemail' program in use. If
-rmail-movemail-program is set, use it. Otherwise, look for `movemail'
-in the path constructed by appending rmail-movemail-search-path,
-exec-path and exec-directory."
+  "Determine and return the file name of the `movemail' program.
+If `rmail-movemail-program' is non-nil, use it.
+Otherwise, look for `movemail' in the directories in
+`rmail-movemail-search-path', those in `exec-path', and `exec-directory'."
   (if rmail-movemail-program
       (rmail-probe rmail-movemail-program)
     (catch 'scan
@@ -2609,6 +2611,39 @@ change the invisible header text."
   (interactive)
   (rmail-show-message rmail-current-message))
 
+(defun rmail-unknown-mail-followup-to ()
+  "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
+Ask the user whether to add that list name to `mail-mailing-lists'."
+   (save-restriction
+     (rmail-narrow-to-non-pruned-header)
+     (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
+       (when mail-followup-to
+	 (let ((addresses
+		(split-string 
+		 (mail-strip-quoted-names mail-followup-to)
+		 ",[[:space:]]+" t)))
+	   (dolist (addr addresses)
+	     (when (and (not (member addr mail-mailing-lists))
+			(not
+			 ;; taken from rmailsum.el
+			 (string-match
+			  (or rmail-user-mail-address-regexp
+			      (concat "^\\("
+				      (regexp-quote (user-login-name))
+				      "\\($\\|@\\)\\|"
+				      (regexp-quote
+				       (or user-mail-address
+					   (concat (user-login-name) "@"
+						   (or mail-host-address
+						       (system-name)))))
+				      "\\>\\)"))
+			  addr))
+			(y-or-n-p
+			 (format "Add `%s' to `mail-mailing-lists'? "
+				 addr)))
+	       (customize-save-variable 'mail-mailing-lists
+					(cons addr mail-mailing-lists)))))))))
+
 (defun rmail-show-message (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also."
@@ -2677,8 +2712,9 @@ If summary buffer is currently displayed, update current message there also."
 	(rmail-display-labels)
 	(if (eq rmail-enable-mime t)
 	    (funcall rmail-show-mime-function)
-	  (setq rmail-view-buffer rmail-buffer)
-	  )
+	  (setq rmail-view-buffer rmail-buffer))
+	(when mail-mailing-lists
+	  (rmail-unknown-mail-followup-to))
 	(rmail-highlight-headers)
 	(if transient-mark-mode (deactivate-mark))
 	(run-hooks 'rmail-show-message-hook)
@@ -3367,9 +3403,14 @@ use \\[mail-yank-original] to yank the original message into it."
 			      (progn (search-forward "\n*** EOOH ***\n")
 				     (beginning-of-line) (point)))))
 	(setq from (mail-fetch-field "from")
-	      reply-to (or (mail-fetch-field "reply-to" nil t)
+	      reply-to (or (if just-sender
+			       (mail-fetch-field "mail-reply-to" nil t)
+			     (mail-fetch-field "mail-followup-to" nil t))
+			   (mail-fetch-field "reply-to" nil t)
 			   from)
 	      cc (and (not just-sender)
+		      ;; mail-followup-to, if given, overrides cc.
+		      (not (mail-fetch-field "mail-followup-to" nil t))
 		      (mail-fetch-field "cc" nil t))
 	      subject (mail-fetch-field "subject")
 	      date (mail-fetch-field "date")

@@ -6336,7 +6336,7 @@ variable it the real callback function."
     ("^\\(From\\|Reply-To\\):" ": *\\(.+\\)$"
      1 (>= gnus-button-message-level 0) gnus-button-reply 1)
     ("^\\(Cc\\|To\\):" "[^ \t\n<>,()\"]+@[^ \t\n<>,()\"]+"
-     0 (>= gnus-button-message-level 0) gnus-button-mailto 0)
+     0 (>= gnus-button-message-level 0) gnus-msg-mail 0)
     ("^X-[Uu][Rr][Ll]:" gnus-button-url-regexp
      0 (>= gnus-button-browse-level 0) browse-url 0)
     ("^Subject:" gnus-button-url-regexp

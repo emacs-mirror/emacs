@@ -579,6 +579,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (set (make-local-variable 'file-precious-flag) t)
   (auto-save-mode 0)
   (set (make-local-variable 'write-contents-functions) '(tar-mode-write-file))
+  (buffer-disable-undo)
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
       (narrow-to-region (point-min) (byte-to-position tar-header-offset))

@@ -1,3 +1,178 @@
+2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_create_tip_frame): Removed setting of Vx_resource_name so
+	that it doesn't become "tooltip".  The specbind is enough.
+
+	* xrdb.c (x_load_resources): Use different char *helv when I18N
+	is present.
+
+2005-03-17  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Docstring of coding-category-list
+	fixed.
+
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (x_update_menu_appearance) [HAVE_X_I18N]:
+	Use xic_create_fontsetname even for non-Motif menus.
+	Don't forget to free the fontsetname.
+
+	* xfns.c (xic_create_fontsetname): Add a final catch-all font pattern.
+
+2005-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* dispnew.c (mirror_line_dance): Set W2 according to FRAME_FROM.
+
+	* fileio.c (Fcopy_file, Frename_file, Fadd_name_to_file)
+	(Fmake_symbolic_link): Use G to read the new file name.
+
+	* callint.c (Finteractive): Document G option.
+	(Fcall_interactively): Implement G option.
+
+	* buffer.c (buffer_lisp_local_variables): New function,
+	broken out from Fbuffer_local_variables.
+	(clone_per_buffer_values): Use buffer_lisp_local_variables.
+
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfns.c (xic_create_fontsetname): Add `motif' argument.
+	Always return a freshly allocated string.
+	(xic_create_xfontset): Adjust call.
+
+	* xfaces.c (x_update_menu_appearance) [USE_MOTIF]:
+	Use xic_create_fontsetname to create a fontset so utf-8 locales work.
+	(dump_realized_face): Fix warning.
+
+	* emacs.c (Fkill_emacs): YAILOM.
+
+	* frame.c (Fignore_event): Fix ancient obscure C-u handling bug.
+
+2005-03-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (HASHKEY_TERMINAL): Remove.
+	(HASHKEY_MAX_NID): New macro.
+	(xrm_q_get_resource_1): Rename from xrm_q_get_resource.  Add extra
+	argument.
+	(xrm_q_get_resource): Call xrm_q_get_resource_1 with extra argument.
+	(xrm_create_database, xrm_q_put_resource)
+	(xrm_merge_string_database, xrm_q_get_resource_1)
+	(xrm_q_get_resource): Change resource database representation so
+	that it may not use multiple hash tables for a single database.
+	[TARGET_API_MAC_CARBON] (xrm_cfproperty_list_to_value): YAILOM.
+
+2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xmenu.c (ENCODE_MENU_STRING) [HAVE_X_I18N]: Use ENCODE_SYSTEM.
+
+	* coding.h (ENCODE_SYSTEM, DECODE_SYSTEM) [!WINDOWSNT]: Use the
+	locale-coding-system, as was already done for WINDOWSNT.
+
+	* keyboard.c (read_char): Only do the 7-bit-meta -> 27-bit-meta
+	translation for chars in the 0-255 range.
+
+2005-03-16  Lute Kamstra  <lute@gnu.org>
+
+	* floatfns.c (Ffloor): Doc fix.
+
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Include macterm.h instead of directly including Carbon.h.
+	[TARGET_API_MAC_CARBON] (Qstring, Qnumber, Qboolean, Qdate, Qdata)
+	(Qarray, Qdictionary): New variables.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Initialize them.
+	[TARGET_API_MAC_CARBON] (Qutf_8): Add extern.
+	[TARGET_API_MAC_CARBON] (DECODE_UTF_8): New macro.
+	[TARGET_API_MAC_CARBON] (struct cfdict_context): New struct used
+	in callback for CFDictionaryApplyFunction.
+	[TARGET_API_MAC_CARBON] (cfdata_to_lisp, cfstring_to_lisp)
+	(cfnumber_to_lisp, cfdate_to_lisp, cfboolean_to_lisp)
+	(cfobject_desc_to_lisp, cfdictionary_add_to_list)
+	(cfdictionary_puthash, cfproperty_list_to_lisp): New functions.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference): New function.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
+	(P, LOOSE_BINDING, SINGLE_COMPONENT, HASHKEY_TERMINAL): New macro.
+	(skip_white_space, parse_comment, parse_include_file)
+	(parse_binding, parse_component, parse_resource_name, parse_value)
+	(parse_resource_line, xrm_create_database, xrm_q_put_resource)
+	(xrm_merge_string_database, xrm_q_get_resource, xrm_get_resource)
+	(xrm_cfproperty_list_to_value, xrm_get_preference_database):
+	New functions.
+
+	* macfns.c (mac_get_rdb_resource): Remove function.
+	(x_get_string_resource): Use xrm_get_resource.
+
+	* macgui.h (XrmDatabase): Typedef to Lisp_Object.
+
+	* macterm.c (x_list_fonts): FONT-LIST-CACHE is now cadr part of
+	name_list_element.
+	(mac_make_rdb): Create resource database from preferences and
+	argument string.
+	(mac_term_init): Save resource database to cddr part of
+	name_list_element.
+
+	* macterm.h (xrm_merge_string_database, xrm_get_resource)
+	(xrm_get_preference_database): Add externs.
+	[TARGET_API_MAC_CARBON] (cfdata_to_lisp, cfstring_to_lisp)
+	(cfnumber_to_lisp, cfdate_to_lisp, cfboolean_to_lisp)
+	(cfobject_desc_to_lisp, cfproperty_list_to_lisp): Likewise.
+
+	* process.c (init_process): Change `#ifdef DARWIN' to `#if
+	defined (DARWIN) || defined (MAC_OSX)'
+
+	* s/darwin.h (DARWIN): Don't define.
+
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Qhyper, Qsuper, Qmeta, Qalt, Qctrl, Qcontrol, Qshift):
+	Remove unused variables.
+	(syms_of_macfns): Don't initialize them.  Likewise for
+	Qface_set_after_frame_default.  Defvar and initialize
+	Vx_window_horizontal_drag_shape.
+	(x_set_mouse_color): Change mouse pointer shape.
+	(mac_window) [!MAC_OSX]: Create root control.
+	(Fx_create_frame): Remove initializations of mouse pointer shapes.
+	(hourglass_started): New function (from xfns.c).
+	(start_hourglass, cancel_hourglass): Put function body in #ifdef
+	MAC_OSX.
+	(show_hourglass) [TARGET_API_MAC_CARBON]: Create progress
+	indicator for each non-tooltip frame if needed, and show it.
+	(hide_hourglass) [TARGET_API_MAC_CARBON]: Hide progress indicators.
+
+	* macgui.h [!TARGET_API_MAC_CARBON]: Include Appearance.h and
+	Controls.h.  Use ThemeCursor instead of CursHandle.
+
+	* macterm.c (activate_scroll_bars, deactivate_scroll_bars):
+	Remove functions and declarations.
+	(mac_set_colors): Take argument for saving background color.
+	All callers changed.
+	(XDrawLine, XClearArea, mac_draw_bitmap, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common): Save and Restore
+	background color.
+	(x_update_end, mac_do_track_drag): Don't reset background color.
+	(mac_define_frame_cursor) [!TARGET_API_MAC_CARBON]:
+	Use SetThemeCursor.
+	(x_set_window_size) [TARGET_API_MAC_CARBON]: Move progress
+	indicator control to the upper-right corner of the window.
+	(arrow_cursor) [!TARGET_API_MAC_CARBON]: Remove variable.
+	(do_init_managers) [!TARGET_API_MAC_CARBON]: Don't initialize it.
+	(do_window_update): Update controls after updating content area.
+	(mac_handle_window_event): Remove unused extern.
+	(XTread_socket): Check both control handle and control part code
+	to determine whether a scroll bar is clicked.  Activate/deactivate
+	root control instead of contained scroll bar controls.
+	(make_mac_terminal_frame): Use ThemeCursor constants.
+
+	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]:
+	New member hourglass_control.
+	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): New defines.
+	(activate_scroll_bars, deactivate_scroll_bars): Remove declarations.
+
+2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (keycode_to_xkeysym_table): Change mapping so that it
+	coincides with that in Apple X11 except `clear', `enter' on
+	laptops, and fn + `enter' on laptops.
+
 2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (ENCODE_MENU_STRING): Explicitly use string_make_unibyte.
@@ -408,8 +583,8 @@
 
 	* xselect.c (selection_data_to_lisp_data): For the special case
 	type == XA_ATOM, data contains array of int, not array of Atom.
-	(x_property_data_to_lisp, selection_data_to_lisp_data): Comment
-	update: data must be array of int for format == 32.
+	(x_property_data_to_lisp, selection_data_to_lisp_data):
+	Comment update: data must be array of int for format == 32.
 
 2005-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

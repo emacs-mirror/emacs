@@ -65,11 +65,12 @@ to the FSF.
 ** Make the Lucid menu widget display multilingual text.  [This
   probably needs to be done from actual Emacs buffers, either directly
   in the menu or by rendering in an unmapped window and copying the
-  pixels.  Note that the relevant Xlib functions assume a specific
-  locale; that isn't good enough even if X can render the arbitrary
-  text, which it often can't as far as I can tell.  -- fx] [The gtk
+  pixels.  The current code assumes a specific locale; that isn't good
+  enough even if X can render the arbitrary text] [The gtk
   port now displays multilingual text in menus, but only insofar as
   Emacs can encode it as utf-8 and gtk can display the result.]
+  Maybe making Lucid menus work like Gtk's (i.e. just force utf-8) is good
+  enough now that Emacs can encode most chars into utf-8.
 
 ** Remove the limitation that window and frame widths and heights can
   be only full columns/lines.

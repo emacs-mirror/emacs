@@ -1,3 +1,247 @@
+2005-03-18  Tak Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el (table--line-column-position): New idiom.
+	(table--row-column-insertion-point-p): New function to test
+	validity of row and column insertion operation at a location.
+	(table-global-menu, table-cell-menu): Use above functions for
+	deterministic test operation.
+	(table--editable-cell-p): Behave in deterministic fashion.
+
+2005-03-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Make arguments beg and end optional.
+	(isearch-update): Remove optional arguments nil from
+	isearch-lazy-highlight-new-loop.
+	(isearch-lazy-highlight-search): Let-bind case-fold-search to
+	isearch-lazy-highlight-case-fold-search instead of
+	isearch-case-fold-search, and let-bind isearch-regexp to
+	isearch-lazy-highlight-regexp.
+	Use isearch-lazy-highlight-last-string instead of isearch-string.
+
+	* replace.el (perform-replace): Remove bindings of global
+	variables isearch-string, isearch-regexp, isearch-case-fold-search.
+	Add three new arguments to `replace-highlight'.
+	(replace-highlight): Add arguments string, regexp, case-fold.
+	Let-bind isearch-string, isearch-regexp, isearch-case-fold-search
+	to allow isearch-lazy-highlight-new-loop to use these values
+	to set corresponding isearch-lazy-highlight-* internal
+	variables whose values lazy highlighting will use regardless of
+	changes to global variables isearch-string, isearch-regexp,
+	isearch-case-fold-search during lazy highlighting loop.
+	(replace-dehighlight): Rename `isearch-lazy-highlight-cleanup'
+	to `lazy-highlight-cleanup'.
+
+	* textmodes/ispell.el (ispell-lazy-highlight): New defcustom.
+	(ispell-highlight-face): Set default face to `isearch' when
+	lazy highlighting is enabled.
+	(ispell-highlight-spelling-error-overlay): Set `ispell-overlay'
+	priority to 1.  Add lazy highlighting.
+	(ispell-highlight-spelling-error-xemacs): Remove obsolete arg
+	from `isearch-dehighlight'.
+
+2005-03-18  David Ponce  <david@dponce.com>
+
+	* files.el (hack-local-variables): Do a case-insensitive search
+	for End.
+
+2005-03-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (lazy-highlight-cleanup) <command>: Rename from
+	`isearch-lazy-highlight-cleanup', add alias to old name and
+	declare obsolete.  Add release numbers to other obsolete vars.
+	(isearch-done, isearch-lazy-highlight-new-loop):
+	Rename `isearch-lazy-highlight-cleanup' to `lazy-highlight-cleanup'.
+	(lazy-highlight-cleanup) <variable>: Doc fix.
+	(isearch-lazy-highlight-update): Rename obsolete
+	`isearch-lazy-highlight-face' to `lazy-highlight-face'.
+
+2005-03-18  Kenichi Handa  <handa@m17n.org>
+
+	* language/thai-util.el: Fix categorization of Thai characters in
+	thai-category-table.
+	(thai-composition-pattern): Adjust it for the above change.
+	(thai-self-insert-command, thai-compose-syllable): New functions.
+	(thai-compose-region): Use thai-compose-syllable.
+	(thai-compose-string): Likewise.
+	(thai-composition-function): Likewise.
+	(thai-auto-composition): New function.
+	(thai-auto-composition-mode): New minor mode.
+
+	* language/thai.el: Fix patterns to be registered in
+	composition-function-table.
+
+	* international/quail.el (quail-input-method): Locally bind
+	inhibit-modification-hooks to t.
+
+2005-03-17  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/perl-mode.el (perl-mode-hook): Defvar it.
+	(perl-mode): Use run-mode-hooks.
+
+	* mail/rmail.el (rmail-movemail-program, rmail-pop-password)
+	(rmail-pop-password-required, rmail-remote-password): Doc fixes.
+	(rmail-preserve-inbox, rmail-probe, rmail-autodetect): Doc fix.
+
+	* mail/sendmail.el (sendmail-send-it): Reenable the code
+	to compute resend-to-address and use it.
+
+	* tar-mode.el (tar-mode): Turn off undo unconditionally.
+
+	* image-mode.el: New file.
+
+	* image.el (insert-sliced-image): Add autoload cookie.
+
+	* font-lock.el (font-lock-lines-before): New user option.
+	(font-lock-after-change-function): Obey it.
+
+	* bindings.el (esc-map): Make M-g a prefix.
+	Bind M-g g and M-g M-g to goto-line.
+
+	* faces.el (face-id): Doc fix.
+
+2005-03-17  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/rmail.el (rmail-unknown-mail-followup-to): New function.
+	(rmail-show-message): Use rmail-unknown-mail-followup-to.
+	(rmail-reply): Recognize Mail-Followup-To and Mail-Reply-To headers.
+
+	* mail/sendmail.el (mail-yank-ignored-headers)
+	(mail-font-lock-keywords, mail-mode-fill-paragraph):
+	Add Mail-Followup-To and Mail-Reply-To headers.
+	(mail-citation-hook): Add autoload cookie.
+	(mail-mode): Doc fix.
+	(mail-mode-map): Bind mail-mail-followup-to and mail-mail-reply-to.
+	(mail-send): Compute Mail-Followup-To and Mail-Reply-To headers.
+	(mail-mode-fill-paragraph): Handle those headers.
+	(mail-mailing-lists): New variable.
+	(mail-mail-reply-to, mail-mail-followup-to): New functions.
+
+2005-03-17  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-fallback): Check for `(car previous)'
+	before calling `isearch-other-end-state'.
+
+2005-03-17  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (move-beginning-of-line): Move to beginning of buffer
+	line, as well as beginning of screen line.
+
+2005-03-16  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (mark-diary-entries): Use new optional
+	argument REDRAW rather than calendar-redrawing variable.
+	* calendar/calendar.el (calendar-redrawing): Delete.
+	(redraw-calendar): Do not bind calendar-redrawing.
+
+2005-03-16  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* calendar/diary-lib.el (diary-redraw-calendar): Preserve point in
+	diary-file buffer.
+
+2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Allow a :minor-mode-function property to
+	specify a different minor mode toggle function than the variable.
+	* simple.el (auto-fill-function):
+	* subr.el (add-minor-mode): Use it.
+
+2005-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el (sera-being-called-by-w3): New variable.
+	(ethio-sera-to-fidel-ethio): Check also sera-being-called-by-w3.
+	(ethio-fidel-to-sera-buffer): Likewise.
+
+2005-03-16  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add defun-emitting macro `menu-bar-make-toggle'.
+
+	* isearch.el: Put `isearch-scroll' property to
+	`split-window-horizontally'.
+
+	* info.el: Update error messages for `debug-ignored-errors'.
+	(Info-isearch-search): Doc fix.
+	(Info-find-node): Move up code to go into info buffer before
+	recording the node to the history.
+	(Info-fontify-node): Fontify titles only if the next line
+	has two or more `*', `=', `-', `.'.
+	Display "go to this node" for empty (match-string 3).
+
+2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add mouse pointer shape constants.
+
+2005-03-15  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (move-beginning-of-line): Use vertical-motion.
+
+2005-03-15  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-error): New variable.
+	(isearch-invalid-regexp, isearch-within-brackets): Remove.
+	(isearch-error-state): Rename from `isearch-invalid-regexp-state'.
+	(isearch-within-brackets-state): Remove.
+	(isearch-case-fold-search-state, isearch-pop-fun-state):
+	Decrease frame index.
+	(isearch-mode, isearch-top-state, isearch-push-state)
+	(isearch-edit-string, isearch-abort, isearch-search-and-update)
+	(isearch-fallback, isearch-message-prefix, isearch-message-suffix)
+	(isearch-search, isearch-lazy-highlight-new-loop):
+	Replace `isearch-invalid-regexp' with `isearch-error'.
+	Remove `isearch-within-brackets'.
+	(isearch-search): Add `search-failed' handler to `condition-case'.
+	(isearch-lazy-highlight-search): Add `condition-case' to catch
+	errors and allow `isearch-lazy-highlight-update' to try
+	highlighting from the beginning of the window.
+	(isearch-repeat): Move up code to set isearch-wrapped to t
+	before calling isearch-wrap-function.
+
+	* info.el (Info-isearch-initial-node): New internal variable.
+	(Info-search): Signal an error in isearch mode when search leaves
+	the initial node.  Signal an error when `bound' is non-nil and
+	nothing was found in the current subfile.
+	(Info-isearch-search): Remove `condition-case'.
+	(Info-isearch-wrap): Don't wrap when search failed during leaving
+	the initial node.  If `Info-isearch-search' is nil, wrap around
+	the current node.
+	(Info-isearch-start): New fun.
+	(Info-mode): Add buffer-local hook `Info-isearch-start' to
+	`isearch-mode-hook'.
+
+2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* simple.el (normal-erase-is-backspace): Set default to t if
+	running on Mac.
+
+	* term/mac-win.el (function-key-map): Sync with x-win.el.
+
+2005-03-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (locale-language-names): Modify the
+	format of elements and add more entries.
+	(locale-preferred-coding-systems): Add more entries.
+	(set-locale-environment): Adjust for the change of
+	locale-language-names.
+
+2005-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (smerge-ediff): Remove bogus autoload.
+
+2005-03-14  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-make-xrefs): Docstring fix.
+	Ignore a `*' at the beginning of a line.
+
+	* subr.el (macro-declaration-function): Move to emacs-lisp/byte-run.el.
+	* emacs-lisp/byte-run.el (macro-declaration-function): Move from
+	subr.el.
+	(dont-compile, eval-when-compile, eval-and-compile): Use declare
+	to specify indentation.
+
+	* generic.el (define-generic-mode): Let generic-mode-list be a
+	list of strings; test membership with equal.
+
 2005-03-14  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (next-line, previous-line): Add optional try-vscroll
@@ -51,7 +295,7 @@
 2005-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (make-coding-system): Set property
-	'coding-system-define-form to nil.
+	coding-system-define-form to nil.
 	(define-coding-system-alias): Likewise.
 
 2005-03-11  Kenichi Handa  <handa@m17n.org>

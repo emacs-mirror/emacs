@@ -2726,7 +2726,7 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-async-prefetch-article gnus-async-prefetch-remove-group
       gnus-async-halt-prefetch)
      ("gnus-agent" gnus-open-agent gnus-agent-get-function
-      gnus-agent-save-groups gnus-agent-save-active gnus-agent-method-p
+      gnus-agent-save-active gnus-agent-method-p
       gnus-agent-get-undownloaded-list gnus-agent-fetch-session
       gnus-summary-set-agent-mark gnus-agent-save-group-info
       gnus-agent-request-article gnus-agent-retrieve-headers)
