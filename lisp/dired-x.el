@@ -819,7 +819,7 @@ cases in variable `default-directory-alist' (which see)."
 ;;;   `dired-enable-local-variables' and run `hack-local-variables' on the
 ;;;   Dired Buffer.
 
-(defvar dired-local-variables-file ".dired"
+(defvar dired-local-variables-file (convert-standard-filename ".dired")
   "Filename, as string, containing local dired buffer variables to be hacked.
 If this file found in current directory, then it will be inserted into dired
 buffer and `hack-local-variables' will be run.  See Emacs Info pages for more
