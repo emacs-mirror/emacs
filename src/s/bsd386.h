@@ -15,3 +15,6 @@
 #define HAVE_GETLOADAVG
 
 #undef BSD_PGRPS
+
+/* The dumped Emacs records the timezone it was dumped in.  */
+#define LOCALTIME_CACHE
