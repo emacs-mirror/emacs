@@ -2124,7 +2124,10 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  ;; shown.  We just scroll it appropriately.
 	  (if (pos-visible-in-window-p (point-max) win)
 	      (set-window-start win (point-min))
-	    (let ((other-window-scroll-buffer quail-completion-buf))
+	    (let ((other-window-scroll-buffer quail-completion-buf)
+		  ;; This nil binding is necessary to surely scroll
+		  ;; quail-completion-buf.
+		  (minibuffer-scroll-window nil))
 	      (scroll-other-window)))
 	(setq quail-current-key key)
 	(erase-buffer)
