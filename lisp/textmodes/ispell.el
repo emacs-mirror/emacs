@@ -1857,7 +1857,6 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
       (or no-error
 	  (error "There is no ispell process running!"))
     (process-send-eof ispell-process)
-    (process-send-string ispell-process "\n") ; make sure side effects occured
     (if (eq (process-status ispell-process) 'run)
 	(accept-process-output ispell-process 1))
     (if (eq (process-status ispell-process) 'run)
