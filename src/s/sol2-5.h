@@ -2,6 +2,8 @@
 
 #include "sol2-4.h"
 
+#undef BROKEN_SIGIO
+
 /* -lgen is needed for the regex and regcmp functions
    which are used by Motif.  In the future we can try changing
    regex.c to provide them in Emacs, but this is safer for now.  */
