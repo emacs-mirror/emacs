@@ -436,12 +436,13 @@ put_line (string)
 	    }
 	  /* Output that much, then break the line.  */
 	  fwrite (s, 1, breakpos - s, rem->handle);
-	  fputs ("\n\t", rem->handle);
 	  column = 8;
 
 	  /* Skip whitespace and prepare to print more addresses.  */
 	  s = breakpos;
 	  while (*s == ' ' || *s == '\t') ++s;
+          if (*s != 0)
+	    fputs ("\n\t", rem->handle);
 	}
       putc ('\n', rem->handle);
     }
