@@ -513,8 +513,10 @@ space does not end a sentence, so don't break a line there."
 			 (setq prefixcol (current-column))))))
 	      ;; Justify the line just ended, if desired.
 	      (if justify
-		  (if (eobp)
-		      (justify-current-line justify t t)
+                (if (save-excursion (skip-chars-forward " \t") (eobp))
+                    (progn
+                      (delete-horizontal-space)
+                      (justify-current-line justify t t))
 		    (forward-line -1)
 		    (justify-current-line justify nil t)
 		    (forward-line 1))))))
