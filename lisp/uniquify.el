@@ -1,4 +1,4 @@
-;;; uniquify.el --- unique buffer names dependent on pathname
+;;; uniquify.el --- unique buffer names dependent on file name
 
 ;; Copyright (c) 1989, 1995 Free Software Foundation, Inc.
 
@@ -28,7 +28,7 @@
 ;; Emacs's standard method for making buffer names unique adds <2>, <3>,
 ;; etc. to the end of (all but one of) the buffers.  This file replaces
 ;; that behavior, for buffers visiting files and dired buffers, with a
-;; uniquification that adds parts of the pathname until the buffer names
+;; uniquification that adds parts of the file name until the buffer names
 ;; are unique.  For instance, buffers visiting /u/mernst/tmp/Makefile and
 ;; /usr/projects/zaphod/Makefile would be named Makefile|tmp and
 ;; Makefile|zaphod, respectively (instead of Makefile and Makefile<2>).
@@ -76,10 +76,10 @@
 
 (defvar uniquify-buffer-name-style 'post-forward
   "*If non-nil, buffer names are uniquified with parts of directory name.
-The value determines the buffer name style and is one of 'forward,
-'reverse, 'post-forward (the default), or 'post-forward-angle-brackets.
-For example, files /foo/bar/mumble/name and /baz/quux/mumble/name
-would be in the following buffers:
+The value determines the buffer name style and is one of `forward',
+`reverse', `post-forward' (the default), or `post-forward-angle-brackets'.
+For example, files `/foo/bar/mumble/name' and `/baz/quux/mumble/name'
+would have the following buffer names in the various styles:
   forward        bar/mumble/name  quux/mumble/name
   reverse        name\\mumble\\bar  name\\mumble\\quux
   post-forward   name|bar/mumble  name|quux/mumble
@@ -97,19 +97,19 @@ If the user chooses to name a buffer, uniquification is preempted and no
 other buffer names are changed.")
 
 (defvar uniquify-min-dir-content 0
-  "*Minimum parts of directory pathname included in buffer name.")
+  "*Minimum parts of directory name included in buffer name.")
 
 (defvar uniquify-separator nil
   "*String separator for buffer name components.
-When `uniquify-buffer-name-style' is 'post-forward, separates
+When `uniquify-buffer-name-style' is `post-forward', separates
 base file name from directory part in buffer names (default \"|\").
-When `uniquify-buffer-name-style' is 'reverse, separates all
-pathname components (default \"\\\").")
+When `uniquify-buffer-name-style' is `reverse', separates all
+file name components (default \"\\\").")
 
 (defvar uniquify-trailing-separator-p nil
-  "*If non-nil, add a pathname separator to dired buffer names.
-If `uniquify-buffer-name-style' is 'forward, add the separator at the end;
-if it's is 'reverse, add the separator at the beginning; otherwise, this
+  "*If non-nil, add a file name separator to dired buffer names.
+If `uniquify-buffer-name-style' is `forward', add the separator at the end;
+if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored.")
 
 
@@ -137,9 +137,9 @@ variable is ignored.")
 ;;; Main entry point.
 
 (defun uniquify-rationalize-file-buffer-names (&optional newbuffile newbuf)
-  "Makes file buffer names unique by adding segments from pathname.
+  "Makes file buffer names unique by adding segments from file name.
 If `uniquify-min-dir-content' > 0, always pulls that many
-pathname elements.  Arguments cause only a subset of buffers to be renamed."
+file name elements.  Arguments cause only a subset of buffers to be renamed."
   (interactive)
   (let (fix-list
 	uniquify-non-file-buffer-names
@@ -316,7 +316,7 @@ Works on dired buffers as well as ordinary file-visiting buffers."
 
 ;;; Hooks from the rest of Emacs
 
-;; Emacs 19 (GNU Emacs or XEmacs)
+;; Emacs 19 (Emacs or XEmacs)
 
 ;; The logical place to put all this code is in generate-new-buffer-name.
 ;; It's written in C, so we would add a generate-new-buffer-name-function
