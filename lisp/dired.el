@@ -46,7 +46,7 @@ may contain even `F', `b', `i' and `s'.")
 
 ;;;###autoload
 (defvar dired-chown-program
-  (if (memq system-type '(hpux dgux usg-unix-v silicon-graphics-unix))
+  (if (memq system-type '(hpux dgux usg-unix-v irix))
       "chown" "/etc/chown")
   "Name of chown command (usually `chown' or `/etc/chown').")
 
@@ -1100,6 +1100,10 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; DIR must be file-name-as-directory, as with all directory args in
   ;; Emacs Lisp code.
   (or dir (setq dir default-directory))
+  ;; This case comes into play if default-directory is set to
+  ;; use ~.
+  (if (and (> (length dir) 0) (= (aref dir 0) ?~))
+      (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
     (if no-error
