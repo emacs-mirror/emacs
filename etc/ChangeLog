@@ -1,3 +1,8 @@
+2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.xpm, gnus-pointer.xbm, gnus-pointer.xpm: Import from the
+	v5_10 branch of the Gnus repository.
+
 2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* MORE.STUFF: Tramp is now distributed with Emacs.
