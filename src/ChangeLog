@@ -1,3 +1,12 @@
+2000-03-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (enum re_opcode_t): New opcode on_failure_jump_nastyloop.
+	(print_partial_compiled_pattern, re_compile_fastmap): Handle new opcode.
+	(regex_compile): Use on_failure_jump_nastyloop for non-greedy loops.
+	(re_match_2_internal): Add code for on_failure_jump_nastyloop when
+	executing it as well as when popping it off the stack to find infinite
+	loops in non-greedy repetition operators.
+
 2000-03-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* doc.c (Qfunction_documentation): New variable.
