@@ -1716,8 +1716,14 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 		(rename-buffer buffer-new-name)))
 	  ;; If buffer has no file name, ask user for one.
 	  (or buffer-file-name
-	      (set-visited-file-name
-	       (expand-file-name (read-file-name "File to save in: ") nil)))
+	      (let ((filename
+		     (expand-file-name
+		      (read-file-name "File to save in: ") nil)))
+		(and (file-exists-p filename)
+		     (or (y-or-n-p (format "File `%s' exists; overwrite? "
+					   filename))
+			 (error "Canceled")))
+		(set-visited-file-name filename)))
 	  (or (verify-visited-file-modtime (current-buffer))
 	      (not (file-exists-p buffer-file-name))
 	      (yes-or-no-p
