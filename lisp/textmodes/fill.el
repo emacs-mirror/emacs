@@ -72,21 +72,22 @@ subtracted from `fill-column'.
 The fill column to use for a line is the first column at which the column
 number equals or exceeds the local fill-column - right-margin difference."
   (save-excursion
-    (let* ((here (progn (beginning-of-line) (point)))
-	   (here-col 0)
-	   (eol (progn (end-of-line) (point)))
-	   margin fill-col change col)
-      ;; Look separately at each region of line with a different right-margin
-      (while (and (setq margin (get-text-property here 'right-margin)
-			fill-col (- fill-column (or margin 0))
-			change (text-property-not-all here eol 
-						      'right-margin margin))
-		  (progn (goto-char (1- change))
-			 (setq col (current-column))
-			 (< col fill-col)))
-	(setq here change
-	      here-col col))
-      (max here-col fill-col))))
+    (if fill-column
+	(let* ((here (progn (beginning-of-line) (point)))
+	       (here-col 0)
+	       (eol (progn (end-of-line) (point)))
+	       margin fill-col change col)
+	  ;; Look separately at each region of line with a different right-margin.
+	  (while (and (setq margin (get-text-property here 'right-margin)
+			    fill-col (- fill-column (or margin 0))
+			    change (text-property-not-all
+				    here eol 'right-margin margin))
+		      (progn (goto-char (1- change))
+			     (setq col (current-column))
+			     (< col fill-col)))
+	    (setq here change
+		  here-col col))
+	  (max here-col fill-col)))))
 
 (defun canonically-space-region (beg end)
   "Remove extra spaces between words in region.
