@@ -201,9 +201,10 @@ leading @samp{+} or a final @samp{.}.
 @node Floating Point Type
 @subsection Floating Point Type
 
-  Emacs supports floating point numbers (though there is a compilation
-option to disable them).  The precise range of floating point numbers is
-machine-specific.
+  Floating point numbers are the computer equivalent of scientific
+notation.  The precise number of significant figures and the range of
+possible exponents is machine-specific; Emacs always uses the C data
+type @code{double} to store the value.
 
   The printed representation for floating point numbers requires either
 a decimal point (with at least one digit following), an exponent, or
