@@ -2404,7 +2404,7 @@ Diff mode, a major mode for viewing and editing patches, either as
 @findex smerge-mode
 @cindex failed merges
 @cindex merges, failed
-@pindex diff3
+@cindex comparing 3 files (@code{diff3})
   You can use @kbd{M-x smerge-mode} to turn on Smerge mode, a minor
 mode for editing output from the @command{diff3} program.  This is
 typically the result of a failed merge from a version control system
@@ -2519,7 +2519,7 @@ compiling it.
 @section File Archives
 @cindex mode, tar
 @cindex Tar mode
-@pindex tar
+@cindex file archives
 
   A file whose name ends in @samp{.tar} is normally an @dfn{archive}
 made by the @code{tar} program.  Emacs views these files in a special
