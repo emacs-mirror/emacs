@@ -1,3 +1,8 @@
+2003-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (set_cursor_from_row): Pay attention to string display
+	properties.
+
 2003-01-28  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
 
 	* macterm.c (keycode_to_xkeysym_table): Add <tab>, <backspace>,
