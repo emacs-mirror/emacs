@@ -50,7 +50,7 @@
 
 	* charset.c (char_to_string): If a single byte char has modifier
 	bits that can't be reflected to the character code, ignore them
-	instead of signalling an error.
+	instead of signaling an error.
 
 2001-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
