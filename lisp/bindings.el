@@ -402,7 +402,11 @@ Non-nil means mode line has been made mouse-sensitive.")
 	"^Version control package .*.el not found. Use vc.el instead$"
 	
 	;; cus-edit
-	"^No user options have changed defaults in recent Emacs versions$"))
+	"^No user options have changed defaults in recent Emacs versions$"
+
+	;; BBDB
+	"^no previous record$"
+	"^no next record$"))
 
 
 (make-variable-buffer-local 'indent-tabs-mode)
