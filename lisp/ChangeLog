@@ -1,7 +1,7 @@
 2001-08-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texnfo-upd.el (texinfo-every-node-update): Remove
-	some space from a message.  From Pavel Jan,Bm(Bk  <Pavel@Janik.cz>.
+	some spaces from a message.  From Pavel Jan,Bm(Bk  <Pavel@Janik.cz>.
 
 	* whitespace.el (whitespace-global-mode): Add autoload cookie.
 
