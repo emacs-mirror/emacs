@@ -57,6 +57,9 @@ Buffer}).  Then you can use @kbd{C-x m} or its variants described above
 to make a new @samp{*mail*} buffer.  Once you've done that, you can work
 with each mail buffer independently.
 
+@ignore
+@c Commented out because it is not user-oriented;
+@c it doesn't say how to do some job.  -- rms.
 @cindex directory servers
 @cindex LDAP
 @cindex PH/QI
@@ -65,15 +68,14 @@ There is an interface to directory servers using various protocols such
 as LDAP or the CCSO white pages directory system (PH/QI), described in a
 separate manual.  It may be useful for looking up names and addresses.
 @xref{Top,,EUDC, eudc, EUDC Manual}.
+@end ignore
 
 @menu
 * Format: Mail Format.	     Format of the mail being composed.
 * Headers: Mail Headers.     Details of permitted mail header fields.
 * Aliases: Mail Aliases.     Abbreviating and grouping mail addresses.
 * Mode: Mail Mode.	     Special commands for editing mail being composed.
-* Spook: Distracting NSA.    How to distract the NSA's attention.
-* Fortune::                  `Fortune' items in signatures.
-* Footnotes: Mail Footnotes. Making footnotes in messages.
+* Amuse: Mail Amusements.    Distracting the NSA; adding fortune messages.
 * Methods: Mail Methods.     Using alternative mail-composition methods.
 @end menu
 
@@ -154,7 +156,7 @@ Copies sent this way are called @dfn{blind carbon copies}.
 To send a blind carbon copy of every outgoing message to yourself, set
 the variable @code{mail-self-blind} to @code{t}.  To send a blind carbon
 copy of every message to some other @var{address}, set the variable
-@code{mail-default-headers} to @samp{"Bcc: @var{address}\n"}.
+@code{mail-default-headers} to @code{"Bcc: @var{address}\n"}.
 
 @item FCC
 This field contains the name of one file and directs Emacs to append a
@@ -240,9 +242,12 @@ Allow the system to insert the @samp{From} field.
 @end table
 
 @vindex mail-default-headers
-  You can force Emacs to insert specific headers into the outgoing
-message by customizing the variable @code{mail-default-headers}.  Its
-value as a string is inserted before you edit the message.
+  You can direct Emacs to insert certain default headers into the
+outgoing message by setting the variable @code{mail-default-headers}
+to a string.  Then @code{C-x m} inserts this string into the message
+headers.  If the default header fields are not appropriate for a
+particular message, edit them as appropriate before sending the
+message.
 
 @node Mail Aliases
 @section Mail Aliases
@@ -613,8 +618,8 @@ as soon as the @samp{*mail*} buffer is created.  Then the
 @code{mail-setup} function puts in the default contents of the buffer.
 After these default contents are inserted, @code{mail-setup-hook} runs.
 
-@node Distracting NSA
-@section Distracting the NSA
+@node Mail Amusements
+@section Mail Amusements
 
 @findex spook
 @cindex NSA
@@ -634,50 +639,30 @@ that they will have to give up reading it all.
 entering an outgoing message:
 
 @example
-(setq mail-signature '(spook))
+(add-hook 'mail-setup-hook 'spook)
 @end example
 
   Whether or not this confuses the NSA, it at least amuses people.
 
-@node Fortune
-@section Putting @code{fortune} Items in Signatures
-
-@pindex fortune
 @findex fortune-to-signature
-@findex fortune-from-region
-@cindex signatures, mail/news
 @cindex fortune cookies
-You can use the @code{fortune} program to create signatures for mail or
-network news messages.  (@code{fortune} prints a random---with luck,
-interesting---adage, originally inspired by `fortune cookie' messages.)
-To generate signatures, add @code{fortune-to-signature} to
-@code{mail-setup-hook} and/or @code{message-setup-hook} as appropriate.
-You can automatically cut regions to a Fortune file with @kbd{M-x
-fortune-from-region} and compile your own Fortune database.
+  You can use the @code{fortune} program to put a ``fortune cookie''
+message into outpoing mail.  To do this, add
+@code{fortune-to-signature} to @code{mail-setup-hook}:
 
-@node Mail Footnotes
-@section Making Footnotes
-@cindex footnotes
-
-@findex footnote-mode
-@kbd{M-x footnote-mode} toggles a minor mode for making footnotes in
-mail or network news messages.  It is intended for use specifically with
-Message mode but is not specific to that.  It provides commands and
-keybindings to insert footnotes, go to a given note, delete a note and
-renumber notes.  See the group @code{footnote} for customization and the
-mode's documentation for keybindings.  To set up Footnote mode for all
-messages, add @code{footnote-mode} to @code{mail-mode-hook} and/or
-@code{message-mode-hook} as appropriate.
+@example
+(add-hook 'mail-setup-hook 'fortune-to-signature)
+@end example
 
 @node Mail Methods
 @section Mail-Composition Methods
 @cindex mail-composition methods
 
-  This chapter describes the usual Emacs mode for editing and sending
-mail---Mail mode.  Emacs has alternative facilities for editing and
-sending mail, including 
 @cindex MH mail interface
 @cindex Message mode for sending mail
+  In this chapter we have described the usual Emacs mode for editing
+and sending mail---Mail mode.  Emacs has alternative facilities for
+editing and sending mail, including
 MH-E and Message mode, not documented in this manual.
 @xref{,MH-E,,mh-e, The Emacs Interface to MH}.  @xref{,Message,,message,
 Message Manual}.  You can choose any of them as your preferred method.
@@ -688,11 +673,11 @@ and facilities that send mail.
 @vindex mail-user-agent
   To specify your mail-composition method, customize the variable
 @code{mail-user-agent}.  Currently legitimate values include
-@code{sendmail-user-agent}, @code{mh-e-user-agent},
+@code{sendmail-user-agent} (Mail mode), @code{mh-e-user-agent},
 @code{message-user-agent} and @code{gnus-user-agent}.
 
-  If you select a different mail-composition method, the information in
-this chapter about the @samp{*mail*} buffer and Mail mode does not
-necessarily apply; other methods may use completely different commands
-with a different format in a differently named buffer.
+  If you select a different mail-composition method, the information
+in this chapter about the @samp{*mail*} buffer and Mail mode does not
+apply; the other methods use a different format of text in a different
+buffer, and their commands are different as well.
 
