@@ -158,7 +158,8 @@
 
 (eval-when-compile 
   (defvar comment-auto-fill-only-comments)
-  (defvar font-lock-keywords))
+  (defvar font-lock-keywords)
+  (defvar imenu--index-alist))
 
 ;; User options
 
@@ -499,7 +500,8 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
      :style toggle]
     ["Toggle abbrev-mode" abbrev-mode    :active t :selected abbrev-mode
      :style toggle]
-    ["Add imenu Menu" f90-add-imenu-menu :active (not f90-imenu-flag)
+    ["Add imenu Menu" f90-add-imenu-menu
+     :active (or (not (boundp 'imenu--index-alist)) (not imenu--index-alist))
      :visible (fboundp 'imenu-add-to-menubar)]
     ))
 
@@ -570,10 +572,6 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   "Temporary position used to speed up region operations.")
 (make-variable-buffer-local 'f90-cache-position)
 
-(defvar f90-imenu-flag nil
-  "Non-nil means this buffer already has an imenu.")
-(make-variable-buffer-local 'f90-imenu-flag)
-
 
 ;; Imenu support.
 (defvar f90-imenu-generic-expression
@@ -605,13 +603,10 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 (defun f90-add-imenu-menu ()
   "Add an imenu menu to the menubar."
   (interactive)
-  (if f90-imenu-flag
+  (if (and (boundp 'imenu--index-alist) imenu--index-alist)
       (message "%s" "F90-imenu already exists.")
     (imenu-add-to-menubar "F90-imenu")
-    (redraw-frame (selected-frame))
-    (setq f90-imenu-flag t)))
-
-(put 'f90-add-imenu-menu 'menu-enable '(not f90-imenu-flag))
+    (redraw-frame (selected-frame))))
 
 
 ;; Abbrevs have generally two letters, except standard types `c, `i, `r, `t.
