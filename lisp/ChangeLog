@@ -1,3 +1,7 @@
+2000-06-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* wid-edit.el (widget-member): Use the new plist-member.
+
 2000-06-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (fringe): Change face for different backgrounds.

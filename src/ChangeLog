@@ -1,3 +1,9 @@
+2000-06-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fns.c (Fplist_member): Renamed from Fwidget_plist_member.
+	(Fwidget_get): Use it.
+	(syms_of_fns): Defsubr it.
+
 2000-06-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (xim_initialize) [!USE_XIM]: Don't set up the 
