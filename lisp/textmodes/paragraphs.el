@@ -191,6 +191,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 	    (goto-char (point-min)))))
       (setq arg (1+ arg)))
     (while (and (> arg 0) (not (eobp)))
+      ;; Move forward over separator lines, and one more line.
       (while (prog1 (and (not (eobp))
 			 (progn (move-to-left-margin) (not (eobp)))
 			 (looking-at paragraph-separate))
