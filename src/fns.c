@@ -1214,7 +1214,7 @@ PARENT must be either nil or another char-table.")
       CHECK_CHAR_TABLE (parent, 0);  
 
       for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
-	if (EQ (temp, chartable))
+	if (EQ (temp, char_table))
 	  error ("Attempt to make a chartable be its own parent");
     }
 
