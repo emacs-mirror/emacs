@@ -298,7 +298,19 @@ All unmarked article in such group receive the spam mark on group entry."
   :type '(radio (const nil) regexp)
   :group 'spam)
 
-(defcustom spam-face 'gnus-splash-face
+(defface spam-face
+  '((((class color) (type tty) (background dark))
+     (:foreground "gray80" :background "gray50"))
+    (((class color) (type tty) (background light))
+     (:foreground "gray50" :background "gray80"))
+    (((class color) (background dark))
+     (:foreground "ivory2"))
+    (((class color) (background light))
+     (:foreground "ivory4"))
+    (t :inverse-video t))
+  "Face for spam-marked articles.")
+
+(defcustom spam-face 'spam-face
   "Face for spam-marked articles."
   :type 'face
   :group 'spam)

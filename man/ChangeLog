@@ -1,3 +1,8 @@
+2005-01-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Reply): `message-reply-to-function' should return
+	a list.  Suggested by ARISAWA Akihiro <ari@mbf.ocn.co.jp>.
+
 2005-01-06  Hiroshi Fujishima  <pooh@nature.tsukuba.ac.jp>  (tiny change)
 
 	* faq.texi (Changing load-path): Fix typo.
