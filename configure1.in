@@ -1032,26 +1032,6 @@ case ${HAVE_X11} in
   ;;
 esac
 
-### Check for XFree386.  It needs special hacks.
-lib_havexbsd=no
-]
-AC_HAVE_LIBRARY( Xbsd , have_libxbsd=yes , have_libxbsd=no )
-[
-if [ -n "${x_libraries}" ] && [ -f ${x_libraries}/libXbsd.a ]; then
-  have_libxbsd=yes
-fi
-
-case ${window_system} in
-  x11 )
-    if [ -d /usr/X386/include ] && [ "${have_libxbsd}" = "yes" ]; then
-      HAVE_XFREE386=yes
-      if [ "${C_SWITCH_X_SITE}" = "" ]; then
-	C_SWITCH_X_SITE="-I/usr/X386/include"
-      fi
-    fi
-  ;;
-esac
-
 #### Extract some information from the operating system and machine files.
 
 echo "Examining the machine- and system-dependent files to find out"
@@ -1147,6 +1127,16 @@ AC_HAVE_FUNCS(XrmSetDatabase random)
 CFLAGS="$CFLAGS_save"
 LIBS="$LIBS_save"
 
+case "${window_system}:${LIBS}" in
+  x11:*-lXbsd* )
+    if [ -d /usr/X386/include ]; then
+      HAVE_XFREE386=yes
+      if [ "${C_SWITCH_X_SITE}" = "" ]; then
+	C_SWITCH_X_SITE="-I/usr/X386/include"
+      fi
+    fi
+  ;;
+esac
 
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
