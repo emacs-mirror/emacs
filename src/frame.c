@@ -2133,7 +2133,29 @@ If FRAME is nil, describe the currently selected frame.")
 	{
 	  value = Fassq (parameter, f->param_alist);
 	  if (CONSP (value))
-	    value = XCDR (value);
+	    {
+	      extern char unspecified_fg[], unspecified_bg[];
+	      extern Lisp_Object Qbackground_color, Qforeground_color;
+
+	      value = XCDR (value);
+	      /* Fframe_parameters puts the actual fg/bg color names,
+		 even if f->param_alist says otherwise.  This is
+		 important when param_alist's notion of colors is
+		 "unspecified".  We need to do the same here.  */
+	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
+		{
+		  if (EQ (parameter, Qbackground_color)
+		      && strncmp (XSTRING (value)->data,
+				  unspecified_bg,
+				  XSTRING (value)->size) == 0)
+		    value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
+		  else if (EQ (parameter, Qforeground_color)
+			   && strncmp (XSTRING (value)->data,
+				       unspecified_fg,
+				       XSTRING (value)->size) == 0)
+		    value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
+		}
+	    }
 	  else if (EQ (parameter, Qdisplay_type)
 		   || EQ (parameter, Qbackground_mode))
 	    /* Avoid consing in frequent cases.  */
