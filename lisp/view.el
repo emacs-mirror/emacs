@@ -287,7 +287,7 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
 	    (eq (key-binding "\C-c") 'view-exit))
        "Type C-h for help, ? for commands, C-c to quit"
      (substitute-command-keys
-      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[exit-recursive-edit] to quit."))))
+      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit."))))
 
 (defun View-undefined ()
   (interactive)
@@ -330,7 +330,7 @@ No arg means whole window full, or number of lines set by \\[View-scroll-lines-f
 Arg is number of lines to scroll."
   (interactive "P")
   (if (pos-visible-in-window-p (point-max))
-      (exit-recursive-edit))
+      (view-exit))
   (setq lines
 	(if lines (prefix-numeric-value lines)
 	  (view-scroll-size)))
@@ -344,7 +344,7 @@ Arg is number of lines to scroll."
 	 (goto-char (point-max))
 	 (recenter -1)
 	 (message (substitute-command-keys
-		"End.  Type \\[exit-recursive-edit] to quit viewing."))))
+		"End.  Type \\[view-exit] to quit viewing."))))
   (move-to-window-line -1)
   (beginning-of-line))
 
@@ -435,12 +435,6 @@ invocations return to earlier marks."
       (sit-for 4))))
 
 
-;;;###autoload
-(define-key ctl-x-map "v" 'view-file)
-
-;;;###autoload
-(define-key ctl-x-4-map "v" 'view-file-other-window)
-
 (provide 'view)
 
 ;;; view.el ends here

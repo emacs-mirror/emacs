@@ -1083,7 +1083,9 @@ Optional second argument EXITING means ask about certain non-file buffers
 		'("buffer" "buffers" "save")
 		(list (list ?\C-r (lambda (buf)
 				    (view-buffer buf)
-				    (setq view-exit-action 'exit-recursive-edit)
+				    (setq view-exit-action
+					  '(lambda (ignore)
+					     (exit-recursive-edit)))
 				    (recursive-edit)
 				    ;; Return nil to ask about BUF again.
 				    nil)

@@ -1,26 +1,26 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;;; Copyright Olin Shivers (1988).
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
+;; Keyword: processes
 
-;; Maintainer: Olin Shivers <shivers@cs.cmu.edu>
-;; Version: 2.03
-;; Keyword: estensions, processes
+;; Copyright (C) 1988, 1990, 1992 Free Software Foundation, Inc.
+;; Written by Olin Shivers.
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
@@ -71,7 +71,8 @@
 ;;;
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
-;;; m-s     comint-previous-similar-input   Previous similar input
+;;; m-r     comint-previous-similar-input   Previous similar input
+;;; m-s     comint-next-similar-input       Next similar input
 ;;; c-m-r   comint-previous-input-matching  Search backwards in input history
 ;;; return  comint-send-input
 ;;; c-a     comint-bol                      Beginning of line; skip prompt.
@@ -262,7 +263,8 @@ Entry to this mode runs the hooks on comint-mode-hook"
   (setq comint-mode-map (make-sparse-keymap))
   (define-key comint-mode-map "\ep" 'comint-previous-input)
   (define-key comint-mode-map "\en" 'comint-next-input)
-  (define-key comint-mode-map "\es" 'comint-previous-similar-input)
+  (define-key comint-mode-map "\er" 'comint-previous-similar-input)
+  (define-key comint-mode-map "\es" 'comint-next-similar-input)
   (define-key comint-mode-map "\C-m" 'comint-send-input)
   (define-key comint-mode-map "\C-d" 'comint-delchar-or-maybe-eof)
   (define-key comint-mode-map "\C-a" 'comint-bol)
@@ -393,107 +395,6 @@ Option comparison function ELT= defaults to equal."
     done))
 
 
-;;; Ring Code
-;;;============================================================================
-;;; This code defines a ring data structure. A ring is a 
-;;;     (hd-index tl-index . vector) 
-;;; list. You can insert to, remove from, and rotate a ring. When the ring
-;;; fills up, insertions cause the oldest elts to be quietly dropped.
-;;;
-;;; HEAD = index of the newest item on the ring.
-;;; TAIL = index of the oldest item on the ring.
-;;;
-;;; These functions are used by the input history mechanism, but they can
-;;; be used for other purposes as well.
-
-(defun ring-p (x) 
-  "T if X is a ring; NIL otherwise."
-  (and (consp x) (integerp (car x))
-       (consp (cdr x)) (integerp (car (cdr x)))
-       (vectorp (cdr (cdr x)))))
-
-(defun make-ring (size)
-  "Make a ring that can contain SIZE elts"
-  (cons 1 (cons 0 (make-vector (+ size 1) nil))))
-
-(defun ring-plus1 (index veclen)
-  "INDEX+1, with wraparound"
-  (let ((new-index (+ index 1)))
-    (if (= new-index veclen) 0 new-index)))
-
-(defun ring-minus1 (index veclen)
-  "INDEX-1, with wraparound"
-  (- (if (= 0 index) veclen index) 1))
-
-(defun ring-length (ring)
-  "Number of elts in the ring."
-  (let ((hd (car ring)) (tl (car (cdr ring)))  (siz (length (cdr (cdr ring)))))
-    (let ((len (if (<= hd tl) (+ 1 (- tl hd)) (+ 1 tl (- siz hd)))))
-      (if (= len siz) 0 len))))
-
-(defun ring-empty-p (ring)
-  (= 0 (ring-length ring)))
-
-(defun ring-insert (ring item)
-  "Insert a new item onto the ring. If the ring is full, dump the oldest
-item to make room."       
-  (let* ((vec (cdr (cdr ring)))  (len (length vec))
-	 (new-hd (ring-minus1 (car ring) len)))
-      (setcar ring new-hd)
-      (aset vec new-hd item)
-      (if (ring-empty-p ring) ;overflow -- dump one off the tail.
-	  (setcar (cdr ring) (ring-minus1 (car (cdr ring)) len)))))
-
-(defun ring-remove (ring)
-  "Remove the oldest item retained on the ring."
-  (if (ring-empty-p ring) (error "Ring empty")
-      (let ((tl (car (cdr ring)))  (vec (cdr (cdr ring))))
-	(setcar (cdr ring) (ring-minus1 tl (length vec)))
-	(aref vec tl))))
-
-;;; This isn't actually used in this package. I just threw it in in case
-;;; someone else wanted it. If you want rotating-ring behavior on your history
-;;; retrieval (analagous to kill ring behavior), this function is what you
-;;; need. I should write the yank-input and yank-pop-input-or-kill to go with
-;;; this, and not bind it to a key by default, so it would be available to
-;;; people who want to bind it to a key. But who would want it? Blech.
-(defun ring-rotate (ring n)
-  (if (not (= n 0))
-      (if (ring-empty-p ring) ;Is this the right error check?
-	  (error "ring empty")
-	  (let ((hd (car ring))  (tl (car (cdr ring)))  (vec (cdr (cdr ring))))
-	    (let ((len (length vec)))
-	      (while (> n 0)
-		(setq tl (ring-plus1 tl len))
-		(aset ring tl (aref ring hd))
-		(setq hd (ring-plus1 hd len))
-		(setq n (- n 1)))
-	      (while (< n 0)
-		(setq hd (ring-minus1 hd len))
-		(aset vec hd (aref vec tl))
-		(setq tl (ring-minus1 tl len))
-		(setq n (- n 1))))
-	    (setcar ring hd)
-	    (setcar (cdr ring) tl)))))
-
-(defun comint-mod (n m)
-  "Returns N mod M. M is positive. Answer is guaranteed to be non-negative, 
-and less than m."
-  (let ((n (% n m)))
-    (if (>= n 0) n
-	(+ n
-	   (if (>= m 0) m (- m)))))) ; (abs m)
-
-(defun ring-ref (ring index)
-  (let ((numelts (ring-length ring)))
-    (if (= numelts 0) (error "indexed empty ring")
-	(let* ((hd (car ring))  (tl (car (cdr ring)))  (vec (cdr (cdr ring)))
-	       (index (comint-mod index numelts))
-	       (vec-index (comint-mod (+ index hd) 
-				      (length vec))))
-	  (aref vec vec-index)))))
-
-
 ;;; Input history retrieval commands
 ;;; M-p -- previous input    M-n -- next input
 ;;; M-C-r -- previous input matching
@@ -510,22 +411,28 @@ and less than m."
 	   (message "Not after process mark")
 	   (ding))
 	  (t
-	   (cond ((eq last-command 'comint-previous-input)
-		  (delete-region (mark) (point)))
-		 ((eq last-command 'comint-previous-similar-input)
-		  (delete-region 
-		   (process-mark (get-buffer-process (current-buffer)))
-		   (point)))
-		 (t                          
-		  (setq comint-input-ring-index
-			(if (> arg 0) -1
-			    (if (< arg 0) 1 0)))
-		  (push-mark (point))))
-	   (setq comint-input-ring-index (comint-mod (+ comint-input-ring-index arg) len))
+	   (delete-region (point)
+			  (process-mark (get-buffer-process (current-buffer))))
+	   ;; Initialize the index on the first use of this command
+	   ;; so that the first M-p gets index 0, and the first M-n gets
+	   ;; index -1.
+	   (if (null comint-input-ring-index)
+	       (setq comint-input-ring-index
+		     (if (> arg 0) -1
+			 (if (< arg 0) 1 0))))
+	   (setq comint-input-ring-index
+		 (comint-mod (+ comint-input-ring-index arg) len))
 	   (message "%d" (1+ comint-input-ring-index))
-	   (insert (ring-ref comint-input-ring comint-input-ring-index))
-	   (setq this-command 'comint-previous-input)))))
-	 
+	   (insert (ring-ref comint-input-ring comint-input-ring-index))))))
+
+(defun comint-mod (n m)
+  "Returns N mod M.  M is positive.
+Answer is guaranteed to be non-negative, and less than m."
+  (let ((n (% n m)))
+    (if (>= n 0) n
+	(+ n
+	   (if (>= m 0) m (- m)))))) ; (abs m)
+
 (defun comint-next-input (arg)
   "Cycle forwards through input history."
   (interactive "*p")
@@ -544,7 +451,7 @@ Buffer local variable.")
 		 (list (if (string= s "") comint-last-input-match s))))
 ; (interactive "sCommand substring: ")
   (setq comint-last-input-match str) ; update default
-  (if (not (eq last-command 'comint-previous-input))
+  (if (null comint-input-ring-index)
       (setq comint-input-ring-index -1))
   (let ((str (regexp-quote str))
         (len (ring-length comint-input-ring))
@@ -553,10 +460,7 @@ Buffer local variable.")
       (setq n (+ n 1)))
     (cond ((< n len)
 	   (comint-previous-input (- n comint-input-ring-index)))
-	  (t (if (eq last-command 'comint-previous-input) 
-		 (setq this-command 'comint-previous-input))
-	     (message "Not found.")
-	     (ding)))))
+	  (t (error "Not found")))))
 
 
 ;;; These next three commands are alternatives to the input history commands
@@ -621,15 +525,20 @@ Buffer local variable.")
 (defvar comint-last-similar-string "" 
   "The string last used in a similar string search.")
 (defun comint-previous-similar-input (arg)
-  "Reenters the last input that matches the string typed so far.  If repeated 
-successively older inputs are reentered.  If arg is 1, it will go back
-in the history, if -1 it will go forward."
+  "Fetch the previous (older) input that matches the string typed so far.
+Successive repetitions find successively older matching inputs.
+A prefix argument serves as a repeat count; a negative argument
+fetches following (more recent) inputs."
   (interactive "p")
   (if (not (comint-after-pmark-p))
       (error "Not after process mark"))
-  (if (not (eq last-command 'comint-previous-similar-input))
-      (setq comint-input-ring-index -1
-	    comint-last-similar-string 
+  (if (null comint-input-ring-index)
+      (setq comint-input-ring-index
+	    (if (> arg 0) -1
+	      (if (< arg 0) 1 0))))
+  (if (not (or (eq last-command 'comint-previous-similar-input)
+	       (eq last-command 'comint-next-similar-input)))
+      (setq comint-last-similar-string 
 	    (buffer-substring 
 	     (process-mark (get-buffer-process (current-buffer)))
 	     (point))))
@@ -644,13 +553,21 @@ in the history, if -1 it will go forward."
       (setq n (+ n arg)))
     (cond ((< n len)
 	   (setq comint-input-ring-index n)
-	   (if (eq last-command 'comint-previous-similar-input)
+	   (if (or (eq last-command 'comint-previous-similar-input)
+		   (eq last-command 'comint-next-similar-input))
 	       (delete-region (mark) (point)) ; repeat
 	       (push-mark (point)))	      ; 1st time
 	   (insert (substring entry size)))
-	  (t (message "Not found.") (ding) (sit-for 1)))
+	  (t (error "Not found")))
     (message "%d" (1+ comint-input-ring-index))))
 
+(defun comint-next-similar-input (arg)
+  "Fetch the next (newer) input that matches the string typed so far.
+Successive repetitions find successively newer matching inputs.
+A prefix argument serves as a repeat count; a negative argument
+fetches previous (older) inputs."
+  (interactive "p")
+  (comint-previous-similar-input (- arg)))
 
 (defun comint-send-input () 
   "Send input to process.  After the process output mark, sends all text
@@ -681,7 +598,7 @@ If the comint is Lucid Common Lisp,
     comint-input-filter returns NIL if the input matches input-filter-regexp,
         which matches (1) all whitespace (2) :a, :c, etc.
 
-Similarly for Soar, Scheme, etc.."
+Similarly for Soar, Scheme, etc."
   (interactive)
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
@@ -700,6 +617,7 @@ Similarly for Soar, Scheme, etc.."
 	      (ring-insert comint-input-ring input))
 	  (funcall comint-input-sentinel input)
 	  (funcall comint-input-sender proc input)
+	  (setq comint-input-ring-index nil)
 	  (set-marker comint-last-input-start pmark)
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))))))
@@ -1087,8 +1005,6 @@ Useful if you accidentally suspend the top-level process."
 ;;; Filename completion in a buffer
 ;;; ===========================================================================
 ;;; Useful completion functions, courtesy of the Ergo group.
-;;; M-<Tab> will complete the filename at the cursor as much as possible
-;;; M-? will display a list of completions in the help buffer.
 
 ;;; Three commands:
 ;;; comint-dynamic-complete		Complete filename at point.
@@ -1098,15 +1014,11 @@ Useful if you accidentally suspend the top-level process."
 
 ;;; These are not installed in the comint-mode keymap. But they are
 ;;; available for people who want them. Shell-mode installs them:
-;;; (define-key cmushell-mode-map "\M-\t" 'comint-dynamic-complete)
+;;; (define-key cmushell-mode-map "\t" 'comint-dynamic-complete)
 ;;; (define-key cmushell-mode-map "\M-?"  'comint-dynamic-list-completions)))
 ;;;
 ;;; Commands like this are fine things to put in load hooks if you
-;;; want them present in specific modes. Example:
-;;; (setq cmushell-load-hook
-;;;       '((lambda () (define-key lisp-mode-map "\M-\t"
-;;;				   'comint-replace-by-expanded-filename))))
-;;;          
+;;; want them present in specific modes.
 
 
 (defun comint-match-partial-pathname ()
@@ -1136,10 +1048,10 @@ comint-dynamic-complete."
 	 (completion (file-name-completion pathnondir
 					   (or pathdir default-directory))))
     (cond ((null completion)
-	   (message "No completions of %s." pathname)
+	   (message "No completions of %s" pathname)
 	   (ding))
 	  ((eql completion t)
-	   (message "Unique completion."))
+	   (message "Unique completion"))
 	  (t				; this means a string was returned.
 	   (delete-region (match-beginning 0) (match-end 0))
 	   (insert (expand-file-name (concat pathdir completion)))))))
@@ -1157,10 +1069,10 @@ it just adds completion characters to the end of the filename."
 	 (completion (file-name-completion  pathnondir
 					   (or pathdir default-directory))))
     (cond ((null completion)
-	   (message "No completions of %s." pathname)
+	   (message "No completions of %s" pathname)
 	   (ding))
 	  ((eql completion t)
-	   (message "Unique completion."))
+	   (message "Unique completion"))
 	  (t				; this means a string was returned.
 	   (goto-char (match-end 0))
 	   (insert (substring completion (length pathnondir)))))))
@@ -1175,23 +1087,18 @@ it just adds completion characters to the end of the filename."
 	  (file-name-all-completions pathnondir
 				     (or pathdir default-directory))))
     (cond ((null completions)
-	   (message "No completions of %s." pathname)
+	   (message "No completions of %s" pathname)
 	   (ding))
 	  (t
 	   (let ((conf (current-window-configuration)))
 	     (with-output-to-temp-buffer "*Help*"
 	       (display-completion-list completions))
 	     (sit-for 0)
-	     (message "Hit space to flush.")
+	     (message "Hit space to flush")
 	     (let ((ch (read-char)))
 	       (if (= ch ?\ )
 		   (set-window-configuration conf)
 		   (setq unread-command-char ch))))))))
-
-; Ergo bindings
-; (global-set-key "\M-\t" 'comint-replace-by-expanded-filename)
-; (global-set-key "\M-?" 'comint-dynamic-list-completions)
-; (define-key shell-mode-map "\M-\t" 'comint-dynamic-complete)
 
 ;;; Converting process modes to use comint mode
 ;;; ===========================================================================

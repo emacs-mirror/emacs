@@ -118,7 +118,7 @@ the current %s and exit."
 	  (progn
 	    ;; Prompt the user about this object.
 	    (let ((cursor-in-echo-area t))
-	      (message "%s(y, n, ! ., q, %sor %s)"
+	      (message "%s(y, n, !, ., q, %sor %s) "
 		       prompt user-keys
 		       (key-description (char-to-string help-char)))
 	      (setq char (read-char)))

@@ -1,6 +1,6 @@
 ;;; c-mode.el --- C code editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: c
@@ -1122,5 +1122,57 @@ definition and conveniently use this command."
   (if (looking-at "\\\\")
       (delete-region (1+ (point))
 		     (progn (skip-chars-backward " \t") (point)))))
+
+(defun c-up-conditional (count)
+  "Move back to the containing preprocessor conditional, leaving mark behind.
+A prefix argument acts as a repeat count.  With a negative argument,
+move forward to the end of the containing preprocessor conditional.
+When going backwards, `#elif' is treated like `#else' followed by `#if'.
+When going forwards, `#elif' is ignored."
+  (interactive "p")
+  (let* ((forward (< count 0))
+	 (increment (if forward -1 1))
+	 (search-function (if forward 're-search-forward 're-search-backward))
+	 (opoint (point))
+	 (new))
+    (save-excursion
+      (while (/= count 0)
+	(if forward (end-of-line))
+	(let ((depth 0) found)
+	  (save-excursion
+	    ;; Find the "next" significant line in the proper direction.
+	    (while (and (not found)
+			;; Rather than searching for a # sign that comes
+			;; at the beginning of a line aside from whitespace,
+			;; search first for a string starting with # sign.
+			;; Then verify what precedes it.
+			;; This is faster on account of the fastmap feature of
+			;; the regexp matcher.
+			(funcall search-function
+				 "#[ \t]*\\(if\\|elif\\|endif\\)"
+				 nil t)
+			(progn
+			  (beginning-of-line)
+			  (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\)")))
+	      ;; Update depth according to what we found.
+	      (beginning-of-line)
+	      (cond ((looking-at "[ \t]*#[ \t]*endif")
+		     (setq depth (+ depth increment)))
+		    ((looking-at "[ \t]*#[ \t]*elif")
+		     (if (and forward (= depth 0))
+			 (setq found (point))))
+		    (t (setq depth (- depth increment))))
+	      ;; If this line exits a level of conditional, exit inner loop.
+	      (if (< depth 0)
+		  (setq found (point)))
+	      ;; When searching forward, start from end of line
+	      ;; so that we don't find the same line again.
+	      (if forward (end-of-line))))
+	  (or found
+	      (error "No containing preprocessor conditional"))
+	  (goto-char (setq new found)))
+	(setq count (- count increment))))
+    (push-mark)
+    (goto-char new)))
 
 ;;; c-mode.el ends here
