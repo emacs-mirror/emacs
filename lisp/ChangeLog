@@ -1,3 +1,7 @@
+2002-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* progmodes/antlr-mode.el (antlr): New URL.
+
 2002-12-10  R. Bernstein  <rocky@panix.com>
 
 	* gud.el (bashdb): Prompt now included parenthesis for subshell
