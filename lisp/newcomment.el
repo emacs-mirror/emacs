@@ -473,6 +473,10 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	    ;; are in column 0, so we first go to the likely target column.
 	    (indent-to comment-column)
 	    (setq begpos (point))
+	    ;; Ensure there's a space before the comment for things
+	    ;; like sh where it matters (as well as being neater).
+	    (unless (eq ?\  (char-syntax (char-before)))
+	      (insert ?\ ))
 	    (insert starter)
 	    (setq cpos (point-marker))
 	    (insert ender)))
