@@ -1276,39 +1276,39 @@ for the sake of consistency."
 
 (defvar yank-excluded-properties)
 
+(defun remove-yank-excluded-properties (start end)
+  "Remove `yank-excluded-properties' between START and END positions.
+Replaces `category' properties with their defined properties."
+  (let ((inhibit-read-only t))
+    ;; Replace any `category' property with the properties it stands for.
+    (unless (memq yank-excluded-properties '(t nil))
+      (save-excursion
+	(goto-char start)
+	(while (< (point) end)
+	  (let ((cat (get-text-property (point) 'category))
+		run-end)
+	    (when cat
+	      (setq run-end
+		    (next-single-property-change (point) 'category nil end))
+	      (remove-list-of-text-properties (point) run-end '(category))
+	      (add-text-properties (point) run-end (symbol-plist cat))
+	      (goto-char (or run-end end)))
+	    (setq run-end
+		  (next-single-property-change (point) 'category nil end))
+	    (goto-char (or run-end end))))))
+    (if (eq yank-excluded-properties t)
+	(set-text-properties start end nil)
+      (remove-list-of-text-properties start end
+				      yank-excluded-properties))))
+
 (defun insert-for-yank (&rest strings)
   "Insert STRINGS at point, stripping some text properties.
 Strip text properties from the inserted text
 according to `yank-excluded-properties'.
 Otherwise just like (insert STRINGS...)."
   (let ((opoint (point)))
-
     (apply 'insert strings)
-
-    (let ((inhibit-read-only t)
-	  (end (point)))
-
-      ;; Replace any `category' property with the properties it stands for.
-      (unless (memq yank-excluded-properties '(t nil))
-	(save-excursion
-	  (goto-char opoint)
-	  (while (< (point) end)
-	    (let ((cat (get-text-property (point) 'category))
-		  run-end)
-	      (when cat
-		(setq run-end
-		      (next-single-property-change (point) 'category nil end))
-		(remove-list-of-text-properties (point) run-end '(category))
-		(add-text-properties (point) run-end (symbol-plist cat))
-		(goto-char (or run-end end)))
-	      (setq run-end
-		    (next-single-property-change (point) 'category nil end))
-	      (goto-char (or run-end end))))))
-
-      (if (eq yank-excluded-properties t)
-	  (set-text-properties opoint end nil)
-	(remove-list-of-text-properties opoint end
-					yank-excluded-properties)))))
+    (remove-yank-excluded-properties opoint (point))))
 
 (defun insert-buffer-substring-no-properties (buf &optional start end)
   "Insert before point a substring of buffer BUFFER, without text properties.
@@ -1328,11 +1328,7 @@ beginning and the end of BUFFER.  Strip text properties from the
 inserted text according to `yank-excluded-properties'."
   (let ((opoint (point)))
     (insert-buffer-substring buf start end)
-    (let ((inhibit-read-only t))
-      (if (eq yank-excluded-properties t)
-	  (set-text-properties opoint (point) nil)
-	(remove-list-of-text-properties opoint (point)
-					yank-excluded-properties)))))
+    (remove-yank-excluded-properties opoint (point))))
 
 
 ;; Synchronous shell commands.
