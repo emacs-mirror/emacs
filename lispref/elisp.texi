@@ -415,6 +415,7 @@ Macros
 * Backquote::               Easier construction of list structure.
 * Problems with Macros::    Don't evaluate the macro arguments too many times.
                               Don't hide the user's variables.
+* Indenting Macros::        Specifying how to indent macro calls.
 
 Loading
 
@@ -852,6 +853,7 @@ Receiving Output from Processes
 
 * Process Buffers::         If no filter, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
+* Decoding Ouptut::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
 
 Operating System Interface
@@ -882,12 +884,21 @@ Emacs Display
 * Refresh Screen::          Clearing the screen and redrawing everything on it.
 * Truncation::              Folding or wrapping long text lines.
 * The Echo Area::           Where messages are displayed.
+* Warnings::                Displaying warning messages for the user.
 * Selective Display::       Hiding part of the buffer text.
 * Overlay Arrow::           Display of an arrow to indicate position.
 * Temporary Displays::      Displays that go away automatically.
-* Waiting::                 Forcing display update and waiting for user.
+* Overlays::		    Use overlays to highlight parts of the buffer.
+* Width::                   How wide a character or string is on the screen.
+* Faces::		    A face defines a graphics style
+                              for text characters: font, colors, etc.
+* Fringes::                 Controlling window fringes.
+* Display Property::        Enabling special display features.
+* Images::                  Displaying images in Emacs buffers.
 * Blinking::                How Emacs shows the matching open parenthesis.
-* Usual Display::	    How control characters are displayed.
+* Inverse Video::	    Specifying how the screen looks.
+* Usual Display::	    The usual conventions for displaying nonprinting chars.
+* Display Tables::	    How to specify other conventions.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
 
