@@ -227,7 +227,7 @@ struct w32_display_info
      event).  It points to the focus frame's selected window's
      frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
-  struct frame *w32_highlight_frame;
+  struct frame *x_highlight_frame;
 
   /* Cache of images.  */
   struct image_cache *image_cache;
