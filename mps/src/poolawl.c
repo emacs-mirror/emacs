@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName$
+ * $HopeName: MMsrc!poolawl.c(trunk.1) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName$");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.1) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -367,7 +367,7 @@ static Bool AWLDependentObject(Addr *objReturn, Addr parent)
   /* check wrapper wrapper is non-NULL */
   AVER(wrapper[0] != 0);
   /* check wrapper wrapper is wrapper wrapper wrapper */
-  AVER(wrapper[0] = ((Word *)wrapper[0])[0]);
+  AVER(wrapper[0] == ((Word *)wrapper[0])[0]);
   fword = wrapper[2];
   ff = fword & 3;
   /* Traceable Fixed part */
@@ -503,7 +503,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     if(!BTGet(group->mark, i)) {
       ss->wasMarked = FALSE;
       if(ss->rank == RankWEAK) {
-	*refIO == (Ref)0;
+	*refIO = (Ref)0;
       } else {
 	BTSet(group->mark, i);
 	TraceSegGreyen(space, seg, ss->traces);
