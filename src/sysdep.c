@@ -86,6 +86,11 @@ extern int h_errno;
 #include "dosfns.h"
 #include "msdos.h"
 #include <sys/param.h>
+
+#if __DJGPP__ > 1
+extern int etext;
+extern unsigned start __asm__ ("start");
+#endif
 #endif
 
 extern int errno;
@@ -454,6 +459,9 @@ wait_for_termination (pid)
 #endif /* not BSD, and not HPUX version >= 6 */
 #endif /* not VMS */
 #else /* not subprocesses */
+#if __DJGPP__ > 1
+      break;
+#else /* not __DJGPP__ > 1 */
 #ifndef BSD4_1
       if (kill (pid, 0) < 0)
 	break;
@@ -464,6 +472,7 @@ wait_for_termination (pid)
       if (status == pid || status == -1)
 	break;
 #endif /* BSD4_1 */
+#endif /* not __DJGPP__ > 1*/
 #endif /* not subprocesses */
     }
 }
@@ -725,6 +734,7 @@ sys_subshell ()
 #ifdef WINDOWSNT
   pid = -1;
 #else /* not WINDOWSNT */
+
 #ifdef MSDOS
   pid = 0;
 #else  
