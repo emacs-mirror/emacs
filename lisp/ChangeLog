@@ -15,6 +15,16 @@
 	Discard `help-echo' events.  Handle (menu-bar) events.
 	Simplify by converting key sequence to a list and then back to vector.
 	
+2002-06-21  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mwheel.el: Allow arbitrary keys for scrolling, add a third
+	scrolling speed, fix an unwind-protect.
+	(mouse-wheel-scroll-amount): Now a three-element list.
+	(mouse-wheel-scroll-down-slow, mouse-wheel-scroll-up-slow)
+	(mouse-wheel-scroll-down-normal, mouse-wheel-scroll-up-normal)
+	(mouse-wheel-scroll-down-fast, mouse-wheel-scroll-up-fast):
+	New functions.
+
 2002-06-21  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (find-file-read-args): Add new argument `mustmatch' and
