@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Provides `tool-bar-mode' to control display of the tool -bar and
+;; Provides `tool-bar-mode' to control display of the tool-bar and
 ;; bindings for the global tool bar with convenience functions
 ;; `tool-bar-add-item' and `tool-bar-add-item-from-menu'.
 
