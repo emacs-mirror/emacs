@@ -623,7 +623,9 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
 	    (delete-region
 	     (point)
 	     (save-excursion (skip-chars-backward " \t") (point)))
-	    (search-backward "@c" line-beg t)
+	    (forward-char 1)
+	    (unless (re-search-backward "@c[ \t\n]\\|@comment[ \t\n]" line-beg t)
+	      (forward-char -1))
 	    (unless (re-search-backward "@refill\\|@bye" line-beg t)
 	      (insert "@refill")))
           (forward-line 1))))))
