@@ -677,7 +677,7 @@ If you do this twice in the same position, the selection is killed."
 		(mouse-show-mark))
 	    ;; If we click this button again without moving it,
 	    ;; that time kill.
-	    (mouse-save-then-kill-delete-region (point) (mark))
+	    (mouse-save-then-kill-delete-region (mark) (point))
 	    (setq mouse-selection-click-count 0)
 	    (setq mouse-save-then-kill-posn nil))
 	(if (and (eq last-command 'mouse-save-then-kill)
@@ -709,14 +709,14 @@ If you do this twice in the same position, the selection is killed."
 			  (goto-char new)
 			(set-mark new))
 		      (setq deactivate-mark nil)))
-		(kill-new (buffer-substring (point) (mark t)) t))
+		(kill-new (buffer-substring (point) (mark t)) t)
+		(mouse-show-mark))
 	    ;; Set the mark where point is, then move where clicked.
 	    (mouse-set-mark-fast click)
 	    (if before-scroll
 		(goto-char before-scroll))
 	    (exchange-point-and-mark)
-	    (kill-ring-save (point) (mark t)))
-	  (mouse-show-mark)
+	    (kill-new (buffer-substring (point) (mark t)) t))
 	  (mouse-set-region-1)
 	  (setq mouse-save-then-kill-posn
 		(list (car kill-ring) (point) click-posn)))))))
