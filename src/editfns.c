@@ -312,10 +312,15 @@ save_excursion_restore (info)
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   unchain_marker (tem);
   tem = Fcdr (Fcdr (info));
+#if 0 /* We used to make the current buffer visible in the selected window
+	 if that was true previously.  That avoids some anomalies.
+	 But it creates others, and it wasn't documented, and it is simpler
+	 and cleaner never to alter the window/buffer connections.  */
   tem1 = Fcar (tem);
   if (!NILP (tem1)
       && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
     Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
+#endif /* 0 */
 
   tem1 = current_buffer->mark_active;
   current_buffer->mark_active = Fcdr (tem);
