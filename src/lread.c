@@ -1652,8 +1652,8 @@ read1 (readcharfun, pch, first_in_list)
 		c = read_escape (readcharfun);
 		if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_META)))
 		  {
-		    char workbuf[4];
-		    char *str = workbuf;
+		    unsigned char workbuf[4];
+		    unsigned char *str = workbuf;
 		    int length;
 
 		    length = non_ascii_char_to_string (c, workbuf, &str);
@@ -2296,7 +2296,7 @@ hash_string (ptr, len)
 void
 map_obarray (obarray, fn, arg)
      Lisp_Object obarray;
-     int (*fn) ();
+     void (*fn) P_ ((Lisp_Object, Lisp_Object));
      Lisp_Object arg;
 {
   register int i;
@@ -2316,6 +2316,7 @@ map_obarray (obarray, fn, arg)
     }
 }
 
+void
 mapatoms_1 (sym, function)
      Lisp_Object sym, function;
 {
@@ -2514,6 +2515,7 @@ defvar_kboard (namestring, offset)
    so we can see if the site changed it later during dumping.  */
 static Lisp_Object dump_path;
 
+void
 init_lread ()
 {
   char *normal;
@@ -2687,6 +2689,7 @@ init_lread ()
 /* Print a warning, using format string FORMAT, that directory DIRNAME
    does not exist.  Print it on stderr and put it in *Message*.  */
 
+void
 dir_warning (format, dirname)
      char *format;
      Lisp_Object dirname;
