@@ -651,6 +651,13 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
   aAsSdDfFgGhHjJkKlL;:'\"      \
   zZxXcCvVbBnNmM,<.>/?        \
                               ")
+   '("atari-german" . "\
+                              \
+  1!2\"3\2474$5%6&7/8(9)0=\337?'`#^  \
+  qQwWeErRtTzZuUiIoOpP\374\334+*    \
+  aAsSdDfFgGhHjJkKlL\366\326\344\304~|    \
+<>yYxXcCvVbBnNmM,;.:-_        \
+                              ")
    (cons "standard" quail-keyboard-layout-standard))
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
@@ -679,14 +686,26 @@ you type is correctly handled."
 (defun quail-keyboard-translate (ch)
   "Translate CHAR according to `quail-keyboard-layout' and return the result."
   (if (eq quail-keyboard-layout quail-keyboard-layout-standard)
+      ;; All Quail packages are designed based on
+      ;; `quail-keyboard-layout-standard'.
       ch
     (let ((i 0))
       (while (and (< i quail-keyboard-layout-len)
 		  (/= ch (aref quail-keyboard-layout i)))
 	(setq i (1+ i)))
       (if (= i quail-keyboard-layout-len)
-	  (error "Character `%c' not found in your keyboard layout" ch))
-      (aref quail-keyboard-layout-standard i))))
+	  ;; CH is not in quail-keyboard-layout, which means that a
+	  ;; user typed a key which generated a character code to be
+	  ;; handled out of Quail.  Just return CH and make
+	  ;; quail-execute-non-quail-command handle it correctly.
+	  ch
+	(let ((char (aref quail-keyboard-layout-standard i)))
+	  (if (= char ?\ )
+	      ;; A user typed a key at the location not convered by
+	      ;; quail-keyboard-layout-standard.  Just return CH as
+	      ;; well as above.
+	      ch
+	    char))))))
 
 ;; Quail map
 
@@ -1674,16 +1693,33 @@ key		binding
 	(if (= (% i 2) 0)
 	    (insert "   ")))
       (setq ch (aref quail-keyboard-layout i))
-      (if (= ch ?\ )
-	  (insert ch)
-	(let* ((map (cdr (assq ch (cdr (quail-map)))))
-	       (translation (and map (quail-get-translation 
-				      (car map) (char-to-string ch) 1))))
-	  (if (integerp translation)
-	      (insert translation)
-	    (if (consp translation)
-		(insert (aref (cdr translation) (car translation)))
-	      (insert ch)))))
+      (when (and (quail-kbd-translate)
+		 (/= ch ?\ ))
+	;; This is the case that the current input method simulates
+	;; some keyboard layout (which means it requires keyboard
+	;; translation) and a key at location `i' exists on users
+	;; keyboard.  We must translate that key by
+	;; `quail-keyboard-layout-standard'.  But if if there's no
+	;; corresponding key in that standard layout, we must simulate
+	;; what is inserted if that key is pressed by setting CH a
+	;; minus value.
+	(setq ch (aref quail-keyboard-layout-standard i))
+	(if (= ch ?\ )
+	    (setq ch (- (aref quail-keyboard-layout i)))))
+      (if (< ch 0)
+	  (let ((last-command-event (- ch)))
+	    (self-insert-command 1))
+	(if (= ch ?\ )
+	    (insert ch)
+	  (let* ((map (cdr (assq ch (cdr (quail-map)))))
+		 (translation (and map (quail-get-translation 
+					(car map) (char-to-string ch) 1))))
+	    (if (integerp translation)
+		(insert translation)
+	      (if (consp translation)
+		  (insert (aref (cdr translation) (car translation)))
+		(let ((last-command-event ch))
+		  (self-insert-command 1)))))))
       (setq i (1+ i))))
   (newline))
 
