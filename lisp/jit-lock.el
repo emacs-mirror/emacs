@@ -252,6 +252,20 @@ the variable `jit-lock-stealth-nice'."
 		     'font-lock-after-change-function nil t))
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
+(defun jit-lock-register (fun)
+  "Register FUN as a fontification function to be called by jit-lock.
+Only applies to the current buffer."
+  (add-hook 'jit-lock-functions fun nil t)
+  (jit-lock-mode t))
+
+(defun jit-lock-unregister (fun)
+  "Unregister FUN as a fontification function to be called by jit-lock.
+Only applies to the current buffer."
+  (remove-hook 'jit-lock-functions fun t)
+  (when (or (null jit-lock-functions)
+	    (and (equal jit-lock-functions '(t))
+		 (null (default-value 'jit-lock-functions))))
+    (jit-lock-mode nil)))
 
 ;; This function is used to prevent font-lock-fontify-buffer from
 ;; fontifying eagerly the whole buffer.  This is important for
