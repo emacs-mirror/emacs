@@ -648,7 +648,7 @@ the user during startup."
 	     (x-focus-frame frame)))))
 
 (defun other-frame (arg)
-  "Select the ARG'th different visible frame, and raise it.
+  "Select the ARG'th different visible frame on current display, and raise it.
 All frames are arranged in a cyclic order.
 This command selects the frame ARG steps away in that order.
 A negative ARG moves in the opposite order."
@@ -680,7 +680,7 @@ A negative ARG moves in the opposite order."
 
 (defvar frame-name-history nil)
 (defun select-frame-by-name (name)
-  "Select the frame whose name is NAME and raise it.
+  "Select the frame on the current terminal whose name is NAME and raise it.
 If there is no frame by that name, signal an error."
   (interactive
    (let* ((frame-names-alist (make-frame-names-alist))
