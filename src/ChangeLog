@@ -1,3 +1,7 @@
+2002-08-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (get_next_display_element): Remove spurious extra open-paren.
+
 2002-08-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (get_next_display_element): Fix previous change.
@@ -6,7 +10,7 @@
 
 	* sysdep.c [!VMS]: Include sys/file.h.
 	(sys_signal): Test BROKEN_SA_RESTART.
-	
+
 	* s/hpux11.h (USG_SUBTTY_WORKS): Defined.
 	(BROKEN_SA_RESTART): Defined.
 
@@ -25,8 +29,8 @@
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
-	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize
-	foreground and background colors. From Joe Buehler (tiny change).
+	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize foreground
+	and background colors.  From Joe Buehler (tiny change).
 
 2002-08-20  Kenichi Handa  <handa@etl.go.jp>
 

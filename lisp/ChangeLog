@@ -1,3 +1,11 @@
+2002-08-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-filter-return): Handle the
+	case where the filter returns a single menu-entry.
+
+	* cus-edit.el (custom-group-menu-create): Only cdr if possible
+	since custom-menu-create might return a single menu entry (a vector).
+
 2002-08-30  Juanma Barranquero  <lektu@terra.es>
 
 	* bs.el (bs-message-without-log): Fix typo.
@@ -103,8 +111,7 @@
 
 2002-07-18  Dave Love  <fx@gnu.org>
 
-	* help.el (describe-function-1): Cope with alias of manyarg
-	function.
+	* help.el (describe-function-1): Cope with alias of manyarg function.
 
 	* info-look.el: Support current auto{conf,make} manuals.
 
@@ -124,25 +131,23 @@
 
 2002-07-12  Juanma Barranquero  <lektu@terra.es>
 
-	* timer.el (timer-set-time-with-usecs): Fix documentation. Simplify
-	extraction of time data.
+	* timer.el (timer-set-time-with-usecs): Fix documentation.
+	Simplify extraction of time data.
 
 2002-07-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* files.el (insert-directory): Be sure to bind
-	coding-system-for-write to the just decided
-	coding-system-for-read.
+	coding-system-for-write to the just decided coding-system-for-read.
 
 2002-07-11  Dave Love  <fx@gnu.org>
 
-	* international/mule-cmds.el (set-language-environment): Use
-	functionp, not fboundp.
-	(locale-language-names): Don't special-case utf-8.  Use
-	Cyrillic-iso in place of Latin-5 for Cyrillic locales.
+	* international/mule-cmds.el (set-language-environment):
+	Use functionp, not fboundp.
+	(locale-language-names): Don't special-case utf-8.
+	Use Cyrillic-iso in place of Latin-5 for Cyrillic locales.
 	(locale-charset-language-names, locale-preferred-coding-systems):
 	Add utf-8.
-	(sort-coding-systems): Use coding-priority property, not
-	coding-system.
+	(sort-coding-systems): Use coding-priority property, not coding-system.
 
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
@@ -266,8 +271,8 @@
 
 2002-06-17  Dave Love  <fx@gnu.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Deal
-	better with invalid utf-8.
+	* international/utf-8.el (ccl-decode-mule-utf-8):
+	Deal better with invalid utf-8.
 	(mule-utf-8): Doc fix.
 
 2002-06-17  Eli Zaretskii <eliz@is.elta.co.il>
@@ -287,8 +292,8 @@
 
 2002-06-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
-	the table to contain correct characters.
+	* language/cyrillic.el (cyrillic-alternativnyj-decode-table):
+	Fix the table to contain correct characters.
 
 2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
