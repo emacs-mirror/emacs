@@ -1028,31 +1028,30 @@ brace."
   (if (eq (char-after) ?,)
       (forward-char 1)
     (c-backward-syntactic-ws limit))
-  (c-with-syntax-table (if (c-major-mode-is 'c++-mode)
-			   c++-template-syntax-table
-			 (syntax-table))
-    (while (and (< limit (point))
-		(eq (char-before) ?,))
-      ;; this will catch member inits with multiple
-      ;; line arglists
-      (forward-char -1)
-      (c-backward-syntactic-ws)
-      (if (eq (char-before) ?\))
-	  (c-backward-sexp 2)
+  (while (and (< limit (point))
+	      (eq (char-before) ?,))
+    ;; this will catch member inits with multiple
+    ;; line arglists
+    (forward-char -1)
+    (c-backward-syntactic-ws limit)
+    (if (eq (char-before) ?\))
 	(c-backward-sexp 1))
-      ;; Skip over any template arg to the class.
-      (if (eq (char-after) ?<)
-	  (c-backward-sexp 1))
-      ;; Skip backwards over a fully::qualified::name.
-      (c-backward-syntactic-ws limit)
-      (while (and (eq (char-before) ?:)
-		  (save-excursion
-		    (forward-char -1)
-		    (eq (char-before) ?:)))
-	(backward-char 2)
-	(c-backward-sexp 1))
-      ;; now continue checking
-      (c-backward-syntactic-ws limit)))
+    (c-backward-syntactic-ws limit)
+    ;; Skip over any template arg to the class.
+    (if (eq (char-before) ?>)
+	(c-with-syntax-table c++-template-syntax-table
+	  (c-backward-sexp 1)))
+    (c-backward-sexp 1)
+    (c-backward-syntactic-ws limit)
+    ;; Skip backwards over a fully::qualified::name.
+    (while (and (eq (char-before) ?:)
+		(save-excursion
+		  (forward-char -1)
+		  (eq (char-before) ?:)))
+      (backward-char 2)
+      (c-backward-sexp 1))
+    ;; now continue checking
+    (c-backward-syntactic-ws limit))
   (and (< limit (point))
        (eq (char-before) ?:)))
 
