@@ -1212,7 +1212,8 @@ window_loop (type, obj, mini, frames)
 		      new_buffer
 			= Fget_buffer_create (build_string ("*scratch*"));
 		    Fset_window_buffer (w, new_buffer);
-		    Fset_buffer (XWINDOW (w)->buffer);
+		    if (EQ (w, selected_window))
+		      Fset_buffer (XWINDOW (w)->buffer);
 		  }
 		else
 		  Fdelete_window (w);
