@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.32 $")
+(defconst ange-ftp-version "$Revision: 1.33 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3940,8 +3940,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       (ange-ftp-real-insert-directory file switches wildcard full))))
 
 (defun ange-ftp-dired-uncache (dir)
-  (if (ange-ftp-ftp-name (expand-file-name dir)))
-      (setq ange-ftp-ls-cache-file nil))
+  (if (ange-ftp-ftp-name (expand-file-name dir))
+      (setq ange-ftp-ls-cache-file nil)))
 
 (defvar ange-ftp-sans-version-alist nil
   "Alist of mapping host type into function to remove file version numbers.")
