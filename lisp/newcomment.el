@@ -669,6 +669,7 @@ comment markers."
     (let* ((numarg (prefix-numeric-value arg))
            (ccs comment-continue)
            (srei (comment-padright ccs 're))
+           (csre (comment-padright comment-start 're))
            (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
            spt)
       (while (and (< (point) end)
@@ -697,8 +698,11 @@ comment markers."
 			   (> (- (point) (point-min) (length comment-start)) 7))
 		       (> (count-lines (point-min) (point-max)) 2))
 	      (setq box t))
-	    (when (looking-at (regexp-quote comment-padding))
-	      (goto-char (match-end 0)))
+	    ;; Skip the padding.  Padding can come from comment-padding and/or
+	    ;; from comment-start, so we first check comment-start.
+	    (if (or (save-excursion (goto-char (point-min)) (looking-at csre))
+		    (looking-at (regexp-quote comment-padding)))
+		(goto-char (match-end 0)))
 	    (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
 	      (goto-char (match-end 0)))
 	    (if (null arg) (delete-region (point-min) (point))
