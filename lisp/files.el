@@ -556,19 +556,12 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
     (if (and (string-match abbreviated-home-dir filename)
 	     ;; If the home dir is just /, don't change it.
 	     (not (and (= (match-end 0) 1)
-		       (= (aref filename 0) ?/))))
+		       (= (aref filename 0) ?/)))
+	     (not (and (eq system-type 'ms-dos)
+		       (save-match-data
+			 (string-match "^[a-zA-Z]:/$" filename)))))
 	(setq filename
 	      (concat "~"
-		      ;; If abbreviated-home-dir ends with a slash,
-		      ;; don't remove the corresponding slash from
-		      ;; filename.  On MS-DOS and OS/2, you can have
-		      ;; home directories like "g:/", in which it is
-		      ;; important not to remove the slash.  And what
-		      ;; about poor root on Unix systems?
-		      (if (eq ?/ (aref abbreviated-home-dir
-				       (1- (length abbreviated-home-dir))))
-			  "/"
-			"")
 		      (substring filename (match-beginning 1) (match-end 1))
 		      (substring filename (match-end 0)))))
     filename))
