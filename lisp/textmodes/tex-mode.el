@@ -28,6 +28,11 @@
 
 ;;; Code:
 
+;; Pacify the byte-compiler
+(eval-when-compile
+  (require 'compare-w)
+  (require 'skeleton))
+
 (require 'shell)
 (require 'compile)
 
@@ -96,13 +101,6 @@ at the end, with blanks as separators."
   :type 'string
   :group 'tex-run)
 
-(defcustom tex-start-options-string "\\\\nonstopmode\\\\input"
-  "*TeX options to use when running TeX.
-These precede the input file name."
-  :type 'string
-  :group 'tex-run
-  :version "20.4")
-
 ;;;###autoload
 (defcustom latex-run-command "latex"
   "*Command used to run LaTeX subjob.
@@ -112,16 +110,31 @@ at the end, with blanks as separators."
   :type 'string
   :group 'tex-run)
 
+;;;###autoload
+(defcustom slitex-run-command "slitex"
+  "*Command used to run SliTeX subjob.
+If this string contains an asterisk (`*'), that is replaced by the file name;
+otherwise, the file name, preceded by blank, is added at the end."
+  :type 'string
+  :group 'tex-run)
+
+(defcustom tex-start-options-string "\\\\nonstopmode\\\\input"
+  "*TeX options to use when running TeX.
+These precede the input file name."
+  :type 'string
+  :group 'tex-run
+  :version "20.4")
+
 (defvar standard-latex-block-names
-      '("abstract"         "array"            "center"       "description"
-        "displaymath"      "document"         "enumerate"    "eqnarray"
-        "eqnarray*"        "equation"         "figure"       "figure*"
-        "flushleft"        "flushright"       "itemize"      "letter"
-        "list"             "minipage"         "picture"      "quotation"
-        "quote"            "slide"            "sloppypar"     "tabbing"
-        "table"            "table*"           "tabular"       "tabular*"
-        "thebibliography"  "theindex*"        "titlepage"     "trivlist"
-        "verbatim"         "verbatim*"        "verse")
+  '("abstract"         "array"            "center"       "description"
+    "displaymath"      "document"         "enumerate"    "eqnarray"
+    "eqnarray*"        "equation"         "figure"       "figure*"
+    "flushleft"        "flushright"       "itemize"      "letter"
+    "list"             "minipage"         "picture"      "quotation"
+    "quote"            "slide"            "sloppypar"    "tabbing"
+    "table"            "table*"           "tabular"      "tabular*"
+    "thebibliography"  "theindex*"        "titlepage"    "trivlist"
+    "verbatim"         "verbatim*"        "verse")
   "Standard LaTeX block names.")
 
 ;;;###autoload
@@ -129,14 +142,6 @@ at the end, with blanks as separators."
   "*User defined LaTeX block names.
 Combined with `standard-latex-block-names' for minibuffer completion."
   :type '(repeat string)
-  :group 'tex-run)
-
-;;;###autoload
-(defcustom slitex-run-command "slitex"
-  "*Command used to run SliTeX subjob.
-If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end."
-  :type 'string
   :group 'tex-run)
 
 ;;;###autoload
@@ -358,7 +363,7 @@ subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
 
 (defvar tex-mode-map nil "Keymap for TeX mode.")
 
-(if tex-mode-map 
+(if tex-mode-map
     nil
   (setq tex-mode-map (make-sparse-keymap))
   (tex-define-common-keys tex-mode-map)
@@ -395,7 +400,6 @@ subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
 (put 'tex-recenter-output-buffer 'menu-enable '(get-buffer "*tex-shell*"))
 (put 'tex-kill-job 'menu-enable '(tex-shell-running))
 
-
 (defvar tex-shell-map nil
   "Keymap for the TeX shell.
 Inherits `shell-mode-map' with a few additions.")
@@ -412,9 +416,6 @@ Inherits `shell-mode-map' with a few additions.")
   `((italic . "{\\em ")
     ,@tex-face-alist)
   "Alist of face and LaTeX font name for facemenu.")
-
-
-(defvar compare-windows-whitespace)	; Pacify the byte-compiler
 
 ;;; This would be a lot simpler if we just used a regexp search,
 ;;; but then it would be too slow.
@@ -542,7 +543,7 @@ tex-show-queue-command
 	Command string used by \\[tex-show-print-queue] to show the print
 	queue that \\[tex-print] put your job on.
 
-Entering Latex mode runs the hook `text-mode-hook', then 
+Entering Latex mode runs the hook `text-mode-hook', then
 `tex-mode-hook', and finally `latex-mode-hook'.  When the special
 subshell is initiated, `tex-shell-hook' is run."
   (interactive)
@@ -709,7 +710,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq compare-windows-whitespace 'tex-categorize-whitespace)
   (make-local-variable 'skeleton-further-elements)
   (setq skeleton-further-elements
-	  '((indent-line-function 'indent-relative-maybe)))
+	'((indent-line-function 'indent-relative-maybe)))
   (make-local-variable 'facemenu-add-face-function)
   (make-local-variable 'facemenu-end-add-face)
   (make-local-variable 'facemenu-remove-face-function)
@@ -823,7 +824,7 @@ on the line for the invalidity you want to see."
 		      (setq linenum (- linenum (count-lines prevpos (point))))
 		    (setq linenum (1+ (count-lines 1 start))))
 		  (setq prevpos (point))
-		  ;; Mention this mismatch in *Occur*.  
+		  ;; Mention this mismatch in *Occur*.
 		  ;; Since we scan from end of buffer to beginning,
 		  ;; add each mismatch at the beginning of *Occur*.
 		  (save-excursion
@@ -877,8 +878,8 @@ area if a mismatch is found."
 		      (error "Mismatched parentheses"))))
 	      (forward-char 1)))
 	(error
-	  (skip-syntax-forward " .>")
-	  (setq failure-point (point)))))
+	 (skip-syntax-forward " .>")
+	 (setq failure-point (point)))))
     (if failure-point
 	(progn
 	  (goto-char failure-point)
@@ -893,10 +894,10 @@ A prefix arg inhibits the checking."
   (or inhibit-validation
       (save-excursion
 	(tex-validate-region
-	  (save-excursion
-	    (search-backward "\n\n" nil 'move)
-	    (point))
-	  (point)))
+	 (save-excursion
+	   (search-backward "\n\n" nil 'move)
+	   (point))
+	 (point)))
       (message "Paragraph being closed appears to contain a mismatch"))
   (insert "\n\n"))
 
@@ -913,7 +914,7 @@ A prefix arg inhibits the checking."
 (defun latex-fill-nobreak-predicate ()
   (let ((opoint (point))
 	inside)
-    (save-excursion 
+    (save-excursion
       (save-restriction
 	(beginning-of-line)
 	(narrow-to-region (point) opoint)
@@ -1004,7 +1005,7 @@ Mark is left at original location."
 (defun tex-feed-input ()
   "Send input to the tex shell process.
 In the tex buffer this can be used to continue an interactive tex run.
-In the tex shell buffer this command behaves like `comint-send-input'." 
+In the tex shell buffer this command behaves like `comint-send-input'."
   (interactive)
   (set-buffer (process-buffer (get-process "tex-shell")))
   (comint-send-input)
@@ -1252,7 +1253,7 @@ The value of `tex-command' specifies the command to use to run TeX."
           ;; Maybe copy first line, such as `\input texinfo', to temp file.
 	  (and tex-first-line-header-regexp
 	       (looking-at tex-first-line-header-regexp)
-	       (write-region (point) 
+	       (write-region (point)
 			     (progn (forward-line 1)
 				    (setq already-output (point)))
 			     tex-out-file nil nil))
@@ -1267,7 +1268,7 @@ The value of `tex-command' specifies the command to use to run TeX."
 		(if (re-search-forward tex-end-of-header nil t)
 		    (let (hend)
 		      (forward-line 1)
-		      (setq hend (point))	;mark end of header
+		      (setq hend (point)) ;mark end of header
 		      (write-region (max (min hbeg beg) already-output)
 				    hend
 				    tex-out-file
@@ -1310,7 +1311,7 @@ This function is more useful than \\[tex-buffer] when you need the
 `.aux' file of LaTeX to have the correct name."
   (interactive)
   (let ((source-file
-	 (or tex-main-file 
+	 (or tex-main-file
 	     (if (buffer-file-name)
 		 (file-name-nondirectory (buffer-file-name))
 	       (error "Buffer does not seem to be associated with any file"))))
@@ -1363,6 +1364,10 @@ This function is more useful than \\[tex-buffer] when you need the
 (defun tex-kill-job ()
   "Kill the currently running TeX job."
   (interactive)
+  ;; quit-process leads to core dumps of the tex process (except if
+  ;; coredumpsize has limit 0kb as on many environments).  One would
+  ;; like to use (kill-process proc 'lambda), however that construct
+  ;; does not work on some systems and kills the shell itself.
   (quit-process (get-process "tex-shell") t))
 
 (defun tex-recenter-output-buffer (linenum)
@@ -1404,8 +1409,8 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
           (tex-kill-job)
         (tex-start-shell))
       (tex-send-command
-        (if alt tex-alt-dvi-print-command tex-dvi-print-command)
-        print-file-name-dvi t))))
+       (if alt tex-alt-dvi-print-command tex-dvi-print-command)
+       print-file-name-dvi t))))
 
 (defun tex-alt-print ()
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
