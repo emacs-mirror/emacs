@@ -10496,10 +10496,15 @@ x_update_window_cursor (w, on)
      struct window *w;
      int on;
 {
-  BLOCK_INPUT;
-  x_display_and_set_cursor (w, on, w->phys_cursor.hpos, w->phys_cursor.vpos,
-			    w->phys_cursor.x, w->phys_cursor.y);
-  UNBLOCK_INPUT;
+  /* Don't update cursor in windows whose frame is in the process
+     of being deleted.  */
+  if (w->current_matrix)
+    {
+      BLOCK_INPUT;
+      x_display_and_set_cursor (w, on, w->phys_cursor.hpos, w->phys_cursor.vpos,
+				w->phys_cursor.x, w->phys_cursor.y);
+      UNBLOCK_INPUT;
+    }
 }
 
 
