@@ -1,3 +1,9 @@
+2004-11-26  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-read): Replace mapcar with mapc.
+	(desktop-create-buffer): Replace mapcar with mapc. Remove
+	redundant piece of code.
+
 2004-11-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-display-line): Use display-buffer
