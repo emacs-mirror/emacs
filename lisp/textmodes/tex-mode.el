@@ -1077,7 +1077,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
          (compile-command
           (if star (concat (substring cmd 0 star)
                            file (substring cmd (1+ star)))
-            (concat cmd " " file))))
+            (concat cmd " " (comint-quote-filename file)))))
     (with-current-buffer (process-buffer (tex-send-command compile-command))
       (save-excursion
 	(forward-line -1)
