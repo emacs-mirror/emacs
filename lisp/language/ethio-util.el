@@ -1560,8 +1560,8 @@ The second and third parameters BEGIN and END specify the region."
    "reG"  "ruG"  "riG"  "raG"  "rEG"   "rG"  "roG"  "rWaG"     ;;  40
    "seG"  "suG"  "siG"  "saG"  "sEG"   "sG"  "soG"  "sWaG"     ;;  48
    "xeG"  "xuG"  "xiG"  "xaG"  "xEG"   "xG"  "xoG"  "xWaG"     ;;  56
-   "qeG"  "quG"  "qiG"  "qaG"  "qE"    "qG"  "qoG"      ""     ;;  64
-  "qWeG"     ""  "qWi" "qWaG" "qWEG"  "qWG"     ""      ""     ;;  72
+   "qeG"  "quG"  "qiG"  "qaG"  "qEG"   "qG"  "qoG"      ""     ;;  64
+  "qWeG"     "" "qWiG" "qWaG" "qWEG"  "qWG"     ""      ""     ;;  72
    "QeG"  "QuG"  "QiG"  "QaG"  "QEG"   "QG"  "QoG"      ""     ;;  80
   "QWeG"     "" "QWiG" "QWaG" "QWEG"  "QWG"     ""      ""     ;;  88
    "beG"  "buG"  "biG"  "baG"  "bEG"   "bG"  "boG"  "bWaG"     ;;  96
@@ -1572,11 +1572,11 @@ The second and third parameters BEGIN and END specify the region."
   "hWeG"     "" "hWiG" "hWaG" "hWEG"  "hWG"     ""      ""     ;; 136
    "neG"  "nuG"  "niG"  "naG"  "nEG"   "nG"  "noG"  "nWaG"     ;; 144
    "NeG"  "NuG"  "NiG"  "NaG"  "NEG"   "NG"  "NoG"  "NWaG"     ;; 152
-    "eG"   "uG"   "iG"   "AG"   "EG"   "IG"  "oGG"   "eaG"     ;; 160
+    "eG"   "uG"   "iG"   "AG"   "EG"   "IG"   "oG"   "eaG"     ;; 160
    "keG"  "kuG"  "kiG"  "kaG"  "kEG"   "kG"  "koG"      ""     ;; 168
-  "kWeG"     "" "kWiG"  "kWa" "kWEG"  "kWG"     ""      ""     ;; 176
+  "kWeG"     "" "kWiG" "kWaG" "kWEG"  "kWG"     ""      ""     ;; 176
    "KeG"  "KuG"  "KiG"  "KaG"  "KEG"   "KG"  "KoG"      ""     ;; 184
-  "KWeG"     "" "KWiG"  "KWa" "KWEG"  "KWG"     ""      ""     ;; 192
+  "KWeG"     "" "KWiG" "KWaG" "KWEG"  "KWG"     ""      ""     ;; 192
    "weG"  "wuG"  "wiG"  "waG"  "wEG"   "wG"  "woG"      ""     ;; 200
    "eeG"  "uuG"  "iiG"  "aaG"  "EEG"  "IIG"  "ooG"      ""     ;; 208
    "zeG"  "zuG"  "ziG"  "zaG"  "zEG"   "zG"  "zoG"  "zWaG"     ;; 216
@@ -1863,9 +1863,6 @@ Otherwise, [0-9A-F]."
 (add-hook 'after-save-hook 'ethio-find-file)
 
 ;;
-(provide 'language/ethio-util)
+(provide 'ethio-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; ethio-util.el ends here
