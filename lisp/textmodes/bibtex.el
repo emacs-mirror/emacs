@@ -17,6 +17,35 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Mike Newton (newton@gumby.cs.caltech.edu) 92.2.11
+;;;  * Fixed  bibtex-field string to allow things like:
+;;;   author = "{S}schr\"odinger"     or
+;;;   author = "{S}schr\"{o}dinger"   or
+;;;   author = "{S}schr{\"o}dinger"   or
+;;; NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE 
+;;; NOTE: This is the last update I plan to do.
+;;; NOTE: the previous version was submitted and, according to RMS,
+;;;       accepted as the release version for ver 19.
+;;; NOTE: PLEASE DO NOT SEND ME ANY MORE 'PLEASE ADD THIS' MESSAGES.
+;;; NOTE: I am no longer taking care of this package.
+;;; NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE 
+
+;;; Mike Newton (newton@gumby.cs.caltech.edu) 91.1.24
+;;;  * bibtex-make-optional-field : modified to make fields align up after 
+;;;    the OPT's have been removed.
+;;;  * bibtex-make-optional-field : modified to check bibtex-use-OPT-prefix
+;;;  * bibtex-make*field : modified to call new procedure:
+;;;  * bibtex-insert-field-delimeters : which does delimeter insertion based on
+;;;  * bibtex-curly-delimeters : a list of atoms
+;;;  * fixed spelling of bibtex-name-alignment wherever used
+;;;  * bibtex-inside-field : allows '}'s at end
+;;;  * bibtex-find-text : allows '{' and '}'s at start or end
+;;;  * bibtex-enclosing-regexp fixed for case where start-point was at end of 
+;;;    pattern.
+;;;  * bibtex-clean-entry : allow bibtex-save-OPT to save some optional fields
+;;;  * bibtex-move-outside-of-entry : could overwrite first line of a following
+;;;    comment or other text if it did not look like a bibtex entry
+
 ;;; Mike Newton (newton@gumby.cs.caltech.edu) 91.1.20
 ;;;  * bibtex.el/bibtex-mode : updated comments to indicate new use of 
 ;;;    address, add minor explanations and fix small omissions.
@@ -117,26 +146,35 @@
 (define-abbrev-table 'bibtex-mode-abbrev-table ())
 (defvar bibtex-mode-map (make-sparse-keymap) "")
 (defvar bibtex-pop-previous-search-point nil
-  "Next point where `bibtex-pop-previous' should start looking for a similar
+  "Next point where bibtex-pop-previous should start looking for a similar
 entry.")
 (defvar bibtex-pop-next-search-point nil
-  "Next point where `bibtex-pop-next' should start looking for a similar
+  "Next point where bibtex-pop-next should start looking for a similar
 entry.")
 
 (defvar bibtex-clean-entry-zap-empty-opts t
-  "*If non-nil, `bibtex-clean-entry' will delete all empty optional fields.")
+  "*If non-nil, bibtex-clean-entry will delete all empty optional fields.")
 (defvar bibtex-include-OPTcrossref t
-  "*If non-nil, all entries will have an `OPTcrossref' field.")
+  "*If non-nil, all entries will have an OPTcrossref field.")
 (defvar bibtex-include-OPTkey t
-  "*If non-nil, all entries will have an `OPTkey' field.")
+  "*If non-nil, all entries will have an OPTkey field.")
 (defvar bibtex-include-OPTannote t
-  "*If non-nil, all entries will have an `OPTannote' field.")
+  "*If non-nil, all entries will have an OPTannote field.")
+(defvar bibtex-use-OPT-prefix t
+  "*If non-nil, put OPT string before optionals.  Usually desired!")
+(defvar bibtex-save-OPT nil
+  "*List of atoms (representing strings) which are optional fields that
+should not be deleted if null.")
+(defvar bibtex-curly-delimeters nil
+  "List of atoms representing strings (in any case) that should have curly
+braces used as their delimeters instead of double quotes.")
+
 
 ;; note: the user should be allowed to have their own list of always
 ;;       available optional fields.  exs: "keywords" "categories"
 (defvar bibtex-mode-user-optional-fields nil		;no default value
-  "*List of optional fields that user always wants present in a bibtex entry.
-One possibility is for ``keywords''")
+  "*List of optional fields that user want to have as always present 
+when making a bibtex entry.  One possibility is for ``keywords''")
 
 
 ;;; A bibtex file is a sequence of entries, either string definitions
@@ -149,16 +187,16 @@ One possibility is for ``keywords''")
 
 ;;; fields
 (defun bibtex-cfield (name text)
-  "Create a regexp for a bibtex field of name NAME and text TEXT."
+  "Create a regexp for a bibtex field of name NAME and text TEXT"
   (concat ",[ \t\n]*\\("
 	  name
 	  "\\)[ \t\n]*=[ \t\n]*\\("
 	  text
 	  "\\)"))
 (defconst bibtex-name-in-cfield 1
-  "The regexp subexpression number of the name part in `bibtex-cfield'.")
+  "The regexp subexpression number of the name part in bibtex-cfield.")
 (defconst bibtex-text-in-cfield 2
-  "The regexp subexpression number of the text part in `bibtex-cfield'.")
+  "The regexp subexpression number of the text part in bibtex-cfield.")
 
 (defconst bibtex-field-name "[A-Za-z][---A-Za-z0-9:_+]*"
   "Regexp defining the name part of a bibtex field.")
@@ -171,17 +209,27 @@ One possibility is for ``keywords''")
 ;;   key = {Volume-2},
 ;;   note = "Volume~2 is listed under Knuth \cite{book-full}"
 ;; i have added a few of these, but not all! -- MON
+;; 92.2.11: also must handle: 
+;;   author = "{S}schr\"odinger"   or
+;;   author = "{S}schr\"{o}dinger"   or
+;;   author = "{S}schr{\"o}dinger"   or
+
 
 (defconst bibtex-field-const
   "[0-9A-Za-z][---A-Za-z0-9:_+]*"
   "Format of a bibtex field constant.")
-(defconst bibtex-field-string
+
+(defconst bibtex-field-string	;;was:(concat "\"[^\"]*[^\\\\]\"\\|\"\"")
   (concat
-    "\"[^\"]*[^\\\\]\"\\|\"\"")
-  "Match either a string or an empty string.")
+     "\"\\([^\"]*[\\\\][\"]\\)*[^\"]*[^\\\\]\""
+     "\\|"	;ie: OR
+     "\"\""
+     "\\|"	;ie: OR
+     "\"[^\"]*[^\\\\]\"")
+  "Match either a \"-d string or an empty string or a plain string.")
 (defconst bibtex-field-string-or-const
   (concat bibtex-field-const "\\|" bibtex-field-string)
-  "Match either `bibtex-field-string' or `bibtex-field-const'.")
+  "Match either bibtex-field-string or bibtex-field-const.")
 
 ;(defconst bibtex-field-text
 ;  "\"[^\"]*[^\\\\]\"\\|\"\"\\|[0-9A-Za-z][---A-Za-z0-9:_+]*"
@@ -191,60 +239,64 @@ One possibility is for ``keywords''")
   (concat
     "\\(" bibtex-field-string-or-const "\\)"
         "\\([ \t\n]+#[ \t\n]+\\(" bibtex-field-string-or-const "\\)\\)*\\|"
-    "{[^{}]*[^\\\\]}")
+    "{[^{}]*[^\\\\]}" "\\|" "{}")
   "Regexp defining the text part of a bibtex field: either a string, or
 an empty string, or a constant followed by one or more # / constant pairs.
-Also matches simple {...} patterns.")
+Also matches simple {...} patterns, including the special case {}.")
 
 (defconst bibtex-field
   (bibtex-cfield bibtex-field-name bibtex-field-text)
   "Regexp defining the format of a bibtex field")
 
 (defconst bibtex-name-in-field bibtex-name-in-cfield
-  "The regexp subexpression number of the name part in `bibtex-field'.")
+  "The regexp subexpression number of the name part in bibtex-field")
 (defconst bibtex-text-in-field bibtex-text-in-cfield
-  "The regexp subexpression number of the text part in `bibtex-field'.")
+  "The regexp subexpression number of the text part in bibtex-field")
 
 ;;; references
 (defconst bibtex-reference-type
   "@[A-Za-z]+"
-  "Regexp defining the type part of a bibtex reference entry.")
+  "Regexp defining the type part of a bibtex reference entry")
+
 (defconst bibtex-reference-head
   (concat "^[ \t]*\\("
 	  bibtex-reference-type
 	  "\\)[ \t]*[({]\\("
 	  bibtex-field-name
 	  "\\)")
-  "Regexp defining format of the header line of a bibtex reference entry.")
+  "Regexp defining format of the header line of a bibtex reference entry")
 (defconst bibtex-type-in-head 1
-  "The regexp subexpression number of the type part in `bibtex-reference-head'.")
+  "The regexp subexpression number of the type part in bibtex-reference-head")
 (defconst bibtex-key-in-head 2
-  "The regexp subexpression number of the key part in `bibtex-reference-head'.")
+  "The regexp subexpression number of the key part in
+bibtex-reference-head")
 
 (defconst bibtex-reference
   (concat bibtex-reference-head
 	  "\\([ \t\n]*" bibtex-field "\\)*"
 	  "[ \t\n]*[})]")
-  "Regexp defining the format of a bibtex reference entry.")
+  "Regexp defining the format of a bibtex reference entry")
 (defconst bibtex-type-in-reference bibtex-type-in-head
-  "The regexp subexpression number of the type part in `bibtex-reference'.")
+  "The regexp subexpression number of the type part in bibtex-reference")
 (defconst bibtex-key-in-reference bibtex-key-in-head
-  "The regexp subexpression number of the key part in `bibtex-reference'.")
+  "The regexp subexpression number of the key part in
+bibtex-reference")
 
-;;; strings
+;;; string definitions. note bibtex-string is a constant and a defun !
 (defconst bibtex-string
   (concat "^[ \t]*@[sS][tT][rR][iI][nN][gG][ \t\n]*[({][ \t\n]*\\("
 	  bibtex-field-name
 	  "\\)[ \t\n]*=[ \t\n]*\\("
 	  bibtex-field-text
 	  "\\)[ \t\n]*[})]")
-  "Regexp defining the format of a bibtex string entry.")
-(defconst bibtex-name-in-string 1
-  "The regexp subexpression of the name part in `bibtex-string'.")
-(defconst bibtex-text-in-string 2
-  "The regexp subexpression of the text part in `bibtex-string'.")
+  "Regexp defining the format of a bibtex string entry")
 
-(defconst bibtex-name-alignement 2
+(defconst bibtex-name-in-string 1
+  "The regexp subexpression of the name part in bibtex-string")
+(defconst bibtex-text-in-string 2
+  "The regexp subexpression of the text part in bibtex-string")
+
+(defconst bibtex-name-alignment 2
   "Alignment for the name part in BibTeX fields.
 Chosen on aesthetic grounds only.")
 
@@ -254,7 +306,6 @@ Equal to the space needed for the longest name part.")
 
 ;;; bibtex mode:
 
-;;;###autoload
 (defun bibtex-mode () 
   "Major mode for editing bibtex files.
 
@@ -409,7 +460,9 @@ non-nil."
 	(t
 	 (backward-paragraph)
 	 (forward-paragraph)))
-  (re-search-forward "[ \t\n]*" (point-max) t))
+  (re-search-forward "[ \t\n]*" (point-max) t)
+  (insert "\n")
+  (forward-char -1))
 
 ;;
 ;; note: this should really take lists of strings OR of lists.  in the
@@ -436,22 +489,40 @@ non-nil."
   (up-list -1)
   (forward-char 1))  
 
+(defun bibtex-insert-field-delimeters (str)
+  "Insert double quotes (default) or, if STR is in the list
+bibtex-curly-delimeters, insert curly brackets."
+  (if (and (boundp 'bibtex-curly-delimeters)
+	   bibtex-curly-delimeters
+	   (memq (car (read-from-string (downcase str)))
+		 bibtex-curly-delimeters))
+      (insert "\{\}")
+    (insert "\"\"")))
+
 (defun bibtex-make-field (str)
   (interactive "sBibTeX entry type: ")
   (insert ",\n")
-  (indent-to-column bibtex-name-alignement)
+  (indent-to-column bibtex-name-alignment)
   (insert str " = ")
   (indent-to-column bibtex-text-alignment)
-  (insert "\"\"")
+  (bibtex-insert-field-delimeters str)
   nil)
+
+;; modified to make fields align up _after_ the OPT's have been removed
 
 (defun bibtex-make-optional-field (str)
   (interactive "sOptional BibTeX entry type: ")
   (insert ",\n")
-  (indent-to-column bibtex-name-alignement)
-  (insert "OPT" str " = ")
-  (indent-to-column bibtex-text-alignment)
-  (insert "\"\"")
+  (indent-to-column bibtex-name-alignment)
+  (insert str " = ")
+  (indent-to-column bibtex-text-alignment)	;align nicely, then,...
+  (bibtex-insert-field-delimeters str)
+  (if bibtex-use-OPT-prefix
+      (progn
+	(beginning-of-line)
+	(move-to-column bibtex-name-alignment) 	;go back to name and put in OPT
+	(insert "OPT")
+	(end-of-line)))
   nil)
 
 ;; What to do about crossref?  if present, journal and year are 
@@ -594,10 +665,10 @@ non-nil."
   (if arg
       (progn
 	(goto-char (match-beginning bibtex-text-in-field))
-	(if (looking-at "\"")
+	(if (or (looking-at "\"") (looking-at "{"))
 	    (forward-char 1)))
     (goto-char (match-end bibtex-text-in-field))
-    (if (= (preceding-char) ?\")
+    (if (or (= (preceding-char) ?\") (= (preceding-char) ?}))
 	(forward-char -1))))
 
 (defun bibtex-remove-OPT ()
@@ -618,7 +689,7 @@ non-nil."
   (skip-chars-backward " \t")		;delete these chars? -- MON
   (cond ((= (preceding-char) ?,)
 	 (forward-char -1)))
-  (cond ((= (preceding-char) ?\")
+  (cond ((or (= (preceding-char) ?\") (= (preceding-char) ?\}))
 	 (forward-char -1))))		;only go back if quote
 
 
@@ -835,7 +906,7 @@ an undefined location.
     (re-search-forward regexp right nil 1)
     (if (> (match-beginning 0) initial)
 	(signal 'search-failed (list regexp)))	  
-    (while (<= (match-end 0) initial)
+    (while (< (match-end 0) initial)		;<= --> < -- MON
       (re-search-forward regexp right nil 1)
       (if (> (match-beginning 0) initial)
 	  (signal 'search-failed (list regexp))))
@@ -862,9 +933,16 @@ an undefined location.
 		  (looking-at "OPT")
 		  bibtex-clean-entry-zap-empty-opts)
 		 (goto-char begin-text)
-		 (if (looking-at "\"\"") ; empty: delete whole field
+		 (if (and (looking-at "\"\"") ; empty: delete whole field
+			  (boundp 'bibtex-save-OPT)
+			  bibtex-save-OPT
+			  (not (memq (car (read-from-string
+					   (buffer-substring
+					    (+ begin-name 3)
+					    end-name)))
+				     bibtex-save-OPT)))
 		     (delete-region begin-field end-field)
-		   ; otherwise: not empty, delete "OPT"
+		   ;; otherwise: not empty, delete "OPT"
 		   (goto-char begin-name)
 		   (delete-char (length "OPT"))
 		   (goto-char begin-field) ; and loop to go through next test
@@ -888,7 +966,12 @@ an undefined location.
 				     (equal (buffer-substring
 					     begin-name
 					     (+ begin-name 3))
-					    "opt")))
+					    "opt")
+				     (memq (car (read-from-string
+						 (buffer-substring
+						  begin-name
+						  end-name)))
+					   bibtex-save-OPT)))
 			    (error "Mandatory field ``%s'' is empty"
 				   (buffer-substring begin-name end-name))))
 		       (t
