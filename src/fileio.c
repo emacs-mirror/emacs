@@ -745,17 +745,18 @@ See also the function `substitute-in-file-name'.")
   handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
     return call3 (handler, Qexpand_file_name, name, defalt);
+
+  /* Use the buffer's default-directory if DEFALT is omitted.  */
+  if (NILP (defalt))
+    defalt = current_buffer->directory;
+  CHECK_STRING (defalt, 1);
+
   if (!NILP (defalt))
     {
       handler = Ffind_file_name_handler (defalt, Qexpand_file_name);
       if (!NILP (handler))
 	return call3 (handler, Qexpand_file_name, name, defalt);
     }
-
-  /* Use the buffer's default-directory if DEFALT is omitted.  */
-  if (NILP (defalt))
-    defalt = current_buffer->directory;
-  CHECK_STRING (defalt, 1);
 
   o = XSTRING (defalt)->data;
 
