@@ -421,53 +421,52 @@ These get fixed-format comments fontified.")
     (define-key map "9" 'fortran-electric-line-number)
 
     ;; Menu
-    (unless (boundp 'fortran-mode-menu)
-      (easy-menu-define
-       fortran-mode-menu map ""
-       `("Fortran"
-	 ["Manual" (info "(emacs)Fortran")]
-	 ["Customize" :filter (lambda (&rest junk)
-				(cdr (custom-menu-create 'fortran)))]
-	 ["Set" Custom-set t]
-	 ["Save" Custom-save t]
-	 ["Reset to Current" Custom-reset-current t]
-	 ["Reset to Saved" Custom-reset-saved t]
-	 ["Reset to Standard Settings" Custom-reset-standard t]
-	 "----"
-	 ["Toggle Auto-fill" auto-fill-mode :style toggle
-	  :selected auto-fill-function]
-	 ["Toggle abbrev-mode" abbrev-mode :style toggle :selected abbrev-mode]
-	 "----"
-	 ["Comment-out Region" fortran-comment-region mark-active]
-	 ["Uncomment-out region"
-	  (fortran-comment-region (region-beginning) (region-end) 1)
-	  mark-active]
-	 ["Indent Region" indent-region mark-active]
-	 ["Indent Subprogram" fortran-indent-subprogram t]
-	 "----"
-	 ["Beginning of Subprogram" fortran-beginning-of-subprogram t]
-	 ["End of Subprogram" fortran-end-of-subprogram t]
-	 ("Mark"
-	  ["Subprogram" mark-defun t]
-	  ["IF Block" fortran-mark-if t]
-	  ["DO Block" fortran-mark-do t])
-	 ["Narrow to Subprogram" narrow-to-defun t]
-	 ["Widen" widen t]
-	 "----"
-	 ["Temporary column ruler" fortran-column-ruler t]
-	 ["72-column window" fortran-window-create t]
-	 ["Full Width Window"
-	  (enlarge-window-horizontally (- (frame-width) (window-width)))
-	  (< (window-width) (frame-width))]
-	 ["Momentary 72-column window" fortran-window-create-momentarily t]
-	 "----"
-	 ["Break Line at Point" fortran-split-line t]
-	 ["Join Line" fortran-join-line t]
-	 ["Fill Statement/Comment" fill-paragraph  t]
-	 "----"
-	 ["Add imenu menu"
-	  imenu-add-menubar-index (not (and (boundp 'imenu--index-alist)
-					    imenu--index-alist))])))
+    (easy-menu-define
+     fortran-mode-menu map ""
+     `("Fortran"
+       ["Manual" (info "(emacs)Fortran")]
+       ("Customization"
+	,(custom-menu-create 'fortran)
+	["Set" Custom-set t]
+	["Save" Custom-save t]
+	["Reset to Current" Custom-reset-current t]
+	["Reset to Saved" Custom-reset-saved t]
+	["Reset to Standard Settings" Custom-reset-standard t])
+       "----"
+       ["Toggle Auto-fill" auto-fill-mode :style toggle
+	:selected auto-fill-function]
+       ["Toggle abbrev-mode" abbrev-mode :style toggle :selected abbrev-mode]
+       "----"
+       ["Comment-out Region" fortran-comment-region mark-active]
+       ["Uncomment-out region"
+	(fortran-comment-region (region-beginning) (region-end) 1)
+	mark-active]
+       ["Indent Region" indent-region mark-active]
+       ["Indent Subprogram" fortran-indent-subprogram t]
+       "----"
+       ["Beginning of Subprogram" fortran-beginning-of-subprogram t]
+       ["End of Subprogram" fortran-end-of-subprogram t]
+       ("Mark"
+	["Subprogram" mark-defun t]
+	["IF Block" fortran-mark-if t]
+	["DO Block" fortran-mark-do t])
+       ["Narrow to Subprogram" narrow-to-defun t]
+       ["Widen" widen t]
+       "----"
+       ["Temporary column ruler" fortran-column-ruler t]
+       ["72-column window" fortran-window-create t]
+       ["Full Width Window"
+	(enlarge-window-horizontally (- (frame-width) (window-width)))
+	(< (window-width) (frame-width))]
+       ["Momentary 72-column window" fortran-window-create-momentarily t]
+       "----"
+       ["Break Line at Point" fortran-split-line t]
+       ["Join Line" fortran-join-line t]
+       ["Fill Statement/Comment" fill-paragraph  t]
+       "----"
+       ["Add imenu menu"
+	imenu-add-menubar-index (not (and (boundp 'imenu--index-alist)
+					  imenu--index-alist))]))
     map)
   "Keymap used in Fortran mode.")
 
@@ -1789,15 +1788,14 @@ Intended as the value of `fill-paragraph-function'."
 	  (fortran-previous-statement)))
     (fortran-indent-line)))
 
-(defun fortran-strip-sqeuence-nos (do-space)
+(defun fortran-strip-sqeuence-nos (&optional do-space)
   "Delete all text after column 72 (assumed to be sequence numbers).
 Also delete trailing whitespace after stripping such text.  Supplying
-prefix arg DO-SPACE prevent stripping the whitespace."
+prefix arg DO-SPACE prevents stripping the whitespace."
   (interactive "p")
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward (concat "^" (make-string 72 ?.)" \\(.*\\)")
-			      nil t)
+    (while (re-search-forward "^.\\{72\\}\\(.*\\)" nil t)
       (replace-match "" nil nil nil 1)
       (unless do-space (delete-horizontal-space)))))
 
