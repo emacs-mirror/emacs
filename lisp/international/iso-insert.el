@@ -625,6 +625,6 @@
       (define-key global-map "\C-x8" 8859-1-map))
 )
 
-(provide 'iso8859-1-insert)
+(provide 'iso-insert)
 
 ;;; iso-insert.el ends here

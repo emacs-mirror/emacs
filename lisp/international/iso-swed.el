@@ -145,6 +145,6 @@
 (standard-display-ascii 254 "{th}")  ; small thorn, Icelandic
 (standard-display-ascii 255 "{\"y}") ; small y with diaeresis or umlaut mark
 
-(provide 'iso8859-1-swedish)
+(provide 'iso-swed)
 
 ;;; iso-swed.el ends here
