@@ -1,3 +1,9 @@
+2000-11-14  Miles Bader  <miles@gnu.org>
+
+	* window.el (fit-window-to-buffer): Handle windows without mode-lines.
+	Handle header-lines.  Don't loop forever if we can't enlarge the
+	window anymore.  Simplify a bit.
+
 2000-11-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* window.el (fit-window-to-buffer): Don't check
@@ -57,6 +63,8 @@
 	* textmodes/fill.el (skip-line-prefix): New function.
 	(fill-region-as-paragraph, fill-region):  Return the fill-prefix.
 	(fill-paragraph): Don't leave point inside the fill-prefix.
+	* textmodes/refill.el (refill-fill-paragraph-at): Don't leave
+	point inside the fill-prefix.
 
 2000-11-13  Miles Bader  <miles@lsi.nec.co.jp>
 
