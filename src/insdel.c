@@ -309,15 +309,27 @@ insert (string, length)
 {
   if (length > 0)
     {
-      insert_1 (string, length);
+      insert_1 (string, length, 0);
+      signal_after_change (PT-length, 0, length);
+    }
+}
+
+insert_and_inherit (string, length)
+     register unsigned char *string;
+     register length;
+{
+  if (length > 0)
+    {
+      insert_1 (string, length, 1);
       signal_after_change (PT-length, 0, length);
     }
 }
 
 static void
-insert_1 (string, length)
+insert_1 (string, length, inherit)
      register unsigned char *string;
      register length;
+     int inherit;
 {
   register Lisp_Object temp;
 
@@ -346,6 +358,10 @@ insert_1 (string, length)
   ZV += length;
   Z += length;
   adjust_point (length);
+
+  if (!inherit)
+    Fset_text_properties (make_number (PT - length), make_number (PT),
+			  Qnil, Qnil);
 }
 
 /* Insert the part of the text of STRING, a Lisp object assumed to be
@@ -442,7 +458,7 @@ insert_before_markers (string, length)
   if (length > 0)
     {
       register int opoint = PT;
-      insert_1 (string, length);
+      insert_1 (string, length, 1);
       adjust_markers (opoint - 1, opoint, length);
       signal_after_change (PT-length, 0, length);
     }
