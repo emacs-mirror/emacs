@@ -626,7 +626,7 @@ is given and non-nil, the unwanted frames are iconified instead."
 
 (defun frame-parameter (frame parameter)
   "Return FRAME's value for parameter PARAMETER.
-If FRAME is omitted, describe the currently selected frame."
+If FRAME is nil, describe the currently selected frame."
   (cdr (assq parameter (frame-parameters frame))))
 
 (defun frame-height (&optional frame)
