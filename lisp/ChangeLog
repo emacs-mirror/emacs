@@ -1,6 +1,19 @@
+2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (eval-after-load): Make it work with features as well.
+
+	* log-view.el (log-view-mode): Don't mark the buffer unmodified.
+
+	* international/mule-cmds.el (describe-input-method): Setup xref.
+	(set-language-environment): Use functionp.
+	(locale-language-names, locale-charset-language-names)
+	(locale-preferred-coding-systems): Defconst and purecopy.
+
+	* language/european.el (mac-roman): Add mime-charset property.
+
 2001-11-15  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/cl.el (values, values-list, multiple-value-list) 
+	* emacs-lisp/cl.el (values, values-list, multiple-value-list)
 	(multiple-value-apply, nth-value): Use defsubst rather than defalias
 	to get better doc strings.
 
