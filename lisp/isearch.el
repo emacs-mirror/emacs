@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/05/15 20:05:36 $|$Revision: 1.33 $
+;; |$Date: 1993/05/17 18:22:37 $|$Revision: 1.34 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /home/fsf/rms/e19/lisp/RCS/isearch.el,v 1.33 1993/05/15 20:05:36 rms Exp rms $
+;;; $Header: /home/fsf/rms/e19/lisp/RCS/isearch.el,v 1.34 1993/05/17 18:22:37 rms Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.34  1993/05/17  18:22:37  rms
+; (isearch-mode): Set deactivate-mark.
+;
 ; Revision 1.33  1993/05/15  20:05:36  rms
 ; (isearch-done): Don't activate mark.
 ;
@@ -323,6 +326,11 @@ Default value, nil, means edit the string instead.")
 (or isearch-mode-map
     (let* ((i 0)
 	   (map (make-keymap)))
+      (or (vectorp (nth 1 map))
+	  (error "The initialization of isearch-mode-map must be updated"))
+      ;; Give this map a vector 256 long, for dense binding
+      ;; of a larger range of ordinary characters.
+      (setcar (cdr map) (make-vector 256 nil))
 
       ;; Make function keys, etc, exit the search.
       (define-key map [t] 'isearch-other-control-char)
@@ -336,8 +344,6 @@ Default value, nil, means edit the string instead.")
 
       ;; Printing chars extend the selection by default.
       (setq i ?\ )
-      (or (vectorp (nth 1 map))
-	  (error "The initialization of isearch-mode-map must be updated"))
       (while (< i (length (nth 1 map)))
 	(define-key map (make-string 1 i) 'isearch-printing-char)
 	(setq i (1+ i)))
