@@ -32,7 +32,7 @@ lisp = $(CURDIR)
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-EMACS = "../bin/emacs.exe"
+EMACS = "$(THISDIR)/../bin/emacs.exe"
 
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
