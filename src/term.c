@@ -2197,7 +2197,6 @@ frame's display). */)
     return Qnil;
 }
 
-
 DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
        doc: /* Return the type of the TTY device that DISPLAY uses. */)
   (display)
@@ -2214,6 +2213,22 @@ DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
     return build_string (d->display_info.tty->type);
   else
     return Qnil;
+}
+
+DEFUN ("display-controlling-tty-p", Fdisplay_controlling_tty_p, Sdisplay_controlling_tty_p, 0, 1, 0,
+       doc: /* Return non-nil if DISPLAY is on the controlling tty of the Emacs process. */)
+  (display)
+     Lisp_Object display;
+{
+  struct display *d = get_display (display);
+
+  if (!d)
+    wrong_type_argument (Qdisplay_live_p, display);
+
+  if (d->type != output_termcap || d->display_info.tty->name)
+    return Qnil;
+  else
+    return Qt;
 }
 
 
@@ -3363,6 +3378,7 @@ See `resume-tty'.  */);
   defsubr (&Stty_display_color_cells);
   defsubr (&Sdisplay_name);
   defsubr (&Sdisplay_tty_type);
+  defsubr (&Sdisplay_controlling_tty_p);
   defsubr (&Sdelete_display);
   defsubr (&Sdisplay_live_p);
   defsubr (&Sdisplay_list);

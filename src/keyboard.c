@@ -10193,7 +10193,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   struct gcpro gcpro1;
 
   if (tty_list && tty_list->next)
-    error ("Suspend is not supported with multiple ttys");
+    error ("There are other tty frames open; close them before suspending Emacs");
 
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring);

@@ -788,9 +788,9 @@ Calls `suspend-emacs' if invoked from the controlling terminal,
     (cond
      ((eq type 'x) (iconify-or-deiconify-frame))
      ((eq type t)
-      (if (display-name)
-	  (suspend-tty)
-	(suspend-emacs)))
+      (if (display-controlling-tty-p)
+	  (suspend-emacs)
+	(suspend-tty)))
      (t (suspend-emacs)))))
 
 
