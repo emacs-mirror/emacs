@@ -1,5 +1,33 @@
 2005-04-04  Lute Kamstra  <lute@gnu.org>
 
+	* autorevert.el (auto-revert-mode): Specify :group.
+	* battery.el (display-battery-mode): Specify :group.
+	* diff-mode.el (diff-minor-mode): Specify :group.
+	* font-core.el (font-lock-mode): Specify :group.
+	* hl-line.el (hl-line-mode): Specify :group.
+	* iimage.el (iimage): New customization group.
+	(iimage-mode): Specify :group.
+	* longlines.el (longlines-mode): Specify :group.
+	* master.el: Don't require easy-mmode.
+	(master): New customization group.
+	(master-mode): Specify :group.
+	* msb.el (msb-mode): Specify :group.
+	* reveal.el (reveal-mode): Specify :group.
+	* simple.el (next-error-follow-minor-mode): Specify :group.
+	* smerge-mode.el (smerge-mode): Specify :group.
+	* emacs-lisp/eldoc.el (eldoc-mode): Specify :group.
+	* emulation/cua-base.el (cua-mode): Specify :group.
+	* international/encoded-kb.el (encoded-kbd-mode): Specify :group.
+	* language/thai-util.el (thai-auto-composition-mode)
+	(thai-word-mode): Specify :group.
+	* mail/supercite.el (sc-minor-mode): Specify :group.
+	* progmodes/cwarn.el (cwarn-mode): Specify :group.
+	* progmodes/flymake.el (flymake-mode): Specify :group.
+	* progmodes/glasses.el (glasses-mode): Specify :group.
+	* progmodes/hideif.el (hide-ifdef-mode): Specify :group.
+	* textmodes/enriched.el (enriched-mode): Specify :group.
+	* textmodes/refill.el (refill-mode): Specify :group.
+
 	* add-log.el (change-log-font-lock-keywords): Names in
 	parenthesized lists can contain spaces.
 
