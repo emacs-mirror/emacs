@@ -1,3 +1,19 @@
+2004-01-03  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* progmodes/idlwave.el (idlwave-make-tags): 
+	* textmodes/flyspell.el (flyspell-large-region):.
+	* progmodes/make-mode.el (makefile-query-by-make-minus-q):
+	* emulation/viper-util.el (viper-glob-unix-files):
+	* emacs-lisp/shadow.el (shadow-same-file-or-nonexistent):
+	* man.el (Man-init-defvars):
+	* jka-compr.el (jka-compr-call-process):
+	* files.el (get-free-disk-space,insert-directory):
+	* ediff-ptch.el (ediff-test-patch-utility):
+	* ediff-diff.el (ediff-test-utility):
+	* dired-aux.el (dired-check-process):
+	* mail/sendmail.el (sendmail-send-it): Don't use = or zerop to
+	test the return value of call-process, because it can be a string.
+
 2003-12-31  John Paul Wallington  <jpw@gnu.org>
 
 	* bindings.el (completion-ignored-extensions): Add .pfsl.
