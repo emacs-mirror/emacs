@@ -29,6 +29,12 @@
 ;; function that generates the actual text of the help into the current
 ;; buffer.
 
+;; To make this the default, you must do
+;; (require 'ehelp)
+;; (define-key global-map "\C-h" 'ehelp-command)
+;; (define-key global-map [help] 'ehelp-command)
+;; (define-key global-map [f1] 'ehelp-command)
+
 ;;; Code:
 
 (require 'electric)
@@ -71,11 +77,15 @@
 
 ;;;###autoload
 (defun with-electric-help (thunk &optional buffer noerase)
-  "Arguments are THUNK &optional BUFFER NOERASE.  BUFFER defaults to `*Help*'.
+  "Pop up an \"electric\" help buffer.
+Arguments are THUNK &optional BUFFER NOERASE.  BUFFER defaults to `*Help*'.
 THUNK is a function of no arguments which is called to initialize
 the contents of BUFFER.  BUFFER will be erased before THUNK is called unless
 NOERASE is non-nil.  THUNK will be called with `standard-output' bound to
-the buffer specified by BUFFER
+the buffer specified by BUFFER.
+
+If THUNK returns nil, we display BUFFER starting at the top, and
+shrink the window to fit.  If THUNK returns non-nil, we don't do those things.
 
 After THUNK has been called, this function \"electrically\" pops up a window
 in which BUFFER is displayed and allows the user to scroll through that buffer
@@ -322,8 +332,6 @@ will select it.)"
 
     (setq ehelp-map map)
     (fset 'ehelp-command map)))
-
-;; Do (define-key global-map "\C-h" 'ehelp-command) if you want to win
 
 (provide 'ehelp) 
 
