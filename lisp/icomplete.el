@@ -1,6 +1,7 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994, 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001
+;;;  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
@@ -172,17 +173,18 @@ is minibuffer."
 
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
-(defun icomplete-mode (&optional prefix)
-  "Activate incremental minibuffer completion for this Emacs session.
-Deactivates with negative universal argument."
-  (interactive "p")
-  (or prefix (setq prefix 0))
-  (cond ((>= prefix 0)
-	 (setq icomplete-mode t)
-	 ;; The following is not really necessary after first time -
-	 ;; no great loss.
-	 (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))
-	(t (setq icomplete-mode nil))))
+(defun icomplete-mode (&optional arg)
+  "Toggle incremental minibuffer completion for this Emacs session.
+With a numeric argument, turn Icomplete mode on iff ARG is positive."
+  (interactive "P")
+  (let ((on-p (if (null arg)
+		  (not icomplete-mode)
+		(> (prefix-numeric-value arg) 0))))
+    (setq icomplete-mode on-p)
+    (when on-p
+      ;; The following is not really necessary after first time -
+      ;; no great loss.
+      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))))
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
