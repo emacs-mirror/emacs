@@ -2928,6 +2928,9 @@ timer_stop_idle ()
   EMACS_SET_SECS_USECS (timer_idleness_start_time, -1, -1);
 }
 
+/* This is only for debugging.  */
+struct input_event last_timer_event;
+
 /* Check whether a timer has fired.  To prevent larger problems we simply
    disregard elements that are not proper timers.  Do not make a circular
    timer list for the time being.
@@ -3121,6 +3124,8 @@ timer_check (do_it_now)
 		  event.frame_or_window
 		    = Fcons (Fselected_frame (), chosen_timer);
 		  kbd_buffer_store_event (&event);
+
+		  last_timer_event = event;
 
 		  /* Tell caller to handle this event right away.  */
 		  events_generated = 1;
