@@ -297,7 +297,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
       ;; Look for chapters and sections.
       (goto-char (point-min))
       (while (search-forward-regexp
-	      (eval-when-compile
+	      (progn
 		(concat "\\\\" (regexp-opt (mapcar 'car latex-section-alist) t)
 			"\\*?[ \t]*{")) nil t)
 	(let ((start (match-beginning 0))
@@ -1467,8 +1467,9 @@ Runs the shell command defined by `tex-show-queue-command'."
 
 (defvar latex-outline-regexp
   (concat "\\\\"
-	  (regexp-opt (list* "documentstyle" "documentclass"
-			     "begin{document}" "end{document}" "appendix"
+	  (regexp-opt (nconc (list "documentstyle" "documentclass"
+				   "begin{document}" "end{document}"
+				   "appendix")
 			     (mapcar 'car latex-section-alist)) t)))
 
 (defun latex-outline-level ()
