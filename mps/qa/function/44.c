@@ -1,13 +1,14 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!44.c(trunk.4) $
  summary = clamp and space_collect tests
  language = c
+ harness = 2.1
  link = testlib.o exfmt.o
 OUTPUT_SPEC
  diff0 > 0
  diff1 > 0
- result = pass
+ completed = yes
 END_HEADER
 */
 
@@ -107,9 +108,9 @@ static void test(void)
    DC;
    comment("...collecting:");
    RC;
-   size0 = mps_arena_committed(space);
+   size0 = arena_committed_and_used(space);
    mps_arena_collect(space);
-   size1 = mps_arena_committed(space);
+   size1 = arena_committed_and_used(space);
    report("sizebefore0", "%lu", (unsigned long) size0);
    report("sizeafter0", "%lu", (unsigned long) size1);
    report("diff0", "%lu", (unsigned long) size0-size1);
@@ -145,9 +146,9 @@ static void test(void)
   DC;
   if (j==9) {
    comment("collecting...");
-   size0 = mps_arena_committed(space);
+   size0 = arena_committed_and_used(space);
    mps_arena_collect(space);
-   size1 = mps_arena_committed(space);
+   size1 = arena_committed_and_used(space);
    report("sizebefore1", "%lu", (unsigned long) size0);
    report("sizeafter1", "%lu", (unsigned long) size1);
    report("diff1", "%lu", (unsigned long) size0-size1);
