@@ -1377,8 +1377,12 @@ single_submenu (item_key, item_name, maps)
      But don't make a pane that is empty--ignore that map instead.  */
   for (i = 0; i < len; i++)
     {
-      if (SYMBOLP (mapvec[i]))
+      if (SYMBOLP (mapvec[i])
+	  || (CONSP (mapvec[i])
+	      && NILP (Fkeymapp (mapvec[i]))))
 	{
+	  /* Here we have a command at top level in the menu bar
+	     as opposed to a submenu.  */
 	  top_level_items = 1;
 	  push_menu_pane (Qnil, Qnil);
 	  push_menu_item (item_name, Qt, item_key, mapvec[i], Qnil);
