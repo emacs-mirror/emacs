@@ -327,11 +327,11 @@ display tables, and the language environment options as appropriate."
     (run-hooks 'dos-codepage-setup-hook)
     ))
 
-;; FIXME: Korean and Chinese codepages should be added here, but I
-;; don't know what coding systems do they support.  The codepages in
-;; point are 934, 936, 938, 944, and 948.
 (defvar cjk-codepages-alist
-  '((932 "Japanese" japanese-shift-jis))
+  '((932 "Japanese" japanese-shift-jis)
+    (950 "Chinese-BIG5" cn-big5)
+    (936 "Chinese-GB" cn-gb-2312)
+    (949 "Korean" euc-kr))
   "An alist of Far-Eastern codepages and the names of the associated
 language and supported coding system.")
 
@@ -355,7 +355,7 @@ list.  You can (and should) also run it whenever the value of
       ;; MULE native coding systems directly.
       (setq coding-dos (intern (format "%s-dos" coding))
 	    coding-unix (intern (format "%s-unix" coding)))
-      (set-language-environment (car desc))
+      (set-language-environment lang)
       (set-selection-coding-system coding-dos)
       (setq file-name-coding-system coding-unix)
       (set-terminal-coding-system
