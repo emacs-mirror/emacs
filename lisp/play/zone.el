@@ -44,9 +44,6 @@
 (require 'tabify)
 (eval-when-compile (require 'cl))
 
-(defvar zone-idle 20
-  "*Seconds to idle before zoning out.")
-
 (defvar zone-timer nil
   "The timer we use to decide when to zone out, or nil if none.")
 
