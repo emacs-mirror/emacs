@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.9
+;; Version: 1.4.10
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -721,6 +721,48 @@ function like this: (sql-get-login 'user 'password 'database)."
 	    (read-from-minibuffer "Database: " sql-database nil nil
 				  sql-database-history))))
 
+(defun sql-find-sqli-buffer ()
+  "Return the current default SQLi buffer or nil.
+In order to qualify, the SQLi buffer must be alive,
+be in `sql-interactive-mode' and have a process."
+  (if (and (buffer-live-p (default-value 'sql-buffer))
+	   (get-buffer-process (default-value 'sql-buffer)))
+      sql-buffer
+    (save-excursion
+      (let ((buflist (buffer-list))
+	    (found))
+	(while (not (or (null buflist)
+			found))
+	  (let ((candidate (car buflist)))
+	    (set-buffer candidate)
+	    (if (and (equal major-mode 'sql-interactive-mode)
+		     (get-buffer-process candidate))
+		(setq found candidate))
+	    (setq buflist (cdr buflist))))
+	found))))
+
+(defun sql-set-sqli-buffer-generally ()
+  "Set SQLi buffer for all SQL buffers that have none.  
+This function checks all SQL buffers for their SQLi buffer.  If their
+SQLi buffer is nonexistent or has no process, it is set to the current
+default SQLi buffer.  The current default SQLi buffer is determined
+using `sql-find-sqli-buffer'.  If `sql-buffer' is set,
+`sql-set-sqli-hook' is run."
+  (interactive)
+  (save-excursion
+    (let ((buflist (buffer-list))
+	  (default-sqli-buffer (sql-find-sqli-buffer)))
+      (setq-default sql-buffer default-sqli-buffer)
+      (while (not (null buflist))
+	(let ((candidate (car buflist)))
+	  (set-buffer candidate)
+	  (if (and (equal major-mode 'sql-mode)
+		   (not (buffer-live-p sql-buffer)))
+	      (progn
+		(setq sql-buffer default-sqli-buffer)
+		(run-hooks 'sql-set-sqli-hook))))
+	(setq buflist (cdr buflist))))))
+
 (defun sql-set-sqli-buffer ()
   "Set the SQLi buffer SQL strings are sent to.
 
@@ -734,11 +776,22 @@ If you call it from a SQL buffer, this sets the local copy of
 If you call it from anywhere else, it sets the global copy of
 `sql-buffer'."
   (interactive)
-  (let ((new-buffer (get-buffer (read-buffer "New SQLi buffer: " nil t))))
-    (if new-buffer
-	(progn
-	  (setq sql-buffer new-buffer)
-	  (run-hooks 'sql-set-sqli-hook)))))
+  (let ((default-buffer (sql-find-sqli-buffer)))
+    (if (null default-buffer)
+	(error "There is no suitable SQLi buffer"))
+    (let ((new-buffer
+	   (get-buffer
+	    (read-buffer "New SQLi buffer: " default-buffer t))))
+      (if (null (get-buffer-process new-buffer))
+	  (error "Buffer %s has no process" (buffer-name new-buffer)))
+      (if (null (save-excursion
+		  (set-buffer new-buffer)
+		  (equal major-mode 'sql-interactive-mode)))
+	  (error "Buffer %s is no SQLi buffer" (buffer-name new-buffer)))
+      (if new-buffer
+	  (progn
+	    (setq sql-buffer new-buffer)
+	    (run-hooks 'sql-set-sqli-hook))))))
 
 (defun sql-show-sqli-buffer ()
   "Show the name of current SQLi buffer.
@@ -788,9 +841,9 @@ Inserts SELECT or commas if appropriate."
        ((save-excursion (beginning-of-line)
 			(looking-at (concat comint-prompt-regexp "$")))
 	(insert "SELECT "))
-       ;; else if appending to SELECT or ORDER BY, insert a comma
+       ;; else if appending to INTO .* (, SELECT or ORDER BY, insert a comma
        ((save-excursion
-	  (re-search-backward "\\b\\(select\\|order by\\) .+"
+	  (re-search-backward "\\b\\(\\(into\\s-+\\S-+\\s-+(\\)\\|select\\|order by\\) .+"
 			      (save-excursion (beginning-of-line) (point)) t))
 	(insert ", "))
        ;; else insert a space
