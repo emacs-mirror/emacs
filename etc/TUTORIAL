@@ -2,8 +2,8 @@ Copyright (c) 1985 Free Software Foundation, Inc;  See end for conditions.
 
 You are looking at the Emacs tutorial.
 
-Emacs commands generally involve the CONTROL key (sometimes labelled
-CTRL or CTL) or the META key (sometimes labelled EDIT or ALT).  Rather than
+Emacs commands generally involve the CONTROL key (sometimes labeled
+CTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than
 write out META or CONTROL each time we want you to prefix a character,
 we'll use the following abbreviations:
 
@@ -12,7 +12,7 @@ we'll use the following abbreviations:
  M-<chr>  means hold the META or EDIT or ALT key down while typing <chr>.
 	  If there is no META key or equivalent, type <ESC>, release it,
 	  then type the character <chr>.  "<ESC>" stands for the
-	  key labelled "ESC".
+	  key labeled "ESC".
 
 Important note: to end the Emacs session, type C-x C-c.  (Two characters.)
 The characters ">>" at the left margin indicate directions for you to
