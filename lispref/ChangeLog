@@ -1,3 +1,7 @@
+2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* files.texi (Changing Files): Document set-file-times.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.

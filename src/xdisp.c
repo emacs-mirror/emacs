@@ -18707,7 +18707,8 @@ x_produce_glyphs (it)
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  lh = Fget_text_property (IT_CHARPOS (*it), Qline_height, it->object);
+	  lh = Fget_text_property (make_number (IT_CHARPOS (*it)),
+				   Qline_height, it->object);
 
 	  if (EQ (lh, Qt))
 	    {
@@ -18753,17 +18754,20 @@ x_produce_glyphs (it)
 	      if (INTEGERP (lh))
 		explicit_height = XINT (lh);
 	      else if (FLOATP (lh))
-		explicit_height = (it->phys_ascent + it->phys_descent) * XFLOAT_DATA (lh);
+		explicit_height = (it->phys_ascent + it->phys_descent)
+		  * XFLOAT_DATA (lh);
 
 	      if (explicit_height > it->ascent + it->descent)
 		it->ascent = explicit_height - it->descent;
 	    }
 
-	  lsp = Fget_text_property (IT_CHARPOS (*it), Qline_spacing, it->object);
+	  lsp = Fget_text_property (make_number (IT_CHARPOS (*it)),
+				    Qline_spacing, it->object);
 	  if (INTEGERP (lsp))
 	    extra_line_spacing = XINT (lsp);
 	  else if (FLOATP (lsp))
-	    extra_line_spacing = (it->phys_ascent + it->phys_descent) * XFLOAT_DATA (lsp);
+	    extra_line_spacing = (it->phys_ascent + it->phys_descent)
+	      * XFLOAT_DATA (lsp);
 	}
       else if (it->char_to_display == '\t')
 	{
@@ -21342,8 +21346,8 @@ phys_cursor_in_rect_p (w, r)
 	 I assume the effect is the same -- and this is portable.  */
       return x_intersect_rectangles (&cr, r, &result);
     }
-  else
-    return 0;
+  /* If we don't understand the format, pretend we're not in the hot-spot.  */
+  return 0;
 }
 
 

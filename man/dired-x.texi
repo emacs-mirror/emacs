@@ -696,7 +696,7 @@ Each element of the alist looks like
 @end example
 
 @noindent
-where each @var{command} can either be a string or a lisp expression
+where each @var{command} can either be a string or a Lisp expression
 that evaluates to a string.  If several commands are given, all of
 them will temporarily be pushed onto the history.
 
@@ -927,11 +927,11 @@ List of extensions of dispensable files created by Bib@TeX{}.
 @kindex M-(
 @findex dired-mark-sexp
 @cindex Lisp expression, marking files with in Dired
-@cindex Mark file by lisp expression
+@cindex Mark file by Lisp expression
 (@code{dired-mark-sexp}) Mark files for which @var{predicate} returns
 non-@code{nil}.  With a prefix argument, unflag those files instead.
 
-The @var{predicate} is a lisp expression that can refer to the following
+The @var{predicate} is a Lisp expression that can refer to the following
 symbols:
 @table @code
 @item inode
@@ -965,7 +965,7 @@ For example, use
 @end example
 to mark all zero length files.
 
-To find out all not yet compiled Emacs lisp files in a directory, Dired
+To find out all not yet compiled Emacs Lisp files in a directory, Dired
 all @file{.el} files in the lisp directory using the wildcard
 @samp{*.el}.  Then use @kbd{M-(} with
 @example
@@ -998,7 +998,7 @@ directory in special major modes:
 Default: @code{((dired-mode . (dired-current-directory)))}
 
 Alist of major modes and their notion of @code{default-directory}, as a
-lisp expression to evaluate.  A resulting value of @code{nil} is ignored
+Lisp expression to evaluate.  A resulting value of @code{nil} is ignored
 in favor of @code{default-directory}.
 
 @item default-directory

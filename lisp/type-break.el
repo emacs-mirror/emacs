@@ -30,10 +30,10 @@
 ;; The docstring for the function `type-break-mode' summarizes most of the
 ;; details of the interface.
 
-;; This package relies on the assumption that you live entirely in emacs,
+;; This package relies on the assumption that you live entirely in Emacs,
 ;; as the author does.  If that's not the case for you (e.g. you often
-;; suspend emacs or work in other windows) then this won't help very much;
-;; it will depend on just how often you switch back to emacs.  At the very
+;; suspend Emacs or work in other windows) then this won't help very much;
+;; it will depend on just how often you switch back to Emacs.  At the very
 ;; least, you will want to turn off the keystroke thresholds and rest
 ;; interval tracking.
 
@@ -95,12 +95,23 @@ use either \\[customize] or the function `type-break-mode'."
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
   "*Number of seconds of idle time considered to be an adequate typing rest.
 
-When this variable is non-nil, emacs checks the idle time between
+When this variable is non-nil, Emacs checks the idle time between
 keystrokes.  If this idle time is long enough to be considered a \"good\"
 rest from typing, then the next typing break is simply rescheduled for later.
 
 If a break is interrupted before this much time elapses, the user will be
 asked whether or not really to interrupt the break."
+  :type 'integer
+  :group 'type-break)
+
+;;;###autoload
+(defcustom type-break-good-break-interval nil
+  "*Number of seconds considered to be an adequate explicit typing rest.
+
+When this variable is non-nil, its value is considered to be a \"good\"
+length (in seconds) for a break initiated by the command `type-break',
+overriding `type-break-good-rest-interval'.  This provides querying of
+break interruptions when `type-break-good-rest-interval' is nil."
   :type 'integer
   :group 'type-break)
 
@@ -200,15 +211,30 @@ Format specifiers are as used by `format-time-string'."
   '(type-break-demo-boring type-break-demo-life type-break-demo-hanoi)
   "*List of functions to consider running as demos during typing breaks.
 When a typing break begins, one of these functions is selected randomly
-to have emacs do something interesting.
+to have Emacs do something interesting.
 
 Any function in this list should start a demo which ceases as soon as a
 key is pressed."
   :type '(repeat function)
   :group 'type-break)
 
+(defcustom type-break-demo-boring-stats nil
+  "*Show word per minute and keystroke figures in the Boring demo."
+  :type 'boolean
+  :group 'type-break)
+
+(defcustom type-break-terse-messages nil
+  "*Use slightly terser messages."
+  :type 'boolean
+  :group 'type-break)
+
+(defcustom type-break-file-name (convert-standard-filename "~/.type-break")
+  "*Name of file used to save state across sessions."
+  :type 'file
+  :group 'type-break)
+
 (defvar type-break-post-command-hook '(type-break-check)
-  "Hook run indirectly by post-command-hook for typing break functions.
+  "Hook run indirectly by `post-command-hook' for typing break functions.
 This is not really intended to be set by the user, but it's probably
 harmless to do so.  Mainly it is used by various parts of the typing break
 program to delay actions until after the user has completed some command.
@@ -257,7 +283,7 @@ See also `type-break-mode-line-format' and its members."
 
 This variable, in conjunction with `type-break-warning-countdown-string-type'
 \(which indicates whether this value is a number of keystrokes or seconds)
-is installed in mode-line-format to notify of imminent typing breaks.")
+is installed in `mode-line-format' to notify of imminent typing breaks.")
 
 (defvar type-break-warning-countdown-string-type nil
   "Indicates the unit type of `type-break-warning-countdown-string'.
@@ -275,6 +301,8 @@ It will be either \"seconds\" or \"keystrokes\".")
 (defvar type-break-current-keystroke-warning-interval nil)
 (defvar type-break-time-warning-count 0)
 (defvar type-break-keystroke-warning-count 0)
+(defvar type-break-interval-start nil)
+
 
 ;;;###autoload
 (defun type-break-mode (&optional prefix)
@@ -284,7 +312,7 @@ This is a minor mode, but it is global to all buffers by default.
 When this mode is enabled, the user is encouraged to take typing breaks at
 appropriate intervals; either after a specified amount of time or when the
 user has exceeded a keystroke threshold.  When the time arrives, the user
-is asked to take a break.  If the user refuses at that time, emacs will ask
+is asked to take a break.  If the user refuses at that time, Emacs will ask
 again in a short period of time.  The idea is to give the user enough time
 to find a good breaking point in his or her work, but be sufficiently
 annoying to discourage putting typing breaks off indefinitely.
@@ -309,9 +337,18 @@ affect the time schedule; it simply provides a default for the
 If set, the variable `type-break-good-rest-interval' specifies the minimum
 amount of time which is considered a reasonable typing break.  Whenever
 that time has elapsed, typing breaks are automatically rescheduled for
-later even if emacs didn't prompt you to take one first.  Also, if a break
+later even if Emacs didn't prompt you to take one first.  Also, if a break
 is ended before this much time has elapsed, the user will be asked whether
-or not to continue.
+or not to continue.  A nil value for this variable prevents automatic
+break rescheduling, making `type-break-interval' an upper bound on the time
+between breaks.  In this case breaks will be prompted for as usual before
+the upper bound if the keystroke threshold is reached.
+
+If `type-break-good-rest-interval' is nil and
+`type-break-good-break-interval' is set, then confirmation is required to
+interrupt a break before `type-break-good-break-interval' seconds
+have passed.  This provides for an upper bound on the time between breaks
+together with confirmation of interruptions to these breaks.
 
 The variable `type-break-keystroke-threshold' is used to determine the
 thresholds at which typing breaks should be considered.  You can use
@@ -335,7 +372,12 @@ a typing break occur.  They include:
         `type-break-query-function'
         `type-break-query-interval'
 
-Finally, the command `type-break-statistics' prints interesting things."
+The command `type-break-statistics' prints interesting things.
+
+Finally, a file (named `type-break-file-name') is used to store information
+across Emacs sessions.  This provides recovery of the break status between
+sessions and after a crash.  Manual changes to the file may result in
+problems."
   (interactive "P")
   (type-break-check-post-command-hook)
 
@@ -356,13 +398,52 @@ Finally, the command `type-break-statistics' prints interesting things."
 		      minor-mode-alist)))
       (type-break-keystroke-reset)
       (type-break-mode-line-countdown-or-break nil)
-      (type-break-schedule)
+
+      (if (boundp 'save-some-buffers-always)
+          (add-to-list 'save-some-buffers-always
+                       (expand-file-name type-break-file-name)))
+
+      (setq type-break-time-last-break (type-break-get-previous-time))
+
+      ;; schedule according to break time from session file
+      (type-break-schedule
+       (let (diff)
+         (if (and type-break-time-last-break
+                  (< (setq diff (type-break-time-difference
+                                 type-break-time-last-break
+                                 (current-time)))
+                     type-break-interval))
+             ;; use the file's value
+             (progn
+               (setq type-break-keystroke-count
+                     (type-break-get-previous-count))
+               ;; file the time, in case it was read from the auto-save file
+               (type-break-file-time type-break-interval-start)
+               (setq type-break-interval-start type-break-time-last-break)
+               (- type-break-interval diff))
+           ;; schedule from now
+           (setq type-break-interval-start (current-time))
+           (type-break-file-time type-break-interval-start)
+           type-break-interval))
+       type-break-interval-start
+       type-break-interval)
+
       (and (interactive-p)
-           (message "Type Break mode is enabled and reset")))
+           (message "Type Break mode is enabled and set")))
      (t
       (type-break-keystroke-reset)
       (type-break-mode-line-countdown-or-break nil)
       (type-break-cancel-schedule)
+      (do-auto-save)
+      (with-current-buffer (find-file-noselect type-break-file-name
+                                               'nowarn)
+        (set-buffer-modified-p nil)
+        (unlock-buffer)
+        (kill-this-buffer))
+      (if (boundp 'save-some-buffers-always)
+          (setq save-some-buffers-always
+                (remove (expand-file-name type-break-file-name)
+                        save-some-buffers-always)))
       (and (interactive-p)
            (message "Type Break mode is disabled")))))
   type-break-mode)
@@ -370,7 +451,7 @@ Finally, the command `type-break-statistics' prints interesting things."
 (defun type-break-mode-line-message-mode (&optional prefix)
   "Enable or disable warnings in the mode line about typing breaks.
 
-A negative prefix argument disables this mode.
+A negative PREFIX argument disables this mode.
 No argument or any non-negative argument enables it.
 
 The user may also enable or disable this mode simply by setting the
@@ -398,7 +479,7 @@ When enabled, the user is periodically queried about whether to take a
 typing break at that moment.  The function which does this query is
 specified by the variable `type-break-query-function'.
 
-A negative prefix argument disables this mode.
+A negative PREFIX argument disables this mode.
 No argument or any non-negative argument enables it.
 
 The user may also enable or disable this mode simply by setting the
@@ -413,6 +494,89 @@ variable of the same name."
   type-break-query-mode)
 
 
+;;; session file functions
+
+(defvar type-break-auto-save-file-name
+  (let ((buffer-file-name type-break-file-name))
+    (make-auto-save-file-name))
+  "Auto-save name of `type-break-file-name'.")
+
+(defun type-break-file-time (&optional time)
+  "File break time in `type-break-file-name', unless the file is locked."
+  (if (not (stringp (file-locked-p type-break-file-name)))
+      (with-current-buffer (find-file-noselect type-break-file-name
+                                               'nowarn)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert (format "%s\n\n" (or time type-break-interval-start)))
+          ;; file saving is left to auto-save
+          ))))
+
+(defun type-break-file-keystroke-count ()
+  "File keystroke count in `type-break-file-name', unless the file is locked."
+  (if (not (stringp (file-locked-p type-break-file-name)))
+      (with-current-buffer (find-file-noselect type-break-file-name
+                                               'nowarn)
+        (save-excursion
+          (let ((inhibit-read-only t))
+            (goto-char (point-min))
+            (forward-line)
+            (delete-region (point) (save-excursion (end-of-line) (point)))
+            (insert (format "%s" type-break-keystroke-count))
+            ;; file saving is left to auto-save
+            )))))
+
+(defun timep (time)
+  "If TIME is in the format returned by `current-time' then
+return TIME, else return nil."
+  (and (listp time)
+       (eq (length time) 3)
+       (integerp (car time))
+       (integerp (nth 1 time))
+       (integerp (nth 2 time))
+       time))
+
+(defun type-break-choose-file ()
+  "Return file to read from."
+  (cond
+   ((and (file-exists-p type-break-auto-save-file-name)
+         (file-readable-p type-break-auto-save-file-name))
+    type-break-auto-save-file-name)
+   ((and (file-exists-p type-break-file-name)
+         (file-readable-p type-break-file-name))
+    type-break-file-name)
+   (t nil)))
+
+(defun type-break-get-previous-time ()
+  "Get previous break time from `type-break-file-name'.
+Returns nil if the file is missing or if the time breaks with the
+`current-time' format."
+  (let ((file (type-break-choose-file)))
+    (if file
+        (timep ;; returns expected format, else nil
+         (with-current-buffer (find-file-noselect file 'nowarn)
+           (save-excursion
+             (goto-char (point-min))
+             (read (current-buffer))))))))
+
+(defun type-break-get-previous-count ()
+  "Get previous keystroke count from `type-break-file-name'.
+Return 0 if the file is missing or if the form read is not an
+integer."
+  (let ((file (type-break-choose-file)))
+    (if (and file
+             (integerp
+              (setq file
+                    (with-current-buffer
+                        (find-file-noselect file 'nowarn)
+                      (save-excursion
+                        (goto-char (point-min))
+                        (forward-line 1)
+                        (read (current-buffer)))))))
+        file
+      0)))
+
+
 ;;;###autoload
 (defun type-break ()
   "Take a typing break.
@@ -425,6 +589,8 @@ as per the function `type-break-schedule'."
   (interactive)
   (do-auto-save)
   (type-break-cancel-schedule)
+  ;; remove any query scheduled during interactive invocation
+  (remove-hook 'type-break-post-command-hook 'type-break-do-query)
   (let ((continue t)
         (start-time (current-time)))
     (setq type-break-time-last-break start-time)
@@ -435,7 +601,8 @@ as per the function `type-break-schedule'."
              (other-window 1))
         (delete-other-windows)
         (scroll-right (window-width))
-        (message "Press any key to resume from typing break.")
+        (unless type-break-terse-messages
+          (message "Press any key to resume from typing break."))
 
         (random t)
         (let* ((len (length type-break-demo-functions))
@@ -445,36 +612,45 @@ as per the function `type-break-schedule'."
               (funcall fn)
             (error nil))))
 
-      (cond
-       (type-break-good-rest-interval
-        (let ((break-secs (type-break-time-difference
-                           start-time (current-time))))
-          (cond
-           ((>= break-secs type-break-good-rest-interval)
-            (setq continue nil))
-           ;; 60 seconds may be too much leeway if the break is only 3
-           ;; minutes to begin with.  You can just say "no" to the query
-           ;; below if you're in that much of a hurry.
-           ;((> 60 (abs (- break-secs type-break-good-rest-interval)))
-           ; (setq continue nil))
-           ((funcall
-             type-break-query-function
-             (format "%sYou really ought to rest %s more.  Continue break? "
-                     (type-break-time-stamp)
-                     (type-break-format-time (- type-break-good-rest-interval
-                                                break-secs)))))
-           (t
-            (setq continue nil)))))
-       (t (setq continue nil)))))
+      (let ((good-interval (or type-break-good-rest-interval
+                               type-break-good-break-interval)))
+        (cond
+         (good-interval
+          (let ((break-secs (type-break-time-difference
+                             start-time (current-time))))
+            (cond
+             ((>= break-secs good-interval)
+              (setq continue nil))
+             ;; 60 seconds may be too much leeway if the break is only 3
+             ;; minutes to begin with.  You can just say "no" to the query
+             ;; below if you're in that much of a hurry.
+             ;;((> 60 (abs (- break-secs good-interval)))
+             ;; (setq continue nil))
+             ((funcall
+               type-break-query-function
+               (format
+                (if type-break-terse-messages
+                    "%s%s remaining.  Continue break? "
+                  "%sYou really ought to rest %s more.  Continue break? ")
+                (type-break-time-stamp)
+                (type-break-format-time (- good-interval
+                                           break-secs)))))
+             (t
+              (setq continue nil)))))
+         (t (setq continue nil))))))
 
   (type-break-keystroke-reset)
+  (type-break-file-time)
   (type-break-mode-line-countdown-or-break nil)
   (type-break-schedule))
 
 
-(defun type-break-schedule (&optional time)
+(defun type-break-schedule (&optional time start interval)
   "Schedule a typing break for TIME seconds from now.
-If time is not specified, default to `type-break-interval'."
+If time is not specified it defaults to `type-break-interval'.
+START and INTERVAL are used when recovering a break.
+START is the start of the break (defaults to now).
+INTERVAL is the full length of an interval (defaults to TIME)."
   (interactive (list (and current-prefix-arg
                           (prefix-numeric-value current-prefix-arg))))
   (or time (setq time type-break-interval))
@@ -483,7 +659,8 @@ If time is not specified, default to `type-break-interval'."
   (type-break-time-warning-schedule time 'reset)
   (type-break-run-at-time (max 1 time) nil 'type-break-alarm)
   (setq type-break-time-next-break
-        (type-break-time-sum (current-time) time)))
+        (type-break-time-sum (or start (current-time))
+                             (or interval time))))
 
 (defun type-break-cancel-schedule ()
   (type-break-cancel-time-warning-schedule)
@@ -532,6 +709,7 @@ If time is not specified, default to `type-break-interval'."
   (remove-hook 'type-break-post-command-hook 'type-break-time-warning)
   (setq type-break-current-time-warning-interval
         type-break-time-warning-intervals)
+  (setq type-break-time-warning-count 0) ; avoid warnings after break
   (setq type-break-warning-countdown-string nil))
 
 (defun type-break-alarm ()
@@ -556,6 +734,7 @@ If time is not specified, default to `type-break-interval'."
 This may be the case either because the scheduled time has come \(and the
 minimum keystroke threshold has been reached\) or because the maximum
 keystroke threshold has been exceeded."
+  (type-break-file-keystroke-count)
   (let* ((min-threshold (car type-break-keystroke-threshold))
          (max-threshold (cdr type-break-keystroke-threshold)))
     (and type-break-good-rest-interval
@@ -657,16 +836,19 @@ keystroke threshold has been exceeded."
             ;; from taking place before this one has even returned.
             ;; The condition-case wrapper will reschedule on quit.
             (type-break-cancel-schedule)
+            ;; Also prevent a second query when the break is interrupted.
+            (remove-hook 'type-break-post-command-hook 'type-break-do-query)
             (funcall type-break-query-function
                      (format "%s%s"
                              (type-break-time-stamp)
-                             "Take a break from typing now? ")))
+			     (if type-break-terse-messages
+				 "Break now? "
+			       "Take a break from typing now? "))))
           (type-break))
          (t
           (type-break-schedule type-break-query-interval)))
       (quit
-       (type-break-schedule type-break-query-interval)))
-    (remove-hook 'type-break-post-command-hook 'type-break-do-query))))
+       (type-break-schedule type-break-query-interval))))))
 
 (defun type-break-noninteractive-query (&optional ignored-args)
   "Null query function which doesn't interrupt user and assumes `no'.
@@ -810,7 +992,7 @@ based on a fairly simple algorithm involving assumptions about the average
 length of words (5).  For the minimum threshold, it uses about a fifth of
 the computed maximum threshold.
 
-When called from lisp programs, the optional args WORDLEN and FRAC can be
+When called from Lisp programs, the optional args WORDLEN and FRAC can be
 used to override the default assumption about average word length and the
 fraction of the maximum threshold to which to set the minimum threshold.
 FRAC should be the inverse of the fractional value; for example, a value of
@@ -891,6 +1073,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
      (t (format "%d seconds" secs)))))
 
 (defun type-break-keystroke-reset ()
+  (setq type-break-interval-start (current-time)) ; not a keystroke
   (setq type-break-keystroke-count 0)
   (setq type-break-keystroke-warning-count 0)
   (setq type-break-current-keystroke-warning-interval
@@ -903,7 +1086,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
   (and all (save-excursion (set-buffer (other-buffer))))
   (set-buffer-modified-p (buffer-modified-p)))
 
-;; If an exception occurs in emacs while running the post command hook, the
+;; If an exception occurs in Emacs while running the post command hook, the
 ;; value of that hook is clobbered.  This is because the value of the
 ;; variable is temporarily set to nil while it's running to prevent
 ;; recursive application, but it also means an exception aborts the routine
@@ -916,7 +1099,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 ;;; Timer wrapper functions
 ;;;
 ;;; These shield type-break from variations in the interval timer packages
-;;; for different versions of emacs.
+;;; for different versions of Emacs.
 
 (defun type-break-run-at-time (time repeat function)
   (condition-case nil (or (require 'timer) (require 'itimer)) (error nil))
@@ -1002,44 +1185,83 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 ;; Boring demo, but doesn't use many cycles
 (defun type-break-demo-boring ()
   "Boring typing break demo."
-  (let ((rmsg "Press any key to resume from typing break")
+  (let ((rmsg (if type-break-terse-messages
+                  ""
+                "Press any key to resume from typing break"))
         (buffer-name "*Typing Break Buffer*")
-        line col pos
-        elapsed timeleft tmsg)
+        lines elapsed timeleft tmsg)
     (condition-case ()
         (progn
           (switch-to-buffer (get-buffer-create buffer-name))
           (buffer-disable-undo (current-buffer))
-          (erase-buffer)
-          (setq line (1+ (/ (window-height) 2)))
-          (setq col (/ (- (window-width) (length rmsg)) 2))
-          (insert (make-string line ?\C-j)
-                  (make-string col ?\ )
-                  rmsg)
-          (forward-line -1)
-          (beginning-of-line)
-          (setq pos (point))
+          (setq lines (/ (window-body-height) 2))
+          (unless type-break-terse-messages (setq lines (1- lines)))
+          (if type-break-demo-boring-stats
+              (setq lines (- lines 2)))
+          (setq lines (make-string lines ?\C-j))
           (while (not (input-pending-p))
-            (delete-region pos (progn
-                                 (goto-char pos)
-                                 (end-of-line)
-                                 (point)))
+            (erase-buffer)
             (setq elapsed (type-break-time-difference
                            type-break-time-last-break
                            (current-time)))
-            (cond
-             (type-break-good-rest-interval
-              (setq timeleft (- type-break-good-rest-interval elapsed))
-              (if (> timeleft 0)
-                  (setq tmsg (format "You should rest for %s more"
-                                     (type-break-format-time timeleft)))
-                (setq tmsg (format "Typing break has lasted %s"
-                                   (type-break-format-time elapsed)))))
-             (t
-              (setq tmsg (format "Typing break has lasted %s"
-                                 (type-break-format-time elapsed)))))
-            (setq col (/ (- (window-width) (length tmsg)) 2))
-            (insert (make-string col ?\ ) tmsg)
+            (let ((good-interval (or type-break-good-rest-interval
+                                     type-break-good-break-interval)))
+              (cond
+               (good-interval
+                (setq timeleft (- good-interval elapsed))
+                (if (> timeleft 0)
+                    (setq tmsg
+                          (format (if type-break-terse-messages
+                                      "Break remaining: %s"
+                                    "You should rest for %s more")
+                                  (type-break-format-time timeleft)))
+                  (setq tmsg
+                        (format (if type-break-terse-messages
+                                    "Break complete (%s elapsed in total)"
+                                  "Typing break has lasted %s")
+                                (type-break-format-time elapsed)))))
+               (t
+                (setq tmsg
+                      (format (if type-break-terse-messages
+                                  "Break has lasted %s"
+                                "Typing break has lasted %s")
+                              (type-break-format-time elapsed))))))
+            (insert lines
+                    (make-string (/ (- (window-width) (length tmsg)) 2) ?\ )
+                    tmsg)
+            (if (> (length rmsg) 0)
+                (insert "\n"
+                        (make-string (/ (- (window-width) (length rmsg)) 2)
+                                     ?\ )
+                        rmsg))
+            (if type-break-demo-boring-stats
+                (let*
+                    ((message
+                      (format
+                       (if type-break-terse-messages
+                           "Since last break: %s keystrokes\n"
+                         "Since your last break you've typed %s keystrokes\n")
+                       type-break-keystroke-count))
+                     (column-spaces
+                      (make-string (/ (- (window-width) (length message)) 2)
+                                   ?\ ))
+                     (wpm (/ (/ (float type-break-keystroke-count) 5)
+                             (/ (type-break-time-difference
+                                 type-break-interval-start
+                                 type-break-time-last-break)
+                                60.0))))
+                  (insert "\n\n" column-spaces message)
+                  (if type-break-terse-messages
+                      (insert (format "                  %s%.2f wpm"
+                                      column-spaces
+                                      wpm))
+                    (setq message
+                          (format "at an average of %.2f words per minute"
+                                  wpm))
+                    (insert
+                     (make-string (/ (- (window-width) (length message)) 2)
+                                  ?\ )
+                     message))))
             (goto-char (point-min))
             (sit-for 60))
           (read-char)

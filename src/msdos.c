@@ -4408,9 +4408,28 @@ init_environment (argc, argv, skip_args)
   for (i = 0; i < imax ; i++)
     {
       const char *tmp = tempdirs[i];
+      char buf[FILENAME_MAX];
 
       if (*tmp == '$')
-	tmp = getenv (tmp + 1);
+	{
+	  int tmp_len;
+
+	  tmp = getenv (tmp + 1);
+	  if (!tmp)
+	    continue;
+
+	  /* Some lusers set TMPDIR=e:, probably because some losing
+	     programs cannot handle multiple slashes if they use e:/.
+	     e: fails in `access' below, so we interpret e: as e:/.  */
+	  tmp_len = strlen(tmp);
+	  if (tmp[tmp_len - 1] != '/' && tmp[tmp_len - 1] != '\\')
+	    {
+	      strcpy(buf, tmp);
+	      buf[tmp_len++] = '/', buf[tmp_len] = 0;
+	      tmp = buf;
+	    }
+	}
+
       /* Note that `access' can lie to us if the directory resides on a
 	 read-only filesystem, like CD-ROM or a write-protected floppy.
 	 The only way to be really sure is to actually create a file and

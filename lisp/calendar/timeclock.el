@@ -1129,12 +1129,6 @@ discrepancy, today's discrepancy, and the time worked today."
 
 ;;; A reporting function that uses timeclock-log-data
 
-(defun timeclock-time-less-p (t1 t2)
-  "Say whether time T1 is less than time T2."
-  (or (< (car t1) (car t2))
-      (and (= (car t1) (car t2))
-	   (< (nth 1 t1) (nth 1 t2)))))
-
 (defun timeclock-day-base (&optional time)
   "Given a time within a day, return 0:0:0 within that day.
 If optional argument TIME is non-nil, use that instead of the current time."
@@ -1190,12 +1184,12 @@ HTML-P is non-nil, HTML markup is added."
 				 (* 2 7 24 60 60))))
 	      two-week-len today-len)
 	  (while proj-data
-	    (if (not (timeclock-time-less-p
+	    (if (not (time-less-p
 		      (timeclock-entry-begin (car proj-data)) today))
 		(setq today-len (timeclock-entry-list-length proj-data)
 		      proj-data nil)
 	      (if (and (null two-week-len)
-		       (not (timeclock-time-less-p
+		       (not (time-less-p
 			     (timeclock-entry-begin (car proj-data))
 			     two-weeks-ago)))
 		  (setq two-week-len (timeclock-entry-list-length proj-data)))
@@ -1260,7 +1254,7 @@ HTML-P is non-nil, HTML markup is added."
 	  (while day-list
 	    (let ((i 0) (l 5))
 	      (while (< i l)
-		(unless (timeclock-time-less-p
+		(unless (time-less-p
 			 (timeclock-day-begin (car day-list))
 			 (aref lengths i))
 		  (let ((base (timeclock-time-to-seconds

@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2003
+;; Copyright (C) 1991,92,93,94,95,96,97, 2001,02,03,04
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -407,7 +407,7 @@ Return FILE if there was no autoload cookie in it."
 		       (if (and (or (null existing-buffer)
 				    (not (buffer-modified-p existing-buffer)))
 				(listp last-time) (= (length last-time) 2)
-				(not (autoload-before-p last-time file-time)))
+				(not (time-less-p last-time file-time)))
 			   (progn
 			     (if (interactive-p)
 				 (message "\
@@ -468,11 +468,6 @@ Autoload section for %s is up to date."
 
       (if no-autoloads file))))
 
-(defun autoload-before-p (time1 time2)
-  (or (< (car time1) (car time2))
-      (and (= (car time1) (car time2))
-	   (< (nth 1 time1) (nth 1 time2)))))
-
 (defun autoload-remove-section (begin)
   (goto-char begin)
   (search-forward generate-autoload-section-trailer)
@@ -527,8 +522,7 @@ directory or directories specified."
 		     (dolist (file file)
 		       (let ((file-time (nth 5 (file-attributes file))))
 			 (when (and file-time
-				    (not (autoload-before-p last-time
-							    file-time)))
+				    (not (time-less-p last-time file-time)))
 			   ;; file unchanged
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
