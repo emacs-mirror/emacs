@@ -1,3 +1,11 @@
+2000-10-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus.texi: Update from version 5.213 from the Gnus repository.
+	Change @setfilename.
+
+	* gnus-faq.texi: Update from version 5.1 of the Gnus repository.
+	Update copyright and change @setfilename.
+
 2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* speedbar.texi: Correct typos, fix markup, add index entries.
