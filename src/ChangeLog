@@ -1,3 +1,7 @@
+2002-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Update copyright year.
+
 2002-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xdisp.c (display_mode_element): New argument RISKY; all callers
