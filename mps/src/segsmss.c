@@ -1,6 +1,6 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.1) $
+ * $HopeName: MMsrc!segsmss.c(trunk.2) $
  * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 
@@ -27,6 +27,11 @@
 #include <string.h>
 #include <assert.h>
 
+
+/* Forward declarations */
+
+extern SegClass EnsureAMSTSegClass(void);
+extern PoolClass EnsureAMSTPoolClass(void);
 
 
 /* Start by defining the AMST pool (AMS Test pool) */
@@ -123,7 +128,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(BoolCheck(reservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureAMSSegClass();
+  super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;
@@ -155,7 +160,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  super = EnsureAMSSegClass();
+  super = SEG_SUPERCLASS(AMSTSegClass);
   super->finish(seg);
 }  
 
@@ -189,7 +194,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amst = PoolPoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
-  super = EnsureAMSSegClass();
+  super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->merge(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
   if(res != ResOK)
@@ -240,7 +245,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amst = PoolPoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
-  super = EnsureAMSSegClass();
+  super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->split(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
   if(res != ResOK)
@@ -532,7 +537,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   amst = PoolPoolAMST(pool);
 
   /* call next method */
-  super = EnsureAMSPoolClass();
+  super = POOL_SUPERCLASS(AMSTPoolClass);
   res = super->bufferFill(&base, &limit, pool, buffer, size,
                           withReservoirPermit);
   if(res != ResOK)

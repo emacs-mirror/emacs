@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.20) $
+ * $HopeName: MMsrc!seg.c(trunk.21) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -28,7 +28,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.20) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.21) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -1097,7 +1097,7 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(BoolCheck(withReservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureSegClass();
+  super = SEG_SUPERCLASS(GCSegClass);
   res = super->init(seg, pool, base, size, withReservoirPermit, args);
   if (ResOK != res)
     return res;
@@ -1138,7 +1138,7 @@ static void gcSegFinish(Seg seg)
   RingFinish(&gcseg->greyRing);
 
   /* finish the superclass fields last */
-  super = EnsureSegClass();
+  super = SEG_SUPERCLASS(GCSegClass);
   super->finish(seg);
 }
 
@@ -1464,7 +1464,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   AVER(SegGrey(seg) == grey);
 
   /* Merge the superclass fields via next-method call */
-  super = EnsureSegClass();
+  super = SEG_SUPERCLASS(GCSegClass);
   res = super->merge(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
   if(res != ResOK)
@@ -1543,7 +1543,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   }    
 
   /* Split the superclass fields via next-method call */
-  super = EnsureSegClass();
+  super = SEG_SUPERCLASS(GCSegClass);
   res = super->split(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
   if(res != ResOK)
@@ -1613,7 +1613,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = EnsureSegClass();
+  super = SEG_SUPERCLASS(GCSegClass);
   res = super->describe(seg, stream);
   if(res != ResOK)
     return res;

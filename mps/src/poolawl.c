@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.60) $
+ * $HopeName: MMsrc!poolawl.c(trunk.61) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.60) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.61) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -134,6 +134,8 @@ typedef struct AWLSegStruct {
 
 #define AWLSegSeg(awlseg)          ((Seg)(awlseg))
 
+extern SegClass EnsureAWLSegClass(void);
+
 static Bool AWLSegCheck(AWLSeg awlseg)
 {
   CHECKS(AWLSeg, awlseg);
@@ -200,7 +202,7 @@ static Res awlSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AWLSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;
@@ -274,7 +276,7 @@ static void awlSegFinish(Seg seg)
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AWLSegClass);
   super->finish(seg);
 }
   

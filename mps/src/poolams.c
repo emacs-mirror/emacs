@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.43) $
+ * $HopeName: MMsrc!poolams.c(trunk.44) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -20,7 +20,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.43) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.44) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -136,7 +136,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(BoolCheck(reservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AMSSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     goto failNextMethod;
@@ -205,20 +205,20 @@ static void AMSSegFinish(Seg seg)
   amsseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AMSSegClass);
   super->finish(seg);
 }  
 
 
 /* AMSSegMerge & AMSSegSplit -- AMSSeg split & merge methods
  *
- * See design.mps.poolams.split-merge.constrain.
- *
  * .empty: segment merging and splitting is limited to simple cases
  * where the high segment is empty.
+ * See design.mps.poolams.split-merge.constrain.
  *
  * .grain-align: segment merging and splitting is limited to cases
  * where the join is aligned with the grain alignment
+ * See design.mps.poolams.split-merge.constrain.
  *
  * .alloc-early: Allocations are performed before calling the 
  * next method to simplify the fail cases. See
@@ -270,7 +270,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
     goto failCreateTables;
 
   /* Merge the superclass fields via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AMSSegClass);
   res = super->merge(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
   if(res != ResOK)
@@ -361,7 +361,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
 
   /* Split the superclass fields via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AMSSegClass);
   res = super->split(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
   if(res != ResOK)
@@ -446,7 +446,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AMSSegClass);
   res = super->describe(seg, stream);
   if(res != ResOK)
     return res;
