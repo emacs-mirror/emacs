@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 10 November 1994
+@set lastupdate 22 November 1994
 @c %**end of header
 
 @setchapternewpage off
@@ -28,14 +28,14 @@ good project---but it might instead be something we already have, so
 check with @code{gnu@@prep} before you start writing it.
 
 @menu
-* Documentation::               
-* Unix-Related Projects::       
-* Kernel Projects::     
+* Documentation::
+* Unix-Related Projects::
+* Kernel Projects::
 * Extensions::
-* X Windows Projects::          
-* Other Projects::       
+* X Windows Projects::
+* Other Projects::
 * Compilers::
-* Games and Recreations::       
+* Games and Recreations::
 @end menu
 
 If you start working steadily on a project, please let @code{gnu@@prep}
@@ -231,6 +231,10 @@ A desktop program with icons and such, for X-windows.
 A paint program, supporting both bitmap-oriented operations and
 component-oriented operations.  @code{xpaint} exists, but isn't very
 usable.
+
+@item
+A program for manipulating photographs---something vaguely like Photo
+Shop (though not exactly like it).
 @end itemize
 
 @node Other Projects
@@ -363,7 +367,14 @@ alignments.
 Volunteers are needed to write parsers/front ends for languages such as
 Algol 60, Algol 68, PL/I, or whatever, to be used with the code
 generation phases of the GNU C compiler.  (C++ and Objective C are done,
-and Ada, Fortran, Pascal and Modula are being worked on.)
+and Ada, Fortran, Pascal and Modula are being worked on.
+@c Fortran status is here so gnu@prep and the volunteer coordinators
+@c don't have to answer the question -len
+The status of the Fortran compiler can be found by:
+@example
+
+	@code{finger -l fortran@@gnu.ai.mit.edu})
+@end example
 
 @node Games and Recreations
 @chapter Games and Recreations
