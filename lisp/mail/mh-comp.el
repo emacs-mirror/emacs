@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.14 1999/03/01 03:47:07 kwzh Exp rms $
+;; $Id: mh-comp.el,v 1.15 1999/09/04 00:08:17 rms Exp $
 
 ;;; Code:
 
@@ -233,7 +233,7 @@ that want to create a mail buffer.
 Users should use `\\[mh-smail]' to compose mail."
   (mh-find-path)
   (let ((mh-error-if-no-draft t))
-    (mh-send to "" subject)))
+    (mh-send (or to "") "" (or subject ""))))
 
 
 (defun mh-edit-again (msg)
