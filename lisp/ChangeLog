@@ -1,3 +1,8 @@
+2002-03-16  Eli Zaretskii  <eliz@fencepost.gnu.org>
+
+	* textmodes/po.el (po-find-charset): Search for the Charset=
+	header even if we've read less than 4KB.
+
 2002-03-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/bibtex.el (bibtex-sort-ignore-string-entries)
