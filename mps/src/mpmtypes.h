@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.43) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.44) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -72,6 +72,8 @@ typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
 typedef struct ActionStruct *Action;	/* design.mps.action */
+typedef struct MutatorFaultContextStruct
+	*MutatorFaultContext;           /* design.mps.prot */
 
 
 /* Arena*Method -- see @@@@ */
