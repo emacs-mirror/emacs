@@ -1,3 +1,7 @@
+2005-03-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (tooltip-gud-display): Use gud-overlay-arrow-position.
+
 2005-03-29  Kenichi Handa  <handa@m17n.org>
 
 	* language/thai.el ("Thai"): Set setup-function and exit-function
