@@ -1,3 +1,7 @@
+2001-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (regcomp, regexec): Don't forget the __restrict.
+
 2001-11-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_scroll_bar_create): Check for width and height > 0.
@@ -6,7 +10,7 @@
 	* buffer.c (Fset_buffer_major_mode): Use initial-major-mode for
 	*scratch*.
 
-	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
+	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource):
 	Handle :box so that it is possible to specify sexprs.
 
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -21,8 +25,7 @@
 	(free_face_colors): Do nothing for a face whose colors have been
 	copied bitwise.
 
-	* dispextern.h (struct face) <colors_copied_bitwise_p>: New
-	member.
+	* dispextern.h (struct face) <colors_copied_bitwise_p>: New member.
 
 	* window.c (grow_mini_window): Handle case that the root
 	window is already smaller than the nominal mininum height.
@@ -151,16 +154,15 @@
 
 	* xterm.c (x_draw_glyphs): Don't check for cursor overwriting
 	in full-width rows.
-	
+
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing of area not covered by scroll bar.
 
 	* xdisp.c: Change #ifdef GLYPH_DEBUG to #if.
-	
-	* xdisp.c (try_window_reusing_current_matrix): Use
-	row_containing_pos.
-	(row_containing_pos): Take additional argument DY.  Treat
-	rows ending in middle of char differently.
+
+	* xdisp.c (try_window_reusing_current_matrix): Use row_containing_pos.
+	(row_containing_pos): Take additional argument DY.  Treat rows ending
+	in middle of char differently.
 	(display_line): Handle tabs on window systems differently.
 
 	* xterm.c (fast_find_position): Call row_containing_pos
@@ -176,14 +178,13 @@
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (sync_window_with_frame_matrix_rows): Fix 
-	handling of windows which aren't full-width, fix handling
+	* dispnew.c (sync_window_with_frame_matrix_rows):
+	Fix handling of windows which aren't full-width, fix handling
 	of marginal areas.
 
-	* lread.c (syms_of_lread)<recursive-load-depth-limit>: Raise to
-	50.
+	* lread.c (syms_of_lread)<recursive-load-depth-limit>: Raise to 50.
 
-	* xterm.c (x_draw_glyphs): Remove parameters READ_START and 
+	* xterm.c (x_draw_glyphs): Remove parameters READ_START and
 	REAL_END.  Notice if cursor gets overwritten.
 	(notice_overwritten_cursor): Take X positions as parameters.
 	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p

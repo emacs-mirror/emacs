@@ -5833,8 +5833,8 @@ re_exec (s)
 
 int
 regcomp (preg, pattern, cflags)
-    regex_t *preg;
-    const char *pattern;
+    regex_t *__restrict preg;
+    const char *__restrict pattern;
     int cflags;
 {
   reg_errcode_t ret;
@@ -5918,8 +5918,8 @@ WEAK_ALIAS (__regcomp, regcomp)
 
 int
 regexec (preg, string, nmatch, pmatch, eflags)
-    const regex_t *preg;
-    const char *string;
+    const regex_t *__restrict preg;
+    const char *__restrict string;
     size_t nmatch;
     regmatch_t pmatch[];
     int eflags;
