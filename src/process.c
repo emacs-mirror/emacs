@@ -4086,7 +4086,7 @@ text to PROCESS after you call this function.")
 }
 
 /* Kill all processes associated with `buffer'.
- If `buffer' is nil, kill all processes  */
+   If `buffer' is nil, kill all processes  */
 
 void
 kill_buffer_processes (buffer)
@@ -4108,26 +4108,27 @@ kill_buffer_processes (buffer)
     }
 }
 
-/* On receipt of a signal that a child status has changed,
- loop asking about children with changed statuses until
- the system says there are no more.
-   All we do is change the status;
- we do not run sentinels or print notifications.
- That is saved for the next time keyboard input is done,
- in order to avoid timing errors.  */
+/* On receipt of a signal that a child status has changed, loop asking
+   about children with changed statuses until the system says there
+   are no more.
+   
+   All we do is change the status; we do not run sentinels or print
+   notifications.  That is saved for the next time keyboard input is
+   done, in order to avoid timing errors.
 
-/** WARNING: this can be called during garbage collection.
- Therefore, it must not be fooled by the presence of mark bits in
- Lisp objects.  */
+   ** WARNING: this can be called during garbage collection.
+   Therefore, it must not be fooled by the presence of mark bits in
+   Lisp objects.
 
-/** USG WARNING:  Although it is not obvious from the documentation
- in signal(2), on a USG system the SIGCLD handler MUST NOT call
- signal() before executing at least one wait(), otherwise the handler
- will be called again, resulting in an infinite loop.  The relevant
- portion of the documentation reads "SIGCLD signals will be queued
- and the signal-catching function will be continually reentered until
- the queue is empty".  Invoking signal() causes the kernel to reexamine
- the SIGCLD queue.   Fred Fish, UniSoft Systems Inc. */
+   ** USG WARNING: Although it is not obvious from the documentation
+   in signal(2), on a USG system the SIGCLD handler MUST NOT call
+   signal() before executing at least one wait(), otherwise the
+   handler will be called again, resulting in an infinite loop.  The
+   relevant portion of the documentation reads "SIGCLD signals will be
+   queued and the signal-catching function will be continually
+   reentered until the queue is empty".  Invoking signal() causes the
+   kernel to reexamine the SIGCLD queue.  Fred Fish, UniSoft Systems
+   Inc. */
 
 SIGTYPE
 sigchld_handler (signo)
@@ -4159,11 +4160,12 @@ sigchld_handler (signo)
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
 	}
-      while (pid <= 0 && errno == EINTR);
+      while (pid < 0 && errno == EINTR);
 
       if (pid <= 0)
 	{
-	  /* A real failure.  We have done all our job, so return.  */
+	  /* PID == 0 means no processes found, PID == -1 means a real
+	     failure.  We have done all our job, so return.  */
 
 	  /* USG systems forget handlers when they are used;
 	     must reestablish each time */
@@ -4184,11 +4186,11 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       p = 0;
-      for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
+      for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
 	{
 	  proc = XCDR (XCAR (tail));
 	  p = XPROCESS (proc);
-	  if (EQ (p->childp, Qt) && XFASTINT (p->pid) == pid)
+	  if (GC_EQ (p->childp, Qt) && XINT (p->pid) == pid)
 	    break;
 	  p = 0;
 	}
@@ -4196,11 +4198,11 @@ sigchld_handler (signo)
       /* Look for an asynchronous process whose pid hasn't been filled
 	 in yet.  */
       if (p == 0)
-	for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
+	for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
 	  {
 	    proc = XCDR (XCAR (tail));
 	    p = XPROCESS (proc);
-	    if (INTEGERP (p->pid) && XINT (p->pid) == -1)
+	    if (GC_INTEGERP (p->pid) && XINT (p->pid) == -1)
 	      break;
 	    p = 0;
 	  }
