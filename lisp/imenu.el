@@ -459,12 +459,14 @@ This function is called after the function pointed out by
       (lambda (item)
 	(cond
 	 ((listp (cdr item))
-	  (append (list (incf counter) (car item) 'keymap (car item))
+	  (append (list (setq counter (1+ counter))
+			(car item) 'keymap (car item))
 		  (imenu--create-keymap-2 (cdr item) (+ counter 10) commands)))
 	 (t
-	  (let ((end (if commands (list 'lambda 'nil '(interactive)
-					(list 'imenu--menubar-select item))
+	  (let ((end (if commands `(lambda () (interactive)
+				     (imenu--menubar-select ',item))
 		       (cons '(nil) t))))
+	    (setq foo end)
 	    (cons (car item)
 		  (cons (car item) end))))
 	 )))
