@@ -1,3 +1,8 @@
+2003-02-06  Matthew Swift  <swift@alum.mit.edu>
+
+	* dired.el (dired-move-to-filename-regexp): Support "K" suffix on
+	"ls -alh" output.
+
 2003-02-05  Juanma Barranquero  <lektu@terra.es>
 
 	* font-lock.el (font-lock-reference-face): Add obsolescence
