@@ -232,34 +232,6 @@ Normally nil in most modes, since there is no process to display.")
      `(-3 . ,(propertize "%p" 'help-echo help-echo))
      (propertize "-%-" 'help-echo help-echo))))
 
-(defvar minor-mode-alist nil "\
-Alist saying how to show minor modes in the mode line.
-Each element looks like (VARIABLE STRING);
-STRING is included in the mode line iff VARIABLE's value is non-nil.
-
-Actually, STRING need not be a string; any possible mode-line element
-is okay.  See `mode-line-format'.")
-;; Don't use purecopy here--some people want to change these strings.
-(setq minor-mode-alist
-      (list
-       (list 'abbrev-mode
-	     (propertize " Abbrev"
-			 'help-echo (purecopy
-				     "mouse-2: turn off Abbrev mode")
-			 'local-map (purecopy (make-mode-line-mouse-map
-					       'mouse-2
-					       #'mode-line-abbrev-mode))))
-       '(overwrite-mode overwrite-mode)
-       (list 'auto-fill-function
-	     (propertize " Fill"
-			 'help-echo (purecopy
-				     "mouse-2: turn off Autofill mode")
-			 'local-map (purecopy (make-mode-line-mouse-map
-					       'mouse-2
-					       #'mode-line-auto-fill-mode))))
-       ;; not really a minor mode...
-       '(defining-kbd-macro " Def")))
-
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
 
@@ -386,6 +358,28 @@ text properties for face, help-echo, and local-map to it."
   (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
   (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
   (setq mode-line-minor-mode-keymap map))
+
+(defvar minor-mode-alist nil "\
+Alist saying how to show minor modes in the mode line.
+Each element looks like (VARIABLE STRING);
+STRING is included in the mode line iff VARIABLE's value is non-nil.
+
+Actually, STRING need not be a string; any possible mode-line element
+is okay.  See `mode-line-format'.")
+;; Don't use purecopy here--some people want to change these strings.
+(setq minor-mode-alist
+      (list
+       (list 'abbrev-mode
+	     (propertize " Abbrev"
+			 'help-echo (purecopy "mouse-3: minor mode menu")
+			 'local-map mode-line-minor-mode-keymap))
+       '(overwrite-mode overwrite-mode)
+       (list 'auto-fill-function
+	     (propertize " Fill"
+			 'help-echo (purecopy "mouse-3: minor mode menu")
+			 'local-map mode-line-minor-mode-keymap))
+       ;; not really a minor mode...
+       '(defining-kbd-macro " Def")))
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
