@@ -470,11 +470,11 @@ the generated Quail package is saved."
       (set-buffer-file-coding-system 'iso-2022-7bit)
       (let ((standard-output (current-buffer)))
 	(with-temp-buffer
+	  (set-buffer-multibyte nil)
 	  (let ((coding-system-for-read 'no-conversion))
 	    (insert-file-contents (expand-file-name filename)))
-	  (set-buffer-multibyte t)
 	
-	;; Decode the buffer contents from the encoding specified by a
+	  ;; Decode the buffer contents from the encoding specified by a
 	  ;; value of the key "ENCODE:".
 	  (if (not (search-forward "\nBEGIN" nil t))
 	      (error "TIT dictionary doesn't have body part"))
@@ -494,6 +494,7 @@ the generated Quail package is saved."
 	    (goto-char (point-min))
 	    (decode-coding-region (point-min) (point-max) coding-system))
 
+	  (set-buffer-multibyte t)
 	  ;; Set point the starting position of the body part.
 	  (goto-char (point-min))
 	  (if (not (search-forward "\nBEGIN" nil t))
