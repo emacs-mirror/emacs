@@ -1,5 +1,12 @@
 2003-05-17  Richard M. Stallman  <rms@gnu.org>
 
+	* minibuf.c (read_minibuf): If buffer is empty, record the default
+	in the history.
+	(Fminibuffer_complete_word): When deleting the overlap, take account
+	of its real position.
+
+	* fns.c (map_char_table): Fix previous change.
+
 	* syntax.c (find_defun_start):
 	When open_paren_in_column_0_is_defun_start,
 	return beginning of buffer.
