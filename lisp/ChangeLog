@@ -1,3 +1,10 @@
+2002-04-22  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-finish): Find beg and end of line
+	before calling line-move-to-column.  Do consider intangible
+	when finding the end.  Take more care in analyzing the results
+	of intangibility after line-move-to-column.
+
 2002-04-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* international/mule-diag.el (list-input-methods-1): Doc fix

@@ -4,6 +4,8 @@
 
 2002-04-22  Richard M. Stallman  <rms@gnu.org>
 
+	* cmds.c (Fend_of_line): Handle intangible text in mid line.
+
 	* window.c (make_window): Initialize height_fixed_p,
 	last_cursor_off_p, and p->cursor_off_p slots.
 
