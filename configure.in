@@ -71,7 +71,7 @@ AC_ARG_WITH(xpm,
 AC_ARG_WITH(jpeg,
 [  --with-jpeg             use -ljpeg for displaying JPEG images])
 AC_ARG_WITH(tiff,
-[  --with-tiff             use -ltiff34 for displaying TIFF images])
+[  --with-tiff             use -ltiff for displaying TIFF images])
 AC_ARG_WITH(gif,
 [  --with-gif              use -lungif for displaying GIF images])
 AC_ARG_WITH(png,
@@ -1308,14 +1308,14 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
   
-### Use -ltiff34 if available, unless `--with-tiff=no'.
+### Use -ltiff if available, unless `--with-tiff=no'.
 HAVE_TIFF=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(tiff34/tiffio.h,
-      AC_CHECK_LIB(tiff34, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
+      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
@@ -1957,7 +1957,7 @@ fi
 echo "  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}"
 echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
-echo "  Does Emacs use -ltiff34?                                ${HAVE_TIFF}"
+echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo
