@@ -3115,7 +3115,7 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
       (if (not (pos-visible-in-window-p))
 	  (let ((echo-keystrokes 0))
 	    (while (and (not (pos-visible-in-window-p))
-			(> (1- (screen-height)) (window-height)))
+			(> (1- (frame-height)) (window-height)))
 	      (enlarge-window 1))
 	    (let ((c (read-event)))
 	      (if (not (eq c 32))
