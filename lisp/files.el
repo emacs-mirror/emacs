@@ -1007,7 +1007,7 @@ that are visiting the various files."
 	      (find-file-wildcards nil))
 	  (if (null files)
 	      (find-file-noselect filename)
-	    (car (mapcar #'find-file-noselect files))))
+	    (mapcar #'find-file-noselect files)))
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (number (nthcdr 10 (file-attributes truename)))
