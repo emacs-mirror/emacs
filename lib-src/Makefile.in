@@ -41,12 +41,12 @@ bindir=${exec_prefix}/bin
 # data.  ${archlibdir} is usually below this.
 libdir=${exec_prefix}/lib
 
-# Where to find the source code - setting this to anything but
-# . doesn't work yet.  The source code for Emacs's C kernel is
+# Where to find the source code.  The source code for Emacs's C kernel is
 # expected to be in ${srcdir}/src, and the source code for Emacs's
 # utility programs is expected to be in ${srcdir}/lib-src.  This is
 # set by the configure script's `--srcdir' option.
-srcdir=.
+srcdir=@srcdir@/lib-src
+VPATH=@srcdir@/lib-src
 
 # ==================== Emacs-specific directories ====================
 
@@ -80,7 +80,8 @@ INSTALL_DATA = ${INSTALL}
 # ============================= Targets ==============================
 
 # Things that a user might actually run, which should be installed in bindir.
-INSTALLABLES = etags ctags emacsclient b2m rcs-checkin
+INSTALLABLES = etags ctags emacsclient b2m
+INSTALLABLE_SCRIPTS = rcs-checkin
 
 # Things that Emacs runs internally, or during the build process,
 # which should not be installed in bindir.
@@ -91,7 +92,7 @@ UTILITIES= test-distrib make-path wakeup make-docfile digest-doc sorted-doc \
 # deleted by the distclean target.
 SCRIPTS= rcs2log vcdiff
 
-EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS}
+EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
 SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 	makedoc.com *.[chy] rcs2log vcdiff
@@ -111,7 +112,11 @@ ${archlibdir}: all
 	@echo "Installing utilities run internally by Emacs."
 	./make-path ${archlibdir}
 	if [ `(cd ${archlibdir};/bin/pwd)` != `/bin/pwd` ]; then \
-	  for file in ${EXECUTABLES} ; do \
+	  for file in ${UTILITIES} ${INSTALLABLES}; do \
+	    cp $${file} ${archlibdir} ; \
+	    chmod 755 ${archlibdir}/$${file} ; \
+	  done ; \
+	  cd ${srcdir}; for file in ${SCRIPTS} ${INSTALLABLE_SCRIPTS}; do \
 	    cp $${file} ${archlibdir} ; \
 	    chmod 755 ${archlibdir}/$${file} ; \
 	  done ; \
@@ -171,94 +176,96 @@ TAGS: etags
 # have not been clobbered by whatever means were used to copy and
 # distribute Emacs.  If they were clobbered, all the .elc files were
 # clobbered too.
-test-distrib: test-distrib.c
-	$(CC) -o test-distrib test-distrib.c
-	./test-distrib
+test-distrib: ${srcdir}/test-distrib.c
+	$(CC) -o test-distrib ${srcdir}/test-distrib.c
+	./test-distrib ${srcdir}/testfile
 
 GETOPTOBJS = getopt.o getopt1.o
-GETOPTDEPS = $(GETOPTOBJS) getopt.h
+GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
 getopt.o: getopt.c getopt.h
 getopt1.o: getopt1.c getopt.h
 
-etags: etags.c $(GETOPTDEPS)
-	$(CC) ${CFLAGS} -DETAGS etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
+etags: ${srcdir}/etags.c $(GETOPTDEPS)
+	$(CC) ${CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
 
-ctags: etags.c $(GETOPTDEPS)
-	$(CC) ${CFLAGS} -DCTAGS etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
+ctags: ${srcdir}/etags.c $(GETOPTDEPS)
+	$(CC) ${CFLAGS} -DCTAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
 
-wakeup: wakeup.c
-	$(CC) ${CFLAGS} wakeup.c $(LOADLIBES) -o wakeup
+wakeup: ${srcdir}/wakeup.c
+	$(CC) ${CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
 
-make-docfile: make-docfile.c
-	$(CC) ${CFLAGS} make-docfile.c $(LOADLIBES) -o make-docfile
+make-docfile: ${srcdir}/make-docfile.c
+	$(CC) ${CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
 
-digest-doc: digest-doc.c
-	$(CC) ${CFLAGS} digest-doc.c $(LOADLIBES) -o digest-doc 
+digest-doc: ${srcdir}/digest-doc.c
+	$(CC) ${CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc 
 
-sorted-doc: sorted-doc.c
-	$(CC) ${CFLAGS} sorted-doc.c $(LOADLIBES) -o sorted-doc
+sorted-doc: ${srcdir}/sorted-doc.c
+	$(CC) ${CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
 
-b2m: b2m.c ../src/config.h
-	$(CC) ${CFLAGS} b2m.c $(LOADLIBES) -o b2m 
+b2m: ${srcdir}/b2m.c ../src/config.h
+	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
 
-movemail: movemail.c ../src/config.h
-	$(CC) ${CFLAGS} movemail.c $(LOADLIBES) -o movemail
+movemail: ${srcdir}/movemail.c ../src/config.h
+	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/movemail.c $(LOADLIBES) -o movemail
 
-cvtmail: cvtmail.c
-	$(CC) ${CFLAGS} cvtmail.c $(LOADLIBES) -o cvtmail
+cvtmail: ${srcdir}/cvtmail.c
+	$(CC) ${CFLAGS} ${srcdir}/cvtmail.c $(LOADLIBES) -o cvtmail
 
-fakemail: fakemail.c ../src/config.h
-	$(CC) ${CFLAGS} fakemail.c $(LOADLIBES) -o fakemail
+fakemail: ${srcdir}/fakemail.c ../src/config.h
+	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
-yow: yow.c ../src/paths.h
-	$(CC) ${CFLAGS} yow.c $(LOADLIBES) -o yow
+yow: ${srcdir}/yow.c ../src/paths.h
+	$(CC) ${CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
 
-env: env.c ../src/config.h
-	$(CC) -DEMACS ${CFLAGS} env.c $(LOADLIBES) -o env
+env: ${srcdir}/env.c ../src/config.h
+	$(CC) -DEMACS -I${srcdir}/../src ${CFLAGS} ${srcdir}/env.c $(LOADLIBES) -o env
 
-emacsserver: emacsserver.c ../src/config.h
-	$(CC) ${CFLAGS} emacsserver.c $(LOADLIBES) -o emacsserver
+emacsserver: ${srcdir}/emacsserver.c ../src/config.h
+	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
 
-emacsclient: emacsclient.c ../src/config.h
-	$(CC) ${CFLAGS} emacsclient.c $(LOADLIBES) -o emacsclient
+emacsclient: ${srcdir}/emacsclient.c ../src/config.h
+	$(CC) -I${srcdir}/../src ${CFLAGS} ${srcdir}/emacsclient.c $(LOADLIBES) -o emacsclient
 
-hexl: hexl.c
-	$(CC) ${CFLAGS} hexl.c $(LOADLIBES) -o hexl
+hexl: ${srcdir}/hexl.c
+	$(CC) ${CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-getdate.o: getdate.y ../src/config.h
-	${YACC} ${YFLAGS} getdate.y
-	$(CC) $(CFLAGS) -c y.tab.c
+getdate.o: ${srcdir}/getdate.y ../src/config.h
+	${YACC} ${YFLAGS} ${srcdir}/getdate.y
+	$(CC) -I${srcdir}/../src $(CFLAGS) -c y.tab.c
 	mv y.tab.o getdate.o
+timer.o: ${srcdir}/timer.c ../src/config.h
+	$(CC) -c -I${srcdir}/../src $(CFLAGS) ${srcdir}/timer.c
 timer: getdate.o timer.o
-	$(CC) $(CFLAGS) getdate.o timer.o -o timer
+	$(CC) -I${srcdir}/../src $(CFLAGS) getdate.o timer.o -o timer
 
-make-path: make-path.c
-	$(CC) $(CFLAGS) make-path.c -o make-path
+make-path: ${srcdir}/make-path.c
+	$(CC) $(CFLAGS) ${srcdir}/make-path.c -o make-path
 
 # These are NOT included in INSTALLABLES or UTILITIES.
 # See ../src/ymakefile.
-emacstool: emacstool.c
-	$(CC) emacstool.c -o emacstool ${CFLAGS} \
+emacstool: ${srcdir}/emacstool.c
+	$(CC) ${srcdir}/emacstool.c -o emacstool ${CFLAGS} \
 	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
 
 # For SUN Japanese Language Environment
-nemacstool: emacstool.c
-	$(CC) -o nemacstool -DJLE ${CFLAGS} emacstool.c \
+nemacstool: ${srcdir}/emacstool.c
+	$(CC) -o nemacstool -DJLE ${CFLAGS} ${srcdir}/emacstool.c \
 	  -lsuntool -lmle -lsunwindow -lpixrect $(LOADLIBES)
 
-xvetool: emacstool.c
-	$(CC) -o xvetool -DXVIEW ${CFLAGS} emacstool.c \
+xvetool: ${srcdir}/emacstool.c
+	$(CC) -o xvetool -DXVIEW ${CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lX -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
-xveterm: emacstool.c
-	$(CC) -o xveterm -DXVIEW -DTTERM ${CFLAGS} emacstool.c \
+xveterm: ${srcdir}/emacstool.c
+	$(CC) -o xveterm -DXVIEW -DTTERM ${CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
-aixcc: aixcc.c
-	$(CC) $(CFLAGS) -o aixcc aixcc.c
+aixcc: ${srcdir}/aixcc.c
+	$(CC) $(CFLAGS) -o aixcc ${srcdir}/aixcc.c
 
-aixcc.c: aixcc.lex
-	lex aixcc.lex
+aixcc.c: ${srcdir}/aixcc.lex
+	lex ${srcdir}/aixcc.lex
 	mv lex.yy.c aixcc.c
