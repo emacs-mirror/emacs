@@ -5147,7 +5147,7 @@ the return value is nil.  Otherwise the value is t.  */)
       selected_window = Qnil;
       if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
 	set_marker_restricted (XWINDOW (data->current_window)->pointm,
-			       old_point,
+			       make_number (old_point),
 			       XWINDOW (data->current_window)->buffer);
 		  
       Fselect_window (data->current_window);
