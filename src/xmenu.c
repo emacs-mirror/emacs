@@ -1077,14 +1077,10 @@ popup_get_selection (initial_event, dpyinfo, id)
 	  && (event.xany.display != dpyinfo->display
 	      || x_non_menubar_window_to_frame (dpyinfo, event.xany.window)))
 	{
-	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
-
-	  if (queue_tmp != NULL) 
-	    {
-	      queue_tmp->event = event;
-	      queue_tmp->next = queue;
-	      queue = queue_tmp;
-	    }
+	  queue_tmp = (struct event_queue *) xmalloc (sizeof *queue_tmp);
+	  queue_tmp->event = event;
+	  queue_tmp->next = queue;
+	  queue = queue_tmp;
 	}
       else
 	XtDispatchEvent (&event);
