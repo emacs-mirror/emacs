@@ -49,7 +49,7 @@
 		 integer)
   :group 'compilation)
 
-(defvar compile-auto-highlight nil
+(defcustom compile-auto-highlight nil
   "*Specify how many compiler errors to highlight (and parse) initially.
 \(Highlighting applies to an error message when the mouse is over it.)
 If this is a number N, all compiler error messages in the first N lines
@@ -59,7 +59,11 @@ If nil, don't highlight or parse any of the buffer until you try to
 move to the error messages.
 
 Those messages which are not parsed and highlighted initially
-will be parsed and highlighted as soon as you try to move to them.")
+will be parsed and highlighted as soon as you try to move to them."
+  :type '(choice (const :tag "All" t)
+		 (const :tag "None" nil)
+		 (integer :tag "First N lines"))
+  :group 'compilation)
 
 (defvar compilation-error-list nil
   "List of error message descriptors for visiting erring functions.
