@@ -1,3 +1,8 @@
+2001-01-20  Miles Bader  <miles@gnu.org>
+
+	* cus-edit.el (custom-face-save): Do post-processing on the face's
+	new value like `custom-face-set' does.
+
 2001-01-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/emacsbug.el (report-emacs-bug): Report the value of
