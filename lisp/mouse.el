@@ -585,7 +585,7 @@ remains active.  Otherwise, it remains until the next input event."
 		  (setq end-of-range (overlay-start mouse-drag-overlay)))
 		 ((>= mouse-row bottom)
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-a				     mouse-drag-overlay start-point)
+				     mouse-drag-overlay start-point)
 		  (setq end-of-range (overlay-end mouse-drag-overlay))))))))))
       ;; In case we did not get a mouse-motion event
       ;; for the final move of the mouse before a drag event
