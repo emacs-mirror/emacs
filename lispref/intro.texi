@@ -401,7 +401,7 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
 
-@node Introduction, Types of Lisp Object, Copying, Top
+@node Introduction, Lisp Data Types, Copying, Top
 @chapter Introduction
 
   Most of the GNU Emacs text editor is written in the programming
@@ -419,7 +419,7 @@ are functions that can also conveniently be called from Lisp programs,
 and parameters for customization are ordinary Lisp variables.
 
   This manual describes Emacs Lisp, presuming considerable familiarity
-with the use of Emacs for editing.  (See @cite{The GNU Emacs Manual},
+with the use of Emacs for editing.  (See @cite{The GNU Emacs Manual}
 for this basic information.)  Generally speaking, the earlier chapters
 describe features of Emacs Lisp that have counterparts in many
 programming languages, and later chapters describe features that are
@@ -438,13 +438,11 @@ peculiar to Emacs Lisp or relate specifically to editing.
 @section Caveats
 
   This manual has gone through numerous drafts.  It is nearly complete
-but not flawless.  There are a few sections which are not included,
-either because we consider them secondary (such as most of the
-individual modes) or because they are yet to be written.  
-
-  Because we are not able to deal with them completely, we have left out
-several parts intentionally.  This includes most information about usage
-on VMS.
+but not flawless.  There are a few topics that are not covered, either
+because we consider them secondary (such as most of the individual
+modes) or because they are yet to be written.  Because we are not able
+to deal with them completely, we have left out several parts
+intentionally.  This includes most information about usage on VMS.
 
   The manual should be fully correct in what it does cover, and it is
 therefore open to criticism on anything it says---from specific examples
@@ -456,11 +454,12 @@ the manual should be fixed.  Please let us know.
 @iftex
   As you use the manual, we ask that you mark pages with corrections so
 you can later look them up and send them in.  If you think of a simple,
-real life example for a function or group of functions, please make an
+real-life example for a function or group of functions, please make an
 effort to write it up and send it in.  Please reference any comments to
 the chapter name, section name, and function name, as appropriate, since
-page numbers and chapter and section numbers will change.  Also state
-the number of the edition which you are criticizing.
+page numbers and chapter and section numbers will change and we may have
+trouble finding the text you are talking about.  Also state the number
+of the edition you are criticizing.
 @end iftex
 @ifinfo
 
@@ -494,7 +493,7 @@ Emacs maintainers more quickly, send mail to
 @section Lisp History
 @cindex Lisp history
 
-  Lisp (LISt Processing language) was first developed in the late 1950s
+  Lisp (LISt Processing language) was first developed in the late 1950's
 at the Massachusetts Institute of Technology for research in artificial
 intelligence.  The great power of the Lisp language makes it superior
 for other purposes as well, such as writing editing commands.
@@ -504,7 +503,7 @@ for other purposes as well, such as writing editing commands.
   Dozens of Lisp implementations have been built over the years, each
 with its own idiosyncrasies.  Many of them were inspired by Maclisp,
 which was written in the 1960's at MIT's Project MAC.  Eventually the
-implementors of the descendents of Maclisp came together and developed a
+implementors of the descendants of Maclisp came together and developed a
 standard for Lisp systems, called Common Lisp.
 
   GNU Emacs Lisp is largely inspired by Maclisp, and a little by Common
@@ -540,7 +539,7 @@ printer'' are used to refer to those routines in Lisp that convert
 textual representations of Lisp objects into actual objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
 person reading this manual, are thought of as ``the programmer'' and are
-addressed as ``you''.  ``The user'' is the person who uses Lisp programs
+addressed as ``you''.  ``The user'' is the person who uses Lisp programs,
 including those you write.
 
 @cindex fonts
@@ -619,7 +618,7 @@ evaluation of the expanded form.
      @result{} c
 @end example
 
-  Sometimes to help describe one form we show another form which
+  Sometimes to help describe one form we show another form that
 produces identical results.  The exact equivalence of two forms is
 indicated with @samp{@equiv{}}.
 
@@ -632,12 +631,12 @@ indicated with @samp{@equiv{}}.
 @cindex printing notation
 
   Many of the examples in this manual print text when they are
-evaluated.  If you execute the code from an example in a Lisp
-Interaction buffer (such as the buffer @samp{*scratch*}), the printed
-text is inserted into the buffer.  If you execute the example by other
-means (such as by evaluating the function @code{eval-region}), it prints
-text by displaying it in the echo area.  You should be aware that text
-displayed in the echo area is truncated to a single line.
+evaluated.  If you execute example code in a Lisp Interaction buffer
+(such as the buffer @samp{*scratch*}), the printed text is inserted into
+the buffer.  If you execute the example by other means (such as by
+evaluating the function @code{eval-region}), the printed text is
+displayed in the echo area.  You should be aware that text displayed in
+the echo area is truncated to a single line.
 
   Examples in this manual indicate printed text with @samp{@print{}},
 irrespective of where that text goes.  The value returned by evaluating
@@ -765,7 +764,7 @@ More generally,
 @var{integer}, @var{integer1} or @var{buffer}) is expected to be of that
 type.  A plural of a type (such as @var{buffers}) often means a list of
 objects of that type.  Parameters named @var{object} may be of any type.
-(@xref{Types of Lisp Object}, for a list of Emacs object types.)
+(@xref{Lisp Data Types}, for a list of Emacs object types.)
 Parameters with other sorts of names (e.g., @var{new-file}) are
 discussed specifically in the description of the function.  In some
 sections, features common to parameters of several functions are
