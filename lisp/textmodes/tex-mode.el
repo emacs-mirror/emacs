@@ -26,7 +26,8 @@
 
 ;;; Code:
 
-(require 'comint)
+;; This was a pain.  Now, make-comint should autoload comint.
+;; (require 'comint)
 
 (defvar tex-shell-file-name nil
   "*If non-nil, is file name to use for the subshell in which TeX is run.")

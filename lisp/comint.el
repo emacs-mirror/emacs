@@ -300,6 +300,7 @@ name of one"
 
 ;;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
 ;;; for the second argument (program).
+;;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
   (let ((buffer (get-buffer-create (concat "*" name "*"))))
     ;; If no process, or nuked process, crank up a new one and put buffer in

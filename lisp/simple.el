@@ -378,8 +378,8 @@ The command is placed in the minibuffer as a Lisp form for editing.
 The result is executed, repeating the command as changed.
 If the command has been changed or is not the most recent previous command
 it is added to the front of the command history.
-Whilst editing the command, the following commands are available:
-\\{repeat-complex-command-map}"
+You can use the minibuffer history commands \\<minibuffer-local-map>\\[next-history-element] and \\[previous-history-element]
+to get different commands to edit and resubmit."
   (interactive "p")
   (let ((elt (nth (1- arg) command-history))
 	(minibuffer-history-position arg)
