@@ -465,7 +465,8 @@ case "${configuration}" in
     machine=intel386
     case "${configuration}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
-      *-isc* )			opsys=isc2-2 ;;
+      *-isc2.2 )		opsys=isc2-2 ;;
+      *-isc* )			opsys=isc3-0 ;;
       *-esix* )			opsys=esix ;;
       *-xenix* )		opsys=xenix ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
