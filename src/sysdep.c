@@ -339,6 +339,15 @@ wait_for_termination (pid)
 	break;
       wait (0);
 #else /* neither BSD nor UNIPLUS nor LINUX: random sysV */
+#ifdef POSIX_SIGNALS	/* would this work for LINUX as well? */
+      sigblock (sigmask (SIGCHLD));
+      if (0 > kill (pid, 0))
+	{
+	  sigunblock (sigmask (SIGCHLD));
+	  break;
+	}
+      sigpause (sigmask (SIGCHLD));
+#else /* not POSIX_SIGNALS */
 #ifdef HAVE_SYSV_SIGPAUSE
       sighold (SIGCHLD);
       if (0 > kill (pid, 0))
@@ -355,6 +364,7 @@ wait_for_termination (pid)
 	 we lose just one second.  */
       sleep (1);
 #endif /* not HAVE_SYSV_SIGPAUSE */
+#endif /* not POSIX_SIGNALS */
 #endif /* not UNIPLUS */
 #endif /* not BSD, and not HPUX version >= 6 */
 #endif /* not VMS */
