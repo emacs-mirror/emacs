@@ -243,7 +243,7 @@ blessmail: ${SUBDIR_MAKEFILES} src FRC
 Makefile: $(srcdir)/Makefile.in config.status
 	./config.status
 
-config.status: configure
+config.status: ${srcdir}/configure
 	./config.status --recheck
 
 ${srcdir}/configure: configure.in aclocal.m4
