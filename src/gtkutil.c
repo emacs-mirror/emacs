@@ -2665,6 +2665,9 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
       gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
       gtk_widget_set_size_request (wscroll, width, gheight);
 
+      /* Must force out update so changed scroll bars gets redrawn.  */
+      gdk_window_process_all_updates ();
+
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
     }
