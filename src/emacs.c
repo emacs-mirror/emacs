@@ -318,6 +318,7 @@ extern noshare char **environ;
    Provide dummy definitions to avoid error.
    (We don't have any real constructors or destructors.)  */
 #ifdef __GNUC__
+#ifndef GCC_CTORS_IN_LIBC
 __do_global_ctors ()
 {}
 __do_global_ctors_aux ()
@@ -329,6 +330,7 @@ __do_global_dtors ()
 char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif
 char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
+#endif /* GCC_CTORS_IN_LIBC */
 __main ()
 {}
 #endif /* __GNUC__ */
