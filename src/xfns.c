@@ -1961,14 +1961,24 @@ static XIMStyle supported_xim_styles[] =
 
 char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
+/* Create an Xt fontset spec from the name of a base font.
+   If `motif' is True use the Motif syntax.  */
 char *
-xic_create_fontsetname (base_fontname)
+xic_create_fontsetname (base_fontname, motif)
      char *base_fontname;
+     Bool motif;
 {
+  const char *sep = motif ? ";" : ",";
+  char *fontsetname;
+
   /* Make a fontset name from the base font name.  */
   if (xic_defaut_fontset == base_fontname)
-    /* There is no base font name, use the default.  */
-    return base_fontname;
+    { /* There is no base font name, use the default.  */
+      int len = strlen (base_fontname) + 2;
+      fontsetname = xmalloc (len);
+      bzero (fontsetname, len);
+      strcpy (fontsetname, base_fontname);
+    }
   else
     {
       /* Make a fontset name from the base font name.
@@ -1977,20 +1987,19 @@ xic_create_fontsetname (base_fontname)
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
       char *p = base_fontname;
-      char *fontsetname;
       int i;
-	
+      
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
       if (i != 14)
 	{ /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  int len = strlen (base_fontname) + strlen (xic_defaut_fontset) + 2;
+	  int len = strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
 	  fontsetname = xmalloc (len);
 	  bzero (fontsetname, len);
 	  strcpy (fontsetname, base_fontname);
-	  strcat (fontsetname, ",");
+	  strcat (fontsetname, sep);
 	  strcat (fontsetname, xic_defaut_fontset);
 	}
       else
@@ -2028,17 +2037,19 @@ xic_create_fontsetname (base_fontname)
 
 	  /* Build the actual font set name.  */
 	  len = strlen (base_fontname) + strlen (font_allcs)
-	    + strlen (font_allfamilies) + 3;
+	    + strlen (font_allfamilies) + 4;
 	  fontsetname = xmalloc (len);
 	  bzero (fontsetname, len);
 	  strcpy (fontsetname, base_fontname);
-	  strcat (fontsetname, ",");
+	  strcat (fontsetname, sep);
 	  strcat (fontsetname, font_allcs);
-	  strcat (fontsetname, ",");
+	  strcat (fontsetname, sep);
 	  strcat (fontsetname, font_allfamilies);
 	}
-      return fontsetname;
     }
+  if (motif)
+    strcat (fontsetname, ":");
+  return fontsetname;
 }
 
 static XFontSet
@@ -2071,7 +2082,7 @@ xic_create_xfontset (f, base_fontname)
 
   if (!xfs)
     {
-      char *fontsetname = xic_create_fontsetname (base_fontname);
+      char *fontsetname = xic_create_fontsetname (base_fontname, False);
 
       /* New fontset.  */
       xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
@@ -2079,8 +2090,7 @@ xic_create_xfontset (f, base_fontname)
                             &missing_count, &def_string);
       if (missing_list)
         XFreeStringList (missing_list);
-      if (fontsetname != base_fontname)
-	xfree (fontsetname);
+      xfree (fontsetname);
     }
 
   if (FRAME_XIC_BASE_FONTNAME (f))
