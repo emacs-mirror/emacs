@@ -248,4 +248,4 @@ of two or more bytes.  @xref{International}.
 
   If you disable multibyte characters, then you can use only one
 alphabet of non-ASCII characters, but they all fit in one byte.  They
-use codes 0200 through 0377.  @xref{Single-Byte European Support}.
+use codes 0200 through 0377.  @xref{Single-Byte Character Support}.

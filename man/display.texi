@@ -302,7 +302,7 @@ sequences; thus, character code 0243 (octal) is displayed as
 @samp{\243}.  However, if you enable European display, most of these
 characters become non-ASCII printing characters, and are displayed using
 their graphics (assuming your terminal supports them).
-@xref{Single-Byte European Support}.
+@xref{Single-Byte Character Support}.
 
 @node Display Vars
 @section Variables Controlling Display
