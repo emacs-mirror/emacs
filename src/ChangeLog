@@ -1,3 +1,10 @@
+2003-10-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Qcoding_system_define_form): New variable.
+	(syms_of_coding): Intern and staticpro it.
+	(Fcheck_coding_system): Try to autoload the definition of
+	CODING-SYSTEM.
+
 2003-10-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Frequire): Doc fix.
