@@ -1089,7 +1089,7 @@ Values less than 60 seconds are ignored."
 (defvar fancy-current-text nil)
 (defvar fancy-splash-help-echo nil)
 (defvar fancy-splash-stop-time nil)
-
+(defvar fancy-splash-outer-buffer nil)
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
@@ -1152,7 +1152,11 @@ where FACE is a valid face specification, as it can be used with
     (fancy-splash-insert
      :face '(variable-pitch :foreground "red")
      "GNU Emacs is one component of the GNU operating system."))
-  (insert "\n"))
+  (insert "\n")
+  (unless (equal (buffer-name fancy-splash-outer-buffer) "*scratch*")
+    (fancy-splash-insert :face 'variable-pitch
+			 (substitute-command-keys
+			  "Type \\[recenter] to begin editing your file.\n"))))
 
 
 (defun fancy-splash-tail ()
@@ -1213,12 +1217,14 @@ where FACE is a valid face specification, as it can be used with
 (defun fancy-splash-screens ()
   "Display fancy splash screens when Emacs starts."
   (setq fancy-splash-help-echo (startup-echo-area-message))
-  (switch-to-buffer "GNU Emacs")
   (setq tab-width 20)
   (let ((old-hourglass display-hourglass)
-	(splash-buffer (current-buffer))
+	(fancy-splash-outer-buffer (current-buffer))
+	splash-buffer
 	(old-minor-mode-map-alist minor-mode-map-alist)
 	timer)
+    (switch-to-buffer "GNU Emacs")
+    (setq splash-buffer (current-buffer))
     (catch 'stop-splashing
       (unwind-protect
 	  (let ((map (make-sparse-keymap)))
@@ -1494,57 +1500,56 @@ where FACE is a valid face specification, as it can be used with
 	     (not noninteractive)
 	     (not inhibit-startup-buffer-menu)
 	     (or (get-buffer-window first-file-buffer)
-		 (list-buffers))))
+		 (list-buffers)))))
 
-    ;; No command args: maybe display a startup screen.
-    (when (and (not inhibit-startup-message) (not noninteractive)
-	       ;; Don't display startup screen if init file
-	       ;; has selected another buffer.
-	       (string= (buffer-name) "*scratch*")
-	       ;; Don't display startup screen if init file
-	       ;; has started some sort of server.
-	       (not (and (fboundp 'process-list)
-			 (process-list)))
-	       ;; Don't display startup screen if init file
-	       ;; has inserted some text in *scratch*.
-	       (= 0 (buffer-size)))
-      ;; Display a startup screen, after some preparations.
+  ;; Maybe display a startup screen.
+  (when (and (not inhibit-startup-message) (not noninteractive)
+	     ;; Don't display startup screen if init file
+	     ;; has started some sort of server.
+	     (not (and (fboundp 'process-list)
+		       (process-list))))
+    ;; Display a startup screen, after some preparations.
 
-      ;; If there are no switches to process, we might as well
-      ;; run this hook now, and there may be some need to do it
-      ;; before doing any output.
-      (and term-setup-hook
-	   (run-hooks 'term-setup-hook))
+    ;; If there are no switches to process, we might as well
+    ;; run this hook now, and there may be some need to do it
+    ;; before doing any output.
+    (and term-setup-hook
+	 (run-hooks 'term-setup-hook))
+    ;; Don't let the hook be run twice.
+    (setq term-setup-hook nil)
+
+    ;; It's important to notice the user settings before we
+    ;; display the startup message; otherwise, the settings
+    ;; won't take effect until the user gives the first
+    ;; keystroke, and that's distracting.
+    (when (fboundp 'frame-notice-user-settings)
+      (frame-notice-user-settings))
+
+    ;; If there are no switches to process, we might as well
+    ;; run this hook now, and there may be some need to do it
+    ;; before doing any output.
+    (when window-setup-hook
+      (run-hooks 'window-setup-hook)
       ;; Don't let the hook be run twice.
-      (setq term-setup-hook nil)
+      (setq window-setup-hook nil))
 
-      ;; It's important to notice the user settings before we
-      ;; display the startup message; otherwise, the settings
-      ;; won't take effect until the user gives the first
-      ;; keystroke, and that's distracting.
-      (when (fboundp 'frame-notice-user-settings)
-	(frame-notice-user-settings))
+    ;; Do this now to avoid an annoying delay if the user
+    ;; clicks the menu bar during the sit-for.
+    (when (display-popup-menus-p)
+      (precompute-menubar-bindings))
+    (setq menubar-bindings-done t)
 
-      ;; If there are no switches to process, we might as well
-      ;; run this hook now, and there may be some need to do it
-      ;; before doing any output.
-      (when window-setup-hook
-	(run-hooks 'window-setup-hook)
-	;; Don't let the hook be run twice.
-	(setq window-setup-hook nil))
+    ;; If *scratch* is selected and it is empty, insert an
+    ;; initial message saying not to create a file there.
+    (when (and initial-scratch-message
+	       (string= (buffer-name) "*scratch*")
+	       (= 0 (buffer-size)))
+      (insert initial-scratch-message)
+      (set-buffer-modified-p nil))
 
-      ;; Do this now to avoid an annoying delay if the user
-      ;; clicks the menu bar during the sit-for.
-      (when (display-popup-menus-p)
-	(precompute-menubar-bindings))
-      (setq menubar-bindings-done t)
-
-      (when initial-scratch-message
-	(insert initial-scratch-message))
-      (set-buffer-modified-p nil)
-
-      ;; If user typed input during all that work,
-      ;; abort the startup screen.  Otherwise, display it now.
+    ;; If user typed input during all that work,
+    ;; abort the startup screen.  Otherwise, display it now.
+    (let ((buffer (current-buffer)))
       (when (not (input-pending-p))
 	(if (and (display-graphic-p)
 		 (use-fancy-splash-screens-p))
@@ -1561,6 +1566,10 @@ where FACE is a valid face specification, as it can be used with
 	      (if (eq system-type 'gnu/linux)
 		  (insert ", one component of a Linux-based GNU system."))
 	      (insert "\n")
+
+	      (unless (equal (buffer-name buffer) "*scratch*")
+		(insert (substitute-command-keys
+			 "\nType \\[recenter] to begin editing your file.\n")))
 
 	      (if (display-mouse-p)
 		  ;; The user can use the mouse to activate menus
