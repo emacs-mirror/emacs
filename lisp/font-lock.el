@@ -444,6 +444,8 @@ and those for buffer-specialised fontification functions,
 `font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
 `font-lock-fontify-region-function', `font-lock-unfontify-region-function',
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
+;;;###autoload
+(make-variable-buffer-local 'font-lock-defaults)
 
 ;; This variable is used where font-lock.el itself supplies the keywords.
 (defvar font-lock-defaults-alist
@@ -1084,7 +1086,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	   (remove-hook 'after-change-functions
 			'font-lock-after-change-function t)
 	   (set (make-local-variable 'font-lock-fontify-buffer-function)
-		'jit-lock-fontify-buffer)
+		'jit-lock-refontify)
 	   ;; Don't fontify eagerly (and don't abort is the buffer is large).
 	   (set (make-local-variable 'font-lock-fontified) t)
 	   ;; Use jit-lock.
@@ -1693,7 +1695,7 @@ Structure is ((MAJOR-MODE . VALUE) ...) where MAJOR-MODE may be t."
   "Return LEVELth element of KEYWORDS.
 A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
 \(1- (length KEYWORDS))."
-  (cond ((symbolp keywords)
+  (cond ((not (and (listp keywords) (symbolp (car keywords))))
 	 keywords)
 	((numberp level)
 	 (or (nth level keywords) (car (reverse keywords))))
@@ -2286,10 +2288,10 @@ See also `c-font-lock-extra-types'.")
 			"typedef" "extern" "auto" "register" "static"
 			"volatile" "const"
 			;; Dan Nicolaescu <done@gnu.org> says this is new.
-			"restrict") t)))
+			"restrict"))))
        (c-type-specs
 	(eval-when-compile
-	  (regexp-opt '("enum" "struct" "union") t)))
+	  (regexp-opt '("enum" "struct" "union"))))
        (c-type-specs-depth
 	(regexp-opt-depth c-type-specs))
        (c-type-names
@@ -2506,7 +2508,7 @@ See also `c++-font-lock-extra-types'.")
 	     ;; as keywords not types.
 	     "typedef" "template"
 	     "extern" "auto" "register" "const" "volatile" "static"
-	     "inline" "friend" "virtual") t)))
+	     "inline" "friend" "virtual"))))
        (c++-operators
 	(eval-when-compile
 	  (regexp-opt
@@ -2716,7 +2718,7 @@ See also `objc-font-lock-extra-types'.")
 	  (regexp-opt '("break" "continue" "do" "else" "for" "if" "return"
 			"switch" "while" "sizeof" "self" "super"
 			"typedef" "auto" "extern" "static"
-			"volatile" "const") t)))
+			"volatile" "const"))))
        (objc-type-specs
 	(eval-when-compile
 	  (regexp-opt
@@ -2877,7 +2879,7 @@ See also `java-font-lock-extra-types'.")
 	     ;; "cast" "byvalue" "future" "generic" "operator" "var"
 	     ;; "inner" "outer" "rest"
 	     "implements" "extends" "throws" "instanceof" "new"
-	     "interface" "return" "switch" "throw" "try" "while") t)))
+	     "interface" "return" "switch" "throw" "try" "while"))))
        ;;
        ;; Classes immediately followed by an object name.
        (java-type-names
