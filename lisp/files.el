@@ -1138,8 +1138,8 @@ run `normal-mode' explicitly."
     ("\\.dtd\\'" . sgml-mode)
     ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
     ;; .emacs following a directory delimiter
-    ;; in either Unix or VMS syntax.
-    ("[]>:/]\\..*emacs\\'" . emacs-lisp-mode)
+    ;; in Unix, MSDOG or VMS syntax.
+    ("[]>:/\\]\\..*emacs\\'" . emacs-lisp-mode)
     ;; _emacs following a directory delimiter
     ;; in MsDos syntax
     ("[:/]_emacs\\'" . emacs-lisp-mode)
