@@ -538,8 +538,9 @@ coordinates_in_window (w, x, y)
   if (WINDOW_WANTS_MODELINE_P (w)
       && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
     {
-      if (XFASTINT (w->left) > 0
-	  && (abs (*x - XFASTINT (w->left) * CANON_X_UNIT (f))
+      if (!WINDOW_RIGHTMOST_P (w)
+	  && (abs (*x - ((XFASTINT (w->left) + XFASTINT (w->width))
+			 * CANON_X_UNIT (f)))
 	      < CANON_X_UNIT (f) / 2))
 	return ON_VERTICAL_BORDER;
       return ON_MODE_LINE;
@@ -548,33 +549,56 @@ coordinates_in_window (w, x, y)
   if (WINDOW_WANTS_HEADER_LINE_P (w)
       && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
     {
-      if (XFASTINT (w->left) > 0
-	  && (abs (*x - XFASTINT (w->left) * CANON_X_UNIT (f))
+      if (!WINDOW_RIGHTMOST_P (w)
+	  && (abs (*x - ((XFASTINT (w->left) + XFASTINT (w->width))
+			 * CANON_X_UNIT (f)))
 	      < CANON_X_UNIT (f) / 2))
 	return ON_VERTICAL_BORDER;
       return ON_HEADER_LINE;
     }
-  
-  /* Need to say "*x > right_x" rather than >=, since on character
-     terminals, the vertical line's x coordinate is right_x.  */
-  if (*x < left_x || *x > right_x)
+
+  if (FRAME_WINDOW_P (f))
     {
-      /* Other lines than the mode line don't include flags areas and
-	 scroll bars on the left.  */
+      if (!w->pseudo_window_p
+	  && !FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+	  && !WINDOW_RIGHTMOST_P (w)
+	  && (abs (*x - right_x - flags_area_width) < CANON_X_UNIT (f) / 2))
+	return ON_VERTICAL_BORDER;
+
+      if (*x < left_x || *x > right_x)
+	{
+	  /* Other lines than the mode line don't include flags areas and
+	     scroll bars on the left.  */
       
-      /* Convert X and Y to window-relative pixel coordinates.  */
-      *x -= left_x;
-      *y -= top_y;
-      return *x < left_x ? ON_LEFT_FRINGE : ON_RIGHT_FRINGE;
+	  /* Convert X and Y to window-relative pixel coordinates.  */
+	  *x -= left_x;
+	  *y -= top_y;
+	  return *x < left_x ? ON_LEFT_FRINGE : ON_RIGHT_FRINGE;
+	}
     }
+  else
+    {
+      /* Need to say "*x > right_x" rather than >=, since on character
+	 terminals, the vertical line's x coordinate is right_x.  */
+      if (*x < left_x || *x > right_x)
+	{
+	  /* Other lines than the mode line don't include flags areas and
+	     scroll bars on the left.  */
+      
+	  /* Convert X and Y to window-relative pixel coordinates.  */
+	  *x -= left_x;
+	  *y -= top_y;
+	  return *x < left_x ? ON_LEFT_FRINGE : ON_RIGHT_FRINGE;
+	}
   
-  /* Here, too, "*x > right_x" is because of character terminals.  */
-  if (!w->pseudo_window_p
-      && !WINDOW_RIGHTMOST_P (w)
-      && *x > right_x - CANON_X_UNIT (f))
-    /* On the border on the right side of the window?  Assume that
-       this area begins at RIGHT_X minus a canonical char width.  */
-    return ON_VERTICAL_BORDER;
+      /* Here, too, "*x > right_x" is because of character terminals.  */
+      if (!w->pseudo_window_p
+	  && !WINDOW_RIGHTMOST_P (w)
+	  && *x > right_x - CANON_X_UNIT (f))
+	/* On the border on the right side of the window?  Assume that
+	   this area begins at RIGHT_X minus a canonical char width.  */
+	return ON_VERTICAL_BORDER;
+    }
   
   /* Convert X and Y to window-relative pixel coordinates.  */
   *x -= left_x;
