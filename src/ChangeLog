@@ -1,3 +1,8 @@
+2001-10-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lisp.h: (gdb_lisp_params): Remove code in #if 0 which is now in
+	emacs.c.
+
 2001-10-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): Use 2/3 line_height
