@@ -2633,7 +2633,9 @@ Outline mode sets this."
 This function works only in certain cases,
 because what we really need is for `move-to-column'
 and `current-column' to be able to ignore invisible text."
-  (move-to-column col)
+  (if (zerop col)
+      (beginning-of-line)
+    (move-to-column col))
 
   (when (and line-move-ignore-invisible
 	     (not (bolp)) (line-move-invisible (1- (point))))
