@@ -42,7 +42,9 @@ it as a number; Lisp knows it is a vector, not a number.
 variable, and the type is known by the compiler but not represented in
 the data.  Such type declarations do not exist in Emacs Lisp.  A Lisp
 variable can have any type of value, and it remembers whatever value
-you store in it, type and all.
+you store in it, type and all.  (Actually, a small number of Emacs
+Lisp variables can only take on values of a certain type.
+@xref{Variables with Restricted Values}.)
 
   This chapter describes the purpose, printed representation, and read
 syntax of each of the standard types in GNU Emacs Lisp.  Details on how
