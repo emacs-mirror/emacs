@@ -5372,6 +5372,8 @@ A string is printed verbatim in the mode line except for %-constructs:
   %c -- print the current column number (this makes editing slower).
         To make the column number update correctly in all cases,
 	`column-number-mode' must be non-nil.
+  %i -- print the size of the buffer.
+  %I -- like %i, but use k, M, G, etc., to abbreviate.
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
