@@ -1,11 +1,11 @@
 /* Primitives for word-abbrev mode.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -224,8 +224,8 @@ Returns t if expansion took place.")
 
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qpre_abbrev_expand_hook);
-  /* If the hook changes the buffer, treat that as
-     having "done an expansion".  */
+  /* If the hook changes the buffer, treat that as having "done an
+     expansion".  */
   value = (MODIFF != oldmodiff ? Qt : Qnil);
 
   if (XBUFFER (Vabbrev_start_location_buffer) != current_buffer)
@@ -527,7 +527,7 @@ Calling `expand-abbrev' sets this to nil.");
 Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.");
   Vabbrev_start_location_buffer = Qnil;
 
-  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table,
+  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
     "Local (mode-specific) abbrev table of current buffer.");
 
   DEFVAR_BOOL ("abbrevs-changed", &abbrevs_changed,
