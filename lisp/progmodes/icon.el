@@ -698,5 +698,6 @@ Returns nil if line starts inside a string, t if in a comment."
     (end-of-icon-defun)
     (forward-char -1)))
 
-(provide 'icon-mode)
+(provide 'icon)
+
 ;;; icon.el ends here
