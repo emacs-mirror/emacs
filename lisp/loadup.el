@@ -130,6 +130,7 @@
 
 (garbage-collect)
 (load "vc-hooks")
+(load "ediff-hook")
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
