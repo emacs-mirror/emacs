@@ -54,6 +54,9 @@
 	(note_mouse_movement): If the mouse moved off the glyph, remember
 	its new position.
 	
+	* w32term.h (struct w32_output): Correct spelling of x_compatible.
+	(w32_display_info): Add mouse_face_overlay.
+
 	* w32term.c (notice_overwritten_cursor): Renamed from
 	note_overwritten_text_cursor.  Rewritten to take glyph widths into
 	account.
@@ -116,7 +119,7 @@
 	a widget to zero height.
 
 	* w32menu.c (single_submenu, w32_menu_show) [!HAVE_MULTILINGUAL_MENU]:
-	Protect unibyte stings created by replacing their multibyte
+	Protect unibyte strings created by replacing their multibyte
 	equivalents in menu_items.
 	(w32_menu_show): Don't overwrite an item's name with its key
 	description in case the description is a multibyte string.
