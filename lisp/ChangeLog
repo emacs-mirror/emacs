@@ -1,3 +1,9 @@
+2000-12-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/chinese.el (chinese-iso-8bit): Change mime-charset name
+	to cn-gb.
+	(cn-gb, gb2312): New aliases for chinese-iso-8bit.
+
 2000-12-04  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-indent.el: Remove erroneous spec for condition-case.
