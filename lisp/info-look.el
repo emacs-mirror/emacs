@@ -208,27 +208,30 @@ REFER-MODES is a list of other help modes to use.")
 		 (cons (cons topic nil)
 		       info-lookup-cache)))))
 
-(defsubst info-lookup->topic-cache (topic)
+(defun info-lookup->topic-cache (topic)
   (cdr (info-lookup->cache topic)))
 
-(defsubst info-lookup->mode-cache (topic mode)
+(defun info-lookup->mode-cache (topic mode)
   (assoc mode (info-lookup->topic-cache topic)))
 
-(defsubst info-lookup->initialized (topic mode)
+(defun info-lookup->initialized (topic mode)
   (nth 1 (info-lookup->mode-cache topic mode)))
 
-(defsubst info-lookup->completions (topic mode)
+(defun info-lookup->completions (topic mode)
   (or (info-lookup->initialized topic mode)
       (info-lookup-setup-mode topic mode))
   (nth 2 (info-lookup->mode-cache topic mode)))
 
-(defsubst info-lookup->refer-modes (topic mode)
+(defun info-lookup->refer-modes (topic mode)
   (or (info-lookup->initialized topic mode)
       (info-lookup-setup-mode topic mode))
   (nth 3 (info-lookup->mode-cache topic mode)))
 
-(defsubst info-lookup->all-modes (topic mode)
+(defun info-lookup->all-modes (topic mode)
   (cons mode (info-lookup->refer-modes topic mode)))
+
+(defun info-lookup-quick-all-modes (topic mode)
+  (cons mode (info-lookup->other-modes topic mode)))
 
 ;;;###autoload
 (defun info-lookup-reset ()
@@ -541,10 +544,9 @@ Return nil if there is nothing appropriate."
       (setq mode (or info-lookup-mode major-mode)))
   (or (info-lookup->mode-value topic mode)
       (error "No %s completion available for `%s'" topic mode))
-  (let ((modes (info-lookup->all-modes topic mode))
-	(completions (info-lookup->completions topic mode))
-	(completion-ignore-case (info-lookup->ignore-case topic mode))
-	(start (point)) try completion)
+  (let ((modes (info-lookup-quick-all-modes topic mode))
+	(start (point))
+	try)
     (while (and (not try) modes)
       (setq mode (car modes)
 	    modes (cdr modes)
@@ -552,20 +554,24 @@ Return nil if there is nothing appropriate."
       (goto-char start))
     (and (not try)
 	 (error "Found no %S to complete" topic))
-    (setq completion (try-completion try completions))
-    (cond ((not completion)
-	   (ding)
-	   (message "No match"))
-	  ((stringp completion)
-	   (or (assoc completion completions)
-	       (setq completion (completing-read
-				 (format "Complete %S: " topic)
-				 completions nil t completion
-				 info-lookup-history)))
-	   (delete-region (- start (length try)) start)
-	   (insert completion))
-	  (t
-	   (message "%s is complete" (capitalize (prin1-to-string topic)))))))
+    (let ((completions (info-lookup->completions topic mode))
+	  (completion-ignore-case (info-lookup->ignore-case topic mode))
+	  completion)
+      (setq completion (try-completion try completions))
+      (cond ((not completion)
+	     (ding)
+	     (message "No match"))
+	    ((stringp completion)
+	     (or (assoc completion completions)
+		 (setq completion (completing-read
+				   (format "Complete %S: " topic)
+				   completions nil t completion
+				   info-lookup-history)))
+	     (delete-region (- start (length try)) start)
+	     (insert completion))
+	    (t
+	     (message "%s is complete"
+		      (capitalize (prin1-to-string topic))))))))
 
 
 ;;; Info-lookup minor mode.
@@ -756,6 +762,12 @@ Special commands:
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
+ :regexp "[^()' \t\n]+"
+ :parse-rule 'ignore
+ :other-modes '(emacs-lisp-mode))
+
+(info-lookup-maybe-add-help
+ :mode 'lisp-mode
  :regexp "[^()' \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
