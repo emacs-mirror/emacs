@@ -50,6 +50,8 @@ to return to regular RMAIL:
   (if (boundp 'mode-line-modified)
       (setq mode-line-modified (default-value 'mode-line-modified))
     (setq mode-line-format (default-value 'mode-line-format)))
+  (if (rmail-summary-exists)
+      (rmail-summary-disable))
   (run-hooks 'text-mode-hook 'rmail-edit-mode-hook))
 
 (defun rmail-edit-current-message ()
@@ -71,6 +73,8 @@ to return to regular RMAIL:
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
   (interactive)
+  (if (rmail-summary-exists)
+      (rmail-summary-enable))
   ;; Make sure buffer ends with a newline.
   (save-excursion
     (goto-char (point-max))
