@@ -488,6 +488,10 @@ int line_number_displayed;
 
 static int line_number_display_limit;
 
+/* line width to consider when repostioning for line number display */
+
+static int line_number_display_limit_width;
+
 /* Number of lines to keep in the message log buffer.  t means
    infinite.  nil means don't log at all.  */
 
@@ -11346,7 +11350,7 @@ decode_mode_spec (w, c, field_width, precision)
 	    int limit = BUF_BEGV (b);
 	    int limit_byte = BUF_BEGV_BYTE (b);
 	    int position;
-	    int distance = (height * 2 + 30) * 200;
+	    int distance = (height * 2 + 30) * line_number_display_limit_width;
 
 	    if (startpos - distance > limit)
 	      {
@@ -11359,7 +11363,7 @@ decode_mode_spec (w, c, field_width, precision)
 					  - (height * 2 + 30),
 					  &position);
 	    /* If we couldn't find the lines we wanted within 
-	       200 chars per line,
+	       line_number_display_limit_width chars per line,
 	       give up on line numbers for this window.  */
 	    if (position == limit_byte && limit == startpos - distance)
 	      {
@@ -12041,6 +12045,12 @@ of the top or bottom of the window.");
 If the buffer is bigger than this, the line number does not appear\n\
 in the mode line.");
   line_number_display_limit = 1000000;
+
+  DEFVAR_INT ("line-number-display-limit-width", &line_number_display_limit_width,
+    "*Maximum line width (in characters) for line number display.\n\
+If the average length of the lines near point is bigger than this, then the\n\
+line number may be omitted from the mode line.");
+  line_number_display_limit_width = 200;
 
   DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
     "*Non-nil means highlight region even in nonselected windows.");
