@@ -1,3 +1,19 @@
+2002-05-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el (ange-ftp-generate-root-prefixes)
+	(ange-ftp-file-name-completion): Don't cons unnecessarily.
+	(ange-ftp-send-cmd): Always `cd' before doing `ls'.
+
+	* wid-edit.el (widget-color-complete):
+	* progmodes/etags.el (tags-complete-tags-table-file):
+	* progmodes/cpp.el (cpp-choose-symbol): Don't cons unnecessarily.
+
+	* textmodes/outline.el (outline-reveal-toggle-invisible):
+	Reverse the meaning of the second arg.
+
+	* reveal.el (reveal-post-command): Reverse the semantics of
+	reveal-toggle-invisible and support isearch-open-invisible-temporary.
+
 2002-05-20  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mail/sendmail.el (mail-recover-1): Remove (debug).
@@ -18,8 +34,7 @@
 2002-05-19  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/ucs-tables.el (unify-8859-on-encoding-mode)
-	(unify-8859-on-decoding-mode): Change :version attributes to
-	strings.
+	(unify-8859-on-decoding-mode): Change :version attributes to strings.
 
 	* simple.el (yank-excluded-properties): Change :version attribute
 	to a string.
@@ -32,8 +47,7 @@
 
 	* find-dired.el (find-dired): Implement revert-buffer-function.
 
-	* mail/emacsbug.el (report-emacs-bug-hook): Do another
-	save-excursion.
+	* mail/emacsbug.el (report-emacs-bug-hook): Do another save-excursion.
 
 2002-05-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -50,14 +64,14 @@
 	* indent.el (indent-region): Make COLUMN arg optional.
 
 	* files.el (find-file-read-args): New function.
-	(find-file, find-file-other-window, find-file-other-frame) 
-	(find-file-read-only, find-file-read-only-other-window) 
+	(find-file, find-file-other-window, find-file-other-frame)
+	(find-file-read-only, find-file-read-only-other-window)
 	(find-file-read-only-other-frame): Use it.
 
 	* custom.el (custom-load-symbol): Verify that LOADED is a string.
 
 	* arc-mode.el (archive-zip-use-pkzip): Variable deleted.
-	(archive-zip-extract, archive-zip-expunge, archive-zip-update) 
+	(archive-zip-extract, archive-zip-expunge, archive-zip-update)
 	(archive-zip-update-case): Use locate-file to decide whether
 	to use pkzip.
 	(archive-zip-extract): Test for pkzip in value of archive-zip-extract.
