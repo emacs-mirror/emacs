@@ -1982,15 +1982,10 @@ beginning and `after-revert-hook' at the end."
 
 (defun recover-file (file)
   "Visit file FILE, but get contents from its last auto-save file."
-  (interactive
-   (let ((prompt-file buffer-file-name)
-	 (file-name nil)
-	 (file-dir nil))
-     (and prompt-file
-	  (setq file-name (file-name-nondirectory prompt-file)
-		file-dir (file-name-directory prompt-file)))
-     (list (read-file-name "Recover file: "
-			       file-dir nil nil file-name))))
+  ;; Actually putting the file name in the minibuffer should be used
+  ;; only rarely.
+  ;; Not just because users often use the default.
+  (interactive "fRecover file: ")
   (setq file (expand-file-name file))
   (if (auto-save-file-name-p (file-name-nondirectory file))
       (error "%s is an auto-save file" file))
