@@ -2089,6 +2089,7 @@ else
 fi
 
 AC_FUNC_VFORK
+AC_FUNC_MMAP
 
 # Fixme: This should be replaced when we have autoconf 2.14.
 AC_SIZE_T
