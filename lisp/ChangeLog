@@ -1,3 +1,16 @@
+2003-03-22  Kenichi Handa  <handa@etlken2>
+
+	* international/fontset.el (setup-default-fontset): Use
+	indian-font-char-range for specifying ranges of indian-glyph
+	chars.  Setup for AKRUTI fonts.
+
+	* language/indian.el (indian-font-foundry): New variable.
+	(indian-script-language-alist): New variable.
+	(indian-font-char-index-table): New variable.
+	(indian-font-char): New function. 
+	(indian-font-char-range): New function.
+	(font-ccl-encoder-alist): Add entry for AKRUTI font.
+
 2003-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/cperl-mode.el (cperl-electric-backspace): Add
