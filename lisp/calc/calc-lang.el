@@ -257,6 +257,13 @@
 (put 'fortran 'math-input-filter 'calc-input-case-filter)
 (put 'fortran 'math-output-filter 'calc-output-case-filter)
 
+;; The next few variables are local to math-read-exprs in calc-aent.el 
+;; and math-read-expr in calc-ext.el, but are set in functions they call.
+
+(defvar math-exp-token)
+(defvar math-expr-data)
+(defvar math-exp-old-pos)
+
 (defvar math-parsing-fortran-vector nil)
 (defun math-parse-fortran-vector (op)
   (let ((math-parsing-fortran-vector '(end . "\000")))
