@@ -755,10 +755,13 @@ DEFUN ("with-output-to-temp-buffer", Fwith_output_to_temp_buffer, Swith_output_t
 The buffer is cleared out initially, and marked as unmodified when done.\n\
 All output done by BODY is inserted in that buffer by default.\n\
 The buffer is displayed in another window, but not selected.\n\
+The hook `temp-buffer-show-hook' is run with that window selected\n\
+temporarily and its buffer current.\n\
 The value of the last form in BODY is returned.\n\
 If BODY does not finish normally, the buffer BUFNAME is not displayed.\n\n\
 If variable `temp-buffer-show-function' is non-nil, call it at the end\n\
-to get the buffer displayed.  It gets one argument, the buffer to display.")
+to get the buffer displayed instead of just displaying the non-selected\n\
+buffer and calling the hook.  It gets one argument, the buffer to display.")
   (args)
      Lisp_Object args;
 {
