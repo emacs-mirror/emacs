@@ -34,6 +34,7 @@
 ;; that are given this kind of overlay should be (interactive "p") 
 ;; functions.
 
+;; If the following keys are not already bound then...
 ;; C-insert is bound to copy-region-as-kill
 ;; S-delete is bound to kill-region
 ;; S-insert is bound to yank
@@ -94,9 +95,12 @@ add binding to, defaulting to global keymap."
        [C-next] [C-previous] [C-home] [C-end]
        [M-next] [M-previous] [M-home] [M-end]))
 
-(global-set-key [C-insert] 'copy-region-as-kill)
-(global-set-key [S-delete] 'kill-region)
-(global-set-key [S-insert] 'yank)
+(or (global-key-binding [C-insert])
+    (global-set-key [C-insert] 'copy-region-as-kill))
+(or (global-key-binding [C-delete])
+    (global-set-key [S-delete] 'kill-region))
+(or (global-key-binding [S-insert])
+    (global-set-key [S-insert] 'yank))
 
 (provide 's-region)
 
