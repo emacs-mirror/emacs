@@ -303,7 +303,7 @@ enum pvec_type
   PVEC_BUFFER = 0x20000,
   PVEC_HASH_TABLE = 0x40000,
   PVEC_TYPE_MASK = 0x7fe00
-  
+
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
 	 emacs.c.  */
@@ -892,7 +892,7 @@ struct Lisp_Symbol
 
   /* The symbol's property list.  */
   Lisp_Object plist;
-    
+
   /* Next symbol in obarray bucket, if the symbol is interned.  */
   struct Lisp_Symbol *next;
 };
@@ -935,7 +935,7 @@ struct Lisp_Symbol
        else							\
 	 XSYMBOL (sym)->value = (val);				\
      } while (0)
-     
+
 
 /***********************************************************************
 			     Hash Tables
@@ -948,14 +948,14 @@ struct Lisp_Hash_Table
   /* Vector fields.  The hash table code doesn't refer to these.  */
   EMACS_INT size;
   struct Lisp_Vector *vec_next;
-  
+
   /* Function used to compare keys.  */
   Lisp_Object test;
 
   /* Nil if table is non-weak.  Otherwise a symbol describing the
      weakness of the table.  */
   Lisp_Object weak;
-  
+
   /* When the table is resized, and this is an integer, compute the
      new size by adding this to the old size.  If a float, compute the
      new size by multiplying the old size with this factor.  */
@@ -1127,7 +1127,7 @@ struct Lisp_Buffer_Objfwd
    one that corresponds to the loaded binding.  To read or set the
    variable, you must first make sure the right binding is loaded;
    then you can access the value in (or through) `realvalue'.
-   
+
    `buffer' and `frame' are the buffer and frame for which the loaded
    binding was found.  If those have changed, to make sure the right
    binding is loaded it is necessary to find which binding goes with
@@ -1601,7 +1601,7 @@ typedef unsigned char UCHAR;
       || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
       || COMPILEDP (OBJ)				\
       || SUBRP (OBJ))
-     
+
 /* defsubr (Sname);
    is how we define the symbol for function `name' at start-up time.  */
 extern void defsubr P_ ((struct Lisp_Subr *));
@@ -1646,9 +1646,9 @@ extern void defvar_kboard P_ ((char *, int));
       form.
 
    Otherwise, the element is a variable binding.
-   
+
    If the symbol field is a symbol, it is an ordinary variable binding.
-   
+
    Otherwise, it should be a structure (SYMBOL WHERE
    . CURRENT-BUFFER), which means having bound a local value while
    CURRENT-BUFFER was active.  If WHERE is nil this means we saw the
@@ -1797,13 +1797,13 @@ extern struct gcpro *gcprolist;
 struct gcpro
 {
   struct gcpro *next;
-  
+
   /* Address of first protected variable.  */
   volatile Lisp_Object *var;
-  
+
   /* Number of consecutive protected variables.  */
   int nvars;
-  
+
 #ifdef DEBUG_GCPRO
   int level;
 #endif
@@ -1833,7 +1833,7 @@ struct gcpro
 /* Do something silly with gcproN vars just so gcc shuts up.  */
 
 #define GCPRO1(varname) ((void) gcpro1)
-#define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1)) 
+#define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1))
 #define GCPRO3(varname1, varname2, varname3) \
   (((void) gcpro3, (void) gcpro2, (void) gcpro1))
 #define GCPRO4(varname1, varname2, varname3, varname4) \
@@ -2807,9 +2807,9 @@ EXFUN (Fvertical_motion, 2);
 EXFUN (Findent_to, 2);
 EXFUN (Fcurrent_column, 0);
 EXFUN (Fmove_to_column, 2);
-extern int current_column P_ ((void));
+extern float current_column P_ ((void));
 extern void invalidate_current_column P_ ((void));
-extern int indented_beyond_p P_ ((int, int, int));
+extern int indented_beyond_p P_ ((int, int, float));
 extern void syms_of_indent P_ ((void));
 
 /* defined in window.c */
@@ -3143,7 +3143,7 @@ extern Lisp_Object Vdirectory_sep_char;
 
 /* Loop over Lisp list LIST.  Signal an error if LIST is not a proper
    list, or if it contains circles.
-   
+
    HARE and TORTOISE should be the names of Lisp_Object variables, and
    N should be the name of an EMACS_INT variable declared in the
    function where the macro is used.  Each nested loop should use
