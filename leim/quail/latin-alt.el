@@ -930,7 +930,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  "Esperanto input method with postfix modifiers
 
 A following ^ or x will produce an accented character,
-e.g. c^ -> ,Cf(B, gx -> ,Cx(B, u^ -> ,C}(B.
+e.g. c^ -> ,Cf(B   gx -> ,Cx(B   u^ -> ,C}(B.
 
 Doubling the postfix separates the letter and postfix,
 e.g. a'' -> a'.
@@ -1016,7 +1016,7 @@ OEE -> OE
  "French (Fran,Ag(Bais) input method with postfix modifiers
 
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
-Par exemple: a` -> ,A`(B, e' -> ,Ai(B.
+Par exemple: a` -> ,A`(B   e' -> ,Ai(B.
 
 ,AG(B, ,A+(B, et ,A;(B sont produits par C/, <<, et >>.
 
@@ -1293,7 +1293,7 @@ o\" -> ,Av(B
 e' -> ,Ai(B
 
 Doubling the postfix separates the letter and postfix:
-aee -> ae, o\"\" -> o\", etc.
+aee -> ae   o\"\" -> o\"   etc.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1338,7 +1338,7 @@ N~ -> ,AQ(B
 ?/ -> ,A?(B
 
 Doubling the postfix separates the letter and postfix:
-a'' -> a', n~~ -> n~, etc.
+a'' -> a'   n~~ -> n~, etc.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1402,10 +1402,10 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 
 (quail-define-package
  "turkish-latin-3-alt-postfix" "Latin-3" "TR3<<" t
- "Turkish (T,C|(Brk,Cg(Be) input method with postfix modifiers
+ "Turkish (T,C|(Brk,Cg(Be) input method with postfix modifiers.
 
 This is for those who use Latin-3 (ISO-8859-3) for Turkish.  If you
-use Latin-5 (ISO-8859-9), you should use \"turkish-postfix\" instead.
+use Latin-5 (ISO-8859-9), you should use \"turkish-alt-postfix\" instead.
 
 Note for I, ,C9(B, ,C)(B, i.
 
@@ -1464,11 +1464,11 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 
 (quail-define-package
  "turkish-alt-postfix" "Latin-5" "TR,M+(B" t
- "Turkish (T,M|(Brk,Mg(Be) input method with postfix modifiers
+ "Turkish (T,M|(Brk,Mg(Be) input method with postfix modifiers.
 
 This is for those who use Latin-5 (ISO-8859-9) for Turkish.  If you
 use Latin-3 (ISO-8859-3), you should use
-\"turkish-alt-latin-3-postfix\" instead.
+\"turkish-latin-3-alt-postfix\" instead.
 
 Note for I, ,M}(B, ,M](B, i.
 
