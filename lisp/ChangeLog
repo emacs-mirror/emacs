@@ -1,3 +1,7 @@
+2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* textmodes/flyspell.el (flyspell-insert-function): Doc fix.
+
 2002-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el: Require sendmail only at compile time.
