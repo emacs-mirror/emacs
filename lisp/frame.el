@@ -987,7 +987,8 @@ frame's display)."
      ((eq frame-type 'pc)
       (msdos-mouse-p))
      ((eq system-type 'windows-nt)
-      (> w32-num-mouse-buttons 0))
+      (with-no-warnings
+       (> w32-num-mouse-buttons 0)))
      ((memq frame-type '(x mac))
       t)    ;; We assume X and Mac *always* have a pointing device
      (t
@@ -1040,7 +1041,8 @@ frame's display)."
      ((eq frame-type 'pc)
       ;; MS-DOG frames support selections when Emacs runs inside
       ;; the Windows' DOS Box.
-      (not (null dos-windows-version)))
+      (with-no-warnings
+       (not (null dos-windows-version))))
      ((memq frame-type '(x w32 mac))
       t)    ;; FIXME?
      (t
