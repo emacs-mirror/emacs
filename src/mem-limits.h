@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef _LIBC
+
+#include <sys/resource.h>
+
+#else
+
 #if defined(__osf__) && (defined(__mips) || defined(mips))
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -34,6 +40,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif /* BSD4_2 */
+
+#endif /* _LIBC */
 
 #ifdef emacs
 /* The important properties of this type are that 1) it's a pointer, and
