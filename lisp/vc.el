@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.281 2000/10/22 15:37:51 spiegel Exp $
+;; $Id: vc.el,v 1.282 2000/10/25 21:45:09 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;;   Paul Eggert <eggert@twinsun.com>
 ;;   Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;   Martin Lorentzson <martinl@gnu.org>
-;;   Dave Love <d.love@gnu.org>
+;;   Dave Love <fx@gnu.org>
 ;;   Stefan Monnier <monnier@cs.yale.edu>
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
