@@ -1,11 +1,16 @@
-# Set up a mask to use.
-
 # Force loading of symbols, enough to give us gdb_valbits etc.
 set main
 
 # Find lwlib source files too.
 dir ../lwlib
 
+# Don't enter GDB when user types C-g to quit.
+# This has one unfortunate effect: you can't type C-c
+# at the GDB to stop Emacs, when using X.
+# However, C-z works just as well in that case.
+handle 2 noprint pass
+
+# Set up a mask to use.
 # This should be EMACS_INT, but in some cases that is a macro.
 # long ought to work in all cases right now.
 set $valmask = ((long)1 << gdb_valbits) - 1
