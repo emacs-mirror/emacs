@@ -849,7 +849,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	 ((setq record-pos-symbol
 		(cdr (assq char
 			   '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
-			     (?: . :-pos) (?, . ,-pos) (?! . !-pos)
+			     (?: . :-pos) (?, . \,-pos) (?! . !-pos)
 			     (?% . %-pos) (?\; . \;-pos)))))
 	  (set record-pos-symbol
 	       (cons (point) (symbol-value record-pos-symbol)))
