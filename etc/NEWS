@@ -245,6 +245,7 @@ MS-DOS version of Emacs.
 ** New user option `read-mail-command' specifies a command to use to
 read mail from the menu etc.
 
++++
 ** Hexl contains a new command `hexl-insert-hex-string' which inserts
 a string of hexadecimal numbers read from the mini-buffer.
 
