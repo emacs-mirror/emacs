@@ -1122,21 +1122,22 @@ NOTE: Activate the new setting in a VHDL buffer using the menu entry
          (vhdl-custom-set variable value 'vhdl-mode-syntax-table-init))
   :group 'vhdl-misc)
 
-
-(defgroup vhdl-related nil
+;; add related general customizations
+(defgroup vhdl-related
+  (if (string-match "XEmacs" emacs-version)
+      '((ps-print custom-group)
+	(mail-host-address custom-variable)
+	(user-mail-address custom-variable)
+	(line-number-mode custom-variable)
+	(paren-mode custom-variable))
+    '((ps-print custom-group)
+      (mail-host-address custom-variable)
+      (user-mail-address custom-variable)
+      (line-number-mode custom-variable)
+      (paren-showing custom-group)
+      (transient-mark-mode custom-variable)))
   "Related general customizations."
   :group 'vhdl)
-
-;; add related general customizations
-(custom-add-to-group 'vhdl-related 'line-number-mode 'custom-variable)
-(if (string-match "XEmacs" emacs-version)
-    (custom-add-to-group 'vhdl-related 'paren-mode 'custom-variable)
-  (custom-add-to-group 'vhdl-related 'paren-showing 'custom-group))
-(unless (string-match "XEmacs" emacs-version)
-  (custom-add-to-group 'vhdl-related 'transient-mark-mode 'custom-variable))
-(custom-add-to-group 'vhdl-related 'ps-print 'custom-group)
-(custom-add-to-group 'vhdl-related 'mail-host-address 'custom-variable)
-(custom-add-to-group 'vhdl-related 'user-mail-address 'custom-variable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal variables
@@ -9405,23 +9406,16 @@ This does background highlighting of translate-off regions.")
 		      (nth 0 (car syntax-alist)) ".")))
     (setq syntax-alist (cdr syntax-alist))))
 
-(defgroup vhdl-highlight-faces nil
+;; add faces used from `font-lock'.
+(defgroup vhdl-highlight-faces
+  '((font-lock-comment-face custom-face)
+    (font-lock-string-face custom-face)
+    (font-lock-keyword-face custom-face)
+    (font-lock-type-face custom-face)
+    (font-lock-function-name-face custom-face)
+    (font-lock-variable-name-face custom-face))
   "Faces for highlighting."
   :group 'vhdl-highlight)
-
-;; add faces used from `font-lock'
-(custom-add-to-group
- 'vhdl-highlight-faces 'font-lock-comment-face 'custom-face)
-(custom-add-to-group
- 'vhdl-highlight-faces 'font-lock-string-face 'custom-face)
-(custom-add-to-group
- 'vhdl-highlight-faces 'font-lock-keyword-face 'custom-face)
-(custom-add-to-group
- 'vhdl-highlight-faces 'font-lock-type-face 'custom-face)
-(custom-add-to-group
- 'vhdl-highlight-faces 'font-lock-function-name-face 'custom-face)
-(custom-add-to-group
- 'vhdl-highlight-faces 'font-lock-variable-name-face 'custom-face)
 
 (defface vhdl-font-lock-prompt-face
   '((((class color) (background light)) (:foreground "Red" :weight bold))
