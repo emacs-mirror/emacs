@@ -44,7 +44,6 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"
-#include "widget.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -67,6 +66,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_X_WINDOWS
 #undef HAVE_MULTILINGUAL_MENU
 #ifdef USE_X_TOOLKIT
+#include "widget.h"
 #include <X11/Xlib.h>
 #include <X11/IntrinsicP.h>
 #include <X11/CoreP.h>
