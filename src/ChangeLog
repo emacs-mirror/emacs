@@ -1,5 +1,7 @@
 2002-08-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* msdos.c (croak): Add `void' to definition.
+
 	* sysdep.c [MSDOS]: Don't define request_sigio and
 	unrequest_sigio, they are defined on msdos.c.
 
