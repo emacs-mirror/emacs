@@ -1,3 +1,8 @@
+2005-04-01  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-workfile-unchanged-p): Disable mtime check when
+	we go via Tramp or Ange-FTP.  Suggested by Kai Grossjohann.
+
 2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (mode-require-final-newline): Make Custom correctly
