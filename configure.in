@@ -762,7 +762,7 @@ test -n "$CC" && cc_specified=yes
 
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=yes ;;
-  "no"  ) test -z "$CC" && CC=cc ;;
+  "no"  ) : ${CC=cc} ;;
   * ) AC_PROG_CC
 esac
 
@@ -803,38 +803,36 @@ fi
 #### #undef clause to src/config.h.in for autoconf to modify.
 
 dnl checks for programs
-AC_LN_S
+AC_PROG_LN_S
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_YACC
 
 dnl checks for header files
-AC_HAVE_HEADERS(sys/timeb.h sys/time.h unistd.h)
-AC_STDC_HEADERS
-AC_TIME_WITH_SYS_TIME
-AC_SYS_SIGLIST_DECLARED
+AC_CHECK_HEADERS(sys/timeb.h sys/time.h unistd.h)
+AC_HEADER_STDC
+AC_HEADER_TIME
+AC_DECL_SYS_SIGLIST
 
 dnl checks for typedefs
-AC_RETSIGTYPE
+AC_TYPE_SIGNAL
 
 dnl checks for structure members
 AC_STRUCT_TM
-AC_TIMEZONE
+AC_STRUCT_TIMEZONE
 
 dnl checks for compiler characteristics
-AC_CONST
+AC_C_CONST
 
 dnl check for Make feature
-AC_SET_MAKE
+AC_PROG_MAKE_SET
 
 dnl checks for operating system services
-AC_LONG_FILE_NAMES
-
-dnl other checks for UNIX variants
+AC_SYS_LONG_FILE_NAMES
 
 #### Choose a window system.
 
-AC_FIND_X
+AC_PATH_X
 if test "$no_x" = yes; then
   window_system=none
 else
@@ -1015,12 +1013,12 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 AC_MSG_CHECKING(for XFree86)
 if test -d /usr/X386/include; then
-  AC_MSG_RESULT(yes)
   HAVE_XFREE386=yes
-  test -z "${C_SWITCH_X_SITE}" && C_SWITCH_X_SITE="-I/usr/X386/include"
+  : ${C_SWITCH_X_SITE="-I/usr/X386/include"}
 else
-  AC_MSG_RESULT(no)
+  HAVE_XFREE386=no
 fi
+AC_MSG_RESULT($HAVE_XFREE386)
 
 # We change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
 # for the tests that follow.
@@ -1029,13 +1027,13 @@ if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
-  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString \
+  AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
 XScreenNumberOfScreen XSetWMProtocols)
 fi
 
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
-  AC_COMPILE_CHECK(, [#include <X11/Intrinsic.h>],
+  AC_TRY_LINK([#include <X11/Intrinsic.h>],
 [#if XtSpecificationRelease < 6
 fail;
 #endif
@@ -1046,7 +1044,7 @@ fi
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_MSG_CHECKING(whether netdb declarares h_errno)
-AC_COMPILE_CHECK(, [#include <netdb.h>],
+AC_TRY_LINK([#include <netdb.h>],
 [int
 foo ()
 {
@@ -1056,21 +1054,21 @@ foo ()
     AC_DEFINE(HAVE_H_ERRNO)],
    [AC_MSG_RESULT(no)])
 
-AC_ALLOCA
+AC_FUNC_ALLOCA
 
 # logb and frexp are found in -lm on most systems.
 AC_CHECK_LIB(m, logb)
-AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
+AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid strerror \
 fpathconf)
 
 ok_so_far=yes
-AC_FUNC_CHECK(socket, , ok_so_far=no)
+AC_CHECK_FUNC(socket, , ok_so_far=no)
 if test $ok_so_far = yes; then
-  AC_HEADER_CHECK(netinet/in.h, , ok_so_far=no)
+  AC_CHECK_HEADER(netinet/in.h, , ok_so_far=no)
 fi
 if test $ok_so_far = yes; then
-  AC_HEADER_CHECK(arpa/inet.h, , ok_so_far=no)
+  AC_CHECK_HEADER(arpa/inet.h, , ok_so_far=no)
 fi
 if test $ok_so_far = yes; then
   AC_DEFINE(HAVE_INET_SOCKETS)
