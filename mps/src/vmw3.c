@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(MMdevel_restr.3) $
+ *  $HopeName: MMsrc!vmnt.c(MMdevel_restr.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -55,7 +55,7 @@
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(MMdevel_restr.3) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(MMdevel_restr.4) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
@@ -125,7 +125,7 @@ Res VMCreate(Space *spaceReturn, size_t size)
 
   vm->align = align;
   vm->base = (Addr)base;
-  vm->limit = (Addr)base + size;
+  vm->limit = AddrAdd(base, size);
   vm->reserved = size;
   vm->mapped = 0;
   AVER(vm->base < vm->limit);  /* .assume.not-last */
@@ -196,14 +196,14 @@ Res VMMap(Space space, Addr base, Addr limit)
   /* We could check that the pages we are about to map are unmapped
    * using VirtualQuery.  We could, but we don't. */
 
-  b = VirtualAlloc((LPVOID)base, (DWORD)(limit - base),
+  b = VirtualAlloc((LPVOID)base, (DWORD)AddrOffset(base, limit),
        MEM_COMMIT, PAGE_EXECUTE_READWRITE);
   if(b == NULL)
     return ResMEMORY;
 
   AVER((Addr)b == base);        /* base should've been aligned */
 
-  vm->mapped += (limit - base);
+  vm->mapped += AddrOffset(base, limit);
 
   return ResOK;
 }
@@ -224,7 +224,7 @@ void VMUnmap(Space space, Addr base, Addr limit)
   /* Could check that the pages we are about to unmap are mapped
    * using VirtualQuery.  We could but we don't. */
 
-  b = VirtualFree((LPVOID)base, (DWORD)(limit - base), MEM_DECOMMIT);
+  b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit), MEM_DECOMMIT);
   AVER(b == TRUE);  /* .assume.free.success */
-  vm->mapped -= (limit - base);
+  vm->mapped -= AddrOffset(base, limit);
 }
