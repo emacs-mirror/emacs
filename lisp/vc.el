@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.278 2000/10/05 22:55:17 monnier Exp $
+;; $Id: vc.el,v 1.279 2000/10/08 19:12:52 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -489,7 +489,7 @@ SETTINGS is a list of two-element lists, each of which has the
      (mapcar (lambda (setting)
 	       (let ((property (car setting)))
 		 (unless (memq property vc-touched-properties)
-		   (put (intern filename vc-file-prop-obarray) 
+		   (put (intern filename vc-file-prop-obarray)
 			property (cdr setting)))))
 	     ,settings)))
 
@@ -517,6 +517,7 @@ somebody else, signal error."
      (save-excursion
        ,@body)
      (vc-checkin file nil ,comment)))
+(put 'with-vc-file 'indent-function 1)
 
 ;;;###autoload
 (defmacro edit-vc-file (file comment &rest body)
@@ -529,6 +530,7 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
     (set-buffer (find-file-noselect ,file))
     ,@body
     (save-buffer)))
+(put 'edit-vc-file 'indent-function 1)
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -802,7 +804,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
       (let ((unchanged (vc-call workfile-unchanged-p file)))
         (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
         unchanged))))
-      
+
 (defun vc-default-workfile-unchanged-p (file)
   "Default check whether FILE is unchanged: diff against master version."
   (zerop (vc-call diff file (vc-workfile-version file))))
@@ -835,7 +837,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	(if (buffer-modified-p)
 	    (or (y-or-n-p "Operate on disk file, keeping modified buffer? ")
 		(error "Aborted")))))
-    
+
     ;; Do the right thing
     (if (not (vc-registered file))
 	(vc-register verbose comment)
@@ -862,7 +864,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	 (t
 	  ;; do nothing
 	  (message "%s is up-to-date" file))))
-       
+
        ;; Abnormal: edited but read-only
        ((and visited (eq state 'edited) buffer-read-only)
 	;; Make the file+buffer read-write.  If the user really wanted to
@@ -871,7 +873,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	(set-file-modes buffer-file-name
 			(logior (file-modes buffer-file-name) 128))
 	(toggle-read-only -1))
-       
+
        ;; edited
        ((eq state 'edited)
 	(cond
@@ -896,7 +898,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	      (if (member vsym vc-handled-backends)
 		  (vc-transfer-file file vsym)
 		(vc-checkin file version comment)))))))
-       
+
        ;; locked by somebody else
        ((stringp state)
 	(if comment
@@ -906,7 +908,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
                        (if verbose (read-string "Version to steal: ")
                          (vc-workfile-version file))
 		       state))
-       
+
        ;; needs-patch
        ((eq state 'needs-patch)
 	(if (yes-or-no-p (format
@@ -917,7 +919,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 		   (yes-or-no-p "Lock this version? "))
 	      (vc-checkout file t)
 	    (error "Aborted"))))
-       
+
        ;; needs-merge
        ((eq state 'needs-merge)
 	(if (yes-or-no-p (format
@@ -925,7 +927,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 			  (file-name-nondirectory file)))
 	    (vc-maybe-resolve-conflicts file (vc-call merge-news file))
 	  (error "Aborted")))
-       
+
        ;; unlocked-changes
        ((eq state 'unlocked-changes)
 	(if (not visited) (find-file-other-window file))
@@ -1060,7 +1062,7 @@ first backend that could register the file is used."
 	   (not (file-exists-p buffer-file-name)))
       (set-buffer-modified-p t))
   (vc-buffer-sync)
-  
+
   (vc-start-entry buffer-file-name
                   (if set-version
                       (read-string (format "Initial version level for %s: "
@@ -1084,7 +1086,7 @@ first backend that could register the file is used."
 
 (defun vc-responsible-backend (file &optional register)
   "Return the name of a backend system that is responsible for FILE.
-The optional argument REGISTER means that a backend suitable for 
+The optional argument REGISTER means that a backend suitable for
 registration should be found.
 
 If REGISTER is nil, then if FILE is already registered, return the
@@ -1112,7 +1114,7 @@ be registered."
 	(if (not register)
 	    ;; if this is not for registration, the first backend must do
 	    (car vc-handled-backends)
-	  ;; for registration, we need to find a new backend that 
+	  ;; for registration, we need to find a new backend that
 	  ;; could register FILE
 	  (dolist (backend vc-handled-backends)
 	    (and (not (vc-call-backend backend 'registered file))
@@ -1121,7 +1123,7 @@ be registered."
 	  (error "No backend that could register")))))
 
 (defun vc-default-responsible-p (backend file)
-  "Indicate whether BACKEND is reponsible for FILE.  
+  "Indicate whether BACKEND is reponsible for FILE.
 The default is to return nil always."
   nil)
 
@@ -1166,15 +1168,15 @@ rather than user editing!"
   (vc-dired-resynch-file file))
 
 (defun vc-start-entry (file rev comment initial-contents msg action &optional after-hook)
-  "Accept a comment for an operation on FILE revision REV.  
+  "Accept a comment for an operation on FILE revision REV.
 If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
 INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
 contents of the log entry buffer.  If COMMENT is a string and
 INITIAL-CONTENTS is nil, do action immediately as if the user had
 entered COMMENT.  If COMMENT is t, also do action immediately with an
-empty comment.  Remember the file's buffer in `vc-parent-buffer' 
-\(current one if no file).  AFTER-HOOK specifies the local value 
+empty comment.  Remember the file's buffer in `vc-parent-buffer'
+\(current one if no file).  AFTER-HOOK specifies the local value
 for vc-log-operation-hook."
   (let ((parent (or (and file (get-file-buffer file)) (current-buffer))))
     (if vc-before-checkin-hook
@@ -1256,7 +1258,7 @@ REV defaults to the latest revision."
 (defun vc-finish-steal (file version)
   ;; This is called when the notification has been sent.
   (message "Stealing lock on %s..." file)
-  (with-vc-properties 
+  (with-vc-properties
    file
    (vc-call steal-lock file version)
    `((vc-state . edited)))
@@ -1284,7 +1286,7 @@ Runs the normal hook `vc-checkin-hook'."
      ;; RCS 5.7 gripes about white-space-only comments too.
      (or (and comment (string-match "[^\t\n ]" comment))
 	 (setq comment "*** empty log message ***"))
-     (with-vc-properties 
+     (with-vc-properties
       file
       ;; Change buffers to get local value of vc-checkin-switches.
       (with-current-buffer (or (get-file-buffer file) (current-buffer))
@@ -1390,7 +1392,7 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
 		    (bury-buffer)
 		    (pop-to-buffer tmp-vc-parent-buffer))))
     ;; Now make sure we see the expanded headers
-    (if log-file 
+    (if log-file
 	(vc-resynch-buffer log-file vc-keep-workfiles t))
     (if vc-dired-mode
       (dired-move-to-filename))
@@ -1653,7 +1655,7 @@ See Info node `Merging'."
 	   "File must be checked out for merging.  Check out now? ")
 	  (vc-checkout file t)
 	(error "Merge aborted"))))
-    (setq first-version 
+    (setq first-version
 	  (read-string (concat "Branch or version to merge from "
 			       "(default: news on current branch): ")))
     (if (string= first-version "")
@@ -1663,8 +1665,8 @@ See Info node `Merging'."
       (if (not (vc-find-backend-function backend 'merge))
 	  (error "Sorry, merging is not implemented for %s" backend)
 	(if (not (vc-branch-p first-version))
-	    (setq second-version 
-		  (read-string "Second version: " 
+	    (setq second-version
+		  (read-string "Second version: "
 			       (concat (vc-branch-part first-version) ".")))
 	  ;; We want to merge an entire branch.  Set versions
 	  ;; accordingly, so that vc-BACKEND-merge understands us.
@@ -2255,8 +2257,8 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
        file
        (vc-call cancel-version file norevert)
        `((vc-state . ,(if norevert 'edited 'up-to-date))
-	 (vc-checkout-time . ,(if norevert 
-				0 
+	 (vc-checkout-time . ,(if norevert
+				0
 			      (nth 5 (file-attributes file))))
 	 (vc-workfile-version . nil)))
       (message "Removing last change from %s...done" file)
@@ -2625,7 +2627,7 @@ colors. `vc-annotate-background' specifies the background color."
     (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
 	(error "Sorry, annotating is not implemented for %s"
 	       vc-annotate-backend))
-    (with-output-to-temp-buffer temp-buffer-name 
+    (with-output-to-temp-buffer temp-buffer-name
       (vc-call-backend vc-annotate-backend 'annotate-command
 		       (file-name-nondirectory (buffer-file-name))
 		       (get-buffer temp-buffer-name)))
