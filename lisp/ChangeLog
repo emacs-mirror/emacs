@@ -1,3 +1,8 @@
+2001-12-04  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (save-abbrevs, save-some-buffers): Don't ask the user
+	before saving abbrevs if `save-abbrevs' has the value `silently'.
+
 2001-12-04  Andreas Schwab  <schwab@suse.de>
 
 	* xt-mouse.el (turn-off-xterm-mouse-tracking): Doc fix.
