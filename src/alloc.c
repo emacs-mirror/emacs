@@ -69,7 +69,7 @@ static __malloc_size_t bytes_used_when_full;
 int consing_since_gc;
 
 /* Number of bytes of consing since gc before another gc should be done. */
-int gc_cons_threshold;
+EMACS_INT gc_cons_threshold;
 
 /* Nonzero during gc */
 int gc_in_progress;
@@ -1320,8 +1320,11 @@ int
 inhibit_garbage_collection ()
 {
   int count = specpdl_ptr - specpdl;
+  Lisp_Object number;
 
-  specbind (Qgc_cons_threshold, make_number ((1 << (VALBITS - 1)) - 1));
+  XSETINT (number, ((EMACS_INT) 1 << (VALBITS - 1)) - 1);
+
+  specbind (Qgc_cons_threshold, number);
 
   return count;
 }
@@ -2046,7 +2049,7 @@ gc_sweep ()
     for (mblk = marker_block; mblk; mblk = mblk->next)
       {
 	register int i;
-	int already_free = -1;
+	EMACS_INT already_free = -1;
 
 	for (i = 0; i < lim; i++)
 	  {
