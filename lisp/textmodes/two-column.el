@@ -236,7 +236,7 @@
   (define-key tc-mode-map "1" 'tc-merge)
   (define-key tc-mode-map "2" 'tc-two-columns)
   (define-key tc-mode-map "b" 'tc-associate-buffer)
-  (define-key tc-mode-map "e" 'tc-dissociate)
+  (define-key tc-mode-map "d" 'tc-dissociate)
   (define-key tc-mode-map "\C-l" 'tc-recenter)
   (define-key tc-mode-map "o" 'tc-associated-buffer)
   (define-key tc-mode-map "s" 'tc-split)
