@@ -1,3 +1,9 @@
+2001-10-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list):
+	Better handling of C++ template args to avoid confusion with `<'
+	and `>' used as operators in member init expressions.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (perform-replace): Move START and END parameters
@@ -6,8 +12,7 @@
 	* progmodes/ebrowse.el, progmodes/etags.el: Adapt to change in
 	perform-replace.
 
-	* international/fontset.el (x-must-resolve-font-name): New
-	function.
+	* international/fontset.el (x-must-resolve-font-name): New function.
 	(x-complement-fontset-spec): Use it.
 
 2001-10-23  Stefan Monnier  <monnier@cs.yale.edu>
