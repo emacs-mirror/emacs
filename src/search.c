@@ -1678,7 +1678,7 @@ since only regular expressions have distinguished subexpressions.")
   newpoint = PT;
 
   /* Put point back where it was in the text.  */
-  if (opoint < 0)
+  if (opoint <= 0)
     temp_set_point (opoint + ZV, current_buffer);
   else
     temp_set_point (opoint, current_buffer);
