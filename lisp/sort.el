@@ -347,6 +347,25 @@ FIELD, BEG and END.  BEG and END specify region to sort."
     ;; even if moving backwards.
     (skip-chars-backward "^ \t\n")))
 
+(defvar sort-regexp-fields-regexp)
+(defvar sort-regexp-record-end)
+
+;; Move to the beginning of the next match for record-regexp,
+;; and set sort-regexp-record-end to the end of that match.
+;; If the next match is empty and does not advance point,
+;; skip one character and try again.
+(defun sort-regexp-fields-next-record ()
+  (let ((oldpos (point)))
+    (and (re-search-forward sort-regexp-fields-regexp nil 'move)
+	 (setq sort-regexp-record-end (match-end 0))
+	 (if (= sort-regexp-record-end oldpos)
+	     (progn
+	       (forward-char 1)
+	       (re-search-forward sort-regexp-fields-regexp nil 'move)
+	       (setq sort-regexp-record-end (match-end 0)))
+	   t)
+	 (goto-char (match-beginning 0)))))
+
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
   "Sort the region lexicographically as specified by RECORD-REGEXP and KEY.
@@ -378,15 +397,13 @@ sRegexp specifying key within record: \nr")
     (save-restriction
       (narrow-to-region beg end)
       (goto-char (point-min))
-      (let (sort-regexp-record-end) ;isn't dynamic scoping wonderful?
-	(re-search-forward record-regexp)
+      (let (sort-regexp-record-end
+	    (sort-regexp-fields-regexp record-regexp))
+	(re-search-forward sort-regexp-fields-regexp)
 	(setq sort-regexp-record-end (point))
 	(goto-char (match-beginning 0))
 	(sort-subr reverse
-		   (function (lambda ()
-			       (and (re-search-forward record-regexp nil 'move)
-				    (setq sort-regexp-record-end (match-end 0))
-				    (goto-char (match-beginning 0)))))
+		   'sort-regexp-fields-next-record
 		   (function (lambda ()
 			       (goto-char sort-regexp-record-end)))
 		   (function (lambda ()
