@@ -1,3 +1,7 @@
+2003-06-02  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in: Revert changes of 2003-03-03 and 2003-05-24.
+
 2003-05-24  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (AH_BOTTOM) [MAC_OSX]: Do not redefine bcopy,
@@ -52,8 +56,8 @@
 
 2003-03-03  Rob Browning  <rlb@defaultvalue.org>
 
-	* configure.in: add AC_CHECK_FUNCS for memcmp and memmove.
-	(AH_BOTTOM): switch tests to prefer memcmp, memset, and memmove
+	* configure.in: Add AC_CHECK_FUNCS for memcmp and memmove.
+	(AH_BOTTOM): Switch tests to prefer memcmp, memset, and memmove
 	over bzero, bcmp, and bcopy.
 
 2003-02-23  Simon Josefsson  <jas@extundo.com>
