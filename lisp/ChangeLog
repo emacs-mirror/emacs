@@ -19,6 +19,7 @@
 	(tramp-handle-ange-ftp): Deleted.
 	(tramp-disable-ange-ftp): New function, called at toplevel,
 	deletes Ange-FTP from file-name-handler-alist.
+	(tramp-handle-make-symbolic-link): Implement.
 
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 

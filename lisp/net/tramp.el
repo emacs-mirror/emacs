@@ -1507,14 +1507,17 @@ If VAR is nil, then we bind `v' to the structure and `multi-method',
 
 ;;; File Name Handler Functions:
 
-;; The following file name handler ops are not implemented (yet?).
-
 (defun tramp-handle-make-symbolic-link
   (filename linkname &optional ok-if-already-exists)
   "Like `make-symbolic-link' for tramp files.
-The LINKNAME argument should look like \"/path/to/target\" or
-\"relative-name\",and not like a Tramp filename."
-  (error "Not implemented yet")
+If LINKNAME is a non-Tramp file, it is used verbatim as the target of
+the symlink.  If LINKNAME is a Tramp file, only the path component is
+used as the target of the symlink.
+
+If LINKNAME is a Tramp file and the path component is relative, then
+it is expanded first, before the path component is taken.  Note that
+this can give surprising results if the user/host for the source and
+target of the symlink differ."
   (with-parsed-tramp-file-name linkname l
     (when (tramp-ange-ftp-file-name-p l-multi-method l-method)
       (tramp-invoke-ange-ftp 'make-symbolic-link
@@ -1527,8 +1530,7 @@ The LINKNAME argument should look like \"/path/to/target\" or
 		      "ln(1) does not exist on the remote host.")))
 
       ;; Do the 'confirm if exists' thing.
-      (when (file-exists-p (expand-file-name filename
-					     CCC))
+      (when (file-exists-p linkname)
 	;; What to do?
 	(if (or (null ok-if-already-exists) ; not allowed to exist
 		(and (numberp ok-if-already-exists)
@@ -1536,7 +1538,14 @@ The LINKNAME argument should look like \"/path/to/target\" or
 			   (format
 			    "File %s already exists; make it a link anyway? "
 			    l-path)))))
-	    (signal 'file-already-exists (list "File already exists" l-path))))
+	    (signal 'file-already-exists (list "File already exists" l-path))
+	  (delete-file linkname)))
+
+      ;; If FILENAME is a Tramp name, use just the path component.
+      (when (tramp-tramp-file-p filename)
+	(setq filename (tramp-file-name-path
+			(tramp-dissect-file-name
+			 (expand-file-name filename)))))
     
       ;; Right, they are on the same host, regardless of user, method, etc.
       ;; We now make the link on the remote machine. This will occur as the user
@@ -1546,8 +1555,8 @@ The LINKNAME argument should look like \"/path/to/target\" or
 	l-multi-method l-method l-user l-host
 	(format "cd %s && %s -sf %s %s"
 		cwd ln
-		l-path 
-		filename)
+		filename 
+		l-path)
 	t)))))
 
 
