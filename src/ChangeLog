@@ -1,3 +1,7 @@
+1999-11-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* doc.c (Fdocumentation_property): Fix bug bypassing UNGCPRO.
+
 1999-11-02  Dave Love  <fx@gnu.org>
 
 	* gnu-linux.h: Use SIGCHLD, not SIGCLD (not in glibc 2.1).
