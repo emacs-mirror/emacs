@@ -398,42 +398,45 @@ is visible (and the real data of the buffer is hidden)."
 	 (pos 1)
 	 (bs (max 1 (- (buffer-size) 1024))) ; always 2+ empty blocks at end.
 	 (bs100 (max 1 (/ bs 100)))
-	 (tokens nil))
-    (while (not (eq tokens 'empty-tar-block))
-      (if (> (+ pos 512) (point-max))
-	  (error "premature EOF parsing tar file"))
-      (setq tokens
-	    (tar-header-block-tokenize (buffer-substring pos (+ pos 512))))
+	 tokens)
+    (while (and (<= (+ pos 512) (point-max))
+		(not (eq 'empty-tar-block
+			 (setq tokens
+			       (tar-header-block-tokenize
+				(buffer-substring pos (+ pos 512)))))))
       (setq pos (+ pos 512))
-      (message "parsing tar file...%d%%"
+      (message "Parsing tar file...%d%%"
 	       ;(/ (* pos 100) bs)   ; this gets round-off lossage
 	       (/ pos bs100)         ; this doesn't
 	       )
-      (if (eq tokens 'empty-tar-block)
-	  nil
-	(if (eq (tar-header-link-type tokens) 20)
-	    ;; Foo.  There's an extra empty block after these.
-	    (setq pos (+ pos 512)))
-	(let ((size (tar-header-size tokens)))
-	  (if (< size 0)
-	      (error "%s has size %s - corrupted"
-		     (tar-header-name tokens) size))
-	  ;
-	  ; This is just too slow.  Don't really need it anyway....
-	  ;(tar-header-block-check-checksum
-	  ;  hblock (tar-header-block-checksum hblock)
-	  ;  (tar-header-name tokens))
+      (if (eq (tar-header-link-type tokens) 20)
+	  ;; Foo.  There's an extra empty block after these.
+	  (setq pos (+ pos 512)))
+      (let ((size (tar-header-size tokens)))
+	(if (< size 0)
+	    (error "%s has size %s - corrupted"
+		   (tar-header-name tokens) size))
+	;
+	; This is just too slow.  Don't really need it anyway....
+	;(tar-header-block-check-checksum
+	;  hblock (tar-header-block-checksum hblock)
+	;  (tar-header-name tokens))
 
-	  (setq result (cons (make-tar-desc pos tokens) result))
+	(setq result (cons (make-tar-desc pos tokens) result))
 
-	  (and (null (tar-header-link-type tokens))
-	       (> size 0)
-	       (setq pos
-		     (+ pos 512 (ash (ash (1- size) -9) 9))        ; this works
-		     ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
-		     )))))
+	(and (null (tar-header-link-type tokens))
+	     (> size 0)
+	     (setq pos
+		   (+ pos 512 (ash (ash (1- size) -9) 9))        ; this works
+		   ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
+		   ))))
     (make-local-variable 'tar-parse-info)
-    (setq tar-parse-info (nreverse result)))
+    (setq tar-parse-info (nreverse result))
+    ;; A tar file should end with a block or two of nulls,
+    ;; but let's not get a fatal error if it doesn't.
+    (if (eq tokens 'empty-tar-block)
+	(message "Parsing tar file...done.")
+      (message "Warning: premature EOF parsing tar file")))
   (save-excursion
     (goto-char (point-min))
     (let ((buffer-read-only nil))
@@ -444,8 +447,7 @@ is visible (and the real data of the buffer is hidden)."
       (make-local-variable 'tar-header-offset)
       (setq tar-header-offset (point))
       (narrow-to-region 1 tar-header-offset)
-      (set-buffer-modified-p nil)))
-  (message "parsing tar file...done."))
+      (set-buffer-modified-p nil))))
 
 (defvar tar-mode-map nil "*Local keymap for Tar mode listings.")
 
