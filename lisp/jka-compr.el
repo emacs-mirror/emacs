@@ -300,7 +300,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 	      (or (memq (call-process
 			 jka-compr-shell infile t nil "-c"
 			 (format
-			  "%s %s 2> %s | %s bs=%d skip=%d %s 2> /dev/null"
+			  "%s %s 2> %s | %s bs=%d skip=%d %s 2> %s"
 			  prog
 			  (mapconcat 'identity args " ")
 			  err-file
@@ -310,7 +310,8 @@ to keep: LEN chars starting BEG chars from the beginning."
 			  ;; dd seems to be unreliable about
 			  ;; providing the last block.  So, always
 			  ;; read one more than you think you need.
-			  (if count (format "count=%d" (1+ count)) "")))
+			  (if count (format "count=%d" (1+ count)) "")
+			  null-device))
 			jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
 	    (jka-compr-delete-temp-file err-file)))
