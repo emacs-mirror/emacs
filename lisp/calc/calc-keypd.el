@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-keypd.el]
+;;; calc-keypd.el --- mouse-capable keypad input for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;;; Code:
 
 
 ;; This file is autoloaded from calc-ext.el.
@@ -29,400 +35,12 @@
 (defun calc-Need-calc-keypd () nil)
 
 
-
-;;; Pictorial interface to Calc using a mouse.
-
 (defvar calc-keypad-buffer nil)
 (defvar calc-keypad-menu 0)
 (defvar calc-keypad-full-layout nil)
 (defvar calc-keypad-input nil)
 (defvar calc-keypad-prev-input nil)
 (defvar calc-keypad-said-hello nil)
-
-(defvar calc-keypad-map nil)
-(unless calc-keypad-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " 'calc-keypad-press)
-    (define-key map (kbd "RET") 'calc-keypad-press)
-    (define-key map (kbd "TAB") 'calc-keypad-menu)
-    (define-key map "q" 'calc-keypad-off)
-    (define-key map [(mouse-3)] 'calc-keypad-right-click)
-    (define-key map [(mouse-2)] 'calc-keypad-middle-click)
-    (define-key map [(mouse-1)] 'calc-keypad-left-click)
-    (setq calc-keypad-map map)))
-
-(defun calc-do-keypad (&optional full-display interactive)
-  (calc-create-buffer)
-  (let ((calcbuf (current-buffer)))
-    (unless (and calc-keypad-buffer
-		 (buffer-name calc-keypad-buffer))
-      (setq calc-keypad-buffer (get-buffer-create "*Calc Keypad*"))
-      (set-buffer calc-keypad-buffer)
-      (use-local-map calc-keypad-map)
-      (setq major-mode 'calc-keypad)
-      (setq mode-name "Calculator")
-      (put 'calc-keypad 'mode-class 'special)
-      (make-local-variable 'calc-main-buffer)
-      (setq calc-main-buffer calcbuf)
-      (calc-keypad-redraw)
-      (calc-trail-buffer))
-    (let ((width 29)
-	  (height 17)
-	  win old-win)
-      (if (setq win (get-buffer-window "*Calculator*"))
-	  (delete-window win))
-      (if (setq win (get-buffer-window "*Calc Trail*"))
-	  (if (one-window-p)
-	      (switch-to-buffer (other-buffer))
-	    (delete-window win)))
-      (if (setq win (get-buffer-window calc-keypad-buffer))
-	  (progn
-	    (bury-buffer "*Calculator*")
-	    (bury-buffer "*Calc Trail*")
-	    (bury-buffer calc-keypad-buffer)
-	    (if (one-window-p)
-		(switch-to-buffer (other-buffer))
-	      (delete-window win)))
-	(setq calc-was-keypad-mode t
-	      old-win (get-largest-window))
-	(if (or (< (window-height old-win) (+ height 6))
-		(< (window-width old-win) (+ width 15))
-		full-display)
-	    (delete-other-windows old-win))
-	(if (< (window-height old-win) (+ height 4))
-	    (error "Screen is not tall enough for this mode"))
-	(if full-display
-	    (progn
-	      (setq win (split-window old-win (- (window-height old-win)
-						 height 1)))
-	      (set-window-buffer old-win (calc-trail-buffer))
-	      (set-window-buffer win calc-keypad-buffer)
-	      (set-window-start win 1)
-	      (setq win (split-window win (+ width 3) t))
-	      (set-window-buffer win calcbuf))
-	  (if (or t  ; left-side keypad not yet fully implemented
-		  (< (save-excursion
-		       (set-buffer (window-buffer old-win))
-		       (current-column))
-		     (/ (window-width) 2)))
-	      (setq win (split-window old-win (- (window-width old-win)
-						 width 2)
-				      t))
-	    (setq old-win (split-window old-win (+ width 2) t)))
-	  (set-window-buffer win calc-keypad-buffer)
-	  (set-window-start win 1)
-	  (split-window win (- (window-height win) height 1))
-	  (set-window-buffer win calcbuf))
-	(select-window old-win)
-	(message "Welcome to GNU Emacs Calc!  Use the left and right mouse buttons.")
-	(run-hooks 'calc-keypad-start-hook)
-	(and calc-keypad-said-hello interactive
-	     (progn
-	       (sit-for 2)
-	       (message "")))
-	(setq calc-keypad-said-hello t)))
-    (setq calc-keypad-input nil)))
-
-(defun calc-keypad-off ()
-  (interactive)
-  (if calc-standalone-flag
-      (save-buffers-kill-emacs nil)
-    (calc-keypad)))
-
-(defun calc-keypad-redraw ()
-  (set-buffer calc-keypad-buffer)
-  (setq buffer-read-only t)
-  (setq calc-keypad-full-layout (append (symbol-value (nth calc-keypad-menu
-							   calc-keypad-menus))
-					calc-keypad-layout))
-  (let ((buffer-read-only nil)
-	(row calc-keypad-full-layout)
-	(y 0))
-    (erase-buffer)
-    (insert "\n")
-    (while row
-      (let ((col (car row)))
-	(while col
-	  (let* ((key (car col))
-		 (cwid (if (>= y 4)
-			   5
-			 (if (and (= y 3) (eq col (car row)))
-			     (progn (setq col (cdr col)) 9)
-			   4)))
-		 (name (if (and calc-standalone-flag
-				(eq (nth 1 key) 'calc-keypad-off))
-			   "EXIT"
-			 (if (> (length (car key)) cwid)
-			     (substring (car key) 0 cwid)
-			   (car key))))
-		 (wid (length name))
-		 (pad (- cwid (/ wid 2))))
-	    (insert (make-string (/ (- cwid wid) 2) 32)
-		    name
-		    (make-string (/ (- cwid wid -1) 2) 32)
-		    (if (equal name "MENU")
-			(int-to-string (1+ calc-keypad-menu))
-		      "|")))
-	  (or (setq col (cdr col))
-	      (insert "\n")))
-	(insert (if (>= y 4)
-		    "-----+-----+-----+-----+-----"
-		  (if (= y 3)
-		      "-----+---+-+--+--+-+---++----"
-		    "----+----+----+----+----+----"))
-		(if (= y 7) "+\n" "|\n"))
-	(setq y (1+ y)
-	      row (cdr row)))))
-  (setq calc-keypad-prev-input t)
-  (calc-keypad-show-input)
-  (goto-char (point-min)))
-
-(defun calc-keypad-show-input ()
-  (or (equal calc-keypad-input calc-keypad-prev-input)
-      (let ((buffer-read-only nil))
-	(save-excursion
-	  (goto-char (point-min))
-	  (forward-line 1)
-	  (delete-region (point-min) (point))
-	  (if calc-keypad-input
-	      (insert "Calc: " calc-keypad-input "\n")
-	    (insert "----+-----Calc " calc-version "-----+----"
-		    (int-to-string (1+ calc-keypad-menu))
-		    "\n")))))
-  (setq calc-keypad-prev-input calc-keypad-input))
-
-(defun calc-keypad-press ()
-  (interactive)
-  (or (eq major-mode 'calc-keypad)
-      (error "Must be in *Calc Keypad* buffer for this command"))
-  (let* ((row (save-excursion
-		(beginning-of-line)
-		(count-lines (point-min) (point))))
-	 (y (/ row 2))
-	 (x (/ (current-column) (if (>= y 4) 6 5)))
-	 radix frac inv
-	 (hyp (save-excursion
-		(set-buffer calc-main-buffer)
-		(setq radix calc-number-radix
-		      frac calc-prefer-frac
-		      inv calc-inverse-flag)
-		calc-hyperbolic-flag))
-	 (invhyp t)
-	 (menu (symbol-value (nth calc-keypad-menu calc-keypad-menus)))
-	 (input calc-keypad-input)
-	 (iexpon (and input
-		      (or (string-match "\\*[0-9]+\\.\\^" input)
-			  (and (<= radix 14) (string-match "e" input)))
-		      (match-end 0)))
-	 (key (nth x (nth y calc-keypad-full-layout)))
-	 (cmd (or (nth (if inv (if hyp 4 2) (if hyp 3 99)) key)
-		  (setq invhyp nil)
-		  (nth 1 key)))
-	 (isstring (and (consp cmd) (stringp (car cmd))))
-	 (calc-is-keypad-press t))
-    (if invhyp (calc-wrapper))  ; clear Inv and Hyp flags
-    (unwind-protect
-	(cond ((or (null cmd)
-		   (= (% row 2) 0))
-	       (beep))
-	      ((and (> (minibuffer-depth) 0))
-	       (cond (isstring
-		      (push (aref (car cmd) 0) unread-command-events))
-		     ((eq cmd 'calc-pop)
-		      (push ?\177 unread-command-events))
-		     ((eq cmd 'calc-enter)
-		      (push 13 unread-command-events))
-		     ((eq cmd 'calc-undo)
-		      (push 7 unread-command-events))
-		     (t
-		      (beep))))
-	      ((and input (string-match "STO\\|RCL" input))
-	       (cond ((and isstring (string-match "[0-9]" (car cmd)))
-		      (setq calc-keypad-input nil)
-		      (let ((var (intern (concat "var-q" (car cmd)))))
-			(cond ((equal input "STO+") (calc-store-plus var))
-			      ((equal input "STO-") (calc-store-minus var))
-			      ((equal input "STO*") (calc-store-times var))
-			      ((equal input "STO/") (calc-store-div var))
-			      ((equal input "STO^") (calc-store-power var))
-			      ((equal input "STOn") (calc-store-neg 1 var))
-			      ((equal input "STO&") (calc-store-inv 1 var))
-			      ((equal input "STO") (calc-store-into var))
-			      (t (calc-recall var)))))
-		     ((memq cmd '(calc-pop calc-undo))
-		      (setq calc-keypad-input nil))
-		     ((and (equal input "STO")
-			   (setq frac (assq cmd '( ( calc-plus . "+" )
-						   ( calc-minus . "-" )
-						   ( calc-times . "*" )
-						   ( calc-divide . "/" )
-						   ( calc-power . "^")
-						   ( calc-change-sign . "n")
-						   ( calc-inv . "&") ))))
-		      (setq calc-keypad-input (concat input (cdr frac))))
-		     (t
-		      (beep))))
-	      (isstring
-	       (setq cmd (car cmd))
-	       (if (or (and (equal cmd ".")
-			    input
-			    (string-match "[.:e^]" input))
-		       (and (equal cmd "e")
-			    input
-			    (or (and (<= radix 14) (string-match "e" input))
-				(string-match "\\^\\|[-.:]\\'" input)))
-		       (and (not (equal cmd "."))
-			    (let ((case-fold-search nil))
-			      (string-match cmd "0123456789ABCDEF"
-					    (if (string-match
-						 "[e^]" (or input ""))
-						10 radix)))))
-		   (beep)
-		 (setq calc-keypad-input (concat
-					  (and (/= radix 10)
-					       (or (not input)
-						   (equal input "-"))
-					       (format "%d#" radix))
-					  (and (or (not input)
-						   (equal input "-"))
-					       (or (and (equal cmd "e") "1")
-						   (and (equal cmd ".")
-							(if frac "1" "0"))))
-					  input
-					  (if (and (equal cmd ".") frac)
-					      ":"
-					    (if (and (equal cmd "e")
-						     (or (not input)
-							 (string-match
-							  "#" input))
-						     (> radix 14))
-						(format "*%d.^" radix)
-					      cmd))))))
-	      ((and (eq cmd 'calc-change-sign)
-		    input)
-	       (let* ((epos (or iexpon 0))
-		      (suffix (substring input epos)))
-		 (setq calc-keypad-input (concat
-					  (substring input 0 epos)
-					  (if (string-match "\\`-" suffix)
-					      (substring suffix 1)
-					    (concat "-" suffix))))))
-	      ((and (eq cmd 'calc-pop)
-		    input)
-	       (if (equal input "")
-		   (beep)
-		 (setq calc-keypad-input (substring input 0
-						    (or (string-match
-							 "\\*[0-9]+\\.\\^\\'"
-							 input)
-							-1)))))
-	      ((and (eq cmd 'calc-undo)
-		    input)
-	       (setq calc-keypad-input nil))
-	      (t
-	       (if input
-		   (let ((val (math-read-number input)))
-		     (setq calc-keypad-input nil)
-		     (if val
-			 (calc-wrapper
-			  (calc-push-list (list (calc-record
-						 (calc-normalize val)))))
-		       (or (equal input "")
-			   (beep))
-		       (setq cmd nil))
-		     (if (eq cmd 'calc-enter) (setq cmd nil))))
-	       (setq prefix-arg current-prefix-arg)
-	       (if cmd
-		   (if (and (consp cmd) (eq (car cmd) 'progn))
-		       (while (setq cmd (cdr cmd))
-			 (if (integerp (car cmd))
-			     (setq prefix-arg (car cmd))
-			   (command-execute (car cmd))))
-		     (command-execute cmd)))))
-      (set-buffer calc-keypad-buffer)
-      (calc-keypad-show-input))))
-
-(defun calc-keypad-left-click (event)
-  "Handle a left-button mouse click in Calc Keypad window."
-  (interactive "e")
-  (goto-char (posn-point (event-start event)))
-  (calc-keypad-press))
-
-(defun calc-keypad-right-click (event)
-  "Handle a right-button mouse click in Calc Keypad window."
-  (interactive "e")
-  (save-excursion
-    (set-buffer calc-keypad-buffer)
-    (calc-keypad-menu)))
-
-(defun calc-keypad-middle-click (event)
-  "Handle a middle-button mouse click in Calc Keypad window."
-  (interactive "e")
-  (with-current-buffer calc-keypad-buffer
-    (calc-keypad-menu-back)))
-
-(defun calc-keypad-menu ()
-  (interactive)
-  (unless (eq major-mode 'calc-keypad)
-    (error "Must be in *Calc Keypad* buffer for this command"))
-  (while (progn (setq calc-keypad-menu (% (1+ calc-keypad-menu)
-					  (length calc-keypad-menus)))
-		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
-  (calc-keypad-redraw))
-
-(defun calc-keypad-menu-back ()
-  (interactive)
-  (or (eq major-mode 'calc-keypad)
-      (error "Must be in *Calc Keypad* buffer for this command"))
-  (while (progn (setq calc-keypad-menu (% (1- (+ calc-keypad-menu
-						 (length calc-keypad-menus)))
-					  (length calc-keypad-menus)))
-		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
-  (calc-keypad-redraw))
-
-(defun calc-keypad-store ()
-  (interactive)
-  (setq calc-keypad-input "STO"))
-
-(defun calc-keypad-recall ()
-  (interactive)
-  (setq calc-keypad-input "RCL"))
-
-(defun calc-pack-interval (mode)
-  (interactive "p")
-  (if (or (< mode 0) (> mode 3))
-      (error "Open/close code should be in the range from 0 to 3."))
-  (calc-pack (- -6 mode)))
-
-(defun calc-keypad-execute ()
-  (interactive)
-  (let* ((prompt "Calc keystrokes: ")
-	 (flush 'x-flush-mouse-queue)
-	 (prefix nil)
-	 keys cmd)
-    (save-excursion
-      (calc-select-buffer)
-      (while (progn
-	       (setq keys (read-key-sequence prompt))
-	       (setq cmd (key-binding keys))
-	       (if (or (memq cmd '(calc-inverse
-				   calc-hyperbolic
-				   universal-argument
-				   digit-argument
-				   negative-argument))
-		       (and prefix (string-match "\\`\e?[-0-9]\\'" keys)))
-		   (progn
-		     (setq last-command-char (aref keys (1- (length keys))))
-		     (command-execute cmd)
-		     (setq flush 'not-any-more
-			   prefix t
-			   prompt (concat prompt (key-description keys) " ")))
-		 (eq cmd flush)))))  ; skip mouse-up event
-    (message "")
-    (if (commandp cmd)
-	(command-execute cmd)
-      (error "Not a Calc command: %s" (key-description keys)))))
-
 
 ;;; |----+----+----+----+----+----|
 ;;; |  ENTER  |+/- |EEX |UNDO| <- |
@@ -435,7 +53,6 @@
 ;;; |-----+-----+-----+-----+-----|
 ;;; | OFF |  0  |  .  | PI  |  +  |
 ;;; |-----+-----+-----+-----+-----|
-
 (defvar calc-keypad-layout
   '( ( ( "ENTER" calc-enter calc-roll-down calc-roll-up calc-over )
        ( "ENTER" calc-enter calc-roll-down calc-roll-up calc-over )
@@ -616,5 +233,383 @@
        ( "OVER"  calc-over )
        ( "STO"   calc-keypad-store )
        ( "RCL"   calc-keypad-recall ) ) ))
+
+(define-derived-mode calc-keypad-mode fundamental-mode "Calculator"
+  "Major mode for Calc keypad input."
+  (define-key calc-keypad-mode-map " " 'calc-keypad-press)
+  (define-key calc-keypad-mode-map (kbd "RET") 'calc-keypad-press)
+  (define-key calc-keypad-mode-map (kbd "TAB") 'calc-keypad-menu)
+  (define-key calc-keypad-mode-map "q" 'calc-keypad-off)
+  (define-key calc-keypad-mode-map [(mouse-3)] 'calc-keypad-right-click)
+  (define-key calc-keypad-mode-map [(mouse-2)] 'calc-keypad-middle-click)
+  (define-key calc-keypad-mode-map [(mouse-1)] 'calc-keypad-left-click)
+  (put 'calc-keypad-mode 'mode-class 'special)
+  (make-local-variable 'calc-main-buffer))
+
+(defun calc-do-keypad (&optional full-display interactive)
+  (calc-create-buffer)
+  (let ((calcbuf (current-buffer)))
+    (unless (bufferp calc-keypad-buffer)
+      (set-buffer (setq calc-keypad-buffer (get-buffer-create "*Calc Keypad*")))
+      (calc-keypad-mode)
+      (setq calc-main-buffer calcbuf)
+      (calc-keypad-redraw)
+      (calc-trail-buffer))
+    (let ((width 29)
+	  (height 17)
+	  win old-win)
+      (if (setq win (get-buffer-window "*Calculator*"))
+	  (delete-window win))
+      (if (setq win (get-buffer-window "*Calc Trail*"))
+	  (if (one-window-p)
+	      (switch-to-buffer (other-buffer))
+	    (delete-window win)))
+      (if (setq win (get-buffer-window calc-keypad-buffer))
+	  (progn
+	    (bury-buffer "*Calculator*")
+	    (bury-buffer "*Calc Trail*")
+	    (bury-buffer calc-keypad-buffer)
+	    (if (one-window-p)
+		(switch-to-buffer (other-buffer))
+	      (delete-window win)))
+	(setq calc-was-keypad-mode t
+	      old-win (get-largest-window))
+	(if (or (< (window-height old-win) (+ height 6))
+		(< (window-width old-win) (+ width 15))
+		full-display)
+	    (delete-other-windows old-win))
+	(if (< (window-height old-win) (+ height 4))
+	    (error "Screen is not tall enough for this mode"))
+	(if full-display
+	    (progn
+	      (setq win (split-window old-win (- (window-height old-win)
+						 height 1)))
+	      (set-window-buffer old-win (calc-trail-buffer))
+	      (set-window-buffer win calc-keypad-buffer)
+	      (set-window-start win 1)
+	      (setq win (split-window win (+ width 3) t))
+	      (set-window-buffer win calcbuf))
+	  (if (or t  ; left-side keypad not yet fully implemented
+		  (< (save-excursion
+		       (set-buffer (window-buffer old-win))
+		       (current-column))
+		     (/ (window-width) 2)))
+	      (setq win (split-window old-win (- (window-width old-win)
+						 width 2)
+				      t))
+	    (setq old-win (split-window old-win (+ width 2) t)))
+	  (set-window-buffer win calc-keypad-buffer)
+	  (set-window-start win 1)
+	  (split-window win (- (window-height win) height 1))
+	  (set-window-buffer win calcbuf))
+	(select-window old-win)
+	(message "Welcome to GNU Emacs Calc!  Use the left and right mouse buttons")
+	(run-hooks 'calc-keypad-start-hook)
+	(and calc-keypad-said-hello interactive
+	     (progn
+	       (sit-for 2)
+	       (message "")))
+	(setq calc-keypad-said-hello t)))
+    (setq calc-keypad-input nil)))
+
+(defun calc-keypad-off ()
+  (interactive)
+  (if calc-standalone-flag
+      (save-buffers-kill-emacs nil)
+    (calc-keypad)))
+
+(defun calc-keypad-redraw ()
+  (set-buffer calc-keypad-buffer)
+  (setq buffer-read-only t)
+  (setq calc-keypad-full-layout (append (symbol-value (nth calc-keypad-menu
+							   calc-keypad-menus))
+					calc-keypad-layout))
+  (let ((buffer-read-only nil)
+	(row calc-keypad-full-layout)
+	(y 0))
+    (erase-buffer)
+    (insert "\n")
+    (while row
+      (let ((col (car row)))
+	(while col
+	  (let* ((key (car col))
+		 (cwid (if (>= y 4)
+			   5
+			 (if (and (= y 3) (eq col (car row)))
+			     (progn (setq col (cdr col)) 9)
+			   4)))
+		 (name (if (and calc-standalone-flag
+				(eq (nth 1 key) 'calc-keypad-off))
+			   "EXIT"
+			 (if (> (length (car key)) cwid)
+			     (substring (car key) 0 cwid)
+			   (car key))))
+		 (wid (length name))
+		 (pad (- cwid (/ wid 2))))
+	    (insert (make-string (/ (- cwid wid) 2) 32)
+		    name
+		    (make-string (/ (- cwid wid -1) 2) 32)
+		    (if (equal name "MENU")
+			(int-to-string (1+ calc-keypad-menu))
+		      "|")))
+	  (or (setq col (cdr col))
+	      (insert "\n")))
+	(insert (if (>= y 4)
+		    "-----+-----+-----+-----+-----"
+		  (if (= y 3)
+		      "-----+---+-+--+--+-+---++----"
+		    "----+----+----+----+----+----"))
+		(if (= y 7) "+\n" "|\n"))
+	(setq y (1+ y)
+	      row (cdr row)))))
+  (setq calc-keypad-prev-input t)
+  (calc-keypad-show-input)
+  (goto-char (point-min)))
+
+(defun calc-keypad-show-input ()
+  (or (equal calc-keypad-input calc-keypad-prev-input)
+      (let ((buffer-read-only nil))
+	(save-excursion
+	  (goto-char (point-min))
+	  (forward-line 1)
+	  (delete-region (point-min) (point))
+	  (if calc-keypad-input
+	      (insert "Calc: " calc-keypad-input "\n")
+	    (insert "----+-----Calc " calc-version "-----+----"
+		    (int-to-string (1+ calc-keypad-menu))
+		    "\n")))))
+  (setq calc-keypad-prev-input calc-keypad-input))
+
+(defun calc-keypad-press ()
+  (interactive)
+  (unless (eq major-mode 'calc-keypad-mode)
+    (error "Must be in *Calc Keypad* buffer for this command"))
+  (let* ((row (save-excursion
+		(beginning-of-line)
+		(count-lines (point-min) (point))))
+	 (y (/ row 2))
+	 (x (/ (current-column) (if (>= y 4) 6 5)))
+	 radix frac inv
+	 (hyp (with-current-buffer calc-main-buffer
+		(setq radix calc-number-radix
+		      frac calc-prefer-frac
+		      inv calc-inverse-flag)
+		calc-hyperbolic-flag))
+	 (invhyp t)
+	 (menu (symbol-value (nth calc-keypad-menu calc-keypad-menus)))
+	 (input calc-keypad-input)
+	 (iexpon (and input
+		      (or (string-match "\\*[0-9]+\\.\\^" input)
+			  (and (<= radix 14) (string-match "e" input)))
+		      (match-end 0)))
+	 (key (nth x (nth y calc-keypad-full-layout)))
+	 (cmd (or (nth (if inv (if hyp 4 2) (if hyp 3 99)) key)
+		  (setq invhyp nil)
+		  (nth 1 key)))
+	 (isstring (and (consp cmd) (stringp (car cmd))))
+	 (calc-is-keypad-press t))
+    (if invhyp (calc-wrapper))  ; clear Inv and Hyp flags
+    (unwind-protect
+	(cond ((or (null cmd)
+		   (= (% row 2) 0))
+	       (beep))
+	      ((and (> (minibuffer-depth) 0))
+	       (cond (isstring
+		      (push (aref (car cmd) 0) unread-command-events))
+		     ((eq cmd 'calc-pop)
+		      (push ?\177 unread-command-events))
+		     ((eq cmd 'calc-enter)
+		      (push 13 unread-command-events))
+		     ((eq cmd 'calc-undo)
+		      (push 7 unread-command-events))
+		     (t
+		      (beep))))
+	      ((and input (string-match "STO\\|RCL" input))
+	       (cond ((and isstring (string-match "[0-9]" (car cmd)))
+		      (setq calc-keypad-input nil)
+		      (let ((var (intern (concat "var-q" (car cmd)))))
+			(cond ((equal input "STO+") (calc-store-plus var))
+			      ((equal input "STO-") (calc-store-minus var))
+			      ((equal input "STO*") (calc-store-times var))
+			      ((equal input "STO/") (calc-store-div var))
+			      ((equal input "STO^") (calc-store-power var))
+			      ((equal input "STOn") (calc-store-neg 1 var))
+			      ((equal input "STO&") (calc-store-inv 1 var))
+			      ((equal input "STO") (calc-store-into var))
+			      (t (calc-recall var)))))
+		     ((memq cmd '(calc-pop calc-undo))
+		      (setq calc-keypad-input nil))
+		     ((and (equal input "STO")
+			   (setq frac (assq cmd '( ( calc-plus . "+" )
+						   ( calc-minus . "-" )
+						   ( calc-times . "*" )
+						   ( calc-divide . "/" )
+						   ( calc-power . "^")
+						   ( calc-change-sign . "n")
+						   ( calc-inv . "&") ))))
+		      (setq calc-keypad-input (concat input (cdr frac))))
+		     (t
+		      (beep))))
+	      (isstring
+	       (setq cmd (car cmd))
+	       (if (or (and (equal cmd ".")
+			    input
+			    (string-match "[.:e^]" input))
+		       (and (equal cmd "e")
+			    input
+			    (or (and (<= radix 14) (string-match "e" input))
+				(string-match "\\^\\|[-.:]\\'" input)))
+		       (and (not (equal cmd "."))
+			    (let ((case-fold-search nil))
+			      (string-match cmd "0123456789ABCDEF"
+					    (if (string-match
+						 "[e^]" (or input ""))
+						10 radix)))))
+		   (beep)
+		 (setq calc-keypad-input (concat
+					  (and (/= radix 10)
+					       (or (not input)
+						   (equal input "-"))
+					       (format "%d#" radix))
+					  (and (or (not input)
+						   (equal input "-"))
+					       (or (and (equal cmd "e") "1")
+						   (and (equal cmd ".")
+							(if frac "1" "0"))))
+					  input
+					  (if (and (equal cmd ".") frac)
+					      ":"
+					    (if (and (equal cmd "e")
+						     (or (not input)
+							 (string-match
+							  "#" input))
+						     (> radix 14))
+						(format "*%d.^" radix)
+					      cmd))))))
+	      ((and (eq cmd 'calc-change-sign)
+		    input)
+	       (let* ((epos (or iexpon 0))
+		      (suffix (substring input epos)))
+		 (setq calc-keypad-input (concat
+					  (substring input 0 epos)
+					  (if (string-match "\\`-" suffix)
+					      (substring suffix 1)
+					    (concat "-" suffix))))))
+	      ((and (eq cmd 'calc-pop)
+		    input)
+	       (if (equal input "")
+		   (beep)
+		 (setq calc-keypad-input (substring input 0
+						    (or (string-match
+							 "\\*[0-9]+\\.\\^\\'"
+							 input)
+							-1)))))
+	      ((and (eq cmd 'calc-undo)
+		    input)
+	       (setq calc-keypad-input nil))
+	      (t
+	       (if input
+		   (let ((val (math-read-number input)))
+		     (setq calc-keypad-input nil)
+		     (if val
+			 (calc-wrapper
+			  (calc-push-list (list (calc-record
+						 (calc-normalize val)))))
+		       (or (equal input "")
+			   (beep))
+		       (setq cmd nil))
+		     (if (eq cmd 'calc-enter) (setq cmd nil))))
+	       (setq prefix-arg current-prefix-arg)
+	       (if cmd
+		   (if (and (consp cmd) (eq (car cmd) 'progn))
+		       (while (setq cmd (cdr cmd))
+			 (if (integerp (car cmd))
+			     (setq prefix-arg (car cmd))
+			   (command-execute (car cmd))))
+		     (command-execute cmd)))))
+      (set-buffer calc-keypad-buffer)
+      (calc-keypad-show-input))))
+
+(defun calc-keypad-left-click (event)
+  "Handle a left-button mouse click in Calc Keypad window."
+  (interactive "e")
+  (goto-char (posn-point (event-start event)))
+  (calc-keypad-press))
+
+(defun calc-keypad-right-click (event)
+  "Handle a right-button mouse click in Calc Keypad window."
+  (interactive "e")
+  (save-excursion
+    (set-buffer calc-keypad-buffer)
+    (calc-keypad-menu)))
+
+(defun calc-keypad-middle-click (event)
+  "Handle a middle-button mouse click in Calc Keypad window."
+  (interactive "e")
+  (with-current-buffer calc-keypad-buffer
+    (calc-keypad-menu-back)))
+
+(defun calc-keypad-menu ()
+  (interactive)
+  (unless (eq major-mode 'calc-keypad-mode)
+    (error "Must be in *Calc Keypad* buffer for this command"))
+  (while (progn (setq calc-keypad-menu (% (1+ calc-keypad-menu)
+					  (length calc-keypad-menus)))
+		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
+  (calc-keypad-redraw))
+
+(defun calc-keypad-menu-back ()
+  (interactive)
+  (or (eq major-mode 'calc-keypad-mode)
+      (error "Must be in *Calc Keypad* buffer for this command"))
+  (while (progn (setq calc-keypad-menu (% (1- (+ calc-keypad-menu
+						 (length calc-keypad-menus)))
+					  (length calc-keypad-menus)))
+		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
+  (calc-keypad-redraw))
+
+(defun calc-keypad-store ()
+  (interactive)
+  (setq calc-keypad-input "STO"))
+
+(defun calc-keypad-recall ()
+  (interactive)
+  (setq calc-keypad-input "RCL"))
+
+(defun calc-pack-interval (mode)
+  (interactive "p")
+  (if (or (< mode 0) (> mode 3))
+      (error "Open/close code should be in the range from 0 to 3"))
+  (calc-pack (- -6 mode)))
+
+(defun calc-keypad-execute ()
+  (interactive)
+  (let* ((prompt "Calc keystrokes: ")
+	 (flush 'x-flush-mouse-queue)
+	 (prefix nil)
+	 keys cmd)
+    (save-excursion
+      (calc-select-buffer)
+      (while (progn
+	       (setq keys (read-key-sequence prompt))
+	       (setq cmd (key-binding keys))
+	       (if (or (memq cmd '(calc-inverse
+				   calc-hyperbolic
+				   universal-argument
+				   digit-argument
+				   negative-argument))
+		       (and prefix (string-match "\\`\e?[-0-9]\\'" keys)))
+		   (progn
+		     (setq last-command-char (aref keys (1- (length keys))))
+		     (command-execute cmd)
+		     (setq flush 'not-any-more
+			   prefix t
+			   prompt (concat prompt (key-description keys) " ")))
+		 (eq cmd flush)))))  ; skip mouse-up event
+    (message "")
+    (if (commandp cmd)
+	(command-execute cmd)
+      (error "Not a Calc command: %s" (key-description keys)))))
+
 
 ;;; calc-keypd.el ends here
