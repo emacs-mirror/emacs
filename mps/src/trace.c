@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.70) $
+ * $HopeName: MMsrc!trace.c(trunk.71) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.70) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.71) $");
 
 
 /* Types
@@ -51,8 +51,9 @@ Bool ScanStateCheck(ScanState ss)
   return TRUE;
 }
 
+/* ScanStateInit -- Initialize a ScanState object */
 
-static void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
+void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
                           Rank rank, RefSet white)
 {
   TraceId ti;
@@ -90,7 +91,9 @@ static void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   AVERT(ScanState, ss);
 }
 
-static void ScanStateFinish(ScanState ss)
+/* ScanStateFinish -- Finish a ScanState object */
+
+void ScanStateFinish(ScanState ss)
 {
   AVERT(ScanState, ss);
   ss->sig = SigInvalid;
