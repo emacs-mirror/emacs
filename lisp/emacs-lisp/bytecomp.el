@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 1.1 $")
+(defconst byte-compile-version "$Revision: 2.76 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3213,26 +3213,35 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
-  (let ((var (nth 1 form))
+  (let ((fun (nth 0 form))
+	(var (nth 1 form))
 	(value (nth 2 form))
 	(string (nth 3 form)))
-    (if (memq 'free-vars byte-compile-warnings)
-	(setq byte-compile-bound-variables
-	      (cons var byte-compile-bound-variables)))
+    (when (> (length form) 4)
+      (byte-compile-warn
+       "%s %s called with %d arguments, but accepts only %s"
+       fun var (length (cdr form)) 3))
+    (when (memq 'free-vars byte-compile-warnings)
+      (setq byte-compile-bound-variables
+	    (cons var byte-compile-bound-variables)))
     (byte-compile-body-do-effect
-     (list (if (cdr (cdr form))
-	       (if (eq (car form) 'defconst)
-		   (list 'setq var value)
-		 (list 'or (list 'boundp (list 'quote var))
-		       (list 'setq var value))))
-	   ;; Put the defined variable in this library's load-history entry
-	   ;; just as a real defvar would.
-	   (list 'setq 'current-load-list
-		 (list 'cons (list 'quote var)
-		       'current-load-list))
-	   (if string
-	       (list 'put (list 'quote var) ''variable-documentation string))
-	   (list 'quote var)))))
+     (list
+      ;; Put the defined variable in this library's load-history entry
+      ;; just as a real defvar would, but only in top-level forms.
+      (when (null byte-compile-current-form)
+	`(push ',var current-load-list))
+      (when (> (length form) 3)
+	(when (and string (not (stringp string)))
+	  (byte-compile-warn "Third arg to %s %s is not a string: %s"
+			     fun var string))
+	`(put ',var 'variable-documentation ,string))
+      (if (cdr (cdr form))		; `value' provided
+	  (if (eq fun 'defconst)
+	      ;; `defconst' sets `var' unconditionally.
+	      `(setq ,var ,value)
+	    ;; `defvar' sets `var' only when unbound.
+	    `(if (not (boundp ',var)) (setq ,var ,value))))
+      `',var))))
 
 (defun byte-compile-autoload (form)
   (and (byte-compile-constp (nth 1 form))
