@@ -1,3 +1,11 @@
+2005-02-15  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add
+	;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
+	<monnier@iro.umontreal.ca>
+	(lisp-outline-level): Improve efficiency.  Suggested by David
+	Kastrup <dak@gnu.org>.
+
 2005-02-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-find-file-unhook): New variable.
