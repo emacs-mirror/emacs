@@ -663,27 +663,30 @@ If optional argument GENERICFROM is a string, use it as the domain
 name; if it is non-nil, strip of local host name from the domain name.
 If the function `system-name' returns full internet name and the
 domain is undefined, the domain name is got from it."
- (if (or genericfrom gnus-local-domain (getenv "DOMAINNAME"))
-     (let ((domain (or (if (stringp genericfrom) genericfrom)
-		       (getenv "DOMAINNAME")
-		       gnus-local-domain
-		       ;; Function `system-name' may return full internet name.
-		       ;; Suggested by Mike DeCorte <mrd@sun.soe.clarkson.edu>.
-		       (if (string-match "\\." (system-name))
-			   (substring (system-name) (match-end 0)))
-		       (read-string "Domain name (no host): ")))
-	   (host (or (if (string-match "\\." (system-name))
-			 (substring (system-name) 0 (match-beginning 0)))
-		     (system-name))))
-       (if (string-equal "." (substring domain 0 1))
-	   (setq domain (substring domain 1)))
-       ;; Support GENERICFROM as same as standard Bnews system.
-       ;; Suggested by ohm@kaba.junet and vixie@decwrl.dec.com.
-       (cond ((null genericfrom)
-	      (concat host "." domain))
-	     ;;((stringp genericfrom) genericfrom)
-	     (t domain)))
-   (substring user-mail-address (1+ (string-match "@" user-mail-address)))))
+  (and (null gnus-local-domain)
+       (boundp 'gnus-your-domain)
+       (setq gnus-local-domain gnus-your-domain))
+  (if (or genericfrom gnus-local-domain (getenv "DOMAINNAME"))
+      (let ((domain (or (if (stringp genericfrom) genericfrom)
+			(getenv "DOMAINNAME")
+			gnus-local-domain
+			;; Function `system-name' may return full internet name.
+			;; Suggested by Mike DeCorte <mrd@sun.soe.clarkson.edu>.
+			(if (string-match "\\." (system-name))
+			    (substring (system-name) (match-end 0)))
+			(read-string "Domain name (no host): ")))
+	    (host (or (if (string-match "\\." (system-name))
+			  (substring (system-name) 0 (match-beginning 0)))
+		      (system-name))))
+	(if (string-equal "." (substring domain 0 1))
+	    (setq domain (substring domain 1)))
+	;; Support GENERICFROM as same as standard Bnews system.
+	;; Suggested by ohm@kaba.junet and vixie@decwrl.dec.com.
+	(cond ((null genericfrom)
+	       (concat host "." domain))
+	      ;;((stringp genericfrom) genericfrom)
+	      (t domain)))
+    (substring user-mail-address (1+ (string-match "@" user-mail-address)))))
 
 (defun gnus-inews-message-id ()
   "Generate unique Message-ID for user."
