@@ -1,0 +1,148 @@
+# ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
+#
+# $HopeName$
+# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+#
+# DESCRIPTION
+#
+# This makefile fragment is included in more specific
+# makefiles for platforms which use the "mv" builder.  This is
+# the first of two common makefile fragements (the other is commpost.nmk).
+# Alas due to shortcomings in nmake it is not possible to use only one
+# common fragment.  [It is not possible use a macro in a substitution,
+# hence this file uses nti3mv instead of $(PFM)]
+#
+# %%PART: Add a new parameter for the files included in the part
+# Parameters:
+#   PFM      platform code, e.g. "nti3mv"
+#   PFMDEFS  /D options to define platforms preprocessor symbols
+#            to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
+#   MPM      list of sources which make up the "mpm" part for this
+#            platform.  Each source is stripped of its .c extension
+#            and surrounded in angle brackets (<>)
+#   AMC      as above for the "amc" part
+#   LO       as above for the "lo" part
+#   MRG      as above for the "mrg" part
+#   DW       as above for the "amc" part
+#   SW       as above for the "sw" part
+#   TESTLIB  as above for the "testlib" part
+#   NOISY    if defined, causes command to be emitted
+#
+#
+# EDITING
+#
+# To add new targets. varieties, and parts:
+# Search for the string "%%TARGET", "%%VARIETY", or "%%PART" in this makefile
+# and follow the instructions.  If you're adding a part, you'll have to change
+# the makefile for all the platforms which use this makefile to define the
+# source list for that part.
+#
+
+# CHECK PARAMETERS
+#
+# [These only test if the symbol is defined; there is opportunity to be more
+#  comprehensive]
+#
+# %%PART: Add checks for the parameter with the sources for the new part.
+
+!IFNDEF PFM
+!ERROR mv.nmk: PFM not defined
+!ENDIF
+!IFNDEF PFMDEFS
+!ERROR mv.nmk: PFMDEFS not defined
+!ENDIF
+!IFNDEF MPM
+!ERROR mv.nmk: MPM not defined
+!ENDIF
+!IFNDEF LO
+!ERROR mv.nmk: LO not defined
+!ENDIF
+!IFNDEF AMC
+!ERROR mv.nmk: AMC not defined
+!ENDIF
+!IFNDEF MRG
+!ERROR mv.nmk: MRG not defined
+!ENDIF
+!IFNDEF DW
+!ERROR mv.nmk: DW not defined
+!ENDIF
+!IFNDEF SW
+!ERROR mv.nmk: SW not defined
+!ENDIF
+!IFNDEF TESTLIB
+!ERROR mv.nmk: TESTLIB not defined
+!ENDIF
+
+
+# DECLARATIONS
+
+
+!IFDEF NOISY
+ECHO = rem
+!ELSE
+.SILENT:
+ECHO = echo
+!ENDIF
+
+
+# C FLAGS
+# %%VARIETY: Define a macro containing the set of flags for the new variety.
+
+# All compilations
+# [Sadly /W4 causes <windows.h> to emit thousands of warnings]
+# /MT means compile for multi-threaded environment.
+# /ML means compile for single-threaded environment.
+# some C flags depend on the target we are building.
+
+!ifdef TARGET
+!if "$(TARGET)" == "mmsw.lib"
+CFLAGSTARGET = /ML /DCONFIG_PROD_EPCORE
+!else
+CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
+!endif
+!endif
+
+CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) $(CFLAGSTARGET)
+
+
+# "debug" variety flags
+# [Used to use /Zi instead of /Z7.  /Z7 generates debugging output in the
+#  object and linked files themselves, whereas /Zi generated debugging
+#  output in a .PDB file.]
+CFDF = /DCONFIG_VAR_DF /Z7
+
+CFDP = /DCONFIG_VAR_DP /Z7
+
+CFDS = /DCONFIG_VAR_DS /Z7
+
+# "release" variety flags
+# Microsoft documentation is not very clear on the point of using bothing
+# optimzation and debug information
+CFRO = /DCONFIG_VAR_RO /Z7 /O2
+
+# "cover" variety flags
+CFCV = /DCONFIG_VAR_DP /Z7
+
+# LINKER FLAGS
+# %%VARIETY: define a macro containing the flags for the new variety
+LINKER = link
+LINKFLAGSCOMMON = /nologo /PDB:NONE
+LFDF = /DEBUG:full /DEBUGTYPE:cv
+LFDP = /DEBUG:full /DEBUGTYPE:cv
+LFDS = /DEBUG:full /DEBUGTYPE:cv
+LFRO = /RELEASE /DEBUG:full /DEBUGTYPE:cv
+LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
+
+# Library manager
+# %%VARIETY: define a macro containing the flags for the new variety
+LIBMAN = lib                  # can't call this LIB - it screws the environment
+LIBFLAGSCOMMON = /nologo
+LIBFLAGSDF = 
+LIBFLAGSDP = 
+LIBFLAGSDS = 
+LIBFLAGSRO = 
+LIBFLAGSCV =
+
+# Browser database manager [not used at present]
+#BSC = bscmake
+#BSCFLAGS = /nologo /n
