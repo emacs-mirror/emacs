@@ -228,8 +228,7 @@ speed."
   :type 'number)
 
 (defcustom flyspell-insert-function (function insert)
-  "*The function to be used when a word has to be inserted by flyspell
-upon correction."
+  "*Function for inserting word by flyspell upon correction."
   :group 'flyspell
   :type 'function)
 
