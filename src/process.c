@@ -2436,18 +2436,19 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (! wait_for_cell)
 	{
 	  EMACS_TIME timer_delay;
-	  int old_timers_run;
 
-	retry:
-	  old_timers_run = timers_run;
-	  timer_delay = timer_check (1);
-	  if (timers_run != old_timers_run && do_display)
+	  do
 	    {
-	      redisplay_preserve_echo_area ();
-	      /* We must retry, since a timer may have requeued itself
-		 and that could alter the time_delay.  */
-	      goto retry;
+	      int old_timers_run = timers_run;
+	      timer_delay = timer_check (1);
+	      if (timers_run != old_timers_run && do_display)
+		/* We must retry, since a timer may have requeued itself
+		   and that could alter the time_delay.  */
+		redisplay_preserve_echo_area ();
+	      else
+		break;
 	    }
+	  while (!detect_input_pending ());
 
 	  /* If there is unread keyboard input, also return.  */
 	  if (XINT (read_kbd) != 0
@@ -4785,18 +4786,19 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (! wait_for_cell)
 	{
 	  EMACS_TIME timer_delay;
-	  int old_timers_run;
 
-	retry:
-	  old_timers_run = timers_run;
-	  timer_delay = timer_check (1);
-	  if (timers_run != old_timers_run && do_display)
+	  do
 	    {
-	      redisplay_preserve_echo_area ();
-	      /* We must retry, since a timer may have requeued itself
-		 and that could alter the time delay.  */
-	      goto retry;
+	      int old_timers_run = timers_run;
+	      timer_delay = timer_check (1);
+	      if (timers_run != old_timers_run && do_display)
+		/* We must retry, since a timer may have requeued itself
+		   and that could alter the time delay.  */
+		redisplay_preserve_echo_area ();
+	      else
+		break;
 	    }
+	  while (!detect_input_pending ());
 
 	  /* If there is unread keyboard input, also return.  */
 	  if (XINT (read_kbd) != 0
