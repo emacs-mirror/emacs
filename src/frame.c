@@ -1751,7 +1751,7 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 
   return Qnil;
 }
-
+
 DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 1, 0,
   "Return number of lines available for display on FRAME.\n\
 If FRAME is omitted, describe the currently selected frame.")
@@ -1851,6 +1851,55 @@ DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
 {
   return Fcons (Qnil, Fcons (Qnil, Qnil));
 }
+
+DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
+  "Return the parameters-alist of frame FRAME.\n\
+It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.\n\
+The meaningful PARMs depend on the kind of frame.\n\
+If FRAME is omitted, return information on the currently selected frame.")
+  (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object alist;
+  struct frame *f;
+
+  if (EQ (frame, Qnil))
+    f = selected_frame;
+  else
+    {
+      CHECK_FRAME (frame, 0);
+      f = XFRAME (frame);
+    }
+
+  if (f->display.nothing == 0)
+    return Qnil;
+
+  alist = Fcopy_alist (f->param_alist);
+  store_in_alist (&alist, Qname, f->name);
+  store_in_alist (&alist, Qheight, make_number (f->height));
+  store_in_alist (&alist, Qwidth, make_number (f->width));
+  store_in_alist (&alist, Qmodeline, (f->wants_modeline ? Qt : Qnil));
+  store_in_alist (&alist, Qminibuffer,
+		  (! FRAME_HAS_MINIBUF_P (f) ? Qnil
+		   : (FRAME_MINIBUF_ONLY_P (f) ? Qonly
+                   : FRAME_MINIBUF_WINDOW (f))));
+  store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
+  store_in_alist (&alist, Qmenu_bar_lines, (FRAME_MENU_BAR_LINES (f)));
+
+  return alist;
+}
+
+DEFUN ("modify-frame-parameters", Fmodify_frame_parameters, 
+       Smodify_frame_parameters, 2, 2, 0,
+  "Modify the parameters of frame FRAME according to ALIST.\n\
+ALIST is an alist of parameters to change and their new values.\n\
+Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.\n\
+The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
+  (frame, alist)
+     Lisp_Object frame, alist;
+{
+  return Qnil;
+}
 
 syms_of_frame ()
 {
@@ -1874,6 +1923,8 @@ syms_of_frame ()
   defsubr (&Sframe_width);
   Ffset (intern ("screen-width"), intern ("frame-width"));
   defsubr (&Smouse_position);
+  defsubr (&Sframe_parameters);
+  defsubr (&Smodify_frame_parameters);
 }
 
 keys_of_frame ()
