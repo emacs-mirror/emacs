@@ -1223,10 +1223,12 @@ not for everybody."
       (with-current-buffer buf
 	(kill-all-local-variables)
 	(run-hooks 'kill-buffer-hook)
-	(erase-buffer)
+	;; Delete overlays before erasing the buffer so the overlay hooks
+	;; don't get run spuriously when we erase the buffer.
 	(let ((ols (overlay-lists)))
 	  (dolist (ol (nconc (car ols) (cdr ols)))
 	    (delete-overlay ol)))
+	(erase-buffer)
 	buf))))
 
 ;;;###autoload
