@@ -1881,12 +1881,10 @@ from `standard-syntax-table' otherwise."
   "Add elements to `buffer-invisibility-spec'.
 See documentation for `buffer-invisibility-spec' for the kind of elements
 that can be added."
-  (cond
-   ((or (null buffer-invisibility-spec) (eq buffer-invisibility-spec t))
-	(setq buffer-invisibility-spec (list arg)))
-   (t
-    (setq buffer-invisibility-spec
-	  (cons arg buffer-invisibility-spec)))))
+  (if (eq buffer-invisibility-spec t)
+      (setq buffer-invisibility-spec (list t)))
+  (setq buffer-invisibility-spec
+	(cons arg buffer-invisibility-spec)))
 
 (defun remove-from-invisibility-spec (arg)
   "Remove elements from `buffer-invisibility-spec'."
