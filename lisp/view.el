@@ -1,6 +1,7 @@
 ;;; view.el --- peruse file or buffer without editing.
 
-;; Copyright (C) 1985, 1989, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000
+;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: Inge Frick <inge@nada.kth.se>
@@ -182,7 +183,7 @@ This is local in each buffer, once it is used.")
     (define-key map "m" 'point-to-register)
     (define-key map "'" 'register-to-point)
     (define-key map "x" 'exchange-point-and-mark)
-    (define-key map "@" 'View-back-to-mark)  
+    (define-key map "@" 'View-back-to-mark)
     (define-key map "." 'set-mark-command)
     (define-key map "%" 'View-goto-percent)
 ;    (define-key map "G" 'View-goto-line-last)
@@ -217,7 +218,7 @@ This is local in each buffer, once it is used.")
     (define-key map "1" 'digit-argument)
     (define-key map "0" 'digit-argument)
     (define-key map "H" 'describe-mode)
-    (define-key map "?" 'describe-mode)	; Maybe do as less instead?
+    (define-key map "?" 'describe-mode)	; Maybe do as less instead? See above.
     (define-key map "h" 'describe-mode)
     map))
 
@@ -228,7 +229,7 @@ This is local in each buffer, once it is used.")
 ;;; Commands that enter or exit view mode.
 
 ;;;###autoload
-(defun view-file (file-name)
+(defun view-file (file)
   "View FILE in View mode, returning to previous buffer when done.
 Emacs commands editing the buffer contents are not available; instead,
 a special set of commands (mostly letters and punctuation)
@@ -238,12 +239,12 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fView file: ")
-  (let ((had-a-buf (get-file-buffer file-name)))
-    (view-buffer (find-file-noselect file-name)
+  (let ((had-a-buf (get-file-buffer file)))
+    (view-buffer (find-file-noselect file)
 		 (and (not had-a-buf) 'kill-buffer))))
 
 ;;;###autoload
-(defun view-file-other-window (file-name)
+(defun view-file-other-window (file)
   "View FILE in View mode in another window.
 Return that window to its previous buffer when done.
 Emacs commands editing the buffer contents are not available; instead,
@@ -254,12 +255,12 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other window view file: ")
-  (let ((had-a-buf (get-file-buffer file-name)))
-    (view-buffer-other-window (find-file-noselect file-name) nil
+  (let ((had-a-buf (get-file-buffer file)))
+    (view-buffer-other-window (find-file-noselect file) nil
 			      (and (not had-a-buf) 'kill-buffer))))
 
 ;;;###autoload
-(defun view-file-other-frame (file-name)
+(defun view-file-other-frame (file)
   "View FILE in View mode in another frame.
 Maybe delete other frame and/or return to previous buffer when done.
 Emacs commands editing the buffer contents are not available; instead,
@@ -270,13 +271,13 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other frame view file: ")
-  (let ((had-a-buf (get-file-buffer file-name)))
-    (view-buffer-other-frame (find-file-noselect file-name) nil
+  (let ((had-a-buf (get-file-buffer file)))
+    (view-buffer-other-frame (find-file-noselect file) nil
 			     (and (not had-a-buf) 'kill-buffer))))
 
 
 ;;;###autoload
-(defun view-buffer (buffer-name &optional exit-action)
+(defun view-buffer (buffer &optional exit-action)
   "View BUFFER in View mode, returning to previous buffer when done.
 Emacs commands editing the buffer contents are not available; instead,
 a special set of commands (mostly letters and punctuation)
@@ -292,13 +293,12 @@ Use this argument instead of explicitly setting `view-exit-action'."
 
   (interactive "bView buffer: ")
   (let ((undo-window (list (window-buffer) (window-start) (window-point))))
-    (switch-to-buffer buffer-name)
+    (switch-to-buffer buffer)
     (view-mode-enter (cons (selected-window) (cons nil undo-window))
 		     exit-action)))
 
 ;;;###autoload
-(defun view-buffer-other-window
-  (buffer-name &optional not-return exit-action)
+(defun view-buffer-other-window (buffer &optional not-return exit-action)
   "View BUFFER in View mode in another window.
 Return to previous buffer when done, unless optional NOT-RETURN is non-nil.
 Emacs commands editing the buffer contents are not available; instead,
@@ -320,17 +320,16 @@ Use this argument instead of explicitly setting `view-exit-action'."
 	       (cons (selected-window)
 		     (if (eq win (selected-window))
 			 t			; Has to make new window.
-		       (list 
+		       (list
 			(window-buffer win)	; Other windows old buffer.
 			(window-start win)
 			(window-point win)))))))
-    (switch-to-buffer-other-window buffer-name)
+    (switch-to-buffer-other-window buffer)
     (view-mode-enter (and return-to (cons (selected-window) return-to))
 		     exit-action)))
 
 ;;;###autoload
-(defun view-buffer-other-frame
-  (buffer-name &optional not-return exit-action)
+(defun view-buffer-other-frame (buffer &optional not-return exit-action)
   "View BUFFER in View mode in another frame.
 Return to previous buffer when done, unless optional NOT-RETURN is non-nil.
 Emacs commands editing the buffer contents are not available; instead,
@@ -347,7 +346,7 @@ Use this argument instead of explicitly setting `view-exit-action'."
   (interactive "bView buffer in other frame: \nP")
   (let ((return-to
 	 (and (not not-return) (cons (selected-window) t)))) ; Old window.
-    (switch-to-buffer-other-frame buffer-name)
+    (switch-to-buffer-other-frame buffer)
     (view-mode-enter (and return-to (cons (selected-window) return-to))
 		     exit-action)))
 
@@ -357,7 +356,7 @@ Use this argument instead of explicitly setting `view-exit-action'."
   ;; bindings instead of using the \\[] construction.  The reason for this
   ;; is that most commands have more than one key binding.
   "Toggle View mode, a minor mode for viewing text but not editing it.
-With arg, turn View mode on iff arg is positive.
+With ARG, turn View mode on iff ARG is positive.
 
 Emacs commands that do not change the buffer contents are available as usual.
 Kill commands insert text in kill buffers but do not delete.  Other commands
@@ -376,14 +375,18 @@ Digits	provide prefix arguments.
 \\[beginning-of-buffer]	move to the beginning of buffer.
 >	move to the end of buffer.
 \\[View-scroll-to-buffer-end]	scroll so that buffer end is at last line of window.
-SPC	scroll forward prefix (default \"page size\") lines.
-DEL	scroll backward prefix (default \"page size\") lines.
-\\[View-scroll-page-forward-set-page-size]	like  \\[View-scroll-page-forward]  except prefix sets \"page size\".
-\\[View-scroll-page-backward-set-page-size]	like  \\[View-scroll-page-backward]  except prefix sets \"page size\".
-\\[View-scroll-half-page-forward]	scroll forward (and if prefix set) \"half page size\" lines.
-\\[View-scroll-half-page-backward]	scroll backward (and if prefix set) \"half page size\" lines.
-RET, LFD  scroll forward prefix (default one) line(s).
-y	scroll backward prefix (default one) line(s).
+SPC	scroll forward \"page size\" lines.
+	  With prefix scroll forward prefix lines.
+DEL	scroll backward \"page size\" lines.
+	  With prefix scroll backward prefix lines.
+\\[View-scroll-page-forward-set-page-size]	like  \\[View-scroll-page-forward]  but with prefix sets \"page size\" to prefix.
+\\[View-scroll-page-backward-set-page-size]	like  \\[View-scroll-page-backward]  but with prefix sets \"page size\" to prefix.
+\\[View-scroll-half-page-forward]	scroll forward \"half page size\" lines.  With prefix, sets
+	  \"half page size\" to prefix lines and scrolls forward that much.
+\\[View-scroll-half-page-backward]	scroll backward \"half page size\" lines.  With prefix, sets
+	  \"half page size\" to prefix lines and scrolls backward that much.
+RET, LFD  scroll forward one line.  With prefix scroll forward prefix line(s).
+y	scroll backward one line.  With prefix scroll backward prefix line(s).
 \\[View-revert-buffer-scroll-page-forward]	revert-buffer if necessary and scroll forward.
 	  Use this to view a changing file.
 \\[what-line]	prints the current line number.
@@ -415,12 +418,12 @@ p	searches backward for last regular expression.
 \\[View-kill-and-leave]	quit View mode, kill current buffer and go back to other buffer.
 
 The effect of \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] depends on how view-mode was entered.  If it was
-entered by view-file, view-file-other-window or view-file-other-frame (\\[view-file],
-\\[view-file-other-window], \\[view-file-other-frame] or the dired mode v command), then \\[View-quit] will try to kill the
-current buffer.  If view-mode was entered from another buffer as is done by
-View-buffer, View-buffer-other-window, View-buffer-other frame, View-file,
-View-file-other-window or View-file-other-frame then \\[view-leave] , \\[view-quit] and \\[view-kill-and-leave] will return
-to that buffer.
+entered by view-file, view-file-other-window or view-file-other-frame
+\(\\[view-file], \\[view-file-other-window], \\[view-file-other-frame] or the dired mode v command), then \\[View-quit] will
+try to kill the current buffer.  If view-mode was entered from another buffer
+as is done by View-buffer, View-buffer-other-window, View-buffer-other frame,
+View-file, View-file-other-window or View-file-other-frame then \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave]
+will return to that buffer.
 
 Entry to view-mode runs the normal hook `view-mode-hook'."
   (interactive "P")
@@ -478,7 +481,7 @@ OLD-BUF-INFO tells what to do with WINDOW when exiting.  It is one of:
 2) t         Delete WINDOW or, if it is the only window, its frame.
 3) (OLD-BUFF START POINT)  Display buffer OLD-BUFF with displayed text
                            starting at START and point at POINT in WINDOW.
-4) quit-window   Do quit-window in WINDOW.
+4) quit-window   Do `quit-window' in WINDOW.
 
 For list of all View commands, type H or h while viewing.
 
@@ -511,10 +514,10 @@ WINDOW is a window displaying the current buffer.
 OLD-WINDOW is nil or a window to select after viewing.
 OLD-BUF-INFO is information on what to do with WINDOW and is one of:
 1) nil       Do nothing.
-2) t         Delete WINDOW or, if it is the only window, its frame.
+2) t         Delete WINDOW and, if it is the only window, its frame.
 3) (OLD-BUF START POINT)  Display buffer OLD-BUF with displayed text
                           starting at START and point at POINT in WINDOW.
-4) quit-window   Do quit-window in WINDOW.
+4) quit-window   Do `quit-window' in WINDOW.
 
 If one of the WINDOW in RETURN-TO-ALIST is the selected window and the
 corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
@@ -522,7 +525,7 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 	(and return-to-alist (or all-win view-exits-all-viewing-windows)))
   (if view-mode		; Only do something if in view mode.
       (let* ((buffer (current-buffer))
-	     window
+	     window notlost
 	     (sel-old (assq (selected-window) return-to-alist))
 	     (alist (cond
 		     (all-win		; Try to restore all windows.
@@ -543,6 +546,7 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 	(or view-no-disable-on-exit
 	    (view-mode-disable))
 	(while alist			; Restore windows with info.
+	  (setq notlost nil)
 	  (if (and (window-live-p (setq window (car (car alist))))
 		   (eq buffer (window-buffer window)))
 	      (let ((frame (window-frame window))
@@ -555,19 +559,22 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
 		  (set-window-start window (car (cdr old-buf-info)))
 		  (set-window-point window (car (cdr (cdr old-buf-info)))))
 		 ((eq old-buf-info 'quit-window)
-		  (quit-window)) ; Not case 2, do nothing.
+		  (quit-window))	; Case 4.
 		 ((not (eq old-buf-info t)) nil) ; Not case 2, do nothing.
 		 ((not (one-window-p t)) (delete-window))
 		 ((not (eq frame (next-frame)))
 		  ;; Not the only frame, so can safely be removed.
 		  (if view-remove-frame-by-deleting
 		      (delete-frame frame)
+		    (setq notlost t)	; Keep the window. See below.
 		    (iconify-frame frame))))))
-	  ;; Altering view-return-to-alist causes trouble when
-	  ;; the user deiconifies the frame, then types q again.
-	  ;; If we leave view-return-to-alist unchanged, that
-	  ;; iconifies the frame again, as expected.
-;;;	  (setq view-return-to-alist (delete (car alist) view-return-to-alist))
+	  ;; If a frame is removed by iconifying it, then the window is not
+	  ;; really lost.  In this case we keep the entry in
+	  ;; view-return-to-alist so that if the user deiconifies the frame
+	  ;; and then press q, then the frame is iconified again.
+	  (unless notlost
+	    (setq view-return-to-alist
+		  (delete (car alist) view-return-to-alist)))
 	  (setq alist (cdr alist)))
 	(if (window-live-p old-window)	; still existing window
 	    (select-window old-window))
@@ -766,7 +773,7 @@ If LINES is more than a window-full, only the last window-full is shown."
   (interactive "P")
   (view-scroll-lines lines nil view-page-size nil))
 
-(defun View-scroll-page-backward (&optional lines) 
+(defun View-scroll-page-backward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines backward in View mode.
 See also `View-scroll-page-forward'."
   (interactive "P")
@@ -862,7 +869,7 @@ for use by later search commands.
 
 The variable `view-highlight-face' controls the face that is used
 for highlighting the match that is found."
-  (interactive "p\nsSearch forward (regexp): ") 
+  (interactive "p\nsSearch forward (regexp): ")
   (view-search n regexp))
 
 (defun View-search-regexp-backward (n regexp)
