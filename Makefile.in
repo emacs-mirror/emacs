@@ -317,7 +317,7 @@ install-arch-dep: mkdir
 
 ## Note that we copy DOC* and then delete DOC
 ## as a workaround for a bug in tar on Ultrix 4.2.
-install-arch-indep: mkdir
+install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	for dir in ${COPYDIR} ; do \
@@ -431,7 +431,7 @@ install-leim: leim/Makefile mkdir
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
-	$(MAKE) INSTALL_STRIP=-s
+	$(MAKE) INSTALL_STRIP=-s install
 
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
