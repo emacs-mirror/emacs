@@ -801,8 +801,9 @@ with `delete-process'.")
   Freplace_buffer_in_windows (buf);
   Vinhibit_quit = tem;
 
-  /* Delete any auto-save file.  */
-  if (XTYPE (b->auto_save_file_name) == Lisp_String)
+  /* Delete any auto-save file, if we saved it in this session.  */
+  if (XTYPE (b->auto_save_file_name) == Lisp_String
+      && b->auto_save_modified != 0)
     {
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
