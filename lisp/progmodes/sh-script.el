@@ -321,10 +321,14 @@ shell it really is."
 (defcustom sh-imenu-generic-expression
   `((sh
      . ((nil "^\\s-*\\(function\\s-+\\)?\\([A-Za-z_][A-Za-z_0-9]+\\)\\s-*()" 2))))
-  "*Regular expression for recognizing shell function definitions.
-See `sh-feature'."
-  :type '(repeat (cons (symbol :tag "Shell")
-		       regexp))
+  "*Alist of regular expressions for recognizing shell function definitions.
+See `sh-feature' and `imenu-generic-expression'."
+  :type '(alist :key-type (symbol :tag "Shell")
+		:value-type (alist :key-type (choice :tag "Title"
+						     string
+						     (const :tag "None" nil))
+				   :value-type
+				   (repeat :tag "Regexp, index..." sexp)))
   :group 'sh-script
   :version "20.4")
 
