@@ -1,3 +1,8 @@
+2000-10-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (decode_coding): Fix previous change (check also
+	CODING_MODE_LAST_BLOCK).
+
 2000-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c: More `unsigned char' -> `re_char' changes.
