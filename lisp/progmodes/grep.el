@@ -527,7 +527,8 @@ This command uses a special history list for its arguments, so you can
 easily repeat a find command."
   (interactive
    (progn
-     (unless grep-find-command
+     (unless (and grep-command
+		  (or (not grep-use-null-device) (eq grep-use-null-device t)))
        (grep-compute-defaults))
      (if grep-find-command
 	 (list (read-from-minibuffer "Run find (like this): "
