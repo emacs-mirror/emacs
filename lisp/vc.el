@@ -282,7 +282,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	      ;; Move the pointer up to find the error we were at before
 	      ;; reparsing.  Now next-error should properly go to the next one.
 	      (while (and compilation-error-list
-			  (/= error-pos (car (car errors))))
+			  (/= error-pos (car (car compilation-error-list))))
 		(setq compilation-error-list (cdr compilation-error-list))))))
       (setq reparse (cdr reparse)))
 
