@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (C) 2002 Global Graphics Software.
+ * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is the interface to the manual-variable pool class.
  *

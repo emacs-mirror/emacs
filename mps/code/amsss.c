@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Copyright (c) 2002 Global Graphics Software.
+ * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
  * total size of objects allocated (because epoch doesn't increment when
