@@ -3,6 +3,7 @@
 ;; Copyright (C) 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@unice.fr>
+;; Maintainer: FSF
 ;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
