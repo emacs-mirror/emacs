@@ -253,7 +253,7 @@ extern INLINE void temp_set_point_both P_ ((struct buffer *, int, int));
    These macros do not check that the position is in range.  */
 
 /* Access a Lisp position value in POS,
-   and store the charpos in CHARPOS and the bypepos in BYPEPOS.  */
+   and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
 
 #define DECODE_POSITION(charpos, bytepos, pos)			\
 if (1)								\
