@@ -1,3 +1,14 @@
+2004-10-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-split-string): Use
+	`flymake-split-string-remove-empty-edges' in any case.
+	
+2004-10-26  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/flymake.el (flymake-err-line-patterns): 
+	Use `compilation-error-regexp-alist-alist' instead of 
+	`compilation-error-regexp-alist'.
+
 2004-10-25  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-incom.el (calc-digit-dots):  Inhibit read-only before
