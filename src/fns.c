@@ -1852,8 +1852,8 @@ merge (org_l1, org_l2, pred)
       tail = tem;
     }
 }
-
 
+
 DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
   "Extract a value from a property list.\n\
 PLIST is a property list, which is a list of the form\n\
@@ -1862,16 +1862,22 @@ corresponding to the given PROP, or nil if PROP is not\n\
 one of the properties on the list.")
   (plist, prop)
      Lisp_Object plist;
-     register Lisp_Object prop;
+     Lisp_Object prop;
 {
-  register Lisp_Object tail;
-  for (tail = plist; !NILP (tail); tail = Fcdr (XCDR (tail)))
+  Lisp_Object tail;
+  
+  for (tail = plist;
+       CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
     {
-      register Lisp_Object tem;
-      tem = Fcar (tail);
-      if (EQ (prop, tem))
-	return Fcar (XCDR (tail));
+      if (EQ (prop, XCAR (tail)))
+	return XCAR (XCDR (tail));
+      QUIT;
     }
+
+  if (!NILP (tail))
+    wrong_type_argument (Qlistp, prop);
+  
   return Qnil;
 }
 
@@ -1910,6 +1916,7 @@ The PLIST is modified by side effects.")
 	  return plist;
 	}
       prev = tail;
+      QUIT;
     }
   newcell = Fcons (prop, Fcons (val, Qnil));
   if (NILP (prev))
