@@ -713,8 +713,6 @@ is the string or buffer containing the text.")
   register int s, len;
 
   props = validate_plist (props);
-  if (NILP (props))
-    return Qnil;
 
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
